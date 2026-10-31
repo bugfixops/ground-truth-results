@@ -1,0 +1,55 @@
+    28	public class MsgMainViewModel extends ViewModel
+    29	{
+    30	    private PublishSubject<String> torrentDetailsOpenedEvents = PublishSubject.create();
+    31	    private PublishSubject<Boolean> torrentDetailsClosedEvents = PublishSubject.create();
+    32	
+    33	    public void torrentDetailsOpened(@NonNull String id)
+    34	    {
+    35	        torrentDetailsOpenedEvents.onNext(id);
+    36	    }
+    37	
+    38	    public Observable<String> observeTorrentDetailsOpened()
+    39	    {
+    40	        return torrentDetailsOpenedEvents;
+    41	    }
+    42	
+    43	    public void torrentDetailsClosed()
+    44	    {
+    45	        torrentDetailsClosedEvents.onNext(true);
+    46	    }
+    47	
+    48	    public Observable<Boolean> observeTorrentDetailsClosed()
+    49	    {
+    50	        return torrentDetailsClosedEvents;
+    51	    }
+    52	}
+   378	    @Override
+   379	    public void onItemClicked(@NonNull TorrentListItem item)
+   380	    {
+   381	        if (Utils.isTwoPane(activity))
+   382	            adapter.markAsOpen(item);
+   383	        msgViewModel.torrentDetailsOpened(item.torrentId);
+   384	    }
+   437	    private void subscribeMsgViewModel() {
+   438	        disposables.add(msgViewModel.observeTorrentDetailsOpened()
+   439	                .observeOn(AndroidSchedulers.mainThread())
+   440	                .subscribe(this::showDetailTorrent));
+   441	
+   442	        disposables.add(msgViewModel.observeTorrentDetailsClosed()
+   443	                .observeOn(AndroidSchedulers.mainThread())
+   444	                .subscribe((__) -> showBlankFragment()));
+   445	
+   446	        disposables.add(viewModel.observeTorrentsDeleted()
+   447	                .subscribeOn(Schedulers.io())
+   448	                .observeOn(AndroidSchedulers.mainThread())
+   449	                .subscribe((id) -> {
+   450	                    DetailTorrentFragment f = getCurrentDetailFragment();
+   451	                    if (f != null && id.equals(f.getTorrentId()))
+   452	                        showBlankFragment();
+   453	                }));
+   454	    }
+   806	    public void onFragmentFinished(@NonNull Fragment f, Intent intent,
+   807	                                   @NonNull ResultCode code) {
+   808	        if (f instanceof DetailTorrentFragment && Utils.isTwoPane(this))
+   809	            msgViewModel.torrentDetailsClosed();
+   810	    }

@@ -1,0 +1,28 @@
+# Batch 87 printed evidence
+
+Plan extraction:
+```sh
+awk -F '\\t' '$1==87 {print $3 "\\t" $4}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+```
+Result: 40 exact plan rows; full descriptors in report.
+
+Bounded source scan:
+```sh
+rg -n 'addTrackersDialog|checkAddTrackersField|deleteTorrent|deleteTorrentDialog|finish|getTorrentId|handleTorrentInfo|initAddTrackersDialog|initSpeedLimitDialog|subscribeAlertDialog|subscribeFreeSpaceError|subscribeMsgViewModel|subscribeTorrentInfo|newInstance|onAttach|onBackPressed|onCreateOptionsMenu|onCreateView|onOptionsItemSelected|onPrepareOptionsMenu|onSaveInstanceState|onStart|onStop|prepareOptionsMenu|saveErrorTorrentFileDialog|setSpeedLimit|setTabLayoutColor|setTorrentId|shareMagnet|shareMagnetDialog|showFiles' .../ui/detailtorrent/DetailTorrentFragment.java
+```
+Output excerpts read:
+```
+:115 newInstance; :124 getTorrentId; :129 setTorrentId; :134 showFiles
+:139 onAttach; :148 onCreateView; :156 onViewCreated; :167 assigns view model torrent id
+:224 onStart; :228-231 subscriptions; :237 onStop; :243 onSaveInstanceState
+:251 subscribeTorrentInfo; :268 handleTorrentInfo subscription
+:297 subscribeAlertDialog; :306-349 dialog event branches invoke delete/share/add trackers/speed-limit handlers
+:356 handleTorrentInfo; :413 onCreateOptionsMenu; :421 onPrepareOptionsMenu; :428 menu prep
+:452 onOptionsItemSelected; :460 delete; :466 share; :470 add-tracker dialog
+:478 deleteTorrentDialog; :498 shareMagnetDialog; :518 addTrackersDialog
+:548 saveErrorTorrentFileDialog; :586 deleteTorrent; :596 shareMagnet
+:608 initAddTrackersDialog; :644 checkAddTrackersField; :689 addTrackers; :739 initSpeedLimitDialog
+:766 setSpeedLimit; :822 onBackPressed; :827 finish
+```
+This is partial local caller evidence. Full route and condition verification was not completed for all plan members; all 40 remain OPEN.
+

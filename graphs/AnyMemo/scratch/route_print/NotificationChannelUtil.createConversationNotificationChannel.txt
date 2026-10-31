@@ -1,0 +1,74 @@
+METHOD: NotificationChannelUtil.createConversationNotificationChannel
+verdict: REACHABLE   steps_from_launch: 5
+route steps: 5 edges
+======================================================================
+
+STEP 1  edge Ef3365f92
+  S_ENTRY -> AMApplication.<init>
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC AndroidManifest.xml:20; FW-SRC core/java/android/app/Application.java (Application.onCreate called once at process start)
+  cite [SRC] AndroidManifest.xml:20
+    (resolved to final_java_only/AnyMemo/app/AnyMemo-#10.12.2/app/src/main/AndroidManifest.xml)
+       20:         android:name=".common.AMApplication"
+
+STEP 2  edge Eccdaf854
+  AMApplication.<init> -> AMApplication.attachBaseContext
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC core/java/android/app/Application.java (Application.onCreate called once at process start); SRC AMApplication.java:56-60
+  cite [SRC] AMApplication.java:56-60
+    (resolved to final_java_only/AnyMemo/app/AnyMemo-#10.12.2/app/src/main/java/org/liberty/android/fantastischmemo/common/AMApplication.java)
+       56:     @Override
+       57:     protected void attachBaseContext(Context base) {
+       58:         super.attachBaseContext(base);
+       59: 
+       60:     }
+
+STEP 3  edge E76a773c7
+  AMApplication.attachBaseContext -> AMApplication.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC core/java/android/app/Application.java (Application.onCreate called once at process start); SRC AMApplication.java:62-73
+  cite [SRC] AMApplication.java:62-73
+    (resolved to final_java_only/AnyMemo/app/AnyMemo-#10.12.2/app/src/main/java/org/liberty/android/fantastischmemo/common/AMApplication.java)
+       62:     @Override
+       63:     public void onCreate() {
+       64:         super.onCreate();
+       65:         currentApplicationContext = this;
+       66:         AMEnv.init(this);
+       67: 
+       68:         appComponents = DaggerAppComponents.builder()
+       69:                 .application(this)
+       70:                 .build();
+       71:         appComponents.inject(this);
+       72:         notificationChannelUtil.createNotificationChannels();
+       73:     }
+
+STEP 4  edge E59c50255
+  AMApplication.onCreate -> NotificationChannelUtil.createNotificationChannels
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC AMApplication.java:72 (bytecode)
+  cite [SRC] AMApplication.java:72
+    (resolved to final_java_only/AnyMemo/app/AnyMemo-#10.12.2/app/src/main/java/org/liberty/android/fantastischmemo/common/AMApplication.java)
+       72:         notificationChannelUtil.createNotificationChannels();
+
+STEP 5  edge E53a88770
+  NotificationChannelUtil.createNotificationChannels -> NotificationChannelUtil.createConversationNotificationChannel
+  class: explicit   kind: CALL
+  guard: Build.VERSION.SDK_INT >= Build.VERSION_CODES.O (API 26+; always true on API 27) (NotificationChannelUtil.java:36)
+  needs_state: None
+  env: None
+  evidence: SRC NotificationChannelUtil.java:43 (bytecode)
+  cite [SRC] NotificationChannelUtil.java:43
+    (resolved to final_java_only/AnyMemo/app/AnyMemo-#10.12.2/app/src/main/java/org/liberty/android/fantastischmemo/utils/NotificationChannelUtil.java)
+       43:             notificationChannelList.add(createConversationNotificationChannel());

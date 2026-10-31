@@ -1,0 +1,24 @@
+# Batch 111 printed evidence
+
+Plan extraction:
+```sh
+awk -F '\\t' '$1==111 {print $3 "\\t" $4}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+```
+Output: 40 exact rows; all descriptors appear in the report table.
+
+Bounded source scan:
+```sh
+rg -n 'onActionItemClicked|onCreateActionMode|onDestroyActionMode|onPrepareActionMode|class MainViewModel|deleteTag|deleteTorrents|forceAnnounceTorrents|forceRecheckTorrents|getAllTorrentsInfoSingle|getFilter|getSorting|observeAllTorrentsInfo|observeForceSortAndFilter|observeNeedStartEngine|observeTags|observeTorrentsDeleted|pauseAll|pauseResumeTorrent|requestStopEngine|resetSearch|restartForegroundNotification|resumeAll|setDateAddedFilter|setSearchQuery|setSort|setStatusFilter|setTagFilter|startEngine|stopEngine|class MsgMainViewModel' .../ui/main/{MainFragment,MainViewModel,MsgMainViewModel}.java
+```
+Key output read:
+```
+MainViewModel.java:48 class; :77 observe torrents; :81 single query; :89 sort; :95 sorting
+:99/:105/:111 filters; :118 get filter; :125 search; :130 reset; :134 force sort/filter
+:138 pause/resume; :142 delete; :146 recheck; :150 announce; additional engine/tag methods through :186
+MsgMainViewModel.java:28 class; :33-50 opened/closed event publication/observation
+MainFragment.java:287-293 list stream/filter/sort; :311-318 delete dialog events
+:327-352 sort/filter and deleted subscriptions; :370-389 detail open/pause
+:460-501 action-mode callbacks; :475 dispatches delete/recheck/announce; :508 dialog
+```
+These are local links only; app-entry path and all callback/lifecycle dispatch remain unverified. All 40 stay OPEN.
+

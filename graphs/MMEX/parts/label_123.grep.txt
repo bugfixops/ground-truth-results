@@ -1,0 +1,131 @@
+# label_123 grep evidence (run from /Users/darshan/Desktop/yang/work). Source root: final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java
+# Batch 123: SyncManager (31 incl. SyncManager$1.<init>), SyncManager_Factory (4), SyncManager_MembersInjector (5).
+# Sections: A-G one per UNREACHABLE source method (all textual hits, comments included); H Dagger-generated classes (INFERRED);
+# I route records for the REACHABLE rows; J names whose callers sit in unmerged batches 125 and 126; K the sup pairs written in label_123.py.
+# Auto-record queries (K and the "no dst" notes) were run with an inline `python3 -I -` script over graphs/MMEX/auto_calls.json; no file was written.
+
+## A. SyncManager.resetPreferences (UNREACHABLE)
+$ grep -rn -F "resetPreferences" "<source root>"
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferencesViewHolder.java:36:    public Preference resetPreferences;
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferencesViewHolder.java:46:        resetPreferences = view.findPreference(view.getString(R.string.pref_reset_preferences));
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferenceFragment.java:252:        viewHolder.resetPreferences.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferenceFragment.java:262://                            sync.resetPreferences();
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncManager.java:256:    void resetPreferences() {
+Read of the listener (SyncPreferenceFragment.java:252-276): the listener body at 255 calls getSyncManager(), then lines 256-273 are a commented-out sync.logout() chain (the call at 262 is inside it); line 274 returns false.
+Read of the method (SyncManager.java:256-258): body is getPreferences().clear().
+auto_calls.json: no record with dst SyncManager.resetPreferences (0 callers).
+The first two hits are fields of SyncPreferencesViewHolder, not calls to the method.
+
+## B. SyncManager.abortScheduledUpload (UNREACHABLE)
+$ grep -rn -F "abortScheduledUpload" "<source root>"
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncManager.java:82:    public void abortScheduledUpload() {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncManager.java:220:        // abortScheduledUpload();
+auto_calls.json: no record with dst SyncManager.abortScheduledUpload (0 callers). Line 220 is a // comment.
+
+## C. SyncManager.scheduleDelayedUpload (UNREACHABLE)
+$ grep -rn -F "scheduleDelayedUpload" "<source root>"
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncManager.java:150:        //    scheduleDelayedUpload();
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncManager.java:496:    private void scheduleDelayedUpload() {
+auto_calls.json: no record with dst SyncManager.scheduleDelayedUpload (0 callers). Line 150 is a // comment, inside dataChanged (130-151).
+
+## D. SyncManager.getPendingIntentForDelayedUpload (UNREACHABLE)
+$ grep -rn -F "getPendingIntentForDelayedUpload" "<source root>"
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncManager.java:85:        PendingIntent pendingIntent = getPendingIntentForDelayedUpload();
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncManager.java:497:        PendingIntent pendingIntent = getPendingIntentForDelayedUpload();
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncManager.java:506:    private PendingIntent getPendingIntentForDelayedUpload() {
+auto_calls.json dst query: SyncManager.abortScheduledUpload (85) and SyncManager.scheduleDelayedUpload (497). Both callers are UNREACHABLE (sections B and C).
+
+## E. SyncManager.getAlarmManager (UNREACHABLE)
+$ grep -rn -F "getAlarmManager" "<source root>"
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncManager.java:86:        getAlarmManager().cancel(pendingIntent);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncManager.java:498:        AlarmManager alarm = getAlarmManager();
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncManager.java:521:    private AlarmManager getAlarmManager() {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncSchedulerBroadcastReceiver.java:57:        AlarmManager alarmManager = getAlarmManager(context);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncSchedulerBroadcastReceiver.java:70:    private AlarmManager getAlarmManager(Context context) {
+auto_calls.json dst query: SyncManager.abortScheduledUpload (86) and SyncManager.scheduleDelayedUpload (498). Both UNREACHABLE.
+The SyncSchedulerBroadcastReceiver hits are a different method (a private overload with a Context parameter, in another class) and do not call SyncManager.getAlarmManager().
+
+## F. SyncManager.getExternalStorageDirectoryForSync (UNREACHABLE)
+$ grep -rn -F "getExternalStorageDirectoryForSync" "<source root>"
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncManager.java:456:    private File getExternalStorageDirectoryForSync() {
+auto_calls.json dst query: 0 callers. The only hit is the declaration.
+
+## G. SyncManager.areFileNamesSame (UNREACHABLE)
+$ grep -rn -F "areFileNamesSame" "<source root>"
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncManager.java:315://        if (!areFileNamesSame(localPath, remotePath)) {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncManager.java:399:    private boolean areFileNamesSame(String localPath, String remotePath) {
+auto_calls.json: no record with dst SyncManager.areFileNamesSame and no outgoing record (0 callers, 0 callees). Line 315 is a // comment.
+
+## H. Dagger-generated classes: SyncManager_Factory (4 methods) and SyncManager_MembersInjector (5 methods)
+Generated code is not in the source root. Build output root: final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes
+$ grep -rn -F -e SyncManager_Factory -e SyncManager_MembersInjector -e "MembersInjector<SyncManager" -e "Provider<SyncManager>" -e "Lazy<SyncManager>" "<source root>"
+(no output: no app source names either generated class, or a Provider or Lazy of SyncManager)
+$ grep -rl -a -F SyncManager_Factory "<classes root>" --include='*.class'
+.../com/money/manager/ex/sync/SyncManager_Factory.class (self-reference only; no other class names it)
+$ grep -rl -a -F SyncManager_MembersInjector "<classes root>" --include='*.class'
+.../com/money/manager/ex/core/ioc/DaggerMmxComponent.class
+.../com/money/manager/ex/sync/SyncManager_Factory.class
+.../com/money/manager/ex/sync/SyncManager_MembersInjector.class (self-reference)
+Constant-pool parse (inline python3 -I -, Methodref/InterfaceMethodref/Fieldref entries whose class contains SyncManager):
+  DaggerMmxComponent.class: SyncManager_MembersInjector.injectDateTimeUtilsLazy(SyncManager, Lazy)V; SyncManager_MembersInjector.injectMDatabases(SyncManager, Lazy)V. Nothing else. So DaggerMmxComponent calls only the two static injectors (auto records DaggerMmxComponent.java:544 and 546); create, <init> and injectMembers are not referenced.
+  SyncManager_Factory.class: its own Factory.get, Factory.<init>(Provider x3), the two MembersInjector static injectors (lines 34, 36 of get), and SyncManager.<init>(Context) (used by get and newSyncManager; the <clinit> records are auto-only, not constant-pool entries). No reference to Factory.create or Factory.newSyncManager from any other class.
+  SyncManager_MembersInjector.class: its own <init>(Provider x2), create, injectMembers(SyncManager), injectMDatabases, injectDateTimeUtilsLazy; SyncManager.dateTimeUtilsLazy and SyncManager.mDatabases (Lazy fields) are referenced.
+Verdict: SyncManager_Factory has no caller outside itself, so get, create, newSyncManager and <init> are unreferenced. SyncManager_MembersInjector.create and <init> are referenced only from the unreferenced create; injectMembers is never referenced. injectDateTimeUtilsLazy and injectMDatabases are REACHABLE through DaggerMmxComponent.injectSyncManager (section I).
+Auto records (python query): SyncManager_Factory.get -> SyncManager.<clinit> (33), SyncManager_MembersInjector.injectMDatabases (36), injectDateTimeUtilsLazy (34), SyncManager.<init> (33); SyncManager_Factory.create -> SyncManager_Factory.<init> (44); SyncManager_Factory.newSyncManager -> SyncManager.<clinit> (48), SyncManager.<init> (48); SyncManager_MembersInjector.create -> SyncManager_MembersInjector.<init> (30); SyncManager_MembersInjector.injectMembers -> injectMDatabases (36), injectDateTimeUtilsLazy (35). No record has any of these 8 generated methods as dst.
+
+## I. Route records for the REACHABLE rows (auto_calls.json; the caller labels are the merged ones)
+MainActivity.initializeSync (label_080 REACHABLE, called from onCreate at 242): new SyncManager (1211, gives <clinit> and <init>), isActive (1212), startSyncServiceHeartbeat (1218, after the isActive gate and the interval check at 1217), triggerSynchronization (1224, behind syncOnStart at 1222-1223). Source: final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java:1210-1229.
+MainActivity.onEvent(DbFileDownloadedEvent) (label_080, ASYNC): useDownloadedDatabase (529), <init> and <clinit> (529).
+MainActivity.onDrawerMenuAndOptionMenuSelected (label_080, CALL): <clinit> and <init> (614), triggerSynchronization (615).
+SyncBroadcastReceiver.onReceive (label_122 REACHABLE): <clinit> and <init> (39), canSync (40), triggerSynchronization (45).
+PriceEditActivity.save (label_088 REACHABLE): <clinit>, dataChanged, <init> (223).
+WatchlistFragment$9.onClick (label_093 REACHABLE, GUI): <clinit>, dataChanged, <init> (625).
+WatchlistFragment$2.run (label_092 REACHABLE, FRAMEWORK): <clinit>, dataChanged, <init> (411).
+MmxContentProvider.notifyChange (label_003 REACHABLE): <clinit>, dataChanged, <init> (493).
+MmxOpenHelper.onUpgrade (label_051 REACHABLE): <clinit>, dataChanged, <init> (129).
+SqlRepositoryBase.notifySync (label_057 REACHABLE): <clinit>, dataChanged, <init> (132).
+AllDataListFragment.setStatusCheckingAccount (label_021 REACHABLE): <clinit>, disableAutoUpload (669), <init> (667), enableAutoUpload (695), dataChanged (696).
+AllDataListFragment$3.onClick (label_021 REACHABLE, FRAMEWORK): <clinit>, <init> (716), disableAutoUpload (719), enableAutoUpload (764), dataChanged (765).
+DatabaseMetadataFactory.createDefaultEntry (label_075 REACHABLE): <clinit>, getRemoteLastModifiedDatePreferenceFor (79), <init> (76).
+DaggerMmxComponent.injectSyncManager (label_044 REACHABLE): injectDateTimeUtilsLazy (544), injectMDatabases (546). DaggerMmxComponent.inject(SyncManager) (label_043 REACHABLE) is reached from SyncManager.<init> (SyncManager.java:71, cha).
+EditPriceDialog$2.onClick (label_085 UNREACHABLE): calls dataChanged (89), <init> (90), <clinit> (88). These three are cut in label_085.py (sup), so this caller contributes no route.
+SyncManager.dataChanged and the other internal callers: see the rows in label_123.md, each with its one auto record.
+
+## J. Names whose callers sit in unmerged batches 125 and 126
+Batch 125 (SyncPreferenceFragment, SyncPreferenceFragment$3 and $5): the only live callers of setEnabled, setSyncInterval, stopSyncServiceAlarm, triggerDownload and triggerUpload.
+$ grep -rn -F "setEnabled(" "<source root>"  (SyncManager-related hits only)
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncManager.java:260:    public void setEnabled(boolean enabled) {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferenceFragment.java:185:                getSyncManager().setEnabled(enabled);
+$ grep -rn -F "setSyncInterval(" "<source root>"  (SyncManager-related hits only)
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncManager.java:264:    public void setSyncInterval(int minutes) {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferenceFragment.java:215:                sync.setSyncInterval(interval);
+$ grep -rn -F "stopSyncServiceAlarm(" "<source root>"  (SyncManager-related hits only)
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncManager.java:283:    public void stopSyncServiceAlarm() {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferenceFragment.java:189:                    getSyncManager().stopSyncServiceAlarm();
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferenceFragment.java:222:                sync.stopSyncServiceAlarm();
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferenceFragment.java:263://                            sync.stopSyncServiceAlarm();
+$ grep -rn -F "triggerDownload(" "<source root>"
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncManager.java:356:    public void triggerDownload() {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferenceFragment.java:308:        getSyncManager().triggerDownload();
+$ grep -rn -F "triggerUpload(" "<source root>"
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncManager.java:360:    public void triggerUpload() {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferenceFragment.java:319:            getSyncManager().triggerUpload();
+Enclosing methods in batch 125: setEnabled from SyncPreferenceFragment$3.onPreferenceChange (185); setSyncInterval from $5.onPreferenceChange (215); stopSyncServiceAlarm from $3.onPreferenceChange (189) and $5.onPreferenceChange (222); triggerDownload from forceDownload (307-308, private; called at 236, 298, 303); triggerUpload from forceUpload (311-319, private; called at 246).
+Batch 126 (SyncSchedulerBroadcastReceiver.startHeartbeat, lines 74-91): calls isSyncEnabled (76), MmxDate.getMillis (91) and <clinit>, <init> (75). This is the only extra caller of MmxDate.getMillis besides SyncManager.scheduleDelayedUpload (503). The isSyncEnabled route through 126 is not used; the merged route through isActive (SyncManager.java:232) is enough.
+$ grep -rn -F "startHeartbeat(" "<source root>"
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncSchedulerBroadcastReceiver.java:67:        startHeartbeat(context, alarmManager, pendingSyncIntent);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncSchedulerBroadcastReceiver.java:74:    private void startHeartbeat(Context context, AlarmManager alarmManager, PendingIntent pendingIntent) {
+
+## K. sup pairs written in label_123.py (D14), with the auto record line of each
+resetPreferences -> SyncManager.getPreferences (257)
+abortScheduledUpload -> getPendingIntentForDelayedUpload (85), -> getAlarmManager (86)
+scheduleDelayedUpload -> getPendingIntentForDelayedUpload (497), -> getAlarmManager (498), -> MmxDate.getMillis (503), -> MmxDate.<init>() (503)
+getPendingIntentForDelayedUpload -> getContext (516), -> RecentDatabasesProvider.getCurrent (507), -> getDatabases (507)
+getAlarmManager -> getContext (522)
+getExternalStorageDirectoryForSync -> getContext (468), -> DatabaseManager.<init> (459), -> DatabaseManager.getDefaultDatabaseDirectory (460)
+SyncManager_Factory.get -> SyncManager.<clinit> (33), -> SyncManager.<init> (33), -> injectDateTimeUtilsLazy (34), -> injectMDatabases (36)
+SyncManager_Factory.create -> SyncManager_Factory.<init> (44)
+SyncManager_Factory.newSyncManager -> SyncManager.<clinit> (48), -> SyncManager.<init> (48)
+SyncManager_MembersInjector.create -> SyncManager_MembersInjector.<init> (30)
+SyncManager_MembersInjector.injectMembers -> injectDateTimeUtilsLazy (35), -> injectMDatabases (36)
+Total: 24 pairs written here, plus the SyncManager.resetPreferences -> SyncPreferences.clear pair that label_121.py already writes. No e() edge is written.

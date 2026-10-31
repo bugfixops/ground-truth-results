@@ -1,0 +1,280 @@
+# batch 106 grep and sed evidence for graphs/MMEX/parts/label_106.md and label_106.py
+# Every section prints the command it ran. There is no UNREACHABLE decision in batch 106,
+# so the sections record the route of each method: entry, lifecycle, framework dispatch,
+# GUI, and the auto_calls.json records (section J) for the direct calls.
+
+### A1 drawer or options menu case that starts the payee report (MainActivity)
+$ grep -nE menu_report_payees|PayeesReportActivity /Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java
+96:import com.money.manager.ex.reports.PayeesReportActivity;
+667:            case R.id.menu_report_payees:
+668:                startActivity(new Intent(this, PayeesReportActivity.class));
+898:        childReports.add(new DrawerMenuItem().withId(R.id.menu_report_payees)
+
+### A2 manifest entry for the activity (no intent-filter expected)
+$ grep -n -A2 PayeesReportActivity /Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/AndroidManifest.xml
+290:            android:name=".reports.PayeesReportActivity"
+291-            android:label="@string/payee" />
+292-        <activity
+
+### A3 options menu item
+$ grep -n menu_report_payees /Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/res/menu/menu_main.xml
+107:                    android:id="@+id/menu_report_payees"
+
+### B1 PayeesReportActivity: layout, dual panel flag, fragment transaction
+$ grep -nE setContentView|mIsDualPanel|fragmentChart|PayeeReportFragment|beginTransaction|commit /Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/PayeesReportActivity.java
+29:    public boolean mIsDualPanel = false;
+34:        setContentView(R.layout.report_chart_fragments_activity);
+44:        mIsDualPanel = findViewById(R.id.fragmentChart) != null;
+46:        PayeeReportFragment fragment = new PayeeReportFragment();
+50:            fm.beginTransaction().add(R.id.fragmentMain, fragment, PayeeReportFragment.class.getSimpleName()).commit();
+
+### C1 PayeeReportFragment: calls to batch methods and framework hooks
+$ grep -nE showChart|postDelayed|new Handler|new Runnable|setHasOptionsMenu|menu_chart|mIsDualPanel|startLoader|getPayeeFromSelectedItem|showSearchActivityFor|getSubTitle|onQueryTextChange|onListItemClick|prepareQuery|onLoadFinished|onCreateOptionsMenu|onOptionsItemSelected|onActivityCreated /Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/PayeeReportFragment.java
+63:    public void onActivityCreated(Bundle savedInstanceState) {
+95:        super.onActivityCreated(savedInstanceState);
+99:    protected boolean onQueryTextChange(String newText) {
+124:        startLoader(args);
+125:        return super.onQueryTextChange(newText);
+129:    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+130:        super.onLoadFinished(loader, data);
+154:            if (((PayeesReportActivity) getActivity()).mIsDualPanel) {
+155:                Handler handler = new Handler();
+156:                handler.postDelayed(new Runnable() {
+160:                        showChart();
+168:    protected String prepareQuery(String whereClause) {
+195:    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+196:        super.onCreateOptionsMenu(menu, inflater);
+199:        MenuItem itemChart = menu.findItem(R.id.menu_chart);
+201:            itemChart.setVisible(!(((PayeesReportActivity) getActivity()).mIsDualPanel));
+208:    public boolean onOptionsItemSelected(MenuItem item) {
+209:        if (item.getItemId() == R.id.menu_chart) {
+210:            showChart();
+213:        return super.onOptionsItemSelected(item);
+216:    public void showChart() {
+258:            if (((PayeesReportActivity) getActivity()).mIsDualPanel) {
+273:    public String getSubTitle() {
+279:    public void onListItemClick(ListView l, View v, int position, long id) {
+280:        Payee payee = getPayeeFromSelectedItem(l, position);
+293:        showSearchActivityFor(parameters);
+296:    private Payee getPayeeFromSelectedItem(ListView l, int position) {
+317:    private void showSearchActivityFor(SearchParameters parameters) {
+
+### C2 BaseReportFragment (batch 103): the hooks that reach PayeeReportFragment
+$ grep -nE setHasOptionsMenu|onCreateLoader|startLoader|restartLoader|onLoadFinished|onCreate\(|onActivityCreated|onCreateOptionsMenu /Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/BaseReportFragment.java
+68:    public void onCreate(Bundle savedInstanceState) {
+69:        super.onCreate(savedInstanceState);
+75:    public void onActivityCreated(Bundle savedInstanceState) {
+76:        super.onActivityCreated(savedInstanceState);
+79:        setHasOptionsMenu(true);
+97:        startLoader(savedInstanceState);
+101:    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+102:        super.onCreateOptionsMenu(menu, inflater);
+116:    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+142:    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+222:        startLoader(args);
+261:    protected void startLoader(Bundle args) {
+262:        getLoaderManager().restartLoader(ID_LOADER, args, this);
+293:                        startLoader(args);
+
+### C3 BaseListFragment: search listener that calls onPreQueryTextChange
+$ grep -nE onPreQueryTextChange|onQueryTextChange|setSearchMenuVisible /Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/BaseListFragment.java
+127:                public boolean onQueryTextChange(String s) {
+128:                    return BaseListFragment.this.onPreQueryTextChange(s);
+173:    public void setSearchMenuVisible(boolean mShowMenuItemSearch) {
+221:    protected boolean onPreQueryTextChange(String newText) {
+226:        return onQueryTextChange(newText);
+229:    protected boolean onQueryTextChange(String newText) {
+
+### C4 AbsListFragment: item click listener that calls onListItemClick
+$ grep -nE onListItemClick|setOnItemClickListener /Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/core/AbsListFragment.java
+44:            onListItemClick((ListView) parent, v, position, id);
+115:    public void onListItemClick(ListView l, View v, int position, long id) {
+306:        mList.setOnItemClickListener(mOnClickListener);
+
+### C5 MmxBaseFragmentActivity: Up handling flag (never set by PayeesReportActivity)
+$ grep -nE mDisplayHomeAsUpEnabled /Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/MmxBaseFragmentActivity.java
+55:    private boolean mDisplayHomeAsUpEnabled = false;
+112:            if (mDisplayHomeAsUpEnabled) {
+245:    public void setDisplayHomeAsUpEnabled(boolean mDisplayHomeAsUpEnabled) {
+246:        this.mDisplayHomeAsUpEnabled = mDisplayHomeAsUpEnabled;
+247:        getSupportActionBar().setDisplayHomeAsUpEnabled(mDisplayHomeAsUpEnabled);
+
+### D1 PieChartFragment: sort, comparator, listener, options menu, back
+$ grep -nE Collections.sort|new Comparator|setOnChartValueSelectedListener|setHasOptionsMenu|onBackPressed|onNothingSelected|onValueSelected|buildChart|setChartArguments|setDisplayHomeAsUpEnabled|isDisplayHomeAsUpEnabled|getChartArguments|onResume|onSaveInstanceState|onCreateView|onCreate\( /Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/PieChartFragment.java
+74:    public void buildChart() {
+77:        Collections.sort(mPieCharts, new Comparator<ValuePieEntry>() {
+125:    public void onCreate(Bundle savedInstanceState) {
+126:        super.onCreate(savedInstanceState);
+130:                setChartArguments(savedInstanceState.getBundle(KEY_SAVED_INSTANCE));
+132:                setDisplayHomeAsUpEnabled(savedInstanceState.getBoolean(KEY_DISPLAY_AS_UP_ENABLED));
+138:            activity.getSupportActionBar().setDisplayHomeAsUpEnabled(isDisplayHomeAsUpEnabled());
+141:        setHasOptionsMenu(true);
+145:    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+146:        //return buildChart();
+170:        mChart.setOnChartValueSelectedListener(this);
+181:    public void onResume() {
+182:        super.onResume();
+183:        buildChart();
+189:            getActivity().onBackPressed();
+196:    public void onSaveInstanceState(Bundle outState) {
+197:        super.onSaveInstanceState(outState);
+198:        outState.putBundle(KEY_SAVED_INSTANCE, getChartArguments());
+199:        outState.putBoolean(KEY_DISPLAY_AS_UP_ENABLED, isDisplayHomeAsUpEnabled());
+205:    public Bundle getChartArguments() {
+212:    public void setChartArguments(Bundle mArguments) {
+219:    public boolean isDisplayHomeAsUpEnabled() {
+226:    public void setDisplayHomeAsUpEnabled(boolean mDisplayHomeAsUpEnabled) {
+231:    public void onValueSelected(Entry e, int dataSetIndex, Highlight h) {
+246:    public void onNothingSelected() {
+
+### E1 other app sources that create or show the payee report or the pie chart
+$ grep -rnE PieChartFragment|PayeeReportFragment|PayeesReportActivity /Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java:96:import com.money.manager.ex.reports.PayeesReportActivity;
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java:668:                startActivity(new Intent(this, PayeesReportActivity.class));
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/PayeesReportActivity.java:26:public class PayeesReportActivity
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/PayeesReportActivity.java:46:        PayeeReportFragment fragment = new PayeeReportFragment();
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/PayeesReportActivity.java:50:            fm.beginTransaction().add(R.id.fragmentMain, fragment, PayeeReportFragment.class.getSimpleName()).commit();
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/PieChartFragment.java:47:public class PieChartFragment
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/PieChartFragment.java:51:    private static final String LOGCAT = PieChartFragment.class.getSimpleName();
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/PieChartFragment.java:54://    public static final String KEY_TITLE = "PieChartFragment:Title";
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/PieChartFragment.java:55:    public static final String KEY_CATEGORIES_VALUES = "PieChartFragment:CategoriesValues";
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/PieChartFragment.java:56:    public static final String KEY_SAVED_INSTANCE = "PieChartFragment:SavedInstance";
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/PieChartFragment.java:57:    public static final String KEY_DISPLAY_AS_UP_ENABLED = "PieChartFragment:DisplayHomeAsUpEnabled";
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/BaseReportFragment.java:55:    protected static final String KEY_ITEM_SELECTED = "PayeeReportFragment:ItemSelected";
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/BaseReportFragment.java:56:    protected static final String KEY_WHERE_CLAUSE = "PayeeReportFragment:WhereClause";
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/BaseReportFragment.java:57:    protected static final String KEY_FROM_DATE = "PayeeReportFragment:FromDate";
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/BaseReportFragment.java:58:    protected static final String KEY_TO_DATE = "PayeeReportFragment:ToDate";
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/CategoriesReportFragment.java:331:        args.putSerializable(PieChartFragment.KEY_CATEGORIES_VALUES, arrayList);
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/CategoriesReportFragment.java:335:            PieChartFragment fragment;
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/CategoriesReportFragment.java:336:            fragment = (PieChartFragment) fragmentManager.findFragmentByTag(IncomeVsExpensesChartFragment.class.getSimpleName());
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/CategoriesReportFragment.java:338:                fragment = new PieChartFragment();
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/CategoriesReportFragment.java:347:                fragmentTransaction.replace(R.id.fragmentChart, fragment, PieChartFragment.class.getSimpleName());
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/CategoriesReportFragment.java:349:                fragmentTransaction.replace(R.id.fragmentMain, fragment, PieChartFragment.class.getSimpleName());
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/PayeeReportFragment.java:57:public class PayeeReportFragment
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/PayeeReportFragment.java:154:            if (((PayeesReportActivity) getActivity()).mIsDualPanel) {
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/PayeeReportFragment.java:201:            itemChart.setVisible(!(((PayeesReportActivity) getActivity()).mIsDualPanel));
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/PayeeReportFragment.java:243:        args.putSerializable(PieChartFragment.KEY_CATEGORIES_VALUES, arrayList);
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/PayeeReportFragment.java:247:            PieChartFragment fragment;
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/PayeeReportFragment.java:248:            fragment = (PieChartFragment) fragmentManager.findFragmentByTag(IncomeVsExpensesChartFragment.class.getSimpleName());
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/PayeeReportFragment.java:250:                fragment = new PieChartFragment();
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/PayeeReportFragment.java:258:            if (((PayeesReportActivity) getActivity()).mIsDualPanel) {
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/PayeeReportFragment.java:259:                fragmentTransaction.replace(R.id.fragmentChart, fragment, PieChartFragment.class.getSimpleName());
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/PayeeReportFragment.java:261:                fragmentTransaction.replace(R.id.fragmentMain, fragment, PieChartFragment.class.getSimpleName());
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/PayeeReportFragment.java:305:            Log.d("PayeeReportFragment", " Name " + col + "\t Type " + cursor.getType(idx) + "\t Value " + cursor.getString(idx));
+
+### F1 layout default (phone and portrait): fragmentChart absent expected
+$ grep -n fragmentChart /Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/res/layout/report_chart_fragments_activity.xml
+(no output, exit 1)
+
+### F2 layout-sw600dp-land: fragmentChart expected at line 38
+$ grep -n fragmentChart /Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/res/layout-sw600dp-land/report_chart_fragments_activity.xml
+38:            android:id="@+id/fragmentChart"
+
+### F3 layout-sw720dp-port: fragmentChart expected at line 40
+$ grep -n fragmentChart /Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/res/layout-sw720dp-port/report_chart_fragments_activity.xml
+40:            android:id="@+id/fragmentChart"
+
+### G1 report menu: menu_chart is hidden in XML and shown by code when single panel
+$ grep -n menu_chart /Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/res/menu/menu_report.xml
+22:        android:id="@+id/menu_chart"
+
+### H1 Handler.postDelayed and handleCallback
+$ grep -nE public final boolean postDelayed|private static void handleCallback|message.callback.run /Users/darshan/Desktop/yang/work/fw_src/android-8.1.0_r1/core/java/android/os/Handler.java
+427:    public final boolean postDelayed(Runnable r, long delayMillis)
+789:    private static void handleCallback(Message message) {
+790:        message.callback.run();
+
+### H2 ActivityThread: onCreate call after construction
+$ grep -nF mInstrumentation.callActivityOnCreate( /Users/darshan/Desktop/yang/work/fw_src/android-8.1.0_r1/core/java/android/app/ActivityThread.java
+2729:                    mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+2731:                    mInstrumentation.callActivityOnCreate(activity, r.state);
+
+### H3 Instrumentation: callActivityOnCreate and newActivity
+$ grep -nE public void callActivityOnCreate|public Activity newActivity /Users/darshan/Desktop/yang/work/fw_src/android-8.1.0_r1/core/java/android/app/Instrumentation.java
+1143:    public Activity newActivity(Class<?> clazz, Context context, 
+1170:    public Activity newActivity(ClassLoader cl, String className,
+1212:    public void callActivityOnCreate(Activity activity, Bundle icicle) {
+1225:    public void callActivityOnCreate(Activity activity, Bundle icicle,
+
+### H4 Activity: onMenuItemSelected passes the item to onOptionsItemSelected; the activity method
+$ grep -nE public boolean onMenuItemSelected|if \(onOptionsItemSelected|public boolean onOptionsItemSelected /Users/darshan/Desktop/yang/work/fw_src/android-8.1.0_r1/core/java/android/app/Activity.java
+3439:    public boolean onMenuItemSelected(int featureId, MenuItem item) {
+3450:                if (onOptionsItemSelected(item)) {
+3597:    public boolean onOptionsItemSelected(MenuItem item) {
+
+### H5 libcore Collections.sort: not in the dataset (INFERRED for PieChartFragment$1.compare)
+$ find /Users/darshan/Desktop/yang/work/fw_src/android-8.1.0_r1 -name Collections.java
+(no output, exit 0)
+
+### I1 other parts or graph_def.py that name the activity or the payee screen
+$ grep -rlE PayeesReportActivity|S_PAYEE_REPORT /Users/darshan/Desktop/yang/work/graphs/MMEX/parts /Users/darshan/Desktop/yang/work/graphs/MMEX/graph_def.py
+/Users/darshan/Desktop/yang/work/graphs/MMEX/parts/label_034.md
+/Users/darshan/Desktop/yang/work/graphs/MMEX/parts/label_043.grep.txt
+/Users/darshan/Desktop/yang/work/graphs/MMEX/parts/label_043.md
+/Users/darshan/Desktop/yang/work/graphs/MMEX/parts/label_044.grep.txt
+/Users/darshan/Desktop/yang/work/graphs/MMEX/parts/label_105.grep.txt
+/Users/darshan/Desktop/yang/work/graphs/MMEX/parts/label_104.grep.txt
+
+### J1 auto_calls.json: CALL records per batch method (D7: these are not written as edges)
+$ python3 -I (reads /Users/darshan/Desktop/yang/work/graphs/MMEX/auto_calls.json, batch_106.txt)
+PayeeReportFragment.<init>: 1 CALL record(s), 0 lambda record(s)
+    PayeesReportActivity.onCreate -> PayeeReportFragment.<init> | PayeesReportActivity.java:46 | exact
+PayeeReportFragment.getPayeeFromSelectedItem: 1 CALL record(s), 0 lambda record(s)
+    PayeeReportFragment.onListItemClick -> PayeeReportFragment.getPayeeFromSelectedItem | PayeeReportFragment.java:280 | exact
+PayeeReportFragment.getSubTitle: 2 CALL record(s), 0 lambda record(s)
+    BaseListFragment.onActivityCreated -> PayeeReportFragment.getSubTitle | BaseListFragment.java:83 | cha
+    BaseListFragment.onActivityCreated@PayeeReportFragment -> PayeeReportFragment.getSubTitle | BaseListFragment.java:83 | exact
+PayeeReportFragment.onActivityCreated: 0 CALL record(s), 0 lambda record(s)
+PayeeReportFragment.onCreateOptionsMenu: 0 CALL record(s), 0 lambda record(s)
+PayeeReportFragment.onListItemClick: 1 CALL record(s), 0 lambda record(s)
+    AbsListFragment$1.onItemClick -> PayeeReportFragment.onListItemClick | AbsListFragment.java:44 | cha
+PayeeReportFragment.onLoadFinished: 0 CALL record(s), 0 lambda record(s)
+PayeeReportFragment.onOptionsItemSelected: 0 CALL record(s), 0 lambda record(s)
+PayeeReportFragment.onQueryTextChange: 1 CALL record(s), 0 lambda record(s)
+    BaseListFragment.onPreQueryTextChange@PayeeReportFragment -> PayeeReportFragment.onQueryTextChange | BaseListFragment.java:226 | exact
+PayeeReportFragment.prepareQuery: 2 CALL record(s), 0 lambda record(s)
+    BaseReportFragment.onCreateLoader -> PayeeReportFragment.prepareQuery | BaseReportFragment.java:123 | cha
+    BaseReportFragment.onCreateLoader@PayeeReportFragment -> PayeeReportFragment.prepareQuery | BaseReportFragment.java:123 | exact
+PayeeReportFragment.showChart: 2 CALL record(s), 0 lambda record(s)
+    PayeeReportFragment$1.run -> PayeeReportFragment.showChart | PayeeReportFragment.java:160 | exact
+    PayeeReportFragment.onOptionsItemSelected -> PayeeReportFragment.showChart | PayeeReportFragment.java:210 | exact
+PayeeReportFragment.showSearchActivityFor: 1 CALL record(s), 0 lambda record(s)
+    PayeeReportFragment.onListItemClick -> PayeeReportFragment.showSearchActivityFor | PayeeReportFragment.java:293 | exact
+PayeeReportFragment$1.<init>: 1 CALL record(s), 0 lambda record(s)
+    PayeeReportFragment.onLoadFinished -> PayeeReportFragment$1.<init> | PayeeReportFragment.java:156 | exact
+PayeeReportFragment$1.run: 0 CALL record(s), 0 lambda record(s)
+PayeesReportActivity.<init>: 0 CALL record(s), 0 lambda record(s)
+PayeesReportActivity.onCreate: 0 CALL record(s), 0 lambda record(s)
+PieChartFragment.<clinit>: 2 CALL record(s), 0 lambda record(s)
+    CategoriesReportFragment.showChart -> PieChartFragment.<clinit> | CategoriesReportFragment.java:338 | exact
+    PayeeReportFragment.showChart -> PieChartFragment.<clinit> | PayeeReportFragment.java:250 | exact
+PieChartFragment.<init>: 2 CALL record(s), 0 lambda record(s)
+    CategoriesReportFragment.showChart -> PieChartFragment.<init> | CategoriesReportFragment.java:338 | exact
+    PayeeReportFragment.showChart -> PieChartFragment.<init> | PayeeReportFragment.java:250 | exact
+PieChartFragment.buildChart: 1 CALL record(s), 0 lambda record(s)
+    PieChartFragment.onResume -> PieChartFragment.buildChart | PieChartFragment.java:183 | exact
+PieChartFragment.getChartArguments: 1 CALL record(s), 0 lambda record(s)
+    PieChartFragment.onSaveInstanceState -> PieChartFragment.getChartArguments | PieChartFragment.java:198 | exact
+PieChartFragment.isDisplayHomeAsUpEnabled: 2 CALL record(s), 0 lambda record(s)
+    PieChartFragment.onCreate -> PieChartFragment.isDisplayHomeAsUpEnabled | PieChartFragment.java:138 | exact
+    PieChartFragment.onSaveInstanceState -> PieChartFragment.isDisplayHomeAsUpEnabled | PieChartFragment.java:199 | exact
+PieChartFragment.onCreate: 0 CALL record(s), 0 lambda record(s)
+PieChartFragment.onCreateView: 0 CALL record(s), 0 lambda record(s)
+PieChartFragment.onNothingSelected: 0 CALL record(s), 0 lambda record(s)
+PieChartFragment.onOptionsItemSelected: 0 CALL record(s), 0 lambda record(s)
+PieChartFragment.onResume: 2 CALL record(s), 0 lambda record(s)
+    CategoriesReportFragment.showChart -> PieChartFragment.onResume | CategoriesReportFragment.java:343 | exact
+    PayeeReportFragment.showChart -> PieChartFragment.onResume | PayeeReportFragment.java:255 | exact
+PieChartFragment.onSaveInstanceState: 0 CALL record(s), 0 lambda record(s)
+PieChartFragment.onValueSelected: 0 CALL record(s), 0 lambda record(s)
+PieChartFragment.setChartArguments: 3 CALL record(s), 0 lambda record(s)
+    CategoriesReportFragment.showChart -> PieChartFragment.setChartArguments | CategoriesReportFragment.java:340 | exact
+    PayeeReportFragment.showChart -> PieChartFragment.setChartArguments | PayeeReportFragment.java:252 | exact
+    PieChartFragment.onCreate -> PieChartFragment.setChartArguments | PieChartFragment.java:130 | exact
+PieChartFragment.setDisplayHomeAsUpEnabled: 3 CALL record(s), 0 lambda record(s)
+    CategoriesReportFragment.showChart -> PieChartFragment.setDisplayHomeAsUpEnabled | CategoriesReportFragment.java:341 | exact
+    PayeeReportFragment.showChart -> PieChartFragment.setDisplayHomeAsUpEnabled | PayeeReportFragment.java:253 | exact
+    PieChartFragment.onCreate -> PieChartFragment.setDisplayHomeAsUpEnabled | PieChartFragment.java:132 | exact
+PieChartFragment$1.<init>: 1 CALL record(s), 0 lambda record(s)
+    PieChartFragment.buildChart -> PieChartFragment$1.<init> | PieChartFragment.java:77 | exact
+PieChartFragment$1.compare: 0 CALL record(s), 0 lambda record(s)

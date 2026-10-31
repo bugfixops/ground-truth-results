@@ -1,0 +1,136 @@
+label_071 grep evidence (batch 071: SplitRecurringCategory, SplitRecurringCategory$$Parcelable, SplitRecurringCategory$$Parcelable$1)
+
+Path prefixes used below:
+  SRC    = /Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/
+  FW-SRC = /Users/darshan/Desktop/yang/work/fw_src/android-8.1.0_r1/
+  auto_calls.json = /Users/darshan/Desktop/yang/work/graphs/MMEX/auto_calls.json
+
+================================================================
+Block A: Parcels.wrap / Parcels.unwrap call sites that carry split lists
+Command: grep -rn "Parcels\.\(wrap\|unwrap\)" SRC  (filtered to the split lists)
+================================================================
+ex/transactions/SplitCategoriesActivity.java:91:  mAdapter.splitTransactions = Parcels.unwrap(savedInstanceState.getParcelable(KEY_SPLIT_TRANSACTION));
+ex/transactions/SplitCategoriesActivity.java:92:  mSplitDeleted = Parcels.unwrap(savedInstanceState.getParcelable(KEY_SPLIT_TRANSACTION_DELETED));
+ex/transactions/SplitCategoriesActivity.java:172:  result.putExtra(INTENT_RESULT_SPLIT_TRANSACTION, Parcels.wrap(allSplitTransactions));
+ex/transactions/SplitCategoriesActivity.java:173:  result.putExtra(INTENT_RESULT_SPLIT_TRANSACTION_DELETED, Parcels.wrap(mSplitDeleted));
+ex/transactions/SplitCategoriesActivity.java:184:  outState.putParcelable(KEY_SPLIT_TRANSACTION, Parcels.wrap(mAdapter.splitTransactions));
+ex/transactions/SplitCategoriesActivity.java:187:  outState.putParcelable(KEY_SPLIT_TRANSACTION_DELETED, Parcels.wrap(mSplitDeleted));
+ex/transactions/SplitCategoriesActivity.java:247:  List<ISplitTransaction> splits = Parcels.unwrap(intent.getParcelableExtra(KEY_SPLIT_TRANSACTION));
+ex/transactions/SplitCategoriesActivity.java:251:  mSplitDeleted = Parcels.unwrap(intent.getParcelableExtra(KEY_SPLIT_TRANSACTION_DELETED));
+ex/transactions/CheckingTransactionEditActivity.java:175:  Parcels.wrap(mCommon.mSplitTransactions));
+ex/transactions/CheckingTransactionEditActivity.java:177:  Parcels.wrap(mCommon.mSplitTransactionsDeleted));
+ex/transactions/CheckingTransactionEditActivity.java:655:  mCommon.mSplitTransactions = Parcels.unwrap(savedInstanceState.getParcelable(EditTransactionActivityConstants.KEY_SPLIT_TRANSACTION));
+ex/transactions/CheckingTransactionEditActivity.java:657:  mCommon.mSplitTransactionsDeleted = Parcels.unwrap(savedInstanceState.getParcelable(
+ex/transactions/EditTransactionCommonFunctions.java:890:  mSplitTransactions = Parcels.unwrap(data.getParcelableExtra(SplitCategoriesActivity.INTENT_RESULT_SPLIT_TRANSACTION));
+ex/transactions/EditTransactionCommonFunctions.java:895:  mSplitTransactionsDeleted = Parcels.unwrap(parcelDeletedSplits);
+ex/transactions/EditTransactionCommonFunctions.java:1522:  intent.putExtra(SplitCategoriesActivity.KEY_SPLIT_TRANSACTION, Parcels.wrap(splitsToShow));
+ex/transactions/EditTransactionCommonFunctions.java:1523:  intent.putExtra(SplitCategoriesActivity.KEY_SPLIT_TRANSACTION_DELETED, Parcels.wrap(mSplitTransactionsDeleted));
+ex/recurring/transactions/RecurringTransactionEditActivity.java:191:  outState.putParcelable(KEY_SPLIT_TRANSACTION, Parcels.wrap(mCommon.mSplitTransactions));
+ex/recurring/transactions/RecurringTransactionEditActivity.java:192:  outState.putParcelable(KEY_SPLIT_TRANSACTION_DELETED, Parcels.wrap(mCommon.mSplitTransactionsDeleted));
+ex/recurring/transactions/RecurringTransactionEditActivity.java:555:  mCommon.mSplitTransactions = Parcels.unwrap(savedInstanceState.getParcelable(KEY_SPLIT_TRANSACTION));
+ex/recurring/transactions/RecurringTransactionEditActivity.java:556:  mCommon.mSplitTransactionsDeleted = Parcels.unwrap(savedInstanceState.getParcelable(KEY_SPLIT_TRANSACTION_DELETED));
+
+Enclosing methods (read from the source): SplitCategoriesActivity.onCreate (82; restore at 90-92), onActionDoneClick (149; result at 172-174),
+onSaveInstanceState (181; 184-187), handleIntent (236; 247, 251); CheckingTransactionEditActivity.onSaveInstanceState (162; 175, 177),
+restoreInstanceState (647; 655, 657); EditTransactionCommonFunctions.onActivityResult (848; 889-896), showSplitCategoriesForm (1511; 1522-1523);
+RecurringTransactionEditActivity.onSaveInstanceState (178; 191-192), restoreInstanceState (547; 555-556; called under the guard at 108 and call at 109).
+
+================================================================
+Block B: typed-array and CREATOR references in the source root
+Command: grep -rn "createTypedArray\|writeTypedArray\|readTypedArray\|\.CREATOR" SRC
+Result: no matches (empty output).
+================================================================
+
+================================================================
+Block C: describeContents in the source root
+Command: grep -rn "describeContents" SRC
+Result: 4 matches, all definitions, none a call site:
+ex/core/DefinedDateRange.java:77:    public int describeContents() {
+ex/search/CategorySub.java:57:    public int describeContents() {
+ex/account/StatusFilter.java:145://    public int describeContents() {        (commented out)
+ex/reports/ValuePieEntry.java:84:	public int describeContents() {
+No match in domainmodel/SplitRecurringCategory.java or any SplitRecurringCategory caller.
+
+================================================================
+Block D: accessor call sites (getAccountId, setAccountId, getTransId)
+Command: grep -rn "getAccountId()\|setAccountId(" SRC  -> 61 matches
+Command: grep -rn "getTransId" SRC  -> 2 matches, both definitions:
+  ex/domainmodel/SplitCategory.java:132:    public Integer getTransId() {
+  ex/domainmodel/SplitRecurringCategory.java:134:    public Integer getTransId() {
+Definitions of the account accessors in the split classes:
+  ex/domainmodel/SplitRecurringCategory.java:89 public Integer getAccountId()   -> getInt(ITransactionEntity.ACCOUNTID)  (line 90)
+  ex/domainmodel/SplitRecurringCategory.java:94 public void setAccountId(int)   -> setInt(ITransactionEntity.ACCOUNTID, value) (line 95)
+  ex/database/ISplitTransaction.java:35 Integer getAccountId();   ex/database/ISplitTransaction.java:36 void setAccountId(int value);
+  ex/domainmodel/SplitRecurringCategory.java:38-40: public class SplitRecurringCategory extends EntityBase implements ISplitTransaction
+Receivers of the 61 matches: each one is a transaction entity, a transaction, an account, a recurring transaction, an adapter or the
+own class of another type (QueryAccountBills, WatchlistFragment, AllDataAdapter, AccountTransactionDisplay). Files that name the split types and
+contain an account-accessor call, with their receivers:
+  ex/transactions/EditTransactionCommonFunctions.java:232, 284, 296, 326, 700, 1009, 1155, 1297, 1301  (transactionEntity)
+  ex/transactions/CheckingTransactionEditActivity.java:292, 308, 437, 477, 560, 565, 623, 632  (mCommon.transactionEntity; 437 is recurringTx.getAccountId())
+  ex/recurring/transactions/RecurringTransactionEditActivity.java:121  (mCommon.transactionEntity)
+No call on a SplitRecurringCategory or ISplitTransaction receiver.
+
+auto_calls.json (the call records, checked with python3 -I over the calls list and with grep):
+  calls records whose src is SplitRecurringCategory.getAccountId (line 25208), SplitRecurringCategory.setAccountId (line 25216),
+  SplitRecurringCategory.getTransId (line 25280): these are the only lines for the three methods as src; the outgoing records are
+  getAccountId -> EntityBase.getInt (line 90, exact), setAccountId -> EntityBase.setInt (line 95, exact), getTransId -> EntityBase.getInt
+  (line 135, exact). No calls record has dst SplitRecurringCategory.getAccountId, SplitRecurringCategory.setAccountId or
+  SplitRecurringCategory.getTransId, and no calls record has an ISplitTransaction dst with these names (the only calls records that
+  mention ISplitTransaction are SplitRecurringCategoriesRepository.delete(ISplitTransaction) and SplitCategoriesRepository.delete(ISplitTransaction)).
+
+================================================================
+Block E: newArray implementations in the source root
+Command: grep -rn "newArray" SRC
+  ex/core/DefinedDateRange.java:63:        public DefinedDateRange[] newArray(int size) {
+  ex/search/CategorySub.java:51:        public CategorySub[] newArray(int size) {
+  ex/account/StatusFilter.java:59://        public StatusFilter[] newArray(int size) {   (commented out)
+  ex/reports/ValuePieEntry.java:98:        public ValuePieEntry[] newArray(int size) {
+No newArray for SplitRecurringCategory (the generated class is not in the source root). The build class file of the generated
+class names the descriptor of the typed array (INFERRED from the build class file, not reproduced here).
+
+================================================================
+Block F: framework lines cited for the Parcel round trips (FW-SRC)
+================================================================
+FW-SRC core/java/android/os/Parcel.java:1785-1791
+  public final void writeParcelable(Parcelable p, int parcelableFlags) {
+      if (p == null) { writeString(null); return; }
+      writeParcelableCreator(p);
+      p.writeToParcel(this, parcelableFlags);
+FW-SRC core/java/android/os/Parcel.java:2640-2645
+  public final <T> T[] createTypedArray(Parcelable.Creator<T> c) {
+      int N = readInt(); ... T[] l = c.newArray(N);            (newArray at 2645)
+FW-SRC core/java/android/os/Parcel.java:2841-2851
+  public final <T extends Parcelable> T readParcelable(ClassLoader loader) {
+      Parcelable.Creator<?> creator = readParcelableCreator(loader); ...
+      return (T) creator.createFromParcel(this);                 (createFromParcel at 2851)
+FW-SRC core/java/android/os/Parcel.java:2894
+  Field f = parcelableClass.getField("CREATOR");                 (reflection on the static CREATOR field; the class is initialised here)
+FW-SRC core/java/android/os/Bundle.java:938-939
+  public <T extends Parcelable> T getParcelable(@Nullable String key) { unparcel(); ...
+FW-SRC core/java/android/content/Intent.java:6958-6959
+  public boolean hasFileDescriptors() { return mExtras != null && mExtras.hasFileDescriptors(); ...
+FW-SRC services/core/java/com/android/server/am/ActivityStarter.java:672-682
+  final int startActivityMayWait(...) {
+      // Refuse possible leaked file descriptors                        (line 680)
+      if (intent != null && intent.hasFileDescriptors()) {               (line 681)
+          throw new IllegalArgumentException("File descriptors passed in Intent");   (line 682)
+
+================================================================
+Block G: framework file-descriptor walk and the saved-state check (describeContents reachability)
+================================================================
+FW-SRC core/java/android/os/Bundle.java:316-336 (hasFileDescriptors)
+  320: if (mParcelledData != null) {
+  321:     if (mParcelledData.hasFileDescriptors()) {
+  326-329: for (...) { Object obj = mMap.valueAt(i); if (obj instanceof Parcelable) {
+  329:     if ((((Parcelable)obj).describeContents() & Parcelable.CONTENTS_FILE_DESCRIPTOR) != 0) {
+  (the walk over the unparcelled map runs only in the else branch of line 320)
+FW-SRC core/java/android/os/Bundle.java:1215-1220 (describeContents)
+  1215: public int describeContents() {
+  1217: if (hasFileDescriptors()) {
+  1218:     mask |= Parcelable.CONTENTS_FILE_DESCRIPTOR;
+FW-SRC services/core/java/com/android/server/am/ActivityManagerService.java:7453
+  if (icicle != null && icicle.hasFileDescriptors()) {
+Reading: the saved-state bundle is checked here, after binder parcelling (mParcelledData set), so the walk above does not call
+describeContents on the wrapper (INFERRED: the binder and ActivityThread marshalling path is not read). The Intent check at
+ActivityStarter.java:681 runs in system_server on parcelled extras in the same way. No app code calls describeContents (block C),
+and no auto record names $$Parcelable.describeContents.

@@ -1,0 +1,413 @@
+## VaultBackupManager$FileInfo.throwBadFormat  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=- state=session classes=explicit;non_standard;standard explicit_standard_route=yes
+   1. Eb9515d18 ENTRY/standard*
+      S_ENTRY -> AegisApplication.<init>
+      Any outside trigger starts the app process; the application class is created first, except in a backup or restore start, which uses the base Application class
+      guard: not a full backup or restore start (FW ActivityThread.java:5713-5715)
+      evidence: SRC AndroidManifest.xml:21-27 (android:name=".AegisApplication", backupAgent=".AegisBackupAgent")
+         21      <application
+         22          android:name=".AegisApplication"
+         23          android:allowBackup="true"
+         24          android:fullBackupOnly="true"
+         25          android:fullBackupContent="@xml/backup_rules_old"
+         26          android:dataExtractionRules="@xml/backup_rules"
+         27          android:backupAgent=".AegisBackupAgent"
+   2. E5b266140 LIFECYCLE/standard*
+      AegisApplication.<init> -> Hilt_AegisApplication.onCreate
+      Application.onCreate: the Hilt-generated superclass onCreate runs first (Hilt injection), then AegisApplicationBase.onCreate
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:5740 (the system calls Application.onCreate); INFERRED Hilt rewrites the superclass: AegisApplication extends Hilt_AegisApplication (generated file, not in the source tree; source AegisApplication.java:6 has no onCreate)
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+   3. E1ef992ce CALL/explicit
+      Hilt_AegisApplication.onCreate -> AegisApplicationBase.onCreate
+      Direct call
+      evidence: INFERRED generated code (Hilt_AegisApplication.java is not in the source tree; the call is in the build class, line 43)
+   4. E88ed9829 ENTERS/page*
+      AegisApplicationBase.onCreate -> S_PROCESS
+      the application is created: the process can start a component
+      evidence: SRC AegisApplicationBase.java:45-67; FW-SRC core/java/android/app/ActivityThread.java:5740 (the system calls Application.onCreate)
+         45      public void onCreate() {
+         46          super.onCreate();
+         47          _vaultManager = EarlyEntryPoints.get(this, EntryPoint.class).getVaultManager();
+         48  
+         49          VaultLockReceiver lockReceiver = new VaultLockReceiver();
+         50          IntentFilter intentFilter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
+         51          ContextCompat.registerReceiver(this, lockReceiver, intentFilter, ContextCompat.RECEIVER_NOT_EXPORTED);
+         52  
+         53          // lock the app if the user moves the application to the background
+         54          ProcessLifecycleOwner.get().getLifecycle().addObserver(new AppLifecycleObserver());
+         55  
+         56          // clear the cache directory on startup, to make sure no temporary vault export files remain
+         57          IOUtils.clearDirectory(getCacheDir(), false);
+         58  
+      ...  (9 more lines)
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+   5. E28ffc58c ENTRY/standard*
+      S_PROCESS -> MainActivity.<init>
+      Tap the Aegis icon in the launcher (MAIN / LAUNCHER)
+      evidence: SRC AndroidManifest.xml:44-51
+         44              android:name=".ui.MainActivity"
+         45              android:exported="true"
+         46              android:label="${title}">
+         47              <intent-filter>
+         48                  <action android:name="android.intent.action.MAIN" />
+         49  
+         50                  <category android:name="android.intent.category.LAUNCHER" />
+         51              </intent-filter>
+   6. Eb76444fd LIFECYCLE/standard*
+      MainActivity.<init> -> MainActivity.onCreate
+      Activity.onCreate after the constructor
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731,2741 (the system calls Activity.onCreate, then performStart); SRC ui/MainActivity.java:192-194
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+        192      @Override
+        193      protected void onCreate(Bundle savedInstanceState) {
+        194          super.onCreate(savedInstanceState);
+   7. E3a06baed LIFECYCLE/standard*
+      MainActivity.onCreate -> MainActivity.onStart
+      Activity.onStart after onCreate
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731,2741 (the system calls Activity.onCreate, then performStart); SRC ui/MainActivity.java:938-940
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+        938      @Override
+        939      protected void onStart() {
+        940          super.onStart();
+   8. E0602e719 CALL/explicit*
+      MainActivity.onStart -> MainActivity.startIntroActivity
+      no vault file exists (fresh install): the intro starts and onStart returns
+      guard: vault init needed: no vault file exists
+      evidence: SRC ui/MainActivity.java:942-948
+        942          if (_vaultManager.isVaultInitNeeded()) {
+        943              if (_prefs.isIntroDone()) {
+        944                  Toast.makeText(this, getString(R.string.vault_not_found), Toast.LENGTH_SHORT).show();
+        945              }
+        946              startIntroActivity();
+        947              return;
+        948          }
+   9. E4ce5043a INTENT/standard*
+      MainActivity.startIntroActivity -> IntroActivity.<init>
+      startActivityForResult(IntroActivity) through introResultLauncher
+      guard: intro not already running (_isDoingIntro false, MainActivity.java:604)
+      evidence: SRC ui/MainActivity.java:603-612; INFERRED androidx.activity.result: the launcher callback runs with the result (androidx source not cached)
+        603      private void startIntroActivity() {
+        604          if (!_isDoingIntro) {
+        605              Intent intro = new Intent(this, IntroActivity.class);
+        606              introResultLauncher.launch(intro);
+        607              _isDoingIntro = true;
+        608          }
+        609      }
+        610  
+        611      private void onScanResult(Intent data) {
+        612          List<VaultEntry> entries = (ArrayList<VaultEntry>) data.getSerializableExtra("entries");
+  10. E5e63fbe7 LIFECYCLE/standard*
+      IntroActivity.<init> -> IntroActivity.onCreate
+      Activity.onCreate of the intro
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731,2741 (the system calls Activity.onCreate, then performStart); SRC ui/IntroActivity.java:35-41
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+         35      protected void onCreate(Bundle savedInstanceState) {
+         36          super.onCreate(savedInstanceState);
+         37  
+         38          addSlide(WelcomeSlide.class);
+         39          addSlide(SecurityPickerSlide.class);
+         40          addSlide(SecuritySetupSlide.class);
+         41          addSlide(DoneSlide.class);
+  11. E93598a00 CALL/explicit*
+      IntroActivity.onCreate -> IntroBaseActivity.addSlide@IntroActivity
+      Direct call
+      evidence: SRC IntroActivity.java:38-41 (bytecode line was 41; addSlide(WelcomeSlide) is line 38)
+         38          addSlide(WelcomeSlide.class);
+         39          addSlide(SecurityPickerSlide.class);
+         40          addSlide(SecuritySetupSlide.class);
+         41          addSlide(DoneSlide.class);
+  12. E1440feb8 ENTERS/page*
+      IntroBaseActivity.addSlide@IntroActivity -> S_INTRO_WELCOME
+      the first slide (Welcome) is shown
+      guard: the added slide is the first one, the Welcome slide (IntroBaseActivity.java:183-186; IntroActivity.java:38)
+      evidence: SRC ui/intro/IntroBaseActivity.java:174-188; SRC ui/IntroActivity.java:38
+        174      public void addSlide(Class<? extends SlideFragment> type) {
+        175          if (_slides.contains(type)) {
+        176              throw new IllegalStateException(String.format("Only one slide of type %s may be added to the intro", type.getName()));
+        177          }
+        178  
+        179          _slides.add(type);
+        180          _slideIndicator.setSlideCount(_slides.size());
+        181  
+        182          // send 'slide changed' events for the first slide
+        183          if (_slides.size() == 1) {
+        184              Class<? extends SlideFragment> slide = _slides.get(0);
+        185              onBeforeSlideChanged(null, slide);
+        186              onAfterSlideChanged(null, slide);
+        187          }
+      ...  (1 more lines)
+         38          addSlide(WelcomeSlide.class);
+  13. E6830b6dc ENTERS/page*
+      S_INTRO_WELCOME -> S_INTRO_PICKER
+      Next on Welcome (Welcome did not import): the security picker is shown
+      guard: Welcome did not import a vault (the intro state "imported" is false; IntroActivity.java:57-62)
+      evidence: SRC ui/intro/IntroBaseActivity.java:80-93; SRC ui/IntroActivity.java:57-62
+         80      public void goToNextSlide() {
+         81          int pos = _pager.getCurrentItem();
+         82          if (pos != _slides.size() - 1) {
+         83              SlideFragment currentSlide = _currentSlide.get();
+         84              if (currentSlide.isFinished()) {
+         85                  currentSlide.onSaveIntroState(_state);
+         86                  setPagerPosition(pos, 1);
+         87              } else {
+         88                  currentSlide.onNotFinishedError();
+         89              }
+         90          } else {
+         91              onDonePressed();
+         92          }
+         93      }
+         57          if (oldSlide == WelcomeSlide.class
+         58                  && newSlide == SecurityPickerSlide.class
+         59                  && getState().getBoolean("imported")) {
+         60              skipToSlide(DoneSlide.class);
+         61              return true;
+         62          }
+  14. E4fd4b49f ENTERS/page*
+      S_INTRO_PICKER -> S_INTRO_SETUP
+      Next on the security picker: the password or biometric setup slide is shown
+      guard: the security picker chose password or biometrics (IntroActivity.java:50-55); a choice was made (SecurityPickerSlide.java:63-65)
+      evidence: SRC ui/intro/IntroBaseActivity.java:80-93; SRC ui/IntroActivity.java:50-55; SRC ui/slides/SecurityPickerSlide.java:63-65
+         80      public void goToNextSlide() {
+         81          int pos = _pager.getCurrentItem();
+         82          if (pos != _slides.size() - 1) {
+         83              SlideFragment currentSlide = _currentSlide.get();
+         84              if (currentSlide.isFinished()) {
+         85                  currentSlide.onSaveIntroState(_state);
+         86                  setPagerPosition(pos, 1);
+         87              } else {
+         88                  currentSlide.onNotFinishedError();
+         89              }
+         90          } else {
+         91              onDonePressed();
+         92          }
+         93      }
+         50          if (oldSlide == SecurityPickerSlide.class
+         51                  && newSlide == SecuritySetupSlide.class
+         52                  && getState().getInt("cryptType", CRYPT_TYPE_INVALID) == CRYPT_TYPE_NONE) {
+         53              skipToSlide(DoneSlide.class);
+         54              return true;
+         55          }
+         63      public boolean isFinished() {
+         64          return _buttonGroup.getCheckedRadioButtonId() != -1;
+         65      }
+  15. Ead078030 CALL/explicit* [STATE: The current intro slide is not finished (its isFinished returned false; IntroBaseActivity.java:84-88)]
+      S_INTRO_SETUP -> SecuritySetupSlide.onNotFinishedError
+      Next on the setup slide when it is not finished: goToNextSlide calls onNotFinishedError, which starts the key derivation
+      guard: the setup slide is not finished (IntroBaseActivity.java:84-88; SecuritySetupSlide.isFinished, SecuritySetupSlide.java:117-135)
+      evidence: SRC ui/intro/IntroBaseActivity.java:84-88; SRC ui/slides/SecuritySetupSlide.java:138-146
+         84              if (currentSlide.isFinished()) {
+         85                  currentSlide.onSaveIntroState(_state);
+         86                  setPagerPosition(pos, 1);
+         87              } else {
+         88                  currentSlide.onNotFinishedError();
+        138      public void onNotFinishedError() {
+        139          if (!EditTextHelper.areEditTextsEqual(_textPassword, _textPasswordConfirm)) {
+        140              Toast.makeText(requireContext(), R.string.password_equality_error, Toast.LENGTH_SHORT).show();
+        141          } else if (_cryptType != SecurityPickerSlide.CRYPT_TYPE_BIOMETRIC) {
+        142              deriveKey();
+        143          } else if (!_creds.getSlots().has(BiometricSlot.class)) {
+        144              showBiometricPrompt();
+        145          }
+        146      }
+  16. Ef86589e4 CALL/explicit*
+      SecuritySetupSlide.onNotFinishedError -> SecuritySetupSlide.deriveKey
+      Next on the password setup with matching passwords: the key derivation starts
+      guard: the passwords match and the security type is password, not biometric (SecuritySetupSlide.java:139, 141-142)
+      evidence: SRC ui/slides/SecuritySetupSlide.java:138-142
+        138      public void onNotFinishedError() {
+        139          if (!EditTextHelper.areEditTextsEqual(_textPassword, _textPasswordConfirm)) {
+        140              Toast.makeText(requireContext(), R.string.password_equality_error, Toast.LENGTH_SHORT).show();
+        141          } else if (_cryptType != SecurityPickerSlide.CRYPT_TYPE_BIOMETRIC) {
+        142              deriveKey();
+  17. Ec6041c17 ASYNC/standard*
+      SecuritySetupSlide.deriveKey -> KeyDerivationTask.doInBackground
+      AsyncTask runs doInBackground on the worker thread (derive the key from the password of the new vault)
+      evidence: FW-SRC core/java/android/os/AsyncTask.java:594-595 (execute), 632-650 (executeOnExecutor), 326-339 (doInBackground at 333), 369-374 (postResult), 705-713 (handleMessage), 691-697 (finish calls onPostExecute at 695); SRC ui/tasks/ProgressDialogTask.java:69-74; SRC ui/slides/SecuritySetupSlide.java:112-113; SRC ui/tasks/KeyDerivationTask.java:21
+      (core/java/android/os/AsyncTask.java not found in the source tree)
+         69      public final void execute(@Nullable Lifecycle lifecycle, Params... params) {
+         70          if (lifecycle != null) {
+         71              LifecycleObserver observer = new Observer(getDialog());
+         72              lifecycle.addObserver(observer);
+         73          }
+         74          execute(params);
+        112          KeyDerivationTask task = new KeyDerivationTask(requireContext(), new PasswordDerivationListener());
+        113          task.execute(getLifecycle(), params);
+         21      protected Result doInBackground(KeyDerivationTask.Params... args) {
+  18. Ecc12125a ASYNC/standard*
+      KeyDerivationTask.doInBackground -> KeyDerivationTask.onPostExecute
+      the derived key is posted to the main thread
+      guard: the task was not cancelled (a cancelled task calls onCancelled instead, AsyncTask.java:691-697)
+      evidence: FW-SRC core/java/android/os/AsyncTask.java:594-595 (execute), 632-650 (executeOnExecutor), 326-339 (doInBackground at 333), 369-374 (postResult), 705-713 (handleMessage), 691-697 (finish calls onPostExecute at 695); SRC ui/tasks/KeyDerivationTask.java:39-41
+      (core/java/android/os/AsyncTask.java not found in the source tree)
+         39      protected void onPostExecute(Result result) {
+         40          super.onPostExecute(result);
+         41          _cb.onTaskFinished(result.getSlot(), result.getKey());
+  19. E6d930584 CALL/non_standard(KeyDerivationTask.Callback.onTaskFinished (interface call; the lambda is passed at Dialogs.java:166))
+      KeyDerivationTask.onPostExecute -> Dialogs.lambda$showSetPasswordDialog$2
+      _cb.onTaskFinished(slot, key): the lambda makes the cipher and gives the slot to the listener
+      guard: the task was built by Dialogs.showSetPasswordDialog (Dialogs.java:166)
+      evidence: SRC ui/tasks/KeyDerivationTask.java:41,80-82; SRC ui/dialogs/Dialogs.java:166-177
+         41          _cb.onTaskFinished(result.getSlot(), result.getKey());
+         80      public interface Callback {
+         81          void onTaskFinished(PasswordSlot slot, SecretKey key);
+         82      }
+        166                  KeyDerivationTask task = new KeyDerivationTask(activity, (passSlot, key) -> {
+        167                      Cipher cipher;
+        168                      try {
+        169                          cipher = Slot.createEncryptCipher(key);
+        170                      } catch (SlotException e) {
+        171                          listener.onException(e);
+        172                          dialog.cancel();
+        173                          return;
+        174                      }
+        175                      listener.onSlotResult(slot, cipher);
+        176                      dialog.dismiss();
+        177                  });
+  20. E2f0c07ec CALL/explicit*
+      Dialogs.lambda$showSetPasswordDialog$2 -> SecurityPreferencesFragment$SetBackupPasswordListener.onSlotResult
+      Virtual/interface call that can dispatch to this implementation
+      guard: Slot.createEncryptCipher did not throw SlotException (Dialogs.java:168-174)
+      evidence: SRC ui/dialogs/Dialogs.java:168-175
+        168                      try {
+        169                          cipher = Slot.createEncryptCipher(key);
+        170                      } catch (SlotException e) {
+        171                          listener.onException(e);
+        172                          dialog.cancel();
+        173                          return;
+        174                      }
+        175                      listener.onSlotResult(slot, cipher);
+  21. Ec00afc66 CALL/explicit*
+      SecurityPreferencesFragment$SetBackupPasswordListener.onSlotResult -> PreferencesFragment.saveAndBackupVault
+      Direct call
+      guard: setKey and the slot add did not throw SlotException (SecurityPreferencesFragment.java:370-384)
+      evidence: SRC ui/fragments/preferences/SecurityPreferencesFragment.java:370-387
+        370              try {
+        371                  // encrypt the master key for this slot
+        372                  slot.setKey(creds.getKey(), cipher);
+        373  
+        374                  // remove the old backup password slot
+        375                  for (Slot oldSlot : slots.findBackupPasswordSlots()) {
+        376                      slots.remove(oldSlot);
+        377                  }
+        378  
+        379                  // add the new backup password slot
+        380                  slots.add(slot);
+        381              } catch (SlotException e) {
+        382                  onException(e);
+        383                  return;
+      ...  (4 more lines)
+  22. E4a0be42b CALL/explicit*
+      PreferencesFragment.saveAndBackupVault -> VaultManager.saveAndBackup
+      Direct call
+      evidence: SRC PreferencesFragment.java:90 (bytecode)
+         90              _vaultManager.saveAndBackup();
+  23. Ebf4514a2 CALL/explicit*
+      VaultManager.saveAndBackup -> VaultManager.scheduleBackup
+      Direct call
+      guard: the vault is encrypted (VaultManager.java:143) and pref_backups is on (VaultManager.java:144)
+      evidence: SRC vault/VaultManager.java:143-147
+        143          if (getVault().isEncryptionEnabled()) {
+        144              if (_prefs.isBackupsEnabled()) {
+        145                  backedUp = true;
+        146                  try {
+        147                      scheduleBackup();
+  24. E5c9ce641 CALL/explicit*
+      VaultManager.scheduleBackup -> VaultBackupManager.scheduleBackup
+      Direct call
+      evidence: SRC VaultManager.java:181 (bytecode)
+        181              _backups.scheduleBackup(tempFile, strategy, uri, versionsToKeep);
+  25. E6de9a837 ASYNC/standard*
+      VaultBackupManager.scheduleBackup -> VaultBackupManager.lambda$scheduleBackup$0
+      the backup is written on the worker thread of the single-thread executor
+      evidence: SRC vault/VaultBackupManager.java:57-67; INFERRED java.util.concurrent single-thread executor runs each submitted task on its worker thread
+         57      public void scheduleBackup(File tempFile, BackupsVersioningStrategy strategy, Uri uri, int versionsToKeep) {
+         58          _executor.execute(() -> {
+         59              try {
+         60                  createBackup(tempFile, strategy, uri, versionsToKeep);
+         61                  _auditLogRepository.addBackupCreatedEvent();
+         62                  _prefs.setBuiltInBackupResult(new Preferences.BackupResult(null));
+         63              } catch (VaultRepositoryException | VaultBackupPermissionException e) {
+         64                  e.printStackTrace();
+         65                  _prefs.setBuiltInBackupResult(new Preferences.BackupResult(e));
+         66              }
+         67          });
+  26. Eac29dfc9 CALL/explicit*
+      VaultBackupManager.lambda$scheduleBackup$0 -> VaultBackupManager.createBackup(File,BackupsVersioningStrategy,Uri,int)
+      Direct call
+      evidence: SRC VaultBackupManager.java:60 (bytecode)
+         60                  createBackup(tempFile, strategy, uri, versionsToKeep);
+  27. E7826ccd2 CALL/explicit*
+      VaultBackupManager.createBackup(File,BackupsVersioningStrategy,Uri,int) -> VaultBackupManager.createBackup(File,Uri,int)
+      Direct call
+      guard: uri is non-null (VaultBackupManager.java:72-74) and strategy is MULTIPLE_BACKUPS (VaultBackupManager.java:77-78)
+      evidence: SRC vault/VaultBackupManager.java:72-78
+         72          if (uri == null) {
+         73              throw new VaultRepositoryException("getBackupsLocation returned null");
+         74          }
+         75          if (strategy == BackupsVersioningStrategy.SINGLE_BACKUP) {
+         76              createBackup(tempFile, uri);
+         77          } else if (strategy == BackupsVersioningStrategy.MULTIPLE_BACKUPS) {
+         78              createBackup(tempFile, uri, versionsToKeep);
+  28. Ecd93b3fc CALL/explicit*
+      VaultBackupManager.createBackup(File,Uri,int) -> VaultBackupManager.enforceVersioning
+      the backup is written, then the old backups are cleaned up
+      guard: the backup file is written, so no exception is thrown before the call (the persisted SAF permission exists, hasPermissionsAt at VaultBackupManager.java:118-120; no file with the same name, 125-127; createFile returns a file, 130-131; the stream copy does not fail, 136-141); the callee returns at once when versions to keep is 0 (VaultBackupManager.java:164-166)
+      evidence: SRC vault/VaultBackupManager.java:110-150; SRC vault/VaultBackupManager.java:164-166
+        110      private void createBackup(File tempFile, Uri dirUri, int versionsToKeep)
+        111              throws VaultRepositoryException, VaultBackupPermissionException {
+        112          FileInfo fileInfo = new FileInfo(FILENAME_PREFIX);
+        113          DocumentFile dir = DocumentFile.fromTreeUri(_context, dirUri);
+        114  
+        115          try {
+        116              Log.i(TAG, String.format("Creating backup at %s: %s", Uri.decode(dir.getUri().toString()), fileInfo.toString()));
+        117  
+        118              if (!hasPermissionsAt(dirUri)) {
+        119                  throw new VaultBackupPermissionException("No persisted URI permissions");
+        120              }
+        121  
+        122              // If we create a file with a name that already exists, SAF will append a number
+        123              // to the filename and write to that instead. We can't overwrite existing files, so
+      ...  (27 more lines)
+        164          if (versionsToKeep <= 0) {
+        165              return;
+        166          }
+  29. Ec52c2d04 CALL/explicit*
+      VaultBackupManager.enforceVersioning -> VaultBackupManager$BackupFile.<init>
+      the cleanup builds a backup file object for each regular, non-virtual file in the backup folder
+      guard: versions to keep is above 0 (the early return at VaultBackupManager.java:164-166 is not taken) and the entry is a regular file that is not virtual (line 172); the constructor parses its name (lines 174-175)
+      evidence: SRC vault/VaultBackupManager.java:164-166,171-175
+        164          if (versionsToKeep <= 0) {
+        165              return;
+        166          }
+        171          for (DocumentFile docFile : dir.listFiles()) {
+        172              if (docFile.isFile() && !docFile.isVirtual()) {
+        173                  try {
+        174                      files.add(new BackupFile(docFile));
+        175                  } catch (ParseException ignored) { }
+  30. E8ae9de66 CALL/explicit*
+      VaultBackupManager$BackupFile.<init> -> VaultBackupManager$FileInfo.parseFilename
+      Direct call
+      evidence: SRC VaultBackupManager.java:274 (bytecode)
+        274              _info = FileInfo.parseFilename(file.getName());
+  31. Eec05c5c1 CALL/explicit*
+      VaultBackupManager$FileInfo.parseFilename -> VaultBackupManager$FileInfo.throwBadFormat
+      the file name does not match the backup format: the parser throws the bad-format error
+      guard: the file name fails one of the format checks (the throwBadFormat calls at VaultBackupManager.java:222, 229, 234, 239)
+      note: needs a file in the backup folder whose name fails the format check; no step on this route creates one. The ParseException is caught and ignored at VaultBackupManager.java:175, so the route ends with no visible effect
+      evidence: SRC vault/VaultBackupManager.java:216-240
+        216              if (filename == null) {
+        217                  throw new ParseException("The filename must not be null", 0);
+        218              }
+        219  
+        220              final String ext = ".json";
+        221              if (!filename.endsWith(ext)) {
+        222                  throwBadFormat(filename);
+        223              }
+        224              filename = filename.substring(0, filename.length() - ext.length());
+        225  
+        226              final String delim = "-";
+        227              String[] parts = filename.split(delim);
+        228              if (parts.length < 3) {
+        229                  throwBadFormat(filename);
+      ...  (11 more lines)
+

@@ -1,0 +1,233 @@
+     1	/*
+     2	 * Copyright (C) 2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.addtag;
+    21	
+    22	import android.app.Dialog;
+    23	import android.content.Context;
+    24	import android.content.DialogInterface;
+    25	import android.content.Intent;
+    26	import android.os.Bundle;
+    27	import android.text.Editable;
+    28	import android.text.TextUtils;
+    29	import android.text.TextWatcher;
+    30	import android.util.Log;
+    31	import android.view.KeyEvent;
+    32	import android.view.LayoutInflater;
+    33	import android.view.View;
+    34	import android.widget.Button;
+    35	import android.widget.Toast;
+    36	
+    37	import androidx.annotation.NonNull;
+    38	import androidx.annotation.Nullable;
+    39	import androidx.appcompat.app.AlertDialog;
+    40	import androidx.appcompat.app.AppCompatActivity;
+    41	import androidx.databinding.DataBindingUtil;
+    42	import androidx.fragment.app.DialogFragment;
+    43	import androidx.lifecycle.ViewModelProvider;
+    44	
+    45	import com.jaredrummler.android.colorpicker.ColorPickerDialog;
+    46	
+    47	import org.proninyaroslav.libretorrent.R;
+    48	import org.proninyaroslav.libretorrent.core.model.data.entity.TagInfo;
+    49	import org.proninyaroslav.libretorrent.databinding.DialogAddTagBinding;
+    50	import org.proninyaroslav.libretorrent.ui.FragmentCallback;
+    51	
+    52	import io.reactivex.android.schedulers.AndroidSchedulers;
+    53	import io.reactivex.disposables.CompositeDisposable;
+    54	import io.reactivex.schedulers.Schedulers;
+    55	
+    56	public class AddTagDialog extends DialogFragment {
+    57	    private static final String TAG = AddTagDialog.class.getSimpleName();
+    58	
+    59	    private static final String TAG_INIT_INFO = "init_info";
+    60	
+    61	    private AlertDialog alert;
+    62	    private AppCompatActivity activity;
+    63	    private AddTagViewModel viewModel;
+    64	    private DialogAddTagBinding binding;
+    65	    private final CompositeDisposable disposables = new CompositeDisposable();
+    66	
+    67	    public static AddTagDialog newInstance(@Nullable TagInfo initInfo) {
+    68	        AddTagDialog frag = new AddTagDialog();
+    69	
+    70	        Bundle args = new Bundle();
+    71	        args.putParcelable(TAG_INIT_INFO, initInfo);
+    72	        frag.setArguments(args);
+    73	
+    74	        return frag;
+    75	    }
+    76	
+    77	    @Override
+    78	    public void onAttach(@NonNull Context context) {
+    79	        super.onAttach(context);
+    80	
+    81	        if (context instanceof AppCompatActivity) {
+    82	            activity = (AppCompatActivity) context;
+    83	        }
+    84	    }
+    85	
+    86	    @Override
+    87	    public void onResume() {
+    88	        super.onResume();
+    89	
+    90	        // Back button handle
+    91	        getDialog().setOnKeyListener((dialog, keyCode, event) -> {
+    92	            if (keyCode == KeyEvent.KEYCODE_BACK) {
+    93	                if (event.getAction() == KeyEvent.ACTION_DOWN) {
+    94	                    onBackPressed();
+    95	                }
+    96	                return true;
+    97	            } else {
+    98	                return false;
+    99	            }
+   100	        });
+   101	    }
+   102	
+   103	    @Override
+   104	    public void onStop() {
+   105	        super.onStop();
+   106	
+   107	        disposables.clear();
+   108	    }
+   109	
+   110	    @NonNull
+   111	    @Override
+   112	    public Dialog onCreateDialog(Bundle savedInstanceState) {
+   113	        if (activity == null) {
+   114	            activity = (AppCompatActivity) getActivity();
+   115	        }
+   116	
+   117	        ViewModelProvider provider = new ViewModelProvider(activity);
+   118	        viewModel = provider.get(AddTagViewModel.class);
+   119	        TagInfo initInfo = getArguments().getParcelable(TAG_INIT_INFO);
+   120	        if (initInfo != null) {
+   121	            viewModel.setInitValues(initInfo);
+   122	            getArguments().putParcelable(TAG_INIT_INFO, null);
+   123	        } else if (viewModel.state.getColor() == -1) {
+   124	            viewModel.setRandomColor();
+   125	        }
+   126	
+   127	        LayoutInflater i = LayoutInflater.from(activity);
+   128	        binding = DataBindingUtil.inflate(i, R.layout.dialog_add_tag, null, false);
+   129	        binding.setViewModel(viewModel);
+   130	
+   131	        initLayoutView();
+   132	        initAlertDialog(binding.getRoot());
+   133	
+   134	        return alert;
+   135	    }
+   136	
+   137	    private void initLayoutView() {
+   138	        binding.name.addTextChangedListener(new TextWatcher() {
+   139	            @Override
+   140	            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+   141	            }
+   142	
+   143	            @Override
+   144	            public void onTextChanged(CharSequence s, int start, int before, int count) {
+   145	            }
+   146	
+   147	            @Override
+   148	            public void afterTextChanged(Editable s) {
+   149	                binding.nameLayout.setErrorEnabled(false);
+   150	                binding.nameLayout.setError(null);
+   151	            }
+   152	        });
+   153	        binding.color.setOnClickListener((v) -> ColorPickerDialog.newBuilder()
+   154	                .setColor(viewModel.state.getColor())
+   155	                .show(activity)
+   156	        );
+   157	    }
+   158	
+   159	    private boolean checkName() {
+   160	        if (TextUtils.isEmpty(viewModel.state.getName())) {
+   161	            binding.nameLayout.setErrorEnabled(true);
+   162	            binding.nameLayout.setError(getString(R.string.error_empty_name));
+   163	            binding.nameLayout.requestFocus();
+   164	            return false;
+   165	        }
+   166	
+   167	        binding.nameLayout.setErrorEnabled(false);
+   168	        binding.nameLayout.setError(null);
+   169	        return true;
+   170	    }
+   171	
+   172	    private void initAlertDialog(View view) {
+   173	        AlertDialog.Builder builder = new AlertDialog.Builder(activity)
+   174	                .setTitle(viewModel.state.getExistsTagId() == null ?
+   175	                        R.string.add_tag :
+   176	                        R.string.edit_tag)
+   177	                .setPositiveButton(viewModel.state.getExistsTagId() == null ?
+   178	                        R.string.add :
+   179	                        R.string.apply, null)
+   180	                .setNegativeButton(R.string.cancel, null)
+   181	                .setView(view);
+   182	
+   183	        alert = builder.create();
+   184	        alert.setCanceledOnTouchOutside(false);
+   185	        alert.setOnShowListener((DialogInterface dialog) -> {
+   186	            Button addButton = alert.getButton(AlertDialog.BUTTON_POSITIVE);
+   187	            addButton.setOnClickListener((v) -> addTag());
+   188	
+   189	            Button cancelButton = alert.getButton(AlertDialog.BUTTON_NEGATIVE);
+   190	            cancelButton.setOnClickListener(
+   191	                    (v) -> finish(new Intent(), FragmentCallback.ResultCode.CANCEL)
+   192	            );
+   193	        });
+   194	    }
+   195	
+   196	    private void addTag() {
+   197	        if (!checkName()) {
+   198	            return;
+   199	        }
+   200	        disposables.add(viewModel.saveTag()
+   201	                .subscribeOn(Schedulers.io())
+   202	                .observeOn(AndroidSchedulers.mainThread())
+   203	                .subscribe(
+   204	                        () -> finish(new Intent(), FragmentCallback.ResultCode.OK),
+   205	                        (e) -> {
+   206	                            if (e instanceof AddTagViewModel.TagAlreadyExistsException) {
+   207	                                Toast.makeText(
+   208	                                        activity,
+   209	                                        R.string.tag_already_exists,
+   210	                                        Toast.LENGTH_SHORT
+   211	                                ).show();
+   212	                            } else {
+   213	                                Log.e(TAG, Log.getStackTraceString(e));
+   214	                                Toast.makeText(
+   215	                                        activity,
+   216	                                        R.string.add_tag_failed,
+   217	                                        Toast.LENGTH_SHORT
+   218	                                ).show();
+   219	                            }
+   220	                        }
+   221	                )
+   222	        );
+   223	    }
+   224	
+   225	    public void onBackPressed() {
+   226	        finish(new Intent(), FragmentCallback.ResultCode.BACK);
+   227	    }
+   228	
+   229	    private void finish(Intent intent, FragmentCallback.ResultCode code) {
+   230	        alert.dismiss();
+   231	        ((FragmentCallback) activity).onFragmentFinished(this, intent, code);
+   232	    }
+   233	}

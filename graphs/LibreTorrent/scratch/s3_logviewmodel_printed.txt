@@ -1,0 +1,227 @@
+     1	/*
+     2	 * Copyright (C) 2020 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.log;
+    21	
+    22	import android.app.Activity;
+    23	import android.app.Application;
+    24	import android.content.ClipData;
+    25	import android.content.ClipboardManager;
+    26	import android.net.Uri;
+    27	
+    28	import androidx.annotation.NonNull;
+    29	import androidx.databinding.library.baseAdapters.BR;
+    30	import androidx.lifecycle.AndroidViewModel;
+    31	import androidx.lifecycle.LiveData;
+    32	import androidx.paging.LivePagedListBuilder;
+    33	import androidx.paging.PagedList;
+    34	import androidx.work.Data;
+    35	import androidx.work.OneTimeWorkRequest;
+    36	import androidx.work.WorkManager;
+    37	
+    38	import org.proninyaroslav.libretorrent.R;
+    39	import org.proninyaroslav.libretorrent.core.RepositoryHelper;
+    40	import org.proninyaroslav.libretorrent.core.logger.LogEntry;
+    41	import org.proninyaroslav.libretorrent.core.logger.Logger;
+    42	import org.proninyaroslav.libretorrent.core.model.TorrentEngine;
+    43	import org.proninyaroslav.libretorrent.core.settings.SettingsRepository;
+    44	import org.proninyaroslav.libretorrent.service.SaveLogWorker;
+    45	
+    46	import java.text.SimpleDateFormat;
+    47	import java.util.Date;
+    48	import java.util.Locale;
+    49	
+    50	public class LogViewModel extends AndroidViewModel
+    51	{
+    52	    private static final int PAGE_SIZE = 20;
+    53	
+    54	    private TorrentEngine engine;
+    55	    private SettingsRepository pref;
+    56	    public LogMutableParams mutableParams = new LogMutableParams();
+    57	    private LogSourceFactory sourceFactory;
+    58	    private PagedList.Config pageConfig = new PagedList.Config.Builder()
+    59	            .setPageSize(PAGE_SIZE)
+    60	            .setEnablePlaceholders(false)
+    61	            .build();
+    62	    private boolean logPaused;
+    63	    private boolean recordingStopped;
+    64	
+    65	    public LogViewModel(@NonNull Application application)
+    66	    {
+    67	        super(application);
+    68	
+    69	        engine = TorrentEngine.getInstance(application);
+    70	        pref = RepositoryHelper.getSettingsRepository(application);
+    71	
+    72	        Logger sessionLogger = engine.getSessionLogger();
+    73	        logPaused = sessionLogger.isPaused();
+    74	        recordingStopped = !sessionLogger.isRecording();
+    75	        sourceFactory = new LogSourceFactory(sessionLogger);
+    76	
+    77	        initMutableParams();
+    78	    }
+    79	
+    80	    private void initMutableParams()
+    81	    {
+    82	        mutableParams.setLogging(pref.logging());
+    83	        mutableParams.setLogSessionFilter(pref.logSessionFilter());
+    84	        mutableParams.setLogDhtFilter(pref.logDhtFilter());
+    85	        mutableParams.setLogPeerFilter(pref.logPeerFilter());
+    86	        mutableParams.setLogPortmapFilter(pref.logPortmapFilter());
+    87	        mutableParams.setLogTorrentFilter(pref.logTorrentFilter());
+    88	
+    89	        mutableParams.addOnPropertyChangedCallback(paramsCallback);
+    90	    }
+    91	
+    92	    LiveData<PagedList<LogEntry>> observeLog()
+    93	    {
+    94	        return new LivePagedListBuilder<>(sourceFactory, pageConfig)
+    95	                .setInitialLoadKey(Integer.MAX_VALUE) /* Start from the last entry */
+    96	                .build();
+    97	    }
+    98	
+    99	    @Override
+   100	    protected void onCleared()
+   101	    {
+   102	        super.onCleared();
+   103	
+   104	        mutableParams.removeOnPropertyChangedCallback(paramsCallback);
+   105	    }
+   106	
+   107	    private final androidx.databinding.Observable.OnPropertyChangedCallback paramsCallback =
+   108	            new androidx.databinding.Observable.OnPropertyChangedCallback() {
+   109	        @Override
+   110	        public void onPropertyChanged(androidx.databinding.Observable sender, int propertyId)
+   111	        {
+   112	            switch (propertyId) {
+   113	                case BR.logging:
+   114	                    boolean logging = mutableParams.isLogging();
+   115	                    if (!logging) {
+   116	                        logPaused = false;
+   117	                        recordingStopped = false;
+   118	                    }
+   119	                    pref.logging(logging);
+   120	                    break;
+   121	                case BR.logSessionFilter:
+   122	                    pref.logSessionFilter(mutableParams.isLogSessionFilter());
+   123	                    break;
+   124	                case BR.logDhtFilter:
+   125	                    pref.logDhtFilter(mutableParams.isLogDhtFilter());
+   126	                    break;
+   127	                case BR.logPeerFilter:
+   128	                    pref.logPeerFilter(mutableParams.isLogPeerFilter());
+   129	                    break;
+   130	                case BR.logPortmapFilter:
+   131	                    pref.logPortmapFilter(mutableParams.isLogPortmapFilter());
+   132	                    break;
+   133	                case BR.logTorrentFilter:
+   134	                    pref.logTorrentFilter(mutableParams.isLogTorrentFilter());
+   135	                    break;
+   136	            }
+   137	        }
+   138	    };
+   139	
+   140	    void pauseLog()
+   141	    {
+   142	        engine.getSessionLogger().pause();
+   143	    }
+   144	
+   145	    void pauseLogManually()
+   146	    {
+   147	        pauseLog();
+   148	        logPaused = true;
+   149	    }
+   150	
+   151	    void resumeLog()
+   152	    {
+   153	        engine.getSessionLogger().resume();
+   154	    }
+   155	
+   156	    void resumeLogManually()
+   157	    {
+   158	        resumeLog();
+   159	        logPaused = false;
+   160	    }
+   161	
+   162	    int getLogEntriesCount()
+   163	    {
+   164	        return engine.getSessionLogger().getNumEntries();
+   165	    }
+   166	
+   167	    boolean logPausedManually()
+   168	    {
+   169	        return logPaused;
+   170	    }
+   171	
+   172	    void startLogRecording()
+   173	    {
+   174	        recordingStopped = false;
+   175	
+   176	        engine.getSessionLogger().startRecording();
+   177	    }
+   178	
+   179	    void stopLogRecording()
+   180	    {
+   181	        recordingStopped = true;
+   182	
+   183	        engine.getSessionLogger().stopRecording();
+   184	    }
+   185	
+   186	    boolean logRecording()
+   187	    {
+   188	        return !recordingStopped && engine.getSessionLogger().isRecording();
+   189	    }
+   190	
+   191	    String getSaveLogFileName()
+   192	    {
+   193	        String timeStamp = new SimpleDateFormat("MM-dd-yyyy_HH-mm-ss", Locale.getDefault())
+   194	                .format(new Date());
+   195	
+   196	        return getApplication().getString(R.string.app_name) + "_log_" + timeStamp + ".txt";
+   197	    }
+   198	
+   199	    void saveLog(@NonNull Uri filePath)
+   200	    {
+   201	        recordingStopped = true;
+   202	
+   203	        Data data = new Data.Builder()
+   204	                .putString(SaveLogWorker.TAG_FILE_URI, filePath.toString())
+   205	                .putBoolean(SaveLogWorker.TAG_RESUME_AFTER_SAVE, !logPausedManually())
+   206	                .build();
+   207	
+   208	        OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(SaveLogWorker.class)
+   209	                .setInputData(data)
+   210	                .build();
+   211	
+   212	        WorkManager.getInstance(getApplication()).enqueue(request);
+   213	    }
+   214	
+   215	    boolean copyLogEntryToClipboard(@NonNull LogEntry entry)
+   216	    {
+   217	        ClipboardManager clipboard = (ClipboardManager)getApplication().getSystemService(Activity.CLIPBOARD_SERVICE);
+   218	        if (clipboard == null)
+   219	            return false;
+   220	
+   221	        ClipData clip;
+   222	        clip = ClipData.newPlainText("Log entry", entry.toString());
+   223	        clipboard.setPrimaryClip(clip);
+   224	
+   225	        return true;
+   226	    }
+   227	}

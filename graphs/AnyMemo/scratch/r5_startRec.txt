@@ -1,0 +1,315 @@
+## AudioRecorderFragment.startRecording  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=hardware;permission state=- classes=explicit;standard explicit_standard_route=yes
+   1. Eddc920eb ENTRY/standard*
+      S_ENTRY -> AnyMemo.<init>
+      MAIN / LAUNCHER intent starts AnyMemo
+      evidence: SRC AndroidManifest.xml:23-46
+         23          <activity
+         24              android:name=".ui.AnyMemo"
+         25              android:label="@string/app_full_name"
+         26              android:theme="@style/AnyMemo.Theme.Dark.NoActionBar"
+         27              android:exported="true" >
+         28              <intent-filter>
+         29                  <action
+         30                      android:name="android.intent.action.MAIN" />
+         31                  <category
+         32                      android:name="android.intent.category.LAUNCHER" />
+         33              </intent-filter>
+         34              <intent-filter>
+         35                  <action android:name="android.intent.action.VIEW" />
+         36                  <category android:name="android.intent.category.DEFAULT" />
+      ...  (10 more lines)
+   2. Ee33f0797 LIFECYCLE/standard*
+      AnyMemo.<init> -> AnyMemo.onCreate
+      Activity lifecycle / framework callback
+      evidence: FW-SRC core/java/android/app/Activity.java (Activity lifecycle callback dispatched by ActivityThread); SRC ui/AnyMemo.java:115-434
+      (core/java/android/app/Activity.java: no line numbers)
+        115      @Override
+        116      public void onCreate(Bundle savedInstanceState) {
+        117          activityComponents().inject(this);
+        118          super.onCreate(savedInstanceState);
+        119          disposables = new CompositeDisposable();
+        120  
+        121          binding = DataBindingUtil.setContentView(this, R.layout.main_tabs);
+        122  
+        123          // Request storage permission for API < 29
+        124          if (android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.Q) {
+        125              if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        126                      != PackageManager.PERMISSION_GRANTED) {
+        127                  ActivityCompat.requestPermissions(this,
+        128                          new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+      ...  (306 more lines)
+   3. E0b0115b9 CALL/explicit* [ENV: the WRITE_EXTERNAL_STORAGE runtime permission is granted (requested once on API <= 29; always granted on API 27 if accepted)]
+      AnyMemo.onCreate -> AnyMemo.loadUiComponents
+      onCreate: API <= 29 and the WRITE_EXTERNAL_STORAGE permission is already granted (SDK_INT <= Q is always true on the API 27 standard configuration)
+      guard: API <= 29 and WRITE_EXTERNAL_STORAGE is already granted (AnyMemo.java:124-134)
+      evidence: SRC ui/AnyMemo.java:124-141
+        124          if (android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.Q) {
+        125              if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        126                      != PackageManager.PERMISSION_GRANTED) {
+        127                  ActivityCompat.requestPermissions(this,
+        128                          new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+        129                          PERMISSION_REQUEST_EXTERNAL_STORAGE);
+        130              } else {
+        131                  if (!isUiLoaded) {
+        132                      loadUiComponents();
+        133                      isUiLoaded = true;
+        134                  }
+        135              }
+        136          } else {
+        137              if (!isUiLoaded) {
+      ...  (4 more lines)
+   4. Ed9aa2280 CALL/explicit*
+      AnyMemo.loadUiComponents -> AnyMemo.initDrawer
+      initDrawer()
+      evidence: SRC ui/AnyMemo.java:187
+        187          initDrawer();
+   5. E976d9e75 ENTERS/page*
+      AnyMemo.initDrawer -> S_MAIN_RECENT
+      bottomNavigation.setSelectedItemId(recent_tab_menu): the Recent tab is selected by default on a cold start
+      evidence: SRC ui/AnyMemo.java:241,253-257,263
+        241                      fragment = new RecentListFragment();
+        253                  if (fragment != null) {
+        254                      getSupportFragmentManager().beginTransaction()
+        255                              .replace(R.id.page_fragment_container, fragment)
+        256                              .commit();
+        257                  }
+        263          binding.bottomNavigation.setSelectedItemId(R.id.recent_tab_menu);
+   6. E6da90567 GUI/standard*
+      S_MAIN_RECENT -> AnyMemo$2.onNavigationItemSelected
+      Tap a bottom-navigation item (Recent / Open / Download / Misc)
+      evidence: INFERRED com.google.android.material (BottomNavigationView / NavigationView / FloatingActionButton / Snackbar) dispatches the listener registered on it, the same way a platform View dispatches a click (Material Components source not read); SRC ui/AnyMemo.java:234-261
+        234          binding.bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+        235              @Override
+        236              public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+        237  
+        238                  Fragment fragment = null;
+        239                  int itemId = menuItem.getItemId();
+        240                  if (itemId == R.id.recent_tab_menu) {
+        241                      fragment = new RecentListFragment();
+        242                  } else if (itemId == R.id.open_tab_menu) {
+        243                      fragment = new OpenTabFragment();
+        244                      Bundle args = new Bundle();
+        245                      args.putBoolean(FileBrowserFragment.EXTRA_SHOW_CREATE_DB_BUTTON, true);
+        246                      fragment.setArguments(args);
+        247                  } else if (itemId == R.id.download_tab_menu) {
+      ...  (14 more lines)
+   7. Ecdeb17a6 ENTERS/page*
+      AnyMemo$2.onNavigationItemSelected -> S_MAIN_OPEN
+      itemId == open_tab_menu
+      evidence: SRC ui/AnyMemo.java:242-246,253-257
+        242                  } else if (itemId == R.id.open_tab_menu) {
+        243                      fragment = new OpenTabFragment();
+        244                      Bundle args = new Bundle();
+        245                      args.putBoolean(FileBrowserFragment.EXTRA_SHOW_CREATE_DB_BUTTON, true);
+        246                      fragment.setArguments(args);
+        253                  if (fragment != null) {
+        254                      getSupportFragmentManager().beginTransaction()
+        255                              .replace(R.id.page_fragment_container, fragment)
+        256                              .commit();
+        257                  }
+   8. Ecbf460a9 LIFECYCLE/standard*
+      S_MAIN_OPEN -> FileBrowserFragment.onCreateView
+      DialogFragment/Fragment lifecycle callback (OPEN/FBACTIVITY/UPLOADDROPBOX call it directly; EXPORT/CONVERTER reach it through their own onCreate -> super.onCreate(), an explicit call AUTO already covers)
+      evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ui/FileBrowserFragment.java:122-322
+        122      @Override
+        123      public void onAttach(Context activity) {
+        124          super.onAttach(activity);
+        125          mActivity = (Activity) activity;
+        126          settings = PreferenceManager.getDefaultSharedPreferences(mActivity);
+        127          editor = settings.edit();
+        128      }
+        129  
+        130      @Override
+        131      public void onCreate(Bundle bundle) {
+        132          super.onCreate(bundle);
+        133          fragmentComponents().inject(this);
+        134  
+        135          disposables = new CompositeDisposable();
+      ...  (187 more lines)
+   9. Ea049a182 FRAMEWORK/standard*
+      FileBrowserFragment.onCreateView -> FileBrowserFragment$FileBrowserAdapter$1.onClick
+      tap a row in the file list
+      evidence: INFERRED a tapped/long-pressed View dispatches to the listener registered with setOnClickListener / setOnLongClickListener / setOnItemClickListener / setOnItemLongClickListener / setOnTouchListener / setOnCheckedChangeListener / addTextChangedListener / setOnFocusChangeListener / setOnSeekBarChangeListener (androidx widgets wrap the platform View/AdapterView dispatch; androidx source not read); SRC ui/FileBrowserFragment.java:463-519
+        463      private static class FileBrowserAdapter extends RecyclerView.Adapter<FileBrowserAdapter.ViewHolder> {
+        464          private final FileBrowserFragment fragment;
+        465  
+        466          private final List<String> items = new ArrayList<String>();
+        467  
+        468          public FileBrowserAdapter(FileBrowserFragment fragment) {
+        469              this.fragment = fragment;
+        470          }
+        471  
+        472          @Override
+        473          public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        474              LayoutInflater li = (LayoutInflater)fragment.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        475              View v = li.inflate(R.layout.filebrowser_item, parent, false);
+        476              return new ViewHolder(v);
+      ...  (43 more lines)
+  10. E12a3382a CALL/explicit*
+      FileBrowserFragment$FileBrowserAdapter$1.onClick -> FileBrowserFragment.openFile@FBACTIVITY
+      fragment.openFile(selectedFileName)
+      evidence: SRC ui/FileBrowserFragment.java:514-519
+        514              holder.itemView.setOnClickListener(new View.OnClickListener() {
+        515                  @Override
+        516                  public void onClick(View v) {
+        517                      fragment.openFile(selectedFileName);
+        518                  }
+        519              });
+  11. E5b27e0ce CALL/explicit*
+      FileBrowserFragment.openFile@FBACTIVITY -> FileBrowserActivity$1.onFileBrowserFileClick
+      onFileClickListener.onFileBrowserFileClick(clickedFile)
+      evidence: SRC ui/FileBrowserFragment.java:412-414 (bytecode)
+        412                          if (onFileClickListener != null) {
+        413                              onFileClickListener.onFileBrowserFileClick(clickedFile);
+        414                          } else {
+  12. E61fb79e7 CALL/explicit*
+      FileBrowserActivity$1.onFileBrowserFileClick -> FileBrowserActivity.fileClickAction
+      fileClickAction(file)
+      evidence: SRC ui/FileBrowserActivity.java:68-71
+         68          = new FileBrowserFragment.OnFileClickListener() {
+         69          public void onFileBrowserFileClick(File file) {
+         70              fileClickAction(file);
+         71          }
+  13. Eaa1d24fd ENTERS/page*
+      FileBrowserActivity.fileClickAction -> S_CARD_EDITOR
+      setResult(RESULT_OK); finish() (the CardEditor caller restarts with the picked path)
+      evidence: SRC ui/FileBrowserActivity.java:59-65
+         59      protected void fileClickAction(File file) {
+         60          String fullpath = file.getAbsolutePath();
+         61          Intent resultIntent = new Intent();
+         62          resultIntent.putExtra(EXTRA_RESULT_PATH, fullpath);
+         63          setResult(Activity.RESULT_OK, resultIntent);
+         64          finish();
+         65      }
+  14. E1530f576 FRAMEWORK/standard*
+      S_CARD_EDITOR -> CardEditor.onOptionsItemSelected
+      tap a CardEditor toolbar/overflow menu item
+      evidence: INFERRED the platform options-menu machinery calls onCreateOptionsMenu / onPrepareOptionsMenu / onOptionsItemSelected (AppCompat source not read); SRC ui/CardEditor.java:168-204
+        168      public boolean onOptionsItemSelected(MenuItem item) {
+        169          View focusView = getCurrentFocus();
+        170          int itemId = item.getItemId();
+        171          if (itemId == R.id.save) {
+        172              SaveCardTask task = new SaveCardTask();
+        173              task.execute((Void)null);
+        174              return true;
+        175          } else if (itemId == R.id.editor_menu_br) {
+        176              if(focusView == questionEdit || focusView ==answerEdit || focusView == noteEdit){
+        177                  addTextToView((EditText)focusView, "<br />");
+        178              }
+        179              return true;
+        180          } else if (itemId == R.id.editor_menu_image) {
+        181              if(focusView == questionEdit || focusView ==answerEdit || focusView == noteEdit){
+      ...  (23 more lines)
+  15. E44cc65dc CALL/explicit*
+      CardEditor.onOptionsItemSelected -> CardEditor.addNewAudio
+      add_new_audio
+      guard: the focused field is question/answer
+      evidence: SRC ui/CardEditor.java:192-196
+        192          } else if (itemId == R.id.add_new_audio) {
+        193              if (isViewEligibleToEditAudio()) {
+        194                  addNewAudio();
+        195              }
+        196              return true;
+  16. Ed495af7e CALL/explicit*
+      CardEditor.addNewAudio -> CardEditor.startAudioRecorderWithPermissionCheck
+      the focused field has no audio tag yet
+      evidence: SRC ui/CardEditor.java:272-274
+        272           } else {
+        273               startAudioRecorderWithPermissionCheck();
+        274           }
+  17. Edd0ac1e6 CALL/explicit* [ENV: the microphone records audio (audio hardware; a virtual microphone on the emulator) and the RECORD_AUDIO permission is granted]
+      CardEditor.startAudioRecorderWithPermissionCheck -> CardEditor.startAudioRecorder
+      RECORD_AUDIO is already granted
+      guard: RECORD_AUDIO is already granted, so no request is made (CardEditor.java:299-306)
+      evidence: SRC ui/CardEditor.java:299-306
+        299          if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+        300                  != PackageManager.PERMISSION_GRANTED) {
+        301              ActivityCompat.requestPermissions(this,
+        302                      new String[]{Manifest.permission.RECORD_AUDIO},
+        303                      PERMISSION_REQUEST_RECORD_AUDIO);
+        304          } else {
+        305              startAudioRecorder();
+        306          }
+  18. E222d04b3 ENTERS/page*
+      CardEditor.startAudioRecorder -> S_DLG_AUDIO_RECORDER
+      the recorder dialog is added
+      evidence: SRC ui/CardEditor.java:336-338
+        336          getSupportFragmentManager().beginTransaction()
+        337                  .add(recorder, "AudioRecorderDialog")
+        338                  .commitAllowingStateLoss();
+  19. E8cdc9c54 FRAMEWORK/standard*
+      S_DLG_AUDIO_RECORDER -> AudioRecorderFragment$1.onClick
+      tap Record / Play / Save
+      evidence: INFERRED a tapped/long-pressed View dispatches to the listener registered with setOnClickListener / setOnLongClickListener / setOnItemClickListener / setOnItemLongClickListener / setOnTouchListener / setOnCheckedChangeListener / addTextChangedListener / setOnFocusChangeListener / setOnSeekBarChangeListener (androidx widgets wrap the platform View/AdapterView dispatch; androidx source not read); SRC ui/AudioRecorderFragment.java:44-81,99-108
+         44      private View.OnClickListener buttonListener = new View.OnClickListener(){
+         45          public void onClick(View v) {
+         46              if (v == mRecordButton) {
+         47  
+         48                  mStartRecording = !mStartRecording;
+         49                  onRecord(mStartRecording);
+         50                  if (mStartRecording) {
+         51                      mPlayButton.setChecked(true);
+         52                      mPlayButton.setEnabled(false);
+         53                      mSaveButton.setEnabled(false);
+         54  
+         55                  } else {
+         56                      mPlayButton.setChecked(false);
+         57                      mPlayButton.setEnabled(true);
+      ...  (24 more lines)
+         99          mRecordButton= (ToggleButton) v.findViewById(R.id.record_button);
+        100          mRecordButton.setOnClickListener(buttonListener);
+        101  
+        102          mPlayButton = (ToggleButton) v.findViewById(R.id.play_button);
+        103          mPlayButton.setEnabled(false);
+        104          mPlayButton.setOnClickListener(buttonListener);
+        105  
+        106          mSaveButton = (Button) v.findViewById(R.id.save_button);
+        107          mSaveButton.setEnabled(false);
+        108          mSaveButton.setOnClickListener(buttonListener);
+  20. Eacfa1b6a CALL/explicit* [ENV: the microphone records audio (audio hardware; a virtual microphone on the emulator) and the RECORD_AUDIO permission is granted]
+      AudioRecorderFragment$1.onClick -> AudioRecorderFragment.onRecord
+      v == mRecordButton
+      evidence: SRC ui/AudioRecorderFragment.java:46-60
+         46              if (v == mRecordButton) {
+         47  
+         48                  mStartRecording = !mStartRecording;
+         49                  onRecord(mStartRecording);
+         50                  if (mStartRecording) {
+         51                      mPlayButton.setChecked(true);
+         52                      mPlayButton.setEnabled(false);
+         53                      mSaveButton.setEnabled(false);
+         54  
+         55                  } else {
+         56                      mPlayButton.setChecked(false);
+         57                      mPlayButton.setEnabled(true);
+         58                      mSaveButton.setEnabled(true);
+         59                  }
+      ...  (1 more lines)
+  21. Ed44e69a8 CALL/explicit* [ENV: the microphone records audio (audio hardware; a virtual microphone on the emulator) and the RECORD_AUDIO permission is granted]
+      AudioRecorderFragment.onRecord -> AudioRecorderFragment.startRecording
+      mStartRecording toggled on
+      evidence: SRC ui/AudioRecorderFragment.java:125-131,168-182
+        125      private void onRecord(boolean start) {
+        126          if (start) {
+        127              startRecording();
+        128          } else {
+        129              stopRecording();
+        130          }
+        131      }
+        168      private void startRecording() {
+        169          mRecorder = new MediaRecorder();
+        170          mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        171          mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+        172          mRecorder.setOutputFile(mFileName);
+        173          mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+        174  
+        175          try {
+        176              mRecorder.prepare();
+        177          } catch (IOException e) {
+        178              Log.e(TAG, "prepare() failed when trying to start recording");
+        179          }
+        180  
+        181          mRecorder.start();
+      ...  (1 more lines)
+

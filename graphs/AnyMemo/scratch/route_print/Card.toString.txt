@@ -1,0 +1,1312 @@
+METHOD: Card.toString
+verdict: REACHABLE   steps_from_launch: 26
+route steps: 26 edges
+======================================================================
+
+STEP 1  edge Eddc920eb
+  S_ENTRY -> AnyMemo.<init>
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC AndroidManifest.xml:23-46
+  cite [SRC] AndroidManifest.xml:23-46
+    (resolved to final_java_only/AnyMemo/app/AnyMemo-#10.12.2/app/src/main/AndroidManifest.xml)
+       23:         <activity 
+       24:             android:name=".ui.AnyMemo"
+       25:             android:label="@string/app_full_name"
+       26:             android:theme="@style/AnyMemo.Theme.Dark.NoActionBar"
+       27:             android:exported="true" >
+       28:             <intent-filter>
+       29:                 <action 
+       30:                     android:name="android.intent.action.MAIN" />
+       31:                 <category 
+       32:                     android:name="android.intent.category.LAUNCHER" />
+       33:             </intent-filter>
+       34:             <intent-filter>
+       35:                 <action android:name="android.intent.action.VIEW" />
+       36:                 <category android:name="android.intent.category.DEFAULT" />
+       37:                 <category android:name="android.intent.category.BROWSABLE" />
+       38:                 <!-- The android:host does not work correctly with * wildcard.
+       39:                      Ignore the android:host for now -->
+       40:                 <data
+       41:                     android:scheme="content"
+       42:                     android:mimeType="application/octet-stream"
+       43:                     android:pathPattern="/.*\\.db"
+       44:                     tools:ignore="AppIndexingApiError" />
+       45:             </intent-filter>
+       46:         </activity>
+
+STEP 2  edge Ee33f0797
+  AnyMemo.<init> -> AnyMemo.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC core/java/android/app/Activity.java (Activity lifecycle callback dispatched by ActivityThread); SRC ui/AnyMemo.java:115-434
+  cite [SRC] ui/AnyMemo.java:115-434
+      115:     @Override
+      116:     public void onCreate(Bundle savedInstanceState) {
+      117:         activityComponents().inject(this);
+      118:         super.onCreate(savedInstanceState);
+      119:         disposables = new CompositeDisposable();
+      120: 
+      121:         binding = DataBindingUtil.setContentView(this, R.layout.main_tabs);
+      122: 
+      123:         // Request storage permission for API < 29
+      124:         if (android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.Q) {
+      125:             if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+      126:                     != PackageManager.PERMISSION_GRANTED) {
+      127:                 ActivityCompat.requestPermissions(this,
+      128:                         new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+      129:                         PERMISSION_REQUEST_EXTERNAL_STORAGE);
+      130:             } else {
+      131:                 if (!isUiLoaded) {
+      132:                     loadUiComponents();
+      133:                     isUiLoaded = true;
+      134:                 }
+      135:             }
+      136:         } else {
+      137:             if (!isUiLoaded) {
+      138:                 loadUiComponents();
+      139:                 isUiLoaded = true;
+      140:             }
+      141:         }
+      142:         recentListActionModeUtil.registerForActivity();
+      143:     }
+      144: 
+      145:     @Override
+      146:     public void onResume() {
+      147:         super.onResume();
+      148:         if (android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.Q) {
+      149:             if (!isUiLoaded) {
+      150:                 loadUiComponents();
+      151:                 isUiLoaded = true;
+      152:             }
+      153:         } else {
+      154:             if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+      155:                     == PackageManager.PERMISSION_GRANTED) {
+      156:                 if (!isUiLoaded) {
+      157:                     loadUiComponents();
+      158:                     isUiLoaded = true;
+      159:                 }
+      160:             }
+      161:         }
+      162:     }
+      163: 
+      164:     @Override
+      165:     public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
+      166:         switch (requestCode) {
+      167:             case PERMISSION_REQUEST_EXTERNAL_STORAGE: {
+      168:                 // If request is cancelled, the result arrays are empty.
+      169:                 if (grantResults.length > 0
+      170:                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+      171:                     if (!isUiLoaded) {
+      172:                         loadUiComponents();
+      173:                         isUiLoaded = true;
+      174:                     }
+      175:                 } else {
+      176:                     Toast.makeText(this, R.string.write_storage_permission_denied_message, Toast.LENGTH_LONG)
+      177:                             .show();
+      178:                     finish();
+      179:                 }
+      180:             }
+      181:         }
+      182:     }
+      183: 
+      184:     private void loadUiComponents() {
+      185:         settings = PreferenceManager.getDefaultSharedPreferences(this);
+      186: 
+      187:         initDrawer();
+      188: 
+      189:         prepareStoreage();
+      190:         prepareFirstTimeRun();
+      191:         prepareNotification();
+      192: 
+      193:         if (getIntent() != null && Objects.equal(getIntent().getAction(), Intent.ACTION_VIEW)) {
+      194:             handleOpenIntent();
+      195: 
+      196:             // Set the action null when the intent is handled to prevent the logic being executed
+      197:             // again when the screen is rotated
+      198:             getIntent().setAction(null);
+      199:         }
+      200:     }
+      201: 
+      202:     /**
+      203:      * Initialize the Navigation drawer UI.
+      204:      */
+      205:     private void initDrawer() {
+      206:         final Toolbar toolbar = findViewById(R.id.toolbar);
+      207:         setSupportActionBar(toolbar);
+      208: 
+      209:         binding.navView.setNavigationItemSelectedListener(
+      210:             new NavigationView.OnNavigationItemSelectedListener() {
+      211:                 @Override
+      212:                 public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+      213:                     int itemId = menuItem.getItemId();
+      214:                     if (itemId == R.id.recent_tab_menu) {
+      215:                         binding.bottomNavigation.setSelectedItemId(R.id.recent_tab_menu);
+      216:                     } else if (itemId == R.id.open_tab_menu) {
+      217:                         binding.bottomNavigation.setSelectedItemId(R.id.open_tab_menu);
+      218:                     } else if (itemId == R.id.download_tab_menu) {
+      219:                         binding.bottomNavigation.setSelectedItemId(R.id.download_tab_menu);
+      220:                     } else if (itemId == R.id.misc_tab_menu) {
+      221:                         binding.bottomNavigation.setSelectedItemId(R.id.misc_tab_menu);
+      222:                     } else if (itemId == R.id.option_tab_menu) {
+      223:                         startActivity(new Intent(AnyMemo.this, OptionScreen.class));
+      224:                     } else if (itemId == R.id.about_tab_menu) {
+      225:                         aboutUtil.createAboutDialog();
+      226:                     }
+      227:                     menuItem.setChecked(true);
+      228:                     binding.drawerLayout.closeDrawers();
+      229:                     return true;
+      230:                 }
+      231:             }
+      232:         );
+      233: 
+      234:         binding.bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+      235:             @Override
+      236:             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+      237: 
+      238:                 Fragment fragment = null;
+      239:                 int itemId = menuItem.getItemId();
+      240:                 if (itemId == R.id.recent_tab_menu) {
+      241:                     fragment = new RecentListFragment();
+      242:                 } else if (itemId == R.id.open_tab_menu) {
+      243:                     fragment = new OpenTabFragment();
+      244:                     Bundle args = new Bundle();
+      245:                     args.putBoolean(FileBrowserFragment.EXTRA_SHOW_CREATE_DB_BUTTON, true);
+      246:                     fragment.setArguments(args);
+      247:                 } else if (itemId == R.id.download_tab_menu) {
+      248:                     fragment = new DownloadTabFragment();
+      249:                 } else if (itemId == R.id.misc_tab_menu) {
+      250:                     fragment = new MiscTabFragment();
+      251:                 }
+      252: 
+      253:                 if (fragment != null) {
+      254:                     getSupportFragmentManager().beginTransaction()
+      255:                             .replace(R.id.page_fragment_container, fragment)
+      256:                             .commit();
+      257:                 }
+      258: 
+      259:                 return true;
+      260:             }
+      261:         });
+      262: 
+      263:         binding.bottomNavigation.setSelectedItemId(R.id.recent_tab_menu);
+      264: 
+      265:         getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_menu);
+      266:         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+      267:     }
+      268: 
+      269:     private void prepareStoreage() {
+      270:         File sdPath = new File(AMEnv.DEFAULT_ROOT_PATH);
+      271:         sdPath.mkdir();
+      272:         if (!sdPath.canRead()){
+      273:             DialogInterface.OnClickListener exitButtonListener = new DialogInterface.OnClickListener(){
+      274:                 public void onClick(DialogInterface arg0, int arg1){
+      275:                     finish();
+      276:                 }
+      277:             };
+      278:             new AlertDialog.Builder(this)
+      279:                 .setTitle(R.string.sdcard_not_available_warning_title)
+      280:                 .setMessage(R.string.sdcard_not_available_warning_message)
+      281:                 .setNeutralButton(R.string.exit_text, exitButtonListener)
+      282:                 .create()
+      283:                 .show();
+      284:         }
+      285:     }
+      286: 
+      287:     private void prepareFirstTimeRun() {
+      288:         File sdPath = new File(AMEnv.DEFAULT_ROOT_PATH);
+      289:         //Check the version, if it is updated from an older version it will show a dialog
+      290:         int savedVersionCode = settings.getInt(AMPrefKeys.SAVED_VERSION_CODE_KEY, 1);
+      291: 
+      292:         int thisVersionCode; 
+      293:         try {
+      294:             thisVersionCode = getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
+      295:         } catch (PackageManager.NameNotFoundException e) {
+      296:             thisVersionCode = 0;
+      297:             if (BuildConfig.DEBUG) {
+      298:                 throw new RuntimeException("The version code can not be retrieved. Is it defined in build.gradle?");
+      299:             }
+      300:         }
+      301: 
+      302:         boolean firstTime = settings.getBoolean(AMPrefKeys.FIRST_TIME_KEY, true);
+      303: 
+      304:         // Force clean preference for non-compstible versions.
+      305:         if (savedVersionCode < 154) { // Version 9.0.4
+      306:             firstTime = true;
+      307:             SharedPreferences.Editor editor = settings.edit();
+      308:             editor.clear();
+      309:             editor.apply();
+      310:         }
+      311: 
+      312:         /* First time installation! It will install the sample db
+      313:          * to /sdcard/AnyMemo
+      314:          */
+      315:         if (firstTime){
+      316:             SharedPreferences.Editor editor = settings.edit();
+      317:             editor.putBoolean(AMPrefKeys.FIRST_TIME_KEY, false);
+      318:             editor.putString(AMPrefKeys.getRecentPathKey(0), AMEnv.DEFAULT_ROOT_PATH + AMEnv.DEFAULT_DB_NAME);
+      319:             editor.apply();
+      320:             try {
+      321:                 amFileUtil.copyFileFromAsset(AMEnv.DEFAULT_DB_NAME,  new File(sdPath + "/" + AMEnv.DEFAULT_DB_NAME));
+      322: 
+      323:                 InputStream in2 = getResources().getAssets().open(AMEnv.EMPTY_DB_NAME);
+      324:                 String emptyDbPath = getApplicationContext().getFilesDir().getAbsolutePath() + "/" + AMEnv.EMPTY_DB_NAME;
+      325:                 FileUtils.copyInputStreamToFile(in2, new File(emptyDbPath));
+      326:                 in2.close();
+      327:             } catch(IOException e){
+      328:                 Log.e(TAG, "Copy file error", e);
+      329: 
+      330:             }
+      331:         }
+      332:         /* Detect an update */
+      333:         if (savedVersionCode != thisVersionCode) {
+      334:             SharedPreferences.Editor editor = settings.edit();
+      335:             /* save new version number */
+      336:             editor.putInt(AMPrefKeys.SAVED_VERSION_CODE_KEY, thisVersionCode);
+      337:             editor.apply();
+      338: 
+      339:             View alertView = View.inflate(this, R.layout.link_alert, null);
+      340:             TextView textView = (TextView)alertView.findViewById(R.id.link_alert_message);
+      341: 
+      342:             SpannableStringBuilder ssb = new SpannableStringBuilder();
+      343:             ssb.append(Html.fromHtml(getString(R.string.what_is_new_message)));
+      344:             if (savedVersionCode < 239 || firstTime) {
+      345:                 ssb.append(Html.fromHtml(getString(R.string.upgrade_note_10_12)));
+      346:             }
+      347: 
+      348:             android.text.style.URLSpan[] urls = ssb.getSpans(0, ssb.length(), android.text.style.URLSpan.class);
+      349:             for (android.text.style.URLSpan span : urls) {
+      350:                 if ("import_folder".equals(span.getURL())) {
+      351:                     int start = ssb.getSpanStart(span);
+      352:                     int end = ssb.getSpanEnd(span);
+      353:                     int flags = ssb.getSpanFlags(span);
+      354:                     ssb.removeSpan(span);
+      355:                     ssb.setSpan(new android.text.style.ClickableSpan() {
+      356:                         @Override
+      357:                         public void onClick(View widget) {
+      358:                             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+      359:                             startActivityForResult(intent, REQUEST_CODE_IMPORT_FOLDER);
+      360:                         }
+      361:                     }, start, end, flags);
+      362:                 }
+      363:             }
+      364: 
+      365:             textView.setText(ssb);
+      366:             textView.setMovementMethod(LinkMovementMethod.getInstance());
+      367:             new AlertDialog.Builder(this)
+      368:                 .setView(alertView)
+      369:                 .setTitle(getString(R.string.what_is_new))
+      370:                 .setPositiveButton(getString(R.string.ok_text), null)
+      371:                 .setNegativeButton(getString(R.string.about_version), new DialogInterface.OnClickListener(){
+      372:                     @Override
+      373:                     public void onClick(DialogInterface arg0, int arg1){
+      374:                         Intent myIntent = new Intent();
+      375:                         myIntent.setAction(Intent.ACTION_VIEW);
+      376:                         myIntent.addCategory(Intent.CATEGORY_BROWSABLE);
+      377:                         myIntent.setData(Uri.parse(WEBSITE_VERSION));
+      378:                         startActivity(myIntent);
+      379:                     }
+      380:                 })
+      381:             .show();
+      382:         }
+      383:     }
+      384: 
+      385:     private void prepareNotification() {
+      386:         SetAlarmReceiver.cancelNotificationAlarm(this);
+      387:         SetAlarmReceiver.setNotificationAlarm(this);
+      388:     }
+      389: 
+      390:     /**
+      391:      * Handle the "VIEW" action for other app to open a db
+      392:      */
+      393:     private void handleOpenIntent() {
+      394:         multipleLoaderManager.registerLoaderCallbacks(1, new HandleOpenIntentLoaderCallbacks(getIntent().getData()), false);
+      395:         multipleLoaderManager.startLoading();
+      396:     }
+      397: 
+      398:     @Override
+      399:     public void onDestroy() {
+      400:         recentListActionModeUtil.unregisterForActivity();
+      401:         disposables.dispose();
+      402: 
+      403:         super.onDestroy();
+      404:         // Update the widget and cancel the notification.
+      405:         AnyMemoWidgetProvider.updateWidget(this);
+      406:         notificationUtil.cancelNotification();
+      407: 
+      408:         if (multipleLoaderManager != null) {
+      409:             multipleLoaderManager.destroy();
+      410:         }
+      411:     }
+      412: 
+      413:     @Override
+      414:     public boolean onOptionsItemSelected(MenuItem item) {
+      415:         if (item.getItemId() == android.R.id.home) {
+      416:             binding.drawerLayout.openDrawer(GravityCompat.START);
+      417:             return true;
+      418:         }
+      419: 
+      420:         return super.onOptionsItemSelected(item);
+      421:     }
+      422: 
+      423:     @Override
+      424:     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+      425:         super.onActivityResult(requestCode, resultCode, data);
+      426:         if (requestCode == REQUEST_CODE_IMPORT_FOLDER && resultCode == RESULT_OK) {
+      427:             if (data != null) {
+      428:                 Uri treeUri = data.getData();
+      429:                 if (treeUri != null) {
+      430:                     folderImportExportUtil.importFolder(this, treeUri, disposables);
+      431:                 }
+      432:             }
+      433:         }
+      434:     }
+
+STEP 3  edge E0b0115b9
+  AnyMemo.onCreate -> AnyMemo.loadUiComponents
+  class: explicit   kind: CALL
+  guard: API <= 29 and WRITE_EXTERNAL_STORAGE is already granted (AnyMemo.java:124-134)
+  needs_state: None
+  env: the WRITE_EXTERNAL_STORAGE runtime permission is granted (requested once on API <= 29; always granted on API 27 if accepted)
+  evidence: SRC ui/AnyMemo.java:124-141
+  cite [SRC] ui/AnyMemo.java:124-141
+      124:         if (android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.Q) {
+      125:             if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+      126:                     != PackageManager.PERMISSION_GRANTED) {
+      127:                 ActivityCompat.requestPermissions(this,
+      128:                         new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+      129:                         PERMISSION_REQUEST_EXTERNAL_STORAGE);
+      130:             } else {
+      131:                 if (!isUiLoaded) {
+      132:                     loadUiComponents();
+      133:                     isUiLoaded = true;
+      134:                 }
+      135:             }
+      136:         } else {
+      137:             if (!isUiLoaded) {
+      138:                 loadUiComponents();
+      139:                 isUiLoaded = true;
+      140:             }
+      141:         }
+
+STEP 4  edge Ed9aa2280
+  AnyMemo.loadUiComponents -> AnyMemo.initDrawer
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/AnyMemo.java:187
+  cite [SRC] ui/AnyMemo.java:187
+      187:         initDrawer();
+
+STEP 5  edge Efe6c7871
+  AnyMemo.initDrawer -> AnyMemo$2.onNavigationItemSelected@INIT
+  class: non_standard   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/AnyMemo.java:263; INFERRED com.google.android.material BottomNavigationView.setSelectedItemId dispatches the listener (not read)
+  cite [SRC] ui/AnyMemo.java:263
+      263:         binding.bottomNavigation.setSelectedItemId(R.id.recent_tab_menu);
+
+STEP 6  edge E006becde
+  AnyMemo$2.onNavigationItemSelected@INIT -> RecentListFragment.<init>
+  class: explicit   kind: CALL
+  guard: itemId == recent_tab_menu: the cold-start selection always takes this branch (AnyMemo.java:240-241, 263)
+  needs_state: None
+  env: None
+  evidence: SRC AnyMemo.java:241 (bytecode)
+  cite [SRC] AnyMemo.java:241
+    (resolved to final_java_only/AnyMemo/app/AnyMemo-#10.12.2/app/src/main/java/org/liberty/android/fantastischmemo/ui/AnyMemo.java)
+      241:                     fragment = new RecentListFragment();
+
+STEP 7  edge E48c9d4a5
+  RecentListFragment.<init> -> RecentListFragment.onAttach
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ui/RecentListFragment.java:127-226
+  cite [SRC] ui/RecentListFragment.java:127-226
+      127:     @Override
+      128:     public void onCreate(@Nullable Bundle savedInstanceState) {
+      129:         super.onCreate(savedInstanceState);
+      130:         fragmentComponents().inject(this);
+      131:         disposables = new CompositeDisposable();
+      132:     }
+      133: 
+      134:     @Override
+      135:     public void onAttach(Context activity) {
+      136:         super.onAttach(activity);
+      137:         setHasOptionsMenu(true);
+      138:         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mClearSelectionReceiver,
+      139:                 new IntentFilter(RecentListActionModeUtil.ACTION_DESELECT_ALL));
+      140:         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mRemoveSelectedReceiver,
+      141:                 new IntentFilter(RecentListActionModeUtil.ACTION_REMOVE_SELECTED));
+      142:     }
+      143: 
+      144:     @Override
+      145:     public void onDetach() {
+      146:         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mClearSelectionReceiver);
+      147:         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mRemoveSelectedReceiver);
+      148:         super.onDetach();
+      149:     }
+      150: 
+      151:     @Override
+      152:     public void onDestroy() {
+      153:         super.onDestroy();
+      154:         if (disposables != null) {
+      155:             disposables.dispose();
+      156:         }
+      157:     }
+      158: 
+      159:     @Override
+      160:     public void setUserVisibleHint(boolean isVisibleToUser) {
+      161:         super.setUserVisibleHint(isVisibleToUser);
+      162: 
+      163:         if (recentListAdapter != null && !isVisibleToUser) {
+      164:             recentListAdapter.stopActionMode();
+      165:         }
+      166:     }
+      167: 
+      168:     @Override
+      169:     public View onCreateView(LayoutInflater inflater, ViewGroup container,
+      170:             Bundle savedInstanceState) {
+      171:         View v = inflater.inflate(R.layout.recent_list, container, false);
+      172:         recentListRecyclerView = (RecyclerView) v.findViewById(R.id.recent_open_list);
+      173:         RecyclerView.ItemDecoration dividerItemDecoration = new DividerItemDecoration(v.getContext());
+      174:         recentListRecyclerView.addItemDecoration(dividerItemDecoration);
+      175: 
+      176:         recentListRecyclerView.setLayoutManager(new LinearLayoutManager(recentListRecyclerView.getContext()));
+      177: 
+      178:         /* pre loading stat */
+      179:         recentListAdapter = new RecentListAdapter(getContext(), recentListUtil,
+      180:                                                   recentListActionModeUtil);
+      181: 
+      182:         recentListRecyclerView.setAdapter(recentListAdapter);
+      183: 
+      184:         View fab = v.findViewById(R.id.import_fab);
+      185:         if (fab != null) {
+      186:             fab.setOnClickListener(new View.OnClickListener() {
+      187:                 @Override
+      188:                 public void onClick(View view) {
+      189:                     Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+      190:                     intent.addCategory(Intent.CATEGORY_OPENABLE);
+      191:                     intent.setType("*/*");
+      192:                     startActivityForResult(intent, REQUEST_CODE_IMPORT_DB);
+      193:                 }
+      194:             });
+      195:         }
+      196: 
+      197:         return v;
+      198:     }
+      199: 
+      200:     @Override
+      201:     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+      202:         if (requestCode == REQUEST_CODE_IMPORT_DB && resultCode == Activity.RESULT_OK && data != null && data.getData() != null) {
+      203:             final Uri uri = data.getData();
+      204:             databaseImportUtil.handleImportDbResult(getActivity(), uri, disposables, new Runnable() {
+      205:                 @Override
+      206:                 public void run() {
+      207:                     onResume();
+      208:                 }
+      209:             });
+      210:         } else {
+      211:             super.onActivityResult(requestCode, resultCode, data);
+      212:         }
+      213:     }
+      214: 
+      215:     @Override
+      216:     public void onResume() {
+      217:         super.onResume();
+      218:         getLoaderManager().restartLoader(1, null, new RecentListLoaderCallbacks());
+      219:         getLoaderManager().restartLoader(2, null, new RecentListDetailLoaderCallbacks());
+      220:     }
+      221: 
+      222:     @Override
+      223:     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
+      224:         super.onCreateOptionsMenu(menu, inflater);
+      225:         inflater.inflate(R.menu.open_screen_menu, menu);
+      226:     }
+
+STEP 8  edge Ef4267162
+  RecentListFragment.onAttach -> RecentListFragment.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ui/RecentListFragment.java:127-226
+  cite [SRC] ui/RecentListFragment.java:127-226
+      127:     @Override
+      128:     public void onCreate(@Nullable Bundle savedInstanceState) {
+      129:         super.onCreate(savedInstanceState);
+      130:         fragmentComponents().inject(this);
+      131:         disposables = new CompositeDisposable();
+      132:     }
+      133: 
+      134:     @Override
+      135:     public void onAttach(Context activity) {
+      136:         super.onAttach(activity);
+      137:         setHasOptionsMenu(true);
+      138:         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mClearSelectionReceiver,
+      139:                 new IntentFilter(RecentListActionModeUtil.ACTION_DESELECT_ALL));
+      140:         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mRemoveSelectedReceiver,
+      141:                 new IntentFilter(RecentListActionModeUtil.ACTION_REMOVE_SELECTED));
+      142:     }
+      143: 
+      144:     @Override
+      145:     public void onDetach() {
+      146:         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mClearSelectionReceiver);
+      147:         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mRemoveSelectedReceiver);
+      148:         super.onDetach();
+      149:     }
+      150: 
+      151:     @Override
+      152:     public void onDestroy() {
+      153:         super.onDestroy();
+      154:         if (disposables != null) {
+      155:             disposables.dispose();
+      156:         }
+      157:     }
+      158: 
+      159:     @Override
+      160:     public void setUserVisibleHint(boolean isVisibleToUser) {
+      161:         super.setUserVisibleHint(isVisibleToUser);
+      162: 
+      163:         if (recentListAdapter != null && !isVisibleToUser) {
+      164:             recentListAdapter.stopActionMode();
+      165:         }
+      166:     }
+      167: 
+      168:     @Override
+      169:     public View onCreateView(LayoutInflater inflater, ViewGroup container,
+      170:             Bundle savedInstanceState) {
+      171:         View v = inflater.inflate(R.layout.recent_list, container, false);
+      172:         recentListRecyclerView = (RecyclerView) v.findViewById(R.id.recent_open_list);
+      173:         RecyclerView.ItemDecoration dividerItemDecoration = new DividerItemDecoration(v.getContext());
+      174:         recentListRecyclerView.addItemDecoration(dividerItemDecoration);
+      175: 
+      176:         recentListRecyclerView.setLayoutManager(new LinearLayoutManager(recentListRecyclerView.getContext()));
+      177: 
+      178:         /* pre loading stat */
+      179:         recentListAdapter = new RecentListAdapter(getContext(), recentListUtil,
+      180:                                                   recentListActionModeUtil);
+      181: 
+      182:         recentListRecyclerView.setAdapter(recentListAdapter);
+      183: 
+      184:         View fab = v.findViewById(R.id.import_fab);
+      185:         if (fab != null) {
+      186:             fab.setOnClickListener(new View.OnClickListener() {
+      187:                 @Override
+      188:                 public void onClick(View view) {
+      189:                     Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+      190:                     intent.addCategory(Intent.CATEGORY_OPENABLE);
+      191:                     intent.setType("*/*");
+      192:                     startActivityForResult(intent, REQUEST_CODE_IMPORT_DB);
+      193:                 }
+      194:             });
+      195:         }
+      196: 
+      197:         return v;
+      198:     }
+      199: 
+      200:     @Override
+      201:     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+      202:         if (requestCode == REQUEST_CODE_IMPORT_DB && resultCode == Activity.RESULT_OK && data != null && data.getData() != null) {
+      203:             final Uri uri = data.getData();
+      204:             databaseImportUtil.handleImportDbResult(getActivity(), uri, disposables, new Runnable() {
+      205:                 @Override
+      206:                 public void run() {
+      207:                     onResume();
+      208:                 }
+      209:             });
+      210:         } else {
+      211:             super.onActivityResult(requestCode, resultCode, data);
+      212:         }
+      213:     }
+      214: 
+      215:     @Override
+      216:     public void onResume() {
+      217:         super.onResume();
+      218:         getLoaderManager().restartLoader(1, null, new RecentListLoaderCallbacks());
+      219:         getLoaderManager().restartLoader(2, null, new RecentListDetailLoaderCallbacks());
+      220:     }
+      221: 
+      222:     @Override
+      223:     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
+      224:         super.onCreateOptionsMenu(menu, inflater);
+      225:         inflater.inflate(R.menu.open_screen_menu, menu);
+      226:     }
+
+STEP 9  edge E25e1518b
+  RecentListFragment.onCreate -> RecentListFragment.onCreateView
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ui/RecentListFragment.java:127-226
+  cite [SRC] ui/RecentListFragment.java:127-226
+      127:     @Override
+      128:     public void onCreate(@Nullable Bundle savedInstanceState) {
+      129:         super.onCreate(savedInstanceState);
+      130:         fragmentComponents().inject(this);
+      131:         disposables = new CompositeDisposable();
+      132:     }
+      133: 
+      134:     @Override
+      135:     public void onAttach(Context activity) {
+      136:         super.onAttach(activity);
+      137:         setHasOptionsMenu(true);
+      138:         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mClearSelectionReceiver,
+      139:                 new IntentFilter(RecentListActionModeUtil.ACTION_DESELECT_ALL));
+      140:         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mRemoveSelectedReceiver,
+      141:                 new IntentFilter(RecentListActionModeUtil.ACTION_REMOVE_SELECTED));
+      142:     }
+      143: 
+      144:     @Override
+      145:     public void onDetach() {
+      146:         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mClearSelectionReceiver);
+      147:         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mRemoveSelectedReceiver);
+      148:         super.onDetach();
+      149:     }
+      150: 
+      151:     @Override
+      152:     public void onDestroy() {
+      153:         super.onDestroy();
+      154:         if (disposables != null) {
+      155:             disposables.dispose();
+      156:         }
+      157:     }
+      158: 
+      159:     @Override
+      160:     public void setUserVisibleHint(boolean isVisibleToUser) {
+      161:         super.setUserVisibleHint(isVisibleToUser);
+      162: 
+      163:         if (recentListAdapter != null && !isVisibleToUser) {
+      164:             recentListAdapter.stopActionMode();
+      165:         }
+      166:     }
+      167: 
+      168:     @Override
+      169:     public View onCreateView(LayoutInflater inflater, ViewGroup container,
+      170:             Bundle savedInstanceState) {
+      171:         View v = inflater.inflate(R.layout.recent_list, container, false);
+      172:         recentListRecyclerView = (RecyclerView) v.findViewById(R.id.recent_open_list);
+      173:         RecyclerView.ItemDecoration dividerItemDecoration = new DividerItemDecoration(v.getContext());
+      174:         recentListRecyclerView.addItemDecoration(dividerItemDecoration);
+      175: 
+      176:         recentListRecyclerView.setLayoutManager(new LinearLayoutManager(recentListRecyclerView.getContext()));
+      177: 
+      178:         /* pre loading stat */
+      179:         recentListAdapter = new RecentListAdapter(getContext(), recentListUtil,
+      180:                                                   recentListActionModeUtil);
+      181: 
+      182:         recentListRecyclerView.setAdapter(recentListAdapter);
+      183: 
+      184:         View fab = v.findViewById(R.id.import_fab);
+      185:         if (fab != null) {
+      186:             fab.setOnClickListener(new View.OnClickListener() {
+      187:                 @Override
+      188:                 public void onClick(View view) {
+      189:                     Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+      190:                     intent.addCategory(Intent.CATEGORY_OPENABLE);
+      191:                     intent.setType("*/*");
+      192:                     startActivityForResult(intent, REQUEST_CODE_IMPORT_DB);
+      193:                 }
+      194:             });
+      195:         }
+      196: 
+      197:         return v;
+      198:     }
+      199: 
+      200:     @Override
+      201:     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+      202:         if (requestCode == REQUEST_CODE_IMPORT_DB && resultCode == Activity.RESULT_OK && data != null && data.getData() != null) {
+      203:             final Uri uri = data.getData();
+      204:             databaseImportUtil.handleImportDbResult(getActivity(), uri, disposables, new Runnable() {
+      205:                 @Override
+      206:                 public void run() {
+      207:                     onResume();
+      208:                 }
+      209:             });
+      210:         } else {
+      211:             super.onActivityResult(requestCode, resultCode, data);
+      212:         }
+      213:     }
+      214: 
+      215:     @Override
+      216:     public void onResume() {
+      217:         super.onResume();
+      218:         getLoaderManager().restartLoader(1, null, new RecentListLoaderCallbacks());
+      219:         getLoaderManager().restartLoader(2, null, new RecentListDetailLoaderCallbacks());
+      220:     }
+      221: 
+      222:     @Override
+      223:     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
+      224:         super.onCreateOptionsMenu(menu, inflater);
+      225:         inflater.inflate(R.menu.open_screen_menu, menu);
+      226:     }
+
+STEP 10  edge E0336067c
+  RecentListFragment.onCreateView -> RecentListFragment.onResume
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ui/RecentListFragment.java:127-226
+  cite [SRC] ui/RecentListFragment.java:127-226
+      127:     @Override
+      128:     public void onCreate(@Nullable Bundle savedInstanceState) {
+      129:         super.onCreate(savedInstanceState);
+      130:         fragmentComponents().inject(this);
+      131:         disposables = new CompositeDisposable();
+      132:     }
+      133: 
+      134:     @Override
+      135:     public void onAttach(Context activity) {
+      136:         super.onAttach(activity);
+      137:         setHasOptionsMenu(true);
+      138:         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mClearSelectionReceiver,
+      139:                 new IntentFilter(RecentListActionModeUtil.ACTION_DESELECT_ALL));
+      140:         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mRemoveSelectedReceiver,
+      141:                 new IntentFilter(RecentListActionModeUtil.ACTION_REMOVE_SELECTED));
+      142:     }
+      143: 
+      144:     @Override
+      145:     public void onDetach() {
+      146:         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mClearSelectionReceiver);
+      147:         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mRemoveSelectedReceiver);
+      148:         super.onDetach();
+      149:     }
+      150: 
+      151:     @Override
+      152:     public void onDestroy() {
+      153:         super.onDestroy();
+      154:         if (disposables != null) {
+      155:             disposables.dispose();
+      156:         }
+      157:     }
+      158: 
+      159:     @Override
+      160:     public void setUserVisibleHint(boolean isVisibleToUser) {
+      161:         super.setUserVisibleHint(isVisibleToUser);
+      162: 
+      163:         if (recentListAdapter != null && !isVisibleToUser) {
+      164:             recentListAdapter.stopActionMode();
+      165:         }
+      166:     }
+      167: 
+      168:     @Override
+      169:     public View onCreateView(LayoutInflater inflater, ViewGroup container,
+      170:             Bundle savedInstanceState) {
+      171:         View v = inflater.inflate(R.layout.recent_list, container, false);
+      172:         recentListRecyclerView = (RecyclerView) v.findViewById(R.id.recent_open_list);
+      173:         RecyclerView.ItemDecoration dividerItemDecoration = new DividerItemDecoration(v.getContext());
+      174:         recentListRecyclerView.addItemDecoration(dividerItemDecoration);
+      175: 
+      176:         recentListRecyclerView.setLayoutManager(new LinearLayoutManager(recentListRecyclerView.getContext()));
+      177: 
+      178:         /* pre loading stat */
+      179:         recentListAdapter = new RecentListAdapter(getContext(), recentListUtil,
+      180:                                                   recentListActionModeUtil);
+      181: 
+      182:         recentListRecyclerView.setAdapter(recentListAdapter);
+      183: 
+      184:         View fab = v.findViewById(R.id.import_fab);
+      185:         if (fab != null) {
+      186:             fab.setOnClickListener(new View.OnClickListener() {
+      187:                 @Override
+      188:                 public void onClick(View view) {
+      189:                     Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+      190:                     intent.addCategory(Intent.CATEGORY_OPENABLE);
+      191:                     intent.setType("*/*");
+      192:                     startActivityForResult(intent, REQUEST_CODE_IMPORT_DB);
+      193:                 }
+      194:             });
+      195:         }
+      196: 
+      197:         return v;
+      198:     }
+      199: 
+      200:     @Override
+      201:     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+      202:         if (requestCode == REQUEST_CODE_IMPORT_DB && resultCode == Activity.RESULT_OK && data != null && data.getData() != null) {
+      203:             final Uri uri = data.getData();
+      204:             databaseImportUtil.handleImportDbResult(getActivity(), uri, disposables, new Runnable() {
+      205:                 @Override
+      206:                 public void run() {
+      207:                     onResume();
+      208:                 }
+      209:             });
+      210:         } else {
+      211:             super.onActivityResult(requestCode, resultCode, data);
+      212:         }
+      213:     }
+      214: 
+      215:     @Override
+      216:     public void onResume() {
+      217:         super.onResume();
+      218:         getLoaderManager().restartLoader(1, null, new RecentListLoaderCallbacks());
+      219:         getLoaderManager().restartLoader(2, null, new RecentListDetailLoaderCallbacks());
+      220:     }
+      221: 
+      222:     @Override
+      223:     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
+      224:         super.onCreateOptionsMenu(menu, inflater);
+      225:         inflater.inflate(R.menu.open_screen_menu, menu);
+      226:     }
+
+STEP 11  edge E3cdfa763
+  RecentListFragment.onResume -> RecentListFragment$RecentListLoaderCallbacks.onCreateLoader
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED androidx.loader.app.LoaderManager drives onCreateLoader / onLoadFinished / onLoaderReset and runs AsyncTaskLoader.loadInBackground on a worker thread (androidx source not read); SRC ui/RecentListFragment.java:218,250-265
+  cite [SRC] ui/RecentListFragment.java:218, 250-265
+      218:         getLoaderManager().restartLoader(1, null, new RecentListLoaderCallbacks());
+      250:     private class RecentListLoaderCallbacks implements LoaderManager.LoaderCallbacks<List<RecentItem>> {
+      251: 
+      252:         private int loadedVersion;
+      253: 
+      254:         @Override
+      255:         public Loader<List<RecentItem>> onCreateLoader(int id, Bundle args) {
+      256:             Loader<List<RecentItem>> loader = new AsyncTaskLoader<List<RecentItem>>(getContext()) {
+      257:                 @Override
+      258:                 public List<RecentItem> loadInBackground() {
+      259:                     loadedVersion = recentListVersion.get();
+      260:                     return loadRecentItemsWithName();
+      261:                 }
+      262:             };
+      263:             loader.forceLoad();
+      264:             return loader;
+      265:         }
+
+STEP 12  edge E0195fc37
+  RecentListFragment$RecentListLoaderCallbacks.onCreateLoader -> RecentListFragment$RecentListLoaderCallbacks$1.loadInBackground
+  class: standard   kind: ASYNC
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED androidx.loader.app.LoaderManager drives onCreateLoader / onLoadFinished / onLoaderReset and runs AsyncTaskLoader.loadInBackground on a worker thread (androidx source not read); SRC ui/RecentListFragment.java:256-263
+  cite [SRC] ui/RecentListFragment.java:256-263
+      256:             Loader<List<RecentItem>> loader = new AsyncTaskLoader<List<RecentItem>>(getContext()) {
+      257:                 @Override
+      258:                 public List<RecentItem> loadInBackground() {
+      259:                     loadedVersion = recentListVersion.get();
+      260:                     return loadRecentItemsWithName();
+      261:                 }
+      262:             };
+      263:             loader.forceLoad();
+
+STEP 13  edge Ebf2205c3
+  RecentListFragment$RecentListLoaderCallbacks$1.loadInBackground -> RecentListFragment$RecentListLoaderCallbacks.onLoadFinished
+  class: standard   kind: ASYNC
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED androidx.loader.app.LoaderManager drives onCreateLoader / onLoadFinished / onLoaderReset and runs AsyncTaskLoader.loadInBackground on a worker thread (androidx source not read); SRC ui/RecentListFragment.java:267-272
+  cite [SRC] ui/RecentListFragment.java:267-272
+      267:         @Override
+      268:         public void onLoadFinished(Loader<List<RecentItem>> loader, List<RecentItem> ril) {
+      269:             if (recentListVersion.get() == loadedVersion) {
+      270:                 recentListAdapter.setItems(ril);
+      271:             }
+      272:         }
+
+STEP 14  edge E367b72be
+  RecentListFragment$RecentListLoaderCallbacks.onLoadFinished -> RecentListFragment$RecentListAdapter.setItems
+  class: explicit   kind: CALL
+  guard: recentListVersion.get() == loadedVersion: this load is still the latest one (RecentListFragment.java:269)
+  needs_state: None
+  env: None
+  evidence: SRC RecentListFragment.java:270 (bytecode)
+  cite [SRC] RecentListFragment.java:270
+    (resolved to final_java_only/AnyMemo/app/AnyMemo-#10.12.2/app/src/main/java/org/liberty/android/fantastischmemo/ui/RecentListFragment.java)
+      270:                 recentListAdapter.setItems(ril);
+
+STEP 15  edge Ed19034c7
+  RecentListFragment$RecentListAdapter.setItems -> RecentListFragment$RecentListAdapter.onBindViewHolder
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: At least one entry exists in the recent-deck list (Recent tab is not empty)
+  env: None
+  evidence: INFERRED androidx.recyclerview.widget.RecyclerView calls Adapter.getItemCount, onCreateViewHolder and onBindViewHolder, and ItemDecoration.getItemOffsets and onDraw, while it lays out and draws the rows (androidx source not read); SRC ui/RecentListFragment.java:464-468
+  cite [SRC] ui/RecentListFragment.java:464-468
+      464:         public synchronized void setItems(List<RecentItem> items) {
+      465:             this.items.clear();
+      466:             this.items.addAll(items);
+      467:             this.notifyDataSetChanged();
+      468:         }
+
+STEP 16  edge E9519dc75
+  RecentListFragment$RecentListAdapter.onBindViewHolder -> RecentListFragment$RecentListAdapter$1.onClick
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: At least one entry exists in the recent-deck list (Recent tab is not empty)
+  env: None
+  evidence: INFERRED a tapped/long-pressed View dispatches to the listener registered with setOnClickListener / setOnLongClickListener / setOnItemClickListener / setOnItemLongClickListener / setOnTouchListener / setOnCheckedChangeListener / addTextChangedListener / setOnFocusChangeListener / setOnSeekBarChangeListener (androidx widgets wrap the platform View/AdapterView dispatch; androidx source not read); SRC ui/RecentListFragment.java:413-428
+  cite [SRC] ui/RecentListFragment.java:413-428
+      413:             holder.itemView.setOnClickListener(new View.OnClickListener() {
+      414:                 @Override
+      415:                 public void onClick(View v) {
+      416:                     if (getSelectedItemCount() == 0) {
+      417:                         Intent myIntent = new Intent();
+      418:                         myIntent.setClass(context, StudyActivity.class);
+      419:                         String dbPath = currentItem.dbPath;
+      420:                         myIntent.putExtra(StudyActivity.EXTRA_DBPATH, dbPath);
+      421:                         recentListUtil.addToRecentList(dbPath);
+      422:                         context.startActivity(myIntent);
+      423:                     } else {
+      424:                         toggleSelection(position);
+      425:                     }
+      426:                     recentListActionModeUtil.updateActionMode(getSelectedItemCount());
+      427:                 }
+      428:             });
+
+STEP 17  edge E8c752a9d
+  RecentListFragment$RecentListAdapter$1.onClick -> StudyActivity.<init>
+  class: standard   kind: INTENT
+  guard: getSelectedItemCount() == 0 (RecentListFragment.java:416); with a selection the tap toggles it instead (:423-424)
+  needs_state: None
+  env: None
+  evidence: SRC ui/RecentListFragment.java:416-422
+  cite [SRC] ui/RecentListFragment.java:416-422
+      416:                     if (getSelectedItemCount() == 0) {
+      417:                         Intent myIntent = new Intent();
+      418:                         myIntent.setClass(context, StudyActivity.class);
+      419:                         String dbPath = currentItem.dbPath;
+      420:                         myIntent.putExtra(StudyActivity.EXTRA_DBPATH, dbPath);
+      421:                         recentListUtil.addToRecentList(dbPath);
+      422:                         context.startActivity(myIntent);
+
+STEP 18  edge Ef70a2160
+  StudyActivity.<init> -> StudyActivity.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC core/java/android/app/Activity.java (Activity lifecycle callback dispatched by ActivityThread); SRC ui/StudyActivity.java:103-257
+  cite [SRC] ui/StudyActivity.java:103-257
+      103:     @Override
+      104:     public void onCreate(Bundle savedInstanceState){
+      105:         activityComponents().inject(this);
+      106:         super.onCreate(savedInstanceState);
+      107: 
+      108:         Bundle extras = getIntent().getExtras();
+      109:         if (extras != null) {
+      110:             dbPath = extras.getString(EXTRA_DBPATH);
+      111:             filterCategoryId = extras.getInt(EXTRA_CATEGORY_ID, -1);
+      112:             startCardId = extras.getInt(EXTRA_START_CARD_ID, -1);
+      113:         }
+      114: 
+      115:         if (savedInstanceState != null) {
+      116:             startCardId = savedInstanceState.getInt(EXTRA_START_CARD_ID, -1);
+      117:         }
+      118: 
+      119:         getMultipleLoaderManager().registerLoaderCallbacks(LEARN_QUEUE_MANAGER_LOADER_ID, new LearnQueueManagerLoaderCallbacks(), false);
+      120: 
+      121:         startInit();
+      122:     }
+      123:     
+      124:     @Override
+      125:     protected void onSaveInstanceState(Bundle outState) {
+      126:         super.onSaveInstanceState(outState);
+      127:         if (getCurrentCard() != null) {
+      128:             outState.putInt(EXTRA_START_CARD_ID, getCurrentCard().getId());
+      129:         }
+      130:     }
+      131: 
+      132:     @Override
+      133:     public int getContentView() {
+      134:         return R.layout.qa_card_layout_study;
+      135:     }
+      136: 
+      137:     @Override
+      138:     public boolean onCreateOptionsMenu(Menu menu){
+      139:         MenuInflater inflater = getMenuInflater();
+      140:         inflater.inflate(R.menu.study_activity_menu, menu);
+      141:         return true;
+      142:     }
+      143: 
+      144:     @Override
+      145:     public boolean onOptionsItemSelected(MenuItem item) {
+      146:         int itemId = item.getItemId();
+      147:         if (itemId == R.id.menu_memo_help) {
+      148:             gotoHelp();
+      149:             return true;
+      150:         } else if (itemId == R.id.menuspeakquestion) {
+      151:             return speakQuestion();
+      152:         } else if (itemId == R.id.menuspeakanswer) {
+      153:             return speakAnswer();
+      154:         } else if (itemId == R.id.menusettings) {
+      155:             gotoSettings();
+      156:             return true;
+      157:         } else if (itemId == R.id.menudetail) {
+      158:             gotoDetail();
+      159:             return true;
+      160:         } else if (itemId == R.id.menuundo) {
+      161:             undoCard();
+      162:             return true;
+      163:         } else if (itemId == R.id.menu_memo_category) {
+      164:             showCategoriesDialog();
+      165:             return true;
+      166:         } else if (itemId == R.id.menu_context_edit) {
+      167:             showEditDialog();
+      168:             return true;
+      169:         } else if (itemId == R.id.menu_context_delete) {
+      170:             showDeleteDialog();
+      171:             return true;
+      172:         } else if (itemId == R.id.menu_mark_as_learned_forever) {
+      173:             showMarkAsLearnedForeverDialog();
+      174:             return true;
+      175:         } else if (itemId == R.id.menu_context_gotoprev) {
+      176:             gotoPreviewEdit();
+      177:             return true;
+      178:         } else if (itemId == R.id.menu_context_lookup) {
+      179:             if(getCurrentCard() == null){
+      180:                 return false;
+      181:             }
+      182:             // Look up words in both question and answer
+      183:             lookupDictionary();
+      184:             return true;
+      185:         } else if (itemId == R.id.menu_gestures) {
+      186:             showGesturesDialog();
+      187:             return true;
+      188:         } else if (itemId == R.id.menu_share) {
+      189:             shareUtil.shareCard(getCurrentCard());
+      190:             return true;
+      191:         }
+      192: 
+      193:         return false;
+      194:     }
+      195: 
+      196:     @Override
+      197:     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo){
+      198:         super.onCreateContextMenu(menu, v, menuInfo);
+      199:         MenuInflater inflater = getMenuInflater();
+      200:         inflater.inflate(R.menu.memoscreen_context_menu, menu);
+      201:         menu.setHeaderTitle(R.string.menu_text);
+      202:     }
+      203: 
+      204:     @Override
+      205:     public void onActivityResult(int requestCode, int resultCode, Intent data){
+      206:         super.onActivityResult(requestCode, resultCode, data);
+      207: 
+      208:         if (resultCode == Activity.RESULT_CANCELED) {
+      209:             return;
+      210:         }
+      211: 
+      212:         switch(requestCode){
+      213:             case ACTIVITY_FILTER:
+      214:             {
+      215:                 Bundle extras = data.getExtras();
+      216:                 filterCategoryId = extras.getInt(EXTRA_CATEGORY_ID);
+      217:                 restartActivity();
+      218:                 break;
+      219:             }
+      220:             case ACTIVITY_EDIT:
+      221:             {
+      222:                 restartActivity();
+      223:                 break;
+      224:             }
+      225:             case ACTIVITY_GOTO_PREV:
+      226:             {
+      227:                 restartActivity();
+      228:                 break;
+      229:             }
+      230: 
+      231:             case ACTIVITY_SETTINGS:
+      232:             {
+      233:                 restartActivity();
+      234:                 break;
+      235:             }
+      236: 
+      237:             case ACTIVITY_DETAIL:
+      238:             {
+      239:                 restartActivity();
+      240:                 break;
+      241:             }
+      242: 
+      243:         }
+      244:     }
+      245: 
+      246:     @Override
+      247:     public void onDestroy() {
+      248:         super.onDestroy();
+      249:         if (queueManager != null) {
+      250:             queueManager.release();
+      251:         }
+      252:     }
+      253: 
+      254:     @Override
+      255:     public void onResume() {
+      256:         super.onResume();
+      257:     }
+
+STEP 19  edge Edf66ce54
+  StudyActivity.onCreate -> StudyActivity$LearnQueueManagerLoaderCallbacks.onCreateLoader
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED androidx.loader.app.LoaderManager drives onCreateLoader / onLoadFinished / onLoaderReset and runs AsyncTaskLoader.loadInBackground on a worker thread (androidx source not read); SRC ui/StudyActivity.java:119-121,428-437
+  cite [SRC] ui/StudyActivity.java:119-121, 428-437
+      119:         getMultipleLoaderManager().registerLoaderCallbacks(LEARN_QUEUE_MANAGER_LOADER_ID, new LearnQueueManagerLoaderCallbacks(), false);
+      120: 
+      121:         startInit();
+      428:         public Loader<QueueManager> onCreateLoader(int arg0, Bundle arg1) {
+      429:              Loader<QueueManager> loader = new LearnQueueManagerLoader(getApplicationContext(),
+      430:                      scheduler,
+      431:                      option,
+      432:                      schedulingAlgorithmParameters,
+      433:                      dbPath,
+      434:                      filterCategoryId);
+      435:              loader.forceLoad();
+      436:              return loader;
+      437:         }
+
+STEP 20  edge E3c38d575
+  StudyActivity$LearnQueueManagerLoaderCallbacks.onCreateLoader -> StudyActivity$LearnQueueManagerLoader.dbLoadInBackground
+  class: standard   kind: ASYNC
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED androidx.loader.app.LoaderManager drives onCreateLoader / onLoadFinished / onLoaderReset and runs AsyncTaskLoader.loadInBackground on a worker thread (androidx source not read); SRC ui/StudyActivity.java:429-436; ui/loader/DBLoader.java:41-50
+  cite [SRC] ui/StudyActivity.java:429-436
+      429:              Loader<QueueManager> loader = new LearnQueueManagerLoader(getApplicationContext(),
+      430:                      scheduler,
+      431:                      option,
+      432:                      schedulingAlgorithmParameters,
+      433:                      dbPath,
+      434:                      filterCategoryId);
+      435:              loader.forceLoad();
+      436:              return loader;
+  cite [SRC] ui/loader/DBLoader.java:41-50
+       41:     @Override
+       42:     public T loadInBackground() {
+       43:         dbOpenHelper = AnyMemoDBOpenHelperManager.getHelper(getContext(),
+       44:                 dbPath);
+       45:         try {
+       46:             return dbLoadInBackground();
+       47:         } finally {
+       48:             AnyMemoDBOpenHelperManager.releaseHelper(dbOpenHelper);
+       49:         }
+       50:     }
+
+STEP 21  edge E2754f845
+  StudyActivity$LearnQueueManagerLoader.dbLoadInBackground -> LearnQueueManager$Builder.build
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC StudyActivity.java:492 (bytecode)
+  cite [SRC] StudyActivity.java:492
+    (resolved to final_java_only/AnyMemo/app/AnyMemo-#10.12.2/app/src/main/java/org/liberty/android/fantastischmemo/ui/StudyActivity.java)
+      492:             return builder.build();
+
+STEP 22  edge E3580f705
+  LearnQueueManager$Builder.build -> LearnQueueManager.refill
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC LearnQueueManager.java:360 (bytecode)
+  cite [SRC] LearnQueueManager.java:360
+    (resolved to final_java_only/AnyMemo/app/AnyMemo-#10.12.2/app/src/main/java/org/liberty/android/fantastischmemo/queue/LearnQueueManager.java)
+      360:             qm.refill();
+
+STEP 23  edge E7fd725c8
+  LearnQueueManager.refill -> LearnQueueManager.flushDirtyCache
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC LearnQueueManager.java:170 (bytecode)
+  cite [SRC] LearnQueueManager.java:170
+    (resolved to final_java_only/AnyMemo/app/AnyMemo-#10.12.2/app/src/main/java/org/liberty/android/fantastischmemo/queue/LearnQueueManager.java)
+      170:         flushDirtyCache();
+
+STEP 24  edge Ea89c981a
+  LearnQueueManager.flushDirtyCache -> LearnQueueManager$1.run
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED Handler.post/postDelayed queues the Runnable on the thread the Handler was created on (platform source not read for this exact flow; see FW-SRC citation added in step 6); SRC queue/LearnQueueManager.java:246-278
+  cite [SRC] queue/LearnQueueManager.java:246-278
+      246:         AnyMemoExecutor.submit(new Runnable() {
+      247:             public void run() {
+      248:                 // Update the queue
+      249:                 final AnyMemoDBOpenHelper dbOpenHelper = AnyMemoDBOpenHelperManager.getHelper(context, dbPath);
+      250:                 final CardDao cardDao = dbOpenHelper.getCardDao();
+      251:                 final LearningDataDao learningDataDao = dbOpenHelper.getLearningDataDao();
+      252: 
+      253:                 try {
+      254:                     learningDataDao.callBatchTasks (
+      255:                         new Callable<Void>() {
+      256:                             public Void call() throws Exception {
+      257:                                 Log.i(TAG, "Flushing dirty cache. # of cards to flush: " + dirtyCache.size());
+      258:                                 while (!dirtyCache.isEmpty()) {
+      259:                                     Card card = dirtyCache.take();
+      260:                                     Log.i(TAG, "Flushing card id: " + card.getId() + " with learning data: " + card.getLearningData());
+      261:                                     if (learningDataDao.update(card.getLearningData()) == 0) {
+      262:                                         Log.w(TAG, "LearningDataDao update failed for : " + card.getLearningData());
+      263:                                         throw new RuntimeException("LearningDataDao update failed! LearningData to update: " + card.getLearningData() + " current value: " + learningDataDao.queryForId(card.getLearningData().getId()));
+      264:                                     }
+      265:                                     if (cardDao.update(card) == 0) {
+      266:                                         Log.w(TAG, "CardDao update failed for : " + card.getLearningData());
+      267:                                         throw new RuntimeException("CardDao update failed. Card to update: " + card);
+      268:                                     }
+      269:                                 }
+      270:                                 Log.i(TAG, "Flushing dirty cache done.");
+      271:                                 return null;
+      272:                             }
+      273:                         });
+      274:                 } finally {
+      275:                     AnyMemoDBOpenHelperManager.releaseHelper(dbOpenHelper);
+      276:                 }
+      277:             }
+      278:         });
+
+STEP 25  edge E25410e53
+  LearnQueueManager$1.run -> LearnQueueManager$1$1.call
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED RxJava 2 (io.reactivex) Observable/Single/Completable/Maybe delivers onNext/onSuccess/onComplete/onError/accept to the subscriber on the thread named by observeOn (library source not read); SRC queue/LearnQueueManager.java:255-273
+  cite [SRC] queue/LearnQueueManager.java:255-273
+      255:                         new Callable<Void>() {
+      256:                             public Void call() throws Exception {
+      257:                                 Log.i(TAG, "Flushing dirty cache. # of cards to flush: " + dirtyCache.size());
+      258:                                 while (!dirtyCache.isEmpty()) {
+      259:                                     Card card = dirtyCache.take();
+      260:                                     Log.i(TAG, "Flushing card id: " + card.getId() + " with learning data: " + card.getLearningData());
+      261:                                     if (learningDataDao.update(card.getLearningData()) == 0) {
+      262:                                         Log.w(TAG, "LearningDataDao update failed for : " + card.getLearningData());
+      263:                                         throw new RuntimeException("LearningDataDao update failed! LearningData to update: " + card.getLearningData() + " current value: " + learningDataDao.queryForId(card.getLearningData().getId()));
+      264:                                     }
+      265:                                     if (cardDao.update(card) == 0) {
+      266:                                         Log.w(TAG, "CardDao update failed for : " + card.getLearningData());
+      267:                                         throw new RuntimeException("CardDao update failed. Card to update: " + card);
+      268:                                     }
+      269:                                 }
+      270:                                 Log.i(TAG, "Flushing dirty cache done.");
+      271:                                 return null;
+      272:                             }
+      273:                         });
+
+STEP 26  edge Ecb92bfef
+  LearnQueueManager$1$1.call -> Card.toString
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED string concatenation converts a non-String operand with String.valueOf, which calls toString() (JLS 5.1.11); javac emits StringBuilder.append(Object), so the call is not visible in the app bytecode; SRC queue/LearnQueueManager.java:267
+  cite [SRC] queue/LearnQueueManager.java:267
+      267:                                         throw new RuntimeException("CardDao update failed. Card to update: " + card);

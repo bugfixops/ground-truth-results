@@ -1,0 +1,188 @@
+## PriorityConverter.convert(Priority)  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=other_app state=- classes=explicit;non_standard;standard explicit_standard_route=no
+   1. Ec711e542 ENTRY/standard [ENV: android:exported="true"]
+      S_ENTRY -> AddTorrentActivity.onCreate
+      Create exported torrent-add activity for matching SEND or VIEW intent
+      evidence: SRC AndroidManifest.xml:62-92; FW-SRC core/java/android/app/ActivityThread.java:2727-2732; core/java/android/app/Instrumentation.java:1212-1215
+      ...  (17 more lines)
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+   2. Ee1225b55 LIFECYCLE/standard
+      AddTorrentActivity.onCreate -> AddTorrentActivity.onStart
+      Start add-torrent activity after successful creation
+      guard: !mFinished
+      evidence: SRC ui/addtorrent/AddTorrentActivity.java:96-140,178-185; FW-SRC core/java/android/app/ActivityThread.java:2738-2745; core/java/android/app/Instrumentation.java:1333-1335
+         96      @Override
+         97      protected void onCreate(Bundle savedInstanceState)
+         98      {
+         99          setTheme(Utils.getAppTheme(getApplicationContext()));
+        100          super.onCreate(savedInstanceState);
+        101  
+        102          binding = DataBindingUtil.setContentView(this, R.layout.activity_add_torrent);
+        103          ViewModelProvider provider = new ViewModelProvider(this);
+        104          viewModel = provider.get(AddTorrentViewModel.class);
+        105          permissionManager = new PermissionManager(this, new PermissionManager.Callback() {
+        106              @Override
+        107              public void onStorageResult(boolean isGranted, boolean shouldRequestStoragePermission) {
+        108                  var fm = getSupportFragmentManager();
+        109                  if (!isGranted && shouldRequestStoragePermission) {
+      ...  (31 more lines)
+        178      @Override
+        179      public void onStart()
+        180      {
+        181          super.onStart();
+        182  
+        183          subscribeAlertDialog();
+        184          subscribeParamsChanged();
+        185      }
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+   3. Ee73669cc FRAMEWORK/non_standard(AndroidX AppCompat action bar)
+      AddTorrentActivity.onStart -> AddTorrentActivity.onPrepareOptionsMenu
+      Prepare toolbar actions through the AppCompat action bar
+      evidence: INFERRED AppCompat menu dispatch; SRC ui/addtorrent/AddTorrentActivity.java:277-280,539-548
+        277      private void initLayout()
+        278      {
+        279          binding.toolbar.setTitle(R.string.add_torrent_title);
+        280          setSupportActionBar(binding.toolbar);
+        539      @Override
+        540      public boolean onPrepareOptionsMenu(Menu menu)
+        541      {
+        542          getMenuInflater().inflate(R.menu.add_torrent, menu);
+        543  
+        544          MenuItem add = menu.findItem(R.id.add_torrent_dialog_add_menu);
+        545          if (add != null)
+        546              add.setVisible(showAddButton);
+        547  
+        548          return true;
+   4. Eae09e857 FRAMEWORK/non_standard(AndroidX AppCompat action bar)
+      AddTorrentActivity.onPrepareOptionsMenu -> AddTorrentActivity.onOptionsItemSelected
+      Dispatch selected add-torrent toolbar actions
+      evidence: INFERRED AppCompat menu dispatch; SRC ui/addtorrent/AddTorrentActivity.java:539-562; FW-SRC core/java/android/app/Activity.java:3431-3451
+        539      @Override
+        540      public boolean onPrepareOptionsMenu(Menu menu)
+        541      {
+        542          getMenuInflater().inflate(R.menu.add_torrent, menu);
+        543  
+        544          MenuItem add = menu.findItem(R.id.add_torrent_dialog_add_menu);
+        545          if (add != null)
+        546              add.setVisible(showAddButton);
+        547  
+        548          return true;
+        549      }
+        550  
+        551      @Override
+        552      public boolean onOptionsItemSelected(MenuItem item)
+      ...  (10 more lines)
+      (core/java/android/app/Activity.java not found in the source tree)
+   5. Ef943d0a6 CALL/explicit
+      AddTorrentActivity.onOptionsItemSelected -> AddTorrentActivity.addTorrent
+      Add decoded torrent from action-bar menu
+      guard: itemId == R.id.add_torrent_dialog_add_menu
+      evidence: SRC ui/addtorrent/AddTorrentActivity.java:552-562; ui/addtorrent/AddTorrentActivity.java:362-389
+        552      public boolean onOptionsItemSelected(MenuItem item)
+        553      {
+        554          int itemId = item.getItemId();
+        555          if (itemId == android.R.id.home) {
+        556              finish();
+        557          } else if (itemId == R.id.add_torrent_dialog_add_menu) {
+        558              addTorrent();
+        559          }
+        560  
+        561          return true;
+        562      }
+   6. E95dff3d5 CALL/explicit
+      AddTorrentActivity.addTorrent -> AddTorrentViewModel.addTorrent
+      Submit torrent using the add-torrent view model
+      guard: !TextUtils.isEmpty(name)
+      evidence: SRC ui/addtorrent/AddTorrentActivity.java:362-389; ui/addtorrent/AddTorrentViewModel.java:466-520
+        362      private void addTorrent()
+        363      {
+        364          String name = viewModel.mutableParams.getName();
+        365          if (TextUtils.isEmpty(name)) {
+        366              Snackbar.make(binding.coordinatorLayout,
+        367                      R.string.error_empty_name,
+        368                      Snackbar.LENGTH_LONG)
+        369                      .show();
+        370              return;
+        371          }
+        372  
+        373          try {
+        374              if (viewModel.addTorrent())
+        375                  finish();
+      ...  (14 more lines)
+   7. E3915b22f FRAMEWORK/non_standard(java.lang.Thread)
+      AddTorrentViewModel.addTorrent -> AddTorrentViewModel.lambda$addTorrent$5
+      Dispatch the worker thread Runnable after Thread.start()
+      evidence: INFERRED java.lang.Thread Runnable dispatch; SRC ui/addtorrent/AddTorrentViewModel.java:527-536
+        527              Thread t = new Thread(() -> {
+        528                  try {
+        529                      engine.addTorrentSync(params, false);
+        530  
+        531                  } catch (Exception e) {
+        532                      err[0] = e;
+        533                  }
+        534              });
+        535              t.start();
+        536              t.join();
+   8. E7d8bf649 CALL/explicit
+      AddTorrentViewModel.lambda$addTorrent$5 -> TorrentEngine.addTorrentSync(AddTorrentParams,boolean)
+      Insert torrent from the worker thread
+      evidence: SRC ui/addtorrent/AddTorrentViewModel.java:527-534
+        527              Thread t = new Thread(() -> {
+        528                  try {
+        529                      engine.addTorrentSync(params, false);
+        530  
+        531                  } catch (Exception e) {
+        532                      err[0] = e;
+        533                  }
+        534              });
+   9. E5cc04f5f CALL/explicit*
+      TorrentEngine.addTorrentSync(AddTorrentParams,boolean) -> TorrentSessionImpl.addTorrent
+      Virtual/interface call that can dispatch to this implementation
+      evidence: SRC TorrentEngine.java:412 (bytecode)
+        412          return session.addTorrent(params, removeFile);
+  10. Edd45be7b CALL/explicit*
+      TorrentSessionImpl.addTorrent -> TorrentSessionImpl.download(String,AddTorrentParams,byte[])
+      Direct call
+      evidence: SRC TorrentSessionImpl.java:310 (bytecode)
+        310              download(torrent.id, params, bencode);
+  11. E14464935 CALL/explicit
+      TorrentSessionImpl.download(String,AddTorrentParams,byte[]) -> TorrentSessionImpl.download(TorrentInfo,File,Priority[],boolean,boolean,List)
+      Build libtorrent parameters from a local torrent file and its selected priorities
+      guard: !params.fromMagnet && !torrent.isDownloadingMetadata() && torrent file descriptor opens
+      evidence: SRC core/model/session/TorrentSessionImpl.java:328-371
+        328      private void download(String id, AddTorrentParams params, byte[] bencode) throws IOException, UnknownUriException
+        329      {
+        330          if (operationNotAllowed())
+        331              return;
+        332  
+        333          cancelFetchMagnet(id);
+        334  
+        335          Torrent torrent = repo.getTorrentById(id);
+        336          if (torrent == null)
+        337              throw new IOException("Torrent " + id + " is null");
+        338  
+        339          addTorrentsList.add(params.sha1hash);
+        340  
+        341          String path = fs.makeFileSystemPath(params.downloadPath);
+      ...  (30 more lines)
+  12. Ecd9c7a78 CALL/explicit
+      TorrentSessionImpl.download(TorrentInfo,File,Priority[],boolean,boolean,List) -> PriorityConverter.convert(Priority)
+      Convert each non-null selected file priority to the libtorrent priority enum
+      guard: priorities != null && ti.files().numFiles() == priorities.length && priority != null
+      evidence: SRC core/model/session/TorrentSessionImpl.java:1541-1575; core/model/session/PriorityConverter.java:94-101
+       1541      private void download(TorrentInfo ti, File saveDir,
+       1542                            Priority[] priorities, boolean sequentialDownload,
+       1543                            boolean paused, List<TcpEndpoint> peers)
+       1544      {
+       1545          if (operationNotAllowed())
+       1546              return;
+       1547  
+       1548          if (ti == null)
+       1549              throw new IllegalArgumentException("Torrent info is null");
+       1550          if (!ti.isValid())
+       1551              throw new IllegalArgumentException("Torrent info not valid");
+       1552  
+       1553          torrent_handle th = swig().find_torrent(ti.swig().info_hash());
+       1554          if (th != null && th.is_valid()) {
+      ...  (21 more lines)
+

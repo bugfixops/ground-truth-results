@@ -1,0 +1,171 @@
+# label_107 grep and sed evidence (batch 107: ValuePieEntry 15, CategorySub 8, ParameterizedWhereClause 1, SearchActivity 11)
+
+## 1. Constructor callers of ValuePieEntry (decides UNREACHABLE for ValuePieEntry.<init>(String,double))
+reports/PayeeReportFragment.java:225:            ValuePieEntry item = new ValuePieEntry();
+reports/ValuePieEntry.java:27:    public ValuePieEntry() {
+reports/ValuePieEntry.java:30:    public ValuePieEntry(String text, double value) {
+reports/ValuePieEntry.java:35:    public ValuePieEntry(String text, double value, String valueFormatted) {
+reports/ValuePieEntry.java:104:            return new ValuePieEntry(source.readString(), source.readDouble(), source.readString());
+reports/CategoriesReportFragment.java:310:            ValuePieEntry item = new ValuePieEntry();
+
+## 2. auto_calls CALL records whose dst is ValuePieEntry.<init>(String,double), ParameterizedWhereClause.<init>, or any describeContents or newArray
+ValuePieEntry.<init>(String,double) dst hits: 0 []
+ParameterizedWhereClause.<init> dst hits: 0 []
+describeContents dst hits: 0 []
+newArray dst hits: 0 []
+ValuePieEntry.<init>(String,double) outgoing CALL records: [('ValuePieEntry.setValue', 32), ('ValuePieEntry.setText', 31)]
+ParameterizedWhereClause impl entries: {'<init>': {'()V': 'ParameterizedWhereClause.<init>'}}
+
+## 3. describeContents: app callers (none expected) and definitions
+core/DefinedDateRange.java:77:    public int describeContents() {
+search/CategorySub.java:57:    public int describeContents() {
+account/StatusFilter.java:145://    public int describeContents() {
+reports/ValuePieEntry.java:84:	public int describeContents() {
+
+## 4. describeContents bodies (ValuePieEntry 83-86, CategorySub 56-59)
+	@Override
+	public int describeContents() {
+		return 0;
+	}
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+## 5. Framework callers of describeContents() in app, content, os, and server am (non-definition lines)
+core/java/android/content/Intent.java:9553:        return (mExtras != null) ? mExtras.describeContents() : 0;
+core/java/android/os/Bundle.java:329:                        if ((((Parcelable)obj).describeContents()
+core/java/android/os/Bundle.java:338:                            if (p != null && ((p.describeContents()
+core/java/android/os/Bundle.java:349:                            if (p != null && (p.describeContents()
+core/java/android/os/Bundle.java:362:                                if (p != null && ((p.describeContents()
+
+## 6. Bundle.hasFileDescriptors walk (Bundle.java 316-336) and Bundle.describeContents (1213-1220)
+    public boolean hasFileDescriptors() {
+        if ((mFlags & FLAG_HAS_FDS_KNOWN) == 0) {
+            boolean fdFound = false;    // keep going until we find one or run out of data
+
+            if (mParcelledData != null) {
+                if (mParcelledData.hasFileDescriptors()) {
+                    fdFound = true;
+                }
+            } else {
+                // It's been unparcelled, so we need to walk the map
+                for (int i=mMap.size()-1; i>=0; i--) {
+                    Object obj = mMap.valueAt(i);
+                    if (obj instanceof Parcelable) {
+                        if ((((Parcelable)obj).describeContents()
+                                & Parcelable.CONTENTS_FILE_DESCRIPTOR) != 0) {
+                            fdFound = true;
+                            break;
+                        }
+                    } else if (obj instanceof Parcelable[]) {
+                        Parcelable[] array = (Parcelable[]) obj;
+                        for (int n = array.length - 1; n >= 0; n--) {
+     */
+    @Override
+    public int describeContents() {
+        int mask = 0;
+        if (hasFileDescriptors()) {
+            mask |= Parcelable.CONTENTS_FILE_DESCRIPTOR;
+        }
+        return mask;
+
+## 7. Parcel.writeParcelable and writeParcelableCreator (Parcel.java 1785-1791): no describeContents call
+    public final void writeParcelable(Parcelable p, int parcelableFlags) {
+        if (p == null) {
+            writeString(null);
+            return;
+        }
+        writeParcelableCreator(p);
+        p.writeToParcel(this, parcelableFlags);
+
+## 8. createTypedArray calls newArray (Parcel.java 2640-2646); typed-array use in the app source
+    public final <T> T[] createTypedArray(Parcelable.Creator<T> c) {
+        int N = readInt();
+        if (N < 0) {
+            return null;
+        }
+        T[] l = c.newArray(N);
+        for (int i=0; i<N; i++) {
+(end of typed-array grep)
+
+## 9. ParameterizedWhereClause uses in app source (class declaration only)
+search/ParameterizedWhereClause.java:24:public class ParameterizedWhereClause {
+
+## 10. Framework writeValue order: Parcelable before List (Parcel.java 1692-1696, 1717-1718)
+        } else if (v instanceof Parcelable) {
+            // IMPOTANT: cases for classes that implement Parcelable must
+            // come before the Parcelable case, so that their specific VAL_*
+            // types will be written.
+            writeInt(VAL_PARCELABLE);
+        } else if (v instanceof List) {
+            writeInt(VAL_LIST);
+
+## 11. writeList calls writeValue per element (Parcel.java 917-927) and writeArrayMapInternal calls writeValue (834-840)
+    public final void writeList(List val) {
+        if (val == null) {
+            writeInt(-1);
+            return;
+        }
+        int N = val.size();
+        int i=0;
+        writeInt(N);
+        while (i < N) {
+            writeValue(val.get(i));
+            i++;
+        int startPos;
+        for (int i=0; i<N; i++) {
+            if (DEBUG_ARRAY_MAP) startPos = dataPosition();
+            writeString(val.keyAt(i));
+            writeValue(val.valueAt(i));
+            if (DEBUG_ARRAY_MAP) Log.d(TAG, "  Write #" + i + " "
+                    + (dataPosition()-startPos) + " bytes: key=0x"
+
+## 12. readValue: VAL_PARCELABLE and VAL_LIST cases (Parcel.java 2744-2745, 2765-2766)
+        case VAL_PARCELABLE:
+            return readParcelable(loader);
+        case VAL_LIST:
+            return readArrayList(loader);
+
+## 13. readArrayList -> readListInternal -> readValue (Parcel.java 2369-2377, 3172-3180)
+    public final ArrayList readArrayList(ClassLoader loader) {
+        int N = readInt();
+        if (N < 0) {
+            return null;
+        }
+        ArrayList l = new ArrayList(N);
+        readListInternal(l, N, loader);
+        return l;
+    }
+    private void readListInternal(List outVal, int N,
+        ClassLoader loader) {
+        while (N > 0) {
+            Object value = readValue(loader);
+            //Log.d(TAG, "Unmarshalling value=" + value);
+            outVal.add(value);
+            N--;
+        }
+    }
+
+## 14. readParcelable calls creator.createFromParcel (Parcel.java 2841-2852)
+    public final <T extends Parcelable> T readParcelable(ClassLoader loader) {
+        Parcelable.Creator<?> creator = readParcelableCreator(loader);
+        if (creator == null) {
+            return null;
+        }
+        if (creator instanceof Parcelable.ClassLoaderCreator<?>) {
+          Parcelable.ClassLoaderCreator<?> classLoaderCreator =
+              (Parcelable.ClassLoaderCreator<?>) creator;
+          return (T) classLoaderCreator.createFromParcel(this, loader);
+        }
+        return (T) creator.createFromParcel(this);
+    }
+
+## 15. BaseBundle.getSerializable unparcels first (BaseBundle.java 1189-1192); Bundle.getSerializable delegates (Bundle.java 1032-1034)
+    Serializable getSerializable(@Nullable String key) {
+        unparcel();
+        Object o = mMap.get(key);
+        if (o == null) {
+    public Serializable getSerializable(@Nullable String key) {
+        return super.getSerializable(key);
+    }

@@ -1,0 +1,393 @@
+     1	/*
+     2	 * Copyright (C) 2019, 2020 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.filemanager;
+    21	
+    22	import android.app.Application;
+    23	import android.net.Uri;
+    24	import android.os.Build;
+    25	import android.os.Environment;
+    26	import android.text.TextUtils;
+    27	import android.util.Log;
+    28	import android.webkit.MimeTypeMap;
+    29	
+    30	import androidx.annotation.NonNull;
+    31	import androidx.core.content.ContextCompat;
+    32	import androidx.databinding.ObservableField;
+    33	import androidx.lifecycle.AndroidViewModel;
+    34	
+    35	import org.proninyaroslav.libretorrent.R;
+    36	import org.proninyaroslav.libretorrent.core.exception.UnknownUriException;
+    37	import org.proninyaroslav.libretorrent.core.model.filetree.FileNode;
+    38	import org.proninyaroslav.libretorrent.core.system.FileSystemFacade;
+    39	import org.proninyaroslav.libretorrent.core.system.SystemFacadeHelper;
+    40	
+    41	import java.io.File;
+    42	import java.io.IOException;
+    43	import java.util.ArrayList;
+    44	import java.util.Arrays;
+    45	import java.util.List;
+    46	
+    47	import io.reactivex.subjects.BehaviorSubject;
+    48	
+    49	public class FileManagerViewModel extends AndroidViewModel
+    50	{
+    51	    private static final String TAG = FileManagerViewModel.class.getSimpleName();
+    52	
+    53	    private FileSystemFacade fs;
+    54	    public String startDir;
+    55	    /* Current directory */
+    56	    public ObservableField<String> curDir = new ObservableField<>();
+    57	    public FileManagerConfig config;
+    58	    public BehaviorSubject<List<FileManagerNode>> childNodes = BehaviorSubject.create();
+    59	    public Exception errorReport;
+    60	
+    61	    public FileManagerViewModel(
+    62	            @NonNull Application application,
+    63	            FileManagerConfig config,
+    64	            String startDir
+    65	    ){
+    66	        super(application);
+    67	
+    68	        this.config = config;
+    69	        this.fs = SystemFacadeHelper.getFileSystemFacade(application);
+    70	        this.startDir = startDir;
+    71	
+    72	        String path = config.path;
+    73	        if (!TextUtils.isEmpty(path) && startDir == null) {
+    74	            startDir = path;
+    75	        }
+    76	        if (startDir == null) {
+    77	            startDir = fs.getDefaultDownloadPath();
+    78	        }
+    79	        File dir = new File(startDir);
+    80	        boolean canAccess = checkPermissions(dir, config);
+    81	        if (!(dir.exists() && canAccess)) {
+    82	            startDir = fs.getDefaultDownloadPath();
+    83	        }
+    84	
+    85	        try {
+    86	            if (startDir != null) {
+    87	                startDir = new File(startDir).getCanonicalPath();
+    88	            }
+    89	            updateCurDir(startDir);
+    90	
+    91	        } catch (IOException e) {
+    92	            Log.e(TAG, Log.getStackTraceString(e));
+    93	        }
+    94	    }
+    95	
+    96	    public void refreshCurDirectory()
+    97	    {
+    98	        childNodes.onNext(getChildItems());
+    99	    }
+   100	
+   101	    private void updateCurDir(String newPath)
+   102	    {
+   103	        if (newPath == null)
+   104	            return;
+   105	        curDir.set(newPath);
+   106	        childNodes.onNext(getChildItems());
+   107	    }
+   108	
+   109	    /*
+   110	     * Get subfolders or files.
+   111	     */
+   112	
+   113	    private List<FileManagerNode> getChildItems()
+   114	    {
+   115	        var items = new ArrayList<FileManagerNode>();
+   116	        var dir = curDir.get();
+   117	        if (dir == null)
+   118	            return items;
+   119	
+   120	        try {
+   121	            var dirFile = new File(dir);
+   122	            if (!(dirFile.exists() && dirFile.isDirectory()))
+   123	                return items;
+   124	
+   125	            /* Adding parent dir for navigation */
+   126	            if (!dirFile.getPath().equals(FileManagerNode.ROOT_DIR))
+   127	                items.add(0, new FileManagerNode(FileManagerNode.PARENT_DIR, FileNode.Type.DIR, true));
+   128	
+   129	            var files = dirFile.listFiles();
+   130	            if (files == null)
+   131	                return items;
+   132	            for (var file : filterDirectories(files)) {
+   133	                if (file.isDirectory())
+   134	                    items.add(new FileManagerNode(file.getName(), FileNode.Type.DIR, true));
+   135	                else
+   136	                    items.add(new FileManagerNode(file.getName(), FileManagerNode.Type.FILE,
+   137	                            config.showMode == FileManagerConfig.FILE_CHOOSER_MODE));
+   138	            }
+   139	
+   140	        } catch (Exception e) {
+   141	            /* Ignore */
+   142	        }
+   143	
+   144	        return items;
+   145	    }
+   146	
+   147	    List<File> filterDirectories(File[] files) {
+   148	        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R
+   149	                || config.showMode == FileManagerConfig.FILE_CHOOSER_MODE) {
+   150	            return Arrays.asList(files);
+   151	        }
+   152	
+   153	        var filtered = new ArrayList<File>();
+   154	        for (var file : files) {
+   155	            if (file.isFile() || file.canWrite()) {
+   156	                filtered.add(file);
+   157	            }
+   158	        }
+   159	
+   160	        return filtered;
+   161	    }
+   162	
+   163	    public boolean createDirectory(String name)
+   164	    {
+   165	        if (TextUtils.isEmpty(name))
+   166	            return false;
+   167	
+   168	        File newDir = new File(curDir.get(), name);
+   169	
+   170	        return !newDir.exists() && newDir.mkdir();
+   171	    }
+   172	
+   173	    public void openDirectory(String name) throws IOException, SecurityException
+   174	    {
+   175	        File dir = new File(curDir.get(), name);
+   176	        String path = dir.getCanonicalPath();
+   177	
+   178	        if (!(dir.exists() && dir.isDirectory()))
+   179	            path = startDir;
+   180	        else if (!checkPermissions(dir, config))
+   181	            throw new SecurityException("Permission denied");
+   182	
+   183	        updateCurDir(path);
+   184	    }
+   185	
+   186	    public void jumpToDirectory(String path) throws SecurityException
+   187	    {
+   188	        File dir = new File(path);
+   189	
+   190	        if (!checkPermissions(dir, config)) {
+   191	            throw new SecurityException("Permission denied");
+   192	        }
+   193	
+   194	        updateCurDir(path);
+   195	    }
+   196	
+   197	    public boolean isDirectoryExists(String path) {
+   198	        var dir = new File(path);
+   199	        return dir.exists() && dir.isDirectory();
+   200	    }
+   201	
+   202	    /*
+   203	     * Navigate back to an upper directory.
+   204	     */
+   205	
+   206	    public void upToParentDirectory() throws SecurityException
+   207	    {
+   208	        String path = curDir.get();
+   209	        if (path == null)
+   210	            return;
+   211	        File dir = new File(path);
+   212	        File parentDir = dir.getParentFile();
+   213	        if (parentDir != null && !checkPermissions(parentDir, config))
+   214	            throw new SecurityException("Permission denied");
+   215	
+   216	        updateCurDir(dir.getParent());
+   217	    }
+   218	
+   219	    public boolean fileExists(String fileName)
+   220	    {
+   221	        if (fileName == null)
+   222	            return false;
+   223	
+   224	        fileName = appendExtension(fileName);
+   225	
+   226	        return new File(curDir.get(), fileName).exists();
+   227	    }
+   228	
+   229	    private String appendExtension(String fileName)
+   230	    {
+   231	        MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
+   232	        String extension = fs.getExtension(fileName);
+   233	
+   234	        if (TextUtils.isEmpty(extension)) {
+   235	            extension = mimeTypeMap.getExtensionFromMimeType(config.mimeType);
+   236	        } else {
+   237	            String mimeType = mimeTypeMap.getMimeTypeFromExtension(extension);
+   238	            if (mimeType == null || !mimeType.equals(config.mimeType))
+   239	                extension = mimeTypeMap.getExtensionFromMimeType(config.mimeType);
+   240	        }
+   241	
+   242	        if (extension != null && !fileName.endsWith(extension))
+   243	            fileName += fs.getExtensionSeparator() + extension;
+   244	
+   245	        return fileName;
+   246	    }
+   247	
+   248	    public Uri createFile(String fileName) throws SecurityException
+   249	    {
+   250	        if (TextUtils.isEmpty(fileName))
+   251	            fileName = config.fileName;
+   252	
+   253	        fileName = appendExtension(fs.buildValidFatFilename(fileName));
+   254	
+   255	        File f = new File(curDir.get(), fileName);
+   256	        File parent = f.getParentFile();
+   257	        if (parent != null && !checkPermissions(parent, config))
+   258	            throw new SecurityException("Permission denied");
+   259	        try {
+   260	            if (f.exists() && !f.delete())
+   261	                return null;
+   262	            if (!f.createNewFile())
+   263	                return null;
+   264	
+   265	        } catch (IOException e) {
+   266	            return null;
+   267	        }
+   268	
+   269	        return Uri.fromFile(f);
+   270	    }
+   271	
+   272	    public Uri getCurDirectoryUri() throws SecurityException
+   273	    {
+   274	        String path = curDir.get();
+   275	        if (path == null)
+   276	            return null;
+   277	
+   278	        File dir = new File(path);
+   279	        if (!checkPermissions(dir, config))
+   280	            throw new SecurityException("Permission denied");
+   281	
+   282	        return Uri.fromFile(dir);
+   283	    }
+   284	
+   285	    public Uri getFileUri(String fileName) throws SecurityException
+   286	    {
+   287	        String path = curDir.get();
+   288	        if (path == null)
+   289	            return null;
+   290	
+   291	        File f = new File(path, fileName);
+   292	        if (!checkPermissions(f, config))
+   293	            throw new SecurityException("Permission denied");
+   294	
+   295	        return Uri.fromFile(f);
+   296	    }
+   297	
+   298	    private List<Uri> getExtSdCardPaths() {
+   299	        List<Uri> uriList = new ArrayList<>();
+   300	        File[] externals = ContextCompat.getExternalFilesDirs(getApplication(), "external");
+   301	        File external = getApplication().getExternalFilesDir("external");
+   302	        for (File file : externals) {
+   303	            if (file != null && !file.equals(external)) {
+   304	                String absolutePath = file.getAbsolutePath();
+   305	                String path = getBaseSdCardPath(absolutePath);
+   306	                if (path == null || !checkPermissions(new File(path), config)) {
+   307	                    path = getSdCardDataPath(absolutePath);
+   308	                    if (path == null || !checkPermissions(new File(path), config)) {
+   309	                        Log.w(TAG, "Ext sd card path wrong: " + absolutePath);
+   310	                        continue;
+   311	                    }
+   312	                }
+   313	                uriList.add(Uri.parse("file://" + path));
+   314	            }
+   315	        }
+   316	
+   317	        return uriList;
+   318	    }
+   319	
+   320	    private String getBaseSdCardPath(String absolutePath) {
+   321	        int index = absolutePath.lastIndexOf("/Android/data");
+   322	        if (index >= 0) {
+   323	            return tryGetCanonicalPath(absolutePath.substring(0, index));
+   324	        } else {
+   325	            return null;
+   326	        }
+   327	    }
+   328	
+   329	    private String getSdCardDataPath(String absolutePath) {
+   330	        int index = absolutePath.lastIndexOf("/external");
+   331	        if (index >= 0) {
+   332	            return tryGetCanonicalPath(absolutePath.substring(0, index));
+   333	        } else {
+   334	            return null;
+   335	        }
+   336	    }
+   337	
+   338	    private String tryGetCanonicalPath(String absolutePath) {
+   339	        try {
+   340	            return new File(absolutePath).getCanonicalPath();
+   341	        } catch (IOException e) {
+   342	            // Keep non-canonical path.
+   343	            return absolutePath;
+   344	        }
+   345	    }
+   346	
+   347	    private boolean checkPermissions(File file, FileManagerConfig config) {
+   348	        switch (config.showMode) {
+   349	            case FileManagerConfig.FILE_CHOOSER_MODE:
+   350	                return file.canRead();
+   351	            case FileManagerConfig.DIR_CHOOSER_MODE:
+   352	                return file.canRead() && file.canWrite();
+   353	            case FileManagerConfig.SAVE_FILE_MODE:
+   354	                return file.canWrite();
+   355	        }
+   356	
+   357	        throw new IllegalArgumentException("Unknown mode: " + config.showMode);
+   358	    }
+   359	
+   360	    public List<FileManagerSpinnerAdapter.StorageSpinnerItem> getStorageList()
+   361	    {
+   362	        ArrayList<FileManagerSpinnerAdapter.StorageSpinnerItem> items = new ArrayList<>();
+   363	        List<Uri> storageList = getExtSdCardPaths();
+   364	
+   365	        Uri primaryStorage = Uri.fromFile(Environment.getExternalStorageDirectory());
+   366	        try {
+   367	            items.add(new FileManagerSpinnerAdapter.StorageSpinnerItem(
+   368	                    getApplication().getString(R.string.internal_storage_name),
+   369	                    fs.getDirPath(primaryStorage),
+   370	                    fs.getDirAvailableBytes(primaryStorage))
+   371	            );
+   372	        } catch (UnknownUriException e) {
+   373	            Log.e(TAG, Log.getStackTraceString(e));
+   374	        }
+   375	
+   376	        if (!storageList.isEmpty()) {
+   377	            for (int i = 0; i < storageList.size(); i++) {
+   378	                String template = getApplication().getString(R.string.external_storage_name);
+   379	                try {
+   380	                    items.add(new FileManagerSpinnerAdapter.StorageSpinnerItem(
+   381	                            String.format(template, i + 1),
+   382	                            storageList.get(i).getPath(),
+   383	                            fs.getDirAvailableBytes(storageList.get(i)))
+   384	                    );
+   385	                } catch (UnknownUriException e) {
+   386	                    Log.e(TAG, Log.getStackTraceString(e));
+   387	                }
+   388	            }
+   389	        }
+   390	
+   391	        return items;
+   392	    }
+   393	}

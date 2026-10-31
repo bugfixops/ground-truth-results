@@ -1,0 +1,272 @@
+## AMDateUtil.<init>  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=- state=data;session classes=explicit;non_standard;standard explicit_standard_route=no
+   1. Eddc920eb ENTRY/standard*
+      S_ENTRY -> AnyMemo.<init>
+      MAIN / LAUNCHER intent starts AnyMemo
+      evidence: SRC AndroidManifest.xml:23-46
+         23          <activity
+         24              android:name=".ui.AnyMemo"
+         25              android:label="@string/app_full_name"
+         26              android:theme="@style/AnyMemo.Theme.Dark.NoActionBar"
+         27              android:exported="true" >
+         28              <intent-filter>
+         29                  <action
+         30                      android:name="android.intent.action.MAIN" />
+         31                  <category
+         32                      android:name="android.intent.category.LAUNCHER" />
+         33              </intent-filter>
+         34              <intent-filter>
+         35                  <action android:name="android.intent.action.VIEW" />
+         36                  <category android:name="android.intent.category.DEFAULT" />
+      ...  (10 more lines)
+   2. Eda38ea0d LIFECYCLE/standard*
+      AnyMemo.<init> -> AnyMemo.onResume
+      Activity lifecycle / framework callback
+      evidence: FW-SRC core/java/android/app/Activity.java (Activity lifecycle callback dispatched by ActivityThread); SRC ui/AnyMemo.java:115-434
+      (core/java/android/app/Activity.java: no line numbers)
+        115      @Override
+        116      public void onCreate(Bundle savedInstanceState) {
+        117          activityComponents().inject(this);
+        118          super.onCreate(savedInstanceState);
+        119          disposables = new CompositeDisposable();
+        120  
+        121          binding = DataBindingUtil.setContentView(this, R.layout.main_tabs);
+        122  
+        123          // Request storage permission for API < 29
+        124          if (android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.Q) {
+        125              if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        126                      != PackageManager.PERMISSION_GRANTED) {
+        127                  ActivityCompat.requestPermissions(this,
+        128                          new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+      ...  (306 more lines)
+   3. E954353b1 ENTERS/page* [STATE: AnyMemo already finished loadUiComponents() once in this process]
+      AnyMemo.onResume -> S_MAIN_RECENT
+      isUiLoaded is already true (resumed, not a cold start): the last-selected tab is shown again
+      evidence: SRC ui/AnyMemo.java:145-162
+        145      @Override
+        146      public void onResume() {
+        147          super.onResume();
+        148          if (android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.Q) {
+        149              if (!isUiLoaded) {
+        150                  loadUiComponents();
+        151                  isUiLoaded = true;
+        152              }
+        153          } else {
+        154              if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        155                      == PackageManager.PERMISSION_GRANTED) {
+        156                  if (!isUiLoaded) {
+        157                      loadUiComponents();
+        158                      isUiLoaded = true;
+      ...  (4 more lines)
+   4. E6da90567 GUI/standard*
+      S_MAIN_RECENT -> AnyMemo$2.onNavigationItemSelected
+      Tap a bottom-navigation item (Recent / Open / Download / Misc)
+      evidence: INFERRED com.google.android.material (BottomNavigationView / NavigationView / FloatingActionButton / Snackbar) dispatches the listener registered on it, the same way a platform View dispatches a click (Material Components source not read); SRC ui/AnyMemo.java:234-261
+        234          binding.bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+        235              @Override
+        236              public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+        237  
+        238                  Fragment fragment = null;
+        239                  int itemId = menuItem.getItemId();
+        240                  if (itemId == R.id.recent_tab_menu) {
+        241                      fragment = new RecentListFragment();
+        242                  } else if (itemId == R.id.open_tab_menu) {
+        243                      fragment = new OpenTabFragment();
+        244                      Bundle args = new Bundle();
+        245                      args.putBoolean(FileBrowserFragment.EXTRA_SHOW_CREATE_DB_BUTTON, true);
+        246                      fragment.setArguments(args);
+        247                  } else if (itemId == R.id.download_tab_menu) {
+      ...  (14 more lines)
+   5. E62feacfc ENTERS/page*
+      AnyMemo$2.onNavigationItemSelected -> S_MAIN_MISC
+      itemId == misc_tab_menu
+      evidence: SRC ui/AnyMemo.java:249-250,253-257
+        249                  } else if (itemId == R.id.misc_tab_menu) {
+        250                      fragment = new MiscTabFragment();
+        253                  if (fragment != null) {
+        254                      getSupportFragmentManager().beginTransaction()
+        255                              .replace(R.id.page_fragment_container, fragment)
+        256                              .commit();
+        257                  }
+   6. E0f318405 LIFECYCLE/standard*
+      S_MAIN_MISC -> MiscTabFragment.onCreateView
+      Fragment lifecycle callback
+      evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ui/MiscTabFragment.java:128-222,400-406
+        128      @Override
+        129      public void onAttach(Activity activity) {
+        130          super.onAttach(activity);
+        131          mActivity = activity;
+        132      }
+        133  
+        134      @Override
+        135      public void onSaveInstanceState(Bundle outState) {
+        136          super.onSaveInstanceState(outState);
+        137          if (pendingImportConverterClass != null) {
+        138              outState.putSerializable("pendingImportConverterClass", pendingImportConverterClass);
+        139          }
+        140      }
+        141  
+      ...  (81 more lines)
+        400      @Override
+        401      public void onDestroy() {
+        402          super.onDestroy();
+        403          if (disposables != null) {
+        404              disposables.dispose();
+        405          }
+        406      }
+   7. E3ae14c6f FRAMEWORK/standard*
+      MiscTabFragment.onCreateView -> MiscTabFragment.onClick
+      tap any Misc-tab button (every button shares one OnClickListener, dispatched by v == field)
+      evidence: INFERRED a tapped/long-pressed View dispatches to the listener registered with setOnClickListener / setOnLongClickListener / setOnItemClickListener / setOnItemLongClickListener / setOnTouchListener / setOnCheckedChangeListener / addTextChangedListener / setOnFocusChangeListener / setOnSeekBarChangeListener (androidx widgets wrap the platform View/AdapterView dispatch; androidx source not read); SRC ui/MiscTabFragment.java:156-221,224-398
+        156          View v = inflater.inflate(R.layout.misc_tab, container, false);
+        157          optionButton = v.findViewById(R.id.misc_options);
+        158          optionButton.setOnClickListener(this);
+        159          importButton = v.findViewById(R.id.misc_import);
+        160          importButton.setOnClickListener(this);
+        161          exportButton = v.findViewById(R.id.misc_export);
+        162          exportButton.setOnClickListener(this);
+        163          importItems = v.findViewById(R.id.import_items);
+        164          exportItems = v.findViewById(R.id.export_items);
+        165          importAnyMemoButton = v.findViewById(R.id.import_anymemo_db);
+        166          importAnyMemoButton.setOnClickListener(this);
+        167          exportAnyMemoButton = v.findViewById(R.id.export_anymemo_db);
+        168          exportAnyMemoButton.setOnClickListener(this);
+        169          importAnyMemoFolderButton = v.findViewById(R.id.import_anymemo_folder);
+      ...  (52 more lines)
+        224      @Override
+        225      public void onClick(View v){
+        226          if(v == optionButton){
+        227              startActivity(new Intent(mActivity, OptionScreen.class));
+        228          }
+        229          /* Toggle visibility for import and export buttons */
+        230          if(v == importButton){
+        231              if(importItems.getVisibility() == View.GONE){
+        232                  importItems.setVisibility(View.VISIBLE);
+        233              }
+        234              else{
+        235                  importItems.setVisibility(View.GONE);
+        236              }
+        237          }
+      ...  (161 more lines)
+   8. E980e9e1b ENTRY/standard*
+      MiscTabFragment.onClick -> SettingsScreen.<init>
+      v == defaultSettingsButton: startActivity(SettingsScreen) for the empty/default db
+      guard: v == defaultSettingsButton (MiscTabFragment.java:339)
+      evidence: SRC ui/MiscTabFragment.java:339-344
+        339          if (v == defaultSettingsButton) {
+        340              Intent intent = new Intent(mActivity, SettingsScreen.class);
+        341  
+        342              String emptyDbPath = mActivity.getApplicationContext().getFilesDir().getAbsolutePath() + "/" + AMEnv.EMPTY_DB_NAME;
+        343              intent.putExtra(SettingsScreen.EXTRA_DBPATH, emptyDbPath);
+        344              startActivity(intent);
+   9. Eaf63d2ae FRAMEWORK/standard*
+      SettingsScreen.<init> -> SettingsScreen$SettingLoaderCallbacks.onCreateLoader
+      multipleLoaderManager registers the Setting loader in onCreate
+      evidence: INFERRED androidx.loader.app.LoaderManager drives onCreateLoader / onLoadFinished / onLoaderReset and runs AsyncTaskLoader.loadInBackground on a worker thread (androidx source not read); SRC ui/SettingsScreen.java:137-139,394-414
+        137          multipleLoaderManager.registerLoaderCallbacks(1, new SettingLoaderCallbacks(), false);
+        138          multipleLoaderManager.setOnAllLoaderCompletedRunnable(onPostInitRunnable);
+        139          multipleLoaderManager.startLoading();
+        394      private class SettingLoaderCallbacks implements
+        395              LoaderManager.LoaderCallbacks<Setting> {
+        396  
+        397          @Override
+        398          public Loader<Setting> onCreateLoader(int arg0, Bundle arg1) {
+        399              Loader<Setting> loader = new SettingLoader(SettingsScreen.this, dbPath);
+        400              loader.forceLoad();
+        401              return loader;
+        402          }
+        403  
+        404          @Override
+        405          public void onLoadFinished(Loader<Setting> loader , Setting setting) {
+        406              SettingsScreen.this.setting = setting;
+        407              multipleLoaderManager.checkAllLoadersCompleted();
+      ...  (7 more lines)
+  10. E28ecafee ASYNC/standard*
+      SettingsScreen$SettingLoaderCallbacks.onCreateLoader -> DBLoader.loadInBackground
+      loader.forceLoad()
+      evidence: INFERRED androidx.loader.app.LoaderManager drives onCreateLoader / onLoadFinished / onLoaderReset and runs AsyncTaskLoader.loadInBackground on a worker thread (androidx source not read); SRC ui/SettingsScreen.java:398-401; ui/loader/DBLoader.java:41-50
+        398          public Loader<Setting> onCreateLoader(int arg0, Bundle arg1) {
+        399              Loader<Setting> loader = new SettingLoader(SettingsScreen.this, dbPath);
+        400              loader.forceLoad();
+        401              return loader;
+  11. Efc3f0a6a ASYNC/standard*
+      DBLoader.loadInBackground -> QACardActivity$SettingLoaderCallbacks.onLoadFinished
+      the loaded Setting is delivered on the main thread
+      evidence: INFERRED androidx.loader.app.LoaderManager drives onCreateLoader / onLoadFinished / onLoaderReset and runs AsyncTaskLoader.loadInBackground on a worker thread (androidx source not read); SRC ui/QACardActivity.java:455-459
+        455          @Override
+        456          public void onLoadFinished(Loader<Setting> loader , Setting setting) {
+        457              QACardActivity.this.setting = setting;
+        458              multipleLoaderManager.checkAllLoadersCompleted();
+        459          }
+  12. E9d0c38ba CALL/explicit*
+      QACardActivity$SettingLoaderCallbacks.onLoadFinished -> MultipleLoaderManager.checkAllLoadersCompleted
+      Direct call
+      evidence: SRC QACardActivity.java:458 (bytecode)
+        458              multipleLoaderManager.checkAllLoadersCompleted();
+  13. E0ddd5754 FRAMEWORK/standard* [STATE: every loader registered on this MultipleLoaderManager has reported (runningLoaderCount <= 0)]
+      MultipleLoaderManager.checkAllLoadersCompleted -> QACardActivity$2.run
+      handler.post(onAllLoaderCompletedRunnable): QACardActivity-family callers (Study/Quiz/CardPlayer/PreviewEdit)
+      evidence: INFERRED Handler.post/postDelayed queues the Runnable on the thread the Handler was created on (platform source not read for this exact flow; see FW-SRC citation added in step 6); SRC ui/loader/MultipleLoaderManager.java:104-114
+      (citation: no line numbers)
+        104      public synchronized void checkAllLoadersCompleted() {
+        105          runningLoaderCount--;
+        106  
+        107          // The onPostInit is running on UI thread.
+        108          if (runningLoaderCount <= 0) {
+        109              Log.v(TAG, "Dismiss dialog");
+        110              progressDialog.dismiss();
+        111              if (onAllLoaderCompletedRunnable != null) {
+        112                  handler.post(onAllLoaderCompletedRunnable);
+        113              }
+        114          }
+  14. E0ef300ff CALL/explicit*
+      QACardActivity$2.run -> StudyActivity.onPostInit
+      Virtual/interface call that can dispatch to this implementation
+      evidence: SRC QACardActivity.java:660 (bytecode)
+        660              onPostInit();
+  15. E337562df CALL/explicit* [STATE: The open deck has at least one card]
+      StudyActivity.onPostInit -> StudyActivity.setupGradeButtons
+      the deck has at least one card
+      evidence: SRC ui/StudyActivity.java:296-300
+        296          setupGradeButtons();
+        297          displayCard(false);
+        298          initialized = true;
+        299          setTitle(getDbName());
+        300      }
+  16. Ed1633779 CALL/explicit*
+      StudyActivity.setupGradeButtons -> GradeButtonsFragment.<init>
+      a new GradeButtonsFragment is added to buttons_root
+      evidence: SRC ui/StudyActivity.java:533-543
+        533          gradeButtonsFragment = new GradeButtonsFragment();
+        534          Bundle args = new Bundle();
+        535          args.putString(GradeButtonsFragment.EXTRA_DBPATH, dbPath);
+        536          gradeButtonsFragment.setArguments(args);
+        537  
+        538          FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        539          ft.replace(R.id.buttons_root, gradeButtonsFragment);
+        540          ft.commit();
+        541  
+        542          gradeButtonsFragment.setOnCardChangedListener(onCardChangedListener);
+        543      }
+  17. E4950a6b8 LIFECYCLE/standard*
+      GradeButtonsFragment.<init> -> GradeButtonsFragment.onCreate
+      Fragment lifecycle callback
+      evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ui/GradeButtonsFragment.java:99-101
+         99      public void onCreate(@Nullable Bundle savedInstanceState) {
+        100          super.onCreate(savedInstanceState);
+        101          fragmentComponents().inject(this);
+  18. E090eafdd CALL/explicit*
+      GradeButtonsFragment.onCreate -> DaggerAppComponents$FragmentComponentsImpl.inject(GradeButtonsFragment)
+      Virtual/interface call that can dispatch to this implementation
+      evidence: SRC GradeButtonsFragment.java:101 (bytecode)
+        101          fragmentComponents().inject(this);
+  19. Ecc2a0e76 CALL/non_standard(Dagger (DI; generated injector and provider code))
+      DaggerAppComponents$FragmentComponentsImpl.inject(GradeButtonsFragment) -> DaggerAppComponents$FragmentComponentsImpl.injectGradeButtonsFragment
+      Direct call
+      evidence: INFERRED generated class DaggerAppComponents.java (written by the annotation processor or data binding at build time; no source file in the tree; bytecode line 254)
+  20. Ee5c58ecf CALL/non_standard(Dagger (DI; generated injector and provider code))
+      DaggerAppComponents$FragmentComponentsImpl.injectGradeButtonsFragment -> AMDateUtil.<init>
+      Dagger creates the @Inject field amDateUtil of GradeButtonsFragment
+      evidence: INFERRED Dagger-generated code (DaggerAppComponents and its Impl/Builder classes) wires the object graph; most of the chain is explicit calls visible to the bytecode extractor, this citation covers only the parts that are not (field injection assigning an @Inject field is not a call)SRC ui/GradeButtonsFragment.java:83 (@Inject field)
+         83      @Inject AMDateUtil amDateUtil;
+

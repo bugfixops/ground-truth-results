@@ -1,0 +1,161 @@
+=== Source excerpts previously printed for this audit ===
+=== Boot/engine/service/AOSP lifecycle route ===
+Source file `scratch/s3_service_route_printed.txt` (application source lines as printed):
+    39    public void onReceive(Context context, Intent intent) {
+    40        var appContext = context.getApplicationContext();
+    41        var pref = RepositoryHelper.getSettingsRepository(appContext);
+    43        var action = intent.getAction();
+    44        if (isBootCompleted(action)) {
+    45            initScheduling(context, pref);
+    46            if (pref.autostart() && pref.keepAlive()) {
+    47                TorrentEngine.getInstance(appContext).start();
+    48            }
+    49        } else if (AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED.equals(action)) {
+    50            initScheduling(context, pref);
+    51        }
+    52    }
+
+   148    public void start() {
+   149        if (isRunning())
+   150            return;
+   152        Utils.startServiceBackground(appContext, new Intent(appContext, TorrentService.class));
+   153    }
+   155    public void restartForegroundNotification() {
+   156        Intent i = new Intent(appContext, TorrentService.class);
+   157        i.setAction(TorrentService.ACTION_RESTART_FOREGROUND_NOTIFICATION);
+   158        Utils.startServiceBackground(appContext, i);
+   159    }
+
+   426    public static void startServiceBackground(@NonNull Context context, @NonNull Intent i) {
+   427        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+   428            // Postpone the service start until the main thread is free to avoid ANR
+   429            new Handler(Looper.getMainLooper())
+   430                    .post(() -> context.startForegroundService(i));
+   431        } else {
+   432            context.startService(i);
+   433        }
+   434    }
+
+   105    @Override
+   106    public void onCreate()
+   107    {
+   108        pref = RepositoryHelper.getSettingsRepository(getApplicationContext());
+   109        engine = TorrentEngine.getInstance(getApplicationContext());
+   110        stateProvider = TorrentInfoProvider.getInstance(getApplicationContext());
+   112        initPendingIntents();
+   113        makeForegroundNotify();
+   114    }
+   116    private void init()
+   118        Log.i(TAG, "Start " + TAG);
+   120        makeForegroundNotify();
+   121        subscribeCombinedPauseButtonState();
+   122        setFilterAndSorting();
+   123        subscribeForceSortAndFilter();
+   125        disposables.add(pref.observeSettingsChanged()
+   126                .subscribe(this::handleSettingsChanged));
+   128        Utils.enableBootReceiverIfNeeded(getApplicationContext());
+   129        setKeepCpuAwake(pref.cpuDoNotSleep());
+   131        engine.doStart();
+   132        engine.addListener(engineListener);
+   134        startUpdateForegroundNotify();
+   175    @Override
+   176    public int onStartCommand(Intent intent, int flags, int startId)
+   178        String action = null;
+   179        if (intent != null)
+   180            action = intent.getAction();
+   182        /* Handle shutdown actions before init service */
+   183        if (action != null) {
+   184            int ret = handleShutdownActions(action);
+   185            if (ret >= 0)
+   186                return ret;
+   187        }
+   189        /* The first start */
+   190        if (isAlreadyRunning.compareAndSet(false, true))
+   191            init();
+   193        if (action != null)
+   194            handleActions(action);
+   196        return START_STICKY;
+
+Source file `scratch/build_s3_torrent_service.txt` (AOSP source lines as printed):
+  3311    private void handleCreateService(CreateServiceData data) {
+  3316        LoadedApk packageInfo = getPackageInfoNoCheck(
+  3317                data.info.applicationInfo, data.compatInfo);
+  3318        Service service = null;
+  3320            java.lang.ClassLoader cl = packageInfo.getClassLoader();
+  3321            service = (Service) cl.loadClass(data.info.name).newInstance();
+  3339            service.onCreate();
+  3464    private void handleServiceArgs(ServiceArgsData data) {
+  3465        Service s = mServices.get(data.token);
+  3473                if (!data.taskRemoved) {
+  3474                    res = s.onStartCommand(data.args, data.flags, data.startId);
+
+=== Notification PendingIntent registration and action dispatch ===
+Source file `scratch/s3_notification_receiver_printed.txt` (application source lines as printed):
+   497    private void initPendingIntents() {
+   498        Intent shutdownIntent = new Intent(getApplicationContext(), NotificationReceiver.class);
+   499        shutdownIntent.setAction(NotificationReceiver.NOTIFY_ACTION_SHUTDOWN_APP);
+   500        shutdownPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0,
+   501                shutdownIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+   502        );
+   504        Intent pauseButtonIntent = new Intent(getApplicationContext(), NotificationReceiver.class);
+   505        pauseButtonIntent.setAction(NotificationReceiver.NOTIFY_ACTION_PAUSE_ALL);
+   506        pauseButtonPendingIntent = PendingIntent.getBroadcast(
+   508                getApplicationContext(), 0, pauseButtonIntent,
+   509                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+   510        );
+   511        Intent resumeButtonIntent = new Intent(getApplicationContext(), NotificationReceiver.class);
+   512        resumeButtonIntent.setAction(NotificationReceiver.NOTIFY_ACTION_RESUME_ALL);
+   513        resumeButtonPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0,
+   514                resumeButtonIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+   515        );
+   517        Intent pauseResumeButtonIntent = new Intent(getApplicationContext(), NotificationReceiver.class);
+   518        pauseResumeButtonIntent.setAction(NotificationReceiver.NOTIFY_ACTION_PAUSE_RESUME_ALL);
+   519        pauseResumePendingIntent = PendingIntent.getBroadcast(
+   520                getApplicationContext(), 0, pauseResumeButtonIntent,
+   521                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+   522        );
+   524    }
+
+    41    @Override
+    42    public void onReceive(Context context, Intent intent)
+    44        String action = intent.getAction();
+    45        if (action == null)
+    46            return;
+    48        switch (action) {
+    50            case NOTIFY_ACTION_SHUTDOWN_APP:
+    51                mainIntent = new Intent(context.getApplicationContext(), MainActivity.class);
+    53                mainIntent.setAction(NOTIFY_ACTION_SHUTDOWN_APP);
+    54                context.startActivity(mainIntent);
+    56                serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+    57                serviceIntent.setAction(NOTIFY_ACTION_SHUTDOWN_APP);
+    58                context.startService(serviceIntent);
+    60            case NOTIFY_ACTION_ADD_TORRENT:
+    61                mainIntent = new Intent(context.getApplicationContext(), MainActivity.class);
+    63                mainIntent.setAction(NOTIFY_ACTION_ADD_TORRENT);
+    64                context.startActivity(mainIntent);
+    66            case NOTIFY_ACTION_PAUSE_ALL:
+    67                serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+    68                serviceIntent.setAction(NOTIFY_ACTION_PAUSE_ALL);
+    69                context.startService(serviceIntent);
+    71            case NOTIFY_ACTION_RESUME_ALL:
+    72                serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+    73                serviceIntent.setAction(NOTIFY_ACTION_RESUME_ALL);
+    74                context.startService(serviceIntent);
+    76            case NOTIFY_ACTION_PAUSE_RESUME_ALL:
+    77                serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+    78                serviceIntent.setAction(NOTIFY_ACTION_PAUSE_RESUME_ALL);
+    79                context.startService(serviceIntent);
+    81        }
+    82    }
+
+Source file `scratch/build_s3_notification_receiver.txt` (AOSP receiver/service dispatch lines):
+  3164            data.intent.prepareToEnterProcess();
+  3165            data.setExtrasClassLoader(cl);
+  3166            receiver = (BroadcastReceiver)cl.loadClass(component).newInstance();
+  3185            sCurrentBroadcastIntent.set(data.intent);
+  3186            receiver.setPendingResult(data);
+  3187            receiver.onReceive(context.getReceiverRestrictedContext(),
+  3188                    data.intent);
+
+=== Engine/session add-torrent source excerpt ===
+Source file `scratch/batch_003_printed.txt` prints `TorrentEngine.java:329-359`, `TorrentSessionImpl.java:251-285,351`, and explicit line references including `TorrentEngine.java:351` calling `session.addTorrent(params, removeFile)` and `TorrentSessionImpl.java:285` calling `repo.addTorrent(torrent)`. These are retained as cited printed evidence; native alert callback delivery is unresolved.

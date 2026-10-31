@@ -1,0 +1,27 @@
+LibreTorrent batch 41 — command record and source evidence summary
+
+Plan command (sole membership source):
+`awk -F '\t' '$1==41 {print $3 "\t" $4}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv`
+
+Output: exactly 40 rows: six TorrentSessionImpl inner-listener/load-task methods, 23 TorrentInputStream methods, and 11 TorrentStream methods. The report table preserves each plan method in order.
+
+Source/call-site searches printed/read:
+`rg -n 'class InnerListener|class LoadTorrentTask|void alert|void run\\(|putMagnet|TorrentInputStream|new TorrentStream|Parcelable|putParcelable|getParcelable' "$SRC/core/model/session/TorrentSessionImpl.java" "$SRC/core/model/stream" "$SRC/ui"`
+`rg -n 'class |public |private |protected |@Override' "$SRC/core/model/stream/TorrentInputStream.java" "$SRC/core/model/stream/TorrentStream.java"`
+
+`SRC` is `/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent`.
+
+Printed source excerpts:
+`nl -ba "$SRC/core/model/session/TorrentSessionImpl.java" | sed -n '1060,1108p;1480,1565p'`
+`nl -ba "$SRC/core/model/stream/TorrentInputStream.java" | sed -n '60,130p;135,200p;195,275p;354,445p'`
+`nl -ba "$SRC/core/model/stream/TorrentStream.java" | sed -n '20,140p'`
+`nl -ba "$SRC/core/model/stream/TorrentStreamServer.java" | sed -n '190,250p'`
+
+Evidence recorded from those outputs:
+- Session InnerListener's types/alert dispatch is at `TorrentSessionImpl.java:1061-1106`; LoadTorrentTask constructor, magnet setter and run at `1480-1530`; the load task is queued from the session load scheduling flow and receives putMagnet at line 414.
+- TorrentInputStream constructor registers its listener and requests initial pieces at lines 97-119; read/skip/cache/wait helpers are around 135-254 and 256-402; close and listener callbacks are 360-455.
+- TorrentStream is constructed from file/torrent coordinates and declares Parcelable methods at lines 29-107. Focused `rg` over app UI and stream code found no explicit TorrentStream parcel transfer. Because the full framework/client route was not established, Parcelable hooks remain OPEN.
+- TorrentStreamServer creates the stream input for HTTP responses at `TorrentStreamServer.java:206-209,243-248`.
+- TorrentDownloadImpl dispatches onPieceFinished and onReadPiece listeners at `TorrentDownloadImpl.java:256-261,442-454`.
+
+No coverage data was accessed. No graph, AGENT_NOTES, or out files were edited.

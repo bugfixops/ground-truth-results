@@ -1,0 +1,220 @@
+     1	/*
+     2	 * Copyright (C) 2019 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.addfeed;
+    21	
+    22	import android.app.Application;
+    23	import android.net.Uri;
+    24	import android.text.TextUtils;
+    25	
+    26	import androidx.annotation.NonNull;
+    27	import androidx.databinding.ObservableBoolean;
+    28	import androidx.lifecycle.AndroidViewModel;
+    29	import androidx.work.Data;
+    30	import androidx.work.OneTimeWorkRequest;
+    31	import androidx.work.WorkManager;
+    32	
+    33	import org.proninyaroslav.libretorrent.core.RepositoryHelper;
+    34	import org.proninyaroslav.libretorrent.core.model.data.entity.FeedChannel;
+    35	import org.proninyaroslav.libretorrent.core.storage.FeedRepository;
+    36	import org.proninyaroslav.libretorrent.core.utils.Utils;
+    37	import org.proninyaroslav.libretorrent.service.FeedFetcherWorker;
+    38	
+    39	import java.util.List;
+    40	import java.util.Objects;
+    41	
+    42	import io.reactivex.android.schedulers.AndroidSchedulers;
+    43	import io.reactivex.disposables.CompositeDisposable;
+    44	import io.reactivex.schedulers.Schedulers;
+    45	
+    46	public class AddFeedViewModel extends AndroidViewModel
+    47	{
+    48	    public AddFeedMutableParams mutableParams = new AddFeedMutableParams();
+    49	    public ObservableBoolean showClipboardButton = new ObservableBoolean();
+    50	    private Mode mode;
+    51	    private FeedRepository repo;
+    52	    private CompositeDisposable disposables = new CompositeDisposable();
+    53	
+    54	    public enum Mode
+    55	    {
+    56	        ADD, EDIT
+    57	    }
+    58	
+    59	    public AddFeedViewModel(@NonNull Application application)
+    60	    {
+    61	        super(application);
+    62	
+    63	        repo = RepositoryHelper.getFeedRepository(application);
+    64	        mode = Mode.ADD;
+    65	    }
+    66	
+    67	    @Override
+    68	    protected void onCleared()
+    69	    {
+    70	        super.onCleared();
+    71	
+    72	        disposables.clear();
+    73	    }
+    74	
+    75	    public Mode getMode()
+    76	    {
+    77	        return mode;
+    78	    }
+    79	
+    80	    public void initAddMode(@NonNull Uri uri)
+    81	    {
+    82	        mode = Mode.ADD;
+    83	        /* TODO: files support */
+    84	        mutableParams.setUrl(uri.toString());
+    85	    }
+    86	
+    87	    public void initAddModeFromClipboard()
+    88	    {
+    89	        List<CharSequence> clipboard = Utils.getClipboardText(getApplication());
+    90	        if (clipboard.isEmpty())
+    91	            return;
+    92	
+    93	        String firstItem = clipboard.get(0).toString();
+    94	        String c = firstItem.toLowerCase();
+    95	        if (c.startsWith(Utils.HTTP_PREFIX))
+    96	            initAddMode(Uri.parse(firstItem));
+    97	    }
+    98	
+    99	    public void initEditMode(long feedId)
+   100	    {
+   101	        mode = Mode.EDIT;
+   102	        mutableParams.setFeedId(feedId);
+   103	        fetchParams();
+   104	    }
+   105	
+   106	    public boolean addChannel()
+   107	    {
+   108	        long id = applyParams(true);
+   109	        refreshChannel(id);
+   110	
+   111	        return id != -1;
+   112	    }
+   113	
+   114	    public boolean updateChannel()
+   115	    {
+   116	        long id = applyParams(false);
+   117	        refreshChannel(id);
+   118	
+   119	        return id != -1;
+   120	    }
+   121	
+   122	    public boolean deleteChannel()
+   123	    {
+   124	        long feedId = mutableParams.getFeedId();
+   125	        if (feedId == -1)
+   126	            return false;
+   127	
+   128	        /* Sync wait deleting */
+   129	        try {
+   130	            Thread t = new Thread(() -> {
+   131	                FeedChannel channel = repo.getFeedById(feedId);
+   132	                if (channel != null)
+   133	                    repo.deleteFeed(channel);
+   134	            });
+   135	            t.start();
+   136	            t.join();
+   137	
+   138	        } catch (InterruptedException e) {
+   139	            return false;
+   140	        }
+   141	
+   142	        return true;
+   143	    }
+   144	
+   145	    private void fetchParams()
+   146	    {
+   147	        long feedId = mutableParams.getFeedId();
+   148	        if (feedId == -1)
+   149	            return;
+   150	
+   151	        disposables.add(repo.getFeedByIdSingle(feedId)
+   152	                .subscribeOn(Schedulers.io())
+   153	                .observeOn(AndroidSchedulers.mainThread())
+   154	                .filter(Objects::nonNull)
+   155	                .subscribe((channel) -> {
+   156	                    mutableParams.setUrl(channel.url);
+   157	                    mutableParams.setName(channel.name);
+   158	                    mutableParams.setAutoDownload(channel.autoDownload);
+   159	                    mutableParams.setFilter(channel.filter);
+   160	                    mutableParams.setRegexFilter(channel.isRegexFilter);
+   161	                }));
+   162	    }
+   163	
+   164	    private long applyParams(boolean newChannel)
+   165	    {
+   166	        long feedId = mutableParams.getFeedId();
+   167	        if (!newChannel && feedId == -1)
+   168	            return -1;
+   169	        String url = mutableParams.getUrl();
+   170	        if (TextUtils.isEmpty(url))
+   171	            return -1;
+   172	
+   173	        FeedChannel channel = new FeedChannel(url,
+   174	                mutableParams.getName(),
+   175	                0,
+   176	                mutableParams.isAutoDownload(),
+   177	                mutableParams.getFilter(),
+   178	                mutableParams.isRegexFilter(),
+   179	                null);
+   180	        if (!newChannel)
+   181	            channel.id = feedId;
+   182	
+   183	        /* TODO: maybe rewrite to WorkManager */
+   184	        /* Sync wait inserting/updating */
+   185	        long[] retId = new long[]{-1};
+   186	        try {
+   187	            Thread t = new Thread(() -> {
+   188	                if (newChannel)
+   189	                    retId[0] = repo.addFeed(channel);
+   190	                else if (repo.updateFeed(channel) == 1)
+   191	                    retId[0] = feedId;
+   192	            });
+   193	            t.start();
+   194	            t.join();
+   195	
+   196	        } catch (InterruptedException e) {
+   197	            return retId[0];
+   198	        }
+   199	
+   200	        return retId[0];
+   201	    }
+   202	
+   203	    private void refreshChannel(long feedId)
+   204	    {
+   205	        if (feedId == -1)
+   206	            return;
+   207	
+   208	        Data data = new Data.Builder()
+   209	                .putString(FeedFetcherWorker.TAG_ACTION, FeedFetcherWorker.ACTION_FETCH_CHANNEL)
+   210	                .putLong(FeedFetcherWorker.TAG_CHANNEL_ID, feedId)
+   211	                .putBoolean(FeedFetcherWorker.TAG_NO_AUTO_DOWNLOAD, mutableParams.isNotDownloadImmediately())
+   212	                .build();
+   213	
+   214	        OneTimeWorkRequest work = new OneTimeWorkRequest.Builder(FeedFetcherWorker.class)
+   215	                .setInputData(data)
+   216	                .build();
+   217	
+   218	        WorkManager.getInstance(getApplication()).enqueue(work);
+   219	    }
+   220	}

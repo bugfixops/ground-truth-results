@@ -1,0 +1,25 @@
+# Batch 93 printed evidence
+
+Plan extraction:
+```sh
+awk -F '\\t' '$1==93 {print $3 "\\t" $4}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+```
+Result: 40 exact rows; full method/descriptor table is in the report.
+
+Bounded source scan:
+```sh
+rg -n 'class TorrentContentFilesAdapter|getItemKey|getItemPosition|onBindViewHolder|onCreateViewHolder|setSelectionTracker|areContentsTheSame|areItemsTheSame|ItemDetails|ItemLookup|KeyProvider|ViewHolder|bind|setSelected|getItemDetails' .../pages/files/TorrentContentFilesAdapter.java
+rg -n 'class DetailTorrentPeersFragment|newInstance|onAttach|onCreateView|onItemLongClick|onResume|onSaveInstanceState|onStart|onStop|onViewCreated|onViewStateRestored|sharePeerIp|subscribeAdapter' .../pages/peers/DetailTorrentPeersFragment.java
+```
+Key output read:
+```
+TorrentContentFilesAdapter.java:51 class; :66 selection tracker; :73 create holder; :85 bind holder
+:95/:104 item key/position; :112/:119 diff callbacks; :131 ViewHolder; :147 bind
+:242 selected state; :265 KeyProvider; :278/:284 key/position; :290 ItemDetails
+:315 ItemLookup; :326 getItemDetails
+DetailTorrentPeersFragment.java:56 class; :72 factory; :82 view creation; :90 attach
+:99 stop; :107 start; :111 subscribeAdapter; :115 view created
+:146-157 state save/restore; :164 resume; :172 subscribeAdapter; :186 long click; :193 share peer IP
+```
+These source facts do not establish framework or library dispatch and full entry paths for every method. All 40 remain OPEN.
+

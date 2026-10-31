@@ -1,0 +1,65 @@
+     1	/*
+     2	 * Copyright (C) 2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.tag;
+    21	
+    22	import android.app.Application;
+    23	
+    24	import androidx.annotation.NonNull;
+    25	import androidx.lifecycle.AndroidViewModel;
+    26	
+    27	import org.proninyaroslav.libretorrent.core.RepositoryHelper;
+    28	import org.proninyaroslav.libretorrent.core.model.data.entity.TagInfo;
+    29	import org.proninyaroslav.libretorrent.core.storage.TagRepository;
+    30	
+    31	import java.util.HashSet;
+    32	import java.util.List;
+    33	import java.util.Set;
+    34	
+    35	import io.reactivex.Flowable;
+    36	
+    37	public class SelectTagViewModel extends AndroidViewModel {
+    38	    private TagRepository tagRepo;
+    39	    private Set<Long> excludeTagsId;
+    40	
+    41	    public SelectTagViewModel(@NonNull Application application) {
+    42	        super(application);
+    43	
+    44	        tagRepo = RepositoryHelper.getTagRepository(application);
+    45	    }
+    46	
+    47	    public void setExcludeTagsId(long[] tagsId) {
+    48	        if (tagsId == null) {
+    49	            excludeTagsId = null;
+    50	        } else {
+    51	            excludeTagsId = new HashSet<>();
+    52	            for (long tagId : tagsId) {
+    53	                excludeTagsId.add(tagId);
+    54	            }
+    55	        }
+    56	    }
+    57	
+    58	    public boolean filterExcludeTags(@NonNull TagInfo info) {
+    59	        return excludeTagsId == null || !excludeTagsId.contains(info.id);
+    60	    }
+    61	
+    62	    Flowable<List<TagInfo>> observeTags() {
+    63	        return tagRepo.observeAll();
+    64	    }
+    65	}

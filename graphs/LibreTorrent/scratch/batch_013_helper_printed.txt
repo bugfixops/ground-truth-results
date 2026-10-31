@@ -1,0 +1,177 @@
+Batch 13 hand-audit source printout
+Membership command:
+awk -F '\t' 'NR==1 {for(i=1;i<=NF;i++) h[$i]=i; next} $h["batch"]==13 {print}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+The command printed exactly 40 rows; those rows alone define this report's membership.
+
+Source root: /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java
+Print command used: nl -ba <source-root>/<file>
+
+### com/ernieyu/feedparser/impl/AtomItem.java (printed lines 14-138)
+14 class AtomItem extends BaseItem {
+30 public AtomItem(String uri, String name, Attributes attributes) {
+31     super(uri, name, attributes);
+40 public String getTitle() {
+41     Element title = getElement(TITLE);
+42     return (title != null) ? title.getContent() : null;
+46 public List<String> getLinks() {
+48     List<Element> elements = getElementList(LINK);
+50         links.add(element.getAttributes().getValue("href"));
+74 public String getGuid() {
+75     Element guid = getElement(ID);
+76     return (guid != null) ? guid.getContent() : null;
+80 public Date getPubDate() {
+81     Element pubDate = getElement(UPDATED);
+82     return (pubDate != null) ? FeedUtils.convertAtomDate(pubDate.getContent()) : null;
+127 public MediaRss getMediaRss() {
+128     return null;
+136 public EzRssTorrentItem getEzRssTorrentItem() {
+137     return null;
+
+### com/ernieyu/feedparser/impl/BaseElement.java (printed lines 18-99)
+18 class BaseElement implements Element {
+39 public BaseElement(String uri, String name, Attributes attributes) {
+42     this.attributes = new AttributesImpl(attributes);
+46 public String getUri() { return uri; }
+56 public Attributes getAttributes() { return attributes; }
+61 public String getContent() { return content; }
+68 void setContent(String data) { this.content = data; }
+73 public Element getElement(String name) {
+74     List<Element> elements = elementMap.get(name);
+75     return (elements != null) ? elements.get(0) : null;
+79 public List<Element> getElementList(String name) {
+80     return elementMap.getOrDefault(name, Collections.emptyList());
+91 void addElement(String name, Element element) {
+92     if (elementMap.containsKey(name)) {
+93         elementMap.get(name).add(element);
+95         List<Element> newList = new ArrayList<Element>();
+96         newList.add(element);
+97         elementMap.put(name, newList);
+
+### com/ernieyu/feedparser/impl/BaseItem.java (printed lines 15-69)
+21 public BaseItem(String uri, String name, Attributes attributes) {
+22     super(uri, name, attributes);
+30 private String getUniqueId() {
+31     String id = getGuid();
+33         List<String> links = getLinks();
+38         id = getTitle();
+41         id = getDescription();
+48 public String toString() { return getTitle(); }
+53 public boolean equals(Object obj) {
+55     if (obj instanceof BaseItem) {
+56         String id1 = getUniqueId();
+57         String id2 = ((BaseItem) obj).getUniqueId();
+65 public int hashCode() {
+67     String id = getUniqueId();
+68     return (id != null) ? id.hashCode() : 0;
+
+### com/ernieyu/feedparser/impl/DefaultFeedParser.java (printed lines 19-47)
+19 public class DefaultFeedParser implements FeedParser {
+22 public Feed parse(InputStream inStream) throws FeedException {
+25 SAXParserFactory factory = SAXParserFactory.newInstance();
+26 SAXParser parser = factory.newSAXParser();
+34 FeedHandler handler = new FeedHandler();
+37 parser.parse(new XMLInputStream(inStream), handler);
+38 Feed feed = handler.getFeed();
+
+### com/ernieyu/feedparser/impl/FeedHandler.java (printed lines 16-131)
+16 class FeedHandler extends DefaultHandler {
+31 public Feed getFeed() { return feed; }
+36 public void characters(char[] ch, int start, int length) throws SAXException {
+38     buffer.append(ch, start, length);
+42 public void startDocument() throws SAXException {
+44     elementStack = new Stack<BaseElement>();
+48 public void endDocument() throws SAXException {
+49     elementStack.clear();
+54 public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
+60 if (RDF.equalsIgnoreCase(localName)) { ... new Rss1Feed ... }
+67 } else if (RSS.equalsIgnoreCase(localName)) { ... new Rss2Feed ... }
+74 } else if (FEED.equalsIgnoreCase(localName)) { ... new AtomFeed ... }
+81 } else if (ITEM.equalsIgnoreCase(localName)) {
+85     newElement = new Rss1Item(uri, localName, attributes);
+88     newElement = new Rss2Item(uri, localName, attributes);
+94 } else if (ENTRY.equalsIgnoreCase(localName)) {
+96     newElement = new AtomItem(uri, localName, attributes);
+100     newElement = new BaseElement(uri, localName, attributes);
+103 elementStack.push(newElement);
+106 buffer = new StringBuilder();
+110 public void endElement(String uri, String localName, String qName) throws SAXException {
+115 BaseElement currentElement = elementStack.pop();
+116 String content = buffer.toString();
+121 currentElement.setContent(content);
+124 if (!elementStack.empty()) {
+125     BaseElement parent = elementStack.peek();
+126     parent.addElement(localName, currentElement);
+130 buffer.delete(0, buffer.length());
+
+### com/ernieyu/feedparser/impl/EzRss01Parser.java (printed lines 10-122)
+10 class EzRss01Parser {
+22 public EzRss01Parser(Rss2Item item) { this.item = item; }
+26 public EzRssTorrentItem parse() {
+27     String fileName = parseFileName();
+28     String magnetUri = parseMagnetUri();
+29     String infoHash = parseInfoHash();
+30     long contentLength = parseContentLength();
+31     int seeds = parseSeeds();
+32     int peers = parsePeers();
+33     boolean verified = parseVerified();
+39 private String parseFileName() {
+40     Element element = item.getElement(EZRSS_FILE_NAME);
+41     if (element == null || !isEzRssElement(element)) return null;
+47 private String parseMagnetUri() { // body reads item.getElement; checks isEzRssElement
+55 private String parseInfoHash() { // body reads item.getElement; checks isEzRssElement
+63 private long parseContentLength() { // body reads element and uses parseInt
+79 private int parseSeeds() { // body reads element and uses parseInt
+87 private int parsePeers() { // body reads element and uses parseInt
+95 private boolean parseVerified() { // body reads element and uses parseInt
+105 private int parseInt(String s) { ... Integer.parseInt(s) ... }
+118 private boolean isEzRssElement(Element element) {
+119     return element.getUri() != null &&
+120         element.getUri().startsWith(EZRSS_NAMESPACE_URI);
+
+### com/ernieyu/feedparser/impl/Rss2Item.java (printed lines 30-121)
+30 public Rss2Item(String uri, String name, Attributes attributes) {
+31     super(uri, name, attributes);
+114 public MediaRss getMediaRss() {
+115     return new MediaRssParser(this).parse();
+119 public EzRssTorrentItem getEzRssTorrentItem() {
+120     return new EzRss01Parser(this).parse();
+
+### com/ernieyu/feedparser/impl/MediaRssParser.java (printed lines 17-27)
+17 class MediaRssParser {
+25 public MediaRssParser(Rss2Item item) { this.item = item; }
+
+### org/proninyaroslav/libretorrent/core/FeedParser.java (printed lines 62-115, 141-160, 188-208, 236-260)
+62 public FeedParser(Context context, FeedChannel feedChannel)
+67 byte[] response = Utils.fetchHttpUrl(context, feedChannel.url);
+70 bsStream = new ByteArrayInputStream(response);
+71 feed = FeedParserFactory.newParser().parse(bsStream);
+89 public List<FeedItem> getItems()
+95 for (Item item : feed.getItemList()) {
+96     List<String> links = item.getLinks();
+104 Date pubDate = item.getPubDate();
+110     articleUrl, downloadUrl, item.getTitle(), pubDateTime);
+147 String enclosureUrl = watchEnclosure(item);
+151 String infoHash = watchTorrentInfoHash(item);
+155 String mediaContentUrl = watchMediaContent(item);
+159 String guid = watchGuid(item);
+190 MediaRss media = item.getMediaRss();
+238 EzRssTorrentItem torrentItem = item.getEzRssTorrentItem();
+256 String url = item.getGuid();
+
+### com/ernieyu/feedparser/FeedParserFactory.java (printed lines 16-26)
+23 public static FeedParser newParser() {
+25     return new DefaultFeedParser();
+
+Caller-search output, using rg -n over the source root:
+- FeedParserFactory.newParser: org/proninyaroslav/libretorrent/core/FeedParser.java:71; factory definition above.
+- DefaultFeedParser.parse: FeedParserFactory.java:25 returns instance; app FeedParser.java:71 calls parse.
+- BaseItem.getUniqueId: only BaseItem.java:56-57,67, via equals/hashCode; no app call found.
+- BaseItem.equals/hashCode/toString: no direct app call found; retained OPEN because library/framework collection/stringification callers were not exhaustively ruled out by this focused audit.
+- Batch AtomItem getter call sites: app FeedParser.java:96,104,110,190,238,256. This call site is on Item from Feed.getItemList in the same loop.
+- Rss2Item constructor and AtomItem constructor: FeedHandler.java:85-96 (callback body; callback invocation not certified here).
+- BaseElement 3-arg constructor: BaseItem.java:21-22; subclass constructors, including Rss2Item.java:30-31, delegate to it.
+- BaseElement.addElement/setContent: FeedHandler.java:121,126 (callback body; callback invocation not certified here).
+- MediaRssParser ctor: Rss2Item.java:114-115.
+- EzRss01Parser ctor and methods: Rss2Item.java:119-120, then EzRss01Parser.java:26-36 and internal calls shown above.
+
+Framework callback caveat: FeedHandler is passed to SAXParser.parse at DefaultFeedParser.java:37 and extends DefaultHandler, but this audit did not read AOSP 8.1.0_r1 SAX framework callback-dispatch source. Per corrected R7, callback dispatch itself remains OPEN; downstream callback-only routes are not promoted on framework memory.

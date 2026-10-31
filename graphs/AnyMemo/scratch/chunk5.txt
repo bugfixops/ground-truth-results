@@ -1,0 +1,109 @@
+# ---- pass 2 chunk 5 (2026-10-26): the 41 build errors; every reason and reference was read in the source ----
+FW_OKHTTP = ('INFERRED okhttp3.Call.enqueue runs the Callback on an OkHttp worker thread: onFailure when the request '
+             'fails, onResponse when a response arrives (okhttp source not read; the enqueue call is at '
+             'downloader/dropbox/DropboxApiHelper.java:87)')
+FW_JDK = ('INFERRED the java.util collection calls equals() or hashCode() on the argument or on the elements while it '
+          'removes, searches or inserts (AbstractCollection.remove(Object), AbstractList.indexOf, HashSet.add; the JDK '
+          'source is not in work/fw_src)')
+FW_TOSTRING = ('INFERRED string concatenation converts a non-String operand with String.valueOf, which calls toString() '
+               '(JLS 5.1.11); javac emits StringBuilder.append(Object), so the call is not visible in the app bytecode')
+FW_CHART = ('INFERRED the MPAndroidChart library (com.github.mikephil.charting, imported at ui/StatisticsScreen.java:34-38) '
+            'draws the chart and calls ValueFormatter.getFormattedValue(float) for each label (library source not read)')
+
+# Dropbox: the OkHttp Callback created in DropboxApiHelper$1.subscribe (enqueue at 87; onFailure 89-91; onResponse 94-110)
+for _cb, _lines in [('onFailure', '87-91'), ('onResponse', '87-110')]:
+    e('DropboxApiHelper$1.subscribe', 'DropboxApiHelper$1$1.' + _cb, 'FRAMEWORK',
+      'OkHttp calls the enqueued Callback on a worker thread when the request ' +
+      ('fails' if _cb == 'onFailure' else 'gets a response'),
+      env=ENV_DROPBOX, cls='non_standard', via='OkHttp Call.enqueue calls the Callback (okhttp3 library)',
+      evidence=FW_OKHTTP + '; SRC downloader/dropbox/DropboxApiHelper.java:' + _lines)
+
+# JDK collection dispatch from REACHABLE callers (equals / hashCode / toString are not visible as app invoke sites)
+e('LearnQueueManager.remove', 'Card.equals', 'FRAMEWORK',
+  'learnQueue.remove(card): the LinkedList compares card with each element by equals',
+  cls='non_standard', via='JDK List.remove(Object) calls equals', evidence=FW_JDK + '; SRC queue/LearnQueueManager.java:119-121')
+e('LearnQueueManager.position', 'Card.equals', 'FRAMEWORK',
+  'learnQueue.indexOf(c): the LinkedList compares c with each element by equals',
+  cls='non_standard', via='JDK List.indexOf(Object) calls equals', evidence=FW_JDK + '; SRC queue/LearnQueueManager.java:210')
+e('QuizQueueManager.remove', 'Card.equals', 'FRAMEWORK',
+  'reviewCache.remove(card) and newCache.remove(card): the LinkedList compares card with each element by equals',
+  cls='non_standard', via='JDK List.remove(Object) calls equals', evidence=FW_JDK + '; SRC queue/QuizQueueManager.java:82-83 (LinkedList, lines 58-59)')
+e('QuizQueueManager.update', 'Card.hashCode', 'FRAMEWORK',
+  'dirtyCache.add(card): the HashSet hashes the card',
+  cls='non_standard', via='JDK HashSet.add calls hashCode', evidence=FW_JDK + '; SRC queue/QuizQueueManager.java:140 (HashSet, line 60)')
+e('LearnQueueManager$1$1.call', 'LearningData.toString', 'FRAMEWORK',
+  'string concatenation of card.getLearningData() in the Log and RuntimeException messages of the flush',
+  cls='non_standard', via='JLS 5.1.11 string conversion calls toString', evidence=FW_TOSTRING + '; SRC queue/LearnQueueManager.java:260-263,266')
+e('LearnQueueManager$1$1.call', 'Card.toString', 'FRAMEWORK',
+  'string concatenation of card in the RuntimeException message of the flush',
+  cls='non_standard', via='JLS 5.1.11 string conversion calls toString', evidence=FW_TOSTRING + '; SRC queue/LearnQueueManager.java:267')
+e('CategoryEditorFragment$DeleteCategoryTask.onPostExecute', 'Category.equals', 'FRAMEWORK',
+  'categoryAdapter.remove(selectedCategory): ArrayAdapter.remove(T) calls List.remove(Object), which compares the category with each element by equals',
+  cls='non_standard', via='ArrayAdapter.remove(T) -> List.remove(Object) -> Category.equals (AOSP 8.1.0_r1)',
+  evidence=FW_JDK + '; FW-SRC core/java/android/widget/ArrayAdapter.java:300-306; SRC ui/CategoryEditorFragment.java:314')
+
+# FileBrowser file list: the RecyclerView calls the adapter after setAdapter (line 203) in onCreateView (183)
+for _name, _ref in [('getItemCount', '590'), ('onCreateViewHolder', '473'), ('onBindViewHolder', '480')]:
+    e('FileBrowserFragment.onCreateView', 'FileBrowserFragment$FileBrowserAdapter.' + _name, 'FRAMEWORK',
+      'the recycler view calls the adapter ' + _name + ' while it lays out the file rows',
+      cls='non_standard', via='RecyclerView calls the adapter callbacks (androidx library)',
+      evidence=FW_RECYCLER + '; SRC ui/FileBrowserFragment.java:203 (setAdapter), :' + _ref + ' (' + _name + ')')
+
+# GestureSelectionDialogFragment (created in StudyActivity.showGesturesDialog / PreviewEditActivity.showGesturesDialog)
+e('GestureSelectionDialogFragment.<init>', 'GestureSelectionDialogFragment.onDismiss', 'FRAMEWORK',
+  'the dialog is dismissed (Back, outside tap or a button): DialogFragment calls onDismiss',
+  evidence=FW_DIALOGFRAG + '; SRC ui/GestureSelectionDialogFragment.java:182')
+
+# SettingsScreen loader: onLoaderReset is registered with the same loader as onCreateLoader (line 137-139)
+e('SettingsScreen.<init>', 'SettingsScreen$SettingLoaderCallbacks.onLoaderReset', 'FRAMEWORK',
+  'the loader is reset when the activity is destroyed or the loader is restarted: LoaderManager calls onLoaderReset',
+  evidence=FW_LOADER + '; SRC ui/SettingsScreen.java:411')
+
+# StatisticsScreen: created by OpenActionsFragment$1.onClick (same pattern as SettingsScreen.<init>)
+e('OpenActionsFragment$1.onClick', 'StatisticsScreen.<init>', 'ENTRY',
+  'v == statisticsItem: startActivity(StatisticsScreen) creates the activity object',
+  evidence='SRC ui/OpenActionsFragment.java:163-168')
+e('StatisticsScreen.<init>', 'StatisticsScreen.onCreate', 'LIFECYCLE', 'Activity lifecycle: the framework calls onCreate after the constructor',
+  evidence=FW_ACTIVITY + '; SRC ui/StatisticsScreen.java:78-80')
+e('StatisticsScreen.onCreate', 'StatisticsScreen$ChartTask.onPreExecute', 'ASYNC',
+  'new CardToReviewTask().execute(): AsyncTask calls onPreExecute on the main thread before doInBackground',
+  evidence=FW_ASYNC + '; SRC ui/StatisticsScreen.java:104-105,161')
+e('StatisticsScreen$1.onNavigationItemSelected', 'StatisticsScreen$ChartTask.onPreExecute', 'ASYNC',
+  'a chart menu item executes one ChartTask: AsyncTask calls onPreExecute first',
+  evidence=FW_ASYNC + '; SRC ui/StatisticsScreen.java:124-138,161')
+for _fmt, _ln in [('StatisticsScreen$ChartValueFormatter.getFormattedValue', '361'),
+                  ('StatisticsScreen$ChartYAxisValueFormatter.getFormattedValue', '369')]:
+    e('StatisticsScreen$ChartTask.onPostExecute', _fmt, 'FRAMEWORK',
+      'the chart is added to the frame and drawn: the chart library calls the value formatter for each label',
+      cls='non_standard', via='MPAndroidChart calls ValueFormatter.getFormattedValue while it draws (library)',
+      evidence=FW_CHART + '; SRC ui/StatisticsScreen.java:173-177, 205 (valueFormatter on the data), 219-220 (yAxisValueFormatter on the axes), ' + _ln + ' (getFormattedValue)')
+
+# dead chains (no caller in the app)
+UNREACHABLE['AMGUIUtility$6.<init>'] = ('no_trigger_in_app', 'created only in AMGUIUtility.getDialogFinishListener, which has no caller (its own UNREACHABLE entry; grep and bytecode: declaration only)',
+    'SRC utils/AMGUIUtility.java:146', 'SOURCE')
+UNREACHABLE['AMGUIUtility$6.onClick'] = ('no_trigger_in_app', 'the OnClickListener is created only in AMGUIUtility.getDialogFinishListener (dead, no caller); it is never set on a dialog',
+    'SRC utils/AMGUIUtility.java:146-150', 'SOURCE')
+UNREACHABLE['ErrorUtil.<init>'] = ('no_trigger_in_app', 'the @Inject constructor runs only when Dagger needs an ErrorUtil; no injection point or @Provides requests it (grep: ActivityModules.java only imports the class; no @Inject field of this type)',
+    'SRC utils/ErrorUtil.java:25', 'SOURCE')
+UNREACHABLE['BaseActivity.appComponents'] = ('no_trigger_in_app', 'no call of this method in the app (bytecode and grep): activities use activityComponents() (BaseActivity.java:77); the appComponents() callers are in the Service classes only',
+    'SRC common/BaseActivity.java:73', 'SOURCE')
+UNREACHABLE['BaseActivity.isActivityCreated'] = ('no_trigger_in_app', 'no call of this method in the app (bytecode and grep: declaration only)',
+    'SRC common/BaseActivity.java:98', 'SOURCE')
+UNREACHABLE['BaseDialogFragment.appComponents'] = ('no_trigger_in_app', 'no call of this method in the app (bytecode and grep: declaration only)',
+    'SRC common/BaseDialogFragment.java:12', 'SOURCE')
+UNREACHABLE['BaseFragment.appComponents'] = ('no_trigger_in_app', 'no call of this method in the app (bytecode and grep: declaration only)',
+    'SRC common/BaseFragment.java:12', 'SOURCE')
+UNREACHABLE['DownloadItem.clone'] = ('no_trigger_in_app', 'no call of this method in the app (bytecode and grep: declaration only; the clone() at DownloadItem.java:47 is HashMap.clone)',
+    'SRC downloader/common/DownloadItem.java:44', 'SOURCE')
+UNREACHABLE['Deck.<init>'] = ('no_trigger_in_app', 'no new Deck in the app (bytecode and grep); getDeckDao() (common/AnyMemoDBOpenHelper.java:183) has no caller, so no ORMLite query builds Deck objects',
+    'SRC entity/Deck.java:28', 'SOURCE')
+UNREACHABLE['Filter.<init>'] = ('no_trigger_in_app', 'no new entity Filter in the app (bytecode and grep; CardListActivity.java:529 creates android.widget.Filter); getFilterDao() (common/AnyMemoDBOpenHelper.java:205) has no caller',
+    'SRC entity/Filter.java:27', 'SOURCE')
+UNREACHABLE['Stat.<init>'] = ('no_trigger_in_app', 'no new Stat in the app (bytecode and grep); there is no getStatDao(), and StatDaoImpl.<init> is itself UNREACHABLE',
+    'SRC entity/Stat.java:31', 'SOURCE')
+for _acc, _ln in [('getId', 129), ('setId', 133), ('getName', 137), ('setName', 141), ('getDescription', 145), ('setDescription', 149)]:
+    UNREACHABLE['Setting.' + _acc] = ('no_trigger_in_app', 'no invoke site of this accessor in the app bytecode (auto_calls.json has no caller)',
+        'SRC entity/Setting.java:%d' % _ln, 'SOURCE')
+UNREACHABLE['DataBindingTriggerClass.<init>'] = ('no_trigger_in_app', 'generated data-binding trigger class (no source file); no invoke site of its constructor in the app bytecode (auto_calls.json records only the framework Object.<init> link); coverage_baseline monkey and ape both false',
+    'auto_calls.json framework_calls: DataBindingTriggerClass.<init> <- Object.<init>', 'INFERRED')
+# ---- end pass 2 chunk 5 ----

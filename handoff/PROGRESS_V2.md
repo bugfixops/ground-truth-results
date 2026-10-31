@@ -17,7 +17,7 @@
 - [L] AnkiDroid (labelled overnight 2026-10-30: UNRESOLVED 0, errors 0, warnings 0; route checks not started)
 - [L] MMEX (labelled overnight 2026-10-31: UNRESOLVED 0, errors 0, warnings 0; route checks not started)
 # 2026-10-28: "- [H]" = handed to ChatGPT (brief: handoff/CHATGPT_BRIEF_LIBRETORRENT.md). Not in the Claude queue; not ticked.
-- [H] LibreTorrent (handed to ChatGPT 2026-10-28; removed from the overnight queue)
+- [C] LibreTorrent (moved to the Claude queue by the user 2026-10-31; handed to ChatGPT 2026-10-28, which stopped at step 8 on 2026-10-30; see graphs/LibreTorrent/AGENT_NOTES.md)
 # 2026-10-29: "- [N]" = NEXT step, not started (device replay of sampled routes on API 27 emulators in GitHub Actions, repo bugfixops/test-13). Plan: handoff/NEXT_DEVICE_REPLAY.md. Start only after all apps finish and the user says go.
 - [N] Device replay on GitHub Actions (bugfixops/test-13): not started
 # 2026-10-27: AnyMemo round 3 finished by Kiro (handoff/KIRO_FIX_ANYMEMO.md); "- [K]" until the user decides to tick it.

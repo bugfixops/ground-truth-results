@@ -1,0 +1,138 @@
+   106	    @Override
+   107	    public void onStart()
+   108	    {
+   109	        super.onStart();
+   110	
+   111	        subscribeAdapter();
+   112	    }
+   113	
+   114	    @Override
+   115	    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+   116	        super.onViewCreated(view, savedInstanceState);
+   117	
+   118	        if (activity == null)
+   119	            activity = (AppCompatActivity) getActivity();
+   120	
+   121	        viewModel = new ViewModelProvider(activity).get(DetailTorrentViewModel.class);
+   122	
+   123	        layoutManager = new LinearLayoutManager(activity);
+   124	        binding.peerList.setLayoutManager(layoutManager);
+   125	        binding.peerList.setEmptyView(binding.emptyViewPeerList);
+   126	        adapter = new PeerListAdapter(this);
+   127	        /*
+   128	         * A RecyclerView by default creates another copy of the ViewHolder in order to
+   129	         * fade the views into each other. This causes the problem because the old ViewHolder gets
+   130	         * the payload but then the new one doesn't. So needs to explicitly tell it to reuse the old one.
+   131	         */
+   132	        DefaultItemAnimator animator = new DefaultItemAnimator() {
+   133	            @Override
+   134	            public boolean canReuseUpdatedViewHolder(@NonNull RecyclerView.ViewHolder viewHolder) {
+   135	                return true;
+   136	            }
+   137	        };
+   138	        binding.peerList.setItemAnimator(animator);
+   139	        TypedArray a = activity.obtainStyledAttributes(new TypedValue().data, new int[]{R.attr.divider});
+   140	        binding.peerList.addItemDecoration(new RecyclerViewDividerDecoration(a.getDrawable(0)));
+   141	        a.recycle();
+   142	        binding.peerList.setAdapter(adapter);
+   143	    }
+   172	    private void subscribeAdapter()
+   173	    {
+   174	        disposables.add(viewModel.observePeers()
+   175	                .subscribeOn(Schedulers.io())
+   176	                .flatMapSingle((children) ->
+   177	                        Flowable.fromIterable(children)
+   178	                                .map(PeerItem::new)
+   179	                                .toList()
+   180	                )
+   181	                .observeOn(AndroidSchedulers.mainThread())
+   182	                .subscribe((children) -> adapter.submitList(children)));
+   183	    }
+   184	
+   185	    @Override
+   186	    public boolean onItemLongClick(@NonNull PeerItem item)
+   187	    {
+   188	        sharePeerIp(item.ip);
+   189	
+   190	        return true;
+   191	    }
+   192	
+   193	    private void sharePeerIp(String ip)
+   194	    {
+   195	        Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
+   196	        sharingIntent.setType("text/plain");
+   197	        sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "ip");
+   198	        sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, ip);
+   199	
+   200	        startActivity(Intent.createChooser(sharingIntent, getString(R.string.share_via)));
+    65	                false);
+    66	
+    67	        return new ViewHolder(binding);
+    68	    }
+    69	
+    70	    @Override
+    71	    public void onBindViewHolder(@NonNull ViewHolder holder, int position)
+    72	    {
+    73	        holder.bind(getItem(position), listener);
+    74	    }
+    75	
+    76	    @Override
+   130	            this.binding = binding;
+   131	            Utils.colorizeProgressBar(itemView.getContext(), binding.progress);
+   132	        }
+   133	
+   134	        void bind(PeerItem item, ClickListener listener)
+   135	        {
+   136	            Context context = itemView.getContext();
+   137	
+   138	            itemView.setOnLongClickListener((v) -> {
+   139	                if (listener == null)
+   140	                    return false;
+   141	
+   142	                return listener.onItemLongClick(item);
+   143	            });
+   144	
+   145	            binding.ip.setText(item.ip);
+  6158	
+  6159	    /**
+  6160	     * Register a callback to be invoked when this view is clicked and held. If this view is not
+  6161	     * long clickable, it becomes long clickable.
+  6162	     *
+  6163	     * @param l The callback that will run
+  6164	     *
+  6165	     * @see #setLongClickable(boolean)
+  6166	     */
+  6167	    public void setOnLongClickListener(@Nullable OnLongClickListener l) {
+  6168	        if (!isLongClickable()) {
+  6169	            setLongClickable(true);
+  6170	        }
+  6171	        getListenerInfo().mOnLongClickListener = l;
+  6172	    }
+  6173	
+  6174	    /**
+  6320	        }
+  6321	        return false;
+  6322	    }
+  6323	
+  6324	    /**
+  6325	     * Calls this view's OnLongClickListener, if it is defined. Invokes the
+  6326	     * context menu if the OnLongClickListener did not consume the event.
+  6327	     *
+  6328	     * @return {@code true} if one of the above receivers consumed the event,
+  6329	     *         {@code false} otherwise
+  6330	     */
+  6331	    public boolean performLongClick() {
+  6332	        return performLongClickInternal(mLongClickX, mLongClickY);
+  6333	    }
+  6334	
+  6335	    /**
+  6336	     * Calls this view's OnLongClickListener, if it is defined. Invokes the
+  6337	     * context menu if the OnLongClickListener did not consume the event,
+  6338	     * anchoring it to an (x,y) coordinate.
+  6339	     *
+  6340	     * @param x x coordinate of the anchoring touch event, or {@link Float#NaN}
+  6341	     *          to disable anchoring
+  6342	     * @param y y coordinate of the anchoring touch event, or {@link Float#NaN}
+  6343	     *          to disable anchoring
+  6344	     * @return {@code true} if one of the above receivers consumed the event,
+  6345	     *         {@code false} otherwise

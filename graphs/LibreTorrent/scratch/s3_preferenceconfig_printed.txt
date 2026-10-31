@@ -1,0 +1,94 @@
+     1	/*
+     2	 * Copyright (C) 2016 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.settings;
+    21	
+    22	import android.os.Parcel;
+    23	import android.os.Parcelable;
+    24	
+    25	/*
+    26	 * Specifies the toolbar title and fragment (by class name). Part of PreferenceActivity.
+    27	 */
+    28	
+    29	public class PreferenceActivityConfig implements Parcelable
+    30	{
+    31	    private String fragment;
+    32	    private String title;
+    33	
+    34	    public PreferenceActivityConfig(String fragment, String title)
+    35	    {
+    36	        this.fragment = fragment;
+    37	        this.title = title;
+    38	    }
+    39	
+    40	    public PreferenceActivityConfig(Parcel source)
+    41	    {
+    42	        fragment = source.readString();
+    43	        title = source.readString();
+    44	    }
+    45	
+    46	    public void setFragment(String fragment)
+    47	    {
+    48	        this.fragment = fragment;
+    49	    }
+    50	
+    51	    public String getFragment()
+    52	    {
+    53	        return fragment;
+    54	    }
+    55	
+    56	    public void setTitle(String title)
+    57	    {
+    58	        this.title = title;
+    59	    }
+    60	
+    61	    public String getTitle()
+    62	    {
+    63	        return title;
+    64	    }
+    65	
+    66	    @Override
+    67	    public int describeContents()
+    68	    {
+    69	        return 0;
+    70	    }
+    71	
+    72	    @Override
+    73	    public void writeToParcel(Parcel dest, int flags)
+    74	    {
+    75	        dest.writeString(fragment);
+    76	        dest.writeString(title);
+    77	    }
+    78	
+    79	    public static final Parcelable.Creator<PreferenceActivityConfig> CREATOR =
+    80	            new Parcelable.Creator<PreferenceActivityConfig>()
+    81	            {
+    82	                @Override
+    83	                public PreferenceActivityConfig createFromParcel(Parcel source)
+    84	                {
+    85	                    return new PreferenceActivityConfig(source);
+    86	                }
+    87	
+    88	                @Override
+    89	                public PreferenceActivityConfig[] newArray(int size)
+    90	                {
+    91	                    return new PreferenceActivityConfig[size];
+    92	                }
+    93	            };
+    94	}

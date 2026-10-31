@@ -1,0 +1,138 @@
+   136	        adapter = new TorrentListAdapter(this);
+   137	        /*
+   138	         * A RecyclerView by default creates another copy of the ViewHolder in order to
+   139	         * fade the views into each other. This causes the problem because the old ViewHolder gets
+   140	         * the payload but then the new one doesn't. So needs to explicitly tell it to reuse the old one.
+   141	         */
+   142	        DefaultItemAnimator animator = new DefaultItemAnimator() {
+   143	            @Override
+   144	            public boolean canReuseUpdatedViewHolder(@NonNull RecyclerView.ViewHolder viewHolder) {
+   145	                return true;
+   146	            }
+   147	        };
+   148	        layoutManager = new LinearLayoutManager(activity);
+   149	        binding.torrentList.setLayoutManager(layoutManager);
+   150	        binding.torrentList.setItemAnimator(animator);
+   151	        binding.torrentList.setEmptyView(binding.emptyViewTorrentList);
+   152	        TypedArray a = activity.obtainStyledAttributes(new TypedValue().data, new int[]{R.attr.divider});
+   153	        binding.torrentList.addItemDecoration(new RecyclerViewDividerDecoration(a.getDrawable(0)));
+   154	        a.recycle();
+   155	        binding.torrentList.setAdapter(adapter);
+   156	
+   378	    @Override
+   379	    public void onItemClicked(@NonNull TorrentListItem item)
+   380	    {
+   381	        if (Utils.isTwoPane(activity))
+   382	            adapter.markAsOpen(item);
+   383	        msgViewModel.torrentDetailsOpened(item.torrentId);
+   384	    }
+   385	
+   386	    @Override
+   387	    public void onItemPauseClicked(@NonNull TorrentListItem item)
+   388	    {
+   389	        viewModel.pauseResumeTorrent(item.torrentId);
+   390	    }
+   391	
+    74	    @NonNull
+    75	    @Override
+    76	    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType)
+    77	    {
+    78	        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+    79	        ItemTorrentListBinding binding = DataBindingUtil.inflate(inflater,
+    80	                R.layout.item_torrent_list,
+    81	                parent,
+    82	                false);
+    83	
+    84	        return new ViewHolder(binding);
+    85	    }
+    86	
+    87	    @Override
+    88	    public void onBindViewHolder(@NonNull ViewHolder holder, int position)
+    89	    {
+    90	        onBind = true;
+    91	
+    92	        TorrentListItem item = getItem(position);
+    93	
+    94	        if (selectionTracker != null)
+    95	            holder.setSelected(selectionTracker.isSelected(item));
+    96	
+    97	        boolean isOpened = false;
+    98	        TorrentListItem currTorrent = currOpenTorrent.get();
+    99	        if (currTorrent != null)
+   100	            isOpened = item.torrentId.equals(currTorrent.torrentId);
+   101	
+   102	        holder.bind(item, isOpened, listener);
+   103	
+   104	        onBind = false;
+   171	        void bind(TorrentListItem item, boolean isOpened, ClickListener listener)
+   172	        {
+   173	            Context context = itemView.getContext();
+   174	            selectionKey = item;
+   175	
+   176	            TypedArray a = context.obtainStyledAttributes(new TypedValue().data, new int[] {
+   177	                    R.attr.selectableColor,
+   178	                    R.attr.defaultRectRipple
+   179	            });
+   180	            Drawable d;
+   181	            if (isSelected)
+   182	                d = a.getDrawable(0);
+   183	            else
+   184	                d = a.getDrawable(1);
+   185	            if (d != null)
+   186	                Utils.setBackground(itemView, d);
+   187	            a.recycle();
+   188	
+   189	            itemView.setOnClickListener((v) -> {
+   190	                /* Skip selecting and deselecting */
+   191	                if (isSelected)
+   192	                    return;
+   193	
+   194	                if (listener != null)
+   195	                    listener.onItemClicked(item);
+   196	            });
+   197	
+   198	            setPauseButtonState(item.stateCode == TorrentStateCode.PAUSED);
+   199	            binding.pause.setOnClickListener((v) -> {
+   200	                if (listener != null)
+   201	                    listener.onItemPauseClicked(item);
+   202	            });
+   203	
+   204	            binding.name.setText(item.name);
+  6143	    public void setOnClickListener(@Nullable OnClickListener l) {
+  6144	        if (!isClickable()) {
+  6145	            setClickable(true);
+  6146	        }
+  6147	        getListenerInfo().mOnClickListener = l;
+  6148	    }
+  6149	
+  6150	    /**
+  6151	     * Return whether this view has an attached OnClickListener.  Returns
+  6152	     * true if there is a listener, false if there is none.
+  6153	     */
+  6154	    public boolean hasOnClickListeners() {
+  6155	        ListenerInfo li = mListenerInfo;
+  6156	        return (li != null && li.mOnClickListener != null);
+  6157	    }
+  6158	
+  6289	    public boolean performClick() {
+  6290	        final boolean result;
+  6291	        final ListenerInfo li = mListenerInfo;
+  6292	        if (li != null && li.mOnClickListener != null) {
+  6293	            playSoundEffect(SoundEffectConstants.CLICK);
+  6294	            li.mOnClickListener.onClick(this);
+  6295	            result = true;
+  6296	        } else {
+  6297	            result = false;
+  6298	        }
+  6299	
+  6300	        sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_CLICKED);
+  6301	
+  6302	        notifyEnterOrExitForAutoFillIfNeeded(true);
+  6303	
+  6304	        return result;
+  6305	    }
+  6306	
+  6307	    /**
+  6308	     * Directly call any attached OnClickListener.  Unlike {@link #performClick()},
+  6309	     * this only calls the listener, and does not do any associated clicking
+  6310	     * actions like reporting an accessibility event.

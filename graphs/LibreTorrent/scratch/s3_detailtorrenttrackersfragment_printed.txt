@@ -1,0 +1,406 @@
+     1	/*
+     2	 * Copyright (C) 2016 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.detailtorrent.pages.trackers;
+    21	
+    22	import android.annotation.SuppressLint;
+    23	import android.content.Context;
+    24	import android.content.Intent;
+    25	import android.content.res.TypedArray;
+    26	import android.os.Bundle;
+    27	import android.os.Parcelable;
+    28	import android.text.TextUtils;
+    29	import android.util.TypedValue;
+    30	import android.view.LayoutInflater;
+    31	import android.view.Menu;
+    32	import android.view.MenuItem;
+    33	import android.view.View;
+    34	import android.view.ViewGroup;
+    35	
+    36	import androidx.annotation.NonNull;
+    37	import androidx.annotation.Nullable;
+    38	import androidx.appcompat.app.AppCompatActivity;
+    39	import androidx.appcompat.view.ActionMode;
+    40	import androidx.databinding.DataBindingUtil;
+    41	import androidx.fragment.app.Fragment;
+    42	import androidx.fragment.app.FragmentManager;
+    43	import androidx.lifecycle.ViewModelProvider;
+    44	import androidx.recyclerview.selection.MutableSelection;
+    45	import androidx.recyclerview.selection.SelectionPredicates;
+    46	import androidx.recyclerview.selection.SelectionTracker;
+    47	import androidx.recyclerview.selection.StorageStrategy;
+    48	import androidx.recyclerview.widget.DefaultItemAnimator;
+    49	import androidx.recyclerview.widget.LinearLayoutManager;
+    50	import androidx.recyclerview.widget.RecyclerView;
+    51	
+    52	import org.proninyaroslav.libretorrent.R;
+    53	import org.proninyaroslav.libretorrent.core.utils.Utils;
+    54	import org.proninyaroslav.libretorrent.databinding.FragmentDetailTorrentTrackerListBinding;
+    55	import org.proninyaroslav.libretorrent.ui.BaseAlertDialog;
+    56	import org.proninyaroslav.libretorrent.ui.customviews.RecyclerViewDividerDecoration;
+    57	import org.proninyaroslav.libretorrent.ui.detailtorrent.DetailTorrentViewModel;
+    58	import org.proninyaroslav.libretorrent.ui.detailtorrent.MsgDetailTorrentViewModel;
+    59	
+    60	import io.reactivex.Flowable;
+    61	import io.reactivex.Observable;
+    62	import io.reactivex.android.schedulers.AndroidSchedulers;
+    63	import io.reactivex.disposables.CompositeDisposable;
+    64	import io.reactivex.disposables.Disposable;
+    65	import io.reactivex.schedulers.Schedulers;
+    66	
+    67	/*
+    68	 * The fragment for displaying bittorrent trackers list. Part of DetailTorrentFragment.
+    69	 */
+    70	
+    71	public class DetailTorrentTrackersFragment extends Fragment
+    72	{
+    73	    private static final String TAG = DetailTorrentTrackersFragment.class.getSimpleName();
+    74	
+    75	    private static final String SELECTION_TRACKER_ID = "selection_tracker_0";
+    76	    private static final String TAG_LIST_TRACKER_STATE = "list_tracker_state";
+    77	    private static final String TAG_DELETE_TRACKERS_DIALOG = "delete_trackers_dialog";
+    78	
+    79	    private AppCompatActivity activity;
+    80	    private FragmentDetailTorrentTrackerListBinding binding;
+    81	    private DetailTorrentViewModel viewModel;
+    82	    private MsgDetailTorrentViewModel msgViewModel;
+    83	    private LinearLayoutManager layoutManager;
+    84	    private SelectionTracker<TrackerItem> selectionTracker;
+    85	    private ActionMode actionMode;
+    86	    private TrackerListAdapter adapter;
+    87	    /* Save state scrolling */
+    88	    private Parcelable listTrackerState;
+    89	    private CompositeDisposable disposables = new CompositeDisposable();
+    90	    private BaseAlertDialog deleteTrackersDialog;
+    91	    private BaseAlertDialog.SharedViewModel dialogViewModel;
+    92	
+    93	    public static DetailTorrentTrackersFragment newInstance()
+    94	    {
+    95	        DetailTorrentTrackersFragment fragment = new DetailTorrentTrackersFragment();
+    96	
+    97	        fragment.setArguments(new Bundle());
+    98	
+    99	        return fragment;
+   100	    }
+   101	
+   102	    @Override
+   103	    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+   104	    {
+   105	        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_detail_torrent_tracker_list, container, false);
+   106	
+   107	        return binding.getRoot();
+   108	    }
+   109	
+   110	    @Override
+   111	    public void onAttach(@NonNull Context context)
+   112	    {
+   113	        super.onAttach(context);
+   114	
+   115	        if (context instanceof AppCompatActivity)
+   116	            activity = (AppCompatActivity)context;
+   117	    }
+   118	
+   119	    @Override
+   120	    public void onDetach()
+   121	    {
+   122	        super.onDetach();
+   123	
+   124	        if (actionMode != null)
+   125	            actionMode.finish();
+   126	    }
+   127	
+   128	    @Override
+   129	    public void onStop()
+   130	    {
+   131	        super.onStop();
+   132	
+   133	        disposables.clear();
+   134	    }
+   135	
+   136	    @Override
+   137	    public void onStart()
+   138	    {
+   139	        super.onStart();
+   140	
+   141	        subscribeAdapter();
+   142	        subscribeAlertDialog();
+   143	    }
+   144	
+   145	    @Override
+   146	    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+   147	        super.onViewCreated(view, savedInstanceState);
+   148	
+   149	        if (activity == null)
+   150	            activity = (AppCompatActivity) getActivity();
+   151	
+   152	        ViewModelProvider provider = new ViewModelProvider(activity);
+   153	        viewModel = provider.get(DetailTorrentViewModel.class);
+   154	        msgViewModel = provider.get(MsgDetailTorrentViewModel.class);
+   155	        dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+   156	
+   157	        layoutManager = new LinearLayoutManager(activity);
+   158	        binding.trackerList.setLayoutManager(layoutManager);
+   159	        binding.trackerList.setEmptyView(binding.emptyViewTrackerList);
+   160	        adapter = new TrackerListAdapter();
+   161	        /*
+   162	         * A RecyclerView by default creates another copy of the ViewHolder in order to
+   163	         * fade the views into each other. This causes the problem because the old ViewHolder gets
+   164	         * the payload but then the new one doesn't. So needs to explicitly tell it to reuse the old one.
+   165	         */
+   166	        DefaultItemAnimator animator = new DefaultItemAnimator() {
+   167	            @Override
+   168	            public boolean canReuseUpdatedViewHolder(@NonNull RecyclerView.ViewHolder viewHolder) {
+   169	                return true;
+   170	            }
+   171	        };
+   172	        binding.trackerList.setItemAnimator(animator);
+   173	        TypedArray a = activity.obtainStyledAttributes(new TypedValue().data, new int[]{R.attr.divider});
+   174	        binding.trackerList.addItemDecoration(new RecyclerViewDividerDecoration(a.getDrawable(0)));
+   175	        a.recycle();
+   176	        binding.trackerList.setAdapter(adapter);
+   177	
+   178	        selectionTracker = new SelectionTracker.Builder<>(
+   179	                SELECTION_TRACKER_ID,
+   180	                binding.trackerList,
+   181	                new TrackerListAdapter.KeyProvider(adapter),
+   182	                new TrackerListAdapter.ItemLookup(binding.trackerList),
+   183	                StorageStrategy.createParcelableStorage(TrackerItem.class))
+   184	                .withSelectionPredicate(SelectionPredicates.createSelectAnything())
+   185	                .build();
+   186	
+   187	        selectionTracker.addObserver(new SelectionTracker.SelectionObserver<TrackerItem>() {
+   188	            @Override
+   189	            public void onSelectionChanged()
+   190	            {
+   191	                super.onSelectionChanged();
+   192	
+   193	                if (selectionTracker.hasSelection() && actionMode == null) {
+   194	                    actionMode = activity.startSupportActionMode(actionModeCallback);
+   195	                    setActionModeTitle(selectionTracker.getSelection().size());
+   196	
+   197	                } else if (!selectionTracker.hasSelection()) {
+   198	                    if (actionMode != null)
+   199	                        actionMode.finish();
+   200	                    actionMode = null;
+   201	
+   202	                } else {
+   203	                    setActionModeTitle(selectionTracker.getSelection().size());
+   204	
+   205	                    /* Show/hide menu items after change selected files */
+   206	                    int size = selectionTracker.getSelection().size();
+   207	                    if (size == 1 || size == 2)
+   208	                        actionMode.invalidate();
+   209	                }
+   210	            }
+   211	
+   212	            @Override
+   213	            public void onSelectionRestored()
+   214	            {
+   215	                super.onSelectionRestored();
+   216	
+   217	                actionMode = activity.startSupportActionMode(actionModeCallback);
+   218	                setActionModeTitle(selectionTracker.getSelection().size());
+   219	            }
+   220	        });
+   221	
+   222	        if (savedInstanceState != null)
+   223	            selectionTracker.onRestoreInstanceState(savedInstanceState);
+   224	        adapter.setSelectionTracker(selectionTracker);
+   225	
+   226	        FragmentManager fm = getChildFragmentManager();
+   227	        deleteTrackersDialog = (BaseAlertDialog)fm.findFragmentByTag(TAG_DELETE_TRACKERS_DIALOG);
+   228	    }
+   229	
+   230	    @Override
+   231	    public void onSaveInstanceState(@NonNull Bundle outState)
+   232	    {
+   233	        listTrackerState = layoutManager.onSaveInstanceState();
+   234	        outState.putParcelable(TAG_LIST_TRACKER_STATE, listTrackerState);
+   235	        selectionTracker.onSaveInstanceState(outState);
+   236	
+   237	        super.onSaveInstanceState(outState);
+   238	    }
+   239	
+   240	    @Override
+   241	    public void onViewStateRestored(Bundle savedInstanceState)
+   242	    {
+   243	        super.onViewStateRestored(savedInstanceState);
+   244	
+   245	        if (savedInstanceState != null)
+   246	            listTrackerState = savedInstanceState.getParcelable(TAG_LIST_TRACKER_STATE);
+   247	    }
+   248	
+   249	    @Override
+   250	    public void onResume()
+   251	    {
+   252	        super.onResume();
+   253	
+   254	        if (listTrackerState != null)
+   255	            layoutManager.onRestoreInstanceState(listTrackerState);
+   256	    }
+   257	
+   258	    private void subscribeAdapter()
+   259	    {
+   260	        disposables.add(viewModel.observeTrackers()
+   261	                .subscribeOn(Schedulers.io())
+   262	                .flatMapSingle((children) ->
+   263	                        Flowable.fromIterable(children)
+   264	                                .map(TrackerItem::new)
+   265	                                .toList()
+   266	                )
+   267	                .observeOn(AndroidSchedulers.mainThread())
+   268	                .subscribe((children) -> adapter.submitList(children)));
+   269	    }
+   270	
+   271	    private void subscribeAlertDialog()
+   272	    {
+   273	        Disposable d = dialogViewModel.observeEvents()
+   274	                .subscribe((event) -> {
+   275	                    if (event.dialogTag == null || !event.dialogTag.equals(TAG_DELETE_TRACKERS_DIALOG) || deleteTrackersDialog == null)
+   276	                        return;
+   277	                    switch (event.type) {
+   278	                        case POSITIVE_BUTTON_CLICKED:
+   279	                            deleteTrackers();
+   280	                            deleteTrackersDialog.dismiss();
+   281	                            break;
+   282	                        case NEGATIVE_BUTTON_CLICKED:
+   283	                            deleteTrackersDialog.dismiss();
+   284	                            break;
+   285	                    }
+   286	                });
+   287	        disposables.add(d);
+   288	    }
+   289	
+   290	    private void setActionModeTitle(int itemCount)
+   291	    {
+   292	        actionMode.setTitle(String.valueOf(itemCount));
+   293	    }
+   294	
+   295	    private final androidx.appcompat.view.ActionMode.Callback actionModeCallback = new androidx.appcompat.view.ActionMode.Callback()
+   296	    {
+   297	        @Override
+   298	        public boolean onPrepareActionMode(androidx.appcompat.view.ActionMode mode, Menu menu)
+   299	        {
+   300	            return false;
+   301	        }
+   302	
+   303	        @Override
+   304	        public boolean onCreateActionMode(androidx.appcompat.view.ActionMode mode, Menu menu)
+   305	        {
+   306	            mode.getMenuInflater().inflate(R.menu.detail_torrent_trackers_action_mode, menu);
+   307	            Utils.showActionModeStatusBar(activity, true);
+   308	            msgViewModel.fragmentInActionMode(true);
+   309	
+   310	            return true;
+   311	        }
+   312	
+   313	        @Override
+   314	        public boolean onActionItemClicked(androidx.appcompat.view.ActionMode mode, MenuItem item)
+   315	        {
+   316	            int itemId = item.getItemId();
+   317	            if (itemId == R.id.delete_tracker_url) {
+   318	                deleteTrackersDialog();
+   319	            } else if (itemId == R.id.share_url_menu) {
+   320	                shareUrl();
+   321	                mode.finish();
+   322	            } else if (itemId == R.id.select_all_trackers_menu) {
+   323	                selectAllTrackers();
+   324	            }
+   325	
+   326	            return true;
+   327	        }
+   328	
+   329	        @Override
+   330	        public void onDestroyActionMode(androidx.appcompat.view.ActionMode mode)
+   331	        {
+   332	            selectionTracker.clearSelection();
+   333	            msgViewModel.fragmentInActionMode(false);
+   334	            Utils.showActionModeStatusBar(activity, false);
+   335	        }
+   336	    };
+   337	
+   338	    private void deleteTrackersDialog()
+   339	    {
+   340	        if (!isAdded())
+   341	            return;
+   342	
+   343	        FragmentManager fm = getChildFragmentManager();
+   344	        if (fm.findFragmentByTag(TAG_DELETE_TRACKERS_DIALOG) == null) {
+   345	            deleteTrackersDialog = BaseAlertDialog.newInstance(
+   346	                    getString(R.string.deleting),
+   347	                    (selectionTracker.getSelection().size() > 1 ?
+   348	                            getString(R.string.delete_selected_trackers) :
+   349	                            getString(R.string.delete_selected_tracker)),
+   350	                    0,
+   351	                    getString(R.string.ok),
+   352	                    getString(R.string.cancel),
+   353	                    null,
+   354	                    false);
+   355	
+   356	            deleteTrackersDialog.show(fm, TAG_DELETE_TRACKERS_DIALOG);
+   357	        }
+   358	    }
+   359	
+   360	    private void deleteTrackers()
+   361	    {
+   362	        MutableSelection<TrackerItem> selections = new MutableSelection<>();
+   363	        selectionTracker.copySelection(selections);
+   364	
+   365	        disposables.add(Observable.fromIterable(selections)
+   366	                .map((selection -> selection.url))
+   367	                .toList()
+   368	                .subscribe((urls) -> viewModel.deleteTrackers(urls)));
+   369	
+   370	        if (actionMode != null)
+   371	            actionMode.finish();
+   372	    }
+   373	
+   374	    private void shareUrl()
+   375	    {
+   376	        MutableSelection<TrackerItem> selections = new MutableSelection<>();
+   377	        selectionTracker.copySelection(selections);
+   378	
+   379	        disposables.add(Observable.fromIterable(selections)
+   380	                .map((selection -> selection.url))
+   381	                .toList()
+   382	                .subscribe((urls) -> {
+   383	                    Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
+   384	                    sharingIntent.setType("text/plain");
+   385	                    sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "url");
+   386	
+   387	                    if (urls.size() == 1)
+   388	                        sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, urls.get(0));
+   389	                    else
+   390	                        sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT,
+   391	                                TextUtils.join(Utils.getLineSeparator(), urls));
+   392	
+   393	                    startActivity(Intent.createChooser(sharingIntent, getString(R.string.share_via)));
+   394	                }));
+   395	    }
+   396	
+   397	    @SuppressLint("RestrictedApi")
+   398	    private void selectAllTrackers()
+   399	    {
+   400	        int n = adapter.getItemCount();
+   401	        if (n > 0) {
+   402	            selectionTracker.startRange(0);
+   403	            selectionTracker.extendRange(adapter.getItemCount() - 1);
+   404	        }
+   405	    }
+   406	}

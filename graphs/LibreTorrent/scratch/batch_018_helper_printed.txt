@@ -1,0 +1,220 @@
+LibreTorrent batch 18 helper — printed commands and source evidence
+Source root: /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java
+Membership authority: /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+
+COMMAND: awk -F '\t' '$1==18 {printf "%2d %s\n", ++n, $3}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+OUTPUT:
+ 1 libretorrent.DataBinderMapperImpl$InnerBrLookup.<clinit>
+ 2 libretorrent.DataBinderMapperImpl$InnerLayoutIdLookup.<clinit>
+ 3 MainApplication.<clinit>
+ 4 MainApplication.<init>
+ 5 MainApplication.increaseCursorWindowSize
+ 6 MainApplication.lambda$onCreate$0
+ 7 MainApplication.onCreate
+ 8 FeedParser.<init>
+ 9 FeedParser.findDownloadUrl
+10 FeedParser.getFirstNotNullLink
+11 FeedParser.getItems
+12 FeedParser.getTitle
+13 FeedParser.isMagnetOrTorrent
+14 FeedParser.watchDownloadableLink
+15 FeedParser.watchEnclosure
+16 FeedParser.watchGuid
+17 FeedParser.watchMediaContent
+18 FeedParser.watchMediaHash
+19 FeedParser.watchTorrentInfoHash
+20 HttpConnection.<init>
+21 HttpConnection.run
+22 HttpConnection.setListener
+23 InputFilterRange.<clinit>
+24 InputFilterRange.<init>
+25 InputFilterRange.filter
+26 InputFilterRange.getMax
+27 InputFilterRange.getMin
+28 InputFilterRange.inRange
+29 InputFilterRange$Builder.<init>
+30 InputFilterRange$Builder.build
+31 InputFilterRange$Builder.setMax
+32 InputFilterRange$Builder.setMin
+33 RepositoryHelper.getFeedRepository
+34 RepositoryHelper.getSettingsRepository
+35 RepositoryHelper.getTagRepository
+36 RepositoryHelper.getTorrentRepository
+37 TorrentBuilder.<init>
+38 TorrentBuilder.addTrackers
+39 TorrentBuilder.addUrlSeeds
+40 TorrentBuilder.build
+
+COMMAND: rg -n 'InnerBrLookup|InnerLayoutIdLookup|DataBinderMapperImpl' /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java -g '*.java'
+OUTPUT:
+(no matches; rg exit status 1; generated mapper implementations are absent from this Java source root)
+
+COMMAND: nl -ba /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/AndroidManifest.xml | sed -n '31,33p'
+OUTPUT:
+    31    <application
+    32        android:name="MainApplication"
+
+COMMAND: nl -ba /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/MainApplication.java | sed -n '37,78p'
+OUTPUT:
+    37 public class MainApplication extends MultiDexApplication {
+    40     static {
+    42         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
+    45     @Override
+    46     public void onCreate() {
+    47         super.onCreate();
+    60         // Set stub handler
+    61         if (Thread.getDefaultUncaughtExceptionHandler() == null) {
+    62             Thread.setDefaultUncaughtExceptionHandler((t, e) ->
+    63                     Log.e(TAG, "Uncaught exception in " + t + ": " + Log.getStackTraceString(e))
+    64             );
+    65         }
+    68         increaseCursorWindowSize();
+    70         TorrentNotifier.getInstance(this).makeNotifyChans();
+    73     @SuppressLint("DiscouragedPrivateApi")
+    74     private void increaseCursorWindowSize() {
+    76             var field = CursorWindow.class.getDeclaredField("sCursorWindowSize");
+    77             field.setAccessible(true);
+    78             field.set(null, 100 * 1024 * 1024);
+
+COMMAND: nl -ba /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/service/FeedFetcherWorker.java | sed -n '144,181p'
+OUTPUT:
+   144    private Result fetchChannel(long id, long acceptMinDate,
+   150        FeedChannel channel = repo.getFeedById(id);
+   154        FeedParser parser;
+   156            parser = new FeedParser(getApplicationContext(), channel);
+   165        List<FeedItem> items = parser.getItems();
+   174        channel.fetchError = null;
+   175        if (TextUtils.isEmpty(channel.name)) {
+   176            channel.name = parser.getTitle();
+
+COMMAND: nl -ba /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/FeedParser.java | sed -n '62,161p;168,180p;188,229p;236,266p'
+OUTPUT:
+    62 public FeedParser(Context context, FeedChannel feedChannel)
+    67     byte[] response = Utils.fetchHttpUrl(context, feedChannel.url);
+    71     feed = FeedParserFactory.newParser().parse(bsStream);
+    84 public String getTitle() { return feed.getTitle(); }
+    89 public List<FeedItem> getItems()
+    95     for (Item item : feed.getItemList()) {
+    97         String articleUrl = getFirstNotNullLink(links);
+    98         String downloadUrl = watchDownloadableLink(links);
+   101         if (downloadUrl == null)
+   102             downloadUrl = findDownloadUrl(item);
+  118 private String getFirstNotNullLink(List<String> links)
+  128 private String watchDownloadableLink(List<String> links)
+  134         if (isMagnetOrTorrent(link))
+  141 private String findDownloadUrl(Item item)
+  147     String enclosureUrl = watchEnclosure(item);
+  151     String infoHash = watchTorrentInfoHash(item);
+  155     String mediaContentUrl = watchMediaContent(item);
+  159     String guid = watchGuid(item);
+  168 private String watchEnclosure(Item item)
+  176         if (isMagnetOrTorrent(url) || (type != null && type.equals(Utils.MIME_TORRENT)))
+  188 private String watchMediaContent(Item item)
+  190     MediaRss media = item.getMediaRss();
+  199     String url = content.getUrl();
+  201         return watchMediaHash(media);
+  203     if (isMagnetOrTorrent(url) || (type != null && type.equals(Utils.MIME_TORRENT)))
+  207 return watchMediaHash(media);
+  215 private String watchMediaHash(MediaRss media)
+  217     Hash hash = media.getHash();
+  224     String algo = hash.getAlgorithm();
+  225     if (Utils.isHash(hashStr) && algo != null && algo.equalsIgnoreCase("sha1"))
+  236 private String watchTorrentInfoHash(Item item)
+  238     EzRssTorrentItem torrentItem = item.getEzRssTorrentItem();
+  242     String infoHash = torrentItem.getInfoHash();
+  254 private String watchGuid(Item item)
+  256     String url = item.getGuid();
+  257     if (url != null && isMagnetOrTorrent(url))
+  263 private boolean isMagnetOrTorrent(String url)
+  265     return url.endsWith(".torrent") || url.startsWith(Utils.MAGNET_PREFIX);
+
+COMMAND: nl -ba /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/utils/Utils.java | sed -n '462,512p'
+OUTPUT:
+   462 public static byte[] fetchHttpUrl(Context context, String url)
+   466 if (!Utils.checkConnectivity(context))
+   472 connection = new HttpConnection(url);
+   477 connection.setListener(new HttpConnection.Listener() { ... });
+   512 connection.run();
+
+COMMAND: nl -ba /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/HttpConnection.java | sed -n '66,120p'
+OUTPUT:
+    66 public HttpConnection(String url)
+    68     this.url = new URL(url);
+    69     this.sslContext = Utils.getSSLContext();
+    72 public void setListener(Listener listener)
+    74     this.listener = listener;
+    77 @Override
+    78 public void run()
+    84     conn = (HttpURLConnection)url.openConnection();
+    92     if (listener != null)
+    93         listener.onConnectionCreated(conn);
+    95     int responseCode = conn.getResponseCode();
+    102    if (responseCode == HTTP_MOVED_PERM && listener != null)
+    103        listener.onMovedPermanently(url.toString());
+    106    if (listener != null)
+    107        listener.onResponseHandle(conn, responseCode, conn.getResponseMessage());
+    112    if (listener != null)
+    113        listener.onIOException(e);
+
+COMMAND: nl -ba /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/InputFilterRange.java | sed -n '31,115p'
+OUTPUT:
+    33 PORT_FILTER = new InputFilterRange.Builder().setMin(0).setMax(65535).build();
+    38 UNSIGNED_INT = new InputFilterRange.Builder().setMin(0).setMax(Integer.MAX_VALUE).build();
+    46 private InputFilterRange(Integer min, Integer max)
+    53 public Integer getMin()
+    59 public Integer getMax()
+    65 public CharSequence filter(...)
+    73     if (inRange(input))
+    83 private boolean inRange(int num)
+    88 public static class Builder
+    93 public Builder setMin(int min)
+   100 public Builder setMax(int max)
+   107 public InputFilterRange build()
+   112 return new InputFilterRange(min, max);
+
+COMMAND: rg -n 'getMax\(|getMin\(' /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java -g '*.java'
+OUTPUT:
+.../core/InputFilterRange.java:53:    public Integer getMin()
+.../core/InputFilterRange.java:59:    public Integer getMax()
+
+COMMAND: rg -n 'PORT_FILTER|UNSIGNED_INT|setFilters\(' /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent -g '*.java'
+OUTPUT:
+Settings fragments and DetailTorrentFragment use InputFilterRange constants and register filters on EditText fields: `LogSettingsFragment.java:60,70`; `ProxySettingsFragment.java:125,128`; `StreamingSettingsFragment.java:77,80`; `DetailTorrentFragment.java:749,751,760`; `NetworkSettingsFragment.java:157,163,173`; `LimitationsSettingsFragment.java:59-77`.
+
+COMMAND: nl -ba /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/RepositoryHelper.java | sed -n '43,75p'
+OUTPUT:
+    43 getTorrentRepository(...)
+    46     torrentRepo = new TorrentRepositoryImpl(appContext, AppDatabase.getInstance(appContext));
+    52 getFeedRepository(...)
+    55     feedRepo = new FeedRepositoryImpl(appContext, AppDatabase.getInstance(appContext));
+    61 getSettingsRepository(...)
+    64     settingsRepo = new SettingsRepositoryImpl(appContext);
+    69 getTagRepository(...)
+    72     tagRepo = new TagRepositoryImpl(AppDatabase.getInstance(appContext));
+
+COMMAND: rg -n 'getTorrentRepository\(|getFeedRepository\(|getSettingsRepository\(|getTagRepository\(' /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent -g '*.java' | head -20
+OUTPUT:
+app callers include `TorrentEngine.java:130-133`, `FeedFetcherWorker.java:77-78`, `FeedDownloaderWorker.java:79-80`, `AddFeedViewModel.java:63`, `FeedViewModel.java:64`, `DetailTorrentViewModel.java:109-114`, `AddTagViewModel.java:42`, `SelectTagViewModel.java:44`, and `MainViewModel.java:74`.
+
+COMMAND: nl -ba /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/createtorrent/CreateTorrentViewModel.java | sed -n '151,208p'
+OUTPUT:
+   151 public void buildTorrent()
+   157     builder = makeBuilder();
+   171 disposables.add(builder.build()
+   177 private TorrentBuilder makeBuilder()
+   189 return new TorrentBuilder(getApplication())
+   193     .addTrackers(getAndValidateTrackers())
+   194     .addUrlSeeds(getAndValidateWebSeeds())
+
+COMMAND: nl -ba /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/TorrentBuilder.java | sed -n '88,132p;174,190p'
+OUTPUT:
+    88 public TorrentBuilder(Context context)
+    91     builder = new org.libtorrent4j.TorrentBuilder();
+   116 public TorrentBuilder addTrackers(List<Tracker> trackers)
+   122     builder.addTrackers(list);
+   127 public TorrentBuilder addUrlSeeds(List<String> urls)
+   129     builder.addUrlSeeds(urls);
+   174 ...
+   178 public Single<byte[]> build()
+
+Summary labels: 35 REACHABLE; 2 UNREACHABLE no_trigger_in_app; 3 OPEN. No coverage artifacts were consulted.

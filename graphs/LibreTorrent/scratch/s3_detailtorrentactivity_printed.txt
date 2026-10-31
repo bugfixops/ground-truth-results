@@ -1,0 +1,120 @@
+     1	/*
+     2	 * Copyright (C) 2016, 2019 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.detailtorrent;
+    21	
+    22	import android.content.Intent;
+    23	import android.os.Bundle;
+    24	import android.widget.Toast;
+    25	
+    26	import androidx.annotation.NonNull;
+    27	import androidx.annotation.Nullable;
+    28	import androidx.appcompat.app.AppCompatActivity;
+    29	import androidx.fragment.app.Fragment;
+    30	
+    31	import org.proninyaroslav.libretorrent.R;
+    32	import org.proninyaroslav.libretorrent.core.model.TorrentInfoProvider;
+    33	import org.proninyaroslav.libretorrent.core.utils.Utils;
+    34	import org.proninyaroslav.libretorrent.ui.FragmentCallback;
+    35	
+    36	import io.reactivex.android.schedulers.AndroidSchedulers;
+    37	import io.reactivex.disposables.CompositeDisposable;
+    38	import io.reactivex.schedulers.Schedulers;
+    39	
+    40	public class DetailTorrentActivity extends AppCompatActivity
+    41	        implements FragmentCallback
+    42	{
+    43	    private static final String TAG = DetailTorrentActivity.class.getSimpleName();
+    44	
+    45	    public static final String ACTION_OPEN_FILES = "org.proninyaroslav.libretorrent.ui.detailtorrent.DetailTorrentActivity.ACTION_OPEN_FILES";
+    46	    public static final String TAG_TORRENT_ID = "torrent_id";
+    47	
+    48	    private DetailTorrentFragment detailTorrentFragment;
+    49	    private TorrentInfoProvider infoProvider;
+    50	    private CompositeDisposable disposables = new CompositeDisposable();
+    51	
+    52	    @Override
+    53	    protected void onCreate(@Nullable Bundle savedInstanceState)
+    54	    {
+    55	        setTheme(Utils.getAppTheme(getApplicationContext()));
+    56	        super.onCreate(savedInstanceState);
+    57	
+    58	        if (Utils.isTwoPane(this)) {
+    59	            finish();
+    60	            return;
+    61	        }
+    62	
+    63	        setContentView(R.layout.activity_detail_torrent);
+    64	
+    65	        infoProvider = TorrentInfoProvider.getInstance(getApplicationContext());
+    66	
+    67	        detailTorrentFragment = (DetailTorrentFragment)getSupportFragmentManager()
+    68	                .findFragmentById(R.id.detail_torrent_fragmentContainer);
+    69	
+    70	        if (detailTorrentFragment != null)
+    71	            detailTorrentFragment.setTorrentId(getIntent().getStringExtra(TAG_TORRENT_ID));
+    72	
+    73	        if (ACTION_OPEN_FILES.equals(getIntent().getAction())) {
+    74	            getIntent().setAction(null);
+    75	            detailTorrentFragment.showFiles();
+    76	        }
+    77	    }
+    78	
+    79	    @Override
+    80	    protected void onStop()
+    81	    {
+    82	        super.onStop();
+    83	
+    84	        disposables.clear();
+    85	    }
+    86	
+    87	    @Override
+    88	    protected void onStart()
+    89	    {
+    90	        super.onStart();
+    91	
+    92	        subscribeTorrentDeleted();
+    93	    }
+    94	
+    95	    private void subscribeTorrentDeleted()
+    96	    {
+    97	        disposables.add(infoProvider.observeTorrentsDeleted()
+    98	                .subscribeOn(Schedulers.io())
+    99	                .observeOn(AndroidSchedulers.mainThread())
+   100	                .subscribe((id) -> {
+   101	                    if (detailTorrentFragment != null &&
+   102	                        id.equals(detailTorrentFragment.getTorrentId()))
+   103	                        finish();
+   104	                }));
+   105	    }
+   106	
+   107	    @Override
+   108	    public void onFragmentFinished(@NonNull Fragment f, Intent intent,
+   109	                                   @NonNull ResultCode code)
+   110	    {
+   111	        if (code == ResultCode.CANCEL) {
+   112	            Toast.makeText(
+   113	                    getApplicationContext(),
+   114	                    R.string.error_open_torrent,
+   115	                    Toast.LENGTH_SHORT
+   116	            ).show();
+   117	        }
+   118	        finish();
+   119	    }
+   120	}

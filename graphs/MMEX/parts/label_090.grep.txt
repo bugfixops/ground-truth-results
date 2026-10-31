@@ -1,0 +1,335 @@
+label_090.grep.txt: grep and class-file evidence for batch 090 (graphs/MMEX/scratch/batches/batch_090.txt, 36 methods, 6 class groups).
+Source root: final_java_only/MMEX/app/MMEX-#v2024.06.14 (paths below are relative to the repo root).
+Commands: grep (text search, read only), a read-only python3 -I parse of every .class file under app/build/intermediates/javac/debug/classes (constant pool and method table, scratch script in the session scratchpad), and a read-only python3 -I print of graphs/MMEX/auto_calls.json. javap was not used.
+
+== section 1: source text search over the app source root (src/main/java)
+grep -rn for the Factory, MembersInjector, newMorningstarPriceUpdater and ExchangeRateUpdaterBase names:
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/investment/prices/ExchangeRateUpdaterBase.java:26:public class ExchangeRateUpdaterBase
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/investment/prices/ExchangeRateUpdaterBase.java:28:    public ExchangeRateUpdaterBase(Context context) {
+(end)
+grep -rn for the constructors and callers of the batch classes:
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater.java:90:        symbolConverter = new SymbolConverter();
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/investment/SecurityPriceUpdaterFactory.java:42:                updater = new MorningstarPriceUpdater(context);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/currency/ExchangeRateUpdaterFactory.java:43:        //                updater = new MorningstarPriceUpdater(context);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/currency/ExchangeRateUpdaterFactory.java:46:            updater = new FixerService(context);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/currency/ExchangeRateUpdaterFactory.java:54:            updater = new FixerService(context);
+(end)
+
+== section 2: source declarations and bodies cited (sed -n / awk print, read only)
+MorningstarPriceUpdater.java:58: public class MorningstarPriceUpdater
+MorningstarPriceUpdater.java:59:     extends PriceUpdaterBase
+MorningstarPriceUpdater.java:60:     implements ISecurityPriceUpdater {
+ExchangeRateUpdaterBase.java:26: public class ExchangeRateUpdaterBase
+ExchangeRateUpdaterBase.java:27:     extends PriceUpdaterBase {
+ExchangeRateUpdaterBase.java:28:     public ExchangeRateUpdaterBase(Context context) {
+ExchangeRateUpdaterBase.java:29:         super(context);
+ExchangeRateUpdaterBase.java:30:     }
+FixerService.java:58: public class FixerService
+FixerService.java:59:     extends PriceUpdaterBase
+FixerService.java:60:     implements IExchangeRateUpdater {
+ExchangeRateUpdaterFactory.java:45:         if (Objects.requireNonNull(provider) == ExchangeRateProviders.Fixer) {
+ExchangeRateUpdaterFactory.java:46:             updater = new FixerService(context);
+ExchangeRateUpdaterFactory.java:47:             //            case YahooYql:
+ExchangeRateUpdaterFactory.java:48: //                updater = new YqlSecurityPriceUpdaterRetrofit(context);
+ExchangeRateUpdaterFactory.java:49: //                break;
+ExchangeRateUpdaterFactory.java:50: //            case YahooCsv:
+ExchangeRateUpdaterFactory.java:51: //                updater = new YahooCsvQuoteDownloaderRetrofit(context);
+ExchangeRateUpdaterFactory.java:52: //                break;
+ExchangeRateUpdaterFactory.java:53:         } else {
+ExchangeRateUpdaterFactory.java:54:             updater = new FixerService(context);
+ExchangeRateUpdaterFactory.java:55:         }
+WatchlistFragment.java:378:     private void changePriceProvider() {
+WatchlistFragment.java:379:         // show the list with provider choices. Preselect the current one.
+WatchlistFragment.java:380:         InvestmentSettings settings = new InvestmentSettings(getActivity());
+WatchlistFragment.java:381:         QuoteProviders currentProvider = settings.getQuoteProvider();
+WatchlistFragment.java:382:         int currentIndex = QuoteProviders.indexOf(currentProvider);
+WatchlistFragment.java:383: 
+WatchlistFragment.java:384:         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+WatchlistFragment.java:385:         builder.setTitle(R.string.quote_provider)
+WatchlistFragment.java:386:                 .setSingleChoiceItems(QuoteProviders.names(), currentIndex, new DialogInterface.OnClickListener() {
+WatchlistFragment.java:387:                     @Override
+WatchlistFragment.java:388:                     public void onClick(DialogInterface dialog, int which) {
+WatchlistFragment.java:389:                         // Change provider
+WatchlistFragment.java:390:                         QuoteProviders newProvider = QuoteProviders.valueOf(QuoteProviders.names()[which].toString());
+WatchlistFragment.java:391: 
+WatchlistFragment.java:392:                         InvestmentSettings settings = new InvestmentSettings(getActivity());
+InvestmentSettings.java:74:     public QuoteProviders getQuoteProvider() {
+InvestmentSettings.java:75:         QuoteProviders defaultValue = QuoteProviders.YahooYql;
+InvestmentSettings.java:76: 
+InvestmentSettings.java:77:         InfoService service = new InfoService(getContext());
+InvestmentSettings.java:78:         String value = service.getInfoValue(InfoKeys.QUOTE_PROVIDER);
+InvestmentSettings.java:79:         if (value == null) {
+InvestmentSettings.java:80:             return defaultValue;
+InvestmentSettings.java:81:         }
+InvestmentSettings.java:82: 
+InvestmentSettings.java:83:         QuoteProviders provider = QuoteProviders.valueOf(value);
+InvestmentSettings.java:84:         // default value returned if none set.
+InvestmentSettings.java:85:         return provider != null ? provider : defaultValue;
+InvestmentSettings.java:86:     }
+QuoteProviders.java:26:     YahooYql,
+QuoteProviders.java:27:     YahooCsv,
+QuoteProviders.java:28:     Morningstar;
+
+== section 3: class-file search (grep -rl -a, binary-safe) over the build classes
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/investment/prices/ExchangeRateUpdaterBase.class
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater_Factory.class
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater_MembersInjector.class
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/core/ioc/DaggerMmxComponent.class
+(end)
+
+== section 4: class-file parse (python3 -I, read only): method tables and references into the batch classes
+classes parsed 825
+== method tables (kind, name, desc, flags)
+com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater
+    ('method', '<init>', '(Landroid/content/Context;)V', '0x1')
+    ('method', 'downloadPrices', '(Ljava/util/List;)V', '0x1')
+    ('method', 'processInParallel', '(Ljava/util/List;)V', '0x2')
+    ('method', 'parse', '(Ljava/lang/String;Ljava/lang/String;)Lcom/money/manager/ex/investment/events/PriceDownloadedEvent;', '0x2')
+    ('method', 'finishIfAllDone', '()V', '0x22')
+    ('method', 'savePrice', '(Lcom/money/manager/ex/investment/events/PriceDownloadedEvent;)V', '0x2')
+    ('method', 'getMorningstarService', '()Lcom/money/manager/ex/investment/morningstar/IMorningstarService;', '0x2')
+    ('method', 'access$000', '(Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;)V', '0x1008')
+    ('method', 'access$108', '(Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;)I', '0x1008')
+    ('method', 'access$100', '(Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;)I', '0x1008')
+    ('method', 'access$200', '(Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;I)V', '0x1008')
+    ('method', 'access$300', '(Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;I)V', '0x1008')
+    ('method', 'access$400', '(Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;Ljava/lang/String;Ljava/lang/String;)Lcom/money/manager/ex/investment/events/PriceDownloadedEvent;', '0x1008')
+    ('method', 'access$500', '(Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;Lcom/money/manager/ex/investment/events/PriceDownloadedEvent;)V', '0x1008')
+com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater_Factory
+    ('method', '<init>', '(Ljavax/inject/Provider;Ljavax/inject/Provider;Ljavax/inject/Provider;)V', '0x1')
+    ('method', 'get', '()Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;', '0x1')
+    ('method', 'create', '(Ljavax/inject/Provider;Ljavax/inject/Provider;Ljavax/inject/Provider;)Ldagger/internal/Factory;', '0x9')
+    ('method', 'newMorningstarPriceUpdater', '(Landroid/content/Context;)Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;', '0x9')
+    ('method', 'get', '()Ljava/lang/Object;', '0x1041')
+com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater_MembersInjector
+    ('method', '<init>', '(Ljavax/inject/Provider;Ljavax/inject/Provider;)V', '0x1')
+    ('method', 'create', '(Ljavax/inject/Provider;Ljavax/inject/Provider;)Ldagger/MembersInjector;', '0x9')
+    ('method', 'injectMembers', '(Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;)V', '0x1')
+    ('method', 'injectStockRepository', '(Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;Ldagger/Lazy;)V', '0x9')
+    ('method', 'injectStockHistoryRepository', '(Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;Ldagger/Lazy;)V', '0x9')
+    ('method', 'injectMembers', '(Ljava/lang/Object;)V', '0x1041')
+com/money/manager/ex/investment/morningstar/SymbolConverter
+    ('method', '<init>', '()V', '0x1')
+    ('method', 'convert', '(Ljava/lang/String;)Ljava/lang/String;', '0x1')
+    ('method', 'getYahooSymbol', '(Ljava/lang/String;)Ljava/lang/String;', '0x1')
+    ('method', 'initializeMap', '()V', '0x2')
+com/money/manager/ex/investment/prices/ExchangeRateUpdaterBase
+    ('method', '<init>', '(Landroid/content/Context;)V', '0x1')
+com/money/manager/ex/investment/prices/FixerService
+    ('method', '<init>', '(Landroid/content/Context;)V', '0x1')
+    ('method', 'downloadPrices', '(Ljava/lang/String;Ljava/util/List;)V', '0x1')
+    ('method', 'onContentDownloaded', '(Lcom/google/gson/JsonElement;)V', '0x2')
+    ('method', 'getService', '()Lcom/money/manager/ex/investment/prices/IFixerService;', '0x2')
+    ('method', 'getPricesFromJson', '(Lcom/google/gson/JsonObject;)Ljava/util/List;', '0x2')
+    ('method', 'getSecurityPriceFor', '(Ljava/util/Map$Entry;Ljava/lang/String;)Lcom/money/manager/ex/investment/SecurityPriceModel;', '0x2')
+    ('method', 'access$000', '(Lcom/money/manager/ex/investment/prices/FixerService;Lcom/google/gson/JsonElement;)V', '0x1008')
+com/money/manager/ex/investment/prices/FixerService$1
+    ('method', '<init>', '(Lcom/money/manager/ex/investment/prices/FixerService;)V', '0x0')
+    ('method', 'onResponse', '(Lretrofit2/Call;Lretrofit2/Response;)V', '0x1')
+    ('method', 'onFailure', '(Lretrofit2/Call;Ljava/lang/Throwable;)V', '0x1')
+com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater$1
+    ('method', '<init>', '(Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;Ljava/lang/String;)V', '0x0')
+    ('method', 'onCompleted', '()V', '0x1')
+    ('method', 'onError', '(Ljava/lang/Throwable;)V', '0x1')
+    ('method', 'onNext', '(Ljava/lang/String;)V', '0x1')
+    ('method', 'onNext', '(Ljava/lang/Object;)V', '0x1041')
+com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater$2
+    ('method', '<init>', '(Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;Ljava/lang/String;)V', '0x0')
+    ('method', 'call', '(Ljava/lang/String;)V', '0x1')
+    ('method', 'call', '(Ljava/lang/Object;)V', '0x1041')
+== Methodref/Fieldref hits into batch owners, from other classes
+  com/money/manager/ex/core/ioc/DaggerMmxComponent -> com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater_MembersInjector.injectStockHistoryRepository(Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;Ldagger/Lazy;)V [method]
+  com/money/manager/ex/core/ioc/DaggerMmxComponent -> com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater_MembersInjector.injectStockRepository(Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;Ldagger/Lazy;)V [method]
+  com/money/manager/ex/currency/ExchangeRateUpdaterFactory -> com/money/manager/ex/investment/prices/FixerService.<init>(Landroid/content/Context;)V [method]
+  com/money/manager/ex/investment/SecurityPriceUpdaterFactory -> com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater.<init>(Landroid/content/Context;)V [method]
+== intra-batch refs (from batch owners)
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater -> self closeProgressDialog()V [method]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater -> self compositeSubscriptionLrx/subscriptions/CompositeSubscription; [field]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater -> self finishIfAllDone()V [method]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater -> self getContext()Landroid/content/Context; [method]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater -> self getMorningstarService()Lcom/money/manager/ex/investment/morningstar/IMorningstarService; [method]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater -> self mCounterI [field]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater -> self mTotalRecordsI [field]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater -> self parse(Ljava/lang/String;Ljava/lang/String;)Lcom/money/manager/ex/investment/events/PriceDownloadedEvent; [method]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater -> self processInParallel(Ljava/util/List;)V [method]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater -> self savePrice(Lcom/money/manager/ex/investment/events/PriceDownloadedEvent;)V [method]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater -> self serviceLcom/money/manager/ex/investment/morningstar/IMorningstarService; [field]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater -> self setProgress(I)V [method]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater -> self showProgressDialog(Ljava/lang/Integer;)V [method]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater -> self stockHistoryRepositoryLdagger/Lazy; [field]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater -> self stockRepositoryLdagger/Lazy; [field]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater -> self symbolConverterLcom/money/manager/ex/investment/morningstar/SymbolConverter; [field]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater -> com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater$1.<init>(Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;Ljava/lang/String;)V [method]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater -> com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater$2.<init>(Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;Ljava/lang/String;)V [method]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater -> com/money/manager/ex/investment/morningstar/SymbolConverter.<init>()V [method]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater -> com/money/manager/ex/investment/morningstar/SymbolConverter.convert(Ljava/lang/String;)Ljava/lang/String; [method]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater -> com/money/manager/ex/investment/morningstar/SymbolConverter.getYahooSymbol(Ljava/lang/String;)Ljava/lang/String; [method]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater$1 -> com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater.access$000(Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;)V [method]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater$1 -> com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater.access$100(Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;)I [method]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater$1 -> com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater.access$108(Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;)I [method]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater$1 -> com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater.access$200(Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;I)V [method]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater$1 -> com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater.access$300(Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;I)V [method]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater$1 -> self onNext(Ljava/lang/String;)V [method]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater$1 -> self this$0Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater; [field]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater$1 -> self val$symbolLjava/lang/String; [field]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater$2 -> com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater.access$400(Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;Ljava/lang/String;Ljava/lang/String;)Lcom/money/manager/ex/investment/events/PriceDownloadedEvent; [method]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater$2 -> com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater.access$500(Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;Lcom/money/manager/ex/investment/events/PriceDownloadedEvent;)V [method]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater$2 -> self call(Ljava/lang/String;)V [method]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater$2 -> self this$0Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater; [field]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater$2 -> self val$morningstarSymbolLjava/lang/String; [field]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater_Factory -> com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater.<init>(Landroid/content/Context;)V [method]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater_Factory -> self <init>(Ljavax/inject/Provider;Ljavax/inject/Provider;Ljavax/inject/Provider;)V [method]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater_Factory -> self contextProviderLjavax/inject/Provider; [field]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater_Factory -> self get()Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater; [method]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater_Factory -> self stockHistoryRepositoryProviderLjavax/inject/Provider; [field]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater_Factory -> self stockRepositoryProviderLjavax/inject/Provider; [field]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater_Factory -> com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater_MembersInjector.injectStockHistoryRepository(Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;Ldagger/Lazy;)V [method]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater_Factory -> com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater_MembersInjector.injectStockRepository(Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;Ldagger/Lazy;)V [method]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater_MembersInjector -> com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater.stockHistoryRepositoryLdagger/Lazy; [field]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater_MembersInjector -> com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater.stockRepositoryLdagger/Lazy; [field]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater_MembersInjector -> self <init>(Ljavax/inject/Provider;Ljavax/inject/Provider;)V [method]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater_MembersInjector -> self injectMembers(Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;)V [method]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater_MembersInjector -> self injectStockHistoryRepository(Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;Ldagger/Lazy;)V [method]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater_MembersInjector -> self injectStockRepository(Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;Ldagger/Lazy;)V [method]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater_MembersInjector -> self stockHistoryRepositoryProviderLjavax/inject/Provider; [field]
+  com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater_MembersInjector -> self stockRepositoryProviderLjavax/inject/Provider; [field]
+  com/money/manager/ex/investment/morningstar/SymbolConverter -> self initializeMap()V [method]
+  com/money/manager/ex/investment/morningstar/SymbolConverter -> self mMapLcom/google/common/collect/BiMap; [field]
+  com/money/manager/ex/investment/prices/FixerService -> self closeProgressDialog()V [method]
+  com/money/manager/ex/investment/prices/FixerService -> self getContext()Landroid/content/Context; [method]
+  com/money/manager/ex/investment/prices/FixerService -> self getPricesFromJson(Lcom/google/gson/JsonObject;)Ljava/util/List; [method]
+  com/money/manager/ex/investment/prices/FixerService -> self getSecurityPriceFor(Ljava/util/Map$Entry;Ljava/lang/String;)Lcom/money/manager/ex/investment/SecurityPriceModel; [method]
+  com/money/manager/ex/investment/prices/FixerService -> self getService()Lcom/money/manager/ex/investment/prices/IFixerService; [method]
+  com/money/manager/ex/investment/prices/FixerService -> self onContentDownloaded(Lcom/google/gson/JsonElement;)V [method]
+  com/money/manager/ex/investment/prices/FixerService -> self showProgressDialog(Ljava/lang/Integer;)V [method]
+  com/money/manager/ex/investment/prices/FixerService -> com/money/manager/ex/investment/prices/FixerService$1.<init>(Lcom/money/manager/ex/investment/prices/FixerService;)V [method]
+  com/money/manager/ex/investment/prices/FixerService$1 -> com/money/manager/ex/investment/prices/FixerService.access$000(Lcom/money/manager/ex/investment/prices/FixerService;Lcom/google/gson/JsonElement;)V [method]
+  com/money/manager/ex/investment/prices/FixerService$1 -> com/money/manager/ex/investment/prices/FixerService.closeProgressDialog()V [method]
+  com/money/manager/ex/investment/prices/FixerService$1 -> self this$0Lcom/money/manager/ex/investment/prices/FixerService; [field]
+== references to ExchangeRateUpdaterBase / FixerService / SymbolConverter class names in other classes (any ref kind)
+com/money/manager/ex/investment/prices/ExchangeRateUpdaterBase <- []
+com/money/manager/ex/investment/morningstar/SymbolConverter <- ['com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater']
+== Class-constant refs (any Class entry) to batch classes from other classes
+com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater <- ['com/money/manager/ex/investment/SecurityPriceUpdaterFactory', 'com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater$1', 'com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater$2', 'com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater_Factory', 'com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater_MembersInjector']
+com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater_Factory <- []
+com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater_MembersInjector <- ['com/money/manager/ex/core/ioc/DaggerMmxComponent', 'com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater_Factory']
+com/money/manager/ex/investment/morningstar/SymbolConverter <- ['com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater']
+com/money/manager/ex/investment/prices/ExchangeRateUpdaterBase <- []
+com/money/manager/ex/investment/prices/FixerService <- ['com/money/manager/ex/currency/ExchangeRateUpdaterFactory', 'com/money/manager/ex/investment/prices/FixerService$1']
+com/money/manager/ex/investment/prices/FixerService$1 <- ['com/money/manager/ex/investment/prices/FixerService']
+com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater$1 <- ['com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater']
+com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater$2 <- ['com/money/manager/ex/investment/morningstar/MorningstarPriceUpdater']
+
+== section 5: auto_calls.json records that name a batch class (python3 -I, read only)
+calls: SecurityPriceUpdaterFactory.getUpdaterInstance -> MorningstarPriceUpdater.<init> | SecurityPriceUpdaterFactory.java:42 | dispatch=exact via=[]
+calls: FixerService$1.onResponse -> FixerService.onContentDownloaded | FixerService.java:79 | dispatch=exact via=['FixerService.access$000']
+calls: FixerService$1.onFailure -> PriceUpdaterBase.closeProgressDialog | FixerService.java:84 | dispatch=exact via=[]
+calls: FixerService.<init> -> PriceUpdaterBase.<init> | FixerService.java:63 | dispatch=exact via=[]
+calls: FixerService.downloadPrices -> ListUtils.toCommaDelimitedString | FixerService.java:90 | dispatch=exact via=[]
+calls: FixerService.downloadPrices -> ListUtils.<init> | FixerService.java:90 | dispatch=exact via=[]
+calls: FixerService.downloadPrices -> FixerService$1.<init> | FixerService.java:76 | dispatch=exact via=[]
+calls: FixerService.downloadPrices -> FixerService.getService | FixerService.java:74 | dispatch=exact via=[]
+calls: FixerService.downloadPrices -> PriceUpdaterBase.showProgressDialog | FixerService.java:72 | dispatch=exact via=[]
+calls: FixerService.onContentDownloaded -> UIHelper.showToast(String,int) | FixerService.java:128 | dispatch=exact via=[]
+calls: FixerService.onContentDownloaded -> PriceUpdaterBase.getContext | FixerService.java:126 | dispatch=exact via=[]
+calls: FixerService.onContentDownloaded -> PriceUpdaterBase.closeProgressDialog | FixerService.java:123 | dispatch=exact via=[]
+calls: FixerService.onContentDownloaded -> PriceDownloadedEvent.<init> | FixerService.java:120 | dispatch=exact via=[]
+calls: FixerService.onContentDownloaded -> UIHelper.showToast(int) | FixerService.java:112 | dispatch=exact via=[]
+calls: FixerService.onContentDownloaded -> FixerService.getPricesFromJson | FixerService.java:109 | dispatch=exact via=[]
+calls: FixerService.onContentDownloaded -> UIHelper.<init> | FixerService.java:101 | dispatch=exact via=[]
+calls: FixerService.getPricesFromJson -> FixerService.getSecurityPriceFor | FixerService.java:151 | dispatch=exact via=[]
+calls: FixerService.getSecurityPriceFor -> MmxDate.toDate | FixerService.java:186 | dispatch=exact via=[]
+calls: FixerService.getSecurityPriceFor -> MmxDate.<init>(String) | FixerService.java:186 | dispatch=exact via=[]
+calls: FixerService.getSecurityPriceFor -> UIHelper.showToast(String) | FixerService.java:175 | dispatch=exact via=[]
+calls: FixerService.getSecurityPriceFor -> PriceUpdaterBase.getContext | FixerService.java:175 | dispatch=exact via=[]
+calls: FixerService.getSecurityPriceFor -> NumericHelper.isNumeric | FixerService.java:174 | dispatch=exact via=[]
+calls: FixerService.getSecurityPriceFor -> UIHelper.<init> | FixerService.java:164 | dispatch=exact via=[]
+calls: FixerService.getSecurityPriceFor -> SecurityPriceModel.<init> | FixerService.java:161 | dispatch=exact via=[]
+calls: ExchangeRateUpdaterBase.<init> -> PriceUpdaterBase.<init> | ExchangeRateUpdaterBase.java:29 | dispatch=exact via=[]
+calls: MorningstarPriceUpdater.<init> -> MmexApplication.<clinit> | MorningstarPriceUpdater.java:66 | dispatch=exact via=[]
+calls: MorningstarPriceUpdater.<init> -> DaggerMmxComponent.inject(MorningstarPriceUpdater) | MorningstarPriceUpdater.java:66 | dispatch=cha via=[]
+calls: MorningstarPriceUpdater.<init> -> MmexApplication.getApp | MorningstarPriceUpdater.java:66 | dispatch=exact via=[]
+calls: MorningstarPriceUpdater.<init> -> PriceUpdaterBase.<init> | MorningstarPriceUpdater.java:64 | dispatch=exact via=[]
+calls: MorningstarPriceUpdater.downloadPrices -> MorningstarPriceUpdater.processInParallel | MorningstarPriceUpdater.java:93 | dispatch=exact via=[]
+calls: MorningstarPriceUpdater.downloadPrices -> SymbolConverter.<init> | MorningstarPriceUpdater.java:90 | dispatch=exact via=[]
+calls: MorningstarPriceUpdater.downloadPrices -> MorningstarPriceUpdater.getMorningstarService | MorningstarPriceUpdater.java:88 | dispatch=exact via=[]
+calls: MorningstarPriceUpdater.downloadPrices -> PriceUpdaterBase.showProgressDialog | MorningstarPriceUpdater.java:86 | dispatch=exact via=[]
+calls: MorningstarPriceUpdater.processInParallel -> MorningstarPriceUpdater$1.<init> | MorningstarPriceUpdater.java:193 | dispatch=exact via=[]
+calls: MorningstarPriceUpdater.processInParallel -> MorningstarPriceUpdater$2.<init> | MorningstarPriceUpdater.java:185 | dispatch=exact via=[]
+calls: MorningstarPriceUpdater.processInParallel -> SymbolConverter.convert | MorningstarPriceUpdater.java:181 | dispatch=exact via=[]
+calls: MorningstarPriceUpdater.parse -> PriceDownloadedEvent.<init> | MorningstarPriceUpdater.java:260 | dispatch=exact via=[]
+calls: MorningstarPriceUpdater.parse -> MmxDate.toDate | MorningstarPriceUpdater.java:260 | dispatch=exact via=[]
+calls: MorningstarPriceUpdater.parse -> MmxDate.inTimeZone | MorningstarPriceUpdater.java:256 | dispatch=exact via=[]
+calls: MorningstarPriceUpdater.parse -> MmxDate.setTimeZone | MorningstarPriceUpdater.java:255 | dispatch=exact via=[]
+calls: MorningstarPriceUpdater.parse -> MmxDate.<init>(String,String) | MorningstarPriceUpdater.java:254 | dispatch=exact via=[]
+calls: MorningstarPriceUpdater.parse -> SymbolConverter.getYahooSymbol | MorningstarPriceUpdater.java:231 | dispatch=exact via=[]
+calls: MorningstarPriceUpdater.finishIfAllDone -> AllPricesDownloadedEvent.<init> | MorningstarPriceUpdater.java:274 | dispatch=exact via=[]
+calls: MorningstarPriceUpdater.finishIfAllDone -> UIHelper.showToast(int) | MorningstarPriceUpdater.java:271 | dispatch=exact via=[]
+calls: MorningstarPriceUpdater.finishIfAllDone -> UIHelper.<init> | MorningstarPriceUpdater.java:271 | dispatch=exact via=[]
+calls: MorningstarPriceUpdater.finishIfAllDone -> PriceUpdaterBase.getContext | MorningstarPriceUpdater.java:271 | dispatch=exact via=[]
+calls: MorningstarPriceUpdater.finishIfAllDone -> PriceUpdaterBase.closeProgressDialog | MorningstarPriceUpdater.java:268 | dispatch=exact via=[]
+calls: MorningstarPriceUpdater.savePrice -> StockHistoryRepositorySql.addStockHistoryRecord | MorningstarPriceUpdater.java:284 | dispatch=exact via=[]
+calls: MorningstarPriceUpdater.savePrice -> StockRepositorySql.updateCurrentPrice | MorningstarPriceUpdater.java:281 | dispatch=exact via=[]
+calls: MorningstarPriceUpdater$1.onCompleted -> MorningstarPriceUpdater.finishIfAllDone | MorningstarPriceUpdater.java:197 | dispatch=exact via=['MorningstarPriceUpdater.access$000']
+calls: MorningstarPriceUpdater$1.onError -> MorningstarPriceUpdater.finishIfAllDone | MorningstarPriceUpdater.java:207 | dispatch=exact via=['MorningstarPriceUpdater.access$000']
+calls: MorningstarPriceUpdater$1.onError -> PriceUpdaterBase.setProgress | MorningstarPriceUpdater.java:203 | dispatch=exact via=['MorningstarPriceUpdater.access$200']
+calls: MorningstarPriceUpdater$1.onNext -> PriceUpdaterBase.setProgress | MorningstarPriceUpdater.java:213 | dispatch=exact via=['MorningstarPriceUpdater.access$300']
+calls: MorningstarPriceUpdater_MembersInjector.create -> MorningstarPriceUpdater_MembersInjector.<init> | MorningstarPriceUpdater_MembersInjector.java:31 | dispatch=exact via=[]
+calls: MorningstarPriceUpdater_MembersInjector.injectMembers -> MorningstarPriceUpdater_MembersInjector.injectStockHistoryRepository | MorningstarPriceUpdater_MembersInjector.java:38 | dispatch=exact via=[]
+calls: MorningstarPriceUpdater_MembersInjector.injectMembers -> MorningstarPriceUpdater_MembersInjector.injectStockRepository | MorningstarPriceUpdater_MembersInjector.java:37 | dispatch=exact via=[]
+calls: MorningstarPriceUpdater$2.call -> MorningstarPriceUpdater.savePrice | MorningstarPriceUpdater.java:190 | dispatch=exact via=['MorningstarPriceUpdater.access$500']
+calls: MorningstarPriceUpdater$2.call -> MorningstarPriceUpdater.parse | MorningstarPriceUpdater.java:189 | dispatch=exact via=['MorningstarPriceUpdater.access$400']
+calls: SymbolConverter.<init> -> SymbolConverter.initializeMap | SymbolConverter.java:30 | dispatch=exact via=[]
+calls: MorningstarPriceUpdater_Factory.get -> MorningstarPriceUpdater_MembersInjector.injectStockHistoryRepository | MorningstarPriceUpdater_Factory.java:36 | dispatch=exact via=[]
+calls: MorningstarPriceUpdater_Factory.get -> MorningstarPriceUpdater_MembersInjector.injectStockRepository | MorningstarPriceUpdater_Factory.java:34 | dispatch=exact via=[]
+calls: MorningstarPriceUpdater_Factory.get -> MorningstarPriceUpdater.<init> | MorningstarPriceUpdater_Factory.java:33 | dispatch=exact via=[]
+calls: MorningstarPriceUpdater_Factory.create -> MorningstarPriceUpdater_Factory.<init> | MorningstarPriceUpdater_Factory.java:45 | dispatch=exact via=[]
+calls: MorningstarPriceUpdater_Factory.newMorningstarPriceUpdater -> MorningstarPriceUpdater.<init> | MorningstarPriceUpdater_Factory.java:50 | dispatch=exact via=[]
+calls: WatchlistFragment.onPriceUpdateRequested -> MorningstarPriceUpdater.downloadPrices | WatchlistFragment.java:363 | dispatch=cha via=[]
+calls: WatchlistFragment$4.onClick -> MorningstarPriceUpdater.downloadPrices | WatchlistFragment.java:474 | dispatch=cha via=[]
+calls: DaggerMmxComponent.inject(MorningstarPriceUpdater) -> DaggerMmxComponent.injectMorningstarPriceUpdater | DaggerMmxComponent.java:293 | dispatch=exact via=[]
+calls: DaggerMmxComponent.injectMorningstarPriceUpdater -> MorningstarPriceUpdater_MembersInjector.injectStockHistoryRepository | DaggerMmxComponent.java:504 | dispatch=exact via=[]
+calls: DaggerMmxComponent.injectMorningstarPriceUpdater -> MorningstarPriceUpdater_MembersInjector.injectStockRepository | DaggerMmxComponent.java:502 | dispatch=exact via=[]
+calls: ExchangeRateUpdaterFactory.getUpdaterInstance -> FixerService.<init> | ExchangeRateUpdaterFactory.java:54 | dispatch=exact via=[]
+calls: CurrencyService.updateExchangeRates -> FixerService.downloadPrices | CurrencyService.java:520 | dispatch=cha via=[]
+impl: FixerService$1.<init>(Lcom/money/manager/ex/investment/prices/FixerService;)V -> FixerService$1.<init>
+impl: FixerService$1.onResponse(Lretrofit2/Call;Lretrofit2/Response;)V -> FixerService$1.onResponse
+impl: FixerService$1.onFailure(Lretrofit2/Call;Ljava/lang/Throwable;)V -> FixerService$1.onFailure
+impl: FixerService.<init>(Landroid/content/Context;)V -> FixerService.<init>
+impl: FixerService.downloadPrices(Ljava/lang/String;Ljava/util/List;)V -> FixerService.downloadPrices
+impl: FixerService.onContentDownloaded(Lcom/google/gson/JsonElement;)V -> FixerService.onContentDownloaded
+impl: FixerService.getService()Lcom/money/manager/ex/investment/prices/IFixerService; -> FixerService.getService
+impl: FixerService.getPricesFromJson(Lcom/google/gson/JsonObject;)Ljava/util/List; -> FixerService.getPricesFromJson
+impl: FixerService.getSecurityPriceFor(Ljava/util/Map$Entry;Ljava/lang/String;)Lcom/money/manager/ex/investment/SecurityPriceModel; -> FixerService.getSecurityPriceFor
+impl: ExchangeRateUpdaterBase.<init>(Landroid/content/Context;)V -> ExchangeRateUpdaterBase.<init>
+impl: MorningstarPriceUpdater.<init>(Landroid/content/Context;)V -> MorningstarPriceUpdater.<init>
+impl: MorningstarPriceUpdater.downloadPrices(Ljava/util/List;)V -> MorningstarPriceUpdater.downloadPrices
+impl: MorningstarPriceUpdater.processInParallel(Ljava/util/List;)V -> MorningstarPriceUpdater.processInParallel
+impl: MorningstarPriceUpdater.parse(Ljava/lang/String;Ljava/lang/String;)Lcom/money/manager/ex/investment/events/PriceDownloadedEvent; -> MorningstarPriceUpdater.parse
+impl: MorningstarPriceUpdater.finishIfAllDone()V -> MorningstarPriceUpdater.finishIfAllDone
+impl: MorningstarPriceUpdater.savePrice(Lcom/money/manager/ex/investment/events/PriceDownloadedEvent;)V -> MorningstarPriceUpdater.savePrice
+impl: MorningstarPriceUpdater.getMorningstarService()Lcom/money/manager/ex/investment/morningstar/IMorningstarService; -> MorningstarPriceUpdater.getMorningstarService
+impl: MorningstarPriceUpdater$1.<init>(Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;Ljava/lang/String;)V -> MorningstarPriceUpdater$1.<init>
+impl: MorningstarPriceUpdater$1.onCompleted()V -> MorningstarPriceUpdater$1.onCompleted
+impl: MorningstarPriceUpdater$1.onError(Ljava/lang/Throwable;)V -> MorningstarPriceUpdater$1.onError
+impl: MorningstarPriceUpdater$1.onNext(Ljava/lang/String;)V -> MorningstarPriceUpdater$1.onNext
+impl: MorningstarPriceUpdater_MembersInjector.<init>(Ljavax/inject/Provider;Ljavax/inject/Provider;)V -> MorningstarPriceUpdater_MembersInjector.<init>
+impl: MorningstarPriceUpdater_MembersInjector.create(Ljavax/inject/Provider;Ljavax/inject/Provider;)Ldagger/MembersInjector; -> MorningstarPriceUpdater_MembersInjector.create
+impl: MorningstarPriceUpdater_MembersInjector.injectMembers(Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;)V -> MorningstarPriceUpdater_MembersInjector.injectMembers
+impl: MorningstarPriceUpdater_MembersInjector.injectStockRepository(Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;Ldagger/Lazy;)V -> MorningstarPriceUpdater_MembersInjector.injectStockRepository
+impl: MorningstarPriceUpdater_MembersInjector.injectStockHistoryRepository(Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;Ldagger/Lazy;)V -> MorningstarPriceUpdater_MembersInjector.injectStockHistoryRepository
+impl: MorningstarPriceUpdater$2.<init>(Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater;Ljava/lang/String;)V -> MorningstarPriceUpdater$2.<init>
+impl: MorningstarPriceUpdater$2.call(Ljava/lang/String;)V -> MorningstarPriceUpdater$2.call
+impl: SymbolConverter.<init>()V -> SymbolConverter.<init>
+impl: SymbolConverter.convert(Ljava/lang/String;)Ljava/lang/String; -> SymbolConverter.convert
+impl: SymbolConverter.getYahooSymbol(Ljava/lang/String;)Ljava/lang/String; -> SymbolConverter.getYahooSymbol
+impl: SymbolConverter.initializeMap()V -> SymbolConverter.initializeMap
+impl: MorningstarPriceUpdater_Factory.<init>(Ljavax/inject/Provider;Ljavax/inject/Provider;Ljavax/inject/Provider;)V -> MorningstarPriceUpdater_Factory.<init>
+impl: MorningstarPriceUpdater_Factory.get()Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater; -> MorningstarPriceUpdater_Factory.get
+impl: MorningstarPriceUpdater_Factory.create(Ljavax/inject/Provider;Ljavax/inject/Provider;Ljavax/inject/Provider;)Ldagger/internal/Factory; -> MorningstarPriceUpdater_Factory.create
+impl: MorningstarPriceUpdater_Factory.newMorningstarPriceUpdater(Landroid/content/Context;)Lcom/money/manager/ex/investment/morningstar/MorningstarPriceUpdater; -> MorningstarPriceUpdater_Factory.newMorningstarPriceUpdater
+
+== section 6: $1 and $2 numbering (class-file method tables above, section 4)
+MorningstarPriceUpdater$1 has onCompleted, onError, onNext(String) = Subscriber<String> (matches the subscribe chain at MorningstarPriceUpdater.java:193-213).
+MorningstarPriceUpdater$2 has call(String) = Action1<String> (matches doOnNext at MorningstarPriceUpdater.java:185-190).
+FixerService$1 has onResponse and onFailure = retrofit2 Callback<JsonElement> (FixerService.java:76-87).

@@ -1,0 +1,89 @@
+# label_112.grep.txt: evidence for batch 112 (the four UNREACHABLE decisions) and one interface check behind the cha dispatch note in label_112.md.
+# Searches: grep -rn -F over SRC (every file type, so res/ XML is included) unless noted; sections 6-7 are python3 -I scans of graphs/MMEX/auto_calls.json (calls list).
+# APP = final_java_only/MMEX/app/MMEX-#v2024.06.14/app   (SRC = APP/src/main; B = SRC/java/com/money/manager/ex)
+
+## 1. 'RecurringTransactionService(' in SRC: every constructor call, and the two declarations (servicelayer/RecurringTransactionService.java:47 and :52)
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java:1281:            RecurringTransactionService service = new RecurringTransactionService(scheduledTransactionId, this);
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/servicelayer/RecurringTransactionService.java:47:    public RecurringTransactionService(Context context){
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/servicelayer/RecurringTransactionService.java:52:    public RecurringTransactionService(int recurringTransactionId, Context context){
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/CheckingTransactionEditActivity.java:238:        RecurringTransactionService recurringTransaction = new RecurringTransactionService(mScheduledTransactionId, this);
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/CheckingTransactionEditActivity.java:700:            RecurringTransactionService service = new RecurringTransactionService(mScheduledTransactionId, this);
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/recurring/transactions/RecurringTransactionEditActivity.java:451:            RecurringTransactionService recurringTransaction = new RecurringTransactionService(recurringTransactionId, this);
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/recurring/transactions/RecurringTransactionListFragment.java:312:                        RecurringTransactionService recurringTransaction = new RecurringTransactionService(id, getActivity());
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/recurring/transactions/RecurringTransactionListFragment.java:341:                        RecurringTransactionService recurringTransaction = new RecurringTransactionService(id, getActivity());
+(end 1)
+
+## 2. 'extends RecurringTransactionService' in SRC (a subclass could call super(Context)); no output means no subclass
+(end 2)
+
+## 3a. files in SRC that name RecurringTransactionService (every file type)
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/servicelayer/RecurringTransactionService.java
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/CheckingTransactionEditActivity.java
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/recurring/transactions/RecurringTransactionListFragment.java
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/recurring/transactions/RecurringTransactionEditActivity.java
+(end 3a)
+
+## 3b. '.load(' and '::load' in the four caller files (MainActivity, CheckingTransactionEditActivity, RecurringTransactionListFragment, RecurringTransactionEditActivity)
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java:559:        getDatabases().load();
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java:1264:            RecurringTransaction scheduledTrx = scheduledRepo.load(scheduledTransactionId); // copy
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/recurring/transactions/RecurringTransactionEditActivity.java:442:        mCommon.transactionEntity = repo.load(recurringTransactionId);
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/recurring/transactions/RecurringTransactionListFragment.java:429:        RecurringTransaction tx = repo.load(scheduledTransactionId);
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/CheckingTransactionEditActivity.java:391:        AccountTransaction tx = repo.load(transId);
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/CheckingTransactionEditActivity.java:432:        RecurringTransaction recurringTx = repo.load(scheduledTransactionId);
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/CheckingTransactionEditActivity.java:714:        Payee payee = payeeRepository.load(mCommon.transactionEntity.getPayeeId());
+(end 3b)
+
+## 3c. declared repository variables in the same four files (the .load calls in 3b are on these, not on a service)
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java:1251:        RecurringTransactionRepository scheduledRepo = new RecurringTransactionRepository(getApplicationContext());
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/recurring/transactions/RecurringTransactionEditActivity.java:441:        RecurringTransactionRepository repo = new RecurringTransactionRepository(this);
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/recurring/transactions/RecurringTransactionEditActivity.java:600:        RecurringTransactionRepository repo = new RecurringTransactionRepository(this);
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/recurring/transactions/RecurringTransactionListFragment.java:428:        RecurringTransactionRepository repo = new RecurringTransactionRepository(getActivity());
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/CheckingTransactionEditActivity.java:431:        RecurringTransactionRepository repo = new RecurringTransactionRepository(this);
+(end 3c)
+
+## 3d. calls on service variables (service, recurringTransaction) in the same four files
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/recurring/transactions/RecurringTransactionListFragment.java:313:                        recurringTransaction.delete();
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/recurring/transactions/RecurringTransactionListFragment.java:342:                        recurringTransaction.moveNextOccurrence();
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java:1282:            service.moveNextOccurrence();
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/CheckingTransactionEditActivity.java:239:        ArrayList<ISplitTransaction> splitTemplates = recurringTransaction.loadSplitTransactions();
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/CheckingTransactionEditActivity.java:701:            service.moveNextOccurrence();
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/recurring/transactions/RecurringTransactionEditActivity.java:452:            mCommon.mSplitTransactions = recurringTransaction.loadSplitTransactions();
+(end 3d)
+
+## 4. 'getRecurrenceLocalizedName' in SRC (every file type): the declaration only
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/servicelayer/RecurringTransactionService.java:335:    public String getRecurrenceLocalizedName(int repeat) {
+(end 4)
+
+## 5. 'createCreditCardHeader' in SRC (every file type): the declaration only
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/servicelayer/qif/QifHeader.java:131:    private String createCreditCardHeader() {
+(end 5)
+
+## 6. auto_calls.json: outgoing CALL records whose src is one of the four candidates (python3 -I)
+outgoing records: 4
+  RecurringTransactionService.<init>(Context) -> ServiceBase.<init> RecurringTransactionService.java 48 exact
+  RecurringTransactionService.load -> RecurringTransactionRepository.load RecurringTransactionService.java 168 exact
+  RecurringTransactionService.load -> RecurringTransactionService.getRepository RecurringTransactionService.java 168 exact
+  RecurringTransactionService.getRecurrenceLocalizedName -> ServiceBase.getContext RecurringTransactionService.java 345 exact
+(end 6)
+
+## 7. auto_calls.json: incoming CALL records whose dst is one of the four candidates; lambdas, receiver_variants and framework_calls mentions (python3 -I)
+incoming records: 0
+lambdas mentions: {'RecurringTransactionService': 0, 'createCreditCardHeader': 0, 'getRecurrenceLocalizedName': 0}
+receiver_variants mentions: {'RecurringTransactionService': 0, 'createCreditCardHeader': 0, 'getRecurrenceLocalizedName': 0}
+framework_calls mentions: {'RecurringTransactionService': 12, 'createCreditCardHeader': 1, 'getRecurrenceLocalizedName': 1}
+(end 7)
+
+## 8. 'IQifGenerator' in SRC java: the interface and its implementations (cha dispatch note for QifGenerator.createFromAdapter)
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/servicelayer/qif/IQifGenerator.java:27:public interface IQifGenerator {
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/servicelayer/qif/QifGenerator.java:34:public class QifGenerator implements IQifGenerator {
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/servicelayer/qif/QifExport.java:61:        IQifGenerator generator = getQifGenerator();
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/servicelayer/qif/QifExport.java:117:    private IQifGenerator getQifGenerator() {
+(end 8)
+
+## 9. auto_calls.json framework_calls keys for the four candidates (python3 -I; each value is the list of framework callees of that method; these are not CALL records to app methods, so D14 does not cut them)
+framework_calls keys for candidates: 2
+  RecurringTransactionService.getRecurrenceLocalizedName -> ['Context.getResources', 'Resources.getStringArray']
+  QifHeader.createCreditCardHeader -> ['StringBuilder.<init>']
+framework_calls keys with RecurringTransactionService.: 12
+(end 9)

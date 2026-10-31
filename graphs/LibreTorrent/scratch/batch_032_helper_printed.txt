@@ -1,0 +1,30 @@
+LibreTorrent batch 32 — command record and source evidence
+
+Plan membership command:
+`awk -F '\t' '$1==32 {print $3 "\t" $4}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv`
+
+The command output is the 40-row ordered method/signature list in `batch_032_helper.md`'s table; the plan TSV was the only membership source.
+
+Source excerpts printed and read:
+`nl -ba "$SRC/core/model/data/entity/Torrent.java" | sed -n '68,195p'`
+`nl -ba "$SRC/core/model/data/entity/TorrentTagInfo.java" | sed -n '45,90p'`
+`nl -ba "$SRC/core/model/data/metainfo/BencodeFileItem.java" | sed -n '30,130p'`
+`nl -ba "$SRC/core/model/data/metainfo/TorrentMetaInfo.java" | sed -n '55,210p'`
+`nl -ba "$SRC/core/model/filetree/BencodeFileTree.java" | sed -n '25,55p'`
+
+`SRC` is `/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent`.
+
+Printed source facts supporting the report:
+- Torrent parcel read/write and CREATOR: `Torrent.java:103-170`. The focused app Intent search found torrent ID extras in MainActivity/TorrentNotifier, not a Torrent Parcelable transport.
+- TorrentTagInfo constructor and value methods: `TorrentTagInfo.java:48-87`; repository constructions are at `TorrentRepositoryImpl.java:123-137`.
+- BencodeFileItem constructors, getters/setters, parcel hooks, comparison and text conversion: `BencodeFileItem.java:31-127`. `Utils.java:145` constructs items from file storage.
+- TorrentMetaInfo constructors and metadata extraction helper: `TorrentMetaInfo.java:57-111`; Parcel methods and typed-list dispatch: `113-163`; equality/hash/toString: `165-209`.
+- BencodeFileTree target constructor: `BencodeFileTree.java:40-43`; source search found its construction in `BencodeFileTreeUtils.java:124-125`.
+
+Focused call-site command:
+`rg -n '\\bTorrentTagInfo\\b|\\bBencodeFileItem\\b|\\bTorrentMetaInfo\\b|\\bBencodeFileTree\\b|new Torrent\\(' "$SRC" | head -180`
+The printed output includes TorrentMetaInfo construction in TorrentEngine, TorrentSessionImpl, TorrentDownloadImpl, FeedDownloaderWorker, and AddTorrentViewModel; BencodeFileItem construction in Utils; BencodeFileTree construction in AddTorrentViewModel and BencodeFileTreeUtils; and TorrentTagInfo construction in TorrentRepositoryImpl.
+
+Focused Torrent Intent command:
+`rg -n 'putExtra\\([^\\n]*Torrent|putParcelable\\([^\\n]*Torrent|new BencodeFileItem|new BencodeFileTree\\(' "$SRC" | head -90`
+The printed output shows MainActivity and TorrentNotifier passing `TAG_TORRENT_ID` strings; it shows BencodeFileTree construction. It does not establish Parcelable transport for Torrent. No coverage artifacts were read. No graph, notes, or out files were edited.

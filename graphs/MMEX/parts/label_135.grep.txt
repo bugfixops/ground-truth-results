@@ -1,0 +1,164 @@
+label_135 grep evidence (batch 135). Source root: final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java (paths below are relative to it).
+
+Section 1. grep -rn "getPurpose" (YesNoDialog.getPurpose: only the definition, no caller)
+com/money/manager/ex/transactions/YesNoDialog.java:53:    public String getPurpose() {
+
+Section 2. grep -rn "unbind\|Unbinder" (TutorialActivity_ViewBinding.unbind: no caller in the source root; the ButterKnife bind result is discarded at TutorialActivity.java:57)
+(end of section 2)
+
+Section 3. grep -rn "getPageTitle\|PagerTitleStrip\|PagerTabStrip\|TabLayout" over the source root, then the widget tags of res/layout/activity_tutorial.xml
+com/money/manager/ex/tutorial/TutorialPagerAdapter.java:68:    public CharSequence getPageTitle(int position) {
+com/money/manager/ex/about/AboutTabAdapter.java:66:    public CharSequence getPageTitle(int position) {
+com/money/manager/ex/about/AboutActivity.java:21:import com.google.android.material.tabs.TabLayout;
+com/money/manager/ex/about/AboutActivity.java:54:        TabLayout tabLayout = findViewById(R.id.tabs);
+-- activity_tutorial.xml widget tags:
+16:  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+18:<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+24:    <RelativeLayout
+29:        <androidx.viewpager.widget.ViewPager
+34:        <me.relex.circleindicator.CircleIndicator
+42:        <TextView
+
+Section 4. grep -rn "TutorialActivity" over the source root (who starts or names the tutorial activity)
+com/money/manager/ex/home/MainActivity.java:109:import com.money.manager.ex.tutorial.TutorialActivity;
+com/money/manager/ex/home/MainActivity.java:813:        Intent intent = new Intent(this, TutorialActivity.class);
+com/money/manager/ex/tutorial/TutorialActivity.java:41:public class TutorialActivity
+
+Section 5. grep -rn "showTutorial\|getShowTutorial\|isTutorialNeeded\|setShowTutorial" over the source root
+com/money/manager/ex/settings/BehaviourSettings.java:86:    public Boolean getShowTutorial() {
+com/money/manager/ex/settings/BehaviourSettings.java:90:    public void setShowTutorial(boolean value) {
+com/money/manager/ex/home/MainActivity.java:812:    public void showTutorial() {
+com/money/manager/ex/home/MainActivity.java:1351:    private boolean isTutorialNeeded() {
+com/money/manager/ex/home/MainActivity.java:1352:        return new AppSettings(this).getBehaviourSettings().getShowTutorial();
+com/money/manager/ex/home/MainActivity.java:1480:        if (isTutorialNeeded()) {
+com/money/manager/ex/home/MainActivity.java:1481:            showTutorial();
+com/money/manager/ex/tutorial/TutorialActivity.java:84:            new AppSettings(this).getBehaviourSettings().setShowTutorial(false);
+
+Section 6. grep -rn for the constructors of the five events and the onItemDismiss caller
+com/money/manager/ex/transactions/SplitItemTouchCallback.java:76:        mAdapter.onItemDismiss(viewHolder.getAdapterPosition());
+com/money/manager/ex/transactions/SplitItemTouchAdapter.java:29:    void onItemDismiss(int position);
+com/money/manager/ex/transactions/SplitCategoriesAdapter.java:174:                EventBus.getDefault().post(new AmountEntryRequestedEvent(viewHolder.getAdapterPosition(), amount));
+com/money/manager/ex/transactions/SplitCategoriesAdapter.java:185:                EventBus.getDefault().post(new CategoryRequestedEvent(holder.getAdapterPosition()));
+com/money/manager/ex/transactions/SplitCategoriesAdapter.java:252:    public void onItemDismiss(int position) {
+com/money/manager/ex/transactions/SplitCategoriesAdapter.java:255:        EventBus.getDefault().post(new SplitItemRemovedEvent(tx));
+com/money/manager/ex/transactions/YesNoDialog.java:73:                        EventBus.getDefault().post(new DialogPositiveClickedEvent());
+com/money/manager/ex/transactions/YesNoDialog.java:81:                        EventBus.getDefault().post(new DialogNegativeClickedEvent());
+
+Section 7. grep -rn "YesNoDialog" (YesNoDialog creation site: EditTransactionCommonFunctions.java:1452)
+com/money/manager/ex/transactions/EditTransactionCommonFunctions.java:1452:            DialogFragment dialog = new YesNoDialog();
+com/money/manager/ex/transactions/EditTransactionCommonFunctions.java:1456:            args.putString("purpose", YesNoDialog.PURPOSE_DELETE_SPLITS_WHEN_SWITCHING_TO_TRANSFER);
+com/money/manager/ex/transactions/YesNoDialog.java:34:public class YesNoDialog
+com/money/manager/ex/transactions/YesNoDialog.java:39:    public YesNoDialog() {
+
+Section 8. grep -n "setResult\|finish()" GeneralSettingsActivity.java and BaseSettingsFragmentActivity.java (none: the child sets no result, so the framework delivers RESULT_CANCELED)
+(end of section 8)
+
+Section 9. generated ButterKnife classes (bytecode only, not in the source root)
+TutorialActivity_ViewBinding$1.class
+TutorialActivity_ViewBinding.class
+YesNoDialog$1.class
+YesNoDialog$2.class
+YesNoDialog.class
+
+Section 10. auto_calls.json records for the batch (src -> dst, file, line)
+HomeFragment$4.onSuccess -> UsernameLoadedEvent.<init> HomeFragment.java 653
+HomeFragment$6.onChildClick -> RequestAccountFragmentEvent.<init> HomeFragment.java 702
+HomeFragment$6.onChildClick -> RequestWatchlistFragmentEvent.<init> HomeFragment.java 700
+HomeFragment.onLoadFinished -> AccountsTotalLoadedEvent.<init> HomeFragment.java 297
+HomeFragment.onContextItemSelected -> RequestPortfolioFragmentEvent.<init> HomeFragment.java 474
+TutorialActivity_ViewBinding$1.doClick -> TutorialActivity.onCloseClicked TutorialActivity_ViewBinding.java 34
+TutorialActivity_ViewBinding.<init>(TutorialActivity) -> TutorialActivity_ViewBinding.<init>(TutorialActivity,View) TutorialActivity_ViewBinding.java 21
+TutorialActivity_ViewBinding.<init>(TutorialActivity,View) -> TutorialActivity_ViewBinding$1.<init> TutorialActivity_ViewBinding.java 31
+TutorialPagerAdapter.getItem -> TutorialAccountsFragment.<init> TutorialPagerAdapter.java 56
+TutorialPagerAdapter.getItem -> TutorialSyncFragment.newInstance TutorialPagerAdapter.java 53
+TutorialPagerAdapter.getItem -> TutorialFinancialOverviewFragment.newInstance TutorialPagerAdapter.java 50
+TutorialPagerAdapter.getItem -> TutorialGlobalFragment.newInstance TutorialPagerAdapter.java 47
+TutorialPagerAdapter.getItem -> TutorialTransactionsFragment.newInstance TutorialPagerAdapter.java 44
+TutorialActivity.onCreate -> TutorialPagerAdapter.<init> TutorialActivity.java 62
+TutorialActivity.onActivityResult -> TutorialActivity.startMainActivity TutorialActivity.java 86
+TutorialActivity.onActivityResult -> BehaviourSettings.setShowTutorial TutorialActivity.java 84
+TutorialActivity.onActivityResult -> AppSettings.getBehaviourSettings TutorialActivity.java 84
+TutorialActivity.onActivityResult -> AppSettings.<init> TutorialActivity.java 84
+TutorialFinancialOverviewFragment.newInstance -> TutorialFinancialOverviewFragment.<init> TutorialFinancialOverviewFragment.java 41
+TutorialGlobalFragment.newInstance -> TutorialGlobalFragment.<init> TutorialGlobalFragment.java 42
+PriceCsvParser.parse -> PriceDownloadedEvent.<init> PriceCsvParser.java 97
+EditPriceDialog.createNewEntity -> PriceDownloadedEvent.<init> EditPriceDialog.java 193
+FixerService.onContentDownloaded -> PriceDownloadedEvent.<init> FixerService.java 120
+YahooCsvQuoteDownloaderRetrofit.finishIfAllDone -> AllPricesDownloadedEvent.<init> YahooCsvQuoteDownloaderRetrofit.java 100
+MorningstarPriceUpdater.parse -> PriceDownloadedEvent.<init> MorningstarPriceUpdater.java 260
+MorningstarPriceUpdater.finishIfAllDone -> AllPricesDownloadedEvent.<init> MorningstarPriceUpdater.java 274
+PriceDownloadedEvent$$Parcelable.read -> PriceDownloadedEvent.<init> PriceDownloadedEvent$$Parcelable.java 83
+WatchlistItemsFragment.onContextItemSelected -> PriceUpdateRequestEvent.<init> WatchlistItemsFragment.java 236
+YqlSecurityPriceUpdaterRetrofit.onContentDownloaded -> PriceDownloadedEvent.<init> YqlSecurityPriceUpdaterRetrofit.java 130
+SplitItemTouchCallback.onSwiped -> SplitCategoriesAdapter.onItemDismiss SplitItemTouchCallback.java 76
+YesNoDialog$1.onClick -> DialogNegativeClickedEvent.<init> YesNoDialog.java 81
+SplitCategoriesAdapter.onItemDismiss -> SplitItemRemovedEvent.<init> SplitCategoriesAdapter.java 255
+YesNoDialog$2.onClick -> DialogPositiveClickedEvent.<init> YesNoDialog.java 73
+SplitCategoriesAdapter$1.onClick -> AmountEntryRequestedEvent.<init> SplitCategoriesAdapter.java 174
+YesNoDialog.onCreateDialog -> YesNoDialog$1.<init> YesNoDialog.java 68
+YesNoDialog.onCreateDialog -> YesNoDialog$2.<init> YesNoDialog.java 67
+EditTransactionCommonFunctions.onTransferSelected -> YesNoDialog.<init> EditTransactionCommonFunctions.java 1452
+SplitCategoriesActivity.onEvent(SplitItemRemovedEvent) -> SplitCategoriesActivity.onRemoveItem SplitCategoriesActivity.java 202
+SplitCategoriesAdapter$2.onClick -> CategoryRequestedEvent.<init> SplitCategoriesAdapter.java 185
+AmountInputDialog$7.onClick -> AmountEnteredEvent.<init> AmountInputDialog.java 260
+ScreenTree.log -> ErrorRaisedEvent.<init> ScreenTree.java 27
+CrashReportingTree.log -> ErrorRaisedEvent.<init> CrashReportingTree.java 56
+DebugTree.log -> ErrorRaisedEvent.<init> DebugTree.java 46
+SyncService.sendStartEvent -> SyncStartingEvent.<init> SyncService.java 241
+SyncService.sendStopEvent -> SyncStoppingEvent.<init> SyncService.java 247
+CloudItemViewHolder$1.onClick -> ListItemClickedEvent.<init> CloudItemViewHolder.java 52
+SyncServiceMessageHandler.handleMessage -> DbFileDownloadedEvent.<init> SyncServiceMessageHandler.java 89
+CalculateRunningBalanceTask2.onPostExecute -> RunningBalanceCalculatedEvent.<init> CalculateRunningBalanceTask2.java 99
+CurrencyUIFeatures$7.onClick -> ExchangeRateUpdateConfirmedEvent.<init> CurrencyUIFeatures.java 169
+CurrencyUIFeatures$3.onClick -> CurrencyDeletionConfirmedEvent.<init> CurrencyUIFeatures.java 123
+CurrencyUIFeatures$9.onClick -> ExchangeRateUpdateConfirmedEvent.<init> CurrencyUIFeatures.java 199
+CurrencyRecyclerListFragment$1.onItemClick -> ListItemClickedEvent.<init> CurrencyRecyclerListFragment.java 375
+BudgetListFragment.onListItemClick -> BudgetSelectedEvent.<init> BudgetListFragment.java 215
+
+Section 11. framework lines (FW-SRC fw_src/android-8.1.0_r1)
+-- Activity.java 3386-3390 (onCreatePanelMenu calls onCreateOptionsMenu)
+    public boolean onCreatePanelMenu(int featureId, Menu menu) {
+        if (featureId == Window.FEATURE_OPTIONS_PANEL) {
+            boolean show = onCreateOptionsMenu(menu);
+            show |= mFragments.dispatchCreateOptionsMenu(menu, getMenuInflater());
+            return show;
+-- Activity.java 3439-3450 (onMenuItemSelected reaches onOptionsItemSelected)
+1:    public boolean onMenuItemSelected(int featureId, MenuItem item) {
+4:        switch (featureId) {
+12:                if (onOptionsItemSelected(item)) {
+-- Activity.java 7259-7266 (dispatchActivityResult calls onActivityResult)
+    void dispatchActivityResult(String who, int requestCode,
+        int resultCode, Intent data) {
+        if (false) Log.v(
+            TAG, "Dispatching result: who=" + who + ", reqCode=" + requestCode
+            + ", resCode=" + resultCode + ", data=" + data);
+        mFragments.noteStateNotSaved();
+        if (who == null) {
+            onActivityResult(requestCode, resultCode, data);
+-- PhoneWindow.java 1916-1918 (KEYCODE_MENU opens the options panel)
+                }
+                return false;
+            }
+
+            case KeyEvent.KEYCODE_MENU: {
+                onKeyDownPanel((featureId < 0) ? FEATURE_OPTIONS_PANEL : featureId, event);
+                return true;
+-- AlertController.java 125-130 (mButtonHandler.onClick)
+    private final View.OnClickListener mButtonHandler = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            final Message m;
+            if (v == mButtonPositive && mButtonPositiveMessage != null) {
+                m = Message.obtain(mButtonPositiveMessage);
+-- AlertController.java 158-168 (handleMessage calls the button listener onClick)
+
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+
+                case DialogInterface.BUTTON_POSITIVE:
+                case DialogInterface.BUTTON_NEGATIVE:
+                case DialogInterface.BUTTON_NEUTRAL:
+                    ((DialogInterface.OnClickListener) msg.obj).onClick(mDialog.get(), msg.what);
+                    break;
+

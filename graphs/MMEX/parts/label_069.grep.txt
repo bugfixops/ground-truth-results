@@ -1,0 +1,316 @@
+label_069 grep evidence: batch 069 (RecurringTransaction setters 41-57 of 57, and the generated Parceler classes
+RecurringTransaction$$Parcelable and RecurringTransaction$$Parcelable$1).
+Method: python3 -I scan equivalent to grep -rn over the named roots (no grep binary run; the scan script is in the session scratchpad).
+Roots: SRC = final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex ; FW = fw_src/android-8.1.0_r1 ;
+generated classes = final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/domainmodel/ (INFERRED; no javap).
+
+=== section A: the RecurringTransaction saved-state route in RecurringTransactionEditActivity
+$ scan (python3 re, grep -rn equivalent): Parcels.wrap / unwrap in RecurringTransactionEditActivity
+   pattern: Parcels\.(wrap|unwrap)   files read: 1   hits: 6
+   recurring/transactions/RecurringTransactionEditActivity.java:181: outState.putParcelable(KEY_MODEL, Parcels.wrap(mCommon.transactionEntity));
+   recurring/transactions/RecurringTransactionEditActivity.java:191: outState.putParcelable(KEY_SPLIT_TRANSACTION, Parcels.wrap(mCommon.mSplitTransactions));
+   recurring/transactions/RecurringTransactionEditActivity.java:192: outState.putParcelable(KEY_SPLIT_TRANSACTION_DELETED, Parcels.wrap(mCommon.mSplitTransactionsDeleted));
+   recurring/transactions/RecurringTransactionEditActivity.java:549: mCommon.transactionEntity = Parcels.unwrap(savedInstanceState.getParcelable(KEY_MODEL));
+   recurring/transactions/RecurringTransactionEditActivity.java:555: mCommon.mSplitTransactions = Parcels.unwrap(savedInstanceState.getParcelable(KEY_SPLIT_TRANSACTION));
+   recurring/transactions/RecurringTransactionEditActivity.java:556: mCommon.mSplitTransactionsDeleted = Parcels.unwrap(savedInstanceState.getParcelable(KEY_SPLIT_TRANSACTION_DELETED));
+
+$ scan (python3 re, grep -rn equivalent): entity creation, saved key, and save/restore calls in the activity
+   pattern: initializeModel\(\)|createInstance|transactionEntity = |KEY_MODEL|restoreInstanceState\(|onSaveInstanceState|savedInstanceState != null   files read: 1   hits: 13
+   recurring/transactions/RecurringTransactionEditActivity.java:72: public static final String KEY_MODEL = "RecurringTransactionEditActivity:Model";
+   recurring/transactions/RecurringTransactionEditActivity.java:102: RecurringTransaction tx = initializeModel();
+   recurring/transactions/RecurringTransactionEditActivity.java:108: if (savedInstanceState != null) {
+   recurring/transactions/RecurringTransactionEditActivity.java:109: restoreInstanceState(savedInstanceState);
+   recurring/transactions/RecurringTransactionEditActivity.java:178: protected void onSaveInstanceState(Bundle outState) {
+   recurring/transactions/RecurringTransactionEditActivity.java:179: super.onSaveInstanceState(outState);
+   recurring/transactions/RecurringTransactionEditActivity.java:181: outState.putParcelable(KEY_MODEL, Parcels.wrap(mCommon.transactionEntity));
+   recurring/transactions/RecurringTransactionEditActivity.java:399: private RecurringTransaction initializeModel() {
+   recurring/transactions/RecurringTransactionEditActivity.java:400: RecurringTransaction tx = RecurringTransaction.createInstance();
+   recurring/transactions/RecurringTransactionEditActivity.java:442: mCommon.transactionEntity = repo.load(recurringTransactionId);
+   recurring/transactions/RecurringTransactionEditActivity.java:547: private void restoreInstanceState(Bundle savedInstanceState) {
+   recurring/transactions/RecurringTransactionEditActivity.java:549: mCommon.transactionEntity = Parcels.unwrap(savedInstanceState.getParcelable(KEY_MODEL));
+   recurring/transactions/RecurringTransactionEditActivity.java:604: mCommon.transactionEntity = repo.insert((RecurringTransaction) mCommon.transactionEntity);
+
+=== section B: every Parcels.wrap / unwrap call in SRC
+$ scan (python3 re, grep -rn equivalent): every Parcels.wrap / unwrap call in SRC
+   pattern: Parcels\.(wrap|unwrap)\(   files read: 408   hits: 43
+   investment/watchlist/WatchlistFragment.java:121: mAccount = Parcels.unwrap(savedInstanceState.getParcelable(KEY_ACCOUNT));
+   investment/watchlist/WatchlistFragment.java:144: mAccount = Parcels.unwrap(savedInstanceState.getParcelable(KEY_ACCOUNT));
+   investment/watchlist/WatchlistFragment.java:280: outState.putParcelable(KEY_ACCOUNT, Parcels.wrap(mAccount));
+   core/IntentFactory.java:56: intent.putExtra(SearchActivity.EXTRA_SEARCH_PARAMETERS, Parcels.wrap(parameters));
+   core/bundlers/PriceDownloadedEventBundler.java:37: bundle.putParcelable(key, Parcels.wrap(event));
+   core/bundlers/PriceDownloadedEventBundler.java:43: return Parcels.unwrap(value);
+   search/SearchActivity.java:157: SearchParameters searchParameters = Parcels.unwrap(searchParcel);
+   search/SearchParametersFragment.java:286: savedInstanceState.putParcelable(KEY_SEARCH_CRITERIA, Parcels.wrap(searchParameters));
+   search/SearchParametersFragment.java:323: SearchParameters parameters = Parcels.unwrap(searchParcel);
+   search/SearchParametersFragment.java:340: getArguments().putParcelable(KEY_SEARCH_CRITERIA, Parcels.wrap(parameters));
+   transactions/CheckingTransactionEditActivity.java:167: Parcels.wrap(mCommon.transactionEntity));
+   transactions/CheckingTransactionEditActivity.java:175: Parcels.wrap(mCommon.mSplitTransactions));
+   transactions/CheckingTransactionEditActivity.java:177: Parcels.wrap(mCommon.mSplitTransactionsDeleted));
+   transactions/CheckingTransactionEditActivity.java:649: mCommon.transactionEntity = Parcels.unwrap(parcelTx);
+   transactions/CheckingTransactionEditActivity.java:655: mCommon.mSplitTransactions = Parcels.unwrap(savedInstanceState.getParcelable(EditTransactionActivityConstants.KEY_SPLIT_TRANSACTION));
+   transactions/CheckingTransactionEditActivity.java:657: mCommon.mSplitTransactionsDeleted = Parcels.unwrap(savedInstanceState.getParcelable(
+   transactions/EditTransactionCommonFunctions.java:890: mSplitTransactions = Parcels.unwrap(data.getParcelableExtra(SplitCategoriesActivity.INTENT_RESULT_SPLIT_TRANSACTION));
+   transactions/EditTransactionCommonFunctions.java:895: mSplitTransactionsDeleted = Parcels.unwrap(parcelDeletedSplits);
+   transactions/EditTransactionCommonFunctions.java:1522: intent.putExtra(SplitCategoriesActivity.KEY_SPLIT_TRANSACTION, Parcels.wrap(splitsToShow));
+   transactions/EditTransactionCommonFunctions.java:1523: intent.putExtra(SplitCategoriesActivity.KEY_SPLIT_TRANSACTION_DELETED, Parcels.wrap(mSplitTransactionsDeleted));
+   transactions/SplitCategoriesActivity.java:91: mAdapter.splitTransactions = Parcels.unwrap(savedInstanceState.getParcelable(KEY_SPLIT_TRANSACTION));
+   transactions/SplitCategoriesActivity.java:92: mSplitDeleted = Parcels.unwrap(savedInstanceState.getParcelable(KEY_SPLIT_TRANSACTION_DELETED));
+   transactions/SplitCategoriesActivity.java:172: result.putExtra(INTENT_RESULT_SPLIT_TRANSACTION, Parcels.wrap(allSplitTransactions));
+   transactions/SplitCategoriesActivity.java:173: result.putExtra(INTENT_RESULT_SPLIT_TRANSACTION_DELETED, Parcels.wrap(mSplitDeleted));
+   transactions/SplitCategoriesActivity.java:184: outState.putParcelable(KEY_SPLIT_TRANSACTION, Parcels.wrap(mAdapter.splitTransactions));
+   transactions/SplitCategoriesActivity.java:187: outState.putParcelable(KEY_SPLIT_TRANSACTION_DELETED, Parcels.wrap(mSplitDeleted));
+   transactions/SplitCategoriesActivity.java:247: List<ISplitTransaction> splits = Parcels.unwrap(intent.getParcelableExtra(KEY_SPLIT_TRANSACTION));
+   transactions/SplitCategoriesActivity.java:251: mSplitDeleted = Parcels.unwrap(intent.getParcelableExtra(KEY_SPLIT_TRANSACTION_DELETED));
+   common/CategoryListFragment.java:735: intent.putExtra(SearchActivity.EXTRA_SEARCH_PARAMETERS, Parcels.wrap(parameters));
+   account/AccountEditActivity.java:204: outState.putParcelable(KEY_ACCOUNT_ENTITY, Parcels.wrap(mAccount));
+   account/AccountEditActivity.java:587: Account restored = Parcels.unwrap(savedInstanceState.getParcelable(KEY_ACCOUNT_ENTITY));
+   account/FilterDialogFragment.java:73: args.putParcelable(ARG_TX_FILTER, Parcels.wrap(filter));
+   account/FilterDialogFragment.java:74: args.putParcelable(ARG_ACCOUNT, Parcels.wrap(account));
+   account/FilterDialogFragment.java:86: mTransactionFilter = Parcels.unwrap(getArguments().getParcelable(ARG_TX_FILTER));
+   account/FilterDialogFragment.java:87: mAccount = Parcels.unwrap(getArguments().getParcelable(ARG_ACCOUNT));
+   recurring/transactions/RecurringTransactionEditActivity.java:181: outState.putParcelable(KEY_MODEL, Parcels.wrap(mCommon.transactionEntity));
+   recurring/transactions/RecurringTransactionEditActivity.java:191: outState.putParcelable(KEY_SPLIT_TRANSACTION, Parcels.wrap(mCommon.mSplitTransactions));
+   recurring/transactions/RecurringTransactionEditActivity.java:192: outState.putParcelable(KEY_SPLIT_TRANSACTION_DELETED, Parcels.wrap(mCommon.mSplitTransactionsDeleted));
+   recurring/transactions/RecurringTransactionEditActivity.java:549: mCommon.transactionEntity = Parcels.unwrap(savedInstanceState.getParcelable(KEY_MODEL));
+   recurring/transactions/RecurringTransactionEditActivity.java:555: mCommon.mSplitTransactions = Parcels.unwrap(savedInstanceState.getParcelable(KEY_SPLIT_TRANSACTION));
+   recurring/transactions/RecurringTransactionEditActivity.java:556: mCommon.mSplitTransactionsDeleted = Parcels.unwrap(savedInstanceState.getParcelable(KEY_SPLIT_TRANSACTION_DELETED));
+   reports/CategoriesReportFragment.java:381: intent.putExtra(SearchActivity.EXTRA_SEARCH_PARAMETERS, Parcels.wrap(parameters));
+   reports/PayeeReportFragment.java:319: intent.putExtra(SearchActivity.EXTRA_SEARCH_PARAMETERS, Parcels.wrap(parameters));
+
+=== section C: typed-array, newArray, describeContents and generated-class references in SRC
+$ scan (python3 re, grep -rn equivalent): typed-array / newArray / describeContents / generated-class references in SRC
+   pattern: createTypedArray|readTypedArray|writeTypedArray|createTypedArrayList|newArray\(|describeContents\(|RecurringTransaction\$\$Parcelable   files read: 408   hits: 8
+   core/DefinedDateRange.java:63: public DefinedDateRange[] newArray(int size) {
+   core/DefinedDateRange.java:77: public int describeContents() {
+   search/CategorySub.java:51: public CategorySub[] newArray(int size) {
+   search/CategorySub.java:57: public int describeContents() {
+   account/StatusFilter.java:59: //        public StatusFilter[] newArray(int size) {
+   account/StatusFilter.java:145: //    public int describeContents() {
+   reports/ValuePieEntry.java:84: public int describeContents() {
+   reports/ValuePieEntry.java:98: public ValuePieEntry[] newArray(int size) {
+
+=== section D: framework callers (core/java and services/core/java)
+$ scan (python3 re, grep -rn equivalent): newArray( in framework (calls and definitions)
+   pattern: \bnewArray\(   files read: 101   hits: 34
+   core/java/android/app/AlarmManager.java:1120: public AlarmClockInfo[] newArray(int size) {
+   core/java/android/app/Fragment.java:452: public SavedState[] newArray(int size) {
+   core/java/android/app/FragmentManager.java:612: public FragmentManagerState[] newArray(int size) {
+   core/java/android/widget/AbsListView.java:1776: public SavedState[] newArray(int size) {
+   core/java/android/widget/ActionMenuPresenter.java:834: public SavedState[] newArray(int size) {
+   core/java/android/widget/DatePicker.java:779: public SavedState[] newArray(int size) {
+   core/java/android/widget/ProgressBar.java:1908: public SavedState[] newArray(int size) {
+   core/java/android/widget/SearchView.java:1399: public SavedState[] newArray(int size) {
+   core/java/android/widget/Spinner.java:940: public SavedState[] newArray(int size) {
+   core/java/android/widget/TextView.java:11642: public SavedState[] newArray(int size) {
+   core/java/android/widget/Toolbar.java:2273: public SavedState[] newArray(int size) {
+   core/java/android/content/ClipData.java:1133: public ClipData[] newArray(int size) {
+   core/java/android/content/Intent.java:861: public ShortcutIconResource[] newArray(int size) {
+   core/java/android/content/Intent.java:9603: public Intent[] newArray(int size) {
+   core/java/android/preference/DialogPreference.java:484: public SavedState[] newArray(int size) {
+   core/java/android/preference/EditTextPreference.java:234: public SavedState[] newArray(int size) {
+   core/java/android/preference/ListPreference.java:348: public SavedState[] newArray(int size) {
+   core/java/android/preference/Preference.java:2079: public BaseSavedState[] newArray(int size) {
+   core/java/android/preference/PreferenceActivity.java:536: public Header[] newArray(int size) {
+   core/java/android/preference/PreferenceScreen.java:313: public SavedState[] newArray(int size) {
+   core/java/android/preference/TwoStatePreference.java:278: public SavedState[] newArray(int size) {
+   core/java/android/appwidget/AppWidgetHostView.java:769: public ParcelableSparseArray[] newArray(int size) {
+   core/java/android/view/KeyEvent.java:2955: public KeyEvent[] newArray(int size) {
+   core/java/android/view/View.java:25155: public BaseSavedState[] newArray(int size) {
+   core/java/android/os/Bundle.java:1206: public Bundle[] newArray(int size) {
+   core/java/android/os/Message.java:564: public Message[] newArray(int size) {
+   core/java/android/os/Parcel.java:336: public String[] newArray(int size) {
+   core/java/android/os/Parcel.java:2645: T[] l = c.newArray(N);
+   core/java/com/android/internal/policy/PhoneWindow.java:3602: public SavedState[] newArray(int size) {
+   services/core/java/com/android/server/pm/PackageManagerService.java:13849: protected ActivityIntentInfo[] newArray(int size) {
+   services/core/java/com/android/server/pm/PackageManagerService.java:14081: protected PackageParser.ServiceIntentInfo[] newArray(int size) {
+   services/core/java/com/android/server/pm/PackageManagerService.java:14317: protected PackageParser.ProviderIntentInfo[] newArray(int size) {
+   services/core/java/com/android/server/pm/PackageManagerService.java:14453: protected AuxiliaryResolveInfo[] newArray(int size) {
+   services/core/java/com/android/server/am/ActivityManagerService.java:1001: protected BroadcastFilter[] newArray(int size) {
+
+$ scan (python3 re, grep -rn equivalent): describeContents() call sites in framework
+   pattern: \.describeContents\(\)   files read: 101   hits: 5
+   core/java/android/content/Intent.java:9553: return (mExtras != null) ? mExtras.describeContents() : 0;
+   core/java/android/os/Bundle.java:329: if ((((Parcelable)obj).describeContents()
+   core/java/android/os/Bundle.java:338: if (p != null && ((p.describeContents()
+   core/java/android/os/Bundle.java:349: if (p != null && (p.describeContents()
+   core/java/android/os/Bundle.java:362: if (p != null && ((p.describeContents()
+
+$ scan (python3 re, grep -rn equivalent): hasFileDescriptors() call sites in framework
+   pattern: \.hasFileDescriptors\(\)   files read: 101   hits: 23
+   core/java/android/content/Intent.java:6959: return mExtras != null && mExtras.hasFileDescriptors();
+   core/java/android/os/Bundle.java:106: if (mParcelledData.hasFileDescriptors()) {
+   core/java/android/os/Bundle.java:321: if (mParcelledData.hasFileDescriptors()) {
+   services/core/java/com/android/server/am/ActivityManagerService.java:4652: if (fillInIntent != null && fillInIntent.hasFileDescriptors()) {
+   services/core/java/com/android/server/am/ActivityManagerService.java:4797: if (intent != null && intent.hasFileDescriptors() == true) {
+   services/core/java/com/android/server/am/ActivityManagerService.java:5030: if (resultData != null && resultData.hasFileDescriptors() == true) {
+   services/core/java/com/android/server/am/ActivityManagerService.java:7453: if (icicle != null && icicle.hasFileDescriptors()) {
+   services/core/java/com/android/server/am/ActivityManagerService.java:7588: if (intent.hasFileDescriptors()) {
+   services/core/java/com/android/server/am/ActivityManagerService.java:7605: if (bOptions.hasFileDescriptors()) {
+   services/core/java/com/android/server/am/ActivityManagerService.java:18262: if (service != null && service.hasFileDescriptors() == true) {
+   services/core/java/com/android/server/am/ActivityManagerService.java:18311: if (service != null && service.hasFileDescriptors() == true) {
+   services/core/java/com/android/server/am/ActivityManagerService.java:18324: if (service != null && service.hasFileDescriptors() == true) {
+   services/core/java/com/android/server/am/ActivityManagerService.java:18413: if (service != null && service.hasFileDescriptors() == true) {
+   services/core/java/com/android/server/am/ActivityManagerService.java:18435: if (intent != null && intent.hasFileDescriptors() == true) {
+   services/core/java/com/android/server/am/ActivityManagerService.java:18449: if (intent != null && intent.hasFileDescriptors() == true) {
+   services/core/java/com/android/server/am/ActivityManagerService.java:19783: if (intent != null && intent.hasFileDescriptors() == true) {
+   services/core/java/com/android/server/am/ActivityManagerService.java:19868: if (intent != null && intent.hasFileDescriptors() == true) {
+   services/core/java/com/android/server/am/ActivityManagerService.java:19919: if (resultExtras != null && resultExtras.hasFileDescriptors()) {
+   services/core/java/com/android/server/am/ActivityManagerService.java:19959: if (arguments != null && arguments.hasFileDescriptors()) {
+   services/core/java/com/android/server/am/ActivityManagerService.java:20077: if (results != null && results.hasFileDescriptors()) {
+   services/core/java/com/android/server/am/ActivityManagerService.java:20132: if (results != null && results.hasFileDescriptors()) {
+   services/core/java/com/android/server/am/ActivityStarter.java:681: if (intent != null && intent.hasFileDescriptors()) {
+   services/core/java/com/android/server/am/ActivityStarter.java:919: if (intent != null && intent.hasFileDescriptors()) {
+
+=== section E: auto_calls.json records naming describeContents, newArray or RecurringTransaction$$Parcelable
+   records naming describeContents or newArray: 0
+   records naming RecurringTransaction$$Parcelable (src or dst): 6
+   RecurringTransaction$$Parcelable.writeToParcel -> RecurringTransaction$$Parcelable.write  RecurringTransaction$$Parcelable.java:45
+   RecurringTransaction$$Parcelable.read -> RecurringTransaction.<init>  RecurringTransaction$$Parcelable.java:78
+   RecurringTransaction$$Parcelable.<clinit> -> RecurringTransaction$$Parcelable$1.<init>  RecurringTransaction$$Parcelable.java:23
+   RecurringTransaction$$Parcelable$1.createFromParcel -> RecurringTransaction$$Parcelable.<clinit>  RecurringTransaction$$Parcelable.java:28
+   RecurringTransaction$$Parcelable$1.createFromParcel -> RecurringTransaction$$Parcelable.<init>  RecurringTransaction$$Parcelable.java:28
+   RecurringTransaction$$Parcelable$1.createFromParcel -> RecurringTransaction$$Parcelable.read  RecurringTransaction$$Parcelable.java:28
+
+=== section F: generated class file bytes (INFERRED; parsed from the build class files with a python3 -I struct reader)
+   class file RecurringTransaction$$Parcelable.class
+      <init> (Lcom/money/manager/ex/domainmodel/RecurringTransaction;)V acc=0x1 code=2ab700012a2bb50007b1
+      writeToParcel (Landroid/os/Parcel;I)V acc=0x1 code=2ab400072b1cbb000d59b7000fb80010b1
+      write (Lcom/money/manager/ex/domainmodel/RecurringTransaction;Landroid/os/Parcel;ILorg/parceler/IdentityCollection;)V acc=0x9 code=2d2ab6001436041504029f000c2b1504b60018a700152b2d2ab6001eb600182b2ab400211cb60027b1
+      describeContents ()I acc=0x1 code=03ac
+      getParcel ()Lcom/money/manager/ex/domainmodel/RecurringTransaction; acc=0x1 code=2ab40007b0
+      read (Landroid/os/Parcel;Lorg/parceler/IdentityCollection;)Lcom/money/manager/ex/domainmodel/RecurringTransaction; acc=0x9 code=2ab6002b3d2b1cb6002f99001e2b1cb6003399000dbb0036591238b7003abf2b1cb6003dc00022b02bb600413604bb002259b700444e2b15042db600452d2a1208b60048b6004ec00052b500212d3a052b1c1905b600451905b0
+      getParcel ()Ljava/lang/Object; acc=0x1041 code=2ab60054b0
+      <clinit> ()V acc=0x8 code=bb005859b7005ab3005bb1
+   class file RecurringTransaction$$Parcelable$1.class
+      <init> ()V acc=0x0 code=2ab70001b1
+      createFromParcel (Landroid/os/Parcel;)Lcom/money/manager/ex/domainmodel/RecurringTransaction$$Parcelable; acc=0x1 code=bb0007592bbb000959b7000bb8000cb70010b0
+      newArray (I)[Lcom/money/manager/ex/domainmodel/RecurringTransaction$$Parcelable; acc=0x1 code=1bbd0007b0
+      newArray (I)[Ljava/lang/Object; acc=0x1041 code=2a1bb60013b0
+      createFromParcel (Landroid/os/Parcel;)Ljava/lang/Object; acc=0x1041 code=2a2bb60019b0
+
+=== section G: methods.csv rows naming RecurringTransaction$$Parcelable
+   methods.csv data rows: 4270
+   header: method,verdict,unreachable_kind,unreachable_reason,env_kinds,env,state_kinds,state,route_edge_classes,explicit_standard_route,confirmed_by,source_ref,path_status,steps_from_launch,gui_steps_on_shortes
+   RecurringTransaction$$Parcelable.<clinit>,UNRESOLVED,,,,,,,,no,INFERRED,,UNCHECKED,,,,,1,,()V
+   RecurringTransaction$$Parcelable.<init>,UNRESOLVED,,,,,,,,no,INFERRED,,UNCHECKED,,,,,1,,(Lcom/money/manager/ex/domainmodel/RecurringTransaction;)V
+   RecurringTransaction$$Parcelable.describeContents,UNRESOLVED,,,,,,,,no,INFERRED,,UNCHECKED,,,,,0,,()I
+   RecurringTransaction$$Parcelable.getParcel,UNRESOLVED,,,,,,,,no,INFERRED,,UNCHECKED,,,,,0,,()Lcom/money/manager/ex/domainmodel/RecurringTransaction;
+   RecurringTransaction$$Parcelable.read,UNRESOLVED,,,,,,,,no,INFERRED,,UNCHECKED,,,,,1,,(Landroid/os/Parcel;Lorg/parceler/IdentityCollection;)Lcom/money/manager/ex/domainmodel/RecurringTransaction;
+   RecurringTransaction$$Parcelable.write,UNRESOLVED,,,,,,,,no,INFERRED,,UNCHECKED,,,,,1,,(Lcom/money/manager/ex/domainmodel/RecurringTransaction;Landroid/os/Parcel;ILorg/parceler/IdentityCollection;)V
+   RecurringTransaction$$Parcelable.writeToParcel,UNRESOLVED,,,,,,,,no,INFERRED,,UNCHECKED,,,,,0,,(Landroid/os/Parcel;I)V
+   RecurringTransaction$$Parcelable$1.<init>,UNRESOLVED,,,,,,,,no,INFERRED,,UNCHECKED,,,,,1,,()V
+   RecurringTransaction$$Parcelable$1.createFromParcel,UNRESOLVED,,,,,,,,no,INFERRED,,UNCHECKED,,,,,0,,(Landroid/os/Parcel;)Lcom/money/manager/ex/domainmodel/RecurringTransaction$$Parcelable;
+   RecurringTransaction$$Parcelable$1.newArray,UNRESOLVED,,,,,,,,no,INFERRED,,UNCHECKED,,,,,0,,(I)[Lcom/money/manager/ex/domainmodel/RecurringTransaction$$Parcelable;
+   rows naming RecurringTransaction$$Parcelable: 10
+
+=== section H: framework excerpts used by the reasons
+$ excerpt (sed -n 1785,1791p equivalent) fw_src/android-8.1.0_r1/core/java/android/os/Parcel.java: Parcel.writeParcelable
+   1785:     public final void writeParcelable(Parcelable p, int parcelableFlags) {
+   1786:         if (p == null) {
+   1787:             writeString(null);
+   1788:             return;
+   1789:         }
+   1790:         writeParcelableCreator(p);
+   1791:         p.writeToParcel(this, parcelableFlags);
+
+$ excerpt (sed -n 2640,2646p equivalent) fw_src/android-8.1.0_r1/core/java/android/os/Parcel.java: Parcel.createTypedArray
+   2640:     public final <T> T[] createTypedArray(Parcelable.Creator<T> c) {
+   2641:         int N = readInt();
+   2642:         if (N < 0) {
+   2643:             return null;
+   2644:         }
+   2645:         T[] l = c.newArray(N);
+   2646:         for (int i=0; i<N; i++) {
+
+$ excerpt (sed -n 2841,2852p equivalent) fw_src/android-8.1.0_r1/core/java/android/os/Parcel.java: Parcel.readParcelable
+   2841:     public final <T extends Parcelable> T readParcelable(ClassLoader loader) {
+   2842:         Parcelable.Creator<?> creator = readParcelableCreator(loader);
+   2843:         if (creator == null) {
+   2844:             return null;
+   2845:         }
+   2846:         if (creator instanceof Parcelable.ClassLoaderCreator<?>) {
+   2847:           Parcelable.ClassLoaderCreator<?> classLoaderCreator =
+   2848:               (Parcelable.ClassLoaderCreator<?>) creator;
+   2849:           return (T) classLoaderCreator.createFromParcel(this, loader);
+   2850:         }
+   2851:         return (T) creator.createFromParcel(this);
+   2852:     }
+
+$ excerpt (sed -n 2892,2896p equivalent) fw_src/android-8.1.0_r1/core/java/android/os/Parcel.java: Parcel.readParcelable CREATOR getField
+   2892:                                 + "class implements Parcelable");
+   2893:                     }
+   2894:                     Field f = parcelableClass.getField("CREATOR");
+   2895:                     if ((f.getModifiers() & Modifier.STATIC) == 0) {
+   2896:                         throw new BadParcelableException("Parcelable protocol requires "
+
+$ excerpt (sed -n 316,340p equivalent) fw_src/android-8.1.0_r1/core/java/android/os/Bundle.java: Bundle.hasFileDescriptors
+   316:     public boolean hasFileDescriptors() {
+   317:         if ((mFlags & FLAG_HAS_FDS_KNOWN) == 0) {
+   318:             boolean fdFound = false;    // keep going until we find one or run out of data
+   319: 
+   320:             if (mParcelledData != null) {
+   321:                 if (mParcelledData.hasFileDescriptors()) {
+   322:                     fdFound = true;
+   323:                 }
+   324:             } else {
+   325:                 // It's been unparcelled, so we need to walk the map
+   326:                 for (int i=mMap.size()-1; i>=0; i--) {
+   327:                     Object obj = mMap.valueAt(i);
+   328:                     if (obj instanceof Parcelable) {
+   329:                         if ((((Parcelable)obj).describeContents()
+   330:                                 & Parcelable.CONTENTS_FILE_DESCRIPTOR) != 0) {
+   331:                             fdFound = true;
+   332:                             break;
+   333:                         }
+   334:                     } else if (obj instanceof Parcelable[]) {
+   335:                         Parcelable[] array = (Parcelable[]) obj;
+   336:                         for (int n = array.length - 1; n >= 0; n--) {
+   337:                             Parcelable p = array[n];
+   338:                             if (p != null && ((p.describeContents()
+   339:                                     & Parcelable.CONTENTS_FILE_DESCRIPTOR) != 0)) {
+   340:                                 fdFound = true;
+
+$ excerpt (sed -n 936,940p equivalent) fw_src/android-8.1.0_r1/core/java/android/os/Bundle.java: Bundle.getParcelable unparcel
+   936:      */
+   937:     @Nullable
+   938:     public <T extends Parcelable> T getParcelable(@Nullable String key) {
+   939:         unparcel();
+   940:         Object o = mMap.get(key);
+
+$ excerpt (sed -n 1227,1231p equivalent) fw_src/android-8.1.0_r1/core/java/android/os/Bundle.java: Bundle.writeToParcel
+   1227:      */
+   1228:     @Override
+   1229:     public void writeToParcel(Parcel parcel, int flags) {
+   1230:         final boolean oldAllowFds = parcel.pushAllowFds((mFlags & FLAG_ALLOW_FDS) != 0);
+   1231:         try {
+
+$ excerpt (sed -n 7446,7455p equivalent) fw_src/android-8.1.0_r1/services/core/java/com/android/server/am/ActivityManagerService.java: ActivityManagerService.activityStopped
+   7446: 
+   7447:     @Override
+   7448:     public final void activityStopped(IBinder token, Bundle icicle,
+   7449:             PersistableBundle persistentState, CharSequence description) {
+   7450:         if (DEBUG_ALL) Slog.v(TAG, "Activity stopped: token=" + token);
+   7451: 
+   7452:         // Refuse possible leaked file descriptors
+   7453:         if (icicle != null && icicle.hasFileDescriptors()) {
+   7454:             throw new IllegalArgumentException("File descriptors passed in Bundle");
+   7455:         }
+
+$ scan (python3 re, grep -rn equivalent): activityStopped call in ActivityThread
+   pattern: activityStopped   files read: 1   hits: 1
+   core/java/android/app/ActivityThread.java:3934: ActivityManager.getService().activityStopped(
+
+$ excerpt (sed -n 3926,3937p equivalent) fw_src/android-8.1.0_r1/core/java/android/app/ActivityThread.java: ActivityThread activityStopped send (lines per the earlier citation)
+   3926:         Bundle state;
+   3927:         PersistableBundle persistentState;
+   3928:         CharSequence description;
+   3929: 
+   3930:         @Override public void run() {
+   3931:             // Tell activity manager we have been stopped.
+   3932:             try {
+   3933:                 if (DEBUG_MEMORY_TRIM) Slog.v(TAG, "Reporting activity stopped: " + activity);
+   3934:                 ActivityManager.getService().activityStopped(
+   3935:                     activity.token, state, persistentState, description);
+   3936:             } catch (RemoteException ex) {
+   3937:                 // Dump statistics about bundle to help developers debug
+

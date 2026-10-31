@@ -1,0 +1,1067 @@
+   155	        public boolean decode = true;
+   156	    }
+   157	
+   158	    /**
+   159	     * More about URL normalization: https://en.wikipedia.org/wiki/URL_normalization
+   160	     *
+   161	     * @param url URL
+   162	     * @return normalized URL
+   163	     */
+   164	
+   165	    public static String normalize(String url) throws NormalizeUrlException
+   166	    {
+   167	        return normalize(url, null);
+   168	    }
+   169	
+   170	    /**
+   171	     * More about URL normalization: https://en.wikipedia.org/wiki/URL_normalization
+   172	     *
+   173	     * @param url URL
+   174	     * @param options additional options for normalization
+   175	     * @return normalized URL
+   176	     */
+   177	
+   178	    public static String normalize(String url, Options options) throws NormalizeUrlException
+   179	    {
+   180	        String normalizedUrl;
+   181	        try {
+   182	            normalizedUrl = doNormalize(url, options);
+   183	
+   184	        } catch (Exception e) {
+   185	            throw new NormalizeUrlException("Cannot normalize URL", e);
+   186	        }
+   187	
+   188	        return normalizedUrl;
+   189	    }
+   190	
+   191	    private static String doNormalize(String url, Options options) throws MalformedURLException
+   192	    {
+   130	    @Override
+   131	    public void addTag(@NonNull String torrentId, @NonNull TagInfo tag) {
+   132	        db.torrentDao().addTag(new TorrentTagInfo(tag.id, torrentId));
+   133	    }
+   134	
+   135	    @Override
+   136	    public void deleteTag(@NonNull String torrentId, @NonNull TagInfo tag) {
+   137	        db.torrentDao().deleteTag(new TorrentTagInfo(tag.id, torrentId));
+   138	    }
+   139	
+   140	    /*
+   141	     * Search directory with data of added torrent (in standard data directory).
+   142	     * Returns path to the directory found if successful or null if the directory is not found.
+   143	     */
+   144	
+   145	    private String getTorrentDataDir(Context context, String id) {
+   146	        if (SystemFacadeHelper.getFileSystemFacade(context).isStorageReadable()) {
+   147	            File dataDir = new File(context.getExternalFilesDir(null), id);
+   148	            if (dataDir.exists()) {
+   149	                return dataDir.getAbsolutePath();
+   150	            } else {
+   151	                return makeTorrentDataDir(context, id);
+   152	            }
+   153	        }
+   154	
+   155	        return null;
+   156	    }
+   157	
+   158	    /*
+   159	     * Create a directory to store data of added torrent (in standard data directory)
+   160	     * Returns path to the new directory if successful or null due to an error.
+   161	     */
+   162	
+   163	    private String makeTorrentDataDir(Context context, String name) {
+   164	        if (!SystemFacadeHelper.getFileSystemFacade(context).isStorageWritable())
+   165	            return null;
+   166	
+   167	        String dataDir = context.getExternalFilesDir(null).getAbsolutePath();
+   168	        File newDir = new File(dataDir, name);
+   169	
+   170	        return (newDir.mkdir()) ? newDir.getAbsolutePath() : null;
+   171	    }
+   172	}
+   155	        FsModule fsModule = fsResolver.resolveFsByUri(filePath);
+   156	
+   157	        return fsModule.fileExists(filePath);
+   158	    }
+   159	
+   160	    @Override
+   161	    public long lastModified(@NonNull Uri filePath) throws UnknownUriException
+   162	    {
+   163	        FsModule fsModule = fsResolver.resolveFsByUri(filePath);
+   164	
+   165	        return fsModule.lastModified(filePath);
+   166	    }
+   167	
+   168	    /*
+   169	     * Checks if main storage is available for read and write.
+   170	     */
+   171	
+   172	    @Override
+   173	    public boolean isStorageWritable()
+   174	    {
+   175	        String state = Environment.getExternalStorageState();
+   176	
+   177	        return Environment.MEDIA_MOUNTED.equals(state);
+   178	    }
+   179	
+   180	    /*
+   325	    }
+   326	
+   327	    /*
+   328	     * Check if given filename is valid for a FAT filesystem
+   329	     */
+   330	
+   331	    @Override
+   332	    public boolean isValidFatFilename(String name)
+   333	    {
+   334	        return name != null && name.equals(buildValidFatFilename(name));
+   335	    }
+   336	
+   337	    /*
+   338	     * Mutate the given filename to make it valid for a FAT filesystem,
+   339	     * replacing any invalid characters with "_"
+   340	     */
+   341	
+   342	    @Override
+   343	    public String buildValidFatFilename(String name)
+   344	    {
+   345	        if (TextUtils.isEmpty(name) || ".".equals(name) || "..".equals(name))
+   346	            return "(invalid)";
+   347	
+   348	        final StringBuilder res = new StringBuilder(name.length());
+   349	        for (int i = 0; i < name.length(); i++) {
+   350	            final char c = name.charAt(i);
+   351	            if (isValidFatFilenameChar(c))
+   352	                res.append(c);
+   353	            else
+   354	                res.append('_');
+   355	        }
+   356	        /*
+   357	         * Even though vfat allows 255 UCS-2 chars, we might eventually write to
+   358	         * ext4 through a FUSE layer, so use that limit
+   359	         */
+   360	        trimFilename(res, 255);
+   361	
+   362	        return res.toString();
+   363	    }
+   364	
+   365	    private boolean isValidFatFilenameChar(char c)
+   366	    {
+   367	        if ((0x00 <= c && c <= 0x1f))
+   368	            return false;
+   369	        switch (c) {
+   370	            case '"':
+    30	import androidx.annotation.NonNull;
+    31	
+    32	import java.io.FileDescriptor;
+    33	import java.io.FileNotFoundException;
+    34	import java.io.IOException;
+    35	
+    36	class SafFsModule implements FsModule
+    37	{
+    38	    private Context appContext;
+    39	
+    40	    public SafFsModule(@NonNull Context appContext)
+    41	    {
+    42	        this.appContext = appContext;
+    43	    }
+    44	
+    45	    @Override
+    46	    public String getName(@NonNull Uri filePath)
+    47	    {
+    48	        SafFileSystem fs = SafFileSystem.getInstance(appContext);
+    49	        SafFileSystem.Stat stat = fs.stat(filePath);
+    50	
+    51	        return (stat == null ? null : stat.name);
+    52	    }
+    53	
+    54	    @Override
+    55	    public String getDirPath(@NonNull Uri dir)
+    56	    {
+    57	        SafFileSystem.Stat stat = SafFileSystem.getInstance(appContext).statSafRoot(dir);
+    58	
+    59	        return (stat == null || stat.name == null ? dir.getPath() : stat.name);
+    60	    }
+    61	
+    62	    @Override
+    63	    public String getFilePath(@NonNull Uri filePath)
+    64	    {
+    65	        SafFileSystem.Stat stat = SafFileSystem.getInstance(appContext).stat(filePath);
+    66	
+    67	        return (stat == null || stat.name == null ? filePath.getPath() : stat.name);
+    68	    }
+    69	
+    70	    @Override
+    71	    public Uri getFileUri(@NonNull Uri dir, @NonNull String fileName, boolean create)
+    72	    {
+    73	        return SafFileSystem.getInstance(appContext).getFileUri(dir, fileName, create);
+    74	    }
+    75	
+    76	    @Override
+    77	    public Uri getFileUri(@NonNull String relativePath, @NonNull Uri dir)
+    78	    {
+    79	        return SafFileSystem.getInstance(appContext)
+    80	                .getFileUri(new SafFileSystem.FakePath(dir, relativePath), false);
+    81	    }
+    82	
+    83	    @Override
+    84	    public boolean delete(@NonNull Uri filePath) throws FileNotFoundException
+    85	    {
+    86	        SafFileSystem fs = SafFileSystem.getInstance(appContext);
+    87	
+    88	        return fs.delete(filePath);
+    89	    }
+    90	
+    91	    @Override
+    92	    public FileDescriptorWrapper openFD(@NonNull Uri path)
+    93	    {
+    94	        return new FileDescriptorWrapperImpl(appContext, path);
+    95	    }
+    96	
+    97	    @Override
+    98	    public long getDirAvailableBytes(@NonNull Uri dir) throws IOException
+    99	    {
+   100	        long availableBytes = -1;
+   101	        ContentResolver contentResolver = appContext.getContentResolver();
+   102	        SafFileSystem fs = SafFileSystem.getInstance(appContext);
+   103	        Uri dirPath = fs.makeSafRootDir(dir);
+   104	
+   105	        try (ParcelFileDescriptor pfd = contentResolver.openFileDescriptor(dirPath, "r")) {
+   106	            if (pfd == null)
+   107	                return availableBytes;
+   108	
+   109	            availableBytes = getAvailableBytes(pfd.getFileDescriptor());
+   110	
+   111	        }
+   112	
+   113	        return availableBytes;
+   114	    }
+   115	
+   116	    /*
+   117	     * Return the number of bytes that are free on the file system
+   118	     * backing the given FileDescriptor
+   119	     *
+   120	     * TODO: maybe there is analog for KitKat?
+   121	     */
+   122	
+   123	    @TargetApi(21)
+   124	    private long getAvailableBytes(@NonNull FileDescriptor fd) throws IOException
+   125	    {
+   126	        try {
+   127	            StructStatVfs stat = Os.fstatvfs(fd);
+   128	
+   129	            return stat.f_bavail * stat.f_bsize;
+   130	        } catch (Exception e) {
+   131	            throw new IOException(e);
+   132	        }
+   133	    }
+   134	
+   135	    @Override
+   136	    public boolean fileExists(@NonNull Uri filePath)
+   137	    {
+   138	        return SafFileSystem.getInstance(appContext).exists(filePath);
+   139	    }
+   140	
+   141	    @Override
+   142	    public long lastModified(@NonNull Uri filePath)
+   143	    {
+   144	        SafFileSystem.Stat stat = SafFileSystem.getInstance(appContext)
+   145	                .stat(filePath);
+   146	
+   147	        return (stat == null ? -1 : stat.lastModified);
+   148	    }
+   149	
+   150	    @Override
+   151	    public String makeFileSystemPath(@NonNull Uri uri, String relativePath)
+   152	    {
+   153	        return new SafFileSystem.FakePath(uri, (relativePath == null ? "" : relativePath))
+   154	                .toString();
+   155	    }
+   156	
+   157	    @Override
+   158	    public Uri getParentDirUri(@NonNull Uri filePath)
+   159	    {
+   160	        return SafFileSystem.getInstance(appContext).getParentDirUri(filePath);
+   161	    }
+   162	}
+    90	    {
+    91	        private static final String SAF_ROOT_TAG_OPEN = "saf_root(";
+    92	        private static final String SAF_ROOT_TAG_CLOSE = ");";
+    93	        private static final String SCHEME = "content://";
+    94	
+    95	        private Uri safRoot;
+    96	        private String relativePath;
+    97	
+    98	        public FakePath(@NonNull Uri safRoot, @NonNull String relativePath)
+    99	        {
+   100	            this.safRoot = safRoot;
+   101	            this.relativePath = normalizeRelativePath(relativePath);
+   102	        }
+   103	
+   104	        private String normalizeRelativePath(String path)
+   105	        {
+   106	            if (path.equals(File.separator) || !path.startsWith(File.separator))
+   107	                return path;
+   108	            else
+   109	                return path.substring(1);
+   110	        }
+   111	
+   112	        /*
+   113	         * Returns string path in the following format:
+   114	         *     'saf_root(`safRoot`);`relativePath (optional)`'
+   115	         * or null if the path is invalid
+   116	         */
+   117	
+   118	        public static FakePath deserialize(@NonNull String fakePath)
+   119	        {
+   120	            int openTagIdx = fakePath.lastIndexOf(SAF_ROOT_TAG_OPEN);
+   121	            int closeTagIdx = fakePath.lastIndexOf(SAF_ROOT_TAG_CLOSE);
+   122	            if (openTagIdx < 0 || closeTagIdx < 0 || closeTagIdx <= openTagIdx)
+   123	                return null;
+   124	
+   125	            String safRootStr = fakePath.substring(openTagIdx + SAF_ROOT_TAG_OPEN.length(), closeTagIdx);
+   126	            Uri safRoot = Uri.parse(SCHEME + safRootStr);
+   127	            String relativePath = fakePath.substring(closeTagIdx + SAF_ROOT_TAG_CLOSE.length());
+   128	
+   129	            return new FakePath(safRoot, relativePath);
+   130	        }
+   131	
+   132	        private String serialize()
+   133	        {
+   134	            /* Remove 'content://' scheme */
+   135	            String safRootStr = safRoot.toString().substring(SCHEME.length());
+   136	
+   137	            return SAF_ROOT_TAG_OPEN + safRootStr + SAF_ROOT_TAG_CLOSE + relativePath;
+   138	        }
+   139	
+   140	        public String[] makeRelativePathNodes()
+   141	        {
+   142	            return (TextUtils.isEmpty(relativePath) ?
+   143	                    new String[0] :
+   144	                    relativePath.split(File.separator));
+   145	        }
+   146	
+   147	        public Uri safRoot()
+   148	        {
+   149	            return safRoot;
+   150	        }
+   151	
+   152	        public String relativePath()
+   153	        {
+   154	            return relativePath;
+   155	        }
+   156	
+   157	        public static boolean isFakePath(@NonNull String path)
+   158	        {
+   159	            return path.startsWith("/" + SAF_ROOT_TAG_OPEN) || path.startsWith(SAF_ROOT_TAG_OPEN);
+   160	        }
+   161	
+   162	        @NonNull
+   163	        @Override
+   164	        public String toString()
+   165	        {
+   370	    {
+   371	        return DocumentsContract.buildDocumentUriUsingTree(dir,
+   372	                DocumentsContract.getTreeDocumentId(dir));
+   373	    }
+   374	
+   375	    /*
+   376	     * Returns the file native descriptor
+   377	     * (for reading (mode='r'), writing (mode='w') or
+   378	     * reading and writing (mode='rw') by the given name
+   379	     */
+   380	
+   381	    @TargetApi(21)
+   382	    public int openFD(@NonNull Uri dir,
+   383	                      @NonNull String fileName,
+   384	                      @NonNull String mode)
+   385	    {
+   386	        Uri filePath = getFileUri(dir, fileName, true);
+   387	        if (filePath == null)
+   388	            return -1;
+   389	
+   390	        return openFD(filePath, mode);
+   391	    }
+   392	
+   393	    @TargetApi(21)
+   394	    public int openFD(@NonNull FakePath path,
+   395	                      @NonNull String mode)
+   396	    {
+   397	        Uri filePath = getFileUri(path, true);
+   398	        if (filePath == null)
+   399	            return -1;
+   400	
+   401	        return openFD(filePath, mode);
+   402	    }
+   403	
+   404	    public int openFD(@NonNull Uri filePath, String mode)
+   405	    {
+   406	        if (!("r".equals(mode) || "w".equals(mode) || "rw".equals(mode))) {
+   407	            Log.e(TAG, "Only r, w or rw modes supported");
+   408	            return -1;
+   409	        }
+   410	
+   411	        ContentResolver cr = appContext.getContentResolver();
+   412	        try (ParcelFileDescriptor fd = cr.openFileDescriptor(filePath, mode)) {
+   413	            if (fd == null)
+   414	                return -1;
+   415	
+   416	            return fd.detachFd();
+   417	
+   418	        } catch (Throwable e) {
+   419	            Log.e(TAG, "Unable to get native fd", e);
+   420	            return -1;
+   421	        }
+   422	    }
+   423	
+   424	    @TargetApi(21)
+   425	    @Nullable
+   426	    public Stat stat(@NonNull Uri safRoot, @NonNull String fileName)
+   427	    {
+   428	        String cacheKey = safRoot.toString() + File.separator + fileName;
+   429	        DocumentFile f = CACHE.get(cacheKey);
+   430	        if (f == null) {
+   431	            DocumentFile tree = DocumentFile.fromTreeUri(appContext, safRoot);
+   432	            if (tree == null)
+   433	                return null;
+   434	            f = getFile(tree, fileName, false);
+   435	            if (f != null)
+   436	                CACHE.put(cacheKey, f);
+   437	        }
+   438	
+   439	        return stat(f);
+   440	    }
+   441	
+   442	    @TargetApi(21)
+   443	    @Nullable
+   444	    public Stat statSafRoot(@NonNull Uri safRoot)
+   445	    {
+   446	        String cacheKey = safRoot.toString();
+   447	        DocumentFile tree = CACHE.get(cacheKey);
+   448	        if (tree == null) {
+   449	            tree = DocumentFile.fromTreeUri(appContext, safRoot);
+   450	            if (tree != null)
+   451	                CACHE.put(cacheKey, tree);
+   452	        }
+   453	
+   454	        return stat(tree);
+   455	    }
+   456	
+   457	    @TargetApi(19)
+   458	    @Nullable
+   459	    public Stat stat(@NonNull Uri filePath)
+   460	    {
+   461	        String cacheKey = filePath.toString();
+   462	        DocumentFile f = CACHE.get(cacheKey);
+   463	        if (f == null) {
+   464	            f = DocumentFile.fromSingleUri(appContext, filePath);
+   465	            if (f != null)
+   466	                CACHE.put(cacheKey, f);
+   467	        }
+   468	
+   469	        return stat(f);
+   470	    }
+   471	
+   472	    @TargetApi(21)
+   473	    @Nullable
+   474	    public Stat stat(@NonNull FakePath path)
+   475	    {
+   476	        String cacheKey = path.toString();
+   477	        DocumentFile f = CACHE.get(cacheKey);
+   478	        if (f == null) {
+   479	            f = getFile(path, true);
+   480	            if (f != null)
+   481	                CACHE.put(cacheKey, f);
+   482	        }
+   483	
+   484	        return stat(f);
+   485	    }
+   486	
+   487	    private Stat stat(DocumentFile f)
+   488	    {
+   489	        return (f == null ?
+   490	                null :
+   491	                new Stat(f.getName(), f.isDirectory(),
+   492	                    f.length(), f.lastModified()));
+   493	    }
+   494	
+   495	    /*
+   496	     * Creates the directory named by this path, including any
+   497	     * necessary but nonexistent parent directories.
+   498	     * For example, for path='/saf_root/foo/bar'
+   499	     * method creates `foo` and `bar` directories.
+   500	     * Even if the file has an extension called `foo.txt`,
+    35	 * The static class for create and using BencodeFileTree objects.
+    36	 *
+    37	 * TODO: need refactor (with TorrentContentFileTreeUtils)
+    38	 */
+    39	
+    40	public class BencodeFileTreeUtils
+    41	{
+    42	    /*
+    43	     * Returns tree and its files
+    44	     */
+    45	
+    46	    public static Pair<BencodeFileTree, BencodeFileTree[]> buildFileTree(List<BencodeFileItem> files)
+    47	    {
+    48	        BencodeFileTree root = new BencodeFileTree(FileTree.ROOT, 0L, FileNode.Type.DIR);
+    49	        BencodeFileTree parentTree = root;
+    50	        BencodeFileTree[] leaves = new BencodeFileTree[files.size()];
+    51	        /* It allows reduce the number of iterations on the paths with equal beginnings */
+    52	        String prevPath = "";
+    53	        List<BencodeFileItem> filesCopy = new ArrayList<>(files);
+    54	        /* Sort reduces the returns number to root */
+    55	        Collections.sort(filesCopy);
+    56	
+    57	        for (BencodeFileItem file : filesCopy) {
+    58	            String path;
+    30	import org.proninyaroslav.libretorrent.R;
+    31	
+    32	import java.text.SimpleDateFormat;
+    33	import java.util.Date;
+    34	import java.util.Locale;
+    35	
+    36	public class BindingAdapterUtils
+    37	{
+    38	    @BindingAdapter(value = {"fileSize", "formatFileSize"}, requireAll = false)
+    39	    public static void formatFileSize(@NonNull TextView view,
+    40	                                      long fileSize,
+    41	                                      @Nullable String formatFileSize)
+    42	    {
+    43	        Context context = view.getContext();
+    44	        String sizeStr = (fileSize >= 0 ?
+    45	                Formatter.formatFileSize(context, fileSize) :
+    46	                context.getString(R.string.not_available));
+    47	        view.setText((formatFileSize == null ? sizeStr : String.format(formatFileSize, sizeStr)));
+    48	    }
+    49	
+    50	    @BindingAdapter({"formatDate"})
+    51	    public static void formatDate(@NonNull TextView view, long date)
+    52	    {
+    53	        view.setText(SimpleDateFormat.getDateTimeInstance()
+    54	                .format(new Date(date)));
+    24	import org.proninyaroslav.libretorrent.R;
+    25	
+    26	import java.util.Calendar;
+    27	import java.util.Formatter;
+    28	import java.util.Locale;
+    29	import java.util.concurrent.locks.ReentrantLock;
+    30	
+    31	public class DateUtils
+    32	{
+    33	    private static final int secondsInDay = 86400;
+    34	    private static final int secondsInHour = 3600;
+    35	    private static final int secondsInMinute = 60;
+    36	
+    37	    private static String elapsedFormatSS;
+    38	    private static String elapsedFormatMMSS;
+    39	    private static String elapsedFormatHMMSS;
+    40	    private static String elapsedFormatDHMM;
+    41	    private static ReentrantLock lock = new ReentrantLock();
+    42	
+    43	    public static String formatElapsedTime(Context context, long elapsedSeconds)
+    44	    {
+    45	        return formatElapsedTime(context, null, elapsedSeconds);
+    46	    }
+    47	
+    48	    public static String formatElapsedTime(Context context, StringBuilder recycle, long elapsedSeconds)
+    34	/*
+    35	 * The static class for create and using TorrentContentFileTree objects.
+    36	 *
+    37	 * TODO: need refactor (with BencodeFileTreeUtils)
+    38	 */
+    39	
+    40	public class TorrentContentFileTreeUtils
+    41	{
+    42	    /*
+    43	     * Returns tree and its files
+    44	     */
+    45	
+    46	    public static Pair<TorrentContentFileTree, TorrentContentFileTree[]> buildFileTree(List<BencodeFileItem> files)
+    47	    {
+    48	        TorrentContentFileTree root = new TorrentContentFileTree(FileTree.ROOT, 0L, FileNode.Type.DIR);
+    49	        TorrentContentFileTree parentTree = root;
+    50	        TorrentContentFileTree[] leaves = new TorrentContentFileTree[files.size()];
+    51	        /* It allows reduce the number of iterations on the paths with equal beginnings */
+    52	        String prevPath = "";
+    53	        List<BencodeFileItem> filesCopy = new ArrayList<>(files);
+    54	        /* Sort reduces the returns number to root */
+    55	        Collections.sort(filesCopy);
+    56	
+    57	        for (BencodeFileItem file : filesCopy) {
+    58	            String path;
+    32	import android.content.pm.PackageManager;
+    33	import android.content.res.Resources;
+    34	import android.graphics.PorterDuff;
+    35	import android.graphics.PorterDuffColorFilter;
+    36	import android.graphics.drawable.Drawable;
+    37	import android.net.NetworkCapabilities;
+    38	import android.net.NetworkInfo;
+    39	import android.net.Uri;
+    40	import android.os.BatteryManager;
+    41	import android.os.Build;
+    42	import android.os.Handler;
+    43	import android.os.Looper;
+    44	import android.provider.Settings;
+    45	import android.text.TextUtils;
+    46	import android.util.Log;
+    47	import android.util.TypedValue;
+    48	import android.view.View;
+    49	import android.widget.ProgressBar;
+    50	
+    51	import androidx.annotation.NonNull;
+    52	import androidx.annotation.Nullable;
+    53	import androidx.annotation.RequiresApi;
+    54	import androidx.core.app.ActivityCompat;
+    55	import androidx.fragment.app.FragmentManager;
+    56	
+    57	import org.proninyaroslav.libretorrent.ui.ManageAllFilesWarningDialog;
+    58	import org.acra.ACRA;
+    59	import org.acra.ReportField;
+    60	import org.apache.commons.io.IOUtils;
+   215	
+   216	    /*
+   217	     * Returns the link as "(http[s]|ftp)://[www.]name.domain/...".
+   218	     */
+   219	
+   220	    public static String normalizeURL(@NonNull String url) {
+   221	        url = IDN.toUnicode(url);
+   222	
+   223	        if (!url.startsWith(HTTP_PREFIX) && !url.startsWith(HTTPS_PREFIX))
+   224	            return HTTP_PREFIX + url;
+   225	        else
+   226	            return url;
+   227	    }
+   228	
+   229	    /*
+   230	     * Returns the link as "magnet:?xt=urn:btih:hash".
+   231	     */
+   232	
+     1	package org.proninyaroslav.libretorrent.core.urlnormalizer;
+     2	
+     3	import java.util.ArrayList;
+     4	import java.util.List;
+     5	
+     6	/**
+     7	 * PathResolver is a utility class that resolves a reference path against a base path.
+     8	 */
+     9	final class PathResolver {
+    10	
+    11	    /**
+    12	     * Disallow instantiation of class.
+    13	     */
+    14	    private PathResolver() {
+    15	    }
+    16	
+    17	    /**
+    18	     * Returns a resolved path.
+    19	     * <p>
+    20	     * For example:
+    21	     * <p>
+    22	     * resolve("/some/path", "..") == "/some"
+    23	     * resolve("/some/path", ".") == "/some/"
+    24	     * resolve("/some/path", "./here") == "/some/here"
+    25	     * resolve("/some/path", "../here") == "/here"
+    26	     */
+    27	    public static String resolve(String base, String ref) {
+    28	        String merged = merge(base, ref);
+     1	package org.proninyaroslav.libretorrent.core.urlnormalizer;
+     2	
+     3	import com.anthonynsimon.url.exceptions.InvalidHexException;
+     4	import com.anthonynsimon.url.exceptions.MalformedURLException;
+     5	
+     6	/**
+     7	 * PercentEncoder handles the escaping and unescaping of characters in URLs.
+     8	 * It escapes character based on the context (part of the URL) that is being dealt with.
+     9	 * <p>
+    10	 * Supports UTF-8 escaping and unescaping.
+    11	 */
+    12	final class PercentEncoder {
+    13	    /**
+    14	     * Byte masks to aid in the decoding of UTF-8 byte arrays.
+    15	     */
+    16	    private static final short[] utf8Masks = new short[]{0b00000000, 0b11000000, 0b11100000, 0b11110000};
+    17	
+    18	    /**
+    19	     * Disallow instantiation of class.
+    20	     */
+    21	    private PercentEncoder() {
+    22	    }
+    23	
+    24	    private static boolean needsUnescaping(String str) {
+    25	        return (str.indexOf('%') >= 0);
+    26	    }
+    27	
+    28	    /**
+    29	     * Returns an unescaped string.
+    30	     *
+    24	import androidx.annotation.NonNull;
+    25	
+    26	public class SystemFacadeHelper
+    27	{
+    28	    private static SystemFacade systemFacade;
+    29	    private static FileSystemFacade fileSystemFacade;
+    30	
+    31	    public synchronized static SystemFacade getSystemFacade(@NonNull Context appContext)
+    32	    {
+    33	        if (systemFacade == null)
+    34	            systemFacade = new SystemFacadeImpl(appContext);
+    35	
+    36	        return systemFacade;
+    37	    }
+    38	
+    39	    public synchronized static FileSystemFacade getFileSystemFacade(@NonNull Context appContext)
+    40	    {
+    41	        if (fileSystemFacade == null)
+    42	            fileSystemFacade = new FileSystemFacadeImpl(appContext,
+    43	                    new FsModuleResolverImpl(appContext));
+    44	
+    45	        return fileSystemFacade;
+    46	    }
+    47	}
+    35	    public DefaultFsModule(@NonNull Context appContext)
+    36	    {
+    37	        this.appContext = appContext;
+    38	    }
+    39	
+    40	    @Override
+    41	    public String getName(@NonNull Uri filePath)
+    42	    {
+    43	        return new File(filePath.getPath()).getName();
+    44	    }
+    45	
+    46	    @Override
+    47	    public String getDirPath(@NonNull Uri dir)
+    48	    {
+    49	        return dir.getPath();
+    50	    }
+   108	    @Override
+   109	    public boolean fileExists(@NonNull Uri filePath)
+   110	    {
+   111	        return new File(filePath.getPath()).exists();
+   112	    }
+   113	
+   114	    @Override
+   115	    public long lastModified(@NonNull Uri filePath)
+   116	    {
+   117	        return new File(filePath.getPath()).lastModified();
+   118	    }
+   119	
+   120	    @Override
+   121	    public String makeFileSystemPath(@NonNull Uri uri, String relativePath)
+   122	    {
+    30	class FsModuleResolverImpl implements FsModuleResolver {
+    31	    private final Context appContext;
+    32	    private final SafFsModule safModule;
+    33	    private final DefaultFsModule defaultModule;
+    34	
+    35	    public FsModuleResolverImpl(@NonNull Context appContext) {
+    36	        this.appContext = appContext;
+    37	        this.safModule = new SafFsModule(appContext);
+    38	        this.defaultModule = new DefaultFsModule(appContext);
+    39	    }
+    40	
+    41	    @Override
+    42	    public FsModule resolveFsByUri(@NonNull Uri uri) throws UnknownUriException {
+    43	        if (Utils.isSafPath(appContext, uri)) {
+    44	            return safModule;
+    45	        } else if (Utils.isFileSystemPath(uri)) {
+    46	            return defaultModule;
+    47	        } else {
+    48	            throw new UnknownUriException("Cannot resolve file system for the given uri: " + uri);
+    49	        }
+    50	    }
+   155	        FsModule fsModule = fsResolver.resolveFsByUri(filePath);
+   156	
+   157	        return fsModule.fileExists(filePath);
+   158	    }
+   159	
+   160	    @Override
+   161	    public long lastModified(@NonNull Uri filePath) throws UnknownUriException
+   162	    {
+   163	        FsModule fsModule = fsResolver.resolveFsByUri(filePath);
+   164	
+   165	        return fsModule.lastModified(filePath);
+   166	    }
+   167	
+   168	    /*
+   169	     * Checks if main storage is available for read and write.
+   170	     */
+   171	
+   172	    @Override
+   173	    public boolean isStorageWritable()
+   174	    {
+   175	        String state = Environment.getExternalStorageState();
+   176	
+   177	        return Environment.MEDIA_MOUNTED.equals(state);
+   178	    }
+   327	    /*
+   328	     * Check if given filename is valid for a FAT filesystem
+   329	     */
+   330	
+   331	    @Override
+   332	    public boolean isValidFatFilename(String name)
+   333	    {
+   334	        return name != null && name.equals(buildValidFatFilename(name));
+   335	    }
+   336	
+    40	    public SafFsModule(@NonNull Context appContext)
+    41	    {
+    42	        this.appContext = appContext;
+    43	    }
+    44	
+    45	    @Override
+    46	    public String getName(@NonNull Uri filePath)
+    47	    {
+    48	        SafFileSystem fs = SafFileSystem.getInstance(appContext);
+    49	        SafFileSystem.Stat stat = fs.stat(filePath);
+    50	
+    51	        return (stat == null ? null : stat.name);
+    52	    }
+    53	
+    54	    @Override
+    55	    public String getDirPath(@NonNull Uri dir)
+    80	                .getFileUri(new SafFileSystem.FakePath(dir, relativePath), false);
+    81	    }
+    82	
+    83	    @Override
+    84	    public boolean delete(@NonNull Uri filePath) throws FileNotFoundException
+    85	    {
+    86	        SafFileSystem fs = SafFileSystem.getInstance(appContext);
+    87	
+    88	        return fs.delete(filePath);
+    89	    }
+    90	
+    91	    @Override
+    92	    public FileDescriptorWrapper openFD(@NonNull Uri path)
+    93	    {
+    94	        return new FileDescriptorWrapperImpl(appContext, path);
+    95	    }
+    96	
+   132	        }
+   133	    }
+   134	
+   135	    @Override
+   136	    public boolean fileExists(@NonNull Uri filePath)
+   137	    {
+   138	        return SafFileSystem.getInstance(appContext).exists(filePath);
+   139	    }
+   140	
+   141	    @Override
+   142	    public long lastModified(@NonNull Uri filePath)
+   143	    {
+   144	        SafFileSystem.Stat stat = SafFileSystem.getInstance(appContext)
+   145	                .stat(filePath);
+   146	
+   147	        return (stat == null ? -1 : stat.lastModified);
+   148	    }
+   149	
+   150	    @Override
+   310	    public boolean delete(@NonNull Uri filePath) throws FileNotFoundException
+   311	    {
+   312	        return DocumentsContract.deleteDocument(appContext.getContentResolver(), filePath);
+   313	    }
+   314	
+   315	    @TargetApi(19)
+   316	    public boolean delete(@NonNull FakePath path) throws FileNotFoundException
+   317	    {
+   318	        Uri filePath = getFileUri(path, false);
+   319	        if (filePath == null)
+   320	            return false;
+   321	
+   322	        return DocumentsContract.deleteDocument(appContext.getContentResolver(), filePath);
+   323	    }
+   324	
+   325	    /*
+   326	     * Returns true if the file is exists
+   327	     */
+   328	
+   329	    @TargetApi(19)
+   330	    public boolean exists(@NonNull Uri filePath)
+   331	    {
+   332	        String cacheKey = filePath.toString();
+   333	        DocumentFile f = CACHE.get(cacheKey);
+   334	        if (f == null) {
+   335	            f = DocumentFile.fromSingleUri(appContext, filePath);
+   336	            if (f != null)
+   337	                CACHE.put(cacheKey, f);
+   338	        }
+   339	
+   340	        return f != null && f.exists();
+   341	    }
+   342	
+   343	    @TargetApi(21)
+   344	    public boolean exists(@NonNull FakePath path)
+   345	    {
+   346	        String cacheKey = path.toString();
+   347	        DocumentFile cached = CACHE.get(cacheKey);
+   348	        if (cached != null)
+   349	            return cached.exists();
+   350	
+   351	        DocumentFile currNode = DocumentFile.fromTreeUri(appContext, path.safRoot());
+   352	        if (currNode == null)
+   353	            return false;
+   354	
+   355	        String[] nodes = path.makeRelativePathNodes();
+   356	        for (String nodeName : nodes) {
+   357	            DocumentFile f = currNode.findFile(nodeName);
+   358	            if (f == null || !f.exists())
+   359	                return false;
+   360	
+   361	            currNode = f;
+   362	        }
+   363	        CACHE.put(cacheKey, currNode);
+   364	
+   365	        return true;
+   366	    }
+   367	
+   368	    @TargetApi(21)
+   369	    public Uri makeSafRootDir(@NonNull Uri dir)
+   370	    {
+   380	
+   381	    @TargetApi(21)
+   382	    public int openFD(@NonNull Uri dir,
+   383	                      @NonNull String fileName,
+   384	                      @NonNull String mode)
+   385	    {
+   386	        Uri filePath = getFileUri(dir, fileName, true);
+   387	        if (filePath == null)
+   388	            return -1;
+   389	
+   390	        return openFD(filePath, mode);
+   391	    }
+   392	
+   393	    @TargetApi(21)
+   394	    public int openFD(@NonNull FakePath path,
+   395	                      @NonNull String mode)
+   396	    {
+   397	        Uri filePath = getFileUri(path, true);
+   398	        if (filePath == null)
+   399	            return -1;
+   400	
+   401	        return openFD(filePath, mode);
+   402	    }
+   403	
+   404	    public int openFD(@NonNull Uri filePath, String mode)
+   405	    {
+   406	        if (!("r".equals(mode) || "w".equals(mode) || "rw".equals(mode))) {
+   407	            Log.e(TAG, "Only r, w or rw modes supported");
+   408	            return -1;
+   409	        }
+   410	
+   411	        ContentResolver cr = appContext.getContentResolver();
+   412	        try (ParcelFileDescriptor fd = cr.openFileDescriptor(filePath, mode)) {
+   413	            if (fd == null)
+   414	                return -1;
+   415	
+   416	            return fd.detachFd();
+   417	
+   418	        } catch (Throwable e) {
+   419	            Log.e(TAG, "Unable to get native fd", e);
+   420	            return -1;
+   421	        }
+   422	    }
+   423	
+   424	    @TargetApi(21)
+   425	    @Nullable
+   426	    public Stat stat(@NonNull Uri safRoot, @NonNull String fileName)
+   427	    {
+   428	        String cacheKey = safRoot.toString() + File.separator + fileName;
+   429	        DocumentFile f = CACHE.get(cacheKey);
+   430	        if (f == null) {
+   431	            DocumentFile tree = DocumentFile.fromTreeUri(appContext, safRoot);
+   432	            if (tree == null)
+   433	                return null;
+   434	            f = getFile(tree, fileName, false);
+   435	            if (f != null)
+   436	                CACHE.put(cacheKey, f);
+   437	        }
+   438	
+   439	        return stat(f);
+   440	    }
+   441	
+   442	    @TargetApi(21)
+   443	    @Nullable
+   444	    public Stat statSafRoot(@NonNull Uri safRoot)
+   445	    {
+   446	        String cacheKey = safRoot.toString();
+   447	        DocumentFile tree = CACHE.get(cacheKey);
+   448	        if (tree == null) {
+   449	            tree = DocumentFile.fromTreeUri(appContext, safRoot);
+   450	            if (tree != null)
+   451	                CACHE.put(cacheKey, tree);
+   452	        }
+   453	
+   454	        return stat(tree);
+   455	    }
+   456	
+   457	    @TargetApi(19)
+   458	    @Nullable
+   459	    public Stat stat(@NonNull Uri filePath)
+   460	    {
+   461	        String cacheKey = filePath.toString();
+   462	        DocumentFile f = CACHE.get(cacheKey);
+   463	        if (f == null) {
+   464	            f = DocumentFile.fromSingleUri(appContext, filePath);
+   465	            if (f != null)
+   466	                CACHE.put(cacheKey, f);
+   467	        }
+   468	
+   469	        return stat(f);
+   470	    }
+   471	
+   472	    @TargetApi(21)
+   473	    @Nullable
+   474	    public Stat stat(@NonNull FakePath path)
+   475	    {
+   476	        String cacheKey = path.toString();
+   477	        DocumentFile f = CACHE.get(cacheKey);
+   478	        if (f == null) {
+   479	            f = getFile(path, true);
+   480	            if (f != null)
+   481	                CACHE.put(cacheKey, f);
+   482	        }
+   483	
+   484	        return stat(f);
+   485	    }
+   486	
+   487	    private Stat stat(DocumentFile f)
+   488	    {
+   489	        return (f == null ?
+   490	                null :
+   500	     * Even if the file has an extension called `foo.txt`,
+   501	     * the directory `foo.txt` will be created, not the file
+   502	     */
+   503	
+   504	    @TargetApi(21)
+   505	    public boolean mkdirs(@NonNull FakePath path)
+   506	    {
+   507	        String cacheKey = path.toString();
+   508	        DocumentFile cached = CACHE.get(cacheKey);
+   509	        if (cached != null && cached.exists())
+   510	            return true;
+   511	
+   512	        DocumentFile currNode = DocumentFile.fromTreeUri(appContext, path.safRoot());
+   513	        if (currNode == null)
+   514	            return false;
+   515	
+   516	        String[] nodes = path.makeRelativePathNodes();
+   517	        for (String nodeName : nodes) {
+   518	            DocumentFile node = currNode.findFile(nodeName);
+   519	            if (node == null)
+   520	                node = currNode.createDirectory(nodeName);
+   521	
+   522	            if (node == null)
+   523	                return false;
+   524	
+   525	            currNode = node;
+   526	        }
+   527	        CACHE.put(cacheKey, currNode);
+   528	
+   529	        return true;
+   530	    }
+   531	
+   532	    @TargetApi(19)
+   533	    public Uri getParentDirUri(@NonNull Uri filePath)
+   534	    {
+   535	        String cacheKey = filePath.toString();

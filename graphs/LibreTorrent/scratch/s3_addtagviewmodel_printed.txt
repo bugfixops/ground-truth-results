@@ -1,0 +1,78 @@
+     1	/*
+     2	 * Copyright (C) 2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.addtag;
+    21	
+    22	import android.app.Application;
+    23	
+    24	import androidx.annotation.NonNull;
+    25	import androidx.lifecycle.AndroidViewModel;
+    26	
+    27	import org.proninyaroslav.libretorrent.core.RepositoryHelper;
+    28	import org.proninyaroslav.libretorrent.core.model.data.entity.TagInfo;
+    29	import org.proninyaroslav.libretorrent.core.storage.TagRepository;
+    30	import org.proninyaroslav.libretorrent.core.utils.Utils;
+    31	
+    32	import io.reactivex.Completable;
+    33	
+    34	public class AddTagViewModel extends AndroidViewModel {
+    35	    private final TagRepository tagRepo;
+    36	    public AddTagState state;
+    37	
+    38	    public AddTagViewModel(@NonNull Application application) {
+    39	        super(application);
+    40	
+    41	        state = new AddTagState();
+    42	        tagRepo = RepositoryHelper.getTagRepository(getApplication());
+    43	    }
+    44	
+    45	    public void setInitValues(@NonNull TagInfo info) {
+    46	        state.setExistsTagId(info.id);
+    47	        state.setName(info.name);
+    48	        state.setColor(info.color);
+    49	    }
+    50	
+    51	    public void setRandomColor() {
+    52	        state.setColor(Utils.getRandomColor());
+    53	    }
+    54	
+    55	    Completable saveTag() {
+    56	        TagInfo info;
+    57	        Long existsTagId = state.getExistsTagId();
+    58	        if (existsTagId == null) {
+    59	            info = new TagInfo(state.getName(), state.getColor());
+    60	        } else {
+    61	            info = new TagInfo(existsTagId, state.getName(), state.getColor());
+    62	        }
+    63	        return Completable.fromCallable(() -> {
+    64	            if (existsTagId == null) {
+    65	                TagInfo oldTag = tagRepo.getByName(info.name);
+    66	                if (oldTag != null) {
+    67	                    throw new TagAlreadyExistsException();
+    68	                }
+    69	                tagRepo.insert(info);
+    70	            } else {
+    71	                tagRepo.update(info);
+    72	            }
+    73	            return null;
+    74	        });
+    75	    }
+    76	
+    77	    public static class TagAlreadyExistsException extends Exception { }
+    78	}

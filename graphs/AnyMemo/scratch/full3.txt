@@ -1,0 +1,170 @@
+## AbstractHelperDaoImpl.queryForId  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=other_app state=- classes=explicit;non_standard;standard explicit_standard_route=no
+   1. E1586c7be ENTRY/standard* [ENV: outside package: another app queries the exported CardProvider / DatabasesProvider content provider]
+      S_ENTRY -> CardProvider.<init>
+      The process starts (exported provider; created before Application.onCreate)
+      evidence: SRC AndroidManifest.xml:183-187; FW-SRC core/java/android/app/ActivityThread.java (a ContentProvider is instantiated and onCreate() called by ActivityThread as part of attaching the application, before Application.onCreate)
+        183          <provider
+        184              android:name=".provider.CardProvider"
+        185              android:authorities="${packageName}.cardprovider"
+        186              android:exported="true"
+        187              android:multiprocess="true" />
+      (core/java/android/app/ActivityThread.java: no line numbers)
+   2. E96a48a22 LIFECYCLE/standard*
+      CardProvider.<init> -> CardProvider.onCreate
+      the system calls ContentProvider.onCreate
+      evidence: FW-SRC core/java/android/app/ActivityThread.java (a ContentProvider is instantiated and onCreate() called by ActivityThread as part of attaching the application, before Application.onCreate); SRC provider/CardProvider.java:111-115
+      (core/java/android/app/ActivityThread.java: no line numbers)
+        111  	@Override
+        112  	public boolean onCreate() {
+        113          // Does not support now
+        114  		return false;
+        115  	}
+   3. E1597aa9e FRAMEWORK/standard* [ENV: outside package: another app queries the exported CardProvider / DatabasesProvider content provider]
+      CardProvider.onCreate -> CardProvider.query
+      another app's ContentResolver.query() call on content://<pkg>.cardprovider/...
+      evidence: INFERRED another app's ContentResolver call (query/insert/update/delete/getType) is dispatched by the system process to this provider (ContentProvider/ActivityThread source not read for the cross-process call path); SRC provider/CardProvider.java:42,83-197; AndroidManifest.xml:183-187
+         42  public class CardProvider extends ContentProvider {
+         83  	@Override
+         84  	public int delete(Uri uri, String selection, String[] selectionArgs) {
+         85          // Does not support now
+         86  		return 0;
+         87  	}
+         88  
+         89  	@Override
+         90  	public String getType(Uri uri) {
+         91          switch (sUriMatcher.match(uri)) {
+         92              case COUNT_URI:
+         93                  return "vnd.android.cursor.dir/vnd.org.liberty.android.fantastischmemo.provider.integer";
+         94              case RANDOM_URI:
+         95              case ORD_URI:
+         96              case ID_URI:
+         97              case START_URI:
+         98              case ALL_URI:
+         99                  return "vnd.android.cursor.dir/vnd.org.liberty.android.fantastischmemo.provider.card";
+        100              default:
+        101                  return "vnd.android.cursor.dir/vnd.org.liberty.android.fantastischmemo.provider.card";
+        102          }
+        103  	}
+        104  
+        105  	@Override
+        106  	public Uri insert(Uri uri, ContentValues values) {
+        107          // Does not support now
+        108  		return null;
+        109  	}
+        110  
+        111  	@Override
+        112  	public boolean onCreate() {
+        113          // Does not support now
+        114  		return false;
+        115  	}
+        116  
+        117      /**
+        118       * The query returns null if the db is not valid.
+        119       */
+        120  	@Override
+        121  	public Cursor query(Uri uri, String[] projection, String selection,
+        122  			String[] selectionArgs, String sortOrder) {
+        123  
+        124          List<String> uriSegments = uri.getPathSegments();
+        125  
+        126          String dbPath = AMEnv.DEFAULT_ROOT_PATH + uriSegments.get(0);
+        127  
+        128          if (!new File(dbPath).exists()) {
+        129              return null;
+        130          }
+        131  
+        132          AnyMemoDBOpenHelper helper = AnyMemoDBOpenHelperManager.getHelper(getContext(), dbPath);
+        133  
+        134          try {
+        135              CardDao cardDao = helper.getCardDao();
+        136              Cursor resultCursor = null;
+        137  
+        138              switch (sUriMatcher.match(uri)) {
+        139                  case COUNT_URI: {
+        140                      long count = cardDao.getTotalCount(null);
+        141                      resultCursor = buildCursorFromCount(count);
+        142                      break;
+        143                  }
+        144                  case RANDOM_URI: {
+        145                      int count = Integer.valueOf(uriSegments.get(2));
+        146                      List<Card> cards = cardDao.getRandomCards(null, count);
+        147                      resultCursor = buildCursorFromCards(cards);
+        148                      break;
+        149                  }
+        150  
+        151                  case ORD_URI: {
+        152                      int ord = Integer.valueOf(uriSegments.get(2));
+        153                      Card card = cardDao.getByOrdinal(ord);
+        154                      resultCursor = buildCursorFromCard(card);
+        155                      break;
+        156                  }
+        157  
+        158                  case ID_URI: {
+        159                      int id = Integer.valueOf(uriSegments.get(2));
+        160                      Card card = cardDao.getById(id);
+        161                      resultCursor = buildCursorFromCard(card);
+        162                      break;
+        163                  }
+        164  
+        165                  case START_URI: {
+        166                      int start = Integer.valueOf(uriSegments.get(2));
+        167                      int count = Integer.valueOf(uriSegments.get(4));
+        168                      List<Card> cards = cardDao.getCardsByOrdinalAndSize(start, count);
+        169                      resultCursor = buildCursorFromCards(cards);
+        170                      break;
+        171                  }
+        172  
+        173                  case ALL_URI: {
+        174                      List<Card> cards = cardDao.getAllCards(null);
+        175                      resultCursor = buildCursorFromCards(cards);
+        176                      break;
+        177                  }
+        178  
+        179                  default:
+        180                      throw new IllegalArgumentException("No matching handler for uri: " + uri);
+        181              }
+        182              if (resultCursor == null) {
+        183                  Log.e(TAG, "No case matched for uri: " + uri);
+        184              }
+        185              return resultCursor;
+        186          } finally {
+        187              AnyMemoDBOpenHelperManager.releaseHelper(helper);
+        188          }
+        189  
+        190  	}
+        191  
+        192  	@Override
+        193  	public int update(Uri uri, ContentValues values, String selection,
+        194  			String[] selectionArgs) {
+        195          // Does not support now
+        196  		return 0;
+        197  	}
+   4. E4bb65ed1 CALL/explicit*
+      CardProvider.query -> CardDaoImpl.getById
+      Virtual/interface call that can dispatch to this implementation
+      evidence: SRC CardProvider.java:160 (bytecode)
+        160                      Card card = cardDao.getById(id);
+   5. Edbc6773f FRAMEWORK/non_standard(RxJava 2 (io.reactivex) calls the Rx callback (subscribe / onNext / call))
+      CardDaoImpl.getById -> CardDaoImpl$7.call
+      the framework calls call (Callable<Card>) at dao/CardDaoImpl.java:719
+      evidence: INFERRED RxJava 2 (io.reactivex) Observable/Single/Completable/Maybe delivers onNext/onSuccess/onComplete/onError/accept to the subscriber on the thread named by observeOn (library source not read); SRC dao/CardDaoImpl.java:719-731
+        719          return callBatchTasks(new Callable<Card>() {
+        720              public Card call() {
+        721                  LearningDataDao learningDataDao = getHelper().getLearningDataDao();
+        722                  CategoryDao categoryDao = getHelper().getCategoryDao();
+        723                  Card card = queryForId(id);
+        724                  if (card == null) {
+        725                      return null;
+        726                  }
+        727                  learningDataDao.refresh(card.getLearningData());
+        728                  categoryDao.refresh(card.getCategory());
+        729                  return card;
+        730              }
+        731          });
+   6. Eb4fa02ac CALL/explicit*
+      CardDaoImpl$7.call -> AbstractHelperDaoImpl.queryForId
+      Direct call
+      evidence: SRC CardDaoImpl.java:723 (bytecode)
+        723                  Card card = queryForId(id);
+

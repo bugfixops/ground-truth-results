@@ -1,0 +1,215 @@
+   155	                .show(activity)
+   156	        );
+   157	    }
+   158	
+   159	    private boolean checkName() {
+   160	        if (TextUtils.isEmpty(viewModel.state.getName())) {
+   161	            binding.nameLayout.setErrorEnabled(true);
+   162	            binding.nameLayout.setError(getString(R.string.error_empty_name));
+   163	            binding.nameLayout.requestFocus();
+   164	            return false;
+   165	        }
+   166	
+   167	        binding.nameLayout.setErrorEnabled(false);
+   168	        binding.nameLayout.setError(null);
+   169	        return true;
+   170	    }
+   171	
+   172	    private void initAlertDialog(View view) {
+   173	        AlertDialog.Builder builder = new AlertDialog.Builder(activity)
+   174	                .setTitle(viewModel.state.getExistsTagId() == null ?
+   175	                        R.string.add_tag :
+   176	                        R.string.edit_tag)
+   177	                .setPositiveButton(viewModel.state.getExistsTagId() == null ?
+   178	                        R.string.add :
+   179	                        R.string.apply, null)
+   180	                .setNegativeButton(R.string.cancel, null)
+   181	                .setView(view);
+   182	
+   183	        alert = builder.create();
+   184	        alert.setCanceledOnTouchOutside(false);
+   185	        alert.setOnShowListener((DialogInterface dialog) -> {
+   186	            Button addButton = alert.getButton(AlertDialog.BUTTON_POSITIVE);
+   187	            addButton.setOnClickListener((v) -> addTag());
+   188	
+   189	            Button cancelButton = alert.getButton(AlertDialog.BUTTON_NEGATIVE);
+   190	            cancelButton.setOnClickListener(
+   191	                    (v) -> finish(new Intent(), FragmentCallback.ResultCode.CANCEL)
+   192	            );
+   193	        });
+   194	    }
+   195	
+   196	    private void addTag() {
+   197	        if (!checkName()) {
+   198	            return;
+   199	        }
+   200	        disposables.add(viewModel.saveTag()
+   201	                .subscribeOn(Schedulers.io())
+   202	                .observeOn(AndroidSchedulers.mainThread())
+   203	                .subscribe(
+   204	                        () -> finish(new Intent(), FragmentCallback.ResultCode.OK),
+   204	                        () -> finish(new Intent(), FragmentCallback.ResultCode.OK),
+   205	                        (e) -> {
+   205	                        (e) -> {
+   206	                            if (e instanceof AddTagViewModel.TagAlreadyExistsException) {
+   207	                                Toast.makeText(
+   208	                                        activity,
+   209	                                        R.string.tag_already_exists,
+   210	                                        Toast.LENGTH_SHORT
+   211	                                ).show();
+   212	                            } else {
+   213	                                Log.e(TAG, Log.getStackTraceString(e));
+   214	                                Toast.makeText(
+   215	                                        activity,
+   216	                                        R.string.add_tag_failed,
+   217	                                        Toast.LENGTH_SHORT
+   218	                                ).show();
+   219	                            }
+   220	                        }
+   221	                )
+   222	        );
+   223	    }
+   224	
+   225	    public void onBackPressed() {
+   226	        finish(new Intent(), FragmentCallback.ResultCode.BACK);
+   227	    }
+   228	
+   229	    private void finish(Intent intent, FragmentCallback.ResultCode code) {
+   230	        alert.dismiss();
+   231	        ((FragmentCallback) activity).onFragmentFinished(this, intent, code);
+   232	    }
+   233	}
+  1288	    }
+  1289	
+  1290	    /**
+  1291	     * Sets a listener to be invoked when the dialog is shown.
+  1292	     * @param listener The {@link DialogInterface.OnShowListener} to use.
+  1293	     */
+  1294	    public void setOnShowListener(@Nullable OnShowListener listener) {
+  1295	        if (listener != null) {
+  1296	            mShowMessage = mListenersHandler.obtainMessage(SHOW, listener);
+  1297	        } else {
+  1298	            mShowMessage = null;
+  1299	        }
+  1300	    }
+  1301	
+  1302	    /**
+  1358	        public void handleMessage(Message msg) {
+  1359	            switch (msg.what) {
+  1360	                case DISMISS:
+  1361	                    ((OnDismissListener) msg.obj).onDismiss(mDialog.get());
+  1362	                    break;
+  1363	                case CANCEL:
+  1364	                    ((OnCancelListener) msg.obj).onCancel(mDialog.get());
+  1365	                    break;
+  1366	                case SHOW:
+  1367	                    ((OnShowListener) msg.obj).onShow(mDialog.get());
+  1368	                    break;
+  1369	            }
+  1370	        }
+  1371	    }
+  6143	    public void setOnClickListener(@Nullable OnClickListener l) {
+  6144	        if (!isClickable()) {
+  6145	            setClickable(true);
+  6146	        }
+  6147	        getListenerInfo().mOnClickListener = l;
+  6148	    }
+  6149	
+  6150	    /**
+  6151	     * Return whether this view has an attached OnClickListener.  Returns
+  6152	     * true if there is a listener, false if there is none.
+  6153	     */
+  6154	    public boolean hasOnClickListeners() {
+  6155	        ListenerInfo li = mListenerInfo;
+  6156	        return (li != null && li.mOnClickListener != null);
+  6157	    }
+  6158	
+  6289	    public boolean performClick() {
+  6290	        final boolean result;
+  6291	        final ListenerInfo li = mListenerInfo;
+  6292	        if (li != null && li.mOnClickListener != null) {
+  6293	            playSoundEffect(SoundEffectConstants.CLICK);
+  6294	            li.mOnClickListener.onClick(this);
+  6295	            result = true;
+  6296	        } else {
+  6297	            result = false;
+  6298	        }
+  6299	
+  6300	        sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_CLICKED);
+  6301	
+  6302	        notifyEnterOrExitForAutoFillIfNeeded(true);
+  6303	
+  6304	        return result;
+  6305	    }
+    82	            activity = (AppCompatActivity) context;
+    83	        }
+    84	    }
+    85	
+    86	    @Override
+    87	    public void onResume() {
+    88	        super.onResume();
+    89	
+    90	        // Back button handle
+    91	        getDialog().setOnKeyListener((dialog, keyCode, event) -> {
+    92	            if (keyCode == KeyEvent.KEYCODE_BACK) {
+    93	                if (event.getAction() == KeyEvent.ACTION_DOWN) {
+    94	                    onBackPressed();
+    95	                }
+    96	                return true;
+    97	            } else {
+    98	                return false;
+    99	            }
+   100	        });
+   101	    }
+   102	
+   103	    @Override
+   104	    public void onStop() {
+   105	        super.onStop();
+   106	
+   107	        disposables.clear();
+   108	    }
+    86	    @Override
+    87	    public void onResume() {
+    88	        super.onResume();
+    89	
+    90	        // Back button handle
+    91	        getDialog().setOnKeyListener((dialog, keyCode, event) -> {
+    92	            if (keyCode == KeyEvent.KEYCODE_BACK) {
+    93	                if (event.getAction() == KeyEvent.ACTION_DOWN) {
+    94	                    onBackPressed();
+    95	                }
+    96	                return true;
+    97	            } else {
+    98	                return false;
+    99	            }
+   100	        });
+   101	    }
+   225	    public void onBackPressed() {
+   226	        finish(new Intent(), FragmentCallback.ResultCode.BACK);
+   227	    }
+   228	
+   229	    private void finish(Intent intent, FragmentCallback.ResultCode code) {
+   230	        alert.dismiss();
+   231	        ((FragmentCallback) activity).onFragmentFinished(this, intent, code);
+   232	    }
+   770	     * @param event The key event.
+   771	     *
+   772	     * @return boolean Return true if this event was consumed.
+   773	     */
+   774	    @Override
+   775	    public boolean dispatchKeyEvent(@NonNull KeyEvent event) {
+   776	        if ((mOnKeyListener != null) && (mOnKeyListener.onKey(this, event.getKeyCode(), event))) {
+   777	            return true;
+   778	        }
+   779	        if (mWindow.superDispatchKeyEvent(event)) {
+   780	            return true;
+   781	        }
+  1342	    
+  1343	    /**
+  1344	     * Sets the callback that will be called if a key is dispatched to the dialog.
+  1345	     */
+  1346	    public void setOnKeyListener(@Nullable OnKeyListener onKeyListener) {
+  1347	        mOnKeyListener = onKeyListener;
+  1348	    }
+  1349	
+  1350	    private static final class ListenersHandler extends Handler {

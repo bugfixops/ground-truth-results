@@ -1,0 +1,63 @@
+# AnkiDroid 2.6beta6 trigger graph
+# Generated part: tools/gen_edges.py derives entry points, lifecycle, callbacks, lambdas, intents, XML-instantiated classes
+# from the bytecode, AndroidManifest.xml and res/ XML (see its docstring). Direct app->app calls come from
+# tools/extract_calls.py. Everything below gen_edges.apply() is hand-written refinement for this app.
+# Rebuild: python3 -I tools/build_graph.py graphs/AnkiDroid <prefix>
+
+TITLE = 'AnkiDroid 2.6beta6 trigger graph'
+USE_AUTO = True
+PREFER_SETUP_OVER_ENV = True
+AUTO_DEAD = ('Generated graph: no route found. Nothing in the app calls it and no entry point (manifest component, lifecycle or '
+             'UI callback of a constructed class, lambda, XML reference, class literal, intent action) leads to it. '
+             'Probably unused code; entries through reflection, JNI or code generators are not modelled.')
+
+import sys
+sys.path.insert(0, TOOLS)
+import gen_edges
+
+ENV_ANKIWEB = 'outside package: an AnkiWeb account and network access (log in, sync, media sync)'
+ENV_NET = 'outside package: network access to an external web service (Google Translate / pronunciation download)'
+ENV_API = 'outside package: another app uses the AnkiDroid API / content provider (the app itself does not query its own provider)'
+ENV_WIDGET = 'outside package: the user adds the AnkiDroid widget on the launcher home screen'
+ENV_SD = 'outside package: the SD card is mounted or unmounted (system broadcast)'
+NEED_ADVSTATS = ('Settings > Advanced statistics > "Enable advanced statistics" is on (the forecast then uses the review simulation of AdvancedStatistics '
+                 'instead of the scheduled reviews)')
+NEED_TYPEIN = 'A card whose template has a {{type:Field}} type-in answer is reviewed and a wrong answer is typed (the answer is then diffed)'
+NEED_WHITEBOARD = 'The whiteboard is enabled for the deck (Reviewer menu > Enable whiteboard; the state is stored per deck in MetaDB)'
+NEED_SOUND = 'The reviewed card has an audio file ([sound:...] tag in its question or answer)'
+NEED_REVCARD = 'A card of the review queue (queue 2, learned on an earlier day and due now) is answered; a fresh collection only has new / learning cards'
+NEED_TTS_SETTING = 'Settings > Reviewing > "Speak text" (text-to-speech) is on'
+NEED_FULLSCREEN = 'Settings > Reviewing > fullscreen review mode is on (mPrefFullscreenReview > 0)'
+ENV_OLD_API = 'outside package: the device runs Android 2.3 (API 10) or older (Build.VERSION.SDK_INT <= GINGERBREAD_MR1); the baseline used API 27'
+ENV_RELEASE = 'outside package: a release build (BuildConfig.DEBUG is false); the graph is built from the debug APK'
+GUARD_TASK = 'switch on the task type: only a caller that launches this task type reaches it (the generic route assumes every type)'
+NEED_APKG = 'A .apkg / .anki2 / .colpkg file is selected in the import dialog (sample_deck.apkg is among the Download fixtures, so this is a tap path; the baseline never imported it)'
+
+CFG = {
+    'GROUPS': [         # (regex on node name, 'needs'|'env'|'guard', text): gates every edge into a method of the group that the baseline never ran
+        (r'^(Syncer|HttpSyncer|FullSyncer|RemoteServer|RemoteMediaServer|MediaSyncer|Connection|EasySSLSocketFactory|HttpFetcher|'
+         r'UnknownHttpResponseException|MediaSyncException|MyAccount)\b', 'env', ENV_ANKIWEB),
+        (r'^(TranslationActivity|LoadPronounciationActivity)', 'env', ENV_NET),
+        (r'^CardContentProvider', 'env', ENV_API),
+        (r'^AnkiDroidWidget\w*', 'env', ENV_WIDGET),
+        (r'^SdCardReceiver', 'env', ENV_SD),
+        (r'^(Anki2Importer|AnkiPackageImporter|Importer)\b', 'needs', NEED_APKG),
+        (r'^AdvancedStatistics', 'needs', NEED_ADVSTATS),
+    ],
+    'EDGES': [          # (regex on source node, regex on target node, 'needs'|'env'|'guard', text): branch-specific gates read from the source at the frontier
+        (r'^AbstractFlashcardViewer\.typeAnsAnswerFilter$', r'^DiffEngine\.', 'needs', NEED_TYPEIN),
+        (r'^Reviewer\.onCollectionLoaded$', r'^Reviewer\.(setWhiteboardEnabledState|setWhiteboardVisibility)$', 'needs', NEED_WHITEBOARD),
+        (r'^Sound\.playSounds$', r'^Sound\.playSound', 'needs', NEED_SOUND),
+        (r'^Sched\.answerCard$', r'^Sched\._answerRevCard$', 'needs', NEED_REVCARD),
+        (r'^AbstractFlashcardViewer\.onCollectionLoaded$', r'^ReadText\.initializeTts$', 'needs', NEED_TTS_SETTING),
+        (r'^AbstractFlashcardViewer\$21\.handleMessage$', r'^CompatV\d+\.setFullScreen$', 'needs', NEED_FULLSCREEN),
+        (r'^MultimediaEditFieldActivity\.onCreate$', r'^MultimediaEditFieldActivity\.createSpareMenu$', 'env', ENV_OLD_API),
+        (r'^AnkiDroidApp\.onCreate$', r'^AnkiDroidApp\$ProductionCrashReportingTree\.', 'env', ENV_RELEASE),
+        (r'^DeckTask\.doInBackground$', r'^DeckTask\.doInBackground\w+$', 'guard', GUARD_TASK),
+    ],
+    'STATIC_ADAPTERS': [],  # adapters whose rows exist without user data
+}
+
+gen_edges.apply(globals(), GDIR, 'AnkiDroid', CFG)
+
+# ------------------------------------------------------------------ hand-written refinement

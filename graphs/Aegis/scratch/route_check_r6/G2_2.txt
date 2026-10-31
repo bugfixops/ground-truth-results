@@ -1,0 +1,759 @@
+## ImportExportPreferencesFragment$ExportResultListener.onTaskFinished  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=other_app state=- classes=explicit;non_standard;standard explicit_standard_route=no
+   1. Eb9515d18 ENTRY/standard*
+      S_ENTRY -> AegisApplication.<init>
+      Any outside trigger starts the app process; the application class is created first, except in a backup or restore start, which uses the base Application class
+      guard: not a full backup or restore start (FW ActivityThread.java:5713-5715)
+      evidence: SRC AndroidManifest.xml:21-27 (android:name=".AegisApplication", backupAgent=".AegisBackupAgent")
+         21      <application
+         22          android:name=".AegisApplication"
+         23          android:allowBackup="true"
+         24          android:fullBackupOnly="true"
+         25          android:fullBackupContent="@xml/backup_rules_old"
+         26          android:dataExtractionRules="@xml/backup_rules"
+         27          android:backupAgent=".AegisBackupAgent"
+   2. E5b266140 LIFECYCLE/standard*
+      AegisApplication.<init> -> Hilt_AegisApplication.onCreate
+      Application.onCreate: the Hilt-generated superclass onCreate runs first (Hilt injection), then AegisApplicationBase.onCreate
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:5740 (the system calls Application.onCreate); INFERRED Hilt rewrites the superclass: AegisApplication extends Hilt_AegisApplication (generated file, not in the source tree; source AegisApplication.java:6 has no onCreate)
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+   3. E1ef992ce CALL/explicit
+      Hilt_AegisApplication.onCreate -> AegisApplicationBase.onCreate
+      Direct call
+      evidence: INFERRED generated code (Hilt_AegisApplication.java is not in the source tree; the call is in the build class, line 43)
+   4. E88ed9829 ENTERS/page*
+      AegisApplicationBase.onCreate -> S_PROCESS
+      the application is created: the process can start a component
+      evidence: SRC AegisApplicationBase.java:45-67; FW-SRC core/java/android/app/ActivityThread.java:5740 (the system calls Application.onCreate)
+         45      public void onCreate() {
+         46          super.onCreate();
+         47          _vaultManager = EarlyEntryPoints.get(this, EntryPoint.class).getVaultManager();
+         48  
+         49          VaultLockReceiver lockReceiver = new VaultLockReceiver();
+         50          IntentFilter intentFilter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
+         51          ContextCompat.registerReceiver(this, lockReceiver, intentFilter, ContextCompat.RECEIVER_NOT_EXPORTED);
+         52  
+         53          // lock the app if the user moves the application to the background
+         54          ProcessLifecycleOwner.get().getLifecycle().addObserver(new AppLifecycleObserver());
+         55  
+         56          // clear the cache directory on startup, to make sure no temporary vault export files remain
+         57          IOUtils.clearDirectory(getCacheDir(), false);
+         58  
+      ...  (9 more lines)
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+   5. E28ffc58c ENTRY/standard*
+      S_PROCESS -> MainActivity.<init>
+      Tap the Aegis icon in the launcher (MAIN / LAUNCHER)
+      evidence: SRC AndroidManifest.xml:44-51
+         44              android:name=".ui.MainActivity"
+         45              android:exported="true"
+         46              android:label="${title}">
+         47              <intent-filter>
+         48                  <action android:name="android.intent.action.MAIN" />
+         49  
+         50                  <category android:name="android.intent.category.LAUNCHER" />
+         51              </intent-filter>
+   6. Eb76444fd LIFECYCLE/standard*
+      MainActivity.<init> -> MainActivity.onCreate
+      Activity.onCreate after the constructor
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731,2741 (the system calls Activity.onCreate, then performStart); SRC ui/MainActivity.java:192-194
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+        192      @Override
+        193      protected void onCreate(Bundle savedInstanceState) {
+        194          super.onCreate(savedInstanceState);
+   7. E3a06baed LIFECYCLE/standard*
+      MainActivity.onCreate -> MainActivity.onStart
+      Activity.onStart after onCreate
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731,2741 (the system calls Activity.onCreate, then performStart); SRC ui/MainActivity.java:938-940
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+        938      @Override
+        939      protected void onStart() {
+        940          super.onStart();
+   8. E0602e719 CALL/explicit*
+      MainActivity.onStart -> MainActivity.startIntroActivity
+      no vault file exists (fresh install): the intro starts and onStart returns
+      guard: vault init needed: no vault file exists
+      evidence: SRC ui/MainActivity.java:942-948
+        942          if (_vaultManager.isVaultInitNeeded()) {
+        943              if (_prefs.isIntroDone()) {
+        944                  Toast.makeText(this, getString(R.string.vault_not_found), Toast.LENGTH_SHORT).show();
+        945              }
+        946              startIntroActivity();
+        947              return;
+        948          }
+   9. E4ce5043a INTENT/standard*
+      MainActivity.startIntroActivity -> IntroActivity.<init>
+      startActivityForResult(IntroActivity) through introResultLauncher
+      guard: intro not already running (_isDoingIntro false, MainActivity.java:604)
+      evidence: SRC ui/MainActivity.java:603-612; INFERRED androidx.activity.result: the launcher callback runs with the result (androidx source not cached)
+        603      private void startIntroActivity() {
+        604          if (!_isDoingIntro) {
+        605              Intent intro = new Intent(this, IntroActivity.class);
+        606              introResultLauncher.launch(intro);
+        607              _isDoingIntro = true;
+        608          }
+        609      }
+        610  
+        611      private void onScanResult(Intent data) {
+        612          List<VaultEntry> entries = (ArrayList<VaultEntry>) data.getSerializableExtra("entries");
+  10. E5e63fbe7 LIFECYCLE/standard*
+      IntroActivity.<init> -> IntroActivity.onCreate
+      Activity.onCreate of the intro
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731,2741 (the system calls Activity.onCreate, then performStart); SRC ui/IntroActivity.java:35-41
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+         35      protected void onCreate(Bundle savedInstanceState) {
+         36          super.onCreate(savedInstanceState);
+         37  
+         38          addSlide(WelcomeSlide.class);
+         39          addSlide(SecurityPickerSlide.class);
+         40          addSlide(SecuritySetupSlide.class);
+         41          addSlide(DoneSlide.class);
+  11. E93598a00 CALL/explicit*
+      IntroActivity.onCreate -> IntroBaseActivity.addSlide@IntroActivity
+      Direct call
+      evidence: SRC IntroActivity.java:38-41 (bytecode line was 41; addSlide(WelcomeSlide) is line 38)
+         38          addSlide(WelcomeSlide.class);
+         39          addSlide(SecurityPickerSlide.class);
+         40          addSlide(SecuritySetupSlide.class);
+         41          addSlide(DoneSlide.class);
+  12. E1440feb8 ENTERS/page*
+      IntroBaseActivity.addSlide@IntroActivity -> S_INTRO_WELCOME
+      the first slide (Welcome) is shown
+      guard: the added slide is the first one, the Welcome slide (IntroBaseActivity.java:183-186; IntroActivity.java:38)
+      evidence: SRC ui/intro/IntroBaseActivity.java:174-188; SRC ui/IntroActivity.java:38
+        174      public void addSlide(Class<? extends SlideFragment> type) {
+        175          if (_slides.contains(type)) {
+        176              throw new IllegalStateException(String.format("Only one slide of type %s may be added to the intro", type.getName()));
+        177          }
+        178  
+        179          _slides.add(type);
+        180          _slideIndicator.setSlideCount(_slides.size());
+        181  
+        182          // send 'slide changed' events for the first slide
+        183          if (_slides.size() == 1) {
+        184              Class<? extends SlideFragment> slide = _slides.get(0);
+        185              onBeforeSlideChanged(null, slide);
+        186              onAfterSlideChanged(null, slide);
+        187          }
+      ...  (1 more lines)
+         38          addSlide(WelcomeSlide.class);
+  13. Ee1d29ff8 GUI/standard* [ENV: the system document picker of another app returns a file (ACTION_GET_CONTENT, WelcomeSlide.java:43-47)]
+      S_INTRO_WELCOME -> WelcomeSlide.lambda$onCreateView$1
+      Tap Import (the picker of another app opens)
+      evidence: FW-SRC core/java/android/view/View.java:6289-6296 (performClick calls the OnClickListener.onClick); SRC ui/slides/WelcomeSlide.java:43-47; INFERRED androidx.activity.result: the launcher callback runs with the result (androidx source not cached)
+      (core/java/android/view/View.java not found in the source tree)
+         43          view.findViewById(R.id.btnImport).setOnClickListener(v -> {
+         44              Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+         45              intent.setType("*/*");
+         46              vaultImportResultLauncher.launch(intent);
+         47          });
+  14. E3870f4a6 RESULT/standard* [ENV: the system document picker of another app returns a file (ACTION_GET_CONTENT, WelcomeSlide.java:43-47)]
+      WelcomeSlide.lambda$onCreateView$1 -> WelcomeSlide.lambda$new$0
+      the picker returns a content URI to the Welcome slide
+      evidence: SRC ui/slides/WelcomeSlide.java:32-38; INFERRED androidx.activity.result: the launcher callback runs with the result (androidx source not cached)
+         32      private final ActivityResultLauncher<Intent> vaultImportResultLauncher =
+         33              registerForActivityResult(new StartActivityForResult(), activityResult -> {
+         34                  Intent data = activityResult.getData();
+         35                  if (data != null && data.getData() != null) {
+         36                      startImportVault(data.getData());
+         37                  }
+         38              });
+  15. Ee4518b2e CALL/explicit*
+      WelcomeSlide.lambda$new$0 -> WelcomeSlide.startImportVault
+      the returned URI is imported (ImportFileTask)
+      guard: the picker returned a URI: data != null and data.getData() != null (WelcomeSlide.java:35-36)
+      evidence: SRC ui/slides/WelcomeSlide.java:30-40
+         30      private VaultFileCredentials _creds;
+         31  
+         32      private final ActivityResultLauncher<Intent> vaultImportResultLauncher =
+         33              registerForActivityResult(new StartActivityForResult(), activityResult -> {
+         34                  Intent data = activityResult.getData();
+         35                  if (data != null && data.getData() != null) {
+         36                      startImportVault(data.getData());
+         37                  }
+         38              });
+         39  
+         40      @Override
+  16. E4c857825 ASYNC/standard*
+      WelcomeSlide.startImportVault -> ImportFileTask.doInBackground@WELCOME
+      AsyncTask runs doInBackground on the worker thread (read the picked vault file)
+      evidence: FW-SRC core/java/android/os/AsyncTask.java:594-595 (execute), 632-650 (executeOnExecutor), 326-339 (doInBackground at 333), 369-374 (postResult), 705-713 (handleMessage), 691-697 (finish calls onPostExecute at 695); SRC ui/tasks/ProgressDialogTask.java:69-74; SRC ui/slides/WelcomeSlide.java:59,95; SRC ui/tasks/ImportFileTask.java:27
+      (core/java/android/os/AsyncTask.java not found in the source tree)
+         69      public final void execute(@Nullable Lifecycle lifecycle, Params... params) {
+         70          if (lifecycle != null) {
+         71              LifecycleObserver observer = new Observer(getDialog());
+         72              lifecycle.addObserver(observer);
+         73          }
+         74          execute(params);
+         59          ImportFileTask task = new ImportFileTask(requireContext(), result -> {
+         95          task.execute(getLifecycle(), params);
+         27      protected Result doInBackground(Params... params) {
+  17. E3810e168 ASYNC/standard*
+      ImportFileTask.doInBackground@WELCOME -> ImportFileTask.onPostExecute@WELCOME
+      the result is posted to the main thread (the Welcome import task)
+      guard: the task was not cancelled (a cancelled task calls onCancelled instead, AsyncTask.java:691-697)
+      evidence: FW-SRC core/java/android/os/AsyncTask.java:594-595 (execute), 632-650 (executeOnExecutor), 326-339 (doInBackground at 333), 369-374 (postResult), 705-713 (handleMessage), 691-697 (finish calls onPostExecute at 695); SRC ui/tasks/ImportFileTask.java:53-56
+      (core/java/android/os/AsyncTask.java not found in the source tree)
+         53      protected void onPostExecute(Result result) {
+         54          super.onPostExecute(result);
+         55          _cb.onTaskFinished(result);
+         56      }
+  18. E87742878 CALL/explicit*
+      ImportFileTask.onPostExecute@WELCOME -> WelcomeSlide.lambda$startImportVault$2
+      _cb.onTaskFinished(result): the import result goes to the Welcome slide (an error dialog, or the vault is imported and the slide moves on)
+      evidence: SRC ui/tasks/ImportFileTask.java:53-59; SRC ui/slides/WelcomeSlide.java:59-94
+         53      protected void onPostExecute(Result result) {
+         54          super.onPostExecute(result);
+         55          _cb.onTaskFinished(result);
+         56      }
+         57  
+         58      public interface Callback {
+         59          void onTaskFinished(Result result);
+         59          ImportFileTask task = new ImportFileTask(requireContext(), result -> {
+         60              if (result.getError() != null) {
+         61                  Dialogs.showErrorDialog(requireContext(), R.string.reading_file_error, result.getError());
+         62                  return;
+         63              }
+         64  
+         65              try (FileInputStream inStream = new FileInputStream(result.getFile())) {
+         66                  AegisImporter importer = new AegisImporter(requireContext());
+         67                  DatabaseImporter.State state = importer.read(inStream, false);
+         68                  if (state.isEncrypted()) {
+         69                      state.decrypt(requireContext(), new DatabaseImporter.DecryptListener() {
+         70                          @Override
+         71                          protected void onStateDecrypted(DatabaseImporter.State state) {
+         72                              _creds = ((AegisImporter.DecryptedState) state).getCredentials();
+      ...  (22 more lines)
+  19. E32137f46 CALL/explicit
+      WelcomeSlide.lambda$startImportVault$2 -> AegisImporter$EncryptedState.decrypt(Context,DecryptListener)
+      the picked vault file is encrypted: the importer asks for the password and decrypts it
+      guard: file read without error (WelcomeSlide.java:60-63) and the file is encrypted (state.isEncrypted(), WelcomeSlide.java:68)
+      evidence: SRC ui/slides/WelcomeSlide.java:60-63,68-69; SRC importers/AegisImporter.java:66-90
+         60              if (result.getError() != null) {
+         61                  Dialogs.showErrorDialog(requireContext(), R.string.reading_file_error, result.getError());
+         62                  return;
+         63              }
+         68                  if (state.isEncrypted()) {
+         69                      state.decrypt(requireContext(), new DatabaseImporter.DecryptListener() {
+         66          public SlotList getSlots() {
+         67              return _file.getHeader().getSlots();
+         68          }
+         69  
+         70          public State decrypt(VaultFileCredentials creds) throws DatabaseImporterException {
+         71              JSONObject obj;
+         72              try {
+         73                  obj = _file.getContent(creds);
+         74              } catch (VaultFileException e) {
+         75                  throw new DatabaseImporterException(e);
+         76              }
+         77  
+         78              return new DecryptedState(obj, creds);
+         79          }
+      ...  (11 more lines)
+  20. E71fa8be8 CALL/explicit*
+      AegisImporter$EncryptedState.decrypt(Context,DecryptListener) -> Dialogs.showPasswordInputDialog(Context,int,int,TextInputListener,OnCancelListener)
+      Direct call
+      evidence: SRC AegisImporter.java:90 (bytecode)
+         90              Dialogs.showPasswordInputDialog(context, R.string.enter_password_aegis_title, 0, (Dialogs.TextInputListener) password -> {
+  21. E62fef539 CALL/explicit*
+      Dialogs.showPasswordInputDialog(Context,int,int,TextInputListener,OnCancelListener) -> Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)
+      Direct call
+      evidence: SRC Dialogs.java:271 (bytecode)
+        271          showTextInputDialog(context, titleId, messageId, R.string.password, listener, cancelListener, true, null);
+  22. E5bb67188 FRAMEWORK/standard*
+      Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String) -> Dialogs.lambda$showTextInputDialog$8
+      the input dialog is shown: its OnShowListener disables OK and sets the OK click listener
+      evidence: INFERRED androidx.appcompat AlertDialog: show() runs the OnShowListener (AppCompat source not read); SRC ui/dialogs/Dialogs.java:226-229
+        226          dialog.setOnShowListener(d -> {
+        227              Button button = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+        228              button.setEnabled(false);
+        229              buttonOK.set(button);
+  23. Ec9266bec FRAMEWORK/standard*
+      Dialogs.lambda$showTextInputDialog$8 -> Dialogs.lambda$showTextInputDialog$7
+      Tap OK in the input dialog (gives the text to the listener)
+      guard: the text is not empty (OK is disabled until then, Dialogs.java:203)
+      evidence: FW-SRC core/java/android/view/View.java:6289-6296 (performClick calls the OnClickListener.onClick); SRC ui/dialogs/Dialogs.java:231-235
+      (core/java/android/view/View.java not found in the source tree)
+        231              button.setOnClickListener(v -> {
+        232                  char[] text = EditTextHelper.getEditTextChars(input);
+        233                  listener.onTextInputResult(text);
+        234                  dialog.dismiss();
+        235              });
+  24. E23a01370 CALL/non_standard(interface callback: Dialogs.TextInputListener.onTextInputResult (Dialogs.java:233); the listener is the lambda at SecurityPreferencesFragment.java:157)
+      Dialogs.lambda$showTextInputDialog$7 -> SecurityPreferencesFragment.lambda$onCreatePreferences$7
+      the typed password is passed to the pin-keyboard listener: the digits-only check runs, then the password is decrypted in a background task
+      guard: the dialog was opened by the PIN keyboard (SecurityPreferencesFragment.java:157-162)
+      evidence: SRC ui/dialogs/Dialogs.java:231-241; SRC ui/fragments/preferences/SecurityPreferencesFragment.java:157-162
+        231              button.setOnClickListener(v -> {
+        232                  char[] text = EditTextHelper.getEditTextChars(input);
+        233                  listener.onTextInputResult(text);
+        234                  dialog.dismiss();
+        235              });
+        236          });
+        237          dialog.setCanceledOnTouchOutside(true);
+        238          dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        239          showSecureDialog(dialog);
+        240      }
+        241  
+        157              Dialogs.showPasswordInputDialog(requireContext(), R.string.set_password_confirm, R.string.pin_keyboard_description, password -> {
+        158                  if (isDigitsOnly(new String(password))) {
+        159                      List<PasswordSlot> slots = _vaultManager.getVault().getCredentials().getSlots().findRegularPasswordSlots();
+        160                      PasswordSlotDecryptTask.Params params = new PasswordSlotDecryptTask.Params(slots, password);
+        161                      PasswordSlotDecryptTask task = new PasswordSlotDecryptTask(requireContext(), new PasswordConfirmationListener());
+        162                      task.execute(getLifecycle(), params);
+  25. Ec5219d4f ASYNC/standard*
+      SecurityPreferencesFragment.lambda$onCreatePreferences$7 -> PasswordSlotDecryptTask.doInBackground
+      AsyncTask runs doInBackground on the worker thread (decrypt the password slot to confirm the PIN)
+      guard: the typed PIN contains only digits (SecurityPreferencesFragment.java:158)
+      evidence: FW-SRC core/java/android/os/AsyncTask.java:594-595 (execute), 632-650 (executeOnExecutor), 326-339 (doInBackground at 333), 369-374 (postResult), 705-713 (handleMessage), 691-697 (finish calls onPostExecute at 695); SRC ui/tasks/ProgressDialogTask.java:69-74; SRC ui/fragments/preferences/SecurityPreferencesFragment.java:158-162; SRC ui/tasks/PasswordSlotDecryptTask.java:27
+      (core/java/android/os/AsyncTask.java not found in the source tree)
+         69      public final void execute(@Nullable Lifecycle lifecycle, Params... params) {
+         70          if (lifecycle != null) {
+         71              LifecycleObserver observer = new Observer(getDialog());
+         72              lifecycle.addObserver(observer);
+         73          }
+         74          execute(params);
+        158                  if (isDigitsOnly(new String(password))) {
+        159                      List<PasswordSlot> slots = _vaultManager.getVault().getCredentials().getSlots().findRegularPasswordSlots();
+        160                      PasswordSlotDecryptTask.Params params = new PasswordSlotDecryptTask.Params(slots, password);
+        161                      PasswordSlotDecryptTask task = new PasswordSlotDecryptTask(requireContext(), new PasswordConfirmationListener());
+        162                      task.execute(getLifecycle(), params);
+         27      protected Result doInBackground(PasswordSlotDecryptTask.Params... args) {
+  26. Eba701841 ASYNC/standard*
+      PasswordSlotDecryptTask.doInBackground -> PasswordSlotDecryptTask.onPostExecute
+      the result is posted to the main thread
+      guard: the task was not cancelled (a cancelled task calls onCancelled instead, AsyncTask.java:691-697)
+      evidence: FW-SRC core/java/android/os/AsyncTask.java:594-595 (execute), 632-650 (executeOnExecutor), 326-339 (doInBackground at 333), 369-374 (postResult), 705-713 (handleMessage), 691-697 (finish calls onPostExecute at 695); SRC ui/tasks/PasswordSlotDecryptTask.java:27,87-90
+      (core/java/android/os/AsyncTask.java not found in the source tree)
+         27      protected Result doInBackground(PasswordSlotDecryptTask.Params... args) {
+         87      protected void onPostExecute(Result result) {
+         88          super.onPostExecute(result);
+         89          _cb.onTaskFinished(result);
+         90      }
+  27. E9f4b7d7f CALL/explicit*
+      PasswordSlotDecryptTask.onPostExecute -> AuthActivity$PasswordDerivationListener.onTaskFinished
+      _cb.onTaskFinished(result)
+      guard: the task was built with PasswordDerivationListener (AuthActivity.java:173-174)
+      evidence: SRC ui/tasks/PasswordSlotDecryptTask.java:87-90; SRC ui/AuthActivity.java:343-364
+         87      protected void onPostExecute(Result result) {
+         88          super.onPostExecute(result);
+         89          _cb.onTaskFinished(result);
+         90      }
+        343      private class PasswordDerivationListener implements PasswordSlotDecryptTask.Callback {
+        344          @Override
+        345          public void onTaskFinished(PasswordSlotDecryptTask.Result result) {
+        346              if (result != null) {
+        347                  // replace the old slot with the repaired one
+        348                  if (result.isSlotRepaired()) {
+        349                      _slots.replace(result.getSlot());
+        350                  }
+        351  
+        352                  if (result.getSlot().getType() == Slot.TYPE_PASSWORD) {
+        353                      _prefs.resetPasswordReminderTimestamp();
+        354                  }
+        355  
+        356                  finish(result.getKey(), result.isSlotRepaired());
+      ...  (8 more lines)
+  28. Ef7f4f7c4 CALL/explicit*
+      AuthActivity$PasswordDerivationListener.onTaskFinished -> AuthActivity.finish
+      the password matched a slot: the vault loads and the screen finishes
+      guard: the decrypt result is not null (a slot matched the password, 346)
+      evidence: SRC ui/AuthActivity.java:345-356; SRC ui/AuthActivity.java:295-311
+        345          public void onTaskFinished(PasswordSlotDecryptTask.Result result) {
+        346              if (result != null) {
+        347                  // replace the old slot with the repaired one
+        348                  if (result.isSlotRepaired()) {
+        349                      _slots.replace(result.getSlot());
+        350                  }
+        351  
+        352                  if (result.getSlot().getType() == Slot.TYPE_PASSWORD) {
+        353                      _prefs.resetPasswordReminderTimestamp();
+        354                  }
+        355  
+        356                  finish(result.getKey(), result.isSlotRepaired());
+        295      private void finish(MasterKey key, boolean isSlotRepaired) {
+        296          VaultFileCredentials creds = new VaultFileCredentials(key, _slots);
+        297  
+        298          try {
+        299              _vaultManager.loadFrom(_vaultFile, creds);
+        300              if (isSlotRepaired) {
+        301                  saveAndBackupVault();
+        302              }
+        303          } catch (VaultRepositoryException e) {
+        304              e.printStackTrace();
+        305              Dialogs.showErrorDialog(this, R.string.decryption_corrupt_error, e);
+        306              return;
+        307          }
+        308  
+      ...  (3 more lines)
+  29. E8a12fac2 RESULT/standard*
+      AuthActivity.finish -> MainActivity.lambda$new$0
+      RESULT_OK after the vault loads: the launcher callback runs
+      guard: loadFrom succeeded (no error dialog, 298-310)
+      evidence: SRC ui/AuthActivity.java:295-311; FW-SRC core/java/android/app/ActivityThread.java:4253-4265 (deliverResults passes each result to dispatchActivityResult of the starting activity); FW-SRC core/java/android/app/Activity.java:5526-5527 (finish); INFERRED androidx.activity.result: the launcher callback runs with the result (androidx source not cached)
+        295      private void finish(MasterKey key, boolean isSlotRepaired) {
+        296          VaultFileCredentials creds = new VaultFileCredentials(key, _slots);
+        297  
+        298          try {
+        299              _vaultManager.loadFrom(_vaultFile, creds);
+        300              if (isSlotRepaired) {
+        301                  saveAndBackupVault();
+        302              }
+        303          } catch (VaultRepositoryException e) {
+        304              e.printStackTrace();
+        305              Dialogs.showErrorDialog(this, R.string.decryption_corrupt_error, e);
+        306              return;
+        307          }
+        308  
+      ...  (3 more lines)
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+      (core/java/android/app/Activity.java not found in the source tree)
+  30. Ec3137a3c CALL/explicit*
+      MainActivity.lambda$new$0 -> MainActivity.onDecryptResult
+      RESULT_OK: the unlock result is handled
+      guard: activityResult.getResultCode() == RESULT_OK (MainActivity.java:137)
+      evidence: SRC ui/MainActivity.java:134-140
+        134      private final ActivityResultLauncher<Intent> authResultLauncher =
+        135              registerForActivityResult(new StartActivityForResult(), activityResult -> {
+        136                  _isAuthenticating = false;
+        137                  if (activityResult.getResultCode() == RESULT_OK) {
+        138                      onDecryptResult();
+        139                  }
+        140              });
+  31. E49a61ace CALL/explicit*
+      MainActivity.onDecryptResult -> MainActivity.loadEntries
+      the entries are loaded after the unlock
+      evidence: SRC ui/MainActivity.java:797-801
+        797      private void onDecryptResult() {
+        798          _auditLogRepository.addVaultUnlockedEvent();
+        799  
+        800          loadEntries();
+        801      }
+  32. Ea76ae1a0 ENTERS/page*
+      MainActivity.loadEntries -> S_LIST
+      the list is shown (vault loaded, list loaded in this instance)
+      guard: list not yet loaded in this instance (_loaded false, MainActivity.java:1134) and the vault is loaded (getVault() throws when none is loaded, VaultManager.java:231-233): a producer of the loaded vault must come earlier on the route (the intro result, or an unlock)
+      evidence: SRC ui/MainActivity.java:1133-1144; SRC vault/VaultManager.java:231-233
+       1133      private void loadEntries() {
+       1134          if (!_loaded) {
+       1135              setGroups(_vaultManager.getVault().getUsedGroups());
+       1136              _entryListView.setUsageCounts(_prefs.getUsageCounts());
+       1137              _entryListView.setLastUsedTimestamps(_prefs.getLastUsedTimestamps());
+       1138              _entryListView.setEntries(_vaultManager.getVault().getEntries());
+       1139              if (!_isRecreated) {
+       1140                  _entryListView.runEntriesAnimation();
+       1141              }
+       1142              _loaded = true;
+       1143          }
+       1144      }
+        231      public VaultRepository getVault() {
+        232          if (!isVaultLoaded()) {
+        233              throw new IllegalStateException("Vault manager is not initialized");
+  33. E887b87bf GUI/standard*
+      S_LIST -> MainActivity.onOptionsItemSelected
+      Tap an item in the list toolbar or overflow menu: the lock icon, Settings, About or a sort option
+      evidence: INFERRED androidx.appcompat: a tap on a toolbar menu item calls onOptionsItemSelected (source not read); SRC ui/MainActivity.java:1086-1118
+       1086      public boolean onOptionsItemSelected(MenuItem item) {
+       1087          int itemId = item.getItemId();
+       1088          if (itemId == R.id.action_settings) {
+       1089              startPreferencesActivity();
+       1090          } else if (itemId == R.id.action_about) {
+       1091              Intent intent = new Intent(this, AboutActivity.class);
+       1092              startActivity(intent);
+       1093          } else if (itemId == R.id.action_lock) {
+       1094              _vaultManager.lock(true);
+       1095          } else {
+       1096              if (item.getGroupId() == R.id.action_sort_category) {
+       1097                  item.setChecked(true);
+       1098  
+       1099                  SortCategory sortCategory;
+      ...  (19 more lines)
+  34. Ef4e32054 CALL/explicit*
+      MainActivity.onOptionsItemSelected -> MainActivity.startPreferencesActivity()
+      the Settings item opens the settings page
+      guard: the Settings item was tapped (action_settings, MainActivity.java:1088-1089)
+      evidence: SRC ui/MainActivity.java:1088-1089
+       1088          if (itemId == R.id.action_settings) {
+       1089              startPreferencesActivity();
+  35. Ef64f95ee CALL/explicit*
+      MainActivity.startPreferencesActivity() -> MainActivity.startPreferencesActivity(Class,String)
+      Direct call
+      evidence: SRC MainActivity.java:827 (bytecode)
+        827          startPreferencesActivity(null, null);
+  36. E640fb9eb INTENT/standard*
+      MainActivity.startPreferencesActivity(Class,String) -> PreferencesActivity.<init>
+      the settings page opens (fragment and preference extras)
+      evidence: SRC ui/MainActivity.java:826-835; INFERRED androidx.activity.result: the launcher callback runs with the result (androidx source not cached)
+        826      private void startPreferencesActivity() {
+        827          startPreferencesActivity(null, null);
+        828      }
+        829  
+        830      private void startPreferencesActivity(Class<? extends PreferencesFragment> fragmentType, String preference) {
+        831          Intent intent = new Intent(this, PreferencesActivity.class);
+        832          intent.putExtra("fragment", fragmentType);
+        833          intent.putExtra("pref", preference);
+        834          preferenceResultLauncher.launch(intent);
+        835      }
+  37. E94201299 LIFECYCLE/standard*
+      PreferencesActivity.<init> -> PreferencesActivity.onCreate
+      Activity.onCreate of the settings page
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731,2741 (the system calls Activity.onCreate, then performStart); SRC ui/PreferencesActivity.java:24
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+         24      protected void onCreate(Bundle savedInstanceState) {
+  38. E50e3cfda CALL/explicit*
+      PreferencesActivity.onCreate -> MainPreferencesFragment.<init>
+      the settings page creates its main fragment on a fresh start
+      guard: onCreate did not abort (PreferencesActivity.java:26-27, abortIfOrphan returns false) and savedInstanceState is null (PreferencesActivity.java:40)
+      evidence: SRC ui/PreferencesActivity.java:26-27,40-41
+         26          if (abortIfOrphan(savedInstanceState)) {
+         27              return;
+         40          if (savedInstanceState == null) {
+         41              _fragment = new MainPreferencesFragment();
+  39. E382bc001 LIFECYCLE/standard*
+      MainPreferencesFragment.<init> -> MainPreferencesFragment.onCreatePreferences
+      the preference list is built after the attach (MainPreferencesFragment)
+      evidence: INFERRED androidx.fragment: a committed transaction attaches the fragment, then PreferenceFragmentCompat.onCreate builds the list (onCreatePreferences), then onResume runs (androidx source not cached); SRC ui/PreferencesActivity.java:41-46
+         41              _fragment = new MainPreferencesFragment();
+         42              _fragment.setArguments(getIntent().getExtras());
+         43  
+         44              getSupportFragmentManager().beginTransaction()
+         45                      .replace(R.id.content, _fragment)
+         46                      .commit();
+  40. Eccc3a740 ENTERS/page*
+      MainPreferencesFragment.onCreatePreferences -> S_SETTINGS_MAIN
+      the settings main list is shown (the preferences.xml rows)
+      evidence: SRC ui/PreferencesActivity.java:40-46; SRC ui/fragments/preferences/MainPreferencesFragment.java:7-12; SRC res/xml/preferences.xml:8-44
+         40          if (savedInstanceState == null) {
+         41              _fragment = new MainPreferencesFragment();
+         42              _fragment.setArguments(getIntent().getExtras());
+         43  
+         44              getSupportFragmentManager().beginTransaction()
+         45                      .replace(R.id.content, _fragment)
+         46                      .commit();
+          7  public class MainPreferencesFragment extends PreferencesFragment {
+          8      @Override
+          9      public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
+         10          addPreferencesFromResource(R.xml.preferences);
+         11      }
+         12  }
+          8          android:fragment="com.beemdevelopment.aegis.ui.fragments.preferences.AppearancePreferencesFragment"
+          9          app:icon="@drawable/ic_outline_brush_24"
+         10          app:title="@string/pref_section_appearance_title"
+         11          app:summary="@string/pref_section_appearance_summary" />
+         12  
+         13      <Preference
+         14          android:fragment="com.beemdevelopment.aegis.ui.fragments.preferences.BehaviorPreferencesFragment"
+         15          app:icon="@drawable/ic_outline_touch_app_24"
+         16          app:title="@string/pref_section_behavior_title"
+         17          app:summary="@string/pref_section_behavior_summary" />
+         18  
+         19      <Preference
+         20          android:fragment="com.beemdevelopment.aegis.ui.fragments.preferences.IconPacksManagerFragment"
+         21          android:title="@string/pref_section_icon_packs"
+      ...  (23 more lines)
+  41. E3452b602 GUI/standard*
+      S_SETTINGS_MAIN -> PreferencesActivity.onPreferenceStartFragment
+      Tap a row of the main settings list that opens a sub-page (android:fragment in preferences.xml)
+      evidence: INFERRED androidx.preference: a tap on a Preference row calls its OnPreferenceClickListener, or the activity callback OnPreferenceStartFragmentCallback for a row with android:fragment (androidx source not cached); SRC ui/PreferencesActivity.java:19,80-84; SRC res/xml/preferences.xml:8-44
+         19          PreferenceFragmentCompat.OnPreferenceStartFragmentCallback {
+         80      public boolean onPreferenceStartFragment(@NonNull PreferenceFragmentCompat caller, Preference pref) {
+         81          _fragment = getSupportFragmentManager().getFragmentFactory().instantiate(getClassLoader(), pref.getFragment());
+         82          _fragment.setArguments(pref.getExtras());
+         83          _fragment.setTargetFragment(caller, 0);
+         84          showFragment(_fragment);
+          8          android:fragment="com.beemdevelopment.aegis.ui.fragments.preferences.AppearancePreferencesFragment"
+          9          app:icon="@drawable/ic_outline_brush_24"
+         10          app:title="@string/pref_section_appearance_title"
+         11          app:summary="@string/pref_section_appearance_summary" />
+         12  
+         13      <Preference
+         14          android:fragment="com.beemdevelopment.aegis.ui.fragments.preferences.BehaviorPreferencesFragment"
+         15          app:icon="@drawable/ic_outline_touch_app_24"
+         16          app:title="@string/pref_section_behavior_title"
+         17          app:summary="@string/pref_section_behavior_summary" />
+         18  
+         19      <Preference
+         20          android:fragment="com.beemdevelopment.aegis.ui.fragments.preferences.IconPacksManagerFragment"
+         21          android:title="@string/pref_section_icon_packs"
+      ...  (23 more lines)
+  42. E63d9f2a4 CALL/non_standard(reflection: FragmentFactory.instantiate(getClassLoader(), pref.getFragment()) loads the class named in android:fragment and calls its constructor (PreferencesActivity.java:81; res/xml/preferences.xml:38))
+      PreferencesActivity.onPreferenceStartFragment -> ImportExportPreferencesFragment.<init>
+      the framework creates the sub-page named by the tapped row (ImportExportPreferencesFragment)
+      guard: the tapped row has android:fragment=ImportExportPreferencesFragment (res/xml/preferences.xml:38)
+      evidence: INFERRED androidx.fragment: a committed transaction attaches the fragment, then PreferenceFragmentCompat.onCreate builds the list (onCreatePreferences), then onResume runs (androidx source not cached); SRC ui/PreferencesActivity.java:80-84; SRC res/xml/preferences.xml:38
+         80      public boolean onPreferenceStartFragment(@NonNull PreferenceFragmentCompat caller, Preference pref) {
+         81          _fragment = getSupportFragmentManager().getFragmentFactory().instantiate(getClassLoader(), pref.getFragment());
+         82          _fragment.setArguments(pref.getExtras());
+         83          _fragment.setTargetFragment(caller, 0);
+         84          showFragment(_fragment);
+         38          android:fragment="com.beemdevelopment.aegis.ui.fragments.preferences.ImportExportPreferencesFragment"
+  43. E245f8b40 LIFECYCLE/standard*
+      ImportExportPreferencesFragment.<init> -> ImportExportPreferencesFragment.onCreatePreferences
+      the preference list is built after the attach (ImportExportPreferencesFragment)
+      evidence: INFERRED androidx.fragment: a committed transaction attaches the fragment, then PreferenceFragmentCompat.onCreate builds the list (onCreatePreferences), then onResume runs (androidx source not cached); SRC ui/PreferencesActivity.java:84,91-97
+         84          showFragment(_fragment);
+         91      private void showFragment(Fragment fragment) {
+         92          getSupportFragmentManager().beginTransaction()
+         93                  .setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left, R.anim.slide_in_left, R.anim.slide_out_right)
+         94                  .replace(R.id.content, fragment)
+         95                  .addToBackStack(null)
+         96                  .commit();
+         97      }
+  44. E629987fd FRAMEWORK/standard*
+      ImportExportPreferencesFragment.onCreatePreferences -> ImportExportPreferencesFragment.lambda$onCreatePreferences$9
+      Tap Export (pref_export)
+      evidence: INFERRED androidx.preference: a tap on a Preference row calls its OnPreferenceClickListener, or the activity callback OnPreferenceStartFragmentCallback for a row with android:fragment (androidx source not cached); SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:125-129
+        125          Preference exportPreference = requirePreference("pref_export");
+        126          exportPreference.setOnPreferenceClickListener(preference -> {
+        127              startExport();
+        128              return true;
+        129          });
+  45. Ed8c9ae46 CALL/explicit*
+      ImportExportPreferencesFragment.lambda$onCreatePreferences$9 -> ImportExportPreferencesFragment.startExport
+      Direct call
+      evidence: SRC ImportExportPreferencesFragment.java:127 (bytecode)
+        127              startExport();
+  46. E76172dad FRAMEWORK/standard*
+      ImportExportPreferencesFragment.startExport -> ImportExportPreferencesFragment.lambda$startExport$20
+      the export dialog is shown: its OnShowListener sets up the checkboxes and the OK and Share buttons
+      evidence: INFERRED androidx.appcompat AlertDialog: show() runs the OnShowListener (AppCompat source not read); SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:201-209,332
+        201          AlertDialog dialog = new MaterialAlertDialogBuilder(requireContext())
+        202                  .setTitle(R.string.pref_export_summary)
+        203                  .setView(view)
+        204                  .setNeutralButton(R.string.share, null)
+        205                  .setPositiveButton(android.R.string.ok, null)
+        206                  .setNegativeButton(android.R.string.cancel, null)
+        207                  .create();
+        208  
+        209          dialog.setOnShowListener(d -> {
+        332          Dialogs.showSecureDialog(dialog);
+  47. E847a2f41 FRAMEWORK/standard*
+      ImportExportPreferencesFragment.lambda$startExport$20 -> ImportExportPreferencesFragment.lambda$startExport$17
+      Tap OK in the export dialog (the export goes to the document creator, ACTION_CREATE_DOCUMENT)
+      guard: Encrypt or the accept checkbox is ticked, and all groups are exported or a group is chosen (ImportExportPreferencesFragment.java:215-217,255-265)
+      evidence: FW-SRC core/java/android/view/View.java:6289-6296 (performClick calls the OnClickListener.onClick); SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:252-278
+      (core/java/android/view/View.java not found in the source tree)
+        252              btnPos.setOnClickListener(v -> {
+        253                  dialog.dismiss();
+        254  
+        255                  if (!checkBoxEncrypt.isChecked() && !checkBoxAccept.isChecked()) {
+        256                      return;
+        257                  }
+        258  
+        259                  if (!checkBoxExportAllGroups.isChecked()) {
+        260                      _exportFilter = getVaultEntryFilter(groupsSelection);
+        261                      if (_exportFilter == null) {
+        262                          Toast.makeText(requireContext(), R.string.export_no_groups_selected, Toast.LENGTH_SHORT).show();
+        263                          return;
+        264                      }
+        265                  }
+      ...  (13 more lines)
+  48. Eae638791 CALL/explicit*
+      ImportExportPreferencesFragment.lambda$startExport$17 -> VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@EXPORT
+      Tap OK: the export goes to the system document creator through the launcher of the chosen format
+      evidence: SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:277 (getExportRequestLauncher, :403-411)
+        277                  _vaultManager.fireIntentLauncher(this, intent, resultLauncher);
+  49. Eedce6158 RESULT/standard* [ENV: the user saves the export file in the system document creator (ACTION_CREATE_DOCUMENT) or sends it through the share chooser (ACTION_SEND), and the other app returns to Aegis (ImportExportPreferencesFragment.java:270-277,320-326)]
+      VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@EXPORT -> ImportExportPreferencesFragment.lambda$new$1
+      the export returns to Aegis: the launcher runs onExportResult with the result code and the file URI
+      guard: the Aegis format with encryption is chosen (getExportRequestLauncher returns exportResultLauncher, :404-405)
+      evidence: INFERRED androidx.activity.result: the launcher callback runs with the result (androidx source not cached); SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:82,403-411
+         82              registerForActivityResult(new StartActivityForResult(), activityResult ->
+        403      private ActivityResultLauncher<Intent> getExportRequestLauncher(int spinnerPos, boolean encrypt) {
+        404          if (spinnerPos == 0) {
+        405              return encrypt ? exportResultLauncher : exportPlainResultLauncher;
+        406          } else if (spinnerPos == 1) {
+        407              return exportHtmlResultLauncher;
+        408          }
+        409  
+        410          return exportGoogleUriResultLauncher;
+        411      }
+  50. E482923e8 CALL/explicit*
+      ImportExportPreferencesFragment.lambda$new$1 -> ImportExportPreferencesFragment.onExportResult
+      Direct call
+      evidence: SRC ImportExportPreferencesFragment.java:83 (bytecode)
+         83                      onExportResult(CODE_EXPORT, activityResult.getResultCode(), activityResult.getData()));
+  51. Eb5c7858e CALL/explicit*
+      ImportExportPreferencesFragment.onExportResult -> ImportExportPreferencesFragment.startExportVault@RESULT
+      the export file was picked: onExportResult starts the export with the result callback
+      guard: the result is RESULT_OK with a URI (onExportResult returns early otherwise, ImportExportPreferencesFragment.java:506-512)
+      evidence: SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:505-514
+        505      private void onExportResult(int requestCode, int resultCode, @Nullable Intent data) {
+        506          if (data == null) {
+        507              return;
+        508          }
+        509          Uri uri = data.getData();
+        510          if (resultCode != Activity.RESULT_OK || uri == null) {
+        511              return;
+        512          }
+        513  
+        514          startExportVault(requestCode, cb -> {
+  52. Ec2f8d782 CALL/explicit*
+      ImportExportPreferencesFragment.startExportVault@RESULT -> ImportExportPreferencesFragment.lambda$onExportResult$26
+      startExportVault runs the result callback for the chosen format
+      guard: the encrypted Aegis format is chosen: requestCode == CODE_EXPORT (ImportExportPreferencesFragment.java:444) and vault.isEncryptionEnabled() (line 445)
+      evidence: SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:442-499,514
+        442      private void startExportVault(int requestCode, StartExportCallback cb, @Nullable Vault.EntryFilter filter) {
+        443          switch (requestCode) {
+        444              case CODE_EXPORT:
+        445                  if (_vaultManager.getVault().isEncryptionEnabled()) {
+        446                      cb.exportVault(stream -> {
+        447                          if (filter != null) {
+        448                              _vaultManager.getVault().exportFiltered(stream, filter);
+        449                          } else {
+        450                              _vaultManager.getVault().export(stream);
+        451                          }
+        452                      });
+        453                  } else {
+        454                      Dialogs.showSetPasswordDialog(requireActivity(), new Dialogs.PasswordSlotListener() {
+        455                          @Override
+      ...  (44 more lines)
+        514          startExportVault(requestCode, cb -> {
+  53. E0505e72e ASYNC/standard*
+      ImportExportPreferencesFragment.lambda$onExportResult$26 -> ExportTask.doInBackground
+      the export runs on a background thread (the export task is started by the export callback)
+      guard: temp file written with no VaultRepositoryException or IOException (the catch at ImportExportPreferencesFragment.java:521-524 returns, so the execute at line 535 is skipped)
+      evidence: FW-SRC core/java/android/os/AsyncTask.java:594-595 (execute), 632-650 (executeOnExecutor), 326-339 (doInBackground at 333), 369-374 (postResult), 705-713 (handleMessage), 691-697 (finish calls onPostExecute at 695); SRC ui/tasks/ProgressDialogTask.java:69-74; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:535; SRC ui/tasks/ExportTask.java:24
+      (core/java/android/os/AsyncTask.java not found in the source tree)
+         69      public final void execute(@Nullable Lifecycle lifecycle, Params... params) {
+         70          if (lifecycle != null) {
+         71              LifecycleObserver observer = new Observer(getDialog());
+         72              lifecycle.addObserver(observer);
+         73          }
+         74          execute(params);
+        535              new ExportTask(requireContext(), new ExportResultListener()).execute(getLifecycle(), new ExportTask.Params(file, uri));
+         24      protected Exception doInBackground(ExportTask.Params... args) {
+  54. Ec9295cb2 ASYNC/standard*
+      ExportTask.doInBackground -> ExportTask.onPostExecute
+      the result is posted to the main thread
+      guard: the export task was not cancelled (a cancelled task calls onCancelled instead, AsyncTask.java:691-697)
+      evidence: FW-SRC core/java/android/os/AsyncTask.java:594-595 (execute), 632-650 (executeOnExecutor), 326-339 (doInBackground at 333), 369-374 (postResult), 705-713 (handleMessage), 691-697 (finish calls onPostExecute at 695); FW-SRC core/java/android/os/AsyncTask.java:691-697 (finish); SRC ui/tasks/ExportTask.java:43-45
+      (core/java/android/os/AsyncTask.java not found in the source tree)
+      (core/java/android/os/AsyncTask.java not found in the source tree)
+         43      protected void onPostExecute(Exception e) {
+         44          super.onPostExecute(e);
+         45          _cb.onTaskFinished(e);
+  55. E546cc6f9 CALL/explicit*
+      ExportTask.onPostExecute -> ImportExportPreferencesFragment$ExportResultListener.onTaskFinished
+      the export task is done: the listener shows the error dialog or the success toast
+      guard: the export task finished (ExportTask.java:43-45)
+      evidence: SRC ui/tasks/ExportTask.java:43-45; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:535,550-563
+         43      protected void onPostExecute(Exception e) {
+         44          super.onPostExecute(e);
+         45          _cb.onTaskFinished(e);
+        535              new ExportTask(requireContext(), new ExportResultListener()).execute(getLifecycle(), new ExportTask.Params(file, uri));
+        550      private class ExportResultListener implements ExportTask.Callback {
+        551          @Override
+        552          public void onTaskFinished(Exception e) {
+        553              if (e != null) {
+        554                  e.printStackTrace();
+        555                  Dialogs.showErrorDialog(requireContext(), R.string.exporting_vault_error, e);
+        556              } else {
+        557                  // if the user creates an export, hide the backup reminder
+        558                  _prefs.setLatestExportTimeNow();
+        559                  _auditLogRepository.addVaultExportedEvent();
+        560                  Toast.makeText(requireContext(), getString(R.string.exported_vault), Toast.LENGTH_SHORT).show();
+        561              }
+        562          }
+        563      }
+

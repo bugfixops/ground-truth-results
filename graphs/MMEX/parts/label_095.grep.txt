@@ -1,0 +1,37 @@
+# label_095.grep.txt: grep and printed evidence behind the UNREACHABLE decisions in batch 095 (graphs/MMEX/scratch/batches/batch_095.txt, 26 methods).
+# Source root: final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main (paths relative to the repo root).
+# UNREACHABLE rows: log/CrashReportingTree.<init> and log/CrashReportingTree.log (app source, SOURCE). No library or generated class is UNREACHABLE in this batch (D5 grep not needed).
+
+== section 1: every reference to CrashReportingTree in the app source tree (java, manifest, res)
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/MmexApplication.java:137:            //Timber.plant(new CrashReportingTree());
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/log/CrashReportingTree.java:33:public class CrashReportingTree extends Timber.Tree {
+
+== section 2: where trees are planted (MmexApplication.java, plant calls)
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/MmexApplication.java:135:            Timber.plant(new DebugTree());
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/MmexApplication.java:137:            //Timber.plant(new CrashReportingTree());
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/MmexApplication.java:138:            Timber.plant(new ScreenTree());
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/MmexApplication.java:139:            Timber.plant(new SysLogTree());
+
+== section 3: lines 133-140 of MmexApplication.java (sed -n)
+        // Loggers
+        if (BuildConfig.DEBUG) {
+            Timber.plant(new DebugTree());
+        } else {
+            //Timber.plant(new CrashReportingTree());
+            Timber.plant(new ScreenTree());
+            Timber.plant(new SysLogTree());
+        }
+
+== section 4: the class declaration and its only method (sed -n 33,35p CrashReportingTree.java)
+public class CrashReportingTree extends Timber.Tree {
+    @Override
+    protected void log(int priority, String tag, String message, Throwable t) {
+
+== section 5: every construction of a tree in the app (grep new DebugTree / new ScreenTree / new CrashReportingTree / new SysLogTree): none for CrashReportingTree
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/MmexApplication.java:135:            Timber.plant(new DebugTree());
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/MmexApplication.java:137:            //Timber.plant(new CrashReportingTree());
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/MmexApplication.java:138:            Timber.plant(new ScreenTree());
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/MmexApplication.java:139:            Timber.plant(new SysLogTree());
+
+== section 6: auto_calls.json records with CrashReportingTree as src or dst (python3 -I)
+CrashReportingTree.log -> ErrorRaisedEvent.<init> CrashReportingTree.java 56 exact []

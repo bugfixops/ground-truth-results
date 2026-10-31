@@ -1,0 +1,139 @@
+# label_121 grep evidence (run from /Users/darshan/Desktop/yang/work). Source root: final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java
+# Section A: SyncPreferences.clear (UNREACHABLE). B: route records for REACHABLE rows. C: page key S_SETTINGS. D: entry lines.
+
+## A. SyncPreferences.clear
+$ grep -rn "resetPreferences" <source root>
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferencesViewHolder.java:36:    public Preference resetPreferences;
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferencesViewHolder.java:46:        resetPreferences = view.findPreference(view.getString(R.string.pref_reset_preferences));
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncManager.java:256:    void resetPreferences() {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferenceFragment.java:252:        viewHolder.resetPreferences.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferenceFragment.java:262://                            sync.resetPreferences();
+
+$ grep -rn "\.clear()" in every file that names SyncPreferences or uses SyncManager.getPreferences
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncManager.java:257:        getPreferences().clear();
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java:1521:                databases.clear();
+
+$ grep -rln "SyncPreferences" <source root> (files that name the class)
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/settings/SettingsFragment.java
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/settings/SyncPreferencesActivity.java
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/settings/SyncPreferences.java
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/DatabaseMetadataFactory.java
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/SelectDatabaseActivity.java
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncSchedulerBroadcastReceiver.java
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncBroadcastReceiver.java
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncManager.java
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferenceFragment.java
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferencesViewHolder.java
+
+$ sed -n 252,276p SyncPreferenceFragment.java (reset listener, raw)
+        viewHolder.resetPreferences.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                final SyncManager sync = getSyncManager();
+//                sync.logout()
+//                    .subscribeOn(Schedulers.io())
+//                    .observeOn(AndroidSchedulers.mainThread())
+//                    .subscribe(new SingleSubscriber<Void>() {
+//                        @Override
+//                        public void onSuccess(Void value) {
+//                            sync.resetPreferences();
+//                            sync.stopSyncServiceAlarm();
+//
+//                            new Core(getActivity()).alert(R.string.preferences_reset);
+//
+//                            getActivity().recreate();
+//                        }
+//
+//                        @Override
+//                        public void onError(Throwable error) {
+//                            Timber.e(error, "logging out the cloud provider");                        }
+//                    });
+                return false;
+            }
+        });
+
+$ auto_calls.json records: dst SyncPreferences.clear, dst SyncManager.resetPreferences, src SyncManager.resetPreferences
+SyncManager.resetPreferences -> SyncPreferences.clear SyncManager.java 257 exact
+SyncManager.resetPreferences -> SyncManager.getPreferences SyncManager.java 257 exact
+dst SyncManager.resetPreferences records: 0
+dst SyncPreferences.clear records: 1
+lambdas mentioning resetPreferences or clear: []
+receiver_variants mentioning resetPreferences: []
+
+$ grep -n "resetPreferences" graphs/MMEX/scratch/batches/*.txt (owner of SyncManager.resetPreferences)
+graphs/MMEX/scratch/batches/batch_123.txt
+
+## B. Route records (verified present in auto_calls.json; route text in label_121.md)
+OK   MainActivity.onCreate -> MainActivity.initializeSync MainActivity.java:242 exact
+OK   MainActivity.onCreate -> MainActivity.migrateRecentDatabases MainActivity.java:190 exact
+OK   MainActivity.initializeSync -> SyncManager.isActive MainActivity.java:1212 exact
+OK   MainActivity.initializeSync -> SyncPreferences.<init> MainActivity.java:1214 exact
+OK   MainActivity.initializeSync -> SyncPreferences.getSyncInterval MainActivity.java:1217 exact
+OK   MainActivity.initializeSync -> SyncPreferences.get(Integer,boolean) MainActivity.java:1222 exact
+OK   SyncManager.isActive -> SyncManager.isSyncEnabled SyncManager.java:232 exact
+OK   SyncManager.isActive -> SyncPreferences.shouldSyncOnlyOnWifi SyncManager.java:239 exact
+OK   SyncManager.isSyncEnabled -> SyncPreferences.isSyncEnabled SyncManager.java:250 exact
+OK   MainActivity.migrateRecentDatabases -> RecentDatabasesProvider.getCurrent MainActivity.java:1523 exact
+OK   RecentDatabasesProvider.getCurrent -> DatabaseMetadataFactory.createDefaultEntry RecentDatabasesProvider.java:128 exact
+OK   DatabaseMetadataFactory.createDefaultEntry -> SyncPreferences.loadPreference DatabaseMetadataFactory.java:78 exact
+OK   SyncManager.setEnabled -> SyncPreferences.setSyncEnabled SyncManager.java:261 exact
+OK   SyncManager.setSyncInterval -> SyncPreferences.setSyncInterval SyncManager.java:265 exact
+OK   SyncPreferenceFragment.onCreatePreferences -> SyncPreferenceFragment.initializePreferences SyncPreferenceFragment.java:90 exact
+OK   SyncPreferenceFragment.initializePreferences -> SyncPreferenceFragment$3.<init> SyncPreferenceFragment.java:180 exact
+OK   SyncPreferenceFragment.initializePreferences -> SyncPreferenceFragment$5.<init> SyncPreferenceFragment.java:209 exact
+OK   SyncPreferenceFragment$3.onPreferenceChange -> SyncManager.setEnabled SyncPreferenceFragment.java:185 exact
+OK   SyncPreferenceFragment$5.onPreferenceChange -> SyncManager.setSyncInterval SyncPreferenceFragment.java:215 exact
+OK   SyncManager.canSync -> SyncPreferences.shouldSyncOnlyOnWifi SyncManager.java:108 exact
+OK   SyncManager.dataChanged -> SyncPreferences.getUploadImmediately SyncManager.java:149 exact
+OK   SyncSchedulerBroadcastReceiver.startHeartbeat -> SyncPreferences.getSyncInterval SyncSchedulerBroadcastReceiver.java:80 exact
+OK   SyncBroadcastReceiver.onReceive -> SyncPreferences.getSyncInterval SyncBroadcastReceiver.java:43 exact
+OK   SettingsActivity.showFragment -> SettingsFragment.<init> SettingsActivity.java:68 exact
+OK   SettingsActivity.showFragment -> BaseSettingsFragmentActivity.setSettingFragment SettingsActivity.java:71 exact
+OK   SettingsFragment.initGeneralSettings -> SettingsFragment$10.<init> SettingsFragment.java:226 exact
+OK   SettingsFragment.onCreate -> SettingsFragment$1.<init> SettingsFragment.java:59 exact
+OK   SettingsFragment.onCreate -> SettingsFragment.initGeneralSettings SettingsFragment.java:51 exact
+OK   SettingsFragment.getUiHelper -> UIHelper.<init> SettingsFragment.java:212 exact
+OK   SettingsFragment.initGeneralSettings -> SettingsFragment.getUiHelper SettingsFragment.java:223 exact
+framework PreferenceFragmentCompat.onCreate in SettingsFragment.onCreate framework_calls: True
+
+## C. Page key S_SETTINGS (D9)
+$ grep -rn "'S_SETTINGS'" graphs/MMEX/graph_def.py graphs/MMEX/parts/*.py
+graphs/MMEX/parts/label_120.py:12:    'S_SETTINGS': 'Settings list screen (SettingsActivity hosting SettingsFragment): the main settings preference list opened from the drawer menu and the home welcome view, with one entry per settings section (general, look and feel, behaviour, investment, budget, security, database); the per-database entry opens the same activity with PerDatabaseFragment instead (S_PER_DATABASE_SETTINGS)',
+graphs/MMEX/parts/label_120.py:77:e('SettingsActivity.onCreate', 'S_SETTINGS', 'ENTERS',
+
+## D. Entry lines
+$ sed -n 665p MainActivity.java; sed -n 599p HomeFragment.java
+                startActivity(new Intent(MainActivity.this, SettingsActivity.class));
+                    startActivity(new Intent(getActivity(), SettingsActivity.class));
+$ sed -n 135,141p AndroidManifest.xml (LAUNCHER)
+        <activity
+                android:name=".home.MainActivity"
+                android:label="@string/application_name" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+$ batch_120 owner of SettingsActivity.onCreate
+19:SettingsActivity.onCreate
+$ SettingsFragment install lines (SettingsFragment.java)
+59:            perDbPreference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+64:                    startActivity(intent);
+74:            lookAndFeelPreference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+77:                    startActivity(new Intent(getActivity(), LookFeelSettingsActivity.class));
+87:            behaviourPreference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+90:                    startActivity(new Intent(getActivity(), BehaviourSettingsActivity.class));
+100:            investmentPreference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+103:                    startActivity(new Intent(getActivity(), InvestmentSettingsActivity.class));
+113:            budgetPreference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+116:                    startActivity(new Intent(getActivity(), BudgetSettingsActivity.class));
+126:            passcodePreference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+129:                    startActivity(new Intent(getActivity(), SecuritySettingsActivity.class));
+139:            databasesPreference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+142:                    startActivity(new Intent(getActivity(), DatabaseSettingsActivity.class));
+153:            syncPreference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+156:                    startActivity(new Intent(getActivity(), SyncPreferencesActivity.class));
+166:            infoPreference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+170:                    startActivity(new Intent(getActivity(), AboutActivity.class));
+226:        generalPreference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+230:                startActivityForResult(intent, REQUEST_GENERAL_PREFERENCES);

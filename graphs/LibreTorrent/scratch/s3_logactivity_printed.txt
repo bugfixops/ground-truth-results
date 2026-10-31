@@ -1,0 +1,470 @@
+     1	/*
+     2	 * Copyright (C) 2020-2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.log;
+    21	
+    22	import android.content.Intent;
+    23	import android.content.res.TypedArray;
+    24	import android.net.Uri;
+    25	import android.os.Bundle;
+    26	import android.os.Handler;
+    27	import android.util.TypedValue;
+    28	import android.view.Menu;
+    29	import android.view.MenuInflater;
+    30	import android.view.MenuItem;
+    31	
+    32	import androidx.activity.result.ActivityResultLauncher;
+    33	import androidx.activity.result.contract.ActivityResultContracts;
+    34	import androidx.annotation.NonNull;
+    35	import androidx.annotation.Nullable;
+    36	import androidx.appcompat.app.AppCompatActivity;
+    37	import androidx.appcompat.widget.Toolbar;
+    38	import androidx.databinding.DataBindingUtil;
+    39	import androidx.databinding.library.baseAdapters.BR;
+    40	import androidx.fragment.app.FragmentManager;
+    41	import androidx.lifecycle.ViewModelProvider;
+    42	import androidx.recyclerview.widget.LinearLayoutManager;
+    43	import androidx.recyclerview.widget.RecyclerView;
+    44	
+    45	import com.google.android.material.snackbar.Snackbar;
+    46	
+    47	import org.proninyaroslav.libretorrent.R;
+    48	import org.proninyaroslav.libretorrent.core.logger.LogEntry;
+    49	import org.proninyaroslav.libretorrent.core.utils.Utils;
+    50	import org.proninyaroslav.libretorrent.databinding.ActivityLogBinding;
+    51	import org.proninyaroslav.libretorrent.ui.customviews.RecyclerViewDividerDecoration;
+    52	import org.proninyaroslav.libretorrent.ui.filemanager.FileManagerConfig;
+    53	import org.proninyaroslav.libretorrent.ui.filemanager.FileManagerDialog;
+    54	
+    55	import io.reactivex.disposables.CompositeDisposable;
+    56	
+    57	public class LogActivity extends AppCompatActivity
+    58	    implements LogAdapter.ClickListener
+    59	{
+    60	    private static final String TAG_AUTO_SCROLL = "auto_scroll";
+    61	    private static final String TAG_SCROLL_POSITION = "scroll_position";
+    62	    private static final String TAG_FILTER_DIALOG = "filter_dialog";
+    63	
+    64	    private ActivityLogBinding binding;
+    65	    private LogViewModel viewModel;
+    66	    private Toolbar toolbar;
+    67	    private LinearLayoutManager layoutManager;
+    68	    private LogAdapter adapter;
+    69	    private Handler handler;
+    70	    private boolean ignoreScrollEvent;
+    71	    private boolean autoScroll = true;
+    72	    private int scrollPosition = 0;
+    73	    private CompositeDisposable disposables = new CompositeDisposable();
+    74	    private SessionLogFilterDialog filterDialog;
+    75	
+    76	    @Override
+    77	    public void onCreate(@Nullable Bundle savedInstanceState)
+    78	    {
+    79	        setTheme(Utils.getAppTheme(getApplicationContext()));
+    80	        super.onCreate(savedInstanceState);
+    81	
+    82	        FragmentManager fm = getSupportFragmentManager();
+    83	        filterDialog = (SessionLogFilterDialog) fm.findFragmentByTag(TAG_FILTER_DIALOG);
+    84	
+    85	        if (savedInstanceState != null) {
+    86	            autoScroll = savedInstanceState.getBoolean(TAG_AUTO_SCROLL);
+    87	            scrollPosition = savedInstanceState.getInt(TAG_SCROLL_POSITION);
+    88	        }
+    89	
+    90	        handler = new Handler();
+    91	
+    92	        viewModel = new ViewModelProvider(this).get(LogViewModel.class);
+    93	        binding = DataBindingUtil.setContentView(this, R.layout.activity_log);
+    94	        binding.setViewModel(viewModel);
+    95	
+    96	        toolbar = binding.rootLayout.findViewById(R.id.toolbar);
+    97	        toolbar.setTitle(R.string.log_journal);
+    98	        setSupportActionBar(toolbar);
+    99	        toolbar.setNavigationOnClickListener((v) -> finish());
+   100	        if (getSupportActionBar() != null)
+   101	            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+   102	        updateToolbarSubtitle();
+   103	
+   104	        layoutManager = new LinearLayoutManager(this);
+   105	        layoutManager.setStackFromEnd(true);
+   106	        binding.logList.setLayoutManager(layoutManager);
+   107	        binding.logList.setEmptyView(binding.emptyViewLog);
+   108	        TypedArray a = obtainStyledAttributes(new TypedValue().data, new int[]{ R.attr.divider });
+   109	        binding.logList.addItemDecoration(new RecyclerViewDividerDecoration(a.getDrawable(0)));
+   110	        a.recycle();
+   111	
+   112	        /* Disable animation, so as not to blink while updating the list */
+   113	        binding.logList.setItemAnimator(null);
+   114	        binding.logList.setLayoutAnimation(null);
+   115	
+   116	        adapter = new LogAdapter(this);
+   117	        binding.logList.setAdapter(adapter);
+   118	
+   119	        viewModel.observeLog().observe(this, (entries) ->
+   120	            adapter.submitList(entries, handleUpdateAdapter));
+   121	
+   122	        binding.logList.addOnScrollListener(scrollCallback);
+   123	
+   124	        binding.fabUp.setOnClickListener((v) -> {
+   125	            viewModel.pauseLog();
+   126	
+   127	            hideFabUp();
+   128	            autoScroll = false;
+   129	            layoutManager.scrollToPositionWithOffset(0, 0);
+   130	
+   131	            resumeLog();
+   132	        });
+   133	
+   134	        binding.fabDown.setOnClickListener((v) -> {
+   135	            viewModel.pauseLog();
+   136	
+   137	            hideFabUp();
+   138	            ignoreScrollEvent = true;
+   139	            autoScroll = true;
+   140	            layoutManager.scrollToPosition(adapter.getItemCount() - 1);
+   141	
+   142	            resumeLog();
+   143	        });
+   144	
+   145	        hideFabUp();
+   146	        hideFabDown();
+   147	    }
+   148	
+   149	    @Override
+   150	    protected void onDestroy()
+   151	    {
+   152	        super.onDestroy();
+   153	
+   154	        handler.removeCallbacksAndMessages(null);
+   155	        resumeLog();
+   156	    }
+   157	
+   158	    @Override
+   159	    protected void onStop()
+   160	    {
+   161	        super.onStop();
+   162	
+   163	        disposables.clear();
+   164	        viewModel.mutableParams.removeOnPropertyChangedCallback(paramsCallback);
+   165	    }
+   166	
+   167	    @Override
+   168	    protected void onStart()
+   169	    {
+   170	        super.onStart();
+   171	
+   172	        viewModel.mutableParams.addOnPropertyChangedCallback(paramsCallback);
+   173	    }
+   174	
+   175	    private final androidx.databinding.Observable.OnPropertyChangedCallback paramsCallback =
+   176	            new androidx.databinding.Observable.OnPropertyChangedCallback() {
+   177	                @Override
+   178	                public void onPropertyChanged(androidx.databinding.Observable sender, int propertyId)
+   179	                {
+   180	                    if (propertyId == BR.logging)
+   181	                        invalidateOptionsMenu();
+   182	                }
+   183	            };
+   184	
+   185	    @Override
+   186	    protected void onSaveInstanceState(@NonNull Bundle outState)
+   187	    {
+   188	        outState.putBoolean(TAG_AUTO_SCROLL, autoScroll);
+   189	        outState.putInt(TAG_SCROLL_POSITION, scrollPosition);
+   190	
+   191	        super.onSaveInstanceState(outState);
+   192	    }
+   193	
+   194	    @Override
+   195	    public boolean onCreateOptionsMenu(Menu menu)
+   196	    {
+   197	        MenuInflater inflater = getMenuInflater();
+   198	        inflater.inflate(R.menu.log, menu);
+   199	
+   200	        return true;
+   201	    }
+   202	
+   203	    @Override
+   204	    public boolean onPrepareOptionsMenu(Menu menu)
+   205	    {
+   206	        menu.setGroupVisible(R.id.log_menu, viewModel.mutableParams.isLogging());
+   207	
+   208	        MenuItem pauseResume = menu.findItem(R.id.pause_resume_log_menu);
+   209	        if (viewModel.logPausedManually()) {
+   210	            pauseResume.setIcon(R.drawable.ic_play_arrow_white_24dp);
+   211	            pauseResume.setTitle(R.string.resume_torrent);
+   212	
+   213	        } else {
+   214	            pauseResume.setIcon(R.drawable.ic_pause_white_24dp);
+   215	            pauseResume.setTitle(R.string.pause_torrent);
+   216	        }
+   217	
+   218	        MenuItem record = menu.findItem(R.id.record_log_menu);
+   219	        if (viewModel.logRecording()) {
+   220	            record.setIcon(R.drawable.ic_stop_white_24dp);
+   221	            record.setTitle(R.string.journal_stop_recording);
+   222	
+   223	        } else {
+   224	            record.setIcon(R.drawable.ic_record_white_24dp);
+   225	            record.setTitle(R.string.journal_start_recording);
+   226	        }
+   227	
+   228	        return true;
+   229	    }
+   230	
+   231	    @Override
+   232	    public boolean onOptionsItemSelected(MenuItem item)
+   233	    {
+   234	        int itemId = item.getItemId();
+   235	        if (itemId == R.id.pause_resume_log_menu) {
+   236	            pauseResumeLog();
+   237	        } else if (itemId == R.id.record_log_menu) {
+   238	            toggleRecord();
+   239	        } else if (itemId == R.id.save_log_menu) {
+   240	            saveLogPathChooseDialog();
+   241	        } else if (itemId == R.id.filter_log_menu) {
+   242	            showFilterDialog();
+   243	        } else if (itemId == R.id.log_settings_menu) {
+   244	            showLogSettings();
+   245	        }
+   246	
+   247	        return true;
+   248	    }
+   249	
+   250	    private void showFilterDialog()
+   251	    {
+   252	        FragmentManager fm = getSupportFragmentManager();
+   253	        if (fm.findFragmentByTag(TAG_FILTER_DIALOG) == null) {
+   254	            filterDialog = SessionLogFilterDialog.newInstance();
+   255	            filterDialog.show(fm, TAG_FILTER_DIALOG);
+   256	        }
+   257	    }
+   258	
+   259	    private void showLogSettings()
+   260	    {
+   261	        startActivity(new Intent(this, LogSettingsActivity.class));
+   262	    }
+   263	
+   264	    private void pauseResumeLog()
+   265	    {
+   266	        boolean newPausedState = !viewModel.logPausedManually();
+   267	        if (newPausedState)
+   268	            viewModel.pauseLogManually();
+   269	        else
+   270	            viewModel.resumeLogManually();
+   271	
+   272	        invalidateOptionsMenu();
+   273	    }
+   274	
+   275	    private void resumeLog()
+   276	    {
+   277	        if (!viewModel.logPausedManually())
+   278	            viewModel.resumeLog();
+   279	    }
+   280	
+   281	    private void toggleRecord()
+   282	    {
+   283	        boolean recording = !viewModel.logRecording();
+   284	
+   285	        if (recording && viewModel.logPausedManually())
+   286	            return;
+   287	
+   288	        if (recording) {
+   289	            Snackbar.make(binding.coordinatorLayout,
+   290	                    getString(R.string.journal_started_recording),
+   291	                    Snackbar.LENGTH_SHORT)
+   292	                    .show();
+   293	
+   294	            viewModel.startLogRecording();
+   295	
+   296	            invalidateOptionsMenu();
+   297	
+   298	        } else {
+   299	            viewModel.pauseLog();
+   300	            saveLogPathChooseDialog();
+   301	        }
+   302	    }
+   303	
+   304	    private void saveLogPathChooseDialog()
+   305	    {
+   306	        Intent i = new Intent(this, FileManagerDialog.class);
+   307	        FileManagerConfig config = new FileManagerConfig(
+   308	                null,
+   309	                getString(R.string.pref_journal_save_log_to),
+   310	                FileManagerConfig.SAVE_FILE_MODE);
+   311	        config.fileName = viewModel.getSaveLogFileName();
+   312	        config.mimeType = Utils.MIME_TEXT_PLAIN;
+   313	
+   314	        i.putExtra(FileManagerDialog.TAG_CONFIG, config);
+   315	        saveLogPathChoose.launch(i);
+   316	    }
+   317	
+   318	    final ActivityResultLauncher<Intent> saveLogPathChoose = registerForActivityResult(
+   319	            new ActivityResultContracts.StartActivityForResult(),
+   320	            result -> {
+   321	                Intent data = result.getData();
+   322	                if (result.getResultCode() == RESULT_OK && data != null) {
+   323	                    Uri filePath = data.getData();
+   324	                    if (filePath == null)
+   325	                        return;
+   326	
+   327	                    viewModel.saveLog(filePath);
+   328	
+   329	                } else {
+   330	                    viewModel.stopLogRecording();
+   331	                    resumeLog();
+   332	                }
+   333	
+   334	                invalidateOptionsMenu();
+   335	            }
+   336	    );
+   337	
+   338	    RecyclerView.OnScrollListener scrollCallback = new RecyclerView.OnScrollListener() {
+   339	
+   340	        int lastDy = 0;
+   341	
+   342	        @Override
+   343	        public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy)
+   344	        {
+   345	            super.onScrolled(recyclerView, dx, dy);
+   346	
+   347	            if (dy > 0 && lastDy <= 0) {
+   348	                hideFabUp();
+   349	                showFabDown();
+   350	
+   351	            } else if (dy < 0 && lastDy >= 0) {
+   352	                showFabUp();
+   353	                hideFabDown();
+   354	            }
+   355	            lastDy = dy;
+   356	        }
+   357	
+   358	        @Override
+   359	        public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState)
+   360	        {
+   361	            super.onScrollStateChanged(recyclerView, newState);
+   362	
+   363	            if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
+   364	                autoScroll = false;
+   365	                if (lastDy > 0) {
+   366	                    hideFabUp();
+   367	                    showFabDown();
+   368	
+   369	                } else if (lastDy < 0) {
+   370	                    showFabUp();
+   371	                    hideFabDown();
+   372	                }
+   373	
+   374	            } else {
+   375	                int firstPos = -1;
+   376	                if (!autoScroll && newState == RecyclerView.SCROLL_STATE_IDLE)
+   377	                    firstPos = layoutManager.findFirstCompletelyVisibleItemPosition();
+   378	
+   379	                int pos = layoutManager.findLastCompletelyVisibleItemPosition();
+   380	                if (pos == RecyclerView.NO_POSITION) {
+   381	                    autoScroll = false;
+   382	                    return;
+   383	                }
+   384	
+   385	                if (ignoreScrollEvent) {
+   386	                    if (pos == adapter.getItemCount())
+   387	                        ignoreScrollEvent = false;
+   388	                    return;
+   389	                }
+   390	
+   391	                if (pos == 0)
+   392	                    hideFabUp();
+   393	
+   394	                if (firstPos == RecyclerView.NO_POSITION)
+   395	                    firstPos = layoutManager.findFirstCompletelyVisibleItemPosition();
+   396	
+   397	                scrollPosition = firstPos;
+   398	                autoScroll = pos == adapter.getItemCount() - 1;
+   399	
+   400	                if (autoScroll) {
+   401	                    hideFabUp();
+   402	                    hideFabDown();
+   403	                }
+   404	            }
+   405	        }
+   406	    };
+   407	
+   408	    private void showFabUp()
+   409	    {
+   410	        handler.removeCallbacks(hideFabUpRunnable);
+   411	        binding.fabUp.show();
+   412	        handler.postDelayed(hideFabUpRunnable, 2000);
+   413	    }
+   414	
+   415	    private void hideFabUp()
+   416	    {
+   417	        handler.removeCallbacks(hideFabUpRunnable);
+   418	        binding.fabUp.hide();
+   419	    }
+   420	
+   421	    private void showFabDown()
+   422	    {
+   423	        handler.removeCallbacks(hideFabDownRunnable);
+   424	        binding.fabDown.show();
+   425	        handler.postDelayed(hideFabDownRunnable, 2000);
+   426	    }
+   427	
+   428	    private void hideFabDown()
+   429	    {
+   430	        handler.removeCallbacks(hideFabDownRunnable);
+   431	        binding.fabDown.hide();
+   432	    }
+   433	
+   434	    private final Runnable hideFabUpRunnable = () -> binding.fabUp.hide();
+   435	
+   436	    private final Runnable hideFabDownRunnable = () -> binding.fabDown.hide();
+   437	
+   438	    private final Runnable handleUpdateAdapter = () -> {
+   439	        scrollLogList();
+   440	        updateToolbarSubtitle();
+   441	    };
+   442	
+   443	    private void updateToolbarSubtitle()
+   444	    {
+   445	        int numEntries = viewModel.getLogEntriesCount();
+   446	        if (numEntries > 1)
+   447	            toolbar.setSubtitle(Integer.toString(numEntries));
+   448	        else
+   449	            toolbar.setSubtitle(null);
+   450	    }
+   451	
+   452	    private void scrollLogList()
+   453	    {
+   454	        if (autoScroll)
+   455	            layoutManager.scrollToPosition(adapter.getItemCount() - 1);
+   456	        else
+   457	            layoutManager.scrollToPositionWithOffset(scrollPosition, 0);
+   458	    }
+   459	
+   460	    @Override
+   461	    public void onItemClicked(@NonNull LogEntry entry)
+   462	    {
+   463	        if (viewModel.copyLogEntryToClipboard(entry)) {
+   464	            Snackbar.make(binding.coordinatorLayout,
+   465	                    R.string.text_copied_to_clipboard,
+   466	                    Snackbar.LENGTH_SHORT)
+   467	                    .show();
+   468	        }
+   469	    }
+   470	}

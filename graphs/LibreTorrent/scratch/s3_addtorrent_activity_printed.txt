@@ -1,0 +1,157 @@
+=== AddTorrentActivity lifecycle/init ===
+    96	    @Override
+    97	    protected void onCreate(Bundle savedInstanceState)
+    98	    {
+    99	        setTheme(Utils.getAppTheme(getApplicationContext()));
+   100	        super.onCreate(savedInstanceState);
+   101	
+   102	        binding = DataBindingUtil.setContentView(this, R.layout.activity_add_torrent);
+   103	        ViewModelProvider provider = new ViewModelProvider(this);
+   104	        viewModel = provider.get(AddTorrentViewModel.class);
+   105	        permissionManager = new PermissionManager(this, new PermissionManager.Callback() {
+   106	            @Override
+   107	            public void onStorageResult(boolean isGranted, boolean shouldRequestStoragePermission) {
+   108	                var fm = getSupportFragmentManager();
+   109	                if (!isGranted && shouldRequestStoragePermission) {
+   110	                    if (fm.findFragmentByTag(TAG_PERM_DENIED_DIALOG) == null) {
+   111	                        permDeniedDialog = PermissionDeniedDialog.newInstance();
+   112	                        FragmentTransaction ft = fm.beginTransaction();
+   113	                        ft.add(permDeniedDialog, TAG_PERM_DENIED_DIALOG);
+   114	                        ft.commitAllowingStateLoss();
+   115	                    }
+   116	                }
+   117	            }
+   118	
+   119	            @Override
+   120	            public void onNotificationResult(boolean isGranted, boolean shouldRequestNotificationPermission) {
+   121	                permissionManager.setDoNotAskNotifications(!isGranted);
+   122	                if (isGranted) {
+   123	                    viewModel.restartForegroundNotification();
+   124	                }
+   125	            }
+   126	        });
+   127	
+   128	        dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+   129	        errReportDialog = (ErrorReportDialog)getSupportFragmentManager().findFragmentByTag(TAG_ERR_REPORT_DIALOG);
+   130	        localPref = PreferenceManager.getDefaultSharedPreferences(this);
+   131	        fillMutableParams();
+   132	
+   133	        if (!permissionManager.checkPermissions() && permDeniedDialog == null) {
+   134	            permissionManager.requestPermissions();
+   135	        }
+   136	        Utils.showManageAllFilesWarningDialog(getApplicationContext(), getSupportFragmentManager());
+   137	
+   138	        initLayout();
+   139	        observeDecodeState();
+   140	    }
+   142	    private void fillMutableParams() {
+   143	        viewModel.mutableParams.setSequentialDownload(
+   144	                localPref.getBoolean(
+   145	                        getString(R.string.add_torrent_sequential_download),
+   146	                        false
+   147	                )
+   148	        );
+   149	        viewModel.mutableParams.setStartAfterAdd(
+   150	                localPref.getBoolean(
+   151	                        getString(R.string.add_torrent_start_after_add),
+   152	                        true
+   153	                )
+   154	        );
+   155	        viewModel.mutableParams.setIgnoreFreeSpace(
+   156	                localPref.getBoolean(
+   157	                        getString(R.string.add_torrent_ignore_free_space),
+   158	                        false
+   159	                )
+   160	        );
+   161	        viewModel.mutableParams.setFirstLastPiecePriority(
+   162	                localPref.getBoolean(
+   163	                        getString(R.string.add_torrent_download_first_last_pieces),
+   164	                        false
+   165	                )
+   166	        );
+   167	    }
+   178	    @Override
+   179	    public void onStart()
+   180	    {
+   181	        super.onStart();
+   182	
+   183	        subscribeAlertDialog();
+   184	        subscribeParamsChanged();
+   185	    }
+   186	
+   187	    private void subscribeAlertDialog()
+   188	    {
+   189	        Disposable d = dialogViewModel.observeEvents().subscribe(this::handleAlertDialogEvent);
+   190	        disposable.add(d);
+   191	    }
+   192	
+   193	    private void subscribeParamsChanged() {
+   194	        viewModel.mutableParams.addOnPropertyChangedCallback(onMutableParamsChanged);
+   195	    }
+   196	
+   197	    private void unsubscribeParamsChanged() {
+   198	        viewModel.mutableParams.removeOnPropertyChangedCallback(onMutableParamsChanged);
+   199	    }
+   277	    private void initLayout()
+   278	    {
+   279	        binding.toolbar.setTitle(R.string.add_torrent_title);
+   280	        setSupportActionBar(binding.toolbar);
+   281	        if (getSupportActionBar() != null)
+   282	            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+   283	        /* Disable elevation for portrait mode */
+   284	        if (!Utils.isTwoPane(this)) {
+   285	            binding.toolbar.setElevation(0);
+   286	        }
+   287	
+   288	        adapter = new AddTorrentPagerAdapter(this);
+   289	        binding.viewpager.setAdapter(adapter);
+   290	        binding.viewpager.setOffscreenPageLimit(AddTorrentPagerAdapter.NUM_FRAGMENTS);
+   291	        new TabLayoutMediator(binding.tabLayout, binding.viewpager,
+   292	                (tab, position) -> {
+   293	                    switch (position) {
+   294	                        case AddTorrentPagerAdapter.INFO_FRAG_POS:
+   295	                            tab.setText(R.string.torrent_info);
+   296	                            break;
+   297	                        case AddTorrentPagerAdapter.FILES_FRAG_POS:
+   298	                            tab.setText(R.string.torrent_files);
+   299	                            break;
+   300	                    }
+   301	                }
+   302	        ).attach();
+   303	    }
+   304	
+   305	    private void observeDecodeState()
+   306	    {
+   307	        viewModel.getDecodeState().observe(this, (state) -> {
+   308	            switch (state.status) {
+   309	                case UNKNOWN:
+   310	                    Uri uri = getUri();
+   311	                    if (uri != null)
+   312	                        viewModel.startDecode(uri);
+   313	                    break;
+   314	                case DECODE_TORRENT_FILE:
+   315	                case FETCHING_HTTP:
+   316	                case FETCHING_MAGNET:
+   317	                    onStartDecode(state.status == AddTorrentViewModel.Status.DECODE_TORRENT_FILE);
+   318	                    break;
+   319	                case FETCHING_HTTP_COMPLETED:
+   320	                case DECODE_TORRENT_COMPLETED:
+   321	                case FETCHING_MAGNET_COMPLETED:
+   322	                case ERROR:
+   323	                    onStopDecode(state.error);
+   324	                    break;
+   325	            }
+   326	        });
+   327	    }
+=== AOSP Activity onCreate-to-onStart ===
+  2738	                r.activity = activity;
+  2739	                r.stopped = true;
+  2740	                if (!r.activity.mFinished) {
+  2741	                    activity.performStart();
+  2742	                    r.stopped = false;
+  2743	                }
+  2744	                if (!r.activity.mFinished) {
+  2745	                    if (r.isPersistable()) {
+  1333	    public void callActivityOnStart(Activity activity) {
+  1334	        activity.onStart();
+  1335	    }

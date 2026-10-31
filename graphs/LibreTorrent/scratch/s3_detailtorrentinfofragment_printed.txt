@@ -1,0 +1,324 @@
+     1	/*
+     2	 * Copyright (C) 2016-2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.detailtorrent.pages;
+    21	
+    22	import android.app.Activity;
+    23	import android.app.Dialog;
+    24	import android.content.Context;
+    25	import android.content.Intent;
+    26	import android.os.Bundle;
+    27	import android.text.Editable;
+    28	import android.text.TextUtils;
+    29	import android.text.TextWatcher;
+    30	import android.view.LayoutInflater;
+    31	import android.view.View;
+    32	import android.view.ViewGroup;
+    33	
+    34	import androidx.activity.result.ActivityResultLauncher;
+    35	import androidx.activity.result.contract.ActivityResultContracts;
+    36	import androidx.annotation.NonNull;
+    37	import androidx.appcompat.app.AppCompatActivity;
+    38	import androidx.databinding.DataBindingUtil;
+    39	import androidx.fragment.app.Fragment;
+    40	import androidx.fragment.app.FragmentManager;
+    41	import androidx.lifecycle.ViewModelProvider;
+    42	
+    43	import com.google.android.material.textfield.TextInputEditText;
+    44	import com.google.android.material.textfield.TextInputLayout;
+    45	
+    46	import org.apache.commons.lang3.ArrayUtils;
+    47	import org.proninyaroslav.libretorrent.R;
+    48	import org.proninyaroslav.libretorrent.core.model.data.entity.TagInfo;
+    49	import org.proninyaroslav.libretorrent.databinding.FragmentDetailTorrentInfoBinding;
+    50	import org.proninyaroslav.libretorrent.ui.BaseAlertDialog;
+    51	import org.proninyaroslav.libretorrent.ui.detailtorrent.DetailTorrentViewModel;
+    52	import org.proninyaroslav.libretorrent.ui.filemanager.FileManagerConfig;
+    53	import org.proninyaroslav.libretorrent.ui.filemanager.FileManagerDialog;
+    54	import org.proninyaroslav.libretorrent.ui.tag.SelectTagActivity;
+    55	import org.proninyaroslav.libretorrent.ui.tag.TorrentTagsList;
+    56	
+    57	import io.reactivex.Observable;
+    58	import io.reactivex.android.schedulers.AndroidSchedulers;
+    59	import io.reactivex.disposables.CompositeDisposable;
+    60	import io.reactivex.disposables.Disposable;
+    61	import io.reactivex.schedulers.Schedulers;
+    62	
+    63	/*
+    64	 * The fragment for displaying torrent metainformation,
+    65	 * taken from bencode. Part of DetailTorrentFragment.
+    66	 */
+    67	
+    68	public class DetailTorrentInfoFragment extends Fragment {
+    69	    private static final String TAG = DetailTorrentInfoFragment.class.getSimpleName();
+    70	
+    71	    private static final String TAG_OPEN_DIR_ERROR_DIALOG = "open_dir_error_dialog";
+    72	    private static final String TAG_EDIT_NAME_DIALOG = "edit_name_dialog";
+    73	
+    74	    private AppCompatActivity activity;
+    75	    private DetailTorrentViewModel viewModel;
+    76	    private FragmentDetailTorrentInfoBinding binding;
+    77	    private BaseAlertDialog editNameDialog;
+    78	    private BaseAlertDialog.SharedViewModel dialogViewModel;
+    79	    private CompositeDisposable disposables = new CompositeDisposable();
+    80	
+    81	    public static DetailTorrentInfoFragment newInstance() {
+    82	        DetailTorrentInfoFragment fragment = new DetailTorrentInfoFragment();
+    83	
+    84	        Bundle args = new Bundle();
+    85	        fragment.setArguments(args);
+    86	
+    87	        return fragment;
+    88	    }
+    89	
+    90	    @Override
+    91	    public void onAttach(@NonNull Context context) {
+    92	        super.onAttach(context);
+    93	
+    94	        if (context instanceof AppCompatActivity)
+    95	            activity = (AppCompatActivity) context;
+    96	    }
+    97	
+    98	    @Override
+    99	    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+   100	        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_detail_torrent_info, container, false);
+   101	
+   102	        ViewModelProvider provider = new ViewModelProvider(activity);
+   103	        viewModel = provider.get(DetailTorrentViewModel.class);
+   104	        dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+   105	        binding.setViewModel(viewModel);
+   106	
+   107	        FragmentManager fm = getChildFragmentManager();
+   108	        editNameDialog = (BaseAlertDialog) fm.findFragmentByTag(TAG_EDIT_NAME_DIALOG);
+   109	
+   110	        binding.folderChooserButton.setOnClickListener((v) -> showChooseDirDialog());
+   111	        binding.editNameButton.setOnClickListener((v) -> showEditNameDialog());
+   112	        binding.tagsList.setListener(tagsListener);
+   113	
+   114	        return binding.getRoot();
+   115	    }
+   116	
+   117	    final ActivityResultLauncher<Intent> chooseDir = registerForActivityResult(
+   118	            new ActivityResultContracts.StartActivityForResult(),
+   119	            (result) -> {
+   120	                if (result.getResultCode() != Activity.RESULT_OK)
+   121	                    return;
+   122	
+   123	                Intent data = result.getData();
+   124	                if (data == null || data.getData() == null) {
+   125	                    showOpenDirErrorDialog();
+   126	                    return;
+   127	                }
+   128	
+   129	                viewModel.mutableParams.setDirPath(data.getData());
+   130	            });
+   131	
+   132	    final ActivityResultLauncher<Intent> selectTag = registerForActivityResult(
+   133	            new ActivityResultContracts.StartActivityForResult(),
+   134	            (result) -> {
+   135	                Intent data = result.getData();
+   136	                if (result.getResultCode() == Activity.RESULT_OK && data != null) {
+   137	                    TagInfo tag = data.getParcelableExtra(SelectTagActivity.TAG_RESULT_SELECTED_TAG);
+   138	                    if (tag != null) {
+   139	                        disposables.add(viewModel.addTag(tag)
+   140	                                .subscribeOn(Schedulers.io())
+   141	                                .subscribe()
+   142	                        );
+   143	                    }
+   144	                }
+   145	            });
+   146	
+   147	    private final TorrentTagsList.Listener tagsListener = new TorrentTagsList.Listener() {
+   148	        @Override
+   149	        public void onAddTagClick() {
+   150	            disposables.add(viewModel.getTags()
+   151	                    .subscribeOn(Schedulers.io())
+   152	                    .flatMap((tags) -> Observable.fromIterable(tags)
+   153	                            .map((tag) -> tag.id)
+   154	                            .toList()
+   155	                    )
+   156	                    .observeOn(AndroidSchedulers.mainThread())
+   157	                    .subscribe((ids) -> {
+   158	                        Intent i = new Intent(activity, SelectTagActivity.class);
+   159	                        i.putExtra(
+   160	                                SelectTagActivity.TAG_EXCLUDE_TAGS_ID,
+   161	                                ArrayUtils.toPrimitive(ids.toArray(new Long[0]))
+   162	                        );
+   163	                        selectTag.launch(i);
+   164	                    })
+   165	            );
+   166	        }
+   167	
+   168	        @Override
+   169	        public void onTagRemoved(@NonNull TagInfo info) {
+   170	            disposables.add(viewModel.removeTag(info)
+   171	                    .subscribeOn(Schedulers.io())
+   172	                    .subscribe()
+   173	            );
+   174	        }
+   175	    };
+   176	
+   177	    private void subscribeTags() {
+   178	        disposables.add(viewModel.observeTags()
+   179	                .subscribeOn(Schedulers.io())
+   180	                .observeOn(AndroidSchedulers.mainThread())
+   181	                .subscribe(binding.tagsList::submit)
+   182	        );
+   183	    }
+   184	
+   185	    private void showChooseDirDialog() {
+   186	        Intent i = new Intent(activity, FileManagerDialog.class);
+   187	
+   188	        FileManagerConfig config = new FileManagerConfig(null,
+   189	                getString(R.string.select_folder_to_save),
+   190	                FileManagerConfig.DIR_CHOOSER_MODE);
+   191	
+   192	        i.putExtra(FileManagerDialog.TAG_CONFIG, config);
+   193	        chooseDir.launch(i);
+   194	    }
+   195	
+   196	    @Override
+   197	    public void onStart() {
+   198	        super.onStart();
+   199	
+   200	        subscribeAlertDialog();
+   201	        subscribeTags();
+   202	    }
+   203	
+   204	    @Override
+   205	    public void onStop() {
+   206	        super.onStop();
+   207	
+   208	        disposables.clear();
+   209	    }
+   210	
+   211	    private void subscribeAlertDialog() {
+   212	        Disposable d = dialogViewModel.observeEvents()
+   213	                .subscribe((event) -> {
+   214	                    if (event.dialogTag == null || !event.dialogTag.equals(TAG_EDIT_NAME_DIALOG) || editNameDialog == null)
+   215	                        return;
+   216	                    switch (event.type) {
+   217	                        case DIALOG_SHOWN:
+   218	                            initEditNameDialog();
+   219	                            break;
+   220	                        case POSITIVE_BUTTON_CLICKED:
+   221	                            Dialog dialog = editNameDialog.getDialog();
+   222	                            if (dialog != null) {
+   223	                                TextInputEditText editText = dialog.findViewById(R.id.text_input_dialog);
+   224	                                TextInputLayout layoutEditText = dialog.findViewById(R.id.layout_text_input_dialog);
+   225	                                Editable e = editText.getText();
+   226	                                if (checkNameField(e, layoutEditText)) {
+   227	                                    viewModel.mutableParams.setName(e.toString());
+   228	                                    editNameDialog.dismiss();
+   229	                                }
+   230	                            }
+   231	                            break;
+   232	                        case NEGATIVE_BUTTON_CLICKED:
+   233	                            editNameDialog.dismiss();
+   234	                            break;
+   235	                    }
+   236	                });
+   237	        disposables.add(d);
+   238	    }
+   239	
+   240	    private void showOpenDirErrorDialog() {
+   241	        if (!isAdded())
+   242	            return;
+   243	
+   244	        FragmentManager fm = getChildFragmentManager();
+   245	        if (fm.findFragmentByTag(TAG_OPEN_DIR_ERROR_DIALOG) == null) {
+   246	            BaseAlertDialog openDirErrorDialog = BaseAlertDialog.newInstance(
+   247	                    getString(R.string.error),
+   248	                    getString(R.string.unable_to_open_folder),
+   249	                    0,
+   250	                    getString(R.string.ok),
+   251	                    null,
+   252	                    null,
+   253	                    true);
+   254	
+   255	            openDirErrorDialog.show(fm, TAG_OPEN_DIR_ERROR_DIALOG);
+   256	        }
+   257	    }
+   258	
+   259	    private boolean checkNameField(Editable s, TextInputLayout layoutEditText) {
+   260	        if (TextUtils.isEmpty(s)) {
+   261	            layoutEditText.setErrorEnabled(true);
+   262	            layoutEditText.setError(getString(R.string.error_field_required));
+   263	            layoutEditText.requestFocus();
+   264	
+   265	            return false;
+   266	
+   267	        } else {
+   268	            layoutEditText.setErrorEnabled(false);
+   269	            layoutEditText.setError(null);
+   270	
+   271	            return true;
+   272	        }
+   273	    }
+   274	
+   275	    private void showEditNameDialog() {
+   276	        if (!isAdded())
+   277	            return;
+   278	
+   279	        FragmentManager fm = getChildFragmentManager();
+   280	        if (fm.findFragmentByTag(TAG_EDIT_NAME_DIALOG) == null) {
+   281	            editNameDialog = BaseAlertDialog.newInstance(
+   282	                    getString(R.string.edit_torrent_name),
+   283	                    null,
+   284	                    R.layout.dialog_text_input,
+   285	                    getString(R.string.ok),
+   286	                    getString(R.string.cancel),
+   287	                    null,
+   288	                    false);
+   289	
+   290	            editNameDialog.show(fm, TAG_EDIT_NAME_DIALOG);
+   291	        }
+   292	    }
+   293	
+   294	    private void initEditNameDialog() {
+   295	        Dialog dialog = editNameDialog.getDialog();
+   296	        if (dialog == null)
+   297	            return;
+   298	
+   299	        TextInputEditText editText = dialog.findViewById(R.id.text_input_dialog);
+   300	        TextInputLayout layoutEditText = dialog.findViewById(R.id.layout_text_input_dialog);
+   301	
+   302	        if (!TextUtils.isEmpty(editText.getText()))
+   303	            return;
+   304	
+   305	        String name = viewModel.mutableParams.getName();
+   306	        if (name != null)
+   307	            editText.setText(name);
+   308	
+   309	        editText.addTextChangedListener(new TextWatcher() {
+   310	            @Override
+   311	            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+   312	            }
+   313	
+   314	            @Override
+   315	            public void onTextChanged(CharSequence s, int start, int before, int count) {
+   316	            }
+   317	
+   318	            @Override
+   319	            public void afterTextChanged(Editable s) {
+   320	                checkNameField(s, layoutEditText);
+   321	            }
+   322	        });
+   323	    }
+   324	}

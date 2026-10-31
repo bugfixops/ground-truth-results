@@ -1,0 +1,46 @@
+STATUS: RUNNING 18:32
+
+| Method | Label | Kind | Reason | Source Lines |
+|--------|-------|------|--------|--------------|
+| AES256SHA256Decoder$1.read() | UNREACHABLE | no_trigger_in_app | sevenz library class (Apache Commons Compress), no calls from app | INFERRED library source not in dataset; grep -rn "AES256SHA256Decoder" shows no matches in app src/main/java |
+| AES256SHA256Decoder$1.read(byte[],int,int) | UNREACHABLE | no_trigger_in_app | sevenz library class (Apache Commons Compress), no calls from app | INFERRED library source not in dataset; grep -rn "AES256SHA256Decoder" shows no matches in app src/main/java |
+| BoundedFileChannelInputStream.read() | UNREACHABLE | no_trigger_in_app | sevenz library class (Apache Commons Compress), no calls from app | INFERRED library source not in dataset; grep -rn "BoundedFileChannelInputStream" shows no matches in app src/main/java |
+| BoundedFileChannelInputStream.read(byte[],int,int) | UNREACHABLE | no_trigger_in_app | sevenz library class (Apache Commons Compress), no calls from app | INFERRED library source not in dataset; grep -rn "BoundedFileChannelInputStream" shows no matches in app src/main/java |
+| BoundedFileChannelInputStream.read(int) | UNREACHABLE | no_trigger_in_app | sevenz library class (Apache Commons Compress), no calls from app | INFERRED library source not in dataset; grep -rn "BoundedFileChannelInputStream" shows no matches in app src/main/java |
+| Archive.lengthOf(Object[]) | UNREACHABLE | no_trigger_in_app | sevenz library class (Apache Commons Compress), no calls from app | INFERRED library source not in dataset; grep -rn "Archive\\.lengthOf" shows no matches in app src/main/java |
+| Archive.lengthOf(long[]) | UNREACHABLE | no_trigger_in_app | sevenz library class (Apache Commons Compress), no calls from app | INFERRED library source not in dataset; grep -rn "Archive\\.lengthOf" shows no matches in app src/main/java |
+| AboutActivity.<init> | INCOMPLETE | | source only in src/fdroid and src/play; DATASET.txt names no flavor (KIRO_CONVERT_APPS section 2.3) | See conflicts.md: final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/fdroid/java/com/amaze/filemanager/activities/AboutActivity.java and src/play variant exist |
+| AboutActivity.onClick | INCOMPLETE | | source only in src/fdroid and src/play; DATASET.txt names no flavor (KIRO_CONVERT_APPS section 2.3) | See conflicts.md: final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/fdroid/java/com/amaze/filemanager/activities/AboutActivity.java and src/play variant exist |
+| AboutActivity.onOptionsItemSelected | INCOMPLETE | | source only in src/fdroid and src/play; DATASET.txt names no flavor (KIRO_CONVERT_APPS section 2.3) | See conflicts.md: final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/fdroid/java/com/amaze/filemanager/activities/AboutActivity.java and src/play variant exist |
+| AboutActivity.openURL | INCOMPLETE | | source only in src/fdroid and src/play; DATASET.txt names no flavor (KIRO_CONVERT_APPS section 2.3) | See conflicts.md: final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/fdroid/java/com/amaze/filemanager/activities/AboutActivity.java and src/play variant exist |
+| AbstractProgressiveService.finalizeNotification | REACHABLE | | Called from subclass services when operations complete with failures | SRC AbstractProgressiveService.java:232-256 defines method; already has edge in graph_def.py:10654 |
+| AbstractProgressiveService.getDataPackage | REACHABLE | | Called from ServiceWatcherUtil to retrieve progress data | SRC AbstractProgressiveService.java:201-203; called by ServiceWatcherUtil for ProcessViewerFragment updates |
+| AbstractProgressiveService.getDataPackageSize | REACHABLE | | Called from ServiceWatcherUtil to get data package count | SRC AbstractProgressiveService.java:205-207; called by ServiceWatcherUtil for ProcessViewerFragment updates |
+| AbstractProgressiveService.isDecryptService | REACHABLE | | Called from ServiceWatcherUtil to identify decrypt operations | SRC AbstractProgressiveService.java:225-227; ServiceWatcherUtil.java:93 calls it |
+| AbstractProgressiveService.progressResumed | REACHABLE | | Called from ServiceWatcherUtil when progress resumes after halt | SRC AbstractProgressiveService.java:76-83; ServiceWatcherUtil.java:115 calls interactionInterface.progressResumed(); edges in graph_def.py:3517-3537 |
+| AppConfig.toast(Context,int) | REACHABLE | | Static method called from various async tasks and activities to show toast messages | SRC AppConfig.java:158-172 defines method; LoadFilesListTask.java:189, CloudLoaderAsyncTask.java:64,113, and others call it; edges in graph_def.py:670,674,678,682 |
+| AppDataParcelable$1.createFromParcel | REACHABLE | | Parcelable.Creator method for deserializing AppDataParcelable from Parcel | SRC AppDataParcelable.java:54-57; CREATOR field at line 53; framework calls when unparceling |
+| AppDataParcelable$1.newArray | REACHABLE | | Parcelable.Creator method for creating AppDataParcelable array | SRC AppDataParcelable.java:59-62; CREATOR field at line 53; framework calls when unparceling arrays |
+| AppDataParcelable$AppDataSorter.compare | REACHABLE | | Comparator method for sorting AppDataParcelable objects | SRC AppDataParcelable.java:76-86; used in sorting app list |
+| AppDataParcelable.<init>(Parcel) | REACHABLE | | Private constructor for creating AppDataParcelable from Parcel | SRC AppDataParcelable.java:47-55; called by CREATOR.createFromParcel |
+| AppDataParcelable.describeContents | REACHABLE | | Parcelable interface method | SRC AppDataParcelable.java:30-32; framework calls for parceling |
+| AppDataParcelable.writeToParcel | REACHABLE | | Parcelable interface method for serializing to Parcel | SRC AppDataParcelable.java:35-43; framework calls when parceling |
+| AppThemeManager.setAppTheme | REACHABLE | | Called to change and persist the current app theme | SRC AppThemeManager.java:32-37; edges in graph_def.py mention it |
+| BottomBar.onTouch | REACHABLE | | View.OnTouchListener callback for bottom bar touch events | SRC BottomBar.java:448-451; setClickListener at line 151 registers it; gestureDetector.onTouchEvent at line 450; edges in graph_def.py:807-810 |
+| BottomBar.resetClickListener | REACHABLE | | Resets touch listener when fragment changes | SRC BottomBar.java:154-156; MainActivity.java calls it on fragment changes; edges in graph_def.py:786 |
+| CheckBox.<init> | REACHABLE | | Constructor for custom CheckBox preference | SRC CheckBox.java:13-15; instantiated in preference XML inflation |
+| CheckBox.clearListenerInViewGroup | REACHABLE | | Helper method called from onBindView to clear Switch listeners | SRC CheckBox.java:32-46; CheckBox.java:21 calls it |
+| CheckBox.onBindView | REACHABLE | | Preference lifecycle callback for binding view | SRC CheckBox.java:18-23; framework calls when preference is bound; edges in graph_def.py:7046 |
+| CheckableCircleView.<init> | REACHABLE | | Constructor for CheckableCircleView custom view | SRC CheckableCircleView.java:24-27; instantiated from XML layouts |
+| CheckableCircleView.onDraw | REACHABLE | | View.onDraw callback for rendering the checkable circle | SRC CheckableCircleView.java:39-51; framework calls for view drawing; edges in graph_def.py show it |
+| CheckableCircleView.setChecked | REACHABLE | | Sets the checked state of the circle view | SRC CheckableCircleView.java:34-37; called from adapters; edges in graph_def.py show it |
+| CheckableCircleView.setColor | REACHABLE | | Sets the color of the circle | SRC CheckableCircleView.java:29-33; called from adapters; edges in graph_def.py show it |
+| CircleGradientDrawable.<init>(String,AppTheme,DisplayMetrics) | REACHABLE | | Constructor taking String color parameter | SRC CircleGradientDrawable.java:30-34; RecyclerAdapter.java and CompressedExplorerAdapter.java call it; edges in graph_def.py:7020,7024 |
+| CircularColorsView.<init>(Context) | REACHABLE | | Constructor for CircularColorsView (single-arg) | SRC CircularColorsView.java:26-29; may be called programmatically |
+| CircularColorsView.<init>(Context,AttributeSet) | REACHABLE | | Constructor for CircularColorsView (XML inflation) | SRC CircularColorsView.java:32-35; framework calls when inflating from XML; edges in graph_def.py show it |
+| CircularColorsView.init | REACHABLE | | Initializes paint objects for the circular colors view | SRC CircularColorsView.java:37-43; both constructors call it; edges in graph_def.py:7160 |
+| CircularColorsView.onDraw | REACHABLE | | View.onDraw callback for rendering the circular colors | SRC CircularColorsView.java:53-88; framework calls for view drawing; edges in graph_def.py show it |
+| CircularColorsView.setColors | REACHABLE | | Sets the four colors for the circular view | SRC CircularColorsView.java:49-57; called from UI code; edges in graph_def.py show it |
+| CircularColorsView.setDividerColor | REACHABLE | | Sets the divider color between sections | SRC CircularColorsView.java:45-47; called from UI code; edges in graph_def.py show it |
+
+STATUS: INCOMPLETE 18:40 AboutActivity.<init>, AboutActivity.onClick, AboutActivity.onOptionsItemSelected, AboutActivity.openURL (source only in flavor folders src/fdroid and src/play; DATASET.txt names no flavor per KIRO_CONVERT_APPS section 2.3)

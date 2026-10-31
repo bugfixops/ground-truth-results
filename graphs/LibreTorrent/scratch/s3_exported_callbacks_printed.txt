@@ -1,0 +1,80 @@
+    35	    private static final String TAG = SettingsActivity.class.getSimpleName();
+    36	
+    37	    private Toolbar toolbar;
+    38	    private TextView detailTitle;
+    39	    private SettingsViewModel viewModel;
+    40	
+    41	    @Override
+    42	    protected void onCreate(Bundle savedInstanceState)
+    43	    {
+    44	        setTheme(Utils.getSettingsTheme(getApplicationContext()));
+    45	        super.onCreate(savedInstanceState);
+    46	
+    47	        viewModel = new ViewModelProvider(this).get(SettingsViewModel.class);
+    48	
+    49	        setContentView(R.layout.activity_settings);
+    50	
+    51	        toolbar = findViewById(R.id.toolbar);
+    52	        toolbar.setTitle(getString(R.string.settings));
+    53	        setSupportActionBar(toolbar);
+    54	        if (getSupportActionBar() != null)
+    55	            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    56	
+    57	        detailTitle = findViewById(R.id.detail_title);
+    58	        viewModel.detailTitleChanged.observe(this, title -> {
+    59	            if (title != null && detailTitle != null)
+    60	                detailTitle.setText(title);
+    61	        });
+    62	    }
+    63	
+    64	    @Override
+    65	    public boolean onOptionsItemSelected(MenuItem item)
+    66	    {
+    67	        if (item.getItemId() == android.R.id.home) {
+    68	            finish();
+    69	        }
+    70	
+    71	        return true;
+    72	    }
+    73	}
+    83	    @Override
+    84	    public void onFragmentFinished(@NonNull Fragment f, Intent intent, @NonNull ResultCode code)
+    85	    {
+    86	        finish();
+    87	    }
+    88	
+    89	    @Override
+    90	    public void onBackPressed()
+    91	    {
+    92	        addFeedDialog.onBackPressed();
+    93	    }
+  2975	    public boolean onKeyUp(int keyCode, KeyEvent event) {
+  2976	        if (getApplicationInfo().targetSdkVersion
+  2977	                >= Build.VERSION_CODES.ECLAIR) {
+  2978	            if (keyCode == KeyEvent.KEYCODE_BACK && event.isTracking()
+  2979	                    && !event.isCanceled()) {
+  2980	                onBackPressed();
+  2981	                return true;
+  2982	            }
+  2983	        }
+  3431	     * Default implementation of
+  3432	     * {@link android.view.Window.Callback#onMenuItemSelected}
+  3433	     * for activities.  This calls through to the new
+  3434	     * {@link #onOptionsItemSelected} method for the
+  3435	     * {@link android.view.Window#FEATURE_OPTIONS_PANEL}
+  3436	     * panel, so that subclasses of
+  3437	     * Activity don't need to deal with feature codes.
+  3438	     */
+  3439	    public boolean onMenuItemSelected(int featureId, MenuItem item) {
+  3440	        CharSequence titleCondensed = item.getTitleCondensed();
+  3441	
+  3442	        switch (featureId) {
+  3443	            case Window.FEATURE_OPTIONS_PANEL:
+  3444	                // Put event logging here so it gets called even if subclass
+  3445	                // doesn't call through to superclass's implmeentation of each
+  3446	                // of these methods below
+  3447	                if(titleCondensed != null) {
+  3448	                    EventLog.writeEvent(50000, 0, titleCondensed.toString());
+  3449	                }
+  3450	                if (onOptionsItemSelected(item)) {
+  3451	                    return true;

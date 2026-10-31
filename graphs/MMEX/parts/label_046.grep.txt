@@ -1,0 +1,196 @@
+label_046 grep evidence (batch 046, 40 methods)
+SRC = final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex
+FW  = /Users/darshan/Desktop/yang/work/fw_src/android-8.1.0_r1
+AUTO = graphs/MMEX/auto_calls.json (keys: src, dst, file, line, dispatch, via)
+Commands are run with python3 -I or grep -rn from the repo root. Paths are shortened in the output below.
+
+== A. Batch membership (graphs/MMEX/scratch/batches/batch_046.txt)
+7 class groups, 40 methods:
+  RepositoryModule ................................ 3  (lines 9-11)
+  RepositoryModule_ProvideStockHistoryRepositoryFactory  4  (lines 12-15)
+  RepositoryModule_ProvideStockRepositoryFactory ..... 4  (lines 16-19)
+  CurrencyChartActivity ........................... 5  (lines 20-24)
+  CurrencyEditActivity ............................ 9  (lines 25-33)
+  CurrencyEditViewHolder .......................... 2  (lines 34-35)
+  CurrencyRepository .............................. 13 (lines 36-48)
+
+== B. CurrencyRepository load / first / query / loadCurrency callers
+B1. Source grep over files that mention CurrencyRepository:
+  grep -rl "CurrencyRepository" SRC | xargs grep -n "\bload(\|\bfirst(\|\bquery(\|loadCurrency(\|saveExchangeRate("
+  SRC/MmxContentProvider.java:141          public Cursor query(@NonNull Uri uri, ...)     [ContentProvider override, not CurrencyRepository]
+  SRC/MmxContentProvider.java:402,405,409  database.query(...)                          [database, not CurrencyRepository]
+  SRC/account/AccountEditActivity.java:577 mAccount = repository.load(accountId);       [account repository; the CurrencyRepository local is declared at 608 inside selectCurrencyName, a different scope]
+  SRC/account/AccountEditActivity.java:609 Currency currency = repository.loadCurrency(currencyId);
+  SRC/currency/CurrencyRepository.java:54,58,83,84,89,90,95,109,135,136,139   (declarations and internal calls)
+  SRC/currency/CurrencyService.java:98     Currency currency = repository.loadCurrency(currencyId);
+  SRC/currency/CurrencyService.java:134    Currency currency = repo.loadCurrency(code);
+  SRC/currency/CurrencyService.java:183    return getRepository().query(Currency.class, query);   [inherited RepositoryBase generic query, not CurrencyRepository.query(String[],String,String[])]
+  SRC/currency/CurrencyService.java:235    //Currency euro = repo.loadCurrency("EUR");            [comment]
+  SRC/currency/CurrencyService.java:241    Currency defaultCurrency = repo.loadCurrency(systemCurrency.getCurrencyCode());
+  SRC/currency/CurrencyService.java:470    Cursor cursor = db.query(query);                       [database]
+  SRC/currency/CurrencyService.java:483    public boolean saveExchangeRate(String symbol, Money rate)
+  SRC/currency/CurrencyService.java:486    Currency currency = repo.loadCurrency(symbol);
+  SRC/currency/CurrencyService.java:490    int updateResult = repo.saveExchangeRate(currencyId, rate);
+  SRC/currency/CurrencyEditActivity.java:145  Cursor cursor = getContentResolver().query(repo.getUri(), ...)   [ContentResolver, not CurrencyRepository.query]
+  SRC/currency/MmxExchangeRateProvider.java:274  //        Currency destinationCurrencyEntity = repo.loadCurrency(...)  [comment]
+Result: no call to CurrencyRepository.load(int) and no call to CurrencyRepository.first(String) or CurrencyRepository.query(String[],String,String[]) outside CurrencyRepository.java (lines 58, 136 are internal).
+
+B2. AUTO records (dst filter, batch-046 classes):
+  CurrencyRepository.load ......... no record with dst = CurrencyRepository.load
+  CurrencyRepository.first ........ only: CurrencyRepository.load -> CurrencyRepository.first (CurrencyRepository.java 58, exact)
+  CurrencyRepository.query ........ only: CurrencyRepository.first -> CurrencyRepository.query (CurrencyRepository.java 136, exact)
+  loadCurrency(int) callers: CurrencyService.getCurrency(Integer) (CurrencyService.java 98); AccountEditActivity.selectCurrencyName (AccountEditActivity.java 609)
+  loadCurrency(String) callers: CurrencyService.getIdForCode (134); CurrencyService.getBaseCurrencyId (241); CurrencyService.saveExchangeRate (486)
+  saveExchangeRate callers: CurrencyService.saveExchangeRate (490)
+
+== C. Dagger proxies (UNREACHABLE: proxyProvideStockRepository, proxyProvideStockHistoryRepository)
+C1. AUTO records (src side):
+  RepositoryModule_ProvideStockRepositoryFactory.proxyProvideStockRepository -> RepositoryModule.provideStockRepository  (RepositoryModule_ProvideStockRepositoryFactory.java 40, exact)
+  RepositoryModule_ProvideStockHistoryRepositoryFactory.proxyProvideStockHistoryRepository -> RepositoryModule.provideStockHistoryRepository  (RepositoryModule_ProvideStockHistoryRepositoryFactory.java 40, exact)
+C2. AUTO records (dst side): none. The dst filter over RepositoryModule* returned no record with either proxy as dst.
+C3. build_report.txt (graphs/MMEX/out/build_report.txt), grep -n "proxy\|RepositoryModule":
+  597 ERROR method has no path and no UNREACHABLE entry: RepositoryModule.provideStockHistoryRepository
+  598 ERROR method has no path and no UNREACHABLE entry: RepositoryModule.provideStockRepository
+  599 ERROR method has no path and no UNREACHABLE entry: RepositoryModule_ProvideStockHistoryRepositoryFactory.get
+  600 ERROR method has no path and no UNREACHABLE entry: RepositoryModule_ProvideStockHistoryRepositoryFactory.proxyProvideStockHistoryRepository
+  601 ERROR method has no path and no UNREACHABLE entry: RepositoryModule_ProvideStockRepositoryFactory.get
+  602 ERROR method has no path and no UNREACHABLE entry: RepositoryModule_ProvideStockRepositoryFactory.proxyProvideStockRepository
+C4. Generated pages: find over graphs/MMEX for DaggerMmxComponent* and RepositoryModule_Provide* files returned nothing. There is no combined/report directory under graphs/MMEX. grep -rl "proxyProvideStock" graphs/MMEX/out lists only method and graph outputs (methods.csv, sanity_check.csv, *_trigger_graph.json/html). No DaggerMmxComponent page names a proxy.
+
+== D. Dagger initialize and module construction (AUTO)
+  DaggerMmxComponent$Builder.build -> RepositoryModule.<init>                                  (DaggerMmxComponent.java 626, exact)
+  DaggerMmxComponent.initialize -> RepositoryModule_ProvideStockRepositoryFactory.create     (DaggerMmxComponent.java 196, exact)
+  DaggerMmxComponent.initialize -> RepositoryModule_ProvideStockHistoryRepositoryFactory.create (DaggerMmxComponent.java 199, exact)
+  RepositoryModule_ProvideStockRepositoryFactory.create -> ..Factory.<init>                   (RepositoryModule_ProvideStockRepositoryFactory.java 35, exact)
+  RepositoryModule_ProvideStockHistoryRepositoryFactory.create -> ..Factory.<init>            (RepositoryModule_ProvideStockHistoryRepositoryFactory.java 35, exact)
+  RepositoryModule.provideStockRepository -> StockRepositorySql.<init>                        (RepositoryModule.java 34, exact)
+  RepositoryModule.provideStockHistoryRepository -> StockHistoryRepositorySql.<init>          (RepositoryModule.java 39, exact)
+  dst filter: no AUTO record has dst = RepositoryModule_Provide*Factory.get. The get() methods are reached only through Dagger Lazy (see E, INFERRED).
+
+== E. Dagger Lazy hop from MorningstarPriceUpdater (INFERRED)
+  grep -n "Lazy<\|stockRepository.get()\|stockHistoryRepository.get()\|savePrice(" SRC/investment/morningstar/MorningstarPriceUpdater.java
+  75:    @Inject Lazy<StockRepositorySql> stockRepository;
+  76:    @Inject Lazy<StockHistoryRepositorySql> stockHistoryRepository;
+  142://                        savePrice(priceDownloadedEvent);                      [comment]
+  190:                                    savePrice(event);
+  277:    private void savePrice(PriceDownloadedEvent event) {
+  278:        BriteDatabase.Transaction tx = stockRepository.get().database.newTransaction();
+  281:        stockRepository.get().updateCurrentPrice(event.symbol, event.price);
+  284:        stockHistoryRepository.get().addStockHistoryRecord(event.symbol,
+Note: the Dagger/DoubleCheck/Lazy code is generated and not read. The get() hop is INFERRED from the @Inject Lazy field types and the auto record RepositoryModule_Provide*Factory.get -> RepositoryModule.provide*(factory line 29).
+
+== F. EventBus posts and registrations (currency-related)
+  grep -rn "CurrencyDeletionConfirmedEvent|PriceDownloadedEvent|ExchangeRateUpdateConfirmedEvent" SRC  (posts and onEvent handlers only)
+  SRC/investment/prices/FixerService.java:120             EventBus.getDefault().post(new PriceDownloadedEvent(...))
+  SRC/investment/yql/YqlSecurityPriceUpdaterRetrofit.java:130  EventBus.getDefault().post(new PriceDownloadedEvent(...))
+  SRC/currency/CurrencyUIFeatures.java:123               EventBus.getDefault().post(new CurrencyDeletionConfirmedEvent(currencyId, itemPosition))
+  SRC/currency/CurrencyUIFeatures.java:169, 199          EventBus.getDefault().post(new ExchangeRateUpdateConfirmedEvent(...))
+  SRC/currency/list/CurrencyListFragment.java:355         public void onEvent(PriceDownloadedEvent event)
+  SRC/currency/list/CurrencyListFragment.java:361         public void onEvent(ExchangeRateUpdateConfirmedEvent event)
+  SRC/currency/list/CurrencyListFragment.java:372         public void onEvent(CurrencyDeletionConfirmedEvent event)
+  SRC/currency/recycler/CurrencyRecyclerListFragment.java:230, 247, 273   onEvent(PriceDownloadedEvent), onEvent(ExchangeRateUpdateConfirmedEvent), onEvent(CurrencyDeletionConfirmedEvent)
+  register/unregister:
+  SRC/currency/list/CurrencyListFragment.java:114 register(this); 121 unregister(this)
+  SRC/currency/recycler/CurrencyRecyclerListFragment.java:219 register(this); 226 unregister(this)
+  Not a post: SRC/investment/morningstar/MorningstarPriceUpdater.java:227-260 parse() returns a PriceDownloadedEvent; savePrice is called directly (line 190).
+
+== G. INTENT starters
+  grep -rn "startCurrencyEditActivity(\|CurrencyChartActivity.class\|CurrencyEditActivity.class" SRC
+  SRC/currency/CurrencyUIFeatures.java:213                      public void startCurrencyEditActivity(Integer currencyId)
+  SRC/currency/CurrencyUIFeatures.java:215                      Intent intent = new Intent(getContext(), CurrencyEditActivity.class);
+  SRC/currency/recycler/CurrencyRecyclerListFragment.java:173   ui.startCurrencyEditActivity(currencyId);        [batch 050]
+  SRC/currency/recycler/CurrencyRecyclerListFragment.java:185   Intent intent = new Intent(getActivity(), CurrencyChartActivity.class);   [batch 050]
+  SRC/currency/recycler/CurrencyRecyclerListFragment.java:320   //        ui.startCurrencyEditActivity(null);     [comment]
+  SRC/currency/list/CurrencyListFragment.java:245               ui.startCurrencyEditActivity(currencyId);  [case 0, edit]
+  SRC/currency/list/CurrencyListFragment.java:257               Intent intent = new Intent(getActivity(), CurrencyChartActivity.class);  [case 1, chart]
+  SRC/currency/list/CurrencyListFragment.java:326               ui.startCurrencyEditActivity(null);       [FAB, insert]
+
+== H. CurrencyRepository references in source (no caller of load/first/query)
+  grep -rn "CurrencyRepository" SRC --include='*.java' (excluding CurrencyRepository.java and imports)
+  MmxContentProvider.java:111                  new CurrencyRepository(context)
+  currency/CurrencyService.java:76,317,318     @Inject CurrencyRepositorySql mRepository;  private CurrencyRepository oldRepository;  public CurrencyRepository getRepository()
+  currency/CurrencyService.java:97,133,240,484 CurrencyRepository repository|repo = getRepository();
+  currency/CurrencyService.java:320            oldRepository = new CurrencyRepository(getContext());
+  datalayer/CurrencyRepositorySql.java:29,35   class CurrencyRepositorySql (different class)
+  account/AccountEditActivity.java:608         CurrencyRepository repository = new CurrencyRepository(getApplicationContext());
+  currency/list/CurrencyListFragment.java:373  CurrencyRepository repo = new CurrencyRepository(getContext());
+  currency/list/CurrencyListFragment.java:454  CurrencyRepository repo = new CurrencyRepository(getActivity());
+  currency/recycler/CurrencyRecyclerListFragment.java:136  CurrencyRepository repo = new CurrencyRepository(getActivity());
+  currency/recycler/CurrencyRecyclerListFragment.java:274  CurrencyRepository repo = new CurrencyRepository(getContext());
+  currency/CurrencyEditActivity.java:144       CurrencyRepository repo = new CurrencyRepository(this);
+  currency/CurrencyEditActivity.java:235       CurrencyRepository repo = new CurrencyRepository(getApplicationContext());
+  Result: no source file calls CurrencyRepository.load(int), first(String) or query(String[],String,String[]) (see B1). CurrencyRepository.load is UNREACHABLE (SOURCE).
+
+== I. Framework lines (FW)
+  FW/core/java/android/app/Instrumentation.java:1102  Application app = (Application)clazz.newInstance();
+  FW/core/java/android/app/Instrumentation.java:1148  Activity activity = (Activity)clazz.newInstance();
+  FW/core/java/android/app/Instrumentation.java:1174  return (Activity)cl.loadClass(className).newInstance();
+  FW/core/java/android/app/Instrumentation.java:1212  public void callActivityOnCreate(Activity activity, Bundle icicle) {
+  FW/core/java/android/app/Instrumentation.java:1385  public void callActivityOnSaveInstanceState(Activity activity, Bundle outState) {
+  FW/core/java/android/app/ActivityThread.java:2669   activity = mInstrumentation.newActivity(
+  FW/core/java/android/app/ActivityThread.java:2729   mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+  FW/core/java/android/app/ActivityThread.java:2731   mInstrumentation.callActivityOnCreate(activity, r.state);
+  FW/core/java/android/app/ActivityThread.java:3875   callCallActivityOnSaveInstanceState(r);
+  FW/core/java/android/app/ActivityThread.java:4713   private void callCallActivityOnSaveInstanceState(ActivityClientRecord r) {
+  FW/core/java/android/app/Activity.java:1495        final void performSaveInstanceState(Bundle outState) {
+  FW/core/java/android/app/Activity.java:1512        final void performSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
+  FW/core/java/android/app/Activity.java:3388        boolean show = onCreateOptionsMenu(menu);
+  FW/core/java/android/app/Activity.java:3450        if (onOptionsItemSelected(item)) {
+  FW/core/java/android/app/Activity.java:3547        public boolean onCreateOptionsMenu(Menu menu) {
+  FW/core/java/android/app/Activity.java:6993        final void performCreate(Bundle icicle, PersistableBundle persistentState) {
+  FW/core/java/com/android/internal/policy/PhoneWindow.java:631   if ((cb == null) || !cb.onCreatePanelMenu(st.featureId, st.menu)) {
+  Checked with sed (Activity.java): 1496 `onSaveInstanceState(outState);` inside performSaveInstanceState (1495); 6997 `onCreate(icicle, persistentState);` and 6999 `onCreate(icicle);` inside performCreate (6993).
+
+== J. GUI dispatch (AUTO, cha)
+  MmxBaseFragmentActivity$1.onClick -> CurrencyEditActivity.onActionCancelClick   (MmxBaseFragmentActivity.java 217, dispatch cha)
+  MmxBaseFragmentActivity$2.onClick -> CurrencyEditActivity.onActionDoneClick     (MmxBaseFragmentActivity.java 225, dispatch cha)
+
+== K. AUTO records with dst in batch-046 classes (python3 -I filter over graphs/MMEX/auto_calls.json, 7554 records)
+  MmxContentProvider.onCreate -> CurrencyRepository.<init>                         (MmxContentProvider.java 105)
+  DaggerMmxComponent.initialize -> ..ProvideStockHistoryRepositoryFactory.create    (DaggerMmxComponent.java 199)
+  DaggerMmxComponent.initialize -> ..ProvideStockRepositoryFactory.create           (DaggerMmxComponent.java 196)
+  DaggerMmxComponent$Builder.build -> RepositoryModule.<init>                       (DaggerMmxComponent.java 626)
+  ..ProvideStockHistoryRepositoryFactory.get -> RepositoryModule.provideStockHistoryRepository (factory .java 29)
+  ..ProvideStockHistoryRepositoryFactory.create -> ..<init>                         (factory .java 35)
+  ..ProvideStockHistoryRepositoryFactory.proxyProvideStockHistoryRepository -> RepositoryModule.provideStockHistoryRepository (factory .java 40)
+  ..ProvideStockRepositoryFactory.get -> RepositoryModule.provideStockRepository    (factory .java 29)
+  ..ProvideStockRepositoryFactory.create -> ..<init>                                (factory .java 35)
+  ..ProvideStockRepositoryFactory.proxyProvideStockRepository -> RepositoryModule.provideStockRepository (factory .java 40)
+  MmxBaseFragmentActivity$2.onClick -> CurrencyEditActivity.onActionDoneClick       (MmxBaseFragmentActivity.java 225, cha)
+  MmxBaseFragmentActivity$1.onClick -> CurrencyEditActivity.onActionCancelClick     (MmxBaseFragmentActivity.java 217, cha)
+  AccountEditActivity.selectCurrencyName -> CurrencyRepository.loadCurrency(int)    (AccountEditActivity.java 609)
+  AccountEditActivity.selectCurrencyName -> CurrencyRepository.<init>               (AccountEditActivity.java 608)
+  CurrencyRepository.load -> CurrencyRepository.first                               (CurrencyRepository.java 58)
+  CurrencyRepository.loadCurrency(int) -> loadCurrency(String,String[])             (CurrencyRepository.java 84)
+  CurrencyRepository.loadCurrency(String) -> loadCurrency(String,String[])          (CurrencyRepository.java 90)
+  CurrencyRepository.loadCurrency(String,String[]) -> loadCurrencyInternal          (CurrencyRepository.java 112)
+  CurrencyRepository.first -> CurrencyRepository.query                              (CurrencyRepository.java 136)
+  CurrencyService.getCurrency(Integer) -> CurrencyRepository.loadCurrency(int)      (CurrencyService.java 98)
+  CurrencyService.getIdForCode -> CurrencyRepository.loadCurrency(String)           (CurrencyService.java 134)
+  CurrencyService.getUnusedCurrencies -> CurrencyRepository.getAllColumns           (CurrencyService.java 179)
+  CurrencyService.getBaseCurrencyId -> CurrencyRepository.loadCurrency(String)      (CurrencyService.java 241)
+  CurrencyService.getRepository -> CurrencyRepository.<init>                        (CurrencyService.java 320)
+  CurrencyService.saveExchangeRate -> CurrencyRepository.saveExchangeRate           (CurrencyService.java 490)
+  CurrencyService.saveExchangeRate -> CurrencyRepository.loadCurrency(String)       (CurrencyService.java 486)
+  CurrencyChartActivity.onCreate -> CurrencyChartActivity.loadCurrencyChart         (CurrencyChartActivity.java 51)
+  CurrencyEditActivity.onActionDoneClick -> CurrencyEditActivity.save               (CurrencyEditActivity.java 70)
+  CurrencyEditActivity.onCreate -> CurrencyEditActivity.loadData                    (CurrencyEditActivity.java 99)
+  CurrencyEditActivity.onCreate -> CurrencyEditActivity.restoreInstanceState        (CurrencyEditActivity.java 90)
+  CurrencyEditActivity.onCreate -> CurrencyEditViewHolder.initialize                (CurrencyEditActivity.java 86)
+  CurrencyEditActivity.loadData -> CurrencyRepository.getAllColumns                 (CurrencyEditActivity.java 146)
+  CurrencyEditActivity.loadData -> CurrencyRepository.<init>                        (CurrencyEditActivity.java 144)
+  CurrencyEditActivity.save -> CurrencyRepository.update                            (CurrencyEditActivity.java 248)
+  CurrencyEditActivity.save -> CurrencyRepository.insert                            (CurrencyEditActivity.java 240)
+  CurrencyEditActivity.save -> CurrencyRepository.<init>                            (CurrencyEditActivity.java 235)
+  CurrencyEditActivity.save -> CurrencyEditActivity.validateData                    (CurrencyEditActivity.java 208)
+  CurrencyEditViewHolder.initialize -> CurrencyEditViewHolder.<init>                (CurrencyEditViewHolder.java 31)
+  CurrencyRecyclerListFragment.onPause -> CurrencyRepository.<init>                 (CurrencyRecyclerListFragment.java 136)
+  CurrencyRecyclerListFragment.onEvent(CurrencyDeletionConfirmedEvent) -> CurrencyRepository.delete (CurrencyRecyclerListFragment.java 275)
+  CurrencyRecyclerListFragment.onEvent(CurrencyDeletionConfirmedEvent) -> CurrencyRepository.<init> (CurrencyRecyclerListFragment.java 274)
+  CurrencyListFragment$1.onCreateLoader -> CurrencyRepository.getAllColumns         (CurrencyListFragment.java 455)
+  CurrencyListFragment$1.onCreateLoader -> CurrencyRepository.<init>                (CurrencyListFragment.java 454)
+  CurrencyListFragment.onEvent(CurrencyDeletionConfirmedEvent) -> CurrencyRepository.delete (CurrencyListFragment.java 374)
+  CurrencyListFragment.onEvent(CurrencyDeletionConfirmedEvent) -> CurrencyRepository.<init> (CurrencyListFragment.java 373)
+  No AUTO record has dst = CurrencyChartActivity.<init>, CurrencyEditActivity.<init>, CurrencyChartActivity.onCreate, CurrencyChartActivity.onCreateOptionsMenu, CurrencyChartActivity.onOptionsItemSelected, CurrencyEditActivity.onCreate, or CurrencyEditActivity.onSaveInstanceState. Their entry edges are written in label_046.py (INTENT, LIFECYCLE, FRAMEWORK, ENTERS).
+  Src-side records for these methods are only super-constructor or super-method calls, e.g. CurrencyChartActivity.<init> -> MmxBaseFragmentActivity.<init> (CurrencyChartActivity.java 31) and CurrencyEditActivity.onSaveInstanceState -> MmxBaseFragmentActivity.onSaveInstanceState (CurrencyEditActivity.java 125).
+  Manifest (SRC-root AndroidManifest.xml, app/src/main): CurrencyEditActivity at 219-226 (exported, EDIT and INSERT filter at 222-225); CurrencyChartActivity at 320-323 (no intent-filter; the only filter nearby, at 328-330, belongs to SingleAccountWidgetConfigureActivity).

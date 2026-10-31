@@ -2690,6 +2690,145 @@ e('FeedItemsFragment.openDownloadUrl', 'AddTorrentActivity.<init>', 'INTENT', 'O
 e('FeedItemsFragment.onItemMenuClicked', 'FeedItemsFragment.openArticle', 'CALL', 'Open feed article from item menu',
   guard='menuId == R.id.open_article_menu', cls='explicit', evidence='SRC ui/feeditems/FeedItemsFragment.java:251-261,263-278')
 
+e('FeedActivity.onStart', 'FeedActivity.onCreateOptionsMenu', 'FRAMEWORK', 'Prepare feed toolbar menu through the AppCompat action bar',
+  cls='non_standard', via='AndroidX AppCompat action bar', evidence='INFERRED AppCompat menu callback dispatch; SRC ui/feeds/FeedActivity.java:115,122,239-242')
+e('FeedActivity.onCreateOptionsMenu', 'FeedActivity.onOptionsItemSelected', 'REGISTER', 'Register feed toolbar menu item selection callback',
+  cls='non_standard', via='AndroidX AppCompat Toolbar', evidence='INFERRED AppCompat Toolbar menu callback dispatch; SRC ui/feeds/FeedActivity.java:241-242')
+e('FeedActivity.onCreateOptionsMenu', 'FeedActivity.onOptionsItemSelected', 'FRAMEWORK', 'Dispatch selected feed toolbar menu actions through AppCompat',
+  cls='non_standard', via='AndroidX AppCompat action bar', evidence='INFERRED AppCompat menu callback dispatch; SRC ui/feeds/FeedActivity.java:241-242,248-252')
+e('FeedActivity.onOptionsItemSelected', 'FeedViewModel.refreshAllFeeds', 'CALL', 'Refresh all feed channels from the toolbar refresh item',
+  guard='itemId == R.id.refresh_feed_channel_menu', cls='explicit', evidence='SRC ui/feeds/FeedActivity.java:251-252; ui/feeds/FeedViewModel.java:118-127')
+e('FeedViewModel.refreshAllFeeds', 'FeedViewModel.runFetchWorker', 'CALL', 'Enqueue all-channel fetch work',
+  cls='explicit', evidence='SRC ui/feeds/FeedViewModel.java:118-127,153-157')
+e('FeedViewModel.runFetchWorker', 'FeedFetcherWorker.doWork', 'FRAMEWORK', 'Run enqueued feed fetch work through WorkManager',
+  cls='non_standard', via='AndroidX WorkManager OneTimeWorkRequest', evidence='INFERRED WorkManager worker dispatch; SRC ui/feeds/FeedViewModel.java:157; service/FeedFetcherWorker.java:51,74')
+e('FeedFetcherWorker.doWork', 'FeedFetcherWorker.fetchChannels', 'CALL', 'Fetch every saved feed channel for the all-channels action',
+  guard='action == ACTION_FETCH_ALL_CHANNELS', cls='explicit', evidence='SRC service/FeedFetcherWorker.java:92-101')
+e('FeedFetcherWorker.fetchChannels', 'FeedFetcherWorker.fetchChannel', 'CALL', 'Fetch one saved feed channel',
+  guard='channel != null', cls='explicit', evidence='SRC service/FeedFetcherWorker.java:124-135')
+e('FeedFetcherWorker.fetchChannel', 'FeedParser.<init>', 'CALL', 'Download and parse the saved feed URL',
+  guard='channel != null', cls='explicit', evidence='SRC service/FeedFetcherWorker.java:150-156; core/FeedParser.java:62-71')
+e('FeedFetcherWorker.fetchChannel', 'FeedParser.getItems', 'CALL', 'Read parsed feed items for filtering and storage',
+  cls='explicit', evidence='SRC service/FeedFetcherWorker.java:165')
+e('FeedFetcherWorker.fetchChannel', 'FeedParser.getTitle', 'CALL', 'Read feed title when the saved channel has no name',
+  guard='TextUtils.isEmpty(channel.name)', cls='explicit', evidence='SRC service/FeedFetcherWorker.java:175-176')
+e('FeedParser.<init>', 'FeedParserFactory.newParser', 'CALL', 'Create the feed parser implementation',
+  guard='response != null', cls='explicit', evidence='SRC core/FeedParser.java:67-71')
+e('FeedParserFactory.newParser', 'DefaultFeedParser.<init>', 'CALL', 'Instantiate the default SAX feed parser',
+  cls='explicit', evidence='SRC com/ernieyu/feedparser/FeedParserFactory.java:25')
+e('FeedParser.<init>', 'DefaultFeedParser.parse', 'CALL', 'Parse downloaded feed bytes through the parser interface',
+  guard='response != null', cls='non_standard', via='FeedParser interface dispatch to DefaultFeedParser', evidence='INFERRED interface dispatch; SRC core/FeedParser.java:71; com/ernieyu/feedparser/FeedParserFactory.java:25')
+e('DefaultFeedParser.parse', 'XMLInputStream.<init>', 'CALL', 'Wrap the feed stream in the XML cleaning stream',
+  cls='explicit', evidence='SRC impl/DefaultFeedParser.java:37')
+e('DefaultFeedParser.parse', 'FeedHandler.<init>', 'CALL', 'Create the SAX feed handler',
+  cls='explicit', evidence='SRC impl/DefaultFeedParser.java:34')
+e('DefaultFeedParser.parse', 'FeedHandler.startElement', 'FRAMEWORK', 'SAX parser sends start-element events to the feed handler',
+  cls='non_standard', via='JDK SAX DefaultHandler callback', evidence='INFERRED SAX DefaultHandler callback dispatch; SRC impl/DefaultFeedParser.java:37; impl/FeedHandler.java:54-107')
+e('DefaultFeedParser.parse', 'FeedHandler.endElement', 'FRAMEWORK', 'SAX parser sends end-element events to the feed handler',
+  cls='non_standard', via='JDK SAX DefaultHandler callback', evidence='INFERRED SAX DefaultHandler callback dispatch; SRC impl/DefaultFeedParser.java:37; impl/FeedHandler.java:110-131')
+e('DefaultFeedParser.parse', 'FeedHandler.getFeed', 'CALL', 'Read the feed built by the SAX handler',
+  cls='explicit', evidence='SRC impl/DefaultFeedParser.java:38')
+e('DefaultFeedParser.parse', 'FeedException.<init>(String)', 'CALL', 'Reject input that produced no feed',
+  guard='handler.getFeed() == null', cls='explicit', evidence='SRC impl/DefaultFeedParser.java:38-40')
+e('DefaultFeedParser.parse', 'FeedException.<init>(Throwable)', 'CALL', 'Wrap any SAX or stream failure',
+  guard='parse throws an exception', cls='explicit', evidence='SRC impl/DefaultFeedParser.java:44-45')
+e('DefaultFeedParser.parse', 'XMLInputStream.read(byte[],int,int)', 'FRAMEWORK', 'SAX parser reads feed bytes through the XML cleaning stream',
+  cls='non_standard', via='JDK SAX parser input stream read', evidence='INFERRED SAX parser input stream read; SRC impl/DefaultFeedParser.java:37; XMLInputStream.java:134-144')
+e('DefaultFeedParser.parse', 'XMLInputStream.read()', 'FRAMEWORK', 'SAX parser reads the first bytes one at a time for encoding detection',
+  cls='non_standard', via='JDK SAX parser input stream read', evidence='INFERRED SAX parser encoding detection reads single bytes; SRC impl/DefaultFeedParser.java:37; XMLInputStream.java:127-132')
+e('XMLInputStream.read()', 'XMLInputStream.read(int)', 'CALL', 'Read one cleaned character',
+  cls='explicit', evidence='SRC XMLInputStream.java:129')
+e('XMLInputStream.read()', 'XMLInputStream.given', 'CALL', 'Record the character handed to the parser',
+  cls='explicit', evidence='SRC XMLInputStream.java:130')
+e('XMLInputStream.read(byte[],int,int)', 'XMLInputStream.read(int)', 'CALL', 'Read a block of cleaned characters',
+  cls='explicit', evidence='SRC XMLInputStream.java:137')
+e('XMLInputStream.read(byte[],int,int)', 'XMLInputStream.given', 'CALL', 'Record the block handed to the parser',
+  cls='explicit', evidence='SRC XMLInputStream.java:142')
+e('XMLInputStream.read(int)', 'XMLInputStream.readIntoPushBack', 'CALL', 'Refill the pushback buffer from the wrapped stream',
+  guard='pushBack is empty', cls='explicit', evidence='SRC XMLInputStream.java:49-51')
+e('XMLInputStream.readIntoPushBack', 'XMLInputStream.isWhiteSpace', 'CALL', 'Drop whitespace before the first character',
+  guard='pulled == 0 and ch >= 0', cls='explicit', evidence='SRC XMLInputStream.java:73-75')
+e('XMLInputStream.readIntoPushBack', 'XMLInputStream.readAmpersand', 'CALL', 'Translate an ampersand reference',
+  guard="ch == '&'", cls='explicit', evidence='SRC XMLInputStream.java:79-81')
+e('XMLInputStream.readAmpersand', 'XMLInputStream.isAlphaNumeric', 'CALL', 'Collect the characters of an entity name',
+  cls='explicit', evidence='SRC XMLInputStream.java:100')
+e('XMLInputStream.readAmpersand', 'XML.hash', 'CALL', 'Look up a named character reference',
+  guard="reference ends with ';'", cls='explicit', evidence='SRC XMLInputStream.java:104-106')
+e('XMLInputStream.readAmpersand', 'XML.<clinit>', 'FRAMEWORK', 'Initialize the named-entity table before the first lookup',
+  cls='non_standard', via='JVM class initialization before first static call', evidence='INFERRED JVM class initialization; SRC com/ernieyu/feedparser/XML.java:9,19; XMLInputStream.java:106')
+e('FeedHandler.startElement', 'FeedType.<clinit>', 'FRAMEWORK', 'Initialize feed type constants before the first type assignment',
+  cls='non_standard', via='JVM class initialization before first enum access', evidence='INFERRED JVM class initialization; SRC impl/FeedHandler.java:64,71,78; FeedType.java:6-8')
+e('FeedHandler.startElement', 'AtomFeed.<init>', 'CALL', 'Create the Atom feed for a feed root element',
+  guard='localName equals feed', cls='explicit', evidence='SRC impl/FeedHandler.java:74-78')
+e('FeedHandler.startElement', 'Rss1Item.<init>', 'CALL', 'Create an RSS 1.0 item',
+  guard='feed type is RSS 1.0 and localName equals item', cls='explicit', evidence='SRC impl/FeedHandler.java:81-85')
+e('FeedHandler.startElement', 'Rss2Item.<init>', 'CALL', 'Create an RSS 2.0 item',
+  guard='feed type is RSS 2.0 and localName equals item', cls='explicit', evidence='SRC impl/FeedHandler.java:81-88')
+e('FeedHandler.startElement', 'AtomItem.<init>', 'CALL', 'Create an Atom entry',
+  guard='localName equals entry', cls='explicit', evidence='SRC impl/FeedHandler.java:94-96')
+e('FeedParser.getItems', 'AtomFeed.getItemList', 'CALL', 'Read entries from an Atom feed',
+  guard='feed is an Atom feed', cls='non_standard', via='Feed interface dispatch to AtomFeed', evidence='INFERRED interface dispatch; SRC core/FeedParser.java:95; impl/AtomFeed.java:94-106')
+e('FeedParser.getItems', 'Rss2Feed.getItemList', 'CALL', 'Read items from an RSS 2.0 feed',
+  guard='feed is an RSS 2.0 feed', cls='non_standard', via='Feed interface dispatch to Rss2Feed', evidence='INFERRED interface dispatch; SRC core/FeedParser.java:95; impl/Rss2Feed.java:113')
+e('FeedParser.getItems', 'Rss1Feed.getItemList', 'CALL', 'Read items from an RSS 1.0 feed',
+  guard='feed is an RSS 1.0 feed', cls='non_standard', via='Feed interface dispatch to Rss1Feed', evidence='INFERRED interface dispatch; SRC core/FeedParser.java:95; impl/Rss1Feed.java:103')
+e('FeedParser.getTitle', 'AtomFeed.getTitle', 'CALL', 'Read the Atom feed title',
+  guard='feed is an Atom feed', cls='non_standard', via='Feed interface dispatch to AtomFeed', evidence='INFERRED interface dispatch; SRC core/FeedParser.java:86; impl/AtomFeed.java:44-46')
+e('FeedParser.getTitle', 'Rss2Feed.getTitle', 'CALL', 'Read the RSS 2.0 feed title',
+  guard='feed is an RSS 2.0 feed', cls='non_standard', via='Feed interface dispatch to Rss2Feed', evidence='INFERRED interface dispatch; SRC core/FeedParser.java:86; impl/Rss2Feed.java:47')
+e('FeedParser.getTitle', 'Rss1Feed.getTitle', 'CALL', 'Read the RSS 1.0 feed title',
+  guard='feed is an RSS 1.0 feed', cls='non_standard', via='Feed interface dispatch to Rss1Feed', evidence='INFERRED interface dispatch; SRC core/FeedParser.java:86; impl/Rss1Feed.java:46')
+e('FeedParser.getItems', 'FeedParser.findDownloadUrl', 'CALL', 'Find the download URL when no link is a magnet or torrent',
+  guard='downloadUrl == null', cls='explicit', evidence='SRC core/FeedParser.java:101-102')
+e('FeedParser.findDownloadUrl', 'FeedParser.watchEnclosure', 'CALL', 'Check enclosure tags first',
+  cls='explicit', evidence='SRC core/FeedParser.java:147-148')
+e('FeedParser.findDownloadUrl', 'FeedParser.watchTorrentInfoHash', 'CALL', 'Check EzRSS info hash after enclosures',
+  guard='watchEnclosure returned null', cls='explicit', evidence='SRC core/FeedParser.java:151-152')
+e('FeedParser.watchEnclosure', 'AtomItem.getEnclosures', 'CALL', 'Read Atom enclosure links',
+  cls='non_standard', via='Item interface dispatch to AtomItem', evidence='INFERRED interface dispatch; SRC core/FeedParser.java:168-170; impl/AtomItem.java:99-119')
+e('FeedParser.watchEnclosure', 'Rss2Item.getEnclosures', 'CALL', 'Read RSS 2.0 enclosure links',
+  cls='non_standard', via='Item interface dispatch to Rss2Item', evidence='INFERRED interface dispatch; SRC core/FeedParser.java:168-170; impl/Rss2Item.java:94-110')
+e('FeedParser.watchEnclosure', 'Rss1Item.getEnclosures', 'CALL', 'Read RSS 1.0 enclosure links',
+  cls='non_standard', via='Item interface dispatch to Rss1Item', evidence='INFERRED interface dispatch; SRC core/FeedParser.java:168-170; impl/Rss1Item.java:88-104')
+e('AtomItem.getEnclosures', 'Enclosure.<init>', 'CALL', 'Create an enclosure for each rel=enclosure link',
+  guard='rel equals enclosure', cls='explicit', evidence='SRC impl/AtomItem.java:105-116')
+e('FeedParser.watchEnclosure', 'Enclosure.getUrl', 'CALL', 'Read enclosure URL',
+  guard='enclosure != null', cls='explicit', evidence='SRC core/FeedParser.java:172-174')
+e('FeedParser.watchEnclosure', 'Enclosure.getType', 'CALL', 'Read enclosure MIME type',
+  guard='enclosure != null', cls='explicit', evidence='SRC core/FeedParser.java:175')
+e('FeedParser.watchTorrentInfoHash', 'AtomItem.getEzRssTorrentItem', 'CALL', 'Read EzRSS metadata from an Atom entry',
+  cls='non_standard', via='Item interface dispatch to AtomItem', evidence='INFERRED interface dispatch; SRC core/FeedParser.java:236-238; impl/AtomItem.java:136-137')
+e('FeedParser.watchTorrentInfoHash', 'Rss2Item.getEzRssTorrentItem', 'CALL', 'Read EzRSS metadata from an RSS 2.0 item',
+  cls='non_standard', via='Item interface dispatch to Rss2Item', evidence='INFERRED interface dispatch; SRC core/FeedParser.java:236-238; impl/Rss2Item.java:119-120')
+e('FeedParser.watchTorrentInfoHash', 'EzRssTorrentItem.getInfoHash', 'CALL', 'Read the info hash from EzRSS metadata',
+  guard='torrentItem != null', cls='explicit', evidence='SRC core/FeedParser.java:238-242')
+e('Rss2Item.getEzRssTorrentItem', 'EzRss01Parser.<init>', 'CALL', 'Create the EzRSS 0.1 parser for this item',
+  cls='explicit', evidence='SRC impl/Rss2Item.java:120; impl/EzRss01Parser.java:22-24')
+e('Rss2Item.getEzRssTorrentItem', 'EzRss01Parser.parse', 'CALL', 'Parse EzRSS 0.1 metadata',
+  cls='explicit', evidence='SRC impl/Rss2Item.java:120; impl/EzRss01Parser.java:26-36')
+e('EzRss01Parser.parse', 'EzRssTorrentItem.<init>', 'CALL', 'Build the EzRSS torrent metadata object',
+  cls='explicit', evidence='SRC impl/EzRss01Parser.java:35-36')
+e('FeedParser.getItems', 'AtomItem.getPubDate', 'CALL', 'Read Atom entry publication date',
+  cls='non_standard', via='Item interface dispatch to AtomItem', evidence='INFERRED interface dispatch; SRC core/FeedParser.java:104; impl/AtomItem.java:80-82')
+e('FeedParser.getItems', 'Rss2Item.getPubDate', 'CALL', 'Read RSS 2.0 item publication date',
+  cls='non_standard', via='Item interface dispatch to Rss2Item', evidence='INFERRED interface dispatch; SRC core/FeedParser.java:104; impl/Rss2Item.java:75-77')
+e('FeedParser.getItems', 'Rss1Item.getPubDate', 'CALL', 'Read RSS 1.0 item publication date',
+  cls='non_standard', via='Item interface dispatch to Rss1Item', evidence='INFERRED interface dispatch; SRC core/FeedParser.java:104; impl/Rss1Item.java:76-79')
+e('AtomItem.getPubDate', 'FeedUtils.convertAtomDate', 'CALL', 'Parse Atom publication date',
+  guard='pubDate != null', cls='explicit', evidence='SRC impl/AtomItem.java:80-82')
+e('Rss2Item.getPubDate', 'FeedUtils.<clinit>', 'FRAMEWORK', 'Initialize date formats before the first date parse',
+  cls='non_standard', via='JVM class initialization before first static call', evidence='INFERRED JVM class initialization; SRC FeedUtils.java:14-18; impl/Rss2Item.java:75-77')
+e('Rss2Item.getPubDate', 'FeedUtils.convertRss2Date', 'CALL', 'Parse RSS 2.0 publication date',
+  guard='pubDate != null', cls='explicit', evidence='SRC impl/Rss2Item.java:75-77')
+e('Rss1Item.getPubDate', 'FeedUtils.convertRss1Date', 'CALL', 'Parse RSS 1.0 publication date',
+  guard='pubDate != null', cls='explicit', evidence='SRC impl/Rss1Item.java:76-79')
+e('FeedUtils.convertRss1Date', 'FeedUtils.convertAtomDate', 'CALL', 'Reuse the Atom date parser for RSS 1.0 dates',
+  cls='explicit', evidence='SRC FeedUtils.java:81-84')
+
+UNREACHABLE.update({
+    'FeedUtils.equalsOrNull': ('no_trigger_in_app', 'Its only caller, BaseItem.equals, is never invoked: the feed path only iterates Item lists and never tests Item equality.', 'SRC FeedUtils.java:112-114; BaseItem.java:53-58; FeedParser.java:95', 'SOURCE'),
+})
+
 # S4 batch 1 (40 methods): bundled feed parser methods with no source trigger.
 # The app consumes only the subset shown in core/FeedParser.java:84-267; these
 # accessors/constructors are never called by that code or by the parser itself.
@@ -3023,3 +3162,418 @@ UNREACHABLE.update({
     'Torrent$1.newArray': ('no_trigger_in_app', 'No app Parcel path requests a Torrent Creator array.', 'SRC core/model/data/entity/Torrent.java:157-170; scratch/batch_032_helper_printed.txt', 'SOURCE'),
 })
 
+
+# S4 batches 3-4: TagInfo.hashCode and UriConverter.<init> have no app caller (evidence in scratch/batch_003_004_printed.txt and scratch/batch_003_hash_callers.txt).
+UNREACHABLE.update({
+    'TagInfo.hashCode': ('no_trigger_in_app', 'No app code hashes a TagInfo: no hash-based collection in app source holds TagInfo, TagItem or TorrentInfo, so the hashCode overrides are not reached from app code.', 'SRC core/model/data/entity/TagInfo.java:94-99; SRC ui/tag/TagItem.java:49-51; SRC ui/main/drawer/TagItem.java:50-51; SRC core/model/data/TorrentInfo.java:191-210; scratch/batch_003_hash_callers.txt', 'SOURCE'),
+    'UriConverter.<init>': ('no_trigger_in_app', 'UriConverter has only static @TypeConverter methods and app source never constructs it; AppDatabase names the class only in @TypeConverters, which Room uses through the static methods.', 'SRC core/storage/converter/UriConverter.java:27-40; SRC core/storage/AppDatabase.java:53; scratch/batch_003_004_printed.txt; scratch/batch_003_004_evidence.txt', 'INFERRED'),
+})
+
+# S4 batches 5-9 (200 methods): generated data-binding statics XBinding.inflate and XBinding.bind.
+# The app creates these layouts through DataBindingUtil or a layout include, never through these statics (scratch/generated_class_grep_batch5_9.txt).
+_NO_BINDING_STATIC = 'No app source calls this generated static method; the layout is created through DataBindingUtil or a layout include.'
+UNREACHABLE.update({
+    'ActivityAddTorrentBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ActivityAddTorrentBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ActivityAddTorrentBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ActivityAddTorrentBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ActivityAddTorrentBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ActivityAddTorrentBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ActivityFilemanagerDialogBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ActivityFilemanagerDialogBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ActivityFilemanagerDialogBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ActivityFilemanagerDialogBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ActivityFilemanagerDialogBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ActivityFilemanagerDialogBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ActivityLogBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ActivityLogBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ActivityLogBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ActivityLogBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ActivityLogBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ActivityLogBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'AddTorrentInfoBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'AddTorrentInfoBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'AddTorrentInfoBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'AddTorrentInfoBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'AddTorrentInfoBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'AddTorrentInfoBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DetailTorrentAppbarBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DetailTorrentAppbarBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DetailTorrentAppbarBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DetailTorrentAppbarBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DetailTorrentAppbarBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DetailTorrentAppbarBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogAddFeedChannelBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogAddFeedChannelBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogAddFeedChannelBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogAddFeedChannelBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogAddFeedChannelBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogAddFeedChannelBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogAddLinkBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogAddLinkBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogAddLinkBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogAddLinkBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogAddLinkBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogAddLinkBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogAddTagBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogAddTagBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogAddTagBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogAddTagBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogAddTagBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogAddTagBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogCreateTorrentBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogCreateTorrentBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogCreateTorrentBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogCreateTorrentBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogCreateTorrentBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogCreateTorrentBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogErrorBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogErrorBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogErrorBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogErrorBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogErrorBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogErrorBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogGoToFolderBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogGoToFolderBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogGoToFolderBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogGoToFolderBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogGoToFolderBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogGoToFolderBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogLogFilterBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogLogFilterBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogLogFilterBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogLogFilterBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogLogFilterBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogLogFilterBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogSelectTagBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogSelectTagBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogSelectTagBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogSelectTagBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogSelectTagBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DialogSelectTagBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DrawerEmptyTagsListItemBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DrawerEmptyTagsListItemBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DrawerEmptyTagsListItemBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DrawerEmptyTagsListItemBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DrawerEmptyTagsListItemBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DrawerEmptyTagsListItemBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DrawerNoTagsListItemBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DrawerNoTagsListItemBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DrawerNoTagsListItemBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DrawerNoTagsListItemBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DrawerNoTagsListItemBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DrawerNoTagsListItemBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DrawerTagsListItemBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DrawerTagsListItemBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DrawerTagsListItemBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DrawerTagsListItemBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DrawerTagsListItemBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'DrawerTagsListItemBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentAddTorrentFilesBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentAddTorrentFilesBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentAddTorrentFilesBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentAddTorrentFilesBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentAddTorrentFilesBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentAddTorrentFilesBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentAddTorrentInfoBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentAddTorrentInfoBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentAddTorrentInfoBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentAddTorrentInfoBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentAddTorrentInfoBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentAddTorrentInfoBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentFilesBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentFilesBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentFilesBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentFilesBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentFilesBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentFilesBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentInfoBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentInfoBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentInfoBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentInfoBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentInfoBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentInfoBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentPeerListBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentPeerListBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentPeerListBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentPeerListBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentPeerListBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentPeerListBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentPiecesBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentPiecesBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentPiecesBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentPiecesBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentPiecesBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentPiecesBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentStateBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentStateBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentStateBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentStateBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentStateBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentStateBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentTrackerListBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentTrackerListBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentTrackerListBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentTrackerListBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentTrackerListBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentDetailTorrentTrackerListBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentFeedBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentFeedBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentFeedBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentFeedBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentFeedBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentFeedBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentFeedItemsBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentFeedItemsBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentFeedItemsBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentFeedItemsBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentFeedItemsBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentFeedItemsBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentMainBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentMainBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentMainBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentMainBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentMainBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'FragmentMainBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ItemFeedChannelListBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ItemFeedChannelListBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ItemFeedChannelListBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ItemFeedChannelListBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ItemFeedChannelListBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ItemFeedChannelListBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ItemFeedItemsListBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ItemFeedItemsListBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ItemFeedItemsListBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ItemFeedItemsListBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ItemFeedItemsListBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ItemFeedItemsListBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ItemLogListBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ItemLogListBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ItemLogListBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ItemLogListBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ItemLogListBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ItemLogListBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ItemPeersListBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ItemPeersListBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ItemPeersListBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ItemPeersListBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ItemPeersListBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ItemPeersListBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ItemTorrentContentFileBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ItemTorrentContentFileBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ItemTorrentContentFileBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ItemTorrentContentFileBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ItemTorrentContentFileBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ItemTorrentContentFileBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ItemTorrentDownloadableFileBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+    'ItemTorrentDownloadableFileBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC scratch/generated_class_grep_batch5_9.txt (grep command A: no XBinding static call)', 'INFERRED'),
+})
+
+# S4 batches 3-9: these bytecode edges leave UNREACHABLE callers (generated XBinding overloads, grep in scratch/generated_class_grep_batch5_9.txt;
+# tag.TagItem.hashCode, ui/tag/TagItem.java:49-51). Removing them does not change any route.
+SUPPRESS.update({
+    ('ActivityAddTorrentBinding.bind(View)', 'ActivityAddTorrentBinding.bind(View,Object)'),
+    ('ActivityAddTorrentBinding.inflate(LayoutInflater)', 'ActivityAddTorrentBinding.inflate(LayoutInflater,Object)'),
+    ('ActivityAddTorrentBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'ActivityAddTorrentBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('ActivityFilemanagerDialogBinding.bind(View)', 'ActivityFilemanagerDialogBinding.bind(View,Object)'),
+    ('ActivityFilemanagerDialogBinding.inflate(LayoutInflater)', 'ActivityFilemanagerDialogBinding.inflate(LayoutInflater,Object)'),
+    ('ActivityFilemanagerDialogBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'ActivityFilemanagerDialogBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('ActivityLogBinding.bind(View)', 'ActivityLogBinding.bind(View,Object)'),
+    ('ActivityLogBinding.inflate(LayoutInflater)', 'ActivityLogBinding.inflate(LayoutInflater,Object)'),
+    ('ActivityLogBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'ActivityLogBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('AddTorrentInfoBinding.bind(View)', 'AddTorrentInfoBinding.bind(View,Object)'),
+    ('AddTorrentInfoBinding.inflate(LayoutInflater)', 'AddTorrentInfoBinding.inflate(LayoutInflater,Object)'),
+    ('AddTorrentInfoBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'AddTorrentInfoBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('DetailTorrentAppbarBinding.bind(View)', 'DetailTorrentAppbarBinding.bind(View,Object)'),
+    ('DetailTorrentAppbarBinding.inflate(LayoutInflater)', 'DetailTorrentAppbarBinding.inflate(LayoutInflater,Object)'),
+    ('DetailTorrentAppbarBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'DetailTorrentAppbarBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('DialogAddFeedChannelBinding.bind(View)', 'DialogAddFeedChannelBinding.bind(View,Object)'),
+    ('DialogAddFeedChannelBinding.inflate(LayoutInflater)', 'DialogAddFeedChannelBinding.inflate(LayoutInflater,Object)'),
+    ('DialogAddFeedChannelBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'DialogAddFeedChannelBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('DialogAddLinkBinding.bind(View)', 'DialogAddLinkBinding.bind(View,Object)'),
+    ('DialogAddLinkBinding.inflate(LayoutInflater)', 'DialogAddLinkBinding.inflate(LayoutInflater,Object)'),
+    ('DialogAddLinkBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'DialogAddLinkBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('DialogAddTagBinding.bind(View)', 'DialogAddTagBinding.bind(View,Object)'),
+    ('DialogAddTagBinding.inflate(LayoutInflater)', 'DialogAddTagBinding.inflate(LayoutInflater,Object)'),
+    ('DialogAddTagBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'DialogAddTagBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('DialogCreateTorrentBinding.bind(View)', 'DialogCreateTorrentBinding.bind(View,Object)'),
+    ('DialogCreateTorrentBinding.inflate(LayoutInflater)', 'DialogCreateTorrentBinding.inflate(LayoutInflater,Object)'),
+    ('DialogCreateTorrentBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'DialogCreateTorrentBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('DialogErrorBinding.bind(View)', 'DialogErrorBinding.bind(View,Object)'),
+    ('DialogErrorBinding.inflate(LayoutInflater)', 'DialogErrorBinding.inflate(LayoutInflater,Object)'),
+    ('DialogErrorBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'DialogErrorBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('DialogGoToFolderBinding.bind(View)', 'DialogGoToFolderBinding.bind(View,Object)'),
+    ('DialogGoToFolderBinding.inflate(LayoutInflater)', 'DialogGoToFolderBinding.inflate(LayoutInflater,Object)'),
+    ('DialogGoToFolderBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'DialogGoToFolderBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('DialogLogFilterBinding.bind(View)', 'DialogLogFilterBinding.bind(View,Object)'),
+    ('DialogLogFilterBinding.inflate(LayoutInflater)', 'DialogLogFilterBinding.inflate(LayoutInflater,Object)'),
+    ('DialogLogFilterBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'DialogLogFilterBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('DialogSelectTagBinding.bind(View)', 'DialogSelectTagBinding.bind(View,Object)'),
+    ('DialogSelectTagBinding.inflate(LayoutInflater)', 'DialogSelectTagBinding.inflate(LayoutInflater,Object)'),
+    ('DialogSelectTagBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'DialogSelectTagBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('DrawerEmptyTagsListItemBinding.bind(View)', 'DrawerEmptyTagsListItemBinding.bind(View,Object)'),
+    ('DrawerEmptyTagsListItemBinding.inflate(LayoutInflater)', 'DrawerEmptyTagsListItemBinding.inflate(LayoutInflater,Object)'),
+    ('DrawerEmptyTagsListItemBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'DrawerEmptyTagsListItemBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('DrawerNoTagsListItemBinding.bind(View)', 'DrawerNoTagsListItemBinding.bind(View,Object)'),
+    ('DrawerNoTagsListItemBinding.inflate(LayoutInflater)', 'DrawerNoTagsListItemBinding.inflate(LayoutInflater,Object)'),
+    ('DrawerNoTagsListItemBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'DrawerNoTagsListItemBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('DrawerTagsListItemBinding.bind(View)', 'DrawerTagsListItemBinding.bind(View,Object)'),
+    ('DrawerTagsListItemBinding.inflate(LayoutInflater)', 'DrawerTagsListItemBinding.inflate(LayoutInflater,Object)'),
+    ('DrawerTagsListItemBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'DrawerTagsListItemBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('FileSystemFacadeImpl.lastModified', 'DefaultFsModule.lastModified'),
+    ('FileSystemFacadeImpl.lastModified', 'SafFsModule.lastModified'),
+    ('FragmentAddTorrentFilesBinding.bind(View)', 'FragmentAddTorrentFilesBinding.bind(View,Object)'),
+    ('FragmentAddTorrentFilesBinding.inflate(LayoutInflater)', 'FragmentAddTorrentFilesBinding.inflate(LayoutInflater,Object)'),
+    ('FragmentAddTorrentFilesBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'FragmentAddTorrentFilesBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('FragmentAddTorrentInfoBinding.bind(View)', 'FragmentAddTorrentInfoBinding.bind(View,Object)'),
+    ('FragmentAddTorrentInfoBinding.inflate(LayoutInflater)', 'FragmentAddTorrentInfoBinding.inflate(LayoutInflater,Object)'),
+    ('FragmentAddTorrentInfoBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'FragmentAddTorrentInfoBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('FragmentDetailTorrentBinding.bind(View)', 'FragmentDetailTorrentBinding.bind(View,Object)'),
+    ('FragmentDetailTorrentBinding.inflate(LayoutInflater)', 'FragmentDetailTorrentBinding.inflate(LayoutInflater,Object)'),
+    ('FragmentDetailTorrentBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'FragmentDetailTorrentBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('FragmentDetailTorrentFilesBinding.bind(View)', 'FragmentDetailTorrentFilesBinding.bind(View,Object)'),
+    ('FragmentDetailTorrentFilesBinding.inflate(LayoutInflater)', 'FragmentDetailTorrentFilesBinding.inflate(LayoutInflater,Object)'),
+    ('FragmentDetailTorrentFilesBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'FragmentDetailTorrentFilesBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('FragmentDetailTorrentInfoBinding.bind(View)', 'FragmentDetailTorrentInfoBinding.bind(View,Object)'),
+    ('FragmentDetailTorrentInfoBinding.inflate(LayoutInflater)', 'FragmentDetailTorrentInfoBinding.inflate(LayoutInflater,Object)'),
+    ('FragmentDetailTorrentInfoBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'FragmentDetailTorrentInfoBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('FragmentDetailTorrentPeerListBinding.bind(View)', 'FragmentDetailTorrentPeerListBinding.bind(View,Object)'),
+    ('FragmentDetailTorrentPeerListBinding.inflate(LayoutInflater)', 'FragmentDetailTorrentPeerListBinding.inflate(LayoutInflater,Object)'),
+    ('FragmentDetailTorrentPeerListBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'FragmentDetailTorrentPeerListBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('FragmentDetailTorrentPiecesBinding.bind(View)', 'FragmentDetailTorrentPiecesBinding.bind(View,Object)'),
+    ('FragmentDetailTorrentPiecesBinding.inflate(LayoutInflater)', 'FragmentDetailTorrentPiecesBinding.inflate(LayoutInflater,Object)'),
+    ('FragmentDetailTorrentPiecesBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'FragmentDetailTorrentPiecesBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('FragmentDetailTorrentStateBinding.bind(View)', 'FragmentDetailTorrentStateBinding.bind(View,Object)'),
+    ('FragmentDetailTorrentStateBinding.inflate(LayoutInflater)', 'FragmentDetailTorrentStateBinding.inflate(LayoutInflater,Object)'),
+    ('FragmentDetailTorrentStateBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'FragmentDetailTorrentStateBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('FragmentDetailTorrentTrackerListBinding.bind(View)', 'FragmentDetailTorrentTrackerListBinding.bind(View,Object)'),
+    ('FragmentDetailTorrentTrackerListBinding.inflate(LayoutInflater)', 'FragmentDetailTorrentTrackerListBinding.inflate(LayoutInflater,Object)'),
+    ('FragmentDetailTorrentTrackerListBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'FragmentDetailTorrentTrackerListBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('FragmentFeedBinding.bind(View)', 'FragmentFeedBinding.bind(View,Object)'),
+    ('FragmentFeedBinding.inflate(LayoutInflater)', 'FragmentFeedBinding.inflate(LayoutInflater,Object)'),
+    ('FragmentFeedBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'FragmentFeedBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('FragmentFeedItemsBinding.bind(View)', 'FragmentFeedItemsBinding.bind(View,Object)'),
+    ('FragmentFeedItemsBinding.inflate(LayoutInflater)', 'FragmentFeedItemsBinding.inflate(LayoutInflater,Object)'),
+    ('FragmentFeedItemsBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'FragmentFeedItemsBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('FragmentMainBinding.bind(View)', 'FragmentMainBinding.bind(View,Object)'),
+    ('FragmentMainBinding.inflate(LayoutInflater)', 'FragmentMainBinding.inflate(LayoutInflater,Object)'),
+    ('FragmentMainBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'FragmentMainBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('ItemFeedChannelListBinding.bind(View)', 'ItemFeedChannelListBinding.bind(View,Object)'),
+    ('ItemFeedChannelListBinding.inflate(LayoutInflater)', 'ItemFeedChannelListBinding.inflate(LayoutInflater,Object)'),
+    ('ItemFeedChannelListBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'ItemFeedChannelListBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('ItemFeedItemsListBinding.bind(View)', 'ItemFeedItemsListBinding.bind(View,Object)'),
+    ('ItemFeedItemsListBinding.inflate(LayoutInflater)', 'ItemFeedItemsListBinding.inflate(LayoutInflater,Object)'),
+    ('ItemFeedItemsListBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'ItemFeedItemsListBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('ItemLogListBinding.bind(View)', 'ItemLogListBinding.bind(View,Object)'),
+    ('ItemLogListBinding.inflate(LayoutInflater)', 'ItemLogListBinding.inflate(LayoutInflater,Object)'),
+    ('ItemLogListBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'ItemLogListBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('ItemPeersListBinding.bind(View)', 'ItemPeersListBinding.bind(View,Object)'),
+    ('ItemPeersListBinding.inflate(LayoutInflater)', 'ItemPeersListBinding.inflate(LayoutInflater,Object)'),
+    ('ItemPeersListBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'ItemPeersListBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('ItemTorrentContentFileBinding.bind(View)', 'ItemTorrentContentFileBinding.bind(View,Object)'),
+    ('ItemTorrentContentFileBinding.inflate(LayoutInflater)', 'ItemTorrentContentFileBinding.inflate(LayoutInflater,Object)'),
+    ('ItemTorrentContentFileBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'ItemTorrentContentFileBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('ItemTorrentDownloadableFileBinding.bind(View)', 'ItemTorrentDownloadableFileBinding.bind(View,Object)'),
+    ('SafFileSystem.openFD(FakePath,String)', 'SafFileSystem.openFD(Uri,String)'),
+    ('SafFileSystem.openFD(Uri,String,String)', 'SafFileSystem.openFD(Uri,String)'),
+    ('TorrentRepositoryImpl.getTorrentDataDir', 'TorrentRepositoryImpl.makeTorrentDataDir'),
+    ('TorrentRepositoryImpl.makeTorrentDataDir', 'FileSystemFacadeImpl.isStorageWritable'),
+    ('tag.TagItem.hashCode', 'TagInfo.hashCode'),
+})
+
+# S4 batch 10
+UNREACHABLE.update({
+    'drawer.TagItem.hashCode': ('no_trigger_in_app', 'The drawer tag list is a ListAdapter that compares items with isSame and equals through DiffUtil, and the list is built with toList, so no app code hashes a drawer TagItem and this override is not reached.', 'SRC ui/main/drawer/TagItem.java:50-51; SRC ui/main/drawer/TagsAdapter.java:130-146; SRC ui/main/MainActivity.java:474-485; scratch/batch_010_drawer_tagitem_evidence.txt', 'SOURCE'),
+})
+# drawer.TagItem.hashCode, ui/main/drawer/TagItem.java:50-51, has the same bytecode edge into TagInfo.hashCode as tag.TagItem.hashCode.
+SUPPRESS.update({
+    ('drawer.TagItem.hashCode', 'TagInfo.hashCode'),
+})
+
+# S4 batches 10 and 11 (39 methods)
+_NO_CONTEXT_ONLY_VIEW = 'The XML layout invokes the Context,AttributeSet constructor; no app source constructs the Context-only overload.'
+_NO_CONTEXT_ONLY_PREF = 'The preference XML invokes the Context,AttributeSet constructor through androidx PreferenceInflater; no app source constructs the Context-only overload.'
+_NO_SPINNER_ACCESSOR = 'No app code calls this StorageSpinnerItem accessor; the spinner adapter reads name and size as fields and uses getStoragePath only.'
+_NO_SPINNER_SETTER = 'No app code calls this StorageSpinnerItem setter; the spinner adapter only reads items.'
+_BINDING_BATCH10 = 'scratch/batch_010_011_evidence.txt (grep A: DataBindingUtil.inflate only; no XBinding static call)'
+UNREACHABLE.update({
+    'ItemTorrentDownloadableFileBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC ui/addtorrent/DownloadableFilesAdapter.java:60; ' + _BINDING_BATCH10, 'INFERRED'),
+    'ItemTorrentDownloadableFileBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC ui/addtorrent/DownloadableFilesAdapter.java:60; ' + _BINDING_BATCH10, 'INFERRED'),
+    'ItemTorrentDownloadableFileBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC ui/addtorrent/DownloadableFilesAdapter.java:60; ' + _BINDING_BATCH10, 'INFERRED'),
+    'ItemTorrentDownloadableFileBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC ui/addtorrent/DownloadableFilesAdapter.java:60; ' + _BINDING_BATCH10, 'INFERRED'),
+    'ItemTorrentListBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC ui/main/TorrentListAdapter.java:79; ' + _BINDING_BATCH10, 'INFERRED'),
+    'ItemTorrentListBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC ui/main/TorrentListAdapter.java:79; ' + _BINDING_BATCH10, 'INFERRED'),
+    'ItemTorrentListBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC ui/main/TorrentListAdapter.java:79; ' + _BINDING_BATCH10, 'INFERRED'),
+    'ItemTorrentListBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC ui/main/TorrentListAdapter.java:79; ' + _BINDING_BATCH10, 'INFERRED'),
+    'ItemTorrentListBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC ui/main/TorrentListAdapter.java:79; ' + _BINDING_BATCH10, 'INFERRED'),
+    'ItemTorrentListBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC ui/main/TorrentListAdapter.java:79; ' + _BINDING_BATCH10, 'INFERRED'),
+    'ItemTrackersListBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC ui/detailtorrent/pages/trackers/TrackerListAdapter.java:73; ' + _BINDING_BATCH10, 'INFERRED'),
+    'ItemTrackersListBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC ui/detailtorrent/pages/trackers/TrackerListAdapter.java:73; ' + _BINDING_BATCH10, 'INFERRED'),
+    'ItemTrackersListBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC ui/detailtorrent/pages/trackers/TrackerListAdapter.java:73; ' + _BINDING_BATCH10, 'INFERRED'),
+    'ItemTrackersListBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC ui/detailtorrent/pages/trackers/TrackerListAdapter.java:73; ' + _BINDING_BATCH10, 'INFERRED'),
+    'ItemTrackersListBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC ui/detailtorrent/pages/trackers/TrackerListAdapter.java:73; ' + _BINDING_BATCH10, 'INFERRED'),
+    'ItemTrackersListBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC ui/detailtorrent/pages/trackers/TrackerListAdapter.java:73; ' + _BINDING_BATCH10, 'INFERRED'),
+    'TagsListItemBinding.bind(View)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC ui/tag/TagsAdapter.java:48; ' + _BINDING_BATCH10, 'INFERRED'),
+    'TagsListItemBinding.bind(View,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC ui/tag/TagsAdapter.java:48; ' + _BINDING_BATCH10, 'INFERRED'),
+    'TagsListItemBinding.inflate(LayoutInflater)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC ui/tag/TagsAdapter.java:48; ' + _BINDING_BATCH10, 'INFERRED'),
+    'TagsListItemBinding.inflate(LayoutInflater,ViewGroup,boolean)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC ui/tag/TagsAdapter.java:48; ' + _BINDING_BATCH10, 'INFERRED'),
+    'TagsListItemBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC ui/tag/TagsAdapter.java:48; ' + _BINDING_BATCH10, 'INFERRED'),
+    'TagsListItemBinding.inflate(LayoutInflater,Object)': ('no_trigger_in_app', _NO_BINDING_STATIC, 'SRC ui/tag/TagsAdapter.java:48; ' + _BINDING_BATCH10, 'INFERRED'),
+    'EmptyRecyclerView.<init>(Context)': ('no_trigger_in_app', _NO_CONTEXT_ONLY_VIEW, 'SRC ui/customviews/EmptyRecyclerView.java:54-58; res/layout/fragment_main.xml:10; FW-SRC core/java/android/view/LayoutInflater.java:90-91,615,645-647', 'SOURCE'),
+    'ExpansionHeader.<init>(Context)': ('no_trigger_in_app', _NO_CONTEXT_ONLY_VIEW, 'SRC ui/customviews/ExpansionHeader.java:56-58; res/layout/drawer_group_header.xml:2; FW-SRC core/java/android/view/LayoutInflater.java:90-91,615,645-647', 'SOURCE'),
+    'FixHintTextInputEditText.<init>(Context)': ('no_trigger_in_app', _NO_CONTEXT_ONLY_VIEW, 'SRC ui/customviews/FixHintTextInputEditText.java:35-37; res/layout/dialog_create_torrent.xml:143; FW-SRC core/java/android/view/LayoutInflater.java:90-91,615,645-647', 'SOURCE'),
+    'SwitchBar.<init>(Context)': ('no_trigger_in_app', _NO_CONTEXT_ONLY_VIEW, 'SRC ui/customviews/SwitchBar.java:37-41; res/layout/preference_switchbar.xml:6; FW-SRC core/java/android/view/LayoutInflater.java:90-91,615,645-647', 'SOURCE'),
+    'ThemedSpeedDialView.<init>(Context)': ('no_trigger_in_app', _NO_CONTEXT_ONLY_VIEW, 'SRC ui/customviews/ThemedSpeedDialView.java:35-38; res/layout/fragment_main.xml:33; FW-SRC core/java/android/view/LayoutInflater.java:90-91,615,645-647', 'SOURCE'),
+    'SummaryPreference.<init>(Context)': ('no_trigger_in_app', _NO_CONTEXT_ONLY_PREF, 'SRC ui/settings/customprefs/SummaryPreference.java:39-42; res/xml/pref_anonymous_mode.xml:8; androidx.preference not in fw_src', 'INFERRED'),
+    'SwitchBarPreference.<init>(Context)': ('no_trigger_in_app', _NO_CONTEXT_ONLY_PREF, 'SRC ui/settings/customprefs/SwitchBarPreference.java:40-43; res/xml/pref_anonymous_mode.xml:3; androidx.preference not in fw_src', 'INFERRED'),
+    'TimePreference.<init>(Context)': ('no_trigger_in_app', _NO_CONTEXT_ONLY_PREF, 'SRC ui/settings/customprefs/TimePreference.java:32-35; res/xml/pref_scheduling.xml:11,26; androidx.preference not in fw_src', 'INFERRED'),
+    'PeerItem.hashCode': ('no_trigger_in_app', 'PeerListAdapter compares items with equals through DiffUtil, and no hash-based collection holds PeerItem.', 'SRC ui/detailtorrent/pages/peers/PeerItem.java:36-39; ui/detailtorrent/pages/peers/PeerListAdapter.java:110-113; scratch/batch_010_011_evidence.txt (grep D)', 'SOURCE'),
+    'FeedItemsListItem.hashCode': ('no_trigger_in_app', 'FeedItemsAdapter compares items with equals through DiffUtil, and no hash-based collection holds FeedItemsListItem.', 'SRC ui/feeditems/FeedItemsListItem.java:38-41; ui/feeditems/FeedItemsAdapter.java:115-118; scratch/batch_010_011_evidence.txt (grep D)', 'SOURCE'),
+    'FileManagerSpinnerAdapter$StorageSpinnerItem.getName': ('no_trigger_in_app', _NO_SPINNER_ACCESSOR, 'SRC ui/filemanager/FileManagerSpinnerAdapter.java:64-67,148-149; scratch/batch_010_011_evidence.txt (grep E)', 'SOURCE'),
+    'FileManagerSpinnerAdapter$StorageSpinnerItem.getSize': ('no_trigger_in_app', _NO_SPINNER_ACCESSOR, 'SRC ui/filemanager/FileManagerSpinnerAdapter.java:84-87,148-149; scratch/batch_010_011_evidence.txt (grep E)', 'SOURCE'),
+    'FileManagerSpinnerAdapter$StorageSpinnerItem.setName': ('no_trigger_in_app', _NO_SPINNER_SETTER, 'SRC ui/filemanager/FileManagerSpinnerAdapter.java:69-72; scratch/batch_010_011_evidence.txt (grep E)', 'SOURCE'),
+    'FileManagerSpinnerAdapter$StorageSpinnerItem.setSize': ('no_trigger_in_app', _NO_SPINNER_SETTER, 'SRC ui/filemanager/FileManagerSpinnerAdapter.java:89-92; scratch/batch_010_011_evidence.txt (grep E)', 'SOURCE'),
+    'FileManagerSpinnerAdapter$StorageSpinnerItem.setStoragePath': ('no_trigger_in_app', _NO_SPINNER_SETTER, 'SRC ui/filemanager/FileManagerSpinnerAdapter.java:79-82; scratch/batch_010_011_evidence.txt (grep E: definition only)', 'SOURCE'),
+    'drawer.TagItem.toString': ('no_trigger_in_app', 'No string conversion or formatting of a drawer TagItem appears in app source; the adapter concatenates only in the unknown-type branch.', 'SRC ui/main/drawer/TagItem.java:56-57; ui/main/drawer/TagsAdapter.java:105-114; scratch/batch_010_011_evidence.txt (grep D)', 'SOURCE'),
+})
+
+e('FeedItemsFragment.subscribeAdapter', 'FeedItemsFragment.observeFeedItems', 'CALL', 'Subscribe to the feed item list for the adapter',
+  cls='explicit', evidence='SRC ui/feeditems/FeedItemsFragment.java:205')
+e('FeedItemsFragment.observeFeedItems', 'FeedItemsAdapter.submitList', 'REGISTER', 'Register the adapter update as the feed item subscriber',
+  cls='explicit', evidence='SRC ui/feeditems/FeedItemsFragment.java:218')
+e('FeedItemsFragment.observeFeedItems', 'FeedItemsAdapter.submitList', 'FRAMEWORK', 'Deliver each emitted feed item list to the adapter on the main thread',
+  cls='non_standard', via='RxJava Consumer dispatch', evidence='SRC ui/feeditems/FeedItemsFragment.java:217-218; INFERRED RxJava subscribe dispatch')
+e('FeedItemsAdapter.submitList', 'FeedItemsListItem.compareTo', 'CALL', 'Sort submitted feed items by publication date',
+  guard='list != null and list.size() >= 2', cls='non_standard', via='java.util.Collections.sort Comparable callback',
+  evidence='SRC ui/feeditems/FeedItemsAdapter.java:84-85; ui/feeditems/FeedItemsListItem.java:44-47; INFERRED JDK sort calls compareTo only for two or more elements')
+e('FeedItemsFragment.newInstance', 'FeedItemsFragment.onAttach', 'LIFECYCLE', 'Attach feed items fragment when FragmentManager shows it',
+  cls='non_standard', via='AndroidX FragmentManager lifecycle', evidence='INFERRED AndroidX Fragment lifecycle dispatch; SRC ui/feeditems/FeedItemsFragment.java:80-87,99-104')
+e('FeedActivity.subscribeMsgViewModel', 'FeedActivity.showFeedItems', 'FRAMEWORK', 'Deliver feed-items-opened message to the open-feed handler',
+  cls='non_standard', via='RxJava Consumer dispatch', evidence='SRC ui/feeds/FeedActivity.java:174-176; INFERRED RxJava subscribe dispatch')
+# generated overload calls between two UNREACHABLE binding statics (bytecode CALL edges)
+SUPPRESS.update({
+    ('ItemTorrentDownloadableFileBinding.inflate(LayoutInflater)', 'ItemTorrentDownloadableFileBinding.inflate(LayoutInflater,Object)'),
+    ('ItemTorrentDownloadableFileBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'ItemTorrentDownloadableFileBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('ItemTorrentListBinding.bind(View)', 'ItemTorrentListBinding.bind(View,Object)'),
+    ('ItemTorrentListBinding.inflate(LayoutInflater)', 'ItemTorrentListBinding.inflate(LayoutInflater,Object)'),
+    ('ItemTorrentListBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'ItemTorrentListBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('ItemTrackersListBinding.bind(View)', 'ItemTrackersListBinding.bind(View,Object)'),
+    ('ItemTrackersListBinding.inflate(LayoutInflater)', 'ItemTrackersListBinding.inflate(LayoutInflater,Object)'),
+    ('ItemTrackersListBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'ItemTrackersListBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+    ('TagsListItemBinding.bind(View)', 'TagsListItemBinding.bind(View,Object)'),
+    ('TagsListItemBinding.inflate(LayoutInflater)', 'TagsListItemBinding.inflate(LayoutInflater,Object)'),
+    ('TagsListItemBinding.inflate(LayoutInflater,ViewGroup,boolean)', 'TagsListItemBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)'),
+})
+# generated BaseItem.equals copies calling the UNREACHABLE FeedUtils.equalsOrNull
+SUPPRESS.update({
+    ('BaseItem.equals', 'FeedUtils.equalsOrNull'),
+    ('BaseItem.equals@AtomItem', 'FeedUtils.equalsOrNull'),
+    ('BaseItem.equals@Rss1Item', 'FeedUtils.equalsOrNull'),
+    ('BaseItem.equals@Rss2Item', 'FeedUtils.equalsOrNull'),
+})

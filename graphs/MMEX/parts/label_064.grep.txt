@@ -1,0 +1,51 @@
+# batch 064 evidence (label_064.grep.txt). Read only; run from /Users/darshan/Desktop/yang/work.
+# SRC = final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex
+# CLS = final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes (825 .class files)
+# The greps below were run with python3 -I (subprocess grep -rn, same patterns, same root).
+
+## 1. setParentId over SRC
+pattern: setParentId
+result: domainmodel/Category.java:55 only (the definition). No caller.
+
+## 2. new Category( over SRC
+pattern: new Category(
+result: common/CategoryListFragment.java:399 only; no-arg constructor.
+
+## 3. reflective constructor and method lookup over SRC
+pattern: getConstructor|getDeclaredConstructor
+result: none.
+pattern: getMethod(|getDeclaredMethod
+result: JacocoInstrument/JacocoInstrumentation.java:56, 59 (getAgent, getExecutionData). No setter or constructor lookup.
+RepositoryBase.java:109, 134 and SqlRepositoryBase.java:84 use resultType.newInstance() (no-arg), read directly.
+
+## 4. generated Parcelable names over SRC
+pattern: Category$$
+result: none.
+pattern: Parcels.wrap
+result: 23 lines; none has a Category argument (pattern Parcels\.wrap\(.*[Cc]ateg: none).
+
+## 5. class-file scan over CLS (python3 -I; constant pool and invoke opcodes)
+invokes of domainmodel/Category.<init>(Landroid/content/ContentValues;)V: 0
+invokes of domainmodel/Category.setParentId: 0
+invokes of domainmodel/Category.<init>()V: 2 (Category$$Parcelable.read, pc 50; CategoryListFragment.getAdapter, pc 192)
+classes referencing domainmodel/Category$$Parcelable: Category$$Parcelable and Category$$Parcelable$1 only.
+Invokes inside the group: writeToParcel -> write (pc 13); getParcel bridge -> getParcel (pc 1); createFromParcel -> read (pc 12); createFromParcel -> <init>(Category) (pc 15); <clinit> -> $1.<init> (pc 4); $1 bridge newArray (pc 2); $1 bridge createFromParcel (pc 2).
+exact string domainmodel/Category$$ in the SplitCategory and SplitRecurringCategory class files: absent. (Earlier substring hits came from SplitCategory$$Parcelable and do not count.)
+
+## 6. auto_calls.json records that touch the batch (read only)
+Records whose caller is in the batch and that are cut by sup in label_064.py (8):
+  Category.<init>(ContentValues) -> EntityBase.<init>(ContentValues) (Category.java:40)
+  Category.setParentId -> EntityBase.setInt (Category.java:56)
+  Category$$Parcelable.writeToParcel -> Category$$Parcelable.write (:45)
+  Category$$Parcelable.read -> Category.<init>() (:78)
+  Category$$Parcelable.<clinit> -> Category$$Parcelable$1.<init> (:23)
+  Category$$Parcelable$1.createFromParcel -> Category$$Parcelable.<clinit> (:28)
+  Category$$Parcelable$1.createFromParcel -> Category$$Parcelable.<init> (:28)
+  Category$$Parcelable$1.createFromParcel -> Category$$Parcelable.read (:28)
+No auto record has a callee in the UNREACHABLE set with a REACHABLE caller (Category.<init>(ContentValues), Category.setParentId, and the ten group methods).
+Callers of Category.getParentId (3): BudgetEntryRepository.loadForYear (BudgetEntryRepository.java:118, batch 054, REACHABLE); CategoryService.getCategorySubcategoryName (CategoryService.java:100, batch 111, not merged); EditTransactionCommonFunctions.loadCategoryName (EditTransactionCommonFunctions.java:811, batch 131, not merged).
+Callers of Category.getId, getName, setId, setName and <init>(): batches 015, 029, 030 and 054 (CategoryRepository.loadIdByName, CategoryRepository.java:67, 79) as in label_064.md.
+
+## 7. generated classes (not on disk, read through the class files)
+Category$$Parcelable.class LineNumberTable: <clinit> 23; <init>(Category) 39-41; writeToParcel 45-46; write 49-56; describeContents 60; getParcel()Category 65; bridge getParcel()Object 12; read 69-83.
+Category$$Parcelable$1.class LineNumberTable: <init> 23; createFromParcel 28; newArray(I)Category$$Parcelable[] 33; bridge newArray(I)Object 23; bridge createFromParcel(Parcel)Object 23.

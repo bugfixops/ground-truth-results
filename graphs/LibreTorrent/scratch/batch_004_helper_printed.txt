@@ -1,0 +1,142 @@
+LibreTorrent batch 4 helper print. Source root: /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java
+
+Commands run:
+awk -F '\t' 'NR==1 || $1==4 {print}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+python3 inline inventory over the 40 batch=4 rows: for each matching Java class, print source around method-name occurrences; run `rg -n -F '<method>(' <source-root>` to find app call sites.
+sed -n line selections from Java sources listed below; read all printed source excerpts.
+
+Plan membership (exact order; 40 rows):
+1 TorrentDownloadImpl.isDownloading()Z
+2 SettingsRepositoryImpl$Default.<init>()V
+3 BaseSorting$Direction.fromValue(String)
+4 DatabaseMigration.<init>()V
+5 DatabaseMigration$RoomDatabaseMigration$OldDataModel.<init>()V
+6 FeedRepositoryImpl.getSerializeFileFormat()String
+7 FeedRepositoryImpl.getSerializeMimeType()String
+8 TorrentRepositoryImpl.getTorrentDataDir(Context,String)String
+9 TorrentRepositoryImpl.makeTorrentDataDir(Context,String)String
+10 TorrentRepositoryImpl$FileDataModel.<init>()V
+11 UriConverter.<init>()V
+12 DefaultFsModule.getName(Uri)String
+13 DefaultFsModule.lastModified(Uri)long
+14 FileSystemFacadeImpl.isStorageWritable()boolean
+15 FileSystemFacadeImpl.isValidFatFilename(String)boolean
+16 FileSystemFacadeImpl.lastModified(Uri)long
+17 SafFileSystem.delete(FakePath)boolean
+18 SafFileSystem.exists(FakePath)boolean
+19 SafFileSystem.mkdirs(FakePath)boolean
+20 SafFileSystem.openFD(Uri,String)int
+21 SafFileSystem.openFD(Uri,String,String)int
+22 SafFileSystem.openFD(FakePath,String)int
+23 SafFileSystem.stat(Uri,String)Stat
+24 SafFileSystem.stat(FakePath)Stat
+25 SafFileSystem$FakePath.deserialize(String)FakePath
+26 SafFileSystem$FakePath.isFakePath(String)boolean
+27 SafFileSystem$FakePath.relativePath()String
+28 SafFsModule.getName(Uri)String
+29 SafFsModule.lastModified(Uri)long
+30 SystemFacadeHelper.<init>()V
+31 NormalizeUrl.<init>()V
+32 NormalizeUrl.normalize(String)String
+33 PathResolver.<init>()V
+34 PercentEncoder.<init>()V
+35 BencodeFileTreeUtils.<init>()V
+36 BindingAdapterUtils.<init>()V
+37 DateUtils.<init>()V
+38 TorrentContentFileTreeUtils.<init>()V
+39 Utils.<init>()V
+40 Utils.normalizeURL(String)String
+
+Printed/read source evidence (source citations are relative to source root):
+
+TorrentDownloadImpl.java:1415-1419
+1415 @Override
+1416 public boolean isDownloading()
+1417 {
+1418     return getDownloadSpeed() > 0;
+1419 }
+TorrentDownload.java:160 declares the interface method. Search found only implementation/interface declarations; no app invocation was present in captured occurrence output.
+
+SettingsRepositoryImpl.java:30 onwards declares `private static class Default` containing static fields/methods. No explicit `new Default(` app occurrence appeared in the class-name search. Do not infer a call from class initialization.
+
+BaseSorting.java:26-38
+26 public enum Direction
+28 ASC, DESC;
+30 public static Direction fromValue(String value)
+31 {
+32     for (Direction direction : Direction.class.getEnumConstants()) {
+33         if (direction.toString().equalsIgnoreCase(value)) return direction;
+34     }
+37     return null;
+38 }
+Search `rg -n -F 'fromValue('` output showed this declaration; other hits in other classes are different enums. No verified caller for this exact target.
+
+DatabaseMigration.java:39-54
+39 class DatabaseMigration
+42 static Migration[] getMigrations(@NonNull Context appContext)
+44 return new Migration[] {
+48     new RoomDatabaseMigration(appContext),
+53 };
+54 }
+DatabaseMigration.java:130-134
+130 public RoomDatabaseMigration(@NonNull Context appContext)
+132 super(4, 5);
+133 this.appContext = appContext;
+DatabaseMigration itself has no explicit constructor and no `new DatabaseMigration(` occurrence was found. `OldDataModel` is a static final inner class containing static filename constants, no explicit constructor invocation found.
+
+FeedRepositoryImpl.java:65-75
+65 @Override
+66 public String getSerializeFileFormat()
+68 return SERIALIZE_FILE_FORMAT;
+69 }
+71 @Override
+72 public String getSerializeMimeType()
+74 return SERIALIZE_MIME_TYPE;
+75 }
+Interfaces declare these methods, but captured output did not include the exact export call sites.
+
+TorrentRepositoryImpl.java:144-170
+144 private String getTorrentDataDir(Context context, String id) {
+145 if (SystemFacadeHelper.getFileSystemFacade(context).isStorageReadable()) {
+146     File dataDir = new File(context.getExternalFilesDir(null), id);
+147     if (dataDir.exists()) return dataDir.getAbsolutePath();
+150     else return makeTorrentDataDir(context, id);
+154 return null;
+155 }
+163 private String makeTorrentDataDir(Context context, String name) {
+164 if (!SystemFacadeHelper.getFileSystemFacade(context).isStorageWritable()) return null;
+167 String dataDir = context.getExternalFilesDir(null).getAbsolutePath();
+168 File newDir = new File(dataDir, name);
+170 return (newDir.mkdir()) ? newDir.getAbsolutePath() : null;
+}
+The only printed call to makeTorrentDataDir is from getTorrentDataDir:150. No root caller for getTorrentDataDir was verified.
+
+DefaultFsModule.java:40-44 implements getName as `new File(filePath.getPath()).getName()`; lines 113-118 implement lastModified as `new File(filePath.getPath()).lastModified()`.
+FileSystemFacadeImpl.java:154-166 resolves an FsModule and calls `fsModule.lastModified(filePath)`.
+SafFsModule.java:45-52 calls `SafFileSystem.getInstance(appContext).stat(filePath)` for getName; lines 141-148 does the same for lastModified.
+These are app implementation/delegation sites. Top-level route from a UI or service to each exact target not captured; keep OPEN pending route tracing.
+
+SafFileSystem.java:95-160
+95 FakePath(Uri safRoot, String relativePath) stores safRoot and normalizeRelativePath(relativePath).
+118 public static FakePath deserialize(String fakePath)
+120 int openTagIdx = fakePath.lastIndexOf(SAF_ROOT_TAG_OPEN);
+121 int closeTagIdx = fakePath.lastIndexOf(SAF_ROOT_TAG_CLOSE);
+122 if (openTagIdx < 0 || closeTagIdx < 0 || closeTagIdx <= openTagIdx) return null;
+125-129 parses the SAF root and relative path, then `return new FakePath(safRoot, relativePath)`.
+152 public String relativePath() { return relativePath; }
+157 public static boolean isFakePath(String path)
+159 returns whether path starts with `saf_root(` (optionally with leading slash).
+Exact application callers for deserialize/isFakePath/relativePath were not established in retained output.
+
+SafFileSystem.java:314-319: delete(FakePath) gets URI via getFileUri(path,false), returns false for null, otherwise calls DocumentsContract.deleteDocument.
+SafFileSystem.java:400-417: openFD(Uri,String,String) overloads are at 400 (Uri dir, fileName, mode), 409 (FakePath, mode), 417 (Uri filePath, mode); first two call getFileUri then the two-argument URI overload.
+SafFileSystem.java:426-485: stat overloads include (Uri safRoot,String fileName) at 426, (Uri filePath) at 459, and (FakePath) at 474.
+SafFsModule and facade call sites establish `stat(Uri)` usage. The captured output did not prove routes to every overload, delete(FakePath), exists(FakePath), mkdirs(FakePath), or the three-argument openFD overload.
+
+NormalizeUrl.java:14-15 private constructor. Lines 165-168 define normalize(String), which forwards to normalize(url,null). Exact source occurrences of normalize calls: CreateTorrentViewModel.java:311, DetailTorrentFragment.java:726, AddLinkViewModel.java:69; these call the two-argument overload. Row 32 is only a forwarding wrapper; confirm callers of it.
+PathResolver.java:14-15 private constructor. PercentEncoder.java:21-22 private constructor. No explicit app instantiations appeared in captured search.
+SystemFacadeHelper.java:30-51 consists of static singleton getters and has no explicit constructor; no `new SystemFacadeHelper(` occurrence found.
+BencodeFileTreeUtils, BindingAdapterUtils, DateUtils, TorrentContentFileTreeUtils, and Utils source files define utility helpers; captured class-name search showed no `new <Class>(` constructor calls.
+Utils.java:220-227 defines normalizeURL: `url = IDN.toUnicode(url); if (!url.startsWith(HTTP_PREFIX) && !url.startsWith(HTTPS_PREFIX)) return HTTP_PREFIX + url; else return url;`. Exact captured search showed declaration only.
+
+OPEN means this source print has not proved a complete entry-to-target route or absence of every route. This file intentionally uses no generator, coverage, or build output as evidence.

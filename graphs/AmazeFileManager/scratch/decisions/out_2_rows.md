@@ -1,0 +1,44 @@
+| method | verdict | edges or kind | source file:lines | confirmed_by |
+|---|---|---|---|---|
+| Indicator.<init>(Context,AttributeSet) | REACHABLE | MainActivity.onCreate -FRAMEWORK-> Indicator.<init>(Context,AttributeSet) | MainActivity.java:288; layout-v21/main_toolbar.xml:50-51; Indicator.java:119-121 | SOURCE |
+| Indicator.<init>(Context,AttributeSet,int) | REACHABLE | Indicator.<init>(Context,AttributeSet) -CALL-> Indicator.<init>(Context,AttributeSet,int) | Indicator.java:119-121,123-163 | SOURCE |
+| Indicator$PendingRevealAnimator.lambda$new$0 | REACHABLE | Indicator$PendingRevealAnimator.<init> -CALL-> Indicator$PendingRevealAnimator.lambda$new$0 (PendingRevealAnimator.<init> already reachable via Indicator.setSelectedPage -> createMoveSelectedAnimator -> PendingRetreatAnimator.<init> -> PendingRevealAnimator.<init>, established elsewhere in graph_def.py) | Indicator.java:776-780 | SOURCE |
+| RoundedImageView.<init> | REACHABLE | RecyclerAdapter.onCreateViewHolder -FRAMEWORK-> RoundedImageView.<init> | RecyclerAdapter.java:467,472; rowlayout.xml:49; griditem.xml:25 | SOURCE |
+| RoundedImageView.drawableToBitmap | REACHABLE | RoundedImageView.onDraw -CALL-> RoundedImageView.drawableToBitmap | RoundedImageView.java:40-61,48 | SOURCE |
+| RoundedImageView.drawableToBitmapRelative | REACHABLE | RoundedImageView.onDraw -CALL-> RoundedImageView.drawableToBitmapRelative | RoundedImageView.java:40-61,57 | SOURCE |
+| RoundedImageView.getRoundedCroppedBitmap | REACHABLE | RoundedImageView.onDraw -CALL-> RoundedImageView.getRoundedCroppedBitmap | RoundedImageView.java:40-61,51 | SOURCE |
+| RoundedImageView.isImageAnIcon | REACHABLE | RoundedImageView.onDraw -CALL-> RoundedImageView.isImageAnIcon | RoundedImageView.java:40-61,47 | SOURCE |
+| RoundedImageView.onDraw | REACHABLE | RoundedImageView.<init> -FRAMEWORK-> RoundedImageView.onDraw | RoundedImageView.java:40-61 | SOURCE |
+| ThemedImageButton.<init>(Context) | UNREACHABLE | no_trigger_in_app | ThemedImageButton.java:14-16 (no delegation from other ctors; whole file read lines 1-37) | INFERRED (framework-always-uses-2-arg-ctor claim is general Android knowledge, not read from Android source) |
+| ThemedImageButton.<init>(Context,AttributeSet) | REACHABLE | PathSwitchPreference.onCreateView -FRAMEWORK-> ThemedImageButton.<init>(Context,AttributeSet) | PathSwitchPreference.java:26-30; namepathswitch_preference.xml:10,19 | SOURCE |
+| ThemedImageButton.getAccessibilityClassName | REACHABLE | ThemedImageButton.<init>(Context,AttributeSet) -FRAMEWORK-> ThemedImageButton.getAccessibilityClassName | ThemedImageButton.java:32-35 | SOURCE |
+| ThemedImageButton.onSetAlpha | REACHABLE | ThemedImageButton.<init>(Context,AttributeSet) -FRAMEWORK-> ThemedImageButton.onSetAlpha | ThemedImageButton.java:27-30 | SOURCE |
+| ThemedImageView.<init>(Context) | UNREACHABLE | no_trigger_in_app | ThemedImageView.java:21-23 (whole file read lines 1-54, no app caller) | INFERRED (framework-always-uses-2-arg-ctor claim is general Android knowledge) |
+| ThemedImageView.<init>(Context,AttributeSet) | REACHABLE | ThemedImageButton.<init>(Context,AttributeSet) -CALL-> ThemedImageView.<init>(Context,AttributeSet) | ThemedImageButton.java:18-20 | SOURCE |
+| ThemedImageView.<init>(Context,AttributeSet,int) | REACHABLE | ThemedImageView.<init>(Context,AttributeSet) -CALL-> ThemedImageView.<init>(Context,AttributeSet,int) | ThemedImageView.java:25-27 | SOURCE |
+| ThemedImageView.getActivity | REACHABLE | ThemedImageView.<init>(Context,AttributeSet,int) -CALL-> ThemedImageView.getActivity | ThemedImageView.java:29-32 | SOURCE |
+| SearchView$1.onAnimationCancel | REACHABLE | SearchView$1.<init> -FRAMEWORK-> SearchView$1.onAnimationCancel | SearchView.java:105-106 | SOURCE |
+| SearchView$1.onAnimationEnd | REACHABLE | SearchView$1.<init> -FRAMEWORK-> SearchView$1.onAnimationEnd | SearchView.java:97-103 | SOURCE |
+| SearchView$1.onAnimationRepeat | REACHABLE | SearchView$1.<init> -FRAMEWORK-> SearchView$1.onAnimationRepeat | SearchView.java:108-109 | SOURCE |
+| SearchView$1.onAnimationStart | REACHABLE | SearchView$1.<init> -FRAMEWORK-> SearchView$1.onAnimationStart | SearchView.java:94-95 | SOURCE |
+| SearchView$2.onAnimationCancel | REACHABLE | SearchView$2.<init> -FRAMEWORK-> SearchView$2.onAnimationCancel | SearchView.java:149-150 | SOURCE |
+| SearchView$2.onAnimationEnd | REACHABLE | SearchView$2.<init> -FRAMEWORK-> SearchView$2.onAnimationEnd | SearchView.java:141-147 | SOURCE |
+| SearchView$2.onAnimationRepeat | REACHABLE | SearchView$2.<init> -FRAMEWORK-> SearchView$2.onAnimationRepeat | SearchView.java:152-153 | SOURCE |
+| SearchView$2.onAnimationStart | REACHABLE | SearchView$2.<init> -FRAMEWORK-> SearchView$2.onAnimationStart | SearchView.java:138-139 | SOURCE |
+| CustomNavigationView.<init> | REACHABLE | MainActivity.onCreate -FRAMEWORK-> CustomNavigationView.<init> | MainActivity.java:288; main_toolbar.xml:67-70 | SOURCE |
+| CustomNavigationView.isNavigationViewSavedStateMissing | REACHABLE | CustomNavigationView.onSaveInstanceState -CALL-> CustomNavigationView.isNavigationViewSavedStateMissing (also called from onRestoreInstanceState) | CustomNavigationView.java:69,86 | SOURCE |
+| CustomNavigationView.onItemChecked | REACHABLE | CustomNavigationView.onNavigationItemSelected -CALL-> CustomNavigationView.onItemChecked | CustomNavigationView.java:34-47 | SOURCE |
+| CustomNavigationView.onNavigationItemSelected | REACHABLE | CustomNavigationView.<init> -FRAMEWORK-> CustomNavigationView.onNavigationItemSelected | CustomNavigationView.java:16-17,22-25 | SOURCE |
+| CustomNavigationView.onRestoreInstanceState | REACHABLE | CustomNavigationView.<init> -LIFECYCLE-> CustomNavigationView.onRestoreInstanceState | CustomNavigationView.java:84-102 | SOURCE |
+| CustomNavigationView.onSaveInstanceState | REACHABLE | CustomNavigationView.<init> -LIFECYCLE-> CustomNavigationView.onSaveInstanceState | CustomNavigationView.java:67-82 | SOURCE |
+| CustomNavigationView$SavedState.<clinit> | REACHABLE | CustomNavigationView.onSaveInstanceState -CALL-> CustomNavigationView$SavedState.<clinit> | CustomNavigationView.java:76,139-147 | SOURCE |
+| CustomNavigationView$SavedState.<init>(Parcel) | REACHABLE | CustomNavigationView$SavedState$1.createFromParcel -CALL-> CustomNavigationView$SavedState.<init>(Parcel) | CustomNavigationView.java:141-143 | SOURCE |
+| CustomNavigationView$SavedState.<init>(Parcelable) | REACHABLE | CustomNavigationView.onSaveInstanceState -CALL-> CustomNavigationView$SavedState.<init>(Parcelable) | CustomNavigationView.java:69-76; app/build.gradle:28-29 | SOURCE |
+| CustomNavigationView$SavedState.writeToParcel | REACHABLE | CustomNavigationView$SavedState.<init>(Parcelable) -FRAMEWORK-> CustomNavigationView$SavedState.writeToParcel | CustomNavigationView.java:123-125,132-136 | SOURCE |
+| CustomNavigationView$SavedState$1.<init> | REACHABLE | CustomNavigationView$SavedState.<clinit> -CALL-> CustomNavigationView$SavedState$1.<init> | CustomNavigationView.java:139-147 | SOURCE |
+| CustomNavigationView$SavedState$1.createFromParcel | REACHABLE | CustomNavigationView$SavedState$1.<init> -FRAMEWORK-> CustomNavigationView$SavedState$1.createFromParcel | CustomNavigationView.java:141-143 | SOURCE |
+| CustomNavigationView$SavedState$1.newArray | REACHABLE | CustomNavigationView$SavedState$1.<init> -FRAMEWORK-> CustomNavigationView$SavedState$1.newArray | CustomNavigationView.java:144-146 | SOURCE |
+| InvalidablePreferenceCategory.<init> | REACHABLE | ColorPref.loadSection1 -FRAMEWORK-> InvalidablePreferenceCategory.<init> | ColorPref.java:217; conficolor_prefs.xml:6 | SOURCE |
+| PathSwitchPreference.lambda$setListener$0 | REACHABLE | FoldersPref.onCreate -CALL-> PathSwitchPreference.<init> -FRAMEWORK-> PathSwitchPreference.onBindView -CALL-> PathSwitchPreference.setListener -CALL-> PathSwitchPreference.lambda$setListener$0 | FoldersPref.java:58-59; PathSwitchPreference.java:32-40,34-35,49-54 | SOURCE |
+
+Notes on API-level reasoning for the CustomNavigationView$SavedState group: app/build.gradle:28-29 sets minSdkVersion 14, targetSdkVersion 28, with no maxSdkVersion anywhere in build.gradle or AndroidManifest.xml (confirmed by grep). targetSdkVersion does not restrict which OS a device runs; Build.VERSION.SDK_INT reflects the real device API. isNavigationViewSavedStateMissing() (CustomNavigationView.java:115-118) returns true only for API 23-28 (M-P). Since the app installs and runs on API 14-22 devices and on all API 29+ devices (the current majority of real Android devices as of 2026), the guard evaluates false on those devices, so the SavedState save/restore path is reachable in practice; this reverses an earlier UNREACHABLE 'framework_never_calls' labeling for these methods found elsewhere in graph_def.py (lines ~2469-2528), which assumed targetSdkVersion pins the runtime API.

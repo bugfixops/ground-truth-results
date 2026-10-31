@@ -1,0 +1,179 @@
+# Stage 2 route check, group G1 (Aegis schema 2)
+
+Checked against: Aegis source (work/final_java_only/Aegis/app/Aegis-#v3.4.2/app/src/main/java/com/beemdevelopment/aegis) and FW-SRC (work/fw_src/android-8.1.0_r1). graph_def.py md5 at start of check: f87000443c48e93e0e12a8991ec967e2.
+
+Verdict key: OK = the step matches source; ERROR = the step is wrong or a guard is missing (fix given); UNCLEAR = source cannot settle it.
+
+---
+
+## Route 1: ImportExportPreferencesFragment$ExportResultListener.onTaskFinished (55 steps)
+
+Counts: OK 40, ERROR 13, UNCLEAR 2.
+
+What the route does: app start, MainActivity.onStart sends the user to the intro, the user imports an encrypted backup on the Welcome slide, decrypts it with a password, the intro finishes and loads the vault, then the user opens Settings, starts an encrypted export, and the export listener runs. After step 27 the route follows the AuthActivity unlock branch, which is not the import path. That is the main error on this route.
+
+ERROR steps:
+
+- Step 9 (Ec0cc2904, INTENT MainActivity.startIntroActivity -> IntroActivity.<init>): missing guard. MainActivity.java:604 `if (!_isDoingIntro)` gates the launch at 605-606. Fix: add guard "intro not already running (_isDoingIntro false, MainActivity.java:604)".
+- Step 11 (E7bc7d787, IntroActivity.onCreate -> IntroBaseActivity.addSlide): wrong citation. The edge cites IntroActivity.java:41, which is addSlide(DoneSlide). The Welcome slide is added at IntroActivity.java:38. Fix: cite IntroActivity.java:38.
+- Step 19 (E242df265, WelcomeSlide.lambda$startImportVault$2 -> AegisImporter$EncryptedState.decrypt): missing guards. WelcomeSlide.java:60-63 returns when result.getError() != null, and line 68 `if (state.isEncrypted())` gates the decrypt call at 69. Fix: add guard "file read without error (WelcomeSlide.java:60-63) and state.isEncrypted() (WelcomeSlide.java:68)". Optional STATE gate: the imported file is encrypted.
+- Step 24 (E1ec716eb, Dialogs.lambda$showTextInputDialog$7 -> SecurityPreferencesFragment.lambda$onCreatePreferences$7): wrong listener. Dialogs.java:233 calls whichever TextInputListener the caller passed in. The route is the import path, and its listener is the lambda at AegisImporter.java:90-109 (AegisImporter$EncryptedState.lambda$decrypt$1). The SecurityPreferencesFragment lambda (157-162) is the PIN change path. Fix: split this non_standard edge by caller. Keep the PIN edge, and add IMPORT edge Dialogs.lambda$showTextInputDialog$7 -> AegisImporter$EncryptedState.lambda$decrypt$1 (AegisImporter.java:90-109).
+- Step 25 (Ec5219d4f, SecurityPreferencesFragment.lambda$onCreatePreferences$7 -> PasswordSlotDecryptTask.doInBackground): follows from step 24. The guard "PIN digits only" (SecurityPreferencesFragment.java:158) does not apply to the import password. Fix: the source becomes AegisImporter$EncryptedState.lambda$decrypt$1, which starts the task at AegisImporter.java:108 (task.execute). No digit guard.
+- Step 27 (E59fcdb14, PasswordSlotDecryptTask.onPostExecute -> AuthActivity$PasswordDerivationListener.onTaskFinished): wrong listener. The task's _cb is fixed at construction. The import task is built at AegisImporter.java:93, so the callback is the lambda at 93-105. Fix: callee = AegisImporter$EncryptedState.lambda$decrypt$0 (AegisImporter.java:93-105); evidence PasswordSlotDecryptTask.java:87-90. Split the generic PasswordSlotDecryptTask.onPostExecute hand edge by caller (the graph already has the import edge at ~2688-2691).
+- Steps 28, 29, 30, 31: all follow the wrong branch from step 27. 28 (AuthActivity.java:345-356), 29 (AuthActivity.java:295-311, finish -> MainActivity.lambda$new$0), 30 (MainActivity.java:134-140, missing RESULT_OK guard at line 137), 31 (MainActivity.java:797-801, onDecryptResult -> loadEntries). Fix: delete steps 28-31 and use the corrected continuation below.
+- Step 32 (Ed910a18c, MainActivity.loadEntries -> S_LIST): missing guard "list not loaded yet" (`if (!_loaded)`, MainActivity.java:1134). Minor.
+- Step 52 (E4e945d38, ImportExportPreferencesFragment.startExportVault -> lambda$onExportResult$26): missing guards. ImportExportPreferencesFragment.java:444 `case CODE_EXPORT:` and :445 `if (_vaultManager.getVault().isEncryptionEnabled())` both have to hold for the route to reach cb.exportVault at 446. Fix: add guard "requestCode == CODE_EXPORT (line 444) and vault.isEncryptionEnabled() (line 445)". The set-password branch at 454-467 is a separate edge and is not on this route.
+- Step 53 (E0993ba91, lambda$onExportResult$26 -> ExportTask.doInBackground): missing guard. The catch at ImportExportPreferencesFragment.java:521-524 returns, so the ExportTask execute at line 535 is skipped when writing the temp file throws. Fix: add guard "temp file written with no VaultRepositoryException or IOException (catch returns at 524 skip 535)" and cite line 535.
+
+UNCLEAR steps:
+
+- Step 2 (E5b266140, AegisApplication.<init> -> Hilt_AegisApplication.onCreate): the superclass is generated by Hilt. AegisApplication.java:6 declares `extends AegisApplicationBase`, and no generated source is in the tree. A compiled Hilt_AegisApplication.class exists under app/build/intermediates/classes/debug/transformDebugClassesWithAsm/, but javap cannot run here (no Java runtime). No fix proposed; the edge depends on the Hilt build.
+- Step 3 (E1ef992ce, Hilt_AegisApplication.onCreate -> AegisApplicationBase.onCreate): same cause. The class constant pool has onCreate and AegisApplicationBase, which fits a super call, but the invoke itself was not disassembled.
+
+OK steps: 1, 4-8, 10, 12-18, 20-23, 26, 33-51, 54, 55.
+Notes on OK steps: step 14/15 rely on the ENV gate for the picked file; the data check at WelcomeSlide.java:35 is covered by that ENV text. Step 49's ENV also names ACTION_SEND, which is not on this route (the route uses ACTION_CREATE_DOCUMENT at line 270); this is broader, not wrong, so OK.
+
+Corrected continuation (replaces steps 28-31, starts from step 27):
+  a. AegisImporter$EncryptedState.lambda$decrypt$0 (AegisImporter.java:93-105): guard result != null (95-97); creds built (99); decrypt(creds) (100); listener.onStateDecrypted (101).
+  b. WelcomeSlide anonymous DecryptListener.onStateDecrypted (WelcomeSlide.java:71-73): _creds set (72); importVault(file) (73).
+  c. WelcomeSlide.importVault (WelcomeSlide.java:98-109): VaultRepository.writeToFile (100); _imported = true (107); goToNextSlide (108).
+  d. Next on the Done slide -> IntroActivity.onDonePressed (existing edge, graph ~578). Imported branch (IntroActivity.java:90 else): readVaultFile (109); VaultManager.loadFrom(vaultFile, creds) at 117, which loads the vault; setIntroDone (126); setResult(RESULT_OK) (128); finish (129).
+  e. MainActivity.lambda$new$1 (intro result launcher, MainActivity.java:142-148, RESULT_OK) -> MainActivity.onIntroResult (752-754) -> loadEntries (1133-1144). The vault is loaded at step d, so getVault() (VaultManager.java:231-234) does not throw.
+  Then steps 32-55 as in the route (with the step 32 guard fix).
+
+---
+
+## Route 2: EditEntryActivity$CustomSvgIcon.<init> (47 steps)
+
+Counts: OK 35, ERROR 10, UNCLEAR 2.
+
+What the route does: app start, Settings, Import from another app, ImportEntriesActivity, AssignIconsActivity, icon picker, custom icon, SVG pick, CustomSvgIcon. Steps 21-41 are the problem: the custom icon row and its listener belong to the EditEntryActivity icon picker, not to the import-then-assign-icons flow. The corrected tail is below.
+
+ERROR steps:
+
+- Step 8 (E86b09b87, MainActivity.onStart -> MainActivity.loadEntries): needs_state with no producer on the route. The STATE "vault file exists" is made by the intro flow, which is not on this route. The STATE text also needs "plain text": the load at MainActivity.java:963 only runs for a non-encrypted file, and an encrypted file goes to startAuthActivity (976-977), not to loadEntries. Fix: add a producer step or declare the route start state, and reword the STATE to "plain-text vault file exists (MainActivity.java:963)".
+- Step 21 (E91eeed07, ImportExportPreferencesFragment.onCreatePreferences -> lambda$onCreatePreferences$6): wrong preference row. Lambda $6 is the pref_import click (ImportExportPreferencesFragment.java:105-115), which opens the dialog with isDirect false. The route needs pref_import_app (lines 117-123), which the graph names lambda$onCreatePreferences$8 (graph ~1560). Fix: replace the callee with lambda$onCreatePreferences$8 (GUI "Tap Import from another app").
+- Step 22 (E5c464116, lambda -> Dialogs.showImportersDialog): the cited call is line 107, which is showImportersDialog(context, false, ...). The route needs showImportersDialog(context, true, ...) at line 119 (inside pref_import_app). Fix: cite line 119 and start from lambda$onCreatePreferences$8.
+- Step 24 (E72c20578, Dialogs.lambda$showImportersDialog$27 -> lambda$onCreatePreferences$7): wrong pairing with step 22. The listener at ImportExportPreferencesFragment.java:119-121 (lambda$7) is attached only to the isDirect true dialog (graph ~1576). The dialog in step 22 is isDirect false, whose listener is lambda$5 at 107-113 (graph ~1571). Fix: keep this edge and its guard, but make it follow the isDirect true dialog opened at line 119 (the fix for step 22).
+- Step 36 (E42451aaa, AssignIconsActivity.onAssignIconEntryClick -> IconPickerDialog.create): the picker is created with showAddCustom false (AssignIconsActivity.java:194, fourth argument false; IconPickerDialog.java:42, 127). The custom row is added only when showAddCustom is true (IconAdapter.java:63-64), so no custom row can appear from this picker. Fix: replace steps 36-41 with the EditEntryActivity picker (see the corrected tail).
+- Step 40 (Efbf528db, IconAdapter.lambda$onBindViewHolder$2 -> EditEntryActivity$1.onCustomSelected): wrong listener. The picker from step 36 uses AssignIconsActivity's anonymous IconAdapter.Listener (AssignIconsActivity.java:194-202), whose onCustomSelected is empty (line 201). EditEntryActivity$1.onCustomSelected belongs to the EditEntryActivity picker (EditEntryActivity.java:594-602). Fix: replace with the EditEntryActivity picker below.
+- Step 41 (E96dc91c6, EditEntryActivity$1.onCustomSelected -> startImageSelectionActivity): this edge is valid, but it is only reached through the wrong step 40. Fix: keep it in the corrected tail (EditEntryActivity.java:601-602). Its bytecode guard is not verified here (guard_of failed on the path).
+- Step 43 (E9762afef, VaultManager.fireIntentLauncher -> EditEntryActivity.lambda$new$1): two problems. (a) The ENV names MainActivity.startScanImageActivity (MainActivity.java:812-824), which is not the chooser on this route; the chooser is EditEntryActivity.startImageSelectionActivity (EditEntryActivity.java:568-577). Fix: cite EditEntryActivity.java:568-577. (b) Missing guard: EditEntryActivity.java:144-146 returns unless resultCode is RESULT_OK and data and data.getData() are non-null. Fix: add guard "RESULT_OK with data (EditEntryActivity.java:144-146)".
+- Step 46 (E3dc672fd, ImportFileTask.onPostExecute -> EditEntryActivity.lambda$new$0): the guard text is wrong. ImportFileTask.onPostExecute calls the callback unconditionally (ImportFileTask.java:53-55). The SVG check is at EditEntryActivity.java:148, which step 44 already covers; the "other types go to startEditingIcon" branch (159-161) is not this edge. Fix: guard text becomes "none on the edge (ImportFileTask.java:55); SVG check is step 44 (EditEntryActivity.java:148)".
+- Step 47 (E0ef9d08b, EditEntryActivity.lambda$new$0 -> CustomSvgIcon.<init>): missing guard. The icon is built only when the read has no error: EditEntryActivity.java:151 (`if (result.getError() == null)`); the error branch at 154-156 shows a dialog instead. Fix: add guard "no read error (EditEntryActivity.java:151)" and cite 151-152.
+
+UNCLEAR steps:
+
+- Step 2 (E5b266140) and step 3 (E1ef992ce): the Hilt-generated superclass; same reason and same result as route 1 (steps 2-3 there). No fix proposed.
+
+OK steps: 1, 4-7, 9-20, 23, 25-35, 37-39, 42, 44, 45.
+Notes: steps 25-35 are correct edges but are only reachable after the fix at 21-24. Steps 37-39 are correct edges that end at a picker without the custom row (dead end for this route). Step 30 is a FRAMEWORK edge for the Yes button of the assign-icons dialog (ImportEntriesActivity.java:332); the user taps Yes, which is acceptable.
+
+Corrected tail (replaces steps 21-41; the custom SVG path runs through EditEntryActivity's own icon picker):
+  a. S_LIST -> the entry-edit action: MainActivity$ActionModeCallbacks.onActionItemClicked -> MainActivity.startEditEntryActivity(VaultEntry) (graph edge at 820; the call into EditEntryActivity is graph edge 749, INTENT). The GUI step that reaches the action-mode edit action from S_LIST is not verified here.
+  b. EditEntryActivity.<init> -> EditEntryActivity.onCreate (LIFECYCLE, graph ~1073).
+  c. Tap the icon: _iconView click (EditEntryActivity.java:364-366, calls startIconSelection); or the toolbar action_edit_icon (545-546). Graph lambda$onCreate$5 (~1284) covers the icon tap.
+  d. EditEntryActivity.startIconSelection (585-602): with no icon pack, it calls startImageSelectionActivity directly (589-591). With a pack, IconPickerDialog.create(this, iconPacks, issuer, true, listener) (594).
+  e. IconPickerDialog.create -> IconAdapter.loadIcons(pack, true) (IconPickerDialog.java:127) -> DummyIcon custom row added (IconAdapter.java:63-64) -> IconAdapter.onBindViewHolder (168-179) -> IconAdapter.lambda$onBindViewHolder$2 (guard: DummyIcon, 174-175) -> EditEntryActivity$1.onCustomSelected (601-602).
+  f. startImageSelectionActivity (568-577) -> VaultManager.fireIntentLauncher (577) -> RESULT (ENV: the chooser at EditEntryActivity.java:568-577) -> pickImageResultLauncher lambda (141-162; guard RESULT_OK with data, 144-146) -> SVG MIME check (148) -> ImportFileTask (150, 158) -> callback (150-157; guard getError()==null at 151) -> new CustomSvgIcon(file) (152).
+
+---
+
+## Route 3: VaultBackupManager$FileInfo.throwBadFormat (31 steps)
+
+Counts: OK 16, ERROR 13, UNCLEAR 2.
+
+What the route does: app start, MainActivity.onStart sends the user to the intro, the user sets a password on the security slide, and the setup listener is supposed to start a backup that ends in the backup file name check. The route breaks at step 19: the intro path never reaches any backup code. The chain from step 20 on is the Settings backup-password path.
+
+ERROR steps:
+
+- Step 19 (E7f1310cf, KeyDerivationTask.onPostExecute -> Dialogs.lambda$showSetPasswordDialog$2): wrong listener. The intro's KeyDerivationTask is created in SecuritySetupSlide.deriveKey (SecuritySetupSlide.java:112) with `new PasswordDerivationListener()`. That is SecuritySetupSlide$PasswordDerivationListener (SecuritySetupSlide.java:153-168). Dialogs.lambda$showSetPasswordDialog$2 belongs to the Settings backup-password dialog. Fix: callee = SecuritySetupSlide$PasswordDerivationListener.onTaskFinished (SecuritySetupSlide.java:155-167); cite 112 and 155-167; the edge is non_standard (interface call Callback.onTaskFinished, KeyDerivationTask.java:41, 80-82).
+- Steps 20-31: all follow the wrong step 19. Each edge is real in the Settings path (Dialogs.java:175; SecurityPreferencesFragment.java:387; PreferencesFragment.java:90; VaultManager.java:147, 181; VaultBackupManager.java:57-67, 60, 78, 150, 174, 274, 222-239), but none is reached from the intro route. Fix: delete steps 20-31 and use the corrected continuation below.
+  - Step 23 guard (VaultManager.java:143-144: isEncryptionEnabled and isBackupsEnabled): the isBackupsEnabled part needs pref_backups = true. Preferences.java:400-402 defaults it to false, and it is set only at BackupsPreferencesFragment.java:189 (user picks a backup location). That producer is not on the route, so this is a needs_state with no producer.
+  - Step 28: the call to enforceVersioning is at VaultBackupManager.java:150, after the try/finally (146-148), and is unconditional. The cited lines 164-166 are the early return inside the callee, not the call site. Fix: cite 150.
+  - Step 31: throwBadFormat only runs for a file in the backup folder whose name fails the format check (VaultBackupManager.java:222, 229, 234, 239). The route has no step that creates that file. Add an ENV/STATE note. Also note: the ParseException is caught and ignored at VaultBackupManager.java:175, so this route ends with no visible effect.
+
+UNCLEAR steps:
+
+- Step 2 (E5b266140, AegisApplication.<init> -> Hilt_AegisApplication.onCreate) and step 3 (E1ef992ce, Hilt_AegisApplication.onCreate -> AegisApplicationBase.onCreate): same cause and same result as route 1 steps 2-3 (Hilt-generated superclass; javap cannot run). No fix proposed.
+
+OK steps: 1, 4-18. Steps 4-16 were checked earlier and match source. Step 17 (ProgressDialogTask.execute(lifecycle, params), ProgressDialogTask.java:69-74, calls execute(params)) and step 18 (KeyDerivationTask.onPostExecute, KeyDerivationTask.java:39-42, calls _cb.onTaskFinished) match source.
+
+Corrected continuation (replaces steps 19-31 for the intro route):
+  a. SecuritySetupSlide.deriveKey (109-114): KeyDerivationTask with new PasswordDerivationListener() (112).
+  b. KeyDerivationTask.onPostExecute (39-42) -> _cb.onTaskFinished(slot, key) -> SecuritySetupSlide$PasswordDerivationListener.onTaskFinished (155-167): slot key set and slot added (157-159); goToNextSlide (166).
+  c. IntroBaseActivity.goToNextSlide (80-93): last slide, so onDonePressed (91).
+  d. IntroActivity.onDonePressed (86-130), not-imported branch: _vaultManager.initNew(creds) (100) -> VaultManager.initNew (59-72): repo.save() only, no backup; setIntroDone (126); setResult(RESULT_OK) (128); finish (129).
+  e. MainActivity.introResultLauncher -> onIntroResult (752-754) -> loadEntries (1133-1144). No backup call.
+  f. Result: nothing on this chain reaches VaultManager.saveAndBackup or VaultManager.scheduleBackup. The only caller of VaultManager.enableEncryption (which calls saveAndBackup at VaultManager.java:115) is SecurityPreferencesFragment.java:433 (Settings). So throwBadFormat is not reachable from the intro route.
+  Suggested replacement for the tail (not checked against graph_def): BackupsPreferencesFragment pref_backups_trigger click (BackupsPreferencesFragment.java:153-157; guard isBackupsEnabled at 154) -> BackupsPreferencesFragment.scheduleBackup (273-275) -> VaultManager.scheduleBackup (164-181; no encryption guard; _backups.scheduleBackup at 181) -> step 25 onward (VaultBackupManager.scheduleBackup 57-67, lambda 60, createBackup(File,Uri,int) 78, enforceVersioning 150, BackupFile.<init> 174, parseFilename 274, throwBadFormat 222/229/234/239). It needs pref_backups = true and a backup location set (BackupsPreferencesFragment.java:188-189), plus a non-backup file in the backup folder for step 31.
+
+---
+
+## Route 4: EntryAdapter.setTempHighlightEntry (27 steps)
+
+Counts: OK 15, ERROR 8, UNCLEAR 4.
+
+What the route does: app start, MainActivity.onStart loads the vault list, the user taps the + button and then "enter" (manual entry), the new entry is added, and MainActivity highlights it. Steps 19-23 take the delete path, which is the wrong branch for a new entry. Steps 24 and 8-9 need guard or state fixes. The corrected tail is below.
+
+ERROR steps:
+
+- Step 8 (E86b09b87, MainActivity.onStart -> MainActivity.loadEntries): needs_state with no producer on the route, and the STATE text is wrong. "Vault file exists (created by an earlier intro run)" is made by the intro flow, which is not on this route. The loadEntries call (MainActivity.java:992) runs only when the vault is loaded and `_loaded` is false (else branch at 991, after 978). An encrypted file goes to startAuthActivity (976-977), not to loadEntries. Fix: STATE = "plain-text vault file exists (not encrypted; MainActivity.java:963-965)"; guard = "vault loaded and list not yet loaded (MainActivity.java:976-978, 991-992)"; add a producer step or declare the route start state. Same fix as route 2 step 8.
+- Step 9 (Ed910a18c, MainActivity.loadEntries -> S_LIST): missing guard `if (!_loaded)` (MainActivity.java:1134). Minor, and the same edge as route 2 step 32. Step 8's guard already implies `_loaded` is false, so the fix is cosmetic.
+- Step 19 (E69bb265a, EditEntryActivity.onCreateOptionsMenu -> onOptionsItemSelected): wrong menu item. The route taps delete, but action_delete is hidden for new entries (EditEntryActivity.java:658-660, `if (_isNew)`). A new manual entry is saved with action_save (EditEntryActivity.java:539-540 -> onSave()). Fix: replace steps 19-23 with the save path below.
+- Step 20 (E624f9135, EditEntryActivity.onOptionsItemSelected -> EditEntryActivity.lambda$onOptionsItemSelected$18): wrong branch, and not a direct framework edge. lambda$18 is the positive button of the delete confirmation shown by Dialogs.showDeleteEntriesDialog (EditEntryActivity.java:542-544). Fix: delete this step.
+- Step 21 (E94c17e0d, lambda$onOptionsItemSelected$18 -> EditEntryActivity.deleteAndFinish): wrong branch. deleteAndFinish removes the entry (EditEntryActivity.java:694), so the later position check (EntryListView.java:444-446) would return early and tempHighlightEntry would never run. Fix: delete.
+- Step 22 (E92b148c8, EditEntryActivity.deleteAndFinish -> EditEntryActivity.saveAndFinish): wrong branch. The source edge is valid (EditEntryActivity.java:695, `saveAndFinish(entry, true)`). Fix: delete.
+- Step 23 (E06d05af9, EditEntryActivity.saveAndFinish -> MainActivity.lambda$new$6): the edge is valid, but this copy is the delete path (delete = true). Its guard text is also wrong: MainActivity.java:502-512 does not gate this edge (both manual and new-entry launches use the same launcher). Fix: use the save path (addAndFinish, EditEntryActivity.java:680 -> saveAndFinish(entry, false)) with guard "saveAndBackupVault() returned true (EditEntryActivity.java:703)".
+- Step 24 (E3d6197a3, MainActivity.lambda$new$6 -> MainActivity.onAddEntryResult): missing guard. MainActivity.java:179-180 returns unless the result is RESULT_OK and the data is non-null. Fix: add guard "result RESULT_OK with data (MainActivity.java:179-180)". lambda$new$6 is the addEntryResultLauncher: the launcher fields at MainActivity.java:134-186 give lambda$new$0 (authResultLauncher) through lambda$new$6 (addEntryResultLauncher, line 178).
+
+UNCLEAR steps:
+
+- Step 2 (E5b266140) and step 3 (E1ef992ce): Hilt-generated superclass; same cause and result as route 1 steps 2-3. No fix proposed.
+- Step 13 (E75d0fba5, FabMenuHelper.open -> FabMenuHelper.lambda$setupClickListeners$2): the cited lines 59-64 match the inner click (it runs onClick.run() at line 61 and close() at 63). Whether javac numbered this inner lambda $2 cannot be settled without javap. graph_def.py:696 says $2 = inner click and $3 = outer forEach lambda. Also, the route prints this edge as FRAMEWORK, while the user tap for this menu item (graph_def.py:706) is a GUI edge (step 10 prints GUI for the + tap). Check the kind label.
+- Step 14 (E0979a03c, FabMenuHelper.lambda$setupClickListeners$2 -> MainActivity.startEditEntryActivity via Runnable.run): depends on the same lambda number as step 13. The method reference is correct (MainActivity.java:256), and the call at FabMenuHelper.java:61 is inside the inner click.
+
+OK steps: 1, 4-7, 10-12, 15-18, 25-27.
+Notes on OK steps: step 10 (lambda$setupClickListeners$0 = the + button, FabMenuHelper.java:55) is correct. Step 12's guard (`not (_isOpen)`) matches toggle (FabMenuHelper.java:68-73). Step 15 (startEditEntryActivity() -> startEditEntryActivityForManual, MainActivity.java:499) and step 16 (INTENT, MainActivity.java:509-514) match source. Step 17 cites EditEntryActivity.java:165 (onCreate). Step 18 (onCreate -> onCreateOptionsMenu) is an INFERRED androidx edge, accepted the same way as route 3 step 9. Step 25's `_loaded` guard is at MainActivity.java:619. Steps 26-27 match EntryListView.java:444-446, 449-450, 490-491, 496.
+
+Corrected continuation (replaces steps 19-23; starts from step 18):
+  a. EditEntryActivity.onOptionsItemSelected (535-540): action_save -> onSave() (539-540). For a new entry, action_delete is hidden (onCreateOptionsMenu 656-660).
+  b. EditEntryActivity.onSave (845-869): parseEntry (852); duplicate check for new entries (858-865); addAndFinish(entry) (867).
+  c. EditEntryActivity.addAndFinish (668-681): vault.addEntry for a new entry (674-675); saveAndFinish(entry, false) (680).
+  d. EditEntryActivity.saveAndFinish (698-707): saveAndBackupVault (703); setResult(RESULT_OK, intent) (704); finish (705).
+  e. MainActivity.lambda$new$6, the addEntryResultLauncher (MainActivity.java:178-183): guard RESULT_OK with data (179-180) -> onAddEntryResult (182).
+  f. MainActivity.onAddEntryResult (618-625): guard _loaded (619); setEntries (622); EntryListView.onEntryAdded (623).
+  g. EntryListView.onEntryAdded (442-493): position >= 0 (444-446); scroll test false (449-450), so the else at 490 runs -> tempHighlightEntry (491).
+  h. EntryListView.tempHighlightEntry (495-500) -> EntryAdapter.setTempHighlightEntry(true) (496; EntryAdapter.java:140-142).
+
+---
+
+## Route 5: MOTP.<init> (22 steps)
+
+Counts: OK 16, ERROR 4, UNCLEAR 2.
+
+What the route does: app start, MainActivity.onStart calls updateErrorCard, which pushes an error card into EntryAdapter. The adapter then updates the period uniformity, which turns on the refresh loop for the MOTP row. The row's refresh generates the code, and MotpInfo.getOtp reaches MOTP.<init>. The route needs a pending error card (step 11) and a bound row (steps 13 and 15), and neither is produced on the route.
+
+ERROR steps:
+
+- Step 11 (E98d747f0, EntryAdapter.setErrorCardInfo -> EntryAdapter.replaceEntryList): missing state. EntryAdapter.setErrorCardInfo returns at once when the new info equals the current one (EntryAdapter.java:153-155). The default current info is null (EntryAdapter.java:813-814, `new EntryList()` passes null), and updateErrorCard sets info only in three cases: a backup error (MainActivity.java:1166-1167), a backup reminder needed and enabled (1173), or a plaintext backup warning needed (1192). None of these is produced on the route, so the call at 157 is never reached. Fix: add STATE "an error card is pending: backup error (MainActivity.java:1166-1167), backup reminder (1173), or plaintext backup warning (1192)"; add a producer step or declare it as the route start state.
+- Step 13 (E15aef67e, EntryAdapter.updatePeriodUniformity -> EntryHolder.setShowProgress): two problems. (a) Missing guard: the early return at EntryAdapter.java:578-580 (`uniform == _isPeriodUniform && mostFrequentPeriod == _uniformPeriod`) is not on the route. It does not block the first update, because the defaults are _isPeriodUniform = true and _uniformPeriod = -1 (EntryAdapter.java:78-79), but the guard should be stated. (b) The loop at 585 only reaches the MOTP row if its EntryHolder is already in _holders, which happens when the row is bound (EntryAdapter.java:569). The route has no bind step before this point. The argument at line 587 is `getPeriod() != mostFrequentPeriod`, so the MOTP row (period 10, MotpInfo.java:19) shows progress only if the most frequent period differs from 10. Fix: add guard "period uniformity changed since last update (EntryAdapter.java:578-580)"; add a producer step for the row bind (EntryAdapter.onBindViewHolder, EntryAdapter.java:569) before step 13; add ENV "most frequent period != 10 (EntryAdapter.java:587)".
+- Step 15 (E0d080ed7, EntryHolder.startRefreshLoop -> EntryHolder$1.onRefresh, non_standard): needs_state with no producer on the route. The STATE is "at least one entry row is bound" (EntryAdapter.java:569), which the route never produces. The same state is needed before step 13, so the row-bind producer should come before step 13. Fix: add a producer step (the RecyclerView bind -> EntryAdapter.onBindViewHolder, EntryAdapter.java:569) before step 13, and keep this STATE on step 15.
+- Step 20 (E2dfad664, EntryHolder.getOtp(int) -> MotpInfo.getOtp): needs_state with no producer on the route. The STATE "the vault file holds a MOTP entry (OtpInfo.fromJson type MotpInfo.ID, OtpInfo.java:134-136)" is a start state, the same case as route 2 step 8 and route 4 step 8. The entry also needs a non-null PIN (see step 21). Fix: declare as the route start state "vault file holds a MOTP entry with a pin (OtpInfo.java:134-136; MotpInfo.toJson writes the pin at MotpInfo.java:56)", or add a producer step.
+
+UNCLEAR steps:
+
+- Step 2 (E5b266140) and step 3 (E1ef992ce): Hilt-generated superclass; same cause and result as route 1 steps 2-3. No fix proposed.
+
+OK steps: 1, 4-10, 12, 14, 16-19, 21, 22.
+Notes on OK steps: step 8 (MainActivity.onStart -> updateErrorCard) is the last statement of onStart (MainActivity.java:1007); the only early returns are at 947, 960 and 971, which the guard cites correctly. Step 14's showProgress guard matches EntryHolder.java:249-252, and the HOTP override (245-247) does not apply to MOTP. Steps 17 and 18 match EntryHolder.java:298-299 and 305 (setPaused at 507-511). Step 21's PIN guard (MotpInfo.java:35-37) is correct; the PIN comes from the vault JSON (MotpInfo.java:30 setPin in the constructor; MotpInfo.java:56 writes it), which is covered by the step 20 fix. Step 22 (MOTP.java:37 -> MOTP(String,int) at 16-19) matches source.
+
+Corrected continuation (for the route after step 10):
+  a. MainActivity.updateErrorCard (1164-1197): with a pending card (STATE at step 11), ErrorCardInfo is built (1166-1194).
+  b. EntryAdapter.setErrorCardInfo (152-157): info differs from null -> replaceEntryList (157).
+  c. EntryAdapter.replaceEntryList (285-288) -> updatePeriodUniformity (288).
+  d. Producer step: RecyclerView binds the MOTP row -> EntryAdapter.onBindViewHolder adds the EntryHolder to _holders (EntryAdapter.java:569).
+  e. EntryAdapter.updatePeriodUniformity (575-592): guard 578-580 not taken; for each holder (585) with TotpInfo (586) -> setShowProgress(period != mostFrequentPeriod) (587).
+  f. Steps 14-22 as in the route (with the step 15 and step 20 STATE fixes).
+
+---

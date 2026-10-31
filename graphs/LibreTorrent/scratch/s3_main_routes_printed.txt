@@ -1,0 +1,292 @@
+   248	        List<DrawerGroup> groups = Utils.getNavigationDrawerItems(this,
+   249	                PreferenceManager.getDefaultSharedPreferences(this));
+   250	        drawerAdapter = new DrawerExpandableAdapter(groups, drawerItemManager, this::onDrawerItemSelected);
+   251	        wrappedDrawerAdapter = drawerItemManager.createWrappedAdapter(drawerAdapter);
+   252	        onDrawerGroupsCreated();
+   253	
+   254	        drawerItemsList.setLayoutManager(layoutManager);
+   255	        drawerItemsList.setAdapter(wrappedDrawerAdapter);
+   256	        drawerItemsList.setItemAnimator(animator);
+   257	        drawerItemsList.setHasFixedSize(false);
+   258	
+   259	        drawerItemManager.attachRecyclerView(drawerItemsList);
+   260	
+   261	        sessionDhtNodesStat.setText(getString(R.string.session_stats_dht_nodes, 0));
+   262	        String downloadUploadFmt = getString(R.string.session_stats_download_upload,
+   263	                Formatter.formatFileSize(this, 0),
+   264	                Formatter.formatFileSize(this, 0));
+   265	        sessionDownloadStat.setText(downloadUploadFmt);
+   266	        sessionUploadStat.setText(downloadUploadFmt);
+   267	        sessionListenPortStat.setText(getString(R.string.session_stats_listen_port,
+   268	                getString(R.string.not_available)));
+   269	
+   270	        tagsList.setLayoutManager(new LinearLayoutManager(this));
+   271	        tagsAdapter = new TagsAdapter(tagsClickListener);
+   272	        tagsList.setAdapter(tagsAdapter);
+   273	        addTagButton.setOnClickListener(
+   274	                (v) -> startActivity(new Intent(this, AddTagActivity.class))
+   275	        );
+   276	
+   277	        boolean tagsExpanded = PreferenceManager
+   278	                .getDefaultSharedPreferences(this)
+   279	                .getBoolean(getString(R.string.drawer_tags_is_expanded), false);
+   280	        tagsGroupHeader.setExpanded(tagsExpanded);
+   281	        tagsExpandable.setExpanded(tagsExpanded);
+   282	        tagsGroupHeader.setOnClickListener((v) -> {
+   283	            tagsExpandable.toggle();
+   284	            tagsGroupHeader.toggleExpand();
+   285	            PreferenceManager.getDefaultSharedPreferences(this)
+   286	                    .edit()
+   287	                    .putBoolean(
+   288	                            getString(R.string.drawer_tags_is_expanded),
+   289	                            tagsExpandable.isExpanded()
+   290	                    )
+   291	                    .apply();
+   292	        });
+   293	    }
+   381	    public void onStart() {
+   382	        super.onStart();
+   383	
+   384	        subscribeAlertDialog();
+   385	        subscribeMsgViewModel();
+   386	        subscribeSessionStats();
+   387	        subscribeNeedStartEngine();
+   388	        subscribeTags();
+   389	    }
+   390	
+   391	    @Override
+   392	    protected void onStop() {
+   393	        super.onStop();
+   394	
+   395	        disposables.clear();
+   396	    }
+   397	
+   398	    @Override
+   399	    protected void onDestroy() {
+   400	        if (viewModel != null)
+   401	            viewModel.requestStopEngine();
+   402	
+   403	        super.onDestroy();
+   404	    }
+   405	
+   406	    private void subscribeAlertDialog() {
+   407	        Disposable d = dialogViewModel.observeEvents()
+   408	                .subscribe((event) -> {
+   409	                    if (event.dialogTag == null) {
+   410	                        return;
+   411	                    }
+   412	
+   413	                    if (event.dialogTag.equals(TAG_ABOUT_DIALOG)) {
+   414	                        switch (event.type) {
+   415	                            case NEGATIVE_BUTTON_CLICKED:
+   416	                                openChangelogLink();
+   417	                                break;
+   418	                            case DIALOG_SHOWN:
+   419	                                initAboutDialog();
+   420	                                break;
+   421	                        }
+   422	                    } else if (event.dialogTag.equals(TAG_PERM_DENIED_DIALOG)) {
+   423	                        if (event.type != BaseAlertDialog.EventType.DIALOG_SHOWN) {
+   424	                            permDeniedDialog.dismiss();
+   425	                        }
+   426	                        if (event.type == BaseAlertDialog.EventType.NEGATIVE_BUTTON_CLICKED) {
+   427	                            permissionManager.requestPermissions();
+   428	                        }
+   429	                        if (event.type == BaseAlertDialog.EventType.POSITIVE_BUTTON_CLICKED) {
+   430	                            permissionManager.setDoNotAskStorage(true);
+   431	                        }
+   432	                    }
+   433	                });
+   434	        disposables.add(d);
+   437	    private void subscribeMsgViewModel() {
+   438	        disposables.add(msgViewModel.observeTorrentDetailsOpened()
+   439	                .observeOn(AndroidSchedulers.mainThread())
+   440	                .subscribe(this::showDetailTorrent));
+   441	
+   442	        disposables.add(msgViewModel.observeTorrentDetailsClosed()
+   443	                .observeOn(AndroidSchedulers.mainThread())
+   444	                .subscribe((__) -> showBlankFragment()));
+   445	
+   446	        disposables.add(viewModel.observeTorrentsDeleted()
+   447	                .subscribeOn(Schedulers.io())
+   448	                .observeOn(AndroidSchedulers.mainThread())
+   449	                .subscribe((id) -> {
+   450	                    DetailTorrentFragment f = getCurrentDetailFragment();
+   451	                    if (f != null && id.equals(f.getTorrentId()))
+   452	                        showBlankFragment();
+   453	                }));
+   454	    }
+   455	
+   456	    private void subscribeSessionStats() {
+   457	        disposables.add(infoProvider.observeSessionStats()
+   458	                .subscribeOn(Schedulers.io())
+   459	                .observeOn(AndroidSchedulers.mainThread())
+   460	                .subscribe(this::updateSessionStats));
+   461	    }
+   776	    private void initAboutDialog() {
+   777	        if (aboutDialog == null)
+   778	            return;
+   779	
+   780	        Dialog dialog = aboutDialog.getDialog();
+   781	        if (dialog != null) {
+   782	            TextView versionTextView = dialog.findViewById(R.id.about_version);
+   783	            TextView descriptionTextView = dialog.findViewById(R.id.about_description);
+   784	            String versionName = SystemFacadeHelper.getSystemFacade(getApplicationContext())
+   785	                    .getAppVersionName();
+   786	            if (versionName != null)
+   787	                versionTextView.setText(versionName);
+   788	            descriptionTextView.setText(
+   789	                    Html.fromHtml(getString(R.string.about_description), Html.FROM_HTML_MODE_LEGACY)
+   790	            );
+   791	            descriptionTextView.setMovementMethod(LinkMovementMethod.getInstance());
+   792	        }
+   793	    }
+   794	
+   795	    private void openChangelogLink() {
+   796	        Intent i = new Intent(Intent.ACTION_VIEW);
+   797	        i.setData(Uri.parse(getString(R.string.about_changelog_link)));
+   798	        startActivity(i);
+   799	    }
+   166	    public void requestStopEngine() {
+   167	        engine.requestStop();
+   168	    }
+    56	    private SelectionListener listener;
+    57	    private RecyclerViewExpandableItemManager drawerItemManager;
+    58	
+    59	    public DrawerExpandableAdapter(@NonNull List<DrawerGroup> groups,
+    60	                                   RecyclerViewExpandableItemManager drawerItemManager,
+    61	                                   SelectionListener listener)
+    62	    {
+    63	        this.groups = new ArrayList<>(groups);
+    64	        this.drawerItemManager = drawerItemManager;
+    65	        this.listener = listener;
+    85	    public ItemViewHolder onCreateChildViewHolder(@NonNull ViewGroup parent, int viewType)
+    86	    {
+    87	        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+    88	        View v = inflater.inflate(R.layout.drawer_item, parent, false);
+    89	
+    90	        return new ItemViewHolder(v);
+    91	    }
+    92	
+    93	    @Override
+    94	    public void onBindGroupViewHolder(@NonNull GroupViewHolder holder, int groupPosition,
+    95	                                      int viewType)
+    96	    {
+    97	        DrawerGroup group = groups.get(groupPosition);
+    98	        if (group == null)
+    99	            return;
+   100	
+   101	        holder.bind(group);
+   102	    }
+   103	
+   104	    @Override
+   105	    public void onBindChildViewHolder(@NonNull ItemViewHolder holder, int groupPosition,
+   106	                                      int childPosition, int viewType)
+   107	    {
+   108	        DrawerGroup group = groups.get(groupPosition);
+   109	        if (group == null)
+   110	            return;
+   111	        DrawerGroupItem item = group.items.get(childPosition);
+   112	        if (item == null)
+   113	            return;
+   114	
+   115	        holder.bind(group, item);
+   116	        holder.itemView.setOnClickListener((v) -> {
+   117	            if (group.isItemSelected(item.id))
+   118	                return;
+   119	            group.selectItem(item.id);
+   120	            drawerItemManager.notifyChildrenOfGroupItemChanged(groupPosition);
+   121	            if (listener != null)
+   122	                listener.onItemSelected(group, item);
+   123	        });
+  7130	
+  7131	        onPostResume();
+  7132	        if (!mCalled) {
+  7133	            throw new SuperNotCalledException(
+  7134	                "Activity " + mComponent.toShortString() +
+  7135	                " did not call through to super.onPostResume()");
+  7136	        }
+  7137	    }
+  7138	
+  7139	    final void performPause() {
+  7140	        mDoReportFullyDrawn = false;
+  7141	        mFragments.dispatchPause();
+  7142	        mCalled = false;
+  7143	        onPause();
+  7144	        mResumed = false;
+  7145	        if (!mCalled && getApplicationInfo().targetSdkVersion
+  7146	                >= android.os.Build.VERSION_CODES.GINGERBREAD) {
+  7147	            throw new SuperNotCalledException(
+  7148	                    "Activity " + mComponent.toShortString() +
+  7149	                    " did not call through to super.onPause()");
+  7150	        }
+  7151	        mResumed = false;
+  7152	    }
+  7153	
+  7154	    final void performUserLeaving() {
+  7155	        onUserInteraction();
+  7156	        onUserLeaveHint();
+  7157	    }
+  7158	
+  7159	    final void performStop(boolean preserveWindow) {
+  7160	        mDoReportFullyDrawn = false;
+  7161	        mFragments.doLoaderStop(mChangingConfigurations /*retain*/);
+  7162	
+  7163	        // Disallow entering picture-in-picture after the activity has been stopped
+  7164	        mCanEnterPictureInPicture = false;
+  7165	
+  7166	        if (!mStopped) {
+  7167	            if (mWindow != null) {
+  7168	                mWindow.closeAllPanels();
+  7169	            }
+  7170	
+  7171	            // If we're preserving the window, don't setStoppedState to true, since we
+  7172	            // need the window started immediately again. Stopping the window will
+  7173	            // destroys hardware resources and causes flicker.
+  7174	            if (!preserveWindow && mToken != null && mParent == null) {
+  7175	                WindowManagerGlobal.getInstance().setStoppedState(mToken, true);
+  7176	            }
+  7177	
+  7178	            mFragments.dispatchStop();
+  7179	
+  7180	            mCalled = false;
+  7181	            mInstrumentation.callActivityOnStop(this);
+  7182	            if (!mCalled) {
+  6143	    public void setOnClickListener(@Nullable OnClickListener l) {
+  6144	        if (!isClickable()) {
+  6145	            setClickable(true);
+  6146	        }
+  6147	        getListenerInfo().mOnClickListener = l;
+  6148	    }
+  6149	
+  6150	    /**
+  6151	     * Return whether this view has an attached OnClickListener.  Returns
+  6152	     * true if there is a listener, false if there is none.
+  6153	     */
+  6154	    public boolean hasOnClickListeners() {
+  6155	        ListenerInfo li = mListenerInfo;
+  6156	        return (li != null && li.mOnClickListener != null);
+  6157	    }
+  6158	
+  6289	    public boolean performClick() {
+  6290	        final boolean result;
+  6291	        final ListenerInfo li = mListenerInfo;
+  6292	        if (li != null && li.mOnClickListener != null) {
+  6293	            playSoundEffect(SoundEffectConstants.CLICK);
+  6294	            li.mOnClickListener.onClick(this);
+  6295	            result = true;
+  6296	        } else {
+  6297	            result = false;
+  6298	        }
+  6299	
+  6300	        sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_CLICKED);
+  6301	
+  6302	        notifyEnterOrExitForAutoFillIfNeeded(true);
+  6303	
+  6304	        return result;
+  6305	    }
+  6306	
+  6307	    /**
+  6308	     * Directly call any attached OnClickListener.  Unlike {@link #performClick()},
+  6309	     * this only calls the listener, and does not do any associated clicking
+  6310	     * actions like reporting an accessibility event.

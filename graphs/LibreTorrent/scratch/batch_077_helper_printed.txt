@@ -1,0 +1,25 @@
+# Batch 77 printed evidence
+
+Plan extraction:
+```sh
+awk -F '\\t' '$1==77 {print $3 "\\t" $4}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+```
+Result: 40 exact plan rows; descriptors are transcribed in the report table.
+
+Bounded source-definition/caller scan:
+```sh
+rg -n 'newInstance|onCreateDialog|onAttach|onResume|onStart|onStop|showClipboardDialog|subscribeAlertDialog|subscribeClipboardManager|switchClipboardButton|initLinkFromClipboard|normalizeUrl|AddTagDialog|addTag|checkName|finish|initAlertDialog|initLayoutView' .../ui/addlink/{AddLinkDialog,AddLinkViewModel}.java .../ui/addtag/{AddTagActivity,AddTagDialog}.java
+```
+Key output read:
+```
+AddLinkDialog.java:73 newInstance; :84 onAttach; :93 onResume; :113 onStop; :122 onStart
+:130 subscribeAlertDialog; :148-163 clipboard listener registration/handler
+:171 onCreateDialog; :187 initLayoutView; :202 initLayoutView; :221 click listener
+:223 initLinkFromClipboard; :225 initAlertDialog; :273 normalizeUrl; :306 onBackPressed
+AddLinkViewModel.java:45 initLinkFromClipboard; :61 normalizeUrl
+AddTagActivity.java:47 onCreate; :58 AddTagDialog.newInstance; :64 onFragmentFinished
+AddTagDialog.java:112 onCreateDialog; :131-132 setup calls; :159 checkName; :187 addTag click
+:196 addTag; :197 checkName branch; :204 finish callback; :229-231 finish dispatch
+```
+The excerpts show source-local call chains but do not constitute full route review for each target and condition. All rows remain OPEN.
+

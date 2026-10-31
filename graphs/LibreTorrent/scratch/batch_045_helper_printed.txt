@@ -1,0 +1,24 @@
+LibreTorrent batch 45 — command record and source evidence summary
+
+Plan command (sole membership source):
+`awk -F '\t' '$1==45 {print $3 "\t" $4}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv`
+
+Output: 40 ordered SettingsRepositoryImpl members. The report table preserves each exact plan method/signature.
+
+Definition source commands printed/read:
+`rg -n 'maxConnectionsPerTorrent|maxDownloadSpeedLimit|maxLogSize|maxUploadSpeedLimit|maxUploadsPerTorrent|moveAfterDownload|moveAfterDownloadIn|notifySound|observeSettingsChanged|onlyCharging|playSoundNotify|portRangeFirst|portRangeSecond|posixDiskIo|proxyAddress|proxyLogin|proxyPassword|proxyPeersToo|proxyPort|proxyRequiresAuth|proxyType' "$SRC/core/settings/SettingsRepositoryImpl.java"`
+`nl -ba "$SRC/core/settings/SettingsRepositoryImpl.java" | sed -n '190,215p;250,305p;455,475p;535,565p;715,750p;805,890p;988,1085p;1314,1335p'`
+
+`SRC` is `/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent`.
+
+Focused app-use search printed/read:
+`rg -n '\\.(maxConnectionsPerTorrent|maxDownloadSpeedLimit|maxLogSize|maxUploadSpeedLimit|maxUploadsPerTorrent|moveAfterDownload|moveAfterDownloadIn|notifySound|observeSettingsChanged|onlyCharging|playSoundNotify|portRangeFirst|portRangeSecond|posixDiskIo|proxyAddress|proxyLogin|proxyPassword|proxyPeersToo|proxyPort|proxyRequiresAuth|proxyType)\\(' "$SRC"`
+
+Printed usage examples:
+- `TorrentEngine.java:1473-1494` reads speed and per-torrent limits; `1094-1106` applies proxy settings; `1232-1242` reads the configured port range; `1315-1317` reads move-after-download settings.
+- `TorrentService.java:125` subscribes to observeSettingsChanged; `TorrentEngine.java:239-241` also subscribes.
+- `TorrentNotifier.java:281-282` reads playSoundNotify and notifySound.
+- `StorageSettingsFragment`, `LimitationsSettingsFragment`, `ProxySettingsFragment`, `NetworkSettingsFragment`, `LogSettingsFragment`, `AppearanceSettingsFragment`, and `BehaviorSettingsFragment` contain UI preference reads and writes, as shown in the printed rg output.
+- Implementations are SharedPreferences getters/setters. For example observeSettingsChanged registers a listener at lines 194-209, proxy values are at 993-1082, and common limit/storage methods are at 720-887.
+
+The source usages show candidate callers but do not complete the entry-to-method routes for this batch. All uncertain rows remain OPEN. No coverage evidence was accessed. No graph, notes, or out files were edited.

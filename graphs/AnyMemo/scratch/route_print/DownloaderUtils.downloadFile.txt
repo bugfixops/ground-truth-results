@@ -1,0 +1,1221 @@
+METHOD: DownloaderUtils.downloadFile
+verdict: REACHABLE   steps_from_launch: 34
+route steps: 34 edges
+======================================================================
+
+STEP 1  edge Eddc920eb
+  S_ENTRY -> AnyMemo.<init>
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC AndroidManifest.xml:23-46
+  cite [SRC] AndroidManifest.xml:23-46
+    (resolved to final_java_only/AnyMemo/app/AnyMemo-#10.12.2/app/src/main/AndroidManifest.xml)
+       23:         <activity 
+       24:             android:name=".ui.AnyMemo"
+       25:             android:label="@string/app_full_name"
+       26:             android:theme="@style/AnyMemo.Theme.Dark.NoActionBar"
+       27:             android:exported="true" >
+       28:             <intent-filter>
+       29:                 <action 
+       30:                     android:name="android.intent.action.MAIN" />
+       31:                 <category 
+       32:                     android:name="android.intent.category.LAUNCHER" />
+       33:             </intent-filter>
+       34:             <intent-filter>
+       35:                 <action android:name="android.intent.action.VIEW" />
+       36:                 <category android:name="android.intent.category.DEFAULT" />
+       37:                 <category android:name="android.intent.category.BROWSABLE" />
+       38:                 <!-- The android:host does not work correctly with * wildcard.
+       39:                      Ignore the android:host for now -->
+       40:                 <data
+       41:                     android:scheme="content"
+       42:                     android:mimeType="application/octet-stream"
+       43:                     android:pathPattern="/.*\\.db"
+       44:                     tools:ignore="AppIndexingApiError" />
+       45:             </intent-filter>
+       46:         </activity>
+
+STEP 2  edge Ee33f0797
+  AnyMemo.<init> -> AnyMemo.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC core/java/android/app/Activity.java (Activity lifecycle callback dispatched by ActivityThread); SRC ui/AnyMemo.java:115-434
+  cite [SRC] ui/AnyMemo.java:115-434
+      115:     @Override
+      116:     public void onCreate(Bundle savedInstanceState) {
+      117:         activityComponents().inject(this);
+      118:         super.onCreate(savedInstanceState);
+      119:         disposables = new CompositeDisposable();
+      120: 
+      121:         binding = DataBindingUtil.setContentView(this, R.layout.main_tabs);
+      122: 
+      123:         // Request storage permission for API < 29
+      124:         if (android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.Q) {
+      125:             if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+      126:                     != PackageManager.PERMISSION_GRANTED) {
+      127:                 ActivityCompat.requestPermissions(this,
+      128:                         new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+      129:                         PERMISSION_REQUEST_EXTERNAL_STORAGE);
+      130:             } else {
+      131:                 if (!isUiLoaded) {
+      132:                     loadUiComponents();
+      133:                     isUiLoaded = true;
+      134:                 }
+      135:             }
+      136:         } else {
+      137:             if (!isUiLoaded) {
+      138:                 loadUiComponents();
+      139:                 isUiLoaded = true;
+      140:             }
+      141:         }
+      142:         recentListActionModeUtil.registerForActivity();
+      143:     }
+      144: 
+      145:     @Override
+      146:     public void onResume() {
+      147:         super.onResume();
+      148:         if (android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.Q) {
+      149:             if (!isUiLoaded) {
+      150:                 loadUiComponents();
+      151:                 isUiLoaded = true;
+      152:             }
+      153:         } else {
+      154:             if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+      155:                     == PackageManager.PERMISSION_GRANTED) {
+      156:                 if (!isUiLoaded) {
+      157:                     loadUiComponents();
+      158:                     isUiLoaded = true;
+      159:                 }
+      160:             }
+      161:         }
+      162:     }
+      163: 
+      164:     @Override
+      165:     public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
+      166:         switch (requestCode) {
+      167:             case PERMISSION_REQUEST_EXTERNAL_STORAGE: {
+      168:                 // If request is cancelled, the result arrays are empty.
+      169:                 if (grantResults.length > 0
+      170:                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+      171:                     if (!isUiLoaded) {
+      172:                         loadUiComponents();
+      173:                         isUiLoaded = true;
+      174:                     }
+      175:                 } else {
+      176:                     Toast.makeText(this, R.string.write_storage_permission_denied_message, Toast.LENGTH_LONG)
+      177:                             .show();
+      178:                     finish();
+      179:                 }
+      180:             }
+      181:         }
+      182:     }
+      183: 
+      184:     private void loadUiComponents() {
+      185:         settings = PreferenceManager.getDefaultSharedPreferences(this);
+      186: 
+      187:         initDrawer();
+      188: 
+      189:         prepareStoreage();
+      190:         prepareFirstTimeRun();
+      191:         prepareNotification();
+      192: 
+      193:         if (getIntent() != null && Objects.equal(getIntent().getAction(), Intent.ACTION_VIEW)) {
+      194:             handleOpenIntent();
+      195: 
+      196:             // Set the action null when the intent is handled to prevent the logic being executed
+      197:             // again when the screen is rotated
+      198:             getIntent().setAction(null);
+      199:         }
+      200:     }
+      201: 
+      202:     /**
+      203:      * Initialize the Navigation drawer UI.
+      204:      */
+      205:     private void initDrawer() {
+      206:         final Toolbar toolbar = findViewById(R.id.toolbar);
+      207:         setSupportActionBar(toolbar);
+      208: 
+      209:         binding.navView.setNavigationItemSelectedListener(
+      210:             new NavigationView.OnNavigationItemSelectedListener() {
+      211:                 @Override
+      212:                 public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+      213:                     int itemId = menuItem.getItemId();
+      214:                     if (itemId == R.id.recent_tab_menu) {
+      215:                         binding.bottomNavigation.setSelectedItemId(R.id.recent_tab_menu);
+      216:                     } else if (itemId == R.id.open_tab_menu) {
+      217:                         binding.bottomNavigation.setSelectedItemId(R.id.open_tab_menu);
+      218:                     } else if (itemId == R.id.download_tab_menu) {
+      219:                         binding.bottomNavigation.setSelectedItemId(R.id.download_tab_menu);
+      220:                     } else if (itemId == R.id.misc_tab_menu) {
+      221:                         binding.bottomNavigation.setSelectedItemId(R.id.misc_tab_menu);
+      222:                     } else if (itemId == R.id.option_tab_menu) {
+      223:                         startActivity(new Intent(AnyMemo.this, OptionScreen.class));
+      224:                     } else if (itemId == R.id.about_tab_menu) {
+      225:                         aboutUtil.createAboutDialog();
+      226:                     }
+      227:                     menuItem.setChecked(true);
+      228:                     binding.drawerLayout.closeDrawers();
+      229:                     return true;
+      230:                 }
+      231:             }
+      232:         );
+      233: 
+      234:         binding.bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+      235:             @Override
+      236:             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+      237: 
+      238:                 Fragment fragment = null;
+      239:                 int itemId = menuItem.getItemId();
+      240:                 if (itemId == R.id.recent_tab_menu) {
+      241:                     fragment = new RecentListFragment();
+      242:                 } else if (itemId == R.id.open_tab_menu) {
+      243:                     fragment = new OpenTabFragment();
+      244:                     Bundle args = new Bundle();
+      245:                     args.putBoolean(FileBrowserFragment.EXTRA_SHOW_CREATE_DB_BUTTON, true);
+      246:                     fragment.setArguments(args);
+      247:                 } else if (itemId == R.id.download_tab_menu) {
+      248:                     fragment = new DownloadTabFragment();
+      249:                 } else if (itemId == R.id.misc_tab_menu) {
+      250:                     fragment = new MiscTabFragment();
+      251:                 }
+      252: 
+      253:                 if (fragment != null) {
+      254:                     getSupportFragmentManager().beginTransaction()
+      255:                             .replace(R.id.page_fragment_container, fragment)
+      256:                             .commit();
+      257:                 }
+      258: 
+      259:                 return true;
+      260:             }
+      261:         });
+      262: 
+      263:         binding.bottomNavigation.setSelectedItemId(R.id.recent_tab_menu);
+      264: 
+      265:         getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_menu);
+      266:         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+      267:     }
+      268: 
+      269:     private void prepareStoreage() {
+      270:         File sdPath = new File(AMEnv.DEFAULT_ROOT_PATH);
+      271:         sdPath.mkdir();
+      272:         if (!sdPath.canRead()){
+      273:             DialogInterface.OnClickListener exitButtonListener = new DialogInterface.OnClickListener(){
+      274:                 public void onClick(DialogInterface arg0, int arg1){
+      275:                     finish();
+      276:                 }
+      277:             };
+      278:             new AlertDialog.Builder(this)
+      279:                 .setTitle(R.string.sdcard_not_available_warning_title)
+      280:                 .setMessage(R.string.sdcard_not_available_warning_message)
+      281:                 .setNeutralButton(R.string.exit_text, exitButtonListener)
+      282:                 .create()
+      283:                 .show();
+      284:         }
+      285:     }
+      286: 
+      287:     private void prepareFirstTimeRun() {
+      288:         File sdPath = new File(AMEnv.DEFAULT_ROOT_PATH);
+      289:         //Check the version, if it is updated from an older version it will show a dialog
+      290:         int savedVersionCode = settings.getInt(AMPrefKeys.SAVED_VERSION_CODE_KEY, 1);
+      291: 
+      292:         int thisVersionCode; 
+      293:         try {
+      294:             thisVersionCode = getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
+      295:         } catch (PackageManager.NameNotFoundException e) {
+      296:             thisVersionCode = 0;
+      297:             if (BuildConfig.DEBUG) {
+      298:                 throw new RuntimeException("The version code can not be retrieved. Is it defined in build.gradle?");
+      299:             }
+      300:         }
+      301: 
+      302:         boolean firstTime = settings.getBoolean(AMPrefKeys.FIRST_TIME_KEY, true);
+      303: 
+      304:         // Force clean preference for non-compstible versions.
+      305:         if (savedVersionCode < 154) { // Version 9.0.4
+      306:             firstTime = true;
+      307:             SharedPreferences.Editor editor = settings.edit();
+      308:             editor.clear();
+      309:             editor.apply();
+      310:         }
+      311: 
+      312:         /* First time installation! It will install the sample db
+      313:          * to /sdcard/AnyMemo
+      314:          */
+      315:         if (firstTime){
+      316:             SharedPreferences.Editor editor = settings.edit();
+      317:             editor.putBoolean(AMPrefKeys.FIRST_TIME_KEY, false);
+      318:             editor.putString(AMPrefKeys.getRecentPathKey(0), AMEnv.DEFAULT_ROOT_PATH + AMEnv.DEFAULT_DB_NAME);
+      319:             editor.apply();
+      320:             try {
+      321:                 amFileUtil.copyFileFromAsset(AMEnv.DEFAULT_DB_NAME,  new File(sdPath + "/" + AMEnv.DEFAULT_DB_NAME));
+      322: 
+      323:                 InputStream in2 = getResources().getAssets().open(AMEnv.EMPTY_DB_NAME);
+      324:                 String emptyDbPath = getApplicationContext().getFilesDir().getAbsolutePath() + "/" + AMEnv.EMPTY_DB_NAME;
+      325:                 FileUtils.copyInputStreamToFile(in2, new File(emptyDbPath));
+      326:                 in2.close();
+      327:             } catch(IOException e){
+      328:                 Log.e(TAG, "Copy file error", e);
+      329: 
+      330:             }
+      331:         }
+      332:         /* Detect an update */
+      333:         if (savedVersionCode != thisVersionCode) {
+      334:             SharedPreferences.Editor editor = settings.edit();
+      335:             /* save new version number */
+      336:             editor.putInt(AMPrefKeys.SAVED_VERSION_CODE_KEY, thisVersionCode);
+      337:             editor.apply();
+      338: 
+      339:             View alertView = View.inflate(this, R.layout.link_alert, null);
+      340:             TextView textView = (TextView)alertView.findViewById(R.id.link_alert_message);
+      341: 
+      342:             SpannableStringBuilder ssb = new SpannableStringBuilder();
+      343:             ssb.append(Html.fromHtml(getString(R.string.what_is_new_message)));
+      344:             if (savedVersionCode < 239 || firstTime) {
+      345:                 ssb.append(Html.fromHtml(getString(R.string.upgrade_note_10_12)));
+      346:             }
+      347: 
+      348:             android.text.style.URLSpan[] urls = ssb.getSpans(0, ssb.length(), android.text.style.URLSpan.class);
+      349:             for (android.text.style.URLSpan span : urls) {
+      350:                 if ("import_folder".equals(span.getURL())) {
+      351:                     int start = ssb.getSpanStart(span);
+      352:                     int end = ssb.getSpanEnd(span);
+      353:                     int flags = ssb.getSpanFlags(span);
+      354:                     ssb.removeSpan(span);
+      355:                     ssb.setSpan(new android.text.style.ClickableSpan() {
+      356:                         @Override
+      357:                         public void onClick(View widget) {
+      358:                             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+      359:                             startActivityForResult(intent, REQUEST_CODE_IMPORT_FOLDER);
+      360:                         }
+      361:                     }, start, end, flags);
+      362:                 }
+      363:             }
+      364: 
+      365:             textView.setText(ssb);
+      366:             textView.setMovementMethod(LinkMovementMethod.getInstance());
+      367:             new AlertDialog.Builder(this)
+      368:                 .setView(alertView)
+      369:                 .setTitle(getString(R.string.what_is_new))
+      370:                 .setPositiveButton(getString(R.string.ok_text), null)
+      371:                 .setNegativeButton(getString(R.string.about_version), new DialogInterface.OnClickListener(){
+      372:                     @Override
+      373:                     public void onClick(DialogInterface arg0, int arg1){
+      374:                         Intent myIntent = new Intent();
+      375:                         myIntent.setAction(Intent.ACTION_VIEW);
+      376:                         myIntent.addCategory(Intent.CATEGORY_BROWSABLE);
+      377:                         myIntent.setData(Uri.parse(WEBSITE_VERSION));
+      378:                         startActivity(myIntent);
+      379:                     }
+      380:                 })
+      381:             .show();
+      382:         }
+      383:     }
+      384: 
+      385:     private void prepareNotification() {
+      386:         SetAlarmReceiver.cancelNotificationAlarm(this);
+      387:         SetAlarmReceiver.setNotificationAlarm(this);
+      388:     }
+      389: 
+      390:     /**
+      391:      * Handle the "VIEW" action for other app to open a db
+      392:      */
+      393:     private void handleOpenIntent() {
+      394:         multipleLoaderManager.registerLoaderCallbacks(1, new HandleOpenIntentLoaderCallbacks(getIntent().getData()), false);
+      395:         multipleLoaderManager.startLoading();
+      396:     }
+      397: 
+      398:     @Override
+      399:     public void onDestroy() {
+      400:         recentListActionModeUtil.unregisterForActivity();
+      401:         disposables.dispose();
+      402: 
+      403:         super.onDestroy();
+      404:         // Update the widget and cancel the notification.
+      405:         AnyMemoWidgetProvider.updateWidget(this);
+      406:         notificationUtil.cancelNotification();
+      407: 
+      408:         if (multipleLoaderManager != null) {
+      409:             multipleLoaderManager.destroy();
+      410:         }
+      411:     }
+      412: 
+      413:     @Override
+      414:     public boolean onOptionsItemSelected(MenuItem item) {
+      415:         if (item.getItemId() == android.R.id.home) {
+      416:             binding.drawerLayout.openDrawer(GravityCompat.START);
+      417:             return true;
+      418:         }
+      419: 
+      420:         return super.onOptionsItemSelected(item);
+      421:     }
+      422: 
+      423:     @Override
+      424:     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+      425:         super.onActivityResult(requestCode, resultCode, data);
+      426:         if (requestCode == REQUEST_CODE_IMPORT_FOLDER && resultCode == RESULT_OK) {
+      427:             if (data != null) {
+      428:                 Uri treeUri = data.getData();
+      429:                 if (treeUri != null) {
+      430:                     folderImportExportUtil.importFolder(this, treeUri, disposables);
+      431:                 }
+      432:             }
+      433:         }
+      434:     }
+
+STEP 3  edge E0b0115b9
+  AnyMemo.onCreate -> AnyMemo.loadUiComponents
+  class: explicit   kind: CALL
+  guard: API <= 29 and WRITE_EXTERNAL_STORAGE is already granted (AnyMemo.java:124-134)
+  needs_state: None
+  env: the WRITE_EXTERNAL_STORAGE runtime permission is granted (requested once on API <= 29; always granted on API 27 if accepted)
+  evidence: SRC ui/AnyMemo.java:124-141
+  cite [SRC] ui/AnyMemo.java:124-141
+      124:         if (android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.Q) {
+      125:             if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+      126:                     != PackageManager.PERMISSION_GRANTED) {
+      127:                 ActivityCompat.requestPermissions(this,
+      128:                         new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+      129:                         PERMISSION_REQUEST_EXTERNAL_STORAGE);
+      130:             } else {
+      131:                 if (!isUiLoaded) {
+      132:                     loadUiComponents();
+      133:                     isUiLoaded = true;
+      134:                 }
+      135:             }
+      136:         } else {
+      137:             if (!isUiLoaded) {
+      138:                 loadUiComponents();
+      139:                 isUiLoaded = true;
+      140:             }
+      141:         }
+
+STEP 4  edge Ed9aa2280
+  AnyMemo.loadUiComponents -> AnyMemo.initDrawer
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/AnyMemo.java:187
+  cite [SRC] ui/AnyMemo.java:187
+      187:         initDrawer();
+
+STEP 5  edge Efe6c7871
+  AnyMemo.initDrawer -> AnyMemo$2.onNavigationItemSelected@INIT
+  class: non_standard   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/AnyMemo.java:263; INFERRED com.google.android.material BottomNavigationView.setSelectedItemId dispatches the listener (not read)
+  cite [SRC] ui/AnyMemo.java:263
+      263:         binding.bottomNavigation.setSelectedItemId(R.id.recent_tab_menu);
+
+STEP 6  edge E006becde
+  AnyMemo$2.onNavigationItemSelected@INIT -> RecentListFragment.<init>
+  class: explicit   kind: CALL
+  guard: itemId == recent_tab_menu: the cold-start selection always takes this branch (AnyMemo.java:240-241, 263)
+  needs_state: None
+  env: None
+  evidence: SRC AnyMemo.java:241 (bytecode)
+  cite [SRC] AnyMemo.java:241
+    (resolved to final_java_only/AnyMemo/app/AnyMemo-#10.12.2/app/src/main/java/org/liberty/android/fantastischmemo/ui/AnyMemo.java)
+      241:                     fragment = new RecentListFragment();
+
+STEP 7  edge E48c9d4a5
+  RecentListFragment.<init> -> RecentListFragment.onAttach
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ui/RecentListFragment.java:127-226
+  cite [SRC] ui/RecentListFragment.java:127-226
+      127:     @Override
+      128:     public void onCreate(@Nullable Bundle savedInstanceState) {
+      129:         super.onCreate(savedInstanceState);
+      130:         fragmentComponents().inject(this);
+      131:         disposables = new CompositeDisposable();
+      132:     }
+      133: 
+      134:     @Override
+      135:     public void onAttach(Context activity) {
+      136:         super.onAttach(activity);
+      137:         setHasOptionsMenu(true);
+      138:         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mClearSelectionReceiver,
+      139:                 new IntentFilter(RecentListActionModeUtil.ACTION_DESELECT_ALL));
+      140:         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mRemoveSelectedReceiver,
+      141:                 new IntentFilter(RecentListActionModeUtil.ACTION_REMOVE_SELECTED));
+      142:     }
+      143: 
+      144:     @Override
+      145:     public void onDetach() {
+      146:         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mClearSelectionReceiver);
+      147:         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mRemoveSelectedReceiver);
+      148:         super.onDetach();
+      149:     }
+      150: 
+      151:     @Override
+      152:     public void onDestroy() {
+      153:         super.onDestroy();
+      154:         if (disposables != null) {
+      155:             disposables.dispose();
+      156:         }
+      157:     }
+      158: 
+      159:     @Override
+      160:     public void setUserVisibleHint(boolean isVisibleToUser) {
+      161:         super.setUserVisibleHint(isVisibleToUser);
+      162: 
+      163:         if (recentListAdapter != null && !isVisibleToUser) {
+      164:             recentListAdapter.stopActionMode();
+      165:         }
+      166:     }
+      167: 
+      168:     @Override
+      169:     public View onCreateView(LayoutInflater inflater, ViewGroup container,
+      170:             Bundle savedInstanceState) {
+      171:         View v = inflater.inflate(R.layout.recent_list, container, false);
+      172:         recentListRecyclerView = (RecyclerView) v.findViewById(R.id.recent_open_list);
+      173:         RecyclerView.ItemDecoration dividerItemDecoration = new DividerItemDecoration(v.getContext());
+      174:         recentListRecyclerView.addItemDecoration(dividerItemDecoration);
+      175: 
+      176:         recentListRecyclerView.setLayoutManager(new LinearLayoutManager(recentListRecyclerView.getContext()));
+      177: 
+      178:         /* pre loading stat */
+      179:         recentListAdapter = new RecentListAdapter(getContext(), recentListUtil,
+      180:                                                   recentListActionModeUtil);
+      181: 
+      182:         recentListRecyclerView.setAdapter(recentListAdapter);
+      183: 
+      184:         View fab = v.findViewById(R.id.import_fab);
+      185:         if (fab != null) {
+      186:             fab.setOnClickListener(new View.OnClickListener() {
+      187:                 @Override
+      188:                 public void onClick(View view) {
+      189:                     Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+      190:                     intent.addCategory(Intent.CATEGORY_OPENABLE);
+      191:                     intent.setType("*/*");
+      192:                     startActivityForResult(intent, REQUEST_CODE_IMPORT_DB);
+      193:                 }
+      194:             });
+      195:         }
+      196: 
+      197:         return v;
+      198:     }
+      199: 
+      200:     @Override
+      201:     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+      202:         if (requestCode == REQUEST_CODE_IMPORT_DB && resultCode == Activity.RESULT_OK && data != null && data.getData() != null) {
+      203:             final Uri uri = data.getData();
+      204:             databaseImportUtil.handleImportDbResult(getActivity(), uri, disposables, new Runnable() {
+      205:                 @Override
+      206:                 public void run() {
+      207:                     onResume();
+      208:                 }
+      209:             });
+      210:         } else {
+      211:             super.onActivityResult(requestCode, resultCode, data);
+      212:         }
+      213:     }
+      214: 
+      215:     @Override
+      216:     public void onResume() {
+      217:         super.onResume();
+      218:         getLoaderManager().restartLoader(1, null, new RecentListLoaderCallbacks());
+      219:         getLoaderManager().restartLoader(2, null, new RecentListDetailLoaderCallbacks());
+      220:     }
+      221: 
+      222:     @Override
+      223:     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
+      224:         super.onCreateOptionsMenu(menu, inflater);
+      225:         inflater.inflate(R.menu.open_screen_menu, menu);
+      226:     }
+
+STEP 8  edge Ef4267162
+  RecentListFragment.onAttach -> RecentListFragment.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ui/RecentListFragment.java:127-226
+  cite [SRC] ui/RecentListFragment.java:127-226
+      127:     @Override
+      128:     public void onCreate(@Nullable Bundle savedInstanceState) {
+      129:         super.onCreate(savedInstanceState);
+      130:         fragmentComponents().inject(this);
+      131:         disposables = new CompositeDisposable();
+      132:     }
+      133: 
+      134:     @Override
+      135:     public void onAttach(Context activity) {
+      136:         super.onAttach(activity);
+      137:         setHasOptionsMenu(true);
+      138:         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mClearSelectionReceiver,
+      139:                 new IntentFilter(RecentListActionModeUtil.ACTION_DESELECT_ALL));
+      140:         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mRemoveSelectedReceiver,
+      141:                 new IntentFilter(RecentListActionModeUtil.ACTION_REMOVE_SELECTED));
+      142:     }
+      143: 
+      144:     @Override
+      145:     public void onDetach() {
+      146:         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mClearSelectionReceiver);
+      147:         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mRemoveSelectedReceiver);
+      148:         super.onDetach();
+      149:     }
+      150: 
+      151:     @Override
+      152:     public void onDestroy() {
+      153:         super.onDestroy();
+      154:         if (disposables != null) {
+      155:             disposables.dispose();
+      156:         }
+      157:     }
+      158: 
+      159:     @Override
+      160:     public void setUserVisibleHint(boolean isVisibleToUser) {
+      161:         super.setUserVisibleHint(isVisibleToUser);
+      162: 
+      163:         if (recentListAdapter != null && !isVisibleToUser) {
+      164:             recentListAdapter.stopActionMode();
+      165:         }
+      166:     }
+      167: 
+      168:     @Override
+      169:     public View onCreateView(LayoutInflater inflater, ViewGroup container,
+      170:             Bundle savedInstanceState) {
+      171:         View v = inflater.inflate(R.layout.recent_list, container, false);
+      172:         recentListRecyclerView = (RecyclerView) v.findViewById(R.id.recent_open_list);
+      173:         RecyclerView.ItemDecoration dividerItemDecoration = new DividerItemDecoration(v.getContext());
+      174:         recentListRecyclerView.addItemDecoration(dividerItemDecoration);
+      175: 
+      176:         recentListRecyclerView.setLayoutManager(new LinearLayoutManager(recentListRecyclerView.getContext()));
+      177: 
+      178:         /* pre loading stat */
+      179:         recentListAdapter = new RecentListAdapter(getContext(), recentListUtil,
+      180:                                                   recentListActionModeUtil);
+      181: 
+      182:         recentListRecyclerView.setAdapter(recentListAdapter);
+      183: 
+      184:         View fab = v.findViewById(R.id.import_fab);
+      185:         if (fab != null) {
+      186:             fab.setOnClickListener(new View.OnClickListener() {
+      187:                 @Override
+      188:                 public void onClick(View view) {
+      189:                     Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+      190:                     intent.addCategory(Intent.CATEGORY_OPENABLE);
+      191:                     intent.setType("*/*");
+      192:                     startActivityForResult(intent, REQUEST_CODE_IMPORT_DB);
+      193:                 }
+      194:             });
+      195:         }
+      196: 
+      197:         return v;
+      198:     }
+      199: 
+      200:     @Override
+      201:     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+      202:         if (requestCode == REQUEST_CODE_IMPORT_DB && resultCode == Activity.RESULT_OK && data != null && data.getData() != null) {
+      203:             final Uri uri = data.getData();
+      204:             databaseImportUtil.handleImportDbResult(getActivity(), uri, disposables, new Runnable() {
+      205:                 @Override
+      206:                 public void run() {
+      207:                     onResume();
+      208:                 }
+      209:             });
+      210:         } else {
+      211:             super.onActivityResult(requestCode, resultCode, data);
+      212:         }
+      213:     }
+      214: 
+      215:     @Override
+      216:     public void onResume() {
+      217:         super.onResume();
+      218:         getLoaderManager().restartLoader(1, null, new RecentListLoaderCallbacks());
+      219:         getLoaderManager().restartLoader(2, null, new RecentListDetailLoaderCallbacks());
+      220:     }
+      221: 
+      222:     @Override
+      223:     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
+      224:         super.onCreateOptionsMenu(menu, inflater);
+      225:         inflater.inflate(R.menu.open_screen_menu, menu);
+      226:     }
+
+STEP 9  edge E25e1518b
+  RecentListFragment.onCreate -> RecentListFragment.onCreateView
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ui/RecentListFragment.java:127-226
+  cite [SRC] ui/RecentListFragment.java:127-226
+      127:     @Override
+      128:     public void onCreate(@Nullable Bundle savedInstanceState) {
+      129:         super.onCreate(savedInstanceState);
+      130:         fragmentComponents().inject(this);
+      131:         disposables = new CompositeDisposable();
+      132:     }
+      133: 
+      134:     @Override
+      135:     public void onAttach(Context activity) {
+      136:         super.onAttach(activity);
+      137:         setHasOptionsMenu(true);
+      138:         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mClearSelectionReceiver,
+      139:                 new IntentFilter(RecentListActionModeUtil.ACTION_DESELECT_ALL));
+      140:         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mRemoveSelectedReceiver,
+      141:                 new IntentFilter(RecentListActionModeUtil.ACTION_REMOVE_SELECTED));
+      142:     }
+      143: 
+      144:     @Override
+      145:     public void onDetach() {
+      146:         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mClearSelectionReceiver);
+      147:         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mRemoveSelectedReceiver);
+      148:         super.onDetach();
+      149:     }
+      150: 
+      151:     @Override
+      152:     public void onDestroy() {
+      153:         super.onDestroy();
+      154:         if (disposables != null) {
+      155:             disposables.dispose();
+      156:         }
+      157:     }
+      158: 
+      159:     @Override
+      160:     public void setUserVisibleHint(boolean isVisibleToUser) {
+      161:         super.setUserVisibleHint(isVisibleToUser);
+      162: 
+      163:         if (recentListAdapter != null && !isVisibleToUser) {
+      164:             recentListAdapter.stopActionMode();
+      165:         }
+      166:     }
+      167: 
+      168:     @Override
+      169:     public View onCreateView(LayoutInflater inflater, ViewGroup container,
+      170:             Bundle savedInstanceState) {
+      171:         View v = inflater.inflate(R.layout.recent_list, container, false);
+      172:         recentListRecyclerView = (RecyclerView) v.findViewById(R.id.recent_open_list);
+      173:         RecyclerView.ItemDecoration dividerItemDecoration = new DividerItemDecoration(v.getContext());
+      174:         recentListRecyclerView.addItemDecoration(dividerItemDecoration);
+      175: 
+      176:         recentListRecyclerView.setLayoutManager(new LinearLayoutManager(recentListRecyclerView.getContext()));
+      177: 
+      178:         /* pre loading stat */
+      179:         recentListAdapter = new RecentListAdapter(getContext(), recentListUtil,
+      180:                                                   recentListActionModeUtil);
+      181: 
+      182:         recentListRecyclerView.setAdapter(recentListAdapter);
+      183: 
+      184:         View fab = v.findViewById(R.id.import_fab);
+      185:         if (fab != null) {
+      186:             fab.setOnClickListener(new View.OnClickListener() {
+      187:                 @Override
+      188:                 public void onClick(View view) {
+      189:                     Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+      190:                     intent.addCategory(Intent.CATEGORY_OPENABLE);
+      191:                     intent.setType("*/*");
+      192:                     startActivityForResult(intent, REQUEST_CODE_IMPORT_DB);
+      193:                 }
+      194:             });
+      195:         }
+      196: 
+      197:         return v;
+      198:     }
+      199: 
+      200:     @Override
+      201:     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+      202:         if (requestCode == REQUEST_CODE_IMPORT_DB && resultCode == Activity.RESULT_OK && data != null && data.getData() != null) {
+      203:             final Uri uri = data.getData();
+      204:             databaseImportUtil.handleImportDbResult(getActivity(), uri, disposables, new Runnable() {
+      205:                 @Override
+      206:                 public void run() {
+      207:                     onResume();
+      208:                 }
+      209:             });
+      210:         } else {
+      211:             super.onActivityResult(requestCode, resultCode, data);
+      212:         }
+      213:     }
+      214: 
+      215:     @Override
+      216:     public void onResume() {
+      217:         super.onResume();
+      218:         getLoaderManager().restartLoader(1, null, new RecentListLoaderCallbacks());
+      219:         getLoaderManager().restartLoader(2, null, new RecentListDetailLoaderCallbacks());
+      220:     }
+      221: 
+      222:     @Override
+      223:     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
+      224:         super.onCreateOptionsMenu(menu, inflater);
+      225:         inflater.inflate(R.menu.open_screen_menu, menu);
+      226:     }
+
+STEP 10  edge E690f7694
+  RecentListFragment.onCreateView -> S_MAIN_RECENT
+  class: page   kind: ENTERS
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/RecentListFragment.java:169-182; ui/AnyMemo.java:240-241,253-257
+  cite [SRC] ui/RecentListFragment.java:169-182
+      169:     public View onCreateView(LayoutInflater inflater, ViewGroup container,
+      170:             Bundle savedInstanceState) {
+      171:         View v = inflater.inflate(R.layout.recent_list, container, false);
+      172:         recentListRecyclerView = (RecyclerView) v.findViewById(R.id.recent_open_list);
+      173:         RecyclerView.ItemDecoration dividerItemDecoration = new DividerItemDecoration(v.getContext());
+      174:         recentListRecyclerView.addItemDecoration(dividerItemDecoration);
+      175: 
+      176:         recentListRecyclerView.setLayoutManager(new LinearLayoutManager(recentListRecyclerView.getContext()));
+      177: 
+      178:         /* pre loading stat */
+      179:         recentListAdapter = new RecentListAdapter(getContext(), recentListUtil,
+      180:                                                   recentListActionModeUtil);
+      181: 
+      182:         recentListRecyclerView.setAdapter(recentListAdapter);
+  cite [SRC] ui/AnyMemo.java:240-241, 253-257
+      240:                 if (itemId == R.id.recent_tab_menu) {
+      241:                     fragment = new RecentListFragment();
+      253:                 if (fragment != null) {
+      254:                     getSupportFragmentManager().beginTransaction()
+      255:                             .replace(R.id.page_fragment_container, fragment)
+      256:                             .commit();
+      257:                 }
+
+STEP 11  edge E6da90567
+  S_MAIN_RECENT -> AnyMemo$2.onNavigationItemSelected
+  class: standard   kind: GUI
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED com.google.android.material (BottomNavigationView / NavigationView / FloatingActionButton / Snackbar) dispatches the listener registered on it, the same way a platform View dispatches a click (Material Components source not read); SRC ui/AnyMemo.java:234-261
+  cite [SRC] ui/AnyMemo.java:234-261
+      234:         binding.bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+      235:             @Override
+      236:             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+      237: 
+      238:                 Fragment fragment = null;
+      239:                 int itemId = menuItem.getItemId();
+      240:                 if (itemId == R.id.recent_tab_menu) {
+      241:                     fragment = new RecentListFragment();
+      242:                 } else if (itemId == R.id.open_tab_menu) {
+      243:                     fragment = new OpenTabFragment();
+      244:                     Bundle args = new Bundle();
+      245:                     args.putBoolean(FileBrowserFragment.EXTRA_SHOW_CREATE_DB_BUTTON, true);
+      246:                     fragment.setArguments(args);
+      247:                 } else if (itemId == R.id.download_tab_menu) {
+      248:                     fragment = new DownloadTabFragment();
+      249:                 } else if (itemId == R.id.misc_tab_menu) {
+      250:                     fragment = new MiscTabFragment();
+      251:                 }
+      252: 
+      253:                 if (fragment != null) {
+      254:                     getSupportFragmentManager().beginTransaction()
+      255:                             .replace(R.id.page_fragment_container, fragment)
+      256:                             .commit();
+      257:                 }
+      258: 
+      259:                 return true;
+      260:             }
+      261:         });
+
+STEP 12  edge Ebf74c9c7
+  AnyMemo$2.onNavigationItemSelected -> DownloadTabFragment.<init>
+  class: explicit   kind: CALL
+  guard: itemId == download_tab_menu (AnyMemo.java:247-248)
+  needs_state: None
+  env: None
+  evidence: SRC ui/AnyMemo.java:247-248
+  cite [SRC] ui/AnyMemo.java:247-248
+      247:                 } else if (itemId == R.id.download_tab_menu) {
+      248:                     fragment = new DownloadTabFragment();
+
+STEP 13  edge E953ab259
+  DownloadTabFragment.<init> -> DownloadTabFragment.onAttach
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ui/DownloadTabFragment.java:46-50
+  cite [SRC] ui/DownloadTabFragment.java:46-50
+       46:     @Override
+       47:     public void onAttach(Activity activity) {
+       48:         super.onAttach(activity);
+       49:         mActivity = activity;
+       50:     }
+
+STEP 14  edge E2455ca30
+  DownloadTabFragment.onAttach -> DownloadTabFragment.onCreateView
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ui/DownloadTabFragment.java:52-61
+  cite [SRC] ui/DownloadTabFragment.java:52-61
+       52:     @Override
+       53:     public View onCreateView(LayoutInflater inflater, ViewGroup container,
+       54:             Bundle savedInstanceState) {
+       55:         View v = inflater.inflate(R.layout.downloader_tab, container, false);
+       56:         amButton = v.findViewById(R.id.source_anymemo);
+       57:         dropboxButton = v.findViewById(R.id.source_dropbox);
+       58:         amButton.setOnClickListener(this);
+       59:         dropboxButton.setOnClickListener(this);
+       60:         return v;
+       61:     }
+
+STEP 15  edge E1e204ebe
+  DownloadTabFragment.onCreateView -> DownloadTabFragment.onClick
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED a tapped/long-pressed View dispatches to the listener registered with setOnClickListener / setOnLongClickListener / setOnItemClickListener / setOnItemLongClickListener / setOnTouchListener / setOnCheckedChangeListener / addTextChangedListener / setOnFocusChangeListener / setOnSeekBarChangeListener (androidx widgets wrap the platform View/AdapterView dispatch; androidx source not read); SRC ui/DownloadTabFragment.java:56-70
+  cite [SRC] ui/DownloadTabFragment.java:56-70
+       56:         amButton = v.findViewById(R.id.source_anymemo);
+       57:         dropboxButton = v.findViewById(R.id.source_dropbox);
+       58:         amButton.setOnClickListener(this);
+       59:         dropboxButton.setOnClickListener(this);
+       60:         return v;
+       61:     }
+       62:     @Override
+       63:     public void onClick(View v){
+       64:         if (v == amButton){
+       65:             startActivity(new Intent(mActivity, AnyMemoDownloaderActivity.class));
+       66:         }
+       67:         if (v == dropboxButton){
+       68:         	startActivity(new Intent(mActivity, DropboxOauth2AccountActivity.class));
+       69:         }
+       70:     }
+
+STEP 16  edge E6e6eed14
+  DownloadTabFragment.onClick -> AnyMemoDownloaderActivity.<init>
+  class: standard   kind: ENTRY
+  guard: v == amButton (DownloadTabFragment.java:64)
+  needs_state: None
+  env: None
+  evidence: SRC ui/DownloadTabFragment.java:64-66
+  cite [SRC] ui/DownloadTabFragment.java:64-66
+       64:         if (v == amButton){
+       65:             startActivity(new Intent(mActivity, AnyMemoDownloaderActivity.class));
+       66:         }
+
+STEP 17  edge Eb58ca0ea
+  AnyMemoDownloaderActivity.<init> -> AnyMemoDownloaderActivity.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC core/java/android/app/Activity.java (Activity lifecycle callback dispatched by ActivityThread); SRC downloader/anymemo/AnyMemoDownloaderActivity.java:9-13
+  cite [SRC] downloader/anymemo/AnyMemoDownloaderActivity.java:9-13
+        9:     @Override
+       10:     public void onCreate(Bundle savedInstanceState) {
+       11:         super.onCreate(savedInstanceState);
+       12:         setContentView(R.layout.anymemo_downloader);
+       13:     }
+
+STEP 18  edge Eabeaf426
+  AnyMemoDownloaderActivity.onCreate -> AnyMemoDownloaderFragment.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC downloader/anymemo/AnyMemoDownloaderActivity.java:10-13; res/layout/anymemo_downloader.xml
+  cite [SRC] downloader/anymemo/AnyMemoDownloaderActivity.java:10-13
+       10:     public void onCreate(Bundle savedInstanceState) {
+       11:         super.onCreate(savedInstanceState);
+       12:         setContentView(R.layout.anymemo_downloader);
+       13:     }
+
+STEP 19  edge E7fb331ae
+  AnyMemoDownloaderFragment.onCreate -> S_DOWNLOAD_AM
+  class: page   kind: ENTERS
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC downloader/anymemo/AnyMemoDownloaderFragment.java:35-39
+  cite [SRC] downloader/anymemo/AnyMemoDownloaderFragment.java:35-39
+       35:     @Override
+       36:     public void onCreate(@Nullable Bundle savedInstanceState) {
+       37:         super.onCreate(savedInstanceState);
+       38:         fragmentComponents().inject(this);
+       39:     }
+
+STEP 20  edge E450c56c0
+  S_DOWNLOAD_AM -> AbstractDownloaderFragment.onViewCreated@AM
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC downloader/common/AbstractDownloaderFragment.java:169-174
+  cite [SRC] downloader/common/AbstractDownloaderFragment.java:169-174
+      169:     @Override
+      170:     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+      171:         super.onViewCreated(view, savedInstanceState);
+      172: 
+      173:         refreshList();
+      174:     }
+
+STEP 21  edge E553e8d3a
+  AbstractDownloaderFragment.onViewCreated@AM -> AbstractDownloaderFragment.refreshList@AM
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC downloader/common/AbstractDownloaderFragment.java:173
+  cite [SRC] downloader/common/AbstractDownloaderFragment.java:173
+      173:         refreshList();
+
+STEP 22  edge E9827b63c
+  AbstractDownloaderFragment.refreshList@AM -> AbstractDownloaderFragment$RetrieveTask.onPreExecute@AM
+  class: standard   kind: ASYNC
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED android.os.AsyncTask.execute/executeOnExecutor runs doInBackground on a worker thread and onPreExecute/onPostExecute on the main thread (platform source not read for this exact flow; see FW-SRC citation added in step 6 for the base class); SRC downloader/common/AbstractDownloaderFragment.java:181-187
+  cite [SRC] downloader/common/AbstractDownloaderFragment.java:181-187
+      181:         RetrieveTask task = new RetrieveTask();
+      182:         task.execute(new Callable<List<DownloadItem>>() {
+      183:             @Override
+      184:             public List<DownloadItem> call() throws Exception {
+      185:                 return initialRetrieve();
+      186:             }
+      187:         });
+
+STEP 23  edge Ec5d30f7f
+  AbstractDownloaderFragment$RetrieveTask.onPreExecute@AM -> AbstractDownloaderFragment$RetrieveTask.doInBackground@AM
+  class: standard   kind: ASYNC
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED android.os.AsyncTask.execute/executeOnExecutor runs doInBackground on a worker thread and onPreExecute/onPostExecute on the main thread (platform source not read for this exact flow; see FW-SRC citation added in step 6 for the base class); SRC downloader/common/AbstractDownloaderFragment.java:181-187
+  cite [SRC] downloader/common/AbstractDownloaderFragment.java:181-187
+      181:         RetrieveTask task = new RetrieveTask();
+      182:         task.execute(new Callable<List<DownloadItem>>() {
+      183:             @Override
+      184:             public List<DownloadItem> call() throws Exception {
+      185:                 return initialRetrieve();
+      186:             }
+      187:         });
+
+STEP 24  edge E24b4ee5c
+  AbstractDownloaderFragment$RetrieveTask.doInBackground@AM -> AbstractDownloaderFragment$1.call@AM
+  class: explicit   kind: CALL
+  guard: refresh path: the one Callable from refreshList (AbstractDownloaderFragment.java:208-212; for-loop at :210)
+  needs_state: None
+  env: None
+  evidence: SRC downloader/common/AbstractDownloaderFragment.java:208-212
+  cite [SRC] downloader/common/AbstractDownloaderFragment.java:208-212
+      208:         public Exception doInBackground(Callable<List<DownloadItem>>... tasks) {
+      209:             try {
+      210:                 for (Callable<List<DownloadItem>> task : tasks) {
+      211:                     downloadItems.addAll(task.call());
+      212:                 }
+
+STEP 25  edge E76c5baf3
+  AbstractDownloaderFragment$1.call@AM -> AbstractDownloaderFragment$RetrieveTask.onPostExecute@AM
+  class: standard   kind: ASYNC
+  guard: None
+  needs_state: None
+  env: outside package: the AnyMemo download server (anymemo.org) must be reachable (network)
+  evidence: INFERRED android.os.AsyncTask.execute/executeOnExecutor runs doInBackground on a worker thread and onPreExecute/onPostExecute on the main thread (platform source not read for this exact flow; see FW-SRC citation added in step 6 for the base class); SRC downloader/common/AbstractDownloaderFragment.java:220-234
+  cite [SRC] downloader/common/AbstractDownloaderFragment.java:220-234
+      220:         @Override
+      221:         public void onPostExecute(Exception e){
+      222:             listView.removeFooterView(loadingProgressFooter);
+      223:             progressDialog.dismiss();
+      224:             if (e != null) {
+      225:                 AMGUIUtility.displayError(mActivity, getString(R.string.downloader_connection_error), getString(R.string.downloader_connection_error_message), e);
+      226:                 return;
+      227:             }
+      228: 
+      229:             dlAdapter.clear();
+      230:             dlAdapter.addList(downloadItems);
+      231:             if (hasMore()) {
+      232:                 listView.addFooterView(loadMoreFooter);
+      233:             }
+      234:         }
+
+STEP 26  edge E32fc9ed1
+  AbstractDownloaderFragment$RetrieveTask.onPostExecute@AM -> AbstractDownloaderFragment$DownloadListAdapter$1.onClick@AM
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: outside package: the AnyMemo download server (anymemo.org) must be reachable (network)
+  evidence: INFERRED a tapped/long-pressed View dispatches to the listener registered with setOnClickListener / setOnLongClickListener / setOnItemClickListener / setOnItemLongClickListener / setOnTouchListener / setOnCheckedChangeListener / addTextChangedListener / setOnFocusChangeListener / setOnSeekBarChangeListener (androidx widgets wrap the platform View/AdapterView dispatch; androidx source not read); SRC downloader/common/AbstractDownloaderFragment.java:229-230, 386-411, 409-438
+  cite [SRC] downloader/common/AbstractDownloaderFragment.java:229-230, 386-411, 409-438
+      229:             dlAdapter.clear();
+      230:             dlAdapter.addList(downloadItems);
+      386:         public View getView(final int position, View convertView, ViewGroup parent){
+      387:             View v = convertView;
+      388:             if (v == null){
+      389:                 LayoutInflater li = (LayoutInflater)mActivity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+      390:                 /* Reuse the filebrowser's resources */
+      391:                 v = li.inflate(R.layout.filebrowser_item, null);
+      392:             }
+      393:             DownloadItem item = getItem(position);
+      394:             if (item != null){
+      395:                 TextView tv = (TextView)v.findViewById(R.id.file_name);
+      396:                 ImageView iv = (ImageView)v.findViewById(R.id.file_icon);
+      397:                 if (item.getType() == DownloadItem.ItemType.Category) {
+      398:                     iv.setImageResource(R.drawable.dir);
+      399:                 } else if (item.getType() == DownloadItem.ItemType.Back) {
+      400:                     iv.setImageResource(R.drawable.back);
+      401:                 } else if (item.getType() == DownloadItem.ItemType.Spreadsheet) {
+      402:                     iv.setImageResource(R.drawable.spreadsheet);
+      403:                 } else {
+      404:                     iv.setImageResource(R.drawable.database);
+      405:                 }
+      406:                 tv.setText(item.getTitle());
+      407:             }
+      408: 
+      409:             v.setOnClickListener(new View.OnClickListener() {
+      410:                 @Override
+      411:                 public void onClick(View v) {
+      409:             v.setOnClickListener(new View.OnClickListener() {
+      410:                 @Override
+      411:                 public void onClick(View v) {
+      412:                     final DownloadItem di = getDownloadItem(position);
+      413:                     if(di == null){
+      414:                         Log.e(TAG, "NULL Download Item");
+      415:                         return;
+      416:                     }
+      417:                     if(di.getType() == DownloadItem.ItemType.Category){
+      418:                         RetrieveTask task = new RetrieveTask();
+      419:                         task.execute(new Callable<List<DownloadItem>>() {
+      420:                             @Override
+      421:                             public List<DownloadItem> call() throws Exception {
+      422:                                 return openCategory(di);
+      423:                             }
+      424:                         });
+      425:                     } else if(di.getType() == DownloadItem.ItemType.Back){
+      426:                         RetrieveTask task = new RetrieveTask();
+      427:                         task.execute(new Callable<List<DownloadItem>>() {
+      428:                             @Override
+      429:                             public List<DownloadItem> call() throws Exception {
+      430:                                 return goBack();
+      431:                             }
+      432:                         });
+      433:                     } else {
+      434:                         showFetchDatabaseDialog(di);
+      435:                     }
+      436: 
+      437:                 }
+      438:             });
+
+STEP 27  edge E30961aed
+  AbstractDownloaderFragment$DownloadListAdapter$1.onClick@AM -> AbstractDownloaderFragment.showFetchDatabaseDialog@AM
+  class: explicit   kind: CALL
+  guard: row is neither Category nor Back (AbstractDownloaderFragment.java:417, 425)
+  needs_state: None
+  env: None
+  evidence: SRC downloader/common/AbstractDownloaderFragment.java:433-435
+  cite [SRC] downloader/common/AbstractDownloaderFragment.java:433-435
+      433:                     } else {
+      434:                         showFetchDatabaseDialog(di);
+      435:                     }
+
+STEP 28  edge Edbdccc47
+  AbstractDownloaderFragment.showFetchDatabaseDialog@AM -> S_DLG_DOWNLOAD_CONFIRM_AM
+  class: page   kind: ENTERS
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC downloader/common/AbstractDownloaderFragment.java:276-291
+  cite [SRC] downloader/common/AbstractDownloaderFragment.java:276-291
+      276:     protected void showFetchDatabaseDialog(final DownloadItem item) {
+      277:         View alertView = View.inflate(mActivity, R.layout.link_alert, null);
+      278:         TextView textView = (TextView)alertView.findViewById(R.id.link_alert_message);
+      279:         textView.setMovementMethod(LinkMovementMethod.getInstance());
+      280:         textView.setText(Html.fromHtml(getString(R.string.downloader_download_alert_message) + item.getDescription()));
+      281:         new AlertDialog.Builder(mActivity)
+      282:             .setView(alertView)
+      283:             .setTitle(getString(R.string.downloader_download_alert) + item.getTitle())
+      284:             .setPositiveButton(getString(R.string.yes_text), new DialogInterface.OnClickListener(){
+      285:                 @Override
+      286:                 public void onClick(DialogInterface arg0, int arg1){
+      287:                     startFetchDatabaseTask(item);
+      288:                 }
+      289:             })
+      290:             .setNegativeButton(getString(R.string.no_text), null)
+      291:             .show();
+
+STEP 29  edge E279c40e6
+  S_DLG_DOWNLOAD_CONFIRM_AM -> AbstractDownloaderFragment$2.onClick@AM
+  class: standard   kind: GUI
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED androidx.fragment.app.DialogFragment shows an android.app.Dialog and forwards its button/cancel/dismiss callbacks (androidx source not read); SRC downloader/common/AbstractDownloaderFragment.java:284-289
+  cite [SRC] downloader/common/AbstractDownloaderFragment.java:284-289
+      284:             .setPositiveButton(getString(R.string.yes_text), new DialogInterface.OnClickListener(){
+      285:                 @Override
+      286:                 public void onClick(DialogInterface arg0, int arg1){
+      287:                     startFetchDatabaseTask(item);
+      288:                 }
+      289:             })
+
+STEP 30  edge Edf112fb9
+  AbstractDownloaderFragment$2.onClick@AM -> AbstractDownloaderFragment.startFetchDatabaseTask@AM
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC downloader/common/AbstractDownloaderFragment.java:286-287
+  cite [SRC] downloader/common/AbstractDownloaderFragment.java:286-287
+      286:                 public void onClick(DialogInterface arg0, int arg1){
+      287:                     startFetchDatabaseTask(item);
+
+STEP 31  edge E86dd5c3a
+  AbstractDownloaderFragment.startFetchDatabaseTask@AM -> AbstractDownloaderFragment$FetchDatabaseTask.onPreExecute@AM
+  class: standard   kind: ASYNC
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED android.os.AsyncTask.execute/executeOnExecutor runs doInBackground on a worker thread and onPreExecute/onPostExecute on the main thread (platform source not read for this exact flow; see FW-SRC citation added in step 6 for the base class); SRC downloader/common/AbstractDownloaderFragment.java:294-297
+  cite [SRC] downloader/common/AbstractDownloaderFragment.java:294-297
+      294:     protected void startFetchDatabaseTask(final DownloadItem item) {
+      295:         FetchDatabaseTask task = new FetchDatabaseTask();
+      296:         task.execute(item);
+      297:     }
+
+STEP 32  edge Eb150dbd7
+  AbstractDownloaderFragment$FetchDatabaseTask.onPreExecute@AM -> AbstractDownloaderFragment$FetchDatabaseTask.doInBackground@AM
+  class: standard   kind: ASYNC
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED android.os.AsyncTask.execute/executeOnExecutor runs doInBackground on a worker thread and onPreExecute/onPostExecute on the main thread (platform source not read for this exact flow; see FW-SRC citation added in step 6 for the base class); SRC downloader/common/AbstractDownloaderFragment.java:305-316
+  cite [SRC] downloader/common/AbstractDownloaderFragment.java:305-316
+      305:         public void onPreExecute() {
+      306:             super.onPreExecute();
+      307:             progressDialog = new ProgressDialog(mActivity);
+      308:             progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+      309:             progressDialog.setTitle(getString(R.string.loading_please_wait));
+      310:             progressDialog.setMessage(getString(R.string.loading_downloading));
+      311:             progressDialog.setCancelable(false);
+      312:             progressDialog.show();
+      313:         }
+      314: 
+      315:         @Override
+      316:         public Exception doInBackground(DownloadItem... items) {
+
+STEP 33  edge E93f22026
+  AbstractDownloaderFragment$FetchDatabaseTask.doInBackground@AM -> AnyMemoDownloaderFragment.fetchDatabase
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC downloader/common/AbstractDownloaderFragment.java:318-319
+  cite [SRC] downloader/common/AbstractDownloaderFragment.java:318-319
+      318:                 item = items[0];
+      319:                 fetchedDbPath = fetchDatabase(item);
+
+STEP 34  edge E4dfe850b
+  AnyMemoDownloaderFragment.fetchDatabase -> DownloaderUtils.downloadFile
+  class: explicit   kind: CALL
+  guard: fileName ends with .db (AnyMemoDownloaderFragment.java:79-81)
+  needs_state: None
+  env: None
+  evidence: SRC downloader/anymemo/AnyMemoDownloaderFragment.java:81
+  cite [SRC] downloader/anymemo/AnyMemoDownloaderFragment.java:81
+       81:             downloaderUtils.downloadFile(address, filePath);

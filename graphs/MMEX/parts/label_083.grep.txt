@@ -1,0 +1,332 @@
+label_083.grep.txt: grep and class-file evidence for batch 083 (38 methods: MainActivity_MembersInjector 4, MyActionBarDrawerToggle 4, RecentDatabaseEntryComparator 2, RecentDatabasesProvider 18 incl. $1.<init>, RecentDatabasesProvider_Factory 3, SelectDatabaseActivity 7).
+Source root: final_java_only/MMEX/app/MMEX-#v2024.06.14/app (paths below are relative to the repo root). Commands: grep (text search, no build, no merge), a read-only python3 -I parse of the .class files, and python3 -I prints of graphs/MMEX/auto_calls.json. No check_part.py run.
+
+== section 1: source text search for the batch classes (app source)
+-- grep -rn MainActivity_MembersInjector (no output means no hit):
+(exit 1)
+-- grep -rn MyActionBarDrawerToggle / RecentDatabaseEntryComparator / onDrawerOpened / onDrawerClosed:
+src/main/java/com/money/manager/ex/home/RecentDatabaseEntryComparator.java:24:public class RecentDatabaseEntryComparator
+src/main/java/com/money/manager/ex/home/MyActionBarDrawerToggle.java:30:public class MyActionBarDrawerToggle extends ActionBarDrawerToggle {
+src/main/java/com/money/manager/ex/home/MyActionBarDrawerToggle.java:32:    public MyActionBarDrawerToggle(AppCompatActivity activity, DrawerLayout drawerLayout,
+src/main/java/com/money/manager/ex/home/MyActionBarDrawerToggle.java:37:    public MyActionBarDrawerToggle(AppCompatActivity activity, DrawerLayout drawerLayout, Toolbar toolbar,
+src/main/java/com/money/manager/ex/home/MyActionBarDrawerToggle.java:43:    public void onDrawerOpened(View drawerView) {
+src/main/java/com/money/manager/ex/home/MyActionBarDrawerToggle.java:44:        super.onDrawerOpened(drawerView);
+src/main/java/com/money/manager/ex/home/MyActionBarDrawerToggle.java:48:    public void onDrawerClosed(View drawerView) {
+src/main/java/com/money/manager/ex/home/MyActionBarDrawerToggle.java:49:        super.onDrawerClosed(drawerView);
+src/main/java/com/money/manager/ex/home/MainActivity.java:169:    private MyActionBarDrawerToggle mDrawerToggle;
+src/main/java/com/money/manager/ex/home/MainActivity.java:1296:        mDrawerToggle = new MyActionBarDrawerToggle(this, mDrawer, R.string.open, R.string.closed);
+-- grep -rn RecentDatabasesProvider_Factory / RecentDatabasesProvider$1 (no output expected):
+(exit 1)
+-- grep -rln RecentDatabasesProvider (files that use the provider):
+src/main/java/com/money/manager/ex/settings/DatabaseSettingsFragment.java
+src/main/java/com/money/manager/ex/home/SelectDatabaseActivity.java
+src/main/java/com/money/manager/ex/home/RecentDatabasesProvider.java
+src/main/java/com/money/manager/ex/home/MainActivity.java
+src/main/java/com/money/manager/ex/utils/MmxDatabaseUtils.java
+src/main/java/com/money/manager/ex/transactions/EditTransactionCommonFunctions.java
+src/main/java/com/money/manager/ex/sync/SyncManager.java
+src/main/java/com/money/manager/ex/sync/SyncServiceMessageHandler.java
+src/main/java/com/money/manager/ex/sync/SyncPreferenceFragment.java
+src/main/java/com/money/manager/ex/sync/SyncService.java
+-- grep -rn SelectDatabaseActivity (source and manifest):
+src/main/java/com/money/manager/ex/home/SelectDatabaseActivity.java:46:public class SelectDatabaseActivity
+src/main/java/com/money/manager/ex/home/MainActivity.java:554:            showSelectDatabaseActivity();
+src/main/java/com/money/manager/ex/home/MainActivity.java:1487:            showSelectDatabaseActivity();
+src/main/java/com/money/manager/ex/home/MainActivity.java:1502:    private void showSelectDatabaseActivity() {
+src/main/java/com/money/manager/ex/home/MainActivity.java:1503:        Intent intent = new Intent(this, SelectDatabaseActivity.class);
+src/main/java/com/money/manager/ex/core/ioc/MmxComponent.java:33:import com.money.manager.ex.home.SelectDatabaseActivity;
+src/main/java/com/money/manager/ex/core/ioc/MmxComponent.java:77:    void inject(SelectDatabaseActivity activity);
+src/main/AndroidManifest.xml:368:        <activity android:name=".home.SelectDatabaseActivity" />
+-- MmexApplication class declaration and onCreate (MmexApplication.java:71, 115):
+     1	public class MmexApplication
+     2	    extends MultiDexApplication {
+     3	    public void onCreate() {
+-- AndroidManifest application element (MmexApplication as android:name):
+54:    <application
+55:        android:name=".MmexApplication"
+
+== section 2: class-file search (grep -rl -a; the default grep skips binary .class files)
+-- MainActivity_MembersInjector:
+com/money/manager/ex/home/MainActivity_MembersInjector.class
+com/money/manager/ex/core/ioc/DaggerMmxComponent.class
+-- MyActionBarDrawerToggle:
+com/money/manager/ex/home/MainActivity.class
+com/money/manager/ex/home/MyActionBarDrawerToggle.class
+-- RecentDatabaseEntryComparator:
+com/money/manager/ex/home/RecentDatabaseEntryComparator.class
+-- RecentDatabasesProvider_Factory:
+com/money/manager/ex/home/RecentDatabasesProvider_Factory.class
+com/money/manager/ex/core/ioc/DaggerMmxComponent.class
+-- RecentDatabasesProvider:
+com/money/manager/ex/settings/DatabaseSettingsFragment.class
+com/money/manager/ex/settings/DatabaseSettingsFragment_MembersInjector.class
+com/money/manager/ex/settings/DatabaseSettingsFragment$1.class
+com/money/manager/ex/home/RecentDatabasesProvider_Factory.class
+com/money/manager/ex/home/MainActivity_MembersInjector.class
+com/money/manager/ex/home/RecentDatabasesProvider$1.class
+com/money/manager/ex/home/MainActivity.class
+com/money/manager/ex/home/SelectDatabaseActivity_MembersInjector.class
+com/money/manager/ex/home/RecentDatabasesProvider.class
+com/money/manager/ex/home/SelectDatabaseActivity.class
+com/money/manager/ex/core/ioc/DaggerMmxComponent.class
+com/money/manager/ex/utils/MmxDatabaseUtils_MembersInjector.class
+com/money/manager/ex/utils/MmxDatabaseUtils_Factory.class
+com/money/manager/ex/utils/MmxDatabaseUtils.class
+com/money/manager/ex/transactions/EditTransactionCommonFunctions.class
+com/money/manager/ex/transactions/EditTransactionCommonFunctions_MembersInjector.class
+com/money/manager/ex/sync/SyncService.class
+com/money/manager/ex/sync/SyncManager.class
+com/money/manager/ex/sync/SyncPreferenceFragment.class
+com/money/manager/ex/sync/SyncServiceMessageHandler_MembersInjector.class
+com/money/manager/ex/sync/SyncManager_MembersInjector.class
+com/money/manager/ex/sync/SyncPreferenceFragment_MembersInjector.class
+com/money/manager/ex/sync/SyncManager_Factory.class
+com/money/manager/ex/sync/SyncServiceMessageHandler.class
+com/money/manager/ex/sync/SyncService_MembersInjector.class
+-- RecentDatabasesProvider$1 (anonymous TypeToken subclass):
+RecentDatabasesProvider$1.class
+
+== section 3: class-file parse (python3 -I, read-only: method table with flags, code length, and constant-pool Methodref owners)
+== class MainActivity_MembersInjector methods 5
+  method flags=0x0001 <init>(Ljavax/inject/Provider;)V code=10
+  method flags=0x0009 create(Ljavax/inject/Provider;)Ldagger/MembersInjector; code=9
+  method flags=0x0001 injectMembers(Lcom/money/manager/ex/home/MainActivity;)V code=12
+  method flags=0x0009 injectMDatabases(Lcom/money/manager/ex/home/MainActivity;Ldagger/Lazy;)V code=6
+  method flags=0x1041 injectMembers(Ljava/lang/Object;)V code=9
+  ref com/money/manager/ex/home/MainActivity.mDatabasesLdagger/Lazy;
+  ref com/money/manager/ex/home/MainActivity_MembersInjector.<init>(Ljavax/inject/Provider;)V
+  ref com/money/manager/ex/home/MainActivity_MembersInjector.injectMDatabases(Lcom/money/manager/ex/home/MainActivity;Ldagger/Lazy;)V
+  ref com/money/manager/ex/home/MainActivity_MembersInjector.injectMembers(Lcom/money/manager/ex/home/MainActivity;)V
+  ref com/money/manager/ex/home/MainActivity_MembersInjector.mDatabasesProviderLjavax/inject/Provider;
+
+== class RecentDatabasesProvider_Factory methods 4
+  method flags=0x0001 <init>(Ljavax/inject/Provider;)V code=10
+  method flags=0x0001 get()Lcom/money/manager/ex/home/RecentDatabasesProvider; code=20
+  method flags=0x0009 create(Ljavax/inject/Provider;)Ldagger/internal/Factory; code=9
+  method flags=0x1041 get()Ljava/lang/Object; code=5
+  ref com/money/manager/ex/home/RecentDatabasesProvider.<init>(Lcom/money/manager/ex/MmexApplication;)V
+  ref com/money/manager/ex/home/RecentDatabasesProvider_Factory.<init>(Ljavax/inject/Provider;)V
+  ref com/money/manager/ex/home/RecentDatabasesProvider_Factory.appProviderLjavax/inject/Provider;
+  ref com/money/manager/ex/home/RecentDatabasesProvider_Factory.get()Lcom/money/manager/ex/home/RecentDatabasesProvider;
+  ref javax/inject/Provider.get()Ljava/lang/Object;
+
+== class MyActionBarDrawerToggle methods 4
+  method flags=0x0001 <init>(Landroidx/appcompat/app/AppCompatActivity;Landroidx/drawerlayout/widget/DrawerLayout;II)V code=10
+  method flags=0x0001 <init>(Landroidx/appcompat/app/AppCompatActivity;Landroidx/drawerlayout/widget/DrawerLayout;Landroidx/appcompat/widget/Toolbar;II)V code=12
+  method flags=0x0001 onDrawerOpened(Landroid/view/View;)V code=6
+  method flags=0x0001 onDrawerClosed(Landroid/view/View;)V code=6
+
+== class RecentDatabaseEntryComparator methods 3
+  method flags=0x0001 <init>()V code=5
+  method flags=0x0001 compare(Lcom/money/manager/ex/home/DatabaseMetadata;Lcom/money/manager/ex/home/DatabaseMetadata;)I code=86
+  method flags=0x1041 compare(Ljava/lang/Object;Ljava/lang/Object;)I code=13
+  ref com/money/manager/ex/home/DatabaseMetadata.isLocalFileChangedZ
+  ref com/money/manager/ex/home/DatabaseMetadata.isSynchronised()Z
+  ref com/money/manager/ex/home/DatabaseMetadata.localPathLjava/lang/String;
+  ref com/money/manager/ex/home/DatabaseMetadata.remotePathLjava/lang/String;
+  ref com/money/manager/ex/home/RecentDatabaseEntryComparator.compare(Lcom/money/manager/ex/home/DatabaseMetadata;Lcom/money/manager/ex/home/DatabaseMetadata;)I
+
+== DaggerMmxComponent.class references to batch classes (core/ioc)
+  ref com/money/manager/ex/home/MainActivity_MembersInjector.injectMDatabases(Lcom/money/manager/ex/home/MainActivity;Ldagger/Lazy;)V
+  ref com/money/manager/ex/home/RecentDatabasesProvider_Factory.create(Ljavax/inject/Provider;)Ldagger/internal/Factory;
+  ref com/money/manager/ex/home/SelectDatabaseActivity_MembersInjector.injectMDatabasesLazy(Lcom/money/manager/ex/home/SelectDatabaseActivity;Ldagger/Lazy;)V
+
+== section 4: auto_calls.json records touching the batch classes (python3 -I print; src or dst names the class or a batch method)
+records 194
+MmexApplication.onCreate -> RobotoView.<clinit> | MmexApplication.java:126 | dispatch=exact
+MmexApplication.onCreate -> PreferenceConstants.<clinit> | MmexApplication.java:126 | dispatch=exact
+MmexApplication.onCreate -> MmexApplication.getOrCreateUUID | MmexApplication.java:156 | dispatch=exact
+MmexApplication.onCreate -> MmexApplication.initializeJobManager | MmexApplication.java:145 | dispatch=exact
+MmexApplication.onCreate -> MmexApplication.initializeDependencyInjection | MmexApplication.java:142 | dispatch=exact
+MmexApplication.onCreate -> SysLogTree.<init> | MmexApplication.java:139 | dispatch=exact
+MmexApplication.onCreate -> ScreenTree.<init> | MmexApplication.java:138 | dispatch=exact
+MmexApplication.onCreate -> DebugTree.<init> | MmexApplication.java:135 | dispatch=exact
+MmexApplication.onCreate -> MmexApplication.registerCustomFonts | MmexApplication.java:131 | dispatch=exact
+MmexApplication.onCreate -> RobotoView.setUserFontSize | MmexApplication.java:128 | dispatch=exact
+MmexApplication.onCreate -> RobotoView.setUserFont | MmexApplication.java:126 | dispatch=exact
+MmexApplication.onCreate -> MmexApplication.setTextSize | MmexApplication.java:122 | dispatch=exact
+MmexApplication.initializeDependencyInjection -> DaggerMmxComponent$Builder.build | MmexApplication.java:204 | dispatch=exact
+MmexApplication.initializeDependencyInjection -> DaggerMmxComponent$Builder.mmxModule | MmexApplication.java:203 | dispatch=exact
+MmexApplication.initializeDependencyInjection -> MmxModule.<init> | MmexApplication.java:202 | dispatch=exact
+MmexApplication.initializeDependencyInjection -> DaggerMmxComponent.builder | MmexApplication.java:202 | dispatch=exact
+DatabaseSettingsFragment.onCreate -> DaggerMmxComponent.inject(DatabaseSettingsFragment) | DatabaseSettingsFragment.java:65 | dispatch=cha
+DatabaseSettingsFragment.refreshDbPath -> RecentDatabasesProvider.getCurrent | DatabaseSettingsFragment.java:147 | dispatch=exact
+DatabaseSettingsFragment.backupDatabase -> RecentDatabasesProvider.getCurrent | DatabaseSettingsFragment.java:236 | dispatch=exact
+DatabaseSettingsFragment.showNumberOfRecentFiles -> RecentDatabasesProvider.count | DatabaseSettingsFragment.java:311 | dispatch=exact
+DatabaseSettingsFragment_MembersInjector.create -> DatabaseSettingsFragment_MembersInjector.<init> | DatabaseSettingsFragment_MembersInjector.java:31 | dispatch=exact
+DatabaseSettingsFragment_MembersInjector.injectMembers -> DatabaseSettingsFragment_MembersInjector.injectMDatabases | DatabaseSettingsFragment_MembersInjector.java:37 | dispatch=exact
+DatabaseSettingsFragment_MembersInjector.injectMembers -> DatabaseSettingsFragment_MembersInjector.injectOpenHelper | DatabaseSettingsFragment_MembersInjector.java:36 | dispatch=exact
+DatabaseSettingsFragment$1.onPreferenceClick -> RecentDatabasesProvider.clear | DatabaseSettingsFragment.java:117 | dispatch=exact
+RecentDatabasesProvider_Factory.get -> RecentDatabasesProvider.<init> | RecentDatabasesProvider_Factory.java:21 | dispatch=exact
+RecentDatabasesProvider_Factory.create -> RecentDatabasesProvider_Factory.<init> | RecentDatabasesProvider_Factory.java:25 | dispatch=exact
+MainActivity.onCreate -> MainActivity.initializeDrawer | MainActivity.java:240 | dispatch=exact
+MainActivity.onCreate -> MainActivity.handleIntent | MainActivity.java:210 | dispatch=exact
+MainActivity.onCreate -> MainActivity.migrateRecentDatabases | MainActivity.java:190 | dispatch=exact
+MainActivity.onCreate -> MainActivity.showPrerequisite | MainActivity.java:184 | dispatch=exact
+MainActivity.onCreate -> DaggerMmxComponent.inject(MainActivity) | MainActivity.java:182 | dispatch=cha
+MainActivity.onActivityResult -> MainActivity.changeDatabase | MainActivity.java:332 | dispatch=exact
+MainActivity.onActivityResult -> RecentDatabasesProvider.get | MainActivity.java:320 | dispatch=exact
+MainActivity.onActivityResult -> MainActivity.getDatabases | MainActivity.java:320 | dispatch=exact
+MainActivity.changeDatabase -> RecentDatabasesProvider.load | MainActivity.java:559 | dispatch=exact
+MainActivity.changeDatabase -> MainActivity.getDatabases | MainActivity.java:559 | dispatch=exact
+MainActivity.changeDatabase -> MainActivity.showSelectDatabaseActivity | MainActivity.java:554 | dispatch=exact
+MainActivity.changeDatabase -> MmxDatabaseUtils.useDatabase | MainActivity.java:546 | dispatch=exact
+MainActivity.changeDatabase -> RecentDatabasesProvider.get | MainActivity.java:538 | dispatch=exact
+MainActivity.onDrawerMenuAndOptionMenuSelected -> RecentDatabasesProvider.get | MainActivity.java:596 | dispatch=exact
+MainActivity.onDrawerMenuAndOptionMenuSelected -> MainActivity.getDatabases | MainActivity.java:596 | dispatch=exact
+MainActivity.createExpandableDrawer -> MainActivity.getRecentDatabasesDrawerMenuItems | MainActivity.java:853 | dispatch=exact
+MainActivity.getRecentDatabasesDrawerMenuItems -> DrawerMenuItem.withText | MainActivity.java:1156 | dispatch=exact
+MainActivity.getRecentDatabasesDrawerMenuItems -> DrawerMenuItem.withIconDrawable | MainActivity.java:1154 | dispatch=exact
+MainActivity.getRecentDatabasesDrawerMenuItems -> UIHelper.getIcon | MainActivity.java:1154 | dispatch=exact
+MainActivity.getRecentDatabasesDrawerMenuItems -> MainActivity.getUiHelper | MainActivity.java:1154 | dispatch=exact
+MainActivity.getRecentDatabasesDrawerMenuItems -> DrawerMenuItem.withId | MainActivity.java:1153 | dispatch=exact
+MainActivity.getRecentDatabasesDrawerMenuItems -> DrawerMenuItem.<init> | MainActivity.java:1152 | dispatch=exact
+MainActivity.getRecentDatabasesDrawerMenuItems -> DatabaseMetadata.isSynchronised | MainActivity.java:1140 | dispatch=exact
+MainActivity.getRecentDatabasesDrawerMenuItems -> DrawerMenuItem.setTag | MainActivity.java:1138 | dispatch=exact
+MainActivity.getRecentDatabasesDrawerMenuItems -> DatabaseMetadata.getFileName | MainActivity.java:1135 | dispatch=exact
+MainActivity.getRecentDatabasesDrawerMenuItems -> RecentDatabasesProvider.count | MainActivity.java:1133 | dispatch=exact
+MainActivity.getRecentDatabasesDrawerMenuItems -> MainActivity.getDatabases | MainActivity.java:1131 | dispatch=exact
+MainActivity.getRecentDatabasesDrawerMenuItems -> UIHelper.getSecondaryTextColor | MainActivity.java:1129 | dispatch=exact
+MainActivity.getRecentDatabasesDrawerMenuItems -> UIHelper.<init> | MainActivity.java:1128 | dispatch=exact
+MainActivity.handleIntent -> MainActivity.changeDatabase | MainActivity.java:1199 | dispatch=exact
+MainActivity.initializeDrawer -> MainActivity.createExpandableDrawer | MainActivity.java:1301 | dispatch=exact
+MainActivity.initializeDrawer -> MainActivity.initializeDrawerVariables | MainActivity.java:1300 | dispatch=exact
+MainActivity.initializeDrawer -> MyActionBarDrawerToggle.<init>(AppCompatActivity,DrawerLayout,int,int) | MainActivity.java:1296 | dispatch=exact
+MainActivity.onOpenDatabaseClick -> MainActivity.changeDatabase | MainActivity.java:1364 | dispatch=exact
+MainActivity.showPrerequisite -> MainActivity.showSelectDatabaseActivity | MainActivity.java:1487 | dispatch=exact
+MainActivity.migrateRecentDatabases -> RecentDatabasesProvider.getCurrent | MainActivity.java:1523 | dispatch=exact
+MainActivity.migrateRecentDatabases -> RecentDatabasesProvider.clear | MainActivity.java:1521 | dispatch=exact
+MainActivity.migrateRecentDatabases -> MainActivity.getDatabases | MainActivity.java:1514 | dispatch=exact
+MainActivity_MembersInjector.create -> MainActivity_MembersInjector.<init> | MainActivity_MembersInjector.java:22 | dispatch=exact
+MainActivity_MembersInjector.injectMembers -> MainActivity_MembersInjector.injectMDatabases | MainActivity_MembersInjector.java:27 | dispatch=exact
+SelectDatabaseActivity_ViewBinding$1.doClick -> SelectDatabaseActivity.onCreateDatabaseClick | SelectDatabaseActivity_ViewBinding.java:38 | dispatch=exact
+RecentDatabaseEntryComparator.compare -> DatabaseMetadata.isSynchronised | RecentDatabaseEntryComparator.java:49 | dispatch=exact
+MainActivity$3$1.run -> MainActivity.onDrawerMenuAndOptionMenuSelected | MainActivity.java:957 | dispatch=exact
+SelectDatabaseActivity_MembersInjector.create -> SelectDatabaseActivity_MembersInjector.<init> | SelectDatabaseActivity_MembersInjector.java:24 | dispatch=exact
+SelectDatabaseActivity_MembersInjector.injectMembers -> SelectDatabaseActivity_MembersInjector.injectMDatabasesLazy | SelectDatabaseActivity_MembersInjector.java:29 | dispatch=exact
+SelectDatabaseActivity_ViewBinding$2.doClick -> SelectDatabaseActivity.onOpenDatabaseClick | SelectDatabaseActivity_ViewBinding.java:46 | dispatch=exact
+RecentDatabasesProvider.<init> -> RecentDatabasesProvider.load | RecentDatabasesProvider.java:48 | dispatch=exact
+RecentDatabasesProvider.add(String,DatabaseMetadata) -> RecentDatabasesProvider.save | RecentDatabasesProvider.java:75 | dispatch=exact
+RecentDatabasesProvider.add(String,DatabaseMetadata) -> RecentDatabasesProvider.removeOldest | RecentDatabasesProvider.java:72 | dispatch=exact
+RecentDatabasesProvider.add(String,DatabaseMetadata) -> RecentDatabasesProvider.remove | RecentDatabasesProvider.java:65 | dispatch=exact
+RecentDatabasesProvider.add(String,DatabaseMetadata) -> RecentDatabasesProvider.contains | RecentDatabasesProvider.java:63 | dispatch=exact
+RecentDatabasesProvider.add(DatabaseMetadata) -> RecentDatabasesProvider.add(String,DatabaseMetadata) | RecentDatabasesProvider.java:81 | dispatch=exact
+RecentDatabasesProvider.clear -> MainActivity.<clinit> | RecentDatabasesProvider.java:98 | dispatch=exact
+RecentDatabasesProvider.clear -> MainActivity.setRestartActivity | RecentDatabasesProvider.java:98 | dispatch=exact
+RecentDatabasesProvider.clear -> RecentDatabasesProvider.add(DatabaseMetadata) | RecentDatabasesProvider.java:95 | dispatch=exact
+RecentDatabasesProvider.clear -> RecentDatabasesProvider.getCurrent | RecentDatabasesProvider.java:90 | dispatch=exact
+RecentDatabasesProvider.getCurrent -> RecentDatabasesProvider.add(DatabaseMetadata) | RecentDatabasesProvider.java:130 | dispatch=exact
+RecentDatabasesProvider.getCurrent -> DatabaseMetadataFactory.createDefaultEntry | RecentDatabasesProvider.java:128 | dispatch=exact
+RecentDatabasesProvider.getCurrent -> DatabaseMetadataFactory.<init> | RecentDatabasesProvider.java:128 | dispatch=exact
+RecentDatabasesProvider.getCurrent -> RecentDatabasesProvider.getContext | RecentDatabasesProvider.java:128 | dispatch=exact
+RecentDatabasesProvider.getCurrent -> RecentDatabasesProvider.contains | RecentDatabasesProvider.java:123 | dispatch=exact
+RecentDatabasesProvider.getCurrent -> DatabaseSettings.getDatabasePath | RecentDatabasesProvider.java:120 | dispatch=exact
+RecentDatabasesProvider.getCurrent -> AppSettings.getDatabaseSettings | RecentDatabasesProvider.java:120 | dispatch=exact
+RecentDatabasesProvider.getCurrent -> AppSettings.<init> | RecentDatabasesProvider.java:120 | dispatch=exact
+RecentDatabasesProvider.remove -> RecentDatabasesProvider.get | RecentDatabasesProvider.java:136 | dispatch=exact
+RecentDatabasesProvider.readPreference -> RecentDatabasesProvider.getRecentDbPreferences | RecentDatabasesProvider.java:149 | dispatch=exact
+RecentDatabasesProvider.load -> RecentDatabasesProvider.parseStorageContent | RecentDatabasesProvider.java:157 | dispatch=exact
+RecentDatabasesProvider.load -> RecentDatabasesProvider.readPreference | RecentDatabasesProvider.java:153 | dispatch=exact
+RecentDatabasesProvider.save -> RecentDatabasesProvider.getRecentDbPreferences | RecentDatabasesProvider.java:173 | dispatch=exact
+RecentDatabasesProvider.save -> RecentDatabasesProvider.toJson | RecentDatabasesProvider.java:171 | dispatch=exact
+RecentDatabasesProvider.getRecentDbPreferences -> RecentDatabasesProvider.getContext | RecentDatabasesProvider.java:203 | dispatch=exact
+RecentDatabasesProvider.parseStorageContent -> RecentDatabasesProvider$1.<init> | RecentDatabasesProvider.java:208 | dispatch=exact
+SelectDatabaseActivity.<init> -> MmxBaseFragmentActivity.<init> | SelectDatabaseActivity.java:46 | dispatch=exact
+SelectDatabaseActivity.onCreate -> MmexApplication.<clinit> | SelectDatabaseActivity.java:58 | dispatch=exact
+SelectDatabaseActivity.onCreate -> MmxFileUtils.<clinit> | SelectDatabaseActivity.java:63 | dispatch=exact
+SelectDatabaseActivity.onCreate -> MmxFileUtils.requestExternalStoragePermissions | SelectDatabaseActivity.java:64 | dispatch=exact
+SelectDatabaseActivity.onCreate -> MmxFileUtils.<init> | SelectDatabaseActivity.java:63 | dispatch=exact
+SelectDatabaseActivity.onCreate -> DaggerMmxComponent.inject(SelectDatabaseActivity) | SelectDatabaseActivity.java:58 | dispatch=cha
+SelectDatabaseActivity.onCreate -> MmexApplication.getApp | SelectDatabaseActivity.java:58 | dispatch=exact
+SelectDatabaseActivity.onCreate -> MmxBaseFragmentActivity.setContentView | SelectDatabaseActivity.java:56 | dispatch=exact
+SelectDatabaseActivity.onCreate -> MmxBaseFragmentActivity.onCreate | SelectDatabaseActivity.java:55 | dispatch=exact
+SelectDatabaseActivity.onActivityResult -> SelectDatabaseActivity.onDatabaseSelected | SelectDatabaseActivity.java:84 | dispatch=exact
+SelectDatabaseActivity.onActivityResult -> FileStorageHelper.createDatabase | SelectDatabaseActivity.java:83 | dispatch=exact
+SelectDatabaseActivity.onActivityResult -> FileStorageHelper.<init> | SelectDatabaseActivity.java:82 | dispatch=exact
+SelectDatabaseActivity.onActivityResult -> FileStorageHelper.selectDatabase | SelectDatabaseActivity.java:79 | dispatch=exact
+SelectDatabaseActivity.onCreateDatabaseClick -> FileStorageHelper.showCreateFilePicker | SelectDatabaseActivity.java:103 | dispatch=exact
+SelectDatabaseActivity.onCreateDatabaseClick -> FileStorageHelper.<init> | SelectDatabaseActivity.java:102 | dispatch=exact
+SelectDatabaseActivity.onOpenDatabaseClick -> FileStorageHelper.showStorageFilePicker | SelectDatabaseActivity.java:110 | dispatch=exact
+SelectDatabaseActivity.onOpenDatabaseClick -> FileStorageHelper.<init> | SelectDatabaseActivity.java:109 | dispatch=exact
+SelectDatabaseActivity.onDatabaseSelected -> IntentFactory.getMainActivityNew | SelectDatabaseActivity.java:121 | dispatch=exact
+MainActivity$4$1.run -> MainActivity.onDrawerMenuAndOptionMenuSelected | MainActivity.java:978 | dispatch=exact
+SelectDatabaseActivity_ViewBinding.<init>(SelectDatabaseActivity) -> SelectDatabaseActivity_ViewBinding.<init>(SelectDatabaseActivity,View) | SelectDatabaseActivity_ViewBinding.java:24 | dispatch=exact
+SelectDatabaseActivity_ViewBinding.<init>(SelectDatabaseActivity,View) -> SelectDatabaseActivity_ViewBinding$2.<init> | SelectDatabaseActivity_ViewBinding.java:43 | dispatch=exact
+SelectDatabaseActivity_ViewBinding.<init>(SelectDatabaseActivity,View) -> SelectDatabaseActivity_ViewBinding$1.<init> | SelectDatabaseActivity_ViewBinding.java:35 | dispatch=exact
+FileStorageHelper.pullDatabase -> MmxDatabaseUtils.useDatabase | FileStorageHelper.java:165 | dispatch=exact
+FileStorageHelper.saveMetadata -> MmxDatabaseUtils.useDatabase | FileStorageHelper.java:214 | dispatch=exact
+DaggerMmxComponent.<init> -> DaggerMmxComponent.initialize | DaggerMmxComponent.java:130 | dispatch=exact
+DaggerMmxComponent.initialize -> MmxModule_ProvideSharedPreferencesFactory.create | DaggerMmxComponent.java:202 | dispatch=exact
+DaggerMmxComponent.initialize -> RepositoryModule_ProvideStockHistoryRepositoryFactory.create | DaggerMmxComponent.java:199 | dispatch=exact
+DaggerMmxComponent.initialize -> RepositoryModule_ProvideStockRepositoryFactory.create | DaggerMmxComponent.java:196 | dispatch=exact
+DaggerMmxComponent.initialize -> InfoRepositorySql_Factory.create | DaggerMmxComponent.java:194 | dispatch=exact
+DaggerMmxComponent.initialize -> Core_Factory.create | DaggerMmxComponent.java:192 | dispatch=exact
+DaggerMmxComponent.initialize -> MmxModule_ProvideAppSettingsFactory.create | DaggerMmxComponent.java:189 | dispatch=exact
+DaggerMmxComponent.initialize -> RecentDatabasesProvider_Factory.create | DaggerMmxComponent.java:186 | dispatch=exact
+DaggerMmxComponent.initialize -> FormatUtilities_Factory.create | DaggerMmxComponent.java:184 | dispatch=exact
+DaggerMmxComponent.initialize -> CurrencyService_Factory.create | DaggerMmxComponent.java:182 | dispatch=exact
+DaggerMmxComponent.initialize -> CurrencyRepositorySql_Factory.create | DaggerMmxComponent.java:180 | dispatch=exact
+DaggerMmxComponent.initialize -> DbModule_ProvideDatabaseFactory.create | DaggerMmxComponent.java:177 | dispatch=exact
+DaggerMmxComponent.initialize -> DbModule_ProvideOpenHelperFactory.create | DaggerMmxComponent.java:175 | dispatch=exact
+DaggerMmxComponent.initialize -> DbModule_ProvideSqlBriteFactory.create | DaggerMmxComponent.java:173 | dispatch=exact
+DaggerMmxComponent.initialize -> MmxModule_ProvideApplicationFactory.create | DaggerMmxComponent.java:172 | dispatch=exact
+DaggerMmxComponent.initialize -> MmxModule_ProvideAppContextFactory.create | DaggerMmxComponent.java:169 | dispatch=exact
+DaggerMmxComponent.inject(MainActivity) -> DaggerMmxComponent.injectMainActivity | DaggerMmxComponent.java:222 | dispatch=exact
+DaggerMmxComponent.injectMainActivity -> MainActivity_MembersInjector.injectMDatabases | DaggerMmxComponent.java:403 | dispatch=exact
+DaggerMmxComponent.injectSelectDatabaseActivity -> SelectDatabaseActivity_MembersInjector.injectMDatabasesLazy | DaggerMmxComponent.java:426 | dispatch=exact
+DaggerMmxComponent.injectDatabaseSettingsFragment -> DatabaseSettingsFragment_MembersInjector.injectMDatabases | DaggerMmxComponent.java:451 | dispatch=exact
+DaggerMmxComponent.injectDatabaseSettingsFragment -> DatabaseSettingsFragment_MembersInjector.injectOpenHelper | DaggerMmxComponent.java:449 | dispatch=exact
+DaggerMmxComponent.injectSyncPreferenceFragment -> SyncPreferenceFragment_MembersInjector.injectMDatabases | DaggerMmxComponent.java:481 | dispatch=exact
+DaggerMmxComponent.injectSyncManager -> SyncManager_MembersInjector.injectMDatabases | DaggerMmxComponent.java:546 | dispatch=exact
+DaggerMmxComponent.injectSyncManager -> SyncManager_MembersInjector.injectDateTimeUtilsLazy | DaggerMmxComponent.java:544 | dispatch=exact
+DaggerMmxComponent.injectSyncServiceMessageHandler -> SyncServiceMessageHandler_MembersInjector.injectMDatabases | DaggerMmxComponent.java:554 | dispatch=exact
+DaggerMmxComponent.injectEditTransactionCommonFunctions -> EditTransactionCommonFunctions_MembersInjector.injectDateTimeUtilsLazy | DaggerMmxComponent.java:571 | dispatch=exact
+DaggerMmxComponent.injectEditTransactionCommonFunctions -> EditTransactionCommonFunctions_MembersInjector.injectMDatabases | DaggerMmxComponent.java:569 | dispatch=exact
+DaggerMmxComponent.injectSyncService -> SyncService_MembersInjector.injectRecentDatabasesProvider | DaggerMmxComponent.java:597 | dispatch=exact
+DaggerMmxComponent$Builder.build -> DaggerMmxComponent.<init> | DaggerMmxComponent.java:628 | dispatch=exact
+DaggerMmxComponent$Builder.build -> RepositoryModule.<init> | DaggerMmxComponent.java:626 | dispatch=exact
+DaggerMmxComponent$Builder.build -> DbModule.<init> | DaggerMmxComponent.java:623 | dispatch=exact
+MmxDatabaseUtils.useDatabase -> RecentDatabasesProvider.add(DatabaseMetadata) | MmxDatabaseUtils.java:213 | dispatch=exact
+EditTransactionCommonFunctions.<init> -> DaggerMmxComponent.inject(EditTransactionCommonFunctions) | EditTransactionCommonFunctions.java:110 | dispatch=cha
+EditTransactionCommonFunctions.initAttachmentControls -> RecentDatabasesProvider.getCurrent | EditTransactionCommonFunctions.java:735 | dispatch=exact
+EditTransactionCommonFunctions_MembersInjector.create -> EditTransactionCommonFunctions_MembersInjector.<init> | EditTransactionCommonFunctions_MembersInjector.java:31 | dispatch=exact
+EditTransactionCommonFunctions_MembersInjector.injectMembers -> EditTransactionCommonFunctions_MembersInjector.injectDateTimeUtilsLazy | EditTransactionCommonFunctions_MembersInjector.java:38 | dispatch=exact
+EditTransactionCommonFunctions_MembersInjector.injectMembers -> EditTransactionCommonFunctions_MembersInjector.injectMDatabases | EditTransactionCommonFunctions_MembersInjector.java:37 | dispatch=exact
+CheckingTransactionEditActivity.onActivityResult -> EditTransactionCommonFunctions.onActivityResult | CheckingTransactionEditActivity.java:136 | dispatch=exact
+SyncManager.<init> -> DaggerMmxComponent.inject(SyncManager) | SyncManager.java:71 | dispatch=cha
+SyncManager.getRemotePath -> RecentDatabasesProvider.getCurrent | SyncManager.java:181 | dispatch=exact
+SyncManager.getRemotePath -> SyncManager.getDatabases | SyncManager.java:181 | dispatch=exact
+SyncManager.invokeSyncService -> RecentDatabasesProvider.getCurrent | SyncManager.java:208 | dispatch=exact
+SyncManager.invokeSyncService -> SyncManager.getDatabases | SyncManager.java:208 | dispatch=exact
+SyncManager.useDownloadedDatabase -> MmxDatabaseUtils.useDatabase | SyncManager.java:378 | dispatch=exact
+SyncManager.useDownloadedDatabase -> RecentDatabasesProvider.get | SyncManager.java:374 | dispatch=exact
+SyncManager.useDownloadedDatabase -> SyncManager.getDatabases | SyncManager.java:374 | dispatch=exact
+SyncManager.markLocalFileChanged -> RecentDatabasesProvider.save | SyncManager.java:490 | dispatch=exact
+SyncManager.markLocalFileChanged -> SyncManager.getDatabases | SyncManager.java:490 | dispatch=exact
+SyncManager.markLocalFileChanged -> RecentDatabasesProvider.get | SyncManager.java:485 | dispatch=exact
+SyncManager.getPendingIntentForDelayedUpload -> RecentDatabasesProvider.getCurrent | SyncManager.java:507 | dispatch=exact
+SyncManager.getPendingIntentForDelayedUpload -> SyncManager.getDatabases | SyncManager.java:507 | dispatch=exact
+SyncService.onCreate -> DaggerMmxComponent.inject(SyncService) | SyncService.java:86 | dispatch=cha
+SyncService.onHandleWork -> RecentDatabasesProvider.get | SyncService.java:121 | dispatch=exact
+SyncService.triggerSync -> RecentDatabasesProvider.get | SyncService.java:175 | dispatch=exact
+SyncServiceMessageHandler.<init> -> DaggerMmxComponent.inject(SyncServiceMessageHandler) | SyncServiceMessageHandler.java:50 | dispatch=cha
+SyncPreferenceFragment.onCreate -> DaggerMmxComponent.inject(SyncPreferenceFragment) | SyncPreferenceFragment.java:79 | dispatch=cha
+SyncPreferenceFragment.checkIfLocalFileExistsAndDownload -> RecentDatabasesProvider.getCurrent | SyncPreferenceFragment.java:280 | dispatch=exact
+SyncPreferenceFragment.checkIfLocalFileExistsAndDownload -> SyncPreferenceFragment.getDatabases | SyncPreferenceFragment.java:280 | dispatch=exact
+SyncPreferenceFragment.saveDatabaseMetadata -> RecentDatabasesProvider.add(DatabaseMetadata) | SyncPreferenceFragment.java:338 | dispatch=exact
+SyncPreferenceFragment.saveDatabaseMetadata -> SyncPreferenceFragment.getDatabases | SyncPreferenceFragment.java:338 | dispatch=exact
+SyncService_MembersInjector.create -> SyncService_MembersInjector.<init> | SyncService_MembersInjector.java:21 | dispatch=exact
+SyncService_MembersInjector.injectMembers -> SyncService_MembersInjector.injectRecentDatabasesProvider | SyncService_MembersInjector.java:26 | dispatch=exact
+SyncPreferenceFragment_MembersInjector.create -> SyncPreferenceFragment_MembersInjector.<init> | SyncPreferenceFragment_MembersInjector.java:25 | dispatch=exact
+SyncPreferenceFragment_MembersInjector.injectMembers -> SyncPreferenceFragment_MembersInjector.injectMDatabases | SyncPreferenceFragment_MembersInjector.java:30 | dispatch=exact
+SyncManager_MembersInjector.create -> SyncManager_MembersInjector.<init> | SyncManager_MembersInjector.java:30 | dispatch=exact
+SyncManager_MembersInjector.injectMembers -> SyncManager_MembersInjector.injectMDatabases | SyncManager_MembersInjector.java:36 | dispatch=exact
+SyncManager_MembersInjector.injectMembers -> SyncManager_MembersInjector.injectDateTimeUtilsLazy | SyncManager_MembersInjector.java:35 | dispatch=exact
+SyncServiceMessageHandler_MembersInjector.create -> SyncServiceMessageHandler_MembersInjector.<init> | SyncServiceMessageHandler_MembersInjector.java:25 | dispatch=exact
+SyncServiceMessageHandler_MembersInjector.injectMembers -> SyncServiceMessageHandler_MembersInjector.injectMDatabases | SyncServiceMessageHandler_MembersInjector.java:30 | dispatch=exact
+SyncManager_Factory.get -> SyncManager_MembersInjector.injectMDatabases | SyncManager_Factory.java:36 | dispatch=exact
+SyncManager_Factory.get -> SyncManager_MembersInjector.injectDateTimeUtilsLazy | SyncManager_Factory.java:34 | dispatch=exact
+RecurringTransactionEditActivity.onActivityResult -> EditTransactionCommonFunctions.onActivityResult | RecurringTransactionEditActivity.java:152 | dispatch=exact
+
+== section 5: date
+Thu Oct 29 15:39:20 EDT 2026

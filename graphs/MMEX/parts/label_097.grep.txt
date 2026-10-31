@@ -1,0 +1,96 @@
+# label_097.grep.txt: grep, sed and python3 -I output behind the UNREACHABLE claims and the SMS and fingerprint route claims of batch 097
+# Run from /Users/darshan/Desktop/yang/work. APP = final_java_only/MMEX/app/MMEX-#v2024.06.14/app; SRC = APP/src/main/java/com/money/manager/ex
+# Batch 097: SmsReceiverTransactions (18), SmsReceiverTransactions_MembersInjector (4), SyncNotificationModel (1), Encryptor (10), FingerprintHandler (6).
+# UNREACHABLE rows: Encryptor (10) and SmsReceiverTransactions_MembersInjector (4). Their evidence is sections 1-5.
+# Route claims for SMS and fingerprint: sections 6-8.
+
+## 1. Encryptor: every occurrence of the class name in the app source (grep -rn "Encryptor" APP/src)
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/core/Passcode.java:126:                // todo Encryptor.enc
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/passcode/Encryptor.java:41:public class Encryptor {
+# no other line: no new Encryptor, no Encryptor.<method> call, no import, and no XML or data-binding reference in APP/src.
+# Passcode.java:126 is a comment inside a todo note; it is not a call.
+
+## 2. Encryptor: the printed call sites inside Encryptor.java (grep -n for each method name; a line starting with // is commented out)
+# grep -n "deriveKeySecurely(\|getKeyFor(\|retrieveSalt(\|encryptOrDecrypt(\|encryptData(\|decryptData(\|readFromFileOrCreateRandom(\|deriveKeyInsecurely(\|encrypt(\|new Encryptor\|Encryptor\." Encryptor.java
+45:    public String encrypt(String text) {
+56:    public static SecretKey deriveKeyInsecurely(String password, int keySizeInBytes) {
+71:    private SecretKey deriveKeySecurely(String password, int keySizeInBytes) {
+73:        KeySpec keySpec = new PBEKeySpec(password.toCharArray(), retrieveSalt(),
+90:    private SecretKey getKeyFor(String password) {
+130://            SecretKey insecureKey = deriveKeyInsecurely(password, KEY_SIZE);
+131://            byte[] decryptedData = decryptData(retrieveEncryptedData(), retrieveIv(), insecureKey);
+132://            SecretKey secureKey = deriveKeySecurely(password, KEY_SIZE);
+133://            storeDataEncryptedWithSecureKey(encryptData(decryptedData, retrieveIv(), secureKey));
+137://            SecretKey secureKey = deriveKeySecurely(password, KEY_SIZE);
+138://            byte[] decryptedData = decryptData(retrieveEncryptedData(), retrieveIv(), secureKey);
+145:    private static byte[] encryptOrDecrypt(
+156:    private static byte[] encryptData(byte[] data, byte[] iv, SecretKey key) {
+157:        return encryptOrDecrypt(data, key, iv, true);
+159:    private static byte[] decryptData(byte[] data, byte[] iv, SecretKey key) {
+160:        return encryptOrDecrypt(data, key, iv, false);
+163:    private byte[] retrieveSalt() {
+167:        readFromFileOrCreateRandom("salt", salt);
+176:    private void readFromFileOrCreateRandom(String fileName, byte[] bytes) {
+# Live call sites: deriveKeySecurely (line 73 is inside its own body, a call to retrieveSalt, not a call to deriveKeySecurely); retrieveSalt (line 167 is inside its own body, a call to readFromFileOrCreateRandom).
+# Encryptor.java:45-47 body: return "not implemented";  Encryptor.java:90-121 getKeyFor: its calls to deriveKeyInsecurely and deriveKeySecurely (130-138) are commented out.
+# Nothing calls encrypt, deriveKeyInsecurely, deriveKeySecurely, getKeyFor, encryptOrDecrypt, encryptData, decryptData, retrieveSalt or readFromFileOrCreateRandom from outside Encryptor.java.
+# The only callers are methods in this same class that have no caller themselves (encryptData and decryptData have no call site; getKeyFor has no call site).
+
+## 3. Encryptor: the auto_calls.json records with an Encryptor caller or callee (python3 -I scan of the calls list, file and line as recorded)
+Encryptor.deriveKeyInsecurely -> InsecureSHA1PRNGKeyDerivator.<clinit>   Encryptor.java:65
+Encryptor.deriveKeyInsecurely -> InsecureSHA1PRNGKeyDerivator.deriveInsecureKey   Encryptor.java:65
+Encryptor.deriveKeySecurely -> Encryptor.retrieveSalt   Encryptor.java:73
+Encryptor.encryptData -> Encryptor.encryptOrDecrypt   Encryptor.java:157
+Encryptor.decryptData -> Encryptor.encryptOrDecrypt   Encryptor.java:160
+Encryptor.retrieveSalt -> Encryptor.readFromFileOrCreateRandom   Encryptor.java:167
+# No record has dst Encryptor.<init>, Encryptor.encrypt, Encryptor.deriveKeyInsecurely, Encryptor.deriveKeySecurely, Encryptor.getKeyFor, Encryptor.encryptOrDecrypt, Encryptor.encryptData, Encryptor.decryptData or Encryptor.readFromFileOrCreateRandom except the Encryptor-internal ones listed above.
+# Result: the 6 records have an UNREACHABLE caller, so they are cut by sup (label_097.py, D14).
+
+## 4. SmsReceiverTransactions_MembersInjector: app source references (grep -rln "SmsReceiverTransactions_MembersInjector\|injectDatabase" APP/src)
+# no output: no file in the app source names the generated class or the injectDatabase method.
+# The app source names the receiver itself in two places only (grep -rn "SmsReceiverTransactions" APP/src, excluding SmsReceiverTransactions.java):
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/AndroidManifest.xml:126:        <receiver android:name=".notifications.SmsReceiverTransactions"
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/CheckingTransactionEditActivity.java:554:                                    .contentEquals("SmsReceiverTransactions.java"))
+# CheckingTransactionEditActivity.java:554 compares a stack-trace file name string; it is not a call. No dagger component in APP/src names SmsReceiverTransactions.
+
+## 5. Build class files (python3 -I os.walk over APP/build, every .class, .java, .xml, .dex, .txt and .json file; bytes searched for each pattern)
+# APP/build/intermediates/javac/debug/classes/com/money/manager/ex/notifications/SmsReceiverTransactions_MembersInjector.class is the only file with the string SmsReceiverTransactions_MembersInjector.
+# The string passcode/Encryptor occurs only in intermediates/javac/debug/classes/com/money/manager/ex/passcode/Encryptor.class (its own class file).
+# The string SmsReceiverTransactions occurs in: CheckingTransactionEditActivity.class (the stack-trace string), SmsReceiverTransactions_MembersInjector.class and SmsReceiverTransactions.class.
+# No generated component class (for example DaggerMmxComponent) names SmsReceiverTransactions or SmsReceiverTransactions_MembersInjector.
+# Auto records for the generated class (auto_calls.json, file SmsReceiverTransactions_MembersInjector.java):
+SmsReceiverTransactions_MembersInjector.create -> SmsReceiverTransactions_MembersInjector.<init>   SmsReceiverTransactions_MembersInjector.java:22
+SmsReceiverTransactions_MembersInjector.injectMembers -> SmsReceiverTransactions_MembersInjector.injectDatabase   SmsReceiverTransactions_MembersInjector.java:27
+# No auto record has dst SmsReceiverTransactions_MembersInjector.create, .injectMembers or .injectDatabase (create and injectMembers have 0 callers; injectDatabase has the one caller injectMembers).
+# No auto record has dst SmsReceiverTransactions_MembersInjector.<init> except from create.
+# Result: 0 live callers for create and injectMembers, so create -> <init> and injectMembers -> injectDatabase are cut by sup (label_097.py, D14).
+
+## 6. RECEIVE_SMS: the manifest, the app source, the merged build manifests, and the framework source
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/AndroidManifest.xml:36-38 (sed -n 36,38p):
+    <!-- SMS Interface -->
+    <!--<uses-permission android:name="android.permission.RECEIVE_SMS" />-->
+    <!--<uses-permission android:name="android.permission.READ_SMS" />-->
+# grep -rn "RECEIVE_SMS" APP/src (the non-manifest hits are strings and the runtime request):
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/AndroidManifest.xml:37:    <!--<uses-permission android:name="android.permission.RECEIVE_SMS" />-->
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/settings/BehaviourSettingsFragment.java:136: Manifest.permission.RECEIVE_SMS);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/settings/BehaviourSettingsFragment.java:147: ActivityCompat.requestPermissions(getActivity(
+# (plus values/strings.xml, values-es, values-de, values-uk: string resources only)
+# python3 -I scan of APP/build for *.xml containing b'RECEIVE_SMS': no file (the merged manifests do not declare it).
+# fw_src (grep -rln "RECEIVE_SMS" fw_src/android-8.1.0_r1): services/core/java/com/android/server/pm/PackageManagerService.java:605 only (Manifest.permission.RECEIVE_SMS in a list). No telephony source is in fw_src: SMS_RECEIVED delivery is INFERRED, source not read.
+
+## 7. Framework: the broadcast permission check for a manifest receiver (fw_src/android-8.1.0_r1/services/core/java/com/android/server/am/BroadcastQueue.java)
+# grep -n "activityInfo.permission\|activityInfo.exported\|checkComponentPermission(" BroadcastQueue.java
+1065:            int perm = mService.checkComponentPermission(info.activityInfo.permission,
+1067:                    info.activityInfo.exported);
+1069:                if (!info.activityInfo.exported) {
+1081:                            + " requires " + info.activityInfo.permission
+1085:            } else if (!skip && info.activityInfo.permission != null) {
+# The deny branch at 1069 runs only when info.activityInfo.exported is false. The manifest receiver at AndroidManifest.xml:126-131 has no android:permission attribute (so the permission argument at 1065 is null) and exported="true", so this check does not deny another app's explicit broadcast.
+
+## 8. Recurring-transaction notification route (for the SyncNotificationModel row; the route is REACHABLE, so this section is not used for an UNREACHABLE label)
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/core/RecurringTransactionBootReceiver.java:56-57 (Intent to RecurringTransactionReceiver, PendingIntent.getBroadcast)
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/notifications/RecurringTransactionReceiver.java:37-38 (enqueueWork of RecurringTransactionIntentService)
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/notifications/RecurringTransactionIntentService.java:43 (onHandleWork calls notifyRepeatingTransaction)
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/notifications/RecurringTransactionNotifications.java:60, 75-76, 133 (notifyRepeatingTransaction_Internal; cursor.getCount() > 0; getNotificationContent; new SyncNotificationModel)
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java:244 (populateScheduledTransactions in onCreate), 1237 (gate), 1239 (notifyRepeatingTransaction)
+# grep -rn "SyncNotificationModel" APP/src (other than its own file): RecurringTransactionNotifications.java:76, 82, 132, 133 (the file's own uses: the local at 76, the parameter of showNotification at 82, the return type at 132, and the new at 133).

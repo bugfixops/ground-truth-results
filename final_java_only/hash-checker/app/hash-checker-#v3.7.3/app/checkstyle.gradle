@@ -1,0 +1,36 @@
+apply plugin: 'checkstyle'
+
+checkstyle {
+    toolVersion '8.38'
+    ignoreFailures false
+    showViolations true
+}
+
+task checkstyle(type: Checkstyle) {
+    group 'verification'
+
+    def checkstyleConfigPath = "$rootDir/checkstyle.xml"
+    def checkstyleConfig = new File(checkstyleConfigPath)
+    if (!checkstyleConfig.exists()) {
+        new URL(
+                "https://raw.githubusercontent.com/fartem/repository-rules/master/rules/java/android/checkstyle.xml"
+        ).withInputStream {
+            i -> checkstyleConfig.withOutputStream { it << i }
+        }
+
+    }
+
+    configFile file(checkstyleConfigPath)
+    source rootProject.file('app/src/main/java')
+    classpath = files()
+
+    reports {
+        html.enabled true
+        html.destination rootProject.file('checkstyle-result.html')
+
+        xml.enabled true
+        xml.destination rootProject.file('checkstyle-result.xml')
+    }
+}
+
+build.dependsOn 'checkstyle'

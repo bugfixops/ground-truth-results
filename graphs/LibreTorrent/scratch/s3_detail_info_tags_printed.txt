@@ -1,0 +1,260 @@
+    34	
+    35	    void init(Context context) {
+    36	        this.addTagButton = buildAddTagButton(context);
+    37	        addView(addTagButton);
+    38	    }
+    39	
+    40	    public void setListener(Listener listener) {
+    41	        this.listener = listener;
+    42	    }
+    43	
+    44	    public void submit(@NonNull List<TagInfo> tags) {
+    45	        removeAllViews();
+    46	        this.tags = tags;
+    47	
+    48	        for (TagInfo tag : tags) {
+    49	            addView(buildChip(getContext(), tag));
+    50	        }
+    51	        addView(addTagButton);
+    52	    }
+    53	
+    54	    private Chip buildChip(Context context, TagInfo info) {
+    55	        Chip chip = new Chip(context);
+    56	        chip.setText(info.name);
+    57	        chip.setChipIconSize(TypedValue.applyDimension(
+    58	                TypedValue.COMPLEX_UNIT_DIP,
+    59	                18,
+    60	                getResources().getDisplayMetrics()
+    61	        ));
+    62	        chip.setChipIconResource(R.drawable.torrent_tag_color_background);
+    63	        chip.setChipIconTint(new ColorStateList(
+    64	                new int[][]{new int[]{}},
+    65	                new int[]{info.color})
+    66	        );
+    67	        chip.setCloseIconVisible(true);
+    68	        chip.setClickable(false);
+    69	        chip.setOnCloseIconClickListener((v) -> {
+    70	            if (listener != null) {
+    71	                listener.onTagRemoved(info);
+    72	            }
+    73	        });
+    74	
+    75	        return chip;
+    76	    }
+    77	
+    78	    private AddTagButton buildAddTagButton(Context context) {
+    79	        AddTagButton button = new AddTagButton(context);
+    80	        button.setOnClickListener((v) -> {
+    81	            if (listener != null) {
+    82	                listener.onAddTagClick();
+    83	            }
+    84	        });
+    85	
+    86	        return button;
+    87	    }
+    88	
+    89	    public interface Listener {
+    90	        void onAddTagClick();
+    91	
+    92	        void onTagRemoved(@NonNull TagInfo info);
+    93	    }
+    94	}
+    98	    @Override
+    99	    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+   100	        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_detail_torrent_info, container, false);
+   101	
+   102	        ViewModelProvider provider = new ViewModelProvider(activity);
+   103	        viewModel = provider.get(DetailTorrentViewModel.class);
+   104	        dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+   105	        binding.setViewModel(viewModel);
+   106	
+   107	        FragmentManager fm = getChildFragmentManager();
+   108	        editNameDialog = (BaseAlertDialog) fm.findFragmentByTag(TAG_EDIT_NAME_DIALOG);
+   109	
+   110	        binding.folderChooserButton.setOnClickListener((v) -> showChooseDirDialog());
+   111	        binding.editNameButton.setOnClickListener((v) -> showEditNameDialog());
+   112	        binding.tagsList.setListener(tagsListener);
+   113	
+   114	        return binding.getRoot();
+   115	    }
+   116	
+   117	    final ActivityResultLauncher<Intent> chooseDir = registerForActivityResult(
+   118	            new ActivityResultContracts.StartActivityForResult(),
+   119	            (result) -> {
+   120	                if (result.getResultCode() != Activity.RESULT_OK)
+   121	                    return;
+   122	
+   123	                Intent data = result.getData();
+   124	                if (data == null || data.getData() == null) {
+   125	                    showOpenDirErrorDialog();
+   126	                    return;
+   127	                }
+   128	
+   129	                viewModel.mutableParams.setDirPath(data.getData());
+   130	            });
+   131	
+   132	    final ActivityResultLauncher<Intent> selectTag = registerForActivityResult(
+   133	            new ActivityResultContracts.StartActivityForResult(),
+   134	            (result) -> {
+   135	                Intent data = result.getData();
+   136	                if (result.getResultCode() == Activity.RESULT_OK && data != null) {
+   137	                    TagInfo tag = data.getParcelableExtra(SelectTagActivity.TAG_RESULT_SELECTED_TAG);
+   138	                    if (tag != null) {
+   139	                        disposables.add(viewModel.addTag(tag)
+   140	                                .subscribeOn(Schedulers.io())
+   141	                                .subscribe()
+   142	                        );
+   143	                    }
+   144	                }
+   145	            });
+   146	
+   147	    private final TorrentTagsList.Listener tagsListener = new TorrentTagsList.Listener() {
+   148	        @Override
+   149	        public void onAddTagClick() {
+   150	            disposables.add(viewModel.getTags()
+   151	                    .subscribeOn(Schedulers.io())
+   152	                    .flatMap((tags) -> Observable.fromIterable(tags)
+   153	                            .map((tag) -> tag.id)
+   154	                            .toList()
+   155	                    )
+   156	                    .observeOn(AndroidSchedulers.mainThread())
+   157	                    .subscribe((ids) -> {
+   158	                        Intent i = new Intent(activity, SelectTagActivity.class);
+   159	                        i.putExtra(
+   160	                                SelectTagActivity.TAG_EXCLUDE_TAGS_ID,
+   161	                                ArrayUtils.toPrimitive(ids.toArray(new Long[0]))
+   162	                        );
+   163	                        selectTag.launch(i);
+   164	                    })
+   165	            );
+   166	        }
+   167	
+   168	        @Override
+   169	        public void onTagRemoved(@NonNull TagInfo info) {
+   170	            disposables.add(viewModel.removeTag(info)
+   171	                    .subscribeOn(Schedulers.io())
+   172	                    .subscribe()
+   173	            );
+   174	        }
+   175	    };
+   176	
+   177	    private void subscribeTags() {
+   178	        disposables.add(viewModel.observeTags()
+   179	                .subscribeOn(Schedulers.io())
+   180	                .observeOn(AndroidSchedulers.mainThread())
+   181	                .subscribe(binding.tagsList::submit)
+   182	        );
+   183	    }
+   184	
+   185	    private void showChooseDirDialog() {
+   195	
+   196	    @Override
+   197	    public void onStart() {
+   198	        super.onStart();
+   199	
+   200	        subscribeAlertDialog();
+   201	        subscribeTags();
+   202	    }
+   203	
+   204	    @Override
+   205	    public void onStop() {
+   206	        super.onStop();
+   207	
+   208	        disposables.clear();
+   209	    }
+   210	
+   211	    private void subscribeAlertDialog() {
+   212	        Disposable d = dialogViewModel.observeEvents()
+   295	        Dialog dialog = editNameDialog.getDialog();
+   296	        if (dialog == null)
+   297	            return;
+   298	
+   299	        TextInputEditText editText = dialog.findViewById(R.id.text_input_dialog);
+   300	        TextInputLayout layoutEditText = dialog.findViewById(R.id.layout_text_input_dialog);
+   301	
+   302	        if (!TextUtils.isEmpty(editText.getText()))
+   303	            return;
+   304	
+   305	        String name = viewModel.mutableParams.getName();
+   306	        if (name != null)
+   307	            editText.setText(name);
+   308	
+   309	        editText.addTextChangedListener(new TextWatcher() {
+   310	            @Override
+   311	            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+   312	            }
+   313	
+   314	            @Override
+   315	            public void onTextChanged(CharSequence s, int start, int before, int count) {
+   316	            }
+   317	
+   318	            @Override
+   319	            public void afterTextChanged(Editable s) {
+   320	                checkNameField(s, layoutEditText);
+   321	            }
+   322	        });
+   323	    }
+   324	}  9282	     * not called after {@link #setText} calls.  Now, doing {@link #setText}
+  9283	     * if there are any text changed listeners forces the buffer type to
+  9284	     * Editable if it would not otherwise be and does call this method.
+  9285	     */
+  9286	    public void addTextChangedListener(TextWatcher watcher) {
+  9287	        if (mListeners == null) {
+  9288	            mListeners = new ArrayList<TextWatcher>();
+  9289	        }
+  9290	
+  9291	        mListeners.add(watcher);
+  9292	    }
+  9293	
+  9309	    private void sendBeforeTextChanged(CharSequence text, int start, int before, int after) {
+  9310	        if (mListeners != null) {
+  9311	            final ArrayList<TextWatcher> list = mListeners;
+  9312	            final int count = list.size();
+  9313	            for (int i = 0; i < count; i++) {
+  9314	                list.get(i).beforeTextChanged(text, start, before, after);
+  9315	            }
+  9316	        }
+  9317	
+  9318	        // The spans that are inside or intersect the modified region no longer make sense
+  9319	        removeIntersectingNonAdjacentSpans(start, start + before, SpellCheckSpan.class);
+  9320	        removeIntersectingNonAdjacentSpans(start, start + before, SuggestionSpan.class);
+  9321	    }
+  9322	
+  9323	    // Removes all spans that are inside or actually overlap the start..end range
+  9324	    private <T> void removeIntersectingNonAdjacentSpans(int start, int end, Class<T> type) {
+  9325	        if (!(mText instanceof Editable)) return;
+  9326	        Editable text = (Editable) mText;
+  9327	
+  9328	        T[] spans = text.getSpans(start, end, type);
+  9329	        final int length = spans.length;
+  9330	        for (int i = 0; i < length; i++) {
+  9331	            final int spanStart = text.getSpanStart(spans[i]);
+  9332	            final int spanEnd = text.getSpanEnd(spans[i]);
+  9333	            if (spanEnd == start || spanStart == end) break;
+  9334	            text.removeSpan(spans[i]);
+  9335	        }
+  9336	    }
+  9337	
+  9370	
+  9371	    /**
+  9372	     * Not private so it can be called from an inner class without going
+  9373	     * through a thunk.
+  9374	     */
+  9375	    void sendAfterTextChanged(Editable text) {
+  9376	        if (mListeners != null) {
+  9377	            final ArrayList<TextWatcher> list = mListeners;
+  9378	            final int count = list.size();
+  9379	            for (int i = 0; i < count; i++) {
+  9380	                list.get(i).afterTextChanged(text);
+  9381	            }
+  9382	        }
+  9383	
+  9384	        // Always notify AutoFillManager - it will return right away if autofill is disabled.
+  9385	        notifyAutoFillManagerAfterTextChangedIfNeeded();
+  9386	
+  9387	        hideErrorIfUnchanged();
+  9388	    }
+  9389	
+  9390	    private void notifyAutoFillManagerAfterTextChangedIfNeeded() {
+  9391	        // It is important to not check whether the view is important for autofill
+  9392	        // since the user can trigger autofill manually on not important views.

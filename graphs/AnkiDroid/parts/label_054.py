@@ -1,0 +1,7 @@
+e('S_REVIEWER', 'Whiteboard.onDraw', 'FRAMEWORK', 'Review screen shows the whiteboard overlay and the view system draws it', env=None, needs_state=STATE_SETTINGS, evidence='SRC com/ichi2/anki/Whiteboard.java:98-103; SRC com/ichi2/anki/Reviewer.java:453-459, 476-483; FW-SRC fw_src/android-8.1.0_r1/core/java/android/view/View.java:19161-19192', note='Reviewer adds the whiteboard view (Reviewer.java:459) and shows it through setWhiteboardVisibility (476-483); View.draw calls onDraw (View.java:19192, 19308). Gate: whiteboard enabled for the deck (STATE_SETTINGS).')
+
+UNREACHABLE['UIUtils.<init>'] = ('no_trigger_in_app', 'UIUtils declares no constructor, nothing instantiates or subclasses it, and all of its members are static', 'com/ichi2/anki/UIUtils.java:20', 'SOURCE')
+
+UNREACHABLE['UIUtils$1.onCancelled'] = ('no_trigger_in_app', 'The SAVE_COLLECTION task is never cancelled: cancelTask(int) is only called with SEARCH_CARDS or RENDER_BROWSER_QA', 'com/ichi2/anki/UIUtils.java:134-135; com/ichi2/async/DeckTask.java:168-172, 181-184, 368-370; com/ichi2/anki/CardBrowser.java:528-529, 796-797, 1155', 'SOURCE')
+
+UNREACHABLE['UIUtils$1.onProgressUpdate'] = ('no_trigger_in_app', 'Only the SAVE_COLLECTION task reaches this listener, and its body calls col.save() without publishProgress', 'com/ichi2/anki/UIUtils.java:129-130; com/ichi2/async/DeckTask.java:237-238, 352-355, 494-504', 'SOURCE')

@@ -1,0 +1,39 @@
+batch 057: grep evidence for the generated-code UNREACHABLE labels (StockHistoryRepositorySql_Factory.create, .get, .<init>), INFERRED.
+App root: final_java_only/MMEX/app/MMEX-#v2024.06.14/app/
+Build root: <app root>/build/intermediates/javac/debug/classes/com/money/manager/ex/
+
+1) Source references to the generated factory (app src/main):
+   $ grep -rn 'StockHistoryRepositorySql_Factory' <app root>src/main | wc -l
+   0
+
+2) Names referenced by the Dagger component class (DaggerMmxComponent.class):
+   $ grep -a -o -E 'StockHistoryRepository[A-Za-z_$]*' <build>/core/ioc/DaggerMmxComponent.class | sort | uniq -c
+      1 StockHistoryRepository
+      1 StockHistoryRepositoryFactory
+      1 StockHistoryRepositoryProvider
+      3 StockHistoryRepositorySql
+   (no StockHistoryRepositorySql_Factory)
+
+3) The component does reference the explicit @Provides factory:
+   $ grep -a -c 'RepositoryModule_ProvideStockHistoryRepositoryFactory' <build>/core/ioc/DaggerMmxComponent.class
+   1
+
+4) Names in the generated factory class itself:
+   $ grep -a -o -E 'StockHistoryRepositorySql[A-Za-z_$]*' <build>/datalayer/StockHistoryRepositorySql_Factory.class | sort | uniq -c
+      4 StockHistoryRepositorySql
+      3 StockHistoryRepositorySql_Factory
+
+5) Binding source (explicit provider, app src):
+   <app root>src/main/java/com/money/manager/ex/core/ioc/RepositoryModule.java:38-39
+     StockHistoryRepositorySql provideStockHistoryRepository(BriteDatabase db) {
+         return new StockHistoryRepositorySql(db);
+   <app root>src/main/java/com/money/manager/ex/datalayer/StockHistoryRepositorySql.java:45-46
+     @Inject
+     public StockHistoryRepositorySql(BriteDatabase db) {
+
+6) Auto CALL records for the factory (auto_calls.json, calls):
+   StockHistoryRepositorySql_Factory.get -> StockHistoryRepositorySql.<init> (StockHistoryRepositorySql_Factory.java 21, exact)
+   StockHistoryRepositorySql_Factory.create -> StockHistoryRepositorySql_Factory.<init> (StockHistoryRepositorySql_Factory.java 25, exact)
+   No record has create or get as dst. The factory <init> is the dst only of create, which has no live caller.
+
+Conclusion: the generated factory methods are not called by any app code or by the generated component; the component uses RepositoryModule_ProvideStockHistoryRepositoryFactory. Labelled UNREACHABLE, no_trigger_in_app, INFERRED (D16 precedent).

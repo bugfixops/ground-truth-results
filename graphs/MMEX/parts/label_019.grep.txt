@@ -1,0 +1,40 @@
+# label_019 grep evidence (MMEX batch 019). Source root: final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src (paths below are relative to /Users/darshan/Desktop/yang/work)
+# Batch 019 has no UNREACHABLE claim that rests on no-caller. These greps back the route claims: the only starter of BudgetsActivity, the only caller of showFragment, the EventBus register and post sites, and the drawer item.
+# grep exit 1 means no match.
+
+## grep -rn BudgetsActivity (all of src: java, manifest, res)
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/AndroidManifest.xml:325:            android:name=".budget.BudgetsActivity"
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/res/menu/menu_budgets.xml:21:    tools:context="com.money.manager.ex.budget.BudgetsActivity">
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java:63:import com.money.manager.ex.budget.BudgetsActivity;
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java:655:                intent = new Intent(this, BudgetsActivity.class);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/budget/BudgetsActivity.java:35:public class BudgetsActivity
+
+## grep -rn menu_budgets (drawer item id)
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/res/menu-v14/menu_main.xml:97:        android:id="@+id/menu_budgets"
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java:654:            case R.id.menu_budgets:
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java:1090:        menuItems.add(new DrawerMenuItem().withId(R.id.menu_budgets)
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/budget/BudgetsActivity.java:60://        getMenuInflater().inflate(R.menu.menu_budgets, menu);
+
+## grep -rn showFragment( in budget package
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/budget/BudgetsActivity.java:140:        showFragment(fragment, tag);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/budget/BudgetsActivity.java:149:    public void showFragment(Fragment fragment, String tagFragment) {
+
+## grep -rn BudgetSelectedEvent or @Subscribe in budget package
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/budget/BudgetsActivity.java:26:import com.money.manager.ex.budget.events.BudgetSelectedEvent;
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/budget/BudgetsActivity.java:82:    @Subscribe
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/budget/BudgetsActivity.java:83:    public void onEvent(BudgetSelectedEvent event) {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/budget/BudgetListFragment.java:36:import com.money.manager.ex.budget.events.BudgetSelectedEvent;
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/budget/BudgetListFragment.java:215:        EventBus.getDefault().post(new BudgetSelectedEvent(id, budgetName));
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/budget/events/BudgetSelectedEvent.java:23:public class BudgetSelectedEvent {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/budget/events/BudgetSelectedEvent.java:24:    public BudgetSelectedEvent(long budgetYearId, String budgetName) {
+
+## grep -n EventBus register or unregister in MmxBaseFragmentActivity (superclass of BudgetsActivity)
+141:        EventBus.getDefault().register(this);
+146:        EventBus.getDefault().unregister(this);
+
+## grep -rn BudgetViewModel.from or BudgetEditViewHolder( or BudgetEditActivity.class (chain heads for BudgetViewModel methods)
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/budget/BudgetEditActivity.java:185:        mModel = BudgetViewModel.from(budget);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/budget/BudgetEditActivity.java:208:        this.viewHolder = new BudgetEditViewHolder(this);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/budget/BudgetViewModel.java:32:    public static BudgetViewModel from(Budget budget) {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/budget/BudgetListFragment.java:239:        Intent intent = new Intent(getActivity(), BudgetEditActivity.class);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/budget/BudgetListFragment.java:247:        Intent intent = new Intent(getActivity(), BudgetEditActivity.class);

@@ -1,0 +1,22 @@
+# Batch 53 printed evidence
+
+Commands and relevant output were printed/read for this audit.
+
+```sh
+awk -F '\\t' '$1==53 {print $3 "\\t" $4}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+```
+
+Output: 40 rows (the exact method/descriptor membership is reproduced in batch_053_helper.md).
+
+```sh
+nl -ba /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/storage/dao/TorrentDao.java | sed -n '37,77p'
+nl -ba /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/system/DefaultFsModule.java | sed -n '31,133p'
+rg -n 'DefaultFsModule|TorrentDao|torrentDao\\.' /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java
+```
+
+Read results:
+- TorrentDao source contains abstract DAO operations and a `replaceTags` method that calls `deleteTagsByTorrentId` and `addTags` (lines 37-77).
+- DefaultFsModule source contains constructor and filesystem operation bodies (lines 31-133).
+- Search found `FsModuleResolverImpl` constructing `DefaultFsModule` and `AppDatabase` declaring `torrentDao()`; the generated `TorrentDao_Impl.java` source was absent (only compiled build-intermediate classes found).
+- These observations do not establish full entry routes for any of the 40 plan members; all remain OPEN.
+

@@ -1,0 +1,57 @@
+# Batch 71 printed evidence
+
+Plan extraction:
+```sh
+awk -F '\\t' '$1==71 {print $3 "\\t" $4}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+```
+Result: 40 exact rows; all methods/descriptors are in the helper table.
+
+Printed source:
+```sh
+nl -ba .../receiver/PowerReceiver.java | sed -n '28,68p'
+nl -ba .../receiver/SchedulerReceiver.java | sed -n '35,105p'
+rg -n 'class .*Worker|doWork\(|public .*\(' .../service/{FeedDownloaderWorker,FeedFetcherWorker,SaveLogWorker,Scheduler}.java
+rg -n 'SchedulerReceiver|PowerReceiver' .../app/src/main/AndroidManifest.xml
+```
+
+Selected output read:
+```java
+// PowerReceiver.java:36-49
+public void onReceive(Context context, Intent intent) {
+    String action = intent.getAction();
+    if (action == null) return;
+    switch (action) {
+        case Intent.ACTION_BATTERY_LOW:
+        case Intent.ACTION_BATTERY_OKAY:
+        case Intent.ACTION_POWER_CONNECTED:
+        case Intent.ACTION_POWER_DISCONNECTED:
+        case Intent.ACTION_BATTERY_CHANGED:
+            TorrentEngine engine = TorrentEngine.getInstance(context);
+            engine.rescheduleTorrents();
+            break;
+    }
+}
+// SchedulerReceiver.java:43-63
+public void onReceive(Context context, Intent intent) {
+    if (intent.getAction() == null) return;
+    var appContext = context.getApplicationContext();
+    var pref = RepositoryHelper.getSettingsRepository(appContext);
+    var notifier = TorrentNotifier.getInstance(appContext);
+    switch (intent.getAction()) {
+        case SCHEDULER_WORK_START_APP: onStartApp(appContext, pref, notifier); break;
+        case SCHEDULER_WORK_STOP_APP: onStopApp(appContext, pref, notifier); break;
+    }
+}
+```
+
+Signature scan output:
+```
+FeedDownloaderWorker: constructor line 69; doWork line 76
+FeedFetcherWorker: constructor line 67; doWork line 74
+SaveLogWorker: constructor line 57; doWork line 64
+Scheduler: setStartAppAlarm line 52; cancel alarms lines 60,70; periodic refresh lines 112,142
+AndroidManifest.xml: SchedulerReceiver declaration line 277
+```
+
+These observations support source-local dispatch only. They do not complete the WorkManager/alarm/receiver route analysis for all targets; therefore no REACHABLE or UNREACHABLE claim is made, and all 40 remain OPEN.
+

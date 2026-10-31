@@ -1,0 +1,55 @@
+# LibreTorrent batch 115 helper report
+
+Membership source: `handoff/LIBRETORRENT_BATCH_PLAN.tsv`, batch 115 only. Exact count: 40.
+
+Summary: 0 REACHABLE, 0 UNREACHABLE, 40 OPEN. This batch contains settings screens, custom preference controls, time preference dialogs, and a log settings ViewModel. Source search reveals preference listeners and fragments, but this bounded pass did not establish the complete activity-to-preference route or framework dispatch for every target. Keep all OPEN.
+
+| Plan row | JVM method | Descriptor | Status | Reason |
+|---:|---|---|---|---|
+| 1 | `SettingsFragment.startActivity` | `(Ljava/lang/Class;Ljava/lang/String;)V` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 2 | `SettingsViewModel.<init>` | `()V` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 3 | `SummaryPreference.<init>(Context,AttributeSet)` | `(Landroid/content/Context;Landroid/util/AttributeSet;)V` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 4 | `SummaryPreference.<init>(Context,AttributeSet,int)` | `(Landroid/content/Context;Landroid/util/AttributeSet;I)V` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 5 | `SummaryPreference.<init>(Context,AttributeSet,int,int)` | `(Landroid/content/Context;Landroid/util/AttributeSet;II)V` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 6 | `SummaryPreference.onBindViewHolder` | `(Landroidx/preference/PreferenceViewHolder;)V` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 7 | `SummaryPreference.setSummary(int)` | `(I)V` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 8 | `SummaryPreference.setSummary(CharSequence)` | `(Ljava/lang/CharSequence;)V` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 9 | `SwitchBarPreference.<init>(Context,AttributeSet)` | `(Landroid/content/Context;Landroid/util/AttributeSet;)V` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 10 | `SwitchBarPreference.<init>(Context,AttributeSet,int)` | `(Landroid/content/Context;Landroid/util/AttributeSet;I)V` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 11 | `SwitchBarPreference.<init>(Context,AttributeSet,int,int)` | `(Landroid/content/Context;Landroid/util/AttributeSet;II)V` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 12 | `SwitchBarPreference.onBindViewHolder` | `(Landroidx/preference/PreferenceViewHolder;)V` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 13 | `SwitchBarPreference$1.<init>` | `(Lorg/proninyaroslav/libretorrent/ui/settings/customprefs/SwitchBarPreference;)V` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 14 | `SwitchBarPreference$1.onCheckedChanged` | `(Landroid/widget/CompoundButton;Z)V` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 15 | `TimePreference.<init>(Context,AttributeSet)` | `(Landroid/content/Context;Landroid/util/AttributeSet;)V` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 16 | `TimePreference.<init>(Context,AttributeSet,int)` | `(Landroid/content/Context;Landroid/util/AttributeSet;I)V` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 17 | `TimePreference.<init>(Context,AttributeSet,int,int)` | `(Landroid/content/Context;Landroid/util/AttributeSet;II)V` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 18 | `TimePreference.formatTime` | `()Ljava/lang/String;` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 19 | `TimePreference.getDialogLayoutResource` | `()I` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 20 | `TimePreference.getSummary` | `()Ljava/lang/CharSequence;` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 21 | `TimePreference.getTime` | `()I` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 22 | `TimePreference.onGetDefaultValue` | `(Landroid/content/res/TypedArray;I)Ljava/lang/Object;` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 23 | `TimePreference.onSetInitialValue` | `(ZLjava/lang/Object;)V` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 24 | `TimePreference.setTime` | `(I)V` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 25 | `TimePreferenceDialogFragmentCompat.<init>` | `()V` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 26 | `TimePreferenceDialogFragmentCompat.newInstance` | `(Ljava/lang/String;)Lorg/proninyaroslav/libretorrent/ui/settings/customprefs/TimePreferenceDialogFragmentCompat;` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 27 | `TimePreferenceDialogFragmentCompat.onBindDialogView` | `(Landroid/view/View;)V` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 28 | `TimePreferenceDialogFragmentCompat.onDialogClosed` | `(Z)V` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 29 | `AnonymousModeSettingsFragment.<clinit>` | `()V` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 30 | `AnonymousModeSettingsFragment.<init>` | `()V` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 31 | `AnonymousModeSettingsFragment.bindOnPreferenceChangeListener` | `(Landroidx/preference/Preference;)V` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 32 | `AnonymousModeSettingsFragment.newInstance` | `()Lorg/proninyaroslav/libretorrent/ui/settings/sections/AnonymousModeSettingsFragment;` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 33 | `AnonymousModeSettingsFragment.onCreate` | `(Landroid/os/Bundle;)V` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 34 | `AnonymousModeSettingsFragment.onCreatePreferences` | `(Landroid/os/Bundle;Ljava/lang/String;)V` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 35 | `AnonymousModeSettingsFragment.onPreferenceChange` | `(Landroidx/preference/Preference;Ljava/lang/Object;)Z` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 36 | `AppearanceSettingsFragment.<init>` | `()V` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 37 | `AppearanceSettingsFragment.bindOnPreferenceChangeListener` | `(Landroidx/preference/Preference;)V` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 38 | `AppearanceSettingsFragment.initLegacyNotifySettings` | `(Lorg/proninyaroslav/libretorrent/core/settings/SettingsRepository;)V` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 39 | `AppearanceSettingsFragment.lambda$initLegacyNotifySettings$0` | `(Lorg/proninyaroslav/libretorrent/core/settings/SettingsRepository;Landroidx/preference/Preference;)Z` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+| 40 | `AppearanceSettingsFragment.lambda$new$1` | `(Landroidx/activity/result/ActivityResult;)V` | OPEN | Preference/custom dialog/activity code is visible; complete user-entry and framework preference dispatch route was not verified for each member. |
+
+## Evidence
+- SettingsFragment contains a helper that starts a settings activity (around lines 232-240); it also creates section fragments from categories.
+- AnonymousModeSettingsFragment contains factory, preference loading and listener methods (around lines 32-76).
+- AppearanceSettingsFragment contains preference initialization and an ActivityResult callback (source scan).
+- Custom preference class files define view binding, state and dialog lifecycle methods. This is local source evidence, not full route verification.
+

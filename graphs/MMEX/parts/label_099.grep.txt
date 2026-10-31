@@ -1,0 +1,153 @@
+# label_099 grep and sed evidence (batch 099, RecurringTransactionEditActivity methods 1-40)
+
+## 1. screen key for the recurring edit page (none expected)
+(no match)
+
+## 2. EventBus registration in the base activity
+141:        EventBus.getDefault().register(this);
+146:        EventBus.getDefault().unregister(this);
+    protected void onStart() {
+        super.onStart();
+            // set elevation actionbar 0
+//            if (getSupportActionBar() != null) {
+//                getSupportActionBar().setElevation(0);
+//            }
+
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    protected void onStop() {
+        EventBus.getDefault().unregister(this);
+
+## 3. EventBus posters (POST sites) and their auto_calls records
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/AmountInputDialog.java:260:                        EventBus.getDefault().post(new AmountEnteredEvent(mRequestId, getAmount()));
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/YesNoDialog.java:73:                        EventBus.getDefault().post(new DialogPositiveClickedEvent());
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/YesNoDialog.java:81:                        EventBus.getDefault().post(new DialogNegativeClickedEvent());
+auto YesNoDialog$1.onClick -> DialogNegativeClickedEvent.<init> YesNoDialog.java 81
+auto YesNoDialog$2.onClick -> DialogPositiveClickedEvent.<init> YesNoDialog.java 73
+auto AmountInputDialog$7.onClick -> AmountEnteredEvent.<init> AmountInputDialog.java 260
+
+## 4. Icepick call sites in the base activity and generated-helper auto_calls records (none expected)
+        Icepick.restoreInstanceState(this, savedInstanceState);
+        super.onCreate(savedInstanceState);
+        Icepick.saveInstanceState(this, outState);
+auto records mentioning Icepick: 3
+EditPriceDialog$$Icepick.<clinit> -> PriceDownloadedEventBundler.<init> EditPriceDialog$$Icepick.java 16
+CalculatorActivity$$Icepick.<clinit> -> MoneyBundler.<init> CalculatorActivity$$Icepick.java 16
+AmountInputDialog$$Icepick.<clinit> -> MoneyBundler.<init> AmountInputDialog$$Icepick.java 16
+
+## 5. RTEA auto_calls records (CALL edges already covered by D7)
+records with RTEA caller: 176
+records with RTEA callee (callers in other batches): 47
+RecurringTransactionEditActivity.onCreate -> RecurringTransactionEditActivity.initializeControls RecurringTransactionEditActivity.java 136
+RecurringTransactionEditActivity.onCreate -> RecurringTransactionEditActivity.initializeViewHolder RecurringTransactionEditActivity.java 134
+RecurringTransactionEditActivity.onCreate -> RecurringTransactionEditActivity.loadRecurringTransaction RecurringTransactionEditActivity.java 119
+RecurringTransactionEditActivity.onCreate -> RecurringTransactionEditActivity.restoreInstanceState RecurringTransactionEditActivity.java 109
+RecurringTransactionEditActivity.onCreate -> RecurringTransactionEditActivity.initializeModel RecurringTransactionEditActivity.java 102
+
+## 6. RESULT sources: enclosing method of each setResult / startActivityForResult site
+PayeeListFragment.java 309 -> enclosing method ('setResult', 309)
+PayeeListFragment.java 329 -> enclosing method ('sendResultToActivity', 324)
+CategoryListFragment.java 313 -> enclosing method ('setResult', 313)
+CategoryListFragment.java 354 -> enclosing method ('setResult', 313)
+SplitCategoriesActivity.java 174 -> enclosing method ('onActionDoneClick', 149)
+    protected void setResult() {
+        getActivity().setResult(AppCompatActivity.RESULT_OK, result);
+    protected void setResult() {
+                getActivity().setResult(Activity.RESULT_OK, result);
+    public boolean onActionDoneClick() {
+        setResult(RESULT_OK, result);
+
+## 7. child start sites that return to RTEA (EditTransactionCommonFunctions)
+            public void onClick(View v) {
+                if (!isSplitSelected()) {
+                    // select first category.
+                    Intent intent = new Intent(getActivity(), CategoryListActivity.class);
+                    intent.setAction(Intent.ACTION_PICK);
+                    getActivity().startActivityForResult(intent, RequestCodes.CATEGORY);
+            public void onClick(View v) {
+                Intent intent = new Intent(getContext(), PayeeActivity.class);
+                intent.setAction(Intent.ACTION_PICK);
+                getActivity().startActivityForResult(intent, RequestCodes.PAYEE);
+        intent.putExtra(SplitCategoriesActivity.KEY_CURRENCY_ID, fromCurrencyId);
+
+        getActivity().startActivityForResult(intent, RequestCodes.SPLIT_TX);
+
+## 8. YesNoDialog show site and Amount dialog show site
+    /**
+     * The user is switching to Transfer transaction type.
+     */
+    private void onTransferSelected() {
+        // Check whether to delete split categories, if any.
+        if(hasSplitCategories()) {
+            // Prompt the user to confirm deleting split categories.
+            // Use DialogFragment in order to redraw the binaryDialog when switching device orientation.
+
+            DialogFragment dialog = new YesNoDialog();
+            Bundle args = new Bundle();
+            args.putString("title", getContext().getString(R.string.warning));
+            args.putString("message", getContext().getString(R.string.no_transfer_splits));
+            args.putString("purpose", YesNoDialog.PURPOSE_DELETE_SPLITS_WHEN_SWITCHING_TO_TRANSFER);
+//                getActivity().startActivityForResult(intent, REQUEST_AMOUNT);
+                Calculator.forActivity(getActivity())
+                        .currency(currencyId)
+                        .amount(amount)
+                        .show(RequestCodes.AMOUNT);
+
+## 9. framework lines
+                // don't dispatch change events to presenters until we're done.
+                st.menu.stopDispatchingItemsChanged();
+                if ((cb == null) || !cb.onCreatePanelMenu(st.featureId, st.menu)) {
+    public boolean onCreatePanelMenu(int featureId, Menu menu) {
+        if (featureId == Window.FEATURE_OPTIONS_PANEL) {
+            boolean show = onCreateOptionsMenu(menu);
+                if (onOptionsItemSelected(item)) {
+    public void onBackPressed() {
+        if (mActionBar != null && mActionBar.collapseActionView()) {
+            return;
+    final void performSaveInstanceState(Bundle outState) {
+        onSaveInstanceState(outState);
+    public void onClick(@NonNull DialogInterface dialog, int which) {
+        switch (which) {
+            case BUTTON_POSITIVE:
+                if (mDateSetListener != null) {
+                    // Clearing focus forces the dialog to commit any pending
+                    // changes, e.g. typed text in a NumberPicker.
+                    mDatePicker.clearFocus();
+                    mDateSetListener.onDateSet(mDatePicker, mDatePicker.getYear(),
+    private void fireOnSelected() {
+        if (mOnItemSelectedListener == null) {
+            return;
+        }
+        final int selection = getSelectedItemPosition();
+        if (selection >= 0) {
+            View v = getSelectedView();
+            mOnItemSelectedListener.onItemSelected(this, v, selection,
+                    getAdapter().getItemId(selection));
+        } else {
+            mOnItemSelectedListener.onNothingSelected(this);
+        }
+    }
+                if (DEBUG_RESULTS) Slog.v(TAG,
+                        "Delivering result to activity " + r + " : " + ri);
+                r.activity.dispatchActivityResult(ri.mResultWho,
+                        ri.mRequestCode, ri.mResultCode, ri.mData);
+
+## 10. layout ids and list-fragment start site
+108:                    android:id="@+id/paymentPreviousDayButton"
+117:                    android:id="@+id/paymentDateTextView"
+127:                    android:id="@+id/paymentNextDayButton"
+276:                    android:id="@+id/spinnerFrequencies"
+    private void startRecurringTransactionEditActivity(Integer billDepositsId, int purposeCode) {
+        // create intent, set Bill Deposits ID
+        Intent intent = new Intent(getActivity(), RecurringTransactionEditActivity.class);
+        // check transId not null
+        if (billDepositsId != null) {
+            intent.putExtra(RecurringTransactionEditActivity.KEY_BILL_DEPOSITS_ID, billDepositsId);
+            intent.setAction(Intent.ACTION_EDIT);
+        } else {
+            intent.setAction(Intent.ACTION_INSERT);
+        }
+        // launch activity
+        startActivityForResult(intent, purposeCode);

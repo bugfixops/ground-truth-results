@@ -1,0 +1,183 @@
+# label_109 grep and class-file evidence
+# Batch 109: SearchParametersFragment, SearchParametersFragment$1-$4, SearchParametersFragment_MembersInjector.
+# Read-only checks run from /Users/darshan/Desktop/yang/work with python3 -I. graphs/MMEX/out/ was not searched. Nothing was built, merged or edited outside graphs/MMEX/parts/label_109.*.
+# CLASSES = final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes
+# SRC = final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src
+# Recorded at 2026-10-30 16:03 EDT (date).
+
+== section 1: where the injector name occurs ==
+
+command: grep -rla "SearchParametersFragment_MembersInjector" CLASSES
+output:
+com/money/manager/ex/core/ioc/DaggerMmxComponent.class
+com/money/manager/ex/search/SearchParametersFragment_MembersInjector.class
+note: a first run without -a printed nothing for these binary files, so -a is used.
+
+command: grep -rn "SearchParametersFragment_MembersInjector\|injectDateTimeUtilsLazy" SRC
+output: (none; exit status 1). No Java source names the injector or injectDateTimeUtilsLazy. The Dagger and Butterknife code is generated and exists only as class files.
+
+== section 2: constant-pool scan of the class files ==
+
+command: python3 -I scratchpad/cp_scan_109.py (script text in section 4)
+output (sections 1 and 2 of the script):
+
+class files scanned: 825
+
+== 1. MembersInjector classes found and their method table (access, name, descriptor) ==
+com/money/manager/ex/search/SearchParametersFragment_MembersInjector
+  0x0001 <init> (Ljavax/inject/Provider;)V
+  0x0009 create (Ljavax/inject/Provider;)Ldagger/MembersInjector;
+  0x0001 injectMembers (Lcom/money/manager/ex/search/SearchParametersFragment;)V
+  0x0009 injectDateTimeUtilsLazy (Lcom/money/manager/ex/search/SearchParametersFragment;Ldagger/Lazy;)V
+  0x1041 injectMembers (Ljava/lang/Object;)V
+
+== 2. references to any SearchParametersFragment_MembersInjector member (referring class, owner, member, descriptor) ==
+  com/money/manager/ex/core/ioc/DaggerMmxComponent.class | com/money/manager/ex/core/ioc/DaggerMmxComponent -> com/money/manager/ex/search/SearchParametersFragment_MembersInjector.injectDateTimeUtilsLazy(Lcom/money/manager/ex/search/SearchParametersFragment;Ldagger/Lazy;)V
+  com/money/manager/ex/search/SearchParametersFragment_MembersInjector.class | com/money/manager/ex/search/SearchParametersFragment_MembersInjector -> com/money/manager/ex/search/SearchParametersFragment_MembersInjector.<init>(Ljavax/inject/Provider;)V
+  com/money/manager/ex/search/SearchParametersFragment_MembersInjector.class | com/money/manager/ex/search/SearchParametersFragment_MembersInjector -> com/money/manager/ex/search/SearchParametersFragment_MembersInjector.dateTimeUtilsLazyProviderLjavax/inject/Provider; (field)
+  com/money/manager/ex/search/SearchParametersFragment_MembersInjector.class | com/money/manager/ex/search/SearchParametersFragment_MembersInjector -> com/money/manager/ex/search/SearchParametersFragment_MembersInjector.injectDateTimeUtilsLazy(Lcom/money/manager/ex/search/SearchParametersFragment;Ldagger/Lazy;)V
+  com/money/manager/ex/search/SearchParametersFragment_MembersInjector.class | com/money/manager/ex/search/SearchParametersFragment_MembersInjector -> com/money/manager/ex/search/SearchParametersFragment_MembersInjector.injectMembers(Lcom/money/manager/ex/search/SearchParametersFragment;)V
+
+Reading of section 2:
+- create: no class refers to it, the injector's own class included.
+- <init>: referenced only by create (same class).
+- injectMembers(SearchParametersFragment): referenced only by the bridge injectMembers(Object) (same class). No class calls the bridge.
+- injectMembers(Object) (bridge, access 0x1041): no reference.
+- injectDateTimeUtilsLazy: referenced by DaggerMmxComponent (the only other class) and by injectMembers(SearchParametersFragment) (same class).
+- The field dateTimeUtilsLazyProvider is referenced by create (same class).
+
+note on section 3 of the script: it lists 33 class files whose constant pool contains the text injectMembers or injectDateTimeUtilsLazy (DaggerMmxComponent and 32 other MembersInjector classes that name their own injectMembers). It is not evidence; section 2 is the owner-based check and is the one cited.
+
+== section 3: auto_calls.json records (graphs/MMEX/auto_calls.json, key "calls") ==
+
+command: python3 -I, filter on src or dst containing SearchParametersFragment_MembersInjector, or DaggerMmxComponent with SearchParametersFragment
+output:
+DaggerMmxComponent.java 270 DaggerMmxComponent.inject(SearchParametersFragment) -> DaggerMmxComponent.injectSearchParametersFragment exact []
+DaggerMmxComponent.java 475 DaggerMmxComponent.injectSearchParametersFragment -> MmxDateTimeUtils_Factory.<clinit> exact []
+DaggerMmxComponent.java 474 DaggerMmxComponent.injectSearchParametersFragment -> SearchParametersFragment_MembersInjector.injectDateTimeUtilsLazy exact []
+DaggerMmxComponent.java 475 DaggerMmxComponent.injectSearchParametersFragment -> MmxDateTimeUtils_Factory.create exact []
+SearchParametersFragment.java 123 SearchParametersFragment.onCreate -> DaggerMmxComponent.inject(SearchParametersFragment) cha []
+SearchParametersFragment_MembersInjector.java 25 SearchParametersFragment_MembersInjector.create -> SearchParametersFragment_MembersInjector.<init> exact []
+SearchParametersFragment_MembersInjector.java 30 SearchParametersFragment_MembersInjector.injectMembers -> SearchParametersFragment_MembersInjector.injectDateTimeUtilsLazy exact []
+
+Sup pairs written in label_109.py: (create -> <init>) at line 25 and (injectMembers -> injectDateTimeUtilsLazy) at line 30. Both callers are UNREACHABLE in this batch (D14).
+Route to injectDateTimeUtilsLazy: SearchParametersFragment.onCreate (SearchParametersFragment.java:123, cha) -> DaggerMmxComponent.inject (270) -> injectSearchParametersFragment -> injectDateTimeUtilsLazy (474, REACHABLE).
+
+Other auto_calls citations in label_109.md were checked against the same file. They exist at the cited (file, line), in SearchParametersFragment.java (111, 123, 127, 128, 143, 189, 199, 227, 254, 262, 269, 270, 281, 282, 285, 305, 306, 329, 330, 332, 341, 346, 349, 357, 376, 384, 400, 456, 506, 646, 698), SearchParametersFragment_ViewBinding.java (35, 43, 51, 59) and SearchActivity.java (125, 161, 168). Lines 125 and 261 of SearchParametersFragment.java have no auto record, and no row cites them as one (125 is the framework setHasOptionsMenu call; 261 is the AMOUNT_FROM setSearchParameters call).
+
+== section 4: script text (scratchpad/cp_scan_109.py, run with python3 -I) ==
+
+import os, struct
+
+ROOT = '/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes'
+OWNER_SUBSTR = 'SearchParametersFragment_MembersInjector'
+
+
+def parse(data):
+    off = 8
+    n = struct.unpack_from('>H', data, off)[0]
+    off += 2
+    cp = [None] * n
+    i = 1
+    while i < n:
+        tag = data[off]
+        off += 1
+        if tag == 1:
+            ln = struct.unpack_from('>H', data, off)[0]
+            off += 2
+            cp[i] = ('U', data[off:off + ln].decode('utf-8', 'replace'))
+            off += ln
+        elif tag in (3, 4):
+            cp[i] = ('I', None)
+            off += 4
+        elif tag in (5, 6):
+            cp[i] = ('J', None)
+            off += 8
+            i += 1
+        elif tag in (7, 8, 16, 19, 20):
+            cp[i] = (tag, struct.unpack_from('>H', data, off)[0])
+            off += 2
+        elif tag in (9, 10, 11, 12, 17, 18):
+            cp[i] = (tag, struct.unpack_from('>HH', data, off))
+            off += 4
+        elif tag == 15:
+            cp[i] = (15, None)
+            off += 3
+        else:
+            raise ValueError('bad tag %d' % tag)
+        i += 1
+    access, this_c, super_c = struct.unpack_from('>HHH', data, off)
+    off += 6
+    ic = struct.unpack_from('>H', data, off)[0]
+    off += 2 + 2 * ic
+
+    def members(off):
+        cnt = struct.unpack_from('>H', data, off)[0]
+        off += 2
+        out = []
+        for _ in range(cnt):
+            acc, nm, ds, ac = struct.unpack_from('>HHHH', data, off)
+            off += 8
+            for _ in range(ac):
+                ln = struct.unpack_from('>I', data, off + 2)[0]
+                off += 6 + ln
+            out.append((acc, cp[nm][1], cp[ds][1]))
+        return out, off
+
+    fields, off = members(off)
+    methods, off = members(off)
+    this_name = cp[cp[this_c][1]][1]
+    refs = set()
+    for entry in cp:
+        if entry is None or entry[0] not in (9, 10, 11):
+            continue
+        ci, nat = entry[1]
+        owner = cp[cp[ci][1]][1]
+        nm, ds = cp[nat][1]
+        refs.add((owner, cp[nm][1], cp[ds][1]))
+    return this_name, methods, refs
+
+
+files = []
+for dp, dn, fn in os.walk(ROOT):
+    for f in fn:
+        if f.endswith('.class'):
+            files.append(os.path.join(dp, f))
+files.sort()
+print('class files scanned: %d' % len(files))
+
+members_tables = {}
+hits = []
+for path in files:
+    with open(path, 'rb') as fh:
+        data = fh.read()
+    this_name, methods, refs = parse(data)
+    rel = path[len(ROOT) + 1:]
+    if OWNER_SUBSTR in this_name and this_name.endswith('MembersInjector'):
+        members_tables[this_name] = methods
+    for owner, name, desc in sorted(refs):
+        if OWNER_SUBSTR in owner:
+            hits.append((rel, this_name, owner, name, desc))
+
+print('')
+print('== 1. MembersInjector classes found and their method table (access, name, descriptor) ==')
+for cname in sorted(members_tables):
+    print(cname)
+    for acc, nm, ds in members_tables[cname]:
+        print('  0x%04x %s %s' % (acc, nm, ds))
+
+print('')
+print('== 2. references to any SearchParametersFragment_MembersInjector member (referring class, owner, member, descriptor) ==')
+for rel, this_name, owner, name, desc in sorted(set(hits)):
+    print('  %s | %s -> %s.%s%s' % (rel, this_name, owner, name, desc))
+
+print('')
+print('== 3. class files whose constant pool has a Utf8 named create, injectMembers or injectDateTimeUtilsLazy, excluding the injector class itself ==')
+for path in files:
+    with open(path, 'rb') as fh:
+        data = fh.read()
+    if b'injectDateTimeUtilsLazy' in data or b'injectMembers' in data:
+        this_name, methods, refs = parse(data)
+        if OWNER_SUBSTR in this_name:
+            continue
+        print('  ' + path[len(ROOT) + 1:] + ' (' + this_name + ')')

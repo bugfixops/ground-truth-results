@@ -1,0 +1,355 @@
+=== SettingsFragment category entry route ===
+   115	        if (network != null)
+   116	            network.setOnPreferenceClickListener(prefClickListener);
+   117	
+   118	        Preference scheduling = findPreference(SchedulingSettingsFragment.class.getSimpleName());
+   119	        if (scheduling != null)
+   120	            scheduling.setOnPreferenceClickListener(prefClickListener);
+   121	
+   122	        Preference feed = findPreference(FeedSettingsFragment.class.getSimpleName());
+   123	        if (feed != null)
+   124	            feed.setOnPreferenceClickListener(prefClickListener);
+   125	
+   126	        Preference streaming = findPreference(StreamingSettingsFragment.class.getSimpleName());
+   127	        if (streaming != null)
+   128	            streaming.setOnPreferenceClickListener(prefClickListener);
+   129	    }
+   130	
+   131	    private Preference.OnPreferenceClickListener prefClickListener = (preference) -> {
+   132	        openPreference(preference.getKey());
+   133	        return true;
+   134	    };
+   135	
+   136	    private void openPreference(String prefName)
+   137	    {
+   138	        switch (prefName) {
+   139	            case AppearanceSettings:
+   140	                if (Utils.isLargeScreenDevice(activity)) {
+   141	                    setFragment(AppearanceSettingsFragment.newInstance(),
+   142	                            getString(R.string.pref_header_appearance));
+   143	                } else {
+   144	                    startActivity(AppearanceSettingsFragment.class,
+   145	                            getString(R.string.pref_header_appearance));
+   146	                }
+   147	                break;
+   148	            case BehaviorSettings:
+   149	                if (Utils.isLargeScreenDevice(activity)) {
+   150	                    setFragment(BehaviorSettingsFragment.newInstance(),
+   151	                            getString(R.string.pref_header_behavior));
+   152	                } else {
+   153	                    startActivity(BehaviorSettingsFragment.class,
+   154	                            getString(R.string.pref_header_behavior));
+   155	                }
+   156	                break;
+   157	            case NetworkSettings:
+   158	                if (Utils.isLargeScreenDevice(activity)) {
+   159	                    setFragment(NetworkSettingsFragment.newInstance(),
+   160	                            getString(R.string.pref_header_network));
+   161	                } else {
+   162	                    startActivity(NetworkSettingsFragment.class,
+   163	                            getString(R.string.pref_header_network));
+   164	                }
+   165	                break;
+   166	            case StorageSettings:
+   167	                if (Utils.isLargeScreenDevice(activity)) {
+   168	                    setFragment(StorageSettingsFragment.newInstance(),
+   169	                            getString(R.string.pref_header_storage));
+   170	                } else {
+   171	                    startActivity(StorageSettingsFragment.class,
+   172	                            getString(R.string.pref_header_storage));
+   173	                }
+   174	                break;
+   175	            case LimitationsSettings:
+   176	                if (Utils.isLargeScreenDevice(activity)) {
+   177	                    setFragment(LimitationsSettingsFragment.newInstance(),
+   178	                            getString(R.string.pref_header_limitations));
+   179	                } else {
+   180	                    startActivity(LimitationsSettingsFragment.class,
+   181	                            getString(R.string.pref_header_limitations));
+   182	                }
+   183	                break;
+   184	            case SchedulingSettings:
+   185	                if (Utils.isLargeScreenDevice(activity)) {
+   186	                    setFragment(SchedulingSettingsFragment.newInstance(),
+   187	                            getString(R.string.pref_header_scheduling));
+   188	                } else {
+   189	                    startActivity(SchedulingSettingsFragment.class,
+   190	                            getString(R.string.pref_header_scheduling));
+   191	                }
+   192	                break;
+   193	            case FeedSettings:
+   194	                if (Utils.isLargeScreenDevice(activity)) {
+   195	                    setFragment(FeedSettingsFragment.newInstance(),
+   196	                            getString(R.string.pref_header_feed));
+   197	                } else {
+   198	                    startActivity(FeedSettingsFragment.class,
+   199	                            getString(R.string.pref_header_feed));
+   200	                }
+   201	                break;
+   202	            case StreamingSettings:
+   203	                if (Utils.isLargeScreenDevice(activity)) {
+   204	                    setFragment(StreamingSettingsFragment.newInstance(),
+   205	                            getString(R.string.pref_header_streaming));
+   206	                } else {
+   207	                    startActivity(StreamingSettingsFragment.class,
+   208	                            getString(R.string.pref_header_streaming));
+   209	                }
+   210	                break;
+   211	        }
+   212	    }
+   213	
+   214	    @Override
+   215	    public void onCreatePreferences(Bundle savedInstanceState, String rootKey)
+=== PreferenceActivity configured section factories ===
+    84	
+    85	    public <F extends PreferenceFragmentCompat> void setFragment(F fragment)
+    86	    {
+    87	        if (fragment == null)
+    88	            return;
+    89	
+    90	        getSupportFragmentManager().beginTransaction()
+    91	                .replace(R.id.fragment_container, fragment).commit();
+    92	    }
+    93	
+    94	    private <F extends PreferenceFragmentCompat> F getFragment(String fragment)
+    95	    {
+    96	        if (fragment != null) {
+    97	            if (fragment.equals(AppearanceSettingsFragment.class.getSimpleName()))
+    98	                return (F)AppearanceSettingsFragment.newInstance();
+    99	            else if (fragment.equals(BehaviorSettingsFragment.class.getSimpleName()))
+   100	                return (F)BehaviorSettingsFragment.newInstance();
+   101	            else if (fragment.equals(StorageSettingsFragment.class.getSimpleName()))
+   102	                return (F)StorageSettingsFragment.newInstance();
+   103	            else if (fragment.equals(LimitationsSettingsFragment.class.getSimpleName()))
+   104	                return (F)LimitationsSettingsFragment.newInstance();
+   105	            else if (fragment.equals(NetworkSettingsFragment.class.getSimpleName()))
+   106	                return (F)NetworkSettingsFragment.newInstance();
+   107	            else if (fragment.equals(ProxySettingsFragment.class.getSimpleName()))
+   108	                return (F)ProxySettingsFragment.newInstance();
+   109	            else if (fragment.equals(AnonymousModeSettingsFragment.class.getSimpleName()))
+   110	                return (F) AnonymousModeSettingsFragment.newInstance();
+   111	            else if (fragment.equals(SchedulingSettingsFragment.class.getSimpleName()))
+   112	                return (F)SchedulingSettingsFragment.newInstance();
+   113	            else if (fragment.equals(FeedSettingsFragment.class.getSimpleName()))
+   114	                return (F)FeedSettingsFragment.newInstance();
+   115	            else if (fragment.equals(StreamingSettingsFragment.class.getSimpleName()))
+   116	                return (F)StreamingSettingsFragment.newInstance();
+   117	            else
+   118	                return null;
+   119	        }
+   120	
+=== FeedSettingsFragment source ===
+    35	public class FeedSettingsFragment extends PreferenceFragmentCompat
+    36	        implements Preference.OnPreferenceChangeListener
+    37	{
+    38	    private static final String TAG = FeedSettingsFragment.class.getSimpleName();
+    39	
+    40	    private SettingsRepository pref;
+    41	
+    42	    public static FeedSettingsFragment newInstance()
+    43	    {
+    44	        FeedSettingsFragment fragment = new FeedSettingsFragment();
+    45	        fragment.setArguments(new Bundle());
+    46	
+    47	        return fragment;
+    48	    }
+    49	
+    50	    @Override
+    51	    public void onCreate(Bundle savedInstanceState)
+    52	    {
+    53	        super.onCreate(savedInstanceState);
+    54	
+    55	        pref = RepositoryHelper.getSettingsRepository(getActivity().getApplicationContext());
+    56	
+    57	        String keyAutoRefresh = getString(R.string.pref_key_feed_auto_refresh);
+    58	        SwitchPreferenceCompat autoRefresh = findPreference(keyAutoRefresh);
+    59	        if (autoRefresh != null) {
+    60	            autoRefresh.setChecked(pref.autoRefreshFeeds());
+    61	            bindOnPreferenceChangeListener(autoRefresh);
+    62	        }
+    63	
+    64	        String keyRefreshInterval = getString(R.string.pref_key_feed_refresh_interval);
+    65	        ListPreference refreshInterval = findPreference(keyRefreshInterval);
+    66	        if (refreshInterval != null) {
+    67	            String interval = Long.toString(pref.refreshFeedsInterval());
+    68	            int intervalIndex = refreshInterval.findIndexOfValue(interval);
+    69	            if (intervalIndex >= 0)
+    70	                refreshInterval.setValueIndex(intervalIndex);
+    71	            bindOnPreferenceChangeListener(refreshInterval);
+    72	        }
+    73	
+    74	        String keyUnmeteredOnly = getString(R.string.pref_key_feed_auto_refresh_unmetered_connections_only);
+    75	        SwitchPreferenceCompat unmeteredOnly = findPreference(keyUnmeteredOnly);
+    76	        if (unmeteredOnly != null) {
+    77	            unmeteredOnly.setChecked(pref.autoRefreshFeedsUnmeteredConnectionsOnly());
+    78	            bindOnPreferenceChangeListener(unmeteredOnly);
+    79	        }
+    80	
+    81	        String keyRoaming = getString(R.string.pref_key_feed_auto_refresh_enable_roaming);
+    82	        SwitchPreferenceCompat roaming = findPreference(keyRoaming);
+    83	        if (roaming != null) {
+    84	            roaming.setChecked(pref.autoRefreshFeedsEnableRoaming());
+    85	            bindOnPreferenceChangeListener(roaming);
+    86	        }
+    87	
+    88	        String keyKeepTime = getString(R.string.pref_key_feed_keep_items_time);
+    89	        ListPreference keepTime = findPreference(keyKeepTime);
+    90	        if (keepTime != null) {
+    91	            String time = Long.toString(pref.feedItemKeepTime());
+    92	            int timeIndex = keepTime.findIndexOfValue(time);
+    93	            if (timeIndex >= 0)
+    94	                keepTime.setValueIndex(timeIndex);
+    95	            bindOnPreferenceChangeListener(keepTime);
+    96	        }
+    97	
+    98	        String keyStartTorrents = getString(R.string.pref_key_feed_start_torrents);
+    99	        SwitchPreferenceCompat startTorrents = findPreference(keyStartTorrents);
+   100	        if (startTorrents != null) {
+   101	            startTorrents.setChecked(pref.feedStartTorrents());
+   102	            bindOnPreferenceChangeListener(startTorrents);
+   103	        }
+   104	
+   105	        String keyRemoveDuplicates = getString(R.string.pref_key_feed_remove_duplicates);
+   106	        SwitchPreferenceCompat removeDuplicates = findPreference(keyRemoveDuplicates);
+   107	        if (removeDuplicates != null) {
+   108	            removeDuplicates.setChecked(pref.feedRemoveDuplicates());
+   109	            bindOnPreferenceChangeListener(removeDuplicates);
+   110	        }
+   111	    }
+   112	
+   113	    @Override
+   114	    public void onCreatePreferences(Bundle savedInstanceState, String rootKey)
+   115	    {
+   116	        setPreferencesFromResource(R.xml.pref_feed, rootKey);
+   117	    }
+   118	
+   119	    private void bindOnPreferenceChangeListener(Preference preference)
+   120	    {
+   121	        preference.setOnPreferenceChangeListener(this);
+   122	    }
+   123	
+   124	    @Override
+   125	    public boolean onPreferenceChange(Preference preference, Object newValue)
+   126	    {
+   127	        Context context = getActivity().getApplicationContext();
+   128	
+   129	        if (preference.getKey().equals(getString(R.string.pref_key_feed_auto_refresh))) {
+   130	            pref.autoRefreshFeeds((boolean)newValue);
+   131	
+   132	            if ((boolean)newValue) {
+   133	                long interval = pref.refreshFeedsInterval();
+   134	                Scheduler.runPeriodicalRefreshFeeds(context, interval);
+   135	            } else {
+   136	                Scheduler.cancelPeriodicalRefreshFeeds(context);
+   137	            }
+   138	
+   139	        } else if (preference.getKey().equals(getString(R.string.pref_key_feed_refresh_interval))) {
+   140	            long interval = Long.parseLong((String)newValue);
+   141	            pref.refreshFeedsInterval(interval);
+   142	            Scheduler.runPeriodicalRefreshFeeds(context, interval);
+   143	
+   144	        } else if (preference.getKey().equals(getString(R.string.pref_key_feed_keep_items_time))) {
+   145	            long keepTime = Long.parseLong((String)newValue);
+   146	            pref.feedItemKeepTime(keepTime);
+   147	
+   148	        } else if (preference.getKey().equals(getString(R.string.pref_key_feed_auto_refresh_unmetered_connections_only))) {
+   149	            pref.autoRefreshFeedsUnmeteredConnectionsOnly((boolean)newValue);
+   150	
+   151	        } else if (preference.getKey().equals(getString(R.string.pref_key_feed_auto_refresh_enable_roaming))) {
+   152	            pref.autoRefreshFeedsEnableRoaming((boolean)newValue);
+   153	
+   154	        } else if (preference.getKey().equals(getString(R.string.pref_key_feed_start_torrents))) {
+   155	            pref.feedStartTorrents((boolean)newValue);
+   156	
+   157	        } else if (preference.getKey().equals(getString(R.string.pref_key_feed_remove_duplicates))) {
+   158	            pref.feedRemoveDuplicates((boolean)newValue);
+   159	        }
+   160	
+   161	        return true;
+   162	    }
+   163	}
+=== StreamingSettingsFragment source ===
+    35	
+    36	public class StreamingSettingsFragment extends PreferenceFragmentCompat
+    37	        implements Preference.OnPreferenceChangeListener
+    38	{
+    39	    private static final String TAG = StreamingSettingsFragment.class.getSimpleName();
+    40	
+    41	    private SettingsRepository pref;
+    42	
+    43	    public static StreamingSettingsFragment newInstance()
+    44	    {
+    45	        StreamingSettingsFragment fragment = new StreamingSettingsFragment();
+    46	        fragment.setArguments(new Bundle());
+    47	
+    48	        return fragment;
+    49	    }
+    50	
+    51	    @Override
+    52	    public void onCreate(Bundle savedInstanceState)
+    53	    {
+    54	        super.onCreate(savedInstanceState);
+    55	
+    56	        pref = RepositoryHelper.getSettingsRepository(getActivity().getApplicationContext());
+    57	
+    58	        String keyEnable = getString(R.string.pref_key_streaming_enable);
+    59	        SwitchPreferenceCompat enable = findPreference(keyEnable);
+    60	        if (enable != null) {
+    61	            enable.setChecked(pref.enableStreaming());
+    62	            bindOnPreferenceChangeListener(enable);
+    63	        }
+    64	
+    65	        String keyHostname = getString(R.string.pref_key_streaming_hostname);
+    66	        EditTextPreference hostname = findPreference(keyHostname);
+    67	        if (hostname != null) {
+    68	            String addressValue = pref.streamingHostname();
+    69	            hostname.setText(addressValue);
+    70	            hostname.setSummary(addressValue);
+    71	            bindOnPreferenceChangeListener(hostname);
+    72	        }
+    73	
+    74	        String keyPort = getString(R.string.pref_key_streaming_port);
+    75	        EditTextPreference port = findPreference(keyPort);
+    76	        if (port != null) {
+    77	            InputFilter[] portFilter = new InputFilter[] { InputFilterRange.PORT_FILTER };
+    78	            int portNumber = pref.streamingPort();
+    79	            String portValue = Integer.toString(portNumber);
+    80	            port.setOnBindEditTextListener((editText) -> editText.setFilters(portFilter));
+    81	            port.setSummary(portValue);
+    82	            port.setText(portValue);
+    83	            bindOnPreferenceChangeListener(port);
+    84	        }
+    85	    }
+    86	
+    87	    @Override
+    88	    public void onCreatePreferences(Bundle savedInstanceState, String rootKey)
+    89	    {
+    90	        setPreferencesFromResource(R.xml.pref_streaming, rootKey);
+    91	    }
+    92	
+    93	    private void bindOnPreferenceChangeListener(Preference preference)
+    94	    {
+    95	        preference.setOnPreferenceChangeListener(this);
+    96	    }
+    97	
+    98	    @Override
+    99	    public boolean onPreferenceChange(Preference preference, Object newValue)
+   100	    {
+   101	        if (preference.getKey().equals(getString(R.string.pref_key_streaming_hostname))) {
+   102	            pref.streamingHostname((String)newValue);
+   103	            preference.setSummary((String)newValue);
+   104	
+   105	        } else if (preference.getKey().equals(getString(R.string.pref_key_streaming_port))) {
+   106	            if (!TextUtils.isEmpty((String)newValue)) {
+   107	                int value = Integer.parseInt((String) newValue);
+   108	                pref.streamingPort(value);
+   109	                preference.setSummary(Integer.toString(value));
+   110	            }
+   111	
+   112	        } else if (preference.getKey().equals(getString(R.string.pref_key_streaming_enable))) {
+   113	            pref.enableStreaming((boolean)newValue);
+   114	        }
+   115	
+   116	        return true;
+   117	    }
+   118	}

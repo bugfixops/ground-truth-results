@@ -1,0 +1,136 @@
+=== Boot engine-start branch ===
+    39	    public void onReceive(Context context, Intent intent) {
+    40	        var appContext = context.getApplicationContext();
+    41	        var pref = RepositoryHelper.getSettingsRepository(appContext);
+    42	
+    43	        var action = intent.getAction();
+    44	        if (isBootCompleted(action)) {
+    45	            initScheduling(context, pref);
+    46	            if (pref.autostart() && pref.keepAlive()) {
+    47	                TorrentEngine.getInstance(appContext).start();
+    48	            }
+    49	        } else if (AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED.equals(action)) {
+    50	            initScheduling(context, pref);
+    51	        }
+    52	    }
+=== TorrentEngine service start ===
+   148	    public void start() {
+   149	        if (isRunning())
+   150	            return;
+   151	
+   152	        Utils.startServiceBackground(appContext, new Intent(appContext, TorrentService.class));
+   153	    }
+   154	
+   155	    public void restartForegroundNotification() {
+   156	        Intent i = new Intent(appContext, TorrentService.class);
+   157	        i.setAction(TorrentService.ACTION_RESTART_FOREGROUND_NOTIFICATION);
+   158	        Utils.startServiceBackground(appContext, i);
+   159	    }
+=== Utils service dispatcher ===
+   426	    public static void startServiceBackground(@NonNull Context context, @NonNull Intent i) {
+   427	        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+   428	            // Postpone the service start until the main thread is free to avoid ANR
+   429	            new Handler(Looper.getMainLooper())
+   430	                    .post(() -> context.startForegroundService(i));
+   431	        } else {
+   432	            context.startService(i);
+   433	        }
+   434	    }
+=== TorrentService lifecycle/actions ===
+   105	    @Override
+   106	    public void onCreate()
+   107	    {
+   108	        pref = RepositoryHelper.getSettingsRepository(getApplicationContext());
+   109	        engine = TorrentEngine.getInstance(getApplicationContext());
+   110	        stateProvider = TorrentInfoProvider.getInstance(getApplicationContext());
+   111	
+   112	        initPendingIntents();
+   113	        makeForegroundNotify();
+   114	    }
+   115	
+   116	    private void init()
+   117	    {
+   118	        Log.i(TAG, "Start " + TAG);
+   119	
+   120	        makeForegroundNotify();
+   121	        subscribeCombinedPauseButtonState();
+   122	        setFilterAndSorting();
+   123	        subscribeForceSortAndFilter();
+   124	
+   125	        disposables.add(pref.observeSettingsChanged()
+   126	                .subscribe(this::handleSettingsChanged));
+   127	
+   128	        Utils.enableBootReceiverIfNeeded(getApplicationContext());
+   129	        setKeepCpuAwake(pref.cpuDoNotSleep());
+   130	
+   131	        engine.doStart();
+   132	        engine.addListener(engineListener);
+   133	
+   134	        startUpdateForegroundNotify();
+   135	    }
+   175	    @Override
+   176	    public int onStartCommand(Intent intent, int flags, int startId)
+   177	    {
+   178	        String action = null;
+   179	        if (intent != null)
+   180	            action = intent.getAction();
+   181	
+   182	        /* Handle shutdown actions before init service */
+   183	        if (action != null) {
+   184	            int ret = handleShutdownActions(action);
+   185	            if (ret >= 0)
+   186	                return ret;
+   187	        }
+   188	
+   189	        /* The first start */
+   190	        if (isAlreadyRunning.compareAndSet(false, true))
+   191	            init();
+   192	
+   193	        if (action != null)
+   194	            handleActions(action);
+   195	
+   196	        return START_STICKY;
+   197	    }
+=== AOSP service dispatch ===
+  3311	    private void handleCreateService(CreateServiceData data) {
+  3312	        // If we are getting ready to gc after going to the background, well
+  3313	        // we are back active so skip it.
+  3314	        unscheduleGcIdler();
+  3315	
+  3316	        LoadedApk packageInfo = getPackageInfoNoCheck(
+  3317	                data.info.applicationInfo, data.compatInfo);
+  3318	        Service service = null;
+  3319	        try {
+  3320	            java.lang.ClassLoader cl = packageInfo.getClassLoader();
+  3321	            service = (Service) cl.loadClass(data.info.name).newInstance();
+  3322	        } catch (Exception e) {
+  3323	            if (!mInstrumentation.onException(service, e)) {
+  3324	                throw new RuntimeException(
+  3325	                    "Unable to instantiate service " + data.info.name
+  3326	                    + ": " + e.toString(), e);
+  3327	            }
+  3328	        }
+  3329	
+  3330	        try {
+  3331	            if (localLOGV) Slog.v(TAG, "Creating service " + data.info.name);
+  3332	
+  3333	            ContextImpl context = ContextImpl.createAppContext(this, packageInfo);
+  3334	            context.setOuterContext(service);
+  3335	
+  3336	            Application app = packageInfo.makeApplication(false, mInstrumentation);
+  3337	            service.attach(context, this, data.info.name, data.token, app,
+  3338	                    ActivityManager.getService());
+  3339	            service.onCreate();
+  3340	            mServices.put(data.token, service);
+  3464	    private void handleServiceArgs(ServiceArgsData data) {
+  3465	        Service s = mServices.get(data.token);
+  3466	        if (s != null) {
+  3467	            try {
+  3468	                if (data.args != null) {
+  3469	                    data.args.setExtrasClassLoader(s.getClassLoader());
+  3470	                    data.args.prepareToEnterProcess();
+  3471	                }
+  3472	                int res;
+  3473	                if (!data.taskRemoved) {
+  3474	                    res = s.onStartCommand(data.args, data.flags, data.startId);
+  3475	                } else {

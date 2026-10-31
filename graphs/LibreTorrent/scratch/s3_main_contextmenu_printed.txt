@@ -1,0 +1,107 @@
+   202	        Intent i = activity.getIntent();
+   203	        if (i != null && MainActivity.ACTION_ADD_TORRENT_SHORTCUT.equals(i.getAction())) {
+   204	            /* Prevents re-reading action after device configuration changes */
+   205	            i.setAction(null);
+   206	            showAddTorrentMenu();
+   207	        }
+   208	    }
+   209	
+   210	    private void showAddTorrentMenu()
+   211	    {
+   212	        /* Show add torrent menu after window is displayed */
+   213	        View v = activity.getWindow().findViewById(android.R.id.content);
+   214	        if (v == null)
+   215	            return;
+   216	        v.post(() -> {
+   217	            registerForContextMenu(v);
+   218	            activity.openContextMenu(v);
+   219	            unregisterForContextMenu(v);
+   220	        });
+   221	    }
+   393	    public void onCreateContextMenu(@NonNull ContextMenu menu, @NonNull View v,
+   394	                                    ContextMenu.ContextMenuInfo menuInfo)
+   395	    {
+   396	        super.onCreateContextMenu(menu, v, menuInfo);
+   397	
+   398	        activity.getMenuInflater().inflate(R.menu.main_context, menu);
+   399	    }
+   400	
+   401	    @Override
+   402	    public boolean onContextItemSelected(@NonNull MenuItem item)
+   403	    {
+   404	        int itemId = item.getItemId();
+   405	        if (itemId == R.id.add_link_menu) {
+   406	            addLinkDialog();
+   407	        } else if (itemId == R.id.open_file_menu) {
+   408	            openTorrentFileDialog();
+   409	        }
+   410	
+   411	        return true;
+ 15765	     * <p>Causes the Runnable to be added to the message queue.
+ 15766	     * The runnable will be run on the user interface thread.</p>
+ 15767	     *
+ 15768	     * @param action The Runnable that will be executed.
+ 15769	     *
+ 15770	     * @return Returns true if the Runnable was successfully placed in to the
+ 15771	     *         message queue.  Returns false on failure, usually because the
+ 15772	     *         looper processing the message queue is exiting.
+ 15773	     *
+ 15774	     * @see #postDelayed
+ 15775	     * @see #removeCallbacks
+ 15776	     */
+ 15777	    public boolean post(Runnable action) {
+ 15778	        final AttachInfo attachInfo = mAttachInfo;
+ 15779	        if (attachInfo != null) {
+ 15780	            return attachInfo.mHandler.post(action);
+ 15781	        }
+ 15782	
+ 15783	        // Postpone the runnable until we know on which thread it needs to run.
+ 15784	        // Assume that the runnable will be successfully placed after attach.
+ 15785	        getRunQueue().post(action);
+ 15786	        return true;
+  3466	            case Window.FEATURE_CONTEXT_MENU:
+  3467	                if(titleCondensed != null) {
+  3468	                    EventLog.writeEvent(50000, 1, titleCondensed.toString());
+  3469	                }
+  3470	                if (onContextItemSelected(item)) {
+  3471	                    return true;
+  3472	                }
+  3473	                return mFragments.dispatchContextItemSelected(item);
+  3760	     * Registers a context menu to be shown for the given view (multiple views
+  3761	     * can show the context menu). This method will set the
+  3762	     * {@link OnCreateContextMenuListener} on the view to this activity, so
+  3763	     * {@link #onCreateContextMenu(ContextMenu, View, ContextMenuInfo)} will be
+  3764	     * called when it is time to show the context menu.
+  3765	     *
+  3766	     * @see #unregisterForContextMenu(View)
+  3767	     * @param view The view that should show a context menu.
+  3768	     */
+  3769	    public void registerForContextMenu(View view) {
+  3770	        view.setOnCreateContextMenuListener(this);
+  3771	    }
+  3772	
+  3773	    /**
+  3774	     * Prevents a context menu to be shown for the given view. This method will remove the
+  3775	     * {@link OnCreateContextMenuListener} on the view.
+  3776	     *
+  3777	     * @see #registerForContextMenu(View)
+  3778	     * @param view The view that should stop showing a context menu.
+  3779	     */
+  3780	    public void unregisterForContextMenu(View view) {
+  3781	        view.setOnCreateContextMenuListener(null);
+  3782	    }
+  3783	
+  3784	    /**
+  3785	     * Programmatically opens the context menu for a particular {@code view}.
+  3786	     * The {@code view} should have been added via
+  3787	     * {@link #registerForContextMenu(View)}.
+  3788	     *
+  3789	     * @param view The view to show the context menu for.
+  3790	     */
+  3791	    public void openContextMenu(View view) {
+  3792	        view.showContextMenu();
+  3821	    public boolean onContextItemSelected(MenuItem item) {
+  3822	        if (mParent != null) {
+  3823	            return mParent.onContextItemSelected(item);
+  3824	        }
+  3825	        return false;

@@ -1,0 +1,94 @@
+     1	/*
+     2	 * Copyright (C) 2019 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.addfeed;
+    21	
+    22	import android.content.Intent;
+    23	import android.net.Uri;
+    24	import android.os.Bundle;
+    25	import android.text.TextUtils;
+    26	
+    27	import androidx.annotation.NonNull;
+    28	import androidx.annotation.Nullable;
+    29	import androidx.appcompat.app.AppCompatActivity;
+    30	import androidx.fragment.app.Fragment;
+    31	import androidx.fragment.app.FragmentManager;
+    32	
+    33	import org.proninyaroslav.libretorrent.core.utils.Utils;
+    34	import org.proninyaroslav.libretorrent.ui.FragmentCallback;
+    35	
+    36	public class AddFeedActivity extends AppCompatActivity
+    37	    implements FragmentCallback
+    38	{
+    39	    public static final String ACTION_EDIT_FEED = "org.proninyaroslav.libretorrent.ui.addfeed.AddFeedActivity.ACTION_EDIT_FEED";
+    40	    public static final String TAG_FEED_ID = "feed_id";
+    41	
+    42	    private static final String TAG_ADD_FEED_DIALOG = "add_feed_dialog";
+    43	
+    44	    private AddFeedDialog addFeedDialog;
+    45	
+    46	    @Override
+    47	    public void onCreate(@Nullable Bundle savedInstanceState)
+    48	    {
+    49	        setTheme(Utils.getTranslucentAppTheme(getApplicationContext()));
+    50	        super.onCreate(savedInstanceState);
+    51	
+    52	        FragmentManager fm = getSupportFragmentManager();
+    53	        addFeedDialog = (AddFeedDialog)fm.findFragmentByTag(TAG_ADD_FEED_DIALOG);
+    54	        if (addFeedDialog == null) {
+    55	            Intent i = getIntent();
+    56	            if (i == null)
+    57	                return;
+    58	
+    59	            if (ACTION_EDIT_FEED.equals(i.getAction())) {
+    60	                long feedId = i.getLongExtra(TAG_FEED_ID, -1);
+    61	                addFeedDialog = AddFeedDialog.newInstance(feedId);
+    62	            } else {
+    63	                addFeedDialog = AddFeedDialog.newInstance(getUriFromIntent());
+    64	            }
+    65	
+    66	            addFeedDialog.show(fm, TAG_ADD_FEED_DIALOG);
+    67	        }
+    68	    }
+    69	
+    70	    private Uri getUriFromIntent()
+    71	    {
+    72	        Intent i = getIntent();
+    73	        if (i != null) {
+    74	            if (i.getData() != null)
+    75	                return i.getData();
+    76	            else if (!TextUtils.isEmpty(i.getStringExtra(Intent.EXTRA_TEXT)))
+    77	                return Uri.parse(i.getStringExtra(Intent.EXTRA_TEXT));
+    78	        }
+    79	
+    80	        return null;
+    81	    }
+    82	
+    83	    @Override
+    84	    public void onFragmentFinished(@NonNull Fragment f, Intent intent, @NonNull ResultCode code)
+    85	    {
+    86	        finish();
+    87	    }
+    88	
+    89	    @Override
+    90	    public void onBackPressed()
+    91	    {
+    92	        addFeedDialog.onBackPressed();
+    93	    }
+    94	}

@@ -1,0 +1,89 @@
+LibreTorrent batch 14 helper source printout
+Membership is only from batch==14 in handoff/LIBRETORRENT_BATCH_PLAN.tsv.
+
+Plan membership command:
+awk -F '\\t' '$1==14 {print $3}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+
+Output (40 methods):
+MediaRssParser.isMediaRssElement
+MediaRssParser.parse
+MediaRssParser.parseContent
+MediaRssParser.parseHash
+MediaRssParser.parsePeerLinks
+Rss1Feed.<init>
+Rss1Feed.getItemList
+Rss1Feed.getTitle
+Rss1Feed.toString
+Rss1Item.<init>
+Rss1Item.getDescription
+Rss1Item.getEnclosures
+Rss1Item.getEzRssTorrentItem
+Rss1Item.getGuid
+Rss1Item.getLinks
+Rss1Item.getMediaRss
+Rss1Item.getPubDate
+Rss1Item.getTitle
+Rss2Feed.<init>
+Rss2Feed.getItemList
+Rss2Feed.getTitle
+Rss2Feed.toString
+Rss2Item.<init>
+Rss2Item.getDescription
+Rss2Item.getEnclosures
+Rss2Item.getEzRssTorrentItem
+Rss2Item.getGuid
+Rss2Item.getLinks
+Rss2Item.getMediaRss
+Rss2Item.getPubDate
+Rss2Item.getTitle
+Content.<init>
+Content.equals
+Content.getType
+Content.getUrl
+Content.hashCode
+Content.toString
+Hash.<init>
+Hash.equals
+Hash.getAlgorithm
+
+Numbered source print command used:
+SRC='/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java'; for spec in 'org/proninyaroslav/libretorrent/core/FeedParser.java:89,115' 'org/proninyaroslav/libretorrent/core/FeedParser.java:141,230' 'org/proninyaroslav/libretorrent/core/FeedParser.java:215,267' 'com/ernieyu/feedparser/impl/Rss1Feed.java:34,115' 'com/ernieyu/feedparser/impl/Rss1Item.java:26,124' 'com/ernieyu/feedparser/impl/Rss2Feed.java:35,125' 'com/ernieyu/feedparser/impl/Rss2Item.java:27,122' 'com/ernieyu/feedparser/impl/MediaRssParser.java:17,98' 'com/ernieyu/feedparser/mediarss/Content.java:32,90' 'com/ernieyu/feedparser/mediarss/Hash.java:17,80'; do f=${spec%%:*}; r=${spec#*:}; echo "### $f:$r"; nl -ba "$SRC/$f" | sed -n "${r}p"; done
+
+Relevant numbered source output:
+core/FeedParser.java:95-110 calls `item.getLinks()`, falls back to `findDownloadUrl(item)` when link scan returns null, then calls `item.getPubDate()` and `item.getTitle()`.
+core/FeedParser.java:141-160 orders the fallback calls: enclosure, EZRSS hash, MediaRSS content/hash, then GUID. `watchMediaContent` at 188-208 calls `item.getMediaRss()`, iterates `media.getContent()`, and reads each Content URL/type. `watchMediaHash` at 215-228 calls `media.getHash()`, `hash.getValue()`, and `hash.getAlgorithm()`. `watchGuid` at 254-261 calls `item.getGuid()`.
+FeedHandler.java (prior printed batch 12 evidence) constructs RSS1/RSS2 feed objects for RDF/RSS roots and Rss1Item/Rss2Item for item elements.
+
+Rss1Feed.java excerpts:
+36-38 constructor delegates to BaseElement.
+46-50 getTitle returns channel/title content.
+103-115 getItemList collects item elements.
+120-122 toString returns getTitle.
+Rss1Item.java excerpts:
+29-31 constructor delegates to BaseElement.
+39-42 getTitle; 45-53 getLinks; 56-59 getDescription; 69-73 getGuid; 75-80 getPubDate; 88-105 getEnclosures constructs Enclosure objects; 111-114 getMediaRss returns null; 120-123 getEzRssTorrentItem returns null.
+Rss2Feed.java excerpts:
+37-39 constructor delegates to BaseElement.
+47-51 getTitle returns channel/title content.
+113-125 getItemList obtains channel item elements.
+134-136 toString returns getTitle.
+Rss2Item.java excerpts:
+30-32 constructor delegates to BaseElement.
+40-43 getTitle; 46-54 getLinks; 57-60 getDescription; 69-72 getGuid; 74-78 getPubDate; 94-111 getEnclosures constructs Enclosure objects; 113-116 getMediaRss returns new MediaRssParser(this).parse(); 118-121 getEzRssTorrentItem returns new EzRss01Parser(this).parse().
+
+MediaRssParser.java exact key output:
+25-27 constructor stores Rss2Item.
+29-38 parse unconditionally invokes parseContent, parseHash, parsePeerLinks, then returns MediaRss.
+40-56 parseContent checks each media:content element namespace and constructs Content(url,type).
+58-74 parseHash checks media:hash, reads content and algo, constructs Hash and sets algorithm when non-null.
+76-92 parsePeerLinks checks each media:peerLink element and builds PeerLink list.
+94-97 isMediaRssElement checks the namespace URI prefix.
+
+Content.java exact key output: constructor 36-39; getUrl 48-50; getType 59-61; equals 63-73; hashCode 75-80; toString 82-89.
+Hash.java exact key output: constructor 21-23; getAlgorithm 44-46; equals 54-64.
+
+Search command/output for target method callers:
+rg -n 'getMediaRss\\(|parseContent\\(|parseHash\\(|parsePeerLinks\\(|new Content\\(|new Hash\\(|getType\\(\\)|getUrl\\(\\)|getAlgorithm\\(' "$SRC/com/ernieyu/feedparser/impl/MediaRssParser.java" "$SRC/com/ernieyu/feedparser/impl/Rss1Item.java" "$SRC/com/ernieyu/feedparser/impl/Rss2Item.java" "$SRC/org/proninyaroslav/libretorrent/core/FeedParser.java" "$SRC/com/ernieyu/feedparser/mediarss/Content.java" "$SRC/com/ernieyu/feedparser/mediarss/Hash.java"
+Output lines confirm Rss2Item.getMediaRss delegates to MediaRssParser.parse; parse calls all three parse methods; parseContent constructs Content; parseHash constructs Hash; core FeedParser calls Content getters and Hash.getAlgorithm. No app/parser path calls Content.equals/hashCode/toString or Hash.equals.
+
+No coverage data was opened or used.

@@ -1,0 +1,23 @@
+LibreTorrent batch 43 — command record and source evidence summary
+
+Plan command (sole membership source):
+`awk -F '\t' '$1==43 {print $3 "\t" $4}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv`
+
+Output: 40 ordered rows. The report table preserves all exact plan member names/signatures.
+
+Definition excerpts printed/read:
+`nl -ba "$SRC/core/settings/SettingsRepositoryImpl.java" | sed -n '400,540p;555,685p;780,805p;950,970p;1090,1124p;1170,1190p;1248,1282p'`
+
+`SRC` is `/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent`.
+
+Focused app-use search printed/read:
+`rg -n '\\.(autostart|batteryControl|cpuDoNotSleep|customBatteryControl|customBatteryControlValue|defaultTrackersList|dirToWatch|enableDht|enableIpFiltering|enableLsd|enableNatPmp|enableRoaming|enableSchedulingShutdown|enableSchedulingStart|enableStreaming|enableUpnp|enableUtp|encryptInConnectionsMode|encryptOutConnectionsMode|feedItemKeepTime|feedRemoveDuplicates)\\(' "$SRC"`
+
+Printed uses include:
+- settings fragments for Behavior, Network, Storage, Scheduling, Streaming, and Feed get/set values in their on-view initialization and preference-change handlers;
+- TorrentService reads cpuDoNotSleep at lines 129 and 267;
+- TorrentEngine reads battery/custom battery, roaming, IP filtering, streaming, encryption, watch directory, DHT/LSD/uTP/UPnP/NAT-PMP, and default tracker preferences at lines 990-1117 and 1512-1648;
+- BootReceiver and SchedulerReceiver read/update autostart and scheduling flags;
+- FeedFetcherWorker reads keep-time and duplicate-removal preferences.
+
+The source methods directly delegate to SharedPreferences getters/setters (for example `autostart` at lines 408-419, DHT at 564-575, IP filtering at 668-679, feed retention at 1175-1185, and streaming at 1266-1277). These local usages do not by themselves prove the complete routes from Android entry points/settings screens; all rows remain OPEN. No coverage data was accessed. No graph, notes, or out files were edited.

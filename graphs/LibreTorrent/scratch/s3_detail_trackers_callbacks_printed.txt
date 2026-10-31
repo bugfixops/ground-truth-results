@@ -1,0 +1,333 @@
+   258	    private void subscribeAdapter()
+   259	    {
+   260	        disposables.add(viewModel.observeTrackers()
+   261	                .subscribeOn(Schedulers.io())
+   262	                .flatMapSingle((children) ->
+   263	                        Flowable.fromIterable(children)
+   264	                                .map(TrackerItem::new)
+   265	                                .toList()
+   266	                )
+   267	                .observeOn(AndroidSchedulers.mainThread())
+   268	                .subscribe((children) -> adapter.submitList(children)));
+   269	    }
+   270	
+   271	    private void subscribeAlertDialog()
+   272	    {
+   273	        Disposable d = dialogViewModel.observeEvents()
+   274	                .subscribe((event) -> {
+   275	                    if (event.dialogTag == null || !event.dialogTag.equals(TAG_DELETE_TRACKERS_DIALOG) || deleteTrackersDialog == null)
+   276	                        return;
+   277	                    switch (event.type) {
+   278	                        case POSITIVE_BUTTON_CLICKED:
+   279	                            deleteTrackers();
+   280	                            deleteTrackersDialog.dismiss();
+   281	                            break;
+   282	                        case NEGATIVE_BUTTON_CLICKED:
+   283	                            deleteTrackersDialog.dismiss();
+   284	                            break;
+   285	                    }
+   286	                });
+   287	        disposables.add(d);
+   288	    }
+   295	    private final androidx.appcompat.view.ActionMode.Callback actionModeCallback = new androidx.appcompat.view.ActionMode.Callback()
+   296	    {
+   297	        @Override
+   298	        public boolean onPrepareActionMode(androidx.appcompat.view.ActionMode mode, Menu menu)
+   299	        {
+   300	            return false;
+   301	        }
+   302	
+   303	        @Override
+   304	        public boolean onCreateActionMode(androidx.appcompat.view.ActionMode mode, Menu menu)
+   305	        {
+   306	            mode.getMenuInflater().inflate(R.menu.detail_torrent_trackers_action_mode, menu);
+   307	            Utils.showActionModeStatusBar(activity, true);
+   308	            msgViewModel.fragmentInActionMode(true);
+   309	
+   310	            return true;
+   311	        }
+   312	
+   313	        @Override
+   314	        public boolean onActionItemClicked(androidx.appcompat.view.ActionMode mode, MenuItem item)
+   315	        {
+   316	            int itemId = item.getItemId();
+   317	            if (itemId == R.id.delete_tracker_url) {
+   318	                deleteTrackersDialog();
+   319	            } else if (itemId == R.id.share_url_menu) {
+   320	                shareUrl();
+   321	                mode.finish();
+   322	            } else if (itemId == R.id.select_all_trackers_menu) {
+   323	                selectAllTrackers();
+   324	            }
+   325	
+   326	            return true;
+   327	        }
+   328	
+   329	        @Override
+   330	        public void onDestroyActionMode(androidx.appcompat.view.ActionMode mode)
+   331	        {
+   332	            selectionTracker.clearSelection();
+   333	            msgViewModel.fragmentInActionMode(false);
+   334	            Utils.showActionModeStatusBar(activity, false);
+   335	        }
+   336	    };
+   337	
+   338	    private void deleteTrackersDialog()
+   339	    {
+   340	        if (!isAdded())
+   341	            return;
+   342	
+   343	        FragmentManager fm = getChildFragmentManager();
+   344	        if (fm.findFragmentByTag(TAG_DELETE_TRACKERS_DIALOG) == null) {
+   345	            deleteTrackersDialog = BaseAlertDialog.newInstance(
+   346	                    getString(R.string.deleting),
+   347	                    (selectionTracker.getSelection().size() > 1 ?
+   348	                            getString(R.string.delete_selected_trackers) :
+   349	                            getString(R.string.delete_selected_tracker)),
+   350	                    0,
+   351	                    getString(R.string.ok),
+   352	                    getString(R.string.cancel),
+   353	                    null,
+   354	                    false);
+   355	
+   356	            deleteTrackersDialog.show(fm, TAG_DELETE_TRACKERS_DIALOG);
+   357	        }
+   358	    }
+   359	
+   360	    private void deleteTrackers()
+   361	    {
+   362	        MutableSelection<TrackerItem> selections = new MutableSelection<>();
+   363	        selectionTracker.copySelection(selections);
+   364	
+   365	        disposables.add(Observable.fromIterable(selections)
+   366	                .map((selection -> selection.url))
+   367	                .toList()
+   368	                .subscribe((urls) -> viewModel.deleteTrackers(urls)));
+   369	
+   370	        if (actionMode != null)
+   371	            actionMode.finish();
+   372	    }
+   373	
+   374	    private void shareUrl()
+   375	    {
+   376	        MutableSelection<TrackerItem> selections = new MutableSelection<>();
+   377	        selectionTracker.copySelection(selections);
+   378	
+   379	        disposables.add(Observable.fromIterable(selections)
+   380	                .map((selection -> selection.url))
+   381	                .toList()
+   382	                .subscribe((urls) -> {
+   383	                    Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
+   384	                    sharingIntent.setType("text/plain");
+   385	                    sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "url");
+   386	
+   387	                    if (urls.size() == 1)
+   388	                        sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, urls.get(0));
+   389	                    else
+   390	                        sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT,
+   391	                                TextUtils.join(Utils.getLineSeparator(), urls));
+   392	
+   393	                    startActivity(Intent.createChooser(sharingIntent, getString(R.string.share_via)));
+   394	                }));
+   395	    }
+   396	
+   397	    @SuppressLint("RestrictedApi")
+   398	    private void selectAllTrackers()
+   399	    {
+   400	        int n = adapter.getItemCount();
+   401	        if (n > 0) {
+   402	            selectionTracker.startRange(0);
+   403	            selectionTracker.extendRange(adapter.getItemCount() - 1);
+   404	        }
+   405	    }
+    63	    public void setSelectionTracker(SelectionTracker<TrackerItem> selectionTracker)
+    64	    {
+    65	        this.selectionTracker = selectionTracker;
+    66	    }
+    67	
+    68	    @NonNull
+    69	    @Override
+    70	    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType)
+    71	    {
+    72	        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+    73	        ItemTrackersListBinding binding = DataBindingUtil.inflate(inflater,
+    74	                R.layout.item_trackers_list,
+    75	                parent,
+    76	                false);
+    77	
+    78	        return new ViewHolder(binding);
+    79	    }
+    80	
+    81	    @Override
+    82	    public void onBindViewHolder(@NonNull ViewHolder holder, int position)
+    83	    {
+    84	        TrackerItem item = getItem(position);
+    85	        if (selectionTracker != null)
+    86	            holder.setSelected(selectionTracker.isSelected(item));
+    87	
+    88	        holder.bind(item);
+    89	    }
+    90	
+    91	    @Override
+    92	    public void submitList(@Nullable List<TrackerItem> list)
+    93	    {
+   152	        void bind(TrackerItem item)
+   153	        {
+   154	            Context context = itemView.getContext();
+   155	
+   156	            selectionKey = item;
+   157	
+   158	            TypedArray a = context.obtainStyledAttributes(new TypedValue().data, new int[] {
+   159	                    R.attr.selectableColor,
+   160	                    R.attr.defaultRectRipple,
+   161	                    R.attr.colorError,
+   162	                    R.attr.colorOk
+   163	            });
+   164	
+   165	            if (isSelected)
+   166	                Utils.setBackground(itemView, a.getDrawable(0));
+   167	            else
+   168	                Utils.setBackground(itemView, a.getDrawable(1));
+   169	
+   170	            binding.url.setText(item.url);
+   171	
+   172	            String status = "";
+   173	            switch (item.status) {
+   174	                case TrackerInfo.Status.NOT_CONTACTED:
+   175	                    status = context.getString(R.string.tracker_state_not_contacted);
+   176	                    break;
+   177	                case TrackerInfo.Status.WORKING:
+   178	                    status = context.getString(R.string.tracker_state_working);
+   179	                    break;
+   180	                case TrackerInfo.Status.UPDATING:
+   180	                binding.trackerList,
+   181	                new TrackerListAdapter.KeyProvider(adapter),
+   182	                new TrackerListAdapter.ItemLookup(binding.trackerList),
+   183	                StorageStrategy.createParcelableStorage(TrackerItem.class))
+   184	                .withSelectionPredicate(SelectionPredicates.createSelectAnything())
+   185	                .build();
+   186	
+   187	        selectionTracker.addObserver(new SelectionTracker.SelectionObserver<TrackerItem>() {
+   188	            @Override
+   189	            public void onSelectionChanged()
+   190	            {
+   191	                super.onSelectionChanged();
+   192	
+   193	                if (selectionTracker.hasSelection() && actionMode == null) {
+   194	                    actionMode = activity.startSupportActionMode(actionModeCallback);
+   195	                    setActionModeTitle(selectionTracker.getSelection().size());
+   196	
+   197	                } else if (!selectionTracker.hasSelection()) {
+   198	                    if (actionMode != null)
+   199	                        actionMode.finish();
+   200	                    actionMode = null;
+   201	
+   202	                } else {
+   203	                    setActionModeTitle(selectionTracker.getSelection().size());
+   204	
+   205	                    /* Show/hide menu items after change selected files */
+   206	                    int size = selectionTracker.getSelection().size();
+   207	                    if (size == 1 || size == 2)
+   208	                        actionMode.invalidate();
+   209	                }
+   210	            }
+   211	
+   212	            @Override
+   213	            public void onSelectionRestored()
+   214	            {
+   215	                super.onSelectionRestored();
+   216	
+   217	                actionMode = activity.startSupportActionMode(actionModeCallback);
+   218	                setActionModeTitle(selectionTracker.getSelection().size());
+   219	            }
+   220	        });
+   221	
+   222	        if (savedInstanceState != null)
+   223	            selectionTracker.onRestoreInstanceState(savedInstanceState);
+   224	        adapter.setSelectionTracker(selectionTracker);
+   225	
+   226	        FragmentManager fm = getChildFragmentManager();
+   227	        deleteTrackersDialog = (BaseAlertDialog)fm.findFragmentByTag(TAG_DELETE_TRACKERS_DIALOG);
+   228	    }
+   229	
+   230	    @Override
+   231	    public void onSaveInstanceState(@NonNull Bundle outState)
+   232	    {
+   295	    private final androidx.appcompat.view.ActionMode.Callback actionModeCallback = new androidx.appcompat.view.ActionMode.Callback()
+   296	    {
+   297	        @Override
+   298	        public boolean onPrepareActionMode(androidx.appcompat.view.ActionMode mode, Menu menu)
+   299	        {
+   300	            return false;
+   301	        }
+   302	
+   303	        @Override
+   304	        public boolean onCreateActionMode(androidx.appcompat.view.ActionMode mode, Menu menu)
+   305	        {
+   306	            mode.getMenuInflater().inflate(R.menu.detail_torrent_trackers_action_mode, menu);
+   307	            Utils.showActionModeStatusBar(activity, true);
+   308	            msgViewModel.fragmentInActionMode(true);
+   309	
+   310	            return true;
+   311	        }
+   312	
+   313	        @Override
+   314	        public boolean onActionItemClicked(androidx.appcompat.view.ActionMode mode, MenuItem item)
+   315	        {
+   316	            int itemId = item.getItemId();
+   317	            if (itemId == R.id.delete_tracker_url) {
+   318	                deleteTrackersDialog();
+   319	            } else if (itemId == R.id.share_url_menu) {
+   320	                shareUrl();
+   321	                mode.finish();
+   322	            } else if (itemId == R.id.select_all_trackers_menu) {
+   323	                selectAllTrackers();
+   324	            }
+   325	
+   326	            return true;
+   327	        }
+   328	
+   329	        @Override
+   330	        public void onDestroyActionMode(androidx.appcompat.view.ActionMode mode)
+   331	        {
+   332	            selectionTracker.clearSelection();
+   333	            msgViewModel.fragmentInActionMode(false);
+   334	            Utils.showActionModeStatusBar(activity, false);
+   335	        }
+   336	    };
+   360	    private void deleteTrackers()
+   361	    {
+   362	        MutableSelection<TrackerItem> selections = new MutableSelection<>();
+   363	        selectionTracker.copySelection(selections);
+   364	
+   365	        disposables.add(Observable.fromIterable(selections)
+   366	                .map((selection -> selection.url))
+   367	                .toList()
+   368	                .subscribe((urls) -> viewModel.deleteTrackers(urls)));
+   369	
+   370	        if (actionMode != null)
+   371	            actionMode.finish();
+   372	    }
+   373	
+   374	    private void shareUrl()
+   375	    {
+   376	        MutableSelection<TrackerItem> selections = new MutableSelection<>();
+   377	        selectionTracker.copySelection(selections);
+   378	
+   379	        disposables.add(Observable.fromIterable(selections)
+   380	                .map((selection -> selection.url))
+   381	                .toList()
+   382	                .subscribe((urls) -> {
+   383	                    Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
+   384	                    sharingIntent.setType("text/plain");
+   385	                    sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "url");
+   386	
+   387	                    if (urls.size() == 1)
+   388	                        sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, urls.get(0));
+   389	                    else
+   390	                        sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT,
+   391	                                TextUtils.join(Utils.getLineSeparator(), urls));
+   392	
+   393	                    startActivity(Intent.createChooser(sharingIntent, getString(R.string.share_via)));
+   394	                }));
+   395	    }

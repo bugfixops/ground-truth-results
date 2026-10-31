@@ -1,0 +1,208 @@
+## MainActivity.importScannedEntries  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=hardware state=file;session classes=explicit;non_standard;standard explicit_standard_route=yes
+   1. Eb9515d18 ENTRY/standard*
+      S_ENTRY -> AegisApplication.<init>
+      Any outside trigger starts the app process; the application class is created first, except in a backup or restore start, which uses the base Application class
+      guard: not a full backup or restore start (FW ActivityThread.java:5713-5715)
+      evidence: SRC AndroidManifest.xml:21-27 (android:name=".AegisApplication", backupAgent=".AegisBackupAgent")
+         21      <application
+         22          android:name=".AegisApplication"
+         23          android:allowBackup="true"
+         24          android:fullBackupOnly="true"
+         25          android:fullBackupContent="@xml/backup_rules_old"
+         26          android:dataExtractionRules="@xml/backup_rules"
+         27          android:backupAgent=".AegisBackupAgent"
+   2. E5b266140 LIFECYCLE/standard*
+      AegisApplication.<init> -> Hilt_AegisApplication.onCreate
+      Application.onCreate: the Hilt-generated superclass onCreate runs first (Hilt injection), then AegisApplicationBase.onCreate
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:5740 (the system calls Application.onCreate); INFERRED Hilt rewrites the superclass: AegisApplication extends Hilt_AegisApplication (generated file, not in the source tree; source AegisApplication.java:6 has no onCreate)
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+   3. E1ef992ce CALL/explicit
+      Hilt_AegisApplication.onCreate -> AegisApplicationBase.onCreate
+      Direct call
+      evidence: INFERRED generated code (Hilt_AegisApplication.java is not in the source tree; the call is in the build class, line 43)
+   4. E88ed9829 ENTERS/page*
+      AegisApplicationBase.onCreate -> S_PROCESS
+      the application is created: the process can start a component
+      evidence: SRC AegisApplicationBase.java:45-67; FW-SRC core/java/android/app/ActivityThread.java:5740 (the system calls Application.onCreate)
+         45      public void onCreate() {
+         46          super.onCreate();
+         47          _vaultManager = EarlyEntryPoints.get(this, EntryPoint.class).getVaultManager();
+         48  
+         49          VaultLockReceiver lockReceiver = new VaultLockReceiver();
+         50          IntentFilter intentFilter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
+         51          ContextCompat.registerReceiver(this, lockReceiver, intentFilter, ContextCompat.RECEIVER_NOT_EXPORTED);
+         52  
+         53          // lock the app if the user moves the application to the background
+         54          ProcessLifecycleOwner.get().getLifecycle().addObserver(new AppLifecycleObserver());
+         55  
+         56          // clear the cache directory on startup, to make sure no temporary vault export files remain
+         57          IOUtils.clearDirectory(getCacheDir(), false);
+         58  
+      ...  (9 more lines)
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+   5. E28ffc58c ENTRY/standard*
+      S_PROCESS -> MainActivity.<init>
+      Tap the Aegis icon in the launcher (MAIN / LAUNCHER)
+      evidence: SRC AndroidManifest.xml:44-51
+         44              android:name=".ui.MainActivity"
+         45              android:exported="true"
+         46              android:label="${title}">
+         47              <intent-filter>
+         48                  <action android:name="android.intent.action.MAIN" />
+         49  
+         50                  <category android:name="android.intent.category.LAUNCHER" />
+         51              </intent-filter>
+   6. Eb76444fd LIFECYCLE/standard*
+      MainActivity.<init> -> MainActivity.onCreate
+      Activity.onCreate after the constructor
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731,2741 (the system calls Activity.onCreate, then performStart); SRC ui/MainActivity.java:192-194
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+        192      @Override
+        193      protected void onCreate(Bundle savedInstanceState) {
+        194          super.onCreate(savedInstanceState);
+   7. E3a06baed LIFECYCLE/standard*
+      MainActivity.onCreate -> MainActivity.onStart
+      Activity.onStart after onCreate
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731,2741 (the system calls Activity.onCreate, then performStart); SRC ui/MainActivity.java:938-940
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+        938      @Override
+        939      protected void onStart() {
+        940          super.onStart();
+   8. E7400a38d CALL/explicit* [STATE: The vault file exists but cannot be read (VaultRepository.readVaultFile throws, MainActivity.java:954-955); an earlier run left it unreadable, and no step on any route writes it]
+      MainActivity.onStart -> Dialogs.showErrorDialog(Context,int,Exception,OnClickListener)
+      the vault file cannot be read: an error dialog is shown and onStart returns (the unlock screen is not started)
+      guard: reading the vault file throws VaultRepositoryException (MainActivity.java:954-955; the catch shows the dialog at 957 and returns at 960); reached only when isVaultInitNeeded() is false (MainActivity.java:942-947) and isVaultLoaded() is false (MainActivity.java:951)
+      evidence: SRC ui/MainActivity.java:946-960 (intro return at 946-947; readVaultFile catch at 954-960: showErrorDialog at 957, return at 960)
+        946              startIntroActivity();
+        947              return;
+        948          }
+        949  
+        950          // If the vault is not loaded yet, try to load it now in case it's plain text
+        951          if (!_vaultManager.isVaultLoaded()) {
+        952              VaultFile vaultFile;
+        953              try {
+        954                  vaultFile = VaultRepository.readVaultFile(this);
+        955              } catch (VaultRepositoryException e) {
+        956                  e.printStackTrace();
+        957                  Dialogs.showErrorDialog(this, R.string.vault_load_error, e, (dialog, which) -> {
+        958                      finish();
+        959                  });
+      ...  (1 more lines)
+   9. Ec4596530 CALL/explicit*
+      Dialogs.showErrorDialog(Context,int,Exception,OnClickListener) -> Dialogs.showErrorDialog(Context,int,CharSequence,OnClickListener)
+      Direct call
+      evidence: SRC Dialogs.java:368 (bytecode)
+        368          showErrorDialog(context, message, e.toString(), listener);
+  10. Eff284e41 CALL/explicit*
+      Dialogs.showErrorDialog(Context,int,CharSequence,OnClickListener) -> Dialogs.showErrorDialog(Context,String,CharSequence,OnClickListener)
+      Direct call
+      evidence: SRC Dialogs.java:376 (bytecode)
+        376          showErrorDialog(context, context.getString(message), error, listener);
+  11. Ef2c4b2cc FRAMEWORK/standard*
+      Dialogs.showErrorDialog(Context,String,CharSequence,OnClickListener) -> Dialogs.lambda$showErrorDialog$15
+      Tap OK in the error dialog
+      evidence: FW-SRC core/java/android/view/View.java:6289-6296 (performClick calls the OnClickListener.onClick); SRC ui/dialogs/Dialogs.java:391-395
+      (core/java/android/view/View.java not found in the source tree)
+        391                  .setPositiveButton(android.R.string.ok, (dialog1, which) -> {
+        392                      if (listener != null) {
+        393                          listener.onClick(dialog1, which);
+        394                      }
+        395                  })
+  12. Ec9aba117 CALL/non_standard(DialogInterface.OnClickListener.onClick (interface call; Dialogs.java:391-393; the listener is the lambda at ScannerActivity.java:196)) [STATE: The camera provider is ready and a lens exists: the camera switch icon is set (ScannerActivity.java:70, 79-88)]
+      Dialogs.lambda$showErrorDialog$15 -> ScannerActivity.lambda$onQrCodeDetected$1
+      Tap OK in the error dialog: the camera starts again (the listener calls bindPreview)
+      guard: the dialog was opened by the scanner error branch (ScannerActivity.onQrCodeDetected, GoogleAuthInfoException caught; ScannerActivity.java:189-196); the OK relay is shared by all error dialogs
+      evidence: SRC ui/dialogs/Dialogs.java:391-395; SRC ui/ScannerActivity.java:194-196
+        391                  .setPositiveButton(android.R.string.ok, (dialog1, which) -> {
+        392                      if (listener != null) {
+        393                          listener.onClick(dialog1, which);
+        394                      }
+        395                  })
+        194                      Dialogs.showErrorDialog(this,
+        195                              e.isPhoneFactor() ? R.string.read_qr_error_phonefactor : R.string.read_qr_error,
+        196                              e, ((dialog, which) -> bindPreview(_cameraProvider)));
+  13. E268ab4ba CALL/explicit*
+      ScannerActivity.lambda$onQrCodeDetected$1 -> ScannerActivity.bindPreview
+      the camera is bound again after the error dialog
+      evidence: SRC ui/ScannerActivity.java:196
+        196                              e, ((dialog, which) -> bindPreview(_cameraProvider)));
+  14. Ed8457530 FRAMEWORK/standard* [ENV: a QR code with an otpauth:// link (or an export link) is held in front of the camera (ScannerActivity reads the camera frames)]
+      ScannerActivity.bindPreview -> QrCodeAnalyzer.analyze
+      CameraX delivers each camera frame to the analyzer that bindPreview set (a QR code is in view)
+      evidence: INFERRED androidx.camera ImageAnalysis: setAnalyzer keeps the analyzer, and CameraX calls analyze(ImageProxy) on the analysis executor for each camera frame (CameraX source not read); SRC ui/ScannerActivity.java:164; SRC helpers/QrCodeAnalyzer.java:29
+        164          _analysis.setAnalyzer(_executor, new QrCodeAnalyzer(this));
+         29      public void analyze(@NonNull ImageProxy image) {
+  15. Ece1825c9 CALL/explicit*
+      QrCodeAnalyzer.analyze -> ScannerActivity.onQrCodeDetected
+      a QR code is decoded: the scanner receives the result (the listener is the scanner itself)
+      guard: the frame is YUV_420_888 (QrCodeAnalyzer.java:31-34) and the listener is set (QrCodeAnalyzer.java:56); the frame decodes (QrCodeAnalyzer.java:55-58; a NotFoundException at line 59 skips the call)
+      evidence: SRC helpers/QrCodeAnalyzer.java:55-58; SRC ui/ScannerActivity.java:36,175
+         55              Result result = QrCodeHelper.decodeFromSource(source);
+         56              if (_listener != null) {
+         57                  _listener.onQrCodeDetected(result);
+         58              }
+         36  public class ScannerActivity extends AegisActivity implements QrCodeAnalyzer.Listener {
+        175      public void onQrCodeDetected(Result result) {
+  16. Ede72ed30 FRAMEWORK/standard*
+      ScannerActivity.onQrCodeDetected -> ScannerActivity.lambda$onQrCodeDetected$2
+      the QR result is posted to the main thread
+      evidence: INFERRED android.os.Handler.post: the runnable runs on the handler looper (the main looper here; framework source not read); SRC ui/ScannerActivity.java:175-176
+        175      public void onQrCodeDetected(Result result) {
+        176          new Handler(getMainLooper()).post(() -> {
+  17. Ec386f776 CALL/explicit*
+      ScannerActivity.lambda$onQrCodeDetected$2 -> ScannerActivity.handleExportUri
+      the QR code is an export link: the batch is handled
+      guard: the scanner is open and the camera is bound (ScannerActivity.java:177-181); the text uses the export scheme (ScannerActivity.java:184)
+      evidence: SRC ui/ScannerActivity.java:183-185
+        183                      Uri uri = Uri.parse(result.getText().trim());
+        184                      if (uri.getScheme() != null && uri.getScheme().equals(GoogleAuthInfo.SCHEME_EXPORT)) {
+        185                          handleExportUri(uri);
+  18. E146f71d1 CALL/explicit*
+      ScannerActivity.handleExportUri -> ScannerActivity.finish
+      the last code of the batch is scanned: all entries are returned and the page closes
+      guard: the batch id matches (ScannerActivity.java:217), the index is the next one (219), and it is the last one (226-227)
+      evidence: SRC ui/ScannerActivity.java:217-219, 226-227
+        217          if (_batchId != export.getBatchId()) {
+        218              Toast.makeText(this, R.string.google_qr_export_unrelated, Toast.LENGTH_SHORT).show();
+        219          } else if (_batchIndex == -1 || _batchIndex == batchIndex - 1) {
+  19. E8ec348dd RESULT/standard*
+      ScannerActivity.finish -> MainActivity.lambda$new$2
+      setResult(RESULT_OK) with the scanned entries, then finish: the scan launcher runs
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:4253-4265 (deliverResults passes each result to dispatchActivityResult of the starting activity); SRC ui/ScannerActivity.java:236-241; SRC ui/MainActivity.java:151-157
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+        236      private void finish(List<VaultEntry> entries) {
+        237          Intent intent = new Intent();
+        238          intent.putExtra("entries", (ArrayList<VaultEntry>) entries);
+        239          setResult(RESULT_OK, intent);
+        240          finish();
+        241      }
+        151              registerForActivityResult(new StartActivityForResult(), activityResult -> {
+        152                  if (activityResult.getResultCode() != RESULT_OK || activityResult.getData() == null) {
+        153                      return;
+        154                  }
+        155                  onScanResult(activityResult.getData());
+        156              });
+        157  
+  20. E528f4565 CALL/explicit*
+      MainActivity.lambda$new$2 -> MainActivity.onScanResult
+      the scan result reaches the main screen: the launcher passes the intent on
+      guard: the result is RESULT_OK with data (MainActivity.java:152-154)
+      evidence: SRC ui/MainActivity.java:150-156
+        150      private final ActivityResultLauncher<Intent> scanResultLauncher =
+        151              registerForActivityResult(new StartActivityForResult(), activityResult -> {
+        152                  if (activityResult.getResultCode() != RESULT_OK || activityResult.getData() == null) {
+        153                      return;
+        154                  }
+        155                  onScanResult(activityResult.getData());
+        156              });
+  21. E4d6f8d77 CALL/explicit*
+      MainActivity.onScanResult -> MainActivity.importScannedEntries
+      Direct call
+      guard: entries != null (MainActivity.java:611-614)
+      evidence: SRC ui/MainActivity.java:611-614
+        611      private void onScanResult(Intent data) {
+        612          List<VaultEntry> entries = (ArrayList<VaultEntry>) data.getSerializableExtra("entries");
+        613          if (entries != null) {
+        614              importScannedEntries(entries);
+

@@ -1,0 +1,75 @@
+Batch 122 grep and auto_calls.json evidence (SRC_MAIN = final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main, run from /Users/darshan/Desktop/yang/work)
+
+== A1: grep -rn "CloudItemViewHolder" SRC_MAIN
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/CloudItemViewHolder.java:33:public class CloudItemViewHolder
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/CloudItemViewHolder.java:36:    public CloudItemViewHolder(View itemView) {
+(no other file names the class; the only constructor is at :36 and has no caller)
+
+== A2: grep -rn "CloudStorageProviderEnum" SRC_MAIN
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/CloudStorageProviderEnum.java:23:public enum CloudStorageProviderEnum {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/CloudStorageProviderEnum.java:31:        for (CloudStorageProviderEnum provider : CloudStorageProviderEnum.values()) {
+(no other file names the enum; contains() at :30 is called nowhere)
+
+== A3: grep -rn "SyncCommon\|getIntentForOpenDatabase" SRC_MAIN
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncCommon.java:31:public class SyncCommon {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncCommon.java:32:    public Intent getIntentForOpenDatabase(Context context, File database) {
+(no subclass, no instance, no call of getIntentForOpenDatabase outside its class)
+
+== A4: grep -rn "new SyncConstants\|SyncConstants()" SRC_MAIN
+(no output: no instance of SyncConstants is created and no constructor call exists)
+
+== A5: grep -n "onNewIntent" SRC_MAIN/java/com/money/manager/ex/settings/BaseSettingsFragmentActivity.java
+(no output; ls confirms the file exists; line 39-40: "public class BaseSettingsFragmentActivity extends MmxBaseFragmentActivity", so super.onNewIntent resolves to the framework Activity method)
+
+== A6: grep -rn "startSyncServiceHeartbeat" SRC_MAIN/java
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java:1218:            sync.startSyncServiceHeartbeat();
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncManager.java:268:    public void startSyncServiceHeartbeat() {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferenceFragment.java:143:        getSyncManager().startSyncServiceHeartbeat();
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferenceFragment.java:187:                    getSyncManager().startSyncServiceHeartbeat();
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferenceFragment.java:225:                    sync.startSyncServiceHeartbeat();
+
+== A7: grep -rn "SyncPreferencesActivity" SRC_MAIN
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/AndroidManifest.xml:269:                android:name=".settings.SyncPreferencesActivity"
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/settings/SettingsFragment.java:156:                    startActivity(new Intent(getActivity(), SyncPreferencesActivity.class));
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/SelectDatabaseActivity.java:115://        Intent intent = new Intent(this, SyncPreferencesActivity.class);   (commented out: not a route)
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/settings/SyncPreferencesActivity.java:28:public class SyncPreferencesActivity
+
+== A8: grep -rn "SyncBroadcastReceiver" SRC_MAIN
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/AndroidManifest.xml:107:        <receiver android:name=".sync.SyncBroadcastReceiver" />
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncSchedulerBroadcastReceiver.java:52:        Intent syncIntent = new Intent(context, SyncBroadcastReceiver.class);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncBroadcastReceiver.java:32:public class SyncBroadcastReceiver
+(the receiver is declared without an intent-filter; its instance is created by the framework when the PendingIntent alarm fires)
+
+== B: python3 -I over graphs/MMEX/auto_calls.json (sections calls, lambdas, framework_calls, receiver_variants, impl)
+Records whose src or dst contains a batch 122 class name, in section calls (src -> dst, file line):
+  SyncPreferencesActivity.<init> -> BaseSettingsFragmentActivity.<init>   SyncPreferencesActivity.java 28
+  SyncPreferencesActivity.onCreate -> BaseSettingsFragmentActivity.onCreate   SyncPreferencesActivity.java 35
+  SyncPreferencesActivity.onCreate -> BaseSettingsFragmentActivity.setSettingFragment   SyncPreferencesActivity.java 37
+  SyncPreferencesActivity.onCreate -> SyncPreferenceFragment.<init>   SyncPreferencesActivity.java 37
+  SyncBroadcastReceiver.onReceive -> SyncManager.<init> / <clinit> / canSync / triggerSynchronization; SyncPreferences.<init> / getSyncInterval   SyncBroadcastReceiver.java 39-45
+  CloudItemViewHolder.<init> -> CloudItemViewHolder.initialize   CloudItemViewHolder.java 39
+  CloudItemViewHolder.initialize -> CloudItemViewHolder$1.<init>   CloudItemViewHolder.java 49
+  CloudItemViewHolder$1.onClick -> ListItemClickedEvent.<init>   CloudItemViewHolder.java 52
+Incoming records (dst) for the 14 batch methods: only CloudItemViewHolder.initialize (from <init>, line 39) and CloudItemViewHolder$1.<init> (from initialize, line 49). No incoming record for SyncPreferencesActivity.*, SyncBroadcastReceiver.*, CloudStorageProviderEnum.*, SyncCommon.*, SyncConstants.*, or CloudItemViewHolder.<init>, CloudItemViewHolder$1.onClick.
+Callers of ListItemClickedEvent.<init>: CloudItemViewHolder$1.onClick (CloudItemViewHolder.java:52) and CurrencyRecyclerListFragment$1.onItemClick (CurrencyRecyclerListFragment.java:375, batch 050).
+Incoming to SyncSchedulerBroadcastReceiver.startHeartbeat: SyncSchedulerBroadcastReceiver.onReceive (line 67). Outgoing from startHeartbeat includes SyncManager.isSyncEnabled (line 76), SyncPreferences.getSyncInterval (line 80), MmxDate.<init>() (84).
+lambdas and receiver_variants: no entry names any batch 122 class.
+framework_calls (src: targets): SyncPreferencesActivity.onNewIntent: BaseSettingsFragmentActivity.onNewIntent, Intent.getCategories, Set.contains, Timber.d; SyncCommon.<init>: Object.<init>; SyncCommon.getIntentForOpenDatabase: Context.getApplicationContext, Intent.<init>, Intent.setData, Intent.setFlags, Uri.fromFile; CloudItemViewHolder$1.<init>: Object.<init>; CloudItemViewHolder$1.onClick: EventBus.getDefault, EventBus.post; SyncConstants.<init>: Object.<init>; SyncBroadcastReceiver.<init>: BroadcastReceiver.<init>; SyncBroadcastReceiver.onReceive: Timber.d; CloudStorageProviderEnum.contains: CloudStorageProviderEnum.name, String.equalsIgnoreCase; CloudItemViewHolder.<init>: RecyclerView$ViewHolder.<init>; CloudItemViewHolder.initialize: View.findViewById, View.setOnClickListener.
+impl: each batch 122 class has an impl entry with the method signature (no caller information).
+
+== C: graph and part files (grep -n "S_SYNC\|SYNC_SETTINGS\|SYNC_PREF" graphs/MMEX/graph_def.py graphs/MMEX/parts/*.py; and grep -n "S_SYNC\|SYNCHRON\|'S_SETTINGS\|S_SETTING" over the same files)
+(no output: no SCREENS key for the synchronization settings page exists, so S_SYNC_SETTINGS is defined in label_122.py per D9)
+grep -rn "SyncPreferencesActivity\|SyncBroadcastReceiver\|SyncPreferenceFragment\|CloudItemViewHolder\|SyncCommon\|CloudStorageProviderEnum\|SyncConstants" graphs/MMEX/parts/*.py graphs/MMEX/graph_def.py
+label_033.py:124-125 and graph_def.py:2797-2798: CloudItemViewHolder (the ListItemClickedEvent route; same finding as A1). label_050.py:23 and graph_def.py:3958: note that CloudItemViewHolder$1.onClick is in batch 122.
+label_039.py:17 and graph_def.py:3103: a comment on the .contains( calls, naming CloudStorageProviderEnum among receiver classes; A2 finds no receiver of that type outside its own file.
+label_040.py:56-62 and graph_def.py:3332-3338: SyncPreferenceFragment methods (batch 040).
+No part or graph_def.py line names SyncPreferencesActivity or SyncBroadcastReceiver, so no edge into them exists yet. No line names SyncCommon or SyncConstants outside the source files.
+
+== D: route into SyncBroadcastReceiver (grep -rn "initializeSync" SRC_MAIN; sed of MainActivity.java:1200-1219; auto_calls query)
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java:242:        initializeSync();
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java:1210:    private void initializeSync() {
+MainActivity.java:1212: if (!sync.isActive()) return; (gate)
+MainActivity.java:1218: sync.startSyncServiceHeartbeat(); inside if (preferences.getSyncInterval() != 0)
+auto_calls: MainActivity.onCreate -> MainActivity.initializeSync (MainActivity.java:242)
+Chain used for the FRAMEWORK edge: MainActivity.onCreate (242) -> initializeSync (1210) -> SyncManager.startSyncServiceHeartbeat (SyncManager.java:268) -> START broadcast -> SyncSchedulerBroadcastReceiver.onReceive (line 67) -> startHeartbeat -> AlarmManager -> SyncBroadcastReceiver.<init>.
+Not used as the route: SyncPreferenceFragment.java:143 is inside handleFileSelection (declared at line 130); auto_calls SyncPreferenceFragment.onActivityResult -> handleFileSelection (line 98); label_040 records that handleFileSelection has no live caller. SyncPreferenceFragment.java:187 and :225 are enclosing methods not traced here, so they are not cited.

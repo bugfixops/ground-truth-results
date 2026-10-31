@@ -1,0 +1,143 @@
+     1	/*
+     2	 * Copyright (C) 2016, 2019 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.errorreport;
+    21	
+    22	import android.app.Dialog;
+    23	import android.content.Intent;
+    24	import android.os.Bundle;
+    25	import android.text.Editable;
+    26	
+    27	import androidx.annotation.Nullable;
+    28	import androidx.appcompat.app.AppCompatActivity;
+    29	import androidx.lifecycle.ViewModelProvider;
+    30	
+    31	import com.google.android.material.textfield.TextInputEditText;
+    32	
+    33	import org.acra.ReportField;
+    34	import org.acra.data.CrashReportData;
+    35	import org.acra.dialog.CrashReportDialogHelper;
+    36	import org.proninyaroslav.libretorrent.R;
+    37	import org.proninyaroslav.libretorrent.ui.BaseAlertDialog;
+    38	
+    39	import java.io.IOException;
+    40	
+    41	import io.reactivex.disposables.CompositeDisposable;
+    42	import io.reactivex.disposables.Disposable;
+    43	
+    44	public class ErrorReportActivity extends AppCompatActivity
+    45	{
+    46	    private static final String TAG = ErrorReportActivity.class.getSimpleName();
+    47	
+    48	    private static final String TAG_ERROR_DIALOG = "error_dialog";
+    49	    private ErrorReportDialog errDialog;
+    50	    private BaseAlertDialog.SharedViewModel dialogViewModel;
+    51	    private CompositeDisposable disposables = new CompositeDisposable();
+    52	    private CrashReportDialogHelper helper;
+    53	
+    54	    @Override
+    55	    public void onCreate(@Nullable Bundle savedInstanceState)
+    56	    {
+    57	        super.onCreate(savedInstanceState);
+    58	
+    59	        helper = new CrashReportDialogHelper(this, getIntent());
+    60	        dialogViewModel = new ViewModelProvider(this).get(BaseAlertDialog.SharedViewModel.class);
+    61	        errDialog = (ErrorReportDialog)getSupportFragmentManager().findFragmentByTag(TAG_ERROR_DIALOG);
+    62	
+    63	        if (errDialog == null) {
+    64	            errDialog = ErrorReportDialog.newInstance(
+    65	                    getString(R.string.error),
+    66	                    getString(R.string.app_error_occurred),
+    67	                    getStackTrace());
+    68	
+    69	            errDialog.show(getSupportFragmentManager(), TAG_ERROR_DIALOG);
+    70	        }
+    71	    }
+    72	
+    73	    @Override
+    74	    public void onStop()
+    75	    {
+    76	        super.onStop();
+    77	
+    78	        disposables.clear();
+    79	    }
+    80	
+    81	    @Override
+    82	    public void onStart()
+    83	    {
+    84	        super.onStart();
+    85	
+    86	        subscribeAlertDialog();
+    87	    }
+    88	
+    89	    private void subscribeAlertDialog()
+    90	    {
+    91	        Disposable d = dialogViewModel.observeEvents().subscribe(this::handleAlertDialogEvent);
+    92	        disposables.add(d);
+    93	    }
+    94	
+    95	    private void handleAlertDialogEvent(BaseAlertDialog.Event event)
+    96	    {
+    97	        if (event.dialogTag == null || !event.dialogTag.equals(TAG_ERROR_DIALOG) || errDialog == null)
+    98	            return;
+    99	        switch (event.type) {
+   100	            case POSITIVE_BUTTON_CLICKED:
+   101	                Dialog dialog = errDialog.getDialog();
+   102	                if (dialog != null) {
+   103	                    TextInputEditText editText = dialog.findViewById(R.id.comment);
+   104	                    Editable e = editText.getText();
+   105	                    String comment = (e == null ? null : e.toString());
+   106	
+   107	                    helper.sendCrash(comment, null);
+   108	                    finish();
+   109	                }
+   110	                break;
+   111	            case NEGATIVE_BUTTON_CLICKED:
+   112	                helper.cancelReports();
+   113	                finish();
+   114	                break;
+   115	        }
+   116	    }
+   117	
+   118	    @Override
+   119	    public void finish()
+   120	    {
+   121	        if (errDialog != null)
+   122	            errDialog.dismiss();
+   123	
+   124	        super.finish();
+   125	    }
+   126	
+   127	    private String getStackTrace()
+   128	    {
+   129	        Intent i = getIntent();
+   130	        if (i == null)
+   131	            return null;
+   132	
+   133	        CrashReportData crashReportData;
+   134	        try {
+   135	            crashReportData = helper.getReportData();
+   136	
+   137	        } catch (IOException e) {
+   138	            return null;
+   139	        }
+   140	
+   141	        return crashReportData.getString(ReportField.STACK_TRACE);
+   142	    }
+   143	}

@@ -1,0 +1,25 @@
+# Batch 75 printed evidence
+
+Plan command:
+```sh
+awk -F '\\t' '$1==75 {print $3 "\\t" $4}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+```
+Output: 40 plan rows; full names/descriptors are in the report table.
+
+Bounded source-definition/caller search:
+```sh
+rg -n 'initAlertDialog|initLayoutView|initParams|newInstance|onAttach|onCreateDialog|onBackPressed|onDestroyView|onResume|onStart|onStop|showClipboardDialog|subscribeAlertDialog|subscribeClipboardManager|switchClipboardButton|unsubscribeClipboardManager|updateChannel|AddFeedDialog' .../ui/addfeed/{AddFeedDialog,AddFeedMutableParams,AddFeedActivity}.java
+```
+Key printed output:
+```
+AddFeedDialog.java:78,89 newInstance overloads
+:122 onAttach; :130 initParams; :141 onResume; :161 onStop; :170 onStart
+:180 onCreateDialog; :199 initParams call; :205 initLayoutView call
+:220 initLayoutView; :252 clipboard button listener; :255 initAlertDialog call
+:258 initAlertDialog; :279 editButton listener; :291 showClipboardDialog
+:303 subscribeAlertDialog; :395 updateChannel; :424 onBackPressed
+AddFeedActivity.java:61-63 chooses AddFeedDialog.newInstance(feedId or intent Uri)
+AddFeedMutableParams.java:37 getFeedId; :96 getFilter
+```
+This confirms source-local candidates, not full route verification for every target; every row remains OPEN.
+

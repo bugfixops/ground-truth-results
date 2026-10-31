@@ -1,0 +1,388 @@
+===== /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/settings/sections/StorageSettingsFragment.java =====
+--- lines 81-110 ---
+   81     public void onCreate(Bundle savedInstanceState)
+   82     {
+   83         super.onCreate(savedInstanceState);
+   84 
+   85         if (savedInstanceState != null)
+   86             dirChooserBindPref = savedInstanceState.getString(TAG_DIR_CHOOSER_BIND_PREF);
+   87 
+   88         Context context = getActivity().getApplicationContext();
+   89         fs = SystemFacadeHelper.getFileSystemFacade(context);
+   90         pref = RepositoryHelper.getSettingsRepository(context);
+   91 
+   92         String keySaveTorrentsIn = getString(R.string.pref_key_save_torrents_in);
+   93         Preference saveTorrentsIn = findPreference(keySaveTorrentsIn);
+   94         if (saveTorrentsIn != null) {
+   95             String path = pref.saveTorrentsIn();
+   96             if (path != null) {
+   97                 Uri uri = Uri.parse(path);
+   98                 try {
+   99                     saveTorrentsIn.setSummary(fs.getDirPath(uri));
+  100                 } catch (UnknownUriException e) {
+  101                     Log.e(TAG, Log.getStackTraceString(e));
+  102                 }
+  103                 saveTorrentsIn.setOnPreferenceClickListener((preference) -> {
+  104                     dirChooserBindPref = getString(R.string.pref_key_save_torrents_in);
+  105                     dirChooseDialog(uri);
+  106 
+  107                     return true;
+  108                 });
+  109             }
+  110         }
+--- lines 112-206 ---
+  112         String keyMoveAfterDownload = getString(R.string.pref_key_move_after_download);
+  113         SwitchPreferenceCompat moveAfterDownload = findPreference(keyMoveAfterDownload);
+  114         if (moveAfterDownload != null) {
+  115             moveAfterDownload.setChecked(pref.moveAfterDownload());
+  116             bindOnPreferenceChangeListener(moveAfterDownload);
+  117         }
+  118 
+  119         String keyMoveAfterDownloadIn = getString(R.string.pref_key_move_after_download_in);
+  120         Preference moveAfterDownloadIn = findPreference(keyMoveAfterDownloadIn);
+  121         if (moveAfterDownloadIn != null) {
+  122             String path = pref.moveAfterDownloadIn();
+  123             if (path != null) {
+  124                 Uri uri = Uri.parse(path);
+  125                 try {
+  126                     moveAfterDownloadIn.setSummary(fs.getDirPath(uri));
+  127                 } catch (UnknownUriException e) {
+  128                     Log.e(TAG, Log.getStackTraceString(e));
+  129                 }
+  130                 moveAfterDownloadIn.setOnPreferenceClickListener((preference) -> {
+  131                     dirChooserBindPref = getString(R.string.pref_key_move_after_download_in);
+  132                     dirChooseDialog(uri);
+  133 
+  134                     return true;
+  135                 });
+  136             }
+  137         }
+  138 
+  139         String keySaveTorrentFiles = getString(R.string.pref_key_save_torrent_files);
+  140         SwitchPreferenceCompat saveTorrentFiles = findPreference(keySaveTorrentFiles);
+  141         if (saveTorrentFiles != null) {
+  142             saveTorrentFiles.setChecked(pref.saveTorrentFiles());
+  143             bindOnPreferenceChangeListener(saveTorrentFiles);
+  144         }
+  145 
+  146         String keySaveTorrentFilesIn = getString(R.string.pref_key_save_torrent_files_in);
+  147         Preference saveTorrentFilesIn = findPreference(keySaveTorrentFilesIn);
+  148         if (saveTorrentFilesIn != null) {
+  149             String path = pref.saveTorrentFilesIn();
+  150             if (path != null) {
+  151                 Uri uri = Uri.parse(path);
+  152                 try {
+  153                     saveTorrentFilesIn.setSummary(fs.getDirPath(uri));
+  154                 } catch (UnknownUriException e) {
+  155                     Log.e(TAG, Log.getStackTraceString(e));
+  156                 }
+  157                 saveTorrentFilesIn.setOnPreferenceClickListener((preference) -> {
+  158                     dirChooserBindPref = getString(R.string.pref_key_save_torrent_files_in);
+  159                     dirChooseDialog(uri);
+  160 
+  161                     return true;
+  162                 });
+  163             }
+  164         }
+  165 
+  166         String keyWatchDir = getString(R.string.pref_key_watch_dir);
+  167         SwitchPreferenceCompat watchDir = findPreference(keyWatchDir);
+  168         if (watchDir != null) {
+  169             watchDir.setChecked(pref.watchDir());
+  170             bindOnPreferenceChangeListener(watchDir);
+  171         }
+  172 
+  173         String keyDirToWatch = getString(R.string.pref_key_dir_to_watch);
+  174         Preference dirToWatch = findPreference(keyDirToWatch);
+  175         if (dirToWatch != null) {
+  176             String path = pref.dirToWatch();
+  177             if (path != null) {
+  178                 Uri uri = Uri.parse(path);
+  179                 try {
+  180                     dirToWatch.setSummary(fs.getDirPath(uri));
+  181                 } catch (UnknownUriException e) {
+  182                     Log.e(TAG, Log.getStackTraceString(e));
+  183                 }
+  184                 dirToWatch.setOnPreferenceClickListener((preference) -> {
+  185                     dirChooserBindPref = getString(R.string.pref_key_dir_to_watch);
+  186                     dirChooseDialog(uri);
+  187 
+  188                     return true;
+  189                 });
+  190             }
+  191         }
+  192 
+  193         String keyWatchDirDeleteFile = getString(R.string.pref_key_watch_dir_delete_file);
+  194         SwitchPreferenceCompat watchDirDeleteFile = findPreference(keyWatchDirDeleteFile);
+  195         if (watchDirDeleteFile != null) {
+  196             watchDirDeleteFile.setChecked(pref.watchDirDeleteFile());
+  197             bindOnPreferenceChangeListener(watchDirDeleteFile);
+  198         }
+  199 
+  200         String keyPosixDiskIo = getString(R.string.pref_key_posix_disk_io);
+  201         SwitchPreferenceCompat posixDiskIo = findPreference(keyPosixDiskIo);
+  202         if (posixDiskIo != null) {
+  203             posixDiskIo.setChecked(pref.posixDiskIo());
+  204             bindOnPreferenceChangeListener(posixDiskIo);
+  205         }
+  206     }
+--- lines 208-295 ---
+  208     @Override
+  209     public void onSaveInstanceState(@NonNull Bundle outState)
+  210     {
+  211         super.onSaveInstanceState(outState);
+  212 
+  213         outState.putString(TAG_DIR_CHOOSER_BIND_PREF, dirChooserBindPref);
+  214     }
+  215 
+  216     @Override
+  217     public void onCreatePreferences(Bundle savedInstanceState, String rootKey)
+  218     {
+  219         setPreferencesFromResource(R.xml.pref_storage, rootKey);
+  220     }
+  221 
+  222     private void bindOnPreferenceChangeListener(Preference preference)
+  223     {
+  224         preference.setOnPreferenceChangeListener(this);
+  225     }
+  226 
+  227     private void dirChooseDialog(Uri path)
+  228     {
+  229         String dirPath = null;
+  230         if (path != null && Utils.isFileSystemPath(path))
+  231             dirPath = path.getPath();
+  232 
+  233         Intent i = new Intent(getActivity(), FileManagerDialog.class);
+  234         FileManagerConfig config = new FileManagerConfig(dirPath,
+  235                 null,
+  236                 FileManagerConfig.DIR_CHOOSER_MODE);
+  237         i.putExtra(FileManagerDialog.TAG_CONFIG, config);
+  238 
+  239         downloadDirChoose.launch(i);
+  240     }
+  241     final ActivityResultLauncher<Intent> downloadDirChoose = registerForActivityResult(
+  242             new ActivityResultContracts.StartActivityForResult(),
+  243             result -> {
+  244                 Intent data = result.getData();
+  245                 if (result.getResultCode() != Activity.RESULT_OK) {
+  246                    return;
+  247                 }
+  248                 if (data.getData() == null || dirChooserBindPref == null)
+  249                     return;
+  250 
+  251                 Uri path = data.getData();
+  252 
+  253                 Preference p = findPreference(dirChooserBindPref);
+  254                 if (p == null)
+  255                     return;
+  256 
+  257                 if (dirChooserBindPref.equals(getString(R.string.pref_key_dir_to_watch))) {
+  258                     pref.dirToWatch(path.toString());
+  259 
+  260                 } else if (dirChooserBindPref.equals(getString(R.string.pref_key_move_after_download_in))) {
+  261                     pref.moveAfterDownloadIn(path.toString());
+  262 
+  263                 } else if (dirChooserBindPref.equals(getString(R.string.pref_key_save_torrent_files_in))) {
+  264                     pref.saveTorrentFilesIn(path.toString());
+  265 
+  266                 } else if (dirChooserBindPref.equals(getString(R.string.pref_key_save_torrents_in))) {
+  267                     pref.saveTorrentsIn(path.toString());
+  268                 }
+  269 
+  270                 try {
+  271                     p.setSummary(fs.getDirPath(path));
+  272                 } catch (UnknownUriException e) {
+  273                     Log.e(TAG, Log.getStackTraceString(e));
+  274                 }
+  275             }
+  276     );
+  277 
+  278     @Override
+  279     public boolean onPreferenceChange(Preference preference, Object newValue) {
+  280         if (preference.getKey().equals(getString(R.string.pref_key_watch_dir))) {
+  281             pref.watchDir((boolean) newValue);
+  282         } else if (preference.getKey().equals(getString(R.string.pref_key_move_after_download))) {
+  283             pref.moveAfterDownload((boolean) newValue);
+  284         } else if (preference.getKey().equals(getString(R.string.pref_key_save_torrent_files))) {
+  285             pref.saveTorrentFiles((boolean) newValue);
+  286         } else if (preference.getKey().equals(getString(R.string.pref_key_watch_dir_delete_file))) {
+  287             pref.watchDirDeleteFile((boolean) newValue);
+  288         } else if (preference.getKey().equals(getString(R.string.pref_key_posix_disk_io))) {
+  289             pref.posixDiskIo((boolean) newValue);
+  290             Snackbar.make(coordinatorLayout, R.string.apply_settings_after_reboot, Snackbar.LENGTH_LONG)
+  291                     .show();
+  292         }
+  293 
+  294         return true;
+  295     }
+===== /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/filemanager/FileManagerDialog.java =====
+--- lines 498-510 ---
+  498     @Override
+  499     public boolean onOptionsItemSelected(MenuItem item) {
+  500         int itemId = item.getItemId();
+  501         if (itemId == android.R.id.home) {
+  502             onBackPressed();
+  503         } else if (itemId == R.id.filemanager_home_menu) {
+  504             openHomeDirectory();
+  505         } else if (itemId == R.id.filemanager_ok_menu) {
+  506             saveCurDirectoryPath();
+  507             if (viewModel.config.showMode == FileManagerConfig.SAVE_FILE_MODE)
+  508                 createFile(false);
+  509             else
+  510                 returnDirectoryUri();
+--- lines 557-568 ---
+  557     private void returnDirectoryUri() {
+  558         Intent i = new Intent();
+  559         try {
+  560             i.setData(viewModel.getCurDirectoryUri());
+  561 
+  562         } catch (SecurityException e) {
+  563             permissionDeniedToast();
+  564             return;
+  565         }
+  566         setResult(RESULT_OK, i);
+  567         finish();
+  568     }
+===== /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/RepositoryHelper.java =====
+--- lines 61-67 ---
+   61     public synchronized static SettingsRepository getSettingsRepository(@NonNull Context appContext)
+   62     {
+   63         if (settingsRepo == null)
+   64             settingsRepo = new SettingsRepositoryImpl(appContext);
+   65 
+   66         return settingsRepo;
+   67     }
+===== /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/system/SystemFacadeHelper.java =====
+--- lines 39-46 ---
+   39     public synchronized static FileSystemFacade getFileSystemFacade(@NonNull Context appContext)
+   40     {
+   41         if (fileSystemFacade == null)
+   42             fileSystemFacade = new FileSystemFacadeImpl(appContext,
+   43                     new FsModuleResolverImpl(appContext));
+   44 
+   45         return fileSystemFacade;
+   46     }
+===== /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/system/FileSystemFacadeImpl.java =====
+--- lines 418-422 ---
+  418     public String getDirPath(@NonNull Uri dir) throws UnknownUriException
+  419     {
+  420         FsModule fsModule = fsResolver.resolveFsByUri(dir);
+  421 
+  422         return fsModule.getDirPath(dir);
+===== /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/settings/SettingsRepositoryImpl.java =====
+--- lines 714-828 ---
+  714     public void saveTorrentsIn(String val) {
+  715         pref.edit()
+  716                 .putString(appContext.getString(R.string.pref_key_save_torrents_in), val)
+  717                 .apply();
+  718     }
+  719 
+  720     @Override
+  721     public boolean moveAfterDownload() {
+  722         return pref.getBoolean(appContext.getString(R.string.pref_key_move_after_download),
+  723                 Default.moveAfterDownload);
+  724     }
+  725 
+  726     @Override
+  727     public void moveAfterDownload(boolean val) {
+  728         pref.edit()
+  729                 .putBoolean(appContext.getString(R.string.pref_key_move_after_download), val)
+  730                 .apply();
+  731     }
+  732 
+  733     @Override
+  734     public String moveAfterDownloadIn() {
+  735         return fs.normalizeFileSystemPath(pref.getString(appContext.getString(R.string.pref_key_move_after_download_in),
+  736                 Default.moveAfterDownloadIn(appContext)));
+  737     }
+  738 
+  739     @Override
+  740     public void moveAfterDownloadIn(String val) {
+  741         pref.edit()
+  742                 .putString(appContext.getString(R.string.pref_key_move_after_download_in), val)
+  743                 .apply();
+  744     }
+  745 
+  746     @Override
+  747     public boolean saveTorrentFiles() {
+  748         return pref.getBoolean(appContext.getString(R.string.pref_key_save_torrent_files),
+  749                 Default.saveTorrentFiles);
+  750     }
+  751 
+  752     @Override
+  753     public void saveTorrentFiles(boolean val) {
+  754         pref.edit()
+  755                 .putBoolean(appContext.getString(R.string.pref_key_save_torrent_files), val)
+  756                 .apply();
+  757     }
+  758 
+  759     @Override
+  760     public String saveTorrentFilesIn() {
+  761         return fs.normalizeFileSystemPath(pref.getString(appContext.getString(R.string.pref_key_save_torrent_files_in),
+  762                 Default.saveTorrentFilesIn(appContext)));
+  763     }
+  764 
+  765     @Override
+  766     public void saveTorrentFilesIn(String val) {
+  767         pref.edit()
+  768                 .putString(appContext.getString(R.string.pref_key_save_torrent_files_in), val)
+  769                 .apply();
+  770     }
+  771 
+  772     @Override
+  773     public boolean watchDir() {
+  774         return pref.getBoolean(appContext.getString(R.string.pref_key_watch_dir),
+  775                 Default.watchDir);
+  776     }
+  777 
+  778     @Override
+  779     public void watchDir(boolean val) {
+  780         pref.edit()
+  781                 .putBoolean(appContext.getString(R.string.pref_key_watch_dir), val)
+  782                 .apply();
+  783     }
+  784 
+  785     @Override
+  786     public String dirToWatch() {
+  787         return fs.normalizeFileSystemPath(pref.getString(appContext.getString(R.string.pref_key_dir_to_watch),
+  788                 Default.dirToWatch(appContext)));
+  789     }
+  790 
+  791     @Override
+  792     public void dirToWatch(String val) {
+  793         pref.edit()
+  794                 .putString(appContext.getString(R.string.pref_key_dir_to_watch), val)
+  795                 .apply();
+  796     }
+  797 
+  798     @Override
+  799     public boolean watchDirDeleteFile() {
+  800         return pref.getBoolean(appContext.getString(R.string.pref_key_watch_dir_delete_file),
+  801                 Default.watchDirDeleteFile);
+  802     }
+  803 
+  804     @Override
+  805     public void watchDirDeleteFile(boolean val) {
+  806         pref.edit()
+  807                 .putBoolean(appContext.getString(R.string.pref_key_watch_dir_delete_file), val)
+  808                 .apply();
+  809     }
+  810 
+  811     @Override
+  812     public boolean posixDiskIo() {
+  813         return pref.getBoolean(appContext.getString(R.string.pref_key_posix_disk_io),
+  814                 Default.posixDiskIo);
+  815     }
+  816 
+  817     @Override
+  818     public void posixDiskIo(boolean val) {
+  819         pref.edit()
+  820                 .putBoolean(appContext.getString(R.string.pref_key_posix_disk_io), val)
+  821                 .apply();
+  822     }
+  823 
+  824     @Override
+  825     public int maxDownloadSpeedLimit() {
+  826         return pref.getInt(appContext.getString(R.string.pref_key_max_download_speed),
+  827                 Default.maxDownloadSpeedLimit);
+  828     }

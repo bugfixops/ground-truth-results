@@ -1,0 +1,26 @@
+# Batch 95 printed evidence
+
+Plan extraction:
+```sh
+awk -F '\\t' '$1==95 {print $3 "\\t" $4}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+```
+Result: 40 exact members; table reproduces descriptors.
+
+Bounded source scan:
+```sh
+rg -n 'newInstance|onAttach|onCreateView|onDetach|onResume|onSaveInstanceState|onStart|onStop|onViewCreated|onViewStateRestored|selectAllTrackers|setActionModeTitle|shareUrl|subscribeAdapter|subscribeAlertDialog|onSelectionChanged|onSelectionRestored|onActionItemClicked|onCreateActionMode|onDestroyActionMode|onPrepareActionMode' .../pages/trackers/DetailTorrentTrackersFragment.java
+rg -n 'class TrackerItem|equalsContent|equals|hashCode|class TrackerListAdapter|getItemKey|getItemPosition|onBindViewHolder' .../pages/trackers/{TrackerItem,TrackerListAdapter}.java
+```
+Output read:
+```
+DetailTorrentTrackersFragment.java:93 newInstance; :103 onCreateView; :111 onAttach; :120 onDetach
+:129 onStop; :137 onStart with adapter and alert subscriptions; :146 onViewCreated
+:189/:213 selection callbacks; :231-243 save/restore; :250 onResume
+:258 subscribeAdapter; :271 subscribeAlertDialog; :298-330 action mode lifecycle and item actions
+:345 dialog setup; :374 shareUrl; :398 selectAllTrackers
+TrackerListAdapter.java:51 class; :82 onBindViewHolder; :101/:110 item key/position
+:121/:128 diff comparisons
+TrackerItem.java:26 class; :34 hashCode; :39 equalsContent; :45 equals
+```
+AndroidX callback dispatch and the full detail host-fragment route are not verified for these members. All 40 remain OPEN.
+

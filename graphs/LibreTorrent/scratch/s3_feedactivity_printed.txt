@@ -1,0 +1,412 @@
+     1	/*
+     2	 * Copyright (C) 2018-2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.feeds;
+    21	
+    22	import android.app.Activity;
+    23	import android.app.Dialog;
+    24	import android.content.Intent;
+    25	import android.net.Uri;
+    26	import android.os.Bundle;
+    27	import android.text.Editable;
+    28	import android.util.Log;
+    29	import android.view.Menu;
+    30	import android.view.MenuItem;
+    31	import android.widget.Toast;
+    32	
+    33	import androidx.activity.result.ActivityResultLauncher;
+    34	import androidx.activity.result.contract.ActivityResultContracts;
+    35	import androidx.annotation.NonNull;
+    36	import androidx.annotation.Nullable;
+    37	import androidx.appcompat.app.AppCompatActivity;
+    38	import androidx.appcompat.widget.Toolbar;
+    39	import androidx.fragment.app.Fragment;
+    40	import androidx.fragment.app.FragmentManager;
+    41	import androidx.fragment.app.FragmentTransaction;
+    42	import androidx.lifecycle.ViewModelProvider;
+    43	
+    44	import com.google.android.material.textfield.TextInputEditText;
+    45	import com.google.gson.JsonSyntaxException;
+    46	
+    47	import org.proninyaroslav.libretorrent.R;
+    48	import org.proninyaroslav.libretorrent.core.storage.FeedRepositoryImpl;
+    49	import org.proninyaroslav.libretorrent.core.system.FileSystemFacade;
+    50	import org.proninyaroslav.libretorrent.core.system.SystemFacadeHelper;
+    51	import org.proninyaroslav.libretorrent.core.utils.Utils;
+    52	import org.proninyaroslav.libretorrent.ui.BaseAlertDialog;
+    53	import org.proninyaroslav.libretorrent.ui.FragmentCallback;
+    54	import org.proninyaroslav.libretorrent.ui.detailtorrent.BlankFragment;
+    55	import org.proninyaroslav.libretorrent.ui.errorreport.ErrorReportDialog;
+    56	import org.proninyaroslav.libretorrent.ui.feeditems.FeedItemsActivity;
+    57	import org.proninyaroslav.libretorrent.ui.feeditems.FeedItemsFragment;
+    58	import org.proninyaroslav.libretorrent.ui.filemanager.FileManagerConfig;
+    59	import org.proninyaroslav.libretorrent.ui.filemanager.FileManagerDialog;
+    60	
+    61	import java.text.SimpleDateFormat;
+    62	import java.util.ArrayList;
+    63	import java.util.Date;
+    64	import java.util.Locale;
+    65	
+    66	import io.reactivex.Completable;
+    67	import io.reactivex.Observable;
+    68	import io.reactivex.android.schedulers.AndroidSchedulers;
+    69	import io.reactivex.disposables.CompositeDisposable;
+    70	import io.reactivex.disposables.Disposable;
+    71	import io.reactivex.schedulers.Schedulers;
+    72	
+    73	public class FeedActivity extends AppCompatActivity implements FragmentCallback
+    74	{
+    75	    private static final String TAG = FeedActivity.class.getSimpleName();
+    76	
+    77	    private static final String TAG_BACKUP_FEEDS_ERROR_REPORT_DIALOG = "backup_feeds_error_report_dialog";
+    78	    private static final String TAG_RESTORE_FEEDS_ERROR_DIALOG = "restore_feeds_error_dialog";
+    79	    private static final String TAG_RESTORE_FEEDS_ERROR_REPORT_DIALOG = "restore_feeds_error_report_dialog";
+    80	
+    81	    /* Android data binding doesn't work with layout aliases */
+    82	    private Toolbar toolbar;
+    83	
+    84	    private FeedViewModel viewModel;
+    85	    private MsgFeedViewModel msgViewModel;
+    86	    private CompositeDisposable disposables = new CompositeDisposable();
+    87	    private BaseAlertDialog.SharedViewModel dialogViewModel;
+    88	    private ErrorReportDialog backupFeedsReportDialog, restoreFeedsReportDialog;
+    89	
+    90	    @Override
+    91	    protected void onCreate(@Nullable Bundle savedInstanceState)
+    92	    {
+    93	        setTheme(Utils.getAppTheme(getApplicationContext()));
+    94	        super.onCreate(savedInstanceState);
+    95	
+    96	        ViewModelProvider provider = new ViewModelProvider(this);
+    97	        viewModel = provider.get(FeedViewModel.class);
+    98	        msgViewModel = provider.get(MsgFeedViewModel.class);
+    99	        dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+   100	
+   101	        setContentView(R.layout.activity_feed);
+   102	        initLayout();
+   103	
+   104	        FragmentManager fm = getSupportFragmentManager();
+   105	        backupFeedsReportDialog = (ErrorReportDialog)fm.findFragmentByTag(TAG_BACKUP_FEEDS_ERROR_REPORT_DIALOG);
+   106	        restoreFeedsReportDialog = (ErrorReportDialog)fm.findFragmentByTag(TAG_RESTORE_FEEDS_ERROR_REPORT_DIALOG);
+   107	    }
+   108	
+   109	    private void initLayout()
+   110	    {
+   111	        showBlankFragment();
+   112	        toolbar = findViewById(R.id.toolbar);
+   113	        toolbar.setTitle(R.string.feed);
+   114	        toolbar.inflateMenu(R.menu.feed);
+   115	        setSupportActionBar(toolbar);
+   116	        toolbar.setNavigationOnClickListener((v) -> finish());
+   117	        if (getSupportActionBar() != null)
+   118	            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+   119	    }
+   120	
+   121	    @Override
+   122	    public void onStart()
+   123	    {
+   124	        super.onStart();
+   125	
+   126	        subscribeAlertDialog();
+   127	        subscribeMsgViewModel();
+   128	    }
+   129	
+   130	    @Override
+   131	    protected void onStop()
+   132	    {
+   133	        super.onStop();
+   134	
+   135	        disposables.clear();
+   136	    }
+   137	
+   138	    private void subscribeAlertDialog()
+   139	    {
+   140	        Disposable d = dialogViewModel.observeEvents()
+   141	                .subscribe((event) -> {
+   142	                    if (event.dialogTag == null)
+   143	                        return;
+   144	
+   145	                    switch (event.type) {
+   146	                        case POSITIVE_BUTTON_CLICKED:
+   147	                            if (event.dialogTag.equals(TAG_BACKUP_FEEDS_ERROR_REPORT_DIALOG) &&
+   148	                                    backupFeedsReportDialog != null) {
+   149	                                sendErrorReport(backupFeedsReportDialog.getDialog());
+   150	                                backupFeedsReportDialog.dismiss();
+   151	
+   152	                            } else if (event.dialogTag.equals(TAG_RESTORE_FEEDS_ERROR_REPORT_DIALOG) &&
+   153	                                    restoreFeedsReportDialog!= null) {
+   154	                                sendErrorReport(restoreFeedsReportDialog.getDialog());
+   155	                                restoreFeedsReportDialog.dismiss();
+   156	                            }
+   157	                            break;
+   158	                        case NEGATIVE_BUTTON_CLICKED:
+   159	                            if (event.dialogTag.equals(TAG_BACKUP_FEEDS_ERROR_REPORT_DIALOG) &&
+   160	                                    backupFeedsReportDialog!= null) {
+   161	                                backupFeedsReportDialog.dismiss();
+   162	
+   163	                            } else if (event.dialogTag.equals(TAG_RESTORE_FEEDS_ERROR_REPORT_DIALOG) &&
+   164	                                    restoreFeedsReportDialog!= null) {
+   165	                                restoreFeedsReportDialog.dismiss();
+   166	                            }
+   167	                    }
+   168	                });
+   169	        disposables.add(d);
+   170	    }
+   171	
+   172	    private void subscribeMsgViewModel()
+   173	    {
+   174	        disposables.add(msgViewModel.observeFeedItemsOpened()
+   175	                .observeOn(AndroidSchedulers.mainThread())
+   176	                .subscribe(this::showFeedItems));
+   177	
+   178	        disposables.add(msgViewModel.observeFeedItemsClosed()
+   179	                .observeOn(AndroidSchedulers.mainThread())
+   180	                .subscribe((__) -> showBlankFragment()));
+   181	
+   182	        disposables.add(msgViewModel.observeFeedsDeleted()
+   183	                .observeOn(AndroidSchedulers.mainThread())
+   184	                .subscribe((ids) -> {
+   185	                    FeedItemsFragment f = getCurrentFeedItemsFragment();
+   186	                    if (f != null && ids.contains(f.getFeedId()))
+   187	                        showBlankFragment();
+   188	                }));
+   189	    }
+   190	
+   191	    private void showBlankFragment()
+   192	    {
+   193	        if (Utils.isTwoPane(this)) {
+   194	            FragmentManager fm = getSupportFragmentManager();
+   195	            BlankFragment blank = BlankFragment.newInstance(getString(R.string.select_or_add_feed_channel));
+   196	            fm.beginTransaction()
+   197	                    .replace(R.id.feed_items_fragmentContainer, blank)
+   198	                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)
+   199	                    .commitAllowingStateLoss();
+   200	        }
+   201	    }
+   202	
+   203	    private void showFeedItems(long feedId)
+   204	    {
+   205	        if (Utils.isTwoPane(this)) {
+   206	            FragmentManager fm = getSupportFragmentManager();
+   207	            FeedItemsFragment items = FeedItemsFragment.newInstance(feedId);
+   208	            Fragment fragment = fm.findFragmentById(R.id.feed_items_fragmentContainer);
+   209	
+   210	            if (fragment instanceof FeedItemsFragment) {
+   211	                long oldId = ((FeedItemsFragment)fragment).getFeedId();
+   212	                if (feedId == oldId)
+   213	                    return;
+   214	            }
+   215	            fm.beginTransaction()
+   216	                    .replace(R.id.feed_items_fragmentContainer, items)
+   217	                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+   218	                    .commit();
+   219	
+   220	        } else {
+   221	            Intent i = new Intent(this, FeedItemsActivity.class);
+   222	            i.putExtra(FeedItemsActivity.TAG_FEED_ID, feedId);
+   223	            startActivity(i);
+   224	        }
+   225	    }
+   226	
+   227	    private FeedItemsFragment getCurrentFeedItemsFragment()
+   228	    {
+   229	        if (!Utils.isTwoPane(this))
+   230	            return null;
+   231	
+   232	        FragmentManager fm = getSupportFragmentManager();
+   233	        Fragment fragment = fm.findFragmentById(R.id.feed_items_fragmentContainer);
+   234	
+   235	        return (fragment instanceof FeedItemsFragment ? (FeedItemsFragment)fragment : null);
+   236	    }
+   237	
+   238	    @Override
+   239	    public boolean onCreateOptionsMenu(Menu menu)
+   240	    {
+   241	        toolbar.inflateMenu(R.menu.feed);
+   242	        toolbar.setOnMenuItemClickListener(this::onOptionsItemSelected);
+   243	
+   244	        return true;
+   245	    }
+   246	
+   247	    @Override
+   248	    public boolean onOptionsItemSelected(MenuItem item)
+   249	    {
+   250	        int itemId = item.getItemId();
+   251	        if (itemId == R.id.refresh_feed_channel_menu) {
+   252	            viewModel.refreshAllFeeds();
+   253	        } else if (itemId == R.id.backup_feed_channels_menu) {
+   254	            backupFeedsChooseDialog();
+   255	        } else if (itemId == R.id.restore_feed_channels_backup_menu) {
+   256	            restoreFeedsChooseDialog();
+   257	        }
+   258	
+   259	        return true;
+   260	    }
+   261	
+   262	    private void backupFeedsChooseDialog()
+   263	    {
+   264	        Intent i = new Intent(this, FileManagerDialog.class);
+   265	        FileSystemFacade fs = SystemFacadeHelper.getFileSystemFacade(getApplicationContext());
+   266	        FileManagerConfig config = new FileManagerConfig(fs.getUserDirPath(),
+   267	                null,
+   268	                FileManagerConfig.SAVE_FILE_MODE);
+   269	        config.fileName = "Feeds-" + new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.getDefault())
+   270	                .format(new Date(System.currentTimeMillis())) +
+   271	                "." + FeedRepositoryImpl.SERIALIZE_FILE_FORMAT;
+   272	        config.mimeType = FeedRepositoryImpl.SERIALIZE_MIME_TYPE;
+   273	
+   274	        i.putExtra(FileManagerDialog.TAG_CONFIG, config);
+   275	        backupFeedsChoose.launch(i);
+   276	    }
+   277	
+   278	    private void restoreFeedsChooseDialog()
+   279	    {
+   280	        Intent i = new Intent(this, FileManagerDialog.class);
+   281	        FileSystemFacade fs = SystemFacadeHelper.getFileSystemFacade(getApplicationContext());
+   282	        FileManagerConfig config = new FileManagerConfig(fs.getUserDirPath(),
+   283	                getString(R.string.feeds_backup_selection_dialog_title),
+   284	                FileManagerConfig.FILE_CHOOSER_MODE);
+   285	        config.highlightFileTypes = new ArrayList<>();
+   286	        config.highlightFileTypes.add(FeedRepositoryImpl.SERIALIZE_FILE_FORMAT);
+   287	
+   288	        i.putExtra(FileManagerDialog.TAG_CONFIG, config);
+   289	        restoreFeedsBackupChoose.launch(i);
+   290	    }
+   291	
+   292	    private void backupFeedsErrorDialog(Throwable e)
+   293	    {
+   294	        viewModel.errorReport = e;
+   295	        FragmentManager fm = getSupportFragmentManager();
+   296	        if (fm.findFragmentByTag(TAG_BACKUP_FEEDS_ERROR_REPORT_DIALOG) == null) {
+   297	            backupFeedsReportDialog = ErrorReportDialog.newInstance(
+   298	                    getString(R.string.error),
+   299	                    getString(R.string.error_backup_feeds),
+   300	                    (e != null ? Log.getStackTraceString(e) : null));
+   301	
+   302	            backupFeedsReportDialog.show(fm, TAG_BACKUP_FEEDS_ERROR_REPORT_DIALOG);
+   303	        }
+   304	    }
+   305	
+   306	    private void restoreFeedsBackupErrorDialog(Throwable e)
+   307	    {
+   308	        FragmentManager fm = getSupportFragmentManager();
+   309	        if (e instanceof JsonSyntaxException) {
+   310	            if (fm.findFragmentByTag(TAG_RESTORE_FEEDS_ERROR_DIALOG) == null) {
+   311	                BaseAlertDialog errDialog = BaseAlertDialog.newInstance(
+   312	                        getString(R.string.error),
+   313	                        getString(R.string.error_import_invalid_format),
+   314	                        0,
+   315	                        getString(R.string.ok),
+   316	                        null,
+   317	                        null,
+   318	                        true);
+   319	                errDialog.show(fm, TAG_RESTORE_FEEDS_ERROR_DIALOG);
+   320	            }
+   321	        } else {
+   322	            viewModel.errorReport = e;
+   323	            if (fm.findFragmentByTag(TAG_RESTORE_FEEDS_ERROR_REPORT_DIALOG) == null) {
+   324	                restoreFeedsReportDialog = ErrorReportDialog.newInstance(
+   325	                        getString(R.string.error),
+   326	                        getString(R.string.error_restore_feeds_backup),
+   327	                        (e != null ? Log.getStackTraceString(e) : null));
+   328	
+   329	                restoreFeedsReportDialog.show(fm, TAG_RESTORE_FEEDS_ERROR_REPORT_DIALOG);
+   330	            }
+   331	        }
+   332	    }
+   333	
+   334	    private void sendErrorReport(Dialog errDialog)
+   335	    {
+   336	        if (errDialog == null)
+   337	            return;
+   338	
+   339	        TextInputEditText editText = errDialog.findViewById(R.id.comment);
+   340	        Editable e = editText.getText();
+   341	        String comment = (e == null ? null : e.toString());
+   342	
+   343	        Utils.reportError(viewModel.errorReport, comment);
+   344	    }
+   345	
+   346	    private void backupFeeds(Uri file)
+   347	    {
+   348	        disposables.add(Completable.fromCallable(() -> {
+   349	            viewModel.saveFeedsSync(file);
+   350	            return true;
+   351	        }).subscribeOn(Schedulers.io())
+   352	          .observeOn(AndroidSchedulers.mainThread())
+   353	          .subscribe(() -> Toast.makeText(this,
+   354	                  R.string.backup_feeds_successfully,
+   355	                  Toast.LENGTH_SHORT)
+   356	                  .show(), this::restoreFeedsBackupErrorDialog));
+   357	    }
+   358	
+   359	    private void restoreFeedsBackup(Uri file)
+   360	    {
+   361	        disposables.add(Observable.fromCallable(() -> viewModel.restoreFeedsSync(file))
+   362	                .subscribeOn(Schedulers.io())
+   363	                .observeOn(AndroidSchedulers.mainThread())
+   364	                .subscribe((feedIdList) -> {
+   365	                        Toast.makeText(this,
+   366	                                R.string.restore_feeds_backup_successfully,
+   367	                                Toast.LENGTH_SHORT)
+   368	                                .show();
+   369	                        viewModel.refreshFeeds(feedIdList);
+   370	                    }, this::backupFeedsErrorDialog));
+   371	    }
+   372	
+   373	    final ActivityResultLauncher<Intent> backupFeedsChoose = registerForActivityResult(
+   374	            new ActivityResultContracts.StartActivityForResult(),
+   375	            result -> {
+   376	                Intent data = result.getData();
+   377	                if (result.getResultCode() != Activity.RESULT_OK)
+   378	                    return;
+   379	
+   380	                if (data == null || data.getData() == null) {
+   381	                    backupFeedsErrorDialog(null);
+   382	                    return;
+   383	                }
+   384	
+   385	                backupFeeds(data.getData());
+   386	            }
+   387	    );
+   388	
+   389	    final ActivityResultLauncher<Intent> restoreFeedsBackupChoose = registerForActivityResult(
+   390	            new ActivityResultContracts.StartActivityForResult(),
+   391	            result -> {
+   392	                Intent data = result.getData();
+   393	                if (result.getResultCode() != Activity.RESULT_OK)
+   394	                    return;
+   395	
+   396	                if (data == null || data.getData() == null) {
+   397	                    restoreFeedsBackupErrorDialog(null);
+   398	                    return;
+   399	                }
+   400	
+   401	                restoreFeedsBackup(data.getData());
+   402	            }
+   403	    );
+   404	
+   405	    @Override
+   406	    public void onFragmentFinished(@NonNull Fragment f, Intent intent,
+   407	                                   @NonNull ResultCode code)
+   408	    {
+   409	        if (f instanceof FeedItemsFragment && Utils.isTwoPane(this))
+   410	            msgViewModel.feedItemsClosed();
+   411	    }
+   412	}

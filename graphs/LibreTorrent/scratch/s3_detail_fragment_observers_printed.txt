@@ -1,0 +1,94 @@
+   218	        speedLimitDialog = (BaseAlertDialog)fm.findFragmentByTag(TAG_SPEED_LIMIT_DIALOG);
+   219	
+   220	        dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+   221	    }
+   222	
+   223	    @Override
+   224	    public void onStart()
+   225	    {
+   226	        super.onStart();
+   227	
+   228	        subscribeTorrentInfo();
+   229	        subscribeAlertDialog();
+   230	        subscribeMsgViewModel();
+   231	        subscribeFreeSpaceError();
+   232	    }
+   233	
+   234	    @Override
+   235	    public void onStop()
+   236	    {
+   237	        super.onStop();
+   238	
+   239	        disposables.clear();
+   240	    }
+   241	
+   242	    @Override
+   243	    public void onSaveInstanceState(@NonNull Bundle outState)
+   244	    {
+   245	        outState.putString(TAG_TORRENT_ID, torrentId);
+   246	        outState.putInt(TAG_CURRENT_FRAG_POS, currentFragPos);
+   247	
+   248	        super.onSaveInstanceState(outState);
+   249	    }
+   250	
+   251	    private void subscribeTorrentInfo()
+   252	    {
+   253	        if (torrentId == null)
+   254	            return;
+   255	
+   256	        disposables.add(viewModel.observeTorrentMetaInfo()
+   257	                .subscribeOn(Schedulers.io())
+   258	                .observeOn(AndroidSchedulers.mainThread())
+   259	                .subscribe((metaInfo) -> viewModel.updateInfo(metaInfo),
+   260	                        (Throwable e) -> {
+   261	                            Log.e(TAG, "Getting meta info error: " + Log.getStackTraceString(e));
+   262	                            finish(new Intent(), FragmentCallback.ResultCode.CANCEL);
+   263	                        }));
+   264	
+   265	        disposables.add(viewModel.observeTorrentInfoPair()
+   266	                .subscribeOn(Schedulers.io())
+   267	                .observeOn(AndroidSchedulers.mainThread())
+   268	                .subscribe(this::handleTorrentInfo,
+   269	                        (Throwable e) -> Log.e(TAG, "Getting info error: " + Log.getStackTraceString(e))));
+   270	
+   278	    private void subscribeMsgViewModel()
+   279	    {
+   280	        disposables.add(msgViewModel.observeFragmentInActionMode()
+   281	                .observeOn(AndroidSchedulers.mainThread())
+   282	                .subscribe((inActionMode) -> setTabLayoutColor(
+   283	                        Utils.getAttributeColor(
+   284	                                activity,
+   285	                                inActionMode ? R.attr.actionModeBackground : R.attr.toolbarColor
+   286	                        )
+   287	                )));
+   288	    }
+   356	    private void handleTorrentInfo(Pair<Torrent, TorrentInfo> info)
+   357	    {
+   358	        Torrent torrent = info.first;
+   359	        TorrentInfo ti = info.second;
+   360	        TorrentInfo oldTi = viewModel.info.getTorrentInfo();
+   361	        boolean alreadyPaused = oldTi != null && oldTi.stateCode == TorrentStateCode.PAUSED;
+   362	
+   363	        viewModel.updateInfo(torrent, ti);
+   364	
+   365	        if (ti == null || torrent == null)
+   366	            return;
+   367	
+   368	        if (downloadingMetadata && ti.stateCode != TorrentStateCode.DOWNLOADING_METADATA)
+   369	            activity.invalidateOptionsMenu();
+   370	        downloadingMetadata = torrent.downloadingMetadata;
+   371	
+   372	        if (ti.stateCode == TorrentStateCode.PAUSED || alreadyPaused) {
+   373	            /* Redraw pause/resume menu */
+   374	            if (Utils.isTwoPane(activity))
+   375	                prepareOptionsMenu(binding.appbar.toolbar.getMenu());
+   376	            else
+   377	                activity.invalidateOptionsMenu();
+   378	        }
+   379	    }
+   380	
+   381	    private void setTabLayoutColor(int color)
+   382	    {
+   383	        if (Utils.isTwoPane(activity))
+   384	            return;
+   385	

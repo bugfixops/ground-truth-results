@@ -1,0 +1,26 @@
+LibreTorrent batch 49 — command record and source evidence summary
+
+Plan command (sole membership source):
+`awk -F '\t' '$1==49 {print $3 "\t" $4}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv`
+
+Output: exactly 40 ordered rows: 10 RoomDatabaseMigration methods, 26 FeedRepositoryImpl methods including its anonymous TypeToken constructor, and four TagRepositoryImpl methods. Report table preserves the ordered plan names.
+
+Definition source commands printed/read:
+`rg -n 'class |public |protected |private ' "$SRC/core/storage/DatabaseMigration.java"`
+`nl -ba "$SRC/core/storage/DatabaseMigration.java" | sed -n '115,310p'`
+`nl -ba "$SRC/core/storage/FeedRepositoryImpl.java" | sed -n '45,235p'`
+`nl -ba "$SRC/core/storage/TagRepositoryImpl.java" | sed -n '25,90p'`
+
+`SRC` is `/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent`.
+
+Focused use search printed/read:
+`rg -n '\\bfeedRepo\\.|feedRepository\\.|getFeedRepository|FeedRepository' "$SRC"`
+`rg -n '\\btagRepo\\.|tagRepository\\.|getTagRepository|TagRepository' "$SRC"`
+
+Printed use locations include FeedRepository construction in `RepositoryHelper.java:52-56`; FeedFetcherWorker and FeedDownloaderWorker obtain repository instances in their worker setup; FeedViewModel, AddFeedViewModel, and FeedItemsViewModel also obtain repositories. TagRepository construction is at `RepositoryHelper.java:69-73`; TorrentInfoProvider, TorrentEngine, DetailTorrentViewModel, AddTagViewModel, SelectTagViewModel and MainViewModel consume the interface. Direct tag callers include `MainViewModel.java:183-187`, `AddTagViewModel.java:65-71`, and `TorrentEngine.java:771,821`.
+
+Migration source shows RoomDatabaseMigration extends Migration, with `migrate` and advanced migration helpers at `DatabaseMigration.java:120-295`; `AppDatabase.java:84` registers its migrations. This demonstrates a framework migration callback candidate; no database upgrade state was assumed.
+
+FeedRepositoryImpl methods mostly delegate to FeedDao; import/export methods use JSON at lines 143-165. The anonymous TypeToken is instantiated inside deserializeFeeds. TagRepositoryImpl methods delegate to TagInfoDao at lines 31-77.
+
+No coverage data was opened. No graph, notes, or out files were edited. Routes from application entry points remain unverified, so uncertain rows are OPEN.

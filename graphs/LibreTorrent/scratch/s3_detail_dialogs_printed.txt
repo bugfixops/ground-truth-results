@@ -1,0 +1,191 @@
+   290	    private void subscribeFreeSpaceError()
+   291	    {
+   292	        disposables.add(viewModel.observeFreeSpaceError()
+   293	                .observeOn(AndroidSchedulers.mainThread())
+   294	                .subscribe(__ -> showFreeSpaceErrorToast()));
+   295	    }
+   296	
+   297	    private void subscribeAlertDialog()
+   298	    {
+   299	        Disposable d = dialogViewModel.observeEvents()
+   300	                .subscribe((event) -> {
+   301	                    if (event.dialogTag == null)
+   302	                        return;
+   303	
+   304	                    switch (event.type) {
+   305	                        case POSITIVE_BUTTON_CLICKED:
+   306	                            if (event.dialogTag.equals(TAG_DELETE_TORRENT_DIALOG) && deleteTorrentDialog != null) {
+   307	                                deleteTorrent();
+   308	                                deleteTorrentDialog.dismiss();
+   309	                            } else if (event.dialogTag.equals(TAG_MAGNET_INCLUDE_PRIOR_DIALOG)) {
+   310	                                shareMagnet(true);
+   311	                            } else if (event.dialogTag.equals(TAG_ERR_REPORT_DIALOG) && errReportDialog != null) {
+   312	                                Dialog dialog = errReportDialog.getDialog();
+   313	                                if (dialog != null) {
+   314	                                    TextInputEditText editText = dialog.findViewById(R.id.comment);
+   315	                                    Editable e = editText.getText();
+   316	                                    String comment = (e == null ? null : e.toString());
+   317	
+   318	                                    Utils.reportError(viewModel.errorReport, comment);
+   319	                                    errReportDialog.dismiss();
+   320	                                }
+   321	                            } else if (event.dialogTag.equals(TAG_ADD_TRACKERS_DIALOG) && addTrackersDialog != null) {
+   322	                                addTrackers(false);
+   323	                            } else if (event.dialogTag.equals(TAG_SPEED_LIMIT_DIALOG) && speedLimitDialog != null) {
+   324	                                setSpeedLimit();
+   325	                                speedLimitDialog.dismiss();
+   326	                            }
+   327	                            break;
+   328	                        case NEGATIVE_BUTTON_CLICKED:
+   329	                            if (event.dialogTag.equals(TAG_DELETE_TORRENT_DIALOG) && deleteTorrentDialog != null) {
+   330	                                deleteTorrentDialog.dismiss();
+   331	                            } else if (event.dialogTag.equals(TAG_MAGNET_INCLUDE_PRIOR_DIALOG)) {
+   332	                                shareMagnet(false);
+   333	                            } else if (event.dialogTag.equals(TAG_ERR_REPORT_DIALOG) && errReportDialog != null) {
+   334	                                errReportDialog.dismiss();
+   335	                            } else if (event.dialogTag.equals(TAG_ADD_TRACKERS_DIALOG) && addTrackersDialog != null) {
+   336	                                addTrackers(true);
+   337	                            } else if (event.dialogTag.equals(TAG_SPEED_LIMIT_DIALOG) && speedLimitDialog != null) {
+   338	                                speedLimitDialog.dismiss();
+   339	                            }
+   340	                            break;
+   341	                        case NEUTRAL_BUTTON_CLICKED:
+   342	                            if (event.dialogTag.equals(TAG_ADD_TRACKERS_DIALOG) && addTrackersDialog != null)
+   343	                                addTrackersDialog.dismiss();
+   344	                            break;
+   345	                        case DIALOG_SHOWN:
+   346	                            if (event.dialogTag.equals(TAG_ADD_TRACKERS_DIALOG) && addTrackersDialog != null)
+   347	                                initAddTrackersDialog();
+   348	                            else if (event.dialogTag.equals(TAG_SPEED_LIMIT_DIALOG) && speedLimitDialog != null)
+   349	                                initSpeedLimitDialog();
+   350	                            break;
+   351	                    }
+   352	                });
+   353	        disposables.add(d);
+   354	    }
+   404	    private void showFreeSpaceErrorToast()
+   405	    {
+   406	        Snackbar.make(binding.coordinatorLayout,
+   407	                R.string.error_free_space,
+   408	                Snackbar.LENGTH_LONG)
+   409	                .show();
+   410	    }
+   588	        Dialog dialog = deleteTorrentDialog.getDialog();
+   589	        if (dialog == null)
+   590	            return;
+   591	
+   592	        CheckBox withFiles = dialog.findViewById(R.id.delete_with_downloaded_files);
+   593	        viewModel.deleteTorrent(withFiles.isChecked());
+   594	    }
+   595	
+   596	    private void shareMagnet(boolean includePriorities)
+   597	    {
+   598	        String magnet = viewModel.makeMagnet(includePriorities);
+   599	        if (magnet != null) {
+   600	            Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
+   601	            sharingIntent.setType("text/plain");
+   602	            sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "magnet");
+   603	            sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, magnet);
+   604	            startActivity(Intent.createChooser(sharingIntent, getString(R.string.share_via)));
+   605	        }
+   606	    }
+   607	
+   640	            }
+   641	        });
+   642	    }
+   643	
+   644	    private boolean checkAddTrackersField(List<String> strings,
+   645	                                          TextInputLayout layout,
+   646	                                          TextInputEditText field)
+   647	    {
+   648	        if (strings == null || layout == null)
+   649	            return false;
+   650	
+   651	        if (strings.isEmpty()) {
+   652	            layout.setErrorEnabled(true);
+   653	            layout.setError(getString(R.string.error_empty_link));
+   654	            layout.requestFocus();
+   655	
+   656	            return false;
+   657	        }
+   658	
+   659	        boolean valid = true;
+   660	        int curLineStartIndex = 0;
+   661	        for (String s : strings) {
+   662	            if (!Utils.isValidTrackerUrl(s) && field.getText() != null) {
+   663	                TypedArray a = activity.obtainStyledAttributes(new TypedValue().data, new int[]{ R.attr.colorError});
+   664	                /* Select invalid url */
+   665	                field.getText().setSpan(new ForegroundColorSpan(a.getColor(0, 0)),
+   666	                        curLineStartIndex,
+   667	                        curLineStartIndex + s.length(),
+   668	                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+   669	                a.recycle();
+   670	
+   671	                valid = false;
+   672	            }
+   673	            /* Considering newline char */
+   674	            curLineStartIndex += s.length() + 1;
+   675	        }
+   676	
+   677	        if (valid) {
+   678	            layout.setErrorEnabled(false);
+   679	            layout.setError(null);
+   680	        } else {
+   681	            layout.setErrorEnabled(true);
+   682	            layout.setError(getString(R.string.error_invalid_link));
+   683	            layout.requestFocus();
+   684	        }
+   685	
+   686	        return valid;
+   687	    }
+   688	
+   689	    private void addTrackers(boolean replace)
+   690	    {
+   691	        Dialog dialog = addTrackersDialog.getDialog();
+   692	        if (dialog == null)
+   693	            return;
+   694	
+   695	        TextInputEditText field = dialog.findViewById(R.id.multiline_text_input_dialog);
+   696	        TextInputLayout fieldLayout = dialog.findViewById(R.id.layout_multiline_text_input_dialog);
+   697	
+   698	        Editable editable = field.getText();
+   699	        if (editable == null)
+   700	            return;
+   701	
+   702	        String text = editable.toString();
+   703	
+   704	        List<String> urls = Observable.fromArray(text.split(Utils.getLineSeparator()))
+   705	                .filter((s) -> !s.isEmpty())
+   706	                .toList()
+   707	                .blockingGet();
+   708	
+   709	        if (checkAddTrackersField(urls, fieldLayout, field))
+   710	            addTrackersDialog.dismiss();
+   741	        Dialog dialog = speedLimitDialog.getDialog();
+   742	        if (dialog == null)
+   743	            return;
+   744	
+   745	        TextInputEditText upload = dialog.findViewById(R.id.upload_limit);
+   746	        TextInputEditText download = dialog.findViewById(R.id.download_limit);
+   747	
+   748	        int minSpeedLimit = 0;
+   749	        InputFilter[] filter = new InputFilter[]{ InputFilterRange.UNSIGNED_INT };
+   750	
+   751	        upload.setFilters(filter);
+   752	
+   753	        int uploadSpeedLimit = viewModel.getUploadSpeedLimit();
+   754	        int downloadSpeedLimit = viewModel.getDownloadSpeedLimit();
+   755	
+   756	        if (TextUtils.isEmpty(upload.getText()))
+   757	            upload.setText((uploadSpeedLimit != -1 ?
+   758	                    Integer.toString(uploadSpeedLimit / 1024) : Integer.toString(minSpeedLimit)));
+   759	
+   760	        download.setFilters(filter);
+   761	        if (TextUtils.isEmpty(download.getText()))
+   762	            download.setText((downloadSpeedLimit != -1 ?
+   763	                    Integer.toString(downloadSpeedLimit / 1024) : Integer.toString(minSpeedLimit)));
+   764	    }
+   765	
+   766	    private void setSpeedLimit()
+   767	    {
+   768	        Dialog dialog = speedLimitDialog.getDialog();

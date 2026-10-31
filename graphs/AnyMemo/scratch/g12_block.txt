@@ -1,0 +1,63 @@
+# ================================================================== I. downloader: AnyMemoDownloader*,
+#                                                                       AbstractDownloaderFragment, Dropbox*,
+#                                                                       Oauth2AccountActivity, dead oauth1 code
+# ---- AbstractDownloaderFragment, split by host (group 12). The base class calls its abstract hooks
+# (initialRetrieve, openCategory, goBack, hasMore, fetchDatabase) on `this`. From a node that both hosts reach, CHA
+# resolves BOTH overrides, so a route that started on one host could run the other host's override (shared-node
+# fan-out). Fix: every node on a path from a host page to a hook exists once per host, with suffix @AM
+# (S_DOWNLOAD_AM, AnyMemoDownloaderFragment) or @DBX (S_DROPBOX_LIST, DropboxListFragment). The builder skips the
+# bytecode CALL edges from the base method to both overrides, because a hand edge with the same base pair exists
+# (tools/build_graph.py, add_auto_edges). Still shared, since none of them reaches a host-specific callee or page:
+# onAttach, onCreate, RetrieveTask.onPreExecute, FetchDatabaseTask.onPreExecute and onPostExecute, the leaf dialogs
+# S_DLG_DOWNLOAD_OK / S_DLG_DOWNLOAD_FAIL, and DownloadListAdapter.getView.
+# The row click starts the category and back Callables directly (framework ASYNC edges). RetrieveTask.doInBackground
+# is shown only on the refresh path, where it is the step that calls initialRetrieve() through task.call().
+DL_HOSTS = (
+    ('AM', 'S_DOWNLOAD_AM', 'AnyMemoDownloaderFragment', ENV_NET, 'S_DLG_DOWNLOAD_CONFIRM_AM', 'AnyMemo source'),
+    ('DBX', 'S_DROPBOX_LIST', 'DropboxListFragment', ENV_DROPBOX, 'S_DLG_DOWNLOAD_CONFIRM_DBX', 'Dropbox source'),
+)
+DL_AB = 'AbstractDownloaderFragment'
+DL_RT = DL_AB + '$RetrieveTask'
+DL_FT = DL_AB + '$FetchDatabaseTask'
+DL_LN = DL_AB + '$DownloadListAdapter$1'
+DL_CAT = DL_LN + '$1'
+DL_BACK = DL_LN + '$2'
+DL_NEEDS_BACK = state_text('a category was opened before in this session', ('session',))
+for h_key, h_page, h_cls, h_env, h_confirm, h_desc in DL_HOSTS:
+    hv = '@' + h_key
+    for cb in ('onAttach', 'onCreate'):
+        e(h_page, DL_AB + '.' + cb, 'LIFECYCLE', 'Fragment lifecycle callback (no host-specific callee)', evidence=FW_FRAG + '; SRC downloader/common/AbstractDownloaderFragment.java:127-137')
+    e(h_page, DL_AB + '.onCreateView' + hv, 'LIFECYCLE', 'Fragment onCreateView of this host (builds the row list and its row click)', evidence=FW_FRAG + '; SRC downloader/common/AbstractDownloaderFragment.java:139-167')
+    e(h_page, DL_AB + '.onViewCreated' + hv, 'LIFECYCLE', 'Fragment onViewCreated of this host', evidence=FW_FRAG + '; SRC downloader/common/AbstractDownloaderFragment.java:169-174')
+    # ---- list rows (tap a row)
+    e(DL_AB + '.onCreateView' + hv, DL_AB + '$DownloadListAdapter.getView', 'FRAMEWORK', 'framework calls getView on the object created at downloader/common/AbstractDownloaderFragment.java:158', evidence=FW_VIEW + '; SRC downloader/common/AbstractDownloaderFragment.java:158')
+    e(DL_AB + '.onCreateView' + hv, DL_LN + '.onClick' + hv, 'FRAMEWORK', 'tap a row (category, back, or a database)', gui=['Tap a row in the download list'], evidence=FW_VIEW + '; SRC downloader/common/AbstractDownloaderFragment.java:409-438')
+    e(DL_LN + '.onClick' + hv, DL_RT + '.onPreExecute', 'ASYNC', 'new RetrieveTask().execute(): onPreExecute runs on the calling (main) thread first', evidence=FW_ASYNC + '; SRC downloader/common/AbstractDownloaderFragment.java:417-432')
+    e(DL_LN + '.onClick' + hv, DL_CAT + '.call' + hv, 'ASYNC', 'the row is a category: new RetrieveTask().execute(Callable: openCategory)', evidence=FW_ASYNC + '; SRC downloader/common/AbstractDownloaderFragment.java:417-424')
+    e(DL_CAT + '.call' + hv, h_cls + '.openCategory', 'CALL', 'openCategory(di)', evidence='SRC downloader/common/AbstractDownloaderFragment.java:421-423')
+    e(DL_CAT + '.call' + hv, DL_RT + '.onPostExecute' + hv, 'ASYNC', "the category's databases are delivered on the main thread", evidence=FW_ASYNC + '; SRC downloader/common/AbstractDownloaderFragment.java:417-424')
+    e(DL_LN + '.onClick' + hv, DL_BACK + '.call' + hv, 'ASYNC', 'the row is ".." (back): new RetrieveTask().execute(Callable: goBack)', needs_state=DL_NEEDS_BACK, evidence=FW_ASYNC + '; SRC downloader/common/AbstractDownloaderFragment.java:425-432')
+    e(DL_BACK + '.call' + hv, h_cls + '.goBack', 'CALL', 'goBack()', needs_state=DL_NEEDS_BACK, evidence='SRC downloader/common/AbstractDownloaderFragment.java:429-431')
+    e(DL_BACK + '.call' + hv, DL_RT + '.onPostExecute' + hv, 'ASYNC', 'the top-level category list is delivered on the main thread', needs_state=DL_NEEDS_BACK, evidence=FW_ASYNC + '; SRC downloader/common/AbstractDownloaderFragment.java:425-432')
+    e(DL_LN + '.onClick' + hv, DL_AB + '.showFetchDatabaseDialog' + hv, 'CALL', 'the row is a database (or a Dropbox file)', evidence='SRC downloader/common/AbstractDownloaderFragment.java:433-435')
+    # ---- download one database
+    e(DL_AB + '.showFetchDatabaseDialog' + hv, h_confirm, 'ENTERS', 'the confirm-download dialog is shown', evidence='SRC downloader/common/AbstractDownloaderFragment.java:276-291')
+    gui(h_confirm, DL_AB + '$2.onClick' + hv, 'Tap Yes (download this database)', evidence=FW_DIALOGFRAG + '; SRC downloader/common/AbstractDownloaderFragment.java:284-289')
+    e(DL_AB + '$2.onClick' + hv, DL_AB + '.startFetchDatabaseTask' + hv, 'CALL', 'startFetchDatabaseTask(item)', evidence='SRC downloader/common/AbstractDownloaderFragment.java:286-287')
+    e(DL_AB + '.startFetchDatabaseTask' + hv, DL_FT + '.onPreExecute', 'ASYNC', 'new FetchDatabaseTask().execute(item): onPreExecute runs on the calling (main) thread first', evidence=FW_ASYNC + '; SRC downloader/common/AbstractDownloaderFragment.java:294-297')
+    e(DL_AB + '.startFetchDatabaseTask' + hv, DL_FT + '.doInBackground' + hv, 'ASYNC', 'new FetchDatabaseTask().execute(item): the worker thread runs doInBackground', evidence=FW_ASYNC + '; SRC downloader/common/AbstractDownloaderFragment.java:294-297')
+    e(DL_FT + '.doInBackground' + hv, h_cls + '.fetchDatabase', 'CALL', 'fetchDatabase(item)', evidence='SRC downloader/common/AbstractDownloaderFragment.java:318-319')
+    e(DL_FT + '.doInBackground' + hv, DL_FT + '.onPostExecute', 'ASYNC', 'the fetched path (or the exception) is delivered on the main thread', env=ENV_NET, evidence=FW_ASYNC + '; SRC downloader/common/AbstractDownloaderFragment.java:316-343')
+    # ---- list the host's content on open (onViewCreated -> refreshList -> initialRetrieve)
+    e(DL_AB + '.onViewCreated' + hv, DL_AB + '.refreshList' + hv, 'CALL', 'refreshList()', evidence='SRC downloader/common/AbstractDownloaderFragment.java:173')
+    e(DL_AB + '.refreshList' + hv, DL_RT + '.onPreExecute', 'ASYNC', 'new RetrieveTask().execute(): onPreExecute runs on the calling (main) thread first', evidence=FW_ASYNC + '; SRC downloader/common/AbstractDownloaderFragment.java:181-187')
+    e(DL_AB + '.refreshList' + hv, DL_RT + '.doInBackground' + hv, 'ASYNC', 'the worker thread runs doInBackground of RetrieveTask (its Callable is initialRetrieve)', evidence=FW_ASYNC + '; SRC downloader/common/AbstractDownloaderFragment.java:181-187')
+    e(DL_RT + '.doInBackground' + hv, DL_AB + '$1.call' + hv, 'CALL', 'task.call(): runs the Callable, which returns initialRetrieve()', evidence='SRC downloader/common/AbstractDownloaderFragment.java:208-212')
+    e(DL_AB + '$1.call' + hv, h_cls + '.initialRetrieve', 'CALL', 'return initialRetrieve()', evidence='SRC downloader/common/AbstractDownloaderFragment.java:184-186')
+    e(DL_AB + '$1.call' + hv, DL_RT + '.onPostExecute' + hv, 'ASYNC', 'the retrieved list (or the exception) is delivered on the main thread', env=ENV_NET, evidence=FW_ASYNC + '; SRC downloader/common/AbstractDownloaderFragment.java:220-234')
+    e(DL_RT + '.onPostExecute' + hv, h_page, 'ENTERS', 'the list is shown (' + h_desc + ')', env=h_env, evidence='SRC downloader/common/AbstractDownloaderFragment.java:229-234')
+    e(DL_RT + '.onPostExecute' + hv, 'S_DLG_DOWNLOAD_FAIL', 'ENTERS', 'initialRetrieve() threw (no network / Dropbox error)', env=ENV_NET, evidence='SRC downloader/common/AbstractDownloaderFragment.java:224-227')
+    e(DL_RT + '.onPostExecute' + hv, h_cls + '.hasMore', 'CALL', 'hasMore() decides whether the Load-more footer is shown', evidence='SRC downloader/common/AbstractDownloaderFragment.java:231')
+# ---- shared leaves: no host-specific callee; each dialog only shows a message
+e(DL_FT + '.onPostExecute', 'S_DLG_DOWNLOAD_OK', 'ENTERS', 'the download succeeds (fetchDatabase: AnyMemo source needs the network, Dropbox source needs Dropbox+network)', env=ENV_NET, evidence='SRC downloader/common/AbstractDownloaderFragment.java:334-341')
+e(DL_FT + '.onPostExecute', 'S_DLG_DOWNLOAD_FAIL', 'ENTERS', 'fetchDatabase() threw', env=ENV_NET, evidence='SRC downloader/common/AbstractDownloaderFragment.java:330-333')

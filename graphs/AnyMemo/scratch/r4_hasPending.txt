@@ -1,0 +1,232 @@
+## DropboxListActivityBindingImpl.hasPendingBindings  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=network;other_app state=account;session classes=explicit;non_standard;standard explicit_standard_route=no
+   1. Eddc920eb ENTRY/standard*
+      S_ENTRY -> AnyMemo.<init>
+      MAIN / LAUNCHER intent starts AnyMemo
+      evidence: SRC AndroidManifest.xml:23-46
+         23          <activity
+         24              android:name=".ui.AnyMemo"
+         25              android:label="@string/app_full_name"
+         26              android:theme="@style/AnyMemo.Theme.Dark.NoActionBar"
+         27              android:exported="true" >
+         28              <intent-filter>
+         29                  <action
+         30                      android:name="android.intent.action.MAIN" />
+         31                  <category
+         32                      android:name="android.intent.category.LAUNCHER" />
+         33              </intent-filter>
+         34              <intent-filter>
+         35                  <action android:name="android.intent.action.VIEW" />
+         36                  <category android:name="android.intent.category.DEFAULT" />
+      ...  (10 more lines)
+   2. Eda38ea0d LIFECYCLE/standard*
+      AnyMemo.<init> -> AnyMemo.onResume
+      Activity lifecycle / framework callback
+      evidence: FW-SRC core/java/android/app/Activity.java (Activity lifecycle callback dispatched by ActivityThread); SRC ui/AnyMemo.java:115-434
+      (core/java/android/app/Activity.java: no line numbers)
+        115      @Override
+        116      public void onCreate(Bundle savedInstanceState) {
+        117          activityComponents().inject(this);
+        118          super.onCreate(savedInstanceState);
+        119          disposables = new CompositeDisposable();
+        120  
+        121          binding = DataBindingUtil.setContentView(this, R.layout.main_tabs);
+        122  
+        123          // Request storage permission for API < 29
+        124          if (android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.Q) {
+        125              if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        126                      != PackageManager.PERMISSION_GRANTED) {
+        127                  ActivityCompat.requestPermissions(this,
+        128                          new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+      ...  (306 more lines)
+   3. E954353b1 ENTERS/page* [STATE: AnyMemo already finished loadUiComponents() once in this process]
+      AnyMemo.onResume -> S_MAIN_RECENT
+      isUiLoaded is already true (resumed, not a cold start): the last-selected tab is shown again
+      evidence: SRC ui/AnyMemo.java:145-162
+        145      @Override
+        146      public void onResume() {
+        147          super.onResume();
+        148          if (android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.Q) {
+        149              if (!isUiLoaded) {
+        150                  loadUiComponents();
+        151                  isUiLoaded = true;
+        152              }
+        153          } else {
+        154              if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        155                      == PackageManager.PERMISSION_GRANTED) {
+        156                  if (!isUiLoaded) {
+        157                      loadUiComponents();
+        158                      isUiLoaded = true;
+      ...  (4 more lines)
+   4. E6da90567 GUI/standard*
+      S_MAIN_RECENT -> AnyMemo$2.onNavigationItemSelected
+      Tap a bottom-navigation item (Recent / Open / Download / Misc)
+      evidence: INFERRED com.google.android.material (BottomNavigationView / NavigationView / FloatingActionButton / Snackbar) dispatches the listener registered on it, the same way a platform View dispatches a click (Material Components source not read); SRC ui/AnyMemo.java:234-261
+        234          binding.bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+        235              @Override
+        236              public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+        237  
+        238                  Fragment fragment = null;
+        239                  int itemId = menuItem.getItemId();
+        240                  if (itemId == R.id.recent_tab_menu) {
+        241                      fragment = new RecentListFragment();
+        242                  } else if (itemId == R.id.open_tab_menu) {
+        243                      fragment = new OpenTabFragment();
+        244                      Bundle args = new Bundle();
+        245                      args.putBoolean(FileBrowserFragment.EXTRA_SHOW_CREATE_DB_BUTTON, true);
+        246                      fragment.setArguments(args);
+        247                  } else if (itemId == R.id.download_tab_menu) {
+      ...  (14 more lines)
+   5. E0250abd0 ENTERS/page*
+      AnyMemo$2.onNavigationItemSelected -> S_MAIN_DOWNLOAD
+      itemId == download_tab_menu
+      evidence: SRC ui/AnyMemo.java:247-248,253-257
+        247                  } else if (itemId == R.id.download_tab_menu) {
+        248                      fragment = new DownloadTabFragment();
+        253                  if (fragment != null) {
+        254                      getSupportFragmentManager().beginTransaction()
+        255                              .replace(R.id.page_fragment_container, fragment)
+        256                              .commit();
+        257                  }
+   6. E4e72e573 LIFECYCLE/standard*
+      S_MAIN_DOWNLOAD -> DownloadTabFragment.onAttach
+      Fragment lifecycle callback
+      evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ui/DownloadTabFragment.java:46-50
+         46      @Override
+         47      public void onAttach(Activity activity) {
+         48          super.onAttach(activity);
+         49          mActivity = activity;
+         50      }
+   7. Ee5146d82 LIFECYCLE/standard*
+      DownloadTabFragment.onAttach -> DownloadTabFragment.onCreateView
+      Fragment lifecycle callback
+      evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ui/DownloadTabFragment.java:52-61
+         52      @Override
+         53      public View onCreateView(LayoutInflater inflater, ViewGroup container,
+         54              Bundle savedInstanceState) {
+         55          View v = inflater.inflate(R.layout.downloader_tab, container, false);
+         56          amButton = v.findViewById(R.id.source_anymemo);
+         57          dropboxButton = v.findViewById(R.id.source_dropbox);
+         58          amButton.setOnClickListener(this);
+         59          dropboxButton.setOnClickListener(this);
+         60          return v;
+         61      }
+   8. E1e204ebe FRAMEWORK/standard*
+      DownloadTabFragment.onCreateView -> DownloadTabFragment.onClick
+      tap a download-source button
+      evidence: INFERRED a tapped/long-pressed View dispatches to the listener registered with setOnClickListener / setOnLongClickListener / setOnItemClickListener / setOnItemLongClickListener / setOnTouchListener / setOnCheckedChangeListener / addTextChangedListener / setOnFocusChangeListener / setOnSeekBarChangeListener (androidx widgets wrap the platform View/AdapterView dispatch; androidx source not read); SRC ui/DownloadTabFragment.java:56-70
+         56          amButton = v.findViewById(R.id.source_anymemo);
+         57          dropboxButton = v.findViewById(R.id.source_dropbox);
+         58          amButton.setOnClickListener(this);
+         59          dropboxButton.setOnClickListener(this);
+         60          return v;
+         61      }
+         62      @Override
+         63      public void onClick(View v){
+         64          if (v == amButton){
+         65              startActivity(new Intent(mActivity, AnyMemoDownloaderActivity.class));
+         66          }
+         67          if (v == dropboxButton){
+         68          	startActivity(new Intent(mActivity, DropboxOauth2AccountActivity.class));
+         69          }
+      ...  (1 more lines)
+   9. Eea8022ed ENTRY/standard*
+      DownloadTabFragment.onClick -> DropboxOauth2AccountActivity.<init>
+      v == dropboxButton: startActivity(DropboxOauth2AccountActivity)
+      evidence: SRC ui/DownloadTabFragment.java:67-69
+         67          if (v == dropboxButton){
+         68          	startActivity(new Intent(mActivity, DropboxOauth2AccountActivity.class));
+         69          }
+  10. E49e28861 LIFECYCLE/standard*
+      DropboxOauth2AccountActivity.<init> -> DropboxOauth2AccountActivity.onCreate
+      Activity lifecycle callback: the system creates the activity (started from DownloadTabFragment), then calls onCreate, which calls super.onCreate
+      evidence: FW-SRC core/java/android/app/Activity.java (Activity lifecycle callback dispatched by ActivityThread); SRC downloader/dropbox/DropboxOauth2AccountActivity.java:19-21
+      (core/java/android/app/Activity.java: no line numbers)
+         19      public void onCreate(Bundle savedInstanceState) {
+         20          activityComponents().inject(this);
+         21          super.onCreate(savedInstanceState);
+  11. E0cca523b LIFECYCLE/standard*
+      DropboxOauth2AccountActivity.onCreate -> Oauth2AccountActivity.onCreate
+      Activity lifecycle / framework callback (DropboxOauth2AccountActivity does not override these)
+      evidence: FW-SRC core/java/android/app/Activity.java (Activity lifecycle callback dispatched by ActivityThread); SRC downloader/oauth/Oauth2AccountActivity.java:37-63
+      (core/java/android/app/Activity.java: no line numbers)
+         37      @Override
+         38      public void onCreate(Bundle savedInstanceState) {
+         39          activityComponents().inject(this);
+         40          super.onCreate(savedInstanceState);
+         41  
+         42          setContentView(R.layout.oauth2_account_activity);
+         43  
+         44          String savedToken = oauth2TokenUtil.getSavedToken();
+         45          if (savedToken != null) {
+         46              verifyTokenAndOnAuthenticate(savedToken);
+         47          } else {
+         48              requestAuth();
+         49          }
+         50      }
+      ...  (13 more lines)
+  12. E49facf2c CALL/explicit* [STATE: A Dropbox access token was saved before (returning user; the fixtures have none)]
+      Oauth2AccountActivity.onCreate -> Oauth2AccountActivity.verifyTokenAndOnAuthenticate
+      a token was saved before
+      evidence: SRC downloader/oauth/Oauth2AccountActivity.java:44-46
+         44          String savedToken = oauth2TokenUtil.getSavedToken();
+         45          if (savedToken != null) {
+         46              verifyTokenAndOnAuthenticate(savedToken);
+  13. E6b6f24e9 FRAMEWORK/non_standard(RxJava 2 (io.reactivex) calls the Rx callback (subscribe / onNext / call)) [ENV: outside package: a Dropbox account and network access (OAuth2 login in an external browser / Custom Tab, api.dropboxapi.com reachable)]
+      Oauth2AccountActivity.verifyTokenAndOnAuthenticate -> Oauth2AccountActivity$2.onComplete
+      the framework calls onComplete (DisposableCompletableObserver) at downloader/oauth/Oauth2AccountActivity.java:110
+      evidence: INFERRED RxJava 2 (io.reactivex) Observable/Single/Completable/Maybe delivers onNext/onSuccess/onComplete/onError/accept to the subscriber on the thread named by observeOn (library source not read); SRC downloader/oauth/Oauth2AccountActivity.java:110-123
+        110                  .subscribeWith(new DisposableCompletableObserver() {
+        111                      @Override
+        112                      public void onComplete() {
+        113                          oauth2TokenUtil.saveToken(token);
+        114                          onAuthenticated(token);
+        115                      }
+        116  
+        117                      @Override
+        118                      public void onError(Throwable e) {
+        119                          Log.e(TAG, "Error verifying token", e);
+        120                          oauth2TokenUtil.invalidateSavedToken();
+        121                          requestAuth();
+        122                      }
+        123                  }));
+  14. E98f3654d CALL/explicit* [ENV: outside package: the Dropbox OAuth2 web page redirects back into this app's exported anymemo-dropbox:// activity (a browser / Custom Tab and network access)]
+      Oauth2AccountActivity$2.onComplete -> DropboxOauth2AccountActivity.onAuthenticated
+      onAuthenticated(token)
+      evidence: SRC downloader/oauth/Oauth2AccountActivity.java:93
+         93                          onAuthenticated(token);
+  15. Ebdfb32ce ENTRY/standard* [ENV: outside package: the Dropbox OAuth2 web page redirects back into this app's exported anymemo-dropbox:// activity (a browser / Custom Tab and network access)]
+      DropboxOauth2AccountActivity.onAuthenticated -> DropboxListActivity.<init>
+      startActivity(DropboxListActivity); finish()
+      evidence: SRC downloader/dropbox/DropboxOauth2AccountActivity.java:25-30
+         25      protected void onAuthenticated(String authTokens) {
+         26          Intent intent = new Intent(this, DropboxListActivity.class);
+         27          intent.putExtra(DropboxListActivity.EXTRA_AUTH_TOKEN, authTokens);
+         28          startActivity(intent);
+         29          finish();
+         30      }
+  16. E955ab2fa LIFECYCLE/standard*
+      DropboxListActivity.<init> -> DropboxListActivity.onCreate
+      Activity lifecycle callback (the activity is started by DropboxOauth2AccountActivity.onAuthenticated)
+      evidence: FW-SRC core/java/android/app/Activity.java (Activity lifecycle callback dispatched by ActivityThread); SRC downloader/dropbox/DropboxListActivity.java:36
+      (core/java/android/app/Activity.java: no line numbers)
+         36      public void onCreate(Bundle savedInstanceState) {
+  17. E651075ec FRAMEWORK/non_standard(androidx DataBindingUtil -> generated getDataBinder)
+      DropboxListActivity.onCreate -> DropboxListActivityBindingImpl.<init>(DataBindingComponent,View)
+      the layout dropbox_list_activity is bound to its generated Binding class (the switch in getDataBinder selects this class for this layout id)
+      evidence: INFERRED the androidx DataBindingUtil and its DataBinderMapper (library source not read) bind the layout through the generated mapper, which selects the Binding class by layout id; SRC downloader/dropbox/DropboxListActivity.java:38 (R.layout.dropbox_list_activity); SRC res/layout/dropbox_list_activity.xml:3 (layout root)
+         38          setContentView(R.layout.dropbox_list_activity);
+          3  <layout
+  18. E44ef63c8 CALL/non_standard(data binding (androidx DataBindingUtil creates the generated <Layout>BindingImpl through DataBinderMapperImpl))
+      DropboxListActivityBindingImpl.<init>(DataBindingComponent,View) -> DropboxListActivityBindingImpl.<init>(DataBindingComponent,View,Object[])
+      Direct call
+      evidence: INFERRED generated class DropboxListActivityBindingImpl.java (written by the annotation processor or data binding at build time; no source file in the tree; bytecode line 32)
+  19. E990c213e CALL/non_standard(data binding (androidx DataBindingUtil creates the generated <Layout>BindingImpl through DataBinderMapperImpl))
+      DropboxListActivityBindingImpl.<init>(DataBindingComponent,View,Object[]) -> DropboxListActivityBindingImpl.invalidateAll
+      Direct call
+      evidence: INFERRED generated class DropboxListActivityBindingImpl.java (written by the annotation processor or data binding at build time; no source file in the tree; bytecode line 45)
+  20. E642f7d55 FRAMEWORK/non_standard(androidx ViewDataBinding pending-bindings pass)
+      DropboxListActivityBindingImpl.invalidateAll -> DropboxListActivityBindingImpl.hasPendingBindings
+      the library checks hasPendingBindings in the same pending pass
+      evidence: INFERRED the androidx ViewDataBinding pending-bindings pass (library source not read) runs executeBindings and hasPendingBindings after the generated invalidateAll marks the binding dirty; the generated constructor calls invalidateAll (bytecode edge of DropboxListActivityBindingImpl.<init>)
+

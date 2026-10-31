@@ -1,0 +1,52 @@
+=== AOSP Dialog and View callback dispatch ===
+  1294	    public void setOnShowListener(@Nullable OnShowListener listener) {
+  1295	        if (listener != null) {
+  1296	            mShowMessage = mListenersHandler.obtainMessage(SHOW, listener);
+  1367	                    ((OnShowListener) msg.obj).onShow(mDialog.get());
+  6143	    public void setOnClickListener(@Nullable OnClickListener l) {
+  6144	        if (!isClickable()) {
+  6145	            setClickable(true);
+  6146	        }
+  6147	        getListenerInfo().mOnClickListener = l;
+  6289	    public boolean performClick() {
+  6290	        final boolean result;
+  6291	        final ListenerInfo li = mListenerInfo;
+  6292	        if (li != null && li.mOnClickListener != null) {
+  6293	            playSoundEffect(SoundEffectConstants.CLICK);
+  6294	            li.mOnClickListener.onClick(this);
+=== Activity launch and lifecycle ===
+  2665	        ContextImpl appContext = createBaseContextForActivity(r);
+  2666	        Activity activity = null;
+  2667	        try {
+  2668	            java.lang.ClassLoader cl = appContext.getClassLoader();
+  2669	            activity = mInstrumentation.newActivity(
+  2670	                    cl, component.getClassName(), r.intent);
+  2671	            StrictMode.incrementExpectedActivityCount(activity.getClass());
+  2738	                r.activity = activity;
+  2739	                r.stopped = true;
+  2740	                if (!r.activity.mFinished) {
+  2741	                    activity.performStart();
+  2742	                    r.stopped = false;
+  2743	                }
+  2744	                if (!r.activity.mFinished) {
+  2745	                    if (r.isPersistable()) {
+  1170	    public Activity newActivity(ClassLoader cl, String className,
+  1171	            Intent intent)
+  1172	            throws InstantiationException, IllegalAccessException,
+  1173	            ClassNotFoundException {
+  1174	        return (Activity)cl.loadClass(className).newInstance();
+  1175	    }
+  1212	    public void callActivityOnCreate(Activity activity, Bundle icicle) {
+  1213	        prePerformCreate(activity);
+  1214	        activity.performCreate(icicle);
+  1215	        postPerformCreate(activity);
+  1333	    public void callActivityOnStart(Activity activity) {
+  1334	        activity.onStart();
+  1335	    }
+=== Internal ErrorReportActivity manifest entry ===
+   167	        <activity android:name=".ui.errorreport.ErrorReportActivity"
+   168	            android:theme="@style/AppTheme.Translucent"
+   169	            android:process=":acra"
+   170	            android:excludeFromRecents="true"
+   171	            android:finishOnTaskLaunch="true"
+   172	            android:launchMode="singleInstance" />

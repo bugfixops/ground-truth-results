@@ -1,0 +1,188 @@
+   170	        if (Utils.isTwoPane(activity)) {
+   171	            binding.appbar.toolbar.inflateMenu(R.menu.detail_torrent);
+   172	            binding.appbar.toolbar.setNavigationIcon(ContextCompat.getDrawable(activity.getApplicationContext(),
+   173	                    R.drawable.ic_arrow_back_white_24dp));
+   174	            binding.appbar.toolbar.setOnMenuItemClickListener(this::onOptionsItemSelected);
+   175	
+   176	        } else {
+   177	            binding.appbar.toolbar.setTitle(R.string.details);
+   178	            activity.setSupportActionBar(binding.appbar.toolbar);
+   179	            setHasOptionsMenu(true);
+   180	            if (activity.getSupportActionBar() != null)
+   181	                activity.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+   182	        }
+   183	        binding.appbar.toolbar.setNavigationOnClickListener((v) -> onBackPressed());
+   184	
+   413	    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater)
+   414	    {
+   415	        super.onCreateOptionsMenu(menu, inflater);
+   416	
+   417	        inflater.inflate(R.menu.detail_torrent, menu);
+   418	    }
+   419	
+   420	    @Override
+   421	    public void onPrepareOptionsMenu(@NonNull Menu menu)
+   422	    {
+   423	        super.onPrepareOptionsMenu(menu);
+   424	
+   425	        prepareOptionsMenu(menu);
+   426	    }
+   427	
+   428	    private void prepareOptionsMenu(Menu menu)
+   429	    {
+   430	        MenuItem pauseResume = menu.findItem(R.id.pause_resume_torrent_menu);
+   431	        Torrent torrent = viewModel.info.getTorrent();
+   432	        TorrentInfo ti = viewModel.info.getTorrentInfo();
+   433	        if (torrent == null || ti == null || ti.stateCode != TorrentStateCode.PAUSED) {
+   434	            pauseResume.setTitle(R.string.pause_torrent);
+   435	            if (!Utils.isTwoPane(activity))
+   436	                pauseResume.setIcon(R.drawable.ic_pause_white_24dp);
+   437	
+   438	        } else {
+   439	            pauseResume.setTitle(R.string.resume_torrent);
+   440	            if (!Utils.isTwoPane(activity))
+   441	                pauseResume.setIcon(R.drawable.ic_play_arrow_white_24dp);
+   442	        }
+   443	
+   444	        MenuItem saveTorrentFile = menu.findItem(R.id.save_torrent_file_menu);
+   445	        if (torrent != null && torrent.downloadingMetadata)
+   446	            saveTorrentFile.setVisible(false);
+   447	        else
+   448	            saveTorrentFile.setVisible(true);
+   449	    }
+   450	
+   451	    @Override
+   452	    public boolean onOptionsItemSelected(@NonNull MenuItem item)
+   453	    {
+   454	        int itemId = item.getItemId();
+   455	        if (itemId == android.R.id.home) {
+   456	            onBackPressed();
+   457	        } else if (itemId == R.id.pause_resume_torrent_menu) {
+   458	            viewModel.pauseResumeTorrent();
+   459	        } else if (itemId == R.id.delete_torrent_menu) {
+   460	            deleteTorrentDialog();
+   461	        } else if (itemId == R.id.force_recheck_torrent_menu) {
+   462	            viewModel.forceRecheckTorrent();
+   463	        } else if (itemId == R.id.force_announce_torrent_menu) {
+   464	            viewModel.forceAnnounceTorrent();
+   465	        } else if (itemId == R.id.share_magnet_menu) {
+   466	            shareMagnetDialog();
+   467	        } else if (itemId == R.id.save_torrent_file_menu) {
+   468	            torrentSaveChooseDialog();
+   469	        } else if (itemId == R.id.add_trackers_menu) {
+   470	            addTrackersDialog();
+   471	        } else if (itemId == R.id.torrent_speed_limit) {
+   472	            speedLimitDialog();
+   473	        }
+   474	
+   475	        return true;
+   478	    private void deleteTorrentDialog()
+   479	    {
+   480	        if (!isAdded())
+   481	            return;
+   482	
+   483	        FragmentManager fm = getChildFragmentManager();
+   484	        if (fm.findFragmentByTag(TAG_DELETE_TORRENT_DIALOG) == null) {
+   485	            deleteTorrentDialog = BaseAlertDialog.newInstance(
+   486	                    getString(R.string.deleting),
+   487	                    getString(R.string.delete_selected_torrent),
+   488	                    R.layout.dialog_delete_torrent,
+   489	                    getString(R.string.ok),
+   490	                    getString(R.string.cancel),
+   491	                    null,
+   492	                    false);
+   493	
+   494	            deleteTorrentDialog.show(fm, TAG_DELETE_TORRENT_DIALOG);
+   495	        }
+   496	    }
+   497	
+   498	    private void shareMagnetDialog()
+   499	    {
+   500	        if (!isAdded())
+   501	            return;
+   502	
+   503	        FragmentManager fm = getChildFragmentManager();
+   504	        if (fm.findFragmentByTag(TAG_MAGNET_INCLUDE_PRIOR_DIALOG) == null) {
+   505	            BaseAlertDialog shareMagnetDialog = BaseAlertDialog.newInstance(
+   506	                    getString(R.string.share_magnet),
+   507	                    null,
+   508	                    R.layout.dialog_magnet_include_prior,
+   509	                    getString(R.string.yes),
+   510	                    getString(R.string.no),
+   511	                    null,
+   512	                    true);
+   513	
+   514	            shareMagnetDialog.show(fm, TAG_MAGNET_INCLUDE_PRIOR_DIALOG);
+   566	    private void speedLimitDialog()
+   567	    {
+   568	        if (!isAdded())
+   569	            return;
+   570	
+   571	        FragmentManager fm = getChildFragmentManager();
+   572	        if (fm.findFragmentByTag(TAG_SPEED_LIMIT_DIALOG) == null) {
+   573	            speedLimitDialog = BaseAlertDialog.newInstance(
+   574	                    getString(R.string.speed_limit_title),
+   575	                    getString(R.string.torrent_speed_limit_dialog),
+   576	                    R.layout.dialog_speed_limit,
+   577	                    getString(R.string.ok),
+   578	                    getString(R.string.cancel),
+   579	                    null,
+   580	                    false);
+   581	
+   582	            speedLimitDialog.show(fm, TAG_SPEED_LIMIT_DIALOG);
+   822	    private void onBackPressed()
+   823	    {
+   824	        finish(new Intent(), FragmentCallback.ResultCode.BACK);
+   825	    }
+   826	
+   827	    private void finish(Intent intent, FragmentCallback.ResultCode code)
+   828	    {
+   829	        if (activity instanceof FragmentCallback)
+   830	            ((FragmentCallback)activity).onFragmentFinished(this, intent, code);
+   831	    }
+   805	    @Override
+   806	    public void onFragmentFinished(@NonNull Fragment f, Intent intent,
+   807	                                   @NonNull ResultCode code) {
+   808	        if (f instanceof DetailTorrentFragment && Utils.isTwoPane(this))
+   809	            msgViewModel.torrentDetailsClosed();
+   810	    }
+   107	    @Override
+   108	    public void onFragmentFinished(@NonNull Fragment f, Intent intent,
+   109	                                   @NonNull ResultCode code)
+   110	    {
+   111	        if (code == ResultCode.CANCEL) {
+   112	            Toast.makeText(
+   113	                    getApplicationContext(),
+  6143	    public void setOnClickListener(@Nullable OnClickListener l) {
+  6144	        if (!isClickable()) {
+  6145	            setClickable(true);
+  6146	        }
+  6147	        getListenerInfo().mOnClickListener = l;
+  6148	    }
+  6149	
+  6150	    /**
+  6151	     * Return whether this view has an attached OnClickListener.  Returns
+  6152	     * true if there is a listener, false if there is none.
+  6153	     */
+  6154	    public boolean hasOnClickListeners() {
+  6155	        ListenerInfo li = mListenerInfo;
+  6156	        return (li != null && li.mOnClickListener != null);
+  6157	    }
+  6158	
+  6289	    public boolean performClick() {
+  6290	        final boolean result;
+  6291	        final ListenerInfo li = mListenerInfo;
+  6292	        if (li != null && li.mOnClickListener != null) {
+  6293	            playSoundEffect(SoundEffectConstants.CLICK);
+  6294	            li.mOnClickListener.onClick(this);
+  6295	            result = true;
+  6296	        } else {
+  6297	            result = false;
+  6298	        }
+  6299	
+  6300	        sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_CLICKED);
+  6301	
+  6302	        notifyEnterOrExitForAutoFillIfNeeded(true);
+  6303	
+  6304	        return result;
+  6305	    }

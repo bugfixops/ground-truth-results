@@ -1,0 +1,118 @@
+=== TorrentService notification PendingIntents ===
+   497	    private void initPendingIntents() {
+   498	        Intent shutdownIntent = new Intent(getApplicationContext(), NotificationReceiver.class);
+   499	        shutdownIntent.setAction(NotificationReceiver.NOTIFY_ACTION_SHUTDOWN_APP);
+   500	        shutdownPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0,
+   501	                shutdownIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+   502	        );
+   503	
+   504	        Intent pauseButtonIntent = new Intent(getApplicationContext(), NotificationReceiver.class);
+   505	        pauseButtonIntent.setAction(NotificationReceiver.NOTIFY_ACTION_PAUSE_ALL);
+   506	        pauseButtonPendingIntent = PendingIntent.getBroadcast(
+   507	                getApplicationContext(), 0, pauseButtonIntent,
+   508	                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+   509	        );
+   510	
+   511	        Intent resumeButtonIntent = new Intent(getApplicationContext(), NotificationReceiver.class);
+   512	        resumeButtonIntent.setAction(NotificationReceiver.NOTIFY_ACTION_RESUME_ALL);
+   513	        resumeButtonPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0,
+   514	                resumeButtonIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+   515	        );
+   516	
+   517	        Intent pauseResumeButtonIntent = new Intent(getApplicationContext(), NotificationReceiver.class);
+   518	        pauseResumeButtonIntent.setAction(NotificationReceiver.NOTIFY_ACTION_PAUSE_RESUME_ALL);
+   519	        pauseResumePendingIntent = PendingIntent.getBroadcast(
+   520	                getApplicationContext(), 0, pauseResumeButtonIntent,
+   521	                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+   522	        );
+   523	
+   524	    }
+=== NotificationReceiver actions ===
+    33	public class NotificationReceiver extends BroadcastReceiver
+    34	{
+    35	    public static final String NOTIFY_ACTION_SHUTDOWN_APP = "org.proninyaroslav.libretorrent.receivers.NotificationReceiver.NOTIFY_ACTION_SHUTDOWN_APP";
+    36	    public static final String NOTIFY_ACTION_ADD_TORRENT = "org.proninyaroslav.libretorrent.receivers.NotificationReceiver.NOTIFY_ACTION_ADD_TORRENT";
+    37	    public static final String NOTIFY_ACTION_PAUSE_ALL = "org.proninyaroslav.libretorrent.receivers.NotificationReceiver.NOTIFY_ACTION_PAUSE_ALL";
+    38	    public static final String NOTIFY_ACTION_RESUME_ALL = "org.proninyaroslav.libretorrent.receivers.NotificationReceiver.NOTIFY_ACTION_RESUME_ALL";
+    39	    public static final String NOTIFY_ACTION_PAUSE_RESUME_ALL = "org.proninyaroslav.libretorrent.receivers.NotificationReceiver.NOTIFY_ACTION_PAUSE_RESUME_ALL";
+    40	
+    41	    @Override
+    42	    public void onReceive(Context context, Intent intent)
+    43	    {
+    44	        String action = intent.getAction();
+    45	        if (action == null)
+    46	            return;
+    47	        Intent mainIntent, serviceIntent;
+    48	        switch (action) {
+    49	            /* Send action to the already running service */
+    50	            case NOTIFY_ACTION_SHUTDOWN_APP:
+    51	                mainIntent = new Intent(context.getApplicationContext(), MainActivity.class);
+    52	                mainIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+    53	                mainIntent.setAction(NOTIFY_ACTION_SHUTDOWN_APP);
+    54	                context.startActivity(mainIntent);
+    55	
+    56	                serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+    57	                serviceIntent.setAction(NOTIFY_ACTION_SHUTDOWN_APP);
+    58	                context.startService(serviceIntent);
+    59	                break;
+    60	            case NOTIFY_ACTION_ADD_TORRENT:
+    61	                mainIntent = new Intent(context.getApplicationContext(), MainActivity.class);
+    62	                mainIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+    63	                mainIntent.setAction(NOTIFY_ACTION_ADD_TORRENT);
+    64	                context.startActivity(mainIntent);
+    65	                break;
+    66	            case NOTIFY_ACTION_PAUSE_ALL:
+    67	                serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+    68	                serviceIntent.setAction(NOTIFY_ACTION_PAUSE_ALL);
+    69	                context.startService(serviceIntent);
+    70	                break;
+    71	            case NOTIFY_ACTION_RESUME_ALL:
+    72	                serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+    73	                serviceIntent.setAction(NOTIFY_ACTION_RESUME_ALL);
+    74	                context.startService(serviceIntent);
+    75	                break;
+    76	            case NOTIFY_ACTION_PAUSE_RESUME_ALL:
+    77	                serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+    78	                serviceIntent.setAction(NOTIFY_ACTION_PAUSE_RESUME_ALL);
+    79	                context.startService(serviceIntent);
+    80	                break;
+    81	        }
+    82	    }
+=== AOSP receiver and service dispatch ===
+  3164	            data.intent.prepareToEnterProcess();
+  3165	            data.setExtrasClassLoader(cl);
+  3166	            receiver = (BroadcastReceiver)cl.loadClass(component).newInstance();
+  3167	        } catch (Exception e) {
+  3168	            if (DEBUG_BROADCAST) Slog.i(TAG,
+  3169	                    "Finishing failed broadcast to " + data.intent.getComponent());
+  3170	            data.sendFinished(mgr);
+  3171	            throw new RuntimeException(
+  3172	                "Unable to instantiate receiver " + component
+  3173	                + ": " + e.toString(), e);
+  3174	        }
+  3175	
+  3176	        try {
+  3177	            if (localLOGV) Slog.v(
+  3178	                TAG, "Performing receive of " + data.intent
+  3179	                + ": app=" + app
+  3180	                + ", appName=" + app.getPackageName()
+  3181	                + ", pkg=" + packageInfo.getPackageName()
+  3182	                + ", comp=" + data.intent.getComponent().toShortString()
+  3183	                + ", dir=" + packageInfo.getAppDir());
+  3184	
+  3185	            sCurrentBroadcastIntent.set(data.intent);
+  3186	            receiver.setPendingResult(data);
+  3187	            receiver.onReceive(context.getReceiverRestrictedContext(),
+  3188	                    data.intent);
+  3464	    private void handleServiceArgs(ServiceArgsData data) {
+  3465	        Service s = mServices.get(data.token);
+  3466	        if (s != null) {
+  3467	            try {
+  3468	                if (data.args != null) {
+  3469	                    data.args.setExtrasClassLoader(s.getClassLoader());
+  3470	                    data.args.prepareToEnterProcess();
+  3471	                }
+  3472	                int res;
+  3473	                if (!data.taskRemoved) {
+  3474	                    res = s.onStartCommand(data.args, data.flags, data.startId);
+  3475	                } else {

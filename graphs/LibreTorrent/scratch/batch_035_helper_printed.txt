@@ -1,0 +1,27 @@
+LibreTorrent batch 35 — command record and evidence summary
+
+Plan command (sole membership source):
+`awk -F '\t' '$1==35 {print $3 "\t" $4}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv`
+
+Output: exactly 40 plan rows in order: 12 SessionLogger entries, 8 TorrentCriticalWork entries, and 20 TorrentDownloadImpl entries. The report table contains each exact plan name and signature.
+
+Printed/read definitions and call-site commands:
+`rg -n 'class |enum |public |protected |private ' "$SRC/core/model/session/SessionLogger.java"`
+`rg -n 'class |enum |public |protected |private ' "$SRC/core/model/session/TorrentCriticalWork.java"`
+`rg -n 'class |enum |public |protected |private ' "$SRC/core/model/session/TorrentDownloadImpl.java"`
+`rg -n 'SessionLogger|TorrentCriticalWork|applyFirstLastPiecePriority|advancedPeerInfo|getAvailability\\(|getBencode\\(' "$SRC"`
+
+`SRC` is `/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent`.
+
+Source excerpts printed:
+`nl -ba "$SRC/core/model/session/SessionLogger.java" | sed -n '30,210p'`
+`nl -ba "$SRC/core/model/session/TorrentCriticalWork.java" | sed -n '25,115p'`
+`nl -ba "$SRC/core/model/session/TorrentDownloadImpl.java" | sed -n '148,180p;700,755p;805,832p;930,953p;1080,1125p;1455,1480p;1640,1675p'`
+`nl -ba "$SRC/core/model/TorrentEngine.java" | sed -n '840,860p;925,940p;950,965p;965,982p'`
+
+Printed source establishes:
+- SessionLogger enum initialization, lambda filter expressions, filter mapping, alert-to-entry transformation, and settings-filter method are at `SessionLogger.java:36-201`; session settings code constructs parameters at `TorrentSessionImpl.java:1416-1419`; session owns/creates the logger at `TorrentSessionImpl.java:157-179`.
+- TorrentCriticalWork methods and asynchronous change-event lambda are at `TorrentCriticalWork.java:30-97`; TorrentDownloadImpl initializes it as a field at line 139.
+- TorrentDownloadImpl constructor registers its inner alert listener at lines 148-180; target peer, priority, availability and bencode method excerpts are included above. Engine bridges shown: `TorrentEngine.java:840-858,927-935`; UI bencode call is `DetailTorrentViewModel.java:386`.
+
+The inspected local calls do not by themselves establish complete routes from an application entry point. Every uncertain row remains OPEN. No coverage data was accessed; no graph, notes, or out files were edited.

@@ -1,0 +1,59 @@
+label_062 grep evidence (batch 062: AccountTransaction$$Parcelable methods). Commands run from /Users/darshan/Desktop/yang/work.
+Source root: final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java (abbreviated to SRC below).
+Framework: fw_src/android-8.1.0_r1 (abbreviated to FW below; the paths are core/java/android/... and services/core/java/...).
+Generated classes: final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/domainmodel/ (no javap; constant-pool strings read with python3 -I, INFERRED).
+
+=== block A: Parcels.wrap and Parcels.unwrap in CheckingTransactionEditActivity (the only AccountTransaction wrap and unwrap in the checking edit screen)
+grep -n 'Parcels\.\(wrap\|unwrap\)' SRC/transactions/CheckingTransactionEditActivity.java
+167:                Parcels.wrap(mCommon.transactionEntity));
+175:                Parcels.wrap(mCommon.mSplitTransactions));
+177:                Parcels.wrap(mCommon.mSplitTransactionsDeleted));
+649:        mCommon.transactionEntity = Parcels.unwrap(parcelTx);
+655:        mCommon.mSplitTransactions = Parcels.unwrap(savedInstanceState.getParcelable(EditTransactionActivityConstants.KEY_SPLIT_TRANSACTION));
+657:                EditTransactionActivityConstants.KEY_SPLIT_TRANSACTION_DELETED));
+(lines 175, 177, 655, 657 are split lists, not AccountTransaction)
+grep -n 'transactionEntity = ' SRC/recurring/transactions/RecurringTransactionEditActivity.java
+442, 549, 604: transactionEntity is loaded or unwrapped as a RecurringTransaction (repo.load, Parcels.unwrap of KEY_MODEL, repo.insert cast). So the Recurring Parcels.wrap at line 181 wraps a RecurringTransaction, not an AccountTransaction.
+grep -rn 'Parcels\.wrap(' SRC | wc -l
+23
+static type of mCommon.transactionEntity: SRC transactions/EditTransactionCommonFunctions.java:116 is ITransactionEntity. Runtime type in the checking edit: SRC transactions/CheckingTransactionEditActivity.java:390-395 (AccountTransaction tx = repo.load) and :776 (cast to AccountTransaction).
+
+=== block B: typed-array, CREATOR and newArray references in the source root
+grep -rn 'createTypedArray\|writeTypedArray\|\.CREATOR\|newArray(' SRC
+com/money/manager/ex/core/DefinedDateRange.java:63:        public DefinedDateRange[] newArray(int size) {
+com/money/manager/ex/search/CategorySub.java:51:        public CategorySub[] newArray(int size) {
+com/money/manager/ex/account/StatusFilter.java:59://        public StatusFilter[] newArray(int size) {
+com/money/manager/ex/reports/ValuePieEntry.java:98:        public ValuePieEntry[] newArray(int size) {
+(no createTypedArray, writeTypedArray or .CREATOR reference in the source root; no AccountTransaction creator is named)
+
+=== block C: direct calls to describeContents in the source root
+grep -rn '\.describeContents()' SRC
+(empty; count 0)
+
+=== block D: ITransactionEntity implementors (the static type of transactionEntity is an interface)
+grep -rn 'implements.*ITransactionEntity\|ITransactionEntity {' SRC
+com/money/manager/ex/domainmodel/RecurringTransaction.java:43:    implements ITransactionEntity {
+com/money/manager/ex/domainmodel/AccountTransaction.java:41:    implements ITransactionEntity {
+
+=== block E: generated class constant pools (python3 -I read of the build class files; constant-pool strings only, INFERRED)
+AccountTransaction$$Parcelable.class (3529 bytes): <init>; write; writeInt; writeParcelable; readInt; readParcelable; getParcel; CREATOR (Landroid/os/Parcelable$Creator;); <clinit>; writeToParcel (Landroid/os/Parcel;I)V; describeContents; read (Landroid/os/Parcel;Lorg/parceler/IdentityCollection;)Lcom/money/manager/ex/domainmodel/AccountTransaction; a constructor descriptor (Lcom/money/manager/ex/domainmodel/AccountTransaction;)V; the nested class AccountTransaction$$Parcelable$1 and the source name AccountTransaction$$Parcelable.java.
+AccountTransaction$$Parcelable$1.class (1575 bytes): <init>; read; newArray (I)[Lcom/money/manager/ex/domainmodel/AccountTransaction$$Parcelable; (the descriptor string is E(I)[Lcom/money/manager/ex/domainmodel/AccountTransaction$$Parcelable;); createFromParcel (Landroid/os/Parcel;)Lcom/money/manager/ex/domainmodel/AccountTransaction$$Parcelable; android/os/Parcelable$Creator; the bridge descriptors (I)[Ljava/lang/Object; and (Landroid/os/Parcel;)Ljava/lang/Object;.
+
+=== block F: auto CALL records of the batch methods (grep -n on graphs/MMEX/auto_calls.json for AccountTransaction$$Parcelable)
+auto_calls.json:22167-22174 createFromParcel -> AccountTransaction$$Parcelable.read (line 28); the src is at 22168, the dst at 22169.
+auto_calls.json:22151-22158 createFromParcel -> AccountTransaction$$Parcelable.<clinit> (line 28); 22159-22166 createFromParcel -> AccountTransaction$$Parcelable.<init> (line 28). Both destinations are batch 061 methods.
+auto_calls.json:23711-23718 writeToParcel -> AccountTransaction$$Parcelable.write (line 45); the src is at 23712, the dst at 23713.
+auto_calls.json:23719-23726 AccountTransaction$$Parcelable.read -> AccountTransaction.<init>() (line 78); the caller is batch 062 (read), the callee is batch 061.
+auto_calls.json:23727-23734 AccountTransaction$$Parcelable.<clinit> -> AccountTransaction$$Parcelable$1.<init> (line 23); the src is at 23728, the dst at 23729. The src is batch 061.
+No auto record names describeContents, getParcel or newArray as src or dst (the grep also matched only the calls and dispatch-table blocks at auto_calls.json 67079-67351 and 83676-84482, which list no such record).
+
+=== block G: framework hasFileDescriptors checks that reach a saved-state bundle or a Parcelable value
+grep -n 'hasFileDescriptors()' FW/core/java/android/os/Bundle.java
+106:            if (mParcelledData.hasFileDescriptors()) {
+316:    public boolean hasFileDescriptors() {
+321:                if (mParcelledData.hasFileDescriptors()) {
+1217:        if (hasFileDescriptors()) {
+(lines 324-336 walk mMap and call describeContents on each Parcelable value; that walk runs only in the else branch, when mParcelledData is null)
+grep -n 'hasFileDescriptors()' FW/services/core/java/com/android/server/am/ActivityManagerService.java | grep ':745'
+7453:        if (icicle != null && icicle.hasFileDescriptors()) {
+(activityStopped; the icicle is the saved-state bundle that the app sends over binder, so it arrives parcelled)

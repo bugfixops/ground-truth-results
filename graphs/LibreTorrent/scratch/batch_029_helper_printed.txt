@@ -1,0 +1,82 @@
+LibreTorrent batch 29 — commands and saved source output
+
+Membership command (the plan TSV is the sole membership source):
+`awk -F '\t' '$1==29 {print $3 "\t" $4}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv`
+
+Output: 40 exact method/signature rows: MagnetInfo (7), PeerInfo (15), Priority (4), ReadPieceInfo (2), SessionStats (12). The report table preserves every row and its plan order.
+
+Exact plan command output (method and descriptor columns):
+```text
+MagnetInfo.getUri	()Ljava/lang/String;
+MagnetInfo.hashCode	()I
+MagnetInfo.toString	()Ljava/lang/String;
+MagnetInfo.writeToParcel	(Landroid/os/Parcel;I)V
+MagnetInfo$1.<init>	()V
+MagnetInfo$1.createFromParcel	(Landroid/os/Parcel;)Lorg/proninyaroslav/libretorrent/core/model/data/MagnetInfo;
+MagnetInfo$1.newArray	(I)[Lorg/proninyaroslav/libretorrent/core/model/data/MagnetInfo;
+PeerInfo.<clinit>	()V
+PeerInfo.<init>(Parcel)	(Landroid/os/Parcel;)V
+PeerInfo.<init>(String,String,long,long,double,int,int,int,int,int)	(Ljava/lang/String;Ljava/lang/String;JJDIIIII)V
+PeerInfo.<init>(AdvancedPeerInfo,TorrentStatus)	(Lorg/proninyaroslav/libretorrent/core/model/session/AdvancedPeerInfo;Lorg/libtorrent4j/TorrentStatus;)V
+PeerInfo.calcRelevance	(Lorg/proninyaroslav/libretorrent/core/model/session/AdvancedPeerInfo;Lorg/libtorrent4j/TorrentStatus;)D
+PeerInfo.compareTo	(Ljava/lang/Object;)I
+PeerInfo.describeContents	()I
+PeerInfo.equals	(Ljava/lang/Object;)Z
+PeerInfo.getConnectionType	(Lorg/proninyaroslav/libretorrent/core/model/session/AdvancedPeerInfo;)I
+PeerInfo.hashCode	()I
+PeerInfo.toString	()Ljava/lang/String;
+PeerInfo.writeToParcel	(Landroid/os/Parcel;I)V
+PeerInfo$1.<init>	()V
+PeerInfo$1.createFromParcel	(Landroid/os/Parcel;)Lorg/proninyaroslav/libretorrent/core/model/data/PeerInfo;
+PeerInfo$1.newArray	(I)[Lorg/proninyaroslav/libretorrent/core/model/data/PeerInfo;
+Priority.<clinit>	()V
+Priority.<init>(String,int,int)	(Ljava/lang/String;II)V
+Priority.fromValue	(I)Lorg/proninyaroslav/libretorrent/core/model/data/Priority;
+Priority.value	()I
+ReadPieceInfo.<init>	(IIJLjava/lang/Exception;)V
+ReadPieceInfo.toString	()Ljava/lang/String;
+SessionStats.<clinit>	()V
+SessionStats.<init>(long,long,long,long,long,int)	(JJJJJI)V
+SessionStats.<init>(Parcel)	(Landroid/os/Parcel;)V
+SessionStats.compareTo	(Ljava/lang/Object;)I
+SessionStats.describeContents	()I
+SessionStats.equals	(Ljava/lang/Object;)Z
+SessionStats.hashCode	()I
+SessionStats.toString	()Ljava/lang/String;
+SessionStats.writeToParcel	(Landroid/os/Parcel;I)V
+SessionStats$1.<init>	()V
+SessionStats$1.createFromParcel	(Landroid/os/Parcel;)Lorg/proninyaroslav/libretorrent/core/model/data/SessionStats;
+SessionStats$1.newArray	(I)[Lorg/proninyaroslav/libretorrent/core/model/data/SessionStats;
+```
+
+Source printed and read:
+`nl -ba "$SRC/core/model/data/MagnetInfo.java"`
+`nl -ba "$SRC/core/model/data/PeerInfo.java"`
+`nl -ba "$SRC/core/model/data/Priority.java"`
+`nl -ba "$SRC/core/model/data/ReadPieceInfo.java"`
+`nl -ba "$SRC/core/model/data/SessionStats.java"`
+
+Where SRC is `/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent`.
+
+Printed source excerpts establish definitions and local callers:
+- MagnetInfo: constructor and parcel hooks at lines 48-93; getter/hash/toString at 95-131. `TorrentSessionImpl.java:427-452` constructs it in fetch/parse paths.
+- PeerInfo: conversion constructor at lines 56-70; parcel methods and CREATOR at 143-180; value methods at 182-247. `TorrentDownloadImpl.java:911-928` constructs peer models from session peers; `TorrentInfoProvider.java:390-417` queries and emits peer lists.
+- Priority: enum constants/constructor/value/fromValue at lines 22-79. Focused use search finds converter calls and `FilePriority` use.
+- ReadPieceInfo: constructor/toString at lines 24-49. `TorrentDownloadImpl.java:442-454` constructs it and notifies listeners.
+- SessionStats: constructors and parcel methods at lines 36-93; value methods at 95-148. `TorrentSessionImpl.java:1168-1181` constructs it for stats notifications; `TorrentInfoProvider.java:474-487` compares/emits stats.
+
+Focused usage search printed:
+`rg -n '\\bnew MagnetInfo\\b|\\bnew PeerInfo\\b|\\bnew SessionStats\\b|\\bnew ReadPieceInfo\\b|Priority\\.fromValue|\\.value\\(\\)' "$SRC"`
+Output included MagnetInfo constructors in TorrentSessionImpl, PeerInfo construction in TorrentDownloadImpl, ReadPieceInfo construction in TorrentDownloadImpl, SessionStats construction in TorrentSessionImpl, Priority.fromValue in FilePriority, and Priority.value in PriorityConverter/FilePriority.
+
+Parcelable API search printed:
+`rg -n 'Parcelable|putParcelable|putParcelableArray|writeToParcel|createFromParcel|CREATOR' "$SRC"`
+The output included the target class implementations/CREATOR declarations, but no explicit app put/get Parcelable transport for MagnetInfo, PeerInfo, or SessionStats was established in the focused class-use search. `AbstractInfoParcel.java:31-55` confirms PeerInfo and SessionStats inherit Parcelable; it does not prove framework dispatch. Therefore uncertain parcel callbacks and unproven entry routes remain OPEN.
+
+Additional printed lines used:
+`nl -ba "$SRC/core/model/data/AbstractInfoParcel.java"` (31-61)
+`nl -ba "$SRC/core/model/TorrentInfoProvider.java" | sed -n '105,135p;185,205p;270,290p;385,420p;470,490p'`
+`nl -ba "$SRC/core/model/session/TorrentDownloadImpl.java" | sed -n '440,455p;905,930p'`
+`nl -ba "$SRC/core/model/session/TorrentSessionImpl.java" | sed -n '426,455p;1168,1183p'`
+
+Note: one attempted broad `rg` command had an incorrect duplicated UI path and truncated mixed output. No decision relies on that path or on coverage data. The focused usages above are the evidence used. No graph, notes, or out files were edited.

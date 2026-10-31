@@ -1,0 +1,35 @@
+# Batch 73 printed evidence
+
+Membership command:
+```sh
+awk -F '\\t' '$1==73 {print $3 "\\t" $4}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+```
+Result: 40 rows; exact method names and descriptors appear in the helper table.
+
+Bounded printed source-definition scan:
+```sh
+rg -n 'buildDialog|makeEvent|newInstance|onCreateDialog|observeEvents|sendEvent|observeSelectedItem|sendSelectedItem|describeContents|writeToParcel|compareTo|ResultCode' /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/{BaseAlertDialog,ClipboardDialog,FileItem,FragmentCallback,ManageAllFilesWarningDialog}.java
+```
+Key output lines read:
+```
+BaseAlertDialog.java:60 observeEvents
+BaseAlertDialog.java:65 sendEvent
+BaseAlertDialog.java:94 newInstance
+BaseAlertDialog.java:116 onCreateDialog
+BaseAlertDialog.java:138 makeEvent
+BaseAlertDialog.java:143 buildDialog
+BaseAlertDialog.java:174,181,188,194 listener paths send events
+ClipboardDialog.java:50 observeSelectedItem
+ClipboardDialog.java:55 sendSelectedItem
+ClipboardDialog.java:73 newInstance
+ClipboardDialog.java:84 onAttach
+ClipboardDialog.java:94 onCreateDialog
+ClipboardDialog.java:112 listener sends selected item
+FileItem.java:32 implements Parcelable, Comparable
+FileItem.java:56 describeContents; :62 writeToParcel; :115 compareTo
+FragmentCallback.java:35 ResultCode enum
+ManageAllFilesWarningDialog.java:32 class; :33 newInstance; :44 onCreateDialog; :56 buildDialog call
+```
+
+The observed local listener, Parcel, and dialog construction chains are partial; this audit does not show the complete entry route or all framework dispatch. All 40 remain OPEN.
+

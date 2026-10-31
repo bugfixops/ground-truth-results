@@ -1,0 +1,36 @@
+## NotificationChannelUtil.createConversationNotificationChannel  REACHABLE  confirmed_by=SOURCE path=UNCHECKED
+   env=- state=- classes=explicit;standard explicit_standard_route=yes
+   1. Ef3365f92 ENTRY/standard*
+      S_ENTRY -> AMApplication.<init>
+      The process starts (any component of the app is about to run)
+      evidence: SRC AndroidManifest.xml:20; FW-SRC core/java/android/app/Application.java (Application.onCreate called once at process start)
+         20          android:name=".common.AMApplication"
+      (core/java/android/app/Application.java: no line numbers)
+   2. E9641484f LIFECYCLE/standard*
+      AMApplication.<init> -> AMApplication.onCreate
+      the system calls Application.onCreate once, after every ContentProvider in the manifest is created
+      evidence: FW-SRC core/java/android/app/Application.java (Application.onCreate called once at process start); SRC AMApplication.java:62-73
+      (core/java/android/app/Application.java: no line numbers)
+         62      @Override
+         63      public void onCreate() {
+         64          super.onCreate();
+         65          currentApplicationContext = this;
+         66          AMEnv.init(this);
+         67  
+         68          appComponents = DaggerAppComponents.builder()
+         69                  .application(this)
+         70                  .build();
+         71          appComponents.inject(this);
+         72          notificationChannelUtil.createNotificationChannels();
+         73      }
+   3. E59c50255 CALL/explicit*
+      AMApplication.onCreate -> NotificationChannelUtil.createNotificationChannels
+      Direct call
+      evidence: SRC AMApplication.java:72 (bytecode)
+         72          notificationChannelUtil.createNotificationChannels();
+   4. E0c27bd4f CALL/explicit*
+      NotificationChannelUtil.createNotificationChannels -> NotificationChannelUtil.createConversationNotificationChannel
+      Direct call
+      evidence: SRC NotificationChannelUtil.java:43 (bytecode)
+         43              notificationChannelList.add(createConversationNotificationChannel());
+

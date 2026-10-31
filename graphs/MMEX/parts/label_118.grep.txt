@@ -1,0 +1,57 @@
+# batch 118 grep evidence (run from /Users/darshan/Desktop/yang/work). All 17 methods are REACHABLE; no UNREACHABLE claims, so no no-caller search was needed. Caller and record lookups below support the routes.
+
+$ grep -rn "LookFeelSettingsActivity\|LookFeelPreferenceFragment" "final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java"
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/settings/SettingsFragment.java:77:                    startActivity(new Intent(getActivity(), LookFeelSettingsActivity.class));
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/settings/LookFeelSettingsActivity.java:22:public class LookFeelSettingsActivity
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/settings/LookFeelSettingsActivity.java:28:        setSettingFragment(new LookFeelPreferenceFragment());
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/settings/LookFeelPreferenceFragment.java:41:public class LookFeelPreferenceFragment
+
+$ grep -rn "LookFeelSettingsActivity.class" "final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java" (start site)
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/settings/SettingsFragment.java:77:                    startActivity(new Intent(getActivity(), LookFeelSettingsActivity.class));
+
+$ grep -n "LookFeel" auto_calls.json   (incoming records: dst lines only)
+2067:   "dst": "LookFeelPreferenceFragment$6.<init>",
+2075:   "dst": "LookFeelPreferenceFragment$5.<init>",
+2083:   "dst": "LookFeelPreferenceFragment$4.<init>",
+2155:   "dst": "LookFeelPreferenceFragment$3.<init>",
+2163:   "dst": "LookFeelPreferenceFragment$2.<init>",
+2179:   "dst": "LookFeelPreferenceFragment$1.<init>",
+3017:   "dst": "LookFeelPreferenceFragment.<init>",
+
+$ grep -n 'dst.*LookFeelSettingsActivity' auto_calls.json   (expect none: the INTENT is not a bytecode call)
+(no match)
+
+$ grep -n '"dst": "SettingsFragment\$2' auto_calls.json
+1575:   "dst": "SettingsFragment$2.<init>",
+
+$ grep -n -B1 '"dst": "SettingsFragment\$2.<init>"' auto_calls.json (source of the anonymous class record)
+1573-  {
+1574-   "src": "SettingsFragment.onCreate",
+1575:   "dst": "SettingsFragment$2.<init>",
+
+$ grep -rn "PREF_LOOK_FEEL =" settings/PreferenceConstants.java; pref key defs
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/settings/PreferenceConstants.java:27:    public static final Integer PREF_LOOK_FEEL = R.string.pref_look_feel;
+50:    <string name="pref_account_open_visible">accountsopenvisible</string>
+51:    <string name="pref_account_fav_visible">accountsfavoritevisible</string>
+54:    <string name="pref_show_transaction">showtransaction</string>
+65:    <string name="pref_transaction_hide_reconciled_amounts">pref_transaction_hide_reconciled_amounts</string>
+66:    <string name="pref_application_font">prefapplicationfont</string>
+67:    <string name="pref_application_font_size">prefapplicationfontsize</string>
+73:    <string name="pref_look_feel">preflookfeel</string>
+
+$ grep -n 'android:key' res/xml/preferences_look_and_feel.xml
+22:        android:key="@string/pref_account_open_visible"
+27:        android:key="@string/pref_account_fav_visible"
+34:        android:key="@string/pref_show_transaction"
+42:        android:key="@string/pref_transaction_shown_balance"
+49:        android:key="@string/pref_transaction_hide_reconciled_amounts"
+56:        <!--android:key="@string/pref_transaction_sort_by_type"-->
+65:        android:key="@string/pref_application_font"
+73:        android:key="@string/pref_application_font_size"
+
+$ grep -n 'SettingsActivity.class' home/MainActivity.java (route above the batch; owned elsewhere)
+665:                startActivity(new Intent(MainActivity.this, SettingsActivity.class));
+
+$ grep -n 'S_LOOK\|LOOK_FEEL' graph_def.py and parts/*.py (screen key check)
+(no S_LOOK key in graph_def.py)
+graphs/MMEX/parts/label_118.py

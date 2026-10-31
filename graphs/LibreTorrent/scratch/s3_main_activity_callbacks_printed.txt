@@ -1,0 +1,204 @@
+=== MainActivity view callback registrations ===
+   230	    private void initDrawer() {
+   231	        drawerItemManager = new RecyclerViewExpandableItemManager(null);
+   232	        drawerItemManager.setDefaultGroupsExpandedState(false);
+   233	        drawerItemManager.setOnGroupCollapseListener((groupPosition, fromUser, payload) -> {
+   234	            if (fromUser)
+   235	                saveGroupExpandState(groupPosition, false);
+   236	        });
+   237	        drawerItemManager.setOnGroupExpandListener((groupPosition, fromUser, payload) -> {
+   238	            if (fromUser)
+   239	                saveGroupExpandState(groupPosition, true);
+   240	        });
+   241	        GeneralItemAnimator animator = new RefactoredDefaultItemAnimator();
+   242	        /*
+   243	         * Change animations are enabled by default since support-v7-recyclerview v22.
+   244	         * Need to disable them when using animation indicator.
+   245	         */
+   246	        animator.setSupportsChangeAnimations(false);
+   247	
+   248	        List<DrawerGroup> groups = Utils.getNavigationDrawerItems(this,
+   249	                PreferenceManager.getDefaultSharedPreferences(this));
+   250	        drawerAdapter = new DrawerExpandableAdapter(groups, drawerItemManager, this::onDrawerItemSelected);
+   251	        wrappedDrawerAdapter = drawerItemManager.createWrappedAdapter(drawerAdapter);
+   252	        onDrawerGroupsCreated();
+   253	
+   254	        drawerItemsList.setLayoutManager(layoutManager);
+   255	        drawerItemsList.setAdapter(wrappedDrawerAdapter);
+   256	        drawerItemsList.setItemAnimator(animator);
+   257	        drawerItemsList.setHasFixedSize(false);
+   258	
+   259	        drawerItemManager.attachRecyclerView(drawerItemsList);
+   260	
+   261	        sessionDhtNodesStat.setText(getString(R.string.session_stats_dht_nodes, 0));
+   262	        String downloadUploadFmt = getString(R.string.session_stats_download_upload,
+   263	                Formatter.formatFileSize(this, 0),
+   264	                Formatter.formatFileSize(this, 0));
+   265	        sessionDownloadStat.setText(downloadUploadFmt);
+   266	        sessionUploadStat.setText(downloadUploadFmt);
+   267	        sessionListenPortStat.setText(getString(R.string.session_stats_listen_port,
+   268	                getString(R.string.not_available)));
+   269	
+   270	        tagsList.setLayoutManager(new LinearLayoutManager(this));
+   271	        tagsAdapter = new TagsAdapter(tagsClickListener);
+   272	        tagsList.setAdapter(tagsAdapter);
+   273	        addTagButton.setOnClickListener(
+   274	                (v) -> startActivity(new Intent(this, AddTagActivity.class))
+   275	        );
+   276	
+   277	        boolean tagsExpanded = PreferenceManager
+   278	                .getDefaultSharedPreferences(this)
+   279	                .getBoolean(getString(R.string.drawer_tags_is_expanded), false);
+   280	        tagsGroupHeader.setExpanded(tagsExpanded);
+   281	        tagsExpandable.setExpanded(tagsExpanded);
+   282	        tagsGroupHeader.setOnClickListener((v) -> {
+   283	            tagsExpandable.toggle();
+   284	            tagsGroupHeader.toggleExpand();
+   285	            PreferenceManager.getDefaultSharedPreferences(this)
+   286	                    .edit()
+   287	                    .putBoolean(
+   288	                            getString(R.string.drawer_tags_is_expanded),
+   289	                            tagsExpandable.isExpanded()
+   290	                    )
+   291	                    .apply();
+   292	        });
+   293	    }
+   295	    private final TagsAdapter.OnClickListener tagsClickListener = new TagsAdapter.OnClickListener() {
+   296	        @Override
+   297	        public void onTagSelected(@NonNull AbstractTagItem item) {
+   298	            if (item instanceof TagItem) {
+   299	                viewModel.setTagFilter(
+   300	                        TorrentFilterCollection.tag(((TagItem) item).info),
+   301	                        true
+   302	                );
+   303	            } else if (item instanceof EmptyTagItem) {
+   304	                viewModel.setTagFilter(TorrentFilterCollection.all(), true);
+   305	            } else if (item instanceof NoTagsItem) {
+   306	                viewModel.setTagFilter(TorrentFilterCollection.noTags(), true);
+   307	            }
+   308	
+   309	            saveSelectedTag(item);
+   310	
+   311	            if (drawerLayout != null)
+   312	                drawerLayout.closeDrawer(GravityCompat.START);
+   313	        }
+   314	
+   315	        @Override
+   316	        public void onTagMenuClicked(@NonNull AbstractTagItem abstractItem, int menuId) {
+   317	            if (!(abstractItem instanceof TagItem)) {
+   318	                return;
+   319	            }
+   320	            TagItem item = ((TagItem) abstractItem);
+   321	            if (menuId == R.id.edit_tag_menu) {
+   322	                Intent i = new Intent(MainActivity.this, AddTagActivity.class);
+   323	                i.putExtra(AddTagActivity.TAG_INIT_INFO, item.info);
+   324	                startActivity(i);
+   325	            } else if (menuId == R.id.delete_tag_menu) {
+   326	                disposables.add(viewModel.deleteTag(item.info)
+   327	                        .subscribeOn(Schedulers.io())
+   328	                        .observeOn(AndroidSchedulers.mainThread())
+   329	                        .subscribe(
+   330	                                () -> {
+   331	                                    if (item.isSame(tagsAdapter.getSelectedItem())) {
+   332	                                        EmptyTagItem emptyItem = new EmptyTagItem();
+   333	                                        saveSelectedTag(emptyItem);
+   334	                                        tagsAdapter.setSelectedItem(emptyItem);
+   335	                                        viewModel.setTagFilter(TorrentFilterCollection.all(), true);
+   336	                                    }
+   337	                                },
+   338	                                (e) -> {
+   339	                                    Log.e(TAG, Log.getStackTraceString(e));
+   340	                                    Snackbar.make(
+   341	                                            mainFragment.getCoordinatorLayout(),
+   342	                                            R.string.tag_deleting_failed,
+   343	                                            Snackbar.LENGTH_LONG
+   344	                                    ).show();
+   345	                                }
+   346	                        )
+   347	                );
+   348	            }
+   349	        }
+   350	    };
+=== AOSP View click registration and dispatch ===
+  6140	     *
+  6141	     * @see #setClickable(boolean)
+  6142	     */
+  6143	    public void setOnClickListener(@Nullable OnClickListener l) {
+  6144	        if (!isClickable()) {
+  6145	            setClickable(true);
+  6146	        }
+  6147	        getListenerInfo().mOnClickListener = l;
+  6148	    }
+  6149	
+  6150	    /**
+  6151	     * Return whether this view has an attached OnClickListener.  Returns
+  6152	     * true if there is a listener, false if there is none.
+  6153	     */
+  6154	    public boolean hasOnClickListeners() {
+  6155	        ListenerInfo li = mListenerInfo;
+  6156	        return (li != null && li.mOnClickListener != null);
+  6157	    }
+  6158	
+  6289	    public boolean performClick() {
+  6290	        final boolean result;
+  6291	        final ListenerInfo li = mListenerInfo;
+  6292	        if (li != null && li.mOnClickListener != null) {
+  6293	            playSoundEffect(SoundEffectConstants.CLICK);
+  6294	            li.mOnClickListener.onClick(this);
+  6295	            result = true;
+  6296	        } else {
+  6297	            result = false;
+  6298	        }
+  6299	
+  6300	        sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_CLICKED);
+  6301	
+  6302	        notifyEnterOrExitForAutoFillIfNeeded(true);
+  6303	
+  6304	        return result;
+  6305	    }
+  6306	
+  6307	    /**
+  6308	     * Directly call any attached OnClickListener.  Unlike {@link #performClick()},
+  6309	     * this only calls the listener, and does not do any associated clicking
+  6310	     * actions like reporting an accessibility event.
+=== AddTagActivity declaration ===
+   241	        <activity
+   242	            android:name=".ui.log.LogSettingsActivity" />
+   243	
+   244	        <activity
+   245	            android:name=".ui.addtag.AddTagActivity"
+   246	            android:theme="@style/AppTheme.Translucent" />
+   247	
+   248	        <activity
+   249	            android:name=".ui.tag.SelectTagActivity"
+   250	            android:theme="@style/AppTheme.Translucent" />
+   251	
+   610	    private void onDrawerItemSelected(DrawerGroup group, DrawerGroupItem item) {
+   611	        Resources res = getResources();
+   612	        String prefKey = null;
+   613	        if (group.id == res.getInteger(R.integer.drawer_status_id)) {
+   614	            prefKey = getString(R.string.drawer_status_selected_item);
+   615	            viewModel.setStatusFilter(Utils.getDrawerGroupStatusFilter(this, item.id), true);
+   616	
+   617	        } else if (group.id == res.getInteger(R.integer.drawer_sorting_id)) {
+   618	            prefKey = getString(R.string.drawer_sorting_selected_item);
+   619	            viewModel.setSort(Utils.getDrawerGroupItemSorting(this, item.id), true);
+   620	
+   621	        } else if (group.id == res.getInteger(R.integer.drawer_date_added_id)) {
+   622	            prefKey = getString(R.string.drawer_time_selected_item);
+   623	            viewModel.setDateAddedFilter(Utils.getDrawerGroupDateAddedFilter(this, item.id), true);
+   624	        }
+   625	
+   626	        if (prefKey != null)
+   627	            saveSelectionState(prefKey, item);
+   628	
+   629	        if (drawerLayout != null)
+   630	            drawerLayout.closeDrawer(GravityCompat.START);
+   631	    }
+   632	
+   633	    private void saveSelectionState(String prefKey, DrawerGroupItem item) {
+   634	        PreferenceManager.getDefaultSharedPreferences(this)
+   635	                .edit()
+   636	                .putLong(prefKey, item.id)
+   637	                .apply();
+   638	    }

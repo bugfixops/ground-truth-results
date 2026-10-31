@@ -1,0 +1,120 @@
+     1	/*
+     2	 * Copyright (C) 2020 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.log;
+    21	
+    22	import android.app.Dialog;
+    23	import android.content.Context;
+    24	import android.content.DialogInterface;
+    25	import android.os.Bundle;
+    26	import android.view.KeyEvent;
+    27	import android.view.LayoutInflater;
+    28	import android.view.View;
+    29	
+    30	import androidx.annotation.NonNull;
+    31	import androidx.appcompat.app.AlertDialog;
+    32	import androidx.appcompat.app.AppCompatActivity;
+    33	import androidx.databinding.DataBindingUtil;
+    34	import androidx.fragment.app.DialogFragment;
+    35	import androidx.lifecycle.ViewModelProvider;
+    36	
+    37	import org.proninyaroslav.libretorrent.R;
+    38	import org.proninyaroslav.libretorrent.databinding.DialogLogFilterBinding;
+    39	
+    40	public class SessionLogFilterDialog extends DialogFragment
+    41	{
+    42	    private static final String TAG = SessionLogFilterDialog.class.getSimpleName();
+    43	
+    44	    private AlertDialog alert;
+    45	    private AppCompatActivity activity;
+    46	    private DialogLogFilterBinding binding;
+    47	    private LogViewModel viewModel;
+    48	
+    49	    public static SessionLogFilterDialog newInstance()
+    50	    {
+    51	        SessionLogFilterDialog frag = new SessionLogFilterDialog();
+    52	
+    53	        Bundle args = new Bundle();
+    54	        frag.setArguments(args);
+    55	
+    56	        return frag;
+    57	    }
+    58	
+    59	    @Override
+    60	    public void onAttach(@NonNull Context context)
+    61	    {
+    62	        super.onAttach(context);
+    63	
+    64	        if (context instanceof AppCompatActivity)
+    65	            activity = (AppCompatActivity)context;
+    66	    }
+    67	
+    68	    @Override
+    69	    public void onResume()
+    70	    {
+    71	        super.onResume();
+    72	
+    73	        /* Back button handle */
+    74	        getDialog().setOnKeyListener((DialogInterface dialog, int keyCode, KeyEvent event) -> {
+    75	            if (keyCode == KeyEvent.KEYCODE_BACK) {
+    76	                if (event.getAction() != KeyEvent.ACTION_DOWN) {
+    77	                    return true;
+    78	                } else {
+    79	                    onBackPressed();
+    80	                    return true;
+    81	                }
+    82	            } else {
+    83	                return false;
+    84	            }
+    85	        });
+    86	    }
+    87	
+    88	    @NonNull
+    89	    @Override
+    90	    public Dialog onCreateDialog(Bundle savedInstanceState)
+    91	    {
+    92	        if (activity == null)
+    93	            activity = (AppCompatActivity) getActivity();
+    94	
+    95	        viewModel = new ViewModelProvider(activity).get(LogViewModel.class);
+    96	
+    97	        LayoutInflater i = LayoutInflater.from(activity);
+    98	        binding = DataBindingUtil.inflate(i, R.layout.dialog_log_filter, null, false);
+    99	        binding.setViewModel(viewModel);
+   100	
+   101	        initLayoutView(binding.getRoot());
+   102	
+   103	        return alert;
+   104	    }
+   105	
+   106	    private void initLayoutView(View view)
+   107	    {
+   108	        AlertDialog.Builder builder = new AlertDialog.Builder(activity)
+   109	                .setTitle(R.string.filter)
+   110	                .setNegativeButton(R.string.cancel, (dialog, which) -> onBackPressed())
+   111	                .setView(view);
+   112	
+   113	        alert = builder.create();
+   114	    }
+   115	
+   116	    private void onBackPressed()
+   117	    {
+   118	        alert.dismiss();
+   119	    }
+   120	}

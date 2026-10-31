@@ -1,0 +1,54 @@
+label_103.grep.txt: grep and class-file evidence for batch 103 (graphs/MMEX/scratch/batches/batch_103.txt, 39 methods).
+Generated classes with UNREACHABLE rows: com/money/manager/ex/reports/BaseReportFragment_MembersInjector (<init>, create, injectMembers).
+Source root: final_java_only/MMEX/app/MMEX-#v2024.06.14 (paths relative to the repo root). Tools: grep (read only), a read-only python3 -I parse of the constant pool and method table of the class files (script kept in the scratchpad as cp103.py), and python3 -I prints of graphs/MMEX/auto_calls.json. javap cannot run here (no Java runtime).
+
+section 1: binary grep for the class name under the build tree and the whole app tree (grep -rl -a)
+grep -rl -a BaseReportFragment_MembersInjector app/build/intermediates/javac/debug/classes:
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/core/ioc/DaggerMmxComponent.class
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/reports/BaseReportFragment_MembersInjector.class
+python3 -I byte search of every file under the app root (os.walk; 2311 files scanned; the grep -r over the app root printed nothing, so this search replaces it):
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/core/ioc/DaggerMmxComponent.class
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/reports/BaseReportFragment_MembersInjector.class
+grep -rn over src/main/java for BaseReportFragment_MembersInjector or injectDateTimeUtilsLazy (source only):
+(no output: no source reference)
+
+section 2: constant-pool and method-table parse of BaseReportFragment_MembersInjector.class and DaggerMmxComponent.class (python3 -I cp103.py)
+CLASS com/money/manager/ex/reports/BaseReportFragment_MembersInjector super java/lang/Object
+METHODS (access, name, descriptor):
+  0001 <init> (Ljavax/inject/Provider;)V
+  0009 create (Ljavax/inject/Provider;)Ldagger/MembersInjector;
+  0001 injectMembers (Lcom/money/manager/ex/reports/BaseReportFragment;)V
+  0009 injectDateTimeUtilsLazy (Lcom/money/manager/ex/reports/BaseReportFragment;Ldagger/Lazy;)V
+  1041 injectMembers (Ljava/lang/Object;)V
+SELF REFS (owner == this class):
+  Fieldref com/money/manager/ex/reports/BaseReportFragment_MembersInjector.dateTimeUtilsLazyProviderLjavax/inject/Provider;
+  Methodref com/money/manager/ex/reports/BaseReportFragment_MembersInjector.<init>(Ljavax/inject/Provider;)V
+  Methodref com/money/manager/ex/reports/BaseReportFragment_MembersInjector.injectDateTimeUtilsLazy(Lcom/money/manager/ex/reports/BaseReportFragment;Ldagger/Lazy;)V
+  Methodref com/money/manager/ex/reports/BaseReportFragment_MembersInjector.injectMembers(Lcom/money/manager/ex/reports/BaseReportFragment;)V
+CROSS REFS (owner != this class):
+  Methodref java/lang/Object.<init>()V
+  Methodref dagger/internal/DoubleCheck.lazy(Ljavax/inject/Provider;)Ldagger/Lazy;
+  Fieldref com/money/manager/ex/reports/BaseReportFragment.dateTimeUtilsLazyLdagger/Lazy;
+DAGGER REFS to MembersInjector (class com/money/manager/ex/core/ioc/DaggerMmxComponent):
+  Methodref com/money/manager/ex/reports/BaseReportFragment_MembersInjector.injectDateTimeUtilsLazy(Lcom/money/manager/ex/reports/BaseReportFragment;Ldagger/Lazy;)V
+DAGGER Utf8 entries naming BaseReportFragment_MembersInjector: 1
+DAGGER Utf8 entries naming BaseReportFragment (exact): ['injectBaseReportFragment']
+
+section 3: auto_calls.json records for the batch 103 MembersInjector methods and the DaggerMmxComponent route (python3 -I)
+calls with a destination in the MembersInjector class (index, src, dst, file, line, dispatch):
+  2334 DaggerMmxComponent.injectBaseReportFragment -> BaseReportFragment_MembersInjector.injectDateTimeUtilsLazy DaggerMmxComponent.java 441 exact
+  6989 BaseReportFragment_MembersInjector.create -> BaseReportFragment_MembersInjector.<init> BaseReportFragment_MembersInjector.java 24 exact
+  6990 BaseReportFragment_MembersInjector.injectMembers -> BaseReportFragment_MembersInjector.injectDateTimeUtilsLazy BaseReportFragment_MembersInjector.java 29 exact
+calls whose destination is create, injectMembers or <init> of the MembersInjector: 1
+calls with src in the MembersInjector class (index, src, dst, file, line):
+  6989 BaseReportFragment_MembersInjector.create -> BaseReportFragment_MembersInjector.<init> BaseReportFragment_MembersInjector.java 24
+  6990 BaseReportFragment_MembersInjector.injectMembers -> BaseReportFragment_MembersInjector.injectDateTimeUtilsLazy BaseReportFragment_MembersInjector.java 29
+calls with src DaggerMmxComponent.injectBaseReportFragment or DaggerMmxComponent.inject(BaseReportFragment):
+  2289 DaggerMmxComponent.inject(BaseReportFragment) -> DaggerMmxComponent.injectBaseReportFragment DaggerMmxComponent.java 247 exact
+  2333 DaggerMmxComponent.injectBaseReportFragment -> MmxDateTimeUtils_Factory.<clinit> DaggerMmxComponent.java 442 exact
+  2334 DaggerMmxComponent.injectBaseReportFragment -> BaseReportFragment_MembersInjector.injectDateTimeUtilsLazy DaggerMmxComponent.java 441 exact
+  2335 DaggerMmxComponent.injectBaseReportFragment -> MmxDateTimeUtils_Factory.create DaggerMmxComponent.java 442 exact
+calls with dst DaggerMmxComponent.injectBaseReportFragment:
+  2289 DaggerMmxComponent.inject(BaseReportFragment) -> DaggerMmxComponent.injectBaseReportFragment DaggerMmxComponent.java 247 exact
+impl entries for the MembersInjector (interface and class method names, as recorded):
+{"<init>": {"(Ljavax/inject/Provider;)V": "BaseReportFragment_MembersInjector.<init>"}, "create": {"(Ljavax/inject/Provider;)Ldagger/MembersInjector;": "BaseReportFragment_MembersInjector.create"}, "injectMembers": {"(Lcom/money/manager/ex/reports/BaseReportFragment;)V": "BaseReportFragment_MembersInjector.injectMembers"}, "injectDateTimeUtilsLazy": {"(Lcom/money/manager/ex/reports/BaseReportFragment;Ldagger/Lazy;)V": "BaseReportFragment_MembersInjector.injectDateTimeUtilsLazy"}}

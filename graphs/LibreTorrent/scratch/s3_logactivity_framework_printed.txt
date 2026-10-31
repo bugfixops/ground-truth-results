@@ -1,0 +1,132 @@
+=== ActivityThread and Instrumentation lifecycle dispatch ===
+  2665	        ContextImpl appContext = createBaseContextForActivity(r);
+  2666	        Activity activity = null;
+  2667	        try {
+  2668	            java.lang.ClassLoader cl = appContext.getClassLoader();
+  2669	            activity = mInstrumentation.newActivity(
+  2670	                    cl, component.getClassName(), r.intent);
+  2671	            StrictMode.incrementExpectedActivityCount(activity.getClass());
+  2737	                }
+  2738	                r.activity = activity;
+  2739	                r.stopped = true;
+  2740	                if (!r.activity.mFinished) {
+  2741	                    activity.performStart();
+  2742	                    r.stopped = false;
+  2743	                }
+  2744	                if (!r.activity.mFinished) {
+  2745	                    if (r.isPersistable()) {
+  4029	            if (!keepShown) {
+  4030	                try {
+  4031	                    // Now we are idle.
+  4032	                    r.activity.performStop(false /*preserveWindow*/);
+  4033	                } catch (Exception e) {
+  4034	                    if (!mInstrumentation.onException(r.activity, e)) {
+  4035	                        throw new RuntimeException(
+  4036	                                "Unable to stop activity "
+  4037	                                + r.intent.getComponent().toShortString()
+  4038	                                + ": " + e.toString(), e);
+  4039	                    }
+  4040	                }
+  4041	                r.stopped = true;
+  4368	            try {
+  4369	                r.activity.mCalled = false;
+  4370	                mInstrumentation.callActivityOnDestroy(r.activity);
+  4371	                if (!r.activity.mCalled) {
+  4372	                    throw new SuperNotCalledException(
+  4373	                        "Activity " + safeToComponentShortString(r.intent) +
+  4374	                        " did not call through to super.onDestroy()");
+  4375	                }
+  4376	                if (r.window != null) {
+  4377	                    r.window.closeAllPanels();
+  1170	    public Activity newActivity(ClassLoader cl, String className,
+  1171	            Intent intent)
+  1172	            throws InstantiationException, IllegalAccessException,
+  1173	            ClassNotFoundException {
+  1174	        return (Activity)cl.loadClass(className).newInstance();
+  1175	    }
+  1212	    public void callActivityOnCreate(Activity activity, Bundle icicle) {
+  1213	        prePerformCreate(activity);
+  1214	        activity.performCreate(icicle);
+  1215	        postPerformCreate(activity);
+  1232	    public void callActivityOnDestroy(Activity activity) {
+  1233	      // TODO: the following block causes intermittent hangs when using startActivity
+  1234	      // temporarily comment out until root cause is fixed (bug 2630683)
+  1235	//      if (mWaitingActivities != null) {
+  1236	//          synchronized (mSync) {
+  1237	//              final int N = mWaitingActivities.size();
+  1238	//              for (int i=0; i<N; i++) {
+  1239	//                  final ActivityWaiter aw = mWaitingActivities.get(i);
+  1240	//                  final Intent intent = aw.intent;
+  1241	//                  if (intent.filterEquals(activity.getIntent())) {
+  1242	//                      aw.activity = activity;
+  1243	//                      mMessageQueue.addIdleHandler(new ActivityGoing(aw));
+  1244	//                  }
+  1245	//              }
+  1246	//          }
+  1247	//      }
+  1248	      
+  1249	      activity.performDestroy();
+  1250	  }
+  1333	    public void callActivityOnStart(Activity activity) {
+  1334	        activity.onStart();
+  1335	    }
+  1374	    public void callActivityOnStop(Activity activity) {
+  1375	        activity.onStop();
+  1376	    }
+=== View click listener registration/dispatch ===
+  6143	    public void setOnClickListener(@Nullable OnClickListener l) {
+  6144	        if (!isClickable()) {
+  6145	            setClickable(true);
+  6146	        }
+  6147	        getListenerInfo().mOnClickListener = l;
+  6148	    }
+  6289	    public boolean performClick() {
+  6290	        final boolean result;
+  6291	        final ListenerInfo li = mListenerInfo;
+  6292	        if (li != null && li.mOnClickListener != null) {
+  6293	            playSoundEffect(SoundEffectConstants.CLICK);
+  6294	            li.mOnClickListener.onClick(this);
+  6295	            result = true;
+=== Log activity manifest entries ===
+   137	        <activity android:name=".ui.filemanager.FileManagerDialog" />
+   138	
+   239	            android:name=".ui.log.LogActivity" />
+   240	
+   241	        <activity
+   242	            android:name=".ui.log.LogSettingsActivity" />
+=== AOSP Dialog key listener dispatch ===
+   775	    public boolean dispatchKeyEvent(@NonNull KeyEvent event) {
+   776	        if ((mOnKeyListener != null) && (mOnKeyListener.onKey(this, event.getKeyCode(), event))) {
+   777	            return true;
+   778	        }
+   779	        if (mWindow.superDispatchKeyEvent(event)) {
+   780	            return true;
+   781	        }
+   782	        return event.dispatch(this, mDecor != null
+   783	                ? mDecor.getKeyDispatcherState() : null, this);
+  1343	    /**
+  1344	     * Sets the callback that will be called if a key is dispatched to the dialog.
+  1345	     */
+  1346	    public void setOnKeyListener(@Nullable OnKeyListener onKeyListener) {
+  1347	        mOnKeyListener = onKeyListener;
+  1348	    }
+=== AOSP Handler delayed Runnable dispatch ===
+    97	    public void dispatchMessage(Message msg) {
+    98	        if (msg.callback != null) {
+    99	            handleCallback(msg);
+   100	        } else {
+   101	            if (mCallback != null) {
+   102	                if (mCallback.handleMessage(msg)) {
+   103	                    return;
+   104	                }
+   105	            }
+   106	            handleMessage(msg);
+   107	        }
+   427	    public final boolean postDelayed(Runnable r, long delayMillis)
+   428	    {
+   429	        return sendMessageDelayed(getPostMessage(r), delayMillis);
+   430	    }
+   789	    private static void handleCallback(Message message) {
+   790	        message.callback.run();
+   791	    }
+   792	

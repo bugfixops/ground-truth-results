@@ -1,0 +1,190 @@
+== FixedRingBuffer method bodies ==
+    75	    public int getAllocatedSize()
+    76	    {
+    77	        return elements.length;
+    78	    }
+    79	
+    80	    public void add(@NonNull Iterable<E> list)
+    81	    {
+    82	        for (E e : list)
+    83	            add(e);
+    84	    }
+    85	
+    86	    public void add(E element)
+    87	    {
+    88	        tryGrow();
+    89	
+    90	        if (head < 0)
+    91	            head = 0;
+    92	        else if (tail == head)
+    93	            head = ++head % capacity;
+    94	
+    95	        elements[tail] = element;
+    96	        tail = ++tail % capacity;
+    97	    }
+    98	
+    99	    @Nullable
+   100	    public E remove(E element)
+   101	    {
+   102	        if (element == null)
+   103	            return null;
+   104	
+   105	        int index = indexOf(element);
+   106	        if (index != -1)
+   107	            return removeAt(index);
+   108	
+   109	        return null;
+   110	    }
+   111	
+   112	    public int indexOf(E element)
+   113	    {
+   114	        if (element == null)
+   115	            return -1;
+   116	
+   117	        for (int i = 0; i < size(); i++) {
+   118	            if (element.equals(elements[(head + i) % capacity]))
+   119	                return i;
+   120	        }
+   121	
+   122	        return -1;
+   123	    }
+   124	
+   125	    public E removeAt(int index)
+   126	    {
+   127	        int size = size();
+   128	        if (index < 0 || index >= size)
+   129	            throw new IndexOutOfBoundsException("index = " + index + ", size = " + size);
+   130	
+   131	        E res = elements[(head + index) % capacity];
+   132	        for (int i = index; i < size - 1; i++)
+   133	            elements[(head + i) % capacity] = elements[(head + i + 1) % capacity];
+   134	
+   135	        elements[(head + size - 1) % capacity] = null;
+   136	
+   137	        if (tail == 0)
+   138	            tail = size - 1;
+   139	        else
+   140	            tail--;
+   141	
+   142	        if (tail == head) {
+   143	            if (head >= 0)
+   144	                head--;
+   145	        }
+   146	
+   147	        return res;
+   148	    }
+   149	
+   150	    public E get(int index)
+   170	    {
+   171	        return size() == 0;
+   172	    }
+   173	
+   174	    public boolean isFull()
+   175	    {
+   176	        return size() == capacity;
+   177	    }
+   178	
+   179	    public boolean contains(E element)
+   180	    {
+   181	        for (int i = 0; i < size(); i++) {
+   182	            E e = elements[(head + i) % capacity];
+   183	            if ((element == null && e == null) || (element != null && element.equals(e)))
+   184	                return true;
+   185	        }
+   186	
+   187	        return false;
+   188	    }
+   189	
+   190	    private void resetHead()
+== Logger buffer call sites ==
+25:import org.proninyaroslav.libretorrent.core.collections.FixedRingBuffer;
+43:    protected FixedRingBuffer<LogEntry> inputBuf;
+44:    protected  FixedRingBuffer<LogEntry> outputBuf;
+65:    private FixedRingBuffer<LogEntry> lazyGetInputBuf()
+67:        if (inputBuf == null)
+68:            inputBuf = new FixedRingBuffer<>(calcInitBufCapacity(maxStoredLogs), maxStoredLogs);
+83:        return inputBuf;
+86:    private FixedRingBuffer<LogEntry> lazyGetOutputBuf()
+88:        if (outputBuf == null)
+89:            outputBuf = new FixedRingBuffer<>(calcInitBufCapacity(maxStoredLogs), maxStoredLogs);
+91:        return outputBuf;
+144:        FixedRingBuffer<LogEntry> inputBuf = lazyGetInputBuf();
+145:        if (inputBuf.isEmpty())
+147:        FixedRingBuffer<LogEntry> outputBuf = lazyGetOutputBuf();
+150:        int size = inputBuf.size();
+152:            LogEntry entry = applyFilters(inputBuf.get(i));
+154:                outputBuf.add(entry);
+246:        FixedRingBuffer<LogEntry> inputBuf = lazyGetInputBuf();
+247:        FixedRingBuffer<LogEntry> outputBuf = lazyGetOutputBuf();
+249:        outputBuf.clear();
+250:        for (LogEntry entry : inputBuf) {
+253:                outputBuf.add(entry);
+281:            FixedRingBuffer<LogEntry> outputBuf = lazyGetOutputBuf();
+287:                if (i >= outputBuf.size())
+290:                res.add(outputBuf.get(i));
+306:            FixedRingBuffer<LogEntry> outputBuf = lazyGetOutputBuf();
+309:            if (pos < 0 || pos >= outputBuf.size())
+312:            return outputBuf.get(pos);
+385:                FixedRingBuffer<LogEntry> outputBuf = lazyGetOutputBuf();
+387:                return write(outputBuf, os, recordStartIndex, outputBuf.size() - 1, timeStamp);
+416:            FixedRingBuffer<LogEntry> outputBuf = lazyGetOutputBuf();
+418:            return write(outputBuf, os, 0, outputBuf.size() - 1, timeStamp);
+425:    private int write(FixedRingBuffer<LogEntry> buf, OutputStream os,
+450:            FixedRingBuffer<LogEntry> outputBuf = lazyGetOutputBuf();
+453:            return outputBuf.size();
+492:        inputBuf = null;
+493:        outputBuf = null;
+== target overloads outside implementation ==
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/service/FeedFetcherWorker.java:193:        items.removeIf(item -> item != null && (item.pubDate > 0 && item.pubDate <= acceptMinDate || existingItemsId.contains(item.id)));
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/service/FeedFetcherWorker.java:203:        items.removeIf(item -> item != null && existingTitles.contains(item.title));
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/service/FeedFetcherWorker.java:263:                    if (item.title.toLowerCase().contains(word.toLowerCase().trim()))
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/collections/FixedRingBuffer.java:38:public class FixedRingBuffer<E> implements Iterable<E>
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/collections/FixedRingBuffer.java:45:    public FixedRingBuffer(int capacity)
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/collections/FixedRingBuffer.java:50:    public FixedRingBuffer(int initCapacity, int capacity)
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/collections/FixedRingBuffer.java:211:        return new FixedRingBufferIterator();
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/collections/FixedRingBuffer.java:214:    private class FixedRingBufferIterator implements Iterator<E>
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java:25:import org.proninyaroslav.libretorrent.core.collections.FixedRingBuffer;
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java:43:    protected FixedRingBuffer<LogEntry> inputBuf;
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java:44:    protected  FixedRingBuffer<LogEntry> outputBuf;
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java:65:    private FixedRingBuffer<LogEntry> lazyGetInputBuf()
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java:68:            inputBuf = new FixedRingBuffer<>(calcInitBufCapacity(maxStoredLogs), maxStoredLogs);
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java:86:    private FixedRingBuffer<LogEntry> lazyGetOutputBuf()
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java:89:            outputBuf = new FixedRingBuffer<>(calcInitBufCapacity(maxStoredLogs), maxStoredLogs);
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java:144:        FixedRingBuffer<LogEntry> inputBuf = lazyGetInputBuf();
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java:147:        FixedRingBuffer<LogEntry> outputBuf = lazyGetOutputBuf();
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java:246:        FixedRingBuffer<LogEntry> inputBuf = lazyGetInputBuf();
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java:247:        FixedRingBuffer<LogEntry> outputBuf = lazyGetOutputBuf();
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java:281:            FixedRingBuffer<LogEntry> outputBuf = lazyGetOutputBuf();
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java:306:            FixedRingBuffer<LogEntry> outputBuf = lazyGetOutputBuf();
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java:385:                FixedRingBuffer<LogEntry> outputBuf = lazyGetOutputBuf();
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java:416:            FixedRingBuffer<LogEntry> outputBuf = lazyGetOutputBuf();
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java:425:    private int write(FixedRingBuffer<LogEntry> buf, OutputStream os,
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java:450:            FixedRingBuffer<LogEntry> outputBuf = lazyGetOutputBuf();
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/utils/BencodeFileTreeUtils.java:100:                if (!parentTree.contains(nodes[i])) {
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/utils/TorrentContentFileTreeUtils.java:100:                if (!parentTree.contains(nodes[i])) {
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/filter/TorrentFilterCollection.java:98:        return (state) -> tag == null || state.tags.contains(tag);
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/urlnormalizer/PercentEncoder.java:25:        return (str.indexOf('%') >= 0);
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java:528:        if (operationNotAllowed() || !magnets.contains(infoHash))
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java:1079:                    if (magnets.contains(hash))
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java:1082:                    if (addTorrentsList.contains(hash))
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java:1148:        if (magnets.contains(hash)) {
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java:1156:        if (!magnets.contains(hash)) {
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java:1368:            if (inetAddress.contains(":"))
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java:1477:        return torrentTasks.containsKey(torrentId) || addTorrentsList.contains(torrentId);
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/urlnormalizer/NormalizeUrl.java:343:            int equalPos = pair.indexOf('=');
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/utils/Utils.java:533:        int index = versionName.indexOf("-");
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/filemanager/FileManagerAdapter.java:138:                if (highlightFileTypes != null && highlightFileTypes.contains(fs.getExtension(item.getName()))) {
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/stream/TorrentStreamServer.java:161:                    int minus = range.indexOf('-');
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/SessionErrorFilter.java:31:        return filteredErrors.contains(errorMsg);
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/createtorrent/CreateTorrentDialog.java:371:            if (err.getMessage().contains("content total size can't be 0"))
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/feeds/FeedFragment.java:301:                    return ids.contains(item.id);
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/feeds/FeedChannelListAdapter.java:130:        return getCurrentList().indexOf(key);
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/feeds/FeedActivity.java:186:                    if (f != null && ids.contains(f.getFeedId()))
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/MainViewModel.java:66:        return state.name.toLowerCase().contains(filterPattern);
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/drawer/TagsAdapter.java:119:        int position = getCurrentList().indexOf(item);
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/TorrentListAdapter.java:119:        return getCurrentList().indexOf(key);
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/tag/SelectTagViewModel.java:59:        return excludeTagsId == null || !excludeTagsId.contains(info.id);
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/feeditems/FeedItemsAdapter.java:102:        return getCurrentList().indexOf(key);
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/detailtorrent/pages/files/TorrentContentFilesAdapter.java:106:        return getCurrentList().indexOf(key);
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/detailtorrent/pages/trackers/TrackerListAdapter.java:112:        return getCurrentList().indexOf(key);
+/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/detailtorrent/pages/peers/PeerListAdapter.java:97:        return getCurrentList().indexOf(key);

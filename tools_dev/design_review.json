@@ -1,0 +1,65 @@
+{
+ "verdict": "CHANGES_REQUESTED",
+ "findings": [
+  {
+   "id": 1,
+   "severity": "HIGH",
+   "section": "11.6",
+   "title": "Liveness pruning computes a greatest fixpoint (start with all edges, drop), so self-justifying instantiation cycles (class C created only inside a method reachable only via an edge requiring C) stay REACHABLE; the stated Effect is false and the 50-round cap can trip on valid input",
+   "fix": "Iterate upward: live = always_live; repeat {E = manual + auto copies whose requires are satisfied by live; bfs(E, allow_setup=True, allow_env=True); live |= classes whose instantiated[c].sites intersect reached nodes} until live stops growing; final verdicts/paths on E; bound = len(instantiated)+1 rounds; tests for a self-instantiating class and a two-class cycle (UNRESOLVED)"
+  },
+  {
+   "id": 2,
+   "severity": "MEDIUM",
+   "section": "9.2, 6.4, 10.6 item 13",
+   "title": "Library-created classes never become live: *BindingImpl are created only in DataBinderMapperImpl.getDataBinder (called only by the library), so app calls like binding.setViewModel (14 sites in LibreTorrent, abstract on *Binding) are pruned; same for the AppGlideModule subclass and ButterKnife _ViewBinding/$$ViewBinder; framework_created omits <application android:backupAgent> (Aegis, MMEX)",
+   "fix": "Add 9.2 source 6 'library-created:<creator>' (always_live) for every app class with a new site inside a method of a class whose simple name is DataBinderMapperImpl (any package) or GeneratedAppGlideModuleImpl; extend source 5 to generated_kind butterknife; add framework_created source 'application-attr' for android:backupAgent and android:appComponentFactory; acceptance: no LibreTorrent *BindingImpl edge pruned by liveness"
+  },
+  {
+   "id": 3,
+   "severity": "MEDIUM",
+   "section": "8.3, 9.7, 10.3",
+   "title": "Case labels only from ('int', k): Aegis and AnyMemo compare getstatic R$id values in if-chains (Aegis MainActivity.java:1088; AnyMemo 14 files, no 'case R.id.'), so they get no 'case R.id.<name>' guards/triggers; not-equal successor, default, non-id types and framework-id text unspecified",
+   "fix": "if_icmpeq/if_icmpne with one operand exactly {('int',k)} or {('res',t,n)} labels the equal successor ('case',k,pc)/('case-res',t,n,pc); not-equal successor keeps the incoming label; text 'case R.<t>.<n>' / 'case android.R.<t>.<n>' (FW-MEMORY) / 'case <k>' / 'default'; trigger prefix 'switch case R.id.<name>: ' for both; Aegis test MainActivity.onOptionsItemSelected -> MainActivity.startPreferencesActivity() guard 'case R.id.action_settings'"
+  },
+  {
+   "id": 4,
+   "severity": "MEDIUM",
+   "section": "10.1",
+   "title": "Manifest citations resolve relative names against the source manifest's package attribute, which is absent in 6 of 13 apps (Aegis, AnyMemo, Currency, Diary, LibreTorrent, Markor); Currency also uses dot-less names (android:name=\"Main\"), so its components would be cited 'merged; from a library or generated'",
+   "fix": "A name N is relative if it starts with '.' or contains no '.'; resolve with the manifest package attr, else the namespace string literal in <module_root>/build.gradle(.kts), else the unique APK component whose FQCN ends with '.'+N.lstrip('.'); ambiguous: cite.src null + warning; test that all 10 Currency components cite src/main/AndroidManifest.xml lines"
+  },
+  {
+   "id": 5,
+   "severity": "MEDIUM",
+   "section": "11.4 step 4, 11.5 V6, 12.2, 12.5",
+   "title": "suppress/override/confirm run after AUTO_OPTIONS filtering and manual replacement and 'matching nothing is an error', so a manual edge in one part or an AUTO_OPTIONS toggle turns another part's suppress/override into V6; AUTO filtering unspecified; 12.5 override without match_kind rewrites every edge of the pair",
+   "fix": "Match against the full unfiltered calls.json edge list (base src, base dst[, kind]; @src = that variant copy after step 5); V6 only if no calls.json edge matches; matched edges already filtered/replaced are 'no effect' listed in build_report.txt; AUTO = that full list; 12.5 passes match_kind=x['kind']"
+  },
+  {
+   "id": 6,
+   "severity": "MEDIUM",
+   "section": "11.2, 17, 18",
+   "title": "v1-compat oracle compares against graphs/<App>/out/: Diary's out/ is rewritten by a concurrent workflow (graph_def.py 17:09 newer than out/ 17:08), making the unit suite (an install gate) flaky; Currency out/ reproducibility by the current v1 script is assumed",
+   "fix": "Snapshot the graph inputs into a temp dir; build with the v1 script (tools/build_graph.py before install, _backup_v1/build_graph.py after) into A and with v2 in v1 mode into B; gate on A == B (all four files); compare A with Currency out/ (must match); Diary only A-vs-B, outside the unit suite, out/ mismatch reported as staleness"
+  },
+  {"id": 7, "severity": "NIT", "section": "4.1", "title": "tests/__init__.py not listed (unittest discover -s tests -t . requires it); tglib/__init__.py owned by I although A/B import tglib first; v1 file copies have owner 'none'", "fix": "A creates empty tglib/__init__.py and tests/__init__.py first; I copies list_methods.py, coverage_methods.py, viewer_template.html and checks byte identity"},
+  {"id": 8, "severity": "NIT", "section": "4.1, 13, 16", "title": "jsonio.guard_path required by every writer but missing from jsonio's API; allowed roots for build_graph and standalone CLIs unspecified", "fix": "Add guard_path(path, allowed_root) and sha256_file(path) to jsonio (A); roots: <graphs>/<App>/auto/ for extract_app, the --out dir (must end in /auto) for CLIs, the resolved --out or <gdir>/out for build_graph"},
+  {"id": 9, "severity": "NIT", "section": "6.2, 6.5", "title": "Which rules are 'listed' in universe.json excluded is ambiguous (X5-X7 listed, X8-X10 just 'excluded', X1 counted only)", "fix": "excluded lists every non-universe method with code under X2-X10; X1 counted only; X4 not listed"},
+  {"id": 10, "severity": "NIT", "section": "6.4", "title": "build-config kind refers to an undefined --keep-buildconfig flag; top-level GoogleAuthProtos matches no protobuf rule", "fix": "Delete the build-config row/flag; protobuf also when the top-level simple name ends with Protos"},
+  {"id": 11, "severity": "NIT", "section": "8.3, 8.4", "title": "('param', i) ordinal vs slot unspecified; join of a local missing in one predecessor unspecified; multiple LineNumberTable attributes", "fix": "i = 0-based parameter ordinal excluding the receiver (matches InvokeSite.args[i]); missing local joins to {('unknown',)}; merge all LineNumberTables"},
+  {"id": 12, "severity": "NIT", "section": "9.4", "title": "Consumer lookup owner (Methodref owner vs resolved external type), event-5 vs table precedence, '*' async row's uncheckable '(View and Activity subclasses)', anonymous-class exception vs event-2 hops", "fix": "classify with resolve()'s ('ext', type), fallback Methodref owner; test event 5 before the table; '*' = any owner; evaluate the anonymous exception on terminal events after hops"},
+  {"id": 13, "severity": "NIT", "section": "9.1", "title": "select ignores JVMS 5.4.5 can-override; app-case return shape unspecified", "fix": "Skip private and cross-package package-private declarations; return ('app', class, method)"},
+  {"id": 14, "severity": "NIT", "section": "9.5, 9.6", "title": "switch-map <clinit> listed as a collapse target but 9.6 only creates edges into universe <clinit>", "fix": "Drop it from 9.5 or let 9.6 create raw clinit edges into excluded <clinit> methods"},
+  {"id": 15, "severity": "NIT", "section": "5, 10.1", "title": "'every module root of the checkout', a listed dir's source set, listed test dirs and full-variant priority undefined", "fix": "Module roots = dirs under checkout_root (no build/dot components) with src/main/AndroidManifest.xml, class-dir roots first; set = component after last /src/; priority variant > build type > flavors (longest first) > main; test*/androidTest* never candidates"},
+  {"id": 16, "severity": "NIT", "section": "10.2", "title": "arsc package chunks other than 0x0201/0x0202 and FLAG_COMPACT entries unspecified", "fix": "Skip 0x0203-0x0206 by size; decode FLAG_COMPACT (key index = first u16)"},
+  {"id": 17, "severity": "NIT", "section": "10.5", "title": "ButterKnife field assignments happen in K_ViewBinding.<init>, not in K, so view ids are missed (Omni-Notes, MMEX)", "fix": "Match puts of ('field', K, f) in any analysed method of any class"},
+  {"id": 18, "severity": "NIT", "section": "11.4, 11.5, 12.3", "title": "Required positional reason makes suppress(src, dst) a TypeError (exit 2) while V6 calls a missing reason a reported error; V7 edge fate unspecified", "fix": "suppress(src, dst, reason=None, kind=None), missing/empty reason = V6; V7-invalid e() records the error and drops the edge"},
+  {"id": 19, "severity": "NIT", "section": "13 vs 4.3", "title": "extract_app --all exits 1 but 4.3 reserves 1 for build_graph", "fix": "Allow exit 1 for extract_app --all in 4.3"},
+  {"id": 20, "severity": "NIT", "section": "18", "title": "Unclear whether integration or install appends the HANDOFF 'Tooling v2' section", "fix": "Integration appends; install only checks it exists"},
+  {"id": 21, "severity": "NIT", "section": "9.7", "title": "Record shapes/sort keys for ext_dispatch, unresolved_sites, unresolved_callbacks, failures, stats and key order of instantiated undefined", "fix": "Define them, e.g. ext_dispatch [{src,line,pc,owner,name,desc,overriders}] sorted by (src,pc); failures [{method,message}] sorted; instantiated keys sorted"},
+  {"id": 22, "severity": "NIT", "section": "12.1", "title": "parts/*.py names failing the regex and subdirectories are silently ignored", "fix": "Make them an error (exit 2)"},
+  {"id": 23, "severity": "NIT", "section": "9.7", "title": "SRC evidence on generated classes without source in the checkout", "fix": "Use 'INFERRED bytecode <File>:<line> (generated, no source in checkout)' for generated classes without source_path"}
+ ],
+ "reviewDoc": "/Users/darshan/Desktop/yang/work/tools_dev/design_review.md"
+}

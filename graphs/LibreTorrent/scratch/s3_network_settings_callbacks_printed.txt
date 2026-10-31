@@ -1,0 +1,666 @@
+===== /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/settings/sections/NetworkSettingsFragment.java =====
+--- lines 85-110 ---
+   85     @Override
+   86     public void onAttach(@NonNull Context context) {
+   87         super.onAttach(context);
+   88 
+   89         if (context instanceof AppCompatActivity)
+   90             activity = (AppCompatActivity) context;
+   91     }
+   92 
+   93     @Override
+   94     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+   95         super.onViewCreated(view, savedInstanceState);
+   96 
+   97         if (activity == null)
+   98             activity = (AppCompatActivity) getActivity();
+   99 
+  100         viewModel = new ViewModelProvider(activity).get(SettingsViewModel.class);
+  101     }
+  102 
+  103     @Override
+  104     public void onCreate(Bundle savedInstanceState) {
+  105         super.onCreate(savedInstanceState);
+  106 
+  107         Context context = getActivity().getApplicationContext();
+  108         pref = RepositoryHelper.getSettingsRepository(context);
+  109         fs = SystemFacadeHelper.getFileSystemFacade(context);
+  110 
+--- lines 111-279 ---
+  111         String keyEnableDht = getString(R.string.pref_key_enable_dht);
+  112         SwitchPreferenceCompat enableDht = findPreference(keyEnableDht);
+  113         if (enableDht != null) {
+  114             enableDht.setChecked(pref.enableDht());
+  115             bindOnPreferenceChangeListener(enableDht);
+  116         }
+  117 
+  118         String keyEnableLsd = getString(R.string.pref_key_enable_lsd);
+  119         SwitchPreferenceCompat enableLsd = findPreference(keyEnableLsd);
+  120         if (enableLsd != null) {
+  121             enableLsd.setChecked(pref.enableLsd());
+  122             bindOnPreferenceChangeListener(enableLsd);
+  123         }
+  124 
+  125         String keyEnableUtp = getString(R.string.pref_key_enable_utp);
+  126         SwitchPreferenceCompat enableUtp = findPreference(keyEnableUtp);
+  127         if (enableUtp != null) {
+  128             enableUtp.setChecked(pref.enableUtp());
+  129             bindOnPreferenceChangeListener(enableUtp);
+  130         }
+  131 
+  132         String keyEnableUpnp = getString(R.string.pref_key_enable_upnp);
+  133         SwitchPreferenceCompat enableUpnp = findPreference(keyEnableUpnp);
+  134         if (enableUpnp != null) {
+  135             enableUpnp.setChecked(pref.enableUpnp());
+  136             bindOnPreferenceChangeListener(enableUpnp);
+  137         }
+  138 
+  139         String keyEnableNatpmp = getString(R.string.pref_key_enable_natpmp);
+  140         SwitchPreferenceCompat enableNatpmp = findPreference(keyEnableNatpmp);
+  141         if (enableNatpmp != null) {
+  142             enableNatpmp.setChecked(pref.enableNatPmp());
+  143             bindOnPreferenceChangeListener(enableNatpmp);
+  144         }
+  145 
+  146         String keyRandomPort = getString(R.string.pref_key_use_random_port);
+  147         SwitchPreferenceCompat randomPort = findPreference(keyRandomPort);
+  148         if (randomPort != null) {
+  149             randomPort.setSummary(getString(R.string.pref_use_random_port_summarty,
+  150                     SessionSettings.DEFAULT_PORT_RANGE_FIRST,
+  151                     SessionSettings.DEFAULT_PORT_RANGE_SECOND - 10));
+  152             randomPort.setDisableDependentsState(true);
+  153             randomPort.setChecked(pref.useRandomPort());
+  154             bindOnPreferenceChangeListener(randomPort);
+  155         }
+  156 
+  157         InputFilter[] portFilter = new InputFilter[]{InputFilterRange.PORT_FILTER};
+  158 
+  159         String keyPortStart = getString(R.string.pref_key_port_range_first);
+  160         EditTextPreference portStart = findPreference(keyPortStart);
+  161         if (portStart != null) {
+  162             String value = Integer.toString(pref.portRangeFirst());
+  163             portStart.setOnBindEditTextListener((editText) -> editText.setFilters(portFilter));
+  164             portStart.setSummary(value);
+  165             portStart.setText(value);
+  166             bindOnPreferenceChangeListener(portStart);
+  167         }
+  168 
+  169         String keyPortEnd = getString(R.string.pref_key_port_range_second);
+  170         EditTextPreference portEnd = findPreference(keyPortEnd);
+  171         if (portEnd != null) {
+  172             String value = Integer.toString(pref.portRangeSecond());
+  173             portEnd.setOnBindEditTextListener((editText) -> editText.setFilters(portFilter));
+  174             portEnd.setSummary(value);
+  175             portEnd.setText(value);
+  176             bindOnPreferenceChangeListener(portEnd);
+  177         }
+  178 
+  179         String keyEncryptInConnectionsMode = getString(R.string.pref_key_enc_in_connections_mode);
+  180         ListPreference encryptInConnectionsMode = findPreference(keyEncryptInConnectionsMode);
+  181         if (encryptInConnectionsMode != null) {
+  182             var type = pref.encryptInConnectionsMode();
+  183             encryptInConnectionsMode.setValueIndex(type);
+  184             bindOnPreferenceChangeListener(encryptInConnectionsMode);
+  185         }
+  186 
+  187         String keyEncryptOutConnectionsMode = getString(R.string.pref_key_enc_out_connections_mode);
+  188         ListPreference encryptOutConnectionsMode = findPreference(keyEncryptOutConnectionsMode);
+  189         if (encryptOutConnectionsMode != null) {
+  190             var type = pref.encryptOutConnectionsMode();
+  191             encryptOutConnectionsMode.setValueIndex(type);
+  192             bindOnPreferenceChangeListener(encryptOutConnectionsMode);
+  193         }
+  194 
+  195         String keyIpFilter = getString(R.string.pref_key_enable_ip_filtering);
+  196         SwitchPreferenceCompat ipFilter = findPreference(keyIpFilter);
+  197         if (ipFilter != null) {
+  198             ipFilter.setChecked(pref.enableIpFiltering());
+  199             bindOnPreferenceChangeListener(ipFilter);
+  200         }
+  201 
+  202         String keyIpFilterFile = getString(R.string.pref_key_ip_filtering_file);
+  203         Preference ipFilterFile = findPreference(keyIpFilterFile);
+  204         if (ipFilterFile != null) {
+  205             String path = pref.ipFilteringFile();
+  206             if (path != null) {
+  207                 try {
+  208                     ipFilterFile.setSummary(fs.getFilePath(Uri.parse(path)));
+  209                 } catch (UnknownUriException e) {
+  210                     Log.e(TAG, Log.getStackTraceString(e));
+  211                 }
+  212             }
+  213             ipFilterFile.setOnPreferenceClickListener((Preference preference) -> {
+  214                 fileChooseDialog();
+  215 
+  216                 return true;
+  217             });
+  218         }
+  219 
+  220         String keyShowNatErrors = getString(R.string.pref_key_show_nat_errors);
+  221         SwitchPreferenceCompat showNatErrors = findPreference(keyShowNatErrors);
+  222         if (showNatErrors != null) {
+  223             showNatErrors.setChecked(pref.showNatErrors());
+  224             bindOnPreferenceChangeListener(showNatErrors);
+  225         }
+  226 
+  227         Preference proxy = findPreference(getString(R.string.pref_key_proxy_settings));
+  228         if (proxy != null) {
+  229             proxy.setOnPreferenceClickListener((preference) -> {
+  230                 if (Utils.isLargeScreenDevice(activity)) {
+  231                     setFragment(ProxySettingsFragment.newInstance(),
+  232                             getString(R.string.pref_proxy_settings_title));
+  233                 } else {
+  234                     startActivity(ProxySettingsFragment.class,
+  235                             getString(R.string.pref_proxy_settings_title));
+  236                 }
+  237 
+  238                 return true;
+  239             });
+  240         }
+  241 
+  242         String keyAnonymousMode = getString(R.string.pref_key_anonymous_mode);
+  243         Preference anonymousMode = findPreference(keyAnonymousMode);
+  244         if (anonymousMode != null) {
+  245             anonymousMode.setSummary(pref.anonymousMode() ? R.string.switch_on : R.string.switch_off);
+  246             anonymousMode.setOnPreferenceClickListener((preference) -> {
+  247                 if (Utils.isLargeScreenDevice(activity)) {
+  248                     setFragment(AnonymousModeSettingsFragment.newInstance(),
+  249                             getString(R.string.pref_anonymous_mode_title));
+  250                 } else {
+  251                     Intent i = new Intent(getActivity(), PreferenceActivity.class);
+  252                     PreferenceActivityConfig config = new PreferenceActivityConfig(
+  253                             AnonymousModeSettingsFragment.class.getSimpleName(),
+  254                             getString(R.string.pref_anonymous_mode_title)
+  255                     );
+  256                     i.putExtra(PreferenceActivity.TAG_CONFIG, config);
+  257                     anonymousModeActivity.launch(i);
+  258                 }
+  259 
+  260                 return true;
+  261             });
+  262         }
+  263 
+  264         String keySeedingOutgoingConn = getString(R.string.pref_key_seeding_outgoing_connections);
+  265         SwitchPreferenceCompat seedingOutgoingConn = findPreference(keySeedingOutgoingConn);
+  266         if (seedingOutgoingConn != null) {
+  267             seedingOutgoingConn.setChecked(pref.seedingOutgoingConnections());
+  268             bindOnPreferenceChangeListener(seedingOutgoingConn);
+  269         }
+  270 
+  271         String keyValidateHttpsTrackers = getString(R.string.pref_key_validate_https_trackers);
+  272         SwitchPreferenceCompat validateHttpsTrackers = findPreference(keyValidateHttpsTrackers);
+  273         if (validateHttpsTrackers != null) {
+  274             validateHttpsTrackers.setChecked(pref.validateHttpsTrackers());
+  275             bindOnPreferenceChangeListener(validateHttpsTrackers);
+  276         }
+  277     }
+  278 
+  279     @Override
+--- lines 280-413 ---
+  280     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
+  281         setPreferencesFromResource(R.xml.pref_network, rootKey);
+  282     }
+  283 
+  284     private void fileChooseDialog() {
+  285         Intent i = new Intent(getActivity(), FileManagerDialog.class);
+  286         FileManagerConfig config = new FileManagerConfig(
+  287                 null,
+  288                 null,
+  289                 FileManagerConfig.FILE_CHOOSER_MODE);
+  290         List<String> fileTypes = new ArrayList<>();
+  291         fileTypes.add("dat");
+  292         fileTypes.add("p2p");
+  293         config.highlightFileTypes = fileTypes;
+  294 
+  295         i.putExtra(FileManagerDialog.TAG_CONFIG, config);
+  296         fileChoose.launch(i);
+  297     }
+  298 
+  299     private void bindOnPreferenceChangeListener(Preference preference) {
+  300         preference.setOnPreferenceChangeListener(this);
+  301     }
+  302 
+  303     @Override
+  304     public boolean onPreferenceChange(Preference preference, Object newValue) {
+  305         if (preference.getKey().equals(getString(R.string.pref_key_port_range_first))) {
+  306             int value = SessionSettings.DEFAULT_PORT_RANGE_FIRST;
+  307             if (!TextUtils.isEmpty((String) newValue))
+  308                 value = Integer.parseInt((String) newValue);
+  309             pref.portRangeFirst(value);
+  310             preference.setSummary(Integer.toString(value));
+  311 
+  312         } else if (preference.getKey().equals(getString(R.string.pref_key_port_range_second))) {
+  313             int value = SessionSettings.DEFAULT_PORT_RANGE_SECOND;
+  314             if (!TextUtils.isEmpty((String) newValue))
+  315                 value = Integer.parseInt((String) newValue);
+  316             pref.portRangeSecond(value);
+  317             preference.setSummary(Integer.toString(value));
+  318 
+  319         } else if (preference.getKey().equals(getString(R.string.pref_key_enable_dht))) {
+  320             pref.enableDht((boolean) newValue);
+  321 
+  322         } else if (preference.getKey().equals(getString(R.string.pref_key_enable_lsd))) {
+  323             pref.enableLsd((boolean) newValue);
+  324 
+  325         } else if (preference.getKey().equals(getString(R.string.pref_key_enable_utp))) {
+  326             pref.enableUtp((boolean) newValue);
+  327 
+  328         } else if (preference.getKey().equals(getString(R.string.pref_key_enable_upnp))) {
+  329             pref.enableUpnp((boolean) newValue);
+  330 
+  331         } else if (preference.getKey().equals(getString(R.string.pref_key_enable_natpmp))) {
+  332             pref.enableNatPmp((boolean) newValue);
+  333 
+  334         } else if (preference.getKey().equals(getString(R.string.pref_key_show_nat_errors))) {
+  335             pref.showNatErrors((boolean) newValue);
+  336 
+  337         } else if (preference.getKey().equals(getString(R.string.pref_key_use_random_port))) {
+  338             pref.useRandomPort((boolean) newValue);
+  339 
+  340         } else if (preference.getKey().equals(getString(R.string.pref_key_enc_in_connections_mode))) {
+  341             int type = Integer.parseInt((String) newValue);
+  342             pref.encryptInConnectionsMode(type);
+  343 
+  344         } else if (preference.getKey().equals(getString(R.string.pref_key_enc_out_connections_mode))) {
+  345             int type = Integer.parseInt((String) newValue);
+  346             pref.encryptOutConnectionsMode(type);
+  347 
+  348         } else if (preference.getKey().equals(getString(R.string.pref_key_enable_ip_filtering))) {
+  349             pref.enableIpFiltering((boolean) newValue);
+  350 
+  351         } else if (preference.getKey().equals(getString(R.string.pref_key_seeding_outgoing_connections))) {
+  352             pref.seedingOutgoingConnections((boolean) newValue);
+  353 
+  354         } else if (preference.getKey().equals(getString(R.string.pref_key_validate_https_trackers))) {
+  355             pref.validateHttpsTrackers((boolean) newValue);
+  356         }
+  357 
+  358         return true;
+  359     }
+  360 
+  361     private <F extends PreferenceFragmentCompat> void setFragment(F fragment, String title) {
+  362         if (Utils.isLargeScreenDevice(getActivity().getApplicationContext())) {
+  363             viewModel.detailTitleChanged.setValue(title);
+  364             getActivity().getSupportFragmentManager().beginTransaction()
+  365                     .replace(R.id.detail_fragment_container, fragment)
+  366                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+  367                     .commit();
+  368         }
+  369     }
+  370 
+  371     private <F extends PreferenceFragmentCompat> void startActivity(Class<F> fragment, String title) {
+  372         Intent i = new Intent(getActivity(), PreferenceActivity.class);
+  373         PreferenceActivityConfig config = new PreferenceActivityConfig(
+  374                 fragment.getSimpleName(),
+  375                 title);
+  376 
+  377         i.putExtra(PreferenceActivity.TAG_CONFIG, config);
+  378         startActivity(i);
+  379     }
+  380 
+  381     final ActivityResultLauncher<Intent> fileChoose = registerForActivityResult(
+  382             new ActivityResultContracts.StartActivityForResult(),
+  383             result -> {
+  384                 Intent data = result.getData();
+  385                 if (result.getResultCode() == Activity.RESULT_OK) {
+  386                     Uri path = data.getData();
+  387                     if (path == null)
+  388                         return;
+  389 
+  390                     pref.ipFilteringFile(path.toString());
+  391 
+  392                     String keyIpFilterFile = getString(R.string.pref_key_ip_filtering_file);
+  393                     Preference ipFilterFile = findPreference(keyIpFilterFile);
+  394                     if (ipFilterFile != null) {
+  395                         try {
+  396                             ipFilterFile.setSummary(fs.getFilePath(path));
+  397                         } catch (UnknownUriException e) {
+  398                             Log.e(TAG, Log.getStackTraceString(e));
+  399                         }
+  400                     }
+  401                 }
+  402             }
+  403     );
+  404 
+  405     final ActivityResultLauncher<Intent> anonymousModeActivity = registerForActivityResult(
+  406             new ActivityResultContracts.StartActivityForResult(),
+  407             result -> {
+  408                 String keyAnonymousMode = getString(R.string.pref_key_anonymous_mode);
+  409                 Preference anonymousMode = findPreference(keyAnonymousMode);
+  410                 if (anonymousMode != null)
+  411                     anonymousMode.setSummary(pref.anonymousMode() ? R.string.switch_on : R.string.switch_off);
+  412             }
+  413     );
+===== /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/settings/PreferenceActivity.java =====
+--- lines 85-119 ---
+   85     public <F extends PreferenceFragmentCompat> void setFragment(F fragment)
+   86     {
+   87         if (fragment == null)
+   88             return;
+   89 
+   90         getSupportFragmentManager().beginTransaction()
+   91                 .replace(R.id.fragment_container, fragment).commit();
+   92     }
+   93 
+   94     private <F extends PreferenceFragmentCompat> F getFragment(String fragment)
+   95     {
+   96         if (fragment != null) {
+   97             if (fragment.equals(AppearanceSettingsFragment.class.getSimpleName()))
+   98                 return (F)AppearanceSettingsFragment.newInstance();
+   99             else if (fragment.equals(BehaviorSettingsFragment.class.getSimpleName()))
+  100                 return (F)BehaviorSettingsFragment.newInstance();
+  101             else if (fragment.equals(StorageSettingsFragment.class.getSimpleName()))
+  102                 return (F)StorageSettingsFragment.newInstance();
+  103             else if (fragment.equals(LimitationsSettingsFragment.class.getSimpleName()))
+  104                 return (F)LimitationsSettingsFragment.newInstance();
+  105             else if (fragment.equals(NetworkSettingsFragment.class.getSimpleName()))
+  106                 return (F)NetworkSettingsFragment.newInstance();
+  107             else if (fragment.equals(ProxySettingsFragment.class.getSimpleName()))
+  108                 return (F)ProxySettingsFragment.newInstance();
+  109             else if (fragment.equals(AnonymousModeSettingsFragment.class.getSimpleName()))
+  110                 return (F) AnonymousModeSettingsFragment.newInstance();
+  111             else if (fragment.equals(SchedulingSettingsFragment.class.getSimpleName()))
+  112                 return (F)SchedulingSettingsFragment.newInstance();
+  113             else if (fragment.equals(FeedSettingsFragment.class.getSimpleName()))
+  114                 return (F)FeedSettingsFragment.newInstance();
+  115             else if (fragment.equals(StreamingSettingsFragment.class.getSimpleName()))
+  116                 return (F)StreamingSettingsFragment.newInstance();
+  117             else
+  118                 return null;
+  119         }
+===== /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/settings/sections/ProxySettingsFragment.java =====
+--- lines 56-62 ---
+   56     public static ProxySettingsFragment newInstance()
+   57     {
+   58         ProxySettingsFragment fragment = new ProxySettingsFragment();
+   59 
+   60         fragment.setArguments(new Bundle());
+   61 
+   62         return fragment;
+--- lines 95-101 ---
+   95     public void onCreate(Bundle savedInstanceState)
+   96     {
+   97         super.onCreate(savedInstanceState);
+   98 
+   99         pref = RepositoryHelper.getSettingsRepository(getActivity().getApplicationContext());
+  100 
+  101         boolean enableAdvancedSettings;
+===== /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/settings/sections/AnonymousModeSettingsFragment.java =====
+--- lines 40-56 ---
+   40     public static AnonymousModeSettingsFragment newInstance()
+   41     {
+   42         AnonymousModeSettingsFragment fragment = new AnonymousModeSettingsFragment();
+   43 
+   44         fragment.setArguments(new Bundle());
+   45 
+   46         return fragment;
+   47     }
+   48 
+   49     @Override
+   50     public void onCreate(Bundle savedInstanceState)
+   51     {
+   52         super.onCreate(savedInstanceState);
+   53 
+   54         pref = RepositoryHelper.getSettingsRepository(getActivity().getApplicationContext());
+   55 
+   56         String keyAnonymousMode = getString(R.string.pref_key_anonymous_mode);
+===== /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/RepositoryHelper.java =====
+--- lines 61-67 ---
+   61     public synchronized static SettingsRepository getSettingsRepository(@NonNull Context appContext)
+   62     {
+   63         if (settingsRepo == null)
+   64             settingsRepo = new SettingsRepositoryImpl(appContext);
+   65 
+   66         return settingsRepo;
+   67     }
+===== /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/system/SystemFacadeHelper.java =====
+--- lines 39-46 ---
+   39     public synchronized static FileSystemFacade getFileSystemFacade(@NonNull Context appContext)
+   40     {
+   41         if (fileSystemFacade == null)
+   42             fileSystemFacade = new FileSystemFacadeImpl(appContext,
+   43                     new FsModuleResolverImpl(appContext));
+   44 
+   45         return fileSystemFacade;
+   46     }
+===== /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/system/FileSystemFacadeImpl.java =====
+--- lines 52-58 ---
+   52     public FileSystemFacadeImpl(@NonNull Context appContext,
+   53                                 @NonNull FsModuleResolver fsResolver)
+   54     {
+   55         this.appContext = appContext;
+   56         this.fsResolver = fsResolver;
+   57     }
+   58 
+--- lines 430-434 ---
+  430     public String getFilePath(@NonNull Uri filePath) throws UnknownUriException
+  431     {
+  432         FsModule fsModule = fsResolver.resolveFsByUri(filePath);
+  433 
+  434         return fsModule.getFilePath(filePath);
+===== /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/settings/SettingsRepositoryImpl.java =====
+--- lines 545-711 ---
+  545     public void portRangeFirst(int val) {
+  546         pref.edit()
+  547                 .putInt(appContext.getString(R.string.pref_key_port_range_first), val)
+  548                 .apply();
+  549     }
+  550 
+  551     @Override
+  552     public int portRangeSecond() {
+  553         return pref.getInt(appContext.getString(R.string.pref_key_port_range_second),
+  554                 Default.portRangeSecond);
+  555     }
+  556 
+  557     @Override
+  558     public void portRangeSecond(int val) {
+  559         pref.edit()
+  560                 .putInt(appContext.getString(R.string.pref_key_port_range_second), val)
+  561                 .apply();
+  562     }
+  563 
+  564     @Override
+  565     public boolean enableDht() {
+  566         return pref.getBoolean(appContext.getString(R.string.pref_key_enable_dht),
+  567                 Default.enableDht);
+  568     }
+  569 
+  570     @Override
+  571     public void enableDht(boolean val) {
+  572         pref.edit()
+  573                 .putBoolean(appContext.getString(R.string.pref_key_enable_dht), val)
+  574                 .apply();
+  575     }
+  576 
+  577     @Override
+  578     public boolean enableLsd() {
+  579         return pref.getBoolean(appContext.getString(R.string.pref_key_enable_lsd),
+  580                 Default.enableLsd);
+  581     }
+  582 
+  583     @Override
+  584     public void enableLsd(boolean val) {
+  585         pref.edit()
+  586                 .putBoolean(appContext.getString(R.string.pref_key_enable_lsd), val)
+  587                 .apply();
+  588     }
+  589 
+  590     @Override
+  591     public boolean enableUtp() {
+  592         return pref.getBoolean(appContext.getString(R.string.pref_key_enable_utp),
+  593                 Default.enableUtp);
+  594     }
+  595 
+  596     @Override
+  597     public void enableUtp(boolean val) {
+  598         pref.edit()
+  599                 .putBoolean(appContext.getString(R.string.pref_key_enable_utp), val)
+  600                 .apply();
+  601     }
+  602 
+  603     @Override
+  604     public boolean enableUpnp() {
+  605         return pref.getBoolean(appContext.getString(R.string.pref_key_enable_upnp),
+  606                 Default.enableUpnp);
+  607     }
+  608 
+  609     @Override
+  610     public void enableUpnp(boolean val) {
+  611         pref.edit()
+  612                 .putBoolean(appContext.getString(R.string.pref_key_enable_upnp), val)
+  613                 .apply();
+  614     }
+  615 
+  616     @Override
+  617     public boolean enableNatPmp() {
+  618         return pref.getBoolean(appContext.getString(R.string.pref_key_enable_natpmp),
+  619                 Default.enableNatPmp);
+  620     }
+  621 
+  622     @Override
+  623     public void enableNatPmp(boolean val) {
+  624         pref.edit()
+  625                 .putBoolean(appContext.getString(R.string.pref_key_enable_natpmp), val)
+  626                 .apply();
+  627     }
+  628 
+  629     @Override
+  630     public boolean useRandomPort() {
+  631         return pref.getBoolean(appContext.getString(R.string.pref_key_use_random_port),
+  632                 Default.useRandomPort);
+  633     }
+  634 
+  635     @Override
+  636     public void useRandomPort(boolean val) {
+  637         pref.edit()
+  638                 .putBoolean(appContext.getString(R.string.pref_key_use_random_port), val)
+  639                 .apply();
+  640     }
+  641 
+  642     @Override
+  643     public int encryptInConnectionsMode() {
+  644         return pref.getInt(appContext.getString(R.string.pref_key_enc_in_connections_mode),
+  645                 Default.encryptInConnectionsMode(appContext));
+  646     }
+  647 
+  648     @Override
+  649     public void encryptInConnectionsMode(int val) {
+  650         pref.edit()
+  651                 .putInt(appContext.getString(R.string.pref_key_enc_in_connections_mode), val)
+  652                 .apply();
+  653     }
+  654 
+  655     @Override
+  656     public int encryptOutConnectionsMode() {
+  657         return pref.getInt(appContext.getString(R.string.pref_key_enc_out_connections_mode),
+  658                 Default.encryptOutConnectionsMode(appContext));
+  659     }
+  660 
+  661     @Override
+  662     public void encryptOutConnectionsMode(int val) {
+  663         pref.edit()
+  664                 .putInt(appContext.getString(R.string.pref_key_enc_out_connections_mode), val)
+  665                 .apply();
+  666     }
+  667 
+  668     @Override
+  669     public boolean enableIpFiltering() {
+  670         return pref.getBoolean(appContext.getString(R.string.pref_key_enable_ip_filtering),
+  671                 Default.enableIpFiltering);
+  672     }
+  673 
+  674     @Override
+  675     public void enableIpFiltering(boolean val) {
+  676         pref.edit()
+  677                 .putBoolean(appContext.getString(R.string.pref_key_enable_ip_filtering), val)
+  678                 .apply();
+  679     }
+  680 
+  681     @Override
+  682     public String ipFilteringFile() {
+  683         return fs.normalizeFileSystemPath(pref.getString(appContext.getString(R.string.pref_key_ip_filtering_file),
+  684                 Default.ipFilteringFile));
+  685     }
+  686 
+  687     @Override
+  688     public void ipFilteringFile(String val) {
+  689         pref.edit()
+  690                 .putString(appContext.getString(R.string.pref_key_ip_filtering_file), val)
+  691                 .apply();
+  692     }
+  693 
+  694     @Override
+  695     public boolean showNatErrors() {
+  696         return pref.getBoolean(appContext.getString(R.string.pref_key_show_nat_errors),
+  697                 Default.showNatErrors);
+  698     }
+  699 
+  700     @Override
+  701     public void showNatErrors(boolean val) {
+  702         pref.edit()
+  703                 .putBoolean(appContext.getString(R.string.pref_key_show_nat_errors), val)
+  704                 .apply();
+  705     }
+  706 
+  707     @Override
+  708     public String saveTorrentsIn() {
+  709         return fs.normalizeFileSystemPath(pref.getString(appContext.getString(R.string.pref_key_save_torrents_in),
+  710                 Default.saveTorrentsIn(appContext)));
+  711     }
+--- lines 929-984 ---
+  929     public boolean anonymousMode() {
+  930         return pref.getBoolean(appContext.getString(R.string.pref_key_anonymous_mode),
+  931                 Default.anonymousMode);
+  932     }
+  933 
+  934     @Override
+  935     public void anonymousMode(boolean val) {
+  936         pref.edit()
+  937                 .putBoolean(appContext.getString(R.string.pref_key_anonymous_mode), val)
+  938                 .apply();
+  939     }
+  940 
+  941     @Override
+  942     public boolean seedingOutgoingConnections() {
+  943         return pref.getBoolean(appContext.getString(R.string.pref_key_seeding_outgoing_connections),
+  944                 Default.seedingOutgoingConnections);
+  945     }
+  946 
+  947     @Override
+  948     public void seedingOutgoingConnections(boolean val) {
+  949         pref.edit()
+  950                 .putBoolean(appContext.getString(R.string.pref_key_seeding_outgoing_connections), val)
+  951                 .apply();
+  952     }
+  953 
+  954     @Override
+  955     public String defaultTrackersList() {
+  956         return pref.getString(appContext.getString(R.string.pref_key_default_trackers_list),
+  957                 Default.defaultTrackersList);
+  958     }
+  959 
+  960     @Override
+  961     public void defaultTrackersList(String val) {
+  962         pref.edit()
+  963                 .putString(appContext.getString(R.string.pref_key_default_trackers_list), val)
+  964                 .apply();
+  965     }
+  966 
+  967     @Override
+  968     public boolean validateHttpsTrackers() {
+  969         return pref.getBoolean(appContext.getString(R.string.pref_key_validate_https_trackers),
+  970                 Default.validateHttpsTrackers);
+  971     }
+  972 
+  973     @Override
+  974     public void validateHttpsTrackers(boolean val) {
+  975         pref.edit()
+  976                 .putBoolean(appContext.getString(R.string.pref_key_validate_https_trackers), val)
+  977                 .apply();
+  978     }
+  979 
+  980     @Override
+  981     public boolean autoManage() {
+  982         return pref.getBoolean(appContext.getString(R.string.pref_key_auto_manage),
+  983                 Default.autoManage);
+  984     }

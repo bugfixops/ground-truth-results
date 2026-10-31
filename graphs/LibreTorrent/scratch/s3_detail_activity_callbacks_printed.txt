@@ -1,0 +1,91 @@
+   669	        } else {
+   670	            Intent i = new Intent(this, DetailTorrentActivity.class);
+   671	            i.putExtra(DetailTorrentActivity.TAG_TORRENT_ID, id);
+   672	            startActivity(i);
+   673	        }
+    43	    private static final String TAG = DetailTorrentActivity.class.getSimpleName();
+    44	
+    45	    public static final String ACTION_OPEN_FILES = "org.proninyaroslav.libretorrent.ui.detailtorrent.DetailTorrentActivity.ACTION_OPEN_FILES";
+    79	    @Override
+    80	    protected void onStop()
+    81	    {
+    82	        super.onStop();
+    83	
+    84	        disposables.clear();
+    85	    }
+    86	
+    87	    @Override
+    88	    protected void onStart()
+    89	    {
+    90	        super.onStart();
+    91	
+    92	        subscribeTorrentDeleted();
+    93	    }
+    94	
+    95	    private void subscribeTorrentDeleted()
+    96	    {
+    97	        disposables.add(infoProvider.observeTorrentsDeleted()
+    98	                .subscribeOn(Schedulers.io())
+    99	                .observeOn(AndroidSchedulers.mainThread())
+   100	                .subscribe((id) -> {
+   101	                    if (detailTorrentFragment != null &&
+   102	                        id.equals(detailTorrentFragment.getTorrentId()))
+   103	                        finish();
+   104	                }));
+   105	    }
+  7130	
+  7131	        onPostResume();
+  7132	        if (!mCalled) {
+  7133	            throw new SuperNotCalledException(
+  7134	                "Activity " + mComponent.toShortString() +
+  7135	                " did not call through to super.onPostResume()");
+  7136	        }
+  7137	    }
+  7138	
+  7139	    final void performPause() {
+  7140	        mDoReportFullyDrawn = false;
+  7141	        mFragments.dispatchPause();
+  7142	        mCalled = false;
+  7143	        onPause();
+  7144	        mResumed = false;
+  7145	        if (!mCalled && getApplicationInfo().targetSdkVersion
+  7146	                >= android.os.Build.VERSION_CODES.GINGERBREAD) {
+  7147	            throw new SuperNotCalledException(
+  7148	                    "Activity " + mComponent.toShortString() +
+  7149	                    " did not call through to super.onPause()");
+  7150	        }
+  7151	        mResumed = false;
+  7152	    }
+  7153	
+  7154	    final void performUserLeaving() {
+  7155	        onUserInteraction();
+  7156	        onUserLeaveHint();
+  7157	    }
+  7158	
+  7159	    final void performStop(boolean preserveWindow) {
+  7160	        mDoReportFullyDrawn = false;
+  7161	        mFragments.doLoaderStop(mChangingConfigurations /*retain*/);
+  7162	
+  7163	        // Disallow entering picture-in-picture after the activity has been stopped
+  7164	        mCanEnterPictureInPicture = false;
+  7165	
+  7166	        if (!mStopped) {
+  7167	            if (mWindow != null) {
+  7168	                mWindow.closeAllPanels();
+  7169	            }
+  7170	
+  7171	            // If we're preserving the window, don't setStoppedState to true, since we
+  7172	            // need the window started immediately again. Stopping the window will
+  7173	            // destroys hardware resources and causes flicker.
+  7174	            if (!preserveWindow && mToken != null && mParent == null) {
+  7175	                WindowManagerGlobal.getInstance().setStoppedState(mToken, true);
+  7176	            }
+  7177	
+  7178	            mFragments.dispatchStop();
+  7179	
+  7180	            mCalled = false;
+  7181	            mInstrumentation.callActivityOnStop(this);
+  7182	            if (!mCalled) {
+  1374	    public void callActivityOnStop(Activity activity) {
+  1375	        activity.onStop();
+  1376	    }

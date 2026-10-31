@@ -1,0 +1,12 @@
+Batch 065, UNREACHABLE Currency.getCentName (SOURCE; grep recorded for the no-caller claim)
+
+A. grep -rn "getCentName" final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main
+Currency.java:59:    public String getCentName() {
+(only the definition; no call site)
+
+B. grep -rln "centName\|CentName" final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main
+Currency.java
+currency/CurrencyEditActivity.java
+(CurrencyEditActivity.java:222 is the setter call currency.setCentName(...); line 158 reads the CENT_NAME column with cursor.getString, not the getter)
+
+C. auto_calls.json: the only record with src Currency.getCentName is Currency.getCentName -> EntityBase.getString (Currency.java:60, exact); no record has dst Currency.getCentName.

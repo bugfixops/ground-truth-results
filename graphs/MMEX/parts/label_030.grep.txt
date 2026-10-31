@@ -1,0 +1,35 @@
+# label_030 grep evidence for batch 030 (CategoryListFragment methods 41-43 of 43: $8.onChildClick, $9.<init>, $9.onGroupClick). UNREACHABLE entries in this batch: 0. Library claims labelled INFERRED: ExpandableListView (framework class, not in fw_src) and the androidx Fragment base (not in fw_src). Source root: final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex (SRC below).
+
+## A. ExpandableListView and androidx Fragment are not in fw_src (INFERRED claims: the row-click dispatch, the Fragment base)
+# Command: find fw_src/android-8.1.0_r1 -name 'ExpandableListView*.java' -o -name 'ExpandableListConnector*.java'
+# Output: (no lines)
+# Command: grep -rln "OnChildClickListener\|OnGroupClickListener" fw_src/android-8.1.0_r1 | head -5
+# Output: (no lines)
+# Command: find fw_src/android-8.1.0_r1 -path '*androidx*' -name 'Fragment.java' | head -3
+# Output: (no lines)
+
+## B. Every child and group click setter in the app source (CategoryListFragment.java:662 and 681 are the two picker listeners; the others belong to other classes)
+# Command: grep -rn "setOnChildClickListener\|setOnGroupClickListener" SRC
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/HomeFragment.java:686:        mExpandableListView.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java:936:        drawerList.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java:965:        drawerList.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/CategoryListFragment.java:662:            getExpandableListView().setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/CategoryListFragment.java:681:            getExpandableListView().setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/ExpandableListFragment.java:364:        mList.setOnChildClickListener(this);
+
+## C. Does any code call ExpandableListFragment.onContentChanged? (its line 364 would replace the picker listener at CategoryListFragment.java:662 if it ran after it)
+# Command: grep -rn "onContentChanged" SRC
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/ExpandableListFragment.java:354:    public void onContentChanged() {
+# (the only occurrence is the declaration; no call in app code)
+# Command: grep -rn "onContentChanged" fw_src/android-8.1.0_r1
+/Users/darshan/Desktop/yang/work/fw_src/android-8.1.0_r1/core/java/android/app/Dialog.java:744:    public void onContentChanged() {
+/Users/darshan/Desktop/yang/work/fw_src/android-8.1.0_r1/core/java/android/app/Activity.java:3129:    public void onContentChanged() {
+/Users/darshan/Desktop/yang/work/fw_src/android-8.1.0_r1/core/java/android/widget/CursorAdapter.java:107:     * {@link #onContentChanged()} when a notification comes in.  Be careful when
+/Users/darshan/Desktop/yang/work/fw_src/android-8.1.0_r1/core/java/android/widget/CursorAdapter.java:481:    protected void onContentChanged() {
+/Users/darshan/Desktop/yang/work/fw_src/android-8.1.0_r1/core/java/android/widget/CursorAdapter.java:500:            onContentChanged();
+/Users/darshan/Desktop/yang/work/fw_src/android-8.1.0_r1/core/java/android/preference/PreferenceActivity.java:1070:    public void onContentChanged() {
+/Users/darshan/Desktop/yang/work/fw_src/android-8.1.0_r1/core/java/android/preference/PreferenceActivity.java:1071:        super.onContentChanged();
+/Users/darshan/Desktop/yang/work/fw_src/android-8.1.0_r1/core/java/com/android/internal/policy/PhoneWindow.java:424:            cb.onContentChanged();
+/Users/darshan/Desktop/yang/work/fw_src/android-8.1.0_r1/core/java/com/android/internal/policy/PhoneWindow.java:455:            cb.onContentChanged();
+/Users/darshan/Desktop/yang/work/fw_src/android-8.1.0_r1/core/java/com/android/internal/policy/PhoneWindow.java:473:            cb.onContentChanged();
+# Reading: the framework hits are Window and Activity callbacks (Dialog, Activity, PreferenceActivity, PhoneWindow) and CursorAdapter. None is a fragment method. ExpandableListFragment extends androidx.fragment.app.Fragment (import at ExpandableListFragment.java:38; class declaration at ExpandableListFragment.java:48-49). The androidx base is not in fw_src, so the claim that the Fragment base never calls onContentChanged is INFERRED (library source not read).

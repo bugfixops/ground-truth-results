@@ -1,0 +1,35 @@
+# Vanilla Music 1.3.2 trigger graph
+# Generated part: tools/gen_edges.py derives entry points, lifecycle, callbacks, lambdas, intents, XML-instantiated classes
+# from the bytecode, AndroidManifest.xml and res/ XML (see its docstring). Direct app->app calls come from
+# tools/extract_calls.py. Everything below gen_edges.apply() is hand-written refinement for this app.
+# Rebuild: python3 -I tools/build_graph.py graphs/Vanilla-Music <prefix>
+
+TITLE = 'Vanilla Music 1.3.2 trigger graph'
+USE_AUTO = True
+PREFER_SETUP_OVER_ENV = True
+AUTO_DEAD = ('Generated graph: no route found. Nothing in the app calls it and no entry point (manifest component, lifecycle or '
+             'UI callback of a constructed class, lambda, XML reference, class literal, intent action) leads to it. '
+             'Probably unused code; entries through reflection, JNI or code generators are not modelled.')
+
+import sys
+sys.path.insert(0, TOOLS)
+import gen_edges
+
+NEED_FMT = ('The media library holds an audio file in this format (the baseline fixtures in /sdcard/Music are 12 mp3 and 3 wav files)')
+ENV_PERM = ('outside package: the storage / notification runtime permission is not granted (the baseline emulators had runtime '
+            'permissions pre-granted), so the permission request screen never shows')
+ENV_WIDGET = 'outside package: the user adds a Vanilla Music widget on the launcher home screen (the system then creates the widget provider)'
+
+CFG = {
+    'GROUPS': [         # (regex on node name, 'needs'|'env'|'guard', text): gates every edge that enters the group from outside it
+        (r'^(OpusFile|OggFile|FlacFile|Mp4File)\.', 'needs', NEED_FMT),
+        (r'^PermissionRequestActivity', 'env', ENV_PERM),
+        (r'^(PlaylistObserver)\.(asM3u|fromM3u|importM3uPlaylist|exportM3uPlaylist|getFileForName|getHash|deletePlaylistMetadata|updatePlaylistMetadata)',
+         'needs', 'A playlist exists (create one from a song menu), so its .m3u mirror is written or read'),
+    ],
+    'STATIC_ADAPTERS': [],  # adapters whose rows exist without user data
+}
+
+gen_edges.apply(globals(), GDIR, 'Vanilla-Music', CFG)
+
+# ------------------------------------------------------------------ hand-written refinement

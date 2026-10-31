@@ -1,0 +1,60 @@
+   378	    @Override
+   379	    public void onItemClicked(@NonNull TorrentListItem item)
+   380	    {
+   381	        if (Utils.isTwoPane(activity))
+   382	            adapter.markAsOpen(item);
+   383	        msgViewModel.torrentDetailsOpened(item.torrentId);
+   384	    }
+   385	
+   386	    @Override
+   387	    public void onItemPauseClicked(@NonNull TorrentListItem item)
+   388	    {
+   389	        viewModel.pauseResumeTorrent(item.torrentId);
+   390	    }
+   391	
+   437	    private void subscribeMsgViewModel() {
+   438	        disposables.add(msgViewModel.observeTorrentDetailsOpened()
+   439	                .observeOn(AndroidSchedulers.mainThread())
+   440	                .subscribe(this::showDetailTorrent));
+   441	
+   442	        disposables.add(msgViewModel.observeTorrentDetailsClosed()
+   443	                .observeOn(AndroidSchedulers.mainThread())
+   444	                .subscribe((__) -> showBlankFragment()));
+   445	
+   446	        disposables.add(viewModel.observeTorrentsDeleted()
+   447	                .subscribeOn(Schedulers.io())
+   448	                .observeOn(AndroidSchedulers.mainThread())
+   449	                .subscribe((id) -> {
+   450	                    DetailTorrentFragment f = getCurrentDetailFragment();
+   451	                    if (f != null && id.equals(f.getTorrentId()))
+   452	                        showBlankFragment();
+   453	                }));
+   454	    }
+   455	
+   653	    private void showDetailTorrent(String id) {
+   654	        if (Utils.isTwoPane(this)) {
+   655	            FragmentManager fm = getSupportFragmentManager();
+   656	            DetailTorrentFragment detail = DetailTorrentFragment.newInstance(id);
+   657	            Fragment fragment = fm.findFragmentById(R.id.detail_torrent_fragmentContainer);
+   658	
+   659	            if (fragment instanceof DetailTorrentFragment) {
+   660	                String oldId = ((DetailTorrentFragment) fragment).getTorrentId();
+   661	                if (id.equals(oldId))
+   662	                    return;
+   663	            }
+   664	            fm.beginTransaction()
+   665	                    .replace(R.id.detail_torrent_fragmentContainer, detail)
+   666	                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+   667	                    .commit();
+   668	
+   669	        } else {
+   670	            Intent i = new Intent(this, DetailTorrentActivity.class);
+   671	            i.putExtra(DetailTorrentActivity.TAG_TORRENT_ID, id);
+   672	            startActivity(i);
+   673	        }
+   674	    }
+   137	        <activity android:name=".ui.filemanager.FileManagerDialog" />
+   138	
+   139	        <activity android:name=".ui.detailtorrent.DetailTorrentActivity" />
+   140	
+   141	        <activity android:name=".ui.SendTextToClipboard"

@@ -1,0 +1,193 @@
+# label_089 grep and class-file evidence (batch 089: 32 methods, graphs/MMEX/scratch/batches/batch_089.txt)
+# Result: 13 REACHABLE, 19 UNREACHABLE (rows in graphs/MMEX/parts/label_089.md).
+# Path prefixes:
+#   SRC = final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/
+#   CLS = final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/
+#   FW  = fw_src/android-8.1.0_r1/core/java/android/
+# Tools: grep -rn --include='*.java' over the app src tree; grep -a -F over CLS; read-only python3 -I constant-pool parse of all 825 class files under CLS; read-only python3 -I query of graphs/MMEX/auto_calls.json (keys: calls, framework_calls, impl, lambdas, receiver_variants).
+# Generated classes (Dagger, Icepick, parceler) exist only as .class files under CLS; their line numbers are the ones stored in auto_calls, not source lines in the repo.
+
+## A. Source evidence (SRC; each line printed by grep -rn or sed -n)
+
+A1. EditPriceDialog (entry point of the Icepick -> PriceDownloadedEventBundler -> Parcels chain). Never constructed.
+  SRC investment/EditPriceDialog.java:39 import PriceDownloadedEventBundler; :58 import icepick.Icepick; :69 public class EditPriceDialog; :72, 74-77 TAG_AMOUNT_INPUT and ARG_* constants; :83 @State(PriceDownloadedEventBundler.class) PriceDownloadedEvent mPrice; :89-91 public EditPriceDialog() { super(); MmexApplication...inject(this); :174 Icepick.saveInstanceState(this, savedInstanceState); :193 mPrice = new PriceDownloadedEvent(symbol, price, date);
+  SRC investment/PriceEditActivity.java:198, 199, 201, 204 read EditPriceDialog.ARG_* extras (the activity does not construct the dialog).
+  SRC investment/watchlist/WatchlistItemsFragment.java:60 import; :246-248, :252 intent.putExtra(EditPriceDialog.ARG_*); :255 "//  EditPriceDialog dialog = new EditPriceDialog();" (commented out); :257-261 commented args.put calls.
+  SRC core/ioc/MmxComponent.java:34 import; :90 void inject(EditPriceDialog dialog); (injection only).
+  grep -rn 'new EditPriceDialog' over src: only WatchlistItemsFragment.java:255 (commented). grep -rn 'EditPriceDialog' over src: only the lines above. No Fragment.instantiate in src. The only Class.forName in src is JacocoInstrumentation.java:55 (org.jacoco.agent.rt.RT).
+  CLS: grep -a -F 'EditPriceDialog' matches 14 class files: EditPriceDialog.class, EditPriceDialog$1..$7.class, EditPriceDialog$$Icepick.class, EditPriceDialog_MembersInjector.class, PriceEditActivity.class, WatchlistItemsFragment.class, DaggerMmxComponent.class, MmxComponent.class. The parse (section B) finds no class file that holds a reference to EditPriceDialog.<init>()V.
+
+A2. PriceDownloadedEventBundler (dead; only EditPriceDialog refers to it in src).
+  SRC core/bundlers/PriceDownloadedEventBundler.java:33 public class PriceDownloadedEventBundler; :37 bundle.putParcelable(key, Parcels.wrap(event)); :43 return Parcels.unwrap(value);
+  grep -rn 'PriceDownloadedEventBundler' over src: PriceDownloadedEventBundler.java:33 and EditPriceDialog.java:39 (import), :83 (@State) only.
+
+A3. DummyContent (Android template class). grep -rn 'DummyContent' over src: DummyContent.java:31 only.
+  SRC investment/dummy/DummyContent.java:31 public class DummyContent; :43-50 static block and addItem; :58 public static class DummyItem; :62 public DummyItem(String id, String content); :68 public String toString().
+
+A4. SecurityPriceUpdaterFactory (static utility; never instantiated).
+  SRC investment/SecurityPriceUpdaterFactory.java:32 public class SecurityPriceUpdaterFactory {; :33 public static ISecurityPriceUpdater getUpdaterInstance(Context context); :38 settings.getQuoteProvider(); :40 switch (provider); :42 new MorningstarPriceUpdater(context); :48 new YahooCsvQuoteDownloaderRetrofit(context); :52 new YqlSecurityPriceUpdaterRetrofit(context).
+  grep -rn 'new SecurityPriceUpdaterFactory' and 'SecurityPriceUpdaterFactory(' over src: no match.
+  SRC investment/watchlist/WatchlistFragment.java:56 import; :362 SecurityPriceUpdaterFactory.getUpdaterInstance(getActivity()); :473 SecurityPriceUpdaterFactory.getUpdaterInstance(getContext()); :593 commented.
+
+A5. StocksCursorAdapter and StocksDataViewHolder.
+  SRC investment/StocksCursorAdapter.java:37 public class StocksCursorAdapter; :40 public StocksCursorAdapter(Context context, Cursor cursor); :54 public View newView(...); :58 StocksDataViewHolder holder = new StocksDataViewHolder(); :71 public void bindView(...); :73 holder = (StocksDataViewHolder) view.getTag().
+  SRC investment/StocksDataViewHolder.java:23 public class StocksDataViewHolder {.
+  grep -rn 'new StocksCursorAdapter' over src: WatchlistItemsFragment.java:137 only. grep -rn 'StocksDataViewHolder' over src: StocksCursorAdapter.java:58, :73 and StocksDataViewHolder.java:23 only.
+  SRC investment/watchlist/WatchlistItemsFragment.java:63 import; :137 StocksCursorAdapter adapter = new StocksCursorAdapter(context, null); :146, :196, :222 getListAdapter() instanceof/cast uses; :324 public void onLoadFinished(Loader<Cursor> loader, Cursor data); :326 adapter = (StocksCursorAdapter) getListAdapter(); :327 adapter.changeCursor(data).
+
+A6. PriceEditModel (PriceEditActivity route).
+  SRC investment/PriceEditActivity.java:52 public class PriceEditActivity; :77 initializeModel(); :178 private void initializeModel(); :179 model = new PriceEditModel();
+  SRC investment/PriceEditModel.java:38 public PriceEditModel() {; :39 MmexApplication.getApp().iocComponent.inject(this);
+  grep -rn 'new PriceEditModel(' over src: PriceEditActivity.java:179 only. grep -rn 'PriceEditModel_MembersInjector' over src: no match.
+  SRC core/IntentFactory.java:80 public static Intent getPriceEditIntent(Context context); investment/watchlist/WatchlistItemsFragment.java:245 IntentFactory.getPriceEditIntent(getActivity()).
+
+A7. Event classes.
+  SRC investment/events/PriceUpdateRequestEvent.java:23 public class PriceUpdateRequestEvent {; :25 public PriceUpdateRequestEvent(String symbol).
+  grep -rn 'new PriceUpdateRequestEvent' over src: WatchlistItemsFragment.java:236 only (EventBus.getDefault().post(new PriceUpdateRequestEvent(symbol))). Referrers of the class name: WatchlistItemsFragment.java:64 (import); WatchlistFragment.java:59 (import), :296 onEvent(PriceUpdateRequestEvent), :297 onPriceUpdateRequested(event.symbol).
+  SRC investment/events/AllPricesDownloadedEvent.java:24 public class AllPricesDownloadedEvent {.
+  grep -rn 'AllPricesDownloadedEvent' over src: yahoocsv/YahooCsvQuoteDownloaderRetrofit.java:27 (import), :100 post(new AllPricesDownloadedEvent()); morningstar/MorningstarPriceUpdater.java:29 (import), :156 commented post, :274 post(new AllPricesDownloadedEvent()); watchlist/WatchlistFragment.java:57 (import), :286 onEvent(AllPricesDownloadedEvent event); currency/recycler/CurrencyRecyclerListFragment.java:44 (import), :240 onEvent(AllPricesDownloadedEvent event). The new-instance sites are YahooCsv :100 and Morningstar :274 only.
+  SRC investment/events/PriceDownloadedEvent.java:30 @Parcel; :33 @ParcelConstructor; :34 public PriceDownloadedEvent(String symbol, Money price, Date date).
+  grep -rn 'new PriceDownloadedEvent(' over src: PriceCsvParser.java:97; EditPriceDialog.java:193; FixerService.java:120; MorningstarPriceUpdater.java:260; YqlSecurityPriceUpdaterRetrofit.java:130 (five src sites). The sixth class-file referrer is the generated PriceDownloadedEvent$$Parcelable.read (see B and D).
+
+A8. QuoteProviders and its callers.
+  SRC investment/QuoteProviders.java:30 public static String[] names(); :41 public static int indexOf(QuoteProviders value).
+  SRC investment/watchlist/WatchlistFragment.java:266-267 case R.id.menu_change_provider: changePriceProvider(); :378 private void changePriceProvider(); :381 settings.getQuoteProvider(); :382 QuoteProviders.indexOf(currentProvider); :386 setSingleChoiceItems(QuoteProviders.names(), ...); :390 QuoteProviders.valueOf(QuoteProviders.names()[which].toString()).
+  SRC settings/InvestmentSettingsFragment.java:129 QuoteProviders.names() in setEntries; :130 QuoteProviders.names() in setEntryValues; :143 QuoteProviders.valueOf(name) in onPreferenceChange.
+  SRC settings/InvestmentSettings.java:75 QuoteProviders defaultValue = QuoteProviders.YahooYql;
+  SRC home/MainActivity.java:459 @Subscribe; :460 public void onEvent(RequestWatchlistFragmentEvent event) {; :461 showWatchlistFragment(event.accountId); :800 public void showWatchlistFragment(int accountId) {; :804 fragment = WatchlistFragment.newInstance(accountId).
+
+A9. Price download paths (routes that construct PriceDownloadedEvent, SecurityPriceModel and AllPricesDownloadedEvent).
+  SRC investment/yql/YqlSecurityPriceUpdaterRetrofit.java:130 EventBus.getDefault().post(new PriceDownloadedEvent(model.symbol, model.price, model.date)); :176 SecurityPriceModel priceModel = new SecurityPriceModel();
+  SRC investment/prices/FixerService.java:120 EventBus.getDefault().post(new PriceDownloadedEvent(model.symbol, model.price, model.date)); :161 SecurityPriceModel priceModel = new SecurityPriceModel();
+  SRC investment/yahoocsv/YahooCsvQuoteDownloaderRetrofit.java:100 EventBus.getDefault().post(new AllPricesDownloadedEvent()); :116 event = parser.parse(content); (the earlier draft said 114; 114 is the declaration of the event variable).
+  SRC investment/PriceCsvParser.java:38 public class PriceCsvParser; :97 return new PriceDownloadedEvent(symbol, price, date);
+  SRC investment/morningstar/MorningstarPriceUpdater.java:29 import; :156 commented post; :260 return new PriceDownloadedEvent(yahooSymbol, price, dateTime.toDate()); :274 EventBus.getDefault().post(new AllPricesDownloadedEvent());
+  SRC currency/CurrencyService.java:519 IExchangeRateUpdater updater = ExchangeRateUpdaterFactory.getUpdaterInstance(getContext()); :520 updater.downloadPrices(baseCurrencySymbol, currencySymbols); (route into FixerService not verified; no label effect in this batch).
+
+A10. Watchlist UI routes into this batch.
+  SRC investment/watchlist/WatchlistItemsFragment.java:137 new StocksCursorAdapter (onActivityCreated); :236 post(new PriceUpdateRequestEvent(symbol)) (onContextItemSelected); :245 IntentFactory.getPriceEditIntent(getActivity()).
+
+## B. Class-file referrers (CLS; read-only parse of all 825 class files; NONE = no other class file holds a Methodref or Fieldref to the member; self = referenced from its own class file, e.g. a bridge or a sibling method)
+
+  All 13 batch classes were found (no MISSING lines).
+  investment.PriceEditModel_MembersInjector.<init>(Provider) <- NONE | self: yes (from create)
+  investment.PriceEditModel_MembersInjector.create(Provider) <- NONE
+  investment.PriceEditModel_MembersInjector.injectMembers(PriceEditModel) <- NONE | self: yes (from bridge injectMembers(Object))
+  investment.PriceEditModel_MembersInjector.injectDateTimeUtilsLazy(PriceEditModel,Lazy) <- core.ioc.DaggerMmxComponent | self: yes
+  investment.QuoteProviders.<clinit> <- NONE (static initialiser; runs on the first static access)
+  investment.QuoteProviders.indexOf(QuoteProviders) <- investment.watchlist.WatchlistFragment
+  investment.QuoteProviders.names() <- investment.watchlist.WatchlistFragment, investment.watchlist.WatchlistFragment$1, settings.InvestmentSettingsFragment
+  investment.SecurityPriceModel.<init>() <- investment.prices.FixerService, investment.yql.YqlSecurityPriceUpdaterRetrofit
+  investment.SecurityPriceUpdaterFactory.<init>() <- NONE
+  investment.SecurityPriceUpdaterFactory.getUpdaterInstance(Context) <- investment.watchlist.WatchlistFragment, investment.watchlist.WatchlistFragment$4
+  investment.StocksCursorAdapter.<init>(Context,Cursor) <- investment.watchlist.WatchlistItemsFragment
+  investment.StocksCursorAdapter.newView(Context,Cursor,ViewGroup) <- NONE (called by framework CursorAdapter.getView; FW section E)
+  investment.StocksCursorAdapter.bindView(View,Context,Cursor) <- NONE (called by framework CursorAdapter.getView; FW section E)
+  investment.StocksDataViewHolder.<init>() <- investment.StocksCursorAdapter
+  investment.dummy.DummyContent.<clinit>() <- NONE
+  investment.dummy.DummyContent.<init>() <- NONE
+  investment.dummy.DummyContent.addItem(DummyItem) <- NONE | self: yes (from <clinit>)
+  investment.dummy.DummyContent$DummyItem.<init>(String,String) <- investment.dummy.DummyContent
+  investment.dummy.DummyContent$DummyItem.toString() <- NONE
+  investment.events.AllPricesDownloadedEvent.<init>() <- investment.morningstar.MorningstarPriceUpdater, investment.yahoocsv.YahooCsvQuoteDownloaderRetrofit
+  investment.events.PriceDownloadedEvent.<init>(String,Money,Date) <- investment.EditPriceDialog, investment.PriceCsvParser, investment.events.PriceDownloadedEvent$$Parcelable, investment.morningstar.MorningstarPriceUpdater, investment.prices.FixerService, investment.yql.YqlSecurityPriceUpdaterRetrofit (six referrers)
+  investment.events.PriceDownloadedEvent$$Parcelable.<clinit>() <- NONE
+  investment.events.PriceDownloadedEvent$$Parcelable.<init>(PriceDownloadedEvent) <- investment.events.PriceDownloadedEvent$$Parcelable$1
+  investment.events.PriceDownloadedEvent$$Parcelable.describeContents() <- NONE (called only by the framework Parcelable interface)
+  investment.events.PriceDownloadedEvent$$Parcelable.getParcel() <- NONE | self: yes (from bridge getParcel()Object)
+  investment.events.PriceDownloadedEvent$$Parcelable.read(Parcel,IdentityCollection) <- investment.events.PriceDownloadedEvent$$Parcelable$1
+  investment.events.PriceDownloadedEvent$$Parcelable.write(PriceDownloadedEvent,Parcel,int,IdentityCollection) <- NONE | self: yes (from writeToParcel)
+  investment.events.PriceDownloadedEvent$$Parcelable.writeToParcel(Parcel,int) <- NONE (called only by the framework Parcelable interface)
+  investment.events.PriceDownloadedEvent$$Parcelable$1.<init>() <- investment.events.PriceDownloadedEvent$$Parcelable
+  investment.events.PriceDownloadedEvent$$Parcelable$1.createFromParcel(Parcel) <- NONE | self: yes (bridge)
+  investment.events.PriceDownloadedEvent$$Parcelable$1.newArray(int) <- NONE | self: yes (bridge)
+  investment.events.PriceUpdateRequestEvent.<init>(String) <- investment.watchlist.WatchlistItemsFragment
+  investment.EditPriceDialog.<init>() <- NONE
+  core.bundlers.PriceDownloadedEventBundler.<init>() <- investment.EditPriceDialog$$Icepick
+  core.bundlers.PriceDownloadedEventBundler.get(String,Bundle) <- NONE (reached only through the Bundler interface)
+  core.bundlers.PriceDownloadedEventBundler.put(String,PriceDownloadedEvent,Bundle) <- NONE (reached only through the Bundler interface)
+  Classes that reference DummyContent or PriceDownloadedEvent$$Parcelable (other than themselves): none.
+
+## C. Method tables of the batch classes (CLS parse; access hex, name, JVM descriptor)
+  PriceEditModel_MembersInjector (class 0x31): 0x1 <init>(Ljavax/inject/Provider;)V; 0x9 create(Ljavax/inject/Provider;)Ldagger/MembersInjector; 0x1 injectMembers(PriceEditModel)V; 0x9 injectDateTimeUtilsLazy(PriceEditModel,Ldagger/Lazy;)V; 0x1041 injectMembers(Object)V (bridge)
+  QuoteProviders (class 0x4031): 0x9 values(); 0x9 valueOf(String); 0x2 <init>(String,int); 0x9 names()[String; 0x9 indexOf(QuoteProviders)I; 0x100a $values(); 0x8 <clinit>()V
+  SecurityPriceModel (class 0x21): 0x1 <init>()V
+  SecurityPriceUpdaterFactory (class 0x21): 0x1 <init>()V (implicit default constructor); 0x9 getUpdaterInstance(Context)ISecurityPriceUpdater
+  StocksCursorAdapter (class 0x21): 0x1 <init>(Context,Cursor)V; 0x1 newView(Context,Cursor,ViewGroup)View; 0x1 bindView(View,Context,Cursor)V
+  StocksDataViewHolder (class 0x21): 0x1 <init>()V
+  DummyContent (class 0x21): 0x1 <init>()V; 0xa addItem(DummyItem)V; 0x8 <clinit>()V
+  DummyContent$DummyItem (class 0x21): 0x1 <init>(String,String)V; 0x1 toString()String
+  AllPricesDownloadedEvent (class 0x21): 0x1 <init>()V
+  PriceDownloadedEvent (class 0x21): 0x1 <init>(String,Money,Date)V
+  PriceDownloadedEvent$$Parcelable (class 0x21): 0x1 <init>(PriceDownloadedEvent)V; 0x1 writeToParcel(Parcel,int)V; 0x9 write(PriceDownloadedEvent,Parcel,int,IdentityCollection)V; 0x1 describeContents()I; 0x1 getParcel()PriceDownloadedEvent; 0x9 read(Parcel,IdentityCollection)PriceDownloadedEvent; 0x1041 getParcel()Object (bridge); 0x8 <clinit>()V
+  PriceDownloadedEvent$$Parcelable$1 (class 0x20): 0x0 <init>()V; 0x1 createFromParcel(Parcel)PriceDownloadedEvent$$Parcelable; 0x1 newArray(int)[PriceDownloadedEvent$$Parcelable; 0x1041 newArray(int)[Object (bridge); 0x1041 createFromParcel(Parcel)Object (bridge)
+  PriceUpdateRequestEvent (class 0x21): 0x1 <init>(String)V
+
+## D. auto_calls records (read-only query; file and line as stored; "exact" and "cha" are the stored dispatch kinds)
+  Records with a REACHABLE route (these are the reasons for the REACHABLE rows):
+  R1  DaggerMmxComponent.inject(PriceEditModel) -> DaggerMmxComponent.injectPriceEditModel   DaggerMmxComponent.java:285 (exact; generated)
+  R2  DaggerMmxComponent.injectPriceEditModel -> PriceEditModel_MembersInjector.injectDateTimeUtilsLazy   DaggerMmxComponent.java:495 (exact; generated)
+  R3  PriceEditModel.<init> -> DaggerMmxComponent.inject(PriceEditModel)   PriceEditModel.java:39 (cha)
+  R4  PriceEditActivity.initializeModel -> PriceEditModel.<init>   PriceEditActivity.java:179 (exact)
+  R5  WatchlistItemsFragment.onActivityCreated -> StocksCursorAdapter.<init>   WatchlistItemsFragment.java:137 (exact)
+  R6  StocksCursorAdapter.newView -> StocksDataViewHolder.<init>   StocksCursorAdapter.java:58 (exact)
+  R7  WatchlistItemsFragment.onContextItemSelected -> PriceUpdateRequestEvent.<init>   WatchlistItemsFragment.java:236 (exact)
+  R8  WatchlistFragment.onPriceUpdateRequested -> SecurityPriceUpdaterFactory.getUpdaterInstance   WatchlistFragment.java:362 (exact)
+  R9  WatchlistFragment$4.onClick -> SecurityPriceUpdaterFactory.getUpdaterInstance   WatchlistFragment.java:473 (exact)
+  R10 SecurityPriceUpdaterFactory.getUpdaterInstance -> QuoteProviders.<clinit>   SecurityPriceUpdaterFactory.java:40 (exact)
+  R11 SecurityPriceUpdaterFactory.getUpdaterInstance -> InvestmentSettings.getQuoteProvider   SecurityPriceUpdaterFactory.java:38 (exact)
+  R12 SecurityPriceUpdaterFactory.getUpdaterInstance -> MorningstarPriceUpdater.<init>   SecurityPriceUpdaterFactory.java:42 (exact)
+  R13 SecurityPriceUpdaterFactory.getUpdaterInstance -> YahooCsvQuoteDownloaderRetrofit.<init>   SecurityPriceUpdaterFactory.java:48 (exact)
+  R14 SecurityPriceUpdaterFactory.getUpdaterInstance -> YqlSecurityPriceUpdaterRetrofit.<init>   SecurityPriceUpdaterFactory.java:52 (exact)
+  R15 InvestmentSettings.getQuoteProvider -> QuoteProviders.<clinit>   InvestmentSettings.java:75 (exact)
+  R16 InvestmentSettingsFragment.initializeQuotesProvider -> QuoteProviders.<clinit>   InvestmentSettingsFragment.java:129 (exact)
+  R17 InvestmentSettingsFragment.initializeQuotesProvider -> QuoteProviders.names   InvestmentSettingsFragment.java:130 (exact)
+  R18 InvestmentSettingsFragment$2.onPreferenceChange -> QuoteProviders.<clinit>   InvestmentSettingsFragment.java:143 (exact)
+  R19 WatchlistFragment.changePriceProvider -> QuoteProviders.<clinit>   WatchlistFragment.java:382 (exact)
+  R20 WatchlistFragment.changePriceProvider -> QuoteProviders.indexOf   WatchlistFragment.java:382 (exact)
+  R21 WatchlistFragment.changePriceProvider -> QuoteProviders.names   WatchlistFragment.java:386 (exact)
+  R22 WatchlistFragment$1.onClick -> QuoteProviders.<clinit>   WatchlistFragment.java:390 (exact)
+  R23 WatchlistFragment$1.onClick -> QuoteProviders.names   WatchlistFragment.java:390 (exact)
+  R24 YqlSecurityPriceUpdaterRetrofit.onContentDownloaded -> PriceDownloadedEvent.<init>   YqlSecurityPriceUpdaterRetrofit.java:130 (exact)
+  R25 YqlSecurityPriceUpdaterRetrofit.getSecurityPriceFor -> SecurityPriceModel.<init>   YqlSecurityPriceUpdaterRetrofit.java:176 (exact)
+  R26 FixerService.getSecurityPriceFor -> SecurityPriceModel.<init>   FixerService.java:161 (exact)
+  R27 FixerService.onContentDownloaded -> PriceDownloadedEvent.<init>   FixerService.java:120 (exact)
+  R28 PriceCsvParser.parse -> PriceDownloadedEvent.<init>   PriceCsvParser.java:97 (exact)
+  R29 MorningstarPriceUpdater.parse -> PriceDownloadedEvent.<init>   MorningstarPriceUpdater.java:260 (exact)
+  R30 MorningstarPriceUpdater.finishIfAllDone -> AllPricesDownloadedEvent.<init>   MorningstarPriceUpdater.java:274 (exact)
+  R31 YahooCsvQuoteDownloaderRetrofit.finishIfAllDone -> AllPricesDownloadedEvent.<init>   YahooCsvQuoteDownloaderRetrofit.java:100 (exact)
+  Records on the dead EditPriceDialog route (not REACHABLE; no caller outside the dead chain):
+  R32 EditPriceDialog.createNewEntity -> PriceDownloadedEvent.<init>   EditPriceDialog.java:193 (exact)
+  R33 EditPriceDialog.<init> -> DaggerMmxComponent.inject(EditPriceDialog)   EditPriceDialog.java:91 (cha)
+  R34 EditPriceDialog$$Icepick.<clinit> -> PriceDownloadedEventBundler.<init>   EditPriceDialog$$Icepick.java:16 (exact; generated)
+  Records with a batch-089 UNREACHABLE caller (the 14 sup pairs in label_089.py):
+  S1  PriceEditModel_MembersInjector.create -> PriceEditModel_MembersInjector.<init>   PriceEditModel_MembersInjector.java:23 (exact; generated)
+  S2  PriceEditModel_MembersInjector.injectMembers -> PriceEditModel_MembersInjector.injectDateTimeUtilsLazy   PriceEditModel_MembersInjector.java:28 (exact; generated)
+  S3  DummyContent.<clinit> -> DummyContent.addItem   DummyContent.java:47 (exact)
+  S4  DummyContent.<clinit> -> DummyContent$DummyItem.<init>   DummyContent.java:47 (exact)
+  S5  PriceDownloadedEvent$$Parcelable.writeToParcel -> PriceDownloadedEvent$$Parcelable.write   PriceDownloadedEvent$$Parcelable.java:44 (exact; generated)
+  S6  PriceDownloadedEvent$$Parcelable.write -> Money$$Parcelable.<clinit>   PriceDownloadedEvent$$Parcelable.java:54 (exact; generated)
+  S7  PriceDownloadedEvent$$Parcelable.write -> Money$$Parcelable.write   PriceDownloadedEvent$$Parcelable.java:54 (exact; generated)
+  S8  PriceDownloadedEvent$$Parcelable.read -> Money$$Parcelable.<clinit>   PriceDownloadedEvent$$Parcelable.java:80 (exact; generated)
+  S9  PriceDownloadedEvent$$Parcelable.read -> Money$$Parcelable.read   PriceDownloadedEvent$$Parcelable.java:80 (exact; generated)
+  S10 PriceDownloadedEvent$$Parcelable.read -> PriceDownloadedEvent.<init>   PriceDownloadedEvent$$Parcelable.java:83 (exact; generated)
+  S11 PriceDownloadedEvent$$Parcelable.<clinit> -> PriceDownloadedEvent$$Parcelable$1.<init>   PriceDownloadedEvent$$Parcelable.java:22 (exact; generated)
+  S12 PriceDownloadedEvent$$Parcelable$1.createFromParcel -> PriceDownloadedEvent$$Parcelable.<clinit>   PriceDownloadedEvent$$Parcelable.java:27 (exact; generated)
+  S13 PriceDownloadedEvent$$Parcelable$1.createFromParcel -> PriceDownloadedEvent$$Parcelable.<init>   PriceDownloadedEvent$$Parcelable.java:27 (exact; generated)
+  S14 PriceDownloadedEvent$$Parcelable$1.createFromParcel -> PriceDownloadedEvent$$Parcelable.read   PriceDownloadedEvent$$Parcelable.java:27 (exact; generated)
+  Framework_calls (auto_calls key framework_calls): WatchlistItemsFragment.onLoadFinished -> FloatingActionButton.show, Loader.getId, StocksCursorAdapter.changeCursor, WatchlistItemsFragment.isResumed. It does NOT list StocksCursorAdapter.newView or bindView. StocksCursorAdapter.newView -> LayoutInflater.inflate, View.findViewById, View.setTag; StocksCursorAdapter.bindView -> Cursor.getColumnIndex, Cursor.getInt, Cursor.getPosition, Cursor.getString, HashMap.containsKey, HashMap.put, Integer.valueOf, SparseBooleanArray.get, TextView.setText, View.getTag, View.setBackgroundResource.
+  Therefore the two FRAMEWORK edges (WatchlistItemsFragment.onLoadFinished -> StocksCursorAdapter.newView and -> bindView) have no auto_calls CALL record; they are written in label_089.py.
+
+## E. Framework source (FW; each line printed by sed -n)
+  FW os/Bundle.java:316-332: hasFileDescriptors walks mMap; :328 if (obj instanceof Parcelable); :329-330 ((Parcelable) obj).describeContents() & CONTENTS_FILE_DESCRIPTOR. This is the only framework path that calls describeContents on a stored Parcelable.
+  FW os/Parcel.java:1785-1791: writeParcelable(Parcelable p, int flags); :1790 writeParcelableCreator(p); :1791 p.writeToParcel(this, parcelableFlags);
+  FW os/Parcel.java:2640-2645: createTypedArray(Parcelable.Creator<T> c); :2645 T[] l = c.newArray(N);
+  FW os/Parcel.java:2841-2842: readParcelable(ClassLoader) calls readParcelableCreator(loader) at :2842; :2867 public final Parcelable.Creator<?> readParcelableCreator(ClassLoader loader)
+  FW widget/CursorAdapter.java:276-289: getView; :285 v = newView(mContext, mCursor, parent) when convertView == null; :289 bindView(v, mContext, mCursor);
+  FW widget/CursorAdapter.java:348-353: changeCursor(Cursor cursor) calls swapCursor(cursor) at :349 (the onLoadFinished -> changeCursor route).
+
+## F. Open points (not resolved by this batch)
+  - Parceler behaviour (getParcel, reflective CREATOR load, Parcels.wrap/unwrap) is INFERRED; the parceler library jar is not in the repo.
+  - "EditPriceDialog never constructed" rests on: no uncommented new EditPriceDialog in SRC (A1); no reflective construction in SRC (A1); no class file refers to EditPriceDialog.<init>()V (B). Icepick restore needs a constructed dialog, so the chain is dead.
+  - CurrencyService.java:519-520 (the exchange-rate updater route) is not traced to FixerService and its UI trigger is not verified. No label impact.
+  - Who posts RequestWatchlistFragmentEvent (MainActivity.java:459-461 handler only) belongs to another batch.

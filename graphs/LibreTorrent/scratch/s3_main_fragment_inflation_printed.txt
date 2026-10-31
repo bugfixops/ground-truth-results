@@ -1,0 +1,199 @@
+=== MainActivity content inflation ===
+   182	        setContentView(R.layout.activity_main);
+   183	
+   184	        mainFragment = (MainFragment) getSupportFragmentManager()
+   185	                .findFragmentById(R.id.main_fragmentContainer);
+   186	
+   187	        cleanGarbageFragments();
+   188	        initLayout();
+   189	    }
+=== Default and large-layout aliases ===
+     1	<?xml version="1.0" encoding="utf-8"?>
+     2	<resources>
+     3	    <item name="activity_main" type="layout">@layout/activity_main_drawer</item>
+     4	    <item name="activity_feed" type="layout">@layout/activity_feed_portrait</item>
+     1	<?xml version="1.0" encoding="utf-8"?>
+     2	<resources>
+     3	    <item name="activity_main" type="layout">@layout/activity_main_two_pane</item>
+     4	    <item name="activity_feed" type="layout">@layout/activity_feed_two_pane</item>
+=== Main fragment XML declarations ===
+    22	            <androidx.fragment.app.FragmentContainerView
+    23	                class="org.proninyaroslav.libretorrent.ui.main.MainFragment"
+    24	                android:id="@+id/main_fragmentContainer"
+    25	                android:layout_width="match_parent"
+    26	                android:layout_height="match_parent"
+    27	                android:layout_below="@id/toolbar" />
+    28	        </RelativeLayout>
+    26	            <androidx.fragment.app.FragmentContainerView
+    27	                class="org.proninyaroslav.libretorrent.ui.main.MainFragment"
+    28	                android:id="@+id/main_fragmentContainer"
+    29	                android:layout_width="match_parent"
+    30	                android:layout_height="match_parent"
+    31	                android:layout_below="@id/toolbar" />
+    32	        </RelativeLayout>
+=== MainFragment lifecycle and adapter setup ===
+    85	public class MainFragment extends Fragment
+    86	        implements TorrentListAdapter.ClickListener
+    87	{
+   113	    @Nullable
+   114	    @Override
+   115	    public View onCreateView(@NonNull LayoutInflater inflater,
+   116	                             @Nullable ViewGroup container,
+   117	                             @Nullable Bundle savedInstanceState)
+   118	    {
+   119	        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_main, container, false);
+   120	
+   121	        return binding.getRoot();
+   122	    }
+   123	
+   124	    @Override
+   125	    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+   126	        super.onViewCreated(view, savedInstanceState);
+   127	
+   128	        if (activity == null)
+   129	            activity = (AppCompatActivity)getActivity();
+   130	
+   131	        ViewModelProvider provider = new ViewModelProvider(activity);
+   132	        viewModel = provider.get(MainViewModel.class);
+   133	        msgViewModel = provider.get(MsgMainViewModel.class);
+   134	        dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+   135	
+   136	        adapter = new TorrentListAdapter(this);
+   137	        /*
+   138	         * A RecyclerView by default creates another copy of the ViewHolder in order to
+   139	         * fade the views into each other. This causes the problem because the old ViewHolder gets
+   140	         * the payload but then the new one doesn't. So needs to explicitly tell it to reuse the old one.
+   141	         */
+   142	        DefaultItemAnimator animator = new DefaultItemAnimator() {
+   143	            @Override
+   144	            public boolean canReuseUpdatedViewHolder(@NonNull RecyclerView.ViewHolder viewHolder) {
+   145	                return true;
+   146	            }
+   147	        };
+   148	        layoutManager = new LinearLayoutManager(activity);
+   149	        binding.torrentList.setLayoutManager(layoutManager);
+   150	        binding.torrentList.setItemAnimator(animator);
+   151	        binding.torrentList.setEmptyView(binding.emptyViewTorrentList);
+   152	        TypedArray a = activity.obtainStyledAttributes(new TypedValue().data, new int[]{R.attr.divider});
+   153	        binding.torrentList.addItemDecoration(new RecyclerViewDividerDecoration(a.getDrawable(0)));
+   154	        a.recycle();
+   155	        binding.torrentList.setAdapter(adapter);
+   156	
+   125	    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+   126	        super.onViewCreated(view, savedInstanceState);
+   127	
+   128	        if (activity == null)
+   129	            activity = (AppCompatActivity)getActivity();
+   130	
+   131	        ViewModelProvider provider = new ViewModelProvider(activity);
+   132	        viewModel = provider.get(MainViewModel.class);
+   133	        msgViewModel = provider.get(MsgMainViewModel.class);
+   134	        dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+   135	
+   136	        adapter = new TorrentListAdapter(this);
+   137	        /*
+   138	         * A RecyclerView by default creates another copy of the ViewHolder in order to
+   139	         * fade the views into each other. This causes the problem because the old ViewHolder gets
+   140	         * the payload but then the new one doesn't. So needs to explicitly tell it to reuse the old one.
+   141	         */
+   142	        DefaultItemAnimator animator = new DefaultItemAnimator() {
+   143	            @Override
+   144	            public boolean canReuseUpdatedViewHolder(@NonNull RecyclerView.ViewHolder viewHolder) {
+   145	                return true;
+   146	            }
+   147	        };
+   148	        layoutManager = new LinearLayoutManager(activity);
+   149	        binding.torrentList.setLayoutManager(layoutManager);
+   150	        binding.torrentList.setItemAnimator(animator);
+   151	        binding.torrentList.setEmptyView(binding.emptyViewTorrentList);
+   152	        TypedArray a = activity.obtainStyledAttributes(new TypedValue().data, new int[]{R.attr.divider});
+   153	        binding.torrentList.addItemDecoration(new RecyclerViewDividerDecoration(a.getDrawable(0)));
+   154	        a.recycle();
+   155	        binding.torrentList.setAdapter(adapter);
+   156	
+   157	        selectionTracker = new SelectionTracker.Builder<>(
+   158	                SELECTION_TRACKER_ID,
+   159	                binding.torrentList,
+   160	                new TorrentListAdapter.KeyProvider(adapter),
+   161	                new TorrentListAdapter.ItemLookup(binding.torrentList),
+   162	                StorageStrategy.createParcelableStorage(TorrentListItem.class))
+   163	                .withSelectionPredicate(SelectionPredicates.createSelectAnything())
+   164	                .build();
+   165	
+   166	        selectionTracker.addObserver(new SelectionTracker.SelectionObserver<TorrentListItem>() {
+   167	            @Override
+   168	            public void onSelectionChanged()
+   169	            {
+   170	                super.onSelectionChanged();
+   171	
+   172	                if (selectionTracker.hasSelection() && actionMode == null) {
+   173	                    actionMode = activity.startSupportActionMode(actionModeCallback);
+   174	                    setActionModeTitle(selectionTracker.getSelection().size());
+   175	
+   176	                } else if (!selectionTracker.hasSelection()) {
+   177	                    if (actionMode != null)
+   178	                        actionMode.finish();
+   179	                    actionMode = null;
+   180	
+   181	                } else {
+   182	                    setActionModeTitle(selectionTracker.getSelection().size());
+   183	                }
+   184	            }
+   185	
+   186	            @Override
+   187	            public void onSelectionRestored()
+   188	            {
+   189	                super.onSelectionRestored();
+   190	
+   191	                actionMode = activity.startSupportActionMode(actionModeCallback);
+   192	                setActionModeTitle(selectionTracker.getSelection().size());
+   193	            }
+   194	        });
+   195	
+   196	        if (savedInstanceState != null)
+   197	            selectionTracker.onRestoreInstanceState(savedInstanceState);
+   198	        adapter.setSelectionTracker(selectionTracker);
+   199	
+   200	        initFabSpeedDial();
+   201	
+   202	        Intent i = activity.getIntent();
+   203	        if (i != null && MainActivity.ACTION_ADD_TORRENT_SHORTCUT.equals(i.getAction())) {
+   204	            /* Prevents re-reading action after device configuration changes */
+   205	            i.setAction(null);
+   206	            showAddTorrentMenu();
+   207	        }
+   208	    }
+   209	
+   210	    private void showAddTorrentMenu()
+   211	    {
+   212	        /* Show add torrent menu after window is displayed */
+   213	        View v = activity.getWindow().findViewById(android.R.id.content);
+   214	        if (v == null)
+   215	            return;
+   216	        v.post(() -> {
+   217	            registerForContextMenu(v);
+   218	            activity.openContextMenu(v);
+   219	            unregisterForContextMenu(v);
+   220	        });
+   221	    }
+   222	
+   223	    @Override
+   224	    public void onAttach(@NonNull Context context)
+   225	    {
+   226	        super.onAttach(context);
+   227	
+   228	        if (context instanceof AppCompatActivity)
+   229	            activity = (AppCompatActivity)context;
+   230	    }
+   231	
+   232	    @Override
+   233	    public void onStart()
+   234	    {
+   235	        super.onStart();
+   236	
+   237	        subscribeAdapter();
+   238	        subscribeAlertDialog();
+   239	        subscribeForceSortAndFilter();
+   240	        subscribeTorrentsDeleted();
+   241	        subscribeMsgViewModel();
+   242	    }

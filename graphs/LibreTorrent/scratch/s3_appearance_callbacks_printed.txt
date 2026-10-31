@@ -1,0 +1,299 @@
+===== /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/settings/sections/AppearanceSettingsFragment.java =====
+--- lines 118-120 ---
+  118         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
+  119             initLegacyNotifySettings(pref);
+  120     }
+--- lines 128-190 ---
+  128     private void initLegacyNotifySettings(SettingsRepository pref)
+  129     {
+  130         String keyPlaySound = getString(R.string.pref_key_play_sound_notify);
+  131         SwitchPreferenceCompat playSound = findPreference(keyPlaySound);
+  132         if (playSound != null) {
+  133             playSound.setChecked(pref.playSoundNotify());
+  134             bindOnPreferenceChangeListener(playSound);
+  135         }
+  136 
+  137         final String keyNotifySound = getString(R.string.pref_key_notify_sound);
+  138         Preference notifySound = findPreference(keyNotifySound);
+  139         String ringtone = pref.notifySound();
+  140         if (notifySound != null) {
+  141             notifySound.setSummary(RingtoneManager.getRingtone(getActivity().getApplicationContext(), Uri.parse(ringtone))
+  142                     .getTitle(getActivity().getApplicationContext()));
+  143             /* See https://code.google.com/p/android/issues/detail?id=183255 */
+  144             notifySound.setOnPreferenceClickListener((preference) -> {
+  145                 Intent intent = new Intent(RingtoneManager.ACTION_RINGTONE_PICKER);
+  146                 intent.putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_NOTIFICATION);
+  147                 intent.putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true);
+  148                 intent.putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, true);
+  149                 intent.putExtra(RingtoneManager.EXTRA_RINGTONE_DEFAULT_URI, Settings.System.DEFAULT_NOTIFICATION_URI);
+  150 
+  151                 String curRingtone = pref.notifySound();
+  152                 if (curRingtone != null) {
+  153                     if (curRingtone.length() == 0) {
+  154                         /* Select "Silent" */
+  155                         intent.putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, (Uri) null);
+  156                     } else {
+  157                         intent.putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, Uri.parse(curRingtone));
+  158                     }
+  159 
+  160                 } else {
+  161                     intent.putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, Settings.System.DEFAULT_NOTIFICATION_URI);
+  162                 }
+  163 
+  164                 ringtonePicker.launch(intent);
+  165 
+  166                 return true;
+  167             });
+  168         }
+  169 
+  170         String keyLedIndicator = getString(R.string.pref_key_led_indicator_notify);
+  171         SwitchPreferenceCompat ledIndicator = findPreference(keyLedIndicator);
+  172         if (ledIndicator != null) {
+  173             ledIndicator.setChecked(pref.ledIndicatorNotify());
+  174             bindOnPreferenceChangeListener(ledIndicator);
+  175         }
+  176 
+  177         String keyLedIndicatorColor = getString(R.string.pref_key_led_indicator_color_notify);
+  178         ColorPreferenceCompat ledIndicatorColor = findPreference(keyLedIndicatorColor);
+  179         if (ledIndicatorColor != null) {
+  180             ledIndicatorColor.saveValue(pref.ledIndicatorColorNotify());
+  181             bindOnPreferenceChangeListener(ledIndicatorColor);
+  182         }
+  183 
+  184         String keyVibration = getString(R.string.pref_key_vibration_notify);
+  185         SwitchPreferenceCompat vibration = findPreference(keyVibration);
+  186         if (vibration != null) {
+  187             vibration.setChecked(pref.vibrationNotify());
+  188             bindOnPreferenceChangeListener(vibration);
+  189         }
+  190     }
+--- lines 198-217 ---
+  198     final ActivityResultLauncher<Intent> ringtonePicker = registerForActivityResult(
+  199             new ActivityResultContracts.StartActivityForResult(),
+  200             result -> {
+  201                 Intent data = result.getData();
+  202                 if (result.getResultCode() == Activity.RESULT_OK && data != null) {
+  203                     Uri ringtone = data.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI);
+  204                     if (ringtone != null) {
+  205                         String keyNotifySound = getString(R.string.pref_key_notify_sound);
+  206                         Preference notifySound = findPreference(keyNotifySound);
+  207                         if (notifySound != null) {
+  208                             Context context = getActivity().getApplicationContext();
+  209                             notifySound.setSummary(
+  210                                     RingtoneManager.getRingtone(context, ringtone).getTitle(context)
+  211                             );
+  212                         }
+  213                         pref.notifySound(ringtone.toString());
+  214                     }
+  215                 }
+  216             }
+  217     );
+--- lines 219-270 ---
+  219     private void bindOnPreferenceChangeListener(Preference preference)
+  220     {
+  221         preference.setOnPreferenceChangeListener(this);
+  222     }
+  223 
+  224     @Override
+  225     public boolean onPreferenceChange(Preference preference, Object newValue)
+  226     {
+  227         if (preference.getKey().equals(getString(R.string.pref_key_theme))) {
+  228             int type = Integer.parseInt((String)newValue);
+  229             pref.theme(type);
+  230 
+  231             Snackbar.make(coordinatorLayout,
+  232                     R.string.theme_settings_apply_after_reboot,
+  233                     Snackbar.LENGTH_LONG)
+  234                     .setAction(R.string.apply, (v) -> restartMainActivity())
+  235                     .show();
+  236 
+  237         } else if (preference.getKey().equals(getString(R.string.pref_key_torrent_finish_notify))) {
+  238             pref.torrentFinishNotify((boolean)newValue);
+  239 
+  240         } else if (preference.getKey().equals(getString(R.string.pref_key_play_sound_notify))) {
+  241             pref.playSoundNotify((boolean)newValue);
+  242 
+  243         } else if (preference.getKey().equals(getString(R.string.pref_key_led_indicator_notify))) {
+  244             pref.ledIndicatorNotify((boolean)newValue);
+  245 
+  246         } else if (preference.getKey().equals(getString(R.string.pref_key_vibration_notify))) {
+  247             pref.vibrationNotify((boolean)newValue);
+  248 
+  249         } else if (preference.getKey().equals(getString(R.string.pref_key_led_indicator_color_notify))) {
+  250             pref.ledIndicatorColorNotify((int)newValue);
+  251 
+  252         } else if (preference.getKey().equals(getString(R.string.pref_key_foreground_notify_status_filter))) {
+  253             pref.foregroundNotifyStatusFilter((String)newValue);
+  254 
+  255         } else if (preference.getKey().equals(getString(R.string.pref_key_foreground_notify_sorting))) {
+  256             pref.foregroundNotifySorting((String)newValue);
+  257 
+  258         }  else if (preference.getKey().equals(getString(R.string.pref_key_foreground_notify_combined_pause_button))) {
+  259             pref.foregroundNotifyCombinedPauseButton((boolean)newValue);
+  260         }
+  261 
+  262         return true;
+  263     }
+  264 
+  265     private void restartMainActivity()
+  266     {
+  267         Intent intent = new Intent(getActivity().getApplicationContext(), MainActivity.class);
+  268         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+  269         startActivity(intent);
+  270     }
+===== /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/RepositoryHelper.java =====
+--- lines 61-67 ---
+   61     public synchronized static SettingsRepository getSettingsRepository(@NonNull Context appContext)
+   62     {
+   63         if (settingsRepo == null)
+   64             settingsRepo = new SettingsRepositoryImpl(appContext);
+   65 
+   66         return settingsRepo;
+   67     }
+===== /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/settings/SettingsRepositoryImpl.java =====
+--- lines 184-192 ---
+  184     public SettingsRepositoryImpl(@NonNull Context appContext) {
+  185         this.appContext = appContext;
+  186         fs = SystemFacadeHelper.getFileSystemFacade(appContext);
+  187         pref = PreferenceManager.getDefaultSharedPreferences(appContext);
+  188     }
+  189 
+  190     /*
+  191      * Returns Flowable with key
+  192      */
+--- lines 264-398 ---
+  264     public String notifySound() {
+  265         return pref.getString(appContext.getString(R.string.pref_key_notify_sound),
+  266                 Default.notifySound);
+  267     }
+  268 
+  269     @Override
+  270     public void notifySound(String val) {
+  271         pref.edit()
+  272                 .putString(appContext.getString(R.string.pref_key_notify_sound), val)
+  273                 .apply();
+  274     }
+  275 
+  276     @Override
+  277     public boolean torrentFinishNotify() {
+  278         return pref.getBoolean(appContext.getString(R.string.pref_key_torrent_finish_notify),
+  279                 Default.torrentFinishNotify);
+  280     }
+  281 
+  282     @Override
+  283     public void torrentFinishNotify(boolean val) {
+  284         pref.edit()
+  285                 .putBoolean(appContext.getString(R.string.pref_key_torrent_finish_notify), val)
+  286                 .apply();
+  287     }
+  288 
+  289     @Override
+  290     public boolean playSoundNotify() {
+  291         return pref.getBoolean(appContext.getString(R.string.pref_key_play_sound_notify),
+  292                 Default.playSoundNotify);
+  293     }
+  294 
+  295     @Override
+  296     public void playSoundNotify(boolean val) {
+  297         pref.edit()
+  298                 .putBoolean(appContext.getString(R.string.pref_key_play_sound_notify), val)
+  299                 .apply();
+  300     }
+  301 
+  302     @Override
+  303     public boolean ledIndicatorNotify() {
+  304         return pref.getBoolean(appContext.getString(R.string.pref_key_led_indicator_notify),
+  305                 Default.ledIndicatorNotify);
+  306     }
+  307 
+  308     @Override
+  309     public void ledIndicatorNotify(boolean val) {
+  310         pref.edit()
+  311                 .putBoolean(appContext.getString(R.string.pref_key_led_indicator_notify), val)
+  312                 .apply();
+  313     }
+  314 
+  315     @Override
+  316     public boolean vibrationNotify() {
+  317         return pref.getBoolean(appContext.getString(R.string.pref_key_vibration_notify),
+  318                 Default.vibrationNotify);
+  319     }
+  320 
+  321     @Override
+  322     public void vibrationNotify(boolean val) {
+  323         pref.edit()
+  324                 .putBoolean(appContext.getString(R.string.pref_key_vibration_notify), val)
+  325                 .apply();
+  326     }
+  327 
+  328     @Override
+  329     public int theme() {
+  330         return pref.getInt(appContext.getString(R.string.pref_key_theme),
+  331                 Default.theme(appContext));
+  332     }
+  333 
+  334     @Override
+  335     public void theme(int val) {
+  336         pref.edit()
+  337                 .putInt(appContext.getString(R.string.pref_key_theme), val)
+  338                 .apply();
+  339     }
+  340 
+  341     @Override
+  342     public int ledIndicatorColorNotify() {
+  343         return pref.getInt(appContext.getString(R.string.pref_key_led_indicator_color_notify),
+  344                 Default.ledIndicatorColorNotify(appContext));
+  345     }
+  346 
+  347     @Override
+  348     public void ledIndicatorColorNotify(int val) {
+  349         pref.edit()
+  350                 .putInt(appContext.getString(R.string.pref_key_led_indicator_color_notify), val)
+  351                 .apply();
+  352     }
+  353 
+  354     @Override
+  355     public String foregroundNotifyStatusFilter() {
+  356         return pref.getString(
+  357                 appContext.getString(R.string.pref_key_foreground_notify_status_filter),
+  358                 Default.foregroundNotifyStatusFilter(appContext)
+  359         );
+  360     }
+  361 
+  362     @Override
+  363     public void foregroundNotifyStatusFilter(String val) {
+  364         pref.edit()
+  365                 .putString(
+  366                         appContext.getString(R.string.pref_key_foreground_notify_status_filter),
+  367                         val
+  368                 )
+  369                 .apply();
+  370     }
+  371 
+  372     @Override
+  373     public String foregroundNotifySorting() {
+  374         return pref.getString(
+  375                 appContext.getString(R.string.pref_key_foreground_notify_sorting),
+  376                 Default.foregroundNotifySorting(appContext)
+  377         );
+  378     }
+  379 
+  380     @Override
+  381     public void foregroundNotifySorting(String val) {
+  382         pref.edit()
+  383                 .putString(
+  384                         appContext.getString(R.string.pref_key_foreground_notify_sorting),
+  385                         val
+  386                 )
+  387                 .apply();
+  388     }
+  389 
+  390     @Override
+  391     public void foregroundNotifyCombinedPauseButton(boolean val) {
+  392         pref.edit()
+  393                 .putBoolean(
+  394                         appContext.getString(R.string.pref_key_foreground_notify_combined_pause_button),
+  395                         val
+  396                 )
+  397                 .apply();
+  398     }

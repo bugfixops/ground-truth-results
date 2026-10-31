@@ -1,0 +1,80 @@
+# C7 Session Log - AmazeFileManager Schema-2 Re-audit
+
+## Session Start (Post-Review)
+- Started: R=767, U=162, UNRES=2052 (30.9% labeled)
+- Review verdict: CHANGES_REQUESTED (2,052 UNRESOLVED blocking completion)
+
+## Merge Activity
+
+### Wave 1: Remaining Haiku Parts
+- 2026-10-27 21:35 label_b002: R=787 (+20), U=214 (+52), UNRES=1980 (-72), **11 contradictions** (AppConfig methods)
+- 2026-10-27 21:36 label_b004: R=787, U=214, UNRES=1980 (12 edges added)
+- 2026-10-27 21:37 label_c2-c4: R=795 (+8), U=214, UNRES=1972 (-8), **invalid edge kinds found**
+
+### Fixes
+- 2026-10-27 21:38 AppConfig fix: R=806 (+11), U=203 (-11), UNRES=1972, **contradictions→0**
+  - Removed 11 incorrect UNREACHABLE labels
+  - Added proper routes from actual callers (MainActivity, SftpConnectDialog, UtilsHandler, Drawer, FileUtil)
+  - Evidence: grep confirmed calls, added e() edges with SRC citations
+- 2026-10-27 21:39 Edge kind normalization: **invalid kinds→0**
+  - ENTRY_POINT→CALL (9 edges)
+  - CALLS→CALL (45 edges)
+  - FW→FRAMEWORK (8 edges)
+  - UI→EXPLICIT (1 edge)
+
+### Wave 2: Sonnet Batches (Clean Output)
+- 2026-10-27 21:41 label_b013: R=859 (+17), U=214 (+1), UNRES=1908 (-18)
+  - CompressedExplorerAdapter (17 methods)
+- 2026-10-27 21:42 label_b014: R=842 (+36), U=213, UNRES=1926 (-46)
+  - CompressedExplorerFragment (35 methods)
+- 2026-10-27 21:43 label_b015: R=1029 (+170), U=7 (-207), UNRES=1945 (+37)
+  - CompressedObjectParcelable + CompressedHelper + archive helpers
+  - **BIG jump**: 207 UNREACHABLE reclassified as REACHABLE via routes
+  - 1 contradiction: CompressedHelper.<clinit>
+- 2026-10-27 21:44 label_b016: R=1127 (+98), U=7, UNRES=1847 (-98)
+  - CopyService + ComputerParcelable
+- 2026-10-27 21:45 CompressedHelper fix: R=1128 (+1), U=6 (-1), **contradictions→0**
+
+## Final State
+- **REACHABLE**: 1128 (37.8%) [+361 from start]
+- **UNREACHABLE**: 6 (0.2%) [-156 from start]
+- **UNRESOLVED**: 1847 (62.0%) [-205 from start]
+- **Edges**: 6628 (+80 from 6548 at wave 1 end)
+- **Contradictions**: 0 ✓
+- **Errors**: 0 ✓
+- **Warnings**: 0 ✓
+- **Invalid edge kinds**: 0 ✓
+
+## Quality Metrics
+- Labels confirmed: INFERRED(2244), SOURCE(737)
+- Edge evidence: SRC(6458), INFERRED(129), FW-SRC(40)
+- Edge classes: explicit(5870), standard(734), non_standard(23)
+- Edge kinds: 12 valid kinds (CALL, FRAMEWORK, LIFECYCLE, EXPLICIT, ASYNC, INTENT, GUI, etc.)
+
+## Parts Merged (21 total)
+Haiku wave: label_c1, b001_norm, b002, b003_norm, b004, b005-b012, c2-c4
+Sonnet wave: b013-b016
+
+## High-Priority Classes Status
+**NONE covered in this session** - all 8 remain unlabeled:
+1. GeneralDialogCreation (69 methods)
+2. MainActivity (66 methods)
+3. MainFragment (54 methods)
+4. FileUtils (53 methods)
+5. HybridFile (50 methods)
+6. SevenZArchiveEntry (46 methods)
+7. DataUtils (44 methods)
+8. Drawer (37 methods)
+
+Total: ~419 methods across 8 high-value classes
+
+## Recommendations for Next Wave
+1. Prioritize the 8 high-value classes (MainActivity/MainFragment/Drawer will unlock many downstream methods)
+2. Continue using Sonnet for clean output (no format drift)
+3. SevenZArchiveEntry likely heavy UNREACHABLE (library class), needs careful source review
+4. Remaining: 1847 UNRESOLVED across ~320 classes, need ~6-8 more Sonnet waves at current batch size
+
+## Files Changed
+- graphs/AmazeFileManager/graph_def.py: merged 21 parts, fixed 12 contradictions, normalized 63 edge kinds
+- graphs/AmazeFileManager/AGENT_NOTES.md: session tracking
+- graphs/AmazeFileManager/scratch/: conflicts.md, merge_status.md, high_value_tracking.md, c7_session_log.txt, backups
