@@ -28,7 +28,7 @@ Written 2026-10-31 from the state on disk at about 16:45 EDT. Re-check every num
 | AnkiDroid | Labelled overnight 2026-10-30; not route-checked | 4186 labelled (3275 / 911), 0/0 (build 204) | 0 | WP2 |
 | MMEX | Labelled overnight 2026-10-31; not route-checked | 4270 labelled (3430 / 840), 0/0 (build p147) | 0 | WP2 |
 | LibreTorrent | In the Claude queue from 2026-10-31 16:37; the run may still be on it | Not labelled: 4732 rows; only about 161 supported by hand; build 2026-10-30 10:35: 0 errors, 230 warnings, 2721 placeholder "unclassified" rows | 0 | WP1, then WP4 |
-| Device replay | Not started | 0 DEVICE rows anywhere | n/a | WP6, only after the user says go |
+| Device replay | Not started | 0 DEVICE rows anywhere | n/a | WP6, in scope since the user's 2026-10-31 instruction |
 
 Totals: 8 of 13 apps ticked. Labelling is complete for 12 apps; LibreTorrent is not. Route checks are the big gap.
 
@@ -117,16 +117,20 @@ Known issues before you start:
 
 Only after WP1 has reached `[L]`. Then run WP2's steps for LibreTorrent.
 
-### WP5: no work on the ticked apps
+### WP5: the eight ticked apps
 
-The eight ticked apps are closed unless the user reopens them. Do not change their labels or routes. If you find a real error in one, write it in `handoff/MUSE_NOTES.md` and tell the user; do not edit.
+The user asked for 100% for all 13 apps (2026-10-31). The eight ticked apps therefore need their device checks (section 8, step 3). Nothing else changes for them. Do not change their labels or route checks unless a device run or a source re-read shows an error. If one does, fix it, rebuild, print the route again, and log it in `scratch/fix_log.md`. Keep their `[x]` ticks as the user set them. In your report, list any app whose labels or routes changed since its tick.
 
-### WP6: device replay (not started; do not start without the user's go)
+### WP6: device replay on all 13 apps (in scope since the user's instruction of 2026-10-31)
 
 - Plan: `handoff/NEXT_DEVICE_REPLAY.md`.
 - Needs an API 27 emulator and a GitHub Actions workflow. Check the environment variables and secrets it needs, and list them in that plan file before any push. Secrets go only in the GitHub repo settings, never in a file.
 - Target repo: `bugfixops/test-13` (public or private: check before pushing). Commit only the workflow, route scripts, APK list and fixtures. No graph notes, no personal data, no tokens. Commit as `bugfixops <bugfixops@users.noreply.github.com>`.
-- Start only when the user says go. Routes per app and the permission grant rule are for the user and Yang to decide.
+- The user's instruction of 2026-10-31 ("finish 100% for all 13 apps") is the go for this step. Before the first push, complete these gates, in order:
+  1. Check the visibility of `bugfixops/test-13` with the API. If it is public, do not put any APK in it. Ask the user first. If it is private, APKs may go in it.
+  2. List the environment variables and secrets the workflow needs, in `handoff/NEXT_DEVICE_REPLAY.md`. Secrets go only in the GitHub repo settings. Never print or commit a secret.
+  3. Push only what runs the emulator: the workflow file, route scripts, the APK list and fixtures.
+- Defaults until the user or Yang decides otherwise: 30 routes per app, and more for Omni-Notes, Vanilla-Music, Markor, hash-checker and AnyMemo edges (`handoff/NEXT_DEVICE_REPLAY.md`). Storage permission is granted per route, as the standard configuration says, and each choice is logged. Yang decides the final permission rule (D2).
 
 ## 4. Decisions only the user or Yang can make
 
@@ -134,7 +138,8 @@ Stop and ask; do not decide these yourself.
 
 - **D1, Aegis:** the open items marked "Decision for Yang" (WP3).
 - **D2, AnyMemo storage permission:** is `WRITE_EXTERNAL_STORAGE` pre-granted in the standard configuration, or granted only on the routes that need it? `graphs/AnyMemo/graph_def.py` line 157 (`ENV_STORAGE_PERM`) and the startup gate near line 1765 depend on the answer. AnyMemo is ticked, so this only matters if the user reopens it.
-- **D3, device replay:** go or no-go; routes per app; the permission grant rule; whether to delete the repo afterwards.
+- **D3, device replay:** the user's 2026-10-31 instruction is the go. Still open for the user: the routes-per-app numbers (defaults in WP6), the visibility of `bugfixops/test-13` and where the APKs live, and whether to delete the repo afterwards.
+- **Blocked until decided:** Aegis (D1) and AnyMemo (D2) cannot reach 100% until Yang decides. Report them as blocked, not done.
 - **D4, API 27 image:** Yang's examples use Currency v1.33; the dataset copy is v1.58. Which API 27 image (Google APIs or plain, arm64 or x86) Yang uses is unknown.
 - **D5, LibreTorrent owner:** the user chose the Claude queue on 2026-10-31. If that changes, the user decides.
 
@@ -165,3 +170,20 @@ The remaining work is large:
 - Device replay: not started, and it needs the user's go.
 
 Plan for several sessions. A full labelling run for one app took several hours, with session limits in between. Finishing everything in one night is unlikely. Work in batches, keep the notes current, and stop at a clean point if a limit is reached.
+
+100% for all 13 apps is likely many days of work. LibreTorrent alone is 120 batches, and every device-replay route needs its own script and run.
+
+## 8. Definition of 100% per app
+
+An app is 100% only when every item below holds, with the printed output saved in `scratch/`. Until then, report the app as not finished and say which item is open.
+
+1. **Labels.** The build shows UNRESOLVED 0, errors 0 and warnings 0. Every method in `method_list.json` has one label from printed source. No "unclassified" placeholder rows remain (LibreTorrent).
+2. **Route checks.** The sample of 30 routes (more for the apps listed in WP6) has every step printed and judged. Each route is correct, fixed, wrong or unclear. The error rate is reported. The eight checks in section 2 all pass.
+3. **Device checks.** Each sampled route is replayed on an API 27 emulator with scripted steps. Routes that were reached get `DEVICE` rows in `verification.csv`. Routes that were not reached are marked `unclear` until the script is checked; a failed script is not evidence that the route is wrong. No label changes from a device run unless the source is read again first.
+4. **Logs.** `verification.csv` (written by `make_verification.py`), `readme_notes.md` (five headings, then `gen_readme_v2.py`), `LESSONS.md` and `AGENT_NOTES.md` are all complete.
+5. **Status.** The app's line in `handoff/PROGRESS_V2.md` reads `- [K] <App> (100% DONE <date>, awaiting user tick)`. Do not write `[x]`; the user ticks.
+
+Blockers that stop 100%, and who decides them:
+- Aegis: the open "Decision for Yang" items (D1).
+- AnyMemo: the storage permission rule (D2), if the route checks depend on it.
+- Every app: the API 27 image choice (D4), once device replay starts.
