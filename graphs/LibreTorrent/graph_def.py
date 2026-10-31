@@ -3049,20 +3049,6 @@ UNREACHABLE.update({
     'AtomItem.getDescription': ('no_trigger_in_app', _BATCH12_NO_FEED_CALLER, 'SRC com/ernieyu/feedparser/impl/AtomItem.java:56-61; scratch/batch_012_call_audit.txt', 'SOURCE'),
 })
 
-# S4 batch 14: unused feed toString/description and MediaRSS value equality
-# overrides. Parser-consumed methods stay OPEN until hand routes are added.
-_BATCH14_NO_FEED_CALLER = 'No app or bundled feed-parser source path calls this method.'
-UNREACHABLE.update({
-    'Rss1Feed.toString': ('no_trigger_in_app', _BATCH14_NO_FEED_CALLER, 'SRC com/ernieyu/feedparser/impl/Rss1Feed.java:118-122; scratch/batch_014_helper_printed.txt', 'SOURCE'),
-    'Rss1Item.getDescription': ('no_trigger_in_app', _BATCH14_NO_FEED_CALLER, 'SRC com/ernieyu/feedparser/impl/Rss1Item.java:56-59; scratch/batch_014_helper_printed.txt', 'SOURCE'),
-    'Rss2Feed.toString': ('no_trigger_in_app', _BATCH14_NO_FEED_CALLER, 'SRC com/ernieyu/feedparser/impl/Rss2Feed.java:132-136; scratch/batch_014_helper_printed.txt', 'SOURCE'),
-    'Rss2Item.getDescription': ('no_trigger_in_app', _BATCH14_NO_FEED_CALLER, 'SRC com/ernieyu/feedparser/impl/Rss2Item.java:57-60; scratch/batch_014_helper_printed.txt', 'SOURCE'),
-    'Content.equals': ('no_trigger_in_app', _BATCH14_NO_FEED_CALLER, 'SRC com/ernieyu/feedparser/mediarss/Content.java:63-73; scratch/batch_014_helper_printed.txt', 'SOURCE'),
-    'Content.hashCode': ('no_trigger_in_app', _BATCH14_NO_FEED_CALLER, 'SRC com/ernieyu/feedparser/mediarss/Content.java:75-80; scratch/batch_014_helper_printed.txt', 'SOURCE'),
-    'Content.toString': ('no_trigger_in_app', _BATCH14_NO_FEED_CALLER, 'SRC com/ernieyu/feedparser/mediarss/Content.java:82-89; scratch/batch_014_helper_printed.txt', 'SOURCE'),
-    'Hash.equals': ('no_trigger_in_app', _BATCH14_NO_FEED_CALLER, 'SRC com/ernieyu/feedparser/mediarss/Hash.java:54-64; scratch/batch_014_helper_printed.txt', 'SOURCE'),
-})
-
 # S4 batch 15: NanoHTTPD base dispatch/API paths absent from this app's use.
 _BATCH15_NO_CALLER = 'The uploaded app subclass overrides this base method or has no caller for this helper; app source has no route to it.'
 UNREACHABLE.update({
@@ -3576,4 +3562,309 @@ SUPPRESS.update({
     ('BaseItem.equals@AtomItem', 'FeedUtils.equalsOrNull'),
     ('BaseItem.equals@Rss1Item', 'FeedUtils.equalsOrNull'),
     ('BaseItem.equals@Rss2Item', 'FeedUtils.equalsOrNull'),
+})
+
+# ---- part: batch 14 (parts/b014.py; printed evidence scratch/b014_printed.txt)
+# Batch 14 part (com.ernieyu.feedparser impl and mediarss: Rss1Feed, Rss2Feed,
+# Rss1Item, Rss2Item, MediaRssParser, Content, Hash). Hand-written edges and
+# UNREACHABLE entries only. Each evidence string cites lines printed in
+# graphs/LibreTorrent/scratch/b014_printed.txt.
+#
+# Route steps owned by other batches are written here so that the routes of
+# batch-14 methods are complete: FeedParser.findDownloadUrl -> watchMediaContent
+# and watchGuid, FeedParser.watchMediaContent -> watchMediaHash. If another part
+# writes the same edge, the merge keeps one copy.
+
+# FeedHandler creates the RSS feed roots (impl/FeedHandler.java:60-62, 67-69).
+e('FeedHandler.startElement', 'Rss1Feed.<init>', 'CALL', 'Create an RSS 1.0 feed for the RDF root element',
+  guard='localName equals RDF', cls='explicit', evidence='SRC impl/FeedHandler.java:60-62')
+e('FeedHandler.startElement', 'Rss2Feed.<init>', 'CALL', 'Create an RSS 2.0 feed for the rss root element',
+  guard='localName equals RSS', cls='explicit', evidence='SRC impl/FeedHandler.java:67-69')
+
+# core/FeedParser.getItems reads item accessors (core/FeedParser.java:95-110).
+e('FeedParser.getItems', 'Rss1Item.getLinks', 'CALL', 'Read RSS 1.0 item links',
+  cls='non_standard', via='Item interface dispatch to Rss1Item', evidence='INFERRED interface dispatch; SRC core/FeedParser.java:95-96; impl/Rss1Item.java:45-52')
+e('FeedParser.getItems', 'Rss2Item.getLinks', 'CALL', 'Read RSS 2.0 item links',
+  cls='non_standard', via='Item interface dispatch to Rss2Item', evidence='INFERRED interface dispatch; SRC core/FeedParser.java:95-96; impl/Rss2Item.java:46-54')
+e('FeedParser.getItems', 'Rss1Item.getTitle', 'CALL', 'Read RSS 1.0 item title',
+  cls='non_standard', via='Item interface dispatch to Rss1Item', evidence='INFERRED interface dispatch; SRC core/FeedParser.java:110; impl/Rss1Item.java:39-42')
+e('FeedParser.getItems', 'Rss2Item.getTitle', 'CALL', 'Read RSS 2.0 item title',
+  cls='non_standard', via='Item interface dispatch to Rss2Item', evidence='INFERRED interface dispatch; SRC core/FeedParser.java:110; impl/Rss2Item.java:40-43')
+
+# findDownloadUrl checks the remaining sources in order (core/FeedParser.java:147-160).
+e('FeedParser.findDownloadUrl', 'FeedParser.watchMediaContent', 'CALL', 'Check media:content entries when no enclosure or EzRSS hash matched',
+  guard='watchEnclosure and watchTorrentInfoHash returned null', cls='explicit', evidence='SRC core/FeedParser.java:155-157')
+e('FeedParser.findDownloadUrl', 'FeedParser.watchGuid', 'CALL', 'Use the item guid when no earlier source matched',
+  guard='watchMediaContent returned null', cls='explicit', evidence='SRC core/FeedParser.java:159-160')
+e('FeedParser.watchTorrentInfoHash', 'Rss1Item.getEzRssTorrentItem', 'CALL', 'Read EzRSS metadata from an RSS 1.0 item',
+  cls='non_standard', via='Item interface dispatch to Rss1Item', evidence='INFERRED interface dispatch; SRC core/FeedParser.java:238; impl/Rss1Item.java:120-123')
+
+# watchMediaContent and the media:hash fallback (core/FeedParser.java:188-229).
+e('FeedParser.watchMediaContent', 'Rss1Item.getMediaRss', 'CALL', 'Read the media RSS block of an RSS 1.0 item',
+  cls='non_standard', via='Item interface dispatch to Rss1Item', evidence='INFERRED interface dispatch; SRC core/FeedParser.java:190; impl/Rss1Item.java:111-114')
+e('FeedParser.watchMediaContent', 'Rss2Item.getMediaRss', 'CALL', 'Parse the media RSS block of an RSS 2.0 item',
+  cls='non_standard', via='Item interface dispatch to Rss2Item', evidence='INFERRED interface dispatch; SRC core/FeedParser.java:190; impl/Rss2Item.java:113-116')
+e('FeedParser.watchMediaContent', 'Content.getUrl', 'CALL', 'Read the URL of a media:content entry',
+  guard='content is not null', cls='explicit', evidence='SRC core/FeedParser.java:195-199; mediarss/Content.java:48-50')
+e('FeedParser.watchMediaContent', 'Content.getType', 'CALL', 'Read the MIME type of a media:content entry that has a URL',
+  guard='content URL is not null', cls='explicit', evidence='SRC core/FeedParser.java:200-202; mediarss/Content.java:59-61')
+e('FeedParser.watchMediaContent', 'FeedParser.watchMediaHash', 'CALL', 'Check the media:hash fallback when a URL is null or no content matched',
+  guard='content URL is null, or the content list ends without a match', cls='explicit', evidence='SRC core/FeedParser.java:200-201,207')
+e('FeedParser.watchMediaHash', 'Hash.getAlgorithm', 'CALL', 'Read the algorithm of a media:hash value',
+  guard='hash value is not null', cls='explicit', evidence='SRC core/FeedParser.java:217-224; mediarss/Hash.java:44-46')
+
+# watchGuid reads the guid of the item (core/FeedParser.java:254-260).
+e('FeedParser.watchGuid', 'Rss1Item.getGuid', 'CALL', 'Read the RSS 1.0 item identifier used as a fallback URL',
+  cls='non_standard', via='Item interface dispatch to Rss1Item', evidence='INFERRED interface dispatch; SRC core/FeedParser.java:256; impl/Rss1Item.java:69-72')
+e('FeedParser.watchGuid', 'Rss2Item.getGuid', 'CALL', 'Read the RSS 2.0 item guid used as a fallback URL',
+  cls='non_standard', via='Item interface dispatch to Rss2Item', evidence='INFERRED interface dispatch; SRC core/FeedParser.java:256; impl/Rss2Item.java:69-72')
+
+# Rss2Item.getMediaRss runs the Media RSS parser (impl/Rss2Item.java:113-116).
+e('Rss2Item.getMediaRss', 'MediaRssParser.<init>', 'CALL', 'Create the Media RSS parser bound to this item',
+  cls='explicit', evidence='SRC impl/Rss2Item.java:115; impl/MediaRssParser.java:25-27')
+e('Rss2Item.getMediaRss', 'MediaRssParser.parse', 'CALL', 'Parse the media:* elements of this item',
+  cls='explicit', evidence='SRC impl/Rss2Item.java:115; impl/MediaRssParser.java:29-38')
+e('MediaRssParser.parse', 'MediaRssParser.<init>', 'CALL', 'Create a parser bound to the item',
+  cls='explicit', evidence='SRC impl/MediaRssParser.java:31; impl/MediaRssParser.java:25-27')
+e('MediaRssParser.parse', 'MediaRssParser.parseContent', 'CALL', 'Parse media:content entries',
+  cls='explicit', evidence='SRC impl/MediaRssParser.java:33; impl/MediaRssParser.java:40-56')
+e('MediaRssParser.parse', 'MediaRssParser.parseHash', 'CALL', 'Parse the media:hash element',
+  cls='explicit', evidence='SRC impl/MediaRssParser.java:34; impl/MediaRssParser.java:58-74')
+e('MediaRssParser.parse', 'MediaRssParser.parsePeerLinks', 'CALL', 'Parse media:peerLink entries',
+  cls='explicit', evidence='SRC impl/MediaRssParser.java:35; impl/MediaRssParser.java:76-92')
+e('MediaRssParser.parseContent', 'MediaRssParser.isMediaRssElement', 'CALL', 'Accept only media-namespace media:content elements',
+  guard='each media:content element', cls='explicit', evidence='SRC impl/MediaRssParser.java:45; impl/MediaRssParser.java:94-97')
+e('MediaRssParser.parseContent', 'Content.<init>', 'CALL', 'Create a Content value for each accepted media:content element',
+  guard='element is in the media namespace', cls='explicit', evidence='SRC impl/MediaRssParser.java:52; mediarss/Content.java:36-39')
+e('MediaRssParser.parseHash', 'MediaRssParser.isMediaRssElement', 'CALL', 'Accept the media:hash element only in the media namespace',
+  guard='media:hash element found', cls='explicit', evidence='SRC impl/MediaRssParser.java:60; impl/MediaRssParser.java:94-97')
+e('MediaRssParser.parseHash', 'Hash.<init>', 'CALL', 'Create a Hash value from the media:hash text',
+  guard='hash text is not null', cls='explicit', evidence='SRC impl/MediaRssParser.java:68; mediarss/Hash.java:21-23')
+e('MediaRssParser.parsePeerLinks', 'MediaRssParser.isMediaRssElement', 'CALL', 'Accept only media-namespace media:peerLink elements',
+  guard='each media:peerLink element', cls='explicit', evidence='SRC impl/MediaRssParser.java:81; impl/MediaRssParser.java:94-97')
+
+# UNREACHABLE: no app or feed-parser path converts these values to text or compares them.
+# core/FeedParser.java keeps the Feed in one field and reads only getTitle and getItemList.
+_B14_FEED_TEXT = 'No app or feed-parser path converts this Feed to text: core/FeedParser.java keeps the feed in one field and reads only getTitle and getItemList.'
+_B14_ITEM_DESCRIPTION = 'Its only caller is BaseItem.getUniqueId, which runs only from BaseItem.equals and hashCode; no app or feed-parser code compares or hashes Item values, and core/FeedParser.java never reads the description.'
+_B14_MEDIA_VALUE = 'Content and Hash values are only read through getters in core/FeedParser.java; no app or feed-parser code compares, hashes or converts them to text, and MediaRss has no equals.'
+UNREACHABLE.update({
+    'Rss1Feed.toString': ('no_trigger_in_app', _B14_FEED_TEXT, 'SRC impl/Rss1Feed.java:118-122; core/FeedParser.java:60,86,92-95', 'SOURCE'),
+    'Rss2Feed.toString': ('no_trigger_in_app', _B14_FEED_TEXT, 'SRC impl/Rss2Feed.java:132-136; core/FeedParser.java:60,86,92-95', 'SOURCE'),
+    'Rss1Item.getDescription': ('no_trigger_in_app', _B14_ITEM_DESCRIPTION, 'SRC impl/Rss1Item.java:56-59; impl/BaseItem.java:30-44,53-69; core/FeedParser.java:95-110', 'SOURCE'),
+    'Rss2Item.getDescription': ('no_trigger_in_app', _B14_ITEM_DESCRIPTION, 'SRC impl/Rss2Item.java:57-60; impl/BaseItem.java:30-44,53-69; core/FeedParser.java:95-110', 'SOURCE'),
+    'Content.equals': ('no_trigger_in_app', _B14_MEDIA_VALUE, 'SRC mediarss/Content.java:63-73; core/FeedParser.java:194-199', 'SOURCE'),
+    'Content.hashCode': ('no_trigger_in_app', _B14_MEDIA_VALUE, 'SRC mediarss/Content.java:75-80; core/FeedParser.java:194-199', 'SOURCE'),
+    'Content.toString': ('no_trigger_in_app', _B14_MEDIA_VALUE, 'SRC mediarss/Content.java:82-89; mediarss/MediaRss.java:44-49', 'SOURCE'),
+    'Hash.equals': ('no_trigger_in_app', _B14_MEDIA_VALUE, 'SRC mediarss/Hash.java:54-64; core/FeedParser.java:217-224', 'SOURCE'),
+})
+
+# Bytecode auto edges whose caller is an UNREACHABLE batch-14 method above, or
+# BaseItem.getUniqueId (its only callers are BaseItem.equals and hashCode, which
+# nothing invokes; that label is owned by the BaseItem batch).
+SUPPRESS.update({
+    ('Rss1Feed.toString', 'Rss1Feed.getTitle'),
+    ('Rss2Feed.toString', 'Rss2Feed.getTitle'),
+    ('Rss1Item.getDescription', 'BaseElement.getElement'),
+    ('Rss1Item.getDescription', 'BaseElement.getContent'),
+    ('Rss2Item.getDescription', 'BaseElement.getElement'),
+    ('Rss2Item.getDescription', 'BaseElement.getContent'),
+    ('BaseItem.getUniqueId', 'Rss1Item.getDescription'),
+    ('BaseItem.getUniqueId', 'Rss2Item.getDescription'),
+    ('BaseItem.getUniqueId@Rss1Item', 'Rss1Item.getDescription'),
+    ('BaseItem.getUniqueId@Rss2Item', 'Rss2Item.getDescription'),
+})
+
+# ---- part: batch 13 (parts/b013.py; printed evidence scratch/b013_printed.txt)
+# Batch 13 part (com.ernieyu.feedparser impl: FeedHandler, BaseElement, BaseItem,
+# AtomItem getters, EzRss01Parser). Hand-written edges, UNREACHABLE entries and
+# SUPPRESS strings only. Each evidence string cites lines printed in
+# graphs/LibreTorrent/scratch/b013_printed.txt.
+#
+# Routes into batch-13 methods that already exist in graph_def.py and are not
+# repeated here: FeedFetcherWorker.fetchChannel -> FeedParser.getItems (2711),
+# FeedParser.getItems -> findDownloadUrl (2781), findDownloadUrl -> watchTorrentInfoHash
+# (2785), -> watchGuid (3597), -> watchMediaContent (3595), watchTorrentInfoHash ->
+# AtomItem.getEzRssTorrentItem (2799) and -> Rss2Item.getEzRssTorrentItem (2801),
+# Rss2Item.getEzRssTorrentItem -> EzRss01Parser.<init> / parse (2805, 2807),
+# getItems -> AtomItem.getPubDate (2811), FeedParser.<init> -> newParser (2715),
+# newParser -> DefaultFeedParser.<init> (2717), FeedParser.<init> -> DefaultFeedParser.parse
+# (2719), DefaultFeedParser.parse -> FeedHandler.<init> / startElement / endElement /
+# getFeed (2723-2729), FeedHandler.startElement -> AtomItem.<init> (2767),
+# watchMediaContent -> Rss2Item.getMediaRss (3605), Rss2Item.getMediaRss ->
+# MediaRssParser.<init> (3623).
+
+# SAX callbacks made by the JDK parser for parser.parse(..., handler) (impl/DefaultFeedParser.java:37).
+e('DefaultFeedParser.parse', 'FeedHandler.startDocument', 'FRAMEWORK', 'SAX parser sends the start-document event to the feed handler',
+  cls='non_standard', via='JDK SAX DefaultHandler callback',
+  evidence='INFERRED SAX DefaultHandler callback dispatch; SRC impl/DefaultFeedParser.java:37; impl/FeedHandler.java:41-45')
+e('DefaultFeedParser.parse', 'FeedHandler.characters', 'FRAMEWORK', 'SAX parser sends element text to the feed handler',
+  cls='non_standard', via='JDK SAX DefaultHandler callback',
+  evidence='INFERRED SAX DefaultHandler callback dispatch; SRC impl/DefaultFeedParser.java:37; impl/FeedHandler.java:36-39')
+e('DefaultFeedParser.parse', 'FeedHandler.endDocument', 'FRAMEWORK', 'SAX parser sends the end-document event to the feed handler',
+  cls='non_standard', via='JDK SAX DefaultHandler callback',
+  evidence='INFERRED SAX DefaultHandler callback dispatch; SRC impl/DefaultFeedParser.java:37; impl/FeedHandler.java:47-51')
+
+# FeedHandler builds the element tree (impl/FeedHandler.java:94-131).
+e('FeedHandler.startElement', 'BaseElement.<init>(String,String,Attributes)', 'CALL', 'Create a generic XML element for a tag that is not a feed root, item or entry',
+  guard='no earlier branch matched localName', cls='explicit',
+  evidence='SRC impl/FeedHandler.java:98-100; impl/BaseElement.java:39-43')
+e('FeedHandler.endElement', 'BaseElement.setContent', 'CALL', 'Store the collected text in the element that is closing',
+  cls='explicit', evidence='SRC impl/FeedHandler.java:115-121; impl/BaseElement.java:68-70')
+e('FeedHandler.endElement', 'BaseElement.addElement', 'CALL', 'Add the closed element to its parent element',
+  guard='elementStack is not empty after the pop', cls='explicit',
+  evidence='SRC impl/FeedHandler.java:124-126; impl/BaseElement.java:91-99')
+
+# Item constructor chain (impl/AtomItem.java:30-32; impl/BaseItem.java:21-23).
+e('AtomItem.<init>', 'BaseItem.<init>', 'CALL', 'Pass the entry uri, name and attributes to the item base class',
+  cls='explicit', evidence='SRC impl/AtomItem.java:31; impl/BaseItem.java:21-23')
+e('BaseItem.<init>', 'BaseElement.<init>(String,String,Attributes)', 'CALL', 'Pass the uri, name and attributes to the element base class',
+  cls='explicit', evidence='SRC impl/BaseItem.java:22; impl/BaseElement.java:39-43')
+
+# core/FeedParser.getItems and its watchers read Atom items through the Item interface.
+e('FeedParser.getItems', 'AtomItem.getLinks', 'CALL', 'Read Atom entry links',
+  guard='feed is an Atom feed', cls='non_standard', via='Item interface dispatch to AtomItem',
+  evidence='INFERRED interface dispatch; SRC core/FeedParser.java:95-96; impl/AtomItem.java:46-54')
+e('FeedParser.getItems', 'AtomItem.getTitle', 'CALL', 'Read the Atom entry title for the feed item',
+  guard='feed is an Atom feed', cls='non_standard', via='Item interface dispatch to AtomItem',
+  evidence='INFERRED interface dispatch; SRC core/FeedParser.java:110; impl/AtomItem.java:40-43')
+e('FeedParser.watchGuid', 'AtomItem.getGuid', 'CALL', 'Read the Atom entry id used as a fallback URL',
+  guard='feed is an Atom feed', cls='non_standard', via='Item interface dispatch to AtomItem',
+  evidence='INFERRED interface dispatch; SRC core/FeedParser.java:256; impl/AtomItem.java:74-77')
+e('FeedParser.watchMediaContent', 'AtomItem.getMediaRss', 'CALL', 'Read the media RSS block of an Atom entry (always null)',
+  guard='feed is an Atom feed', cls='non_standard', via='Item interface dispatch to AtomItem',
+  evidence='INFERRED interface dispatch; SRC core/FeedParser.java:190; impl/AtomItem.java:127-129')
+
+# Atom getters read child elements through BaseElement (impl/AtomItem.java:41-82).
+e('AtomItem.getTitle', 'BaseElement.getElement', 'CALL', 'Find the title child element',
+  cls='explicit', evidence='SRC impl/AtomItem.java:41; impl/BaseElement.java:72-76')
+e('AtomItem.getTitle', 'BaseElement.getContent', 'CALL', 'Read the title text',
+  guard='title element is not null', cls='non_standard', via='Element interface dispatch to BaseElement',
+  evidence='INFERRED interface dispatch; SRC impl/AtomItem.java:42; impl/BaseElement.java:60-63')
+e('AtomItem.getLinks', 'BaseElement.getElementList', 'CALL', 'Find all link child elements',
+  cls='explicit', evidence='SRC impl/AtomItem.java:48; impl/BaseElement.java:78-81')
+e('AtomItem.getLinks', 'BaseElement.getAttributes', 'CALL', 'Read the attributes of each link element',
+  cls='non_standard', via='Element interface dispatch to BaseElement',
+  evidence='INFERRED interface dispatch; SRC impl/AtomItem.java:50; impl/BaseElement.java:55-58')
+e('AtomItem.getGuid', 'BaseElement.getElement', 'CALL', 'Find the id child element',
+  cls='explicit', evidence='SRC impl/AtomItem.java:75; impl/BaseElement.java:72-76')
+e('AtomItem.getGuid', 'BaseElement.getContent', 'CALL', 'Read the id text',
+  guard='id element is not null', cls='non_standard', via='Element interface dispatch to BaseElement',
+  evidence='INFERRED interface dispatch; SRC impl/AtomItem.java:76; impl/BaseElement.java:60-63')
+e('AtomItem.getPubDate', 'BaseElement.getElement', 'CALL', 'Find the updated child element',
+  cls='explicit', evidence='SRC impl/AtomItem.java:81; impl/BaseElement.java:72-76')
+e('AtomItem.getPubDate', 'BaseElement.getContent', 'CALL', 'Read the updated text',
+  guard='updated element is not null', cls='non_standard', via='Element interface dispatch to BaseElement',
+  evidence='INFERRED interface dispatch; SRC impl/AtomItem.java:82; impl/BaseElement.java:60-63')
+
+# EzRss01Parser.parse calls each field parser (impl/EzRss01Parser.java:26-33).
+e('EzRss01Parser.parse', 'EzRss01Parser.parseFileName', 'CALL', 'Read the EzRSS file name',
+  cls='explicit', evidence='SRC impl/EzRss01Parser.java:27')
+e('EzRss01Parser.parse', 'EzRss01Parser.parseMagnetUri', 'CALL', 'Read the EzRSS magnet URI',
+  cls='explicit', evidence='SRC impl/EzRss01Parser.java:28')
+e('EzRss01Parser.parse', 'EzRss01Parser.parseInfoHash', 'CALL', 'Read the EzRSS info hash',
+  cls='explicit', evidence='SRC impl/EzRss01Parser.java:29')
+e('EzRss01Parser.parse', 'EzRss01Parser.parseContentLength', 'CALL', 'Read the EzRSS content length',
+  cls='explicit', evidence='SRC impl/EzRss01Parser.java:30')
+e('EzRss01Parser.parse', 'EzRss01Parser.parseSeeds', 'CALL', 'Read the EzRSS seed count',
+  cls='explicit', evidence='SRC impl/EzRss01Parser.java:31')
+e('EzRss01Parser.parse', 'EzRss01Parser.parsePeers', 'CALL', 'Read the EzRSS peer count',
+  cls='explicit', evidence='SRC impl/EzRss01Parser.java:32')
+e('EzRss01Parser.parse', 'EzRss01Parser.parseVerified', 'CALL', 'Read the EzRSS verified flag',
+  cls='explicit', evidence='SRC impl/EzRss01Parser.java:33')
+
+# Each field parser reads its child element from the item (impl/EzRss01Parser.java:39-103).
+e('EzRss01Parser.parseFileName', 'BaseElement.getElement', 'CALL', 'Find the fileName child element',
+  cls='explicit', evidence='SRC impl/EzRss01Parser.java:40; impl/BaseElement.java:72-76')
+e('EzRss01Parser.parseMagnetUri', 'BaseElement.getElement', 'CALL', 'Find the magnetURI child element',
+  cls='explicit', evidence='SRC impl/EzRss01Parser.java:48; impl/BaseElement.java:72-76')
+e('EzRss01Parser.parseInfoHash', 'BaseElement.getElement', 'CALL', 'Find the infoHash child element',
+  cls='explicit', evidence='SRC impl/EzRss01Parser.java:56; impl/BaseElement.java:72-76')
+e('EzRss01Parser.parseContentLength', 'BaseElement.getElement', 'CALL', 'Find the contentLength child element',
+  cls='explicit', evidence='SRC impl/EzRss01Parser.java:64; impl/BaseElement.java:72-76')
+e('EzRss01Parser.parseSeeds', 'BaseElement.getElement', 'CALL', 'Find the seeds child element',
+  cls='explicit', evidence='SRC impl/EzRss01Parser.java:80; impl/BaseElement.java:72-76')
+e('EzRss01Parser.parsePeers', 'BaseElement.getElement', 'CALL', 'Find the peers child element',
+  cls='explicit', evidence='SRC impl/EzRss01Parser.java:88; impl/BaseElement.java:72-76')
+e('EzRss01Parser.parseVerified', 'BaseElement.getElement', 'CALL', 'Find the verified child element',
+  cls='explicit', evidence='SRC impl/EzRss01Parser.java:96; impl/BaseElement.java:72-76')
+
+e('EzRss01Parser.parseFileName', 'EzRss01Parser.isEzRssElement', 'CALL', 'Accept the fileName element only in the EzRSS namespace',
+  guard='element is not null', cls='explicit', evidence='SRC impl/EzRss01Parser.java:41; impl/EzRss01Parser.java:118-121')
+e('EzRss01Parser.parseMagnetUri', 'EzRss01Parser.isEzRssElement', 'CALL', 'Accept the magnetURI element only in the EzRSS namespace',
+  guard='element is not null', cls='explicit', evidence='SRC impl/EzRss01Parser.java:49; impl/EzRss01Parser.java:118-121')
+e('EzRss01Parser.parseInfoHash', 'EzRss01Parser.isEzRssElement', 'CALL', 'Accept the infoHash element only in the EzRSS namespace',
+  guard='element is not null', cls='explicit', evidence='SRC impl/EzRss01Parser.java:57; impl/EzRss01Parser.java:118-121')
+e('EzRss01Parser.parseContentLength', 'EzRss01Parser.isEzRssElement', 'CALL', 'Accept the contentLength element only in the EzRSS namespace',
+  guard='element is not null', cls='explicit', evidence='SRC impl/EzRss01Parser.java:65; impl/EzRss01Parser.java:118-121')
+e('EzRss01Parser.parseSeeds', 'EzRss01Parser.isEzRssElement', 'CALL', 'Accept the seeds element only in the EzRSS namespace',
+  guard='element is not null', cls='explicit', evidence='SRC impl/EzRss01Parser.java:81; impl/EzRss01Parser.java:118-121')
+e('EzRss01Parser.parsePeers', 'EzRss01Parser.isEzRssElement', 'CALL', 'Accept the peers element only in the EzRSS namespace',
+  guard='element is not null', cls='explicit', evidence='SRC impl/EzRss01Parser.java:89; impl/EzRss01Parser.java:118-121')
+e('EzRss01Parser.parseVerified', 'EzRss01Parser.isEzRssElement', 'CALL', 'Accept the verified element only in the EzRSS namespace',
+  guard='element is not null', cls='explicit', evidence='SRC impl/EzRss01Parser.java:97; impl/EzRss01Parser.java:118-121')
+
+e('EzRss01Parser.parseFileName', 'BaseElement.getContent', 'CALL', 'Read the fileName text',
+  guard='element is an EzRSS element', cls='non_standard', via='Element interface dispatch to BaseElement',
+  evidence='INFERRED interface dispatch; SRC impl/EzRss01Parser.java:44; impl/BaseElement.java:60-63')
+e('EzRss01Parser.parseMagnetUri', 'BaseElement.getContent', 'CALL', 'Read the magnetURI text',
+  guard='element is an EzRSS element', cls='non_standard', via='Element interface dispatch to BaseElement',
+  evidence='INFERRED interface dispatch; SRC impl/EzRss01Parser.java:52; impl/BaseElement.java:60-63')
+e('EzRss01Parser.parseInfoHash', 'BaseElement.getContent', 'CALL', 'Read the infoHash text',
+  guard='element is an EzRSS element', cls='non_standard', via='Element interface dispatch to BaseElement',
+  evidence='INFERRED interface dispatch; SRC impl/EzRss01Parser.java:60; impl/BaseElement.java:60-63')
+e('EzRss01Parser.parseContentLength', 'BaseElement.getContent', 'CALL', 'Read the contentLength text',
+  guard='element is an EzRSS element', cls='non_standard', via='Element interface dispatch to BaseElement',
+  evidence='INFERRED interface dispatch; SRC impl/EzRss01Parser.java:70; impl/BaseElement.java:60-63')
+e('EzRss01Parser.parseSeeds', 'BaseElement.getContent', 'CALL', 'Read the seeds text',
+  guard='element is an EzRSS element', cls='non_standard', via='Element interface dispatch to BaseElement',
+  evidence='INFERRED interface dispatch; SRC impl/EzRss01Parser.java:84; impl/BaseElement.java:60-63')
+e('EzRss01Parser.parsePeers', 'BaseElement.getContent', 'CALL', 'Read the peers text',
+  guard='element is an EzRSS element', cls='non_standard', via='Element interface dispatch to BaseElement',
+  evidence='INFERRED interface dispatch; SRC impl/EzRss01Parser.java:92; impl/BaseElement.java:60-63')
+e('EzRss01Parser.parseVerified', 'BaseElement.getContent', 'CALL', 'Read the verified text',
+  guard='element is an EzRSS element', cls='non_standard', via='Element interface dispatch to BaseElement',
+  evidence='INFERRED interface dispatch; SRC impl/EzRss01Parser.java:100; impl/BaseElement.java:60-63')
+
+e('EzRss01Parser.parseSeeds', 'EzRss01Parser.parseInt', 'CALL', 'Convert the seeds text to an integer',
+  cls='explicit', evidence='SRC impl/EzRss01Parser.java:84; impl/EzRss01Parser.java:105-116')
+e('EzRss01Parser.parsePeers', 'EzRss01Parser.parseInt', 'CALL', 'Convert the peers text to an integer',
+  cls='explicit', evidence='SRC impl/EzRss01Parser.java:92; impl/EzRss01Parser.java:105-116')
+e('EzRss01Parser.parseVerified', 'EzRss01Parser.parseInt', 'CALL', 'Convert the verified text to an integer',
+  cls='explicit', evidence='SRC impl/EzRss01Parser.java:100; impl/EzRss01Parser.java:105-116')
+
+# isEzRssElement reads the namespace uri of the element (impl/EzRss01Parser.java:118-121).
+e('EzRss01Parser.isEzRssElement', 'BaseElement.getUri', 'CALL', 'Read the namespace uri of the element',
+  cls='non_standard', via='Element interface dispatch to BaseElement',
+  evidence='INFERRED interface dispatch; SRC impl/EzRss01Parser.java:119-120; impl/BaseElement.java:45-48')
+
+# Items with no trigger in the app: nothing compares, hashes or converts an Item to text
+# (core/FeedParser.java iterates the feed and reads accessors; the feed-parser package and
+# service/FeedFetcherWorker.java have no equals, hashCode or toString use on an Item).
+UNREACHABLE.update({
+    'BaseItem.equals': ('no_trigger_in_app',
+        'No app or feed-parser code calls equals on an Item. core/FeedParser.java only iterates getItemList() and reads accessors; its equals calls (lines 176, 203) compare Strings; FeedFetcherWorker removeIf calls (lines 193, 203) compare app FeedItem records.',
+        'SRC impl/BaseItem.java:53-62; core/FeedParser.java:89-111,176,203; service/FeedFetcherWorker.java:193,203',
+        'SOURCE'),
+    'BaseItem.getUniqueId': ('no_trigger_in_app',
+        'Private. Its only callers are BaseItem.equals and BaseItem.hashCode, and neither is invoked.',
+        'SRC impl/BaseItem.java:30-44 (callers at 56-57 and 67)',
+        'SOURCE'),
+    'BaseItem.hashCode': ('no_trigger_in_app',
+        'No app or feed-parser code hashes an Item. The only hashed collection in the package is BaseElement.elementMap with String keys, and core/FeedParser.java keeps items in a List.',
+        'SRC impl/BaseItem.java:64-69; impl/BaseElement.java:23; core/FeedParser.java:95',
+        'SOURCE'),
+    'BaseItem.toString': ('no_trigger_in_app',
+        'No app or feed-parser code converts an Item to text. No string concatenation or log call in core/FeedParser.java or the feed-parser package takes an Item value; the one concatenating log call in FeedFetcherWorker (line 255) does not use an item.',
+        'SRC impl/BaseItem.java:48-50; service/FeedFetcherWorker.java:255',
+        'SOURCE'),
+})
+
+# Suppress bytecode auto edges into and out of the four UNREACHABLE methods and their
+# generated copies (tools/build_graph.py add_auto_edges checks src and dst against SUPPRESS).
+SUPPRESS.update({
+    'BaseItem.equals', 'BaseItem.equals@AtomItem', 'BaseItem.equals@Rss1Item', 'BaseItem.equals@Rss2Item',
+    'BaseItem.hashCode', 'BaseItem.hashCode@AtomItem', 'BaseItem.hashCode@Rss1Item', 'BaseItem.hashCode@Rss2Item',
+    'BaseItem.toString', 'BaseItem.toString@AtomItem', 'BaseItem.toString@Rss1Item', 'BaseItem.toString@Rss2Item',
+    'BaseItem.getUniqueId', 'BaseItem.getUniqueId@AtomItem', 'BaseItem.getUniqueId@Rss1Item', 'BaseItem.getUniqueId@Rss2Item',
 })
