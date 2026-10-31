@@ -1,0 +1,81 @@
+# Markor 2.16.1 - schema 2 conversion: agent notes
+
+Started 2026-10-26 (unattended agent job, brief AGENT_BRIEF_V2.md).
+
+## Current status (2026-10-27, round 8 Limits pass; supersedes the earlier status blocks)
+- Final draw logged: make_verification.py runs `python3 -I tools/verify_sample.py Markor 30` itself (seed 20261025) and checks the 30 path rows against that draw. Logged path set = final draw set: 30 of 30; none only logged; none only drawn.
+- Sample equality with the final draw re-checked after the cold-start pass: 30 of 30, same order (tools/verify_sample.py Markor 30).
+- Path rows: 13 correct, 17 fixed, 0 wrong (the wrong count must be 0: met). Round 8: the logged path list equals the draw (30 of 30, same order). Against the list before round 8, three rows left (SyntaxHighlighterBase.clearAdditional(SpanGroup), TodoWidgetRemoteViewsFactory.getViewTypeCount, WrFilesWidgetFactory.getItemId) and three entered (SyntaxHighlighterBase$SpanGroup.compareTo, TodoWidgetRemoteViewsFactory.getCount, WrFilesWidgetFactory.getLoadingView). Two rows were rewritten and stay in the list: AppSettings.lambda$getPopularDocumentsSorted$1 (todo Info route, 19 steps) and DocumentEditAndViewFragment$2.lambda$search$0 (search guards added; now fixed).
+- Cold start (this pass): all 30 routes start S_ENTRY -> ApplicationObject.<init> -> ApplicationObject.onCreate (30 of 30); every activity constructor is followed by onCreate (30 of 30); skip hits 0. The five routes that took MainActivity.<init> -> onResume now run through MainActivity.onCreate (FileSearchEngine.isEncryptedFile, StoragePermissionActivity.processPermissionState, WrFilesWidgetFactory.getCount, TodoWidgetRemoteViewsFactory.getViewTypeCount, MarkorContextUtils.getIntentFile). The direct edges are not kept (graph_def.py:125-134, 478-480). Judgement tags, counted not failed: J_RESUME 1, J_NOTEBOOK 1, J_SHARE 2 (readme_notes.md, Cold start; J_SERVICE was removed).
+- Route-level change for the notebook judgement: the notebook is the default startup tab (AppSettings.java:781), and the J_NOTEBOOK note now says so.
+- Guards added or confirmed for this pass (graph_def.py, scratch/route_guards.json):
+  - ActionButtonBase displayMode guard (`_ABM`, ActionButtonBase.java:305) on the four loop GUI edges and the two S_TODO GUI edges.
+  - resolveSystemFilePath edge in the attach dialog: wikitext branch taken (AttachLinkOrFileDialog.java:381); call cite 397.
+  - `_LISTENER_GUARDS` table (graph_def.py, 14 keyed listener edges), passed by `_wire_listeners`.
+  - MoreInfoFragment -> SettingsActivity.<init>: keyResId == pref_key__more_info__settings (MoreInfoFragment.java:66-67).
+  - DocumentActivity.launch -> DocumentActivity.<init>: three early returns (DocumentActivity.java:71-83).
+  - DocumentActivity.handleLaunchingIntent -> S_DOCUMENT: five guards, including not (frag != null).
+  - ShareInto.<init> FRAMEWORK edge: _savedInstanceState == null (DocumentShareIntoFragment.java:95-97).
+  - MainActivity onViewPagerPageSelected edges: _sectionsAdapter != null (MainActivity.java:445-446) and the tab branches (515-520).
+  - TextConverterBase.convertMarkupShowInWebView -> CsvTextConverter.convertMarkup: not (_webView == null) (DocumentEditAndViewFragment.java:988-990).
+  - SyntaxHighlighterBase.compute and compute@ edges: not (TextUtils.isEmpty(_spannable)) (SyntaxHighlighterBase.java:437-439).
+  - Route-level listener guards (this pass): scrollToAndFlash chain pos >= 0 and _layoutManager != null (GsFileBrowserListAdapter.java:628-630); search-files dialog chain early return and isSearchExecuting (MarkorDialogFactory.java:149-153); picker callback sel is not null and isDirectory (DocumentShareIntoFragment.java:469); getFormatted asLink (DocumentShareIntoFragment.java:385); set-password listener API level (MarkorDialogFactory.java:1024).
+  - Receiver check (this segment): route_guards.json key GsActivityBase.onToolbarClick|GsFileBrowserFragment.onToolbarClicked|120 now has a second guard, the first visible resumed GsFragmentBase is the notebook fragment (GsActivityBase.java:118-122).
+  - Earlier in the pass: four Wikitext route_guards.json keys, _LIFT_SKIP, and the share-into hand edits.
+- Build (tools/build_graph.py, round 8): methods 2864, pages 19, edges 6891, REACHABLE 2450, UNREACHABLE 414 (404 no_trigger_in_app, 9 closed_by_configuration, 1 closed_by_api_level), errors 0, warnings 0. verification.csv regenerated (562 rows: label 445 with 397 correct / 48 fixed; edge 87 with 42 / 40 / 5 unclear; path 30 with 13 / 17 / 0 wrong).
+- Step-9 checks on Markor (round 8, after the rebuild): check_citations 36 distinct, 0 problems; check_routes 0 flagged; check_bytecode_lines 4352 checked, 0 bad; tools/tests/check_v2.py Markor skipped (schema 2; apps with problems 0); DEAD/FRAMEWORK_ONLY grep on graph_def.py 0.
+- Gates: bytecode gate 129 cites, 3 flagged (classified in readme_notes.md Limits); all-kind gate 12 missing items (classified, same list); unconditional-return flags 0. (Carried from the earlier pass; not rerun in round 8.)
+- Documents updated: readme_notes.md (How the checked paths were chosen; hazard 1 corrected; Limits), out/README.md (tools/gen_readme_v2.py Markor), LESSONS.md (cold-start and tap bullets added this pass), this status block. out/README.md is regenerated after these notes (see below).
+- Open items: hazard 2 (key press) still ungated, no drawn route uses it; the notebook toolbar route runs S_NOTEBOOK before the toolbar tap (GsActivityBase.java:116-124), so the notebook page being on screen at the tap is a stated assumption (hazard 1); FAB edge INFERRED (two routes); share-intent routes need another app; widget provider ENV notes.
+- Round 8 (coordinator Limits list): items 1-4 fixed in the graph (info guard, search guards with NEED_PREVIEW, widget service lifecycle nodes, row listener citations); item 5 done in this file (open items above). Accepted limits kept: getStringListOne fragment-view timing, dialog row taps, notebook fragment view created from onCreate, menu order.
+- Not done by design: PROGRESS_V2.md not ticked; HANDOFF_V2.md not written; no commits; no helper agents; no Claude Docs or artifacts.
+- Remaining step: the final SubagentHandback to the coordinator.
+
+## State (history, written 2026-10-26; out of date, see Current status above)
+- DONE: step 0 - moved old schema 1 graph_def.py to generated_draft_graph_def.py.txt; copied show_route_fixed.py from openlauncher; created scratch/.
+- Old v1 files kept in place for inventory: out/ (old run), method_list.json (2859 methods, 283 classes), auto_calls.json, coverage_baseline.json, review_notes.md.
+- Step in progress: 1 (entry and framework layer of graph_def.py).
+  - Section A written (ENTRY launcher -> ApplicationObject / MainActivity, lifecycle, bottom navigation, startup tab, first-visible post).
+  - Section B WRITTEN (DocumentActivity from other apps; StoragePermissionActivity; WrMarkorWidgetProvider and TodoWidgetProvider with their RemoteViewsService chains; WrWidgetConfigure with its folder browser; OpenFromShortcutOrWidgetActivity via recent-file shortcut).
+  - CLASSIFY written: ENTRY/SYSTEM/INTENT edges to a manifest component <init> (AndroidManifest evidence, not ApplicationObject) -> non_standard with the reason as via. Removed a bad `re` rule (no import in graph_def.py).
+  - Section C NOT written yet: MainActivity callbacks (onNewIntent 223, onResume 279, onClickFab 343, newItemCallback 364, onBackPressed 374, onPause 569, onActivityResult 585, onKeyDown 591), every launch site (list below), IntroActivity, SettingsActivity, MoreFragment/MoreInfoFragment, DocumentEditAndViewFragment, file browser, TextSearch, DocumentShareIntoFragment, MarkorDialogFactory, ActionButton classes, MarkorWebViewClient.
+- Builder run 2 (A+B, after CLASSIFY fix): methods 2859, pages 16, edges 5950; REACHABLE 405, UNRESOLVED 2454; errors 2462 (2454 "no path", 8 "page not reachable"), warnings 0; NO other error kinds. Output: scratchpad build2.txt; report graphs/Markor/out/build_report.txt.
+- Launch sites in app (net/gsantner/markor, grep checked): MarkorContextUtils:126; StoragePermissionActivity:20, 52; IntroActivity:28; DocumentShareIntoFragment:292, 328; MarkorDialogFactory:1057, 1059; DocumentEditAndViewFragment:630; SettingsActivity:371; OpenFromShortcutOrWidgetActivity:19; MarkorWebViewClient:51; DocumentActivity:116, 125; OpenShareIntoActivity:25; OpenEditorActivity:38; MainActivity:120 (debug-looking launch, check guard), 243, 262, 292, 366, 490; ActionButtonBase:716; MoreInfoFragment:67; MarkdownActionButtons:280; WikitextActionButtons:194.
+- Not yet grepped: thirdparty (writeily), opoc, and other packages for launch sites.
+- The 18 edges without a source line are the INFERRED constants FW_BIND, FW_FRAG, FW_APPINTRO, FW_VIEWPAGER (expected; go in Limits).
+
+## Layout facts (checked)
+- Method universe: method_list.json, 2859 methods, 283 classes. Packages: net/gsantner/markor 1705, net/gsantner/opoc 975, other/* (com/vladsch flexmark 69, writeily 26+22+19+13, de/stanetz 24, so/AndroidBug5497Workaround 4+2).
+- App module source: /Users/darshan/Desktop/yang/final_java_only/Markor/app/Markor-#v2.16.1/app/src/main (548 files, 128 .java).
+- Writeily widget sources are under app/thirdparty/java/other/writeily/widget (not under src/main/java).
+- Built flavor: flavorAtest (applicationId net.gsantner.markor_test, debug build, testCoverageEnabled). BuildConfig IS_TEST_BUILD = true in atest; IS_GPLAY_BUILD false.
+- Manifest lines (checked): application 39-40; MainActivity 61-71; SettingsActivity 73-76; StoragePermissionActivity 78-81; ActionButtonSettingsActivity 83-89; WrWidgetConfigure 91-97; WrMarkorWidgetProvider receiver 99-108; WrFilesWidgetService 110-112; TodoWidgetProvider 114-123; TodoWidgetService 125-127; FileProvider 129-137; OpenEditorTodoActivity 139-151 (disabled); IntroActivity 152-155; OpenEditorQuickNoteActivity 156-168 (disabled); OpenShareIntoActivity 169-181 (disabled); OpenFromShortcutOrWidgetActivity 182-185; DocumentActivity 187 (SEND 195-206, VIEW/EDIT 208-225); AliasDocumentProcessText 1091-1105 (disabled, PROCESS_TEXT); SMSInstrumentedReceiver 1106-1111 (COLLECT_COVERAGE).
+- Framework: AOSP 8.1.0_r1 is under work/fw_src/android-8.1.0_r1/core/java/android (line numbers in graph_def.py FW_* constants are from grep this session).
+- MainActivity callbacks (checked): onCreate 76; onSaveInstanceState 154; onRestoreInstanceState 171; onNewIntent 223; static launch(Activity,File,boolean) 238; onOptionsItemSelected 259; onCreateOptionsMenu 269; onResume 279; onLongClickFab 322; onClickFab 343; newItemCallback 364; onBackPressed 374; onViewPagerPageSelected 443; ensureRealized 548; restoreFragment 556; onPause 569; onStop 579; onActivityResult 585; onKeyDown 591.
+- DocumentActivity (checked): launch(Activity,Intent) 48; launch(...) 55 and private launch 64; launch body startActivity 116; onCreate 135 (StoragePermissionActivity.requestPermissions at 137); onNewIntent 153; handleLaunchingIntent 158; dispatchTouchEvent 258; onActivityResult 285; showShareInto 304; onResume 310; onBackPressed 317; onKeyDown 338.
+- IntroActivity (checked): optStart 25 (startActivityForResult at 28, REQ_CODE_APPINTRO 61234); isFirstStart 33; onCreate 39; onSkipPressed 59; onNextPressed 65; onDonePressed 70; onSlideChanged 77.
+- StoragePermissionActivity (checked): requestPermissions 18 (startActivity at 20); onActivityFirstTimeVisible 27; askForPermissions 32; processPermissionState 44; onRequestPermissionsResult 64; onActivityResult 70; animateToActivity(MainActivity) at 52.
+- OpenEditorActivity onCreate 24; OpenEditorQuickNoteActivity onCreate 17; OpenEditorTodoActivity onCreate 17; OpenShareIntoActivity onCreate 18; OpenFromShortcutOrWidgetActivity onCreate 16 (DocumentActivity.launch(this, getIntent()) at 19).
+- GsActivityBase (checked): onCreate 45; onRestoreInstanceState 81; onResume 87; onPostResume 101-108 (posts onActivityFirstTimeVisible); onActivityFirstTimeVisible 113; onToolbarClick 116.
+
+## Last command
+- Read graph_def.py (section A) and grep of MainActivity, DocumentActivity, IntroActivity, StoragePermissionActivity and OpenEditor* declarations (line numbers above).
+- Next: names.py check for widget, service, receiver and intro node names, then write section B.
+
+## Status (2026-10-26, after section C)
+- Section C WRITTEN (graph_def.py, after CLASSIFY): MainActivity pager and fragments, FAB and NewFileDialog, Back and keys, lifecycle, self-restart, launch INTENTs, RESULT edges (intro, settings, SAF picker via GsContextUtils.showMountSdDialog), intro, settings, action-button screen, DocumentActivity and editor, More page.
+- Edge wrapper e() records hand edges in _HAND. C6 loop: one FRAMEWORK edge from each bytecode lambda registrar to its body (evidence INFERRED: the listener type is not read per lambda). Builder dedupes REGISTER edges against these hand FRAMEWORK edges (build 5 edge count 6032, checked in out/build_report.txt).
+- Citation fixes this session: removed a SAF result edge from DocumentActivity (no caller exists); the SAF caller is GsContextUtils.showMountSdDialog (lambda at 2271); MainActivity.java 391-393 was not verified and was removed; several line ranges narrowed to verified lines.
+- Build 5: methods 2859, pages 16, edges 6032, REACHABLE 1694, UNRESOLVED 1165, errors 1165 (all "no path and no UNREACHABLE entry"), warnings 0. UNREACHABLE: none written yet.
+- Unresolved split (build 5): no bytecode caller (non-lambda) 552 + 73 init; caller exists but unreached 391 + 56 init; lambdas 91 whose registrar is unreached; 2 clinit.
+- Dead-code finding: AppSettings.getRating, getLastEditScrollY, getFileBrowserLastBrowsedFolder, isEditorStartOnBotttom have no call site in src/main (grep). Candidates for no_trigger_in_app after a reference check.
+- Next: per class, decide wire (framework callback, layout inflation, listener, adapter, dialog) or UNREACHABLE (no reference in src/main, confirmed by grep), then build until only true UNREACHABLE remain.
+
+## Status (2026-10-27, section E: reachability-driven callbacks)
+- Builds 6-7: the evidence prefix must be "INFERRED " (no colon); build_graph counted "INFERRED:" separately.
+- Section D1 (static `_INC` skip) replaced by section E in graph_def.py: a search from S_ENTRY (same rule as the builder: no REGISTER edges) runs inside graph_def; each framework or library callback (name in _CB_NAMES, class with an external supertype or an app override) is wired from the bytecode creators of the class and its non-overriding subclasses, only once a creator is reached (fixpoint, <= 60 passes). Menu placeholder methods are wired only when the app text calls the name with a dot (scratch/dotcount.json).
+- Build 11 figures: REACHABLE 2166, UNRESOLVED 693, edges 6287, warnings 0. The graph_def run raised NameError twice (missing _CREATORS, then candidate node names from method_list 'short' lack the parameter list for overloads: use AUTO['impl'][simple][name][desc]). LESSON: check for "Traceback" in the build output before reading out/ files, because out/build_report.txt from an earlier build stays on disk.
+- Roots now (scratch/status.py): 407 with no non-REGISTER incoming edge (plain 138, ext_ancestor 133, init 73, static 48, private 8, app_override 6, clinit 1); 252 of them have no identifier occurrence in app text beyond declarations; 155 have some.
+- Tool gap found: method references (`this::name`, `Class::name`, 29 app files) are not in AUTO['lambdas'] (only lambda$ bodies are), so their targets get no REGISTER edge. To handle with FRAMEWORK edges from the enclosing method (INFERRED), listed by grep.
+- Dead chains: SUPPRESS in the builder drops an auto edge when (src, dst) is in the set; to keep the "UNREACHABLE but has incoming edges" warning meaningful, suppress only (src, dst) pairs whose src is UNREACHABLE (not bare names: a bare dst name would hide live callers of a wrongly dead method).
+- Still to do: decide the 155 roots with references (interface dispatch of GsPropertyBackend implementations, XML-inflated views and preferences, action-button lists, Fragment and Preference callbacks, method references); then mark the textually dead roots UNREACHABLE (kind, reason, declaration ref, confirmed_by SOURCE); then closure for chains; then verification steps.

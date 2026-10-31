@@ -1,0 +1,10 @@
+# Markor schema 2: lessons from errors that were found
+
+- Route checks found more errors than label checks. Before the route-fix pass, 14 of the 30 sampled routes were wrong. A label can be right while the path to it is wrong, so check paths too.
+- A lift from a base-class method to subclass overrides needs proof that the subclass runs there. Two lifts gave wrong routes (GsPreferenceFragmentBase.onPreferenceTreeClick, PasswordStore.createSecretKey); both are skipped now (_LIFT_SKIP).
+- Do not share one state node between components that differ. The two home-screen widgets shared S_HOME_WIDGET, so one widget's route reached the other's edges. It is split into S_HOME_WIDGET_NOTEBOOK and S_HOME_WIDGET_TODO.
+- Base-class calls carry no page check, so a base handler reached subclass handlers from every page. Each owning page has its own edge now. A ViewPager tab runs its branch only when the tab is realized, so the base tab edges were removed and the More page has its own variant.
+- Cite the line that holds the call. Overload citations pointed at another overload's line (47 fixed), and 16 bytecode citations pointed at the start of a statement instead of the constructor call.
+- The logged sample must be the draw that is checked. After the route fixes, 11 of the 30 logged routes were not the current draw. make_verification.py now runs the draw itself at each rebuild and fails if the logged set differs.
+- Read the source line before adding a guard, and where a base handler picks its target at run time, the edge needs a receiver check (GsActivityBase.onToolbarClick). The bytecode gate gave false misses: a switch label from the wrong case, a dropped "!", and a shared disjunction branch.
+- A cold-start route must run an activity's lifecycle in order: constructor, onCreate, onResume, onPostResume. Five routes went MainActivity.<init> -> onResume and were removed. A tap is reached from the page that shows it, and a REGISTER edge is not a route step. An entry from another app (SEND intent) is not a route from the in-app launch.
