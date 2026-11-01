@@ -7,8 +7,13 @@ a verdict does not match, an edge id does not exist, or a path row's cited file:
 All paths it uses are inside graphs/AmazeFileManager/ or tools/ (no session folders).
 Path rows use the B6 route_table.md round verdicts (correct x5, fixed x25); every final print was
 re-verified clean after the last fix, and each note states its round verdict.
-DEVICE rows (brief D7) are NOT in this writer yet: D7 adds them later, with the rule that while no
-device/results file exists the output must stay byte-identical to this writer's output.
+DEVICE rows (brief D7): when graphs/AmazeFileManager/device/results.csv exists (written by
+device/compare.py after a real device run), one row per route is appended AFTER all existing rows,
+in results.csv order, without re-sorting: type=path, result=correct when reached=yes else unclear,
+confirmed_by=DEVICE, ref=device run <run>/<script>, edges unchanged, note = script status (for
+unclear rows the reason: not reached, script failed, or unscriptable). A route not reached never
+becomes wrong; no label changes. When the file does not exist, the DEVICE code path does not run
+at all and the output is byte-identical to the pre-D7 writer.
 """
 import csv, glob, json, re, sys
 sys.path.insert(0, 'tools')
@@ -178,6 +183,30 @@ for x in g['edges']:
 for c, i in cites.items():
     ref = c.replace('FW-SRC ', '').split(' and ')[0].strip()
     emit_edge(i, 'correct', ref, 'framework claim checked: AOSP 8.1.0_r1 lines read for ' + ref)
+
+# ---- DEVICE rows (D7): only when a real device/results.csv exists; otherwise this block
+# does not run at all and the output stays byte-identical to the pre-D7 writer.
+import os
+DEVICE_RESULTS = 'graphs/%s/device/results.csv' % APP
+if os.path.exists(DEVICE_RESULTS):
+    with open(DEVICE_RESULTS, encoding='utf-8', newline='') as f:
+        for dr in csv.DictReader(f):
+            reached = (dr.get('reached') or '').strip()
+            status = (dr.get('script_status') or '').strip()
+            run = (dr.get('run') or '').strip()
+            script = (dr.get('script') or '').strip()
+            if reached == 'yes':
+                result, note = 'correct', 'script_status=%s' % status
+            elif status == 'unscriptable':
+                result, note = 'unclear', 'unscriptable (script_status=unscriptable; no coverage evidence)'
+            elif status.startswith('failed_at_step_') or status == 'timeout':
+                result, note = 'unclear', 'script failed (script_status=%s)' % status
+            elif reached == 'no':
+                result, note = 'unclear', 'not reached (reached=no, script_status=%s)' % status
+            else:
+                result, note = 'unclear', 'no coverage evidence (reached=%s, script_status=%s)' % (reached, status)
+            out.append(['path', dr.get('method') or '', result, 'DEVICE',
+                        'device run %s/%s' % (run, script), dr.get('edges') or '', note])
 
 with open('graphs/%s/verification.csv' % APP, 'w', encoding='utf-8', newline='') as f:
     csv.writer(f).writerows(out)

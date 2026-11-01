@@ -592,3 +592,26 @@ C7 finish_01 00:02 R=2218 U=422 UNRES=341 errors=885 (down from 1211). Fixed reg
 - DEVICE rows (D7) are NOT in this writer yet, by design: D7 adds them
   later, with the rule that while no device/results file exists the output
   must stay byte-identical to this writer's output (verified by cmp at D7).
+
+## D7 (2026-11-01): DEVICE rows in make_verification.py
+- Added the D7 branch (spec device/D7_SPEC.md): when
+  graphs/AmazeFileManager/device/results.csv exists, one row per route is
+  appended AFTER all existing rows, in results order, no re-sort:
+  type=path, result=correct when reached=yes else unclear,
+  confirmed_by=DEVICE, ref="device run <run>/<script>", edges unchanged,
+  note = script status (unclear reasons: not reached / script failed /
+  unscriptable). Not-reached never becomes wrong; no label changes.
+- No-results behaviour: output row set identical to the committed
+  verification.csv (sorted comparison, same counts path 30 / label 499 /
+  edge 14). CAVEAT, pre-existing: the writer's UNREACHABLE label-row order
+  varies run to run (set iteration, line ~127); proven with the PRE-D7
+  writer run twice under PYTHONHASHSEED=0 (order-only difference). The D7
+  branch is inert without a results file, so it cannot cause this. The
+  branch verification.csv is therefore NOT regenerated or pushed by D7.
+  Recommendation: a follow-up edit sorting the label rows (row set
+  unchanged) would make the writer deterministic.
+- Synthetic test (private copy, evidence scratch/d7_synthetic_test.txt):
+  4 rows (yes/ok -> correct; no/ok -> unclear not-reached;
+  failed_at_step_3 -> unclear script-failed; unscriptable -> unclear)
+  appended last in input order; base row set unchanged; third run
+  reproduced the same 4 DEVICE rows. py_compile OK.

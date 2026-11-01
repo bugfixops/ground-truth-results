@@ -1,0 +1,37 @@
+AmazeFileManager D7 synthetic-results test (2026-11-01, private copy /tmp/d7test, D7 writer)
+Spec: device/D7_SPEC.md. Results file: graphs/AmazeFileManager/device/results.csv
+(columns route,method,edges,reached,script_status,run,script) — absent in this phase.
+
+NO-RESULTS RUN:
+- Writer with no device/results.csv: output row SET equals the committed
+  verification.csv row set (sorted comparison identical), same counts
+  (path 30, label 499, edge 14), header unchanged.
+- CAVEAT (pre-existing, NOT D7-caused): the writer's UNREACHABLE label-row
+  ORDER varies run to run, so a literal byte cmp against the committed csv
+  fails. Proof: the PRE-D7 writer (backup-pre-D7-make_verification.py) run
+  twice in a private copy with PYTHONHASHSEED=0 also differs in ORDER ONLY
+  (sorted identical). The order noise comes from iterating the `unre` set
+  (make_verification.py line ~127) and predates D7; the D7 branch is inert
+  without a results file (no device/ dir exists) and cannot reorder rows.
+  RECOMMENDATION for the coordinator: sort the UNREACHABLE label rows in a
+  follow-up edit (row set unchanged) to make the writer deterministic; that
+  edit is NOT made here because it would rewrite the pushed csv's order.
+
+SYNTHETIC-RESULTS RUN (4 rows, run-test-1):
+- route_03 ApkImageDataFetcher.cancel, reached=yes, ok
+  -> path, correct, DEVICE, ref "device run run-test-1/route_03.py",
+     note "script_status=ok"
+- route_01 CloudIconDataFetcher.cancel, reached=no, ok
+  -> path, unclear, DEVICE, ref "device run run-test-1/route_01.py",
+     note "not reached (reached=no, script_status=ok)"
+- route_26 GenericCopyUtil.doCopy, reached=no, failed_at_step_3
+  -> path, unclear, DEVICE, ref "device run run-test-1/route_26.py",
+     note "script failed (script_status=failed_at_step_3)"
+- route_29 HybridFile$11.<init>, reached=not_run, unscriptable
+  -> path, unclear, DEVICE, ref "device run run-test-1/route_29.py",
+     note "unscriptable (script_status=unscriptable; no coverage evidence)"
+- Checks: run2 = base row set + exactly these 4 rows, appended LAST in
+  input order, no re-sort, no label changes, no route marked wrong.
+  A third run reproduced the same 4 DEVICE rows identically.
+- verification.csv on the branch is NOT regenerated or pushed by D7: with
+  no real results file the branch keeps the B7 ordering.
