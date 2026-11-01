@@ -1,3 +1,5 @@
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
 # LibreTorrent batch 76 — merge-ready (UNVERIFIED)
 
 **Status: UNVERIFIED merge-ready part only. 0 rows verified for merge. Nothing here has been merged into `graph_def.py`.**
@@ -94,5 +96,5 @@ Rows 6, 8, 9, 11 (setAutoDownload, setFilter, setName, setRegexFilter) are all I
 - The SOURCE/INFERRED boundary for Rx-body call sites (rows 6, 8, 9, 11, 16) must be reconciled with the merger's convention for batch 75/77: if the merger counts a directly-printed call inside an Rx body as SOURCE (call site printed, dispatch only INFERRED for the lambda itself), those five rows flip SOURCE and the counts become SOURCE 30 / INFERRED 10, with no label change.
 - The generated-binding convention for row 10 (setNotDownloadImmediately, binding-only) must be reconciled with batch 84's layout-resolved setters and batch 65–66's getViewModel convention: if the merger requires printed generated binding code, row 10 reverts to OPEN.
 - FragmentCallback convention (viii) for row 32: SOURCE on a printed dialog-side call through the interface cast, as in batches 82/86 — not contract alone as in batch 108 row 30. The merger must pick one convention for all FragmentCallback rows.
-- Build: **not run**. C1: **not run** (Mac after push, never claimed passed). Main-agent spot-check (1 in 5) and `py_compile` are outstanding. No push was made (held until verified and merged to `[L]`). Nothing was edited in `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another helper's file. No other batch was touched.
+- Build: **not run**. C1: **not run** (Mac after push, never claimed passed). Main-agent spot-check (1 in 5) and `py_compile` are outstanding. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]) (pushed UNVERIFIED before [L] at user request 2026-11-01). Nothing was edited in `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another helper's file. No other batch was touched.
 - AddLinkDialog lifecycle/lambda rows and AddLinkViewModel rows are batch 77, not judged here; they were read only as route context (subscribe lambda `AddLinkDialog:130–137` for row 38).

@@ -1,3 +1,5 @@
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
 # LibreTorrent batch 75 — merge-ready (UNVERIFIED)
 
 **Status: UNVERIFIED merge-ready part only. 0 rows verified for merge. Nothing here has been merged into `graph_def.py`.**
@@ -98,5 +100,5 @@ Descriptors distinguish most lambdas; individual $n-to-button mapping inside ini
 - No UNREACHABLE claimed: no saved full-repo grep exists for any row, and absence in the printed files is not evidence of absence.
 - Lambda $4–$7 individual button mapping must be confirmed against bytecode if the merger needs it; labels are unaffected (same group route).
 - Strict-entry caveat above: launcher-to-AddFeedActivity step not printed; under a strict launcher rule all 40 revert to OPEN. Under an external-entry rule (AddFeedActivity is exported with SEND/VIEW filters), the entry is closed.
-- Build: **not run**. C1: **not run** (Mac after push, never claimed passed). Main-agent spot-check (1 in 5) and `py_compile` are outstanding. No push was made (held until verified and merged to `[L]`). Nothing was edited in `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another helper's file. No other batch was touched.
+- Build: **not run**. C1: **not run** (Mac after push, never claimed passed). Main-agent spot-check (1 in 5) and `py_compile` are outstanding. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]) (pushed UNVERIFIED before [L] at user request 2026-11-01). Nothing was edited in `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another helper's file. No other batch was touched.
 - AddFeedDialog.addChannel / deleteChannel / deleteFeedDialog / handleUrlClipItem / checkUrlField are callers in this batch's routes but are NOT batch-75 rows; they belong to other batches (batch 74) and were judged only as route steps here, not as batch verdicts.

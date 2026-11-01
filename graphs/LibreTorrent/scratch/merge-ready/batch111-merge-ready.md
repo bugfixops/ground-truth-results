@@ -1,8 +1,10 @@
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
 # LibreTorrent batch 111 - merge-ready - UNVERIFIED
 
 Status: MERGE-READY PROPOSAL ONLY, UNVERIFIED. Not verified for merge. No build, sampler,
 real full-repo grep, or C1 check was run in this pass, and no counts are claimed from any of
-those. Nothing was pushed (push held until verified and merged to [L]). Saved locally only.
+those. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]) (pushed UNVERIFIED before [L] at user request 2026-11-01). Saved locally and pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]).
 
 Source root (branch work-2026-10-31, repo bugfixops/ground-truth-results):
 `final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/`
@@ -88,7 +90,7 @@ line pins, which match the proposal). No row changed label or confirmed_by.
 3. Lambda/anonymous numbering confirmed against bytecode, if the merger requires it.
 4. Main-agent spot-check (1 in 5), py_compile, build, sampler, Mac build/C1 - all
    NOT run, never claimed passed. Build and C1 are marked "not run" (they run on the
-   user's Mac after a push). No push was made (held until verified and merged to [L]).
+   user's Mac after a push). Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]) (pushed UNVERIFIED before [L] at user request 2026-11-01).
 
 
 ## Rows (40)

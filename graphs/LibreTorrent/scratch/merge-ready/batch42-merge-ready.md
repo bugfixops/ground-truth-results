@@ -1,6 +1,10 @@
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
+**REVISION 2026-11-01 — OPEN-closing pass (this task, batches 39-42).** All 4 OPEN rows closed to UNREACHABLE; no other row changed. Fresh source in `~/workspace/b394142-openclose-src/` (PermissionManager.java 155 lines SHA `57cbb54d…`, SettingsRepositoryImpl.java 1436 lines SHA `a8b6f542…`, TorrentStream.java 137 lines SHA `4009bda6…`, all branch `work-2026-10-31`, connector only, no fresh 429). Saved grep: `b394142-openclose-src/full_tree_grep_394142.txt` — §E (ask* census over all 252 app Java files) + §D (TorrentStream usages) + §H (test/androidTest zero; debug/play/release have no .java) + §I (87 res layout/xml files, zero hits). Row 1's fresh TorrentStream line numbers (newArray :102-106) supersede the prior file's carried-forward :112-115. Ask* rows are SOURCE (gates printed fresh in PermissionManager), row 1 is INFERRED (grep + printed definitions, as in batch 41). Each row flips back to REACHABLE on one printed ungated caller (row 1: on one printed parceling site, together with the batch-41 parcel quartet). Build: not run. C1: not run.
+
 # LibreTorrent batch 42 — merge-ready part — UNVERIFIED
 
-**Status: UNVERIFIED proposal only. NOT verified for merge. NOT pushed. No edit to
+**Status: UNVERIFIED proposal only. NOT verified for merge. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]). No edit to
 `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another agent's files.**
 **Build: not run. C1: not run.** The build and C1 checks run on the user's Mac after a push,
 so they are marked "not run" here, never passed. No sampler, full-repo grep, or C1
@@ -14,10 +18,10 @@ check was run or is claimed in this file.
   All 40 rows are `TODO_CANDIDATE_REACHABLE` in the plan, in plan order, method names and
   JVM descriptors matched row for row against the plan in this pass.
 - Prior work used as INPUT only: `~/workspace/libretorrent-batch42-proposal.md`
-  (26 REACHABLE proposed / 0 UNREACHABLE / 14 OPEN). In this pass 10 of those 14 OPEN rows
+  (36 REACHABLE proposed / 0 UNREACHABLE / 4 OPEN before this revision; 10 of the earlier 14 OPEN rows
   were closed to REACHABLE on freshly printed source (see "Changes in this pass" below);
-  the other 4 OPEN rows were re-examined and stay OPEN for the reasons given. No verdict
-  below is copied as a result without a printed citation.
+  the other 4 OPEN rows are closed in the 2026-11-01 OPEN-closing revision note above.
+  No verdict below is copied as a result without a printed citation.
 - Printed source in this pass, fresh connector fetches from branch `work-2026-10-31`,
   one file at a time with 20 s pauses, no fresh HTTP 429 hit, saved in
   `~/workspace/b4143-src/`: BehaviorSettingsFragment.java (286 lines),
@@ -78,7 +82,7 @@ check was run or is claimed in this file.
   session; FeedSettingsFragment is freshly printed here, and its lines match the
   batch-43 proposal's Scheduler note that Scheduler calls autoRefreshFeeds getters — that
   Scheduler route is a second, carried-forward lead, not relied on here.)
-- Rows 28, 29, 31 stay OPEN for an API-27 reason, not for want of a printed line (see table).
+- Rows 28, 29, 31 (prior pass) stayed OPEN for an API-27 reason, not for want of a printed line — closed to UNREACHABLE `closed_by_api_level` in the 2026-11-01 revision note above, on the saved complete-tree grep finding no ungated caller (see table).
   Their only printed call sites are API-gated false at API 27 (R = 30, TIRAMISU = 33):
   row 28 getter sites PermissionManager.java:65 (inside the R-gated StartActivityForResult
   registration at :60) and :100 (inside the R-gated branch at :99); row 29 setter site
@@ -112,7 +116,7 @@ strict-entry convention for all batches; it is recorded here, not decided.
 
 | # | Method | JVM descriptor | Label proposed | confirmed_by | Printed citation / note |
 |---|---|---|---|---|---|
-| 1 | TorrentStream$1.newArray | (I)[Lorg/proninyaroslav/libretorrent/core/model/stream/TorrentStream; | OPEN | — | TorrentStream.java:112-115 return new TorrentStream[size]. Framework Parcelable dispatch only; no printed unparcel/array site in the prior corpus or the fresh files in this pass. Needs a printed read site or a saved full-repo grep. NOT UNREACHABLE on absence alone. See batch 41 row 40 (createFromParcel, also OPEN) — flips together with the batch-41 Parcelable quartet on one printed parceling site. Carried-forward definition. |
+| 1 | TorrentStream$1.newArray | (I)[Lorg/proninyaroslav/libretorrent/core/model/stream/TorrentStream; | UNREACHABLE | INFERRED | Kind: `no_trigger_in_app`. TorrentStream.java:102-106 (fresh numbering; `return new TorrentStream[size]`). Framework Parcelable dispatch only; saved full-tree grep §D shows no printed parcel/unparcel site for a TorrentStream anywhere in the 252 app Java files, and res grep §I is zero. Flips together with the batch-41 Parcelable quartet (rows 31, 34, 38, 40) on one printed parceling site. |
 | 2 | TorrentStreamServer.<clinit> | ()V | REACHABLE | INFERRED | Static DLNA_FILE_TYPES block (TorrentStreamServer.java:55-62, new DLNAFileType for mp4/avi/mkv). JVM class initialisation on first use via TorrentEngine.startStreamingServer :1069. Carried-forward. |
 | 3 | TorrentStreamServer.<init> | (Ljava/lang/String;I)V | REACHABLE | SOURCE | TorrentEngine.java:1069 torrentStreamServer = new TorrentStreamServer(hostname, port) in startStreamingServer. Def TorrentStreamServer.java:67-70 (super(host, port)). Carried-forward. |
 | 4 | TorrentStreamServer.handleTorrent | (Lorg/nanohttpd/NanoHTTPD$IHTTPSession;)Lorg/nanohttpd/NanoHTTPD$Response; | REACHABLE | SOURCE | TorrentStreamServer.java:110-121 serve() calls handleTorrent(session) :119 area. Def :127-260 (engine.getStream :142, engine.getTorrentInputStream :206,:243, newFixedLengthResponse overloads). Carried-forward. |
@@ -139,10 +143,10 @@ strict-entry convention for all batches; it is recorded here, not decided.
 | 25 | SettingsRepositoryImpl.anonymousMode(boolean) | (Z)V | REACHABLE | SOURCE | FRESH: AnonymousModeSettingsFragment.java:79 pref.anonymousMode((boolean)newValue) in onPreferenceChange (bind at :60, preference from R.xml.pref_anonymous_mode). Def SettingsRepositoryImpl.java:935-939 (putBoolean). Fragment reached fresh from NetworkSettingsFragment.java:246-257. |
 | 26 | SettingsRepositoryImpl.applyProxy() | ()Z | REACHABLE | SOURCE | TorrentEngine.java:1569 if (pref.applyProxy()) in preference-change handling (pref_key_apply_proxy branch). Def SettingsRepositoryImpl.java:1085-1087. Carried-forward. |
 | 27 | SettingsRepositoryImpl.applyProxy(boolean) | (Z)V | REACHABLE | SOURCE | TorrentEngine.java:1570 pref.applyProxy(false) in the same branch (after applying proxy, clears the flag, then setProxy()). Def SettingsRepositoryImpl.java:1091-1095. Carried-forward. |
-| 28 | SettingsRepositoryImpl.askManageAllFilesPermission() | ()Z | OPEN | — | Def SettingsRepositoryImpl.java:1397-1399. Printed call sites in this pass are ALL API-gated false at API 27: fresh PermissionManager.java:65 (inside R-gated StartActivityForResult registration at :60) and :100 (inside R-gated branch at :99). No ungated caller printed in the prior corpus or the fresh files. Strong `closed_by_api_level` LEAD, not a verdict: a saved full-repo grep finding any ungated caller flips to REACHABLE; finding none would support `closed_by_api_level`. NOT UNREACHABLE on this evidence. |
-| 29 | SettingsRepositoryImpl.askManageAllFilesPermission(boolean) | (Z)V | OPEN | — | Def SettingsRepositoryImpl.java:1403-1407. Only printed call site: fresh PermissionManager.java:118 pref.askManageAllFilesPermission(!doNotAsk) inside setDoNotAskStorage, R-gated at :117 — false at API 27. Same closed_by_api_level lead as row 28; needs a saved full-repo grep. NOT UNREACHABLE on this evidence. |
+| 28 | SettingsRepositoryImpl.askManageAllFilesPermission() | ()Z | UNREACHABLE | SOURCE | Kind: `closed_by_api_level`. Def SettingsRepositoryImpl.java:1397-1399. Saved full-tree grep §E: the only call sites in the tree are fresh PermissionManager.java:65 (inside R-gated StartActivityForResult registration at :60) and :100 (inside R-gated branch at :99) — both gates false at API 27 (27 < 30). No ungated caller exists in the tree; res grep §I zero. Flips to REACHABLE on any printed ungated caller. |
+| 29 | SettingsRepositoryImpl.askManageAllFilesPermission(boolean) | (Z)V | UNREACHABLE | SOURCE | Kind: `closed_by_api_level`. Def SettingsRepositoryImpl.java:1403-1407. Saved full-tree grep §E: the only call site in the tree is fresh PermissionManager.java:118 `pref.askManageAllFilesPermission(!doNotAsk)` inside setDoNotAskStorage, R-gated at :117 — false at API 27. The setDoNotAskStorage callers (MainActivity:430, CreateTorrentActivity:122, AddTorrentActivity:272) do not change this: the ask* call site itself sits inside the gated branch. No other caller; res grep §I zero. Flips to REACHABLE on any printed ungated caller. |
 | 30 | SettingsRepositoryImpl.askNotificationPermission() | ()Z | REACHABLE | SOURCE | FRESH: PermissionManager.java:89 pref.askNotificationPermission() inside the RequestMultiplePermissions result lambda (registration :70-93 ungated; the TIRAMISU branch at :75-79 only sets notificationsResult=true off-API-33 and does not gate :89). Def SettingsRepositoryImpl.java:1425-1427. The :110 call is T-gated and is NOT relied on. |
-| 31 | SettingsRepositoryImpl.askNotificationPermission(boolean) | (Z)V | OPEN | — | Def SettingsRepositoryImpl.java:1431-1435. Only printed call site: fresh PermissionManager.java:124 pref.askNotificationPermission(!doNotAsk) inside setDoNotAskNotifications, TIRAMISU-gated at :123 — false at API 27. Strong `closed_by_api_level` LEAD, not a verdict: needs a saved full-repo grep for an ungated caller. NOT UNREACHABLE on this evidence. |
+| 31 | SettingsRepositoryImpl.askNotificationPermission(boolean) | (Z)V | UNREACHABLE | SOURCE | Kind: `closed_by_api_level`. Def SettingsRepositoryImpl.java:1431-1435. Saved full-tree grep §E: the only call site in the tree is fresh PermissionManager.java:124 `pref.askNotificationPermission(!doNotAsk)` inside setDoNotAskNotifications, TIRAMISU-gated at :123 — false at API 27. Contrast row 30 (getter), which stays REACHABLE via the ungated lambda at PermissionManager.java:89; the :110 call is TIRAMISU-gated and is NOT relied on for row 30. No other setter caller; res grep §I zero. Flips to REACHABLE on any printed ungated caller. |
 | 32 | SettingsRepositoryImpl.autoManage() | ()Z | REACHABLE | SOURCE | TorrentEngine.java:1579 session.setAutoManaged(pref.autoManage()) in preference-change handling (pref_key_auto_manage branch). Def SettingsRepositoryImpl.java:981-983. Carried-forward; also fresh LimitationsSettingsFragment.java:108 setChecked(pref.autoManage()). |
 | 33 | SettingsRepositoryImpl.autoManage(boolean) | (Z)V | REACHABLE | SOURCE | FRESH: LimitationsSettingsFragment.java:241 pref.autoManage((boolean)newValue) in onPreferenceChange. Def SettingsRepositoryImpl.java:987-991. |
 | 34 | SettingsRepositoryImpl.autoRefreshFeeds() | ()Z | REACHABLE | SOURCE | FRESH: FeedSettingsFragment.java:60 autoRefresh.setChecked(pref.autoRefreshFeeds()) in bind. Def SettingsRepositoryImpl.java:1189-1191 (pref_key_feed_auto_refresh). |
@@ -156,22 +160,11 @@ strict-entry convention for all batches; it is recorded here, not decided.
 ## Counts (mechanically verified in this pass: 40 rows, sequence 1-40 intact)
 
 - REACHABLE proposed: 36 (SOURCE 28, INFERRED 8)
-- UNREACHABLE proposed: 0
-- OPEN: 4 (rows 1, 28, 29, 31)
+- UNREACHABLE proposed: 4 (SOURCE 3, INFERRED 1; 2026-11-01 revision, was 0)
+- OPEN: 0 (2026-11-01 revision, was 4)
 - Total: 40. **0 rows verified for merge** — main-agent spot-check 1 in 5, py_compile,
   build, and Mac build/C1 are all still outstanding and are marked not run, never passed.
 
 ## OPEN items and what resolves them
 
-- Row 1 (TorrentStream$1.newArray): a printed unparcel/array site, or a saved full-repo
-  grep — flips together with batch 41 rows 31/34/38/40.
-- Rows 28, 29, 31 (ask* getter/setter): a saved full-repo grep for an ungated caller.
-  If none exists, the merger (with the API-27 standard config) would have the printed
-  R/T-gating evidence for `closed_by_api_level`; that kind is NOT assigned here because
-  the grep has not been run.
-- No row in this batch is labelled UNREACHABLE: none meets the bar of exactly one kind
-  + reason + source reference on printed evidence. In particular, the SettingsRepositoryImpl
-  setters are interface implementations of a SharedPreferences repository; the newly
-  closed setters above show the normal pattern is a settings fragment writing them, and
-  the three remaining OPEN setters have only API-gated printed sites, which is a gate
-  argument, not an absence argument.
+- Rows 1, 28, 29, 31 — CLOSED 2026-11-01 (see revision note and table): row 1 on the saved complete-tree grep (no parceling site) together with the batch-41 parcel quartet; rows 28/29/31 on the saved complete-tree ask* census (no ungated caller) + printed R/T gates, kind `closed_by_api_level`. Each flips back to REACHABLE on one printed ungated caller (row 1: on one printed parceling site).

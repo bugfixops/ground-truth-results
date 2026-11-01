@@ -1,6 +1,69 @@
+## Revision 2026-11-01 — OPEN-closing round 2, group G16 (UNVERIFIED, 0 flips)
+
+0 of 5 OPEN rows closed in this pass; counts unchanged (35 REACHABLE / 0 UNREACHABLE / 5 OPEN).
+New evidence this pass: fresh greps over the already-fetched 252-file app Java tree
+(~/workspace/ruleF-src, connector reconstruction on branch work-2026-10-31), saved in
+~/workspace/b103106112114115-openclose2-src/grep_103.txt, grep_103b.txt, grep_extra.txt. No GitHub connector fetch was needed
+(no file was missing locally); no fresh 429. Res/layout, res/xml, generated code and
+library/framework code are NOT in that tree, so it is explicitly NOT a full-repo grep.
+Checked per OPEN row, all against the tree:
+- Row 34 FileManagerNode.setEnabled: tree-wide setEnabled hits are only ProxySettingsFragment
+  Preference variables and FileManagerAdapter.java:135 itemView.setEnabled(item.isEnabled())
+  (a View receiver that READS isEnabled). No call on a FileManagerNode-typed receiver.
+- Row 35 FileManagerNode.setName: tree-wide setName hits are all other receivers
+  (DetailTorrent/AddTorrent/AddFeed/AddTag ViewModel mutableParams/state, TorrentSessionImpl
+  p.setName). No node receiver. FileNode interface declares setName/setType (FileNode.java),
+  but no FileNode-typed variable calls them either; FileTree.java:131/:159 are a sibling
+  implementation's own setters, not FileManagerNode calls.
+- Row 36 FileManagerNode.setType: tree-wide setType hits are only sharingIntent.setType
+  (Intent). No node receiver.
+- Row 37 FileManagerNode.toString: FileManagerDialog toString hits are Editable/Exception
+  only (:329/:354/:575 in the local copy); no node toString, no string-concatenation or
+  logging use of a node in the filemanager files.
+- Row 40 FileManagerSpinnerAdapter.addItem: ZERO singular addItem calls tree-wide. The
+  only adapter calls are addItems at FileManagerDialog.java:210 and :645 (plus unrelated
+  FeedRepositoryImpl.addItems); addItem def is FileManagerSpinnerAdapter.java:105.
+NOT flipped to UNREACHABLE: the task rule requires a saved full-repo grep before any
+OPEN -> UNREACHABLE flip, and none exists (databinding expressions in res/layout,
+generated code and library dispatch remain unsearched); a 252-tree zero alone never flips.
+Named targets unchanged: a printed call site for the row, or a saved full-repo grep.
+Strict-entry note (unchanged, not decided): the 35 REACHABLE rows are dialog-anchored;
+batch 102's CreateTorrentDialog starter print is a sibling-batch print, not fresh in 103.
+Build: not run. C1: not run.
+
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
+
+## Revision 2026-11-01 — OPEN-closing pass (UNVERIFIED, no label changes)
+
+0 of 5 OPEN rows closed in this pass; counts unchanged (35 REACHABLE / 0 UNREACHABLE / 5 OPEN).
+New evidence, freshly connector-fetched from branch work-2026-10-31 (one file at a time, ~25 s pauses, no fresh HTTP 429),
+saved in ~/workspace/b103106112115-openclose-src/ (20 files, SHAs in .sha sidecars):
+FileManagerNode.java (117 lines), FileManagerSpinnerAdapter.java (187), FileManagerViewModel.java (393),
+FileManagerDialog.java (692), FileManagerAdapter.java (176), FileManagerConfig.java (107), GoToFolderDialog.java (166),
+GoToFolderViewModel.java (34, NEW — not in the prior pass), FileManagerViewModelFactory.java (52),
+LogMutableParams.java (121), LogViewModel.java (227), LogActivity.java (470), LogAdapter.java (112),
+LogSettingsFragment.java (101), SessionLogFilterDialog.java (120), SummaryPreference.java (93),
+TorrentListItem.java (82), MainFragment.java (637), TorrentListAdapter.java (402), MainViewModel.java (189),
+plus JacocoInstrument/SMSInstrumentedReceiver.java (26 lines).
+Plus a saved grep over the FULL app Java tree (252 files, ~/workspace/b103106112115-openclose-src/grep_app_java_tree.txt;
+corpus = connector reconstruction of the app Java tree on the same branch, res/layout, res/xml, generated code and
+library/framework code NOT in it, so this is explicitly NOT a full-repo grep and cannot flip OPEN to UNREACHABLE):
+- setEnabled/setName/setType hits in the whole tree are all other receivers (ProxySettingsFragment Preference.setEnabled,
+  FileManagerAdapter itemView.setEnabled (View), sharingIntent.setType, DetailTorrent/AddTorrent/AddFeed/AddTag ViewModel
+  mutableParams.setName, TorrentSessionImpl p.setName) — NONE is a FileManagerNode setter call.
+- addItem (singular): ZERO hits in the whole tree; only addItems at FileManagerDialog.java:210 and :645.
+- FileManagerNode.toString: no receiver-typed hit; nodes flow only as List<FileManagerNode> (ViewModel getChildItems
+  constructs all three node forms at :127/:134/:136-137 with the 3-arg ctor, dialog/adapter use only getName/getType/
+  isEnabled/isDirectory/compareTo/equals) and no method in FileManagerNode itself calls a setter or toString on a node.
+Rows still OPEN (34 setEnabled, 35 setName, 36 setType, 37 toString, 40 addItem) with named targets unchanged:
+a printed call site for the row, or a saved full-repo grep (res databinding expressions + generated code + library
+dispatch still unsearched). NOT flipped to UNREACHABLE on the Java-tree grep alone, per the task rule.
+Build: not run. C1: not run.
+
 # LibreTorrent batch 103 — merge-ready part — UNVERIFIED
 
-**Status: UNVERIFIED proposal only. NOT verified for merge. NOT pushed. No edit to
+**Status: UNVERIFIED proposal only. NOT verified for merge. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]). No edit to
 `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another agent's files.**
 **Build: not run. C1: not run.** The build and C1 checks run on the user's Mac after a push,
 so they are marked "not run" here, never passed. No sampler, full-repo grep, or C1

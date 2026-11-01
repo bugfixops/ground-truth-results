@@ -1,6 +1,12 @@
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
+**REVISION 2026-11-01 (OPEN-closing round 2): 0 rows flipped. All 26 OPEN rows re-checked against the full 252-file app-Java tree (`~/workspace/ruleF-src/`) plus the parcel/hashCode/toString grep families in `~/workspace/libretorrent-grep/`; no independent printed caller was found for any OPEN row, and no row was flipped to UNREACHABLE (UNREACHABLE-on-tree-grep-absence is an undecided project-wide rule — see CONDITIONAL table). Counts unchanged 14/0/26. Round-1 flips (rows 5, 29) re-checked, NOT reverted — no fresh contradictory evidence. Build: not run. C1: not run. UNVERIFIED, nothing merged.**
+
+**REVISION 2026-11-01 (OPEN-closing pass): 2 rows flipped OPEN -> REACHABLE on freshly printed source (see table rows 5 and 29 and "Printed source added 2026-11-01" below). Counts changed 12/0/28 -> 14/0/26. No row flipped to UNREACHABLE (no saved full-repo grep was run in this pass). Build: not run. C1: not run. UNVERIFIED, nothing merged.**
+
 # LibreTorrent batch 32 — merge-ready part — UNVERIFIED
 
-**Status: UNVERIFIED proposal only. NOT verified for merge. NOT pushed. No edit to
+**Status: UNVERIFIED proposal only. NOT verified for merge. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]). No edit to
 `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another agent's files.**
 **Build: not run. C1: not run.** The build and C1 checks run on the user's Mac after a push,
 so they are marked "not run" here, never passed. No sampler or full-repo grep was run or is
@@ -53,6 +59,86 @@ the merger must fresh-print the caller files named below before merging rows tha
   `new TorrentMetaInfo(is)`, :464 `new TorrentMetaInfo(bencode)` (byte[]).
   These caller files were NOT freshly fetched in this session — flagged, not hidden.
 
+## Printed source added 2026-11-01 (OPEN-closing round 2)
+
+No new GitHub connector fetch was made in this round (no new file was missing
+locally); all checking was over already-fetched files: `~/workspace/ruleF-src/`
+(252 app Java files), `~/workspace/b323334-openclose-src/` (round-1 fresh
+prints), and `~/workspace/libretorrent-grep/` (parcel-sites, hashcode, tostring
+families, which already triaged these exact rows). Saved round-2 greps in
+`~/workspace/b323334-openclose2-src/`: `grep-setters-getters.txt`,
+`grep-equals-setters-parcel.txt`, `grep-classnames-methods.txt`.
+Findings, per OPEN group (all "zero" statements are app-Java only; they exclude
+`res` XML, generated code, and framework dispatch, so none flips a row to
+UNREACHABLE in this round):
+- Parcel rows 1-4, 10, 13, 21-24, 26, 31, 36-39: zero printed app-side
+  parcel/unparcel site naming Torrent, BencodeFileItem, or TorrentMetaInfo
+  (parcel-sites family: Torrent's own read/writeParcelable hits are the inner
+  Uri `downloadPath`, not a Torrent site; BencodeFileItem's only non-CREATOR
+  caller is `TorrentMetaInfo.java:123` readTypedList inside the OPEN
+  TorrentMetaInfo Parcel ctor — dependency rule, flips neither group;
+  TorrentMetaInfo.writeToParcel's writeTypedList would call
+  BencodeFileItem.writeToParcel, but writeToParcel itself has no printed caller).
+  No `putParcelableArrayListExtra`/`getParcelableArrayListExtra` site exists
+  anywhere in the tree, so `newArray` rows (4, 24, 39) have no array site even
+  under a parcel-site policy.
+- Setters 17-19 (BencodeFileItem.setIndex/setPath/setSize): zero app-Java
+  caller in `grep-equals-setters-parcel.txt`; both ctors (String/int/long and
+  Parcel) set the fields directly, and Utils.getFileList uses the ctor, not
+  the setters. This is the exact "ctor sets fields directly" case in the task:
+  a ctor assignment alone does not flip a getter, and here there is not even
+  a getter question — the setters have no printed caller at all.
+- equals/hashCode/toString rows 6-8, 20, 32, 34, 35: zero receiver-typed caller
+  in the tree (hashcode/tostring families). TorrentTagInfo flows are
+  `List<TorrentTagInfo>` (Room DAO addTag/deleteTag/addTags take lists; no
+  `contains`/`indexOf`/hash-collection site on the type was found);
+  TorrentMetaInfo.toString's only conditional site is inside the OPEN
+  TorrentDetailsInfo.toString (batch 90 row 16) — see CONDITIONAL table.
+  No SelectionTracker/hash-backed site names either type, so even the
+  undecided hashCode-framework rule would not flip rows 7/34 on current evidence.
+- Round-1 flips re-checked: row 5 TorrentTagInfo ctor sites
+  (TorrentRepositoryImpl :125/:132/:137) and row 29 TorrentMetaInfo(TorrentInfo)
+  sites (TorrentDownloadImpl :406/:1194) are still present in the 252-file
+  tree (`grep-classnames-methods.txt`); nothing contradicts them.
+
+## Printed source added 2026-11-01 (OPEN-closing pass)
+
+Fresh connector fetches from branch `work-2026-10-31`, one file at a time with ~25 s pauses,
+saved in `~/workspace/b323334-openclose-src/` (all under
+`final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/`;
+connector SHAs are git blob SHAs as returned by the connector). No fresh HTTP 429 was hit in
+this pass. Two clean file-not-found results (not 429s): `core/model/data/repository/TorrentRepositoryImpl.java`
+does not exist (correct path `core/storage/TorrentRepositoryImpl.java`) and
+`core/model/filetree/TorrentContentFileTreeUtils.java` does not exist (correct path
+`core/utils/TorrentContentFileTreeUtils.java`, package `core.utils`).
+- `core/model/data/entity/Torrent.java` — 201 lines, SHA `9dbe96bf15d2398823497b2a04bbbd7d012de9c8`.
+- `core/model/data/entity/TorrentTagInfo.java` — 88 lines, SHA `578f8ae4932aa3f03a40f91bcd9720d1e8b1e320`.
+- `core/model/data/metainfo/BencodeFileItem.java` — 127 lines, SHA `8a0f1774af23e4d732a696f32787a6ceb9038575`.
+- `core/model/data/metainfo/TorrentMetaInfo.java` — 210 lines, SHA `40334a672302dd5b4d9dc8626bfb6d800ecc0c98`.
+- `core/model/filetree/BencodeFileTree.java` — 132 lines, SHA `c732b4b924485f2ed886324fabe7a8a927a6535c`.
+- `core/model/filetree/FileTree.java` — 222 lines, SHA `b868825de8cddea523b5483c7e724981533b06d3`, byte-identical to the earlier batch-32/33 fresh fetch.
+- `core/model/filetree/FilePriority.java` — 114 lines, SHA `2ee77e09c03cbaff9dccae36d4f7826df7679a22`.
+- `core/model/filetree/TorrentContentFileTree.java` — 184 lines, SHA `0b91364f600055fd163421fc499617aa2b356ab7`.
+- `core/model/session/AdvancedPeerInfo.java` — 65 lines, SHA `ff370dae46c7af3727518084f655f7430099be66`, byte-identical to the earlier batch-34 fresh fetch.
+- `core/utils/TorrentContentFileTreeUtils.java` — 127 lines, SHA `71185dbebfafddbe1458d41275cc9736b3437b35`.
+- `core/utils/BencodeFileTreeUtils.java` — 127 lines, SHA `5de27e64238342db07a51ba8c1039cf26e5d3089`, byte-identical to the earlier fresh fetch.
+- `ui/addtorrent/AddTorrentViewModel.java` — 574 lines, SHA `bec2f6eec2a538bd7223095b87014183530f4534`.
+- `ui/detailtorrent/DetailTorrentViewModel.java` — 610 lines, SHA `6e4ef82f455957298bfb6bf4513c4a35c799a1a6`, byte-identical to the earlier batch-89/90 and 87-88 fresh fetches.
+- `core/model/session/TorrentSessionImpl.java` — 1720 lines, SHA `aef9618cb29cae4ade30d51d968f2d3b0f5182dd` (same SHA as the batches 29-31 pass; differs from the batches 38-40 pass copy `4b698cf6...` — the merger must diff before merging rows citing both).
+- `core/storage/TorrentRepositoryImpl.java` — 172 lines, SHA `0f01eff0a7613bfa2ecdb3052e7914ba9f00bd54`.
+- `core/model/session/TorrentDownloadImpl.java` — 1711 lines, SHA `30024b5d27ff357262557d35bac99281b54ae8f8`.
+- `core/model/data/PeerInfo.java` — 248 lines, SHA `7480d74f29a13ab8130870b9fe58eb50b0872bb7`.
+- `ui/detailtorrent/pages/peers/PeerListAdapter.java` — 177 lines, SHA `1c5d275e81512e779c4d32c215469ee23de2491c`.
+- `ui/detailtorrent/pages/peers/DetailTorrentPeersFragment.java` — 202 lines, SHA `d164a15e3f393009779ead158ca2bb920ec7149c`.
+Fresh-corpus grep over these 19 files found no caller for the remaining OPEN rows (see per-row
+notes): no `new TorrentTagInfo` beyond TorrentRepositoryImpl, no parcel/marshalling site for
+Torrent/BencodeFileItem/TorrentMetaInfo, no FileTree `setIndex`/`setName`/`setParent`/`setType`/
+`compareTo`/`equals`/`getChildrenIndexes`/`getChildrenName`/`getType` caller (the `setName` hits at
+AddTorrentViewModel:344 and DetailTorrentViewModel:437 are `mutableParams.setName`, not
+FileTree.setName), no FileTree/TorrentContentFileTree/FilePriority/BencodeFileTree `toString`
+caller, no `getAvailability`/`getReceivedBytes` caller beyond self-recursion. This is a
+printed-corpus grep only, NOT a saved full-repo grep, so no row was flipped to UNREACHABLE.
+
 ## Per-row table — 40 rows, plan order
 
 | # | Method | Proposed label | confirmed_by | Printed citation / note |
@@ -61,7 +147,7 @@ the merger must fresh-print the caller files named below before merging rows tha
 | 2 | Torrent$1.<init> | OPEN | — | CREATOR anonymous class Torrent.java:157; no printed invocation. |
 | 3 | Torrent$1.createFromParcel | OPEN | — | Torrent.java:160; framework dispatch only, not printed. |
 | 4 | Torrent$1.newArray | OPEN | — | Torrent.java:166; same as row 3. |
-| 5 | TorrentTagInfo.<init> | OPEN | — | TorrentTagInfo.java:54; no printed `new TorrentTagInfo` site. |
+| 5 | TorrentTagInfo.<init> | REACHABLE proposed | SOURCE | **CHANGED 2026-11-01 (was OPEN).** TorrentRepositoryImpl.java:125 (replaceTags), :132 (addTag), :137 (deleteTag) `new TorrentTagInfo(tag.id, torrentId)` — fresh fetch, SHA `0f01eff0…`. TorrentRepositoryImpl is the app's TorrentRepository implementation (tag flows); strict-entry caveat applies (repository entry step not freshly printed in this pass). |
 | 6 | TorrentTagInfo.equals | OPEN | — | TorrentTagInfo.java:63; no printed caller. |
 | 7 | TorrentTagInfo.hashCode | OPEN | — | TorrentTagInfo.java:74; no printed caller. |
 | 8 | TorrentTagInfo.toString | OPEN | — | TorrentTagInfo.java:82; no printed caller. |
@@ -85,7 +171,7 @@ the merger must fresh-print the caller files named below before merging rows tha
 | 26 | TorrentMetaInfo.<init>(Parcel) | OPEN | — | TorrentMetaInfo.java:113; called only from CREATOR :153, not printed as invoked. |
 | 27 | TorrentMetaInfo.<init>(FileInputStream) | REACHABLE proposed | SOURCE | AddTorrentViewModel.java:293; TorrentSessionImpl.java:299; TorrentEngine.java:384 (local reprints). |
 | 28 | TorrentMetaInfo.<init>(String,String) | REACHABLE proposed | SOURCE | AddTorrentViewModel.java:242 (local reprint). |
-| 29 | TorrentMetaInfo.<init>(TorrentInfo) | OPEN | — | TorrentMetaInfo.java:73; no printed caller (TorrentEngine:464 uses the byte[] ctor). |
+| 29 | TorrentMetaInfo.<init>(TorrentInfo) | REACHABLE proposed | SOURCE | **CHANGED 2026-11-01 (was OPEN).** TorrentDownloadImpl.java:406 and :1194 `new TorrentMetaInfo(ti)` where ti is org.libtorrent4j.TorrentInfo — fresh fetch, SHA `30024b5d…`. Supersedes the old note: TorrentEngine:464 uses the byte[] ctor (row 30), a different overload. |
 | 30 | TorrentMetaInfo.<init>(byte[]) | REACHABLE proposed | SOURCE | TorrentEngine.java:464 `new TorrentMetaInfo(bencode)` (local reprint). |
 | 31 | TorrentMetaInfo.describeContents | OPEN | — | TorrentMetaInfo.java:129; no printed caller. |
 | 32 | TorrentMetaInfo.equals | OPEN | — | TorrentMetaInfo.java:172; no printed caller. |
@@ -100,22 +186,84 @@ the merger must fresh-print the caller files named below before merging rows tha
 
 ## Counts — mechanically verified
 
-- REACHABLE proposed: 12 (rows 9, 11, 12, 14, 15, 16, 25, 27, 28, 30, 33, 40)
+- REACHABLE proposed: 14 (rows 5, 9, 11, 12, 14, 15, 16, 25, 27, 28, 29, 30, 33, 40)
 - UNREACHABLE proposed: 0
-- OPEN: 28 (rows 1-8, 10, 13, 17-24, 26, 29, 31, 32, 34-39)
+- OPEN: 26 (rows 1-4, 6-8, 10, 13, 17-24, 26, 31, 32, 34-39)
 - Total: 40 rows, sequence 1–40 intact in plan order.
 - Verified for merge: 0 / 40.
 
 ## Gaps the merger must close before merging
 
-1. Saved full-repo grep for the 28 OPEN rows (especially TorrentTagInfo all 4, parcel trios,
-   TorrentMetaInfo(TorrentInfo), BencodeFileItem setters/toString). Any hit flips that row to REACHABLE.
-2. Fresh connector prints of the caller files flagged as local reprints above
-   (Utils.java, AddTorrentViewModel.java, TorrentSessionImpl.java, TorrentEngine.java) before
-   merging rows 11, 25, 27, 28, 30, 40 that rest on them.
+1. Saved full-repo grep for the 26 OPEN rows (especially TorrentTagInfo equals/hashCode/toString,
+   parcel trios, BencodeFileItem setters/toString). Any hit flips that row to REACHABLE.
+2. Fresh connector prints of the caller files still flagged as local reprints above
+   (Utils.java, TorrentEngine.java) before merging rows 11, 30, 40 that rest on them.
+   CLOSED 2026-11-01: AddTorrentViewModel.java, TorrentSessionImpl.java, TorrentDownloadImpl.java
+   and TorrentRepositoryImpl.java are now freshly fetched (see addendum); rows 25, 27, 28 are
+   confirmed on the fresh AddTorrentViewModel (:242, :293), and rows 5, 29 on the fresh
+   TorrentRepositoryImpl/TorrentDownloadImpl.
 3. Printed launcher-to-AddTorrent step; build/sampler/C1 on a full checkout; main-agent
    spot-check 1 in 5; py_compile at merge. None run or claimed here.
 4. No fresh HTTP 429 was hit in this session.
+
+## CONDITIONAL flip tables — round 2 (NOT decided, NOT flipped)
+
+Nothing in this section changes a label. It states exactly what flips if the
+merger/user adopts the named option, so one project-wide rule can be applied
+uniformly (same rule must be applied to the parcel/hashCode/toString rows in
+batches 21/22/28/29/39-42, left OPEN on the same evidence class).
+
+- **Parcelable trio policy (xii, undecided).** (a) IF a printed app-side
+  parcel/unparcel site for a class is later found (saved full-repo grep incl.
+  `res`/generated, or a fresh print), THEN that class's trio flips together:
+  Torrent → rows 1 (writeToParcel, INFERRED on a sender site), 3
+  (createFromParcel, INFERRED), 26-equivalent Parcel ctor is batch 31 row 31
+  (SOURCE via CREATOR body), plus describeContents batch 31 row 34 (INFERRED);
+  BencodeFileItem → rows 10 (Parcel ctor, SOURCE via CREATOR :99), 13
+  (describeContents, INFERRED), 21 (writeToParcel, INFERRED), 23
+  (createFromParcel, INFERRED); TorrentMetaInfo → rows 26 (Parcel ctor,
+  SOURCE via CREATOR :153), 31 (describeContents, INFERRED), 36
+  (writeToParcel, INFERRED), 38 (createFromParcel, INFERRED). In every case
+  `newArray` rows (4, 24, 39) flip ONLY on a printed array-extra/array
+  parcel site — a single-object site does NOT flip newArray (batch 114
+  precedent) — and no such array site exists in the tree today.
+  (b) CREATOR-`$1.<init>` rows (2, 22, 37) do NOT flip under (a) alone; they
+  flip to REACHABLE INFERRED only IF the merger adopts the batch-92
+  class-initialiser reading (CREATOR instance created in the host class's
+  static field initialiser on first active use). Under that reading rows 22
+  and 37 flip (hosts BencodeFileItem/TorrentMetaInfo are already loaded on
+  REACHABLE routes: Utils.getFileList, AddTorrentViewModel), while row 2
+  (Torrent) flips only if Torrent class-load on a REACHABLE route is also
+  accepted (Room-entity load is itself generated-code convention, undecided).
+  Under the batch-32 current rule (CREATOR definition is not a caller) all
+  three stay OPEN. This round adopted neither reading.
+  (c) Dependency rule, unchanged: BencodeFileItem.writeToParcel (row 21)
+  flipping via TorrentMetaInfo.writeToParcel's writeTypedList requires row 36
+  to flip first; row 10 flipping via TorrentMetaInfo's Parcel ctor readTypedList
+  requires row 26 to flip first. Neither chain bootstraps from an OPEN row.
+- **UNREACHABLE-on-tree-grep-absence (undecided).** IF the merger rules that
+  zero hits in a saved 252-file app-Java grep suffices for
+  `no_trigger_in_app`, THEN all 26 OPEN rows flip to UNREACHABLE
+  `no_trigger_in_app` EXCEPT the toString row 35, which is conditional on
+  batch 90 row 16 (see below) and flips to UNREACHABLE only if that host is
+  also ruled UNREACHABLE, and except that parcel rows would then need the
+  merger to state whether framework dispatch is included in "no trigger"
+  (framework CREATOR dispatch is unprinted, so a strict reading keeps parcel
+  rows OPEN even under this option). IF the merger does NOT adopt that rule,
+  all 26 stay OPEN. The saved greps are in
+  `~/workspace/b323334-openclose2-src/`; they do not cover `res` XML,
+  generated Room/binding code, or framework dispatch.
+- **toString dependency (conditional, no new rule needed).** Row 35
+  TorrentMetaInfo.toString flips to REACHABLE SOURCE together with batch 90
+  row 16 TorrentDetailsInfo.toString (concat `", metaInfo=" + metaInfo` at
+  TorrentDetailsInfo.java:119, field type verified TorrentMetaInfo at :35).
+  Rows 8 and 20 have no conditional host in the tree (zero caller of any kind)
+  and flip only on a direct log/concat caller found later.
+- **equals/hashCode framework rule (undecided, no effect here).** Even IF
+  androidx MutableSelection/hash-backed dispatch is ruled a trigger, rows 6,
+  7, 32, 34 do NOT flip on current evidence: neither type is a
+  SelectionTracker key and no hash collection holds either type in app Java.
+  They flip only on a printed receiver-typed equals/hash-collection site.
 
 ## Undecided conventions — flagged per row, NOT decided here
 

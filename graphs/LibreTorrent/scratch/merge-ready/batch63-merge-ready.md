@@ -1,6 +1,43 @@
+**REVISION 2026-11-01 (OPEN-closing round 2, group G10): 0 rows flipped. Counts unchanged: 32/0/8.**
+Backed up first to `~/workspace/libretorrent-merge-backup-pre-openclose2/batch63-merge-ready.md` (md5-identical to the pre-edit file).
+No GitHub connector fetch was needed or made in this pass (all needed files were already local), so no 429 was hit. Nothing was pushed.
+Fresh source for this pass: `~/workspace/b626364-openclose2-src/` (copies of the round-1 layout files + a fresh grep file).
+$N count-match re-verified on the SAME layout blobs as round 1 (connector blob SHAs, identical to round 1):
+dialog_go_to_folder.xml blob `907a43a5fe36c309773e20680824e48a6e8a3d88`, 30 lines, exactly ONE `@={}` at :27 (`viewModel.path`) — matches
+the already-REACHABLE GoToFolder $1 pair (rows 12-13); dialog_log_filter.xml blob `c6c7c0fec4b60248ddb13ceb7609abd96885fd68`,
+62 lines, exactly FIVE `@={}` at :24 `logSessionFilter`, :33 `logDhtFilter`, :42 `logPeerFilter`, :51 `logPortmapFilter`,
+:60 `logTorrentFilter` — matches the already-REACHABLE LogFilter $1-$5 pairs (rows 26-35). Per-$N assignment remains source-order
+only, NOT bytecode-verified; if the merger rejects count-match $N reasoning, rows 12-13 and 26-35 revert to OPEN together with
+batch 62 $N rows 1-2 and 17-28. No $N label was changed in this pass (none was OPEN).
+Fresh corpus grep re-run in this pass (`b626364-openclose2-src/grep_ruleF_corpus_626364_round2.txt`, 252 app Java files in
+`~/workspace/ruleF-src`): ZERO hits for `hasPendingBindings`, `invalidateAll`, `setVariable`, `getViewModel`, `onFieldChange`,
+`executePendingBindings`. That grep is app-Java-tree only (generated Impl bodies absent), so it flips NOTHING. No generated
+`*BindingImpl` body, `DataBinderMapperImpl`, or androidx `ViewDataBinding` library body was found locally.
+Rows still OPEN (8, unchanged): 1, 15 (`getViewModel`, convention (v)); 6, 20 (`hasPendingBindings`); 7, 21 (`invalidateAll`);
+10, 24 (`setVariable`, contradiction (xv) — see the conditional table in the appendix; NOT decided here). No row was flipped to
+UNREACHABLE: no saved full-repo grep exists, and zero hits in a partial corpus alone never flip a row. Build: not run. C1: not run.
+FLAG (not decided here): batches 63/64/65 MUST use ONE `setVariable` rule, and the merger should also settle ONE `invalidateAll`
+rule — batch 65 marks `invalidateAll` REACHABLE on inflate (batch 65 rows 12, 23, 34) while batch 63 keeps `invalidateAll` OPEN on
+the same inflate evidence. This pass changes neither side.
+
+**REVISION 2026-11-01 (OPEN-closing pass): 0 rows flipped. Counts unchanged: 32/0/8.**
+Fresh layouts printed in this pass (~/workspace/b626364-openclose-src/): dialog_go_to_folder.xml (30 lines, SHA 907a43a5…;
+viewModel variable, sole @={} at :27 viewModel.path), dialog_log_filter.xml (62 lines, SHA c6c7c0fe…; viewModel variable,
+exactly 5 @={} at :24/:33/:42/:51/:60 — matching the already-REACHABLE $1-$5 rows), dialog_select_tag.xml (25 lines,
+SHA cf0ea57e…; NO <data> block at all — confirms batch 64 rows 1-4 have no variable/observable to trigger onFieldChange or
+setVariable, but per the undecided no-variable-layout rule (xv) they stay OPEN, not UNREACHABLE).
+Corpus grep (grep_ruleF_corpus_626364.txt, full 252-file app-Java tree, NOT full-repo): zero hits for `.hasPendingBindings(`,
+`.invalidateAll(`, `.setVariable(`, `.getViewModel()`. This confirms no printed app caller for rows 6, 7, 10, 20, 21, 24 and
+for the getViewModel rows 1, 15, but does NOT flip them: framework-internal calls are unprinted, and rows 1/15 additionally
+rest on the undecided binding-getViewModel convention (v) — executeBindings reads the mViewModel field, not the getter —
+which this pass does NOT decide. Host steps printed fresh: FileManagerDialog:550-553 (GoToFolderDialog.newInstance + show),
+LogActivity:254-255 (SessionLogFilterDialog.newInstance + show). Counts before and after: 32/0/8. Build: not run. C1: not run.
+
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
 # LibreTorrent batch 63 — merge-ready part — UNVERIFIED
 
-**Status: UNVERIFIED proposal only. NOT verified for merge. NOT pushed. No edit to
+**Status: UNVERIFIED proposal only. NOT verified for merge. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]). No edit to
 `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another agent's files.**
 **Build: not run. C1: not run.** Build and C1 run on the user's Mac after a push,
 so they are marked "not run" here, never passed. No sampler, full-repo grep, or C1
@@ -115,5 +152,48 @@ saved in `~/workspace/b626364-src/`:
    one convention for batch 63 rows 1/15, batch 64 row 33, and batches 65-66 getters together.
 4. Saved full-repo grep for the 8 OPEN rows (`.getViewModel()`, `.hasPendingBindings()`,
    `.invalidateAll()`, `.setVariable(...)` on these bindings) before any OPEN row is flipped.
-5. No build/sampler/grep/C1 is claimed. 0/40 verified for merge. Nothing was pushed, nothing merged.
+5. No build/sampler/grep/C1 is claimed. 0/40 verified for merge. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]), nothing merged.
 
+## Appendix — OPEN-closing round 2 (2026-11-01, group G10): CONDITIONAL flip tables (NOT decisions)
+
+No convention is decided in this file. Each table states exactly which rows flip under each option, so the merger can apply ONE
+rule project-wide. On current evidence (no printed generated/library body, no saved full-repo grep) every OPEN row below stays OPEN.
+
+### (v) Binding `getViewModel` — rows 1 (DialogGoToFolderBinding.getViewModel), 15 (DialogLogFilterBinding.getViewModel)
+
+| Merger option | Rows 1, 15 become | Companion rows affected |
+|---|---|---|
+| Adopt the executeBindings-read-path rule (generated `executeBindings` reading the field counts as the getter running) | REACHABLE proposed, INFERRED | Batch 64 row 33 flips the same way; batch 62 rows 4, 30 are ALREADY REACHABLE on this rule (no change there) |
+| Reject the read-path rule, keep OPEN (current position of this file) | OPEN (no change) | Batch 62 rows 4, 30 would revert to OPEN if the rule is rejected project-wide (merger decision, not made here) |
+| Reject the read-path rule AND accept a saved full-repo grep showing zero `.getViewModel()` callers as trigger-absence | UNREACHABLE, `no_trigger_in_app` | NOT available now: no full-repo grep has been saved; the 252-file app-Java-tree zero alone is insufficient |
+
+Resolver for (v): a printed generated Impl body showing whether `executeBindings` calls the getter or reads the field directly, or a
+printed `.getViewModel()` caller, or a saved full-repo grep — plus one project-wide merger decision.
+
+### (xv) `setVariable` — rows 10 (DialogGoToFolderBindingImpl.setVariable), 24 (DialogLogFilterBindingImpl.setVariable)
+
+Printed app calls for these two Impls: `setViewModel` only — GoToFolderDialog:100, SessionLogFilterDialog:99. Zero `.setVariable(`
+hits in the 252-file corpus. Both layouts declare a `viewModel` variable and bind its observables (GoToFolder `viewModel.path`,
+an ObservableField; LogFilter `viewModel.mutableParams.*`, five two-way bindings).
+
+| Merger option | Rows 10, 24 become | Why / companion effect |
+|---|---|---|
+| Rule A — current batches 63/64 rule: `setVariable` needs a printed `.setVariable(` call site | OPEN (no change) | Batch 64 `setVariable` rows stay OPEN too; batch 65 `setVariable` rows 3, 16, 27, 38 would revert to OPEN |
+| Rule B — batch 65 rule as written: "`setVariable` is the generated dispatch point behind `binding.setViewModel`" | REACHABLE proposed, INFERRED | MECHANICALLY BACKWARDS — in generated code `setVariable` CALLS the typed setter (`setViewModel`), not vice versa, so a printed `setViewModel` call is not evidence that `setVariable` ran. The merger may adopt Rule B only explicitly, knowing the direction is reversed; if adopted, batch 65 rows 3, 16, 27, 38 stay REACHABLE and batch 64 `setVariable` rows still do NOT flip under Rule B (no `setViewModel` call exists for those Impls — see batch 64 appendix) |
+| Rule C — generic-framework-callback rule: any Impl `setVariable` is reachable via framework/generated dispatch despite zero app calls | REACHABLE proposed, INFERRED | Also flips batch 64 `setVariable` rows 4, 13, 22, 31 and batch 65 rows; this is a broader rule than Rule B and must be adopted explicitly, not smuggled in via Rule B's wording |
+
+Batches 63, 64, and 65 MUST use ONE `setVariable` rule. This file does not pick one.
+
+### `hasPendingBindings` / `invalidateAll` — rows 6, 7, 20, 21: NO conditional flip on current evidence
+
+No merger option flips these rows without new printed evidence: zero corpus hits prove no app caller, but framework-internal calls
+(`executePendingBindings` -> rebind path) are unprinted, and no generated/library body was found locally. Resolver: a printed
+generated Impl body or printed androidx `ViewDataBinding` library body showing the `hasPendingBindings`/`invalidateAll` call path,
+or a printed caller. Separately, the merger must pick ONE `invalidateAll` rule: batch 65 treats `invalidateAll` as REACHABLE on
+inflate, this batch treats it as OPEN — the same inflate evidence cannot support both labels project-wide.
+
+### Cross-batch consistency (unchanged)
+
+Batch 63 rows 36-40 + batch 64 rows 1-4 are one DialogSelectTag Impl group (same Impl, same OPEN set: `hasPendingBindings`,
+`invalidateAll`, `onFieldChange`, `setVariable`). They stay judged together. Counts mechanically re-verified after this edit:
+40 rows, sequence 1-40 intact, 32 REACHABLE proposed / 0 UNREACHABLE / 8 OPEN. Build: not run. C1: not run.

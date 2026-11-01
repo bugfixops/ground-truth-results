@@ -1,6 +1,80 @@
+## Revision note — OPEN-closing round 2 (G4), 2026-11-01 (UNVERIFIED, no label changes)
+
+**Counts before (table as found, mechanically verified): 27 REACHABLE / 0 UNREACHABLE / 13 OPEN.
+Counts after: 27 / 0 / 13 — unchanged. Rows whose label changed: NONE. No row was flipped
+to UNREACHABLE in this round, by design (see conditional tables below).**
+Backup of the pre-revision file: `~/workspace/libretorrent-merge-backup-pre-openclose2/batch28-merge-ready.md`
+(md5-identical to the file before this edit).
+
+Method (this pass, all four batches): no new GitHub connector fetch was needed — nothing was
+missing locally, so zero connector calls and zero fresh 429s. Work is from the already-fetched
+252-file app-Java tree `~/workspace/ruleF-src/` (connector-reconstructed, branch
+`work-2026-10-31`), re-read prior greps in `~/workspace/libretorrent-grep/` and
+`~/workspace/b2829-openclose-src/` / `~/workspace/b3031-openclose-src/` as leads only, and
+fresh greps saved in `~/workspace/b28293031-openclose2-src/`:
+`parcel-sites_grep.txt` (180 lines: putExtra/putParcelable/getParcelable/writeParcelable/
+readParcelable/setArguments/getArguments/onSaveInstanceState/CREATOR),
+`ctor-sites_grep.txt` (`new <Class>(` sites), `method-call_grep.txt` (78 lines:
+getUri/fromValue/value/compareTo/sort), `subclass_grep.txt` (extends sites),
+`hash-collection_grep.txt` (HashMap/HashSet of the entity types),
+`classname_grep.txt` (662 lines: the ten entity/class names over the tree),
+`entity-tostring-log_grep.txt`. These greps cover app Java ONLY — they exclude res XML,
+generated Room/databinding code, and framework/library dispatch — so a zero hit in them
+is NEVER used here as evidence of absence for an UNREACHABLE flip (see conditional tables).
+No `search_code` 0-result was used as evidence anywhere. Build: not run. C1: not run.
+Nothing was pushed. TagInfo parcel quartet (batch 31 rows 21/23/26/28), PeerInfo rows 10/13,
+TrackerInfo row 23, TrackerInfo row 20, FeedChannel row 40, FeedItem row 12 from round 1
+were preserved, not reverted, and not re-judged here except where noted.
+
+What was checked for every OPEN row (13: 18, 19, 21, 23, 25, 26, 28, 29, 30, 32, 33, 35, 37):
+- Row 18 `AbstractInfoParcel.<init>()`: the sole printed super-call site is
+  `AdvancedTorrentInfo()` :49–52 (`super()`), and the full-tree ctor grep finds ZERO
+  `new AdvancedTorrentInfo()` sites (only the 12-arg site at TorrentEngine:846 and the
+  Parcel-ctor CREATOR site). The caller exists but is itself uncalled — dependency-OPEN,
+  not zero-caller. A parcel site would NOT flip this row.
+- Row 19 `AbstractInfoParcel.<init>(Parcel)`: printed callers are only subclass Parcel ctors
+  (TorrentInfo:121, AdvancedTorrentInfo:76–77, PeerInfo:94, TrackerInfo:170, plus
+  MagnetInfo/SessionStats/FeedChannel/FeedItem/Torrent equivalents), every one of which is
+  itself an OPEN row. Dependency rule: stays OPEN; flips only together with a subclass
+  Parcel ctor (see conditional table).
+- Row 21 `AbstractInfoParcel.writeToParcel`: the five printed super-callers are exactly
+  AdvancedTorrentInfo:103, PeerInfo:152, SessionStats:69, TorrentInfo:151, TrackerInfo:185 —
+  each inside that subclass's own `writeToParcel`, all OPEN. No printed marshalling site
+  for any subclass was found. Stays OPEN; flips SOURCE the moment any subclass
+  `writeToParcel` flips, via its super call.
+- Rows 23, 26, 30, 32, 33 (AdvancedTorrentInfo parcel trio + ctor) and 35, 37 (MagnetInfo
+  Parcel ctor / describeContents): no `putExtra` / `putParcelable` / `getParcelableExtra` /
+  Bundle / `setArguments` site names either class anywhere in the 252-file tree, and no
+  `putParcelableArrayListExtra` / `getParcelableArrayListExtra` site exists tree-wide.
+  MagnetInfo's `writeToParcel` is not a batch-28 row and was not judged here.
+- Row 25 `compareTo`: no sort or comparison site for AdvancedTorrentInfo objects; the
+  `Comparable` interface alone does not flip it (same rule as the prior pass).
+- Row 28 `hashCode`: no hash-collection use and no explicit call; TorrentInfoProvider:331
+  uses `equals`, not `hashCode`.
+- Row 29 `toString`: no logging or concatenation caller for an AdvancedTorrentInfo value;
+  TorrentEngine:267 `entry.toString()` is a LogEntry, a different class.
+
+### CONDITIONAL flip table — batch 28 (do NOT apply without the named merger decision)
+
+| Rows | IF the merger decides… | THEN flip to |
+|---|---|---|
+| 23, 26, 30, 32 (+ 21 via super call) | (xii) framework Parcel dispatch on a printed marshalling site counts, AND such a site for AdvancedTorrentInfo is printed | Parcel ctor SOURCE (via CREATOR body), writeToParcel / describeContents / createFromParcel INFERRED, row 21 SOURCE |
+| 35, 37 (+ MagnetInfo writeToParcel/createFromParcel/newArray, other batches) | Same (xii) + a printed marshalling site for MagnetInfo | Same pattern as above |
+| 33 (and every newArray row in G4) | newArray-follows-trio is adopted, AND the class trio is resolved | REACHABLE INFERRED (nested condition — trio first, then newArray) |
+| 25, 28, 29 | Zero app-Java callers ⇒ UNREACHABLE is adopted as the project-wide grep rule, AND the 252-file app-Java tree is accepted as the full-repo proxy (res XML / generated code still unsearched) | UNREACHABLE, kind `no_trigger_in_app` |
+| 18 | A `new AdvancedTorrentInfo()` site is printed | REACHABLE SOURCE (via `super()` in the then-REACHABLE no-arg ctor) |
+| 19 | Any subclass Parcel ctor flips (via xii + a site) | REACHABLE SOURCE (via that subclass ctor's `super(source)` call) |
+
+Note the two UNREACHABLE-adjacent conditionals are different decisions and must not be merged:
+the parcel rows have a real possible caller (framework dispatch) that app-Java grep cannot see,
+while rows 25/28/29 have no printed caller of any kind. Nothing in this round decides either.
+
+
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
 # LibreTorrent batch 28 — merge-ready part — UNVERIFIED
 
-**Status: UNVERIFIED proposal only. NOT verified for merge. NOT pushed. No edit to
+**Status: UNVERIFIED proposal only. NOT verified for merge. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]). No edit to
 `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another agent's files.**
 **Build: not run. C1: not run.** The build and C1 checks run on the user's Mac after a push,
 so they are marked "not run" here, never passed. No sampler or full-repo grep was run or is claimed.
@@ -14,6 +88,83 @@ so they are marked "not run" here, never passed. No sampler or full-repo grep wa
   copied as a result. This file supersedes that carried-forward version. One correction to the
   prior proposal is documented below (row 18, AbstractInfoParcel no-arg ctor); no label changed
   from Agent 6's version.
+
+
+## Revision note — OPEN-closing pass, 2026-11-01 (UNVERIFIED, no label changes)
+
+**Counts before: 27 REACHABLE / 0 UNREACHABLE / 13 OPEN. Counts after: 27 / 0 / 13 — unchanged. Rows whose label changed: NONE.**
+Every OPEN row (18, 19, 21, 23, 25, 26, 28, 29, 30, 32, 33, 35, 37) was re-checked against
+freshly printed source in this pass and stays OPEN, for the reasons recorded per row below.
+No row was flipped to UNREACHABLE: no saved full-repo grep was run, and no `search_code`
+0-result was used as evidence of absence. The fresh corpus below is a printed subset
+(20 files), NOT a full-repo grep — absence in it proves nothing repo-wide.
+
+Fresh source fetched in this pass (branch `work-2026-10-31`, GitHub connector only, one file
+at a time with ~22 s pauses, no fresh HTTP 429), saved in `~/workspace/b2829-openclose-src/`
+(connector JSON kept alongside each file):
+
+| File | Lines | Connector SHA |
+|---|---|---|
+| `core/model/data/AdvancedTorrentInfo.java` | 208 | `f7d9f232282ced6b5b05f948664e8ce14411c5bc` |
+| `core/model/data/AbstractInfoParcel.java` | 62 | `53b53b05b92df4e31394576707ca554178ac900f` |
+| `core/model/data/MagnetInfo.java` | 132 | `72c44e4d702380198a8b7a2bfbab0b5ac5d398ff` |
+| `core/model/data/PeerInfo.java` | 248 | `7480d74f29a13ab8130870b9fe58eb50b0872bb7` |
+| `core/model/data/SessionStats.java` | 148 | `ca3f1c88578a6bba0671a044bf38d84d77a7fcf0` |
+| `core/model/data/ReadPieceInfo.java` | 50 | `82276bdef6d0bcceffff6b24715db09d24bedb37` |
+| `core/model/data/Priority.java` | 79 | `f704143bda576a8bae61a25b629a5d5c5febddb6` |
+| `core/model/data/TorrentInfo.java` | 270 | `6eeda9fb94d76a384b1a247ac65d9c2d0f8926dd` |
+| `core/model/TorrentInfoProvider.java` | 498 | `188fbd964517efc6bb13b2e042941cc451d7e698` |
+| `core/model/TorrentEngine.java` | 1659 | `17d06efe1076675af0c41a6c929e8d2f04eabb68` |
+| `core/model/session/TorrentSessionImpl.java` | 1720 | `aef9618cb29cae4ade30d51d968f2d3b0f5182dd` |
+| `core/model/session/TorrentDownloadImpl.java` | 1711 | `30024b5d27ff357262557d35bac99281b54ae8f8` |
+| `core/model/session/PriorityConverter.java` | 111 | `916d29cd69689f25753c3488c6624e743b0882a1` |
+| `ui/addtorrent/AddTorrentViewModel.java` | 574 | `bec2f6eec2a538bd7223095b87014183530f4534` |
+| `ui/detailtorrent/DetailTorrentViewModel.java` | 610 | `6e4ef82f455957298bfb6bf4513c4a35c799a1a6` |
+| `ui/detailtorrent/DetailTorrentFragment.java` | 832 | `c24e0912e62088e962894f04ee427bbe317e83e7` |
+| `ui/main/MainViewModel.java` | 189 | `73938fbb508da1f1fa3459ed5e1d764523f8191b` |
+| `ui/main/MainActivity.java` | 811 | `d21f8b70fb50fa09c7b3708243c4f251176f4517` |
+| `core/model/TorrentEngineListener.java` | 73 | `e9d9c562402965cdf6127e6ce018a0a03e5f66bd` |
+| `ui/detailtorrent/pages/DetailTorrentStateFragment.java` | 88 | `b01a6a20a7c7ce3c7440aa22177d4b725e16de77` |
+
+All SHAs that were recorded in the prior passes match this pass exactly (definitions and
+callers alike), so no prior citation was invalidated by a changed file. Saved grep over
+this fresh corpus: `~/workspace/b2829-openclose-src/fresh_corpus_grep.txt`.
+
+Per-OPEN-row re-check (fresh corpus only):
+- Row 18 `AbstractInfoParcel.<init>()`: still no printed `new AdvancedTorrentInfo()` no-arg
+  site (fresh grep: zero hits for `new AdvancedTorrentInfo()`; the only `new AdvancedTorrentInfo(`
+  hit is TorrentEngine:846, the 12-arg ctor). All other subclasses call `super(String)` /
+  `super(Parcel)` only on fresh prints (TorrentInfo:68/:98/:121, PeerInfo:58/:78/:94,
+  AdvancedTorrentInfo:60/:78; TrackerInfo local copy: super(String)/super(Parcel) only).
+  Correction to the old row-19 context, recorded here: MagnetInfo does NOT extend
+  AbstractInfoParcel at all (fresh MagnetInfo:33 `implements Parcelable`), so its Parcel
+  ctor is not a caller of any AbstractInfoParcel ctor. Stays OPEN.
+- Row 19 `AbstractInfoParcel.<init>(Parcel)`: only callers in the fresh corpus are subclass
+  Parcel ctors, each reached only via its own OPEN `createFromParcel`. Stays OPEN.
+- Row 21 `AbstractInfoParcel.writeToParcel`: super-callers in the fresh corpus: AdvancedTorrentInfo.writeToParcel (row 30, OPEN); full-tree grep (spot-check 2026-11-01) adds PeerInfo:152, SessionStats:69, TorrentInfo:151, TrackerInfo:185, all inside OPEN subclass writeToParcel methods. Stays OPEN under the dependency rule.
+- Row 23 `AdvancedTorrentInfo.<init>(Parcel)`: only caller is `createFromParcel` (row 32,
+  OPEN). Stays OPEN.
+- Row 25 `compareTo`: no sort/comparison site for AdvancedTorrentInfo in the fresh corpus
+  (the only `.sort(` hit is TorrentSessionImpl:631, sorting AnnounceEntry tiers).
+  Stays OPEN.
+- Row 26 `describeContents`, row 30 `writeToParcel`: no parcel site in the fresh corpus
+  (zero hits for `getParcelableExtra` / `writeParcelable` / `readParcelable`; the only
+  `putExtra` hits are FileManagerConfig and magnet strings, not this class). Stays OPEN.
+- Row 28 `hashCode`: no hash-collection or explicit call site in the fresh corpus (the
+  `hashCode()` hits are definitions and field-level `String.hashCode()` calls inside
+  other definitions). Stays OPEN.
+- Row 29 `toString`: no logging/concatenation caller for an AdvancedTorrentInfo value in
+  the fresh corpus. Stays OPEN.
+- Row 32 `createFromParcel`, row 33 `newArray`: framework dispatch only, no printed
+  unparcel site in the fresh corpus. Stays OPEN.
+- Row 35 `MagnetInfo.<init>(Parcel)`: only caller is MagnetInfo's own `createFromParcel`
+  (batch 29 row 6, OPEN). Stays OPEN.
+- Row 37 `describeContents`: framework marshalling only, no printed parcel site. Stays OPEN.
+
+Named resolvers, unchanged: a saved full-repo grep (rule F/C5 form) for the named method,
+or a printed parcel/unparcel, sort, hash-collection, log/concatenation, or no-arg
+construction site as listed in the original file. **Build: not run. C1: not run.**
+
 
 ## Membership — verified first, not guessed
 
@@ -184,7 +335,7 @@ construction site flips both row 18 and the (non-batch-28) `AdvancedTorrentInfo(
 | 18 | AbstractInfoParcel.<init> () | OPEN | — | Definition fresh AbstractInfoParcel:36–39 (`parcelId = UUID.randomUUID().toString()`). Sole printed super-call site is `AdvancedTorrentInfo()` :49–52 (`super()`), which itself has no printed caller in any file printed in this session (see Correction above). Other subclasses in local copies call only `super(String)` / `super(Parcel)`. Resolves by printing a `new AdvancedTorrentInfo()` no-arg site, or a saved full-repo grep for that ctor. NOT UNREACHABLE on this evidence. |
 | 19 | AbstractInfoParcel.<init> (Parcel) | OPEN | — | Definition fresh AbstractInfoParcel:46–49. Printed callers are only subclass Parcel ctors (TorrentInfo:121, AdvancedTorrentInfo:76–77, PeerInfo:94, TrackerInfo:170 — local copies for the first three, fresh for Advanced), each called only from its class's `Creator.createFromParcel`, which is OPEN (row 32 and equivalents). Resolves with a printed parcel/unparcel site. |
 | 20 | AbstractInfoParcel.<init> (String) | REACHABLE | SOURCE | Definition fresh AbstractInfoParcel:41–44. Called via `super(torrentId)` in TorrentInfo:68 and :98 (local copies) and via `super(torrentId)` in AdvancedTorrentInfo:54–75 (fresh 12-arg ctor); TorrentInfo is built in TorrentEngine `makeInfo` :779, :787 (fresh, via `makeInfoSync` :766), reached via the $1/$2 observe flows above. |
-| 21 | AbstractInfoParcel.writeToParcel (Parcel, int) | OPEN | — | Definition fresh AbstractInfoParcel:52–55. Only printed caller is `super.writeToParcel(dest, flags)` in AdvancedTorrentInfo:103 (fresh), inside Advanced's `writeToParcel`, which is itself OPEN (row 30). Resolves with a printed site that parcels an `AbstractInfoParcel` subclass. |
+| 21 | AbstractInfoParcel.writeToParcel (Parcel, int) | OPEN | — | Definition fresh AbstractInfoParcel:52–55. Printed super-callers (full 252-file tree grep, spot-check 2026-11-01): AdvancedTorrentInfo:103, PeerInfo:152, SessionStats:69, TorrentInfo:151, TrackerInfo:185 — each inside that subclass's own `writeToParcel`, all of which are OPEN (no printed parcel site), so the dependency rule keeps this OPEN. Resolves with a printed site that parcels an `AbstractInfoParcel` subclass. |
 | 22 | AdvancedTorrentInfo.<clinit> () | REACHABLE | INFERRED | JVM class initialiser for the static field `CREATOR`, printed at AdvancedTorrentInfo:119–134 (fresh). Triggered on first active use, printed at TorrentEngine:846–860 (`new AdvancedTorrentInfo(...)` in `makeAdvancedInfoSync` :832, fresh), reached via DetailTorrentViewModel:171–172 → `observeAdvancedInfo` :106–107 → `makeAdvancedInfoFlowable` :323 (all fresh). Class-init timing is not a printed call, hence INFERRED (Agent 6 correction, adopted). |
 | 23 | AdvancedTorrentInfo.<init> (Parcel) | OPEN | — | Definition fresh AdvancedTorrentInfo:76–93 (`super(source)` + field reads). Only printed caller is `AdvancedTorrentInfo$1.createFromParcel` :123–126, which is OPEN (row 32). Resolves with a printed unparcel site for `AdvancedTorrentInfo`. |
 | 24 | AdvancedTorrentInfo.<init> (String, long[], int, int, int, double, long, long, double, double[], int, int) | REACHABLE | SOURCE | Definition fresh AdvancedTorrentInfo:54–75. Called directly in TorrentEngine:846–860 (`makeAdvancedInfoSync` :832, fresh), reached via DetailTorrentViewModel:171–172 → `observeAdvancedInfo` :106–107 → `makeAdvancedInfoFlowable` :323 → `engine.makeAdvancedInfoSync(id)` (TorrentInfoProvider :329, :342, fresh). |

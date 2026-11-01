@@ -1,6 +1,12 @@
+**REVISION 2026-11-01 (OPEN-closing round 2) — UNVERIFIED.** Original for this round backed up in `~/workspace/libretorrent-merge-backup-pre-openclose2/batch1-merge-ready.md` (verified identical before editing). Counts UNCHANGED: 0 REACHABLE / 39 UNREACHABLE proposed / 1 OPEN. No label flipped. What was checked: fresh round-2 grep over the 252 app Java files (`~/workspace/b12341112-openclose2-src/round2_grep_20261101.txt`, sections G2–G4) re-confirms round 1 — zero `new BR(` sites anywhere in the app tree; `baseAdapters.BR` imported in exactly 5 files (LogActivity, LogMutableParams, LogViewModel, DetailTorrentViewModel, TorrentDetailsMutableParams); `BR.<field>` reads prove class loading, not a `<init>` invocation. No generated/library source for `baseAdapters.BR` was printed in this round and no GitHub connector fetch was needed (all evidence was already local). Row 1 therefore stays OPEN: its flip condition is the conditional table below, not this grep. Rows 2–40 were NOT re-judged in round 2 (only the OPEN row was in scope) and are unchanged. Build: not run. C1: not run.
+
+**REVISION 2026-11-01 (OPEN-closing) — UNVERIFIED.** Original backed up in `~/workspace/libretorrent-merge-backup-pre-openclose/batch1-merge-ready.md`. Counts UNCHANGED: 0 REACHABLE / 39 UNREACHABLE proposed / 1 OPEN. No label flipped. What changed: (a) Row 1 `baseAdapters.BR.<init>` stays OPEN, evidence upgraded — the saved grep shows `androidx.databinding.library.baseAdapters.BR` IS referenced in app code (imports + `BR.<field>` reads in LogActivity, LogMutableParams, LogViewModel, DetailTorrentViewModel, TorrentDetailsMutableParams), but there is zero `new BR(` site and no generated/library source for the class is printed, so a `<init>` invocation is still unestablished and the generated-mapper convention (x) is still undecided; field use proves class loading, not constructor invocation. (b) Rows 2-40 UNREACHABLE-proposed re-verified against the saved grep: no app-code caller for any row's method (class-name, method-call and unqualified-name sections triaged by receiver; e.g. TrackerInfo.java:162 `entry.isVerified()` is libtorrent4j AnnounceEntry, NOT EzRssTorrentItem; B-corpus library grep shows only definitions/interface declarations for the EzRss/feed getters, plus the known internal chains). The per-row "Grep owed" notes in the original text are superseded by this grep for the app tree + printed library corpus; they are NOT superseded for library files outside Corpus B (com/ernieyu/feedparser files beyond the 19 printed in b1-src were not grepped). Build: not run. C1: not run. Saved grep: saved grep `~/workspace/b12341112-openclose-src/ruleF_grep_20261101.txt` (2,043 lines; Corpus A: 252 app Java files in `~/workspace/ruleF-src`, connector-reconstructed from branch work-2026-10-31 and verified 252/252 against the walk list; Corpus B: printed library files in `~/workspace/b1-src` + `~/workspace/b2-src`; scope: res/ XML, generated sources and library sources outside Corpus B are NOT in the grep — see caveats).
+
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
 # LibreTorrent batch 1 — merge-ready part — UNVERIFIED
 
-**Status: UNVERIFIED proposal only. NOT verified for merge. NOT pushed. No edit to
+**Status: UNVERIFIED proposal only. NOT verified for merge. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]). No edit to
 `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another agent's files.**
 **Build: not run. C1: not run.** The build and C1 checks run on the user's Mac after a push,
 so they are marked "not run" here, never passed. No sampler, full-repo grep, or C1
@@ -115,7 +121,7 @@ Traps avoided (each is a different method from a same-named called method):
 
 | # | Method (descriptor) | Label proposed | confirmed_by | Printed citation / reason |
 |---|---|---|---|---|
-| 1 | baseAdapters.BR.<init> ()V | OPEN | INFERRED | No definition printed in this pass; this is `androidx.databinding.library.baseAdapters.BR`, a library constants class whose source is not in the upload. The prior graph claim (UNREACHABLE INFERRED citing a generated-class grep) is a lead only and is NOT adopted here. Needs printed generated/library source or a saved class-name grep (rule F / C5) before any UNREACHABLE label; must not be conflated with the libretorrent databinding `BR` in batch 2's OPEN rows. |
+| 1 | baseAdapters.BR.<init> ()V | OPEN | INFERRED | No definition printed in this pass; this is `androidx.databinding.library.baseAdapters.BR`, a library constants class whose source is not in the upload. REVISION 2026-11-01: saved grep shows BR field reads in app code (see revision note) but zero `new BR(` site; generated source still unprinted, so the row stays OPEN. The prior graph claim (UNREACHABLE INFERRED citing a generated-class grep) is a lead only and is NOT adopted here. Needs printed generated/library source or a saved class-name grep (rule F / C5) before any UNREACHABLE label; must not be conflated with the libretorrent databinding `BR` in batch 2's OPEN rows. Round-2 conditional table: see the CONDITIONAL flip table section (convention (x) family, decided separately from the mapper rows). |
 | 2 | Enclosure.getLength ()J | UNREACHABLE proposed, kind `no_trigger_in_app` | INFERRED | Definition Enclosure.java:52-54. Parser reads `enclosure.getUrl()` / `getType()` (CoreFeedParser.java:174-175) only; never `getLength()`. Grep owed; a hit flips to REACHABLE. |
 | 3 | EzRssTorrentItem.getContentLength ()J | UNREACHABLE proposed, kind `no_trigger_in_app` | INFERRED | Definition EzRssTorrentItem.java:69-71. EzRss01Parser parses the field into the constructor (:35-36, :63-77) and never reads it back; parser reads only `getInfoHash()` (CoreFeedParser.java:242). Grep owed. |
 | 4 | EzRssTorrentItem.getFileName ()Ljava/lang/String; | UNREACHABLE proposed, kind `no_trigger_in_app` | INFERRED | Definition EzRssTorrentItem.java:45-47. Same as row 3; field parsed at EzRss01Parser.java:39-45, never read back. Grep owed. |
@@ -190,10 +196,25 @@ that row must carry the strict-entry caveat until the starter is printed.
    above and held (CoreFeedParser caller set, FeedHandler 3-arg constructions,
    EzRss01Parser build-only use of EzRssTorrentItem).
 
+## CONDITIONAL flip table — OPEN-closing round 2 (row 1 only; do not apply without the named decision)
+
+Convention dependency: generated-mapper-load convention (x) family — but row 1 is a
+BR constants class, NOT a mapper, so it does NOT follow the mapper rows' table.
+Field reads trigger `<clinit>`, never `<init>`; mapper loading (even if it counted
+under (x)) invokes the mapper ctor, not `BR.<init>`. The merger must therefore
+decide row 1 on its own evidence, not by copying any mapper decision.
+
+| Merger decision / new evidence | Mechanical result for row 1 (`baseAdapters.BR.<init>`) |
+|---|---|
+| A printed `new BR(` site for `androidx.databinding.library.baseAdapters.BR` (app code, generated code, or library dispatch) | → REACHABLE, `confirmed_by` SOURCE if the site is printed, else INFERRED |
+| Merger accepts that the round-2 app-tree grep (zero `new BR(`, only imports + field reads in 5 files) plus the constants-class structure (static final int fields, no instance use) suffices for UNREACHABLE | → UNREACHABLE `no_trigger_in_app`, INFERRED |
+| Merger requires printed generated/library source for this class (the round-1 position, still the default) | → stays OPEN |
+| Any other (x) outcome for the mapper rows (2/38, 2/39, 2/40, 12/1) | → NO effect on row 1; do not transfer |
+
 ## Not claimed
 
 No build, sampler, grep, or C1 check was run — a true git clone of the repo fails
 in this VM with no credential device (named missing check, not passed); build and
 C1 run on the user's Mac after a push, so both are marked "not run" here.
-No push was made (task instruction). Nothing was edited in `graph_def.py`, `out/`,
+Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]) (task instruction). Nothing was edited in `graph_def.py`, `out/`,
 `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another agent's files.

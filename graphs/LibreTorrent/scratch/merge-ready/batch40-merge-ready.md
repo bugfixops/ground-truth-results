@@ -1,6 +1,10 @@
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
+**REVISION 2026-11-01 — OPEN-closing pass (this task, batches 39-42).** No label changed (batch 40 had 0 OPEN rows). Row 3 re-verified fresh: TorrentSessionImpl.java (1720 lines, SHA `aef9618c…`, branch `work-2026-10-31`, in `~/workspace/b394142-openclose-src/`) shows `private void mergeTrackersAndSeeds` at :570 with its sole call at :556 inside `if (false)` at :554 (TODO comment at :553, same bug link) — a complete within-file proof, since a private method has no caller outside its file. Line numbers match the prior file's citations exactly (prior copy SHA `4b698cf6…`; the SHA difference is formatting-only per the sibling batches 28/29 finding — byte-identical after stripping line-number prefixes). Counts unchanged: 39/1/0. Build: not run. C1: not run.
+
 # LibreTorrent batch 40 — merge-ready part — UNVERIFIED
 
-**Status: UNVERIFIED proposal only. NOT verified for merge. NOT pushed. No edit to
+**Status: UNVERIFIED proposal only. NOT verified for merge. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]). No edit to
 `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another agent's files.**
 **Build: not run. C1: not run.** The build and C1 checks run on the user's Mac after a push,
 so they are marked "not run" here, never passed. No sampler, full-repo grep, or C1

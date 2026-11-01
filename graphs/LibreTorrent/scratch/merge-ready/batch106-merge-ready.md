@@ -1,6 +1,60 @@
+## Revision 2026-11-01 — OPEN-closing round 2, group G16 (UNVERIFIED, 0 flips)
+
+0 of 1 OPEN rows closed in this pass; counts unchanged (39 REACHABLE / 0 UNREACHABLE / 1 OPEN).
+New evidence this pass: fresh greps over the already-fetched 252-file app Java tree
+(~/workspace/ruleF-src), saved in ~/workspace/b103106112114115-openclose2-src/grep_rest.txt and grep_extra.txt, plus the
+locally already-fetched activity_log.xml (~/workspace/b596061-openclose-src/activity_log.xml).
+No GitHub connector fetch was needed; no fresh 429. Res/layout (other than activity_log),
+generated code and library/framework code are NOT in the tree grep, so it is NOT a full-repo grep.
+- Row 40 LogMutableParams.toString: no receiver-typed hit tree-wide. mutableParams is used
+  only via setLogging/set*Filter, is* getters and property-change callbacks
+  (LogViewModel.java:56, :82-89, :104, :114-134; LogActivity.java:164, :172, :206); the only
+  Log-adjacent toString in the log package is LogViewModel.java:222 entry.toString() (a
+  LogEntry, not LogMutableParams). activity_log.xml binds only viewModel.mutableParams.logging
+  (:33, a getter via two-way checked binding) — no toString databinding expression. No method
+  in LogMutableParams itself calls toString.
+NOT flipped to UNREACHABLE: no saved full-repo grep exists, and toString is precisely the
+kind of method library logging/concatenation dispatch could call without an app-code site;
+a 252-tree zero alone never flips. Named target unchanged: a printed toString call site,
+or a saved full-repo grep.
+Downstream-inheritance table, rows 12-39 (sub-decision (5), RECORDED, NEVER DECIDED):
+every row below is downstream of LogActivity, whose own starter IS printed
+(MainActivity.onOptionsItemSelected :754-755 -> showLog() :801-802 -> startActivity LogActivity),
+while the launcher -> MainActivity step was NOT freshly printed in batch 106 (manifest
+MAIN/LAUNCHER is a batches 107-108 lead only). Under "inheritance propagates" (a strict
+launcher rule applied down a printed in-app chain) ALL 28 rows 12-39 revert to OPEN; under
+"inheritance stops at the printed host chain" all 28 stand. Labels unchanged either way.
+- Rows 12-21 (LogAdapter, $1, ViewHolder, lambda$bind$0): immediate anchor LogActivity.java:116
+  new LogAdapter(this) — one hop below LogActivity.
+- Rows 22-26 (LogDataSource, lambda$new$0): anchor LogViewModel.java:75 sourceFactory, then
+  LogSourceFactory.java:41 new LogDataSource(logger); LogViewModel itself via LogActivity.java:92
+  ViewModelProvider — two hops below LogActivity.
+- Rows 27-39 (LogMutableParams ctors/getters/setters): anchor LogViewModel.java:56 field
+  mutableParams = new LogMutableParams(); via LogActivity.java:92 — two hops below LogActivity.
+Row 40 is OPEN regardless of this decision. Build: not run. C1: not run.
+
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
+
+## Revision 2026-11-01 — OPEN-closing pass (UNVERIFIED, no label changes)
+
+0 of 1 OPEN rows closed in this pass; counts unchanged (39 REACHABLE / 0 UNREACHABLE / 1 OPEN).
+New evidence, freshly connector-fetched from branch work-2026-10-31 (one file at a time, ~25 s pauses, no fresh HTTP 429),
+saved in ~/workspace/b103106112115-openclose-src/: LogMutableParams.java (121 lines), LogViewModel.java (227),
+LogActivity.java (470), LogAdapter.java (112), LogSettingsFragment.java (101), SessionLogFilterDialog.java (120).
+Plus the saved full app Java tree grep (252 files, ~/workspace/b103106112115-openclose-src/grep_app_java_tree.txt;
+res/layout, res/xml, generated code and library/framework code NOT in it, so explicitly NOT a full-repo grep):
+no receiver-typed LogMutableParams.toString hit anywhere in the tree; LogViewModel uses mutableParams only via
+setLogging/set*Filter/is* getters and property-change callbacks (:56, :82-89, :104, :114-134), and the only
+LogEntry-adjacent toString in the log package is LogViewModel.java:222 entry.toString() (a LogEntry, not LogMutableParams).
+No method in LogMutableParams itself calls toString. Row 40 (LogMutableParams.toString) therefore stays OPEN;
+named targets unchanged: a printed toString call site, or a saved full-repo grep (databinding expressions in
+activity_log / item layouts and library logging dispatch still unsearched). NOT flipped to UNREACHABLE.
+Build: not run. C1: not run.
+
 # LibreTorrent batch 106 — merge-ready part — UNVERIFIED
 
-**Status: UNVERIFIED proposal only. NOT verified for merge. NOT pushed. No edit to
+**Status: UNVERIFIED proposal only. NOT verified for merge. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]). No edit to
 `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another agent's files.**
 **Build: not run. C1: not run.** The build and C1 checks run on the user's Mac after a push,
 so they are marked "not run" here, never passed. No sampler or full-repo grep was run

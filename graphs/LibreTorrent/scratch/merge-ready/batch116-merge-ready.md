@@ -1,6 +1,10 @@
+**CORRECTION 2026-11-01 (FeedSettingsFragment entry): the step that opens FeedSettingsFragment is now freshly printed — SettingsFragment.java:122 (feed preference registered), :131-134 (click listener -> openPreference), :195-196 (large-screen setFragment(FeedSettingsFragment.newInstance())), :198-199 (small-screen startActivity(FeedSettingsFragment.class)), and PreferenceActivity.java:113-114 (getFragment dispatch returns FeedSettingsFragment.newInstance()). Source saved in ~/workspace/b_feedsettings_src/. The "strict entry rule" caveat is therefore DROPPED for the FeedSettingsFragment opening step only; it is not dropped globally for other steps, and no label in this file changes on this print alone.**
+
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
 # LibreTorrent batch 116 — merge-ready part — UNVERIFIED
 
-**Status: UNVERIFIED proposal only. NOT verified for merge. NOT pushed. No edit to `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another helper's file.**
+**Status: UNVERIFIED proposal only. NOT verified for merge. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]). No edit to `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another helper's file.**
 **Build: not run. C1: not run.** Build and C1 run on the user's Mac after a push, so they are marked "not run" here, never passed. No sampler, full-repo grep, or `py_compile` was run or is claimed in this file.
 
 - Repo: `bugfixops/ground-truth-results`, branch `work-2026-10-31` only (never `main` or `result`).
@@ -110,6 +114,6 @@ Layout base `.../app/src/main/res/layout/`, same directory:
 - Fresh prints of launcher → MainActivity and MainActivity settings-menu → SettingsActivity, if the merger requires every entry step freshly printed in this pass (sibling-batch prints exist but are not fresh here).
 - Bytecode confirmation of lambda numbering, if the merger requires it.
 - Main-agent spot-check (1 in 5), `py_compile`, build, sampler, Mac build/C1 — all not run, never claimed passed.
-- No push was made; pushes are held until verified and merged to [L].
+- Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]); pushed UNVERIFIED before [L] at user request 2026-11-01.
 
 Scope kept exactly: batch 116 only, LibreTorrent labels only, branch `work-2026-10-31` only, no device replay, no Aegis.

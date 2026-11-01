@@ -1,6 +1,15 @@
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
+**OPEN-CLOSING REVISION 2026-11-01 (UNVERIFIED, no push, no merge): 0 label changes. Counts before = after: 39 REACHABLE / 0 UNREACHABLE / 1 OPEN (row 35).**
+**OPEN-CLOSING ROUND 2 REVISION 2026-11-01 (UNVERIFIED, no push, no merge): 0 label changes. Counts before = after: 39 REACHABLE / 0 UNREACHABLE / 1 OPEN (row 35). Saved 252-file greps in /home/hatch/workspace/b90929495969799102-openclose2-src/ (grep_class_TorrentContentFileItem.txt 52 lines; grep_toString_calls.txt: the only toString line on this type is the internal super.toString() at TorrentContentFileItem.java:105) support, but do NOT by themselves close, row 35 — same undecided toString-dispatch question as batch 90 rows 16/28; see the CONDITIONAL table in row 35. Round-1 citation-drift corrections PRESERVED, not reverted (adapter construction :207, animator :213, setItemAnimator :219, SelectionTracker storage :227, tracker state save :309, Parcel ctor span :47-54). Build: not run. C1: not run. 0 rows verified for merge.**
+Fresh source for this pass saved in ~/workspace/b90929495969799102-openclose-src/ (branch work-2026-10-31, one file at a time with ~25 s pauses, no fresh HTTP 429; each file plus its raw connector JSON saved; fresh-corpus grep in grep_fresh_corpus.txt — a PRINTED-SUBSET grep only, NOT a saved full-repo grep, so it cannot flip any row to UNREACHABLE).
+Fresh files re-verified for the OPEN row: `ui/detailtorrent/pages/files/TorrentContentFileItem.java` (110 lines, SHA 379ce0f1a956307715428b67cd6acdd96f101ada), `ui/detailtorrent/pages/files/DetailTorrentFilesFragment.java` (543 lines, SHA a1f2ccc63a8b38c9ddf7ba95c6cb60db5b7f56b7), `ui/detailtorrent/pages/files/TorrentContentFilesAdapter.java` (338 lines, SHA 419495fa9500071f9d3b7d1385218018e87a67de).
+Row 35: toString definition re-confirmed fresh at TorrentContentFileItem.java:102-108 (super.toString() at :105 is the file's only other toString line); zero toString hits in fresh DetailTorrentFilesFragment.java; the adapter's Selectable methods (:95 getItemKey, :104 getItemPosition, inner KeyProvider :267-286) are for the item key, not a toString call. Lead-only cross-check (NOT fresh evidence, NOT a full-repo grep): a grep over the parent's 252-file app-Java reconstruction finds no toString call on this type in app Java. Stays OPEN; named target: a saved full-repo grep for a toString call or concatenation site. Build: not run. C1: not run. 0 rows verified for merge.
+
+
 # LibreTorrent batch 92 — merge-ready part — UNVERIFIED
 
-**Status: UNVERIFIED proposal only. NOT verified for merge. NOT pushed. No edit to
+**Status: UNVERIFIED proposal only. NOT verified for merge. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]). No edit to
 `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another agent's files.**
 **Build: not run. C1: not run.** The build and C1 checks run on the user's Mac after a push,
 so they are marked "not run" here, never passed. No sampler, full-repo grep, or C1
@@ -33,7 +42,7 @@ saved in `~/workspace/b9192-src/`:
   onAttach :120, onDetach :129, onStop :138, onStart :146 (subscribeAdapter :148,
   subscribeAlertDialog :149), subscribeAdapter :154-167 (map `TorrentContentFileItem::new`
   :160, submitList :163, updateFileSize :164), subscribeAlertDialog :170-191,
-  onViewCreated :193-289 (adapter `new TorrentContentFilesAdapter(this)` :212, animator :214,
+  onViewCreated :193-289 (adapter `new TorrentContentFilesAdapter(this)` :207, animator :213,
   SelectionTracker :225-247, observer :249, actionModeCallback :256/:279),
   onSaveInstanceState :305-312, onViewStateRestored :315-321, onResume :324-330,
   onItemClicked :333-349 (success consumer :343-346, error ref :345),
@@ -46,7 +55,7 @@ saved in `~/workspace/b9192-src/`:
   ViewHolder bind click listeners :166-175 (onItemClicked :171, onItemCheckedChanged :175),
   ClickListener interface :254-259. No `toString` caller in this file.
 - `ui/detailtorrent/pages/files/TorrentContentFileItem.java` — fresh, 110 lines.
-  `<init>(Tree)` :38-45, `<init>(Parcel)` :47-53, describeContents :57-60,
+  `<init>(Tree)` :38-45, `<init>(Parcel)` :47-54, describeContents :57-60,
   writeToParcel :63-70, CREATOR :72-86, createFromParcel :76-79, newArray :82-85,
   equalsContent :88-97, toString :102-108 (definition only; its only `toString` line
   inside the file is the `super.toString()` call at :105, which is internal, not a route).
@@ -89,7 +98,7 @@ lead only; it was NOT re-printed here and is NOT used as fresh evidence in this 
 
 ## Anonymous numbering — NOT bytecode-verified
 
-FilesFragment anonymous classes match source order: $1 = DefaultItemAnimator (:214),
+FilesFragment anonymous classes match source order: $1 = DefaultItemAnimator (:213),
 $2 = SelectionPredicate (:226), $3 = SelectionObserver (:249), $4 = ActionMode.Callback
 (field :363). Confirm against bytecode at merge if disputed; no bytecode was read.
 A swap within a group would not change any label.
@@ -98,8 +107,8 @@ A swap within a group would not change any label.
 
 Rows 33, 36, 38, 39 (describeContents, writeToParcel, createFromParcel, newArray) are
 INFERRED via the Parcelable contract plus the printed SelectionTracker storage
-(FilesFragment :232 `StorageStrategy.createParcelableStorage(TorrentContentFileItem.class)`)
-and onSaveInstanceState :311. No printed direct caller names any of them. If the merger
+(FilesFragment :227 `StorageStrategy.createParcelableStorage(TorrentContentFileItem.class)`)
+and onSaveInstanceState :309. No printed direct caller names any of them. If the merger
 requires a printed parcel/unparcel site, those four rows revert to OPEN — labels for
 the rest of the batch are unaffected. Row 31 (`<init>(Parcel)`) is SOURCE, not INFERRED,
 because createFromParcel's printed body at Item :76-79 directly calls it.
@@ -120,7 +129,7 @@ and no row was flipped to UNREACHABLE.
 
 | # | Method | Label | confirmed_by | Printed route / citation |
 |---|---|---|---|---|
-| 1 | DetailTorrentFilesFragment.onItemCheckedChanged | REACHABLE | SOURCE | FilesFragment.java:351-356 (applies priority, updateFileSize). Adapter ViewHolder.bind priority click listener calls listener.onItemCheckedChanged(item, isChecked) (Adapter.java:173-175); listener is the fragment, passed at FilesFragment.java:212 `new TorrentContentFilesAdapter(this)`. ClickListener interface Adapter.java:254-259. |
+| 1 | DetailTorrentFilesFragment.onItemCheckedChanged | REACHABLE | SOURCE | FilesFragment.java:351-356 (applies priority, updateFileSize). Adapter ViewHolder.bind priority click listener calls listener.onItemCheckedChanged(item, isChecked) (Adapter.java:173-175); listener is the fragment, passed at FilesFragment.java:207 `new TorrentContentFilesAdapter(this)`. ClickListener interface Adapter.java:254-259. |
 | 2 | DetailTorrentFilesFragment.onItemClicked | REACHABLE | SOURCE | FilesFragment.java:333-349. Adapter ViewHolder.bind item click listener calls listener.onItemClicked(item) (Adapter.java:166-171); same registration as row 1. |
 | 3 | DetailTorrentFilesFragment.onResume | REACHABLE | SOURCE | FilesFragment.java:324-330; restores listFilesState; pager-hosted lifecycle. |
 | 4 | DetailTorrentFilesFragment.onSaveInstanceState | REACHABLE | SOURCE | FilesFragment.java:305-312; saves layoutManager state + selectionTracker state; pager-hosted lifecycle. |
@@ -135,8 +144,8 @@ and no row was flipped to UNREACHABLE.
 | 13 | DetailTorrentFilesFragment.subscribeAdapter | REACHABLE | SOURCE | FilesFragment.java:154-167; called from onStart :148. |
 | 14 | DetailTorrentFilesFragment.subscribeAlertDialog | REACHABLE | SOURCE | FilesFragment.java:170-191; called from onStart :149. |
 | 15 | DetailTorrentFilesFragment.updateFileSize | REACHABLE | SOURCE | FilesFragment.java:292-301; called from subscribeAdapter consumer :164 and from onItemCheckedChanged :355. |
-| 16 | DetailTorrentFilesFragment$1.<init> | REACHABLE | INFERRED | Anonymous DefaultItemAnimator, created in onViewCreated, FilesFragment.java:214; instantiated when the fragment view is created. |
-| 17 | DetailTorrentFilesFragment$1.canReuseUpdatedViewHolder | REACHABLE | INFERRED | Anonymous method FilesFragment.java:215-219 (returns true); RecyclerView calls it via animator set at :222; framework dispatch INFERRED. |
+| 16 | DetailTorrentFilesFragment$1.<init> | REACHABLE | INFERRED | Anonymous DefaultItemAnimator, created in onViewCreated, FilesFragment.java:213; instantiated when the fragment view is created. |
+| 17 | DetailTorrentFilesFragment$1.canReuseUpdatedViewHolder | REACHABLE | INFERRED | Anonymous method FilesFragment.java:215-219 (returns true); RecyclerView calls it via animator set at :219; framework dispatch INFERRED. |
 | 18 | DetailTorrentFilesFragment$2.<init> | REACHABLE | INFERRED | Anonymous SelectionTracker.SelectionPredicate, created in onViewCreated, FilesFragment.java:226; built into selectionTracker at :225-247. |
 | 19 | DetailTorrentFilesFragment$2.canSelectMultiple | REACHABLE | INFERRED | Predicate method FilesFragment.java:242-245 (returns true); SelectionTracker framework dispatch INFERRED, predicate registered :226-247. |
 | 20 | DetailTorrentFilesFragment$2.canSetStateAtPosition | REACHABLE | INFERRED | Predicate method FilesFragment.java:236-240 (returns true); same dispatch/registration as row 19. |
@@ -149,17 +158,17 @@ and no row was flipped to UNREACHABLE.
 | 27 | DetailTorrentFilesFragment$4.onCreateActionMode | REACHABLE | INFERRED | Callback method FilesFragment.java:384-392; inflates action-mode menu; same dispatch as row 26. |
 | 28 | DetailTorrentFilesFragment$4.onDestroyActionMode | REACHABLE | INFERRED | Callback method FilesFragment.java:408-413; clears selection, resets action-mode state; same dispatch as row 26. |
 | 29 | DetailTorrentFilesFragment$4.onPrepareActionMode | REACHABLE | INFERRED | Callback method FilesFragment.java:366-381; toggles share_stream_url_menu visibility; same dispatch as row 26. |
-| 30 | TorrentContentFileItem.<clinit> | REACHABLE | INFERRED | Static CREATOR field, TorrentContentFileItem.java:72-86; class initialiser runs on first active use, e.g. FilesFragment.java:160 method reference TorrentContentFileItem::new and :232 StorageStrategy.createParcelableStorage(TorrentContentFileItem.class). |
-| 31 | TorrentContentFileItem.<init>(Parcel) | REACHABLE | SOURCE | TorrentContentFileItem.java:47-53; called directly by $1.createFromParcel at :76-79 (`new TorrentContentFileItem(source)`). |
+| 30 | TorrentContentFileItem.<clinit> | REACHABLE | INFERRED | Static CREATOR field, TorrentContentFileItem.java:72-86; class initialiser runs on first active use, e.g. FilesFragment.java:160 method reference TorrentContentFileItem::new and :227 StorageStrategy.createParcelableStorage(TorrentContentFileItem.class). |
+| 31 | TorrentContentFileItem.<init>(Parcel) | REACHABLE | SOURCE | TorrentContentFileItem.java:47-54; called directly by $1.createFromParcel at :76-79 (`new TorrentContentFileItem(source)`). |
 | 32 | TorrentContentFileItem.<init>(TorrentContentFileTree) | REACHABLE | SOURCE | TorrentContentFileItem.java:38-45; called via method reference TorrentContentFileItem::new in FilesFragment.subscribeAdapter, FilesFragment.java:160 (fresh print; proposal cited :157-160). |
-| 33 | TorrentContentFileItem.describeContents | REACHABLE | INFERRED | TorrentContentFileItem.java:57-60 (returns 0). Parcelable contract method; framework calls it when parceling items, e.g. SelectionTracker storage created at FilesFragment.java:232 and onSaveInstanceState :311. No printed direct caller; dispatch INFERRED, not SOURCE. See Parcelable caveat above. |
+| 33 | TorrentContentFileItem.describeContents | REACHABLE | INFERRED | TorrentContentFileItem.java:57-60 (returns 0). Parcelable contract method; framework calls it when parceling items, e.g. SelectionTracker storage created at FilesFragment.java:227 and onSaveInstanceState :309. No printed direct caller; dispatch INFERRED, not SOURCE. See Parcelable caveat above. |
 | 34 | TorrentContentFileItem.equalsContent | REACHABLE | SOURCE | TorrentContentFileItem.java:88-97; called directly by Adapter diffCallback.areContentsTheSame, Adapter.java:112-115 (`oldItem.equalsContent(newItem)`); diffCallback is passed to ListAdapter at Adapter.java:61 and runs on adapter.submitList (FilesFragment.java:163). |
-| 35 | TorrentContentFileItem.toString | OPEN | — | TorrentContentFileItem.java:102-108. Freshly re-checked in this pass: no caller printed in any freshly fetched file (FilesFragment, Adapter, Item itself — grep over the fresh FilesFragment copy returns no `toString` line at all; the Item file's only `toString` line besides the definition is the internal `super.toString()` call at :105). Do NOT flip to UNREACHABLE: toString is plausibly called by logging/concatenation elsewhere; needs a saved full-repo grep. Highest-priority grep target for this batch. This is the task's named OPEN row, and it stays OPEN. |
-| 36 | TorrentContentFileItem.writeToParcel | REACHABLE | INFERRED | TorrentContentFileItem.java:63-70. Parcelable contract method; framework calls it when parceling items via the SelectionTracker storage (FilesFragment.java:232, :311). No printed direct caller; dispatch INFERRED. See Parcelable caveat above. |
+| 35 | TorrentContentFileItem.toString | OPEN | — | TorrentContentFileItem.java:102-108. Freshly re-checked in this pass: no caller printed in any freshly fetched file (FilesFragment, Adapter, Item itself — grep over the fresh FilesFragment copy returns no `toString` line at all; the Item file's only `toString` line besides the definition is the internal `super.toString()` call at :105). Do NOT flip to UNREACHABLE: toString is plausibly called by logging/concatenation elsewhere; needs a saved full-repo grep. Highest-priority grep target for this batch. This is the task's named OPEN row, and it stays OPEN. 2026-11-01 OPEN-closing re-check (fresh): definition re-confirmed TorrentContentFileItem.java:102-108; zero toString hits in fresh DetailTorrentFilesFragment.java; adapter Selectable methods are key methods, not toString. Stays OPEN; named target: saved full-repo grep for a toString/concat site. 2026-11-01 OPEN-closing ROUND 2 — CONDITIONAL TABLE (convention NOT decided, row stays OPEN): (a) IF the merger adopts the 252-file app-Java grep as sufficient for toString rows → UNREACHABLE, kind no_trigger_in_app (saved grep_class_TorrentContentFileItem.txt: all 52 hits are construction, parcel, selection, adapter/diff sites — no .toString() call, log, or concatenation site on this type; the only toString line in its own file is the internal super.toString() at :105). (b) IF the merger requires coverage of implicit dispatch (concatenation, logging, List.toString element dispatch, databinding text, generated code) or a project toString-dispatch rule → stays OPEN. Resolver: the merger's one toString-dispatch rule, applied project-wide. |
+| 36 | TorrentContentFileItem.writeToParcel | REACHABLE | INFERRED | TorrentContentFileItem.java:63-70. Parcelable contract method; framework calls it when parceling items via the SelectionTracker storage (FilesFragment.java:227, :309). No printed direct caller; dispatch INFERRED. See Parcelable caveat above. |
 | 37 | TorrentContentFileItem$1.<init> | REACHABLE | INFERRED | Anonymous Parcelable.Creator, TorrentContentFileItem.java:72-73; instantiated at class initialisation (row 30). |
 | 38 | TorrentContentFileItem$1.createFromParcel | REACHABLE | INFERRED | Creator method TorrentContentFileItem.java:76-79; framework calls it when unparceling items restored by SelectionTracker storage; no printed direct caller, dispatch INFERRED. See Parcelable caveat above. |
 | 39 | TorrentContentFileItem$1.newArray | REACHABLE | INFERRED | Creator method TorrentContentFileItem.java:82-85; framework calls it when unparceling item arrays; same dispatch basis as row 38. See Parcelable caveat above. |
-| 40 | TorrentContentFilesAdapter.<clinit> | REACHABLE | INFERRED | Static TAG and diffCallback fields, Adapter.java:54 and :109; class initialiser runs on first active use, i.e. `new TorrentContentFilesAdapter(this)` at FilesFragment.java:212. |
+| 40 | TorrentContentFilesAdapter.<clinit> | REACHABLE | INFERRED | Static TAG and diffCallback fields, Adapter.java:54 and :109; class initialiser runs on first active use, i.e. `new TorrentContentFilesAdapter(this)` at FilesFragment.java:207. |
 
 ## What is NOT claimed / still owed
 

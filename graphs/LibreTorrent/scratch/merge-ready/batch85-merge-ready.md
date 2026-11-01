@@ -1,6 +1,41 @@
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
+## Revision note — OPEN-close round 2, 2026-11-01, group G14 (UNVERIFIED, NOT merged)
+
+Original file for this pass copied first to ~/workspace/libretorrent-merge-backup-pre-openclose2/batch85-merge-ready.md (SHA verified identical before editing). No GitHub connector fetch was made in this pass and no 429 was hit; all evidence was already on disk: round-1 ~/workspace/b8586-openclose-src/ definitions/layouts, the ~/workspace/ruleF-src/ 252-file app-Java reconstruction, and the round-1 fw_src LayoutInflater copy in ~/workspace/b10171819-openclose-src/fw_src/. No round-1 REACHABLE flip was reverted. Build: not run. C1: not run. No push.
+
+Counts: BEFORE 37 REACHABLE / 0 UNREACHABLE / 3 OPEN. AFTER 37 / 2 / 1. Flipped 2 rows, both to UNREACHABLE, moving together under the layout-inflation ctor rule (see below):
+- 31 EmptyRecyclerView.<init>(Context,AttributeSet,int) -> UNREACHABLE no_trigger_in_app INFERRED.
+- 40 ExpansionHeader.<init>(Context,AttributeSet,int) -> UNREACHABLE no_trigger_in_app INFERRED.
+Rule stated: LayoutInflater looks up ONLY the (Context,AttributeSet) ctor — fw_src android-8.1.0_r1 LayoutInflater.java (local copy) :88 mConstructorArgs size 2, :90-91 mConstructorSignature {Context.class, AttributeSet.class}, :615 getConstructor(mConstructorSignature), the only getConstructor call in the file; a style= attribute in XML does not change the lookup arity. Each 2-arg ctor calls super(context, attrs) directly, never this(context, attrs, int) (EmptyRecyclerView :59-61 vs :64-66; ExpansionHeader :63-65 vs :70-72), so the already-REACHABLE 2-arg inflation route does not reach the 3-arg ctor. Saved full-repo grep ~/workspace/b8586-openclose2-src/grep_3arg_ctors_full_252_grep.txt (SHA 1d5af1ed4a93efd50af73f09d65fdd8fb3296327190ca510d709ccf12d040c16) over all 252 app Java files: 0 `new X(` hits, 0 `extends X` hits, 0 reflection ctor lookups for either class. Kind/confirmed_by match batch 10's 1-arg ctors of the same classes (UNREACHABLE no_trigger_in_app INFERRED on the same evidence shape); if the merger prefers framework_never_calls for inflation-blocked rows, both rows in this batch (and all five across batches 85/86) change kind together, labels unchanged. Revert condition, all five together: any printed 3-arg construction site flips the affected row(s) to REACHABLE; if the merger requires a fresh branch-fetch full-repo grep (including res/generated) before any UNREACHABLE label resting on absence, all five revert to OPEN together — they never split. Full triage: ~/workspace/b8586-openclose2-src/TRIAGE_NOTE_20261101.md. Note: batch 94's PiecesView 3-arg ctor stays OPEN in its file on the same evidence shape pending its own saved grep; the merger must apply one rule to all 3-arg ctors at merge, and this flip does not decide that rule for batch 94.
+Still OPEN (1): 26 ColorView.getColor — round-2 check found no printed caller (see row citation); per the G14 task instruction it needs a printed caller and is NOT flipped on the zero grep. Named resolver: a printed caller on a ColorView receiver (code or layout binding expression).
+
+## Revision note — OPEN-close pass, 2026-11-01 (UNVERIFIED, NOT merged)
+
+Original file copied first to ~/workspace/libretorrent-merge-backup-pre-openclose/batch85-merge-ready.md.
+This revision re-derives every OPEN row from source freshly fetched in THIS pass (GitHub connector,
+branch work-2026-10-31, one file at a time with ~25 s pauses), saved in ~/workspace/b8586-openclose-src/.
+Prior merge-ready file was INPUT only. No row flipped on absence, on a search_code 0, or on a carried citation.
+
+Counts: BEFORE 24 REACHABLE / 0 UNREACHABLE / 16 OPEN. AFTER 37 / 0 / 3. Flipped 13 rows, all to REACHABLE:
+- 25 ColorView.<init> (2-arg) -> REACHABLE INFERRED: tags_list_item.xml (fresh, SHA 8ddcd5b0) + drawer_tags_list_item.xml (fresh, SHA e37cfcce) declare ColorView id color; LayoutInflater 2-arg dispatch INFERRED.
+- 27 ColorView.onDraw, 28 ColorView.onSizeChanged -> REACHABLE INFERRED: framework callbacks after the same inflation.
+- 29 ColorView.setColor -> REACHABLE SOURCE: ui/tag TagsAdapter.java:103 + drawer TagsAdapter.java:191 binding.color.setColor(...) (both fresh).
+- 30 EmptyRecyclerView.<init> (2-arg) -> REACHABLE INFERRED: fragment_main.xml (torrent_list), fragment_feed.xml (feed_list), fragment_feed_items.xml (feed_items_list) declare EmptyRecyclerView (all fresh); LayoutInflater 2-arg dispatch INFERRED.
+- 32 EmptyRecyclerView.checkEmpty -> REACHABLE SOURCE: called by setAdapter :91, setEmptyView :97, observer :38/:44/:50 (fresh EmptyRecyclerView.java).
+- 33 setAdapter -> REACHABLE SOURCE: MainFragment.java:155, FeedFragment.java:135, FeedItemsFragment.java:153 (fresh).
+- 34 setEmptyView -> REACHABLE SOURCE: MainFragment.java:151, FeedFragment.java:131, FeedItemsFragment.java:150, LogActivity.java:107 (fresh).
+- 35 EmptyRecyclerView$1.<init> -> REACHABLE INFERRED: field-initializer observer, runs at view instantiation (fresh :33).
+- 36/37/38 $1.onChanged/onItemRangeInserted/onItemRangeRemoved -> REACHABLE INFERRED: observer dispatch, registered by setAdapter :89 (fresh).
+- 39 ExpansionHeader.<init> (2-arg) -> REACHABLE INFERRED: drawer_group_header.xml root tag ExpansionHeader (fresh, SHA 694c2bfd), inflated by DrawerExpandableAdapter.java:78 (fresh); LayoutInflater 2-arg dispatch INFERRED.
+Still OPEN (3): 26 ColorView.getColor (no Java caller in the full 252-file app tree — saved grep b8586-openclose-src/getColor_full_corpus_grep.txt; layout binding expressions in the two known ColorView layouts: none, both have no <data> block; needs a saved full-repo grep incl. res/ before any UNREACHABLE flip, and getColor is not layout-driven so a layout hit alone does not close it); 31 EmptyRecyclerView 3-arg ctor (LayoutInflater never calls it; zero Java constructions in the full tree — saved grep customview_construction_grep.txt); 40 ExpansionHeader 3-arg ctor (same ground as 31).
+Layout-inflation ctor rule recorded, NOT decided project-wide: a layout naming a custom view flips ONLY its 2-arg ctor to INFERRED; the 3-arg ctor stays OPEN without a printed Java construction. Internal-call confirmed_by: per-row SOURCE (under whole-route INFERRED it would read INFERRED; labels unaffected).
+Build: not run. C1: not run. Sampler: not run. No push made in this pass.
+
+
 # LibreTorrent batch 85 — merge-ready part — UNVERIFIED
 
-**Status: UNVERIFIED proposal only. NOT verified for merge. NOT pushed. No edit to
+**Status: UNVERIFIED proposal only. NOT verified for merge. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]). No edit to
 `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another agent's files.**
 **Build: not run. C1: not run.** The build and C1 checks run on the user's Mac after a push,
 so they are marked "not run" here, never passed. No sampler, full-repo grep, or C1
@@ -51,8 +86,8 @@ Saved copies: `~/workspace/b8586-src/`.
 ## Counts — mechanically verified
 
 - **40 rows, sequence 1–40 intact, in plan order.**
-- **24 REACHABLE proposed / 0 UNREACHABLE proposed / 16 OPEN.**
-- Among the REACHABLE rows: **SOURCE 14 / INFERRED 10**.
+- **37 REACHABLE / 2 UNREACHABLE / 1 OPEN (2026-11-01 round-2 revision; was 37 / 0 / 3; the pre-round-1 counts previously in this section were stale and are corrected here).**
+- Among the 39 labelled rows: **SOURCE 18 / INFERRED 21 (19 REACHABLE INFERRED + 2 UNREACHABLE INFERRED).**
 - **0 rows verified for merge.** Main-agent spot-check (1 in 5), `py_compile`, build, and Mac
   build/C1 are all still outstanding — never claimed passed here.
 
@@ -158,27 +193,26 @@ UNREACHABLE. One host-site grep flips each chain together:
 | 22 | CreateTorrentViewModel$BuildState$Status.<clinit> | REACHABLE | INFERRED | Enum constants CreateTorrentViewModel.java:69; JVM enum init on first BuildState use :113 |
 | 23 | CreateTorrentViewModel$InvalidTrackerException.<init> | REACHABLE | SOURCE | CreateTorrentViewModel.java:85-89; thrown getAndValidateTrackers() :273; gate: STATE data (invalid tracker URL typed) |
 | 24 | CreateTorrentViewModel$InvalidWebSeedException.<init> | REACHABLE | SOURCE | CreateTorrentViewModel.java:95-99; thrown getAndValidateWebSeeds() :289; gate: STATE data (invalid web-seed URL typed) |
-| 25 | ColorView.<init> | OPEN | — | ColorView.java:43-45 definition only; no printed layout/Java host site; NOT UNREACHABLE without a saved full-repo grep |
-| 26 | ColorView.getColor | OPEN | — | ColorView.java:102-104; no printed caller |
-| 27 | ColorView.onDraw | OPEN | — | ColorView.java:84-91; framework callback, host-gated (see above) |
-| 28 | ColorView.onSizeChanged | OPEN | — | ColorView.java:76-81; framework callback, host-gated |
-| 29 | ColorView.setColor | OPEN | — | ColorView.java:95-99; no printed caller |
-| 30 | EmptyRecyclerView.<init>(Context,AttributeSet) | OPEN | — | EmptyRecyclerView.java:59-62; no printed layout/Java host site |
-| 31 | EmptyRecyclerView.<init>(Context,AttributeSet,int) | OPEN | — | EmptyRecyclerView.java:64-67; no printed layout/Java host site |
-| 32 | EmptyRecyclerView.checkEmpty | OPEN | — | EmptyRecyclerView.java:69-78; called by setAdapter :91, setEmptyView :97, observer :38/:44/:50 — all host-gated |
-| 33 | EmptyRecyclerView.setAdapter | OPEN | — | EmptyRecyclerView.java:80-92; no printed host caller |
-| 34 | EmptyRecyclerView.setEmptyView | OPEN | — | EmptyRecyclerView.java:94-97; no printed host caller |
-| 35 | EmptyRecyclerView$1.<init> | OPEN | — | Anonymous AdapterDataObserver EmptyRecyclerView.java:33-52; instantiated as field initializer, runs only if view instantiated — host-gated |
-| 36 | EmptyRecyclerView$1.onChanged | OPEN | — | EmptyRecyclerView.java:36-38; RecyclerView adapter-observer dispatch, registered only by setAdapter :89 — host-gated |
-| 37 | EmptyRecyclerView$1.onItemRangeInserted | OPEN | — | EmptyRecyclerView.java:42-44; same registration — host-gated |
-| 38 | EmptyRecyclerView$1.onItemRangeRemoved | OPEN | — | EmptyRecyclerView.java:48-50; same registration — host-gated |
-| 39 | ExpansionHeader.<init>(Context,AttributeSet) | OPEN | — | ExpansionHeader.java:63-67 calls init :67; no printed layout/Java host site |
-| 40 | ExpansionHeader.<init>(Context,AttributeSet,int) | OPEN | — | ExpansionHeader.java:70-74 calls init :74; no printed layout/Java host site |
+| 25 | ColorView.<init> | REACHABLE | INFERRED | tags_list_item.xml declares ColorView id color (fresh, SHA 8ddcd5b0); LayoutInflater 2-arg dispatch INFERRED; TagsAdapter inflates R.layout.tags_list_item (batch 70 print, re-verify at merge if required) |
+| 26 | ColorView.getColor | OPEN | — | ColorView.java:102-104; round-2 check 2026-11-01: zero-arg .getColor() grep over 252 app Java files returns only Paint.getColor() inside the definition (:103) and AddTagState.getColor() (AddTagDialog/AddTagViewModel) — no ColorView-receiver call; binding.color sites are setColor (ui/tag TagsAdapter:103, drawer TagsAdapter:191) and setOnClickListener (AddTagDialog:153); both ColorView layouts have no <data> block. Named resolver: a printed caller on a ColorView receiver (code or layout binding expression) |
+| 27 | ColorView.onDraw | REACHABLE | INFERRED | Framework onDraw after ColorView inflation from tags_list_item.xml (see row 25) |
+| 28 | ColorView.onSizeChanged | REACHABLE | INFERRED | Framework onSizeChanged after ColorView inflation from tags_list_item.xml (see row 25) |
+| 29 | ColorView.setColor | REACHABLE | SOURCE | ui/tag TagsAdapter.java:103 binding.color.setColor(item.info.color) + drawer TagsAdapter.java:191 same; binding.color is ColorView in both layouts (tags_list_item.xml + drawer_tags_list_item.xml declare ColorView id color, fresh) |
+| 30 | EmptyRecyclerView.<init>(Context,AttributeSet) | REACHABLE | INFERRED | fragment_main.xml declares EmptyRecyclerView id torrent_list; fragment_feed.xml id feed_list; fragment_feed_items.xml id feed_items_list — LayoutInflater 2-arg dispatch INFERRED |
+| 31 | EmptyRecyclerView.<init>(Context,AttributeSet,int) | UNREACHABLE | INFERRED | Kind: `no_trigger_in_app`. LayoutInflater (fw_src android-8.1.0_r1, local copy) :88 mConstructorArgs size 2, :90-91 mConstructorSignature {Context.class, AttributeSet.class}, :615 getConstructor(mConstructorSignature) — inflation looks up ONLY the 2-arg ctor. Saved grep b8586-openclose2-src/grep_3arg_ctors_full_252_grep.txt over 252 app Java files: 0 `new EmptyRecyclerView(` hits, 0 `extends EmptyRecyclerView` hits, 0 reflection ctor lookups. Definition EmptyRecyclerView.java:64-67; 2-arg ctor :59-61 calls super(context, attrs) only, never this(..., int). Reverts to REACHABLE on any printed 3-arg construction site; see round-2 revision note for the all-five-together revert condition. |
+| 32 | EmptyRecyclerView.checkEmpty | REACHABLE | SOURCE | Called by setAdapter EmptyRecyclerView.java:91, setEmptyView :97, observer :38/:44/:50 — all REACHABLE in this revision |
+| 33 | EmptyRecyclerView.setAdapter | REACHABLE | SOURCE | MainFragment.java:155 binding.torrentList.setAdapter(adapter) (fragment_main.xml declares torrent_list as EmptyRecyclerView, fresh); also FeedFragment.java:135 binding.feedList.setAdapter, FeedItemsFragment.java:153 binding.feedItemsList.setAdapter (feed/feed_items layouts declare EmptyRecyclerView, fresh) |
+| 34 | EmptyRecyclerView.setEmptyView | REACHABLE | SOURCE | MainFragment.java:151 binding.torrentList.setEmptyView(binding.emptyViewTorrentList) (fragment_main.xml, fresh); also FeedFragment.java:131, FeedItemsFragment.java:150, LogActivity.java:107 |
+| 35 | EmptyRecyclerView$1.<init> | REACHABLE | INFERRED | Field-initializer anonymous AdapterDataObserver, runs at EmptyRecyclerView instantiation (see row 30) |
+| 36 | EmptyRecyclerView$1.onChanged | REACHABLE | INFERRED | Observer dispatch, registered by setAdapter EmptyRecyclerView.java:89 |
+| 37 | EmptyRecyclerView$1.onItemRangeInserted | REACHABLE | INFERRED | Observer dispatch, registered by setAdapter EmptyRecyclerView.java:89 |
+| 38 | EmptyRecyclerView$1.onItemRangeRemoved | REACHABLE | INFERRED | Observer dispatch, registered by setAdapter EmptyRecyclerView.java:89 |
+| 39 | ExpansionHeader.<init>(Context,AttributeSet) | REACHABLE | INFERRED | drawer_group_header.xml root tag ExpansionHeader (fresh SHA 694c2bfd), inflated by DrawerExpandableAdapter:78; LayoutInflater 2-arg dispatch INFERRED |
+| 40 | ExpansionHeader.<init>(Context,AttributeSet,int) | UNREACHABLE | INFERRED | Kind: `no_trigger_in_app`. LayoutInflater (fw_src android-8.1.0_r1, local copy) :88 mConstructorArgs size 2, :90-91 mConstructorSignature {Context.class, AttributeSet.class}, :615 getConstructor(mConstructorSignature) — inflation looks up ONLY the 2-arg ctor. Saved grep b8586-openclose2-src/grep_3arg_ctors_full_252_grep.txt over 252 app Java files: 0 `new ExpansionHeader(` hits, 0 `extends ExpansionHeader` hits, 0 reflection ctor lookups. Definition ExpansionHeader.java:70-74 calls init :74; 2-arg ctor :63-65 calls super(context, attrs) only, never this(..., int). Reverts to REACHABLE on any printed 3-arg construction site; see round-2 revision note for the all-five-together revert condition. |
 
-## Still owed before merge
+## Still owed before merge (updated 2026-11-01 OPEN-close pass)
 
-- Saved full-repo grep for the 16 OPEN rows (layout XML naming ColorView/EmptyRecyclerView/ExpansionHeader,
-  or a `new`/findViewById host site); one hit flips each chain together as described above.
+- 1 OPEN row remains: 26 ColorView.getColor (named target: a printed caller on a ColorView receiver, code or layout binding expression; Java tree already fully grepped, 252/252, zero ColorView-receiver callers — see round-2 revision note). Rows 31 and 40 flipped to UNREACHABLE in the 2026-11-01 round-2 revision (see revision note).
 - Printed launcher-to-CreateTorrentDialog step, if the strict entry-route rule is applied (rows 1-24).
 - Bytecode confirmation of lambda$downloadTorrent$3/$4 numbering (rows 4-5).
 - Main-agent spot-check (1 in 5), `py_compile`, build, Mac build/C1 — all not run.

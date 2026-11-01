@@ -1,6 +1,12 @@
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
+**REVISION 2026-11-01 (OPEN-closing round 2): 0 rows flipped. All 10 OPEN rows re-checked against the full 252-file app-Java tree (`~/workspace/ruleF-src/`) plus the hashCode/toString/compare-ctor grep families in `~/workspace/libretorrent-grep/`; no independent printed caller was found for any OPEN row, and no row was flipped to UNREACHABLE (UNREACHABLE-on-tree-grep-absence is an undecided project-wide rule — see CONDITIONAL table). Counts unchanged 30/0/10. Round-1 flip (row 29) re-checked, NOT reverted — no fresh contradictory evidence. Build: not run. C1: not run. UNVERIFIED, nothing merged.**
+
+**REVISION 2026-11-01 (OPEN-closing pass): 1 row flipped OPEN -> REACHABLE on freshly printed source (see table row 29 and "Printed source added 2026-11-01" below). Counts changed 29/0/11 -> 30/0/10. No row flipped to UNREACHABLE (no saved full-repo grep was run in this pass). Build: not run. C1: not run. UNVERIFIED, nothing merged. The local-reprint caveat for AddTorrentViewModel/DetailTorrentViewModel/TorrentContentFileTree caller lines is now CLOSED (all cited lines confirmed on fresh fetches in this pass).**
+
 # LibreTorrent batch 33 — merge-ready part — UNVERIFIED
 
-**Status: UNVERIFIED proposal only. NOT verified for merge. NOT pushed. No edit to
+**Status: UNVERIFIED proposal only. NOT verified for merge. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]). No edit to
 `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another agent's files.**
 **Build: not run. C1: not run.** The build and C1 checks run on the user's Mac after a push,
 so they are marked "not run" here, never passed. No sampler or full-repo grep was run or is
@@ -57,6 +63,95 @@ the merger must fresh-print the caller files named below before merging rows tha
   makeFileTree (`new FilePriority(p)` :549); TorrentContentFileTree.java:28 field initialiser
   `new FilePriority(FilePriority.Type.IGNORE)`; FileTree.java:75 addChild uses `node.getName()`.
 
+## Printed source added 2026-11-01 (OPEN-closing round 2)
+
+No new GitHub connector fetch was made in this round (no new file was missing
+locally); all checking was over already-fetched files: `~/workspace/ruleF-src/`
+(252 app Java files), `~/workspace/b323334-openclose-src/` (round-1 fresh
+prints), and `~/workspace/libretorrent-grep/` (hashcode, tostring, compare-ctor
+families, which already triaged these exact rows). Saved round-2 greps in
+`~/workspace/b323334-openclose2-src/`: `grep-setters-getters.txt`,
+`grep-equals-setters-parcel.txt`, `grep-classnames-methods.txt`.
+Findings, per OPEN row (all "zero" statements are app-Java only; they exclude
+`res` XML, generated code, and framework dispatch, so none flips a row to
+UNREACHABLE in this round):
+- Row 8 BencodeFileTree.toString: no external caller; its body calls
+  FileTree.toString (batch 34 row 3), it is not called by it.
+- Row 16 FilePriority.toString: only conditional site is inside the OPEN
+  TorrentContentFileTree.toString (batch 34 row 16, concat `", priority=" +
+  priority` at TorrentContentFileTree.java:179) — dependency rule, flips
+  only with that host (see CONDITIONAL table).
+- Row 24 FileTree.compareTo: the only `Collections.sort` sites in the tree
+  are BencodeFileTreeUtils :55 and TorrentContentFileTreeUtils :55, both
+  sorting `List<BencodeFileItem>` (dispatch to BencodeFileItem.compareTo,
+  batch 32 row 12), not FileTree; no `List<FileTree>`/`List<BencodeFileTree>`/
+  `List<TorrentContentFileTree>` sort, no `.sorted()` on a tree list, and
+  neither tree subclass overrides compareTo (compare-ctor family).
+- Row 26 FileTree.equals: no receiver-typed `.equals` caller, no
+  `List<FileTree>` contains/indexOf site in the tree.
+- Rows 30/31 FileTree.getChildrenIndexes/getChildrenName: the only hits in
+  the whole tree are their own definitions (FileTree.java:100/:95); no caller.
+  Note the contrast that keeps rows 29/33 REACHABLE: getChildrenCount is
+  called from BencodeFileTree.doSelect, and getName from FileTree.addChild —
+  printed internal callers from REACHABLE methods. Rows 30/31 have no such
+  internal caller (getChildrenIndexes itself calls child.getIndex, not vice
+  versa; getChildrenName returns `children.keySet()` directly).
+- Row 36 FileTree.getType: no app-Java caller on a FileTree receiver; the
+  `.getType()` hits in the tree are FilePriority.getType, FileManagerNode,
+  Intent, and libtorrent node types. FileTree.isFile reads the `isLeaf`
+  field directly, not getType. This is the "ctor sets fields directly" case
+  in reverse: the ctor sets `isLeaf = (type == FILE)`, and nothing reads it
+  back through getType in printed app Java.
+- Rows 38/39/40 FileTree.setIndex/setName/setParent: zero app-Java caller on
+  a FileTree receiver in `grep-setters-getters.txt` (the `setName` hits are
+  `mutableParams.setName`, `state.setName`, and other classes' setters; the
+  `setParent`/`setIndex` hits are none for FileTree). All three fields are
+  set directly by the FileTree ctors (index, name, parent), satisfying the
+  task's key fact — a ctor assignment alone does not flip a getter, and here
+  the setters themselves have no printed caller. FileTree.setType is batch 34
+  row 1, not a batch-33 row; it was checked in the same greps with the same
+  zero result.
+- Round-1 flip re-checked: row 29 getChildrenCount via BencodeFileTree.doSelect
+  :75 is still present in the 252-file tree; nothing contradicts it.
+
+## Printed source added 2026-11-01 (OPEN-closing pass)
+
+Fresh connector fetches from branch `work-2026-10-31`, one file at a time with ~25 s pauses,
+saved in `~/workspace/b323334-openclose-src/` (all under
+`final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/`;
+connector SHAs are git blob SHAs as returned by the connector). No fresh HTTP 429 was hit in
+this pass. Two clean file-not-found results (not 429s): `core/model/data/repository/TorrentRepositoryImpl.java`
+does not exist (correct path `core/storage/TorrentRepositoryImpl.java`) and
+`core/model/filetree/TorrentContentFileTreeUtils.java` does not exist (correct path
+`core/utils/TorrentContentFileTreeUtils.java`, package `core.utils`).
+- `core/model/data/entity/Torrent.java` — 201 lines, SHA `9dbe96bf15d2398823497b2a04bbbd7d012de9c8`.
+- `core/model/data/entity/TorrentTagInfo.java` — 88 lines, SHA `578f8ae4932aa3f03a40f91bcd9720d1e8b1e320`.
+- `core/model/data/metainfo/BencodeFileItem.java` — 127 lines, SHA `8a0f1774af23e4d732a696f32787a6ceb9038575`.
+- `core/model/data/metainfo/TorrentMetaInfo.java` — 210 lines, SHA `40334a672302dd5b4d9dc8626bfb6d800ecc0c98`.
+- `core/model/filetree/BencodeFileTree.java` — 132 lines, SHA `c732b4b924485f2ed886324fabe7a8a927a6535c`.
+- `core/model/filetree/FileTree.java` — 222 lines, SHA `b868825de8cddea523b5483c7e724981533b06d3`, byte-identical to the earlier batch-32/33 fresh fetch.
+- `core/model/filetree/FilePriority.java` — 114 lines, SHA `2ee77e09c03cbaff9dccae36d4f7826df7679a22`.
+- `core/model/filetree/TorrentContentFileTree.java` — 184 lines, SHA `0b91364f600055fd163421fc499617aa2b356ab7`.
+- `core/model/session/AdvancedPeerInfo.java` — 65 lines, SHA `ff370dae46c7af3727518084f655f7430099be66`, byte-identical to the earlier batch-34 fresh fetch.
+- `core/utils/TorrentContentFileTreeUtils.java` — 127 lines, SHA `71185dbebfafddbe1458d41275cc9736b3437b35`.
+- `core/utils/BencodeFileTreeUtils.java` — 127 lines, SHA `5de27e64238342db07a51ba8c1039cf26e5d3089`, byte-identical to the earlier fresh fetch.
+- `ui/addtorrent/AddTorrentViewModel.java` — 574 lines, SHA `bec2f6eec2a538bd7223095b87014183530f4534`.
+- `ui/detailtorrent/DetailTorrentViewModel.java` — 610 lines, SHA `6e4ef82f455957298bfb6bf4513c4a35c799a1a6`, byte-identical to the earlier batch-89/90 and 87-88 fresh fetches.
+- `core/model/session/TorrentSessionImpl.java` — 1720 lines, SHA `aef9618cb29cae4ade30d51d968f2d3b0f5182dd` (same SHA as the batches 29-31 pass; differs from the batches 38-40 pass copy `4b698cf6...` — the merger must diff before merging rows citing both).
+- `core/storage/TorrentRepositoryImpl.java` — 172 lines, SHA `0f01eff0a7613bfa2ecdb3052e7914ba9f00bd54`.
+- `core/model/session/TorrentDownloadImpl.java` — 1711 lines, SHA `30024b5d27ff357262557d35bac99281b54ae8f8`.
+- `core/model/data/PeerInfo.java` — 248 lines, SHA `7480d74f29a13ab8130870b9fe58eb50b0872bb7`.
+- `ui/detailtorrent/pages/peers/PeerListAdapter.java` — 177 lines, SHA `1c5d275e81512e779c4d32c215469ee23de2491c`.
+- `ui/detailtorrent/pages/peers/DetailTorrentPeersFragment.java` — 202 lines, SHA `d164a15e3f393009779ead158ca2bb920ec7149c`.
+Fresh-corpus grep over these 19 files found no caller for the remaining OPEN rows (see per-row
+notes): no `new TorrentTagInfo` beyond TorrentRepositoryImpl, no parcel/marshalling site for
+Torrent/BencodeFileItem/TorrentMetaInfo, no FileTree `setIndex`/`setName`/`setParent`/`setType`/
+`compareTo`/`equals`/`getChildrenIndexes`/`getChildrenName`/`getType` caller (the `setName` hits at
+AddTorrentViewModel:344 and DetailTorrentViewModel:437 are `mutableParams.setName`, not
+FileTree.setName), no FileTree/TorrentContentFileTree/FilePriority/BencodeFileTree `toString`
+caller, no `getAvailability`/`getReceivedBytes` caller beyond self-recursion. This is a
+printed-corpus grep only, NOT a saved full-repo grep, so no row was flipped to UNREACHABLE.
+
 ## Per-row table — 40 rows, plan order
 
 | # | Method | Proposed label | confirmed_by | Printed citation / note |
@@ -89,13 +184,13 @@ the merger must fresh-print the caller files named below before merging rows tha
 | 26 | FileTree.equals | OPEN | — | FileTree.java:193 — fresh fetch; no printed caller. |
 | 27 | FileTree.getChild | REACHABLE proposed | SOURCE | BencodeFileTreeUtils.java:109 parentTree.getChild(nodes[i]) — fresh fetch; AddTorrentViewModel.java:426 curDir.getChild(name) (local reprint). |
 | 28 | FileTree.getChildren | REACHABLE proposed | SOURCE | AddTorrentViewModel.java:420 curDir.getChildren() (local reprint). |
-| 29 | FileTree.getChildrenCount | OPEN | — | FileTree.java:110 — fresh fetch; no printed caller. |
+| 29 | FileTree.getChildrenCount | REACHABLE proposed | SOURCE | **CHANGED 2026-11-01 (was OPEN).** BencodeFileTree.doSelect:75 `if (getChildrenCount()!= 0)` — fresh fetch, SHA `c732b4b9…`; doSelect is REACHABLE (row 3, called by REACHABLE select at BencodeFileTree:63). Same internal-caller rule as row 33 (getName via addChild) and batch 34 row 2 (size via selectedFileSize/nonIgnoreFileSize). |
 | 30 | FileTree.getChildrenIndexes | OPEN | — | FileTree.java:100 — fresh fetch; no printed caller. |
 | 31 | FileTree.getChildrenName | OPEN | — | FileTree.java:95 — fresh fetch; no printed caller. |
 | 32 | FileTree.getIndex | REACHABLE proposed | SOURCE | AddTorrentViewModel.java getSelectedFileIndexes: file.getIndex() for BencodeFileTree leaves (local reprint). |
 | 33 | FileTree.getName | REACHABLE proposed | SOURCE | FileTree.java:75 addChild uses node.getName() — fresh fetch; addChild is REACHABLE (row 23). |
 | 34 | FileTree.getParent | REACHABLE proposed | SOURCE | AddTorrentViewModel.java:418 curDir.getParent(); DetailTorrentViewModel.java getChildren parent check (local reprints). |
-| 35 | FileTree.getPath | REACHABLE proposed | SOURCE | AddTorrentViewModel.java getFilePath: node.getPath() (local reprint). |
+| 35 | FileTree.getPath | REACHABLE proposed | SOURCE | AddTorrentViewModel.java getFilePath: node.getPath() (local reprint); confirmed fresh in this pass via DetailTorrentViewModel.java:268 `String relativePath = node.getPath();` (SHA `6e4ef82f…`). |
 | 36 | FileTree.getType | OPEN | — | FileTree.java:153 — fresh fetch; no printed caller (FileTree.isFile reads the type field directly). |
 | 37 | FileTree.isFile | REACHABLE proposed | SOURCE | BencodeFileTreeUtils.java:111 nextParent.isFile() — fresh fetch. |
 | 38 | FileTree.setIndex | OPEN | — | FileTree.java:142 — fresh fetch; no printed caller (ctors set the field directly). |
@@ -104,21 +199,53 @@ the merger must fresh-print the caller files named below before merging rows tha
 
 ## Counts — mechanically verified
 
-- REACHABLE proposed: 29 (rows 1-7, 9-15, 17-23, 25, 27, 28, 32-35, 37)
+- REACHABLE proposed: 30 (rows 1-7, 9-15, 17-23, 25, 27-29, 32-35, 37)
 - UNREACHABLE proposed: 0
-- OPEN: 11 (rows 8, 16, 24, 26, 29, 30, 31, 36, 38, 39, 40)
+- OPEN: 10 (rows 8, 16, 24, 26, 30, 31, 36, 38, 39, 40)
 - Total: 40 rows, sequence 1–40 intact in plan order.
 - Verified for merge: 0 / 40.
 
 ## Gaps the merger must close before merging
 
-1. Saved full-repo grep for the 11 OPEN rows. Any hit flips that row to REACHABLE.
-2. Fresh connector prints of the caller files flagged as local reprints above
-   (AddTorrentViewModel.java, DetailTorrentViewModel.java, TorrentContentFileTree.java) before
-   merging rows that rest on them (rows 4, 6, 7, 10-14, 17, 18, 28, 32, 34, 35).
+1. Saved full-repo grep for the 10 OPEN rows. Any hit flips that row to REACHABLE.
+2. CLOSED 2026-11-01: AddTorrentViewModel.java, DetailTorrentViewModel.java and
+   TorrentContentFileTree.java are now freshly fetched (see addendum); every cited line was
+   confirmed (AddTorrentViewModel:384 select, :408/:417-418 parent, :420 getChildren, :426/:437
+   getChild, :460-461 isSelected/getIndex, :553 selectedFileSize; DetailTorrentViewModel:237-238,
+   :294-323 getFilesPriority/FilePriority, :420, :549, :551, :560, :582, :589). No local-reprint
+   caller caveat remains for this batch.
 3. Printed launcher-to-AddTorrent/Detail step; build/sampler/C1 on a full checkout; main-agent
    spot-check 1 in 5; py_compile at merge. None run or claimed here.
 4. No fresh HTTP 429 was hit in this session.
+
+## CONDITIONAL flip tables — round 2 (NOT decided, NOT flipped)
+
+Nothing in this section changes a label. It states exactly what flips if the
+merger/user adopts the named option, so one project-wide rule can be applied
+uniformly.
+
+- **UNREACHABLE-on-tree-grep-absence (undecided).** IF the merger rules that
+  zero hits in a saved 252-file app-Java grep suffices for
+  `no_trigger_in_app`, THEN rows 24, 26, 30, 31, 36, 38, 39, 40 flip to
+  UNREACHABLE `no_trigger_in_app` (each on the zero-caller evidence above),
+  while rows 8 and 16 flip to UNREACHABLE only if their hosts are also ruled
+  UNREACHABLE: row 16's host is batch 34 row 16; row 8 has no host of its
+  own (it is itself a host for batch 34 row 3 — see below), so row 8 flips
+  to UNREACHABLE on its own zero-caller evidence under this option, and
+  batch 34 row 3 then depends solely on its remaining host, batch 34 row 16.
+- **toString dependency (conditional, no new rule needed).** Row 16
+  FilePriority.toString flips to REACHABLE SOURCE together with batch 34
+  row 16 TorrentContentFileTree.toString (concat at
+  TorrentContentFileTree.java:179, field type verified FilePriority at :28).
+  Row 8 BencodeFileTree.toString flipping to REACHABLE would flip batch 34
+  row 3 FileTree.toString together with it (`super.toString()` at
+  BencodeFileTree.java:128); row 8 itself has no independent conditional
+  host and flips only on a direct log/concat caller found later.
+- **compareTo/equals framework rule (undecided, no effect here).** Even IF
+  sort/equals dispatch through a generic collection is ruled a trigger, row
+  24 does not flip without a printed sort of a FileTree-typed list (none
+  exists), and row 26 does not flip without a printed contains/indexOf/
+  DiffUtil site on a FileTree-typed list (none exists).
 
 ## Undecided conventions — flagged per row, NOT decided here
 

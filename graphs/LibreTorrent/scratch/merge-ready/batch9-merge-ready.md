@@ -1,6 +1,11 @@
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
+**RULE F GREP 2026-11-01 (item 1):** Real rule-F grep run over a connector-reconstructed copy of all 252 app Java files (~/workspace/ruleF-src, fetch DONE ok=252 fail=0), saved at ~/workspace/ruleF_grep_batch5_9.txt and in this folder as ruleF_grep_batch5_9_UNVERIFIED.txt. Form: grep -rn --include='*.java' '<ClassName>' (bare class name). Result: 85 hits across 34 classes; 33 classes referenced as types (import + field declaration + DataBindingUtil.inflate/setContentView assignment); DetailTorrentAppbarBinding: 0 hits in app Java. NO app file calls XBinding.inflate(...) or XBinding.bind(...) directly — every instantiation goes through DataBindingUtil.inflate/setContentView, which returns the Impl via the mapper and bypasses the base static. Generated Impl bodies are absent from final_java_only, so generated-to-generated dispatch (mapper -> Impl, parent Impl -> included child bind) is unprinted. Labels in this file are UNCHANGED by this grep: the statics stay OPEN pending the project convention decision (DataBindingUtil dispatch counts as calling the base statics, vs a direct call site is required, vs generated Impl evidence is required). Do not flip on this grep alone.**
+
+
 # LibreTorrent batch 9 — merge-ready part — UNVERIFIED
 
-**Status: UNVERIFIED proposal only. NOT verified for merge. NOT pushed. No edit to `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another agent's files.**
+**Status: UNVERIFIED proposal only. NOT verified for merge. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]). No edit to `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another agent's files.**
 **Build: not run. C1: not run. Sampler: not run. Full-repo grep: not run in this pass.** The build and C1 checks run on the user's Mac after a push, so they are marked "not run" here, never passed.
 
 - Repo: `bugfixops/ground-truth-results`, branch `work-2026-10-31` only (never `main` or `result`).

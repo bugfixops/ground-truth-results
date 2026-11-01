@@ -1,8 +1,57 @@
+## Revision 2026-11-01 — OPEN-closing round 2, group G16 (UNVERIFIED, 0 flips)
+
+0 of 1 OPEN rows closed in this pass; counts unchanged (39 REACHABLE / 0 UNREACHABLE / 1 OPEN).
+New evidence this pass: fresh greps over the already-fetched 252-file app Java tree
+(~/workspace/ruleF-src), saved in ~/workspace/b103106112114115-openclose2-src/grep_rest.txt and grep_extra.txt. No GitHub
+connector fetch was needed; no fresh 429. Generated code and library/framework code are NOT
+in that tree, so it is NOT a full-repo grep.
+- Row 30 TorrentListItem.hashCode: no hashCode call on a TorrentListItem anywhere in the
+  tree; no HashMap/HashSet/Hashtable keyed on TorrentListItem; getItemPosition uses
+  List.indexOf (TorrentListAdapter.java:119, equals only, not hashCode); the SelectionTracker
+  storage at MainFragment.java:162 is StorageStrategy.createParcelableStorage(TorrentListItem.class)
+  (Parcelable, not hash storage), and copySelection into MutableSelection at MainFragment
+  :575-576, :599-600, :610-611 names no hash call. Whether androidx MutableSelection storage
+  is hash-backed (which would call hashCode) is unprinted library internals — the shared
+  project-wide hashCode-dispatch question (batches 3, 10, 95, 99), RECORDED, NEVER DECIDED here.
+NOT flipped to UNREACHABLE: no saved full-repo grep exists; a 252-tree zero alone never flips.
+Named target unchanged: a printed hashCode call site or hash-collection use, or a saved
+full-repo grep, or the project hashCode-dispatch decision.
+Row 1 layout-strict variant (RECORDED, NEVER DECIDED): row 1 TorrentListAdapter.<init> is
+REACHABLE SOURCE via MainFragment.java:136 new TorrentListAdapter(this). Its upstream, verified
+against already-fetched copies: AndroidManifest.xml:53-55 MAIN/LAUNCHER (~/workspace/b111112-src/),
+MainActivity.java:182 setContentView(R.layout.activity_main) and :184-185
+findFragmentById(R.id.main_fragmentContainer) (ruleF-src copy). Under layout-strict variant (a)
+launcher-step-only strictness, row 1 STANDS (the launcher step and the MainActivity ->
+MainFragment step are both printed). Under variant (b) every-step-fresh strictness, row 1
+REVERTS to OPEN, because the activity_main.xml layout declaration itself is unprinted — and
+under (b) all 39 REACHABLE rows revert, not just row 1. Label unchanged under either variant
+until the merger decides. Build: not run. C1: not run.
+
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
+
+## Revision 2026-11-01 — OPEN-closing pass (UNVERIFIED, no label changes)
+
+0 of 1 OPEN rows closed in this pass; counts unchanged (39 REACHABLE / 0 UNREACHABLE / 1 OPEN).
+New evidence, freshly connector-fetched from branch work-2026-10-31 (one file at a time, ~25 s pauses, no fresh HTTP 429),
+saved in ~/workspace/b103106112115-openclose-src/: TorrentListItem.java (82 lines), MainFragment.java (637),
+TorrentListAdapter.java (402), MainViewModel.java (189).
+Plus the saved full app Java tree grep (252 files, ~/workspace/b103106112115-openclose-src/grep_app_java_tree.txt;
+res/layout, res/xml, generated code and library/framework code NOT in it, so explicitly NOT a full-repo grep):
+no TorrentListItem.hashCode call anywhere in the tree; TorrentListItem is referenced ONLY from ui/main files;
+no HashMap/HashSet/Hashtable keyed on TorrentListItem in the main package; TorrentInfo.equals (:217+) uses field
+equals only and never calls hashCode, and TorrentListItem.equals/equalsContent likewise never call hashCode.
+Row 30 (TorrentListItem.hashCode) therefore stays OPEN, as does the project-wide hashCode question (shared with
+batch 3 TagInfo.hashCode, batch 10 drawer TagItem.hashCode, batch 95 row 35 TrackerItem.hashCode) — recorded,
+NOT decided here. Named targets unchanged: a printed hashCode call site or hash-collection use, or a saved
+full-repo grep; a project rule on hashCode dispatch (library/JVM) is still owed before any flip.
+Build: not run. C1: not run.
+
 # LibreTorrent batch 112 - merge-ready - UNVERIFIED
 
 Status: MERGE-READY PROPOSAL ONLY, UNVERIFIED. Not verified for merge. No build, sampler,
 real full-repo grep, or C1 check was run in this pass, and no counts are claimed from any of
-those. Nothing was pushed (push held until verified and merged to [L]). Saved locally only.
+those. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]) (pushed UNVERIFIED before [L] at user request 2026-11-01). Saved locally and pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]).
 
 Source root (branch work-2026-10-31, repo bugfixops/ground-truth-results):
 `final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/`
@@ -104,7 +153,7 @@ drawerItemManager, this::onDrawerItemSelected)` (MainActivity.java:250),
    merger requires them for row 31.
 4. Main-agent spot-check (1 in 5), py_compile, build, sampler, Mac build/C1 - all
    NOT run, never claimed passed. Build and C1 are marked "not run" (they run on the
-   user's Mac after a push). No push was made (held until verified and merged to [L]).
+   user's Mac after a push). Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]) (pushed UNVERIFIED before [L] at user request 2026-11-01).
 
 
 ## Rows (40)

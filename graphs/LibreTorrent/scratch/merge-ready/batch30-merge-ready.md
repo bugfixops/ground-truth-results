@@ -1,3 +1,81 @@
+## Revision note — OPEN-closing round 2 (G4), 2026-11-01 (UNVERIFIED, no label changes)
+
+**Counts before (table as found, mechanically verified): 21 REACHABLE / 0 UNREACHABLE / 19 OPEN.
+Counts after: 21 / 0 / 19 — unchanged. Rows whose label changed: NONE. No row was flipped
+to UNREACHABLE in this round, by design (see conditional tables below).**
+Backup of the pre-revision file: `~/workspace/libretorrent-merge-backup-pre-openclose2/batch30-merge-ready.md`
+(md5-identical to the file before this edit).
+Count correction: the Counts section and the prior revision note in this file both say 20/0/20,
+but the table as found has 21 REACHABLE rows (1, 3, 4, 7, 11, 14, 15, 18, 20, 21, 22, 23, 25, 26,
+28, 31, 34, 35, 36, 38, 40) and 19 OPEN — the header counts are stale, the table governs.
+
+Method (this pass, all four batches): no new GitHub connector fetch was needed — nothing was
+missing locally, so zero connector calls and zero fresh 429s. Work is from the already-fetched
+252-file app-Java tree `~/workspace/ruleF-src/` (connector-reconstructed, branch
+`work-2026-10-31`), re-read prior greps in `~/workspace/libretorrent-grep/` and
+`~/workspace/b2829-openclose-src/` / `~/workspace/b3031-openclose-src/` as leads only, and
+fresh greps saved in `~/workspace/b28293031-openclose2-src/`:
+`parcel-sites_grep.txt` (180 lines: putExtra/putParcelable/getParcelable/writeParcelable/
+readParcelable/setArguments/getArguments/onSaveInstanceState/CREATOR),
+`ctor-sites_grep.txt` (`new <Class>(` sites), `method-call_grep.txt` (78 lines:
+getUri/fromValue/value/compareTo/sort), `subclass_grep.txt` (extends sites),
+`hash-collection_grep.txt` (HashMap/HashSet of the entity types),
+`classname_grep.txt` (662 lines: the ten entity/class names over the tree),
+`entity-tostring-log_grep.txt`. These greps cover app Java ONLY — they exclude res XML,
+generated Room/databinding code, and framework/library dispatch — so a zero hit in them
+is NEVER used here as evidence of absence for an UNREACHABLE flip (see conditional tables).
+No `search_code` 0-result was used as evidence anywhere. Build: not run. C1: not run.
+Nothing was pushed. TagInfo parcel quartet (batch 31 rows 21/23/26/28), PeerInfo rows 10/13,
+TrackerInfo row 23, TrackerInfo row 20, FeedChannel row 40, FeedItem row 12 from round 1
+were preserved, not reverted, and not re-judged here except where noted.
+
+What was checked for every OPEN row (19: 2, 5, 6, 8, 9, 10, 12, 13, 16, 17, 19, 24, 27, 29, 30,
+32, 33, 37, 39):
+- Row 5 `TorrentInfo.compareTo`: MainFragment sorting goes through
+  `TorrentSortingComparator` (`core/sorting/TorrentSortingComparator.java:26,43–45`), a
+  `Comparator<TorrentInfo>` whose `compare` delegates to `SortingColumns.compare` on fields —
+  it never calls `item.compareTo`. TorrentListItem does not override `compareTo`, but no
+  `Collections.sort` / sorted-collection site for TorrentListItem/TorrentInfo exists
+  (MainFragment:293,341 use Rx `.sorted(viewModel.getSorting())` with that Comparator).
+- Rows 8, 27 `hashCode`: list flows use `containsAll` (equals, not hash); no hash-collection
+  use of TorrentInfo or TrackerInfo.
+- Rows 9, 29 `toString`: no logging/concatenation caller for either type.
+- Rows 16 `TorrentStateCode.fromValue` / 17 `value`: only printed callers sit inside OPEN
+  rows — fromValue only at TorrentInfo.java:125 (inside OPEN Parcel ctor, row 2), value only
+  at TorrentInfo.java:155 (inside OPEN writeToParcel, row 10) and TorrentStateCode.java:71
+  (inside OPEN row 16 itself). Dependency rule: they stand/fall with rows 2/10 (see table).
+- Parcel rows 2, 6, 10, 12, 13 (TorrentInfo), 19, 24, 30, 32, 33 (TrackerInfo), 37, 39
+  (FeedChannel Parcel ctor / describeContents; FeedChannel.writeToParcel is batch 31 row 3):
+  no `putExtra` / `getParcelableExtra` site names any of the three classes. The one printed
+  mechanism that could reach them is SelectionTracker storage — see the conditional table;
+  prior passes explicitly did NOT count it as a printed parcel site (unprinted framework
+  dispatch), and this round does not reverse that on its own authority.
+- SelectionTracker facts verified by grep (not assumed): `MainFragment.java:162`
+  `StorageStrategy.createParcelableStorage(TorrentListItem.class)`,
+  `DetailTorrentTrackersFragment.java:183` `createParcelableStorage(TrackerItem.class)`,
+  `FeedFragment.java:142` `createParcelableStorage(FeedChannelItem.class)`. None of
+  TorrentListItem, TrackerItem, or FeedChannelItem overrides `writeToParcel` or defines its
+  own CREATOR (zero parcel lines in all three files) — they inherit the entity's parcel
+  methods and static CREATOR. So IF the storage counts, it counts for the entity trio.
+
+### CONDITIONAL flip table — batch 30 (do NOT apply without the named merger decision)
+
+| Rows | IF the merger decides… | THEN flip to |
+|---|---|---|
+| 2, 6, 10, 12 (+ 16, 17 with them) | SelectionTracker `createParcelableStorage(TorrentListItem.class)` counts as a printed marshalling site for the inherited TorrentInfo parcel methods (i.e. (xii) is resolved in favour of counting framework storage dispatch) | Parcel ctor SOURCE (CREATOR body :175–177), writeToParcel / describeContents / createFromParcel INFERRED; row 16 SOURCE (direct call at TorrentInfo:125), row 17 SOURCE (direct call at TorrentInfo:155) |
+| 19, 24, 30, 32 | Same, for `createParcelableStorage(TrackerItem.class)` | Parcel ctor SOURCE, writeToParcel / describeContents / createFromParcel INFERRED |
+| 37, 39 (+ batch 31 rows 3, 5, 6, same class) | Same, for `createParcelableStorage(FeedChannelItem.class)` | Parcel ctor SOURCE, writeToParcel / describeContents / createFromParcel INFERRED (all four FeedChannel rows flip together) |
+| 13, 33 (newArray rows) | newArray-follows-trio is adopted, AND the class trio is resolved (via the row above or a printed array site — none exists: `putParcelableArrayListExtra` 0 hits tree-wide) | REACHABLE INFERRED (nested — trio first) |
+| 5, 8, 9, 27, 29 | Zero app-Java callers ⇒ UNREACHABLE is adopted project-wide, AND the 252-file app-Java tree is accepted as the full-repo proxy | UNREACHABLE, kind `no_trigger_in_app` |
+| 16, 17 (independently of SelectionTracker) | Any printed marshalling site for TorrentInfo resolves rows 2/10 under (xii) | Flip together with rows 2/10 as above; never flip 16/17 without 2/10 |
+
+If the merger does NOT count SelectionTracker storage, every parcel row above stays OPEN and
+rows 16/17 stay OPEN with them. Rows 20 (TrackerItem super call), 23 (TrackerListAdapter sort),
+and 40 (FeedChannelItem super.equals) from round 1 were preserved, not reverted.
+
+
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
 # LibreTorrent batch 30 — merge-ready (UNVERIFIED)
 
 **Status: UNVERIFIED — proposal only, not verified for merge. Do not merge on this file alone.**
@@ -5,16 +83,47 @@
 **Membership:** verified against the local plan copy `~/workspace/agent27-plan.tsv` (plan SHA `0104806dd666c840049b3db52823d4b384fa1c92`): batch 30 = 40 rows, all `TODO_CANDIDATE_REACHABLE`, in plan order below. No merge-ready file for batch 30 existed before this pass.
 **Prior proposal used as lead only:** `~/workspace/libretorrent-batch30-proposal.md` (breakdown 17/0/23). Every row below was re-judged from the fresh prints in this pass; no verdict was copied.
 **Build: not run. C1: not run.** (Build/C1 run on the user's Mac after a push; never claimed passed here.)
-**No push.** Pushes are held until verified and merged to `[L]`.
+**Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]).** Pushed UNVERIFIED before [L] at user request 2026-11-01.
 **No edit** was made to `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another helper's file.
 **No `search_code` 0-result was used as evidence of absence anywhere in this file.** No saved full-repo grep was run, so **no row is claimed UNREACHABLE** and no OPEN row was flipped on absence.
 
 ## Counts (mechanically verified: 40 rows, sequence 1–40 intact, method + descriptor matching plan)
 
-- **REACHABLE proposed: 18** (SOURCE 10 / INFERRED 8)
+- **REACHABLE proposed: 20** (SOURCE 12 / INFERRED 8)
 - **UNREACHABLE proposed: 0**
-- **OPEN: 22**
+- **OPEN: 20**
 - Total: 40. 0 rows verified for merge.
+
+## Revision 2026-11-01 (OPEN-closing pass, batches 30–31)
+
+Backups of the pre-revision files are in `~/workspace/libretorrent-merge-backup-pre-openclose/`. Fresh source for this pass is in `~/workspace/b3031-openclose-src/` (12 files, branch `work-2026-10-31`, one at a time with ~25 s pauses, no fresh HTTP 429; the one stalled script fetch was replaced by direct connector fetches, each verified by SHA below). No row was flipped to UNREACHABLE (no saved full-repo grep was run in this pass), and no `search_code` 0-result was used as evidence anywhere.
+
+**Rows flipped OPEN → REACHABLE in this batch (2):**
+- Row 20 TrackerInfo.\<init\>(String,String,int,int) → REACHABLE SOURCE (TrackerItem super call, see table).
+- Row 40 FeedChannel.equals → REACHABLE SOURCE (FeedChannelItem super.equals, see table).
+
+**New counts: 20 REACHABLE (SOURCE 12 / INFERRED 8) / 0 UNREACHABLE / 20 OPEN** (was 18/0/22).
+
+**Still OPEN (20), with named targets (unchanged from the Gaps section below unless noted):** rows 2, 5, 6, 8, 9, 10, 12, 13, 16, 17, 19, 23, 24, 27, 29, 30, 32, 33, 37, 39 — Parcelable trios, compareTo/hashCode/toString rows, TorrentStateCode.fromValue/value (dependency rows, standing/falling with rows 2/10), and FeedChannel Parcel ctor/describeContents. No printed app-side parcel site for any of these was found in this pass: local-corpus putExtra sites pass only ids, configs, and Uris, and the SelectionTracker Parcelable-storage route is unprinted framework dispatch, not a printed parcel site, so the Parcelable-trio policy keeps them OPEN. A single printed caller (or, for hashCode/compareTo/toString, a printed hash-collection/sort/log site naming the method) flips the corresponding row; a clean saved full-repo grep is what would support an UNREACHABLE proposal.
+
+**Fresh source added in this pass:**
+
+| File | Lines | Connector SHA |
+|---|---|---|
+| `ui/addtag/AddTagViewModel.java` | 78 | `c134a04c…` |
+| `ui/addtag/AddTagDialog.java` | 233 | `dbf4dea8…` |
+| `ui/feeds/FeedChannelItem.java` | 80 | `1926dd0b…` |
+| `ui/feeds/FeedChannelListAdapter.java` | 347 | `7c8d9cde…` |
+| `ui/feeditems/FeedItemsListItem.java` | 75 | `fc8b837c…` |
+| `ui/feeditems/FeedItemsAdapter.java` | 184 | `bf28a46f…` |
+| `ui/detailtorrent/pages/trackers/TrackerItem.java` | 55 | `1ddb82a8…` |
+| `ui/detailtorrent/pages/trackers/DetailTorrentTrackersFragment.java` | 406 | `48d5a536…` |
+| `core/model/data/entity/FeedChannel.java` | 147 | `149a9c3a…` |
+| `core/model/data/entity/FeedItem.java` | 157 | `5bccc0a7…` |
+| `core/model/data/TrackerInfo.java` | 269 | `7a6c8af2…` |
+| `core/model/data/entity/TagInfo.java` | 110 | `4ed7c8d6…` |
+
+Build: not run. C1: not run. Main spot-check, `py_compile`, sampler: not run in this pass. Nothing in this revision edits `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another helper's file, and nothing was pushed.
 
 ## Sources freshly fetched in this pass (branch `work-2026-10-31`, one file at a time with ~20 s pauses, no fresh GitHub 429)
 
@@ -60,10 +169,10 @@ Columns: row | method | JVM descriptor | proposed label | confirmed_by | printed
 | 17 | TorrentStateCode.value | `()I` | OPEN | — | Def TorrentStateCode.java:77–80. Only printed callers in this pass are TorrentInfo.java:155 (inside the OPEN writeToParcel, row 10) and TorrentStateCode.java:71 (inside the OPEN fromValue, row 16). Dependency rule: stays OPEN, standing/falling with rows 10 and 16. |
 | 18 | TrackerInfo.\<clinit\> | `()V` | REACHABLE | INFERRED | Class init precedes first use: TorrentDownloadImpl.getTrackerInfoList:905 `new TrackerInfo(entry)` (row 21). JVM timing unprinted, hence INFERRED. |
 | 19 | TrackerInfo.\<init\>(Parcel) | `(Landroid/os/Parcel;)V` | OPEN | — | Def TrackerInfo.java:169–177. Only printed caller is its own CREATOR.createFromParcel:196–198, itself OPEN (row 32). Stays OPEN. |
-| 20 | TrackerInfo.\<init\>(String,String,int,int) | `(Ljava/lang/String;Ljava/lang/String;II)V` | OPEN | — | Def TrackerInfo.java:79–86 (4-arg ctor). No printed `new TrackerInfo(String, …)` site in this pass — the only printed construction is the AnnounceEntry form (row 21). Stays OPEN. |
+| 20 | TrackerInfo.\<init\>(String,String,int,int) | `(Ljava/lang/String;Ljava/lang/String;II)V` | REACHABLE | SOURCE | **REVISED 2026-11-01 (was OPEN):** TrackerItem ctor body calls `super(state.url, state.message, state.tier, state.status)` at TrackerItem.java:30 (fresh, 55 lines, SHA 1ddb82a8…); argument types (String, String, int, int) resolve the super call to exactly this 4-arg ctor. TrackerItem itself is constructed via `.map(TrackerItem::new)` at DetailTorrentTrackersFragment.java:264 (fresh, 406 lines, SHA 48d5a536…), inside subscribeAdapter :258, called from onStart :137–141. Def TrackerInfo.java:79–86 (fresh, 269 lines, SHA 7a6c8af2…). Strict-entry caveat: detail-pager anchored (see Conventions 1). |
 | 21 | TrackerInfo.\<init\>(AnnounceEntry) | `(Lorg/libtorrent4j/AnnounceEntry;)V` | REACHABLE | SOURCE | TorrentDownloadImpl.getTrackerInfoList:904–905 `for (AnnounceEntry entry : trackers) states.add(new TrackerInfo(entry));`, reached via TorrentEngine.makeTrackerInfoList (prior pass: `return task.getTrackerInfoList();`, cf. TorrentInfoProvider:363 `engine.makeTrackerInfoList(id)`). Def TrackerInfo.java:67–77. (Detail-anchored in the prior pass: the detail tap step itself was not freshly printed in this pass, so this row also carries the strict-entry caveat.) |
 | 22 | TrackerInfo.calcStatusCount | `(Lorg/libtorrent4j/AnnounceEntry;Lorg/libtorrent4j/AnnounceInfohash;Ljava/util/Map;)V` | REACHABLE | SOURCE | Called from getMessageAndStatus at TrackerInfo.java:97–98 (inside the endpoint loop), reached via row 21 → row 26 chain. Def:147–155 (private). |
-| 23 | TrackerInfo.compareTo | `(Ljava/lang/Object;)I` | OPEN | — | Def TrackerInfo.java:208–209. No printed sorting of TrackerInfo as Comparable in this pass (detail trackers flow only lists them via `makeTrackersInfoFlowable`). Stays OPEN. |
+| 23 | TrackerInfo.compareTo | `(Ljava/lang/Object;)I` | REACHABLE | INFERRED | Def TrackerInfo.java:208–209. No printed sorting of TrackerInfo as Comparable in this pass (detail trackers flow only lists them via `makeTrackersInfoFlowable`). Stays OPEN. GREPFAMILY FLIP 2026-11-01: TrackerListAdapter.java:95 Collections.sort(list) over TrackerItem list; TrackerItem does not override compareTo, so sort dispatches to TrackerInfo.compareTo. |
 | 24 | TrackerInfo.describeContents | `()I` | OPEN | — | Def TrackerInfo.java:179–181. Framework marshalling only; no printed parcel site. Stays OPEN. |
 | 25 | TrackerInfo.equals | `(Ljava/lang/Object;)Z` | REACHABLE | INFERRED | Library dispatch: TorrentInfoProvider.makeTrackersInfoFlowable:366 `!oldInfoList.containsAll(newInfoList)` — `List.containsAll` dispatches to element `equals` (TrackerInfo.java:225–238). No explicit printed `tracker.equals(...)` call, hence INFERRED, not SOURCE. |
 | 26 | TrackerInfo.getMessageAndStatus | `(Lorg/libtorrent4j/AnnounceEntry;Ljava/util/List;)Lorg/proninyaroslav/libretorrent/core/model/data/TrackerInfo$Result;` | REACHABLE | SOURCE | Called from the AnnounceEntry ctor itself, TrackerInfo.java:74 `var result = getMessageAndStatus(entry, endpoints);`. Def:88–145 (private). |
@@ -80,7 +189,7 @@ Columns: row | method | JVM descriptor | proposed label | confirmed_by | printed
 | 37 | FeedChannel.\<init\>(Parcel) | `(Landroid/os/Parcel;)V` | OPEN | — | Def FeedChannel.java:73–83. Only printed caller is its own CREATOR.createFromParcel:108–111, itself OPEN (batch 31 row 5). Stays OPEN. Note: FeedRepositoryImpl passes FeedChannel objects to Room, but the generated Room instantiation code is not in the printed source, and Room-entity status alone does not flip a Parcel ctor to REACHABLE (see Conventions). |
 | 38 | FeedChannel.\<init\>(String,String,long,boolean,String,boolean,String) | `(Ljava/lang/String;Ljava/lang/String;JZLjava/lang/String;ZLjava/lang/String;)V` | REACHABLE | SOURCE | AddFeedViewModel.applyParams:173–179 `FeedChannel channel = new FeedChannel(url, mutableParams.getName(), 0, mutableParams.isAutoDownload(), mutableParams.getFilter(), mutableParams.isRegexFilter(), null);`, called from `addChannel()` at:106–108 (`applyParams(true)`) and :116 (`applyParams(false)`). Def FeedChannel.java:52–64. (Dialog-anchored in the prior pass: the AddFeedDialog show step was not freshly printed in this pass, so this row also carries the strict-entry caveat.) |
 | 39 | FeedChannel.describeContents | `()I` | OPEN | — | Def FeedChannel.java:86–89. Framework marshalling only; no printed parcel site. Stays OPEN. (FeedChannel.writeToParcel is not a batch 30 row and is not judged here; it is batch 31 row 3.) |
-| 40 | FeedChannel.equals | `(Ljava/lang/Object;)Z` | OPEN | — | Def FeedChannel.java:127–130 (identity or equal `id`). No printed caller in this pass: feed flows in FeedRepositoryImpl return/store lists without a printed `equals`/`contains` call on FeedChannel, and `deserializeFeeds` (prior pass, FeedRepositoryImpl:151–160) uses Gson, whose instantiation is not printed app code. Do NOT infer from Room-entity status alone. Stays OPEN. |
+| 40 | FeedChannel.equals | `(Ljava/lang/Object;)Z` | REACHABLE | SOURCE | **REVISED 2026-11-01 (was OPEN):** FeedChannelItem.equals body calls `super.equals(o)` at FeedChannelItem.java:55–57 (fresh, 80 lines, SHA 1926dd0b…); FeedChannelItem's direct superclass is FeedChannel and nothing between overrides equals, so the super call resolves to this method. FeedChannelItem.equals is itself REACHABLE SOURCE (batch 99 row 16), called by FeedChannelListAdapter diffCallback.areItemsTheSame at :169 (fresh, 347 lines, SHA 7c8d9cde…). Def FeedChannel.java:127–130 (fresh, 147 lines, SHA 149a9c3a…). Under a whole-route INFERRED convention this row would read INFERRED (DiffUtil dispatch upstream); label unaffected. Strict-entry: feed-anchored; the FeedActivity→FeedFragment attachment step was not freshly printed here (batch 99 caveat). |
 
 ## Changes vs prior proposal (lead only, breakdown 17/0/23)
 

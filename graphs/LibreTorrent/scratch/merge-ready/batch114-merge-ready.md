@@ -1,6 +1,44 @@
+## Revision 2026-11-01 — OPEN-closing round 2, group G16 (UNVERIFIED, 0 flips)
+
+0 of 3 OPEN rows closed in this pass; counts unchanged (37 REACHABLE / 0 UNREACHABLE / 3 OPEN).
+New evidence this pass: fresh greps over the already-fetched 252-file app Java tree
+(~/workspace/ruleF-src), saved in ~/workspace/b103106112114115-openclose2-src/grep_rest.txt and grep_extra.txt. No GitHub
+connector fetch was needed; no fresh 429. Res/layout, res/xml, generated code and
+library/framework code are NOT in that tree, so it is NOT a full-repo grep.
+- Rows 22-23 PreferenceActivityConfig.setFragment/setTitle: PreferenceActivityConfig is
+  referenced tree-wide only at PreferenceActivity.java:69 (getParcelableExtra), SettingsFragment
+  :235 (2-arg ctor) and NetworkSettingsFragment.java:252 and :373 (both 2-arg ctor + putExtra
+  at :256 and :377) — NEITHER Network site calls a setter, and neither does SettingsFragment
+  or PreferenceActivity. Every other setFragment/setTitle hit in the tree is another receiver
+  (toolbar.setTitle, actionMode.setTitle, storageAdapter.setTitle, dialog setTitle). No
+  Bundle/setArguments site carries a PreferenceActivityConfig. Stay OPEN; named target: a
+  printed setter call site, or a saved full-repo grep.
+- Row 27 PreferenceActivityConfig$1.newArray: tree-wide ZERO array-extra sites
+  (getParcelableArrayExtra, putParcelableArrayListExtra, getParcelableArrayListExtra all zero).
+  The only PreferenceActivityConfig parcel sites are single extras (SettingsFragment:239 /
+  PreferenceActivity:69, plus NetworkSettingsFragment :256/:377). A single extra never calls
+  newArray. Stay OPEN; named target: a printed array-extra site, or a saved full-repo grep.
+CONDITIONAL TABLE — the 102/114 newArray INCONSISTENCY (FLAGGED, NEVER DECIDED): batch 102
+marks FileManagerConfig$1.newArray (row 17) REACHABLE INFERRED on single-extra dispatch alone
+(CreateTorrentDialog putExtra :263/:273/:334 + FileManagerDialog.java:137 getParcelableExtra;
+this pass re-verified tree-wide zero array sites for FileManagerConfig too), while batch 114
+keeps PreferenceActivityConfig$1.newArray (row 27) OPEN on identical-shaped evidence
+(single-extra dispatch only). Applying ONE rule to both:
+| Rule | 102/17 FileManagerConfig newArray | 114/27 PAC newArray |
+| Option A: single-extra framework dispatch suffices for the whole trio, newArray included | stays REACHABLE INFERRED | flips to REACHABLE INFERRED |
+| Option B: newArray requires a printed Parcelable-array site | REVERTS to OPEN | stays OPEN |
+Under BOTH options the trio companions (Parcel ctor, createFromParcel, describeContents,
+writeToParcel) stay REACHABLE on the single extra; only newArray differs. Spillover flagged,
+not decided (outside G16): under Option B, any other newArray marked REACHABLE on a
+non-array site (e.g. batch 92 row 39 via a storage site) would be at risk on the same logic;
+the merger must apply one rule project-wide. No label changed in this file on this table.
+Build: not run. C1: not run.
+
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
 # LibreTorrent batch 114 — merge-ready part — UNVERIFIED
 
-**Status: UNVERIFIED proposal only. NOT verified for merge. NOT pushed. No edit to `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another agent's files.**
+**Status: UNVERIFIED proposal only. NOT verified for merge. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]). No edit to `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another agent's files.**
 **Build: not run. C1: not run.** Build and C1 run on the user's Mac after a push, so they are marked "not run" here, never passed. No sampler or full-repo grep was run or is claimed in this file.
 
 - Repo: `bugfixops/ground-truth-results`, branch `work-2026-10-31` only (never `main` or `result`).

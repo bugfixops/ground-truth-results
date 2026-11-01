@@ -1,6 +1,8 @@
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
 # LibreTorrent batch 69 — merge-ready part — UNVERIFIED
 
-**Status: UNVERIFIED proposal only. NOT verified for merge. NOT pushed. No edit to
+**Status: UNVERIFIED proposal only. NOT verified for merge. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]). No edit to
 `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another agent's files.**
 **Build: not run. C1: not run.** The build and C1 checks run on the user's Mac after a push,
 so they are marked "not run" here, never passed. No sampler, full-repo grep, or C1
@@ -73,47 +75,116 @@ Plus, also fresh this session:
    this VM). Nothing here is verified for merge.
 
 
+## ROUND-2 REVISION 2026-11-01 (G17) — 0 flips; counts unchanged (27 REACHABLE / 0 UNREACHABLE / 13 OPEN)
+
+**This revision flips no row and decides no convention.** It completes the
+round-1 <include> check for this group, re-runs the rule-F grep, and records
+CONDITIONAL outcomes for the 13 OPEN rows. All labels, confirmed_by values,
+row order, and REACHABLE rows are exactly as before; only this section and a
+short ROUND2 note per OPEN row were added. Original backed up to
+`~/workspace/libretorrent-merge-backup-pre-openclose2/batch69-merge-ready.md`.
+Build: not run. C1: not run. Nothing pushed.
+
+### 1. The round-1 <include> check is now COMPLETE — result: negative
+Full record in `~/workspace/b686970-openclose2-src/include_check_686970.txt`:
+- All 69 files of `res/layout/` (round-1 fetch, verified byte-identical to the
+  round-1 top-level 13-layout fetches, 13/13): the only `<include>` targets
+  anywhere are `toolbar`, `main_drawer_content`, `add_torrent_info`, and
+  `detail_torrent_appbar`. Zero `@layout/` references to any of the 13 group
+  layouts, and zero `bind:` attributes in any file — so no layout passes a
+  variable to an included child anywhere in `res/layout/`.
+- Fresh connector listings this pass: `res/` holds exactly three layout dirs
+  (`layout`, `layout-large-land-notouch`, `layout-sw600dp-land`). Each qualified
+  dir holds only `detail_torrent_appbar.xml` (SHA
+  `be659cb60ff9d3b2df954eed6c1eb05a3415fa41`, 36 lines, 0 `<include>`, no
+  `<data>`) and `fragment_add_torrent_info.xml` (SHA
+  `8e7ec93e56e894c3305b7a620ac540702c6a1f74`, 38 lines, single `<include>` to
+  `add_torrent_info`). No qualified variant of any of the 13 exists.
+- None of the 13 layouts declares a `<data>` variable, `<import>`, or
+  `<include>`; the only `@{...}` expressions in the set are three static dimen
+  sums referencing no variable and no Observable, so no observable registration
+  and no onFieldChange route arises from them.
+- Conclusion: the generated parent-to-child setVariable route is CLOSED for all
+  13 bindings on layout evidence. What this does NOT close: generated Impl
+  bodies and the databinding-library rebind body are still unprinted, so the
+  verdicts below stay convention-dependent.
+
+### 2. Rule-F grep re-run reproduces round 1 exactly
+`~/workspace/b686970-openclose2-src/ruleF_grep_686970_rerun.txt` (252 app Java
+files, branch work-2026-10-31, count verified): `setVariable` 0 hits,
+`onFieldChange` 0 hits, `hasPendingBindings` 0 hits, all 13 group Impl class
+names 0 hits, `executePendingBindings` 0 hits. `setViewModel` 14 hits, none on
+a batch 68/69/70 binding host. No connector 429 was hit in this pass (7 read
+calls, ~30 s pauses); no search_code result was used.
+
+### 3. CONDITIONAL table — the 13 OPEN rows (no option applied)
+The setVariable-direction contradiction (batches 63-64 OPEN on zero hits vs
+batch 65 REACHABLE via dispatch behind setViewModel, mechanically backwards
+since setVariable CALLS the typed setter) and the generic-framework-callback
+question (rule xv: onFieldChange/setVariable REACHABLE only where a variable
+is actually set) are both UNDECIDED at project level. This pass applies none
+of the options below. A printed generated Impl body or printed
+databinding-library dispatch body would supersede this table.
+
+| Option | setVariable rows 6, 15, 24, 33 | onFieldChange rows 5, 14, 23, 32 | hasPendingBindings rows 3, 12, 21, 30, 39 |
+|---|---|---|---|
+| S — status quo (this file) | stay OPEN | stay OPEN | stay OPEN |
+| U — merger accepts combined evidence as trigger-absence (zero tree hits + no variable + no include parent + no typed-setter call on these bindings) | flip to UNREACHABLE no_trigger_in_app INFERRED | flip to UNREACHABLE no_trigger_in_app INFERRED | stay OPEN (variable-freedom does not close a library state query; rebind body still unprinted) |
+| R — generic-framework-callback rule (framework/generated dispatch always runs these callbacks) | flip to REACHABLE INFERRED — but conflicts with rule (xv) for these no-variable bindings; merger must reconcile R with (xv) explicitly | flip to REACHABLE INFERRED — same (xv) conflict | stay OPEN (needs the printed rebind body either way) |
+
+Named resolver for hasPendingBindings rows 3, 12, 21, 30, 39 under every
+option: a printed generated Impl body or printed databinding-library rebind
+body showing whether the rebind path calls this override, or that it never does.
+
+### 4. Cross-batch linkage (judge consistently, never separately)
+Rows 1-6 (ItemFeedItemsList Impl) continue the binding whose head rows are
+batch 68 rows 38-40; rows 5-6 share batch 68's option U/R/S outcomes for that
+binding. Rows 34-40 (ItemTorrentDownloadableFile Impl) are the head of the
+Downloadable binding whose onFieldChange/setVariable rows are batch 70 rows
+1-2; row 39 (hasPendingBindings) stays OPEN under every option above, while
+70/1-2 follow this table's U/R/S options for their binding.
+
 ## Per-method table (plan order)
 
 | # | Method | Label | confirmed_by | Printed route / citation |
 |---|---|---|---|---|
 | 1 | ItemFeedItemsListBindingImpl.<init>(DataBindingComponent,View,Object[]) | REACHABLE | INFERRED | Called by batch-68 row-40 2-arg <init> in generated code; layout inflated at FeedItemsAdapter:67-70 (fresh this session). |
 | 2 | ItemFeedItemsListBindingImpl.executeBindings | REACHABLE | INFERRED | Framework rebind after generated invalidateAll on the batch-68 row-40 construction. |
-| 3 | ItemFeedItemsListBindingImpl.hasPendingBindings | OPEN | — | No printed caller in the printed corpus. |
+| 3 | ItemFeedItemsListBindingImpl.hasPendingBindings | OPEN | — | No printed caller in the printed corpus. ROUND2 2026-11-01 (G17): re-run grep ~/workspace/b686970-openclose2-src/ruleF_grep_686970_rerun.txt (252 app Java files) reproduces round 1 exactly (zero hits for this method and for executePendingBindings); <include> check completed (include_check_686970.txt, same dir). Still OPEN under every option in the CONDITIONAL table above: named resolver is a printed generated Impl body or printed databinding-library rebind body showing whether the rebind path calls this override. This pass decides no convention. |
 | 4 | ItemFeedItemsListBindingImpl.invalidateAll | REACHABLE | INFERRED | Called by the generated Impl constructor on the batch-68 row-40 construction. |
-| 5 | ItemFeedItemsListBindingImpl.onFieldChange | OPEN | — | No variable set on this binding in printed code, so no observable registration is printed. |
-| 6 | ItemFeedItemsListBindingImpl.setVariable | OPEN | — | No printed setVariable call on this binding. |
+| 5 | ItemFeedItemsListBindingImpl.onFieldChange | OPEN | — | No variable set on this binding in printed code, so no observable registration is printed. ROUND2 2026-11-01 (G17): re-run grep ~/workspace/b686970-openclose2-src/ruleF_grep_686970_rerun.txt (252 app Java files) reproduces round 1 exactly (zero hits for this method); <include> check completed (include_check_686970.txt, same dir): no layout in any layout dir includes this binding's layout, layout declares no variable. Still OPEN: no generated/library body printed, and the generic-framework-callback / setVariable-direction conventions are undecided — see the CONDITIONAL table above. This pass decides no convention. |
+| 6 | ItemFeedItemsListBindingImpl.setVariable | OPEN | — | No printed setVariable call on this binding. ROUND2 2026-11-01 (G17): re-run grep ~/workspace/b686970-openclose2-src/ruleF_grep_686970_rerun.txt (252 app Java files) reproduces round 1 exactly (zero hits for this method); <include> check completed (include_check_686970.txt, same dir): no layout in any layout dir includes this binding's layout, layout declares no variable. Still OPEN: no generated/library body printed, and the generic-framework-callback / setVariable-direction conventions are undecided — see the CONDITIONAL table above. This pass decides no convention. |
 | 7 | ItemLogListBinding.<init> | REACHABLE | INFERRED | Called by ItemLogList Impl <init> (rows 9-10) in generated code; layout inflated at LogAdapter:51-55 (fresh). |
 | 8 | ItemLogListBindingImpl.<clinit> | REACHABLE | INFERRED | First reference via LogAdapter:51 inflate (fresh). |
 | 9 | ItemLogListBindingImpl.<init>(DataBindingComponent,View) | REACHABLE | INFERRED | Mapper result of LogAdapter:51 inflate (fresh, generated, not printed). |
 | 10 | ItemLogListBindingImpl.<init>(DataBindingComponent,View,Object[]) | REACHABLE | INFERRED | Called by row 9 in generated code (pattern, body not printed). |
 | 11 | ItemLogListBindingImpl.executeBindings | REACHABLE | INFERRED | Framework rebind after generated invalidateAll on the row-9 construction. |
-| 12 | ItemLogListBindingImpl.hasPendingBindings | OPEN | — | No printed caller in the printed corpus. |
+| 12 | ItemLogListBindingImpl.hasPendingBindings | OPEN | — | No printed caller in the printed corpus. ROUND2 2026-11-01 (G17): re-run grep ~/workspace/b686970-openclose2-src/ruleF_grep_686970_rerun.txt (252 app Java files) reproduces round 1 exactly (zero hits for this method and for executePendingBindings); <include> check completed (include_check_686970.txt, same dir). Still OPEN under every option in the CONDITIONAL table above: named resolver is a printed generated Impl body or printed databinding-library rebind body showing whether the rebind path calls this override. This pass decides no convention. |
 | 13 | ItemLogListBindingImpl.invalidateAll | REACHABLE | INFERRED | Called by the generated Impl constructor on the row-9 construction. |
-| 14 | ItemLogListBindingImpl.onFieldChange | OPEN | — | No variable set in printed code (LogAdapter uses only fields). |
-| 15 | ItemLogListBindingImpl.setVariable | OPEN | — | No printed setVariable call on this binding. |
+| 14 | ItemLogListBindingImpl.onFieldChange | OPEN | — | No variable set in printed code (LogAdapter uses only fields). ROUND2 2026-11-01 (G17): re-run grep ~/workspace/b686970-openclose2-src/ruleF_grep_686970_rerun.txt (252 app Java files) reproduces round 1 exactly (zero hits for this method); <include> check completed (include_check_686970.txt, same dir): no layout in any layout dir includes this binding's layout, layout declares no variable. Still OPEN: no generated/library body printed, and the generic-framework-callback / setVariable-direction conventions are undecided — see the CONDITIONAL table above. This pass decides no convention. |
+| 15 | ItemLogListBindingImpl.setVariable | OPEN | — | No printed setVariable call on this binding. ROUND2 2026-11-01 (G17): re-run grep ~/workspace/b686970-openclose2-src/ruleF_grep_686970_rerun.txt (252 app Java files) reproduces round 1 exactly (zero hits for this method); <include> check completed (include_check_686970.txt, same dir): no layout in any layout dir includes this binding's layout, layout declares no variable. Still OPEN: no generated/library body printed, and the generic-framework-callback / setVariable-direction conventions are undecided — see the CONDITIONAL table above. This pass decides no convention. |
 | 16 | ItemPeersListBinding.<init> | REACHABLE | INFERRED | Called by ItemPeersList Impl <init> (rows 18-19) in generated code; layout inflated at PeerListAdapter:62-66 (fresh this session). |
 | 17 | ItemPeersListBindingImpl.<clinit> | REACHABLE | INFERRED | First reference via PeerListAdapter:62 inflate (fresh). |
 | 18 | ItemPeersListBindingImpl.<init>(DataBindingComponent,View) | REACHABLE | INFERRED | Mapper result of PeerListAdapter:62 inflate (fresh, generated, not printed). |
 | 19 | ItemPeersListBindingImpl.<init>(DataBindingComponent,View,Object[]) | REACHABLE | INFERRED | Called by row 18 in generated code (pattern, body not printed). |
 | 20 | ItemPeersListBindingImpl.executeBindings | REACHABLE | INFERRED | Framework rebind after generated invalidateAll on the row-18 construction. |
-| 21 | ItemPeersListBindingImpl.hasPendingBindings | OPEN | — | No printed caller in the printed corpus. |
+| 21 | ItemPeersListBindingImpl.hasPendingBindings | OPEN | — | No printed caller in the printed corpus. ROUND2 2026-11-01 (G17): re-run grep ~/workspace/b686970-openclose2-src/ruleF_grep_686970_rerun.txt (252 app Java files) reproduces round 1 exactly (zero hits for this method and for executePendingBindings); <include> check completed (include_check_686970.txt, same dir). Still OPEN under every option in the CONDITIONAL table above: named resolver is a printed generated Impl body or printed databinding-library rebind body showing whether the rebind path calls this override. This pass decides no convention. |
 | 22 | ItemPeersListBindingImpl.invalidateAll | REACHABLE | INFERRED | Called by the generated Impl constructor on the row-18 construction. |
-| 23 | ItemPeersListBindingImpl.onFieldChange | OPEN | — | No variable set / observable registration printed for this binding. |
-| 24 | ItemPeersListBindingImpl.setVariable | OPEN | — | No printed setVariable call on this binding. |
+| 23 | ItemPeersListBindingImpl.onFieldChange | OPEN | — | No variable set / observable registration printed for this binding. ROUND2 2026-11-01 (G17): re-run grep ~/workspace/b686970-openclose2-src/ruleF_grep_686970_rerun.txt (252 app Java files) reproduces round 1 exactly (zero hits for this method); <include> check completed (include_check_686970.txt, same dir): no layout in any layout dir includes this binding's layout, layout declares no variable. Still OPEN: no generated/library body printed, and the generic-framework-callback / setVariable-direction conventions are undecided — see the CONDITIONAL table above. This pass decides no convention. |
+| 24 | ItemPeersListBindingImpl.setVariable | OPEN | — | No printed setVariable call on this binding. ROUND2 2026-11-01 (G17): re-run grep ~/workspace/b686970-openclose2-src/ruleF_grep_686970_rerun.txt (252 app Java files) reproduces round 1 exactly (zero hits for this method); <include> check completed (include_check_686970.txt, same dir): no layout in any layout dir includes this binding's layout, layout declares no variable. Still OPEN: no generated/library body printed, and the generic-framework-callback / setVariable-direction conventions are undecided — see the CONDITIONAL table above. This pass decides no convention. |
 | 25 | ItemTorrentContentFileBinding.<init> | REACHABLE | INFERRED | Called by ItemTorrentContentFile Impl <init> (rows 27-28) in generated code; layout inflated at TorrentContentFilesAdapter:76-80 (fresh this session). |
 | 26 | ItemTorrentContentFileBindingImpl.<clinit> | REACHABLE | INFERRED | First reference via TorrentContentFilesAdapter:76 inflate (fresh). |
 | 27 | ItemTorrentContentFileBindingImpl.<init>(DataBindingComponent,View) | REACHABLE | INFERRED | Mapper result of TorrentContentFilesAdapter:76 inflate (fresh, generated, not printed). |
 | 28 | ItemTorrentContentFileBindingImpl.<init>(DataBindingComponent,View,Object[]) | REACHABLE | INFERRED | Called by row 27 in generated code (pattern, body not printed). |
 | 29 | ItemTorrentContentFileBindingImpl.executeBindings | REACHABLE | INFERRED | Framework rebind after generated invalidateAll on the row-27 construction. |
-| 30 | ItemTorrentContentFileBindingImpl.hasPendingBindings | OPEN | — | No printed caller in the printed corpus. |
+| 30 | ItemTorrentContentFileBindingImpl.hasPendingBindings | OPEN | — | No printed caller in the printed corpus. ROUND2 2026-11-01 (G17): re-run grep ~/workspace/b686970-openclose2-src/ruleF_grep_686970_rerun.txt (252 app Java files) reproduces round 1 exactly (zero hits for this method and for executePendingBindings); <include> check completed (include_check_686970.txt, same dir). Still OPEN under every option in the CONDITIONAL table above: named resolver is a printed generated Impl body or printed databinding-library rebind body showing whether the rebind path calls this override. This pass decides no convention. |
 | 31 | ItemTorrentContentFileBindingImpl.invalidateAll | REACHABLE | INFERRED | Called by the generated Impl constructor on the row-27 construction. |
-| 32 | ItemTorrentContentFileBindingImpl.onFieldChange | OPEN | — | No variable set / observable registration printed for this binding. |
-| 33 | ItemTorrentContentFileBindingImpl.setVariable | OPEN | — | No printed setVariable call on this binding. |
+| 32 | ItemTorrentContentFileBindingImpl.onFieldChange | OPEN | — | No variable set / observable registration printed for this binding. ROUND2 2026-11-01 (G17): re-run grep ~/workspace/b686970-openclose2-src/ruleF_grep_686970_rerun.txt (252 app Java files) reproduces round 1 exactly (zero hits for this method); <include> check completed (include_check_686970.txt, same dir): no layout in any layout dir includes this binding's layout, layout declares no variable. Still OPEN: no generated/library body printed, and the generic-framework-callback / setVariable-direction conventions are undecided — see the CONDITIONAL table above. This pass decides no convention. |
+| 33 | ItemTorrentContentFileBindingImpl.setVariable | OPEN | — | No printed setVariable call on this binding. ROUND2 2026-11-01 (G17): re-run grep ~/workspace/b686970-openclose2-src/ruleF_grep_686970_rerun.txt (252 app Java files) reproduces round 1 exactly (zero hits for this method); <include> check completed (include_check_686970.txt, same dir): no layout in any layout dir includes this binding's layout, layout declares no variable. Still OPEN: no generated/library body printed, and the generic-framework-callback / setVariable-direction conventions are undecided — see the CONDITIONAL table above. This pass decides no convention. |
 | 34 | ItemTorrentDownloadableFileBinding.<init> | REACHABLE | INFERRED | Called by ItemTorrentDownloadableFile Impl <init> (rows 36-37) in generated code; layout inflated at DownloadableFilesAdapter:60-61 (fresh). |
 | 35 | ItemTorrentDownloadableFileBindingImpl.<clinit> | REACHABLE | INFERRED | First reference via DownloadableFilesAdapter:60 inflate (fresh). |
 | 36 | ItemTorrentDownloadableFileBindingImpl.<init>(DataBindingComponent,View) | REACHABLE | INFERRED | Mapper result of DownloadableFilesAdapter:60 inflate (fresh, generated, not printed). |
 | 37 | ItemTorrentDownloadableFileBindingImpl.<init>(DataBindingComponent,View,Object[]) | REACHABLE | INFERRED | Called by row 36 in generated code (pattern, body not printed). |
 | 38 | ItemTorrentDownloadableFileBindingImpl.executeBindings | REACHABLE | INFERRED | Framework rebind after generated invalidateAll on the row-36 construction. |
-| 39 | ItemTorrentDownloadableFileBindingImpl.hasPendingBindings | OPEN | — | No printed caller in the printed corpus. |
+| 39 | ItemTorrentDownloadableFileBindingImpl.hasPendingBindings | OPEN | — | No printed caller in the printed corpus. ROUND2 2026-11-01 (G17): re-run grep ~/workspace/b686970-openclose2-src/ruleF_grep_686970_rerun.txt (252 app Java files) reproduces round 1 exactly (zero hits for this method and for executePendingBindings); <include> check completed (include_check_686970.txt, same dir). Still OPEN under every option in the CONDITIONAL table above: named resolver is a printed generated Impl body or printed databinding-library rebind body showing whether the rebind path calls this override. This pass decides no convention. |
 | 40 | ItemTorrentDownloadableFileBindingImpl.invalidateAll | REACHABLE | INFERRED | Called by the generated Impl constructor on the row-36 construction. |

@@ -1,8 +1,10 @@
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
 # LibreTorrent batch 35 — MERGE-READY — UNVERIFIED
 
 Repo: bugfixops/ground-truth-results, branch work-2026-10-31 only.
 Status: MERGE-READY PROPOSAL ONLY — UNVERIFIED — NOT MERGED into graph_def.py.
-No push was made (pushes held until verified and merged to [L]).
+Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]) (pushed UNVERIFIED before [L] at user request 2026-11-01).
 Build: not run. C1: not run (both run on the user's Mac after a push, never claimed passed).
 No sampler or full-repo grep was run in this pass. No search_code result was used as
 evidence for any row, and no search_code 0 was used as evidence of absence.

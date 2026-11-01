@@ -1,3 +1,7 @@
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
+**OPEN-CLOSE REVISION 2026-11-01: rows 22, 24, 26, 28, 30, 32 OPEN -> REACHABLE SOURCE on freshly printed LogViewModel.java (227 lines, SHA f6374daf…, paramsCallback :119/:122/:125/:128/:131/:134; callback registered :89, ctor :77, RepositoryHelper.java freshly printed :61-64 singleton). Counts 30/4/6 -> 36/4/0. No row flipped to UNREACHABLE. Build: not run. C1: not run. Fresh source in ~/workspace/b444748-openclose-src/.**
+
 # LibreTorrent batch 44 — MERGE-READY — UNVERIFIED
 
 - Repo: bugfixops/ground-truth-results, branch work-2026-10-31 only (never main, never result).
@@ -6,8 +10,8 @@
   ~/workspace/agent27-plan.tsv; plan extract saved at ~/workspace/b444546-src/batch44_plan.tsv).
   All 40 rows are SettingsRepositoryImpl methods, all plan status TODO_CANDIDATE_REACHABLE
   (generator candidates, not evidence).
-- Status: **UNVERIFIED merge-ready part. NOT verified for merge. NOT pushed.**
-  Pushes are held until verified and merged to [L]. No edit to graph_def.py, out/,
+- Status: **UNVERIFIED merge-ready part. NOT verified for merge. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]).**
+  Pushed UNVERIFIED before [L] at user request 2026-11-01. No edit to graph_def.py, out/,
   PROGRESS_V2, AGENT_NOTES, tools/, or another helper's file.
 - Prior proposal (~/workspace/libretorrent-batch44-proposal.md, 21/0/19) was used as a
   lead list only. Every row below was re-judged against source freshly fetched in this
@@ -15,7 +19,7 @@
   (newly printed setter call sites, see table); rows 17, 18, 19, 20 OPEN → UNREACHABLE
   closed_by_api_level (TorrentNotifier + Appearance fragment now freshly printed, both
   gated — see rows 17–20); rows 6, 8 REACHABLE INFERRED → REACHABLE SOURCE (fresh Utils
-  bodies print the getter calls). Rows 22, 24, 26, 28, 30, 32 stay OPEN.
+  bodies print the getter calls). Rows 22, 24, 26, 28, 30, 32 were OPEN; CLOSED 2026-11-01 to REACHABLE (see revision note).
 - Build: **not run**. C1: **not run** (both run on the user's Mac after a push, never
   claimed passed). No sampler, no saved full-repo grep, no py_compile by this helper
   (main-agent step). Main-agent spot-check 1 in 5 still outstanding.
@@ -112,7 +116,10 @@
 - Preference-persistence note (OPEN setters, rows 22/24/26/28/30/32): AndroidX preferences
   persist their own toggled values directly to SharedPreferences via the framework, so a
   changed preference value does NOT imply the app's programmatic setter ran. Only a
-  printed programmatic setter call site counts as a route; none was printed for these six.
+  printed programmatic setter call site counts as a route; for these six, such sites
+  were printed 2026-11-01 in LogViewModel.java paramsCallback (see rows 22/24/26/28/30/32).
+  LogSettingsFragment itself still prints only maxLogSize (:69/:95) — the log setters
+  are NOT reached through LogSettingsFragment, they are reached through LogViewModel.
 
 ## Rows (plan order)
 
@@ -139,17 +146,17 @@
 | 19 | SettingsRepositoryImpl.ledIndicatorNotify() | UNREACHABLE closed_by_api_level | INFERRED | Definition :303. ONLY printed call sites: AppearanceSettingsFragment.java:173 (initLegacy, gated :118-119) and TorrentNotifier.java:289 (applyLegacyNotifySettings, early return :276). At API 27 neither statement executes. CHANGED vs prior proposal (was OPEN: TorrentNotifier was not printed there; prior note "likely read by TorrentNotifier" is now confirmed — and gated). PROPOSED only, pending saved full-repo grep. |
 | 20 | SettingsRepositoryImpl.ledIndicatorNotify(boolean) | UNREACHABLE closed_by_api_level | INFERRED | Definition :309. ONLY printed call site: AppearanceSettingsFragment.java:244 (onPreferenceChange branch); listener bound only inside initLegacyNotifySettings (:174), gated at SDK < O (:118-119). At API 27 the branch never fires. CHANGED vs prior proposal (was OPEN). PROPOSED only, pending saved full-repo grep. |
 | 21 | SettingsRepositoryImpl.logDhtFilter() | REACHABLE | SOURCE | TorrentEngine.java:1624 (handleSettingsChanged) and internally readSessionSettings:254. Definition :1345. |
-| 22 | SettingsRepositoryImpl.logDhtFilter(boolean) | OPEN | — | Definition :1351. No setter call site in any of the 16 freshly fetched files; LogSettingsFragment prints only maxLogSize (:69/:95). Framework persistence writes the toggled value directly, not via this setter. Pending saved full-repo grep; NOT UNREACHABLE on absence. |
+| 22 | SettingsRepositoryImpl.logDhtFilter(boolean) | REACHABLE | SOURCE | LogViewModel.java:125 (paramsCallback, BR.logDhtFilter branch): `pref.logDhtFilter(mutableParams.isLogDhtFilter())`. Definition SettingsRepositoryImpl.java:1351. CHANGED 2026-11-01 OPEN -> REACHABLE. LogViewModel.java paramsCallback onPropertyChanged (callback registered LogViewModel.java:89 in initMutableParams, called from ctor :77; pref = RepositoryHelper.getSettingsRepository :70, singleton RepositoryHelper.java:61-64, freshly printed). Dispatch is Observable framework dispatch; under a whole-route INFERRED convention these read INFERRED, labels unaffected. |
 | 23 | SettingsRepositoryImpl.logPeerFilter() | REACHABLE | SOURCE | TorrentEngine.java:1629 and internally readSessionSettings:255. Definition :1358. |
-| 24 | SettingsRepositoryImpl.logPeerFilter(boolean) | OPEN | — | Definition :1364. No setter call site in the fresh corpus. Pending saved full-repo grep; NOT UNREACHABLE on absence. |
+| 24 | SettingsRepositoryImpl.logPeerFilter(boolean) | REACHABLE | SOURCE | LogViewModel.java:128 (paramsCallback, BR.logPeerFilter branch): `pref.logPeerFilter(mutableParams.isLogPeerFilter())`. Definition SettingsRepositoryImpl.java:1364. CHANGED 2026-11-01 OPEN -> REACHABLE. LogViewModel.java paramsCallback onPropertyChanged (callback registered LogViewModel.java:89 in initMutableParams, called from ctor :77; pref = RepositoryHelper.getSettingsRepository :70, singleton RepositoryHelper.java:61-64, freshly printed). Dispatch is Observable framework dispatch; under a whole-route INFERRED convention these read INFERRED, labels unaffected. |
 | 25 | SettingsRepositoryImpl.logPortmapFilter() | REACHABLE | SOURCE | TorrentEngine.java:1634 and internally readSessionSettings:256. Definition :1371. |
-| 26 | SettingsRepositoryImpl.logPortmapFilter(boolean) | OPEN | — | Definition :1377. No setter call site in the fresh corpus. Pending saved full-repo grep; NOT UNREACHABLE on absence. |
+| 26 | SettingsRepositoryImpl.logPortmapFilter(boolean) | REACHABLE | SOURCE | LogViewModel.java:131 (paramsCallback, BR.logPortmapFilter branch): `pref.logPortmapFilter(mutableParams.isLogPortmapFilter())`. Definition SettingsRepositoryImpl.java:1377. CHANGED 2026-11-01 OPEN -> REACHABLE. LogViewModel.java paramsCallback onPropertyChanged (callback registered LogViewModel.java:89 in initMutableParams, called from ctor :77; pref = RepositoryHelper.getSettingsRepository :70, singleton RepositoryHelper.java:61-64, freshly printed). Dispatch is Observable framework dispatch; under a whole-route INFERRED convention these read INFERRED, labels unaffected. |
 | 27 | SettingsRepositoryImpl.logSessionFilter() | REACHABLE | SOURCE | TorrentEngine.java:1619 and internally readSessionSettings:253. Definition :1332. |
-| 28 | SettingsRepositoryImpl.logSessionFilter(boolean) | OPEN | — | Definition :1338. No setter call site in the fresh corpus. Pending saved full-repo grep; NOT UNREACHABLE on absence. |
+| 28 | SettingsRepositoryImpl.logSessionFilter(boolean) | REACHABLE | SOURCE | LogViewModel.java:122 (paramsCallback, BR.logSessionFilter branch): `pref.logSessionFilter(mutableParams.isLogSessionFilter())`. Definition SettingsRepositoryImpl.java:1338. CHANGED 2026-11-01 OPEN -> REACHABLE. LogViewModel.java paramsCallback onPropertyChanged (callback registered LogViewModel.java:89 in initMutableParams, called from ctor :77; pref = RepositoryHelper.getSettingsRepository :70, singleton RepositoryHelper.java:61-64, freshly printed). Dispatch is Observable framework dispatch; under a whole-route INFERRED convention these read INFERRED, labels unaffected. |
 | 29 | SettingsRepositoryImpl.logTorrentFilter() | REACHABLE | SOURCE | TorrentEngine.java:1639 and internally readSessionSettings:257. Definition :1384. |
-| 30 | SettingsRepositoryImpl.logTorrentFilter(boolean) | OPEN | — | Definition :1390. No setter call site in the fresh corpus. Pending saved full-repo grep; NOT UNREACHABLE on absence. |
+| 30 | SettingsRepositoryImpl.logTorrentFilter(boolean) | REACHABLE | SOURCE | LogViewModel.java:134 (paramsCallback, BR.logTorrentFilter branch): `pref.logTorrentFilter(mutableParams.isLogTorrentFilter())`. Definition SettingsRepositoryImpl.java:1390. CHANGED 2026-11-01 OPEN -> REACHABLE. LogViewModel.java paramsCallback onPropertyChanged (callback registered LogViewModel.java:89 in initMutableParams, called from ctor :77; pref = RepositoryHelper.getSettingsRepository :70, singleton RepositoryHelper.java:61-64, freshly printed). Dispatch is Observable framework dispatch; under a whole-route INFERRED convention these read INFERRED, labels unaffected. |
 | 31 | SettingsRepositoryImpl.logging() | REACHABLE | SOURCE | TorrentEngine.java:1614 and internally readSessionSettings:251. Definition :1306. |
-| 32 | SettingsRepositoryImpl.logging(boolean) | OPEN | — | Definition :1312. No setter call site in the fresh corpus. Pending saved full-repo grep; NOT UNREACHABLE on absence. |
+| 32 | SettingsRepositoryImpl.logging(boolean) | REACHABLE | SOURCE | LogViewModel.java:119 (paramsCallback, BR.logging branch): `pref.logging(logging)`. Definition SettingsRepositoryImpl.java:1312. CHANGED 2026-11-01 OPEN -> REACHABLE. LogViewModel.java paramsCallback onPropertyChanged (callback registered LogViewModel.java:89 in initMutableParams, called from ctor :77; pref = RepositoryHelper.getSettingsRepository :70, singleton RepositoryHelper.java:61-64, freshly printed). Dispatch is Observable framework dispatch; under a whole-route INFERRED convention these read INFERRED, labels unaffected. |
 | 33 | SettingsRepositoryImpl.maxActiveDownloads() | REACHABLE | SOURCE | TorrentEngine.java:1497 and internally readSessionSettings:218. Definition :903. |
 | 34 | SettingsRepositoryImpl.maxActiveDownloads(int) | REACHABLE | SOURCE | LimitationsSettingsFragment.java:216 (onPreferenceChange, pref_key_max_active_downloads branch); listener bound in ungated onCreate at :131. Definition :909. UPGRADED vs prior proposal (was OPEN). |
 | 35 | SettingsRepositoryImpl.maxActiveTorrents() | REACHABLE | SOURCE | TorrentEngine.java:1507 and internally readSessionSettings:220. Definition :916. |
@@ -161,9 +168,9 @@
 
 ## Counts
 
-- REACHABLE proposed: 30 (SOURCE 27 / INFERRED 3: rows 14, 15, 16)
+- REACHABLE proposed: 36 (SOURCE 33 / INFERRED 3: rows 14, 15, 16)
 - UNREACHABLE proposed: 4 (rows 17, 18, 19, 20 — all closed_by_api_level, all INFERRED)
-- OPEN: 6 (rows 22, 24, 26, 28, 30, 32 — the six log/logging setters)
+- OPEN: 0
 - Total: 40. 0 rows verified for merge.
 
 ## Cross-batch notes for the merger (leads only, not verdicts for other batches)

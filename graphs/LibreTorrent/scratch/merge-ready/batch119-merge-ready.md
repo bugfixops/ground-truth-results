@@ -1,3 +1,5 @@
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
 # UNVERIFIED merge-ready part — NOT merged, NOT verified for merge
 
 # LibreTorrent batch 119 — merge-ready part
@@ -125,6 +127,6 @@ Line-count differences of 1 vs the input proposals (196/72/324) are trailing-new
 - Lambda/anonymous numbering confirmed against bytecode, if the merger requires it.
 - Merger's usual full-repo consistency grep for the batch (no OPEN → UNREACHABLE flip is pending, since no OPEN rows remain and no UNREACHABLE is claimed).
 - Main-agent spot-check (1 in 5), `py_compile`, build, sampler, Mac build/C1 — all not run, never claimed passed.
-- No push was made; pushes are held until verified and merged to [L].
+- Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]); pushed UNVERIFIED before [L] at user request 2026-11-01.
 
 Scope kept exactly: batch 119 only, LibreTorrent labels only, branch `work-2026-10-31` only, no device replay, no Aegis.

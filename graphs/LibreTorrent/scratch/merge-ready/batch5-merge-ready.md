@@ -1,13 +1,18 @@
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
+**RULE F GREP 2026-11-01 (item 1):** Real rule-F grep run over a connector-reconstructed copy of all 252 app Java files (~/workspace/ruleF-src, fetch DONE ok=252 fail=0), saved at ~/workspace/ruleF_grep_batch5_9.txt and in this folder as ruleF_grep_batch5_9_UNVERIFIED.txt. Form: grep -rn --include='*.java' '<ClassName>' (bare class name). Result: 85 hits across 34 classes; 33 classes referenced as types (import + field declaration + DataBindingUtil.inflate/setContentView assignment); DetailTorrentAppbarBinding: 0 hits in app Java. NO app file calls XBinding.inflate(...) or XBinding.bind(...) directly — every instantiation goes through DataBindingUtil.inflate/setContentView, which returns the Impl via the mapper and bypasses the base static. Generated Impl bodies are absent from final_java_only, so generated-to-generated dispatch (mapper -> Impl, parent Impl -> included child bind) is unprinted. Labels in this file are UNCHANGED by this grep: the statics stay OPEN pending the project convention decision (DataBindingUtil dispatch counts as calling the base statics, vs a direct call site is required, vs generated Impl evidence is required). Do not flip on this grep alone.**
+
+
 # LibreTorrent batch 5 — merge-ready part — UNVERIFIED
 
-**Status: UNVERIFIED merge-ready part only. NOT verified for merge. NOT pushed. No edit to `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another helper's file.**
+**Status: UNVERIFIED merge-ready part only. NOT verified for merge. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]). No edit to `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another helper's file.**
 
 **Build: not run. C1: not run. Sampler: not run. Full-repo grep: not run.** The build and C1 checks run on the user's Mac after a push, so they are marked "not run" here, never passed. No check is claimed as passed in this file. No connector `search_code` result was used anywhere in this file, and no `search_code` 0 was used as evidence of absence.
 
 - Repo: `bugfixops/ground-truth-results`, branch `work-2026-10-31` only (never `main` or `result`).
 - Scope: batch 5 only, 40 methods, no other batch, no other app, no device replay, no Aegis.
 - Task: labels only, re-derived from printed source. Prior proposals, audits, and the earlier merge-ready files for these batches were used as INPUTS / lead lists only; no prior verdict was copied as a result. Where this pass could not print generated dispatch, the row is left OPEN — it is not promoted on carried evidence alone, and it is not flipped to UNREACHABLE on absence.
-- Push rule in this run: never push from this file. Pushes are held until LibreTorrent labels are verified and merged to [L] (user decision 2026-10-31 ~23:09 EDT, recorded by the parent agent); this file does not push, and its OPEN rows must not be pushed as verified labels.
+- Push rule in this run: pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]). Pushes are held until LibreTorrent labels are verified and merged to [L] (user decision 2026-10-31 ~23:09 EDT, recorded by the parent agent); this file was pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]), and its OPEN rows must not be pushed as verified labels.
 
 ## Membership — verified first, not guessed
 

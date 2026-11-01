@@ -1,6 +1,10 @@
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
+**REVISION 2026-11-01 — OPEN-closing pass (this task, batches 39-42).** All 5 OPEN rows closed to UNREACHABLE on freshly printed source + a saved complete-tree grep; no other row changed. Fresh source in `~/workspace/b394142-openclose-src/` (TorrentSessionImpl.java 1720 lines SHA `aef9618c…`, TorrentEngine.java 1659 lines SHA `17d06efe…`, TorrentSession.java 136 lines SHA `d5d74e46…`, DetailTorrentStateFragment.java 88 lines SHA `b01a6a20…`, all branch `work-2026-10-31`, connector only, no fresh 429). Saved grep: `b394142-openclose-src/full_tree_grep_394142.txt` — §§A-B over all 252 app Java files (parent `ruleF-src` reconstruction, complete 252/252 at grep time) + §H (debug/play/release source sets contain no .java; test 7 + androidTest 13 files, zero hits) + §I (87 res layout/xml files, zero hits). Caller-set argument for all five rows: TorrentSession is an app-defined interface whose only holder in the shipped code is app code (TorrentEngine creates TorrentSessionImpl; it is never passed to a framework/library object), and no layout expression names these methods, so the app-Java census is exhaustive for them; the per-task Engine namesakes are different methods (different descriptors and receivers) and are distinguished in each row. `confirmed_by` for the five flips is INFERRED (no printed call site exists to be SOURCE; the verdict rests on the saved grep + printed definitions) — recorded, not decided, per the per-row vs whole-route convention. Each row flips back to REACHABLE on any single printed caller. Build: not run. C1: not run.
+
 # LibreTorrent batch 39 — merge-ready part — UNVERIFIED
 
-**Status: UNVERIFIED proposal only. NOT verified for merge. NOT pushed. No edit to
+**Status: UNVERIFIED proposal only. NOT verified for merge. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]). No edit to
 `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another agent's files.**
 **Build: not run. C1: not run.** The build and C1 checks run on the user's Mac after a push,
 so they are marked "not run" here, never passed. No sampler, full-repo grep, or C1
@@ -73,9 +77,9 @@ described below.
 ## Counts — mechanically verified
 
 - **40 rows, sequence 1–40 intact, in plan order.**
-- **33 REACHABLE proposed / 2 UNREACHABLE proposed / 5 OPEN.**
-- confirmed_by among REACHABLE/UNREACHABLE: SOURCE 26 / INFERRED 9 (counted from the
-  table below; OPEN rows have no confirmed_by).
+- **33 REACHABLE proposed / 7 UNREACHABLE proposed / 0 OPEN (2026-11-01 revision; was 33/2/5).**
+- confirmed_by among REACHABLE/UNREACHABLE: SOURCE 26 / INFERRED 14 (counted from the
+  table below; the five 2026-11-01 flips are INFERRED, see revision note).
 - **0 rows verified for merge.** Verification still requires the main agent's 1-in-5
   spot-check, `py_compile` + build on a full checkout, and the Mac build/C1 return.
 
@@ -91,9 +95,9 @@ described below.
 | 6 | TorrentSessionImpl.fetchMagnet(AddTorrentParams) `(Lorg/libtorrent4j/AddTorrentParams;)Lorg/libtorrent4j/AddTorrentParams;` | REACHABLE | SOURCE | Private. Called inside fetchMagnet(String) at TorrentSessionImpl.java:433 (`resParams = fetchMagnet(params)`); definition :454. NOTE: the prior proposal's table header showed the return as MagnetInfo; the plan descriptor (AddTorrentParams) is reproduced here and is the authoritative membership descriptor — the merger should check it against bytecode, but the call site and method identity are unambiguous. |
 | 7 | TorrentSessionImpl.getAlertMask `(Lorg/proninyaroslav/libretorrent/core/settings/SessionSettings;)Lorg/libtorrent4j/swig/alert_category_t;` | REACHABLE | SOURCE | TorrentSessionImpl.java:1001 (onAfterStart) and :1278 (settingsToSettingsPack, called from start :905, saveSettings :1245, applySettings :1397). |
 | 8 | TorrentSessionImpl.getAllowedEncryptLevel `(Lorg/proninyaroslav/libretorrent/core/settings/SessionSettings$EncryptMode;Lorg/proninyaroslav/libretorrent/core/settings/SessionSettings$EncryptMode;)I` | REACHABLE | SOURCE | TorrentSessionImpl.java:1270, inside settingsToSettingsPack (:1250-1282). |
-| 9 | TorrentSessionImpl.getDhtNodes `()J` | OPEN | — | No printed caller in this pass. Definition TorrentSessionImpl.java:712-715 (`return stats().dhtNodes();`). handleStats (:1168-1181) uses `dhtNodes()` (the TorrentSession super method, :1174), NOT getDhtNodes() — do not conflate. DetailTorrentStateFragment freshly fetched: no hit. Needs a printed caller (likely a stats UI fragment) or a saved full-repo grep for `session.getDhtNodes` / `.getDhtNodes()`. NOT UNREACHABLE on this evidence. |
+| 9 | TorrentSessionImpl.getDhtNodes `()J` | UNREACHABLE | INFERRED | Kind: `no_trigger_in_app`. Definition TorrentSessionImpl.java:712-715 (`return stats().dhtNodes();`). Saved full-tree grep §A: the only `getDhtNodes` hits in all 252 app Java files are the TorrentSession interface declaration (:92) and this definition — zero callers; res grep §I zero; test/androidTest §H zero. handleStats (:1168-1181) uses `dhtNodes()` (the TorrentSession super method, :1174), NOT getDhtNodes() — do not conflate. Flips to REACHABLE on any printed caller. |
 | 10 | TorrentSessionImpl.getDownloadSpeed `()J` | REACHABLE | SOURCE | TorrentSessionImpl.java:1177, inside handleStats (:1168-1181). Per-call-site convention; whole-route would be INFERRED (alert dispatch). |
-| 11 | TorrentSessionImpl.getDownloadSpeedLimit `()I` | OPEN | — | No printed session-level caller in this pass. Definition TorrentSessionImpl.java:690-695. TorrentEngine.java:894-902 `getDownloadSpeedLimit(id)` is the PER-TASK version (`task.getDownloadSpeedLimit()` at :902), not session.getDownloadSpeedLimit() — do not conflate. DetailTorrentViewModel/DetailTorrentFragment speed-limit calls found in local corpus are to the Engine per-task method (ViewModel:377-379, Fragment:754), not to this method. Needs a printed session caller or a saved full-repo grep. NOT UNREACHABLE on this evidence. |
+| 11 | TorrentSessionImpl.getDownloadSpeedLimit `()I` | UNREACHABLE | INFERRED | Kind: `no_trigger_in_app`. Definition TorrentSessionImpl.java:690-695. Saved full-tree grep §B: zero session-level callers. TorrentEngine.java:894-902 `getDownloadSpeedLimit(id)` is the PER-TASK version (`task.getDownloadSpeedLimit()` at :902), not this method — do not conflate; DetailTorrentViewModel:377-379 and DetailTorrentFragment:754 call the per-task chain, not this method. Res grep §I zero; test/androidTest §H zero. Flips to REACHABLE on any printed session-level caller. |
 | 12 | TorrentSessionImpl.getIface `(Ljava/lang/String;I)Ljava/lang/String;` | REACHABLE | SOURCE | TorrentSessionImpl.java:1259, `sp.listenInterfaces(getIface(settings.inetAddress, settings.portRangeFirst))` in settingsToSettingsPack. |
 | 13 | TorrentSessionImpl.getListenPort `()I` | REACHABLE | SOURCE | TorrentSessionImpl.java:1179, inside handleStats. Per-call-site convention; whole-route would be INFERRED. |
 | 14 | TorrentSessionImpl.getLoadedMagnet `(Ljava/lang/String;)[B` | REACHABLE | SOURCE | TorrentSessionImpl.java:274, `getLoadedMagnet(params.sha1hash)` in addTorrent (:272-278). |
@@ -105,13 +109,13 @@ described below.
 | 20 | TorrentSessionImpl.getTotalDownload `()J` | REACHABLE | SOURCE | TorrentSessionImpl.java:1175, inside handleStats. Per-call-site convention; whole-route would be INFERRED. |
 | 21 | TorrentSessionImpl.getTotalUpload `()J` | REACHABLE | SOURCE | TorrentSessionImpl.java:1176, inside handleStats. Per-call-site convention; whole-route would be INFERRED. |
 | 22 | TorrentSessionImpl.getUploadSpeed `()J` | REACHABLE | SOURCE | TorrentSessionImpl.java:1178, inside handleStats. Per-call-site convention; whole-route would be INFERRED. |
-| 23 | TorrentSessionImpl.getUploadSpeedLimit `()I` | OPEN | — | No printed session-level caller in this pass. Definition TorrentSessionImpl.java:698-703. TorrentEngine.java:883-892 `getUploadSpeedLimit(id)` is the PER-TASK version (`task.getUploadSpeedLimit()` at :891), not session.getUploadSpeedLimit() — do not conflate. Same ViewModel/Fragment note as row 11 (ViewModel:373-375, Fragment:753, both per-task). Needs a printed session caller or a saved full-repo grep. NOT UNREACHABLE on this evidence. |
+| 23 | TorrentSessionImpl.getUploadSpeedLimit `()I` | UNREACHABLE | INFERRED | Kind: `no_trigger_in_app`. Definition TorrentSessionImpl.java:698-703. Saved full-tree grep §B: zero session-level callers. TorrentEngine.java:883-892 `getUploadSpeedLimit(id)` is the PER-TASK version (`task.getUploadSpeedLimit()` at :891), not this method — do not conflate; DetailTorrentViewModel:373-375 and DetailTorrentFragment:753 call the per-task chain. Res grep §I zero; test/androidTest §H zero. Flips to REACHABLE on any printed session-level caller. |
 | 24 | TorrentSessionImpl.handleMetadataReceived `(Lorg/libtorrent4j/alerts/MetadataReceivedAlert;)V` | REACHABLE | SOURCE | TorrentSessionImpl.java:1093, handleMetadataReceived in InnerListener.alert (METADATA_RECEIVED case). Per-call-site convention; alert dispatch to InnerListener is INFERRED (see batch 40 rows 38-39). |
 | 25 | TorrentSessionImpl.handleSaveMetadata `(Lorg/libtorrent4j/alerts/SaveResumeDataAlert;)V` | REACHABLE | SOURCE | TorrentSessionImpl.java:1099, handleSaveMetadata in InnerListener.alert (SAVE_RESUME_DATA case). Per-call-site convention; alert dispatch INFERRED. |
 | 26 | TorrentSessionImpl.handleStats `()V` | REACHABLE | SOURCE | TorrentSessionImpl.java:1096, handleStats() in InnerListener.alert (SESSION_STATS case). Per-call-site convention; alert dispatch INFERRED. |
 | 27 | TorrentSessionImpl.handleStoppingTasks `()V` | REACHABLE | SOURCE | TorrentSessionImpl.java:928, `this::handleStoppingTasks` method reference in stopTasks() subscribe (:920-935), and :932 in the error lambda; Rx dispatch INFERRED, method-reference call printed. |
-| 28 | TorrentSessionImpl.isDHTEnabled `()Z` | OPEN | — | No printed caller in this pass. Definition TorrentSessionImpl.java:847-852 (`sp != null && sp.isEnableDht()`). Interface method on TorrentSession; a stats/settings UI caller is plausible but not printed. DetailTorrentStateFragment freshly fetched: no hit. Needs a printed caller or a saved full-repo grep. NOT UNREACHABLE on this evidence. |
-| 29 | TorrentSessionImpl.isPeXEnabled `()Z` | OPEN | — | No printed caller in this pass. Definition TorrentSessionImpl.java:855-859 (body returns constant true). Same note as row 28. Needs a printed caller or a saved full-repo grep. NOT UNREACHABLE on this evidence. |
+| 28 | TorrentSessionImpl.isDHTEnabled `()Z` | UNREACHABLE | INFERRED | Kind: `no_trigger_in_app`. Definition TorrentSessionImpl.java:847-852 (`sp != null && sp.isEnableDht()`). Saved full-tree grep §A: the only `isDHTEnabled` hits in all 252 app Java files are the TorrentSession interface declaration (:112) and this definition — zero callers; res grep §I zero; test/androidTest §H zero. DetailTorrentStateFragment freshly fetched (88 lines): no hit. Flips to REACHABLE on any printed caller. |
+| 29 | TorrentSessionImpl.isPeXEnabled `()Z` | UNREACHABLE | INFERRED | Kind: `no_trigger_in_app`. Definition TorrentSessionImpl.java:855-859 (body returns constant true). Saved full-tree grep §A: the only `isPeXEnabled` hits in all 252 app Java files are the TorrentSession interface declaration (:114) and this definition — zero callers; res grep §I zero; test/androidTest §H zero. Flips to REACHABLE on any printed caller. |
 | 30 | TorrentSessionImpl.isRunning `()Z` | REACHABLE | SOURCE | TorrentEngine.java:304 (prior proposal anchor, `return session.isRunning()`); TorrentSessionImpl.java:864, `isRunning()` guard in start(). |
 | 31 | TorrentSessionImpl.isTorrentAlreadyRunning `(Ljava/lang/String;)Z` | REACHABLE | SOURCE | TorrentSessionImpl.java:402, `isTorrentAlreadyRunning(torrent.id)` in restoreTorrents (:396-424); :1511 in LoadTorrentTask.run. |
 | 32 | TorrentSessionImpl.lambda$applySessionLoggerFilters$8 `(Lorg/proninyaroslav/libretorrent/core/settings/SessionSettings;)V` | REACHABLE | INFERRED | Runnable inside applySessionLoggerFilters (TorrentSessionImpl.java:1418-1427), called from applySettings :1388. Lambda index supported by file order (see Conventions: $8 is the 9th outer-class lambda, after $0-$7 listed there); NOT bytecode-verified. Rx dispatch INFERRED. |
@@ -126,21 +130,14 @@ described below.
 
 ## OPEN items and what resolves them
 
-Rows 9, 11, 23, 28, 29 — one printed caller each, or a saved full-repo grep for the
-exact `session.<method>` call sites, distinguishing session-level from per-task
-methods of the same name (rows 11 and 23 especially: the Engine per-task methods
-must not be mistaken for session callers). Rows 3–4 flip to REACHABLE only if the
-`if (false)` guard at TorrentSessionImpl.java:554 is removed or a second caller
-is printed.
+Rows 9, 11, 23, 28, 29 — CLOSED 2026-11-01 (see revision note and table): saved complete-tree grep + caller-set argument, distinguishing session-level from per-task methods. Rows 3–4 flip to REACHABLE only if the `if (false)` guard at TorrentSessionImpl.java:554 is removed or a second caller is printed.
 
-No UNREACHABLE verdict in this batch rests on absence of a caller in a partial
-copy: rows 3–4 rest on a printed `if (false)` block, which is a branch_never_taken
-source citation, not a grep claim.
+Rows 3–4 rest on a printed `if (false)` block, not on absence. Rows 9, 11, 23, 28, 29 rest on the saved complete-tree grep in `b394142-openclose-src/full_tree_grep_394142.txt` (§§A-B, H, I) plus the caller-set argument in the revision note — not on a partial-copy grep.
 
 ## Gaps the merger must close before merging
 
 1. Printed launcher-to-TorrentService step (strict-entry) — see caveat above.
-2. Saved full-repo grep for the five OPEN rows.
+2. Saved full-repo grep for the five OPEN rows — DONE 2026-11-01 (`b394142-openclose-src/full_tree_grep_394142.txt`); rows closed on it, see revision note.
 3. Bytecode confirmation of lambda $ numbering (rows 32–40).
 4. Main-agent spot-check (1 in 5), `py_compile`, build, Mac build/C1 — not run here.
 

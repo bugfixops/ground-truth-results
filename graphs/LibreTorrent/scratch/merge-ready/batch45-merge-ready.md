@@ -1,3 +1,5 @@
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
 # LibreTorrent batch 45 — MERGE-READY — UNVERIFIED
 
 - Repo: bugfixops/ground-truth-results, branch work-2026-10-31 only (never main, never result).
@@ -6,8 +8,8 @@
   ~/workspace/agent27-plan.tsv; plan extract saved at ~/workspace/b444546-src/batch45_plan.tsv).
   All 40 rows are SettingsRepositoryImpl methods, all plan status TODO_CANDIDATE_REACHABLE
   (generator candidates, not evidence).
-- Status: **UNVERIFIED merge-ready part. NOT verified for merge. NOT pushed.**
-  Pushes are held until verified and merged to [L]. No edit to graph_def.py, out/,
+- Status: **UNVERIFIED merge-ready part. NOT verified for merge. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]).**
+  Pushed UNVERIFIED before [L] at user request 2026-11-01. No edit to graph_def.py, out/,
   PROGRESS_V2, AGENT_NOTES, tools/, or another helper's file.
 - Prior proposal (~/workspace/libretorrent-batch45-proposal.md, 36/4/0) was used as a
   lead list only. Every row below was re-judged against source freshly fetched in this

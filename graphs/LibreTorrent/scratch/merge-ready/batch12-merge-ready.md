@@ -1,6 +1,12 @@
+**REVISION 2026-11-01 (OPEN-closing round 2) — UNVERIFIED.** Original for this round backed up in `~/workspace/libretorrent-merge-backup-pre-openclose2/batch12-merge-ready.md` (verified identical before editing). Counts UNCHANGED: 29 REACHABLE / 10 UNREACHABLE proposed / 1 OPEN. No label flipped. What was checked: fresh round-2 grep over the 252 app Java files (`~/workspace/b12341112-openclose2-src/round2_grep_20261101.txt`, sections G1, G11) re-confirms round 1 — zero `DataBinderMapperImpl` hits anywhere in the app tree, and `DataBindingUtil` is used in 30 app files (inflate sites e.g. MainFragment.java:119, setContentView sites e.g. LogActivity.java:93, AddTorrentActivity.java:102), which is the printed databinding-use premise for the conditional table below. No generated source for this class was printed in this round and no GitHub connector fetch was needed. Row 1 therefore stays OPEN: its flip condition is the conditional table added before the "What still needs to happen" section, not this grep. This row is still a DIFFERENT class from batch 17's `libretorrent.DataBinderMapperImpl` and from batch 2's `libretorrent` mapper family — no conclusion transfers. Rows 2–40 were NOT re-judged in round 2 (only the OPEN row was in scope) and are unchanged. Build: not run. C1: not run.
+
+**REVISION 2026-11-01 (OPEN-closing) — UNVERIFIED.** Original backed up in `~/workspace/libretorrent-merge-backup-pre-openclose/batch12-merge-ready.md`. Counts UNCHANGED: 29 REACHABLE / 10 UNREACHABLE proposed / 1 OPEN. No label flipped. What changed: (a) Row 1 `databinding.DataBinderMapperImpl.<init>` stays OPEN, evidence upgraded — saved grep has ZERO hits for `DataBinderMapperImpl` anywhere in the app tree, and no generated source for this class is printed; it remains a different class from batch 17's `libretorrent.DataBinderMapperImpl`, and convention (x) (generated-mapper-load) still decides it. (b) Rows 3, 6, 7, 9, 11, 12, 21, 28, 37, 39 UNREACHABLE-proposed re-verified against the saved grep: no hash-collection or explicit trigger for Enclosure/EzRssTorrentItem equals/hashCode/toString (B-corpus grep: definitions only); no XMLInputStream.length() caller (DefaultFeedParser/FeedHandler contain only StringBuffer.length()); row 21 equalsOrNull's sole caller is still BaseItem:58 inside BaseItem.equals and row 39 getDescription's sole caller is still BaseItem:41 inside getUniqueId — and batch 13 BaseItem.equals/hashCode remain UNREACHABLE proposed, so both rows stay UNREACHABLE proposed DERIVATIVELY (if batch 13 flips, re-judge these two; do not auto-flip). Build: not run. C1: not run. Saved grep: saved grep `~/workspace/b12341112-openclose-src/ruleF_grep_20261101.txt` (2,043 lines; Corpus A: 252 app Java files in `~/workspace/ruleF-src`, connector-reconstructed from branch work-2026-10-31 and verified 252/252 against the walk list; Corpus B: printed library files in `~/workspace/b1-src` + `~/workspace/b2-src`; scope: res/ XML, generated sources and library sources outside Corpus B are NOT in the grep — see caveats).
+
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
 # LibreTorrent batch 12 — merge-ready part — UNVERIFIED
 
-**Status: UNVERIFIED proposal only. NOT verified for merge. NOT pushed. No edit to `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another agent's files.**
+**Status: UNVERIFIED proposal only. NOT verified for merge. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]). No edit to `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another agent's files.**
 **Build: not run. C1: not run.** The build and C1 checks run on the user's Mac after a push, so they are marked "not run" here, never passed. No sampler or full-repo grep was run or is claimed.
 
 - Repo: `bugfixops/ground-truth-results`, branch `work-2026-10-31` only (never `main` or `result`).
@@ -31,7 +37,7 @@
 
 | # | Method | JVM descriptor | Proposed label | Kind | Reason / route (printed citations) | confirmed_by |
 |---:|---|---|---|---|---|---|
-| 1 | databinding.DataBinderMapperImpl.<init> | ()V | OPEN | — | No definition printed; no source for this generated class in the upload. Plan status is `OPEN_NO_SOURCE` / UNREACHABLE unclassified — that "unclassified" label violates the one-label rule and is NOT adopted. This is a DIFFERENT class from batch 17's `libretorrent.DataBinderMapperImpl` (different package: `databinding` vs `libretorrent`); no conclusion transfers between them. Stays OPEN: resolves only with printed generated source, a saved class-name grep (rule F/C5), or a printed fw_src/library dispatch citation. Must not be merged as UNREACHABLE on absence. | INFERRED |
+| 1 | databinding.DataBinderMapperImpl.<init> | ()V | OPEN | — | No definition printed; no source for this generated class in the upload. Plan status is `OPEN_NO_SOURCE` / UNREACHABLE unclassified — that "unclassified" label violates the one-label rule and is NOT adopted. This is a DIFFERENT class from batch 17's `libretorrent.DataBinderMapperImpl` (different package: `databinding` vs `libretorrent`); no conclusion transfers between them. REVISION 2026-11-01: saved app-tree grep has zero `DataBinderMapperImpl` hits; generated source still unprinted. Stays OPEN: resolves only with printed generated source or a printed fw_src/library dispatch citation under convention (x). Must not be merged as UNREACHABLE on absence. Round-2 conditional table: see the CONDITIONAL flip table section (row 1, convention (x)). | INFERRED |
 | 2 | Enclosure.<init> | (Ljava/lang/String;Ljava/lang/String;J)V | REACHABLE | — | Def `FPI/Enclosure.java:14` (re-read). Calls: `FPI/AtomItem.java:116` `new Enclosure(url, type, length)` and `FPI/Rss1Item.java:101` same (re-read), both reached via T3 `item.getEnclosures()` (`C:170`). Trunk T0–T4. | SOURCE |
 | 3 | Enclosure.equals | (Ljava/lang/Object;)Z | UNREACHABLE | no_trigger_in_app | Def `FPI/Enclosure.java:57-68` (re-read). No printed trigger (explicit call, equals/hash collection use) on an `Enclosure` in the files printed/re-read in this pass; core code reads `enclosure.getUrl()` / `getType()` explicitly (`C:174-175`), not `equals`. PROPOSED only, pending saved full-repo grep. | INFERRED |
 | 4 | Enclosure.getType | ()Ljava/lang/String; | REACHABLE | — | Def `FPI/Enclosure.java:40` (re-read). Call: `C:175` (re-read) in `watchEnclosure`. Trunk T0–T3. | SOURCE |
@@ -72,6 +78,26 @@
 | 39 | AtomItem.getDescription | ()Ljava/lang/String; | UNREACHABLE | no_trigger_in_app | Def `FPI/AtomItem.java:57-62` (re-read, `getElement(CONTENT)`/`getElement(SUMMARY)` + `getContent()`). No printed core-parser call to `getDescription()` in this pass; its only printed caller is `FPI/BaseItem.java:41` `getDescription()` inside private `getUniqueId()` (re-read), which is itself called only from `BaseItem.equals`/`hashCode` — both proposed UNREACHABLE in batch 13 (pending grep). This label is therefore doubly derivative (like row 21): if a grep triggers `BaseItem.equals`, this row must be re-examined, not automatically flipped, because `getUniqueId` reaches `getDescription()` only as a last fallback (after guid, links, title all null). PROPOSED only, pending saved full-repo grep. | INFERRED |
 | 40 | AtomItem.getEnclosures | ()Ljava/util/List; | REACHABLE | — | Def `FPI/AtomItem.java:99` (re-read). Call: `C:170` (re-read) `item.getEnclosures()` in `watchEnclosure`. Trunk T0–T3. | SOURCE |
 
+## CONDITIONAL flip table — OPEN-closing round 2 (row 1 only; do not apply without the named decision)
+
+Convention dependency: generated-mapper-load convention (x). Printed premise
+already established in round 2 (not a decision): the app inflates databinding
+layouts from 30 files via `DataBindingUtil` (inflate sites e.g.
+MainFragment.java:119, setContentView sites e.g. LogActivity.java:93,
+AddTorrentActivity.java:102) — so IF the merger decides that databinding use
+loads the generated mapper, the mapper-load premise is satisfied for this row's
+class. This row is the `databinding` mapper, a DIFFERENT class from batch 17's
+`libretorrent.DataBinderMapperImpl` and from batch 2's `libretorrent` mapper
+family — no conclusion transfers in either direction, and the batch-2 table does
+not decide this row.
+
+| Merger decision / new evidence | Mechanical result for row 1 (`databinding.DataBinderMapperImpl.<init>`) |
+|---|---|
+| (x) says mapper load counts as invocation, on the printed DataBindingUtil use | → REACHABLE INFERRED (the mapper-load step itself is unprinted, hence INFERRED, never SOURCE) |
+| (x) requires printed generated source or a printed fw_src/library dispatch citation | → stays OPEN (the round-2 position; the app-tree grep's zero hits do not close it, because generated code is not in the tree) |
+| Printed generated source / dispatch for THIS `databinding` class | → REACHABLE on a printed construction/load site (SOURCE if printed); a printed generated body showing the ctor is never invoked would instead support UNREACHABLE |
+| Any (x) outcome for batch 2's `libretorrent` mapper rows or batch 17's mapper row | → NO effect on this row; each mapper class needs its own evidence |
+
 ## What still needs to happen before merge (for the parent agent)
 
 1. Saved full-repo grep for all 10 UNREACHABLE rows — any hit flips that row to REACHABLE; rows 21 and 39 must also be re-examined if batch 13's `BaseItem.equals` flips.
@@ -84,4 +110,4 @@
 ## STATUS
 
 - This file is a merge-ready proposal only. It is UNVERIFIED and NOT merged.
-- No build, sampler, grep, or C1 count is claimed. No push was made.
+- No build, sampler, grep, or C1 count is claimed. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]).

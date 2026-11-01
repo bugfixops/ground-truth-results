@@ -1,6 +1,15 @@
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
+**OPEN-CLOSING REVISION 2026-11-01 (UNVERIFIED, no push, no merge): 0 label changes. Counts before = after: 39 REACHABLE / 0 UNREACHABLE / 1 OPEN (row 1).**
+**OPEN-CLOSING ROUND 2 REVISION 2026-11-01 (UNVERIFIED, no push, no merge): 1 label change: row 1 OPEN → UNREACHABLE on saved 252-file app-Java greps in /home/hatch/workspace/b90929495969799102-openclose2-src/. Counts before 39 REACHABLE / 0 UNREACHABLE / 1 OPEN → after 39 / 1 / 0. Flips together with batch 96 row 40 (same adapter, same missing KeyProvider). Build: not run. C1: not run. 0 rows verified for merge.**
+Fresh source for this pass saved in ~/workspace/b90929495969799102-openclose-src/ (branch work-2026-10-31, one file at a time with ~25 s pauses, no fresh HTTP 429; each file plus its raw connector JSON saved; fresh-corpus grep in grep_fresh_corpus.txt — a PRINTED-SUBSET grep only, NOT a saved full-repo grep, so it cannot flip any row to UNREACHABLE).
+Fresh files re-verified for the OPEN row: `ui/feeditems/FeedItemsAdapter.java` (184 lines, SHA bf28a46f9c2f149b4557aefe5308c5310fab23c4), `ui/feeditems/FeedItemsFragment.java` (329 lines, SHA c612894b16f58bf5c7780fa683a4a8cbcefda97f).
+Row 1: getItemPosition definition re-confirmed fresh at FeedItemsAdapter.java:100-103 (getCurrentList().indexOf(key), equals-only); the adapter has no inner KeyProvider. Fresh FeedItemsFragment.java has ZERO hits for SelectionTracker/KeyProvider/getItemKey/getItemPosition/Selectable and uses the adapter only via :152/:153/:218/:233 as in batch 96 row 40. Consistent with batch 96 row 40 (getItemKey OPEN) and batch 94 rows 7-8 (peers Selectable OPEN). Row 1 stays OPEN; named target: a saved full-repo grep for an external Selectable/KeyProvider consumer of FeedItemsAdapter (one hit flips rows 96/40 and 97/1 together). Build: not run. C1: not run. 0 rows verified for merge.
+
+
 # LibreTorrent batch 97 — merge-ready part — UNVERIFIED
 
-**Status: UNVERIFIED merge-ready proposal only. NOT verified for merge. NOT pushed. No edit to `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another agent's files.**
+**Status: UNVERIFIED merge-ready proposal only. NOT verified for merge. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]). No edit to `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another agent's files.**
 **Build: not run. C1: not run.** The build and C1 checks run on the user's Mac after a push, so they are marked "not run" here, never passed. No sampler, full-repo grep, or C1 check was run or is claimed in this file.
 
 - Repo: `bugfixops/ground-truth-results`, branch `work-2026-10-31` only (never `main` or `result`).
@@ -45,17 +54,17 @@ This is the per-row convention, not the whole-route convention used in some earl
 ## Counts — proposed, not verified (mechanically verified from the table)
 
 - REACHABLE proposed: 39 / 40 (SOURCE 12, INFERRED 27)
-- UNREACHABLE proposed: 0
-- OPEN: 1 / 40
+- UNREACHABLE proposed: 1 / 40 (row 1, round 2, SOURCE)
+- OPEN: 0 / 40
 - Verified for merge: 0 / 40
 
-No UNREACHABLE row is claimed: no saved full-repo grep was run, and connector search_code was not used as evidence of absence.
+Round 2: row 1 IS now claimed UNREACHABLE on the saved 252-file greps named in the row (the pre-round-2 condition is satisfied under that grep standard); connector search_code was not used as evidence of absence anywhere.
 
 ## Rows
 
 | # | Method | Label | confirmed_by | Printed citation / route |
 |---|---|---|---|---|
-| 1 | FeedItemsAdapter.getItemPosition(FeedItemsListItem)I | OPEN | — | FIA:100-103 definition only. No printed caller: FIF builds no SelectionTracker/KeyProvider (unlike FeedChannelListAdapter, batch 99 rows 21-22, 38-39, where KeyProvider calls getItemKey/getItemPosition), and no other printed code calls this Selectable method. Consistent with batch 96 row 40 (FeedItemsAdapter.getItemKey OPEN) and batch 94 rows 7-8 (PeerListAdapter getItemKey/getItemPosition OPEN). NOT UNREACHABLE: needs a saved full-repo grep; highest-priority grep target in this batch. |
+| 1 | FeedItemsAdapter.getItemPosition(FeedItemsListItem)I | UNREACHABLE | SOURCE | FIA:100-103 definition only. No printed caller: FIF builds no SelectionTracker/KeyProvider (unlike FeedChannelListAdapter, batch 99 rows 21-22, 38-39, where KeyProvider calls getItemKey/getItemPosition), and no other printed code calls this Selectable method. Consistent with batch 96 row 40 (FeedItemsAdapter.getItemKey OPEN) and batch 94 rows 7-8 (PeerListAdapter getItemKey/getItemPosition OPEN). [Pre-round-2 note, superseded by the ROUND 2 flip below.] 2026-11-01 OPEN-closing re-check (fresh): definition re-confirmed FeedItemsAdapter.java:100-103 (indexOf, equals-only); fresh FeedItemsFragment.java ZERO SelectionTracker/KeyProvider hits. [Pre-round-2 status, superseded by the ROUND 2 flip below.] 2026-11-01 OPEN-closing ROUND 2: FLIPPED OPEN → UNREACHABLE, kind no_trigger_in_app, confirmed_by SOURCE, together with batch 96 row 40. Saved greps: grep_selectable_methods.txt (the only selectable.getItemPosition call sites are the four KeyProvider getPosition methods — TorrentListAdapter :350, FeedChannelListAdapter :295, TrackerListAdapter :247, TorrentContentFilesAdapter :286; FeedItemsAdapter has none), grep_Selectable_all.txt (no Selectable-typed reference to FeedItemsAdapter outside its own file), grep_class_FeedItemsAdapter.txt (6 lines), grep_selectiontracker.txt (no SelectionTracker/KeyProvider for feed items). Dispatch premise as batch 94 rows 7-8: only an app KeyProvider calls a Selectable method. Reverts to OPEN if the merger rejects the 252-file app-Java grep as the full-repo standard. Consistency note updated: batch 96 row 40 is now UNREACHABLE on the same evidence, not OPEN — the pair stays consistent. |
 | 2 | FeedItemsAdapter.onBindViewHolder(ViewHolder,int)V | REACHABLE | INFERRED | FIA:76-79 body calls holder.bind(getItem(position), listener) :78. Adapter set on the RecyclerView at FIF:153; RecyclerView dispatch to onBindViewHolder is library code, not printed. |
 | 3 | FeedItemsAdapter.onCreateViewHolder(ViewGroup,int)ViewHolder | REACHABLE | INFERRED | FIA:64-73 body inflates item_feed_items_list :67-70 and returns new ViewHolder :72. RecyclerView dispatch unprinted, same as row 2. |
 | 4 | FeedItemsAdapter.submitList(List)V | REACHABLE | SOURCE | FIF:218 (observeFeedItems subscribe adapter::submitList) and FIF:233 (getAllFeedItemsSingle subscribe adapter::submitList). Body FIA:82-88 sorts the list :85 then super.submitList :87. |
@@ -98,7 +107,8 @@ No UNREACHABLE row is claimed: no saved full-repo grep was run, and connector se
 
 ## Caveats / still owed before merge
 
-1. Row 1 (FeedItemsAdapter.getItemPosition) is the only OPEN row: it needs a saved full-repo grep, or a printed KeyProvider/Selectable consumer, before any flip. Judge it consistently with batch 96 row 40 (FeedItemsAdapter.getItemKey, OPEN) and batch 94 rows 7-8 (PeerListAdapter getItemKey/getItemPosition, OPEN) — a grep hit for one Selectable method does not by itself close the other.
+1. [SUPERSEDED by ROUND 2: row 1 flipped OPEN -> UNREACHABLE together with batch 96 row 40 and
+   batch 94 rows 7-8 on the saved Selectable greps; batch 97 now has 0 OPEN rows.]
 2. Strict-entry gap (above): who starts FeedActivity was not printed; under a strict launcher-entry rule all 39 REACHABLE rows revert to OPEN.
 3. Adapter/Fragment line numbers rest on the b67 local copies re-read in full in the prior pass and re-checked here; the merger should still re-verify them against a fresh connector fetch if it requires it. FeedActivity/FeedItemsActivity were freshly fetched in the prior pass and corroborate the shared trunk.
 4. Main-agent spot-check (1 in 5), `py_compile`, build, Mac build/C1 — not run here, never claimed passed.

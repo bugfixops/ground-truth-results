@@ -1,6 +1,12 @@
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
+**OPEN-CLOSE REVISION 2026-11-01 (round 2, G6): rows 1, 2, 13 OPEN -> UNREACHABLE closed_by_api_level INFERRED on the saved full-tree grep now on file (see below); row 21 stays OPEN (implicit-toString caveat, see its conditional table). Counts 36/0/4 -> 36/3/1. No row flipped to REACHABLE. Build: not run. C1: not run. Fresh source for this pass: saved grep `~/workspace/b414748-openclose2-src/full_tree_grep_414748.txt` §§A-C,J over all 252 app Java files in `~/workspace/ruleF-src/` (connector-reconstructed tree, 252/252 .java at grep time); gate lines re-checked in that tree (AppearanceSettingsFragment gate :118-119, TorrentNotifier early return :276). No GitHub connector fetch was needed in this pass (all target files already present locally); no fresh 429. Original file backed up at `~/workspace/libretorrent-merge-backup-pre-openclose2/batch47-merge-ready.md` before this edit.**
+
+**OPEN-CLOSE REVISION 2026-11-01: rows 4 and 6 OPEN -> REACHABLE SOURCE on freshly printed StorageSettingsFragment.java (296 lines, SHA 213e8440…, onPreferenceChange :281/:287, ungated onCreate bindings :170/:197). Rows 1, 2, 13 stay OPEN with a closed_by_api_level LEAD recorded (not flipped — no saved full-repo grep); row 21 stays OPEN, no printed caller. Counts 34/0/6 -> 36/0/4. No row flipped to UNREACHABLE. Build: not run. C1: not run. Fresh source in ~/workspace/b444748-openclose-src/.**
+
 # LibreTorrent batch 47 — merge-ready part — UNVERIFIED
 
-**Status: UNVERIFIED proposal only. NOT verified for merge. NOT pushed. No edit to
+**Status: UNVERIFIED proposal only. NOT verified for merge. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]). No edit to
 `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another agent's files.**
 **Build: not run. C1: not run.** The build and C1 checks run on the user's Mac after a push,
 so they are marked "not run" here, never passed. No sampler, full-repo grep, or C1
@@ -73,19 +79,19 @@ the whole-route convention.
 
 | # | Method | Label | confirmed_by | Printed citation / reason |
 |---|---|---|---|---|
-| 1 | SettingsRepositoryImpl.vibrationNotify() | OPEN | — | Definition :316-318 freshly confirmed. No caller printed in the fetched corpus (prior-session grep of TorrentEngine, TorrentService, Utils, MainActivity/Fragment, SettingsFragment: zero hits). Needs a saved full-repo grep before any UNREACHABLE claim. |
-| 2 | SettingsRepositoryImpl.vibrationNotify(boolean) | OPEN | — | Definition :322-328 freshly confirmed (writes `pref_key_vibration_notify`). No printed caller; settings UI is PreferenceFragmentCompat (`SettingsFragment.java`, prior print) which writes SharedPreferences directly, not via this setter. Needs full-repo grep. |
+| 1 | SettingsRepositoryImpl.vibrationNotify() | UNREACHABLE closed_by_api_level | INFERRED | Definition :316-318 freshly confirmed. Saved full-tree grep §A (252 app Java files, `~/workspace/b414748-openclose2-src/full_tree_grep_414748.txt`): the ONLY call statements are GATED — AppearanceSettingsFragment.java:187 inside initLegacyNotifySettings (gate :118-119, SDK < O, false at API 27) and TorrentNotifier.java:286 inside applyLegacyNotifySettings (early return :276 at SDK >= O, before :286). At API 27 neither statement executes. Method-vs-branch rule applied exactly as in batches 44/45/46/73-74: the gate is on the call sites, not merely in this getter's body. CHANGED 2026-11-01 round 2 OPEN -> UNREACHABLE. Flips back to REACHABLE on any printed ungated caller. |
+| 2 | SettingsRepositoryImpl.vibrationNotify(boolean) | UNREACHABLE closed_by_api_level | INFERRED | Definition :322-328 freshly confirmed. Saved full-tree grep §A: the ONLY call statement is AppearanceSettingsFragment.java:247 (onPreferenceChange branch), whose listener is bound only inside initLegacyNotifySettings (:185-189, vibration binding :188), gated at :118-119 (SDK < O). At API 27 the branch never fires. CHANGED 2026-11-01 round 2 OPEN -> UNREACHABLE. Flips back to REACHABLE on any printed ungated caller (including an ungated listener binding). Settings UI persistence alone is not a route. |
 | 3 | SettingsRepositoryImpl.watchDir() | REACHABLE | SOURCE | `TorrentEngine.java:1053`, `:1582`, `:1588` (`if (pref.watchDir())`). Definition :773-775 freshly confirmed. |
-| 4 | SettingsRepositoryImpl.watchDir(boolean) | OPEN | — | Definition :779-785 freshly confirmed. No printed caller (same PreferenceFragmentCompat note as row 2). Needs full-repo grep. |
+| 4 | SettingsRepositoryImpl.watchDir(boolean) | REACHABLE | SOURCE | StorageSettingsFragment.java:281 (onPreferenceChange, pref_key_watch_dir branch): `pref.watchDir((boolean) newValue)`; listener bound in ungated onCreate at :170 (watchDir.setChecked + bindOnPreferenceChangeListener). Definition SettingsRepositoryImpl.java:779. CHANGED 2026-11-01 OPEN -> REACHABLE. |
 | 5 | SettingsRepositoryImpl.watchDirDeleteFile() | REACHABLE | SOURCE | `TorrentEngine.java:1152` (`if (pref.watchDirDeleteFile())`). Definition :799-801 freshly confirmed. |
-| 6 | SettingsRepositoryImpl.watchDirDeleteFile(boolean) | OPEN | — | Definition :805-811 freshly confirmed. No printed caller. Needs full-repo grep. |
+| 6 | SettingsRepositoryImpl.watchDirDeleteFile(boolean) | REACHABLE | SOURCE | StorageSettingsFragment.java:287 (onPreferenceChange, pref_key_watch_dir_delete_file branch): `pref.watchDirDeleteFile((boolean) newValue)`; listener bound in ungated onCreate at :197. Definition SettingsRepositoryImpl.java:805. CHANGED 2026-11-01 OPEN -> REACHABLE. |
 | 7 | SettingsRepositoryImpl$Default.<clinit> | REACHABLE | INFERRED | JVM class initialisation on first `Default` access; many reachable getters evaluate `Default` fields/methods (e.g. :318, :331, :344, :645, :710). Nested-class `<clinit>` itself not printed. |
 | 8 | SettingsRepositoryImpl$Default.dirToWatch(Context) | REACHABLE | SOURCE | Fallback argument in reachable getter `dirToWatch()` :786-788; getter called at `TorrentEngine.java:1117`. |
 | 9 | SettingsRepositoryImpl$Default.encryptInConnectionsMode(Context) | REACHABLE | SOURCE | Fallback in getter :643-645; getter called at `TorrentEngine.java:1109` and inside `readSessionSettings()` :228. |
 | 10 | SettingsRepositoryImpl$Default.encryptOutConnectionsMode(Context) | REACHABLE | SOURCE | Fallback in getter :656-658; getter called at `TorrentEngine.java:1113` and inside `readSessionSettings()` :229. |
 | 11 | SettingsRepositoryImpl$Default.foregroundNotifySorting(Context) | REACHABLE | SOURCE | Fallback in getter :373-376; getter called at `Utils.java:896` (`getForegroundNotifySorting`), called from `TorrentService.java:139`. |
 | 12 | SettingsRepositoryImpl$Default.foregroundNotifyStatusFilter(Context) | REACHABLE | SOURCE | Fallback in getter :355-358; getter called at `Utils.java:877` (`getForegroundNotifyFilter`), called from `TorrentService.java:138`. |
-| 13 | SettingsRepositoryImpl$Default.ledIndicatorColorNotify(Context) | OPEN | — | Only printed call site is inside getter :342-344 (freshly confirmed), and that getter (`ledIndicatorColorNotify()`, not itself a batch-47 row) has NO printed caller in the fetched corpus. Conditional on the getter; stays OPEN. Do not flip on the getter definition alone. |
+| 13 | SettingsRepositoryImpl$Default.ledIndicatorColorNotify(Context) | UNREACHABLE closed_by_api_level | INFERRED | Definition SettingsRepositoryImpl.java:53 freshly confirmed. Saved full-tree grep §B: the SOLE call statement is the fallback argument inside getter ledIndicatorColorNotify() at :342-344 (`Default.ledIndicatorColorNotify(appContext)`); no other file calls the Default (Context) overload (the :250 site calls the (int) setter, not this method). That getter is itself closed_by_api_level (batch 44 row 17): its only call statements are AppearanceSettingsFragment.java:180 (initLegacy, gated :118-119) and TorrentNotifier.java:290 (applyLegacy, early return :276 before :290), neither executing at API 27 — so the fallback argument is never evaluated at API 27. CHANGED 2026-11-01 round 2 OPEN -> UNREACHABLE. Flips together with batch 44 row 17: any printed ungated caller of the getter flips both rows to REACHABLE. |
 | 14 | SettingsRepositoryImpl$Default.moveAfterDownloadIn(Context) | REACHABLE | SOURCE | Fallback in getter :734-736; getter called at `TorrentEngine.java:1317`. |
 | 15 | SettingsRepositoryImpl$Default.saveTorrentFilesIn(Context) | REACHABLE | SOURCE | Fallback in getter :760-762; getter called at `TorrentEngine.java:1275` and `:1432`. |
 | 16 | SettingsRepositoryImpl$Default.saveTorrentsIn(Context) | REACHABLE | SOURCE | Fallback in getter :708-710; getter called at `TorrentEngine.java:1185`. |
@@ -93,7 +99,7 @@ the whole-route convention.
 | 18 | BaseSorting.<init>(String, Direction) | REACHABLE | SOURCE | Called by `TorrentSorting.<init>` :113-116 (`super(...)`); `TorrentSorting` constructed at `MainViewModel.java:51-52` and throughout `Utils.getForegroundNotifySorting`. BaseSorting definition freshly confirmed. |
 | 19 | BaseSorting.getColumnName() | REACHABLE | SOURCE | Called at `TorrentSortingComparator.java:43` (`sorting.getColumnName()`). |
 | 20 | BaseSorting.getDirection() | REACHABLE | SOURCE | Called at `TorrentSortingComparator.java:44` (`sorting.getDirection()`). |
-| 21 | BaseSorting.toString() | OPEN | — | Definition :68-76 freshly confirmed. No printed caller, log, or concatenation site in the fetched corpus. Needs full-repo grep; do NOT infer from `Object.toString` alone. |
+| 21 | BaseSorting.toString() | OPEN | — | Definition BaseSorting.java:70-76 (fresh tree print; prior file cited :70-77 including the closing class brace). Saved full-tree grep §§C,J: NO explicit `.toString()` on a BaseSorting/TorrentSorting object, no Log/concat/String.valueOf site for a sorting object (the one §J concat hit, Utils.java:924, concatenates a String `val`, not a sorting object). TorrentSorting instances are constructed widely (MainViewModel.java:51-52, Utils.java:808-834, 898-922) but only getColumnName()/getDirection() are ever read on them (TorrentSortingComparator.java:43-44). The only toString hits in the sorting files are unrelated enum toStrings (BaseSorting.java:33 Direction.toString, TorrentSorting.java:106 column.toString). CONDITIONAL, not flipped (see below): flips to UNREACHABLE no_trigger_in_app INFERRED IF the merger adopts the app-tree-grep standard for toString (the standard under which batch 41 TorrentStream.toString was flipped on a similar supplementary log/concat grep); stays OPEN IF the merger holds the settings-family caveat that an implicit/framework toString (e.g. a library logging a sorting object) cannot be excluded from an app-Java-only corpus. That choice is the merger's, not made here. A printed explicit/implicit toString caller flips it to REACHABLE. |
 | 22 | BaseSorting$Direction.<clinit> | REACHABLE | INFERRED | JVM enum initialisation on first use of `Direction.ASC`/`DESC`, printed at `MainViewModel.java:51-52` and in every `Utils.getForegroundNotifySorting` construction. |
 | 23 | TorrentSorting.<init>(SortingColumns, Direction) | REACHABLE | SOURCE | `MainViewModel.java:51-52` (`new TorrentSorting(SortingColumns.none, Direction.ASC)`); also all `Utils.getForegroundNotifySorting` branches. |
 | 24 | TorrentSorting$SortingColumns.<clinit> | REACHABLE | INFERRED | JVM enum initialisation on first use of a `SortingColumns` constant, printed at `MainViewModel.java:51-52` and `Utils.java:892+`. |
@@ -117,18 +123,24 @@ the whole-route convention.
 ## Counts — mechanically verified
 
 - **40 rows, sequence 1–40 intact, in plan order.**
-- **34 REACHABLE proposed / 0 UNREACHABLE proposed / 6 OPEN.**
-- OPEN rows: 1, 2, 4, 6, 13, 21. No row was flipped to UNREACHABLE: no saved full-repo
-  grep was run in this pass, so absence of a printed caller was never treated as proof
-  of absence.
+- **36 REACHABLE proposed / 3 UNREACHABLE proposed (rows 1, 2, 13, all closed_by_api_level, all INFERRED; changed 2026-11-01 round 2) / 1 OPEN (row 21 only).**
+- OPEN row: 21 only (rows 1, 2, 13 closed 2026-11-01 round 2; rows 4 and 6 closed 2026-11-01 round 1). No row was flipped to REACHABLE in round 2.
 
 ## Gaps the merger must close before merging
 
-1. Saved full-repo grep (rule F/C5, class-name based) for the 6 OPEN rows — especially
-   whether any other file calls the setters, `vibrationNotify()`,
-   `ledIndicatorColorNotify()`, or `BaseSorting.toString()`. Only a grep hit flips
-   OPEN → REACHABLE; a clean grep is what would justify UNREACHABLE, and that
-   judgement belongs to the merger, not this file.
+1. API-gate consistency check (batches 44/45/46/73-74 must match): rows 1, 2, 13 now
+   rest on the saved full-tree grep in `~/workspace/b414748-openclose2-src/full_tree_grep_414748.txt`
+   §§A-B plus the method-vs-branch rule as stated in batches 44, 74, 115. If the merger
+   rejects that rule, rows 1, 2, 13 revert to OPEN (they do not flip to REACHABLE on
+   rejection alone, since no ungated caller is printed). Row 13 flips together with
+   batch 44 row 17 in either direction.
+2. Row 21 (BaseSorting.toString): the conditional in its row — app-tree-grep standard
+   (→ UNREACHABLE no_trigger_in_app) vs implicit/framework-toString caveat (→ stays OPEN).
+   A printed toString caller flips it to REACHABLE under either reading.
+3. Bytecode confirmation of the `$1`–`$7` anonymous-enum numbering.
+4. Printed launcher → MainActivity / TorrentService step, if the strict-entry rule is
+   applied at merge.
+5. Main-agent spot-check (1 in 5), `py_compile`, build, Mac build/C1 — not run here.
 2. Bytecode confirmation of the `$1`–`$7` anonymous-enum numbering.
 3. Printed launcher → MainActivity / TorrentService step, if the strict-entry rule is
    applied at merge.

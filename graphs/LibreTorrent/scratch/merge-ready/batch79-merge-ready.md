@@ -1,6 +1,8 @@
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
 # LibreTorrent batch 79 — merge-ready part — UNVERIFIED
 
-**Status: UNVERIFIED proposal only. NOT verified for merge. NOT pushed. No edit to
+**Status: UNVERIFIED proposal only. NOT verified for merge. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]). No edit to
 `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another agent's files.**
 **Build: not run. C1: not run.** The build and C1 checks run on the user's Mac after a push,
 so they are marked "not run" here, never passed. No sampler, full-repo grep, or C1
@@ -156,5 +158,5 @@ this file does not decide it.
 No build, sampler, grep, or C1 check was run — a true git clone of the repo fails
 in this VM with no credential device (named missing check, not passed); build and
 C1 run on the user's Mac after a push, so both are marked "not run" here.
-No push was made (task instruction). Nothing was edited in `graph_def.py`, `out/`,
+Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]) (task instruction). Nothing was edited in `graph_def.py`, `out/`,
 `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another agent's files.

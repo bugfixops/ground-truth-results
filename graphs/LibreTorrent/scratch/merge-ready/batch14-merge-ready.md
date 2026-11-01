@@ -1,3 +1,5 @@
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
 # LibreTorrent batch 14 — merge-ready file (UNVERIFIED proposal)
 
 Scope: Feed-parser implementation classes: MediaRssParser, Rss1Feed/Rss1Item, Rss2Feed/Rss2Item, mediarss Content/Hash, plus mediarss rows carried into batch 15.
@@ -24,7 +26,7 @@ Scope: Feed-parser implementation classes: MediaRssParser, Rss1Feed/Rss1Item, Rs
   plan, from prior proposals, or from corrected files (those were leads only; where this file agrees with a corrected file, the
   agreement is a check result, not a copy).
 - Build: NOT RUN (runs on the user's Mac after a push). C1: NOT RUN. Never claimed passed.
-- Push: NONE. Pushes are held until LibreTorrent labels are verified and merged to [L].
+- Push: 5e0983f (UNVERIFIED, before [L]). Pushes are held until LibreTorrent labels are verified and merged to [L].
 
 ## Sources printed fresh in this session (branch work-2026-10-31, GitHub connector, one file at a time)
 

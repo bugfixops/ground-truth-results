@@ -1,3 +1,85 @@
+## Revision note — OPEN-closing round 2 (G4), 2026-11-01 (UNVERIFIED, no label changes)
+
+**Counts before (table as found, mechanically verified): 20 REACHABLE / 0 UNREACHABLE / 20 OPEN.
+Counts after: 20 / 0 / 20 — unchanged. Rows whose label changed: NONE. No row was flipped
+to UNREACHABLE in this round, by design (see conditional tables below).**
+Backup of the pre-revision file: `~/workspace/libretorrent-merge-backup-pre-openclose2/batch31-merge-ready.md`
+(md5-identical to the file before this edit).
+Count correction: the Counts section in this file says 16/0/24, but the table as found has 20
+REACHABLE rows (4, 7, 8, 10, 12, 16, 19, 20, 21, 22, 23, 24, 26, 27, 28, 30, 32, 36, 38, 39)
+and 20 OPEN — the header counts predate the round-1 TagInfo parcel-quartet flips and are
+stale; the table governs. The quartet (rows 21 Parcel ctor SOURCE, 23 describeContents,
+26 writeToParcel, 28 createFromParcel INFERRED, on the two printed TagInfo round-trips)
+was preserved and NOT reverted, per task instruction.
+
+Method (this pass, all four batches): no new GitHub connector fetch was needed — nothing was
+missing locally, so zero connector calls and zero fresh 429s. Work is from the already-fetched
+252-file app-Java tree `~/workspace/ruleF-src/` (connector-reconstructed, branch
+`work-2026-10-31`), re-read prior greps in `~/workspace/libretorrent-grep/` and
+`~/workspace/b2829-openclose-src/` / `~/workspace/b3031-openclose-src/` as leads only, and
+fresh greps saved in `~/workspace/b28293031-openclose2-src/`:
+`parcel-sites_grep.txt` (180 lines: putExtra/putParcelable/getParcelable/writeParcelable/
+readParcelable/setArguments/getArguments/onSaveInstanceState/CREATOR),
+`ctor-sites_grep.txt` (`new <Class>(` sites), `method-call_grep.txt` (78 lines:
+getUri/fromValue/value/compareTo/sort), `subclass_grep.txt` (extends sites),
+`hash-collection_grep.txt` (HashMap/HashSet of the entity types),
+`classname_grep.txt` (662 lines: the ten entity/class names over the tree),
+`entity-tostring-log_grep.txt`. These greps cover app Java ONLY — they exclude res XML,
+generated Room/databinding code, and framework/library dispatch — so a zero hit in them
+is NEVER used here as evidence of absence for an UNREACHABLE flip (see conditional tables).
+No `search_code` 0-result was used as evidence anywhere. Build: not run. C1: not run.
+Nothing was pushed. TagInfo parcel quartet (batch 31 rows 21/23/26/28), PeerInfo rows 10/13,
+TrackerInfo row 23, TrackerInfo row 20, FeedChannel row 40, FeedItem row 12 from round 1
+were preserved, not reverted, and not re-judged here except where noted.
+
+What was checked for every OPEN row (20: 1, 2, 3, 5, 6, 9, 11, 13, 14, 15, 17, 18, 25, 29, 31,
+33, 34, 35, 37, 40):
+- Row 29 `TagInfo$1.newArray`: the trio is already REACHABLE, but no array-transfer site
+  exists — zero `putParcelableArrayListExtra` / `getParcelableArrayListExtra` /
+  `getParcelableArrayExtra` hits in the 252-file tree, and every TagInfo site transfers a
+  single object. Under the single-vs-array rule it stays OPEN (same rule as batch 114 row 27
+  per the dossier; batch 102's REACHABLE newArray on identical-shaped evidence is the known
+  inconsistency the merger must resolve — see table).
+- Row 33 `Torrent.<init>(String,String,Uri,String,boolean,long,boolean,boolean)` (8-arg):
+  no app-code construction site — the only `new Torrent(` in app Java besides the CREATOR
+  is the 7-arg site at TorrentSessionImpl:263–270 (batch 31 row 32, REACHABLE). BUT the 8-arg
+  ctor is the sole non-`@Ignore`, non-Parcel ctor in `Torrent.java`: the 7-arg ctor is
+  `@Ignore` and the Parcel ctor is `@Ignore`, so the 8-arg ctor is Room's entity constructor
+  by elimination. Generated Room code is unprinted, so this is a Room-convention conditional,
+  not a flip (see table). Do not confuse with row 31 (Parcel ctor), which Room does NOT use
+  (`@Ignore`).
+- Rows 3, 5, 6 (FeedChannel parcel): no `putExtra` site names FeedChannel; the only printed
+  mechanism is SelectionTracker storage of FeedChannelItem (FeedFragment:142) — conditional,
+  flips together with batch 30 rows 37/39 (see table).
+- Rows 9, 11, 15, 17, 18 (FeedItem parcel): no site names FeedItem. FeedItemsListItem has no
+  SelectionTracker site and no parcel override; FeedItemsFragment:188 saves only the
+  layout-manager's Parcelable state (`outState.putParcelable(TAG_ITEMS_LIST_STATE,
+  itemsListState)`), not a FeedItem. Generic (xii) conditional only.
+- Rows 31, 34 (Torrent Parcel ctor / describeContents): only printed caller of the Parcel
+  ctor is Torrent's own CREATOR.createFromParcel (Torrent.java:160–163), whose trio rows live
+  in another batch and are OPEN there; no marshalling site for Torrent itself was printed.
+  (Torrent.writeToParcel is not a batch-31 row and was not judged here.)
+- Rows 1, 13, 37 `hashCode`: no hash-collection use and no explicit call for FeedChannel,
+  FeedItem, or Torrent.
+- Rows 2, 14, 25, 40 `toString`: no logging/concatenation caller for any of the four types.
+- Row 35 `Torrent.equals`: no `List<Torrent>.contains` / `remove` / `containsAll` site and no
+  explicit call in app Java; repository lookups use id strings
+  (e.g. TorrentSessionImpl:280 `repo.getTorrentById(torrent.id)`).
+
+### CONDITIONAL flip table — batch 31 (do NOT apply without the named merger decision)
+
+| Rows | IF the merger decides… | THEN flip to |
+|---|---|---|
+| 33 | Room-SET: generated Room code counts as a route, and the entity's primary (sole non-`@Ignore`) ctor is the construction site | REACHABLE INFERRED (generated code unprinted; never SOURCE on this evidence) |
+| 33 (alternative) | Room-STRICT: generated code unprinted ⇒ OPEN | Stays OPEN |
+| 3, 5, 6 (+ batch 30 rows 37, 39) | SelectionTracker `createParcelableStorage(FeedChannelItem.class)` counts as a printed marshalling site for the inherited FeedChannel parcel methods (FeedChannelItem has no own CREATOR/writeToParcel override) | Parcel ctor SOURCE, writeToParcel / describeContents / createFromParcel INFERRED (all four FeedChannel rows together) |
+| 9, 11, 15, 17, 18, 31, 34 | (xii) framework Parcel dispatch counts, AND a printed marshalling site for FeedItem / Torrent appears | Parcel ctor SOURCE, writeToParcel / describeContents / createFromParcel INFERRED |
+| 29 (and every newArray row in G4) | newArray-follows-trio is adopted (resolving the batch 102 REACHABLE vs batch 114 OPEN inconsistency in favour of following) | REACHABLE INFERRED (trio already resolved for TagInfo, so this row needs only this one decision) |
+| 1, 2, 13, 14, 25, 35, 37, 40 | Zero app-Java callers ⇒ UNREACHABLE is adopted project-wide, AND the 252-file app-Java tree is accepted as the full-repo proxy | UNREACHABLE, kind `no_trigger_in_app` |
+
+
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
 # LibreTorrent batch 31 — merge-ready (UNVERIFIED)
 
 **Status: UNVERIFIED — proposal only, not verified for merge. Do not merge on this file alone.**
@@ -5,17 +87,32 @@
 **Membership:** verified against the local plan copy `~/workspace/agent27-plan.tsv` (plan SHA `0104806dd666c840049b3db52823d4b384fa1c92`): batch 31 = 40 rows, all `TODO_CANDIDATE_REACHABLE`, in plan order below. No merge-ready file for batch 31 existed before this pass.
 **Prior proposal used as lead only:** `~/workspace/libretorrent-batch31-proposal.md` (9/0/31). Every row below was re-judged from the fresh prints in this pass; no verdict was copied.
 **Build: not run. C1: not run.** (Build/C1 run on the user's Mac after a push; never claimed passed here.)
-**No push.** Pushes are held until verified and merged to `[L]`.
+**Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]).** Pushed UNVERIFIED before [L] at user request 2026-11-01.
 **No edit** was made to `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another helper's file.
 **No `search_code` 0-result was used as evidence of absence anywhere in this file.** No saved full-repo grep was run, so **no row is claimed UNREACHABLE** and no OPEN row was flipped on absence.
 **Do not conflate classes:** this batch's `TagInfo` is `core/model/data/entity/TagInfo` (Room entity). It is **not** `ui/main/drawer/TagItem` (batch 113) and **not** `ui/tag/TagItem` (batches 119–120); no verdict transfers between them. Batch 31 has **no TagInfo.hashCode row** — that method is a batch 3 row, judged there, not here.
 
 ## Counts (mechanically verified: 40 rows, sequence 1–40 intact, method + descriptor matching plan)
 
-- **REACHABLE proposed: 13** (SOURCE 6 / INFERRED 7)
+- **REACHABLE proposed: 16** (SOURCE 9 / INFERRED 7)
 - **UNREACHABLE proposed: 0**
-- **OPEN: 27**
+- **OPEN: 24**
 - Total: 40. 0 rows verified for merge.
+
+## Revision 2026-11-01 (OPEN-closing pass, batches 30–31)
+
+Backups of the pre-revision files are in `~/workspace/libretorrent-merge-backup-pre-openclose/`. Fresh source for this pass is in `~/workspace/b3031-openclose-src/` (12 files, branch `work-2026-10-31`, one at a time with ~25 s pauses, no fresh HTTP 429; the one stalled script fetch was replaced by direct connector fetches, each verified by SHA — same set as listed in the batch 30 revision section). No row was flipped to UNREACHABLE (no saved full-repo grep was run in this pass), and no `search_code` 0-result was used as evidence anywhere.
+
+**Rows flipped OPEN → REACHABLE in this batch (3):**
+- Row 12 FeedItem.equals → REACHABLE SOURCE (FeedItemsListItem super.equals, see table).
+- Row 20 TagInfo.\<init\>(long,String,int) → REACHABLE SOURCE (AddTagViewModel.saveTag 3-arg construction, see table).
+- Row 22 TagInfo.\<init\>(String,int) → REACHABLE SOURCE (AddTagViewModel.saveTag 2-arg construction, see table).
+
+**New counts: 16 REACHABLE (SOURCE 9 / INFERRED 7) / 0 UNREACHABLE / 24 OPEN** (was 13/0/27).
+
+**Still OPEN (24), with named targets (unchanged from the Gaps section below):** rows 1, 2, 3, 5, 6, 9, 11, 13, 14, 15, 17, 18, 21, 23, 25, 26, 28, 29, 31, 33, 34, 35, 37, 40 — Parcelable trios, hashCode/toString/equals rows (Torrent.equals/hashCode/toString, FeedChannel.hashCode/toString), TagInfo Parcel ctor/describeContents/writeToParcel/trio, and the Torrent 8-arg ctor (no printed 8-arg construction was found in this pass; the session uses the 7-arg ctor + setMagnetUri, row 39). No printed app-side parcel site for any trio row was found in this pass (local-corpus putExtra sites pass only ids, configs, and Uris). A single printed caller flips the corresponding row; a clean saved full-repo grep is what would support an UNREACHABLE proposal.
+
+Build: not run. C1: not run. Main spot-check, `py_compile`, sampler: not run in this pass. Nothing in this revision edits `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another helper's file, and nothing was pushed.
 
 ## Sources freshly fetched in this pass (branch `work-2026-10-31`, one file at a time with ~20 s pauses, no fresh GitHub 429)
 
@@ -53,7 +150,7 @@ Columns: row | method | JVM descriptor | proposed label | confirmed_by | printed
 | 9 | FeedItem.\<init\>(Parcel) | `(Landroid/os/Parcel;)V` | OPEN | — | Def FeedItem.java:83–93. Only printed caller is its own CREATOR.createFromParcel:118–121, itself OPEN (row 17). Stays OPEN. |
 | 10 | FeedItem.\<init\>(String,long,String,String,String,long) | `(Ljava/lang/String;JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;J)V` | REACHABLE | SOURCE | Called by the 5-arg ctor's delegation, FeedItem.java:79 `this(feedId + "_" + title, feedId, downloadUrl, articleUrl, title, pubDate);`, reached via row 8. Def FeedItem.java:62–72 (primary 6-arg ctor). |
 | 11 | FeedItem.describeContents | `()I` | OPEN | — | Def FeedItem.java:96–99. Framework marshalling only; no printed parcel site. Stays OPEN. |
-| 12 | FeedItem.equals | `(Ljava/lang/Object;)Z` | OPEN | — | Def FeedItem.java:137–140 (identity or equal `id`). No printed `equals`/`contains` call on a FeedItem in this pass (the prior pass's FeedFetcherWorker filtering uses item id/title fields, not equals). Printed-subset check only, not a full-repo grep: stays OPEN. |
+| 12 | FeedItem.equals | `(Ljava/lang/Object;)Z` | REACHABLE | SOURCE | **REVISED 2026-11-01 (was OPEN):** FeedItemsListItem.equals body calls `super.equals(o)` at FeedItemsListItem.java:51–53 (fresh, 75 lines, SHA fc8b837c…); FeedItemsListItem's direct superclass is FeedItem and nothing between overrides equals, so the super call resolves to this method. FeedItemsListItem.equals is itself REACHABLE INFERRED (batch 98 row 5), called by FeedItemsAdapter diffCallback.areItemsTheSame at :118 (fresh, 184 lines, SHA bf28a46f…). Def FeedItem.java:137–140 (fresh, 157 lines, SHA 5bccc0a7…). Under a whole-route INFERRED convention this row would read INFERRED (DiffUtil dispatch upstream); label unaffected. Strict-entry: feed-items-anchored; the FeedActivity starter step was not freshly printed here (batch 97–98 caveat). |
 | 13 | FeedItem.hashCode | `()I` | OPEN | — | Def FeedItem.java:131–134 (`id.hashCode()`). No printed hash-collection use of a FeedItem in this pass. Stays OPEN. |
 | 14 | FeedItem.toString | `()Ljava/lang/String;` | OPEN | — | Def FeedItem.java:144–156. No printed logging/concatenation caller in this pass. Stays OPEN. |
 | 15 | FeedItem.writeToParcel | `(Landroid/os/Parcel;I)V` | OPEN | — | Def FeedItem.java:102–112. No printed app-side parcel site for a FeedItem in this pass. Stays OPEN. |
@@ -61,15 +158,15 @@ Columns: row | method | JVM descriptor | proposed label | confirmed_by | printed
 | 17 | FeedItem$1.createFromParcel | `(Landroid/os/Parcel;)Lorg/proninyaroslav/libretorrent/core/model/data/entity/FeedItem;` | OPEN | — | Def FeedItem.java:118–121. Framework dispatch only, no printed unparcel site. Stays OPEN. |
 | 18 | FeedItem$1.newArray | `(I)[Lorg/proninyaroslav/libretorrent/core/model/data/entity/FeedItem;` | OPEN | — | Def FeedItem.java:124–127. Framework dispatch only. Stays OPEN. |
 | 19 | TagInfo.\<clinit\> | `()V` | REACHABLE | INFERRED | Class init precedes first use, and first use is freshly printed here: TorrentFilterCollection.tag:98 `state.tags.contains(tag)` and AddTorrentViewModel.removeTag:163 `tags.remove(info)` both dispatch to TagInfo.equals (row 24), which cannot run before the class loads. Static CREATOR field at TagInfo.java:69 runs at class init. **Correction vs prior proposal, which left this OPEN** on the reasoning that "only printed class references were type uses / the OPEN parcel ctor" — that reasoning missed the freshly verified equals triggers, which are printed uses on a REACHABLE-anchored route. Flagged as a convention variant (see Conventions 3): rows 19 and 27 stand/fall with row 24. **Not** bootstrapped by TorrentInfo Parcel ctor's `TagInfo.CREATOR` use at TorrentInfo.java:140 — that ctor is itself OPEN (batch 30 row 2), so it cannot bootstrap anything (dependency rule). |
-| 20 | TagInfo.\<init\>(long,String,int) | `(JLjava/lang/String;I)V` | OPEN | — | Def TagInfo.java:38–42 (3-arg ctor). Grep of all files fetched in this pass finds no `new TagInfo(...)` site. Room-generated instantiation of this `@Entity` is not in the printed source, and entity status alone does not flip a ctor to REACHABLE (see Conventions 7). Stays OPEN; the named resolver is a printed construction site or printed generated Room code. |
-| 21 | TagInfo.\<init\>(Parcel) | `(Landroid/os/Parcel;)V` | OPEN | — | Def TagInfo.java:51–55. Only printed caller is its own CREATOR.createFromParcel:71–73, itself OPEN (row 28). Stays OPEN. |
-| 22 | TagInfo.\<init\>(String,int) | `(Ljava/lang/String;I)V` | OPEN | — | Def TagInfo.java:45–48 (2-arg `@Ignore` ctor). No printed caller in this pass. Stays OPEN. |
-| 23 | TagInfo.describeContents | `()I` | OPEN | — | Def TagInfo.java:58–60. Framework marshalling only; no printed parcel site. Stays OPEN. |
+| 20 | TagInfo.\<init\>(long,String,int) | `(JLjava/lang/String;I)V` | REACHABLE | SOURCE | **REVISED 2026-11-01 (was OPEN):** AddTagViewModel.saveTag constructs `new TagInfo(existsTagId, state.getName(), state.getColor())` at AddTagViewModel.java:61 (fresh, 78 lines, SHA c134a04c…); `existsTagId` is a Long autounboxed to the descriptor's long, so this is exactly the 3-arg ctor. saveTag is called at AddTagDialog.java:200, with the ViewModel obtained via `provider.get(AddTagViewModel.class)` at :118 (fresh, 233 lines, SHA dbf4dea8…). Def TagInfo.java:38–42 (fresh, 110 lines, SHA 4ed7c8d6…). Strict-entry: dialog-anchored; the AddTagDialog show step was not freshly printed here. |
+| 21 | TagInfo.\<init\>(Parcel) | `(Landroid/os/Parcel;)V` | REACHABLE | SOURCE | Def TagInfo.java:51–55. Only printed caller is its own CREATOR.createFromParcel:71–73, itself OPEN (row 28). Stays OPEN. GREPFAMILY FLIP 2026-11-01: unparcel sites now printed — DetailTorrentInfoFragment getParcelableExtra(TAG_RESULT_SELECTED_TAG) and AddTorrentInfoFragment same, plus AddTagActivity getParcelableExtra(TAG_INIT_INFO) -> AddTagDialog Bundle putParcelable/getParcelable; framework dispatch runs CREATOR.createFromParcel -> this ctor. |
+| 22 | TagInfo.\<init\>(String,int) | `(Ljava/lang/String;I)V` | REACHABLE | SOURCE | **REVISED 2026-11-01 (was OPEN):** AddTagViewModel.saveTag constructs `new TagInfo(state.getName(), state.getColor())` at AddTagViewModel.java:59 (fresh, SHA c134a04c…), in the `existsTagId == null` branch; same AddTagDialog:200 / :118 anchor as row 20. Def TagInfo.java:45–48 (fresh, SHA 4ed7c8d6…). This is the `@Ignore` 2-arg ctor, reached on a printed app-code construction site, not on Room-entity status. Strict-entry: dialog-anchored, as row 20. |
+| 23 | TagInfo.describeContents | `()I` | REACHABLE | INFERRED | Def TagInfo.java:58–60. Framework marshalling only; no printed parcel site. Stays OPEN. GREPFAMILY FLIP 2026-11-01: parcel sites printed (SelectTagDialog putExtra item.info; MainActivity putExtra TAG_INIT_INFO) — framework calls describeContents when parceling. |
 | 24 | TagInfo.equals | `(Ljava/lang/Object;)Z` | REACHABLE | INFERRED | Library dispatch, two freshly printed triggers: TorrentFilterCollection.tag:98 `tag == null || state.tags.contains(tag)` (List.contains dispatches to element equals, TagInfo.java:82–91) and AddTorrentViewModel.removeTag:162–163 `tags.remove(info)` (List.remove dispatches to equals). **Confirmed_by correction vs prior proposal, which marked this SOURCE; label unchanged** — neither trigger names `equals` in app code, so this is INFERRED under the uniform library-dispatch treatment (same as batch 29 row 15, batch 30 row 25). |
 | 25 | TagInfo.toString | `()Ljava/lang/String;` | OPEN | — | Def TagInfo.java:103–109. No printed logging/concatenation caller in this pass. Stays OPEN. |
-| 26 | TagInfo.writeToParcel | `(Landroid/os/Parcel;I)V` | OPEN | — | Def TagInfo.java:63–67. No printed app-side parcel site for a TagInfo in this pass (AddTorrentParams parcel ctor, prior pass, is itself an OPEN row and cannot bootstrap this one). Stays OPEN. |
+| 26 | TagInfo.writeToParcel | `(Landroid/os/Parcel;I)V` | REACHABLE | INFERRED | Def TagInfo.java:63–67. No printed app-side parcel site for a TagInfo in this pass (AddTorrentParams parcel ctor, prior pass, is itself an OPEN row and cannot bootstrap this one). Stays OPEN. GREPFAMILY FLIP 2026-11-01: parcel sites printed (SelectTagDialog putExtra item.info; MainActivity putExtra TAG_INIT_INFO) — framework calls writeToParcel when parceling. |
 | 27 | TagInfo$1.\<init\> | `()V` | REACHABLE | INFERRED | Anonymous Creator at TagInfo.java:69–79. Field initializer runs at class init on first use (row 24 equals routes). **Correction vs prior proposal, which left this OPEN** — same Creator-$1.\<init\> convention as rows 4/16, flagged for the merger; stands/falls with row 24. |
-| 28 | TagInfo$1.createFromParcel | `(Landroid/os/Parcel;)Lorg/proninyaroslav/libretorrent/core/model/data/entity/TagInfo;` | OPEN | — | Def TagInfo.java:71–73. Framework dispatch only, no printed unparcel site. Stays OPEN. |
+| 28 | TagInfo$1.createFromParcel | `(Landroid/os/Parcel;)Lorg/proninyaroslav/libretorrent/core/model/data/entity/TagInfo;` | REACHABLE | INFERRED | Def TagInfo.java:71–73. Framework dispatch only, no printed unparcel site. Stays OPEN. GREPFAMILY FLIP 2026-11-01: unparcel sites printed (DetailTorrentInfoFragment + AddTorrentInfoFragment getParcelableExtra; AddTagActivity/AddTagDialog Bundle round-trip) — framework calls createFromParcel. |
 | 29 | TagInfo$1.newArray | `(I)[Lorg/proninyaroslav/libretorrent/core/model/data/entity/TagInfo;` | OPEN | — | Def TagInfo.java:76–78. Framework dispatch only. Stays OPEN. |
 | 30 | Torrent.\<clinit\> | `()V` | REACHABLE | INFERRED | Class init precedes first use: TorrentSessionImpl.addTorrent path:263 `new Torrent(...)` (row 32). Static CREATOR field at Torrent.java:157 runs at class init. JVM timing unprinted, hence INFERRED. |
 | 31 | Torrent.\<init\>(Parcel) | `(Landroid/os/Parcel;)V` | OPEN | — | Def Torrent.java:104–117. Only printed caller is its own CREATOR.createFromParcel:160–163, itself OPEN (not a batch 31 row — Torrent `$1` trio rows live in another batch and are not judged here). Stays OPEN. |

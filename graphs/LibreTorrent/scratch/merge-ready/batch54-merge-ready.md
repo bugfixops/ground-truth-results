@@ -1,6 +1,31 @@
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
+## Revision note — open-close pass 2026-11-01
+
+**Counts before: 35 REACHABLE proposed / 0 UNREACHABLE / 5 OPEN. Counts after: 40 / 0 / 0.**
+All five OPEN rows flip to REACHABLE SOURCE on freshly printed source in this pass (see
+"Flips in this open-close pass" below). No other row's label changes. Fresh source for this
+pass (branch work-2026-10-31, GitHub connector only, one file at a time with ~25 s pauses,
+no fresh HTTP 429), saved in `~/workspace/b5354-openclose-src/`:
+`core/model/TorrentEngine.java` (1659 lines, SHA 17d06efe1076675af0c41a6c929e8d2f04eabb68),
+`core/system/FileSystemFacadeImpl.java` (444 lines, SHA 3e67b0c6d0a2930d0d5f54ec3abf03eb75c31435),
+`ui/filemanager/FileManagerViewModel.java` (393 lines, SHA 98399f0a95eb2adb07f5e5f97427197c3025981f),
+`ui/filemanager/FileManagerDialog.java` (692 lines, SHA 62c879b92cff8341dc1f26b1fd235902c6050c8b),
+`core/storage/FeedRepositoryImpl.java` (226 lines, SHA 20f94942d1147a21f97775ce882ad526068cd8c8),
+`ui/feeds/FeedViewModel.java` (172 lines, SHA c72f614afd02a3df5661d72532693d7444c8a388),
+`ui/feeds/FeedActivity.java` (412 lines, SHA 90d659739ba7f136f1c0b97e1d2163f0c3227f84).
+**TorrentEngine freshness closed:** the fresh TorrentEngine print matches the earlier
+local-copy lines exactly (facade L132, getFD L380, createFile L980, write L984, deleteFile
+L1154, getDirAvailableBytes L1200, cleanTempDir L1225), so the "TE lines are local-copy
+lines" caveat in the original file no longer applies to those citations.
+**Batch-4 interaction re-checked, NOT flipped:** batch-4 row 15 (`isValidFatFilename`,
+UNREACHABLE proposed INFERRED) is a different method from row 9; FileManagerViewModel calls
+`buildValidFatFilename`, not `isValidFatFilename`, so row 15's caller is still missing and
+row 15 is unchanged by this pass. Build: not run. C1: not run.
+
 # LibreTorrent batch 54 — merge-ready part — UNVERIFIED
 
-**Status: UNVERIFIED proposal only. NOT verified for merge. NOT pushed. No edit to
+**Status: UNVERIFIED proposal only. NOT verified for merge. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]). No edit to
 `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another agent's files.**
 **Build: not run. C1: not run.** The build and C1 checks run on the user's Mac after a push,
 so they are marked "not run" here, never passed. No sampler or full-repo grep was run or is claimed.
@@ -141,6 +166,31 @@ Abbreviations: `DFM` = `DefaultFsModule.java`, `FDWI` = `FileDescriptorWrapperIm
     SAF-path gate applies (resolver L43 selects the SAF module for SAF URIs). Module
     dispatch is INFERRED, consistent with row 39 (`SFS.delete`) in Agent 16's convention.
 
+
+## Flips in this open-close pass (2026-11-01 — all five OPEN → REACHABLE SOURCE)
+
+1. **Row 9 `buildValidFatFilename`:** fresh `FileManagerViewModel.createFile` L248–253 calls
+   `fs.buildValidFatFilename(fileName)` (L253, inside `appendExtension(...)`); `createFile`
+   is called by `FileManagerDialog.createFile` L570–583 (`viewModel.createFile(fileName)`
+   L583, from dialog branches L348/L508); the dialog ViewModel is obtained L135–140.
+   The old "only printed caller is isValidFatFilename" claim is superseded: `isValidFatFilename`
+   L332–334 *calls* buildValidFatFilename, it is not a route into it from outside, and the
+   new caller is a direct printed call. (Batch-4 row 15 unchanged — see revision note.)
+2. **Row 18 `getExtensionSeparator`:** fresh `FileManagerViewModel.appendExtension`
+   L229–243 calls `fs.getExtensionSeparator()` (L243); `appendExtension` is called from
+   `fileExists` L224 and `createFile` L253, and `createFile` by `FileManagerDialog` L583
+   as in (1). Row 17's field-direct read is now irrelevant: a direct caller is printed.
+3. **Row 27 `isValidFatFilenameChar`:** printed internal call from reachable
+   `buildValidFatFilename` L351 (row 9, flipped in this pass) — SOURCE under the per-row
+   convention (printed internal call from a reachable method, as rows 24/29).
+4. **Row 32 `trimFilename`:** printed internal call from reachable `buildValidFatFilename`
+   L360 (row 9, flipped in this pass) — SOURCE on the same ground as row 27.
+5. **Row 33 `write(CharSequence,Charset,Uri)`:** fresh chain `FeedActivity.backupFeeds`
+   L346–357 → `viewModel.saveFeedsSync(file)` L349 → `FeedViewModel.saveFeedsSync`
+   L135–137 → `repo.serializeAllFeeds(file)` → `FeedRepositoryImpl.serializeAllFeeds`
+   L144–147 → facade `.write(String, StandardCharsets.UTF_8, file)` L147, i.e. this
+   overload (CharSequence, Charset, Uri), not the byte[] overload (row 34, TE L984).
+
 ## Strict-entry caveat (explicit)
 
 Every REACHABLE route below is anchored at `TorrentService` → `TorrentEngine`, at a settings
@@ -164,11 +214,10 @@ the `DefaultFsModule` branch instead (batch 53).
   Note: batch 55's proposal used SOURCE for SafFsModule rows reached via the same facade
   calls; this file keeps Agent 16's INFERRED for the analogous `SafFileSystem` rows (37–40)
   — the merger must pick one convention for module-dispatch rows across batches 53–55.
-- **`buildValidFatFilename` group (rows 9, 27, 32):** row 9's only printed caller is
-  `FSFI.isValidFatFilename` L334, which the graph labels UNREACHABLE (batch 4,
-  `no_trigger_in_app`) — a graph claim, NOT re-derived here, so it cannot anchor REACHABLE
-  and cannot prove UNREACHABLE. Rows 27 and 32 inherit OPEN from row 9. Reconcile with the
-  batch-4 graph claim at merge; do not flip on the graph claim alone.
+- **`buildValidFatFilename` group (rows 9, 27, 32) — RESOLVED in open-close pass 2026-11-01:**
+  rows 9, 27, 32 are now REACHABLE SOURCE on fresh printed callers (see "Flips in this
+  open-close pass"). The batch-4 graph claim for `isValidFatFilename` is a different method
+  and was not relied on for these flips; batch-4 row 15 is unchanged (see revision note).
 
 ## Per-row verdicts
 
@@ -182,7 +231,7 @@ the `DefaultFsModule` branch instead (batch 53).
 | 6 | `FileDescriptorWrapperImpl.open` | REACHABLE | SOURCE | Def `FDWI` L46–51. Called by `FSFI.write(byte[])` L225 and `FSFI.write(CharSequence)` L237 (`w.open("rw")`), and by `TE` L380–381 (local copy, `w.open("r")` on the wrapper from `fs.getFD`). The `FSFI.write(byte[])` chain alone anchors it via `TE` L980–984 (local copy). |
 | 7 | `FileSystemFacadeImpl.<clinit>` | REACHABLE | INFERRED | Static fields `FSFI` L44–47 (`TAG`, `EXTENSION_SEPARATOR`, `TEMP_DIR`). JVM class initialisation runs on first use of the class; first construction is printed (`SFH` L41–42, called by Storage L89, Network L109, `TE` L132 local copy). JVM dispatch, hence INFERRED. |
 | 8 | `FileSystemFacadeImpl.<init>` | REACHABLE | SOURCE | Def `FSFI` L52–57. Constructed by `SFH.getFileSystemFacade` L41–42; helper called by Storage fragment L89, Network fragment L109, `TE` L132 (local copy). |
-| 9 | `FileSystemFacadeImpl.buildValidFatFilename` | OPEN | — | Def `FSFI` L343–363 (calls `isValidFatFilenameChar` L351 and `trimFilename` L360). Its only printed caller is `FSFI.isValidFatFilename` L334, which the graph labels UNREACHABLE (batch 4) — a graph claim, NOT re-derived here, so it cannot anchor REACHABLE and cannot prove UNREACHABLE. OPEN; flips only with a printed caller of `buildValidFatFilename` or of `isValidFatFilename`, or a saved full-repo grep. |
+| 9 | `FileSystemFacadeImpl.buildValidFatFilename` | REACHABLE | SOURCE | **FLIPPED in this open-close pass (2026-11-01).** Def `FSFI` L343–363 (fresh print). Fresh caller: `FileManagerViewModel.createFile` L248–253 calls `fs.buildValidFatFilename(fileName)` (L253); `createFile` called by `FileManagerDialog.createFile` L570–583 (`viewModel.createFile(fileName)` L583). Batch-4 row 15 (`isValidFatFilename`) NOT flipped by this — different method, caller still missing. |
 | 10 | `FileSystemFacadeImpl.cleanTempDir` | REACHABLE | SOURCE | Def `FSFI` L296–303. Called by `TE.cleanTemp` L1225 (local copy) `fs.cleanTempDir()`. |
 | 11 | `FileSystemFacadeImpl.createFile` | REACHABLE | SOURCE | Def `FSFI` L199–218. Called by `TE.saveTorrentFile` L980 (local copy) `fs.createFile(destDir, name, true)`. |
 | 12 | `FileSystemFacadeImpl.deleteFile` | REACHABLE | SOURCE | Def `FSFI` L110–115. Called by `TE` L1154 (local copy) `fs.deleteFile(uri)` (watch-dir delete branch). |
@@ -191,7 +240,7 @@ the `DefaultFsModule` branch instead (batch 53).
 | 15 | `FileSystemFacadeImpl.getDirAvailableBytes` | REACHABLE | SOURCE | Def `FSFI` L268–282. Called by `TE` L1200 (local copy) `fs.getDirAvailableBytes(downloadPath)`. |
 | 16 | `FileSystemFacadeImpl.getDirPath` | REACHABLE | SOURCE | Def `FSFI` L418–423. Called by Storage fragment `onCreate` L99 (also L126, L153, L180, L271). |
 | 17 | `FileSystemFacadeImpl.getExtension` | REACHABLE | SOURCE | **FLIPPED in this pass.** Def `FSFI` L312–325. Fresh `DetailTorrentViewModel.java` L399 `fs.getExtension(fileName)` (in `makeOpenFileIntent`). |
-| 18 | `FileSystemFacadeImpl.getExtensionSeparator` | OPEN | — | Def `FSFI` L68–71. No printed caller in this pass. Note: `getExtension` (row 17, now REACHABLE) reads the `EXTENSION_SEPARATOR` field directly at `FSFI` L316 — it does NOT call `getExtensionSeparator()`, so row 17 does not flip row 18. NOT UNREACHABLE without a saved full-repo grep. |
+| 18 | `FileSystemFacadeImpl.getExtensionSeparator` | REACHABLE | SOURCE | **FLIPPED in this open-close pass (2026-11-01).** Def `FSFI` L68–71 (fresh print). Fresh caller: `FileManagerViewModel.appendExtension` L229–243 calls `fs.getExtensionSeparator()` (L243); `appendExtension` called from `fileExists` L224 and `createFile` L253, `createFile` by `FileManagerDialog` L583. |
 | 19 | `FileSystemFacadeImpl.getFD` | REACHABLE | SOURCE | Def `FSFI` L60–65. Called by `TE` L380 (local copy) `fs.getFD(file)`, and internally by both `FSFI.write` overloads (L224, L236). |
 | 20 | `FileSystemFacadeImpl.getFilePath` | REACHABLE | SOURCE | Def `FSFI` L430–435. Called by Network fragment L208 and L396. |
 | 21 | `FileSystemFacadeImpl.getFileUri(Uri,String)` | REACHABLE | SOURCE | **FLIPPED in this pass.** Def `FSFI` L122–136. Fresh `TorrentDownloadImpl.java` L1299 `fs.getFileUri(torrent.downloadPath, "." + ti.infoHash() + ".parts")`. (`FSFI.createFile` calls the *module* method directly at L205/L213, not this facade method — that was Agent 16's only printed chain; this row has its own facade caller.) |
@@ -200,13 +249,13 @@ the `DefaultFsModule` branch instead (batch 53).
 | 24 | `FileSystemFacadeImpl.getTempDir` | REACHABLE | SOURCE | Def `FSFI` L285–293. Called internally by `FSFI.cleanTempDir` L298 and by `FSFI.makeTempFile` L308; `cleanTempDir` is reachable via `TE` L1225 (local copy), so this internal call anchors it. |
 | 25 | `FileSystemFacadeImpl.getUserDirPath` | REACHABLE | SOURCE | **FLIPPED in this pass.** Def `FSFI` L98–107. Fresh `FeedActivity.java` L266 and L282 `new FileManagerConfig(fs.getUserDirPath(), ...)`. |
 | 26 | `FileSystemFacadeImpl.isStorageReadable` | REACHABLE | SOURCE | Def `FSFI` L185–191. Called by `TRI.getSessionFile` L110 and `TRI.getTorrentDataDir` L146 via the `SFH` facade singleton. Trunk caveat: the callers of those repository methods were not freshly printed in this pass (see Strict-entry caveat). |
-| 27 | `FileSystemFacadeImpl.isValidFatFilenameChar` | OPEN | — | Def `FSFI` L365–384 (private). Its only printed caller is `buildValidFatFilename` L351 (row 9, OPEN), so it inherits OPEN. NOT UNREACHABLE without a saved full-repo grep. |
+| 27 | `FileSystemFacadeImpl.isValidFatFilenameChar` | REACHABLE | SOURCE | **FLIPPED in this open-close pass (2026-11-01).** Def `FSFI` L365–384 (private, fresh print). Printed internal call from reachable `buildValidFatFilename` L351 (row 9, flipped in this pass) — SOURCE under the per-row convention (printed internal call from a reachable method). |
 | 28 | `FileSystemFacadeImpl.makeFileSystemPath(Uri)` | REACHABLE | SOURCE | **FLIPPED in this pass.** Def `FSFI` L248–251 (delegates to the 2-arg overload at L250). Fresh `TorrentSessionImpl.java` L341 and L407, and fresh `TorrentDownloadImpl.java` L1229, all call the 1-arg overload. |
 | 29 | `FileSystemFacadeImpl.makeFileSystemPath(Uri,String)` | REACHABLE | SOURCE | **FLIPPED in this pass.** Def `FSFI` L254–260. Reached by printed internal call `FSFI` L250 from row 28 (reachable, fresh callers above). Also dispatches to the module method at L259 (row 2 / batch-55 row 30). |
 | 30 | `FileSystemFacadeImpl.makeTempFile` | REACHABLE | SOURCE | **FLIPPED in this pass.** Def `FSFI` L306–309 (calls `getTempDir` L308, row 24). Fresh `AddTorrentViewModel.java` L253 `v.fs.makeTempFile(".torrent")`. |
 | 31 | `FileSystemFacadeImpl.normalizeFileSystemPath` | REACHABLE | SOURCE | **FLIPPED in this pass.** Def `FSFI` L404–411. Fresh `Utils.java` L646 `fs.normalizeFileSystemPath(path)` and fresh `AddTorrentViewModel.java` L259 `v.fs.normalizeFileSystemPath(httpTmp.getAbsolutePath())`. |
-| 32 | `FileSystemFacadeImpl.trimFilename` | OPEN | — | Def `FSFI` L386–397 (private). Its only printed caller is `buildValidFatFilename` L360 (row 9, OPEN), so it inherits OPEN. NOT UNREACHABLE without a saved full-repo grep. |
-| 33 | `FileSystemFacadeImpl.write(CharSequence,Charset,Uri)` | OPEN | — | Def `FSFI` L232–241. No printed caller of this overload in this pass; the printed `TE` write call (L984, local copy) passes `byte[] bencode` (L974), i.e. row 34, not this overload. NOT UNREACHABLE without a saved full-repo grep. |
+| 32 | `FileSystemFacadeImpl.trimFilename` | REACHABLE | SOURCE | **FLIPPED in this open-close pass (2026-11-01).** Def `FSFI` L386–397 (private, fresh print). Printed internal call from reachable `buildValidFatFilename` L360 (row 9, flipped in this pass) — SOURCE on the same ground as row 27. |
+| 33 | `FileSystemFacadeImpl.write(CharSequence,Charset,Uri)` | REACHABLE | SOURCE | **FLIPPED in this open-close pass (2026-11-01).** Def `FSFI` L232–241 (fresh print). Fresh chain: `FeedActivity.backupFeeds` L346–357 → `viewModel.saveFeedsSync(file)` L349 → `FeedViewModel.saveFeedsSync` L135–137 → `repo.serializeAllFeeds(file)` → `FeedRepositoryImpl.serializeAllFeeds` L144–147 → facade `.write(String, UTF_8, file)` L147, i.e. this overload, not the byte[] overload (row 34). |
 | 34 | `FileSystemFacadeImpl.write(byte[],Uri)` | REACHABLE | SOURCE | Def `FSFI` L221–229. Called by `TE.saveTorrentFile` L984 (local copy) `fs.write(bencode, path)` with `byte[] bencode` (L974). |
 | 35 | `FsModuleResolverImpl.<init>` | REACHABLE | SOURCE | Def `FMRI` L35–39 (constructs `SafFsModule` L37, `DefaultFsModule` L38). Constructed by `SFH.getFileSystemFacade` L41–42; helper called by Storage L89, Network L109, `TE` L132 (local copy). |
 | 36 | `FsModuleResolverImpl.resolveFsByUri` | REACHABLE | SOURCE | Def `FMRI` L42–50. Called by every `FSFI` dispatch method, including reachable ones: `getFD` L62, `deleteFile` L112, `createFile` L203, `getDirAvailableBytes` L272, `getDirPath` L420, `getFilePath` L432. |
@@ -219,22 +268,20 @@ the `DefaultFsModule` branch instead (batch 53).
 
 - **40 rows, sequence 1–40 intact, in plan order, method names and JVM descriptors matching
   the plan copy row for row.**
-- **35 REACHABLE proposed / 0 UNREACHABLE / 5 OPEN.**
-- REACHABLE rows: 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 22, 23,
-  24, 25, 26, 28, 29, 30, 31, 34, 35, 36, 37, 38, 39, 40.
-  Of these: SOURCE 26 / INFERRED 9.
-- OPEN rows: 9, 18, 27, 32, 33.
+- **40 REACHABLE proposed / 0 UNREACHABLE / 0 OPEN (after open-close pass 2026-11-01; was 35/0/5).**
+- REACHABLE rows: 1–40 (all).
+  Of these: SOURCE 31 / INFERRED 9.
+- OPEN rows: none.
 - **0 rows verified for merge.** No UNREACHABLE is claimed: no saved full-repo grep was run
   in this pass, and absence from the printed subset is not evidence of absence.
 
 ## What the merger still needs
 
-1. Saved full-repo grep for all 5 OPEN rows, in priority order: `buildValidFatFilename` /
-   `isValidFatFilename` / `isValidFatFilenameChar` / `trimFilename` (reconcile with the
-   batch-4 graph claim for `isValidFatFilename`), `getExtensionSeparator`,
-   `write(CharSequence,Charset,Uri)`.
-2. Fresh branch re-print of `TorrentEngine.java` (all `TE` lines above are local-copy lines)
-   before merge.
+1. ~~Saved full-repo grep for the 5 former OPEN rows~~ — DONE in open-close pass 2026-11-01
+   by printed callers, not by grep; no OPEN rows remain in this batch.
+2. ~~Fresh branch re-print of `TorrentEngine.java`~~ — DONE in open-close pass 2026-11-01
+   (fresh print SHA 17d06efe…, 1659 lines; TE lines verified identical to the local-copy
+   lines cited above).
 3. Printed launcher-to-`TorrentService` step, fragment-attachment steps, and
    `TorrentRepositoryImpl` callers if the strict-entry rule is applied.
 4. Main-agent spot-check (1 in 5), `py_compile`, build, Mac build/C1 — not run.

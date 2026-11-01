@@ -1,6 +1,70 @@
+## Revision 2026-11-01 — OPEN-closing round 2, group G16 (UNVERIFIED, 0 flips)
+
+0 of 2 OPEN rows closed in this pass; counts unchanged (35 REACHABLE / 3 UNREACHABLE / 2 OPEN).
+New evidence this pass: fresh greps over the already-fetched 252-file app Java tree
+(~/workspace/ruleF-src), saved in ~/workspace/b103106112114115-openclose2-src/grep_rest.txt and grep_extra.txt, plus the
+already-fetched pref xmls (~/workspace/b115116-src/pref_*.xml). No GitHub connector fetch was
+needed; no fresh 429. Generated code, AndroidX Preference internals and res/layout are NOT in
+that tree, so it is NOT a full-repo grep.
+- Rows 7-8 SummaryPreference.setSummary(int)/(CharSequence): SummaryPreference is referenced
+  tree-wide ONLY in its own file; every setSummary hit in the tree is on another receiver type
+  (typed Preference/EditTextPreference/ListPreference variables, or generic Preference
+  parameters — e.g. AppearanceSettingsFragment notifySound is a Preference at :141/:209,
+  NetworkSettingsFragment anonymousMode is a Preference at :245/:411). AnonymousModeSettingsFragment
+  retrieves only the SwitchBarPreference via findPreference (key pref_key_anonymous_mode); the
+  SummaryPreference XML entry has NO key (pref_anonymous_mode.xml:8-9, same in the b111213 copy),
+  so no app code can findPreference it, and no settings code iterates the preference screen
+  (getPreferenceScreen hits in ui/settings are nil apart from DialogPreference getPreference()
+  in TimePreferenceDialogFragmentCompat). onBindViewHolder uses getSummary (SummaryPreference
+  :75), not setSummary; the overrides dereference summaryView, null until bind (:79-92), so
+  inflation cannot be routing through the override — an argument, not a printed call site.
+NOT flipped to UNREACHABLE: no saved full-repo grep exists (AndroidX Preference internals
+unprinted); a 252-tree zero alone never flips. Named targets unchanged: a printed setSummary
+call on a SummaryPreference instance, or a saved full-repo grep.
+Coupled group 115/38-39-40 (DECIDE TOGETHER, NEVER SEPARATELY — no separate flip made):
+re-verified against the ruleF-src copy of AppearanceSettingsFragment.java: the API-27 gate is
+:118-119 (if SDK_INT < O, initLegacyNotifySettings(pref)); row 39's only trigger is
+ringtonePicker.launch(intent) at :164, inside initLegacyNotifySettings; row 40's lambda is
+registered only inside initLegacyNotifySettings (:144-167 notifySound click listener); tree-wide
+ringtonePicker hits are only :164 and the field at :198-217 (the result callback for that
+launch). Rows 38, 39 and 40 therefore stand or fall together under the API-27 gate decision;
+all three stay UNREACHABLE closed_by_api_level in this file. Lambda numbering for rows 39-40
+remains source-order only, NOT bytecode-verified.
+NOT done here, per task: batch 11's 1-arg ctors were NOT flipped on this file's 2-arg
+delegation reasoning (SummaryPreference :39-42 -> :47); batch 11 is outside G16 and was not
+re-read. Strict-entry note (unchanged): the FeedSettingsFragment opening step is printed
+(SettingsFragment.java:122, :195-198; PreferenceActivity.java:113-114), which drops the
+strict-entry caveat FOR THAT STEP ONLY; launcher -> MainActivity and MainActivity
+settings-menu -> SettingsActivity remain sibling-batch prints (109-110, 114), not fresh in 115,
+so the caveat is NOT dropped globally. Build: not run. C1: not run.
+
+**CORRECTION 2026-11-01 (FeedSettingsFragment entry): the step that opens FeedSettingsFragment is now freshly printed — SettingsFragment.java:122 (feed preference registered), :131-134 (click listener -> openPreference), :195-196 (large-screen setFragment(FeedSettingsFragment.newInstance())), :198-199 (small-screen startActivity(FeedSettingsFragment.class)), and PreferenceActivity.java:113-114 (getFragment dispatch returns FeedSettingsFragment.newInstance()). Source saved in ~/workspace/b_feedsettings_src/. The "strict entry rule" caveat is therefore DROPPED for the FeedSettingsFragment opening step only; it is not dropped globally for other steps, and no label in this file changes on this print alone.**
+
+
+## Revision 2026-11-01 — OPEN-closing pass (UNVERIFIED, no label changes)
+
+0 of 2 OPEN rows closed in this pass; counts unchanged (35 REACHABLE / 3 UNREACHABLE / 2 OPEN).
+New evidence, freshly connector-fetched from branch work-2026-10-31 (one file at a time, ~25 s pauses, no fresh HTTP 429),
+saved in ~/workspace/b103106112115-openclose-src/: SummaryPreference.java (93 lines), LogSettingsFragment.java (101).
+Plus the saved full app Java tree grep (252 files, ~/workspace/b103106112115-openclose-src/grep_app_java_tree.txt;
+res/layout, res/xml, generated code and library/framework code NOT in it, so explicitly NOT a full-repo grep):
+every setSummary hit in the tree is on another receiver type (Appearance/Behavior/Limitations/Network/Proxy/Storage/
+Streaming fragments' EditTextPreference/ListPreference/Preference variables, LogSettingsFragment's EditTextPreference
+maxLogSize at :71 and generic Preference at :96) — NONE is on a SummaryPreference instance, and no file in the tree
+declares a SummaryPreference variable or calls setSummary on one. The two LogSettingsFragment setSummary hits are
+specifically NOT this row: maxLogSize is an EditTextPreference (LogSettingsFragment.java:69), not a SummaryPreference.
+Rows 7-8 (SummaryPreference.setSummary(int) / (CharSequence)) therefore stay OPEN; the summaryView-null-until-bind
+argument is still NOT used as a flip reason, per the task note (the XML android:summary attribute may be handled
+by the Preference base class, but that is an argument about inflation, not a printed call site).
+Named targets unchanged: a printed setSummary call on a SummaryPreference instance, or a saved full-repo grep
+(res pref XML databinding/inflation dispatch and AndroidX Preference internals still unsearched).
+Build: not run. C1: not run.
+
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
 # LibreTorrent batch 115 — merge-ready part — UNVERIFIED
 
-**Status: UNVERIFIED proposal only. NOT verified for merge. NOT pushed. No edit to `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another helper's file.**
+**Status: UNVERIFIED proposal only. NOT verified for merge. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]). No edit to `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another helper's file.**
 **Build: not run. C1: not run.** Build and C1 run on the user's Mac after a push, so they are marked "not run" here, never passed. No sampler, full-repo grep, or `py_compile` was run or is claimed in this file.
 
 - Repo: `bugfixops/ground-truth-results`, branch `work-2026-10-31` only (never `main` or `result`).
@@ -110,6 +174,6 @@ Layout base `.../app/src/main/res/layout/`, same directory:
 - Fresh prints of launcher → MainActivity and MainActivity settings-menu → SettingsActivity, if the merger requires every entry step freshly printed in this pass (sibling-batch prints exist but are not fresh here).
 - Bytecode confirmation of lambda numbering, if the merger requires it.
 - Main-agent spot-check (1 in 5), `py_compile`, build, sampler, Mac build/C1 — all not run, never claimed passed.
-- No push was made; pushes are held until verified and merged to [L].
+- Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]); pushed UNVERIFIED before [L] at user request 2026-11-01.
 
 Scope kept exactly: batch 115 only, LibreTorrent labels only, branch `work-2026-10-31` only, no device replay, no Aegis.

@@ -1,6 +1,12 @@
+**REVISION 2026-11-01 (OPEN-closing round 2) — UNVERIFIED.** Original for this round backed up in `~/workspace/libretorrent-merge-backup-pre-openclose2/batch3-merge-ready.md` (verified identical before editing). Counts UNCHANGED: 0 REACHABLE / 39 UNREACHABLE proposed / 1 OPEN. No label flipped. What was checked: fresh round-2 grep over the 252 app Java files (`~/workspace/b12341112-openclose2-src/round2_grep_20261101.txt`, sections G7–G8, H1–H3) re-confirms round 1 — the only `.hashCode()` hits on the tag/TorrentInfo types are the two TagItem wrappers delegating to `info.hashCode()` (ui/tag/TagItem.java:50, ui/main/drawer/TagItem.java:51), TorrentInfo.java:210 `tags.hashCode()` (a List call inside TorrentInfo.hashCode itself), and field hashes inside other hashCode definitions; no caller of TorrentInfo.hashCode anywhere in the tree; no HashSet/HashMap/hash-collection use of TagInfo, either TagItem, or TorrentInfo (the one HashSet hit, SelectTagViewModel.java:51, holds Long ids). The tag leg of the dependency is still closed (batch 11 row 7, tag TagItem.hashCode, UNREACHABLE proposed) but the drawer leg is still OPEN (batch 10 row 39, drawer TagItem.hashCode — another group's row, not edited here), so row 26 stays OPEN under the dependency rule; see the conditional table in the OPEN section. Rows 1–25, 27–30, 32–40 were NOT re-judged in round 2 (only the OPEN row was in scope) and are unchanged. Also fixed in this round: the stale "Weakest rows" line that still called row 31 OPEN — row 31 has been UNREACHABLE proposed since the round-1 revision. Build: not run. C1: not run.
+
+**REVISION 2026-11-01 (OPEN-closing) — UNVERIFIED.** Original backed up in `~/workspace/libretorrent-merge-backup-pre-openclose/batch3-merge-ready.md`. Counts CHANGED: was 0 REACHABLE / 38 UNREACHABLE proposed / 2 OPEN; now 0 REACHABLE / 39 UNREACHABLE proposed / 1 OPEN. ONE label flipped: row 31 `PriorityConverter.convert(Priority)` (lib->app single overload) OPEN -> UNREACHABLE proposed, kind `no_trigger_in_app`, INFERRED — see the row. All other rows unchanged: row 26 `TagInfo.hashCode` stays OPEN (dependency rule — its only callers are tag TagItem.hashCode, UNREACHABLE proposed in batch 11, and drawer TagItem.hashCode, OPEN in batch 10; the saved grep also shows no HashSet/HashMap/hash-collection use of TagInfo, and TorrentInfo.java:210 `tags.hashCode()` is a List call, not a TagInfo call); rows 1-25, 27-30, 32-40 UNREACHABLE-proposed re-verified against the saved grep (construction grep: only 0-arg/String/Exception forms printed for the exception ctors, 7-arg FeedChannel at AddFeedViewModel:173-179 and Parcel-ctor at FeedChannel:110 only, no 1-arg FeedChannel, no 0-arg AdvancedTorrentInfo/IPFilterParser, no String-only NormalizeUrlException beyond the (String,Exception) site at NormalizeUrl:185, no boolean IPFilterParser, no (Exception) FreeSpace/IPFilter exceptions, no 1-arg FixedRingBuffer beyond Logger's 2-arg sites; method grep: no caller for getTimeStamp, getEntry, stopRecording(OutputStream), write(OutputStream), addTorrent(AddTorrentParams,boolean) or its lambda $8, getInstance(TorrentEngine,TagRepository), getMaxConnections/getMaxUploads/getSize/getTorrentId/isAutoManaged, isMoving/isSaveResume, Type.<clinit>). Build: not run. C1: not run. Saved grep: saved grep `~/workspace/b12341112-openclose-src/ruleF_grep_20261101.txt` (2,043 lines; Corpus A: 252 app Java files in `~/workspace/ruleF-src`, connector-reconstructed from branch work-2026-10-31 and verified 252/252 against the walk list; Corpus B: printed library files in `~/workspace/b1-src` + `~/workspace/b2-src`; scope: res/ XML, generated sources and library sources outside Corpus B are NOT in the grep — see caveats).
+
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
 # LibreTorrent batch 3 — merge-ready part — UNVERIFIED
 
-**Status: UNVERIFIED proposal only. NOT verified for merge. NOT pushed. No graph_def.py, out/, PROGRESS_V2, AGENT_NOTES, tools/, or another agent's file was edited.**
+**Status: UNVERIFIED proposal only. NOT verified for merge. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]). No graph_def.py, out/, PROGRESS_V2, AGENT_NOTES, tools/, or another agent's file was edited.**
 Repo: bugfixops/ground-truth-results, branch work-2026-10-31 only. Never main or result.
 Build: **not run**. C1: **not run**. Sampler: **not run**. Full-repo grep: **not run**.
 These run on the user's Mac after a push (per the 22:44 instruction); nothing here claims them passed.
@@ -81,7 +87,7 @@ Saved in `~/workspace/libretorrent-merge/b3-src/` (same relative paths):
 Line numbers below are from the freshly fetched files in `b3-src/`
 (verified by grep after fetch, not hand-counted).
 
-## Headline correction to the audit — row 31 is OPEN, not REACHABLE
+## Headline correction to the audit — row 31 is UNREACHABLE, not REACHABLE (flipped from OPEN in the 2026-11-01 revision)
 
 The audit's hand route for row 31 (`s3_route_priority_final.txt`, step 12)
 cites `PriorityConverter.java:94-101` and `TorrentSessionImpl.java:1541-1575`
@@ -143,7 +149,7 @@ full-repo grep finds none, only then flip it to UNREACHABLE
 | 28 | FileTree.<init>(int,String,long,int) (ILjava/lang/String;JI)V | UNREACHABLE proposed | no_trigger_in_app — subclass super calls use 3-arg string-first, 4-arg string-first+parent, or 5-arg, never int-first 4-arg | INFERRED | FileTree.java:61 (int-first 4-arg def, delegates :66), :51, :56, :66; BencodeFileTree.java:37, :42, :47; TorrentContentFileTree.java:35, :42, :48 (super calls listed in text) |
 | 29 | IPFilterParser.<init>(boolean) (Z)V | UNREACHABLE proposed | no_trigger_in_app — only construction printed is 0-arg | INFERRED | IPFilterParser.java:54 (boolean def), :49 (0-arg def); TorrentSessionImpl.java:731 (`new IPFilterParser().parseFile(...)`) |
 | 30 | PriorityConverter.<init> ()V | UNREACHABLE proposed | no_trigger_in_app — no explicit ctor (implicit only); package-private class used only through static methods, no construction printed | INFERRED | PriorityConverter.java:28 (class, no ctor), :54, :74, :94, :103 (static converts only) |
-| 31 | PriorityConverter.convert(Priority) (Lorg/libtorrent4j/Priority;)Lorg/proninyaroslav/libretorrent/core/model/data/Priority; | OPEN | Audit REACHABLE claim refuted on overload grounds — see correction section; no printed caller for this lib→app single overload | INFERRED | PriorityConverter.java:103-110 (row-31 def, lib→app single), :94-101 (other single overload, app→lib, the one the audit route actually proves); TorrentDownloadImpl.java:731, :1139, :1646; TorrentSessionImpl.java:437, :451, :1574 (all other three overloads, listed in correction section) |
+| 31 | PriorityConverter.convert(Priority) (Lorg/libtorrent4j/Priority;)Lorg/proninyaroslav/libretorrent/core/model/data/Priority; | UNREACHABLE proposed | no_trigger_in_app — saved full-repo grep (2026-11-01, app tree) finds exactly six `PriorityConverter.convert` call sites, all other overloads, and zero calls with a single `org.libtorrent4j.Priority` argument: TorrentDownloadImpl:731 (app→lib array), :1139 (app→lib single, argument is app Priority `newPriority`), :1646 (lib→app array, getFilePriorities return), TorrentSessionImpl:437/:451 (lib→app array, Arrays.asList result), :1574 (app→lib single, argument is app Priority, result `.swig()` is a lib Priority). The method is a package-private static utility in the app tree, so app code is its only possible caller set; no static-import alias exists (grep for `PriorityConverter` finds only these sites + the definition). REVISION 2026-11-01: OPEN -> UNREACHABLE proposed on this grep; the audit REACHABLE claim stays refuted on overload grounds (see correction section). | INFERRED | PriorityConverter.java:103-110 (row-31 def, lib→app single), :94-101 (other single overload, app→lib); saved grep `~/workspace/b12341112-openclose-src/ruleF_grep_20261101.txt` sections A1/A3/A5, argument types verified in ruleF-src TorrentDownloadImpl.java:1125-1145 and TorrentSessionImpl.java:1565-1580 |
 | 32 | SessionErrors.<init> ()V | UNREACHABLE proposed | no_trigger_in_app — no explicit ctor; package-private utility used only through static methods, no construction printed | INFERRED | SessionErrors.java:26 (class, no ctor); TorrentSessionImpl.java:1117-1134, TorrentDownloadImpl.java:352-371 (static `getErrorMsg`/`isNonCritical` uses only) |
 | 33 | TorrentCriticalWork.isMoving ()Z | UNREACHABLE proposed | no_trigger_in_app — printed uses are setters and state observation, never this getter | INFERRED | TorrentCriticalWork.java:63 (def); TorrentDownloadImpl.java:286, :504, :512, :526, :550, :1217 (`setMoving`/`setSaveResume`/`observeStateChanging` only) |
 | 34 | TorrentCriticalWork.isSaveResume ()Z | UNREACHABLE proposed | no_trigger_in_app — same as row 33, getter never printed | INFERRED | TorrentCriticalWork.java:74 (def); same TorrentDownloadImpl uses as row 33 |
@@ -157,10 +163,10 @@ full-repo grep finds none, only then flip it to UNREACHABLE
 ## Counts — mechanically verified
 
 - 40 rows, sequence 1–40 intact, plan order, no duplicates, no missing row.
-- **38 UNREACHABLE proposed / 0 REACHABLE proposed / 2 OPEN** (rows 26, 31).
+- **39 UNREACHABLE proposed / 0 REACHABLE proposed / 1 OPEN** (row 26 only; row 31 flipped to UNREACHABLE proposed in the 2026-11-01 revision above).
 - confirmed_by: 40 INFERRED / 0 SOURCE (see convention section — deliberate, not an oversight).
-- This differs from the audit (38 / 1 / 1) only by row 31: REACHABLE → OPEN,
-  on the overload evidence above. Row 26 stays OPEN as in the audit.
+- This differs from the audit (38 / 1 / 1) only by row 31: REACHABLE → UNREACHABLE,
+  on the overload evidence above (OPEN-closing 2026-11-01). Row 26 stays OPEN as in the audit.
 
 ## OPEN rows — named evidence still owed (do not merge as UNREACHABLE on this file alone)
 
@@ -169,6 +175,11 @@ full-repo grep finds none, only then flip it to UNREACHABLE
    TagItem.hashCode (:49-50) → TagInfo.hashCode, but no printed caller of
    either wrapper hashCode in this session; DiffUtil in the drawer adapter
    uses equals/isSame (batch-113 lead, not freshly printed here), not hash.
+   REVISION 2026-11-01: saved grep confirms both wrappers are still the only callers (drawer wrapper OPEN in batch 10, tag wrapper UNREACHABLE proposed in batch 11), and finds no HashSet/HashMap/hash-collection use of TagInfo — so row 26 stays OPEN under the dependency rule, not UNREACHABLE.
+   REVISION 2026-11-01 (OPEN-closing round 2): fresh grep (`~/workspace/b12341112-openclose2-src/round2_grep_20261101.txt`, G7–G8 + H1–H3) re-confirms every leg — no caller of TorrentInfo.hashCode anywhere in the 252-file tree; no hash collection holds TagInfo, either TagItem, or TorrentInfo; the tag leg is still closed (batch 11 row 7 UNREACHABLE proposed) and the drawer leg is still OPEN (batch 10 row 39, another group's row, read-only here). CONDITIONAL flip table for row 26 (apply mechanically once the named items resolve; do not apply partially):
+   - If batch 10 row 39 (drawer TagItem.hashCode) flips to UNREACHABLE **and** the project hashCode rule says implicit dispatch does not count without a printed trigger **and** TorrentInfo.hashCode stays untriggered → row 26 → UNREACHABLE `no_trigger_in_app`, INFERRED.
+   - If batch 10 row 39 flips to REACHABLE, or a printed trigger appears for TorrentInfo.hashCode, or a printed hash-collection/log/concatenation caller of a TagInfo/TagItem instance appears → row 26 → REACHABLE (SOURCE if the trigger site itself is printed, else INFERRED via the wrapper).
+   - Otherwise (any leg still OPEN, or the hashCode rule still undecided) → row 26 stays OPEN. The round-2 grep alone does NOT flip it: a hashCode can be invoked implicitly by library/framework code with no app-Java call site, which is exactly the undecided project-wide question.
    (b) TorrentInfo.hashCode (:191-213) calls `tags.hashCode()` at :210,
    and List.hashCode() calls each element's hashCode — but no printed
    caller of TorrentInfo.hashCode in this session.
@@ -176,13 +187,7 @@ full-repo grep finds none, only then flip it to UNREACHABLE
    `drawer.TagItem.hashCode`, `tag.TagItem.hashCode`, `TorrentInfo.hashCode`,
    and any HashSet/HashMap/Hash table use of TagInfo or either TagItem.
    Until that grep is saved, row 26 is OPEN, not `no_trigger_in_app`.
-2. **Row 31 PriorityConverter.convert (lib→app, single)** — grep target:
-   any call to `PriorityConverter.convert` whose argument is a single
-   `org.libtorrent4j.Priority` (not an array) and whose result is used as
-   an app `Priority`. All six call sites printed fresh this session are
-   the other three overloads (see correction section). Until that grep
-   is saved, row 31 is OPEN, not REACHABLE (audit route refuted on
-   overload) and not UNREACHABLE (grep rule).
+2. **Row 31 PriorityConverter.convert (lib→app, single)** — CLOSED 2026-11-01: the saved full-repo grep found zero calls with a single lib Priority argument (all six sites are other overloads, argument types verified). Row 31 is now UNREACHABLE proposed, not OPEN; see the revised table row.
 
 ## Strict-entry caveats
 
@@ -206,7 +211,7 @@ full-repo grep finds none, only then flip it to UNREACHABLE
 
 - Rows 6–7 (FileAlreadyExistsException, both overloads): absence only,
   no construction printed anywhere this session.
-- Row 31 (PriorityConverter single lib→app): audit contradiction, OPEN.
+- Row 31 (PriorityConverter single lib→app): audit contradiction, resolved UNREACHABLE proposed in the 2026-11-01 revision (corrected from a stale OPEN note in OPEN-closing round 2).
 - Row 26 (TagInfo.hashCode): two delegation paths, no trigger, OPEN.
 - Rows 36–40 (TorrentDownloadImpl interface accessors): interface
   methods could be called from UI files not printed this session;
@@ -220,6 +225,6 @@ full-repo grep finds none, only then flip it to UNREACHABLE
 - No build, sampler, grep, or C1 passed — all marked "not run" above.
   A true git clone fails in this VM (named missing check, not passed);
   work was via the GitHub connector only, one file at a time with pauses.
-- No push was made. Nothing was edited in graph_def.py, out/,
+- Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]). Nothing was edited in graph_def.py, out/,
   PROGRESS_V2, AGENT_NOTES, tools/, or another agent's files.
 - Search_code 0 results were never used as evidence of absence.

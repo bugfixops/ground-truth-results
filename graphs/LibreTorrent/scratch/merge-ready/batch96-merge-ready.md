@@ -1,7 +1,16 @@
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
+**OPEN-CLOSING REVISION 2026-11-01 (UNVERIFIED, no push, no merge): 0 label changes. Counts before = after: 39 REACHABLE / 0 UNREACHABLE / 1 OPEN (row 40).**
+**OPEN-CLOSING ROUND 2 REVISION 2026-11-01 (UNVERIFIED, no push, no merge): 1 label change: row 40 OPEN → UNREACHABLE on saved 252-file app-Java greps in /home/hatch/workspace/b90929495969799102-openclose2-src/. Counts before 39 REACHABLE / 0 UNREACHABLE / 1 OPEN → after 39 / 1 / 0. Flips together with batch 97 row 1 (same adapter, same missing KeyProvider). Build: not run. C1: not run. 0 rows verified for merge.**
+Fresh source for this pass saved in ~/workspace/b90929495969799102-openclose-src/ (branch work-2026-10-31, one file at a time with ~25 s pauses, no fresh HTTP 429; each file plus its raw connector JSON saved; fresh-corpus grep in grep_fresh_corpus.txt — a PRINTED-SUBSET grep only, NOT a saved full-repo grep, so it cannot flip any row to UNREACHABLE).
+Fresh files re-verified for the OPEN row: `ui/feeditems/FeedItemsAdapter.java` (184 lines, SHA bf28a46f9c2f149b4557aefe5308c5310fab23c4), `ui/feeditems/FeedItemsFragment.java` (329 lines, SHA c612894b16f58bf5c7780fa683a4a8cbcefda97f).
+Row 40: getItemKey definition re-confirmed fresh at FeedItemsAdapter.java:91-97; the adapter itself has no inner KeyProvider and no SelectionTracker reference (only the Selectable import :40 and interface :49). Fresh FeedItemsFragment.java has ZERO hits for SelectionTracker/KeyProvider/getItemKey/getItemPosition/Selectable and uses the adapter only via new FeedItemsAdapter(this) :152, setAdapter :153, submitList :218/:233 (DiffUtil, not getItemKey). Consistent with batch 97 row 1 (getItemPosition OPEN) and batch 94 rows 7-8 (peers Selectable OPEN); contrast batch 99 rows 21-22/38-39 where the feed adapter's KeyProvider calls getItemKey/getItemPosition. Row 40 stays OPEN; named target: a saved full-repo grep for an external Selectable/KeyProvider consumer of FeedItemsAdapter. Lead-only cross-check (NOT fresh evidence, NOT a full-repo grep): no external getItemKey/getItemPosition consumer for this adapter in the parent's 252-file app-Java reconstruction. Build: not run. C1: not run. 0 rows verified for merge.
+
+
 # LibreTorrent batch 96 — MERGE-READY — UNVERIFIED
 
 Branch: work-2026-10-31, repo bugfixops/ground-truth-results. Local only — NO push
-(pushes are held until verified and merged to [L]), no edit to graph_def.py, out/,
+(pushed UNVERIFIED before [L] at user request 2026-11-01), no edit to graph_def.py, out/,
 PROGRESS_V2, AGENT_NOTES, tools/, or another helper's file.
 
 Membership: exactly the 40 plan rows of handoff/LIBRETORRENT_BATCH_PLAN.tsv batch 96
@@ -12,7 +21,7 @@ was used as a lead list only; every row below was re-judged against source fresh
 fetched in this pass. No row is copied on the proposal's authority alone.
 
 Counts: 40 rows judged: **39 REACHABLE proposed (SOURCE 17 / INFERRED 22),
-0 UNREACHABLE, 1 OPEN. 0/40 verified for merge.**
+1 UNREACHABLE (row 40, round 2, SOURCE), 0 OPEN. 0/40 verified for merge.**
 
 ## Printed sources used (all freshly connector-fetched this pass, branch work-2026-10-31, one file at a time with ~25 s pauses, no fresh HTTP 429)
 
@@ -115,13 +124,13 @@ confirmed_by (shown as —), consistent with sibling merge-ready files.
 | 37 | FeedItemsActivity.onFragmentFinished (Landroidx/fragment/app/Fragment;Landroid/content/Intent;Lorg/proninyaroslav/libretorrent/ui/FragmentCallback$ResultCode;)V | REACHABLE | SOURCE | **Upgraded from the prior proposal (INFERRED, contract-only) on a freshly printed caller:** FIF.finish :325–327 `((FragmentCallback)activity).onFragmentFinished(this, intent, code)`, called from FIF.onBackPressed :320–322, itself called from FIF.onOptionsItemSelected home branch :310–311. FIA implements FragmentCallback (FIA :34–35) and hosts FIF in its layout container (FIA :54–59, findFragmentById + setFeedId), so the cast target is this activity; definition FIA :62–67 (finish()). Caveat, recorded not decided (FragmentCallback convention (viii) family): dispatch is via an interface cast, and the onOptionsItemSelected step itself is framework menu dispatch (INFERRED) — under a whole-route INFERRED convention this row reads INFERRED; label unaffected. This matches the batch 82/86 precedent of upgrading equivalent onFragmentFinished rows to SOURCE on a printed finish() caller. Note the two-pane guard: FIA finishes immediately on two-pane screens (FIA :47–50), so this route runs on small screens only — a printed configuration branch, not OPEN. |
 | 38 | FeedItemsAdapter.<clinit> ()V | REACHABLE | INFERRED | Static TAG field init (FIApt :51, getSimpleName(), non-constant); runs on first class use (`new FeedItemsAdapter(this)`, FIF :152). Class-init dispatch not printed. |
 | 39 | FeedItemsAdapter.<init> (Lorg/proninyaroslav/libretorrent/ui/feeditems/FeedItemsAdapter$ClickListener;)V | REACHABLE | SOURCE | Constructed by FIF.onViewCreated (FIF :152, `new FeedItemsAdapter(this)`); definition FIApt :55–59 (super(diffCallback), listener field). |
-| 40 | FeedItemsAdapter.getItemKey (I)Lorg/proninyaroslav/libretorrent/ui/feeditems/FeedItemsListItem; | OPEN | — | No printed caller in this pass: FIF has no SelectionTracker/KeyProvider setup in the freshly printed file (grep over FIF finds no KeyProvider/SelectionTracker/getItemKey), and FIApt itself defines only the Selectable method (FIApt :91–97). FIF uses the adapter only via construction :152, setAdapter, and submitList references :218/:233. NOT labelled UNREACHABLE: no saved full-repo grep was run. Highest-priority grep target before merge; contrast TrackerListAdapter.getItemKey (batch 95 row 38), which HAS a printed KeyProvider caller (adapter :239–242 via fragment :181). Note: FIApt.getItemPosition (not a row in this batch) uses indexOf (equals only), which does not call getItemKey. |
+| 40 | FeedItemsAdapter.getItemKey (I)Lorg/proninyaroslav/libretorrent/ui/feeditems/FeedItemsListItem; | UNREACHABLE | SOURCE | No printed caller in this pass: FIF has no SelectionTracker/KeyProvider setup in the freshly printed file (grep over FIF finds no KeyProvider/SelectionTracker/getItemKey), and FIApt itself defines only the Selectable method (FIApt :91–97). FIF uses the adapter only via construction :152, setAdapter, and submitList references :218/:233. NOT labelled UNREACHABLE: no saved full-repo grep was run. Highest-priority grep target before merge; contrast TrackerListAdapter.getItemKey (batch 95 row 38), which HAS a printed KeyProvider caller (adapter :239–242 via fragment :181). Note: FIApt.getItemPosition (not a row in this batch) uses indexOf (equals only), which does not call getItemKey. 2026-11-01 OPEN-closing re-check (fresh): definition re-confirmed FeedItemsAdapter.java:91-97; fresh FeedItemsFragment.java (329 lines, SHA c612894b...) ZERO hits for SelectionTracker/KeyProvider/getItemKey/getItemPosition/Selectable; adapter used only via :152/:153/:218/:233. Stays OPEN; named target: saved full-repo grep for an external Selectable consumer (flips 96/40 + 97/1 together). 2026-11-01 OPEN-closing ROUND 2: FLIPPED OPEN → UNREACHABLE, kind no_trigger_in_app, confirmed_by SOURCE, together with batch 97 row 1. Saved greps: grep_selectable_methods.txt (the only selectable.getItemKey call sites are the four KeyProvider getKey methods — TorrentListAdapter :344, FeedChannelListAdapter :289, TrackerListAdapter :241, TorrentContentFilesAdapter :280; FeedItemsAdapter has none), grep_Selectable_all.txt (no Selectable-typed reference to FeedItemsAdapter outside its own file; the fragment uses it only via ClickListener and new FeedItemsAdapter(this) :152), grep_class_FeedItemsAdapter.txt (6 lines), grep_selectiontracker.txt (no SelectionTracker/KeyProvider for feed items). Dispatch premise as batch 94 rows 7-8: only an app KeyProvider calls a Selectable method; androidx SelectionTracker calls ItemKeyProvider, never Selectable. Reverts to OPEN if the merger rejects the 252-file app-Java grep as the full-repo standard. |
 
 ## Counts (mechanically verified, see verification below)
 
 - REACHABLE proposed: 39 (SOURCE 17: rows 2, 3, 7, 10, 12, 15, 16, 17, 18, 21, 22, 27, 29, 30, 32, 37, 39; INFERRED 22: rows 1, 4, 5, 6, 8, 9, 11, 13, 14, 19, 20, 23, 24, 25, 26, 28, 31, 33, 34, 35, 36, 38)
-- UNREACHABLE proposed: 0
-- OPEN: 1 (row 40 FeedItemsAdapter.getItemKey)
+- UNREACHABLE proposed: 1 (row 40 FeedItemsAdapter.getItemKey, round 2, SOURCE)
+- OPEN: 0
 
 ## Change vs prior proposal (one, flagged — not silent)
 
@@ -156,4 +165,4 @@ is now fully fresh prints (see source list), not carried citations.
 ## Scope
 
 Batch 96 only in this file. LibreTorrent labels only. No other batch/app, no
-device replay, no Aegis. No push. Nothing merged.
+device replay, no Aegis. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]). Nothing merged.

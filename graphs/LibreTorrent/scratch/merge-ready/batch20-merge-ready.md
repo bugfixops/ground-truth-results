@@ -1,6 +1,33 @@
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
 # LibreTorrent batch 20 — merge-ready part — UNVERIFIED
 
-**Status: UNVERIFIED merge-ready part only. NOT verified for merge. NOT pushed. No edit to `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another agent's files.**
+**Status: UNVERIFIED merge-ready part only. NOT verified for merge. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]). No edit to `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another agent's files.**
+
+## Revision 2026-11-01 — OPEN-closing pass (batches 20-22)
+
+Fresh source fetched in THIS pass via the GitHub connector, branch `work-2026-10-31`, one file at a time with ~25 s pauses, no fresh HTTP 429, saved in `~/workspace/b202122-openclose-src/` (23 files; raw connector JSON kept alongside each file; fresh-corpus greps saved in `grep_fresh_corpus.txt` there):
+NormalizeUrl.java (423 lines, SHA 8db22169…), TorrentInfoProvider.java (498, 188fbd96…), TorrentEngine.java (1659, 17d06efe… — byte-identical to the prior pass), Logger.java (538, 97ab16a7…), LogEntry.java (114, c0418b28…), AddTorrentParams.java (143, 7e349c3d…), FreeSpaceException.java (40, 9c7c5641…), NormalizeUrlException.java (31, 35ec54e0…), UnknownUriException.java (26, bb3e1125…), AddTorrentViewModel.java (574, bec2f6ee…), AddTorrentActivity.java (577, 08c354d9…), LogAdapter.java (112, 4b5f83de…), LogViewModel.java (227, f6374daf…), Utils.java (926, e726369e…), TorrentDownloadImpl.java (1711, 30024b5d…), TorrentSessionImpl.java (1720, aef9618c… — byte-identical to the prior pass), CreateTorrentViewModel.java (406, 99b9dff0…), AddLinkViewModel.java (74, 1914f531…), DetailTorrentFragment.java (832, c24e0912…), FileSystemFacadeImpl.java (444, 3e67b0c6…), DefaultFsModule.java (133, 5a93c42e…), SafFsModule.java (162, bb7d3e21…), FsModuleResolverImpl.java (51, 3f877a16…).
+No `search_code` result was used anywhere in this revision, and no `search_code` 0 was used as evidence of absence. Build: not run. C1: not run (Mac after push, never claimed passed). No push was made in this revision. Nothing was edited in `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, or `tools/`.
+
+### Label changes in this revision (batch 20: 3 flips, all OPEN → REACHABLE SOURCE)
+- Row 3 `FreeSpaceException.<init>(String)` OPEN → REACHABLE SOURCE: TorrentDownloadImpl.java:417 `throw new FreeSpaceException("Not enough free space")` inside handleMetadata (:391), called from InnerListener.alert METADATA_RECEIVED branch (:263); the task is constructed at TorrentSessionImpl.java:1432 (`new TorrentDownloadImpl(...)` in newTask :1430-1438), itself put into torrentTasks at TorrentSessionImpl.java:1081 on the session ADD_TORRENT alert. The session alert dispatch is library dispatch (INFERRED step); the throw site naming the String ctor is printed app code. The throw is caught locally at TorrentDownloadImpl.java:419 (pause + onTorrentError) — the ctor still runs. Def FreeSpaceException.java:30 (String ctor; no-arg :28, (Exception) :35, distinct).
+- Row 6 `NormalizeUrlException.<init>(String,Exception)` OPEN → REACHABLE SOURCE: NormalizeUrl.java:185 `throw new NormalizeUrlException("Cannot normalize URL", e)` inside normalize(String, Options) (:178-187), called fresh at DetailTorrentFragment.java:726 (add-trackers path, try/catch :728), CreateTorrentViewModel.java:311 (normalizeAndValidateUrl, catch :313), and AddLinkViewModel.java:69 (normalizeUrl, method declares throws :61). Def NormalizeUrlException.java:21 (2-arg ctor; (String) overload :27 is NOT this row). Caveat recorded, not a dead branch: the ctor runs only if doNormalize throws (error path, analogous to convention (xvi) — a genuine runtime input, an invalid URL, not a branch that can never be taken).
+- Row 8 `UnknownUriException.<init>` OPEN → REACHABLE SOURCE: FsModuleResolverImpl.java:48 `throw new UnknownUriException("Cannot resolve file system for the given uri: " + uri)` inside resolveFsByUri (:42-48). Chain printed fresh: TorrentEngine.java:980 `fs.createFile(...)` in saveTorrentFile (:973, declares throws UnknownUriException) → FileSystemFacadeImpl.java:203 `fsResolver.resolveFsByUri(dir)` in createFile (:199-201) → the throw. Def UnknownUriException.java:23 (only ctor, String). Caveat: the facade/resolver construction step and the FsModuleResolver interface dispatch are not printed in this pass; under a whole-route INFERRED convention this row would read INFERRED, labels unaffected.
+- Row 39 `LogEntry.hashCode` stays OPEN (no change): the 23-file fresh corpus contains only the definition (LogEntry.java:93-101) and the String hashCode calls inside it (:96-97); no caller, no hash-collection use of LogEntry. Named target unchanged: a saved full-repo grep for a LogEntry hash use, or one printed hashCode caller. NOT UNREACHABLE on this evidence.
+
+### Revision 2026-11-01 — OPEN-closing round 2 (G3: batches 20–22), 0 flips in this batch
+
+Checked only the one OPEN row (row 39); no other row touched. No GitHub connector fetch was needed: all evidence came from already-fetched local files. Fresh work in this round, saved under `~/workspace/b202122-openclose2-src/`:
+- `grep_LogEntry_ruleF.txt` (76 lines): every `LogEntry` mention in the 252-file app-Java tree (`~/workspace/ruleF-src/`). Outside the definition file the only files are the known log path (LogAdapter, Logger, SessionLogger, LogDataSource, LogViewModel, LogSourceFactory, TorrentEngine.printSessionLog, LogFilter interface, LogActivity.onItemClicked → copyLogEntryToClipboard). None is a hash use.
+- `grep_hashCode_ruleF.txt` (64 lines): every `hashCode` mention in the same 252-file tree. The only LogEntry lines are the definition itself (LogEntry.java:93, :96–97 String hashes inside it). No `HashSet`/`HashMap`/`Hashtable`/`LinkedHashSet` in the tree holds a LogEntry (separate grep, zero hits); no explicit `entry.hashCode()` call exists (separate grep, zero hits). The printed `equals` call (row 34, LogAdapter.java:73) does not call `hashCode`, and the clipboard path (LogViewModel.java:215–222) uses `toString()`, not `hashCode()`.
+- Def-file identity: local `ruleF-src/core/logger/LogEntry.java` is byte-identical to the prior openclose copy (`~/workspace/b202122-openclose-src/LogEntry.java`, SHA256 `a89899b5…` for both).
+- This grep covers app Java only (252 files); it excludes `res` XML, generated code, and tests. Zero hits in that corpus alone never flip a row, and the project-wide hashCode rule is undecided (the same evidence class leaves other batches' hashCode rows OPEN). Row 39 therefore stays OPEN; it is NOT flipped to UNREACHABLE here.
+
+CONDITIONAL flip table for row 39 (merger decides one project-wide rule; do not apply piecemeal):
+- If the merger adopts the tree-grep standard used for the batch 39–42 hashCode flips (zero receiver-typed hits in the saved app-Java grep ⇒ no_trigger_in_app): row 39 flips OPEN → UNREACHABLE, kind `no_trigger_in_app`, reason "no hash-based collection or explicit hashCode call for LogEntry in the saved 252-file grep", confirmed_by SOURCE (definition printed; grep file saved).
+- If the merger requires a saved grep covering res XML + generated sources + tests, or decides hashCode rows stay OPEN pending a user decision: row 39 stays OPEN.
+- Under no option does row 39 flip to REACHABLE on current evidence (no caller printed).
 
 **Build: not run. C1: not run.** The build and C1 checks run on the user's Mac after a push, so they are marked "not run" here, never passed. No sampler, full-repo grep, or C1 check was run or is claimed in this file.
 
@@ -29,9 +56,9 @@
 ## Counts — mechanically verified
 
 - 40 rows, sequence 1–40 intact, in plan order.
-- **REACHABLE proposed: 36 / 40 (SOURCE 24 / INFERRED 12)**
+- **REACHABLE proposed: 39 / 40 (SOURCE 27 / INFERRED 12)**
 - **UNREACHABLE proposed: 0**
-- **OPEN: 4 / 40 (rows 3, 6, 8, 39)**
+- **OPEN: 1 / 40 (row 39)**
 - **Verified for merge: 0**
 
 ## Trunks (fresh prints)
@@ -46,12 +73,12 @@
 |---|---|---|---|---|
 | 1 | FetchLinkException.<init>(String) | REACHABLE | SOURCE | Def FetchLinkException.java:30 (String ctor; (Exception) ctor is :35, distinct). Throw sites Utils.java:467 (`throw new FetchLinkException("No network connection")` inside fetchHttpUrl :462-475), :493, :509, :522 (String sites; :474 is the (Exception) overload, not this row). Callers of fetchHttpUrl printed: AddTorrentViewModel:254, FeedDownloaderWorker:140. |
 | 2 | FreeSpaceException.<init>() | REACHABLE | SOURCE | Def FreeSpaceException.java:28 (no-arg; String ctor :30, (Exception) ctor :35, distinct). Throw sites TorrentEngine.java:1201 (addTorrentSync free-space check) and AddTorrentViewModel.java:496 (add-torrent check). |
-| 3 | FreeSpaceException.<init>(String) | OPEN | — | Def FreeSpaceException.java:30. No String-ctor throw site in any file freshly fetched in this pass (both printed throw sites use the no-arg ctor). Not a global-unused claim; pending saved full-repo grep. NOT UNREACHABLE on this evidence. |
+| 3 | FreeSpaceException.<init>(String) | REACHABLE | SOURCE | Def FreeSpaceException.java:30 (String ctor). Throw site TorrentDownloadImpl.java:417 (`throw new FreeSpaceException("Not enough free space")` in handleMetadata :391, called from InnerListener.alert METADATA_RECEIVED :263); task constructed TorrentSessionImpl.java:1432 (newTask :1430-1438), put into torrentTasks at :1081. Session alert dispatch INFERRED; throw site is printed app code naming the ctor. Caught locally at :419 (pause + onTorrentError) — ctor still runs. |
 | 4 | IPFilterException.<init>(String) | REACHABLE | SOURCE | Def IPFilterException.java:26 (String ctor; no-arg :24, (Exception) :31, distinct). Throw sites IPFilterImpl.java:44, :54, :58, reached via TorrentSessionImpl.java:731 parseFile → IPFilterParser.java:163 (parseDAT) / :241 (parseP2P) addRange → IPFilterImpl.addRange:39. |
 | 5 | NoFilesSelectedException.<init>() | REACHABLE | SOURCE | Def NoFilesSelectedException.java:24 (no-arg; String ctor :26, distinct). Throw site AddTorrentViewModel.java:493 (selectedFiles empty in add-torrent check). |
-| 6 | NormalizeUrlException.<init>(String,Exception) | OPEN | — | Def NormalizeUrlException.java:21 (2-arg ctor; a (String) overload exists at :27 and is NOT this row). No throw site for either overload in any file freshly fetched in this pass. Not a global-unused claim; pending saved full-repo grep. NOT UNREACHABLE on this evidence. |
+| 6 | NormalizeUrlException.<init>(String,Exception) | REACHABLE | SOURCE | Def NormalizeUrlException.java:21 (2-arg ctor; (String) overload :27 is NOT this row). Throw site NormalizeUrl.java:185 (`throw new NormalizeUrlException("Cannot normalize URL", e)` in normalize(String, Options) :178-187), called fresh at DetailTorrentFragment.java:726, CreateTorrentViewModel.java:311, AddLinkViewModel.java:69. Runs only if doNormalize throws (error path, see revision note). |
 | 7 | TorrentAlreadyExistsException.<init>() | REACHABLE | SOURCE | Def TorrentAlreadyExistsException.java:24 (no-arg; String ctor :26, distinct). Throw site TorrentSessionImpl.java:282 (repo already contains torrent id, inside addTorrent). |
-| 8 | UnknownUriException.<init> | OPEN | — | Def UnknownUriException.java:23 (only ctor, String; JVM descriptor `(Ljava/lang/String;)V`). Fresh corpus shows only declarations and catches (TorrentEngine.java:408/:973/:1155/:1182, TorrentSessionImpl.java:258/:319/:328/:408, AddTorrentViewModel.java:359, DetailTorrentViewModel.java:385/:455, FeedDownloaderWorker.java:154, SaveLogWorker.java:99) — no `new UnknownUriException(String)` site in any file freshly fetched in this pass. A catch is not a construction site. Pending saved full-repo grep. NOT UNREACHABLE on this evidence. |
+| 8 | UnknownUriException.<init> | REACHABLE | SOURCE | Def UnknownUriException.java:23 (only ctor, String). Throw site FsModuleResolverImpl.java:48 (`throw new UnknownUriException("Cannot resolve file system for the given uri: " + uri)` in resolveFsByUri :42-48), reached fresh via TorrentEngine.java:980 saveTorrentFile → FileSystemFacadeImpl.java:203 createFile → resolveFsByUri. Facade/resolver construction and interface dispatch not printed in this pass (see revision note). |
 | 9 | TorrentFilterCollection.all | REACHABLE | SOURCE | Def TorrentFilterCollection.java:27-29. Callers MainViewModel.java:53-55, MainActivity.java:304/:335/:499/:510, Utils.java:841/:851/:858/:870/:879. |
 | 10 | TorrentFilterCollection.dateAddedMonth | REACHABLE | SOURCE | Def :77-85. Caller Utils.java:866. |
 | 11 | TorrentFilterCollection.dateAddedToday | REACHABLE | SOURCE | Def :47-55. Caller Utils.java:860. |
@@ -82,14 +109,14 @@
 | 36 | LogEntry.getMsg | REACHABLE | SOURCE | Def LogEntry.java:60-64. Call site LogAdapter.java:108 (`binding.msg.setText(entry.getMsg())` in ViewHolder.bind). |
 | 37 | LogEntry.getTag | REACHABLE | SOURCE | Def LogEntry.java:55-58. Call site LogAdapter.java:107 (`binding.tag.setText(entry.getTag())`). |
 | 38 | LogEntry.getTimeStampAsString | REACHABLE | SOURCE | Def LogEntry.java:71-74. Call sites LogAdapter.java:109 (`binding.timeStamp.setText(entry.getTimeStampAsString())`) and LogEntry.java:105 (toStringWithTimeStamp, batch 21 row 1). Note: `getTimeStamp()` (long, LogEntry.java:66-69) is NOT a batch 20/21 row — do not conflate. |
-| 39 | LogEntry.hashCode | OPEN | — | Def LogEntry.java:93-101 only. No hashCode caller in any file freshly fetched in this pass. The printed `equals` call (row 34) does not by itself print a hashCode call. Pending saved full-repo grep. NOT UNREACHABLE on this evidence. |
+| 39 | LogEntry.hashCode | OPEN | — | Def LogEntry.java:93-101 only. No hashCode caller in the 23-file fresh corpus of this revision either (only the definition and the String hashCode calls inside it, :96-97); the printed `equals` call (row 34) does not by itself print a hashCode call. Pending saved full-repo grep for a LogEntry hash use. NOT UNREACHABLE on this evidence. Round-2 (2026-11-01): saved 252-file tree grep (`~/workspace/b202122-openclose2-src/grep_hashCode_ruleF.txt`, `grep_LogEntry_ruleF.txt`) confirms zero hash use; row stays OPEN pending the project-wide hashCode rule — see round-2 note above. |
 | 40 | LogEntry.toString | REACHABLE | SOURCE | Def LogEntry.java:110-113. Call sites Logger.java:437 (`entry.toStringWithTimeStamp() : entry.toString()` in private write) and LogViewModel.java:222 (clipboard text). |
 
 ## OPEN rows — what resolves them (all stay OPEN, none flipped to UNREACHABLE)
 
-- Row 3 `FreeSpaceException.<init>(String)`: one printed `new FreeSpaceException(String)` throw site.
-- Row 6 `NormalizeUrlException.<init>(String,Exception)`: one printed throw site for the 2-arg overload (the (String) overload at :27 is a different row in no batch — do not count it).
-- Row 8 `UnknownUriException.<init>(String)`: one printed `new UnknownUriException(String)` throw site (catches/declarations do not count).
+- Row 3 `FreeSpaceException.<init>(String)`: RESOLVED in the 2026-11-01 revision (TorrentDownloadImpl.java:417).
+- Row 6 `NormalizeUrlException.<init>(String,Exception)`: RESOLVED in the 2026-11-01 revision (NormalizeUrl.java:185).
+- Row 8 `UnknownUriException.<init>(String)`: RESOLVED in the 2026-11-01 revision (FsModuleResolverImpl.java:48).
 - Row 39 `LogEntry.hashCode`: one printed hashCode caller (e.g. a hash-based collection use or an explicit call), or a saved full-repo grep for `LogEntry` hash use.
 
 ## Caveats the merger must see (recorded, not decided)
@@ -101,6 +128,6 @@
 
 ## Not claimed / still owed before merge
 
-- No build, sampler, full-repo grep, or C1 — build and C1 marked **not run** (Mac after push, never claimed passed). No push made. Main-agent spot-check (1 in 5) and `py_compile` remain outstanding.
-- Saved full-repo grep for the 4 OPEN rows before any flip to UNREACHABLE.
+- No build, sampler, full-repo grep, or C1 — build and C1 marked **not run** (Mac after push, never claimed passed). Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]). Main-agent spot-check (1 in 5) and `py_compile` remain outstanding.
+- Saved full-repo grep for the remaining OPEN row (row 39, LogEntry.hashCode) before any flip to UNREACHABLE.
 - Scope strictly batch 20, LibreTorrent labels only, branch `work-2026-10-31` only, no other batch/app, no device replay, no Aegis.

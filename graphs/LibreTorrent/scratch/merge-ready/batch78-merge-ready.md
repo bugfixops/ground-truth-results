@@ -1,7 +1,9 @@
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
 # LibreTorrent batch 78 — merge-ready file (UNVERIFIED, NOT merged)
 
 Repo: bugfixops/ground-truth-results, branch work-2026-10-31 only. Never main or result.
-No push made. No edit to graph_def.py, out/, verification.csv, PROGRESS_V2, AGENT_NOTES,
+Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]). No edit to graph_def.py, out/, verification.csv, PROGRESS_V2, AGENT_NOTES,
 tools/, or another worker's files. No build, sampler, grep, or C1 count is claimed:
 build/C1/sampler/grep = NOT RUN in this session. Build and C1 run on the user's Mac
 after a push; until then they are marked "not run", never passed.

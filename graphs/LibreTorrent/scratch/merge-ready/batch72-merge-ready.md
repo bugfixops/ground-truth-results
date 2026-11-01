@@ -1,6 +1,12 @@
+**REVISION 2026-11-01 (OPEN-closing round 2, G12): no label changed. Row 21 (TorrentService.onBind) re-checked against a SAVED full-tree grep over all 252 app Java files in ~/workspace/ruleF-src/ (`~/workspace/b727374-openclose2-src/full_grep_bindservice_20261101.txt`: 0 bindService / 0 unbindService / 0 ServiceConnection; only start-service sites for TorrentService) plus the manifest declaration (AndroidManifest:252–254, no exported flag, no intent filter). Row 21 STAYS OPEN: the UNREACHABLE judgement on this evidence was recorded as the merger's, not made here — see the CONDITIONAL flip table added below. Counts unchanged: 39 REACHABLE / 0 UNREACHABLE / 1 OPEN. Build: not run. C1: not run. Original file backed up at ~/workspace/libretorrent-merge-backup-pre-openclose2/batch72-merge-ready.md. Round-1 flips untouched (rows 13, 15 Rx-error lambdas kept REACHABLE via the printed subscription route; no contradictory printed evidence found).**
+
+**REVISION 2026-11-01 (OPEN-closing, batches 72-74 pass): no label changed. Row 21 (TorrentService.onBind) was re-checked against freshly printed TorrentService.java (525 lines, SHA f0c3cdc4..., onBind at :100-103 returning null) and AndroidManifest.xml (295 lines, SHA 875a8aa7..., TorrentService declared :252-253, not exported, no intent filter), plus a partial-corpus grep over 165-166 connector-fetched app Java files (saved in ~/workspace/b727374-openclose-src/partial_corpus_grep_20261101.txt) finding zero `bindService` hits and only startService sites for TorrentService (NotificationReceiver:58/:74/:79 and batch 71/72 prints). That grep is NOT a full-repo grep (252 app Java files exist; ~86 not yet in the corpus), so row 21 stays OPEN, NOT UNREACHABLE, per the task rule. Named target: a saved full-repo grep for bindService/TorrentService, or a printed bindService site. Counts unchanged: 39 REACHABLE / 0 UNREACHABLE / 1 OPEN. Build: not run. C1: not run. Original file backed up at ~/workspace/libretorrent-merge-backup-pre-openclose/batch72-merge-ready.md.**
+
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
 # LibreTorrent batch 72 — merge-ready part — UNVERIFIED
 
-**Status: UNVERIFIED proposal only. NOT verified for merge. NOT pushed. No edit to
+**Status: UNVERIFIED proposal only. NOT verified for merge. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]). No edit to
 `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another agent's files.**
 **Build: not run. C1: not run.** The build and C1 checks run on the user's Mac after a push,
 so they are marked "not run" here, never passed. No sampler, full-repo grep, or C1
@@ -144,7 +150,7 @@ init (:125–126) likewise uses a method reference (this::handleSettingsChanged)
 | 18 | TorrentService.lambda$subscribeForceSortAndFilter$5 (Ljava/lang/Boolean;)V | REACHABLE proposed | INFERRED | Body TS:318 `subscribe((force) -> disposables.add(getInfoListSingle()))` inside subscribeForceSortAndFilter. $5 by source order; this is the only printed caller of row 5. Rx dispatch unprinted, hence INFERRED. |
 | 19 | TorrentService.makeDetailNotifyInboxStyle (Ljava/util/List;)Landroidx/core/app/NotificationCompat$InboxStyle; | REACHABLE proposed | INFERRED | Only printed caller is TS.updateForegroundNotify:392, and updateForegroundNotify runs only via Rx subscribes (rows 14/12 chains and row 11's lambda), so INFERRED here. Body TS:398–453: builds InboxStyle lines per torrent state, big-content title, summary. |
 | 20 | TorrentService.makeForegroundNotify ()V | REACHABLE proposed | SOURCE | Direct calls TS.onCreate:113, TS.init:120, TS.handleShutdownActions:207 — all SOURCE paths. Body TS:342–366: MainActivity startup intent, NotificationCompat.Builder, setForegroundNotifyActions (:361), startForeground (:365). |
-| 21 | TorrentService.onBind (Landroid/content/Intent;)Landroid/os/IBinder; | OPEN | — | Definition TS:100–103 returns null. Framework calls onBind only for a bound service, not for a started service, and no printed bindService / bind call site was found in the files printed in the prior session. Re-checked in this session: local grep over the printed corpus (b71_src + b73-74-src) found zero `bindService` hits, and the freshly fetched TorrentEngine file starts TorrentService only via start-service Intents in the printed file — but neither is a saved full-repo grep, so this row stays OPEN, NOT UNREACHABLE. Resolves with: a printed bindService site for TorrentService, or a saved full-repo grep for bindService/TorrentService. If a bound client exists, onBind becomes REACHABLE (framework dispatch INFERRED); if a full-repo grep finds no binder at all, the merger may then judge UNREACHABLE no_trigger_in_app — that judgement is NOT made here. |
+| 21 | TorrentService.onBind (Landroid/content/Intent;)Landroid/os/IBinder; | OPEN | — | Definition TS:100–103 returns null. Framework calls onBind only for a bound service, not for a started service. ROUND-2 re-check (2026-11-01): saved full-tree grep over all 252 app Java files (`~/workspace/b727374-openclose2-src/full_grep_bindservice_20261101.txt`) finds zero `bindService`, zero `unbindService`, zero `ServiceConnection` hits in the whole tree; the only TorrentService sites are start-service sites (TorrentEngine:152/:156–157/:283–284 via startServiceBackground, NotificationReceiver:56/:67/:72/:77 via startService) plus a comment-only hit (ProxySettingsFragment:75). Manifest (AndroidManifest:252–254, SHA 875a8aa7… in round-1 prints) declares TorrentService with no `android:exported` and no intent filter, so no external binder can bind it either. This row nevertheless STAYS OPEN in this pass: the bind question was recorded as a merger judgement, not an agent flip (see CONDITIONAL flip table below). Resolves with: (a) a printed bindService site for TorrentService → REACHABLE INFERRED (framework dispatch); or (b) a merger judgement that the saved full grep + manifest together settle absence → UNREACHABLE no_trigger_in_app. That judgement is NOT made here. |
 | 22 | TorrentService.onCreate ()V | REACHABLE proposed | SOURCE | Standard Service lifecycle entry; service declared in MAN:252–254. Body TS:106–114: settings/engine/stateProvider setup, initPendingIntents (:112), makeForegroundNotify (:113). |
 | 23 | TorrentService.onDestroy ()V | REACHABLE proposed | INFERRED | Standard Service lifecycle, but its only printed trigger chain is S3: engineListener.onSessionStopped -> stopService -> stopSelf (TS:172) -> framework onDestroy, and the session dispatch is unprinted, so INFERRED here. Body TS:143–148 (super.onDestroy + log). Convention recorded, NOT decided: if the merger treats all standard lifecycle callbacks as SOURCE regardless of trigger chain, row 23 flips to SOURCE; the label does not change. |
 | 24 | TorrentService.onStartCommand (Landroid/content/Intent;II)I | REACHABLE proposed | SOURCE | Standard Service lifecycle entry; service declared in MAN:252–254. Body TS:176–197: shutdown-action handling (:183–186), first-start init (:190–191), handleActions (:193–194), returns START_STICKY (:196). |
@@ -177,10 +183,23 @@ init (:125–126) likewise uses a method reference (this::handleSettingsChanged)
 ## OPEN rows and what would resolve them
 
 - Row 21, TorrentService.onBind: a printed bindService site for TorrentService,
-  or a saved full-repo grep for `bindService` / TorrentService binding. If a
-  bound client exists, onBind becomes REACHABLE (framework dispatch INFERRED);
-  if a full-repo grep finds no binder at all, the merger may then judge
-  UNREACHABLE no_trigger_in_app — that judgement is NOT made here.
+  or a merger judgement on the round-2 saved full-tree grep
+  (`~/workspace/b727374-openclose2-src/full_grep_bindservice_20261101.txt`: 0
+  bindService / 0 ServiceConnection / 0 unbindService in 252 files) plus the
+  manifest declaration (no exported flag, no intent filter). If a bound client
+  exists, onBind becomes REACHABLE (framework dispatch INFERRED); if the merger
+  judges the grep + manifest sufficient, it becomes UNREACHABLE
+  no_trigger_in_app — that judgement is NOT made here (see CONDITIONAL flip
+  table above).
+
+
+## CONDITIONAL flip table for row 21 (round 2, 2026-11-01) — NO judgement made here
+
+Saved evidence: `~/workspace/b727374-openclose2-src/full_grep_bindservice_20261101.txt` (all 252 app Java files: 0 bindService, 0 unbindService, 0 ServiceConnection; TorrentService sites are start-service only) + manifest declaration (AndroidManifest:252–254: service declared, no `android:exported`, no intent filter).
+
+- If a bindService site for TorrentService is printed (in-app binder, or any ServiceConnection use naming TorrentService) → row 21 flips to REACHABLE, INFERRED (framework bind dispatch; the onBind body itself just returns null, TS:100–103).
+- If the merger judges the saved full grep + manifest together sufficient to settle absence (no in-app binder can exist without a bindService call in app Java; no external binder can bind a non-exported service with no intent filter) → row 21 flips to UNREACHABLE, kind `no_trigger_in_app`, INFERRED.
+- Until either happens, row 21 stays OPEN. This pass makes neither judgement.
 
 ## Caveats / merger must-do
 

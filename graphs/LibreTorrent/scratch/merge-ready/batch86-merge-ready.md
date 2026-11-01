@@ -1,6 +1,53 @@
+**CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
+
+## Revision note — OPEN-close round 2, 2026-11-01, group G14 (UNVERIFIED, NOT merged)
+
+Original file for this pass copied first to ~/workspace/libretorrent-merge-backup-pre-openclose2/batch86-merge-ready.md (SHA verified identical before editing). No GitHub connector fetch was made in this pass and no 429 was hit; all evidence was already on disk: round-1 ~/workspace/b8586-openclose-src/ definitions/layouts, the ~/workspace/ruleF-src/ 252-file app-Java reconstruction, and the round-1 fw_src LayoutInflater copy in ~/workspace/b10171819-openclose-src/fw_src/. No round-1 REACHABLE flip was reverted. Build: not run. C1: not run. No push.
+
+Counts: BEFORE 36 REACHABLE / 0 UNREACHABLE / 4 OPEN. AFTER 36 / 3 / 1. Flipped 3 rows, all to UNREACHABLE, moving together with batch 85 rows 31/40 under the layout-inflation ctor rule (see below):
+- 12 FixHintTextInputEditText.<init>(Context,AttributeSet,int) -> UNREACHABLE no_trigger_in_app INFERRED.
+- 17 SwitchBar.<init>(Context,AttributeSet,int) -> UNREACHABLE no_trigger_in_app INFERRED.
+- 21 ThemedSpeedDialView.<init>(Context,AttributeSet,int) -> UNREACHABLE no_trigger_in_app INFERRED.
+Rule stated: LayoutInflater looks up ONLY the (Context,AttributeSet) ctor — fw_src android-8.1.0_r1 LayoutInflater.java (local copy) :88 mConstructorArgs size 2, :90-91 mConstructorSignature {Context.class, AttributeSet.class}, :615 getConstructor(mConstructorSignature), the only getConstructor call in the file; a style= attribute in XML does not change the lookup arity. Each 2-arg ctor calls super(context, attrs) directly, never this(context, attrs, int) (FixHintTextInputEditText :39-40 vs :43-49; SwitchBar :44-46 vs :51-53; ThemedSpeedDialView :40-42 vs :46-48), so the already-REACHABLE 2-arg inflation route does not reach the 3-arg ctor. Saved full-repo grep ~/workspace/b8586-openclose2-src/grep_3arg_ctors_full_252_grep.txt (SHA 1d5af1ed4a93efd50af73f09d65fdd8fb3296327190ca510d709ccf12d040c16) over all 252 app Java files: 0 `new X(` hits, 0 `extends X` hits, 0 reflection ctor lookups for any of the three classes. Kind/confirmed_by match batch 10's 1-arg ctors of the same classes (UNREACHABLE no_trigger_in_app INFERRED on the same evidence shape); if the merger prefers framework_never_calls for inflation-blocked rows, all five 3-arg rows across batches 85/86 change kind together, labels unchanged. Revert condition, all five together: any printed 3-arg construction site flips the affected row(s) to REACHABLE; if the merger requires a fresh branch-fetch full-repo grep (including res/generated) before any UNREACHABLE label resting on absence, all five revert to OPEN together — they never split. Full triage: ~/workspace/b8586-openclose2-src/TRIAGE_NOTE_20261101.md. Note: batch 94's PiecesView 3-arg ctor stays OPEN in its file on the same evidence shape pending its own saved grep; the merger must apply one rule to all 3-arg ctors at merge, and this flip does not decide that rule for batch 94.
+Still OPEN (1): 7 ExpansionHeader.setText(int) — round-2 check found no printed caller (see row citation); per the G14 task instruction it needs a printed caller and is NOT flipped on the zero grep. Named resolver: a printed caller passing an int resource id to an ExpansionHeader receiver.
+
+## Revision note — OPEN-close pass, 2026-11-01 (UNVERIFIED, NOT merged)
+
+Original file copied first to ~/workspace/libretorrent-merge-backup-pre-openclose/batch86-merge-ready.md.
+This revision re-derives every OPEN row from source freshly fetched in THIS pass (GitHub connector,
+branch work-2026-10-31, one file at a time with ~25 s pauses), saved in ~/workspace/b8586-openclose-src/.
+Prior merge-ready file was INPUT only. No row flipped on absence, on a search_code 0, or on a carried citation.
+
+Counts: BEFORE 14 REACHABLE / 0 UNREACHABLE / 26 OPEN. AFTER 36 / 0 / 4. Flipped 22 rows, all to REACHABLE:
+- 1 ExpansionHeader.createRotateAnimator -> REACHABLE SOURCE: called by setExpanded(boolean,boolean) :105/:111 (fresh).
+- 2 ExpansionHeader.init -> REACHABLE SOURCE: called by ctors :60/:67/:74 (fresh).
+- 3 onRestoreInstanceState, 4 onSaveInstanceState -> REACHABLE INFERRED: framework callbacks after ExpansionHeader inflation (drawer_group_header.xml, fresh).
+- 5 setExpanded(boolean) -> REACHABLE SOURCE: MainActivity.java:280 tagsGroupHeader.setExpanded(tagsExpanded) (fresh); view is ExpansionHeader per main_drawer_content.xml:27-28 (fresh).
+- 6 setExpanded(boolean,boolean) -> REACHABLE SOURCE: DrawerExpandableAdapter.java:209 (fresh).
+- 8 setText(CharSequence) -> REACHABLE SOURCE: DrawerExpandableAdapter.java:205 groupHeader.setText(group.name) (fresh).
+- 9 setTextAppearance -> REACHABLE SOURCE: called by init :147 (fresh).
+- 10 toggleExpand -> REACHABLE SOURCE: MainActivity.java:284 in click listener :282-284 (fresh).
+- 11 FixHintTextInputEditText.<init> (2-arg) -> REACHABLE INFERRED: dialog_create_torrent.xml declares FixHintTextInputEditText 4x (:143 skip_files, :172 tracker_urls, :200 web_seed_urls, :271 comments, fresh, SHA cb379a10); CreateTorrentDialog.java:185 inflates that layout (full-tree corpus); LayoutInflater 2-arg dispatch INFERRED. dialog_text_input.xml + dialog_multiline_text_input.xml use material TextInputEditText, NOT FixHint (fresh) — the host is the create-torrent dialog only.
+- 13 FixHintTextInputEditText.getAutofillType -> REACHABLE INFERRED: framework autofill callback after the same inflation; explicitly NOT closed_by_api_level (fresh :52-56: SDK_INT == O returns NONE, API 27 returns super's value).
+- 14 RecyclerViewDividerDecoration.<init>(Drawable) -> REACHABLE SOURCE: addItemDecoration sites MainFragment.java:153, FeedFragment.java:133, LogActivity.java:109, FeedItemsFragment.java:148, DetailTorrentTrackersFragment.java:174, DetailTorrentPeersFragment.java:140 (all fresh).
+- 15 onDrawOver -> REACHABLE INFERRED: ItemDecoration framework callback after addItemDecoration (row 14).
+- 16 SwitchBar.<init> (2-arg) -> REACHABLE INFERRED: preference_switchbar.xml declares SwitchBar id switchButton (fresh, SHA 75ec44ef); SwitchBarPreference.java:60 sets that layout, :68 finds the view; LayoutInflater 2-arg dispatch INFERRED.
+- 18 SwitchBar.init -> REACHABLE SOURCE: called by ctors :41/:48/:55 (fresh).
+- 19 SwitchBar.setChecked -> REACHABLE SOURCE: SwitchBarPreference.java:71 + :83 (fresh).
+- 20 ThemedSpeedDialView.<init> (2-arg) -> REACHABLE INFERRED: fragment_main.xml declares ThemedSpeedDialView id fab_button (fresh, SHA 0a633c55); LayoutInflater 2-arg dispatch INFERRED.
+- 22 ThemedSpeedDialView.addActionItem -> REACHABLE SOURCE: MainFragment.java:433/:439/:445 (fresh).
+- 23 ThemedSwipeRefreshLayout.<init> (2-arg) -> REACHABLE INFERRED: fragment_feed.xml:10 + fragment_feed_items.xml:28 declare ThemedSwipeRefreshLayout id swipe_container (fresh); callers FeedFragment.java:185/:337, FeedItemsFragment.java:155/:242 (fresh); LayoutInflater 2-arg dispatch INFERRED.
+- 24 BlankFragment.<init> -> REACHABLE SOURCE: constructed in newInstance :38 (fresh BlankFragment.java).
+- 25 BlankFragment.newInstance -> REACHABLE SOURCE: MainActivity.java:679 + FeedActivity.java:195 (both fresh) — two-pane branch only (Utils.isTwoPane guards :677/:192), a printed configuration branch, not OPEN; NOT conflated with DetailTorrentFragment.newInstance.
+- 26 BlankFragment.onCreateView -> REACHABLE INFERRED: framework lifecycle after the replace transactions (MainActivity :680-683, FeedActivity :196-199, fresh).
+Still OPEN (4): 7 ExpansionHeader.setText(int) (only the CharSequence overload has a printed caller; init uses textView.setText directly :146); 12 FixHint 3-arg ctor, 17 SwitchBar 3-arg ctor, 21 ThemedSpeedDialView 3-arg ctor (LayoutInflater never calls a 3-arg ctor; zero Java constructions of any of these views in the full 252-file tree — saved grep customview_construction_grep.txt).
+Layout-inflation ctor rule + internal-call confirmed_by: as in batch 85 note, recorded not decided. Strict-entry caveat stands for rows 27-40 (launcher-to-detail step not printed in this pass). FragmentCallback convention unchanged (row 34 SOURCE on printed finish() caller, interface-cast caveat stands).
+Build: not run. C1: not run. Sampler: not run. No push made in this pass.
+
+
 # LibreTorrent batch 86 — merge-ready part — UNVERIFIED
 
-**Status: UNVERIFIED proposal only. NOT verified for merge. NOT pushed. No edit to
+**Status: UNVERIFIED proposal only. NOT verified for merge. Pushed 2026-11-01 as 5e0983f (UNVERIFIED, before [L]). No edit to
 `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another agent's files.**
 **Build: not run. C1: not run.** The build and C1 checks run on the user's Mac after a push,
 so they are marked "not run" here, never passed. No sampler, full-repo grep, or C1
@@ -48,9 +95,8 @@ carried forward). Saved copies: `~/workspace/b8586-src/`.
 ## Counts — mechanically verified
 
 - **40 rows, sequence 1–40 intact, in plan order.**
-- **14 REACHABLE proposed / 0 UNREACHABLE proposed / 26 OPEN.**
-- Among the REACHABLE rows: **SOURCE 4 / INFERRED 10** (see row 34 note — this differs from the
-  prior proposal's SOURCE 3 / INFERRED 11; the label for row 34 is unchanged).
+- **36 REACHABLE / 3 UNREACHABLE / 1 OPEN (2026-11-01 round-2 revision; was 36 / 0 / 4; the pre-round-1 counts previously in this section were stale and are corrected here).**
+- Among the 39 labelled rows: **SOURCE 17 / INFERRED 22 (19 REACHABLE INFERRED + 3 UNREACHABLE INFERRED).**
 - **0 rows verified for merge.** Main-agent spot-check (1 in 5), `py_compile`, build, and Mac
   build/C1 are all still outstanding — never claimed passed here.
 
@@ -158,32 +204,32 @@ direct named-class call site, row 34 reverts to INFERRED — label unchanged.
 
 | # | Method | Label | confirmed_by | Citations |
 |---|---|---|---|---|
-| 1 | ExpansionHeader.createRotateAnimator | OPEN | — | ExpansionHeader.java:117-124; called by setExpanded :105/:111 — host-gated chain |
-| 2 | ExpansionHeader.init | OPEN | — | ExpansionHeader.java:126-158; called by ctors :67/:74 — host-gated |
-| 3 | ExpansionHeader.onRestoreInstanceState | OPEN | — | ExpansionHeader.java:175-185; framework callback, host-gated; calls setExpanded :179 |
-| 4 | ExpansionHeader.onSaveInstanceState | OPEN | — | ExpansionHeader.java:164-173; framework callback, host-gated |
-| 5 | ExpansionHeader.setExpanded(boolean) | OPEN | — | ExpansionHeader.java:82-84; calls 2-arg :84; no printed host caller |
-| 6 | ExpansionHeader.setExpanded(boolean,boolean) | OPEN | — | ExpansionHeader.java:97-115; called by init :148, toggleExpand :79, onRestore :179 — all host-gated |
-| 7 | ExpansionHeader.setText(int) | OPEN | — | ExpansionHeader.java:92-94; no printed caller (init uses textView.setText directly :146) |
-| 8 | ExpansionHeader.setText(CharSequence) | OPEN | — | ExpansionHeader.java:87-89; no printed caller |
-| 9 | ExpansionHeader.setTextAppearance | OPEN | — | ExpansionHeader.java:154-161; called by init :147 — host-gated |
-| 10 | ExpansionHeader.toggleExpand | OPEN | — | ExpansionHeader.java:77-79; no printed host caller (presumably a click handler, not printed) |
-| 11 | FixHintTextInputEditText.<init>(Context,AttributeSet) | OPEN | — | FixHintTextInputEditText.java:39-41; no printed layout/Java host site |
-| 12 | FixHintTextInputEditText.<init>(Context,AttributeSet,int) | OPEN | — | FixHintTextInputEditText.java:43-49; no printed layout/Java host site |
-| 13 | FixHintTextInputEditText.getAutofillType | OPEN | — | FixHintTextInputEditText.java:52-58; framework callback, host-gated; API note above — NOT closed_by_api_level |
-| 14 | RecyclerViewDividerDecoration.<init>(Drawable) | OPEN | — | RecyclerViewDividerDecoration.java:39-42; no printed `new`/addItemDecoration site |
-| 15 | RecyclerViewDividerDecoration.onDrawOver | OPEN | — | RecyclerViewDividerDecoration.java:50-...; ItemDecoration framework callback, runs only if decoration added — no site printed |
-| 16 | SwitchBar.<init>(Context,AttributeSet) | OPEN | — | SwitchBar.java:44-49 calls init :48; no printed layout/Java host site |
-| 17 | SwitchBar.<init>(Context,AttributeSet,int) | OPEN | — | SwitchBar.java:51-56 calls init :55; no printed layout/Java host site |
-| 18 | SwitchBar.init | OPEN | — | SwitchBar.java:58-67; called by ctors :48/:55 — host-gated |
-| 19 | SwitchBar.setChecked | OPEN | — | SwitchBar.java:69-74; no printed caller |
-| 20 | ThemedSpeedDialView.<init>(Context,AttributeSet) | OPEN | — | ThemedSpeedDialView.java:40-44; no printed layout/Java host site |
-| 21 | ThemedSpeedDialView.<init>(Context,AttributeSet,int) | OPEN | — | ThemedSpeedDialView.java:46-51; no printed layout/Java host site |
-| 22 | ThemedSpeedDialView.addActionItem | OPEN | — | ThemedSpeedDialView.java:55-83; no printed host caller |
-| 23 | ThemedSwipeRefreshLayout.<init> | OPEN | — | ThemedSwipeRefreshLayout.java:32-43; no printed layout/Java host site |
-| 24 | BlankFragment.<init> | OPEN | — | BlankFragment.java:38 constructs it inside newInstance, but newInstance has no printed caller |
-| 25 | BlankFragment.newInstance | OPEN | — | BlankFragment.java:36-43; no printed caller; DetailPagerAdapter does not use it (:53-71) |
-| 26 | BlankFragment.onCreateView | OPEN | — | BlankFragment.java:47-54; framework callback, runs only if fragment attached via newInstance — unprinted |
+| 1 | ExpansionHeader.createRotateAnimator | REACHABLE | SOURCE | Called by setExpanded(boolean,boolean) ExpansionHeader.java:105/:111 |
+| 2 | ExpansionHeader.init | REACHABLE | SOURCE | Called by ctors ExpansionHeader.java:67/:74 |
+| 3 | ExpansionHeader.onRestoreInstanceState | REACHABLE | INFERRED | Framework onRestoreInstanceState after ExpansionHeader inflation (drawer_group_header.xml) |
+| 4 | ExpansionHeader.onSaveInstanceState | REACHABLE | INFERRED | Framework onSaveInstanceState after ExpansionHeader inflation (drawer_group_header.xml) |
+| 5 | ExpansionHeader.setExpanded(boolean) | REACHABLE | SOURCE | MainActivity.java:280 tagsGroupHeader.setExpanded(tagsExpanded) |
+| 6 | ExpansionHeader.setExpanded(boolean,boolean) | REACHABLE | SOURCE | DrawerExpandableAdapter.java:209 groupHeader.setExpanded(...) |
+| 7 | ExpansionHeader.setText(int) | OPEN | — | ExpansionHeader.java:92-94; round-2 check 2026-11-01: only two ExpansionHeader receivers in the 252-file tree (MainActivity tagsGroupHeader, DrawerExpandableAdapter groupHeader); neither calls setText(int) — sole setText call is DrawerExpandableAdapter:205 groupHeader.setText(group.name) (CharSequence); init uses textView.setText directly :146. Named resolver: a printed caller passing an int resource id to an ExpansionHeader receiver |
+| 8 | ExpansionHeader.setText(CharSequence) | REACHABLE | SOURCE | DrawerExpandableAdapter.java:205 groupHeader.setText(group.name) |
+| 9 | ExpansionHeader.setTextAppearance | REACHABLE | SOURCE | Called by init ExpansionHeader.java:147 |
+| 10 | ExpansionHeader.toggleExpand | REACHABLE | SOURCE | MainActivity.java:284 tagsGroupHeader.toggleExpand() in click listener :282 |
+| 11 | FixHintTextInputEditText.<init>(Context,AttributeSet) | REACHABLE | INFERRED | Layout(s) declaring FixHintTextInputEditText: dialog_create_torrent.xml (4 declarations: skip_files, tracker_urls, web_seed_urls, comments); LayoutInflater 2-arg dispatch INFERRED |
+| 12 | FixHintTextInputEditText.<init>(Context,AttributeSet,int) | UNREACHABLE | INFERRED | Kind: `no_trigger_in_app`. LayoutInflater (fw_src android-8.1.0_r1, local copy) :88 mConstructorArgs size 2, :90-91 mConstructorSignature {Context.class, AttributeSet.class}, :615 getConstructor(mConstructorSignature) — inflation looks up ONLY the 2-arg ctor. Saved grep b8586-openclose2-src/grep_3arg_ctors_full_252_grep.txt over 252 app Java files: 0 `new FixHintTextInputEditText(` hits, 0 `extends FixHintTextInputEditText` hits, 0 reflection ctor lookups. Definition FixHintTextInputEditText.java:43-49; 2-arg ctor :39-40 calls super(context, attrs) only, never this(..., int). Reverts to REACHABLE on any printed 3-arg construction site; see round-2 revision note for the all-five-together revert condition. |
+| 13 | FixHintTextInputEditText.getAutofillType | REACHABLE | INFERRED | Framework autofill callback after FixHintTextInputEditText inflation (see row 11); NOT closed_by_api_level (API 27 returns super value) |
+| 14 | RecyclerViewDividerDecoration.<init>(Drawable) | REACHABLE | SOURCE | addItemDecoration(new RecyclerViewDividerDecoration(...)): MainFragment.java:153, FeedFragment.java:133, LogActivity.java:109, FeedItemsFragment.java:148, DetailTorrentTrackersFragment.java:174, DetailTorrentPeersFragment.java:140 — all fresh in this pass |
+| 15 | RecyclerViewDividerDecoration.onDrawOver | REACHABLE | INFERRED | ItemDecoration framework callback after addItemDecoration (see row 14) |
+| 16 | SwitchBar.<init>(Context,AttributeSet) | REACHABLE | INFERRED | preference_switchbar.xml declares SwitchBar id switchButton (fresh SHA 75ec44ef); SwitchBarPreference sets layout R.layout.preference_switchbar; LayoutInflater 2-arg dispatch INFERRED |
+| 17 | SwitchBar.<init>(Context,AttributeSet,int) | UNREACHABLE | INFERRED | Kind: `no_trigger_in_app`. LayoutInflater (fw_src android-8.1.0_r1, local copy) :88 mConstructorArgs size 2, :90-91 mConstructorSignature {Context.class, AttributeSet.class}, :615 getConstructor(mConstructorSignature) — inflation looks up ONLY the 2-arg ctor. Saved grep b8586-openclose2-src/grep_3arg_ctors_full_252_grep.txt over 252 app Java files: 0 `new SwitchBar(` hits, 0 `extends SwitchBar` hits, 0 reflection ctor lookups. Definition SwitchBar.java:51-56 calls init :55; 2-arg ctor :44-46 calls super(context, attrs) only, never this(..., int). Reverts to REACHABLE on any printed 3-arg construction site; see round-2 revision note for the all-five-together revert condition. |
+| 18 | SwitchBar.init | REACHABLE | SOURCE | Called by ctors SwitchBar.java:48/:55 |
+| 19 | SwitchBar.setChecked | REACHABLE | SOURCE | SwitchBarPreference.java:71 setChecked(isChecked()) and :83 setChecked(!isChecked) |
+| 20 | ThemedSpeedDialView.<init>(Context,AttributeSet) | REACHABLE | INFERRED | fragment_main.xml declares ThemedSpeedDialView id fabButton; LayoutInflater 2-arg dispatch INFERRED |
+| 21 | ThemedSpeedDialView.<init>(Context,AttributeSet,int) | UNREACHABLE | INFERRED | Kind: `no_trigger_in_app`. LayoutInflater (fw_src android-8.1.0_r1, local copy) :88 mConstructorArgs size 2, :90-91 mConstructorSignature {Context.class, AttributeSet.class}, :615 getConstructor(mConstructorSignature) — inflation looks up ONLY the 2-arg ctor. Saved grep b8586-openclose2-src/grep_3arg_ctors_full_252_grep.txt over 252 app Java files: 0 `new ThemedSpeedDialView(` hits, 0 `extends ThemedSpeedDialView` hits, 0 reflection ctor lookups. Definition ThemedSpeedDialView.java:46-51; 2-arg ctor :40-42 calls super(context, attrs) only, never this(..., int). Reverts to REACHABLE on any printed 3-arg construction site; see round-2 revision note for the all-five-together revert condition. |
+| 22 | ThemedSpeedDialView.addActionItem | REACHABLE | SOURCE | MainFragment.java:433/:439/:445 binding.fabButton.addActionItem(...) (fragment_main.xml declares fab_button as ThemedSpeedDialView, fresh) |
+| 23 | ThemedSwipeRefreshLayout.<init> | REACHABLE | INFERRED | fragment_feed.xml:10 + fragment_feed_items.xml:28 declare ThemedSwipeRefreshLayout id swipe_container (fresh); callers FeedFragment.java:185/:337 + FeedItemsFragment.java:155/:242 binding.swipeContainer (fresh); LayoutInflater 2-arg dispatch INFERRED |
+| 24 | BlankFragment.<init> | REACHABLE | SOURCE | Constructed in BlankFragment.newInstance BlankFragment.java:38 |
+| 25 | BlankFragment.newInstance | REACHABLE | SOURCE | MainActivity.java:679 BlankFragment.newInstance(...) and FeedActivity.java:195 BlankFragment.newInstance(...) — two-pane branch only (Utils.isTwoPane) |
+| 26 | BlankFragment.onCreateView | REACHABLE | INFERRED | Framework onCreateView after BlankFragment replace transaction (MainActivity:680-683 / FeedActivity:196-199) |
 | 27 | DetailPagerAdapter.<init> | REACHABLE | SOURCE | DetailPagerAdapter.java:47-49; constructed DetailTorrentFragment.java:185 |
 | 28 | DetailPagerAdapter.createFragment | REACHABLE | INFERRED | DetailPagerAdapter.java:53-71; ViewPager2 framework dispatch after setAdapter DetailTorrentFragment.java:186 |
 | 29 | DetailPagerAdapter.getItemCount | REACHABLE | INFERRED | DetailPagerAdapter.java:73-75; same ViewPager2 dispatch |
@@ -199,14 +245,9 @@ direct named-class call site, row 34 reverts to INFERRED — label unchanged.
 | 39 | DetailTorrentFragment.<init> | REACHABLE | INFERRED | Framework fragment instantiation; fragment found by id in DetailTorrentActivity.java:67-71 |
 | 40 | DetailTorrentFragment.addTrackers | REACHABLE | SOURCE | DetailTorrentFragment.java:689-736; called by dialog-event handlers :322 (replace=false) and :336 (replace=true) |
 
-## Still owed before merge
+## Still owed before merge (updated 2026-11-01 OPEN-close pass)
 
-- Saved full-repo grep for the 26 OPEN rows, in priority order: (1) BlankFragment.newInstance caller;
-  (2) layout XML naming ExpansionHeader / FixHintTextInputEditText / SwitchBar / ThemedSpeedDialView /
-  ThemedSwipeRefreshLayout / ColorView / EmptyRecyclerView; (3) host callers of ExpansionHeader.setText /
-  toggleExpand, SwitchBar.setChecked, ThemedSpeedDialView.addActionItem, RecyclerViewDividerDecoration
-  construction, ColorView.setColor/getColor, EmptyRecyclerView.setAdapter/setEmptyView.
-- A printed caller for DetailTorrentActivity.onFragmentFinished (row 34) if the merger requires more than
-  the interface call site now printed — see row 34 note; label is REACHABLE either way.
+- 1 OPEN row remains: 7 ExpansionHeader.setText(int) (named target: a printed caller passing an int resource — only the CharSequence overload is called, DrawerExpandableAdapter:205). Rows 12, 17, 21 flipped to UNREACHABLE in the 2026-11-01 round-2 revision (see revision note).
+- A printed caller for DetailTorrentActivity.onFragmentFinished (row 34) if the merger requires more than the interface call site now printed — see row 34 note; label is REACHABLE either way.
 - Printed launcher-to-DetailTorrentActivity step, if the strict entry-route rule is applied (rows 27-40).
 - Main-agent spot-check (1 in 5), `py_compile`, build, Mac build/C1 — all not run.
