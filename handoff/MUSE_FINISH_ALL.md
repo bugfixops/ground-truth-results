@@ -34,7 +34,9 @@ The final gate for every app is **F1** (section 5.5).
 
 ### 2.1 Get a complete working tree (once, before anything else)
 
-The connector refuses files above about 1 MB. Everything you need is therefore also on the branch in parts below 700 KB.
+**First try a plain clone.** Since 2026-11-01 the repo is public. Run `git clone --branch work-2026-10-31 https://github.com/bugfixops/ground-truth-results.git gtr`; no token is needed. If it works, skip steps 1 to 4 below and go to step 5. Large files can also be read from `https://raw.githubusercontent.com/bugfixops/ground-truth-results/work-2026-10-31/<path>`. Pushes still go through the connector (section 2.3).
+
+Only if your machine cannot reach github.com, use the bundles. The connector refuses files above about 1 MB, so everything you need is also on the branch in parts below 700 KB.
 
 1. **Fetch the files, byte for byte, from branch `work-2026-10-31`:**
    - `handoff/workspace_bundle/MANIFEST.json`
