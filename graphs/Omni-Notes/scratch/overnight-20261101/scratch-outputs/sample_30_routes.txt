@@ -1,0 +1,1961 @@
+====================================================================================================
+NONSTD  DetailFragment.onCoordinatesResolved   steps=26  env_kinds=hardware;network;permission  state_kinds=  classes=explicit;non_standard;standard  confirmed_by=INFERRED  path_status=SOURCE_OK
+  branch path row: result=fixed confirmed_by=SOURCE ref=GeocodeHelper.java:164-170; DetailFragment.java:2195-2228 note=ERROR FOUND: the first-graph route reached the list through the shortcut edges "MainActivity.onResume -> ListFragment.onResume / MainActivity.init / the list page", taken right after the process starts. On a cold start isPasswordAccepted is false, so onResume calls checkPassword, which calls init(), which adds the ListFragment once (MainActivity.java:111-118, 138-156, 178-182); the shortcuts skip those steps and are only valid after an earlier resume. Fixed: the shortcut edges now carry the STATE "MainActivity was resumed before in this process" and the best route uses the explicit chain onResume -> checkPassword -> init -> ListFragment. ERROR FOUND (also): the geocoder callback calls onCoordinatesResolved only when the result list is not empty (GeocodeHelper.java:166-168), and the location dialog that leads there opens only when internet is available (DetailFragment.java:2204-2209), after a location fix (GeocodeHelper.java:86-95) and with the location permission (DetailFragment.java:733-737). Fixed: guard on the callback edge, ENV network / hardware / permission on the route. Steps read: FAB long-press (Fab.java:69-76) -> new note -> Attachment -> Location (DetailFragment.java:2267-2320) -> displayLocationDialog -> getLocation -> dialog -> typed address (2220-2228) -> getCoordinatesFromAddress. Steps that run through androidx / MaterialDialogs / ButterKnife / EventBus / RxJava / SmartLocation rest on INFERRED claims (library source not read).
+  shortest_path: S_ENTRY > MainActivity.<init> > MainActivity.onResume > MainActivity.checkPassword > MainActivity.init > ListFragment.<init> > ListFragment.onActivityCreated > ListFragment.init > S_LIST@NOTES > Fab.lambda$init$1@LONG_NOTES > ListFragment.lambda$initFab$0@MAIN > S_DETAIL@NEW > DetailFragment.onOptionsItemSelected@ATTACHMENT > DetailFragment.showAttachmentsPopup > S_DLG_ATTACH > DetailFragment$AttachmentOnClickListener.onClick@LOCATION > DetailFragment.displayLocationDialog > DetailFragment.getLocation@DIALOG > DetailFragment.lambda$getLocation$7@DIALOG > GeocodeHelper.getLocation@DIALOG > GeocodeHelper$1.onNext@DIALOG > DetailFragment$OnGeoUtilResultListenerImpl.onLocationRetrieved > S_DLG_LOCATION > DetailFragment$OnGeoUtilResultListenerImpl.lambda$onLocationRetrieved$0 > GeocodeHelper.getCoordinatesFromAddress(String,OnGeoUtilResultListener) > GeocodeHelper.lambda$getCoordinatesFromAddress$1 > DetailFragment.onCoordinatesResolved
+  step  1 [Ea7466154] S_ENTRY -> MainActivity.<init>  kind=ENTRY class=standard via=None
+          trigger: MAIN / LAUNCHER intent starts MainActivity
+          gui: ['Home screen of another launcher: tap the Omni Notes icon']
+          evidence: SRC AndroidManifest.xml:65-114
+  step  2 [E89791c67] MainActivity.<init> -> MainActivity.onResume  kind=LIFECYCLE class=standard via=None
+          trigger: Activity lifecycle callback
+          evidence: SRC MainActivity.java:93-120; BaseActivity.java:72-100
+  step  3 [Edf932a3c] MainActivity.onResume -> MainActivity.checkPassword  kind=CALL class=explicit via=None
+          trigger: isPasswordAccepted is false on a cold start
+          evidence: SRC MainActivity.java:111-118
+  step  4 [E075b4776] MainActivity.checkPassword -> MainActivity.init  kind=CALL class=explicit via=None
+          trigger: no password gate: init()
+          evidence: SRC MainActivity.java:138-156
+  step  5 [E2436b969] MainActivity.init -> ListFragment.<init>  kind=CALL class=explicit via=None
+          trigger: adds the list fragment
+          guard: no fragment with tag fragment_list
+          evidence: SRC MainActivity.java:178-182
+  step  6 [E54b170af] ListFragment.<init> -> ListFragment.onActivityCreated  kind=LIFECYCLE class=standard via=None
+          trigger: Fragment lifecycle callback
+          evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ListFragment.java:205-400
+  step  7 [Ef86ebfe1] ListFragment.onActivityCreated -> ListFragment.init  kind=CALL class=explicit via=None
+          trigger: init()
+          evidence: SRC ListFragment.java:246
+  step  8 [E7e3c321b] ListFragment.init -> S_LIST@NOTES  kind=ENTERS class=page via=None
+          trigger: The list is set up on the default navigation (Notes) and the load starts
+          guard: navigation pref is Notes (default)
+          evidence: SRC ListFragment.java:250-261; BaseActivity.java:98-99
+  step  9 [E01d0dfd6] S_LIST@NOTES -> Fab.lambda$init$1@LONG_NOTES  kind=GUI class=standard via=None
+          trigger: Long-press the + button
+          gui: ['Long-press the + button']
+          evidence: SRC models/views/Fab.java:69-76
+  step 10 [Ee5d1ab81] Fab.lambda$init$1@LONG_NOTES -> ListFragment.lambda$initFab$0@MAIN  kind=CALL class=explicit via=None
+          trigger: onFabItemClick(fab_expand_menu_button)
+          guard: not expanded
+          evidence: SRC models/views/Fab.java:118-125
+  step 11 [E8a16cf02] ListFragment.lambda$initFab$0@MAIN -> S_DETAIL@NEW  kind=ENTERS class=page via=None
+          trigger: a new note is opened
+          evidence: SRC ListFragment.java:266-285
+  step 12 [Ecd2baeb2] S_DETAIL@NEW -> DetailFragment.onOptionsItemSelected@ATTACHMENT  kind=GUI class=standard via=None
+          trigger: Tap "Attachment" in the toolbar menu
+          gui: ['Tap "Attachment" in the toolbar menu']
+          evidence: SRC DetailFragment.java:1074-1132,1033-1036; res/menu/menu_detail.xml
+  step 13 [E98c7a8e7] DetailFragment.onOptionsItemSelected@ATTACHMENT -> DetailFragment.showAttachmentsPopup  kind=CALL class=explicit via=None
+          trigger: the attachment branch of the menu switch
+          evidence: SRC DetailFragment.java:1080-1127
+  step 14 [Ebe6a7b0b] DetailFragment.showAttachmentsPopup -> S_DLG_ATTACH  kind=ENTERS class=page via=None
+          trigger: the attachment popup opens
+          evidence: SRC DetailFragment.java:1279-1315
+  step 15 [E09745b8d] S_DLG_ATTACH -> DetailFragment$AttachmentOnClickListener.onClick@LOCATION  kind=GUI class=standard via=None
+          trigger: Tap "Location" in the attachment popup
+          gui: ['Tap "Location" in the attachment popup']
+          evidence: SRC DetailFragment.java:2267-2320
+  step 16 [Ea87362d4] DetailFragment$AttachmentOnClickListener.onClick@LOCATION -> DetailFragment.displayLocationDialog  kind=CALL class=explicit via=None
+          trigger: the location branch
+          evidence: SRC DetailFragment.java:2272-2315
+  step 17 [E7406d945] DetailFragment.displayLocationDialog -> DetailFragment.getLocation@DIALOG  kind=CALL class=explicit via=None
+          trigger: getLocation(new OnGeoUtilResultListenerImpl(...))
+          evidence: SRC DetailFragment.java:947-949
+  step 18 [E4d5a7b78] DetailFragment.getLocation@DIALOG -> DetailFragment.lambda$getLocation$7@DIALOG  kind=CALL class=explicit via=None
+          trigger: ACCESS_FINE_LOCATION is granted: the callback runs
+          env: the location permission is granted to the app (runtime permission)  env_kinds=['permission']
+          evidence: SRC DetailFragment.java:734-736
+  step 19 [E98516fc5] DetailFragment.lambda$getLocation$7@DIALOG -> GeocodeHelper.getLocation@DIALOG  kind=CALL class=explicit via=None
+          trigger: GeocodeHelper.getLocation(listener)
+          evidence: SRC DetailFragment.java:735-736
+  step 20 [Ee785a0de] GeocodeHelper.getLocation@DIALOG -> GeocodeHelper$1.onNext@DIALOG  kind=FRAMEWORK class=non_standard via=Rx / SmartLocation library delivers the callback
+          trigger: SmartLocation delivers a one-shot fix
+          env: the device delivers a location fix (GPS or network provider; a mock location on the emulator)  env_kinds=['hardware']
+          evidence: INFERRED SmartLocation / RxJava deliver the fix (library source not read); SRC utils/GeocodeHelper.java:86-111
+  step 21 [Ef4bcf5f8] GeocodeHelper$1.onNext@DIALOG -> DetailFragment$OnGeoUtilResultListenerImpl.onLocationRetrieved  kind=CALL class=explicit via=None
+          trigger: listener.onLocationRetrieved(location)
+          env: the device delivers a location fix (GPS or network provider; a mock location on the emulator)  env_kinds=['hardware']
+          evidence: SRC utils/GeocodeHelper.java:95
+  step 22 [Eeff2288d] DetailFragment$OnGeoUtilResultListenerImpl.onLocationRetrieved -> S_DLG_LOCATION  kind=ENTERS class=page via=None
+          trigger: internet is available: the location search dialog opens
+          env: the device delivers a location fix (GPS or network provider; a mock location on the emulator); the network is reachable (ConnectivityManager reports an active network)  env_kinds=['hardware', 'network']
+          evidence: SRC DetailFragment.java:2195-2255
+  step 23 [E78011c56] S_DLG_LOCATION -> DetailFragment$OnGeoUtilResultListenerImpl.lambda$onLocationRetrieved$0  kind=GUI class=standard via=None
+          trigger: Tap "Use current location" or Confirm
+          env: the device delivers a location fix (GPS or network provider; a mock location on the emulator)  env_kinds=['hardware']
+          gui: ['Tap "Use current location" or Confirm']
+          evidence: INFERRED MaterialDialogs calls the registered button / item callbacks (library source not read); SRC DetailFragment.java:2220-2229
+  step 24 [Ebf2dbffb] DetailFragment$OnGeoUtilResultListenerImpl.lambda$onLocationRetrieved$0 -> GeocodeHelper.getCoordinatesFromAddress(String,OnGeoUtilResultListener)  kind=CALL class=explicit via=None
+          trigger: use the typed address
+          guard: the address field is not empty
+          env: the device delivers a location fix (GPS or network provider; a mock location on the emulator)  env_kinds=['hardware']
+          evidence: SRC DetailFragment.java:2225-2228
+  step 25 [E7f80b736] GeocodeHelper.getCoordinatesFromAddress(String,OnGeoUtilResultListener) -> GeocodeHelper.lambda$getCoordinatesFromAddress$1  kind=FRAMEWORK class=non_standard via=Rx / SmartLocation library delivers the callback
+          trigger: SmartLocation geocoding calls back with the coordinates
+          env: the device delivers a location fix (GPS or network provider; a mock location on the emulator); the network is reachable (the Android Geocoder behind SmartLocation queries a network service)  env_kinds=['hardware', 'network']
+          evidence: INFERRED SmartLocation geocoding delivers the result (library source not read); SRC utils/GeocodeHelper.java:166-171
+  step 26 [E1468b13a] GeocodeHelper.lambda$getCoordinatesFromAddress$1 -> DetailFragment.onCoordinatesResolved  kind=CALL class=explicit via=None
+          trigger: Virtual/interface call that can dispatch to this implementation
+          guard: the geocoder returned at least one result (GeocodeHelper.java:167)
+          evidence: SRC GeocodeHelper.java:168 (bytecode)
+
+====================================================================================================
+NONSTD  SpringImportHelper.lambda$importDataFromSpringpad$0   steps=24  env_kinds=other_app  state_kinds=file  classes=explicit;non_standard;standard  confirmed_by=INFERRED  path_status=SOURCE_OK
+  branch path row: result=fixed confirmed_by=SOURCE ref=SettingsFragment.java:240-255,683-691; DataBackupIntentService.java:75-87 note=ERROR FOUND: the first-graph route reached the list through the shortcut edges "MainActivity.onResume -> ListFragment.onResume / MainActivity.init / the list page", taken right after the process starts. On a cold start isPasswordAccepted is false, so onResume calls checkPassword, which calls init(), which adds the ListFragment once (MainActivity.java:111-118, 138-156, 178-182); the shortcuts skip those steps and are only valid after an earlier resume. Fixed: the shortcut edges now carry the STATE "MainActivity was resumed before in this process" and the best route uses the explicit chain onResume -> checkPassword -> init -> ListFragment. ERROR FOUND (also): the edge into DataBackupIntentService.onHandleIntent cited AsyncTask.java, but the service is an IntentService (IntentService.java:70-78, 112-132: onStart queues a message, the ServiceHandler on a HandlerThread calls onHandleIntent). Fixed: the citation is the IntentService source. Steps read: Settings > Data > Sync > Import from Springpad (SettingsFragment.java:240-255, picker ENV other_app) -> onActivityResult (683-691) -> startService -> action switch (DataBackupIntentService.java:75-87). That importDataFromSpringpad calls the lambda is INFERRED (stream / Rx library source not read). Steps that run through androidx / MaterialDialogs / ButterKnife / EventBus / RxJava / SmartLocation rest on INFERRED claims (library source not read).
+  shortest_path: S_ENTRY > MainActivity.<init> > MainActivity.onResume > MainActivity.checkPassword > MainActivity.init > ListFragment.<init> > ListFragment.onActivityCreated > ListFragment.init > S_LIST@NOTES > NavigationDrawerFragment$1.onDrawerOpened@NOTES > S_DRAWER@NOTES > CategoryMenuTask.lambda$null$0 > SettingsActivity.<init> > S_SETTINGS > SettingsActivity.onPreferenceStartFragment@DATA > S_SETTINGS_DATA > SettingsActivity.onPreferenceStartFragment@SYNC > S_SETTINGS_SYNC > SettingsFragment.lambda$onResume$5 > S_EXT_PICKER@SPRINGPAD > SettingsFragment.onActivityResult@SPRINGPAD > DataBackupIntentService.onHandleIntent@SPRINGPAD > DataBackupIntentService.importDataFromSpringpad > SpringImportHelper.importDataFromSpringpad > SpringImportHelper.lambda$importDataFromSpringpad$0
+  step  1 [Ea7466154] S_ENTRY -> MainActivity.<init>  kind=ENTRY class=standard via=None
+          trigger: MAIN / LAUNCHER intent starts MainActivity
+          gui: ['Home screen of another launcher: tap the Omni Notes icon']
+          evidence: SRC AndroidManifest.xml:65-114
+  step  2 [E89791c67] MainActivity.<init> -> MainActivity.onResume  kind=LIFECYCLE class=standard via=None
+          trigger: Activity lifecycle callback
+          evidence: SRC MainActivity.java:93-120; BaseActivity.java:72-100
+  step  3 [Edf932a3c] MainActivity.onResume -> MainActivity.checkPassword  kind=CALL class=explicit via=None
+          trigger: isPasswordAccepted is false on a cold start
+          evidence: SRC MainActivity.java:111-118
+  step  4 [E075b4776] MainActivity.checkPassword -> MainActivity.init  kind=CALL class=explicit via=None
+          trigger: no password gate: init()
+          evidence: SRC MainActivity.java:138-156
+  step  5 [E2436b969] MainActivity.init -> ListFragment.<init>  kind=CALL class=explicit via=None
+          trigger: adds the list fragment
+          guard: no fragment with tag fragment_list
+          evidence: SRC MainActivity.java:178-182
+  step  6 [E54b170af] ListFragment.<init> -> ListFragment.onActivityCreated  kind=LIFECYCLE class=standard via=None
+          trigger: Fragment lifecycle callback
+          evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ListFragment.java:205-400
+  step  7 [Ef86ebfe1] ListFragment.onActivityCreated -> ListFragment.init  kind=CALL class=explicit via=None
+          trigger: init()
+          evidence: SRC ListFragment.java:246
+  step  8 [E7e3c321b] ListFragment.init -> S_LIST@NOTES  kind=ENTERS class=page via=None
+          trigger: The list is set up on the default navigation (Notes) and the load starts
+          guard: navigation pref is Notes (default)
+          evidence: SRC ListFragment.java:250-261; BaseActivity.java:98-99
+  step  9 [E89ba0d21] S_LIST@NOTES -> NavigationDrawerFragment$1.onDrawerOpened@NOTES  kind=GUI class=standard via=None
+          trigger: Swipe in from the left edge or tap the menu icon
+          gui: ['Swipe in from the left edge or tap the menu icon']
+          evidence: SRC NavigationDrawerFragment.java:172-188
+  step 10 [Eb4f41bd1] NavigationDrawerFragment$1.onDrawerOpened@NOTES -> S_DRAWER@NOTES  kind=ENTERS class=page via=None
+          trigger: the drawer is open
+          evidence: SRC NavigationDrawerFragment.java:183-186
+  step 11 [Eb5b36c1c] S_DRAWER@NOTES -> CategoryMenuTask.lambda$null$0  kind=GUI class=standard via=None
+          trigger: Tap Settings at the bottom of the drawer
+          gui: ['Tap Settings at the bottom of the drawer']
+          evidence: SRC async/CategoryMenuTask.java:129-135; res/layout/fragment_navigation_drawer.xml:66-80
+  step 12 [E15489aeb] CategoryMenuTask.lambda$null$0 -> SettingsActivity.<init>  kind=INTENT class=standard via=None
+          trigger: startActivity(SettingsActivity)
+          evidence: SRC async/CategoryMenuTask.java:131-132
+  step 13 [E4306cbbb] SettingsActivity.<init> -> S_SETTINGS  kind=ENTERS class=page via=None
+          trigger: the settings root is shown
+          evidence: SRC SettingsActivity.java:54-61
+  step 14 [E7d8539a9] S_SETTINGS -> SettingsActivity.onPreferenceStartFragment@DATA  kind=GUI class=standard via=None
+          trigger: Tap "Data"
+          gui: ['Tap "Data"']
+          evidence: SRC SettingsActivity.java:125-140; res/xml/settings.xml
+  step 15 [E1f9e6935] SettingsActivity.onPreferenceStartFragment@DATA -> S_SETTINGS_DATA  kind=ENTERS class=page via=None
+          trigger: the sub-screen opens on top of the root
+          evidence: SRC SettingsActivity.java:135-139
+  step 16 [E51dad05c] S_SETTINGS_DATA -> SettingsActivity.onPreferenceStartFragment@SYNC  kind=GUI class=standard via=None
+          trigger: Tap "Sync"
+          gui: ['Tap "Sync"']
+          evidence: SRC SettingsActivity.java:125-140; res/xml/settings_data.xml
+  step 17 [E47f06889] SettingsActivity.onPreferenceStartFragment@SYNC -> S_SETTINGS_SYNC  kind=ENTERS class=page via=None
+          trigger: the sub-screen opens
+          evidence: SRC SettingsActivity.java:135-139
+  step 18 [E4fa5a179] S_SETTINGS_SYNC -> SettingsFragment.lambda$onResume$5  kind=GUI class=standard via=None
+          trigger: Tap "Import from Springpad"
+          gui: ['Tap "Import from Springpad"']
+          evidence: SRC SettingsFragment.java:240-255
+  step 19 [Edb933e2f] SettingsFragment.lambda$onResume$5 -> S_EXT_PICKER@SPRINGPAD  kind=ENTERS class=page via=None
+          trigger: startActivityForResult(ACTION_GET_CONTENT, application/zip)
+          env: outside package: an external activity (camera, video recorder, document picker, ringtone picker, share chooser, browser, maps) must be driven  env_kinds=['other_app']
+          needs_state: A Springpad export zip is available to pick  state_kinds=['file']
+          evidence: SRC SettingsFragment.java:243-252
+  step 20 [E821c0225] S_EXT_PICKER@SPRINGPAD -> SettingsFragment.onActivityResult@SPRINGPAD  kind=RESULT class=standard via=None
+          trigger: a Springpad zip was chosen
+          env: outside package: an external activity (camera, video recorder, document picker, ringtone picker, share chooser, browser, maps) must be driven  env_kinds=['other_app']
+          evidence: SRC SettingsFragment.java:683-691
+  step 21 [E4458616b] SettingsFragment.onActivityResult@SPRINGPAD -> DataBackupIntentService.onHandleIntent@SPRINGPAD  kind=ASYNC class=standard via=None
+          trigger: IntentService.onHandleIntent runs on a worker thread
+          env: outside package: an external activity (camera, video recorder, document picker, ringtone picker, share chooser, browser, maps) must be driven  env_kinds=['other_app']
+          evidence: FW-SRC core/java/android/app/IntentService.java:70-78, 112-132 (onCreate starts a HandlerThread; onStart queues the intent as a message and the ServiceHandler calls onHandleIntent on that worker thread); SRC async/DataBackupIntentService.java:67-84
+  step 22 [E9552e9d0] DataBackupIntentService.onHandleIntent@SPRINGPAD -> DataBackupIntentService.importDataFromSpringpad  kind=CALL class=explicit via=None
+          trigger: the springpad action
+          env: outside package: an external activity (camera, video recorder, document picker, ringtone picker, share chooser, browser, maps) must be driven  env_kinds=['other_app']
+          evidence: SRC async/DataBackupIntentService.java:75-83
+  step 23 [E87530cf4] DataBackupIntentService.importDataFromSpringpad -> SpringImportHelper.importDataFromSpringpad  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC DataBackupIntentService.java:87 (bytecode)
+  step 24 [Ee549a73a] SpringImportHelper.importDataFromSpringpad -> SpringImportHelper.lambda$importDataFromSpringpad$0  kind=FRAMEWORK class=non_standard via=Rx / SmartLocation library delivers the callback
+          trigger: the library / Handler runs the lambda
+          evidence: INFERRED Rx / streams / Handler run the lambda (RxJava and stream library source not read); SRC SpringImportHelper.java:71
+
+====================================================================================================
+NONSTD  SqlParser.removeComments   steps=19  env_kinds=  state_kinds=  classes=explicit;non_standard;standard  confirmed_by=INFERRED  path_status=UNCHECKED
+  branch path row: NONE (never path-checked)
+  shortest_path: S_ENTRY > MainActivity.<init> > MainActivity.onResume > MainActivity.checkPassword > MainActivity.init > ListFragment.<init> > ListFragment.onActivityCreated > ListFragment.init > ListFragment.initNotesList > NoteLoaderTask.doInBackground@ALL > DbHelper.getAllNotes@NAV > DbHelper.getNotesActive > DbHelper.getNotes > DbHelper.getDatabase() > DbHelper.getDatabase(boolean) > DbHelper.onCreate > DbHelper.execSqlFile > SqlParser.parseSqlFile(String,AssetManager) > SqlParser.parseSqlFile(InputStream) > SqlParser.removeComments
+  step  1 [Ea7466154] S_ENTRY -> MainActivity.<init>  kind=ENTRY class=standard via=None
+          trigger: MAIN / LAUNCHER intent starts MainActivity
+          gui: ['Home screen of another launcher: tap the Omni Notes icon']
+          evidence: SRC AndroidManifest.xml:65-114
+  step  2 [E89791c67] MainActivity.<init> -> MainActivity.onResume  kind=LIFECYCLE class=standard via=None
+          trigger: Activity lifecycle callback
+          evidence: SRC MainActivity.java:93-120; BaseActivity.java:72-100
+  step  3 [Edf932a3c] MainActivity.onResume -> MainActivity.checkPassword  kind=CALL class=explicit via=None
+          trigger: isPasswordAccepted is false on a cold start
+          evidence: SRC MainActivity.java:111-118
+  step  4 [E075b4776] MainActivity.checkPassword -> MainActivity.init  kind=CALL class=explicit via=None
+          trigger: no password gate: init()
+          evidence: SRC MainActivity.java:138-156
+  step  5 [E2436b969] MainActivity.init -> ListFragment.<init>  kind=CALL class=explicit via=None
+          trigger: adds the list fragment
+          guard: no fragment with tag fragment_list
+          evidence: SRC MainActivity.java:178-182
+  step  6 [E54b170af] ListFragment.<init> -> ListFragment.onActivityCreated  kind=LIFECYCLE class=standard via=None
+          trigger: Fragment lifecycle callback
+          evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ListFragment.java:205-400
+  step  7 [Ef86ebfe1] ListFragment.onActivityCreated -> ListFragment.init  kind=CALL class=explicit via=None
+          trigger: init()
+          evidence: SRC ListFragment.java:246
+  step  8 [Ec8760433] ListFragment.init -> ListFragment.initNotesList  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC ListFragment.java:255 (bytecode)
+  step  9 [E77ad74f6] ListFragment.initNotesList -> NoteLoaderTask.doInBackground@ALL  kind=ASYNC class=standard via=None
+          trigger: NoteLoaderTask.getInstance().executeOnExecutor(...) with the all query
+          evidence: FW-SRC core/java/android/os/AsyncTask.java:219-224, 237-262, 594-596, 632-650, 326-334, 369-374, 285, 705-713, 691-697 (execute uses the serial executor, which hands each task to THREAD_POOL_EXECUTOR and the worker calls doInBackground; postResult sends the result to a main-looper handler whose handleMessage calls finish, which calls onPostExecute); SRC ListFragment.java:1051-1121
+  step 10 [E936165e6] NoteLoaderTask.doInBackground@ALL -> DbHelper.getAllNotes@NAV  kind=CALL class=non_standard via=reflection (java.lang.reflect.Method / the loader looks the method up by name)
+          trigger: db.getClass().getDeclaredMethod(name).invoke(db): reflection
+          evidence: SRC async/notes/NoteLoaderTask.java:56-80; INFERRED java.lang.reflect.Method.invoke calls the method (libcore source not read)
+  step 11 [E1649637e] DbHelper.getAllNotes@NAV -> DbHelper.getNotesActive  kind=CALL class=explicit via=None
+          trigger: the Notes navigation (the default)
+          guard: checkNavigation is TRUE and the navigation is Notes
+          evidence: SRC db/DbHelper.java:333-335
+  step 12 [Eec216d79] DbHelper.getNotesActive -> DbHelper.getNotes  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC DbHelper.java:358 (bytecode)
+  step 13 [Ed3125e52] DbHelper.getNotes -> DbHelper.getDatabase()  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC DbHelper.java:442 (bytecode)
+  step 14 [E1bdca75d] DbHelper.getDatabase() -> DbHelper.getDatabase(boolean)  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC DbHelper.java:163 (bytecode)
+  step 15 [Ed5a02790] DbHelper.getDatabase(boolean) -> DbHelper.onCreate  kind=FRAMEWORK class=standard via=None
+          trigger: SQLiteOpenHelper creates the database on first access
+          guard: no database file yet
+          evidence: FW-SRC core/java/android/database/sqlite/SQLiteOpenHelper.java:266-270, 326-351 (getDatabaseLocked calls onCreate for a new database, onUpgrade for an older version, and onOpen afterwards); SRC db/DbHelper.java:180-188
+  step 16 [E18429f09] DbHelper.onCreate -> DbHelper.execSqlFile  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC DbHelper.java:184 (bytecode)
+  step 17 [E35df9806] DbHelper.execSqlFile -> SqlParser.parseSqlFile(String,AssetManager)  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC DbHelper.java:276 (bytecode)
+  step 18 [Ec08c293b] SqlParser.parseSqlFile(String,AssetManager) -> SqlParser.parseSqlFile(InputStream)  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC SqlParser.java:35 (bytecode)
+  step 19 [E27ff8505] SqlParser.parseSqlFile(InputStream) -> SqlParser.removeComments  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC SqlParser.java:44 (bytecode)
+
+====================================================================================================
+NONSTD  DetailFragment.onLocationUnavailable   steps=22  env_kinds=hardware;permission  state_kinds=settings  classes=explicit;non_standard;standard  confirmed_by=INFERRED  path_status=SOURCE_OK
+  branch path row: result=fixed confirmed_by=SOURCE ref=DetailFragment.java:699-702,733-736; GeocodeHelper.java:91,104-107 note=ERROR FOUND: the first-graph route reached the list through the shortcut edges "MainActivity.onResume -> ListFragment.onResume / MainActivity.init / the list page", taken right after the process starts. On a cold start isPasswordAccepted is false, so onResume calls checkPassword, which calls init(), which adds the ListFragment once (MainActivity.java:111-118, 138-156, 178-182); the shortcuts skip those steps and are only valid after an earlier resume. Fixed: the shortcut edges now carry the STATE "MainActivity was resumed before in this process" and the best route uses the explicit chain onResume -> checkPassword -> init -> ListFragment. ERROR FOUND (also): the location callbacks had no gates. onError arrives when no fix comes within the 2 s timeout (GeocodeHelper.java:91, 104-107), the callback runs only with the location permission (DetailFragment.java:733-736), and the automatic location needs the "auto location" preference (default off) and a new note (699-702). Fixed: ENV hardware + permission and STATE settings on the route. The route builds the editor fragment again with the edge swipe (DetailFragment.java:1903-1953) -> onActivityCreated -> init -> initViews -> initViewLocation (629); the FAB path through editNote -> switchToDetail reaches the same constructor (ListFragment.java:930-950, MainActivity.java:439-450). Steps that run through androidx / MaterialDialogs / ButterKnife / EventBus / RxJava / SmartLocation rest on INFERRED claims (library source not read).
+  shortest_path: S_ENTRY > MainActivity.<init> > MainActivity.onResume > MainActivity.checkPassword > MainActivity.init > ListFragment.<init> > ListFragment.onActivityCreated > ListFragment.init > S_LIST@NOTES > Fab.lambda$init$1@LONG_NOTES > ListFragment.lambda$initFab$0@MAIN > S_DETAIL@NEW > DetailFragment.onTouch > DetailFragment.<init> > DetailFragment.onActivityCreated > DetailFragment.init > DetailFragment.initViews > DetailFragment.initViewLocation > DetailFragment.getLocation@AUTO > DetailFragment.lambda$getLocation$7@AUTO > GeocodeHelper.getLocation@AUTO > GeocodeHelper$1.onError@AUTO > DetailFragment.onLocationUnavailable
+  step  1 [Ea7466154] S_ENTRY -> MainActivity.<init>  kind=ENTRY class=standard via=None
+          trigger: MAIN / LAUNCHER intent starts MainActivity
+          gui: ['Home screen of another launcher: tap the Omni Notes icon']
+          evidence: SRC AndroidManifest.xml:65-114
+  step  2 [E89791c67] MainActivity.<init> -> MainActivity.onResume  kind=LIFECYCLE class=standard via=None
+          trigger: Activity lifecycle callback
+          evidence: SRC MainActivity.java:93-120; BaseActivity.java:72-100
+  step  3 [Edf932a3c] MainActivity.onResume -> MainActivity.checkPassword  kind=CALL class=explicit via=None
+          trigger: isPasswordAccepted is false on a cold start
+          evidence: SRC MainActivity.java:111-118
+  step  4 [E075b4776] MainActivity.checkPassword -> MainActivity.init  kind=CALL class=explicit via=None
+          trigger: no password gate: init()
+          evidence: SRC MainActivity.java:138-156
+  step  5 [E2436b969] MainActivity.init -> ListFragment.<init>  kind=CALL class=explicit via=None
+          trigger: adds the list fragment
+          guard: no fragment with tag fragment_list
+          evidence: SRC MainActivity.java:178-182
+  step  6 [E54b170af] ListFragment.<init> -> ListFragment.onActivityCreated  kind=LIFECYCLE class=standard via=None
+          trigger: Fragment lifecycle callback
+          evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ListFragment.java:205-400
+  step  7 [Ef86ebfe1] ListFragment.onActivityCreated -> ListFragment.init  kind=CALL class=explicit via=None
+          trigger: init()
+          evidence: SRC ListFragment.java:246
+  step  8 [E7e3c321b] ListFragment.init -> S_LIST@NOTES  kind=ENTERS class=page via=None
+          trigger: The list is set up on the default navigation (Notes) and the load starts
+          guard: navigation pref is Notes (default)
+          evidence: SRC ListFragment.java:250-261; BaseActivity.java:98-99
+  step  9 [E01d0dfd6] S_LIST@NOTES -> Fab.lambda$init$1@LONG_NOTES  kind=GUI class=standard via=None
+          trigger: Long-press the + button
+          gui: ['Long-press the + button']
+          evidence: SRC models/views/Fab.java:69-76
+  step 10 [Ee5d1ab81] Fab.lambda$init$1@LONG_NOTES -> ListFragment.lambda$initFab$0@MAIN  kind=CALL class=explicit via=None
+          trigger: onFabItemClick(fab_expand_menu_button)
+          guard: not expanded
+          evidence: SRC models/views/Fab.java:118-125
+  step 11 [E8a16cf02] ListFragment.lambda$initFab$0@MAIN -> S_DETAIL@NEW  kind=ENTERS class=page via=None
+          trigger: a new note is opened
+          evidence: SRC ListFragment.java:266-285
+  step 12 [E06a839c2] S_DETAIL@NEW -> DetailFragment.onTouch  kind=GUI class=standard via=None
+          trigger: Touch the editor (an edge swipe opens a new note)
+          gui: ['Touch the editor (an edge swipe opens a new note)']
+          evidence: SRC DetailFragment.java:1903-1953
+  step 13 [Efe5c8631] DetailFragment.onTouch -> DetailFragment.<init>  kind=CALL class=explicit via=None
+          trigger: an edge swipe replaces the editor with a new DetailFragment
+          guard: The swipe starts within 30 px of the screen edge and moves 100 px
+          evidence: SRC DetailFragment.java:1916-1944
+  step 14 [E15401fce] DetailFragment.<init> -> DetailFragment.onActivityCreated  kind=LIFECYCLE class=standard via=None
+          trigger: Fragment lifecycle callback
+          evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC DetailFragment.java:326-435,1005-1037
+  step 15 [E639c8687] DetailFragment.onActivityCreated -> DetailFragment.init  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC DetailFragment.java:396 (bytecode)
+  step 16 [E5893d44c] DetailFragment.init -> DetailFragment.initViews  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC DetailFragment.java:466 (bytecode)
+  step 17 [Ecf43ebf8] DetailFragment.initViews -> DetailFragment.initViewLocation  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC DetailFragment.java:629 (bytecode)
+  step 18 [E8050f4c2] DetailFragment.initViewLocation -> DetailFragment.getLocation@AUTO  kind=CALL class=explicit via=None
+          trigger: getLocation(this): a new note gets the current location
+          needs_state: Settings > Behaviors > "Auto location" is on (default off)  state_kinds=['settings']
+          evidence: SRC DetailFragment.java:700-702
+  step 19 [E6c823805] DetailFragment.getLocation@AUTO -> DetailFragment.lambda$getLocation$7@AUTO  kind=CALL class=explicit via=None
+          trigger: ACCESS_FINE_LOCATION is granted: the callback runs
+          env: the location permission is granted to the app (runtime permission)  env_kinds=['permission']
+          evidence: SRC DetailFragment.java:734-736
+  step 20 [E303c2c53] DetailFragment.lambda$getLocation$7@AUTO -> GeocodeHelper.getLocation@AUTO  kind=CALL class=explicit via=None
+          trigger: GeocodeHelper.getLocation(listener)
+          evidence: SRC DetailFragment.java:735-736
+  step 21 [E835daba1] GeocodeHelper.getLocation@AUTO -> GeocodeHelper$1.onError@AUTO  kind=FRAMEWORK class=non_standard via=Rx / SmartLocation library delivers the callback
+          trigger: no fix within 2 s: the observable times out
+          env: no location fix arrives within the 2 s timeout (location services off or no provider)  env_kinds=['hardware']
+          evidence: INFERRED RxJava delivers the timeout (library source not read); SRC utils/GeocodeHelper.java:91,105-108
+  step 22 [E7a04967d] GeocodeHelper$1.onError@AUTO -> DetailFragment.onLocationUnavailable  kind=CALL class=explicit via=None
+          trigger: listener.onLocationUnavailable()
+          evidence: SRC utils/GeocodeHelper.java:106
+
+====================================================================================================
+INFERRED  RecurrenceHelper.nextReminderFromRecurrenceRule(long,long,String)   steps=22  env_kinds=  state_kinds=data  classes=explicit;standard  confirmed_by=INFERRED  path_status=SOURCE_OK
+  branch path row: result=fixed confirmed_by=SOURCE ref=SnoozeActivity.java:55-60,138-150; ListFragment.java:893-899 note=ERROR FOUND: the first-graph route reached the list through the shortcut edges "MainActivity.onResume -> ListFragment.onResume / MainActivity.init / the list page", taken right after the process starts. On a cold start isPasswordAccepted is false, so onResume calls checkPassword, which calls init(), which adds the ListFragment once (MainActivity.java:111-118, 138-156, 178-182); the shortcuts skip those steps and are only valid after an earlier resume. Fixed: the shortcut edges now carry the STATE "MainActivity was resumed before in this process" and the best route uses the explicit chain onResume -> checkPassword -> init -> ListFragment. ERROR FOUND (also): setNextRecurrentReminder calls nextReminderFromRecurrenceRule only for a note with a recurrence rule (SnoozeActivity.java:55-60): guard and STATE "a recurrence rule was chosen in the reminder picker" added. Steps read: select a note -> Add reminder in the action bar (ListFragment.java:451-465, 893-899) -> SnoozeActivity from the list (82-93, 116-119) -> picker -> OK -> onRecurrenceReminderPicked (138-150). This route passes the postpone branch of SnoozeActivity, which may crash on API 27 (hazard in the notes); the method is also reached without it: the alarm fires -> AlarmReceiver.onReceive -> SnoozeActivity.setNextRecurrentReminder (AlarmReceiver.java:59; ENV time, a note with a recurrence rule), so the label does not depend on that branch. Steps that run through androidx / MaterialDialogs / ButterKnife / EventBus / RxJava / SmartLocation rest on INFERRED claims (library source not read).
+  shortest_path: S_ENTRY > MainActivity.<init> > MainActivity.onResume > MainActivity.checkPassword > MainActivity.init > ListFragment.<init> > ListFragment.onActivityCreated > ListFragment.init > S_LIST@NOTES > ListFragment.lambda$initListView$3@START_NOTES > S_LIST_CAB@NOTES_1 > ListFragment$ModeCallback.onActionItemClicked@REMINDER > ListFragment.performAction@C_REMINDER > ListFragment.addReminders > SnoozeActivity.<init> > SnoozeActivity.onCreate > SnoozeActivity.postpone > S_REMINDER_PICKER@SNOOZE > ReminderPickers$1.onDateTimeRecurrenceSet@SNOOZE > SnoozeActivity.onRecurrenceReminderPicked > SnoozeActivity.setNextRecurrentReminder > RecurrenceHelper.nextReminderFromRecurrenceRule(long,String) > RecurrenceHelper.nextReminderFromRecurrenceRule(long,long,String)
+  step  1 [Ea7466154] S_ENTRY -> MainActivity.<init>  kind=ENTRY class=standard via=None
+          trigger: MAIN / LAUNCHER intent starts MainActivity
+          gui: ['Home screen of another launcher: tap the Omni Notes icon']
+          evidence: SRC AndroidManifest.xml:65-114
+  step  2 [E89791c67] MainActivity.<init> -> MainActivity.onResume  kind=LIFECYCLE class=standard via=None
+          trigger: Activity lifecycle callback
+          evidence: SRC MainActivity.java:93-120; BaseActivity.java:72-100
+  step  3 [Edf932a3c] MainActivity.onResume -> MainActivity.checkPassword  kind=CALL class=explicit via=None
+          trigger: isPasswordAccepted is false on a cold start
+          evidence: SRC MainActivity.java:111-118
+  step  4 [E075b4776] MainActivity.checkPassword -> MainActivity.init  kind=CALL class=explicit via=None
+          trigger: no password gate: init()
+          evidence: SRC MainActivity.java:138-156
+  step  5 [E2436b969] MainActivity.init -> ListFragment.<init>  kind=CALL class=explicit via=None
+          trigger: adds the list fragment
+          guard: no fragment with tag fragment_list
+          evidence: SRC MainActivity.java:178-182
+  step  6 [E54b170af] ListFragment.<init> -> ListFragment.onActivityCreated  kind=LIFECYCLE class=standard via=None
+          trigger: Fragment lifecycle callback
+          evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ListFragment.java:205-400
+  step  7 [Ef86ebfe1] ListFragment.onActivityCreated -> ListFragment.init  kind=CALL class=explicit via=None
+          trigger: init()
+          evidence: SRC ListFragment.java:246
+  step  8 [E7e3c321b] ListFragment.init -> S_LIST@NOTES  kind=ENTERS class=page via=None
+          trigger: The list is set up on the default navigation (Notes) and the load starts
+          guard: navigation pref is Notes (default)
+          evidence: SRC ListFragment.java:250-261; BaseActivity.java:98-99
+  step  9 [Ef79712d5] S_LIST@NOTES -> ListFragment.lambda$initListView$3@START_NOTES  kind=GUI class=standard via=None
+          trigger: Long-press a note
+          needs_state: At least one note exists (tap +, type, Back)  state_kinds=['data']
+          gui: ['Long-press a note']
+          evidence: SRC ListFragment.java:507-516
+  step 10 [E2c4c48d6] ListFragment.lambda$initListView$3@START_NOTES -> S_LIST_CAB@NOTES_1  kind=ENTERS class=page via=None
+          trigger: one note is selected: the contextual action bar replaces the toolbar
+          evidence: SRC ListFragment.java:507-516
+  step 11 [Ef9fd85cd] S_LIST_CAB@NOTES_1 -> ListFragment$ModeCallback.onActionItemClicked@REMINDER  kind=GUI class=standard via=None
+          trigger: Tap "Add reminder" in the action bar
+          gui: ['Tap "Add reminder" in the action bar']
+          evidence: SRC ListFragment.java:451-465,611-648
+  step 12 [E952f31c8] ListFragment$ModeCallback.onActionItemClicked@REMINDER -> ListFragment.performAction@C_REMINDER  kind=CALL class=explicit via=None
+          trigger: performAction(item, mode)
+          evidence: SRC ListFragment.java:451-463
+  step 13 [E112a1aa5] ListFragment.performAction@C_REMINDER -> ListFragment.addReminders  kind=CALL class=explicit via=None
+          trigger: the reminder branch of the action switch
+          evidence: SRC ListFragment.java:847-880
+  step 14 [E2632b1a3] ListFragment.addReminders -> SnoozeActivity.<init>  kind=INTENT class=standard via=None
+          trigger: startActivityForResult(SnoozeActivity, ACTION_POSTPONE)
+          evidence: SRC ListFragment.java:893-899
+  step 15 [E9b926ab3] SnoozeActivity.<init> -> SnoozeActivity.onCreate  kind=LIFECYCLE class=standard via=None
+          trigger: Activity lifecycle
+          evidence: SRC SnoozeActivity.java:82-93
+  step 16 [E050a5e16] SnoozeActivity.onCreate -> SnoozeActivity.postpone  kind=CALL class=explicit via=None
+          trigger: several notes were sent from the list: postpone(nextMinute)
+          guard: no single note extra
+          evidence: SRC SnoozeActivity.java:88-92
+  step 17 [E7b616824] SnoozeActivity.postpone -> S_REMINDER_PICKER@SNOOZE  kind=ENTERS class=page via=None
+          trigger: the picker is shown over the list
+          evidence: SRC SnoozeActivity.java:116-119
+  step 18 [E4c2ac593] S_REMINDER_PICKER@SNOOZE -> ReminderPickers$1.onDateTimeRecurrenceSet@SNOOZE  kind=GUI class=standard via=None
+          trigger: Pick a date and time and tap OK
+          gui: ['Pick a date and time and tap OK']
+          evidence: SRC utils/date/ReminderPickers.java:60-69
+  step 19 [Ed9ed730e] ReminderPickers$1.onDateTimeRecurrenceSet@SNOOZE -> SnoozeActivity.onRecurrenceReminderPicked  kind=CALL class=explicit via=None
+          trigger: OnReminderPickedListener.onRecurrenceReminderPicked
+          evidence: SRC utils/date/ReminderPickers.java:65-67
+  step 20 [Ed4a4a1f1] SnoozeActivity.onRecurrenceReminderPicked -> SnoozeActivity.setNextRecurrentReminder  kind=CALL class=explicit via=None
+          trigger: setNextRecurrentReminder(note)
+          evidence: SRC SnoozeActivity.java:138-150
+  step 21 [E6d04afda] SnoozeActivity.setNextRecurrentReminder -> RecurrenceHelper.nextReminderFromRecurrenceRule(long,String)  kind=CALL class=explicit via=None
+          trigger: Direct call
+          guard: the note has a recurrence rule (SnoozeActivity.java:55-60)
+          needs_state: A recurrence rule was chosen in the reminder picker  state_kinds=['data']
+          evidence: SRC SnoozeActivity.java:57 (bytecode)
+  step 22 [Eae44adee] RecurrenceHelper.nextReminderFromRecurrenceRule(long,String) -> RecurrenceHelper.nextReminderFromRecurrenceRule(long,long,String)  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC RecurrenceHelper.java:57 (bytecode)
+
+====================================================================================================
+INFERRED  Attachment.<init>(BaseAttachment)   steps=31  env_kinds=permission  state_kinds=file  classes=explicit;standard  confirmed_by=INFERRED  path_status=SOURCE_OK
+  branch path row: result=fixed confirmed_by=SOURCE ref=DataBackupIntentService.java:75-87,121-137; BackupHelper.java:145-176; Note.java:152-159 note=ERROR FOUND: the first-graph route reached the list through the shortcut edges "MainActivity.onResume -> ListFragment.onResume / MainActivity.init / the list page", taken right after the process starts. On a cold start isPasswordAccepted is false, so onResume calls checkPassword, which calls init(), which adds the ListFragment once (MainActivity.java:111-118, 138-156, 178-182); the shortcuts skip those steps and are only valid after an earlier resume. Fixed: the shortcut edges now carry the STATE "MainActivity was resumed before in this process" and the best route uses the explicit chain onResume -> checkPassword -> init -> ListFragment. ERROR FOUND (also): the first route took the legacy import (onHandleIntent@LEGACY) and then importData -> BackupHelper.importNotes, but importData calls importNotes only when the action is the normal import and importDB when it is the legacy one (DataBackupIntentService.java:123, 131-135). Fixed: importData now runs per action (@IMPORT / @LEGACY) with the matching guards; the route is Settings > Data > Sync > Import -> backup list -> Confirm (SettingsFragment.java:159-166, 573-591) -> importData@IMPORT -> importNotes -> importNote -> getImportNote -> Note.buildFromJson -> Attachment (Note.java:152-159), STATE a backup folder with attachments (file), ENV storage permission. importNotes needs a file named <13 digits>.json (BackupHelper.java:147) and getImportNote a non-empty file (175): both guards added. Steps that run through androidx / MaterialDialogs / ButterKnife / EventBus / RxJava / SmartLocation rest on INFERRED claims (library source not read).
+  shortest_path: S_ENTRY > MainActivity.<init> > MainActivity.onResume > MainActivity.checkPassword > MainActivity.init > ListFragment.<init> > ListFragment.onActivityCreated > ListFragment.init > S_LIST@NOTES > NavigationDrawerFragment$1.onDrawerOpened@NOTES > S_DRAWER@NOTES > CategoryMenuTask.lambda$null$0 > SettingsActivity.<init> > S_SETTINGS > SettingsActivity.onPreferenceStartFragment@DATA > S_SETTINGS_DATA > SettingsActivity.onPreferenceStartFragment@SYNC > S_SETTINGS_SYNC > SettingsFragment.lambda$onResume$2 > SettingsFragment.importNotes > S_DLG_IMPORT > RecyclerViewItemClickSupport$1.onClick@IMPORT > SettingsFragment.lambda$null$28 > S_DLG_IMPORT_CONFIRM > SettingsFragment.lambda$null$27 > DataBackupIntentService.onHandleIntent@IMPORT > DataBackupIntentService.importData@IMPORT > BackupHelper.importNotes > BackupHelper.importNote > BackupHelper.getImportNote > Note.buildFromJson > Attachment.<init>(BaseAttachment)
+  step  1 [Ea7466154] S_ENTRY -> MainActivity.<init>  kind=ENTRY class=standard via=None
+          trigger: MAIN / LAUNCHER intent starts MainActivity
+          gui: ['Home screen of another launcher: tap the Omni Notes icon']
+          evidence: SRC AndroidManifest.xml:65-114
+  step  2 [E89791c67] MainActivity.<init> -> MainActivity.onResume  kind=LIFECYCLE class=standard via=None
+          trigger: Activity lifecycle callback
+          evidence: SRC MainActivity.java:93-120; BaseActivity.java:72-100
+  step  3 [Edf932a3c] MainActivity.onResume -> MainActivity.checkPassword  kind=CALL class=explicit via=None
+          trigger: isPasswordAccepted is false on a cold start
+          evidence: SRC MainActivity.java:111-118
+  step  4 [E075b4776] MainActivity.checkPassword -> MainActivity.init  kind=CALL class=explicit via=None
+          trigger: no password gate: init()
+          evidence: SRC MainActivity.java:138-156
+  step  5 [E2436b969] MainActivity.init -> ListFragment.<init>  kind=CALL class=explicit via=None
+          trigger: adds the list fragment
+          guard: no fragment with tag fragment_list
+          evidence: SRC MainActivity.java:178-182
+  step  6 [E54b170af] ListFragment.<init> -> ListFragment.onActivityCreated  kind=LIFECYCLE class=standard via=None
+          trigger: Fragment lifecycle callback
+          evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ListFragment.java:205-400
+  step  7 [Ef86ebfe1] ListFragment.onActivityCreated -> ListFragment.init  kind=CALL class=explicit via=None
+          trigger: init()
+          evidence: SRC ListFragment.java:246
+  step  8 [E7e3c321b] ListFragment.init -> S_LIST@NOTES  kind=ENTERS class=page via=None
+          trigger: The list is set up on the default navigation (Notes) and the load starts
+          guard: navigation pref is Notes (default)
+          evidence: SRC ListFragment.java:250-261; BaseActivity.java:98-99
+  step  9 [E89ba0d21] S_LIST@NOTES -> NavigationDrawerFragment$1.onDrawerOpened@NOTES  kind=GUI class=standard via=None
+          trigger: Swipe in from the left edge or tap the menu icon
+          gui: ['Swipe in from the left edge or tap the menu icon']
+          evidence: SRC NavigationDrawerFragment.java:172-188
+  step 10 [Eb4f41bd1] NavigationDrawerFragment$1.onDrawerOpened@NOTES -> S_DRAWER@NOTES  kind=ENTERS class=page via=None
+          trigger: the drawer is open
+          evidence: SRC NavigationDrawerFragment.java:183-186
+  step 11 [Eb5b36c1c] S_DRAWER@NOTES -> CategoryMenuTask.lambda$null$0  kind=GUI class=standard via=None
+          trigger: Tap Settings at the bottom of the drawer
+          gui: ['Tap Settings at the bottom of the drawer']
+          evidence: SRC async/CategoryMenuTask.java:129-135; res/layout/fragment_navigation_drawer.xml:66-80
+  step 12 [E15489aeb] CategoryMenuTask.lambda$null$0 -> SettingsActivity.<init>  kind=INTENT class=standard via=None
+          trigger: startActivity(SettingsActivity)
+          evidence: SRC async/CategoryMenuTask.java:131-132
+  step 13 [E4306cbbb] SettingsActivity.<init> -> S_SETTINGS  kind=ENTERS class=page via=None
+          trigger: the settings root is shown
+          evidence: SRC SettingsActivity.java:54-61
+  step 14 [E7d8539a9] S_SETTINGS -> SettingsActivity.onPreferenceStartFragment@DATA  kind=GUI class=standard via=None
+          trigger: Tap "Data"
+          gui: ['Tap "Data"']
+          evidence: SRC SettingsActivity.java:125-140; res/xml/settings.xml
+  step 15 [E1f9e6935] SettingsActivity.onPreferenceStartFragment@DATA -> S_SETTINGS_DATA  kind=ENTERS class=page via=None
+          trigger: the sub-screen opens on top of the root
+          evidence: SRC SettingsActivity.java:135-139
+  step 16 [E51dad05c] S_SETTINGS_DATA -> SettingsActivity.onPreferenceStartFragment@SYNC  kind=GUI class=standard via=None
+          trigger: Tap "Sync"
+          gui: ['Tap "Sync"']
+          evidence: SRC SettingsActivity.java:125-140; res/xml/settings_data.xml
+  step 17 [E47f06889] SettingsActivity.onPreferenceStartFragment@SYNC -> S_SETTINGS_SYNC  kind=ENTERS class=page via=None
+          trigger: the sub-screen opens
+          evidence: SRC SettingsActivity.java:135-139
+  step 18 [Ed1a1b5fa] S_SETTINGS_SYNC -> SettingsFragment.lambda$onResume$2  kind=GUI class=standard via=None
+          trigger: Tap "Import"
+          gui: ['Tap "Import"']
+          evidence: SRC SettingsFragment.java:159-166
+  step 19 [Eb3d3e1bc] SettingsFragment.lambda$onResume$2 -> SettingsFragment.importNotes  kind=CALL class=explicit via=None
+          trigger: WRITE_EXTERNAL_STORAGE is granted: importNotes()
+          env: the storage permission is granted to the app (runtime permission)  env_kinds=['permission']
+          evidence: SRC SettingsFragment.java:162-164
+  step 20 [Eaa4dc4e5] SettingsFragment.importNotes -> S_DLG_IMPORT  kind=ENTERS class=page via=None
+          trigger: the backup list opens
+          needs_state: A backup folder exists under /sdcard/Omni Notes (Settings > Sync > Export)  state_kinds=['file']
+          evidence: SRC SettingsFragment.java:539-622
+  step 21 [E6f7ab928] S_DLG_IMPORT -> RecyclerViewItemClickSupport$1.onClick@IMPORT  kind=GUI class=standard via=None
+          trigger: Tap a backup
+          gui: ['Tap a backup']
+          evidence: SRC models/listeners/RecyclerViewItemClickSupport.java; SettingsFragment.java:558-592
+  step 22 [E357d731e] RecyclerViewItemClickSupport$1.onClick@IMPORT -> SettingsFragment.lambda$null$28  kind=CALL class=explicit via=None
+          trigger: OnItemClickListener.onItemClick
+          evidence: SRC SettingsFragment.java:558
+  step 23 [E19da0381] SettingsFragment.lambda$null$28 -> S_DLG_IMPORT_CONFIRM  kind=ENTERS class=page via=None
+          trigger: the restore confirmation opens
+          evidence: SRC SettingsFragment.java:573-591
+  step 24 [E1f7207ea] S_DLG_IMPORT_CONFIRM -> SettingsFragment.lambda$null$27  kind=GUI class=standard via=None
+          trigger: Tap Confirm
+          gui: ['Tap Confirm']
+          evidence: INFERRED MaterialDialogs calls the registered button / item callbacks (library source not read); SRC SettingsFragment.java:577-590
+  step 25 [E867516ae] SettingsFragment.lambda$null$27 -> DataBackupIntentService.onHandleIntent@IMPORT  kind=ASYNC class=standard via=None
+          trigger: IntentService.onHandleIntent runs on a worker thread
+          evidence: FW-SRC core/java/android/app/IntentService.java:70-78, 112-132 (onCreate starts a HandlerThread; onStart queues the intent as a message and the ServiceHandler calls onHandleIntent on that worker thread); SRC async/DataBackupIntentService.java:67-84
+  step 26 [E6dbf71eb] DataBackupIntentService.onHandleIntent@IMPORT -> DataBackupIntentService.importData@IMPORT  kind=CALL class=explicit via=None
+          trigger: the import action
+          evidence: SRC async/DataBackupIntentService.java:75-83
+  step 27 [Ecd757080] DataBackupIntentService.importData@IMPORT -> BackupHelper.importNotes  kind=CALL class=explicit via=None
+          trigger: the notes of the backup folder are imported
+          guard: the action is a normal import, not the legacy one (importLegacy is false)
+          evidence: SRC async/DataBackupIntentService.java:123,131-135
+  step 28 [Eae8e194c] BackupHelper.importNotes -> BackupHelper.importNote  kind=CALL class=explicit via=None
+          trigger: Direct call
+          guard: the backup folder holds a note file named <13 digits>.json (BackupHelper.java:147)
+          evidence: SRC BackupHelper.java:148 (bytecode)
+  step 29 [E55ee284f] BackupHelper.importNote -> BackupHelper.getImportNote  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC BackupHelper.java:158 (bytecode)
+  step 30 [E4f0497a0] BackupHelper.getImportNote -> Note.buildFromJson  kind=CALL class=explicit via=None
+          trigger: Direct call
+          guard: the note file is not empty (BackupHelper.java:175)
+          evidence: SRC BackupHelper.java:176 (bytecode)
+  step 31 [Ed4308bfb] Note.buildFromJson -> Attachment.<init>(BaseAttachment)  kind=CALL class=explicit via=None
+          trigger: Direct call
+          guard: the note JSON has an attachments array
+          needs_state: A backup folder exists whose note files contain attachments (exported earlier)  state_kinds=['file']
+          evidence: SRC Note.java:156 (bytecode)
+
+====================================================================================================
+INFERRED  DbHelper.deleteNote(long,boolean)   steps=24  env_kinds=  state_kinds=session  classes=explicit;standard  confirmed_by=INFERRED  path_status=WRONG
+  branch path row: result=wrong confirmed_by=SOURCE ref=DetailFragment.java:1583-1587,1612-1616; ListFragment.java:847-880 note=ERROR FOUND: the first-graph route reached the list through the shortcut edges "MainActivity.onResume -> ListFragment.onResume / MainActivity.init / the list page", taken right after the process starts. On a cold start isPasswordAccepted is false, so onResume calls checkPassword, which calls init(), which adds the ListFragment once (MainActivity.java:111-118, 138-156, 178-182); the shortcuts skip those steps and are only valid after an earlier resume. Fixed: the shortcut edges now carry the STATE "MainActivity was resumed before in this process" and the best route uses the explicit chain onResume -> checkPassword -> init -> ListFragment. ERROR FOUND, NOT FIXED: after the shortcut is removed the route is: FAB-created editor -> change the note -> Back -> saveNote -> onNoteSaved -> deleteMergedNotes (DetailFragment.java:1616) -> NoteProcessorDelete -> DbHelper.deleteNote, with the STATE "the open note is the result of Merge". deleteMergedNotes does something only when the editor was opened by the Merge action of the list (mergedNotesIds is set from the intent), which the page node of a FAB-created editor cannot express: a STATE cannot say how an editor was opened. The label REACHABLE is right (Merge is a real path); the route is not consistent. Modelling limit: it would need its own editor context (@MERGE) with its own Back / save chain. Steps that run through androidx / MaterialDialogs / ButterKnife / EventBus / RxJava / SmartLocation rest on INFERRED claims (library source not read).
+  shortest_path: S_ENTRY > MainActivity.<init> > MainActivity.onResume > MainActivity.checkPassword > MainActivity.init > ListFragment.<init> > ListFragment.onActivityCreated > ListFragment.init > S_LIST@NOTES > Fab.lambda$init$1@LONG_NOTES > ListFragment.lambda$initFab$0@MAIN > S_DETAIL@NEW > MainActivity.onBackPressed@DETAIL_SAVE > DetailFragment.saveAndExit@SAVE > DetailFragment.saveNote@SAVE > SaveNoteTask.doInBackground > SaveNoteTask.onPostExecute > DetailFragment.onNoteSaved > DetailFragment.deleteMergedNotes > NoteProcessor.process@DELETE > NoteProcessor$NotesProcessorTask.doInBackground@DELETE > NoteProcessorDelete.processNote > DbHelper.deleteNote(Note) > DbHelper.deleteNote(Note,boolean) > DbHelper.deleteNote(long,boolean)
+  step  1 [Ea7466154] S_ENTRY -> MainActivity.<init>  kind=ENTRY class=standard via=None
+          trigger: MAIN / LAUNCHER intent starts MainActivity
+          gui: ['Home screen of another launcher: tap the Omni Notes icon']
+          evidence: SRC AndroidManifest.xml:65-114
+  step  2 [E89791c67] MainActivity.<init> -> MainActivity.onResume  kind=LIFECYCLE class=standard via=None
+          trigger: Activity lifecycle callback
+          evidence: SRC MainActivity.java:93-120; BaseActivity.java:72-100
+  step  3 [Edf932a3c] MainActivity.onResume -> MainActivity.checkPassword  kind=CALL class=explicit via=None
+          trigger: isPasswordAccepted is false on a cold start
+          evidence: SRC MainActivity.java:111-118
+  step  4 [E075b4776] MainActivity.checkPassword -> MainActivity.init  kind=CALL class=explicit via=None
+          trigger: no password gate: init()
+          evidence: SRC MainActivity.java:138-156
+  step  5 [E2436b969] MainActivity.init -> ListFragment.<init>  kind=CALL class=explicit via=None
+          trigger: adds the list fragment
+          guard: no fragment with tag fragment_list
+          evidence: SRC MainActivity.java:178-182
+  step  6 [E54b170af] ListFragment.<init> -> ListFragment.onActivityCreated  kind=LIFECYCLE class=standard via=None
+          trigger: Fragment lifecycle callback
+          evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ListFragment.java:205-400
+  step  7 [Ef86ebfe1] ListFragment.onActivityCreated -> ListFragment.init  kind=CALL class=explicit via=None
+          trigger: init()
+          evidence: SRC ListFragment.java:246
+  step  8 [E7e3c321b] ListFragment.init -> S_LIST@NOTES  kind=ENTERS class=page via=None
+          trigger: The list is set up on the default navigation (Notes) and the load starts
+          guard: navigation pref is Notes (default)
+          evidence: SRC ListFragment.java:250-261; BaseActivity.java:98-99
+  step  9 [E01d0dfd6] S_LIST@NOTES -> Fab.lambda$init$1@LONG_NOTES  kind=GUI class=standard via=None
+          trigger: Long-press the + button
+          gui: ['Long-press the + button']
+          evidence: SRC models/views/Fab.java:69-76
+  step 10 [Ee5d1ab81] Fab.lambda$init$1@LONG_NOTES -> ListFragment.lambda$initFab$0@MAIN  kind=CALL class=explicit via=None
+          trigger: onFabItemClick(fab_expand_menu_button)
+          guard: not expanded
+          evidence: SRC models/views/Fab.java:118-125
+  step 11 [E8a16cf02] ListFragment.lambda$initFab$0@MAIN -> S_DETAIL@NEW  kind=ENTERS class=page via=None
+          trigger: a new note is opened
+          evidence: SRC ListFragment.java:266-285
+  step 12 [E1a48ab1f] S_DETAIL@NEW -> MainActivity.onBackPressed@DETAIL_SAVE  kind=GUI class=standard via=None
+          trigger: Change the note (type text or add something), then press Back
+          gui: ['Change the note (type text or add something), then press Back']
+          evidence: SRC MainActivity.java:271-276; DetailFragment.java:1583-1587
+  step 13 [E4455444c] MainActivity.onBackPressed@DETAIL_SAVE -> DetailFragment.saveAndExit@SAVE  kind=CALL class=explicit via=None
+          trigger: goBack = true; saveAndExit(fragment)
+          evidence: SRC MainActivity.java:271-276
+  step 14 [Eca06fe26] DetailFragment.saveAndExit@SAVE -> DetailFragment.saveNote@SAVE  kind=CALL class=explicit via=None
+          trigger: saveNote(listener)
+          evidence: SRC DetailFragment.java:1547-1553
+  step 15 [E67ba23d6] DetailFragment.saveNote@SAVE -> SaveNoteTask.doInBackground  kind=ASYNC class=standard via=None
+          trigger: executeOnExecutor(noteTmp)
+          evidence: FW-SRC core/java/android/os/AsyncTask.java:219-224, 237-262, 594-596, 632-650, 326-334, 369-374, 285, 705-713, 691-697 (execute uses the serial executor, which hands each task to THREAD_POOL_EXECUTOR and the worker calls doInBackground; postResult sends the result to a main-looper handler whose handleMessage calls finish, which calls onPostExecute); SRC DetailFragment.java:1585-1586
+  step 16 [E20a5c376] SaveNoteTask.doInBackground -> SaveNoteTask.onPostExecute  kind=ASYNC class=standard via=None
+          trigger: the saved note is delivered on the main thread
+          evidence: FW-SRC core/java/android/os/AsyncTask.java:219-224, 237-262, 594-596, 632-650, 326-334, 369-374, 285, 705-713, 691-697 (execute uses the serial executor, which hands each task to THREAD_POOL_EXECUTOR and the worker calls doInBackground; postResult sends the result to a main-looper handler whose handleMessage calls finish, which calls onPostExecute); SRC async/notes/SaveNoteTask.java:100-106
+  step 17 [E2aba9b5f] SaveNoteTask.onPostExecute -> DetailFragment.onNoteSaved  kind=CALL class=explicit via=None
+          trigger: Virtual/interface call that can dispatch to this implementation
+          evidence: SRC SaveNoteTask.java:103 (bytecode)
+  step 18 [E5798db8e] DetailFragment.onNoteSaved -> DetailFragment.deleteMergedNotes  kind=CALL class=explicit via=None
+          trigger: the merged source notes are deleted
+          needs_state: The open note is the result of Merge (opened from the CAB with two or more notes selected)  state_kinds=['session']
+          evidence: SRC DetailFragment.java:1616
+  step 19 [E152ff95a] DetailFragment.deleteMergedNotes -> NoteProcessor.process@DELETE  kind=CALL class=explicit via=None
+          trigger: new NoteProcessorDelete(notes).process()
+          evidence: SRC (bytecode) call to NoteProcessor.process on a NoteProcessorDelete
+  step 20 [E90c55511] NoteProcessor.process@DELETE -> NoteProcessor$NotesProcessorTask.doInBackground@DELETE  kind=ASYNC class=standard via=None
+          trigger: task.executeOnExecutor(...)
+          evidence: FW-SRC core/java/android/os/AsyncTask.java:219-224, 237-262, 594-596, 632-650, 326-334, 369-374, 285, 705-713, 691-697 (execute uses the serial executor, which hands each task to THREAD_POOL_EXECUTOR and the worker calls doInBackground; postResult sends the result to a main-looper handler whose handleMessage calls finish, which calls onPostExecute); SRC async/notes/NoteProcessor.java:38-41
+  step 21 [Ef041169a] NoteProcessor$NotesProcessorTask.doInBackground@DELETE -> NoteProcessorDelete.processNote  kind=CALL class=explicit via=None
+          trigger: processNote(note) for each note
+          evidence: SRC async/notes/NoteProcessor.java:50-56
+  step 22 [Ebb3524e0] NoteProcessorDelete.processNote -> DbHelper.deleteNote(Note)  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC NoteProcessorDelete.java:50 (bytecode)
+  step 23 [Eb7fd99d0] DbHelper.deleteNote(Note) -> DbHelper.deleteNote(Note,boolean)  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC DbHelper.java:514 (bytecode)
+  step 24 [Ebcf6ab85] DbHelper.deleteNote(Note,boolean) -> DbHelper.deleteNote(long,boolean)  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC DbHelper.java:522 (bytecode)
+
+====================================================================================================
+INFERRED  NotificationsHelper.updateMessage(int,String)   steps=29  env_kinds=permission  state_kinds=  classes=explicit;standard  confirmed_by=INFERRED  path_status=UNCHECKED
+  branch path row: NONE (never path-checked)
+  shortest_path: S_ENTRY > MainActivity.<init> > MainActivity.onResume > MainActivity.checkPassword > MainActivity.init > ListFragment.<init> > ListFragment.onActivityCreated > ListFragment.init > S_LIST@NOTES > NavigationDrawerFragment$1.onDrawerOpened@NOTES > S_DRAWER@NOTES > CategoryMenuTask.lambda$null$0 > SettingsActivity.<init> > S_SETTINGS > SettingsActivity.onPreferenceStartFragment@DATA > S_SETTINGS_DATA > SettingsActivity.onPreferenceStartFragment@SYNC > S_SETTINGS_SYNC > SettingsFragment.lambda$onResume$1 > SettingsFragment.lambda$null$0 > SettingsFragment.export > S_DLG_EXPORT > SettingsFragment.lambda$export$32 > BackupHelper.startBackupService > DataBackupIntentService.onHandleIntent@EXPORT > DataBackupIntentService.exportData > BackupHelper.exportAttachments(File,NotificationsHelper) > BackupHelper.exportAttachments(NotificationsHelper,File,List,List) > NotificationsHelper.updateMessage(String) > NotificationsHelper.updateMessage(int,String)
+  step  1 [Ea7466154] S_ENTRY -> MainActivity.<init>  kind=ENTRY class=standard via=None
+          trigger: MAIN / LAUNCHER intent starts MainActivity
+          gui: ['Home screen of another launcher: tap the Omni Notes icon']
+          evidence: SRC AndroidManifest.xml:65-114
+  step  2 [E89791c67] MainActivity.<init> -> MainActivity.onResume  kind=LIFECYCLE class=standard via=None
+          trigger: Activity lifecycle callback
+          evidence: SRC MainActivity.java:93-120; BaseActivity.java:72-100
+  step  3 [Edf932a3c] MainActivity.onResume -> MainActivity.checkPassword  kind=CALL class=explicit via=None
+          trigger: isPasswordAccepted is false on a cold start
+          evidence: SRC MainActivity.java:111-118
+  step  4 [E075b4776] MainActivity.checkPassword -> MainActivity.init  kind=CALL class=explicit via=None
+          trigger: no password gate: init()
+          evidence: SRC MainActivity.java:138-156
+  step  5 [E2436b969] MainActivity.init -> ListFragment.<init>  kind=CALL class=explicit via=None
+          trigger: adds the list fragment
+          guard: no fragment with tag fragment_list
+          evidence: SRC MainActivity.java:178-182
+  step  6 [E54b170af] ListFragment.<init> -> ListFragment.onActivityCreated  kind=LIFECYCLE class=standard via=None
+          trigger: Fragment lifecycle callback
+          evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ListFragment.java:205-400
+  step  7 [Ef86ebfe1] ListFragment.onActivityCreated -> ListFragment.init  kind=CALL class=explicit via=None
+          trigger: init()
+          evidence: SRC ListFragment.java:246
+  step  8 [E7e3c321b] ListFragment.init -> S_LIST@NOTES  kind=ENTERS class=page via=None
+          trigger: The list is set up on the default navigation (Notes) and the load starts
+          guard: navigation pref is Notes (default)
+          evidence: SRC ListFragment.java:250-261; BaseActivity.java:98-99
+  step  9 [E89ba0d21] S_LIST@NOTES -> NavigationDrawerFragment$1.onDrawerOpened@NOTES  kind=GUI class=standard via=None
+          trigger: Swipe in from the left edge or tap the menu icon
+          gui: ['Swipe in from the left edge or tap the menu icon']
+          evidence: SRC NavigationDrawerFragment.java:172-188
+  step 10 [Eb4f41bd1] NavigationDrawerFragment$1.onDrawerOpened@NOTES -> S_DRAWER@NOTES  kind=ENTERS class=page via=None
+          trigger: the drawer is open
+          evidence: SRC NavigationDrawerFragment.java:183-186
+  step 11 [Eb5b36c1c] S_DRAWER@NOTES -> CategoryMenuTask.lambda$null$0  kind=GUI class=standard via=None
+          trigger: Tap Settings at the bottom of the drawer
+          gui: ['Tap Settings at the bottom of the drawer']
+          evidence: SRC async/CategoryMenuTask.java:129-135; res/layout/fragment_navigation_drawer.xml:66-80
+  step 12 [E15489aeb] CategoryMenuTask.lambda$null$0 -> SettingsActivity.<init>  kind=INTENT class=standard via=None
+          trigger: startActivity(SettingsActivity)
+          evidence: SRC async/CategoryMenuTask.java:131-132
+  step 13 [E4306cbbb] SettingsActivity.<init> -> S_SETTINGS  kind=ENTERS class=page via=None
+          trigger: the settings root is shown
+          evidence: SRC SettingsActivity.java:54-61
+  step 14 [E7d8539a9] S_SETTINGS -> SettingsActivity.onPreferenceStartFragment@DATA  kind=GUI class=standard via=None
+          trigger: Tap "Data"
+          gui: ['Tap "Data"']
+          evidence: SRC SettingsActivity.java:125-140; res/xml/settings.xml
+  step 15 [E1f9e6935] SettingsActivity.onPreferenceStartFragment@DATA -> S_SETTINGS_DATA  kind=ENTERS class=page via=None
+          trigger: the sub-screen opens on top of the root
+          evidence: SRC SettingsActivity.java:135-139
+  step 16 [E51dad05c] S_SETTINGS_DATA -> SettingsActivity.onPreferenceStartFragment@SYNC  kind=GUI class=standard via=None
+          trigger: Tap "Sync"
+          gui: ['Tap "Sync"']
+          evidence: SRC SettingsActivity.java:125-140; res/xml/settings_data.xml
+  step 17 [E47f06889] SettingsActivity.onPreferenceStartFragment@SYNC -> S_SETTINGS_SYNC  kind=ENTERS class=page via=None
+          trigger: the sub-screen opens
+          evidence: SRC SettingsActivity.java:135-139
+  step 18 [E0303252f] S_SETTINGS_SYNC -> SettingsFragment.lambda$onResume$1  kind=GUI class=standard via=None
+          trigger: Tap "Export"
+          gui: ['Tap "Export"']
+          evidence: SRC SettingsFragment.java:141-157
+  step 19 [E66006fe9] SettingsFragment.lambda$onResume$1 -> SettingsFragment.lambda$null$0  kind=CALL class=explicit via=None
+          trigger: WRITE_EXTERNAL_STORAGE is granted: export(view)
+          env: the storage permission is granted to the app (runtime permission)  env_kinds=['permission']
+          evidence: SRC SettingsFragment.java:150-152
+  step 20 [E82d31de0] SettingsFragment.lambda$null$0 -> SettingsFragment.export  kind=CALL class=explicit via=None
+          trigger: export(view)
+          evidence: SRC SettingsFragment.java:152
+  step 21 [E71c00ccb] SettingsFragment.export -> S_DLG_EXPORT  kind=ENTERS class=page via=None
+          trigger: the backup-name dialog opens
+          evidence: SRC SettingsFragment.java:625-669
+  step 22 [Ede33b03c] S_DLG_EXPORT -> SettingsFragment.lambda$export$32  kind=GUI class=standard via=None
+          trigger: Tap Confirm
+          gui: ['Tap Confirm']
+          evidence: INFERRED MaterialDialogs calls the registered button / item callbacks (library source not read); SRC SettingsFragment.java:662-668
+  step 23 [E3a1de1ee] SettingsFragment.lambda$export$32 -> BackupHelper.startBackupService  kind=CALL class=explicit via=None
+          trigger: BackupHelper.startBackupService(name)
+          evidence: SRC SettingsFragment.java:667
+  step 24 [E371a589d] BackupHelper.startBackupService -> DataBackupIntentService.onHandleIntent@EXPORT  kind=ASYNC class=standard via=None
+          trigger: IntentService.onHandleIntent runs on a worker thread
+          evidence: FW-SRC core/java/android/app/IntentService.java:70-78, 112-132 (onCreate starts a HandlerThread; onStart queues the intent as a message and the ServiceHandler calls onHandleIntent on that worker thread); SRC async/DataBackupIntentService.java:67-84
+  step 25 [E68a53dad] DataBackupIntentService.onHandleIntent@EXPORT -> DataBackupIntentService.exportData  kind=CALL class=explicit via=None
+          trigger: the export action
+          evidence: SRC async/DataBackupIntentService.java:75-83
+  step 26 [Eb47bdb88] DataBackupIntentService.exportData -> BackupHelper.exportAttachments(File,NotificationsHelper)  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC DataBackupIntentService.java:109 (bytecode)
+  step 27 [E4ec276f0] BackupHelper.exportAttachments(File,NotificationsHelper) -> BackupHelper.exportAttachments(NotificationsHelper,File,List,List)  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC BackupHelper.java:99 (bytecode)
+  step 28 [Eb3168129] BackupHelper.exportAttachments(NotificationsHelper,File,List,List) -> NotificationsHelper.updateMessage(String)  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC BackupHelper.java:125 (bytecode)
+  step 29 [E36d9d56e] NotificationsHelper.updateMessage(String) -> NotificationsHelper.updateMessage(int,String)  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC NotificationsHelper.java:167 (bytecode)
+
+====================================================================================================
+STATE  Tag$1.<init>   steps=19  env_kinds=  state_kinds=data  classes=explicit;standard  confirmed_by=INFERRED  path_status=SOURCE_OK
+  branch path row: result=fixed confirmed_by=SOURCE ref=DbHelper.java:685-706; Tag.java:65-70 note=ERROR FOUND: the first-graph route reached the list through the shortcut edges "MainActivity.onResume -> ListFragment.onResume / MainActivity.init / the list page", taken right after the process starts. On a cold start isPasswordAccepted is false, so onResume calls checkPassword, which calls init(), which adds the ListFragment once (MainActivity.java:111-118, 138-156, 178-182); the shortcuts skip those steps and are only valid after an earlier resume. Fixed: the shortcut edges now carry the STATE "MainActivity was resumed before in this process" and the best route uses the explicit chain onResume -> checkPassword -> init -> ListFragment. Steps read: search icon (ListFragment.java:688-735) -> tags icon visible while the search view has focus (775) -> filterByTags (805-845, 1803) -> TagsHelper.getAllTags -> DbHelper.getTags -> new Tag per #tag found in a note (DbHelper.java:696-706; STATE: a note contains a #tag) -> Tag class initialiser builds the CREATOR (Tag.java:65). The class initialiser step is INFERRED (JVM rule). Steps that run through androidx / MaterialDialogs / ButterKnife / EventBus / RxJava / SmartLocation rest on INFERRED claims (library source not read).
+  shortest_path: S_ENTRY > MainActivity.<init> > MainActivity.onResume > MainActivity.checkPassword > MainActivity.init > ListFragment.<init> > ListFragment.onActivityCreated > ListFragment.init > S_LIST@NOTES > ListFragment$2.onMenuItemActionExpand > S_LIST_SEARCH_EDIT > ListFragment.onOptionsItemSelected@TAGS > ListFragment.performAction@T_TAGS > ListFragment.filterByTags > TagsHelper.getAllTags > DbHelper.getTags() > DbHelper.getTags(Note) > Tag.<init>(String,Integer) > Tag.<clinit> > Tag$1.<init>
+  step  1 [Ea7466154] S_ENTRY -> MainActivity.<init>  kind=ENTRY class=standard via=None
+          trigger: MAIN / LAUNCHER intent starts MainActivity
+          gui: ['Home screen of another launcher: tap the Omni Notes icon']
+          evidence: SRC AndroidManifest.xml:65-114
+  step  2 [E89791c67] MainActivity.<init> -> MainActivity.onResume  kind=LIFECYCLE class=standard via=None
+          trigger: Activity lifecycle callback
+          evidence: SRC MainActivity.java:93-120; BaseActivity.java:72-100
+  step  3 [Edf932a3c] MainActivity.onResume -> MainActivity.checkPassword  kind=CALL class=explicit via=None
+          trigger: isPasswordAccepted is false on a cold start
+          evidence: SRC MainActivity.java:111-118
+  step  4 [E075b4776] MainActivity.checkPassword -> MainActivity.init  kind=CALL class=explicit via=None
+          trigger: no password gate: init()
+          evidence: SRC MainActivity.java:138-156
+  step  5 [E2436b969] MainActivity.init -> ListFragment.<init>  kind=CALL class=explicit via=None
+          trigger: adds the list fragment
+          guard: no fragment with tag fragment_list
+          evidence: SRC MainActivity.java:178-182
+  step  6 [E54b170af] ListFragment.<init> -> ListFragment.onActivityCreated  kind=LIFECYCLE class=standard via=None
+          trigger: Fragment lifecycle callback
+          evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ListFragment.java:205-400
+  step  7 [Ef86ebfe1] ListFragment.onActivityCreated -> ListFragment.init  kind=CALL class=explicit via=None
+          trigger: init()
+          evidence: SRC ListFragment.java:246
+  step  8 [E7e3c321b] ListFragment.init -> S_LIST@NOTES  kind=ENTERS class=page via=None
+          trigger: The list is set up on the default navigation (Notes) and the load starts
+          guard: navigation pref is Notes (default)
+          evidence: SRC ListFragment.java:250-261; BaseActivity.java:98-99
+  step  9 [Ed7cc3cfc] S_LIST@NOTES -> ListFragment$2.onMenuItemActionExpand  kind=GUI class=standard via=None
+          trigger: Tap the search icon
+          gui: ['Tap the search icon']
+          evidence: SRC ListFragment.java:688-735
+  step 10 [Ec7f86b0f] ListFragment$2.onMenuItemActionExpand -> S_LIST_SEARCH_EDIT  kind=ENTERS class=page via=None
+          trigger: the search view expands and takes focus
+          evidence: SRC ListFragment.java:706-735
+  step 11 [E1381b1f8] S_LIST_SEARCH_EDIT -> ListFragment.onOptionsItemSelected@TAGS  kind=GUI class=standard via=None
+          trigger: Tap the tags icon
+          gui: ['Tap the tags icon']
+          evidence: SRC ListFragment.java:775
+  step 12 [E0d56ea8a] ListFragment.onOptionsItemSelected@TAGS -> ListFragment.performAction@T_TAGS  kind=CALL class=explicit via=None
+          trigger: performAction(item, null)
+          evidence: SRC ListFragment.java:789
+  step 13 [E9d4da329] ListFragment.performAction@T_TAGS -> ListFragment.filterByTags  kind=CALL class=explicit via=None
+          trigger: the tags branch of the toolbar switch
+          evidence: SRC ListFragment.java:805-845
+  step 14 [E35369cf7] ListFragment.filterByTags -> TagsHelper.getAllTags  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC ListFragment.java:1803 (bytecode)
+  step 15 [Ebb3d1b0a] TagsHelper.getAllTags -> DbHelper.getTags()  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC TagsHelper.java:39 (bytecode)
+  step 16 [E40638447] DbHelper.getTags() -> DbHelper.getTags(Note)  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC DbHelper.java:678 (bytecode)
+  step 17 [Ed4644675] DbHelper.getTags(Note) -> Tag.<init>(String,Integer)  kind=CALL class=explicit via=None
+          trigger: one Tag per #tag found in a note
+          needs_state: At least one #tag is written in some note  state_kinds=['data']
+          evidence: SRC DbHelper.java:704 (bytecode)
+  step 18 [E2da2a402] Tag.<init>(String,Integer) -> Tag.<clinit>  kind=CALL class=explicit via=None
+          trigger: class initialisation on first use
+          needs_state: At least one #tag is written in some note  state_kinds=['data']
+          evidence: SRC models/Tag.java (static CREATOR field); INFERRED the class has a static initialiser that the JVM runs on first use of the class (Java language rule, not read from a source)
+  step 19 [Ef30cdbc6] Tag.<clinit> -> Tag$1.<init>  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC Tag.java:65 (bytecode)
+
+====================================================================================================
+STATE  NotificationsHelper.show(long)   steps=28  env_kinds=permission  state_kinds=file  classes=explicit;standard  confirmed_by=INFERRED  path_status=UNCHECKED
+  branch path row: NONE (never path-checked)
+  shortest_path: S_ENTRY > MainActivity.<init> > MainActivity.onResume > MainActivity.checkPassword > MainActivity.init > ListFragment.<init> > ListFragment.onActivityCreated > ListFragment.init > S_LIST@NOTES > NavigationDrawerFragment$1.onDrawerOpened@NOTES > S_DRAWER@NOTES > CategoryMenuTask.lambda$null$0 > SettingsActivity.<init> > S_SETTINGS > SettingsActivity.onPreferenceStartFragment@DATA > S_SETTINGS_DATA > SettingsActivity.onPreferenceStartFragment@SYNC > S_SETTINGS_SYNC > SettingsFragment.lambda$onResume$4 > SettingsFragment.lambda$null$3 > S_DLG_FOLDER_CHOOSER > SettingsActivity.onFolderSelection > S_DLG_LEGACY_IMPORT_CONFIRM > SettingsActivity.lambda$onFolderSelection$1 > DataBackupIntentService.onHandleIntent@LEGACY > DataBackupIntentService.importData@LEGACY > DataBackupIntentService.createNotification > NotificationsHelper.show() > NotificationsHelper.show(long)
+  step  1 [Ea7466154] S_ENTRY -> MainActivity.<init>  kind=ENTRY class=standard via=None
+          trigger: MAIN / LAUNCHER intent starts MainActivity
+          gui: ['Home screen of another launcher: tap the Omni Notes icon']
+          evidence: SRC AndroidManifest.xml:65-114
+  step  2 [E89791c67] MainActivity.<init> -> MainActivity.onResume  kind=LIFECYCLE class=standard via=None
+          trigger: Activity lifecycle callback
+          evidence: SRC MainActivity.java:93-120; BaseActivity.java:72-100
+  step  3 [Edf932a3c] MainActivity.onResume -> MainActivity.checkPassword  kind=CALL class=explicit via=None
+          trigger: isPasswordAccepted is false on a cold start
+          evidence: SRC MainActivity.java:111-118
+  step  4 [E075b4776] MainActivity.checkPassword -> MainActivity.init  kind=CALL class=explicit via=None
+          trigger: no password gate: init()
+          evidence: SRC MainActivity.java:138-156
+  step  5 [E2436b969] MainActivity.init -> ListFragment.<init>  kind=CALL class=explicit via=None
+          trigger: adds the list fragment
+          guard: no fragment with tag fragment_list
+          evidence: SRC MainActivity.java:178-182
+  step  6 [E54b170af] ListFragment.<init> -> ListFragment.onActivityCreated  kind=LIFECYCLE class=standard via=None
+          trigger: Fragment lifecycle callback
+          evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ListFragment.java:205-400
+  step  7 [Ef86ebfe1] ListFragment.onActivityCreated -> ListFragment.init  kind=CALL class=explicit via=None
+          trigger: init()
+          evidence: SRC ListFragment.java:246
+  step  8 [E7e3c321b] ListFragment.init -> S_LIST@NOTES  kind=ENTERS class=page via=None
+          trigger: The list is set up on the default navigation (Notes) and the load starts
+          guard: navigation pref is Notes (default)
+          evidence: SRC ListFragment.java:250-261; BaseActivity.java:98-99
+  step  9 [E89ba0d21] S_LIST@NOTES -> NavigationDrawerFragment$1.onDrawerOpened@NOTES  kind=GUI class=standard via=None
+          trigger: Swipe in from the left edge or tap the menu icon
+          gui: ['Swipe in from the left edge or tap the menu icon']
+          evidence: SRC NavigationDrawerFragment.java:172-188
+  step 10 [Eb4f41bd1] NavigationDrawerFragment$1.onDrawerOpened@NOTES -> S_DRAWER@NOTES  kind=ENTERS class=page via=None
+          trigger: the drawer is open
+          evidence: SRC NavigationDrawerFragment.java:183-186
+  step 11 [Eb5b36c1c] S_DRAWER@NOTES -> CategoryMenuTask.lambda$null$0  kind=GUI class=standard via=None
+          trigger: Tap Settings at the bottom of the drawer
+          gui: ['Tap Settings at the bottom of the drawer']
+          evidence: SRC async/CategoryMenuTask.java:129-135; res/layout/fragment_navigation_drawer.xml:66-80
+  step 12 [E15489aeb] CategoryMenuTask.lambda$null$0 -> SettingsActivity.<init>  kind=INTENT class=standard via=None
+          trigger: startActivity(SettingsActivity)
+          evidence: SRC async/CategoryMenuTask.java:131-132
+  step 13 [E4306cbbb] SettingsActivity.<init> -> S_SETTINGS  kind=ENTERS class=page via=None
+          trigger: the settings root is shown
+          evidence: SRC SettingsActivity.java:54-61
+  step 14 [E7d8539a9] S_SETTINGS -> SettingsActivity.onPreferenceStartFragment@DATA  kind=GUI class=standard via=None
+          trigger: Tap "Data"
+          gui: ['Tap "Data"']
+          evidence: SRC SettingsActivity.java:125-140; res/xml/settings.xml
+  step 15 [E1f9e6935] SettingsActivity.onPreferenceStartFragment@DATA -> S_SETTINGS_DATA  kind=ENTERS class=page via=None
+          trigger: the sub-screen opens on top of the root
+          evidence: SRC SettingsActivity.java:135-139
+  step 16 [E51dad05c] S_SETTINGS_DATA -> SettingsActivity.onPreferenceStartFragment@SYNC  kind=GUI class=standard via=None
+          trigger: Tap "Sync"
+          gui: ['Tap "Sync"']
+          evidence: SRC SettingsActivity.java:125-140; res/xml/settings_data.xml
+  step 17 [E47f06889] SettingsActivity.onPreferenceStartFragment@SYNC -> S_SETTINGS_SYNC  kind=ENTERS class=page via=None
+          trigger: the sub-screen opens
+          evidence: SRC SettingsActivity.java:135-139
+  step 18 [E20625696] S_SETTINGS_SYNC -> SettingsFragment.lambda$onResume$4  kind=GUI class=standard via=None
+          trigger: Tap "Import legacy data"
+          gui: ['Tap "Import legacy data"']
+          evidence: SRC SettingsFragment.java:169-181
+  step 19 [Ea388270c] SettingsFragment.lambda$onResume$4 -> SettingsFragment.lambda$null$3  kind=CALL class=explicit via=None
+          trigger: READ_EXTERNAL_STORAGE is granted: the folder chooser opens
+          env: the storage permission is granted to the app (runtime permission)  env_kinds=['permission']
+          evidence: SRC SettingsFragment.java:174-178
+  step 20 [E0d010703] SettingsFragment.lambda$null$3 -> S_DLG_FOLDER_CHOOSER  kind=ENTERS class=page via=None
+          trigger: new FolderChooserDialog.Builder(...).show(...)
+          evidence: SRC SettingsFragment.java:175-178
+  step 21 [Ebb371412] S_DLG_FOLDER_CHOOSER -> SettingsActivity.onFolderSelection  kind=GUI class=standard via=None
+          trigger: Choose a folder
+          needs_state: A folder with legacy backup note files exists on storage  state_kinds=['file']
+          gui: ['Choose a folder']
+          evidence: SRC SettingsActivity.java:99-113
+  step 22 [Ea2b0ecaa] SettingsActivity.onFolderSelection -> S_DLG_LEGACY_IMPORT_CONFIRM  kind=ENTERS class=page via=None
+          trigger: the legacy import confirmation opens
+          evidence: SRC SettingsActivity.java:100-111
+  step 23 [Ee67d59ac] S_DLG_LEGACY_IMPORT_CONFIRM -> SettingsActivity.lambda$onFolderSelection$1  kind=GUI class=standard via=None
+          trigger: Tap Confirm
+          gui: ['Tap Confirm']
+          evidence: INFERRED MaterialDialogs calls the registered button / item callbacks (library source not read); SRC SettingsActivity.java:104-110
+  step 24 [E11f8da5d] SettingsActivity.lambda$onFolderSelection$1 -> DataBackupIntentService.onHandleIntent@LEGACY  kind=ASYNC class=standard via=None
+          trigger: IntentService.onHandleIntent runs on a worker thread
+          evidence: FW-SRC core/java/android/app/IntentService.java:70-78, 112-132 (onCreate starts a HandlerThread; onStart queues the intent as a message and the ServiceHandler calls onHandleIntent on that worker thread); SRC async/DataBackupIntentService.java:67-84
+  step 25 [E41292e48] DataBackupIntentService.onHandleIntent@LEGACY -> DataBackupIntentService.importData@LEGACY  kind=CALL class=explicit via=None
+          trigger: the legacy action
+          evidence: SRC async/DataBackupIntentService.java:75-83
+  step 26 [Edf0ac5df] DataBackupIntentService.importData@LEGACY -> DataBackupIntentService.createNotification  kind=CALL class=explicit via=None
+          trigger: completion notification
+          evidence: SRC async/DataBackupIntentService.java:143-145
+  step 27 [Eabfa0e4c] DataBackupIntentService.createNotification -> NotificationsHelper.show()  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC DataBackupIntentService.java:198 (bytecode)
+  step 28 [E5fa14446] NotificationsHelper.show() -> NotificationsHelper.show(long)  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC NotificationsHelper.java:143 (bytecode)
+
+====================================================================================================
+STATE  ListFragment.lambda$null$11   steps=20  env_kinds=  state_kinds=data  classes=explicit;standard  confirmed_by=INFERRED  path_status=SOURCE_OK
+  branch path row: result=fixed confirmed_by=SOURCE ref=ListFragment.java:1352-1364; BaseActivity.java:115-134 note=ERROR FOUND: the first-graph route reached the list through the shortcut edges "MainActivity.onResume -> ListFragment.onResume / MainActivity.init / the list page", taken right after the process starts. On a cold start isPasswordAccepted is false, so onResume calls checkPassword, which calls init(), which adds the ListFragment once (MainActivity.java:111-118, 138-156, 178-182); the shortcuts skip those steps and are only valid after an earlier resume. Fixed: the shortcut edges now carry the STATE "MainActivity was resumed before in this process" and the best route uses the explicit chain onResume -> checkPassword -> init -> ListFragment. Steps read: drawer -> Trash entry (shown when a trashed note exists, MainMenuTask.java:73-84) -> long-press a note -> Delete in the action bar -> confirmation OK (ListFragment.java:1352-1361) -> requestPassword: no locked note and no password-on-access preference means the validator runs at once with SUCCEED (BaseActivity.java:115-134) -> lambda$null$11. Steps that run through androidx / MaterialDialogs / ButterKnife / EventBus / RxJava / SmartLocation rest on INFERRED claims (library source not read).
+  shortest_path: S_ENTRY > MainActivity.<init> > MainActivity.onResume > MainActivity.checkPassword > MainActivity.init > ListFragment.<init> > ListFragment.onActivityCreated > ListFragment.init > S_LIST@NOTES > NavigationDrawerFragment$1.onDrawerOpened@NOTES > S_DRAWER@NOTES > MainMenuTask.lambda$onPostExecute$0@TRASH > S_LIST@TRASH > ListFragment.lambda$initListView$3@START_TRASH > S_LIST_CAB@TRASH > ListFragment$ModeCallback.onActionItemClicked@DELETE > ListFragment.performAction@C_DELETE > ListFragment.deleteNotes > S_DLG_DELETE_NOTES > ListFragment.lambda$deleteNotes$12 > ListFragment.lambda$null$11
+  step  1 [Ea7466154] S_ENTRY -> MainActivity.<init>  kind=ENTRY class=standard via=None
+          trigger: MAIN / LAUNCHER intent starts MainActivity
+          gui: ['Home screen of another launcher: tap the Omni Notes icon']
+          evidence: SRC AndroidManifest.xml:65-114
+  step  2 [E89791c67] MainActivity.<init> -> MainActivity.onResume  kind=LIFECYCLE class=standard via=None
+          trigger: Activity lifecycle callback
+          evidence: SRC MainActivity.java:93-120; BaseActivity.java:72-100
+  step  3 [Edf932a3c] MainActivity.onResume -> MainActivity.checkPassword  kind=CALL class=explicit via=None
+          trigger: isPasswordAccepted is false on a cold start
+          evidence: SRC MainActivity.java:111-118
+  step  4 [E075b4776] MainActivity.checkPassword -> MainActivity.init  kind=CALL class=explicit via=None
+          trigger: no password gate: init()
+          evidence: SRC MainActivity.java:138-156
+  step  5 [E2436b969] MainActivity.init -> ListFragment.<init>  kind=CALL class=explicit via=None
+          trigger: adds the list fragment
+          guard: no fragment with tag fragment_list
+          evidence: SRC MainActivity.java:178-182
+  step  6 [E54b170af] ListFragment.<init> -> ListFragment.onActivityCreated  kind=LIFECYCLE class=standard via=None
+          trigger: Fragment lifecycle callback
+          evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ListFragment.java:205-400
+  step  7 [Ef86ebfe1] ListFragment.onActivityCreated -> ListFragment.init  kind=CALL class=explicit via=None
+          trigger: init()
+          evidence: SRC ListFragment.java:246
+  step  8 [E7e3c321b] ListFragment.init -> S_LIST@NOTES  kind=ENTERS class=page via=None
+          trigger: The list is set up on the default navigation (Notes) and the load starts
+          guard: navigation pref is Notes (default)
+          evidence: SRC ListFragment.java:250-261; BaseActivity.java:98-99
+  step  9 [E89ba0d21] S_LIST@NOTES -> NavigationDrawerFragment$1.onDrawerOpened@NOTES  kind=GUI class=standard via=None
+          trigger: Swipe in from the left edge or tap the menu icon
+          gui: ['Swipe in from the left edge or tap the menu icon']
+          evidence: SRC NavigationDrawerFragment.java:172-188
+  step 10 [Eb4f41bd1] NavigationDrawerFragment$1.onDrawerOpened@NOTES -> S_DRAWER@NOTES  kind=ENTERS class=page via=None
+          trigger: the drawer is open
+          evidence: SRC NavigationDrawerFragment.java:183-186
+  step 11 [Ec31c30d8] S_DRAWER@NOTES -> MainMenuTask.lambda$onPostExecute$0@TRASH  kind=GUI class=standard via=None
+          trigger: Tap "Trash" in the drawer
+          needs_state: A trashed note exists, so the Trash entry shows in the drawer  state_kinds=['data']
+          gui: ['Tap "Trash" in the drawer']
+          evidence: SRC async/MainMenuTask.java:73-84
+  step 12 [E019e67d4] MainMenuTask.lambda$onPostExecute$0@TRASH -> S_LIST@TRASH  kind=ENTERS class=page via=None
+          trigger: updateNavigation(TRASH): the drawer closes and the list reloads for Trash
+          evidence: SRC async/MainMenuTask.java:73-84; NavigationDrawerFragment.java:143-156
+  step 13 [Eccf28a6b] S_LIST@TRASH -> ListFragment.lambda$initListView$3@START_TRASH  kind=GUI class=standard via=None
+          trigger: Long-press a note
+          gui: ['Long-press a note']
+          evidence: SRC ListFragment.java:507-516
+  step 14 [E08562d26] ListFragment.lambda$initListView$3@START_TRASH -> S_LIST_CAB@TRASH  kind=ENTERS class=page via=None
+          trigger: one note is selected: the contextual action bar replaces the toolbar
+          evidence: SRC ListFragment.java:507-516
+  step 15 [E2512e0de] S_LIST_CAB@TRASH -> ListFragment$ModeCallback.onActionItemClicked@DELETE  kind=GUI class=standard via=None
+          trigger: Tap "Delete" in the action bar
+          gui: ['Tap "Delete" in the action bar']
+          evidence: SRC ListFragment.java:451-465,611-648
+  step 16 [E0ece6056] ListFragment$ModeCallback.onActionItemClicked@DELETE -> ListFragment.performAction@C_DELETE  kind=CALL class=explicit via=None
+          trigger: performAction(item, mode)
+          evidence: SRC ListFragment.java:451-463
+  step 17 [E14dd6414] ListFragment.performAction@C_DELETE -> ListFragment.deleteNotes  kind=CALL class=explicit via=None
+          trigger: the delete branch of the action switch
+          evidence: SRC ListFragment.java:847-880
+  step 18 [Ef5b969b2] ListFragment.deleteNotes -> S_DLG_DELETE_NOTES  kind=ENTERS class=page via=None
+          trigger: the confirmation opens
+          evidence: SRC ListFragment.java:1352-1364
+  step 19 [E4e300f9e] S_DLG_DELETE_NOTES -> ListFragment.lambda$deleteNotes$12  kind=GUI class=standard via=None
+          trigger: Tap OK
+          gui: ['Tap OK']
+          evidence: INFERRED MaterialDialogs calls the registered button / item callbacks (library source not read); SRC ListFragment.java:1356-1361
+  step 20 [Ecca2d816] ListFragment.lambda$deleteNotes$12 -> ListFragment.lambda$null$11  kind=CALL class=explicit via=None
+          trigger: the password validator runs at once when no selected note is locked
+          evidence: SRC BaseActivity.java:115-134
+
+====================================================================================================
+ENV  IdeogramsWordCounter.<init>   steps=21  env_kinds=other  state_kinds=  classes=explicit;standard  confirmed_by=INFERRED  path_status=SOURCE_OK
+  branch path row: result=fixed confirmed_by=SOURCE ref=CountFactory.java:28-44; LanguageHelper.java:94-104 note=ERROR FOUND: the first-graph route reached the list through the shortcut edges "MainActivity.onResume -> ListFragment.onResume / MainActivity.init / the list page", taken right after the process starts. On a cold start isPasswordAccepted is false, so onResume calls checkPassword, which calls init(), which adds the ListFragment once (MainActivity.java:111-118, 138-156, 178-182); the shortcuts skip those steps and are only valid after an earlier resume. Fixed: the shortcut edges now carry the STATE "MainActivity was resumed before in this process" and the best route uses the explicit chain onResume -> checkPassword -> init -> ListFragment. ERROR FOUND (also): the edge said the ideogram counter is used for "Chinese, Japanese or Korean"; the code picks it only for the locales ja_JP, zh_CN and zh_TW (CountFactory.java:33-40) and reads the locale from the Application context (LanguageHelper.java:94-104), i.e. the device locale. Fixed: the ENV text names the three locales. Steps read: new note -> Info in the toolbar (DetailFragment.java:1074-1141) -> NoteInfosActivity.populateViews -> getNoteInfos -> getChars -> CountFactory.getWordCounter. Steps that run through androidx / MaterialDialogs / ButterKnife / EventBus / RxJava / SmartLocation rest on INFERRED claims (library source not read).
+  shortest_path: S_ENTRY > MainActivity.<init> > MainActivity.onResume > MainActivity.checkPassword > MainActivity.init > ListFragment.<init> > ListFragment.onActivityCreated > ListFragment.init > S_LIST@NOTES > Fab.lambda$init$1@LONG_NOTES > ListFragment.lambda$initFab$0@MAIN > S_DETAIL@NEW > DetailFragment.onOptionsItemSelected@NOTE_INFO > DetailFragment.showNoteInfo > NoteInfosActivity.<init> > NoteInfosActivity.onCreate > NoteInfosActivity.populateViews > NotesHelper.getNoteInfos > NotesHelper.getChars > CountFactory.getWordCounter > CountFactory.getCounterInstanceByLocale > IdeogramsWordCounter.<init>
+  step  1 [Ea7466154] S_ENTRY -> MainActivity.<init>  kind=ENTRY class=standard via=None
+          trigger: MAIN / LAUNCHER intent starts MainActivity
+          gui: ['Home screen of another launcher: tap the Omni Notes icon']
+          evidence: SRC AndroidManifest.xml:65-114
+  step  2 [E89791c67] MainActivity.<init> -> MainActivity.onResume  kind=LIFECYCLE class=standard via=None
+          trigger: Activity lifecycle callback
+          evidence: SRC MainActivity.java:93-120; BaseActivity.java:72-100
+  step  3 [Edf932a3c] MainActivity.onResume -> MainActivity.checkPassword  kind=CALL class=explicit via=None
+          trigger: isPasswordAccepted is false on a cold start
+          evidence: SRC MainActivity.java:111-118
+  step  4 [E075b4776] MainActivity.checkPassword -> MainActivity.init  kind=CALL class=explicit via=None
+          trigger: no password gate: init()
+          evidence: SRC MainActivity.java:138-156
+  step  5 [E2436b969] MainActivity.init -> ListFragment.<init>  kind=CALL class=explicit via=None
+          trigger: adds the list fragment
+          guard: no fragment with tag fragment_list
+          evidence: SRC MainActivity.java:178-182
+  step  6 [E54b170af] ListFragment.<init> -> ListFragment.onActivityCreated  kind=LIFECYCLE class=standard via=None
+          trigger: Fragment lifecycle callback
+          evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ListFragment.java:205-400
+  step  7 [Ef86ebfe1] ListFragment.onActivityCreated -> ListFragment.init  kind=CALL class=explicit via=None
+          trigger: init()
+          evidence: SRC ListFragment.java:246
+  step  8 [E7e3c321b] ListFragment.init -> S_LIST@NOTES  kind=ENTERS class=page via=None
+          trigger: The list is set up on the default navigation (Notes) and the load starts
+          guard: navigation pref is Notes (default)
+          evidence: SRC ListFragment.java:250-261; BaseActivity.java:98-99
+  step  9 [E01d0dfd6] S_LIST@NOTES -> Fab.lambda$init$1@LONG_NOTES  kind=GUI class=standard via=None
+          trigger: Long-press the + button
+          gui: ['Long-press the + button']
+          evidence: SRC models/views/Fab.java:69-76
+  step 10 [Ee5d1ab81] Fab.lambda$init$1@LONG_NOTES -> ListFragment.lambda$initFab$0@MAIN  kind=CALL class=explicit via=None
+          trigger: onFabItemClick(fab_expand_menu_button)
+          guard: not expanded
+          evidence: SRC models/views/Fab.java:118-125
+  step 11 [E8a16cf02] ListFragment.lambda$initFab$0@MAIN -> S_DETAIL@NEW  kind=ENTERS class=page via=None
+          trigger: a new note is opened
+          evidence: SRC ListFragment.java:266-285
+  step 12 [Edbf61bdc] S_DETAIL@NEW -> DetailFragment.onOptionsItemSelected@NOTE_INFO  kind=GUI class=standard via=None
+          trigger: Tap "Info" in the toolbar menu
+          gui: ['Tap "Info" in the toolbar menu']
+          evidence: SRC DetailFragment.java:1074-1132,1033-1036; res/menu/menu_detail.xml
+  step 13 [Ed31fd875] DetailFragment.onOptionsItemSelected@NOTE_INFO -> DetailFragment.showNoteInfo  kind=CALL class=explicit via=None
+          trigger: the note_info branch of the menu switch
+          evidence: SRC DetailFragment.java:1080-1127
+  step 14 [E0fba9459] DetailFragment.showNoteInfo -> NoteInfosActivity.<init>  kind=INTENT class=standard via=None
+          trigger: startActivity(NoteInfosActivity)
+          evidence: SRC DetailFragment.java:1135-1141
+  step 15 [E0e09a3d7] NoteInfosActivity.<init> -> NoteInfosActivity.onCreate  kind=LIFECYCLE class=standard via=None
+          trigger: Activity lifecycle
+          evidence: SRC NoteInfosActivity.java:61-67
+  step 16 [Ea429488c] NoteInfosActivity.onCreate -> NoteInfosActivity.populateViews  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC NoteInfosActivity.java:66 (bytecode)
+  step 17 [E74fa500c] NoteInfosActivity.populateViews -> NotesHelper.getNoteInfos  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC NoteInfosActivity.java:70 (bytecode)
+  step 18 [E200766cb] NotesHelper.getNoteInfos -> NotesHelper.getChars  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC NotesHelper.java:137 (bytecode)
+  step 19 [E606cb25c] NotesHelper.getChars -> CountFactory.getWordCounter  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC NotesHelper.java:187 (bytecode)
+  step 20 [E181a34d2] CountFactory.getWordCounter -> CountFactory.getCounterInstanceByLocale  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC CountFactory.java:30 (bytecode)
+  step 21 [Eb6790f71] CountFactory.getCounterInstanceByLocale -> IdeogramsWordCounter.<init>  kind=CALL class=explicit via=None
+          trigger: the ideogram word counter is used only for CJK locales
+          env: the device locale is ja_JP, zh_CN or zh_TW (the Application context carries the device locale; CountFactory.java:33-40 picks IdeogramsWordCounter)  env_kinds=['other']
+          evidence: SRC CountFactory.java:40 (bytecode)
+
+====================================================================================================
+ENV  StorageHelper.getMimeTypeInternal(Context,String)   steps=24  env_kinds=other_app;permission  state_kinds=  classes=explicit;standard  confirmed_by=INFERRED  path_status=UNCHECKED
+  branch path row: NONE (never path-checked)
+  shortest_path: S_ENTRY > MainActivity.<init> > MainActivity.onResume > MainActivity.checkPassword > MainActivity.init > ListFragment.<init> > ListFragment.onActivityCreated > ListFragment.init > S_LIST@NOTES > Fab.lambda$init$1@LONG_NOTES > ListFragment.lambda$initFab$0@MAIN > S_DETAIL@NEW > DetailFragment.onOptionsItemSelected@ATTACHMENT > DetailFragment.showAttachmentsPopup > S_DLG_ATTACH > DetailFragment$AttachmentOnClickListener.onClick@FILES > DetailFragment.startGetContentAction > S_EXT_PICKER@FILES > DetailFragment.onActivityResult@FILES > DetailFragment.onActivityResultManageReceivedFiles > AttachmentTask.doInBackground > StorageHelper.createAttachmentFromUri(Context,Uri)@PICK > StorageHelper.createAttachmentFromUri(Context,Uri,boolean)@PICK > StorageHelper.getMimeTypeInternal(Context,Uri) > StorageHelper.getMimeTypeInternal(Context,String)
+  step  1 [Ea7466154] S_ENTRY -> MainActivity.<init>  kind=ENTRY class=standard via=None
+          trigger: MAIN / LAUNCHER intent starts MainActivity
+          gui: ['Home screen of another launcher: tap the Omni Notes icon']
+          evidence: SRC AndroidManifest.xml:65-114
+  step  2 [E89791c67] MainActivity.<init> -> MainActivity.onResume  kind=LIFECYCLE class=standard via=None
+          trigger: Activity lifecycle callback
+          evidence: SRC MainActivity.java:93-120; BaseActivity.java:72-100
+  step  3 [Edf932a3c] MainActivity.onResume -> MainActivity.checkPassword  kind=CALL class=explicit via=None
+          trigger: isPasswordAccepted is false on a cold start
+          evidence: SRC MainActivity.java:111-118
+  step  4 [E075b4776] MainActivity.checkPassword -> MainActivity.init  kind=CALL class=explicit via=None
+          trigger: no password gate: init()
+          evidence: SRC MainActivity.java:138-156
+  step  5 [E2436b969] MainActivity.init -> ListFragment.<init>  kind=CALL class=explicit via=None
+          trigger: adds the list fragment
+          guard: no fragment with tag fragment_list
+          evidence: SRC MainActivity.java:178-182
+  step  6 [E54b170af] ListFragment.<init> -> ListFragment.onActivityCreated  kind=LIFECYCLE class=standard via=None
+          trigger: Fragment lifecycle callback
+          evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ListFragment.java:205-400
+  step  7 [Ef86ebfe1] ListFragment.onActivityCreated -> ListFragment.init  kind=CALL class=explicit via=None
+          trigger: init()
+          evidence: SRC ListFragment.java:246
+  step  8 [E7e3c321b] ListFragment.init -> S_LIST@NOTES  kind=ENTERS class=page via=None
+          trigger: The list is set up on the default navigation (Notes) and the load starts
+          guard: navigation pref is Notes (default)
+          evidence: SRC ListFragment.java:250-261; BaseActivity.java:98-99
+  step  9 [E01d0dfd6] S_LIST@NOTES -> Fab.lambda$init$1@LONG_NOTES  kind=GUI class=standard via=None
+          trigger: Long-press the + button
+          gui: ['Long-press the + button']
+          evidence: SRC models/views/Fab.java:69-76
+  step 10 [Ee5d1ab81] Fab.lambda$init$1@LONG_NOTES -> ListFragment.lambda$initFab$0@MAIN  kind=CALL class=explicit via=None
+          trigger: onFabItemClick(fab_expand_menu_button)
+          guard: not expanded
+          evidence: SRC models/views/Fab.java:118-125
+  step 11 [E8a16cf02] ListFragment.lambda$initFab$0@MAIN -> S_DETAIL@NEW  kind=ENTERS class=page via=None
+          trigger: a new note is opened
+          evidence: SRC ListFragment.java:266-285
+  step 12 [Ecd2baeb2] S_DETAIL@NEW -> DetailFragment.onOptionsItemSelected@ATTACHMENT  kind=GUI class=standard via=None
+          trigger: Tap "Attachment" in the toolbar menu
+          gui: ['Tap "Attachment" in the toolbar menu']
+          evidence: SRC DetailFragment.java:1074-1132,1033-1036; res/menu/menu_detail.xml
+  step 13 [E98c7a8e7] DetailFragment.onOptionsItemSelected@ATTACHMENT -> DetailFragment.showAttachmentsPopup  kind=CALL class=explicit via=None
+          trigger: the attachment branch of the menu switch
+          evidence: SRC DetailFragment.java:1080-1127
+  step 14 [Ebe6a7b0b] DetailFragment.showAttachmentsPopup -> S_DLG_ATTACH  kind=ENTERS class=page via=None
+          trigger: the attachment popup opens
+          evidence: SRC DetailFragment.java:1279-1315
+  step 15 [E17fc6c98] S_DLG_ATTACH -> DetailFragment$AttachmentOnClickListener.onClick@FILES  kind=GUI class=standard via=None
+          trigger: Tap "Files" in the attachment popup
+          gui: ['Tap "Files" in the attachment popup']
+          evidence: SRC DetailFragment.java:2292-2299
+  step 16 [E34678f6a] DetailFragment$AttachmentOnClickListener.onClick@FILES -> DetailFragment.startGetContentAction  kind=CALL class=explicit via=None
+          trigger: storage permission granted: open the document picker
+          env: the storage permission is granted to the app (runtime permission)  env_kinds=['permission']
+          evidence: SRC DetailFragment.java:2293-2295
+  step 17 [E9affb679] DetailFragment.startGetContentAction -> S_EXT_PICKER@FILES  kind=ENTERS class=page via=None
+          trigger: startActivityForResult(ACTION_GET_CONTENT)
+          env: outside package: an external activity (camera, video recorder, document picker, ringtone picker, share chooser, browser, maps) must be driven  env_kinds=['other_app']
+          evidence: SRC DetailFragment.java:2147-2154
+  step 18 [Ece24baf8] S_EXT_PICKER@FILES -> DetailFragment.onActivityResult@FILES  kind=RESULT class=standard via=None
+          trigger: files were chosen
+          env: outside package: an external activity (camera, video recorder, document picker, ringtone picker, share chooser, browser, maps) must be driven  env_kinds=['other_app']
+          evidence: SRC DetailFragment.java:1425-1427
+  step 19 [E5a237d0f] DetailFragment.onActivityResult@FILES -> DetailFragment.onActivityResultManageReceivedFiles  kind=CALL class=explicit via=None
+          trigger: the chosen files are imported
+          env: outside package: an external activity (camera, video recorder, document picker, ringtone picker, share chooser, browser, maps) must be driven  env_kinds=['other_app']
+          evidence: SRC DetailFragment.java:1426,1453-1466
+  step 20 [E28941c67] DetailFragment.onActivityResultManageReceivedFiles -> AttachmentTask.doInBackground  kind=ASYNC class=standard via=None
+          trigger: new AttachmentTask(...).executeOnExecutor(...)
+          env: outside package: an external activity (camera, video recorder, document picker, ringtone picker, share chooser, browser, maps) must be driven  env_kinds=['other_app']
+          evidence: FW-SRC core/java/android/os/AsyncTask.java:219-224, 237-262, 594-596, 632-650, 326-334, 369-374, 285, 705-713, 691-697 (execute uses the serial executor, which hands each task to THREAD_POOL_EXECUTOR and the worker calls doInBackground; postResult sends the result to a main-looper handler whose handleMessage calls finish, which calls onPostExecute); SRC DetailFragment.java:1462-1465
+  step 21 [E4ae82779] AttachmentTask.doInBackground -> StorageHelper.createAttachmentFromUri(Context,Uri)@PICK  kind=CALL class=explicit via=None
+          trigger: createAttachmentFromUri(context, uri) with the URI chosen in the picker
+          evidence: SRC AttachmentTask.java:55 (bytecode)
+  step 22 [E411c780d] StorageHelper.createAttachmentFromUri(Context,Uri)@PICK -> StorageHelper.createAttachmentFromUri(Context,Uri,boolean)@PICK  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC StorageHelper.java:457 (bytecode)
+  step 23 [E07aa7cf1] StorageHelper.createAttachmentFromUri(Context,Uri,boolean)@PICK -> StorageHelper.getMimeTypeInternal(Context,Uri)  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC StorageHelper.java:481 (bytecode)
+  step 24 [E946dcfad] StorageHelper.getMimeTypeInternal(Context,Uri) -> StorageHelper.getMimeTypeInternal(Context,String)  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC StorageHelper.java:429 (bytecode)
+
+====================================================================================================
+ENV  SnoozeActivity.updateNoteReminder(long,Note)   steps=22  env_kinds=other_app;time  state_kinds=data  classes=explicit;standard  confirmed_by=INFERRED  path_status=UNCHECKED
+  branch path row: NONE (never path-checked)
+  shortest_path: S_ENTRY > MainActivity.<init> > MainActivity.onResume > MainActivity.checkPassword > MainActivity.init > ListFragment.<init> > ListFragment.onActivityCreated > ListFragment.init > S_LIST@NOTES > Fab.lambda$init$1@LONG_NOTES > ListFragment.lambda$initFab$0@MAIN > S_DETAIL@NEW > MainActivity.onBackPressed@DETAIL_SAVE > DetailFragment.saveAndExit@SAVE > DetailFragment.saveNote@SAVE > SaveNoteTask.doInBackground > ReminderHelper.addReminder(Context,Note) > ReminderHelper.addReminder(Context,Note,long) > AlarmReceiver.onReceive > S_NOTIF_REMINDER > SnoozeActivity.onCreate@SNOOZE > SnoozeActivity.manageNotification@SNOOZE > SnoozeActivity.updateNoteReminder(long,Note)
+  step  1 [Ea7466154] S_ENTRY -> MainActivity.<init>  kind=ENTRY class=standard via=None
+          trigger: MAIN / LAUNCHER intent starts MainActivity
+          gui: ['Home screen of another launcher: tap the Omni Notes icon']
+          evidence: SRC AndroidManifest.xml:65-114
+  step  2 [E89791c67] MainActivity.<init> -> MainActivity.onResume  kind=LIFECYCLE class=standard via=None
+          trigger: Activity lifecycle callback
+          evidence: SRC MainActivity.java:93-120; BaseActivity.java:72-100
+  step  3 [Edf932a3c] MainActivity.onResume -> MainActivity.checkPassword  kind=CALL class=explicit via=None
+          trigger: isPasswordAccepted is false on a cold start
+          evidence: SRC MainActivity.java:111-118
+  step  4 [E075b4776] MainActivity.checkPassword -> MainActivity.init  kind=CALL class=explicit via=None
+          trigger: no password gate: init()
+          evidence: SRC MainActivity.java:138-156
+  step  5 [E2436b969] MainActivity.init -> ListFragment.<init>  kind=CALL class=explicit via=None
+          trigger: adds the list fragment
+          guard: no fragment with tag fragment_list
+          evidence: SRC MainActivity.java:178-182
+  step  6 [E54b170af] ListFragment.<init> -> ListFragment.onActivityCreated  kind=LIFECYCLE class=standard via=None
+          trigger: Fragment lifecycle callback
+          evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ListFragment.java:205-400
+  step  7 [Ef86ebfe1] ListFragment.onActivityCreated -> ListFragment.init  kind=CALL class=explicit via=None
+          trigger: init()
+          evidence: SRC ListFragment.java:246
+  step  8 [E7e3c321b] ListFragment.init -> S_LIST@NOTES  kind=ENTERS class=page via=None
+          trigger: The list is set up on the default navigation (Notes) and the load starts
+          guard: navigation pref is Notes (default)
+          evidence: SRC ListFragment.java:250-261; BaseActivity.java:98-99
+  step  9 [E01d0dfd6] S_LIST@NOTES -> Fab.lambda$init$1@LONG_NOTES  kind=GUI class=standard via=None
+          trigger: Long-press the + button
+          gui: ['Long-press the + button']
+          evidence: SRC models/views/Fab.java:69-76
+  step 10 [Ee5d1ab81] Fab.lambda$init$1@LONG_NOTES -> ListFragment.lambda$initFab$0@MAIN  kind=CALL class=explicit via=None
+          trigger: onFabItemClick(fab_expand_menu_button)
+          guard: not expanded
+          evidence: SRC models/views/Fab.java:118-125
+  step 11 [E8a16cf02] ListFragment.lambda$initFab$0@MAIN -> S_DETAIL@NEW  kind=ENTERS class=page via=None
+          trigger: a new note is opened
+          evidence: SRC ListFragment.java:266-285
+  step 12 [E1a48ab1f] S_DETAIL@NEW -> MainActivity.onBackPressed@DETAIL_SAVE  kind=GUI class=standard via=None
+          trigger: Change the note (type text or add something), then press Back
+          gui: ['Change the note (type text or add something), then press Back']
+          evidence: SRC MainActivity.java:271-276; DetailFragment.java:1583-1587
+  step 13 [E4455444c] MainActivity.onBackPressed@DETAIL_SAVE -> DetailFragment.saveAndExit@SAVE  kind=CALL class=explicit via=None
+          trigger: goBack = true; saveAndExit(fragment)
+          evidence: SRC MainActivity.java:271-276
+  step 14 [Eca06fe26] DetailFragment.saveAndExit@SAVE -> DetailFragment.saveNote@SAVE  kind=CALL class=explicit via=None
+          trigger: saveNote(listener)
+          evidence: SRC DetailFragment.java:1547-1553
+  step 15 [E67ba23d6] DetailFragment.saveNote@SAVE -> SaveNoteTask.doInBackground  kind=ASYNC class=standard via=None
+          trigger: executeOnExecutor(noteTmp)
+          evidence: FW-SRC core/java/android/os/AsyncTask.java:219-224, 237-262, 594-596, 632-650, 326-334, 369-374, 285, 705-713, 691-697 (execute uses the serial executor, which hands each task to THREAD_POOL_EXECUTOR and the worker calls doInBackground; postResult sends the result to a main-looper handler whose handleMessage calls finish, which calls onPostExecute); SRC DetailFragment.java:1585-1586
+  step 16 [E5ccc83ff] SaveNoteTask.doInBackground -> ReminderHelper.addReminder(Context,Note)  kind=CALL class=explicit via=None
+          trigger: the reminder is in the future: schedule the alarm
+          needs_state: The open note has a reminder  state_kinds=['data']
+          evidence: SRC async/notes/SaveNoteTask.java:58-65
+  step 17 [E142b6fe8] ReminderHelper.addReminder(Context,Note) -> ReminderHelper.addReminder(Context,Note,long)  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC ReminderHelper.java:46 (bytecode)
+  step 18 [E59f83d06] ReminderHelper.addReminder(Context,Note,long) -> AlarmReceiver.onReceive  kind=SYSTEM class=standard via=None
+          trigger: AlarmManager fires the broadcast when the reminder time is reached
+          env: time passes until the alarm of a reminder set a minute ahead fires  env_kinds=['time']
+          needs_state: A note has a reminder that was set a minute ahead  state_kinds=['data']
+          evidence: INFERRED the alarm service broadcasts to the receiver when the alarm time is reached (AlarmManagerService source not read); SRC utils/ReminderHelper.java:50-58; receiver/AlarmReceiver.java:53-65
+  step 19 [E0d0fcea7] AlarmReceiver.onReceive -> S_NOTIF_REMINDER  kind=ENTERS class=page via=None
+          trigger: the reminder notification is posted
+          evidence: SRC receiver/AlarmReceiver.java:136
+  step 20 [E4f81b98d] S_NOTIF_REMINDER -> SnoozeActivity.onCreate@SNOOZE  kind=GUI class=standard via=None
+          trigger: Tap "Snooze" on the notification
+          env: outside package: the launcher home screen (widget, shortcut) or the notification shade must be operated  env_kinds=['other_app']
+          gui: ['Tap "Snooze" on the notification']
+          evidence: SRC receiver/AlarmReceiver.java:85-113; SnoozeActivity.java:82-114
+  step 21 [E9cfee940] SnoozeActivity.onCreate@SNOOZE -> SnoozeActivity.manageNotification@SNOOZE  kind=CALL class=explicit via=None
+          trigger: manageNotification(prefs)
+          evidence: SRC SnoozeActivity.java:85-88
+  step 22 [E90c2d26c] SnoozeActivity.manageNotification@SNOOZE -> SnoozeActivity.updateNoteReminder(long,Note)  kind=CALL class=explicit via=None
+          trigger: the reminder is moved by the snooze delay
+          evidence: SRC SnoozeActivity.java:99-103
+
+====================================================================================================
+ENV  ListRemoteViewsFactory.color   steps=7  env_kinds=other_app  state_kinds=  classes=explicit;non_standard;standard  confirmed_by=INFERRED  path_status=UNCHECKED
+  branch path row: NONE (never path-checked)
+  shortest_path: S_ENTRY > ListWidgetProvider.<init> > WidgetProvider.onUpdate@ListWidgetProvider > S_HOME_WIDGET@LIST > ListWidgetService.onGetViewFactory > ListRemoteViewsFactory.<init> > ListRemoteViewsFactory.getViewAt > ListRemoteViewsFactory.color
+  step  1 [Eef3e65a8] S_ENTRY -> ListWidgetProvider.<init>  kind=ENTRY class=non_standard via=manifest component started through an intent action / system event (resolved by name, not by the app)
+          trigger: the launcher adds the widget
+          env: outside package: the launcher home screen (widget, shortcut) or the notification shade must be operated  env_kinds=['other_app']
+          gui: ['Long-press the home screen and add the Omni Notes widget']
+          evidence: SRC AndroidManifest.xml:231-257
+  step  2 [Ec96e7c13] ListWidgetProvider.<init> -> WidgetProvider.onUpdate@ListWidgetProvider  kind=SYSTEM class=standard via=None
+          trigger: APPWIDGET_UPDATE
+          env: outside package: the launcher home screen (widget, shortcut) or the notification shade must be operated  env_kinds=['other_app']
+          evidence: FW-SRC core/java/android/appwidget/AppWidgetProvider.java:57-67 (onReceive calls onUpdate for ACTION_APPWIDGET_UPDATE when the broadcast carries widget ids); SRC widget/WidgetProvider.java:49-60
+  step  3 [E83c25f02] WidgetProvider.onUpdate@ListWidgetProvider -> S_HOME_WIDGET@LIST  kind=ENTERS class=page via=None
+          trigger: the widget is drawn on the home screen
+          env: outside package: the launcher home screen (widget, shortcut) or the notification shade must be operated  env_kinds=['other_app']
+          evidence: SRC widget/WidgetProvider.java:110
+  step  4 [Eb656aade] S_HOME_WIDGET@LIST -> ListWidgetService.onGetViewFactory  kind=SYSTEM class=standard via=None
+          trigger: the launcher binds the RemoteViewsService
+          env: outside package: the launcher home screen (widget, shortcut) or the notification shade must be operated  env_kinds=['other_app']
+          evidence: INFERRED the launcher binds the RemoteViewsService through RemoteViewsAdapter (launcher and RemoteViewsAdapter source not read); SRC widget/ListWidgetService.java:27-29
+  step  5 [E81a3c580] ListWidgetService.onGetViewFactory -> ListRemoteViewsFactory.<init>  kind=CALL class=explicit via=None
+          trigger: new ListRemoteViewsFactory(...)
+          env: outside package: the launcher home screen (widget, shortcut) or the notification shade must be operated  env_kinds=['other_app']
+          evidence: SRC widget/ListWidgetService.java:28
+  step  6 [Ec0de0e24] ListRemoteViewsFactory.<init> -> ListRemoteViewsFactory.getViewAt  kind=SYSTEM class=standard via=None
+          trigger: RemoteViewsAdapter calls the factory
+          env: outside package: the launcher home screen (widget, shortcut) or the notification shade must be operated  env_kinds=['other_app']
+          evidence: INFERRED the launcher binds the RemoteViewsService through RemoteViewsAdapter (launcher and RemoteViewsAdapter source not read); SRC widget/ListRemoteViewsFactory.java:75-166
+  step  7 [E2082cfbf] ListRemoteViewsFactory.getViewAt -> ListRemoteViewsFactory.color  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC ListRemoteViewsFactory.java:120 (bytecode)
+
+====================================================================================================
+ENV  PermissionsHelper.lambda$requestPermissionExecute$1   steps=19  env_kinds=permission  state_kinds=  classes=explicit;non_standard;standard  confirmed_by=INFERRED  path_status=UNCHECKED
+  branch path row: NONE (never path-checked)
+  shortest_path: S_ENTRY > MainActivity.<init> > MainActivity.onResume > MainActivity.checkPassword > MainActivity.init > ListFragment.<init> > ListFragment.onActivityCreated > ListFragment.init > S_LIST@NOTES > NavigationDrawerFragment$1.onDrawerOpened@NOTES > S_DRAWER@NOTES > CategoryMenuTask.lambda$null$0 > SettingsActivity.<init> > S_SETTINGS > SettingsActivity.onPreferenceStartFragment@PRIVACY > S_SETTINGS_PRIVACY > SettingsFragment.lambda$onResume$23 > PermissionsHelper.requestPermission > PermissionsHelper.requestPermissionExecute > PermissionsHelper.lambda$requestPermissionExecute$1
+  step  1 [Ea7466154] S_ENTRY -> MainActivity.<init>  kind=ENTRY class=standard via=None
+          trigger: MAIN / LAUNCHER intent starts MainActivity
+          gui: ['Home screen of another launcher: tap the Omni Notes icon']
+          evidence: SRC AndroidManifest.xml:65-114
+  step  2 [E89791c67] MainActivity.<init> -> MainActivity.onResume  kind=LIFECYCLE class=standard via=None
+          trigger: Activity lifecycle callback
+          evidence: SRC MainActivity.java:93-120; BaseActivity.java:72-100
+  step  3 [Edf932a3c] MainActivity.onResume -> MainActivity.checkPassword  kind=CALL class=explicit via=None
+          trigger: isPasswordAccepted is false on a cold start
+          evidence: SRC MainActivity.java:111-118
+  step  4 [E075b4776] MainActivity.checkPassword -> MainActivity.init  kind=CALL class=explicit via=None
+          trigger: no password gate: init()
+          evidence: SRC MainActivity.java:138-156
+  step  5 [E2436b969] MainActivity.init -> ListFragment.<init>  kind=CALL class=explicit via=None
+          trigger: adds the list fragment
+          guard: no fragment with tag fragment_list
+          evidence: SRC MainActivity.java:178-182
+  step  6 [E54b170af] ListFragment.<init> -> ListFragment.onActivityCreated  kind=LIFECYCLE class=standard via=None
+          trigger: Fragment lifecycle callback
+          evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ListFragment.java:205-400
+  step  7 [Ef86ebfe1] ListFragment.onActivityCreated -> ListFragment.init  kind=CALL class=explicit via=None
+          trigger: init()
+          evidence: SRC ListFragment.java:246
+  step  8 [E7e3c321b] ListFragment.init -> S_LIST@NOTES  kind=ENTERS class=page via=None
+          trigger: The list is set up on the default navigation (Notes) and the load starts
+          guard: navigation pref is Notes (default)
+          evidence: SRC ListFragment.java:250-261; BaseActivity.java:98-99
+  step  9 [E89ba0d21] S_LIST@NOTES -> NavigationDrawerFragment$1.onDrawerOpened@NOTES  kind=GUI class=standard via=None
+          trigger: Swipe in from the left edge or tap the menu icon
+          gui: ['Swipe in from the left edge or tap the menu icon']
+          evidence: SRC NavigationDrawerFragment.java:172-188
+  step 10 [Eb4f41bd1] NavigationDrawerFragment$1.onDrawerOpened@NOTES -> S_DRAWER@NOTES  kind=ENTERS class=page via=None
+          trigger: the drawer is open
+          evidence: SRC NavigationDrawerFragment.java:183-186
+  step 11 [Eb5b36c1c] S_DRAWER@NOTES -> CategoryMenuTask.lambda$null$0  kind=GUI class=standard via=None
+          trigger: Tap Settings at the bottom of the drawer
+          gui: ['Tap Settings at the bottom of the drawer']
+          evidence: SRC async/CategoryMenuTask.java:129-135; res/layout/fragment_navigation_drawer.xml:66-80
+  step 12 [E15489aeb] CategoryMenuTask.lambda$null$0 -> SettingsActivity.<init>  kind=INTENT class=standard via=None
+          trigger: startActivity(SettingsActivity)
+          evidence: SRC async/CategoryMenuTask.java:131-132
+  step 13 [E4306cbbb] SettingsActivity.<init> -> S_SETTINGS  kind=ENTERS class=page via=None
+          trigger: the settings root is shown
+          evidence: SRC SettingsActivity.java:54-61
+  step 14 [E67037a6b] S_SETTINGS -> SettingsActivity.onPreferenceStartFragment@PRIVACY  kind=GUI class=standard via=None
+          trigger: Tap "Privacy"
+          gui: ['Tap "Privacy"']
+          evidence: SRC SettingsActivity.java:125-140; res/xml/settings.xml
+  step 15 [E9020ceff] SettingsActivity.onPreferenceStartFragment@PRIVACY -> S_SETTINGS_PRIVACY  kind=ENTERS class=page via=None
+          trigger: the sub-screen opens on top of the root
+          evidence: SRC SettingsActivity.java:135-139
+  step 16 [E7a03d7f2] S_SETTINGS_PRIVACY -> SettingsFragment.lambda$onResume$23  kind=GUI class=standard via=None
+          trigger: Switch "File logging"
+          gui: ['Switch "File logging"']
+          evidence: SRC SettingsFragment.java:276-516
+  step 17 [E1f6ca585] SettingsFragment.lambda$onResume$23 -> PermissionsHelper.requestPermission  kind=CALL class=explicit via=None
+          trigger: requestPermission(WRITE_EXTERNAL_STORAGE)
+          evidence: SRC SettingsFragment.java:510
+  step 18 [E42afbe61] PermissionsHelper.requestPermission -> PermissionsHelper.requestPermissionExecute  kind=CALL class=explicit via=None
+          trigger: the permission is not granted: ask for it
+          env: the runtime-permission dialog of the system must be answered (outside the package); the app permission was denied or is not granted yet (the system permission dialog / the rationale snackbar)  env_kinds=['permission']
+          evidence: SRC helpers/PermissionsHelper.java:40-54
+  step 19 [E7a443df5] PermissionsHelper.requestPermissionExecute -> PermissionsHelper.lambda$requestPermissionExecute$1  kind=ASYNC class=non_standard via=Rx / SmartLocation library delivers the callback
+          trigger: RxPermissions delivers the user answer
+          env: the runtime-permission dialog of the system must be answered (outside the package)  env_kinds=['permission']
+          evidence: INFERRED RxJava runs the operator callback on its scheduler (RxJava / RxPermissions source not read); SRC helpers/PermissionsHelper.java:58-67
+
+====================================================================================================
+ENV  DataBackupIntentService.deleteData   steps=26  env_kinds=permission  state_kinds=file  classes=explicit;standard  confirmed_by=INFERRED  path_status=SOURCE_OK
+  branch path row: result=fixed confirmed_by=SOURCE ref=SettingsFragment.java:159-166,595-615; DataBackupIntentService.java:75-83 note=ERROR FOUND: the first-graph route reached the list through the shortcut edges "MainActivity.onResume -> ListFragment.onResume / MainActivity.init / the list page", taken right after the process starts. On a cold start isPasswordAccepted is false, so onResume calls checkPassword, which calls init(), which adds the ListFragment once (MainActivity.java:111-118, 138-156, 178-182); the shortcuts skip those steps and are only valid after an earlier resume. Fixed: the shortcut edges now carry the STATE "MainActivity was resumed before in this process" and the best route uses the explicit chain onResume -> checkPassword -> init -> ListFragment. Steps read: Settings > Data > Sync > Import (SettingsFragment.java:159-166, 539-622: the list of backup folders) -> long-press a backup (595) -> confirm delete (601-615) -> startService -> action switch (DataBackupIntentService.java:81-82); ENV storage permission, STATE a backup folder exists. Steps that run through androidx / MaterialDialogs / ButterKnife / EventBus / RxJava / SmartLocation rest on INFERRED claims (library source not read).
+  shortest_path: S_ENTRY > MainActivity.<init> > MainActivity.onResume > MainActivity.checkPassword > MainActivity.init > ListFragment.<init> > ListFragment.onActivityCreated > ListFragment.init > S_LIST@NOTES > NavigationDrawerFragment$1.onDrawerOpened@NOTES > S_DRAWER@NOTES > CategoryMenuTask.lambda$null$0 > SettingsActivity.<init> > S_SETTINGS > SettingsActivity.onPreferenceStartFragment@DATA > S_SETTINGS_DATA > SettingsActivity.onPreferenceStartFragment@SYNC > S_SETTINGS_SYNC > SettingsFragment.lambda$onResume$2 > SettingsFragment.importNotes > S_DLG_IMPORT > RecyclerViewItemClickSupport$2.onLongClick@IMPORT > SettingsFragment.lambda$null$30 > S_DLG_BACKUP_DELETE > SettingsFragment.lambda$null$29 > DataBackupIntentService.onHandleIntent@DELETE > DataBackupIntentService.deleteData
+  step  1 [Ea7466154] S_ENTRY -> MainActivity.<init>  kind=ENTRY class=standard via=None
+          trigger: MAIN / LAUNCHER intent starts MainActivity
+          gui: ['Home screen of another launcher: tap the Omni Notes icon']
+          evidence: SRC AndroidManifest.xml:65-114
+  step  2 [E89791c67] MainActivity.<init> -> MainActivity.onResume  kind=LIFECYCLE class=standard via=None
+          trigger: Activity lifecycle callback
+          evidence: SRC MainActivity.java:93-120; BaseActivity.java:72-100
+  step  3 [Edf932a3c] MainActivity.onResume -> MainActivity.checkPassword  kind=CALL class=explicit via=None
+          trigger: isPasswordAccepted is false on a cold start
+          evidence: SRC MainActivity.java:111-118
+  step  4 [E075b4776] MainActivity.checkPassword -> MainActivity.init  kind=CALL class=explicit via=None
+          trigger: no password gate: init()
+          evidence: SRC MainActivity.java:138-156
+  step  5 [E2436b969] MainActivity.init -> ListFragment.<init>  kind=CALL class=explicit via=None
+          trigger: adds the list fragment
+          guard: no fragment with tag fragment_list
+          evidence: SRC MainActivity.java:178-182
+  step  6 [E54b170af] ListFragment.<init> -> ListFragment.onActivityCreated  kind=LIFECYCLE class=standard via=None
+          trigger: Fragment lifecycle callback
+          evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ListFragment.java:205-400
+  step  7 [Ef86ebfe1] ListFragment.onActivityCreated -> ListFragment.init  kind=CALL class=explicit via=None
+          trigger: init()
+          evidence: SRC ListFragment.java:246
+  step  8 [E7e3c321b] ListFragment.init -> S_LIST@NOTES  kind=ENTERS class=page via=None
+          trigger: The list is set up on the default navigation (Notes) and the load starts
+          guard: navigation pref is Notes (default)
+          evidence: SRC ListFragment.java:250-261; BaseActivity.java:98-99
+  step  9 [E89ba0d21] S_LIST@NOTES -> NavigationDrawerFragment$1.onDrawerOpened@NOTES  kind=GUI class=standard via=None
+          trigger: Swipe in from the left edge or tap the menu icon
+          gui: ['Swipe in from the left edge or tap the menu icon']
+          evidence: SRC NavigationDrawerFragment.java:172-188
+  step 10 [Eb4f41bd1] NavigationDrawerFragment$1.onDrawerOpened@NOTES -> S_DRAWER@NOTES  kind=ENTERS class=page via=None
+          trigger: the drawer is open
+          evidence: SRC NavigationDrawerFragment.java:183-186
+  step 11 [Eb5b36c1c] S_DRAWER@NOTES -> CategoryMenuTask.lambda$null$0  kind=GUI class=standard via=None
+          trigger: Tap Settings at the bottom of the drawer
+          gui: ['Tap Settings at the bottom of the drawer']
+          evidence: SRC async/CategoryMenuTask.java:129-135; res/layout/fragment_navigation_drawer.xml:66-80
+  step 12 [E15489aeb] CategoryMenuTask.lambda$null$0 -> SettingsActivity.<init>  kind=INTENT class=standard via=None
+          trigger: startActivity(SettingsActivity)
+          evidence: SRC async/CategoryMenuTask.java:131-132
+  step 13 [E4306cbbb] SettingsActivity.<init> -> S_SETTINGS  kind=ENTERS class=page via=None
+          trigger: the settings root is shown
+          evidence: SRC SettingsActivity.java:54-61
+  step 14 [E7d8539a9] S_SETTINGS -> SettingsActivity.onPreferenceStartFragment@DATA  kind=GUI class=standard via=None
+          trigger: Tap "Data"
+          gui: ['Tap "Data"']
+          evidence: SRC SettingsActivity.java:125-140; res/xml/settings.xml
+  step 15 [E1f9e6935] SettingsActivity.onPreferenceStartFragment@DATA -> S_SETTINGS_DATA  kind=ENTERS class=page via=None
+          trigger: the sub-screen opens on top of the root
+          evidence: SRC SettingsActivity.java:135-139
+  step 16 [E51dad05c] S_SETTINGS_DATA -> SettingsActivity.onPreferenceStartFragment@SYNC  kind=GUI class=standard via=None
+          trigger: Tap "Sync"
+          gui: ['Tap "Sync"']
+          evidence: SRC SettingsActivity.java:125-140; res/xml/settings_data.xml
+  step 17 [E47f06889] SettingsActivity.onPreferenceStartFragment@SYNC -> S_SETTINGS_SYNC  kind=ENTERS class=page via=None
+          trigger: the sub-screen opens
+          evidence: SRC SettingsActivity.java:135-139
+  step 18 [Ed1a1b5fa] S_SETTINGS_SYNC -> SettingsFragment.lambda$onResume$2  kind=GUI class=standard via=None
+          trigger: Tap "Import"
+          gui: ['Tap "Import"']
+          evidence: SRC SettingsFragment.java:159-166
+  step 19 [Eb3d3e1bc] SettingsFragment.lambda$onResume$2 -> SettingsFragment.importNotes  kind=CALL class=explicit via=None
+          trigger: WRITE_EXTERNAL_STORAGE is granted: importNotes()
+          env: the storage permission is granted to the app (runtime permission)  env_kinds=['permission']
+          evidence: SRC SettingsFragment.java:162-164
+  step 20 [Eaa4dc4e5] SettingsFragment.importNotes -> S_DLG_IMPORT  kind=ENTERS class=page via=None
+          trigger: the backup list opens
+          needs_state: A backup folder exists under /sdcard/Omni Notes (Settings > Sync > Export)  state_kinds=['file']
+          evidence: SRC SettingsFragment.java:539-622
+  step 21 [E580104d9] S_DLG_IMPORT -> RecyclerViewItemClickSupport$2.onLongClick@IMPORT  kind=GUI class=standard via=None
+          trigger: Long-press a backup
+          gui: ['Long-press a backup']
+          evidence: SRC models/listeners/RecyclerViewItemClickSupport.java; SettingsFragment.java:595-617
+  step 22 [Eef2ea939] RecyclerViewItemClickSupport$2.onLongClick@IMPORT -> SettingsFragment.lambda$null$30  kind=CALL class=explicit via=None
+          trigger: OnItemLongClickListener.onItemLongClick
+          evidence: SRC SettingsFragment.java:595
+  step 23 [E7e0a24a4] SettingsFragment.lambda$null$30 -> S_DLG_BACKUP_DELETE  kind=ENTERS class=page via=None
+          trigger: the delete confirmation opens
+          evidence: SRC SettingsFragment.java:601-615
+  step 24 [Ee925a6f2] S_DLG_BACKUP_DELETE -> SettingsFragment.lambda$null$29  kind=GUI class=standard via=None
+          trigger: Tap Confirm
+          gui: ['Tap Confirm']
+          evidence: INFERRED MaterialDialogs calls the registered button / item callbacks (library source not read); SRC SettingsFragment.java:605-614
+  step 25 [Ef289bf9e] SettingsFragment.lambda$null$29 -> DataBackupIntentService.onHandleIntent@DELETE  kind=ASYNC class=standard via=None
+          trigger: IntentService.onHandleIntent runs on a worker thread
+          evidence: FW-SRC core/java/android/app/IntentService.java:70-78, 112-132 (onCreate starts a HandlerThread; onStart queues the intent as a message and the ServiceHandler calls onHandleIntent on that worker thread); SRC async/DataBackupIntentService.java:67-84
+  step 26 [Ef4fbd583] DataBackupIntentService.onHandleIntent@DELETE -> DataBackupIntentService.deleteData  kind=CALL class=explicit via=None
+          trigger: the delete action
+          evidence: SRC async/DataBackupIntentService.java:75-83
+
+====================================================================================================
+LONG  Category.<init>(Parcel)   steps=21  env_kinds=  state_kinds=  classes=explicit;non_standard;standard  confirmed_by=INFERRED  path_status=SOURCE_OK
+  branch path row: result=fixed confirmed_by=SOURCE ref=CategoryActivity.java:135-159; DetailFragment.java:1438-1443 note=ERROR FOUND: the first-graph route reached the list through the shortcut edges "MainActivity.onResume -> ListFragment.onResume / MainActivity.init / the list page", taken right after the process starts. On a cold start isPasswordAccepted is false, so onResume calls checkPassword, which calls init(), which adds the ListFragment once (MainActivity.java:111-118, 138-156, 178-182); the shortcuts skip those steps and are only valid after an earlier resume. Fixed: the shortcut edges now carry the STATE "MainActivity was resumed before in this process" and the best route uses the explicit chain onResume -> checkPassword -> init -> ListFragment. ERROR FOUND (also): saveCategory returns early for an empty name (CategoryActivity.java:138-141), so the result edges need a typed name; they had no gate. Fixed: guard on every edge leaving saveCategory. Steps read: new note -> Category in the toolbar -> categorize dialog -> "Add category" (DetailFragment.java:1242-1276) -> CategoryActivity -> Save -> setResult (CategoryActivity.java:156-157) -> DetailFragment.onActivityResult reads the Parcelable "category" (1438-1443; Parcel.createFromParcel reads the CREATOR by reflection, Parcel.java:2867-2900). Steps that run through androidx / MaterialDialogs / ButterKnife / EventBus / RxJava / SmartLocation rest on INFERRED claims (library source not read).
+  shortest_path: S_ENTRY > MainActivity.<init> > MainActivity.onResume > MainActivity.checkPassword > MainActivity.init > ListFragment.<init> > ListFragment.onActivityCreated > ListFragment.init > S_LIST@NOTES > Fab.lambda$init$1@LONG_NOTES > ListFragment.lambda$initFab$0@MAIN > S_DETAIL@NEW > DetailFragment.onOptionsItemSelected@CATEGORY > DetailFragment.categorizeNote > S_DLG_CATEGORIZE_DETAIL > DetailFragment.lambda$categorizeNote$15 > S_CATEGORY@NEW_DETAIL > CategoryActivity_ViewBinding$2.doClick@NEW_DETAIL > CategoryActivity.saveCategory@NEW_DETAIL > DetailFragment.onActivityResult@CATEGORY > Category$1.createFromParcel > Category.<init>(Parcel)
+  step  1 [Ea7466154] S_ENTRY -> MainActivity.<init>  kind=ENTRY class=standard via=None
+          trigger: MAIN / LAUNCHER intent starts MainActivity
+          gui: ['Home screen of another launcher: tap the Omni Notes icon']
+          evidence: SRC AndroidManifest.xml:65-114
+  step  2 [E89791c67] MainActivity.<init> -> MainActivity.onResume  kind=LIFECYCLE class=standard via=None
+          trigger: Activity lifecycle callback
+          evidence: SRC MainActivity.java:93-120; BaseActivity.java:72-100
+  step  3 [Edf932a3c] MainActivity.onResume -> MainActivity.checkPassword  kind=CALL class=explicit via=None
+          trigger: isPasswordAccepted is false on a cold start
+          evidence: SRC MainActivity.java:111-118
+  step  4 [E075b4776] MainActivity.checkPassword -> MainActivity.init  kind=CALL class=explicit via=None
+          trigger: no password gate: init()
+          evidence: SRC MainActivity.java:138-156
+  step  5 [E2436b969] MainActivity.init -> ListFragment.<init>  kind=CALL class=explicit via=None
+          trigger: adds the list fragment
+          guard: no fragment with tag fragment_list
+          evidence: SRC MainActivity.java:178-182
+  step  6 [E54b170af] ListFragment.<init> -> ListFragment.onActivityCreated  kind=LIFECYCLE class=standard via=None
+          trigger: Fragment lifecycle callback
+          evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ListFragment.java:205-400
+  step  7 [Ef86ebfe1] ListFragment.onActivityCreated -> ListFragment.init  kind=CALL class=explicit via=None
+          trigger: init()
+          evidence: SRC ListFragment.java:246
+  step  8 [E7e3c321b] ListFragment.init -> S_LIST@NOTES  kind=ENTERS class=page via=None
+          trigger: The list is set up on the default navigation (Notes) and the load starts
+          guard: navigation pref is Notes (default)
+          evidence: SRC ListFragment.java:250-261; BaseActivity.java:98-99
+  step  9 [E01d0dfd6] S_LIST@NOTES -> Fab.lambda$init$1@LONG_NOTES  kind=GUI class=standard via=None
+          trigger: Long-press the + button
+          gui: ['Long-press the + button']
+          evidence: SRC models/views/Fab.java:69-76
+  step 10 [Ee5d1ab81] Fab.lambda$init$1@LONG_NOTES -> ListFragment.lambda$initFab$0@MAIN  kind=CALL class=explicit via=None
+          trigger: onFabItemClick(fab_expand_menu_button)
+          guard: not expanded
+          evidence: SRC models/views/Fab.java:118-125
+  step 11 [E8a16cf02] ListFragment.lambda$initFab$0@MAIN -> S_DETAIL@NEW  kind=ENTERS class=page via=None
+          trigger: a new note is opened
+          evidence: SRC ListFragment.java:266-285
+  step 12 [Ea13ecca1] S_DETAIL@NEW -> DetailFragment.onOptionsItemSelected@CATEGORY  kind=GUI class=standard via=None
+          trigger: Tap "Category" in the toolbar menu
+          gui: ['Tap "Category" in the toolbar menu']
+          evidence: SRC DetailFragment.java:1074-1132,1033-1036; res/menu/menu_detail.xml
+  step 13 [E8425722d] DetailFragment.onOptionsItemSelected@CATEGORY -> DetailFragment.categorizeNote  kind=CALL class=explicit via=None
+          trigger: the category branch of the menu switch
+          evidence: SRC DetailFragment.java:1080-1127
+  step 14 [E48ac97e0] DetailFragment.categorizeNote -> S_DLG_CATEGORIZE_DETAIL  kind=ENTERS class=page via=None
+          trigger: the categorize dialog opens
+          evidence: SRC DetailFragment.java:1242-1276
+  step 15 [E49ce8c51] S_DLG_CATEGORIZE_DETAIL -> DetailFragment.lambda$categorizeNote$15  kind=GUI class=standard via=None
+          trigger: Tap "Add category"
+          gui: ['Tap "Add category"']
+          evidence: INFERRED MaterialDialogs calls the registered button / item callbacks (library source not read); SRC DetailFragment.java:1259-1263
+  step 16 [Ee4302599] DetailFragment.lambda$categorizeNote$15 -> S_CATEGORY@NEW_DETAIL  kind=ENTERS class=page via=None
+          trigger: startActivityForResult(CategoryActivity, CATEGORY)
+          evidence: SRC DetailFragment.java:1260-1263
+  step 17 [Ea8f42099] S_CATEGORY@NEW_DETAIL -> CategoryActivity_ViewBinding$2.doClick@NEW_DETAIL  kind=GUI class=standard via=None
+          trigger: Tap Save
+          gui: ['Tap Save']
+          evidence: SRC CategoryActivity.java:135-160
+  step 18 [Ee6a56786] CategoryActivity_ViewBinding$2.doClick@NEW_DETAIL -> CategoryActivity.saveCategory@NEW_DETAIL  kind=CALL class=non_standard via=ButterKnife: the generated binder / click listener is called by reflection or built by the generated code
+          trigger: target.saveCategory()
+          evidence: INFERRED ButterKnife DebouncingOnClickListener forwards the click to the generated listener (ButterKnife source not read); SRC CategoryActivity.java:135-160
+  step 19 [Ee27fa102] CategoryActivity.saveCategory@NEW_DETAIL -> DetailFragment.onActivityResult@CATEGORY  kind=RESULT class=standard via=None
+          trigger: result OK with the category
+          guard: the name field is not empty (CategoryActivity.java:138-141)
+          evidence: SRC DetailFragment.java:1438-1443
+  step 20 [Ef3501eaf] DetailFragment.onActivityResult@CATEGORY -> Category$1.createFromParcel  kind=FRAMEWORK class=non_standard via=Parcel finds the static CREATOR field of the class by reflection
+          trigger: intent.getParcelableExtra("category")
+          evidence: FW-SRC core/java/android/os/Parcel.java:1785-1791, 2867-2900 (writeParcelable calls writeToParcel; readParcelableCreator finds the static CREATOR field of the class by reflection, and readParcelable calls its createFromParcel); INFERRED Intent / Bundle extras and Intent.hasFileDescriptors reach them (Intent and Bundle source not read); SRC DetailFragment.java:1440
+  step 21 [E1cee5491] Category$1.createFromParcel -> Category.<init>(Parcel)  kind=CALL class=explicit via=None
+          trigger: new Category(parcel)
+          evidence: SRC models/Category.java
+
+====================================================================================================
+LONG  StorageHelper.createAttachmentFromUri(Context,Uri)   steps=19  env_kinds=  state_kinds=data  classes=explicit;non_standard;standard  confirmed_by=INFERRED  path_status=UNCHECKED
+  branch path row: NONE (never path-checked)
+  shortest_path: S_ENTRY > MainActivity.<init> > MainActivity.onResume > MainActivity.checkPassword > MainActivity.init > ListFragment.<init> > ListFragment.onActivityCreated > ListFragment.init > S_LIST@NOTES > ListFragment.lambda$initListView$3@START_NOTES > S_LIST_CAB@NOTES_1 > ListFragment.lambda$initListView$4@TOGGLE_NOTES > S_LIST_CAB@NOTES_N > ListFragment$ModeCallback.onActionItemClicked@MERGE > ListFragment.performAction@C_MERGE > ListFragment.merge > ListFragment.onEventAsync > NotesHelper.mergeNotes > NotesHelper.addAttachments > StorageHelper.createAttachmentFromUri(Context,Uri)
+  step  1 [Ea7466154] S_ENTRY -> MainActivity.<init>  kind=ENTRY class=standard via=None
+          trigger: MAIN / LAUNCHER intent starts MainActivity
+          gui: ['Home screen of another launcher: tap the Omni Notes icon']
+          evidence: SRC AndroidManifest.xml:65-114
+  step  2 [E89791c67] MainActivity.<init> -> MainActivity.onResume  kind=LIFECYCLE class=standard via=None
+          trigger: Activity lifecycle callback
+          evidence: SRC MainActivity.java:93-120; BaseActivity.java:72-100
+  step  3 [Edf932a3c] MainActivity.onResume -> MainActivity.checkPassword  kind=CALL class=explicit via=None
+          trigger: isPasswordAccepted is false on a cold start
+          evidence: SRC MainActivity.java:111-118
+  step  4 [E075b4776] MainActivity.checkPassword -> MainActivity.init  kind=CALL class=explicit via=None
+          trigger: no password gate: init()
+          evidence: SRC MainActivity.java:138-156
+  step  5 [E2436b969] MainActivity.init -> ListFragment.<init>  kind=CALL class=explicit via=None
+          trigger: adds the list fragment
+          guard: no fragment with tag fragment_list
+          evidence: SRC MainActivity.java:178-182
+  step  6 [E54b170af] ListFragment.<init> -> ListFragment.onActivityCreated  kind=LIFECYCLE class=standard via=None
+          trigger: Fragment lifecycle callback
+          evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ListFragment.java:205-400
+  step  7 [Ef86ebfe1] ListFragment.onActivityCreated -> ListFragment.init  kind=CALL class=explicit via=None
+          trigger: init()
+          evidence: SRC ListFragment.java:246
+  step  8 [E7e3c321b] ListFragment.init -> S_LIST@NOTES  kind=ENTERS class=page via=None
+          trigger: The list is set up on the default navigation (Notes) and the load starts
+          guard: navigation pref is Notes (default)
+          evidence: SRC ListFragment.java:250-261; BaseActivity.java:98-99
+  step  9 [Ef79712d5] S_LIST@NOTES -> ListFragment.lambda$initListView$3@START_NOTES  kind=GUI class=standard via=None
+          trigger: Long-press a note
+          needs_state: At least one note exists (tap +, type, Back)  state_kinds=['data']
+          gui: ['Long-press a note']
+          evidence: SRC ListFragment.java:507-516
+  step 10 [E2c4c48d6] ListFragment.lambda$initListView$3@START_NOTES -> S_LIST_CAB@NOTES_1  kind=ENTERS class=page via=None
+          trigger: one note is selected: the contextual action bar replaces the toolbar
+          evidence: SRC ListFragment.java:507-516
+  step 11 [Ee4307ed1] S_LIST_CAB@NOTES_1 -> ListFragment.lambda$initListView$4@TOGGLE_NOTES  kind=GUI class=standard via=None
+          trigger: Tap another note (toggles its selection)
+          needs_state: At least one note exists (tap +, type, Back)  state_kinds=['data']
+          gui: ['Tap another note (toggles its selection)']
+          evidence: SRC ListFragment.java:519-527,478-496
+  step 12 [Ee8af446d] ListFragment.lambda$initListView$4@TOGGLE_NOTES -> S_LIST_CAB@NOTES_N  kind=ENTERS class=page via=None
+          trigger: selection changes
+          needs_state: At least two notes exist  state_kinds=['data']
+          evidence: SRC ListFragment.java:478-496
+  step 13 [Ecce3bf04] S_LIST_CAB@NOTES_N -> ListFragment$ModeCallback.onActionItemClicked@MERGE  kind=GUI class=standard via=None
+          trigger: Tap "Merge" in the action bar
+          gui: ['Tap "Merge" in the action bar']
+          evidence: SRC ListFragment.java:451-465,611-648
+  step 14 [E94c147ea] ListFragment$ModeCallback.onActionItemClicked@MERGE -> ListFragment.performAction@C_MERGE  kind=CALL class=explicit via=None
+          trigger: performAction(item, mode)
+          evidence: SRC ListFragment.java:451-463
+  step 15 [E6f2eca7b] ListFragment.performAction@C_MERGE -> ListFragment.merge  kind=CALL class=explicit via=None
+          trigger: the merge branch of the action switch
+          evidence: SRC ListFragment.java:847-880
+  step 16 [E1da52cec] ListFragment.merge -> ListFragment.onEventAsync  kind=FRAMEWORK class=non_standard via=EventBus: post() looks the subscribers up by event class
+          trigger: NotesMergeEvent (onEventAsync runs on a pool thread)
+          evidence: INFERRED greenrobot EventBus 2.4: post() calls the subscribers registered for the event class (onEvent: posting thread, onEventMainThread: main, onEventAsync: pool) (EventBus source not read); SRC ListFragment.java:1737-1746
+  step 17 [E031144e2] ListFragment.onEventAsync -> NotesHelper.mergeNotes  kind=CALL class=explicit via=None
+          trigger: NotesHelper.mergeNotes(...)
+          evidence: SRC ListFragment.java:1747
+  step 18 [Ea200fafd] NotesHelper.mergeNotes -> NotesHelper.addAttachments  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC NotesHelper.java:107 (bytecode)
+  step 19 [Ee481c89a] NotesHelper.addAttachments -> StorageHelper.createAttachmentFromUri(Context,Uri)  kind=CALL class=explicit via=None
+          trigger: Direct call
+          guard: keepMergedNotes is true and the merged note has attachments (NotesHelper.java:70-78)
+          needs_state: A merged note has an attachment and "keep merged notes" is chosen in the merge dialog  state_kinds=['data']
+          evidence: SRC NotesHelper.java:73 (bytecode)
+
+====================================================================================================
+LONG  DynamicNavigationLookupTable.<init>   steps=18  env_kinds=  state_kinds=  classes=explicit;non_standard;standard  confirmed_by=INFERRED  path_status=SOURCE_OK
+  branch path row: result=fixed confirmed_by=SOURCE ref=MainMenuTask.java:109-126; DynamicNavigationLookupTable.java:47 note=ERROR FOUND: the first-graph route reached the list through the shortcut edges "MainActivity.onResume -> ListFragment.onResume / MainActivity.init / the list page", taken right after the process starts. On a cold start isPasswordAccepted is false, so onResume calls checkPassword, which calls init(), which adds the ListFragment once (MainActivity.java:111-118, 138-156, 178-182); the shortcuts skip those steps and are only valid after an earlier resume. Fixed: the shortcut edges now carry the STATE "MainActivity was resumed before in this process" and the best route uses the explicit chain onResume -> checkPassword -> init -> ListFragment. Steps read: ListFragment.initNotesList -> NoteLoaderTask -> NotesLoadedEvent -> NavigationDrawerFragment.refreshMenus (120-131, 203) -> buildMainMenu -> MainMenuTask -> checkSkippableItem inside the loop over the navigation entries (MainMenuTask.java:109-126) -> getInstance -> constructor. Steps that run through androidx / MaterialDialogs / ButterKnife / EventBus / RxJava / SmartLocation rest on INFERRED claims (library source not read).
+  shortest_path: S_ENTRY > MainActivity.<init> > MainActivity.onResume > MainActivity.checkPassword > MainActivity.init > ListFragment.<init> > ListFragment.onActivityCreated > ListFragment.init > ListFragment.initNotesList > NoteLoaderTask.doInBackground@ALL > NoteLoaderTask.onPostExecute > NavigationDrawerFragment.onEvent(NotesLoadedEvent) > NavigationDrawerFragment.refreshMenus > NavigationDrawerFragment.buildMainMenu > MainMenuTask.doInBackground > MainMenuTask.buildMainMenu > MainMenuTask.checkSkippableItem > DynamicNavigationLookupTable.getInstance > DynamicNavigationLookupTable.<init>
+  step  1 [Ea7466154] S_ENTRY -> MainActivity.<init>  kind=ENTRY class=standard via=None
+          trigger: MAIN / LAUNCHER intent starts MainActivity
+          gui: ['Home screen of another launcher: tap the Omni Notes icon']
+          evidence: SRC AndroidManifest.xml:65-114
+  step  2 [E89791c67] MainActivity.<init> -> MainActivity.onResume  kind=LIFECYCLE class=standard via=None
+          trigger: Activity lifecycle callback
+          evidence: SRC MainActivity.java:93-120; BaseActivity.java:72-100
+  step  3 [Edf932a3c] MainActivity.onResume -> MainActivity.checkPassword  kind=CALL class=explicit via=None
+          trigger: isPasswordAccepted is false on a cold start
+          evidence: SRC MainActivity.java:111-118
+  step  4 [E075b4776] MainActivity.checkPassword -> MainActivity.init  kind=CALL class=explicit via=None
+          trigger: no password gate: init()
+          evidence: SRC MainActivity.java:138-156
+  step  5 [E2436b969] MainActivity.init -> ListFragment.<init>  kind=CALL class=explicit via=None
+          trigger: adds the list fragment
+          guard: no fragment with tag fragment_list
+          evidence: SRC MainActivity.java:178-182
+  step  6 [E54b170af] ListFragment.<init> -> ListFragment.onActivityCreated  kind=LIFECYCLE class=standard via=None
+          trigger: Fragment lifecycle callback
+          evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ListFragment.java:205-400
+  step  7 [Ef86ebfe1] ListFragment.onActivityCreated -> ListFragment.init  kind=CALL class=explicit via=None
+          trigger: init()
+          evidence: SRC ListFragment.java:246
+  step  8 [Ec8760433] ListFragment.init -> ListFragment.initNotesList  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC ListFragment.java:255 (bytecode)
+  step  9 [E77ad74f6] ListFragment.initNotesList -> NoteLoaderTask.doInBackground@ALL  kind=ASYNC class=standard via=None
+          trigger: NoteLoaderTask.getInstance().executeOnExecutor(...) with the all query
+          evidence: FW-SRC core/java/android/os/AsyncTask.java:219-224, 237-262, 594-596, 632-650, 326-334, 369-374, 285, 705-713, 691-697 (execute uses the serial executor, which hands each task to THREAD_POOL_EXECUTOR and the worker calls doInBackground; postResult sends the result to a main-looper handler whose handleMessage calls finish, which calls onPostExecute); SRC ListFragment.java:1051-1121
+  step 10 [Ea72b76f0] NoteLoaderTask.doInBackground@ALL -> NoteLoaderTask.onPostExecute  kind=ASYNC class=standard via=None
+          trigger: the list of notes is delivered on the main thread
+          evidence: FW-SRC core/java/android/os/AsyncTask.java:219-224, 237-262, 594-596, 632-650, 326-334, 369-374, 285, 705-713, 691-697 (execute uses the serial executor, which hands each task to THREAD_POOL_EXECUTOR and the worker calls doInBackground; postResult sends the result to a main-looper handler whose handleMessage calls finish, which calls onPostExecute); SRC async/notes/NoteLoaderTask.java:84-88
+  step 11 [E35dec0d3] NoteLoaderTask.onPostExecute -> NavigationDrawerFragment.onEvent(NotesLoadedEvent)  kind=FRAMEWORK class=non_standard via=EventBus: post() looks the subscribers up by event class
+          trigger: NotesLoadedEvent reaches the drawer fragment (registered onStart..onStop)
+          evidence: INFERRED greenrobot EventBus 2.4: post() calls the subscribers registered for the event class (onEvent: posting thread, onEventMainThread: main, onEventAsync: pool) (EventBus source not read); SRC NavigationDrawerFragment.java:120-131
+  step 12 [E7fc93c0a] NavigationDrawerFragment.onEvent(NotesLoadedEvent) -> NavigationDrawerFragment.refreshMenus  kind=CALL class=explicit via=None
+          trigger: the drawer menus are rebuilt after a load
+          evidence: SRC NavigationDrawerFragment.java:120-131
+  step 13 [E1004211f] NavigationDrawerFragment.refreshMenus -> NavigationDrawerFragment.buildMainMenu  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC NavigationDrawerFragment.java:203 (bytecode)
+  step 14 [E7733bc48] NavigationDrawerFragment.buildMainMenu -> MainMenuTask.doInBackground  kind=ASYNC class=standard via=None
+          trigger: task.executeOnExecutor(...)
+          evidence: FW-SRC core/java/android/os/AsyncTask.java:219-224, 237-262, 594-596, 632-650, 326-334, 369-374, 285, 705-713, 691-697 (execute uses the serial executor, which hands each task to THREAD_POOL_EXECUTOR and the worker calls doInBackground; postResult sends the result to a main-looper handler whose handleMessage calls finish, which calls onPostExecute); SRC NavigationDrawerFragment.java:217-220
+  step 15 [E1a57b86a] MainMenuTask.doInBackground -> MainMenuTask.buildMainMenu  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC MainMenuTask.java:65 (bytecode)
+  step 16 [Ea6288be6] MainMenuTask.buildMainMenu -> MainMenuTask.checkSkippableItem  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC MainMenuTask.java:110 (bytecode)
+  step 17 [Ece232ca1] MainMenuTask.checkSkippableItem -> DynamicNavigationLookupTable.getInstance  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC MainMenuTask.java:126 (bytecode)
+  step 18 [E9d7d1624] DynamicNavigationLookupTable.getInstance -> DynamicNavigationLookupTable.<init>  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC DynamicNavigationLookupTable.java:47 (bytecode)
+
+====================================================================================================
+LONG  DetailFragment$3.onClick   steps=17  env_kinds=  state_kinds=data  classes=explicit;standard  confirmed_by=INFERRED  path_status=UNCHECKED
+  branch path row: NONE (never path-checked)
+  shortest_path: S_ENTRY > MainActivity.<init> > MainActivity.onResume > MainActivity.checkPassword > MainActivity.init > ListFragment.<init> > ListFragment.onActivityCreated > ListFragment.init > S_LIST@NOTES > Fab.lambda$init$0@CLICK_NOTES > S_LIST_FAB > Fab$2.onClick@CHECKLIST > ListFragment.lambda$initFab$0@CHECKLIST > S_DETAIL@CHECKLIST > DetailFragment.onOptionsItemSelected@CHECKLIST_OFF > DetailFragment.toggleChecklist@OFF > S_DLG_REMOVE_CHECKLIST > DetailFragment$3.onClick
+  step  1 [Ea7466154] S_ENTRY -> MainActivity.<init>  kind=ENTRY class=standard via=None
+          trigger: MAIN / LAUNCHER intent starts MainActivity
+          gui: ['Home screen of another launcher: tap the Omni Notes icon']
+          evidence: SRC AndroidManifest.xml:65-114
+  step  2 [E89791c67] MainActivity.<init> -> MainActivity.onResume  kind=LIFECYCLE class=standard via=None
+          trigger: Activity lifecycle callback
+          evidence: SRC MainActivity.java:93-120; BaseActivity.java:72-100
+  step  3 [Edf932a3c] MainActivity.onResume -> MainActivity.checkPassword  kind=CALL class=explicit via=None
+          trigger: isPasswordAccepted is false on a cold start
+          evidence: SRC MainActivity.java:111-118
+  step  4 [E075b4776] MainActivity.checkPassword -> MainActivity.init  kind=CALL class=explicit via=None
+          trigger: no password gate: init()
+          evidence: SRC MainActivity.java:138-156
+  step  5 [E2436b969] MainActivity.init -> ListFragment.<init>  kind=CALL class=explicit via=None
+          trigger: adds the list fragment
+          guard: no fragment with tag fragment_list
+          evidence: SRC MainActivity.java:178-182
+  step  6 [E54b170af] ListFragment.<init> -> ListFragment.onActivityCreated  kind=LIFECYCLE class=standard via=None
+          trigger: Fragment lifecycle callback
+          evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ListFragment.java:205-400
+  step  7 [Ef86ebfe1] ListFragment.onActivityCreated -> ListFragment.init  kind=CALL class=explicit via=None
+          trigger: init()
+          evidence: SRC ListFragment.java:246
+  step  8 [E7e3c321b] ListFragment.init -> S_LIST@NOTES  kind=ENTERS class=page via=None
+          trigger: The list is set up on the default navigation (Notes) and the load starts
+          guard: navigation pref is Notes (default)
+          evidence: SRC ListFragment.java:250-261; BaseActivity.java:98-99
+  step  9 [E11f7a000] S_LIST@NOTES -> Fab.lambda$init$0@CLICK_NOTES  kind=GUI class=standard via=None
+          trigger: Tap the + button
+          gui: ['Tap the + button']
+          evidence: SRC models/views/Fab.java:62-68
+  step 10 [E6aafd02e] Fab.lambda$init$0@CLICK_NOTES -> S_LIST_FAB  kind=ENTERS class=page via=None
+          trigger: the FAB menu is open
+          evidence: SRC models/views/Fab.java:113-116
+  step 11 [Ead3db2b3] S_LIST_FAB -> Fab$2.onClick@CHECKLIST  kind=GUI class=standard via=None
+          trigger: Tap the checklist button
+          gui: ['Tap the checklist button']
+          evidence: SRC models/views/Fab.java:94-111
+  step 12 [Efd7d10bb] Fab$2.onClick@CHECKLIST -> ListFragment.lambda$initFab$0@CHECKLIST  kind=CALL class=explicit via=None
+          trigger: onFabItemClick(id)
+          evidence: SRC models/views/Fab.java:106-111
+  step 13 [Eb8984ea4] ListFragment.lambda$initFab$0@CHECKLIST -> S_DETAIL@CHECKLIST  kind=ENTERS class=page via=None
+          trigger: a new checklist is opened
+          evidence: SRC ListFragment.java:266-285
+  step 14 [E98a042d3] S_DETAIL@CHECKLIST -> DetailFragment.onOptionsItemSelected@CHECKLIST_OFF  kind=GUI class=standard via=None
+          trigger: Tap "Checklist off" in the toolbar menu
+          gui: ['Tap "Checklist off" in the toolbar menu']
+          evidence: SRC DetailFragment.java:1074-1132,1033-1036; res/menu/menu_detail.xml
+  step 15 [E8fd3479d] DetailFragment.onOptionsItemSelected@CHECKLIST_OFF -> DetailFragment.toggleChecklist@OFF  kind=CALL class=explicit via=None
+          trigger: the checklist_off branch of the menu switch
+          evidence: SRC DetailFragment.java:1080-1127
+  step 16 [Ef04280f7] DetailFragment.toggleChecklist@OFF -> S_DLG_REMOVE_CHECKLIST  kind=ENTERS class=page via=None
+          trigger: checked items exist: the options dialog opens
+          needs_state: The open checklist has at least one checked item  state_kinds=['data']
+          evidence: SRC DetailFragment.java:1169-1191
+  step 17 [Ec96ce844] S_DLG_REMOVE_CHECKLIST -> DetailFragment$3.onClick  kind=GUI class=standard via=None
+          trigger: Tap OK
+          gui: ['Tap OK']
+          evidence: INFERRED MaterialDialogs calls the registered button / item callbacks (library source not read); SRC DetailFragment.java:1182-1190
+
+====================================================================================================
+LONG  DbHelper.deleteCategory   steps=19  env_kinds=  state_kinds=data  classes=explicit;non_standard;standard  confirmed_by=INFERRED  path_status=SOURCE_OK
+  branch path row: result=fixed confirmed_by=SOURCE ref=CategoryActivity.java:162-188; CategoryMenuTask.java:144-157 note=ERROR FOUND: the first-graph route reached the list through the shortcut edges "MainActivity.onResume -> ListFragment.onResume / MainActivity.init / the list page", taken right after the process starts. On a cold start isPasswordAccepted is false, so onResume calls checkPassword, which calls init(), which adds the ListFragment once (MainActivity.java:111-118, 138-156, 178-182); the shortcuts skip those steps and are only valid after an earlier resume. Fixed: the shortcut edges now carry the STATE "MainActivity was resumed before in this process" and the best route uses the explicit chain onResume -> checkPassword -> init -> ListFragment. Steps read: long-press a category in the drawer (CategoryMenuTask.java:144-157; STATE a category exists) -> MainActivity.editTag -> ListFragment.editCategory (1463-1467) -> CategoryActivity -> Delete -> confirmation -> onPositive calls deleteCategory (CategoryActivity.java:170-180). Steps that run through androidx / MaterialDialogs / ButterKnife / EventBus / RxJava / SmartLocation rest on INFERRED claims (library source not read).
+  shortest_path: S_ENTRY > MainActivity.<init> > MainActivity.onResume > MainActivity.checkPassword > MainActivity.init > ListFragment.<init> > ListFragment.onActivityCreated > ListFragment.init > S_LIST@NOTES > NavigationDrawerFragment$1.onDrawerOpened@NOTES > S_DRAWER@NOTES > CategoryMenuTask.lambda$buildCategoryMenuLongClickEvent$2 > MainActivity.editTag > ListFragment.editCategory > S_CATEGORY@EDIT > CategoryActivity_ViewBinding$3.doClick > CategoryActivity.deleteCategory > S_DLG_DELETE_CATEGORY > CategoryActivity.lambda$deleteCategory$0 > DbHelper.deleteCategory
+  step  1 [Ea7466154] S_ENTRY -> MainActivity.<init>  kind=ENTRY class=standard via=None
+          trigger: MAIN / LAUNCHER intent starts MainActivity
+          gui: ['Home screen of another launcher: tap the Omni Notes icon']
+          evidence: SRC AndroidManifest.xml:65-114
+  step  2 [E89791c67] MainActivity.<init> -> MainActivity.onResume  kind=LIFECYCLE class=standard via=None
+          trigger: Activity lifecycle callback
+          evidence: SRC MainActivity.java:93-120; BaseActivity.java:72-100
+  step  3 [Edf932a3c] MainActivity.onResume -> MainActivity.checkPassword  kind=CALL class=explicit via=None
+          trigger: isPasswordAccepted is false on a cold start
+          evidence: SRC MainActivity.java:111-118
+  step  4 [E075b4776] MainActivity.checkPassword -> MainActivity.init  kind=CALL class=explicit via=None
+          trigger: no password gate: init()
+          evidence: SRC MainActivity.java:138-156
+  step  5 [E2436b969] MainActivity.init -> ListFragment.<init>  kind=CALL class=explicit via=None
+          trigger: adds the list fragment
+          guard: no fragment with tag fragment_list
+          evidence: SRC MainActivity.java:178-182
+  step  6 [E54b170af] ListFragment.<init> -> ListFragment.onActivityCreated  kind=LIFECYCLE class=standard via=None
+          trigger: Fragment lifecycle callback
+          evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ListFragment.java:205-400
+  step  7 [Ef86ebfe1] ListFragment.onActivityCreated -> ListFragment.init  kind=CALL class=explicit via=None
+          trigger: init()
+          evidence: SRC ListFragment.java:246
+  step  8 [E7e3c321b] ListFragment.init -> S_LIST@NOTES  kind=ENTERS class=page via=None
+          trigger: The list is set up on the default navigation (Notes) and the load starts
+          guard: navigation pref is Notes (default)
+          evidence: SRC ListFragment.java:250-261; BaseActivity.java:98-99
+  step  9 [E89ba0d21] S_LIST@NOTES -> NavigationDrawerFragment$1.onDrawerOpened@NOTES  kind=GUI class=standard via=None
+          trigger: Swipe in from the left edge or tap the menu icon
+          gui: ['Swipe in from the left edge or tap the menu icon']
+          evidence: SRC NavigationDrawerFragment.java:172-188
+  step 10 [Eb4f41bd1] NavigationDrawerFragment$1.onDrawerOpened@NOTES -> S_DRAWER@NOTES  kind=ENTERS class=page via=None
+          trigger: the drawer is open
+          evidence: SRC NavigationDrawerFragment.java:183-186
+  step 11 [Ecbafdd94] S_DRAWER@NOTES -> CategoryMenuTask.lambda$buildCategoryMenuLongClickEvent$2  kind=GUI class=standard via=None
+          trigger: Long-press a category in the drawer
+          needs_state: At least one category exists (create it from a note or the CAB: Category > Add category)  state_kinds=['data']
+          gui: ['Long-press a category in the drawer']
+          evidence: SRC async/CategoryMenuTask.java:144-157
+  step 12 [E42e7dc4c] CategoryMenuTask.lambda$buildCategoryMenuLongClickEvent$2 -> MainActivity.editTag  kind=CALL class=explicit via=None
+          trigger: editTag((Category) item)
+          evidence: SRC async/CategoryMenuTask.java:149-151
+  step 13 [Eeb2afcb4] MainActivity.editTag -> ListFragment.editCategory  kind=CALL class=explicit via=None
+          trigger: editCategory(tag)
+          evidence: SRC MainActivity.java:215-220
+  step 14 [Ec82c3d2e] ListFragment.editCategory -> S_CATEGORY@EDIT  kind=ENTERS class=page via=None
+          trigger: startActivityForResult(CategoryActivity) with the category
+          evidence: SRC ListFragment.java:1463-1467
+  step 15 [Ed93a59e7] S_CATEGORY@EDIT -> CategoryActivity_ViewBinding$3.doClick  kind=GUI class=standard via=None
+          trigger: Tap Delete
+          gui: ['Tap Delete']
+          evidence: SRC CategoryActivity.java:162-188
+  step 16 [E0814a03b] CategoryActivity_ViewBinding$3.doClick -> CategoryActivity.deleteCategory  kind=CALL class=non_standard via=ButterKnife: the generated binder / click listener is called by reflection or built by the generated code
+          trigger: target.deleteCategory()
+          evidence: INFERRED ButterKnife DebouncingOnClickListener forwards the click to the generated listener (ButterKnife source not read); SRC CategoryActivity.java:162-165
+  step 17 [E09c2560c] CategoryActivity.deleteCategory -> S_DLG_DELETE_CATEGORY  kind=ENTERS class=page via=None
+          trigger: the confirmation opens
+          evidence: SRC CategoryActivity.java:165-188
+  step 18 [Ecfb9ab53] S_DLG_DELETE_CATEGORY -> CategoryActivity.lambda$deleteCategory$0  kind=GUI class=standard via=None
+          trigger: Tap Confirm
+          gui: ['Tap Confirm']
+          evidence: INFERRED MaterialDialogs calls the registered button / item callbacks (library source not read); SRC CategoryActivity.java:170-187
+  step 19 [E6f944352] CategoryActivity.lambda$deleteCategory$0 -> DbHelper.deleteCategory  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC CategoryActivity.java:180 (bytecode)
+
+====================================================================================================
+LONG  Attachment$1.<init>   steps=23  env_kinds=  state_kinds=  classes=explicit;standard  confirmed_by=INFERRED  path_status=SOURCE_OK
+  branch path row: result=fixed confirmed_by=SOURCE ref=SketchFragment.java:208-226; DetailFragment.java:385-388 note=ERROR FOUND: the first-graph route reached the list through the shortcut edges "MainActivity.onResume -> ListFragment.onResume / MainActivity.init / the list page", taken right after the process starts. On a cold start isPasswordAccepted is false, so onResume calls checkPassword, which calls init(), which adds the ListFragment once (MainActivity.java:111-118, 138-156, 178-182); the shortcuts skip those steps and are only valid after an earlier resume. Fixed: the shortcut edges now carry the STATE "MainActivity was resumed before in this process" and the best route uses the explicit chain onResume -> checkPassword -> init -> ListFragment. ERROR FOUND (also): the edge from onBackPressed (sketch) to the new Attachment was a compressed step classed explicit; it crosses a fragment transaction, so it is now class standard and cites the INFERRED fragment lifecycle (androidx FragmentManager) next to the source lines. Steps read: Attachment -> Sketch (DetailFragment.java:2267-2320, 1360-1384) -> draw on the canvas (SketchView.java:165-185) -> Back saves the sketch (MainActivity.java:255-269; guard: at least one stroke, SketchView.java:204-207) -> editor attaches it (385-388) -> Attachment class initialiser builds the CREATOR (Attachment.java:85). Steps that run through androidx / MaterialDialogs / ButterKnife / EventBus / RxJava / SmartLocation rest on INFERRED claims (library source not read).
+  shortest_path: S_ENTRY > MainActivity.<init> > MainActivity.onResume > MainActivity.checkPassword > MainActivity.init > ListFragment.<init> > ListFragment.onActivityCreated > ListFragment.init > S_LIST@NOTES > Fab.lambda$init$1@LONG_NOTES > ListFragment.lambda$initFab$0@MAIN > S_DETAIL@NEW > DetailFragment.onOptionsItemSelected@ATTACHMENT > DetailFragment.showAttachmentsPopup > S_DLG_ATTACH > DetailFragment$AttachmentOnClickListener.onClick@SKETCH > DetailFragment.takeSketch > S_SKETCH@EMPTY > SketchView.onTouch > S_SKETCH@DRAWN > MainActivity.onBackPressed@SKETCH_DRAWN > Attachment.<init>(Uri,String) > Attachment.<clinit> > Attachment$1.<init>
+  step  1 [Ea7466154] S_ENTRY -> MainActivity.<init>  kind=ENTRY class=standard via=None
+          trigger: MAIN / LAUNCHER intent starts MainActivity
+          gui: ['Home screen of another launcher: tap the Omni Notes icon']
+          evidence: SRC AndroidManifest.xml:65-114
+  step  2 [E89791c67] MainActivity.<init> -> MainActivity.onResume  kind=LIFECYCLE class=standard via=None
+          trigger: Activity lifecycle callback
+          evidence: SRC MainActivity.java:93-120; BaseActivity.java:72-100
+  step  3 [Edf932a3c] MainActivity.onResume -> MainActivity.checkPassword  kind=CALL class=explicit via=None
+          trigger: isPasswordAccepted is false on a cold start
+          evidence: SRC MainActivity.java:111-118
+  step  4 [E075b4776] MainActivity.checkPassword -> MainActivity.init  kind=CALL class=explicit via=None
+          trigger: no password gate: init()
+          evidence: SRC MainActivity.java:138-156
+  step  5 [E2436b969] MainActivity.init -> ListFragment.<init>  kind=CALL class=explicit via=None
+          trigger: adds the list fragment
+          guard: no fragment with tag fragment_list
+          evidence: SRC MainActivity.java:178-182
+  step  6 [E54b170af] ListFragment.<init> -> ListFragment.onActivityCreated  kind=LIFECYCLE class=standard via=None
+          trigger: Fragment lifecycle callback
+          evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ListFragment.java:205-400
+  step  7 [Ef86ebfe1] ListFragment.onActivityCreated -> ListFragment.init  kind=CALL class=explicit via=None
+          trigger: init()
+          evidence: SRC ListFragment.java:246
+  step  8 [E7e3c321b] ListFragment.init -> S_LIST@NOTES  kind=ENTERS class=page via=None
+          trigger: The list is set up on the default navigation (Notes) and the load starts
+          guard: navigation pref is Notes (default)
+          evidence: SRC ListFragment.java:250-261; BaseActivity.java:98-99
+  step  9 [E01d0dfd6] S_LIST@NOTES -> Fab.lambda$init$1@LONG_NOTES  kind=GUI class=standard via=None
+          trigger: Long-press the + button
+          gui: ['Long-press the + button']
+          evidence: SRC models/views/Fab.java:69-76
+  step 10 [Ee5d1ab81] Fab.lambda$init$1@LONG_NOTES -> ListFragment.lambda$initFab$0@MAIN  kind=CALL class=explicit via=None
+          trigger: onFabItemClick(fab_expand_menu_button)
+          guard: not expanded
+          evidence: SRC models/views/Fab.java:118-125
+  step 11 [E8a16cf02] ListFragment.lambda$initFab$0@MAIN -> S_DETAIL@NEW  kind=ENTERS class=page via=None
+          trigger: a new note is opened
+          evidence: SRC ListFragment.java:266-285
+  step 12 [Ecd2baeb2] S_DETAIL@NEW -> DetailFragment.onOptionsItemSelected@ATTACHMENT  kind=GUI class=standard via=None
+          trigger: Tap "Attachment" in the toolbar menu
+          gui: ['Tap "Attachment" in the toolbar menu']
+          evidence: SRC DetailFragment.java:1074-1132,1033-1036; res/menu/menu_detail.xml
+  step 13 [E98c7a8e7] DetailFragment.onOptionsItemSelected@ATTACHMENT -> DetailFragment.showAttachmentsPopup  kind=CALL class=explicit via=None
+          trigger: the attachment branch of the menu switch
+          evidence: SRC DetailFragment.java:1080-1127
+  step 14 [Ebe6a7b0b] DetailFragment.showAttachmentsPopup -> S_DLG_ATTACH  kind=ENTERS class=page via=None
+          trigger: the attachment popup opens
+          evidence: SRC DetailFragment.java:1279-1315
+  step 15 [E6c861a8c] S_DLG_ATTACH -> DetailFragment$AttachmentOnClickListener.onClick@SKETCH  kind=GUI class=standard via=None
+          trigger: Tap "Sketch" in the attachment popup
+          gui: ['Tap "Sketch" in the attachment popup']
+          evidence: SRC DetailFragment.java:2267-2320
+  step 16 [Ec92956d5] DetailFragment$AttachmentOnClickListener.onClick@SKETCH -> DetailFragment.takeSketch  kind=CALL class=explicit via=None
+          trigger: the sketch branch
+          evidence: SRC DetailFragment.java:2272-2315
+  step 17 [Eefdb669e] DetailFragment.takeSketch -> S_SKETCH@EMPTY  kind=ENTERS class=page via=None
+          trigger: the sketch editor replaces the editor
+          evidence: SRC DetailFragment.java:1360-1384
+  step 18 [Ed61c3c8e] S_SKETCH@EMPTY -> SketchView.onTouch  kind=GUI class=standard via=None
+          trigger: Draw on the canvas
+          gui: ['Draw on the canvas']
+          evidence: SRC models/views/SketchView.java
+  step 19 [Eb51a57a5] SketchView.onTouch -> S_SKETCH@DRAWN  kind=ENTERS class=page via=None
+          trigger: a stroke is added to the canvas
+          evidence: SRC models/views/SketchView.java:165-185,260-280
+  step 20 [E8b0fb848] S_SKETCH@DRAWN -> MainActivity.onBackPressed@SKETCH_DRAWN  kind=GUI class=standard via=None
+          trigger: Press Back
+          gui: ['Press Back']
+          evidence: SRC MainActivity.java:255-269
+  step 21 [Ea135f7e7] MainActivity.onBackPressed@SKETCH_DRAWN -> Attachment.<init>(Uri,String)  kind=CALL class=standard via=Back saves the sketch and pops the sketch fragment; the editor fragment is resumed by the fragment lifecycle and attaches the saved sketch
+          trigger: DetailFragment.onActivityCreated attaches the saved sketch (mainActivity.sketchUri)
+          guard: SketchView.getBitmap() != null (at least one stroke was drawn)
+          evidence: SRC SketchFragment.java:208-226; models/views/SketchView.java:204-207; DetailFragment.java:385-388; INFERRED androidx FragmentManager pops the back stack and runs the lifecycle of the editor fragment again (androidx source not read)
+  step 22 [E637c6da8] Attachment.<init>(Uri,String) -> Attachment.<clinit>  kind=CALL class=explicit via=None
+          trigger: class initialisation on first use
+          evidence: INFERRED the class has a static initialiser that the JVM runs on first use of the class (Java language rule, not read from a source)
+  step 23 [E5ced9fba] Attachment.<clinit> -> Attachment$1.<init>  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC Attachment.java:85 (bytecode)
+
+====================================================================================================
+PLAIN  NotificationChannels.getChannels   steps=4  env_kinds=  state_kinds=  classes=explicit;standard  confirmed_by=SOURCE  path_status=SOURCE_OK
+  branch path row: result=fixed confirmed_by=SOURCE ref=OmniNotes.java:80-93,104-110; NotificationsHelper.java:55-57 note=ERROR FOUND: the call in initNotificationChannels is inside `if (SDK_INT > O)` (NotificationsHelper.java:56), true on API 27, and onCreate continues only in the app's own process, not in the LeakCanary analyzer process where initLeakCanary() returns true (OmniNotes.java:83-85, 104-110); both guards were missing. Fixed: guards on the edges (the NotificationChannels class initialiser edge also carries the SDK guard).
+  shortest_path: S_ENTRY > OmniNotes.<init> > OmniNotes.onCreate > NotificationsHelper.initNotificationChannels > NotificationChannels.getChannels
+  step  1 [Ea3d8b925] S_ENTRY -> OmniNotes.<init>  kind=ENTRY class=standard via=None
+          trigger: The process starts
+          gui: ['Home screen of another launcher: tap the Omni Notes icon']
+          evidence: SRC AndroidManifest.xml:47-55
+  step  2 [E728b7322] OmniNotes.<init> -> OmniNotes.onCreate  kind=LIFECYCLE class=standard via=None
+          trigger: The system calls Application.onCreate
+          evidence: SRC OmniNotes.java:80-93
+  step  3 [E9d299ee9] OmniNotes.onCreate -> NotificationsHelper.initNotificationChannels  kind=CALL class=explicit via=None
+          trigger: Direct call
+          guard: the app's own process: initLeakCanary() is false there (true only in LeakCanary's analyzer process, OmniNotes.java:83-85, 104-110)
+          evidence: SRC OmniNotes.java:92 (bytecode)
+  step  4 [Edc764532] NotificationsHelper.initNotificationChannels -> NotificationChannels.getChannels  kind=CALL class=explicit via=None
+          trigger: Direct call
+          guard: SDK_INT > 26: true on API 27 (NotificationsHelper.java:56)
+          evidence: SRC NotificationsHelper.java:57 (bytecode)
+
+====================================================================================================
+PLAIN  OmniNotes.getSharedPreferences   steps=6  env_kinds=  state_kinds=  classes=explicit;standard  confirmed_by=SOURCE  path_status=SOURCE_OK
+  branch path row: result=fixed confirmed_by=SOURCE ref=BaseActivity.java:96-100; LogDelegate.java:48-49,92-94 note=ERROR FOUND (guard missing): isFileLoggingEnabled reads the preference only while the static fileLoggingEnabled is null (LogDelegate.java:93-94), i.e. on the first logging call of the process; the edge had no guard. The route is right (launcher -> MainActivity.onResume -> BaseActivity.onResume -> LogDelegate.d, BaseActivity.java:96-100). Also fixed on the same method: the edges that follow in the same `if (fileLoggingEnabled)` block (getAppContext, getExternalStoragePublicDir, LogDelegate.java:95-99) now need the file-logging switch turned on in an earlier run (SettingsFragment.java:506-517).
+  shortest_path: S_ENTRY > MainActivity.<init> > MainActivity.onResume > BaseActivity.onResume > LogDelegate.d > LogDelegate.isFileLoggingEnabled > OmniNotes.getSharedPreferences
+  step  1 [Ea7466154] S_ENTRY -> MainActivity.<init>  kind=ENTRY class=standard via=None
+          trigger: MAIN / LAUNCHER intent starts MainActivity
+          gui: ['Home screen of another launcher: tap the Omni Notes icon']
+          evidence: SRC AndroidManifest.xml:65-114
+  step  2 [E89791c67] MainActivity.<init> -> MainActivity.onResume  kind=LIFECYCLE class=standard via=None
+          trigger: Activity lifecycle callback
+          evidence: SRC MainActivity.java:93-120; BaseActivity.java:72-100
+  step  3 [Ea696f465] MainActivity.onResume -> BaseActivity.onResume  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC MainActivity.java:112 (bytecode)
+  step  4 [E1862d567] BaseActivity.onResume -> LogDelegate.d  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC BaseActivity.java:100 (bytecode)
+  step  5 [Ee7e60085] LogDelegate.d -> LogDelegate.isFileLoggingEnabled  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC LogDelegate.java:49 (bytecode)
+  step  6 [Ef5c7b6c8] LogDelegate.isFileLoggingEnabled -> OmniNotes.getSharedPreferences  kind=CALL class=explicit via=None
+          trigger: Direct call
+          guard: the first logging call in the process: the static fileLoggingEnabled is still null (LogDelegate.java:93-94)
+          evidence: SRC LogDelegate.java:94 (bytecode)
+
+====================================================================================================
+PLAIN  LanguageHelper.setLocale   steps=4  env_kinds=  state_kinds=  classes=explicit;standard  confirmed_by=SOURCE  path_status=SOURCE_OK
+  branch path row: result=correct confirmed_by=SOURCE ref=LanguageHelper.java:60; BaseActivity.java:73 note=attachBaseContext calls updateLanguage (BaseActivity.java:73), which ends in setLocale on every branch (LanguageHelper.java:60).
+  shortest_path: S_ENTRY > MainActivity.<init> > BaseActivity.attachBaseContext > LanguageHelper.updateLanguage > LanguageHelper.setLocale
+  step  1 [Ea7466154] S_ENTRY -> MainActivity.<init>  kind=ENTRY class=standard via=None
+          trigger: MAIN / LAUNCHER intent starts MainActivity
+          gui: ['Home screen of another launcher: tap the Omni Notes icon']
+          evidence: SRC AndroidManifest.xml:65-114
+  step  2 [E3da28cbd] MainActivity.<init> -> BaseActivity.attachBaseContext  kind=LIFECYCLE class=standard via=None
+          trigger: Activity lifecycle callback
+          evidence: SRC MainActivity.java:93-120; BaseActivity.java:72-100
+  step  3 [Ec15bdfef] BaseActivity.attachBaseContext -> LanguageHelper.updateLanguage  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC BaseActivity.java:73 (bytecode)
+  step  4 [E636604a4] LanguageHelper.updateLanguage -> LanguageHelper.setLocale  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC LanguageHelper.java:60 (bytecode)
+
+====================================================================================================
+PLAIN  BaseActivity.onCreate   steps=3  env_kinds=  state_kinds=  classes=explicit;standard  confirmed_by=SOURCE  path_status=SOURCE_OK
+  branch path row: result=correct confirmed_by=SOURCE ref=MainActivity.java:93-94 note=Launcher -> MainActivity.<init> -> onCreate, whose first statement is super.onCreate (MainActivity.java:94).
+  shortest_path: S_ENTRY > MainActivity.<init> > MainActivity.onCreate > BaseActivity.onCreate
+  step  1 [Ea7466154] S_ENTRY -> MainActivity.<init>  kind=ENTRY class=standard via=None
+          trigger: MAIN / LAUNCHER intent starts MainActivity
+          gui: ['Home screen of another launcher: tap the Omni Notes icon']
+          evidence: SRC AndroidManifest.xml:65-114
+  step  2 [E626b84e7] MainActivity.<init> -> MainActivity.onCreate  kind=LIFECYCLE class=standard via=None
+          trigger: Activity lifecycle callback
+          evidence: SRC MainActivity.java:93-120; BaseActivity.java:72-100
+  step  3 [E0c3ffffe] MainActivity.onCreate -> BaseActivity.onCreate  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC MainActivity.java:94 (bytecode)
+
+====================================================================================================
+PLAIN  MainActivity.initUI   steps=3  env_kinds=  state_kinds=  classes=explicit;standard  confirmed_by=SOURCE  path_status=SOURCE_OK
+  branch path row: result=correct confirmed_by=SOURCE ref=MainActivity.java:101 note=onCreate calls initUI unconditionally (MainActivity.java:101).
+  shortest_path: S_ENTRY > MainActivity.<init> > MainActivity.onCreate > MainActivity.initUI
+  step  1 [Ea7466154] S_ENTRY -> MainActivity.<init>  kind=ENTRY class=standard via=None
+          trigger: MAIN / LAUNCHER intent starts MainActivity
+          gui: ['Home screen of another launcher: tap the Omni Notes icon']
+          evidence: SRC AndroidManifest.xml:65-114
+  step  2 [E626b84e7] MainActivity.<init> -> MainActivity.onCreate  kind=LIFECYCLE class=standard via=None
+          trigger: Activity lifecycle callback
+          evidence: SRC MainActivity.java:93-120; BaseActivity.java:72-100
+  step  3 [E8e9a29b3] MainActivity.onCreate -> MainActivity.initUI  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC MainActivity.java:101 (bytecode)
+
+====================================================================================================
+PLAIN  IntroActivity.mustRun   steps=3  env_kinds=  state_kinds=  classes=explicit;standard  confirmed_by=SOURCE  path_status=UNCHECKED
+  branch path row: NONE (never path-checked)
+  shortest_path: S_ENTRY > MainActivity.<init> > MainActivity.onCreate > IntroActivity.mustRun
+  step  1 [Ea7466154] S_ENTRY -> MainActivity.<init>  kind=ENTRY class=standard via=None
+          trigger: MAIN / LAUNCHER intent starts MainActivity
+          gui: ['Home screen of another launcher: tap the Omni Notes icon']
+          evidence: SRC AndroidManifest.xml:65-114
+  step  2 [E626b84e7] MainActivity.<init> -> MainActivity.onCreate  kind=LIFECYCLE class=standard via=None
+          trigger: Activity lifecycle callback
+          evidence: SRC MainActivity.java:93-120; BaseActivity.java:72-100
+  step  3 [Ed00ada9d] MainActivity.onCreate -> IntroActivity.mustRun  kind=CALL class=explicit via=None
+          trigger: Direct call
+          evidence: SRC MainActivity.java:103 (bytecode)
+
+====================================================================================================
+PLAIN  OmniNotes.enableStrictMode   steps=3  env_kinds=  state_kinds=  classes=explicit;standard  confirmed_by=SOURCE  path_status=UNCHECKED
+  branch path row: NONE (never path-checked)
+  shortest_path: S_ENTRY > OmniNotes.<init> > OmniNotes.onCreate > OmniNotes.enableStrictMode
+  step  1 [Ea3d8b925] S_ENTRY -> OmniNotes.<init>  kind=ENTRY class=standard via=None
+          trigger: The process starts
+          gui: ['Home screen of another launcher: tap the Omni Notes icon']
+          evidence: SRC AndroidManifest.xml:47-55
+  step  2 [E728b7322] OmniNotes.<init> -> OmniNotes.onCreate  kind=LIFECYCLE class=standard via=None
+          trigger: The system calls Application.onCreate
+          evidence: SRC OmniNotes.java:80-93
+  step  3 [E9726a141] OmniNotes.onCreate -> OmniNotes.enableStrictMode  kind=CALL class=explicit via=None
+          trigger: Direct call
+          guard: the app's own process: initLeakCanary() is false there (true only in LeakCanary's analyzer process, OmniNotes.java:83-85, 104-110)
+          evidence: SRC OmniNotes.java:90 (bytecode)
+

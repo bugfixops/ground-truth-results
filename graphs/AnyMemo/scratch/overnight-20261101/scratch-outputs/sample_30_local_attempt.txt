@@ -1,0 +1,30 @@
+# Local sample redraw — NOT PERFORMED (blocked, not faked)
+
+Command that would redraw the sample (from a work/ checkout):
+
+  python3 -I tools/verify_sample.py AnyMemo 30 20261025 > scratch/sample_30.txt
+
+Why it was not run in this overnight run: verify_sample.py reads
+graphs/AnyMemo/out/methods.csv, which on branch work-2026-10-31 is 3,282,143
+bytes and cannot be fetched through the GitHub connector (get_file_contents
+refuses files over ~1 MB with "too large to display"; the MCP tool has no
+chunked/range fetch; the printed download URL carries a token this task
+forbids using). The full local build that would regenerate methods.csv is
+likewise blocked on graphs/AnyMemo/auto_calls.json (1,132,200 bytes, same
+limit). Running verify_sample.py against the NO-AUTO partial build's
+methods.csv would draw from the wrong universe (663 reachable instead of
+1966) and is deliberately NOT done.
+
+What was done instead (see AGENT_NOTES.md):
+
+- Branch final sample preserved: scratch/kiro_sample_30_final.txt
+  (30 of 1966 reachable methods, 386 distinct edges, seed 20261025).
+- Branch verification.csv path rows: 30/30 correct (SOURCE).
+- Branch route prints cross-checked locally: 20 routes match the verified
+  path exactly in scratch/kiro_routes_all.txt; the other 10 are exact
+  prefixes truncated by the known show_route.py comma-citation crash, and
+  their full comma-safe prints (scratch/route_print/*.txt) were fetched and
+  matched against verification.csv (see scratch/route_print_tail_check.txt).
+- Consistency re-verification error rate: (0 fixed + 0 wrong) / 30 = 0.0.
+  This is NOT an independent redraw; the redraw itself remains blocked
+  pending an authorized route for the large files (e.g. a Mac clone).
