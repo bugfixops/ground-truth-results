@@ -28,7 +28,7 @@ Verification log (`verification.csv`), counts of what was checked and found:
 | Checked | Rows | Correct | Errors found (fixed) | Unclear |
 |---|---:|---:|---:|---:|
 | labels | 178 | 178 | 0 | 0 |
-| edges (framework and other claims read against source) | 79 | 69 | 10 | 0 |
+| edges (framework and other claims read against source) | 80 | 70 | 10 | 0 |
 | paths (stratified sample, read step by step) | 30 | 11 | 19 | 0 |
 
 Path status over all reachable methods: SOURCE_OK 30, UNCHECKED 1295.
