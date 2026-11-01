@@ -6194,11 +6194,13 @@ e('HomeFragment.renderAccountsList', 'HomeAccountsExpandableAdapter.getChildId',
   needs_state=state_text('a child row exists: the account type group holds at least one account (mAccountsByType, HomeAccountsExpandableAdapter.java:77)', ('data',)),
   evidence='SRC home/HomeFragment.java:811-814; SRC home/HomeAccountsExpandableAdapter.java:76-78; INFERRED ExpandableListView and ExpandableListConnector call the adapter (framework source not in fw_src, not read)')
 
-# ---- check-4 EDIT (MMEX B3a only, auditor PASSED 2026-11-01; MMEX-D2)
+# ---- check-4 EDIT (MMEX B3a+B3b, auditor PASSED 2026-11-01; MMEX-D2)
 # Applied by tools/build_graph.py to every edge before ids are made.
 # B3a: generated-class bytecode citations (criterion corrected per B3a_RULE.md)
 #   -> INFERRED generated <Class> (no source in the upload; bytecode call).
-# (B3b FIXLINES/PARTA maps are added by the later B3b step, not here.)
+# B3b Part B: FIX_LINES verbatim from merger/check4_fixlines.json (true --emit keys).
+# B3b Part A: MmxContentProvider.onCreate :105 -> true new X( lines (true dsts carry .<init>).
+# Triple-keyed for B3b so the :105 <clinit> edges (BudgetQuery, QueryBillDeposits) are untouched.
 import re as _b3_re
 _B3_BYTECODE = _b3_re.compile(r'^SRC (\S+?\.java):(\d+(?:-\d+)?) \(bytecode\)$')
 def _b3_generated(_b):
@@ -6206,8 +6208,51 @@ def _b3_generated(_b):
             or _b.endswith('_ViewBinding.java') or _b.endswith('_Factory.java')
             or _b.endswith('_MembersInjector.java')
             or ('_Provide' in _b and _b.endswith('Factory.java')))
+_B3_FIXLINES = {
+    ('AboutActivity.onCreate', 'AboutTabAdapter.<init>', 'SRC AboutActivity.java:50 (bytecode)'): 'SRC AboutActivity.java:45-50 (bytecode line was 50)',
+    ('AccountTransactionListFragment.onCreateLoader', 'MmxCursorLoader.<init>(Context,Uri,Select)', 'SRC AccountTransactionListFragment.java:342 (bytecode)'): 'SRC AccountTransactionListFragment.java:341 (bytecode line was 342)',
+    ('AccountTransactionListFragment.populateRunningBalance', 'CalculateRunningBalanceTask2.<init>', 'SRC AccountTransactionListFragment.java:642 (bytecode)'): 'SRC AccountTransactionListFragment.java:641 (bytecode line was 642)',
+    ('BaseReportFragment.onCreateLoader', 'MmxCursorLoader.<init>(Context,Uri,Select)', 'SRC BaseReportFragment.java:128 (bytecode)'): 'SRC BaseReportFragment.java:127 (bytecode line was 128)',
+    ('BaseReportFragment.onCreateLoader', 'SQLDataSet.<init>', 'SRC BaseReportFragment.java:127 (bytecode)'): 'SRC BaseReportFragment.java:128 (bytecode line was 127)',
+    ('BaseReportFragment.onCreateLoader@CategoriesReportFragment', 'MmxCursorLoader.<init>(Context,Uri,Select)', 'SRC BaseReportFragment.java:128 (bytecode)'): 'SRC BaseReportFragment.java:127 (bytecode line was 128)',
+    ('BaseReportFragment.onCreateLoader@CategoriesReportFragment', 'SQLDataSet.<init>', 'SRC BaseReportFragment.java:127 (bytecode)'): 'SRC BaseReportFragment.java:128 (bytecode line was 127)',
+    ('BaseReportFragment.onCreateLoader@PayeeReportFragment', 'MmxCursorLoader.<init>(Context,Uri,Select)', 'SRC BaseReportFragment.java:128 (bytecode)'): 'SRC BaseReportFragment.java:127 (bytecode line was 128)',
+    ('BaseReportFragment.onCreateLoader@PayeeReportFragment', 'SQLDataSet.<init>', 'SRC BaseReportFragment.java:127 (bytecode)'): 'SRC BaseReportFragment.java:128 (bytecode line was 127)',
+    ('MmexApplication.initializeDependencyInjection', 'MmxModule.<init>', 'SRC MmexApplication.java:202 (bytecode)'): 'SRC MmexApplication.java:203 (bytecode line was 202)',
+    ('MmxContentProvider.onCreate', 'AccountRepository.<init>', 'SRC MmxContentProvider.java:105 (bytecode)'): 'SRC MmxContentProvider.java:106 (bytecode line was 105)',
+    ('MmxContentProvider.onCreate', 'AccountTransactionRepository.<init>', 'SRC MmxContentProvider.java:105 (bytecode)'): 'SRC MmxContentProvider.java:107 (bytecode line was 105)',
+    ('SearchParametersFragment.assembleWhereClause', 'MmxDate.<init>(Date)', 'SRC SearchParametersFragment.java:465 (bytecode)'): 'SRC SearchParametersFragment.java:466 (bytecode line was 465)',
+}
+_B3_PARTA = {
+    'AttachmentRepository.<init>': 114,
+    'BudgetEntryRepository.<init>': 108,
+    'BudgetQuery.<init>': 125,
+    'BudgetRepository.<init>': 109,
+    'CategoryRepository.<init>': 110,
+    'CurrencyRepository.<init>': 111,
+    'PayeeRepository.<init>': 113,
+    'QueryAccountBills.<init>': 120,
+    'QueryAllData.<init>': 122,
+    'QueryBillDeposits.<init>': 123,
+    'QueryCategorySubCategory.<init>': 121,
+    'QueryReportIncomeVsExpenses.<init>': 124,
+    'RecurringTransactionRepository.<init>': 115,
+    'SQLDataSet.<init>': 127,
+    'SplitCategoriesRepository.<init>': 116,
+    'SplitRecurringCategoriesRepository.<init>': 117,
+    'StockHistoryRepository.<init>': 119,
+    'StockRepository.<init>': 118,
+    'ViewMobileData.<init>': 126,
+}
 def EDIT(x):
     _ev = x.get('evidence') or ''
+    _key = (x.get('src'), x.get('dst'), _ev)
+    if _key in _B3_FIXLINES:
+        x['evidence'] = _B3_FIXLINES[_key]
+        return
+    if x.get('src') == 'MmxContentProvider.onCreate' and _ev == 'SRC MmxContentProvider.java:105 (bytecode)' and x.get('dst') in _B3_PARTA:
+        x['evidence'] = 'SRC MmxContentProvider.java:%d (bytecode)' % _B3_PARTA[x['dst']]
+        return
     _m = _B3_BYTECODE.match(_ev)
     if _m:
         _base = _m.group(1).split('/')[-1]
