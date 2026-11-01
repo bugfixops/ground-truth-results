@@ -179,6 +179,25 @@ class Runner:
     def back(self, edge):
         self.key("KEYCODE_BACK", edge)
 
+    def rotate(self, edge, orientation="landscape"):
+        """Rotate the display: disable auto-rotation, force orientation.
+
+        orientation is 'portrait' (user_rotation 0) or 'landscape'
+        (user_rotation 1). Two shell settings, so two log lines for
+        the one rotation edge. Anything else raises ValueError.
+        """
+        if orientation == "portrait":
+            rot = "0"
+        elif orientation == "landscape":
+            rot = "1"
+        else:
+            raise ValueError(
+                "rotate orientation must be 'portrait' or 'landscape'")
+        self._shell(["settings", "put", "system", "accelerometer_rotation",
+                     "0"], edge, "rotate", "orientation=%s" % orientation)
+        self._shell(["settings", "put", "system", "user_rotation", rot],
+                    edge, "rotate", "orientation=%s" % orientation)
+
     # -- taps, text, scrolling ------------------------------------------
 
     def _find_for_tap(self, edge, action, text=None, res_id=None, desc=None):

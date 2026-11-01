@@ -143,6 +143,18 @@ class TestDryRun(unittest.TestCase):
                    why="no id, text, or desc on this canvas view")
         self.assertIn("input tap 100 200", self.r.planned[-1])
 
+    def test_rotate_plans_two_settings_and_validates(self):
+        self.r.rotate(edge=EDGE_A, orientation="landscape")
+        self.assertEqual(len(self.r.planned), 2)
+        self.assertIn("settings put system accelerometer_rotation 0",
+                      self.r.planned[0])
+        self.assertIn("settings put system user_rotation 1",
+                      self.r.planned[1])
+        with self.assertRaises(ValueError):
+            self.r.rotate(edge=EDGE_A, orientation="upside_down")
+        with self.assertRaises(ValueError):
+            self.r.rotate(edge="E99999999", orientation="portrait")
+
     def test_grant_and_push_planned(self):
         self.r.grant("android.permission.WRITE_EXTERNAL_STORAGE", edge=EDGE_A)
         self.r.push_fixture("/tmp/fixture.txt", edge=EDGE_B,

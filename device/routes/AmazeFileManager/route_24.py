@@ -3,23 +3,25 @@
 
 Method: ThemedImageView.getActivity
 Edge ids in order:
-    Ebe9ec603 E4d630b84 Ed6562688 Eecbda88f Ef8df1bc2 E678e912e
+    Ebe9ec603 E4d630b84 E5028d221 Eecbda88f Ef8df1bc2 E678e912e
     E5c3e8784 E999ff49e E8048d85b E0bcc7226
 Printed route: graphs/AmazeFileManager/scratch/route_print/
     ThemedImageView.getActivity.txt, verdict REACHABLE, 10 edges.
     Edge list identical to methods.csv route_edge_ids for
-    ThemedImageView.getActivity and to d1_routes_draft.csv route_24.
-Permissions: android.permission.READ_EXTERNAL_STORAGE and
-    android.permission.WRITE_EXTERNAL_STORAGE, pre-granted by
-    run_app.sh (the app's standard set; the bookmark database that
-    this route depends on lives under app storage).
+    ThemedImageView.getActivity. The D1 draft's third edge was the
+    pre-B6-fix id Ed6562688; the B6 citation/trigger corrections
+    renumbered it to E5028d221 (edge ids hash their content, see
+    build_graph.py assign_ids), so the draft id is stale here.
+Permissions: android.permission.WRITE_EXTERNAL_STORAGE only (the
+    app's declared set), pre-granted by run_app.sh (the bookmark
+    database that this route depends on lives under app storage).
 Fixtures: none. Setup: MainActivity must run first in this script
     (see the state note below); no fixture file is needed.
 Standard configuration: run_app.sh starts from `pm clear` and grants
     only the ROUTES.csv permissions.
 
 Mapping notes (printed source):
-  - PRINT-CITATION CORRECTION, edge Ed6562688: the print cites
+  - PRINT-CITATION CORRECTION, edge E5028d221: the print cites
     PrefFrag.java:221 for PrefFrag.onPreferenceClick ->
     PreferencesActivity.selectItem, but line 221 is the
     FRAGMENT_ADVANCED_SEARCH case, which loads AdvancedSearchPref,
@@ -93,7 +95,7 @@ sys.path.insert(0, _root)
 from device.harness.harness import Runner  # noqa: E402
 
 EDGE_IDS = [
-    "Ebe9ec603", "E4d630b84", "Ed6562688", "Eecbda88f", "Ef8df1bc2",
+    "Ebe9ec603", "E4d630b84", "E5028d221", "Eecbda88f", "Ef8df1bc2",
     "E678e912e", "E5c3e8784", "E999ff49e", "E8048d85b", "E0bcc7226",
 ]
 
@@ -131,12 +133,12 @@ def main(argv=None):
     # the one consistent with the next edge.
     r.scroll_to("E4d630b84", text="Shortcuts")
     r.tap("E4d630b84", text="Shortcuts")
-    # Ed6562688 PrefFrag.onPreferenceClick ->
+    # E5028d221 PrefFrag.onPreferenceClick ->
     # PreferencesActivity.selectItem: the FRAGMENT_FOLDERS case
     # calls selectItem(FOLDERS_PREFERENCE) (PrefFrag.java:211-213).
     # Automatic after the tap; no further action.
     r.comment("FRAGMENT_FOLDERS case calls selectItem(FOLDERS)",
-              "Ed6562688")
+              "E5028d221")
     # Eecbda88f PreferencesActivity.selectItem -> FoldersPref.onCreate:
     # selectItem loads FoldersPref (PreferencesActivity.java:261)
     # and the framework runs its onCreate. No user action.

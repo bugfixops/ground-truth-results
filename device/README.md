@@ -40,15 +40,36 @@ scripted route shows PASS in its `dryrun_report.txt`.
   `verification.csv` path rows in order; for the other five apps they
   are the final route-check sample. `permissions` lists dangerous
   runtime permissions only (verified declared in the manifest);
-  `fixtures` lists paths that exist under `$WEMU/fixtures`, relative
-  to that directory (e.g. `Download/sample_deck.apkg`); `setup` is
-  the work-emulator `apps.csv` setup text for the app; `status` is
-  `scripted` or `unscriptable: <reason>`.
+  `fixtures` is semicolon-separated, one entry per fixture, in three
+  forms: a plain path under `$WEMU/fixtures` (pushed to the same
+  path under `/sdcard/`); `<repo-relative> -> <dst>` for a text
+  fixture committed under `device/routes/<App>/` (conventionally
+  `device/routes/<App>/fixtures/`, pushed to `<dst>`); or
+  `gen:<name> -> <dst>` for a file generated at run time by the
+  route's per-route setup script (see below, pushed to `<dst>`).
+  Text fixtures only under `device/routes/` — never binaries.
+  `setup` is the work-emulator `apps.csv` setup text for the app,
+  plus, for `gen:` fixtures, the generation step (naming the setup
+  script and the generated file); `status` is `scripted` or
+  `unscriptable: <reason>`.
 - `device/routes/<App>/route_NN.py` (D3): one script per scripted
   route (see "Route scripts" below). An optional per-app
   `device/routes/<App>/setup.py` runs once per route after `pm clear`
   and before the route script; it must be idempotent (it runs before
-  every route, not once per app).
+  every route, not once per app). An optional per-route
+  `device/routes/<App>/setup_<route>.py` runs after the app setup
+  and before the fixture phase, when the route needs a file
+  generated at run time (e.g. a zip built with python `zipfile`, or
+  a system font copied from the runner); it writes generated files
+  into `<outdir>/gen/<route>/` (passed as `--gen-dir`, and as
+  `GEN_DIR` in the environment of the route script), and nothing it
+  generates is ever committed — generated files live only under
+  `<outdir>`. A per-route setup failure ends the route with
+  `error=setup_failed` (unclear, never wrong). If a setup script
+  needs a system package on the runner (AnyMemo's `setup_route_07.py`
+  / `setup_route_18.py` copy `DejaVuSans.ttf` from system fonts —
+  the runner needs `fonts-dejavu`), that prerequisite is documented
+  in the script itself, and its absence fails loudly at setup.
 - Work-emulator checkout (`$WEMU`, public `bugfixops/work-emulator`):
   `apks/<App>.apk` (instrumented debug builds), `classes/<App>/<i>/`
   (for JaCoCo reports), `fixtures/`, `ci/apps.csv`, `ci/app_env.py`
@@ -67,7 +88,7 @@ r = Runner(package="org.example.app", route="route_01",
 
 Functions: `launch(component)`; `tap(text=|res_id=|desc=)` and
 `tap(x=, y=, why=)`; `long_tap(...)`; `type_text(s)`; `key(name)`;
-`back()`; `scroll_to(text=|res_id=)`; `wait_for(text=|res_id=,
+`back()`; `rotate(orientation)`; `scroll_to(text=|res_id=)`; `wait_for(text=|res_id=,
 timeout)`; `start_intent(action, data, mime, extras, component)`;
 `broadcast(action, extras, component)`; `grant(perm)` / `deny(perm)`;
 `push_fixture(path)`; `screenshot(name)` / `dump_ui(name)`;
@@ -86,7 +107,7 @@ Rules:
 - Dry-run mode (`dry_run=True`) never calls adb: it records the
   planned commands and validates edge ids. Node resolution is
   skipped in dry mode (there is no device to dump).
-- Tests: `python3 -I device/harness/test_harness.py` (14 tests,
+- Tests: `python3 -I device/harness/test_harness.py` (15 tests,
   sample dumps shaped from Currency layout XML).
 
 ## Route scripts (D3)
@@ -120,15 +141,23 @@ ROUTES.csv instead of a script.
 
 Standard configuration for every route: start from `pm clear <PKG>`,
 grant only the ROUTES.csv permissions, push only the listed
-fixtures, run the listed setup steps first.
+fixtures, run the listed setup steps first. One exception:
+permission-dialog routes (method `onRequestPermissionsResult`) are
+NOT pre-granted — their edges include the permission dialog itself,
+and pre-granting would prevent it from appearing; the script drives
+the dialog instead (see the runner section).
 
 ## The runner (D4)
 
 `bash device/run_app.sh <App> <glob> <outdir> [--dry-run]`. Real mode
 installs the APK with `adb install -r -t` — WITHOUT `-g`, so each
-route grants only its own permissions. Per scripted route, in order:
-`pm clear`; setup + fixtures + grants; one coverage dump, discarded
-(the receiver resets counters); the script with a 10-minute timeout;
+route grants only its own permissions. Exception: permission-dialog
+routes (method `onRequestPermissionsResult`) skip pre-grants
+entirely, because their route includes the dialog; pre-granting
+would prevent it from appearing. Per scripted route, in order:
+`pm clear`; app setup + per-route setup (if present) + fixtures +
+grants; one coverage dump, discarded (the receiver resets
+counters); the script with a 10-minute timeout;
 a final coverage dump; a JaCoCo report for that dump (`--classfiles`
 from `CLASSES`); `device/jacoco_lookup.py` maps the target method
 (graph name to class/name/descriptor via `tools/build_graph.py`
@@ -145,8 +174,9 @@ error,run_id`.
   from the JaCoCo report gives `no` with
   `error=method_absent_in_report`.
 - `script_status`: `ok`, `failed_at_step_N` (N = steps_done + 1;
-  step 0 = setup or fixture phase), `timeout`, or `unscriptable`.
-  Unscriptable rows have no script and are never executed.
+  step 0 = setup, per-route setup, or fixture phase), `timeout`, or
+  `unscriptable`. Unscriptable rows have no script and are never
+  executed.
 - `steps_total` comes from a dry-mode planning pass of the script
   before the real run; `steps_done` is the lines in the real steps
   log. Evidence per route: `screens/route_NN/` and
@@ -157,11 +187,16 @@ which checks every ROUTES.csv edge id exists in the current trigger
 graph, the edges form a contiguous chain from `S_ENTRY` to the
 method node (a trailing `@VARIANT` suffix on the final node is
 allowed), the method exists in `methods.csv`, permissions are
-declared in the manifest, fixtures exist in `$WEMU/fixtures`, and
-every scripted script loads in dry mode under the harness. It writes
-`<outdir>/dryrun_report.txt`: one line per route (`PASS`, or `FAIL`
-with reason) plus `<App>: N PASS, M FAIL`. The dry run ignores the
-glob and checks every ROUTES row.
+declared in the manifest, and every fixture entry resolves: plain
+entries under `$WEMU/fixtures`, `<repo-relative> -> <dst>` entries
+as committed text files under `device/routes/<App>/`, and
+`gen:<name> -> <dst>` entries via an existing, compiling
+per-route setup script named in the route's setup cell. Any other
+fixture form FAILs loudly. Every scripted script must also load in
+dry mode under the harness. It writes `<outdir>/dryrun_report.txt`:
+one line per route (`PASS`, or `FAIL` with reason) plus
+`<App>: N PASS, M FAIL`. The dry run ignores the glob and checks
+every ROUTES row.
 
 ## Collect and compare (D5, D6)
 

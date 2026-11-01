@@ -5,23 +5,28 @@ ProcessViewerFragment$CustomServiceConnection$1.lambda$onUpdate$0.
 Method: ProcessViewerFragment$CustomServiceConnection$1.lambda$onUpdate$0
 Edge ids in order:
     E7836345a E65d0ad48 Ed845d59b Ef0ba5cf2 Ed8c5adf0 E02c0db97
-    Efb401063 E815f241d
+    Efb401063 E5d4de743
 Printed route: graphs/AmazeFileManager/scratch/route_print/
     ProcessViewerFragment_CustomServiceConnection_1.lambda_onUpdate_0.txt,
     verdict REACHABLE, 8 edges. This edge list matches methods.csv
-    route_edge_ids for the method exactly and matches the D1 draft
-    route_28 row exactly; no mismatch.
-Permissions: WRITE_EXTERNAL_STORAGE (manifest
-    AndroidManifest.xml:31; READ_EXTERNAL_STORAGE is added by the
-    merged manifest per the UI map). Both are ROUTES.csv decisions
+    route_edge_ids for the method exactly; the D1 draft's last edge
+    was the pre-B6-fix id E815f241d, which the B6 citation/trigger
+    corrections renumbered to E5d4de743 (edge ids hash their
+    content, see build_graph.py assign_ids), so the draft id is
+    stale here.
+Permissions: WRITE_EXTERNAL_STORAGE only (the app's declared set),
     granted by run_app.sh under the standard config; the script
     itself grants nothing. No other runtime permission is needed:
     extraction is a local archive-to-local-folder operation.
-Fixtures: route28_archive.zip, shipped beside this script and
-    pushed to /sdcard/Download/route28_archive.zip (Download is one
+Fixtures: route28_archive.zip, generated at run time by
+    setup_route_28.py into the run's gen dir ($GEN_DIR/
+    route28_archive.zip; the script falls back to its beside-script
+    path for manual runs) and pushed to
+    /sdcard/Download/route28_archive.zip (Download is one
     of the standard fixture locations for this app's work-emulator
-    setup). It is deliberately large (tens of MB, several entries
-    of incompressible data): see the timing note below.
+    setup). It is deliberately large (three 20 MiB entries of highly
+    compressible text, about 3 MB compressed): see the timing note
+    below and setup_route_28.py's caveat.
 Setup: standard config only (run_app.sh starts from `pm clear`
     and grants only the ROUTES.csv permissions above).
 Standard configuration: run_app.sh starts from `pm clear` and
@@ -46,6 +51,9 @@ Mapping notes (printed source evidence):
     publishing. The tens-of-MB archive is what makes that window
     wide enough: the UI map recommends exactly this ("a file of
     tens of MB, so copy/extract services run long enough").
+    CAVEAT: the run-time archive holds highly compressible text,
+    so it decompresses faster than the original fixture and the
+    window may be narrower (see setup_route_28.py's caveat).
     If a device run shows extraction finishing before the bind,
     enlarge the fixture; do not claim the lambda fired.
   - MainActivity is the MAIN/LAUNCHER activity
@@ -93,14 +101,20 @@ from device.harness.harness import Runner  # noqa: E402
 
 EDGE_IDS = [
     "E7836345a", "E65d0ad48", "Ed845d59b", "Ef0ba5cf2", "Ed8c5adf0",
-    "E02c0db97", "Efb401063", "E815f241d",
+    "E02c0db97", "Efb401063", "E5d4de743",
 ]
 
 PKG = "com.amaze.filemanager.debug"
 MAIN = PKG + "/.activities.MainActivity"
-FIXTURE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                       "route28_archive.zip")
 ARCHIVE_NAME = "route28_archive.zip"
+# Archive generated at run time by setup_route_28.py; run_app.sh
+# sets GEN_DIR to the run's gen dir. Prefer the generated file
+# there; fall back to the beside-script path for manual runs.
+_GEN_DIR = os.environ.get("GEN_DIR", "")
+FIXTURE = os.path.join(_GEN_DIR, ARCHIVE_NAME) \
+    if _GEN_DIR and os.path.isfile(os.path.join(_GEN_DIR, ARCHIVE_NAME)) \
+    else os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                      "route28_archive.zip")
 DEVICE_ARCHIVE = "/sdcard/Download/" + ARCHIVE_NAME
 SOURCE_DIR = "/sdcard/Download"
 
@@ -164,7 +178,7 @@ def main(argv=None):
     # tens-of-MB extraction is still publishing.
     r.start_intent("Efb401063", component=MAIN,
                    extras_args=["--ez", "openprocesses", "true"])
-    # E815f241d ProcessViewerFragment$CustomServiceConnection$1.onUpdate
+    # E5d4de743 ProcessViewerFragment$CustomServiceConnection$1.onUpdate
     # -> ProcessViewerFragment$CustomServiceConnection$1.lambda$onUpdate$0:
     # onUpdate posts fragment.processResults to the UI thread
     # via runOnUiThread (ProcessViewerFragment.java:416-423);
@@ -172,8 +186,8 @@ def main(argv=None):
     # action; the viewer title evidences the viewer is visible
     # while extraction publishes.
     r.comment("onUpdate posts processResults via runOnUiThread "
-              "(ProcessViewerFragment.java:422)", "E815f241d")
-    r.wait_for("E815f241d", text="Process Viewer", timeout=30)
+              "(ProcessViewerFragment.java:422)", "E5d4de743")
+    r.wait_for("E5d4de743", text="Process Viewer", timeout=30)
     r.done()
     return 0
 

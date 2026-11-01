@@ -10,14 +10,15 @@ Printed route: graphs/AmazeFileManager/scratch/route_print/
     REACHABLE, 10 edges. Edge list identical to methods.csv
     route_edge_ids for CompressedExplorerFragment.onDestroyView
     and to d1_routes_draft.csv route_25.
-Permissions: android.permission.READ_EXTERNAL_STORAGE and
-    android.permission.WRITE_EXTERNAL_STORAGE, pre-granted by
-    run_app.sh (the app's standard set; the archive is read from
-    /sdcard and the fragment's cache entry lives under the app
-    cache dir).
-Fixtures: one archive file, supplied by the replay setup as
-    fixtures/sample.zip (a minimal zip containing one text entry)
-    and pushed by this script to /sdcard/Download/sample.zip.
+Permissions: android.permission.WRITE_EXTERNAL_STORAGE only (the
+    app's declared set), pre-granted by run_app.sh (the archive is
+    read from /sdcard and the fragment's cache entry lives under
+    the app cache dir).
+Fixtures: one archive file, generated at run time by
+    setup_route_25.py into the run's gen dir ($GEN_DIR/sample.zip;
+    the script falls back to its beside-script fixtures/sample.zip
+    path for manual runs) and pushed by this script to
+    /sdcard/Download/sample.zip. The archive holds one text entry.
     The script does NOT create the fixture itself: the harness
     push_fixture step copies the setup-supplied file, so a
     missing setup file fails loudly at the push step instead of
@@ -96,11 +97,16 @@ EDGE_IDS = [
     "Ef14e2b2b", "E6f8babbf", "E222d5cb1", "E04be16b9", "Efafabe30",
 ]
 
-# Fixture supplied by the replay setup (see header). Destination
-# is under Download, one of the standard fixture locations for
-# this app's work-emulator setup.
-FIXTURE_LOCAL = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                             "fixtures", "sample.zip")
+# Fixture generated at run time by setup_route_25.py; run_app.sh
+# sets GEN_DIR to the run's gen dir. Prefer the generated file
+# there; fall back to the beside-script fixtures/ path for
+# manual runs. Destination is under Download, one of the standard
+# fixture locations for this app's work-emulator setup.
+_GEN_DIR = os.environ.get("GEN_DIR", "")
+FIXTURE_LOCAL = os.path.join(_GEN_DIR, "sample.zip") \
+    if _GEN_DIR and os.path.isfile(os.path.join(_GEN_DIR, "sample.zip")) \
+    else os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                      "fixtures", "sample.zip")
 FIXTURE_DEVICE_PATH = "/sdcard/Download/sample.zip"
 
 

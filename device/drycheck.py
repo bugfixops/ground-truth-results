@@ -15,7 +15,24 @@ For every row of device/routes/<App>/ROUTES.csv it checks:
      reached through one producer chain);
   3. the method exists in graphs/<App>/out/methods.csv;
   4. every listed permission is declared in the app manifest;
-  5. every listed fixture exists under $WEMU/fixtures.
+  5. every listed fixture resolves: fixture entries (semicolon-separated)
+     come in three forms —
+       <wemu-relative>            file under $WEMU/fixtures, pushed by
+                                  run_app.sh to /sdcard/<same path>;
+       <repo-relative> -> <dst>   a text fixture committed under
+                                  device/routes/<App>/ (conventionally
+                                  device/routes/<App>/fixtures/),
+                                  pushed by run_app.sh to <dst>;
+       gen:<name> -> <dst>        generated at run time by the
+                                  per-route setup script
+                                  device/routes/<App>/setup_<route>.py
+                                  into the run's gen dir; accepted iff
+                                  that script exists, compiles, and
+                                  the route's setup cell names the
+                                  generated file. Nothing binary is
+                                  ever committed: generated files live
+                                  only under the run's out dir.
+     Any other form FAILs loudly (never silently passes).
 Unscriptable rows are not executed: they PASS when their reason is
 non-empty (they need no script, edge chain, or fixture check beyond
 the reason itself), and the reason is carried into the report line.
@@ -41,6 +58,80 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from route_info import (COLUMNS, PREFIXES, find_manifest, load_routes,  # noqa: E402
                         methods_csv_path, trigger_graph_path)
+
+
+def parse_fixture_entry(entry):
+    """Parse one ROUTES.csv fixture entry -> (kind, src, dst).
+
+    kinds: 'wemu' (file under $WEMU/fixtures), 'repo' (text fixture
+    committed under device/routes/<App>/), 'gen' (generated at run
+    time by setup_<route>.py). dst is the device path run_app.sh
+    pushes to (for 'wemu' entries without ' -> ', /sdcard/<src>).
+    Raises ValueError on any form that is not one of the three.
+    """
+    entry = entry.strip()
+    if entry.startswith("gen:"):
+        rest = entry[len("gen:"):].strip()
+        if " -> " not in rest:
+            raise ValueError("gen fixture needs ' -> <dst>': %r" % entry)
+        name, dst = rest.split(" -> ", 1)
+        name, dst = name.strip(), dst.strip()
+        if not name or not dst:
+            raise ValueError("gen fixture needs name and dst: %r" % entry)
+        return ("gen", name, dst)
+    if " -> " in entry:
+        src, dst = entry.split(" -> ", 1)
+        src, dst = src.strip(), dst.strip()
+        if not src or not dst:
+            raise ValueError("fixture entry needs src and dst: %r" % entry)
+        if src.startswith("device/"):
+            return ("repo", src, dst)
+        return ("wemu", src, dst)
+    return ("wemu", entry, "/sdcard/" + entry)
+
+
+def check_fixture(app, root, wemu, route, setup_text, entry):
+    """One fixture entry -> problem string, or None when it resolves."""
+    try:
+        kind, src, dst = parse_fixture_entry(entry)
+    except ValueError as exc:
+        return str(exc)
+    if kind == "wemu":
+        if not os.path.exists(os.path.join(wemu, "fixtures", src)):
+            return "fixture missing: %s" % entry
+        return None
+    if kind == "repo":
+        if not src.startswith("device/routes/%s/" % app):
+            return ("fixture source outside app routes dir: %s" % entry)
+        path = os.path.join(root, src)
+        if not os.path.isfile(path):
+            return "fixture missing: %s" % entry
+        # Routes-dir fixtures are text only: a binary here (e.g. a zip
+        # smuggled in as .txt) must fail, never silently pass.
+        try:
+            with open(path, "rb") as f:
+                blob = f.read(5 * 1024 * 1024 + 1)
+            if len(blob) > 5 * 1024 * 1024:
+                return "fixture too large for routes dir: %s" % entry
+            blob.decode("utf-8")
+        except (OSError, UnicodeDecodeError):
+            return "fixture is not a text file: %s" % entry
+        return None
+    # kind == "gen": the per-route setup script must exist, compile,
+    # and the setup cell must name the generated file.
+    script = os.path.join(root, "device", "routes", app,
+                          "setup_%s.py" % route)
+    if not os.path.isfile(script):
+        return "generated fixture without setup script: %s" % entry
+    try:
+        with open(script, encoding="utf-8") as f:
+            compile(f.read(), script, "exec")
+    except (OSError, SyntaxError) as exc:
+        return "setup script does not compile: %s (%s)" % (script, exc)
+    if src not in (setup_text or ""):
+        return ("setup cell does not name generated file %s: %s"
+                % (src, entry))
+    return None
 
 
 def check_app(app, root, wemu, load_scripts=False, tmpdir=None):
@@ -98,8 +189,10 @@ def check_app(app, root, wemu, load_scripts=False, tmpdir=None):
                     problems.append("permission %s not in manifest" % perm)
         for fix in [p.strip() for p in row["fixtures"].split(";")
                     if p.strip()]:
-            if not os.path.exists(os.path.join(wemu, "fixtures", fix)):
-                problems.append("fixture missing: %s" % fix)
+            problem = check_fixture(app, root, wemu, route,
+                                    row["setup"], fix)
+            if problem:
+                problems.append(problem)
         if load_scripts and os.path.isfile(script) and not problems:
             tmp = tempfile.mkdtemp(dir=tmpdir)
             proc = subprocess.run(
