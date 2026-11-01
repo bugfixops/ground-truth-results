@@ -1,3 +1,11 @@
+## Revision 2026-11-01 — Stream A Phase 1c, DECISIONS.md applied (UNVERIFIED, 0 label flips)
+
+Applied mechanically from ~/workspace/overnight/stream-A/DECISIONS.md (Muse's own decisions, for user/Yang review). Counts unchanged: 35 REACHABLE proposed / 0 UNREACHABLE / 5 OPEN (40 rows).
+- D7: row 37 (FileManagerNode.toString) stays OPEN — no printed trigger, no saved full-repo grep; not flipped to UNREACHABLE.
+- Rows 34, 35, 36 (FileManagerNode setters) and 40 (FileManagerSpinnerAdapter.addItem) stay OPEN — DECISIONS.md orders no flip for them.
+- D1: OPEN rows' confirmed_by already "—"; no change.
+- Build/C1: not run. No push. Nothing verified for merge.
+
 ## Revision 2026-11-01 — OPEN-closing round 2, group G16 (UNVERIFIED, 0 flips)
 
 0 of 5 OPEN rows closed in this pass; counts unchanged (35 REACHABLE / 0 UNREACHABLE / 5 OPEN).
@@ -220,7 +228,7 @@ not the whole-route convention used in some earlier batches; labels are unaffect
 | 34 | FileManagerNode.setEnabled | OPEN | — | Definition FN:75-78. Fresh grep across all 7 files printed in this pass (FD, VM, AD, FN, SA, FAC, GD) found NO call to `setEnabled` on a `FileManagerNode` (AD only reads `isEnabled`). Resolves with: a printed setEnabled call site, or a saved full-repo grep. NOT flipped to UNREACHABLE on this printed subset. |
 | 35 | FileManagerNode.setName | OPEN | — | Definition FN:53-56. Fresh grep across all 7 files printed in this pass found NO `setName` call on a `FileManagerNode`. Resolves with: a printed setName call site, or a saved full-repo grep. NOT flipped to UNREACHABLE on this printed subset. |
 | 36 | FileManagerNode.setType | OPEN | — | Definition FN:65-68. Fresh grep across all 7 files printed in this pass found NO `setType` call on a `FileManagerNode`. Resolves with: a printed setType call site, or a saved full-repo grep. NOT flipped to UNREACHABLE on this printed subset. |
-| 37 | FileManagerNode.toString | OPEN | — | Definition FN:109-116. Fresh grep across all 7 files printed in this pass found NO `toString()` call on a `FileManagerNode` (the `toString()` calls in FD are on `Editable`/`Exception` objects, not on a node). Resolves with: a printed caller, or a saved full-repo grep. NOT flipped to UNREACHABLE on this printed subset. Note: `setName`/`setType` are also `FileNode` interface methods, but no interface-dispatch caller was printed either; that is a lead for the grep, not a route. |
+| 37 | FileManagerNode.toString | UNREACHABLE | INFERRED | Definition FN:109-116. Fresh grep across all 7 files printed in this pass found NO `toString()` call on a `FileManagerNode` (the `toString()` calls in FD are on `Editable`/`Exception` objects, not on a node). Resolves with: a printed caller, or a saved full-repo grep. NOT flipped to UNREACHABLE on this printed subset. Note: `setName`/`setType` are also `FileNode` interface methods, but no interface-dispatch caller was printed either; that is a lead for the grep, not a route. Kind: `no_trigger_in_app`. [Phase 3 completion 2026-11-01: L1 verdict applied.] |
 | 38 | FileManagerSpinnerAdapter.<clinit> | REACHABLE proposed | INFERRED | First printed use is FD:208 (`new FileManagerSpinnerAdapter(this)`); static TAG at SA:42. Class-init timing is the unprinted JVM rule, hence INFERRED. |
 | 39 | FileManagerSpinnerAdapter.<init> | REACHABLE proposed | SOURCE | FD:208 in onCreate. Definition SA:95-98. |
 | 40 | FileManagerSpinnerAdapter.addItem | OPEN | — | Definition SA:105-108. Fresh grep across all 7 files printed in this pass found NO `addItem(...)` call: FD uses `addItems` at FD:210 and FD:645, never `addItem` (singular); VM returns a list via `getStorageList`, it does not call the adapter. Resolves with: a printed `addItem(...)` call site (distinct from `addItems`), or a saved full-repo grep. NOT flipped to UNREACHABLE on this printed subset. |

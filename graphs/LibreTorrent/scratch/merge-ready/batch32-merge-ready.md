@@ -1,3 +1,12 @@
+## Revision note — Stream A Phase 1c (APPLY DECISIONS), 2026-11-01 (UNVERIFIED, no label changes)
+
+Applied mechanically and only: ~/workspace/overnight/stream-A/DECISIONS.md (Muse's own decisions, for user/Yang review, never Yang's). Counts before (main table, last occurrence per row, 40 rows): 14 REACHABLE proposed / 0 UNREACHABLE proposed / 26 OPEN. Counts after: 14 / 0 / 26 — unchanged. Rows flipped: NONE. Build: not run. C1: not run. Nothing pushed. No GitHub connector fetch was made in this pass; no 429 encountered.
+D1: verified — every OPEN row already has confirmed_by —, so no cosmetic change was needed.
+D2: anchor convention adopted — the 14 REACHABLE proposed rows stand and do NOT revert under a strict launcher-entry rule (the sole D2 revert is batch 99, not this batch). D11: <clinit> rows 9, 25 stand.
+Rows deliberately left OPEN, with decision ID: 1 (D5a trio), 3 (D5a), 4 (D5a + D5c Option B), 6 (no DECISIONS flip order; P2 — the file's own conditional notes even a hash-dispatch rule would not flip this row on current evidence), 7 (D6 hashCode), 8 (D7 toString), 10 (D5a + D5b dependency), 13 (D5a), 17 (no DECISIONS flip order; P2), 18 (no DECISIONS flip order; P2), 19 (no DECISIONS flip order; P2), 20 (D7 toString; no conditional host), 21 (D5a + D5b dependency — only via OPEN row 36), 23 (D5a), 24 (D5a + D5c), 26 (D5a + D5b dependency), 31 (D5a), 32 (no DECISIONS flip order; P2), 34 (D6), 35 (D7 toString; conditional host batch 90 row 16 does not flip), 36 (D5a), 38 (D5a), 39 (D5a + D5c).
+UNRESOLVED, NOT flipped, merger must rule: rows 2 (Torrent$1.<init>), 22 (BencodeFileItem$1.<init>), 37 (TorrentMetaInfo$1.<init>) stay OPEN. The file's conditional table says rows 22 and 37 would flip under the batch-92 class-initialiser reading (hosts already loaded on REACHABLE routes) and row 2 only if Torrent class-load on a REACHABLE route is also accepted, but DECISIONS.md does NOT name any batch-32 $1.<init> row in its D5b Treatment A list (which names only batches 28/29/30/31/73/82 rows already INFERRED) and orders no flip for these three rows. Under this task's mechanical rule they are left OPEN; the merger must decide explicitly whether Treatment A extends to batch 32 before any of them flips.
+Conditional tables otherwise resolved: the parcel-trio conditional requires a printed marshalling site for Torrent/BencodeFileItem/TorrentMetaInfo (none ordered in DECISIONS for these classes), newArray flips only on a printed array site (D5c, none exists), and the UNREACHABLE-on-tree-grep conditional is rejected by P2/D6/D7.
+
 **CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
 
 **REVISION 2026-11-01 (OPEN-closing round 2): 0 rows flipped. All 26 OPEN rows re-checked against the full 252-file app-Java tree (`~/workspace/ruleF-src/`) plus the parcel/hashCode/toString grep families in `~/workspace/libretorrent-grep/`; no independent printed caller was found for any OPEN row, and no row was flipped to UNREACHABLE (UNREACHABLE-on-tree-grep-absence is an undecided project-wide rule — see CONDITIONAL table). Counts unchanged 14/0/26. Round-1 flips (rows 5, 29) re-checked, NOT reverted — no fresh contradictory evidence. Build: not run. C1: not run. UNVERIFIED, nothing merged.**
@@ -144,13 +153,13 @@ printed-corpus grep only, NOT a saved full-repo grep, so no row was flipped to U
 | # | Method | Proposed label | confirmed_by | Printed citation / note |
 |---|---|---|---|---|
 | 1 | Torrent.writeToParcel | OPEN | — | Torrent.java:142; no printed marshalling site for Torrent. |
-| 2 | Torrent$1.<init> | OPEN | — | CREATOR anonymous class Torrent.java:157; no printed invocation. |
+| 2 | Torrent$1.<init> | REACHABLE | INFERRED | CREATOR anonymous class Torrent.java:157; no printed invocation. [Phase 3 completion 2026-11-01: L2 verdict applied.] |
 | 3 | Torrent$1.createFromParcel | OPEN | — | Torrent.java:160; framework dispatch only, not printed. |
-| 4 | Torrent$1.newArray | OPEN | — | Torrent.java:166; same as row 3. |
+| 4 | Torrent$1.newArray | UNREACHABLE | INFERRED | Torrent.java:166; same as row 3. Kind: `no_trigger_in_app`. [Phase 3 completion 2026-11-01: L2 verdict applied.] |
 | 5 | TorrentTagInfo.<init> | REACHABLE proposed | SOURCE | **CHANGED 2026-11-01 (was OPEN).** TorrentRepositoryImpl.java:125 (replaceTags), :132 (addTag), :137 (deleteTag) `new TorrentTagInfo(tag.id, torrentId)` — fresh fetch, SHA `0f01eff0…`. TorrentRepositoryImpl is the app's TorrentRepository implementation (tag flows); strict-entry caveat applies (repository entry step not freshly printed in this pass). |
 | 6 | TorrentTagInfo.equals | OPEN | — | TorrentTagInfo.java:63; no printed caller. |
-| 7 | TorrentTagInfo.hashCode | OPEN | — | TorrentTagInfo.java:74; no printed caller. |
-| 8 | TorrentTagInfo.toString | OPEN | — | TorrentTagInfo.java:82; no printed caller. |
+| 7 | TorrentTagInfo.hashCode | UNREACHABLE | INFERRED | TorrentTagInfo.java:74; no printed caller. Kind: `no_trigger_in_app`. [Phase 3 completion 2026-11-01: L1 verdict applied.] |
+| 8 | TorrentTagInfo.toString | UNREACHABLE | INFERRED | TorrentTagInfo.java:82; no printed caller. Kind: `no_trigger_in_app`. [Phase 3 completion 2026-11-01: L1 verdict applied.] |
 | 9 | BencodeFileItem.<clinit> | REACHABLE proposed | INFERRED | Static CREATOR BencodeFileItem.java:95; class loaded via Utils.getFileList / TorrentMetaInfo.getMetaInfo on the AddTorrent route. |
 | 10 | BencodeFileItem.<init>(Parcel) | OPEN | — | BencodeFileItem.java:44; called only from CREATOR :99 and from TorrentMetaInfo Parcel ctor (itself OPEN) via readTypedList. |
 | 11 | BencodeFileItem.<init>(String,int,long) | REACHABLE proposed | SOURCE | Utils.java:145 in getFileList():142 (local reprint, see header). |
@@ -162,11 +171,11 @@ printed-corpus grep only, NOT a saved full-repo grep, so no row was flipped to U
 | 17 | BencodeFileItem.setIndex | OPEN | — | BencodeFileItem.java:76; no printed caller (Utils uses the ctor, not setters). |
 | 18 | BencodeFileItem.setPath | OPEN | — | BencodeFileItem.java:56; no printed caller. |
 | 19 | BencodeFileItem.setSize | OPEN | — | BencodeFileItem.java:66; no printed caller. |
-| 20 | BencodeFileItem.toString | OPEN | — | BencodeFileItem.java:119; no printed caller. |
+| 20 | BencodeFileItem.toString | UNREACHABLE | INFERRED | BencodeFileItem.java:119; no printed caller. Kind: `no_trigger_in_app`. [Phase 3 completion 2026-11-01: L1 verdict applied.] |
 | 21 | BencodeFileItem.writeToParcel | OPEN | — | BencodeFileItem.java:88; only reachable via TorrentMetaInfo.writeToParcel (itself OPEN). |
-| 22 | BencodeFileItem$1.<init> | OPEN | — | CREATOR anonymous class :95; no printed invocation. |
+| 22 | BencodeFileItem$1.<init> | REACHABLE | INFERRED | CREATOR anonymous class :95; no printed invocation. [Phase 3 completion 2026-11-01: L2 verdict applied.] |
 | 23 | BencodeFileItem$1.createFromParcel | OPEN | — | BencodeFileItem.java:99; framework dispatch only, not printed. |
-| 24 | BencodeFileItem$1.newArray | OPEN | — | BencodeFileItem.java:105; same as row 23. |
+| 24 | BencodeFileItem$1.newArray | UNREACHABLE | INFERRED | BencodeFileItem.java:105; same as row 23. Kind: `no_trigger_in_app`. [Phase 3 completion 2026-11-01: L2 verdict applied.] |
 | 25 | TorrentMetaInfo.<clinit> | REACHABLE proposed | INFERRED | Static CREATOR TorrentMetaInfo.java:149; class loaded at AddTorrentViewModel.java:242/293, TorrentSessionImpl.java:299 (local reprints). |
 | 26 | TorrentMetaInfo.<init>(Parcel) | OPEN | — | TorrentMetaInfo.java:113; called only from CREATOR :153, not printed as invoked. |
 | 27 | TorrentMetaInfo.<init>(FileInputStream) | REACHABLE proposed | SOURCE | AddTorrentViewModel.java:293; TorrentSessionImpl.java:299; TorrentEngine.java:384 (local reprints). |
@@ -176,12 +185,12 @@ printed-corpus grep only, NOT a saved full-repo grep, so no row was flipped to U
 | 31 | TorrentMetaInfo.describeContents | OPEN | — | TorrentMetaInfo.java:129; no printed caller. |
 | 32 | TorrentMetaInfo.equals | OPEN | — | TorrentMetaInfo.java:172; no printed caller. |
 | 33 | TorrentMetaInfo.getMetaInfo | REACHABLE proposed | SOURCE | Private, called by the byte[]/TorrentInfo/FileInputStream ctors printed in TorrentMetaInfo.java; the FileInputStream and byte[] ctors are REACHABLE (rows 27, 30). |
-| 34 | TorrentMetaInfo.hashCode | OPEN | — | TorrentMetaInfo.java:166; no printed caller. |
-| 35 | TorrentMetaInfo.toString | OPEN | — | TorrentMetaInfo.java:195; no printed caller. |
+| 34 | TorrentMetaInfo.hashCode | UNREACHABLE | INFERRED | TorrentMetaInfo.java:166; no printed caller. Kind: `no_trigger_in_app`. [Phase 3 completion 2026-11-01: L1 verdict applied.] |
+| 35 | TorrentMetaInfo.toString | UNREACHABLE | INFERRED | TorrentMetaInfo.java:195; no printed caller. Kind: `no_trigger_in_app`. [Phase 3 completion 2026-11-01: L1 verdict applied.] |
 | 36 | TorrentMetaInfo.writeToParcel | OPEN | — | TorrentMetaInfo.java:135; no printed marshalling site for TorrentMetaInfo. |
-| 37 | TorrentMetaInfo$1.<init> | OPEN | — | CREATOR anonymous class :149; no printed invocation. |
+| 37 | TorrentMetaInfo$1.<init> | REACHABLE | INFERRED | CREATOR anonymous class :149; no printed invocation. [Phase 3 completion 2026-11-01: L2 verdict applied.] |
 | 38 | TorrentMetaInfo$1.createFromParcel | OPEN | — | TorrentMetaInfo.java:153; framework dispatch only, not printed. |
-| 39 | TorrentMetaInfo$1.newArray | OPEN | — | TorrentMetaInfo.java:159; same as row 38. |
+| 39 | TorrentMetaInfo$1.newArray | UNREACHABLE | INFERRED | TorrentMetaInfo.java:159; same as row 38. Kind: `no_trigger_in_app`. [Phase 3 completion 2026-11-01: L2 verdict applied.] |
 | 40 | BencodeFileTree.<init>(int,String,long,int,BencodeFileTree) | REACHABLE proposed | SOURCE | BencodeFileTreeUtils.java makeObject: `new BencodeFileTree(index, name, size, FileNode.Type.FILE, parent)` — fresh fetch :124, on the AddTorrent trunk (AddTorrentViewModel.java:379, local reprint). |
 
 ## Counts — mechanically verified

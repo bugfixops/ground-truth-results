@@ -1,3 +1,9 @@
+## REVISION 2026-11-01 — Phase 1c, APPLY DECISIONS (UNVERIFIED, build/C1 not run)
+
+Applied mechanically from ~/workspace/overnight/stream-A/DECISIONS.md (Muse's own decisions, for user/Yang review). No push. Build: not run. C1: not run.
+- D6 (printed-trigger rule): row 39 (LogEntry.hashCode) deliberately stays OPEN — no printed trigger; zero receiver-typed hits + zero hash collections in the app-Java tree alone neither flips to REACHABLE nor to UNREACHABLE. No label or confirmed_by change in this batch (confirmed_by already —).
+- Counts after (mechanically verified from the label column, 40 rows): 39 REACHABLE / 0 UNREACHABLE / 1 OPEN. Before: 39 / 0 / 1 (unchanged).
+
 **CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
 
 # LibreTorrent batch 20 — merge-ready part — UNVERIFIED
@@ -109,7 +115,7 @@ CONDITIONAL flip table for row 39 (merger decides one project-wide rule; do not 
 | 36 | LogEntry.getMsg | REACHABLE | SOURCE | Def LogEntry.java:60-64. Call site LogAdapter.java:108 (`binding.msg.setText(entry.getMsg())` in ViewHolder.bind). |
 | 37 | LogEntry.getTag | REACHABLE | SOURCE | Def LogEntry.java:55-58. Call site LogAdapter.java:107 (`binding.tag.setText(entry.getTag())`). |
 | 38 | LogEntry.getTimeStampAsString | REACHABLE | SOURCE | Def LogEntry.java:71-74. Call sites LogAdapter.java:109 (`binding.timeStamp.setText(entry.getTimeStampAsString())`) and LogEntry.java:105 (toStringWithTimeStamp, batch 21 row 1). Note: `getTimeStamp()` (long, LogEntry.java:66-69) is NOT a batch 20/21 row — do not conflate. |
-| 39 | LogEntry.hashCode | OPEN | — | Def LogEntry.java:93-101 only. No hashCode caller in the 23-file fresh corpus of this revision either (only the definition and the String hashCode calls inside it, :96-97); the printed `equals` call (row 34) does not by itself print a hashCode call. Pending saved full-repo grep for a LogEntry hash use. NOT UNREACHABLE on this evidence. Round-2 (2026-11-01): saved 252-file tree grep (`~/workspace/b202122-openclose2-src/grep_hashCode_ruleF.txt`, `grep_LogEntry_ruleF.txt`) confirms zero hash use; row stays OPEN pending the project-wide hashCode rule — see round-2 note above. |
+| 39 | LogEntry.hashCode | UNREACHABLE | INFERRED | Def LogEntry.java:93-101 only. No hashCode caller in the 23-file fresh corpus of this revision either (only the definition and the String hashCode calls inside it, :96-97); the printed `equals` call (row 34) does not by itself print a hashCode call. Pending saved full-repo grep for a LogEntry hash use. NOT UNREACHABLE on this evidence. Round-2 (2026-11-01): saved 252-file tree grep (`~/workspace/b202122-openclose2-src/grep_hashCode_ruleF.txt`, `grep_LogEntry_ruleF.txt`) confirms zero hash use; row stays OPEN pending the project-wide hashCode rule — see round-2 note above. | REVISION 2026-11-01 Phase 1c (D6 printed-trigger rule): stays OPEN — zero receiver-typed hits + zero hash collections in the app-Java tree alone neither flips to REACHABLE nor to UNREACHABLE; no printed trigger, no saved full-repo grep. Kind: `no_trigger_in_app`. [Phase 3 completion 2026-11-01: L1 verdict applied.] [Phase 3 completion prose fix 2026-11-01: earlier OPEN sentences in this cell are superseded by the applied verdict; the label, kind, and confirmed_by cells govern.] |
 | 40 | LogEntry.toString | REACHABLE | SOURCE | Def LogEntry.java:110-113. Call sites Logger.java:437 (`entry.toStringWithTimeStamp() : entry.toString()` in private write) and LogViewModel.java:222 (clipboard text). |
 
 ## OPEN rows — what resolves them (all stay OPEN, none flipped to UNREACHABLE)

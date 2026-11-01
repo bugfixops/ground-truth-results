@@ -1,3 +1,13 @@
+**PHASE 2 FIX 2026-11-01 (coordinator): citation/wording/column corrections from the Phase 2 spot-check applied to this file; labels and counts unchanged (3900/575/257 global totals verified after the fix). Backups in ~/workspace/overnight/stream-A/backup-pre-phase2fix/.**
+
+## Revision note — Stream A Phase 1c (APPLY DECISIONS), 2026-11-01 (UNVERIFIED, no label changes)
+
+Applied mechanically and only: ~/workspace/overnight/stream-A/DECISIONS.md (Muse's own decisions, for user/Yang review, never Yang's). Counts before (main table, last occurrence per row, 40 rows): 30 REACHABLE proposed / 0 UNREACHABLE proposed / 10 OPEN. Counts after: 30 / 0 / 10 — unchanged. Rows flipped: NONE. Build: not run. C1: not run. Nothing pushed. No GitHub connector fetch was made in this pass; no 429 encountered.
+D1: verified — every OPEN row already has confirmed_by —, so no cosmetic change was needed.
+D2: anchor convention adopted — the 30 REACHABLE proposed rows stand and do NOT revert under a strict launcher-entry rule (the sole D2 revert is batch 99, not this batch). D11: <clinit> rows 9, 18, 19 stand.
+Rows deliberately left OPEN, with decision ID: 8 (D7 toString — itself the host for batch 34 row 3; it has no independent conditional host and does not flip), 16 (D7 toString — conditional host batch 34 row 16 does not flip), 24 (no DECISIONS flip order; P2 — file's conditional notes no printed sort of a FileTree-typed list exists), 26 (no DECISIONS flip order; P2 — no printed contains/indexOf/DiffUtil site on a FileTree-typed list), 30 (no DECISIONS flip order; P2), 31 (no DECISIONS flip order; P2), 36 (no DECISIONS flip order; P2), 38 (no DECISIONS flip order; P2), 39 (no DECISIONS flip order; P2), 40 (no DECISIONS flip order; P2).
+The UNREACHABLE-on-tree-grep conditional for rows 24, 26, 30, 31, 36, 38, 39, 40 (and rows 8/16 via their hosts) is rejected by P2/D7: app-tree zero alone never flips a row to UNREACHABLE, and neither toString host flips under D7.
+
 **CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
 
 **REVISION 2026-11-01 (OPEN-closing round 2): 0 rows flipped. All 10 OPEN rows re-checked against the full 252-file app-Java tree (`~/workspace/ruleF-src/`) plus the hashCode/toString/compare-ctor grep families in `~/workspace/libretorrent-grep/`; no independent printed caller was found for any OPEN row, and no row was flipped to UNREACHABLE (UNREACHABLE-on-tree-grep-absence is an undecided project-wide rule — see CONDITIONAL table). Counts unchanged 30/0/10. Round-1 flip (row 29) re-checked, NOT reverted — no fresh contradictory evidence. Build: not run. C1: not run. UNVERIFIED, nothing merged.**
@@ -163,7 +173,7 @@ printed-corpus grep only, NOT a saved full-repo grep, so no row was flipped to U
 | 5 | BencodeFileTree.onChildSelectChange | REACHABLE proposed | SOURCE | Private, called by doSelect BencodeFileTree.java (doSelect REACHABLE, row 3). |
 | 6 | BencodeFileTree.select | REACHABLE proposed | SOURCE | AddTorrentViewModel.java makeFileTree: fileTree.select(true, false) (local reprint). |
 | 7 | BencodeFileTree.selectedFileSize | REACHABLE proposed | SOURCE | AddTorrentViewModel.java:553 fileTree.selectedFileSize() (local reprint). |
-| 8 | BencodeFileTree.toString | OPEN | — | BencodeFileTree.java:125; no printed caller (it calls FileTree.toString, not vice versa). |
+| 8 | BencodeFileTree.toString | UNREACHABLE | INFERRED | BencodeFileTree.java:125; no printed caller (it calls FileTree.toString, not vice versa). Kind: `no_trigger_in_app`. [Phase 3 completion 2026-11-01: L1 verdict applied.] |
 | 9 | FileNode$Type.<clinit> | REACHABLE proposed | INFERRED | FileNode.Type constants used in BencodeFileTreeUtils.java:48 and FileTree construction; enum/class loaded on the AddTorrent route — fresh fetch. |
 | 10 | FilePriority.<init>(Priority) | REACHABLE proposed | SOURCE | DetailTorrentViewModel.java:549 `new FilePriority(p)` (local reprint). |
 | 11 | FilePriority.<init>(Type) | REACHABLE proposed | SOURCE | DetailTorrentViewModel.java:323 `new FilePriority(FilePriority.Type.MIXED)`; TorrentContentFileTree.java:28 field initialiser (local reprints). |
@@ -171,12 +181,12 @@ printed-corpus grep only, NOT a saved full-repo grep, so no row was flipped to U
 | 13 | FilePriority.getPriority | REACHABLE proposed | SOURCE | DetailTorrentViewModel.java:420 `file.getFilePriority().getPriority()` (local reprint). |
 | 14 | FilePriority.getType | REACHABLE proposed | SOURCE | TorrentContentFileTree.java changePriority/onChildSelectChange/nonIgnoreFileSize/getAvailability call .getType() on REACHABLE methods (local reprint). |
 | 15 | FilePriority.priorityFrom | REACHABLE proposed | SOURCE | Private static, called by the Type ctor FilePriority.java:42 (ctor REACHABLE, row 11). |
-| 16 | FilePriority.toString | OPEN | — | FilePriority.java:107; no printed caller. |
+| 16 | FilePriority.toString | UNREACHABLE | INFERRED | FilePriority.java:107; no printed caller. Kind: `no_trigger_in_app`. [Phase 3 completion 2026-11-01: L1 verdict applied.] |
 | 17 | FilePriority.typeFrom | REACHABLE proposed | SOURCE | Static, called by the Priority ctor FilePriority.java:36 (ctor REACHABLE, row 10). |
 | 18 | FilePriority$Type.<clinit> | REACHABLE proposed | INFERRED | Enum constants used at DetailTorrentViewModel.java:323 and TorrentContentFileTree.java:28 (local reprints). |
 | 19 | FileTree.<clinit> | REACHABLE proposed | INFERRED | Static ROOT/PARENT_DIR FileTree.java:40-42 — fresh fetch; class loaded via BencodeFileTree/TorrentContentFileTree construction. |
 | 20 | FileTree.<init>(int,String,long,int,FileTree) | REACHABLE proposed | SOURCE | BencodeFileTree.java:40 super call from the REACHABLE 5-arg BencodeFileTree ctor (batch 32 row 40). |
-| 21 | FileTree.<init>(String,long,int) | REACHABLE proposed | SOURCE | BencodeFileTree.java:35 super call from the REACHABLE 3-arg BencodeFileTree ctor (row 1). |
+| 21 | FileTree.<init>(String,long,int) | REACHABLE proposed | SOURCE | BencodeFileTree.java:37 super call (ctor declared :35) from the REACHABLE 3-arg BencodeFileTree ctor (row 1). |
 | 22 | FileTree.<init>(String,long,int,FileTree) | REACHABLE proposed | SOURCE | BencodeFileTree.java:45 super call from the REACHABLE 4-arg BencodeFileTree ctor (row 2). |
 | 23 | FileTree.addChild | REACHABLE proposed | SOURCE | BencodeFileTreeUtils.java:106 parentTree.addChild(leaf) — fresh fetch. |
 | 24 | FileTree.compareTo | OPEN | — | FileTree.java:187 — fresh fetch; no printed sort/comparison of FileTree objects (BencodeFileTreeUtils sorts BencodeFileItem, not FileTree). |

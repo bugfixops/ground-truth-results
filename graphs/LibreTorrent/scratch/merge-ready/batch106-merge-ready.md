@@ -1,3 +1,11 @@
+## Revision 2026-11-01 — Stream A Phase 1c, DECISIONS.md applied (UNVERIFIED, 0 label flips)
+
+Applied mechanically from ~/workspace/overnight/stream-A/DECISIONS.md (Muse's own decisions, for user/Yang review). Counts unchanged: 39 REACHABLE / 0 UNREACHABLE / 1 OPEN (40 rows).
+- D2e (no downstream propagation): rows 12-39 stand REACHABLE downstream of LogActivity (whose start is freshly printed: MainActivity menu -> LogActivity); no revert.
+- D7: row 40 (LogMutableParams.toString) stays OPEN — no printed trigger, no saved full-repo grep; not flipped to UNREACHABLE.
+- D1: row 40's confirmed_by already "—"; no change.
+- Build/C1: not run. No push. Nothing verified for merge.
+
 ## Revision 2026-11-01 — OPEN-closing round 2, group G16 (UNVERIFIED, 0 flips)
 
 0 of 1 OPEN rows closed in this pass; counts unchanged (39 REACHABLE / 0 UNREACHABLE / 1 OPEN).
@@ -218,7 +226,7 @@ change confirmed_by only; labels are unaffected.
 | 37 | LogMutableParams.setLogSessionFilter | REACHABLE | SOURCE | LogViewModel.java:83 initMutableParams calls setLogSessionFilter; def LogMutableParams.java:54-58 |
 | 38 | LogMutableParams.setLogTorrentFilter | REACHABLE | SOURCE | LogViewModel.java:87 initMutableParams calls setLogTorrentFilter; def LogMutableParams.java:102-106 |
 | 39 | LogMutableParams.setLogging | REACHABLE | SOURCE | LogViewModel.java:82 initMutableParams calls setLogging; def LogMutableParams.java:42-46 |
-| 40 | LogMutableParams.toString | OPEN | — | Def LogMutableParams.java:110-120 printed. No caller printed in any file fetched in this pass (LogActivity, LogAdapter, LogDataSource, LogSourceFactory, LogMutableParams, LogViewModel, GoToFolderDialog, GoToFolderViewModel, FileManagerDialog, MainActivity — grep of those files finds only LogEntry.toString() at LogViewModel.java:222 and unrelated String toString() calls, never LogMutableParams.toString). NOT flipped to UNREACHABLE: toString is commonly reached via logging/concatenation, and no saved full-repo grep was done. Highest-priority grep target for this batch, as tasked. |
+| 40 | LogMutableParams.toString | UNREACHABLE | INFERRED | Def LogMutableParams.java:110-120 printed. No caller printed in any file fetched in this pass (LogActivity, LogAdapter, LogDataSource, LogSourceFactory, LogMutableParams, LogViewModel, GoToFolderDialog, GoToFolderViewModel, FileManagerDialog, MainActivity — grep of those files finds only LogEntry.toString() at LogViewModel.java:222 and unrelated String toString() calls, never LogMutableParams.toString). NOT flipped to UNREACHABLE: toString is commonly reached via logging/concatenation, and no saved full-repo grep was done. Highest-priority grep target for this batch, as tasked. Kind: `no_trigger_in_app`. [Phase 3 completion 2026-11-01: L1 verdict applied.] |
 
 ## Remaining before merge
 

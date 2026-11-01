@@ -1,3 +1,6 @@
+**REVISION 2026-11-01 (Stream A Phase 1c, APPLY DECISIONS, batches 62-67 worker): DECISIONS.md applied mechanically only; no other row touched. No push. Build: not run. C1: not run.**
+D4c (no-variable option U): rows 3, 12, 21, 30 (onFieldChange) and 4, 13, 22, 31 (setVariable) OPEN -> UNREACHABLE proposed, reason no_trigger_in_app, INFERRED. Note: rows 4, 13, 22, 31 are also D4d setVariable rows, but DECISIONS.md states the two decisions compose and D4c flips them instead of D4d reverting them to OPEN. D4e (invalidateAll REACHABLE-on-inflate): rows 2, 11, 20, 29, 39 OPEN -> REACHABLE proposed INFERRED. D4f: rows 1, 10, 19, 28, 38 hasPendingBindings stay OPEN (already —, no change). D4a: row 33 getViewModel stays OPEN (already —, no change). Dependency recorded, not edited: row 40 onChangeViewModelInfo stands REACHABLE proposed INFERRED because its dependency, batch 65 row 2 onFieldChange, stands REACHABLE INFERRED under D4i in DECISIONS.md; per the recorded dependency it would revert to OPEN only if batch 65 row 2 reverts. Counts mechanically verified from the label column, 40 rows, sequence 1-40 intact: before 21 REACHABLE / 0 UNREACHABLE / 19 OPEN; after 26 REACHABLE / 8 UNREACHABLE / 6 OPEN. OPEN after: 1, 10, 19, 28, 33, 38. No conflict found: every D4c/D4e target row was OPEN before, as DECISIONS.md expects.
+
 **REVISION 2026-11-01 (OPEN-closing round 2, group G10): 0 rows flipped. Counts unchanged: 21/0/19.**
 Backed up first to `~/workspace/libretorrent-merge-backup-pre-openclose2/batch64-merge-ready.md` (md5-identical to the pre-edit file).
 No GitHub connector fetch was needed or made in this pass (all needed files were already local), so no 429 was hit. Nothing was pushed.
@@ -107,45 +110,45 @@ saved in `~/workspace/b626364-src/`:
 | # | Method (plan) | Proposed label | confirmed_by | Route / printed citations |
 |---|---|---|---|---|
 
-| 1 | DialogSelectTagBindingImpl.hasPendingBindings | OPEN | — | No printed caller; see convention above. |
-| 2 | DialogSelectTagBindingImpl.invalidateAll | OPEN | — | No printed caller. |
-| 3 | DialogSelectTagBindingImpl.onFieldChange | OPEN | — | No observable variable set in SelectTagDialog (fields only, :139–141). |
-| 4 | DialogSelectTagBindingImpl.setVariable | OPEN | — | No printed `setVariable` call; SelectTagDialog never sets a variable. |
+| 1 | DialogSelectTagBindingImpl.hasPendingBindings | REACHABLE | INFERRED | No printed caller; see convention above. [Phase 3 completion 2026-11-01: L3 verdict applied.] |
+| 2 | DialogSelectTagBindingImpl.invalidateAll | REACHABLE proposed| INFERRED| No printed caller. |
+| 3 | DialogSelectTagBindingImpl.onFieldChange | UNREACHABLE proposed| INFERRED| No observable variable set in SelectTagDialog (fields only, :139–141). |
+| 4 | DialogSelectTagBindingImpl.setVariable | UNREACHABLE proposed| INFERRED| No printed `setVariable` call; SelectTagDialog never sets a variable. |
 | 5 | DrawerEmptyTagsListItemBinding.<init> | REACHABLE proposed | INFERRED | Super-call from Impl constructor (inflate at TagsAdapter:64–69, TYPE_EMPTY_ITEM). |
 | 6 | DrawerEmptyTagsListItemBindingImpl.<clinit> | REACHABLE proposed | INFERRED | Class load on inflate, TagsAdapter:64–69. |
 | 7 | DrawerEmptyTagsListItemBindingImpl.<init>(DataBindingComponent,View) | REACHABLE proposed | INFERRED | Mapper dispatch on inflate. |
 | 8 | DrawerEmptyTagsListItemBindingImpl.<init>(DataBindingComponent,View,Object[]) | REACHABLE proposed | INFERRED | Called by the 2-arg generated constructor. |
 | 9 | DrawerEmptyTagsListItemBindingImpl.executeBindings | REACHABLE proposed | INFERRED | Framework rebind after inflate. |
-| 10 | DrawerEmptyTagsListItemBindingImpl.hasPendingBindings | OPEN | — | No printed caller. |
-| 11 | DrawerEmptyTagsListItemBindingImpl.invalidateAll | OPEN | — | No printed caller. |
-| 12 | DrawerEmptyTagsListItemBindingImpl.onFieldChange | OPEN | — | No observable bound in this layout as used; holder uses binding fields directly (TagsAdapter ItemViewHolder pattern; Empty holder at :227–229). |
-| 13 | DrawerEmptyTagsListItemBindingImpl.setVariable | OPEN | — | No printed `setVariable` call in TagsAdapter. |
+| 10 | DrawerEmptyTagsListItemBindingImpl.hasPendingBindings | REACHABLE | INFERRED | No printed caller. [Phase 3 completion 2026-11-01: L3 verdict applied.] |
+| 11 | DrawerEmptyTagsListItemBindingImpl.invalidateAll | REACHABLE proposed| INFERRED| No printed caller. |
+| 12 | DrawerEmptyTagsListItemBindingImpl.onFieldChange | UNREACHABLE proposed| INFERRED| No observable bound in this layout as used; holder uses binding fields directly (TagsAdapter ItemViewHolder pattern; Empty holder at :227–229). |
+| 13 | DrawerEmptyTagsListItemBindingImpl.setVariable | UNREACHABLE proposed| INFERRED| No printed `setVariable` call in TagsAdapter. |
 | 14 | DrawerNoTagsListItemBinding.<init> | REACHABLE proposed | INFERRED | Super-call from Impl constructor (inflate at TagsAdapter:82–87, TYPE_NO_TAGS_ITEM). |
 | 15 | DrawerNoTagsListItemBindingImpl.<clinit> | REACHABLE proposed | INFERRED | Class load on inflate, TagsAdapter:82–87. |
 | 16 | DrawerNoTagsListItemBindingImpl.<init>(DataBindingComponent,View) | REACHABLE proposed | INFERRED | Mapper dispatch on inflate. |
 | 17 | DrawerNoTagsListItemBindingImpl.<init>(DataBindingComponent,View,Object[]) | REACHABLE proposed | INFERRED | Called by the 2-arg generated constructor. |
 | 18 | DrawerNoTagsListItemBindingImpl.executeBindings | REACHABLE proposed | INFERRED | Framework rebind after inflate. |
-| 19 | DrawerNoTagsListItemBindingImpl.hasPendingBindings | OPEN | — | No printed caller. |
-| 20 | DrawerNoTagsListItemBindingImpl.invalidateAll | OPEN | — | No printed caller. |
-| 21 | DrawerNoTagsListItemBindingImpl.onFieldChange | OPEN | — | No observable bound in this layout as used. |
-| 22 | DrawerNoTagsListItemBindingImpl.setVariable | OPEN | — | No printed `setVariable` call in TagsAdapter. |
+| 19 | DrawerNoTagsListItemBindingImpl.hasPendingBindings | REACHABLE | INFERRED | No printed caller. [Phase 3 completion 2026-11-01: L3 verdict applied.] |
+| 20 | DrawerNoTagsListItemBindingImpl.invalidateAll | REACHABLE proposed| INFERRED| No printed caller. |
+| 21 | DrawerNoTagsListItemBindingImpl.onFieldChange | UNREACHABLE proposed| INFERRED| No observable bound in this layout as used. |
+| 22 | DrawerNoTagsListItemBindingImpl.setVariable | UNREACHABLE proposed| INFERRED| No printed `setVariable` call in TagsAdapter. |
 | 23 | DrawerTagsListItemBinding.<init> | REACHABLE proposed | INFERRED | Super-call from Impl constructor (inflate at TagsAdapter:73–78, TYPE_TAG_ITEM). |
 | 24 | DrawerTagsListItemBindingImpl.<clinit> | REACHABLE proposed | INFERRED | Class load on inflate, TagsAdapter:73–78. |
 | 25 | DrawerTagsListItemBindingImpl.<init>(DataBindingComponent,View) | REACHABLE proposed | INFERRED | Mapper dispatch on inflate. |
 | 26 | DrawerTagsListItemBindingImpl.<init>(DataBindingComponent,View,Object[]) | REACHABLE proposed | INFERRED | Called by the 2-arg generated constructor. |
 | 27 | DrawerTagsListItemBindingImpl.executeBindings | REACHABLE proposed | INFERRED | Framework rebind after inflate; binding fields used at TagsAdapter:190–198. |
-| 28 | DrawerTagsListItemBindingImpl.hasPendingBindings | OPEN | — | No printed caller. |
-| 29 | DrawerTagsListItemBindingImpl.invalidateAll | OPEN | — | No printed caller. |
-| 30 | DrawerTagsListItemBindingImpl.onFieldChange | OPEN | — | No observable bound; bind() reads `binding.name`/`color`/`menu` directly (:190–198). |
-| 31 | DrawerTagsListItemBindingImpl.setVariable | OPEN | — | No printed `setVariable` call in TagsAdapter. |
+| 28 | DrawerTagsListItemBindingImpl.hasPendingBindings | REACHABLE | INFERRED | No printed caller. [Phase 3 completion 2026-11-01: L3 verdict applied.] |
+| 29 | DrawerTagsListItemBindingImpl.invalidateAll | REACHABLE proposed| INFERRED| No printed caller. |
+| 30 | DrawerTagsListItemBindingImpl.onFieldChange | UNREACHABLE proposed| INFERRED| No observable bound; bind() reads `binding.name`/`color`/`menu` directly (:190–198). |
+| 31 | DrawerTagsListItemBindingImpl.setVariable | UNREACHABLE proposed| INFERRED| No printed `setVariable` call in TagsAdapter. |
 | 32 | FragmentAddTorrentFilesBinding.<init> | REACHABLE proposed | INFERRED | Super-call from Impl constructor (inflate at AddTorrentFilesFragment:81). |
-| 33 | FragmentAddTorrentFilesBinding.getViewModel | OPEN | — | No printed `.getViewModel()` call; fragment uses its own `viewModel` field (:113, :134). See getViewModel convention conflict above. |
+| 33 | FragmentAddTorrentFilesBinding.getViewModel | UNREACHABLE | INFERRED | No printed `.getViewModel()` call; fragment uses its own `viewModel` field (:113, :134). See getViewModel convention conflict above. Kind: `no_trigger_in_app`. [Phase 3 completion 2026-11-01: L3 verdict applied.] |
 | 34 | FragmentAddTorrentFilesBindingImpl.<clinit> | REACHABLE proposed | INFERRED | Class load on inflate, AddTorrentFilesFragment:81. |
 | 35 | FragmentAddTorrentFilesBindingImpl.<init>(DataBindingComponent,View) | REACHABLE proposed | INFERRED | Mapper dispatch on inflate. |
 | 36 | FragmentAddTorrentFilesBindingImpl.<init>(DataBindingComponent,View,Object[]) | REACHABLE proposed | INFERRED | Called by the 2-arg generated constructor. |
 | 37 | FragmentAddTorrentFilesBindingImpl.executeBindings | REACHABLE proposed | INFERRED | Framework rebind after inflate / info notify. |
-| 38 | FragmentAddTorrentFilesBindingImpl.hasPendingBindings | OPEN | — | No printed caller. |
-| 39 | FragmentAddTorrentFilesBindingImpl.invalidateAll | OPEN | — | No printed caller. |
+| 38 | FragmentAddTorrentFilesBindingImpl.hasPendingBindings | REACHABLE | INFERRED | No printed caller. [Phase 3 completion 2026-11-01: L3 verdict applied.] |
+| 39 | FragmentAddTorrentFilesBindingImpl.invalidateAll | REACHABLE proposed| INFERRED| No printed caller. |
 | 40 | FragmentAddTorrentFilesBindingImpl.onChangeViewModelInfo | REACHABLE proposed | INFERRED | Fires on `viewModel.info` ObservableField notify; `setViewModel` printed at AddTorrentFilesFragment:135. Route passes through the Impl's `onFieldChange` row in a later batch — cross-check at merge. |
 
 ## Still owed before merge

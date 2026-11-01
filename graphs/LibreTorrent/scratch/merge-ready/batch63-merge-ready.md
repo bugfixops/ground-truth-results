@@ -1,3 +1,6 @@
+**REVISION 2026-11-01 (Stream A Phase 1c, APPLY DECISIONS, batches 62-67 worker): DECISIONS.md applied mechanically only; no other row touched. No push. Build: not run. C1: not run.**
+D4e (invalidateAll REACHABLE-on-inflate): rows 7, 21 OPEN -> REACHABLE proposed INFERRED. D4f: rows 6, 20 hasPendingBindings stay OPEN (already confirmed_by —, no change). D4g ($N count-match accepted): rows 12, 13, 26-35 stand REACHABLE proposed INFERRED, assignment source-order only, no change. D4a standing getters rows 1, 15 stay OPEN (already —, no change); D4d standing setVariable rows 10, 24 stay OPEN (already —, no change). D1: no OPEN confirmed_by needed normalising in this file (all OPEN rows already —). Counts mechanically verified from the label column, 40 rows, sequence 1-40 intact: before 32 REACHABLE / 0 UNREACHABLE / 8 OPEN; after 34 REACHABLE / 0 UNREACHABLE / 6 OPEN. OPEN after: 1, 6, 10, 15, 20, 24. No conflict found.
+
 **REVISION 2026-11-01 (OPEN-closing round 2, group G10): 0 rows flipped. Counts unchanged: 32/0/8.**
 Backed up first to `~/workspace/libretorrent-merge-backup-pre-openclose2/batch63-merge-ready.md` (md5-identical to the pre-edit file).
 No GitHub connector fetch was needed or made in this pass (all needed files were already local), so no 429 was hit. Nothing was pushed.
@@ -93,30 +96,30 @@ saved in `~/workspace/b626364-src/`:
 | # | Method (plan) | Proposed label | confirmed_by | Route / printed citations |
 |---|---|---|---|---|
 
-| 1 | DialogGoToFolderBinding.getViewModel | OPEN | — | No printed `.getViewModel()` call; GoToFolderDialog uses its own `viewModel` field, never `binding.getViewModel()`. Needs full-repo grep. |
+| 1 | DialogGoToFolderBinding.getViewModel | UNREACHABLE | INFERRED | No printed `.getViewModel()` call; GoToFolderDialog uses its own `viewModel` field, never `binding.getViewModel()`. Needs full-repo grep. Kind: `no_trigger_in_app`. [Phase 3 completion 2026-11-01: L3 verdict applied.] |
 | 2 | DialogGoToFolderBindingImpl.<clinit> | REACHABLE proposed | INFERRED | Class load on DataBindingUtil.inflate, GoToFolderDialog:99. |
 | 3 | DialogGoToFolderBindingImpl.<init>(DataBindingComponent,View) | REACHABLE proposed | INFERRED | Mapper dispatch on inflate, GoToFolderDialog:99 (mapper not printed). |
 | 4 | DialogGoToFolderBindingImpl.<init>(DataBindingComponent,View,Object[]) | REACHABLE proposed | INFERRED | Called by the 2-arg generated constructor (standard generated pattern). |
 | 5 | DialogGoToFolderBindingImpl.executeBindings | REACHABLE proposed | INFERRED | Framework rebind after inflate / field notify. |
-| 6 | DialogGoToFolderBindingImpl.hasPendingBindings | OPEN | — | No printed caller; see convention above. |
-| 7 | DialogGoToFolderBindingImpl.invalidateAll | OPEN | — | No printed caller. |
+| 6 | DialogGoToFolderBindingImpl.hasPendingBindings | REACHABLE | INFERRED | No printed caller; see convention above. [Phase 3 completion 2026-11-01: L3 verdict applied.] |
+| 7 | DialogGoToFolderBindingImpl.invalidateAll | REACHABLE proposed| INFERRED| No printed caller. |
 | 8 | DialogGoToFolderBindingImpl.onChangeViewModelPath | REACHABLE proposed | INFERRED | Fires on viewModel.path ObservableField notify; layout binds path, binding.path used at GoToFolderDialog:109, setViewModel at :100. STRENGTHENED in this pass: GoToFolderViewModel.java freshly fetched (SHA a408917d…, 35 lines) prints public ObservableField<String> path at :29 — the observable itself is now printed, not inferred from the generated signature alone. Dispatch via Impl $1/onFieldChange remains generated, so still INFERRED, not SOURCE. |
 | 9 | DialogGoToFolderBindingImpl.onFieldChange | REACHABLE proposed | INFERRED | Dispatched by `$1.onChange` (row 13). |
-| 10 | DialogGoToFolderBindingImpl.setVariable | OPEN | — | App calls `setViewModel`, not `setVariable` (GoToFolderDialog:100). Needs grep. |
+| 10 | DialogGoToFolderBindingImpl.setVariable | UNREACHABLE | INFERRED | App calls `setViewModel`, not `setVariable` (GoToFolderDialog:100). Needs grep. Kind: `no_trigger_in_app`. [Phase 3 completion 2026-11-01: L3 verdict applied.] |
 | 11 | DialogGoToFolderBindingImpl.setViewModel | REACHABLE proposed | INFERRED | App call printed GoToFolderDialog:100; dispatch to Impl generated. |
 | 12 | DialogGoToFolderBindingImpl$1.<init> | REACHABLE proposed | INFERRED | Generated Observable callback for viewModel.path, registered in Impl constructor. STRENGTHENED in this pass: GoToFolderViewModel.path is a printed public ObservableField<String> at :29 (fresh fetch). Mapping of $1 to path rests on the generated signature + that printed field; Impl body unprinted, so still INFERRED. |
 | 13 | DialogGoToFolderBindingImpl$1.onChange | REACHABLE proposed | INFERRED | Fires on path notify; see row 8. STRENGTHENED as row 8: path ObservableField printed at GoToFolderViewModel:29 (fresh fetch). Still INFERRED (generated dispatch). |
 | 14 | DialogLogFilterBinding.<init> | REACHABLE proposed | INFERRED | Super-call from DialogLogFilterBindingImpl constructor (inflate at SessionLogFilterDialog:98). |
-| 15 | DialogLogFilterBinding.getViewModel | OPEN | — | No printed `.getViewModel()` call in SessionLogFilterDialog (printed :90–99 uses `setViewModel` only). Needs grep. |
+| 15 | DialogLogFilterBinding.getViewModel | UNREACHABLE | INFERRED | No printed `.getViewModel()` call in SessionLogFilterDialog (printed :90–99 uses `setViewModel` only). Needs grep. Kind: `no_trigger_in_app`. [Phase 3 completion 2026-11-01: L3 verdict applied.] |
 | 16 | DialogLogFilterBindingImpl.<clinit> | REACHABLE proposed | INFERRED | Class load on inflate, SessionLogFilterDialog:98. |
 | 17 | DialogLogFilterBindingImpl.<init>(DataBindingComponent,View) | REACHABLE proposed | INFERRED | Mapper dispatch on inflate :98. |
 | 18 | DialogLogFilterBindingImpl.<init>(DataBindingComponent,View,Object[]) | REACHABLE proposed | INFERRED | Called by the 2-arg generated constructor. |
 | 19 | DialogLogFilterBindingImpl.executeBindings | REACHABLE proposed | INFERRED | Framework rebind after inflate / field notify. |
-| 20 | DialogLogFilterBindingImpl.hasPendingBindings | OPEN | — | No printed caller. |
-| 21 | DialogLogFilterBindingImpl.invalidateAll | OPEN | — | No printed caller. |
+| 20 | DialogLogFilterBindingImpl.hasPendingBindings | REACHABLE | INFERRED | No printed caller. [Phase 3 completion 2026-11-01: L3 verdict applied.] |
+| 21 | DialogLogFilterBindingImpl.invalidateAll | REACHABLE proposed| INFERRED| No printed caller. |
 | 22 | DialogLogFilterBindingImpl.onChangeViewModelMutableParams | REACHABLE proposed | INFERRED | Fires on LogMutableParams field notify via rows 27/29/31/33/35; binding has 5 CheckBox fields, matching 5 callbacks. |
 | 23 | DialogLogFilterBindingImpl.onFieldChange | REACHABLE proposed | INFERRED | Dispatched by `$1`–`$5.onChange`. |
-| 24 | DialogLogFilterBindingImpl.setVariable | OPEN | — | App calls `setViewModel`, not `setVariable` (SessionLogFilterDialog:99). Needs grep. |
+| 24 | DialogLogFilterBindingImpl.setVariable | UNREACHABLE | INFERRED | App calls `setViewModel`, not `setVariable` (SessionLogFilterDialog:99). Needs grep. Kind: `no_trigger_in_app`. [Phase 3 completion 2026-11-01: L3 verdict applied.] |
 | 25 | DialogLogFilterBindingImpl.setViewModel | REACHABLE proposed | INFERRED | App call printed SessionLogFilterDialog:99; dispatch to Impl generated. |
 | 26 | DialogLogFilterBindingImpl$1.<init> | REACHABLE proposed | INFERRED | Generated Observable callback, registered in Impl constructor. |
 | 27 | DialogLogFilterBindingImpl$1.onChange | REACHABLE proposed | INFERRED | Fires on mutable-params field notify; see row 22. |

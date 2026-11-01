@@ -1,3 +1,5 @@
+**PHASE 2 FIX 2026-11-01 (coordinator): citation/wording/column corrections from the Phase 2 spot-check applied to this file; labels and counts unchanged (3900/575/257 global totals verified after the fix). Backups in ~/workspace/overnight/stream-A/backup-pre-phase2fix/.**
+
 **CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
 
 # LibreTorrent batch 91 — merge-ready part — UNVERIFIED
@@ -135,7 +137,7 @@ and no row was flipped to UNREACHABLE.
 | 23 | DetailTorrentStateFragment.onViewCreated | REACHABLE | SOURCE | StateFragment.java:79-87; obtains DetailTorrentViewModel and binds it; pager-hosted lifecycle. |
 | 24 | DetailTorrentFilesFragment.<clinit> | REACHABLE | INFERRED | Static TAG / tag constants, FilesFragment.java:81-85; runs on first active use, i.e. newInstance (row 37). |
 | 25 | DetailTorrentFilesFragment.<init> | REACHABLE | INFERRED | Compiler-generated constructor, called by newInstance :103 (`new DetailTorrentFilesFragment()`). |
-| 26 | DetailTorrentFilesFragment.changePriority | REACHABLE | SOURCE | FilesFragment.java:477-507; called from subscribeAlertDialog POSITIVE_BUTTON_CLICKED branch :184-186 (via :170-191 switch). |
+| 26 | DetailTorrentFilesFragment.changePriority | REACHABLE | SOURCE | FilesFragment.java:477-507; called from subscribeAlertDialog POSITIVE_BUTTON_CLICKED branch :180-183 (call :181; via :170-191 switch). |
 | 27 | DetailTorrentFilesFragment.handleOpenFileError | REACHABLE | SOURCE | FilesFragment.java:535-542; method reference `this::handleOpenFileError` as error consumer in onItemClicked subscribe, :344-348. |
 | 28 | DetailTorrentFilesFragment.initPriorityDialog | REACHABLE | SOURCE | FilesFragment.java:436-475; called from subscribeAlertDialog DIALOG_SHOWN branch :178-180. |
 | 29 | DetailTorrentFilesFragment.lambda$changePriority$6 | REACHABLE | INFERRED | Map lambda (selection -> selection.name) in changePriority, FilesFragment.java:496-498; Rx map dispatch INFERRED. Numbering by source order (see below). |

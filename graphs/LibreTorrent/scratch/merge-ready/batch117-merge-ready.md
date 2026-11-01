@@ -1,3 +1,5 @@
+**PHASE 2 FIX 2026-11-01 (coordinator): citation/wording/column corrections from the Phase 2 spot-check applied to this file; labels and counts unchanged (3900/575/257 global totals verified after the fix). Backups in ~/workspace/overnight/stream-A/backup-pre-phase2fix/.**
+
 **CORRECTION 2026-11-01: push statements in this file are superseded — this file was pushed 2026-11-01 as commit 5e0983f to branch work-2026-10-31, UNVERIFIED, before [L]. Nothing in it is merged or verified for merge.**
 
 # LibreTorrent batch 117 — merge-ready part — UNVERIFIED
@@ -48,7 +50,7 @@
 | 23 | NetworkSettingsFragment.setFragment | REACHABLE | SOURCE | Def `:361-369` (transaction replace of detail container, large-screen guard). Called at `:231` (Proxy) and `:248` (anonymous mode). |
 | 24 | NetworkSettingsFragment.startActivity | REACHABLE | SOURCE | Def `:371-378` (Intent to PreferenceActivity + config, `startActivity(i)` `:378`). Called at `:234` (Proxy, small screen). |
 | 25 | ProxySettingsFragment.<clinit> | REACHABLE | INFERRED | Static `TAG = ProxySettingsFragment.class.getSimpleName()` (`:49`); class initialisation on first use via row 33. |
-| 26 | ProxySettingsFragment.<init> | REACHABLE | SOURCE | Implicit default ctor, called by `newInstance` `:57` (`new ProxySettingsFragment()`). |
+| 26 | ProxySettingsFragment.<init> | REACHABLE | SOURCE | Implicit default ctor, called by `newInstance` `:58` (`new ProxySettingsFragment()`, def :56-63). |
 | 27 | ProxySettingsFragment.bindOnPreferenceChangeListener | REACHABLE | SOURCE | Def `:177-179`. Called in onCreate at `:109` (type), `:118` (address), `:131` (port), `:139` (peers too), `:147` (requires auth), `:157` (login), `:167` (password). |
 | 28 | ProxySettingsFragment.enableOrDisablePreferences | REACHABLE | SOURCE | Def `:182-204` (enables/disables address, port, peers-too, requires-auth). Called from onPreferenceChange `:213` when proxy type changes. |
 | 29 | ProxySettingsFragment.lambda$onCreate$1 | REACHABLE | INFERRED | Port bind lambda `:129-131` (`editText.setFilters(portFilter)`). $ numbering: $0 is the onViewCreated save-button click (row 32, first lambda in file order), so the first onCreate lambda is $1; confirm against bytecode. |

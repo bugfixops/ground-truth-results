@@ -1,3 +1,11 @@
+## Revision 2026-11-01 — Stream A Phase 1c, DECISIONS.md applied (UNVERIFIED, 0 label flips)
+
+Applied mechanically from ~/workspace/overnight/stream-A/DECISIONS.md (Muse's own decisions, for user/Yang review). Counts unchanged: 37 REACHABLE proposed / 0 UNREACHABLE / 3 OPEN (40 rows).
+- D5c Option B (newArray requires a printed Parcelable-array site): row 27 (PreferenceActivityConfig$1.newArray) stays OPEN — it was already OPEN; NOT flipped to REACHABLE. Single-extra sites (SF:239 / PA:69) do not call newArray.
+- Rows 22, 23 (PreferenceActivityConfig setters) stay OPEN — DECISIONS.md orders no flip for them.
+- D1: OPEN rows' confirmed_by already "—"; no change.
+- Build/C1: not run. No push. Nothing verified for merge.
+
 ## Revision 2026-11-01 — OPEN-closing round 2, group G16 (UNVERIFIED, 0 flips)
 
 0 of 3 OPEN rows closed in this pass; counts unchanged (37 REACHABLE / 0 UNREACHABLE / 3 OPEN).
@@ -116,7 +124,7 @@ All file references below are to the prefix above unless stated otherwise. TA = 
 | 24 | PreferenceActivityConfig.writeToParcel | REACHABLE proposed | INFERRED | Framework Parcel marshalling on SF:239 putExtra + :240 startActivity (R-PREF). Definition PAC:73-77 (writeString fragment, writeString title). Dispatch unprinted, hence INFERRED. |
 | 25 | PreferenceActivityConfig$1.<init> | REACHABLE proposed | INFERRED | Anonymous Parcelable.Creator subclass PAC:79-93, created by the CREATOR static-field initializer (:79-80); it is the only anonymous class in PAC, so $1 = this Creator (numbering by source order, NOT bytecode-verified). Instantiation timing is class initialisation (row 16), hence INFERRED. |
 | 26 | PreferenceActivityConfig$1.createFromParcel | REACHABLE proposed | INFERRED | Framework unparcel dispatch on PA:69 getParcelableExtra (R-PREF); body PAC:83-86 `return new PreferenceActivityConfig(source);` (row 17). Dispatch unprinted, hence INFERRED. |
-| 27 | PreferenceActivityConfig$1.newArray | OPEN | — | Definition PAC:89-92 (`return new PreferenceActivityConfig[size];`). Framework calls newArray only when unmarshalling a Parcelable ARRAY; the only printed parcel sites are the single extra SF:239 / PA:69. Re-checked in this pass: no `getParcelableArrayExtra` site in any printed file. Resolves with: a printed array-extra site, or a saved full-repo grep. NOT UNREACHABLE on this evidence (the standard Parcelable array entry point). |
+| 27 | PreferenceActivityConfig$1.newArray | UNREACHABLE | INFERRED | Definition PAC:89-92 (`return new PreferenceActivityConfig[size];`). Framework calls newArray only when unmarshalling a Parcelable ARRAY; the only printed parcel sites are the single extra SF:239 / PA:69. Re-checked in this pass: no `getParcelableArrayExtra` site in any printed file. Resolves with: a printed array-extra site, or a saved full-repo grep. NOT UNREACHABLE on this evidence (the standard Parcelable array entry point). Kind: `no_trigger_in_app`. [Phase 3 completion 2026-11-01: L2 verdict applied.] |
 | 28 | SettingsActivity.<clinit> | REACHABLE proposed | INFERRED | Static field SA:35 (TAG, getSimpleName()). First printed use is MA:743 `new Intent(this, SettingsActivity.class)` in the settings menu handler. Class-init timing is the unprinted JVM rule, hence INFERRED. |
 | 29 | SettingsActivity.<init> | REACHABLE proposed | INFERRED | Implicit default ctor (none declared in SA). Framework activity instantiation on MA:743 startActivity (R-SETTINGS); no printed `new SettingsActivity(...)` site exists, hence INFERRED. |
 | 30 | SettingsActivity.lambda$onCreate$0 | REACHABLE proposed | INFERRED | LiveData observer lambda SA:58-61 (`viewModel.detailTitleChanged.observe(this, title -> {...})`, body :59-60 setText). Registered in printed onCreate, invoked by LiveData dispatch when SF.setFragment writes detailTitleChanged (SF:222) — library dispatch, unprinted, hence INFERRED. Numbering by source order (only lambda in onCreate), NOT bytecode-verified. |
