@@ -3007,7 +3007,7 @@ sup(('MyWebChromeClient.onProgressChanged', 'WebViewActivity.updateProgress'))
 
 UNREACHABLE['IntentFactory.<init>'] = ('no_trigger_in_app',
   'Implicit constructor of IntentFactory. Nothing creates an IntentFactory: no new IntentFactory in the app source and no auto_calls.json record names the constructor. Its four methods are static (IntentFactory.java:38, 54, 67, 80), so no instance is needed.',
-  'SRC core/IntentFactory.java:37 (no constructor declared); label_037.grep.txt (IntentFactory block; auto_calls count 0)',
+  'SRC IntentFactory.java:37 (no constructor declared); label_037.grep.txt (IntentFactory block; auto_calls count 0)',
   'SOURCE')
 
 UNREACHABLE['MenuHelper.add'] = ('no_trigger_in_app',
@@ -3164,7 +3164,7 @@ UNREACHABLE['TransactionTypes.contains'] = ('no_trigger_in_app',
 
 e('FileStorageHelper.pollNewRemoteTimestamp', 'FileStorageHelper$3.run', 'FRAMEWORK',
   'pollNewRemoteTimestamp queues the runnable on a main-looper Handler with a 2 s delay; the framework runs run() when the delay ends (run then polls again through the same handler while the remote timestamp is unchanged)',
-  evidence='SRC core/docstorage/FileStorageHelper.java:402-431 (Handler 407, Runnable 408, run 410-428, self-repeat postDelayed 419, first postDelayed(runnable, milliseconds) at 431); FW-SRC core/java/android/os/Handler.java:427-429 (postDelayed calls sendMessageDelayed), 596 (sendMessageDelayed)')
+  evidence='SRC FileStorageHelper.java:402-431 (Handler 407, Runnable 408, run 410-428, self-repeat postDelayed 419, first postDelayed(runnable, milliseconds) at 431); FW-SRC core/java/android/os/Handler.java:427-429 (postDelayed calls sendMessageDelayed), 596 (sendMessageDelayed)')
 
 # ================================================================== sup cuts (batch 041)
 
@@ -3189,7 +3189,7 @@ UNREACHABLE['PriceDownloadedEventBundler.put'] = ('no_trigger_in_app',
 
 UNREACHABLE['FileStorageHelper.deleteRemoteFile'] = ('no_trigger_in_app',
   'Private method with no caller. Its only occurrence in the app source is the definition at FileStorageHelper.java:325 (grep section 1). The javadoc at 320-324 says it was meant for a temp file upload, and no call site exists. No auto CALL record has it as dst (grep section 9). The inner classes FileStorageHelper$1 to $3 do not contain the name (grep section 2), so no accessor calls it. Its one outgoing call, to getContext at line 326, is cut above with sup.',
-  'SRC core/docstorage/FileStorageHelper.java:320-333; label_041.grep.txt sections 1, 2, 9',
+  'SRC FileStorageHelper.java:320-333; label_041.grep.txt sections 1, 2, 9',
   'SOURCE')
 
 # ---- part 036 (2026-10-29)
@@ -3331,34 +3331,34 @@ UNREACHABLE['InfoKeys.<init>'] = (
 
 e('UIHelper.showToast(int,int)', 'UIHelper$2.run', 'FRAMEWORK',
   'showToast(int,int) passes the anonymous Runnable to Activity.runOnUiThread; the framework runs run() on the UI thread',
-  evidence='SRC core/UIHelper.java:226-231 (runOnUiThread 226, run 228-230); FW-SRC core/java/android/app/Activity.java:6170-6176 (runOnUiThread hands the action to the UI thread, directly or via mHandler.post)')
+  evidence='SRC UIHelper.java:226-231 (runOnUiThread 226, run 228-230); FW-SRC core/java/android/app/Activity.java:6170-6176 (runOnUiThread hands the action to the UI thread, directly or via mHandler.post)')
 
 e('UIHelper.showToast(String,int)', 'UIHelper$3.run', 'FRAMEWORK',
   'showToast(String,int) passes the anonymous Runnable to Activity.runOnUiThread; the framework runs run() on the UI thread',
-  evidence='SRC core/UIHelper.java:240-245 (runOnUiThread 240, run 242-244); FW-SRC core/java/android/app/Activity.java:6170-6176')
+  evidence='SRC UIHelper.java:240-245 (runOnUiThread 240, run 242-244); FW-SRC core/java/android/app/Activity.java:6170-6176')
 
 # ================================================================== icepick edges into MoneyBundler (INFERRED: icepick library not in dataset)
 
 e('CalculatorActivity$$Icepick.restore', 'MoneyBundler.get', 'FRAMEWORK',
   'Icepick restores the @State field mAmount through the custom bundler: the library calls get(key, bundle) from the generated restore method',
   cls='non_standard', via='icepick library Helper.getWithBundler (library not in dataset); restore is started by MmxBaseFragmentActivity.onCreate:74 (batch 027, label_027.py:127)',
-  evidence='SRC core/bundlers/MoneyBundler.java:38-41 (get); SRC common/CalculatorActivity.java:76 (@State(MoneyBundler.class) mAmount); SRC common/MmxBaseFragmentActivity.java:74 (Icepick.restoreInstanceState, no app-side guard); icepick library and CalculatorActivity$$Icepick not in the source root: INFERRED, source not read')
+  evidence='SRC MoneyBundler.java:38-41 (get); SRC common/CalculatorActivity.java:76 (@State(MoneyBundler.class) mAmount); SRC common/MmxBaseFragmentActivity.java:74 (Icepick.restoreInstanceState, no app-side guard); icepick library and CalculatorActivity$$Icepick not in the source root: INFERRED, source not read')
 
 e('CalculatorActivity$$Icepick.save', 'MoneyBundler.put', 'FRAMEWORK',
   'Icepick saves the @State field mAmount through the custom bundler: the library calls put(key, value, bundle) from the generated save method',
   cls='non_standard', via='icepick library Helper.putWithBundler (library not in dataset); save is started by MmxBaseFragmentActivity.onSaveInstanceState:155 (batch 027, label_027.py:132)',
-  evidence='SRC core/bundlers/MoneyBundler.java:33-35 (put); SRC common/CalculatorActivity.java:76; SRC common/MmxBaseFragmentActivity.java:151-156 (Icepick.saveInstanceState at 155); icepick library not in the source root: INFERRED, source not read')
+  evidence='SRC MoneyBundler.java:33-35 (put); SRC common/CalculatorActivity.java:76; SRC common/MmxBaseFragmentActivity.java:151-156 (Icepick.saveInstanceState at 155); icepick library not in the source root: INFERRED, source not read')
 
 e('AmountInputDialog$$Icepick.restore', 'MoneyBundler.get', 'FRAMEWORK',
   'Icepick restores the @State field mAmount through the custom bundler: the library calls get(key, bundle) from the generated restore method',
   cls='non_standard', via='icepick library Helper.getWithBundler (library not in dataset); restore is started by AmountInputDialog.restoreSavedInstanceState (batch 023, label_023.py:77) from Icepick.restoreInstanceState at AmountInputDialog.java:417',
   guard='onCreate received a non-null savedInstanceState (AmountInputDialog.java:148-150), as in batch 023',
-  evidence='SRC core/bundlers/MoneyBundler.java:38-41 (get); SRC common/AmountInputDialog.java:122 (@State mAmount), 417 (Icepick.restoreInstanceState); icepick library not in the dataset: INFERRED, source not read')
+  evidence='SRC MoneyBundler.java:38-41 (get); SRC common/AmountInputDialog.java:122 (@State mAmount), 417 (Icepick.restoreInstanceState); icepick library not in the dataset: INFERRED, source not read')
 
 e('AmountInputDialog$$Icepick.save', 'MoneyBundler.put', 'FRAMEWORK',
   'Icepick saves the @State field mAmount through the custom bundler: the library calls put(key, value, bundle) from the generated save method',
   cls='non_standard', via='icepick library Helper.putWithBundler (library not in dataset); save is started by AmountInputDialog.onSaveInstanceState (batch 023, label_023.py:93) from Icepick.saveInstanceState at AmountInputDialog.java:294',
-  evidence='SRC core/bundlers/MoneyBundler.java:33-35 (put); SRC common/AmountInputDialog.java:122 (@State mAmount), 294 (Icepick.saveInstanceState); icepick library not in the dataset: INFERRED, source not read')
+  evidence='SRC MoneyBundler.java:33-35 (put); SRC common/AmountInputDialog.java:122 (@State mAmount), 294 (Icepick.saveInstanceState); icepick library not in the dataset: INFERRED, source not read')
 
 # ================================================================== sup cuts (D14): auto CALL records whose caller is UNREACHABLE in this batch
 
@@ -3375,52 +3375,52 @@ sup(('UIHelper.binaryDialog(int,int)', 'UIHelper.binaryDialog(int,int,int,int)')
 
 UNREACHABLE['UIHelper.binaryDialog(int,int)'] = ('no_trigger_in_app',
   'Two-argument overload. Its only app caller is SyncPreferenceFragment.checkIfLocalFileExistsAndDownload (line 286). That method runs only from handleFileSelection (line 159), which runs only from onActivityResult (lines 97-98) when requestCode == REQUEST_REMOTE_FILE (1). The only sender of code 1 is the commented-out startActivityForResult at SyncPreferenceFragment.java:202, and grep finds no other use of REQUEST_REMOTE_FILE. The dialog is never shown. The auto CALL to the four-argument overload is cut with sup.',
-  'SRC sync/SyncPreferenceFragment.java:63, 97-98, 130, 159, 202, 279, 286; SRC core/UIHelper.java:85-87; label_040.grep.txt sections 1-2. The framework dispatch to onActivityResult is INFERRED; the absence of any active sender is SOURCE.',
+  'SRC sync/SyncPreferenceFragment.java:63, 97-98, 130, 159, 202, 279, 286; SRC UIHelper.java:85-87; label_040.grep.txt sections 1-2. The framework dispatch to onActivityResult is INFERRED; the absence of any active sender is SOURCE.',
   'SOURCE')
 
 UNREACHABLE['UIHelper.binaryDialog(int,int,int,int)'] = ('no_trigger_in_app',
   'Four-argument overload. Callers: binaryDialog(int,int) (UIHelper.java:86, same batch, sup-cut) and SyncPreferenceFragment.handleFileSelection (lines 145-146). handleFileSelection has no live caller (see binaryDialog(int,int)). This method builds the Observable whose OnSubscribe is UIHelper$1.',
-  'SRC core/UIHelper.java:85-91; SRC sync/SyncPreferenceFragment.java:130, 145-146, 202; label_040.grep.txt sections 1-2',
+  'SRC UIHelper.java:85-91; SRC sync/SyncPreferenceFragment.java:130, 145-146, 202; label_040.grep.txt sections 1-2',
   'SOURCE')
 
 UNREACHABLE['UIHelper$1.<init>'] = ('no_trigger_in_app',
   'Anonymous OnSubscribe created only in binaryDialog(int,int,int,int) at UIHelper.java:91. That method has no live caller (see above), so the object is never created.',
-  'SRC core/UIHelper.java:91; label_040.grep.txt section 1',
+  'SRC UIHelper.java:91; label_040.grep.txt section 1',
   'SOURCE')
 
 UNREACHABLE['UIHelper$1.call'] = ('no_trigger_in_app',
   'OnSubscribe.call (UIHelper.java:93). It runs only when the rx Observable.create library call subscribes to the Observable from binaryDialog(int,int,int,int), which is never built. Its auto CALLs to getContext (94) and to UIHelper$1$1.<init> (97), UIHelper$1$2.<init> (96) and UIHelper$1$3.<init> (116) are cut with sup.',
-  'SRC core/UIHelper.java:91-126; label_040.grep.txt section 1; rx Observable.create is a library call: INFERRED',
+  'SRC UIHelper.java:91-126; label_040.grep.txt section 1; rx Observable.create is a library call: INFERRED',
   'INFERRED')
 
 UNREACHABLE['UIHelper$1$1.<init>'] = ('no_trigger_in_app',
   'Positive-button OnClickListener created in UIHelper$1.call (UIHelper.java:97). That method is unreachable (see UIHelper$1.call), so the listener is never created.',
-  'SRC core/UIHelper.java:97; label_040.grep.txt section 1',
+  'SRC UIHelper.java:97; label_040.grep.txt section 1',
   'INFERRED')
 
 UNREACHABLE['UIHelper$1$1.onClick'] = ('no_trigger_in_app',
   'Positive-button click handler (UIHelper.java:99-102). It runs only for an AlertDialog built in UIHelper$1.call, which never runs.',
-  'SRC core/UIHelper.java:97-103; label_040.grep.txt section 1',
+  'SRC UIHelper.java:97-103; label_040.grep.txt section 1',
   'INFERRED')
 
 UNREACHABLE['UIHelper$1$2.<init>'] = ('no_trigger_in_app',
   'Negative-button OnClickListener created in UIHelper$1.call (UIHelper.java:96). That method is unreachable (see UIHelper$1.call), so the listener is never created.',
-  'SRC core/UIHelper.java:96; label_040.grep.txt section 1',
+  'SRC UIHelper.java:96; label_040.grep.txt section 1',
   'INFERRED')
 
 UNREACHABLE['UIHelper$1$2.onClick'] = ('no_trigger_in_app',
   'Negative-button click handler (UIHelper.java:106-109). It runs only for an AlertDialog built in UIHelper$1.call, which never runs.',
-  'SRC core/UIHelper.java:104-110; label_040.grep.txt section 1',
+  'SRC UIHelper.java:104-110; label_040.grep.txt section 1',
   'INFERRED')
 
 UNREACHABLE['UIHelper$1$3.<init>'] = ('no_trigger_in_app',
   'Action0 cleanup object created in UIHelper$1.call (UIHelper.java:116). That method is unreachable (see UIHelper$1.call), so the object is never created.',
-  'SRC core/UIHelper.java:116; label_040.grep.txt section 1',
+  'SRC UIHelper.java:116; label_040.grep.txt section 1',
   'INFERRED')
 
 UNREACHABLE['UIHelper$1$3.call'] = ('no_trigger_in_app',
   'Subscription cleanup action that dismisses the dialog (UIHelper.java:118-120). It runs only when the subscription from UIHelper$1.call is unsubscribed, which never happens.',
-  'SRC core/UIHelper.java:116-121; label_040.grep.txt section 1',
+  'SRC UIHelper.java:116-121; label_040.grep.txt section 1',
   'INFERRED')
 
 UNREACHABLE['UIHelper_MembersInjector.create'] = ('no_trigger_in_app',
@@ -3566,7 +3566,7 @@ e('UIHelper.getThemeId', 'MmxModule_ProvideAppSettingsFactory.get', 'CALL',
   'UIHelper.getThemeId calls appSettingsLazy.get() (Lazy<AppSettings>), which runs the factory provider',
   cls='non_standard',
   via='Dagger Lazy<AppSettings>.get: DoubleCheck calls the factory provider (library behaviour, INFERRED; library and generated source not read)',
-  evidence='SRC core/UIHelper.java:78 (field Lazy<AppSettings> appSettingsLazy), :178 (appSettingsLazy.get().getGeneralSettings().getTheme()) inside getThemeId (175)')
+  evidence='SRC UIHelper.java:78 (field Lazy<AppSettings> appSettingsLazy), :178 (appSettingsLazy.get().getGeneralSettings().getTheme()) inside getThemeId (175)')
 
 e('AppSettings.getPreferences', 'MmxModule_ProvideSharedPreferencesFactory.get', 'CALL',
   'AppSettings.getPreferences calls sharedPreferences.get() (Lazy<SharedPreferences>), which runs the factory provider',
@@ -3663,8 +3663,8 @@ UNREACHABLE['DaggerMmxComponent.inject(EditPriceDialog)'] = ('no_trigger_in_app'
   'SOURCE')
 
 UNREACHABLE['DaggerMmxComponent.inject(ISecurityPriceUpdater)'] = ('no_trigger_in_app',
-  'No live caller. core/ioc/MmxComponent.java:96 declares inject(ISecurityPriceUpdater), but no call site uses it: every live iocComponent.inject call in app source passes this, and the one class that implements ISecurityPriceUpdater and injects itself (MorningstarPriceUpdater.java:66) resolves to inject(MorningstarPriceUpdater). auto_calls.json has no caller record',
-  'SRC core/ioc/MmxComponent.java:96; investment/morningstar/MorningstarPriceUpdater.java:66; label_043.grep.txt section A',
+  'No live caller. SRC MmxComponent.java:96 declares inject(ISecurityPriceUpdater), but no call site uses it: every live iocComponent.inject call in app source passes this, and the one class that implements ISecurityPriceUpdater and injects itself (MorningstarPriceUpdater.java:66) resolves to inject(MorningstarPriceUpdater). auto_calls.json has no caller record',
+  'SRC MmxComponent.java:96; investment/morningstar/MorningstarPriceUpdater.java:66; label_043.grep.txt section A',
   'SOURCE')
 
 # ---- part 046 (2026-10-29)
@@ -3720,12 +3720,12 @@ e('CurrencyEditActivity.onCreate', 'CurrencyEditActivity.onSaveInstanceState', '
 e('MorningstarPriceUpdater.savePrice', 'RepositoryModule_ProvideStockRepositoryFactory.get', 'CALL',
   'savePrice calls stockRepository.get(), a Dagger Lazy<StockRepositorySql>; the Lazy runs the factory provider get(), which calls RepositoryModule.provideStockRepository',
   cls='non_standard', via='Dagger Lazy<StockRepositorySql>.get: DoubleCheck calls the generated factory provider get (library and generated code INFERRED; not read)',
-  evidence='SRC investment/morningstar/MorningstarPriceUpdater.java:75 (@Inject Lazy<StockRepositorySql>), 278, 281 (stockRepository.get()); 190 (savePrice called from MorningstarPriceUpdater$2.call); SRC core/ioc/RepositoryModule.java:32-35; auto record RepositoryModule_ProvideStockRepositoryFactory.get -> RepositoryModule.provideStockRepository (factory line 29)')
+  evidence='SRC investment/morningstar/MorningstarPriceUpdater.java:75 (@Inject Lazy<StockRepositorySql>), 278, 281 (stockRepository.get()); 190 (savePrice called from MorningstarPriceUpdater$2.call); SRC RepositoryModule.java:32-35; auto record RepositoryModule_ProvideStockRepositoryFactory.get -> RepositoryModule.provideStockRepository (factory line 29)')
 
 e('MorningstarPriceUpdater.savePrice', 'RepositoryModule_ProvideStockHistoryRepositoryFactory.get', 'CALL',
   'savePrice calls stockHistoryRepository.get(), a Dagger Lazy<StockHistoryRepositorySql>; the Lazy runs the factory provider get(), which calls RepositoryModule.provideStockHistoryRepository',
   cls='non_standard', via='Dagger Lazy<StockHistoryRepositorySql>.get: DoubleCheck calls the generated factory provider get (library and generated code INFERRED; not read)',
-  evidence='SRC investment/morningstar/MorningstarPriceUpdater.java:76 (@Inject Lazy<StockHistoryRepositorySql>), 284 (stockHistoryRepository.get()); 190; SRC core/ioc/RepositoryModule.java:37-40; auto record RepositoryModule_ProvideStockHistoryRepositoryFactory.get -> RepositoryModule.provideStockHistoryRepository (factory line 29)')
+  evidence='SRC investment/morningstar/MorningstarPriceUpdater.java:76 (@Inject Lazy<StockHistoryRepositorySql>), 284 (stockHistoryRepository.get()); 190; SRC RepositoryModule.java:37-40; auto record RepositoryModule_ProvideStockHistoryRepositoryFactory.get -> RepositoryModule.provideStockHistoryRepository (factory line 29)')
 
 # ================================================================== sup cuts (D14): auto CALL records whose caller is UNREACHABLE and whose callee is in batch 046
 

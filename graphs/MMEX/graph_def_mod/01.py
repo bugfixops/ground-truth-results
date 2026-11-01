@@ -851,11 +851,11 @@ e('SelectDatabaseActivity.onCreate', 'S_SELECT_DATABASE', 'ENTERS',
 # ---- FRAMEWORK: picker results and permission result
 e('SelectDatabaseActivity.onOpenDatabaseClick', 'SelectDatabaseActivity.onActivityResult', 'FRAMEWORK',
   'FileStorageHelper.showStorageFilePicker starts the document picker with startActivityForResult (request code RequestCodes.SELECT_DOCUMENT); the framework returns the result to onActivityResult',
-  evidence='SRC SelectDatabaseActivity.java:106-111 (showStorageFilePicker at 110); core/docstorage/FileStorageHelper.java:56-65 (startActivityForResult at 65, SELECT_DOCUMENT at 58) under final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/')
+  evidence='SRC SelectDatabaseActivity.java:106-111 (showStorageFilePicker at 110); SRC FileStorageHelper.java:56-65 (startActivityForResult at 65, SELECT_DOCUMENT at 58) under final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/')
 
 e('SelectDatabaseActivity.onCreateDatabaseClick', 'SelectDatabaseActivity.onActivityResult', 'FRAMEWORK',
   'FileStorageHelper.showCreateFilePicker starts the create-document picker with startActivityForResult (request code RequestCodes.CREATE_DOCUMENT); the framework returns the result to onActivityResult',
-  evidence='SRC SelectDatabaseActivity.java:99-104 (showCreateFilePicker at 103); core/docstorage/FileStorageHelper.java:74-83 (startActivityForResult at 83, CREATE_DOCUMENT at 76)')
+  evidence='SRC SelectDatabaseActivity.java:99-104 (showCreateFilePicker at 103); SRC FileStorageHelper.java:74-83 (startActivityForResult at 83, CREATE_DOCUMENT at 76)')
 
 e('SelectDatabaseActivity.onCreate', 'SelectDatabaseActivity.onRequestPermissionsResult', 'FRAMEWORK',
   'requestExternalStoragePermissions(this) (SelectDatabaseActivity.java:64) asks for the storage permissions when not yet granted; the framework returns the answer to onRequestPermissionsResult',
@@ -1480,7 +1480,7 @@ SCREENS.update({'S_PRICE_EDIT': 'The security price editor (PriceEditActivity), 
 
 e('WatchlistItemsFragment.onContextItemSelected', 'PriceEditActivity.<init>', 'INTENT',
   'the Edit price context-menu item builds an Intent for PriceEditActivity (IntentFactory.getPriceEditIntent) and starts it with startActivityForResult; the framework then creates the activity by reflection',
-  evidence='SRC investment/watchlist/WatchlistItemsFragment.java:240-253 (EditPrice case; getPriceEditIntent at 245; startActivityForResult at 253); SRC core/IntentFactory.java:80-83 (new Intent(context, PriceEditActivity.class)); FW-SRC core/java/android/app/Instrumentation.java:1170-1174 (newActivity: cl.loadClass(className).newInstance()); the watchlist route is interim (batches 092 and 094, not merged, D8)')
+  evidence='SRC investment/watchlist/WatchlistItemsFragment.java:240-253 (EditPrice case; getPriceEditIntent at 245; startActivityForResult at 253); SRC IntentFactory.java:80-83 (new Intent(context, PriceEditActivity.class)); FW-SRC core/java/android/app/Instrumentation.java:1170-1174 (newActivity: cl.loadClass(className).newInstance()); the watchlist route is interim (batches 092 and 094, not merged, D8)')
 
 e('PriceEditActivity.<init>', 'PriceEditActivity.onCreate', 'LIFECYCLE',
   'the framework calls onCreate after it creates the activity (Instrumentation.callActivityOnCreate, then Activity.performCreate)',
@@ -3445,11 +3445,11 @@ e('HomeFragment.onOptionsItemSelected', 'SearchActivity.<init>', 'INTENT',
 
 e('PayeeListFragment.onContextItemSelected', 'SearchActivity.<init>', 'INTENT',
   'the payee list context menu opens the search page with search parameters: IntentFactory.getSearchIntent, then startActivity',
-  evidence='SRC fragment/PayeeListFragment.java:237-238 (enclosing method at 191); core/IntentFactory.java:54-60')
+  evidence='SRC fragment/PayeeListFragment.java:237-238 (enclosing method at 191); SRC IntentFactory.java:54-60')
 
 e('IncomeVsExpensesListFragment$4.onItemClick', 'SearchActivity.<init>', 'INTENT',
   'tapping a row of the income vs expenses report opens the search page with search parameters: IntentFactory.getSearchIntent, then startActivity',
-  evidence='SRC reports/IncomeVsExpensesListFragment.java:391-392 (enclosing method at 365); core/IntentFactory.java:54-60')
+  evidence='SRC reports/IncomeVsExpensesListFragment.java:391-392 (enclosing method at 365); SRC IntentFactory.java:54-60')
 
 e('SearchActivity.<init>', 'SearchActivity.onCreate', 'LIFECYCLE',
   'the framework creates the activity and calls onCreate',
@@ -3563,12 +3563,12 @@ e('CategoryListFragment.showSearchActivityFor', 'SearchParameters$$Parcelable.<i
 e('IntentFactory.getSearchIntent', 'SearchParameters$$Parcelable.<clinit>', 'CALL',
   'Parcels.wrap loads the generated wrapper class by name (static initialiser runs)',
   cls='non_standard', via='Parcels.wrap(parameters) at IntentFactory.java:56 (parceler library reflection; library source not read, INFERRED)',
-  evidence='SRC core/IntentFactory.java:54-56; grep B8; INFERRED parceler library source not read')
+  evidence='SRC IntentFactory.java:54-56; grep B8; INFERRED parceler library source not read')
 
 e('IntentFactory.getSearchIntent', 'SearchParameters$$Parcelable.<init>', 'CALL',
   'Parcels.wrap constructs the wrapper around the parameters passed in by the callers (PayeeListFragment.java:237, IncomeVsExpensesListFragment.java:391)',
   cls='non_standard', via='Parcels.wrap(parameters) at IntentFactory.java:56 (parceler library reflection; library source not read, INFERRED)',
-  evidence='SRC core/IntentFactory.java:54-56; SRC fragment/PayeeListFragment.java:237; SRC reports/IncomeVsExpensesListFragment.java:391; grep B8, B9; INFERRED parceler library source not read')
+  evidence='SRC IntentFactory.java:54-56; SRC fragment/PayeeListFragment.java:237; SRC reports/IncomeVsExpensesListFragment.java:391; grep B8, B9; INFERRED parceler library source not read')
 
 e('CategoriesReportFragment.showSearchActivityFor', 'SearchParameters$$Parcelable.<clinit>', 'CALL',
   'Parcels.wrap loads the generated wrapper class by name (static initialiser runs)',
@@ -3632,7 +3632,7 @@ e('CategoryListFragment.showSearchActivityFor', 'SearchParameters$$Parcelable.wr
 e('IntentFactory.getSearchIntent', 'SearchParameters$$Parcelable.writeToParcel', 'FRAMEWORK',
   'the returned intent holds the wrapper; the callers start it, and the framework parcels it as in CategoryListFragment.showSearchActivityFor',
   cls='non_standard', via='intent.putExtra(..., Parcels.wrap(parameters)) at IntentFactory.java:56; startActivity(intent) at PayeeListFragment.java:238 and at IncomeVsExpensesListFragment.java:392 (after the getSearchIntent call at 391); IPC marshalling INFERRED; FW-SRC chain as in the CategoryListFragment edge',
-  evidence='SRC core/IntentFactory.java:54-58; SRC fragment/PayeeListFragment.java:237-238; SRC reports/IncomeVsExpensesListFragment.java:391-392; FW-SRC core/java/android/content/Intent.java:9556, 9595; FW-SRC core/java/android/os/Parcel.java:872-878, 820-838, 1697, 1785-1791; FW-SRC core/java/android/os/Bundle.java:1229-1232; grep B7, B9; INFERRED Binder/IPC marshalling (not in fw_src)')
+  evidence='SRC IntentFactory.java:54-58; SRC fragment/PayeeListFragment.java:237-238; SRC reports/IncomeVsExpensesListFragment.java:391-392; FW-SRC core/java/android/content/Intent.java:9556, 9595; FW-SRC core/java/android/os/Parcel.java:872-878, 820-838, 1697, 1785-1791; FW-SRC core/java/android/os/Bundle.java:1229-1232; grep B7, B9; INFERRED Binder/IPC marshalling (not in fw_src)')
 
 e('CategoriesReportFragment.showSearchActivityFor', 'SearchParameters$$Parcelable.writeToParcel', 'FRAMEWORK',
   'the intent extra holds the wrapper; startActivity sends the intent and the framework parcels it (same chain as CategoryListFragment.showSearchActivityFor)',
@@ -5322,7 +5322,7 @@ e('SyncService.onHandleWork', 'SyncService.onDestroy', 'LIFECYCLE',
 
 e('SyncService.sendMessage', 'SyncServiceMessageHandler.handleMessage', 'FRAMEWORK',
   'sendMessage hands a Message to the caller Messenger (SyncManager.invokeSyncService creates it, batch 123); the framework delivers it to the handler, which calls handleMessage. The Messenger exists only when the sync starts from an AppCompatActivity (SyncManager.java:210-213)',
-  evidence='SRC sync/SyncService.java:222-236 (msg.what at 226; outMessenger.send at 229); FW-SRC core/java/os/Handler.java:97-106 (dispatchMessage calls handleMessage at 106); INFERRED android.os.Messenger (not in fw_src; not read)')
+  evidence='SRC sync/SyncService.java:222-236 (msg.what at 226; outMessenger.send at 229); FW-SRC core/java/android/os/Handler.java:97-106 (dispatchMessage calls handleMessage at 106); INFERRED android.os.Messenger (not in fw_src; not read)')
 
 # ---- cuts. D14: an auto CALL edge whose caller is UNREACHABLE in this batch is cut, so the target has no live incoming edge from it.
 #      The <init> cuts complete the SyncNotificationFactory cuts that batch 124 wrote for the getters (its file: SyncService.java:169 and 253).

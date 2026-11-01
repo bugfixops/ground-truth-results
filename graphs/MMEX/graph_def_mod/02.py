@@ -1303,7 +1303,7 @@ e('S_ENTRY', 'ButtonAddTransactionWidgetProvider.<init>', 'ENTRY',
 
 e('ButtonAddTransactionWidgetProvider.<init>', 'ButtonAddTransactionWidgetProvider.onUpdate', 'LIFECYCLE',
   'the framework calls onReceive on the receiver it has just created; AppWidgetProvider.onReceive calls this.onUpdate for ACTION_APPWIDGET_UPDATE',
-  evidence='FW-SRC core/java/android/appwidget/AppWidgetProvider.java:66; FW-SRC services/appwidget/.../AppWidgetServiceImpl.java:2283-2286 (setComponent 2286); SRC widget/ButtonAddTransactionWidgetProvider.java:31-32 (override)')
+  evidence='FW-SRC core/java/android/appwidget/AppWidgetProvider.java:66; FW-SRC services/appwidget/java/com/android/server/appwidget/AppWidgetServiceImpl.java:2283-2286 (setComponent 2286); SRC widget/ButtonAddTransactionWidgetProvider.java:31-32 (override)')
 
 e('S_ENTRY', 'SingleAccountWidget.<init>', 'ENTRY',
   'the framework creates the widget receiver by class name because the manifest declares it exported with the APPWIDGET_UPDATE intent-filter; the framework then calls onReceive on it',
@@ -1311,23 +1311,23 @@ e('S_ENTRY', 'SingleAccountWidget.<init>', 'ENTRY',
 
 e('SingleAccountWidget.<init>', 'SingleAccountWidget.onUpdate', 'LIFECYCLE',
   'AppWidgetProvider.onReceive calls this.onUpdate for ACTION_APPWIDGET_UPDATE',
-  evidence='FW-SRC core/java/android/appwidget/AppWidgetProvider.java:66; FW-SRC services/appwidget/.../AppWidgetServiceImpl.java:2283-2286 (setComponent 2286); SRC widget/SingleAccountWidget.java:69-70 (override)')
+  evidence='FW-SRC core/java/android/appwidget/AppWidgetProvider.java:66; FW-SRC services/appwidget/java/com/android/server/appwidget/AppWidgetServiceImpl.java:2283-2286 (setComponent 2286); SRC widget/SingleAccountWidget.java:69-70 (override)')
 
 e('SingleAccountWidget.<init>', 'SingleAccountWidget.onDeleted', 'LIFECYCLE',
   'AppWidgetProvider.onReceive calls this.onDeleted for ACTION_APPWIDGET_DELETED; the framework sends it with setComponent to this provider, so the manifest filter (APPWIDGET_UPDATE only) does not gate it',
-  evidence='FW-SRC core/java/android/appwidget/AppWidgetProvider.java:73; FW-SRC services/appwidget/.../AppWidgetServiceImpl.java:2290-2292 (sendDeletedIntentLocked, setComponent 2292); SRC widget/SingleAccountWidget.java:78-79 (override)')
+  evidence='FW-SRC core/java/android/appwidget/AppWidgetProvider.java:73; FW-SRC services/appwidget/java/com/android/server/appwidget/AppWidgetServiceImpl.java:2290-2292 (sendDeletedIntentLocked, setComponent 2292); SRC widget/SingleAccountWidget.java:78-79 (override)')
 
 e('SingleAccountWidget.<init>', 'SingleAccountWidget.onEnabled', 'LIFECYCLE',
   'AppWidgetProvider.onReceive calls this.onEnabled for ACTION_APPWIDGET_ENABLED; the framework sends it with setComponent when the first widget of this provider is added',
-  evidence='FW-SRC core/java/android/appwidget/AppWidgetProvider.java:85; FW-SRC services/appwidget/.../AppWidgetServiceImpl.java:2277-2279 (sendEnableIntentLocked, setComponent 2279); SRC widget/SingleAccountWidget.java:87-88 (override)')
+  evidence='FW-SRC core/java/android/appwidget/AppWidgetProvider.java:85; FW-SRC services/appwidget/java/com/android/server/appwidget/AppWidgetServiceImpl.java:2277-2279 (sendEnableIntentLocked, setComponent 2279); SRC widget/SingleAccountWidget.java:87-88 (override)')
 
 e('SingleAccountWidget.<init>', 'SingleAccountWidget.onDisabled', 'LIFECYCLE',
   'AppWidgetProvider.onReceive calls this.onDisabled for ACTION_APPWIDGET_DISABLED; the framework sends it with setComponent when the last widget of this provider is removed',
-  evidence='FW-SRC core/java/android/appwidget/AppWidgetProvider.java:87; FW-SRC services/appwidget/.../AppWidgetServiceImpl.java:2297-2299 (sendDisabledIntentLocked, setComponent 2299); SRC widget/SingleAccountWidget.java:92-93 (override)')
+  evidence='FW-SRC core/java/android/appwidget/AppWidgetProvider.java:87; FW-SRC services/appwidget/java/com/android/server/appwidget/AppWidgetServiceImpl.java:2297-2299 (sendDisabledIntentLocked, setComponent 2299); SRC widget/SingleAccountWidget.java:92-93 (override)')
 
 e('SingleAccountWidget.<init>', 'SingleAccountWidget.onAppWidgetOptionsChanged', 'LIFECYCLE',
   'AppWidgetProvider.onReceive calls this.onAppWidgetOptionsChanged for ACTION_APPWIDGET_OPTIONS_CHANGED; the framework sends it with setComponent, so the manifest filter (APPWIDGET_UPDATE only) does not gate it',
-  evidence='FW-SRC core/java/android/appwidget/AppWidgetProvider.java:81 (dispatch); FW-SRC services/appwidget/.../AppWidgetServiceImpl.java:2303-2305 (sendOptionsChangedIntentLocked, setComponent 2305); SRC widget/SingleAccountWidget.java:97-98 (override)')
+  evidence='FW-SRC core/java/android/appwidget/AppWidgetProvider.java:81 (dispatch); FW-SRC services/appwidget/java/com/android/server/appwidget/AppWidgetServiceImpl.java:2303-2305 (sendOptionsChangedIntentLocked, setComponent 2305); SRC widget/SingleAccountWidget.java:97-98 (override)')
 
 # ---- configure activity: exported with the APPWIDGET_CONFIGURE intent-filter, so another app can start it
 
@@ -1400,7 +1400,7 @@ UNREACHABLE['AllAccountBillsViewFactory.onCreate'] = ('framework_never_calls',
 
 UNREACHABLE['AllAccountBillsViewFactory.onDataSetChanged'] = ('framework_never_calls',
     'Never-called path (the case decided for this batch). The only factory instance is created in AccountBillsWidgetService.onGetViewFactory (AccountBillsWidgetService.java:27; grep S1). The framework calls onDataSetChanged only on an adapter bound through RemoteViewsAdapter.bind (RemoteViewsAdapter.java:178; the factory callback sites are 230 and 1156). The bind goes through AppWidgetServiceImpl, which requires the service to declare BIND_REMOTEVIEWS (enforce at AppWidgetServiceImpl.java:1251; check and throw at 3608-3611). AccountBillsWidgetService declares BIND_JOB_SERVICE (AndroidManifest.xml:403; grep S4), so the bind throws SecurityException, which RemoteViewsAdapter catches (lines 184-186). No bind happens, so onGetViewFactory, onCreate and onDataSetChanged never run. The sups cut its three auto CALLs: QueryAccountBills.getFilterAccountSelection (line 113, the batch 052 caller), Dataset.getUri (116) and QueryAccountBills.<init> (112).',
-    'AllAccountBillsViewFactory.java:107-108, 112-116; AccountBillsWidgetService.java:26-27; AndroidManifest.xml:401-403; FW-SRC RemoteViewsAdapter.java:172-190 (bind 178, catch 184-186), 230, 1156; FW-SRC services/appwidget/.../AppWidgetServiceImpl.java:1209-1251 (enforce 1251), 3598-3611; grep S1, S4, S14, S14b',
+    'AllAccountBillsViewFactory.java:107-108, 112-116; AccountBillsWidgetService.java:26-27; AndroidManifest.xml:401-403; FW-SRC RemoteViewsAdapter.java:172-190 (bind 178, catch 184-186), 230, 1156; FW-SRC services/appwidget/java/com/android/server/appwidget/AppWidgetServiceImpl.java:1209-1251 (enforce 1251), 3598-3611; grep S1, S4, S14, S14b',
     'INFERRED')
 
 UNREACHABLE['AllAccountBillsViewFactory.onDestroy'] = ('framework_never_calls',
