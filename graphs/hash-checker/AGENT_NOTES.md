@@ -109,19 +109,32 @@ change in this run. No PROGRESS line change. No device run, no adb.
   (device/drycheck.py --load-scripts) showing all scripted routes PASS.
 
 ### Pushes
-- T3 push attempt 1: failed "Update is not a fast forward" (branch
-  head had moved to 2722b9a0 on other streams' pushes; all 5 T3 paths
-  verified untouched at that head: readme_notes blob matches the
-  6805252 blob, the other 4 still absent). Retry once per the
-  branch-race rule; if it fails again, the push waits for a
-  coordinator-sequenced quiet window.
+- T3 push (make_verification.py, verification_rows.json, AGENT_NOTES,
+  LESSONS, readme_notes): attempt 1 failed "Update is not a fast
+  forward" (branch head had moved to 2722b9a0 on other streams'
+  pushes; all 5 T3 paths verified untouched at that head: readme_notes
+  blob matches the 6805252 blob, the other 4 still absent); attempt 2
+  landed as commit 21db8c53931959eab5bc7658e6bcf874946e14f4, verified
+  by branch read-back (all 5 blob SHAs match local exactly).
+- Push-lock protocol (coordinator, 2026-11-01, mandatory for all
+  agents after MMEX B5 failed three times on the branch race): before
+  any push-files call, atomically take the coordinator push lock in
+  the local locks dir (owner + UTC time inside); if it exists, do
+  other work and retry later, never spin or sleep-loop; re-check the
+  branch head and confirm staged paths untouched immediately before
+  the call; hold the lock through the call; remove it immediately
+  after, success or fail. A lock older than 30 minutes may be broken
+  by a waiter (record the broken lock's owner/time). Never push
+  without holding the lock.
+- Route-prints push attempt 1: failed "Update is not a fast forward"
+  (head moved during the approval window). Retry follows the
+  push-lock protocol above.
 
 ## Current step
-D3 script helpers running (routes 01-37). Next: push T3 writer
-(make_verification.py + verification_rows.json + AGENT_NOTES), then
-LESSONS.md + readme_notes.md, then route prints; routes push waits for
-auditor PASS + local dry run. CI rebuild request and D9 dry run go
-through the coordinator.
+D3 script helpers running (routes 01-37). T3 pushed (commit
+21db8c53, read-back verified). Next: push route prints; routes push
+waits for auditor PASS + local dry run. CI rebuild request and D9 dry
+run go through the coordinator.
 
 ## Decisions made by Muse (for the user and Yang to review)
 - **HC-T3-1 (writer order).** Seed order = current file order

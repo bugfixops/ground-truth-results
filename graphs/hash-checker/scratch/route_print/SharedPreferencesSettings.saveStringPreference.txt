@@ -1,0 +1,67 @@
+METHOD: SharedPreferencesSettings.saveStringPreference
+verdict: REACHABLE   steps_from_launch: 6
+route steps: 6 edges
+======================================================================
+
+STEP 1  edge E34de2c31
+  S_ENTRY -> App.<init>
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC AndroidManifest.xml:9
+  cite [SRC] AndroidManifest.xml:9
+    (resolved to final_java_only/hash-checker/app/hash-checker-#v3.7.3/app/src/main/AndroidManifest.xml)
+        9:         android:name=".App"
+
+STEP 2  edge E7aab529b
+  App.<init> -> App.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC App.java:53
+  cite [SRC] App.java:53
+       53:     public void onCreate() {
+
+STEP 3  edge E05dade98
+  App.onCreate -> App.setLocale
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC App.java:80 (bytecode)
+  cite [SRC] App.java:80
+       80:         setLocale();
+
+STEP 4  edge Eef3f66b5
+  App.setLocale -> LanguageConfigImpl.setLanguage(Language)
+  class: explicit   kind: CALL
+  guard: preference key_language is not stored yet: first launch after install (if !settings.languageIsInitialized(), App.java:154)
+  needs_state: None
+  env: None
+  evidence: SRC App.java:165 (bytecode)
+  cite [SRC] App.java:165
+      165:             languageConfig.setLanguage(language);
+
+STEP 5  edge E5c325194
+  LanguageConfigImpl.setLanguage(Language) -> SharedPreferencesSettings.saveLanguage
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC LanguageConfigImpl.java:28 (bytecode)
+  cite [SRC] LanguageConfigImpl.java:28
+    (resolved to final_java_only/hash-checker/app/hash-checker-#v3.7.3/app/src/main/java/com/smlnskgmail/jaman/hashchecker/components/locale/impl/LanguageConfigImpl.java)
+       28:         settings.saveLanguage(language);
+
+STEP 6  edge E7b74b251
+  SharedPreferencesSettings.saveLanguage -> SharedPreferencesSettings.saveStringPreference
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC SharedPreferencesSettings.java:59 (bytecode)
+  cite [SRC] SharedPreferencesSettings.java:59
+    (resolved to final_java_only/hash-checker/app/hash-checker-#v3.7.3/app/src/main/java/com/smlnskgmail/jaman/hashchecker/components/settings/impl/SharedPreferencesSettings.java)
+       59:         saveStringPreference(

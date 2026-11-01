@@ -1,0 +1,55 @@
+METHOD: App.getShortcut
+verdict: REACHABLE   steps_from_launch: 5
+route steps: 5 edges
+======================================================================
+
+STEP 1  edge E34de2c31
+  S_ENTRY -> App.<init>
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC AndroidManifest.xml:9
+  cite [SRC] AndroidManifest.xml:9
+    (resolved to final_java_only/hash-checker/app/hash-checker-#v3.7.3/app/src/main/AndroidManifest.xml)
+        9:         android:name=".App"
+
+STEP 2  edge E7aab529b
+  App.<init> -> App.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC App.java:53
+  cite [SRC] App.java:53
+       53:     public void onCreate() {
+
+STEP 3  edge Ecff74424
+  App.onCreate -> App.createShortcuts
+  class: explicit   kind: CALL
+  guard: shortcuts not created yet: first launch after install (if !settings.isShortcutsIsCreated(), App.java:76)
+  needs_state: None
+  env: None
+  evidence: SRC App.java:77 (bytecode)
+  cite [SRC] App.java:77
+       77:             createShortcuts();
+
+STEP 4  edge E2f51b4e7
+  App.createShortcuts -> App.getShortcutForFolderType
+  class: explicit   kind: CALL
+  guard: SDK_INT >= 26 (true on API 27) and a ShortcutManager exists (App.java:84-86)
+  needs_state: None
+  env: None
+  evidence: SRC App.java:91 (bytecode)
+  cite [SRC] App.java:91
+       91:                                 getShortcutForFolderType()
+
+STEP 5  edge E97f48490
+  App.getShortcutForFolderType -> App.getShortcut
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC App.java:126 (bytecode)
+  cite [SRC] App.java:126
+      126:         return getShortcut(
