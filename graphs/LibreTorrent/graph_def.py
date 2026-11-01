@@ -3868,3 +3868,14 @@ SUPPRESS.update({
     'BaseItem.toString', 'BaseItem.toString@AtomItem', 'BaseItem.toString@Rss1Item', 'BaseItem.toString@Rss2Item',
     'BaseItem.getUniqueId', 'BaseItem.getUniqueId@AtomItem', 'BaseItem.getUniqueId@Rss1Item', 'BaseItem.getUniqueId@Rss2Item',
 })
+
+# ---- merged batch parts (loader added 2026-11-01; see handoff/MUSE_FINISH_ALL.md)
+# Each merged batch part is its own file, parts/b<NNN>.py, run here in this namespace in the order of MERGED_PARTS.
+# Batches 13 and 14 are already pasted inline above; never list them here. Append one name at a time, in plan order,
+# and build after each append (C1). Keeping the parts in their own files keeps every file below the connector's 1 MB limit.
+MERGED_PARTS = []
+import os as _mp_os
+for _mp_name in MERGED_PARTS:
+    _mp_path = _mp_os.path.join(GDIR, 'parts', _mp_name)
+    exec(compile(open(_mp_path, encoding='utf-8').read(), _mp_path, 'exec'))
+del _mp_os

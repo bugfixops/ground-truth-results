@@ -1579,7 +1579,7 @@ UNREACHABLE = {
 # This block must come AFTER the UNREACHABLE = {...} literal above (a later literal would discard these entries).
 # The group is read from the method universe (method_list.json) so that every method of the two classes is covered.
 import json as _json
-_UNIV_SHORT = [_r['short'] for _r in _json.load(open('/Users/darshan/Desktop/yang/work/graphs/Aegis/method_list.json'))]
+_UNIV_SHORT = [_r['short'] for _r in _json.load(open(GDIR + '/method_list.json'))]
 # The builder lets an UNREACHABLE entry override a path, so the five GlideOptions methods that have a path are kept out of the group:
 # <init> and apply come from the auto call row GlideRequests.setRequestOptions -> GlideOptions.apply/<init> (GlideRequests.java:176);
 # autoClone, clone and lock get their edges below (the coverage run executed them, see out/sanity_check.csv).
