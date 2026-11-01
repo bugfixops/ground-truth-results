@@ -1,0 +1,178 @@
+METHOD: SshConnectionPool$AsyncRemoveConnection.onPostExecute
+verdict: REACHABLE   steps_from_launch: 12
+route steps: 12 edges
+======================================================================
+
+STEP 1  edge E61915364
+  S_ENTRY -> MainActivity.onOptionsItemSelected
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC Activity.java onOptionsItemSelected lifecycle
+  (no file:line citations in evidence)
+
+STEP 2  edge E5cdeb079
+  MainActivity.onOptionsItemSelected -> CloudSheetFragment.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainActivity.java:1953
+  cite [SRC] MainActivity.java:1953
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/activities/MainActivity.java)
+     1953:                     BottomSheetDialogFragment fragment = new CloudSheetFragment();
+
+STEP 3  edge Ebefb95e4
+  CloudSheetFragment.<init> -> CloudSheetFragment.setupDialog
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC CloudSheetFragment.java:45-87
+  cite [SRC] CloudSheetFragment.java:45-87
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/fragments/CloudSheetFragment.java)
+       45:     public void setupDialog(Dialog dialog, int style) {
+       46:         super.setupDialog(dialog, style);
+       47: 
+       48:         rootView = getActivity().getLayoutInflater().inflate(R.layout.fragment_sheet_cloud, null);
+       49: 
+       50:         if (((MainActivity) getActivity()).getAppTheme().equals(AppTheme.DARK)) {
+       51:             rootView.setBackgroundColor(Utils.getColor(getContext(), R.color.holo_dark_background));
+       52:         } else if (((MainActivity) getActivity()).getAppTheme().equals(AppTheme.BLACK)) {
+       53:             rootView.setBackgroundColor(Utils.getColor(getContext(), android.R.color.black));
+       54:         } else {
+       55:             rootView.setBackgroundColor(Utils.getColor(getContext(), android.R.color.white));
+       56:         }
+       57: 
+       58:         mSmbLayout = rootView.findViewById(R.id.linear_layout_smb);
+       59:         mScpLayout = rootView.findViewById(R.id.linear_layout_scp);
+       60:         mBoxLayout = rootView.findViewById(R.id.linear_layout_box);
+       61:         mDropboxLayout = rootView.findViewById(R.id.linear_layout_dropbox);
+       62:         mGoogleDriveLayout = rootView.findViewById(R.id.linear_layout_google_drive);
+       63:         mOnedriveLayout = rootView.findViewById(R.id.linear_layout_onedrive);
+       64:         mGetCloudLayout = rootView.findViewById(R.id.linear_layout_get_cloud);
+       65: 
+       66:         if (isCloudProviderAvailable(getContext())) {
+       67: 
+       68:             mBoxLayout.setVisibility(View.VISIBLE);
+       69:             mDropboxLayout.setVisibility(View.VISIBLE);
+       70:             mGoogleDriveLayout.setVisibility(View.VISIBLE);
+       71:             mOnedriveLayout.setVisibility(View.VISIBLE);
+       72:             mGetCloudLayout.setVisibility(View.GONE);
+       73:         }
+       74: 
+       75:         mSmbLayout.setOnClickListener(this);
+       76:         mScpLayout.setOnClickListener(this);
+       77:         mBoxLayout.setOnClickListener(this);
+       78:         mDropboxLayout.setOnClickListener(this);
+       79:         mGoogleDriveLayout.setOnClickListener(this);
+       80:         mOnedriveLayout.setOnClickListener(this);
+       81:         mGetCloudLayout.setOnClickListener(this);
+       82: 
+       83:         dialog.setContentView(rootView);
+       84:     }
+       85: 
+       86:     /**
+       87:      * Determines whether cloud provider is installed or not
+
+STEP 4  edge E8e9507b8
+  CloudSheetFragment.setupDialog -> CloudSheetFragment.onClick
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC CloudSheetFragment.java:70-76
+  cite [SRC] CloudSheetFragment.java:70-76
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/fragments/CloudSheetFragment.java)
+       70:             mGoogleDriveLayout.setVisibility(View.VISIBLE);
+       71:             mOnedriveLayout.setVisibility(View.VISIBLE);
+       72:             mGetCloudLayout.setVisibility(View.GONE);
+       73:         }
+       74: 
+       75:         mSmbLayout.setOnClickListener(this);
+       76:         mScpLayout.setOnClickListener(this);
+
+STEP 5  edge Ea12be5f9
+  CloudSheetFragment.onClick -> SftpConnectDialog.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC fragments/CloudSheetFragment.java:113 shows "SftpConnectDialog sftpConnectDialog = new SftpConnectDialog()"
+  cite [SRC] fragments/CloudSheetFragment.java:113
+      113:                 SftpConnectDialog sftpConnectDialog = new SftpConnectDialog();
+
+STEP 6  edge E747b933b
+  SftpConnectDialog.<init> -> SftpConnectDialog.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/dialogs/SftpConnectDialog.java:75 declares "extends DialogFragment"; INFERRED FragmentManager drives fragment lifecycle callbacks
+  cite [SRC] ui/dialogs/SftpConnectDialog.java:75
+       75: public class SftpConnectDialog extends DialogFragment {
+
+STEP 7  edge Ed024bdda
+  SftpConnectDialog.onCreate -> SftpConnectDialog.onCreateDialog
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/dialogs/SftpConnectDialog.java:102 shows "@Override public Dialog onCreateDialog(Bundle savedInstanceState)"; INFERRED DialogFragment lifecycle
+  cite [SRC] ui/dialogs/SftpConnectDialog.java:102
+      102:     public Dialog onCreateDialog(Bundle savedInstanceState) {
+
+STEP 8  edge E0ab9a03d
+  SftpConnectDialog.onCreateDialog -> SftpConnectDialog.lambda$onCreateDialog$9
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC SftpConnectDialog.java:132 portET.setOnFocusChangeListener((v, hasFocus) -> {...
+  cite [SRC] SftpConnectDialog.java:132
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/dialogs/SftpConnectDialog.java)
+      132:         portET.setOnFocusChangeListener((v, hasFocus) -> {
+
+STEP 9  edge Ebd856bd7
+  SftpConnectDialog.lambda$onCreateDialog$9 -> SshConnectionPool.removeConnection
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC SftpConnectDialog.java:176 shows SshConnectionPool.getInstance().removeConnection(..., () -> { ... })
+  cite [SRC] SftpConnectDialog.java:176
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/dialogs/SftpConnectDialog.java)
+      176:                 SshConnectionPool.getInstance().removeConnection(SshClientUtils.deriveSftpPathFrom(hostname, port, username, password,
+
+STEP 10  edge Ef1b214fb
+  SshConnectionPool.removeConnection -> SshConnectionPool$AsyncRemoveConnection.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC app/src/main/java/com/amaze/filemanager/filesystem/ssh/SshConnectionPool.java:95
+  cite [SRC] app/src/main/java/com/amaze/filemanager/filesystem/ssh/SshConnectionPool.java:95
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/filesystem/ssh/SshConnectionPool.java)
+       95:         new AsyncRemoveConnection(url, callback).execute();
+
+STEP 11  edge Ef65bce02
+  SshConnectionPool$AsyncRemoveConnection.<init> -> SshConnectionPool$AsyncRemoveConnection.doInBackground
+  class: standard   kind: ASYNC
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC filesystem/ssh/SshConnectionPool.java:291 shows "@Override protected Void doInBackground(Void... params)"; INFERRED AsyncTask lifecycle
+  cite [SRC] filesystem/ssh/SshConnectionPool.java:291
+      291:         protected Void doInBackground(Void... voids) {
+
+STEP 12  edge E6c12ada4
+  SshConnectionPool$AsyncRemoveConnection.doInBackground -> SshConnectionPool$AsyncRemoveConnection.onPostExecute
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC app/src/main/java/com/amaze/filemanager/filesystem/ssh/SshConnectionPool.java:301
+  cite [SRC] app/src/main/java/com/amaze/filemanager/filesystem/ssh/SshConnectionPool.java:301
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/filesystem/ssh/SshConnectionPool.java)
+      301:         protected void onPostExecute(Void aVoid) {

@@ -1,0 +1,174 @@
+METHOD: FtpTileService.updateTileState
+verdict: REACHABLE   steps_from_launch: 11
+route steps: 11 edges
+======================================================================
+
+STEP 1  edge Ef3576ae6
+  S_ENTRY -> Drawer.onNavigationItemSelected
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC Drawer.java:99 implements NavigationView.OnNavigationItemSelectedListener, line 165 sets listener
+  cite [SRC] Drawer.java:99
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/drawer/Drawer.java)
+       99: public class Drawer implements NavigationView.OnNavigationItemSelectedListener {
+
+STEP 2  edge E4512b299
+  Drawer.onNavigationItemSelected -> FtpServerFragment.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC Drawer.java:402-414; Drawer.java:597 onClick; Drawer.java:535 onDrawerClosed commits
+  cite [SRC] Drawer.java:402-414
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/drawer/Drawer.java)
+      402:         addNewItem(menu, LASTGROUP, order++, R.string.ftp,
+      403:                 new MenuMetadata(() -> {
+      404:                     FragmentTransaction transaction2 = mainActivity.getSupportFragmentManager().beginTransaction();
+      405:                     transaction2.replace(R.id.content_frame, new FtpServerFragment());
+      406:                     mainActivity.getAppbar()
+      407:                             .getAppbarLayout()
+      408:                             .animate()
+      409:                             .translationY(0)
+      410:                             .setInterpolator(new DecelerateInterpolator(2))
+      411:                             .start();
+      412:                     pending_fragmentTransaction = transaction2;
+      413:                     if (!isDrawerLocked) close();
+      414:                     else onDrawerClosed();
+  cite [SRC] Drawer.java:597
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/drawer/Drawer.java)
+      597:                 meta.onClickListener.onClick();
+  cite [SRC] Drawer.java:535
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/drawer/Drawer.java)
+      535: 
+
+STEP 3  edge E8b69c932
+  FtpServerFragment.<init> -> FtpServerFragment.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED Fragment lifecycle (androidx source not read)
+  (no file:line citations in evidence)
+
+STEP 4  edge Ef53ae484
+  FtpServerFragment.onCreate -> FtpServerFragment.onCreateView
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC FtpServerFragment.java:100-104 shows onCreateView implementation
+  cite [SRC] FtpServerFragment.java:100-104
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/fragments/FtpServerFragment.java)
+      100: 
+      101:     @Override
+      102:     public View onCreateView(LayoutInflater inflater, ViewGroup container,
+      103:                              Bundle savedInstanceState) {
+      104:         View rootView = inflater.inflate(R.layout.fragment_ftp, container, false);
+
+STEP 5  edge E512ff7b5
+  FtpServerFragment.onCreateView -> FtpServerFragment.lambda$onCreateView$0
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC FtpServerFragment.java:132
+  cite [SRC] FtpServerFragment.java:132
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/fragments/FtpServerFragment.java)
+      132:         ftpBtn.setOnClickListener(v -> {
+
+STEP 6  edge E50e05168
+  FtpServerFragment.lambda$onCreateView$0 -> FtpServerFragment.startServer
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC FtpServerFragment.java:137
+  cite [SRC] FtpServerFragment.java:137
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/fragments/FtpServerFragment.java)
+      137:                     startServer();
+
+STEP 7  edge E0de2e376
+  FtpServerFragment.startServer -> FtpReceiver.onReceive
+  class: standard   kind: INTENT
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC FtpServerFragment.java:376 sendBroadcast(ACTION_START_FTPSERVER), manifest line 206 registers receiver
+  cite [SRC] FtpServerFragment.java:376
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/fragments/FtpServerFragment.java)
+      376:         getContext().sendBroadcast(new Intent(FtpService.ACTION_START_FTPSERVER).setPackage(getContext().getPackageName()));
+
+STEP 8  edge E4da5d596
+  FtpReceiver.onReceive -> FtpService.<init>
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC FtpReceiver.java:24
+  cite [SRC] FtpReceiver.java:24
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/asynchronous/services/ftp/FtpReceiver.java)
+       24:                 context.startService(service);
+
+STEP 9  edge E134a9011
+  FtpService.<init> -> FtpService.onStartCommand
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC FtpService.java:119-142, FtpReceiver.java:24
+  cite [SRC] FtpService.java:119-142
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/asynchronous/services/ftp/FtpService.java)
+      119:     private boolean isStartedByTile = false;
+      120: 
+      121:     @Override
+      122:     public int onStartCommand(Intent intent, int flags, int startId) {
+      123:         isStartedByTile = intent.getBooleanExtra(TAG_STARTED_BY_TILE, false);
+      124:         int attempts = 10;
+      125:         while (serverThread != null) {
+      126:             if (attempts > 0) {
+      127:                 attempts--;
+      128:                 try {
+      129:                     Thread.sleep(1000);
+      130:                 } catch (InterruptedException ignored) {
+      131:                 }
+      132:             } else {
+      133:                 return START_STICKY;
+      134:             }
+      135:         }
+      136: 
+      137:         serverThread = new Thread(this);
+      138:         serverThread.start();
+      139: 
+      140:         Notification notification = FtpNotification.startNotification(getApplicationContext(), isStartedByTile);
+      141: 
+      142:         startForeground(NotificationConstants.FTP_ID, notification);
+  cite [SRC] FtpReceiver.java:24
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/asynchronous/services/ftp/FtpReceiver.java)
+       24:                 context.startService(service);
+
+STEP 10  edge E383481b2
+  FtpService.onStartCommand -> FtpTileService.onFtpReceiverActions
+  class: non_standard   kind: ASYNC
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ftp/FtpService.java:227 (post in run()); SRC ftp/FtpTileService.java:26 (@Subscribe); INFERRED EventBus.post dispatches to @Subscribe methods
+  cite [SRC] ftp/FtpService.java:227
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/asynchronous/services/ftp/FtpService.java)
+      227:             EventBus.getDefault().post(isStartedByTile ? FtpReceiverActions.STARTED_FROM_TILE : FtpReceiverActions.STARTED);
+  cite [SRC] ftp/FtpTileService.java:26
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/asynchronous/services/ftp/FtpTileService.java)
+       26:     @Subscribe
+
+STEP 11  edge Ec90f8f52
+  FtpTileService.onFtpReceiverActions -> FtpTileService.updateTileState
+  class: standard   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC FtpTileService.java:28
+  cite [SRC] FtpTileService.java:28
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/asynchronous/services/ftp/FtpTileService.java)
+       28:         updateTileState();

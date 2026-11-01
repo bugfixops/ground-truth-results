@@ -1,0 +1,63 @@
+METHOD: PasteHelper.<init>(Parcel)
+verdict: REACHABLE   steps_from_launch: 6
+route steps: 6 edges
+======================================================================
+
+STEP 1  edge E380fe171
+  S_ENTRY -> MainActivity.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC Activity.java onCreate lifecycle method
+  (no file:line citations in evidence)
+
+STEP 2  edge E03c72cf9
+  MainActivity.onCreate -> MainActivity$1.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC activities/MainActivity.java:366
+  cite [SRC] activities/MainActivity.java:366
+      366:             @Override
+
+STEP 3  edge E745b85ef
+  MainActivity$1.<init> -> MainActivity$1.doInBackground
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED android.os.AsyncTask.execute runs doInBackground on a worker thread and onPostExecute on the main thread (platform source not read for this exact flow)
+  (no file:line citations in evidence)
+
+STEP 4  edge Ed18978e9
+  MainActivity$1.doInBackground -> MainActivity$1.onPostExecute
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED android.os.AsyncTask.execute runs doInBackground on a worker thread and onPostExecute on the main thread (platform source not read for this exact flow)
+  (no file:line citations in evidence)
+
+STEP 5  edge E6a0c67c7
+  MainActivity$1.onPostExecute -> PasteHelper$1.createFromParcel
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: A copy or cut operation is pending (MainActivity holds a PasteHelper)
+  env: the system recreates MainActivity with its saved state after a configuration change or process restore
+  evidence: SRC activities/MainActivity.java:425 pasteHelper = savedInstanceState.getParcelable(PASTEHELPER_BUNDLE); INFERRED Bundle.getParcelable calls CREATOR.createFromParcel
+  cite [SRC] activities/MainActivity.java:425
+      425:                     pasteHelper = savedInstanceState.getParcelable(PASTEHELPER_BUNDLE);
+
+STEP 6  edge E2032b774
+  PasteHelper$1.createFromParcel -> PasteHelper.<init>(Parcel)
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC PasteHelper.java:43-44 return new PasteHelper(in)
+  cite [SRC] PasteHelper.java:43-44
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/filesystem/PasteHelper.java)
+       43:         public PasteHelper createFromParcel(Parcel in) {
+       44:             return new PasteHelper(in);

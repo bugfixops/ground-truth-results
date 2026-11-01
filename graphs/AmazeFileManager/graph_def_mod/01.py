@@ -1,7 +1,7 @@
 
 e('Indicator.setSelectedPage', 'Indicator.createMoveSelectedAnimator', 'CALL',
   'setSelectedPage creates move animator for selected dot',
-  evidence='SRC Indicator.java:579 moveAnimation = createMoveSelectedAnimator(dotCenterX[now], previousPage, now, steps)')
+  evidence='SRC Indicator.java:576 moveAnimation = createMoveSelectedAnimator(dotCenterX[now], previousPage, now, steps)')
 
 e('Indicator.createMoveSelectedAnimator', 'Indicator$PendingRetreatAnimator.<init>', 'CALL',
   'createMoveSelectedAnimator constructs PendingRetreatAnimator',
@@ -740,7 +740,7 @@ e('FtpReceiver.<init>', 'FtpReceiver.<clinit>', 'CALL', 'static field TAG initia
 
 # FtpTileService EventBus subscriber
 e('FtpService.onStartCommand', 'FtpTileService.onFtpReceiverActions', 'ASYNC', 'EventBus posts FtpReceiverActions signal',
-  evidence='SRC ftp/FtpTileService.java:26; INFERRED EventBus.post dispatches to @Subscribe methods', cls='non_standard', via='EventBus post of FtpReceiverActions to @Subscribe methods')
+  evidence='SRC ftp/FtpService.java:227 (post in run()); SRC ftp/FtpTileService.java:26 (@Subscribe); INFERRED EventBus.post dispatches to @Subscribe methods', cls='non_standard', via='EventBus post of FtpReceiverActions to @Subscribe methods')
 
 # GeneralDialogCreation deleteFilesDialog AsyncTask ($1)
 e('GeneralDialogCreation.deleteFilesDialog', 'GeneralDialogCreation$1.<init>', 'CALL', 'anonymous AsyncTask instantiated',
@@ -860,7 +860,6 @@ UNREACHABLE['GlideRequest.apply'] = ('no_trigger_in_app', 'Glide-generated fluen
 
 UNREACHABLE['GlideRequest.downsample'] = ('no_trigger_in_app', 'Glide-generated fluent API method; no call sites found in app source', 'SRC (generated code, not in src/main)', 'INFERRED')
 
-UNREACHABLE['GlideRequest.listener'] = ('no_trigger_in_app', 'Glide-generated fluent API method; no call sites found in app source', 'SRC (generated code, not in src/main)', 'INFERRED')
 
 UNREACHABLE['GlideRequest.optionalCenterInside'] = ('no_trigger_in_app', 'Glide-generated fluent API method; no call sites found in app source', 'SRC (generated code, not in src/main)', 'INFERRED')
 
@@ -1391,7 +1390,7 @@ UNREACHABLE['SevenZOutputFile.writeUnpackInfo'] = (
 
 e('SftpConnectDialog.onCreateDialog', 'SftpConnectDialog.lambda$onCreateDialog$9', 'FRAMEWORK',
   'portET.setOnFocusChangeListener registers lambda$onCreateDialog$9',
-  evidence='SRC SftpConnectDialog.java:131 portET.setOnFocusChangeListener((v, hasFocus) -> {...')
+  evidence='SRC SftpConnectDialog.java:132 portET.setOnFocusChangeListener((v, hasFocus) -> {...')
 
 e('SftpConnectDialog.onCreateDialog', 'SftpConnectDialog.lambda$onCreateDialog$1', 'FRAMEWORK',
   'selectPemBTN.setOnClickListener registers lambda$onCreateDialog$1',
@@ -1578,7 +1577,7 @@ e('SftpConnectDialog.onActivityResult', 'PemToKeyPairTask.<init>(InputStream,Cal
 
 e('SftpConnectDialog.onActivityResult', 'PemToKeyPairTask.doInBackground', 'ASYNC',
   'onActivityResult executes PemToKeyPairTask',
-  evidence='SRC SftpConnectDialog.java:321 }).execute();')
+  evidence='SRC SftpConnectDialog.java:322 }).execute();')
 
 e('SftpConnectDialog.onActivityResult', 'SftpConnectDialog.lambda$onActivityResult$14', 'ASYNC',
   'PemToKeyPairTask callback registers lambda$onActivityResult$14',
@@ -1724,7 +1723,7 @@ e('TextEditorActivity.onCreate', 'TextEditorActivity.onPrepareOptionsMenu', 'FRA
 
 e('TextEditorActivity.onCreate', 'TextEditorActivity.onOptionsItemSelected', 'FRAMEWORK',
   'Activity.onOptionsItemSelected called by framework when menu item selected',
-  evidence='SRC activities/TextEditorActivity.java:355; ' +
+  evidence='SRC activities/TextEditorActivity.java:357; ' +
   'INFERRED Activity framework calls onOptionsItemSelected (Android SDK source not read)')
 
 # onSaveInstanceState and onDestroy are Activity lifecycle
@@ -2162,7 +2161,7 @@ e('S_ENTRY', 'PrefFrag.onPause', 'LIFECYCLE',
 
 e('PrefFrag.onCreate', 'PrefFrag.onPreferenceClick', 'CALL',
   'onCreate sets preference click listener',
-  evidence='SRC fragments/preference_fragments/PrefFrag.java:92-94: for (String PREFERENCE_KEY : PREFERENCE_KEYS) { findPreference(PREFERENCE_KEY).setOnPreferenceClickListener(this); } // PrefFrag implements OnPreferenceClickListener')
+  evidence='SRC fragments/preference_fragments/PrefFrag.java:89: for (String PREFERENCE_KEY : PREFERENCE_KEYS) { findPreference(PREFERENCE_KEY).setOnPreferenceClickListener(this); } // PrefFrag implements OnPreferenceClickListener')
 
 e('S_ENTRY', 'PrefFrag.onResume', 'LIFECYCLE',
   'PreferenceFragment onResume lifecycle callback',
@@ -2260,19 +2259,19 @@ e('Streamer.getInstance', 'Streamer.<init>', 'CALL',
 
 e('Streamer.<init>', 'StreamServer.<init>', 'CALL',
   'Streamer constructor calls super StreamServer constructor',
-  evidence='SRC Streamer.java:34: super(port, new File("."));')
+  evidence='SRC Streamer.java:33: super(port, new File("."));')
 
 e('StreamServer.<init>', 'StreamServer$HTTPSession.<init>', 'ASYNC',
   'StreamServer constructor spawns thread that creates HTTPSession on socket accept',
-  evidence='SRC SmbStreamer/StreamServer.java:179: new HTTPSession(accept);')
+  evidence='SRC SmbStreamer/StreamServer.java:180: new HTTPSession(accept);')
 
 e('StreamServer$HTTPSession.<init>', 'StreamServer$HTTPSession.run', 'ASYNC',
   'HTTPSession constructor starts thread with run() method',
-  evidence='SRC SmbStreamer/StreamServer.java:222-224: Thread t = new Thread(this); t.start();')
+  evidence='SRC SmbStreamer/StreamServer.java:229-231: Thread t = new Thread(this); t.start();')
 
 e('StreamServer$HTTPSession.run', 'StreamServer$HTTPSession.handleResponse', 'CALL',
   'HTTPSession.run calls handleResponse to process HTTP request',
-  evidence='SRC SmbStreamer/StreamServer.java:229: handleResponse(socket);')
+  evidence='SRC SmbStreamer/StreamServer.java:237: handleResponse(socket);')
 
 e('StreamServer$HTTPSession.handleResponse', 'StreamServer$HTTPSession.decodeHeader', 'CALL',
   'handleResponse decodes HTTP headers',
@@ -2501,27 +2500,21 @@ e('PrepareCopyTask.lambda$showDialog$2', 'PrepareCopyTask.replaceFiles', 'CALL',
 
 e('PrepareCopyTask.onPostExecute', 'PrepareCopyTask.onEndDialog', 'CALL',
   'onPostExecute starts conflict resolution workflow',
-  evidence='SRC asynchronous/asynctasks/PrepareCopyTask.java:172')
+  evidence='SRC asynchronous/asynctasks/PrepareCopyTask.java:162')
 
 e('PrepareCopyTask.onEndDialog', 'PrepareCopyTask.showDialog', 'CALL',
   'onEndDialog shows conflict resolution dialog',
-  evidence='SRC asynchronous/asynctasks/PrepareCopyTask.java:218')
+  evidence='SRC asynchronous/asynctasks/PrepareCopyTask.java:225')
 
 e('PrepareCopyTask.onEndDialog', 'PrepareCopyTask.finishCopying', 'CALL',
   'onEndDialog calls finishCopying when all conflicts resolved',
   evidence='SRC asynchronous/asynctasks/PrepareCopyTask.java:241')
 
-e('ZipService$CompressAsyncTask.execute', 'PrepareCopyTask.onPostExecute', 'FRAMEWORK',
-  'AsyncTask framework calls onPostExecute after background work',
-  evidence='SRC asynchronous/asynctasks/PrepareCopyTask.java:153')
 
 e('PrepareCopyTask.onPostExecute', 'PrepareCopyTask.startService', 'CALL',
   'onPostExecute starts service for cloud/OTG/root copy operations',
   evidence='SRC asynchronous/asynctasks/PrepareCopyTask.java:164')
 
-e('ZipService$CompressAsyncTask.execute', 'PrepareCopyTask.onPreExecute', 'FRAMEWORK',
-  'AsyncTask framework calls onPreExecute before starting task',
-  evidence='SRC asynchronous/asynctasks/PrepareCopyTask.java:86')
 
 
 e('PrepareCopyTask.onEndDialog', 'PrepareCopyTask.replaceFiles', 'CALL',
@@ -2538,7 +2531,7 @@ e('SubnetScanner.<clinit>', 'SubnetScanner.configure', 'CALL',
 
 e('SmbSearchDialog.onCreateDialog', 'SubnetScanner.<init>', 'CALL',
   'SmbSearchDialog creates SubnetScanner to find SMB servers',
-  evidence='SRC utils/SubnetScanner.java:77: new SubnetScanner(context)')
+  evidence='SRC ui/dialogs/SmbSearchDialog.java:80: subnetScanner = new SubnetScanner(getActivity())')
 
 
 
@@ -2548,7 +2541,7 @@ e('SmbSearchDialog.lambda$onCreateDialog$0', 'SubnetScanner.interrupt', 'CALL',
 
 e('SubnetScanner.run', 'SubnetScanner.onFound', 'CALL',
   'run calls onFound when computer discovered via IP scan',
-  evidence='SRC utils/SubnetScanner.java:116')
+  evidence='SRC utils/SubnetScanner.java:109')
 
 e('SubnetScanner.tryWithBroadcast', 'SubnetScanner.onFound', 'CALL',
   'tryWithBroadcast calls onFound when computer discovered via SMB broadcast',
@@ -2705,7 +2698,7 @@ e('ColorPref.lambda$loadSection1$1', 'PreferencesActivity.setRestartActivity', '
 
 e('PemToKeyPairTask.doInBackground', 'PemToKeyPairTask.onProgressUpdate', 'ASYNC',
   'doInBackground calls publishProgress which triggers onProgressUpdate on main thread',
-  evidence='SRC asynchronous/asynctasks/ssh/PemToKeyPairTask.java:120: publishProgress(new IOException("No converter available to parse selected PEM")); INFERRED AsyncTask.publishProgress triggers onProgressUpdate')
+  evidence='SRC asynchronous/asynctasks/ssh/PemToKeyPairTask.java:118: publishProgress(new IOException("No converter available to parse selected PEM")); INFERRED AsyncTask.publishProgress triggers onProgressUpdate')
 
 # PemToKeyPairTask.lambda$onProgressUpdate$0
 # SRC asynchronous/asynctasks/ssh/PemToKeyPairTask.java:145-154
@@ -2721,11 +2714,11 @@ e('PemToKeyPairTask.onProgressUpdate', 'PemToKeyPairTask.lambda$onProgressUpdate
 e('PemToKeyPairTask.onProgressUpdate', 'PemToKeyPairTask.lambda$onProgressUpdate$1', 'FRAMEWORK',
   'User taps Cancel button in passphrase dialog',
   gui=['Tap Cancel in SSH key passphrase dialog'],
-  evidence='SRC asynchronous/asynctasks/ssh/PemToKeyPairTask.java:155-160: .onNegative(((dialog, which) -> { ... })); lambda at 156-160')
+  evidence='SRC asynchronous/asynctasks/ssh/PemToKeyPairTask.java:153-157: .onNegative(((dialog, which) -> { ... })); lambda at 156-160')
 
 e('PemToKeyPairTask.lambda$onProgressUpdate$1', 'PemToKeyPairTask.toastOnParseError', 'CALL',
   'Cancel callback shows toast error before canceling task',
-  evidence='SRC asynchronous/asynctasks/ssh/PemToKeyPairTask.java:158: toastOnParseError(result);')
+  evidence='SRC asynchronous/asynctasks/ssh/PemToKeyPairTask.java:155: toastOnParseError(result);')
 
 # PemToKeyPairTask.lambda$onProgressUpdate$2
 # SRC asynchronous/asynctasks/ssh/PemToKeyPairTask.java:163-167
@@ -3075,7 +3068,7 @@ e('ZipService$CompressAsyncTask.<init>', 'ZipService$CompressAsyncTask.doInBackg
 # ZipService$CompressAsyncTask.execute - AsyncTask execute wrapper
 e('ZipService.onStartCommand', 'ZipService$CompressAsyncTask.execute', 'CALL',
   'ZipService calls execute to start compression task',
-  evidence='SRC ZipService.java:141 asyncTask.execute() starts the async task')
+  evidence='SRC ZipService.java:143 asyncTask.execute() starts the async task')
 
 # ZipService$CompressAsyncTask.lambda$doInBackground$0 - lambda expression
 e('ZipService$CompressAsyncTask.doInBackground', 'ZipService$CompressAsyncTask.lambda$doInBackground$0', 'CALL',
@@ -3512,7 +3505,7 @@ e('SmbSearchDialog.onCreateDialog', 'SmbSearchDialog$1.<init>', 'CALL',
 # SmbSearchDialog$1.computerFound - Callback when SMB server is discovered
 e('SubnetScanner.onFound', 'SmbSearchDialog$1.computerFound', 'FRAMEWORK',
   'SubnetScanner calls computerFound callback when SMB server is discovered',
-  evidence='INFERRED SubnetScanner notifies observer.computerFound(computer); SRC ui/dialogs/SmbSearchDialog.java:82-90 overrides computerFound')
+  evidence='SRC utils/SubnetScanner.java:173-177 onFound calls observer.computerFound; SRC ui/dialogs/SmbSearchDialog.java:82-90 overrides computerFound')
 
 # SmbSearchDialog$1.lambda$computerFound$0 - Lambda for runOnUiThread in computerFound
 e('SmbSearchDialog$1.computerFound', 'SmbSearchDialog$1.lambda$computerFound$0', 'CALL',
@@ -3857,7 +3850,6 @@ e('RecyclerAdapter$2.onLoadFailed', 'RecyclerAdapter$2.lambda$onLoadFailed$0', '
 # public void setImageBroken(boolean imageBroken) {
 #     isImageBroken = imageBroken;
 # }
-UNREACHABLE['IconDataParcelable.setImageBroken'] = ('no_trigger_in_app', 'Setter never called; isImageBroken checked via getter but never set from app code', 'GREP no setImageBroken calls in app src', 'INFERRED')
 
 # PemToKeyPairTask$1 - anonymous PasswordFinder
 # SRC PemToKeyPairTask.java:169-178:
@@ -3892,9 +3884,6 @@ e('PemToKeyPairTask$1.<init>', 'PemToKeyPairTask$1.shouldRetry', 'FRAMEWORK',
 # SRC ProcessViewerFragment.java:165:
 # getActivity().bindService(intent2, mCompressConnection, 0);
 
-e('ProcessViewerFragment$CustomServiceConnection$1.refresh', 'ZipService.onBind', 'LIFECYCLE',
-  'ProcessViewerFragment binds to ZipService to monitor compression progress',
-  evidence='SRC ProcessViewerFragment.java:165 getActivity().bindService(intent2, mCompressConnection, 0)')
 
 # SRC ZipService.java:318-320:
 # @Override
@@ -4016,7 +4005,7 @@ UNREACHABLE['OperationData.toString'] = (
 
 e('PasteHelper$1.createFromParcel', 'PasteHelper.<init>(Parcel)', 'CALL',
   'Parcel CREATOR.createFromParcel constructs PasteHelper from Parcel',
-  evidence='SRC PasteHelper.java:38 return new PasteHelper(in)')
+  evidence='SRC PasteHelper.java:43-44 return new PasteHelper(in)')
 
 
 
@@ -4066,12 +4055,12 @@ e('CustomSshJConfig.<init>', 'CustomSshJConfig.initRandomFactory', 'CALL',
 
 e('SshConnectionPool.removeConnection', 'SshConnectionPool$AsyncRemoveConnection.<init>', 'CALL',
   'new AsyncRemoveConnection(url, callback)',
-  evidence='SRC app/src/main/java/com/amaze/filemanager/filesystem/ssh/SshConnectionPool.java:98')
+  evidence='SRC app/src/main/java/com/amaze/filemanager/filesystem/ssh/SshConnectionPool.java:95')
 
 
 e('SshConnectionPool$AsyncRemoveConnection.doInBackground', 'SshConnectionPool$AsyncRemoveConnection.onPostExecute', 'CALL',
   'Framework calls onPostExecute after doInBackground completes',
-  evidence='SRC app/src/main/java/com/amaze/filemanager/filesystem/ssh/SshConnectionPool.java:304-307')
+  evidence='SRC app/src/main/java/com/amaze/filemanager/filesystem/ssh/SshConnectionPool.java:301')
 
 
 # ========== Statvfs$Response ==========
@@ -4252,7 +4241,7 @@ e('FileUtils.openFile(DocumentFile,MainActivity,SharedPreferences)', 'FileUtils.
 
 e('Operations$3.onPostExecute', 'FileUtils.scanFile(Context,HybridFile[])', 'CALL',
   'Operations rename task scans files after rename',
-  evidence='SRC filesystem/Operations.java:491-493')
+  evidence='SRC filesystem/Operations.java:484')
 
 e('ShareAdapter.onCreateViewHolder', 'ShareAdapter$ViewHolder.<init>', 'CALL',
   'RecyclerView adapter creates ViewHolder',
@@ -4381,7 +4370,7 @@ e('Operations$3.<init>', 'Operations$3.doInBackground', 'FRAMEWORK',
 
 e('Operations$3.doInBackground', 'Operations$3.onPostExecute', 'FRAMEWORK',
   'AsyncTask calls onPostExecute',
-  evidence='SRC filesystem/Operations.java:486-493; FW-SRC android/os/AsyncTask.java')
+  evidence='SRC filesystem/Operations.java:480-485; FW-SRC android/os/AsyncTask.java')
 
 # ---- part repair_rp21 (2024-10-28)
 # Repair part 21: labels for batch rp_21
@@ -4420,7 +4409,7 @@ e('AbstractProgressiveService.addDatapoint', 'ProcessViewerFragment$CustomServic
   evidence='INFERRED INFERRED')
 e('ProcessViewerFragment$CustomServiceConnection$1.onUpdate', 'ProcessViewerFragment$CustomServiceConnection$1.lambda$onUpdate$0', 'ASYNC',
   'Lambda for runOnUiThread inside onUpdate',
-  evidence='SRC ProcessViewerFragment.java:421')
+  evidence='SRC ProcessViewerFragment.java:422')
 
 # PropertiesSheet$1 - anonymous OnScrollChangeListener
 
@@ -4590,9 +4579,6 @@ e('CloudStreamSource.open', 'CloudStreamSource.read(byte[],int,int)', 'CALL',
   'CloudStreamSource.read(byte[],int,int) reads bytes into buffer from underlying inputStream',
   evidence='SRC cloud/CloudStreamSource.java:68-72')
 
-e('StreamServer$HTTPSession.sendResponse', 'CloudStreamSource.read(byte[],int,int)', 'CALL',
-  'StreamServer reads from CloudStreamSource stream when sending HTTP response data',
-  evidence='INFERRED StreamServer.java sendResponse reads from StreamSource; NanoHTTPD library source not fully read')
 
 e('MoveFiles.onPostExecute', 'MoveFiles.lambda$onPostExecute$0', 'ASYNC',
   'MoveFiles.onPostExecute passes lambda to AppConfig.runInBackground to update encrypted entries',
@@ -5057,7 +5043,7 @@ e('PrepareCopyTask.onPostExecute', 'PrepareCopyTask.startService', 'CALL',
 
 e('PrepareCopyTask.onPostExecute', 'PrepareCopyTask.onEndDialog', 'CALL',
   'onPostExecute delegates to onEndDialog for normal file system copies',
-  evidence='SRC PrepareCopyTask.java:145: onEndDialog(null, null, null);')
+  evidence='SRC PrepareCopyTask.java:162: onEndDialog(null, null, null);')
 
 e('PrepareCopyTask.startService', 'CopyService.<init>', 'CALL',
   'startService creates Intent for CopyService',
@@ -5343,7 +5329,7 @@ e('SftpConnectDialog.lambda$onCreateDialog$9', 'SshConnectionPool.getInstance', 
 
 e('SftpConnectDialog.lambda$onCreateDialog$9', 'SshConnectionPool.removeConnection', 'CALL',
   'Lambda removes existing connection before updating',
-  evidence='SRC SftpConnectDialog.java:179 shows SshConnectionPool.getInstance().removeConnection(..., () -> { ... })')
+  evidence='SRC SftpConnectDialog.java:176 shows SshConnectionPool.getInstance().removeConnection(..., () -> { ... })')
 
 e('SftpConnectDialog.lambda$onCreateDialog$9', 'SftpConnectDialog.lambda$null$2', 'CALL',
   'Lambda callback after connection removal when editing with existing host key',
@@ -5772,11 +5758,11 @@ e('SshAuthenticationTask.onPostExecute', 'SshAuthenticationTask.lambda$onPostExe
 
 e('SshAuthenticationTask.doInBackground', 'SshAuthenticationTask$1.<init>', 'CALL',
   'doInBackground creates anonymous KeyProvider for key-based authentication',
-  evidence='SRC SshAuthenticationTask.java:130: sshClient.authPublickey(username, new KeyProvider() {...});')
+  evidence='SRC SshAuthenticationTask.java:131: sshClient.authPublickey(username, new KeyProvider() {...});')
 
 e('SshAuthenticationTask$1.getType', 'SshAuthenticationTask$1.getPublic', 'CALL',
   'Calls getPublic to obtain public key for type determination',
-  evidence='SRC SshAuthenticationTask.java:141: return KeyType.fromKey(getPublic());')
+  evidence='SRC SshAuthenticationTask.java:144: return KeyType.fromKey(getPublic());')
 
 e('SshConnectionPool.expungeAllConnections', 'SshConnectionPool.lambda$expungeAllConnections$0', 'CALL',
   'expungeAllConnections runs lambda in background thread to close connections',
@@ -5788,7 +5774,7 @@ e('SshConnectionPool.lambda$expungeAllConnections$0', 'SshClientUtils.tryDisconn
 
 e('SubnetScanner.run', 'SubnetScanner.onFound', 'CALL',
   'run calls onFound when a computer is discovered to notify observer',
-  evidence='SRC SubnetScanner.java:125,168: onFound(computer) called from run method when computer is found')
+  evidence='SRC SubnetScanner.java:109,157: onFound(computer) called from run method when computer is found')
 
 UNREACHABLE['StreamSource.getFile'] = (
     'no_trigger_in_app',
@@ -6072,21 +6058,21 @@ e('ServiceWatcherUtil$1.<init>', 'ServiceWatcherUtil$1.run', 'FRAMEWORK', 'Handl
 e('CloudSheetFragment.onClick', 'SftpConnectDialog.<init>', 'CALL', 'CloudSheetFragment instantiates SftpConnectDialog to configure SFTP connection',
   evidence='SRC fragments/CloudSheetFragment.java:113 shows "SftpConnectDialog sftpConnectDialog = new SftpConnectDialog()"')
 e('SftpConnectDialog.<init>', 'SftpConnectDialog.onCreate', 'LIFECYCLE', 'Framework calls DialogFragment.onCreate',
-  evidence='SRC ui/dialogs/SftpConnectDialog.java:74 declares "extends DialogFragment"; INFERRED FragmentManager drives fragment lifecycle callbacks')
+  evidence='SRC ui/dialogs/SftpConnectDialog.java:75 declares "extends DialogFragment"; INFERRED FragmentManager drives fragment lifecycle callbacks')
 e('SftpConnectDialog.onCreate', 'SftpConnectDialog.onCreateDialog', 'LIFECYCLE', 'Framework calls DialogFragment.onCreateDialog to create the dialog',
-  evidence='SRC ui/dialogs/SftpConnectDialog.java:123 shows "@Override public Dialog onCreateDialog(Bundle savedInstanceState)"; INFERRED DialogFragment lifecycle')
+  evidence='SRC ui/dialogs/SftpConnectDialog.java:102 shows "@Override public Dialog onCreateDialog(Bundle savedInstanceState)"; INFERRED DialogFragment lifecycle')
 e('SftpConnectDialog.onCreateDialog', 'SftpConnectDialog.onActivityResult', 'RESULT', 'Framework delivers activity result when user picks SSH key file',
-  evidence='SRC ui/dialogs/SftpConnectDialog.java:334 shows startActivityForResult for ACTION_GET_CONTENT to pick key file; line 473 shows "@Override public void onActivityResult(int requestCode, int resultCode, Intent data)"; FW-SRC core/java/android/app/Activity.java (result delivered via ActivityThread.deliverResults)')
+  evidence='SRC ui/dialogs/SftpConnectDialog.java:146 shows startActivityForResult for ACTION_GET_CONTENT to pick key file; line 303 shows "@Override public void onActivityResult(int requestCode, int resultCode, Intent data)"; FW-SRC core/java/android/app/Activity.java (result delivered via ActivityThread.deliverResults)')
 
 # ShareAdapter.getItemId
-e('ShareTask.onPostExecute', 'ShareAdapter.<init>', 'CALL', 'MainActivityHelper.showSharingDialog creates ShareAdapter for share targets',
-  evidence='SRC utils/MainActivityHelper.java:320 shows "new ShareAdapter(activity, (ArrayList<ResolveInfo>) listAll)"')
+e('ShareTask.onPostExecute', 'ShareAdapter.<init>', 'CALL', 'ShareTask.onPostExecute creates ShareAdapter for share targets',
+  evidence='SRC utils/share/ShareTask.java:121 shows "ShareAdapter shareAdapter = new ShareAdapter(contextc, targetShareIntents, arrayList1, arrayList2)"')
 e('ShareAdapter.<init>', 'ShareAdapter.getItemId', 'FRAMEWORK', 'RecyclerView calls getItemId for stable IDs if hasStableIds is true',
   evidence='SRC utils/share/ShareAdapter.java:52 shows "@Override public long getItemId(int position)"; INFERRED RecyclerView.Adapter getItemId dispatch (androidx source not read)')
 
 # ShareAdapter.onBindViewHolder
 e('ShareAdapter.<init>', 'ShareAdapter.onBindViewHolder', 'FRAMEWORK', 'RecyclerView calls onBindViewHolder to bind data to ViewHolder',
-  evidence='SRC utils/share/ShareAdapter.java:61 shows "@Override public void onBindViewHolder(final ShareAdapter.ViewHolder holder, int position)"; INFERRED RecyclerView.Adapter binding lifecycle (androidx source not read)')
+  evidence='SRC utils/share/ShareAdapter.java:50 shows "@Override public void onBindViewHolder(final ShareAdapter.ViewHolder holder, int position)"; INFERRED RecyclerView.Adapter binding lifecycle (androidx source not read)')
 
 # ShareAdapter.onCreateViewHolder
 e('ShareAdapter.<init>', 'ShareAdapter.onCreateViewHolder', 'FRAMEWORK', 'RecyclerView calls onCreateViewHolder to create ViewHolder instances',
@@ -6094,17 +6080,17 @@ e('ShareAdapter.<init>', 'ShareAdapter.onCreateViewHolder', 'FRAMEWORK', 'Recycl
 
 # SshAuthenticationTask$1.getPrivate
 e('SshAuthenticationTask.doInBackground', 'SshAuthenticationTask$1.<init>', 'CALL', 'SshAuthenticationTask.doInBackground creates anonymous KeyPair wrapper',
-  evidence='SRC asynchronous/asynctasks/ssh/SshAuthenticationTask.java:89 shows "KeyPair keyPair = new KeyPair()"')
+  evidence='SRC asynchronous/asynctasks/ssh/SshAuthenticationTask.java:131 sshClient.authPublickey(username, new KeyProvider() {...})')
 e('SshAuthenticationTask$1.<init>', 'SshAuthenticationTask$1.getPrivate', 'CALL', 'SSHJ library calls getPrivate to retrieve private key for authentication',
   evidence='SRC asynchronous/asynctasks/ssh/SshAuthenticationTask.java:95 shows "public PrivateKey getPrivate()"; INFERRED SSHJ KeyProvider interface requires getPrivate method')
 
 # SshAuthenticationTask$1.getType
 e('SshAuthenticationTask$1.<init>', 'SshAuthenticationTask$1.getType', 'CALL', 'SSHJ library calls getType to determine key algorithm type',
-  evidence='SRC asynchronous/asynctasks/ssh/SshAuthenticationTask.java:100 shows "public KeyType getType()"; INFERRED SSHJ KeyProvider interface requires getType method')
+  evidence='SRC asynchronous/asynctasks/ssh/SshAuthenticationTask.java:143 shows "public KeyType getType()"; INFERRED SSHJ KeyProvider interface requires getType method')
 
 # SshAuthenticationTask.doInBackground
 e('SshAuthenticationTask.<init>(String,int,String,String,String,KeyPair)', 'SshAuthenticationTask.doInBackground', 'ASYNC', 'AsyncTask.execute runs doInBackground on worker thread',
-  evidence='SRC asynchronous/asynctasks/ssh/SshAuthenticationTask.java:107 shows "@Override protected AsyncTaskResult<SSHClient> doInBackground(Void... params)"; INFERRED AsyncTask lifecycle')
+  evidence='SRC asynchronous/asynctasks/ssh/SshAuthenticationTask.java:117 shows "@Override protected AsyncTaskResult<SSHClient> doInBackground(Void... params)"; INFERRED AsyncTask lifecycle')
 
 # SshAuthenticationTask.onPostExecute
 e('SshAuthenticationTask.doInBackground', 'SshAuthenticationTask.onPostExecute', 'ASYNC', 'AsyncTask runs onPostExecute on main thread after doInBackground completes',
@@ -6114,7 +6100,7 @@ e('SshAuthenticationTask.doInBackground', 'SshAuthenticationTask.onPostExecute',
 e('SshConnectionPool.removeConnection', 'SshConnectionPool$AsyncRemoveConnection.<init>', 'CALL', 'SshConnectionPool.shutdown creates AsyncRemoveConnection task to close SSH connections',
   evidence='SRC filesystem/ssh/SshConnectionPool.java:165 shows "new AsyncRemoveConnection().execute()"')
 e('SshConnectionPool$AsyncRemoveConnection.<init>', 'SshConnectionPool$AsyncRemoveConnection.doInBackground', 'ASYNC', 'AsyncTask.execute runs doInBackground on worker thread',
-  evidence='SRC filesystem/ssh/SshConnectionPool.java:218 shows "@Override protected Void doInBackground(Void... params)"; INFERRED AsyncTask lifecycle')
+  evidence='SRC filesystem/ssh/SshConnectionPool.java:291 shows "@Override protected Void doInBackground(Void... params)"; INFERRED AsyncTask lifecycle')
 
 # SubnetScanner$1.run
 e('SubnetScanner.run', 'SubnetScanner$1.<init>', 'CALL', 'SubnetScanner.run creates anonymous Runnable for device discovery callback',
@@ -6132,7 +6118,7 @@ e('SubnetScanner$Task.<init>', 'SubnetScanner$Task.call', 'ASYNC', 'ExecutorServ
 e('SmbSearchDialog.onCreateDialog', 'SubnetScanner.<init>', 'CALL', 'MainActivityHelper.searchLocal creates SubnetScanner for network scanning',
   evidence='SRC utils/MainActivityHelper.java:415 shows "SubnetScanner ss = new SubnetScanner(context)"')
 e('SubnetScanner.<init>', 'SubnetScanner.run', 'FRAMEWORK', 'ExecutorService dispatches Runnable.run on worker thread',
-  evidence='SRC utils/SubnetScanner.java:58 shows "public void run()"; utils/MainActivityHelper.java:416 shows "executor.execute(ss)"; INFERRED ExecutorService.execute runs Runnable on worker thread')
+  evidence='SRC ui/dialogs/SmbSearchDialog.java:109 subnetScanner.start(); SRC utils/SubnetScanner.java:84 public void run(); SubnetScanner extends Thread')
 
 # ---- part final_label_batch_03 (2024-10-28)
 # Batch 03 output - READ-ONLY helper slot 3
@@ -6287,7 +6273,7 @@ e('SevenZFile$1.<init>', 'SevenZFile$1.read(byte[],int,int)', 'CALL', 'Stream re
 e('SevenZFile$1.read()', 'SevenZFile$1.count', 'CALL', 'After reading from parent FilterInputStream, calls count() to track compressed bytes', evidence='SRC commons_compress_7z/.../sevenz/SevenZFile.java:1001-1007')
 e('SevenZFile$1.read(byte[])', 'SevenZFile$1.read(byte[],int,int)', 'CALL', 'read(byte[]) delegates to read(byte[],int,int) with full array bounds', evidence='SRC commons_compress_7z/.../sevenz/SevenZFile.java:1009-1011')
 e('SevenZFile$1.read(byte[],int,int)', 'SevenZFile$1.count', 'CALL', 'After reading from parent FilterInputStream, calls count() with number of bytes read', evidence='SRC commons_compress_7z/.../sevenz/SevenZFile.java:1013-1019')
-e('CryptUtil.encrypt', 'HybridFile.getOutputStream', 'CALL', 'encrypt opens an output stream on the target (decrypted-name-stripped) HybridFile to write the encrypted bytes', evidence='SRC utils/files/CryptUtil.java:246 BufferedOutputStream outputStream = new BufferedOutputStream(targetFile.getOutputStream(context), ...)')
+e('CryptUtil.encrypt', 'HybridFile.getOutputStream', 'CALL', 'encrypt opens an output stream on the target (decrypted-name-stripped) HybridFile to write the encrypted bytes', evidence='SRC utils/files/CryptUtil.java:247 BufferedOutputStream outputStream = new BufferedOutputStream(targetFile.getOutputStream(context), ...)')
 e('HybridFile.getOutputStream', 'HybridFile$11.<init>', 'CALL', 'getOutputStream case SFTP creates an anonymous SshClientTemplate(path,false)', evidence='SRC filesystem/HybridFile.java:1021 return SshClientUtils.execute(new SshClientTemplate(path, false) {')
 e('HybridFile.getOutputStream', 'SshClientUtils.execute(SshClientTemplate)', 'CALL', 'getOutputStream case SFTP passes the anonymous template to SshClientUtils.execute', evidence='SRC filesystem/HybridFile.java:1021 return SshClientUtils.execute(new SshClientTemplate(path, false) {')
 e('SshClientUtils.execute(SshClientTemplate)', 'SshConnectionPool.getConnection(String)', 'CALL', 'execute obtains a pooled/new SSHClient for template.url', evidence='SRC filesystem/ssh/SshClientUtils.java:72 client = SshConnectionPool.getInstance().getConnection(template.url);')
@@ -6651,3 +6637,56 @@ e('CompressedExplorerFragment$1.onActionItemClicked', 'Decompressor.decompress(S
 e('CompressedExplorerAdapter.lambda$onBindViewHolder$2', 'Decompressor.decompress(String,String[])@RarDecompressor', 'CALL',
   'Tap-to-extract on a .rar: the adapter decompressor is the RarDecompressor the fragment passes in (CompressedHelper.getCompressorInstance)',
   evidence='SRC adapters/CompressedExplorerAdapter.java:290 decompressor.decompress(...); SRC fragments/CompressedExplorerFragment.java:215,243')
+
+# B6 fix 2026-11-01: PrepareCopyTask reached via MainActivity paste case
+# (MainActivity.java:1029-1030), not via ZipService; AsyncTask completion edge.
+e('PrepareCopyTask.doInBackground', 'PrepareCopyTask.onPostExecute', 'FRAMEWORK',
+  'AsyncTask framework calls onPostExecute after doInBackground',
+  evidence='FW-SRC android/os/AsyncTask.java; SRC asynchronous/asynctasks/PrepareCopyTask.java:143-162 shows onPostExecute')
+
+# B6 fix 2026-11-01: ZipService.onBind reached via ProcessViewerFragment binding
+# (replaces the invalid refresh -> onBind edge).
+e('ProcessViewerFragment.onResume', 'ZipService.onBind', 'FRAMEWORK',
+  'Framework calls ZipService.onBind when ProcessViewerFragment binds the compress service',
+  evidence='SRC fragments/ProcessViewerFragment.java:165 getActivity().bindService(intent2, mCompressConnection, 0) for ZipService')
+
+# B6 fix 2026-11-01: PrepareCopyTask.onPreExecute lost its only incoming edge
+# when the bogus ZipService -> onPreExecute edge was deleted; the task genuinely
+# defines onPreExecute (PrepareCopyTask.java:83-86) and the framework calls it
+# when the MainActivity paste case executes the task (:1029-1030).
+e('MainActivity.onOptionsItemSelected', 'PrepareCopyTask.onPreExecute', 'FRAMEWORK',
+  'AsyncTask framework calls onPreExecute before doInBackground',
+  evidence='SRC asynchronous/asynctasks/PrepareCopyTask.java:83-86 shows onPreExecute; SRC activities/MainActivity.java:1029-1030 creates and executes PrepareCopyTask')
+
+# B6 round-2 fix 2026-11-01: valid AsyncTask edges replacing deleted bogus
+# ZipService$CompressAsyncTask.execute cross-task edges.
+e('MainFragment$6.<init>', 'MainFragment$6.doInBackground', 'ASYNC',
+  'AsyncTask.executeOnExecutor runs doInBackground on thread pool',
+  evidence='INFERRED android.os.AsyncTask.executeOnExecutor (platform source not read for this exact flow); SRC fragments/MainFragment.java:1653')
+e('DecryptService$BackgroundTask.<init>', 'DecryptService$BackgroundTask.doInBackground', 'ASYNC',
+  'AsyncTask.execute runs doInBackground on worker thread',
+  evidence='INFERRED android.os.AsyncTask.execute (platform source not read for this exact flow); SRC DecryptService.java:118')
+
+# B6 round-2 fix 2026-11-01: CloudStreamSource.read is read by the CLOUD
+# server's sendResponse (CloudStreamServer.java:838 open, :841 read loop),
+# not by the SMB StreamServer's sendResponse (deleted bogus edge).
+e('CloudStreamServer$HTTPSession.sendResponse', 'CloudStreamSource.read(byte[],int,int)', 'CALL',
+  'sendResponse reads the CloudStreamSource data into the socket output',
+  evidence='SRC cloud/CloudStreamServer.java:838,841')
+
+# B6 round-2 fix 2026-11-01: Glide flips from printed app source.
+# GlideRequest.listener: getPreloadRequestBuilder returns the GlideRequest
+# field (GlideApp.with().asDrawable().centerCrop(), then .load()), so
+# .listener() at :899/:945 virtually dispatches to GlideRequest.listener.
+e('RecyclerAdapter.showThumbnailWithBackground', 'GlideRequest.listener', 'CALL',
+  'getPreloadRequestBuilder returns GlideRequest; .listener dispatches to GlideRequest.listener',
+  evidence='SRC adapters/RecyclerAdapter.java:899')
+e('RecyclerAdapter.showRoundedThumbnail', 'GlideRequest.listener', 'CALL',
+  'getPreloadRequestBuilder returns GlideRequest; .listener dispatches to GlideRequest.listener',
+  evidence='SRC adapters/RecyclerAdapter.java:945')
+# IconDataParcelable.setImageBroken: method references passed as the
+# OnImageProcessed errorListener are invoked via errorListener.onImageProcessed
+# in both show* methods; setImageBroken(boolean) matches that signature.
+e('RecyclerAdapter.onBindViewHolder', 'IconDataParcelable.setImageBroken', 'CALL',
+  'method reference passed as OnImageProcessed errorListener; show methods invoke errorListener.onImageProcessed which dispatches to setImageBroken',
+  evidence='SRC adapters/RecyclerAdapter.java:596,599,609,724,733; SRC adapters/RecyclerAdapter.java:864,883,895,912,930,941; SRC adapters/glide/IconDataParcelable.java:43')

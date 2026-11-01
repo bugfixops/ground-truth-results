@@ -1,0 +1,258 @@
+METHOD: Indicator$PendingRevealAnimator$1.onAnimationEnd
+verdict: REACHABLE   steps_from_launch: 12
+route steps: 12 edges
+======================================================================
+
+STEP 1  edge E380fe171
+  S_ENTRY -> MainActivity.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC Activity.java onCreate lifecycle method
+  (no file:line citations in evidence)
+
+STEP 2  edge E45d73a86
+  MainActivity.onCreate -> MainActivity.goToMain
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainActivity.java:414,416,420 goToMain calls in async callback
+  cite [SRC] MainActivity.java:414, 416, 420
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/activities/MainActivity.java)
+      414:                                 goToMain(path);
+      416:                                 goToMain(null);
+      420:                             goToMain(null);
+
+STEP 3  edge E7708bb4d
+  MainActivity.goToMain -> TabFragment.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC activities/MainActivity.java:784
+  cite [SRC] activities/MainActivity.java:784
+      784:         TabFragment tabFragment = new TabFragment();
+
+STEP 4  edge E858ed758
+  TabFragment.<init> -> TabFragment.onCreateView
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED Fragment.onCreate; Fragment.onCreateView; INFERRED framework dispatch through TabFragment.onCreate (not an app method)
+  (no file:line citations in evidence)
+
+STEP 5  edge E87d702ca
+  TabFragment.onCreateView -> Indicator.setViewPager
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TabFragment.java:178 indicator.setViewPager(mViewPager); SRC Indicator.java:164-175
+  cite [SRC] TabFragment.java:178
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/fragments/TabFragment.java)
+      178:         if (indicator != null) indicator.setViewPager(mViewPager);
+  cite [SRC] Indicator.java:164-175
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/Indicator.java)
+      164: 
+      165:     public void setViewPager(ViewPager viewPager) {
+      166:         this.viewPager = viewPager;
+      167:         viewPager.addOnPageChangeListener(this);
+      168:         setPageCount(viewPager.getAdapter().getCount());
+      169:         viewPager.getAdapter().registerDataSetObserver(new DataSetObserver() {
+      170:             @Override
+      171:             public void onChanged() {
+      172:                 setPageCount(Indicator.this.viewPager.getAdapter().getCount());
+      173:             }
+      174:         });
+      175:         setCurrentPageImmediate();
+
+STEP 6  edge Eaf0b6e7a
+  Indicator.setViewPager -> Indicator.onPageSelected
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC Indicator.java:44 implements ViewPager.OnPageChangeListener; SRC Indicator.java:167 addOnPageChangeListener(this); SRC Indicator.java:199-208; INFERRED ViewPager calls listener.onPageSelected when page selected, source not read
+  cite [SRC] Indicator.java:44
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/Indicator.java)
+       44: public class Indicator extends View implements ViewPager.OnPageChangeListener,
+  cite [SRC] Indicator.java:167
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/Indicator.java)
+      167:         viewPager.addOnPageChangeListener(this);
+  cite [SRC] Indicator.java:199-208
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/Indicator.java)
+      199:     @Override
+      200:     public void onPageSelected(int position) {
+      201:         if (isAttachedToWindow) {
+      202:             // this is the main event we're interested in!
+      203:             setSelectedPage(position);
+      204:         } else {
+      205:             // when not attached, don't animate the move, just store immediately
+      206:             setCurrentPageImmediate();
+      207:         }
+      208:     }
+
+STEP 7  edge E022e525c
+  Indicator.onPageSelected -> Indicator.setSelectedPage
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC Indicator.java:203 setSelectedPage(position); SRC Indicator.java:548-577
+  cite [SRC] Indicator.java:203
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/Indicator.java)
+      203:             setSelectedPage(position);
+  cite [SRC] Indicator.java:548-577
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/Indicator.java)
+      548:     private void drawSelected(Canvas canvas) {
+      549:         canvas.drawCircle(selectedDotX, dotCenterY, dotRadius, selectedPaint);
+      550:     }
+      551: 
+      552:     private void setSelectedPage(int now) {
+      553:         if (now == currentPage) return;
+      554: 
+      555:         pageChanging = true;
+      556:         previousPage = currentPage;
+      557:         currentPage = now;
+      558:         final int steps = Math.abs(now - previousPage);
+      559: 
+      560:         if (steps > 1) {
+      561:             if (now > previousPage) {
+      562:                 for (int i = 0; i < steps; i++) {
+      563:                     setJoiningFraction(previousPage + i, 1f);
+      564:                 }
+      565:             } else {
+      566:                 for (int i = -1; i > -steps; i--) {
+      567:                     setJoiningFraction(previousPage + i, 1f);
+      568:                 }
+      569:             }
+      570:         }
+      571: 
+      572:         // create the anim to move the selected dot – this animator will kick off
+      573:         // retreat animations when it has moved 75% of the way.
+      574:         // The retreat animation in turn will kick of reveal anims when the
+      575:         // retreat has passed any dots to be revealed
+      576:         moveAnimation = createMoveSelectedAnimator(dotCenterX[now], previousPage, now, steps);
+      577:         moveAnimation.start();
+
+STEP 8  edge E5e5ec86b
+  Indicator.setSelectedPage -> Indicator.createMoveSelectedAnimator
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC Indicator.java:576 moveAnimation = createMoveSelectedAnimator(...); SRC Indicator.java:579-630
+  cite [SRC] Indicator.java:576
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/Indicator.java)
+      576:         moveAnimation = createMoveSelectedAnimator(dotCenterX[now], previousPage, now, steps);
+  cite [SRC] Indicator.java:579-630
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/Indicator.java)
+      579: 
+      580:     private ValueAnimator createMoveSelectedAnimator(
+      581:             final float moveTo, int was, int now, int steps) {
+      582: 
+      583:         // create the actual move animator
+      584:         ValueAnimator moveSelected = ValueAnimator.ofFloat(selectedDotX, moveTo);
+      585: 
+      586:         // also set up a pending retreat anim – this starts when the move is 75% complete
+      587:         retreatAnimation = new PendingRetreatAnimator(was, now, steps,
+      588:                 now > was ?
+      589:                         new RightwardStartPredicate(moveTo - ((moveTo - selectedDotX) * 0.25f)) :
+      590:                         new LeftwardStartPredicate(moveTo + ((selectedDotX - moveTo) * 0.25f)));
+      591:         retreatAnimation.addListener(new AnimatorListenerAdapter() {
+      592:             @Override
+      593:             public void onAnimationEnd(Animator animation) {
+      594:                 resetState();
+      595:                 pageChanging = false;
+      596:             }
+      597:         });
+      598:         moveSelected.addUpdateListener(valueAnimator -> {
+      599:             // todo avoid autoboxing
+      600:             selectedDotX = (Float) valueAnimator.getAnimatedValue();
+      601:             retreatAnimation.startIfNecessary(selectedDotX);
+      602:             postInvalidateOnAnimation();
+      603:         });
+      604:         moveSelected.addListener(new AnimatorListenerAdapter() {
+      605:             @Override
+      606:             public void onAnimationStart(Animator animation) {
+      607:                 // set a flag so that we continue to draw the unselected dot in the target position
+      608:                 // until the selected dot has finished moving into place
+      609:                 selectedDotInPosition = false;
+      610:             }
+      611: 
+      612:             @Override
+      613:             public void onAnimationEnd(Animator animation) {
+      614:                 // set a flag when anim finishes so that we don't draw both selected & unselected
+      615:                 // page dots
+      616:                 selectedDotInPosition = true;
+      617:             }
+      618:         });
+      619:         // slightly delay the start to give the joins a chance to run
+      620:         // unless dot isn't in position yet – then don't delay!
+      621:         moveSelected.setStartDelay(selectedDotInPosition ? animDuration / 4L : 0L);
+      622:         moveSelected.setDuration(animDuration * 3L / 4L);
+      623:         moveSelected.setInterpolator(interpolator);
+      624:         return moveSelected;
+      625:     }
+      626: 
+      627:     private void setJoiningFraction(int leftDot, float fraction) {
+      628:         if (leftDot < joiningFractions.length) {
+      629: 
+      630:             if (leftDot == 1) {
+
+STEP 9  edge Ee5fbfeac
+  Indicator.createMoveSelectedAnimator -> Indicator$PendingRetreatAnimator.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC Indicator.java:587 retreatAnimation = new PendingRetreatAnimator(was, now, steps, predicate)
+  cite [SRC] Indicator.java:587
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/Indicator.java)
+      587:         retreatAnimation = new PendingRetreatAnimator(was, now, steps,
+
+STEP 10  edge E80182c61
+  Indicator$PendingRetreatAnimator.<init> -> Indicator$PendingRevealAnimator.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC Indicator.java:708,725 revealAnimations[i] = new PendingRevealAnimator(was + i, predicate)
+  cite [SRC] Indicator.java:708, 725
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/Indicator.java)
+      708:                     revealAnimations[i] = new PendingRevealAnimator(was + i,
+      725:                     revealAnimations[i] = new PendingRevealAnimator(was - i,
+
+STEP 11  edge Eba4ef0f3
+  Indicator$PendingRevealAnimator.<init> -> Indicator$PendingRevealAnimator$1.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC Indicator.java:778-784 addListener(new AnimatorListenerAdapter() {...})
+  cite [SRC] Indicator.java:778-784
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/Indicator.java)
+      778:                 setDotRevealFraction(PendingRevealAnimator.this.dot,
+      779:                         (Float) valueAnimator.getAnimatedValue());
+      780:             });
+      781:             addListener(new AnimatorListenerAdapter() {
+      782:                 @Override
+      783:                 public void onAnimationEnd(Animator animation) {
+      784:                     setDotRevealFraction(PendingRevealAnimator.this.dot, 0f);
+
+STEP 12  edge E35472df8
+  Indicator$PendingRevealAnimator$1.<init> -> Indicator$PendingRevealAnimator$1.onAnimationEnd
+  class: standard   kind: ASYNC
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC Indicator.java:780-783 onAnimationEnd(Animator animation) method; INFERRED: framework source not read
+  cite [SRC] Indicator.java:780-783
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/Indicator.java)
+      780:             });
+      781:             addListener(new AnimatorListenerAdapter() {
+      782:                 @Override
+      783:                 public void onAnimationEnd(Animator animation) {

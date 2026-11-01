@@ -1,0 +1,90 @@
+METHOD: StreamNotFoundException.<init>(Throwable)
+verdict: REACHABLE   steps_from_launch: 7
+route steps: 7 edges
+======================================================================
+
+STEP 1  edge Edd3316a5
+  S_ENTRY -> TextEditorActivity.<init>
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: outside package: another app opens a text file with Amaze TextEditorActivity via ACTION_VIEW
+  evidence: SRC AndroidManifest.xml:129-144; FW-SRC core/java/android/app/Activity.java (Activity lifecycle callbacks dispatched by ActivityThread)
+  cite [SRC] AndroidManifest.xml:129-144
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/AndroidManifest.xml)
+      129:         <activity
+      130:             android:label="@string/textreader"
+      131:             android:name=".activities.TextEditorActivity"
+      132:             android:theme="@style/appCompatLight">
+      133:             <intent-filter
+      134:                 tools:ignore="AppLinkUrlError"
+      135:                 android:label="Amaze Text Editor">
+      136:                 <action android:name="android.intent.action.VIEW"/>
+      137:                 <category android:name="android.intent.category.DEFAULT" />
+      138:                 <data android:mimeType="text/*" />
+      139:                 <data android:mimeType="application/javascript" />
+      140:                 <data android:mimeType="application/json" />
+      141:                 <data android:mimeType="application/xml" />
+      142:             </intent-filter>
+      143: 
+      144:         </activity>
+
+STEP 2  edge E02683734
+  TextEditorActivity.<init> -> TextEditorActivity.onCreate
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED framework lifecycle
+  (no file:line citations in evidence)
+
+STEP 3  edge E74bea51a
+  TextEditorActivity.onCreate -> TextEditorActivity.onOptionsItemSelected
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC activities/TextEditorActivity.java:357; INFERRED Activity framework calls onOptionsItemSelected (Android SDK source not read)
+  cite [SRC] activities/TextEditorActivity.java:357
+      357:     public boolean onOptionsItemSelected(MenuItem item) {
+
+STEP 4  edge E01ac1173
+  TextEditorActivity.onOptionsItemSelected -> TextEditorActivity.saveFile
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC activities/TextEditorActivity.java:364 case R.id.save
+  cite [SRC] activities/TextEditorActivity.java:364
+      364:                 saveFile(mInput.getText().toString());
+
+STEP 5  edge Eb0b536de
+  TextEditorActivity.saveFile -> WriteFileAbstraction.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TextEditorActivity.java:262
+  cite [SRC] TextEditorActivity.java:262
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/activities/TextEditorActivity.java)
+      262:         new WriteFileAbstraction(this, getContentResolver(), mFile, editTextString, cacheFile,
+
+STEP 6  edge E27e0b09c
+  WriteFileAbstraction.<init> -> WriteFileAbstraction.doInBackground
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED source not read
+  (no file:line citations in evidence)
+
+STEP 7  edge E30a3675a
+  WriteFileAbstraction.doInBackground -> StreamNotFoundException.<init>(Throwable)
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC WriteFileAbstraction.java:69 (bytecode)
+  cite [SRC] WriteFileAbstraction.java:69
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/asynchronous/asynctasks/WriteFileAbstraction.java)
+       69:                         throw new StreamNotFoundException(e);

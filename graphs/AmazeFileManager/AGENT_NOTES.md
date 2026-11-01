@@ -520,3 +520,50 @@ C7 finish_01 00:02 R=2218 U=422 UNRES=341 errors=885 (down from 1211). Fixed reg
 - HybridFile$2.<init> stays UNREACHABLE no_trigger_in_app with its reason
   unchanged (already names the deprecated no-arg length() caller and the
   length(Context) evidence). Full record: scratch/check8_explained.md.
+
+## Finish run (2026-11-01, AmazeFileManager merger): B6 route checks
+- Sample seed 20261025, four draws (sample is route-sensitive; each fix
+  batch redrew it). Final draw stable across the last redraw: 30 of 2512
+  reachable methods, 226 distinct edges. Final tally: correct 5, fixed 25,
+  wrong 0, unclear 0; error rate 25/30 = 0.833. Table:
+  scratch/route_table.md; fix record: scratch/fix_log.md; prints:
+  scratch/route_print/ (30 files, final draw only); judgments working file:
+  scratch/route_judgments_work.md (not pushed).
+- Systematic defects found and fixed: (1) manifest ENTRY citations shifted
+  for all 8 services + receiver (batch v2); (2) ZipService.execute linked
+  to 7 unrelated tasks' doInBackground/onPostExecute (2 PrepareCopyTask
+  deleted in batch v2, 5 Decrypt/Encrypt/MainFragment$6 deleted in round-2;
+  valid <init> -> doInBackground edges added where the deletions required
+  them); (3) SMB -> CloudStreamSource cross-implementation edge deleted,
+  faithful CloudStreamServer sendResponse -> read edge added; (4) false
+  BasicActivity superclass cluster for TextEditorActivity/
+  DatabaseViewerActivity (both extend ThemedActivity) — 4 edges deleted,
+  ReturnedValues re-routed via ACTION_VIEW; the wider BasicActivity cluster
+  (MainActivity extends PermissionsActivity, PreferencesActivity extends
+  ThemedActivity) is FLAGGED for its own audit, not changed here;
+  (5) Ee1a rewired to the real onActionItemClicked -> decompress edge
+  (:329); E89e2cedd does not exist in the current graph (no change; $2-vs-$6
+  numbering stays OPEN).
+- Label flips from printed app source (round-2): GlideRequest.listener and
+  IconDataParcelable.setImageBroken UNREACHABLE -> REACHABLE (UNREACHABLE
+  entries deleted, incoming edges added with printed sites). Counts moved
+  2510/471 -> 2512/469. Held: GlideRequests.as (needs generated source not
+  on disk), GlideOptions x5 (zero app-source references on full-tree grep).
+- Builds: rebuild 2 (2510/471, checks 0), rebuild 4 (2512/469, checks 0
+  after the DecryptService basename-citation repair), rebuild 5 (2512/469,
+  checks 0), rebuild 6 FINAL (methods 2981, REACHABLE 2512, UNREACHABLE 469
+  — closed_by_api_level 9, framework_never_calls 38, no_trigger_in_app 422 —
+  edges 7758, errors 0, warnings 0; check 2: 0, check 3: 0, check 4: 0,
+  checks 5-7: 0, check 8: 3 of 469 — the B4-explained pairs;
+  verification.csv: missing, expected until B7).
+- Known issues carried as INPUT ONLY and now resolved or held (see
+  fix_log.md for the full record): Glide group resolved except as +
+  GlideOptions (held, reasons stated); E89e no-action; Ee1a rewired;
+  Section B items (LayoutElementParcelable.writeToParcel,
+  RoundedImageView.setBackgroundColor, SimpleTextWatcher x3,
+  TextEditorActivity.<init> ENV question) were NOT re-verified — none is on
+  a sampled route and none was flipped; they remain OPEN for a later pass
+  if a future sample touches them. Coverage contradictions (GlideOptions x5,
+  GlideRequest x8 incl. listener — now REACHABLE — GlideRequests.as,
+  setRequestOptions, LayoutElementParcelable.writeToParcel, etc.) were never
+  used to flip a label; listener flipped on printed source, not coverage.

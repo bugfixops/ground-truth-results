@@ -1,0 +1,152 @@
+METHOD: SshAuthenticationTask$1.getPublic
+verdict: REACHABLE   steps_from_launch: 12
+route steps: 12 edges
+======================================================================
+
+STEP 1  edge E6b899d64
+  S_ENTRY -> CopyService.<init>
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC AndroidManifest.xml:175-179; FW-SRC core/java/android/app/ActivityThread.java (Service lifecycle callbacks dispatched by ActivityThread)
+  cite [SRC] AndroidManifest.xml:175-179
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/AndroidManifest.xml)
+      175:         <service
+      176:             android:name = ".asynchronous.services.CopyService"
+      177:             android:label = "Copying"
+      178:             >
+      179:         </service>
+
+STEP 2  edge E1a11c9d3
+  CopyService.<init> -> HybridFile.mkdir
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC CopyService.java:446 targetFile.mkdir(c) in copyFiles; CopyService creates target directory during copy flow
+  cite [SRC] CopyService.java:446
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/asynchronous/services/CopyService.java)
+      446:                     if (!targetFile.exists()) targetFile.mkdir(c);
+
+STEP 3  edge E2893b094
+  HybridFile.mkdir -> SshClientUtils.execute(SFtpClientTemplate)
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC HybridFile.java:1156 (bytecode)
+  cite [SRC] HybridFile.java:1156
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/filesystem/HybridFile.java)
+     1156:             SshClientUtils.execute(new SFtpClientTemplate(path) {
+
+STEP 4  edge Ed4036ed5
+  SshClientUtils.execute(SFtpClientTemplate) -> SshClientUtils.execute(SshClientTemplate)
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC SshClientUtils.java:127 (bytecode)
+  cite [SRC] SshClientUtils.java:127
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/filesystem/ssh/SshClientUtils.java)
+      127:         return execute(new SshClientTemplate(template.url, false) {
+
+STEP 5  edge Eb25bb213
+  SshClientUtils.execute(SshClientTemplate) -> SshConnectionPool.getConnection(String)
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC filesystem/ssh/SshClientUtils.java:72 client = SshConnectionPool.getInstance().getConnection(template.url);
+  cite [SRC] filesystem/ssh/SshClientUtils.java:72
+       72:             client = SshConnectionPool.getInstance().getConnection(template.url);
+
+STEP 6  edge Ea09956cb
+  SshConnectionPool.getConnection(String) -> SshConnectionPool.create(String)
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC filesystem/ssh/SshConnectionPool.java:108-124, calls at lines 113 and 121: client = create(url);
+  cite [SRC] filesystem/ssh/SshConnectionPool.java:108-124
+      108:     public SSHClient getConnection(@NonNull String url)  {
+      109:         url = SshClientUtils.extractBaseUriFrom(url);
+      110: 
+      111:         SSHClient client = connections.get(url);
+      112:         if(client == null) {
+      113:             client = create(url);
+      114:             if(client != null)
+      115:                 connections.put(url, client);
+      116:         } else {
+      117:             if(!validate(client)) {
+      118:                 Log.d(TAG, "Connection no longer usable. Reconnecting...");
+      119:                 expire(client);
+      120:                 connections.remove(url);
+      121:                 client = create(url);
+      122:                 if(client != null)
+      123:                     connections.put(url, client);
+      124:             }
+
+STEP 7  edge E8fc7f103
+  SshConnectionPool.create(String) -> SshConnectionPool.create(String,int,String,String,String,KeyPair)
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC SshConnectionPool.java:213 (bytecode)
+  cite [SRC] SshConnectionPool.java:213
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/filesystem/ssh/SshConnectionPool.java)
+      213:         return create(connInfo.host, connInfo.port, hostKey, connInfo.username, connInfo.password,
+
+STEP 8  edge Eaf0babf6
+  SshConnectionPool.create(String,int,String,String,String,KeyPair) -> SshAuthenticationTask.<init>(String,int,String,String,String,KeyPair)
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC SshConnectionPool.java:222 (bytecode)
+  cite [SRC] SshConnectionPool.java:222
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/filesystem/ssh/SshConnectionPool.java)
+      222:             AsyncTaskResult<SSHClient> taskResult = new SshAuthenticationTask(host, port,
+
+STEP 9  edge E6202e994
+  SshAuthenticationTask.<init>(String,int,String,String,String,KeyPair) -> SshAuthenticationTask.doInBackground
+  class: standard   kind: ASYNC
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC asynchronous/asynctasks/ssh/SshAuthenticationTask.java:117 shows "@Override protected AsyncTaskResult<SSHClient> doInBackground(Void... params)"; INFERRED AsyncTask lifecycle
+  cite [SRC] asynchronous/asynctasks/ssh/SshAuthenticationTask.java:117
+      117:     protected AsyncTaskResult<SSHClient> doInBackground(Void... voids) {
+
+STEP 10  edge E791408d8
+  SshAuthenticationTask.doInBackground -> SshAuthenticationTask$1.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC SshAuthenticationTask.java:131: sshClient.authPublickey(username, new KeyProvider() {...});
+  cite [SRC] SshAuthenticationTask.java:131
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/asynchronous/asynctasks/ssh/SshAuthenticationTask.java)
+      131:                 sshClient.authPublickey(username, new KeyProvider() {
+
+STEP 11  edge Ea364138c
+  SshAuthenticationTask$1.<init> -> SshAuthenticationTask$1.getType
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC asynchronous/asynctasks/ssh/SshAuthenticationTask.java:143 shows "public KeyType getType()"; INFERRED SSHJ KeyProvider interface requires getType method
+  cite [SRC] asynchronous/asynctasks/ssh/SshAuthenticationTask.java:143
+      143:                     public KeyType getType() {
+
+STEP 12  edge E7f65d2ff
+  SshAuthenticationTask$1.getType -> SshAuthenticationTask$1.getPublic
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC SshAuthenticationTask.java:144: return KeyType.fromKey(getPublic());
+  cite [SRC] SshAuthenticationTask.java:144
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/asynchronous/asynctasks/ssh/SshAuthenticationTask.java)
+      144:                         return KeyType.fromKey(getPublic());

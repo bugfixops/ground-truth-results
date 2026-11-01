@@ -1,0 +1,250 @@
+METHOD: StreamSource.getCurrentPosition
+verdict: REACHABLE   steps_from_launch: 17
+route steps: 17 edges
+======================================================================
+
+STEP 1  edge E380fe171
+  S_ENTRY -> MainActivity.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC Activity.java onCreate lifecycle method
+  (no file:line citations in evidence)
+
+STEP 2  edge E45d73a86
+  MainActivity.onCreate -> MainActivity.goToMain
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainActivity.java:414,416,420 goToMain calls in async callback
+  cite [SRC] MainActivity.java:414, 416, 420
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/activities/MainActivity.java)
+      414:                                 goToMain(path);
+      416:                                 goToMain(null);
+      420:                             goToMain(null);
+
+STEP 3  edge E7708bb4d
+  MainActivity.goToMain -> TabFragment.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC activities/MainActivity.java:784
+  cite [SRC] activities/MainActivity.java:784
+      784:         TabFragment tabFragment = new TabFragment();
+
+STEP 4  edge E858ed758
+  TabFragment.<init> -> TabFragment.onCreateView
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED Fragment.onCreate; Fragment.onCreateView; INFERRED framework dispatch through TabFragment.onCreate (not an app method)
+  (no file:line citations in evidence)
+
+STEP 5  edge Ef643161a
+  TabFragment.onCreateView -> MainFragment.<init>
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC fragments/TabFragment.java:113-141 (onCreateView calls addNewTab/addTab); SRC fragments/TabFragment.java:351 (addTab creates MainFragment); INFERRED androidx.fragment.app.FragmentManager drives fragment lifecycle callbacks (androidx source not read)
+  cite [SRC] fragments/TabFragment.java:113-141
+      113:                     addNewTab(1, mainActivity.getDrawer().getFirstPath());
+      114:                 } else {
+      115:                     if (mainActivity.getDrawer().getSecondPath() != null) {
+      116:                         addNewTab(1, mainActivity.getDrawer().getSecondPath());
+      117:                     } else {
+      118:                         sharedPrefs.edit().putBoolean(PreferencesConstants.PREFERENCE_ROOTMODE, true).apply();
+      119:                         addNewTab(1,  "/");
+      120:                     }
+      121:                 }
+      122: 
+      123:                 if (mainActivity.getDrawer().getSecondPath() != null) {
+      124:                     addNewTab(2, mainActivity.getDrawer().getSecondPath());
+      125:                 } else {
+      126:                     addNewTab(2, mainActivity.getDrawer().getFirstPath());
+      127:                 }
+      128:             } else {
+      129:                 if (path != null && path.length() != 0) {
+      130:                     if (lastOpenTab == 0) {
+      131:                         addTab(tab1, path);
+      132:                         addTab(tab2, "");
+      133:                     }
+      134: 
+      135:                     if (lastOpenTab == 1) {
+      136:                         addTab(tab1, "");
+      137:                         addTab(tab2, path);
+      138:                     }
+      139:                 } else {
+      140:                     addTab(tab1, "");
+      141:                     addTab(tab2, "");
+  cite [SRC] fragments/TabFragment.java:351
+      351:         Fragment main = new MainFragment();
+
+STEP 6  edge Eca1daae6
+  MainFragment.<init> -> CloudUtil.launchCloud
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC fragments/MainFragment.java:930 CloudUtil.launchCloud(...) in onListItemClicked (cloud case); MainFragment item click launches cloud stream
+  cite [SRC] fragments/MainFragment.java:930
+      930:                                 CloudUtil.launchCloud(e.generateBaseFile(), openMode, getMainActivity());
+
+STEP 7  edge E0efd1a91
+  CloudUtil.launchCloud -> CloudStreamer.getInstance
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC CloudUtil.java:135
+  cite [SRC] CloudUtil.java:135
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/utils/cloud/CloudUtil.java)
+      135:         final CloudStreamer streamer = CloudStreamer.getInstance();
+
+STEP 8  edge E2bae6b5f
+  CloudStreamer.getInstance -> CloudStreamServer.<init>(int,File)
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC CloudStreamer.java:34-39
+  cite [SRC] CloudStreamer.java:34-39
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/utils/cloud/CloudStreamer.java)
+       34:     public static CloudStreamer getInstance() {
+       35:         if (instance == null)
+       36:             try {
+       37:                 instance = new CloudStreamer(PORT);
+       38:             } catch (IOException e) {
+       39:                 e.printStackTrace();
+
+STEP 9  edge Ea3d46d6b
+  CloudStreamServer.<init>(int,File) -> CloudStreamServer.lambda$new$0
+  class: standard   kind: SYSTEM
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC CloudStreamServer.java:204-220
+  cite [SRC] CloudStreamServer.java:204-220
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/utils/cloud/CloudStreamServer.java)
+      204:             try {
+      205:                 while (true) {
+      206:                     /*
+      207:                     if(session!=null){
+      208:                         session.interrupt();
+      209:                           try {
+      210:                             session.join();
+      211:                           } catch (InterruptedException e) {
+      212:                                 e.printStackTrace();
+      213:                           }
+      214:                       }
+      215:                     */
+      216:                     Socket accept = myServerSocket.accept();
+      217:                     new HTTPSession(accept);
+      218:                 }
+      219:             } catch (IOException ioe) {
+      220:             }
+
+STEP 10  edge E5cedbf3a
+  CloudStreamServer.lambda$new$0 -> CloudStreamServer$HTTPSession.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC CloudStreamServer.java:217-218
+  cite [SRC] CloudStreamServer.java:217-218
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/utils/cloud/CloudStreamServer.java)
+      217:                     new HTTPSession(accept);
+      218:                 }
+
+STEP 11  edge Eb3e8d874
+  CloudStreamServer$HTTPSession.<init> -> CloudStreamServer$HTTPSession.run
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC CloudStreamServer.java:330-339
+  cite [SRC] CloudStreamServer.java:330-339
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/utils/cloud/CloudStreamServer.java)
+      330:         private InputStream is;
+      331:         private final Socket socket;
+      332: 
+      333:         public HTTPSession( Socket s )
+      334:         {
+      335:             socket = s;
+      336:             //mySocket = s;
+      337:             Thread t = new Thread( this );
+      338:             t.setDaemon( true );
+      339:             t.start();
+
+STEP 12  edge E6d9f4118
+  CloudStreamServer$HTTPSession.run -> CloudStreamServer$HTTPSession.handleResponse
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC CloudStreamServer.java:346
+  cite [SRC] CloudStreamServer.java:346
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/utils/cloud/CloudStreamServer.java)
+      346:                 handleResponse(socket);
+
+STEP 13  edge Ebf580047
+  CloudStreamServer$HTTPSession.handleResponse -> CloudStreamer.serve
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC CloudStreamServer.java:491 serve(...) called in handleResponse; serve is abstract (CloudStreamServer.java:92), overridden in CloudStreamer (polymorphic dispatch)
+  cite [SRC] CloudStreamServer.java:491
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/utils/cloud/CloudStreamServer.java)
+      491:                 Response r = serve( uri, method, header, parms, files );
+  cite [SRC] CloudStreamServer.java:92
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/utils/cloud/CloudStreamServer.java)
+       92:     public abstract Response serve( String uri, String method, Properties header, Properties parms, Properties files );
+
+STEP 14  edge Ef26433e0
+  CloudStreamer.serve -> CloudStreamSource.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC CloudStreamer.java:89
+  cite [SRC] CloudStreamer.java:89
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/utils/cloud/CloudStreamer.java)
+       89:             final CloudStreamSource source = new CloudStreamSource(fileName, length, inputStream);
+
+STEP 15  edge E318018b6
+  CloudStreamSource.<init> -> RandomAccessStream.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC CloudStreamSource.java:19 (bytecode)
+  cite [SRC] CloudStreamSource.java:19
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/utils/cloud/CloudStreamSource.java)
+       19:         super(length);
+
+STEP 16  edge E9973302d
+  RandomAccessStream.<init> -> RandomAccessStream.mark
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC RandomAccessStream.java:15 (bytecode)
+  cite [SRC] RandomAccessStream.java:15
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/utils/streams/RandomAccessStream.java)
+       15:         mark(-1);
+
+STEP 17  edge E8dfb6cc8
+  RandomAccessStream.mark -> StreamSource.getCurrentPosition
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC RandomAccessStream.java:29 (bytecode)
+  cite [SRC] RandomAccessStream.java:29
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/utils/streams/RandomAccessStream.java)
+       29:         markedPosition = getCurrentPosition();

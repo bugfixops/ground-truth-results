@@ -267,19 +267,11 @@ e('BasicActivity.<init>', 'PreferencesActivity.onCreate', 'LIFECYCLE', 'Activity
 
 # TextEditorActivity
 e('S_ENTRY', 'TextEditorActivity.<init>', 'ENTRY', 'Another app opens text file with Amaze (ACTION_VIEW text/*)',
-  evidence='SRC AndroidManifest.xml:115-125; ' + FW_ACTIVITY, env=ENV_TEXT_VIEW)
-e('TextEditorActivity.<init>', 'BasicActivity.<init>', 'LIFECYCLE', 'TextEditorActivity extends BasicActivity',
-  evidence='SRC activities/TextEditorActivity.java (need to read)')
-e('BasicActivity.<init>', 'TextEditorActivity.onCreate', 'LIFECYCLE', 'Activity.onCreate',
-  evidence=FW_ACTIVITY)
+  evidence='SRC AndroidManifest.xml:129-144; ' + FW_ACTIVITY, env=ENV_TEXT_VIEW)
 
 # DatabaseViewerActivity  
 e('S_ENTRY', 'DatabaseViewerActivity.<init>', 'ENTRY', 'Another app opens database file with Amaze (ACTION_VIEW db/*)',
   evidence='SRC AndroidManifest.xml:126-136; ' + FW_ACTIVITY, env=ENV_DB_VIEW)
-e('DatabaseViewerActivity.<init>', 'BasicActivity.<init>', 'LIFECYCLE', 'DatabaseViewerActivity extends BasicActivity',
-  evidence='SRC activities/DatabaseViewerActivity.java (need to read)')
-e('BasicActivity.<init>', 'DatabaseViewerActivity.onCreate', 'LIFECYCLE', 'Activity.onCreate',
-  evidence=FW_ACTIVITY)
 
 
 # ================================================================== E. services
@@ -288,56 +280,56 @@ e('BasicActivity.<init>', 'DatabaseViewerActivity.onCreate', 'LIFECYCLE', 'Activ
 # Service lifecycle: <init> -> onCreate -> onStartCommand (for started services) / onBind (for bound services)
 
 e('S_ENTRY', 'ExtractService.<init>', 'ENTRY', 'Extract service started for archive extraction',
-  evidence='SRC AndroidManifest.xml:143-147; ' + FW_SERVICE)
+  evidence='SRC AndroidManifest.xml:165-169; ' + FW_SERVICE)
 e('ExtractService.<init>', 'ExtractService.onCreate', 'LIFECYCLE', 'Service.onCreate',
   evidence=FW_SERVICE + '; SRC ExtractService.java (need to read)')
 e('ExtractService.onCreate', 'ExtractService.onStartCommand', 'LIFECYCLE', 'Service.onStartCommand for started service',
   evidence=FW_SERVICE)
 
 e('S_ENTRY', 'ZipService.<init>', 'ENTRY', 'Zip service started for archive compression',
-  evidence='SRC AndroidManifest.xml:148-152; ' + FW_SERVICE)
+  evidence='SRC AndroidManifest.xml:170-174; ' + FW_SERVICE)
 e('ZipService.<init>', 'ZipService.onCreate', 'LIFECYCLE', 'Service.onCreate',
   evidence=FW_SERVICE)
 e('ZipService.onCreate', 'ZipService.onStartCommand', 'LIFECYCLE', 'Service.onStartCommand',
   evidence=FW_SERVICE)
 
 e('S_ENTRY', 'CopyService.<init>', 'ENTRY', 'Copy service started for file operations',
-  evidence='SRC AndroidManifest.xml:153-157; ' + FW_SERVICE)
+  evidence='SRC AndroidManifest.xml:175-179; ' + FW_SERVICE)
 e('CopyService.<init>', 'CopyService.onCreate', 'LIFECYCLE', 'Service.onCreate',
   evidence=FW_SERVICE + '; SRC CopyService.java:100')
 e('CopyService.onCreate', 'CopyService.onStartCommand', 'LIFECYCLE', 'Service.onStartCommand',
   evidence=FW_SERVICE)
 
 e('S_ENTRY', 'EncryptService.<init>', 'ENTRY', 'Encrypt service started for file encryption',
-  evidence='SRC AndroidManifest.xml:159-161; ' + FW_SERVICE)
+  evidence='SRC AndroidManifest.xml:181-183; ' + FW_SERVICE)
 e('EncryptService.<init>', 'EncryptService.onCreate', 'LIFECYCLE', 'Service.onCreate',
   evidence=FW_SERVICE)
 e('EncryptService.onCreate', 'EncryptService.onStartCommand', 'LIFECYCLE', 'Service.onStartCommand',
   evidence=FW_SERVICE)
 
 e('S_ENTRY', 'DecryptService.<init>', 'ENTRY', 'Decrypt service started for file decryption',
-  evidence='SRC AndroidManifest.xml:163-165; ' + FW_SERVICE)
+  evidence='SRC AndroidManifest.xml:185-187; ' + FW_SERVICE)
 e('DecryptService.<init>', 'DecryptService.onCreate', 'LIFECYCLE', 'Service.onCreate',
   evidence=FW_SERVICE)
 e('DecryptService.onCreate', 'DecryptService.onStartCommand', 'LIFECYCLE', 'Service.onStartCommand',
   evidence=FW_SERVICE)
 
 e('S_ENTRY', 'FtpService.<init>', 'ENTRY', 'FTP server service started or bound',
-  evidence='SRC AndroidManifest.xml:167-172; ' + FW_SERVICE, env=ENV_FTP_NETWORK)
+  evidence='SRC AndroidManifest.xml:189-194; ' + FW_SERVICE, env=ENV_FTP_NETWORK)
 
 e('S_ENTRY', 'FtpTileService.<init>', 'ENTRY', 'FTP quick-settings tile service bound by system',
-  evidence='SRC AndroidManifest.xml:174-182; ' + FW_SERVICE, env=ENV_FTP_TILE)
+  evidence='SRC AndroidManifest.xml:195-203; ' + FW_SERVICE, env=ENV_FTP_TILE)
 # TileService uses onClick, not onStartCommand
 
 # ================================================================== F. receivers
 
 e('S_ENTRY', 'FtpReceiver.<init>', 'ENTRY', 'FtpReceiver receives ACTION_START_FTPSERVER broadcast',
-  evidence='SRC AndroidManifest.xml:184-192; ' + FW_RECEIVER, env=ENV_FTP_START)
+  evidence='SRC AndroidManifest.xml:205-213; ' + FW_RECEIVER, env=ENV_FTP_START)
 e('FtpReceiver.<init>', 'FtpReceiver.onReceive', 'LIFECYCLE', 'BroadcastReceiver.onReceive',
   evidence=FW_RECEIVER)
 
 e('S_ENTRY', 'FtpReceiver.<init>@STOP', 'ENTRY', 'FtpReceiver receives ACTION_STOP_FTPSERVER broadcast',
-  evidence='SRC AndroidManifest.xml:184-192; ' + FW_RECEIVER, env=ENV_FTP_STOP)
+  evidence='SRC AndroidManifest.xml:205-213; ' + FW_RECEIVER, env=ENV_FTP_STOP)
 e('FtpReceiver.<init>@STOP', 'FtpReceiver.onReceive@STOP', 'LIFECYCLE', 'BroadcastReceiver.onReceive',
   evidence=FW_RECEIVER)
 
@@ -349,7 +341,7 @@ e('FtpReceiver.<init>@STOP', 'FtpReceiver.onReceive@STOP', 'LIFECYCLE', 'Broadca
 # MainActivity.onCreate runs an AsyncTask to load data, then in onPostExecute calls goToMain
 # which creates TabFragment, which in turn creates MainFragment
 e('MainActivity.onCreate', 'MainActivity$1.<init>', 'CALL', 'create AsyncTask for data loading',
-  evidence='SRC activities/MainActivity.java:372-427')
+  evidence='SRC activities/MainActivity.java:366')
 e('MainActivity$1.<init>', 'MainActivity$1.doInBackground', 'LIFECYCLE', 'AsyncTask.doInBackground',
   evidence=FW_ASYNC)
 e('MainActivity$1.doInBackground', 'MainActivity$1.onPostExecute', 'LIFECYCLE', 'AsyncTask.onPostExecute',
@@ -362,7 +354,7 @@ e('MainActivity.goToMain', 'TabFragment.<init>', 'CALL', 'create TabFragment',
 # TabFragment lifecycle and MainFragment creation
 # TabFragment creates MainFragment (need to read TabFragment source to verify)
 e('TabFragment.onCreateView', 'MainFragment.<init>', 'FRAMEWORK', 'TabFragment creates MainFragment',
-  evidence='SRC fragments/TabFragment.java (need to read); ' + FW_FRAG)
+  evidence='SRC fragments/TabFragment.java:113-141 (onCreateView calls addNewTab/addTab); SRC fragments/TabFragment.java:351 (addTab creates MainFragment); ' + FW_FRAG)
 
 # MainFragment lifecycle
 e('MainFragment.<init>', 'MainFragment.onCreate', 'LIFECYCLE', 'Fragment.onCreate',
@@ -527,7 +519,7 @@ e('AmazeFileManagerModule.<init>', 'AmazeFileManagerModule.registerComponents', 
 
 e('AmazeFileManagerModule.registerComponents', 'ApkImageModelLoaderFactory.<init>', 'CALL',
   'registerComponents creates ApkImageModelLoaderFactory',
-  evidence='SRC AmazeFileManagerModule.java:22')
+  evidence='SRC AmazeFileManagerModule.java:21')
 
 # AnimUtils
 
@@ -539,7 +531,7 @@ e('AnimUtils.marqueeAfterDelay', 'AnimUtils.lambda$marqueeAfterDelay$0', 'CALL',
 # ApkImage Glide loaders
 e('ApkImageModelLoaderFactory.build', 'ApkImageModelLoader.<init>', 'CALL',
   'Factory.build creates ApkImageModelLoader',
-  evidence='SRC ApkImageModelLoaderFactory.java:23')
+  evidence='SRC ApkImageModelLoaderFactory.java:25')
 
 e('ApkImageModelLoaderFactory.<init>', 'ApkImageModelLoaderFactory.build', 'FRAMEWORK',
   'Glide calls build on ModelLoaderFactory',
@@ -1182,7 +1174,7 @@ e('MoveFiles.doInBackground', 'MoveFiles.onPostExecute', 'FRAMEWORK',
   evidence='INFERRED source not read')
 
 # PrepareCopyTask
-e('MainActivity.onActivityResult', 'PrepareCopyTask.doInBackground', 'FRAMEWORK',
+e('MainActivity.onOptionsItemSelected', 'PrepareCopyTask.doInBackground', 'FRAMEWORK',
   'MainActivity instantiates PrepareCopyTask',
   evidence='SRC MainActivity.java:1029')
 e('PrepareCopyTask.doInBackground', 'PrepareCopyTask.checkConflicts', 'CALL',
@@ -1648,8 +1640,6 @@ e('SevenZFile.readHeaders', 'Coder.<init>', 'CALL', 'new Coder()',
 # ---- Batch 008 label part (2026-10-27)
 
 # CloudIconModelFactory methods
-e('CloudIconModelFactory.<init>', 'CloudIconModelLoader.<init>', 'CALL', 'Glide factory creates loader',
-  evidence='SRC CloudIconModelFactory.java:18-20')
 e('CloudIconModelFactory.build', 'CloudIconModelLoader.<init>', 'CALL', 'Factory builds CloudIconModelLoader',
   evidence='SRC CloudIconModelFactory.java:23-26')
 
@@ -1693,9 +1683,9 @@ e('CloudStreamServer.lambda$new$0', 'CloudStreamServer$HTTPSession.<init>', 'CAL
 
 # HTTPSession - created per client connection
 e('CloudStreamServer$HTTPSession.<init>', 'CloudStreamServer$HTTPSession.run', 'LIFECYCLE', 'Creates thread and calls run',
-  evidence='SRC CloudStreamServer.java:330-338')
+  evidence='SRC CloudStreamServer.java:330-339')
 e('CloudStreamServer$HTTPSession.run', 'CloudStreamServer$HTTPSession.handleResponse', 'CALL', 'HTTPSession.run calls handleResponse',
-  evidence='SRC CloudStreamServer.java:358-361')
+  evidence='SRC CloudStreamServer.java:346')
 e('CloudStreamServer$HTTPSession.handleResponse', 'CloudStreamServer$HTTPSession.decodeHeader', 'CALL', 'Parses HTTP headers',
   evidence='SRC CloudStreamServer.java:385')
 e('CloudStreamServer$HTTPSession.handleResponse', 'CloudStreamServer$HTTPSession.sendError', 'CALL', 'Sends error on invalid request',
@@ -1888,7 +1878,7 @@ e('CloudIconDataFetcher.<init>', 'CloudIconDataFetcher.cleanup',
 
 e('CloudIconDataFetcher.<init>', 'CloudIconDataFetcher.cancel',
   'FRAMEWORK', 'Glide framework lifecycle: cancel called if load is cancelled',
-  evidence='SRC com/amaze/filemanager/utils/glide/CloudIconDataFetcher.java:52-54, INFERRED (Glide DataFetcher interface)')
+  evidence='SRC com/amaze/filemanager/utils/glide/CloudIconDataFetcher.java:55-58, INFERRED (Glide DataFetcher interface)')
 
 e('CloudIconDataFetcher.<init>', 'CloudIconDataFetcher.getDataClass',
   'FRAMEWORK', 'Glide framework lifecycle: getDataClass called to determine output type',
@@ -2244,7 +2234,7 @@ e('DecryptService.onStartCommand', 'CryptUtil.<init>(Context,HybridFileParcelabl
   evidence='SRC DecryptService.java:149')
 
 e('CryptUtil.<init>(Context,HybridFileParcelable,ProgressHandler,ArrayList,String)', 'CryptUtil.encrypt', 'CALL', 'Encryption constructor calls encrypt',
-  evidence='SRC CryptUtil.java:124')
+  evidence='SRC CryptUtil.java:125')
 
 e('CryptUtil.<init>(Context,HybridFileParcelable,String,ProgressHandler,ArrayList)', 'CryptUtil.decrypt', 'CALL', 'Decryption constructor calls decrypt',
   evidence='SRC CryptUtil.java:152')
@@ -2576,9 +2566,6 @@ e('DecryptService.onStartCommand', 'DecryptService$BackgroundTask.<init>', 'CALL
 
 
 
-e('ZipService$CompressAsyncTask.execute', 'DecryptService$BackgroundTask.doInBackground', 'FRAMEWORK',
-  'AsyncTask framework calls doInBackground on background thread',
-  evidence='FW-SRC core/java/android/os/AsyncTask.java:333')
 
 e('DecryptService$BackgroundTask.doInBackground', 'DecryptService$BackgroundTask.lambda$doInBackground$0', 'CALL',
   'doInBackground sets progress listener with lambda',
@@ -2733,14 +2720,10 @@ e('EncryptService.onCreate', 'EncryptService$1.<init>', 'CALL', 'Creates anonymo
 e('EncryptService.onStartCommand', 'EncryptService$BackgroundTask.<init>', 'CALL', 'onStartCommand creates BackgroundTask to perform encryption',
   evidence='SRC EncryptService.java:117 shows new BackgroundTask().execute()')
 
-e('ZipService$CompressAsyncTask.execute', 'EncryptService$BackgroundTask.doInBackground', 'ASYNC', 'AsyncTask framework calls doInBackground on worker thread',
-  evidence='SRC EncryptService.java:176-203 shows @Override doInBackground(Void... params) performing encryption via CryptUtil')
 
 e('EncryptService$BackgroundTask.doInBackground', 'EncryptService$BackgroundTask.lambda$doInBackground$0', 'CALL', 'doInBackground sets lambda as progress listener callback',
   evidence='SRC EncryptService.java:182 shows progressHandler.setProgressListener((speed) -> publishResults(speed, false, false))')
 
-e('ZipService$CompressAsyncTask.execute', 'EncryptService$BackgroundTask.onPostExecute', 'ASYNC', 'AsyncTask framework calls onPostExecute on UI thread after completion',
-  evidence='SRC EncryptService.java:205-207 shows @Override onPostExecute(Void aVoid) finalizing notification and calling stopSelf()')
 
 # UNREACHABLE methods
 UNREACHABLE_PART_B023 = {
@@ -3358,7 +3341,7 @@ e('FtpServerFragment.onFtpReceiveActions', 'FtpNotification.updateNotification',
 
 e('FtpNotification.updateNotification', 'FtpNotification.buildNotification', 'CALL',
   'updateNotification calls buildNotification',
-  evidence='SRC FtpNotification.java:84-85 NotificationCompat.Builder builder = buildNotification(...)')
+  evidence='SRC FtpNotification.java:88-89 NotificationCompat.Builder builder = buildNotification(...)')
 
 # FoldersPref - PreferenceFragment for managing bookmark folders
 e('PreferencesActivity.selectItem', 'FoldersPref.onCreate', 'LIFECYCLE',
@@ -3485,15 +3468,15 @@ e('FtpServerFragment.onCreateView', 'FtpServerFragment.updateStatus', 'CALL', 'o
 
 # FtpServerFragment.startServer called from button click
 e('FtpServerFragment.lambda$onCreateView$0', 'FtpServerFragment.startServer', 'CALL', 'Button click lambda calls startServer',
-  evidence='SRC FtpServerFragment.java:132')
+  evidence='SRC FtpServerFragment.java:137')
 
 # FtpServerFragment.stopServer called from button click
 e('FtpServerFragment.lambda$onCreateView$0', 'FtpServerFragment.stopServer', 'CALL', 'Button click lambda calls stopServer',
-  evidence='SRC FtpServerFragment.java:139')
+  evidence='SRC FtpServerFragment.java:144')
 
 # FtpServerFragment.lambda$onCreateView$0 - button click handler
 e('FtpServerFragment.onCreateView', 'FtpServerFragment.lambda$onCreateView$0', 'FRAMEWORK', 'ftpBtn setOnClickListener registers lambda',
-  evidence='SRC FtpServerFragment.java:127')
+  evidence='SRC FtpServerFragment.java:132')
 
 # FtpServerFragment.onOptionsItemSelected - menu item selection
 e('FtpServerFragment.onCreateOptionsMenu', 'FtpServerFragment.onOptionsItemSelected', 'FRAMEWORK', 'Framework calls onOptionsItemSelected when menu item selected',
@@ -3565,7 +3548,7 @@ e('FtpServerFragment.onOptionsItemSelected', 'FtpServerFragment.lambda$onOptions
 
 # FtpServerFragment.onFtpReceiveActions - EventBus callback
 e('FtpServerFragment.onResume', 'FtpServerFragment.onFtpReceiveActions', 'ASYNC', 'EventBus delivers FtpReceiverActions after registration',
-  evidence='SRC FtpServerFragment.java:397 registers; FtpServerFragment.java:334-361 shows @Subscribe handler', cls='non_standard', via='EventBus @Subscribe delivery of FtpReceiverActions')
+  evidence='SRC FtpServerFragment.java:393 registers; FtpServerFragment.java:334-361 shows @Subscribe handler', cls='non_standard', via='EventBus @Subscribe delivery of FtpReceiverActions')
 
 # FtpServerFragment.getUsernameFromPreferences called from initLoginDialogViews
 e('FtpServerFragment.initLoginDialogViews', 'FtpServerFragment.getUsernameFromPreferences', 'CALL', 'initLoginDialogViews gets username',
@@ -3727,7 +3710,7 @@ e('FtpTileService.<init>', 'FtpTileService.onStartListening', 'LIFECYCLE',
 # FtpTileService.onStopListening - REACHABLE via TileService lifecycle
 e('FtpTileService.<init>', 'FtpTileService.onStopListening', 'LIFECYCLE',
   'Framework calls onStopListening when tile no longer visible',
-  evidence='SRC FtpTileService.java:35-38')
+  evidence='SRC FtpTileService.java:38-42')
 
 # FtpTileService.onClick - REACHABLE via TileService lifecycle
 e('FtpTileService.<init>', 'FtpTileService.onClick', 'LIFECYCLE',
@@ -3746,7 +3729,7 @@ e('FtpTileService.onStartListening', 'FtpTileService.updateTileState', 'CALL',
 
 e('FtpTileService.onFtpReceiverActions', 'FtpTileService.updateTileState', 'CALL',
   'onFtpReceiverActions calls updateTileState on EventBus event',
-  evidence='SRC FtpTileService.java:24', cls='standard')
+  evidence='SRC FtpTileService.java:28', cls='standard')
 
 # FtpTileService.onFtpReceiverActions - REACHABLE via EventBus
 
@@ -3767,7 +3750,7 @@ UNREACHABLE.update(UNREACHABLE_PART_B031)
 # Contracted 11 dispatchers, re-sourced 125 C2 fake roots,
 # removed 64 C3 fake roots and 25 sinks
 
-e('CloudStreamServer$HTTPSession.handleResponse', 'CloudStreamer.serve', 'CALL', 'override dispatched by framework', evidence='INFERRED Calls abstract serve method (overridden in CloudStreamer); override dispatched by framework; INFERRED framework dispatch through CloudStreamServer.serve (not an app method)')
+e('CloudStreamServer$HTTPSession.handleResponse', 'CloudStreamer.serve', 'CALL', 'override dispatched by framework', evidence='SRC CloudStreamServer.java:491 serve(...) called in handleResponse; serve is abstract (CloudStreamServer.java:92), overridden in CloudStreamer (polymorphic dispatch)')
 e('FtpService.<init>', 'FtpService.onStartCommand', 'LIFECYCLE', 'Service.onStartCommand', evidence='INFERRED Service.onCreate; Service.onStartCommand; INFERRED framework dispatch through FtpService.onCreate (not an app method)')
 e('FtpTileService.<init>', 'FtpTileService.onClick', 'LIFECYCLE', 'TileService.onClick when tile tapped', evidence='INFERRED TileService.onCreate; TileService.onClick when tile tapped; INFERRED framework dispatch through FtpTileService.onCreate (not an app method)')
 e('Indicator.createMoveSelectedAnimator', 'Indicator$RightwardStartPredicate.shouldStart', 'CALL', 'startIfNecessary checks predicate shouldStart', evidence='INFERRED Move animator update listener calls startIfNecessary; startIfNecessary checks predicate shouldStart; INFERRED framework dispatch through Indicator$PendingRetreatAnimator.startIfNecessary (not an app method)')
@@ -3787,7 +3770,7 @@ e('BottomBar.onTouch', 'BottomBar.showButtons', 'CALL', 'Gesture handler calls s
 e('AbstractProgressiveService.<init>', 'EncryptService.getNotificationCustomViewSmall', 'FRAMEWORK', 'Parent calls getter for small notification view', evidence='INFERRED Parent calls getter for small notification view; INFERRED framework calls AbstractProgressiveService.updateNotification after construction of AbstractProgressiveService')
 e('AbstractProgressiveService.<init>', 'EncryptService.getNotificationCustomViewBig', 'FRAMEWORK', 'Parent calls getter for big notification view', evidence='INFERRED Parent calls getter for big notification view; INFERRED framework calls AbstractProgressiveService.updateNotification after construction of AbstractProgressiveService')
 e('AppsAdapter.<init>', 'AnimUtils.marqueeAfterDelay', 'LIFECYCLE', 'AppsAdapter.onBindViewHolder calls marqueeAfterDelay', evidence='INFERRED AppsAdapter.onBindViewHolder calls marqueeAfterDelay; INFERRED framework calls AppsAdapter.onBindViewHolder after construction of AppsAdapter')
-e('AppsAdapter.<init>', 'FileUtils.shareFiles', 'FRAMEWORK', 'shares app files', evidence='INFERRED shares app files; INFERRED framework calls AppsAdapter.onClick after construction of AppsAdapter')
+e('AppsAdapter.<init>', 'FileUtils.shareFiles', 'FRAMEWORK', 'shares app files', evidence='SRC adapters/AppsAdapter.java:170 setOnMenuItemClickListener, :181-185 share case calls FileUtils.shareFiles; popup-menu share reaches shareFiles')
 e('AppsAdapter.<init>', 'AppHolder.<init>', 'LIFECYCLE', 'AppsAdapter creates AppHolder in onCreateViewHolder', evidence='INFERRED AppsAdapter creates AppHolder in onCreateViewHolder; INFERRED framework calls AppsAdapter.onCreateViewHolder after construction of AppsAdapter')
 e('AppsAdapter.<init>', 'HybridFileParcelable.<init>(String)', 'FRAMEWORK', 'AppsAdapter creates HybridFileParcelable for uninstall', evidence='INFERRED AppsAdapter creates HybridFileParcelable for uninstall; INFERRED framework calls AppsAdapter.onMenuItemClick after construction of AppsAdapter')
 e('AppsListFragment.<init>', 'BottomBar.setVisibility', 'LIFECYCLE', 'Apps list hides bottom bar', evidence='INFERRED Apps list hides bottom bar; INFERRED framework calls AppsListFragment.onViewCreated after construction of AppsListFragment')
@@ -3799,7 +3782,7 @@ e('CloudStreamer.<init>', 'CloudStreamServer.<init>(int,File)', 'FRAMEWORK', 'Ca
 e('CloudUtil.<init>', 'CloudStreamer.getInstance', 'FRAMEWORK', 'Gets streamer instance', evidence='INFERRED Gets streamer instance; INFERRED framework calls CloudUtil.playStream after construction of CloudUtil')
 e('ColorPref.<init>', 'InvalidablePreferenceCategory.invalidate', 'LIFECYCLE', 'ColorPref invalidates preference category with accent color', evidence='INFERRED ColorPref invalidates preference category with accent color; INFERRED framework calls ColorPref.onViewCreated after construction of ColorPref')
 e('ColorPref.<init>', 'ColorAdapter.<init>', 'FRAMEWORK', 'Constructs ColorAdapter for color selection dialog', evidence='INFERRED Constructs ColorAdapter for color selection dialog; INFERRED framework calls ColorPref.showColorChooser after construction of ColorPref')
-e('CompressedExplorerFragment.<init>', 'Decompressor.decompress(String,String[])', 'FRAMEWORK', 'extractFiles calls decompress with directory array parameter', evidence='INFERRED extractFiles calls decompress with directory array parameter; INFERRED framework calls CompressedExplorerFragment.extractFiles after construction of CompressedExplorerFragment')
+e('CompressedExplorerFragment$1.onActionItemClicked', 'Decompressor.decompress(String,String[])', 'CALL', 'onActionItemClicked R.id.ex case calls decompressor.decompress', evidence='SRC fragments/CompressedExplorerFragment.java:329')
 e('CompressedExplorerFragment.<init>', 'DeleteTask.<init>(Context,CompressedExplorerFragment)', 'FRAMEWORK', 'CompressedExplorerFragment instantiates DeleteTask with fragment', evidence='INFERRED CompressedExplorerFragment instantiates DeleteTask with fragment; INFERRED framework calls CompressedExplorerFragment.onOptionsItemSelected after construction of CompressedExplorerFragment')
 e('CompressedExplorerFragment.<init>', 'CompressedHelper.getCompressorInstance', 'LIFECYCLE', 'Fragment gets decompressor', evidence='INFERRED Fragment gets decompressor; INFERRED framework calls CompressedExplorerFragment.onViewCreated after construction of CompressedExplorerFragment')
 e('CompressedExplorerFragment.<init>', 'FileUtils.openFile(File,MainActivity,SharedPreferences)', 'FRAMEWORK', 'opens extracted file', evidence='INFERRED opens extracted file; INFERRED framework calls CompressedExplorerFragment.open after construction of CompressedExplorerFragment')
@@ -3807,7 +3790,7 @@ e('CopyService.<init>', 'ProgressHandler.<init>()', 'FRAMEWORK', 'CopyService in
 e('CopyService.<init>', 'FileUtils.scanFile(File,Context)', 'FRAMEWORK', 'scans copied file', evidence='INFERRED scans copied file; INFERRED framework calls CopyService.onCopyDone after construction of CopyService')
 e('CopyService.<init>', 'FileUtil.checkFolder', 'FRAMEWORK', 'check target path writable', evidence='INFERRED check target path writable; INFERRED framework calls CopyService.run after construction of CopyService')
 e('CopyService.<init>', 'HybridFile.<init>(OpenMode,String,String,boolean)', 'FRAMEWORK', 'CopyService creates HybridFile with name for copy target', evidence='INFERRED CopyService creates HybridFile with name for copy target; INFERRED framework calls CopyService.startService after construction of CopyService')
-e('CopyService.<init>', 'HybridFile.mkdir', 'FRAMEWORK', 'CopyService creates target directory', evidence='INFERRED CopyService creates target directory; INFERRED framework calls CopyService.startService after construction of CopyService')
+e('CopyService.<init>', 'HybridFile.mkdir', 'FRAMEWORK', 'CopyService creates target directory', evidence='SRC CopyService.java:446 targetFile.mkdir(c) in copyFiles; CopyService creates target directory during copy flow')
 e('Drawer.<init>', 'DataUtils.getBooks', 'FRAMEWORK', 'Drawer retrieves bookmarks to populate menu', evidence='INFERRED Drawer retrieves bookmarks to populate menu; INFERRED framework calls Drawer.addBookmarksMenuItem after construction of Drawer')
 e('Drawer.<init>', 'DataUtils.getAccounts', 'FRAMEWORK', 'Drawer retrieves cloud accounts for menu', evidence='INFERRED Drawer retrieves cloud accounts for menu; INFERRED framework calls Drawer.addCloudMenuItem after construction of Drawer')
 e('Drawer.<init>', 'DataUtils.getServers', 'FRAMEWORK', 'Drawer retrieves server list to populate menu', evidence='INFERRED Drawer retrieves server list to populate menu; INFERRED framework calls Drawer.addServersMenuItem after construction of Drawer')
@@ -3878,7 +3861,7 @@ e('MainFragment.<init>', 'GeneralDialogCreation.deleteFilesDialog', 'FRAMEWORK',
 e('MainFragment.<init>', 'GeneralDialogCreation.showPropertiesDialogWithPermissions', 'FRAMEWORK', 'properties action shows dialog with permissions', evidence='INFERRED properties action shows dialog with permissions; INFERRED framework calls MainFragment.lambda$getActionModeCallback$7 after construction of MainFragment')
 e('MainFragment.<init>', 'GeneralDialogCreation.showCompressDialog', 'FRAMEWORK', 'compress action shows compress dialog', evidence='INFERRED compress action shows compress dialog; INFERRED framework calls MainFragment.lambda$getActionModeCallback$7 after construction of MainFragment')
 e('MainFragment.<init>', 'FileUtils.openunknown(File,Context,boolean,boolean)', 'FRAMEWORK', 'opens file from main fragment', evidence='INFERRED opens file from main fragment; INFERRED framework calls MainFragment.onClick after construction of MainFragment')
-e('MainFragment.<init>', 'CloudUtil.launchCloud', 'FRAMEWORK', 'CloudUtil.launchCloud(...)', evidence='INFERRED CloudUtil.launchCloud(...); INFERRED framework calls MainFragment.onItemClick after construction of MainFragment')
+e('MainFragment.<init>', 'CloudUtil.launchCloud', 'FRAMEWORK', 'CloudUtil.launchCloud(...)', evidence='SRC fragments/MainFragment.java:930 CloudUtil.launchCloud(...) in onListItemClicked (cloud case); MainFragment item click launches cloud stream')
 e('MainFragment.<init>', 'EncryptDecryptUtils.decryptFile', 'FRAMEWORK', 'Clicking encrypted file invokes decryptFile', evidence='INFERRED Clicking encrypted file invokes decryptFile; INFERRED framework calls MainFragment.onItemClick after construction of MainFragment')
 e('MainFragment.<init>', 'LayoutElementParcelable.hasSymlink', 'FRAMEWORK', 'onItemClick checks hasSymlink to determine correct path', evidence='INFERRED onItemClick checks hasSymlink to determine correct path; INFERRED framework calls MainFragment.onItemClick after construction of MainFragment')
 e('MainFragment.<init>', 'FileUtil.isValidFilename', 'FRAMEWORK', 'validate new file name', evidence='INFERRED validate new file name; INFERRED framework calls MainFragment.onMenuItemClick after construction of MainFragment')
@@ -3905,7 +3888,7 @@ e('RarExtractor.<init>', 'CompressedHelper.isEntryPathValid', 'FRAMEWORK', 'RAR 
 e('RecyclerAdapter.<init>', 'MainFragment.addShortcut', 'FRAMEWORK', 'RecyclerAdapter calls addShortcut for shortcut action', evidence='INFERRED RecyclerAdapter calls addShortcut for shortcut action; INFERRED framework calls RecyclerAdapter.addShortcut after construction of RecyclerAdapter')
 e('RecyclerAdapter.<init>', 'ColorUtils.colorizeIcons', 'FRAMEWORK', 'called from adapter to colorize file type icons', evidence='INFERRED called from adapter to colorize file type icons; INFERRED framework calls RecyclerAdapter.bindViewHolderAsFile after construction of RecyclerAdapter')
 e('RecyclerAdapter.<init>', 'CircleGradientDrawable.<init>(int,AppTheme,DisplayMetrics)', 'FRAMEWORK', 'RecyclerAdapter creates CircleGradientDrawable for selection checkmark background', evidence='INFERRED RecyclerAdapter creates CircleGradientDrawable for selection checkmark background; INFERRED framework calls RecyclerAdapter.getView after construction of RecyclerAdapter')
-e('RecyclerAdapter.<init>', 'MainFragment.onListItemClicked', 'FRAMEWORK', 'RecyclerAdapter calls onListItemClicked when item clicked', evidence='INFERRED RecyclerAdapter calls onListItemClicked when item clicked; INFERRED framework calls RecyclerAdapter.onItemClick after construction of RecyclerAdapter')
+e('RecyclerAdapter.<init>', 'MainFragment.onListItemClicked', 'FRAMEWORK', 'RecyclerAdapter calls onListItemClicked when item clicked', evidence='SRC adapters/RecyclerAdapter.java:531,701 mainFrag.onListItemClicked in onBindViewHolder click listeners; RecyclerAdapter item click reaches MainFragment')
 e('RecyclerAdapter.<init>', 'MainFragment.rename', 'FRAMEWORK', 'RecyclerAdapter calls rename for rename action', evidence='INFERRED RecyclerAdapter calls rename for rename action; INFERRED framework calls RecyclerAdapter.onRename after construction of RecyclerAdapter')
 e('RenameBookmark.<init>', 'DataUtils.containsBooks', 'FRAMEWORK', 'Dialog click handler checks if bookmark already exists', evidence='INFERRED Dialog click handler checks if bookmark already exists; INFERRED framework calls RenameBookmark.onClick after construction of RenameBookmark')
 e('RenameBookmark.<init>', 'DataUtils.removeBook', 'FRAMEWORK', 'Dialog click handler removes old bookmark', evidence='INFERRED Dialog click handler removes old bookmark; INFERRED framework calls RenameBookmark.onClick after construction of RenameBookmark')
@@ -3953,7 +3936,7 @@ e('Tab.<init>', 'FileUtils.isPathAccessible', 'FRAMEWORK', 'checks if tab path i
 e('TabFragment.<init>', 'BottomBar.updatePath', 'FRAMEWORK', 'Tab change updates path', evidence='INFERRED Tab change updates path; INFERRED framework calls TabFragment.onTabChanged after construction of TabFragment')
 e('TabFragment.<init>', 'ColorCircleDrawable.<init>', 'FRAMEWORK', 'Direct instantiation in TabFragment', evidence='INFERRED Direct instantiation in TabFragment; INFERRED framework calls TabFragment.updatePathColors after construction of TabFragment')
 e('TarExtractor.<init>', 'CompressedHelper.isEntryPathValid', 'FRAMEWORK', 'TAR extractor validates entry paths', evidence='INFERRED TAR extractor validates entry paths; INFERRED framework calls TarExtractor.extract after construction of TarExtractor')
-e('TextEditorActivity.<init>', 'SearchTextTask.<init>', 'FRAMEWORK', 'TextEditorActivity instantiates SearchTextTask', evidence='INFERRED TextEditorActivity instantiates SearchTextTask; INFERRED framework calls TextEditorActivity.find after construction of TextEditorActivity')
+e('TextEditorActivity.<init>', 'SearchTextTask.<init>', 'FRAMEWORK', 'TextEditorActivity instantiates SearchTextTask', evidence='SRC activities/TextEditorActivity.java:449 searchTextTask = new SearchTextTask(this) in afterTextChanged (searchBox callback); INFERRED search flow creates the task')
 e('TextEditorActivity.<init>', 'GeneralDialogCreation.showPropertiesDialogWithoutPermissions', 'FRAMEWORK', 'info menu shows properties without permissions', evidence='INFERRED info menu shows properties without permissions; INFERRED framework calls TextEditorActivity.lambda$initStatusBarResources$2 after construction of TextEditorActivity')
 e('ZipExtractor.<init>', 'CompressedHelper.isEntryPathValid', 'FRAMEWORK', 'Zip extractor validates entry paths', evidence='INFERRED Zip extractor validates entry paths; INFERRED framework calls ZipExtractor.extract after construction of ZipExtractor')
 e('ZipService.<init>', 'FileUtil.getOutputStream', 'FRAMEWORK', 'get output stream for zip file', evidence='INFERRED get output stream for zip file; INFERRED framework calls ZipService.compress after construction of ZipService')
@@ -4286,7 +4269,7 @@ e('AnimUtils.marqueeAfterDelay', 'AnimUtils.lambda$marqueeAfterDelay$0', 'CALL',
 # ApkImage Glide loaders
 e('ApkImageModelLoaderFactory.build', 'ApkImageModelLoader.<init>', 'CALL',
   'Factory.build creates ApkImageModelLoader',
-  evidence='SRC ApkImageModelLoaderFactory.java:23')
+  evidence='SRC ApkImageModelLoaderFactory.java:25')
 
 e('ApkImageModelLoaderFactory.<init>', 'ApkImageModelLoaderFactory.build', 'FRAMEWORK',
   'Glide calls build on ModelLoaderFactory',
@@ -4963,7 +4946,7 @@ e('CloudIconDataFetcher.<init>', 'CloudIconDataFetcher.cleanup',
 
 e('CloudIconDataFetcher.<init>', 'CloudIconDataFetcher.cancel',
   'FRAMEWORK', 'Glide framework lifecycle: cancel called if load is cancelled',
-  evidence='SRC com/amaze/filemanager/utils/glide/CloudIconDataFetcher.java:52-54, INFERRED (Glide DataFetcher interface)')
+  evidence='SRC com/amaze/filemanager/utils/glide/CloudIconDataFetcher.java:55-58, INFERRED (Glide DataFetcher interface)')
 
 e('CloudIconDataFetcher.<init>', 'CloudIconDataFetcher.getDataClass',
   'FRAMEWORK', 'Glide framework lifecycle: getDataClass called to determine output type',
@@ -4982,8 +4965,6 @@ UNREACHABLE['CloudContract.<init>'] = (
 
 
 # ---- part label_b008_norm (2026-10-27 21:32) ----
-e('CloudIconModelFactory.<init>', 'CloudIconModelLoader.<init>', 'CALL', 'Glide factory creates loader',
-  evidence='SRC CloudIconModelFactory.java:18-20')
 
 e('CloudIconModelFactory.build', 'CloudIconModelLoader.<init>', 'CALL', 'Factory builds CloudIconModelLoader',
   evidence='SRC CloudIconModelFactory.java:23-26')
@@ -5038,10 +5019,10 @@ e('CloudStreamServer.lambda$new$0', 'CloudStreamServer$HTTPSession.<init>', 'CAL
 
 
 e('CloudStreamServer$HTTPSession.<init>', 'CloudStreamServer$HTTPSession.run', 'LIFECYCLE', 'Creates thread and calls run',
-  evidence='SRC CloudStreamServer.java:330-338')
+  evidence='SRC CloudStreamServer.java:330-339')
 
 e('CloudStreamServer$HTTPSession.run', 'CloudStreamServer$HTTPSession.handleResponse', 'CALL', 'HTTPSession.run calls handleResponse',
-  evidence='SRC CloudStreamServer.java:358-361')
+  evidence='SRC CloudStreamServer.java:346')
 
 e('CloudStreamServer$HTTPSession.handleResponse', 'CloudStreamServer$HTTPSession.decodeHeader', 'CALL', 'Parses HTTP headers',
   evidence='SRC CloudStreamServer.java:385')
@@ -6607,7 +6588,7 @@ e('CompressedExplorerFragment.refresh', 'CompressedExplorerFragment.changePath',
 
 e('CompressedExplorerFragment.goBack', 'CompressedExplorerFragment.changePath', 'CALL',
   'goBack calls changePath with parent directory',
-  evidence='SRC fragments/CompressedExplorerFragment.java:476')
+  evidence='SRC fragments/CompressedExplorerFragment.java:494-495')
 
 e('CompressedExplorerFragment.onRestoreInstanceState', 'CompressedExplorerFragment.createViews', 'CALL',
   'onRestoreInstanceState calls createViews with saved elements',
@@ -6976,7 +6957,7 @@ e('CopyService.onStartCommand', 'CopyService$DoInBackground.<init>', 'CALL',
 
 e('CopyService.onStartCommand', 'CopyService$DoInBackground.doInBackground', 'ASYNC',
   'onStartCommand calls execute on DoInBackground, framework then calls doInBackground',
-  evidence='SRC CopyService.java:159 new DoInBackground(...).execute(b), AsyncTask framework invokes doInBackground')
+  evidence='SRC CopyService.java:160 new DoInBackground(...).execute(b), AsyncTask framework invokes doInBackground')
 
 e('CopyService$DoInBackground.doInBackground', 'CopyService$DoInBackground$Copy.<init>', 'CALL',
   'doInBackground instantiates Copy inner class',
@@ -6992,7 +6973,7 @@ e('CopyService$DoInBackground.doInBackground', 'CopyService$DoInBackground.findA
 
 e('CopyService$DoInBackground$Copy.execute', 'CopyService$DoInBackground$Copy.copyFiles', 'CALL',
   'execute iterates sourceFiles and calls copyFiles for non-root files',
-  evidence='SRC CopyService.java:382 copyFiles((f1), hFile, progressHandler)')
+  evidence='SRC CopyService.java:381 copyFiles((f1), hFile, progressHandler)')
 
 e('CopyService$DoInBackground$Copy.execute', 'CopyService$DoInBackground$Copy.copyRoot', 'CALL',
   'execute calls copyRoot for files in root mode',
@@ -7219,7 +7200,7 @@ e('Drawer.<init>', 'Drawer.close', 'CALL', 'Constructor calls close for phone mo
   evidence='SRC Drawer.java:210 shows close() call in else branch')
 
 e('S_ENTRY', 'Drawer.onNavigationItemSelected', 'FRAMEWORK', 'NavigationView.OnNavigationItemSelectedListener callback',
-  evidence='SRC Drawer.java:97 implements NavigationView.OnNavigationItemSelectedListener, line 164 sets listener')
+  evidence='SRC Drawer.java:99 implements NavigationView.OnNavigationItemSelectedListener, line 165 sets listener')
 
 e('Drawer.onNavigationItemSelected', 'Drawer.closeIfNotLocked', 'CALL', 'Closes drawer after navigation',
   evidence='SRC Drawer.java:594 shows closeIfNotLocked() call in ITEM_ENTRY case')
@@ -7577,19 +7558,19 @@ e('MainActivity.onCreate', 'MainActivity.initialiseFab', 'CALL', 'onCreate calls
   evidence='SRC MainActivity.java:298')
 
 e('MainActivity.onCreate', 'MainActivity.checkForExternalIntent', 'CALL', 'onCreate calls checkForExternalIntent with intent',
-  evidence='SRC MainActivity.java:313')
+  evidence='SRC MainActivity.java:319')
 
 e('MainActivity.onCreate', 'MainActivity.checkForExternalPermission', 'CALL', 'onCreate calls checkForExternalPermission',
   evidence='SRC MainActivity.java:359')
 
 e('MainActivity.onCreate', 'MainActivity.goToMain', 'CALL', 'onCreate calls goToMain to display TabFragment',
-  evidence='SRC MainActivity.java:411,415,418 goToMain calls in async callback')
+  evidence='SRC MainActivity.java:414,416,420 goToMain calls in async callback')
 
 e('MainActivity.checkForExternalIntent', 'MainActivity.initFabToSave', 'CALL', 'checkForExternalIntent calls initFabToSave for SEND intents',
   evidence='SRC MainActivity.java:531,537 initFabToSave calls for ACTION_SEND and ACTION_SEND_MULTIPLE')
 
 e('MainActivity.checkForExternalIntent', 'MainActivity.openCompressed', 'CALL', 'checkForExternalIntent handles VIEW intent for zip files',
-  evidence='SRC MainActivity.java:519 sets openzip=true; MainActivity.java:799-801 goToMain checks openzip and calls openCompressed')
+  evidence='SRC MainActivity.java:525 sets openzip=true; MainActivity.java:797-798 goToMain checks openzip and calls openCompressed')
 
 e('S_ENTRY', 'MainActivity.onPostCreate', 'LIFECYCLE', 'Framework calls onPostCreate after onCreate',
   evidence='FW-SRC Activity.java onPostCreate lifecycle')
@@ -7886,7 +7867,7 @@ e('GeneralDialogCreation.showEncryptAuthenticateDialog', 'GeneralDialogCreation.
 e('GeneralDialogCreation.showEncryptAuthenticateDialog', 'GeneralDialogCreation.lambda$showEncryptAuthenticateDialog$15', 'FRAMEWORK', 'negative button cancels dialog',
   evidence='SRC GeneralDialogCreation.java:759')
 e('GeneralDialogCreation.showEncryptAuthenticateDialog', 'GeneralDialogCreation.lambda$showEncryptAuthenticateDialog$16', 'FRAMEWORK', 'positive button starts encryption with entered password',
-  evidence='SRC GeneralDialogCreation.java:760-772')
+  evidence='SRC GeneralDialogCreation.java:752-764')
 e('GeneralDialogCreation.showEncryptAuthenticateDialog', 'GeneralDialogCreation.lambda$showEncryptAuthenticateDialog$17', 'FRAMEWORK', 'text watcher enables OK button when all fields filled',
   evidence='SRC GeneralDialogCreation.java:784-788')
 e('GeneralDialogCreation.showEncryptAuthenticateDialog', 'GeneralDialogCreation.lambda$showEncryptAuthenticateDialog$18', 'FRAMEWORK', 'password validator checks field is not empty',
@@ -8177,7 +8158,7 @@ e('MainFragment.onListItemClicked', 'MainFragment.returnIntentResults', 'CALL',
 
 e('MainFragment.onListItemClicked', 'MainFragment.launchSMB', 'CALL',
   'onListItemClicked calls launchSMB for SMB files',
-  evidence='SRC fragments/MainFragment.java:912')
+  evidence='SRC fragments/MainFragment.java:915')
 
 # NAVIGATION: goBack, goBackItemClick, updateList
 
@@ -8671,7 +8652,7 @@ e('MainFragment.onListItemClicked', 'MainFragment.returnIntentResults', 'CALL',
 
 e('MainFragment.onListItemClicked', 'MainFragment.launchSMB', 'CALL',
   'onListItemClicked calls launchSMB for SMB files',
-  evidence='SRC fragments/MainFragment.java:912')
+  evidence='SRC fragments/MainFragment.java:915')
 
 # NAVIGATION: goBack, goBackItemClick, updateList
 
@@ -8896,10 +8877,6 @@ e('MainFragment.onResume', 'MainFragment$5.<init>', 'CALL', 'onResume accesses d
 # MainFragment$6 - AsyncTask created in onSearchCompleted
 e('MainFragment.onSearchCompleted', 'MainFragment$6.<init>', 'CALL', 'onSearchCompleted creates AsyncTask at line 1640',
   evidence='SRC MainFragment.java:1640')
-e('ZipService$CompressAsyncTask.execute', 'MainFragment$6.doInBackground', 'ASYNC', 'executeOnExecutor called at line 1653 runs doInBackground on thread pool',
-  evidence='SRC MainFragment.java:1653, 1641-1645')
-e('ZipService$CompressAsyncTask.execute', 'MainFragment$6.onPostExecute', 'ASYNC', 'AsyncTask framework calls onPostExecute after doInBackground completes',
-  evidence='SRC MainFragment.java:1653, 1646-1651')
 
 # MainFragment$7 - Thread created in launchSMB
 e('MainFragment.launchSMB', 'MainFragment$7.<init>', 'CALL', 'launchSMB creates Thread at line 1658',
@@ -9515,7 +9492,7 @@ e('SearchTextTask.onPostExecute', 'ImmutableEntry.getKey', 'CALL',
 
 e('SearchTextTask.onPostExecute', 'ImmutableEntry.getValue', 'CALL',
   'SearchTextTask.onPostExecute accesses entry value (MapEntry holds line number)',
-  evidence='SRC SearchTextTask.java:67-69 new MapEntry(..., lineNumberReader.getLineNumber())')
+  evidence='SRC SearchTextTask.java:91,95 keyMapEntry.getValue() on the ImmutableEntry from MapEntry')
 
 # Icons - file type and icon resolution
 e('LayoutElementParcelable.<init>(Context,boolean,String,String,String,String,String,long,boolean,String,boolean,boolean,OpenMode)', 'Icons.getTypeOfFile', 'CALL',
@@ -9775,7 +9752,7 @@ e('Indicator.setViewPager', 'Indicator.onPageScrolled', 'FRAMEWORK',
 e('Indicator.setViewPager', 'Indicator.onPageSelected', 'FRAMEWORK',
   'ViewPager.OnPageChangeListener.onPageSelected callback on page change',
   evidence='SRC Indicator.java:44 implements ViewPager.OnPageChangeListener; '
-           'SRC Indicator.java:166 addOnPageChangeListener(this); '
+           'SRC Indicator.java:167 addOnPageChangeListener(this); '
            'SRC Indicator.java:199-208; '
            'INFERRED ViewPager calls listener.onPageSelected when page selected, source not read')
 
@@ -9806,7 +9783,7 @@ e('Indicator.setSelectedPage', 'Indicator.setJoiningFraction', 'CALL',
 # setSelectedPage calls createMoveSelectedAnimator
 e('Indicator.setSelectedPage', 'Indicator.createMoveSelectedAnimator', 'CALL',
   'setSelectedPage creates animator for selected dot movement',
-  evidence='SRC Indicator.java:571-575 moveAnimation = createMoveSelectedAnimator(...); '
+  evidence='SRC Indicator.java:576 moveAnimation = createMoveSelectedAnimator(...); '
            'SRC Indicator.java:579-630')
 
 # createMoveSelectedAnimator creates inner class instances
@@ -9884,7 +9861,7 @@ e('RecyclerAdapter.showPopup', 'ItemPopupMenu.<init>', 'CALL',
 
 e('ItemPopupMenu.<init>', 'ItemPopupMenu.onMenuItemClick', 'CALL',
   'Constructor sets this as menu item click listener',
-  evidence='SRC ItemPopupMenu.java:58 setOnMenuItemClickListener(this)')
+  evidence='SRC ItemPopupMenu.java:60 setOnMenuItemClickListener(this)')
 
 # ItemPopupMenu anonymous inner classes - callback interfaces in encrypt case
 e('ItemPopupMenu.onMenuItemClick', 'ItemPopupMenu$1.<init>', 'CALL',

@@ -1,0 +1,223 @@
+METHOD: CompressedExplorerFragment.onDestroyView
+verdict: REACHABLE   steps_from_launch: 10
+route steps: 10 edges
+======================================================================
+
+STEP 1  edge E380fe171
+  S_ENTRY -> MainActivity.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC Activity.java onCreate lifecycle method
+  (no file:line citations in evidence)
+
+STEP 2  edge Ec83d9c18
+  MainActivity.onCreate -> MainActivity.checkForExternalIntent
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainActivity.java:319
+  cite [SRC] MainActivity.java:319
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/activities/MainActivity.java)
+      319:         checkForExternalIntent(intent);
+
+STEP 3  edge E45a4d528
+  MainActivity.checkForExternalIntent -> MainActivity.openCompressed
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainActivity.java:525 sets openzip=true; MainActivity.java:797-798 goToMain checks openzip and calls openCompressed
+  cite [SRC] MainActivity.java:525
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/activities/MainActivity.java)
+      525:                     openzip = true;
+  cite [SRC] MainActivity.java:797-798
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/activities/MainActivity.java)
+      797:         if (openzip && zippath != null) {
+      798:             openCompressed(zippath);
+
+STEP 4  edge E421bafb2
+  MainActivity.openCompressed -> CompressedExplorerFragment.<init>
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC activities/MainActivity.java:1244
+  cite [SRC] activities/MainActivity.java:1244
+     1244:         Fragment zipFragment = new CompressedExplorerFragment();
+
+STEP 5  edge E50bfb580
+  CompressedExplorerFragment.<init> -> CompressedExplorerFragment.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC fragments/CompressedExplorerFragment.java:128-131 (onCreate method exists)
+  cite [SRC] fragments/CompressedExplorerFragment.java:128-131
+      128:         super.onCreate(savedInstanceState);
+      129:         utilsProvider = ((BasicActivity) getActivity()).getUtilsProvider();
+      130:     }
+      131: 
+
+STEP 6  edge Ef14e2b2b
+  CompressedExplorerFragment.onCreate -> CompressedExplorerFragment.onCreateView
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC fragments/CompressedExplorerFragment.java:133-147 (onCreateView method exists)
+  cite [SRC] fragments/CompressedExplorerFragment.java:133-147
+      133:     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+      134:         rootView = inflater.inflate(R.layout.main_frag, container, false);
+      135:         mainActivity = (MainActivity) getActivity();
+      136:         listView = rootView.findViewById(R.id.listView);
+      137:         listView.setOnTouchListener((view, motionEvent) -> {
+      138:             if(compressedExplorerAdapter != null) {
+      139:                 if (stopAnims && !compressedExplorerAdapter.stoppedAnimation) {
+      140:                     stopAnim();
+      141:                 }
+      142:                 compressedExplorerAdapter.stoppedAnimation = true;
+      143: 
+      144:                 stopAnims = false;
+      145:             }
+      146:             return false;
+      147:         });
+
+STEP 7  edge E6f8babbf
+  CompressedExplorerFragment.onCreateView -> CompressedExplorerFragment.onActivityCreated
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC fragments/CompressedExplorerFragment.java:149-224 (onActivityCreated method exists)
+  cite [SRC] fragments/CompressedExplorerFragment.java:149-224
+      149:         swipeRefreshLayout.setOnRefreshListener(this::refresh);
+      150:         swipeRefreshLayout.setRefreshing(true);
+      151: 
+      152:         return rootView;
+      153:     }
+      154: 
+      155:     public void stopAnim() {
+      156:         for (int j = 0; j < listView.getChildCount(); j++) {
+      157:             View v = listView.getChildAt(j);
+      158:             if (v != null) v.clearAnimation();
+      159:         }
+      160:     }
+      161: 
+      162:     @Override
+      163:     public void onActivityCreated(Bundle savedInstanceState)
+      164:     {
+      165:         super.onActivityCreated(savedInstanceState);
+      166:         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
+      167:         compressedFile = new File(Uri.parse(getArguments().getString(KEY_PATH)).getPath());
+      168:     
+      169:         mToolbarContainer = mainActivity.getAppbar().getAppbarLayout();
+      170:         mToolbarContainer.setOnTouchListener((view, motionEvent) ->
+      171:         {
+      172:             if(stopAnims)
+      173:             {
+      174:                 if((!compressedExplorerAdapter.stoppedAnimation))
+      175:                 {
+      176:                     stopAnim();
+      177:                 }
+      178:                 compressedExplorerAdapter.stoppedAnimation = true;
+      179:             }
+      180:             stopAnims = false;
+      181:             return false;
+      182:         });
+      183:     
+      184:         listView.setVisibility(View.VISIBLE);
+      185:         mLayoutManager = new LinearLayoutManager(getActivity());
+      186:         listView.setLayoutManager(mLayoutManager);
+      187:     
+      188:         if(utilsProvider.getAppTheme().equals(AppTheme.DARK))
+      189:         {
+      190:             rootView.setBackgroundColor(Utils.getColor(getContext(), R.color.holo_dark_background));
+      191:         } else if(utilsProvider.getAppTheme().equals(AppTheme.BLACK)) {
+      192:             listView.setBackgroundColor(Utils.getColor(getContext(), android.R.color.black));
+      193:         } else {
+      194:             listView.setBackgroundColor(Utils.getColor(getContext(), android.R.color.background_light));
+      195:         }
+      196: 
+      197:         gobackitem = sp.getBoolean(PreferencesConstants.PREFERENCE_SHOW_GOBACK_BUTTON, false);
+      198:         coloriseIcons = sp.getBoolean(PreferencesConstants.PREFERENCE_COLORIZE_ICONS, true);
+      199:         showSize = sp.getBoolean(PreferencesConstants.PREFERENCE_SHOW_FILE_SIZE, false);
+      200:         showLastModified = sp.getBoolean(PreferencesConstants.PREFERENCE_SHOW_LAST_MODIFIED, true);
+      201:         showDividers = sp.getBoolean(PreferencesConstants.PREFERENCE_SHOW_DIVIDERS, true);
+      202:         year = ("" + Calendar.getInstance().get(Calendar.YEAR)).substring(2, 4);
+      203: 
+      204:         accentColor = mainActivity.getAccent();
+      205:         iconskin = mainActivity.getCurrentColorPreference().iconSkin;
+      206: 
+      207:         //mainActivity.findViewById(R.id.buttonbarframe).setBackgroundColor(Color.parseColor(skin));
+      208: 
+      209:         if (savedInstanceState == null && compressedFile != null) {
+      210:             files = new ArrayList<>();
+      211:             // adding a cache file to delete where any user interaction elements will be cached
+      212:             String fileName = compressedFile.getName().substring(0, compressedFile.getName().lastIndexOf("."));
+      213:             String path = getActivity().getExternalCacheDir().getPath() + SEPARATOR + fileName;
+      214:             files.add(new HybridFileParcelable(path));
+      215:             decompressor = CompressedHelper.getCompressorInstance(getContext(), compressedFile);
+      216: 
+      217:             changePath("");
+      218:         } else {
+      219:             onRestoreInstanceState(savedInstanceState);
+      220:         }
+      221:         mainActivity.supportInvalidateOptionsMenu();
+      222:     }
+      223: 
+      224:     @Override
+
+STEP 8  edge E222d5cb1
+  CompressedExplorerFragment.onActivityCreated -> CompressedExplorerFragment.onResume
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC fragments/CompressedExplorerFragment.java:367-373 (onResume method exists)
+  cite [SRC] fragments/CompressedExplorerFragment.java:367-373
+      367:     public void onResume() {
+      368:         super.onResume();
+      369: 
+      370:         mainActivity.floatingActionButton.hide();
+      371:         Intent intent = new Intent(getActivity(), ExtractService.class);
+      372:         getActivity().bindService(intent, mServiceConnection, 0);
+      373:     }
+
+STEP 9  edge E04be16b9
+  CompressedExplorerFragment.onResume -> CompressedExplorerFragment.onPause
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC fragments/CompressedExplorerFragment.java:375-380 (onPause method exists)
+  cite [SRC] fragments/CompressedExplorerFragment.java:375-380
+      375:     @Override
+      376:     public void onPause() {
+      377:         super.onPause();
+      378: 
+      379:         getActivity().unbindService(mServiceConnection);
+      380:     }
+
+STEP 10  edge Efafabe30
+  CompressedExplorerFragment.onPause -> CompressedExplorerFragment.onDestroyView
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC fragments/CompressedExplorerFragment.java:354-365 (onDestroyView method exists)
+  cite [SRC] fragments/CompressedExplorerFragment.java:354-365
+      354:     public void onDestroyView() {
+      355:         super.onDestroyView();
+      356:         mainActivity.supportInvalidateOptionsMenu();
+      357: 
+      358:         // needed to remove any extracted file from cache, when onResume was not called
+      359:         // in case of opening any unknown file inside the zip
+      360: 
+      361:         if (files.get(0).exists()) {
+      362:             new DeleteTask(getActivity(), this).execute(files);
+      363:         }
+      364:     }
+      365: 

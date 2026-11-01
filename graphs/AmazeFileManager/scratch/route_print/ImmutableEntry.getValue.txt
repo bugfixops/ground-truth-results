@@ -1,0 +1,70 @@
+METHOD: ImmutableEntry.getValue
+verdict: REACHABLE   steps_from_launch: 5
+route steps: 5 edges
+======================================================================
+
+STEP 1  edge Edd3316a5
+  S_ENTRY -> TextEditorActivity.<init>
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: outside package: another app opens a text file with Amaze TextEditorActivity via ACTION_VIEW
+  evidence: SRC AndroidManifest.xml:129-144; FW-SRC core/java/android/app/Activity.java (Activity lifecycle callbacks dispatched by ActivityThread)
+  cite [SRC] AndroidManifest.xml:129-144
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/AndroidManifest.xml)
+      129:         <activity
+      130:             android:label="@string/textreader"
+      131:             android:name=".activities.TextEditorActivity"
+      132:             android:theme="@style/appCompatLight">
+      133:             <intent-filter
+      134:                 tools:ignore="AppLinkUrlError"
+      135:                 android:label="Amaze Text Editor">
+      136:                 <action android:name="android.intent.action.VIEW"/>
+      137:                 <category android:name="android.intent.category.DEFAULT" />
+      138:                 <data android:mimeType="text/*" />
+      139:                 <data android:mimeType="application/javascript" />
+      140:                 <data android:mimeType="application/json" />
+      141:                 <data android:mimeType="application/xml" />
+      142:             </intent-filter>
+      143: 
+      144:         </activity>
+
+STEP 2  edge Ef5b5e2c8
+  TextEditorActivity.<init> -> SearchTextTask.<init>
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC activities/TextEditorActivity.java:449 searchTextTask = new SearchTextTask(this) in afterTextChanged (searchBox callback); INFERRED search flow creates the task
+  cite [SRC] activities/TextEditorActivity.java:449
+      449:             searchTextTask = new SearchTextTask(this);
+
+STEP 3  edge E58fb795c
+  SearchTextTask.<init> -> SearchTextTask.doInBackground
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED source not read
+  (no file:line citations in evidence)
+
+STEP 4  edge E0d85d17b
+  SearchTextTask.doInBackground -> SearchTextTask.onPostExecute
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED source not read
+  (no file:line citations in evidence)
+
+STEP 5  edge E6cc6219b
+  SearchTextTask.onPostExecute -> ImmutableEntry.getValue
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC SearchTextTask.java:91,95 keyMapEntry.getValue() on the ImmutableEntry from MapEntry
+  cite [SRC] SearchTextTask.java:91, 95
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/asynchronous/asynctasks/SearchTextTask.java)
+       91:                         (Integer) keyMapEntry.getKey(), (Integer) keyMapEntry.getValue(),
+       95:                         (Integer) keyMapEntry.getKey(), (Integer) keyMapEntry.getValue(),

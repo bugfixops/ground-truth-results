@@ -1,0 +1,171 @@
+METHOD: ApkImageDataFetcher.cancel
+verdict: REACHABLE   steps_from_launch: 14
+route steps: 14 edges
+======================================================================
+
+STEP 1  edge Ef3576ae6
+  S_ENTRY -> Drawer.onNavigationItemSelected
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC Drawer.java:99 implements NavigationView.OnNavigationItemSelectedListener, line 165 sets listener
+  cite [SRC] Drawer.java:99
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/drawer/Drawer.java)
+       99: public class Drawer implements NavigationView.OnNavigationItemSelectedListener {
+
+STEP 2  edge Ec93a3d5b
+  Drawer.onNavigationItemSelected -> AppsListFragment.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC Drawer.java:418-428; Drawer.java:597 onClick calls lambda; Drawer.java:535 onDrawerClosed commits transaction
+  cite [SRC] Drawer.java:418-428
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/drawer/Drawer.java)
+      418:         addNewItem(menu, LASTGROUP, order++, R.string.apps,
+      419:                 new MenuMetadata(() -> {
+      420:                     FragmentTransaction transaction2 = mainActivity.getSupportFragmentManager().beginTransaction();
+      421:                     transaction2.replace(R.id.content_frame, new AppsListFragment());
+      422:                     mainActivity.getAppbar()
+      423:                             .getAppbarLayout()
+      424:                             .animate()
+      425:                             .translationY(0)
+      426:                             .setInterpolator(new DecelerateInterpolator(2))
+      427:                             .start();
+      428:                     pending_fragmentTransaction = transaction2;
+  cite [SRC] Drawer.java:597
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/drawer/Drawer.java)
+      597:                 meta.onClickListener.onClick();
+  cite [SRC] Drawer.java:535
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/drawer/Drawer.java)
+      535: 
+
+STEP 3  edge Edd7ffae0
+  AppsListFragment.<init> -> AppsListFragment.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED Fragment lifecycle (androidx source not read)
+  (no file:line citations in evidence)
+
+STEP 4  edge E5f0bd603
+  AppsListFragment.onCreate -> AppsListFragment.onActivityCreated
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED Fragment lifecycle (androidx source not read)
+  (no file:line citations in evidence)
+
+STEP 5  edge E7c3c57fd
+  AppsListFragment.onActivityCreated -> GlideApp.with(Fragment)#2
+  class: non_standard   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC AppsListFragment.java:98 (bytecode)
+  cite [SRC] AppsListFragment.java:98
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/fragments/AppsListFragment.java)
+       98:         ListPreloader<String> preloader = new ListPreloader<>(GlideApp.with(app), modelProvider,
+
+STEP 6  edge Eb41c849f
+  GlideApp.with(Fragment)#2 -> GeneratedAppGlideModuleImpl.<init>
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED GlideApp.with() called from AppsListFragment.java:98, AppsAdapterPreloadModel.java:28, RecyclerPreloadModelProvider.java:30; Glide generates from @GlideModule on AmazeFileManagerModule.java:17
+  cite [SRC] AppsListFragment.java:98
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/fragments/AppsListFragment.java)
+       98:         ListPreloader<String> preloader = new ListPreloader<>(GlideApp.with(app), modelProvider,
+  cite [SRC] AppsAdapterPreloadModel.java:28
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/adapters/glide/AppsAdapterPreloadModel.java)
+       28:         request = GlideApp.with(f).asDrawable().fitCenter();
+  cite [SRC] RecyclerPreloadModelProvider.java:30
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/adapters/glide/RecyclerPreloadModelProvider.java)
+       30:         request = GlideApp.with(fragment).asDrawable().centerCrop();
+  cite [SRC] AmazeFileManagerModule.java:17
+       17: @GlideModule
+
+STEP 7  edge E64795b93
+  GeneratedAppGlideModuleImpl.<init> -> GeneratedAppGlideModuleImpl.registerComponents
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED Glide library calls; delegates to AmazeFileManagerModule.registerComponents at AmazeFileManagerModule.java:20-23
+  cite [SRC] AmazeFileManagerModule.java:20-23
+       20:     public void registerComponents(Context context, Glide glide, Registry registry) {
+       21:         registry.prepend(String.class, Drawable.class, new ApkImageModelLoaderFactory(context.getPackageManager()));
+       22:         registry.prepend(String.class, Bitmap.class, new CloudIconModelFactory(context));
+       23:     }
+
+STEP 8  edge E64b023f9
+  GeneratedAppGlideModuleImpl.registerComponents -> AmazeFileManagerModule.registerComponents
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED generated GeneratedAppGlideModuleImpl (no source in the upload; bytecode call)
+  (no file:line citations in evidence)
+
+STEP 9  edge E8c852b7d
+  AmazeFileManagerModule.registerComponents -> ApkImageModelLoaderFactory.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC AmazeFileManagerModule.java:21
+  cite [SRC] AmazeFileManagerModule.java:21
+       21:         registry.prepend(String.class, Drawable.class, new ApkImageModelLoaderFactory(context.getPackageManager()));
+
+STEP 10  edge E4c6b48e5
+  ApkImageModelLoaderFactory.<init> -> ApkImageModelLoaderFactory.build
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED Glide framework calls build on registered factories
+  (no file:line citations in evidence)
+
+STEP 11  edge Effa2e952
+  ApkImageModelLoaderFactory.build -> ApkImageModelLoader.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ApkImageModelLoaderFactory.java:25
+  cite [SRC] ApkImageModelLoaderFactory.java:25
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/adapters/glide/apkimage/ApkImageModelLoaderFactory.java)
+       25:         return new ApkImageModelLoader(packageManager);
+
+STEP 12  edge E44ea6c85
+  ApkImageModelLoader.<init> -> ApkImageModelLoader.buildLoadData
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED Glide framework calls buildLoadData
+  (no file:line citations in evidence)
+
+STEP 13  edge Ec3267b09
+  ApkImageModelLoader.buildLoadData -> ApkImageDataFetcher.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ApkImageModelLoader.java:27
+  cite [SRC] ApkImageModelLoader.java:27
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/adapters/glide/apkimage/ApkImageModelLoader.java)
+       27:         return new LoadData<>(new ObjectKey(s), new ApkImageDataFetcher(packageManager, s));
+
+STEP 14  edge Ec0f6b33b
+  ApkImageDataFetcher.<init> -> ApkImageDataFetcher.cancel
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED Glide framework lifecycle
+  (no file:line citations in evidence)

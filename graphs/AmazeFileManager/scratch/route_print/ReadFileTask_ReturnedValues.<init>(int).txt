@@ -1,0 +1,72 @@
+METHOD: ReadFileTask$ReturnedValues.<init>(int)
+verdict: REACHABLE   steps_from_launch: 5
+route steps: 5 edges
+======================================================================
+
+STEP 1  edge Edd3316a5
+  S_ENTRY -> TextEditorActivity.<init>
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: outside package: another app opens a text file with Amaze TextEditorActivity via ACTION_VIEW
+  evidence: SRC AndroidManifest.xml:129-144; FW-SRC core/java/android/app/Activity.java (Activity lifecycle callbacks dispatched by ActivityThread)
+  cite [SRC] AndroidManifest.xml:129-144
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/AndroidManifest.xml)
+      129:         <activity
+      130:             android:label="@string/textreader"
+      131:             android:name=".activities.TextEditorActivity"
+      132:             android:theme="@style/appCompatLight">
+      133:             <intent-filter
+      134:                 tools:ignore="AppLinkUrlError"
+      135:                 android:label="Amaze Text Editor">
+      136:                 <action android:name="android.intent.action.VIEW"/>
+      137:                 <category android:name="android.intent.category.DEFAULT" />
+      138:                 <data android:mimeType="text/*" />
+      139:                 <data android:mimeType="application/javascript" />
+      140:                 <data android:mimeType="application/json" />
+      141:                 <data android:mimeType="application/xml" />
+      142:             </intent-filter>
+      143: 
+      144:         </activity>
+
+STEP 2  edge E02683734
+  TextEditorActivity.<init> -> TextEditorActivity.onCreate
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED framework lifecycle
+  (no file:line citations in evidence)
+
+STEP 3  edge E9310cdcd
+  TextEditorActivity.onCreate -> TextEditorActivity.load
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TextEditorActivity.java:220 (bytecode)
+  cite [SRC] TextEditorActivity.java:220
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/activities/TextEditorActivity.java)
+      220:             load();
+
+STEP 4  edge Ee495bc45
+  TextEditorActivity.load -> ReadFileTask.doInBackground
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TextEditorActivity.java:291
+  cite [SRC] TextEditorActivity.java:291
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/activities/TextEditorActivity.java)
+      291:         new ReadFileTask(getContentResolver(), mFile, getExternalCacheDir(), isRootExplorer(), (data) -> {
+
+STEP 5  edge E5c4cc446
+  ReadFileTask.doInBackground -> ReadFileTask$ReturnedValues.<init>(int)
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ReadFileTask.java:115 (bytecode)
+  cite [SRC] ReadFileTask.java:115
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/asynchronous/asynctasks/ReadFileTask.java)
+      115:             return new ReturnedValues(EXCEPTION_IO);

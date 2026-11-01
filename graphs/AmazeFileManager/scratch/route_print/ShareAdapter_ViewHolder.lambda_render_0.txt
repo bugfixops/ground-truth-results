@@ -1,0 +1,149 @@
+METHOD: ShareAdapter$ViewHolder.lambda$render$0
+verdict: REACHABLE   steps_from_launch: 12
+route steps: 12 edges
+======================================================================
+
+STEP 1  edge Ef3576ae6
+  S_ENTRY -> Drawer.onNavigationItemSelected
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC Drawer.java:99 implements NavigationView.OnNavigationItemSelectedListener, line 165 sets listener
+  cite [SRC] Drawer.java:99
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/drawer/Drawer.java)
+       99: public class Drawer implements NavigationView.OnNavigationItemSelectedListener {
+
+STEP 2  edge Ec93a3d5b
+  Drawer.onNavigationItemSelected -> AppsListFragment.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC Drawer.java:418-428; Drawer.java:597 onClick calls lambda; Drawer.java:535 onDrawerClosed commits transaction
+  cite [SRC] Drawer.java:418-428
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/drawer/Drawer.java)
+      418:         addNewItem(menu, LASTGROUP, order++, R.string.apps,
+      419:                 new MenuMetadata(() -> {
+      420:                     FragmentTransaction transaction2 = mainActivity.getSupportFragmentManager().beginTransaction();
+      421:                     transaction2.replace(R.id.content_frame, new AppsListFragment());
+      422:                     mainActivity.getAppbar()
+      423:                             .getAppbarLayout()
+      424:                             .animate()
+      425:                             .translationY(0)
+      426:                             .setInterpolator(new DecelerateInterpolator(2))
+      427:                             .start();
+      428:                     pending_fragmentTransaction = transaction2;
+  cite [SRC] Drawer.java:597
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/drawer/Drawer.java)
+      597:                 meta.onClickListener.onClick();
+  cite [SRC] Drawer.java:535
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/drawer/Drawer.java)
+      535: 
+
+STEP 3  edge Edd7ffae0
+  AppsListFragment.<init> -> AppsListFragment.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED Fragment lifecycle (androidx source not read)
+  (no file:line citations in evidence)
+
+STEP 4  edge E5f0bd603
+  AppsListFragment.onCreate -> AppsListFragment.onActivityCreated
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED Fragment lifecycle (androidx source not read)
+  (no file:line citations in evidence)
+
+STEP 5  edge E44015116
+  AppsListFragment.onActivityCreated -> AppsAdapter.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/fragments/AppsListFragment.java:100-103
+  cite [SRC] final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/fragments/AppsListFragment.java:100-103
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/fragments/AppsListFragment.java)
+      100: 
+      101:         adapter = new AppsAdapter(getContext(), (ThemedActivity) getActivity(), utilsProvider, modelProvider, sizeProvider,
+      102:                 R.layout.rowlayout, app, Sp);
+      103: 
+
+STEP 6  edge E995dff1e
+  AppsAdapter.<init> -> FileUtils.shareFiles
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC adapters/AppsAdapter.java:170 setOnMenuItemClickListener, :181-185 share case calls FileUtils.shareFiles; popup-menu share reaches shareFiles
+  cite [SRC] adapters/AppsAdapter.java:170
+      170:             popupMenu.setOnMenuItemClickListener(item -> {
+
+STEP 7  edge Ee4436fb7
+  FileUtils.shareFiles -> ShareTask.doInBackground
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC utils/files/FileUtils.java:373; FW-SRC android/os/AsyncTask.java
+  cite [SRC] utils/files/FileUtils.java:373
+      373:             new ShareTask(c,uris,appTheme,fab_skin).execute(mime);
+
+STEP 8  edge E6fd8d564
+  ShareTask.doInBackground -> ShareTask.onPostExecute
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC android/os/AsyncTask.java
+  (no file:line citations in evidence)
+
+STEP 9  edge Ea16ad820
+  ShareTask.onPostExecute -> ShareAdapter.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC utils/share/ShareTask.java:121 shows "ShareAdapter shareAdapter = new ShareAdapter(contextc, targetShareIntents, arrayList1, arrayList2)"
+  cite [SRC] utils/share/ShareTask.java:121
+      121:             ShareAdapter shareAdapter = new ShareAdapter(contextc, targetShareIntents, arrayList1, arrayList2);
+
+STEP 10  edge E6f5e3da5
+  ShareAdapter.<init> -> ShareAdapter.onBindViewHolder
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC utils/share/ShareAdapter.java:50 shows "@Override public void onBindViewHolder(final ShareAdapter.ViewHolder holder, int position)"; INFERRED RecyclerView.Adapter binding lifecycle (androidx source not read)
+  cite [SRC] utils/share/ShareAdapter.java:50
+       50:     public void onBindViewHolder(ViewHolder holder, int position) {
+
+STEP 11  edge Ea76a1112
+  ShareAdapter.onBindViewHolder -> ShareAdapter$ViewHolder.render
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC utils/share/ShareAdapter.java:50-52
+  cite [SRC] utils/share/ShareAdapter.java:50-52
+       50:     public void onBindViewHolder(ViewHolder holder, int position) {
+       51:         holder.render(position);
+       52:     }
+
+STEP 12  edge E029349f9
+  ShareAdapter$ViewHolder.render -> ShareAdapter$ViewHolder.lambda$render$0
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC utils/share/ShareAdapter.java:72-76
+  cite [SRC] utils/share/ShareAdapter.java:72-76
+       72:             textView.setVisibility(View.VISIBLE);
+       73:             textView.setText(labels.get(position));
+       74:             rootView.setOnClickListener(v -> {
+       75:                 if (dialog != null && dialog.isShowing()) dialog.dismiss();
+       76:                 context.startActivity(items.get(position));

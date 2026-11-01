@@ -1,0 +1,68 @@
+METHOD: GlideRequests.load(Integer)
+verdict: REACHABLE   steps_from_launch: 6
+route steps: 6 edges
+======================================================================
+
+STEP 1  edge E3f6c0e47
+  S_ENTRY -> MainActivity.onBackPressed
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC Activity.java onBackPressed lifecycle
+  (no file:line citations in evidence)
+
+STEP 2  edge E961aba14
+  MainActivity.onBackPressed -> CompressedExplorerFragment.goBack
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainActivity.java:723 (bytecode)
+  cite [SRC] MainActivity.java:723
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/activities/MainActivity.java)
+      723:                     compressedExplorerFragment.goBack();
+
+STEP 3  edge E45bf8d26
+  CompressedExplorerFragment.goBack -> CompressedExplorerFragment.changePath
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC fragments/CompressedExplorerFragment.java:494-495
+  cite [SRC] fragments/CompressedExplorerFragment.java:494-495
+      494:     public void goBack() {
+      495:         changePath(new File(relativeDirectory).getParent());
+
+STEP 4  edge E771f72f3
+  CompressedExplorerFragment.changePath -> CompressedExplorerFragment.createViews
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC fragments/CompressedExplorerFragment.java:412-415
+  cite [SRC] fragments/CompressedExplorerFragment.java:412-415
+      412:                 if (result.exception == null) {
+      413:                     elements = result.result;
+      414:                     createViews(elements, finalfolder);
+      415:                     swipeRefreshLayout.setRefreshing(false);
+
+STEP 5  edge Ee8714c30
+  CompressedExplorerFragment.createViews -> CompressedExplorerAdapter.onBindViewHolder
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED Fragment sets adapter on RecyclerView; RecyclerView framework calls onBindViewHolder to bind data to views; INFERRED framework dispatch through RecyclerView.setAdapter (not an app method)
+  (no file:line citations in evidence)
+
+STEP 6  edge E9c7cd787
+  CompressedExplorerAdapter.onBindViewHolder -> GlideRequests.load(Integer)
+  class: non_standard   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC CompressedExplorerAdapter.java:217 (bytecode)
+  cite [SRC] CompressedExplorerAdapter.java:217
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/adapters/CompressedExplorerAdapter.java)
+      217:             GlideApp.with(compressedExplorerFragment).load(rowItem.iconData.image).into(holder.genericIcon);
