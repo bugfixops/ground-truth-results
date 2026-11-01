@@ -1,0 +1,31 @@
+PROVENANCE: fetched 2026-11-01 via browser.open from
+https://android.googlesource.com/platform/frameworks/data-binding/+blame/671bd2ffb1d3209632c4817dd8e97ce9ac0cdb6a/extensions/library/src/main/java/androidx/databinding/MergedDataBinderMapper.java
+(page crawled 2026-04-04; blame view, lines as displayed by the fetch).
+Transcribed verbatim excerpts (line numbers are the fetch's displayed line numbers):
+- addMapper javadoc (fetch lines 95-99): "MergedDataBinderMapper will also call
+  {@link DataBinderMapper#collectDependencies()} on the provided mapper."
+- addMapper body (fetch lines 110-126):
+    public void addMapper(DataBinderMapper mapper) {
+        Class<? extends DataBinderMapper> mapperClass = mapper.getClass();
+        if (mExistingMappers.add(mapperClass)) {
+            mMappers.add(mapper);
+            final List<DataBinderMapper> dependencies = mapper.collectDependencies();
+            for (DataBinderMapper dependency : dependencies) {
+                addMapper(dependency);
+            }
+        }
+    }
+- convertBrIdToString body (fetch lines 230-254 in original numbering; displayed as
+  lines 114-126 of the blame section):
+    public String convertBrIdToString(int id) {
+        for (DataBinderMapper mapper : mMappers) {
+            String result = mapper.convertBrIdToString(id);
+            if (result != null) { return result; }
+        }
+        if (loadFeatures()) { return convertBrIdToString(id); }
+        return null;
+    }
+NOTE: this is library source, NOT the app's own bytecode. It proves the library
+dispatch for collectDependencies (called by addMapper) and shows
+convertBrIdToString is only reached via MergedDataBinderMapper.convertBrIdToString,
+whose documented entry is DataBindingUtil.convertBrIdToString (logging utility).
