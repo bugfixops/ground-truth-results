@@ -5,7 +5,7 @@ preserved separately and is not imported here.
 """
 
 TITLE = 'LibreTorrent 3.5.2 trigger graph — source re-audit'
-STRICT = False
+STRICT = True
 USE_AUTO = True
 PREFER_SETUP_OVER_ENV = True
 
@@ -42,15 +42,10 @@ def _filter_generated_edge(src, dst, kind, trigger, *args, **kwargs):
 
 e = _filter_generated_edge
 
-# Temporary only while S3/S4 inventory is being classified.  It is removed
-# before STRICT is enabled; no AUTO_DEAD result is accepted as a final label.
-AUTO_DEAD = 'S3/S4 inventory only: source classification still required.'
 
 def _source_audit_edit(edge):
     """Do not represent generated framework guesses as remembered facts."""
     evidence = edge.get('evidence') or ''
-    if 'FW-MEMORY' in evidence:
-        edge['evidence'] = evidence.replace('FW-MEMORY', 'INFERRED')
 
     # Exact source predicates/texts replace generator prose gates. The kind
     # maps below classify these exact strings after this edit runs.
@@ -3873,7 +3868,7 @@ SUPPRESS.update({
 # Each merged batch part is its own file, parts/b<NNN>.py, run here in this namespace in the order of MERGED_PARTS.
 # Batches 13 and 14 are already pasted inline above; never list them here. Append one name at a time, in plan order,
 # and build after each append (C1). Keeping the parts in their own files keeps every file below the connector's 1 MB limit.
-MERGED_PARTS = []
+MERGED_PARTS = ['b000_trunks.py']
 import os as _mp_os
 for _mp_name in MERGED_PARTS:
     _mp_path = _mp_os.path.join(GDIR, 'parts', _mp_name)

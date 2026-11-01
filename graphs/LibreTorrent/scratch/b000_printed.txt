@@ -1,0 +1,897 @@
+Trunk part b000 printed source. Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java (AndroidManifest.xml at src/main).
+Labels below are the exact strings used in parts/b000_trunks.py evidence (SRC <label>:<lines>).
+
+===== AndroidManifest.xml:43-59 =====
+43	        <activity android:name=".ui.main.MainActivity"
+44	            android:theme="@style/AppTheme.Launcher"
+45	            android:exported="true">
+46	            <meta-data
+47	                android:name="android.app.shortcuts"
+48	                android:resource="@xml/shortcuts" />
+49	            <meta-data android:name="android.app.searchable"
+50	                android:resource="@xml/searchable"/>
+51	
+52	            <intent-filter>
+53	                <action android:name="android.intent.action.MAIN" />
+54	                <category android:name="android.intent.category.LAUNCHER" />
+55	                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+56	            </intent-filter>
+57	            <intent-filter>
+58	                <action android:name="android.intent.action.SEARCH" />
+59	            </intent-filter>
+
+===== AndroidManifest.xml:62-64 =====
+62	        <activity
+63	            android:exported="true"
+64	            android:name=".ui.addtorrent.AddTorrentActivity">
+
+===== AndroidManifest.xml:252-263 =====
+252	        <service
+253	            android:name=".service.TorrentService"
+254	            android:foregroundServiceType="dataSync" />
+255	
+256	        <receiver
+257	            android:name=".receiver.NotificationReceiver"
+258	            android:exported="false">
+259	            <intent-filter>
+260	                <action android:name="org.proninyaroslav.libretorrent.receivers.NotificationReceiver.NOTIFY_ACTION_SHUTDOWN_APP" />
+261	                <action android:name="org.proninyaroslav.libretorrent.receivers.NotificationReceiver.NOTIFY_ACTION_ADD_TORRENT" />
+262	            </intent-filter>
+263	        </receiver>
+
+===== ui/settings/SettingsFragment.java:122-124 =====
+122	        Preference feed = findPreference(FeedSettingsFragment.class.getSimpleName());
+123	        if (feed != null)
+124	            feed.setOnPreferenceClickListener(prefClickListener);
+
+===== ui/settings/SettingsFragment.java:193-200 =====
+193	            case FeedSettings:
+194	                if (Utils.isLargeScreenDevice(activity)) {
+195	                    setFragment(FeedSettingsFragment.newInstance(),
+196	                            getString(R.string.pref_header_feed));
+197	                } else {
+198	                    startActivity(FeedSettingsFragment.class,
+199	                            getString(R.string.pref_header_feed));
+200	                }
+
+===== ui/settings/SettingsFragment.java:232-240 =====
+232	    private <F extends PreferenceFragmentCompat> void startActivity(Class<F> fragment, String title)
+233	    {
+234	        Intent i = new Intent(activity, PreferenceActivity.class);
+235	        PreferenceActivityConfig config = new PreferenceActivityConfig(
+236	                fragment.getSimpleName(),
+237	                title);
+238	
+239	        i.putExtra(PreferenceActivity.TAG_CONFIG, config);
+240	        startActivity(i);
+
+===== ui/settings/PreferenceActivity.java:111-116 =====
+111	            else if (fragment.equals(SchedulingSettingsFragment.class.getSimpleName()))
+112	                return (F)SchedulingSettingsFragment.newInstance();
+113	            else if (fragment.equals(FeedSettingsFragment.class.getSimpleName()))
+114	                return (F)FeedSettingsFragment.newInstance();
+115	            else if (fragment.equals(StreamingSettingsFragment.class.getSimpleName()))
+116	                return (F)StreamingSettingsFragment.newInstance();
+
+===== ui/settings/sections/FeedSettingsFragment.java:42-55 =====
+42	    public static FeedSettingsFragment newInstance()
+43	    {
+44	        FeedSettingsFragment fragment = new FeedSettingsFragment();
+45	        fragment.setArguments(new Bundle());
+46	
+47	        return fragment;
+48	    }
+49	
+50	    @Override
+51	    public void onCreate(Bundle savedInstanceState)
+52	    {
+53	        super.onCreate(savedInstanceState);
+54	
+55	        pref = RepositoryHelper.getSettingsRepository(getActivity().getApplicationContext());
+
+===== ui/settings/sections/FeedSettingsFragment.java:119-121 =====
+119	    private void bindOnPreferenceChangeListener(Preference preference)
+120	    {
+121	        preference.setOnPreferenceChangeListener(this);
+
+===== ui/settings/sections/FeedSettingsFragment.java:125-142 =====
+125	    public boolean onPreferenceChange(Preference preference, Object newValue)
+126	    {
+127	        Context context = getActivity().getApplicationContext();
+128	
+129	        if (preference.getKey().equals(getString(R.string.pref_key_feed_auto_refresh))) {
+130	            pref.autoRefreshFeeds((boolean)newValue);
+131	
+132	            if ((boolean)newValue) {
+133	                long interval = pref.refreshFeedsInterval();
+134	                Scheduler.runPeriodicalRefreshFeeds(context, interval);
+135	            } else {
+136	                Scheduler.cancelPeriodicalRefreshFeeds(context);
+137	            }
+138	
+139	        } else if (preference.getKey().equals(getString(R.string.pref_key_feed_refresh_interval))) {
+140	            long interval = Long.parseLong((String)newValue);
+141	            pref.refreshFeedsInterval(interval);
+142	            Scheduler.runPeriodicalRefreshFeeds(context, interval);
+
+===== service/Scheduler.java:112-126 =====
+112	    public static void runPeriodicalRefreshFeeds(@NonNull Context appContext, long interval) {
+113	        Data data = new Data.Builder()
+114	                .putString(FeedFetcherWorker.TAG_ACTION, FeedFetcherWorker.ACTION_FETCH_ALL_CHANNELS)
+115	                .build();
+116	        PeriodicWorkRequest work = new PeriodicWorkRequest.Builder(FeedFetcherWorker.class,
+117	                interval,
+118	                TimeUnit.MILLISECONDS)
+119	                .setInputData(data)
+120	                .setConstraints(getRefreshFeedsConstraints(appContext))
+121	                .addTag(SCHEDULER_WORK_PERIODICAL_REFRESH_FEEDS)
+122	                .build();
+123	
+124	        WorkManager.getInstance(appContext).enqueueUniquePeriodicWork(SCHEDULER_WORK_PERIODICAL_REFRESH_FEEDS,
+125	                ExistingPeriodicWorkPolicy.REPLACE, work);
+126	    }
+
+===== service/Scheduler.java:128-144 =====
+128	    private static Constraints getRefreshFeedsConstraints(Context appContext) {
+129	        SettingsRepository pref = RepositoryHelper.getSettingsRepository(appContext);
+130	
+131	        NetworkType netType = NetworkType.CONNECTED;
+132	        if (pref.autoRefreshFeedsEnableRoaming())
+133	            netType = NetworkType.NOT_ROAMING;
+134	        if (pref.autoRefreshFeedsUnmeteredConnectionsOnly())
+135	            netType = NetworkType.UNMETERED;
+136	
+137	        return new Constraints.Builder()
+138	                .setRequiredNetworkType(netType)
+139	                .build();
+140	    }
+141	
+142	    public static void cancelPeriodicalRefreshFeeds(@NonNull Context appContext) {
+143	        WorkManager.getInstance(appContext).cancelAllWorkByTag(SCHEDULER_WORK_PERIODICAL_REFRESH_FEEDS);
+144	    }
+
+===== service/FeedFetcherWorker.java:51-52 =====
+51	public class FeedFetcherWorker extends Worker
+52	{
+
+===== service/FeedFetcherWorker.java:67-70 =====
+67	    public FeedFetcherWorker(@NonNull Context context, @NonNull WorkerParameters params)
+68	    {
+69	        super(context, params);
+70	    }
+
+===== service/FeedFetcherWorker.java:74-101 =====
+74	    public Result doWork()
+75	    {
+76	        context = getApplicationContext();
+77	        repo = RepositoryHelper.getFeedRepository(context);
+78	        pref = RepositoryHelper.getSettingsRepository(context);
+79	
+80	        long keepTime = pref.feedItemKeepTime();
+81	        long keepDateBorderTime = (keepTime > 0 ? System.currentTimeMillis() - keepTime : 0);
+82	
+83	        deleteOldItems(keepDateBorderTime);
+84	
+85	        Data data = getInputData();
+86	        String action = data.getString(TAG_ACTION);
+87	        boolean noAutoDownload = data.getBoolean(TAG_NO_AUTO_DOWNLOAD, false);
+88	
+89	        if (action == null)
+90	            return Result.failure();
+91	
+92	        switch (action) {
+93	            case ACTION_FETCH_CHANNEL:
+94	                return fetchChannel(data.getLong(TAG_CHANNEL_ID, -1),
+95	                        keepDateBorderTime, noAutoDownload);
+96	            case ACTION_FETCH_CHANNEL_LIST:
+97	                return fetchChannelsByUrl(data.getLongArray(TAG_CHANNEL_ID_LIST),
+98	                        keepDateBorderTime, noAutoDownload);
+99	            case ACTION_FETCH_ALL_CHANNELS:
+100	                return fetchChannels(repo.getAllFeeds(),
+101	                        keepDateBorderTime, noAutoDownload);
+
+===== service/TorrentService.java:105-135 =====
+105	    @Override
+106	    public void onCreate()
+107	    {
+108	        pref = RepositoryHelper.getSettingsRepository(getApplicationContext());
+109	        engine = TorrentEngine.getInstance(getApplicationContext());
+110	        stateProvider = TorrentInfoProvider.getInstance(getApplicationContext());
+111	
+112	        initPendingIntents();
+113	        makeForegroundNotify();
+114	    }
+115	
+116	    private void init()
+117	    {
+118	        Log.i(TAG, "Start " + TAG);
+119	
+120	        makeForegroundNotify();
+121	        subscribeCombinedPauseButtonState();
+122	        setFilterAndSorting();
+123	        subscribeForceSortAndFilter();
+124	
+125	        disposables.add(pref.observeSettingsChanged()
+126	                .subscribe(this::handleSettingsChanged));
+127	
+128	        Utils.enableBootReceiverIfNeeded(getApplicationContext());
+129	        setKeepCpuAwake(pref.cpuDoNotSleep());
+130	
+131	        engine.doStart();
+132	        engine.addListener(engineListener);
+133	
+134	        startUpdateForegroundNotify();
+135	    }
+
+===== service/TorrentService.java:150-162 =====
+150	    private void shutdown()
+151	    {
+152	        disposables.add(Completable.fromRunnable(this::stopEngine)
+153	                .subscribeOn(Schedulers.computation())
+154	                .subscribe());
+155	    }
+156	
+157	    private void stopEngine()
+158	    {
+159	        shuttingDown.set(true);
+160	        forceClearForeground();
+161	        engine.doStop();
+162	    }
+
+===== service/TorrentService.java:175-197 =====
+175	    @Override
+176	    public int onStartCommand(Intent intent, int flags, int startId)
+177	    {
+178	        String action = null;
+179	        if (intent != null)
+180	            action = intent.getAction();
+181	
+182	        /* Handle shutdown actions before init service */
+183	        if (action != null) {
+184	            int ret = handleShutdownActions(action);
+185	            if (ret >= 0)
+186	                return ret;
+187	        }
+188	
+189	        /* The first start */
+190	        if (isAlreadyRunning.compareAndSet(false, true))
+191	            init();
+192	
+193	        if (action != null)
+194	            handleActions(action);
+195	
+196	        return START_STICKY;
+197	    }
+
+===== service/TorrentService.java:199-232 =====
+199	    private int handleShutdownActions(String action)
+200	    {
+201	        switch (action) {
+202	            case NotificationReceiver.NOTIFY_ACTION_SHUTDOWN_APP:
+203	            case ACTION_SHUTDOWN:
+204	                shutdown();
+205	                return START_NOT_STICKY;
+206	            case ACTION_RESTART_FOREGROUND_NOTIFICATION:
+207	                makeForegroundNotify();
+208	                return START_STICKY;
+209	        }
+210	
+211	        return -1;
+212	    }
+213	
+214	    private void handleActions(String action)
+215	    {
+216	        switch (action) {
+217	            case NotificationReceiver.NOTIFY_ACTION_PAUSE_ALL:
+218	                engine.pauseAll();
+219	                break;
+220	            case NotificationReceiver.NOTIFY_ACTION_RESUME_ALL:
+221	                engine.resumeAll();
+222	                break;
+223	            case NotificationReceiver.NOTIFY_ACTION_PAUSE_RESUME_ALL:
+224	                boolean paused = combinedPauseButtonState.getValue();
+225	                if (paused) {
+226	                    engine.resumeAll();
+227	                } else {
+228	                    engine.pauseAll();
+229	                }
+230	                combinedPauseButtonState.onNext(!paused);
+231	                break;
+232	        }
+
+===== service/TorrentService.java:255-262 =====
+255	    private final TorrentEngineListener engineListener = new TorrentEngineListener() {
+256	        @Override
+257	        public void onSessionStopped()
+258	        {
+259	            Log.i(TAG, "Session stopped");
+260	            stopService();
+261	        }
+262	    };
+
+===== service/TorrentService.java:342-366 =====
+342	    private void makeForegroundNotify()
+343	    {
+344	        /* For starting main activity after click */
+345	        Intent startupIntent = new Intent(getApplicationContext(), MainActivity.class);
+346	        startupIntent.setAction(Intent.ACTION_MAIN);
+347	        startupIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+348	        startupIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+349	
+350	        PendingIntent startupPendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, startupIntent,
+351	                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+352	
+353	        foregroundNotify = new NotificationCompat.Builder(getApplicationContext(),
+354	                TorrentNotifier.FOREGROUND_NOTIFY_CHAN_ID)
+355	                .setSmallIcon(R.drawable.ic_app_notification)
+356	                .setContentIntent(startupPendingIntent)
+357	                .setContentTitle(getString(R.string.app_running_in_the_background))
+358	                .setTicker(getString(R.string.app_running_in_the_background))
+359	                .setWhen(System.currentTimeMillis());
+360	
+361	        setForegroundNotifyActions(pref.foregroundNotifyCombinedPauseButton());
+362	        foregroundNotify.setCategory(Notification.CATEGORY_SERVICE);
+363	
+364	        /* Disallow killing the service process by system */
+365	        startForeground(SERVICE_STARTED_NOTIFICATION_ID, foregroundNotify.build());
+366	    }
+
+===== service/TorrentService.java:455-495 =====
+455	    private void setForegroundNotifyActions(boolean combinedPauseButton) {
+456	        foregroundNotify.clearActions();
+457	
+458	        if (combinedPauseButton) {
+459	            boolean paused = combinedPauseButtonState.getValue();
+460	            foregroundNotify.addAction(
+461	                    new NotificationCompat.Action.Builder(
+462	                            paused ? R.drawable.ic_play_arrow_white_24dp : R.drawable.ic_pause_white_24dp,
+463	                            paused ? getString(R.string.resume_all) : getString(R.string.pause_all),
+464	                            pauseResumePendingIntent
+465	                    ).build()
+466	            );
+467	        } else {
+468	            foregroundNotify.addAction(
+469	                    new NotificationCompat.Action.Builder(
+470	                            R.drawable.ic_pause_white_24dp,
+471	                            getString(R.string.pause_all),
+472	                            pauseButtonPendingIntent
+473	                    ).build()
+474	            );
+475	            foregroundNotify.addAction(
+476	                    new NotificationCompat.Action.Builder(
+477	                            R.drawable.ic_play_arrow_white_24dp,
+478	                            getString(R.string.resume_all),
+479	                            resumeButtonPendingIntent
+480	                    ).build()
+481	            );
+482	        }
+483	        foregroundNotify.addAction(
+484	                new NotificationCompat.Action.Builder(
+485	                        R.drawable.ic_power_settings_new_white_24dp,
+486	                        getString(R.string.shutdown),
+487	                        shutdownPendingIntent
+488	                ).build()
+489	        );
+490	    }
+491	
+492	    void updateForegroundNotifyActions(boolean combinedPauseButton) {
+493	        setForegroundNotifyActions(combinedPauseButton);
+494	        startForeground(SERVICE_STARTED_NOTIFICATION_ID, foregroundNotify.build());
+495	    }
+
+===== service/TorrentService.java:497-524 =====
+497	    private void initPendingIntents() {
+498	        Intent shutdownIntent = new Intent(getApplicationContext(), NotificationReceiver.class);
+499	        shutdownIntent.setAction(NotificationReceiver.NOTIFY_ACTION_SHUTDOWN_APP);
+500	        shutdownPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0,
+501	                shutdownIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+502	        );
+503	
+504	        Intent pauseButtonIntent = new Intent(getApplicationContext(), NotificationReceiver.class);
+505	        pauseButtonIntent.setAction(NotificationReceiver.NOTIFY_ACTION_PAUSE_ALL);
+506	        pauseButtonPendingIntent = PendingIntent.getBroadcast(
+507	                getApplicationContext(), 0, pauseButtonIntent,
+508	                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+509	        );
+510	
+511	        Intent resumeButtonIntent = new Intent(getApplicationContext(), NotificationReceiver.class);
+512	        resumeButtonIntent.setAction(NotificationReceiver.NOTIFY_ACTION_RESUME_ALL);
+513	        resumeButtonPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0,
+514	                resumeButtonIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+515	        );
+516	
+517	        Intent pauseResumeButtonIntent = new Intent(getApplicationContext(), NotificationReceiver.class);
+518	        pauseResumeButtonIntent.setAction(NotificationReceiver.NOTIFY_ACTION_PAUSE_RESUME_ALL);
+519	        pauseResumePendingIntent = PendingIntent.getBroadcast(
+520	                getApplicationContext(), 0, pauseResumeButtonIntent,
+521	                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+522	        );
+523	
+524	    }
+
+===== core/model/TorrentEngine.java:117-141 =====
+117	    public static TorrentEngine getInstance(@NonNull Context appContext) {
+118	        if (INSTANCE == null) {
+119	            synchronized (TorrentEngine.class) {
+120	                if (INSTANCE == null)
+121	                    INSTANCE = new TorrentEngine(appContext);
+122	            }
+123	        }
+124	
+125	        return INSTANCE;
+126	    }
+127	
+128	    private TorrentEngine(@NonNull Context appContext) {
+129	        this.appContext = appContext;
+130	        repo = RepositoryHelper.getTorrentRepository(appContext);
+131	        tagRepo = RepositoryHelper.getTagRepository(appContext);
+132	        fs = SystemFacadeHelper.getFileSystemFacade(appContext);
+133	        pref = RepositoryHelper.getSettingsRepository(appContext);
+134	        notifier = TorrentNotifier.getInstance(appContext);
+135	        downloadsCompleted = new DownloadsCompletedListener(this);
+136	        session = new TorrentSessionImpl(repo,
+137	                fs,
+138	                SystemFacadeHelper.getSystemFacade(appContext));
+139	        session.setSettings(pref.readSessionSettings(), false);
+140	        session.addListener(engineListener);
+141	    }
+
+===== core/model/TorrentEngine.java:234-260 =====
+234	    public void doStart() {
+235	        if (isRunning())
+236	            return;
+237	
+238	        switchConnectionReceiver();
+239	        switchPowerReceiver();
+240	        disposables.add(pref.observeSettingsChanged()
+241	                .subscribe(this::handleSettingsChanged));
+242	
+243	        disposables.add(downloadsCompleted.listen()
+244	                .subscribe(
+245	                        this::handleAutoStop,
+246	                        (err) -> {
+247	                            Log.e(TAG, "Auto stop error: " +
+248	                                    Log.getStackTraceString(err));
+249	                            handleAutoStop();
+250	                        }
+251	                ));
+252	
+253	        disposables.add(session.getLogger().observeDataSetChanged()
+254	                .subscribe((change) -> {
+255	                    if (change.reason == Logger.DataSetChange.Reason.NEW_ENTRIES && change.entries != null)
+256	                        printSessionLog(change.entries);
+257	                }));
+258	
+259	        session.start();
+260	    }
+
+===== core/model/TorrentEngine.java:303-313 =====
+303	    public boolean isRunning() {
+304	        return session.isRunning();
+305	    }
+306	
+307	    public void addListener(TorrentEngineListener listener) {
+308	        session.addListener(listener);
+309	    }
+310	
+311	    public void removeListener(TorrentEngineListener listener) {
+312	        session.removeListener(listener);
+313	    }
+
+===== core/model/TorrentEngine.java:1046-1077 =====
+1046	    private void handleOnSessionStarted() {
+1047	        if (pref.enableIpFiltering()) {
+1048	            String path = pref.ipFilteringFile();
+1049	            if (path != null)
+1050	                session.enableIpFilter(Uri.parse(path));
+1051	        }
+1052	
+1053	        if (pref.watchDir())
+1054	            startWatchDir();
+1055	
+1056	        boolean enableStreaming = pref.enableStreaming();
+1057	        if (enableStreaming)
+1058	            startStreamingServer();
+1059	
+1060	        loadTorrents();
+1061	    }
+1062	
+1063	    private void startStreamingServer() {
+1064	        stopStreamingServer();
+1065	
+1066	        String hostname = pref.streamingHostname();
+1067	        int port = pref.streamingPort();
+1068	
+1069	        torrentStreamServer = new TorrentStreamServer(hostname, port);
+1070	        try {
+1071	            torrentStreamServer.start(appContext);
+1072	
+1073	        } catch (IOException e) {
+1074	            Log.e(TAG, Log.getStackTraceString(e));
+1075	            notifier.makeErrorNotify(appContext.getString(R.string.pref_streaming_error));
+1076	        }
+1077	    }
+
+===== core/model/TorrentEngine.java:1265-1269 =====
+1265	    private final TorrentEngineListener engineListener = new TorrentEngineListener() {
+1266	        @Override
+1267	        public void onSessionStarted() {
+1268	            handleOnSessionStarted();
+1269	        }
+
+===== core/model/TorrentEngine.java:1456-1458 =====
+1456	    private void handleSettingsChanged(String key) {
+1457	        boolean reschedule = false;
+1458	
+
+===== core/model/TorrentEngine.java:1592-1600 =====
+1592	        } else if (key.equals(appContext.getString(R.string.pref_key_streaming_enable))) {
+1593	            if (pref.enableStreaming())
+1594	                startStreamingServer();
+1595	            else
+1596	                stopStreamingServer();
+1597	
+1598	        } else if (key.equals(appContext.getString(R.string.pref_key_streaming_port)) ||
+1599	                key.equals(appContext.getString(R.string.pref_key_streaming_hostname))) {
+1600	            startStreamingServer();
+
+===== core/model/session/TorrentSessionImpl.java:184-188 =====
+184	    @Override
+185	    public void addListener(TorrentEngineListener listener)
+186	    {
+187	        listeners.add(listener);
+188	    }
+
+===== core/model/session/TorrentSessionImpl.java:862-908 =====
+862	    public void start()
+863	    {
+864	        if (isRunning())
+865	            return;
+866	
+867	        SessionParams params = loadSettings();
+868	        SettingsPack settingsPack = params.getSettings();
+869	        settings_pack sp = settingsPack.swig();
+870	
+871	        if (settings.posixDiskIo) {
+872	            // Internally set the session to use a simple posix disk I/O back-end, used
+873	            // for systems that don't have a 64-bit virtual address space or don't support
+874	            // memory mapped files. This option only to use in particular situations, like
+875	            // Android devices with faulty drivers.
+876	            params.setPosixDiskIO();
+877	        } else {
+878	            params.setDefaultDiskIO();
+879	        }
+880	
+881	        sp.set_str(settings_pack.string_types.dht_bootstrap_nodes.swigValue(), dhtBootstrapNodes());
+882	        sp.set_bool(settings_pack.bool_types.enable_ip_notifier.swigValue(), false);
+883	        sp.set_int(settings_pack.int_types.alert_queue_size.swigValue(), 5000);
+884	        sp.set_bool(settings_pack.bool_types.announce_to_all_trackers.swigValue(), true);
+885	        sp.set_bool(settings_pack.bool_types.announce_to_all_tiers.swigValue(), true);
+886	
+887	        String versionName = system.getAppVersionName();
+888	        if (versionName != null) {
+889	            int[] version = Utils.getVersionComponents(versionName);
+890	
+891	            String fingerprint = libtorrent.generate_fingerprint(PEER_FINGERPRINT,
+892	                    version[0], version[1], version[2], 0);
+893	            sp.set_str(settings_pack.string_types.peer_fingerprint.swigValue(), fingerprint);
+894	
+895	            String userAgent = String.format(USER_AGENT, Utils.getAppVersionNumber(versionName));
+896	            sp.set_str(settings_pack.string_types.user_agent.swigValue(), userAgent);
+897	
+898	            Log.i(TAG, "Peer fingerprint: " + sp.get_str(settings_pack.string_types.peer_fingerprint.swigValue()));
+899	            Log.i(TAG, "User agent: " + sp.get_str(settings_pack.string_types.user_agent.swigValue()));
+900	        }
+901	
+902	        if (settings.useRandomPort) {
+903	            setRandomPort(settings);
+904	        }
+905	        settingsToSettingsPack(settings, params.getSettings());
+906	
+907	        super.start(params);
+908	    }
+
+===== core/model/session/TorrentSessionImpl.java:990-1012 =====
+990	    @Override
+991	    protected void onAfterStart()
+992	    {
+993	        /*
+994	         * Overwrite default behaviour of super.start()
+995	         * and enable logging in onAfterStart()
+996	         */
+997	        if (settings.logging) {
+998	            SettingsPack sp = settings();
+999	            if (sp == null)
+1000	                return;
+1001	            sp.setInteger(settings_pack.int_types.alert_mask.swigValue(), getAlertMask(settings).to_int());
+1002	            applySettingsPack(sp);
+1003	
+1004	            enableSessionLogger(true);
+1005	        }
+1006	
+1007	        saveSettings();
+1008	        started = true;
+1009	        disposables.add(Completable.fromRunnable(() ->
+1010	                notifyListeners(TorrentEngineListener::onSessionStarted))
+1011	                .subscribeOn(Schedulers.io())
+1012	                .subscribe());
+
+===== core/model/session/TorrentSessionImpl.java:1041-1044 =====
+1041	    protected void onAfterStop()
+1042	    {
+1043	        notifyListeners(TorrentEngineListener::onSessionStopped);
+1044	        stopRequested.set(false);
+
+===== core/model/session/TorrentSessionImpl.java:1445-1450 =====
+1445	    private void notifyListeners(@NonNull CallListener l)
+1446	    {
+1447	        for (TorrentEngineListener listener : listeners) {
+1448	            if (listener != null)
+1449	                l.apply(listener);
+1450	        }
+
+===== core/model/stream/TorrentStreamServer.java:67-79 =====
+67	    public TorrentStreamServer(@NonNull String host, int port)
+68	    {
+69	        super(host, port);
+70	    }
+71	
+72	    public void start(@NonNull Context appContext) throws IOException
+73	    {
+74	        Log.i(TAG, "Start " + TAG);
+75	
+76	        engine = TorrentEngine.getInstance(appContext);
+77	
+78	        super.start();
+79	    }
+
+===== core/model/stream/TorrentStreamServer.java:93-108 =====
+93	    public static String makeStreamUrl(@NonNull String hostname, int port,
+94	                                       @NonNull String torrentId, int fileIndex)
+95	    {
+96	        try {
+97	            return new URI("http", null, hostname, port,
+98	                           "/stream",
+99	                           String.format(Locale.getDefault(),
+100	                                         "file=%d&torrent=%s",
+101	                                         fileIndex,
+102	                                         torrentId),
+103	                           null)
+104	                          .toString();
+105	        } catch (URISyntaxException e) {
+106	            return null;
+107	        }
+108	    }
+
+===== org/nanohttpd/NanoHTTPD.java:1794-1795 =====
+1794	    public void start() throws IOException {
+1795	        start(NanoHTTPD.SOCKET_READ_TIMEOUT);
+
+===== ui/addtorrent/AddTorrentActivity.java:97-104 =====
+97	    protected void onCreate(Bundle savedInstanceState)
+98	    {
+99	        setTheme(Utils.getAppTheme(getApplicationContext()));
+100	        super.onCreate(savedInstanceState);
+101	
+102	        binding = DataBindingUtil.setContentView(this, R.layout.activity_add_torrent);
+103	        ViewModelProvider provider = new ViewModelProvider(this);
+104	        viewModel = provider.get(AddTorrentViewModel.class);
+
+===== ui/addtorrent/AddTorrentViewModel.java:128-147 =====
+128	    public AddTorrentViewModel(@NonNull Application application) {
+129	        super(application);
+130	
+131	        fs = SystemFacadeHelper.getFileSystemFacade(application);
+132	        pref = RepositoryHelper.getSettingsRepository(application);
+133	        engine = TorrentEngine.getInstance(getApplication());
+134	
+135	        disposable.add(engine.observeNeedStartEngine()
+136	                .subscribeOn(Schedulers.io())
+137	                .filter((needStart) -> needStart)
+138	                .subscribe((needStart) -> engine.start()));
+139	
+140	        info.addOnPropertyChangedCallback(infoCallback);
+141	        mutableParams.getDirPath().addOnPropertyChangedCallback(dirPathCallback);
+142	        decodeState.setValue(new DecodeState(Status.UNKNOWN));
+143	
+144	        /* Init download dir */
+145	        String path = pref.saveTorrentsIn();
+146	        mutableParams.getDirPath().set(Uri.parse(path));
+147	    }
+
+===== ui/addtorrent/AddTorrentViewModel.java:182-199 =====
+182	    public void startDecode(@NonNull Uri uri) {
+183	        if (observeEngineRunning != null && observeEngineRunning.isDisposed())
+184	            return;
+185	
+186	        observeEngineRunning = engine.observeEngineRunning()
+187	                .subscribeOn(Schedulers.io())
+188	                .subscribe((isRunning) -> {
+189	                    if (isRunning) {
+190	                        startDecodeTask(uri);
+191	                        if (observeEngineRunning != null)
+192	                            observeEngineRunning.dispose();
+193	                    }
+194	                });
+195	    }
+196	
+197	    public void startDecodeTask(Uri uri) {
+198	        decodeTask = new TorrentDecodeTask(this);
+199	        decodeTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, uri);
+
+===== ui/addtorrent/AddTorrentViewModel.java:202-209 =====
+202	    private static class TorrentDecodeTask extends AsyncTask<Uri, Void, Throwable> {
+203	        private final WeakReference<AddTorrentViewModel> viewModel;
+204	
+205	        private TorrentDecodeTask(AddTorrentViewModel viewModel) {
+206	            super();
+207	
+208	            this.viewModel = new WeakReference<>(viewModel);
+209	        }
+
+===== ui/addtorrent/AddTorrentViewModel.java:217-220 =====
+217	        protected Throwable doInBackground(Uri... params) {
+218	            AddTorrentViewModel v = viewModel.get();
+219	            if (v == null || isCancelled())
+220	                return null;
+
+===== ui/detailtorrent/DetailTorrentViewModel.java:338-343 =====
+338	    public String getStreamUrl(int fileIndex) {
+339	        String hostname = pref.streamingHostname();
+340	        int port = pref.streamingPort();
+341	
+342	        return TorrentStreamServer.makeStreamUrl(hostname, port, torrentId, fileIndex);
+343	    }
+
+===== ui/detailtorrent/pages/files/DetailTorrentFilesFragment.java:394-401 =====
+394	        public boolean onActionItemClicked(ActionMode mode, MenuItem item)
+395	        {
+396	            int itemId = item.getItemId();
+397	            if (itemId == R.id.change_priority_menu) {
+398	                showPriorityDialog();
+399	            } else if (itemId == R.id.share_stream_url_menu) {
+400	                shareStreamUrl();
+401	                mode.finish();
+
+===== ui/detailtorrent/pages/files/DetailTorrentFilesFragment.java:509-524 =====
+509	    private void shareStreamUrl()
+510	    {
+511	        MutableSelection<TorrentContentFileItem> selections = new MutableSelection<>();
+512	        selectionTracker.copySelection(selections);
+513	
+514	        Iterator<TorrentContentFileItem> it = selections.iterator();
+515	        if (!it.hasNext())
+516	            return;
+517	        int fileIndex = it.next().index;
+518	
+519	        Intent sharingIntent = new Intent(Intent.ACTION_SEND);
+520	        sharingIntent.setType("text/plain");
+521	        sharingIntent.putExtra(Intent.EXTRA_SUBJECT, "url");
+522	        sharingIntent.putExtra(Intent.EXTRA_TEXT, viewModel.getStreamUrl(fileIndex));
+523	
+524	        startActivity(Intent.createChooser(sharingIntent, getString(R.string.share_via)));
+
+===== ui/TorrentNotifier.java:212-241 =====
+212	    public void makeTorrentFinishedNotify(@NonNull Torrent torrent) {
+213	        if (!pref.torrentFinishNotify() || torrent.visibility == Torrent.VISIBILITY_HIDDEN)
+214	            return;
+215	
+216	        NotificationCompat.Builder builder = new NotificationCompat.Builder(appContext,
+217	                FINISH_NOTIFY_CHAN_ID)
+218	                .setSmallIcon(R.drawable.ic_done_white_24dp)
+219	                .setColor(ContextCompat.getColor(appContext, R.color.primary))
+220	                .setContentTitle(appContext.getString(R.string.torrent_finished_notify))
+221	                .setTicker(appContext.getString(R.string.torrent_finished_notify))
+222	                .setContentText(torrent.name)
+223	                .setAutoCancel(true)
+224	                .setWhen(System.currentTimeMillis());
+225	
+226	        builder.setCategory(Notification.CATEGORY_STATUS);
+227	
+228	        applyLegacyNotifySettings(builder);
+229	
+230	        Intent openIntent = new Intent(appContext, DetailTorrentActivity.class);
+231	        openIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+232	        openIntent.setAction(DetailTorrentActivity.ACTION_OPEN_FILES);
+233	        openIntent.putExtra(DetailTorrentActivity.TAG_TORRENT_ID, torrent.id);
+234	
+235	        PendingIntent openPendingIntent = PendingIntent.getActivity(
+236	                appContext, torrent.id.hashCode(), openIntent,
+237	                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+238	        );
+239	        builder.setContentIntent(openPendingIntent);
+240	
+241	        notifyManager.notify(torrent.id.hashCode(), builder.build());
+
+===== receiver/NotificationReceiver.java:33-81 =====
+33	public class NotificationReceiver extends BroadcastReceiver
+34	{
+35	    public static final String NOTIFY_ACTION_SHUTDOWN_APP = "org.proninyaroslav.libretorrent.receivers.NotificationReceiver.NOTIFY_ACTION_SHUTDOWN_APP";
+36	    public static final String NOTIFY_ACTION_ADD_TORRENT = "org.proninyaroslav.libretorrent.receivers.NotificationReceiver.NOTIFY_ACTION_ADD_TORRENT";
+37	    public static final String NOTIFY_ACTION_PAUSE_ALL = "org.proninyaroslav.libretorrent.receivers.NotificationReceiver.NOTIFY_ACTION_PAUSE_ALL";
+38	    public static final String NOTIFY_ACTION_RESUME_ALL = "org.proninyaroslav.libretorrent.receivers.NotificationReceiver.NOTIFY_ACTION_RESUME_ALL";
+39	    public static final String NOTIFY_ACTION_PAUSE_RESUME_ALL = "org.proninyaroslav.libretorrent.receivers.NotificationReceiver.NOTIFY_ACTION_PAUSE_RESUME_ALL";
+40	
+41	    @Override
+42	    public void onReceive(Context context, Intent intent)
+43	    {
+44	        String action = intent.getAction();
+45	        if (action == null)
+46	            return;
+47	        Intent mainIntent, serviceIntent;
+48	        switch (action) {
+49	            /* Send action to the already running service */
+50	            case NOTIFY_ACTION_SHUTDOWN_APP:
+51	                mainIntent = new Intent(context.getApplicationContext(), MainActivity.class);
+52	                mainIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+53	                mainIntent.setAction(NOTIFY_ACTION_SHUTDOWN_APP);
+54	                context.startActivity(mainIntent);
+55	
+56	                serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+57	                serviceIntent.setAction(NOTIFY_ACTION_SHUTDOWN_APP);
+58	                context.startService(serviceIntent);
+59	                break;
+60	            case NOTIFY_ACTION_ADD_TORRENT:
+61	                mainIntent = new Intent(context.getApplicationContext(), MainActivity.class);
+62	                mainIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+63	                mainIntent.setAction(NOTIFY_ACTION_ADD_TORRENT);
+64	                context.startActivity(mainIntent);
+65	                break;
+66	            case NOTIFY_ACTION_PAUSE_ALL:
+67	                serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+68	                serviceIntent.setAction(NOTIFY_ACTION_PAUSE_ALL);
+69	                context.startService(serviceIntent);
+70	                break;
+71	            case NOTIFY_ACTION_RESUME_ALL:
+72	                serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+73	                serviceIntent.setAction(NOTIFY_ACTION_RESUME_ALL);
+74	                context.startService(serviceIntent);
+75	                break;
+76	            case NOTIFY_ACTION_PAUSE_RESUME_ALL:
+77	                serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+78	                serviceIntent.setAction(NOTIFY_ACTION_PAUSE_RESUME_ALL);
+79	                context.startService(serviceIntent);
+80	                break;
+81	        }
+
+===== ui/detailtorrent/DetailTorrentActivity.java:40-56 =====
+40	public class DetailTorrentActivity extends AppCompatActivity
+41	        implements FragmentCallback
+42	{
+43	    private static final String TAG = DetailTorrentActivity.class.getSimpleName();
+44	
+45	    public static final String ACTION_OPEN_FILES = "org.proninyaroslav.libretorrent.ui.detailtorrent.DetailTorrentActivity.ACTION_OPEN_FILES";
+46	    public static final String TAG_TORRENT_ID = "torrent_id";
+47	
+48	    private DetailTorrentFragment detailTorrentFragment;
+49	    private TorrentInfoProvider infoProvider;
+50	    private CompositeDisposable disposables = new CompositeDisposable();
+51	
+52	    @Override
+53	    protected void onCreate(@Nullable Bundle savedInstanceState)
+54	    {
+55	        setTheme(Utils.getAppTheme(getApplicationContext()));
+56	        super.onCreate(savedInstanceState);
+===== core/model/TorrentEngine.java:148-153 =====
+   148	    public void start() {
+   149	        if (isRunning())
+   150	            return;
+   151	
+   152	        Utils.startServiceBackground(appContext, new Intent(appContext, TorrentService.class));
+   153	    }
+
+===== core/model/TorrentEngine.java:292-304 =====
+   292	    public void doStop() {
+   293	        if (!isRunning())
+   294	            return;
+   295	
+   296	        disposables.clear();
+   297	        stopWatchDir();
+   298	        stopStreamingServer();
+   299	        session.requestStop();
+   300	        cleanTemp();
+   301	    }
+   302	
+   303	    public boolean isRunning() {
+   304	        return session.isRunning();
+
