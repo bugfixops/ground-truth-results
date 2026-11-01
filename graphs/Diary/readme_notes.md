@@ -31,3 +31,5 @@
 - `tools/show_route.py` stops with a ValueError on an evidence citation written as `File.java:570, 1696-1709` (comma and space), which many edges use. The sampled routes were printed from the JSON and `methods.csv` instead, with the cited lines read from the source tree.
 - Hazard 11: the ActivityStarter lines (ActivityStarter.java:1496-1520, 1036-1050, 1754-1760, 1565-1580) show an existing task being reused for a NEW_TASK start; the affinity match in `findTaskLocked` and Diary coming to the front are still inferred.
 - Routes that start in another app (share, picker, geo: link, external Editor start, widget) need a tester that can leave the package; the self-share routes assume Diary is listed in its own share sheet, the widget routes assume a stock launcher.
+- check 5 counts 5 lines (graph_def.py 199, 228, 1608, 1624, 1629). They are the schema-1 dictionaries DEAD and FRAMEWORK_ONLY, used only as temporary containers that are converted to UNREACHABLE entries and emptied at line 1629. No placeholder label exists.
+- Diary has no auto_calls.json, so check 8 does not apply.

@@ -1,0 +1,1154 @@
+[
+ {
+  "type": "path",
+  "item": "DiaryWidgetUpdate.getYear",
+  "result": "fixed",
+  "confirmed_by": "SOURCE",
+  "ref": "DiaryWidgetUpdate.java:169",
+  "edges": "Ee6b8aa80 Edd0b9192 Ee63879c9 Ea885d6f1 E002e1746 E13d2a950 Ec7e88adf E9b269181 E519112ea Ec8b3376c E9ddac6cd Ef7699691 Ede74cf66 Ed30f979f E6bfccc45 E50c0a087 E4c763149 E9433c4e1 E18600188",
+  "note": "ERROR FOUND: the derived route reached Diary.save() through Back -> changeDate with an empty entry stack and an unchanged entry (Diary.java:734-737, 2565-2570), which cannot hold after a launch. Fixed in graph_def.py (EDIT): those edges carry STATE session gates. The route types the time (Add time, Diary.java:696-697, 1847-1855), leaves with Home so onPause saves (596-606, 2282), the save broadcast reaches the widget (2357-2368); ENV other_app: a widget has to be placed"
+ },
+ {
+  "type": "path",
+  "item": "DiaryWidgetProvider.getHome",
+  "result": "fixed",
+  "confirmed_by": "SOURCE",
+  "ref": "DiaryWidgetProvider.java:225",
+  "edges": "Ee6b8aa80 Edd0b9192 Ee63879c9 Ea885d6f1 E002e1746 E13d2a950 Ec7e88adf E9b269181 E519112ea Ec8b3376c E9ddac6cd Ef7699691 Ede74cf66 E6308923b Ef07452ff E90a3fefc E2adbb115 Eeb8ea610 Efbe8cd80",
+  "note": "same error and fix as DiaryWidgetUpdate.getYear (Back -> changeDate -> save shortcut); steps 14-19 read against DiaryWidgetProvider.java:117-121, 193, 223-261"
+ },
+ {
+  "type": "path",
+  "item": "AboutPreference.<init>",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "res/xml/preferences.xml:172",
+  "edges": "Ee6b8aa80 Edd0b9192 Ee63879c9 Ea885d6f1 E002e1746 E65bffa72 E003e3f4e Eb04234de E614e3b2e E18bac421 Eccf994be",
+  "note": "every step read against the cited lines; guards and ENV/STATE gates complete; the class is named in preferences.xml:172-179 and built by GenericInflater (AOSP GenericInflater.java:368-385)"
+ },
+ {
+  "type": "path",
+  "item": "DiaryWidgetUpdate.nextMonth",
+  "result": "fixed",
+  "confirmed_by": "SOURCE",
+  "ref": "DiaryWidgetUpdate.java:253",
+  "edges": "Ee6b8aa80 Edd0b9192 Ee63879c9 Ea885d6f1 E002e1746 E13d2a950 Ec7e88adf E9b269181 E519112ea Ec8b3376c E9ddac6cd Ef7699691 Ede74cf66 Ed30f979f Ef930bfbc E1bda1894 E4f7e2de4 E6b9a06e0",
+  "note": "same error and fix as DiaryWidgetUpdate.getYear; steps 15-18 read against DiaryWidgetProvider.java:154-164, 178 and DiaryWidgetUpdate.java:93-103, 251-261"
+ },
+ {
+  "type": "path",
+  "item": "FileUtils.isLocal",
+  "result": "unclear",
+  "confirmed_by": "INFERRED",
+  "ref": "FileUtils.java:633",
+  "edges": "Ee6b8aa80 Edd0b9192 Ee63879c9 Ea885d6f1 E002e1746 E65bffa72 E003e3f4e Eb04234de E614e3b2e E18bac421 E70b5909f E7ada6d09 E86da5854 E4cc3319e E02835c77 E4115ec95 Eef610ba3 Ee174274c E8c83c21e E8858b368 Eadc47a1d E703c40c2 E6f8e7966",
+  "note": "app steps read; the picked-file step depends on the picker app (another app, source not read). The earlier route used the haveMedia state of a launcher-started instance, which cannot hold (haveMedia is set only when SEND/VIEW starts the instance, Diary.java:497-516, 1289-1300); those edges now carry ENV other_app"
+ },
+ {
+  "type": "path",
+  "item": "Diary.lambda$addLink$21",
+  "result": "unclear",
+  "confirmed_by": "INFERRED",
+  "ref": "Diary.java:2819-2844",
+  "edges": "Ee6b8aa80 Edd0b9192 Ee63879c9 Ea885d6f1 E002e1746 E78556c11 E86b7a9c5 Efd4a5146 E880677b8 Edad80a88 E584dfb93 E1af5e817",
+  "note": "app steps read; the picked-file step depends on the picker app (another app, source not read). The earlier route used the haveMedia state of a launcher-started instance, which cannot hold; now ENV other_app"
+ },
+ {
+  "type": "path",
+  "item": "Diary.alertDialog(int,String,int)",
+  "result": "unclear",
+  "confirmed_by": "INFERRED",
+  "ref": "Diary.java:3186-3188",
+  "edges": "Ee6b8aa80 Edd0b9192 Ee63879c9 Ea885d6f1 E002e1746 E3ca949a2 E40f66627 E45b1bb57 Eca36c4c7 Eb4634804 E95cb08f1 E5f87aaf2",
+  "note": "app steps read; that openOutputStream on a file in a missing folder fails is java.io behaviour (libcore source not read)"
+ },
+ {
+  "type": "path",
+  "item": "Diary.lambda$sortFiles$0",
+  "result": "unclear",
+  "confirmed_by": "INFERRED",
+  "ref": "Diary.java:305-306",
+  "edges": "Ee6b8aa80 Edd0b9192 Ee63879c9 Ea9a2d993 Eadd8ec43 Ea5e57b91 Ebf1d2b5a E31daa2a0 Ea16ba1a8",
+  "note": "app steps read; that Arrays.sort calls the comparator is libcore behaviour (not read). Gate corrected: the comparator runs only for two or more day files, now STATE data"
+ },
+ {
+  "type": "path",
+  "item": "Diary$FindTask.lambda$onPostExecute$0",
+  "result": "fixed",
+  "confirmed_by": "SOURCE",
+  "ref": "Diary.java:3302-3306",
+  "edges": "Ee6b8aa80 Edd0b9192 Ee63879c9 Ea885d6f1 E002e1746 E1b4e3a4b E5f3770ba E0eebf4dd Eb360afa9 Edf2bd842 E129c3852 E1999f783 E03d355a9",
+  "note": "ERROR FOUND: the result click handler is set only when the search found a match (Diary.java:3285-3288), the route had no STATE. Fixed: STATE data (a saved entry contains the searched text)"
+ },
+ {
+  "type": "path",
+  "item": "Diary.dateCheck(CharSequence,String)",
+  "result": "fixed",
+  "confirmed_by": "SOURCE",
+  "ref": "Diary.java:2714",
+  "edges": "Ee6b8aa80 Edd0b9192 Ee63879c9 Ea885d6f1 E002e1746 E65bffa72 E003e3f4e Eb04234de E614e3b2e E18bac421 E70b5909f E7ada6d09 E51866d90 Ee9b231d0 E128aa89d Eae35dc61 E59723e4b E11c6d202 Ebb6ba654",
+  "note": "ERROR FOUND: template() returns at once for a non-empty entry (Diary.java:2692-2694) and the help text of the first start is not empty. Fixed: STATE data (a day without an entry text)"
+ },
+ {
+  "type": "path",
+  "item": "Diary.lambda$listYears$1",
+  "result": "unclear",
+  "confirmed_by": "INFERRED",
+  "ref": "Diary.java:314-315",
+  "edges": "Ee6b8aa80 Edd0b9192 Ee63879c9 Ea9a2d993 Eadd8ec43 Ec14228ed E20854818 Ecc51ba5c",
+  "note": "app steps read; that File.listFiles calls the filter is libcore behaviour (not read). Gate corrected: the filter runs only when the diary folder holds entries, now STATE data"
+ },
+ {
+  "type": "path",
+  "item": "QueryHandler.onInsertComplete",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "QueryHandler.java:131-144",
+  "edges": "Ee6b8aa80 Edd0b9192 Ee63879c9 Ea885d6f1 Ea16497b4 E7b97a38b Ea3a04808 E0edc1077 E73406bfe E9e5808e9 E5e97f516 Ecab87f2c E8515bd78 E06a409c9",
+  "note": "every step read; ENV other (24-hour locale: the typed time must parse with DateFormat.SHORT, Diary.java:1305-1323) and other_app (a calendar exists)"
+ },
+ {
+  "type": "path",
+  "item": "Diary.addMap",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Diary.java:1551-1558",
+  "edges": "Ec0dffe3e E5b1dcd66 Ea80f69ad E76de4a23 Eefca3ed5 E37be136f E8810303d Ed6828399 E69496a12",
+  "note": "every step read; ENV other_app: another app opens a geo: URI (AndroidManifest.xml:75-82)"
+ },
+ {
+  "type": "path",
+  "item": "Editor.alertDialog(int,String,int)",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Editor.java:411-425",
+  "edges": "Ee6b8aa80 Edd0b9192 Ee63879c9 Ea885d6f1 E002e1746 E05ca1e11 Ea338626d Eded1f47a Ea3b59f09 Ebd97851f E652d1540 Ed1933649 E4861418e Ea9aa4b4b",
+  "note": "every step read; ENV other: the write of the file fails"
+ },
+ {
+  "type": "path",
+  "item": "Diary.addMedia(Intent)",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Diary.java:829-836",
+  "edges": "Ee4ee499a E182e5f1e Eafcda211 Ebcf16a13 E4699aafc Ee6b69ad4 E50bb88c9 E57e91fb9",
+  "note": "every step read; ENV other_app: another app shares text to Diary (AndroidManifest.xml:60-67)"
+ },
+ {
+  "type": "path",
+  "item": "FileUtils.fileProviderPath",
+  "result": "fixed",
+  "confirmed_by": "SOURCE",
+  "ref": "FileUtils.java:602-608",
+  "edges": "E43a85cbd E2e841378 E9be312f5 E1559572d E80301e27",
+  "note": "ERROR FOUND (earlier route): it went through the haveMedia state of a launcher-started instance, which cannot hold. Fixed: those edges carry ENV other_app; the route is now another app opening a text file with the Editor and a content URI without a _data column (Editor.java:114-126, 315-325, FileUtils.java:602-608)"
+ },
+ {
+  "type": "path",
+  "item": "Diary.onRequestPermissionsResult",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Diary.java:2212-2245",
+  "edges": "Ee6b8aa80 Edd0b9192 Eced89c46 Ef166af87 E0ccb250b Edfef477b Ee0b1fbde",
+  "note": "every step read; ENV permission (the runtime permissions are not granted yet)"
+ },
+ {
+  "type": "path",
+  "item": "Diary.onDateSet(DatePicker,int,int,int)",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Diary.java:818-825",
+  "edges": "Ee6b8aa80 Edd0b9192 Ee63879c9 Ea885d6f1 E002e1746 E65bffa72 E003e3f4e Eb04234de E614e3b2e E18bac421 E70b5909f E7ada6d09 E870a9cdb E9be34d27 E6ab32328 E35c0023a Ec7c01fd2 E31280764 E6555ab30 E0d08d3f0 Ebfc59ea4",
+  "note": "every step read; Use custom calendar is unticked on the route itself"
+ },
+ {
+  "type": "path",
+  "item": "Diary.onRestoreInstanceState",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Diary.java:523-533",
+  "edges": "Ee6b8aa80 Edd0b9192 Ee63879c9 Ea885d6f1 E002e1746 E65bffa72 E003e3f4e Eb04234de E614e3b2e E18bac421 E70b5909f E7ada6d09 E5e8f27e8 E723d3724 Ed1ef6d6e Ed9c145d5 E7c4aeb78 E0bdcb055 Ebe4557c8",
+  "note": "every step read; the theme is changed on the route, onResume recreates the activity (Diary.java:541-548)"
+ },
+ {
+  "type": "path",
+  "item": "Diary.dateCheck(CharSequence,String,Date)",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Diary.java:2642-2644",
+  "edges": "Ee6b8aa80 Edd0b9192 Ee63879c9 Ea885d6f1 E002e1746 E65bffa72 E003e3f4e Eb04234de E614e3b2e E18bac421 E70b5909f E7ada6d09 Eb6b6550a Ea4546a61 E974860c5 E00abed65 Ec59307d8 E5a9c7ed0 E08d0b7cb",
+  "note": "every step read; Use index is ticked on the route itself"
+ },
+ {
+  "type": "path",
+  "item": "Diary.lambda$cancel$17",
+  "result": "fixed",
+  "confirmed_by": "SOURCE",
+  "ref": "Diary.java:1214-1225",
+  "edges": "Ee6b8aa80 Edd0b9192 Ee63879c9 Ea885d6f1 E002e1746 E13d2a950 Ec7e88adf Ec5df0a10 Ef3256716 Ef19e7dc8 Ec8877910 E4b4f59bc",
+  "note": "ERROR FOUND: the route opened Cancel from the search menu of an unchanged entry, but Cancel is visible only while changed (Diary.java:632). Fixed: that edge carries a STATE session gate; the route now adds the time (changed) and taps Cancel"
+ },
+ {
+  "type": "path",
+  "item": "Editor.lambda$onBackPressed$3",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Editor.java:256-271",
+  "edges": "Ee6b8aa80 Edd0b9192 Ee63879c9 Ea885d6f1 E002e1746 E05ca1e11 Ea338626d Eded1f47a Ea3b59f09 Ebd97851f E652d1540 E821ce1c6 Ea16479ba E2c02c361 E159ad6f2",
+  "note": "every step read; guards and ENV/STATE gates complete"
+ },
+ {
+  "type": "path",
+  "item": "Diary.showToast(String)",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Diary.java:2953-2957",
+  "edges": "Ee6b8aa80 Edd0b9192 Ee63879c9 Ea885d6f1 E002e1746 E3ca949a2 E40f66627 E45b1bb57 Ef1071153 Efbd9bfb6 Ee05ecba5 Eed0ae7aa",
+  "note": "every step read; guards and ENV/STATE gates complete"
+ },
+ {
+  "type": "path",
+  "item": "FileUtils.getExtension",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "FileUtils.java:218-219",
+  "edges": "Ee6b8aa80 Edd0b9192 Ee63879c9 Ea909ae66 Efd70ec06 Efaf4b20b E3a96a5f2 E0a8291a8 Eaddab195",
+  "note": "every step read; valid on the first start: the help text (three images) is copied into the empty page, sets changed (Diary.java:560-568) and is rendered through mediaCheck (1382-1390)"
+ },
+ {
+  "type": "path",
+  "item": "FileProvider.buildPath",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "FileProvider.java:594-617",
+  "edges": "E33515afc Eb7d77e9a E837eed8c Ecd7e7fc1 Ee37ab436",
+  "note": "every step read; the provider is created at process start (ActivityThread.java:5720-5722, 6236-6239)"
+ },
+ {
+  "type": "path",
+  "item": "Diary.onDateSet(CustomCalendarView,int,int,int)",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Diary.java:829-836",
+  "edges": "Ee6b8aa80 Edd0b9192 Ee63879c9 Ea885d6f1 E002e1746 E8b5a6aee Ef473e7f6 Ea3c861d0 Efbe01b83",
+  "note": "every step read; guards and ENV/STATE gates complete"
+ },
+ {
+  "type": "path",
+  "item": "QueryHandler.<clinit>",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "QueryHandler.java:44-49",
+  "edges": "Ee6b8aa80 Edd0b9192 Ee63879c9 Ea885d6f1 E002e1746 E2c10b318 Ef5543c23 E243e9b87",
+  "note": "every step read; guards and ENV/STATE gates complete"
+ },
+ {
+  "type": "path",
+  "item": "Diary.getNextCalendarMonth",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Diary.java:3028-3036",
+  "edges": "Ee6b8aa80 Edd0b9192 Ee63879c9 Ea885d6f1 E55f6b52d E7a3bcc72 E38e0b13b",
+  "note": "every step read; the two-finger fling needs multi == true (Diary.java:840-846, 3440-3441)"
+ },
+ {
+  "type": "path",
+  "item": "FileProvider$SimplePathStrategy.getUriForFile",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "FileProvider.java:688-724",
+  "edges": "Ee6b8aa80 Edd0b9192 Ee63879c9 Ea885d6f1 E002e1746 E9bfb25aa E94b2b3d6 Ec300822c",
+  "note": "every step read; guards and ENV/STATE gates complete"
+ },
+ {
+  "type": "path",
+  "item": "Diary.getDay",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Diary.java:2032-2036",
+  "edges": "Ee6b8aa80 Edd0b9192 Ee63879c9 E5a0aa591 Efca6c74a E7fa15fb7",
+  "note": "every step read; guards and ENV/STATE gates complete"
+ },
+ {
+  "type": "label",
+  "item": "DatePickerPreference.onGetDefaultValue",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "DatePickerPreference.java:72",
+  "edges": "",
+  "note": "call sites grepped once more in the 11 app sources, res/ XML and the manifest (no reflection, no android:onClick): framework never calls confirmed"
+ },
+ {
+  "type": "label",
+  "item": "Diary.getEntries()",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Diary.java:2152-2156",
+  "edges": "",
+  "note": "call sites grepped once more in the 11 app sources, res/ XML and the manifest (no reflection, no android:onClick): no trigger in app confirmed"
+ },
+ {
+  "type": "label",
+  "item": "Diary.getEntries(Calendar)",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Diary.java:2155",
+  "edges": "",
+  "note": "call sites grepped once more in the 11 app sources, res/ XML and the manifest (no reflection, no android:onClick): no trigger in app confirmed"
+ },
+ {
+  "type": "label",
+  "item": "DiaryWidgetProvider.getFile()",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "DiaryWidgetProvider.java:265-269",
+  "edges": "",
+  "note": "call sites grepped once more in the 11 app sources, res/ XML and the manifest (no reflection, no android:onClick): no trigger in app confirmed"
+ },
+ {
+  "type": "label",
+  "item": "FileProvider.delete",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "FileProvider.java:521",
+  "edges": "",
+  "note": "call sites grepped once more in the 11 app sources, res/ XML and the manifest (no reflection, no android:onClick): framework never calls confirmed"
+ },
+ {
+  "type": "label",
+  "item": "FileProvider.insert",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "FileProvider.java:496",
+  "edges": "",
+  "note": "call sites grepped once more in the 11 app sources, res/ XML and the manifest (no reflection, no android:onClick): framework never calls confirmed"
+ },
+ {
+  "type": "label",
+  "item": "FileProvider.update",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "FileProvider.java:505",
+  "edges": "",
+  "note": "call sites grepped once more in the 11 app sources, res/ XML and the manifest (no reflection, no android:onClick): framework never calls confirmed"
+ },
+ {
+  "type": "label",
+  "item": "FileUtils.<init>",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "FileUtils.java:102-104",
+  "edges": "",
+  "note": "call sites grepped once more in the 11 app sources, res/ XML and the manifest (no reflection, no android:onClick): no trigger in app confirmed"
+ },
+ {
+  "type": "label",
+  "item": "FileUtils.copyFile(Context,Uri,Uri)",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "FileUtils.java:651-655",
+  "edges": "",
+  "note": "call sites grepped once more in the 11 app sources, res/ XML and the manifest (no reflection, no android:onClick): no trigger in app confirmed"
+ },
+ {
+  "type": "label",
+  "item": "FileUtils.createGetContentIntent",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "FileUtils.java:814-822",
+  "edges": "",
+  "note": "call sites grepped once more in the 11 app sources, res/ XML and the manifest (no reflection, no android:onClick): no trigger in app confirmed"
+ },
+ {
+  "type": "label",
+  "item": "FileUtils.getPathWithoutFilename",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "FileUtils.java:184-209",
+  "edges": "",
+  "note": "call sites grepped once more in the 11 app sources, res/ XML and the manifest (no reflection, no android:onClick): no trigger in app confirmed"
+ },
+ {
+  "type": "label",
+  "item": "FileUtils.getReadableFileSize",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "FileUtils.java:691-718",
+  "edges": "",
+  "note": "call sites grepped once more in the 11 app sources, res/ XML and the manifest (no reflection, no android:onClick): no trigger in app confirmed"
+ },
+ {
+  "type": "label",
+  "item": "FileUtils.getSize",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "FileUtils.java:394-420",
+  "edges": "",
+  "note": "call sites grepped once more in the 11 app sources, res/ XML and the manifest (no reflection, no android:onClick): no trigger in app confirmed"
+ },
+ {
+  "type": "label",
+  "item": "FileUtils.getThumbnail(Context,File)",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "FileUtils.java:730-733",
+  "edges": "",
+  "note": "call sites grepped once more in the 11 app sources, res/ XML and the manifest (no reflection, no android:onClick): no trigger in app confirmed"
+ },
+ {
+  "type": "label",
+  "item": "FileUtils.getThumbnail(Context,Uri)",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "FileUtils.java:744-747",
+  "edges": "",
+  "note": "call sites grepped once more in the 11 app sources, res/ XML and the manifest (no reflection, no android:onClick): no trigger in app confirmed"
+ },
+ {
+  "type": "label",
+  "item": "FileUtils.getThumbnail(Context,Uri,String)",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "FileUtils.java:732",
+  "edges": "",
+  "note": "call sites grepped once more in the 11 app sources, res/ XML and the manifest (no reflection, no android:onClick): no trigger in app confirmed"
+ },
+ {
+  "type": "label",
+  "item": "FileUtils.getUri",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "FileUtils.java:732",
+  "edges": "",
+  "note": "call sites grepped once more in the 11 app sources, res/ XML and the manifest (no reflection, no android:onClick): no trigger in app confirmed"
+ },
+ {
+  "type": "label",
+  "item": "FileUtils.isMediaUri",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "FileUtils.java:765",
+  "edges": "",
+  "note": "call sites grepped once more in the 11 app sources, res/ XML and the manifest (no reflection, no android:onClick): no trigger in app confirmed"
+ },
+ {
+  "type": "label",
+  "item": "FileUtils.lambda$static$0",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "FileUtils.java:65-70",
+  "edges": "",
+  "note": "call sites grepped once more in the 11 app sources, res/ XML and the manifest (no reflection, no android:onClick): no trigger in app confirmed"
+ },
+ {
+  "type": "label",
+  "item": "FileUtils.lambda$static$1",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "FileUtils.java:84-89",
+  "edges": "",
+  "note": "call sites grepped once more in the 11 app sources, res/ XML and the manifest (no reflection, no android:onClick): no trigger in app confirmed"
+ },
+ {
+  "type": "label",
+  "item": "FileUtils.lambda$static$2",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "FileUtils.java:95-100",
+  "edges": "",
+  "note": "call sites grepped once more in the 11 app sources, res/ XML and the manifest (no reflection, no android:onClick): no trigger in app confirmed"
+ },
+ {
+  "type": "label",
+  "item": "DiaryWidgetUpdate.getYear",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "DiaryWidgetUpdate.java:169",
+  "edges": "",
+  "note": "reachable by the verified path; ENV other_app / STATE none checked with it"
+ },
+ {
+  "type": "label",
+  "item": "DiaryWidgetProvider.getHome",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "DiaryWidgetProvider.java:225",
+  "edges": "",
+  "note": "reachable by the verified path; ENV other_app / STATE none checked with it"
+ },
+ {
+  "type": "label",
+  "item": "AboutPreference.<init>",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "res/xml/preferences.xml:172",
+  "edges": "",
+  "note": "reachable by the verified path; ENV none / STATE none checked with it"
+ },
+ {
+  "type": "label",
+  "item": "DiaryWidgetUpdate.nextMonth",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "DiaryWidgetUpdate.java:253",
+  "edges": "",
+  "note": "reachable by the verified path; ENV other_app / STATE none checked with it"
+ },
+ {
+  "type": "label",
+  "item": "FileUtils.isLocal",
+  "result": "fixed",
+  "confirmed_by": "INFERRED",
+  "ref": "FileUtils.java:633",
+  "edges": "",
+  "note": "the pre-audit route gave ENV none / STATE session, settings; the corrected route gives ENV other_app / STATE none (Copy images is ticked on the route) (now ENV other_app / STATE none)"
+ },
+ {
+  "type": "label",
+  "item": "Diary.lambda$addLink$21",
+  "result": "fixed",
+  "confirmed_by": "INFERRED",
+  "ref": "Diary.java:2819-2844",
+  "edges": "",
+  "note": "the pre-audit route gave ENV none / STATE session; the corrected route gives ENV other_app / STATE none (now ENV other_app / STATE none)"
+ },
+ {
+  "type": "label",
+  "item": "Diary.alertDialog(int,String,int)",
+  "result": "correct",
+  "confirmed_by": "INFERRED",
+  "ref": "Diary.java:3186-3188",
+  "edges": "",
+  "note": "reachable by the verified path; ENV none / STATE none checked with it"
+ },
+ {
+  "type": "label",
+  "item": "Diary.lambda$sortFiles$0",
+  "result": "fixed",
+  "confirmed_by": "INFERRED",
+  "ref": "Diary.java:305-306",
+  "edges": "",
+  "note": "the pre-audit label had ENV none / STATE none; the comparator needs two day files, so STATE data (now ENV none / STATE data)"
+ },
+ {
+  "type": "label",
+  "item": "Diary$FindTask.lambda$onPostExecute$0",
+  "result": "fixed",
+  "confirmed_by": "SOURCE",
+  "ref": "Diary.java:3302-3306",
+  "edges": "",
+  "note": "the pre-audit label had ENV none / STATE none; the click handler needs a match, so STATE data (now ENV none / STATE data)"
+ },
+ {
+  "type": "label",
+  "item": "Diary.dateCheck(CharSequence,String)",
+  "result": "fixed",
+  "confirmed_by": "SOURCE",
+  "ref": "Diary.java:2714",
+  "edges": "",
+  "note": "the pre-audit label had ENV none / STATE none; the template is read only for an empty day, so STATE data (now ENV none / STATE data)"
+ },
+ {
+  "type": "label",
+  "item": "Diary.lambda$listYears$1",
+  "result": "fixed",
+  "confirmed_by": "INFERRED",
+  "ref": "Diary.java:314-315",
+  "edges": "",
+  "note": "the pre-audit label had ENV none / STATE none; the filter runs only when the diary folder holds entries, so STATE data (now ENV none / STATE data)"
+ },
+ {
+  "type": "label",
+  "item": "QueryHandler.onInsertComplete",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "QueryHandler.java:131-144",
+  "edges": "",
+  "note": "reachable by the verified path; ENV other;other_app / STATE none checked with it"
+ },
+ {
+  "type": "label",
+  "item": "Diary.addMap",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Diary.java:1551-1558",
+  "edges": "",
+  "note": "reachable by the verified path; ENV other_app / STATE none checked with it"
+ },
+ {
+  "type": "label",
+  "item": "Editor.alertDialog(int,String,int)",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Editor.java:411-425",
+  "edges": "",
+  "note": "reachable by the verified path; ENV other / STATE none checked with it"
+ },
+ {
+  "type": "label",
+  "item": "Diary.addMedia(Intent)",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Diary.java:829-836",
+  "edges": "",
+  "note": "reachable by the verified path; ENV other_app / STATE none checked with it"
+ },
+ {
+  "type": "label",
+  "item": "FileUtils.fileProviderPath",
+  "result": "fixed",
+  "confirmed_by": "SOURCE",
+  "ref": "FileUtils.java:602-608",
+  "edges": "",
+  "note": "the pre-audit route (haveMedia state of a launcher-started instance) gave ENV none / STATE session, settings; the corrected route gives ENV other_app / STATE none (now ENV other_app / STATE none)"
+ },
+ {
+  "type": "label",
+  "item": "Diary.onRequestPermissionsResult",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Diary.java:2212-2245",
+  "edges": "",
+  "note": "reachable by the verified path; ENV permission / STATE none checked with it"
+ },
+ {
+  "type": "label",
+  "item": "Diary.onDateSet(DatePicker,int,int,int)",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Diary.java:818-825",
+  "edges": "",
+  "note": "reachable by the verified path; ENV none / STATE none checked with it"
+ },
+ {
+  "type": "label",
+  "item": "Diary.onRestoreInstanceState",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Diary.java:523-533",
+  "edges": "",
+  "note": "reachable by the verified path; ENV none / STATE none checked with it"
+ },
+ {
+  "type": "label",
+  "item": "Diary.dateCheck(CharSequence,String,Date)",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Diary.java:2642-2644",
+  "edges": "",
+  "note": "reachable by the verified path; ENV none / STATE none checked with it"
+ },
+ {
+  "type": "label",
+  "item": "Diary.lambda$cancel$17",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Diary.java:1214-1225",
+  "edges": "",
+  "note": "reachable by the verified path; ENV none / STATE none checked with it"
+ },
+ {
+  "type": "label",
+  "item": "Editor.lambda$onBackPressed$3",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Editor.java:256-271",
+  "edges": "",
+  "note": "reachable by the verified path; ENV none / STATE none checked with it"
+ },
+ {
+  "type": "label",
+  "item": "Diary.showToast(String)",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Diary.java:2953-2957",
+  "edges": "",
+  "note": "reachable by the verified path; ENV none / STATE none checked with it"
+ },
+ {
+  "type": "label",
+  "item": "FileUtils.getExtension",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "FileUtils.java:218-219",
+  "edges": "",
+  "note": "reachable by the verified path; ENV none / STATE none checked with it"
+ },
+ {
+  "type": "label",
+  "item": "FileProvider.buildPath",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "FileProvider.java:594-617",
+  "edges": "",
+  "note": "reachable by the verified path; ENV none / STATE none checked with it"
+ },
+ {
+  "type": "label",
+  "item": "Diary.onDateSet(CustomCalendarView,int,int,int)",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Diary.java:829-836",
+  "edges": "",
+  "note": "reachable by the verified path; ENV none / STATE none checked with it"
+ },
+ {
+  "type": "label",
+  "item": "QueryHandler.<clinit>",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "QueryHandler.java:44-49",
+  "edges": "",
+  "note": "reachable by the verified path; ENV none / STATE none checked with it"
+ },
+ {
+  "type": "label",
+  "item": "Diary.getNextCalendarMonth",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Diary.java:3028-3036",
+  "edges": "",
+  "note": "reachable by the verified path; ENV none / STATE none checked with it"
+ },
+ {
+  "type": "label",
+  "item": "FileProvider$SimplePathStrategy.getUriForFile",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "FileProvider.java:688-724",
+  "edges": "",
+  "note": "reachable by the verified path; ENV none / STATE none checked with it"
+ },
+ {
+  "type": "label",
+  "item": "Diary.getDay",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Diary.java:2032-2036",
+  "edges": "",
+  "note": "reachable by the verified path; ENV none / STATE none checked with it"
+ },
+ {
+  "type": "edge",
+  "item": "E18bac421",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "FragmentManager.java:1237",
+  "edges": "",
+  "note": "commit queues and posts the transaction (FragmentManager.java:1879-1912), Activity.performStart runs execPendingActions (Activity.java:7018), moveToState calls performCreate (1237)"
+ },
+ {
+  "type": "edge",
+  "item": "E70b5909f",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "FragmentManager.java:1322",
+  "edges": "",
+  "note": "dispatchResume moves the fragments to RESUMED (FragmentManager.java:2987-2989, Activity.java:7128), moveToState calls performResume (1322)"
+ },
+ {
+  "type": "edge",
+  "item": "Ea0871d56",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "FragmentManager.java:1322",
+  "edges": "",
+  "note": "same claim as the fragment resume with the activity"
+ },
+ {
+  "type": "edge",
+  "item": "E6ab32328",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Activity.java:3001-3010",
+  "edges": "",
+  "note": "Settings has no onBackPressed override (Settings.java:36-119) and its transaction has no addToBackStack (93-95), so Back finishes it"
+ },
+ {
+  "type": "edge",
+  "item": "E7c4aeb78",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "AndroidManifest.xml:52-83",
+  "edges": "",
+  "note": "recreate() relaunches the activity (Activity.java:5472-5481, ActivityThread.java:4667-4673); the Diary, Editor and Settings activities declare no android:configChanges"
+ },
+ {
+  "type": "edge",
+  "item": "Ee37e20db",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "ContentProvider.java:1721-1723",
+  "edges": "",
+  "note": "openInputStream -> openAssetFileDescriptor -> openTypedAssetFile -> openAssetFile -> openFile (ContentResolver.java:967, 1246-1247, 1410, ContentProvider.java:423, 1543)"
+ },
+ {
+  "type": "edge",
+  "item": "Eccf994be",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "GenericInflater.java:368-385",
+  "edges": "",
+  "note": "createItem takes the (Context, AttributeSet) constructor and calls newInstance"
+ },
+ {
+  "type": "edge",
+  "item": "E0d735925",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Preference.java:1547-1561",
+  "edges": "",
+  "note": "onAttachedToHierarchy -> dispatchSetInitialValue -> onSetInitialValue(true, null) only for a persisted key"
+ },
+ {
+  "type": "edge",
+  "item": "Ee459ec3f",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "TextView.java:5081-5083",
+  "edges": "",
+  "note": "onRestoreInstanceState calls setText(ss.text), which notifies the TextWatcher"
+ },
+ {
+  "type": "edge",
+  "item": "E508d1f4e",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "DatePickerDialog.java:175-177",
+  "edges": "",
+  "note": "the negative button only calls cancel(), which sends the cancel message only when set, then dismisses (Dialog.java:1231-1238)"
+ },
+ {
+  "type": "edge",
+  "item": "E86264fab",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Activity.java:7056-7095",
+  "edges": "",
+  "note": "a stopped record is restarted with performRestart on the same instance (ActivityThread.java:4123-4128)"
+ },
+ {
+  "type": "edge",
+  "item": "E441b543a",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Toolbar.java:1381-1395",
+  "edges": "",
+  "note": "the collapse button calls collapseActionView"
+ },
+ {
+  "type": "edge",
+  "item": "Ed44476cd",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Dialog.java:1231-1238",
+  "edges": "",
+  "note": "Back calls cancel() (Dialog.java:650-654), which sends the cancel message only when set (none in Diary.java:2327-2336), then dismisses"
+ },
+ {
+  "type": "edge",
+  "item": "E9b3cf639",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Dialog.java:1231-1238",
+  "edges": "",
+  "note": "same claim; no cancel listener in Editor.java:333-342"
+ },
+ {
+  "type": "edge",
+  "item": "E2a79aef7",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "AlertController.java:125-146",
+  "edges": "",
+  "note": "a button without a listener sends no message and the dialog is dismissed (AlertController.java:344-349, 169-170; Diary.java:2348-2351)"
+ },
+ {
+  "type": "edge",
+  "item": "E886a1c91",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Dialog.java:1231-1238",
+  "edges": "",
+  "note": "same claim; no cancel listener in Diary.java:2851-2870"
+ },
+ {
+  "type": "edge",
+  "item": "E5d85140e",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Dialog.java:1231-1238",
+  "edges": "",
+  "note": "same claim; no cancel listener in Diary.java:1954-1973"
+ },
+ {
+  "type": "edge",
+  "item": "Edabff224",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "DialogPreference.java:386-395",
+  "edges": "",
+  "note": "onClick records the button, onDismiss calls onDialogClosed (dismiss listener set at 318)"
+ },
+ {
+  "type": "edge",
+  "item": "E2c50b3ad",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Intent.java:7166-7168",
+  "edges": "",
+  "note": "getParcelableExtra returns null without the extra; media.getScheme() at Diary.java:1615 runs before the null check at 1618 (hazard candidate, not reproduced)"
+ },
+ {
+  "type": "edge",
+  "item": "E0edb9986",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Intent.java:7194-7196",
+  "edges": "",
+  "note": "getParcelableArrayListExtra returns null without the extra; the loop at Diary.java:1643 has no null check (hazard candidate, not reproduced)"
+ },
+ {
+  "type": "edge",
+  "item": "E9ddac6cd",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "ActivityManagerService.java:19198-19224",
+  "edges": "",
+  "note": "an APPWIDGET_UPDATE sent by an app is limited to the caller package, so the background skip (BroadcastQueue.java:1267-1279) does not apply; the earlier DYN coverage segment was removed"
+ },
+ {
+  "type": "edge",
+  "item": "Ede74cf66",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "AppWidgetProvider.java:61-67",
+  "edges": "",
+  "note": "onUpdate is called only for a non-empty id list; the earlier DYN coverage segment was removed"
+ },
+ {
+  "type": "edge",
+  "item": "Eb6b6550a",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "TwoStatePreference.java:61-81",
+  "edges": "",
+  "note": "onClick -> setChecked -> persistBoolean; only changed keys reach the listener (SharedPreferencesImpl.java:499-508, 551-561)"
+ },
+ {
+  "type": "edge",
+  "item": "E723d3724",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "ListPreference.java:277-283",
+  "edges": "",
+  "note": "a picked entry -> setValue -> persist; the listener fires for a changed value"
+ },
+ {
+  "type": "edge",
+  "item": "Ea16497b4",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "GestureDetector.java:556-565",
+  "edges": "",
+  "note": "onDoubleTap on the second ACTION_DOWN"
+ },
+ {
+  "type": "edge",
+  "item": "E55f6b52d",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "GestureDetector.java:630-656",
+  "edges": "",
+  "note": "onFling on ACTION_UP above the minimum fling velocity"
+ },
+ {
+  "type": "edge",
+  "item": "Eb360afa9",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "AsyncTask.java:333",
+  "edges": "",
+  "note": "execute -> doInBackground on a worker thread"
+ },
+ {
+  "type": "edge",
+  "item": "Edf2bd842",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "AsyncTask.java:691-695",
+  "edges": "",
+  "note": "finish -> onPostExecute"
+ },
+ {
+  "type": "edge",
+  "item": "Efbd9bfb6",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "AsyncTask.java:648",
+  "edges": "",
+  "note": "execute -> onPreExecute on the calling thread"
+ },
+ {
+  "type": "edge",
+  "item": "Ee1b40404",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "AsyncQueryHandler.java:340-348",
+  "edges": "",
+  "note": "the handler delivers onQueryComplete"
+ },
+ {
+  "type": "edge",
+  "item": "E1b4e3a4b",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "MenuBuilder.java:907-913",
+  "edges": "",
+  "note": "the item is dispatched to onOptionsItemSelected first, then expandActionView"
+ },
+ {
+  "type": "edge",
+  "item": "Edfef477b",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "Activity.java:4370-4382",
+  "edges": "",
+  "note": "requestPermissions starts the grant activity for result; the result calls onRequestPermissionsResult (Activity.java:7259-7270, 7412-7419)"
+ },
+ {
+  "type": "edge",
+  "item": "E5fe287b8",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "ActivityThread.java:2741-2751",
+  "edges": "",
+  "note": "performStart, then onRestoreInstanceState when saved state exists"
+ },
+ {
+  "type": "edge",
+  "item": "Ea94bff9f",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "ActivityThread.java:4667-4673",
+  "edges": "",
+  "note": "the relaunch saves the state before the activity is destroyed"
+ },
+ {
+  "type": "edge",
+  "item": "E33515afc",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "ActivityThread.java:5720-5722",
+  "edges": "",
+  "note": "installContentProviders at process start, then attachInfo (6236-6239)"
+ },
+ {
+  "type": "edge",
+  "item": "Ebfc59ea4",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "DatePickerDialog.java:164-171",
+  "edges": "",
+  "note": "OK calls the OnDateSetListener"
+ },
+ {
+  "type": "edge",
+  "item": "Efbe01b83",
+  "result": "correct",
+  "confirmed_by": "SOURCE",
+  "ref": "CustomCalendarDialog.java:107-120",
+  "edges": "",
+  "note": "OK calls listener.onDateSet; Cancel does nothing (CustomCalendarView v1.06)"
+ },
+ {
+  "type": "edge",
+  "item": "Efd4a5146",
+  "result": "unclear",
+  "confirmed_by": "INFERRED",
+  "ref": "Diary.java:763-798",
+  "edges": "",
+  "note": "the picker (another app) returns a content:// URI with a read grant: its source was not read"
+ },
+ {
+  "type": "edge",
+  "item": "E8858b368",
+  "result": "unclear",
+  "confirmed_by": "INFERRED",
+  "ref": "Diary.java:763-798",
+  "edges": "",
+  "note": "same: the picker app was not read"
+ },
+ {
+  "type": "edge",
+  "item": "E95cb08f1",
+  "result": "unclear",
+  "confirmed_by": "INFERRED",
+  "ref": "ContentResolver.java:1241-1244",
+  "edges": "",
+  "note": "a file: URI is opened with ParcelFileDescriptor.open (read); that it fails for a missing folder is libcore behaviour (not read)"
+ },
+ {
+  "type": "edge",
+  "item": "Ea16ba1a8",
+  "result": "unclear",
+  "confirmed_by": "INFERRED",
+  "ref": "Diary.java:300-307",
+  "edges": "",
+  "note": "Arrays.sort calling the comparator: libcore source not read"
+ },
+ {
+  "type": "edge",
+  "item": "Ecc51ba5c",
+  "result": "unclear",
+  "confirmed_by": "INFERRED",
+  "ref": "Diary.java:312-315",
+  "edges": "",
+  "note": "File.listFiles calling the filter: libcore source not read"
+ },
+ {
+  "type": "edge",
+  "item": "Eda8dbf45",
+  "result": "unclear",
+  "confirmed_by": "INFERRED",
+  "ref": "DatePicker.java:122-133",
+  "edges": "",
+  "note": "the callback is declared and handed to the delegate (226-228); the delegate classes that call it are not held"
+ },
+ {
+  "type": "edge",
+  "item": "E2e959fa5",
+  "result": "unclear",
+  "confirmed_by": "INFERRED",
+  "ref": "ActivityStarter.java:1496-1520",
+  "edges": "",
+  "note": "the starter looks for an existing task for a NEW_TASK start and adds the activity to it (1036-1050, 1754-1760, 1565-1580); the affinity match in findTaskLocked and the return of Diary to the front are not held"
+ },
+ {
+  "type": "edge",
+  "item": "Ef7f25c27",
+  "result": "unclear",
+  "confirmed_by": "INFERRED",
+  "ref": "Diary.java:1812-1817",
+  "edges": "",
+  "note": "app lines read; that getDrawingCache() is null for a view that was never laid out is View behaviour (not held)"
+ },
+ {
+  "type": "edge",
+  "item": "E76540fb2",
+  "result": "unclear",
+  "confirmed_by": "INFERRED",
+  "ref": "ActivityThread.java:5821-5826",
+  "edges": "",
+  "note": "acquireProvider finds a local provider in mProviderMap (6157-6165); the hop from ContentResolver to it runs through ContextImpl (not held)"
+ },
+ {
+  "type": "edge",
+  "item": "E320aa810",
+  "result": "unclear",
+  "confirmed_by": "INFERRED",
+  "ref": "DecorView.java:864-907",
+  "edges": "",
+  "note": "startActionMode reports onActionModeStarted (read); that the text-selection Editor starts the mode on a long press (android.widget.Editor) is not held"
+ }
+]
