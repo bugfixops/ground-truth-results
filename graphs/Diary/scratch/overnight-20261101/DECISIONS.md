@@ -1,0 +1,31 @@
+# Diary — decisions (Muse's own decisions, for user/Yang review; never in Yang's name)
+
+## D1. make_verification.py does not exist on the branch — verification.csv kept unchanged
+Reasoning: tools/make_verification.py returns "path does not exist" on work-2026-10-31, and no sibling Stream D leaf has it either. Inventing a generator, or hand-editing verification.csv to look generated, would fabricate a log. Decision: use the branch verification.csv (128 rows, header exactly type,item,result,confirmed_by,ref,edges,note) unchanged, and report the missing tool as a blocker for the "ONLY via make_verification.py" wording. The build already validates that file (0 errors, 0 warnings).
+
+## D2. check_citations.py "81 problems" are missing-cache problems, not citation errors
+Reasoning: all 81 problems are "file not held"; 0 are line-out-of-range and 0 evidence rows use FW-MEMORY/DYN/UNVERIFIED. Decision: do not report 81 citation errors, and do not mark the check passed on the first run. Instead fetch the cited framework files from aosp-mirror/platform_frameworks_base at android-8.1.0_r1 (the tag the graph cites) into fw_src/android-8.1.0_r1/ and re-run, so the check judges line ranges for real.
+
+## D3. Route judgments carried over after exact edge-match, plus fresh spot-check
+Reasoning: the 30-route sample redrawn from the current build is exactly the 30 path rows already in verification.csv, and every stored edge list matches the current derived route edge-for-edge (30/30). Re-reading all 370 steps from scratch would duplicate work already recorded on the branch; silently trusting it would be worse. Decision: carry the judgments over on the strength of the exact match, print all 370 steps in scratch/route_steps.txt, and freshly verify the cited lines for all 5 unclear routes against upstream source at the pinned commit (all matched). No route was re-judged differently and no fix was applied.
+
+## D4. scan_unreachable.py first run is vacuous, not a pass
+Reasoning: with no final_java_only source tree locally, the tool searched zero files, so "no other mention" for all 21 UNREACHABLE methods proves nothing. Decision: report the first run as not-run (meaningful), and re-run after reconstructing the app source tree from billthefarmer/diary at the pinned commit 07bb05c3b7a8ea90db5efdc8f574b9f334402a71 (the commit graph_def.py itself cites).
+
+## D5. DATASET target_sdk 28 vs graph API 27 — recorded, not changed
+Reasoning: DATASET.txt says target_sdk 28; graph_def.py says the baseline is API 27 with fw_src android-8.1.0_r1. Changing labels or citations over this would need a decision about which baseline the project intends. Decision: record the discrepancy in AGENT_NOTES.md, change nothing.
+
+## D7. ActivityManagerService.java fetch stopped after two identical failures
+Reasoning: the file fails on both aosp-mirror and android mirrors with the same connector error, while neighbouring files from the same tree succeed — this looks like a per-file connector limit (plausibly size), not a wrong path. Decision: stop fetching it (no retry loop), report check_citations as 81 distinct / 1 file-not-held / 0 line-range errors, and do not claim the check is 0. The single affected citation (AMS:19198-19224, APPWIDGET_UPDATE limited to the caller's package) is corroborated in kind by the neighbouring BroadcastQueue:1267-1279 citation on the same edges, which did verify in range — but that corroboration is not a substitute for the AMS lines themselves, and is not claimed as such.
+
+## D8. scan_unreachable hits are triaged by overload and declaring class, not by name
+Reasoning: the genuine scan (complete 16-file tree, 2026-11-01 takeover) shows hits for 14 of the 21 UNREACHABLE methods, but every hit is a same-name trap or a call inside the unreachable set: Diary.java:2783 calls copyFile(File,File) (both args are File, lines 2769-2770), not the UNREACHABLE copyFile(Context,Uri,Uri); Diary.getFile() is a different class from DiaryWidgetProvider.getFile(), and the widget file's only calls are getFile(entry) (the Calendar overload, :193) and getFile(calendar) inside getFile() itself (:268); File.delete / Editable.insert are not FileProvider.delete / FileProvider.insert; getThumbnail overloads call each other and getUri/isMediaUri are called only from inside the getThumbnail overloads, all of which are themselves UNREACHABLE; FileUtils.<init>'s only "hit" is its own private declaration (:102), with no `new FileUtils(` anywhere. Decision: no label changes; the scan supports the 21 UNREACHABLE labels rather than contradicting them. A name-only scan must never flip a label on its own.
+
+## D9. Gate is BLOCKED, not waived, on the single AMS file-not-held
+Reasoning: check_citations exits 1 with exactly 1 problem (ActivityManagerService.java not held) and 0 line-range errors. The missing file is a connector fetch limit already established under D7, not evidence against any citation, but waiving a failing check into a pass would be inventing a result. Decision: report the gate as BLOCKED on this one item (plus the D1 make_verification.py absence for the strict "ONLY via" wording), list everything else as passing, and propose the [K] status line only as a proposal for the parent/coordinator to apply once the AMS lines are verified via an authorised morning route (e.g. Mac clone) or the near-pass is explicitly accepted. Nothing else is pending: no label, route, or log item needs further local work.
+
+## D10. Takeover re-verified rather than re-derived
+Reasoning: the prior worker's build, sample, and check outputs were all reproduced byte-identically on re-run (build.txt, sample_30.txt, sample_30_redraw.txt), and the verification path rows match the redrawn sample in order and set (30/30) with judgments matching (0 mismatches). Re-deriving all 370 steps from scratch would duplicate verified work. Decision: carry the judgments, as D3 did, on the strength of the exact re-run match, and spend the takeover effort on the genuinely unfinished items instead (complete source tree, genuine scan, readme, sanity/DATASET recovery).
+
+## D6. No device checks, no pushes, no branch edits
+Reasoning: per the Stream D brief. Decision: all work stays under ~/workspace/overnight/stream-D/Diary/; nothing was pushed and no branch file was edited.

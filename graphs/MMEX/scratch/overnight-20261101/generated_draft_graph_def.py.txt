@@ -1,0 +1,48 @@
+# Money Manager Ex 2024.06.14 trigger graph
+# Generated part: tools/gen_edges.py derives entry points, lifecycle, callbacks, lambdas, intents, XML-instantiated classes
+# from the bytecode, AndroidManifest.xml and res/ XML (see its docstring). Direct app->app calls come from
+# tools/extract_calls.py. Everything below gen_edges.apply() is hand-written refinement for this app.
+# Rebuild: python3 -I tools/build_graph.py graphs/MMEX <prefix>
+
+TITLE = 'Money Manager Ex 2024.06.14 trigger graph'
+USE_AUTO = True
+PREFER_SETUP_OVER_ENV = True
+AUTO_DEAD = ('Generated graph: no route found. Nothing in the app calls it and no entry point (manifest component, lifecycle or '
+             'UI callback of a constructed class, lambda, XML reference, class literal, intent action) leads to it. '
+             'Probably unused code; entries through reflection, JNI or code generators are not modelled.')
+
+import sys
+sys.path.insert(0, TOOLS)
+import gen_edges
+
+NEED_DB = ('MainActivity.showPrerequisite() returned false: the tutorial was completed and a valid database is selected (otherwise onCreate starts '
+           'TutorialActivity or SelectDatabaseActivity, calls finish() and returns; MainActivity.java:onCreate, showPrerequisite). The baseline hit counts stop '
+           'at the tutorial, database selection, password and settings screens: no method of the account, transaction, investment, report, recurring or search '
+           'packages ran')
+NEED_TX = NEED_DB + ' and holds at least one account (create it under Accounts); reports and budgets also need transactions'
+ENV_PERM_DIALOG = ('outside package: the runtime permission dialog is answered (MmxBaseFragmentActivity.onPermissionGranted runs after the grant; '
+                   'the baseline emulators had permissions pre-granted, so the dialog never showed)')
+ENV_NET = 'outside package: network access to a price / exchange-rate / sync server (Yahoo, Morningstar, Fixer, Dropbox, ...)'
+ENV_WIDGET = 'outside package: the user adds an MMEX widget on the launcher home screen'
+ENV_SMS = 'outside package: an SMS arrives or the user installs the SMS-parsing receiver'
+
+CFG = {
+    'GROUPS': [         # (regex on node name or 'class:' + regex on the class path, 'needs'|'env'|'guard', text); gates every edge into a method of the group that the baseline never ran
+        (r'class:^com/money/manager/ex/(transactions|investment|recurring|reports|budget)/', 'needs', NEED_TX),
+        (r'class:^com/money/manager/ex/(account|home|currency|search|fragment|adapter|viewmodels|servicelayer|domainmodel|about|notifications|passcode)/', 'needs', NEED_DB),
+        (r'^(Sync\w*|YahooCsvQuoteDownloaderRetrofit|YqlSecurityPriceUpdaterRetrofit|FixerService|MorningstarPriceUpdater\w*|NetworkUtils|StubSyncProvider)', 'env', ENV_NET),
+        (r'^(AccountBillsWidget\w*|ButtonAddTransactionWidgetProvider|SummaryWidgetProvider|SingleAccountWidget\w*)', 'env', ENV_WIDGET),
+        (r'^SmsReceiverTransactions', 'env', ENV_SMS),
+    ],
+    'EDGES': [          # (regex on source node, regex on target node, 'needs'|'env'|'guard', text): branch-specific gates
+        (r'^MainActivity\.onCreate$', r'^MainActivity\.(initHomeFragment|initializeDrawer|initializeSync|populateScheduledTransactions)$', 'needs', NEED_DB),
+        (r'^MainActivity\.onCreate$', r'^(MainActivity\.(migrateRecentDatabases|setRestartActivity|handleIntent|restoreInstanceState|handleDeviceRotation|showCurrentDatabasePath|setDualPanel)|InfoService\.)', 'needs', NEED_DB),
+        (r'^MainActivity\.<init>$', r'^MainActivity\.(onStart|onResume|onPostResume|onCreateOptionsMenu|onPrepareOptionsMenu)$', 'needs', NEED_DB),
+        (r'.', r'^MmxBaseFragmentActivity\.onPermissionGranted$', 'env', ENV_PERM_DIALOG),
+    ],
+    'STATIC_ADAPTERS': [],  # adapters whose rows exist without user data
+}
+
+gen_edges.apply(globals(), GDIR, 'MMEX', CFG)
+
+# ------------------------------------------------------------------ hand-written refinement
