@@ -189,10 +189,19 @@ for c, i in cites.items():
     ref = c.replace('FW-SRC ', '').split(' and ')[0].strip()
     emit_edge(i, 'correct', ref, 'framework claim checked: AOSP 8.1.0_r1 lines read for ' + ref)
 
+import collections
+# T8: fixed order. Path rows keep their definition order; label and edge
+# rows sort by (type, item), so two runs are byte-identical even though
+# the UNREACHABLE set above iterates in hash order.
+_header = out[0]
+_paths = [r for r in out[1:] if r[0] == 'path']
+_others = sorted((r for r in out[1:] if r[0] != 'path'),
+                 key=lambda r: (r[0], r[1]))
+out = [_header] + _paths + _others
+
 with open('graphs/%s/verification.csv' % APP, 'w', encoding='utf-8', newline='') as f:
     csv.writer(f).writerows(out)
 
-import collections
 c = collections.Counter((r[0], r[2]) for r in out[1:])
 print('rows by (type,result):', dict(c))
 print('totals: path=%d label=%d edge=%d' % (
