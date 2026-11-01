@@ -6194,6 +6194,26 @@ e('HomeFragment.renderAccountsList', 'HomeAccountsExpandableAdapter.getChildId',
   needs_state=state_text('a child row exists: the account type group holds at least one account (mAccountsByType, HomeAccountsExpandableAdapter.java:77)', ('data',)),
   evidence='SRC home/HomeFragment.java:811-814; SRC home/HomeAccountsExpandableAdapter.java:76-78; INFERRED ExpandableListView and ExpandableListConnector call the adapter (framework source not in fw_src, not read)')
 
+# ---- check-4 EDIT (MMEX B3a only, auditor PASSED 2026-11-01; MMEX-D2)
+# Applied by tools/build_graph.py to every edge before ids are made.
+# B3a: generated-class bytecode citations (criterion corrected per B3a_RULE.md)
+#   -> INFERRED generated <Class> (no source in the upload; bytecode call).
+# (B3b FIXLINES/PARTA maps are added by the later B3b step, not here.)
+import re as _b3_re
+_B3_BYTECODE = _b3_re.compile(r'^SRC (\S+?\.java):(\d+(?:-\d+)?) \(bytecode\)$')
+def _b3_generated(_b):
+    return (_b == 'DaggerMmxComponent.java' or '$$' in _b
+            or _b.endswith('_ViewBinding.java') or _b.endswith('_Factory.java')
+            or _b.endswith('_MembersInjector.java')
+            or ('_Provide' in _b and _b.endswith('Factory.java')))
+def EDIT(x):
+    _ev = x.get('evidence') or ''
+    _m = _B3_BYTECODE.match(_ev)
+    if _m:
+        _base = _m.group(1).split('/')[-1]
+        if _b3_generated(_base):
+            x['evidence'] = 'INFERRED generated %s (no source in the upload; bytecode call)' % _base[:-5]
+
 # ---- graph_def_mod loader (handoff/connector_kit/split_graph_def.py)
 # The rest of this graph is in graph_def_mod/NN.py (each file below 1 MB, so the GitHub connector can read and write it).
 # The modules run in name order, in this same namespace, exactly as if they were one file. GDIR is set by tools/build_graph.py.
