@@ -297,3 +297,8 @@ None of these stops the run. Each row stays unlabelled until its question is ans
 - Merged parts/b004.py (audited wave-1 fix-buildnames; harness re-run PASS exit 0 against the authoritative clone batch4 file — batch 4 not A1-affected; LOOSE .md notes only).
 - All 40 rows UNREACHABLE no_trigger_in_app INFERRED, 0 edges; part SUPPRESS.update lists 40 entries, removing 28 auto edges.
 - Build scratch/build_b004.txt: methods 4732, edges 6234 (-28 vs b003), REACHABLE 2120, UNREACHABLE 481, UNRESOLVED 2131, errors 2131 (did not rise), warnings 21 (unchanged).
+
+## A4 b005 (2026-11-01, continuation merger)
+- Merged parts/b005.py (audited wave-1 G1; harness re-run PASS exit 0 against the authoritative clone batch5 file — batch 5 not A1-affected; D29 rows 19/20/25/26 stay UNREACHABLE no_trigger_in_app INFERRED, untouched by this merge beyond the part overwrite).
+- All 40 rows UNREACHABLE no_trigger_in_app INFERRED, 0 edges; part SUPPRESS.update lists 40 entries, removing 0 auto edges (no auto edge into any b005 dst existed — consistent with the D29 auto_calls check of all 200 base *Binding statics).
+- Build scratch/build_b005.txt: methods 4732, edges 6234 (unchanged vs b004), REACHABLE 2120, UNREACHABLE 481, UNRESOLVED 2131, errors 2131 (did not rise), warnings 21 (unchanged).
