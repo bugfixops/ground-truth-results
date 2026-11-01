@@ -79,3 +79,111 @@ Started 2026-10-26 (unattended agent job, brief AGENT_BRIEF_V2.md).
 - Tool gap found: method references (`this::name`, `Class::name`, 29 app files) are not in AUTO['lambdas'] (only lambda$ bodies are), so their targets get no REGISTER edge. To handle with FRAMEWORK edges from the enclosing method (INFERRED), listed by grep.
 - Dead chains: SUPPRESS in the builder drops an auto edge when (src, dst) is in the set; to keep the "UNREACHABLE but has incoming edges" warning meaningful, suppress only (src, dst) pairs whose src is UNREACHABLE (not bare names: a bare dst name would hide live callers of a wrongly dead method).
 - Still to do: decide the 155 roots with references (interface dispatch of GsPropertyBackend implementations, XML-inflated views and preferences, action-button lists, Fragment and Preference callbacks, method references); then mark the textually dead roots UNREACHABLE (kind, reason, declaration ref, confirmed_by SOURCE); then closure for chains; then verification steps.
+
+## T7 + D1 + D7 (finish run, 2026-11-01, merger session)
+
+- Private tree: graphs/Markor copied from the clone (branch work-2026-10-31, HEAD 6805252 at clone time);
+  tools/, handoff/, fw_src/, final_java_only/, work-emulator symlinked read-only. graph_def.py untouched
+  (ticked app: logs only). PROGRESS line untouched. verification.csv unchanged by design (see below).
+- T7 writer rewrite (graphs/Markor/make_verification.py, portable; old lines 8-13 absolute paths, line 20
+  missing methods_before_refs.csv, line 23 unseeded verify_sample call):
+  * Root resolved repo-relatively (cwd if it holds tools/ + graphs/, else above graphs/Markor/); G/SCR/APP/FW
+    all derived from it. sys.path uses repo tools/.
+  * Pre-ref-fix citations seeded once from the current verification.csv FIXED notes into
+    graphs/Markor/scratch/methods_before_refs.json (48 entries: the 47 ref_fix keys + onActivityResult;
+    keyToStringResId overlaps ref_fix, old ends :215). All old != current refs; all ref_fix news equal
+    current methods.csv refs. Same seed pattern as T1. All writer assertions preserved.
+  * Sample drawn live with the seed passed explicitly (verify_sample.py Markor 30 20261025). The tool's
+    default seed is already 20261025, so the draw is unchanged: verified equal to the current 30 path
+    rows, same order, before the rewrite.
+  * Cold-start table now written to graphs/Markor/scratch/cold_start_table.txt (31 lines: header + 30).
+  * Proof (all printed this session): run 1 output byte-identical to the current verification.csv
+    (562 rows: path 13 correct/17 fixed; label 397/48; edge 42/40/5; FW-SRC edges 102, distinct
+    citations 34, chain claims 72, ref_fix name check 47 True, cold start 30/30/0, tags J_RESUME 1,
+    J_NOTEBOOK 1, J_SHARE 2); run 2 byte-identical to run 1; fresh local build
+    (python3 -I tools/build_graph.py graphs/Markor markor: methods 2864, REACHABLE 2450, UNREACHABLE 414,
+    errors 0, warnings 0) + writer re-run still byte-identical.
+  * Local eight checks (bash handoff/ci/rebuild.sh Markor, private scratch/ci_latest only, never pushed):
+    check 2: 0 problems; check 3: 0 flagged; check 4: 0 not-show; checks 5-7: 0/0/0, STRICT line 1;
+    check 8: 0 of 414; verification.csv rows: path 30, DEVICE 0. Unreachable kinds: closed_by_api_level 1,
+    closed_by_configuration 9, no_trigger_in_app 404. CI acceptance needs the coordinator's
+    REBUILD_REQUEST (coordinator-only); local evidence above is the readiness report.
+  * No row failed validation, so no scratch/fix_log.md entry was needed.
+  * LESSONS.md (8 bullets) and readme_notes.md (five headings in order) reviewed, complete, unchanged.
+    scratch/{hier,textcount,dotcount,route_guards}.json kept (graph_def.py reads them).
+- D1 (device/routes/Markor/ROUTES.csv, from the device lead's wave-2 helper, verified by the merger):
+  30 rows, route_01..30 in verification.csv path order, methods + edges exact, env/state kinds equal to
+  out/methods.csv, all 30 scripted (0 unscriptable), fixtures Documents/notes.md, Documents/table.csv,
+  Documents/todo.txt all exist under work-emulator/fixtures, route_05 WRITE_EXTERNAL_STORAGE declared
+  in the manifest, setup verbatim from ci/apps.csv Markor row, package net.gsantner.markor_test.
+  graphs/Markor/scratch/route_print/route_NN.txt (30 prints, generated from methods.csv + trigger JSON)
+  staged as the D3 reference. ROUTES_NOTES.md pushed alongside as judgment documentation.
+- D7 (DEVICE rows in make_verification.py): if graphs/Markor/device/results.csv exists, one row per
+  results row is appended after the edge rows (type=path, result correct iff reached==yes else unclear,
+  confirmed_by=DEVICE, ref "device run <run>/<script>", edges from the results row, note = script status
+  + ": " + reason for unclear: unscriptable / script failed / not run / not reached). A not-reached route
+  never becomes wrong; no label changes. Proof: without the file, output is byte-identical to today's
+  (cmp, after the extension); with a synthetic 5-row results file in an isolated copy (reached yes/ok,
+  no/ok, no/failed_at_step_4, no/unscriptable, not_run/not_run), exactly the 5 expected DEVICE rows were
+  appended and the 562-row prefix was identical. No real graphs/Markor/device/results.csv written.
+- D3: 6 helpers fanned out (5 routes each, route_01-05 .. route_26-30), scripts + REPORT.md per helper,
+  each script dry-run tested by its helper. Scripts are NOT pushed here: they await the coordinator's
+  independent auditor PASS (audit-before-merge rule).
+
+## Current step
+
+- T7 + D1 + D7 complete locally, staged for push under the push lock (push record appended below
+  once each push lands). D3 scripts delivered, pending auditor
+  PASS, then push + full run_app.sh --dry-run for Markor. F1 readiness for Markor = T7 accepted (local
+  evidence above; CI SUMMARY pending coordinator REBUILD_REQUEST) + D1/D3/D7 done (D3 pending audit) +
+  D9 CI dry run (coordinator sends DEVICE_DRYRUN_REQUEST at the end). PROGRESS line stays as it is
+  (ticked app); F1 state reported to the coordinator, never edited here.
+
+## Decisions made by Muse (for the user and Yang to review)
+
+- T7-D1 (seed source): pre-ref-fix citations come from the current verification.csv FIXED notes, saved
+  as graphs/Markor/scratch/methods_before_refs.json (48 entries). Alternative was dropping the old-vs-new
+  assertions; rejected, because the assertions still validate the current graph against ref_fix.json.
+  Reversal: replace the JSON with any other source of the same 48 old refs; output is unchanged as long
+  as old != new and uref == new hold.
+- T7-D2 (explicit seed): verify_sample.py is called with seed 20261025 explicitly. No behaviour change
+  (the tool defaults to that seed); the explicit argument makes the draw reproducible from the command.
+- T7-D3 (cold-start table): written under graphs/Markor/scratch/ instead of the vanished session folder.
+  Content identical in form (header + 30 rows).
+- D7-D1 (DEVICE row placement): appended after the edge rows, so all 562 existing rows keep their
+  positions; without a results file the output is byte-identical. Alternative (after the path rows) was
+  rejected to avoid shifting existing rows.
+- D1-D1 (notes file): ROUTES_NOTES.md is pushed with ROUTES.csv under device/** as the judgment record
+  for the permission/fixture/setup choices. Reversal: delete the notes file; ROUTES.csv stands alone.
+
+## D3 scripts delivered + merger dry run (2026-11-01, merger session)
+
+- All 6 helpers delivered scripts + REPORT.md (d3-01 route_01-05, d3-02 route_06-10, d3-03
+  route_11-15, d3-04 route_16-20, d3-05 route_21-25, d3-06 route_26-30). No helper flipped any
+  ROUTES.csv row; all 30 rows remain scripted there.
+- Merger verification (independent of helper claims): all 30 scripts py_compile OK; a first-
+  occurrence edge-id scan of every script matches ROUTES.csv edges exactly, in order, for all 30
+  routes; full run_app.sh --dry-run for Markor (stage harness + run_app.sh + drycheck.py +
+  route_info.py, ROUTES.csv + all 30 helper scripts, graphs/ + handoff/ + tools/ +
+  final_java_only/ symlinked from the private tree, WEMU = work-emulator) prints "Markor: 30
+  PASS, 0 FAIL", exit 0. Two early "no manifest found" / missing-trigger-graph failures were
+  test-layout gaps (symlinks missing), fixed in the layout, not script defects. Test layout
+  removed afterwards; result recorded in the merger report.
+- DECISION OWED (coordinator + auditor, not decided here): d3-03 reports step-level
+  unscriptable-candidates without changing ROUTES.csv — route_12 launcher-bind edge E48e0024a
+  and route_13 launcher-bind edge E27dc1291 (both need a pre-placed widget; placement needs a
+  launcher drag the harness cannot express), route_14 camera-return edge Ec0b77f96 (shutter/
+  accept UI belongs to the emulator camera app). If pre-placement / operator camera steps count
+  as setup, all three rows stay scripted; if they count as part of the route, routes 12/13 (and
+  possibly 14) become unscriptable rows (2/30 = 6.7%, or 3/30 = 10% at the cap) and ROUTES.csv
+  must be updated before the D3 push. Note the tension: d3-04 route_16 also assumes a pre-placed
+  todo widget but was not flagged as a candidate (ROUTES_NOTES route_16 calls it scripted via
+  launcher UI automation) — the auditor should rule routes 12/13/16 consistently. D3 scripts are
+  NOT pushed until the auditor writes PASS (audit-before-merge rule) and this ruling is made.
+- Other auditor notes carried from the helper reports: d3-02/d3-05 scripts also accept --adb
+  (run_app.sh live path passes it; contracted args present); d3-01 live-run risks (first-run
+  tutorial trap, notebook root vs pushed fixtures, API 30+ permission-dialog wording, share-entry
+  permission gate); d3-04 route_16 pre-placed-widget assumption, route_19/20 "More options"
+  content-desc, route_20 checkbox toggle; d3-06 fully qualified launch component
+  (net.gsantner.markor_test/net.gsantner.markor.activity.MainActivity); d3-05 route_22 ".."
+  go-up judgment; d3-03 route_11 9-call E2090721b block.

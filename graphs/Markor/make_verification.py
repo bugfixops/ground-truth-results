@@ -2,25 +2,37 @@
 # UNREACHABLE method and every reachable sample method, edge rows for the corrected edges and the framework
 # citations, and the chain-claim check. Every claim is asserted against the built graph before it is written.
 # Route text in each path note is generated from methods.csv and the edge kinds, so it cannot drift from the graph.
-# Run from work/:  python3 -I graphs/Markor/make_verification.py   (then build again, so the JSON carries it)
+# Run from the repo root:  python3 -I graphs/Markor/make_verification.py
+# All paths below are repo-relative (resolved from the cwd or from this file's location);
+# no absolute session paths, no missing-folder reads. Seed data for the pre-ref-fix citations
+# lives in graphs/Markor/scratch/methods_before_refs.json (extracted once from the current
+# verification.csv FIXED notes, same pattern as the T1 seed rows).
 import collections, csv, json, os, re, sys
 
-WORK = '/Users/darshan/Desktop/yang/work/'
-G = WORK + 'graphs/Markor/'
-SCR = '/private/tmp/claude-501/-Users-darshan-Desktop-yang/0685b904-238e-4df6-a0a5-4168cc5280c3/scratchpad/'
-APP = '/Users/darshan/Desktop/yang/final_java_only/Markor/app/Markor-#v2.16.1/app/'
-FW = WORK + 'fw_src/android-8.1.0_r1/'
-sys.path.insert(0, WORK + 'tools')
+def _find_root():
+    here = os.path.dirname(os.path.abspath(__file__))
+    for cand in (os.getcwd(), os.path.dirname(os.path.dirname(here))):
+        if os.path.isdir(os.path.join(cand, 'tools')) and os.path.isdir(os.path.join(cand, 'graphs')):
+            return cand
+    raise SystemExit('cannot find repo root (need tools/ and graphs/ under the cwd or above graphs/Markor/)')
+
+
+ROOT = _find_root()
+G = os.path.join(ROOT, 'graphs', 'Markor') + os.sep
+SCR = os.path.join(G, 'scratch') + os.sep
+APP = os.path.join(ROOT, 'final_java_only', 'Markor', 'app', 'Markor-#v2.16.1', 'app') + os.sep
+FW = os.path.join(ROOT, 'fw_src', 'android-8.1.0_r1') + os.sep
+sys.path.insert(0, os.path.join(ROOT, 'tools'))
 import build_graph as b  # has a __main__ guard, so importing runs nothing
 
 g = json.load(open(G + 'out/markor_trigger_graph.json', encoding='utf-8'))
 E = {x['id']: x for x in g['edges']}
 LAB = g['labels']
 rows = {r['method']: r for r in csv.DictReader(open(G + 'out/methods.csv', encoding='utf-8'))}
-oldrows = {r['method']: r for r in csv.DictReader(open(SCR + 'methods_before_refs.csv', encoding='utf-8'))}
-# the sample is the final verify_sample draw (seed 20261025), read live from the tool; no saved copy is used
+oldrows = {m: {'source_ref': ref} for m, ref in json.load(open(SCR + 'methods_before_refs.json', encoding='utf-8')).items()}
+# the sample is the final verify_sample draw (seed 20261025, passed explicitly), read live from the tool; no saved copy is used
 import subprocess
-_draw = subprocess.run(['python3', '-I', 'tools/verify_sample.py', 'Markor', '30'], cwd=WORK, capture_output=True, text=True, check=True).stdout
+_draw = subprocess.run(['python3', '-I', 'tools/verify_sample.py', 'Markor', '30', '20261025'], cwd=ROOT, capture_output=True, text=True, check=True).stdout
 assert _draw.splitlines()[0].startswith('# Markor: 30 of 2450 reachable methods'), _draw.splitlines()[0]  # 2450: 2446 + the four widget service framework nodes (round 7)
 SAMPLE = [mm.group(1).strip() for mm in (re.search(r'new edges\s+\d+\s+(.*)$', l) for l in _draw.splitlines()) if mm]
 UNRE = {m for m, r in rows.items() if r['verdict'] == 'UNREACHABLE'}
@@ -922,6 +934,32 @@ for c, i in cites.items():
     assert os.path.isfile(FW + path), ('framework file missing', path)
     erow('FW-SRC %s (edge %s)' % (c.replace('FW-SRC ', ''), i), i, 'correct', 'SOURCE', c.replace('FW-SRC ', ''),
          'Framework lines read in the Android 8.1.0_r1 source (fw_src): %s' % c.replace('FW-SRC ', ''))
+
+# ---- DEVICE rows (D7): if a device run committed graphs/Markor/device/results.csv, add one row
+# per results row, appended after the edge rows. Without that file the output above is unchanged
+# (byte-identical); a not-reached route never becomes wrong, and no label changes.
+dev_path = os.path.join(G, 'device', 'results.csv')
+if os.path.isfile(dev_path):
+    dev_rows = list(csv.DictReader(open(dev_path, encoding='utf-8')))
+    for d in dev_rows:
+        m = d['method']
+        assert m in SAMPLE, ('device results row is not a sampled route', m)
+        assert d['edges'].strip() == rows[m]['route_edge_ids'].strip(), ('device edges differ from route', m)
+        reached = d['reached']
+        assert reached in ('yes', 'no', 'not_run'), (m, reached)
+        status = d['script_status']
+        if reached == 'yes':
+            res, note = 'correct', status
+        elif status == 'unscriptable':
+            res, note = 'unclear', status + ': unscriptable'
+        elif status.startswith('failed') or status == 'timeout':
+            res, note = 'unclear', status + ': script failed'
+        elif reached == 'not_run':
+            res, note = 'unclear', status + ': not run'
+        else:
+            res, note = 'unclear', status + ': not reached'
+        out.append(['path', m, res, 'DEVICE', 'device run %s/%s' % (d['run'], d['script']), d['edges'].strip(), note])
+    print('DEVICE rows', len(dev_rows))
 
 with open(G + 'verification.csv', 'w', encoding='utf-8', newline='') as f:
     csv.writer(f).writerows(out)
