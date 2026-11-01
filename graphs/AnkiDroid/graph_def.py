@@ -7,7 +7,7 @@
 
 TITLE = 'AnkiDroid 2.6beta6 trigger graph'
 USE_AUTO = True
-STRICT = False
+STRICT = True
 
 ENV_KINDS_OF, STATE_KINDS_OF = {}, {}
 
