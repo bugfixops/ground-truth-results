@@ -187,3 +187,95 @@ Started 2026-10-26 (unattended agent job, brief AGENT_BRIEF_V2.md).
   content-desc, route_20 checkbox toggle; d3-06 fully qualified launch component
   (net.gsantner.markor_test/net.gsantner.markor.activity.MainActivity); d3-05 route_22 ".."
   go-up judgment; d3-03 route_11 9-call E2090721b block.
+# D3 appendix draft (to append to tree graphs/Markor/AGENT_NOTES.md AFTER the T7 and D1 pushes land; commit hashes filled in then)
+
+## D3 — device/routes/Markor/route_NN.py (PUSHED — see commits below)
+
+All five rework re-audits PASSED (d3-01, d3-02, d3-03, d3-04, d3-06) plus
+the standing d3-05 PASS and the D1 audit PASS. The D3 bundle contains
+ONLY PASS pieces: reworked scripts for routes 01-05, 06-10, 11-15, 16-20,
+26-30, plus d3-05 originals for routes 21-25. The FAILED original scripts
+were NEVER merged. Manifest paths only, no __pycache__/.pyc.
+
+Verification on the final assembled bundle (this session, printed):
+- drycheck with --load-scripts: Markor 30 PASS, 0 FAIL (first run failed
+  only on the missing final_java_only/ symlink in the test root — a
+  test-layout gap, not a bundle defect).
+- Live-argument invocation (--dry-run --adb adb): 30/30 exit 0, with
+  fully qualified launch components in the logs.
+- Edge lists == amended ROUTES.csv rows exactly in order, 30/30;
+  scripts byte-identical to their helper sources; py_compile 30/30;
+  0 real grant() calls (route_21-30 "grant()" hits are comments saying
+  no grant); 0 tick-marker hits; 0 absolute local paths; 0 placeholders.
+- Route_09's docstring claim that table.csv rows "drive" findChar was
+  left AS-IS deliberately (original audit judged it harmless; no silent
+  touch-up bundled with this merge).
+
+## ROUTES.csv amendments in the D3 push (17 cells; methods, edges, env/state kinds, statuses unchanged)
+
+The D1 push carries the D1-audited ROUTES.csv. The D3 push carries this
+amended ROUTES.csv. Every change below is D3-audit-directed; the D1
+audit's mechanical claims (30 rows = 30 path rows, methods, edges,
+env/state kinds, statuses) are unaffected.
+
+- Row 04 permissions: '' -> WRITE_EXTERNAL_STORAGE (Markor-D3-04).
+  Finding, from printed source: DocumentActivity.onCreate calls
+  StoragePermissionActivity.requestPermissions at :137 BEFORE
+  handleLaunchingIntent at :149. On API 27 (M <= v < R branch of
+  GsContextUtils.checkExternalStoragePermission, :2419-2428) a fresh
+  install without the grant returns false, so requestPermissions starts
+  StoragePermissionActivity and finishes DocumentActivity
+  (StoragePermissionActivity.java:18-22). finish() does not abort
+  onCreate, but the target (getLinkTitle) requires a post-resume UI tap
+  (route step 9, import-options row), and by tap time DocumentActivity
+  is destroyed with the permission dialog in front. Even the dialog's
+  Yes path is unrecoverable for this route: processPermissionState's
+  granted branch animates to MainActivity, not back to the SEND flow
+  (StoragePermissionActivity.java:50-53). The script carries no
+  permission handling. Resolution per the original D3 audit ("confirm
+  gate does not divert SEND flow, or add permission to row 04"): the
+  gate DOES divert, so row 04 needs the pre-grant. Note the contrast
+  with row 05 (below): run_app.sh grants per-route from ROUTES.csv, so
+  the two rows do not conflict. This makes the permissions column a
+  grant set that now includes one row (04) whose env kind is other_app
+  rather than permission; the D1 audit's "exactly one row lists a
+  permission" observation is superseded by this finding, not contradicted
+  on any mechanical claim.
+- Row 05 permissions: WRITE_EXTERNAL_STORAGE -> '' (original D3 audit
+  Finding 3; d3-01 re-audit merger-side item). The StoragePermission
+  flow exists ONLY when the permission is missing at launch; the script
+  grant (and any runner-side pre-grant) would break it the same way.
+  Option 1 (remove from the cell) was chosen because it needs no harness
+  change; option 2 (run_app.sh pre-grant skip) is NOT automatic — the
+  staged run_app.sh skip is keyed on method name and route_05's method
+  processPermissionState does not match that pattern.
+- Rows 12, 13, 16 setup += "; pre-placed widget required (placement is
+  a setup step)" (original D3 audit condition; routes stay scripted
+  per the D1 ruling — widget placement is setup, not part of the route).
+- Fixture rows 02, 03, 06, 07, 08, 09, 10, 14, 19, 20, 21, 22 setup +=
+  "; copy pushed fixtures into Documents/markor/ (notebook directory)
+  before script" (notebook-root/fixture alignment: default notebook is
+  Documents/markor, fixtures push to /sdcard/Documents/. The alignment
+  copy is specified here as a setup requirement; implementation is a
+  run_app.sh/setup step owned by the device lead).
+- Route_14 camera plan (recorded, no ROUTES.csv cell change): the
+  operator performs capture-and-accept in the emulator camera app
+  during the run. If not performed, the run records reached=no, i.e.
+  an unclear DEVICE row, never wrong.
+- Tutorial handling (recorded, no cell change): the setup text already
+  names the first-run tutorial trap; dismissal is a run_app.sh/setup
+  responsibility owned by the device lead, not scripted.
+
+## Decisions made by Muse (for the user and Yang to review)
+
+- Markor-D3-04: row 04 pre-grant (above).
+- Markor-D3-05: row 05 permission removal (above).
+- Markor-D3-WIDGET: widget placement as setup for 12/13/16 (above).
+- Markor-D3-NOTEBOOK: fixture-to-notebook alignment as a setup
+  requirement for the 12 fixture rows (above).
+
+## Pushes (continuation)
+
+- T7+D7 push: 8fd3c436d5bd7070771fc6dc67aa06e82bf02f58 (see CONTINUATION_REPORT.md).
+- D1 push: 80d938677a8438cc30b19913854ed11f26504c63 (see CONTINUATION_REPORT.md).
+- D3 push: COMMIT TBD (see CONTINUATION_REPORT.md).
