@@ -1,5 +1,8 @@
 # Overnight run: finish all 13 apps (labels, route checks, logs)
 
+**Superseded on 2026-11-01 by `handoff/MUSE_FINISH_ALL.md`.** Follow that file; this one is kept for history.
+
+
 Written 2026-11-01 for Muse, on the user's instruction: "use Muse to work overnight to finish everything ... emulator we can choose later, first we need to build this whole. Now nobody is required, all should be handled by Muse."
 
 Read this file in full now, and again after every reset. It overrides `handoff/MUSE_COMPLETE_BRIEF.md` sections 6, 7 and 8, and `handoff/MUSE_HANDOVER.md` where they differ. For everything else, those two files and the rule files still apply.
