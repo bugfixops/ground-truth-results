@@ -362,7 +362,7 @@ e('RepositoryBase.openCursor(String[],String,String[],String)', 'MmxContentProvi
 e('MainActivity.onStart', 'PasscodeActivity.<init>', 'INTENT',
   'MainActivity.onStart starts PasscodeActivity for the passcode when a passcode is saved and this session is not authenticated yet',
   needs_state=state_text('a passcode is saved (settings) and the session is not authenticated yet', ('settings', 'session')),
-  evidence='SRC home/MainActivity.java:252-260; SRC core/Passcode.java:70-72; FW-SRC core/java/android/app/Instrumentation.java:1143-1148')
+  evidence='SRC home/MainActivity.java:252-260; SRC Passcode.java:70-72; FW-SRC core/java/android/app/Instrumentation.java:1143-1148')
 
 e('RecurringTransactionListActivity.onCreate', 'PasscodeActivity.<init>', 'INTENT',
   'the recurring transactions screen opened from a notification starts PasscodeActivity first when a passcode is set',
@@ -683,7 +683,7 @@ e('CalculatorActivity.returnResult', 'AccountEditActivity.onActivityResult', 'RE
 e('S_ACCOUNT_EDIT', 'AccountEditActivity.onOptionsItemSelected', 'GUI',
   'the framework calls onOptionsItemSelected for the save menu item (MenuHelper.save)',
   gui=['Tap the save (check) icon in the action bar'],
-  evidence='SRC core/MenuHelper.java:37, 87-92 (save item added at 88); SRC account/AccountEditActivity.java:177-182 (menu built at 179); FW-SRC core/java/android/app/Activity.java:3439-3455 (onMenuItemSelected calls onOptionsItemSelected at 3450)')
+  evidence='SRC MenuHelper.java:37, 87-92 (save item added at 88); SRC account/AccountEditActivity.java:177-182 (menu built at 179); FW-SRC core/java/android/app/Activity.java:3439-3455 (onMenuItemSelected calls onOptionsItemSelected at 3450)')
 
 e('S_ACCOUNT_EDIT', 'AccountEditActivity$1.onClick', 'GUI',
   'the calculator opens for the initial balance: Calculator.show(RequestCodes.AMOUNT)',
@@ -1244,11 +1244,11 @@ e('AllDataListFragment.onLoadFinished', 'AllDataAdapter.bindView', 'FRAMEWORK',
 
 e('RecurringTransactionListFragment.onLoadFinished', 'AllDataAdapter.newView', 'FRAMEWORK',
   'setListAdapter(adapter) (RecurringTransactionListFragment.java:252) gives the list a new adapter; ListView.setAdapter resets the list and the list relayouts, and the framework calls getView, which calls newView for a row that has no scrap view',
-  evidence='SRC recurring/transactions/RecurringTransactionListFragment.java:250-252; SRC core/AbsListFragment.java:253-257 (setListAdapter calls mList.setAdapter at 257); FW-SRC core/java/android/widget/ListView.java:552-558 (setAdapter: resetList at 557, mRecycler.clear at 558), 570 (super.setAdapter), 578-579 (observer), 603 (requestLayout); FW-SRC core/java/android/widget/AbsListView.java:2151-2164, 2335-2368 (getView at 2365 with scrapView from getScrapView at 2364), 6796-6807 (getScrapView returns null when no scrap view is kept; retrieveFromScrap not printed: INFERRED that it returns null for an empty list); FW-SRC core/java/android/widget/CursorAdapter.java:276-289 (getView calls newView at 285 when convertView is null); FW-SRC core/java/android/widget/ListView.java:1624, 1784-1803, 2037-2052; androidx CursorAdapter INFERRED as above')
+  evidence='SRC recurring/transactions/RecurringTransactionListFragment.java:250-252; SRC AbsListFragment.java:253-257 (setListAdapter calls mList.setAdapter at 257); FW-SRC core/java/android/widget/ListView.java:552-558 (setAdapter: resetList at 557, mRecycler.clear at 558), 570 (super.setAdapter), 578-579 (observer), 603 (requestLayout); FW-SRC core/java/android/widget/AbsListView.java:2151-2164, 2335-2368 (getView at 2365 with scrapView from getScrapView at 2364), 6796-6807 (getScrapView returns null when no scrap view is kept; retrieveFromScrap not printed: INFERRED that it returns null for an empty list); FW-SRC core/java/android/widget/CursorAdapter.java:276-289 (getView calls newView at 285 when convertView is null); FW-SRC core/java/android/widget/ListView.java:1624, 1784-1803, 2037-2052; androidx CursorAdapter INFERRED as above')
 
 e('RecurringTransactionListFragment.onLoadFinished', 'AllDataAdapter.bindView', 'FRAMEWORK',
   'setListAdapter(adapter) (RecurringTransactionListFragment.java:252) gives the list a new adapter; the list relayouts and the framework calls getView, which calls bindView for every visible row',
-  evidence='SRC recurring/transactions/RecurringTransactionListFragment.java:250-252; SRC core/AbsListFragment.java:253-257; FW-SRC core/java/android/widget/ListView.java:552-558, 570, 578-579, 603; FW-SRC core/java/android/widget/AbsListView.java:2151-2164, 2335-2368; FW-SRC core/java/android/widget/CursorAdapter.java:276-289 (getView calls bindView at 289); androidx CursorAdapter INFERRED as above')
+  evidence='SRC recurring/transactions/RecurringTransactionListFragment.java:250-252; SRC AbsListFragment.java:253-257; FW-SRC core/java/android/widget/ListView.java:552-558, 570, 578-579, 603; FW-SRC core/java/android/widget/AbsListView.java:2151-2164, 2335-2368; FW-SRC core/java/android/widget/CursorAdapter.java:276-289 (getView calls bindView at 289); androidx CursorAdapter INFERRED as above')
 
 # ---- part 015 (2026-10-29)
 # ================================================================== batch 015 (label_015): CategoryExpandableListAdapter (17 methods and its $1 listener), CategoryListItemViewHolderChild.<init>, CategoryListItemViewHolderGroup.<init>, MoneySimpleCursorAdapter (4 methods)
@@ -1584,7 +1584,7 @@ e('S_BUDGET_EDIT', 'BudgetEditActivity.onOptionsItemSelected', 'GUI',
   'tap the save icon in the toolbar (it runs onActionDoneClick, which saves the budget) or the Up arrow (the home item, logged and passed to the base class)',
   gui=['Tap the save icon in the toolbar, or the Up arrow'],
   guard='the save icon exists: onCreateOptionsMenu adds it (line 80)',
-  evidence='SRC budget/BudgetEditActivity.java:76-83 (save icon via MenuHelper at 79-80), 86-96 (home at 88-91; save at 92-93); SRC core/MenuHelper.java:37 (save = 2), 87-94 (addSaveToolbarIcon; menu.add at 88); FW-SRC core/java/android/app/Activity.java:3439-3450 (onMenuItemSelected); INFERRED AppCompat dispatches the item to onOptionsItemSelected (library not read)')
+  evidence='SRC budget/BudgetEditActivity.java:76-83 (save icon via MenuHelper at 79-80), 86-96 (home at 88-91; save at 92-93); SRC MenuHelper.java:37 (save = 2), 87-94 (addSaveToolbarIcon; menu.add at 88); FW-SRC core/java/android/app/Activity.java:3439-3450 (onMenuItemSelected); INFERRED AppCompat dispatches the item to onOptionsItemSelected (library not read)')
 
 # ---- the picker dialogs: the OK buttons reach the listeners (AlertDialog positive-button dispatch INFERRED)
 
@@ -1672,7 +1672,7 @@ e('BudgetListFragment.<init>', 'BudgetListFragment.onCreate', 'LIFECYCLE',
 
 e('AbsListFragment.onCreateView', 'BudgetListFragment.onViewCreated', 'LIFECYCLE',
   'the framework calls onViewCreated after the view is created by the inherited onCreateView (AbsListFragment inflates abs_list_fragment)',
-  evidence='SRC core/AbsListFragment.java:77-79; SRC budget/BudgetListFragment.java:119-123; INFERRED androidx Fragment lifecycle (library source not read)')
+  evidence='SRC AbsListFragment.java:77-79; SRC budget/BudgetListFragment.java:119-123; INFERRED androidx Fragment lifecycle (library source not read)')
 
 e('BudgetListFragment.onViewCreated', 'BudgetListFragment.onActivityCreated', 'LIFECYCLE',
   'the framework calls onActivityCreated after onViewCreated; onActivityCreated shows the + button, attaches it to the list and registers the list for the context menu',
@@ -1714,7 +1714,7 @@ gui('S_BUDGETS','BudgetListFragment.onContextItemSelected', 'Tap Edit or Delete 
 # ---- user actions on the list
 
 gui('S_BUDGETS','BudgetListFragment.onListItemClick', 'Tap a budget row',
-  evidence='SRC budget/BudgetListFragment.java:207-216; auto_calls record AbsListFragment$1.onItemClick -> BudgetListFragment.onListItemClick (core/AbsListFragment.java:44)')
+  evidence='SRC budget/BudgetListFragment.java:207-216; auto_calls record AbsListFragment$1.onItemClick -> BudgetListFragment.onListItemClick (SRC AbsListFragment.java:44)')
 
 gui('S_BUDGETS','BudgetListFragment.onFloatingActionButtonClicked', 'Tap the + button',
   evidence='SRC budget/BudgetListFragment.java:218-221; SRC common/BaseListFragment.java:238-248 (listener 241-246, call at 244); SRC res/layout/abs_list_fragment.xml:83 (@+id/fab); auto_calls record BaseListFragment$2.onClick -> BudgetListFragment.onFloatingActionButtonClicked (BaseListFragment.java:244)')
@@ -2289,7 +2289,7 @@ e('S_CALCULATOR', 'CalculatorActivity.onEqualsClicked', 'GUI',
 e('S_CALCULATOR', 'CalculatorActivity.onOptionsItemSelected', 'GUI',
   'the framework calls onOptionsItemSelected for the save menu item (MenuHelper.save): returnResult runs',
   gui=['Tap the save (check) icon in the action bar'],
-  evidence='SRC core/MenuHelper.java:37 (save id), 87-88 (save item added in addSaveToolbarIcon); SRC common/CalculatorActivity.java:139 (menu built), 145-151 (save branch calls returnResult at 149); FW-SRC core/java/android/app/Activity.java:3439-3450 (onMenuItemSelected calls onOptionsItemSelected at 3450)')
+  evidence='SRC MenuHelper.java:37 (save id), 87-88 (save item added in addSaveToolbarIcon); SRC common/CalculatorActivity.java:139 (menu built), 145-151 (save branch calls returnResult at 149); FW-SRC core/java/android/app/Activity.java:3439-3450 (onMenuItemSelected calls onOptionsItemSelected at 3450)')
 
 # ---- Icepick (generated helper CalculatorActivity$$Icepick; the icepick library is not in the dataset)
 
@@ -2584,8 +2584,8 @@ UNREACHABLE['ExpandableListFragment.getSelectedPosition'] = (
 
 UNREACHABLE['ExpandableListFragment.setSelection'] = (
   'no_trigger_in_app',
-  'public method (lines 177-180). In the app source root its name occurs at the declaration and body (ExpandableListFragment.java:177, 179) and in spinner and EditText calls. AbsListFragment.setSelection (core/AbsListFragment.java:124) belongs to another class hierarchy: this fragment extends androidx Fragment (lines 48-49). No caller on an ExpandableListFragment receiver and no auto record enters it (grep.txt sections A, C)',
-  'SRC common/ExpandableListFragment.java:48-49, 177-180; SRC core/AbsListFragment.java:124; grep label_031.grep.txt sections A, C',
+  'public method (lines 177-180). In the app source root its name occurs at the declaration and body (ExpandableListFragment.java:177, 179) and in spinner and EditText calls. AbsListFragment.setSelection (SRC AbsListFragment.java:124) belongs to another class hierarchy: this fragment extends androidx Fragment (lines 48-49). No caller on an ExpandableListFragment receiver and no auto record enters it (grep.txt sections A, C)',
+  'SRC common/ExpandableListFragment.java:48-49, 177-180; SRC AbsListFragment.java:124; grep label_031.grep.txt sections A, C',
   'SOURCE')
 
 UNREACHABLE['ExpandableListFragment.onChildClick'] = (
@@ -2722,19 +2722,19 @@ UNREACHABLE['MmxCursorLoader.<init>(Context)'] = (
 e('AccountListActivity.onCreate', 'AbsListFragment.onCreateView', 'FRAMEWORK',
   'the activity adds AccountListFragment in onCreate (fragment transaction, committed); the framework then creates the fragment view by calling onCreateView, which AccountListFragment inherits (no override: grep G11)',
   guard='no fragment with id R.id.content yet (AccountListActivity.java:54-55); a restored activity does not add it again',
-  evidence='SRC account/AccountListActivity.java:47, 54-56; SRC core/AbsListFragment.java:77-80; SRC account/AccountListFragment.java (no onCreateView override; grep G11); INFERRED androidx FragmentManager calls onCreateView after the commit (library source not read)')
+  evidence='SRC account/AccountListActivity.java:47, 54-56; SRC AbsListFragment.java:77-80; SRC account/AccountListFragment.java (no onCreateView override; grep G11); INFERRED androidx FragmentManager calls onCreateView after the commit (library source not read)')
 
 e('AbsListFragment.onViewCreated', 'AbsListFragment.onDestroyView', 'LIFECYCLE',
   'the framework calls onDestroyView when the fragment view is destroyed; the view exists only after onCreateView and onViewCreated have run (no onDestroyView override in AccountListFragment or BaseListFragment: grep G10)',
   guard='onViewCreated has run, so the view exists',
-  evidence='SRC core/AbsListFragment.java:86-89, 95-102; SRC common/BaseListFragment.java:63-67 (super call at 66); INFERRED androidx Fragment calls onDestroyView when the view is destroyed (library source not read); pattern as graph_def.py:1299')
+  evidence='SRC AbsListFragment.java:86-89, 95-102; SRC common/BaseListFragment.java:63-67 (super call at 66); INFERRED androidx Fragment calls onDestroyView when the view is destroyed (library source not read); pattern as graph_def.py:1299')
 
 e('AbsListFragment.ensureList', 'AbsListFragment$2.run', 'FRAMEWORK',
   'ensureList posts mRequestFocus to the handler at its end (mHandler.post); the handler runs run() later on the main looper',
-  evidence='SRC core/AbsListFragment.java:266-319 (ensureList; post at 318), 49-53 (run at 50-52); FW-SRC core/java/android/os/Handler.java:355-358 (post queues the runnable)')
+  evidence='SRC AbsListFragment.java:266-319 (ensureList; post at 318), 49-53 (run at 50-52); FW-SRC core/java/android/os/Handler.java:355-358 (post queues the runnable)')
 
 gui('S_ACCOUNT_LIST', 'AbsListFragment$1.onItemClick', 'Tap a row of the account list; onListItemClick then opens the row context menu (AccountListFragment.java:256-259)',
-  evidence='SRC core/AbsListFragment.java:41-46 (mOnClickListener; onItemClick calls onListItemClick at 44), 306 (setOnItemClickListener); FW-SRC core/java/android/widget/AdapterView.java:314-318 (performItemClick calls the listener at 318); FW-SRC core/java/android/widget/AbsListView.java:3122-3130 (performItemClick at 3127); INFERRED the touch-up path reaches performItemClick (source not read)')
+  evidence='SRC AbsListFragment.java:41-46 (mOnClickListener; onItemClick calls onListItemClick at 44), 306 (setOnItemClickListener); FW-SRC core/java/android/widget/AdapterView.java:314-318 (performItemClick calls the listener at 318); FW-SRC core/java/android/widget/AbsListView.java:3122-3130 (performItemClick at 3127); INFERRED the touch-up path reaches performItemClick (source not read)')
 
 # ---- auto CALL edges whose caller cannot run (UNREACHABLE in this batch): the exact edge is cut, so the targets have no live incoming edge
 
@@ -2822,19 +2822,19 @@ UNREACHABLE['WebViewActivity$1.onPageFinished'] = (
 UNREACHABLE['AbsListFragment.setSelection'] = (
   'no_trigger_in_app',
   'public setter with no caller in app source: no call to setSelection() on an AbsListFragment exists (grep G4 finds only the definition at AbsListFragment.java:124 and ExpandableListFragment.java:177, and ExpandableListFragment extends Fragment (ExpandableListFragment.java:48-49), not AbsListFragment; grep G5 shows qualified calls only on Spinner, EditText and ListView receivers)',
-  'SRC core/AbsListFragment.java:124-127; SRC common/ExpandableListFragment.java:48-49, 177-180; grep label_033.grep.txt G4, G5',
+  'SRC AbsListFragment.java:124-127; SRC common/ExpandableListFragment.java:48-49, 177-180; grep label_033.grep.txt G4, G5',
   'SOURCE')
 
 UNREACHABLE['AbsListFragment.getSelectedItemPosition'] = (
   'no_trigger_in_app',
   'public getter with no caller in app source: grep G3 finds only its definition and the ListView call inside it (AbsListFragment.java:132-135); the other getSelectedItemPosition calls in app/src are on spinner fields',
-  'SRC core/AbsListFragment.java:132-135; grep label_033.grep.txt G3',
+  'SRC AbsListFragment.java:132-135; grep label_033.grep.txt G3',
   'SOURCE')
 
 UNREACHABLE['AbsListFragment.getSelectedItemId'] = (
   'no_trigger_in_app',
   'public getter with no caller in app source: grep G3 finds only its definition and the ListView call inside it (AbsListFragment.java:140-142); no getSelectedItemId call exists on any AbsListFragment receiver',
-  'SRC core/AbsListFragment.java:140-143; grep label_033.grep.txt G3',
+  'SRC AbsListFragment.java:140-143; grep label_033.grep.txt G3',
   'SOURCE')
 
 UNREACHABLE['ListItemClickedEvent.<init>'] = (
@@ -2925,7 +2925,7 @@ UNREACHABLE['DefinedDateRanges.getByNameId'] = ('no_trigger_in_app',
 
 e('Core.alert(int,int)', 'Core$1.onClick', 'FRAMEWORK',
   'the OK button of the no-network dialog is pressed: the dialog keeps the listener and calls its onClick',
-  evidence='SRC core/Core.java:82-100 (setPositiveButton with the listener at 93, onClick at 95-97, show at 99); FW-SRC core/java/android/app/AlertDialog.java:611-613 (setPositiveButton stores the listener); FW-SRC core/java/com/android/internal/app/AlertController.java:709-710 (positive button click handler), 125-147 (mButtonHandler sends the message), 160-167 (handleMessage calls onClick at 166), 1021-1023 (setButton with the listener)')
+  evidence='SRC Core.java:82-100 (setPositiveButton with the listener at 93, onClick at 95-97, show at 99); FW-SRC core/java/android/app/AlertDialog.java:611-613 (setPositiveButton stores the listener); FW-SRC core/java/com/android/internal/app/AlertController.java:709-710 (positive button click handler), 125-147 (mButtonHandler sends the message), 160-167 (handleMessage calls onClick at 166), 1021-1023 (setButton with the listener)')
 
 sup(('Core_MembersInjector.create', 'Core_MembersInjector.<init>'))  # create has no caller, so its call into <init> cannot run
 sup(('Core_MembersInjector.injectMembers', 'Core_MembersInjector.injectOpenHelper'),  # injectMembers has no caller
@@ -2935,22 +2935,22 @@ sup(('Core_MembersInjector.injectMembers', 'Core_MembersInjector.injectOpenHelpe
 
 UNREACHABLE['Core.isToDisplayChangelog'] = ('no_trigger_in_app',
   'No live caller. The only source reference is commented out (MainActivity.java:1495, inside the comment block of handleDeviceRotation). No caller record exists in auto_calls.json. Its caller Core.showChangelog is UNREACHABLE too',
-  'SRC core/Core.java:271-274; SRC home/MainActivity.java:1493-1497 (commented call); label_034.grep.txt sections B and D',
+  'SRC Core.java:271-274; SRC home/MainActivity.java:1493-1497 (commented call); label_034.grep.txt sections B and D',
   'SOURCE')
 
 UNREACHABLE['Core.showChangelog'] = ('no_trigger_in_app',
   'No live caller. The only source reference is commented out (MainActivity.java:1496). No caller record exists in auto_calls.json. It creates the changelog dialog and its listener Core$2 (Core.java:325-326)',
-  'SRC core/Core.java:318-337; SRC home/MainActivity.java:1496 (commented call); label_034.grep.txt sections B and D',
+  'SRC Core.java:318-337; SRC home/MainActivity.java:1496 (commented call); label_034.grep.txt sections B and D',
   'SOURCE')
 
 UNREACHABLE['Core$2.<init>'] = ('no_trigger_in_app',
   'Created only in Core.showChangelog (the listener at Core.java:325-326). showChangelog has no caller, so this cannot run',
-  'SRC core/Core.java:318-337; label_034.grep.txt section D (showChangelog -> Core$2.<init> at 325)',
+  'SRC Core.java:318-337; label_034.grep.txt section D (showChangelog -> Core$2.<init> at 325)',
   'SOURCE')
 
 UNREACHABLE['Core$2.onClick'] = ('no_trigger_in_app',
   'The OK listener of the changelog dialog (Core.java:328-331). Its only creator is Core.showChangelog, which has no caller. No FRAMEWORK edge is written because the creator has no route',
-  'SRC core/Core.java:318-337',
+  'SRC Core.java:318-337',
   'SOURCE')
 
 UNREACHABLE['Core_MembersInjector.<init>'] = ('no_trigger_in_app',
@@ -3012,7 +3012,7 @@ UNREACHABLE['IntentFactory.<init>'] = ('no_trigger_in_app',
 
 UNREACHABLE['MenuHelper.add'] = ('no_trigger_in_app',
   'Public instance method (MenuHelper.java:97-105) with no caller. No auto_calls.json record names it, and no MenuHelper variable calls .add( in the 11 files that build one. The menu.add( calls in the same files are android.view.Menu.add, not this method.',
-  'SRC core/MenuHelper.java:97-105; label_037.grep.txt (MenuHelper.add block; auto_calls count 0)',
+  'SRC MenuHelper.java:97-105; label_037.grep.txt (MenuHelper.add block; auto_calls count 0)',
   'SOURCE')
 
 UNREACHABLE['MyWebChromeClient.<init>'] = ('no_trigger_in_app',
@@ -3061,7 +3061,7 @@ e('S_ENTRY', 'RecurringTransactionBootReceiver.<init>', 'ENTRY',
 
 e('RecurringTransactionBootReceiver.<init>', 'RecurringTransactionBootReceiver.onReceive', 'LIFECYCLE',
   'The framework calls onReceive on the receiver it has just created',
-  evidence='FW-SRC core/java/android/app/ActivityThread.java:3187 (receiver.onReceive); SRC core/RecurringTransactionBootReceiver.java:40-47')
+  evidence='FW-SRC core/java/android/app/ActivityThread.java:3187 (receiver.onReceive); SRC RecurringTransactionBootReceiver.java:40-47')
 
 e('MainActivity.populateScheduledTransactions', 'RecurringTransactionBootReceiver.onReceive', 'INTENT',
   'MainActivity sends an explicit broadcast to the receiver each time MainActivity.onCreate runs (onCreate calls populateScheduledTransactions at line 244)',
@@ -3542,7 +3542,7 @@ e('Core.getLastPayeeUsed', 'DbModule_ProvideOpenHelperFactory.get', 'CALL',
   'Core.getLastPayeeUsed calls openHelper.get() (Lazy<MmxOpenHelper>), which runs the factory provider',
   cls='non_standard',
   via='Dagger Lazy<MmxOpenHelper>.get: DoubleCheck calls the factory provider (library behaviour, INFERRED; library and generated source not read)',
-  evidence='SRC core/Core.java:71 (field Lazy<MmxOpenHelper> openHelper), :147 (openHelper.get().getReadableDatabase().query(sql)) inside getLastPayeeUsed (135)')
+  evidence='SRC Core.java:71 (field Lazy<MmxOpenHelper> openHelper), :147 (openHelper.get().getReadableDatabase().query(sql)) inside getLastPayeeUsed (135)')
 
 e('MmxDatabaseUtils.checkIntegrity', 'DbModule_ProvideOpenHelperFactory.get', 'CALL',
   'MmxDatabaseUtils.checkIntegrity calls openHelper.get() (Lazy<MmxOpenHelper>), which runs the factory provider',
@@ -3788,7 +3788,7 @@ sup(('MmxBaseFragmentActivity$2.onClick', 'CheckingTransactionEditActivity.onAct
 
 e('AbsListFragment.onCreateView', 'BaseListFragment.onViewCreated', 'LIFECYCLE',
   'the framework calls onViewCreated after the view is created by the inherited onCreateView (AbsListFragment inflates abs_list_fragment.xml). Receivers that do not override onViewCreated run this body; BudgetListFragment overrides it and calls super (119-120); CurrencyListFragment (154-156) and BudgetDetailFragment (121-123) override it without calling super, so this body does not run for them',
-  evidence='SRC core/AbsListFragment.java:77-79; SRC common/BaseListFragment.java:62-67; SRC currency/list/CurrencyListFragment.java:154-156; SRC budget/BudgetDetailFragment.java:121-123; INFERRED androidx Fragment lifecycle (library not read)')
+  evidence='SRC AbsListFragment.java:77-79; SRC common/BaseListFragment.java:62-67; SRC currency/list/CurrencyListFragment.java:154-156; SRC budget/BudgetDetailFragment.java:121-123; INFERRED androidx Fragment lifecycle (library not read)')
 
 e('PayeeListFragment.onActivityCreated', 'BaseListFragment.onStart', 'LIFECYCLE',
   'the framework calls onStart after onActivityCreated; PayeeListFragment does not override onStart, so the inherited body runs (the wildcard tips dialog)',
@@ -4584,7 +4584,7 @@ e('CurrencyListFragment.onCreate', 'CurrencyListFragment.onCreateView', 'LIFECYC
 
 e('AbsListFragment.onCreateView', 'CurrencyListFragment.onViewCreated', 'LIFECYCLE',
   'the framework calls onViewCreated after the view is created by the inherited onCreateView (AbsListFragment inflates abs_list_fragment.xml). CurrencyListFragment overrides onViewCreated without calling super (154-156), so the BaseListFragment body that label_026 writes does not run for this receiver',
-  evidence='SRC core/AbsListFragment.java:74-80 (onCreateView); SRC currency/list/CurrencyListFragment.java:153-156 (onViewCreated, no super); SRC common/BaseListFragment.java:62-67; INFERRED androidx Fragment lifecycle (library not read)')
+  evidence='SRC AbsListFragment.java:74-80 (onCreateView); SRC currency/list/CurrencyListFragment.java:153-156 (onViewCreated, no super); SRC common/BaseListFragment.java:62-67; INFERRED androidx Fragment lifecycle (library not read)')
 
 e('CurrencyListFragment.onViewCreated', 'CurrencyListFragment.onActivityCreated', 'LIFECYCLE',
   'the framework calls onActivityCreated after onViewCreated',
@@ -4701,7 +4701,7 @@ gui('S_CURRENCY_LIST', 'CurrencyListActivity.onKeyUp', 'press Back while the cur
   evidence='SRC currency/list/CurrencyListActivity.java:69-80 (onKeyUp 70; KEYCODE_BACK 75; setResultAndFinish 76); FW-SRC core/java/android/app/Activity.java:3255-3272 (dispatchKeyEvent passes the key to event.dispatch); FW-SRC core/java/android/view/KeyEvent.java:2709-2715 (ACTION_UP calls receiver.onKeyUp)')
 
 gui('S_CURRENCY_LIST', 'CurrencyListFragment.onListItemClick', 'tap a currency row in the list',
-  evidence='SRC core/AbsListFragment.java:40-47 (onItemClick calls onListItemClick at 44); SRC currency/list/CurrencyListFragment.java:329-341 (openContextMenu 336; setResultAndFinish 339)')
+  evidence='SRC AbsListFragment.java:40-47 (onItemClick calls onListItemClick at 44); SRC currency/list/CurrencyListFragment.java:329-341 (openContextMenu 336; setResultAndFinish 339)')
 
 gui('S_CURRENCY_LIST', 'CurrencyListFragment.onCreateContextMenu', 'long-press a currency row (the list is registered for the context menu at line 155)',
   evidence='SRC currency/list/CurrencyListFragment.java:155 (registerForContextMenu), 215-229 (onCreateContextMenu); INFERRED View long-press dispatch (android.view.View not read in this batch)')
@@ -5082,13 +5082,13 @@ e('MmxDatabaseUtils.fixDuplicates', 'InfoRepositorySql_Factory.get', 'CALL',
 
 e('Passcode.savePasscode', 'InfoRepositorySql_Factory.get', 'CALL',
   'savePasscode calls infoRepositorySqlLazy.get() (line 158) before insert or update; savePasscode is reached from setPasscode (line 80)',
-  evidence='SRC core/Passcode.java:47 (@Inject Lazy field), 78-80 (setPasscode calls savePasscode), 153-158 (savePasscode, get at 158); GEN core/ioc/DaggerMmxComponent.class injectPasscode offset 2 getfield infoRepositorySqlProvider, 5 DoubleCheck.lazy, 8 MembersInjector.injectInfoRepositorySqlLazy',
+  evidence='SRC Passcode.java:47 (@Inject Lazy field), 78-80 (setPasscode calls savePasscode), 153-158 (savePasscode, get at 158); GEN core/ioc/DaggerMmxComponent.class injectPasscode offset 2 getfield infoRepositorySqlProvider, 5 DoubleCheck.lazy, 8 MembersInjector.injectInfoRepositorySqlLazy',
   cls='non_standard',
   via='dagger.internal.DoubleCheck (the Lazy), then javax.inject.Provider.get on InfoRepositorySql_Factory')
 
 e('Passcode.clearPasscode_Internal', 'InfoRepositorySql_Factory.get', 'CALL',
   'clearPasscode_Internal calls infoRepositorySqlLazy.get() (line 136) before the delete; reached from clearPasscode (line 85)',
-  evidence='SRC core/Passcode.java:83-85 (clearPasscode calls clearPasscode_Internal), 135-136 (get at 136), 137 onward (repo.delete with Info.INFONAME); GEN core/ioc/DaggerMmxComponent.class injectPasscode offsets 2-8 (same Lazy wiring as above)',
+  evidence='SRC Passcode.java:83-85 (clearPasscode calls clearPasscode_Internal), 135-136 (get at 136), 137 onward (repo.delete with Info.INFONAME); GEN core/ioc/DaggerMmxComponent.class injectPasscode offsets 2-8 (same Lazy wiring as above)',
   cls='non_standard',
   via='dagger.internal.DoubleCheck (the Lazy), then javax.inject.Provider.get on InfoRepositorySql_Factory')
 
@@ -6071,7 +6071,7 @@ gui('S_PAYEE', 'PayeeListFragment.onContextItemSelected',
 
 gui('S_PAYEE', 'PayeeListFragment.onListItemClick',
     'Tap a payee row: in picker mode the payee is returned to the caller, otherwise the row menu opens',
-    evidence='SRC core/AbsListFragment.java:41-46 (onItemClick calls onListItemClick at 44), 306; SRC fragment/PayeeListFragment.java:437-452; the shared-listener CHA record to this method is cut by sup below; pattern graph_def.py:2691')
+    evidence='SRC AbsListFragment.java:41-46 (onItemClick calls onListItemClick at 44), 306; SRC fragment/PayeeListFragment.java:437-452; the shared-listener CHA record to this method is cut by sup below; pattern graph_def.py:2691')
 
 gui('S_PAYEE', 'PayeeListFragment.onQueryTextChange',
     'Type in the search box of the payee list',

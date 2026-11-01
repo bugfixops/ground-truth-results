@@ -206,7 +206,7 @@ e('YesNoDialog$1.onClick', 'CheckingTransactionEditActivity.onEvent(DialogNegati
 
 gui('S_CHECKING_TRANSACTION_EDIT', 'CheckingTransactionEditActivity.onOptionsItemSelected',
     'Tap the up arrow or the save icon in the toolbar',
-    evidence='SRC transactions/CheckingTransactionEditActivity.java:150-159 (home 153; save 155); SRC core/MenuHelper.java:37, 88; FW-SRC core/java/android/app/Activity.java:3450 (onOptionsItemSelected dispatch); INFERRED: the AppCompat toolbar path is not read')
+    evidence='SRC transactions/CheckingTransactionEditActivity.java:150-159 (home 153; save 155); SRC MenuHelper.java:37, 88; FW-SRC core/java/android/app/Activity.java:3450 (onOptionsItemSelected dispatch); INFERRED: the AppCompat toolbar path is not read')
 
 gui('S_CHECKING_TRANSACTION_EDIT', 'CheckingTransactionEditActivity.onBackPressed',
     'Press the Back key',

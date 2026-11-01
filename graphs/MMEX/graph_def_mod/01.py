@@ -1255,7 +1255,7 @@ e('S_INVESTMENT_TRANSACTION_EDIT', 'InvestmentTransactionEditActivity.onOptionsI
   'the save icon is tapped: onOptionsItemSelected runs onActionDoneClick (save branch)',
   gui=['Tap the save icon in the toolbar'],
   guard='item id is MenuHelper.save (InvestmentTransactionEditActivity.java:175)',
-  evidence='SRC investment/InvestmentTransactionEditActivity.java:169-180 (save branch at 175-176; onActionDoneClick at 176; other items to super at 179); SRC core/MenuHelper.java:37 (save = 2), 87-89 (addSaveToolbarIcon adds the item at 88); FW-SRC core/java/android/app/Activity.java:3439-3450 (onMenuItemSelected calls onOptionsItemSelected at 3450); INFERRED: the toolbar tap reaching onMenuItemSelected through AppCompat is not read')
+  evidence='SRC investment/InvestmentTransactionEditActivity.java:169-180 (save branch at 175-176; onActionDoneClick at 176; other items to super at 179); SRC MenuHelper.java:37 (save = 2), 87-89 (addSaveToolbarIcon adds the item at 88); FW-SRC core/java/android/app/Activity.java:3439-3450 (onMenuItemSelected calls onOptionsItemSelected at 3450); INFERRED: the toolbar tap reaching onMenuItemSelected through AppCompat is not read')
 
 e('S_INVESTMENT_TRANSACTION_EDIT', 'InvestmentTransactionEditActivity.onBackPressed', 'GUI',
   'the back key is pressed: Activity.onKeyUp calls onBackPressed, which runs onActionCancelClick',
@@ -2262,7 +2262,7 @@ e('RecurringTransactionBootReceiver.setAlarm', 'RecurringTransactionReceiver.<in
   needs_state=state_text('the repeating transaction notifications setting is on (default on, BehaviourSettings.java:42)', ('settings',)),
   env=env_text('the daily alarm fires at the notification time (the hour set in the settings)', ('time',)),
   via='AlarmManager repeat with a broadcast PendingIntent (AlarmManager delivery and the framework are not read: INFERRED)',
-  evidence='SRC core/RecurringTransactionBootReceiver.java:49-53 (notify gate), 56-57 (intent and PendingIntent.getBroadcast), 59-78 (hour and calendar), 79-84 (cancel at 81, setRepeating at 83-84); SRC notifications/RecurringTransactionReceiver.java:31-39; SRC settings/BehaviourSettings.java:41-43; INFERRED AlarmManager delivery (not read)')
+  evidence='SRC RecurringTransactionBootReceiver.java:49-53 (notify gate), 56-57 (intent and PendingIntent.getBroadcast), 59-78 (hour and calendar), 79-84 (cancel at 81, setRepeating at 83-84); SRC notifications/RecurringTransactionReceiver.java:31-39; SRC settings/BehaviourSettings.java:41-43; INFERRED AlarmManager delivery (not read)')
 
 e('RecurringTransactionReceiver.<init>', 'RecurringTransactionReceiver.onReceive', 'LIFECYCLE',
   'the system calls onReceive on the new receiver instance; onReceive reads the notification setting and returns when it is off, otherwise it enqueues the job service (lines 37-38)',
@@ -2445,7 +2445,7 @@ UNREACHABLE['Encryptor.<init>'] = ('no_trigger_in_app',
     'SOURCE')
 
 UNREACHABLE['Encryptor.encrypt'] = ('no_trigger_in_app',
-    'public method that returns "not implemented"; no call site in app source (the only reference is a todo comment at core/Passcode.java:126)',
+    'public method that returns "not implemented"; no call site in app source (the only reference is a todo comment at SRC Passcode.java:126)',
     'passcode/Encryptor.java:45-47; label_097.grep.txt sections 1, 2',
     'SOURCE')
 
@@ -2611,19 +2611,19 @@ UNREACHABLE['InsecureSHA1PRNGKeyDerivator.updateSeed'] = (
 UNREACHABLE['SimpleCrypto.<init>'] = (
   'no_trigger_in_app',
   'implicit default constructor (the class declares none). No source or class file creates an instance; every use is a static call.',
-  'SRC passcode/SimpleCrypto.java:33; SRC core/Passcode.java:105, 124; grep label_098.grep.txt sections A, E1',
+  'SRC passcode/SimpleCrypto.java:33; SRC Passcode.java:105, 124; grep label_098.grep.txt sections A, E1',
   'SOURCE')
 
 UNREACHABLE['SimpleCrypto.appendHex'] = (
   'closed_by_api_level',
   'private static helper. Its only caller is toHex(byte[]) (line 101), which is reached from encrypt(String,String) (line 39, closed) and from toHex(String) (line 82, no caller).',
-  'SRC passcode/SimpleCrypto.java:96-108; SRC core/Passcode.java:120-133; grep label_098.grep.txt sections B, C',
+  'SRC passcode/SimpleCrypto.java:96-108; SRC Passcode.java:120-133; grep label_098.grep.txt sections B, C',
   'INFERRED')
 
 UNREACHABLE['SimpleCrypto.decrypt(String,String)'] = (
   'closed_by_api_level',
   'public static method. Its only caller is Passcode.decrypt (Passcode.java:105), under if (Build.VERSION.SDK_INT <= 23) (line 104). That is false on the standard configuration API 27 (handoff/SCHEMA_V2.md:38, 41), so the call never runs.',
-  'SRC passcode/SimpleCrypto.java:42-47; SRC core/Passcode.java:101-113 (guard 104, call 105); handoff/SCHEMA_V2.md:38, 41; grep label_098.grep.txt section C',
+  'SRC passcode/SimpleCrypto.java:42-47; SRC Passcode.java:101-113 (guard 104, call 105); handoff/SCHEMA_V2.md:38, 41; grep label_098.grep.txt section C',
   'INFERRED')
 
 UNREACHABLE['SimpleCrypto.decrypt(byte[],byte[])'] = (
@@ -2635,7 +2635,7 @@ UNREACHABLE['SimpleCrypto.decrypt(byte[],byte[])'] = (
 UNREACHABLE['SimpleCrypto.encrypt(String,String)'] = (
   'closed_by_api_level',
   'public static method. Its only caller is Passcode.encrypt (Passcode.java:124), under if (Build.VERSION.SDK_INT <= 23) (line 123). That is false on the standard configuration API 27 (handoff/SCHEMA_V2.md:38, 41), so the call never runs.',
-  'SRC passcode/SimpleCrypto.java:35-40; SRC core/Passcode.java:120-133 (guard 123, call 124); handoff/SCHEMA_V2.md:38, 41; grep label_098.grep.txt section C',
+  'SRC passcode/SimpleCrypto.java:35-40; SRC Passcode.java:120-133 (guard 123, call 124); handoff/SCHEMA_V2.md:38, 41; grep label_098.grep.txt section C',
   'INFERRED')
 
 UNREACHABLE['SimpleCrypto.encrypt(byte[],byte[])'] = (
@@ -2803,7 +2803,7 @@ e('SplitCategoriesActivity.onActionDoneClick', 'RecurringTransactionEditActivity
 
 gui('S_RECURRING_TRANSACTION_EDIT', 'RecurringTransactionEditActivity.onOptionsItemSelected',
     'Tap the up arrow or the save icon in the toolbar',
-    evidence='SRC recurring/transactions/RecurringTransactionEditActivity.java:166-175 (home 168-169; save 170-171); SRC core/MenuHelper.java:37 (save = 2), 87-89 (addSaveToolbarIcon); FW-SRC core/java/android/app/Activity.java:3450 (onOptionsItemSelected dispatch); INFERRED: the toolbar tap reaching onMenuItemSelected through AppCompat is not read')
+    evidence='SRC recurring/transactions/RecurringTransactionEditActivity.java:166-175 (home 168-169; save 170-171); SRC MenuHelper.java:37 (save = 2), 87-89 (addSaveToolbarIcon); FW-SRC core/java/android/app/Activity.java:3450 (onOptionsItemSelected dispatch); INFERRED: the toolbar tap reaching onMenuItemSelected through AppCompat is not read')
 
 gui('S_RECURRING_TRANSACTION_EDIT', 'RecurringTransactionEditActivity.onBackPressed',
     'Press the Back key',
@@ -3122,7 +3122,7 @@ e('CategoriesReportFragment.onLoadFinished', 'CategoriesReportFragment$1.run', '
 
 gui('S_CATEGORIES_REPORT', 'CategoriesReportFragment.onListItemClick',
     'Tap a category row in the report list (the search results for that category open)',
-    evidence='SRC CategoriesReportFragment.java:272-294; SRC core/AbsListFragment.java:42-46 (OnItemClickListener calls onListItemClick); INFERRED the list view dispatches the item click to the listener (AdapterView not printed)')
+    evidence='SRC CategoriesReportFragment.java:272-294; SRC AbsListFragment.java:42-46 (OnItemClickListener calls onListItemClick); INFERRED the list view dispatches the item click to the listener (AdapterView not printed)')
 
 gui('S_CATEGORIES_REPORT', 'CategoriesReportFragment.onOptionsItemSelected',
     'Options menu: tap Show chart (single-pane only), one of the period items (current month, last month, last 30 days, current year, last year, all time)',
@@ -3377,7 +3377,7 @@ gui('S_PAYEE_REPORT', 'PayeeReportFragment.onQueryTextChange',
 
 gui('S_PAYEE_REPORT', 'PayeeReportFragment.onListItemClick',
     'Tap a payee row in the report list (the search results for that payee open)',
-    evidence='SRC reports/PayeeReportFragment.java:279-294 (showSearchActivityFor at 293); SRC core/AbsListFragment.java:42-46 (OnItemClickListener calls onListItemClick at 44); INFERRED the list view dispatches the item click to the listener (AdapterView not printed)')
+    evidence='SRC reports/PayeeReportFragment.java:279-294 (showSearchActivityFor at 293); SRC AbsListFragment.java:42-46 (OnItemClickListener calls onListItemClick at 44); INFERRED the list view dispatches the item click to the listener (AdapterView not printed)')
 
 gui('S_PAYEE_REPORT', 'PayeeReportFragment.onOptionsItemSelected',
     'Options menu: tap Show chart (single panel only, the item is hidden in dual panel) or one of the period items (passed to super, BaseReportFragment)',
