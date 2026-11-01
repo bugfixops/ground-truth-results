@@ -1,4 +1,26 @@
-ll iterate over the operations and call
+    */
+        if (mContext == null) {
+            mContext = context;
+            if (context != null) {
+                mTransport.mAppOpsManager = (AppOpsManager) context.getSystemService(
+                        Context.APP_OPS_SERVICE);
+            }
+            mMyUid = Process.myUid();
+            if (info != null) {
+                setReadPermission(info.readPermission);
+                setWritePermission(info.writePermission);
+                setPathPermissions(info.pathPermissions);
+                mExported = info.exported;
+                mSingleUser = (info.flags & ProviderInfo.FLAG_SINGLE_USER) != 0;
+                setAuthorities(info.authority);
+            }
+            ContentProvider.this.onCreate();
+        }
+    }
+
+    /**
+     * Override this to handle requests to perform a batch of operations, or the
+     * default implementation will iterate over the operations and call
      * {@link ContentProviderOperation#apply} on each of them.
      * If all calls to {@link ContentProviderOperation#apply} succeed
      * then a {@link ContentProviderResult} array with as many
@@ -17012,31 +17034,4 @@ public class BaseBundle {
     }
 
     /**
-     * Returns the value associated with the given key, or null if
-     * no mapping of the desired type exists for the given key or a null
-     * value is explicitly associated with the key.
-     *
-     * @param key a String, or null
-     * @return an ArrayList<String> value, or null
-     */
-    @Nullable
-    ArrayList<String> getStringArrayList(@Nullable String key) {
-        unparcel();
-        Object o = mMap.get(key);
-        if (o == null) {
-            return null;
-        }
-        try {
-            return (ArrayList<String>) o;
-        } catch (ClassCastException e) {
-            typeWarning(key, o, "ArrayList<String>", e);
-            return null;
-        }
-    }
-
-    /**
-     * Returns the value associated with the given key, or null if
-     * no mapping of the desired type exists for the given key or a null
-     * value is explicitly associated with the key.
-     *
-     * @param key
+     * Returns the value associated with

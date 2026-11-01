@@ -1,4 +1,20 @@
-l PackageParser.Package newPackage = scanPackageTracedLI(pkg, policyFlags,
+
+            if (deletedPackage.isForwardLocked() || isExternal(deletedPackage)) {
+                if (DEBUG_INSTALL) {
+                    Slog.i(TAG, "upgrading pkg " + deletedPackage + " is ASEC-hosted -> UNAVAILABLE");
+                }
+                final int[] uidArray = new int[] { deletedPackage.applicationInfo.uid };
+                final ArrayList<String> pkgList = new ArrayList<String>(1);
+                pkgList.add(deletedPackage.applicationInfo.packageName);
+                sendResourcesChangedBroadcast(false, true, pkgList, uidArray, null);
+            }
+
+            clearAppDataLIF(pkg, UserHandle.USER_ALL, StorageManager.FLAG_STORAGE_DE
+                    | StorageManager.FLAG_STORAGE_CE | Installer.FLAG_CLEAR_CODE_CACHE_ONLY);
+            clearAppProfilesLIF(deletedPackage, UserHandle.USER_ALL);
+
+            try {
+                final PackageParser.Package newPackage = scanPackageTracedLI(pkg, policyFlags,
                         scanFlags | SCAN_UPDATE_TIME, System.currentTimeMillis(), user);
                 updateSettingsLI(newPackage, installerPackageName, allUsers, res, user,
                         installReason);
@@ -16061,34 +16077,4 @@ public class WindowManagerService extends IWindowManager.Stub
             }
         } else {
             synchronized(mWindowMap) {
-                mRoot.getWindowsByName(windows, name);
-            }
-        }
-
-        if (windows.size() <= 0) {
-            return false;
-        }
-
-        synchronized(mWindowMap) {
-            dumpWindowsLocked(pw, dumpAll, windows);
-        }
-        return true;
-    }
-
-    private void dumpLastANRLocked(PrintWriter pw) {
-        pw.println("WINDOW MANAGER LAST ANR (dumpsys window lastanr)");
-        if (mLastANRState == null) {
-            pw.println("  <no ANR has occurred since boot>");
-        } else {
-            pw.println(mLastANRState);
-        }
-    }
-
-    /**
-     * Saves information about the state of the window manager at
-     * the time an ANR occurred before anything else in the system changes
-     * in response.
-     *
-     * @param appWindowToken The application that ANR'd, may be null.
-     * @param windowState The window that ANR'd, may be null.
-     * @param reason The 
+                mRoot.getWindowsByName(wi

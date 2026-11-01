@@ -1,4 +1,22 @@
+         response.length + " " + response);
+                } catch (Exception e) {
+                    status = PREPARE_DRM_STATUS_PROVISIONING_NETWORK_ERROR;
+                    Log.w(TAG, "HandleProvisioninig: Thread run: connect " + e + " url: " + url);
+                } finally {
+                    connection.disconnect();
+                }
+            } catch (Exception e)   {
+                status = PREPARE_DRM_STATUS_PROVISIONING_NETWORK_ERROR;
+                Log.w(TAG, "HandleProvisioninig: Thread run: openConnection " + e);
+            }
 
+            if (response != null) {
+                try {
+                    mDrmObj.provideProvisionResponse(response);
+                    Log.v(TAG, "HandleProvisioninig: Thread run: " +
+                            "provideProvisionResponse SUCCEEDED!");
+
+                    provisioningSucceeded = true;
                 } catch (Exception e) {
                     status = PREPARE_DRM_STATUS_PROVISIONING_SERVER_ERROR;
                     Log.w(TAG, "HandleProvisioninig: Thread run: " +
@@ -16492,26 +16510,4 @@ public class ActivityManagerService extends IActivityManager.Stub
             if ((app.info.flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
                 // Debuggable apps may include a wrapper script with their library directory.
                 String wrapperFileName = app.info.nativeLibraryDir + "/wrap.sh";
-                StrictMode.ThreadPolicy oldPolicy = StrictMode.allowThreadDiskReads();
-                try {
-                    if (new File(wrapperFileName).exists()) {
-                        invokeWith = "/system/bin/logwrapper " + wrapperFileName;
-                    }
-                } finally {
-                    StrictMode.setThreadPolicy(oldPolicy);
-                }
-            }
-
-            String requiredAbi = (abiOverride != null) ? abiOverride : app.info.primaryCpuAbi;
-            if (requiredAbi == null) {
-                requiredAbi = Build.SUPPORTED_ABIS[0];
-            }
-
-            String instructionSet = null;
-            if (app.info.primaryCpuAbi != null) {
-                instructionSet = VMRuntime.getInstructionSet(app.info.primaryCpuAbi);
-            }
-
-            app.gids = gids;
-            app.requiredAbi = requiredAbi;
-            app.instructionSet = instructionSet;
+                StrictMode.ThreadPolicy oldPo

@@ -1,4 +1,24 @@
- to true; in that case the caller
+tVerticalScrollBarEnabled(boolean)
+     */
+    protected boolean awakenScrollBars(int startDelay) {
+        return awakenScrollBars(startDelay, true);
+    }
+
+    /**
+     * <p>
+     * Trigger the scrollbars to draw. When invoked this method starts an
+     * animation to fade the scrollbars out after a fixed delay. If a subclass
+     * provides animated scrolling, the start delay should equal the duration of
+     * the scrolling animation.
+     * </p>
+     *
+     * <p>
+     * The animation starts only if at least one of the scrollbars is enabled,
+     * as specified by {@link #isHorizontalScrollBarEnabled()} and
+     * {@link #isVerticalScrollBarEnabled()}. When the animation is started,
+     * this method returns true, and false otherwise. If the animation is
+     * started, this method calls {@link #invalidate()} if the invalidate parameter
+     * is set to true; in that case the caller
      * should not call {@link #invalidate()}.
      * </p>
      *
@@ -18010,20 +18030,4 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
      * @hide
      */
     public boolean isLayoutSuppressed() {
-        return mSuppressLayout;
-    }
-
-    @Override
-    public boolean gatherTransparentRegion(Region region) {
-        // If no transparent regions requested, we are always opaque.
-        final boolean meOpaque = (mPrivateFlags & View.PFLAG_REQUEST_TRANSPARENT_REGIONS) == 0;
-        if (meOpaque && region == null) {
-            // The caller doesn't care about the region, so stop now.
-            return true;
-        }
-        super.gatherTransparentRegion(region);
-        // Instead of naively traversing the view tree, we have to traverse according to the Z
-        // order here. We need to go with the same order as dispatchDraw().
-        // One example is that after surfaceView punch a hole, we will still allow other views drawn
-        // on top of that hole. In this case, those other views should be able to cut the
-        // transparent region into smaller ar
+        retur

@@ -1,4 +1,20 @@
-ea.
+n mSuppressLayout;
+    }
+
+    @Override
+    public boolean gatherTransparentRegion(Region region) {
+        // If no transparent regions requested, we are always opaque.
+        final boolean meOpaque = (mPrivateFlags & View.PFLAG_REQUEST_TRANSPARENT_REGIONS) == 0;
+        if (meOpaque && region == null) {
+            // The caller doesn't care about the region, so stop now.
+            return true;
+        }
+        super.gatherTransparentRegion(region);
+        // Instead of naively traversing the view tree, we have to traverse according to the Z
+        // order here. We need to go with the same order as dispatchDraw().
+        // One example is that after surfaceView punch a hole, we will still allow other views drawn
+        // on top of that hole. In this case, those other views should be able to cut the
+        // transparent region into smaller area.
         final int childrenCount = mChildrenCount;
         boolean noneOfTheChildrenAreTransparent = true;
         if (childrenCount > 0) {
@@ -17715,29 +17731,4 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
         // If the remote adapter disconnects, we keep it around
         // since the currently displayed items are still cached.
         // Further, we want the service to eventually reconnect
-        // when necessary, as triggered by this view requesting
-        // items from the Adapter.
-    }
-
-    /**
-     * Hints the RemoteViewsAdapter, if it exists, about which views are currently
-     * being displayed by the AbsListView.
-     */
-    void setVisibleRangeHint(int start, int end) {
-        if (mRemoteAdapter != null) {
-            mRemoteAdapter.setVisibleRangeHint(start, end);
-        }
-    }
-
-    /**
-     * Sets the recycler listener to be notified whenever a View is set aside in
-     * the recycler for later reuse. This listener can be used to free resources
-     * associated to the View.
-     *
-     * @param listener The recycler listener to be notified of views set aside
-     *        in the recycler.
-     *
-     * @see android.widget.AbsListView.RecycleBin
-     * @see android.widget.AbsListView.RecyclerListener
-     */
-    public void setRe
+       

@@ -1,4 +1,19 @@
-ing
+N, 0);
+
+                scanDirTracedLI(mDrmAppPrivateInstallDir, mDefParseFlags
+                        | PackageParser.PARSE_FORWARD_LOCK,
+                        scanFlags | SCAN_REQUIRE_KNOWN, 0);
+
+                // Remove disable package settings for updated system apps that were
+                // removed via an OTA. If the update is no longer present, remove the
+                // app completely. Otherwise, revoke their system privileges.
+                for (String deletedAppName : possiblyDeletedUpdatedSystemApps) {
+                    PackageParser.Package deletedPkg = mPackages.get(deletedAppName);
+                    mSettings.removeDisabledSystemPackageLPw(deletedAppName);
+
+                    final String msg;
+                    if (deletedPkg == null) {
+                        // should have found an update, but, we didn't; remove everything
                         msg = "Updated system package " + deletedAppName
                                 + " no longer exists; removing its data";
                         // Actual deletion of code and data will be handled by later
@@ -15096,19 +15111,3 @@ ing
 
             // If deleted package lived in a container, give users a chance to
             // relinquish resources before killing.
-            if (deletedPackage.isForwardLocked() || isExternal(deletedPackage)) {
-                if (DEBUG_INSTALL) {
-                    Slog.i(TAG, "upgrading pkg " + deletedPackage + " is ASEC-hosted -> UNAVAILABLE");
-                }
-                final int[] uidArray = new int[] { deletedPackage.applicationInfo.uid };
-                final ArrayList<String> pkgList = new ArrayList<String>(1);
-                pkgList.add(deletedPackage.applicationInfo.packageName);
-                sendResourcesChangedBroadcast(false, true, pkgList, uidArray, null);
-            }
-
-            clearAppDataLIF(pkg, UserHandle.USER_ALL, StorageManager.FLAG_STORAGE_DE
-                    | StorageManager.FLAG_STORAGE_CE | Installer.FLAG_CLEAR_CODE_CACHE_ONLY);
-            clearAppProfilesLIF(deletedPackage, UserHandle.USER_ALL);
-
-            try {
-                fina

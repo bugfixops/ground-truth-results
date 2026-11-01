@@ -1,4 +1,37 @@
-f (id == R.id.nav_notebook) return 0;
+ewInstance(_notebook.getCurrentFolder(), true, this::newItemCallback)
+                    .show(getSupportFragmentManager(), NewFileDialog.FRAGMENT_TAG);
+        }
+    }
+
+    private void newItemCallback(final File file) {
+        if (file.isFile()) {
+            DocumentActivity.launch(MainActivity.this, file, false, null);
+        }
+        if (_notebook != null && _notebook.getAdapter() != null) {
+            _notebook.getAdapter().showFile(file);
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        // Check if fragment handled back press
+        final GsFragmentBase<?, ?> frag = getPosFragment(getCurrentPos());
+        if (frag == null || !frag.onBackPressed()) {
+            super.onBackPressed();
+        }
+    }
+
+    public String getFileBrowserTitle() {
+        final File file = _notebook != null ? _notebook.getCurrentFolder() : null;
+        if (file != null && !_appSettings.getNotebookDirectory().equals(file)) {
+            return "> " + file.getName();
+        } else {
+            return getString(R.string.app_name);
+        }
+    }
+
+    public int tabIdToPos(final int id) {
+        if (id == R.id.nav_notebook) return 0;
         if (id == R.id.nav_todo) return 1;
         if (id == R.id.nav_quicknote) return 2;
         if (id == R.id.nav_more) return 3;
@@ -15785,34 +15818,4 @@ public abstract class SyntaxHighlighterBase {
         return new PlaintextSyntaxHighlighter(as);
     }
 
-    // Functions for derived classes to implement
-    // ---------------------------------------------------------------------------------------------
-
-    // Derived classes should override this to generate all spans
-    // All exceptions will be caught and handled
-    protected abstract void generateSpans();
-
-    public int getHighlightingDelay() {
-        return _delay;
-    }
-
-    // Configuration - to be set on a call to configure
-    protected int _delay = LONG_HIGHLIGHTING_DELAY;
-    protected int _tabSize = 1;
-    protected boolean _isDarkMode = false;
-    protected int _textColor = Color.BLACK;
-    protected String _fontFamily = "";
-
-    public SyntaxHighlighterBase configure() {
-        return configure(null);
-    }
-
-    /**
-     * Configure this highlighter. Call before doing any highlighting
-     * This is separate from the constructor as we may want to reconfigure after font size etc change
-     *
-     * @param paint Optional paint to pass in - used for text parameters
-     * @return Highlighter
-     */
-    public SyntaxHighlighterBase configure(@Nullable final Paint paint) {
-        _isDarkMode = GsContextUtils.instance.i
+    // Functions for d

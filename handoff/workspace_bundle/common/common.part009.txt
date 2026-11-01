@@ -1,4 +1,29 @@
-cyclerListener(RecyclerListener listener) {
+ // when necessary, as triggered by this view requesting
+        // items from the Adapter.
+    }
+
+    /**
+     * Hints the RemoteViewsAdapter, if it exists, about which views are currently
+     * being displayed by the AbsListView.
+     */
+    void setVisibleRangeHint(int start, int end) {
+        if (mRemoteAdapter != null) {
+            mRemoteAdapter.setVisibleRangeHint(start, end);
+        }
+    }
+
+    /**
+     * Sets the recycler listener to be notified whenever a View is set aside in
+     * the recycler for later reuse. This listener can be used to free resources
+     * associated to the View.
+     *
+     * @param listener The recycler listener to be notified of views set aside
+     *        in the recycler.
+     *
+     * @see android.widget.AbsListView.RecycleBin
+     * @see android.widget.AbsListView.RecyclerListener
+     */
+    public void setRecyclerListener(RecyclerListener listener) {
         mRecycler.mRecyclerListener = listener;
     }
 
@@ -18911,26 +18936,4 @@ public class SearchView extends LinearLayout implements CollapsibleActionView {
         if (c.moveToPosition(position)) {
             // Get the new query from the suggestion.
             CharSequence newQuery = mSuggestionsAdapter.convertToString(c);
-            if (newQuery != null) {
-                // The suggestion rewrites the query.
-                // Update the text field, without getting new suggestions.
-                setQuery(newQuery);
-            } else {
-                // The suggestion does not rewrite the query, restore the user's query.
-                setQuery(oldQuery);
-            }
-        } else {
-            // We got a bad position, restore the user's query.
-            setQuery(oldQuery);
-        }
-    }
-
-    /**
-     * Launches an intent based on a suggestion.
-     *
-     * @param position The index of the suggestion to create the intent from.
-     * @param actionKey The key code of the action key that was pressed,
-     *        or {@link KeyEvent#KEYCODE_UNKNOWN} if none.
-     * @param actionMsg The message for the action key that was pressed,
-     *        or <code>null</code> if none.
-    
+            if (ne

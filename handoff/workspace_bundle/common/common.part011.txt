@@ -1,4 +1,23 @@
-      mMenuBackground = getContext().getDrawable(
+t;
+                drawingBounds.bottom -= frameOffsets.bottom;
+                fg.setBounds(drawingBounds);
+                final Rect framePadding = mFramePadding;
+                drawingBounds.left += framePadding.left - frameOffsets.left;
+                drawingBounds.top += framePadding.top - frameOffsets.top;
+                drawingBounds.right -= framePadding.right - frameOffsets.right;
+                drawingBounds.bottom -= framePadding.bottom - frameOffsets.bottom;
+            }
+
+            Drawable bg = getBackground();
+            if (bg != null) {
+                bg.setBounds(drawingBounds);
+            }
+
+            if (SWEEP_OPEN_MENU) {
+                if (mMenuBackground == null && mFeatureId < 0
+                        && mWindow.getAttributes().height
+                        == WindowManager.LayoutParams.MATCH_PARENT) {
+                    mMenuBackground = getContext().getDrawable(
                             R.drawable.menu_background);
                 }
                 if (mMenuBackground != null) {
@@ -17635,22 +17654,4 @@ public class MediaPlayer extends PlayerBase
                     response = Streams.readFully(connection.getInputStream());
 
                     Log.v(TAG, "HandleProvisioninig: Thread run: response " +
-                            response.length + " " + response);
-                } catch (Exception e) {
-                    status = PREPARE_DRM_STATUS_PROVISIONING_NETWORK_ERROR;
-                    Log.w(TAG, "HandleProvisioninig: Thread run: connect " + e + " url: " + url);
-                } finally {
-                    connection.disconnect();
-                }
-            } catch (Exception e)   {
-                status = PREPARE_DRM_STATUS_PROVISIONING_NETWORK_ERROR;
-                Log.w(TAG, "HandleProvisioninig: Thread run: openConnection " + e);
-            }
-
-            if (response != null) {
-                try {
-                    mDrmObj.provideProvisionResponse(response);
-                    Log.v(TAG, "HandleProvisioninig: Thread run: " +
-                            "provideProvisionResponse SUCCEEDED!");
-
-                    provisioningSucceeded = true;
+                   

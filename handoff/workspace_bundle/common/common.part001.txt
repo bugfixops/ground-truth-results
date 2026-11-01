@@ -6529,7 +6529,7 @@ for spec in sys.argv[2:]:
     for i in range(a, min(b, len(L)) + 1):
         print('%4d %s' % (i, L[i-1][:150]))
 
-FILE	handoff/connector_kit/make_bundles.py	4908	db2c8f473cdaf0b03375e675ae277db1f243997a77f17344cdd561d63e40fc01	utf8
+FILE	handoff/connector_kit/make_bundles.py	5404	6b23ccef919a87936912bbe7892dd0d5b37bef775367994af1a09669551093f9	utf8
 """Pack the files the tools need into text bundles cut into parts below the GitHub connector's ~1 MB limit.
 
 Usage (from the repo root): python3 -I handoff/connector_kit/make_bundles.py <out_dir> [part_bytes]
@@ -6540,6 +6540,7 @@ the content (raw UTF-8, or base64 for files that are not valid UTF-8), and a new
 Unpack with handoff/connector_kit/unpack.py.
 """
 import base64
+import glob
 import hashlib
 import json
 import os
@@ -6550,6 +6551,8 @@ APPS = ['Currency', 'Diary', 'hash-checker', 'Omni-Notes', 'openlauncher', 'Vani
 GRAPH_FILES = ['graph_def.py', 'method_list.json', 'auto_calls.json', 'calls_all.json', 'verification.csv',
                'make_verification.py', 'readme_notes.md', 'LESSONS.md', 'AGENT_NOTES.md']
 SRC_EXT = ('.java', '.kt', '.xml', '.gradle', '.pro', '.properties', '.txt', '.json')
+MARKER = ('Marker only. tools/show_route.py built_flavors() reads the name of this folder to know which product flavor\n'
+          'the dataset APK was built from; the class files themselves are not in the repo.\n')
 SKIP_DIRS = {'build', 'androidTest', 'test', '.git', 'JacocoInstrument', 'report', 'monkey', 'ape', 'combined'}
 
 
@@ -6586,6 +6589,8 @@ def app_files(app):
             if os.path.isfile(os.path.join(g, 'scratch', f)):
                 out.append(os.path.join(g, 'scratch', f))
     root = os.path.join('final_java_only', app, 'app')
+    for d in sorted(glob.glob(os.path.join(root, '*', 'app', 'build', 'intermediates', 'javac', '*Debug'))):
+        out.append((os.path.join(d, 'FLAVOR_MARKER.txt'), MARKER.encode('utf-8')))
     for f in sorted(os.listdir(root)):
         p = os.path.join(root, f)
         if os.path.isfile(p) and f.endswith(('.txt', '.json')):
@@ -6603,7 +6608,10 @@ def app_files(app):
 def pack(paths):
     chunks = [b'GTRBUNDLE 1\n']
     for p in paths:
-        data = open(p, 'rb').read()
+        if isinstance(p, tuple):
+            p, data = p
+        else:
+            data = open(p, 'rb').read()
         try:
             data.decode('utf-8')
             enc, body = 'utf8', data
@@ -6808,7 +6816,7 @@ def main(argv):
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
 
-FILE	handoff/ci/rebuild.sh	3433	edf5aa367242bc85f8ab9666b03a582d822fb3a55b811eea8d807290876dbe19	utf8
+FILE	handoff/ci/rebuild.sh	3804	7dc84685ace98a523e966ea3283fc379f1b1d3aec6eeba7afedffd36db187fcf	utf8
 #!/usr/bin/env bash
 # Rebuild the trigger graphs and run the eight checks for the apps named as arguments ("all" or none = every app).
 # Run from the repo root. Writes graphs/<App>/out/ (build outputs and README) and graphs/<App>/scratch/ci_latest/
@@ -6831,6 +6839,11 @@ for a in $apps; do
   if [ -z "$x" ]; then echo "unknown app: $a"; continue; fi
   o="graphs/$a/scratch/ci_latest"
   rm -rf "$o"; mkdir -p "$o"
+  # the tools read the first graphs/<App>/out/*_trigger_graph.json they find: remove outputs of other prefixes first
+  for f in graphs/$a/out/*_trigger_graph.json graphs/$a/out/*_trigger_graph.html; do
+    [ -e "$f" ] || continue
+    case "$(basename "$f")" in "${x}_trigger_graph.json"|"${x}_trigger_graph.html") ;; *) rm -f "$f"; echo "removed stale $f" ;; esac
+  done
   python3 -I tools/build_graph.py "graphs/$a" "$x" > "$o/1_build.txt" 2>&1; echo "exit $?" >> "$o/1_build.txt"
   python3 -I tools/gen_readme_v2.py "$a" > "$o/gen_readme.txt" 2>&1
   python3 -I tools/check_citations.py "$a" > "$o/2_citations.txt" 2>&1
@@ -13801,28 +13814,4 @@ public class Activity extends ContextThemeWrapper
      * @see android.app.ActivityOptions#makeSceneTransitionAnimation(Activity, android.util.Pair[])
      */
     public void finishAfterTransition() {
-        if (!mActivityTransitionState.startExitBackTransition(this)) {
-            finish();
-        }
-    }
-
-    /**
-     * Force finish another activity that you had previously started with
-     * {@link #startActivityForResult}.
-     *
-     * @param requestCode The request code of the activity that you had
-     *                    given to startActivityForResult().  If there are multiple
-     *                    activities started with this request code, they
-     *                    will all be finished.
-     */
-    public void finishActivity(int requestCode) {
-        if (mParent == null) {
-            try {
-                ActivityManager.getService()
-                    .finishSubActivity(mToken, mEmbeddedID, requestCode);
-            } catch (RemoteException e) {
-                // Empty
-            }
-        } else {
-            mParent.finishActivityFromChild(this, requestCode);
-       
+        if (!mActivityTransitionState.startEx

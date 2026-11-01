@@ -1,4 +1,26 @@
- * @return true if a successful launch, false if could not (e.g. bad position).
+wQuery != null) {
+                // The suggestion rewrites the query.
+                // Update the text field, without getting new suggestions.
+                setQuery(newQuery);
+            } else {
+                // The suggestion does not rewrite the query, restore the user's query.
+                setQuery(oldQuery);
+            }
+        } else {
+            // We got a bad position, restore the user's query.
+            setQuery(oldQuery);
+        }
+    }
+
+    /**
+     * Launches an intent based on a suggestion.
+     *
+     * @param position The index of the suggestion to create the intent from.
+     * @param actionKey The key code of the action key that was pressed,
+     *        or {@link KeyEvent#KEYCODE_UNKNOWN} if none.
+     * @param actionMsg The message for the action key that was pressed,
+     *        or <code>null</code> if none.
+     * @return true if a successful launch, false if could not (e.g. bad position).
      */
     private boolean launchSuggestion(int position, int actionKey, String actionMsg) {
         Cursor c = mSuggestionsAdapter.getCursor();
@@ -18247,23 +18269,4 @@ public class DecorView extends FrameLayout implements RootViewSurfaceTaker, Wind
                 final Rect frameOffsets = mFrameOffsets;
                 drawingBounds.left += frameOffsets.left;
                 drawingBounds.top += frameOffsets.top;
-                drawingBounds.right -= frameOffsets.right;
-                drawingBounds.bottom -= frameOffsets.bottom;
-                fg.setBounds(drawingBounds);
-                final Rect framePadding = mFramePadding;
-                drawingBounds.left += framePadding.left - frameOffsets.left;
-                drawingBounds.top += framePadding.top - frameOffsets.top;
-                drawingBounds.right -= framePadding.right - frameOffsets.right;
-                drawingBounds.bottom -= framePadding.bottom - frameOffsets.bottom;
-            }
-
-            Drawable bg = getBackground();
-            if (bg != null) {
-                bg.setBounds(drawingBounds);
-            }
-
-            if (SWEEP_OPEN_MENU) {
-                if (mMenuBackground == null && mFeatureId < 0
-                        && mWindow.getAttributes().height
-                        == WindowManager.LayoutParams.MATCH_PARENT) {
-              
+                drawingBounds.right -= frameOffsets.righ

@@ -1,4 +1,26 @@
+licy = StrictMode.allowThreadDiskReads();
+                try {
+                    if (new File(wrapperFileName).exists()) {
+                        invokeWith = "/system/bin/logwrapper " + wrapperFileName;
+                    }
+                } finally {
+                    StrictMode.setThreadPolicy(oldPolicy);
+                }
+            }
 
+            String requiredAbi = (abiOverride != null) ? abiOverride : app.info.primaryCpuAbi;
+            if (requiredAbi == null) {
+                requiredAbi = Build.SUPPORTED_ABIS[0];
+            }
+
+            String instructionSet = null;
+            if (app.info.primaryCpuAbi != null) {
+                instructionSet = VMRuntime.getInstructionSet(app.info.primaryCpuAbi);
+            }
+
+            app.gids = gids;
+            app.requiredAbi = requiredAbi;
+            app.instructionSet = instructionSet;
 
             // the per-user SELinux context must be set
             if (TextUtils.isEmpty(app.info.seInfoUser)) {
@@ -15970,25 +15992,4 @@
                         + ", uid=" + Binder.getCallingUid()
                         + " requires " + android.Manifest.permission.BROADCAST_STICKY;
                 Slog.w(TAG, msg);
-                throw new SecurityException(msg);
-            }
-            ArrayMap<String, ArrayList<Intent>> stickies = mStickyBroadcasts.get(userId);
-            if (stickies != null) {
-                ArrayList<Intent> list = stickies.get(intent.getAction());
-                if (list != null) {
-                    int N = list.size();
-                    int i;
-                    for (i=0; i<N; i++) {
-                        if (intent.filterEquals(list.get(i))) {
-                            list.remove(i);
-                            break;
-                        }
-                    }
-                    if (list.size() <= 0) {
-                        stickies.remove(intent.getAction());
-                    }
-                }
-                if (stickies.size() <= 0) {
-                    mStickyBroadcasts.remove(userId);
-                }
-            }
+          

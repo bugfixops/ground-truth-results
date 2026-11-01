@@ -1,4 +1,17 @@
-_SHUTDOWN_APP:
+g NOTIFY_ACTION_PAUSE_ALL = "org.proninyaroslav.libretorrent.receivers.NotificationReceiver.NOTIFY_ACTION_PAUSE_ALL";
+    public static final String NOTIFY_ACTION_RESUME_ALL = "org.proninyaroslav.libretorrent.receivers.NotificationReceiver.NOTIFY_ACTION_RESUME_ALL";
+    public static final String NOTIFY_ACTION_PAUSE_RESUME_ALL = "org.proninyaroslav.libretorrent.receivers.NotificationReceiver.NOTIFY_ACTION_PAUSE_RESUME_ALL";
+
+    @Override
+    public void onReceive(Context context, Intent intent)
+    {
+        String action = intent.getAction();
+        if (action == null)
+            return;
+        Intent mainIntent, serviceIntent;
+        switch (action) {
+            /* Send action to the already running service */
+            case NOTIFY_ACTION_SHUTDOWN_APP:
                 mainIntent = new Intent(context.getApplicationContext(), MainActivity.class);
                 mainIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 mainIntent.setAction(NOTIFY_ACTION_SHUTDOWN_APP);
@@ -19970,23 +19983,4 @@ public class MainActivity extends AppCompatActivity implements FragmentCallback 
         }
     }
 
-    private void updateSessionStats(SessionStats stats) {
-        long dhtNodes = 0;
-        long totalDownload = 0;
-        long totalUpload = 0;
-        long downloadSpeed = 0;
-        long uploadSpeed = 0;
-        int listenPort = -1;
-
-        if (stats != null) {
-            dhtNodes = stats.dhtNodes;
-            totalDownload = stats.totalDownload;
-            totalUpload = stats.totalUpload;
-            downloadSpeed = stats.downloadSpeed;
-            uploadSpeed = stats.uploadSpeed;
-            listenPort = stats.listenPort;
-        }
-
-        sessionDhtNodesStat.setText(getString(R.string.session_stats_dht_nodes, dhtNodes));
-        sessionDownloadStat.setText(getString(R.string.session_stats_download_upload,
-                Formatter.formatFi
+   

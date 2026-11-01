@@ -1,3 +1,25 @@
+      throw new SecurityException(msg);
+            }
+            ArrayMap<String, ArrayList<Intent>> stickies = mStickyBroadcasts.get(userId);
+            if (stickies != null) {
+                ArrayList<Intent> list = stickies.get(intent.getAction());
+                if (list != null) {
+                    int N = list.size();
+                    int i;
+                    for (i=0; i<N; i++) {
+                        if (intent.filterEquals(list.get(i))) {
+                            list.remove(i);
+                            break;
+                        }
+                    }
+                    if (list.size() <= 0) {
+                        stickies.remove(intent.getAction());
+                    }
+                }
+                if (stickies.size() <= 0) {
+                    mStickyBroadcasts.remove(userId);
+                }
+            }
         }
     }
 
@@ -15016,19 +15038,4 @@ public class PackageManagerService extends IPackageManager.Stub
             if (!mOnlyCore) {
                 EventLog.writeEvent(EventLogTags.BOOT_PROGRESS_PMS_DATA_SCAN_START,
                         SystemClock.uptimeMillis());
-                scanDirTracedLI(mAppInstallDir, 0, scanFlags | SCAN_REQUIRE_KNOWN, 0);
-
-                scanDirTracedLI(mDrmAppPrivateInstallDir, mDefParseFlags
-                        | PackageParser.PARSE_FORWARD_LOCK,
-                        scanFlags | SCAN_REQUIRE_KNOWN, 0);
-
-                // Remove disable package settings for updated system apps that were
-                // removed via an OTA. If the update is no longer present, remove the
-                // app completely. Otherwise, revoke their system privileges.
-                for (String deletedAppName : possiblyDeletedUpdatedSystemApps) {
-                    PackageParser.Package deletedPkg = mPackages.get(deletedAppName);
-                    mSettings.removeDisabledSystemPackageLPw(deletedAppName);
-
-                    final String msg;
-                    if (deletedPkg == null) {
-                        // should have found an update, but, we didn't; remove everyth
+                scanDirTracedLI(mAppInstallDir, 0, scanFlags | SCAN_REQUIRE_KNOW

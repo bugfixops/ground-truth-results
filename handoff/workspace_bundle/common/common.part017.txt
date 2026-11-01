@@ -1,4 +1,34 @@
-reason for the ANR, may be null.
+ndows, name);
+            }
+        }
+
+        if (windows.size() <= 0) {
+            return false;
+        }
+
+        synchronized(mWindowMap) {
+            dumpWindowsLocked(pw, dumpAll, windows);
+        }
+        return true;
+    }
+
+    private void dumpLastANRLocked(PrintWriter pw) {
+        pw.println("WINDOW MANAGER LAST ANR (dumpsys window lastanr)");
+        if (mLastANRState == null) {
+            pw.println("  <no ANR has occurred since boot>");
+        } else {
+            pw.println(mLastANRState);
+        }
+    }
+
+    /**
+     * Saves information about the state of the window manager at
+     * the time an ANR occurred before anything else in the system changes
+     * in response.
+     *
+     * @param appWindowToken The application that ANR'd, may be null.
+     * @param windowState The window that ANR'd, may be null.
+     * @param reason The reason for the ANR, may be null.
      */
     void saveANRStateLocked(AppWindowToken appWindowToken, WindowState windowState, String reason) {
         StringWriter sw = new StringWriter();

@@ -1046,6 +1046,18 @@ Lesson: running the generator on a graph that already contains its own block pro
 - Tool bugs found in round 1 (tools/ is not edited by the checkers; orchestrator decides later): build_graph.py:223 drops an automatic CALL when a hand edge has the same base pair (caused a build-7 UNRESOLVED error); build_graph.py:228 copies base automatic CALLs onto every @variant, so dead-end variants must be suppressed by hand; auto_calls.json loses DropboxApiHelper.java:164 (the :186 call wins).
 - 2026-10-27 round 3: DONE. PENDING gate cleared (C3_LIB_PENDING renamed to C3_LIB_BINDING_PASS, grep PENDING 0), false attribution removed from fix_round2.md, all 30 final-draw routes printed and re-verified correct (error rate 0.0, build REACHABLE 1966 UNREACHABLE 241 errors 0 warnings 0), flagged route FileBrowserFragment$3.<init> confirmed correct (case a) on printed lines :311-316/:326/:338/:341-342. Route table scratch/route_check_final.md. Open items: none.
 
+FILE	final_java_only/AnyMemo/app/AnyMemo-#10.12.2/app/build/intermediates/javac/devDebug/FLAVOR_MARKER.txt	188	367060da901c2d07f82e15756b580215dd2b8bd3be0a0485e7750096f195f661	utf8
+Marker only. tools/show_route.py built_flavors() reads the name of this folder to know which product flavor
+the dataset APK was built from; the class files themselves are not in the repo.
+
+FILE	final_java_only/AnyMemo/app/AnyMemo-#10.12.2/app/build/intermediates/javac/freeDebug/FLAVOR_MARKER.txt	188	367060da901c2d07f82e15756b580215dd2b8bd3be0a0485e7750096f195f661	utf8
+Marker only. tools/show_route.py built_flavors() reads the name of this folder to know which product flavor
+the dataset APK was built from; the class files themselves are not in the repo.
+
+FILE	final_java_only/AnyMemo/app/AnyMemo-#10.12.2/app/build/intermediates/javac/proDebug/FLAVOR_MARKER.txt	188	367060da901c2d07f82e15756b580215dd2b8bd3be0a0485e7750096f195f661	utf8
+Marker only. tools/show_route.py built_flavors() reads the name of this folder to know which product flavor
+the dataset APK was built from; the class files themselves are not in the repo.
+
 FILE	final_java_only/AnyMemo/app/DATASET.txt	999	0e89c31daf2e397922c256b115737895df22f2a6320af60f93fc1b09902122a9	utf8
 AnyMemo - JaCoCo-ready Android coverage dataset
 
@@ -15611,41 +15623,3 @@ public class CardPlayerActivity extends QACardActivity {
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
-        unbindCardPlayerService();
-    }
-
-    @Override
-    public void onPostInit() {
-        super.onPostInit();
-        cardDao = getDbOpenHelper().getCardDao();
-        settingDao = getDbOpenHelper().getSettingDao();
-
-        setting = settingDao.queryForId(1);
-
-        /* Run the learnQueue init in a separate thread */
-        if (startCardId != -1) {
-            setCurrentCard(cardDao.queryForId(startCardId));
-        } else {
-            setCurrentCard(cardDao.queryFirstOrdinal());
-        }
-
-        totalCardCount = cardDao.countOf();
-
-        bindCardPlayerService();
-        if (getCurrentCard() == null) {
-            showNoItemDialog();
-            return;
-        }
-        setupControlButtons();
-        updateCardFrontSide();
-        setSmallTitle(getTitle());
-        updateTitle();
-    }
-
-    private void setupControlButtons() {
-        CardPlayerFragment cardPlayerFragment = new CardPlayerFragment();
-
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.replace(R.id.buttons_root, cardPlayerFragment);
-        ft.commi

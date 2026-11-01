@@ -20,6 +20,11 @@ for a in $apps; do
   if [ -z "$x" ]; then echo "unknown app: $a"; continue; fi
   o="graphs/$a/scratch/ci_latest"
   rm -rf "$o"; mkdir -p "$o"
+  # the tools read the first graphs/<App>/out/*_trigger_graph.json they find: remove outputs of other prefixes first
+  for f in graphs/$a/out/*_trigger_graph.json graphs/$a/out/*_trigger_graph.html; do
+    [ -e "$f" ] || continue
+    case "$(basename "$f")" in "${x}_trigger_graph.json"|"${x}_trigger_graph.html") ;; *) rm -f "$f"; echo "removed stale $f" ;; esac
+  done
   python3 -I tools/build_graph.py "graphs/$a" "$x" > "$o/1_build.txt" 2>&1; echo "exit $?" >> "$o/1_build.txt"
   python3 -I tools/gen_readme_v2.py "$a" > "$o/gen_readme.txt" 2>&1
   python3 -I tools/check_citations.py "$a" > "$o/2_citations.txt" 2>&1

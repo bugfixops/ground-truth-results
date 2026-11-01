@@ -42,9 +42,16 @@ The connector refuses files above about 1 MB. Everything you need is therefore a
    - `handoff/connector_kit/unpack.py`
 
    Keep the same relative layout under a local folder `wb/`.
-2. **Unpack:** `python3 -I unpack.py wb gtr`. It checks the SHA-256 of every part, every bundle and every file, and stops with the name of anything bad. Fetch a bad part again, then rerun. It must end with `all bundles OK: 6178 files written`.
-3. **What `gtr/` then holds,** at commit 44be970: `tools/`, `handoff/examples/`, `handoff/connector_kit/`, `handoff/ci/`, `fw_src/`, and for each app its graph inputs (`graph_def.py`, `graph_def_mod/`, `method_list.json`, `auto_calls.json`, `calls_all.json` for Vanilla-Music, `verification.csv`, `make_verification.py`, `readme_notes.md`, `LESSONS.md`, `AGENT_NOTES.md`). It also holds LibreTorrent's `parts/`, `scratch/merge-ready/` and `scratch/gates.md`, Markor's four scratch JSON files, and every app's sources under `final_java_only/<App>/app/` (without the `build`, `test`, `androidTest` and JaCoCo report folders).
-4. **Bring it up to date.** List the commits on the branch after 44be970. For every file they changed, except `graphs/*/out/**` and `graphs/*/scratch/ci_latest/**`, fetch the branch version into `gtr/`.
+2. **Unpack:** `python3 -I unpack.py wb gtr`. It checks the SHA-256 of every part, every bundle and every file, and stops with the name of anything bad. Fetch a bad part again, then rerun. It must end with `all bundles OK: 6189 files written`.
+3. **What `gtr/` then holds,** at the commit that last changed `handoff/workspace_bundle/MANIFEST.json`:
+   - `tools/`, `handoff/examples/`, `handoff/connector_kit/`, `handoff/ci/`, `fw_src/`
+   - for each app, its graph inputs: `graph_def.py`, `graph_def_mod/`, `method_list.json`, `auto_calls.json`, `calls_all.json` for Vanilla-Music, `verification.csv`, `make_verification.py`, `readme_notes.md`, `LESSONS.md`, `AGENT_NOTES.md`
+   - LibreTorrent's `parts/`, `scratch/merge-ready/` and `scratch/gates.md`, and Markor's four scratch JSON files
+   - every app's sources under `final_java_only/<App>/app/`, without the `build`, `test`, `androidTest` and JaCoCo report folders
+   - 11 `FLAVOR_MARKER.txt` files under `final_java_only/<App>/app/*/app/build/intermediates/javac/<flavor>Debug/`
+
+   **About the markers.** `tools/show_route.py` `built_flavors()` reads those folder names to choose between same-named files in flavor folders (hash-checker, AmazeFileManager, Markor, openlauncher, AnyMemo, LibreTorrent). Without them, checks 2 and 4 read the wrong file. They were added on 2026-11-01 because the class files are not in the repo. Never delete them.
+4. **Bring it up to date.** List the commits on the branch after the commit that last changed `MANIFEST.json`. For every file they changed, except `graphs/*/out/**` and `graphs/*/scratch/ci_latest/**`, fetch the branch version into `gtr/`.
 5. **Check the tree.** In `gtr/`, run `bash handoff/ci/rebuild.sh Currency MMEX`. The printed summaries must match `graphs/Currency/scratch/ci_latest/SUMMARY.txt` on the branch, and the MMEX values in `handoff/baseline_2026-11-01/MMEX/`: errors 0, warnings 0, and checks 2 and 4 showing 43 and 244 problems. If they differ, your tree is wrong; fix that first.
 6. **Clone `https://github.com/bugfixops/work-emulator.git`** (public). Use only `classes/<App>/<i>/` for `javap -c -p`. Install a JDK 17 or newer.
 
@@ -91,6 +98,7 @@ From the `gtr/` root:
 ### 2.4 CI: the authoritative build, checks and `out/` files
 
 - **What it is.** `.github/workflows/rebuild-graphs.yml` runs `handoff/ci/rebuild.sh` on GitHub, with the full repo. It then commits `graphs/<App>/out/` and `graphs/<App>/scratch/ci_latest/` as `bugfixops` with the message `[ci] rebuild and checks (<apps>)`. Tested on 2026-11-01: a Currency request produced commit 7f8646c three minutes after the push.
+- **Fixed after its first all-apps run.** The tools read the first `out/*_trigger_graph.json` they find, so stale outputs in AmazeFileManager and MMEX gave wrong check counts. The script now removes outputs of other prefixes first, and the flavor markers (2.1 step 3) were added. After that, CI's checks match the orchestrator's Mac for all 13 apps.
 - **To run it,** push `handoff/REBUILD_REQUEST.txt` with:
   - line 1: unchanged
   - line 2: `# request <UTC time> <your purpose>`, which must be new each time

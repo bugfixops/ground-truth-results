@@ -1,4 +1,26 @@
-ll ? null : mHost.getActivity();
+on));
+        boolean isEnterSet;
+        boolean isReturnSet;
+        if (mAnimationInfo == null) {
+            isEnterSet = false;
+            isReturnSet = false;
+        } else {
+            isEnterSet = mAnimationInfo.mAllowEnterTransitionOverlap != null;
+            isReturnSet = mAnimationInfo.mAllowReturnTransitionOverlap != null;
+        }
+        if (!isEnterSet) {
+            setAllowEnterTransitionOverlap(a.getBoolean(
+                    com.android.internal.R.styleable.Fragment_fragmentAllowEnterTransitionOverlap,
+                    true));
+        }
+        if (!isReturnSet) {
+            setAllowReturnTransitionOverlap(a.getBoolean(
+                    com.android.internal.R.styleable.Fragment_fragmentAllowReturnTransitionOverlap,
+                    true));
+        }
+        a.recycle();
+
+        final Activity hostActivity = mHost == null ? null : mHost.getActivity();
         if (hostActivity != null) {
             mCalled = false;
             onInflate(hostActivity, attrs, savedInstanceState);
@@ -17209,26 +17231,4 @@ public abstract class ContentProvider implements ComponentCallbacks2 {
         /*
          * Only allow it to be set once, so after the content service gives
          * this to us clients can't change it.
-         */
-        if (mContext == null) {
-            mContext = context;
-            if (context != null) {
-                mTransport.mAppOpsManager = (AppOpsManager) context.getSystemService(
-                        Context.APP_OPS_SERVICE);
-            }
-            mMyUid = Process.myUid();
-            if (info != null) {
-                setReadPermission(info.readPermission);
-                setWritePermission(info.writePermission);
-                setPathPermissions(info.pathPermissions);
-                mExported = info.exported;
-                mSingleUser = (info.flags & ProviderInfo.FLAG_SINGLE_USER) != 0;
-                setAuthorities(info.authority);
-            }
-            ContentProvider.this.onCreate();
-        }
-    }
-
-    /**
-     * Override this to handle requests to perform a batch of operations, or the
-     * default implementation wi
+     

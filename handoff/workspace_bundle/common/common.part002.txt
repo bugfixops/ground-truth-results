@@ -1,4 +1,28 @@
- }
+itBackTransition(this)) {
+            finish();
+        }
+    }
+
+    /**
+     * Force finish another activity that you had previously started with
+     * {@link #startActivityForResult}.
+     *
+     * @param requestCode The request code of the activity that you had
+     *                    given to startActivityForResult().  If there are multiple
+     *                    activities started with this request code, they
+     *                    will all be finished.
+     */
+    public void finishActivity(int requestCode) {
+        if (mParent == null) {
+            try {
+                ActivityManager.getService()
+                    .finishSubActivity(mToken, mEmbeddedID, requestCode);
+            } catch (RemoteException e) {
+                // Empty
+            }
+        } else {
+            mParent.finishActivityFromChild(this, requestCode);
+        }
     }
 
     /**
@@ -17041,26 +17065,4 @@ public class Fragment implements ComponentCallbacks2, OnCreateContextMenuListene
                 com.android.internal.R.styleable.Fragment_fragmentSharedElementEnterTransition));
         setSharedElementReturnTransition(loadTransition(context, a,
                 getSharedElementReturnTransition(), USE_DEFAULT_TRANSITION,
-                com.android.internal.R.styleable.Fragment_fragmentSharedElementReturnTransition));
-        boolean isEnterSet;
-        boolean isReturnSet;
-        if (mAnimationInfo == null) {
-            isEnterSet = false;
-            isReturnSet = false;
-        } else {
-            isEnterSet = mAnimationInfo.mAllowEnterTransitionOverlap != null;
-            isReturnSet = mAnimationInfo.mAllowReturnTransitionOverlap != null;
-        }
-        if (!isEnterSet) {
-            setAllowEnterTransitionOverlap(a.getBoolean(
-                    com.android.internal.R.styleable.Fragment_fragmentAllowEnterTransitionOverlap,
-                    true));
-        }
-        if (!isReturnSet) {
-            setAllowReturnTransitionOverlap(a.getBoolean(
-                    com.android.internal.R.styleable.Fragment_fragmentAllowReturnTransitionOverlap,
-                    true));
-        }
-        a.recycle();
-
-        final Activity hostActivity = mHost == nu
+                com.android.internal.R.styleable.Fragment_fragmentSharedElementReturnTransiti

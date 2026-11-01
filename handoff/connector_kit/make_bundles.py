@@ -8,6 +8,7 @@ the content (raw UTF-8, or base64 for files that are not valid UTF-8), and a new
 Unpack with handoff/connector_kit/unpack.py.
 """
 import base64
+import glob
 import hashlib
 import json
 import os
@@ -18,6 +19,8 @@ APPS = ['Currency', 'Diary', 'hash-checker', 'Omni-Notes', 'openlauncher', 'Vani
 GRAPH_FILES = ['graph_def.py', 'method_list.json', 'auto_calls.json', 'calls_all.json', 'verification.csv',
                'make_verification.py', 'readme_notes.md', 'LESSONS.md', 'AGENT_NOTES.md']
 SRC_EXT = ('.java', '.kt', '.xml', '.gradle', '.pro', '.properties', '.txt', '.json')
+MARKER = ('Marker only. tools/show_route.py built_flavors() reads the name of this folder to know which product flavor\n'
+          'the dataset APK was built from; the class files themselves are not in the repo.\n')
 SKIP_DIRS = {'build', 'androidTest', 'test', '.git', 'JacocoInstrument', 'report', 'monkey', 'ape', 'combined'}
 
 
@@ -54,6 +57,8 @@ def app_files(app):
             if os.path.isfile(os.path.join(g, 'scratch', f)):
                 out.append(os.path.join(g, 'scratch', f))
     root = os.path.join('final_java_only', app, 'app')
+    for d in sorted(glob.glob(os.path.join(root, '*', 'app', 'build', 'intermediates', 'javac', '*Debug'))):
+        out.append((os.path.join(d, 'FLAVOR_MARKER.txt'), MARKER.encode('utf-8')))
     for f in sorted(os.listdir(root)):
         p = os.path.join(root, f)
         if os.path.isfile(p) and f.endswith(('.txt', '.json')):
@@ -71,7 +76,10 @@ def app_files(app):
 def pack(paths):
     chunks = [b'GTRBUNDLE 1\n']
     for p in paths:
-        data = open(p, 'rb').read()
+        if isinstance(p, tuple):
+            p, data = p
+        else:
+            data = open(p, 'rb').read()
         try:
             data.decode('utf-8')
             enc, body = 'utf8', data
