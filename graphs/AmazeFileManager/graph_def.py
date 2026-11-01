@@ -290,7 +290,7 @@ e('BasicActivity.<init>', 'DatabaseViewerActivity.onCreate', 'LIFECYCLE', 'Activ
 e('S_ENTRY', 'ExtractService.<init>', 'ENTRY', 'Extract service started for archive extraction',
   evidence='SRC AndroidManifest.xml:143-147; ' + FW_SERVICE)
 e('ExtractService.<init>', 'ExtractService.onCreate', 'LIFECYCLE', 'Service.onCreate',
-  evidence=FW_SERVICE + '; SRC asynchronous/services/ExtractService.java (need to read)')
+  evidence=FW_SERVICE + '; SRC ExtractService.java (need to read)')
 e('ExtractService.onCreate', 'ExtractService.onStartCommand', 'LIFECYCLE', 'Service.onStartCommand for started service',
   evidence=FW_SERVICE)
 
@@ -304,7 +304,7 @@ e('ZipService.onCreate', 'ZipService.onStartCommand', 'LIFECYCLE', 'Service.onSt
 e('S_ENTRY', 'CopyService.<init>', 'ENTRY', 'Copy service started for file operations',
   evidence='SRC AndroidManifest.xml:153-157; ' + FW_SERVICE)
 e('CopyService.<init>', 'CopyService.onCreate', 'LIFECYCLE', 'Service.onCreate',
-  evidence=FW_SERVICE + '; SRC asynchronous/services/CopyService.java:100')
+  evidence=FW_SERVICE + '; SRC CopyService.java:100')
 e('CopyService.onCreate', 'CopyService.onStartCommand', 'LIFECYCLE', 'Service.onStartCommand',
   evidence=FW_SERVICE)
 
@@ -4163,8 +4163,93 @@ def CLASSIFY(x):
         return ('non_standard', 'SpeedDialView library')
     return None
 
+# B3 check-4 fixes (2026-11-01): corrected bytecode citations from
+# tools/check_bytecode_lines.py AmazeFileManager --emit (FIX_LINES), plus
+# INFERRED rewrites for generated-class callers whose source is not held
+# and for CLI.main -> SevenZFile.close (try-with-resources implicit close:
+# CLI.java:127 opens the resource, :132 closes the try block; no explicit
+# close call exists in source, so no SRC line can show the callee name).
+_B3_FIX_LINES = {
+    ('AbstractProgressiveService.publishResults@CopyService', 'DatapointParcelable.<init>(String,int,int,long,long,long,boolean,boolean)', 'SRC AbstractProgressiveService.java:158 (bytecode)'): 'SRC AbstractProgressiveService.java:157 (bytecode line was 158)',
+    ('AbstractProgressiveService.publishResults@DecryptService', 'DatapointParcelable.<init>(String,int,int,long,long,long,boolean,boolean)', 'SRC AbstractProgressiveService.java:158 (bytecode)'): 'SRC AbstractProgressiveService.java:157 (bytecode line was 158)',
+    ('AbstractProgressiveService.publishResults@EncryptService', 'DatapointParcelable.<init>(String,int,int,long,long,long,boolean,boolean)', 'SRC AbstractProgressiveService.java:158 (bytecode)'): 'SRC AbstractProgressiveService.java:157 (bytecode line was 158)',
+    ('AbstractProgressiveService.publishResults@ExtractService', 'DatapointParcelable.<init>(String,int,int,long,long,long,boolean,boolean)', 'SRC AbstractProgressiveService.java:158 (bytecode)'): 'SRC AbstractProgressiveService.java:157 (bytecode line was 158)',
+    ('AbstractProgressiveService.publishResults@ZipService', 'DatapointParcelable.<init>(String,int,int,long,long,long,boolean,boolean)', 'SRC AbstractProgressiveService.java:158 (bytecode)'): 'SRC AbstractProgressiveService.java:157 (bytecode line was 158)',
+    ('Bzip2HelperTask.addElements', 'CompressedObjectParcelable.<init>(String,long,long,boolean)', 'SRC Bzip2HelperTask.java:70 (bytecode)'): 'SRC Bzip2HelperTask.java:69 (bytecode line was 70)',
+    ('CloudUtil.getCloudFiles', 'HybridFileParcelable.<init>(String,String,long,long,boolean)', 'SRC CloudUtil.java:75 (bytecode)'): 'SRC CloudUtil.java:70-75 (bytecode line was 75)',
+    ('ColorPickerDialog.onDialogClosed', 'UserColorPreferences.<init>(int,int,int,int)', 'SRC ColorPickerDialog.java:221 (bytecode)'): 'SRC ColorPickerDialog.java:219 (bytecode line was 221)',
+    ('ColorPref.lambda$colorChangeDialog$0', 'UserColorPreferences.<init>(int,int,int,int)', 'SRC ColorPref.java:159 (bytecode)'): 'SRC ColorPref.java:160 (bytecode line was 159)',
+    ('ColorPreferenceHelper.randomize', 'UserColorPreferences.<init>(int,int,int,int)', 'SRC ColorPreferenceHelper.java:49 (bytecode)'): 'SRC ColorPreferenceHelper.java:48 (bytecode line was 49)',
+    ('CompressedExplorerAdapter.lambda$onBindViewHolder$2', 'HybridFileParcelable.<init>(String)', 'SRC CompressedExplorerAdapter.java:280 (bytecode)'): 'SRC CompressedExplorerAdapter.java:278 (bytecode line was 280)',
+    ('CopyService$DoInBackground$Copy.execute', 'HybridFile.<init>(OpenMode,String,String,boolean)', 'SRC CopyService.java:400 (bytecode)'): 'SRC CopyService.java:399 (bytecode line was 400)',
+    ('CopyService$DoInBackground$Copy.lambda$copyFiles$0', 'HybridFile.<init>(OpenMode,String,String,boolean)', 'SRC CopyService.java:461 (bytecode)'): 'SRC CopyService.java:460 (bytecode line was 461)',
+    ('CryptUtil.decrypt', 'HybridFile.<init>(OpenMode,String,String,boolean)', 'SRC CryptUtil.java:190 (bytecode)'): 'SRC CryptUtil.java:188 (bytecode line was 190)',
+    ('CryptUtil.encrypt', 'HybridFile.<init>(OpenMode,String,String,boolean)', 'SRC CryptUtil.java:243 (bytecode)'): 'SRC CryptUtil.java:241 (bytecode line was 243)',
+    ('Drawer.refreshDrawer', 'MenuMetadata.<init>(OnClickListener)', 'SRC Drawer.java:435 (bytecode)'): 'SRC Drawer.java:436 (bytecode line was 435)',
+    ('Drawer.refreshDrawer', 'MenuMetadata.<init>(String)', 'SRC Drawer.java:397 (bytecode)'): 'SRC Drawer.java:398 (bytecode line was 397)',
+    ('FileHandler.handleMessage', 'HybridFile.<init>(OpenMode,String)', 'SRC FileHandler.java:50 (bytecode)'): 'SRC FileHandler.java:49 (bytecode line was 50)',
+    ('FoldersPref.lambda$loadCreateDialog$0', 'OperationData.<init>(Operation,String,String)', 'SRC FoldersPref.java:140 (bytecode)'): 'SRC FoldersPref.java:139 (bytecode line was 140)',
+    ('FoldersPref.lambda$loadDeleteDialog$3', 'OperationData.<init>(Operation,String,String)', 'SRC FoldersPref.java:225 (bytecode)'): 'SRC FoldersPref.java:224 (bytecode line was 225)',
+    ('GeneralDialogCreation.showCompressDialog', 'WarnableTextInputValidator.<init>', 'SRC GeneralDialogCreation.java:971 (bytecode)'): 'SRC GeneralDialogCreation.java:970 (bytecode line was 971)',
+    ('GeneralDialogCreation.showNameDialog', 'WarnableTextInputValidator.<init>', 'SRC GeneralDialogCreation.java:174 (bytecode)'): 'SRC GeneralDialogCreation.java:173 (bytecode line was 174)',
+    ('GeneralDialogCreation.showPasswordDialog', 'WarnableTextInputValidator.<init>', 'SRC GeneralDialogCreation.java:890 (bytecode)'): 'SRC GeneralDialogCreation.java:889 (bytecode line was 890)',
+    ('GzipHelperTask.addElements', 'CompressedObjectParcelable.<init>(String,long,long,boolean)', 'SRC GzipHelperTask.java:82 (bytecode)'): 'SRC GzipHelperTask.java:81 (bytecode line was 82)',
+    ('HiddenAdapter.lambda$onBindViewHolder$0', 'HybridFileParcelable.<init>(String)', 'SRC HiddenAdapter.java:85 (bytecode)'): 'SRC HiddenAdapter.java:84 (bytecode line was 85)',
+    ('HybridFile$5.execute', 'Statvfs$Response.<init>', 'SRC HybridFile.java:656 (bytecode)'): 'SRC HybridFile.java:655 (bytecode line was 656)',
+    ('HybridFile$6.execute', 'Statvfs$Response.<init>', 'SRC HybridFile.java:709 (bytecode)'): 'SRC HybridFile.java:708 (bytecode line was 709)',
+    ('HybridFile.generateLayoutElement', 'LayoutElementParcelable.<init>(Context,String,String,String,String,long,boolean,String,boolean,boolean,OpenMode)', 'SRC HybridFile.java:1271 (bytecode)'): 'SRC HybridFile.java:1269 (bytecode line was 1271)',
+    ('HybridFile.generateLayoutElement@HybridFileParcelable', 'LayoutElementParcelable.<init>(Context,String,String,String,String,long,boolean,String,boolean,boolean,OpenMode)', 'SRC HybridFile.java:1271 (bytecode)'): 'SRC HybridFile.java:1269 (bytecode line was 1271)',
+    ('LoadFilesListTask.createListParcelables', 'LayoutElementParcelable.<init>(Context,String,String,String,String,String,long,boolean,String,boolean,boolean,OpenMode)', 'SRC LoadFilesListTask.java:250 (bytecode)'): 'SRC LoadFilesListTask.java:247-250 (bytecode line was 250)',
+    ('LzmaHelperTask.addElements', 'CompressedObjectParcelable.<init>(String,long,long,boolean)', 'SRC LzmaHelperTask.java:70 (bytecode)'): 'SRC LzmaHelperTask.java:69 (bytecode line was 70)',
+    ('MainActivity.lambda$onOptionsItemSelected$6', 'OperationData.<init>(Operation,String)', 'SRC MainActivity.java:1003 (bytecode)'): 'SRC MainActivity.java:1002 (bytecode line was 1003)',
+    ('MainActivity.lambda$onOptionsItemSelected$7', 'OperationData.<init>(Operation,String)', 'SRC MainActivity.java:1014 (bytecode)'): 'SRC MainActivity.java:1013 (bytecode line was 1014)',
+    ('MainActivity.onActivityResult', 'MoveFiles.<init>', 'SRC MainActivity.java:1366 (bytecode)'): 'SRC MainActivity.java:1365 (bytecode line was 1366)',
+    ('MainActivity.onOptionsItemSelected', 'OperationData.<init>(Operation,String)', 'SRC MainActivity.java:1019 (bytecode)'): 'SRC MainActivity.java:1018 (bytecode line was 1019)',
+    ('MainFragment.addTo', 'LayoutElementParcelable.<init>(Context,String,String,String,String,long,boolean,String,boolean,boolean,OpenMode)', 'SRC MainFragment.java:1530 (bytecode)'): 'SRC MainFragment.java:1527-1530 (bytecode line was 1530)',
+    ('MainFragment.addToSmb', 'LayoutElementParcelable.<init>(Context,String,String,String,String,String,long,boolean,String,boolean,boolean,OpenMode)', 'SRC MainFragment.java:1489 (bytecode)'): 'SRC MainFragment.java:1486-1489 (bytecode line was 1489)',
+    ('MainFragment.loadlist', 'LoadFilesListTask.<init>', 'SRC MainFragment.java:1026 (bytecode)'): 'SRC MainFragment.java:1025 (bytecode line was 1026)',
+    ('MainFragment.onActivityCreated', 'DividerItemDecoration.<init>', 'SRC MainFragment.java:305 (bytecode)'): 'SRC MainFragment.java:304 (bytecode line was 305)',
+    ('MainFragment.onListItemClicked', 'HybridFileParcelable.<init>(String)', 'SRC MainFragment.java:902 (bytecode)'): 'SRC MainFragment.java:900 (bytecode line was 902)',
+    ('MainFragment.reloadListElements', 'DividerItemDecoration.<init>', 'SRC MainFragment.java:1129 (bytecode)'): 'SRC MainFragment.java:1127 (bytecode line was 1129)',
+    ('MainFragment.reloadListElements', 'RecyclerAdapter.<init>', 'SRC MainFragment.java:1108 (bytecode)'): 'SRC MainFragment.java:1107 (bytecode line was 1108)',
+    ('MainFragment.startFileObserver', 'CustomFileObserver.<init>', 'SRC MainFragment.java:1195 (bytecode)'): 'SRC MainFragment.java:1194 (bytecode line was 1195)',
+    ('OTGUtil.getDocumentFiles', 'HybridFileParcelable.<init>(String,String,long,long,boolean)', 'SRC OTGUtil.java:81 (bytecode)'): 'SRC OTGUtil.java:80 (bytecode line was 81)',
+    ('PemToKeyPairTask.onProgressUpdate', 'WarnableTextInputValidator.<init>', 'SRC PemToKeyPairTask.java:162 (bytecode)'): 'SRC PemToKeyPairTask.java:161 (bytecode line was 162)',
+    ('RecyclerAdapter.onBindViewHolder', 'CircleGradientDrawable.<init>(int,AppTheme,DisplayMetrics)', 'SRC RecyclerAdapter.java:540 (bytecode)'): 'SRC RecyclerAdapter.java:539 (bytecode line was 540)',
+    ('RecyclerAdapter.onBindViewHolder', 'IconDataParcelable.setImageBroken', 'SRC RecyclerAdapter.java:595 (bytecode)'): 'SRC RecyclerAdapter.java:596 (bytecode line was 595)',
+    ('RecyclerAdapter.onBindViewHolder', 'IconDataParcelable.setImageBroken', 'SRC RecyclerAdapter.java:598 (bytecode)'): 'SRC RecyclerAdapter.java:599 (bytecode line was 598)',
+    ('RecyclerAdapter.onBindViewHolder', 'IconDataParcelable.setImageBroken', 'SRC RecyclerAdapter.java:608 (bytecode)'): 'SRC RecyclerAdapter.java:609 (bytecode line was 608)',
+    ('RootHelper.generateBaseFile(DocumentFile)', 'HybridFileParcelable.<init>(String,String,long,long,boolean)', 'SRC RootHelper.java:156 (bytecode)'): 'SRC RootHelper.java:155 (bytecode line was 156)',
+    ('RootHelper.getFilesList(String,boolean,OnFileFound)', 'HybridFileParcelable.<init>(String,String,long,long,boolean)', 'SRC RootHelper.java:117 (bytecode)'): 'SRC RootHelper.java:116 (bytecode line was 117)',
+    ('SevenZFile.buildDecoderStack', 'BoundedFileChannelInputStream.<init>', 'SRC SevenZFile.java:997 (bytecode)'): 'SRC SevenZFile.java:998 (bytecode line was 997)',
+    ('SevenZFile.buildDecoderStack', 'SevenZMethodConfiguration.<init>(SevenZMethod,Object)', 'SRC SevenZFile.java:1033 (bytecode)'): 'SRC SevenZFile.java:1032 (bytecode line was 1033)',
+    ('SevenZFile.readStartHeader', 'BoundedFileChannelInputStream.<init>', 'SRC SevenZFile.java:370 (bytecode)'): 'SRC SevenZFile.java:371 (bytecode line was 370)',
+    ('SevenZipHelperTask.addElements', 'CompressedObjectParcelable.<init>(String,long,long,boolean)', 'SRC SevenZipHelperTask.java:80 (bytecode)'): 'SRC SevenZipHelperTask.java:79 (bytecode line was 80)',
+    ('TabHandler.findTab', 'Tab.<init>', 'SRC TabHandler.java:130 (bytecode)'): 'SRC TabHandler.java:129 (bytecode line was 130)',
+    ('TabHandler.getAllTabs', 'Tab.<init>', 'SRC TabHandler.java:149 (bytecode)'): 'SRC TabHandler.java:148 (bytecode line was 149)',
+    ('TarHelperTask.addElements', 'CompressedObjectParcelable.<init>(String,long,long,boolean)', 'SRC TarHelperTask.java:75 (bytecode)'): 'SRC TarHelperTask.java:74 (bytecode line was 75)',
+    ('XzHelperTask.addElements', 'CompressedObjectParcelable.<init>(String,long,long,boolean)', 'SRC XzHelperTask.java:70 (bytecode)'): 'SRC XzHelperTask.java:69 (bytecode line was 70)',
+}
+_B3_INFERRED = {
+    ('GlideRequests.as', 'GlideRequest.<init>(Glide,RequestManager,Class,Context)'):
+        'INFERRED generated GlideRequests (no source in the upload; bytecode call)',
+    ('GeneratedAppGlideModuleImpl.registerComponents', 'AmazeFileManagerModule.registerComponents'):
+        'INFERRED generated GeneratedAppGlideModuleImpl (no source in the upload; bytecode call)',
+    ('GeneratedRequestManagerFactory.build', 'GlideRequests.<init>'):
+        'INFERRED generated GeneratedRequestManagerFactory (no source in the upload; bytecode call)',
+    ('CLI.main', 'SevenZFile.close'):
+        'INFERRED try-with-resources implicit close of SevenZFile (CLI.java:127-132; no explicit close call in source; bytecode call)',
+}
 def EDIT(x):
     """Add gates or modify edges post-build"""
+    key = (x.get('src'), x.get('dst'), x.get('evidence'))
+    if key in _B3_FIX_LINES:
+        x['evidence'] = _B3_FIX_LINES[key]
+        return x
+    if (x.get('evidence') or '').endswith('(bytecode)'):
+        pair = (x.get('src'), x.get('dst'))
+        if pair in _B3_INFERRED:
+            x['evidence'] = _B3_INFERRED[pair]
     return x
 
 # ---- part label_c1 (2026-10-27 21:18) ----
@@ -4400,15 +4485,15 @@ UNREACHABLE['AnimUtils.<init>'] = (
 # Contradiction resolution: add explicit edges per conflicts.md analysis
 e('AbstractProgressiveService.publishResults', 'AbstractProgressiveService.publishCompletedResult', 'CALL',
   'publishResults calls publishCompletedResult when operation completes',
-  evidence='SRC asynchronous/services/AbstractProgressiveService.java:152,162')
+  evidence='SRC AbstractProgressiveService.java:152,162')
 
 e('AbstractProgressiveService.addFirstDatapoint', 'AbstractProgressiveService.putDataPackage', 'CALL',
   'addFirstDatapoint calls putDataPackage to store first datapoint',
-  evidence='SRC asynchronous/services/AbstractProgressiveService.java:179')
+  evidence='SRC AbstractProgressiveService.java:179')
 
 e('AbstractProgressiveService.addDatapoint', 'AbstractProgressiveService.putDataPackage', 'CALL',
   'addDatapoint calls putDataPackage to store progress datapoint',
-  evidence='SRC asynchronous/services/AbstractProgressiveService.java:187')
+  evidence='SRC AbstractProgressiveService.java:187')
 
 UNREACHABLE['AES256SHA256Decoder$1.<init>'] = (
     'framework_never_calls',
@@ -5334,17 +5419,17 @@ UNREACHABLE['AnimUtils.<init>'] = (
 # Called from publishResults (lines 152, 162) which is called by service subclasses
 e('AbstractProgressiveService.publishResults', 'AbstractProgressiveService.publishCompletedResult', 'CALL',
   'publishResults calls publishCompletedResult on completion',
-  evidence='SRC final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/asynchronous/services/AbstractProgressiveService.java:152,162')
+  evidence='SRC final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/AbstractProgressiveService.java:152,162')
 
 # AbstractProgressiveService.putDataPackage: REACHABLE per conflicts.md analysis
 # Called from addFirstDatapoint (line 179) and addDatapoint (line 187)
 e('AbstractProgressiveService.addFirstDatapoint', 'AbstractProgressiveService.putDataPackage', 'CALL',
   'addFirstDatapoint calls putDataPackage',
-  evidence='SRC final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/asynchronous/services/AbstractProgressiveService.java:179')
+  evidence='SRC final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/AbstractProgressiveService.java:179')
 
 e('AbstractProgressiveService.addDatapoint', 'AbstractProgressiveService.putDataPackage', 'CALL',
   'addDatapoint calls putDataPackage',
-  evidence='SRC final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/asynchronous/services/AbstractProgressiveService.java:187')
+  evidence='SRC final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/AbstractProgressiveService.java:187')
 
 
 UNREACHABLE['AES256SHA256Decoder$1.<init>'] = (

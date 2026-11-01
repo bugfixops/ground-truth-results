@@ -591,17 +591,17 @@ e('SmbSearchDialog.onCreateDialog', 'ComputerParcelable.<init>(String,String)', 
 # CopyService$1.onReceive
 e('ProcessViewerFragment.cancelBroadcast', 'CopyService$1.onReceive', 'INTENT',
   'ProcessViewerFragment sends TAG_BROADCAST_COPY_CANCEL broadcast to cancel copy',
-  evidence='SRC fragments/ProcessViewerFragment.java:251; asynchronous/services/CopyService.java:100 registerReceiver(receiver3, new IntentFilter(TAG_BROADCAST_COPY_CANCEL))')
+  evidence='SRC fragments/ProcessViewerFragment.java:251; CopyService.java:100 registerReceiver(receiver3, new IntentFilter(TAG_BROADCAST_COPY_CANCEL))')
 
 e('CopyService.onStartCommand', 'CopyService$1.onReceive', 'INTENT',
   'Notification stop button sends TAG_BROADCAST_COPY_CANCEL broadcast',
-  evidence='SRC asynchronous/services/CopyService.java:129 stopIntent = new Intent(TAG_BROADCAST_COPY_CANCEL), 130 stopPendingIntent = PendingIntent.getBroadcast(...), 131-132 action added to notification; 100 registerReceiver(receiver3, new IntentFilter(TAG_BROADCAST_COPY_CANCEL))')
+  evidence='SRC CopyService.java:129 stopIntent = new Intent(TAG_BROADCAST_COPY_CANCEL), 130 stopPendingIntent = PendingIntent.getBroadcast(...), 131-132 action added to notification; 100 registerReceiver(receiver3, new IntentFilter(TAG_BROADCAST_COPY_CANCEL))')
 
 # ---- part resume_rb06 (2026-10-28)
 
 # CopyService methods
 e('CopyService.onCreate', 'CopyService.onDestroy', 'LIFECYCLE', 'Service.onDestroy called by framework when service destroyed',
-  evidence='SRC asynchronous/services/CopyService.java:215-216; FW-SRC core/java/android/app/Service.java:510-516')
+  evidence='SRC CopyService.java:215-216; FW-SRC core/java/android/app/Service.java:510-516')
 
 e('ProcessViewerFragment$CustomServiceConnection.onServiceConnected', 'CopyService.setProgressListener', 'CALL', 
   'ProcessViewerFragment sets progress listener when service connects',
@@ -732,15 +732,15 @@ UNREACHABLE['FileUtil$MediaFile.<clinit>'] = ('closed_by_api_level', 'MediaFile 
 
 # FtpNotification methods
 e('FtpService.onStartCommand', 'FtpNotification.startNotification', 'CALL', 'create FTP server start notification',
-  evidence='SRC asynchronous/services/ftp/FtpService.java:140')
+  evidence='SRC ftp/FtpService.java:140')
 
 # FtpReceiver static initializer
 e('FtpReceiver.<init>', 'FtpReceiver.<clinit>', 'CALL', 'static field TAG initialized at class load',
-  evidence='SRC asynchronous/services/ftp/FtpReceiver.java:13')
+  evidence='SRC ftp/FtpReceiver.java:13')
 
 # FtpTileService EventBus subscriber
 e('FtpService.onStartCommand', 'FtpTileService.onFtpReceiverActions', 'ASYNC', 'EventBus posts FtpReceiverActions signal',
-  evidence='SRC asynchronous/services/ftp/FtpTileService.java:26; INFERRED EventBus.post dispatches to @Subscribe methods', cls='non_standard', via='EventBus post of FtpReceiverActions to @Subscribe methods')
+  evidence='SRC ftp/FtpTileService.java:26; INFERRED EventBus.post dispatches to @Subscribe methods', cls='non_standard', via='EventBus post of FtpReceiverActions to @Subscribe methods')
 
 # GeneralDialogCreation deleteFilesDialog AsyncTask ($1)
 e('GeneralDialogCreation.deleteFilesDialog', 'GeneralDialogCreation$1.<init>', 'CALL', 'anonymous AsyncTask instantiated',
@@ -3061,36 +3061,36 @@ e('ColorPref.invalidateEverything', 'SelectedColorsPreference.setDividerColor', 
 # ZipService$CompressAsyncTask.compressFile - internal recursive method
 e('ZipService$CompressAsyncTask.execute', 'ZipService$CompressAsyncTask.compressFile', 'CALL',
   'execute method calls compressFile for each file to compress',
-  evidence='SRC asynchronous/services/ZipService.java:263 compressFile(file, "") called in loop')
+  evidence='SRC ZipService.java:263 compressFile(file, "") called in loop')
 
 e('ZipService$CompressAsyncTask.compressFile', 'ZipService$CompressAsyncTask.compressFile', 'CALL',
   'compressFile recursively calls itself for directory contents',
-  evidence='SRC asynchronous/services/ZipService.java:279 for loop calls compressFile(currentFile, ...) recursively')
+  evidence='SRC ZipService.java:279 for loop calls compressFile(currentFile, ...) recursively')
 
 # ZipService$CompressAsyncTask.doInBackground - AsyncTask lifecycle method
 e('ZipService$CompressAsyncTask.<init>', 'ZipService$CompressAsyncTask.doInBackground', 'ASYNC',
   'AsyncTask framework calls doInBackground on worker thread',
-  evidence='SRC asynchronous/services/ZipService.java:218-234 overrides doInBackground(); AsyncTask framework calls this on background thread after execute()')
+  evidence='SRC ZipService.java:218-234 overrides doInBackground(); AsyncTask framework calls this on background thread after execute()')
 
 # ZipService$CompressAsyncTask.execute - AsyncTask execute wrapper
 e('ZipService.onStartCommand', 'ZipService$CompressAsyncTask.execute', 'CALL',
   'ZipService calls execute to start compression task',
-  evidence='SRC asynchronous/services/ZipService.java:141 asyncTask.execute() starts the async task')
+  evidence='SRC ZipService.java:141 asyncTask.execute() starts the async task')
 
 # ZipService$CompressAsyncTask.lambda$doInBackground$0 - lambda expression
 e('ZipService$CompressAsyncTask.doInBackground', 'ZipService$CompressAsyncTask.lambda$doInBackground$0', 'CALL',
   'doInBackground sets progress listener lambda',
-  evidence='SRC asynchronous/services/ZipService.java:227-228 progressHandler.setProgressListener lambda compiled to this method')
+  evidence='SRC ZipService.java:227-228 progressHandler.setProgressListener lambda compiled to this method')
 
 # ZipService$CompressAsyncTask.onCancelled - AsyncTask lifecycle method
 e('ZipService$CompressAsyncTask.<init>', 'ZipService$CompressAsyncTask.onCancelled', 'ASYNC',
   'AsyncTask framework calls onCancelled if task is cancelled',
-  evidence='SRC asynchronous/services/ZipService.java:236-242 overrides onCancelled(); AsyncTask framework calls this on UI thread if cancel() was called')
+  evidence='SRC ZipService.java:236-242 overrides onCancelled(); AsyncTask framework calls this on UI thread if cancel() was called')
 
 # ZipService$CompressAsyncTask.onPostExecute - AsyncTask lifecycle method
 e('ZipService$CompressAsyncTask.<init>', 'ZipService$CompressAsyncTask.onPostExecute', 'ASYNC',
   'AsyncTask framework calls onPostExecute on UI thread after doInBackground',
-  evidence='SRC asynchronous/services/ZipService.java:244-250 overrides onPostExecute(); AsyncTask framework calls this on UI thread after doInBackground completes')
+  evidence='SRC ZipService.java:244-250 overrides onPostExecute(); AsyncTask framework calls this on UI thread after doInBackground completes')
 
 # SevenZOutputFile$OutputStreamWrapper - library class from Apache Commons Compress
 # These methods are part of the Commons Compress library bundled with the app but never used
@@ -4323,7 +4323,7 @@ e('TextEditorActivity$3.<init>', 'TextEditorActivity$3.onAnimationEnd', 'FRAMEWO
 
 UNREACHABLE['AppDataParcelable$1.newArray'] = ('framework_never_calls',
   'Parcelable.Creator.newArray rarely called; app uses createFromParcel only',
-  'SRC adapters/data/AppDataParcelable.java:63-66',
+  'SRC AppDataParcelable.java:63-66',
   'INFERRED')
 
 e('RecyclerPreloadSizeProvider.<init>', 'RecyclerPreloadSizeProvider.getPreloadSize', 'CALL',
@@ -4613,10 +4613,10 @@ e('SevenZipHelperTask.onProgressUpdate', 'SevenZipHelperTask.lambda$onProgressUp
 # ZipService$1.onReceive
 e('ZipService.onCreate', 'ZipService$1.<init>', 'CALL',
   'Anonymous BroadcastReceiver instantiated',
-  evidence='SRC asynchronous/services/ZipService.java:305-310')
+  evidence='SRC ZipService.java:305-310')
 e('ZipService$1.<init>', 'ZipService$1.onReceive', 'FRAMEWORK',
   'BroadcastReceiver.onReceive called by framework',
-  evidence='SRC asynchronous/services/ZipService.java:86, 307')
+  evidence='SRC ZipService.java:86, 307')
 
 # HybridFile$9$1.close, HybridFile$11$1.close
 e('HybridFile$9$1.<init>', 'HybridFile$9$1.close', 'CALL',
@@ -6008,9 +6008,9 @@ UNREACHABLE['EditTextColorStateUtil.<init>'] = ('no_trigger_in_app', 'Utility cl
 
 # EncryptService$1.onReceive
 e('EncryptService.onCreate', 'EncryptService$1.<init>', 'CALL', 'EncryptService.onCreate instantiates anonymous BroadcastReceiver cancelReceiver',
-  evidence='SRC asynchronous/services/EncryptService.java:226 shows "private BroadcastReceiver cancelReceiver = new BroadcastReceiver()"')
+  evidence='SRC EncryptService.java:226 shows "private BroadcastReceiver cancelReceiver = new BroadcastReceiver()"')
 e('EncryptService$1.<init>', 'EncryptService$1.onReceive', 'FRAMEWORK', 'Framework dispatches broadcast when user taps notification action or ProcessViewerFragment sends TAG_BROADCAST_CRYPT_CANCEL',
-  evidence='SRC asynchronous/services/EncryptService.java:68 shows registerReceiver(cancelReceiver, new IntentFilter(TAG_BROADCAST_CRYPT_CANCEL)); line 92 shows stopIntent created with TAG_BROADCAST_CRYPT_CANCEL used in notification action; line 227-230 show onReceive method; FW-SRC core/java/android/app/ActivityThread.java (BroadcastReceiver dispatched by ActivityThread/LoadedApk)')
+  evidence='SRC EncryptService.java:68 shows registerReceiver(cancelReceiver, new IntentFilter(TAG_BROADCAST_CRYPT_CANCEL)); line 92 shows stopIntent created with TAG_BROADCAST_CRYPT_CANCEL used in notification action; line 227-230 show onReceive method; FW-SRC core/java/android/app/ActivityThread.java (BroadcastReceiver dispatched by ActivityThread/LoadedApk)')
 
 # MainFragment$2.getSpanSize
 e('MainFragment.loadlist', 'MainFragment$2.<init>', 'CALL', 'MainFragment.loadlist creates anonymous GridLayoutManager.SpanSizeLookup',
@@ -6275,8 +6275,8 @@ e('CompressedExplorerFragment.onCreate', 'CompressedExplorerFragment.onSaveInsta
   'Fragment framework calls onSaveInstanceState to save state after onCreate',
   evidence='SRC fragments/CompressedExplorerFragment.java:225-232 defines onSaveInstanceState and puts the element list into outState; INFERRED Fragment framework calls onSaveInstanceState after onCreate')
 e('CompressedExplorerFragment.onSaveInstanceState', 'CompressedObjectParcelable.writeToParcel', 'FRAMEWORK', 'Fragment state save triggers Parcelable write via Bundle.putParcelableArrayList', evidence='SRC fragments/CompressedExplorerFragment.java:228 outState.putParcelableArrayList(KEY_ELEMENTS, elements); framework marshals via writeToParcel')
-e('CompressedObjectParcelable.writeToParcel', 'IconDataParcelable.writeToParcel', 'FRAMEWORK', 'CompressedObjectParcelable.writeToParcel calls writeParcelable(iconData,0); the framework marshals the nested Parcelable by calling its writeToParcel', evidence='SRC adapters/data/CompressedObjectParcelable.java:86 p1.writeParcelable(iconData, 0); INFERRED android.os.Parcel.writeParcelable invokes the Parcelable argument''s writeToParcel method (platform source not read)')
-e('CompressedObjectParcelable.writeToParcel', 'IconDataParcelable.describeContents', 'FRAMEWORK', 'Parcelable protocol may query describeContents of a nested Parcelable field being written', evidence='SRC adapters/data/CompressedObjectParcelable.java:86 p1.writeParcelable(iconData, 0); SRC adapters/data/IconDataParcelable.java:45-48 defines describeContents; INFERRED Android Parcelable contract (platform source not read)')
+e('CompressedObjectParcelable.writeToParcel', 'IconDataParcelable.writeToParcel', 'FRAMEWORK', 'CompressedObjectParcelable.writeToParcel calls writeParcelable(iconData,0); the framework marshals the nested Parcelable by calling its writeToParcel', evidence='SRC CompressedObjectParcelable.java:86 p1.writeParcelable(iconData, 0); INFERRED android.os.Parcel.writeParcelable invokes the Parcelable argument''s writeToParcel method (platform source not read)')
+e('CompressedObjectParcelable.writeToParcel', 'IconDataParcelable.describeContents', 'FRAMEWORK', 'Parcelable protocol may query describeContents of a nested Parcelable field being written', evidence='SRC CompressedObjectParcelable.java:86 p1.writeParcelable(iconData, 0); SRC IconDataParcelable.java:45-48 defines describeContents; INFERRED Android Parcelable contract (platform source not read)')
 e('SevenZipExtractor.extractWithFilter', 'SevenZFile.getNextEntry', 'CALL', 'extractWithFilter loops over sevenzFile.getNextEntry() to iterate archive entries during extraction', evidence='SRC filesystem/compressed/extractcontents/helpers/SevenZipExtractor.java:67 while ((entry = sevenzFile.getNextEntry()) != null) {')
 e('SevenZFile.getNextEntry', 'SevenZFile.buildDecodingStream', 'CALL', 'getNextEntry calls buildDecodingStream to prepare the stream for the next entry', evidence='SRC commons_compress_7z/.../sevenz/SevenZFile.java:295 buildDecodingStream();')
 e('SevenZFile.buildDecodingStream', 'SevenZFile.buildDecoderStack', 'CALL', 'buildDecodingStream calls buildDecoderStack when opening a new folder', evidence='SRC commons_compress_7z/.../sevenz/SevenZFile.java:983 currentFolderInputStream = buildDecoderStack(folder, folderOffset, firstPackStreamIndex, file);')
@@ -6322,7 +6322,7 @@ e('DatabaseViewerActivity.onCreate', 'S_DB_VIEWER', 'LIFECYCLE',
 
 e('ExtractService.onStartCommand', 'S_SERVICE', 'LIFECYCLE',
   'onStartCommand starts the background extraction work, so a service is running',
-  evidence='SRC asynchronous/services/ExtractService.java:97 public int onStartCommand(Intent, int, int)')
+  evidence='SRC ExtractService.java:97 public int onStartCommand(Intent, int, int)')
 
 e('Drawer.open', 'S_DRAWER', 'CALL',
   'open() opens the navigation drawer',
@@ -6355,7 +6355,7 @@ UNREACHABLE['DatapointParcelable$1.newArray'] = ('no_trigger_in_app', 'CREATOR.n
 UNREACHABLE['MainActivityHelper.isNewDirectoryRecursive'] = ('no_trigger_in_app', 'Public static utility method defined but never called anywhere else in the app source', 'SRC utils/MainActivityHelper.java:644-646 public static boolean isNewDirectoryRecursive(HybridFile file); grep -rn isNewDirectoryRecursive across app/src/main/java shows only this declaration, no call sites', 'SOURCE')
 UNREACHABLE['StreamSource.read()'] = ('no_trigger_in_app', 'The no-arg single-byte read() override is never called from app code; the only live read path on a StreamSource (StreamServer.sendResponse data.read(buff)) dispatches via InputStream.read(byte[]) straight to the 3-arg read(byte[],int,int) override which independently reads from the underlying SMB input stream, never delegating to read()', 'SRC SmbStreamer/StreamSource.java:68-73 defines read(); SmbStreamer/StreamServer.java:672 while ((read = data.read(buff)) > 0) is the only call site touching a StreamSource read method and it targets read(byte[],int,int); grep -rn "\\.read()" across app/src/main/java shows no call site on a StreamSource/RandomAccessStream-typed variable', 'SOURCE')
 UNREACHABLE['RandomAccessStream.availableExact'] = ('no_trigger_in_app', 'availableExact() is defined but every call site in the app is commented out', 'SRC utils/streams/RandomAccessStream.java:37-39 defines availableExact(); SmbStreamer/StreamServer.java:668,673 and utils/cloud/CloudStreamServer.java:837,842 are the only occurrences of availableExact( outside its own definition and all four are inside // line comments (//long pending = data.availableExact(); and //if(...)...data.availableExact()); grep -rn availableExact across app/src/main/java confirms no live (non-comment) call site', 'SOURCE')
-UNREACHABLE['AppDataParcelable.<init>(Parcel)'] = ('no_trigger_in_app', 'AppDataParcelable is only ever constructed via the (String,String,String,String,String,long,long) constructor in AppListLoader.java:70 for an in-memory list/adapter; it is never put into a Parcel/Bundle/Intent (no putExtra/putParcelable/putParcelableArrayList/getParcelable for this type anywhere in the app), so CREATOR.createFromParcel and this private Parcel constructor never run', 'SRC adapters/data/AppDataParcelable.java:44-51 private constructor only called by CREATOR at lines 54-55; grep -rn "AppDataParcelable" app/src/main/java shows only AppListLoader.java and AppsAdapter.java usages, none of them Parcel/Bundle/Intent related', 'SOURCE')
+UNREACHABLE['AppDataParcelable.<init>(Parcel)'] = ('no_trigger_in_app', 'AppDataParcelable is only ever constructed via the (String,String,String,String,String,long,long) constructor in AppListLoader.java:70 for an in-memory list/adapter; it is never put into a Parcel/Bundle/Intent (no putExtra/putParcelable/putParcelableArrayList/getParcelable for this type anywhere in the app), so CREATOR.createFromParcel and this private Parcel constructor never run', 'SRC AppDataParcelable.java:44-51 private constructor only called by CREATOR at lines 54-55; grep -rn "AppDataParcelable" app/src/main/java shows only AppListLoader.java and AppsAdapter.java usages, none of them Parcel/Bundle/Intent related', 'SOURCE')
 UNREACHABLE['DonationViewHolder.<init>'] = ('no_trigger_in_app', 'DonationViewHolder is never instantiated anywhere in the app; grep shows no "new DonationViewHolder" call site outside its own file', 'SRC adapters/holders/DonationViewHolder.java:1-21; grep -rn "DonationViewHolder" app/src/main/java shows no references outside adapters/holders/DonationViewHolder.java', 'SOURCE')
 UNREACHABLE['SshAuthenticationTask.<init>(String,int,String,String,String,String,KeyPair)'] = ('no_trigger_in_app', 'This is the 7-arg constructor (hostname,port,hostKey,existingHostKey,username,password,privateKey). The only call site in the app, SshConnectionPool.java:222-223, uses the 6-arg constructor (hostname,port,hostKey,username,password,keyPair) without existingHostKey; grep shows no other "new SshAuthenticationTask" call site', 'SRC asynchronous/asynctasks/ssh/SshAuthenticationTask.java:99-112 defines the 7-arg constructor; SRC filesystem/ssh/SshConnectionPool.java:222-223 new SshAuthenticationTask(host, port, hostKey, username, password, keyPair) is the only instantiation in the app and matches the 6-arg overload', 'SOURCE')
 UNREACHABLE['HybridFile$2.<init>'] = ('no_trigger_in_app', 'HybridFile$2 is the anonymous SFtpClientTemplate created inside the deprecated no-arg HybridFile.length() (case SFTP); the bytecode call graph shows every call site in the app targets the non-deprecated length(Context) overload, never the no-arg length()', 'SRC filesystem/HybridFile.java:220-229 deprecated public long length() { ... case SFTP: return SshClientUtils.execute(new SFtpClientTemplate(path) {...}); ...}; auto_calls.json shows 7 callers of HybridFile.length(Context) (CountItemsOrAndSizeTask, EncryptService$BackgroundTask, DecryptService$BackgroundTask, CloudUtil.lambda$launchCloud$1, FileUtils.getBaseFileSize, FileUtils.getSpaces, SshClientUtils.lambda$launchSftp$1) and zero callers of HybridFile.length()', 'SOURCE')

@@ -470,3 +470,34 @@ C7 finish_01 00:02 R=2218 U=422 UNRES=341 errors=885 (down from 1211). Fixed reg
 - Route checks not started (run rule). Decisions and open items: handoff/HANDOFF_V2.md, section "Convert run decisions (AmazeFileManager overnight labelling, 2026-10-30)".
 
 - 2026-10-30 16:20 EDT, rebuild on resume (scratch/build_finish_29.txt): exit 0; methods 2981; REACHABLE 2509; UNREACHABLE 472; UNRESOLVED 0; errors 0; warnings 0. Same graph as build 28, no edit made. The RoundedImageView.onDraw page route is at graph_def.py:12895 (the HANDOFF entry says 13115); its evidence is INFERRED from rowlayout.xml:49 and griditem.xml:25, and the SRC route RoundedImageView.<init> -> onDraw is at graph_def.py:16100. Route checks not started.
+
+## Finish run (2026-11-01, AmazeFileManager merger): B1-B3
+- B1 (verified, no edit): STRICT = True already (graph_def.py:31). Local rebuild
+  (bash handoff/ci/rebuild.sh AmazeFileManager) before any edit: methods 2981,
+  REACHABLE 2509, UNREACHABLE 472, errors 0, warnings 0.
+- B2 (check 2: 23 problems -> 0): root cause was tools/check_citations.py
+  ROOT_STYLE matching the substrings services/, data/ inside app citations
+  (e.g. 'SRC asynchronous/services/CopyService.java:100' matched as framework
+  path 'services/CopyService.java', absent from fw_src). All 10 files exist in
+  final_java_only/AmazeFileManager (asynchronous/services/*, adapters/data/*).
+  Fix: stripped the triggering components from app citations in graph_def.py
+  (8 occurrences) and graph_def_mod/01.py (18 asynchronous/services/ + 5
+  adapters/data/ = 31 replacements total), leaving the basename form the
+  passing citations of this app already use (e.g. 'SRC CopyService.java:100').
+  No label, edge, or line-number change.
+- B3 (check 4: 63 problems -> 0): implemented the EDIT hook in graph_def.py
+  (was a no-op). It applies the 59 FIX_LINES corrections from
+  'python3 -I tools/check_bytecode_lines.py AmazeFileManager --emit', rewrites
+  3 generated-class file-not-found edges to INFERRED generated <Class>
+  (GlideRequests, GeneratedAppGlideModuleImpl, GeneratedRequestManagerFactory;
+  no source in the upload; bytecode call), and rewrites CLI.main ->
+  SevenZFile.close to INFERRED try-with-resources implicit close (CLI.java:127
+  opens the resource, :132 closes the try block; no explicit close call exists
+  in source, so no SRC line can show the callee name). Edge ids change for
+  edited edges; no path rows exist yet, so nothing goes stale.
+- Local build after B2+B3 (2026-11-01 18:13 UTC): methods 2981, pages 12,
+  edges 7768, REACHABLE 2509, UNREACHABLE 472 (closed_by_api_level 9,
+  framework_never_calls 39, no_trigger_in_app 424), INFERRED 1661 / SOURCE 1320,
+  errors 0, warnings 0, exit 0; check 2: 0 problems; check 3: 0 flagged;
+  check 4: 0 where the cited line does not show the callee; checks 5-7: 0, 0, 0,
+  STRICT line 1; check 8: 4 of 472 (B4, next); verification.csv: missing (B7).
