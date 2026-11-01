@@ -6383,14 +6383,14 @@ UNREACHABLE['Statvfs$Response.getRawFileSystemId'] = ('no_trigger_in_app', 'getR
 # Saved-state entries sit below the UNREACHABLE dict rebinding, which discards earlier assignments.
 UNREACHABLE['CustomNavigationView$SavedState.<clinit>'] = (
     'closed_by_api_level',
-    'Static initializer for SavedState class; class not used on API 27 due to isNavigationViewSavedStateMissing guard',
-    'SRC CustomNavigationView.java:120 SavedState class; line 117 isNavigationViewSavedStateMissing blocks usage on API 23-28',
+    'Static initializer for SavedState class; the only instantiation site is CustomNavigationView.onSaveInstanceState:76 (new SavedState(superState)), which never runs on API 27 because isNavigationViewSavedStateMissing() (:115-118, true for SDK 23-28, hence at API 27) makes onSaveInstanceState return early at :70; the class is therefore never loaded or instantiated in the standard configuration',
+    'SRC CustomNavigationView.java:120 SavedState class; :69-70 guard returns early at API 27; :76 instantiation site unreachable at API 27',
     'SOURCE')
 
 UNREACHABLE['CustomNavigationView$SavedState.<init>(Parcelable)'] = (
     'closed_by_api_level',
-    'SavedState(Parcelable) constructor not used on API 27 due to isNavigationViewSavedStateMissing guard in onSaveInstanceState',
-    'SRC CustomNavigationView.java:123-125 constructor; line 67-69 guard prevents SavedState creation',
+    'SavedState(Parcelable) constructor; its only call site is CustomNavigationView.onSaveInstanceState:76 (new SavedState(superState)), which never runs on API 27 because isNavigationViewSavedStateMissing() (:115-118, true for SDK 23-28, hence at API 27) makes onSaveInstanceState return early at :70',
+    'SRC CustomNavigationView.java:123-125 constructor; :69-70 guard returns early at API 27; :76 call site unreachable at API 27',
     'SOURCE')
 
 UNREACHABLE['CustomNavigationView$SavedState.<init>(Parcel)'] = (

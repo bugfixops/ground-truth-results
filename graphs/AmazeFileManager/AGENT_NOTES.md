@@ -501,3 +501,22 @@ C7 finish_01 00:02 R=2218 U=422 UNRES=341 errors=885 (down from 1211). Fixed reg
   errors 0, warnings 0, exit 0; check 2: 0 problems; check 3: 0 flagged;
   check 4: 0 where the cited line does not show the callee; checks 5-7: 0, 0, 0,
   STRICT line 1; check 8: 4 of 472 (B4, next); verification.csv: missing (B7).
+
+## Finish run (2026-11-01, AmazeFileManager merger): B4
+- Check 8 went from 4 methods to 3, with one label flip. All four pairs were
+  already in SUPPRESS (mod/01.py sup() blocks), so no auto edge exists for any
+  of them and warnings stayed 0.
+- AES256SHA256Decoder$1.<init> FLIPPED to REACHABLE: decode() is REACHABLE via
+  Coders.addDecoder (Coders.java:57 registration, :79 dispatch) and
+  unconditionally instantiates the anonymous class at AES256SHA256Decoder.java:36.
+  Removed its four UNREACHABLE entries from graph_def.py and added a hand edge
+  decode -> $1.<init> (CALL, SRC AES256SHA256Decoder.java:36). Counts now:
+  methods 2981, REACHABLE 2510, UNREACHABLE 471 (framework_never_calls 38),
+  errors 0, warnings 0; checks 2/3/4 still 0/0/0.
+- CustomNavigationView$SavedState.<clinit> and .<init>(Parcelable) stay
+  UNREACHABLE closed_by_api_level: onSaveInstanceState:76 never runs at API 27
+  (isNavigationViewSavedStateMissing :115-118 true for SDK 23-28, early return
+  :70). Reasons extended in mod/01.py to name the caller and the exact lines.
+- HybridFile$2.<init> stays UNREACHABLE no_trigger_in_app with its reason
+  unchanged (already names the deprecated no-arg length() caller and the
+  length(Context) evidence). Full record: scratch/check8_explained.md.

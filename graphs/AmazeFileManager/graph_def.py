@@ -3960,10 +3960,6 @@ e('ZipService.<init>', 'FileUtil.getOutputStream', 'FRAMEWORK', 'get output stre
 
 UNREACHABLE = {
     # From Helper label_c1 part (2026-10-27 21:12)
-    'AES256SHA256Decoder$1.<init>': ('framework_never_calls',
-        'Library class from org.apache.commons.compress.archivers.sevenz package; grep -rn "AES256SHA256Decoder" over app source shows no call sites',
-        'grep -rn "AES256SHA256Decoder" in final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java: no matches',
-        'INFERRED'),
     'AES256SHA256Decoder$1.close': ('framework_never_calls',
         'Library class from org.apache.commons.compress.archivers.sevenz package; grep -rn "AES256SHA256Decoder" over app source shows no call sites',
         'grep -rn "AES256SHA256Decoder" in final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java: no matches',
@@ -4436,12 +4432,6 @@ e('AppConfig.<init>', 'AppConfig.<clinit>', 'FRAMEWORK',
   evidence='INFERRED JVM static initialization')
 
 # UNREACHABLE methods from label_c1
-UNREACHABLE['AES256SHA256Decoder$1.<init>'] = (
-    'framework_never_calls',
-    'Library class from org.apache.commons.compress.archivers.sevenz package; grep -rn "AES256SHA256Decoder" over app source shows no call sites',
-    'grep -rn "AES256SHA256Decoder" in final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java: no matches',
-    'INFERRED'
-)
 UNREACHABLE['AES256SHA256Decoder$1.close'] = (
     'framework_never_calls',
     'Library class from org.apache.commons.compress.archivers.sevenz package; grep -rn "AES256SHA256Decoder" over app source shows no call sites',
@@ -4495,12 +4485,6 @@ e('AbstractProgressiveService.addDatapoint', 'AbstractProgressiveService.putData
   'addDatapoint calls putDataPackage to store progress datapoint',
   evidence='SRC AbstractProgressiveService.java:187')
 
-UNREACHABLE['AES256SHA256Decoder$1.<init>'] = (
-    'framework_never_calls',
-    'Anonymous inner class from unreachable library decoder; instantiated only by AES256SHA256Decoder.decode',
-    'SRC commons_compress_7z/src/main/java/com/amaze/filemanager/filesystem/compressed/sevenz/AES256SHA256Decoder.java:34',
-    'SOURCE'
-)
 UNREACHABLE['AES256SHA256Decoder$1.close'] = (
     'framework_never_calls',
     'Inner class method from unreachable library decoder; only called when stream is closed',
@@ -5429,15 +5413,20 @@ e('AbstractProgressiveService.addFirstDatapoint', 'AbstractProgressiveService.pu
 
 e('AbstractProgressiveService.addDatapoint', 'AbstractProgressiveService.putDataPackage', 'CALL',
   'addDatapoint calls putDataPackage',
+
   evidence='SRC final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/AbstractProgressiveService.java:187')
 
+# B4 (2026-11-01): AES256SHA256Decoder$1.<init> was UNREACHABLE but its only
+# instantiator, AES256SHA256Decoder.decode, is REACHABLE via Coders.addDecoder
+# (Coders.java:57 registers the decoder, :79 dispatches cb.decode) on the 7z
+# extraction route; decode unconditionally creates the anonymous instance at
+# AES256SHA256Decoder.java:36, so the constructor runs whenever decode runs.
+e('AES256SHA256Decoder.decode', 'AES256SHA256Decoder$1.<init>', 'CALL',
+  'decode returns a new anonymous InputStream subclass instance',
+  evidence='SRC AES256SHA256Decoder.java:36 return new InputStream() {...} creates the anonymous subclass instance')
 
-UNREACHABLE['AES256SHA256Decoder$1.<init>'] = (
-    'framework_never_calls',
-    'Anonymous inner class from unreachable library decoder; instantiated only by AES256SHA256Decoder.decode',
-    'SRC commons_compress_7z/src/main/java/com/amaze/filemanager/filesystem/compressed/sevenz/AES256SHA256Decoder.java:34',
-    'SOURCE'
-)
+
+
 
 UNREACHABLE['AES256SHA256Decoder$1.close'] = (
     'framework_never_calls',
