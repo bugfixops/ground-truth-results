@@ -1,0 +1,375 @@
+$ Batch 1 printed source (from the local clone tree).
+$ Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java
+$ NOTE: merge-ready batch1/batch2 cite the app parser as CoreFeedParser.java; its repo path is core/FeedParser.java, printed below.
+$ Every range below is cited by at least one row of batch1-merge-ready.md; every .py evidence ref traces here.
+$ sed -n '52,54p' com/ernieyu/feedparser/Enclosure.java
+    52		public long getLength() {
+    53			return length;
+    54		}
+$ sed -n '45,47p' com/ernieyu/feedparser/EzRssTorrentItem.java
+    45	    public String getFileName() {
+    46	        return fileName;
+    47	    }
+$ sed -n '53,55p' com/ernieyu/feedparser/EzRssTorrentItem.java
+    53	    public String getMagnetUri() {
+    54	        return magnetUri;
+    55	    }
+$ sed -n '69,71p' com/ernieyu/feedparser/EzRssTorrentItem.java
+    69	    public long getContentLength() {
+    70	        return contentLength;
+    71	    }
+$ sed -n '77,79p' com/ernieyu/feedparser/EzRssTorrentItem.java
+    77	    public int getSeeds() {
+    78	        return seeds;
+    79	    }
+$ sed -n '85,87p' com/ernieyu/feedparser/EzRssTorrentItem.java
+    85	    public int getPeers() {
+    86	        return peers;
+    87	    }
+$ sed -n '93,95p' com/ernieyu/feedparser/EzRssTorrentItem.java
+    93	    public boolean isVerified() {
+    94	        return verified;
+    95	    }
+$ sed -n '14,14p' com/ernieyu/feedparser/Feed.java
+    14	    public FeedType getType();
+$ sed -n '24,24p' com/ernieyu/feedparser/Feed.java
+    24	    public String getLink();
+$ sed -n '29,29p' com/ernieyu/feedparser/Feed.java
+    29	    public String getDescription();
+$ sed -n '34,34p' com/ernieyu/feedparser/Feed.java
+    34	    public String getLanguage();
+$ sed -n '39,39p' com/ernieyu/feedparser/Feed.java
+    39	    public String getCopyright();
+$ sed -n '44,44p' com/ernieyu/feedparser/Feed.java
+    44	    public Date getPubDate();
+$ sed -n '49,49p' com/ernieyu/feedparser/Feed.java
+    49	    public List<String> getCategories();
+$ sed -n '8,9p' com/ernieyu/feedparser/FeedException.java
+     8		public FeedException() {
+     9		}
+$ sed -n '19,21p' com/ernieyu/feedparser/FeedException.java
+    19		public FeedException(String message, Throwable cause) {
+    20			super(message, cause);
+    21		}
+$ sed -n '16,26p' com/ernieyu/feedparser/FeedParserFactory.java
+    16	public class FeedParserFactory {
+    17	
+    18		/**
+    19		 * Creates a new instance of FeedParser.
+    20		 * 
+    21		 * @return new instance of FeedParser
+    22		 */
+    23		public static FeedParser newParser() {
+    24		    // TODO add options for "minimal" parser, max item count
+    25			return new DefaultFeedParser();
+    26		}
+$ sed -n '12,12p' com/ernieyu/feedparser/FeedUtils.java
+    12	public class FeedUtils {
+$ sed -n '16,16p' com/ernieyu/feedparser/Item.java
+    16	    public FeedType getType();
+$ sed -n '36,36p' com/ernieyu/feedparser/Item.java
+    36	    public String getAuthor();
+$ sed -n '51,51p' com/ernieyu/feedparser/Item.java
+    51	    public List<String> getCategories();
+$ sed -n '7,15p' com/ernieyu/feedparser/XML.java
+     7	public class XML
+     8	{
+     9		public static String hash(CharSequence s) {
+    10			final Integer code = SPECIALS.get(s.toString());
+    11			if (code != null) {
+    12				return "&#" + code + ";";
+    13			}
+    14			return null;
+    15		}
+$ sed -n '17,19p' com/ernieyu/feedparser/XML.java
+    17		private static final Map<String, Integer> SPECIALS;
+    18	
+    19		static {
+$ sed -n '35,35p' com/ernieyu/feedparser/impl/AtomFeed.java
+    35		    super(uri, name, attributes);
+$ sed -n '39,41p' com/ernieyu/feedparser/impl/AtomFeed.java
+    39		public FeedType getType() {
+    40			return FeedType.ATOM_1_0;
+    41		}
+$ sed -n '50,53p' com/ernieyu/feedparser/impl/AtomFeed.java
+    50		public String getLink() {
+    51	        Element link = getElement(LINK);
+    52	        return (link != null) ? link.getAttributes().getValue("href") : null;
+    53		}
+$ sed -n '56,59p' com/ernieyu/feedparser/impl/AtomFeed.java
+    56		public String getDescription() {
+    57	        Element descr = getElement(SUB_TITLE);
+    58	        return (descr != null) ? descr.getContent() : null;
+    59		}
+$ sed -n '62,66p' com/ernieyu/feedparser/impl/AtomFeed.java
+    62	    public String getLanguage() {
+    63	        // Not implemented.  Atom language is specified using the xml:lang
+    64	        // attribute on elements.
+    65	        return null;
+    66	    }
+$ sed -n '69,72p' com/ernieyu/feedparser/impl/AtomFeed.java
+    69	    public String getCopyright() {
+    70	        Element rights = getElement(RIGHTS);
+    71	        return (rights != null) ? rights.getContent() : null;
+    72	    }
+$ sed -n '75,78p' com/ernieyu/feedparser/impl/AtomFeed.java
+    75	    public Date getPubDate() {
+    76	        Element pubDate = getElement(UPDATED);
+    77	        return (pubDate != null) ? FeedUtils.convertAtomDate(pubDate.getContent()) : null;
+    78	    }
+$ sed -n '81,91p' com/ernieyu/feedparser/impl/AtomFeed.java
+    81	    public List<String> getCategories() {
+    82	        List<Element> elementList = getElementList(CATEGORY);
+    83	        
+    84	        // Create list of category terms.
+    85	        List<String> categories = new ArrayList<String>();
+    86	        for (Element element : elementList) {
+    87	            categories.add(element.getAttributes().getValue("term"));
+    88	        }
+    89	        
+    90	        return categories;
+    91	    }
+$ sed -n '35,37p' com/ernieyu/feedparser/impl/AtomItem.java
+    35	    public FeedType getType() {
+    36	        return FeedType.ATOM_1_0;
+    37	    }
+$ sed -n '64,66p' com/ernieyu/feedparser/impl/AtomItem.java
+    64	    public String getAuthor() {
+    65	        Element author = getElement(AUTHOR);
+    66	        if (author != null) {
+$ sed -n '86,91p' com/ernieyu/feedparser/impl/AtomItem.java
+    86	    public List<String> getCategories() {
+    87	        List<Element> elementList = getElementList(CATEGORY);
+    88	        
+    89	        // Create list of category terms.
+    90	        List<String> categories = new ArrayList<String>();
+    91	        for (Element element : elementList) {
+$ sed -n '29,33p' com/ernieyu/feedparser/impl/BaseElement.java
+    29	    public BaseElement(String uri, String name) {
+    30	        this.uri = uri;
+    31	        this.name = name;
+    32	        this.attributes = new AttributesImpl();
+    33	    }
+$ sed -n '51,53p' com/ernieyu/feedparser/impl/BaseElement.java
+    51	    public String getName() {
+    52	        return name;
+    53	    }
+$ sed -n '84,86p' com/ernieyu/feedparser/impl/BaseElement.java
+    84	    public Set<String> getElementKeys() {
+    85	        return elementMap.keySet();
+    86	    }
+$ sed -n '22,22p' com/ernieyu/feedparser/impl/BaseItem.java
+    22	        super(uri, name, attributes);
+$ sed -n '58,58p' com/ernieyu/feedparser/impl/BaseItem.java
+    58	            return FeedUtils.equalsOrNull(id1, id2);
+$ sed -n '40,40p' com/ernieyu/feedparser/impl/DefaultFeedParser.java
+    40	                throw new FeedException("Invalid RSS/Atom feed");
+$ sed -n '45,45p' com/ernieyu/feedparser/impl/DefaultFeedParser.java
+    45	        	throw new FeedException(ex);
+$ sed -n '35,36p' com/ernieyu/feedparser/impl/EzRss01Parser.java
+    35	        return new EzRssTorrentItem(fileName, magnetUri, infoHash,
+    36	            contentLength, seeds, peers, verified);
+$ sed -n '39,45p' com/ernieyu/feedparser/impl/EzRss01Parser.java
+    39	    private String parseFileName() {
+    40	        Element element = item.getElement(EZRSS_FILE_NAME);
+    41	        if (element == null || !isEzRssElement(element))
+    42	            return null;
+    43	
+    44	        return element.getContent();
+    45	    }
+$ sed -n '47,53p' com/ernieyu/feedparser/impl/EzRss01Parser.java
+    47	    private String parseMagnetUri() {
+    48	        Element element = item.getElement(EZRSS_MAGNET_URI);
+    49	        if (element == null || !isEzRssElement(element))
+    50	            return null;
+    51	
+    52	        return element.getContent();
+    53	    }
+$ sed -n '63,77p' com/ernieyu/feedparser/impl/EzRss01Parser.java
+    63	    private long parseContentLength() {
+    64	        Element element = item.getElement(EZRSS_CONTENT_LENGTH);
+    65	        if (element == null || !isEzRssElement(element))
+    66	            return 0;
+    67	
+    68	        long contentLength = 0;
+    69	        try {
+    70	            contentLength = Long.parseLong(element.getContent());
+    71	
+    72	        } catch (NumberFormatException e) {
+    73	            return contentLength;
+    74	        }
+    75	
+    76	        return contentLength;
+    77	    }
+$ sed -n '79,85p' com/ernieyu/feedparser/impl/EzRss01Parser.java
+    79	    private int parseSeeds() {
+    80	        Element element = item.getElement(EZRSS_SEEDS);
+    81	        if (element == null || !isEzRssElement(element))
+    82	            return 0;
+    83	
+    84	        return parseInt(element.getContent());
+    85	    }
+$ sed -n '87,93p' com/ernieyu/feedparser/impl/EzRss01Parser.java
+    87	    private int parsePeers() {
+    88	        Element element = item.getElement(EZRSS_PEERS);
+    89	        if (element == null || !isEzRssElement(element))
+    90	            return 0;
+    91	
+    92	        return parseInt(element.getContent());
+    93	    }
+$ sed -n '95,103p' com/ernieyu/feedparser/impl/EzRss01Parser.java
+    95	    private boolean parseVerified() {
+    96	        Element element = item.getElement(EZRSS_VERIFIED);
+    97	        if (element == null || !isEzRssElement(element))
+    98	            return false;
+    99	
+   100	        int verifiedVal = parseInt(element.getContent());
+   101	
+   102	        return verifiedVal == 1;
+   103	    }
+$ sed -n '119,120p' com/ernieyu/feedparser/impl/EzRss01Parser.java
+   119	        return element.getUri() != null &&
+   120	            element.getUri().startsWith(EZRSS_NAMESPACE_URI);
+$ sed -n '100,100p' com/ernieyu/feedparser/impl/FeedHandler.java
+   100	            newElement = new BaseElement(uri, localName, attributes);
+$ sed -n '121,121p' com/ernieyu/feedparser/impl/FeedHandler.java
+   121	        currentElement.setContent(content);
+$ sed -n '37,37p' com/ernieyu/feedparser/impl/Rss1Feed.java
+    37	        super(uri, name, attributes);
+$ sed -n '41,44p' com/ernieyu/feedparser/impl/Rss1Feed.java
+    41	    public FeedType getType() {
+    42	        return FeedType.RSS_1_0;
+    43	    }
+    44	
+$ sed -n '53,86p' com/ernieyu/feedparser/impl/Rss1Feed.java
+    53	    public String getLink() {
+    54	        Element channel = getElement(CHANNEL);
+    55	        if (channel == null) {
+    56	            return null;
+    57	        }
+    58	        for (Element element : channel.getElementList(LINK)) {
+    59	            if (!element.getContent().isEmpty()) {
+    60	                return element.getContent();
+    61	            }
+    62	        }
+    63	        return null;
+    64	    }
+    65	
+    66	    @Override
+    67	    public String getDescription() {
+    68	        Element channel = getElement(CHANNEL);
+    69	        Element descr = (channel == null ? null : channel.getElement(DESCRIPTION));
+    70	        return (descr != null) ? descr.getContent() : null;
+    71	    }
+    72	
+    73	    @Override
+    74	    public String getLanguage() {
+    75	        // Use Dublin Core element.
+    76	        Element channel = getElement(CHANNEL);
+    77	        Element language = (channel == null ? null : channel.getElement(LANGUAGE));
+    78	        return (language != null) ? language.getContent() : null;
+    79	    }
+    80	
+    81	    @Override
+    82	    public String getCopyright() {
+    83	        // Use Dublin Core element.
+    84	        Element channel = getElement(CHANNEL);
+    85	        Element rights = (channel == null ? null : channel.getElement(RIGHTS));
+    86	        return (rights != null) ? rights.getContent() : null;
+$ sed -n '90,102p' com/ernieyu/feedparser/impl/Rss1Feed.java
+    90	    public Date getPubDate() {
+    91	        // Use Dublin Core element.
+    92	        Element channel = getElement(CHANNEL);
+    93	        Element pubDate = (channel == null ? null : channel.getElement(DATE));
+    94	        return (pubDate != null) ? FeedUtils.convertRss1Date(pubDate.getContent()) : null;
+    95	    }
+    96	
+    97	    @Override
+    98	    public List<String> getCategories() {
+    99	        return Collections.emptyList();
+   100	    }
+   101	
+   102	    @Override
+$ sed -n '34,37p' com/ernieyu/feedparser/impl/Rss1Item.java
+    34	    public FeedType getType() {
+    35	        return FeedType.RSS_1_0;
+    36	    }
+    37	    
+$ sed -n '62,68p' com/ernieyu/feedparser/impl/Rss1Item.java
+    62	    public String getAuthor() {
+    63	        // Use Dublin Core element.
+    64	        Element author = getElement(CREATOR);
+    65	        return (author != null) ? author.getContent() : null;
+    66	    }
+    67	
+    68	    @Override
+$ sed -n '83,87p' com/ernieyu/feedparser/impl/Rss1Item.java
+    83	    public List<String> getCategories() {
+    84	        return Collections.emptyList();
+    85	    }
+    86	
+    87	    @Override
+$ sed -n '38,38p' com/ernieyu/feedparser/impl/Rss2Feed.java
+    38	        super(uri, name, attributes);
+$ sed -n '68,86p' com/ernieyu/feedparser/impl/Rss2Feed.java
+    68	    public String getDescription() {
+    69	        Element channel = getElement(CHANNEL);
+    70	        Element descr = (channel == null ? null : channel.getElement(DESCRIPTION));
+    71	        return (descr != null) ? descr.getContent() : null;
+    72	    }
+    73	
+    74	    @Override
+    75	    public String getLanguage() {
+    76	        Element channel = getElement(CHANNEL);
+    77	        Element language = (channel == null ? null : channel.getElement(LANGUAGE));
+    78	        return (language != null) ? language.getContent() : null;
+    79	    }
+    80	
+    81	    @Override
+    82	    public String getCopyright() {
+    83	        Element channel = getElement(CHANNEL);
+    84	        Element copy = (channel == null ? null : channel.getElement(COPYRIGHT));
+    85	        return (copy != null) ? copy.getContent() : null;
+    86	    }
+$ sed -n '96,96p' com/ernieyu/feedparser/impl/Rss2Feed.java
+    96	        return (pubDate != null) ? FeedUtils.convertRss2Date(pubDate.getContent()) : null;
+$ sed -n '100,110p' com/ernieyu/feedparser/impl/Rss2Feed.java
+   100	    public List<String> getCategories() {
+   101	        List<Element> elementList = getElementList(CATEGORY);
+   102	
+   103	        // Create list of category terms.
+   104	        List<String> categories = new ArrayList<String>();
+   105	        for (Element element : elementList) {
+   106	            categories.add(element.getContent());
+   107	        }
+   108	
+   109	        return categories;
+   110	    }
+$ sed -n '86,86p' org/proninyaroslav/libretorrent/core/FeedParser.java
+    86	        return feed.getTitle();
+$ sed -n '95,96p' org/proninyaroslav/libretorrent/core/FeedParser.java
+    95	        for (Item item : feed.getItemList()) {
+    96	            List<String> links = item.getLinks();
+$ sed -n '104,104p' org/proninyaroslav/libretorrent/core/FeedParser.java
+   104	            Date pubDate = item.getPubDate();
+$ sed -n '110,110p' org/proninyaroslav/libretorrent/core/FeedParser.java
+   110	                    articleUrl, item.getTitle(), pubDateTime);
+$ sed -n '170,170p' org/proninyaroslav/libretorrent/core/FeedParser.java
+   170	        for (Enclosure enclosure : item.getEnclosures()) {
+$ sed -n '174,175p' org/proninyaroslav/libretorrent/core/FeedParser.java
+   174	            String url = enclosure.getUrl();
+   175	            String type = enclosure.getType();
+$ sed -n '190,190p' org/proninyaroslav/libretorrent/core/FeedParser.java
+   190	        MediaRss media = item.getMediaRss();
+$ sed -n '238,238p' org/proninyaroslav/libretorrent/core/FeedParser.java
+   238	        EzRssTorrentItem torrentItem = item.getEzRssTorrentItem();
+$ sed -n '242,242p' org/proninyaroslav/libretorrent/core/FeedParser.java
+   242	        String infoHash = torrentItem.getInfoHash();
+$ sed -n '256,256p' org/proninyaroslav/libretorrent/core/FeedParser.java
+   256	        String url = item.getGuid();
+$ grep -rn --include='*.java' 'new BR\(' <srcroot>/org
+(no hits)
+(hits: 0; new BR()
+$ grep -rn --include='*.java' 'DataBinderMapperImpl|InnerBrLookup|InnerLayoutIdLookup|DataBindingTriggerClass' <srcroot>/org
+(no hits)
+(hits: 0; generated mapper / trigger class names)
