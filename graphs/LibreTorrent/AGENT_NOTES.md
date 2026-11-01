@@ -281,3 +281,8 @@ None of these stops the run. Each row stays unlabelled until its question is ans
 - All 40 UNREACHABLE keys pre-existed in graph_def.py (single-quoted; part header's "reconcile duplicate keys" note applies): labels/kinds identical, part update overwrites entries with batch grades (all INFERRED; graph_def held several at SOURCE — grade-only change, disclosed to coordinator, part governs as audited).
 - Part SUPPRESS.update (line 182) removes 43 auto edges into these UNREACHABLE dsts (base-name entries, checked) — the real build effect of this merge.
 - Build scratch/build_b001.txt: methods 4732, edges 6302 (-43 vs b000), REACHABLE 2121, UNREACHABLE 480, UNRESOLVED 2131, errors 2131 (did not rise), warnings 21 (unchanged).
+
+## A4 b002 (2026-11-01, continuation merger)
+- Merged parts/b002.py (audited wave-1 fix-buildnames; harness re-run PASS exit 0 against the authoritative post-A1 staging-A1 batch2 file — the clone batch2 file is pre-A1 and FAILs on the 3 A1-flipped mapper rows 2/38-2/40, which the part correctly carries as UNREACHABLE; LOOSE .md notes only, params-less rows).
+- All 40 rows UNREACHABLE no_trigger_in_app INFERRED, 0 edges; part SUPPRESS.update (line 182) removes 21 auto edges into these UNREACHABLE dsts.
+- Build scratch/build_b002.txt: methods 4732, edges 6281 (-21 vs b001), REACHABLE 2121, UNREACHABLE 480, UNRESOLVED 2131, errors 2131 (did not rise), warnings 21 (unchanged).
