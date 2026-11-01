@@ -1,4 +1,4 @@
-import csv, glob, json, collections
+import csv, glob, json, collections, os
 
 g = json.load(open(glob.glob('graphs/Vanilla-Music/out/*_trigger_graph.json')[0]))
 E = {x['id']: x for x in g['edges']}
@@ -144,6 +144,30 @@ out = [['type', 'item', 'result', 'confirmed_by', 'ref', 'edges', 'note']]
 for m, (res, ref, note) in P.items():
     assert m in rows, m
     out.append(['path', m, res, 'SOURCE', ref, rows[m]['route_edge_ids'], note])
+
+# ---- D7 DEVICE rows: only when a real device run has been committed.
+# graphs/Vanilla-Music/device/results.csv (columns route,method,edges,
+# reached,script_status,run,script) is written by device/compare.py from
+# a committed device/results/<run>/ folder. One DEVICE path row per
+# route: correct when reached, else unclear (a not-reached route never
+# becomes wrong, and no label changes). When the file does not exist,
+# this block adds nothing and the output is byte-identical to before.
+device_results = 'graphs/Vanilla-Music/device/results.csv'
+if os.path.exists(device_results):
+    with open(device_results, encoding='utf-8', newline='') as f:
+        for d in csv.DictReader(f):
+            assert d['method'] in rows, d
+            if d['reached'] == 'yes':
+                res, note = 'correct', d['script_status']
+            elif d['script_status'] == 'unscriptable':
+                res, note = 'unclear', 'unscriptable'
+            elif d['script_status'] == 'timeout' or d['script_status'].startswith('failed_at_step'):
+                res, note = 'unclear', d['script_status'] + ': script failed'
+            else:
+                res, note = 'unclear', d['script_status'] + ': not reached'
+            out.append(['path', d['method'], res, 'DEVICE',
+                        'device run %s/%s' % (d['run'], d['script']),
+                        d['edges'], note])
 
 # ---- label rows: every UNREACHABLE method (generic row per the recipe's --callers/--all check), plus the REACHABLE labels of the sample
 unre = sorted(m for m, l in g['labels'].items() if l.get('unreachable'))
