@@ -1,0 +1,6 @@
+# L2 verdicts — batch 114 (PreferenceActivityConfig newArray)
+
+Scope: OPEN Parcelable-trio rows only. Rows 114/22, 114/23 (setFragment/setTitle) are plain setters, not trio members, and are left untouched. The rest of the PreferenceActivityConfig trio (114/17 Parcel ctor, 114/19 describeContents, 114/24 writeToParcel, 114/26 createFromParcel) is already REACHABLE proposed on the single-extra route (SettingsFragment:239 putExtra + PreferenceActivity:69 getParcelableExtra) and is not re-verdicted here.
+
+| batch/row | method | old label | NEW label | confirmed_by | evidence (file:line or grep path) | revert condition |
+| 114/27 | PreferenceActivityConfig$1.newArray | OPEN | UNREACHABLE | INFERRED | Kind: `no_trigger_in_app`. D19 all three tests pass (greps/L2/grep_array_apis.txt 0; grep_array_apis2.txt 0; grep_parcelable_array_type.txt 0; grep_array_fields.txt shows only the newArray return type at PreferenceActivityConfig.java:89, no field). The only printed parcel sites for this class are single extras (SettingsFragment:239 / PreferenceActivity:69), which never call newArray. | A printed array site naming PreferenceActivityConfig, or a printed Parcelable[] field/state for this class. |

@@ -1,0 +1,4 @@
+# L1 verdicts — batch 92 (hashCode/toString, D30 execution)
+Scope key: see batch3.md header (same greps/L1/ set).
+| batch/row | method | old label | NEW label | confirmed_by | evidence (file:line or grep path) | revert condition |
+| 92/35 | TorrentContentFileItem.toString | OPEN | UNREACHABLE | INFERRED | Def ui/detailtorrent/pages/files/TorrentContentFileItem.java:102-108. Zero outside trigger in grep_all_calls.txt, grep_log_concat.txt, grep_getstring_formatargs.txt, grep_databinding_text.txt, grep_layout_types.txt; TorrentContentFilesAdapter bind uses item fields only; fragment onItemClicked/onItemCheckedChanged use fields only. Its body super.toString() (:105) is a trigger for FileItem.toString (73/32), not for this row. SelectionTracker key status does not dispatch toString. Its UNREACHABLE status removes the second host of 73/32 | Any printed trigger flips to REACHABLE |

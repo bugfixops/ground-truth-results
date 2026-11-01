@@ -1,0 +1,19 @@
+# Spot-check — LibreTorrent batch 86 (Stream A Phase 3b, batches 61-120)
+
+Scope: (1) every row whose label or confirmed_by changed in the Phase 3 completion pass (from verdicts_applied_table.json + coordinator_verdicts.json), fully re-derived from printed source; (2) the 1-in-5 sample rows (1, 6, 11, 16, 21, 26, 31, 36; batch 120: rows 1 and 3 only), verified against the work file's cited evidence and the corpus. A row in both sets is checked once and reported once. No convention was re-decided (D1-D36, R1-R5 stand); a FAIL here means the application is wrong, not that the decision is disagreed with.
+
+Prose rule applied: FAIL-prose iff the main-table evidence still contains a present-outcome sentence asserting OPEN (or NOT the new label/kind) as the row's current state, with no in-cell supersession note. Conditional branches ('if X -> OPEN', 'reverts to OPEN if...'), dated history ('FLIPPED OPEN -> UNREACHABLE', 'prior proposal marked OPEN/REACHABLE'), pending-grep notes without an OPEN assertion, and sentences explicitly superseded in-cell (Phase 1c D4c/D4e notes) are NOT counted as FAIL-prose. 'REACHABLE proposed'/'UNREACHABLE proposed' label cells count as REACHABLE/UNREACHABLE per the Phase 2 count.py rule and are not failed on the qualifier alone. No work file was edited; this file is spot-check output only.
+
+Changed rows in this batch: 7.
+
+- row 7 | ExpansionHeader.setText(int) | label UNREACHABLE | cb INFERRED | PASS | CHANGED (COORD R1, OPEN -> UNREACHABLE). Label, kind (no_trigger_in_app) and confirmed_by INFERRED all match the verdict file; re-derived from the printed greps/prints cited in the verdict; no present-outcome OPEN sentence remains in the evidence (conditional/history/pending-grep mentions only).
+- row 1 | ExpansionHeader.createRotateAnimator | label REACHABLE | cb SOURCE | PASS | SAMPLE. Label matches the work file's cited evidence (spot-checked against the corpus where the evidence is a citation, not a bare assertion); confirmed_by/kind form OK.
+- row 6 | ExpansionHeader.setExpanded(boolean,boolean) | label REACHABLE | cb SOURCE | PASS | SAMPLE. Label matches the work file's cited evidence (spot-checked against the corpus where the evidence is a citation, not a bare assertion); confirmed_by/kind form OK.
+- row 11 | FixHintTextInputEditText.<init>(Context,AttributeSet) | label REACHABLE | cb INFERRED | PASS | SAMPLE. Label matches the work file's cited evidence (spot-checked against the corpus where the evidence is a citation, not a bare assertion); confirmed_by/kind form OK.
+- row 16 | SwitchBar.<init>(Context,AttributeSet) | label REACHABLE | cb INFERRED | PASS | SAMPLE. Label matches the work file's cited evidence (spot-checked against the corpus where the evidence is a citation, not a bare assertion); confirmed_by/kind form OK.
+- row 21 | ThemedSpeedDialView.<init>(Context,AttributeSet,int) | label UNREACHABLE | cb INFERRED | PASS | SAMPLE. Label matches the work file's cited evidence (spot-checked against the corpus where the evidence is a citation, not a bare assertion); confirmed_by/kind form OK.
+- row 26 | BlankFragment.onCreateView | label REACHABLE | cb INFERRED | PASS | SAMPLE. Label matches the work file's cited evidence (spot-checked against the corpus where the evidence is a citation, not a bare assertion); confirmed_by/kind form OK.
+- row 31 | DetailTorrentActivity.<init> | label REACHABLE | cb INFERRED | PASS | SAMPLE. Label matches the work file's cited evidence (spot-checked against the corpus where the evidence is a citation, not a bare assertion); confirmed_by/kind form OK.
+- row 36 | DetailTorrentActivity.onStop | label REACHABLE | cb INFERRED | PASS | SAMPLE. Label matches the work file's cited evidence (spot-checked against the corpus where the evidence is a citation, not a bare assertion); confirmed_by/kind form OK.
+
+Totals: 9 checked, 9 PASS, 0 FAIL.

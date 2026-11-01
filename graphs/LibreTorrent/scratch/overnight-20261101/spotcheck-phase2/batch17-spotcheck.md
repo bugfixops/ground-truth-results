@@ -1,0 +1,34 @@
+# LibreTorrent batch 17 — Phase 2 spot-check (UNVERIFIED proposal, labels only)
+
+- Work file checked: `~/workspace/overnight/stream-A/work/batch17-merge-ready.md` (40 rows, 29 REACHABLE / 9 UNREACHABLE / 2 OPEN after Phase 1c).
+- Spot-check date: 2026-11-01. No merge-ready file was edited, no label was changed by this check, no push was made, no build/sampler/C1 was run (not this task).
+- Evidence base: already-fetched local files only — `~/workspace/overnight/stream-A/corpus/java/` (281-file Java tree). No GitHub connector fetch was needed; no 429 was hit.
+- Verdict rule: PASS requires the label AND the cited definition/caller lines to identify the right method and caller. A range running past the closing brace onto a blank line, the class-close brace, or a following field line is recorded as a nit, not a FAIL. A range that starts on the wrong line, ends mid-method, or names the wrong caller line is a FAIL.
+- Convention note: rows 34-40 turn on decision D8 (M-dispatch) from `~/workspace/overnight/stream-A/DECISIONS.md`. D8 is Muse's own decision, recorded for user/Yang review; this check does not re-decide it. Verdicts on those rows are therefore "PASS as D8-application": the mechanical mapping (which rows flip, which stay OPEN, INFERRED never SOURCE) and the trigger side were verified, and the rows revert per the file's conditional table if the merger rejects D8.
+
+## Rows checked (14 of 40)
+
+Sample rows 1, 6, 11, 16, 21, 26, 31, 36 + Phase 1c changed rows 34, 35, 38, 39, 40 (D8 flips) + must-include rows 34, 35, 36, 37, 38, 39, 40 (D8 flips plus the two rows left OPEN). Union: 1, 6, 11, 16, 21, 26, 31, 34, 35, 36, 37, 38, 39, 40.
+
+## Per-row verdicts
+
+- Row 1 — NanoHTTPD$Response.getData — UNREACHABLE — **PASS (as proposed)**. Def `NanoHTTPD.java:1147-1149` verified. `sendBody` reads the field directly (`this.data.read(…)` :1267), not via the getter. Corpus-wide grep for a Response-typed `.getData()` call returns nothing (all `.getData()` hits in the corpus are `Intent.getData()`). The file's still-owed saved full-repo grep remains owed before merge.
+- Row 6 — NanoHTTPD$Response.headerAlreadySent — REACHABLE SOURCE — **PASS**. Def `NanoHTTPD.java:1173-1179` verified (private static). Calls inside `send` verified: :1205 ("connection") and :1208 ("content-length").
+- Row 11 — NanoHTTPD$Response.sendContentLengthHeaderIfNotAlreadyPresent — REACHABLE SOURCE — **PASS**. Def `NanoHTTPD.java:1277-1288` verified (protected static). Call at `send` :1219 verified.
+- Row 16 — NanoHTTPD$Response.setMimeType — REACHABLE SOURCE — **PASS**. Def `NanoHTTPD.java:1296-1298` verified. Full chain verified: `TorrentStreamServer.serve` :111 → :119 `fileType.setHeaders(res)` → `DLNAFileType.setHeaders` :281 `res.setMimeType(this.mimeType)`.
+- Row 21 — NanoHTTPD$Response$ChunkedOutputStream.write(int) — UNREACHABLE — **PASS (as proposed)**. Def `NanoHTTPD.java:1070-1075` verified; body calls the 3-arg form `write(data, 0, 1)` at :1074. No printed caller calls `write(int)` in the corpus. The file's checker-dispute note is handled correctly: "probably REACHABLE" is not a printed caller, so no flip. This remains the file's highest-priority full-repo grep target, as filed.
+- Row 26 — NanoHTTPD$Response$Status.getDescription — REACHABLE SOURCE — **PASS**. Def `NanoHTTPD.java:1052-1054` verified. Call at `send` :1192 (`this.status.getDescription()`) verified.
+- Row 31 — NanoHTTPD$SecureServerSocketFactory.create — UNREACHABLE — **PASS (nit)**. Label verified: the only installers are `makeSecure` :1684 and `setServerSocketFactory` :1672, and corpus-wide grep finds no caller of either outside their definitions; `start` :1814 calls `getServerSocketFactory().create()` virtually, but the installed factory on the printed trunk is the default one (field initialiser :1531 `new DefaultServerSocketFactory()`). Nit: the file cites def :441-455, but the method itself is :441-454 (`return ss` :452, close :454); :455 is the next field declaration (`CONTENT_DISPOSITION_REGEX`). Proposed citation tidy: `NanoHTTPD.java:441-454`. Label unchanged.
+- Row 34 — libretorrent.DataBinderMapperImpl.\<clinit\> — REACHABLE INFERRED (D8 flip) — **PASS as D8-application**. Trigger side verified: 33 files in the corpus use `DataBindingUtil` (e.g. AddFeedDialog.java:202 `DataBindingUtil.inflate(…)`); no `DataBinderMapperImpl` file exists in the corpus and the corpus-wide grep for `DataBinderMapperImpl|InnerBrLookup|InnerLayoutIdLookup` returns zero hits, matching the file's clean connector file-not-found for the generated mapper. Under D8, mapper load is a dispatch-entry method, so REACHABLE INFERRED (never SOURCE — generated dispatch unprinted) is the correct mechanical application. If the merger rejects D8, this row reverts per the file's conditional table (M-printed: OPEN; M-direct: UNREACHABLE).
+- Row 35 — libretorrent.DataBinderMapperImpl.\<init\> — REACHABLE INFERRED (D8 flip) — **PASS as D8-application**. Same evidence and reasoning as row 34: mapper instantiation is a D8 dispatch-entry method; INFERRED, never SOURCE. Same revert condition.
+- Row 36 — libretorrent.DataBinderMapperImpl.collectDependencies — OPEN — **PASS as D8-application**. D8 deliberately excludes runtime-API methods from the inflate path, and the file's Phase 1c note records exactly that exclusion for this row. OPEN is the correct D8-application (M-dispatch-full, which would flip it, was rejected by D8). No flip by this check.
+- Row 37 — libretorrent.DataBinderMapperImpl.convertBrIdToString — OPEN — **PASS as D8-application**. Same D8 exclusion as row 36 (runtime-API method, not on the inflate path). OPEN is the correct D8-application. No flip by this check.
+- Row 38 — libretorrent.DataBinderMapperImpl.getDataBinder (View overload) — REACHABLE INFERRED (D8 flip) — **PASS as D8-application**. Same trigger-side evidence as row 34; the View-overload `getDataBinder` is a D8 dispatch-entry method (the inflate/bind entry), so REACHABLE INFERRED is the correct mechanical application. Same revert condition as row 34.
+- Row 39 — libretorrent.DataBinderMapperImpl.getDataBinder (View[] overload) — REACHABLE INFERRED (D8 flip) — **PASS as D8-application**. Same as row 38 for the View[] overload. Same revert condition.
+- Row 40 — libretorrent.DataBinderMapperImpl.getLayoutId — REACHABLE INFERRED (D8 flip) — **PASS as D8-application**. Same trigger-side evidence as row 34; `getLayoutId` is a D8 dispatch-entry method, so REACHABLE INFERRED is the correct mechanical application. Same revert condition.
+
+## Totals
+
+- Checked: 14. **PASS: 14. FAIL: 0.**
+- No label found wrong. No proposed label correction. One citation tidy proposed (row 31: 441-455 → 441-454).
+- All D8 rows verified as correct mechanical applications of D8; D8 itself remains for user/Yang review and is not re-decided here.

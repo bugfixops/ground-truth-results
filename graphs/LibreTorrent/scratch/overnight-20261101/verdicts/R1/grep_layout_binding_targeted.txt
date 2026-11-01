@@ -1,0 +1,120 @@
+COMMAND: cat drawer_group_header.xml + main_drawer_content.xml ExpansionHeader elements + dialog_error.xml ExpansionHeader element
+===== drawer_group_header.xml =====
+<?xml version="1.0" encoding="utf-8"?>
+<org.proninyaroslav.libretorrent.ui.customviews.ExpansionHeader xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="48dp"
+    android:padding="8dp"
+    android:clickable="true"
+    android:focusable="true"
+    app:expansion_expanded="false"
+    app:expansion_textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+    android:background="?attr/dialogRectRipple" />===== main_drawer_content.xml lines 20-40 (tags_group_header element) =====
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/drawer_items_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:focusable="true" />
+
+        <org.proninyaroslav.libretorrent.ui.customviews.ExpansionHeader
+            android:id="@+id/tags_group_header"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:padding="8dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:expansion_text="@string/tags"
+            app:expansion_expanded="false"
+            app:expansion_textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+            android:background="?attr/dialogRectRipple" />
+
+        <net.cachapa.expandablelayout.ExpandableLayout
+            android:id="@+id/tags_expandable"
+===== dialog_error.xml lines 1-30 (ExpansionHeader element) =====
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <variable
+            name="detailError"
+            type="String" />
+    </data>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:minWidth="@dimen/min_width_dialog">
+
+        <org.proninyaroslav.libretorrent.ui.customviews.ExpansionHeader
+            android:id="@+id/expansion_header"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:paddingStart="@dimen/dialog_padding"
+            android:paddingEnd="@dimen/dialog_padding"
+            android:paddingBottom="8dp"
+            android:paddingTop="8dp"
+            app:expansion_text="@string/more_details"
+            app:expansion_expanded="false"
+            app:expansion_textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+            android:background="?attr/dialogRectRipple"
+            android:focusable="true" />
+
+
+COMMAND: grep -rn '@{[^}]*color' /home/hatch/workspace/overnight/stream-A/corpus/res-layout  [every binding expression mentioning color]
+/home/hatch/workspace/overnight/stream-A/corpus/res-layout/layout/dialog_add_tag.xml:68:                app:color="@{viewModel.state.color}"/>
+EXIT:0
+
+COMMAND: grep -rn 'BindingAdapter' /home/hatch/workspace/overnight/stream-A/corpus/java/core/utils/BindingAdapterUtils.java; grep -rn 'color' /home/hatch/workspace/overnight/stream-A/corpus/java/core/utils/BindingAdapterUtils.java
+28:import androidx.databinding.BindingAdapter;
+36:public class BindingAdapterUtils
+38:    @BindingAdapter(value = {"fileSize", "formatFileSize"}, requireAll = false)
+50:    @BindingAdapter({"formatDate"})
+74:    @BindingAdapter(value = {"floatNum", "floatPrecision"}, requireAll = false)
+EXIT:0
+
+COMMAND: grep -rn 'android:text' on ExpansionHeader elements (none: elements carry only expansion_text/expansion_textAppearance/style attrs)
+/home/hatch/workspace/overnight/stream-A/corpus/res-layout/layout/drawer_group_header.xml:2:<org.proninyaroslav.libretorrent.ui.customviews.ExpansionHeader xmlns:android="http://schemas.android.com/apk/res/android"
+/home/hatch/workspace/overnight/stream-A/corpus/res-layout/layout/drawer_group_header.xml-3-    xmlns:app="http://schemas.android.com/apk/res-auto"
+/home/hatch/workspace/overnight/stream-A/corpus/res-layout/layout/drawer_group_header.xml-4-    android:layout_width="wrap_content"
+/home/hatch/workspace/overnight/stream-A/corpus/res-layout/layout/drawer_group_header.xml-5-    android:layout_height="48dp"
+/home/hatch/workspace/overnight/stream-A/corpus/res-layout/layout/drawer_group_header.xml-6-    android:padding="8dp"
+/home/hatch/workspace/overnight/stream-A/corpus/res-layout/layout/drawer_group_header.xml-7-    android:clickable="true"
+/home/hatch/workspace/overnight/stream-A/corpus/res-layout/layout/drawer_group_header.xml-8-    android:focusable="true"
+--
+/home/hatch/workspace/overnight/stream-A/corpus/res-layout/layout/main_drawer_content.xml:27:        <org.proninyaroslav.libretorrent.ui.customviews.ExpansionHeader
+/home/hatch/workspace/overnight/stream-A/corpus/res-layout/layout/main_drawer_content.xml-28-            android:id="@+id/tags_group_header"
+/home/hatch/workspace/overnight/stream-A/corpus/res-layout/layout/main_drawer_content.xml-29-            android:layout_width="wrap_content"
+/home/hatch/workspace/overnight/stream-A/corpus/res-layout/layout/main_drawer_content.xml-30-            android:layout_height="48dp"
+/home/hatch/workspace/overnight/stream-A/corpus/res-layout/layout/main_drawer_content.xml-31-            android:padding="8dp"
+/home/hatch/workspace/overnight/stream-A/corpus/res-layout/layout/main_drawer_content.xml-32-            android:clickable="true"
+/home/hatch/workspace/overnight/stream-A/corpus/res-layout/layout/main_drawer_content.xml-33-            android:focusable="true"
+--
+/home/hatch/workspace/overnight/stream-A/corpus/res-layout/layout/dialog_error.xml:17:        <org.proninyaroslav.libretorrent.ui.customviews.ExpansionHeader
+/home/hatch/workspace/overnight/stream-A/corpus/res-layout/layout/dialog_error.xml-18-            android:id="@+id/expansion_header"
+/home/hatch/workspace/overnight/stream-A/corpus/res-layout/layout/dialog_error.xml-19-            android:layout_width="wrap_content"
+/home/hatch/workspace/overnight/stream-A/corpus/res-layout/layout/dialog_error.xml-20-            android:layout_height="48dp"
+/home/hatch/workspace/overnight/stream-A/corpus/res-layout/layout/dialog_error.xml-21-            android:paddingStart="@dimen/dialog_padding"
+/home/hatch/workspace/overnight/stream-A/corpus/res-layout/layout/dialog_error.xml-22-            android:paddingEnd="@dimen/dialog_padding"
+/home/hatch/workspace/overnight/stream-A/corpus/res-layout/layout/dialog_error.xml-23-            android:paddingBottom="8dp"
+
+COMMAND: other-sourcesets listing vs disk (manifest gap check)
+21 /home/hatch/workspace/overnight/stream-A/corpus/other-sourcesets-files.txt
+AbstractTest.java
+core
+viewmodel
+manifest-find EXIT:0 (1 = not on disk)
+14:final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/play/AndroidManifest.xml
+
+COMMAND: corpus/java breakdown (252 app + feedparser lib)
+      3 JacocoInstrument
+      1 MainApplication.java
+     28 com
+    105 core
+      1 org
+      5 receiver
+      5 service
+    133 ui

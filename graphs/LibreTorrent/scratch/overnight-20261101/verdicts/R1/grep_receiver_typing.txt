@@ -1,0 +1,189 @@
+COMMAND: grep -rn 'binding\.color\|\.color' /home/hatch/workspace/overnight/stream-A/corpus/java/ui/tag/TagsAdapter.java /home/hatch/workspace/overnight/stream-A/corpus/java/ui/main/drawer/TagsAdapter.java /home/hatch/workspace/overnight/stream-A/corpus/java/ui/addtag/AddTagDialog.java [ColorView binding receivers]
+103:            binding.color.setColor(item.info.color);
+--- drawer TagsAdapter ---
+191:            binding.color.setColor(item.info.color);
+216:            int colorIdx = item.isSame(selectedItem) ? 0 : 1;
+217:            Drawable d = a.getDrawable(colorIdx);
+262:            int colorIdx = item.isSame(selectedItem) ? 0 : 1;
+263:            Drawable d = a.getDrawable(colorIdx);
+308:            int colorIdx = item.isSame(selectedItem) ? 0 : 1;
+309:            Drawable d = a.getDrawable(colorIdx);
+--- AddTagDialog color sites ---
+45:import com.jaredrummler.android.colorpicker.ColorPickerDialog;
+153:        binding.color.setOnClickListener((v) -> ColorPickerDialog.newBuilder()
+
+COMMAND: sed context DrawerExpandableAdapter group type + groupHeader block
+    public int getChildItemViewType(int groupPosition, int childPosition)
+    {
+        return 0;
+    }
+
+    @Override
+    public boolean onCheckCanExpandOrCollapseGroup(@NonNull GroupViewHolder holder, int groupPosition,
+                                                   int x, int y, boolean expand)
+    {
+        return holder.itemView.isEnabled() && holder.itemView.isClickable();
+    }
+
+    public static class GroupViewHolder extends AbstractExpandableItemViewHolder
+    {
+        private ExpansionHeader groupHeader;
+
+        GroupViewHolder(View itemView)
+        {
+            super(itemView);
+
+            groupHeader = (ExpansionHeader)itemView;
+        }
+
+        void bind(DrawerGroup group)
+        {
+            groupHeader.setText(group.name);
+
+            ExpandableItemState expandState = getExpandState();
+            if (expandState.isUpdated())
+                groupHeader.setExpanded(expandState.isExpanded(), expandState.hasExpandedStateChanged());
+        }
+    }
+
+    public static class ItemViewHolder extends AbstractExpandableItemViewHolder
+    {
+        private ImageView icon;
+
+COMMAND: sed context MainActivity tagsGroupHeader declaration + uses
+    private RecyclerView.Adapter wrappedDrawerAdapter;
+    private RecyclerViewExpandableItemManager drawerItemManager;
+    private SearchView searchView;
+    private TextView sessionDhtNodesStat, sessionDownloadStat,
+            sessionUploadStat, sessionListenPortStat;
+    private ExpansionHeader tagsGroupHeader;
+    private ExpandableLayout tagsExpandable;
+    private MaterialButton addTagButton;
+    private RecyclerView tagsList;
+    private TagsAdapter tagsAdapter;
+
+        sessionDhtNodesStat = findViewById(R.id.session_dht_nodes_stat);
+        sessionDownloadStat = findViewById(R.id.session_download_stat);
+        sessionUploadStat = findViewById(R.id.session_upload_stat);
+        sessionListenPortStat = findViewById(R.id.session_listen_port_stat);
+        tagsGroupHeader = findViewById(R.id.tags_group_header);
+        tagsExpandable = findViewById(R.id.tags_expandable);
+        addTagButton = findViewById(R.id.add_tag_button);
+        tagsList = findViewById(R.id.tags_list);
+        );
+
+        boolean tagsExpanded = PreferenceManager
+                .getDefaultSharedPreferences(this)
+                .getBoolean(getString(R.string.drawer_tags_is_expanded), false);
+        tagsGroupHeader.setExpanded(tagsExpanded);
+        tagsExpandable.setExpanded(tagsExpanded);
+        tagsGroupHeader.setOnClickListener((v) -> {
+            tagsExpandable.toggle();
+            tagsGroupHeader.toggleExpand();
+            PreferenceManager.getDefaultSharedPreferences(this)
+                    .edit()
+                    .putBoolean(
+                            getString(R.string.drawer_tags_is_expanded),
+                            tagsExpandable.isExpanded()
+                    )
+
+COMMAND: int-arg setText receiver typing (non-ExpansionHeader candidates)
+--- SwitchBar class decl + setText context ---
+35:public class SwitchBar extends SwitchCompat
+64:        setTextColor(ContextCompat.getColor(context, R.color.text_primary));
+65:        setText(isChecked() ? R.string.switch_on : R.string.switch_off);
+73:        setText(isChecked() ? R.string.switch_on : R.string.switch_off);
+--- AddTagButton class decl ---
+36:public class AddTagButton extends Chip {
+--- SummaryPreference summaryView decl + summaryResId decl ---
+37:    private TextView summaryView;
+69:        summaryView = (TextView)holder.findViewById(R.id.summary);
+75:        summaryView.setText(getSummary());
+83:        summaryView.setText(summary);
+87:    public void setSummary(int summaryResId)
+89:        super.setSummary(summaryResId);
+91:        summaryView.setText(summaryResId);
+--- tab decl AddTorrentActivity / DetailTorrentFragment (TabLayout.Tab) ---
+/home/hatch/workspace/overnight/stream-A/corpus/java/ui/addtorrent/AddTorrentActivity.java:44:import com.google.android.material.tabs.TabLayoutMediator;
+/home/hatch/workspace/overnight/stream-A/corpus/java/ui/addtorrent/AddTorrentActivity.java:291:        new TabLayoutMediator(binding.tabLayout, binding.viewpager,
+/home/hatch/workspace/overnight/stream-A/corpus/java/ui/detailtorrent/DetailTorrentFragment.java:60:import com.google.android.material.tabs.TabLayoutMediator;
+/home/hatch/workspace/overnight/stream-A/corpus/java/ui/detailtorrent/DetailTorrentFragment.java:188:        new TabLayoutMediator(binding.appbar.tabLayout, binding.fragmentViewpager,
+/home/hatch/workspace/overnight/stream-A/corpus/java/ui/detailtorrent/DetailTorrentFragment.java:282:                .subscribe((inActionMode) -> setTabLayoutColor(
+/home/hatch/workspace/overnight/stream-A/corpus/java/ui/detailtorrent/DetailTorrentFragment.java:381:    private void setTabLayoutColor(int color)
+--- AddTagState.getColor definition (receiver type for state.getColor) ---
+/*
+ * Copyright (C) 2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.addtag;
+
+import androidx.databinding.BaseObservable;
+import androidx.databinding.Bindable;
+
+import org.proninyaroslav.libretorrent.BR;
+
+public class AddTagState extends BaseObservable {
+    private Long existsTagId;
+    private String name;
+    private int color = -1;
+
+    @Bindable
+    public Long getExistsTagId() {
+        return existsTagId;
+    }
+
+    public void setExistsTagId(Long existsTagId) {
+        this.existsTagId = existsTagId;
+        notifyPropertyChanged(BR.existsTagId);
+    }
+
+    @Bindable
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+        notifyPropertyChanged(BR.name);
+    }
+
+    @Bindable
+    public int getColor() {
+        return color;
+    }
+
+    public void setColor(int color) {
+        this.color = color;
+        notifyPropertyChanged(BR.color);
+    }
+}
+--- AddTagDialog state field type ---
+/home/hatch/workspace/overnight/stream-A/corpus/java/ui/addtag/AddTagDialog.java:123:        } else if (viewModel.state.getColor() == -1) {
+/home/hatch/workspace/overnight/stream-A/corpus/java/ui/addtag/AddTagDialog.java:154:                .setColor(viewModel.state.getColor())
+/home/hatch/workspace/overnight/stream-A/corpus/java/ui/addtag/AddTagDialog.java:160:        if (TextUtils.isEmpty(viewModel.state.getName())) {
+/home/hatch/workspace/overnight/stream-A/corpus/java/ui/addtag/AddTagDialog.java:174:                .setTitle(viewModel.state.getExistsTagId() == null ?
+/home/hatch/workspace/overnight/stream-A/corpus/java/ui/addtag/AddTagDialog.java:177:                .setPositiveButton(viewModel.state.getExistsTagId() == null ?
+/home/hatch/workspace/overnight/stream-A/corpus/java/ui/addtag/AddTagViewModel.java:36:    public AddTagState state;
+/home/hatch/workspace/overnight/stream-A/corpus/java/ui/addtag/AddTagViewModel.java:41:        state = new AddTagState();
+/home/hatch/workspace/overnight/stream-A/corpus/java/ui/addtag/AddTagViewModel.java:46:        state.setExistsTagId(info.id);
+/home/hatch/workspace/overnight/stream-A/corpus/java/ui/addtag/AddTagViewModel.java:47:        state.setName(info.name);
+/home/hatch/workspace/overnight/stream-A/corpus/java/ui/addtag/AddTagViewModel.java:48:        state.setColor(info.color);
+/home/hatch/workspace/overnight/stream-A/corpus/java/ui/addtag/AddTagViewModel.java:52:        state.setColor(Utils.getRandomColor());
+/home/hatch/workspace/overnight/stream-A/corpus/java/ui/addtag/AddTagViewModel.java:57:        Long existsTagId = state.getExistsTagId();
+/home/hatch/workspace/overnight/stream-A/corpus/java/ui/addtag/AddTagViewModel.java:59:            info = new TagInfo(state.getName(), state.getColor());
+/home/hatch/workspace/overnight/stream-A/corpus/java/ui/addtag/AddTagViewModel.java:61:            info = new TagInfo(existsTagId, state.getName(), state.getColor());

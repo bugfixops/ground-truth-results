@@ -1,0 +1,19 @@
+# Stream A Phase 2 spot-check — 97 — UNVERIFIED spot-check, NOT a merge decision
+Scope: batch 97 only, LibreTorrent labels only. Source file checked: ~/workspace/overnight/stream-A/work/batch97-merge-ready.md (UNVERIFIED proposal, not a result).
+Method: each row below was re-derived from printed source, searched in already-fetched local copies first (~/workspace/overnight/stream-A/corpus/, 281 app-Java files; ~/workspace/b9192-src/; ~/workspace/b90929495969799102-openclose-src/; ~/workspace/overnight/stream-A/greps/). No merge-ready file was edited, no tick written, no push made. Build/sampler/C1: not run (not this task).
+Verdict rule used: PASS = the row's label is correct and its controlling evidence (including any dated 2026-11-01 revision note in the file, which supersedes older row text) locates the route. FAIL = the label is wrong, or the stated evidence mislocates the route (wrong caller/branch) with no superseding note. Two things are NOT failed: (a) confirmed_by SOURCE vs INFERRED on lifecycle/framework rows — both are permitted values and the classification convention is not decided here; (b) lambda/anonymous $ numbering, which the work files themselves state is source-order, NOT bytecode-verified, and a swap within a group would not change any label. Off-by-one definition spans are noted as corrections, not failures. A row turning on an undecided project convention is left as-is and flagged, never decided here.
+No fresh 429 occurred in this pass (4 connector fetches, batch 99 only, one at a time with ~30 s pauses; no token used).
+
+Rows checked (8): sample rows 1, 6, 11, 16, 21, 26, 31, 36. Row 1 IS the Phase-1 changed row (OPEN → UNREACHABLE, grep-flip re-check SURVIVED), so the sample already covers every Phase-1 change in this batch.
+
+- Row 1 FeedItemsAdapter.getItemPosition — PASS (UNREACHABLE stands). Definition :100-103 (getCurrentList().indexOf, equals-only). Same complete-tree evidence as batch 96 row 40: the only selectable.getItemPosition call sites are the four KeyProvider getPosition methods (TorrentListAdapter :350, FeedChannelListAdapter :295, TrackerListAdapter :247, TorrentContentFilesAdapter :286); FeedItemsAdapter has none; FeedItemsFragment builds no SelectionTracker/KeyProvider. Same recorded framework premise as batch 94 rows 7-8, not re-decided here.
+- Row 6 FeedItemsAdapter$1.areContentsTheSame — PASS (REACHABLE, INFERRED). Definition :108-112, calls oldItem.equalsContent :111; reached when ListAdapter diffs a submitted list (FeedItemsFragment :218/:233); DiffUtil dispatch INFERRED.
+- Row 11 FeedItemsAdapter$ViewHolder.lambda$bind$1 — PASS (REACHABLE, INFERRED). One of the two view-click lambdas registered in bind: menu-button click :144 (popup, :156-160) and item-row click :164 (listener.onItemClicked :166); both run on a printed registration. The row itself states $1 vs $2 assignment is not bytecode-verified; the label holds under either assignment.
+- Row 16 FeedItemsFragment.getAllFeedItemsSingle — PASS (REACHABLE, SOURCE). Called from subscribeAdapter :204; body :223-235 (viewModel.getItemsByFeedIdSingle, adapter::submitList).
+- Row 21 FeedItemsFragment.lambda$observeFeedItems$3 — PASS (REACHABLE, INFERRED). Error lambda :219-220 ("Getting item list error"); Rx dispatch INFERRED.
+- Row 26 FeedItemsFragment.onAttach — PASS (REACHABLE, INFERRED). Definition :100-106 (captures AppCompatActivity); lifecycle dispatch INFERRED.
+- Row 31 FeedItemsFragment.onItemMenuClicked — PASS (REACHABLE, INFERRED). Menu-item lambda FeedItemsAdapter.java:156-160 calls listener.onItemMenuClicked :158; listener is the fragment (FeedItemsFragment.java:152); body :252-261 dispatches to openArticle / markAsRead / markAsUnread.
+- Row 36 FeedItemsFragment.onStop — PASS (REACHABLE, INFERRED). Definition :168-173 (disposables.clear :172); lifecycle dispatch INFERRED.
+
+Totals: 8 rows checked — 8 PASS, 0 FAIL.
+Proposed corrections: none to any label.

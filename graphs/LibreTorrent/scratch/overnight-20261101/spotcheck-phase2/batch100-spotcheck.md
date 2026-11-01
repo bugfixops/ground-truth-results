@@ -1,0 +1,19 @@
+# Stream A Phase 2 spot-check — 100 — UNVERIFIED spot-check, NOT a merge decision
+Scope: batch 100 only, LibreTorrent labels only. Source file checked: ~/workspace/overnight/stream-A/work/batch100-merge-ready.md (UNVERIFIED proposal, not a result).
+Method: each row below was re-derived from printed source, searched in already-fetched local copies first (~/workspace/overnight/stream-A/corpus/, 281 app-Java files; ~/workspace/b9192-src/; ~/workspace/b90929495969799102-openclose-src/; ~/workspace/overnight/stream-A/greps/). No merge-ready file was edited, no tick written, no push made. Build/sampler/C1: not run (not this task).
+Verdict rule used: PASS = the row's label is correct and its controlling evidence (including any dated 2026-11-01 revision note in the file, which supersedes older row text) locates the route. FAIL = the label is wrong, or the stated evidence mislocates the route (wrong caller/branch) with no superseding note. Two things are NOT failed: (a) confirmed_by SOURCE vs INFERRED on lifecycle/framework rows — both are permitted values and the classification convention is not decided here; (b) lambda/anonymous $ numbering, which the work files themselves state is source-order, NOT bytecode-verified, and a swap within a group would not change any label. Off-by-one definition spans are noted as corrections, not failures. A row turning on an undecided project convention is left as-is and flagged, never decided here.
+No fresh 429 occurred in this pass (4 connector fetches, batch 99 only, one at a time with ~30 s pauses; no token used).
+
+Rows checked (8): sample rows 1, 6, 11, 16, 21, 26, 31, 36. No Phase-1 label change is listed in this file's dated 2026-11-01 notes, so no extra rows apply.
+
+- Row 1 FeedChannelListAdapter$ViewHolder.bind — PASS (REACHABLE, SOURCE). Definition :198; called at onBindViewHolder :104 (holder.bind(item, isOpened, listener)).
+- Row 6 FeedFragment.<init> — PASS (REACHABLE, INFERRED). No explicit constructor in FeedFragment.java (grep for "FeedFragment(" returns zero hits) — default constructor, instantiated by the FragmentManager when the fragment is attached. Note (label unchanged): the row's "same strict-entry caveat as row 5" note is now stale — the batch 99 strict-entry evidence (FeedActivity :101 → layouts.xml alias → FragmentContainerView class=FeedFragment) closes the attachment step, so the caveat no longer applies; the coordinator may update the note, no label change.
+- Row 11 FeedFragment.getAllFeedsSingle — PASS (REACHABLE, SOURCE). Called at subscribeAdapter :252; definition :271; body subscribes viewModel.getAllFeedsSingle() → FeedChannelItem::new → adapter::submitList.
+- Row 16 FeedFragment.lambda$getAllFeedsSingle$5 — PASS (REACHABLE, INFERRED). Error consumer :282 (logs "Getting feed list error"); runs when the feed-list Single errors; Rx error-trigger dispatch INFERRED.
+- Row 21 FeedFragment.lambda$onViewCreated$1 — PASS (REACHABLE, INFERRED). Add-channel click lambda :187 (starts AddFeedActivity :188); view-click delivery is framework dispatch INFERRED.
+- Row 26 FeedFragment.markAsReadFeeds — PASS (REACHABLE, SOURCE). Called at onActionItemClicked mark-as-read menu :397; definition :509; body subscribes viewModel::markAsReadFeeds with the selected ids.
+- Row 31 FeedFragment.onResume — PASS (REACHABLE, INFERRED). Definition :223; body restores the saved list state into the layout manager :227-228; lifecycle dispatch INFERRED.
+- Row 36 FeedFragment.onViewStateRestored — PASS (REACHABLE, INFERRED). Definition :232; body restores feedListState from the saved bundle :236-237; lifecycle dispatch INFERRED.
+
+Totals: 8 rows checked — 8 PASS, 0 FAIL.
+Proposed corrections: none to any label. Note-only: batch 100 row 6's strict-entry caveat note is superseded by the batch 99 alias evidence (see batch99-spotcheck.md).

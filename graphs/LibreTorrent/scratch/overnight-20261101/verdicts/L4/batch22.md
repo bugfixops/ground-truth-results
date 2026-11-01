@@ -1,0 +1,4 @@
+# L4 verdicts — batch 22 (misc, D33)
+
+| batch/row | method | old label | NEW label | confirmed_by | evidence | revert condition |
+| 22/1 | AddTorrentParams.writeToParcel | OPEN | OPEN | — | verified, no change — Parcelable trio member under D33: no printed marshalling site naming AddTorrentParams (grep_misc_22_parcel.txt, 0 lines for parcel/putExtra/getParcelable/Bundle/Intent mentions of the class outside its own file; batch file agrees: zero marshalling sites in the saved 252-file grep); definition only at AddTorrentParams.java:96-107; CREATOR definition alone does not flip a row (D33). Not a $1 row (D22 no), not a binding row (D14/D15/D16 no), not D10/D12 | A printed marshalling site naming AddTorrentParams (putExtra/getParcelableExtra/Bundle parcel path) → REACHABLE under D5a/D33; a printed framework parcel dispatch for the class would also settle it |

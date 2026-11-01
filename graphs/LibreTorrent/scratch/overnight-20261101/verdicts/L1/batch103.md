@@ -1,0 +1,4 @@
+# L1 verdicts — batch 103 (hashCode/toString, D30 execution)
+Scope key: see batch3.md header (same greps/L1/ set).
+| batch/row | method | old label | NEW label | confirmed_by | evidence (file:line or grep path) | revert condition |
+| 103/37 | FileManagerNode.toString | OPEN | UNREACHABLE | INFERRED | Def ui/filemanager/FileManagerNode.java:109-116. Zero outside trigger in grep_all_calls.txt, grep_log_concat.txt, grep_getstring_formatargs.txt, grep_databinding_text.txt, grep_layout_types.txt; FileManagerAdapter DiffUtil equals-only + bind field use; ViewModel childNodes list is construction/field use; Dialog uses getName/getType fields. Batch-file FileNode interface-dispatch lead checked and rejected: no printed caller of the FileNode interface methods on a node either, and an interface lead is not a trigger. No plausible unprinted dispatcher | Any printed trigger flips to REACHABLE |

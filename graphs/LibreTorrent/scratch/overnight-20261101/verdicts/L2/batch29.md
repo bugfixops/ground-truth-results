@@ -1,0 +1,18 @@
+# L2 verdicts — batch 29 (MagnetInfo / PeerInfo / SessionStats trio rows)
+
+Scope: OPEN Parcelable-trio rows only. Rows 29/5, 29/20, 29/38 ($1.<init>) are already REACHABLE INFERRED and are not OPEN rows, so they are not re-verdicted here. No marshalling site naming MagnetInfo, PeerInfo, or SessionStats exists in greps/L2/grep_all_parcel_sites.txt.
+
+| batch/row | method | old label | NEW label | confirmed_by | evidence (file:line or grep path) | revert condition |
+| 29/4 | MagnetInfo.writeToParcel | OPEN | OPEN | — | verified, no change. No printed marshalling site for MagnetInfo. | A printed marshalling site naming MagnetInfo. |
+| 29/6 | MagnetInfo$1.createFromParcel | OPEN | OPEN | — | verified, no change. Framework dispatch only, no printed unparcel site for MagnetInfo; this is also the sole caller of 28/35. | A printed unparcel site for MagnetInfo. |
+| 29/7 | MagnetInfo$1.newArray | OPEN | UNREACHABLE | INFERRED | Kind: `no_trigger_in_app`. D19 all three tests pass (greps/L2/grep_array_apis.txt 0; grep_array_apis2.txt 0; grep_parcelable_array_type.txt 0; grep_array_fields.txt shows only the newArray return type at MagnetInfo.java:89, no field; no Bundle/array path names this class). | A printed array site naming MagnetInfo, or a printed Parcelable[] field/state for this class. |
+| 29/9 | PeerInfo.<init>(Parcel) | OPEN | OPEN | — | verified, no change. Only printed caller is PeerInfo$1.createFromParcel, itself OPEN (29/21) — D5b dependency. | A printed unparcel site for PeerInfo. |
+| 29/14 | PeerInfo.describeContents | OPEN | OPEN | — | verified, no change. No printed marshalling site for PeerInfo. | A printed marshalling site naming PeerInfo. |
+| 29/19 | PeerInfo.writeToParcel | OPEN | OPEN | — | verified, no change. No printed marshalling site for PeerInfo. | A printed marshalling site naming PeerInfo. |
+| 29/21 | PeerInfo$1.createFromParcel | OPEN | OPEN | — | verified, no change. Framework dispatch only, no printed unparcel site for PeerInfo. | A printed unparcel site for PeerInfo. |
+| 29/22 | PeerInfo$1.newArray | OPEN | UNREACHABLE | INFERRED | Kind: `no_trigger_in_app`. D19 all three tests pass (greps/L2/grep_array_apis.txt 0; grep_array_apis2.txt 0; grep_parcelable_array_type.txt 0; grep_array_fields.txt shows only the newArray return type at PeerInfo.java:176, no field; no Bundle/array path names this class). | A printed array site naming PeerInfo, or a printed Parcelable[] field/state for this class. |
+| 29/31 | SessionStats.<init>(Parcel) | OPEN | OPEN | — | verified, no change. Only printed caller is SessionStats$1.createFromParcel, itself OPEN (29/39) — D5b dependency. | A printed unparcel site for SessionStats. |
+| 29/33 | SessionStats.describeContents | OPEN | OPEN | — | verified, no change. No printed marshalling site for SessionStats. | A printed marshalling site naming SessionStats. |
+| 29/37 | SessionStats.writeToParcel | OPEN | OPEN | — | verified, no change. No printed marshalling site for SessionStats. | A printed marshalling site naming SessionStats. |
+| 29/39 | SessionStats$1.createFromParcel | OPEN | OPEN | — | verified, no change. Framework dispatch only, no printed unparcel site for SessionStats. | A printed unparcel site for SessionStats. |
+| 29/40 | SessionStats$1.newArray | OPEN | UNREACHABLE | INFERRED | Kind: `no_trigger_in_app`. D19 all three tests pass (greps/L2/grep_array_apis.txt 0; grep_array_apis2.txt 0; grep_parcelable_array_type.txt 0; grep_array_fields.txt shows only the newArray return type at SessionStats.java:89, no field; no Bundle/array path names this class). | A printed array site naming SessionStats, or a printed Parcelable[] field/state for this class. |
