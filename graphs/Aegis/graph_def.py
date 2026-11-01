@@ -784,7 +784,7 @@ e('LaunchScannerTileService.onClick', 'MainActivity.doShortcutActions@SCAN', 'IN
   'the scanner tile starts MainActivity with extra action = scan; onCreate and onStart run on the way',
   guard='onStart reaches the shortcut actions: a plain-text vault file is loaded in onStart (MainActivity.java:963-965), vault init not needed (MainActivity.java:942), error returns at 960 and 971 not taken',
   needs_state=ST_PLAIN_VAULT_FILE,
-  evidence='SRC services/LaunchScannerTileService.java:29-44; SRC ui/MainActivity.java:938-948,957-971,837-841')
+  evidence='SRC LaunchScannerTileService.java:29-44; SRC ui/MainActivity.java:938-948,957-971,837-841')
 e('S_PROCESS', 'MainActivity.doShortcutActions@SCAN', 'ENTRY',
   'the launcher shortcut "new entry" starts MainActivity with extra action = scan; onCreate and onStart run on the way',
   env=ENV_SHORTCUT,
@@ -794,7 +794,7 @@ e('S_PROCESS', 'MainActivity.doShortcutActions@SCAN', 'ENTRY',
 e('MainActivity.doShortcutActions@SCAN', 'MainActivity.startScanActivity', 'CALL', 'the scan shortcut opens the camera scanner',
   guard='intent action is "scan" (put by the scanner tile or the dynamic shortcut) and the vault is loaded (MainActivity.java:840-846)', needs_state=ST_PLAIN_VAULT_FILE,
   note='a plain-text vault is loaded in onStart without the unlock screen (MainActivity.java:963-965); this state is still required here',
-  evidence='SRC ui/MainActivity.java:837-846; SRC services/LaunchScannerTileService.java:33')
+  evidence='SRC ui/MainActivity.java:837-846; SRC LaunchScannerTileService.java:33')
 e('MainActivity.startScanActivity', 'ScannerActivity.<init>', 'INTENT', 'the camera permission is already granted: the scanner opens through scanResultLauncher',
   env=ENV_CAMERA_GRANTED, evidence='SRC ui/MainActivity.java:803-810; SRC helpers/PermissionHelper.java:22-36; ' + FW_LAUNCHER)
 e('PermissionHelper.request', 'MainActivity.onRequestPermissionsResult', 'FRAMEWORK', 'the system permission dialog returns the grant result (CODE_PERM_CAMERA)',

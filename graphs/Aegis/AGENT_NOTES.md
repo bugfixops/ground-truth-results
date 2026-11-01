@@ -667,3 +667,20 @@ Routes with no ERROR (13):
 - UNCLEAR only: IconPack$Icon.<init> (18); DigitCountVerifier.<init> (8, 9, 23, 25); IconPackExistsException.getIconPack (8, 9, 29); Dialogs.lambda$showPartialGoogleAuthImportWarningDialog$30 (8, 9, 22, 24); ImportExportPreferencesFragment.lambda$onImportSelectResult$11 (8, and the 21 steps after it); AuthActivity.lambda$onCreate$3 (8, 13); ScannerActivity.onOptionsItemSelected (8, and 19 two-camera ENV); VaultGroup.equals (8, 9, 28); OtpInfo.isAlgorithmValid (2, 3, 8, 12, 14); GlideOptions.clone (2, 3, 10-15; checker flagged 14-15 as possibly a different Glide path, Glide source not on disk).
 
 Totals: 25 ERROR steps over 12 routes (detailedmulti 25 and 26 not counted). Ten of them are structural (shared relay, state-blind router, saveAndFinish sharing, bind producer), the rest are a missing in-run producer, a wrong receiver or source, or a default-setting contradiction. No graph edit made this round, so round 8 would re-check the same graph and give the same verdicts. Round 8 not run; stop path applies (STOP_RESUME_V2 touched, Aegis stays "- [ ]").
+
+## Finish run C1 (2026-11-01, Aegis merger)
+- C1 check 2: edges E24649299 (LaunchScannerTileService.onClick ->
+  MainActivity.doShortcutActions@SCAN) and E2a97bab7 (doShortcutActions@SCAN
+  -> startScanActivity) cited `services/LaunchScannerTileService.java`,
+  which check_citations.py reads as an AOSP root-style path and reports
+  "file not held". Printed
+  final_java_only/Aegis/app/Aegis-#v3.4.2/app/src/main/java/com/beemdevelopment/aegis/services/LaunchScannerTileService.java:28-44
+  (onClick body; :33 putExtra "action" = "scan"). Rewrote both citations
+  to the passing basename form used by the same file's other edges
+  (`LaunchScannerTileService.java:29-44`, `:33`). No edge endpoints,
+  classes, guards, or labels changed.
+- Local build after edit (bash handoff/ci/rebuild.sh Aegis, private
+  tree): methods 2995, REACHABLE 2537, UNREACHABLE 458, edges 5483,
+  errors 0, warnings 0; check 2: 21 distinct, 0 problems; check 3: 0
+  flagged; check 4: 0; checks 5-7: 0; STRICT 1; check 8: 0 of 458.
+- ## Current step: C1 done, pushed; next C2 (7 decisions).
