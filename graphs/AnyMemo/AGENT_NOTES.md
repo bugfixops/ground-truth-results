@@ -144,9 +144,15 @@ Lesson: running the generator on a graph that already contains its own block pro
 
 ## Current step
 
-- T8 staged for push (waiting on the push lock); D1 ROUTES.csv verified (30 rows, 28 scripted, 2 unscriptable Dropbox routes); D3 route scripts in progress via helpers (5 routes each); D7 DEVICE-row support next.
+- T8 pushed (commit 71faf46f95996b43588ea38216c6b1929fba7855); D1 ROUTES.csv verified (30 rows, 28 scripted, 2 unscriptable Dropbox routes); D3 route scripts in progress via helpers (H2/H5/H6 delivered and merger-verified, H1/H3/H4 pending, all held for auditor PASS); D7 DEVICE-row support staged for push.
 
 ## Decisions made by Muse (for the user and Yang to review)
 
 - None new for T8: the ordering fix is mechanical; no label, edge, or route changed. AnyMemo decision D2 stands (storage permission is a startup-trunk ENV gate only; current modelling stands).
 - D1 status decision (for coordinator record): route_17 Card.toString stays scripted, not unscriptable: its GUI prefix (launch, open deck, study, queue load) is fully scriptable, and the target fires on a DAO-update-failure exception (LearnQueueManager.java:267) that a real run reports as not-reached (unclear) if it does not fire. Revert condition: if the auditor or device lead judges that a script that cannot reach its target must be unscriptable, flip route_17 (3/30 unscriptable, still at the 10% cap).
+
+## Finish run 2026-11-01: D7 (AnyMemo merger)
+
+- 2026-11-01 ~19:12 UTC: DEVICE-row support added to graphs/AnyMemo/make_verification.py, after the T8 sort block. If graphs/AnyMemo/device/results.csv exists, one DEVICE row per results row is appended, in results order, after all existing rows (type=path, result=correct iff reached=yes else unclear, confirmed_by=DEVICE, ref="device run <run>/<script>", edges unchanged, note = script status plus reason for unclear). If the file does not exist, the DEVICE code path does not run and the output is the T8-ordered file exactly. DEVICE rows never feed back into labels, edges, or route checks; a not-reached route never becomes wrong.
+- Synthetic test (private dir, never the shared tree): no-results run byte-identical to the T8-ordered file (347 lines, cmp prints nothing); 5-case synthetic run (yes/ok, no/ok, failed_at_step_3, unscriptable, timeout) run twice byte-identical; diff = only the 5 appended DEVICE rows, in input order, after all existing rows. No real graphs/AnyMemo/device/results.csv written in this run.
+- D7 push: graphs/AnyMemo/make_verification.py (D7 version) + this AGENT_NOTES update, one push under the push lock. verification.csv unchanged (no real device results exist in this run).
