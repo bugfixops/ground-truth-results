@@ -615,3 +615,48 @@ C7 finish_01 00:02 R=2218 U=422 UNRES=341 errors=885 (down from 1211). Fixed reg
   failed_at_step_3 -> unclear script-failed; unscriptable -> unclear)
   appended last in input order; base row set unchanged; third run
   reproduced the same 4 DEVICE rows. py_compile OK.
+
+## D1+D3 (2026-11-01): device routes list + 19 route scripts (auditor PASS)
+- ROUTES.csv: 30 rows (final sample size), 19 scripted / 11 unscriptable.
+  Unscriptable (each with a reason in the status column): 05 cloud OAuth
+  account, 06 SMB server + external player, 07 SSH handshake, 08 false
+  focus trigger + gated stored-host-key caller, 09/11 parcel recreation
+  only, 12 read-only-grant write failure, 22 SMB discovery, 23 system
+  SAF picker, 29 SSH branch, 30 saved-SSH-row prerequisite. 11/30 is
+  over the brief's 10% cap, reported honestly with reasons (Diary
+  precedent: 5/30 landed with reasons); no route was forced to scripted.
+- Scripts: 19, one per scripted route, each dry-run exit 0 with no
+  PYTHONPATH after merge (19/19 PASS). Independent auditor PASS
+  (audit/D3/AUDIT.md, 549 lines): 10 scripts read fully against
+  printed routes + handler source, 4 unscriptable reasons verified
+  against printed source (08, 12, 23, 30 all PASS), all EDGE_IDS exact.
+  Auditor-accepted: route_19 _shell horizontal swipe (ruling: accepted
+  for dry-run + live logging; public Runner.swipe() optional, not
+  required); route_27 SAF-retry -> direct-rename prefix substitution
+  (converges at Eddafb591); route_04 setup-under-first-edge logging.
+- Merge fixes (mechanical, logic unchanged): sys.path dirname-x3 ->
+  dirname-x4 for routes 01/02/03/04/10/26/27/28 (auditor-confirmed
+  list; the other 11 resolve as written); route_25 FIXTURE_LOCAL ->
+  script-dir-relative fixtures/sample.zip (was cwd-relative).
+- Fixtures committed beside the scripts (all UTF-8 text, < 900 KB):
+  amaze_search.txt (14/15), amaze_text_fixture.txt (16),
+  amaze_encrypt_fixture.txt (20), route26_source.txt (26),
+  route27_source.txt (27), fixtures/pastefixture.txt (10, created:
+  trivial text). Binary zips CANNOT be committed via the connector
+  (push-files rejects non-UTF-8 files), so setup must GENERATE:
+  fixtures/sample.zip (25: minimal zip, one text entry, placed beside
+  the script because route_25 pushes it script-dir-relative),
+  route04.zip (04: zip with sub/note.txt, pushed to
+  /sdcard/Download/route04.zip), and route28_archive.zip (62,934,136 B,
+  three 20 MiB entries, beside the script) — all documented in
+  ROUTES.csv. Setup notes in ROUTES.csv cover:
+  fixture pushes, route_27 fixture-only Download, route_15/16/19
+  600 ms animator settle, route_02 network guard + tile-listening
+  caveat, route_18 SEND_MULTIPLE resolver requirement.
+- Carried graph-side flags (NOT fixed here; coordinator to direct):
+  route_08 false focus edge (see B6-errata flag), route_24 print
+  citation :221 -> :211-213, route_28 print citation :422 -> :423,
+  route_01 print caveat (steps 10-14 need a String->Bitmap cloud-model
+  load; Apps preload is String->Drawable, so live replay proves the
+  chain only up to factory construction). None blocks D1/D3: scripts
+  faithfully drive their printed triggers.
