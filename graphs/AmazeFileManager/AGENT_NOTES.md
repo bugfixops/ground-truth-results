@@ -567,3 +567,28 @@ C7 finish_01 00:02 R=2218 U=422 UNRES=341 errors=885 (down from 1211). Fixed reg
   GlideRequest x8 incl. listener — now REACHABLE — GlideRequests.as,
   setRequestOptions, LayoutElementParcelable.writeToParcel, etc.) were never
   used to flip a label; listener flipped on printed source, not coverage.
+
+## Finish run (2026-11-01, AmazeFileManager merger): B7 logs
+- make_verification.py written (modelled on AnyMemo's): path rows from the
+  B6 final sample (30: 5 correct, 25 fixed, results = route_table.md round
+  verdicts), label rows for all 469 UNREACHABLE + the 30 sampled REACHABLE
+  (499 total), edge rows for the 10 B6 added/rewired edges (fixed) + the 4
+  distinct FW-SRC framework claims (correct). Every row validated against
+  out/methods.csv + the trigger JSON; the script raises on any mismatch.
+  verification.csv header exactly type,item,result,confirmed_by,ref,edges,note.
+- readme_notes.md written with the five headings exactly, in order
+  (re-audit changes / checked paths / waits for a device / hazard candidates
+  / limits). gen_readme_v2.py runs inside handoff/ci/rebuild.sh (it is a
+  CI step that commits out/README.md); the local rebuild regenerated
+  out/README.md from the new notes (verified: it contains the B6
+  ZipService sweep and the 0.833 rate). out/ itself is never pushed by hand.
+- LESSONS.md written (7 bullets).
+- Final B7 rebuild (build_B7.txt): methods 2981, REACHABLE 2512,
+  UNREACHABLE 469, edges 7758, errors 0, warnings 0; check 2: 0, check 3: 0,
+  check 4: 0, checks 5-7: 0, check 8: 3 of 469 (B4-explained); the build
+  cross-checked verification.csv itself (label 499 with 25 fixed, edge 14
+  with 10 fixed, path 30 with 25 fixed, unclear 0 in all three — matching
+  the writer's counts exactly).
+- DEVICE rows (D7) are NOT in this writer yet, by design: D7 adds them
+  later, with the rule that while no device/results file exists the output
+  must stay byte-identical to this writer's output (verified by cmp at D7).
