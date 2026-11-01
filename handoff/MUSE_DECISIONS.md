@@ -3090,3 +3090,351 @@ independent redraw — the redraw itself is blocked (see D2).
 All overnight work stays local; nothing is written to PROGRESS_V2, graph_def.py,
 out/, verification.csv or AGENT_NOTES on the branch, and no tick marker is written
 anywhere. The proposed status line is stated in the final report only.
+
+## Finish run decisions appended 2026-11-01 ~16:40 EST (coordinator)
+
+All entries below are Muse's own decisions for user/Yang review, unless marked USER.
+They cover the finish run since the 11:10 EST push (head 8124fa4). Overnight
+decisions already in this file are not repeated. Format per brief section 6:
+id, app, item, options, choice, printed evidence, effect, how to reverse.
+
+- LT-A1-C1 (LibreTorrent, A1 parcel rows): brief A1 rule (b) overrides the
+  earlier batch-file parcel conventions. Effect: A1 parcel verdicts follow the
+  brief rule, not the batch files. Reverse: restore the batch-file convention
+  for the affected rows and re-verify.
+- LT-A1-C2 (LibreTorrent, batch 17 row 36 collectDependencies): choice
+  REACHABLE INFERRED, overriding batch-17 decision D8. Evidence: printed
+  javadoc contract for the addMapper to collectDependencies library link;
+  the final library link itself was not independently re-printable, so the
+  row discloses the unpinned blame view 671bd2ff plus the javadoc contract
+  and is correctly INFERRED, not SOURCE. Auditor caveat recorded. Reverse: if
+  the premise behind D8 is shown to hold, flip the row back and re-verify.
+- LT-A1-C3 (LibreTorrent, batch 48 rows 12-13): choice stay UNREACHABLE,
+  kind framework_never_calls, confirmed_by INFERRED. Evidence:
+  core/storage/AppDatabase.java:42-52 (the @Database annotation lists
+  entities plus version 9 only); auto_calls shows 0 callers for both rows;
+  these are the weakest flips in the A1 set. Reverse: on a printed Room
+  2.6.1 runtime call site for either row, flip to REACHABLE with the route.
+- LT-A3-B019-1 (LibreTorrent, batch 19): the bare TorrentMetaInfo init edge
+  is split into 3 qualified edges (byte array form :69, TorrentInfo form :79,
+  FileInputStream form :92), each with evidence DecodeException.java:35-39.
+  The (Parcel) and (String,String) forms are excluded as decided. Effect:
+  R=33 U=7 O=0 of 40 for the batch, edges 35, SUPPRESS 7. Reverse: restore
+  the bare edge and re-run the batch harness.
+- Aegis-C2-D1 (Aegis, R1 step 13, S_INTRO_WELCOME to S_INTRO_PICKER ENTERS,
+  graph_def.py:557): page node enough; NO SYSTEM producer, NO needs_state.
+  The brief starting choice (add producer plus needs_state) is DECLINED:
+  goToNextSlide (IntroBaseActivity.java:80-93) advances the slide on the tap
+  itself (:47; a GUI edge lambda onCreate 1 to goToNextSlide exists), so no
+  earlier producer state exists to name, and a SYSTEM node would be
+  unverifiable. No edit. Reverse: printed AppIntro source showing the slide
+  change needs a separate producer step not on the tap path.
+- Aegis-C2-D2 (Aegis, Route 4 step 9, Ebac005d0 icon pack): CONFIRM AS-IS.
+  needs_state ST_ICON_PACK_INSTALLED already present; verified
+  IconPackManager.java:33 is rescanIconPacks (constructor :31-35). No edit.
+  Fresh-declared routes UNCLEAR, relaunch-declared correct.
+- Aegis-C2-D3 (Aegis, Route 1 step 21, E1dcf1457 RESULT/initNew): CONFIRM
+  the @SAVED variant split as permanent. Fresh show_route
+  MainActivity.onIntroResult steps 22-24 resolve (initNew to
+  onDonePressed@SAVED to lambda new 1 to onIntroResult;
+  IntroActivity.java:92-104,126-129; MainActivity.java:142-148). No edit.
+- Aegis-C2-D4 (Aegis, search step 14, E399cebc2 SEARCH_IN_GROUPS): UNCLEAR
+  with prior-run needs_state. Verified BehaviorPreferencesFragment.java:57
+  sets the mask, MainActivity.java:234 reads it once at onCreate (:193),
+  EntryAdapter.java:206-209 reads it. Added ST_SEARCH_IN_GROUPS plus
+  STATE_KINDS settings plus needs_state on the edge. No label change.
+  Reverse: print showing the mask re-read after a preference change
+  without relaunch.
+- Aegis-C2-D5 (Aegis, G3_5 step 34, tap-first GA chain): CONFIRM; the no-tap
+  Authy-default path stays unmodelled (Limits note at C4), not
+  UNREACHABLE. Mechanism corrected: Authy is default-checked on @APP
+  because isDirect leaves i at 0 (Dialogs.java:519-522,528) and Authy is
+  first among supportsDirect entries (DatabaseImporter.java:99-102,37),
+  not because :37 alone means checked. Comment plus pick-edge guard
+  corrected. No model change; no Authy edge on the shared OK node.
+- Aegis-C2-D6 (Aegis, GlideRequests step 50, root-gated app import):
+  CONFIRM AS-IS. ENV_ROOT already maps to kind other (ENV_KINDS_OF) with
+  text citing ImportEntriesActivity.java:149-153 plus RootShellTask.java:
+  17-20, and already gates lambda startImportApp 5 to readFromApp;
+  startImport to startImportApp already has ENV_INSTALLED_GA;
+  doInBackground needs no gate (Shell.build runs regardless; root is
+  checked at the callback :149-153). Route stays open until C3 redraw.
+  No edit.
+- Aegis-C2-D7 (Aegis, readFromApp step 24, checked-row chain): RESOLVED,
+  chain CORRECT as printed; the missing print LANDED.
+  dialog_importers.xml sets choiceMode singleChoice; Dialogs.java:528
+  setItemChecked, :529-531 listener (help text only), :537 OK reads
+  getCheckedItemPosition; AbsListView.java:1136-1150 (CHOICE_MODE_SINGLE
+  tap sets the checked row, then dispatches to the listener). The
+  dossier hold-ERROR plus @APP_GA variant is superseded: the @APP_GA
+  split is DECLINED (no missing producer; the framework step is the
+  producer, now FW-SRC cited). Pick-edge evidence gains the AbsListView
+  FW-SRC citation; OK-edge guard now states the precondition explicitly.
+  GA tap route judgable CORRECT at C3 redraw (was ERROR). Reverse: print
+  showing the dialog ListView is NOT single-choice at runtime.
+- Aegis-C2-R1 (Aegis, cold-start edges E20e76e09/E57db524e/Ec7af65b2):
+  keep all three with cross-run needs_state. E20e76e09/E57db524e already
+  carry ST_PLAIN/ST_ENCRYPTED; Ec7af65b2 (onStart to updateErrorCard)
+  was missing its gate, so needs_state ST_VAULT_FILE added (onStart
+  returns early with no vault, MainActivity.java:942-948; reads the vault
+  :950-977). Fresh-declared routes UNCLEAR, relaunch-declared correct,
+  intro-flow routes satisfy in-run via initNew. C2 pushed as e02f1e6
+  (first attempt failed not-a-fast-forward when AnkiDroid B1 landed;
+  Aegis files untouched, retried, landed); local build after C2 edits:
+  2995 methods, 2537/458, edges 5483, errors 0, warnings 0, check 2: 22
+  distinct 0 problems, other checks 0, STRICT 1, check 8: 0 of 458.
+- Aegis-C3-D01 to D10 (Aegis, round-7 fixes 04/06/16 package, Muse's own):
+  variant splits over deletion; plain-delegation re-writes where a plain
+  caller remains; Aegis two-chain split; route-06 format split over
+  needs_state; $26 guard correction; plain cancel edges kept; only
+  onStateDecrypted Welcome edges suppressed; import-page file-argument
+  split; PBKDF split by builder; grading UNCLEAR on step 8 only. Full
+  record in helper EDITS.md section 6 plus merger scratch/fix_log.md.
+  Merger-verified corrections to the helper package (not new labelling
+  decisions): the dialog-script section-7 $26 needs_state removal (it
+  contradicted section-06 Fix 2 plus the helper's own final graph);
+  Fix L applied (10-pair suppression, non-Aegis importer callbacks to
+  WelcomeSlide 1 onStateDecrypted, in EDITS.md section L plus
+  graph_def_final.py but omitted from the dialog script; without it
+  WelcomeSlide 1 still dumped a false 38-step Totp-import route; with
+  it 29 steps via @WELCOME); 13 check-4 citation corrections (delegation
+  citations off by one, call line not declaration line: PWD3 :260 to
+  :259 x3, PWD5 :272 to :271 x6, TIDLG5 :244 to :243 x2, export
+  launchers :82 to :83, :86 to :87; check 4 then 0). Effect: routes 04
+  (22 steps), 06 (32), 16 (42) all ERROR-free, graded UNCLEAR on step 8
+  only; round-7 wrong routes fixed: 01, 02, 03, 04, 06, 16, 20; route 14
+  stands wrong by design. Reverse: revert the package edits one group at
+  a time and re-dump.
+- Aegis-C3-Step8 (Aegis, final sample table, coordinator decision,
+  binding, Muse's own): the STRICT D-C3-10 reading STANDS. The 12
+  solely-step-8 UNCLEAR routes stay UNCLEAR, NOT CORRECT. The
+  relaunch-compatible reading (which would give CORRECT 17, WRONG 6,
+  UNCLEAR 2, first-draw rate 6/23 = 0.2609) is NOT adopted: the declared
+  configuration is fresh install, step 8's own guard demands a producer
+  of the loaded vault earlier on the route, steps 1-7 contain none, and
+  adopting the relaunch reading would hide the one step with no in-run
+  producer. This reaffirms the concordant rulings of all three fix
+  audits (fix-010203, fix-2014-sample, fix-040616). Honest note: UNCLEAR
+  routes are excluded from the error-rate denominator under either
+  reading, so this choice hides no WRONG route; but the final CORRECT
+  count must not be inflated from 5 to 17 by convention. Reverse: only by
+  an explicit user ruling adopting the relaunch reading, recorded here.
+- Anki-B2-1 (AnkiDroid, check-2 citations): word-form citations only as
+  the in-rules resolution. Root cause: check_citations.py:20 ROOT_STYLE
+  is unanchored and matches a services slash path colon digits substring,
+  so app files under a services directory can never be cited in dir form.
+  Fix keeps the path verbatim and puts line numbers in words (for
+  example, line 47). Effect: check 2 goes 276/3 to 273 distinct 0
+  problems. Reverse: re-anchor the checker (tools edit, not done here).
+- Anki-B2-2 (AnkiDroid, MockNoteFactory wording): the wording is that
+  source under multimediacard/test/ is PRUNED from the checker source
+  index (show_route.py:23 test/ pruning), NOT the brief's literal "no
+  source in the upload" (FALSE: the file exists, 2600 B, lines printed
+  and correct). Effect: the citation stands in passing form with the
+  correct explanation. Reverse: none needed; wording correction only.
+- Anki-B4-binding (AnkiDroid, check-8): the 8 supposedly new entries are
+  NOT new. All 8 pairs already exist in graph_def_mod/01.py sup blocks
+  (XAxisBarGraph.paint:3699/:3700, XAxisHistoGram.paint:3711/:3712,
+  YAxisBarGraph.paint:3796/:3800, YAxisHistoGram.paint:3795/:3799), so
+  the merger VERIFIES rather than duplicating them. The ReliefLegend
+  reason reword APPLIES (ReliefDrawer.java:473-474 getLegend creates a
+  ReliefLegend, zero callers root-wide, ReliefDrawer never constructed).
+- MMEX-D1 (MMEX, check-2 citations): where the basename is unique in
+  final_java_only/MMEX, cite SRC basename colon lines with identical
+  lines; where not unique, keep the full path with ", lines" wording.
+  Both keep a true verifiable file-plus-lines reference and break the
+  false match (the checker's ROOT_STYLE regex is unanchored, so any
+  core slash file colon lines anywhere in evidence or reasons is treated
+  as a framework citation; app files under core/ can therefore never be
+  cited in dir form). Effect: combined B2 gives check 2 = 249 distinct,
+  0 problems. Reverse: re-anchor the checker (tools edit, not done).
+- MMEX-D2 (MMEX, check-4 EDIT): (a) use B3a's corrected criterion, not
+  the brief's _Factory.java-only form (the corrected rule adds: contains
+  _Provide AND ends with Factory.java; the brief form misses 18
+  _Provide Factory lines over 9 basenames); (b) apply it criterion-wide
+  (278 edges), not scoped to the 212 problem ids (B3a verified the extra
+  66 carry the identical defect and 0 wrongful rewrites, and a rule, not
+  a 212-entry list, cannot drift); (c) FIX_LINES values verbatim;
+  (d) MmxContentProvider 19 goes to B3b's true new X open-paren lines.
+  EDIT touches only edges matching these patterns; all others pass
+  through. Edge ids change; no path rows exist yet, so nothing goes
+  stale. Accept at check 4 = 0 where the cited line does not show the
+  name (bytecode form). Effect: check 4 goes 244 to 32 (B3a) to 0 (B3b).
+  Reverse: revert the EDIT block and re-run check 4.
+- MMEX-B6-DispatchSplit (MMEX, B6 fix phase, coordinator decision,
+  Muse's own): the dispatcher-split rework is AUTHORISED; accepting the
+  15 WRONG routes as wrong-with-reason is REJECTED (it would leave a
+  0.875 final error rate, half the sample wrong, not ground-truth
+  quality, and a viable fix mechanism exists); a guard-corrected redraw
+  only is REJECTED as insufficient (guards are text never evaluated by
+  the pathfinder, verified in tools/build_graph.py, so a guard-corrected
+  redraw returns the same 15 wrong paths and only converts the 6 FIXED
+  routes to CORRECT, giving 15/24 = 0.625). Authorised mechanism: brief
+  section 6 preference (variant node over deleting a route) plus the
+  Aegis precedent (Aegis fixed exactly this defect class with variant
+  nodes only the producer chain reaches, never by deleting the
+  dispatcher edge). Edge deletion is FORBIDDEN: 14 of the 15 WRONG routes
+  are shortest-path context errors through a shared dispatcher node,
+  NOT spurious edges, and deleting the edge would break a real route
+  (the ad-hoc AbsListFragment to BudgetListFragment.onViewCreated
+  sibling-edge deletion was correctly refused: model-inconsistent
+  without the same treatment for all sibling fan-outs, and still left
+  that route wrong at steps 9 and 18). Any split impossible from printed
+  source falls back to wrong-with-reason with a route-14-style proof of
+  no-variant-fix, recorded, never forced. Reverse: revert splits one
+  dispatcher at a time and re-dump.
+- Currency-CUR-T1-D1 (Currency, T1 path rows): preserve the 28 recorded
+  path rows despite today's 27-method redraw; all 28 validate, SOURCE_OK.
+  Reverse: re-draw and re-validate if any row fails validation.
+- Currency-CUR-T1-D2 (Currency, T1 writer): the writer uses section 4
+  validation plus ref-sanity, not AnyMemo's stricter ref-on-evidence
+  check. Reverse: adopt the stricter check if a row's ref is challenged.
+- Currency-CUR-D3-D1 (Currency, route_07 toast): stays scripted. The
+  network-failure precondition is creatable via adb in principle; on a
+  Wi-Fi emulator the route may return not-reached, which maps to unclear,
+  never wrong. Open setup question for the device lead: whether the
+  run contract supports per-route network preconditions. Reverse: re-grade
+  unscriptable if the device lead rules the precondition uncreatable.
+- Currency-CUR-D3-D2 (Currency, widget routes 24-27): broadcast
+  substitution is brief-prescribed and accepted. Reverse: none; disclosed
+  in the scripts.
+- Diary-D3-01/02/04 (Diary, widget routes 01, 02, 04): unscriptable
+  verdicts stand. DiaryWidgetUpdate has no intent filter, Diary.java:
+  2357-2368 broadcasts only placed ids, edge Ede74cf66 requires a placed
+  widget, and the harness has no placement or drag operation; later
+  steps tap a placed widget's PREV/NEXT arrows. Reverse: a harness drag
+  primitive that places widgets (see the user's 16:31 EST harness
+  extension order) converts these three to scripted.
+- Diary-D3-05F (Diary, route_05 fixtures): the fixtures cell gains
+  Pictures/photo_1.jpg (file exists in the fixture store); this closes
+  the device-lead item on sample.pdf-style gaps for this route. Drycheck
+  does NOT catch this gap (it passes an empty fixtures cell vacuously).
+- Diary-D3-14 (Diary, route_14 I/O error): unscriptable verdict stands.
+  Diary.java:1982-1988 getHome falls back to writable storage,
+  Editor.java:396-425; there is no chmod, remount, or fill action in the
+  harness. The directory-fixture avenue is explicitly unverified, not
+  disproven: it needs a path mapping, a fixture-dir entry, a ROUTES
+  fixtures entry, real-emulator proof, and an ordering check against
+  other Editor routes, and must NOT count toward the cap today.
+- Diary-D3-28 (Diary, route_28 fling): unscriptable verdict stands.
+  Diary.java:841-842,:3440-3441: getNextCalendarMonth runs only from
+  onSwipeUp, only from onFling; a single-pointer scroll_to fails the
+  same guard. Reverse: a multi-touch primitive converts this route.
+- Diary-D3-12P (Diary, route_12): stays scripted, CONFIRMED SAFE.
+  Diary.java:1305-1323; QueryHandler.java:124-126; the edit-button
+  substitution for the printed double-tap reaches the same edit state
+  and is disclosed; it degrades to unclear, never wrong, if
+  unprovisioned. Reverse: none unless the substitution is disproven.
+- Diary-D3-PERM (Diary, permissions): the grant-set reading is sound.
+  Only route_17 carries an ENV permission kind, and its cell lists
+  exactly its four permissions; every granted permission (routes 08, 09,
+  10, 11, 12, 17, 24) is manifest-declared; the manifest declares exactly
+  INTERNET plus the four granted. Basis: Diary.java:2248-2265,:561-564.
+- Diary-D3-CAP (Diary, cap): 5 of 30 unscriptable (01, 02, 04, 14, 28) is
+  16.7 percent, OVER the D3 10 percent cap (3 of 30). The cap is a
+  written rule and is NOT waived by the coordinator. Path: a harness
+  extension (widget placement alone converts 01/02/04 to 2 of 30; fling
+  plus multi-touch plus the route_14 avenue together convert 14/28 to
+  3 of 30) or a user ruling. No row is hidden to meet the cap. See the
+  USER ruling below for the resolution path ordered 2026-11-01 ~16:31 EST.
+- Hash-HC-T3-1 (hash-checker, T3 writer): seed order is current file
+  order, not alphabetical, because T3 acceptance is byte-identical
+  output. Reverse by re-sorting the seed (breaks byte-identity; do not).
+- Hash-HC-T3-2 (hash-checker, T3 writer): path-ref validation exception
+  for LogUtils.e over SharedPreferencesSettings.java:44-49 (the
+  getLastHashType catch that calls LogUtils.e, the second printed
+  LogUtils.e call site, retained as supporting evidence for this fixed
+  row; the route ends at the openSystemFileManager catch,
+  HashCalculatorFragment.java:196-199). All other path refs validate
+  against route evidence or the method's own file. Reverse by removing
+  the exception entry (the writer then refuses the current file; only
+  valid if the row's ref changes after a route re-check).
+- Hash-HC-D1-1 (hash-checker, D1): empty permissions plus
+  debug-manifest storage permissions are flagged as a harness
+  precondition, not route gates (auditor-confirmed). Reverse by listing
+  READ/WRITE_EXTERNAL_STORAGE on picker routes.
+- Hash-HC-D3-31 (hash-checker, route_31 LogUtils.e, coordinator decision,
+  Muse's own): RECLASSIFIED as unscriptable. Grounds: LogUtils.e fires
+  ONLY in the ActivityNotFoundException catch in openSystemFileManager
+  (HashCalculatorFragment.java:191-200: try :192-196 ACTION_OPEN_DOCUMENT
+  startActivityForResult, catch :197, LogUtils.e :198, snackbar :199)
+  when no app handles the intent; on the replay image DocumentsUI
+  handles it, so the catch never fires normally. The D3 auditor's
+  route_31 PASS was explicitly CONDITIONAL on device-lead confirmation;
+  the device lead responded that the harness has no component-disable
+  action, adding one is invasive plus risks breaking other picker
+  routes, and recommended reclassification, so the condition FAILED.
+  Manufacturing the precondition via the script's private runner shell
+  call to disable the documents UI package is not a supported replay
+  step. Label UNTOUCHED; D7 maps not-reached to unclear, never wrong.
+  Hash-checker becomes 36 scripted, 1 unscriptable, 2.7 percent, within
+  cap. Reverse: a supported component-disable primitive plus a proof
+  the catch fires on the replay image.
+- Hash-HC-D3-31-NOTE (hash-checker, D3 bundle): ROUTE_UNSCRIPTABLE_31.md
+  JOINS the push (40 paths total), with the AGENT_NOTES sentence
+  updated to record the 40-path push (the re-audit's two conditions;
+  the bundle as staged before those updates must NOT be pushed as-is).
+- Markor-D3-04 (Markor, ROUTES row 04 permissions): row 04 permissions
+  cell goes from empty to WRITE_EXTERNAL_STORAGE. The gate DOES divert
+  the SEND flow on a fresh install: DocumentActivity.onCreate calls
+  requestPermissions at :137 before handleLaunchingIntent at :149; on
+  API 27 a missing grant returns false, so it starts
+  StoragePermissionActivity and finishes DocumentActivity; the target
+  needs a post-resume tap (step 9), by which time the activity is
+  destroyed, and even the dialog's Yes path goes to MainActivity, not
+  back to the SEND flow, so it is unrecoverable. The script has no
+  permission handling. Pre-grant is the original D3 audit's prescribed
+  resolution (adding the permission to row 04). This supersedes, not
+  contradicts, the D1 audit's "exactly one row lists a permission"
+  observation; row 04's env kind stays other_app. Reverse: a script
+  permission-handling step plus a proof the SEND flow survives.
+- AnyMemo-D3-17 (AnyMemo, route_17 Card.toString): status scripted to
+  unscriptable, firing exactly the D1 revert condition. The target fires
+  only in the RuntimeException message at LearnQueueManager.java:267
+  (cardDao.update(card) equals 0); the chain flush is build-time flush
+  (Builder.build:360 to refill to flushDirtyCache:170) with an empty
+  dirtyCache (only producer is LearnQueueManager.update:193, called
+  after grading at StudyActivity.java:608 and QuizActivity.java:422,
+  both with DB-loaded cards; refill call sites only update():198 and
+  build():360); deleting the card trips the earlier :263 LearningData
+  check first (CardDaoImpl.delete cascade-deletes learning data first);
+  release flush at :127 drains the same graded-card cache. No UI,
+  fixture, or harness path populates dirtyCache with a nonexistent
+  card: structurally impossible, not merely unimplemented. Evidence
+  re-printed by the helper (:258 loop, :261-263 LearningData check and
+  throw, :265-267 card throw, :170 refill flush, :184/:193/:198
+  update and dirtyCache, :127 release flush, :358/:360 build). The cell
+  fix (comma to semicolon, single character, line 18 only) keeps the row
+  at exactly 10 CSV fields with both :267 and :263 in the parsed status.
+  Cap becomes exactly 3 of 30, 10.0 percent, at (not over) the cap.
+  Route_17.py is EXCLUDED from the D3 push. D7 consequence: not-reached
+  maps to unclear, never wrong. Label untouched.
+- AnyMemo-D3-07-cell (AnyMemo, route_07 fixtures cell, coordinator
+  decision, Muse's own, Markor precedent): the fixtures-cell amendment
+  (adding the identical picker-root DejaVuSans.ttf path in semicolon
+  form, keeping the .apkg entry) is a merger-side push-assembly
+  amendment at D3-push time (recorded in AGENT_NOTES plus the report,
+  with drycheck plus column and cap re-verification), not a separate
+  helper task. It changes no script and no status, and the D1 PASS
+  stands either way (route_07 without it fails at picker tap to unclear,
+  never wrong, until provisioned).
+- Amaze-D3-CAP (AmazeFileManager, cap): 11 of 30 unscriptable is 36.7
+  percent, OVER the D3 10 percent cap, reported honestly with reasons
+  (cloud OAuth, SMB/SSH servers, SAF picker, parcel recreation, gated
+  SSH state, read-only-grant failure). Forcing scripts would fake
+  routes, per the Diary 5 of 30 precedent. NOT waived by the coordinator.
+  See the USER ruling below for the resolution path ordered 2026-11-01
+  ~16:31 EST.
+- USER-CAP-ACCEPTANCE (USER decision, user's own words, in chat,
+  2026-11-01 ~16:31 EST): for unscriptable routes over 10 percent, most
+  reasons say the delivered harness has no capability, and the harness
+  is ours, so extend it (rotation, background plus process kill plus
+  restore, long-press drag for widget placement, multi-touch, driving
+  system UI; throwaway SSH/SMB servers on the CI host with runtime
+  generated keys, reachable at 10.0.2.2), then retry every unscriptable
+  route. Only routes that need a real online account or credentials stay
+  unscriptable. If an app is still over 10 percent after that, record a
+  decision with the reason for each route and accept it. Do not leave F1
+  blocked by the cap alone. This ruling governs the resolution of
+  Diary-D3-CAP and Amaze-D3-CAP; it does not retroactively waive the
+  coordinator's cap findings, which stand as the pre-retry record.

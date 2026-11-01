@@ -235,3 +235,626 @@ Branch work-2026-10-31, repo bugfixops/ground-truth-results. NO PUSHES until mor
 - 2026-11-01 ~05:32 EST: CORRECTION to the 05:30 entry: the first 1-60 fix-pass run found 0 rows (format mismatch — 1-60 batch files use "- batch/row method — ... — FAIL-prose" lines, not the 61-120 "- row N | ... | FAIL-prose" format). Corrected parser run: 70 FAIL-prose rows found and fixed with supersession notes, 0 problems. Recount still 3964/691/77. Both fix-pass logs saved (fixpass_1_60_log.txt now holds the 70 corrected fixes). No labels changed in either fix pass.
 - 2026-11-01 ~05:33 EST: D37 rows 28/19, 28/21 also received supersession notes (their old dependency sentences claimed subclass callers OPEN / no printed parcel site, now false for TorrentInfo/TrackerInfo). Recount unchanged: 3964/691/77. PHASE 3 COMPLETION WORK ENDS HERE: all leaves complete, all spot-check FAILs fixed, final totals verified. Gate NOT reached (77 OPEN + build blocked on method_list.json/auto_calls.json fetch limits). Final report delivered to parent.
 
+
+## Finish run log appended 2026-11-01 ~16:40 EST (coordinator)
+
+- 2026-11-01 ~11:10 EST: OVERNIGHT PUSH: handoff/MUSE_OVERNIGHT_SUMMARY.md,
+  MUSE_DECISIONS.md (193,069 B), MUSE_RUN_LOG.md (107,375 B) to
+  work-2026-10-31 as commit 8124fa4 (previous head 614a9540); all three
+  confirmed ABSENT before push, blob SHAs match local staged copies
+  exactly; push did NOT merge any graph, change any PROGRESS line, or
+  claim any final tick; staged-copy hygiene: 0 tick markers (one "no
+  tick written" phrase reworded in the staged run-log copy only),
+  0 access_token hits, all UTF-8; author identity NOT asserted.
+- 2026-11-01 ~11:16 EST: USER DECISIONS (user's own words): LibreTorrent
+  batch 5 rows 19, 20, 25, 26 STAY UNREACHABLE (bytecode shows no caller
+  outside their own classes for all 200 statics; already reflected in
+  pushed merge-ready batch5; totals unchanged 3964/691/77); recorded on
+  branch in graphs/LibreTorrent/scratch/overnight-20261101/
+  D29_USER_DECISION.md. USER: the full repo is on the user's Mac, so
+  builds and checks run there; VM builds are no longer the path.
+- 2026-11-01 ~11:30 EST: OVERNIGHT PUSH (user: push all local overnight
+  work under scratch/ paths, marked UNVERIFIED): 923 files to
+  work-2026-10-31 only in 6 commits (single 923-file push rejected HTTP
+  413, so split): 5e359bbf (121 merge-ready), 3072d6a9 (201 LT overnight
+  docs/greps/stream-reports), 78c7f2bf (384 spot-checks + verdicts),
+  11acb481 (111 Aegis/Amaze/Anki/MMEX/Currency/Diary), 71f3e69c (105
+  hash-checker/openlauncher/Omni-Notes/Vanilla-Music/Markor/AnyMemo),
+  2b217cb1 (1 manifest). Verified by branch read-back (head 2b217cb1,
+  sample blob SHAs match local exactly). No graph_def.py, out/, or
+  PROGRESS_V2.md touched; no branch verification.csv overwritten
+  (Vanilla-Music regenerated csv byte-identical to branch, not pushed;
+  Markor make_verification.py already on branch, local copy skipped).
+  New make_verification.py drafts only in graphs/Aegis/ and graphs/MMEX/,
+  never tools/. Staged-copy hygiene: 2 tick-marker meta-phrases
+  reworded, 0 token patterns, all UTF-8.
+- 2026-11-01 ~11:29 EST: USER PREFERENCE: do not ask the user to approve
+  every GitHub push. Runtime approvals are per connector write and cannot
+  be switched off from this side; mitigation: batch each task into as
+  few pushes as possible (a standing grant, if the client offers one on
+  an approval card, would stop repeats).
+- 2026-11-01 ~12:02 EST: FINISH-ALL INSTRUCTION (user, in chat): pull
+  work-2026-10-31 (head 5d459d7 or later) and follow
+  handoff/MUSE_FINISH_ALL.md exactly; it replaces MUSE_OVERNIGHT_PROMPT.md.
+  Nobody will answer, so never stop to ask; decide by its section 6 and
+  record each decision. Blockers fixed per user: workspace_bundle/ 125
+  parts under 700 KB plus connector_kit/unpack.py give a full working
+  tree; big graph_def.py files split into modules under 1 MB (Amaze,
+  Anki, MMEX), LibreTorrent parts via MERGED_PARTS, all edits pushable
+  through the connector; CI builds out/ on REBUILD_REQUEST.txt, read
+  graphs/<App>/scratch/ci_latest/SUMMARY.txt from the [ci] commit, never
+  push out/ yourself. Four parallel streams T1-T8, B1-B7, C1-C4, A1-A8,
+  each app ends at gate F1. Push only to work-2026-10-31. Never write the
+  tick marker. Device checks wait until user chooses the emulator. End:
+  handoff/MUSE_FINISH_SUMMARY.md plus final message at most 15 lines.
+- 2026-11-01 ~12:05 EST: BRANCH HEAD VERIFIED: exactly 5d459d7 ("Add
+  MUSE_FINISH_ALL.md"); MUSE_FINISH_ALL.md is 34,672 B, read in full
+  (393 lines). Standing rules still apply where the file is silent or
+  conflicts: connector-only (never a token anywhere), push only to
+  work-2026-10-31, never the tick marker, never push out/ or ci_latest/.
+- 2026-11-01 ~12:29 EST: EMULATOR PLAN (user): device/emulator tests run
+  when all finish work is finished, within GitHub CI; hold onto this.
+  Device checks stay deferred until then; no emulator/adb/device work
+  during the finish run. This clarifies (not replaces) the earlier "user
+  chooses the emulator later" note: the emulator phase is CI-based and
+  comes after all F1 gates.
+- 2026-11-01 ~12:33 EST: COMPLETE-JOB INSTRUCTION (user, in chat,
+  CURRENT): supersedes the pause and every earlier prompt. Pull
+  work-2026-10-31 (head 6805252 or later) and follow
+  handoff/MUSE_FINISH_ALL.md exactly. Goal: finish EVERYTHING before the
+  first emulator run for all 13 apps: labels/checks/route-checks/logs
+  (T1-T8, B1-B7, C1-C4, A1-A8) plus device preparation D1-D9 (route
+  lists, replay harness, one script per sampled route, run_app.sh,
+  collect.py, compare.py, DEVICE rows in every make_verification.py,
+  docs, CI dry run passing for every app) plus gate F1 per app. Never
+  start a real emulator run; user does that later with
+  .github/workflows/device-replay.yml. Scale: 50-100 agents, roles in
+  section 7 (coordinator = Muse, one merger per app as sole editor/pusher
+  for that app, device lead, helpers, independent auditors checking every
+  helper output before merge). Setup: repo public now, try plain git
+  clone first (no token); fallback workspace_bundle plus unpack.py.
+  Official results via REBUILD_REQUEST.txt plus [ci] SUMMARY.txt; device
+  dry run via DEVICE_DRYRUN_REQUEST.txt. Push only to work-2026-10-31,
+  every file under 900 KB, never write out/ or .github/, never write the
+  tick marker. End: handoff/MUSE_FINISH_SUMMARY.md plus at most 15 lines.
+  Branch head verified 12:35 EST: exactly 6805252 ("Device-replay
+  workflow contract; work order covers everything before emulator runs").
+  Prior setup state (SETUP_LOG.md): 125/127 bundle parts fetched; Aegis
+  part010 (700,000 B) plus part011 (92,488 B) connector-refused ("blob is
+  not a valid internal symbolic link target"); unpacked tree gtr/ = 5,673
+  files (Aegis 505 short of 6,178); tree check MATCH for Currency plus
+  MMEX vs baseline (branch MMEX ci_latest looks broken/partial, use
+  baseline values); work-emulator already cloned (HEAD 40116c33, classes
+  for all 13 apps); Java 21 present.
+- 2026-11-01 ~13:00 EST: CLONE DONE: plain git clone of work-2026-10-31,
+  depth 1, HEAD 6805252649bca27392a4d70d83e45c2ef860ca8c, 1.2 GB, 15,587
+  files in ~/workspace/finish/clone/. Verified: graphs/Aegis/ present
+  (Aegis bundle-part blocker resolved by the clone), 11 FLAVOR_MARKER.txt
+  files, bundle Aegis part010 plus part011 present, device-replay.yml
+  present. DEVICE_DRYRUN_REQUEST.txt does not exist yet (created at D9).
+  Old bundle tree gtr/ is fallback only. Wave 1 of the org spawned:
+  device lead plus mergers for LibreTorrent, Aegis, MMEX, AmazeFileManager;
+  auditors follow in later waves, no helper output merges before auditor
+  PASS.
+- 2026-11-01 ~13:26 EST: LIBRETORRENT A1 DONE locally (merger's own direct
+  verified edits): 3968 REACHABLE / 764 UNREACHABLE / 0 OPEN of 4732 (from
+  3964/691/77). Push BLOCKED: two attempts failed "not a fast forward"
+  as other streams pushed (head 6805252 to Aegis C1 to device D4 to MMEX
+  B1 to Amaze B2+B3); no partial push landed; staging verified (96
+  files, 5.1 MB) and held for a sequenced retry by a continuation merger.
+  Decisions A1-C2 (17/36 collectDependencies REACHABLE INFERRED,
+  overriding D8) and A1-C3 (48/12-13 stay UNREACHABLE, weakest flips)
+  pending branch append to MUSE_DECISIONS.md (appended 2026-11-01 ~16:40
+  EST, see decisions file).
+- 2026-11-01 ~13:41 EST: BRANCH READ-BACK (coordinator): head 2722b9a
+  (AnkiDroid B1, STRICT True, 4186 methods). Landed since 6805252: Anki
+  B1, Currency T1 (writer plus seed plus LESSONS), device harness D2,
+  plan/drycheck/jacoco, run_app.sh D4, collect D5 plus compare D6, Amaze
+  B2+B3, MMEX B1, Aegis C1. Connector quirk: list_commits takes the branch
+  as sha, not branch. Anki B2-B4 helper outputs (8 dirs) delivered and
+  verified on disk, awaiting independent audit; Anki merger ended,
+  continuation spawned in wave 3 with LT A1 auditor, Anki auditor, LT
+  continuation (A1 push retry), openlauncher merger.
+- 2026-11-01 ~13:49 EST: BRANCH HEAD d27d242 (LibreTorrent A1 LANDED:
+  4732 methods, 3968/764/0). Also landed: Aegis C2, hash-checker T3. MMEX
+  B5 push failed a third time on the branch race (three pushes landed
+  inside its approval window); push-lock protocol now mandatory for all
+  agents (mkdir locks/PUSH.lock before any push, hold through the call,
+  remove after; break stale locks over 30 min). Wave 4 spawned:
+  Vanilla-Music, Markor, AnyMemo mergers, MMEX auditor (B2a/B2b/B3a/B3b),
+  MMEX continuation (B5 push under lock, then merges after PASS).
+- 2026-11-01 ~14:25 EST: LESSON (Anki incident): mkdir success is the
+  ONLY authority for push-lock ownership; never write owner.txt after a
+  failed mkdir; never trust owner.txt alone; never remove the dir on the
+  basis of a stale check.
+- 2026-11-01 ~14:30 EST: COORDINATOR DECISION HC-D3-31 (Muse's own, for
+  user/Yang review): hash-checker route_31 (LogUtils.e) RECLASSIFIED as
+  unscriptable (see decisions file for grounds; condition FAILED on
+  device-lead response). Hash-checker becomes 36 scripted, 1 unscriptable,
+  2.7 percent, within cap. Label untouched; D7 maps not-reached to
+  unclear, never wrong.
+- 2026-11-01 ~14:48 EST: COORDINATOR DECISION HC-D3-31-NOTE: ROUTE_UNSCRIPTABLE_31.md
+  JOINS the push (40 paths total). Re-audit PASSED, CONDITIONAL: (1)
+  push manifest 39 to 40 paths; (2) AGENT_NOTES.md sentence update (the
+  "NOT in the manifest" phrasing must go before pushing). Both conditions
+  were APPLIED plus VERIFIED by the push continuation before it ended
+  lock-gated; the next continuation must NOT redo them.
+- 2026-11-01 ~15:00-15:40 EST: AEGIS C3: round-7 judging complete (23
+  routes: 5 correct, 8 wrong, 10 unclear); all three C3 audits PASSED;
+  fixes 01/02/03 plus 04/06/16 plus 20/14 APPLIED and verified (final
+  verification: build 2995, 2537/458, edges 5782, 0/0; label flips 0;
+  check 2: 22 distinct 0 problems; check 3: 0; check 4: 0 not-show (3855
+  checked, 311 skipped, 159 implicit); checks 5-7: 0/0/0; check 8 --all 0,
+  --callers 0 of 458; STRICT line 10 True). Re-dumps: route 04 = 22
+  steps, route 06 = 32, route 16 = 42, all graded UNCLEAR on step 8 only
+  (decision D-C3-10). Sample-30 drawn (verify_sample.py Aegis 30
+  20261025): 25 methods, not 30 (PLAIN stratum pool holds only 2
+  reachable methods vs quota 7; other strata filled; final-table sample
+  size = 25). Sample-30 JUDGING COMPLETE ~15:40 EST (9 helper groups
+  j1-j9, 3 staggered waves, each report completeness-checked): all 25
+  routes judged fresh on current-tree dumps (686 steps, 0 step-count
+  mismatches): CORRECT 5, WRONG 6, UNCLEAR 14; steps 660 correct, 6 wrong,
+  20 unclear. First-draw error rate 6/11 = 0.5455 (NOT the final rate).
+  4 routes need fixes (designs recorded, NONE applied): CustomSvgIcon
+  (split IconPickerDialog/IconAdapter chain by installing activity);
+  AndOtp decryptNewFormat plus Stratum decrypt plus getKey (all the same
+  processImporterState @APP CHA-splice defect class: gate dispatch by
+  importer type, re-route via @FILE paths). A redraw is REQUIRED before
+  any final table. Two decisions pending then: step-8 convention and
+  ExitActivity by-design status (see decisions file: step-8 decided
+  STRICT D-C3-10, 2026-11-01 ~16:40 EST append).
+- 2026-11-01 ~15:09 EST: DIARY T2 plus D1/D3 PUSHED plus coordinator
+  read-back verified: T2 b65341d (19:54:35Z, parent e9662c9, clean
+  fast-forward; 5 files; local build 286, 265/21, 0/0; verification.csv
+  NOT pushed, writer output byte-identical to branch; read-back 5/5
+  MATCH). D1/D3 33f90ba (19:58:36Z, parent b65341d; 31 files: ROUTES.csv
+  plus 25 scripts plus 5 unscriptable notes, no .pyc; read-back 31/31
+  MATCH). Lock taken by successful mkdir after prior holder's dir
+  vanished 19:50:34Z, held through both pushes, removed after
+  verification. Diary F1 blocker OPEN (Diary-D3-CAP, see decisions file).
+- 2026-11-01 ~15:21 EST: HASH-CHECKER push continuation ENDED LOCK-GATED
+  (no push made, lock untouched; mkdir failed 20:07:16Z, holder taken
+  20:06:29Z fresh). Both re-audit conditions APPLIED plus VERIFIED.
+  Final bundle: 40 paths, 275,764 B total, 0 missing, 0 over 900 KB, no
+  .pyc, no route_31.py, 0 TODO/PLACEHOLDER/FIXME/access_token hits;
+  drycheck from final staging copies 37 PASS 0 FAIL exit 0; verify_routes
+  rows=37 path_rows=37 unscriptable=1 (2.7 percent) OK. Branch pre-check
+  (ROUTES.csv plus route_01.py ABSENT) must be re-verified with ref
+  before the push (see connector lesson below).
+- 2026-11-01 ~15:21 EST: MARKOR continuation ENDED LOCK-GATED (no push
+  made, lock untouched; two mkdir attempts failed, holder MMEX taken
+  20:12:12Z fresh). All verification plus D3 preparation complete. T7
+  authorship OWN-DIRECT, pushable without audit. D3 bundle assembled
+  plus fully verified (staging-D3/, 32 paths, PASS pieces only, FAILED
+  originals never merged; drycheck 30 PASS 0 FAIL; live-argument 30/30
+  exit 0). ROUTES.csv D3 amendments (17 cells) recorded, including NEW
+  DECISION Markor-D3-04 (row 04 permissions to WRITE_EXTERNAL_STORAGE).
+- 2026-11-01 ~15:22 EST: LIBRETORRENT A3 WAVE 1 COMPLETE, G5 FULLY PASS:
+  G1-G4 all PASS on disk; G5 SPLIT (b024 PASS; b025 PASS with merge-time
+  citation correction; b026 PASS; b023 FAIL plus b027 FAIL on
+  trigger-text defects ONLY). b023 rework plus re-audit PASS; b027 rework
+  plus re-audit PASS. TRIGGERS FIRED: LT A4 continuation merger
+  (trunks b000 FIRST then audited batches 1-12 then 15-27, one at a time,
+  push part plus graph_def.py plus build file under lock; after trunks
+  STRICT=True, delete AUTO_DEAD, delete FW-MEMORY rewrite, fix hidden
+  claims, unclassified to 0; STOPS plus reports at unaudited batches 28
+  plus, never drafts parts; A5/A6 NOT started) and LT A3 waves 2-5
+  coordinator (batches 28-120 ONLY; FIRST task: resolve authoritative
+  POST-A1 batch source; any batch without post-A1 rows is STOPPED plus
+  reported blocked, NEVER built on pre-A1 data; staggered helpers,
+  independent audit per part, FAIL to NEW helper rework plus re-audit;
+  no push/merge).
+- 2026-11-01 ~15:24 EST: MMEX CONTINUATION #2 ENDED: B2b LANDED c444b70
+  (post-B2b rebuild 4270/8027, 3430/840, 0/0; check 2 = 249 distinct 0
+  problems, auditor's combined prediction exact); B3a LANDED ac63eb8
+  (EDIT inserted before module-loader tail, verbatim from audited
+  b3_edit_block.txt; check 4 = 32, 244 to 32; 212+24+42 = 278
+  criterion-wide, matching auditor's model); B3b LANDED 269900e (full
+  EDIT via guarded apply_B3b.py, 13 FIXLINES plus 19 PARTA verbatim;
+  check 4 = 0, 32 to 0; guard verified from built JSON: 26
+  MmxContentProvider.onCreate edges = 2 FIXLINES, 19 PARTA, 2 clinit
+  edges untouched, 3 unrelated untouched). Diary T2 plus D1/D3 landed
+  during #2's session, both Diary-only, MMEX paths verified untouched
+  before each MMEX push. B4 STAGED, NOT pushed (lock-blocked): verification
+  on post-B3b tree plus built graph: 761 distinct pairs, all 22 wanted
+  pairs present, 0 absent (the earlier "19 of 21" count was stale); all
+  19 methods.csv rows UNREACHABLE with scan kinds exactly; built JSON has
+  zero edges into InvestmentSettings.getPreferences (its 3 sup pairs
+  vacuous but present); ViewMobileData.setWhere confirmed
+  branch_never_taken. File drafted: tree/graphs/MMEX/scratch/
+  check8_explained.md (8,011 B). Staged push-ready: merger/stage_B4/
+  (check8_explained.md ALONE). B4 = NO graph edit; acceptance =
+  caller-explained-in-reason plus explained file, NOT reduced count.
+- 2026-11-01 ~15:27 EST: OPENLAUNCHER D1/D3 PUSHED (continuation #3):
+  commit da057c2 (20:26:40Z, parent 6298836 Amaze B7, clean fast-forward,
+  no retry burned; coordinator-verified by branch read-back: head IS
+  da057c2). Message: openlauncher D1/D3, local build 900, 728/172, 0/0.
+  Bundle: exactly 28 files from merger/staging-D1D3/ (249,466 B total,
+  max 25,029 B): ROUTES.csv (CRLF throughout, pushed as-is,
+  auditor-PASSed) plus 26 route scripts (route_14 unscriptable, no
+  script) plus AGENT_NOTES.md (25,029 B); testroot scaffolding plus all
+  __pycache__/.pyc excluded; no ROUTES_NOTES.md ships. Re-verification:
+  manifest (.nul == .txt) == disk 28/28; py_compile 26/26 (in-memory,
+  staging untouched); edges == ROUTES.csv 26/26 in order; all 26
+  SHA-256-identical to helper top-level originals; 0 tick-marker hits;
+  fresh drycheck 27 PASS 0 FAIL exit 0; audits re-confirmed (D1 6,752 B,
+  d3-g1-g3 15,279 B, d3-g4-g6 15,124 B); branch pre-check at 6298836:
+  ROUTES.csv plus route_01.py ABSENT, branch AGENT_NOTES 15,069 chars
+  exact prefix of staged 24,999 chars, staged ROUTES.csv == branch
+  verification.csv path rows 27/27 (item, edges, ref, in order); lock
+  acquired by successful mkdir after Amaze's B7 release, head re-checked
+  immediately before call (still 6298836), released after verification;
+  read-back sample blob SHAs match staged exactly (ROUTES.csv db7e9656,
+  route_01.py 6e32019d, route_21.py 9a200dc8, AGENT_NOTES.md f245f3b3).
+  F1-readiness ONLY (T5 493450f plus D1/D3 da057c2 pushed; CI REBUILD for
+  T5 plus D9 coordinator-owned; ticked PROGRESS line untouched).
+  Pre-real-run recommendation recorded, NOT acted on: route_21 two-line
+  "Style" tap to space-joined form is device-lead pre-real-run work,
+  never a silent rewrite of the pushed audited script. Openlauncher is
+  DONE except coordinator CI evidence plus D9.
+- 2026-11-01 ~15:32 EST: CONNECTOR LESSON (from Vanilla retry):
+  get_file_contents takes the branch as ref, NOT branch; with branch it
+  silently reads the DEFAULT branch and falsely reports every
+  work-branch path absent. Uncorroborated ABSENT claims made with branch
+  are untrusted (openlauncher #3's ABSENT claim IS corroborated by its
+  landed push; Vanilla's, hash-checker's, Markor's, AnyMemo's branch
+  pre-checks must be re-verified with ref immediately before their
+  pushes). Recorded in ~/workspace/finish/STATE.md plus a new "Connector
+  parameter lessons" section appended to ~/workspace/finish/ORG_RULES.md.
+- 2026-11-01 ~15:35 EST: VANILLA D3 PUSH ATTEMPT 2 (RETRY 071099d2) ENDED
+  LOCK-GATED (no push made, lock untouched; holder taken 20:30:01Z,
+  ~90 s old at check, fresh, NOT stale, NOT breakable). Bundle
+  staging-D3-push/ exactly 31 files (route_01..30.py plus setup.py),
+  212,544 B, 0 over 900 KB, 0 .pyc (after cleanup); manifests match (31
+  paths); route_23 from helper/d3-21-25-rework/ (md5 2c3c41a9), route_30
+  from merger/rework_route_30/ (md5 596d61a4); ASSEMBLY WARNING
+  (re-confirmed): merger tree still holds FAILED originals route_23
+  (md5 4683a582) plus route_30 (md5 bc091901) -- staging was built from
+  rework sources, NOT the tree, for those two; do NOT copy route_23 or
+  route_30 from the tree. Re-verification from scratch: py_compile 31/31;
+  edges all 30 == ROUTES.csv exactly in order; drycheck 30 PASS 0 FAIL
+  exit 0 (prior first failure was only a missing device.harness package
+  assembly gap); setup.py dry run exit 0, exactly 30 planned lines;
+  local build 1473/1325/148/0/0 STRICT True (matches T6 exactly); audits
+  re-confirmed on disk. Drycheck hygiene lesson: --load-scripts writes
+  __pycache__/ (31 .pyc) inside staging via test-root symlinks; retry
+  REMOVED it, staging back to exactly 31 files / 212,544 B with md5s
+  unchanged; any next run that re-runs drycheck MUST remove __pycache__
+  again plus re-verify the 31-file count before taking the lock.
+  Branch pre-check was at head da057c2 (route_01.py, route_30.py,
+  setup.py ABSENT; ROUTES.csv present, blob a6812c7f) BUT this check ran
+  under the branch-param error, so its ABSENT findings are NOT fully
+  trusted: the next continuation MUST re-check head plus staged paths
+  immediately before the push call using ref.
+- 2026-11-01 ~15:35 EST: ANYMEMO D3 PUSH CONTINUATION (44351e59) ENDED
+  LOCK-GATED (no push made, lock untouched; holder taken 20:30:01Z,
+  ~4 min old at 20:34Z check, same holder that blocked the Vanilla
+  retry; fresh, not stale). Bundle FULLY VERIFIED plus push-ready:
+  merger/staging-D3/ exactly 30 files, 284,204 B, max 15,374 B, 0 over
+  900 KB, 0 .pyc: ROUTES.csv plus ROUTES_NOTES.md (updated) plus
+  ROUTE_UNSCRIPTABLE_17.md plus 27 scripts; manifests staging-D3-paths.
+  txt plus .nul (30 paths). Sources all md5-verified byte-identical to
+  audited sources. Merger-side amendments APPLIED plus recorded:
+  ROUTES_NOTES.md status 28/2 (6.7 percent) to 27/3 (10.0 percent, exactly
+  at cap), route_17 superseded-to-unscriptable paragraph plus Decisions
+  entries, .ttf paragraph updated, H56 route_23 splice text verified
+  byte-identical and shipped unchanged; route_07 fixtures cell amended
+  to the identical picker-root .ttf path (semicolon form, .apkg
+  retained); route_07 script unchanged (H2 PASS). Final ROUTES.csv diff
+  vs cellfix = exactly the route_07 line; vs tree baseline = exactly
+  lines 8, 18, 19. Verification (all printed): CSV parse 31 lines, every
+  row exactly 10 fields, header exact, route_17 parsed status carries
+  :267 AND :263, unscriptable exactly 02/08/17 = 3/30; py_compile 27/27;
+  edge lists 27/27 exact in order; scripts md5-identical to audited
+  sources 27/27; scans 0 /home/hatch, 0 REPLACE_WITH, 0 tick markers;
+  local build 2207/4492/1966/241/0/0 STRICT True (matches T8 exactly);
+  drycheck staged wemu 30 PASS 0 FAIL exit 0; drycheck real unprovisioned
+  wemu 28 PASS 2 FAIL (routes 07 AND 18, both naming the identical
+  missing .ttf; supersedes the brief's 29/1 expectation, written
+  pre-amendment; single provisioning gap, NOT a push blocker or bundle
+  defect); real fixture tree verified clean afterward (no Android/ leak).
+  AGENT_NOTES DECISION (important for retry): graphs/AnyMemo/
+  AGENT_NOTES.md is deliberately EXCLUDED from this bundle (merger
+  tree's copy 31,859 chars, T8-era, is stale vs branch 33,215 chars
+  normalized ending with the D7 push record; tree copy is not a prefix
+  of branch, so pushing it would regress branch content and staged files
+  must never be reconstructed from connector-fetched text). A
+  branch-based AGENT_NOTES D3 append (built on the branch D7 version)
+  remains OWED as a separate coordinator-owned follow-up; a retry must
+  NOT add the stale tree copy to the bundle.
+- 2026-11-01 ~15:40 EST: COORDINATOR DECISION Aegis-C3-Step8 (Muse's own,
+  for user/Yang review; reaffirms D-C3-10, recorded for branch append):
+  STRICT D-C3-10 STANDS for the final table (see decisions file).
+  TRIGGER FIRED: NEW Aegis C3 fix continuation spawned (adopts merger/
+  plus tree; verifies each of the 4 fix designs against printed source
+  before applying; applies one at a time with rebuild plus reprint each;
+  decides ExitActivity's class from printed evidence; redraws the sample
+  with seed 20261025; judges the redrawn sample fresh with helpers max 3
+  routes, staggered, strict D-C3-10 throughout; builds the FINAL
+  route_table.md; STOPS for independent fix audits, no push yet).
+- 2026-11-01 ~15:58 EST: AMAZEFILEMANAGER CONTINUATION ENDED (final
+  report, all pushes branch-verified under lock): B4 3ea3214 (check-8
+  explained; AES256SHA256Decoder 1 init flipped to REACHABLE; 2981/
+  2510/471/0/0; B4 was the previous merger's OWN direct work, no
+  helper/audit dir existed, pushed after own verification); B6 aa20a05
+  (route checks, final sample 30, error rate 0.833 = 5 correct, 25 fixed,
+  0 wrong, 0 unclear, 226 distinct edges; four fix rounds: manifest
+  citation rot, ZipService cross-task bogus edges, BasicActivity
+  instance conflation, Glide virtual-dispatch flips for
+  GlideRequest.listener plus IconDataParcelable.setImageBroken, SMB/cloud
+  sibling separation; final build 2981/2512/469, edges 7758, 0/0, checks
+  2/3/4/5/6/7 at 0, check 8 at 3 of 469 explained; this CONFIRMS the
+  +2/-2 shift vs B4 audit came from B6 Glide flips); B7 6298836 (writer
+  plus csv plus readme plus lessons, 544 lines: path 30, label 499, edge
+  14; first attempt interrupted by a service restart, NOT retried
+  blindly: head re-checked first (still 269900e, proving no landing),
+  then retried once under the held lock); D7 0ed1e6d2 (DEVICE rows per
+  device/D7_SPEC.md: append in results order, no re-sort, correct iff
+  reached=yes, never wrong, no label changes, plus synthetic-test
+  evidence: exactly 4 rows, appended last, base row set unchanged, third
+  run identical; verification.csv deliberately NOT regenerated by D7);
+  D1+D3 22fc0876 (20:57:54Z; ROUTES.csv 30 rows 19 scripted, 11
+  unscriptable plus 19 scripts plus 6 TEXT fixtures plus AGENT_NOTES;
+  ROUTES.csv blob SHA matches local git hash-object exactly 5196c8d9;
+  remote header exact, 30 rows, 19/11 split confirmed; first attempt
+  failed client-side: connector rejects non-UTF-8 files (two zip
+  fixtures); nothing was sent (head stayed 0ed1e6d2), zips dropped,
+  ROUTES.csv now says setup must generate them). D3 audit PASS
+  (audit/D3/AUDIT.md 32,979 B): independent auditor read 10 scripts
+  fully against printed routes plus handler source, verified 4
+  unscriptable reasons against printed source, zero FAILs; all 19 merged
+  scripts dry-run exit 0 with no PYTHONPATH, every EDGE_IDS list matches
+  its print plus methods.csv exactly, every edge id appears in its dry
+  log; merge fixes applied (auditor-confirmed): sys.path dirname x3 to
+  x4 for routes 01/02/03/04/10/26/27/28; route_25 fixture path made
+  script-dir-relative; auditor-accepted: route_19 shell horizontal swipe
+  (public Runner.swipe() optional, not required), route_27 SAF-retry to
+  direct-rename prefix substitution (converges at Eddafb591), route_04
+  setup-under-first-edge logging. No real emulator run, no APK pushed,
+  no device work. F1 handoff (coordinator-owned, NOT claimed): exact K
+  line recorded in STATE.md; write ONLY after CI REBUILD for Amaze plus
+  SUMMARY (built at 22fc0876 or later) shows errors 0, warnings 0, no
+  unclassified, STRICT line 1, checks 2/3/4/5/6/7 at 0, check 8 explained,
+  path rows = 30, section-4 logs present plus passing, D1-D8 accepted,
+  latest CI dry run lists app PASS (D9). OPEN FLAGS (all in
+  MERGER_REPORT.md, none blocked the pushes): (1) Route_08 B6 FALSE EDGE
+  (most significant): verified from printed SftpConnectDialog.java that
+  the B6 route's focus-listener to removeConnection edge is false
+  (:131-135 does nothing on focus loss; only verified caller onPositive
+  :176, gated on stored SSH host key); recommended: rewire to onPositive
+  path with STATE gate "saved SSH host key exists" (PasteHelper
+  precedent) plus correct route_08 verdict "fixed" to wrong/re-routed,
+  error rate STAYS 25/30 = 0.833 (24 fixed plus 1 wrong); if method
+  flipped to UNREACHABLE instead, sample/table/B7 cascade must be
+  re-planned. (2) Print citation errata (no label/table impact, edge
+  lists right): route_24 PrefFrag:221 to :211-213, route_28 :422 to :423;
+  route_01 print caveat (steps 10-14 need String-to-Bitmap cloud-model
+  load; Apps preload is String-to-Drawable, so live replay proves the
+  chain only to factory construction). (3) Writer row-order
+  nondeterminism (pre-existing, proven with pre-D7 writer under
+  PYTHONHASHSEED=0): UNREACHABLE label-row order varies run to run, so
+  the D7_SPEC byte-identical test is literally unpassable without a
+  follow-up edit sorting the label rows (row set unchanged): recommended,
+  NOT done unilaterally. (4) 11/30 unscriptable = 36.7 percent OVER the
+  brief's 10 percent cap, reported honestly with reasons (cloud OAuth,
+  SMB/SSH servers, SAF picker, parcel recreation, gated SSH state,
+  read-only-grant failure); forcing scripts would fake routes, per the
+  Diary 5/30 precedent. COORDINATOR RULING (same precedent as
+  Diary-D3-CAP): Amaze-D3-CAP is OPEN, NOT waived by the coordinator
+  (cap is a written rule); needs a device-lead harness-extension scope
+  or a user ruling before any Amaze F1. (5) Setup must generate 3 binary
+  fixtures (cannot be committed via connector): route04.zip (sub/
+  note.txt), fixtures/sample.zip (one text entry, beside the script),
+  route28_archive.zip (~63 MB, three 20 MiB entries). Remaining
+  device-lead questions: route_15/16/19 600 ms animator settle (does
+  run_app.sh settle before coverage collection?), route_02 tile-listening
+  caveat (EventBus post without a listening tile yields no
+  updateTileState call). COORDINATOR ACTIONS TAKEN: (a) NEW Amaze
+  route_08 follow-up merger spawned (verifies the false-edge claim from
+  printed source itself, rewires to onPositive plus STATE gate if it
+  holds, applies citation errata verified first, handles the
+  verification.csv cascade via writer ONLY if the edge list changes,
+  STOPS plus reports if a label flip is implied, pushes under corrected
+  lock protocol with ref pre-check, reports plus F1-readiness note).
+  (b) NEW Vanilla D3 push RETRY #3 spawned (queue first; lock free at
+  spawn, head 22fc0876).
+- 2026-11-01 ~16:06 EST: MMEX CONTINUATION #3 ENDED (final report; B4
+  3618f978 blob-verified, unchanged; NO fix applied, NO push made, NO
+  B7/D work: all correctly blocked on the decision below). B6 judging
+  COMPLETE, all groups audited PASS (J9: 3 FIXED, 26 steps 17/9/0/0;
+  J10: SyncPreferences.getUploadImmediately fixed-only, DatabaseManager.
+  getContext WRONG first failing step 5 with backup-agent fix prefix
+  verified manifest :57, MoneyManagerBackupAgentHelper :41-46,
+  MmxOpenHelper init fixed-only; J7 plus J8 audits also PASS; all 30
+  routes judged, every helper verdict independently re-printed before
+  acceptance). Complete FIRST-DRAW tally (30 routes, 432 steps):
+  CORRECT 3, FIXED 6, WRONG 15, UNCLEAR 6; steps 323/46/20/43.
+  First-draw error rate 21/24 = 0.875 (first-draw ONLY, never the final
+  rate). Fix-phase classification (verified in tools/build_graph.py
+  before touching any graph file): methods.csv routes are BFS/cheapest
+  paths over method nodes, guards are text never evaluated by the
+  pathfinder, out-adjacency (definition) order decides ties; therefore
+  14 of 15 WRONG are shortest-path context errors through a shared
+  dispatcher node, NOT spurious edges, and deleting the edge would break
+  a real route. The 15th (SplitRecurringCategoriesRepository.insert step
+  10) is an edge-level prefix error but still needs its correct prefix
+  built plus re-judged. The 46 fixed-step guard corrections are recorded
+  in helper files, topology-safe, NOT applied yet (applying them changes
+  edge ids, so every changed route must be re-read per brief step 6: a
+  further judging wave). COORDINATOR DECISION MMEX-B6-DispatchSplit
+  (Muse's own, for user/Yang review; see decisions file): option (b)
+  DISPATCHER-SPLIT REWORK AUTHORISED; option (a) REJECTED; option (c)
+  REJECTED as insufficient. TRIGGER FIRED: NEW MMEX continuation #4
+  spawned (dispatcher splits one at a time, variant nodes carrying
+  dispatcher identity plus context, never delete a real edge, never
+  rename away the dispatcher, never change a label without printed
+  source; builds the SplitRecurringCategoriesRepository.insert correct
+  prefix plus re-judges it; applies the 46 guard corrections; redraws
+  with seed 20261025; judges the redrawn sample fresh with helpers max 3
+  routes, staggered, independently audited; builds the FINAL
+  route_table.md; STOPS for independent fix audits, no B6 push yet; B7
+  logs plus D1/D3/D7 proceed ONLY from the final sample). MMEX is NOT
+  F1-ready.
+- 2026-11-01 ~16:16 EST: VANILLA-MUSIC D3 PUSHED (retry #3): commit
+  dd819162 (21:15:56Z, parent 22fc0876 Amaze D1+D3, clean fast-forward,
+  no retry burned; coordinator-verified by branch read-back: head IS
+  dd819162, CONTINUATION_REPORT.md 500 lines, lock free after release).
+  Bundle exactly 31 files (route_01..30.py plus setup.py), 212,544 B, 0
+  over 900 KB, 0 .pyc; FAILED route_23/route_30 originals, test-root
+  scaffolding, __pycache__/.pyc excluded. Re-verification (0 failures):
+  staging 31/212,544 B, manifests .txt == .nul (31 paths); md5s route_23
+  2c3c41a9 (helper/d3-21-25-rework, re-audit PASS), route_30 596d61a4
+  (merger/rework_route_30, re-audit PASS), tree copies still hold FAILED
+  originals (4683a582, bc091901); compile 31/31; edge lists all 30 ==
+  ROUTES.csv exactly in order (AST extraction authoritative; a first
+  regex attempt returned 0 ids for all 30, a checker bug not a
+  staged-file defect); local build 1473/1325/148/0/0 STRICT True
+  (graph_def.py line 20) = T6 exactly; drycheck fresh test root
+  --load-scripts 30 PASS 0 FAIL exit 0; setup.py dry run exit 0, exactly
+  30 planned lines; audits re-confirmed (d3-01-15 12,066 B, d3-23-rework
+  17,295 B, d3-30-rework 17,035 B); T6/D1/D7 already pushed (05571c3,
+  d6770a7, ee81895); no ROUTES.csv/handoff/PROGRESS edit. BRANCH
+  PRE-CHECK WITH ref (connector lesson applied): head at pre-check
+  22fc0876 unchanged; with ref, route_01.py, route_30.py, setup.py all
+  ABSENT (no conflict); ROUTES.csv present blob a6812c7f (exactly the
+  SHA recorded by the prior retry, confirming ref reads the work branch
+  correctly). Lock: acquired by successful mkdir (free at check), held
+  through the call, released immediately after read-back (confirmed
+  absent). Read-back sample blob SHAs match staged exactly: route_23.py
+  5cdd4791, route_30.py 44b99711, setup.py f1df6ed5. HYGIENE LESSON
+  (recorded for all future verifications): python3 -m py_compile DOES
+  write __pycache__ into staging (PYTHONDONTWRITEBYTECODE=1 does NOT
+  stop the py_compile module); this run removed it and used the builtin
+  compile() (no writes) for the final check, staging re-verified clean
+  afterward (31/212,544 B, md5s unchanged); this run's drycheck created
+  NO __pycache__ inside staging (unlike the prior retry's run), but
+  staging must still be verified clean before taking the lock.
+  F1-readiness only (T6+D1+D7+D3 pushed; CI REBUILD plus D9
+  coordinator-owned; ticked PROGRESS untouched). Device-lead items
+  recorded NOT fixed: item 13 (bundle-wide, NOT a push blocker: routes
+  11-30 lack wired --adb, live-arg exits 2, dry gates unaffected;
+  vehicle = bundle-wide --adb wiring WITH re-audit of every changed
+  script OR run_app.sh live-path change, device continuation owns it as
+  pre-real-run work); item 11 CLOSED for route_30 only. Vanilla is DONE
+  except coordinator CI evidence plus D9.
+- 2026-11-01 ~16:25 EST: ANYMEMO D3 PUSHED (retry): commit d04f0c92
+  (parent dd819162 Vanilla D3, clean fast-forward, no retry burned;
+  coordinator-verified by branch read-back: head IS d04f0c92,
+  CONTINUATION_REPORT.md 336 lines, lock free after release). Bundle
+  exactly the 30 staged files (284,204 B, max 15,374 B, 0 over 900 KB,
+  0 .pyc): ROUTES.csv plus ROUTES_NOTES.md (updated) plus
+  ROUTE_UNSCRIPTABLE_17.md plus 27 scripts; no staging file edited this
+  session; NO stale tree AGENT_NOTES.md added (correctly: tree copy
+  31,859 chars stale vs branch 33,215 chars D7 version; pushing it
+  would regress the D7 section). Re-verification (0 failures): staging
+  30/284,204 B, manifests .txt == .nul (30 paths) == disk; CSV parse 31
+  lines, header exact, EVERY row exactly 10 fields, ids route_01-30 in
+  order, unscriptable exactly 02/08/17 = 3/30 = 10.0 percent (exactly at
+  cap), route_17 parsed status starts unscriptable: plus carries BOTH
+  :267 AND :263, route_07 == route_18 fixtures cells (.apkg plus
+  picker-root .ttf path); diffs: staged ROUTES.csv vs cellfix (md5
+  7a3f7398 confirmed) = exactly the route_07 line, vs tree baseline
+  (md5 17540e4c confirmed) = exactly lines 8, 18, 19; scripts
+  md5-identical to audited sources 27/27; ROUTE_UNSCRIPTABLE_17.md
+  identical to rework source; compile via builtin compile() (no writes)
+  27/27, staging still 0 __pycache__/.pyc afterward; edge lists 27/27
+  exact in order, unscriptable scripts 02/08/17 correctly absent; scans
+  0 /home/hatch, 0 REPLACE_WITH, 0 tick markers; ROUTES_NOTES.md status
+  "27 scripted, 3 unscriptable (10.0 percent, exactly at the 10 percent
+  cap)", H56 route_23 splice text present, route_17 superseded paragraph
+  present; local build 2207/4492/1966/241/0/0 STRICT True (graph_def.py:
+  39) = T8 exactly; drycheck staged wemu (fresh private root, per-entry
+  fixture symlinks plus real DejaVuSans.ttf at picker-root path,
+  --load-scripts) 30 PASS 0 FAIL exit 0; drycheck real unprovisioned
+  wemu 28 PASS 2 FAIL exit 1 (exactly routes 07 AND 18, both naming the
+  identical missing .ttf; correct post-amendment expectation,
+  superseding the brief's 29/1 figure; single provisioning gap, NOT a
+  push blocker or bundle defect); real fixture tree verified clean
+  afterward (no Android/ leak); audits re-confirmed (D1 20,639 B,
+  d3-h12, d3-h34, d3-h56, d3-h1-rework, d3-h34-rework form FAIL closed by
+  cellfix, d3-h34-rework-cellfix PASS 9,773 B, d3-h56-rework). BRANCH
+  PRE-CHECK WITH ref (connector lesson applied): head dd819162 unchanged
+  since spawn; ROUTES.csv, route_01.py, ROUTE_UNSCRIPTABLE_17.md all
+  ABSENT (no conflict); this REPLACES the prior continuation's
+  pre-check, which predated/overlapped the ref lesson. Lock: acquired by
+  successful mkdir (21:21:35Z), head re-checked immediately before the
+  call (still dd819162), held through the push, released immediately
+  after read-back (confirmed absent). Read-back sample blob SHAs match
+  staged exactly: ROUTES.csv 5f831481 (branch text LF-normalized ==
+  staged; 31 rows; route_17 unscriptable with :267 plus :263; route_18
+  fixtures cell correct), ROUTE_UNSCRIPTABLE_17.md 5542adb8, route_01.py
+  (H1 reworked) eafffae9, route_23.py (H56 reworked) c7f74f28, route_18.py
+  (H34 reworked) 41199c77. F1-readiness only (T8 71faf46 plus D7 52eb4c2
+  plus D3 d04f0c92 pushed; D1 PASS plus cap re-check PASS on amended
+  file; all D3 audits/re-audits PASS; CI REBUILD plus D9 coordinator-
+  owned; ticked PROGRESS untouched; no handoff/ edits). OWED coordinator
+  follow-up (recorded, NOT done by this push): branch-based AGENT_NOTES
+  D3 append built on the branch D7 version. Provisioning items
+  (prominent, NOT push blocks): (1) .ttf FILE DejaVuSans.ttf landing at
+  Android/data/org.liberty.android.fantastischmemo/files/anymemo/ before
+  any real run (device-lead/D9; single fixture serving routes 07+18;
+  until provisioned both fail at picker tap to unclear, never wrong; a
+  CI dry run against an unprovisioned store will show exactly these two
+  fixture FAILs); (2) genuine Mnemosyne2 archive (zip containing
+  cards.xml) for route_04 (until then route_04 fails at converter to
+  unclear, never wrong); (3) PreviewEdit-session precondition for splice
+  routes (01, 06, 11, 12, 13, 14, 19, 22, 23): real runs expected unclear
+  unless a PreviewEdit session is established first; JaCoCo, not comment
+  logs, decides reached. Known non-defects recorded, not "fixed":
+  ROUTE_UNSCRIPTABLE_17.md quotes the pre-cellfix comma form of the
+  route_17 cell while the pushed cell uses the audited semicolon form
+  (substance identical); route_07's script docstring "Fixtures:" line
+  still lists only .apkg (changing it would invalidate the H2 audit;
+  ROUTES.csv governs pushes). AnyMemo is DONE except coordinator CI
+  evidence plus D9 plus the AGENT_NOTES D3 append.
+- 2026-11-01 ~16:31 EST: USER VERIFICATION (user's own words, in chat):
+  user checked branch head d04f0c92 personally (fresh clone, all 13 apps
+  rebuilt, the eight checks, the log writers, dry runs). The work matches
+  the coordinator's report and the rules, so keep going. USER FIVE-FIX
+  ORDER (in this order): (1) push handoff/MUSE_RUN_LOG.md and
+  handoff/MUSE_DECISIONS.md now (last pushed 11:10); append every
+  decision since then (Aegis step-8 strict reading, MMEX dispatcher
+  split, hash-checker route 31, 10 percent cap for Diary and Amaze);
+  from now on push both at least every 60 minutes. (2) LibreTorrent: the
+  graph still has MERGED_PARTS empty (0 of 120 batches merged; the build
+  shows 2266 unclassified, 222 warnings, 102 citation problems, and
+  check 4 crashes); check on the merger now; push after every merged
+  part (section 7.1), trunks first as parts/b000_trunks.py, so progress
+  is saved and visible. (3) Device dry run, run locally with WEMU set:
+  AmazeFileManager has 15 FAIL out of 19 scripted routes, AnyMemo 2 FAIL.
+  Amaze declares WRITE_EXTERNAL_STORAGE only, not
+  READ_EXTERNAL_STORAGE: list only declared permissions. Device lead:
+  add support for text fixtures in device/routes/<App>/fixtures/ and
+  for files a per-route setup step generates at run time (for example
+  zips built with python zipfile on the runner); never commit zips or
+  binaries; then fix the Amaze and AnyMemo rows. For AnyMemo's
+  DejaVuSans.ttf, generate or copy it at run time, or record why that
+  is not possible. (4) Unscriptable over 10 percent (Diary 5/30, Amaze
+  11/30): most reasons say "the delivered harness has no X"; the harness
+  is ours, so extend it (rotation via settings user_rotation; background
+  plus process kill plus restore via Home, am kill, relaunch from
+  recents, or always_finish_activities; long-press drag for widget
+  placement through the launcher; multi-touch via sendevent; driving
+  system UI via uiautomator dump, which also covers the system file
+  picker and the launcher); for routes needing an SSH or SMB server,
+  run_app.sh runs on the CI host, so start a throwaway server there with
+  a key generated at run time (no secrets); the emulator reaches it at
+  10.0.2.2; retry every unscriptable route; only routes needing a real
+  online account or credentials stay unscriptable; if an app is still
+  over 10 percent after that, record a decision with the reason for each
+  route and accept it; do not leave F1 blocked by the cap alone.
+  (5) graphs/AmazeFileManager/make_verification.py line 129: the "for m
+  in unre" loop iterates a set, so label rows come out in a different
+  order on every run; change it to sorted(unre) and regenerate; then run
+  every app's writer 3 times and compare with cmp to confirm all 13 give
+  the same output every run. Then continue the queue: Markor,
+  hash-checker, Currency, Omni and Anki pushes; Aegis and MMEX route
+  checks; D1 and D3 for the five non-ticked apps; LibreTorrent merge; CI
+  rebuild; D9 dry run; F1; summary.
+
+- 2026-11-01 ~16:42 EST user rule (own words): do not ask permission to push to GitHub, do it yourself. Coordinator pushes directly under the push-lock protocol without opening a chat approval question first; recorded in MEMORY.md and STATE.md; hourly logs/decisions cron set (hourly-logs-decisions-push, first run ~17:44 EST).
+- 2026-11-01 ~16:41 EST Markor T7+D1+D3 LANDED (respawn e20800c7): 8fd3c436 (T7+D7), 80d93867 (D1), bfed95fa (D3); all read-back verified; branch head then bfed95fa.
+- 2026-11-01 ~16:43 EST Amaze route_08 follow-up + writer sort DONE locally, push pending (agent d84e2688, lock-gated): false FAB/Drawer edges rewired from printed source + bytecode, STATE gate on true onPositive removeConnection, writer line 129 sorted(unre) with row set identical (543 rows) and 3 runs byte-identical; rebuild 2981 methods 2512/469, checks all 0, sample rate unchanged 25/30 = 0.833; bundle 13 files verified in staging-route08fix; coordinator verified sort at :129 on disk.
+- 2026-11-01 ~16:46 EST LibreTorrent A3 waves 2-5 COMPLETE (coordinator c9bc7711): all 93 batches (28-120) audit-PASS, 3,683 rows (3,406 REACHABLE / 277 UNREACHABLE / 0 OPEN); full set + merger items forwarded to A4 merger (WAVES_REPORT.md, A3_WAVES2-5_RESOLUTION.md); escalations standing: 59/32 setVariable direction, batch-3 row-26 cell-vs-prose, counts 3968/764/0 (G24 '754' figure NOT quoted, unreproduced).
+- 2026-11-01 ~17:30 EST LibreTorrent b000 + b001 PUSHED: 34c4bad2 (b000 trunks + STRICT), fc37fffa (b001 batch-1, 40 UNREACHABLE + SUPPRESS); mid-merge build 4732 methods, 2121 REACHABLE / 480 UNREACHABLE, unclassified 0, errors 2131 (equals the 2,131 not-yet-merged methods; expected mid-merge), warnings 21. Next merge in order: b002 (fix-buildnames source).
+- 2026-11-01 ~17:30 EST Device Phase 1 PUSHED (device continuation 987d3181): ddc06322, message 'Device Phase 1: dry-run fixes (Amaze permissions, fixture forms, run-time generated files, AnyMemo font copy) + pending rotate/dialog/README'. Coordinator has not yet verified its contents or the Amaze/AnyMemo FAIL counts; rotate/dialog/README pushes still pending per the message; device continuation still running (Phase 2 harness extensions + unscriptable retry).
