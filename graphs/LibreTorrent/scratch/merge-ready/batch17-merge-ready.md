@@ -1,0 +1,118 @@
+# LibreTorrent batch 17 — merge-ready part — UNVERIFIED
+
+**Status: UNVERIFIED merge-ready part only. NOT verified for merge. NOT pushed. No edit to `graph_def.py`, `out/`, `PROGRESS_V2`, `AGENT_NOTES`, `tools/`, or another helper's files.**
+
+**Build: not run. C1: not run.** The build and C1 checks run on the user's Mac after a push, so they are marked "not run" here, never passed. No sampler, full-repo grep, or C1 check was run or is claimed in this file.
+
+- Repo: `bugfixops/ground-truth-results`, branch `work-2026-10-31` only (never `main` or `result`).
+- Scope: batch 17 only, 40 methods, no other batch, no other app, no device replay, no Aegis.
+- No token, no git clone (a true git clone fails in this VM with no credential device — named missing check, not passed). Work is via the GitHub connector only, one file at a time with ~20 s pauses. No fresh HTTP 429 was hit in this pass. No connector `search_code` 0-result was used as evidence of absence.
+
+## Membership — verified first, not guessed
+
+Exactly the 40 batch-17 rows in `handoff/LIBRETORRENT_BATCH_PLAN.tsv` (local plan copy `~/workspace/agent27-plan.tsv`, plan SHA `0104806dd666c840049b3db52823d4b384fa1c92`), all `TODO_CANDIDATE_REACHABLE`, in plan order:
+1–18 `NanoHTTPD$Response` methods, 19–23 `NanoHTTPD$Response$ChunkedOutputStream`, 24–27 `NanoHTTPD$Response$Status`, 28–30 `NanoHTTPD$ResponseException`, 31 `NanoHTTPD$SecureServerSocketFactory.create`, 32–33 `NanoHTTPD$ServerRunnable`, 34–40 `libretorrent.DataBinderMapperImpl` (a different class from batch 12's `databinding.DataBinderMapperImpl` — see rows 34–40; no verdict was copied from batch 12).
+
+## Printed source — freshly fetched in this pass
+
+Saved in `~/workspace/b171819-src/`, branch `work-2026-10-31`, one file at a time with pauses. SHA-256 values are of the saved connector text (including any download-notice prefix the connector adds; line numbers below are file lines in the saved copies):
+
+- `org/nanohttpd/NanoHTTPD.java` — 1,850 lines, SHA `f017a4f26849864c8787fb29257a568c8695a9ce2fd9e8552c09e0add0a754f5`. Byte-identical to the prior-session local copy in `~/workspace/ground-truth-work/libretorrent/src/` (diff empty).
+- `org/proninyaroslav/libretorrent/core/model/stream/TorrentStreamServer.java` — 284 lines, SHA `5b5a60b9b756348a87418ac0a0e9b0b32b35213921ab86ba952c210d6b645852`.
+- `org/proninyaroslav/libretorrent/core/model/TorrentEngine.java` — 1,658 lines, SHA `5845b68c9b83bb6a84fb329074c135eeae58652426204485f9265dd9be7c6cd2`. Byte-identical to the prior-session local copy (diff empty).
+- `org/proninyaroslav/libretorrent/service/TorrentService.java` — 525 lines, SHA `9f826928f7d1b3d4f4c28fb2b07e0fec56cc01e766c7f3299faea23738061d99`.
+- `org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java` — 1,720 lines, SHA `4b698cf61c0b9cc743180ceb7f6961cf4125f543802404316d402f6e56550957`.
+- Attempted fetch, clean file-not-found (NOT a 429, not retried in a loop): `org/proninyaroslav/libretorrent/DataBinderMapperImpl.java` — connector returned "Failed to get file contents. The path does not point to a file or directory, or the file does not exist in the repository." That confirms the generated mapper is not in the `final_java_only` upload at that path; it does not by itself prove anything about build-output generated code (see rows 34–40).
+
+Prior work used as INPUT / lead list only: `~/workspace/libretorrent-batch17-CORRECTED-proposal.md` (corrected proposal, 24 REACHABLE / 9 UNREACHABLE proposed / 7 OPEN). Every row below was re-checked against the fresh prints above; no verdict was copied without that re-check. Where this file differs from the corrected proposal it is in `confirmed_by` convention only (see below) — labels are unchanged.
+
+## Shared trunk — freshly printed, corrected upstream (do NOT anchor at handleOnSessionStarted alone)
+
+1. `TorrentService.onStartCommand`, TorrentService.java:176–202 — first start: `isAlreadyRunning.compareAndSet(false,true)` at :191 calls `init()`.
+2. `TorrentService.init`, TorrentService.java:116–135 — `engine.doStart()` at :131, `engine.addListener(engineListener)` at :132. This is the SERVICE's engineListener (TorrentService.java:255), a different object from the TorrentEngine engineListener below; do not conflate them.
+3. `TorrentEngine.doStart`, TorrentEngine.java:234–261 — `session.start()` at :259.
+4. `TorrentSessionImpl.onAfterStart`, TorrentSessionImpl.java:991–1010 — `notifyListeners(TorrentEngineListener::onSessionStarted)` at :1010 (inside `Completable.fromRunnable`, :1009–1010).
+5. TorrentEngine session-listener registration, TorrentEngine.java:140 — `session.addListener(engineListener)` in the TorrentEngine constructor (:128–141).
+6. `TorrentEngine.engineListener`, TorrentEngine.java:1265–1268 — `onSessionStarted()` calls `handleOnSessionStarted()` at :1268.
+7. `TorrentEngine.handleOnSessionStarted`, TorrentEngine.java:1046–1058 — STATE settings gate `pref.enableStreaming()` at :1056, `startStreamingServer()` at :1058 if enabled.
+8. `TorrentEngine.startStreamingServer`, TorrentEngine.java:1063–1071 — `new TorrentStreamServer(hostname, port)` at :1069, `torrentStreamServer.start(appContext)` at :1071.
+9. `TorrentStreamServer.start`, TorrentStreamServer.java:72–78 — `super.start()` at :78 (after `engine = TorrentEngine.getInstance(appContext)` at :76).
+10. `NanoHTTPD.start`, NanoHTTPD.java:1814–1821 — `getServerSocketFactory().create()` at :1814, `createServerRunnable(timeout)` at :1816, `new Thread(serverRunnable)` at :1817, `myThread.start()` at :1821 (setDaemon :1818, setName :1820).
+11. `NanoHTTPD.ServerRunnable.run`, NanoHTTPD.java:1332–1356 — accept loop, `asyncRunner.exec(createClientHandler(...))` at :1347 (`createClientHandler` at :1579–1581).
+12. `NanoHTTPD.ClientHandler.run`, NanoHTTPD.java:168–176 — `new HTTPSession(...)` at :173, `session.execute()` at :175, in a while loop.
+13. `NanoHTTPD.HTTPSession.execute`, NanoHTTPD.java:720–733 (serve part) — `r = serve(this)` at :720 (virtual dispatch to `TorrentStreamServer.serve`), `r.setRequestMethod` at :728, `r.setGzipEncoding` at :729, `r.setKeepAlive` at :730, `r.send` at :731, `r.getHeader("connection")` at :733. Catch paths: `resp.send` at :746 (IOException) and :750 (ResponseException, via `re.getStatus()` at :749).
+14. `TorrentStreamServer.serve`, TorrentStreamServer.java:111–120 — `handleTorrent` at :117, `fileType.setHeaders(res)` at :119–120 for mp4/avi/mkv. `handleTorrent` at :124–256. `DLNAFileType.setHeaders` at :275–281, `res.setMimeType` at :281.
+15. `NanoHTTPD.Response.send`, NanoHTTPD.java:1183–1229 — see row 7.
+
+## Per-row judgements
+
+All `NanoHTTPD.java` unless named. `confirmed_by` here is PER-ROW (SOURCE = a printed direct app-code call site naming the method; INFERRED = unprinted framework/library/JVM dispatch with registration/first use printed, or, for UNREACHABLE proposals, a printed definition plus no printed caller in the fresh corpus — still pending a saved full-repo grep, see below). Under the WHOLE-ROUTE convention used in the corrected proposal, all 24 REACHABLE rows below would read INFERRED; labels are unaffected, only `confirmed_by` would change. That convention is recorded, not decided.
+
+| # | Method | Label proposed | confirmed_by | Printed citation / route |
+|---|---|---|---|---|
+| 1 | NanoHTTPD$Response.getData `()Ljava/io/InputStream;` | UNREACHABLE proposed | no_trigger_in_app / INFERRED | Def :1147–1149. `sendBody` reads `this.data` directly (:1266–1271), not via `getData()`. No `.getData()` caller in any file freshly printed in this pass. Pending saved full-repo grep. |
+| 2 | NanoHTTPD$Response.getHeader `(Ljava/lang/String;)Ljava/lang/String;` | REACHABLE proposed | SOURCE | Def :1150–1156. Call `HTTPSession.execute` :733 `r.getHeader("connection")`, via trunk steps 13–15. |
+| 3 | NanoHTTPD$Response.getMimeType `()Ljava/lang/String;` | REACHABLE proposed | SOURCE | Def :1158–1160. Call `useGzipWhenAccepted` :1661 `r.getMimeType()`, called from `execute` :729, via trunk. |
+| 4 | NanoHTTPD$Response.getRequestMethod `()Lorg/nanohttpd/NanoHTTPD$Method;` | UNREACHABLE proposed | no_trigger_in_app / INFERRED | Def :1161–1163. Field written by `setRequestMethod` (:1299–1301, called `execute` :728) and read directly as `this.requestMethod` in `send` (:1216, :1231), not via this getter. No printed getter caller. Pending saved full-repo grep. |
+| 5 | NanoHTTPD$Response.getStatus `()Lorg/nanohttpd/NanoHTTPD$Response$IStatus;` | UNREACHABLE proposed | no_trigger_in_app / INFERRED | Def :1164–1166. Do NOT confuse with `ResponseException.getStatus` (:1317, row 30). `send` uses `this.status.getDescription()` directly (:1192). No printed getter caller. Pending saved full-repo grep. |
+| 6 | NanoHTTPD$Response.headerAlreadySent `(Ljava/util/Map;Ljava/lang/String;)Z` | REACHABLE proposed | SOURCE | Def :1173–1179 (private static). Calls inside `send` :1205 ("connection") and :1208 ("content-length"), via trunk step 15. |
+| 7 | NanoHTTPD$Response.send `(Ljava/io/OutputStream;)V` | REACHABLE proposed | SOURCE | Def :1183–1229 (signature at :1183, body ends :1229). Calls `execute` :731 (normal), :746/:750 in the IOException/ResponseException catch paths, via trunk step 13. |
+| 8 | NanoHTTPD$Response.sendBody `(Ljava/io/OutputStream;J)V` | REACHABLE proposed | SOURCE | Def :1261–1275 (signature at :1261). DIRECTION (corrected in prior proposal, confirmed fresh): `sendBody` does NOT call `sendBodyWithCorrectEncoding`; it is CALLED BY `sendBodyWithCorrectEncoding` at :1242 (gzip branch) and :1245 (plain branch). Its own call is `outputStream.write(buff, 0, read)` at :1271 (3-arg write, row 23). Via `send` :1223 → transfer :1230 → encoding :1239 → `sendBody`. |
+| 9 | NanoHTTPD$Response.sendBodyWithCorrectEncoding `(Ljava/io/OutputStream;J)V` | REACHABLE proposed | SOURCE | Def :1239–1247. DIRECTION (corrected, confirmed fresh): it does NOT call `sendBodyWithCorrectTransferAndEncoding`; it is CALLED BY `sendBodyWithCorrectTransferAndEncoding` at :1233 (chunked) and :1236 (plain). It CALLS `sendBody` at :1242 (gzip, via GZIPOutputStream) and :1245 (plain). Via `send` :1223. |
+| 10 | NanoHTTPD$Response.sendBodyWithCorrectTransferAndEncoding `(Ljava/io/OutputStream;J)V` | REACHABLE proposed | SOURCE | Def :1230–1237. Call `send` :1223. It CALLS `sendBodyWithCorrectEncoding` at :1233 (chunked, then `chunkedOutputStream.finish()` at :1234) and :1236 (plain). |
+| 11 | NanoHTTPD$Response.sendContentLengthHeaderIfNotAlreadyPresent `(Ljava/io/PrintWriter;Ljava/util/Map;J)J` | REACHABLE proposed | SOURCE | Def :1277–1288 (protected static). Call `send` :1219, non-chunked / non-gzip branch; e.g. fixed-length responses from `TorrentStreamServer.handleTorrent` (:209, :244 in prior print; handleTorrent :124–256 fresh) reach `send` with `encodeAsGzip` false. |
+| 12 | NanoHTTPD$Response.setChunkedTransfer `(Z)V` | REACHABLE proposed | SOURCE | Def :1290–1292. Call `send` :1213 when `encodeAsGzip` is true; gzip set at `execute` :729 via `useGzipWhenAccepted` (:1661, true for text/ mime types). ENV gate: client accept-encoding containing gzip (`execute` :728–729). |
+| 13 | NanoHTTPD$Response.setData `(Ljava/io/InputStream;)V` | UNREACHABLE proposed | no_trigger_in_app / INFERRED | Def :1293–1295. No printed caller; field set directly by Response constructor (:1134–1146) and via `newFixedLengthResponse`/`newChunkedResponse` through that constructor. Pending saved full-repo grep. |
+| 14 | NanoHTTPD$Response.setGzipEncoding `(Z)V` | REACHABLE proposed | SOURCE | Def :1167–1169. Call `execute` :729, via trunk step 13. |
+| 15 | NanoHTTPD$Response.setKeepAlive `(Z)V` | REACHABLE proposed | SOURCE | Def :1170–1172. Call `execute` :730, via trunk step 13. |
+| 16 | NanoHTTPD$Response.setMimeType `(Ljava/lang/String;)V` | REACHABLE proposed | SOURCE | Def :1296–1298. Call `DLNAFileType.setHeaders`, TorrentStreamServer.java:281 `res.setMimeType(this.mimeType)`, called from `TorrentStreamServer.serve` :119–120 for mp4/avi/mkv, via virtual `serve(this)` dispatch from `execute`. |
+| 17 | NanoHTTPD$Response.setRequestMethod `(Lorg/nanohttpd/NanoHTTPD$Method;)V` | REACHABLE proposed | SOURCE | Def :1299–1301. Call `execute` :728 `r.setRequestMethod(this.method)`, via trunk step 13. |
+| 18 | NanoHTTPD$Response.setStatus `(Lorg/nanohttpd/NanoHTTPD$Response$IStatus;)V` | UNREACHABLE proposed | no_trigger_in_app / INFERRED | Def :1302–1304. No printed caller; field set directly by Response constructor (:1134). Pending saved full-repo grep. |
+| 19 | NanoHTTPD$Response$ChunkedOutputStream.<init> `(Ljava/io/OutputStream;)V` | REACHABLE proposed | SOURCE | Def :1066–1068 (class :1065). Call `sendBodyWithCorrectTransferAndEncoding` :1232 (chunked branch), via `send`. |
+| 20 | NanoHTTPD$Response$ChunkedOutputStream.finish `()V` | REACHABLE proposed | SOURCE | Def :1088–1090. Call `sendBodyWithCorrectTransferAndEncoding` :1234, immediately after the chunked `sendBodyWithCorrectEncoding` call, via `send`. |
+| 21 | NanoHTTPD$Response$ChunkedOutputStream.write(int) `(I)V` | UNREACHABLE proposed | no_trigger_in_app / INFERRED | Def :1070–1075. Body calls `write(data, 0, 1)` at :1074 (3-arg form). No printed caller calls `write(int)` in the files freshly printed. Pending saved full-repo grep. |
+| 22 | NanoHTTPD$Response$ChunkedOutputStream.write(byte[]) `([B)V` | UNREACHABLE proposed | no_trigger_in_app / INFERRED | Def :1077–1079. Body calls `write(b, 0, b.length)` at :1078 (3-arg form). NO printed caller: `sendBody` uses the 3-arg form at :1271, not this 1-arg byte[] form; no other freshly printed file calls it on a ChunkedOutputStream. CHECKER-DISPUTED, NOT FLIPPED: an earlier checker said "probably REACHABLE" — "probably" is not a printed caller. HIGHEST-PRIORITY full-repo grep target for this batch. The only route that would make it reachable is a printed caller writing a single byte[] through an OutputStream reference that actually holds a ChunkedOutputStream (e.g. a GZIP or framework writer calling `write(byte[])` on the chunked stream) — none is printed in NanoHTTPD.java, TorrentStreamServer.java, TorrentEngine.java, TorrentService.java, or TorrentSessionImpl.java in this pass. If that grep finds such a caller, flip to REACHABLE with that citation; if a saved full-tree grep finds none, the UNREACHABLE proposal stands. |
+| 23 | NanoHTTPD$Response$ChunkedOutputStream.write(byte[],int,int) `([BII)V` | REACHABLE proposed | SOURCE | Def :1081–1087. Call `sendBody` :1271 `outputStream.write(buff, 0, read)`, where `outputStream` is the ChunkedOutputStream in the chunked branch (transfer :1232–1233 → encoding :1233), via `send`. |
+| 24 | NanoHTTPD$Response$Status.<clinit> `()V` | REACHABLE proposed | INFERRED | Enum Status at :1023, constants :1024–1045. `<clinit>` is JVM-generated, no source line; first use triggers JVM enum initialisation (INFERRED). Constants referenced via static import in TorrentStreamServer.java:38–44 and used throughout `handleTorrent` (:127–256), reached via trunk step 14. |
+| 25 | NanoHTTPD$Response$Status.<init> `(Ljava/lang/String;IILjava/lang/String;)V` | REACHABLE proposed | INFERRED | Def :1047–1050 (signature at :1047, body :1048–1049, close :1050). Invoked implicitly once per constant during row 24's `<clinit>` (INFERRED JVM step). Plan descriptor adds synthetic enum name/ordinal parameters. |
+| 26 | NanoHTTPD$Response$Status.getDescription `()Ljava/lang/String;` | REACHABLE proposed | SOURCE | Def :1052–1054. Call `send` :1192 `this.status.getDescription()`, via trunk step 15. This is the `IStatus.getDescription` implementation (:1017). |
+| 27 | NanoHTTPD$Response$Status.getRequestStatus `()I` | UNREACHABLE proposed | no_trigger_in_app / INFERRED | Def :1056–1058 (`IStatus.getRequestStatus` :1018). No printed caller; `send` uses `getDescription()`, not this method. Pending saved full-repo grep. |
+| 28 | NanoHTTPD$ResponseException.<init>(Status,String) `(Lorg/nanohttpd/NanoHTTPD$Response$Status;Ljava/lang/String;)V` | REACHABLE proposed | SOURCE | Def :1309–1312. Throw sites: `decodeHeader` :503, :507, `execute` :710, :724, via ClientHandler → `session.execute()` (trunk steps 12–13). |
+| 29 | NanoHTTPD$ResponseException.<init>(Status,String,Exception) `(Lorg/nanohttpd/NanoHTTPD$Response$Status;Ljava/lang/String;Ljava/lang/Exception;)V` | REACHABLE proposed | SOURCE | Def :1313–1316. Throw sites: :538 (decode, IOException with cause) and :622 (multipart, Exception with cause), in code reached from `HTTPSession.execute`. |
+| 30 | NanoHTTPD$ResponseException.getStatus `()Lorg/nanohttpd/NanoHTTPD$Response$Status;` | REACHABLE proposed | SOURCE | Def :1317–1319. Calls: `execute` catch :749 `re.getStatus()` (builds error response) and base-serve catch :1741 `re.getStatus()`, via trunk. Distinct from row 5 `Response.getStatus`. |
+| 31 | NanoHTTPD$SecureServerSocketFactory.create `()Ljava/net/ServerSocket;` | UNREACHABLE proposed | no_trigger_in_app / INFERRED | Def :441–455 (class :433). Only installer printed is `makeSecure` at :1684 and `setServerSocketFactory` at :1672; no printed caller of `makeSecure` or `setServerSocketFactory` in the files freshly printed. `start` :1814 calls `getServerSocketFactory().create()` virtually, but the factory installed on the printed trunk is the default one (field initialiser :1531 `new DefaultServerSocketFactory()`; `DefaultServerSocketFactory.create` at :426–428). Pending saved full-repo grep for `makeSecure` / `setServerSocketFactory` callers; flips if a secure factory is ever installed. |
+| 32 | NanoHTTPD$ServerRunnable.<init> `(Lorg/nanohttpd/NanoHTTPD;I)V` | REACHABLE proposed | SOURCE | Def :1328–1330 (class :1324). Call `createServerRunnable` :1590–1592, called from `start` :1816, via trunk step 10. |
+| 33 | NanoHTTPD$ServerRunnable.run `()V` | REACHABLE proposed | INFERRED | Def :1332–1356. Reached by `new Thread(serverRunnable).start()` at `start` :1817–1821; Thread → `run()` dispatch itself is INFERRED (no fw_src thread-dispatch line printed). |
+| 34 | libretorrent.DataBinderMapperImpl.<clinit> `()V` | OPEN | — | No definition printed. No `DataBinderMapperImpl.java` in the `final_java_only` upload at the app-package path (clean connector file-not-found in this pass, not a 429). Consistent with a build-generated mapper, NOT proof of reachability or unreachability. Missing evidence, all three: (a) generated mapper in build output, (b) printed app/layout data-binding trigger for this package, (c) saved full-repo grep for `DataBinderMapperImpl`. Do NOT copy batch 12's `databinding.DataBinderMapperImpl.<init>` conclusion — different fully-qualified class. |
+| 35 | libretorrent.DataBinderMapperImpl.<init> `()V` | OPEN | — | Same as row 34. Not judged. |
+| 36 | libretorrent.DataBinderMapperImpl.collectDependencies `()Ljava/util/List;` | OPEN | — | Same as row 34. Not judged. |
+| 37 | libretorrent.DataBinderMapperImpl.convertBrIdToString `(I)Ljava/lang/String;` | OPEN | — | Same as row 34. Not judged. |
+| 38 | libretorrent.DataBinderMapperImpl.getDataBinder `(Landroidx/databinding/DataBindingComponent;Landroid/view/View;I)Landroidx/databinding/ViewDataBinding;` | OPEN | — | Same as row 34. Not judged. |
+| 39 | libretorrent.DataBinderMapperImpl.getDataBinder `(Landroidx/databinding/DataBindingComponent;[Landroid/view/View;I)Landroidx/databinding/ViewDataBinding;` | OPEN | — | Same as row 34. Not judged. |
+| 40 | libretorrent.DataBinderMapperImpl.getLayoutId `(Ljava/lang/String;)I` | OPEN | — | Same as row 34. Not judged. |
+
+## Counts — mechanically verified
+
+- Total: 40 rows, sequence 1–40 intact, in plan order.
+- REACHABLE proposed: 24 (rows 2, 3, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 19, 20, 23, 24, 25, 26, 28, 29, 30, 32, 33). Of these, SOURCE 21 / INFERRED 3 (rows 24, 25, 33) under the per-row convention above.
+- UNREACHABLE proposed: 9 (rows 1, 4, 5, 13, 18, 21, 22, 27, 31), all `no_trigger_in_app` / INFERRED, all pending a saved full-repo grep.
+- OPEN: 7 (rows 34–40, DataBinderMapperImpl).
+- Verified for merge: 0 / 40.
+
+## Changes vs the corrected proposal
+
+Labels: NONE. Every label matches the corrected proposal (24 / 9 / 7). The only change is `confirmed_by` convention: the corrected proposal used whole-route INFERRED for all 24 REACHABLE rows; this file uses per-row SOURCE where the immediate call site is printed (21 rows), INFERRED only where dispatch is unprinted (rows 24, 25, 33). The merger must pick one convention for the project; labels are unaffected by that choice. All definition/call lines above were re-checked against the fresh prints in this pass and agree with the corrected proposal's corrected lines (send :1183–1229, sendBody :1261, transfer/encoding direction, Status.<init> :1047–1050, makeSecure :1684, setServerSocketFactory :1672).
+
+## Conventions recorded, not decided
+
+- `confirmed_by`: per-row vs whole-route (above). Not decided here.
+- Strict-entry: all REACHABLE rows anchor at TorrentService → TorrentEngine → session → streaming server (trunk steps 1–15, freshly printed). No printed launcher → TorrentService step was fetched in this pass; under a strict printed-launcher rule all 24 REACHABLE rows revert to OPEN on that point alone. Not decided here.
+- UNREACHABLE rows are proposals only: a saved full-repo grep (named targets: rows 1, 4, 5, 13, 18, 21, 22, 27, 31, plus `makeSecure`/`setServerSocketFactory` callers) is still owed before any of them counts as verified; a hit flips that row to REACHABLE.
+- Row 22 is the highest-priority grep target in this batch (see row 22 note).
+
+## Still owed before merge
+
+- Saved full-repo grep for all 9 UNREACHABLE-proposed rows (above) and for rows 34–40 (generated mapper / layout trigger / `DataBinderMapperImpl` grep).
+- Printed launcher → TorrentService step if the strict-entry rule applies.
+- Main-agent spot-check (1 in 5), `py_compile`, build, Mac build/C1 — all not run, never claimed passed.
+- No push made; pushes are held until verified and merged to [L] per the user's 23:09 EDT decision.
