@@ -20,6 +20,10 @@ Unscriptable rows are not executed: they PASS when their reason is
 non-empty (they need no script, edge chain, or fixture check beyond
 the reason itself), and the reason is carried into the report line.
 Scripted rows must also have a device/routes/<App>/<route>.py script.
+With --load-scripts, each scripted script is additionally executed in
+dry mode (python3 -I <script> --package drycheck --log <tmp> --dry-run
+--outdir <tmp>) to prove it loads under the harness and honours the
+route-script invocation contract; a nonzero exit fails the route.
 
 Writes <out>/dryrun_report.txt: one line per route
     <route> PASS
@@ -39,7 +43,9 @@ from route_info import (COLUMNS, PREFIXES, find_manifest, load_routes,  # noqa: 
                         methods_csv_path, trigger_graph_path)
 
 
-def check_app(app, root, wemu):
+def check_app(app, root, wemu, load_scripts=False, tmpdir=None):
+    import subprocess
+    import tempfile
     rows = load_routes(app, root)
     with open(trigger_graph_path(app, root), encoding="utf-8") as f:
         graph = json.load(f)
@@ -94,6 +100,18 @@ def check_app(app, root, wemu):
                     if p.strip()]:
             if not os.path.exists(os.path.join(wemu, "fixtures", fix)):
                 problems.append("fixture missing: %s" % fix)
+        if load_scripts and os.path.isfile(script) and not problems:
+            tmp = tempfile.mkdtemp(dir=tmpdir)
+            proc = subprocess.run(
+                [sys.executable, "-I", script, "--package", "drycheck",
+                 "--log", os.path.join(tmp, "route.log"),
+                 "--outdir", tmp, "--dry-run"],
+                capture_output=True, timeout=120)
+            if proc.returncode != 0:
+                tail = (proc.stderr.decode("utf-8", "replace")
+                        if isinstance(proc.stderr, bytes) else proc.stderr)
+                problems.append("script dry run failed (%s): %s"
+                                % (proc.returncode, tail.strip()[-200:]))
         results.append((route, not problems, "; ".join(problems)))
     return results
 
@@ -106,6 +124,7 @@ def main(argv):
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     wemu = os.environ.get("WEMU", "")
     out = None
+    load_scripts = False
     i = 1
     while i < len(argv):
         if argv[i] == "--root" and i + 1 < len(argv):
@@ -117,6 +136,8 @@ def main(argv):
         elif argv[i] == "--out" and i + 1 < len(argv):
             out = argv[i + 1]
             i += 1
+        elif argv[i] == "--load-scripts":
+            load_scripts = True
         else:
             sys.stderr.write("unknown argument: %s\n" % argv[i])
             return 1
@@ -127,7 +148,7 @@ def main(argv):
     if out is None:
         out = os.path.join(root, "out", app)
     os.makedirs(out, exist_ok=True)
-    results = check_app(app, root, wemu)
+    results = check_app(app, root, wemu, load_scripts=load_scripts)
     n_pass = sum(1 for _r, ok, _p in results if ok)
     n_fail = len(results) - n_pass
     lines = []
