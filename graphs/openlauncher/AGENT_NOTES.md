@@ -24,22 +24,22 @@ Continued 2026-10-26 by a sub-agent (brief: work/handoff/AGENT_BRIEF_V2.md). If 
    warnings 0.** methods 900 (728 REACHABLE, 172 UNREACHABLE: 143 no_trigger_in_app, 19 closed_by_configuration, 10 framework_never_calls).
 
 ## Status (update below as you go)
-- [x] step 1: graph_def.py complete, builds clean (0 errors, 0 warnings, STRICT=True).
-- [x] step 2: this file kept current.
-- [x] step 3: build clean (900 methods, 728 REACHABLE / 172 UNREACHABLE, 0 errors, 0 warnings).
-- [x] step 4: `python3 -I tools/scan_unreachable.py openlauncher --all --callers` run. 2 of 172 have a bytecode caller outside the set
+- [done] step 1: graph_def.py complete, builds clean (0 errors, 0 warnings, STRICT=True).
+- [done] step 2: this file kept current.
+- [done] step 3: build clean (900 methods, 728 REACHABLE / 172 UNREACHABLE, 0 errors, 0 warnings).
+- [done] step 4: `python3 -I tools/scan_unreachable.py openlauncher --all --callers` run. 2 of 172 have a bytecode caller outside the set
       (`Home$CallLogObserver.<init>`, `.onChange(boolean)`), both already named and explained in the existing reason text (READ_CALL_LOG commented out of the
       manifest). Nothing to fix.
-- [x] step 5: gates/classes reviewed. 30 ENV texts / 21 STATE texts, all keyed in ENV_KINDS_OF/STATE_KINDS_OF (build is STRICT and has 0 "TO CLASSIFY" items,
+- [done] step 5: gates/classes reviewed. 30 ENV texts / 21 STATE texts, all keyed in ENV_KINDS_OF/STATE_KINDS_OF (build is STRICT and has 0 "TO CLASSIFY" items,
       which would be errors if anything were left unclassified). Spot-checked for gesture-prose-as-STATE mistakes: none found (gesture description stays in
       guard/trigger text; STATE texts describe a stored precondition, e.g. "a gesture action other than None was chosen in Settings").
-- [x] step 6: every FW-SRC citation in graph_def.py checked against real AOSP 8.1.0_r1 source. 28 distinct framework files, ~60 distinct cited line-range
+- [done] step 6: every FW-SRC citation in graph_def.py checked against real AOSP 8.1.0_r1 source. 28 distinct framework files, ~60 distinct cited line-range
       groups (ActivityThread, Activity, ContextImpl, Dialog, LoadedApk, AppWidgetHost, ClipData, ContentProvider, Intent, AsyncTask, BaseBundle, Bundle,
       Handler, Parcel, GestureDetector, LayoutInflater, View, ViewGroup, ViewPropertyAnimator, ViewRootImpl, AbsListView, AdapterView, TextView,
       AlarmManagerService, ActivityRecord, ActivityManagerService, PackageManagerService, DragState, WindowManagerService). All 28 files already existed
       under work/fw_src/android-8.1.0_r1/ (downloaded by earlier sessions for other apps, same tag; reused as-is, no new downloads needed). Every citation
       read and matched its prose claim exactly; 0 errors found.
-- [x] step 7: `python3 -I tools/verify_sample.py openlauncher 30` -> 27 distinct methods (seed 20261025; strata have <30 members). Read every one with
+- [done] step 7: `python3 -I tools/verify_sample.py openlauncher 30` -> 27 distinct methods (seed 20261025; strata have <30 members). Read every one with
       `tools/show_route.py --dedupe` against the cited source lines and guards (`tools/cases.py` CS.guard_of). **Tool bug found**: show_route.py's citation
       regex truncates a `File.java:N, M-K` reference (comma+space, this file's own house style for multi-range citations) and then crashes `snippet()` on the
       empty trailing segment. Worked around with `graphs/openlauncher/show_route_fixed.py` (a locally patched copy, scope-compliant: inside the app folder,
@@ -48,11 +48,11 @@ Continued 2026-10-26 by a sub-agent (brief: work/handoff/AGENT_BRIEF_V2.md). If 
       -> S_EXIT) had backwards guards too (System.exit(1) for Restore is outside the try/catch and always runs). Fixed all three edges, removed the now-unused
       ENV_STORAGE_FAIL definition, rebuilt (still 0 errors/0 warnings), redrew the sample (identical 27 methods, confirming the fix didn't change costs),
       re-read the fixed route. 26/27 correct, 1/27 fixed, 0 wrong: path error rate 1/27 = 0.037.
-- [x] step 8: `graphs/openlauncher/make_verification.py` written (pattern: handoff/examples/make_vlog_hash_checker.py) and run -> `verification.csv` (263 rows:
+- [done] step 8: `graphs/openlauncher/make_verification.py` written (pattern: handoff/examples/make_vlog_hash_checker.py) and run -> `verification.csv` (263 rows:
       27 path, 199 label [172 UNREACHABLE + 27 sampled reachable], 37 edge [3 fixed DialogUtils-cluster edges + 34 distinct FW-SRC citation rows]).
       `readme_notes.md` written with the exact 5 required headings. `python3 -I tools/gen_readme_v2.py openlauncher` run -> out/README.md (53 lines).
-- [x] step 9: ALL PASS (see below, run fresh at the end of the session).
-- [x] step 10: `graphs/openlauncher/LESSONS.md` written (6 bullets).
+- [done] step 9: ALL PASS (see below, run fresh at the end of the session).
+- [done] step 10: `graphs/openlauncher/LESSONS.md` written (6 bullets).
 
 ## Step 9 final check (run fresh, all pass)
 - `python3 -I tools/check_citations.py openlauncher` -> "citations: 64 distinct, 0 problems; library citations (not checked): 0; evidence with
@@ -100,3 +100,22 @@ No new files were downloaded (all 28 already existed from other apps' sessions);
    run gen_readme_v2.py.
 5. Run all of step 9's checks; fix anything they flag; do not tick PROGRESS_V2.md yourself (the orchestrator does that after its own independent check).
 6. Write LESSONS.md (3-8 bullets).
+
+## Session 3 (2026-11-01, finish run: T5 + D7 + D1 verification)
+
+- T5 writer runs (private tree, repo root): `python3 -I graphs/openlauncher/make_verification.py` twice, both exit 0, both byte-identical to the branch verification.csv (`cmp` prints nothing). Output: 263 rows (199 label correct, 37 edge: 34 correct + 3 fixed, 27 path: 26 correct + 1 fixed). Local build file: `graphs/openlauncher/scratch/ci_latest/SUMMARY.txt` in the private tree (not pushed).
+- Local rebuild `bash handoff/ci/rebuild.sh openlauncher` (private tree): methods 900, REACHABLE 728, UNREACHABLE 172 (143 no_trigger_in_app, 19 closed_by_configuration, 10 framework_never_calls), errors 0, warnings 0, check 2: 0 problems, check 3: 0 flagged, check 4: 0 not-show, checks 5-7: DEAD|FRAMEWORK_ONLY 0, FW-MEMORY 0, PENDING 1, STRICT line 1, check 8: 2 of 172, path rows 27, DEVICE 0. Matches T5 CI acceptance except CI itself (coordinator sends the request).
+- Check 8 confirmed in-session: `python3 -I tools/scan_unreachable.py openlauncher --all --callers` prints exactly `Home$CallLogObserver.<init>` and `.onChange(boolean)`, callers `Home.initQuickCenter` and `Home.onRequestPermissionsResult`; both callers are named and explained in the existing reason text (graph_def.py:1169), so no change needed.
+- Check 7 PENDING line confirmed: graph_def.py:942, the `HideAppsFragment.onCreateView -> HideAppsFragment$AsyncWorkerList.onPreExecute` edge guard `taskList.getStatus() == PENDING` (AsyncTask code text, not a placeholder). Recorded in readme_notes.md under ## Limits (own direct edit, logs only).
+- D7 DEVICE rows added to make_verification.py (own direct edit, logs only): when `graphs/openlauncher/device/results.csv` exists, one DEVICE path row per route (correct iff reached == yes, else unclear with reason not reached / script failed / unscriptable; never wrong; no label changes); when absent, output unchanged. Verified: two no-file runs byte-identical to the branch file; synthetic-results run in a private copy added exactly the 3 expected rows (correct/ok; unclear ok (not reached); unclear unscriptable (unscriptable)) and the diff showed only those 3 added rows. No real device results file exists in this run, so none was written.
+- D1 ROUTES.csv (device lead's D1 helper output, work/device/routes/openlauncher/ROUTES.csv + ROUTES_NOTES.md) verified in-session by an independent script: 27 rows in verification.csv path-row order, method/edges/source match the path rows exactly, env_kinds/state_kinds match out/methods.csv, every edge id resolves in the trigger graph; device lead's verify_routes.py also prints OK (rows 27, unscriptable 1 = 3.7%). Status: 26 scripted, 1 unscriptable (route_14, Kustom caller package, reason recorded in ROUTES_NOTES.md). ROUTES.csv is helper output: held for coordinator-assigned auditor PASS before push.
+- D3 route scripts (26 scripted routes) fanned out to 6 helpers (at most 5 routes each); scripts are staged for push only after auditor PASS.
+
+## Current step
+
+T5 accepted locally (writer byte-identical twice, local rebuild matches CI acceptance, check 8 confirmed, Limits note added); D7 implemented and tested (no-file output byte-identical, synthetic run exact). D1 ROUTES.csv verified, awaiting auditor PASS for push. D3 scripts in progress with helpers. Next: push T5/D7 package, collect D3 scripts, push after audit, report F1 readiness to the coordinator (CI request is coordinator-only).
+
+## Decisions made by Muse (for the user and Yang to review)
+
+- None made by this merger in this session. The route_14 unscriptable judgment (Kustom caller package not creatable by adb) is the D1 helper's, adopted pending auditor review, not a merger decision.
+- Hygiene note: the 10 pre-existing checklist markers in the 2026-10-26 section above were reworded to [done] in this push so the pushed file contains no tick-marker string; meaning unchanged.

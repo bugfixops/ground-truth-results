@@ -1,4 +1,4 @@
-import csv, collections, glob, json, re, sys
+import csv, collections, glob, json, os, re, sys
 sys.path.insert(0, 'tools')
 import build_graph as b
 
@@ -162,6 +162,33 @@ for x in g['edges']:
 for c, i in cites.items():
     edge(i, 'correct', c.replace('FW-SRC ', '').split(' and ')[0],
          'Lines printed from work/fw_src/android-8.1.0_r1/ and read against this claim: ' + c.replace('FW-SRC ', '') + '. Matched what the text claims (see AGENT_NOTES.md).')
+
+# ---- D7 DEVICE rows: only when a real device run exists on disk.
+# If graphs/openlauncher/device/results.csv does not exist, nothing is
+# added and the output stays byte-identical to the no-device run.
+# One row per route in the results file (columns route,method,edges,
+# reached,script_status,run,script): result correct when reached, else
+# unclear (a not-reached route never becomes wrong); note is the script
+# status, plus the reason for unclear (not reached / script failed /
+# unscriptable). No label changes.
+_dev = 'graphs/openlauncher/device/results.csv'
+if os.path.exists(_dev):
+    with open(_dev, encoding='utf-8', newline='') as f:
+        for r in csv.DictReader(f):
+            if r['reached'] == 'yes':
+                out.append(['path', r['method'], 'correct', 'DEVICE',
+                            'device run %s/%s' % (r['run'], r['script']),
+                            r['edges'], r['script_status']])
+            else:
+                if r['script_status'] == 'unscriptable':
+                    _reason = 'unscriptable'
+                elif r['script_status'] in ('timeout',) or r['script_status'].startswith('failed_at_step_'):
+                    _reason = 'script failed'
+                else:
+                    _reason = 'not reached'
+                out.append(['path', r['method'], 'unclear', 'DEVICE',
+                            'device run %s/%s' % (r['run'], r['script']),
+                            r['edges'], '%s (%s)' % (r['script_status'], _reason)])
 
 with open('graphs/openlauncher/verification.csv', 'w', encoding='utf-8', newline='') as f:
     csv.writer(f).writerows(out)
