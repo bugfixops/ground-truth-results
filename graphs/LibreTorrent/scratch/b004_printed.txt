@@ -1,0 +1,485 @@
+$ Batch 4 printed source (from the local clone tree).
+$ Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java
+$ Every range below is cited by at least one row of batch4-merge-ready.md; every .py evidence ref traces here.
+$ sed -n '160,160p' org/proninyaroslav/libretorrent/core/model/session/TorrentDownload.java
+   160	    boolean isDownloading();
+$ sed -n '1416,1419p' org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java
+  1416	    public boolean isDownloading()
+  1417	    {
+  1418	        return getDownloadSpeed() > 0;
+  1419	    }
+$ sed -n '41,41p' org/proninyaroslav/libretorrent/core/settings/SettingsRepositoryImpl.java
+    41	    private static class Default {
+$ sed -n '43,75p' org/proninyaroslav/libretorrent/core/settings/SettingsRepositoryImpl.java
+    43	        static final String notifySound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION).toString();
+    44	        static final boolean torrentFinishNotify = true;
+    45	        static final boolean playSoundNotify = true;
+    46	        static final boolean ledIndicatorNotify = true;
+    47	        static final boolean vibrationNotify = true;
+    48	
+    49	        static int theme(@NonNull Context context) {
+    50	            return Integer.parseInt(context.getString(R.string.pref_theme_light_value));
+    51	        }
+    52	
+    53	        static int ledIndicatorColorNotify(@NonNull Context context) {
+    54	            return ContextCompat.getColor(context, R.color.primary);
+    55	        }
+    56	
+    57	        static String foregroundNotifyStatusFilter(@NonNull Context context) {
+    58	            return context.getString(R.string.pref_foreground_notify_status_downloading_value);
+    59	        }
+    60	
+    61	        static String foregroundNotifySorting(@NonNull Context context) {
+    62	            return context.getString(R.string.pref_foreground_notify_sorting_progress_desc_value);
+    63	        }
+    64	
+    65	        static final boolean foregroundNotifyCombinedPauseButton = false;
+    66	        /* Behavior settings */
+    67	        static final boolean autostart = false;
+    68	        static final boolean keepAlive = true;
+    69	        static final boolean shutdownDownloadsComplete = false;
+    70	        static final boolean cpuDoNotSleep = false;
+    71	        static final boolean onlyCharging = false;
+    72	        static final boolean batteryControl = false;
+    73	        static final boolean customBatteryControl = false;
+    74	        static final int customBatteryControlValue = Utils.getDefaultBatteryLowLevel();
+    75	        static final boolean unmeteredConnectionsOnly = false;
+$ sed -n '266,266p' org/proninyaroslav/libretorrent/core/settings/SettingsRepositoryImpl.java
+   266	                Default.notifySound);
+$ sed -n '331,331p' org/proninyaroslav/libretorrent/core/settings/SettingsRepositoryImpl.java
+   331	                Default.theme(appContext));
+$ sed -n '26,39p' org/proninyaroslav/libretorrent/core/sorting/BaseSorting.java
+    26	    public enum Direction
+    27	    {
+    28	        ASC, DESC;
+    29	
+    30	        public static Direction fromValue(String value)
+    31	        {
+    32	            for (Direction direction : Direction.class.getEnumConstants()) {
+    33	                if (direction.toString().equalsIgnoreCase(value)) {
+    34	                    return direction;
+    35	                }
+    36	            }
+    37	
+    38	            return Direction.ASC;
+    39	        }
+$ sed -n '43,43p' org/proninyaroslav/libretorrent/core/sorting/TorrentSortingComparator.java
+    43	        return TorrentSorting.SortingColumns.fromValue(sorting.getColumnName())
+$ sed -n '36,36p' org/proninyaroslav/libretorrent/core/storage/AppDatabase.java
+    36	import org.proninyaroslav.libretorrent.core.storage.converter.UriConverter;
+$ sed -n '53,53p' org/proninyaroslav/libretorrent/core/storage/AppDatabase.java
+    53	@TypeConverters({UriConverter.class})
+$ sed -n '39,55p' org/proninyaroslav/libretorrent/core/storage/DatabaseMigration.java
+    39	class DatabaseMigration
+    40	{
+    41	    private static final String TAG = DatabaseMigration.class.getSimpleName();
+    42	
+    43	    static Migration[] getMigrations(@NonNull Context appContext)
+    44	    {
+    45	        return new Migration[] {
+    46	                MIGRATION_1_2,
+    47	                MIGRATION_2_3,
+    48	                MIGRATION_3_4,
+    49	                new RoomDatabaseMigration(appContext),
+    50	                MIGRATION_5_6,
+    51	                MIGRATION_6_7,
+    52	                MIGRATION_7_8,
+    53	                MIGRATION_8_9
+    54	        };
+    55	    }
+$ sed -n '120,127p' org/proninyaroslav/libretorrent/core/storage/DatabaseMigration.java
+   120	    static class RoomDatabaseMigration extends Migration
+   121	    {
+   122	        static final class OldDataModel
+   123	        {
+   124	            static final String TORRENT_FILE_NAME = "torrent";
+   125	            static final String TORRENT_RESUME_FILE_NAME = "fastresume";
+   126	            static final String TORRENT_SESSION_FILE = "session";
+   127	        }
+$ sed -n '38,38p' org/proninyaroslav/libretorrent/core/storage/FeedRepository.java
+    38	    String getSerializeFileFormat();
+$ sed -n '40,40p' org/proninyaroslav/libretorrent/core/storage/FeedRepository.java
+    40	    String getSerializeMimeType();
+$ sed -n '65,69p' org/proninyaroslav/libretorrent/core/storage/FeedRepositoryImpl.java
+    65	    @Override
+    66	    public String getSerializeFileFormat()
+    67	    {
+    68	        return SERIALIZE_FILE_FORMAT;
+    69	    }
+$ sed -n '71,75p' org/proninyaroslav/libretorrent/core/storage/FeedRepositoryImpl.java
+    71	    @Override
+    72	    public String getSerializeMimeType()
+    73	    {
+    74	        return SERIALIZE_MIME_TYPE;
+    75	    }
+$ sed -n '43,45p' org/proninyaroslav/libretorrent/core/storage/TorrentRepositoryImpl.java
+    43	    private static final class FileDataModel {
+    44	        private static final String TORRENT_SESSION_FILE = "session";
+    45	    }
+$ sed -n '103,103p' org/proninyaroslav/libretorrent/core/storage/TorrentRepositoryImpl.java
+   103	        File sessionFile = new File(dataDir, TorrentRepositoryImpl.FileDataModel.TORRENT_SESSION_FILE);
+$ sed -n '112,112p' org/proninyaroslav/libretorrent/core/storage/TorrentRepositoryImpl.java
+   112	            File session = new File(dataDir, TorrentRepositoryImpl.FileDataModel.TORRENT_SESSION_FILE);
+$ sed -n '145,156p' org/proninyaroslav/libretorrent/core/storage/TorrentRepositoryImpl.java
+   145	    private String getTorrentDataDir(Context context, String id) {
+   146	        if (SystemFacadeHelper.getFileSystemFacade(context).isStorageReadable()) {
+   147	            File dataDir = new File(context.getExternalFilesDir(null), id);
+   148	            if (dataDir.exists()) {
+   149	                return dataDir.getAbsolutePath();
+   150	            } else {
+   151	                return makeTorrentDataDir(context, id);
+   152	            }
+   153	        }
+   154	
+   155	        return null;
+   156	    }
+$ sed -n '163,171p' org/proninyaroslav/libretorrent/core/storage/TorrentRepositoryImpl.java
+   163	    private String makeTorrentDataDir(Context context, String name) {
+   164	        if (!SystemFacadeHelper.getFileSystemFacade(context).isStorageWritable())
+   165	            return null;
+   166	
+   167	        String dataDir = context.getExternalFilesDir(null).getAbsolutePath();
+   168	        File newDir = new File(dataDir, name);
+   169	
+   170	        return (newDir.mkdir()) ? newDir.getAbsolutePath() : null;
+   171	    }
+$ sed -n '27,39p' org/proninyaroslav/libretorrent/core/storage/converter/UriConverter.java
+    27	public class UriConverter
+    28	{
+    29	    @TypeConverter
+    30	    public static Uri toUri(@NonNull String uriStr)
+    31	    {
+    32	        return Uri.parse(uriStr);
+    33	    }
+    34	
+    35	    @TypeConverter
+    36	    public static String fromUri(@NonNull Uri uri)
+    37	    {
+    38	        return uri.toString();
+    39	    }
+$ sed -n '41,44p' org/proninyaroslav/libretorrent/core/system/DefaultFsModule.java
+    41	    public String getName(@NonNull Uri filePath)
+    42	    {
+    43	        return new File(filePath.getPath()).getName();
+    44	    }
+$ sed -n '115,118p' org/proninyaroslav/libretorrent/core/system/DefaultFsModule.java
+   115	    public long lastModified(@NonNull Uri filePath)
+   116	    {
+   117	        return new File(filePath.getPath()).lastModified();
+   118	    }
+$ sed -n '64,64p' org/proninyaroslav/libretorrent/core/system/FileSystemFacadeImpl.java
+    64	        return fsModule.openFD(path);
+$ sed -n '157,157p' org/proninyaroslav/libretorrent/core/system/FileSystemFacadeImpl.java
+   157	        return fsModule.fileExists(filePath);
+$ sed -n '161,166p' org/proninyaroslav/libretorrent/core/system/FileSystemFacadeImpl.java
+   161	    public long lastModified(@NonNull Uri filePath) throws UnknownUriException
+   162	    {
+   163	        FsModule fsModule = fsResolver.resolveFsByUri(filePath);
+   164	
+   165	        return fsModule.lastModified(filePath);
+   166	    }
+$ sed -n '173,178p' org/proninyaroslav/libretorrent/core/system/FileSystemFacadeImpl.java
+   173	    public boolean isStorageWritable()
+   174	    {
+   175	        String state = Environment.getExternalStorageState();
+   176	
+   177	        return Environment.MEDIA_MOUNTED.equals(state);
+   178	    }
+$ sed -n '332,335p' org/proninyaroslav/libretorrent/core/system/FileSystemFacadeImpl.java
+   332	    public boolean isValidFatFilename(String name)
+   333	    {
+   334	        return name != null && name.equals(buildValidFatFilename(name));
+   335	    }
+$ sed -n '351,351p' org/proninyaroslav/libretorrent/core/system/FileSystemFacadeImpl.java
+   351	            if (isValidFatFilenameChar(c))
+$ sed -n '42,49p' org/proninyaroslav/libretorrent/core/system/FsModuleResolverImpl.java
+    42	    public FsModule resolveFsByUri(@NonNull Uri uri) throws UnknownUriException {
+    43	        if (Utils.isSafPath(appContext, uri)) {
+    44	            return safModule;
+    45	        } else if (Utils.isFileSystemPath(uri)) {
+    46	            return defaultModule;
+    47	        } else {
+    48	            throw new UnknownUriException("Cannot resolve file system for the given uri: " + uri);
+    49	        }
+$ sed -n '118,130p' org/proninyaroslav/libretorrent/core/system/SafFileSystem.java
+   118	        public static FakePath deserialize(@NonNull String fakePath)
+   119	        {
+   120	            int openTagIdx = fakePath.lastIndexOf(SAF_ROOT_TAG_OPEN);
+   121	            int closeTagIdx = fakePath.lastIndexOf(SAF_ROOT_TAG_CLOSE);
+   122	            if (openTagIdx < 0 || closeTagIdx < 0 || closeTagIdx <= openTagIdx)
+   123	                return null;
+   124	
+   125	            String safRootStr = fakePath.substring(openTagIdx + SAF_ROOT_TAG_OPEN.length(), closeTagIdx);
+   126	            Uri safRoot = Uri.parse(SCHEME + safRootStr);
+   127	            String relativePath = fakePath.substring(closeTagIdx + SAF_ROOT_TAG_CLOSE.length());
+   128	
+   129	            return new FakePath(safRoot, relativePath);
+   130	        }
+$ sed -n '140,150p' org/proninyaroslav/libretorrent/core/system/SafFileSystem.java
+   140	        public String[] makeRelativePathNodes()
+   141	        {
+   142	            return (TextUtils.isEmpty(relativePath) ?
+   143	                    new String[0] :
+   144	                    relativePath.split(File.separator));
+   145	        }
+   146	
+   147	        public Uri safRoot()
+   148	        {
+   149	            return safRoot;
+   150	        }
+$ sed -n '152,155p' org/proninyaroslav/libretorrent/core/system/SafFileSystem.java
+   152	        public String relativePath()
+   153	        {
+   154	            return relativePath;
+   155	        }
+$ sed -n '157,160p' org/proninyaroslav/libretorrent/core/system/SafFileSystem.java
+   157	        public static boolean isFakePath(@NonNull String path)
+   158	        {
+   159	            return path.startsWith("/" + SAF_ROOT_TAG_OPEN) || path.startsWith(SAF_ROOT_TAG_OPEN);
+   160	        }
+$ sed -n '310,313p' org/proninyaroslav/libretorrent/core/system/SafFileSystem.java
+   310	    public boolean delete(@NonNull Uri filePath) throws FileNotFoundException
+   311	    {
+   312	        return DocumentsContract.deleteDocument(appContext.getContentResolver(), filePath);
+   313	    }
+$ sed -n '316,323p' org/proninyaroslav/libretorrent/core/system/SafFileSystem.java
+   316	    public boolean delete(@NonNull FakePath path) throws FileNotFoundException
+   317	    {
+   318	        Uri filePath = getFileUri(path, false);
+   319	        if (filePath == null)
+   320	            return false;
+   321	
+   322	        return DocumentsContract.deleteDocument(appContext.getContentResolver(), filePath);
+   323	    }
+$ sed -n '330,341p' org/proninyaroslav/libretorrent/core/system/SafFileSystem.java
+   330	    public boolean exists(@NonNull Uri filePath)
+   331	    {
+   332	        String cacheKey = filePath.toString();
+   333	        DocumentFile f = CACHE.get(cacheKey);
+   334	        if (f == null) {
+   335	            f = DocumentFile.fromSingleUri(appContext, filePath);
+   336	            if (f != null)
+   337	                CACHE.put(cacheKey, f);
+   338	        }
+   339	
+   340	        return f != null && f.exists();
+   341	    }
+$ sed -n '344,344p' org/proninyaroslav/libretorrent/core/system/SafFileSystem.java
+   344	    public boolean exists(@NonNull FakePath path)
+$ sed -n '382,391p' org/proninyaroslav/libretorrent/core/system/SafFileSystem.java
+   382	    public int openFD(@NonNull Uri dir,
+   383	                      @NonNull String fileName,
+   384	                      @NonNull String mode)
+   385	    {
+   386	        Uri filePath = getFileUri(dir, fileName, true);
+   387	        if (filePath == null)
+   388	            return -1;
+   389	
+   390	        return openFD(filePath, mode);
+   391	    }
+$ sed -n '394,402p' org/proninyaroslav/libretorrent/core/system/SafFileSystem.java
+   394	    public int openFD(@NonNull FakePath path,
+   395	                      @NonNull String mode)
+   396	    {
+   397	        Uri filePath = getFileUri(path, true);
+   398	        if (filePath == null)
+   399	            return -1;
+   400	
+   401	        return openFD(filePath, mode);
+   402	    }
+$ sed -n '404,422p' org/proninyaroslav/libretorrent/core/system/SafFileSystem.java
+   404	    public int openFD(@NonNull Uri filePath, String mode)
+   405	    {
+   406	        if (!("r".equals(mode) || "w".equals(mode) || "rw".equals(mode))) {
+   407	            Log.e(TAG, "Only r, w or rw modes supported");
+   408	            return -1;
+   409	        }
+   410	
+   411	        ContentResolver cr = appContext.getContentResolver();
+   412	        try (ParcelFileDescriptor fd = cr.openFileDescriptor(filePath, mode)) {
+   413	            if (fd == null)
+   414	                return -1;
+   415	
+   416	            return fd.detachFd();
+   417	
+   418	        } catch (Throwable e) {
+   419	            Log.e(TAG, "Unable to get native fd", e);
+   420	            return -1;
+   421	        }
+   422	    }
+$ sed -n '426,440p' org/proninyaroslav/libretorrent/core/system/SafFileSystem.java
+   426	    public Stat stat(@NonNull Uri safRoot, @NonNull String fileName)
+   427	    {
+   428	        String cacheKey = safRoot.toString() + File.separator + fileName;
+   429	        DocumentFile f = CACHE.get(cacheKey);
+   430	        if (f == null) {
+   431	            DocumentFile tree = DocumentFile.fromTreeUri(appContext, safRoot);
+   432	            if (tree == null)
+   433	                return null;
+   434	            f = getFile(tree, fileName, false);
+   435	            if (f != null)
+   436	                CACHE.put(cacheKey, f);
+   437	        }
+   438	
+   439	        return stat(f);
+   440	    }
+$ sed -n '474,485p' org/proninyaroslav/libretorrent/core/system/SafFileSystem.java
+   474	    public Stat stat(@NonNull FakePath path)
+   475	    {
+   476	        String cacheKey = path.toString();
+   477	        DocumentFile f = CACHE.get(cacheKey);
+   478	        if (f == null) {
+   479	            f = getFile(path, true);
+   480	            if (f != null)
+   481	                CACHE.put(cacheKey, f);
+   482	        }
+   483	
+   484	        return stat(f);
+   485	    }
+$ sed -n '505,530p' org/proninyaroslav/libretorrent/core/system/SafFileSystem.java
+   505	    public boolean mkdirs(@NonNull FakePath path)
+   506	    {
+   507	        String cacheKey = path.toString();
+   508	        DocumentFile cached = CACHE.get(cacheKey);
+   509	        if (cached != null && cached.exists())
+   510	            return true;
+   511	
+   512	        DocumentFile currNode = DocumentFile.fromTreeUri(appContext, path.safRoot());
+   513	        if (currNode == null)
+   514	            return false;
+   515	
+   516	        String[] nodes = path.makeRelativePathNodes();
+   517	        for (String nodeName : nodes) {
+   518	            DocumentFile node = currNode.findFile(nodeName);
+   519	            if (node == null)
+   520	                node = currNode.createDirectory(nodeName);
+   521	
+   522	            if (node == null)
+   523	                return false;
+   524	
+   525	            currNode = node;
+   526	        }
+   527	        CACHE.put(cacheKey, currNode);
+   528	
+   529	        return true;
+   530	    }
+$ sed -n '46,52p' org/proninyaroslav/libretorrent/core/system/SafFsModule.java
+    46	    public String getName(@NonNull Uri filePath)
+    47	    {
+    48	        SafFileSystem fs = SafFileSystem.getInstance(appContext);
+    49	        SafFileSystem.Stat stat = fs.stat(filePath);
+    50	
+    51	        return (stat == null ? null : stat.name);
+    52	    }
+$ sed -n '57,57p' org/proninyaroslav/libretorrent/core/system/SafFsModule.java
+    57	        SafFileSystem.Stat stat = SafFileSystem.getInstance(appContext).statSafRoot(dir);
+$ sed -n '65,65p' org/proninyaroslav/libretorrent/core/system/SafFsModule.java
+    65	        SafFileSystem.Stat stat = SafFileSystem.getInstance(appContext).stat(filePath);
+$ sed -n '84,89p' org/proninyaroslav/libretorrent/core/system/SafFsModule.java
+    84	    public boolean delete(@NonNull Uri filePath) throws FileNotFoundException
+    85	    {
+    86	        SafFileSystem fs = SafFileSystem.getInstance(appContext);
+    87	
+    88	        return fs.delete(filePath);
+    89	    }
+$ sed -n '92,95p' org/proninyaroslav/libretorrent/core/system/SafFsModule.java
+    92	    public FileDescriptorWrapper openFD(@NonNull Uri path)
+    93	    {
+    94	        return new FileDescriptorWrapperImpl(appContext, path);
+    95	    }
+$ sed -n '136,139p' org/proninyaroslav/libretorrent/core/system/SafFsModule.java
+   136	    public boolean fileExists(@NonNull Uri filePath)
+   137	    {
+   138	        return SafFileSystem.getInstance(appContext).exists(filePath);
+   139	    }
+$ sed -n '142,148p' org/proninyaroslav/libretorrent/core/system/SafFsModule.java
+   142	    public long lastModified(@NonNull Uri filePath)
+   143	    {
+   144	        SafFileSystem.Stat stat = SafFileSystem.getInstance(appContext)
+   145	                .stat(filePath);
+   146	
+   147	        return (stat == null ? -1 : stat.lastModified);
+   148	    }
+$ sed -n '31,37p' org/proninyaroslav/libretorrent/core/system/SystemFacadeHelper.java
+    31	    public synchronized static SystemFacade getSystemFacade(@NonNull Context appContext)
+    32	    {
+    33	        if (systemFacade == null)
+    34	            systemFacade = new SystemFacadeImpl(appContext);
+    35	
+    36	        return systemFacade;
+    37	    }
+$ sed -n '39,46p' org/proninyaroslav/libretorrent/core/system/SystemFacadeHelper.java
+    39	    public synchronized static FileSystemFacade getFileSystemFacade(@NonNull Context appContext)
+    40	    {
+    41	        if (fileSystemFacade == null)
+    42	            fileSystemFacade = new FileSystemFacadeImpl(appContext,
+    43	                    new FsModuleResolverImpl(appContext));
+    44	
+    45	        return fileSystemFacade;
+    46	    }
+$ sed -n '33,33p' org/proninyaroslav/libretorrent/core/urlnormalizer/NormalizeUrl.java
+    33	public class NormalizeUrl
+$ sed -n '165,178p' org/proninyaroslav/libretorrent/core/urlnormalizer/NormalizeUrl.java
+   165	    public static String normalize(String url) throws NormalizeUrlException
+   166	    {
+   167	        return normalize(url, null);
+   168	    }
+   169	
+   170	    /**
+   171	     * More about URL normalization: https://en.wikipedia.org/wiki/URL_normalization
+   172	     *
+   173	     * @param url URL
+   174	     * @param options additional options for normalization
+   175	     * @return normalized URL
+   176	     */
+   177	
+   178	    public static String normalize(String url, Options options) throws NormalizeUrlException
+$ sed -n '11,11p' org/proninyaroslav/libretorrent/core/urlnormalizer/PathResolver.java
+    11	    /**
+$ sed -n '14,16p' org/proninyaroslav/libretorrent/core/urlnormalizer/PathResolver.java
+    14	    private PathResolver() {
+    15	    }
+    16	
+$ sed -n '29,29p' org/proninyaroslav/libretorrent/core/urlnormalizer/PathResolver.java
+    29	        if (merged == null || merged.isEmpty()) {
+$ sed -n '12,12p' org/proninyaroslav/libretorrent/core/urlnormalizer/PercentEncoder.java
+    12	final class PercentEncoder {
+$ sed -n '20,22p' org/proninyaroslav/libretorrent/core/urlnormalizer/PercentEncoder.java
+    20	     */
+    21	    private PercentEncoder() {
+    22	    }
+$ sed -n '35,40p' org/proninyaroslav/libretorrent/core/utils/BencodeFileTreeUtils.java
+    35	 * The static class for create and using BencodeFileTree objects.
+    36	 *
+    37	 * TODO: need refactor (with TorrentContentFileTreeUtils)
+    38	 */
+    39	
+    40	public class BencodeFileTreeUtils
+$ sed -n '36,36p' org/proninyaroslav/libretorrent/core/utils/BindingAdapterUtils.java
+    36	public class BindingAdapterUtils
+$ sed -n '31,31p' org/proninyaroslav/libretorrent/core/utils/DateUtils.java
+    31	public class DateUtils
+$ sed -n '35,40p' org/proninyaroslav/libretorrent/core/utils/TorrentContentFileTreeUtils.java
+    35	 * The static class for create and using TorrentContentFileTree objects.
+    36	 *
+    37	 * TODO: need refactor (with BencodeFileTreeUtils)
+    38	 */
+    39	
+    40	public class TorrentContentFileTreeUtils
+$ sed -n '105,105p' org/proninyaroslav/libretorrent/core/utils/Utils.java
+   105	public class Utils {
+$ sed -n '220,227p' org/proninyaroslav/libretorrent/core/utils/Utils.java
+   220	    public static String normalizeURL(@NonNull String url) {
+   221	        url = IDN.toUnicode(url);
+   222	
+   223	        if (!url.startsWith(HTTP_PREFIX) && !url.startsWith(HTTPS_PREFIX))
+   224	            return HTTP_PREFIX + url;
+   225	        else
+   226	            return url;
+   227	    }
+$ sed -n '69,69p' org/proninyaroslav/libretorrent/ui/addlink/AddLinkViewModel.java
+    69	            link = NormalizeUrl.normalize(link, options);
+$ sed -n '311,311p' org/proninyaroslav/libretorrent/ui/createtorrent/CreateTorrentViewModel.java
+   311	            url = NormalizeUrl.normalize(url, options);
+$ sed -n '726,726p' org/proninyaroslav/libretorrent/ui/detailtorrent/DetailTorrentFragment.java
+   726	                normalizedUrls.add(NormalizeUrl.normalize(url, options));
