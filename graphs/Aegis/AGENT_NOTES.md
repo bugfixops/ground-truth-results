@@ -684,3 +684,72 @@ Totals: 25 ERROR steps over 12 routes (detailedmulti 25 and 26 not counted). Ten
   errors 0, warnings 0; check 2: 21 distinct, 0 problems; check 3: 0
   flagged; check 4: 0; checks 5-7: 0; STRICT 1; check 8: 0 of 458.
 - ## Current step: C1 done, pushed; next C2 (7 decisions).
+
+## Finish run C2 (2026-11-01, Aegis merger)
+- Re-checked D1-D7 against printed source (not adopted from the
+  overnight dossier blindly). Decisions are Muse's own for user/Yang
+  review; full brief-section-6 records go to the coordinator for
+  handoff/MUSE_DECISIONS.md.
+- D1 (R1 step 13, S_INTRO_WELCOME -> S_INTRO_PICKER ENTERS): page node
+  enough; NO SYSTEM producer, NO needs_state. Brief starting choice
+  (add producer + needs_state) DECLINED: goToNextSlide
+  (IntroBaseActivity.java:80-93) advances the slide on the tap itself
+  (Next tap :47; GUI edge lambda$onCreate$1 -> goToNextSlide exists),
+  so no earlier producer state exists to name; a SYSTEM node would be
+  unverifiable. No edit.
+- D2 (Route 4 step 9, Ebac005d0): CONFIRM AS-IS. needs_state
+  ST_ICON_PACK_INSTALLED already present; verified
+  IconPackManager.java:33 is rescanIconPacks() (constructor :31-35).
+  No edit.
+- D3 (Route 1 step 21, E1dcf1457): CONFIRM @SAVED split as permanent.
+  Fresh show_route MainActivity.onIntroResult steps 22-24 resolve
+  (initNew -> onDonePressed@SAVED -> lambda$new$1 -> onIntroResult;
+  IntroActivity.java:92-104,126-129; MainActivity.java:142-148).
+  No edit.
+- D4 (search step 14, E399cebc2): UNCLEAR (D2) with prior-run
+  needs_state (dossier option b adopted). Verified
+  BehaviorPreferencesFragment.java:57 sets the mask,
+  MainActivity.java:234 reads it once at onCreate (:193),
+  EntryAdapter.java:206-209 reads it. Added ST_SEARCH_IN_GROUPS +
+  STATE_KINDS ['settings'] + needs_state on the edge. No label change.
+- D5 (G3_5 step 34, tap-first GA chain): CONFIRM; no-tap Authy-default
+  path stays unmodelled (Limits note at C4), not UNREACHABLE.
+  Mechanism corrected: Authy is default-checked on @APP because
+  isDirect leaves i at 0 (Dialogs.java:519-522,528) and Authy is first
+  among supportsDirect entries (DatabaseImporter.java:99-102,37) --
+  not because :37 alone means checked. Comment + pick-edge guard
+  corrected to that mechanism. No model change; no Authy edge on the
+  shared OK node.
+- D6 (GlideRequests step 50, root-gated app import): CONFIRM AS-IS.
+  ENV_ROOT already maps to kind 'other' (ENV_KINDS_OF) with text
+  citing ImportEntriesActivity.java:149-153 + RootShellTask.java:17-20,
+  and already gates lambda$startImportApp$5 -> readFromApp;
+  startImport -> startImportApp already has ENV_INSTALLED_GA;
+  doInBackground needs no gate (Shell.build runs regardless; root is
+  checked at the callback :149-153). Route stays open until C3 redraw.
+  No edit.
+- D7 (readFromApp step 24, checked-row chain): RESOLVED, chain CORRECT
+  as printed -- the missing print LANDED. dialog_importers.xml sets
+  choiceMode singleChoice; Dialogs.java:528 setItemChecked, :529-531
+  listener (help text only), :537 OK reads getCheckedItemPosition;
+  AbsListView.java:1136-1150 (CHOICE_MODE_SINGLE tap sets the checked
+  row, then dispatches to the listener). The dossier's option (c)
+  (hold ERROR + @APP_GA variant) is superseded: @APP_GA split
+  DECLINED (no missing producer; framework step is the producer, now
+  FW-SRC cited). Pick-edge evidence gains the AbsListView FW-SRC
+  citation; OK-edge guard now states the precondition explicitly.
+- R1 (cold-start edges): E20e76e09/E57db524e already carry
+  ST_PLAIN/ST_ENCRYPTED; Ec7af65b2 (onStart -> updateErrorCard) was
+  missing its gate, so needs_state=ST_VAULT_FILE added (onStart
+  returns early with no vault, MainActivity.java:942-948; reads the
+  vault :950-977). Fresh-declared routes UNCLEAR (D2),
+  relaunch-declared correct, intro-flow routes satisfy in-run via
+  initNew.
+- R3 note: E4db374dd edge text printed (EntryHolder.java:325-326;
+  MotpInfo.java:34; needs_state ST_MOTP_ENTRY present). No change.
+- Local build after C2 edits (bash handoff/ci/rebuild.sh Aegis,
+  private tree): methods 2995, REACHABLE 2537, UNREACHABLE 458, edges
+  5483, errors 0, warnings 0; check 2: 22 distinct, 0 problems; check
+  3: 0 flagged; check 4: 0; checks 5-7: 0; STRICT 1; check 8: 0 of 458;
+  unclassified state kinds 0. No label changed.
+- ## Current step: C2 done, pushed; next C3 (23 round-7 routes + sample/redraw/table).

@@ -87,6 +87,9 @@ ST_VAULT_UNREADABLE = ('The vault file exists but cannot be read (VaultRepositor
                        'an earlier run left it unreadable, and no step on any route writes it')
 ST_ICON_PACK_INSTALLED = ('An icon pack is already installed in the icons folder from an earlier run '
                           '(IconPackManager.java:33 rescans the folder at startup)')
+ST_SEARCH_IN_GROUPS = ('SEARCH_IN_GROUPS is set in preferences and the app relaunched '
+                       '(the mask is read once at MainActivity.onCreate, MainActivity.java:234; '
+                       'set by BehaviorPreferencesFragment.java:57)')
 ST_CLIPBOARD_DIALOG = ('The clipboard import dialog is open (startEditEntryActivity found a valid otpauth link on the clipboard; '
                        'MainActivity.java:476-491)')
 ST_DELETE_DIALOG = 'The delete-entries dialog is open (showDeleteEntriesDialog ran; MainActivity.java:1508-1516)'
@@ -112,7 +115,7 @@ ENV_KINDS_OF = {
     ENV_PICKER_SETTINGS: ['other_app'], ENV_PANIC_SENDER: ['other_app'], ENV_INSTALLED_GA: ['other_app'], ENV_ROOT: ['other'],
 }
 STATE_KINDS_OF = {
-    ST_VAULT_FILE: ['file'], ST_PLAIN_VAULT_FILE: ['file'], ST_ENCRYPTED_VAULT_FILE: ['file'], ST_REMINDER_DUE: ['settings'], ST_IMPORTED: ['data'], ST_NOT_IMPORTED: ['data'], ST_PASSWORD_SLOT: ['data'], ST_BIO_SLOT: ['data'],
+    ST_VAULT_FILE: ['file'], ST_PLAIN_VAULT_FILE: ['file'], ST_ENCRYPTED_VAULT_FILE: ['file'], ST_REMINDER_DUE: ['settings'], ST_IMPORTED: ['data'], ST_NOT_IMPORTED: ['data'], ST_PASSWORD_SLOT: ['data'], ST_BIO_SLOT: ['data'], ST_SEARCH_IN_GROUPS: ['settings'],
     ST_UNLOCKED: ['session'], ST_LIST_LOADED: ['session'], ST_ACTIVITY_OPEN: ['session'], ST_PANIC_ON: ['settings'],
     ST_FAB_OPEN: ['session'], ST_SEARCH_OPEN: ['session'], ST_ACTION_MODE: ['session'], ST_ASSIGN_DIALOG: ['session'],
     ST_SAVE_CHIP: ['session'], ST_ERROR_CARD: ['settings'], ST_VAULT_UNREADABLE: ['file'], ST_ICON_PACK_INSTALLED: ['file'], ST_CLIPBOARD_DIALOG: ['session'], ST_DELETE_DIALOG: ['session'],
@@ -1116,11 +1119,12 @@ e('ImportExportPreferencesFragment.lambda$onCreatePreferences$8', _IMP_APP, 'CAL
   evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:117-119')
 gui(_IMP_FILE, 'Dialogs.lambda$showImportersDialog$26', 'Pick an app in the importer list (its help text is shown)',
     evidence=FW_ITEM + '; SRC ui/dialogs/Dialogs.java:529-531')
-# The app dialog opens with Authy checked (DatabaseImporter.java:37), so OK on this path needs a row tap first
+# The app dialog (isDirect) opens with index 0 checked (Dialogs.java:519-522,528); index 0 of the direct-filtered
+# list is Authy (DatabaseImporter.java:99-102; Authy supportsDirect, :37), so OK on this path needs a row tap first
 _IMP_PICK_APP = 'Dialogs.lambda$showImportersDialog$26@APP'
 gui(_IMP_APP, _IMP_PICK_APP, 'Tap the Google Authenticator row in the importer list (its help text is shown)',
-    guard='the Google Authenticator row is tapped (the default checked row is Authy, DatabaseImporter.java:37)',
-    evidence=FW_ITEM + '; SRC ui/dialogs/Dialogs.java:523-531; SRC importers/DatabaseImporter.java:37,44')
+    guard='the Google Authenticator row is tapped (the default checked row is Authy: isDirect leaves i at 0, Dialogs.java:519-522,528; Authy is first among supportsDirect entries, DatabaseImporter.java:99-102,37)',
+    evidence=FW_ITEM + '; FW-SRC core/java/android/widget/AbsListView.java:1136-1150 (single-choice tap sets the checked row); SRC ui/dialogs/Dialogs.java:523-531; SRC importers/DatabaseImporter.java:37,44')
 e(_IMP_FILE, 'DatabaseImporter$Definition.getName', 'REGISTER', 'Creates the lambda / method reference (its body runs when invoked)',
   evidence='SRC Dialogs.java:517 (bytecode)')
 e(_IMP_APP, 'DatabaseImporter$Definition.getName', 'REGISTER', 'Creates the lambda / method reference (its body runs when invoked)',
@@ -1128,7 +1132,7 @@ e(_IMP_APP, 'DatabaseImporter$Definition.getName', 'REGISTER', 'Creates the lamb
 gui(_IMP_FILE, _IMP_OK_FILE, 'Tap OK in the importer dialog (gives the chosen importer to the listener)',
     evidence=FW_CLICK + '; INFERRED Material MaterialAlertDialogBuilder (Dialogs.java:533; the Material library source is not on disk); SRC ui/dialogs/Dialogs.java:533-538')
 gui(_IMP_PICK_APP, _IMP_OK_APP, 'Tap OK after the Google Authenticator row was tapped (gives the chosen importer to the listener)',
-    guard='a row was tapped first, so the chosen importer is not the default Authy row',
+    guard='the GA row was tapped first: in the single-choice list a tap sets the checked row (AbsListView.java:1136-1150), so OK reads the GA importer (Dialogs.java:537), not the default Authy row',
     evidence=FW_CLICK + '; INFERRED Material MaterialAlertDialogBuilder (Dialogs.java:533; the Material library source is not on disk); SRC ui/dialogs/Dialogs.java:533-538')
 
 # --- partial Google Auth import warning (Dialogs.java:542-581)
@@ -2688,7 +2692,8 @@ sup(('MainActivity.onStart', 'MainActivity.updateErrorCard'), ('EntryAdapter.set
     ('EntryAdapter$DiffCallback.areContentsTheSame', 'VaultEntry.equals'), ('VaultEntry.equivalates', 'TotpInfo.equals'),
     ('OtpInfo.equals', 'MotpInfo.getTypeId'))
 e('MainActivity.onStart', 'MainActivity.updateErrorCard', 'CALL', 'the error card is updated at the end of onStart',
-  guard='onStart did not return early (MainActivity.java:942-948, 960, 971)', evidence='SRC ui/MainActivity.java:942-1007')
+  guard='onStart did not return early (MainActivity.java:942-948, 960, 971)', needs_state=ST_VAULT_FILE,
+  evidence='SRC ui/MainActivity.java:942-1007')
 e('EntryAdapter.setErrorCardInfo', 'EntryAdapter.replaceEntryList', 'CALL', 'the error card info is set and the list is replaced',
   guard='the error card info differs from the one shown (EntryAdapter.java:153-155) and the new info is not null (with null on both sides Objects.equals is true and the list is kept): an errored built-in backup (Preferences.java:495-499), a needed and enabled backup reminder (pref_backups_reminder_needed, Preferences.java:542-543), or the plaintext-backup warning (pref_plaintext_backup_warning_needed, Preferences.java:550-552); MainActivity.java:1163-1193 picks the card',
   evidence='SRC ui/views/EntryAdapter.java:152-157; SRC ui/MainActivity.java:1163-1193')
@@ -2730,6 +2735,7 @@ e('EntryAdapter.setSearchFilter', 'EntryAdapter.refreshEntryList', 'CALL', 'a ch
   evidence='SRC ui/views/EntryAdapter.java:271-273 (bytecode line 273)')
 e('EntryAdapter.lambda$isEntryFiltered$0', 'EntryAdapter.doesAnyGroupMatchSearchFilter', 'CALL', 'the search token is tested against the group names',
   guard='_searchBehaviorMask includes SEARCH_IN_GROUPS and the token did not match the issuer, name or note (EntryAdapter.java:206-209)',
+  needs_state=ST_SEARCH_IN_GROUPS,
   evidence='SRC ui/views/EntryAdapter.java:206-209 (bytecode line 209)')
 e('EntryAdapter.onBindViewHolder', 'EntryAdapter.lambda$onBindViewHolder$3', 'FRAMEWORK',
   'the stream counts the entries with the same issuer, so the account name is shown only when it is needed',
