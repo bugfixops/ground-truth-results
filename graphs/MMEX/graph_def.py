@@ -5,7 +5,7 @@
 
 TITLE = 'MMEX 2024.06.14 trigger graph'
 USE_AUTO = True
-STRICT = False
+STRICT = True
 
 ENV_KINDS_OF, STATE_KINDS_OF = {}, {}
 
