@@ -1,0 +1,64 @@
+        });
+    }
+
+    private Flowable<AdvancedTorrentInfo> makeAdvancedInfoFlowable(String id) {
+        return Flowable.create((emitter) -> {
+            final AtomicReference<AdvancedTorrentInfo> info = new AtomicReference<>();
+
+            Disposable d = Observable.interval(GET_INFO_SYNC_TIME, TimeUnit.MILLISECONDS)
+                    .subscribe((__) -> {
+                                AdvancedTorrentInfo newInfo = engine.makeAdvancedInfoSync(id);
+                                AdvancedTorrentInfo oldInfo = info.get();
+                                if (newInfo != null && !newInfo.equals(oldInfo)) {
+                                    info.set(newInfo);
+                                    if (!emitter.isCancelled())
+                                        emitter.onNext(newInfo);
+                                }
+                            },
+                            (Throwable t) -> Log.e(TAG, "Getting advanced info for torrent " + id + " error: " +
+                                    Log.getStackTraceString(t)));
+    private Flowable<List<TrackerInfo>> makeTrackersInfoFlowable(String id) {
+        return Flowable.create((emitter) -> {
+            final AtomicReference<List<TrackerInfo>> infoList = new AtomicReference<>();
+
+            Disposable d = Observable.interval(GET_INFO_SYNC_TIME, TimeUnit.MILLISECONDS)
+                    .subscribe((__) -> {
+                                List<TrackerInfo> newInfoList = engine.makeTrackerInfoList(id);
+                                List<TrackerInfo> oldInfoList = infoList.get();
+                                if (oldInfoList == null || oldInfoList.size() != newInfoList.size() ||
+                                        !oldInfoList.containsAll(newInfoList)) {
+                                    infoList.set(newInfoList);
+                                    if (!emitter.isCancelled())
+                                        emitter.onNext(newInfoList);
+                                }
+                            },
+                            (Throwable t) -> Log.e(TAG, "Getting trackers info for torrent " + id + " error: " +
+                                    Log.getStackTraceString(t)));
+
+            if (!emitter.isCancelled()) {
+                    .subscribe((__) -> {
+                                List<PeerInfo> newInfoList = engine.makePeerInfoList(id);
+                                List<PeerInfo> oldInfoList = infoList.get();
+                                if (oldInfoList == null || oldInfoList.size() != newInfoList.size() ||
+                                        !oldInfoList.containsAll(newInfoList)) {
+                                    infoList.set(newInfoList);
+                                    if (!emitter.isCancelled())
+                                        emitter.onNext(newInfoList);
+                                }
+                            },
+                            (Throwable t) -> Log.e(TAG, "Getting peers info for torrent " + id + " error: " +
+                                    Log.getStackTraceString(t)));
+
+                    .subscribe((__) -> {
+                                boolean[] newInfoList = engine.getPieces(id);
+                                boolean[] oldInfoList = infoList.get();
+                                if (!Arrays.equals(oldInfoList, newInfoList)) {
+                                    infoList.set(newInfoList);
+                                    if (!emitter.isCancelled())
+                                        emitter.onNext(newInfoList);
+                                }
+                            },
+                            (Throwable t) -> Log.e(TAG, "Getting pieces for torrent " + id + " error: " +
+                                    Log.getStackTraceString(t)));
+
+            if (!emitter.isCancelled()) {

@@ -1,0 +1,149 @@
+Gap-closure grep: batches 5-10 binding classes in the 29 files W1 did NOT grep
+Date: 2026-11-01 (Stream A Phase 1 follow-up, GAP CLOSURE ONLY)
+Branch: work-2026-10-31, repo bugfixops/ground-truth-results
+Scope: labels only; no device checks; no other app. NO PUSHES. No batch file edited.
+No tick mark written anywhere in this work.
+
+WHY THIS GREP EXISTS
+Worker W1 flipped batches 5-9 (200 rows) and batch 10 rows 1-22 to
+UNREACHABLE no_trigger_in_app on a zero-direct-call grep, but its enumeration
+covered only the org/proninyaroslav/libretorrent subtree (252 files) plus
+test files (20). It did NOT grep com/ernieyu/feedparser (28 files) or
+org/nanohttpd/NanoHTTPD.java (1 file) for XBinding calls. This file closes
+exactly that gap: the same 37 binding classes from batches 5-10, grepped
+over exactly those 29 files.
+
+THE 37 CLASSES (from the "- Row N: <Class>." lines of
+work/batch5-merge-ready.md through work/batch10-merge-ready.md; 6 statics
+per class in the row tables; union = 37, verified by count)
+ActivityAddTorrentBinding, ActivityFilemanagerDialogBinding,
+ActivityLogBinding, AddTorrentInfoBinding, DetailTorrentAppbarBinding,
+DialogAddFeedChannelBinding, DialogAddLinkBinding, DialogAddTagBinding,
+DialogCreateTorrentBinding, DialogErrorBinding, DialogGoToFolderBinding,
+DialogLogFilterBinding, DialogSelectTagBinding, DrawerEmptyTagsListItemBinding,
+DrawerNoTagsListItemBinding, DrawerTagsListItemBinding,
+FragmentAddTorrentFilesBinding, FragmentAddTorrentInfoBinding,
+FragmentDetailTorrentBinding, FragmentDetailTorrentFilesBinding,
+FragmentDetailTorrentInfoBinding, FragmentDetailTorrentPeerListBinding,
+FragmentDetailTorrentPiecesBinding, FragmentDetailTorrentStateBinding,
+FragmentDetailTorrentTrackerListBinding, FragmentFeedBinding,
+FragmentFeedItemsBinding, FragmentMainBinding, ItemFeedChannelListBinding,
+ItemFeedItemsListBinding, ItemLogListBinding, ItemPeersListBinding,
+ItemTorrentContentFileBinding, ItemTorrentDownloadableFileBinding,
+ItemTorrentListBinding, ItemTrackersListBinding, TagsListItemBinding
+
+FILES GREPPED: 29 (all under ~/workspace/overnight/stream-A/corpus-missing29/)
+com/ernieyu/feedparser (28):
+  Element.java, Enclosure.java, EzRssTorrentItem.java, Feed.java,
+  FeedException.java, FeedParser.java, FeedParserFactory.java, FeedType.java,
+  FeedUtils.java, Item.java, XML.java, XMLInputStream.java,
+  impl/AtomFeed.java, impl/AtomItem.java, impl/BaseElement.java,
+  impl/BaseItem.java, impl/DefaultFeedParser.java, impl/EzRss01Parser.java,
+  impl/FeedHandler.java, impl/MediaRssParser.java, impl/Rss1Feed.java,
+  impl/Rss1Item.java, impl/Rss2Feed.java, impl/Rss2Item.java,
+  mediarss/Content.java, mediarss/Hash.java, mediarss/MediaRss.java,
+  mediarss/PeerLink.java
+org/nanohttpd (1):
+  NanoHTTPD.java
+Total lines grepped: 4512 (2662 feedparser + 1850 NanoHTTPD).
+
+COPY VERIFICATION (done first; no connector fetch needed)
+- corpus-missing29/ vs corpus-my/missing29/: diff -rq empty (29/29 identical).
+- All 28 feedparser files byte-identical (cmp) to a third local copy,
+  corpus/java/com/ernieyu/feedparser/ (same relative paths).
+- NanoHTTPD.java byte-identical (cmp, SHA-256
+  f017a4f26849864c8787fb29257a568c8695a9ce2fd9e8552c09e0add0a754f5)
+  to three further local copies: greps/recheck-roots-nanohttpd/NanoHTTPD.java,
+  ~/workspace/b141516-src/NanoHTTPD.java, ~/workspace/b171819-src/NanoHTTPD.java.
+- Package lines verified: package com.ernieyu.feedparser[.(impl|mediarss)]
+  on all 28 feedparser files; package org.nanohttpd on NanoHTTPD.java.
+- No file empty or truncated: NanoHTTPD.java ends cleanly (1850 lines,
+  78428 bytes); smallest feedparser file FeedType.java 118 bytes is a
+  complete enum file (package + enum, verified by inspection of its tail).
+Because nothing was missing or looked wrong, no fresh connector fetch was
+made for this gap closure, per the task ("fetch fresh via connector only
+what is missing or looks wrong"). No 429 was encountered (no connector
+calls were made). No search_code result was used as evidence anywhere.
+
+COMMANDS RUN (grep -rn --include='*.java' over corpus-missing29/)
+(a) Direct calls, per-class:
+    grep -rn -E "(<37-class alternation>)\.(inflate|bind)\(" corpus-missing29
+    RESULT: exit 1, 0 hits.
+(a2) Generic safety sweep (catches any *Binding class, listed or not):
+    grep -rn -E "[A-Za-z0-9_]+\Binding\.(inflate|bind)\(" corpus-missing29
+    RESULT: exit 1, 0 hits.
+(a3) Context check:
+    grep -rn -E "DataBindingUtil|ViewDataBinding|ViewBinding" corpus-missing29
+    RESULT: exit 1, 0 hits.
+(b) Bare class-name mentions:
+    grep -rn -E "(<37-class alternation>)" corpus-missing29
+    RESULT: exit 1, 0 hits.
+(b2) Any occurrence of the word "Binding":
+    grep -rn "Binding" corpus-missing29
+    RESULT: exit 1, 0 hits.
+Positive controls (proves the zero is not a pattern bug):
+    grep -rn "inflate(" corpus-missing29 -> 0 hits (no inflate call of any
+      kind exists in these 29 files, so a binding inflate call cannot hide).
+    grep -rn "\bbind(" corpus-missing29 -> exactly 1 hit, examined and
+      NOT a binding call:
+      nanohttpd/NanoHTTPD.java:1334
+        myServerSocket.bind(hostname != null ? new InetSocketAddress(hostname, myPort) : new InetSocketAddress(myPort));
+      This is java.net.ServerSocket.bind on a socket field, unrelated to
+      any *Binding class. It is not a direct-call hit and reverts nothing.
+
+COUNTS
+  Files grepped: 29
+  Direct-call hits (XBinding.inflate( / XBinding.bind(), all 37 classes): 0
+  Bare class-name mentions of any of the 37 classes: 0
+  Imports / type references to any of the 37 classes: 0 (subset of the 0 above)
+  DataBindingUtil / ViewDataBinding mentions: 0
+  Non-binding near-miss examined and excluded: 1 (NanoHTTPD.java:1334 socket bind)
+
+PER-CLASS DIRECT-CALL TABLE (each class: direct inflate/bind hits in the 29)
+  ActivityAddTorrentBinding: 0
+  ActivityFilemanagerDialogBinding: 0
+  ActivityLogBinding: 0
+  AddTorrentInfoBinding: 0
+  DetailTorrentAppbarBinding: 0
+  DialogAddFeedChannelBinding: 0
+  DialogAddLinkBinding: 0
+  DialogAddTagBinding: 0
+  DialogCreateTorrentBinding: 0
+  DialogErrorBinding: 0
+  DialogGoToFolderBinding: 0
+  DialogLogFilterBinding: 0
+  DialogSelectTagBinding: 0
+  DrawerEmptyTagsListItemBinding: 0
+  DrawerNoTagsListItemBinding: 0
+  DrawerTagsListItemBinding: 0
+  FragmentAddTorrentFilesBinding: 0
+  FragmentAddTorrentInfoBinding: 0
+  FragmentDetailTorrentBinding: 0
+  FragmentDetailTorrentFilesBinding: 0
+  FragmentDetailTorrentInfoBinding: 0
+  FragmentDetailTorrentPeerListBinding: 0
+  FragmentDetailTorrentPiecesBinding: 0
+  FragmentDetailTorrentStateBinding: 0
+  FragmentDetailTorrentTrackerListBinding: 0
+  FragmentFeedBinding: 0
+  FragmentFeedItemsBinding: 0
+  FragmentMainBinding: 0
+  ItemFeedChannelListBinding: 0
+  ItemFeedItemsListBinding: 0
+  ItemLogListBinding: 0
+  ItemPeersListBinding: 0
+  ItemTorrentContentFileBinding: 0
+  ItemTorrentDownloadableFileBinding: 0
+  ItemTorrentListBinding: 0
+  ItemTrackersListBinding: 0
+  TagsListItemBinding: 0
+
+CONCLUSION
+  ZERO direct-call hits, ZERO bare-name hits. The gap is closed with no
+  change to W1's flips: no row in batch5- through batch10-merge-ready.md
+  is reverted, and no batch file was edited by this worker. The
+  zero-direct-call finding for batches 5-9 (200 rows) and batch 10 rows 1-22
+  now covers the 252-file libretorrent subtree + 20 test files + these 29
+  files. This grep alone does not verify any batch for merge (build/C1
+  still not run, per the standing rules); it only removes the
+  missing-29-files objection to W1's zero-call evidence.
