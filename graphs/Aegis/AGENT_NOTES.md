@@ -753,3 +753,38 @@ Totals: 25 ERROR steps over 12 routes (detailedmulti 25 and 26 not counted). Ten
   3: 0 flagged; check 4: 0; checks 5-7: 0; STRICT 1; check 8: 0 of 458;
   unclassified state kinds 0. No label changed.
 - ## Current step: C2 done, pushed; next C3 (23 round-7 routes + sample/redraw/table).
+- ## Sample-30 fix step (continuation merger, 2026-11-01): decisions
+  Aegis-C3-Step8 (STRICT D-C3-10 stands; 12 solely-step-8 UNCLEAR
+  stay UNCLEAR, final CORRECT not inflated to 17) and
+  Aegis-C3-Exit (ExitActivity.onCreate WRONG by design, route-14
+  class, proof in scratch/fix_log.md; labels unchanged per
+  route-14 precedent; 4-method production-unreachable question
+  left open for coordinator/user review, not flipped silently).
+  Baseline before fixes: 2995 methods, 2537/458, 5782 edges, 0/0.
+- ## Sample-30 fixes 1-4 APPLIED (continuation merger, 2026-11-01):
+  CustomSvgIcon installer split (@EDIT/@ASSIGN + $1 forwarder +
+  @NOCUSTOM search-clear; category-tap replication fixed a
+  2-error first build); AndOtp @FILE dispatch split; Aegis
+  decrypt@IMPORT onto @FILE; Stratum @STRATUM chain + @FILE
+  (first attempt leaked via shared async nodes — caught by
+  redump, corrected with @STRATUM async variants). Each fix:
+  rebuild + redump + eight checks + 0 label flips. Cumulative:
+  2995 methods, 2537/458, edges 5782 -> 5958, errors 0,
+  warnings 0. Decisions Aegis-C3-Step8 + Aegis-C3-Exit recorded
+  in scratch/fix_log.md (ExitActivity WRONG by design, labels
+  unchanged, 4-method question open for coordinator/user).
+  Next: redraw sample (same seed) + fresh judging + final table.
+  NO PUSH yet — audit-gated.
+- ## Sample-30 final table built, STOP (continuation merger,
+  2026-11-01): 25 redrawn routes judged fresh by h1-h9;
+  CORRECT 4, WRONG 6, UNCLEAR 15; steps 537/31/126 (694);
+  final error rate 6/10 = 0.6000 (fixed = 0, strict).
+  Final table: judging-final/route_table.md (scratch copy
+  ONLY at audit-gated push time). FIX_REPORT.md delivered
+  (merger/FIX_REPORT.md). FLAG: fix-4 @STRATUM -> Stratum
+  decrypt edge REFUTED by fresh judging (app-import state
+  always SqlState) — correction + re-verify required before
+  push, not applied silently. Follow-ups: FreeOtp splice,
+  selectIcon onIconSelected split, @FILE pick variants,
+  generated-code grading rule. NO PUSH yet.
+- ## Stratum correction APPLIED + independently audited (push-assembly step, 2026-11-01): fix-4 edge processImporterState@STRATUM -> StratumImporter$EncryptedState.decrypt(Context,DecryptListener) REMOVED (was graph_def.py:1356-1359, correction comment in place); evidence re-verified on printed source (readFromApp passes isInternal=true; readInternal yields SqlState super(false); decrypt only if isEncrypted(); no Stratum readFromApp override). Rebuild: 2995 methods, 2537/458, edges 5958 -> 5957 (-1 exactly), errors 0, warnings 0, 0 label flips; eight checks all 0; redump confirms genuine @FILE fallback (0 @STRATUM dispatch steps before decrypt; @FILE the only incoming edge to Stratum decrypt). Independent audit PASS (work/Aegis/audit/c3-stratum-correction/AUDIT.md). Judged table: row-3 WRONG verdict STANDS as historical verdict on the pre-correction 45-step draw, with the audit section-6 correction note + FLAG-resolved note appended (verdict column untouched); the corrected 47-step @FILE route has NOT been step-judged. Two further suspect app-import decrypt dispatches (Legacy Ee4fdd4f0, Totp Eda333e39) LEFT UNTOUCHED as follow-ups needing their own design + audit — NOT part of the C3 push. C3 push follows under the lock.
