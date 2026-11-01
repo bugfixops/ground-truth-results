@@ -1274,7 +1274,7 @@ sup(('Money$$Parcelable.writeToParcel', 'Money$$Parcelable.write'))  # writeToPa
 # Grep and query evidence: graphs/MMEX/parts/label_144.grep.txt (sections S1-S19).
 # This file writes 13 e() edges (ENTRY from S_ENTRY, LIFECYCLE from the receiver and activity <init>, FRAMEWORK for the configure listener), 0 gui() edges,
 # 13 UNREACHABLE entries and 9 sup pairs (D14a).
-# Key decision (orchestrator's question): AllAccountBillsViewFactory.onDataSetChanged is DEAD, so it is UNREACHABLE (case "dead").
+# Key decision (orchestrator's question): AllAccountBillsViewFactory.onDataSetChanged is never called, so it is UNREACHABLE (case "never-called").
 #   Its only construction is AccountBillsWidgetService.onGetViewFactory (AccountBillsWidgetService.java:27; grep S1), which batch 143 labels UNREACHABLE.
 #   The framework binds the service only through RemoteViewsAdapter.bind (RemoteViewsAdapter.java:178), and AppWidgetServiceImpl refuses a service
 #   that lacks BIND_REMOTEVIEWS (AppWidgetServiceImpl.java:1251, 3608-3611); the manifest gives BIND_JOB_SERVICE (AndroidManifest.xml:403).
@@ -1399,7 +1399,7 @@ UNREACHABLE['AllAccountBillsViewFactory.onCreate'] = ('framework_never_calls',
     'INFERRED')
 
 UNREACHABLE['AllAccountBillsViewFactory.onDataSetChanged'] = ('framework_never_calls',
-    'DEAD PATH (the case decided for this batch). The only factory instance is created in AccountBillsWidgetService.onGetViewFactory (AccountBillsWidgetService.java:27; grep S1). The framework calls onDataSetChanged only on an adapter bound through RemoteViewsAdapter.bind (RemoteViewsAdapter.java:178; the factory callback sites are 230 and 1156). The bind goes through AppWidgetServiceImpl, which requires the service to declare BIND_REMOTEVIEWS (enforce at AppWidgetServiceImpl.java:1251; check and throw at 3608-3611). AccountBillsWidgetService declares BIND_JOB_SERVICE (AndroidManifest.xml:403; grep S4), so the bind throws SecurityException, which RemoteViewsAdapter catches (lines 184-186). No bind happens, so onGetViewFactory, onCreate and onDataSetChanged never run. The sups cut its three auto CALLs: QueryAccountBills.getFilterAccountSelection (line 113, the batch 052 caller), Dataset.getUri (116) and QueryAccountBills.<init> (112).',
+    'Never-called path (the case decided for this batch). The only factory instance is created in AccountBillsWidgetService.onGetViewFactory (AccountBillsWidgetService.java:27; grep S1). The framework calls onDataSetChanged only on an adapter bound through RemoteViewsAdapter.bind (RemoteViewsAdapter.java:178; the factory callback sites are 230 and 1156). The bind goes through AppWidgetServiceImpl, which requires the service to declare BIND_REMOTEVIEWS (enforce at AppWidgetServiceImpl.java:1251; check and throw at 3608-3611). AccountBillsWidgetService declares BIND_JOB_SERVICE (AndroidManifest.xml:403; grep S4), so the bind throws SecurityException, which RemoteViewsAdapter catches (lines 184-186). No bind happens, so onGetViewFactory, onCreate and onDataSetChanged never run. The sups cut its three auto CALLs: QueryAccountBills.getFilterAccountSelection (line 113, the batch 052 caller), Dataset.getUri (116) and QueryAccountBills.<init> (112).',
     'AllAccountBillsViewFactory.java:107-108, 112-116; AccountBillsWidgetService.java:26-27; AndroidManifest.xml:401-403; FW-SRC RemoteViewsAdapter.java:172-190 (bind 178, catch 184-186), 230, 1156; FW-SRC services/appwidget/.../AppWidgetServiceImpl.java:1209-1251 (enforce 1251), 3598-3611; grep S1, S4, S14, S14b',
     'INFERRED')
 
