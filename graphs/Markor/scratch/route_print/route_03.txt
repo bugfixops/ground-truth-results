@@ -1,0 +1,85 @@
+method: SyntaxHighlighterBase$1.draw
+route: route_03
+steps: 20
+verdict: fixed (path row)
+
+step 1: S_ENTRY -> ApplicationObject.<init>
+  edge: E211966cc kind=ENTRY env=None env_kinds=[] needs_state=None gui=['Tap the Markor launcher icon']
+  trigger: The process starts when the launcher icon is tapped (before any activity)
+  evidence: SRC AndroidManifest.xml:39-40
+step 2: ApplicationObject.<init> -> ApplicationObject.onCreate
+  edge: Ed6414d9f kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Application.onCreate
+  evidence: SRC ApplicationObject.java:16,39
+step 3: ApplicationObject.onCreate -> MainActivity.<init>
+  edge: E0254b914 kind=ENTRY env=None env_kinds=[] needs_state=None gui=['Tap the Markor launcher icon']
+  trigger: The MAIN / LAUNCHER intent starts MainActivity (after Application.onCreate on a cold start)
+  evidence: SRC AndroidManifest.xml:61-71; FW-SRC core/java/android/app/ActivityThread.java:5740 (callApplicationOnCreate runs before the first activity)
+step 4: MainActivity.<init> -> MainActivity.onCreate
+  edge: Ed25af8f4 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onCreate
+  evidence: SRC MainActivity.java:76; FW-SRC core/java/android/app/Activity.java:989 (onCreate), 1311 (onResume), 1331 (onPostResume), 3001-3010 (onBackPressed), 5679 (onActivityResult), 824 (mResultCode defaults to RESULT_CANCELED)
+step 5: MainActivity.onCreate -> MainActivity.onResume
+  edge: Eba46a594 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onStart and then Activity.onResume after onCreate returns (cold start)
+  evidence: SRC MainActivity.java:76,279; FW-SRC core/java/android/app/ActivityThread.java:2729 (callActivityOnCreate), 2741 (performStart), 2950 (performResume)
+step 6: MainActivity.onResume -> MainActivity.onPostResume
+  edge: E659e191c kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Activity.performResume calls onPostResume after onResume
+  evidence: SRC MainActivity.java:317; FW-SRC core/java/android/app/Activity.java:7098-7131 (onPostResume at 7131)
+step 7: MainActivity.onPostResume -> S_NOTEBOOK
+  edge: E0ecb8e4d kind=ENTERS env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The notebook tab is the first page the pager shows (position 0); it is the default startup tab, so it is the visible page after a cold start
+  evidence: SRC MainActivity.java:105-106; SRC AppSettings.java:781; SRC MainActivity.java:142-144; FW-SRC core/java/android/app/Activity.java:7098-7131; INFERRED androidx ViewPager2 calls the registered OnPageChangeCallback after the page changes (androidx source not read)
+step 8: S_NOTEBOOK -> MainActivity.lambda$onCreate$0
+  edge: E54b4aedd kind=GUI env=None env_kinds=[] needs_state=None gui=['Tap a bottom navigation tab']
+  trigger: Tap a bottom navigation tab
+  evidence: SRC MainActivity.java:109-114; INFERRED the BottomNavigationView calls the listener on a tap (material library source not read)
+step 9: MainActivity.lambda$onCreate$0 -> S_TODO
+  edge: E80c409ce kind=ENTERS env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Tab Todo is shown (the listener selects its position)
+  evidence: SRC MainActivity.java:109-114; INFERRED androidx ViewPager2 calls the registered OnPageChangeCallback after the page changes (androidx source not read)
+step 10: S_TODO -> DocumentEditAndViewFragment.onOptionsItemSelected
+  edge: Ea2691dfc kind=GUI env=None env_kinds=[] needs_state=None gui=['Tap an item of the editor menu (todo or quick note)']
+  trigger: Tap an item of the editor menu (todo or quick note)
+  evidence: SRC DocumentEditAndViewFragment.java:421; INFERRED AppCompat calls onCreateOptionsMenu when the toolbar menu is built (androidx source not read)
+step 11: DocumentEditAndViewFragment.onOptionsItemSelected -> DocumentEditAndViewFragment.applyTextFormat
+  edge: E35d728d0 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC DocumentEditAndViewFragment.java:535 (bytecode)
+step 12: DocumentEditAndViewFragment.applyTextFormat -> HighlightingEditor.setHighlighter
+  edge: E6ffdfc03 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC DocumentEditAndViewFragment.java:656 (bytecode)
+step 13: HighlightingEditor.setHighlighter -> HighlightingEditor.recomputeHighlightingAsync
+  edge: E393236ff kind=FRAMEWORK env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Listener or callback registered by this method runs when its event fires (view event, dialog button, handler or fragment callback)
+  evidence: INFERRED listener registered at HighlightingEditor.java:238 (bytecode line); the listener type is not read per lambda
+step 14: HighlightingEditor.recomputeHighlightingAsync -> HighlightingEditor._recomputeHighlightingWorker
+  edge: Ef889e907 kind=FRAMEWORK env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Listener or callback registered by this method runs when its event fires (view event, dialog button, handler or fragment callback)
+  evidence: INFERRED listener registered at HighlightingEditor.java:206 (bytecode line); the listener type is not read per lambda
+step 15: HighlightingEditor._recomputeHighlightingWorker -> SyntaxHighlighterBase.compute
+  edge: Ec2ab97a3 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC HighlightingEditor.java:214 (bytecode)
+step 16: SyntaxHighlighterBase.compute -> KeyValueSyntaxHighlighter.generateSpans
+  edge: E519a7b85 kind=CALL env=None env_kinds=[] needs_state=The open document uses the key-value format (chosen by the file name or the format menu) gui=[]
+  trigger: The open document is highlighted with its own format (the base computes the spans, the format class makes them)
+  evidence: SRC SyntaxHighlighterBase.java:443 (compute calls generateSpans virtually); SRC FormatRegistry.java:169 (the key-value format uses KeyValueSyntaxHighlighter)
+step 17: KeyValueSyntaxHighlighter.generateSpans -> SyntaxHighlighterBase.createTabSpans
+  edge: Effd5ff23 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC KeyValueSyntaxHighlighter.java:35 (bytecode)
+step 18: SyntaxHighlighterBase.createTabSpans -> SyntaxHighlighterBase.createReplacementSpanForMatches
+  edge: Eb50f217f kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC SyntaxHighlighterBase.java:549 (bytecode)
+step 19: SyntaxHighlighterBase.createReplacementSpanForMatches -> SyntaxHighlighterBase.lambda$createReplacementSpanForMatches$2
+  edge: E9304813e kind=FRAMEWORK env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Listener or callback registered by this method runs when its event fires (view event, dialog button, handler or fragment callback)
+  evidence: INFERRED listener registered at SyntaxHighlighterBase.java:515 (bytecode line); the listener type is not read per lambda
+step 20: SyntaxHighlighterBase.lambda$createReplacementSpanForMatches$2 -> SyntaxHighlighterBase$1.draw
+  edge: E490aa39b kind=FRAMEWORK env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Framework or library calls this method on the object created here (listener, adapter, view, dialog, task or fragment hook)
+  evidence: INFERRED method has no bytecode caller; object of this class created at SyntaxHighlighterBase.lambda$createReplacementSpanForMatches$2 (bytecode); callback name draw

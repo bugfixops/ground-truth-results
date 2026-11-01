@@ -1,0 +1,81 @@
+method: AppSettings.lambda$getPopularDocumentsSorted$1
+route: route_20
+steps: 19
+verdict: fixed (path row)
+
+step 1: S_ENTRY -> ApplicationObject.<init>
+  edge: E211966cc kind=ENTRY env=None env_kinds=[] needs_state=None gui=['Tap the Markor launcher icon']
+  trigger: The process starts when the launcher icon is tapped (before any activity)
+  evidence: SRC AndroidManifest.xml:39-40
+step 2: ApplicationObject.<init> -> ApplicationObject.onCreate
+  edge: Ed6414d9f kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Application.onCreate
+  evidence: SRC ApplicationObject.java:16,39
+step 3: ApplicationObject.onCreate -> MainActivity.<init>
+  edge: E0254b914 kind=ENTRY env=None env_kinds=[] needs_state=None gui=['Tap the Markor launcher icon']
+  trigger: The MAIN / LAUNCHER intent starts MainActivity (after Application.onCreate on a cold start)
+  evidence: SRC AndroidManifest.xml:61-71; FW-SRC core/java/android/app/ActivityThread.java:5740 (callApplicationOnCreate runs before the first activity)
+step 4: MainActivity.<init> -> MainActivity.onCreate
+  edge: Ed25af8f4 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onCreate
+  evidence: SRC MainActivity.java:76; FW-SRC core/java/android/app/Activity.java:989 (onCreate), 1311 (onResume), 1331 (onPostResume), 3001-3010 (onBackPressed), 5679 (onActivityResult), 824 (mResultCode defaults to RESULT_CANCELED)
+step 5: MainActivity.onCreate -> MainActivity.onResume
+  edge: Eba46a594 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onStart and then Activity.onResume after onCreate returns (cold start)
+  evidence: SRC MainActivity.java:76,279; FW-SRC core/java/android/app/ActivityThread.java:2729 (callActivityOnCreate), 2741 (performStart), 2950 (performResume)
+step 6: MainActivity.onResume -> MainActivity.onPostResume
+  edge: E659e191c kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Activity.performResume calls onPostResume after onResume
+  evidence: SRC MainActivity.java:317; FW-SRC core/java/android/app/Activity.java:7098-7131 (onPostResume at 7131)
+step 7: MainActivity.onPostResume -> S_NOTEBOOK
+  edge: E0ecb8e4d kind=ENTERS env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The notebook tab is the first page the pager shows (position 0); it is the default startup tab, so it is the visible page after a cold start
+  evidence: SRC MainActivity.java:105-106; SRC AppSettings.java:781; SRC MainActivity.java:142-144; FW-SRC core/java/android/app/Activity.java:7098-7131; INFERRED androidx ViewPager2 calls the registered OnPageChangeCallback after the page changes (androidx source not read)
+step 8: S_NOTEBOOK -> MainActivity.lambda$onCreate$0
+  edge: E54b4aedd kind=GUI env=None env_kinds=[] needs_state=None gui=['Tap a bottom navigation tab']
+  trigger: Tap a bottom navigation tab
+  evidence: SRC MainActivity.java:109-114; INFERRED the BottomNavigationView calls the listener on a tap (material library source not read)
+step 9: MainActivity.lambda$onCreate$0 -> S_TODO
+  edge: E80c409ce kind=ENTERS env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Tab Todo is shown (the listener selects its position)
+  evidence: SRC MainActivity.java:109-114; INFERRED androidx ViewPager2 calls the registered OnPageChangeCallback after the page changes (androidx source not read)
+step 10: S_TODO -> DocumentEditAndViewFragment.onOptionsItemSelected
+  edge: Ea2691dfc kind=GUI env=None env_kinds=[] needs_state=None gui=['Tap an item of the editor menu (todo or quick note)']
+  trigger: Tap an item of the editor menu (todo or quick note)
+  evidence: SRC DocumentEditAndViewFragment.java:421; INFERRED AppCompat calls onCreateOptionsMenu when the toolbar menu is built (androidx source not read)
+step 11: DocumentEditAndViewFragment.onOptionsItemSelected -> FileInfoDialog.show
+  edge: Ee0c056ee kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC DocumentEditAndViewFragment.java:606 (bytecode)
+step 12: FileInfoDialog.show -> FileInfoDialog.newInstance
+  edge: Ee551d2e2 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC FileInfoDialog.java:50 (bytecode)
+step 13: FileInfoDialog.newInstance -> FileInfoDialog.onCreateDialog
+  edge: Eb41d29b1 kind=FRAMEWORK env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Framework or library calls this method on the object created here (listener, adapter, view, dialog, task or fragment hook)
+  evidence: INFERRED method has no bytecode caller; object of this class created at FileInfoDialog.newInstance (bytecode); callback name onCreateDialog
+step 14: FileInfoDialog.onCreateDialog -> FileInfoDialog.setUpDialog
+  edge: E269c7326 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC FileInfoDialog.java:61 (bytecode)
+step 15: FileInfoDialog.setUpDialog -> FileInfoDialog.lambda$setUpDialog$3
+  edge: E9d83475c kind=FRAMEWORK env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Listener or callback registered by this method runs when its event fires (view event, dialog button, handler or fragment callback)
+  evidence: INFERRED listener registered at FileInfoDialog.java:126 (bytecode line); the listener type is not read per lambda
+step 16: FileInfoDialog.lambda$setUpDialog$3 -> AppSettings.setListFileInRecents
+  edge: E41ae1a1f kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC FileInfoDialog.java:126 (bytecode)
+step 17: AppSettings.setListFileInRecents -> AppSettings.setRecentDocuments
+  edge: E3df3a9a7 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC AppSettings.java:875 (bytecode)
+step 18: AppSettings.setRecentDocuments -> AppSettings.getPopularDocumentsSorted
+  edge: Ec9766d60 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC AppSettings.java:638 (bytecode)
+step 19: AppSettings.getPopularDocumentsSorted -> AppSettings.lambda$getPopularDocumentsSorted$1
+  edge: E7c70b6a2 kind=FRAMEWORK env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Listener or callback registered by this method runs when its event fires (view event, dialog button, handler or fragment callback)
+  evidence: INFERRED listener registered at AppSettings.java:626 (bytecode line); the listener type is not read per lambda

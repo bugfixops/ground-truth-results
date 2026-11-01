@@ -1,0 +1,69 @@
+method: AppSettings.getAttachmentFolder
+route: route_14
+steps: 16
+verdict: correct (path row)
+
+step 1: S_ENTRY -> ApplicationObject.<init>
+  edge: E211966cc kind=ENTRY env=None env_kinds=[] needs_state=None gui=['Tap the Markor launcher icon']
+  trigger: The process starts when the launcher icon is tapped (before any activity)
+  evidence: SRC AndroidManifest.xml:39-40
+step 2: ApplicationObject.<init> -> ApplicationObject.onCreate
+  edge: Ed6414d9f kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Application.onCreate
+  evidence: SRC ApplicationObject.java:16,39
+step 3: ApplicationObject.onCreate -> MainActivity.<init>
+  edge: E0254b914 kind=ENTRY env=None env_kinds=[] needs_state=None gui=['Tap the Markor launcher icon']
+  trigger: The MAIN / LAUNCHER intent starts MainActivity (after Application.onCreate on a cold start)
+  evidence: SRC AndroidManifest.xml:61-71; FW-SRC core/java/android/app/ActivityThread.java:5740 (callApplicationOnCreate runs before the first activity)
+step 4: MainActivity.<init> -> MainActivity.onCreate
+  edge: Ed25af8f4 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onCreate
+  evidence: SRC MainActivity.java:76; FW-SRC core/java/android/app/Activity.java:989 (onCreate), 1311 (onResume), 1331 (onPostResume), 3001-3010 (onBackPressed), 5679 (onActivityResult), 824 (mResultCode defaults to RESULT_CANCELED)
+step 5: MainActivity.onCreate -> MainActivity.onResume
+  edge: Eba46a594 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onStart and then Activity.onResume after onCreate returns (cold start)
+  evidence: SRC MainActivity.java:76,279; FW-SRC core/java/android/app/ActivityThread.java:2729 (callActivityOnCreate), 2741 (performStart), 2950 (performResume)
+step 6: MainActivity.onResume -> MainActivity.onPostResume
+  edge: E659e191c kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Activity.performResume calls onPostResume after onResume
+  evidence: SRC MainActivity.java:317; FW-SRC core/java/android/app/Activity.java:7098-7131 (onPostResume at 7131)
+step 7: MainActivity.onPostResume -> S_NOTEBOOK
+  edge: E0ecb8e4d kind=ENTERS env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The notebook tab is the first page the pager shows (position 0); it is the default startup tab, so it is the visible page after a cold start
+  evidence: SRC MainActivity.java:105-106; SRC AppSettings.java:781; SRC MainActivity.java:142-144; FW-SRC core/java/android/app/Activity.java:7098-7131; INFERRED androidx ViewPager2 calls the registered OnPageChangeCallback after the page changes (androidx source not read)
+step 8: S_NOTEBOOK -> MainActivity.lambda$onCreate$0
+  edge: E54b4aedd kind=GUI env=None env_kinds=[] needs_state=None gui=['Tap a bottom navigation tab']
+  trigger: Tap a bottom navigation tab
+  evidence: SRC MainActivity.java:109-114; INFERRED the BottomNavigationView calls the listener on a tap (material library source not read)
+step 9: MainActivity.lambda$onCreate$0 -> S_TODO
+  edge: E80c409ce kind=ENTERS env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Tab Todo is shown (the listener selects its position)
+  evidence: SRC MainActivity.java:109-114; INFERRED androidx ViewPager2 calls the registered OnPageChangeCallback after the page changes (androidx source not read)
+step 10: S_TODO -> TodoTxtActionButtons.onActionLongClick
+  edge: E5bdf9e1e kind=GUI env=None env_kinds=[] needs_state=None gui=['Long-press an action button in the toolbar of the todo page (the todo.txt format)']
+  trigger: Long-press an action button in the toolbar of the todo page (the todo.txt format)
+  evidence: SRC ActionButtonBase.java:366 (bytecode); SRC ActionButtonBase.java:305
+step 11: TodoTxtActionButtons.onActionLongClick -> ActionButtonBase.runCommonLongPressAction@TodoTxtActionButtons
+  edge: Ef154d966 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC TodoTxtActionButtons.java:208 (bytecode)
+step 12: ActionButtonBase.runCommonLongPressAction@TodoTxtActionButtons -> AttachLinkOrFileDialog.insertCameraPhoto
+  edge: E0ef1d7c9 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC ActionButtonBase.java:839 (bytecode)
+step 13: AttachLinkOrFileDialog.insertCameraPhoto -> AttachLinkOrFileDialog.fetchAndInsertItem
+  edge: E617037b7 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC AttachLinkOrFileDialog.java:510 (bytecode)
+step 14: AttachLinkOrFileDialog.fetchAndInsertItem -> AttachLinkOrFileDialog.lambda$fetchAndInsertItem$9
+  edge: Ec0b77f96 kind=FRAMEWORK env=outside package: an external activity (share chooser, browser, document picker or camera) must be driven and returns a result env_kinds=['other_app'] needs_state=None gui=[]
+  trigger: The camera or gallery app returns the picture, and the callback inserts it (the link is written to the document)
+  evidence: SRC AttachLinkOrFileDialog.java:414-420 (cu.requestCameraPicture / requestGalleryPicture pass the callback); SRC AttachLinkOrFileDialog.java:355-375
+step 15: AttachLinkOrFileDialog.lambda$fetchAndInsertItem$9 -> AttachLinkOrFileDialog.setupFileAttachment
+  edge: Ee7e8240b kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC AttachLinkOrFileDialog.java:373 (bytecode)
+step 16: AttachLinkOrFileDialog.setupFileAttachment -> AppSettings.getAttachmentFolder
+  edge: Eb1705f8e kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC AttachLinkOrFileDialog.java:287 (bytecode)

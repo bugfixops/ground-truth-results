@@ -1,0 +1,73 @@
+method: FlexmarkKatexExtension$KatexInlineMath.getText
+route: route_06
+steps: 17
+verdict: fixed (path row)
+
+step 1: S_ENTRY -> ApplicationObject.<init>
+  edge: E211966cc kind=ENTRY env=None env_kinds=[] needs_state=None gui=['Tap the Markor launcher icon']
+  trigger: The process starts when the launcher icon is tapped (before any activity)
+  evidence: SRC AndroidManifest.xml:39-40
+step 2: ApplicationObject.<init> -> ApplicationObject.onCreate
+  edge: Ed6414d9f kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Application.onCreate
+  evidence: SRC ApplicationObject.java:16,39
+step 3: ApplicationObject.onCreate -> MainActivity.<init>
+  edge: E0254b914 kind=ENTRY env=None env_kinds=[] needs_state=None gui=['Tap the Markor launcher icon']
+  trigger: The MAIN / LAUNCHER intent starts MainActivity (after Application.onCreate on a cold start)
+  evidence: SRC AndroidManifest.xml:61-71; FW-SRC core/java/android/app/ActivityThread.java:5740 (callApplicationOnCreate runs before the first activity)
+step 4: MainActivity.<init> -> MainActivity.onCreate
+  edge: Ed25af8f4 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onCreate
+  evidence: SRC MainActivity.java:76; FW-SRC core/java/android/app/Activity.java:989 (onCreate), 1311 (onResume), 1331 (onPostResume), 3001-3010 (onBackPressed), 5679 (onActivityResult), 824 (mResultCode defaults to RESULT_CANCELED)
+step 5: MainActivity.onCreate -> MainActivity.onResume
+  edge: Eba46a594 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onStart and then Activity.onResume after onCreate returns (cold start)
+  evidence: SRC MainActivity.java:76,279; FW-SRC core/java/android/app/ActivityThread.java:2729 (callActivityOnCreate), 2741 (performStart), 2950 (performResume)
+step 6: MainActivity.onResume -> MainActivity.onPostResume
+  edge: E659e191c kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Activity.performResume calls onPostResume after onResume
+  evidence: SRC MainActivity.java:317; FW-SRC core/java/android/app/Activity.java:7098-7131 (onPostResume at 7131)
+step 7: MainActivity.onPostResume -> S_NOTEBOOK
+  edge: E0ecb8e4d kind=ENTERS env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The notebook tab is the first page the pager shows (position 0); it is the default startup tab, so it is the visible page after a cold start
+  evidence: SRC MainActivity.java:105-106; SRC AppSettings.java:781; SRC MainActivity.java:142-144; FW-SRC core/java/android/app/Activity.java:7098-7131; INFERRED androidx ViewPager2 calls the registered OnPageChangeCallback after the page changes (androidx source not read)
+step 8: S_NOTEBOOK -> GsFileBrowserFragment.onOptionsItemSelected
+  edge: E3b54bcd8 kind=GUI env=None env_kinds=[] needs_state=None gui=['Tap an item of the notebook toolbar menu (sort, search, import, create shortcut, and the rest)']
+  trigger: Tap an item of the notebook toolbar menu (sort, search, import, create shortcut, and the rest)
+  evidence: SRC GsFileBrowserFragment.java:380; FW-SRC core/java/android/app/Activity.java:3450-3453; FW-SRC core/java/android/app/FragmentManager.java:3157; INFERRED AppCompat calls onCreateOptionsMenu when the toolbar menu is built (androidx source not read)
+step 9: GsFileBrowserFragment.onOptionsItemSelected -> FormatRegistry.<clinit>
+  edge: Ed7e97140 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC GsFileBrowserFragment.java:475 (bytecode)
+step 10: FormatRegistry.<clinit> -> MarkdownTextConverter.<clinit>
+  edge: E487ed32a kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC FormatRegistry.java:69 (bytecode)
+step 11: MarkdownTextConverter.<clinit> -> FlexmarkKatexExtension$KatexExtension.create
+  edge: Ec394a80e kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC MarkdownTextConverter.java:129 (bytecode)
+step 12: FlexmarkKatexExtension$KatexExtension.create -> FlexmarkKatexExtension$KatexExtension.extend(Builder,String)
+  edge: Ef85b957f kind=FRAMEWORK env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Framework or library calls this method on the object created here (listener, adapter, view, dialog, task or fragment hook)
+  evidence: INFERRED method has no bytecode caller; object of this class created at FlexmarkKatexExtension$KatexExtension.create (bytecode); callback name extend
+step 13: FlexmarkKatexExtension$KatexExtension.extend(Builder,String) -> FlexmarkKatexExtension$FlexmarkKatexExtensionInternal$KatexNodeRenderer$Factory.create
+  edge: E9d9ec918 kind=FRAMEWORK env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Framework or library calls this method on the object created here (listener, adapter, view, dialog, task or fragment hook)
+  evidence: INFERRED method has no bytecode caller; object of this class created at FlexmarkKatexExtension$KatexExtension.extend(Builder,String) (bytecode); callback name create
+step 14: FlexmarkKatexExtension$FlexmarkKatexExtensionInternal$KatexNodeRenderer$Factory.create -> FlexmarkKatexExtension$FlexmarkKatexExtensionInternal$KatexNodeRenderer.getNodeRenderingHandlers
+  edge: E7010cfd5 kind=FRAMEWORK env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Framework or library calls this method on the object created here (listener, adapter, view, dialog, task or fragment hook)
+  evidence: INFERRED method has no bytecode caller; object of this class created at FlexmarkKatexExtension$FlexmarkKatexExtensionInternal$KatexNodeRenderer$Factory.create (bytecode); callback name getNodeRenderingHandlers
+step 15: FlexmarkKatexExtension$FlexmarkKatexExtensionInternal$KatexNodeRenderer.getNodeRenderingHandlers -> FlexmarkKatexExtension$FlexmarkKatexExtensionInternal$KatexNodeRenderer$1.render
+  edge: E7f7c46e0 kind=FRAMEWORK env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Framework or library calls this method on the object created here (listener, adapter, view, dialog, task or fragment hook)
+  evidence: INFERRED method has no bytecode caller; object of this class created at FlexmarkKatexExtension$FlexmarkKatexExtensionInternal$KatexNodeRenderer.getNodeRenderingHandlers (bytecode); callback name render
+step 16: FlexmarkKatexExtension$FlexmarkKatexExtensionInternal$KatexNodeRenderer$1.render -> FlexmarkKatexExtension$FlexmarkKatexExtensionInternal$KatexNodeRenderer.render(KatexInlineMath,NodeRendererContext,HtmlWriter)
+  edge: E709569fd kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call (through FlexmarkKatexExtension$FlexmarkKatexExtensionInternal$KatexNodeRenderer.access$000)
+  evidence: SRC FlexmarkKatexExtension.java:401 (bytecode)
+step 17: FlexmarkKatexExtension$FlexmarkKatexExtensionInternal$KatexNodeRenderer.render(KatexInlineMath,NodeRendererContext,HtmlWriter) -> FlexmarkKatexExtension$KatexInlineMath.getText
+  edge: E3b3724dd kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC FlexmarkKatexExtension.java:416 (bytecode)

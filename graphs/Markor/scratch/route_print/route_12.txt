@@ -1,0 +1,69 @@
+method: WrFilesWidgetFactory.getLoadingView
+route: route_12
+steps: 16
+verdict: fixed (path row)
+
+step 1: S_ENTRY -> ApplicationObject.<init>
+  edge: E211966cc kind=ENTRY env=None env_kinds=[] needs_state=None gui=['Tap the Markor launcher icon']
+  trigger: The process starts when the launcher icon is tapped (before any activity)
+  evidence: SRC AndroidManifest.xml:39-40
+step 2: ApplicationObject.<init> -> ApplicationObject.onCreate
+  edge: Ed6414d9f kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Application.onCreate
+  evidence: SRC ApplicationObject.java:16,39
+step 3: ApplicationObject.onCreate -> MainActivity.<init>
+  edge: E0254b914 kind=ENTRY env=None env_kinds=[] needs_state=None gui=['Tap the Markor launcher icon']
+  trigger: The MAIN / LAUNCHER intent starts MainActivity (after Application.onCreate on a cold start)
+  evidence: SRC AndroidManifest.xml:61-71; FW-SRC core/java/android/app/ActivityThread.java:5740 (callApplicationOnCreate runs before the first activity)
+step 4: MainActivity.<init> -> MainActivity.onCreate
+  edge: Ed25af8f4 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onCreate
+  evidence: SRC MainActivity.java:76; FW-SRC core/java/android/app/Activity.java:989 (onCreate), 1311 (onResume), 1331 (onPostResume), 3001-3010 (onBackPressed), 5679 (onActivityResult), 824 (mResultCode defaults to RESULT_CANCELED)
+step 5: MainActivity.onCreate -> MainActivity.onResume
+  edge: Eba46a594 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onStart and then Activity.onResume after onCreate returns (cold start)
+  evidence: SRC MainActivity.java:76,279; FW-SRC core/java/android/app/ActivityThread.java:2729 (callActivityOnCreate), 2741 (performStart), 2950 (performResume)
+step 6: MainActivity.onResume -> MainActivity.onPostResume
+  edge: E659e191c kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Activity.performResume calls onPostResume after onResume
+  evidence: SRC MainActivity.java:317; FW-SRC core/java/android/app/Activity.java:7098-7131 (onPostResume at 7131)
+step 7: MainActivity.onPostResume -> MainActivity.onPause
+  edge: E4850ba7b kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The activity leaves the foreground (another activity, or the home screen)
+  evidence: SRC MainActivity.java:569-576; FW-SRC core/java/android/app/Activity.java:1673 (onPause), 5526 (finish), 1858 (onStop)
+step 8: MainActivity.onPause -> WrMarkorWidgetProvider.updateLauncherWidgets
+  edge: E6982af1d kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC MainActivity.java:571 (bytecode)
+step 9: WrMarkorWidgetProvider.updateLauncherWidgets -> WrMarkorWidgetProvider.onUpdate
+  edge: E2681f8bd kind=SYSTEM env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The app sends ACTION_APPWIDGET_UPDATE to its own provider to refresh the views
+  evidence: SRC WrMarkorWidgetProvider.java:118-134; FW-SRC core/java/android/appwidget/AppWidgetProvider.java:61-66
+step 10: WrMarkorWidgetProvider.onUpdate -> WrFilesWidgetService.<init>
+  edge: E48e0024a kind=SYSTEM env=outside package: the launcher home screen (app icon, widget, pinned shortcut) must be operated env_kinds=['other_app'] needs_state=None gui=[]
+  trigger: The launcher binds the notebook list service named by setRemoteAdapter
+  evidence: SRC WrMarkorWidgetProvider.java:98-104; SRC AndroidManifest.xml:110-112; FW-SRC core/java/android/widget/RemoteViewsService.java:235-241
+step 11: WrFilesWidgetService.<init> -> WrFilesWidgetService.onCreate
+  edge: E3993c95d kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The framework creates the service (ActivityThread.handleCreateService) and calls Service.onCreate (not overridden in the app)
+  evidence: FW-SRC core/java/android/app/ActivityThread.java:3311 (handleCreateService), 3339 (service.onCreate()); FW-SRC core/java/android/app/Service.java:343 (public void onCreate); SRC WrFilesWidgetService.java:17-19
+step 12: WrFilesWidgetService.onCreate -> WrFilesWidgetService.onBind
+  edge: E43f11a02 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: handleBindService calls the service onBind (RemoteViewsService.onBind, not overridden in the app)
+  evidence: FW-SRC core/java/android/app/ActivityThread.java:3356 (handleBindService), 3366 (s.onBind); FW-SRC core/java/android/widget/RemoteViewsService.java:235-244 (onBind), 257 (abstract)
+step 13: WrFilesWidgetService.onBind -> WrFilesWidgetService.onGetViewFactory
+  edge: E5401b8fc kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: RemoteViewsService.onBind calls onGetViewFactory, which the app overrides
+  evidence: FW-SRC core/java/android/widget/RemoteViewsService.java:235-244 (onBind calls onGetViewFactory), 257 (abstract); SRC WrFilesWidgetService.java:17-19
+step 14: WrFilesWidgetService.onGetViewFactory -> WrFilesWidgetFactory.onCreate
+  edge: Ea5c8c699 kind=FRAMEWORK env=None env_kinds=[] needs_state=None gui=[]
+  trigger: onBind calls factory.onCreate on the new factory
+  evidence: FW-SRC core/java/android/widget/RemoteViewsService.java:241-243; SRC WrFilesWidgetService.java:17-19
+step 15: WrFilesWidgetFactory.onCreate -> WrFilesWidgetFactory.onDataSetChanged
+  edge: Ef25c6b36 kind=FRAMEWORK env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The launcher asks for the list data; the adapter calls factory.onDataSetChanged
+  evidence: FW-SRC core/java/android/widget/RemoteViewsService.java:140-142; SRC WrFilesWidgetFactory.java:43-48
+step 16: WrFilesWidgetFactory.onDataSetChanged -> WrFilesWidgetFactory.getLoadingView
+  edge: E5c43a497 kind=FRAMEWORK env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The launcher asks the adapter for the list (getLoadingView); the adapter calls factory.getLoadingView
+  evidence: FW-SRC core/java/android/widget/RemoteViewsService.java:177; SRC WrFilesWidgetFactory.java:95

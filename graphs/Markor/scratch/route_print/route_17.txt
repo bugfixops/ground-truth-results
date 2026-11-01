@@ -1,0 +1,29 @@
+method: WrWidgetConfigure$1.<init>
+route: route_17
+steps: 6
+verdict: correct (path row)
+
+step 1: S_ENTRY -> ApplicationObject.<init>
+  edge: E211966cc kind=ENTRY env=None env_kinds=[] needs_state=None gui=['Tap the Markor launcher icon']
+  trigger: The process starts when the launcher icon is tapped (before any activity)
+  evidence: SRC AndroidManifest.xml:39-40
+step 2: ApplicationObject.<init> -> ApplicationObject.onCreate
+  edge: Ed6414d9f kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Application.onCreate
+  evidence: SRC ApplicationObject.java:16,39
+step 3: ApplicationObject.onCreate -> WrWidgetConfigure.<init>
+  edge: Eac90525a kind=ENTRY env=outside package: the launcher home screen (app icon, widget, pinned shortcut) must be operated env_kinds=['other_app'] needs_state=None gui=['Add the notebook widget: the setup screen opens and asks for a folder']
+  trigger: The launcher opens the notebook widget setup when the widget is added (cold start: Application.onCreate first)
+  evidence: SRC AndroidManifest.xml:91-97
+step 4: WrWidgetConfigure.<init> -> WrWidgetConfigure.onCreate
+  edge: Ef6a25cc2 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onCreate
+  evidence: SRC WrWidgetConfigure.java:35; FW-SRC core/java/android/app/Activity.java:989 (onCreate), 1311 (onResume), 1331 (onPostResume), 3001-3010 (onBackPressed), 5679 (onActivityResult), 824 (mResultCode defaults to RESULT_CANCELED)
+step 5: WrWidgetConfigure.onCreate -> WrWidgetConfigure.showWidgetSelectFolderDialog
+  edge: E252d515f kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC WrWidgetConfigure.java:44 (bytecode)
+step 6: WrWidgetConfigure.showWidgetSelectFolderDialog -> WrWidgetConfigure$1.<init>
+  edge: E7e3cded2 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC WrWidgetConfigure.java:58 (bytecode)

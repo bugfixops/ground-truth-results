@@ -1,0 +1,73 @@
+method: WikitextLinkResolver.findNotebookRootDir(File,File,boolean)
+route: route_10
+steps: 17
+verdict: fixed (path row)
+
+step 1: S_ENTRY -> ApplicationObject.<init>
+  edge: E211966cc kind=ENTRY env=None env_kinds=[] needs_state=None gui=['Tap the Markor launcher icon']
+  trigger: The process starts when the launcher icon is tapped (before any activity)
+  evidence: SRC AndroidManifest.xml:39-40
+step 2: ApplicationObject.<init> -> ApplicationObject.onCreate
+  edge: Ed6414d9f kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Application.onCreate
+  evidence: SRC ApplicationObject.java:16,39
+step 3: ApplicationObject.onCreate -> MainActivity.<init>
+  edge: E0254b914 kind=ENTRY env=None env_kinds=[] needs_state=None gui=['Tap the Markor launcher icon']
+  trigger: The MAIN / LAUNCHER intent starts MainActivity (after Application.onCreate on a cold start)
+  evidence: SRC AndroidManifest.xml:61-71; FW-SRC core/java/android/app/ActivityThread.java:5740 (callApplicationOnCreate runs before the first activity)
+step 4: MainActivity.<init> -> MainActivity.onCreate
+  edge: Ed25af8f4 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onCreate
+  evidence: SRC MainActivity.java:76; FW-SRC core/java/android/app/Activity.java:989 (onCreate), 1311 (onResume), 1331 (onPostResume), 3001-3010 (onBackPressed), 5679 (onActivityResult), 824 (mResultCode defaults to RESULT_CANCELED)
+step 5: MainActivity.onCreate -> MainActivity.onResume
+  edge: Eba46a594 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onStart and then Activity.onResume after onCreate returns (cold start)
+  evidence: SRC MainActivity.java:76,279; FW-SRC core/java/android/app/ActivityThread.java:2729 (callActivityOnCreate), 2741 (performStart), 2950 (performResume)
+step 6: MainActivity.onResume -> MainActivity.onPostResume
+  edge: E659e191c kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Activity.performResume calls onPostResume after onResume
+  evidence: SRC MainActivity.java:317; FW-SRC core/java/android/app/Activity.java:7098-7131 (onPostResume at 7131)
+step 7: MainActivity.onPostResume -> S_NOTEBOOK
+  edge: E0ecb8e4d kind=ENTERS env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The notebook tab is the first page the pager shows (position 0); it is the default startup tab, so it is the visible page after a cold start
+  evidence: SRC MainActivity.java:105-106; SRC AppSettings.java:781; SRC MainActivity.java:142-144; FW-SRC core/java/android/app/Activity.java:7098-7131; INFERRED androidx ViewPager2 calls the registered OnPageChangeCallback after the page changes (androidx source not read)
+step 8: S_NOTEBOOK -> MainActivity.lambda$onCreate$0
+  edge: E54b4aedd kind=GUI env=None env_kinds=[] needs_state=None gui=['Tap a bottom navigation tab']
+  trigger: Tap a bottom navigation tab
+  evidence: SRC MainActivity.java:109-114; INFERRED the BottomNavigationView calls the listener on a tap (material library source not read)
+step 9: MainActivity.lambda$onCreate$0 -> S_TODO
+  edge: E80c409ce kind=ENTERS env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Tab Todo is shown (the listener selects its position)
+  evidence: SRC MainActivity.java:109-114; INFERRED androidx ViewPager2 calls the registered OnPageChangeCallback after the page changes (androidx source not read)
+step 10: S_TODO -> TodoTxtActionButtons.onActionClick
+  edge: E3a1cb83b kind=GUI env=None env_kinds=[] needs_state=None gui=['Tap an action button in the toolbar of the todo page (the todo.txt format)']
+  trigger: Tap an action button in the toolbar of the todo page (the todo.txt format)
+  evidence: SRC ActionButtonBase.java:343-354 (bytecode); SRC ActionButtonBase.java:305
+step 11: TodoTxtActionButtons.onActionClick -> ActionButtonBase.runCommonAction@TodoTxtActionButtons
+  edge: E603cd10f kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC TodoTxtActionButtons.java:134 (bytecode)
+step 12: ActionButtonBase.runCommonAction@TodoTxtActionButtons -> AttachLinkOrFileDialog.showInsertImageOrLinkDialog
+  edge: Ead3f6294 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC ActionButtonBase.java:672 (bytecode)
+step 13: AttachLinkOrFileDialog.showInsertImageOrLinkDialog -> AttachLinkOrFileDialog.lambda$showInsertImageOrLinkDialog$3
+  edge: Eba7d5d98 kind=FRAMEWORK env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Listener or callback registered by this method runs when its event fires (view event, dialog button, handler or fragment callback)
+  evidence: INFERRED listener registered at AttachLinkOrFileDialog.java:155 (bytecode line); the listener type is not read per lambda
+step 14: AttachLinkOrFileDialog.lambda$showInsertImageOrLinkDialog$3 -> AttachLinkOrFileDialog$1.onFsViewerSelected
+  edge: Ee3753c08 kind=FRAMEWORK env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Tap Browse in the attach dialog: a file browser opens, and the file tapped there is passed to the attach dialog
+  evidence: SRC AttachLinkOrFileDialog.java:155 (browse button starts the browse action); SRC AttachLinkOrFileDialog.java:446-456 (browse case registers the listener, 450-456)
+step 15: AttachLinkOrFileDialog$1.onFsViewerSelected -> AttachLinkOrFileDialog.lambda$fetchAndInsertItem$10
+  edge: Ec277c5fd kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The picked file is put into the name and path fields of the attach dialog (setFields)
+  evidence: SRC AttachLinkOrFileDialog.java:455 (setFields.callback(file)); SRC AttachLinkOrFileDialog.java:380 (bytecode, lambda$10)
+step 16: AttachLinkOrFileDialog.lambda$fetchAndInsertItem$10 -> WikitextLinkResolver.resolveSystemFilePath
+  edge: E47a807f1 kind=CALL env=None env_kinds=[] needs_state=The open document uses the wikitext format (chosen by the file name or the format menu) gui=[]
+  trigger: In a wikitext document, the browsed file becomes a notebook-relative link path (the path field is filled in)
+  evidence: SRC AttachLinkOrFileDialog.java:380-398 (setFields: wikitext branch calls resolveSystemFilePath at line 397)
+step 17: WikitextLinkResolver.resolveSystemFilePath -> WikitextLinkResolver.findNotebookRootDir(File,File,boolean)
+  edge: E64965f49 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC WikitextLinkResolver.java:265 (bytecode)

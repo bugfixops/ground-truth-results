@@ -1,0 +1,29 @@
+method: GsSharedPreferencesPropertyBackend.gp
+route: route_24
+steps: 6
+verdict: correct (path row)
+
+step 1: S_ENTRY -> ApplicationObject.<init>
+  edge: E211966cc kind=ENTRY env=None env_kinds=[] needs_state=None gui=['Tap the Markor launcher icon']
+  trigger: The process starts when the launcher icon is tapped (before any activity)
+  evidence: SRC AndroidManifest.xml:39-40
+step 2: ApplicationObject.<init> -> ApplicationObject.onCreate
+  edge: Ed6414d9f kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Application.onCreate
+  evidence: SRC ApplicationObject.java:16,39
+step 3: ApplicationObject.onCreate -> AppSettings.<init>
+  edge: Edc435719 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC ApplicationObject.java:42 (bytecode)
+step 4: AppSettings.<init> -> AppSettings.setEditorBasicColor
+  edge: Eab4b9c7d kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC AppSettings.java:81 (bytecode)
+step 5: AppSettings.setEditorBasicColor -> GsSharedPreferencesPropertyBackend.setInt(int,int,SharedPreferences[])
+  edge: E107691bf kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC AppSettings.java:721 (bytecode)
+step 6: GsSharedPreferencesPropertyBackend.setInt(int,int,SharedPreferences[]) -> GsSharedPreferencesPropertyBackend.gp
+  edge: E06d84d50 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC GsSharedPreferencesPropertyBackend.java:269 (bytecode)

@@ -1,0 +1,53 @@
+method: GsSharedPreferencesPropertyBackend.getStringListOne
+route: route_23
+steps: 12
+verdict: correct (path row)
+
+step 1: S_ENTRY -> ApplicationObject.<init>
+  edge: E211966cc kind=ENTRY env=None env_kinds=[] needs_state=None gui=['Tap the Markor launcher icon']
+  trigger: The process starts when the launcher icon is tapped (before any activity)
+  evidence: SRC AndroidManifest.xml:39-40
+step 2: ApplicationObject.<init> -> ApplicationObject.onCreate
+  edge: Ed6414d9f kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Application.onCreate
+  evidence: SRC ApplicationObject.java:16,39
+step 3: ApplicationObject.onCreate -> MainActivity.<init>
+  edge: E0254b914 kind=ENTRY env=None env_kinds=[] needs_state=None gui=['Tap the Markor launcher icon']
+  trigger: The MAIN / LAUNCHER intent starts MainActivity (after Application.onCreate on a cold start)
+  evidence: SRC AndroidManifest.xml:61-71; FW-SRC core/java/android/app/ActivityThread.java:5740 (callApplicationOnCreate runs before the first activity)
+step 4: MainActivity.<init> -> MainActivity.onCreate
+  edge: Ed25af8f4 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onCreate
+  evidence: SRC MainActivity.java:76; FW-SRC core/java/android/app/Activity.java:989 (onCreate), 1311 (onResume), 1331 (onPostResume), 3001-3010 (onBackPressed), 5679 (onActivityResult), 824 (mResultCode defaults to RESULT_CANCELED)
+step 5: MainActivity.onCreate -> MainActivity$SectionsPagerAdapter.createFragment
+  edge: Ecbe70212 kind=FRAMEWORK env=None env_kinds=[] needs_state=None gui=[]
+  trigger: After setAdapter the pager asks the adapter for the first page fragment (the notebook tab)
+  evidence: SRC MainActivity.java:105-106, 509-526; INFERRED androidx ViewPager2 calls the registered OnPageChangeCallback after the page changes (androidx source not read)
+step 6: MainActivity$SectionsPagerAdapter.createFragment -> GsFileBrowserFragment.onViewCreated
+  edge: Eaff9bcbe kind=FRAMEWORK env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The FragmentManager attaches the notebook fragment and creates its view
+  evidence: SRC MainActivity.java:509-526; SRC GsFileBrowserFragment.java:107; INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read)
+step 7: GsFileBrowserFragment.onViewCreated -> MainActivity.getFilesystemFragmentOptions
+  edge: Ea3ea96a6 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Virtual/interface call that can dispatch to this implementation
+  evidence: SRC GsFileBrowserFragment.java:119 (bytecode)
+step 8: MainActivity.getFilesystemFragmentOptions -> MarkorFileBrowserFactory.prepareFsViewerOpts
+  edge: Ed983bbc6 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC MainActivity.java:462 (bytecode)
+step 9: MarkorFileBrowserFactory.prepareFsViewerOpts -> MarkorFileBrowserFactory.updateFsViewerOpts
+  edge: Eb01f439f kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC MarkorFileBrowserFactory.java:75 (bytecode)
+step 10: MarkorFileBrowserFactory.updateFsViewerOpts -> AppSettings.getPopularFiles
+  edge: E090e1957 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC MarkorFileBrowserFactory.java:86 (bytecode)
+step 11: AppSettings.getPopularFiles -> GsSharedPreferencesPropertyBackend.getStringList(int,SharedPreferences[])
+  edge: E7b101054 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC AppSettings.java:680 (bytecode)
+step 12: GsSharedPreferencesPropertyBackend.getStringList(int,SharedPreferences[]) -> GsSharedPreferencesPropertyBackend.getStringListOne
+  edge: Eb085a8fa kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC GsSharedPreferencesPropertyBackend.java:258 (bytecode)

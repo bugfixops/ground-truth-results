@@ -1,0 +1,61 @@
+method: MarkorContextUtils.getIntentFile(Intent)
+route: route_16
+steps: 14
+verdict: fixed (path row)
+
+step 1: S_ENTRY -> ApplicationObject.<init>
+  edge: E211966cc kind=ENTRY env=None env_kinds=[] needs_state=None gui=['Tap the Markor launcher icon']
+  trigger: The process starts when the launcher icon is tapped (before any activity)
+  evidence: SRC AndroidManifest.xml:39-40
+step 2: ApplicationObject.<init> -> ApplicationObject.onCreate
+  edge: Ed6414d9f kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Application.onCreate
+  evidence: SRC ApplicationObject.java:16,39
+step 3: ApplicationObject.onCreate -> MainActivity.<init>
+  edge: E0254b914 kind=ENTRY env=None env_kinds=[] needs_state=None gui=['Tap the Markor launcher icon']
+  trigger: The MAIN / LAUNCHER intent starts MainActivity (after Application.onCreate on a cold start)
+  evidence: SRC AndroidManifest.xml:61-71; FW-SRC core/java/android/app/ActivityThread.java:5740 (callApplicationOnCreate runs before the first activity)
+step 4: MainActivity.<init> -> MainActivity.onCreate
+  edge: Ed25af8f4 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onCreate
+  evidence: SRC MainActivity.java:76; FW-SRC core/java/android/app/Activity.java:989 (onCreate), 1311 (onResume), 1331 (onPostResume), 3001-3010 (onBackPressed), 5679 (onActivityResult), 824 (mResultCode defaults to RESULT_CANCELED)
+step 5: MainActivity.onCreate -> MainActivity.onResume
+  edge: Eba46a594 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onStart and then Activity.onResume after onCreate returns (cold start)
+  evidence: SRC MainActivity.java:76,279; FW-SRC core/java/android/app/ActivityThread.java:2729 (callActivityOnCreate), 2741 (performStart), 2950 (performResume)
+step 6: MainActivity.onResume -> MainActivity.onPostResume
+  edge: E659e191c kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Activity.performResume calls onPostResume after onResume
+  evidence: SRC MainActivity.java:317; FW-SRC core/java/android/app/Activity.java:7098-7131 (onPostResume at 7131)
+step 7: MainActivity.onPostResume -> MainActivity.onPause
+  edge: E4850ba7b kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The activity leaves the foreground (another activity, or the home screen)
+  evidence: SRC MainActivity.java:569-576; FW-SRC core/java/android/app/Activity.java:1673 (onPause), 5526 (finish), 1858 (onStop)
+step 8: MainActivity.onPause -> TodoWidgetProvider.updateTodoWidgets
+  edge: Eb100fd9b kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC MainActivity.java:572 (bytecode)
+step 9: TodoWidgetProvider.updateTodoWidgets -> TodoWidgetProvider.onUpdate
+  edge: E5a67a199 kind=SYSTEM env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The app sends ACTION_APPWIDGET_UPDATE to its own provider to refresh the views
+  evidence: SRC TodoWidgetProvider.java:52-68; FW-SRC core/java/android/appwidget/AppWidgetProvider.java:61-66
+step 10: TodoWidgetProvider.onUpdate -> S_HOME_WIDGET_TODO
+  edge: E03c42d58 kind=ENTERS env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The launcher shows the todo widget list and its buttons
+  evidence: SRC TodoWidgetProvider.java:21-42
+step 11: S_HOME_WIDGET_TODO -> OpenFromShortcutOrWidgetActivity.<init>
+  edge: E7a697b93 kind=GUI env=outside package: the launcher home screen (app icon, widget, pinned shortcut) must be operated env_kinds=['other_app'] needs_state=None gui=['Tap a todo in the todo widget list or its header']
+  trigger: Tap a todo in the todo widget list or its header
+  evidence: SRC TodoWidgetProvider.java:38-42
+step 12: OpenFromShortcutOrWidgetActivity.<init> -> OpenFromShortcutOrWidgetActivity.onCreate
+  edge: E8fe5671c kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onCreate
+  evidence: SRC OpenFromShortcutOrWidgetActivity.java:16-19; FW-SRC core/java/android/app/Activity.java:989 (onCreate), 1311 (onResume), 1331 (onPostResume), 3001-3010 (onBackPressed), 5679 (onActivityResult), 824 (mResultCode defaults to RESULT_CANCELED)
+step 13: OpenFromShortcutOrWidgetActivity.onCreate -> DocumentActivity.launch(Activity,Intent)
+  edge: Ee0d255cd kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC OpenFromShortcutOrWidgetActivity.java:19 (bytecode)
+step 14: DocumentActivity.launch(Activity,Intent) -> MarkorContextUtils.getIntentFile(Intent)
+  edge: E9904b004 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC DocumentActivity.java:49 (bytecode)

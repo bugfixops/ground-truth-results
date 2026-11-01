@@ -1,0 +1,93 @@
+method: ActionButtonSettingsActivity.lambda$saveNewOrder$0
+route: route_01
+steps: 22
+verdict: correct (path row)
+
+step 1: S_ENTRY -> ApplicationObject.<init>
+  edge: E211966cc kind=ENTRY env=None env_kinds=[] needs_state=None gui=['Tap the Markor launcher icon']
+  trigger: The process starts when the launcher icon is tapped (before any activity)
+  evidence: SRC AndroidManifest.xml:39-40
+step 2: ApplicationObject.<init> -> ApplicationObject.onCreate
+  edge: Ed6414d9f kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Application.onCreate
+  evidence: SRC ApplicationObject.java:16,39
+step 3: ApplicationObject.onCreate -> MainActivity.<init>
+  edge: E0254b914 kind=ENTRY env=None env_kinds=[] needs_state=None gui=['Tap the Markor launcher icon']
+  trigger: The MAIN / LAUNCHER intent starts MainActivity (after Application.onCreate on a cold start)
+  evidence: SRC AndroidManifest.xml:61-71; FW-SRC core/java/android/app/ActivityThread.java:5740 (callApplicationOnCreate runs before the first activity)
+step 4: MainActivity.<init> -> MainActivity.onCreate
+  edge: Ed25af8f4 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onCreate
+  evidence: SRC MainActivity.java:76; FW-SRC core/java/android/app/Activity.java:989 (onCreate), 1311 (onResume), 1331 (onPostResume), 3001-3010 (onBackPressed), 5679 (onActivityResult), 824 (mResultCode defaults to RESULT_CANCELED)
+step 5: MainActivity.onCreate -> MainActivity.onResume
+  edge: Eba46a594 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onStart and then Activity.onResume after onCreate returns (cold start)
+  evidence: SRC MainActivity.java:76,279; FW-SRC core/java/android/app/ActivityThread.java:2729 (callActivityOnCreate), 2741 (performStart), 2950 (performResume)
+step 6: MainActivity.onResume -> MainActivity.onPostResume
+  edge: E659e191c kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Activity.performResume calls onPostResume after onResume
+  evidence: SRC MainActivity.java:317; FW-SRC core/java/android/app/Activity.java:7098-7131 (onPostResume at 7131)
+step 7: MainActivity.onPostResume -> S_NOTEBOOK
+  edge: E0ecb8e4d kind=ENTERS env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The notebook tab is the first page the pager shows (position 0); it is the default startup tab, so it is the visible page after a cold start
+  evidence: SRC MainActivity.java:105-106; SRC AppSettings.java:781; SRC MainActivity.java:142-144; FW-SRC core/java/android/app/Activity.java:7098-7131; INFERRED androidx ViewPager2 calls the registered OnPageChangeCallback after the page changes (androidx source not read)
+step 8: S_NOTEBOOK -> MainActivity.lambda$onCreate$0
+  edge: E54b4aedd kind=GUI env=None env_kinds=[] needs_state=None gui=['Tap a bottom navigation tab']
+  trigger: Tap a bottom navigation tab
+  evidence: SRC MainActivity.java:109-114; INFERRED the BottomNavigationView calls the listener on a tap (material library source not read)
+step 9: MainActivity.lambda$onCreate$0 -> S_MORE
+  edge: Ec433d118 kind=ENTERS env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Tab More is shown (the listener selects its position)
+  evidence: SRC MainActivity.java:109-114; INFERRED androidx ViewPager2 calls the registered OnPageChangeCallback after the page changes (androidx source not read)
+step 10: S_MORE -> MoreInfoFragment.onPreferenceClicked
+  edge: E42444724 kind=GUI env=None env_kinds=[] needs_state=None gui=['Tap a row of the More list (website, Settings, rate app)']
+  trigger: Tap a row of the More list (website, Settings, rate app)
+  evidence: SRC MoreInfoFragment.java:58-67
+step 11: MoreInfoFragment.onPreferenceClicked -> SettingsActivity.<init>
+  edge: E8f245ff4 kind=INTENT env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The Settings row starts SettingsActivity with startActivityForResult (request code 124)
+  evidence: SRC MoreInfoFragment.java:66-67; SRC GsContextUtils.java:1116-1117, 1128-1138; FW-SRC core/java/android/app/ActivityThread.java:4253-4265 (deliverResults hands the result to the activity), core/java/android/app/Activity.java:7259 (dispatchActivityResult ends in onActivityResult)
+step 12: SettingsActivity.<init> -> SettingsActivity.onCreate
+  edge: Eaa1bbd98 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onCreate
+  evidence: SRC SettingsActivity.java:65-81; FW-SRC core/java/android/app/Activity.java:989 (onCreate), 1311 (onResume), 1331 (onPostResume), 3001-3010 (onBackPressed), 5679 (onActivityResult), 824 (mResultCode defaults to RESULT_CANCELED)
+step 13: SettingsActivity.onCreate -> GsActivityBase.onResume@SETTINGS
+  edge: Ef379c2e7 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onResume after onCreate (SettingsActivity has no own onResume; the inherited GsActivityBase.onResume runs)
+  evidence: SRC SettingsActivity.java:50 (extends MarkorBaseActivity), 65-81; FW-SRC core/java/android/app/Activity.java:989 (onCreate), 1311 (onResume), 1331 (onPostResume), 3001-3010 (onBackPressed), 5679 (onActivityResult), 824 (mResultCode defaults to RESULT_CANCELED); SRC GsActivityBase.java:86-99
+step 14: GsActivityBase.onResume@SETTINGS -> S_SETTINGS
+  edge: E37269db8 kind=ENTERS env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The settings list is shown (SettingsFragmentMaster)
+  evidence: SRC SettingsActivity.java:80, 83-102; SRC GsActivityBase.java:86-99; FW-SRC core/java/android/app/Activity.java:7098-7131
+step 15: S_SETTINGS -> SettingsActivity$SettingsFragmentMaster.onPreferenceClicked
+  edge: E241ef74f kind=GUI env=None env_kinds=[] needs_state=None gui=['Tap a row of the settings list']
+  trigger: Tap a row of the settings list
+  evidence: SRC SettingsActivity.java:250
+step 16: SettingsActivity$SettingsFragmentMaster.onPreferenceClicked -> ActionButtonSettingsActivity.<init>
+  edge: E6664a9b1 kind=INTENT env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The action button row starts ActionButtonSettingsActivity
+  evidence: SRC SettingsActivity.java:371
+step 17: ActionButtonSettingsActivity.<init> -> ActionButtonSettingsActivity.onCreate
+  edge: E44424d57 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onCreate
+  evidence: SRC ActionButtonSettingsActivity.java:56; FW-SRC core/java/android/app/Activity.java:989 (onCreate), 1311 (onResume), 1331 (onPostResume), 3001-3010 (onBackPressed), 5679 (onActivityResult), 824 (mResultCode defaults to RESULT_CANCELED)
+step 18: ActionButtonSettingsActivity.onCreate -> GsActivityBase.onResume@ACTIONBTN
+  edge: Ef3f50818 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onResume after onCreate (ActionButtonSettingsActivity has no own onResume; the inherited GsActivityBase.onResume runs)
+  evidence: SRC ActionButtonSettingsActivity.java:45 (extends MarkorBaseActivity), 56; FW-SRC core/java/android/app/Activity.java:989 (onCreate), 1311 (onResume), 1331 (onPostResume), 3001-3010 (onBackPressed), 5679 (onActivityResult), 824 (mResultCode defaults to RESULT_CANCELED); SRC GsActivityBase.java:86-99
+step 19: GsActivityBase.onResume@ACTIONBTN -> S_ACTION_BUTTONS
+  edge: Ee9f1c197 kind=ENTERS env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The action order list is shown
+  evidence: SRC ActionButtonSettingsActivity.java:56; SRC GsActivityBase.java:86-99; FW-SRC core/java/android/app/Activity.java:7098-7131
+step 20: S_ACTION_BUTTONS -> ActionButtonSettingsActivity.onPause
+  edge: Ef8d10451 kind=GUI env=None env_kinds=[] needs_state=None gui=['Press Back (the screen closes and the new order is saved)']
+  trigger: Press Back (the screen closes and the new order is saved)
+  evidence: SRC ActionButtonSettingsActivity.java:112-114; FW-SRC core/java/android/app/Activity.java:1673 (onPause), 5526 (finish), 1858 (onStop)
+step 21: ActionButtonSettingsActivity.onPause -> ActionButtonSettingsActivity.saveNewOrder
+  edge: Ed575ae65 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC ActionButtonSettingsActivity.java:114 (bytecode)
+step 22: ActionButtonSettingsActivity.saveNewOrder -> ActionButtonSettingsActivity.lambda$saveNewOrder$0
+  edge: E09fd3f83 kind=FRAMEWORK env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Listener or callback registered by this method runs when its event fires (view event, dialog button, handler or fragment callback)
+  evidence: INFERRED listener registered at ActionButtonSettingsActivity.java:107 (bytecode line); the listener type is not read per lambda
