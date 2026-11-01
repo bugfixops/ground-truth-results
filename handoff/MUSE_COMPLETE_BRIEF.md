@@ -2,6 +2,8 @@
 
 Written 2026-11-01 by the orchestrator (Claude, on the user's Mac), on the user's instruction: "give all details to Muse ... for all 13 apps to complete 100% on all sections".
 
+**Overnight run of 2026-11-01:** `handoff/MUSE_OVERNIGHT_PROMPT.md` overrides sections 6, 7 and 8 of this file. Device checks are deferred, and Muse makes and records every decision.
+
 This file extends `handoff/MUSE_HANDOVER.md`. Read both. Where they differ, this file wins. Every number here was printed on the user's Mac on 2026-11-01, from files identical to this branch. The raw outputs are in `handoff/baseline_2026-11-01/`. Re-run each command yourself before you rely on a number.
 
 ## 0. What is new since MUSE_HANDOVER.md
