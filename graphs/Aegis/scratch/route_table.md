@@ -2,7 +2,7 @@
 
 Sample: `python3 -I tools/verify_sample.py Aegis 30 20261025` on the
 post-fix graph (fixes 1–4 applied). 25 routes (PLAIN pool 2 vs quota
-7, as in the first draw), 694 steps, 353 distinct edges. First-draw
+7, as in the first draw), 696 steps, 341 distinct edges. First-draw
 sample (25 routes, 686 steps) kept untouched at
 `merger/scratch/sample_30.txt`; this redraw saved at
 `merger/scratch/sample_30_final.txt`. Judged fresh, every step,
@@ -61,7 +61,7 @@ were judged on their new dumps.
 |---|---------|--------|-------|---------|----------------|------------|--------|
 | 1 | NONSTD | AndOtpImporter$EncryptedState.decryptNewFormat(SecretKey) | 49 | UNCLEAR | 8–9 vault (convention); 37 pick gap: @FILE dialog pick does not name the andOTP row (default is Aegis, Dialogs.java:519–528) — satisfiable by an unlisted tap, not established | WRONG → UNCLEAR (fix 2; splice gone) | h1: 46/0/3 |
 | 2 | NONSTD | FreeOtpImporter$DecryptedStateV2.<init> | 47 | WRONG | 35: @APP GA prefix into FreeOTP decrypt — GA State super(false), so processImporterState never calls any decrypt; 36–47 downstream (h1 counting). Also 8–9 unclear, 30 GA-version, 34 root caveats | UNCLEAR → WRONG (same defect class, not one of the 4 fixes) | h1: 30/13/4 |
-| 3 | NONSTD | StratumImporter$EncryptedState.decrypt(SecretKey) | 45 | WRONG | 35: @APP GA prefix into Stratum decrypt — GA State super(false); and even a genuine Stratum app import yields SqlState super(false) (readFromApp passes isInternal=true), so decrypt never fires. 8–9 unclear. Fix 4's @STRATUM→decrypt edge is itself refuted — see flag below | WRONG → WRONG (fix 4 partially refuted) | h2: 42/1/2 |
+| 3 | NONSTD | StratumImporter$EncryptedState.decrypt(SecretKey) | 47 | UNCLEAR | 8–9 vault (convention); 23 importer-dialog pick does not name the Stratum row (default is Aegis, Dialogs.java:519–528) — satisfiable by an unlisted tap, not established; rest verified incl. genuine @FILE decrypt dispatch (step 37) | WRONG → UNCLEAR (corrected graph; pre-correction 45-step draw was WRONG on the refuted @STRATUM decrypt edge, now removed) | re-judge: 44/0/3 |
 | 4 | NONSTD | AegisImporter$DecryptedState.getCredentials | 30 | CORRECT | All 30 verified: intro → Welcome import of an encrypted Aegis vault file (in-run producer) → password-slot decrypt → DecryptedState creds | CORRECT → CORRECT | h1: 30/0/0 |
 | 5 | INFERRED | EntryAdapter.setTempHighlightEntry | 27 | UNCLEAR | 8–9 vault (convention); rest verified | UNCLEAR → UNCLEAR | h2: 25/0/2 |
 | 6 | INFERRED | GroupAdapter.getGroupByUUID | 35 | UNCLEAR | 8–9 vault (convention); rest verified incl. replaceGroup → getGroupByUUID | UNCLEAR → UNCLEAR | h2: 33/0/2 |
@@ -85,25 +85,27 @@ were judged on their new dumps.
 | 24 | PLAIN | Hilt_AegisApplication.<init> | 2 | CORRECT | Manifest + @HiltAndroidApp leg (generated file absent, caveat noted) | CORRECT → CORRECT | h8: 2/0/0 |
 | 25 | PLAIN | AegisApplication.<init> | 1 | CORRECT | Manifest android:name + implicit constructor; no vault-load step, convention N/A | CORRECT → CORRECT | h9: 1/0/0 |
 
-> Correction note (2026-11-01, post-judging): the fix-4 edge processImporterState@STRATUM → StratumImporter$EncryptedState.decrypt(Context,DecryptListener) judged refuted in this row has been REMOVED from the graph (Stratum correction, independently audited). This row's WRONG verdict stands as a verdict on the pre-correction 45-step draw: its decisive reasoning — decrypt never fires on any app-import prefix — is confirmed, not overturned, by the removal. The corrected graph's Stratum decrypt route is a 47-step @FILE route (showImportersDialog@FILE → lambda$27@FILE → startImportFile → processImporterState@FILE → Stratum decrypt → @STRATUM password-dialog chain → decrypt(SecretKey)); that route has NOT been step-judged, so no verdict on it is claimed here. Error rate unchanged (6/10 = 0.6000).
+> Correction note (2026-11-01, post-judging, updated on re-judgment): the fix-4 edge processImporterState@STRATUM → StratumImporter$EncryptedState.decrypt(Context,DecryptListener) judged refuted in the pre-correction draw has been REMOVED from the graph (Stratum correction, independently audited). The pre-correction 45-step draw's WRONG verdict stands as a historical verdict on that draw only. The corrected graph's Stratum decrypt route is a 47-step @FILE route (showImportersDialog@FILE → lambda$27@FILE → startImportFile → processImporterState@FILE → Stratum decrypt → @STRATUM password-dialog chain → decrypt(SecretKey)); that route HAS now been step-judged (helper/stratum-rejudge/JUDGMENT.md, 44 correct / 0 wrong / 3 unclear) and grades UNCLEAR — steps 8–9 under the strict step-8 convention (no in-run vault producer) and step 23 on the importer-dialog pick gap (default is Aegis; Stratum tap not on the route). No step on the corrected route is shown false. Error rate updated (5/9 = 0.5556).
 
 Per-helper tallies (steps correct/wrong/unclear): h1 106/13/7 (126);
 h2 100/1/6 (107); h3 90/2/9 (101); h4 68/0/3 (71); h5 79/0/7 (86);
 h6 14/1/24 (39); h7 21/0/64 (85); h8 58/14/6 (78); h9 1/0/0 (1).
 
+Re-judgment note: row 3 was re-judged on the corrected graph (44/0/3 on 47 steps, replacing h2's 42/1/2 on 45 steps); the Steps line and header above reflect row 3 as amended, while the per-helper tallies above record the original final-table judging.
+
 ## Tally and final error rate
 
-- Final sample: CORRECT 4, WRONG 6, UNCLEAR 15 (25 routes).
-- Steps: 537 correct / 31 wrong / 126 unclear (694 total).
+- Final sample: CORRECT 4, WRONG 5, UNCLEAR 16 (25 routes).
+- Steps: 539 correct / 30 wrong / 127 unclear (696 total).
 - fixed (first-draw WRONG → redrawn CORRECT, strict) = 0.
 - Final error rate = (fixed + wrong) / (correct + fixed + wrong)
-  = (0 + 6) / (4 + 0 + 6) = 6/10 = 0.6000.
+  = (0 + 5) / (4 + 0 + 5) = 5/9 = 0.5556.
 - First-draw rate was 6/11 = 0.5455. The rate ROSE although two
   fixable WRONGs left the WRONG set, because the redrawn sample
   contains 4 NEW WRONGs outside the 4-fix scope (rows 2, 8, 22,
   23) and lost 1 CORRECT to stricter generated-code grading
   (row 17). The rate is computed on decidable routes only;
-  UNCLEAR routes (15) are excluded from numerator and
+  UNCLEAR routes (16) are excluded from numerator and
   denominator under either convention reading.
 
 ## Migration (first draw → redrawn sample)
@@ -148,6 +150,8 @@ caution applies to any app-import decrypt dispatch: verify
 readInternal's state per importer.
 
 > FLAG RESOLVED 2026-11-01 (Stratum correction, independently audited): the @STRATUM→decrypt edge has been removed; the corrected graph's Stratum decrypt route falls back to the genuine @FILE path as predicted here. The row-3 WRONG verdict stands as a historical verdict on the pre-correction draw (see correction note on row 3).
+
+> Re-judgment 2026-11-01: the corrected 47-step @FILE route has been step-judged UNCLEAR (see row 3 as amended); the row-3 WRONG verdict no longer describes the corrected graph. The Legacy row (row 22) is unaffected by this correction and needs no amendment.
 
 ## Follow-ups (not this step; each needs its own design + audit)
 
