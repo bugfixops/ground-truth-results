@@ -1,0 +1,90 @@
+## AboutPreference.<init>  REACHABLE  confirmed_by=SOURCE path=SOURCE_OK
+   env=- state=- classes=explicit;non_standard;standard explicit_standard_route=no
+   1. E012ed474 ENTRY/standard*
+      S_ENTRY -> Main.<init>
+      Tap the Currency icon in the launcher (MAIN/LAUNCHER intent filter)
+      note: The other external entry is the home-screen widget (CurrencyWidgetConfigure / CurrencyWidgetProvider are exported)
+      evidence: SRC AndroidManifest.xml:19-24
+         19          android:name="Main"
+         20          android:exported="true"
+         21          android:windowSoftInputMode="stateHidden">
+         22        <intent-filter>
+         23          <action android:name="android.intent.action.MAIN" />
+         24          <category android:name="android.intent.category.LAUNCHER" />
+   2. Ee88066da LIFECYCLE/standard*
+      Main.<init> -> Main.onCreate
+      The system instantiates Main, then calls onCreate
+      evidence: SRC Main.java:242
+        242      public void onCreate(Bundle savedInstanceState)
+   3. Ef071a802 LIFECYCLE/standard*
+      Main.onCreate -> Main.onResume
+      onStart -> onResume
+      evidence: SRC Main.java:369
+        369      protected void onResume()
+   4. E4dd486ed ENTERS/page*
+      Main.onResume -> S_MAIN_DISPLAY
+      Main becomes visible
+      guard: mode == DISPLAY_MODE (no selection kept)
+      evidence: SRC Main.java:351-352
+        351          if (selectList.isEmpty())
+        352              mode = Main.DISPLAY_MODE;
+   5. E871f7284 GUI/standard*
+      S_MAIN_DISPLAY -> Main.lambda$onCreate$0
+      Tap the navigation icon at the left of the action bar
+      evidence: SRC Main.java:288-295
+        288          toolbar.setNavigationIcon(R.drawable.ic_menu_white_24dp);
+        289          toolbar.setNavigationOnClickListener((v) ->
+        290          {
+        291              PopupMenu popup = new PopupMenu(this, v);
+        292              popup.inflate(R.menu.navigation);
+        293              popup.setOnMenuItemClickListener(this);
+        294              popup.show();
+        295          });
+   6. Ed703ed01 ENTERS/page*
+      Main.lambda$onCreate$0 -> S_NAV_POPUP
+      popup.show(): PopupMenu with Settings / Help
+      evidence: SRC Main.java:291-294
+        291              PopupMenu popup = new PopupMenu(this, v);
+        292              popup.inflate(R.menu.navigation);
+        293              popup.setOnMenuItemClickListener(this);
+        294              popup.show();
+   7. E089dafed GUI/standard*
+      S_NAV_POPUP -> Main.onMenuItemClick
+      Tap an item in the popup
+      evidence: SRC res/menu/navigation.xml; Main.java:818
+      (res/menu/navigation.xml: no line numbers)
+   8. E4ca94f24 CALL/explicit*
+      Main.onMenuItemClick -> Main.onSettingsClick
+      switch case R.id.action_settings
+      evidence: SRC Main.java:829-830
+        829          case R.id.action_settings:
+        830              return onSettingsClick();
+   9. E1725dbe1 INTENT/standard*
+      Main.onSettingsClick -> SettingsActivity.<init>
+      startActivity(SettingsActivity)
+      evidence: SRC Main.java:1132-1133
+       1132          Intent intent = new Intent(this, SettingsActivity.class);
+       1133          startActivity(intent);
+  10. Eb6828daa LIFECYCLE/standard*
+      SettingsActivity.<init> -> SettingsActivity.onCreate
+      The system instantiates SettingsActivity, then onCreate
+      evidence: SRC SettingsActivity.java:41
+         41      protected void onCreate(Bundle savedInstanceState)
+  11. E49d83399 CALL/explicit*
+      SettingsActivity.onCreate -> SettingsFragment.<init>
+      replace(android.R.id.content, new SettingsFragment())
+      evidence: SRC SettingsActivity.java:79-81
+         79          getFragmentManager().beginTransaction()
+         80          .replace(android.R.id.content, new SettingsFragment())
+         81          .commit();
+  12. E383a2d57 LIFECYCLE/standard*
+      SettingsFragment.<init> -> SettingsFragment.onCreate
+      The fragment transaction commits: fragment onCreate
+      evidence: FW-SRC android-8.1.0_r1:app/FragmentManager.java:1141,1237,1322
+      (android-8.1.0_r1:app/FragmentManager.java not found in the source tree)
+  13. Ec05657b8 FRAMEWORK/non_standard(class named in res/xml/preferences.xml, constructed by the framework through reflection (GenericInflater.createItem))
+      SettingsFragment.onCreate -> AboutPreference.<init>
+      addPreferencesFromResource inflates preferences.xml; the inflater constructs AboutPreference(Context, AttributeSet)
+      evidence: SRC SettingsFragment.java:48; res/xml/preferences.xml (org.billthefarmer.currency.AboutPreference)
+         48          addPreferencesFromResource(R.xml.preferences);
+

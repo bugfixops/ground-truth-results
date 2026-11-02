@@ -1,0 +1,74 @@
+## CurrencyWidgetProvider.onDeleted  REACHABLE  confirmed_by=SOURCE path=UNCHECKED
+   env=other_app state=- classes=standard explicit_standard_route=yes
+   1. E1cfacc94 ENTRY/standard* [ENV: a Currency widget is placed on the home screen through the launcher (another app, a user action outside Currency)]
+      S_ENTRY -> CurrencyWidgetConfigure.<init>@ADD
+      After the widget is dropped the launcher starts the configure activity (android:configure)
+      evidence: SRC res/xml/widget.xml (android:configure); SRC AndroidManifest.xml:42-48; FW-SRC android-8.1.0_r1:appwidget/AppWidgetServiceImpl.java:992; INFERRED the launcher (another app) calls it after the widget id is bound (launcher source not read)
+      (res/xml/widget.xml: no line numbers)
+         42      <activity
+         43          android:name="CurrencyWidgetConfigure"
+         44          android:theme="@style/DialogTheme"
+         45          android:exported="true">
+         46        <intent-filter>
+         47          <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+         48        </intent-filter>
+      (android-8.1.0_r1:appwidget/AppWidgetServiceImpl.java not found in the source tree)
+   2. E1d8b2e92 LIFECYCLE/standard*
+      CurrencyWidgetConfigure.<init>@ADD -> CurrencyWidgetConfigure.onCreate@ADD
+      The system instantiates CurrencyWidgetConfigure (dialog theme), then onCreate
+      evidence: SRC CurrencyWidgetConfigure.java:51
+         51      public void onCreate(Bundle savedInstanceState)
+   3. Ef32416ec ENTERS/page*
+      CurrencyWidgetConfigure.onCreate@ADD -> S_WIDGET_CONFIG@ADD
+      Dialog listing the Main list currencies
+      evidence: SRC CurrencyWidgetConfigure.java:88-165
+         88          setContentView(R.layout.config);
+         89  
+         90          // Find views
+         91          ListView listView = findViewById(R.id.list);
+         92          Button cancel = findViewById(R.id.cancel);
+         93  
+         94          // Set the listeners
+         95          if (listView != null)
+         96              listView.setOnItemClickListener((parent, view, position, id) ->
+         97          {
+         98              Intent intent = getIntent();
+         99              int appWidgetId =
+        100                  intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
+        101                                     AppWidgetManager.INVALID_APPWIDGET_ID);
+      ...  (64 more lines)
+   4. E6b2b4384 GUI/standard*
+      S_WIDGET_CONFIG@ADD -> CurrencyWidgetConfigure.lambda$onCreate$1@ADD
+      Tap Cancel
+      evidence: SRC CurrencyWidgetConfigure.java:121-125
+        121              cancel.setOnClickListener((v) ->
+        122          {
+        123              setResult(RESULT_CANCELED);
+        124              finish();
+        125          });
+   5. Ee3672287 INTENT/standard*
+      CurrencyWidgetConfigure.lambda$onCreate$1@ADD -> CurrencyWidgetProvider.<init>@DELETED
+      RESULT_CANCELED while placing: the launcher deletes the new widget id and APPWIDGET_DELETED reaches the provider
+      evidence: FW-SRC android-8.1.0_r1:appwidget/AppWidgetServiceImpl.java:1752-1767; INFERRED the launcher (another app) deletes a widget id whose configuration activity returned RESULT_CANCELED (launcher source not read)
+      (android-8.1.0_r1:appwidget/AppWidgetServiceImpl.java not found in the source tree)
+   6. E0f9de2df LIFECYCLE/standard*
+      CurrencyWidgetProvider.<init>@DELETED -> CurrencyWidgetProvider.onReceive@DELETED
+      The system instantiates the receiver and calls onReceive (APPWIDGET_DELETED)
+      evidence: SRC CurrencyWidgetProvider.java:67-76
+         67      public void onReceive(Context context, Intent intent)
+         68      {
+         69          if (BuildConfig.DEBUG)
+         70              Log.d(TAG, "onReceive " + intent);
+         71  
+         72          updateDone = intent.getBooleanExtra
+         73              (CurrencyWidgetUpdate.EXTRA_UPDATE_DONE, false);
+         74  
+         75          super.onReceive(context, intent);
+         76      }
+   7. Eaa043033 FRAMEWORK/standard* [ENV: a Currency widget is placed on the home screen through the launcher (another app, a user action outside Currency)]
+      CurrencyWidgetProvider.onReceive@DELETED -> CurrencyWidgetProvider.onDeleted
+      super.onReceive: APPWIDGET_DELETED -> onDeleted
+      guard: a widget was removed
+      evidence: FW-SRC android-8.1.0_r1:appwidget/AppWidgetProvider.java:69-73
+      (android-8.1.0_r1:appwidget/AppWidgetProvider.java not found in the source tree)
+

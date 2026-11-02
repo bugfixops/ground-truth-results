@@ -1,0 +1,77 @@
+## CurrencyWidgetProvider.<init>  REACHABLE  confirmed_by=SOURCE path=SOURCE_OK
+   env=- state=- classes=explicit;non_standard;standard explicit_standard_route=yes
+   1. E012ed474 ENTRY/standard*
+      S_ENTRY -> Main.<init>
+      Tap the Currency icon in the launcher (MAIN/LAUNCHER intent filter)
+      note: The other external entry is the home-screen widget (CurrencyWidgetConfigure / CurrencyWidgetProvider are exported)
+      evidence: SRC AndroidManifest.xml:19-24
+         19          android:name="Main"
+         20          android:exported="true"
+         21          android:windowSoftInputMode="stateHidden">
+         22        <intent-filter>
+         23          <action android:name="android.intent.action.MAIN" />
+         24          <category android:name="android.intent.category.LAUNCHER" />
+   2. Ee88066da LIFECYCLE/standard*
+      Main.<init> -> Main.onCreate
+      The system instantiates Main, then calls onCreate
+      evidence: SRC Main.java:242
+        242      public void onCreate(Bundle savedInstanceState)
+   3. Ef071a802 LIFECYCLE/standard*
+      Main.onCreate -> Main.onResume
+      onStart -> onResume
+      evidence: SRC Main.java:369
+        369      protected void onResume()
+   4. E4dd486ed ENTERS/page*
+      Main.onResume -> S_MAIN_DISPLAY
+      Main becomes visible
+      guard: mode == DISPLAY_MODE (no selection kept)
+      evidence: SRC Main.java:351-352
+        351          if (selectList.isEmpty())
+        352              mode = Main.DISPLAY_MODE;
+   5. E3b5308ec SYSTEM/standard*
+      S_MAIN_DISPLAY -> Main.onPause
+      Main loses the foreground
+      evidence: SRC Main.java:700
+        700      protected void onPause()
+   6. E2ea0fd55 CALL/explicit*
+      Main.onPause -> Main.updateWidgets
+      updateWidgets()
+      evidence: SRC Main.java:705-742
+        705          SharedPreferences preferences =
+        706              PreferenceManager.getDefaultSharedPreferences(this);
+        707  
+        708          // Get editor
+        709          SharedPreferences.Editor editor = preferences.edit();
+        710  
+        711          // Get entries
+        712          JSONObject valueObject = new JSONObject(valueMap);
+        713          JSONArray nameArray = new JSONArray(nameList);
+        714          JSONArray valueArray = new JSONArray(valueList);
+        715  
+        716          // Update preferences
+        717          editor.putString(PREF_MAP, valueObject.toString());
+        718          editor.putString(PREF_NAMES, nameArray.toString());
+      ...  (24 more lines)
+   7. E3b81bf90 INTENT/non_standard(implicit broadcast: Intent(ACTION_APPWIDGET_UPDATE) without a component, resolved by action name to the manifest receiver)
+      Main.updateWidgets -> CurrencyWidgetProvider.<init>@UPDATE
+      sendBroadcast(ACTION_APPWIDGET_UPDATE, EXTRA_UPDATE_DONE=true): the manifest receiver is instantiated
+      note: Implicit by action, but the system sets the caller package on an APPWIDGET_UPDATE sent by an app, so the manifest receiver gets it on API 27 although the app targets SDK 35
+      evidence: SRC Main.java:836-851; FW-SRC android-8.1.0_r1:am/ActivityManagerService.java:19199-19224 (an APPWIDGET_UPDATE sent by an app is limited to the caller package); FW-SRC android-8.1.0_r1:am/BroadcastQueue.java:1267-1279 (the background skip needs component and package both null)
+        836  
+        837      // updateWidgets
+        838      private void updateWidgets()
+        839      {
+        840          // Get manager
+        841          AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
+        842          ComponentName provider = new ComponentName
+        843              (this, CurrencyWidgetProvider.class);
+        844  
+        845          int appWidgetIds[] = appWidgetManager.getAppWidgetIds(provider);
+        846  
+        847          Intent broadcast = new Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+        848          broadcast.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds);
+        849          broadcast.putExtra(CurrencyWidgetUpdate.EXTRA_UPDATE_DONE, true);
+      ...  (2 more lines)
+      (android-8.1.0_r1:am/ActivityManagerService.java not found in the source tree)
+      (android-8.1.0_r1:am/BroadcastQueue.java not found in the source tree)
+

@@ -5,11 +5,14 @@ is made here, and the PROGRESS line stays exactly as it is.
 
 ## Current step
 
-T1 writer done and tested (see below); D1 ROUTES.csv verified and
-adopted; D3 route scripts in progress (helpers); D7 DEVICE support in
-the writer, tested on synthetic results. CI request for Currency is the
-coordinator's step (coordinator-only); F1 readiness is reported to the
-coordinator with the evidence below.
+T1 writer done, tested, and pushed (commit 642a97b, read-back
+verified); D1 audit PASS and D3 audit PASS (all six groups) now on
+file; continuation merger pushing D1, then D3 (docstring path fix
+applied to routes 06-25, drycheck re-verified 28 PASS, 0 FAIL);
+D7 DEVICE support in the writer, tested on synthetic results.
+CI request for Currency is the coordinator's step
+(coordinator-only); F1 readiness is reported to the coordinator with
+the evidence below.
 
 ## Steps
 
@@ -102,5 +105,96 @@ coordinator with the evidence below.
   writer fails loudly on any genuinely dangling ref. Reverse: add the
   evidence-substring check and the row would need its ref rewritten to
   a DialogPreference citation.
+- 2026-11-01, D3 route scripts complete: 6 helpers delivered 28
+  scripts (routes 01-28) to work/Currency/helper/d3-*/. Merger
+  verification, all printed this session: device drycheck.py run
+  against a test root with all 28 scripts at final placement gives
+  Currency: 28 PASS, 0 FAIL; mechanical edge-coverage check shows
+  every route edge used, none missing, none extra (duplicated log
+  lines only where a script uses a fallback tap pair or a compound
+  action on one edge). Scripts are NOT yet pushed: they await
+  coordinator-assigned auditor PASS (at least 1 in 3 read against the
+  printed route), after which the merger applies the docstring
+  path fix (routes 06-25 cite the printed route by absolute
+  private-tree path; routes 01-05 and 26-28 already repo-relative),
+  re-runs py_compile + drycheck, and pushes scripts + route_print
+  files + updated AGENT_NOTES in one D3 push under the push lock.
+- 2026-11-01, D1 push blocked three times on the branch race (last
+  attempt under the push lock, head 493450f7, paths confirmed
+  untouched, still "not a fast forward"), so a concurrent push moved
+  the head mid-call despite the lock. D1 staging is intact and the
+  retry waits for auditor PASS on the ROUTES.csv + notes plus a lock
+  window. T1 push (commit 642a97b) succeeded and was verified by
+  branch read-back.
+- 2026-11-01, route_05 rotation caveat (for auditor + device lead):
+  the script rotates via the harness's private Runner._shell
+  (settings put system accelerometer_rotation + user_rotation) and
+  deliberately does not rotate back, so later routes would run in a
+  rotated state unless run_app.sh resets orientation between routes.
+  Suggested global fix: orientation reset in run_app.sh; alternative:
+  rotate-back step in route_05. Auditor to judge; no script edited
+  before auditor PASS.
+
+- CUR-D3-D1 (Currency, D3, route_07 toast precondition): options (a)
+  mark route_07 unscriptable, (b) keep scripted. Choice: (b). Printed
+  evidence: route_07's target fires only when network is off, or
+  non-Wi-Fi with default pref_wifi, or roaming; the Runner has no
+  network toggle, but network-off IS creatable via adb (svc commands),
+  so the route fails the brief's unscriptable test ("conditions adb
+  cannot create"). Effect: script stands, dry-PASS; on a Wi-Fi
+  emulator the real run may return not-reached, which becomes unclear,
+  never wrong. Reverse: if the user requires the toast branch to be
+  deterministically reachable, add a per-route network precondition to
+  run_app.sh (device lead's call) or mark the route unscriptable.
+- CUR-D3-D2 (Currency, D3, widget routes 24-27): options (a) require
+  literal launcher widget placement (routes unscriptable), (b) accept
+  broadcast substitution. Choice: (b). Printed evidence: brief
+  section 5.6 D3 itself prescribes that a widget step "becomes
+  start_intent or broadcast over adb with a comment"; the scripts use
+  the identical system broadcasts (APPWIDGET_CONFIGURE,
+  APPWIDGET_UPDATE with the exact extras from source, APPWIDGET_DELETED)
+  the launcher/AppWidgetService would deliver. Effect: routes 24-27
+  stand as scripted. Reverse: if literal placement is ever required,
+  routes 24/25 (and the configure leg of 26/27) become unscriptable.
 - No other decisions. Batch 5 rows 19/20/25/26 (user decision D29) do
   not concern Currency.
+
+## Continuation merger 2026-11-01 (D1/D3 pushes)
+
+- D1 audit PASS (audit/D1/AUDIT.md, 6,210 B): 28 rows = 28 path rows,
+  mechanical all 28, statuses all scripted, 0 unscriptable.
+  D3 audit PASS (audit/D3/AUDIT.md, 10,503 B): all six groups,
+  12/28 scripts read against printed routes, independent dry run
+  28 PASS, 0 FAIL. Auditor-accepted decisions CUR-D3-D1 (route_07
+  toast stays scripted) and CUR-D3-D2 (broadcast substitution for
+  widget routes 24-27) stand; recorded here for the coordinator's
+  branch append to handoff/MUSE_DECISIONS.md.
+- D3 merge condition applied by the continuation merger (auditor
+  PASS, behavior-neutral): routes 06-25 docstrings rewritten from
+  absolute private-tree paths to repo-relative
+  graphs/Currency/scratch/route_print/<method>.txt; routes 01-05
+  and 26-28 already repo-relative. Verified: exactly the 20
+  scripts differ from helper originals, each by the single
+  docstring line (20 old lines carry the absolute prefix, 20 new
+  lines carry the repo-relative path); 0 absolute paths remain in
+  staged scripts; py_compile OK on all 28.
+- Dry run re-verified after the fix (private test root, staged
+  scripts at final placement, ROUTES.csv from staging-D1, harness
+  from the device stage tree, out/ from this tree, WEMU =
+  work-emulator): Currency 28 PASS, 0 FAIL, exit 0.
+- D1 staging (staging-D1, unchanged from the audited bytes):
+  device/routes/Currency/ROUTES.csv (6,393 B, CRLF line endings
+  as audited — valid CSV, parsed by drycheck without issue) +
+  ROUTES_NOTES.md (10,808 B); 0 absolute paths, 0 tick-marker
+  hits. Branch check before push: device/routes/Currency/
+  ROUTES.csv absent from work-2026-10-31.
+- D1 push: see continuation report (commit recorded there).
+- D1 push LANDED 2026-11-01 (continuation #2): commit
+  260d62f69fd85b9cfbd355565906ea5337c197bb (parent e93c5c1e Aegis
+  C3), device/routes/Currency/ROUTES.csv (6,393 B, CRLF) blob
+  c8dadfe02f3d4df5cacbe547d19bd0de661fef2d + ROUTES_NOTES.md
+  (10,808 B) blob ef0dd9f2be849fc44b0d9c1dca41874db824eac0, both
+  read-back verified exact (local git hash-object match).
+- D3 push: 28 scripts + 28 route_print files + this AGENT_NOTES
+  update, under the push lock, verified by read-back (commit
+  recorded in the continuation report).

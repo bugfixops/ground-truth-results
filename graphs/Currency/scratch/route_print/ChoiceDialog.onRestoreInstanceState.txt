@@ -1,0 +1,99 @@
+## ChoiceDialog.onRestoreInstanceState  REACHABLE  confirmed_by=SOURCE path=SOURCE_OK
+   env=hardware state=- classes=explicit;standard explicit_standard_route=yes
+   1. E012ed474 ENTRY/standard*
+      S_ENTRY -> Main.<init>
+      Tap the Currency icon in the launcher (MAIN/LAUNCHER intent filter)
+      note: The other external entry is the home-screen widget (CurrencyWidgetConfigure / CurrencyWidgetProvider are exported)
+      evidence: SRC AndroidManifest.xml:19-24
+         19          android:name="Main"
+         20          android:exported="true"
+         21          android:windowSoftInputMode="stateHidden">
+         22        <intent-filter>
+         23          <action android:name="android.intent.action.MAIN" />
+         24          <category android:name="android.intent.category.LAUNCHER" />
+   2. Ee88066da LIFECYCLE/standard*
+      Main.<init> -> Main.onCreate
+      The system instantiates Main, then calls onCreate
+      evidence: SRC Main.java:242
+        242      public void onCreate(Bundle savedInstanceState)
+   3. Ef071a802 LIFECYCLE/standard*
+      Main.onCreate -> Main.onResume
+      onStart -> onResume
+      evidence: SRC Main.java:369
+        369      protected void onResume()
+   4. E4dd486ed ENTERS/page*
+      Main.onResume -> S_MAIN_DISPLAY
+      Main becomes visible
+      guard: mode == DISPLAY_MODE (no selection kept)
+      evidence: SRC Main.java:351-352
+        351          if (selectList.isEmpty())
+        352              mode = Main.DISPLAY_MODE;
+   5. Efc50320e GUI/standard*
+      S_MAIN_DISPLAY -> Main.onOptionsItemSelected@DISPLAY
+      Tap a menu item in the action bar
+      guard: menu main.xml: action_add / action_refresh / action_update
+      evidence: SRC res/menu/main.xml; Main.java:770
+      (res/menu/main.xml: no line numbers)
+   6. E81249289 CALL/explicit*
+      Main.onOptionsItemSelected@DISPLAY -> Main.onAddClick
+      switch case R.id.action_add
+      evidence: SRC Main.java:777-778
+        777          case R.id.action_add:
+        778              return onAddClick();
+   7. Ea8c3b3b7 INTENT/standard*
+      Main.onAddClick -> ChoiceDialog.<init>@MAIN
+      startActivityForResult(new Intent(this, ChoiceDialog.class), 0)
+      evidence: SRC Main.java:857-858
+        857          Intent intent = new Intent(this, ChoiceDialog.class);
+        858          startActivityForResult(intent, 0);
+   8. E66b0b6ad LIFECYCLE/standard*
+      ChoiceDialog.<init>@MAIN -> ChoiceDialog.onCreate@MAIN
+      The system instantiates ChoiceDialog (dialog-themed activity), then onCreate
+      evidence: SRC ChoiceDialog.java:59; AndroidManifest.xml:31-33 (DialogTheme)
+         59      public void onCreate(Bundle savedInstanceState)
+   9. Ea6de7fcb ENTERS/page*
+      ChoiceDialog.onCreate@MAIN -> S_CHOICE_DISPLAY@MAIN
+      Picker shown, nothing selected (Clear/Select disabled in choose.xml)
+      evidence: SRC ChoiceDialog.java:96-129; res/layout/choose.xml:39,47
+         96          setContentView(R.layout.choose);
+         97  
+         98          // Find views
+         99          ListView listView = findViewById(R.id.list);
+        100  
+        101          Button cancel = findViewById(R.id.cancel);
+        102          clear = findViewById(R.id.clear);
+        103          select = findViewById(R.id.select);
+        104  
+        105          // Set the listeners
+        106          if (listView != null)
+        107          {
+        108              listView.setOnItemClickListener(this);
+        109              listView.setOnItemLongClickListener(this);
+      ...  (20 more lines)
+  10. Ed26a607d SYSTEM/standard*
+      S_CHOICE_DISPLAY@MAIN -> ChoiceDialog.onSaveInstanceState@MAIN
+      Rotation or Home: state saved before onStop (API 27 order)
+      evidence: FW-SRC android-8.1.0_r1:app/ActivityThread.java:4022-4026
+      (android-8.1.0_r1:app/ActivityThread.java not found in the source tree)
+  11. Eb43116bb SYSTEM/standard* [ENV: the device is rotated (orientation change)]
+      ChoiceDialog.onSaveInstanceState@MAIN -> ChoiceDialog.onRestoreInstanceState@MAIN
+      Rotation: the picker is recreated (new instance: onCreate, then onRestoreInstanceState with the saved selection)
+      guard: activity recreated (rotation), not Home
+      evidence: FW-SRC android-8.1.0_r1:app/ActivityThread.java:2747-2751; SRC ChoiceDialog.java:134-179
+      (android-8.1.0_r1:app/ActivityThread.java not found in the source tree)
+        134      public void onRestoreInstanceState(Bundle savedState)
+        135      {
+        136          List<Integer> list =
+        137              savedState.getIntegerArrayList(Main.SAVE_SELECT);
+        138  
+        139          if (list != null)
+        140          {
+        141              // Update the selection list
+        142              selectList.addAll(list);
+        143          }
+        144  
+        145          // Disable buttons if empty
+        146          if (selectList.isEmpty())
+        147          {
+      ...  (32 more lines)
+

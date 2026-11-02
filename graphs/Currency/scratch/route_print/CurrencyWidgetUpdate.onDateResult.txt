@@ -1,0 +1,151 @@
+## CurrencyWidgetUpdate.onDateResult  REACHABLE  confirmed_by=SOURCE path=UNCHECKED
+   env=network;other_app state=- classes=explicit;standard explicit_standard_route=yes
+   1. E1cfacc94 ENTRY/standard* [ENV: a Currency widget is placed on the home screen through the launcher (another app, a user action outside Currency)]
+      S_ENTRY -> CurrencyWidgetConfigure.<init>@ADD
+      After the widget is dropped the launcher starts the configure activity (android:configure)
+      evidence: SRC res/xml/widget.xml (android:configure); SRC AndroidManifest.xml:42-48; FW-SRC android-8.1.0_r1:appwidget/AppWidgetServiceImpl.java:992; INFERRED the launcher (another app) calls it after the widget id is bound (launcher source not read)
+      (res/xml/widget.xml: no line numbers)
+         42      <activity
+         43          android:name="CurrencyWidgetConfigure"
+         44          android:theme="@style/DialogTheme"
+         45          android:exported="true">
+         46        <intent-filter>
+         47          <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+         48        </intent-filter>
+      (android-8.1.0_r1:appwidget/AppWidgetServiceImpl.java not found in the source tree)
+   2. E1d8b2e92 LIFECYCLE/standard*
+      CurrencyWidgetConfigure.<init>@ADD -> CurrencyWidgetConfigure.onCreate@ADD
+      The system instantiates CurrencyWidgetConfigure (dialog theme), then onCreate
+      evidence: SRC CurrencyWidgetConfigure.java:51
+         51      public void onCreate(Bundle savedInstanceState)
+   3. Ef32416ec ENTERS/page*
+      CurrencyWidgetConfigure.onCreate@ADD -> S_WIDGET_CONFIG@ADD
+      Dialog listing the Main list currencies
+      evidence: SRC CurrencyWidgetConfigure.java:88-165
+         88          setContentView(R.layout.config);
+         89  
+         90          // Find views
+         91          ListView listView = findViewById(R.id.list);
+         92          Button cancel = findViewById(R.id.cancel);
+         93  
+         94          // Set the listeners
+         95          if (listView != null)
+         96              listView.setOnItemClickListener((parent, view, position, id) ->
+         97          {
+         98              Intent intent = getIntent();
+         99              int appWidgetId =
+        100                  intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
+        101                                     AppWidgetManager.INVALID_APPWIDGET_ID);
+      ...  (64 more lines)
+   4. E50df3be1 GUI/standard*
+      S_WIDGET_CONFIG@ADD -> CurrencyWidgetConfigure.lambda$onCreate$0@ADD
+      Tap a currency for the widget
+      evidence: SRC CurrencyWidgetConfigure.java:96-118
+         96              listView.setOnItemClickListener((parent, view, position, id) ->
+         97          {
+         98              Intent intent = getIntent();
+         99              int appWidgetId =
+        100                  intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
+        101                                     AppWidgetManager.INVALID_APPWIDGET_ID);
+        102              // Get editor
+        103              SharedPreferences.Editor editor = preferences.edit();
+        104              editor.putInt(String.valueOf(appWidgetId), position);
+        105              editor.apply();
+        106  
+        107              Intent broadcast = new Intent
+        108                  (AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+        109              int appWidgetIds[] = {appWidgetId};
+      ...  (9 more lines)
+   5. Efb41e4e7 ENTERS/page*
+      CurrencyWidgetConfigure.lambda$onCreate$0@ADD -> S_HOME_WIDGET
+      setResult(RESULT_OK); finish(): home screen with the widget
+      evidence: SRC CurrencyWidgetConfigure.java:114-117
+        114              Intent result = new Intent();
+        115              result.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+        116              setResult(RESULT_OK, result);
+        117              finish();
+   6. E09a1f5d6 GUI/standard*
+      S_HOME_WIDGET -> CurrencyWidgetRefresh.<init>
+      Tap the refresh icon on the widget
+      evidence: SRC CurrencyWidgetProvider.java:218-223,249
+        218              Intent refresh = new Intent(context, CurrencyWidgetRefresh.class);
+        219              //noinspection InlinedApi
+        220              PendingIntent refreshIntent =
+        221                  PendingIntent.getActivity(context, 0, refresh,
+        222                                            PendingIntent.FLAG_UPDATE_CURRENT |
+        223                                            PendingIntent.FLAG_IMMUTABLE);
+        249              views.setOnClickPendingIntent(R.id.refresh, refreshIntent);
+   7. E0ae51971 LIFECYCLE/standard*
+      CurrencyWidgetRefresh.<init> -> CurrencyWidgetRefresh.onCreate
+      The system instantiates the invisible activity (Theme.NoDisplay), then onCreate
+      evidence: SRC CurrencyWidgetRefresh.java:45; AndroidManifest.xml:51-53
+         45      public void onCreate(Bundle savedInstanceState)
+   8. E9ac79ef7 INTENT/standard* [ENV: network connected and allowed by the Wi-Fi only / Roaming settings]
+      CurrencyWidgetRefresh.onCreate -> CurrencyWidgetUpdate.<init>
+      startService(CurrencyWidgetUpdate) from a foreground activity
+      guard: network connected and (pref_wifi off or on Wi-Fi) and (pref_roaming on or not roaming)
+      evidence: SRC CurrencyWidgetRefresh.java:56-78
+         56          boolean wifi = preferences.getBoolean(Main.PREF_WIFI, true);
+         57          boolean roaming = preferences.getBoolean(Main.PREF_ROAMING, false);
+         58  
+         59          // Check connectivity before update
+         60          ConnectivityManager manager = (ConnectivityManager)
+         61              getSystemService(CONNECTIVITY_SERVICE);
+         62          NetworkInfo info = manager.getActiveNetworkInfo();
+         63  
+         64          // Check connected
+         65          if (info == null || !info.isConnected())
+         66              return;
+         67  
+         68          // Check wifi
+         69          if (wifi && info.getType() != ConnectivityManager.TYPE_WIFI)
+      ...  (9 more lines)
+   9. E38f6e26f LIFECYCLE/standard*
+      CurrencyWidgetUpdate.<init> -> CurrencyWidgetUpdate.onCreate
+      The system instantiates the service, then onCreate
+      evidence: SRC CurrencyWidgetUpdate.java:71
+         71      public void onCreate()
+  10. E73c27e78 LIFECYCLE/standard*
+      CurrencyWidgetUpdate.onCreate -> CurrencyWidgetUpdate.onStartCommand
+      startService -> onStartCommand
+      evidence: SRC CurrencyWidgetUpdate.java:86
+         86      public int onStartCommand(Intent intent, int flags, int startId)
+  11. E85c5656c CALL/explicit*
+      CurrencyWidgetUpdate.onStartCommand -> CurrencyWidgetUpdate.startUpdate
+      startUpdate()
+      evidence: SRC CurrencyWidgetUpdate.java:91
+         91          startUpdate();
+  12. Ec8ea5917 CALL/explicit*
+      CurrencyWidgetUpdate.startUpdate -> Data.startParse@WIDGET
+      data.startParse(ECB_DAILY_URL)
+      evidence: SRC CurrencyWidgetUpdate.java:100-101
+        100          if (data != null)
+        101              data.startParse(Main.ECB_DAILY_URL);
+  13. E00d748b7 ASYNC/standard*
+      Data.startParse@WIDGET -> Data.lambda$startParse$2@WIDGET
+      executor.execute(...): worker thread
+      guard: parsing == false (no download already running)
+      evidence: SRC Data.java:97-101
+         97          if (parsing)
+         98              return;
+         99  
+        100          parsing = true;
+        101          executor.execute(() ->
+  14. E3ec638f8 ASYNC/standard*
+      Data.lambda$startParse$2@WIDGET -> Data.lambda$startParse$0@WIDGET
+      Download failed: handler.post(() -> listener.onDateResult(null))
+      guard: startParser returned false and listener != null
+      note: The result goes to whoever last called Data.getInstance (a static listener shared by Main and the widget service)
+      evidence: SRC Data.java:107-112
+        107              if (!parser.startParser(url))
+        108              {
+        109                  parsing = false;
+        110                  if (listener != null)
+        111                      handler.post(() -> listener.onDateResult(null));
+        112                  return;
+  15. E530d2b10 CALL/explicit*
+      Data.lambda$startParse$0@WIDGET -> CurrencyWidgetUpdate.onDateResult
+      listener.onDateResult(null): status shows failure
+      evidence: SRC Data.java:111
+        111                      handler.post(() -> listener.onDateResult(null));
+

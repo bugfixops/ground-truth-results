@@ -1,0 +1,116 @@
+## Singleton.<init>  REACHABLE  confirmed_by=SOURCE path=SOURCE_OK
+   env=- state=- classes=explicit;standard explicit_standard_route=yes
+   1. E012ed474 ENTRY/standard*
+      S_ENTRY -> Main.<init>
+      Tap the Currency icon in the launcher (MAIN/LAUNCHER intent filter)
+      note: The other external entry is the home-screen widget (CurrencyWidgetConfigure / CurrencyWidgetProvider are exported)
+      evidence: SRC AndroidManifest.xml:19-24
+         19          android:name="Main"
+         20          android:exported="true"
+         21          android:windowSoftInputMode="stateHidden">
+         22        <intent-filter>
+         23          <action android:name="android.intent.action.MAIN" />
+         24          <category android:name="android.intent.category.LAUNCHER" />
+   2. Ee88066da LIFECYCLE/standard*
+      Main.<init> -> Main.onCreate
+      The system instantiates Main, then calls onCreate
+      evidence: SRC Main.java:242
+        242      public void onCreate(Bundle savedInstanceState)
+   3. Ef071a802 LIFECYCLE/standard*
+      Main.onCreate -> Main.onResume
+      onStart -> onResume
+      evidence: SRC Main.java:369
+        369      protected void onResume()
+   4. E4dd486ed ENTERS/page*
+      Main.onResume -> S_MAIN_DISPLAY
+      Main becomes visible
+      guard: mode == DISPLAY_MODE (no selection kept)
+      evidence: SRC Main.java:351-352
+        351          if (selectList.isEmpty())
+        352              mode = Main.DISPLAY_MODE;
+   5. E1d534c40 GUI/standard*
+      S_MAIN_DISPLAY -> Main.onItemLongClick
+      Long-press a currency row (in SELECT_MODE the selection restarts from it)
+      evidence: SRC Main.java:1428-1442
+       1428      public boolean onItemLongClick(AdapterView<?> parent, View view,
+       1429                                     int position, long id)
+       1430      {
+       1431          // Switch to select mode, update menu
+       1432          mode = SELECT_MODE;
+       1433          invalidateOptionsMenu();
+       1434  
+       1435          // Clear the list and add the new selection
+       1436          selectList.clear();
+       1437          selectList.add(position);
+       1438  
+       1439          // Notify the adapter
+       1440          adapter.notifyDataSetChanged();
+       1441          return true;
+      ...  (1 more lines)
+   6. E7cc15d45 ENTERS/page*
+      Main.onItemLongClick -> S_MAIN_SELECT
+      mode = SELECT_MODE, the row is highlighted
+      evidence: SRC Main.java:1432-1437
+       1432          mode = SELECT_MODE;
+       1433          invalidateOptionsMenu();
+       1434  
+       1435          // Clear the list and add the new selection
+       1436          selectList.clear();
+       1437          selectList.add(position);
+   7. E32b68288 GUI/standard*
+      S_MAIN_SELECT -> Main.onOptionsItemSelected@SELECT
+      Tap a menu item in the action bar
+      guard: menu select.xml
+      evidence: SRC res/menu/select.xml; Main.java:770
+      (res/menu/select.xml: no line numbers)
+   8. Ed734335b CALL/explicit*
+      Main.onOptionsItemSelected@SELECT -> Main.onChartClick
+      switch case R.id.action_chart
+      evidence: SRC Main.java:805-806
+        805          case R.id.action_chart:
+        806              return onChartClick();
+   9. Efb5de184 INTENT/standard*
+      Main.onChartClick -> ChartActivity.<init>
+      startActivity(ChartActivity, CHART_LIST = [current, selected...])
+      evidence: SRC Main.java:955-973
+        955          Intent intent = new Intent(this, ChartActivity.class);
+        956          List<Integer> list = new ArrayList<>();
+        957  
+        958          // Add the current index
+        959          list.add(currentIndex);
+        960  
+        961          // Add the select list to the list
+        962          for (int index : selectList)
+        963          {
+        964              String name = nameList.get(index);
+        965              list.add(currencyIndex(name));
+        966          }
+        967  
+        968          // Put the list
+      ...  (5 more lines)
+  10. E38d20523 LIFECYCLE/standard*
+      ChartActivity.<init> -> ChartActivity.onCreate
+      The system instantiates ChartActivity, then onCreate
+      evidence: SRC ChartActivity.java:116
+        116      public void onCreate(Bundle savedInstanceState)
+  11. E5330d1fb CALL/explicit*
+      ChartActivity.onCreate -> Singleton.getInstance
+      instance = Singleton.getInstance(this) (the instance field is always null in a new activity)
+      evidence: SRC ChartActivity.java:163-171
+        163          if (instance == null)
+        164          {
+        165              // Get singleton instance
+        166              instance = Singleton.getInstance(this);
+        167  
+        168              // Get the intent for the parameters
+        169              Intent intent = getIntent();
+        170              list = intent.getIntegerArrayListExtra(Main.CHART_LIST);
+        171          }
+  12. E3c7b2a35 CALL/explicit*
+      Singleton.getInstance -> Singleton.<init>
+      instance == null -> new Singleton()
+      guard: first call in this process
+      evidence: SRC Singleton.java:57-58
+         57          if (instance == null)
+         58              instance = new Singleton();
+
