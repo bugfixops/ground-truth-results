@@ -1,0 +1,473 @@
+# Batch 101 printed evidence (fresh, C17 converter, 2026-11-01)
+# Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+# Cited files (basenames, for check_part check 8): FeedActivity.java, FeedFragment.java, FeedViewModel.java, FileManagerAdapter.java, FileManagerDialog.java, MsgFeedViewModel.java
+# Lines marked * are cited lines; unmarked lines are one line of context.
+
+=== ui/feeds/FeedActivity.java ===
+    171: 
+*   172:     private void subscribeMsgViewModel()
+*   173:     {
+*   174:         disposables.add(msgViewModel.observeFeedItemsOpened()
+    175:                 .observeOn(AndroidSchedulers.mainThread())
+    345: 
+*   346:     private void backupFeeds(Uri file)
+*   347:     {
+*   348:         disposables.add(Completable.fromCallable(() -> {
+*   349:             viewModel.saveFeedsSync(file);
+    350:             return true;
+    358: 
+*   359:     private void restoreFeedsBackup(Uri file)
+*   360:     {
+*   361:         disposables.add(Observable.fromCallable(() -> viewModel.restoreFeedsSync(file))
+    362:                 .subscribeOn(Schedulers.io())
+    405:     @Override
+*   406:     public void onFragmentFinished(@NonNull Fragment f, Intent intent,
+*   407:                                    @NonNull ResultCode code)
+*   408:     {
+*   409:         if (f instanceof FeedItemsFragment && Utils.isTwoPane(this))
+*   410:             msgViewModel.feedItemsClosed();
+    411:     }
+
+=== ui/feeds/FeedFragment.java ===
+    111:         ViewModelProvider provider = new ViewModelProvider(activity);
+*   112:         viewModel = provider.get(FeedViewModel.class);
+*   113:         msgViewModel = provider.get(MsgFeedViewModel.class);
+    114:         dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+    121:          */
+*   122:         DefaultItemAnimator animator = new DefaultItemAnimator() {
+*   123:             @Override
+*   124:             public boolean canReuseUpdatedViewHolder(@NonNull RecyclerView.ViewHolder viewHolder) {
+*   125:                 return true;
+*   126:             }
+*   127:         };
+*   128:         layoutManager = new LinearLayoutManager(activity);
+*   129:         binding.feedList.setLayoutManager(layoutManager);
+*   130:         binding.feedList.setItemAnimator(animator);
+    131:         binding.feedList.setEmptyView(binding.emptyViewFeeds);
+    145: 
+*   146:         selectionTracker.addObserver(new SelectionTracker.SelectionObserver<FeedChannelItem>() {
+*   147:             @Override
+*   148:             public void onSelectionChanged()
+*   149:             {
+*   150:                 super.onSelectionChanged();
+*   151: 
+*   152:                 if (selectionTracker.hasSelection() && actionMode == null) {
+*   153:                     actionMode = activity.startSupportActionMode(actionModeCallback);
+*   154:                     setActionModeTitle(selectionTracker.getSelection().size());
+*   155: 
+*   156:                 } else if (!selectionTracker.hasSelection()) {
+*   157:                     if (actionMode != null)
+*   158:                         actionMode.finish();
+*   159:                     actionMode = null;
+*   160: 
+*   161:                 } else {
+*   162:                     setActionModeTitle(selectionTracker.getSelection().size());
+*   163: 
+*   164:                     /* Show/hide menu items after change selected feeds */
+*   165:                     int size = selectionTracker.getSelection().size();
+*   166:                     if (size == 1 || size == 2)
+*   167:                         actionMode.invalidate();
+*   168:                 }
+*   169:             }
+    170: 
+    171:             @Override
+*   172:             public void onSelectionRestored()
+*   173:             {
+*   174:                 super.onSelectionRestored();
+*   175: 
+*   176:                 actionMode = activity.startSupportActionMode(actionModeCallback);
+*   177:                 setActionModeTitle(selectionTracker.getSelection().size());
+*   178:             }
+    179:         });
+    184: 
+*   185:         binding.swipeContainer.setOnRefreshListener(() -> viewModel.refreshAllFeeds());
+    186: 
+    203:     @Override
+*   204:     public void onStart()
+*   205:     {
+*   206:         super.onStart();
+*   207: 
+*   208:         subscribeAdapter();
+*   209:         subscribeAlertDialog();
+*   210:         subscribeMsgViewModel();
+*   211:         subscribeRefreshStatus();
+    212:     }
+    255: 
+*   256:     private Disposable observeFeeds()
+*   257:     {
+*   258:         return viewModel.observerAllFeeds()
+    259:                 .subscribeOn(Schedulers.io())
+    270: 
+*   271:     private void getAllFeedsSingle()
+*   272:     {
+*   273:         disposables.add(viewModel.getAllFeedsSingle()
+    274:                 .subscribeOn(Schedulers.io())
+    285: 
+*   286:     private void subscribeMsgViewModel()
+*   287:     {
+*   288:         disposables.add(msgViewModel.observeFeedItemsClosed()
+*   289:                 .observeOn(AndroidSchedulers.mainThread())
+*   290:                 .subscribe((__) -> {
+*   291:                     if (Utils.isTwoPane(activity))
+*   292:                         adapter.markAsOpen(null);
+*   293:                 }));
+*   294: 
+*   295:         disposables.add(msgViewModel.observeFeedsDeleted()
+*   296:                 .filter((ids) -> {
+*   297:                     FeedChannelItem item = adapter.getOpenedItem();
+*   298:                     if (item == null)
+*   299:                         return false;
+*   300: 
+*   301:                     return ids.contains(item.id);
+*   302:                 })
+*   303:                 .observeOn(AndroidSchedulers.mainThread())
+*   304:                 .subscribe((__) -> {
+*   305:                     if (Utils.isTwoPane(activity))
+*   306:                         adapter.markAsOpen(null);
+*   307:                 }));
+*   308:     }
+*   309: 
+*   310:     private void subscribeAlertDialog()
+*   311:     {
+*   312:         Disposable d = dialogViewModel.observeEvents()
+*   313:                 .subscribe((event) -> {
+*   314:                     if (event.dialogTag == null)
+*   315:                         return;
+*   316: 
+*   317:                     switch (event.type) {
+*   318:                         case POSITIVE_BUTTON_CLICKED:
+*   319:                             if (event.dialogTag.equals(TAG_DELETE_FEEDS_DIALOG) && deleteFeedsDialog != null) {
+*   320:                                 deleteFeeds();
+*   321:                                 deleteFeedsDialog.dismiss();
+*   322:                             }
+*   323:                             break;
+*   324:                         case NEGATIVE_BUTTON_CLICKED:
+*   325:                             if (event.dialogTag.equals(TAG_DELETE_FEEDS_DIALOG) && deleteFeedsDialog != null)
+*   326:                                 deleteFeedsDialog.dismiss();
+*   327:                             break;
+*   328:                     }
+*   329:                 });
+*   330:         disposables.add(d);
+*   331:     }
+*   332: 
+*   333:     private void subscribeRefreshStatus()
+*   334:     {
+*   335:         disposables.add(viewModel.observeRefreshStatus()
+*   336:                 .observeOn(AndroidSchedulers.mainThread())
+*   337:                 .subscribe(binding.swipeContainer::setRefreshing));
+    338:     }
+    340:     @Override
+*   341:     public void onItemClicked(@NonNull FeedChannelItem item)
+*   342:     {
+*   343:         if (Utils.isTwoPane(activity))
+*   344:             adapter.markAsOpen(item);
+*   345:         msgViewModel.feedItemsOpened(item.id);
+    346:     }
+    352: 
+*   353:     private final ActionMode.Callback actionModeCallback = new ActionMode.Callback()
+    354:     {
+    355:         @Override
+*   356:         public boolean onPrepareActionMode(ActionMode mode, Menu menu)
+*   357:         {
+*   358:             MenuItem edit = menu.findItem(R.id.edit_feed_channel_menu);
+*   359:             MenuItem refresh = menu.findItem(R.id.refresh_feed_channel_menu);
+*   360:             MenuItem copy = menu.findItem(R.id.copy_feed_channel_url_menu);
+*   361: 
+*   362:             boolean show = selectionTracker.getSelection().size() <= 1;
+*   363:             edit.setVisible(show);
+*   364:             refresh.setVisible(show);
+*   365:             copy.setVisible(show);
+*   366: 
+*   367:             return true;
+*   368:         }
+*   369: 
+    370:         @Override
+*   371:         public boolean onCreateActionMode(ActionMode mode, Menu menu)
+*   372:         {
+*   373:             mode.getMenuInflater().inflate(R.menu.feed_action_mode, menu);
+*   374:             Utils.showActionModeStatusBar(activity, true);
+*   375: 
+*   376:             return true;
+*   377:         }
+*   378: 
+    379:         @Override
+*   380:         public boolean onActionItemClicked(ActionMode mode, MenuItem item)
+*   381:         {
+*   382:             int itemId = item.getItemId();
+*   383:             if (itemId == R.id.delete_feed_channel_menu) {
+*   384:                 deleteFeedsDialog();
+*   385:             } else if (itemId == R.id.edit_feed_channel_menu) {
+*   386:                 editChannel();
+*   387:                 mode.finish();
+*   388:             } else if (itemId == R.id.copy_feed_channel_url_menu) {
+*   389:                 copyChannelUrl();
+*   390:                 mode.finish();
+*   391:             } else if (itemId == R.id.refresh_feed_channel_menu) {
+*   392:                 refreshSelectedFeeds();
+*   393:                 mode.finish();
+*   394:             } else if (itemId == R.id.select_all_channels_menu) {
+*   395:                 selectAllFeeds();
+*   396:             } else if (itemId == R.id.mark_as_read_menu) {
+*   397:                 markAsReadFeeds();
+*   398:                 mode.finish();
+*   399:             }
+*   400: 
+*   401:             return true;
+*   402:         }
+*   403: 
+*   404:         @Override
+*   405:         public void onDestroyActionMode(ActionMode mode)
+*   406:         {
+*   407:             selectionTracker.clearSelection();
+*   408:             Utils.showActionModeStatusBar(activity, false);
+*   409:         }
+    410:     };
+    443: 
+*   444:     private void deleteFeeds()
+*   445:     {
+*   446:         MutableSelection<FeedChannelItem> selections = new MutableSelection<>();
+*   447:         selectionTracker.copySelection(selections);
+*   448: 
+*   449:         disposables.add(Observable.fromIterable(selections)
+*   450:                 .map((selection) -> (FeedChannel)selection)
+*   451:                 .toList()
+*   452:                 .doOnSuccess(viewModel::deleteFeeds)
+*   453:                 .flatMap((feeds) ->
+*   454:                         Observable.fromIterable(feeds)
+*   455:                                 .map((channel) -> channel.id)
+*   456:                                 .toList()
+*   457:                 )
+*   458:                 .subscribe(msgViewModel::feedsDeleted));
+    459: 
+    463: 
+*   464:     private void copyChannelUrl()
+*   465:     {
+*   466:         MutableSelection<FeedChannelItem> selections = new MutableSelection<>();
+*   467:         selectionTracker.copySelection(selections);
+*   468: 
+*   469:         Iterator<FeedChannelItem> it = selections.iterator();
+*   470:         if (!it.hasNext())
+*   471:             return;
+*   472: 
+*   473:         if (viewModel.copyFeedUrlToClipboard(it.next())) {
+    474:           Toast.makeText(activity,
+    480: 
+*   481:     private void refreshSelectedFeeds()
+*   482:     {
+*   483:         MutableSelection<FeedChannelItem> selections = new MutableSelection<>();
+*   484:         selectionTracker.copySelection(selections);
+*   485: 
+*   486:         long [] ids = new long[selections.size()];
+*   487:         int i = 0;
+*   488:         for (FeedChannelItem selection : selections)
+*   489:             ids[i++] = selection.id;
+*   490: 
+*   491:         viewModel.refreshFeeds(ids);
+    492:     }
+    508: 
+*   509:     private void markAsReadFeeds()
+*   510:     {
+*   511:         MutableSelection<FeedChannelItem> selections = new MutableSelection<>();
+*   512:         selectionTracker.copySelection(selections);
+*   513: 
+*   514:         disposables.add(Observable.fromIterable(selections)
+*   515:                 .map((selection -> selection.id))
+*   516:                 .toList()
+*   517:                 .subscribe(viewModel::markAsReadFeeds));
+    518:     }
+
+=== ui/feeds/FeedViewModel.java ===
+     59: 
+*    60:     public FeedViewModel(@NonNull Application application)
+*    61:     {
+*    62:         super(application);
+*    63: 
+*    64:         repo = RepositoryHelper.getFeedRepository(application);
+*    65:     }
+     66: 
+     67:     @Override
+*    68:     protected void onCleared()
+*    69:     {
+*    70:         super.onCleared();
+*    71: 
+*    72:         disposables.clear();
+*    73:     }
+     74: 
+*    75:     public Single<List<FeedChannel>> getAllFeedsSingle()
+*    76:     {
+*    77:         return repo.getAllFeedsSingle();
+*    78:     }
+     79: 
+*    80:     public Flowable<List<FeedChannel>> observerAllFeeds()
+*    81:     {
+*    82:         return repo.observeAllFeeds();
+*    83:     }
+     84: 
+*    85:     public void deleteFeeds(@NonNull List<FeedChannel> feeds)
+*    86:     {
+*    87:         disposables.add(Completable.fromRunnable(() -> repo.deleteFeeds(feeds))
+*    88:                 .subscribeOn(Schedulers.io())
+*    89:                 .subscribe());
+*    90:     }
+     91: 
+*    92:     public boolean copyFeedUrlToClipboard(@NonNull FeedChannel channel)
+*    93:     {
+*    94:         ClipboardManager clipboard = (ClipboardManager)getApplication().getSystemService(Activity.CLIPBOARD_SERVICE);
+*    95:         if (clipboard == null)
+*    96:             return false;
+*    97: 
+*    98:         ClipData clip;
+*    99:         clip = ClipData.newPlainText("URL", channel.url);
+*   100:         clipboard.setPrimaryClip(clip);
+*   101: 
+*   102:         return true;
+*   103:     }
+    104: 
+*   105:     public void refreshFeeds(@NonNull long[] feedIdList)
+*   106:     {
+*   107:         Data data = new Data.Builder()
+*   108:                 .putString(FeedFetcherWorker.TAG_ACTION,FeedFetcherWorker.ACTION_FETCH_CHANNEL_LIST)
+*   109:                 .putLongArray(FeedFetcherWorker.TAG_CHANNEL_ID_LIST, feedIdList)
+*   110:                 .build();
+*   111:         OneTimeWorkRequest work = new OneTimeWorkRequest.Builder(FeedFetcherWorker.class)
+*   112:                 .setInputData(data)
+*   113:                 .build();
+*   114: 
+*   115:         runFetchWorker(work);
+*   116:     }
+    117: 
+*   118:     public void refreshAllFeeds()
+*   119:     {
+*   120:         Data data = new Data.Builder()
+*   121:                 .putString(FeedFetcherWorker.TAG_ACTION,FeedFetcherWorker.ACTION_FETCH_ALL_CHANNELS)
+*   122:                 .build();
+*   123:         OneTimeWorkRequest work = new OneTimeWorkRequest.Builder(FeedFetcherWorker.class)
+*   124:                 .setInputData(data)
+*   125:                 .build();
+*   126: 
+*   127:         runFetchWorker(work);
+*   128:     }
+    129: 
+*   130:     public Observable<Boolean> observeRefreshStatus()
+*   131:     {
+*   132:         return refreshStatus;
+*   133:     }
+    134: 
+*   135:     public void saveFeedsSync(@NonNull Uri file) throws IOException, UnknownUriException
+*   136:     {
+*   137:         repo.serializeAllFeeds(file);
+*   138:     }
+*   139: 
+*   140:     public long[] restoreFeedsSync(@NonNull Uri file) throws IOException, UnknownUriException
+*   141:     {
+*   142:         List<FeedChannel> feeds = repo.deserializeFeeds(file);
+*   143: 
+*   144:         return repo.addFeeds(feeds);
+*   145:     }
+    146: 
+*   147:     public void markAsReadFeeds(@NonNull List<Long> feedIdList)
+*   148:     {
+*   149:         disposables.add(Completable.fromRunnable(() -> repo.markAsReadByFeedId(feedIdList)).subscribeOn(Schedulers.io())
+*   150:           .subscribe());
+*   151:     }
+    152: 
+*   153:     private void runFetchWorker(WorkRequest work)
+*   154:     {
+*   155:         refreshStatus.onNext(true);
+*   156: 
+*   157:         WorkManager.getInstance(getApplication()).enqueue(work);
+*   158: 
+*   159:         WorkManager.getInstance(getApplication()).getWorkInfoByIdLiveData(work.getId())
+*   160:                 .observeForever(this::observeWorkResult);
+*   161:     }
+    162: 
+*   163:     private void observeWorkResult(WorkInfo info)
+*   164:     {
+*   165:         boolean finished = info.getState().isFinished();
+*   166:         if (finished)
+*   167:             WorkManager.getInstance(getApplication()).getWorkInfoByIdLiveData(info.getId())
+*   168:                     .removeObserver(this::observeWorkResult);
+*   169: 
+*   170:         refreshStatus.onNext(!finished);
+*   171:     }
+    172: }
+
+=== ui/feeds/MsgFeedViewModel.java ===
+     28: 
+*    29: public class MsgFeedViewModel extends ViewModel
+*    30: {
+*    31:     private PublishSubject<Long> feedItemsOpenedEvents = PublishSubject.create();
+*    32:     private PublishSubject<Boolean> feedItemsClosedEvents = PublishSubject.create();
+*    33:     private PublishSubject<List<Long>> feedsDeletedEvents = PublishSubject.create();
+     34: 
+*    35:     public void feedItemsOpened(long feedId)
+*    36:     {
+*    37:         feedItemsOpenedEvents.onNext(feedId);
+*    38:     }
+     39: 
+*    40:     public Observable<Long> observeFeedItemsOpened()
+*    41:     {
+*    42:         return feedItemsOpenedEvents;
+     43:     }
+     44: 
+*    45:     public void feedItemsClosed()
+*    46:     {
+*    47:         feedItemsClosedEvents.onNext(true);
+     48:     }
+     49: 
+*    50:     public Observable<Boolean> observeFeedItemsClosed()
+*    51:     {
+*    52:         return feedItemsClosedEvents;
+*    53:     }
+     54: 
+*    55:     public void feedsDeleted(List<Long> ids)
+*    56:     {
+*    57:         feedsDeletedEvents.onNext(ids);
+*    58:     }
+     59: 
+*    60:     public Observable<List<Long>> observeFeedsDeleted()
+*    61:     {
+*    62:         return feedsDeletedEvents;
+*    63:     }
+     64: }
+
+=== ui/filemanager/FileManagerAdapter.java ===
+     56: 
+*    57:     private static final Comparator<FileManagerNode> directoryFirstCmp = (n1, n2) -> {
+*    58:         int byName = n1.compareTo(n2);
+*    59:         int directoryFirst = Boolean.compare(n2.isDirectory(), n1.isDirectory());
+*    60: 
+*    61:         return (directoryFirst == 0 ? byName : directoryFirst);
+*    62:     };
+     63: 
+*    64:     public FileManagerAdapter(List<String> highlightFileTypes, ViewHolder.ClickListener clickListener)
+*    65:     {
+*    66:         super(diffCallback);
+*    67: 
+*    68:         this.clickListener = clickListener;
+*    69:         this.highlightFileTypes = highlightFileTypes;
+*    70:     }
+     71: 
+     81:     @Override
+*    82:     public void onBindViewHolder(@NonNull ViewHolder holder, int position)
+*    83:     {
+*    84:         holder.bind(getItem(position), highlightFileTypes, clickListener);
+*    85:     }
+     86: 
+     87:     @Override
+*    88:     public void submitList(@Nullable List<FileManagerNode> list)
+*    89:     {
+*    90:         if (list != null)
+*    91:             list.sort(directoryFirstCmp);
+*    92: 
+*    93:         super.submitList(list);
+*    94:     }
+     95: 
+*    96:     public static final DiffUtil.ItemCallback<FileManagerNode> diffCallback = new DiffUtil.ItemCallback<FileManagerNode>()
+     97:     {
+
+=== ui/filemanager/FileManagerDialog.java ===
+    195: 
+*   196:         adapter = new FileManagerAdapter(viewModel.config.highlightFileTypes, this);
+*   197:         binding.fileList.setAdapter(adapter);
+    198: 
