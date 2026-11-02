@@ -67,6 +67,21 @@
   pages). verification.csv path rows use the built (BFS) route's edge
   ids with the audited verdict, and their notes point at the corrected
   derivation for WRONG routes.
+- Work-order rate (combined-merge redraw, step 2 item 3): rate =
+  (fixed + wrong) / (correct + fixed + wrong), where fixed means
+  WRONG in an earlier draw AND CORRECT in the final draw (the
+  Aegis definition), correct means the final-draw CORRECT count
+  (27, which includes the fixed routes), and wrong means the
+  final-draw WRONG count (3). Fixed routes (5, verified against
+  both the earlier-draw table and the final table, in final-table
+  row order): HttpFetcher.downloadFileToSdCardMethod (row 12, 37
+  steps), Models$TransformFieldDelete.<init> (row 16, 21 steps),
+  Sched.getToday (row 21, 18 steps), DB.insert (row 25, 11 steps),
+  SimpleMessageDialog.<init> (row 29, 10 steps). Arithmetic:
+  (5 + 3) / (27 + 5 + 3) = 8 / 35 = 0.2286 (approx). This
+  supersedes the 3 / 30 = 0.1000 figure, which used the WRONG /
+  (CORRECT + WRONG) definition; scratch/route_table.md has been
+  updated to this definition (no verdict changed).
 
 ## What waits for a device (API 27)
 

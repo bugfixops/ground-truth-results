@@ -10,8 +10,16 @@ Judgments: independent per-method reads of the new prints
 `turn/merge/JUDGE-B.md`, `turn/merge/JUDGE-C.md`), plus the gate judge
 (`turn/merge/JUDGE-GATES.md`) for four dropped-out targets.
 
-Totals: CORRECT 27 / WRONG 3 / UNCLEAR 0. Rate = WRONG / (CORRECT + WRONG)
-= 3 / 30 = 0.1000.
+Totals: CORRECT 27 / WRONG 3 / UNCLEAR 0. Rate = (fixed + wrong) /
+(correct + fixed + wrong) = (5 + 3) / (27 + 5 + 3) = 8 / 35 =
+0.2286 (approx), where fixed means WRONG in an earlier draw AND
+CORRECT in the final draw (the Aegis definition), correct is the
+final-draw CORRECT count (27, which includes the fixed routes),
+and the fixed routes are HttpFetcher.downloadFileToSdCardMethod
+(row 12), Models$TransformFieldDelete.<init> (row 16), Sched.getToday
+(row 21), DB.insert (row 25), SimpleMessageDialog.<init> (row 29).
+(The earlier figure 3 / 30 = 0.1000 used the WRONG / (CORRECT +
+WRONG) definition; no verdict changed.)
 
 Composition vs the old final draw (seed 20261025, old graph): 23 methods
 carried over, 7 dropped, 7 new. Dropped: Preferences.replaceString,
@@ -37,7 +45,9 @@ the same method was UNCLEAR in the first draw (row 06) because its final
 `<init> -> onCreateDialog` step has no printed framework evidence and stays
 INFERRED (support-v4 DialogFragment source absent from the tree). If the
 table auditor rules UNCLEAR, row 08 flips to UNCLEAR with no other change
-(totals become CORRECT 26, WRONG 3, UNCLEAR 1, rate 3/29 = 0.1034).
+(totals become CORRECT 26, WRONG 3, UNCLEAR 1, rate (5 + 3) /
+(26 + 5 + 3) = 8 / 34 = 0.2353 (approx) under the work-order
+definition).
 
 ## Final table (new draw, redraw order)
 
