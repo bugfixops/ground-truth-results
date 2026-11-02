@@ -1,0 +1,150 @@
+## MmxContentProvider.logUpdate  REACHABLE  confirmed_by=SOURCE path=UNCHECKED
+   env=- state=- classes=explicit;standard explicit_standard_route=yes
+   1. E71c76102 ENTRY/standard*
+      S_ENTRY -> MainActivity.<init>
+      The MAIN / LAUNCHER activity is started from the launcher
+      evidence: SRC AndroidManifest.xml:136-143 (MAIN + LAUNCHER intent filter of com.money.manager.ex.home.MainActivity)
+        136                  android:name=".home.MainActivity"
+        137                  android:label="@string/application_name" android:exported="true">
+        138              <intent-filter>
+        139                  <action android:name="android.intent.action.MAIN" />
+        140  
+        141                  <category android:name="android.intent.category.LAUNCHER" />
+        142                  <!-- Samsung MultiWindow Function -->
+        143                  <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
+   2. E2e074fc1 LIFECYCLE/standard*
+      MainActivity.<init> -> MainActivity.onCreate
+      the framework calls onCreate after it creates the activity instance
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2722-2731 (callActivityOnCreate); FW-SRC core/java/android/app/Instrumentation.java:1212-1216; FW-SRC core/java/android/app/Activity.java:6993-7000 (performCreate calls onCreate); same route as graph_def.py AccountEditActivity.<init> -> onCreate
+       2722                  int theme = r.activityInfo.getThemeResource();
+       2723                  if (theme != 0) {
+       2724                      activity.setTheme(theme);
+       2725                  }
+       2726  
+       2727                  activity.mCalled = false;
+       2728                  if (r.isPersistable()) {
+       2729                      mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+       2730                  } else {
+       2731                      mInstrumentation.callActivityOnCreate(activity, r.state);
+       1212      public void callActivityOnCreate(Activity activity, Bundle icicle) {
+       1213          prePerformCreate(activity);
+       1214          activity.performCreate(icicle);
+       1215          postPerformCreate(activity);
+       1216      }
+       6993      final void performCreate(Bundle icicle, PersistableBundle persistentState) {
+       6994          mCanEnterPictureInPicture = true;
+       6995          restoreHasCurrentPermissionRequest(icicle);
+       6996          if (persistentState != null) {
+       6997              onCreate(icicle, persistentState);
+       6998          } else {
+       6999              onCreate(icicle);
+       7000          }
+   3. Ec1f84c25 CALL/explicit*
+      MainActivity.onCreate -> MainActivity.populateScheduledTransactions
+      Direct call
+      evidence: SRC MainActivity.java:244 (bytecode)
+        244          populateScheduledTransactions();
+   4. Ef6141ef2 CALL/explicit*
+      MainActivity.populateScheduledTransactions -> RecurringTransactionService.moveNextOccurrence
+      populateScheduledTransactions moves each due scheduled transaction to its next occurrence
+      guard: isScheduledTransactionStarted == false on entry AND behaviour setting getNotificationRecurringTransaction() == true AND the QueryBillDeposits cursor is non-null AND cursor.moveToNext() == true (at least one bill with DAYSLEFT <= 0) (MainActivity.java:1234-1248, :1259, :1261)
+      evidence: SRC home/MainActivity.java:1234-1248, :1254-1261 (same guarded loop as route 26 step 4), :1281-1282 (service construction + moveNextOccurrence call)
+       1234          if (!isScheduledTransactionStarted) {
+       1235              AppSettings settings = new AppSettings(this);
+       1236              showNotification = settings.getBehaviourSettings().getNotificationRecurringTransaction();
+       1237              if (showNotification) {
+       1238                  RecurringTransactionNotifications notifications = new RecurringTransactionNotifications(this);
+       1239                  notifications.notifyRepeatingTransaction();
+       1240                  isScheduledTransactionStarted = true;
+       1241              }
+       1242          }
+       1243  
+       1244          // notification send broadcast
+       1245          Intent serviceRepeatingTransaction = new Intent(getApplicationContext(), RecurringTransactionBootReceiver.class);
+       1246          getApplicationContext().sendBroadcast(serviceRepeatingTransaction);
+       1247  
+      ...  (1 more lines)
+   5. E123c236d CALL/explicit*
+      RecurringTransactionService.moveNextOccurrence -> RecurringTransactionRepository.update
+      moveNextOccurrence saves the recurring transaction with its next occurrence date
+      guard: getRecurringTransaction() != null AND tx.getRecurrenceInt() != null AND Recurrence.valueOf(recurrenceType) != null AND recurrence != ONCE (RecurringTransactionService.java:178-203)
+      evidence: SRC servicelayer/RecurringTransactionService.java:176-240 (moveNextOccurrence :176, null throws :178-186, valueOf null throw :192-196, ONCE delete + return :200-203, update call :240)
+        176      public void moveNextOccurrence() {
+        177          RecurringTransaction tx = getRecurringTransaction();
+        178          if (tx == null) {
+        179              throw new IllegalArgumentException("Recurring Transaction is not set!");
+        180          }
+        181  
+        182          Integer recurrenceType = tx.getRecurrenceInt();
+        183          if (recurrenceType == null) {
+        184              String message = getContext().getString(R.string.recurrence_type_not_set);
+        185              throw new IllegalArgumentException(message);
+        186          }
+        187  
+        188          /**
+        189           * The action will depend on the transaction preferences.
+      ...  (51 more lines)
+   6. Efd0fc8b4 CALL/explicit*
+      RecurringTransactionRepository.update -> RepositoryBase.update(EntityBase,String)
+      Direct call
+      evidence: SRC RecurringTransactionRepository.java:107 (bytecode)
+        107          return update(value, where);
+   7. Eb647565c CALL/explicit*
+      RepositoryBase.update(EntityBase,String) -> RepositoryBase.update(EntityBase,String,String[])
+      Direct call
+      evidence: SRC RepositoryBase.java:180 (bytecode)
+        180          return update(entity, where, new String[0]);
+   8. Ef2826f2c FRAMEWORK/standard*
+      RepositoryBase.update(EntityBase,String,String[]) -> MmxContentProvider.update
+      a record is updated: RepositoryBase.update calls ContentResolver.update on the MMEX URI and the provider receives the call
+      evidence: SRC datalayer/RepositoryBase.java:183-190; FW-SRC core/java/android/content/ContentResolver.java:1662-1672; FW-SRC core/java/android/content/ContentProvider.java:348-357
+        183      protected boolean update(EntityBase entity, String where, String[] selectionArgs) {
+        184          boolean result = false;
+        185  
+        186          ContentValues values = entity.contentValues;
+        187          // remove "_id" from the values.
+        188          values.remove("_id");
+        189  
+        190          int updateResult = getContext().getContentResolver().update(this.getUri(),
+       1662      public final int update(@RequiresPermission.Write @NonNull Uri uri,
+       1663              @Nullable ContentValues values, @Nullable String where,
+       1664              @Nullable String[] selectionArgs) {
+       1665          Preconditions.checkNotNull(uri, "uri");
+       1666          IContentProvider provider = acquireProvider(uri);
+       1667          if (provider == null) {
+       1668              throw new IllegalArgumentException("Unknown URI " + uri);
+       1669          }
+       1670          try {
+       1671              long startTime = SystemClock.uptimeMillis();
+       1672              int rowsUpdated = provider.update(mPackageName, uri, values, where, selectionArgs);
+        348          public int update(String callingPkg, Uri uri, ContentValues values, String selection,
+        349                  String[] selectionArgs) {
+        350              validateIncomingUri(uri);
+        351              uri = maybeGetUriWithoutUserId(uri);
+        352              if (enforceWritePermission(callingPkg, uri, null) != AppOpsManager.MODE_ALLOWED) {
+        353                  return 0;
+        354              }
+        355              final String original = setCallingPackage(callingPkg);
+        356              try {
+        357                  return ContentProvider.this.update(uri, values, selection, selectionArgs);
+   9. E84eb47fd CALL/explicit*
+      MmxContentProvider.update -> MmxContentProvider.logUpdate
+      update logs the change for a table dataset
+      guard: getObjectFromUri(uri) instanceof Dataset AND dataset.getType() == DatasetType.TABLE (MmxContentProvider.java:202, :204)
+      evidence: SRC MmxContentProvider.java:191-205 (update :191, getObjectFromUri :194, instanceof check :202, TABLE check :204, logUpdate call :205)
+        191      public int update(@NonNull Uri uri, ContentValues values, String whereClause, String[] whereArgs) {
+        192          Timber.d("Update Uri: %s", uri);
+        193  
+        194          Object ret = getObjectFromUri(uri);
+        195  
+        196          initializeDependencies();
+        197  
+        198          SupportSQLiteDatabase database = openHelper.get().getWritableDatabase();
+        199  
+        200          int rowsUpdate = 0;
+        201  
+        202          if (ret instanceof Dataset) {
+        203              Dataset dataset = ((Dataset) ret);
+        204              if (Objects.requireNonNull(dataset.getType()) == DatasetType.TABLE) {
+      ...  (1 more lines)
+

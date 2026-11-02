@@ -1,0 +1,168 @@
+## SyncPreferenceFragment.onEvent  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=network state=- classes=explicit;non_standard;standard explicit_standard_route=no
+   1. E71c76102 ENTRY/standard*
+      S_ENTRY -> MainActivity.<init>
+      The MAIN / LAUNCHER activity is started from the launcher
+      evidence: SRC AndroidManifest.xml:136-143 (MAIN + LAUNCHER intent filter of com.money.manager.ex.home.MainActivity)
+        136                  android:name=".home.MainActivity"
+        137                  android:label="@string/application_name" android:exported="true">
+        138              <intent-filter>
+        139                  <action android:name="android.intent.action.MAIN" />
+        140  
+        141                  <category android:name="android.intent.category.LAUNCHER" />
+        142                  <!-- Samsung MultiWindow Function -->
+        143                  <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
+   2. E2e074fc1 LIFECYCLE/standard*
+      MainActivity.<init> -> MainActivity.onCreate
+      the framework calls onCreate after it creates the activity instance
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2722-2731 (callActivityOnCreate); FW-SRC core/java/android/app/Instrumentation.java:1212-1216; FW-SRC core/java/android/app/Activity.java:6993-7000 (performCreate calls onCreate); same route as graph_def.py AccountEditActivity.<init> -> onCreate
+       2722                  int theme = r.activityInfo.getThemeResource();
+       2723                  if (theme != 0) {
+       2724                      activity.setTheme(theme);
+       2725                  }
+       2726  
+       2727                  activity.mCalled = false;
+       2728                  if (r.isPersistable()) {
+       2729                      mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+       2730                  } else {
+       2731                      mInstrumentation.callActivityOnCreate(activity, r.state);
+       1212      public void callActivityOnCreate(Activity activity, Bundle icicle) {
+       1213          prePerformCreate(activity);
+       1214          activity.performCreate(icicle);
+       1215          postPerformCreate(activity);
+       1216      }
+       6993      final void performCreate(Bundle icicle, PersistableBundle persistentState) {
+       6994          mCanEnterPictureInPicture = true;
+       6995          restoreHasCurrentPermissionRequest(icicle);
+       6996          if (persistentState != null) {
+       6997              onCreate(icicle, persistentState);
+       6998          } else {
+       6999              onCreate(icicle);
+       7000          }
+   3. Efc29cb5c CALL/explicit*
+      MainActivity.onCreate -> MainActivity.initializeSync
+      Direct call
+      evidence: SRC MainActivity.java:242 (bytecode)
+        242          initializeSync();
+   4. E3656f98a CALL/explicit*
+      MainActivity.initializeSync -> SyncManager.triggerSynchronization
+      initializeSync triggers synchronization on app start when sync is enabled
+      guard: sync active AND sync-on-start preference true AND dbUpdateCheckDone false (MainActivity.java:1212, :1222-1224)
+      evidence: SRC home/MainActivity.java:1210-1224 (early return if !sync.isActive() at 1212; trigger only if syncOnStart && !dbUpdateCheckDone at 1222-1224; call at 1224)
+       1210      private void initializeSync() {
+       1211          SyncManager sync = new SyncManager(this);
+       1212          if (!sync.isActive()) return;
+       1213  
+       1214          SyncPreferences preferences = new SyncPreferences(this);
+       1215  
+       1216          // Start the sync timer in case it was stopped for whatever reason.
+       1217          if (preferences.getSyncInterval() != 0) {
+       1218              sync.startSyncServiceHeartbeat();
+       1219          }
+       1220  
+       1221          // Check cloud storage for updates?
+       1222          boolean syncOnStart = preferences.get(R.string.pref_sync_on_app_start, true);
+       1223          if (syncOnStart && !this.dbUpdateCheckDone) {
+      ...  (1 more lines)
+   5. E64d793d3 CALL/explicit*
+      SyncManager.triggerSynchronization -> SyncManager.invokeSyncService
+      triggerSynchronization invokes the sync service with the SYNC action after validating paths
+      guard: sync active AND local path non-empty AND remote path non-empty (SyncManager.java:332-348)
+      evidence: SRC sync/SyncManager.java:332-348 (isActive return at 332; empty-localPath return; empty-remotePath return; invokeSyncService(INTENT_ACTION_SYNC) at 348)
+        332      public void triggerSynchronization() {
+        333          if (!isActive())  return;
+        334  
+        335          // Make sure that the current database is also the one linked in the cloud.
+        336          String localPath = new DatabaseManager(getContext()).getDatabasePath();
+        337          if (TextUtils.isEmpty(localPath)) {
+        338              new UIHelper(getContext()).showToast(R.string.filenames_differ);
+        339              return;
+        340          }
+        341  
+        342          String remotePath = getRemotePath();
+        343          if (TextUtils.isEmpty(remotePath)) {
+        344              Toast.makeText(getContext(), R.string.select_remote_file, Toast.LENGTH_SHORT).show();
+        345              return;
+      ...  (3 more lines)
+   6. E0ec4b5c3 CALL/explicit*
+      SyncManager.invokeSyncService -> SyncService.enqueueWork
+      invokeSyncService enqueues work for the sync service with the caller Messenger
+      guard: remote file preference non-empty (SyncManager.java:190-192)
+      evidence: SRC sync/SyncManager.java:188-192 (remoteFile validation; return if empty at 190-192); SRC sync/SyncManager.java:209-217 (Messenger at 209-212; enqueueWork at 217)
+        188      public void invokeSyncService(String action) {
+        189          // Validation.
+        190          String remoteFile = getRemotePath();
+        191          // We need a value in remote file name preferences.
+        192          if (TextUtils.isEmpty(remoteFile)) return;
+        209          Messenger messenger = null;
+        210          if (getContext() instanceof AppCompatActivity) {
+        211              // Messenger handles received messages from the sync service. Can run only in a looper thread.
+        212              messenger = new Messenger(new SyncServiceMessageHandler(getContext(), progressDialog));
+        213          }
+        214  
+        215          Intent syncServiceIntent = IntentFactory.getSyncServiceIntent(getContext(), action, current.localPath, current.remotePath, messenger);
+        216          // start service
+        217          SyncService.enqueueWork(getContext(), syncServiceIntent);
+   7. E29548d9f FRAMEWORK/standard*
+      SyncService.enqueueWork -> SyncService.onHandleWork
+      JobIntentService delivers each queued intent to onHandleWork on its worker thread (INFERRED from the androidx contract)
+      evidence: SRC sync/SyncService.java:90 (onHandleWork), 151-153; INFERRED androidx JobIntentService (not read)
+         90      protected void onHandleWork(Intent intent) {
+   8. Ed4e987ec CALL/explicit*
+      SyncService.onHandleWork -> SyncService.sendMessage@DOWNLOAD
+      onHandleWork takes the DOWNLOAD branch: pullDatabase, then sendMessage with DOWNLOAD_COMPLETE
+      guard: action == INTENT_ACTION_DOWNLOAD (SyncService.java:126-128)
+      evidence: SRC sync/SyncService.java:124-129 (switch at 124; DOWNLOAD case at 126; pullDatabase at 127; sendMessage DOWNLOAD_COMPLETE at 128)
+        124          // Execute action.
+        125          switch (action) {
+        126              case SyncConstants.INTENT_ACTION_DOWNLOAD:
+        127                  storage.pullDatabase(currentDb);
+        128                  sendMessage(outMessenger, SyncServiceMessage.DOWNLOAD_COMPLETE);
+        129                  break;
+   9. E0547db6f FRAMEWORK/standard*
+      SyncService.sendMessage@DOWNLOAD -> SyncServiceMessageHandler.handleMessage@DOWNLOAD
+      sendMessage hands a Message with what == DOWNLOAD_COMPLETE code to the caller Messenger; the framework delivers it to the handler, which parses DOWNLOAD_COMPLETE and posts DbFileDownloadedEvent
+      guard: outMessenger non-null (SyncManager.java:209-212 creates it when the caller context is an AppCompatActivity) AND msg.what == DOWNLOAD_COMPLETE code (SyncService.java:226; SyncServiceMessage.java:26)
+      evidence: SRC sync/SyncService.java:222-236 (msg.what at 226; outMessenger.send at 229); SRC sync/SyncManager.java:209-212 (Messenger created for AppCompatActivity context); SRC sync/SyncServiceMessageHandler.java:61-63 (handleMessage; parse at 62; null return at 63); FW-SRC core/java/android/os/Handler.java:97-106 (dispatchMessage calls handleMessage at 106); INFERRED android.os.Messenger (not in fw_src; not read)
+        222      private boolean sendMessage(Messenger outMessenger, SyncServiceMessage message) {
+        223          if (outMessenger == null) return true;
+        224  
+        225          Message msg = new Message();
+        226          msg.what = message.code;
+        227  
+        228          try {
+        229              outMessenger.send(msg);
+        230          } catch (Exception e) {
+        231              Timber.e(e, "sending message from the sync service");
+        232  
+        233              return false;
+        234          }
+        235          return true;
+      ...  (1 more lines)
+        209          Messenger messenger = null;
+        210          if (getContext() instanceof AppCompatActivity) {
+        211              // Messenger handles received messages from the sync service. Can run only in a looper thread.
+        212              messenger = new Messenger(new SyncServiceMessageHandler(getContext(), progressDialog));
+         61      public void handleMessage(Message msg) {
+         62          SyncServiceMessage message = SyncServiceMessage.parse(msg.what);
+         63          if (message == null) return;
+         97      public void dispatchMessage(Message msg) {
+         98          if (msg.callback != null) {
+         99              handleCallback(msg);
+        100          } else {
+        101              if (mCallback != null) {
+        102                  if (mCallback.handleMessage(msg)) {
+        103                      return;
+        104                  }
+        105              }
+        106              handleMessage(msg);
+  10. E47e8402f ASYNC/non_standard(EventBus (greenrobot) post at SyncServiceMessageHandler.java:89 to the @Subscribe method onEvent(DbFileDownloadedEvent) (library dispatch, INFERRED)) [ENV: the cloud download that the Download preference starts (forceDownload) completes in the sync service; it needs the network and the cloud storage]
+      SyncServiceMessageHandler.handleMessage@DOWNLOAD -> SyncPreferenceFragment.onEvent
+      the sync service sends DOWNLOAD_COMPLETE to the handler (case at line 84) and the handler posts a new DbFileDownloadedEvent to EventBus (line 89); EventBus delivers it to the registered subscriber onEvent. The cloud download is the one forceDownload starts (the Download preference, line 236)
+      evidence: SRC sync/SyncServiceMessageHandler.java:61 (handleMessage), 84-89 (post at 89); SRC sync/SyncPreferenceFragment.java:120-123; precedent label_032 DebugTree.log -> MmxBaseFragmentActivity.onEvent (ASYNC)
+         61      public void handleMessage(Message msg) {
+        120      @Subscribe
+        121      public void onEvent(DbFileDownloadedEvent event) {
+        122          // open the new database.
+        123          getSyncManager().useDownloadedDatabase();
+

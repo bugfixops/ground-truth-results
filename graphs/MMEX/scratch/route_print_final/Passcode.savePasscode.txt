@@ -1,0 +1,467 @@
+## Passcode.savePasscode  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=- state=- classes=explicit;standard explicit_standard_route=yes
+   1. E71c76102 ENTRY/standard*
+      S_ENTRY -> MainActivity.<init>
+      The MAIN / LAUNCHER activity is started from the launcher
+      evidence: SRC AndroidManifest.xml:136-143 (MAIN + LAUNCHER intent filter of com.money.manager.ex.home.MainActivity)
+        136                  android:name=".home.MainActivity"
+        137                  android:label="@string/application_name" android:exported="true">
+        138              <intent-filter>
+        139                  <action android:name="android.intent.action.MAIN" />
+        140  
+        141                  <category android:name="android.intent.category.LAUNCHER" />
+        142                  <!-- Samsung MultiWindow Function -->
+        143                  <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
+   2. E2e074fc1 LIFECYCLE/standard*
+      MainActivity.<init> -> MainActivity.onCreate
+      the framework calls onCreate after it creates the activity instance
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2722-2731 (callActivityOnCreate); FW-SRC core/java/android/app/Instrumentation.java:1212-1216; FW-SRC core/java/android/app/Activity.java:6993-7000 (performCreate calls onCreate); same route as graph_def.py AccountEditActivity.<init> -> onCreate
+       2722                  int theme = r.activityInfo.getThemeResource();
+       2723                  if (theme != 0) {
+       2724                      activity.setTheme(theme);
+       2725                  }
+       2726  
+       2727                  activity.mCalled = false;
+       2728                  if (r.isPersistable()) {
+       2729                      mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+       2730                  } else {
+       2731                      mInstrumentation.callActivityOnCreate(activity, r.state);
+       1212      public void callActivityOnCreate(Activity activity, Bundle icicle) {
+       1213          prePerformCreate(activity);
+       1214          activity.performCreate(icicle);
+       1215          postPerformCreate(activity);
+       1216      }
+       6993      final void performCreate(Bundle icicle, PersistableBundle persistentState) {
+       6994          mCanEnterPictureInPicture = true;
+       6995          restoreHasCurrentPermissionRequest(icicle);
+       6996          if (persistentState != null) {
+       6997              onCreate(icicle, persistentState);
+       6998          } else {
+       6999              onCreate(icicle);
+       7000          }
+   3. E5d5a9c2f CALL/explicit*
+      MainActivity.onCreate -> MainActivity.initHomeFragment
+      Direct call
+      evidence: SRC MainActivity.java:238 (bytecode)
+        238          initHomeFragment();
+   4. Eff22f7d2 ENTERS/page*
+      MainActivity.initHomeFragment -> S_HOME
+      the home screen is shown: initHomeFragment commits HomeFragment into the content container, or the navigation container in dual-panel mode
+      guard: no HomeFragment is in the manager yet (MainActivity.java:1312-1313)
+      evidence: SRC home/MainActivity.java:1308-1324; SRC home/HomeFragment.java:167-173 (onCreateView inflates home_fragment); the ENTERS edge is assigned to batch 080 by label_077.py:6
+       1308      private void initHomeFragment() {
+       1309          String tag = HomeFragment.class.getSimpleName();
+       1310  
+       1311          // See if the fragment is already there.
+       1312          Fragment existingFragment = getSupportFragmentManager().findFragmentByTag(tag);
+       1313          if (existingFragment != null) return;
+       1314  
+       1315          // Create new Home fragment.
+       1316          HomeFragment fragment = new HomeFragment();
+       1317  
+       1318          int containerId = isDualPanel() ? getNavigationId() : getContentId();
+       1319  
+       1320          getSupportFragmentManager().beginTransaction()
+       1321                  .replace(containerId, fragment, tag)
+      ...  (3 more lines)
+        167      @Override
+        168      public View onCreateView(LayoutInflater inflater, ViewGroup container,
+        169                               Bundle savedInstanceState) {
+        170          if (container == null) return null;
+        171  
+        172          // inflate layout
+        173          View view = inflater.inflate(R.layout.home_fragment, container, false);
+   5. Ed2488d54 GUI/standard*
+      S_HOME -> MainActivity$3.onGroupClick
+      Open the drawer (Up button or Menu key), then tap a top-level drawer item that has no sub-items (for example Recurring transactions or Budgets)
+      guard: the tapped group has null children (MainActivity.java:941-942); mDrawer is non-null (MainActivity.java:939)
+      evidence: SRC home/MainActivity.java:936-963 (group-click chain; onGroupClick at 938 returns false when children is not null); INFERRED ExpandableListView group click dispatch (library not read)
+        936          drawerList.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
+        937              @Override
+        938              public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
+        939                  if (mDrawer == null) return false;
+        940                  // if the group has child items, do not e.
+        941                  ArrayList<String> children = (ArrayList<String>) childItems.get(groupPosition);
+        942                  if (children != null) return false;
+        943  
+        944                  // Highlight the selected item, update the title, and close the drawer
+        945                  drawerList.setItemChecked(groupPosition, true);
+        946  
+        947                  // You should reset item counter
+        948                  mDrawer.closeDrawer(mDrawerLayout);
+        949                  // check item selected
+      ...  (14 more lines)
+   6. E025b8cae FRAMEWORK/standard*
+      MainActivity$3.onGroupClick -> MainActivity$3$1.run
+      the tap posts the drawer item Runnable with a 200 ms delay; the framework runs run() when the delay ends, and run() calls onDrawerMenuAndOptionMenuSelected (auto CALL at line 957)
+      evidence: SRC home/MainActivity.java:948-962 (postDelayed 953, run 955, call 957); FW-SRC core/java/android/os/Handler.java:427-429 (postDelayed calls sendMessageDelayed), 596, 97-99 (dispatchMessage calls handleCallback), 789-790 (handleCallback runs message.callback.run())
+        948                  mDrawer.closeDrawer(mDrawerLayout);
+        949                  // check item selected
+        950                  final DrawerMenuItem item = (DrawerMenuItem) drawerList.getExpandableListAdapter()
+        951                          .getGroup(groupPosition);
+        952                  if (item != null) {
+        953                      new Handler().postDelayed(new Runnable() {
+        954                          @Override
+        955                          public void run() {
+        956                              // execute operation
+        957                              onDrawerMenuAndOptionMenuSelected(item);
+        958                          }
+        959                      }, 200);
+        960                  }
+        961                  return true;
+      ...  (1 more lines)
+        427      public final boolean postDelayed(Runnable r, long delayMillis)
+        428      {
+        429          return sendMessageDelayed(getPostMessage(r), delayMillis);
+   7. E02874fba CALL/explicit*
+      MainActivity$3$1.run -> MainActivity.onDrawerMenuAndOptionMenuSelected@GROUP
+      the group-click Runnable run() calls onDrawerMenuAndOptionMenuSelected(item) with the tapped group item; this hand edge feeds only the @GROUP variant
+      evidence: SRC home/MainActivity.java:953-957 (postDelayed Runnable created at 953, run() at 955, dispatcher call at 957); SRC home/MainActivity.java:950-951 (item is the tapped group row, getGroup(groupPosition))
+        953                      new Handler().postDelayed(new Runnable() {
+        954                          @Override
+        955                          public void run() {
+        956                              // execute operation
+        957                              onDrawerMenuAndOptionMenuSelected(item);
+        950                  final DrawerMenuItem item = (DrawerMenuItem) drawerList.getExpandableListAdapter()
+        951                          .getGroup(groupPosition);
+   8. Ec35ca2a7 INTENT/standard*
+      MainActivity.onDrawerMenuAndOptionMenuSelected@GROUP -> SettingsActivity.<init>
+      case R.id.menu_settings: startActivity(new Intent(MainActivity.this, SettingsActivity.class)) — group tap only: Settings is a group with null children, so only the group-click chain can supply menu_settings
+      guard: item id is non-null and equal to R.id.menu_settings (MainActivity.java:607, 664-665); the tapped group has null children (MainActivity.java:924-925) and its group item is menu_settings (MainActivity.java:1107)
+      evidence: SRC home/MainActivity.java:664-665 (case); SRC home/MainActivity.java:607 (null-id return); SRC home/MainActivity.java:936-963 (group-click chain); SRC home/MainActivity.java:924-925 (Settings null children); SRC home/MainActivity.java:1107 (drawer item menu_settings)
+        664              case R.id.menu_settings:
+        665                  startActivity(new Intent(MainActivity.this, SettingsActivity.class));
+        607          if (item.getId() == null) return false;
+        936          drawerList.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
+        937              @Override
+        938              public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
+        939                  if (mDrawer == null) return false;
+        940                  // if the group has child items, do not e.
+        941                  ArrayList<String> children = (ArrayList<String>) childItems.get(groupPosition);
+        942                  if (children != null) return false;
+        943  
+        944                  // Highlight the selected item, update the title, and close the drawer
+        945                  drawerList.setItemChecked(groupPosition, true);
+        946  
+        947                  // You should reset item counter
+        948                  mDrawer.closeDrawer(mDrawerLayout);
+        949                  // check item selected
+      ...  (14 more lines)
+        924          // Settings
+        925          childItems.add(null);
+       1107          menuItems.add(new DrawerMenuItem().withId(R.id.menu_settings)
+   9. E3a7e070b LIFECYCLE/standard*
+      SettingsActivity.<init> -> SettingsActivity.onCreate
+      the framework calls onCreate after the constructor (the same activity pattern as label_004 AboutActivity)
+      evidence: SRC settings/SettingsActivity.java:31-46; FW-SRC core/java/android/app/ActivityThread.java:2724-2731 (as cited in label_004, not read in this batch)
+         31  public class SettingsActivity
+         32      extends BaseSettingsFragmentActivity {
+         33  
+         34      public static final String EXTRA_FRAGMENT = "extraFragment";
+         35  
+         36      @Inject Lazy<AppSettings> appSettingsLazy;
+         37      @Inject Lazy<Core> coreLazy;
+         38  
+         39      @Override
+         40      protected void onCreate(Bundle savedInstance) {
+         41          super.onCreate(savedInstance);
+         42  
+         43          MmexApplication.getApp().iocComponent.inject(this);
+         44  
+      ...  (2 more lines)
+       2724                      activity.setTheme(theme);
+       2725                  }
+       2726  
+       2727                  activity.mCalled = false;
+       2728                  if (r.isPersistable()) {
+       2729                      mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+       2730                  } else {
+       2731                      mInstrumentation.callActivityOnCreate(activity, r.state);
+  10. Eb967ab5b ENTERS/page*
+      SettingsActivity.onCreate -> S_SETTINGS
+      the settings list is shown: onCreate calls showFragment, which uses SettingsFragment unless the PerDatabaseFragment extra is present (the per-database branch is labelled in batch 119 as S_PER_DATABASE_SETTINGS)
+      guard: the incoming intent carries no EXTRA_FRAGMENT = PerDatabaseFragment (SettingsActivity.java:61-69: only that extra shows PerDatabaseFragment; otherwise the default SettingsFragment is shown)
+      evidence: SRC settings/SettingsActivity.java:40-72 (default SettingsFragment at lines 67-69)
+         40      protected void onCreate(Bundle savedInstance) {
+         41          super.onCreate(savedInstance);
+         42  
+         43          MmexApplication.getApp().iocComponent.inject(this);
+         44  
+         45          showFragment();
+         46      }
+         47  
+         48      @Override
+         49      protected void onResume() {
+         50          super.onResume();
+         51  
+         52          setTitle(R.string.settings);
+         53      }
+      ...  (19 more lines)
+  11. E124f2c64 GUI/standard*
+      S_SETTINGS -> SettingsFragment$6.onPreferenceClick
+      the user taps the security preference (PreferenceConstants.PREF_SECURITY, line 122): the listener starts SecuritySettingsActivity (line 129)
+      evidence: SRC settings/SettingsFragment.java:122-132 (listener set at 126, onPreferenceClick 128, startActivity 129)
+        122          final Preference passcodePreference = findPreference(getString(PreferenceConstants.PREF_SECURITY));
+        123          if (passcodePreference != null) {
+        124              passcodePreference.setIcon(uiHelper.getIcon(GoogleMaterial.Icon.gmd_lock)
+        125                      .color(uiHelper.getSecondaryTextColor()));
+        126              passcodePreference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+        127                  @Override
+        128                  public boolean onPreferenceClick(Preference preference) {
+        129                      startActivity(new Intent(getActivity(), SecuritySettingsActivity.class));
+        130                      return true;
+        131                  }
+        132              });
+  12. E2a1c6fc4 INTENT/standard*
+      SettingsFragment$6.onPreferenceClick -> SecuritySettingsActivity.<init>
+      startActivity(new Intent(getActivity(), SecuritySettingsActivity.class)) from the passcode preference
+      evidence: SRC settings/SettingsFragment.java:124-131 (listener set at 126; onPreferenceClick 128-130; startActivity at 129); auto_calls: SettingsFragment.onCreate -> SettingsFragment$6.<init> (SettingsFragment.java:126)
+        124              passcodePreference.setIcon(uiHelper.getIcon(GoogleMaterial.Icon.gmd_lock)
+        125                      .color(uiHelper.getSecondaryTextColor()));
+        126              passcodePreference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+        127                  @Override
+        128                  public boolean onPreferenceClick(Preference preference) {
+        129                      startActivity(new Intent(getActivity(), SecuritySettingsActivity.class));
+        130                      return true;
+        131                  }
+  13. Ef2276126 LIFECYCLE/standard*
+      SecuritySettingsActivity.<init> -> SecuritySettingsActivity.onCreate
+      the framework calls onCreate after the constructor (the same activity pattern as label_114 BudgetSettingsActivity)
+      evidence: SRC settings/SecuritySettingsActivity.java:22-30 (class declaration, no explicit constructor; onCreate at 25-29); INFERRED framework launch order (constructor, then onCreate)
+         22  public class SecuritySettingsActivity
+         23          extends BaseSettingsFragmentActivity {
+         24  
+         25      @Override
+         26      protected void onCreate(Bundle savedInstance) {
+         27          super.onCreate(savedInstance);
+         28          setSettingFragment(new SecuritySettingsFragment());
+         29      }
+         30  }
+  14. E52f14c8f ENTERS/page*
+      SecuritySettingsActivity.onCreate -> S_SECURITY_SETTINGS
+      the security settings screen is shown
+      evidence: SRC settings/SecuritySettingsActivity.java:25-29 (setSettingFragment(new SecuritySettingsFragment()) at line 28)
+         25      @Override
+         26      protected void onCreate(Bundle savedInstance) {
+         27          super.onCreate(savedInstance);
+         28          setSettingFragment(new SecuritySettingsFragment());
+         29      }
+  15. E532edcea GUI/standard*
+      S_SECURITY_SETTINGS -> SecuritySettingsFragment$1.onPreferenceClick
+      the user taps the active passcode preference: the listener starts PasscodeActivity to enter a new passcode (startActivityPasscode, auto CALL line 60)
+      evidence: SRC settings/SecuritySettingsFragment.java:55-63 (listener created at 55; onPreferenceClick at 57-62, startActivityPasscode call at 60)
+         55          psActivePasscode.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+         56  
+         57              @Override
+         58              public boolean onPreferenceClick(Preference preference) {
+         59                  passcode = null;
+         60                  startActivityPasscode(getString(R.string.enter_your_passcode), REQUEST_INSERT_PASSCODE);
+         61                  return false;
+         62              }
+         63          });
+  16. Eb6c06d72 CALL/explicit*
+      SecuritySettingsFragment$1.onPreferenceClick -> SecuritySettingsFragment.startActivityPasscode
+      Direct call (through SecuritySettingsFragment.access$100)
+      evidence: SRC SecuritySettingsFragment.java:60 (bytecode)
+         60                  startActivityPasscode(getString(R.string.enter_your_passcode), REQUEST_INSERT_PASSCODE);
+  17. E9ac9395c INTENT/standard*
+      SecuritySettingsFragment.startActivityPasscode -> PasscodeActivity.<init>
+      the Security settings start PasscodeActivity from the active-passcode preference
+      evidence: SRC settings/SecuritySettingsFragment.java:55-60, 168-175
+         55          psActivePasscode.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+         56  
+         57              @Override
+         58              public boolean onPreferenceClick(Preference preference) {
+         59                  passcode = null;
+         60                  startActivityPasscode(getString(R.string.enter_your_passcode), REQUEST_INSERT_PASSCODE);
+  18. E117d8069 LIFECYCLE/standard*
+      PasscodeActivity.<init> -> PasscodeActivity.onCreate
+      the framework calls onCreate right after the constructor
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2728-2731; FW-SRC core/java/android/app/Instrumentation.java:1212-1215; FW-SRC core/java/android/app/Activity.java:989-990; SRC PasscodeActivity.java:82
+       2728                  if (r.isPersistable()) {
+       2729                      mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+       2730                  } else {
+       2731                      mInstrumentation.callActivityOnCreate(activity, r.state);
+       1212      public void callActivityOnCreate(Activity activity, Bundle icicle) {
+       1213          prePerformCreate(activity);
+       1214          activity.performCreate(icicle);
+       1215          postPerformCreate(activity);
+        989      protected void onCreate(@Nullable Bundle savedInstanceState) {
+        990          if (DEBUG_LIFECYCLE) Slog.v(TAG, "onCreate " + this + ": " + savedInstanceState);
+         82  	protected void onCreate(Bundle savedInstanceState) {
+  19. E8ff3567a ENTERS/page*
+      PasscodeActivity.onCreate -> S_PASSCODE
+      the passcode screen is shown (onCreate sets up the digit keys and the backspace key)
+      evidence: SRC PasscodeActivity.java:82-141
+         82  	protected void onCreate(Bundle savedInstanceState) {
+         83  		// set theme
+         84  		try {
+         85  			UIHelper uiHelper = new UIHelper(getApplicationContext());
+         86  			setTheme(uiHelper.getThemeId());
+         87  		} catch (Exception e) {
+         88  			//Log.e(BaseListFragment.class.getSimpleName(), e.getMessage());
+         89              Timber.e(e, "setting theme in passcode activity");
+         90  		}
+         91  		super.onCreate(savedInstanceState);
+         92  		setContentView(R.layout.passcode_activity);
+         93  
+         94  		findViewById(R.id.editTextPasscode1).requestFocus();
+         95  
+      ...  (46 more lines)
+  20. E15135c45 GUI/standard*
+      S_PASSCODE -> PasscodeActivity$1.onClick
+      tap a digit key (buttonPasscode0 to 9): the shared click listener handles the digit
+      evidence: SRC PasscodeActivity.java:99, 134-141; FW-SRC core/java/android/view/View.java:6143-6144, 6289-6294
+         99  		OnClickListener clickListener = new OnClickListener() {
+       6143      public void setOnClickListener(@Nullable OnClickListener l) {
+       6144          if (!isClickable()) {
+  21. Ec3713848 RESULT/standard*
+      PasscodeActivity$1.onClick -> SecuritySettingsFragment.onActivityResult
+      PasscodeActivity sets RESULT_OK with the entered passcode (setResult, line 125) and the framework delivers the result to the fragment that called startActivityForResult (startActivityPasscode, line 174)
+      guard: resultCode is RESULT_OK and data is non-null (SecuritySettingsFragment.java:97-98)
+      evidence: SRC com/money/manager/ex/PasscodeActivity.java:98-128 (onClick of PasscodeActivity$1 starts at line 101; setResult at 125); SRC settings/SecuritySettingsFragment.java:94-175
+         98          // create a listener for button
+         99  		OnClickListener clickListener = new OnClickListener() {
+        100  			@Override
+        101  			public void onClick(View v) {
+        102  				Button click = (Button) v;
+        103  				if (getWindow().getCurrentFocus() != null && getWindow().getCurrentFocus() instanceof EditText) {
+        104  					EditText getFocus = (EditText) getWindow().getCurrentFocus();
+        105  					if (getFocus != null && click.getTag() != null) {
+        106  						getFocus.setText(click.getTag().toString());
+        107  						//quick-fix convert 'switch' to 'if-else'
+        108  						if (getFocus.getId() == R.id.editTextPasscode1) {
+        109  							findViewById(R.id.editTextPasscode2).requestFocus();
+        110  						} else if (getFocus.getId() == R.id.editTextPasscode2) {
+        111  							findViewById(R.id.editTextPasscode3).requestFocus();
+      ...  (17 more lines)
+         94      public void onActivityResult(int requestCode, int resultCode, Intent data) {
+         95          super.onActivityResult(requestCode, resultCode, data);
+         96  
+         97          if (resultCode != AppCompatActivity.RESULT_OK) return;
+         98          if (data == null) return;
+         99  
+        100          Passcode pass = new Passcode(getActivity());
+        101  
+        102          switch (requestCode) {
+        103              case REQUEST_INSERT_PASSCODE:
+        104                  // check if reinsert
+        105                  passcode = data.getStringExtra(PasscodeActivity.INTENT_RESULT_PASSCODE);
+        106                  startActivityPasscode(getString(R.string.reinsert_your_passcode), REQUEST_REINSERT_PASSCODE);
+        107                  break;
+      ...  (68 more lines)
+  22. Edbef50b3 CALL/explicit*
+      SecuritySettingsFragment.onActivityResult -> SecuritySettingsFragment.startActivityPasscode@REINSERT
+      the INSERT branch of onActivityResult starts a second PasscodeActivity so the passcode can be re-entered: the entered passcode is stored, then startActivityPasscode is called with REQUEST_REINSERT_PASSCODE
+      guard: requestCode == REQUEST_INSERT_PASSCODE (1), resultCode == RESULT_OK and data != null (SecuritySettingsFragment.java:97-98, 103-107)
+      evidence: SRC settings/SecuritySettingsFragment.java:97-98, 103-107 (case REQUEST_INSERT_PASSCODE at 103; store at 105; startActivityPasscode at 106); variant @REINSERT: this edge is the INSERT-branch call only, not the EDIT-branch call at 132
+         97          if (resultCode != AppCompatActivity.RESULT_OK) return;
+         98          if (data == null) return;
+  23. E1eb134bb INTENT/standard*
+      SecuritySettingsFragment.startActivityPasscode@REINSERT -> PasscodeActivity.<init>@REINSERT
+      the second PasscodeActivity visit: startActivityPasscode builds the Intent for PasscodeActivity and calls startActivityForResult with REQUEST_REINSERT_PASSCODE
+      guard: request == REQUEST_REINSERT_PASSCODE (10) (SecuritySettingsFragment.java:45, passed at 106)
+      evidence: SRC settings/SecuritySettingsFragment.java:168-175 (Intent at 169; action at 171; startActivityForResult at 174); SRC settings/SecuritySettingsFragment.java:45 (REQUEST_REINSERT_PASSCODE = 10)
+        168      private void startActivityPasscode(CharSequence message, int request) {
+        169          Intent intent = new Intent(getActivity(), PasscodeActivity.class);
+        170  
+        171          intent.setAction(PasscodeActivity.INTENT_REQUEST_PASSWORD);
+        172          intent.putExtra(PasscodeActivity.INTENT_MESSAGE_TEXT, message);
+        173  
+        174          startActivityForResult(intent, request);
+        175      }
+         45      private String passcode = null;
+  24. Ea8845013 LIFECYCLE/standard*
+      PasscodeActivity.<init>@REINSERT -> PasscodeActivity.onCreate@REINSERT
+      the framework calls onCreate right after the constructor, on the second PasscodeActivity visit
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2728-2731; FW-SRC core/java/android/app/Instrumentation.java:1212-1215; FW-SRC core/java/android/app/Activity.java:6993-7000; SRC PasscodeActivity.java:82; variant @REINSERT: second visit only
+       2728                  if (r.isPersistable()) {
+       2729                      mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+       2730                  } else {
+       2731                      mInstrumentation.callActivityOnCreate(activity, r.state);
+       1212      public void callActivityOnCreate(Activity activity, Bundle icicle) {
+       1213          prePerformCreate(activity);
+       1214          activity.performCreate(icicle);
+       1215          postPerformCreate(activity);
+       6993      final void performCreate(Bundle icicle, PersistableBundle persistentState) {
+       6994          mCanEnterPictureInPicture = true;
+       6995          restoreHasCurrentPermissionRequest(icicle);
+       6996          if (persistentState != null) {
+       6997              onCreate(icicle, persistentState);
+       6998          } else {
+       6999              onCreate(icicle);
+       7000          }
+         82  	protected void onCreate(Bundle savedInstanceState) {
+  25. Eed2c3bb1 ENTERS/page*
+      PasscodeActivity.onCreate@REINSERT -> S_PASSCODE@REINSERT
+      the passcode screen is shown a second time (onCreate sets up the digit keys and the backspace key)
+      evidence: SRC PasscodeActivity.java:82-141; variant @REINSERT: second visit only; plain S_PASSCODE is already on the path and cannot be revisited
+         82  	protected void onCreate(Bundle savedInstanceState) {
+         83  		// set theme
+         84  		try {
+         85  			UIHelper uiHelper = new UIHelper(getApplicationContext());
+         86  			setTheme(uiHelper.getThemeId());
+         87  		} catch (Exception e) {
+         88  			//Log.e(BaseListFragment.class.getSimpleName(), e.getMessage());
+         89              Timber.e(e, "setting theme in passcode activity");
+         90  		}
+         91  		super.onCreate(savedInstanceState);
+         92  		setContentView(R.layout.passcode_activity);
+         93  
+         94  		findViewById(R.id.editTextPasscode1).requestFocus();
+         95  
+      ...  (46 more lines)
+  26. E53b01cac GUI/standard*
+      S_PASSCODE@REINSERT -> PasscodeActivity$1.onClick@REINSERT
+      tap a digit key (buttonPasscode0 to 9): the shared click listener handles the digit, on the second passcode screen
+      evidence: SRC PasscodeActivity.java:99, 134-141; FW-SRC core/java/android/view/View.java:6143-6144, 6289-6294; variant @REINSERT: second visit only
+         99  		OnClickListener clickListener = new OnClickListener() {
+       6143      public void setOnClickListener(@Nullable OnClickListener l) {
+       6144          if (!isClickable()) {
+  27. E28b9ac6c RESULT/standard*
+      PasscodeActivity$1.onClick@REINSERT -> SecuritySettingsFragment.onActivityResult@REINSERT
+      the second passcode entry returns the five digits: setResult(RESULT_OK, result) and finish(), and the framework delivers the result to the fragment that called startActivityForResult
+      guard: the focused field is editTextPasscode5 (PasscodeActivity.java:116); resultCode is RESULT_OK and data is non-null (SecuritySettingsFragment.java:97-98)
+      evidence: SRC PasscodeActivity.java:99-131 (click listener, setResult at 125, finish at 126); SRC settings/SecuritySettingsFragment.java:94-175; variant @REINSERT: second result only
+         99  		OnClickListener clickListener = new OnClickListener() {
+        100  			@Override
+        101  			public void onClick(View v) {
+        102  				Button click = (Button) v;
+        103  				if (getWindow().getCurrentFocus() != null && getWindow().getCurrentFocus() instanceof EditText) {
+        104  					EditText getFocus = (EditText) getWindow().getCurrentFocus();
+        105  					if (getFocus != null && click.getTag() != null) {
+        106  						getFocus.setText(click.getTag().toString());
+        107  						//quick-fix convert 'switch' to 'if-else'
+        108  						if (getFocus.getId() == R.id.editTextPasscode1) {
+        109  							findViewById(R.id.editTextPasscode2).requestFocus();
+        110  						} else if (getFocus.getId() == R.id.editTextPasscode2) {
+        111  							findViewById(R.id.editTextPasscode3).requestFocus();
+        112  						} else if (getFocus.getId() == R.id.editTextPasscode3) {
+      ...  (19 more lines)
+         94      public void onActivityResult(int requestCode, int resultCode, Intent data) {
+         95          super.onActivityResult(requestCode, resultCode, data);
+         96  
+         97          if (resultCode != AppCompatActivity.RESULT_OK) return;
+         98          if (data == null) return;
+         99  
+        100          Passcode pass = new Passcode(getActivity());
+        101  
+        102          switch (requestCode) {
+        103              case REQUEST_INSERT_PASSCODE:
+        104                  // check if reinsert
+        105                  passcode = data.getStringExtra(PasscodeActivity.INTENT_RESULT_PASSCODE);
+        106                  startActivityPasscode(getString(R.string.reinsert_your_passcode), REQUEST_REINSERT_PASSCODE);
+        107                  break;
+      ...  (68 more lines)
+  28. Edc77ed75 CALL/explicit*
+      SecuritySettingsFragment.onActivityResult@REINSERT -> Passcode.setPasscode
+      the REINSERT branch of onActivityResult saves the passcode once the re-entered passcode matches the stored one
+      guard: requestCode == REQUEST_REINSERT_PASSCODE (10), resultCode == RESULT_OK, data != null, stored passcode != null and equal to sentPasscode (SecuritySettingsFragment.java:97-98, 112, 117)
+      evidence: SRC settings/SecuritySettingsFragment.java:118 (bytecode); variant @REINSERT: this call fires only on the second visit; the plain auto edge for this pair is partitioned (see sup above)
+        118                      if (!pass.setPasscode(passcode)) {
+  29. Ea63a9050 CALL/explicit*
+      Passcode.setPasscode -> Passcode.savePasscode
+      Direct call
+      evidence: SRC Passcode.java:80 (bytecode)
+         80          return savePasscode(encrypted);
+

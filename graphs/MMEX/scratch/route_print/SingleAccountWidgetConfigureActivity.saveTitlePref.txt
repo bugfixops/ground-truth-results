@@ -1,0 +1,71 @@
+METHOD: SingleAccountWidgetConfigureActivity.saveTitlePref
+verdict: REACHABLE   steps_from_launch: 4
+route steps: 4 edges
+======================================================================
+
+STEP 1  edge E882eaf1e
+  S_ENTRY -> SingleAccountWidgetConfigureActivity.<init>
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: outside package: another app sends an APPWIDGET_CONFIGURE intent to SingleAccountWidgetConfigureActivity (exported=true)
+  evidence: SRC AndroidManifest.xml:327-329 (exported=true; APPWIDGET_CONFIGURE intent-filter); SRC widget/SingleAccountWidgetConfigureActivity.java:50; FW-SRC core/java/android/app/ActivityThread.java:2665-2672
+  cite [SRC] AndroidManifest.xml:327-329
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/AndroidManifest.xml)
+      327:         <activity android:name=".widget.SingleAccountWidgetConfigureActivity" android:exported="true">
+      328:             <intent-filter>
+      329:                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+  cite [SRC] widget/SingleAccountWidgetConfigureActivity.java:50
+       50:     public SingleAccountWidgetConfigureActivity() {
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2665-2672
+     2665:         ContextImpl appContext = createBaseContextForActivity(r);
+     2666:         Activity activity = null;
+     2667:         try {
+     2668:             java.lang.ClassLoader cl = appContext.getClassLoader();
+     2669:             activity = mInstrumentation.newActivity(
+     2670:                     cl, component.getClassName(), r.intent);
+     2671:             StrictMode.incrementExpectedActivityCount(activity.getClass());
+     2672:             r.intent.setExtrasClassLoader(cl);
+
+STEP 2  edge E13aab3f4
+  SingleAccountWidgetConfigureActivity.<init> -> SingleAccountWidgetConfigureActivity.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC core/java/android/app/ActivityThread.java:2724-2731; SRC widget/SingleAccountWidgetConfigureActivity.java:54-55 (onCreate override)
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2724-2731
+     2724:                     activity.setTheme(theme);
+     2725:                 }
+     2726: 
+     2727:                 activity.mCalled = false;
+     2728:                 if (r.isPersistable()) {
+     2729:                     mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+     2730:                 } else {
+     2731:                     mInstrumentation.callActivityOnCreate(activity, r.state);
+  cite [SRC] widget/SingleAccountWidgetConfigureActivity.java:54-55
+       54:     @Override
+       55:     public void onCreate(Bundle icicle) {
+
+STEP 3  edge E1e63003e
+  SingleAccountWidgetConfigureActivity.onCreate -> SingleAccountWidgetConfigureActivity$1.onClick
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC widget/SingleAccountWidgetConfigureActivity.java:65 (setOnClickListener(mOnClickListener)), 86-87 (field and onClick); FW-SRC core/java/android/view/View.java:6294 (performClick)
+  cite [SRC] widget/SingleAccountWidgetConfigureActivity.java:65
+       65:         findViewById(R.id.add_button).setOnClickListener(mOnClickListener);
+  cite [FW-SRC] core/java/android/view/View.java:6294
+     6294:             li.mOnClickListener.onClick(this);
+
+STEP 4  edge Ea6a92c49
+  SingleAccountWidgetConfigureActivity$1.onClick -> SingleAccountWidgetConfigureActivity.saveTitlePref
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC SingleAccountWidgetConfigureActivity.java:92 (bytecode)
+  cite [SRC] SingleAccountWidgetConfigureActivity.java:92
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/widget/SingleAccountWidgetConfigureActivity.java)
+       92:             saveTitlePref(context, mAppWidgetId, widgetText);

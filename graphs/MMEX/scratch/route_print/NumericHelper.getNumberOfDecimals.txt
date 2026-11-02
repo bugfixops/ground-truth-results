@@ -1,0 +1,180 @@
+METHOD: NumericHelper.getNumberOfDecimals
+verdict: REACHABLE   steps_from_launch: 8
+route steps: 8 edges
+======================================================================
+
+STEP 1  edge Eabecce51
+  S_ENTRY -> AccountBillsWidgetProvider.<init>
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC AndroidManifest.xml:89-99; FW-SRC core/java/android/app/ActivityThread.java:3141-3166 (handleReceiver: loadClass(component).newInstance() at 3166), 3187 (receiver.onReceive); the matching of the intent-filter to the broadcast is not in fw_src: INFERRED, source not read
+  cite [SRC] AndroidManifest.xml:89-99
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/AndroidManifest.xml)
+       89:         <receiver
+       90:                 android:name=".widget.AccountBillsWidgetProvider"
+       91:                 android:label="@string/widget_all_accounts" android:exported="true">
+       92:             <intent-filter>
+       93:                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+       94:             </intent-filter>
+       95: 
+       96:             <meta-data
+       97:                 android:name="android.appwidget.provider"
+       98:                 android:resource="@xml/widget_account_bills" />
+       99:         </receiver>
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:3141-3166
+     3141:     private void handleReceiver(ReceiverData data) {
+     3142:         // If we are getting ready to gc after going to the background, well
+     3143:         // we are back active so skip it.
+     3144:         unscheduleGcIdler();
+     3145: 
+     3146:         String component = data.intent.getComponent().getClassName();
+     3147: 
+     3148:         LoadedApk packageInfo = getPackageInfoNoCheck(
+     3149:                 data.info.applicationInfo, data.compatInfo);
+     3150: 
+     3151:         IActivityManager mgr = ActivityManager.getService();
+     3152: 
+     3153:         Application app;
+     3154:         BroadcastReceiver receiver;
+     3155:         ContextImpl context;
+     3156:         try {
+     3157:             app = packageInfo.makeApplication(false, mInstrumentation);
+     3158:             context = (ContextImpl) app.getBaseContext();
+     3159:             if (data.info.splitName != null) {
+     3160:                 context = (ContextImpl) context.createContextForSplit(data.info.splitName);
+     3161:             }
+     3162:             java.lang.ClassLoader cl = context.getClassLoader();
+     3163:             data.intent.setExtrasClassLoader(cl);
+     3164:             data.intent.prepareToEnterProcess();
+     3165:             data.setExtrasClassLoader(cl);
+     3166:             receiver = (BroadcastReceiver)cl.loadClass(component).newInstance();
+
+STEP 2  edge E0c39a837
+  AccountBillsWidgetProvider.<init> -> AccountBillsWidgetProvider.onUpdate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC core/java/android/appwidget/AppWidgetProvider.java:57-68 (onReceive; this.onUpdate at 66); FW-SRC core/java/android/app/ActivityThread.java:3187; SRC widget/AccountBillsWidgetProvider.java:40-77 (the override)
+  cite [FW-SRC] core/java/android/appwidget/AppWidgetProvider.java:57-68
+       57:     public void onReceive(Context context, Intent intent) {
+       58:         // Protect against rogue update broadcasts (not really a security issue,
+       59:         // just filter bad broacasts out so subclasses are less likely to crash).
+       60:         String action = intent.getAction();
+       61:         if (AppWidgetManager.ACTION_APPWIDGET_UPDATE.equals(action)) {
+       62:             Bundle extras = intent.getExtras();
+       63:             if (extras != null) {
+       64:                 int[] appWidgetIds = extras.getIntArray(AppWidgetManager.EXTRA_APPWIDGET_IDS);
+       65:                 if (appWidgetIds != null && appWidgetIds.length > 0) {
+       66:                     this.onUpdate(context, AppWidgetManager.getInstance(context), appWidgetIds);
+       67:                 }
+       68:             }
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:3187
+     3187:             receiver.onReceive(context.getReceiverRestrictedContext(),
+  cite [SRC] widget/AccountBillsWidgetProvider.java:40-77
+       40:     @Override
+       41:     public void onUpdate(Context context, AppWidgetManager appWidgetManager,
+       42:                          int[] appWidgetIds) {
+       43:         super.onUpdate(context, appWidgetManager, appWidgetIds);
+       44: 
+       45:         MmexApplication app = new MmexApplication();
+       46:         CurrencyService currencyService = new CurrencyService(context);
+       47: 
+       48:         for (int i = 0; i < appWidgetIds.length; ++i) {
+       49:             RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.widget_account_bills);
+       50:             remoteViews.setTextViewText(R.id.textViewUserName, app.loadUserNameFromDatabase(context));
+       51:             remoteViews.setTextViewText(R.id.textViewTotalAccounts, context.getString(R.string.summary) + ": "
+       52:                     + currencyService.getBaseCurrencyFormatted(MoneyFactory.fromDouble(app.getSummaryAccounts(context))));
+       53: 
+       54:             // register on click in icon launch application
+       55:             Intent intentApplication = new Intent(context, MainActivity.class);
+       56:             PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intentApplication, PendingIntent.FLAG_IMMUTABLE);
+       57:             remoteViews.setOnClickPendingIntent(R.id.imageButtonLogoWidget, pendingIntent);
+       58: 
+       59:             Intent intentRefresh = new Intent(context, AccountBillsWidgetProvider.class);
+       60:             intentRefresh.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+       61:             intentRefresh.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds);
+       62:             PendingIntent pendingRefresh = PendingIntent.getBroadcast(context, 0, intentRefresh, PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
+       63:             remoteViews.setOnClickPendingIntent(R.id.imageButtonRefresh, pendingRefresh);
+       64: 
+       65:             //service
+       66:             Intent svcIntent = new Intent(context, AccountBillsWidgetService.class);
+       67: 
+       68:             svcIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetIds[i]);
+       69:             svcIntent.setData(Uri.parse(svcIntent.toUri(Intent.URI_INTENT_SCHEME)));
+       70:             remoteViews.setRemoteAdapter(R.id.listViewAccountBills, svcIntent);
+       71: 
+       72:             // update widget
+       73:             appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds[i], R.id.listViewAccountBills);
+       74:             appWidgetManager.updateAppWidget(appWidgetIds[i], remoteViews);
+       75:         }
+       76:         super.onUpdate(context, appWidgetManager, appWidgetIds);
+       77:     }
+
+STEP 3  edge Ef46663fc
+  AccountBillsWidgetProvider.onUpdate -> CurrencyService.getBaseCurrencyFormatted
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC AccountBillsWidgetProvider.java:52 (bytecode)
+  cite [SRC] AccountBillsWidgetProvider.java:52
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/widget/AccountBillsWidgetProvider.java)
+       52:                     + currencyService.getBaseCurrencyFormatted(MoneyFactory.fromDouble(app.getSummaryAccounts(context))));
+
+STEP 4  edge E526e2cf0
+  CurrencyService.getBaseCurrencyFormatted -> CurrencyService.getCurrencyFormatted
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC CurrencyService.java:280 (bytecode)
+  cite [SRC] CurrencyService.java:280
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/currency/CurrencyService.java)
+      280:         return this.getCurrencyFormatted(baseCurrencyId, value);
+
+STEP 5  edge E8d177cd8
+  CurrencyService.getCurrencyFormatted -> FormatUtilities.format(Money,Currency)
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC CurrencyService.java:309 (bytecode)
+  cite [SRC] CurrencyService.java:309
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/currency/CurrencyService.java)
+      309:                 result = formats.format(value, currency);
+
+STEP 6  edge E1c7f52cc
+  FormatUtilities.format(Money,Currency) -> FormatUtilities.format(Money,boolean,Currency)
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC FormatUtilities.java:180 (bytecode)
+  cite [SRC] FormatUtilities.java:180
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/core/FormatUtilities.java)
+      180:         return format(value, true, currency);
+
+STEP 7  edge E646649f4
+  FormatUtilities.format(Money,boolean,Currency) -> FormatUtilities.format(Money,int,String,String)
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC FormatUtilities.java:159 (bytecode)
+  cite [SRC] FormatUtilities.java:159
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/core/FormatUtilities.java)
+      159:         String result = this.format(value, currency.getScale(),
+
+STEP 8  edge E75f796ec
+  FormatUtilities.format(Money,int,String,String) -> NumericHelper.getNumberOfDecimals
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC FormatUtilities.java:191 (bytecode)
+  cite [SRC] FormatUtilities.java:191
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/core/FormatUtilities.java)
+      191:         int decimals = new NumericHelper(getContext()).getNumberOfDecimals(scale);

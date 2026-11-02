@@ -1,0 +1,337 @@
+METHOD: EditTransactionCommonFunctions.resetCategory
+verdict: REACHABLE   steps_from_launch: 17
+route steps: 17 edges
+======================================================================
+
+STEP 1  edge Eaf2975b8
+  S_ENTRY -> ButtonAddTransactionWidgetProvider.<init>
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC AndroidManifest.xml:67-77 (receiver name 68, APPWIDGET_UPDATE 71); SRC widget/ButtonAddTransactionWidgetProvider.java:30 (class declaration, implicit constructor); FW-SRC core/java/android/app/ActivityThread.java:3141, 3166, 3187
+  cite [SRC] AndroidManifest.xml:67-77
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/AndroidManifest.xml)
+       67:         <receiver
+       68:                 android:name=".widget.ButtonAddTransactionWidgetProvider"
+       69:                 android:label="@string/widget_add_transaction" android:exported="true">
+       70:             <intent-filter>
+       71:                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+       72:             </intent-filter>
+       73: 
+       74:             <meta-data
+       75:                 android:name="android.appwidget.provider"
+       76:                 android:resource="@xml/widget_button_add_transaction" />
+       77:         </receiver>
+  cite [SRC] widget/ButtonAddTransactionWidgetProvider.java:30
+       30: public class ButtonAddTransactionWidgetProvider extends AppWidgetProvider {
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:3141, 3166, 3187
+     3141:     private void handleReceiver(ReceiverData data) {
+     3166:             receiver = (BroadcastReceiver)cl.loadClass(component).newInstance();
+     3187:             receiver.onReceive(context.getReceiverRestrictedContext(),
+
+STEP 2  edge E4fa3f67a
+  ButtonAddTransactionWidgetProvider.<init> -> ButtonAddTransactionWidgetProvider.onUpdate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC core/java/android/appwidget/AppWidgetProvider.java:66; FW-SRC services/appwidget/java/com/android/server/appwidget/AppWidgetServiceImpl.java:2283-2286 (setComponent 2286); SRC widget/ButtonAddTransactionWidgetProvider.java:31-32 (override)
+  cite [FW-SRC] core/java/android/appwidget/AppWidgetProvider.java:66
+       66:                     this.onUpdate(context, AppWidgetManager.getInstance(context), appWidgetIds);
+  cite [FW-SRC] services/appwidget/java/com/android/server/appwidget/AppWidgetServiceImpl.java:2283-2286
+     2283:     private void sendUpdateIntentLocked(Provider provider, int[] appWidgetIds) {
+     2284:         Intent intent = new Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+     2285:         intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds);
+     2286:         intent.setComponent(provider.info.provider);
+  cite [SRC] widget/ButtonAddTransactionWidgetProvider.java:31-32
+       31: 	@Override
+       32: 	public void onUpdate(Context context, AppWidgetManager appWidgetManager,
+
+STEP 3  edge E37b8fad5
+  ButtonAddTransactionWidgetProvider.onUpdate -> CheckingTransactionEditActivity.<init>
+  class: non_standard   kind: INTENT
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC widget/ButtonAddTransactionWidgetProvider.java:32-41 (intent 38, ACTION_INSERT 39, PendingIntent 41)
+  cite [SRC] widget/ButtonAddTransactionWidgetProvider.java:32-41
+       32: 	public void onUpdate(Context context, AppWidgetManager appWidgetManager,
+       33: 			int[] appWidgetIds) {
+       34: 		
+       35: 		for (int i = 0; i < appWidgetIds.length; ++i) {
+       36: 			RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.widget_button_add_transaction);
+       37: 			// register on click in icon launch application
+       38: 			Intent intent = new Intent(context, CheckingTransactionEditActivity.class);
+       39: 			intent.setAction(Intent.ACTION_INSERT);
+       40: 			intent.putExtra(EditTransactionActivityConstants.KEY_TRANS_SOURCE, "ButtonAddTransactionWidgetProvider.java");
+       41: 			PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+
+STEP 4  edge E157bdc5f
+  CheckingTransactionEditActivity.<init> -> CheckingTransactionEditActivity.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731 (callActivityOnCreate); FW-SRC core/java/android/app/Activity.java:6993-7000 (performCreate calls onCreate)
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2729-2731
+     2729:                     mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+     2730:                 } else {
+     2731:                     mInstrumentation.callActivityOnCreate(activity, r.state);
+  cite [FW-SRC] core/java/android/app/Activity.java:6993-7000
+     6993:     final void performCreate(Bundle icicle, PersistableBundle persistentState) {
+     6994:         mCanEnterPictureInPicture = true;
+     6995:         restoreHasCurrentPermissionRequest(icicle);
+     6996:         if (persistentState != null) {
+     6997:             onCreate(icicle, persistentState);
+     6998:         } else {
+     6999:             onCreate(icicle);
+     7000:         }
+
+STEP 5  edge Ecd641bb4
+  CheckingTransactionEditActivity.onCreate -> CheckingTransactionEditActivity.initializeInputControls
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC CheckingTransactionEditActivity.java:122 (bytecode)
+  cite [SRC] CheckingTransactionEditActivity.java:122
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/CheckingTransactionEditActivity.java)
+      122:         initializeInputControls();
+
+STEP 6  edge E22b3a2ef
+  CheckingTransactionEditActivity.initializeInputControls -> EditTransactionCommonFunctions.initSplitCategories
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC CheckingTransactionEditActivity.java:370 (bytecode)
+  cite [SRC] CheckingTransactionEditActivity.java:370
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/CheckingTransactionEditActivity.java)
+      370:         mCommon.initSplitCategories();
+
+STEP 7  edge Ee6d65779
+  EditTransactionCommonFunctions.initSplitCategories -> EditTransactionCommonFunctions$11.onClick
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC transactions/EditTransactionCommonFunctions.java:599-623 (splitButton.setOnClickListener at 599; onClick body within 599-623); FW-SRC core/java/android/view/View.java:6289-6294 (performClick calls the listener at 6294); INFERRED: the touch path to performClick is not read
+  cite [SRC] transactions/EditTransactionCommonFunctions.java:599-623
+      599:         viewHolder.splitButton.setOnClickListener(new View.OnClickListener() {
+      600:             @Override
+      601:             public void onClick(View v) {
+      602:                 boolean splitting = !isSplitSelected();
+      603: 
+      604:                 if (splitting) {
+      605:                     showSplitCategoriesForm(mSplitCategoryEntityName);
+      606:                 } else {
+      607:                     // User wants to remove split.
+      608:                     int splitCount = getSplitTransactions().size();
+      609:                     switch (splitCount) {
+      610:                         case 0:
+      611:                             // just remove split
+      612:                             setSplit(false);
+      613:                             break;
+      614:                         case 1:
+      615:                             convertOneSplitIntoRegularTransaction();
+      616:                             break;
+      617:                         default:
+      618:                             showSplitResetNotice();
+      619:                             break;
+      620:                     }
+      621:                 }
+      622:             }
+      623:         });
+  cite [FW-SRC] core/java/android/view/View.java:6289-6294
+     6289:     public boolean performClick() {
+     6290:         final boolean result;
+     6291:         final ListenerInfo li = mListenerInfo;
+     6292:         if (li != null && li.mOnClickListener != null) {
+     6293:             playSoundEffect(SoundEffectConstants.CLICK);
+     6294:             li.mOnClickListener.onClick(this);
+
+STEP 8  edge E87ed8018
+  EditTransactionCommonFunctions$11.onClick -> EditTransactionCommonFunctions.showSplitCategoriesForm
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC EditTransactionCommonFunctions.java:605 (bytecode)
+  cite [SRC] EditTransactionCommonFunctions.java:605
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/EditTransactionCommonFunctions.java)
+      605:                     showSplitCategoriesForm(mSplitCategoryEntityName);
+
+STEP 9  edge E23751ccf
+  EditTransactionCommonFunctions.showSplitCategoriesForm -> SplitCategoriesActivity.<init>
+  class: standard   kind: INTENT
+  guard: the split button takes the splitting branch (EditTransactionCommonFunctions.java:602-605); the category field takes the split branch (EditTransactionCommonFunctions.java:462-469)
+  needs_state: None
+  env: None
+  evidence: SRC transactions/EditTransactionCommonFunctions.java:1519-1528 (intent 1519; startActivityForResult 1528); 598-605 (split button listener; showSplitCategoriesForm at 605); 455-469 (category field listener; showSplitCategoriesForm at 469, reached through access$700 per auto_calls.json); SRC transactions/SplitCategoriesActivity.java:57 (auto_calls.json record to MmxBaseFragmentActivity.<init>); FW-SRC core/java/android/app/Instrumentation.java:1170-1174 (newActivity creates the instance through newInstance at 1174); FW-SRC core/java/android/app/ActivityThread.java:2667-2671 (newActivity at 2669-2670). INTERIM: the owner of showSplitCategoriesForm is not merged (D8)
+  cite [SRC] transactions/EditTransactionCommonFunctions.java:1519-1528
+     1519:         Intent intent = new Intent(getContext(), SplitCategoriesActivity.class);
+     1520:         intent.putExtra(SplitCategoriesActivity.KEY_DATASET_TYPE, datasetName);
+     1521:         intent.putExtra(SplitCategoriesActivity.KEY_TRANSACTION_TYPE, transactionEntity.getTransactionType().getCode());
+     1522:         intent.putExtra(SplitCategoriesActivity.KEY_SPLIT_TRANSACTION, Parcels.wrap(splitsToShow));
+     1523:         intent.putExtra(SplitCategoriesActivity.KEY_SPLIT_TRANSACTION_DELETED, Parcels.wrap(mSplitTransactionsDeleted));
+     1524: 
+     1525:         Integer fromCurrencyId = getSourceCurrencyId();
+     1526:         intent.putExtra(SplitCategoriesActivity.KEY_CURRENCY_ID, fromCurrencyId);
+     1527: 
+     1528:         getActivity().startActivityForResult(intent, RequestCodes.SPLIT_TX);
+  cite [SRC] transactions/SplitCategoriesActivity.java:57
+       57: public class SplitCategoriesActivity
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1170-1174
+     1170:     public Activity newActivity(ClassLoader cl, String className,
+     1171:             Intent intent)
+     1172:             throws InstantiationException, IllegalAccessException,
+     1173:             ClassNotFoundException {
+     1174:         return (Activity)cl.loadClass(className).newInstance();
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2667-2671
+     2667:         try {
+     2668:             java.lang.ClassLoader cl = appContext.getClassLoader();
+     2669:             activity = mInstrumentation.newActivity(
+     2670:                     cl, component.getClassName(), r.intent);
+     2671:             StrictMode.incrementExpectedActivityCount(activity.getClass());
+
+STEP 10  edge Ef45d7864
+  SplitCategoriesActivity.<init> -> SplitCategoriesActivity.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731 (callActivityOnCreate); FW-SRC core/java/android/app/Instrumentation.java:1212-1214 (callActivityOnCreate); FW-SRC core/java/android/app/Activity.java:6989-7000 (performCreate calls onCreate at 6997 and 6999)
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2729-2731
+     2729:                     mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+     2730:                 } else {
+     2731:                     mInstrumentation.callActivityOnCreate(activity, r.state);
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1212-1214
+     1212:     public void callActivityOnCreate(Activity activity, Bundle icicle) {
+     1213:         prePerformCreate(activity);
+     1214:         activity.performCreate(icicle);
+  cite [FW-SRC] core/java/android/app/Activity.java:6989-7000
+     6989:     final void performCreate(Bundle icicle) {
+     6990:         performCreate(icicle, null);
+     6991:     }
+     6992: 
+     6993:     final void performCreate(Bundle icicle, PersistableBundle persistentState) {
+     6994:         mCanEnterPictureInPicture = true;
+     6995:         restoreHasCurrentPermissionRequest(icicle);
+     6996:         if (persistentState != null) {
+     6997:             onCreate(icicle, persistentState);
+     6998:         } else {
+     6999:             onCreate(icicle);
+     7000:         }
+
+STEP 11  edge E987b13c0
+  SplitCategoriesActivity.onCreate -> S_SPLIT_CATEGORIES
+  class: page   kind: ENTERS
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC transactions/SplitCategoriesActivity.java:100 (setContentView R.layout.activity_split_categories); SRC res/layout/activity_split_categories.xml:68-69 (the fab view)
+  cite [SRC] transactions/SplitCategoriesActivity.java:100
+      100:         setContentView(R.layout.activity_split_categories);
+  cite [SRC] res/layout/activity_split_categories.xml:68-69
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/res/layout/activity_split_categories.xml)
+       68:     <com.google.android.material.floatingactionbutton.FloatingActionButton
+       69:         android:id="@+id/fab"
+
+STEP 12  edge E3e76d475
+  S_SPLIT_CATEGORIES -> SplitCategoriesActivity.onOptionsItemSelected
+  class: standard   kind: GUI
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC transactions/SplitCategoriesActivity.java:112 (addSaveToolbarIcon), 117-123 (onOptionsItemSelected; MenuHelper.save at 119-120 returns onActionDoneClick); FW-SRC core/java/android/app/Activity.java:3439-3450 (onMenuItemSelected calls onOptionsItemSelected at 3450); INFERRED: the AppCompat dispatch from the action bar to onOptionsItemSelected is not in fw_src
+  cite [SRC] transactions/SplitCategoriesActivity.java:112
+      112:         new MenuHelper(this, menu).addSaveToolbarIcon();
+  cite [FW-SRC] core/java/android/app/Activity.java:3439-3450
+     3439:     public boolean onMenuItemSelected(int featureId, MenuItem item) {
+     3440:         CharSequence titleCondensed = item.getTitleCondensed();
+     3441: 
+     3442:         switch (featureId) {
+     3443:             case Window.FEATURE_OPTIONS_PANEL:
+     3444:                 // Put event logging here so it gets called even if subclass
+     3445:                 // doesn't call through to superclass's implmeentation of each
+     3446:                 // of these methods below
+     3447:                 if(titleCondensed != null) {
+     3448:                     EventLog.writeEvent(50000, 0, titleCondensed.toString());
+     3449:                 }
+     3450:                 if (onOptionsItemSelected(item)) {
+
+STEP 13  edge Ef241b2d5
+  SplitCategoriesActivity.onOptionsItemSelected -> SplitCategoriesActivity.onActionDoneClick
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC SplitCategoriesActivity.java:120 (bytecode)
+  cite [SRC] SplitCategoriesActivity.java:120
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitCategoriesActivity.java)
+      120:             return onActionDoneClick();
+
+STEP 14  edge E354ebf06
+  SplitCategoriesActivity.onActionDoneClick -> RecurringTransactionEditActivity.onActivityResult
+  class: standard   kind: RESULT
+  guard: the editor is started with RequestCodes.SPLIT_TX (EditTransactionCommonFunctions.java:1528, in showSplitCategoriesForm at 1511)
+  needs_state: None
+  env: None
+  evidence: SRC transactions/SplitCategoriesActivity.java:149 (onActionDoneClick), 174 (setResult RESULT_OK); SRC transactions/EditTransactionCommonFunctions.java:1511-1528 (startActivityForResult with RequestCodes.SPLIT_TX at 1528); INFERRED: the framework dispatch step is as for PayeeListFragment (ActivityThread.java:4253-4266)
+  cite [SRC] transactions/SplitCategoriesActivity.java:149
+      149:     public boolean onActionDoneClick() {
+  cite [SRC] transactions/EditTransactionCommonFunctions.java:1511-1528
+     1511:     private void showSplitCategoriesForm(String datasetName) {
+     1512:         // If there are no splits, use the current values for the initial split record.
+     1513:         List<ISplitTransaction> splitsToShow = getSplitTransactions();
+     1514:         if (getSplitTransactions().isEmpty()) {
+     1515:             ISplitTransaction currentTransaction = createSplitFromTransaction();
+     1516:             splitsToShow.add(currentTransaction);
+     1517:         }
+     1518: 
+     1519:         Intent intent = new Intent(getContext(), SplitCategoriesActivity.class);
+     1520:         intent.putExtra(SplitCategoriesActivity.KEY_DATASET_TYPE, datasetName);
+     1521:         intent.putExtra(SplitCategoriesActivity.KEY_TRANSACTION_TYPE, transactionEntity.getTransactionType().getCode());
+     1522:         intent.putExtra(SplitCategoriesActivity.KEY_SPLIT_TRANSACTION, Parcels.wrap(splitsToShow));
+     1523:         intent.putExtra(SplitCategoriesActivity.KEY_SPLIT_TRANSACTION_DELETED, Parcels.wrap(mSplitTransactionsDeleted));
+     1524: 
+     1525:         Integer fromCurrencyId = getSourceCurrencyId();
+     1526:         intent.putExtra(SplitCategoriesActivity.KEY_CURRENCY_ID, fromCurrencyId);
+     1527: 
+     1528:         getActivity().startActivityForResult(intent, RequestCodes.SPLIT_TX);
+  cite [SRC] ActivityThread.java:4253-4266
+    SOURCE FILE NOT FOUND for citation: ActivityThread.java
+
+STEP 15  edge E3d7198d3
+  RecurringTransactionEditActivity.onActivityResult -> EditTransactionCommonFunctions.onActivityResult
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC RecurringTransactionEditActivity.java:152 (bytecode)
+  cite [SRC] RecurringTransactionEditActivity.java:152
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/recurring/transactions/RecurringTransactionEditActivity.java)
+      152:         mCommon.onActivityResult(requestCode, resultCode, data);
+
+STEP 16  edge Efc70f074
+  EditTransactionCommonFunctions.onActivityResult -> EditTransactionCommonFunctions.onSplitConfirmed
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC EditTransactionCommonFunctions.java:899 (bytecode)
+  cite [SRC] EditTransactionCommonFunctions.java:899
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/EditTransactionCommonFunctions.java)
+      899:                 onSplitConfirmed(getSplitTransactions());
+
+STEP 17  edge Eb84c4f57
+  EditTransactionCommonFunctions.onSplitConfirmed -> EditTransactionCommonFunctions.resetCategory
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC EditTransactionCommonFunctions.java:1429 (bytecode)
+  cite [SRC] EditTransactionCommonFunctions.java:1429
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/EditTransactionCommonFunctions.java)
+     1429:         resetCategory();

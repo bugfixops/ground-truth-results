@@ -1,0 +1,144 @@
+## TutorialActivity.onOptionsItemSelected  REACHABLE  confirmed_by=SOURCE path=UNCHECKED
+   env=hardware state=settings classes=explicit;standard explicit_standard_route=yes
+   1. E71c76102 ENTRY/standard*
+      S_ENTRY -> MainActivity.<init>
+      The MAIN / LAUNCHER activity is started from the launcher
+      evidence: SRC AndroidManifest.xml:136-143 (MAIN + LAUNCHER intent filter of com.money.manager.ex.home.MainActivity)
+        136                  android:name=".home.MainActivity"
+        137                  android:label="@string/application_name" android:exported="true">
+        138              <intent-filter>
+        139                  <action android:name="android.intent.action.MAIN" />
+        140  
+        141                  <category android:name="android.intent.category.LAUNCHER" />
+        142                  <!-- Samsung MultiWindow Function -->
+        143                  <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
+   2. E2e074fc1 LIFECYCLE/standard*
+      MainActivity.<init> -> MainActivity.onCreate
+      the framework calls onCreate after it creates the activity instance
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2722-2731 (callActivityOnCreate); FW-SRC core/java/android/app/Instrumentation.java:1212-1216; FW-SRC core/java/android/app/Activity.java:6993-7000 (performCreate calls onCreate); same route as graph_def.py AccountEditActivity.<init> -> onCreate
+       2722                  int theme = r.activityInfo.getThemeResource();
+       2723                  if (theme != 0) {
+       2724                      activity.setTheme(theme);
+       2725                  }
+       2726  
+       2727                  activity.mCalled = false;
+       2728                  if (r.isPersistable()) {
+       2729                      mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+       2730                  } else {
+       2731                      mInstrumentation.callActivityOnCreate(activity, r.state);
+       1212      public void callActivityOnCreate(Activity activity, Bundle icicle) {
+       1213          prePerformCreate(activity);
+       1214          activity.performCreate(icicle);
+       1215          postPerformCreate(activity);
+       1216      }
+       6993      final void performCreate(Bundle icicle, PersistableBundle persistentState) {
+       6994          mCanEnterPictureInPicture = true;
+       6995          restoreHasCurrentPermissionRequest(icicle);
+       6996          if (persistentState != null) {
+       6997              onCreate(icicle, persistentState);
+       6998          } else {
+       6999              onCreate(icicle);
+       7000          }
+   3. Eda32c006 CALL/explicit*
+      MainActivity.onCreate -> MainActivity.showPrerequisite
+      Direct call
+      evidence: SRC MainActivity.java:184 (bytecode)
+        184          if (showPrerequisite()) {
+   4. E4563886d CALL/explicit*
+      MainActivity.showPrerequisite -> MainActivity.showTutorial
+      Direct call
+      evidence: SRC MainActivity.java:1481 (bytecode)
+       1481              showTutorial();
+   5. E40178052 INTENT/standard* [STATE: first run: the tutorial has not been dismissed (getShowTutorial is true; the default is true, BehaviourSettings.java:86-88)]
+      MainActivity.showTutorial -> TutorialActivity.<init>
+      startActivity(new Intent(this, TutorialActivity.class)) with FLAG_ACTIVITY_CLEAR_TOP: the first-run tutorial, started from showPrerequisite
+      evidence: SRC home/MainActivity.java:812-817 (showTutorial; Intent 813, startActivity 816); SRC home/MainActivity.java:184 (showPrerequisite call), 1351-1353 (isTutorialNeeded), 1478-1482 (showTutorial at 1481); SRC settings/BehaviourSettings.java:86-88; SRC AndroidManifest.xml:314-319 (no intent-filter)
+        812      public void showTutorial() {
+        813          Intent intent = new Intent(this, TutorialActivity.class);
+        814          // make top-level so there's no going back.
+        815          intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        816          startActivity(intent);
+        817          // Tutorial is marked as seen when OK on the last page is clicked.
+        184          if (showPrerequisite()) {
+         86      public Boolean getShowTutorial() {
+         87          return get(R.string.pref_show_tutorial, true);
+         88      }
+        314          <activity
+        315              android:name=".tutorial.TutorialActivity"
+        316              android:configChanges="keyboardHidden|orientation|screenSize"
+        317              android:label="@string/application_name"
+        318              android:screenOrientation="portrait"
+        319              android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
+   6. E0c500742 LIFECYCLE/standard*
+      TutorialActivity.<init> -> TutorialActivity.onCreate
+      the framework calls onCreate right after the constructor
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2722-2731 (callActivityOnCreate); FW-SRC core/java/android/app/Activity.java:6993-7000 (performCreate calls onCreate); SRC tutorial/TutorialActivity.java:49-73
+       2722                  int theme = r.activityInfo.getThemeResource();
+       2723                  if (theme != 0) {
+       2724                      activity.setTheme(theme);
+       2725                  }
+       2726  
+       2727                  activity.mCalled = false;
+       2728                  if (r.isPersistable()) {
+       2729                      mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+       2730                  } else {
+       2731                      mInstrumentation.callActivityOnCreate(activity, r.state);
+       6993      final void performCreate(Bundle icicle, PersistableBundle persistentState) {
+       6994          mCanEnterPictureInPicture = true;
+       6995          restoreHasCurrentPermissionRequest(icicle);
+       6996          if (persistentState != null) {
+       6997              onCreate(icicle, persistentState);
+       6998          } else {
+       6999              onCreate(icicle);
+       7000          }
+         49      protected void onCreate(Bundle savedInstanceState) {
+         50          super.onCreate(savedInstanceState);
+         51          // Hide the zygote background to speed up rendering. Only when activities have
+         52          // their own background set.
+         53          // tip from http://cyrilmottier.com/2013/01/23/android-app-launching-made-gorgeous/
+         54          //getWindow().setBackgroundDrawable(null);
+         55          setContentView(R.layout.activity_tutorial);
+         56  
+         57          ButterKnife.bind(this);
+         58  
+         59          CircleIndicator circleIndicator = findViewById(R.id.indicator_default);
+         60  
+         61          ViewPager viewpager = findViewById(R.id.viewpager_default);
+         62          TutorialPagerAdapter pagerAdapter = new TutorialPagerAdapter(getSupportFragmentManager());
+      ...  (11 more lines)
+   7. E13eb2a1c ENTERS/page*
+      TutorialActivity.onCreate -> S_TUTORIAL
+      the tutorial screen is shown: setContentView (activity_tutorial) and the pager adapter are set
+      evidence: SRC tutorial/TutorialActivity.java:55, 61-63
+         55          setContentView(R.layout.activity_tutorial);
+   8. Eacaec855 GUI/standard* [ENV: the device has a hardware menu key: this theme has no action bar, so the options menu opens only from the menu key]
+      S_TUTORIAL -> TutorialActivity.onOptionsItemSelected
+      tap the settings item (action_settings) in the options menu: Activity.onMenuItemSelected calls onOptionsItemSelected
+      evidence: FW-SRC core/java/android/app/Activity.java:3439-3450 (onOptionsItemSelected at 3450); SRC tutorial/TutorialActivity.java:105-118 (action_settings at 113, returns true at 114)
+       3439      public boolean onMenuItemSelected(int featureId, MenuItem item) {
+       3440          CharSequence titleCondensed = item.getTitleCondensed();
+       3441  
+       3442          switch (featureId) {
+       3443              case Window.FEATURE_OPTIONS_PANEL:
+       3444                  // Put event logging here so it gets called even if subclass
+       3445                  // doesn't call through to superclass's implmeentation of each
+       3446                  // of these methods below
+       3447                  if(titleCondensed != null) {
+       3448                      EventLog.writeEvent(50000, 0, titleCondensed.toString());
+       3449                  }
+       3450                  if (onOptionsItemSelected(item)) {
+        105      @Override
+        106      public boolean onOptionsItemSelected(MenuItem item) {
+        107          // Handle action bar item clicks here. The action bar will
+        108          // automatically e clicks on the Home/Up button, so long
+        109          // as you specify a parent activity in AndroidManifest.xml.
+        110          int id = item.getItemId();
+        111  
+        112          //noinspection SimplifiableIfStatement
+        113          if (id == R.id.action_settings) {
+        114              return true;
+        115          }
+        116  
+        117          return super.onOptionsItemSelected(item);
+        118      }
+

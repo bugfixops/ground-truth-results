@@ -48,8 +48,10 @@ e('SingleAccountWidget.initializeNewTransactionCommand', 'CheckingTransactionEdi
 
 e('ButtonAddTransactionWidgetProvider.onUpdate', 'CheckingTransactionEditActivity.<init>', 'INTENT',
   'the add-transaction widget button starts the editor through a PendingIntent with ACTION_INSERT',
+  gui=['Tap the add-transaction widget button (R.id.buttonNewOperation)'],
+  guard='user taps the widget button (RemoteViews click)',
   cls='non_standard', via='PendingIntent.getActivity at ButtonAddTransactionWidgetProvider.java:41 (the launcher starts the activity on a widget tap)',
-  evidence='SRC widget/ButtonAddTransactionWidgetProvider.java:32-41 (intent 38, ACTION_INSERT 39, PendingIntent 41)')
+  evidence='SRC widget/ButtonAddTransactionWidgetProvider.java:32-45 (intent 38, ACTION_INSERT 39, PendingIntent 41, setOnClickPendingIntent 42, updateAppWidget 45)')
 
 e('AllDataListFragment.startEditAccountTransactionActivity', 'CheckingTransactionEditActivity.<init>', 'INTENT',
   'the all-data list opens an existing transaction with ACTION_EDIT, or a new one with ACTION_INSERT',
@@ -165,10 +167,7 @@ e('CategoryListFragment.setResult', 'CheckingTransactionEditActivity.onActivityR
   guard='the category activity is started with ACTION_PICK (EditTransactionCommonFunctions.java:461-466)',
   evidence='SRC common/CategoryListFragment.java:313 (setResult), 354 (RESULT_OK); SRC transactions/EditTransactionCommonFunctions.java:461-466; FW-SRC core/java/android/app/ActivityThread.java:4253-4266; INFERRED: the dispatch to onActivityResult is not printed for this batch')
 
-e('SplitCategoriesActivity.onActionDoneClick', 'CheckingTransactionEditActivity.onActivityResult', 'RESULT',
-  'the split categories editor returns the splits: setResult(RESULT_OK) in onActionDoneClick, and the framework calls onActivityResult',
-  guard='the editor is started with RequestCodes.SPLIT_TX (EditTransactionCommonFunctions.java:1511-1528)',
-  evidence='SRC transactions/SplitCategoriesActivity.java:149-177 (setResult RESULT_OK at 174); SRC transactions/EditTransactionCommonFunctions.java:1511-1528; FW-SRC core/java/android/app/ActivityThread.java:4253-4266; INFERRED: the dispatch to onActivityResult is not printed for this batch')
+# B6-RESULT1-R2: plain Split.onActionDoneClick -> Checking.onActivityResult partitioned to @CHECKING RESULT in graph_def_mod/03.py (plain edge deleted).
 
 # ---- EventBus: the activity registers in onStart; the posts are ASYNC edges
 
@@ -253,19 +252,11 @@ SCREENS.update({
 
 # ---- entry, lifecycle and screen edges
 
-e('EditTransactionCommonFunctions.showSplitCategoriesForm', 'SplitCategoriesActivity.<init>', 'INTENT',
-  'startActivityForResult(new Intent(getContext(), SplitCategoriesActivity.class), RequestCodes.SPLIT_TX) with the split rows, currency and transaction type as extras',
-  gui=['Tap the split button on the transaction edit form while the transaction is not split yet', 'Tap the category field on the transaction edit form while the transaction is already split'],
-  guard='the split button takes the splitting branch (EditTransactionCommonFunctions.java:602-605); the category field takes the split branch (EditTransactionCommonFunctions.java:462-469)',
-  evidence='SRC transactions/EditTransactionCommonFunctions.java:1519-1528 (intent 1519; startActivityForResult 1528); 598-605 (split button listener; showSplitCategoriesForm at 605); 455-469 (category field listener; showSplitCategoriesForm at 469, reached through access$700 per auto_calls.json); SRC transactions/SplitCategoriesActivity.java:57 (auto_calls.json record to MmxBaseFragmentActivity.<init>); FW-SRC core/java/android/app/Instrumentation.java:1170-1174 (newActivity creates the instance through newInstance at 1174); FW-SRC core/java/android/app/ActivityThread.java:2667-2671 (newActivity at 2669-2670). INTERIM: the owner of showSplitCategoriesForm is not merged (D8)')
+# B6-RESULT1-R2: plain showSplitCategoriesForm -> Split.<init> partitioned to @CHECKING/@RECURRING in graph_def_mod/03.py (plain edge deleted).
 
-e('SplitCategoriesActivity.<init>', 'SplitCategoriesActivity.onCreate', 'LIFECYCLE',
-  'the framework calls onCreate after it creates the activity instance',
-  evidence='FW-SRC core/java/android/app/ActivityThread.java:2729-2731 (callActivityOnCreate); FW-SRC core/java/android/app/Instrumentation.java:1212-1214 (callActivityOnCreate); FW-SRC core/java/android/app/Activity.java:6989-7000 (performCreate calls onCreate at 6997 and 6999)')
+# B6-RESULT1-R2: plain Split.<init> -> Split.onCreate partitioned to @CHECKING/@RECURRING in graph_def_mod/03.py (plain edge deleted).
 
-e('SplitCategoriesActivity.onCreate', 'S_SPLIT_CATEGORIES', 'ENTERS',
-  'the split categories form is shown',
-  evidence='SRC transactions/SplitCategoriesActivity.java:100 (setContentView R.layout.activity_split_categories); SRC res/layout/activity_split_categories.xml:68-69 (the fab view)')
+# B6-RESULT1-R2: plain Split.onCreate -> S_SPLIT_CATEGORIES partitioned to @CHECKING/@RECURRING in graph_def_mod/03.py (plain edge deleted).
 
 e('SplitCategoriesActivity.onCreate', 'SplitCategoriesActivity.onCreateOptionsMenu', 'FRAMEWORK',
   'the framework builds the options menu for the window: PhoneWindow calls onCreatePanelMenu, which calls onCreateOptionsMenu',
@@ -277,10 +268,7 @@ e('SplitCategoriesActivity.onCreate', 'SplitCategoriesActivity.onSaveInstanceSta
 
 # ---- GUI edges from the screen
 
-e('S_SPLIT_CATEGORIES', 'SplitCategoriesActivity.onOptionsItemSelected', 'GUI',
-  'the framework calls onOptionsItemSelected for the save menu item; the save item calls onActionDoneClick',
-  gui=['Tap the save (check) icon in the action bar of the split categories form'],
-  evidence='SRC transactions/SplitCategoriesActivity.java:112 (addSaveToolbarIcon), 117-123 (onOptionsItemSelected; MenuHelper.save at 119-120 returns onActionDoneClick); FW-SRC core/java/android/app/Activity.java:3439-3450 (onMenuItemSelected calls onOptionsItemSelected at 3450); INFERRED: the AppCompat dispatch from the action bar to onOptionsItemSelected is not in fw_src')
+# B6-RESULT1-R2: plain S_SPLIT_CATEGORIES -> Split.onOptionsItemSelected partitioned to @CHECKING/@RECURRING in graph_def_mod/03.py (plain edge deleted).
 
 e('S_SPLIT_CATEGORIES', 'SplitCategoriesActivity_ViewBinding$1.doClick', 'GUI',
   'the user taps the add button (R.id.fab): the generated @OnClick listener calls onFabClick, which adds a split row',
@@ -345,10 +333,7 @@ e('CategoryListFragment.setResult', 'SplitCategoriesActivity.onActivityResult', 
   guard='requestCode is REQUEST_PICK_CATEGORY (SplitCategoriesActivity.java:131) and resultCode is RESULT_OK with data non-null (SplitCategoriesActivity.java:129); the RESULT_OK branch needs ACTION_PICK and a checked category (CategoryListFragment.java:314, 324, 351-354)',
   evidence='SRC common/CategoryListFragment.java:313-359 (protected setResult; ACTION_PICK at 314; checked category at 321-324; RESULT_OK at 354; RESULT_CANCELED at 356); SRC common/BaseListFragment.java:177-180 (setResultAndFinish calls setResult at 178, then finish); SRC transactions/SplitCategoriesActivity.java:69 (REQUEST_PICK_CATEGORY = 1), 314 (startActivityForResult with REQUEST_PICK_CATEGORY); FW-SRC core/java/android/app/ActivityThread.java:4253-4265 (deliverResults calls dispatchActivityResult at 4264-4265); FW-SRC core/java/android/app/Activity.java:7259-7266 (onActivityResult at 7266)')
 
-e('CalculatorActivity.returnResult', 'SplitCategoriesActivity.onActivityResult', 'RESULT',
-  'the calculator returns the amount and finishes: setResult(RESULT_OK, result), and the framework calls onActivityResult with the row request code plus the amount offset',
-  guard='requestCode >= amountRequestOffset (SplitCategoriesActivity.java:142) and resultCode is RESULT_OK with data non-null (SplitCategoriesActivity.java:129); the request code is the row request id plus 1000 (SplitCategoriesActivity.java:79, 207-210; Calculator.java:79 passes it to startActivityForResult)',
-  evidence='SRC common/CalculatorActivity.java:435-445 (returnResult: setResult(RESULT_OK) at 443, finish at 444); SRC common/Calculator.java:79 (activity.startActivityForResult(intent, requestCode)); SRC transactions/SplitCategoriesActivity.java:79 (amountRequestOffset = 1000), 207-210 (Calculator show with event.requestId + amountRequestOffset); FW-SRC core/java/android/app/ActivityThread.java:4253-4265; FW-SRC core/java/android/app/Activity.java:7259-7266')
+# B6-RESULT1-R3: plain Calculator.returnResult -> Split.onActivityResult partitioned to @SPLIT -> @AMOUNT RESULT in graph_def_mod/03.py (plain edge deleted).
 
 # ---- UNREACHABLE entries (kind, reason, source reference, confirmed_by)
 
@@ -1186,6 +1171,7 @@ e('S_ENTRY', 'AccountBillsWidgetProvider.<init>', 'ENTRY',
 
 e('AccountBillsWidgetProvider.<init>', 'AccountBillsWidgetProvider.onUpdate', 'LIFECYCLE',
   'the framework calls onReceive on the receiver it has just created; AppWidgetProvider.onReceive calls this.onUpdate when the action is ACTION_APPWIDGET_UPDATE',
+  guard='broadcast action == ACTION_APPWIDGET_UPDATE AND intent extras non-null AND EXTRA_APPWIDGET_IDS non-null and non-empty (FW AppWidgetProvider.java:61-66)',
   evidence='FW-SRC core/java/android/appwidget/AppWidgetProvider.java:57-68 (onReceive; this.onUpdate at 66); FW-SRC core/java/android/app/ActivityThread.java:3187; SRC widget/AccountBillsWidgetProvider.java:40-77 (the override)')
 
 # ---- UNREACHABLE: income report getters with no caller (source root)
@@ -1311,6 +1297,7 @@ e('S_ENTRY', 'SingleAccountWidget.<init>', 'ENTRY',
 
 e('SingleAccountWidget.<init>', 'SingleAccountWidget.onUpdate', 'LIFECYCLE',
   'AppWidgetProvider.onReceive calls this.onUpdate for ACTION_APPWIDGET_UPDATE',
+  guard='intent action == AppWidgetManager.ACTION_APPWIDGET_UPDATE AND intent extras != null AND appWidgetIds != null AND appWidgetIds.length > 0 (FW AppWidgetProvider.java:61, :63, :65-66)',
   evidence='FW-SRC core/java/android/appwidget/AppWidgetProvider.java:66; FW-SRC services/appwidget/java/com/android/server/appwidget/AppWidgetServiceImpl.java:2283-2286 (setComponent 2286); SRC widget/SingleAccountWidget.java:69-70 (override)')
 
 e('SingleAccountWidget.<init>', 'SingleAccountWidget.onDeleted', 'LIFECYCLE',

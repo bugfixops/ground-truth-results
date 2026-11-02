@@ -196,10 +196,7 @@ e('PayeeActivity.onCreate', 'PayeeActivity.onKeyUp', 'FRAMEWORK',
   evidence='FW-SRC core/java/android/app/Activity.java:3255-3272; FW-SRC core/java/android/view/KeyEvent.java:2709-2715; SRC PayeeActivity.java:64-76')
 
 # ---- AboutActivity
-e('MainActivity.onDrawerMenuAndOptionMenuSelected', 'AboutActivity.<init>', 'INTENT',
-  'case R.id.menu_about: startActivity(new Intent(MainActivity.this, AboutActivity.class))',
-  gui=['Open the navigation drawer and tap About'],
-  evidence='SRC home/MainActivity.java:688-690; SRC home/MainActivity.java:975-978; SRC home/MainActivity.java:1118-1120')
+# B6-DRAWER: plain dispatcher -> AboutActivity.<init> partitioned to @GROUP in graph_def_mod/03.py (plain edge deleted).
 
 e('SettingsFragment$9.onPreferenceClick', 'AboutActivity.<init>', 'INTENT',
   'startActivity(new Intent(getActivity(), AboutActivity.class)) from the info preference',
@@ -916,10 +913,7 @@ e('AllDataListFragment.onCreateLoader', 'AccountTransactionListFragment.onCreate
   guard='the parent callbacks are set: showTransactionsFragment runs before the list loads (lines 837-847)',
   evidence='SRC common/AllDataListFragment.java:219-221 (forward at 221); SRC account/AccountTransactionListFragment.java:847; interface call, not recorded in auto_calls.json')
 
-e('AllDataListFragment.onLoadFinished', 'AccountTransactionListFragment.onLoadFinished', 'CALL',
-  'AllDataListFragment forwards the loader result to this fragment (line 264); for the transaction list loader this restarts the summary loader and refreshes the running balance',
-  guard='the parent callbacks are set (line 847)',
-  evidence='SRC common/AllDataListFragment.java:262-265 (forward at 264); SRC account/AccountTransactionListFragment.java:354-379; interface call, not recorded in auto_calls.json')
+# B6-SEARCH: plain AllDataListFragment.onLoadFinished -> AccountTransactionListFragment.onLoadFinished partitioned to @AccountTransactionListFragment in graph_def_mod/03.py (plain edge deleted; shared src lets a Search prefix claim the host onLoadFinished).
 
 e('AllDataListFragment.onLoaderReset', 'AccountTransactionListFragment.onLoaderReset', 'CALL',
   'AllDataListFragment forwards onLoaderReset to this fragment (line 255); this fragment does nothing there',
@@ -1444,11 +1438,7 @@ e('FilterDialogFragment.newInstance', 'TransactionFilter$$Parcelable.writeToParc
   cls='non_standard', via='args.putParcelable(ARG_TX_FILTER, Parcels.wrap(filter)) at FilterDialogFragment.java:73; the FragmentManager saves the arguments (androidx, INFERRED: library source not read); Parcel.writeValue calls writeParcelable (FW-SRC Parcel.java:1697, 1785-1791), which calls p.writeToParcel (FW-SRC Parcel.java:1791)',
   evidence='SRC account/FilterDialogFragment.java:72-76; FW-SRC core/java/android/os/Parcel.java:1697, 1785-1791; INFERRED androidx FragmentManager saves the arguments (library not read)')
 
-e('FilterDialogFragment.onCreate', 'TransactionFilter$$Parcelable$1.createFromParcel', 'FRAMEWORK',
-  'when the dialog is recreated from saved state, the arguments are unparcelled; the framework reads the creator of TransactionFilter$$Parcelable and calls createFromParcel',
-  guard='the dialog is recreated from a saved parcel: the unparcel happens on the first getParcelable call (line 86)',
-  cls='non_standard', via='getArguments().getParcelable(ARG_TX_FILTER) at FilterDialogFragment.java:86 calls unparcel (FW-SRC core/java/android/os/Bundle.java:938-939); Parcel.readValue calls readParcelable (FW-SRC Parcel.java:2744-2745, 2841-2851), which calls creator.createFromParcel (FW-SRC Parcel.java:2851)',
-  evidence='SRC account/FilterDialogFragment.java:85-86; FW-SRC core/java/android/os/Bundle.java:938-939; FW-SRC core/java/android/os/Parcel.java:2744-2745, 2841-2851; INFERRED the framework restores the dialog arguments from a parcel (androidx library not read)')
+# B6-EVENT: plain FilterDialogFragment.onCreate -> TransactionFilter$$Parcelable$1.createFromParcel partitioned to @RESTORED in graph_def_mod/03.py (plain edge deleted; false for fresh Bundle — FW-SRC Bundle.java:938-939 returns the map object without creator).
 
 # ---- sup: bytecode calls that start in an UNREACHABLE method cannot run, so they are dropped
 
@@ -1624,10 +1614,7 @@ SCREENS.update({
 
 # ---- BudgetsActivity: started from the navigation drawer, then the framework calls onCreate
 
-e('MainActivity.onDrawerMenuAndOptionMenuSelected', 'BudgetsActivity.<init>', 'INTENT',
-  'case R.id.menu_budgets: startActivity(new Intent(this, BudgetsActivity.class))',
-  gui=['Open the navigation drawer and tap Budgets'],
-  evidence='SRC home/MainActivity.java:589, 654-657; SRC home/MainActivity.java:1090-1093 (drawer item menu_budgets); SRC res/values/strings.xml:561; SRC AndroidManifest.xml:324-326 (no intent filter)')
+# B6-DRAWER: plain dispatcher -> BudgetsActivity.<init> partitioned to @GROUP in graph_def_mod/03.py (plain edge deleted).
 
 e('BudgetsActivity.<init>', 'BudgetsActivity.onCreate', 'LIFECYCLE',
   'the framework calls onCreate right after the constructor',
@@ -1670,9 +1657,7 @@ e('BudgetListFragment.<init>', 'BudgetListFragment.onCreate', 'LIFECYCLE',
   'BudgetsActivity.createFragments commits the transaction that adds the fragment (replace at line 121, commit at line 122), and the FragmentManager then calls onCreate',
   evidence='SRC budget/BudgetsActivity.java:117, 121-122; SRC budget/BudgetListFragment.java:63-64, 95-98; INFERRED androidx Fragment lifecycle (library source not read)')
 
-e('AbsListFragment.onCreateView', 'BudgetListFragment.onViewCreated', 'LIFECYCLE',
-  'the framework calls onViewCreated after the view is created by the inherited onCreateView (AbsListFragment inflates abs_list_fragment)',
-  evidence='SRC AbsListFragment.java:77-79; SRC budget/BudgetListFragment.java:119-123; INFERRED androidx Fragment lifecycle (library source not read)')
+# B6-SEARCH: plain AbsListFragment.onCreateView -> BudgetListFragment.onViewCreated partitioned to @BudgetListFragment in graph_def_mod/03.py (plain edge deleted; shared src lets ANY prefix claim Budget onViewCreated).
 
 e('BudgetListFragment.onViewCreated', 'BudgetListFragment.onActivityCreated', 'LIFECYCLE',
   'the framework calls onActivityCreated after onViewCreated; onActivityCreated shows the + button, attaches it to the list and registers the list for the context menu',
@@ -1682,6 +1667,7 @@ e('BudgetListFragment.onViewCreated', 'BudgetListFragment.onActivityCreated', 'L
 
 e('BudgetListFragment.displayBudgets', 'BudgetListFragment.onCreateLoader', 'FRAMEWORK',
   'initLoader (line 235) starts the budget loader and the LoaderManager calls onCreateLoader',
+  guard='loader id == LOADER_BUDGETS (BudgetListFragment.java:131, initLoader at :235)',
   evidence='SRC budget/BudgetListFragment.java:52-53, 235; INFERRED androidx LoaderManager.initLoader calls LoaderCallbacks.onCreateLoader (library not read)')
 
 e('BudgetListFragment.onActivityResult', 'BudgetListFragment.onCreateLoader', 'FRAMEWORK',
@@ -1690,10 +1676,12 @@ e('BudgetListFragment.onActivityResult', 'BudgetListFragment.onCreateLoader', 'F
 
 e('BudgetListFragment.onCreateLoader', 'BudgetListFragment.onLoadFinished', 'FRAMEWORK',
   'the loader (MmxCursorLoader, line 136) delivers its cursor and the LoaderManager calls onLoadFinished',
+  guard='loader id == LOADER_BUDGETS (BudgetListFragment.java:143)',
   evidence='SRC budget/BudgetListFragment.java:127-139, 141-152; INFERRED androidx Loader delivers its result to the callbacks (library not read)')
 
 e('BudgetListFragment.onLoadFinished', 'BudgetListFragment.onLoaderReset', 'FRAMEWORK',
   'a loader that has delivered data is reset (the fragment is destroyed, or restartLoader at line 114 replaces it) and the LoaderManager calls onLoaderReset',
+  guard='loader id == LOADER_BUDGETS (BudgetListFragment.java:157)',
   evidence='SRC budget/BudgetListFragment.java:141-159; INFERRED androidx LoaderManager calls onLoaderReset when a loader with data is destroyed (library not read)')
 
 # ---- result of the editor: BudgetEditActivity sets RESULT_OK when the budget is saved (batch 017 owns the activity)
@@ -2235,9 +2223,7 @@ e('SearchParametersFragment.onAmountToClicked', 'CalculatorActivity.<init>', 'IN
   'the to-amount field opens the calculator: Calculator.show (line 415, Calculator.forFragment) starts CalculatorActivity',
   evidence='SRC search/SearchParametersFragment.java:408-416 (@OnClick at 408; forFragment, amount and show on line 415); ' + EV_START)
 
-e('SplitCategoriesActivity.onEvent(AmountEntryRequestedEvent)', 'CalculatorActivity.<init>', 'INTENT',
-  'an amount-entry request event opens the calculator: Calculator.show (line 210) starts CalculatorActivity',
-  evidence='SRC transactions/SplitCategoriesActivity.java:205-211 (forActivity 207, currency 208, amount 209, show 210); ' + EV_START)
+# B6-RESULT1-R3: plain Split.onEvent -> Calculator.<init> partitioned to @SPLIT INTENT in graph_def_mod/03.py (plain edge deleted; built id was E20490343 as computed in spec).
 
 # ---- creation, lifecycle and menu
 

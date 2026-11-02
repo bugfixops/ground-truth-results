@@ -1,0 +1,120 @@
+METHOD: MmxOpenHelper.<init>
+verdict: REACHABLE   steps_from_launch: 8
+route steps: 8 edges
+======================================================================
+
+STEP 1  edge E71c76102
+  S_ENTRY -> MainActivity.<init>
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC AndroidManifest.xml:136-143 (MAIN + LAUNCHER intent filter of com.money.manager.ex.home.MainActivity)
+  cite [SRC] AndroidManifest.xml:136-143
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/AndroidManifest.xml)
+      136:                 android:name=".home.MainActivity"
+      137:                 android:label="@string/application_name" android:exported="true">
+      138:             <intent-filter>
+      139:                 <action android:name="android.intent.action.MAIN" />
+      140: 
+      141:                 <category android:name="android.intent.category.LAUNCHER" />
+      142:                 <!-- Samsung MultiWindow Function -->
+      143:                 <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
+
+STEP 2  edge E2e074fc1
+  MainActivity.<init> -> MainActivity.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC core/java/android/app/ActivityThread.java:2722-2731 (callActivityOnCreate); FW-SRC core/java/android/app/Instrumentation.java:1212-1216; FW-SRC core/java/android/app/Activity.java:6993-7000 (performCreate calls onCreate); same route as graph_def.py AccountEditActivity.<init> -> onCreate
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2722-2731
+     2722:                 int theme = r.activityInfo.getThemeResource();
+     2723:                 if (theme != 0) {
+     2724:                     activity.setTheme(theme);
+     2725:                 }
+     2726: 
+     2727:                 activity.mCalled = false;
+     2728:                 if (r.isPersistable()) {
+     2729:                     mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+     2730:                 } else {
+     2731:                     mInstrumentation.callActivityOnCreate(activity, r.state);
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1212-1216
+     1212:     public void callActivityOnCreate(Activity activity, Bundle icicle) {
+     1213:         prePerformCreate(activity);
+     1214:         activity.performCreate(icicle);
+     1215:         postPerformCreate(activity);
+     1216:     }
+  cite [FW-SRC] core/java/android/app/Activity.java:6993-7000
+     6993:     final void performCreate(Bundle icicle, PersistableBundle persistentState) {
+     6994:         mCanEnterPictureInPicture = true;
+     6995:         restoreHasCurrentPermissionRequest(icicle);
+     6996:         if (persistentState != null) {
+     6997:             onCreate(icicle, persistentState);
+     6998:         } else {
+     6999:             onCreate(icicle);
+     7000:         }
+
+STEP 3  edge Ee3d2a3b0
+  MainActivity.onCreate -> MainActivity.handleIntent
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainActivity.java:210 (bytecode)
+  cite [SRC] MainActivity.java:210
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java)
+      210:         handleIntent();
+
+STEP 4  edge Ebb8946c0
+  MainActivity.handleIntent -> MainActivity.changeDatabase
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainActivity.java:1199 (bytecode)
+  cite [SRC] MainActivity.java:1199
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java)
+     1199:                 changeDatabase(db);
+
+STEP 5  edge Ecb944bb8
+  MainActivity.changeDatabase -> MmxDatabaseUtils.useDatabase
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainActivity.java:546 (bytecode)
+  cite [SRC] MainActivity.java:546
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java)
+      546:             dbUtils.useDatabase(database);
+
+STEP 6  edge Ebbe1d06e
+  MmxDatabaseUtils.useDatabase -> MmexApplication.initDb
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MmxDatabaseUtils.java:219 (bytecode)
+  cite [SRC] MmxDatabaseUtils.java:219
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/utils/MmxDatabaseUtils.java)
+      219:         MmexApplication.getApp().initDb(database.localPath);
+
+STEP 7  edge E85600dbd
+  MmexApplication.initDb -> MmexApplication.createDbInstance
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MmexApplication.java:230 (bytecode)
+  cite [SRC] MmexApplication.java:230
+      230:         MmxOpenHelper db = createDbInstance(path);
+
+STEP 8  edge E28958a1f
+  MmexApplication.createDbInstance -> MmxOpenHelper.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MmexApplication.java:245 (bytecode)
+  cite [SRC] MmexApplication.java:245
+      245:         return new MmxOpenHelper(this, path);

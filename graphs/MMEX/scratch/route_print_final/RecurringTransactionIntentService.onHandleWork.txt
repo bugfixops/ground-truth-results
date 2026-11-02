@@ -1,0 +1,99 @@
+## RecurringTransactionIntentService.onHandleWork  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=time state=settings classes=explicit;standard explicit_standard_route=yes
+   1. Ef7b742ce ENTRY/standard*
+      S_ENTRY -> RecurringTransactionBootReceiver.<init>
+      The system delivers BOOT_COMPLETED to the receiver declared in the manifest (the app holds RECEIVE_BOOT_COMPLETED), and the framework creates the receiver by class name
+      evidence: SRC AndroidManifest.xml:26, 108-112; FW-SRC core/java/android/app/ActivityThread.java:3141-3166 (handleReceiver creates the receiver with loadClass(component).newInstance())
+         26      <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+       3141      private void handleReceiver(ReceiverData data) {
+       3142          // If we are getting ready to gc after going to the background, well
+       3143          // we are back active so skip it.
+       3144          unscheduleGcIdler();
+       3145  
+       3146          String component = data.intent.getComponent().getClassName();
+       3147  
+       3148          LoadedApk packageInfo = getPackageInfoNoCheck(
+       3149                  data.info.applicationInfo, data.compatInfo);
+       3150  
+       3151          IActivityManager mgr = ActivityManager.getService();
+       3152  
+       3153          Application app;
+       3154          BroadcastReceiver receiver;
+      ...  (12 more lines)
+   2. E5e28ba39 LIFECYCLE/standard*
+      RecurringTransactionBootReceiver.<init> -> RecurringTransactionBootReceiver.onReceive
+      The framework calls onReceive on the receiver it has just created
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:3187 (receiver.onReceive); SRC RecurringTransactionBootReceiver.java:40-47
+       3187              receiver.onReceive(context.getReceiverRestrictedContext(),
+         40      public void onReceive(Context context, Intent intent) {
+         41          try {
+         42              // Start heartbeat for Recurring Transaction check.
+         43              setAlarm(context);
+         44          } catch (Exception e) {
+         45              Timber.e(e, "Setting the alarm for recurring transactions check");
+         46          }
+         47      }
+   3. E345a16d3 CALL/explicit*
+      RecurringTransactionBootReceiver.onReceive -> RecurringTransactionBootReceiver.setAlarm
+      Direct call
+      evidence: SRC RecurringTransactionBootReceiver.java:43 (bytecode)
+         43              setAlarm(context);
+   4. Ed94f083b FRAMEWORK/standard(AlarmManager repeat with a broadcast PendingIntent (AlarmManager delivery and the framework are not read: INFERRED))* [ENV: the daily alarm fires at the notification time (the hour set in the settings)] [STATE: the repeating transaction notifications setting is on (default on, BehaviourSettings.java:42)]
+      RecurringTransactionBootReceiver.setAlarm -> RecurringTransactionReceiver.<init>
+      setAlarm schedules a daily repeating AlarmManager alarm whose PendingIntent is a broadcast to RecurringTransactionReceiver; when the alarm fires the system creates the receiver instance to deliver the broadcast
+      evidence: SRC RecurringTransactionBootReceiver.java:49-53 (notify gate), 56-57 (intent and PendingIntent.getBroadcast), 59-78 (hour and calendar), 79-84 (cancel at 81, setRepeating at 83-84); SRC notifications/RecurringTransactionReceiver.java:31-39; SRC settings/BehaviourSettings.java:41-43; INFERRED AlarmManager delivery (not read)
+         49      private void setAlarm(Context context) {
+         50          BehaviourSettings settings = new BehaviourSettings(context);
+         51  
+         52          boolean notify = settings.getNotificationRecurringTransaction();
+         53          if (!notify) return;
+         31  	public void onReceive(Context context, Intent intent) {
+         32          // If the notifications are disabled in preferences, do not trigger the alarm.
+         33          boolean notify = PreferenceManager.getDefaultSharedPreferences(context)
+         34                  .getBoolean(context.getString(PreferenceConstants.PREF_REPEATING_TRANSACTION_NOTIFICATIONS), true);
+         35          if (!notify) return;
+         36  
+         37  		Intent myIntent = new Intent(context, RecurringTransactionIntentService.class);
+         38          RecurringTransactionIntentService.enqueueWork(context, myIntent);
+         39      }
+         41      public boolean getNotificationRecurringTransaction() {
+         42          return get(PreferenceConstants.PREF_REPEATING_TRANSACTION_NOTIFICATIONS, true);
+         43      }
+   5. Ee8264341 LIFECYCLE/standard* [STATE: the repeating transaction notifications setting is on (default on, BehaviourSettings.java:42)]
+      RecurringTransactionReceiver.<init> -> RecurringTransactionReceiver.onReceive
+      the system calls onReceive on the new receiver instance; onReceive reads the notification setting and returns when it is off, otherwise it enqueues the job service (lines 37-38)
+      guard: the setting is on (lines 33-35; the default is true)
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:3185-3188 (receiver.onReceive at 3187); SRC notifications/RecurringTransactionReceiver.java:31-39
+       3185              sCurrentBroadcastIntent.set(data.intent);
+       3186              receiver.setPendingResult(data);
+       3187              receiver.onReceive(context.getReceiverRestrictedContext(),
+       3188                      data.intent);
+         31  	public void onReceive(Context context, Intent intent) {
+         32          // If the notifications are disabled in preferences, do not trigger the alarm.
+         33          boolean notify = PreferenceManager.getDefaultSharedPreferences(context)
+         34                  .getBoolean(context.getString(PreferenceConstants.PREF_REPEATING_TRANSACTION_NOTIFICATIONS), true);
+         35          if (!notify) return;
+         36  
+         37  		Intent myIntent = new Intent(context, RecurringTransactionIntentService.class);
+         38          RecurringTransactionIntentService.enqueueWork(context, myIntent);
+         39      }
+   6. Ef6aef24f CALL/explicit*
+      RecurringTransactionReceiver.onReceive -> RecurringTransactionIntentService.enqueueWork
+      Direct call
+      evidence: SRC RecurringTransactionReceiver.java:38 (bytecode)
+         38          RecurringTransactionIntentService.enqueueWork(context, myIntent);
+   7. Eef61d710 FRAMEWORK/standard(JobIntentService worker thread (library not read: INFERRED))*
+      RecurringTransactionIntentService.enqueueWork -> RecurringTransactionIntentService.onHandleWork
+      the JobIntentService worker delivers the queued intent to onHandleWork, which builds the notifications object and calls notifyRepeatingTransaction (lines 42-43; these two CALL records are in auto_calls.json)
+      evidence: SRC notifications/RecurringTransactionIntentService.java:39-48; INFERRED androidx JobIntentService dispatch (library not read)
+         39  	@Override
+         40  	protected void onHandleWork(Intent intent) {
+         41  		// start repeating transaction
+         42  		RecurringTransactionNotifications notifications = new RecurringTransactionNotifications(getApplicationContext());
+         43  		notifications.notifyRepeatingTransaction();
+         44  	}
+         45  
+         46  	public static void enqueueWork(Context context, Intent intent) {
+         47  	    enqueueWork(context, RecurringTransactionIntentService.class, JOB_ID, intent);
+         48      }
+

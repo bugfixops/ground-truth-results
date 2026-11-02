@@ -1,0 +1,210 @@
+METHOD: TutorialActivity.onOptionsItemSelected
+verdict: REACHABLE   steps_from_launch: 8
+route steps: 8 edges
+======================================================================
+
+STEP 1  edge E71c76102
+  S_ENTRY -> MainActivity.<init>
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC AndroidManifest.xml:136-143 (MAIN + LAUNCHER intent filter of com.money.manager.ex.home.MainActivity)
+  cite [SRC] AndroidManifest.xml:136-143
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/AndroidManifest.xml)
+      136:                 android:name=".home.MainActivity"
+      137:                 android:label="@string/application_name" android:exported="true">
+      138:             <intent-filter>
+      139:                 <action android:name="android.intent.action.MAIN" />
+      140: 
+      141:                 <category android:name="android.intent.category.LAUNCHER" />
+      142:                 <!-- Samsung MultiWindow Function -->
+      143:                 <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
+
+STEP 2  edge E2e074fc1
+  MainActivity.<init> -> MainActivity.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC core/java/android/app/ActivityThread.java:2722-2731 (callActivityOnCreate); FW-SRC core/java/android/app/Instrumentation.java:1212-1216; FW-SRC core/java/android/app/Activity.java:6993-7000 (performCreate calls onCreate); same route as graph_def.py AccountEditActivity.<init> -> onCreate
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2722-2731
+     2722:                 int theme = r.activityInfo.getThemeResource();
+     2723:                 if (theme != 0) {
+     2724:                     activity.setTheme(theme);
+     2725:                 }
+     2726: 
+     2727:                 activity.mCalled = false;
+     2728:                 if (r.isPersistable()) {
+     2729:                     mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+     2730:                 } else {
+     2731:                     mInstrumentation.callActivityOnCreate(activity, r.state);
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1212-1216
+     1212:     public void callActivityOnCreate(Activity activity, Bundle icicle) {
+     1213:         prePerformCreate(activity);
+     1214:         activity.performCreate(icicle);
+     1215:         postPerformCreate(activity);
+     1216:     }
+  cite [FW-SRC] core/java/android/app/Activity.java:6993-7000
+     6993:     final void performCreate(Bundle icicle, PersistableBundle persistentState) {
+     6994:         mCanEnterPictureInPicture = true;
+     6995:         restoreHasCurrentPermissionRequest(icicle);
+     6996:         if (persistentState != null) {
+     6997:             onCreate(icicle, persistentState);
+     6998:         } else {
+     6999:             onCreate(icicle);
+     7000:         }
+
+STEP 3  edge Eda32c006
+  MainActivity.onCreate -> MainActivity.showPrerequisite
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainActivity.java:184 (bytecode)
+  cite [SRC] MainActivity.java:184
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java)
+      184:         if (showPrerequisite()) {
+
+STEP 4  edge E4563886d
+  MainActivity.showPrerequisite -> MainActivity.showTutorial
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainActivity.java:1481 (bytecode)
+  cite [SRC] MainActivity.java:1481
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java)
+     1481:             showTutorial();
+
+STEP 5  edge E40178052
+  MainActivity.showTutorial -> TutorialActivity.<init>
+  class: standard   kind: INTENT
+  guard: None
+  needs_state: first run: the tutorial has not been dismissed (getShowTutorial is true; the default is true, BehaviourSettings.java:86-88)
+  env: None
+  evidence: SRC home/MainActivity.java:812-817 (showTutorial; Intent 813, startActivity 816); SRC home/MainActivity.java:184 (showPrerequisite call), 1351-1353 (isTutorialNeeded), 1478-1482 (showTutorial at 1481); SRC settings/BehaviourSettings.java:86-88; SRC AndroidManifest.xml:314-319 (no intent-filter)
+  cite [SRC] home/MainActivity.java:812-817
+      812:     public void showTutorial() {
+      813:         Intent intent = new Intent(this, TutorialActivity.class);
+      814:         // make top-level so there's no going back.
+      815:         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+      816:         startActivity(intent);
+      817:         // Tutorial is marked as seen when OK on the last page is clicked.
+  cite [SRC] home/MainActivity.java:184
+      184:         if (showPrerequisite()) {
+  cite [SRC] settings/BehaviourSettings.java:86-88
+       86:     public Boolean getShowTutorial() {
+       87:         return get(R.string.pref_show_tutorial, true);
+       88:     }
+  cite [SRC] AndroidManifest.xml:314-319
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/AndroidManifest.xml)
+      314:         <activity
+      315:             android:name=".tutorial.TutorialActivity"
+      316:             android:configChanges="keyboardHidden|orientation|screenSize"
+      317:             android:label="@string/application_name"
+      318:             android:screenOrientation="portrait"
+      319:             android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
+
+STEP 6  edge E0c500742
+  TutorialActivity.<init> -> TutorialActivity.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC core/java/android/app/ActivityThread.java:2722-2731 (callActivityOnCreate); FW-SRC core/java/android/app/Activity.java:6993-7000 (performCreate calls onCreate); SRC tutorial/TutorialActivity.java:49-73
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2722-2731
+     2722:                 int theme = r.activityInfo.getThemeResource();
+     2723:                 if (theme != 0) {
+     2724:                     activity.setTheme(theme);
+     2725:                 }
+     2726: 
+     2727:                 activity.mCalled = false;
+     2728:                 if (r.isPersistable()) {
+     2729:                     mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+     2730:                 } else {
+     2731:                     mInstrumentation.callActivityOnCreate(activity, r.state);
+  cite [FW-SRC] core/java/android/app/Activity.java:6993-7000
+     6993:     final void performCreate(Bundle icicle, PersistableBundle persistentState) {
+     6994:         mCanEnterPictureInPicture = true;
+     6995:         restoreHasCurrentPermissionRequest(icicle);
+     6996:         if (persistentState != null) {
+     6997:             onCreate(icicle, persistentState);
+     6998:         } else {
+     6999:             onCreate(icicle);
+     7000:         }
+  cite [SRC] tutorial/TutorialActivity.java:49-73
+       49:     protected void onCreate(Bundle savedInstanceState) {
+       50:         super.onCreate(savedInstanceState);
+       51:         // Hide the zygote background to speed up rendering. Only when activities have
+       52:         // their own background set.
+       53:         // tip from http://cyrilmottier.com/2013/01/23/android-app-launching-made-gorgeous/
+       54:         //getWindow().setBackgroundDrawable(null);
+       55:         setContentView(R.layout.activity_tutorial);
+       56: 
+       57:         ButterKnife.bind(this);
+       58: 
+       59:         CircleIndicator circleIndicator = findViewById(R.id.indicator_default);
+       60: 
+       61:         ViewPager viewpager = findViewById(R.id.viewpager_default);
+       62:         TutorialPagerAdapter pagerAdapter = new TutorialPagerAdapter(getSupportFragmentManager());
+       63:         viewpager.setAdapter(pagerAdapter);
+       64:         circleIndicator.setViewPager(viewpager);
+       65: 
+       66: //        TextView skipText = (TextView) findViewById(R.id.skipTextView);
+       67: //        skipText.setOnClickListener(new View.OnClickListener() {
+       68: //            @Override
+       69: //            public void onClick(View view) {
+       70: //                onCloseClicked();
+       71: //            }
+       72: //        });
+       73:     }
+
+STEP 7  edge E13eb2a1c
+  TutorialActivity.onCreate -> S_TUTORIAL
+  class: page   kind: ENTERS
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC tutorial/TutorialActivity.java:55, 61-63
+  cite [SRC] tutorial/TutorialActivity.java:55, 61-63
+       55:         setContentView(R.layout.activity_tutorial);
+       61:         ViewPager viewpager = findViewById(R.id.viewpager_default);
+       62:         TutorialPagerAdapter pagerAdapter = new TutorialPagerAdapter(getSupportFragmentManager());
+       63:         viewpager.setAdapter(pagerAdapter);
+
+STEP 8  edge Eacaec855
+  S_TUTORIAL -> TutorialActivity.onOptionsItemSelected
+  class: standard   kind: GUI
+  guard: None
+  needs_state: None
+  env: the device has a hardware menu key: this theme has no action bar, so the options menu opens only from the menu key
+  evidence: FW-SRC core/java/android/app/Activity.java:3439-3450 (onOptionsItemSelected at 3450); SRC tutorial/TutorialActivity.java:105-118 (action_settings at 113, returns true at 114)
+  cite [FW-SRC] core/java/android/app/Activity.java:3439-3450
+     3439:     public boolean onMenuItemSelected(int featureId, MenuItem item) {
+     3440:         CharSequence titleCondensed = item.getTitleCondensed();
+     3441: 
+     3442:         switch (featureId) {
+     3443:             case Window.FEATURE_OPTIONS_PANEL:
+     3444:                 // Put event logging here so it gets called even if subclass
+     3445:                 // doesn't call through to superclass's implmeentation of each
+     3446:                 // of these methods below
+     3447:                 if(titleCondensed != null) {
+     3448:                     EventLog.writeEvent(50000, 0, titleCondensed.toString());
+     3449:                 }
+     3450:                 if (onOptionsItemSelected(item)) {
+  cite [SRC] tutorial/TutorialActivity.java:105-118
+      105:     @Override
+      106:     public boolean onOptionsItemSelected(MenuItem item) {
+      107:         // Handle action bar item clicks here. The action bar will
+      108:         // automatically e clicks on the Home/Up button, so long
+      109:         // as you specify a parent activity in AndroidManifest.xml.
+      110:         int id = item.getItemId();
+      111: 
+      112:         //noinspection SimplifiableIfStatement
+      113:         if (id == R.id.action_settings) {
+      114:             return true;
+      115:         }
+      116: 
+      117:         return super.onOptionsItemSelected(item);
+      118:     }

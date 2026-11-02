@@ -1,0 +1,122 @@
+METHOD: DatabaseManager.getContext
+verdict: REACHABLE   steps_from_launch: 8
+route steps: 8 edges
+======================================================================
+
+STEP 1  edge E71c76102
+  S_ENTRY -> MainActivity.<init>
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC AndroidManifest.xml:136-143 (MAIN + LAUNCHER intent filter of com.money.manager.ex.home.MainActivity)
+  cite [SRC] AndroidManifest.xml:136-143
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/AndroidManifest.xml)
+      136:                 android:name=".home.MainActivity"
+      137:                 android:label="@string/application_name" android:exported="true">
+      138:             <intent-filter>
+      139:                 <action android:name="android.intent.action.MAIN" />
+      140: 
+      141:                 <category android:name="android.intent.category.LAUNCHER" />
+      142:                 <!-- Samsung MultiWindow Function -->
+      143:                 <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
+
+STEP 2  edge E2e074fc1
+  MainActivity.<init> -> MainActivity.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC core/java/android/app/ActivityThread.java:2722-2731 (callActivityOnCreate); FW-SRC core/java/android/app/Instrumentation.java:1212-1216; FW-SRC core/java/android/app/Activity.java:6993-7000 (performCreate calls onCreate); same route as graph_def.py AccountEditActivity.<init> -> onCreate
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2722-2731
+     2722:                 int theme = r.activityInfo.getThemeResource();
+     2723:                 if (theme != 0) {
+     2724:                     activity.setTheme(theme);
+     2725:                 }
+     2726: 
+     2727:                 activity.mCalled = false;
+     2728:                 if (r.isPersistable()) {
+     2729:                     mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+     2730:                 } else {
+     2731:                     mInstrumentation.callActivityOnCreate(activity, r.state);
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1212-1216
+     1212:     public void callActivityOnCreate(Activity activity, Bundle icicle) {
+     1213:         prePerformCreate(activity);
+     1214:         activity.performCreate(icicle);
+     1215:         postPerformCreate(activity);
+     1216:     }
+  cite [FW-SRC] core/java/android/app/Activity.java:6993-7000
+     6993:     final void performCreate(Bundle icicle, PersistableBundle persistentState) {
+     6994:         mCanEnterPictureInPicture = true;
+     6995:         restoreHasCurrentPermissionRequest(icicle);
+     6996:         if (persistentState != null) {
+     6997:             onCreate(icicle, persistentState);
+     6998:         } else {
+     6999:             onCreate(icicle);
+     7000:         }
+
+STEP 3  edge Ec1f7c9c2
+  MainActivity.onCreate -> MainActivity.showCurrentDatabasePath
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainActivity.java:223 (bytecode)
+  cite [SRC] MainActivity.java:223
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java)
+      223:         showCurrentDatabasePath(this);
+
+STEP 4  edge Edff47499
+  MainActivity.showCurrentDatabasePath -> DatabaseManager.getDatabasePath
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainActivity.java:1426 (bytecode)
+  cite [SRC] MainActivity.java:1426
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java)
+     1426:         String currentPath = new DatabaseManager(context).getDatabasePath();
+
+STEP 5  edge E12cf38a6
+  DatabaseManager.getDatabasePath -> DatabaseManager.getDefaultDatabasePath
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC DatabaseManager.java:54 (bytecode)
+  cite [SRC] DatabaseManager.java:54
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/core/database/DatabaseManager.java)
+       54:         String defaultPath = getDefaultDatabasePath();
+
+STEP 6  edge E2ed88e21
+  DatabaseManager.getDefaultDatabasePath -> DatabaseManager.getDefaultDatabaseDirectory
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC DatabaseManager.java:75 (bytecode)
+  cite [SRC] DatabaseManager.java:75
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/core/database/DatabaseManager.java)
+       75:         return getDefaultDatabaseDirectory()
+
+STEP 7  edge Ed1acc672
+  DatabaseManager.getDefaultDatabaseDirectory -> DatabaseManager.getPackageDirectory
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC DatabaseManager.java:97 (bytecode)
+  cite [SRC] DatabaseManager.java:97
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/core/database/DatabaseManager.java)
+       97:         defaultFolder = getPackageDirectory();
+
+STEP 8  edge E27eef14a
+  DatabaseManager.getPackageDirectory -> DatabaseManager.getContext
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC DatabaseManager.java:163 (bytecode)
+  cite [SRC] DatabaseManager.java:163
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/core/database/DatabaseManager.java)
+      163:         File packageLocation = getContext().getFilesDir().getParentFile();

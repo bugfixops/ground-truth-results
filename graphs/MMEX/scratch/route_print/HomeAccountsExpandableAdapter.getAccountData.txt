@@ -1,0 +1,303 @@
+METHOD: HomeAccountsExpandableAdapter.getAccountData
+verdict: REACHABLE   steps_from_launch: 11
+route steps: 11 edges
+======================================================================
+
+STEP 1  edge E71c76102
+  S_ENTRY -> MainActivity.<init>
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC AndroidManifest.xml:136-143 (MAIN + LAUNCHER intent filter of com.money.manager.ex.home.MainActivity)
+  cite [SRC] AndroidManifest.xml:136-143
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/AndroidManifest.xml)
+      136:                 android:name=".home.MainActivity"
+      137:                 android:label="@string/application_name" android:exported="true">
+      138:             <intent-filter>
+      139:                 <action android:name="android.intent.action.MAIN" />
+      140: 
+      141:                 <category android:name="android.intent.category.LAUNCHER" />
+      142:                 <!-- Samsung MultiWindow Function -->
+      143:                 <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
+
+STEP 2  edge E2e074fc1
+  MainActivity.<init> -> MainActivity.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC core/java/android/app/ActivityThread.java:2722-2731 (callActivityOnCreate); FW-SRC core/java/android/app/Instrumentation.java:1212-1216; FW-SRC core/java/android/app/Activity.java:6993-7000 (performCreate calls onCreate); same route as graph_def.py AccountEditActivity.<init> -> onCreate
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2722-2731
+     2722:                 int theme = r.activityInfo.getThemeResource();
+     2723:                 if (theme != 0) {
+     2724:                     activity.setTheme(theme);
+     2725:                 }
+     2726: 
+     2727:                 activity.mCalled = false;
+     2728:                 if (r.isPersistable()) {
+     2729:                     mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+     2730:                 } else {
+     2731:                     mInstrumentation.callActivityOnCreate(activity, r.state);
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1212-1216
+     1212:     public void callActivityOnCreate(Activity activity, Bundle icicle) {
+     1213:         prePerformCreate(activity);
+     1214:         activity.performCreate(icicle);
+     1215:         postPerformCreate(activity);
+     1216:     }
+  cite [FW-SRC] core/java/android/app/Activity.java:6993-7000
+     6993:     final void performCreate(Bundle icicle, PersistableBundle persistentState) {
+     6994:         mCanEnterPictureInPicture = true;
+     6995:         restoreHasCurrentPermissionRequest(icicle);
+     6996:         if (persistentState != null) {
+     6997:             onCreate(icicle, persistentState);
+     6998:         } else {
+     6999:             onCreate(icicle);
+     7000:         }
+
+STEP 3  edge E42f75996
+  MainActivity.onCreate -> MainActivity.onStart
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC home/MainActivity.java:179-181, 248-249; FW-SRC core/java/android/app/ActivityThread.java:2740-2760 (performStart at 2741)
+  cite [SRC] home/MainActivity.java:179-181, 248-249
+      179:     protected void onCreate(Bundle savedInstanceState) {
+      180:         super.onCreate(savedInstanceState);
+      181: 
+      248:     protected void onStart() {
+      249:         super.onStart();
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2740-2760
+     2740:                 if (!r.activity.mFinished) {
+     2741:                     activity.performStart();
+     2742:                     r.stopped = false;
+     2743:                 }
+     2744:                 if (!r.activity.mFinished) {
+     2745:                     if (r.isPersistable()) {
+     2746:                         if (r.state != null || r.persistentState != null) {
+     2747:                             mInstrumentation.callActivityOnRestoreInstanceState(activity, r.state,
+     2748:                                     r.persistentState);
+     2749:                         }
+     2750:                     } else if (r.state != null) {
+     2751:                         mInstrumentation.callActivityOnRestoreInstanceState(activity, r.state);
+     2752:                     }
+     2753:                 }
+     2754:                 if (!r.activity.mFinished) {
+     2755:                     activity.mCalled = false;
+     2756:                     if (r.isPersistable()) {
+     2757:                         mInstrumentation.callActivityOnPostCreate(activity, r.state,
+     2758:                                 r.persistentState);
+     2759:                     } else {
+     2760:                         mInstrumentation.callActivityOnPostCreate(activity, r.state);
+
+STEP 4  edge Ed7c3255d
+  MainActivity.onStart -> MainActivity.onResume
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC home/MainActivity.java:248-249, 271-273; FW-SRC core/java/android/app/ActivityThread.java:2950; FW-SRC core/java/android/app/Activity.java:7098-7104
+  cite [SRC] home/MainActivity.java:248-249, 271-273
+      248:     protected void onStart() {
+      249:         super.onStart();
+      271:     protected void onResume() {
+      272:         try {
+      273:             super.onResume();
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2950
+     2950:             r.activity.performResume();
+  cite [FW-SRC] core/java/android/app/Activity.java:7098-7104
+     7098:     final void performResume() {
+     7099:         performRestart();
+     7100: 
+     7101:         mFragments.execPendingActions();
+     7102: 
+     7103:         mLastNonConfigurationInstances = null;
+     7104: 
+
+STEP 5  edge E907a4a17
+  MainActivity.onResume -> HomeFragment.onResume
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC home/MainActivity.java:271-276; SRC home/HomeFragment.java:378-401; INFERRED androidx FragmentActivity dispatch (library not read); pattern graph_def.py:2071
+  cite [SRC] home/MainActivity.java:271-276
+      271:     protected void onResume() {
+      272:         try {
+      273:             super.onResume();
+      274:         } catch (Exception e) {
+      275:             Timber.e(e, "resuming main activity");
+      276:         }
+  cite [SRC] home/HomeFragment.java:378-401
+      378:     @Override
+      379:     public void onResume() {
+      380:         super.onResume();
+      381: 
+      382:         refreshSettings();
+      383: 
+      384:         // Toolbar
+      385:         FragmentActivity parent = getActivity();
+      386:         if (parent instanceof AppCompatActivity) {
+      387:             AppCompatActivity activity = (AppCompatActivity) getActivity();
+      388: 
+      389:             // show title
+      390:             activity.getSupportActionBar().setDisplayShowTitleEnabled(true);
+      391: 
+      392:             // Show db name in toolbar.
+      393:             String dbPath = new AppSettings(activity).getDatabaseSettings().getDatabasePath();
+      394:             //String dbFileName = FilenameUtils.getBaseName(dbPath);
+      395:             String dbFileName = Files.getNameWithoutExtension(dbPath);
+      396:             activity.getSupportActionBar().setSubtitle(dbFileName);
+      397:         }
+      398: 
+      399:         // reload data.
+      400:         startLoaders();
+      401:     }
+
+STEP 6  edge E4612a5e5
+  HomeFragment.onResume -> HomeFragment.startLoaders
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC HomeFragment.java:400 (bytecode)
+  cite [SRC] HomeFragment.java:400
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/HomeFragment.java)
+      400:         startLoaders();
+
+STEP 7  edge Ef3db1a02
+  HomeFragment.startLoaders -> HomeFragment.onCreateLoader
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC home/HomeFragment.java:531-537; INFERRED androidx LoaderManager (library not read); pattern label_073.py:32-34
+  cite [SRC] home/HomeFragment.java:531-537
+      531:     public void startLoaders() {
+      532:         LoaderManager loaderManager = getLoaderManager();
+      533: //        loaderManager.restartLoader(LOADER_USER_NAME, null, this);
+      534:         loadUsername();
+      535:         loaderManager.restartLoader(LOADER_ACCOUNT_BILLS, null, this);
+      536:         loaderManager.restartLoader(LOADER_INCOME_EXPENSES, null, this);
+      537:     }
+
+STEP 8  edge Eaf7907a9
+  HomeFragment.onCreateLoader -> HomeFragment.onLoadFinished
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC home/HomeFragment.java:222-273, 287-288; INFERRED androidx Loader delivery (library not read); pattern label_073.py:27-29
+  cite [SRC] home/HomeFragment.java:222-273, 287-288
+      222:     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+      223:         MmxCursorLoader result;
+      224:         Select query;
+      225: 
+      226:         switch (id) {
+      227:             case LOADER_ACCOUNT_BILLS:
+      228:                 setListViewAccountBillsVisible(false);
+      229: 
+      230:                 LookAndFeelSettings settings = new AppSettings(getContext()).getLookAndFeelSettings();
+      231:                 // compose whereClause
+      232:                 String where = "";
+      233:                 // check if show only open accounts
+      234:                 if (settings.getViewOpenAccounts()) {
+      235:                     where = "LOWER(" + QueryAccountBills.STATUS + ")='open'";
+      236:                 }
+      237:                 // check if show fav accounts
+      238:                 if (settings.getViewFavouriteAccounts()) {
+      239:                     where = "LOWER(" + QueryAccountBills.FAVORITEACCT + ")='true'";
+      240:                 }
+      241: 
+      242:                 QueryAccountBills queryAccountBills = new QueryAccountBills(getActivity());
+      243:                 query = new Select(queryAccountBills.getAllColumns())
+      244:                     .where(where)
+      245:                     .orderBy(QueryAccountBills.ACCOUNTTYPE + ", upper(" + QueryAccountBills.ACCOUNTNAME + ")");
+      246: 
+      247:                 result = new MmxCursorLoader(getActivity(), queryAccountBills.getUri(), query);
+      248:                 break;
+      249: 
+      250:             case LOADER_INCOME_EXPENSES:
+      251:                 // todo: Get custom period. pref_income_expense_footer_period
+      252: //                String period = new AppSettings(getContext()).getBehaviourSettings().getIncomeExpensePeriod();
+      253: //                String transactionsFilter = generator.getWhereClauseForPeriod(period);
+      254: //                report.filterTransactionsSource(transactionsFilter);
+      255: 
+      256:                 String whereStatement =
+      257:                     IncomeVsExpenseReportEntity.Month + "="
+      258:                     + (Calendar.getInstance().get(Calendar.MONTH) + 1) +
+      259:                         " AND " +
+      260:                         IncomeVsExpenseReportEntity.YEAR + "=" +
+      261:                             Calendar.getInstance().get(Calendar.YEAR);
+      262: 
+      263:                 QueryReportIncomeVsExpenses report = new QueryReportIncomeVsExpenses(getActivity());
+      264:                 query = new Select(report.getAllColumns())
+      265:                         .where(whereStatement);
+      266:                 result = new MmxCursorLoader(getActivity(), report.getUri(), query);
+      267:                 break;
+      268: 
+      269:             default:
+      270:                 result = null;
+      271:         }
+      272:         return  result;
+      273:     }
+      287:     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+      288:         switch (loader.getId()) {
+
+STEP 9  edge E303c403e
+  HomeFragment.onLoadFinished -> HomeFragment.renderAccountsList
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC HomeFragment.java:291 (bytecode)
+  cite [SRC] HomeFragment.java:291
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/HomeFragment.java)
+      291:                     renderAccountsList(data);
+
+STEP 10  edge E12e26a00
+  HomeFragment.renderAccountsList -> HomeAccountsExpandableAdapter.getChildView
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: a child row exists: the account type group holds at least one account (mAccountsByType, HomeAccountsExpandableAdapter.java:77)
+  env: None
+  evidence: SRC home/HomeFragment.java:811-814; SRC home/HomeAccountsExpandableAdapter.java:196-216; INFERRED ExpandableListView and ExpandableListConnector call the adapter (framework source not in fw_src, not read)
+  cite [SRC] home/HomeFragment.java:811-814
+      811:         HomeAccountsExpandableAdapter expandableAdapter = new HomeAccountsExpandableAdapter(getActivity(),
+      812:                 mAccountTypes, mAccountsByType, mTotalsByType, mHideReconciled);
+      813:         // set adapter and shown
+      814:         mExpandableListView.setAdapter(expandableAdapter);
+  cite [SRC] home/HomeAccountsExpandableAdapter.java:196-216
+      196:     public View getChildView(int groupPosition, int childPosition, boolean isLastChild,
+      197:                              View convertView, ViewGroup parent) {
+      198:         ViewHolderAccountBills holder;
+      199:         if (convertView == null) {
+      200:             LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+      201:             convertView = inflater.inflate(R.layout.item_account_bills, null);
+      202: 
+      203:             holder = new ViewHolderAccountBills();
+      204:             holder.txtAccountName = convertView.findViewById(R.id.textViewItemAccountName);
+      205:             holder.txtAccountTotal = convertView.findViewById(R.id.textViewItemAccountTotal);
+      206:             holder.txtAccountReconciled = convertView.findViewById(R.id.textViewItemAccountTotalReconciled);
+      207:             holder.imgAccountType = convertView.findViewById(R.id.imageViewAccountType);
+      208: 
+      209:             holder.txtAccountTotal.setTypeface(null, Typeface.NORMAL);
+      210:             holder.imgAccountType.setVisibility(View.INVISIBLE);
+      211: 
+      212:             convertView.setTag(holder);
+      213:         }
+      214:         holder = (ViewHolderAccountBills) convertView.getTag();
+      215: 
+      216:         QueryAccountBills account = getAccountData(groupPosition, childPosition);
+
+STEP 11  edge E797a7163
+  HomeAccountsExpandableAdapter.getChildView -> HomeAccountsExpandableAdapter.getAccountData
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC HomeAccountsExpandableAdapter.java:216 (bytecode)
+  cite [SRC] HomeAccountsExpandableAdapter.java:216
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/HomeAccountsExpandableAdapter.java)
+      216:         QueryAccountBills account = getAccountData(groupPosition, childPosition);

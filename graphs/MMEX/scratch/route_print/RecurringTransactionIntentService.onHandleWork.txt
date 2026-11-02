@@ -1,0 +1,160 @@
+METHOD: RecurringTransactionIntentService.onHandleWork
+verdict: REACHABLE   steps_from_launch: 7
+route steps: 7 edges
+======================================================================
+
+STEP 1  edge Ef7b742ce
+  S_ENTRY -> RecurringTransactionBootReceiver.<init>
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC AndroidManifest.xml:26, 108-112; FW-SRC core/java/android/app/ActivityThread.java:3141-3166 (handleReceiver creates the receiver with loadClass(component).newInstance())
+  cite [SRC] AndroidManifest.xml:26, 108-112
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/AndroidManifest.xml)
+       26:     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+      108:         <receiver android:name=".core.RecurringTransactionBootReceiver" android:exported="true">
+      109:             <intent-filter>
+      110:                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+      111:             </intent-filter>
+      112:         </receiver>
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:3141-3166
+     3141:     private void handleReceiver(ReceiverData data) {
+     3142:         // If we are getting ready to gc after going to the background, well
+     3143:         // we are back active so skip it.
+     3144:         unscheduleGcIdler();
+     3145: 
+     3146:         String component = data.intent.getComponent().getClassName();
+     3147: 
+     3148:         LoadedApk packageInfo = getPackageInfoNoCheck(
+     3149:                 data.info.applicationInfo, data.compatInfo);
+     3150: 
+     3151:         IActivityManager mgr = ActivityManager.getService();
+     3152: 
+     3153:         Application app;
+     3154:         BroadcastReceiver receiver;
+     3155:         ContextImpl context;
+     3156:         try {
+     3157:             app = packageInfo.makeApplication(false, mInstrumentation);
+     3158:             context = (ContextImpl) app.getBaseContext();
+     3159:             if (data.info.splitName != null) {
+     3160:                 context = (ContextImpl) context.createContextForSplit(data.info.splitName);
+     3161:             }
+     3162:             java.lang.ClassLoader cl = context.getClassLoader();
+     3163:             data.intent.setExtrasClassLoader(cl);
+     3164:             data.intent.prepareToEnterProcess();
+     3165:             data.setExtrasClassLoader(cl);
+     3166:             receiver = (BroadcastReceiver)cl.loadClass(component).newInstance();
+
+STEP 2  edge E5e28ba39
+  RecurringTransactionBootReceiver.<init> -> RecurringTransactionBootReceiver.onReceive
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC core/java/android/app/ActivityThread.java:3187 (receiver.onReceive); SRC RecurringTransactionBootReceiver.java:40-47
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:3187
+     3187:             receiver.onReceive(context.getReceiverRestrictedContext(),
+  cite [SRC] RecurringTransactionBootReceiver.java:40-47
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/core/RecurringTransactionBootReceiver.java)
+       40:     public void onReceive(Context context, Intent intent) {
+       41:         try {
+       42:             // Start heartbeat for Recurring Transaction check.
+       43:             setAlarm(context);
+       44:         } catch (Exception e) {
+       45:             Timber.e(e, "Setting the alarm for recurring transactions check");
+       46:         }
+       47:     }
+
+STEP 3  edge E345a16d3
+  RecurringTransactionBootReceiver.onReceive -> RecurringTransactionBootReceiver.setAlarm
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC RecurringTransactionBootReceiver.java:43 (bytecode)
+  cite [SRC] RecurringTransactionBootReceiver.java:43
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/core/RecurringTransactionBootReceiver.java)
+       43:             setAlarm(context);
+
+STEP 4  edge Ed94f083b
+  RecurringTransactionBootReceiver.setAlarm -> RecurringTransactionReceiver.<init>
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: the repeating transaction notifications setting is on (default on, BehaviourSettings.java:42)
+  env: the daily alarm fires at the notification time (the hour set in the settings)
+  evidence: SRC RecurringTransactionBootReceiver.java:49-53 (notify gate), 56-57 (intent and PendingIntent.getBroadcast), 59-78 (hour and calendar), 79-84 (cancel at 81, setRepeating at 83-84); SRC notifications/RecurringTransactionReceiver.java:31-39; SRC settings/BehaviourSettings.java:41-43; INFERRED AlarmManager delivery (not read)
+  cite [SRC] RecurringTransactionBootReceiver.java:49-53
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/core/RecurringTransactionBootReceiver.java)
+       49:     private void setAlarm(Context context) {
+       50:         BehaviourSettings settings = new BehaviourSettings(context);
+       51: 
+       52:         boolean notify = settings.getNotificationRecurringTransaction();
+       53:         if (!notify) return;
+  cite [SRC] notifications/RecurringTransactionReceiver.java:31-39
+       31: 	public void onReceive(Context context, Intent intent) {
+       32:         // If the notifications are disabled in preferences, do not trigger the alarm.
+       33:         boolean notify = PreferenceManager.getDefaultSharedPreferences(context)
+       34:                 .getBoolean(context.getString(PreferenceConstants.PREF_REPEATING_TRANSACTION_NOTIFICATIONS), true);
+       35:         if (!notify) return;
+       36: 
+       37: 		Intent myIntent = new Intent(context, RecurringTransactionIntentService.class);
+       38:         RecurringTransactionIntentService.enqueueWork(context, myIntent);
+       39:     }
+  cite [SRC] settings/BehaviourSettings.java:41-43
+       41:     public boolean getNotificationRecurringTransaction() {
+       42:         return get(PreferenceConstants.PREF_REPEATING_TRANSACTION_NOTIFICATIONS, true);
+       43:     }
+
+STEP 5  edge Ee8264341
+  RecurringTransactionReceiver.<init> -> RecurringTransactionReceiver.onReceive
+  class: standard   kind: LIFECYCLE
+  guard: the setting is on (lines 33-35; the default is true)
+  needs_state: the repeating transaction notifications setting is on (default on, BehaviourSettings.java:42)
+  env: None
+  evidence: FW-SRC core/java/android/app/ActivityThread.java:3185-3188 (receiver.onReceive at 3187); SRC notifications/RecurringTransactionReceiver.java:31-39
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:3185-3188
+     3185:             sCurrentBroadcastIntent.set(data.intent);
+     3186:             receiver.setPendingResult(data);
+     3187:             receiver.onReceive(context.getReceiverRestrictedContext(),
+     3188:                     data.intent);
+  cite [SRC] notifications/RecurringTransactionReceiver.java:31-39
+       31: 	public void onReceive(Context context, Intent intent) {
+       32:         // If the notifications are disabled in preferences, do not trigger the alarm.
+       33:         boolean notify = PreferenceManager.getDefaultSharedPreferences(context)
+       34:                 .getBoolean(context.getString(PreferenceConstants.PREF_REPEATING_TRANSACTION_NOTIFICATIONS), true);
+       35:         if (!notify) return;
+       36: 
+       37: 		Intent myIntent = new Intent(context, RecurringTransactionIntentService.class);
+       38:         RecurringTransactionIntentService.enqueueWork(context, myIntent);
+       39:     }
+
+STEP 6  edge Ef6aef24f
+  RecurringTransactionReceiver.onReceive -> RecurringTransactionIntentService.enqueueWork
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC RecurringTransactionReceiver.java:38 (bytecode)
+  cite [SRC] RecurringTransactionReceiver.java:38
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/notifications/RecurringTransactionReceiver.java)
+       38:         RecurringTransactionIntentService.enqueueWork(context, myIntent);
+
+STEP 7  edge Eef61d710
+  RecurringTransactionIntentService.enqueueWork -> RecurringTransactionIntentService.onHandleWork
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC notifications/RecurringTransactionIntentService.java:39-48; INFERRED androidx JobIntentService dispatch (library not read)
+  cite [SRC] notifications/RecurringTransactionIntentService.java:39-48
+       39: 	@Override
+       40: 	protected void onHandleWork(Intent intent) {
+       41: 		// start repeating transaction
+       42: 		RecurringTransactionNotifications notifications = new RecurringTransactionNotifications(getApplicationContext());
+       43: 		notifications.notifyRepeatingTransaction();
+       44: 	}
+       45: 
+       46: 	public static void enqueueWork(Context context, Intent intent) {
+       47: 	    enqueueWork(context, RecurringTransactionIntentService.class, JOB_ID, intent);
+       48:     }

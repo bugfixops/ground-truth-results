@@ -571,8 +571,9 @@ gui('S_HOME', 'MainActivity.onOptionsItemSelected',
     evidence='SRC home/MainActivity.java:387-405 (home branch and toggle), 1289-1307 (setDisplayHomeAsUpEnabled(true)); FW-SRC core/java/android/app/Activity.java:3439-3452; INFERRED AppCompat toolbar click sends android.R.id.home to the callback (androidx not in fw_src); pattern label_019.py:31-36')
 
 gui('S_HOME', 'MainActivity$3.onGroupClick',
-    'Open the drawer (Up button or Menu key), then tap a top-level drawer item that has no sub-items (for example Payees or Recurring transactions)',
-    evidence='SRC home/MainActivity.java:928-962 (childItems.add(null) for groups without children at 928; onGroupClick at 938 returns false when children is not null); INFERRED ExpandableListView group click dispatch (library not read)')
+    'Open the drawer (Up button or Menu key), then tap a top-level drawer item that has no sub-items (for example Recurring transactions or Budgets)',
+    guard='the tapped group has null children (MainActivity.java:941-942); mDrawer is non-null (MainActivity.java:939)',
+    evidence='SRC home/MainActivity.java:936-963 (group-click chain; onGroupClick at 938 returns false when children is not null); INFERRED ExpandableListView group click dispatch (library not read)')
 
 # ---- part 084 (2026-10-29)
 # ================================================================== batch 084 (label_084): SelectDatabaseActivity_MembersInjector (4 methods), SelectDatabaseActivity_ViewBinding (7 methods: its two constructors, unbind, and the listener classes $1 and $2 with their constructors and doClick), and the 7 home event classes (one constructor each). 18 methods in all (graphs/MMEX/scratch/batches/batch_084.txt).
@@ -737,10 +738,7 @@ e('HomeFragment$6.onChildClick', 'MainActivity.onEvent(RequestAccountFragmentEve
   cls='non_standard', via='EventBus (greenrobot) post at HomeFragment.java:704; subscriber registered in MmxBaseFragmentActivity.onStart',
   evidence='SRC home/HomeFragment.java:686-706 (onChildClick; event chosen at 701-703; post at 704); SRC home/MainActivity.java:454-457; INFERRED EventBus delivery (library not read)')
 
-e('SyncServiceMessageHandler.handleMessage', 'MainActivity.onEvent(DbFileDownloadedEvent)', 'ASYNC',
-  'the sync service reports DOWNLOAD_COMPLETE: the handler posts DbFileDownloadedEvent, and MainActivity uses the downloaded database file',
-  cls='non_standard', via='EventBus (greenrobot) post at SyncServiceMessageHandler.java:89; subscriber registered in MmxBaseFragmentActivity.onStart',
-  evidence='SRC sync/SyncServiceMessageHandler.java:84-90 (post at 89); SRC sync/SyncService.java:125-129 (download route); SRC home/MainActivity.java:526-530 (529 useDownloadedDatabase); INFERRED EventBus delivery (library not read)')
+# B6-EVENT: plain SyncServiceMessageHandler.handleMessage -> MainActivity.onEvent(DbFileDownloadedEvent) partitioned to @DOWNLOAD in graph_def_mod/03.py (plain edge deleted; same DOWNLOAD-only truth as the SyncPref edge).
 
 # ---- EventBus registration: MmxBaseFragmentActivity.onStart registers the activity (inherited by MainActivity)
 e('MmxBaseFragmentActivity.onStart', 'MainActivity.onEvent(RequestAccountFragmentEvent)', 'REGISTER',
@@ -1982,11 +1980,7 @@ e('YqlSecurityPriceUpdaterRetrofit.onContentDownloaded', 'WatchlistFragment.onEv
   cls='non_standard', via='EventBus post at YqlSecurityPriceUpdaterRetrofit.java:130 to the subscriber registered in onStart (library dispatch, INFERRED)',
   evidence='SRC investment/yql/YqlSecurityPriceUpdaterRetrofit.java:113-131 (post at 130); SRC investment/SecurityPriceUpdaterFactory.java:44-45, 50-52; SRC settings/InvestmentSettings.java:75; SRC WatchlistFragment.java:290-293')
 
-e('FixerService.onContentDownloaded', 'WatchlistFragment.onEvent(PriceDownloadedEvent)', 'ASYNC',
-  'FixerService posts a PriceDownloadedEvent for each currency rate it downloads; EventBus also delivers it to the registered watchlist fragment, which then runs onPriceDownloaded with the currency code',
-  guard='the fragment is registered: onStart has run and onStop has not (lines 131 and 138)',
-  cls='non_standard', via='EventBus post at FixerService.java:120 to the subscriber registered in onStart (library dispatch, INFERRED)',
-  evidence='SRC investment/prices/FixerService.java:100-121 (post at 120); SRC WatchlistFragment.java:290-293, 330-337; INFERRED EventBus library dispatch (library source not read)')
+# B6-EVENT: plain FixerService.onContentDownloaded -> WatchlistFragment.onEvent(PriceDownloadedEvent) partitioned to @RETURNED in graph_def_mod/03.py (plain edge deleted; linear reading false — delivery needs return-interleaving, priced as session needs_state).
 
 e('WatchlistItemsFragment.onContextItemSelected', 'WatchlistFragment.onEvent(PriceUpdateRequestEvent)', 'ASYNC',
   'the user chooses Download price in the context menu of a watchlist row; EventBus delivers PriceUpdateRequestEvent to the registered watchlist fragment',
@@ -2794,10 +2788,7 @@ e('CategoryListFragment.setResult', 'RecurringTransactionEditActivity.onActivity
   guard='the category activity is started with ACTION_PICK (EditTransactionCommonFunctions.java:461-466)',
   evidence='SRC common/CategoryListFragment.java:313 (setResult), 354 (RESULT_OK in the same method, per grep.txt section 6); SRC transactions/EditTransactionCommonFunctions.java:461-466 (CategoryListActivity start with ACTION_PICK); INFERRED: the framework dispatch step is as for PayeeListFragment (ActivityThread.java:4253-4266)')
 
-e('SplitCategoriesActivity.onActionDoneClick', 'RecurringTransactionEditActivity.onActivityResult', 'RESULT',
-  'the split categories editor returns the splits and finishes: setResult(RESULT_OK, result) in onActionDoneClick, and the framework calls onActivityResult',
-  guard='the editor is started with RequestCodes.SPLIT_TX (EditTransactionCommonFunctions.java:1528, in showSplitCategoriesForm at 1511)',
-  evidence='SRC transactions/SplitCategoriesActivity.java:149 (onActionDoneClick), 174 (setResult RESULT_OK); SRC transactions/EditTransactionCommonFunctions.java:1511-1528 (startActivityForResult with RequestCodes.SPLIT_TX at 1528); INFERRED: the framework dispatch step is as for PayeeListFragment (ActivityThread.java:4253-4266)')
+# B6-RESULT1-R2: plain Split.onActionDoneClick -> Recurring.onActivityResult partitioned to @RECURRING RESULT in graph_def_mod/03.py (plain edge deleted).
 
 # ---- GUI edges from the form S_RECURRING_TRANSACTION_EDIT (page -> method)
 
@@ -2914,9 +2905,7 @@ e('RecurringTransactionListActivity.onCreate', 'RecurringTransactionListFragment
   'the activity adds the fragment in a transaction (lines 66-67) and the framework calls onActivityCreated after the activity onCreate',
   evidence='SRC recurring/transactions/RecurringTransactionListActivity.java:64-67; INFERRED androidx FragmentManager commits the transaction and calls onActivityCreated (library not read); precedent label_008.py:48-50 (FRAMEWORK commit -> onActivityCreated)')
 
-e('MainActivity.showFragment_Internal', 'RecurringTransactionListFragment.onActivityCreated', 'FRAMEWORK',
-  'the drawer item (MainActivity.java:651-652) reaches showFragment_Internal, which replaces fragmentMain and commits; the framework then calls onActivityCreated',
-  evidence='SRC home/MainActivity.java:1446-1466 (replace at 1462, addToBackStack at 1464, commit at 1466); INFERRED androidx FragmentManager calls onActivityCreated after the commit (library not read); precedent label_008.py:48-50 (AccountListFragment)')
+# B6-RESULT2: plain showFragment_Internal -> RecurringTransactionListFragment.onActivityCreated partitioned to @RECURRING in graph_def_mod/03.py (plain edge deleted; on the portfolio prefix the replaced fragment is a PortfolioFragment).
 
 e('MainActivity.showFragment(Class)', 'RecurringTransactionListFragment.<init>', 'CALL',
   'the drawer item menu_recurring_transaction calls showFragment(RecurringTransactionListFragment.class), which creates the fragment with classFragment.newInstance()',
@@ -2953,6 +2942,7 @@ e('RecurringTransactionListFragment.onQueryTextChange', 'RecurringTransactionLis
 
 e('RecurringTransactionListFragment.onActivityResult', 'RecurringTransactionListFragment.onCreateLoader', 'FRAMEWORK',
   'restartLoader at line 290 reloads the list after RESULT_OK and the LoaderManager calls onCreateLoader again',
+  guard='resultCode == RESULT_OK',
   evidence='SRC recurring/transactions/RecurringTransactionListFragment.java:277-292; INFERRED androidx LoaderManager.restartLoader calls the callbacks (library not read)')
 
 e('RecurringTransactionListFragment$2.onClick', 'RecurringTransactionListFragment.onCreateLoader', 'FRAMEWORK',
@@ -2981,9 +2971,7 @@ e('RecurringTransactionEditActivity.onActionDoneClick', 'RecurringTransactionLis
   'the edit form saves, calls setResult(RESULT_OK) and finishes; the result returns to the activity that started it, and the fragment (started at line 458) receives it in onActivityResult',
   evidence='SRC recurring/transactions/RecurringTransactionEditActivity.java:207-211 (setResult at 210); SRC recurring/transactions/RecurringTransactionListFragment.java:447-459 (startActivityForResult at 458); INFERRED androidx FragmentActivity dispatches the result to the fragment (library not read); precedent graph_def.py:1656 (BudgetListFragment RESULT edge)')
 
-e('CheckingTransactionEditActivity.onActionDoneClick', 'RecurringTransactionListFragment.onActivityResult', 'RESULT',
-  'the checking transaction editor opened for a new transaction saves, calls setResult(RESULT_OK) and finishes; the fragment started it at line 437 and receives the result in onActivityResult',
-  evidence='SRC transactions/CheckingTransactionEditActivity.java:194-197 (setResult at 196); SRC recurring/transactions/RecurringTransactionListFragment.java:427-438 (startActivityForResult at 437); INFERRED androidx FragmentActivity dispatches the result to the fragment (library not read)')
+# B6-RESULT2: plain Checking.onActionDoneClick -> RecurringTransactionListFragment.onActivityResult partitioned to @FRAG RESULT in graph_def_mod/03.py (plain edge deleted; widget launch is a PendingIntent, not startActivityForResult).
 
 # ---- GUI edges from the list page S_RECURRING_LIST (D6, D9: dialogs and calendar belong to the list page)
 
@@ -3065,6 +3053,7 @@ SCREENS.update({
 e('MainActivity.onDrawerMenuAndOptionMenuSelected', 'CategoriesReportActivity.<init>', 'INTENT',
   'the Categories report, Where the money goes or Where the money comes from item of the main menu starts CategoriesReportActivity with an explicit intent (the two money items also pass REPORT_FILTERS Withdrawal or Deposit and a REPORT_TITLE)',
   gui=['Tap Categories report, Where the money goes or Where the money comes from in the main menu (drawer or options menu)'],
+  guard='selectedItem.getId() == R.id.menu_report_categories (MainActivity.java:661-662; the two where_money_* variants at :670-681 are also valid but carry extras the later steps do not use)',
   evidence='SRC home/MainActivity.java:589 (method), 661-663, 670-675, 676-681 (case labels, new Intent and startActivity); SRC AndroidManifest.xml:292-294 (no intent-filter, so only explicit intents reach it); FW-SRC core/java/android/app/Instrumentation.java:1170-1174 (newActivity constructs the class)')
 
 e('CategoriesReportActivity.<init>', 'CategoriesReportActivity.onCreate', 'LIFECYCLE',
@@ -3352,17 +3341,13 @@ e('PayeesReportActivity.onCreate', 'S_PAYEE_REPORT', 'ENTERS',
 
 # ---- PayeeReportFragment: lifecycle and framework dispatch from the base class (batch 103 sources)
 
-e('BaseReportFragment.onCreate', 'PayeeReportFragment.onActivityCreated', 'LIFECYCLE',
-  'the fragment manager calls onActivityCreated after onCreate (the fragment is committed in PayeesReportActivity.onCreate, line 50); the override calls super at line 95',
-  evidence='SRC PayeeReportFragment.java:63-96; SRC reports/BaseReportFragment.java:67-72 (onCreate, batch 103); SRC PayeesReportActivity.java:46-50; INFERRED androidx Fragment lifecycle (library not read)')
+# B6-SEARCH: plain BaseReportFragment.onCreate -> PayeeReportFragment.onActivityCreated partitioned to @PayeeReportFragment in graph_def_mod/03.py (plain edge deleted; plain onCreate is fed ONLY by CategoriesReportFragment.<init>, so this edge is itself a Categories -> Payee lifecycle splice).
 
 e('BaseReportFragment.onActivityCreated', 'PayeeReportFragment.onCreateOptionsMenu', 'FRAMEWORK',
   'setHasOptionsMenu(true) (BaseReportFragment.java:79) makes the framework build the options menu: it calls onCreateOptionsMenu on the fragment (PayeeReportFragment.java:195)',
   evidence='SRC reports/BaseReportFragment.java:75-79, 101-111; SRC reports/PayeeReportFragment.java:195-205; INFERRED androidx FragmentManager dispatches onCreateOptionsMenu (library not read); precedent label_103.py')
 
-e('BaseReportFragment.onCreateLoader', 'PayeeReportFragment.onLoadFinished', 'FRAMEWORK',
-  'the loader created by startLoader (restartLoader, BaseReportFragment.java:262) delivers its cursor and the LoaderManager calls onLoadFinished on this fragment (the override calls super at line 130)',
-  evidence='SRC reports/BaseReportFragment.java:115-132, 261-263; SRC reports/PayeeReportFragment.java:129-130; INFERRED androidx LoaderManager delivers the result to LoaderCallbacks (library not read); precedent label_103.py (CategoriesReportFragment.onLoadFinished)')
+# B6-SEARCH: plain BaseReportFragment.onCreateLoader -> PayeeReportFragment.onLoadFinished partitioned to @PayeeReportFragment in graph_def_mod/03.py (plain edge deleted; plain onCreateLoader is shared by both report fragments, so this edge lets a Categories loader start claim Payee delivery).
 
 e('PayeeReportFragment.onLoadFinished', 'PayeeReportFragment$1.run', 'FRAMEWORK',
   'in dual-panel mode onLoadFinished posts the Runnable with Handler.postDelayed (1000 ms); the Handler runs it through handleCallback and Runnable.run calls showChart',
@@ -3441,6 +3426,7 @@ e('MainActivity.onDrawerMenuAndOptionMenuSelected', 'SearchActivity.<init>', 'IN
 
 e('HomeFragment.onOptionsItemSelected', 'SearchActivity.<init>', 'INTENT',
   'the home options menu opens the search page: startActivity(new Intent(getActivity(), SearchActivity.class))',
+  guard='item id == R.id.menu_search (HomeFragment.java:364)',
   evidence='SRC home/HomeFragment.java:364-365 (enclosing method at 361)')
 
 e('PayeeListFragment.onContextItemSelected', 'SearchActivity.<init>', 'INTENT',
@@ -4755,6 +4741,7 @@ e('S_SECURITY_SETTINGS', 'SecuritySettingsFragment$3.onPreferenceClick', 'GUI',
 
 e('PasscodeActivity$1.onClick', 'SecuritySettingsFragment.onActivityResult', 'RESULT',
   'PasscodeActivity sets RESULT_OK with the entered passcode (setResult, line 125) and the framework delivers the result to the fragment that called startActivityForResult (startActivityPasscode, line 174)',
+  guard='resultCode is RESULT_OK and data is non-null (SecuritySettingsFragment.java:97-98)',
   evidence='SRC com/money/manager/ex/PasscodeActivity.java:98-128 (onClick of PasscodeActivity$1 starts at line 101; setResult at 125); SRC settings/SecuritySettingsFragment.java:94-175')
 
 # ---- SettingsActivity: the settings list activity (dst owned here, D1; the sources belong to batches 121, MainActivity and HomeFragment)
@@ -4764,10 +4751,7 @@ e('SettingsFragment$1.onPreferenceClick', 'SettingsActivity.<init>', 'INTENT',
   gui=['Open Settings and tap the per-database preference'],
   evidence='SRC settings/SettingsFragment.java:56-64 (anonymous class $1 is created at line 59: auto_calls SettingsFragment.onCreate -> SettingsFragment$1.<init>; intent at line 62)')
 
-e('MainActivity.onDrawerMenuAndOptionMenuSelected', 'SettingsActivity.<init>', 'INTENT',
-  'the Settings drawer item starts SettingsActivity without the extra, so showFragment shows SettingsFragment (the settings list)',
-  gui=['Open the navigation drawer and choose Settings'],
-  evidence='SRC home/MainActivity.java:665 (startActivity(new Intent(MainActivity.this, SettingsActivity.class)) in onDrawerMenuAndOptionMenuSelected, method at 589)')
+# B6-DRAWER: plain dispatcher -> SettingsActivity.<init> partitioned to @GROUP in graph_def_mod/03.py (plain edge deleted).
 
 e('HomeFragment$2.onClick', 'SettingsActivity.<init>', 'INTENT',
   'the home screen welcome view control starts SettingsActivity without the extra, so the settings list is shown',
@@ -4784,6 +4768,7 @@ e('SettingsActivity.onCreate', 'SettingsActivity.onResume', 'LIFECYCLE',
 
 e('SettingsActivity.onCreate', 'S_SETTINGS', 'ENTERS',
   'the settings list is shown: onCreate calls showFragment, which uses SettingsFragment unless the PerDatabaseFragment extra is present (the per-database branch is labelled in batch 119 as S_PER_DATABASE_SETTINGS)',
+  guard='the incoming intent carries no EXTRA_FRAGMENT = PerDatabaseFragment (SettingsActivity.java:61-69: only that extra shows PerDatabaseFragment; otherwise the default SettingsFragment is shown)',
   evidence='SRC settings/SettingsActivity.java:40-72 (default SettingsFragment at lines 67-69)')
 
 # ---- UNREACHABLE (each with a grep section in label_120.grep.txt)
@@ -4878,6 +4863,7 @@ e('S_SETTINGS', 'SettingsFragment$1.onPreferenceClick', 'GUI',
 
 e('S_SETTINGS', 'SettingsFragment$2.onPreferenceClick', 'GUI',
   'the user taps the look and feel preference (PreferenceConstants.PREF_LOOK_FEEL, line 70): the listener starts LookFeelSettingsActivity (line 77)',
+  guard='the look-and-feel preference exists (non-null) (SettingsFragment.java:70-74: findPreference at 70, null check at 71, listener set at 74)',
   evidence='SRC settings/SettingsFragment.java:70-80 (listener set at 74, onPreferenceClick 76, startActivity 77)')
 
 e('S_SETTINGS', 'SettingsFragment$3.onPreferenceClick', 'GUI',
@@ -5014,10 +5000,7 @@ e('SyncPreferenceFragment.onStart', 'SyncPreferenceFragment.onEvent', 'REGISTER'
   'EventBus.getDefault().register(this) makes onEvent a subscriber while the fragment is started; onStop unregisters it (line 114)',
   evidence='SRC sync/SyncPreferenceFragment.java:102-108 (register at 107), 110-115 (unregister at 114), 120-121 (@Subscribe onEvent(DbFileDownloadedEvent)); precedent label_010 AccountTransactionListFragment.onStart -> onEvent (REGISTER)')
 
-e('SyncServiceMessageHandler.handleMessage', 'SyncPreferenceFragment.onEvent', 'ASYNC',
-  'the sync service sends DOWNLOAD_COMPLETE to the handler (case at line 84) and the handler posts a new DbFileDownloadedEvent to EventBus (line 89); EventBus delivers it to the registered subscriber onEvent. The cloud download is the one forceDownload starts (the Download preference, line 236)',
-  env=env_text('the cloud download that the Download preference starts (forceDownload) completes in the sync service; it needs the network and the cloud storage', ('network',)),
-  evidence='SRC sync/SyncServiceMessageHandler.java:61 (handleMessage), 84-89 (post at 89); SRC sync/SyncPreferenceFragment.java:120-123; precedent label_032 DebugTree.log -> MmxBaseFragmentActivity.onEvent (ASYNC); the source handleMessage is batch 126 (not merged yet): this route is open until batch 126 merges (D4, D8)')
+# B6-EVENT: plain SyncServiceMessageHandler.handleMessage -> SyncPreferenceFragment.onEvent partitioned to @DOWNLOAD in graph_def_mod/03.py (plain edge deleted; FALSE for UPLOAD and all non-DOWNLOAD codes — handler :98-102 posts nothing for UPLOAD; deliberately NO @OTHER -> onEvent edge).
 
 # ---- GUI edges from the synchronization settings page (S_SYNC_SETTINGS, label_122.py) to each preference listener (D6)
 
@@ -5320,9 +5303,7 @@ e('SyncService.onHandleWork', 'SyncService.onDestroy', 'LIFECYCLE',
   'when the queued work is done JobIntentService stops itself, and the framework then runs onDestroy (INFERRED androidx stopSelf path)',
   evidence='FW-SRC core/java/android/app/ActivityThread.java:3499-3504 (handleStopService; s.onDestroy at 3504); FW-SRC core/java/android/app/Service.java:515; INFERRED androidx JobIntentService (not read)')
 
-e('SyncService.sendMessage', 'SyncServiceMessageHandler.handleMessage', 'FRAMEWORK',
-  'sendMessage hands a Message to the caller Messenger (SyncManager.invokeSyncService creates it, batch 123); the framework delivers it to the handler, which calls handleMessage. The Messenger exists only when the sync starts from an AppCompatActivity (SyncManager.java:210-213)',
-  evidence='SRC sync/SyncService.java:222-236 (msg.what at 226; outMessenger.send at 229); FW-SRC core/java/android/os/Handler.java:97-106 (dispatchMessage calls handleMessage at 106); INFERRED android.os.Messenger (not in fw_src; not read)')
+# B6-EVENT: plain SyncService.sendMessage -> SyncServiceMessageHandler.handleMessage partitioned to @DOWNLOAD/@OTHER in graph_def_mod/03.py (plain edge deleted; visit-agnostic — delivers every code to the same plain handler node).
 
 # ---- cuts. D14: an auto CALL edge whose caller is UNREACHABLE in this batch is cut, so the target has no live incoming edge from it.
 #      The <init> cuts complete the SyncNotificationFactory cuts that batch 124 wrote for the getters (its file: SyncService.java:169 and 253).
@@ -5668,9 +5649,7 @@ e('EditTransactionCommonFunctions.initPayeeControls', 'EditTransactionCommonFunc
 
 # ---- split button (listener at 599)
 
-e('EditTransactionCommonFunctions.initSplitCategories', 'EditTransactionCommonFunctions$11.onClick', 'FRAMEWORK',
-  'the split button calls onClick on a tap: View.performClick calls the OnClickListener, which calls isSplitSelected and then either the split form or the reset notice',
-  evidence='SRC transactions/EditTransactionCommonFunctions.java:599-623 (splitButton.setOnClickListener at 599; onClick body within 599-623); FW-SRC core/java/android/view/View.java:6289-6294 (performClick calls the listener at 6294); INFERRED: the touch path to performClick is not read')
+# B6-RESULT1-R2: plain initSplitCategories -> $11.onClick partitioned to @CHECKING/@RECURRING FRAMEWORK in graph_def_mod/03.py (plain edge deleted).
 
 # ---- status spinner (listener at 646)
 

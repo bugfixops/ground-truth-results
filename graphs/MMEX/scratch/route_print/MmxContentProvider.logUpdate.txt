@@ -1,0 +1,161 @@
+METHOD: MmxContentProvider.logUpdate
+verdict: REACHABLE   steps_from_launch: 9
+route steps: 9 edges
+======================================================================
+
+STEP 1  edge E71c76102
+  S_ENTRY -> MainActivity.<init>
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC AndroidManifest.xml:136-143 (MAIN + LAUNCHER intent filter of com.money.manager.ex.home.MainActivity)
+  cite [SRC] AndroidManifest.xml:136-143
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/AndroidManifest.xml)
+      136:                 android:name=".home.MainActivity"
+      137:                 android:label="@string/application_name" android:exported="true">
+      138:             <intent-filter>
+      139:                 <action android:name="android.intent.action.MAIN" />
+      140: 
+      141:                 <category android:name="android.intent.category.LAUNCHER" />
+      142:                 <!-- Samsung MultiWindow Function -->
+      143:                 <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
+
+STEP 2  edge E2e074fc1
+  MainActivity.<init> -> MainActivity.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC core/java/android/app/ActivityThread.java:2722-2731 (callActivityOnCreate); FW-SRC core/java/android/app/Instrumentation.java:1212-1216; FW-SRC core/java/android/app/Activity.java:6993-7000 (performCreate calls onCreate); same route as graph_def.py AccountEditActivity.<init> -> onCreate
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2722-2731
+     2722:                 int theme = r.activityInfo.getThemeResource();
+     2723:                 if (theme != 0) {
+     2724:                     activity.setTheme(theme);
+     2725:                 }
+     2726: 
+     2727:                 activity.mCalled = false;
+     2728:                 if (r.isPersistable()) {
+     2729:                     mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+     2730:                 } else {
+     2731:                     mInstrumentation.callActivityOnCreate(activity, r.state);
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1212-1216
+     1212:     public void callActivityOnCreate(Activity activity, Bundle icicle) {
+     1213:         prePerformCreate(activity);
+     1214:         activity.performCreate(icicle);
+     1215:         postPerformCreate(activity);
+     1216:     }
+  cite [FW-SRC] core/java/android/app/Activity.java:6993-7000
+     6993:     final void performCreate(Bundle icicle, PersistableBundle persistentState) {
+     6994:         mCanEnterPictureInPicture = true;
+     6995:         restoreHasCurrentPermissionRequest(icicle);
+     6996:         if (persistentState != null) {
+     6997:             onCreate(icicle, persistentState);
+     6998:         } else {
+     6999:             onCreate(icicle);
+     7000:         }
+
+STEP 3  edge Ec1f84c25
+  MainActivity.onCreate -> MainActivity.populateScheduledTransactions
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainActivity.java:244 (bytecode)
+  cite [SRC] MainActivity.java:244
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java)
+      244:         populateScheduledTransactions();
+
+STEP 4  edge Ece9412e4
+  MainActivity.populateScheduledTransactions -> RecurringTransactionService.moveNextOccurrence
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainActivity.java:1282 (bytecode)
+  cite [SRC] MainActivity.java:1282
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java)
+     1282:             service.moveNextOccurrence();
+
+STEP 5  edge E3ab2d8d8
+  RecurringTransactionService.moveNextOccurrence -> RecurringTransactionRepository.update
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC RecurringTransactionService.java:240 (bytecode)
+  cite [SRC] RecurringTransactionService.java:240
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/servicelayer/RecurringTransactionService.java)
+      240:         boolean updated = repo.update(mRecurringTransaction);
+
+STEP 6  edge Efd0fc8b4
+  RecurringTransactionRepository.update -> RepositoryBase.update(EntityBase,String)
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC RecurringTransactionRepository.java:107 (bytecode)
+  cite [SRC] RecurringTransactionRepository.java:107
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/datalayer/RecurringTransactionRepository.java)
+      107:         return update(value, where);
+
+STEP 7  edge Eb647565c
+  RepositoryBase.update(EntityBase,String) -> RepositoryBase.update(EntityBase,String,String[])
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC RepositoryBase.java:180 (bytecode)
+  cite [SRC] RepositoryBase.java:180
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/datalayer/RepositoryBase.java)
+      180:         return update(entity, where, new String[0]);
+
+STEP 8  edge Ef2826f2c
+  RepositoryBase.update(EntityBase,String,String[]) -> MmxContentProvider.update
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC datalayer/RepositoryBase.java:183-190; FW-SRC core/java/android/content/ContentResolver.java:1662-1672; FW-SRC core/java/android/content/ContentProvider.java:348-357
+  cite [SRC] datalayer/RepositoryBase.java:183-190
+      183:     protected boolean update(EntityBase entity, String where, String[] selectionArgs) {
+      184:         boolean result = false;
+      185: 
+      186:         ContentValues values = entity.contentValues;
+      187:         // remove "_id" from the values.
+      188:         values.remove("_id");
+      189: 
+      190:         int updateResult = getContext().getContentResolver().update(this.getUri(),
+  cite [FW-SRC] core/java/android/content/ContentResolver.java:1662-1672
+     1662:     public final int update(@RequiresPermission.Write @NonNull Uri uri,
+     1663:             @Nullable ContentValues values, @Nullable String where,
+     1664:             @Nullable String[] selectionArgs) {
+     1665:         Preconditions.checkNotNull(uri, "uri");
+     1666:         IContentProvider provider = acquireProvider(uri);
+     1667:         if (provider == null) {
+     1668:             throw new IllegalArgumentException("Unknown URI " + uri);
+     1669:         }
+     1670:         try {
+     1671:             long startTime = SystemClock.uptimeMillis();
+     1672:             int rowsUpdated = provider.update(mPackageName, uri, values, where, selectionArgs);
+  cite [FW-SRC] core/java/android/content/ContentProvider.java:348-357
+      348:         public int update(String callingPkg, Uri uri, ContentValues values, String selection,
+      349:                 String[] selectionArgs) {
+      350:             validateIncomingUri(uri);
+      351:             uri = maybeGetUriWithoutUserId(uri);
+      352:             if (enforceWritePermission(callingPkg, uri, null) != AppOpsManager.MODE_ALLOWED) {
+      353:                 return 0;
+      354:             }
+      355:             final String original = setCallingPackage(callingPkg);
+      356:             try {
+      357:                 return ContentProvider.this.update(uri, values, selection, selectionArgs);
+
+STEP 9  edge E1fba06fc
+  MmxContentProvider.update -> MmxContentProvider.logUpdate
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MmxContentProvider.java:205 (bytecode)
+  cite [SRC] MmxContentProvider.java:205
+      205:                 logUpdate(dataset, values, whereClause, whereArgs);

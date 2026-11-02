@@ -1,0 +1,126 @@
+## MmxContentProvider.prepareQuery  REACHABLE  confirmed_by=SOURCE path=UNCHECKED
+   env=- state=- classes=explicit;standard explicit_standard_route=yes
+   1. E71c76102 ENTRY/standard*
+      S_ENTRY -> MainActivity.<init>
+      The MAIN / LAUNCHER activity is started from the launcher
+      evidence: SRC AndroidManifest.xml:136-143 (MAIN + LAUNCHER intent filter of com.money.manager.ex.home.MainActivity)
+        136                  android:name=".home.MainActivity"
+        137                  android:label="@string/application_name" android:exported="true">
+        138              <intent-filter>
+        139                  <action android:name="android.intent.action.MAIN" />
+        140  
+        141                  <category android:name="android.intent.category.LAUNCHER" />
+        142                  <!-- Samsung MultiWindow Function -->
+        143                  <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
+   2. E2e074fc1 LIFECYCLE/standard*
+      MainActivity.<init> -> MainActivity.onCreate
+      the framework calls onCreate after it creates the activity instance
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2722-2731 (callActivityOnCreate); FW-SRC core/java/android/app/Instrumentation.java:1212-1216; FW-SRC core/java/android/app/Activity.java:6993-7000 (performCreate calls onCreate); same route as graph_def.py AccountEditActivity.<init> -> onCreate
+       2722                  int theme = r.activityInfo.getThemeResource();
+       2723                  if (theme != 0) {
+       2724                      activity.setTheme(theme);
+       2725                  }
+       2726  
+       2727                  activity.mCalled = false;
+       2728                  if (r.isPersistable()) {
+       2729                      mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+       2730                  } else {
+       2731                      mInstrumentation.callActivityOnCreate(activity, r.state);
+       1212      public void callActivityOnCreate(Activity activity, Bundle icicle) {
+       1213          prePerformCreate(activity);
+       1214          activity.performCreate(icicle);
+       1215          postPerformCreate(activity);
+       1216      }
+       6993      final void performCreate(Bundle icicle, PersistableBundle persistentState) {
+       6994          mCanEnterPictureInPicture = true;
+       6995          restoreHasCurrentPermissionRequest(icicle);
+       6996          if (persistentState != null) {
+       6997              onCreate(icicle, persistentState);
+       6998          } else {
+       6999              onCreate(icicle);
+       7000          }
+   3. Ec1f84c25 CALL/explicit*
+      MainActivity.onCreate -> MainActivity.populateScheduledTransactions
+      Direct call
+      evidence: SRC MainActivity.java:244 (bytecode)
+        244          populateScheduledTransactions();
+   4. Ef39d531e CALL/explicit*
+      MainActivity.populateScheduledTransactions -> RecurringTransactionRepository.load
+      populateScheduledTransactions loads each due scheduled transaction to show its notification
+      guard: isScheduledTransactionStarted == false on entry AND behaviour setting getNotificationRecurringTransaction() == true AND the QueryBillDeposits cursor is non-null AND cursor.moveToNext() == true (at least one bill with DAYSLEFT <= 0) (MainActivity.java:1234-1248, :1259, :1261)
+      evidence: SRC home/MainActivity.java:1231-1264 (showNotification flag :1233-1236, early return :1248, cursor query :1254-1258, null return :1259, moveToNext loop :1261, load call :1264)
+       1231      private void populateScheduledTransactions() {
+       1232          // start notification for recurring transaction
+       1233          boolean showNotification = false;
+       1234          if (!isScheduledTransactionStarted) {
+       1235              AppSettings settings = new AppSettings(this);
+       1236              showNotification = settings.getBehaviourSettings().getNotificationRecurringTransaction();
+       1237              if (showNotification) {
+       1238                  RecurringTransactionNotifications notifications = new RecurringTransactionNotifications(this);
+       1239                  notifications.notifyRepeatingTransaction();
+       1240                  isScheduledTransactionStarted = true;
+       1241              }
+       1242          }
+       1243  
+       1244          // notification send broadcast
+      ...  (20 more lines)
+   5. Eb2c12012 CALL/explicit*
+      RecurringTransactionRepository.load -> RecurringTransactionRepository.first
+      load returns the first bill deposit matching the where clause for the given id
+      guard: id != Constants.NOT_SET (RecurringTransactionRepository.java:64; NOT_SET = -1)
+      evidence: SRC datalayer/RecurringTransactionRepository.java:63-69 (load :63, NOT_SET early return :64, first call :69)
+         63      public RecurringTransaction load(int id) {
+         64          if (id == Constants.NOT_SET) return null;
+         65  
+         66          WhereStatementGenerator where = new WhereStatementGenerator();
+         67          where.addStatement(RecurringTransaction.BDID, "=", id);
+         68  
+         69          RecurringTransaction tx = first(null, where.getWhere(), null);
+   6. Edd046923 CALL/explicit*
+      RecurringTransactionRepository.first -> RepositoryBase.openCursor(String[],String,String[])
+      Direct call
+      evidence: SRC RecurringTransactionRepository.java:75 (bytecode)
+         75          Cursor c = openCursor(projection, selection, args);
+   7. Ec5c3a14a CALL/explicit*
+      RepositoryBase.openCursor(String[],String,String[]) -> RepositoryBase.openCursor(String[],String,String[],String)
+      Direct call
+      evidence: SRC RepositoryBase.java:70 (bytecode)
+         70          return openCursor(projection, selection, args, null);
+   8. Ef50e85c8 FRAMEWORK/standard*
+      RepositoryBase.openCursor(String[],String,String[],String) -> MmxContentProvider.query
+      a cursor is opened: RepositoryBase.openCursor calls ContentResolver.query on the MMEX URI and the provider receives the call
+      evidence: SRC datalayer/RepositoryBase.java:73-75; FW-SRC core/java/android/content/ContentResolver.java:753-755; FW-SRC core/java/android/content/ContentProvider.java:228-229, 240-241
+         73      public Cursor openCursor(String[] projection, String selection, String[] args, String sort) {
+         74          try {
+         75              Cursor cursor = getContext().getContentResolver().query(getUri(),
+        753              try {
+        754                  qCursor = unstableProvider.query(mPackageName, uri, projection,
+        755                          queryArgs, remoteCancellationSignal);
+        228                  Cursor cursor = ContentProvider.this.query(
+        229                          uri, projection, queryArgs,
+   9. Eb152b23a CALL/explicit*
+      MmxContentProvider.query -> MmxContentProvider.query_internal
+      Direct call
+      evidence: SRC MmxContentProvider.java:143 (bytecode)
+        143              return query_internal(uri, projection, selection, selectionArgs, sortOrder);
+  10. Ec32826bf CALL/explicit*
+      MmxContentProvider.query_internal -> MmxContentProvider.prepareQuery
+      query_internal prepares the query for a dataset source
+      guard: openHelper readable database != null AND getObjectFromUri(uri) instanceof Dataset (MmxContentProvider.java:385-388, :393)
+      evidence: SRC MmxContentProvider.java:372-395 (query_internal :372, getObjectFromUri :380, readable database :384, null return :385-388, instanceof check :393, prepareQuery call :395)
+        372      private Cursor query_internal(Uri uri, String[] projection, String selection,
+        373                                    String[] selectionArgs, String sortOrder){
+        374          Timber.v("Querying URI: %s", uri);
+        375          Timber.v("Querying projection: %s", projection);
+        376          Timber.v("Querying selection: %s", selection);
+        377          Timber.v("Querying selectionArgs: %s", selectionArgs);
+        378  
+        379          // find object from uri
+        380          Object sourceObject = getObjectFromUri(uri);
+        381  
+        382          initializeDependencies();
+        383  
+        384          SupportSQLiteDatabase database = openHelper.get().getReadableDatabase();
+        385          if (database == null) {
+      ...  (10 more lines)
+
