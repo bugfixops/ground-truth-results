@@ -47,6 +47,67 @@ def _source_audit_edit(edge):
     """Do not represent generated framework guesses as remembered facts."""
     evidence = edge.get('evidence') or ''
 
+    # Check-4 disambiguation (audit-PASS 2026-11-02, check4-audit/AUDIT.md):
+    # bare bytecode citations resolve by shortest src/main path, which picks
+    # ui/tag/TagsAdapter.java over ui/main/drawer/TagsAdapter.java and the
+    # library com/ernieyu/feedparser/FeedParser.java over
+    # libretorrent/core/FeedParser.java. Rewrite only on edges whose own
+    # methods place them in drawer / FeedParser. This changes the ids of
+    # the 46 edited edges; the 6 tag.* bare edges resolve correctly bare
+    # and are deliberately left alone. FeedParser qualified citations
+    # re-trip check-2 (15 new keys; recorded false alarms, see REPORT.md).
+    _CHECK4_FIX = {
+        'SRC TagsAdapter.java:99 (bytecode)': 'SRC drawer/TagsAdapter.java:99 (bytecode)',
+        'SRC TagsAdapter.java:130 (bytecode)': 'SRC drawer/TagsAdapter.java:130 (bytecode)',
+        'SRC TagsAdapter.java:137 (bytecode)': 'SRC drawer/TagsAdapter.java:137 (bytecode)',
+        'SRC TagsAdapter.java:145 (bytecode)': 'SRC drawer/TagsAdapter.java:145 (bytecode)',
+        'SRC TagsAdapter.java:171 (bytecode)': 'SRC drawer/TagsAdapter.java:171 (bytecode)',
+        'SRC TagsAdapter.java:182 (bytecode)': 'SRC drawer/TagsAdapter.java:182 (bytecode)',
+        'SRC TagsAdapter.java:191 (bytecode)': 'SRC drawer/TagsAdapter.java:191 (bytecode)',
+        'SRC TagsAdapter.java:198 (bytecode)': 'SRC drawer/TagsAdapter.java:198 (bytecode)',
+        'SRC TagsAdapter.java:201 (bytecode)': 'SRC drawer/TagsAdapter.java:201 (bytecode)',
+        'SRC TagsAdapter.java:203 (bytecode)': 'SRC drawer/TagsAdapter.java:203 (bytecode)',
+        'SRC TagsAdapter.java:216 (bytecode)': 'SRC drawer/TagsAdapter.java:216 (bytecode)',
+        'SRC TagsAdapter.java:230 (bytecode)': 'SRC drawer/TagsAdapter.java:230 (bytecode)',
+        'SRC TagsAdapter.java:241 (bytecode)': 'SRC drawer/TagsAdapter.java:241 (bytecode)',
+        'SRC TagsAdapter.java:250 (bytecode)': 'SRC drawer/TagsAdapter.java:250 (bytecode)',
+        'SRC TagsAdapter.java:262 (bytecode)': 'SRC drawer/TagsAdapter.java:262 (bytecode)',
+        'SRC TagsAdapter.java:276 (bytecode)': 'SRC drawer/TagsAdapter.java:276 (bytecode)',
+        'SRC TagsAdapter.java:287 (bytecode)': 'SRC drawer/TagsAdapter.java:287 (bytecode)',
+        'SRC TagsAdapter.java:296 (bytecode)': 'SRC drawer/TagsAdapter.java:296 (bytecode)',
+        'SRC TagsAdapter.java:308 (bytecode)': 'SRC drawer/TagsAdapter.java:308 (bytecode)',
+        'SRC TagItem.java:30 (bytecode)': 'SRC drawer/TagItem.java:30 (bytecode)',
+        'SRC TagItem.java:46 (bytecode)': 'SRC drawer/TagItem.java:46 (bytecode)',
+        'SRC FeedParser.java:67 (bytecode)': 'SRC libretorrent/core/FeedParser.java:67 (bytecode)',
+        'SRC FeedParser.java:97 (bytecode)': 'SRC libretorrent/core/FeedParser.java:97 (bytecode)',
+        'SRC FeedParser.java:98 (bytecode)': 'SRC libretorrent/core/FeedParser.java:98 (bytecode)',
+        'SRC FeedParser.java:109 (bytecode)': 'SRC libretorrent/core/FeedParser.java:109 (bytecode)',
+        'SRC FeedParser.java:110 (bytecode)': 'SRC libretorrent/core/FeedParser.java:110 (bytecode)',
+        'SRC FeedParser.java:134 (bytecode)': 'SRC libretorrent/core/FeedParser.java:134 (bytecode)',
+        'SRC FeedParser.java:176 (bytecode)': 'SRC libretorrent/core/FeedParser.java:176 (bytecode)',
+        'SRC FeedParser.java:194 (bytecode)': 'SRC libretorrent/core/FeedParser.java:194 (bytecode)',
+        'SRC FeedParser.java:203 (bytecode)': 'SRC libretorrent/core/FeedParser.java:203 (bytecode)',
+        'SRC FeedParser.java:217 (bytecode)': 'SRC libretorrent/core/FeedParser.java:217 (bytecode)',
+        'SRC FeedParser.java:221 (bytecode)': 'SRC libretorrent/core/FeedParser.java:221 (bytecode)',
+        'SRC FeedParser.java:225 (bytecode)': 'SRC libretorrent/core/FeedParser.java:225 (bytecode)',
+        'SRC FeedParser.java:226 (bytecode)': 'SRC libretorrent/core/FeedParser.java:226 (bytecode)',
+        'SRC FeedParser.java:243 (bytecode)': 'SRC libretorrent/core/FeedParser.java:243 (bytecode)',
+        'SRC FeedParser.java:244 (bytecode)': 'SRC libretorrent/core/FeedParser.java:244 (bytecode)',
+        'SRC FeedParser.java:257 (bytecode)': 'SRC libretorrent/core/FeedParser.java:257 (bytecode)',
+    }
+    _is_drawer = 'drawer.' in (edge.get('src') or '') or 'drawer.' in (edge.get('dst') or '')
+    _is_feedparser = (edge.get('src') or '').startswith('FeedParser.')
+    for _old, _new in _CHECK4_FIX.items():
+        if _old not in evidence:
+            continue
+        if _old.startswith('SRC FeedParser.java:'):
+            if not _is_feedparser:
+                continue
+        elif not _is_drawer:
+            continue
+        evidence = evidence.replace(_old, _new)
+    edge['evidence'] = evidence
+
     # Exact source predicates/texts replace generator prose gates. The kind
     # maps below classify these exact strings after this edit runs.
     if edge.get('src') == 'S_ENTRY' and edge.get('dst') == 'S_SYS_BootReceiver':
