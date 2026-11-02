@@ -410,3 +410,11 @@ None of these stops the run. Each row stays unlabelled until its question is ans
 - Warnings +1 EXACTLY as predicted: PercentEncoder.pow only (edge Ea6713c2e, unhex -> pow; neither endpoint is in any SUPPRESS set). b055's SUPPRESS entries remove the incoming edges behind the other 5 b056-alone warnings. The other 13 warnings are unchanged.
 - Check-2 (uncapped set + official tool): 196 distinct / 136 problems, EMPTY diff vs b054. Gate intent "no new problem" satisfied.
 - MERGED_PARTS now ends b056. Next in order: b057, then b058-b075 (r58 wave).
+
+## A4 b057 (2026-11-02, merger continuation; r40 basename rework, LT-2205-1/10)
+- Merged reworked parts/b057.py singly (rework/r40/ .py file; .md/printed from parts-staging, unchanged). Harness re-run PASS this session (39R/1U/57 edges/0 SUPPRESS); zero tripping citations re-verified in the reworked file. Note: b057's FeedParser citation is basename-only here (FeedParser.java:236-243); the check-4 qualified libretorrent/core/ form lives only in the EDIT hook, not in part files.
+- Build scratch/build_b057.txt: methods 4732, edges 6460 (+5), REACHABLE 2977 (-1), UNREACHABLE 629 (+1), UNRESOLVED 1126 (unchanged), errors 1126 (error set = UNRESOLVED set, verified against out/methods.csv), warnings 15.
+- Delta reconciliation: 40 batch rows (39 REACHABLE + 1 UNREACHABLE); all 39 REACHABLE rows were already REACHABLE, and the 1 UNREACHABLE row (Utils.buildExactAlarmPermissionRequest) was REACHABLE before, so R -1 / U +1 / UNRES 0. No other label changes.
+- Warnings +1 EXACTLY as predicted: Utils.buildExactAlarmPermissionRequest (edges E44507b2c, Eb906bc55). This warning is expected to stand until the b058/b074 SUPPRESS pairs land (G12 F4 / G11 C1 register items). The other 14 warnings are unchanged.
+- Check-2 (uncapped set + official tool): 196 distinct / 136 problems, EMPTY diff vs b056. Gate intent "no new problem" satisfied.
+- MERGED_PARTS now ends b057. The r40 wave (b040-b057) is now fully merged locally. Next in order: b058-b075 (r58 wave, audit pending at listing time — merger must confirm its audit before merging; includes FAIL-fix b070/b071/b074 and the b058/b074 SUPPRESS register items).
