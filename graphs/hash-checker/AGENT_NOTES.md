@@ -99,14 +99,44 @@ change in this run. No PROGRESS line change. No device run, no adb.
   checks; they are treated as a harness precondition, not route gates
   (see decision HC-D1-1).
 
-### D3 scripts (2026-11-01 ~13:4x EST)
+### D3 scripts (2026-11-01 ~13:5x EST)
 - Helpers fanned out in ranges (at most 5 routes each, one app) to
   write `device/routes/hash-checker/route_NN.py` scripts against the
   staged harness API, the ROUTES.csv rows, and the printed routes.
-  Helper output is delivered to the merger's helper dirs and is merged
-  (copied into device/routes/hash-checker/) only after auditor PASS.
-- Scripts are pushed only after auditor PASS and a local dry run
-  (device/drycheck.py --load-scripts) showing all scripted routes PASS.
+  All 8 helpers delivered: 37 scripts + 8 REPORT.md files in the
+  merger's helper dirs (d3-01-05, 06-10, 11-15, 16-20, 21-25, 26-30,
+  31-35, 36-37).
+- Merger verification of the delivered scripts: py_compile OK on all
+  37; every script's edge-id set equals its ROUTES.csv row exactly
+  (0 mismatches); full local dry run in a test root (full ROUTES.csv,
+  all 37 scripts, staged drycheck.py + harness, branch out/ files,
+  final_java_only symlinked for the manifest, WEMU work-emulator):
+  `hash-checker: 37 PASS, 0 FAIL`, exit 0, with --load-scripts.
+- Known script caveats (from helper reports, for the auditor and the
+  device lead): route_12 sends the VIEW intent itself as an explicit
+  file:// intent (no launcher launch; a content:// form would need a
+  real provider URI); route_13's 60-second clear has no UI signal, so
+  its 70-second wait may end without an assertion (coverage truth
+  still comes from JaCoCo, and D7 marks correct on reached, not on
+  script status); route_31 disables the system picker with
+  runner._shell pm disable-user / enable (finally block re-enables)
+  because the harness has no public pm API — provisional, needs
+  device-lead confirmation, and route_31 should run after route_34
+  (or run_app.sh teardown should restore the picker) so a failed
+  route_31 run cannot strand later picker routes; route_24/25 rely on
+  the fresh install / pm clear that run_app.sh guarantees.
+- Scripts are merged (copied into device/routes/hash-checker/) and
+  pushed only after coordinator-assigned auditor PASS. Staging for
+  that push is assembled (ROUTES.csv, ROUTES_NOTES.md, 37 scripts,
+  AGENT_NOTES) but NOT pushed: see Pushes.
+- Merger mechanical fix (2026-11-01 ~13:5x EST, before any audit):
+  25 delivered scripts cited their printed-route file by an absolute
+  local path in the header docstring. The local prefix was stripped
+  in the helper originals so the citation is now the repo-relative
+  path (which is also the pushed branch path). No code, edge list,
+  or trigger text changed; staging re-copied and the full dry run
+  re-run from the staging copies: 37 PASS, 0 FAIL. Auditors audit
+  the fixed files.
 
 ### Pushes
 - T3 push (make_verification.py, verification_rows.json, AGENT_NOTES,
@@ -127,14 +157,43 @@ change in this run. No PROGRESS line change. No device run, no adb.
   by a waiter (record the broken lock's owner/time). Never push
   without holding the lock.
 - Route-prints push attempt 1: failed "Update is not a fast forward"
-  (head moved during the approval window). Retry follows the
-  push-lock protocol above.
+  (head moved during the approval window). Retry under the
+  push-lock protocol: lock taken (hash-checker-merger, 18:58:26Z);
+  head re-checked immediately before the call (8c45bbb9); AGENT_NOTES
+  blob confirmed equal to the push-1 blob and the 3 spot-checked new
+  paths confirmed absent; push landed as commit
+  c4adf0b232efb354a97db0556f42f2cf42232aa1; lock released
+  immediately after. Verified by branch read-back (6 sampled blob
+  SHAs match local exactly, including HistoryItem.<init>().txt).
+- Routes push (ROUTES.csv, ROUTES_NOTES.md, 37 scripts, AGENT_NOTES):
+  STAGING ASSEMBLED, auditor PASS received — D1 AUDIT.md PASS
+  (37 rows, 0 mismatches, HC-D1-1 judged SOUND) and D3 AUDIT.md
+  PASS for all eight helper groups (37 scripts, independent dry
+  run 37 PASS, 0 FAIL; 19/37 deep-read). AMENDED 2026-11-01
+  (coordinator decision HC-D3-31, below): route_31 reclassified
+  unscriptable, its script removed from the bundle,
+  ROUTE_UNSCRIPTABLE_31.md added to the push (40 manifest
+  paths: ROUTES.csv + ROUTES_NOTES.md + 36 scripts +
+  AGENT_NOTES.md + ROUTE_UNSCRIPTABLE_31.md, per coordinator
+  decision HC-D3-31-NOTE, confirmed by the focused re-audit
+  2026-11-01).
+  Amended bundle verified: drycheck 37 PASS (36 scripted +
+  route_31 unscriptable), 0 FAIL, exit 0, with --load-scripts;
+  verify_routes.py OK (37 rows, unscriptable 1 = 2.7%). Push
+  HELD for focused independent re-audit of the changed row +
+  amended bundle; NOT pushed. The landing commit, when it comes,
+  is recorded in MERGER_REPORT.md (local) and in branch history.
 
 ## Current step
-D3 script helpers running (routes 01-37). T3 pushed (commit
-21db8c53, read-back verified). Next: push route prints; routes push
-waits for auditor PASS + local dry run. CI rebuild request and D9 dry
-run go through the coordinator.
+T3 pushed (commit 21db8c53, read-back verified). Route prints
+pushed (commit c4adf0b2, read-back verified). D3 scripts delivered
+and verified (full local dry run 37 PASS). D1 + D3 audits PASS
+(all eight D3 groups). Route_31 reclassified unscriptable
+(HC-D3-31); amended bundle (36 scripted + 1 unscriptable)
+verified by drycheck (37 PASS, 0 FAIL) and verify_routes.py (OK).
+Next: focused independent re-audit of route_31 + amended bundle,
+then routes push under the push lock. NOT pushed.
+CI rebuild request and D9 dry run go through the coordinator.
 
 ## Decisions made by Muse (for the user and Yang to review)
 - **HC-T3-1 (writer order).** Seed order = current file order
@@ -165,6 +224,40 @@ run go through the coordinator.
   storage to see pushed fixtures), not as route gates. Auditor to
   confirm. Reverse: list READ/WRITE_EXTERNAL_STORAGE on picker routes
   (changes ROUTES.csv and the dry-run permission checks).
+- **HC-D3-31 (route_31 unscriptable).** Coordinator decision
+  (section 6, Muse's own, for user/Yang review; recorded here for
+  the coordinator's branch append to handoff/MUSE_DECISIONS.md).
+  Hash-checker route_31 (`LogUtils.e`) is RECLASSIFIED from
+  scripted to unscriptable. Grounds, all from printed source and
+  the audit record: LogUtils.e fires ONLY in the
+  ActivityNotFoundException catch in
+  HashCalculatorFragment.openSystemFileManager
+  (HashCalculatorFragment.java:191-200, catch :197-199, LogUtils.e
+  at :198) when no app handles ACTION_OPEN_DOCUMENT; on the replay
+  image DocumentsUI handles that intent, so the catch never fires
+  on a normal run. The staging route_31.py manufactured the
+  condition with a non-public harness call (runner._shell pm
+  disable-user), explicitly marked PROVISIONAL pending device-lead
+  confirmation. The independent D3 auditor's PASS for route_31 was
+  explicitly conditional on that confirmation ("ACCEPT PENDING
+  device-lead confirmation"). The device lead, as harness owner,
+  has now responded: the harness has no component-disable action,
+  adding one is invasive and risks breaking the other picker
+  routes if not re-enabled per route, and it recommends
+  reclassification instead. The condition on the PASS has
+  therefore failed. Manufacturing the precondition via a private
+  shell call is not a supported replay step and not a UI route
+  the app offers. Effect: ROUTES.csv route_31 status =
+  unscriptable with the stated reason; route_31.py removed from
+  the push bundle (39 manifest paths at amendment time, before
+  the note joined the push); ROUTE_UNSCRIPTABLE_31.md added to
+  the push (40 manifest paths total); counts become 36 scripted / 1
+  unscriptable = 2.7%, within the 10% cap. The method's label is
+  UNTOUCHED; under D7 a not-reached route maps to unclear, never
+  wrong. Reverse: restore the scripted status and route_31.py
+  (only valid if the harness gains a supported component-disable
+  action or the replay image provably lacks a handler for
+  ACTION_OPEN_DOCUMENT).
 - **Overnight D1-D6 (carried).** See
   scratch/overnight-20261101/DECISIONS.md (on branch). D1 is resolved
   by this T3 writer. D2 (DEAD/FW containers + PENDING screen name) is
