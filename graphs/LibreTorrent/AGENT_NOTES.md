@@ -547,3 +547,8 @@ warning classes.
 - Merged reworked parts/b083.py-b087.py in one 5-part build, in merger order (rework/r76/ .py files; .md/printed from parts-staging, unchanged). Verifier READY + independent auditor AUDIT-PASS for all five (audit in merger/scratch-tmp/verify-b083-b087/AUDIT.md).
 - Build scratch/build_b083_b084_b085_b086_b087.txt: methods 4732, edges 6822 (+131), REACHABLE 3384 (+50), UNREACHABLE 739 (+8), UNRESOLVED 609 (-58), errors 609 (-58, must-not-rise satisfied), warnings 17 (identical set to the b082 build). Delta reconciliation: 200 batch rows (192 REACHABLE + 8 UNREACHABLE); 58 newly resolved (50 R + 8 U), 142 already REACHABLE; no label flips.
 - MERGED_PARTS now ends b087. Next in order: b088-b092 (audit PASS, queued).
+
+## r76 b088-b092 (2026-11-02, merger; r76 citation-form rework, group-2 audit PASS + merge-time re-verification PASS)
+- Merged reworked parts/b088.py-b092.py in one 5-part build, in merger order (rework/r76/ .py files; .md/printed from parts-staging, unchanged). Verifier READY + independent auditor AUDIT-PASS for all five (audit in merger/scratch-tmp/verify-b088-b092/AUDIT.md).
+- Build scratch/build_b088_b089_b090_b091_b092.txt: methods 4732, edges 6936 (+114), REACHABLE 3465 (+81), UNREACHABLE 743 (+4), UNRESOLVED 524 (-85), errors 524 (-85, must-not-rise satisfied), warnings 17 (identical set to the b083 build, verified by sorted diff). Delta reconciliation: 200 batch rows (196 REACHABLE + 4 UNREACHABLE); 85 newly resolved (81 R + 4 U), 115 already REACHABLE; no label flips.
+- MERGED_PARTS now ends b092. Next in order: b093-b097 (audit PASS, queued).

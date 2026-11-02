@@ -1,0 +1,539 @@
+# Batch 92 printed evidence (fresh, C15 converter, 2026-11-01)
+# Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+# Cited files (basenames, for check_part check 8): DetailPagerAdapter.java, DetailTorrentFilesFragment.java, TorrentContentFileItem.java, TorrentContentFilesAdapter.java
+
+=== ui/detailtorrent/DetailPagerAdapter.java ===
+    57:             case STATE_FRAG_POS:
+    58:                 return DetailTorrentStateFragment.newInstance();
+*   59:             case FILES_FRAG_POS:
+*   60:                 return DetailTorrentFilesFragment.newInstance();
+    61:             case TRACKERS_FRAG_POS:
+    62:                 return DetailTorrentTrackersFragment.newInstance();
+---
+
+=== ui/detailtorrent/pages/files/DetailTorrentFilesFragment.java ===
+   136: 
+   137:     @Override
+*  138:     public void onStop()
+*  139:     {
+*  140:         super.onStop();
+*  141: 
+*  142:         disposables.clear();
+*  143:     }
+   144: 
+   145:     @Override
+---
+   144: 
+   145:     @Override
+*  146:     public void onStart()
+*  147:     {
+*  148:         super.onStart();
+*  149: 
+*  150:         subscribeAdapter();
+*  151:         subscribeAlertDialog();
+   152:     }
+   153: 
+---
+   152:     }
+   153: 
+*  154:     private void subscribeAdapter()
+*  155:     {
+*  156:         disposables.add(viewModel.getDirChildren()
+*  157:                 .subscribeOn(Schedulers.computation())
+*  158:                 .flatMapSingle((children) ->
+*  159:                         Flowable.fromIterable(children)
+*  160:                                 .map(TorrentContentFileItem::new)
+*  161:                                 .toList()
+*  162:                 )
+*  163:                 .observeOn(AndroidSchedulers.mainThread())
+*  164:                 .subscribe((children) -> {
+*  165:                     adapter.submitList(children);
+*  166:                     updateFileSize();
+*  167:                 }));
+   168:     }
+   169: 
+---
+   168:     }
+   169: 
+*  170:     private void subscribeAlertDialog()
+*  171:     {
+*  172:         Disposable d = dialogViewModel.observeEvents()
+*  173:                 .subscribe((event) -> {
+*  174:                     if (event.dialogTag == null || !event.dialogTag.equals(TAG_PRIORITY_DIALOG) || priorityDialog == null)
+*  175:                         return;
+*  176:                     switch (event.type) {
+*  177:                         case DIALOG_SHOWN:
+*  178:                             initPriorityDialog();
+*  179:                             break;
+*  180:                         case POSITIVE_BUTTON_CLICKED:
+*  181:                             changePriority();
+*  182:                             priorityDialog.dismiss();
+*  183:                             break;
+*  184:                         case NEGATIVE_BUTTON_CLICKED:
+*  185:                             priorityDialog.dismiss();
+*  186:                             break;
+*  187:                     }
+*  188:                 });
+*  189:         disposables.add(d);
+*  190:     }
+*  191: 
+   192:     @Override
+   193:     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+---
+   191: 
+   192:     @Override
+*  193:     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+*  194:         super.onViewCreated(view, savedInstanceState);
+*  195: 
+*  196:         if (activity == null)
+*  197:             activity = (AppCompatActivity) getActivity();
+*  198: 
+*  199:         ViewModelProvider provider = new ViewModelProvider(activity);
+*  200:         viewModel = provider.get(DetailTorrentViewModel.class);
+*  201:         binding.setViewModel(viewModel);
+*  202:         msgViewModel = provider.get(MsgDetailTorrentViewModel.class);
+*  203:         dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+*  204: 
+*  205:         layoutManager = new LinearLayoutManager(activity);
+*  206:         binding.fileList.setLayoutManager(layoutManager);
+*  207:         adapter = new TorrentContentFilesAdapter(this);
+*  208:         /*
+*  209:          * A RecyclerView by default creates another copy of the ViewHolder in order to
+*  210:          * fade the views into each other. This causes the problem because the old ViewHolder gets
+*  211:          * the payload but then the new one doesn't. So needs to explicitly tell it to reuse the old one.
+*  212:          */
+*  213:         DefaultItemAnimator animator = new DefaultItemAnimator() {
+*  214:             @Override
+*  215:             public boolean canReuseUpdatedViewHolder(@NonNull RecyclerView.ViewHolder viewHolder) {
+*  216:                 return true;
+*  217:             }
+*  218:         };
+*  219:         binding.fileList.setItemAnimator(animator);
+*  220:         binding.fileList.setAdapter(adapter);
+*  221: 
+*  222:         selectionTracker = new SelectionTracker.Builder<>(
+*  223:                 SELECTION_TRACKER_ID,
+*  224:                 binding.fileList,
+*  225:                 new TorrentContentFilesAdapter.KeyProvider(adapter),
+*  226:                 new TorrentContentFilesAdapter.ItemLookup(binding.fileList),
+*  227:                 StorageStrategy.createParcelableStorage(TorrentContentFileItem.class))
+*  228:                 .withSelectionPredicate(new SelectionTracker.SelectionPredicate<TorrentContentFileItem>() {
+*  229:                     @Override
+*  230:                     public boolean canSetStateForKey(@NonNull TorrentContentFileItem key, boolean nextState)
+*  231:                     {
+*  232:                         return !key.name.equals(BencodeFileTree.PARENT_DIR);
+*  233:                     }
+*  234: 
+*  235:                     @Override
+*  236:                     public boolean canSetStateAtPosition(int position, boolean nextState)
+*  237:                     {
+*  238:                         return true;
+*  239:                     }
+*  240: 
+*  241:                     @Override
+*  242:                     public boolean canSelectMultiple()
+*  243:                     {
+*  244:                         return true;
+*  245:                     }
+*  246:                 })
+*  247:                 .build();
+*  248: 
+*  249:         selectionTracker.addObserver(new SelectionTracker.SelectionObserver<TorrentContentFileItem>() {
+*  250:             @Override
+*  251:             public void onSelectionChanged()
+*  252:             {
+*  253:                 super.onSelectionChanged();
+*  254: 
+*  255:                 if (selectionTracker.hasSelection() && actionMode == null) {
+*  256:                     actionMode = activity.startSupportActionMode(actionModeCallback);
+*  257:                     setActionModeTitle(selectionTracker.getSelection().size());
+*  258: 
+*  259:                 } else if (!selectionTracker.hasSelection()) {
+*  260:                     if (actionMode != null)
+*  261:                         actionMode.finish();
+*  262:                     actionMode = null;
+*  263: 
+*  264:                 } else {
+*  265:                     setActionModeTitle(selectionTracker.getSelection().size());
+*  266: 
+*  267:                     /* Show/hide menu items after change selected files */
+*  268:                     int size = selectionTracker.getSelection().size();
+*  269:                     if (size == 1 || size == 2)
+*  270:                         actionMode.invalidate();
+*  271:                 }
+*  272:             }
+*  273: 
+*  274:             @Override
+*  275:             public void onSelectionRestored()
+*  276:             {
+*  277:                 super.onSelectionRestored();
+*  278: 
+*  279:                 actionMode = activity.startSupportActionMode(actionModeCallback);
+*  280:                 setActionModeTitle(selectionTracker.getSelection().size());
+*  281:             }
+*  282:         });
+*  283: 
+*  284:         if (savedInstanceState != null)
+*  285:             selectionTracker.onRestoreInstanceState(savedInstanceState);
+*  286:         adapter.setSelectionTracker(selectionTracker);
+*  287: 
+*  288:         FragmentManager fm = getChildFragmentManager();
+*  289:         priorityDialog = (BaseAlertDialog)fm.findFragmentByTag(TAG_PRIORITY_DIALOG);
+   290:     }
+   291: 
+---
+   290:     }
+   291: 
+*  292:     private void updateFileSize()
+*  293:     {
+*  294:         if (viewModel.fileTree == null)
+*  295:             return;
+*  296: 
+*  297:         binding.filesSize.setText(getString(R.string.files_size,
+*  298:                 Formatter.formatFileSize(activity.getApplicationContext(),
+*  299:                         viewModel.fileTree.nonIgnoreFileSize()),
+*  300:                 Formatter.formatFileSize(activity.getApplicationContext(),
+*  301:                         viewModel.fileTree.size())));
+   302:     }
+   303: 
+---
+   303: 
+   304:     @Override
+*  305:     public void onSaveInstanceState(@NonNull Bundle outState)
+*  306:     {
+*  307:         listFilesState = layoutManager.onSaveInstanceState();
+*  308:         outState.putParcelable(TAG_LIST_FILES_STATE, listFilesState);
+*  309:         selectionTracker.onSaveInstanceState(outState);
+*  310: 
+*  311:         super.onSaveInstanceState(outState);
+*  312:     }
+   313: 
+   314:     @Override
+---
+   313: 
+   314:     @Override
+*  315:     public void onViewStateRestored(@Nullable Bundle savedInstanceState)
+*  316:     {
+*  317:         super.onViewStateRestored(savedInstanceState);
+*  318: 
+*  319:         if (savedInstanceState != null)
+*  320:             listFilesState = savedInstanceState.getParcelable(TAG_LIST_FILES_STATE);
+*  321:     }
+   322: 
+   323:     @Override
+---
+   322: 
+   323:     @Override
+*  324:     public void onResume()
+*  325:     {
+*  326:         super.onResume();
+*  327: 
+*  328:         if (listFilesState != null)
+*  329:             layoutManager.onRestoreInstanceState(listFilesState);
+*  330:     }
+   331: 
+   332:     @Override
+---
+   331: 
+   332:     @Override
+*  333:     public void onItemClicked(@NonNull TorrentContentFileItem item)
+*  334:     {
+*  335:         if (item.name.equals(BencodeFileTree.PARENT_DIR)) {
+*  336:             viewModel.upToParentDirectory();
+*  337:         } else if (!item.isFile) {
+*  338:             viewModel.chooseDirectory(item.name);
+*  339:         } else {
+*  340:             disposables.add(viewModel.getFilePath(item.name)
+*  341:                     .subscribeOn(Schedulers.io())
+*  342:                     .observeOn(AndroidSchedulers.mainThread())
+*  343:                     .subscribe(
+*  344:                             (path) -> openFile(item.name, path),
+*  345:                             this::handleOpenFileError
+*  346:                     ));
+*  347:         }
+*  348:     }
+*  349: 
+   350:     @Override
+   351:     public void onItemCheckedChanged(@NonNull TorrentContentFileItem item, boolean selected)
+---
+   349: 
+   350:     @Override
+*  351:     public void onItemCheckedChanged(@NonNull TorrentContentFileItem item, boolean selected)
+*  352:     {
+*  353:         viewModel.applyPriority(Collections.singletonList(item.name),
+*  354:                 new FilePriority(selected ? FilePriority.Type.NORMAL : FilePriority.Type.IGNORE));
+*  355:         updateFileSize();
+*  356:     }
+   357: 
+   358:     private void setActionModeTitle(int itemCount)
+---
+   356:     }
+   357: 
+*  358:     private void setActionModeTitle(int itemCount)
+*  359:     {
+*  360:         actionMode.setTitle(String.valueOf(itemCount));
+*  361:     }
+   362: 
+   363:     private final ActionMode.Callback actionModeCallback = new ActionMode.Callback()
+---
+   361:     }
+   362: 
+*  363:     private final ActionMode.Callback actionModeCallback = new ActionMode.Callback()
+   364:     {
+   365:         @Override
+---
+   364:     {
+   365:         @Override
+*  366:         public boolean onPrepareActionMode(ActionMode mode, Menu menu)
+*  367:         {
+*  368:             MenuItem shareStreamUrl = menu.findItem(R.id.share_stream_url_menu);
+*  369:             shareStreamUrl.setVisible(false);
+*  370: 
+*  371:             Selection<TorrentContentFileItem> selection = selectionTracker.getSelection();
+*  372:             if (selection.size() != 1)
+*  373:                 return true;
+*  374:             Iterator<TorrentContentFileItem> it = selection.iterator();
+*  375:             if (it.hasNext() && !viewModel.isFile(it.next().name))
+*  376:                 return true;
+*  377: 
+*  378:             shareStreamUrl.setVisible(true);
+*  379: 
+*  380:             return true;
+*  381:         }
+   382: 
+   383:         @Override
+---
+   382: 
+   383:         @Override
+*  384:         public boolean onCreateActionMode(ActionMode mode, Menu menu)
+*  385:         {
+*  386:             mode.getMenuInflater().inflate(R.menu.detail_torrent_files_action_mode, menu);
+*  387:             Utils.showActionModeStatusBar(activity, true);
+*  388:             msgViewModel.fragmentInActionMode(true);
+*  389: 
+*  390:             return true;
+*  391:         }
+*  392: 
+   393:         @Override
+   394:         public boolean onActionItemClicked(ActionMode mode, MenuItem item)
+---
+   392: 
+   393:         @Override
+*  394:         public boolean onActionItemClicked(ActionMode mode, MenuItem item)
+*  395:         {
+*  396:             int itemId = item.getItemId();
+*  397:             if (itemId == R.id.change_priority_menu) {
+*  398:                 showPriorityDialog();
+*  399:             } else if (itemId == R.id.share_stream_url_menu) {
+*  400:                 shareStreamUrl();
+*  401:                 mode.finish();
+*  402:             }
+*  403: 
+*  404:             return true;
+*  405:         }
+   406: 
+   407:         @Override
+---
+   406: 
+   407:         @Override
+*  408:         public void onDestroyActionMode(ActionMode mode)
+*  409:         {
+*  410:             selectionTracker.clearSelection();
+*  411:             msgViewModel.fragmentInActionMode(false);
+*  412:             Utils.showActionModeStatusBar(activity, false);
+*  413:         }
+   414:     };
+   415: 
+---
+   414:     };
+   415: 
+*  416:     private void showPriorityDialog()
+*  417:     {
+*  418:         if (!isAdded())
+*  419:             return;
+*  420: 
+*  421:         FragmentManager fm  = getChildFragmentManager();
+*  422:         if (fm.findFragmentByTag(TAG_PRIORITY_DIALOG) == null) {
+*  423:             priorityDialog = BaseAlertDialog.newInstance(
+*  424:                     getString(R.string.dialog_change_priority_title),
+*  425:                     null,
+*  426:                     R.layout.dialog_change_priority,
+*  427:                     getString(R.string.ok),
+*  428:                     getString(R.string.cancel),
+*  429:                     null,
+*  430:                     false);
+*  431: 
+*  432:             priorityDialog.show(fm, TAG_PRIORITY_DIALOG);
+*  433:         }
+   434:     }
+   435: 
+---
+   507:     }
+   508: 
+*  509:     private void shareStreamUrl()
+*  510:     {
+*  511:         MutableSelection<TorrentContentFileItem> selections = new MutableSelection<>();
+*  512:         selectionTracker.copySelection(selections);
+*  513: 
+*  514:         Iterator<TorrentContentFileItem> it = selections.iterator();
+*  515:         if (!it.hasNext())
+*  516:             return;
+*  517:         int fileIndex = it.next().index;
+*  518: 
+*  519:         Intent sharingIntent = new Intent(Intent.ACTION_SEND);
+*  520:         sharingIntent.setType("text/plain");
+*  521:         sharingIntent.putExtra(Intent.EXTRA_SUBJECT, "url");
+*  522:         sharingIntent.putExtra(Intent.EXTRA_TEXT, viewModel.getStreamUrl(fileIndex));
+*  523: 
+*  524:         startActivity(Intent.createChooser(sharingIntent, getString(R.string.share_via)));
+   525:     }
+   526: 
+---
+   525:     }
+   526: 
+*  527:     private void openFile(String fileName, Uri path)
+*  528:     {
+*  529:         if (fileName == null || path == null)
+*  530:             return;
+*  531: 
+*  532:         startActivity(viewModel.makeOpenFileIntent(fileName, path));
+*  533:     }
+   534: 
+   535:     private void handleOpenFileError(Throwable err)
+---
+
+=== ui/detailtorrent/pages/files/TorrentContentFileItem.java ===
+    36:     public double availability;
+    37: 
+*   38:     public TorrentContentFileItem(@NonNull TorrentContentFileTree tree)
+*   39:     {
+*   40:         super(tree.getIndex(), tree.getName(), tree.isFile(), tree.size());
+*   41: 
+*   42:         priority = tree.getFilePriority();
+*   43:         receivedBytes = tree.getReceivedBytes();
+*   44:         availability = tree.getAvailability();
+*   45:     }
+    46: 
+    47:     public TorrentContentFileItem(Parcel source)
+---
+    45:     }
+    46: 
+*   47:     public TorrentContentFileItem(Parcel source)
+*   48:     {
+*   49:         super(source);
+*   50: 
+*   51:         priority = (FilePriority)source.readSerializable();
+*   52:         receivedBytes = source.readLong();
+*   53:         availability = source.readDouble();
+*   54:     }
+    55: 
+    56:     @Override
+---
+    55: 
+    56:     @Override
+*   57:     public int describeContents()
+*   58:     {
+*   59:         return 0;
+*   60:     }
+    61: 
+    62:     @Override
+---
+    61: 
+    62:     @Override
+*   63:     public void writeToParcel(Parcel dest, int flags)
+*   64:     {
+*   65:         super.writeToParcel(dest, flags);
+*   66: 
+*   67:         dest.writeSerializable(priority);
+*   68:         dest.writeLong(receivedBytes);
+*   69:         dest.writeDouble(availability);
+*   70:     }
+    71: 
+    72:     public static final Parcelable.Creator<TorrentContentFileItem> CREATOR =
+---
+    70:     }
+    71: 
+*   72:     public static final Parcelable.Creator<TorrentContentFileItem> CREATOR =
+*   73:             new Parcelable.Creator<TorrentContentFileItem>()
+*   74:             {
+*   75:                 @Override
+*   76:                 public TorrentContentFileItem createFromParcel(Parcel source)
+*   77:                 {
+*   78:                     return new TorrentContentFileItem(source);
+*   79:                 }
+*   80: 
+*   81:                 @Override
+*   82:                 public TorrentContentFileItem[] newArray(int size)
+*   83:                 {
+*   84:                     return new TorrentContentFileItem[size];
+*   85:                 }
+*   86:             };
+    87: 
+    88:     public boolean equalsContent(@Nullable Object o)
+---
+    86:             };
+    87: 
+*   88:     public boolean equalsContent(@Nullable Object o)
+*   89:     {
+*   90:         if (!equals(o))
+*   91:             return false;
+*   92: 
+*   93:         TorrentContentFileItem item = (TorrentContentFileItem)o;
+*   94: 
+*   95:         return priority.equals(item.priority) &&
+*   96:                 receivedBytes == item.receivedBytes &&
+*   97:                 availability == item.availability;
+    98:     }
+    99: 
+---
+   100:     @NonNull
+   101:     @Override
+*  102:     public String toString()
+*  103:     {
+*  104:         return "TorrentContentFileItem{" +
+*  105:                 super.toString() +
+*  106:                 ", receivedBytes=" + receivedBytes +
+*  107:                 ", availability=" + availability +
+*  108:                 '}';
+   109:     }
+   110: }
+---
+
+=== ui/detailtorrent/pages/files/TorrentContentFilesAdapter.java ===
+    52:     implements Selectable<TorrentContentFileItem>
+    53: {
+*   54:     private static final String TAG = TorrentContentFilesAdapter.class.getSimpleName();
+    55: 
+    56:     private ClickListener listener;
+---
+   107:     }
+   108: 
+*  109:     private static final DiffUtil.ItemCallback<TorrentContentFileItem> diffCallback = new DiffUtil.ItemCallback<TorrentContentFileItem>()
+   110:     {
+   111:         @Override
+---
+   110:     {
+   111:         @Override
+*  112:         public boolean areContentsTheSame(@NonNull TorrentContentFileItem oldItem,
+*  113:                                           @NonNull TorrentContentFileItem newItem)
+*  114:         {
+*  115:             return oldItem.equalsContent(newItem);
+   116:         }
+   117: 
+---
+   164:             a.recycle();
+   165: 
+*  166:             itemView.setOnClickListener((v) -> {
+*  167:                 if (isSelected)
+*  168:                     return;
+*  169: 
+*  170:                 if (listener != null)
+*  171:                     listener.onItemClicked(item);
+*  172:             });
+*  173:             binding.priority.setOnClickListener((v) -> {
+*  174:                 if (listener != null)
+*  175:                     listener.onItemCheckedChanged(item, binding.priority.isChecked());
+   176:             });
+   177: 
+---
+
