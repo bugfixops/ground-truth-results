@@ -402,3 +402,11 @@ None of these stops the run. Each row stays unlabelled until its question is ans
 - Delta reconciliation: 200 batch rows, all REACHABLE; 139 were already REACHABLE before this merge, so newly resolved = 61 = UNRESOLVED drop. No label flips.
 - Check-2 (uncapped set + official tool): 196 distinct / 136 problems, EMPTY diff vs b049. Gate intent "no new problem" satisfied.
 - MERGED_PARTS now ends b054. Next in order: the b055+b056 pair, then b057.
+
+## A4 b055+b056 PAIR (2026-11-02, merger continuation; r40 basename rework, LT-2205-1/10; pair rule enforced)
+- Merged reworked parts/b055.py + b056.py TOGETHER in one build, in merger order (rework/r40/ .py files; .md/printed from parts-staging, unchanged). b055 was NEVER merged alone: alone it drops NormalizeUrl.join, PercentEncoder.<clinit>/decode/needsUnescaping/unhex/pow to UNRESOLVED (auditor-verified). Harness re-run PASS this session for both (b055 40R/40 edges/3 SUPPRESS, b056 33R/7U/34/1).
+- Build scratch/build_b055_b056.txt: methods 4732, edges 6455 (+4), REACHABLE 2978 (-7), UNREACHABLE 628 (+7), UNRESOLVED 1126 (UNCHANGED — no transient UNRESOLVED state), errors 1126 (error set = UNRESOLVED set, verified against out/methods.csv), warnings 14.
+- Pair semantics verified exactly as the r40 audit defined them (LT-2205-10, P1 wording): the 6 flagged methods land UNREACHABLE, NOT REACHABLE (NormalizeUrl.join, PercentEncoder.<clinit>, decode, needsUnescaping, unhex, pow, plus NormalizeUrl.makeUserInfo as b056's 7th UNREACHABLE row). Reconciliation: 80 batch rows (73 REACHABLE + 7 UNREACHABLE); all 73 REACHABLE rows were already REACHABLE, and the 7 newly UNREACHABLE rows were REACHABLE before, so R -7 / U +7 / UNRES 0. No other label changes.
+- Warnings +1 EXACTLY as predicted: PercentEncoder.pow only (edge Ea6713c2e, unhex -> pow; neither endpoint is in any SUPPRESS set). b055's SUPPRESS entries remove the incoming edges behind the other 5 b056-alone warnings. The other 13 warnings are unchanged.
+- Check-2 (uncapped set + official tool): 196 distinct / 136 problems, EMPTY diff vs b054. Gate intent "no new problem" satisfied.
+- MERGED_PARTS now ends b056. Next in order: b057, then b058-b075 (r58 wave).
