@@ -33,9 +33,25 @@ For every row of device/routes/<App>/ROUTES.csv it checks:
                                   ever committed: generated files live
                                   only under the run's out dir.
      Any other form FAILs loudly (never silently passes).
+  6. every scripted script accepts --adb (static source check):
+     run_app.sh always invokes scripts with `--adb adb`, so a
+     script without the argument would exit 2 live even though
+     the dry run passes (item 12(a)). Launch-component resolution
+     is NOT checked here: dry mode never resolves a component, so
+     scripts' launch components are verified by the script audit
+     against the printed manifest, not by drycheck.
+  7. fixture coverage (with --load-scripts): every file a script
+     pushes in dry mode must be named in the route's fixtures cell
+     (basename match against wemu basenames, repo src basenames,
+     and gen names) — a script pushing an unlisted file FAILs
+     (item 12(b); this closes the vacuous pass where a script
+     pushes a file nobody listed).
 Unscriptable rows are not executed: they PASS when their reason is
 non-empty (they need no script, edge chain, or fixture check beyond
 the reason itself), and the reason is carried into the report line.
+That PASS checks only that a reason EXISTS: reason substance is
+verified directly by the unscriptable-retry table and the
+independent audit, not by drycheck (item 12(c)).
 Scripted rows must also have a device/routes/<App>/<route>.py script.
 With --load-scripts, each scripted script is additionally executed in
 dry mode (python3 -I <script> --package drycheck --log <tmp> --dry-run
@@ -53,6 +69,7 @@ device/run_app.sh --dry-run and by the D9 dry-run acceptance.
 import csv
 import json
 import os
+import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -134,6 +151,41 @@ def check_fixture(app, root, wemu, route, setup_text, entry):
     return None
 
 
+def fixture_entry_names(entry):
+    """Basenames a ROUTES.csv fixture entry names (for coverage).
+
+    wemu entry -> basename of the wemu path; repo entry -> basename
+    of the repo src; gen entry -> the generated filename.
+    """
+    try:
+        kind, src, _dst = parse_fixture_entry(entry)
+    except ValueError:
+        return set()
+    if kind == "gen":
+        return {src}
+    return {os.path.basename(src)}
+
+
+def check_live_arg(script):
+    """Static live-argument check (item 12(a)): run_app.sh always
+    invokes scripts with `--adb adb`, so a scripted script must
+    accept --adb or the live run exits 2 (argparse: unrecognized
+    argument) even though the dry run passes. Returns a problem
+    string, or None. (Wiring --adb through to Runner is convention,
+    documented in README, not a drycheck failure: run_app.sh passes
+    the literal "adb", which is also Runner's default.)
+    """
+    try:
+        with open(script, encoding="utf-8") as f:
+            source = f.read()
+    except OSError as exc:
+        return "cannot read script for live-arg check (%s)" % exc
+    if not re.search(r"add_argument\(\s*['\"]--adb['\"]", source):
+        return ("script lacks --adb argument (run_app.sh passes --adb adb; "
+                "live run would exit 2)")
+    return None
+
+
 def check_app(app, root, wemu, load_scripts=False, tmpdir=None):
     import subprocess
     import tempfile
@@ -193,6 +245,12 @@ def check_app(app, root, wemu, load_scripts=False, tmpdir=None):
                                     row["setup"], fix)
             if problem:
                 problems.append(problem)
+        if os.path.isfile(script):
+            # Item 12(a): live-argument acceptance, checked statically
+            # (no execution) so a dry PASS cannot mask a live exit 2.
+            problem = check_live_arg(script)
+            if problem:
+                problems.append(problem)
         if load_scripts and os.path.isfile(script) and not problems:
             tmp = tempfile.mkdtemp(dir=tmpdir)
             proc = subprocess.run(
@@ -205,6 +263,39 @@ def check_app(app, root, wemu, load_scripts=False, tmpdir=None):
                         if isinstance(proc.stderr, bytes) else proc.stderr)
                 problems.append("script dry run failed (%s): %s"
                                 % (proc.returncode, tail.strip()[-200:]))
+            else:
+                # Item 12(b): fixture coverage — every file the
+                # script pushes in dry mode must be named in the
+                # route's fixtures cell (basename match: the pushed
+                # file's basename must equal a wemu basename, a repo
+                # src basename, or a gen name). This catches the
+                # vacuous pass where a script pushes a file nobody
+                # listed (Diary route_06 class). Basename matching
+                # is a heuristic: it catches missing listings, not
+                # a wrong file under a listed name (the script audit
+                # covers that).
+                named = set()
+                for fix in [p.strip() for p in row["fixtures"].split(";")
+                            if p.strip()]:
+                    named |= fixture_entry_names(fix)
+                try:
+                    with open(os.path.join(tmp, "route.log"),
+                              encoding="utf-8") as f:
+                        log_lines = f.read().splitlines()
+                except OSError:
+                    log_lines = []
+                for line in log_lines:
+                    parts = line.split()
+                    if len(parts) >= 5 and parts[2] == "push_fixture":
+                        target = parts[3]
+                        pushed = (target.split("_->_")[0]
+                                  if "_->_" in target
+                                  else os.path.basename(target))
+                        pushed = os.path.basename(pushed)
+                        if pushed and pushed not in named:
+                            problems.append(
+                                "script pushes %s but no fixtures cell "
+                                "names it" % pushed)
         results.append((route, not problems, "; ".join(problems)))
     return results
 

@@ -87,12 +87,41 @@ r = Runner(package="org.example.app", route="route_01",
 ```
 
 Functions: `launch(component)`; `tap(text=|res_id=|desc=)` and
-`tap(x=, y=, why=)`; `long_tap(...)`; `type_text(s)`; `key(name)`;
-`back()`; `rotate(orientation)`; `scroll_to(text=|res_id=)`; `wait_for(text=|res_id=,
-timeout)`; `start_intent(action, data, mime, extras, component)`;
-`broadcast(action, extras, component)`; `grant(perm)` / `deny(perm)`;
-`push_fixture(path)`; `screenshot(name)` / `dump_ui(name)`;
-`assert_text(text)`; `comment(text)` for no-action edges.
+`tap(x=, y=, why=)`; `long_tap(...)`; `drag(x1, y1, x2, y2,
+duration_ms, why=)` and `drag_from(x2, y2, text=|res_id=|desc=,
+duration_ms, why=)` (long-press drags: a swipe whose duration
+covers the ~500 ms long-press threshold registers as a press first
+and then a drag — widget placement through the launcher);
+`type_text(s)`; `key(name)`; `back()`; `rotate(orientation)`;
+`kill_app()` (HOME, then `am kill` — HOME first is enforced, since
+`am kill` only kills background processes); `relaunch(component)`
+(fresh task stack — NOT a stack restore);
+`restore_from_recents(text)` (APP_SWITCH, 1 s settle, tap the
+recents card — the system restores the stack with
+savedInstanceState); `set_always_finish(bool)` and
+`set_locale(locale)` (GLOBAL settings: `pm clear` does NOT reset
+them, so a script that changes one MUST restore it before
+`done()`); `two_finger_swipe(device, start1, start2, end1, end2,
+steps)` and `two_finger_tap(device, point1, point2)` (sendevent MT
+slot-protocol sequences, one shell command each; the touchscreen
+event node varies per emulator — discover it with `adb shell
+getevent -i` and pass it as `device`; a wrong node silently does
+nothing, so a gesture on a wrong node is unclear, never wrong);
+route scripts read `$TOUCH_DEVICE` (discovered once per run by
+run_app.sh from `getevent -i` via `device/touch_device.py`,
+defaulting to `/dev/input/event0` when discovery fails) instead
+of hardcoding a node; `dwell(seconds)` (host-side sleep, 0 <
+seconds <= 600, no adb call — timed routes); `scroll_to(text=|res_id=)`;
+`wait_for(text=|res_id=, timeout)`; `tap_row_action(row_text,
+res_id)` (drawer rows whose action view shares one res_id across
+rows: resolves the row by text, then taps that row's action node
+— closest centre-y within 100 px — instead of the first row's
+icon; anything else fails loudly, never taps the wrong row);
+`start_intent(action, data,
+mime, extras, component)`; `broadcast(action, extras, component)`;
+`grant(perm)` / `deny(perm)`; `push_fixture(path)`;
+`screenshot(name)` / `dump_ui(name)`; `assert_text(text)`;
+`comment(text)` for no-action edges.
 
 Rules:
 
@@ -107,8 +136,14 @@ Rules:
 - Dry-run mode (`dry_run=True`) never calls adb: it records the
   planned commands and validates edge ids. Node resolution is
   skipped in dry mode (there is no device to dump).
-- Tests: `python3 -I device/harness/test_harness.py` (15 tests,
+- Tests: `python3 -I device/harness/test_harness.py` (30 tests,
   sample dumps shaped from Currency layout XML).
+- System UI needs no special primitive: the dump path has no
+  package filter, so `dump_ui` / `tap` / `wait_for` / `scroll_to` /
+  `assert_text` operate on whatever is foreground — the system
+  file picker, permission dialogs, and the launcher are driven
+  with the same primitives as app UI. A route that needs the
+  picker or the launcher documents that in its header.
 
 ## Route scripts (D3)
 
@@ -154,7 +189,43 @@ installs the APK with `adb install -r -t` — WITHOUT `-g`, so each
 route grants only its own permissions. Exception: permission-dialog
 routes (method `onRequestPermissionsResult`) skip pre-grants
 entirely, because their route includes the dialog; pre-granting
-would prevent it from appearing. Per scripted route, in order:
+would prevent it from appearing. Environment: `WEMU` (required);
+`RUN_ID` (default `local-<UTC timestamp>`); `JACOCO_JAR`
+(default `$WEMU/.cache/jacococli.jar`); `WITH_SSH_SERVER=1` (see
+below); `SSH_PORT` (default 2222); `TOUCH_DEVICE` (discovered per
+run, see below).
+
+### Throwaway SSH server (`WITH_SSH_SERVER=1`)
+
+For routes that need a live SSH server (Amaze SFTP routes), the
+runner starts a per-run `sshd` on the CI host before the route
+loop: host key + client keypair generated at run time with no
+passphrase (never committed, never logged), listening on
+127.0.0.1:`$SSH_PORT`, password auth off, only the per-run client
+key authorized, serving only the CI user. The emulator reaches
+the host at 10.0.2.2:`$SSH_PORT`. Route scripts that need the
+client key read `$OUTDIR/ssh_client_key` via their `--outdir`
+argument and push it to the device themselves. run_app.sh
+exports `$SSH_PORT` (default 2222) and `$SSH_USER` (the CI
+user's login name, from `whoami`) for route scripts, so scripts
+never hardcode a port or a username that varies per runner
+image. The server is
+killed on exit (trap) so no per-run server outlives the run. If
+`sshd`/`ssh-keygen` is missing or the server fails to start, the
+run exits 2 immediately with a provisioning message — SSH routes
+are never run without a server. SMB is NOT supported this way:
+`smbd` needs root (ports 139/445 plus user management), so routes
+needing a live SMB host stay unscriptable with that precise
+reason; no user-space SMB server is faked.
+
+### Touchscreen node (`TOUCH_DEVICE`)
+
+Multi-touch scripts read `$TOUCH_DEVICE` (default
+`/dev/input/event0` when unset). The runner discovers it once per
+run from `adb shell getevent -i` via `device/touch_device.py`
+(the device whose ABS set has MT POSITION_X/Y). If discovery
+fails, scripts fall back to the default node and a gesture on a
+wrong node is unclear, never wrong.
 `pm clear`; app setup + per-route setup (if present) + fixtures +
 grants; one coverage dump, discarded (the receiver resets
 counters); the script with a 10-minute timeout;
@@ -192,8 +263,19 @@ entries under `$WEMU/fixtures`, `<repo-relative> -> <dst>` entries
 as committed text files under `device/routes/<App>/`, and
 `gen:<name> -> <dst>` entries via an existing, compiling
 per-route setup script named in the route's setup cell. Any other
-fixture form FAILs loudly. Every scripted script must also load in
-dry mode under the harness. It writes `<outdir>/dryrun_report.txt`:
+fixture form FAILs loudly. Every scripted script must also accept
+`--adb` (run_app.sh always passes it; a script without the
+argument would exit 2 live even though the dry run passes) and
+load in dry mode under the harness. With `--load-scripts`, every
+file a script pushes in dry mode must be named in the route's
+fixtures cell (basename match) — a script pushing an unlisted file
+FAILs. Launch-component resolution is NOT checked here: dry mode
+never resolves a component, so scripts' launch components are
+verified by the script audit against the printed manifest. An
+unscriptable row PASSes on a non-empty reason alone — that checks
+only that a reason EXISTS; reason substance is verified directly
+by the unscriptable-retry table and the independent audit, not by
+drycheck. It writes `<outdir>/dryrun_report.txt`:
 one line per route (`PASS`, or `FAIL` with reason) plus
 `<App>: N PASS, M FAIL`. The dry run ignores the glob and checks
 every ROUTES row.

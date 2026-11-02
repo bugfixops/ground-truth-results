@@ -20,6 +20,8 @@ route's edge ids. In real mode the same calls execute adb commands.
 Setup scripts (not route edges) pass edge_ids=None to skip edge checks.
 """
 
-from .harness import Runner, find_node, parse_bounds, node_center
+from .harness import (Runner, find_node, find_row_action, parse_bounds,
+                      node_center)
 
-__all__ = ["Runner", "find_node", "parse_bounds", "node_center"]
+__all__ = ["Runner", "find_node", "find_row_action", "parse_bounds",
+           "node_center"]

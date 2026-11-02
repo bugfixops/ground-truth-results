@@ -168,6 +168,76 @@ ROUTES_DIR="$ROOT/device/routes/$APP"
 python3 -I "$DEVICE_DIR/route_info.py" "$APP" --all --root "$ROOT" > "$OUTDIR/.routes.tsv" || {
   echo "run_app.sh: cannot read ROUTES.csv for $APP" >&2; exit 1; }
 
+# Throwaway SSH server (WITH_SSH_SERVER=1): a per-run sshd on the
+# CI host for routes that need a live SSH server (e.g. Amaze SFTP
+# routes). The emulator reaches the host at 10.0.2.2, so the server
+# listens on 127.0.0.1:$SSH_PORT (default 2222, a high port — no
+# privilege needed to bind it). Both keys are generated at run time
+# with no passphrase and live only under <outdir> (never committed,
+# never logged): a host key, and a client keypair whose public half
+# is the only authorized key. Route scripts that need the client
+# key read it from $OUTDIR/ssh_client_key via their --outdir
+# argument and push it to the device themselves. Password auth is
+# off; only the per-run client key can log in, as the CI user
+# (sshd as non-root serves only the current user). If sshd or
+# ssh-keygen is missing, or the server fails to start, the run
+# exits 2 immediately with a provisioning message — it never runs
+# SSH routes without a server and fails them confusingly. SMB is
+# NOT supported this way: smbd needs root (ports 139/445 plus user
+# management), so routes needing a live SMB host stay unscriptable
+# with that precise reason; no user-space SMB server is faked here.
+# The server is killed on exit (trap) so no per-run server outlives
+# the run.
+cleanup_ssh_server() {
+  if [ -n "${SSHD_PID:-}" ] && kill -0 "$SSHD_PID" 2>/dev/null; then
+    kill "$SSHD_PID" 2>/dev/null || true
+    wait "$SSHD_PID" 2>/dev/null || true
+  fi
+}
+if [ "${WITH_SSH_SERVER:-0}" = 1 ]; then
+  command -v sshd >/dev/null 2>&1 || { echo "run_app.sh: WITH_SSH_SERVER=1 but sshd not found on the runner" >&2; exit 2; }
+  command -v ssh-keygen >/dev/null 2>&1 || { echo "run_app.sh: WITH_SSH_SERVER=1 but ssh-keygen not found on the runner" >&2; exit 2; }
+  SSH_PORT="${SSH_PORT:-2222}"
+  export SSH_PORT
+  # The app must log in as the CI user; scripts read SSH_USER from
+  # the environment (same pattern as TOUCH_DEVICE below) instead
+  # of hardcoding a username that varies per runner image.
+  SSH_USER="$(whoami)"
+  export SSH_USER
+  ssh-keygen -t ed25519 -f "$OUTDIR/ssh_host_key" -N '' -C "device-replay-host" >/dev/null 2>&1 || { echo "run_app.sh: per-run host key generation failed" >&2; exit 2; }
+  ssh-keygen -t ed25519 -f "$OUTDIR/ssh_client_key" -N '' -C "device-replay-client" >/dev/null 2>&1 || { echo "run_app.sh: per-run client key generation failed" >&2; exit 2; }
+  cp "$OUTDIR/ssh_client_key.pub" "$OUTDIR/authorized_keys"
+  chmod 600 "$OUTDIR/ssh_host_key" "$OUTDIR/ssh_client_key" "$OUTDIR/authorized_keys"
+  sshd -D -p "$SSH_PORT" -h "$OUTDIR/ssh_host_key" \
+    -o ListenAddress=127.0.0.1 -o PidFile="$OUTDIR/sshd.pid" \
+    -o StrictModes=no -o PasswordAuthentication=no \
+    -o PubkeyAuthentication=yes \
+    -o AuthorizedKeysFile="$OUTDIR/authorized_keys" \
+    >>"$OUTDIR/run.log" 2>&1 &
+  SSHD_PID=$!
+  trap cleanup_ssh_server EXIT
+  sleep 2
+  if ! kill -0 "$SSHD_PID" 2>/dev/null; then
+    echo "run_app.sh: throwaway sshd failed to start (see run.log)" >&2; exit 2
+  fi
+  log "throwaway sshd on 127.0.0.1:$SSH_PORT (emulator: 10.0.2.2:$SSH_PORT); per-run keys under outdir"
+fi
+
+# Touchscreen node for sendevent multi-touch: route scripts read
+# $TOUCH_DEVICE (defaulting to /dev/input/event0 when unset).
+# Discovered once per run from `getevent -i` (the device whose ABS
+# set has MT POSITION_X/Y, via device/touch_device.py). If
+# discovery fails (getevent unavailable, or no MT device), scripts
+# fall back to the default node and a gesture on a wrong node
+# yields unclear, never wrong — the JaCoCo result decides.
+TOUCH_DEVICE="$(adb shell getevent -i 2>/dev/null | python3 -I "$DEVICE_DIR/touch_device.py" 2>/dev/null || true)"
+if [ -n "$TOUCH_DEVICE" ]; then
+  export TOUCH_DEVICE
+  log "touchscreen node: $TOUCH_DEVICE"
+else
+  log "touchscreen node discovery failed; scripts fall back to /dev/input/event0"
+fi
+
 while IFS="$(printf '\t')" read -r route method edges perms fixtures setup status; do
   [ -z "$route" ] && continue
   if [[ "$status" == unscriptable* ]]; then
