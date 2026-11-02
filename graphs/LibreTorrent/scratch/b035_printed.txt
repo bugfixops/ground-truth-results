@@ -1,0 +1,501 @@
+===== core/logger/Logger.java (538 lines total) =====
+--- core/logger/Logger.java:319-327 ---
+319:     private LogEntry applyFilters(LogEntry entry)
+320:     {
+321:         for (LogFilter f : filters.values()) {
+322:             if (!f.apply(entry))
+323:                 return null;
+324:         }
+325: 
+326:         return entry;
+327:     }
+
+===== core/model/TorrentEngine.java (1659 lines total) =====
+--- core/model/TorrentEngine.java:516 ---
+516:                         task.forceRecheck();
+--- core/model/TorrentEngine.java:574 ---
+574:             task.addTrackers(new HashSet<>(urls));
+--- core/model/TorrentEngine.java:795 ---
+795:                     task.getDownloadSpeed(),
+--- core/model/TorrentEngine.java:800 ---
+800:                     task.getConnectedPeers(),
+--- core/model/TorrentEngine.java:849 ---
+849:                 task.getTotalSeeds(),
+--- core/model/TorrentEngine.java:853 ---
+853:                 task.getActiveTime(),
+--- core/model/TorrentEngine.java:855 ---
+855:                 task.getAvailability(piecesAvail),
+--- core/model/TorrentEngine.java:857 ---
+857:                 task.getConnectedLeechers(),
+--- core/model/TorrentEngine.java:902 ---
+902:         return task.getDownloadSpeedLimit();
+--- core/model/TorrentEngine.java:935 ---
+935:         return task.getBencode();
+
+===== core/model/session/SessionLogger.java (202 lines total) =====
+--- core/model/session/SessionLogger.java:36-74 ---
+36:     public enum SessionLogEntryType {
+37:         /*
+38:          * Posts some session events
+39:          */
+40:         SESSION_LOG,
+41: 
+42:         /*
+43:          * Posts DHT events
+44:          */
+45:         DHT_LOG,
+46: 
+47:         /*
+48:          * Posts events specific to a peer
+49:          */
+50:         PEER_LOG,
+51: 
+52:         /*
+53:          * Posts informational events related to either
+54:          * UPnP or NAT-PMP
+55:          */
+56:         PORTMAP_LOG,
+57: 
+58:         /*
+59:          * Posts torrent events
+60:          */
+61:         TORRENT_LOG,
+62:     }
+63: 
+64:     public enum SessionLogFilter
+65:     {
+66:         SESSION((entry) -> entry == null || !entry.getTag().equals(SessionLogEntryType.SESSION_LOG.name())),
+67: 
+68:         DHT((entry) -> entry == null || !entry.getTag().equals(SessionLogEntryType.DHT_LOG.name())),
+69: 
+70:         PEER((entry) -> entry == null || !entry.getTag().equals(SessionLogEntryType.PEER_LOG.name())),
+71: 
+72:         PORTMAP((entry) -> entry == null || !entry.getTag().equals(SessionLogEntryType.PORTMAP_LOG.name())),
+73: 
+74:         TORRENT((entry) -> entry == null || !entry.getTag().equals(SessionLogEntryType.TORRENT_LOG.name()));
+--- core/model/session/SessionLogger.java:78-87 ---
+78:         SessionLogFilter(LogFilter filter)
+79:         {
+80:             this.filter = new NewFilter(name(), filter);
+81:         }
+82: 
+83:         public NewFilter filter()
+84:         {
+85:             return filter;
+86:         }
+87:     }
+--- core/model/session/SessionLogger.java:97-108 ---
+97:         SessionFilterParams(boolean filterSessionLog,
+98:                             boolean filterDhtLog,
+99:                             boolean filterPeerLog,
+100:                             boolean filterPortmapLog,
+101:                             boolean filterTorrentLog)
+102:         {
+103:             this.filterSessionLog = filterSessionLog;
+104:             this.filterDhtLog = filterDhtLog;
+105:             this.filterPeerLog = filterPeerLog;
+106:             this.filterPortmapLog = filterPortmapLog;
+107:             this.filterTorrentLog = filterTorrentLog;
+108:         }
+--- core/model/session/SessionLogger.java:117-167 ---
+117:     void send(Alert<?> alert)
+118:     {
+119:         long time = System.currentTimeMillis();
+120:         String msg;
+121:         LogEntry entry = null;
+122:         switch (alert.type()) {
+123:             case LOG:
+124:                 entry = new LogEntry(nextLogEntryId++,
+125:                         SessionLogEntryType.SESSION_LOG.name(),
+126:                         ((LogAlert)alert).logMessage(),
+127:                         time);
+128:                 break;
+129:             case DHT_LOG:
+130:                 DhtLogAlert dhtLogAlert = (DhtLogAlert)alert;
+131:                 msg = "[" + dhtLogAlert.module().name() + "] " + dhtLogAlert.logMessage();
+132:                 entry = new LogEntry(nextLogEntryId++,
+133:                         SessionLogEntryType.DHT_LOG.name(),
+134:                         msg,
+135:                         time);
+136:                 break;
+137:             case PEER_LOG:
+138:                 PeerLogAlert peerLogAlert = (PeerLogAlert)alert;
+139: 
+140:                 msg = "[" + peerLogAlert.direction() + "] " +
+141:                         "[" + peerLogAlert.eventType() + "] " +
+142:                         peerLogAlert.logMessage();
+143: 
+144:                 entry = new LogEntry(nextLogEntryId++,
+145:                         SessionLogEntryType.PEER_LOG.name(),
+146:                         msg,
+147:                         time);
+148:                 break;
+149:             case PORTMAP_LOG:
+150:                 PortmapLogAlert portmapLogAlert = (PortmapLogAlert)alert;
+151:                 msg = "[" + portmapLogAlert.mapType().name() + "] " + portmapLogAlert.logMessage();
+152:                 entry = new LogEntry(nextLogEntryId++,
+153:                         SessionLogEntryType.PORTMAP_LOG.name(),
+154:                         msg,
+155:                         time);
+156:                 break;
+157:             case TORRENT_LOG:
+158:                 entry = new LogEntry(nextLogEntryId++,
+159:                         SessionLogEntryType.TORRENT_LOG.name(),
+160:                         ((TorrentLogAlert)alert).logMessage(),
+161:                         time);
+162:                 break;
+163:         }
+164: 
+165:         if (entry != null)
+166:             send(entry);
+167:     }
+--- core/model/session/SessionLogger.java:169-201 ---
+169:     void applyFilterParams(SessionFilterParams params)
+170:     {
+171:         Logger.NewFilter[] addFilters = new Logger.NewFilter[5];
+172:         String[] removeFilters = new String[5];
+173: 
+174:         if (params.filterSessionLog)
+175:             addFilters[0] = SessionLogger.SessionLogFilter.SESSION.filter();
+176:         else
+177:             removeFilters[0] = SessionLogger.SessionLogFilter.SESSION.name();
+178: 
+179:         if (params.filterDhtLog)
+180:             addFilters[1] = SessionLogger.SessionLogFilter.DHT.filter();
+181:         else
+182:             removeFilters[1] = SessionLogger.SessionLogFilter.DHT.name();
+183: 
+184:         if (params.filterPeerLog)
+185:             addFilters[2] = SessionLogger.SessionLogFilter.PEER.filter();
+186:         else
+187:             removeFilters[2] = SessionLogger.SessionLogFilter.PEER.name();
+188: 
+189:         if (params.filterPortmapLog)
+190:             addFilters[3] = SessionLogger.SessionLogFilter.PORTMAP.filter();
+191:         else
+192:             removeFilters[3] = SessionLogger.SessionLogFilter.PORTMAP.name();
+193: 
+194:         if (params.filterTorrentLog)
+195:             addFilters[4] = SessionLogger.SessionLogFilter.TORRENT.filter();
+196:         else
+197:             removeFilters[4] = SessionLogger.SessionLogFilter.TORRENT.name();
+198: 
+199:         removeFilter(removeFilters);
+200:         addFilter(addFilters);
+201:     }
+
+===== core/model/session/TorrentCriticalWork.java (98 lines total) =====
+--- core/model/session/TorrentCriticalWork.java:44-49 ---
+44:         public State(boolean moving, boolean saveResume, long changeTime)
+45:         {
+46:             this.moving = moving;
+47:             this.saveResume = saveResume;
+48:             this.changeTime = changeTime;
+49:         }
+--- core/model/session/TorrentCriticalWork.java:51-54 ---
+51:         public boolean isDuringChange()
+52:         {
+53:             return moving || saveResume;
+54:         }
+--- core/model/session/TorrentCriticalWork.java:57-61 ---
+57:     private ExecutorService exec = Executors.newFixedThreadPool(2);
+58:     private AtomicBoolean moving = new AtomicBoolean();
+59:     private AtomicInteger saveResume = new AtomicInteger();
+60:     private BehaviorSubject<State> stateChangedEvent =
+61:             BehaviorSubject.createDefault(new State(false, false, System.currentTimeMillis()));
+--- core/model/session/TorrentCriticalWork.java:68-72 ---
+68:     public void setMoving(boolean moving)
+69:     {
+70:         this.moving.set(moving);
+71:         emitChangedEvent();
+72:     }
+--- core/model/session/TorrentCriticalWork.java:79-86 ---
+79:     public void setSaveResume(boolean saveResume)
+80:     {
+81:         if (saveResume)
+82:             this.saveResume.incrementAndGet();
+83:         else
+84:             this.saveResume.decrementAndGet();
+85:         emitChangedEvent();
+86:     }
+--- core/model/session/TorrentCriticalWork.java:88-91 ---
+88:     public Observable<State> observeStateChanging()
+89:     {
+90:         return stateChangedEvent;
+91:     }
+--- core/model/session/TorrentCriticalWork.java:93-97 ---
+93:     private void emitChangedEvent()
+94:     {
+95:         exec.submit(() -> stateChangedEvent.onNext(
+96:                 new State(moving.get(), saveResume.get() > 0, System.currentTimeMillis())));
+97:     }
+
+===== core/model/session/TorrentDownloadImpl.java (1711 lines total) =====
+--- core/model/session/TorrentDownloadImpl.java:101-110 ---
+101:     private static final String TAG = TorrentDownload.class.getSimpleName();
+102: 
+103:     private static final long SAVE_RESUME_SYNC_TIME = 10000; /* ms */
+104:     private static final long CRITICAL_WORK_WAIT_TIMEOUT = 30000; /* ms */
+105:     private static final double MAX_RATIO = 9999.;
+106:     /* For streaming */
+107:     private final static int PRELOAD_PIECES_COUNT = 5;
+108:     private static final int DEFAULT_PIECE_DEADLINE = 1000; /* ms */
+109: 
+110:     private static final int[] INNER_LISTENER_TYPES = new int[] {
+--- core/model/session/TorrentDownloadImpl.java:139 ---
+139:     private TorrentCriticalWork criticalWork = new TorrentCriticalWork();
+--- core/model/session/TorrentDownloadImpl.java:148-180 ---
+148:     public TorrentDownloadImpl(SessionManager sessionManager,
+149:                                TorrentRepository repo,
+150:                                FileSystemFacade fs,
+151:                                final Queue<TorrentEngineListener> listeners,
+152:                                String id,
+153:                                TorrentHandle handle,
+154:                                boolean autoManaged)
+155:     {
+156:         this.id = id;
+157:         this.repo = repo;
+158:         this.fs = fs;
+159:         this.sessionManager = sessionManager;
+160:         this.autoManaged = autoManaged;
+161:         this.listeners = listeners;
+162:         this.th = handle;
+163:         this.name = new AtomicReference<>(handle.getName());
+164:         partsFile = getPartsFile();
+165:         listener = new InnerListener();
+166:         sessionManager.addListener(listener);
+167: 
+168:         var torrent = repo.getTorrentById(id);
+169:         if (torrent != null) {
+170:             hasFirstLastPiecePriority = torrent.firstLastPiecePriority;
+171:             applyFirstLastPiecePriority(hasFirstLastPiecePriority);
+172:         }
+173: 
+174:         /*
+175:          * Save resume data after first start, if needed
+176:          * (e.g torrent just added)
+177:          */
+178:         if (th.needSaveResumeData())
+179:             saveResumeData(true);
+180:     }
+--- core/model/session/TorrentDownloadImpl.java:278 ---
+278:                     checkError(alert);
+--- core/model/session/TorrentDownloadImpl.java:286 ---
+286:         criticalWork.setMoving(false);
+--- core/model/session/TorrentDownloadImpl.java:302-335 ---
+302:     private void checkError(Alert<?> alert)
+303:     {
+304:         Pair<String, Boolean> res = getErrorMsg(alert);
+305:         String errorMsg = res.first;
+306:         boolean isNonCritical = res.second;
+307: 
+308:         if (alert.type() == AlertType.FASTRESUME_REJECTED) {
+309:             resumeDataRejected = true;
+310:             if (((FastresumeRejectedAlert)alert).error().getValue() ==
+311:                     libtorrent_errors.mismatching_file_size.swigValue()) {
+312:                 hasMissingFiles = true;
+313:             }
+314:         }
+315: 
+316:         if (errorMsg != null) {
+317:             Log.e(TAG, "Torrent " + id + ": " + errorMsg);
+318: 
+319:             if (isNonCritical) {
+320:                 resume();
+321: 
+322:                 return;
+323:             }
+324: 
+325:             Torrent torrent = repo.getTorrentById(id);
+326:             if (torrent != null) {
+327:                 torrent.error = errorMsg;
+328:                 repo.updateTorrent(torrent);
+329:             }
+330: 
+331:             pause();
+332:         }
+333: 
+334:         notifyListeners((listener) ->
+335:                 listener.onTorrentError(id, new Exception(errorMsg)));
+--- core/model/session/TorrentDownloadImpl.java:461 ---
+461:         forceStop();
+--- core/model/session/TorrentDownloadImpl.java:504 ---
+504:                 criticalWork.setSaveResume(true);
+--- core/model/session/TorrentDownloadImpl.java:512 ---
+512:             criticalWork.setSaveResume(false);
+--- core/model/session/TorrentDownloadImpl.java:526 ---
+526:             criticalWork.setSaveResume(false);
+--- core/model/session/TorrentDownloadImpl.java:550 ---
+550:             Disposable d = criticalWork.observeStateChanging()
+--- core/model/session/TorrentDownloadImpl.java:557 ---
+557:                                 if (!(emitter.isDisposed() || state.isDuringChange())) {
+--- core/model/session/TorrentDownloadImpl.java:576-580 ---
+576:     private void forceStop()
+577:     {
+578:         stopRequested = true;
+579:         doStop();
+580:     }
+--- core/model/session/TorrentDownloadImpl.java:582-591 ---
+582:     private void doStop()
+583:     {
+584:         if (!stopRequested || stopped)
+585:             return;
+586: 
+587:         sessionManager.removeListener(listener);
+588:         stopRequested = false;
+589:         stopped = true;
+590:         stopEvent = null;
+591:     }
+--- core/model/session/TorrentDownloadImpl.java:599 ---
+599:         doPause();
+--- core/model/session/TorrentDownloadImpl.java:612 ---
+612:         doResume();
+--- core/model/session/TorrentDownloadImpl.java:647-655 ---
+647:     private void doPause()
+648:     {
+649:         if (operationNotAllowed())
+650:             return;
+651: 
+652:         th.unsetFlags(TorrentFlags.AUTO_MANAGED);
+653:         th.pause();
+654:         saveResumeData(true);
+655:     }
+--- core/model/session/TorrentDownloadImpl.java:657-673 ---
+657:     private void doResume()
+658:     {
+659:         if (operationNotAllowed())
+660:             return;
+661: 
+662:         if (hasMissingFiles) {
+663:             hasMissingFiles = false;
+664:             forceRecheck();
+665:         }
+666: 
+667:         if (autoManaged)
+668:             th.setFlags(TorrentFlags.AUTO_MANAGED);
+669:         else
+670:             th.unsetFlags(TorrentFlags.AUTO_MANAGED);
+671:         th.resume();
+672:         saveResumeData(true);
+673:     }
+--- core/model/session/TorrentDownloadImpl.java:740 ---
+740:             applyFirstLastPiecePriority(true, priorities);
+--- core/model/session/TorrentDownloadImpl.java:757-759 ---
+757:     public long getDownloadSpeed()
+758:     {
+759:         return operationNotAllowed() || isFinished() || isPaused() || isSeeding() ?
+--- core/model/session/TorrentDownloadImpl.java:789-791 ---
+789:     public long getActiveTime()
+790:     {
+791:         return operationNotAllowed() ? 0 : th.status().activeDuration() / 1000L;
+--- core/model/session/TorrentDownloadImpl.java:813 ---
+813:     public int getConnectedPeers()
+--- core/model/session/TorrentDownloadImpl.java:819 ---
+819:     public int getConnectedSeeds()
+--- core/model/session/TorrentDownloadImpl.java:825 ---
+825:     public int getConnectedLeechers()
+--- core/model/session/TorrentDownloadImpl.java:917 ---
+917:         List<AdvancedPeerInfo> peers = advancedPeerInfo();
+--- core/model/session/TorrentDownloadImpl.java:935-947 ---
+935:     private List<AdvancedPeerInfo> advancedPeerInfo()
+936:     {
+937:         torrent_handle th_swig = th.swig();
+938:         peer_info_vector v = new peer_info_vector();
+939:         th_swig.get_peer_info(v);
+940: 
+941:         int size = v.size();
+942:         ArrayList<AdvancedPeerInfo> l = new ArrayList<>(size);
+943:         for (int i = 0; i < size; i++)
+944:             l.add(new AdvancedPeerInfo(v.get(i)));
+945: 
+946:         return l;
+947:     }
+--- core/model/session/TorrentDownloadImpl.java:977-990 ---
+977:     public void addTrackers(@NonNull Set<String> trackers)
+978:     {
+979:         if (operationNotAllowed())
+980:             return;
+981: 
+982:         for (String url : trackers) {
+983:             if (url == null)
+984:                 continue;
+985:             announce_entry e = new announce_entry();
+986:             e.setUrl(url);
+987:             th.addTracker(new AnnounceEntry(e));
+988:         }
+989:         saveResumeData(true);
+990:     }
+--- core/model/session/TorrentDownloadImpl.java:1109-1111 ---
+1109:     private void applyFirstLastPiecePriority(boolean enabled) {
+1110:         applyFirstLastPiecePriority(enabled, new Priority[]{});
+1111:     }
+--- core/model/session/TorrentDownloadImpl.java:1114-1125 ---
+1114:     private void applyFirstLastPiecePriority(boolean enabled, Priority[] updatedFilePriorities) {
+1115:         if (!hasMetadata()) {
+1116:             return;
+1117:         }
+1118: 
+1119:         Log.i(TAG, "Download first and last piece first: " + id);
+1120: 
+1121:         var filePriorities = updatedFilePriorities.length != 0
+1122:                 ? updatedFilePriorities
+1123:                 : getFilePriorities();
+1124:         var piecePriorities = th.piecePriorities();
+1125: 
+--- core/model/session/TorrentDownloadImpl.java:1217 ---
+1217:         criticalWork.setMoving(true);
+--- core/model/session/TorrentDownloadImpl.java:1247-1253 ---
+1247:     public void forceRecheck()
+1248:     {
+1249:         if (operationNotAllowed())
+1250:             return;
+1251: 
+1252:         th.forceRecheck();
+1253:     }
+--- core/model/session/TorrentDownloadImpl.java:1318 ---
+1318:     public int getDownloadSpeedLimit()
+--- core/model/session/TorrentDownloadImpl.java:1462-1480 ---
+1462:     public double getAvailability(int[] piecesAvailability)
+1463:     {
+1464:         if (piecesAvailability == null || piecesAvailability.length == 0)
+1465:             return 0;
+1466: 
+1467:         int min = Integer.MAX_VALUE;
+1468:         for (int avail : piecesAvailability)
+1469:             if (avail < min)
+1470:                 min = avail;
+1471: 
+1472:         int total = 0;
+1473:         for (int avail : piecesAvailability)
+1474:             if (avail > 0 && avail > min)
+1475:                 ++total;
+1476: 
+1477:         return (total / (double)piecesAvailability.length) + min;
+1478:     }
+1479: 
+1480:     @Override
+--- core/model/session/TorrentDownloadImpl.java:1650 ---
+1650:     public byte[] getBencode() {
+
+===== core/model/session/TorrentSessionImpl.java (1720 lines total) =====
+--- core/model/session/TorrentSessionImpl.java:984-987 ---
+984:     protected void onBeforeStart()
+985:     {
+986:         addListener(torrentTaskListener);
+987:         addListener(innerListener);
+--- core/model/session/TorrentSessionImpl.java:1102-1103 ---
+1102:                     if (settings.logging)
+1103:                         sessionLogger.send(alert);
+--- core/model/session/TorrentSessionImpl.java:1418-1427 ---
+1418:         disposables.add(Completable.fromRunnable(() ->
+1419:                 sessionLogger.applyFilterParams(new SessionLogger.SessionFilterParams(
+1420:                         settings.logSessionFilter,
+1421:                         settings.logDhtFilter,
+1422:                         settings.logPeerFilter,
+1423:                         settings.logPortmapFilter,
+1424:                         settings.logTorrentFilter
+1425:         )))
+1426:         .subscribeOn(Schedulers.computation())
+1427:         .subscribe());
+--- core/model/session/TorrentSessionImpl.java:1432 ---
+1432:         TorrentDownload task = new TorrentDownloadImpl(this, repo, fs, listeners,

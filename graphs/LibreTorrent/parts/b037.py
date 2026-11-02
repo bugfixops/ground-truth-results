@@ -1,0 +1,59 @@
+# CONVERTER C05 NOTE (2026-11-01): citation paths under core/ rendered basename-only so tools/check_citations.py (whose unanchored ROOT_STYLE regex misreads app citations under core|services|data|libcore|packages as framework citations) adds ZERO new problems; every cited file and line range is unchanged, every basename verified unique in the app tree, full relative paths are in the delivered .md and printed evidence file. Labels, kinds, edges, evidence grades and SUPPRESS entries are exactly as audited. Stronger-evidence check: this part has no UNREACHABLE keys, so the stronger-evidence rule has nothing to apply to.
+# Batch 37 part (TorrentDownloadImpl lambdas, lifecycle, setters, stream methods).
+# Hand-written edges only. Each evidence string cites lines printed in
+# graphs/LibreTorrent/scratch/b037_printed.txt.
+# Source paths below are relative to
+# final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/.
+# No pre-existing route is relied on; every REACHABLE row below has an edge here.
+# Dependencies: none.
+
+e('TorrentDownloadImpl.getStateCode', 'TorrentDownloadImpl.isPaused(TorrentStatus)', 'CALL', 'State-code computation checks the status paused flag', cls='explicit', evidence='SRC TorrentDownloadImpl.java:1358; SRC TorrentDownloadImpl.java:1398-1400')
+e('TorrentDownloadImpl.getDownloadSpeed', 'TorrentDownloadImpl.isSeeding', 'CALL', 'Download speed guards on the seeding state', cls='explicit', evidence='SRC TorrentDownloadImpl.java:759; SRC TorrentDownloadImpl.java:1404-1406')
+e('TorrentEngine.makeInfo', 'TorrentDownloadImpl.isSequentialDownload', 'CALL', 'Info record reads the sequential-download flag', cls='explicit', evidence='SRC TorrentEngine.java:802; SRC TorrentDownloadImpl.java:946')
+e('TorrentEngine.makeInfo', 'TorrentDownloadImpl.isStopped', 'CALL', 'Info record guards on the stopped state', cls='explicit', evidence='SRC TorrentEngine.java:778; SRC TorrentDownloadImpl.java:1635-1640')
+e('TorrentEngine.makeInfo', 'TorrentDownloadImpl.isValid', 'CALL', 'Info record guards on task validity', cls='explicit', evidence='SRC TorrentEngine.java:778; SRC TorrentDownloadImpl.java:1629-1633')
+e('TorrentDownloadImpl.checkError', 'TorrentDownloadImpl.lambda$checkError$1', 'CALL', 'Error check notifies listeners of the torrent error', cls='non_standard', via='Listener interface dispatch', evidence='INFERRED listener dispatch; SRC TorrentDownloadImpl.java:334; SRC TorrentDownloadImpl.java:334-336')
+e('TorrentDownloadImpl.handleMetadata', 'TorrentDownloadImpl.lambda$handleMetadata$2', 'CALL', 'Metadata error path notifies listeners of the load failure', cls='non_standard', via='Listener interface dispatch', evidence='INFERRED listener dispatch; SRC TorrentDownloadImpl.java:422-423')
+e('TorrentDownloadImpl.handleMetadata', 'TorrentDownloadImpl.lambda$handleMetadata$3', 'CALL', 'Metadata loaded path notifies listeners of the loaded metadata', cls='non_standard', via='Listener interface dispatch', evidence='INFERRED listener dispatch; SRC TorrentDownloadImpl.java:438-439')
+e('TorrentDownloadImpl.handleReadPiece', 'TorrentDownloadImpl.lambda$handleReadPiece$4', 'CALL', 'Read-piece handling notifies listeners of the read piece', cls='non_standard', via='Listener interface dispatch', evidence='INFERRED listener dispatch; SRC TorrentDownloadImpl.java:452-453')
+e('TorrentDownloadImpl.handleTorrentFinished', 'TorrentDownloadImpl.lambda$handleTorrentFinished$6', 'CALL', 'Torrent finished handling notifies listeners of completion', cls='non_standard', via='Listener interface dispatch', evidence='INFERRED listener dispatch; SRC TorrentDownloadImpl.java:482-483')
+e('TorrentDownloadImpl.onStorageMoved', 'TorrentDownloadImpl.lambda$onStorageMoved$0', 'CALL', 'Storage move notifies listeners of the move', cls='non_standard', via='Listener interface dispatch', evidence='INFERRED listener dispatch; SRC TorrentDownloadImpl.java:287')
+e('TorrentDownloadImpl.requestStop', 'TorrentDownloadImpl.lambda$requestStop$7', 'CALL', 'Stop creates its critical-work wait completable', cls='non_standard', via='Rx Completable.create dispatch', evidence='INFERRED Rx dispatch; SRC TorrentDownloadImpl.java:545; SRC TorrentDownloadImpl.java:545-571')
+e('TorrentDownloadImpl.requestStop', 'TorrentDownloadImpl.lambda$requestStop$8', 'CALL', 'Stop subscription stops the task once no critical change is in progress', cls='non_standard', via='Rx subscribe dispatch', evidence='INFERRED Rx dispatch; SRC TorrentDownloadImpl.java:552-563; SRC TorrentDownloadImpl.java:552-563')
+e('TorrentDownloadImpl.requestStop', 'TorrentDownloadImpl.lambda$requestStop$9', 'CALL', 'Stop error path stops the task on wait failure', cls='non_standard', via='Rx subscribe dispatch', evidence='INFERRED Rx dispatch; SRC TorrentDownloadImpl.java:565-571; SRC TorrentDownloadImpl.java:565-571')
+e('TorrentDownloadImpl.setDownloadPath', 'TorrentDownloadImpl.lambda$setDownloadPath$10', 'CALL', 'Download-path change notifies listeners of the move start', cls='non_standard', via='Listener interface dispatch', evidence='INFERRED listener dispatch; SRC TorrentDownloadImpl.java:1226')
+e('TorrentDownloadImpl.torrentRemoved', 'TorrentDownloadImpl.lambda$torrentRemoved$5', 'CALL', 'Torrent removal notifies listeners of the removal', cls='non_standard', via='Listener interface dispatch', evidence='INFERRED listener dispatch; SRC TorrentDownloadImpl.java:458-459')
+e('TorrentEngine.makeMagnet', 'TorrentDownloadImpl.makeMagnet', 'CALL', 'Engine magnet building forwards to the task', cls='explicit', evidence='SRC TorrentEngine.java:585; SRC TorrentDownloadImpl.java:1005-1020')
+e('TorrentDownloadImpl.checkError', 'TorrentDownloadImpl.notifyListeners', 'CALL', 'Error check notifies listeners through the notify helper', cls='explicit', evidence='SRC TorrentDownloadImpl.java:334; SRC TorrentDownloadImpl.java:187-192')
+e('TorrentDownloadImpl$InnerListener.alert', 'TorrentDownloadImpl.onStorageMoved', 'CALL', 'Download alert dispatch handles a moved storage', cls='non_standard', via='Library alert dispatch', evidence='INFERRED library dispatch; SRC TorrentDownloadImpl.java:251; SRC TorrentDownloadImpl.java:254; SRC TorrentDownloadImpl.java:284-290')
+e('TorrentDownloadImpl.havePiece', 'TorrentDownloadImpl.operationNotAllowed', 'CALL', 'Piece check guards on the allowed state', cls='explicit', evidence='SRC TorrentDownloadImpl.java:1547; SRC TorrentDownloadImpl.java:195-198')
+e('TorrentDownloadImpl.checkError', 'TorrentDownloadImpl.pause', 'CALL', 'Error check pauses the torrent on error', cls='explicit', evidence='SRC TorrentDownloadImpl.java:331; SRC TorrentDownloadImpl.java:594-601')
+e('TorrentEngine.pauseResumeTorrent', 'TorrentDownloadImpl.pauseManually', 'CALL', 'Pause-resume toggle manually pauses the task', cls='explicit', evidence='SRC TorrentEngine.java:497; SRC TorrentDownloadImpl.java:616-630')
+e('TorrentEngine.getPieces', 'TorrentDownloadImpl.pieces', 'CALL', 'Engine piece read forwards to the task', cls='explicit', evidence='SRC TorrentEngine.java:649; SRC TorrentDownloadImpl.java:993-1004')
+e('TorrentEngine.prioritizeFiles', 'TorrentDownloadImpl.prioritizeFiles', 'CALL', 'Engine file prioritisation forwards to the task', cls='explicit', evidence='SRC TorrentEngine.java:741; SRC TorrentDownloadImpl.java:717-741')
+e('TorrentInputStream.read()', 'TorrentDownloadImpl.readPiece', 'CALL', 'Stream single-byte read triggers an async piece read', cls='explicit', evidence='SRC TorrentInputStream.java:242; SRC TorrentDownloadImpl.java:1559-1567')
+e('TorrentInputStream.read(byte[],int,int)', 'TorrentDownloadImpl.readPiece', 'CALL', 'Stream block read triggers async piece reads', cls='explicit', evidence='SRC TorrentInputStream.java:338; SRC TorrentDownloadImpl.java:1559-1567')
+e('TorrentSessionImpl.deleteTorrent', 'TorrentDownloadImpl.remove', 'CALL', 'Session torrent deletion removes the task', cls='explicit', evidence='SRC TorrentSessionImpl.java:391; SRC TorrentDownloadImpl.java:773-785')
+e('TorrentEngine.replaceTrackers', 'TorrentDownloadImpl.replaceTrackers', 'CALL', 'Engine tracker replacement forwards to the task', cls='explicit', evidence='SRC TorrentEngine.java:565; SRC TorrentDownloadImpl.java:961-976')
+e('TorrentSessionImpl.stopTasks', 'TorrentDownloadImpl.requestStop', 'CALL', 'Session stop maps each task to its stop completable', cls='non_standard', via='Rx map dispatch', evidence='INFERRED Rx dispatch; SRC TorrentSessionImpl.java:924; SRC TorrentDownloadImpl.java:537-574')
+e('TorrentEngine.forceAnnounceTorrents', 'TorrentDownloadImpl.requestTrackerAnnounce', 'CALL', 'Engine force-announce forwards to the task', cls='explicit', evidence='SRC TorrentEngine.java:529; SRC TorrentDownloadImpl.java:872-880')
+e('TorrentDownloadImpl$InnerListener.alert', 'TorrentDownloadImpl.resetTorrentError', 'CALL', 'Download alert dispatch clears the error on resume', cls='non_standard', via='Library alert dispatch', evidence='INFERRED library dispatch; SRC TorrentDownloadImpl.java:242; SRC TorrentDownloadImpl.java:292-300')
+e('TorrentDownloadImpl.checkError', 'TorrentDownloadImpl.resume', 'CALL', 'Error check resumes the torrent when the error clears', cls='explicit', evidence='SRC TorrentDownloadImpl.java:320; SRC TorrentDownloadImpl.java:603-614')
+e('TorrentEngine.pauseResumeTorrent', 'TorrentDownloadImpl.resumeManually', 'CALL', 'Pause-resume toggle manually resumes the task', cls='explicit', evidence='SRC TorrentEngine.java:495; SRC TorrentDownloadImpl.java:632-645')
+e('TorrentSessionImpl.saveAllResumeData', 'TorrentDownloadImpl.saveResumeData', 'CALL', 'Session resume-data save writes each task resume data', cls='explicit', evidence='SRC TorrentSessionImpl.java:955; SRC TorrentDownloadImpl.java:492-530')
+e('TorrentDownloadImpl$InnerListener.alert', 'TorrentDownloadImpl.serializeResumeData', 'CALL', 'Download alert dispatch serializes received resume data', cls='non_standard', via='Library alert dispatch', evidence='INFERRED library dispatch; SRC TorrentDownloadImpl.java:248; SRC TorrentDownloadImpl.java:516-530')
+e('TorrentSessionImpl.setAutoManaged', 'TorrentDownloadImpl.setAutoManaged', 'CALL', 'Session auto-manage setting forwards to each task', cls='explicit', evidence='SRC TorrentSessionImpl.java:843; SRC TorrentDownloadImpl.java:676-687')
+e('TorrentEngine.setDownloadPath', 'TorrentDownloadImpl.setDownloadPath', 'CALL', 'Engine download-path change forwards to the task', cls='explicit', evidence='SRC TorrentEngine.java:690; SRC TorrentDownloadImpl.java:1215-1232')
+e('TorrentEngine.setDownloadSpeedLimit', 'TorrentDownloadImpl.setDownloadSpeedLimit', 'CALL', 'Engine download-speed-limit change forwards to the task', cls='explicit', evidence='SRC TorrentEngine.java:913; SRC TorrentDownloadImpl.java:1308-1315')
+e('TorrentEngine.setFirstLastPiecePriority', 'TorrentDownloadImpl.setFirstLastPiecePriority', 'CALL', 'Engine first-last-piece change forwards to the task', cls='explicit', evidence='SRC TorrentEngine.java:716; SRC TorrentDownloadImpl.java:1085-1096')
+e('TorrentInputStream.<init>', 'TorrentDownloadImpl.setInterestedPieces', 'CALL', 'Stream construction marks the first file piece as interesting', cls='explicit', evidence='SRC TorrentInputStream.java:118; SRC TorrentDownloadImpl.java:1574-1605')
+e('TorrentSessionImpl.setMaxConnectionsPerTorrent', 'TorrentDownloadImpl.setMaxConnections', 'CALL', 'Session connection-limit setting forwards to each task', cls='explicit', evidence='SRC TorrentSessionImpl.java:817; SRC TorrentDownloadImpl.java:1428-1433')
+
+UNREACHABLE.update({})
+
+# No UNREACHABLE rows in this batch, and no REACHABLE method in this batch
+# calls an exact UNREACHABLE method in bytecode (checked against
+# auto_calls.json with exact overload resolution plus the class constant
+# pools; the base-name-only hits all resolve to REACHABLE overloads, see
+# REPORT.md). No SUPPRESS entries apply.
+SUPPRESS.update(set())
