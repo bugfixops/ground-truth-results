@@ -332,3 +332,65 @@ An edge is written by the part that contains its source method; if the source is
 - scan_unreachable.py --callers still 169 of 911. Local build: methods 4186, edges 9178, 3275/911, errors 0,
   warnings 0; check_citations 273/0; check_bytecode_lines --all 0 not-show; greps 5/6/7 all 0.
 - 0 routes, 0 label changes from B4.
+
+## Finish run 2026-11-02 — B6 route-check fixes (audits F1-F5 all PASS)
+
+- F1 (routes 01-06, audit b6fix-r01-06/AUDIT.md PASS): NO graph edit.
+  Helper trigger JSON SHA-identical to the merger-tree baseline; 0 edges
+  added/removed/changed; methods.csv byte-identical. Route table uses
+  C01-C06, never BFS. C02 steps 13-15 carry the auditor-verified ids
+  E3a5b3438, E51823c2c, E0c0d5268.
+- F2 (routes 07-12, audit b6fix-r07-12/AUDIT.md PASS): 115 lines appended
+  to graph_def.py (B6_GUARD / B6_EVIDENCE / B6_STATE_* / B6_NEEDS_STATE,
+  wrapper around the B3 EDIT, saved and called first). Build: 4186/9178,
+  3275/911, 0/0; rebuilt JSON SHA-identical to the helper build; 23 edges
+  changed, 0 added/removed. Route 08 rename $15 -> $16 HELD (bytecode:
+  $15 = CHECK_DATABASE, $16 = CHECK_MEDIA); route 08 UNCLEAR (step 11
+  INFERRED, support-v4 source absent); route 12 WRONG with no graph edit
+  (rebuilt reviewer-flow route in the table).
+- F3 (routes 13-18, audit b6fix-r13-18/AUDIT.md FAIL narrow + rework
+  audit b6fix-r13-18-rework/AUDIT.md PASS): literal edits (ENV_BEOLINGUS,
+  ENV_PREFS_PATH, STATE_FIELD_TEXT constants; 10 main-body edge edits) +
+  B6FIX_EVIDENCE/GUARD folded into the single combined EDIT (helper's
+  B3+B6FIX def EDIT kept verbatim, F2 wrapper chained after it) + 2
+  insertions in graph_def_mod/01.py (needs_state STATE_FIELD_TEXT,
+  guard 'source text non-empty'). Build: 4186/9178, 3275/911, 0/0;
+  exactly 19 edges changed vs the F2 build, 0 added/removed;
+  needs_state 140 -> 141, methods with STATE 367 -> 405. Route-17 step-6
+  applied by edge+line ONLY (887 block, evidence line 890, new id
+  Ec31ec494); the RESULT edge (evidence line 973/980) is byte-identical.
+  The EDITS.md uniqueness sentence was amended at merge time to record
+  the two-occurrence exception (re-audit section 8 item 2, superseding
+  the coordinator's earlier no-amendment note). Audit C1 confirmed:
+  route 13 step 15 guard is exactly !editModelMode (NoteEditor.java:
+  1116-1121). BackgroundPost Ecba7dfd7 stays ENV_NETWORK (second cycle
+  not expanded into explicit steps).
+- F4 (routes 19-24, audit b6fix-r19-24/AUDIT.md PASS): route-21 variant
+  split (2 page defs, 4 GUI moves, 2 ENTERS E81c3cc95/E6b094d43, generic
+  page kept for types 2,3,4,6,7,8) + route-24 guard hand edges (5).
+  Build: 4186/9180, pages 45, 3275/911, 0/0; auto 8146 -> 8141;
+  ENTERS 56 -> 58; generic GUI ids gone; new ENTERS present.
+  Route 20 NO-split honoured (table uses UPDATE_FACT + mUpdateCardHandler,
+  never RenderBrowserQA -> AFV$9); route 21 table uses the hkey-empty
+  prefix, never the BFS route (BFS ignores guard text).
+- F5 (routes 25-30, audit b6fix-r25-30/AUDIT.md PASS): main-body retargets
+  (FULLSYNC / NOTEEDITOR_CHANGETYPE / MODELFIELDEDITOR_RENAME pages,
+  3 new SCREENS) + trailing B6 block (15 hand edges) + 3 edits in
+  graph_def_mod/01.py (DialogHandler retarget, CollectionLoader guard +
+  citation drop, BackupManager no-space guard). Build: 4186/9183, pages
+  48, 3275/911, 0/0; auto 8129; ENTERS 59; new ENTERS E30f7c51d present;
+  superseded ids Eeded0833, Ef2c97ad2, E27363954, E5798aa47, E9d88d57c
+  absent. Builder duplicate note: F4 and F5 hand edges coexist for the
+  two overlapping pairs (exceededCursorSizeLimit, getCol -> Storage),
+  both guards true for the same call sites; no label/route effect.
+- Labels: 0 flips in all of B6 (3275/911 throughout).
+- Redraw: verify_sample.py AnkiDroid 30 20261025 on the post-B6 graph
+  gives a DIFFERENT sample (297 distinct edges; 5 methods swap in/out
+  — see scratch/route_table.md "REDRAW NOTE"). Per the merger's assigned
+  task, the route table covers the FIRST-draw 30 routes; the 5
+  redraw-only methods are unjudged and flagged for a coordinator ruling.
+- Final BFS routes re-printed from the post-B6 graph into
+  scratch/route_print/ (30 files); first-draw prints backed up in
+  merger/route_print_firstdraw/ (work dir, not pushed).
+- Route table: scratch/route_table.md — WRONG 18, FIXED 9, UNCLEAR 2,
+  CORRECT 1; first-draw error rate 27/28 = 0.9643.

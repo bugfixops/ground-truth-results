@@ -111,7 +111,7 @@ e('BasicImageFieldController$2.onClick', 'MultimediaEditFieldActivity.onActivity
 # - One edge is written: the page S_DLG_CONFIRMATION (destination in this batch) into DialogHandler$1.confirm.
 # - No MG id is used: the gate is the predefined STATE_SETTINGS constant, or the path is closed by configuration.
 
-e('S_DLG_CONFIRMATION', 'DialogHandler$1.confirm', 'GUI',
+e('S_DLG_CONFIRMATION_DECKPICKER_FULLSYNC', 'DialogHandler$1.confirm', 'GUI',
   'tap Yes in the force-full-sync dialog (shown only after an upgrade from an older stored version)',
   needs_state=STATE_SETTINGS,
   gui=['tap Yes in the force-full-sync dialog (shown only after an upgrade from an older stored version)'],
@@ -406,6 +406,7 @@ e('S_MULTIMEDIA_EDIT_FIELD', 'BasicTextFieldController$1.onClick', 'GUI',
 e('S_MULTIMEDIA_EDIT_FIELD', 'BasicTextFieldController$2.onClick', 'GUI',
   'tap the say button (pronounce; built by createUI on every text editor)',
   env=None,
+  needs_state=STATE_FIELD_TEXT,
   gui=['tap the say button (pronounce; built by createUI on every text editor)'],
   evidence='SRC com/ichi2/anki/multimediacard/fields/BasicTextFieldController.java:93, 123-140',
   note='createPronounceButton is called from createUI (line 93) with no condition. Empty text shows a toast and returns (lines 131-134). Text starts LoadPronounciationActivity (edge below).')
@@ -413,6 +414,7 @@ e('S_MULTIMEDIA_EDIT_FIELD', 'BasicTextFieldController$2.onClick', 'GUI',
 e('BasicTextFieldController$2.onClick', 'LoadPronounciationActivity.<init>', 'INTENT',
   'the say button starts the pronunciation screen with the field text (non-empty text)',
   env=None,
+  guard='source text non-empty',
   evidence='SRC com/ichi2/anki/multimediacard/fields/BasicTextFieldController.java:136-138',
   note='Explicit intent to LoadPronounciationActivity with EXTRA_SOURCE, started with startActivityForResult. The network check is inside the child screen (page S_LOAD_PRONOUNCIATION, another batch), so no gate is set here. The RESULT edge S_LOAD_PRONOUNCIATION -> MultimediaEditFieldActivity.onActivityResult is already in graph_def.py.')
 
@@ -965,7 +967,8 @@ e('Connection.cancel', 'Connection.onCancelled', 'ASYNC',
 # --- CollectionLoader: the start and the background load (CollectionLoader.java:47-55, 19-29).
 e('CollectionLoader.onStartLoading', 'CollectionLoader.loadInBackground', 'ASYNC',
   'forceLoad runs loadInBackground on a background thread when the collection is not locked',
-  evidence='SRC com/ichi2/async/CollectionLoader.java:47-55, 19-29; com/ichi2/async/Connection.java:277-279, 452-456',
+  guard='collection not locked (CollectionHelper.isCollectionLocked() false)',
+  evidence='SRC com/ichi2/async/CollectionLoader.java:47-55, 19-29',
   note='MISSING GATE MG622: the collection is not locked when the load starts (CollectionLoader.java:49-52). Connection.java:279 locks the collection during a sync and Connection.java:456 unlocks it. No predefined ENV or STATE constant fits, so env and needs_state are unset. The support-library forceLoad step is INFERRED, source not read.')
 
 e('CollectionLoader.loadInBackground', 'CollectionLoader.deliverResult', 'ASYNC',
@@ -4846,6 +4849,7 @@ e('DeckPicker.showStartupScreensAndDialogs', 'S_DLG_DECKPICKER_BACKUP_NO_SPACE',
 e('DeckPicker.showStartupScreensAndDialogs', 'S_DLG_DECKPICKER_NO_SPACE', 'ENTERS',
   'free space is below the threshold (BackupManager.enoughDiscSpace is false): the no-space-left dialog is shown',
   env=None,
+  guard='BackupManager.enoughDiscSpace is false (not enough disc space for backup)',
   evidence='SRC com/ichi2/anki/DeckPicker.java:848-850',
   note='MISSING GATE MG362: the page is shown only when free space is low (BackupManager.java:207-209, as in label_042). No predefined ENV or STATE kind covers low free space, so env and needs_state are unset. This is the first branch of the if chain, so it is checked before noSpaceLeft. The OK and cancel edges are in label_042 (graph_def.py:5454, 5461).')
 

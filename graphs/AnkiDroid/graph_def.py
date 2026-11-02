@@ -99,6 +99,8 @@ SCREENS = {
     'S_DLG_RESCHEDULE_CARD': 'NoteEditorRescheduleCard: reschedule the current card',
     'S_DLG_SIMPLE_MESSAGE': 'SimpleMessageDialog: a message with OK',
     'S_DLG_SYNC_ERROR': 'SyncErrorDialog: sync error with actions',
+    'S_DLG_SYNC_ERROR_NOT_LOGGED_IN': 'SyncErrorDialog type 0 (DIALOG_USER_NOT_LOGGED_IN_SYNC): log-in dialog',
+    'S_DLG_SYNC_ERROR_MEDIA': 'SyncErrorDialog type 9 (DIALOG_MEDIA_SYNC_ERROR): media sync error dialog',
     'S_DLG_TAGS': 'TagsDialog: tag selection',
     'S_DLG_PICK_STRING': 'PickStringDialogFragment: pick one string value (multimedia field editing)',
 }
@@ -124,6 +126,11 @@ ENV_PERM_RECORD = env_text('permission: android.permission.RECORD_AUDIO granted 
 ENV_TTS = env_text('other: a text-to-speech engine is installed and ready (android.speech.tts)', ('other',))
 ENV_BROWSER = env_text('other_app: an external browser opens a URL (ACTION_VIEW to a web page)', ('other_app',))
 ENV_CONFIG_CHANGE = env_text('system event: the device configuration changes while the app runs (rotation, locale, screen size)', ('system_event',))
+# B6FIX (routes 13-14): Beolingus fetch env, distinct from the AnkiWeb sync env above.
+ENV_BEOLINGUS = env_text('network: the Beolingus translation page (dict.tu-chemnitz.de) is reachable', ('network',))
+# B6FIX (route 14): the DeckPicker dir-inaccessible branch needs SD mounted AND storage
+# permission AND the AnkiDroid directory NOT accessible (DeckPicker.java:415-428).
+ENV_PREFS_PATH = env_text('hardware: external storage (SD card or emulated storage) is mounted; permission: WRITE_EXTERNAL_STORAGE granted; AnkiDroid directory NOT accessible', ('hardware', 'permission'))
 
 STATE_DECK = state_text('data: a deck exists in the collection (the user created or imported one)', ('data',))
 STATE_CARDS = state_text('data: the deck has cards to study (new, learning or due)', ('data',))
@@ -133,6 +140,9 @@ STATE_APKG = state_text('file: the .apkg file is available to import (the intent
 STATE_ACCOUNT = state_text('account: an AnkiWeb account is logged in (hkey stored)', ('account',))
 STATE_SETTINGS = state_text('settings: the preference is set to the value the route needs', ('settings',))
 STATE_SESSION = state_text('session: the app has already run in this process (a second visit, not a cold start)', ('session',))
+# B6FIX (route 13): the pronounce button exists only on a text field, whose controller
+# is BasicTextFieldController (BasicTextFieldController.java:93, inside createUI lines 69-94).
+STATE_FIELD_TEXT = state_text('field type TEXT: the multimedia field editor uses a BasicTextFieldController, which creates the pronounce button', ('data',))
 
 # ================================================================== C. entry points (manifest)
 
@@ -840,8 +850,9 @@ e('DeckPicker.onCreate', 'S_DECKPICKER', 'ENTERS',
 
 e('DeckPicker.onCreate', 'S_PREFERENCES', 'ENTERS',
   'the collection is not open and the AnkiDroid directory is inaccessible: the advanced preferences open to update the path',
-  env=ENV_STORAGE,
-  note='OPEN DECISION: ENV_STORAGE is used for the directory-inaccessible branch (see conflicts_002.md). The branch runs only when the SD card is mounted.',
+  env=ENV_PREFS_PATH,
+  guard='!colOpen and storage permission granted and SD card mounted and AnkiDroid directory NOT accessible',
+  note='B6FIX (route 14): the branch is the !colOpen else branch (DeckPicker.java:418) with storage permission (line 420), SD card mounted (line 422) and the AnkiDroid directory NOT accessible (lines 425-428, intent via getPreferenceSubscreenIntent with "com.ichi2.anki.prefs.advanced"). The old ENV_STORAGE text ("mounted and writable") was backwards on the last clause: the branch requires the directory to be inaccessible.',
   evidence='SRC com/ichi2/anki/DeckPicker.java:418-428')
 
 e('DeckPicker.onCreate', 'S_DLG_DATABASE_ERROR', 'ENTERS',
@@ -887,7 +898,8 @@ e('DeckPicker.onOptionsItemSelected', 'S_DLG_EXPORT', 'ENTERS',
 e('DeckPicker.onOptionsItemSelected', 'S_MODELBROWSER', 'ENTERS',
   'the model browser menu item is tapped and the model browser opens',
   env=None,
-  evidence='SRC com/ichi2/anki/DeckPicker.java:610-614')
+  guard='item.getItemId() == R.id.action_model_browser_open and the drawer toggle does not consume the item',
+  evidence='SRC com/ichi2/anki/DeckPicker.java:546-548, 610-614')
 
 e('DeckPicker.exportDeck', 'S_DLG_EXPORT', 'ENTERS',
   'a deck export is requested and the export dialog opens for that deck',
@@ -924,10 +936,11 @@ e('DeckPicker.loadStudyOptionsFragment', 'S_STUDYOPTIONS_FRAG', 'ENTERS',
   note='Only when mFragmented is true (DeckPicker.java:829 under mFragmented; check at 1650-1655).',
   evidence='SRC com/ichi2/anki/DeckPicker.java:829, 1650-1655')
 
-e('DeckPicker.onFinishedStartup', 'S_DLG_CONFIRMATION', 'ENTERS',
+e('DeckPicker.onFinishedStartup', 'S_DLG_CONFIRMATION_DECKPICKER_FULLSYNC', 'ENTERS',
   'the mod-schema change needs confirmation (ConfirmModSchemaException) and the force-full-sync confirmation dialog opens through DialogHandler (indirect)',
   env=None,
-  note='MISSING GATE MG5: the ConfirmModSchemaException path (catch at line 814) is not modelled. The gate is not modelled here.',
+  guard='mRecommendFullSync true AND getCol().modSchema() throws ConfirmModSchemaException',
+  note='B6 fix (routes 26/28): DeckPicker full-sync variant split out of the generic S_DLG_CONFIRMATION page. Former MISSING GATE MG5 (catch at DeckPicker.java:814) is now recorded as this guard.',
   evidence='SRC com/ichi2/anki/DeckPicker.java:805-832; SRC com/ichi2/anki/dialogs/DialogHandler.java:88-90')
 
 # ---- RESULT (8): page -> DeckPicker.onActivityResult ----
@@ -1036,15 +1049,17 @@ gui('S_DLG_DECKPICKER_EXPORT_DONE', 'DeckPicker.emailFile',
     'the email button of the export-complete dialog is tapped',
     evidence='SRC com/ichi2/anki/dialogs/DeckPickerExportCompleteDialog.java:34-36')
 
-gui('S_DLG_SYNC_ERROR', 'DeckPicker.loginToSyncServer',
+gui('S_DLG_SYNC_ERROR_NOT_LOGGED_IN', 'DeckPicker.loginToSyncServer',
     'the login button of the sync-error dialog is tapped',
-    note='MISSING GATE MG4: the failed-sync state is not modelled. S_DLG_SYNC_ERROR has no ENTERS owner yet (see conflicts_002.md).',
-    evidence='SRC com/ichi2/anki/dialogs/SyncErrorDialog.java:80-81')
+    guard='dialog id is DIALOG_USER_NOT_LOGGED_IN_SYNC (0): hkey empty, com/ichi2/anki/DeckPicker.java:1281-1282; the media-error dialog (type 9) has no login button',
+    note='B6 fix route 21: split from the generic S_DLG_SYNC_ERROR page. The onPositive at com/ichi2/anki/dialogs/SyncErrorDialog.java:80-81 belongs only to case DIALOG_USER_NOT_LOGGED_IN_SYNC (lines 73-84); the media-error case (lines 204-213) calls mediaCheck instead.',
+    evidence='SRC com/ichi2/anki/dialogs/SyncErrorDialog.java:80-81; SRC com/ichi2/anki/DeckPicker.java:1281-1282')
 
-gui('S_DLG_SYNC_ERROR', 'DeckPicker.mediaCheck',
+gui('S_DLG_SYNC_ERROR_MEDIA', 'DeckPicker.mediaCheck',
     'the media check button of the sync-error dialog is tapped',
-    note='MISSING GATE MG4: the failed-sync state is not modelled. S_DLG_SYNC_ERROR has no ENTERS owner yet.',
-    evidence='SRC com/ichi2/anki/dialogs/SyncErrorDialog.java:209-210')
+    guard='dialog id is DIALOG_MEDIA_SYNC_ERROR (9): sync failed with resultType mediaSyncServerError, com/ichi2/anki/DeckPicker.java:1493-1495; the not-logged-in dialog (type 0) has no media-check button',
+    note='B6 fix route 21: split from the generic S_DLG_SYNC_ERROR page. The onPositive at com/ichi2/anki/dialogs/SyncErrorDialog.java:209-210 belongs only to case DIALOG_MEDIA_SYNC_ERROR (lines 204-213).',
+    evidence='SRC com/ichi2/anki/dialogs/SyncErrorDialog.java:209-210; SRC com/ichi2/anki/DeckPicker.java:1493-1495')
 
 gui('S_DLG_CUSTOM_STUDY', 'DeckPicker.onCreateCustomStudySession',
     'the positive button of the custom study dialog is tapped',
@@ -1532,6 +1547,7 @@ e('S_CARDBROWSER', 'CardBrowser$10.onQueryTextChange', 'GUI',
 e('CardBrowser.onOptionsItemSelected', 'S_NOTEEDITOR', 'ENTERS',
   'the add-card menu item starts the note editor (ADD_NOTE)',
   env=None,
+  guard='item.getItemId() == R.id.action_add_card_from_card_browser and the drawer toggle does not consume the item',
   evidence='SRC com/ichi2/anki/CardBrowser.java:630-634',
   note='ENTERS edge: method to page. The result returns through the RESULT edge S_NOTEEDITOR -> CardBrowser.onActivityResult.')
 
@@ -2317,7 +2333,7 @@ e('S_DLG_CONFIRMATION', 'NoteEditor$5.confirm', 'GUI',
   evidence='SRC com/ichi2/anki/NoteEditor.java:684-698; SRC com/ichi2/anki/dialogs/ConfirmationDialog.java:40-43',
   note='Page edge; the route into S_DLG_CONFIRMATION is saveNote (NoteEditor.java:688-698, batch_012). MISSING GATE MG76: the change needs an edited note in change-note-type mode, and no predefined STATE kind covers the note type change. The MaterialDialog OK dispatch to ConfirmationDialog is library code: INFERRED.')
 
-e('S_DLG_CONFIRMATION', 'NoteEditor$6.confirm', 'GUI',
+e('S_DLG_CONFIRMATION_NOTEEDITOR_CHANGETYPE', 'NoteEditor$6.confirm', 'GUI',
   'change the note type of an edited note when libanki needs the user to confirm a full sync, then tap OK',
   gui=['change the note type of an edited note when libanki needs the user to confirm a full sync, then tap OK'],
   env=None,
@@ -2386,6 +2402,7 @@ e('S_NOTEEDITOR', 'NoteEditor$11.onClick', 'GUI',
   'tap the media button next to a field in the note editor (not in change-note-type mode)',
   gui=['tap the media button next to a field in the note editor (not in change-note-type mode)'],
   env=None,
+  guard='!editModelMode',
   evidence='SRC com/ichi2/anki/NoteEditor.java:1108-1122, 1129-1146',
   note='Page edge. MISSING GATE MG77: setMMButtonListener runs only when editModelMode is false (NoteEditor.java:1116-1122). A non-empty field starts the field editor (startMultimediaFieldEditor, batch_012); an empty field shows the popup.')
 
@@ -4416,7 +4433,7 @@ sup(('DeckTask$TaskListener.onProgressUpdate', 'ModelBrowser$1.onProgressUpdate'
 # the FRAMEWORK edge from $6.<init> to $6.onPositive, and the ASYNC launch edges into the $8 listener from the launch methods.
 # UNREACHABLE: ModelFieldEditor$8.onCancelled and ModelFieldEditor$8.onProgressUpdate.
 
-e('S_DLG_CONFIRMATION', 'ModelFieldEditor$5$1.confirm', 'GUI',
+e('S_DLG_CONFIRMATION_MODELFIELDEDITOR_RENAME', 'ModelFieldEditor$5$1.confirm', 'GUI',
   'press OK on the rename field confirmation shown when the schema change needs confirmation',
   gui=['press OK on the rename field confirmation shown when the schema change needs confirmation'],
   evidence='SRC com/ichi2/anki/ModelFieldEditor.java:312-334; SRC com/ichi2/anki/dialogs/ConfirmationDialog.java:40-49; SRC com/ichi2/libanki/Collection.java:364-382; SRC com/ichi2/libanki/Models.java:665-666; SRC com/ichi2/libanki/Storage.java:317-319',
@@ -4742,13 +4759,14 @@ e('S_MODELFIELDEDITOR', 'ModelFieldEditor$5.onPositive', 'GUI',
   evidence='SRC com/ichi2/anki/ModelFieldEditor.java:293-304, 116-120, 135-142; SRC com/ichi2/anki/dialogs/ModelEditorContextMenu.java:12-14, 34-38',
   note='The route goes through the field context menu (S_DLG_MODELEDITOR_CONTEXT, selection by ModelFieldEditor$9.onSelection, batch 034, FIELD_RENAME = 2). The rename dialog is shown over this page. STATE_COLLECTION: the field list is loaded.')
 
-e('ModelFieldEditor$5.onPositive', 'S_DLG_CONFIRMATION', 'ENTERS',
+e('ModelFieldEditor$5.onPositive', 'S_DLG_CONFIRMATION_MODELFIELDEDITOR_RENAME', 'ENTERS',
   'the sync-required rename dialog is shown when renameField throws ConfirmModSchemaException',
   env=None,
+  guard='renameField() throws ConfirmModSchemaException (schema not yet marked changed)',
   evidence='SRC com/ichi2/anki/ModelFieldEditor.java:315-336; SRC com/ichi2/libanki/Collection.java:364-374',
   note='MISSING GATE MG272: the catch branch of renameField at line 316 (renameField calls Models.renameField, which calls mCol.modSchema(true)). The dialog is ModelFieldEditor$5$1. env and needs_state unset.')
 
-e('S_DLG_CONFIRMATION', 'ModelFieldEditor$5$1.cancel', 'GUI',
+e('S_DLG_CONFIRMATION_MODELFIELDEDITOR_RENAME', 'ModelFieldEditor$5$1.cancel', 'GUI',
   'tap Cancel on the sync-required rename dialog',
   env=None,
   gui=['tap Cancel on the sync-required rename dialog'],
@@ -5850,11 +5868,12 @@ e('ImportDialog.dismissAllDialogFragments', 'AnkiActivity.dismissAllDialogFragme
 # SyncErrorDialog (the destinations are in this batch). UNREACHABLE: SyncErrorDialog$2 (3 entries).
 # Automatic CALL edges from auto_calls.json are not written here.
 
-e('S_DLG_SYNC_ERROR', 'SyncErrorDialog$1.onPositive', 'GUI',
+e('S_DLG_SYNC_ERROR_NOT_LOGGED_IN', 'SyncErrorDialog$1.onPositive', 'GUI',
   'tap Log in on the not-logged-in sync dialog (type 0)',
+  guard='dialog id is DIALOG_USER_NOT_LOGGED_IN_SYNC (0): hkey empty, com/ichi2/anki/DeckPicker.java:1281-1282',
   gui=['tap Log in on the not-logged-in sync dialog (type 0)'],
   evidence='SRC com/ichi2/anki/dialogs/SyncErrorDialog.java:78-84; SRC com/ichi2/anki/DeckPicker.java:1277-1283',
-  note='MISSING GATE MG393: no account is logged in (the hkey preference is empty, DeckPicker.java:1281-1282). No constant fits, so env and needs_state are unset. The callback runs the activity listener loginToSyncServer (automatic CALL). The button dispatch is MaterialDialog (library, source not read): INFERRED. The direct edge S_DLG_SYNC_ERROR -> DeckPicker.loginToSyncServer (graph_def.py:1039) bypasses this callback; both routes exist.')
+  note='MISSING GATE MG393: no account is logged in (the hkey preference is empty, DeckPicker.java:1281-1282). No constant fits, so env and needs_state are unset. The callback runs the activity listener loginToSyncServer (automatic CALL). The button dispatch is MaterialDialog (library, source not read): INFERRED. The direct edge S_DLG_SYNC_ERROR_NOT_LOGGED_IN -> DeckPicker.loginToSyncServer (B6 fix route 21) bypasses this callback; both routes exist.')
 
 e('S_DLG_SYNC_ERROR', 'SyncErrorDialog$3.onPositive', 'GUI',
   'tap keep local on the sync conflict dialog (type 2)',
@@ -5920,13 +5939,14 @@ e('S_DLG_SYNC_ERROR', 'SyncErrorDialog$8.onPositive', 'GUI',
   evidence='SRC com/ichi2/anki/dialogs/SyncErrorDialog.java:196-202, 173-174',
   note='MISSING GATE MG394: type 8 is on screen only after the remote-version tap on type 6 (SyncErrorDialog.java:173-174). No constant fits, so env and needs_state are unset. The callback calls sync("download") and dismissAllDialogFragments (lines 199-200).')
 
-e('S_DLG_SYNC_ERROR', 'SyncErrorDialog$9.onPositive', 'GUI',
+e('S_DLG_SYNC_ERROR_MEDIA', 'SyncErrorDialog$9.onPositive', 'GUI',
   'tap Check media on the media sync error dialog (type 9)',
+  guard='dialog id is DIALOG_MEDIA_SYNC_ERROR (9): sync failed with resultType mediaSyncServerError, com/ichi2/anki/DeckPicker.java:1493-1495',
   env=ENV_NETWORK,
   needs_state=STATE_ACCOUNT,
   gui=['tap Check media on the media sync error dialog (type 9)'],
   evidence='SRC com/ichi2/anki/dialogs/SyncErrorDialog.java:207-213; SRC com/ichi2/anki/DeckPicker.java:1492-1496',
-  note='Type 9 opens from the mediaSyncServerError answer (DeckPicker.java:1493-1495). The answer needs the network and a stored hkey. The callback calls mediaCheck() (automatic CALL) and dismissAllDialogFragments (line 211). The direct edge S_DLG_SYNC_ERROR -> DeckPicker.mediaCheck (graph_def.py:1044) bypasses this callback; both routes exist.')
+  note='Type 9 opens from the mediaSyncServerError answer (DeckPicker.java:1493-1495). The answer needs the network and a stored hkey. The callback calls mediaCheck() (automatic CALL) and dismissAllDialogFragments (line 211). The direct edge S_DLG_SYNC_ERROR_MEDIA -> DeckPicker.mediaCheck (B6 fix route 21) bypasses this callback; both routes exist.')
 
 UNREACHABLE['SyncErrorDialog$2.<init>'] = (
     'branch_never_taken',
@@ -6290,9 +6310,10 @@ e('S_LOAD_PRONOUNCIATION', 'LoadPronounciationActivity.onCancel', 'GUI',
 
 e('LoadPronounciationActivity.onLoadPronunciation', 'LoadPronounciationActivity$BackgroundPost.doInBackground', 'ASYNC',
   'translation page request, started after the online check',
-  env=ENV_NETWORK,
+  env=ENV_BEOLINGUS,
+  guard='Connection.isOnline() == true',
   evidence='SRC com/ichi2/anki/multimediacard/activity/LoadPronounciationActivity.java:154-170, 199-213; SRC com/ichi2/async/Connection.java:475-483; FW-SRC core/java/android/os/AsyncTask.java:594-595',
-  note='The gate is Connection.isOnline (line 155). ENV_NETWORK text names AnkiWeb; the check is general connectivity, so this is the closest predefined constant. The execute call is at line 170.')
+  note='The gate is Connection.isOnline (line 155, early return lines 155-158). The fetch is the Beolingus translation page (computeAddressOfTranslationPage, lines 406-408, dict.tu-chemnitz.de), not the AnkiWeb sync server. The execute call is at line 170.')
 
 e('LoadPronounciationActivity.processPostFinished', 'LoadPronounciationActivity$BackgroundPost.doInBackground', 'ASYNC',
   'pronunciation page request, started after the translation page gives a pronunciation link',
@@ -6308,9 +6329,10 @@ e('LoadPronounciationActivity$BackgroundPost.doInBackground', 'LoadPronounciatio
 
 e('LoadPronounciationActivity.processPostFinished', 'LoadPronounciationActivity$DownloadFileTask.doInBackground', 'ASYNC',
   'mp3 download, started after the pronunciation page gives an mp3 address',
-  env=ENV_NETWORK,
+  env=ENV_BEOLINGUS,
+  guard='!mStopped and the finished post is the pronunciation post and the mp3 address is not "no"',
   evidence='SRC com/ichi2/anki/multimediacard/activity/LoadPronounciationActivity.java:323-335, 251-253; SRC com/ichi2/anki/web/HttpFetcher.java:124-127, 134-166; FW-SRC core/java/android/os/AsyncTask.java:594-595',
-  note='The gate is the network (HTTP GET, then POST when the GET fails, HttpFetcher.java:124-127). ENV_STORAGE is not used: the file is written to the app cache directory (HttpFetcher.java:134-166). ENV_NETWORK text names AnkiWeb; closest predefined constant.')
+  note='The gates are !mStopped (lines 271-273), the pronunciation post (address == mPronunciationAddress, lines 318-323) and an mp3 address found (!= "no", lines 325-328, execute at 333-335). The mp3 comes from Beolingus, not the AnkiWeb sync server. ENV_STORAGE is not used: the file is written to the app cache directory (HttpFetcher.java:134-166).')
 
 e('LoadPronounciationActivity$DownloadFileTask.doInBackground', 'LoadPronounciationActivity$DownloadFileTask.onPostExecute', 'ASYNC',
   'AsyncTask delivers the download result (file path or FAILED text) to onPostExecute',
@@ -6993,9 +7015,308 @@ del _gdmod_os, _gdmod_name, _gdmod_path
 # pruned from the checker source index; it is NOT claimed absent from the upload.
 B3_FIX = {('DeckTask.doInBackgroundUpdateValuesFromDeck', 'DeckTask$TaskData.<init>(Object[])', 'SRC DeckTask.java:711 (bytecode)'): 'SRC DeckTask.java:710 (bytecode line was 711)', ('AbstractFlashcardViewer.onActivityResult', 'DeckTask$TaskData.<init>(Card,int)', 'SRC AbstractFlashcardViewer.java:1092 (bytecode)'): 'SRC AbstractFlashcardViewer.java:1093 (bytecode line was 1092)', ('AbstractFlashcardViewer.onActivityResult', 'DeckTask$TaskData.<init>(Card,boolean)', 'SRC AbstractFlashcardViewer.java:1084 (bytecode)'): 'SRC AbstractFlashcardViewer.java:1085 (bytecode line was 1084)', ('AbstractFlashcardViewer.answerCard', 'DeckTask$TaskData.<init>(Card,int)', 'SRC AbstractFlashcardViewer.java:1320 (bytecode)'): 'SRC AbstractFlashcardViewer.java:1321 (bytecode line was 1320)', ('AbstractFlashcardViewer.dismiss', 'DeckTask$TaskData.<init>(Object[])', 'SRC AbstractFlashcardViewer.java:2825 (bytecode)'): 'SRC AbstractFlashcardViewer.java:2826 (bytecode line was 2825)', ('DeckPicker.importAdd', 'DeckTask$TaskData.<init>(String,boolean)', 'SRC DeckPicker.java:1580 (bytecode)'): 'SRC DeckPicker.java:1581 (bytecode line was 1580)', ('DeckPicker.deleteDeck', 'DeckTask$TaskData.<init>(long)', 'SRC DeckPicker.java:2017 (bytecode)'): 'SRC DeckPicker.java:2067 (bytecode line was 2017)', ('ModelBrowser.deleteModel', 'DeckTask$TaskData.<init>(long)', 'SRC ModelBrowser.java:579 (bytecode)'): 'SRC ModelBrowser.java:580 (bytecode line was 579)', ('CardBrowser$1$1.onClick', 'DeckTask$TaskData.<init>(Object[])', 'SRC CardBrowser.java:199 (bytecode)'): 'SRC CardBrowser.java:200 (bytecode line was 199)', ('ModelFieldEditor$6$1.confirm', 'DeckTask$TaskData.<init>(Object[])', 'SRC ModelFieldEditor.java:390 (bytecode)'): 'SRC ModelFieldEditor.java:389 (bytecode line was 390)', ('CardBrowser.onActivityResult', 'DeckTask$TaskData.<init>(Card,boolean)', 'SRC CardBrowser.java:697 (bytecode)'): 'SRC CardBrowser.java:698 (bytecode line was 697)', ('CardBrowser.searchCards', 'DeckTask$TaskData.<init>(Object[])', 'SRC CardBrowser.java:813 (bytecode)'): 'SRC CardBrowser.java:812 (bytecode line was 813)', ('ModelBrowser$9.onPositive', 'ModelBrowser$DisplayPair.<init>', 'SRC ModelBrowser.java:522 (bytecode)'): 'SRC ModelBrowser.java:521 (bytecode line was 522)', ('Reviewer.onCollectionLoaded', 'DeckTask$TaskData.<init>(Card,int)', 'SRC Reviewer.java:110 (bytecode)'): 'SRC Reviewer.java:111 (bytecode line was 110)', ('StudyOptionsFragment.onMenuItemClick', 'DeckTask$TaskData.<init>(boolean)', 'SRC StudyOptionsFragment.java:325 (bytecode)'): 'SRC StudyOptionsFragment.java:326 (bytecode line was 325)', ('StudyOptionsFragment.onActivityResult', 'DeckTask$TaskData.<init>(boolean)', 'SRC StudyOptionsFragment.java:427 (bytecode)'): 'SRC StudyOptionsFragment.java:428 (bytecode line was 427)', ('CardBrowser$1.onSelection', 'DeckTask$TaskData.<init>(Object[])', 'SRC CardBrowser.java:181 (bytecode)'): 'SRC CardBrowser.java:182 (bytecode line was 181)', ('ModelFieldEditor$6.onPositive', 'DeckTask$TaskData.<init>(Object[])', 'SRC ModelFieldEditor.java:378 (bytecode)'): 'SRC ModelFieldEditor.java:377 (bytecode line was 378)', ('AnkiStatsTaskHandler$CreateChartTask.doInBackground', 'ChartBuilder.<init>', 'SRC AnkiStatsTaskHandler.java:109 (bytecode)'): 'SRC AnkiStatsTaskHandler.java:108 (bytecode line was 109)', ('AbstractFlashcardViewer.onActivityResult@Previewer', 'DeckTask$TaskData.<init>(Card,int)', 'SRC AbstractFlashcardViewer.java:1092 (bytecode)'): 'SRC AbstractFlashcardViewer.java:1093 (bytecode line was 1092)', ('AbstractFlashcardViewer.onActivityResult@Previewer', 'DeckTask$TaskData.<init>(Card,boolean)', 'SRC AbstractFlashcardViewer.java:1084 (bytecode)'): 'SRC AbstractFlashcardViewer.java:1085 (bytecode line was 1084)', ('AbstractFlashcardViewer.onActivityResult@Reviewer', 'DeckTask$TaskData.<init>(Card,int)', 'SRC AbstractFlashcardViewer.java:1092 (bytecode)'): 'SRC AbstractFlashcardViewer.java:1093 (bytecode line was 1092)', ('AbstractFlashcardViewer.onActivityResult@Reviewer', 'DeckTask$TaskData.<init>(Card,boolean)', 'SRC AbstractFlashcardViewer.java:1084 (bytecode)'): 'SRC AbstractFlashcardViewer.java:1085 (bytecode line was 1084)', ('libanki.Utils.intNow()', 'libanki.Utils.intNow(int)', 'SRC Utils.java:133 (bytecode)'): 'SRC com/ichi2/libanki/Utils.java:133 (bytecode)', ('libanki.Utils.intNow(int)', 'libanki.Utils.now', 'SRC Utils.java:136 (bytecode)'): 'SRC com/ichi2/libanki/Utils.java:136 (bytecode)', ('libanki.Utils.stripHTML', 'libanki.Utils.entsToTxt', 'SRC Utils.java:253 (bytecode)'): 'SRC com/ichi2/libanki/Utils.java:253 (bytecode)', ('libanki.Utils.stripHTMLMedia', 'libanki.Utils.stripHTML', 'SRC Utils.java:262 (bytecode)'): 'SRC com/ichi2/libanki/Utils.java:262 (bytecode)', ('libanki.Utils.timestampID', 'DB.queryScalar(String)', 'SRC Utils.java:389 (bytecode)'): 'SRC com/ichi2/libanki/Utils.java:389 (bytecode)', ('libanki.Utils.timestampID', 'libanki.Utils.intNow(int)', 'SRC Utils.java:388 (bytecode)'): 'SRC com/ichi2/libanki/Utils.java:388 (bytecode)', ('libanki.Utils.maxID', 'DB.queryLongScalar', 'SRC Utils.java:400 (bytecode)'): 'SRC com/ichi2/libanki/Utils.java:400 (bytecode)', ('libanki.Utils.maxID', 'libanki.Utils.intNow(int)', 'SRC Utils.java:398 (bytecode)'): 'SRC com/ichi2/libanki/Utils.java:398 (bytecode)', ('libanki.Utils.base91', 'libanki.Utils.base62', 'SRC Utils.java:421 (bytecode)'): 'SRC com/ichi2/libanki/Utils.java:421 (bytecode)', ('libanki.Utils.guid64', 'libanki.Utils.base91', 'SRC Utils.java:427 (bytecode)'): 'SRC com/ichi2/libanki/Utils.java:427 (bytecode)', ('libanki.Utils.fieldChecksum', 'libanki.Utils.checksum', 'SRC Utils.java:539 (bytecode)'): 'SRC com/ichi2/libanki/Utils.java:539 (bytecode)', ('libanki.Utils.fieldChecksum', 'libanki.Utils.stripHTMLMedia', 'SRC Utils.java:539 (bytecode)'): 'SRC com/ichi2/libanki/Utils.java:539 (bytecode)', ('libanki.Utils.fileChecksum(File)', 'libanki.Utils.fileChecksum(String)', 'SRC Utils.java:580 (bytecode)'): 'SRC com/ichi2/libanki/Utils.java:580 (bytecode)', ('libanki.Utils.isIntentAvailable(Context,String)', 'libanki.Utils.isIntentAvailable(Context,String,ComponentName)', 'SRC Utils.java:773 (bytecode)'): 'SRC com/ichi2/libanki/Utils.java:773 (bytecode)', ('libanki.Utils.getCustomFonts', 'AnkiFont.createAnkiFont', 'SRC Utils.java:892 (bytecode)'): 'SRC com/ichi2/libanki/Utils.java:892 (bytecode)', ('libanki.Utils.getCustomFonts', 'libanki.Utils.splitFilename', 'SRC Utils.java:876 (bytecode)'): 'SRC com/ichi2/libanki/Utils.java:876 (bytecode)', ('libanki.Utils.getCustomFonts', 'CollectionHelper.getCurrentAnkiDroidDirectory', 'SRC Utils.java:858 (bytecode)'): 'SRC com/ichi2/libanki/Utils.java:858 (bytecode)', ('libanki.Utils.getImportableDecks', 'CollectionHelper.getCurrentAnkiDroidDirectory', 'SRC Utils.java:905 (bytecode)'): 'SRC com/ichi2/libanki/Utils.java:905 (bytecode)', ('MockNoteFactory.makeNote', 'MultimediaEditableNote.setField', 'SRC MockNoteFactory.java:49 (bytecode)'): 'INFERRED test-only caller MockNoteFactory.java:49, bytecode call to MultimediaEditableNote.setField; source under multimediacard/test/ is pruned from the checker source index, so no SRC bytecode citation can verify', ('MockNoteFactory.makeNote', 'ImageField.setImagePath', 'SRC MockNoteFactory.java:48 (bytecode)'): 'INFERRED test-only caller MockNoteFactory.java:48, bytecode call to ImageField.setImagePath; source under multimediacard/test/ is pruned from the checker source index, so no SRC bytecode citation can verify', ('MockNoteFactory.makeNote', 'ImageField.<init>', 'SRC MockNoteFactory.java:47 (bytecode)'): 'INFERRED test-only caller MockNoteFactory.java:47, bytecode call to ImageField constructor; source under multimediacard/test/ is pruned from the checker source index, so no SRC bytecode citation can verify', ('MockNoteFactory.makeNote', 'TextField.setText', 'SRC MockNoteFactory.java:44 (bytecode)'): 'INFERRED test-only caller MockNoteFactory.java:44, bytecode call to TextField.setText; source under multimediacard/test/ is pruned from the checker source index, so no SRC bytecode citation can verify', ('MockNoteFactory.makeNote', 'TextField.<init>', 'SRC MockNoteFactory.java:43 (bytecode)'): 'INFERRED test-only caller MockNoteFactory.java:43, bytecode call to TextField constructor; source under multimediacard/test/ is pruned from the checker source index, so no SRC bytecode citation can verify', ('MockNoteFactory.makeNote', 'MultimediaEditableNote.setNumFields', 'SRC MockNoteFactory.java:33 (bytecode)'): 'INFERRED test-only caller MockNoteFactory.java:33, bytecode call to MultimediaEditableNote.setNumFields; source under multimediacard/test/ is pruned from the checker source index, so no SRC bytecode citation can verify', ('MockNoteFactory.makeNote', 'MultimediaEditableNote.<init>', 'SRC MockNoteFactory.java:32 (bytecode)'): 'INFERRED test-only caller MockNoteFactory.java:32, bytecode call to MultimediaEditableNote constructor; source under multimediacard/test/ is pruned from the checker source index, so no SRC bytecode citation can verify'}
 
+# ---- B6FIX (routes 13-18): guard / evidence fixes for USE_AUTO edges (helper b6fix-r13-18).
+# Fold into the single combined EDIT: do NOT add a second EDIT definition.
+# Route 13 entries below; routes 15 and 17 entries are appended to these dicts.
+B6FIX_EVIDENCE = {
+    ('HttpFetcher.downloadFileToSdCard', 'HttpFetcher.downloadFileToSdCardMethod', 'SRC HttpFetcher.java:127 (bytecode)'): 'SRC HttpFetcher.java:125 (bytecode line was 127)',
+    # Route 15: pin bare api-module citations to the api Utils file (line numbers unchanged;
+    # the bare form resolved to libanki/Utils.java, whose lines 68/86/96 are imports/comments).
+    ('api.Utils.fieldChecksum', 'api.Utils.stripHTMLMedia', 'SRC Utils.java:68 (bytecode)'): 'SRC com/ichi2/anki/api/Utils.java:68 (bytecode)',
+    ('api.Utils.stripHTMLMedia', 'api.Utils.stripHTML', 'SRC Utils.java:86 (bytecode)'): 'SRC com/ichi2/anki/api/Utils.java:86 (bytecode)',
+    ('api.Utils.stripHTML', 'api.Utils.entsToTxt', 'SRC Utils.java:96 (bytecode)'): 'SRC com/ichi2/anki/api/Utils.java:96 (bytecode)',
+    # Route 15, same resolver defect family: bare AddContentApi citations resolved to NOT FOUND.
+    ('AddContentApi.findDuplicateNotes(long,String)', 'AddContentApi$CompatV2.findDuplicateNotes', 'SRC AddContentApi.java:162 (bytecode)'): 'SRC com/ichi2/anki/api/AddContentApi.java:162 (bytecode)',
+    ('AddContentApi$CompatV2.findDuplicateNotes', 'api.Utils.fieldChecksum', 'SRC AddContentApi.java:708 (bytecode)'): 'SRC com/ichi2/anki/api/AddContentApi.java:708 (bytecode)',
+    # Route 17, step 15: one-line-off bytecode line; the $6 ButtonCallback is created at :358
+    # (.callback(...)), not :357 (.customView(...)).
+    ('ModelFieldEditor.repositionFieldDialog', 'ModelFieldEditor$6.<init>', 'SRC ModelFieldEditor.java:357 (bytecode)'): 'SRC ModelFieldEditor.java:358 (bytecode line was 357)',
+}
+B6FIX_GUARD = {
+    ('DeckPicker.onResume', 'DeckPicker.updateDeckList'): '!mSyncOnResume && colIsOpen()',
+    ('NoteEditor$11.onClick', 'NoteEditor.startMultimediaFieldEditor'): 'field text non-empty',
+    ('AddContentApi.findDuplicateNotes(long,String)', 'AddContentApi$CompatV2.findDuplicateNotes'): 'host provider spec version >= 2',
+    ('ModelFieldEditor$9.onSelection', 'ModelFieldEditor.repositionFieldDialog'): 'selection == ModelEditorContextMenu.FIELD_REPOSITION',
+    ('ModelFieldEditor$6.onPositive', 'ModelFieldEditor$6$1.<init>'): 'mCol.modSchema() throws ConfirmModSchemaException, after valid in-range integer input',
+}
+
+
 def EDIT(x):
     ev = x.get('evidence') or ''
     for (src_, dst_, old_), new_ in B3_FIX.items():
         if x['src'] == src_ and x['dst'] == dst_ and old_ in ev:
             ev = ev.replace(old_, new_)
     x['evidence'] = ev
+    for (src_, dst_, old_), new_ in B6FIX_EVIDENCE.items():
+        if x['src'] == src_ and x['dst'] == dst_ and old_ in ev:
+            ev = ev.replace(old_, new_)
+    x['evidence'] = ev
+    for (src_, dst_), new_ in B6FIX_GUARD.items():
+        if x['src'] == src_ and x['dst'] == dst_ and x.get('guard') is None:
+            x['guard'] = new_
+
+# ---- B6: AnkiDroid route-check fixes, routes 07-12 (helper b6fix-r07-12) ----
+# The B3 EDIT above is saved and called first: a second EDIT assignment
+# would silently replace it, so this wrapper extends it instead of replacing it.
+# Matching is by exact (src, dst): every pair below was verified to have
+# exactly one edge in the baseline build, so no other edge is touched.
+# Guards are free text (no kind registration needed); needs_state texts are
+# registered with state_text() below so the builder can classify them.
+B6_GUARD = {
+    # Route 07 step 8 (fixed): DialogHandler branch fixes the dialog id.
+    ('DialogHandler.handleMessage', 'DeckPicker.showImportDialog(int,String)'):
+        'msg.what == MSG_SHOW_COLLECTION_IMPORT_ADD_DIALOG, so showImportDialog is called with DIALOG_IMPORT_ADD_CONFIRM (DialogHandler.java:65-66)',
+    # Route 07 step 12 (wrong as routed, true as an edge): only the SELECT case calls getImportableDecks.
+    ('ImportDialog.onCreateDialog', 'libanki.Utils.getImportableDecks'):
+        'mType == DIALOG_IMPORT_SELECT (ImportDialog.java:86-88); the ADD_CONFIRM case (126-138) never calls getImportableDecks',
+    # Route 07 step 13 (fixed).
+    ('libanki.Utils.getImportableDecks', 'libanki.Utils$1.<init>'):
+        'dir.exists() && dir.isDirectory() (Utils.java:909-910)',
+    # Route 08 step 4 (fixed): error dialog only in the !colOpen branch after the three checks.
+    ('DeckPicker.onCreate', 'S_DLG_DATABASE_ERROR'):
+        '!colOpen AND storage permission granted AND SD card mounted AND AnkiDroid directory accessible (DeckPicker.java:415, 420-433)',
+    # Route 08 step 5 (fixed): only the CONFIRM variant's positive button calls integrityCheck.
+    # The LOAD_FAILED/CURSOR variant's positive button goes to DIALOG_ERROR_HANDLING instead.
+    # The menu reroute (DeckPicker.java:595-597) already enters this page as CONFIRM (edge E044ff236).
+    ('S_DLG_DATABASE_ERROR', 'DeckPicker.integrityCheck'):
+        'dialog variant is DIALOG_CONFIRM_DATABASE_CHECK (DatabaseErrorDialog.java:294-302); not the LOAD_FAILED/CURSOR variant',
+    # Route 08 step 6 rename ($15 -> $16) HELD, NOT applied: bytecode numbering
+    # contradicts the source-scan count (see EDITS.md). The $15 node below is
+    # therefore left exactly as built; only its step-7 guard is added.
+    # Route 08 step 7 (fixed).
+    ('DeckPicker$15.onPostExecute', 'AnkiActivity.showSimpleMessageDialog(String,boolean)'):
+        'result != null && result.getBoolean() (DeckPicker.java:1160); else handleDbError()',
+    # Route 09 step 7 (fixed).
+    ('DeckPicker.onStop', 'WidgetStatus.update'):
+        'colIsOpen() (DeckPicker.java:741)',
+    # Route 09 step 8 (fixed): verbatim gate from WidgetStatus.update.
+    ('WidgetStatus.update', 'WidgetStatus$UpdateDeckStatusAsyncTask.doInBackground'):
+        '(sSmallWidgetEnabled || sNotificationEnabled) && (sUpdateDeckStatusAsyncTask == null || sUpdateDeckStatusAsyncTask.getStatus() == AsyncTask.Status.FINISHED) (WidgetStatus.java:57-58)',
+    # Route 10 step 4 (fixed; shared with route 11 step 4).
+    ('DeckPicker.onCreate', 'DeckPicker.showStartupScreensAndDialogs'):
+        'colOpen (DeckPicker.java:415, 357)',
+    # Route 10 step 7 (fixed).
+    ('Models.save(JSONObject,boolean)', 'Models._updateRequired'):
+        'm != null && m.has("id") && m.getLong("id") != 0 (Models.java:183, 188-189)',
+    # Route 10 step 8 (fixed).
+    ('Models._updateRequired', 'Models._reqForTemplate'):
+        'model type != MODEL_CLOZE and model has >= 1 template (Models.java:1042-1045, 1056)',
+    # Route 10 step 13 (fixed).
+    ('Template.render_tags', 'Template.render_unescaped'):
+        'template contains a plain (untyped) tag, tag_type == null (Template.java:168-169)',
+    # Route 11 step 5 (fixed): this edge is the :958 call site, i.e. the
+    # final-else branch. The fresh-install branch at :855-858 calls
+    # onFinishedStartup from the same method but has no separate graph edge.
+    ('DeckPicker.showStartupScreensAndDialogs', 'DeckPicker.onFinishedStartup'):
+        'showStartupScreensAndDialogs reaches the final-else branch (nothing special required, DeckPicker.java:957-958); the fresh-install branch at :855-858 is the other onFinishedStartup call site in the same method',
+    # Route 11 step 6 (fixed).
+    ('DeckPicker.onFinishedStartup', 'DeckPicker.loadStudyOptionsFragment'):
+        'mFragmented (DeckPicker.java:828; mFragmented set at :367)',
+    # Route 11 step 8 (fixed).
+    ('S_STUDYOPTIONS_FRAG', 'FilteredDeckOptions.<init>'):
+        'selected deck is a dyn (filtered) deck (StudyOptionsFragment.java:296-297) or mLoadWithDeckOptions is true (StudyOptionsFragment.java:558), and the user opens deck options',
+    # Route 11 step 11 (fixed).
+    ('S_FILTEREDDECKOPTIONS', 'FilteredDeckOptions$DeckPreferenceHack.edit'):
+        'user changes a persisted cram preference (value actually changes, or first set) (FilteredDeckOptions.java:272-275; FW-SRC TwoStatePreference.java:81, EditTextPreference.java:94)',
+    # Route 11 step 13 (fixed).
+    ('FilteredDeckOptions$DeckPreferenceHack$Editor.putBoolean', 'FilteredDeckOptions$DeckPreferenceHack$Editor.apply'):
+        'mAllowCommit (FilteredDeckOptions.java:251-252; false inside updateSummaries at :451, back to true at :487)',
+}
+B6_EVIDENCE = {
+    # Route 07 step 11 wording only: the class imports support-v4, not androidx.
+    # INFERRED status is unchanged; no lifecycle claim is added.
+    ('ImportDialog.<init>', 'ImportDialog.onCreateDialog',
+     'INFERRED androidx Fragment/DialogFragment lifecycle order (androidx source not read)'):
+        'INFERRED support-v4 Fragment/DialogFragment lifecycle order (support-v4 source not read; ImportDialog imports android.support.v4.app.DialogFragment)',
+    # Route 08 step 11 wording only: same library-name correction; INFERRED status unchanged.
+    ('SimpleMessageDialog.<init>', 'SimpleMessageDialog.onCreateDialog',
+     'INFERRED androidx Fragment/DialogFragment lifecycle order (androidx source not read)'):
+        'INFERRED support-v4 Fragment/DialogFragment lifecycle order (support-v4 source not read; SimpleMessageDialog extends AsyncDialogFragment, which extends android.support.v4.app.DialogFragment)',
+    # Route 08 step 12 (fixed): the anonymous-class instantiation is at :40, not :39.
+    ('SimpleMessageDialog.onCreateDialog', 'SimpleMessageDialog$1.<init>',
+     'SRC SimpleMessageDialog.java:39 (bytecode)'):
+        'SRC SimpleMessageDialog.java:40 (bytecode line was 39)',
+}
+# New STATE texts for the B6 guard fixes (kind 'data' in each case, so the
+# builder classifies them; guard text alone cannot carry a STATE gate).
+B6_STATE_UPGRADE = state_text(
+    'data: upgrading from a pre-2.6alpha23 install whose model css contains the literal typo font-familiy (DeckPicker.java:901, 906-908)',
+    ('data',))
+B6_STATE_TEMPLATE = state_text(
+    'data: non-cloze model with a template whose q/a format contains a multi-modifier tag whose field is absent from the context (txt == null, Template.java:201-206), with >= 2 modifiers so Collections.sort calls compare (Template.java:229-238); data are synthetic _reqForTemplate values (Models.java:1079, 1082), not a real note',
+    ('data',))
+B6_STATE_DYN = state_text(
+    'data: collection loaded AND current/selected deck is dyn (dyn == 1) (FilteredDeckOptions.java:356-358, 370-376)',
+    ('data',))
+B6_NEEDS_STATE = {
+    # Route 10 step 5 (fixed, material): the upgrade path only.
+    ('DeckPicker.showStartupScreensAndDialogs', 'Models.save(JSONObject)'): B6_STATE_UPGRADE,
+    # Route 10 step 14 (fixed): replaces 'at least one note exists in the collection'.
+    ('Template.render_unescaped', 'Template$1.compare'): B6_STATE_TEMPLATE,
+    # Route 11 step 10 (fixed): strengthens 'a deck exists in the collection'.
+    ('FilteredDeckOptions.onCreate', 'S_FILTEREDDECKOPTIONS'): B6_STATE_DYN,
+}
+_B6_EDIT_PREV = EDIT
+
+
+def EDIT(x):
+    _B6_EDIT_PREV(x)
+    key = (x['src'], x['dst'])
+    if key in B6_GUARD and not x.get('guard'):
+        x['guard'] = B6_GUARD[key]
+    if key in B6_NEEDS_STATE:
+        x['needs_state'] = B6_NEEDS_STATE[key]
+    for (src_, dst_, old_), new_ in B6_EVIDENCE.items():
+        if x['src'] == src_ and x['dst'] == dst_ and old_ in (x.get('evidence') or ''):
+            x['evidence'] = (x.get('evidence') or '').replace(old_, new_)
+
+# ---- B6 fix route 21 (helper b6fix-r19-24): SyncErrorDialog variant pages ----
+# The generic S_DLG_SYNC_ERROR page is kept for dialog types 2, 3, 4, 6, 7, 8
+# (their callback edges are untouched). Only the type-0 and type-9 edges move
+# to the variant pages below, so a media-error dialog can no longer reach
+# loginToSyncServer and a not-logged-in dialog can no longer reach mediaCheck
+# through the graph. BFS ignores guard text, so the variant distinction is
+# carried by the page nodes themselves, not by the guards alone.
+e('DeckPicker.showSyncErrorDialog(int,String)', 'S_DLG_SYNC_ERROR_NOT_LOGGED_IN', 'ENTERS',
+  'a not-logged-in sync error dialog is requested: the log-in dialog opens',
+  guard='dialog id is DIALOG_USER_NOT_LOGGED_IN_SYNC (0): hkey empty, com/ichi2/anki/DeckPicker.java:1281-1282',
+  env=None,
+  evidence='SRC com/ichi2/anki/DeckPicker.java:1058-1062, 1281-1282; SRC com/ichi2/anki/dialogs/SyncErrorDialog.java:73-84')
+
+e('DeckPicker.showSyncErrorDialog(int,String)', 'S_DLG_SYNC_ERROR_MEDIA', 'ENTERS',
+  'a media sync error dialog is requested: the media-error dialog opens',
+  guard='dialog id is DIALOG_MEDIA_SYNC_ERROR (9): sync failed with resultType mediaSyncServerError, com/ichi2/anki/DeckPicker.java:1493-1495',
+  env=None,
+  evidence='SRC com/ichi2/anki/DeckPicker.java:1058-1062, 1493-1495; SRC com/ichi2/anki/dialogs/SyncErrorDialog.java:204-213')
+
+
+# ---- B6 fix route 24 (helper b6fix-r19-24): Hook.<init> guards ----
+# Audited FIXED route, TABLE-derived tally 6 correct / 5 fixed (see EDITS.md:
+# the prose "5 correct, 6 fixed" in helper/b6-r22-24/VERDICTS.md is wrong).
+# Each manual edge below replaces the unguarded auto CALL with the same
+# src/dst plus the audited guard. Steps 5, 7, 10 are correct as printed and
+# are NOT replaced; steps 1-3 are correct lifecycle/entry edges.
+# Cold-start satisfiability: firstCollectionOpen() false, collection not yet
+# open, sInstance null, advanced_statistics_enabled true.
+e('DeckPicker.onCreate', 'CollectionHelper.exceededCursorSizeLimit', 'CALL',
+  'Direct call',
+  guard='firstCollectionOpen() is false (colOpen false, com/ichi2/anki/DeckPicker.java:357, 415-418 else branch) and storage permission is granted (com/ichi2/anki/DeckPicker.java:420) and the SD card is mounted (com/ichi2/anki/DeckPicker.java:422) and the AnkiDroid directory is accessible (com/ichi2/anki/DeckPicker.java:425), so the else-if at com/ichi2/anki/DeckPicker.java:430 runs',
+  evidence='SRC com/ichi2/anki/DeckPicker.java:430',
+  note='B6 fix route 24 step 4: replaces the unguarded auto CALL (DeckPicker.java:430).')
+
+e('CollectionHelper.getCol', 'Storage.Collection(Context,String,boolean,boolean)', 'CALL',
+  'Direct call',
+  guard='collection is not open (colIsOpen() false, com/ichi2/anki/CollectionHelper.java:88)',
+  evidence='SRC com/ichi2/anki/CollectionHelper.java:99',
+  note='B6 fix route 24 step 6: replaces the unguarded auto CALL (CollectionHelper.java:99).')
+
+e('Hooks.getInstance', 'Hooks.<init>', 'CALL',
+  'Direct call',
+  guard='sInstance is null (first getInstance call on a cold start, com/ichi2/libanki/hooks/Hooks.java:38-40)',
+  evidence='SRC com/ichi2/libanki/hooks/Hooks.java:40',
+  note='B6 fix route 24 step 8: replaces the unguarded auto CALL (Hooks.java:40).')
+
+e('Hooks.<init>', 'AdvancedStatistics.install', 'CALL',
+  'Direct call',
+  guard='preference advanced_statistics_enabled is true (com/ichi2/libanki/hooks/Hooks.java:61-62)',
+  evidence='SRC com/ichi2/libanki/hooks/Hooks.java:62',
+  note='B6 fix route 24 step 9: replaces the unguarded auto CALL (Hooks.java:62).')
+
+e('AdvancedStatistics.<init>', 'Hook.<init>', 'CALL',
+  'implicit super() call in the default constructor',
+  guard='AdvancedStatistics extends Hook (com/ichi2/libanki/hooks/AdvancedStatistics.java:99) and neither class declares an explicit constructor, so the default constructor implicitly calls super()',
+  evidence='SRC com/ichi2/libanki/hooks/AdvancedStatistics.java:99; SRC com/ichi2/libanki/hooks/Hook.java:31',
+  note='B6 fix route 24 step 11: replaces the unguarded auto CALL (AdvancedStatistics.java:99, class declaration, not a call site); citation reworded as implicit super().')
+
+# ---- B6 fix, routes 25-30 (helper b6fix-r25-30, 2026-11-01) ----
+# Route 25 (CollectionLoader.deliverResult, FIXED): guard-only override for the
+# auto CALL edge below. The hand edge replaces the auto edge (same src/dst/kind);
+# the guard is from com/ichi2/anki/DeckPicker.java:414-417 (if (colOpen)).
+e('DeckPicker.onCreate', 'DeckPicker.showStartupScreensAndDialogs', 'CALL', 'Direct call',
+  guard='firstCollectionOpen() true (colOpen)',
+  evidence='SRC DeckPicker.java:417 (bytecode)')
+
+# Route 26 (ModelFieldEditor$1.<init>, WRONG): guard-only override for the
+# auto CALL edge below, plus the two new SCREENS pages for the split above.
+# The auto edge below is the FINAL-ELSE call site only (DeckPicker.java:958,
+# the only auto_calls record for this pair); the fresh-install call site at
+# DeckPicker.java:858 has no auto record and is not this edge.
+SCREENS['S_DLG_CONFIRMATION_DECKPICKER_FULLSYNC'] = 'ConfirmationDialog: DeckPicker force-full-sync dialog (DialogHandler MSG_SHOW_FORCE_FULL_SYNC_DIALOG)'
+SCREENS['S_DLG_CONFIRMATION_MODELFIELDEDITOR_RENAME'] = 'ConfirmationDialog: ModelFieldEditor rename-field dialog (ModelFieldEditor$5$1)'
+e('DeckPicker.showStartupScreensAndDialogs', 'DeckPicker.onFinishedStartup', 'CALL', 'Direct call',
+  guard='final else branch of the startup chain (DeckPicker.java:956-958): enough disc space, no noSpaceLeft preference, and no upgrade action required',
+  evidence='SRC DeckPicker.java:958 (bytecode)')
+
+# Route 27 (Decks.id(String,boolean), FIXED): guard-only overrides for auto
+# CALL edges. Sources: com/ichi2/anki/DeckPicker.java:704-709 (step 5),
+# :1842-1846 + :1866-1869 (step 7), com/ichi2/anki/widgets/DeckAdapter.java:285-293
+# (step 9), com/ichi2/libanki/Decks.java:940-958 (step 10).
+e('DeckPicker.onResume', 'DeckPicker.updateDeckList', 'CALL', 'Direct call',
+  guard='not mSyncOnResume AND collection open (colIsOpen())',
+  evidence='SRC DeckPicker.java:709 (bytecode)')
+e('DeckPicker$22.onPostExecute', 'DeckPicker.scrollDecklistToDeck', 'CALL', 'Direct call (through DeckPicker.access$1500)',
+  guard='focused deck differs from current deck (mFocusedDeck != current; result non-null)',
+  evidence='SRC DeckPicker.java:1868 (bytecode)')
+e('DeckAdapter.findDeckPosition', 'Decks.parents', 'CALL', 'Direct call',
+  guard='deck id not in the displayed deck list',
+  evidence='SRC DeckAdapter.java:291 (bytecode)')
+e('Decks.parents', 'Decks.id(String)', 'CALL', 'Direct call',
+  guard='deck has at least one parent (name contains "::")',
+  evidence='SRC Decks.java:958 (bytecode)')
+
+# Route 28 (NoteEditor.closeNoteEditor(int,Intent), WRONG): the NoteEditor
+# change-note-type dialog variant. The generic page had no ENTERS edge from
+# NoteEditor at all (its note claimed a batch_012 route via
+# changeNoteTypeWithErrorHandling, but no such edge exists in the built graph),
+# so the ENTERS edge below is new, not a retarget. Sources:
+# com/ichi2/anki/NoteEditor.java:745-767 (dialog created in the catch block
+# at :751-765, confirm at :753-757) and com/ichi2/libanki/Collection.java:364-371
+# (modSchema throws ConfirmModSchemaException only when schema not yet changed).
+SCREENS['S_DLG_CONFIRMATION_NOTEEDITOR_CHANGETYPE'] = 'ConfirmationDialog: NoteEditor change-note-type dialog (NoteEditor$6)'
+e('NoteEditor.changeNoteTypeWithErrorHandling', 'S_DLG_CONFIRMATION_NOTEEDITOR_CHANGETYPE', 'ENTERS',
+  'changeNoteType throws ConfirmModSchemaException, so the change-note-type confirmation dialog is shown',
+  guard='changeNoteType throws ConfirmModSchemaException (schema not yet marked changed)',
+  evidence='SRC com/ichi2/anki/NoteEditor.java:745-767; SRC com/ichi2/libanki/Collection.java:364-371')
+
+# Route 29 (DB.executeScript, FIXED): guard-only overrides for auto CALL
+# edges. Sources: com/ichi2/anki/DeckPicker.java:415-430 (step 4 else chain),
+# com/ichi2/anki/CollectionHelper.java:88-99 (step 6), com/ichi2/libanki/Media.java:115-118
+# (step 9, server early return) and :132-144 (step 10, create flag).
+# server == false is forced by CollectionHelper.java:99 (passes false) and
+# Collection.java:147 (passes it through to the Media constructor).
+e('DeckPicker.onCreate', 'CollectionHelper.exceededCursorSizeLimit', 'CALL', 'Direct call',
+  guard='!colOpen AND storage permission granted AND SD card mounted AND AnkiDroid directory accessible (else chain DeckPicker.java:415-430)',
+  evidence='SRC DeckPicker.java:430 (bytecode)')
+e('CollectionHelper.getCol', 'Storage.Collection(Context,String,boolean,boolean)', 'CALL', 'Direct call',
+  guard='!colIsOpen() AND directory initialisation succeeds',
+  evidence='SRC CollectionHelper.java:99 (bytecode)')
+e('Media.<init>', 'Media.connect', 'CALL', 'Direct call',
+  guard='server == false',
+  evidence='SRC Media.java:129 (bytecode)')
+e('Media.connect', 'Media._initDB', 'CALL', 'Direct call',
+  guard='server == false AND media .ad.db2 file does not exist (create true)',
+  evidence='SRC Media.java:144 (bytecode)')
+
+# Route 30 (Models._availClozeOrds(JSONObject,String,boolean), WRONG): guard
+# overrides for auto CALL edges. The graph fault is the guard-less
+# save(JSONObject,boolean) -> _syncTemplates edge: its call site at
+# com/ichi2/libanki/Models.java:192 sits inside if (templates) (:191-193),
+# inside if (m != null && m.has("id")) (:183) with id != 0 (:188-189).
+# The sampled DeckPicker prefix passes templates == false
+# (Models.java:174, save(m, false)), so that edge cannot fire on that prefix;
+# the corrected prefix uses a save(m, true) call site
+# (com/ichi2/async/DeckTask.java:1075, doInBackgroundSaveModel).
+# Tail guards: com/ichi2/libanki/Collection.java:653-655 (step 9, >=1 row),
+# com/ichi2/libanki/Models.java:1127-1129 (step 10, MODEL_CLOZE).
+e('DeckPicker.showStartupScreensAndDialogs', 'Models.save(JSONObject)', 'CALL', 'Direct call',
+  guard='upgrading from before 2.6alpha23 (previous < 20600123) AND some model css contains "font-familiy"',
+  evidence='SRC DeckPicker.java:908 (bytecode)')
+e('Models.save(JSONObject,boolean)', 'Models._syncTemplates', 'CALL', 'Direct call',
+  guard='templates == true AND m != null AND m.has("id") AND id != 0',
+  evidence='SRC Models.java:192 (bytecode)')
+e('Collection.genCards(long[])', 'Models.availOrds', 'CALL', 'Direct call',
+  guard='notes query returns at least one row',
+  evidence='SRC Collection.java:655 (bytecode)')
+e('Models.availOrds', 'Models._availClozeOrds(JSONObject,String)', 'CALL', 'Direct call',
+  guard='model type == MODEL_CLOZE',
+  evidence='SRC Models.java:1129 (bytecode)')
