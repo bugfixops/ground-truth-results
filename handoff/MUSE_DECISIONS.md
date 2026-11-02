@@ -3513,3 +3513,24 @@ Amaze stays 24 scripted / 6 unscriptable = 20.0 percent, ACCEPTED under USER-CAP
 
 ## LT-HAZARD-GATE-CLOSED (2026-11-01 ~21:10 EST, Muse's own, for user/Yang review)
 Formal closure of parent ruling (1): with R3/R4/R5 complete, every audit-PASS LibreTorrent part now has file-backed disk evidence (R1 b008-b012, A1b b016-b021, R2 b022-b027, A2 b028-b046 via chunked writes, R3 b047-b062, A3b b063 plus C10-fix b064-b065, R4 b066-b084 PASS subset, A5 b085-b103, R5 b104-b120). No PASS part's QUEUE eligibility now depends on in-memory-only evidence, so ruling (1) is moot for queueing. In-memory reproductions are not used as QUEUE evidence going forward; file-backed rebuilds are the standard. Remaining LibreTorrent blockers are order (b015 FAIL) and ruling (2) (check-2 gate), not the hazard gate.
+
+## 2026-11-01 ~22:05 EST — user rulings at head a9e6392e (verified by user: all 13 rebuilt, every dry run)
+
+- LT-CHECK2-BASENAME (user): citation-form ruling REPLACES the check-2 gate. Cite LibreTorrent app files by file name only (core/model/TorrentEngine.java:N -> TorrentEngine.java:N) for FeedParser, RepositoryHelper, TorrentEngine, TorrentInfoProvider, PriorityConverter, TorrentSessionImpl, TorrentStreamServer, SettingsRepositoryImpl, FileSystemFacadeImpl, SystemFacadeHelper, Utils; reviewer simulation on a9e6392e gives check 2 130 -> 0. Apply to every unmerged part before merging.
+- LT-CHECK4-SAMENAME (user): drawer.* 27 citations -> SRC drawer/TagsAdapter.java:N and drawer/TagItem.java; FeedParser.* 19 -> SRC libretorrent/core/FeedParser.java:N; 335 lines via --emit FIX_LINES in the EDIT hook. The 16 FeedParser-path lines that re-trip check 2 are known false alarms recorded by edge id; no tools fix without user approval.
+- ANKI-NOTIF (user): check-2 edges E50d68ebc, E16231eaa, Ed8355a39 -> NotificationService.java (only one in the app); check 2 to 0.
+- AMAZE-R23-PICKER (user): route_23's unscriptable reason is false; script via the system picker as Omni routes 02/03/31 do. Route_08: throwaway SSH server exists, add the connection then remove it.
+- OMNI-MISSING-STEPS (user): routes 05/06/08 scripted to miss REACHABLE targets — add 05 Merge flow, 06 note-with-attachment before export, 08 make-file-missing first.
+- LEADS-6 (user): one lead per open stream — LibreTorrent, AnkiDroid, MMEX, Aegis, Amaze device, Omni-Notes — count stated in every log push.
+
+## 2026-11-01 ~22:35 EST — LibreTorrent owed rulings (merger's own, from RULINGS_20261101_2205.md, for user review)
+
+- LT-2205-2 C05 CONFIRMED: b034-b039 basename normalisation is exactly the mandated form; no reversal.
+- LT-2205-3 Q1 gate extension YES to b028-b033: their deltas are the same file-not-held artifact class; rework to basename and merge on delta-0 pre-test, not accepted with deltas.
+- LT-2205-4 Q2 SOURCE waiver GRANTED for b029/b032: 6 flagged upgrades (b029 MagnetInfo trio; b032 Torrent trio) verified genuine, accepted at merge; harness FAIL lines limited to exactly those 6 keys waived; grades not reverted to INFERRED.
+- LT-2205-6 b016-b021: rework, then merge (no delta acceptance); 37 SOURCE upgrades preserved.
+- LT-2205-7 check-4 sequencing: basename first at delta 0; qualified drawer/FeedParser forms afterwards via EDIT hook (--emit FIX_LINES); FeedParser re-trips recorded by edge id as known false alarms, no tools fix without user approval.
+
+## 2026-11-01 ~23:11 EST — Amaze-D3-CAP-ACCEPT-ROUND3
+
+Amaze 26 scripted / 4 unscriptable = 13.3%, ACCEPTED under USER-CAP-ACCEPTANCE (F1 not blocked by the cap alone): 05 real online cloud account, 06 live SMB server + resolving external player (both unproven), 12 (Throwable) constructor only via an unarrangeable write failure, 22 broadcast SMB discovery cannot cross the emulator router. Routes 08 and 23 converted this round (system picker / throwaway SSH server). This renews, does not erase, earlier Amaze cap acceptances.
