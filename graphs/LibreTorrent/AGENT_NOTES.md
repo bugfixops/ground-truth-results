@@ -645,3 +645,66 @@ Yang), 2026-11-02 logs step:
   R3 D5 Class B handling, R4 notifySound option, R5 b034 dedupe,
   R6 batch-3 row 26 OPEN flag, R7 59/32 label question, R8
   check-2 131 disposition. None closed by this logs step.
+## Step 2 item 4(b): AppearanceSettingsFragment REACHABLE -> UNREACHABLE flips (2026-11-02, item-4 lead; for user review)
+
+The 3 methods are exactly the UNREACHABLE methods of AppearanceSettingsFragment in the
+branch build (4732 methods / 7293 edges / R3882 / U764 / UNRES86, errors 86, warnings 16;
+base graph_def blob 564da867, AGENT_NOTES 3a30a903, verification.csv 663a59a8):
+
+- AppearanceSettingsFragment.initLegacyNotifySettings — UNREACHABLE / INFERRED,
+  ref SRC ui/settings/sections/AppearanceSettingsFragment.java:118-119.
+- AppearanceSettingsFragment.lambda$initLegacyNotifySettings$0 — UNREACHABLE / INFERRED,
+  ref SRC ui/settings/sections/AppearanceSettingsFragment.java:144-167.
+- AppearanceSettingsFragment.lambda$new$1 — UNREACHABLE / INFERRED,
+  ref SRC ui/settings/sections/AppearanceSettingsFragment.java:200-217.
+
+WHEN / WHERE THEY FLIPPED: the UNREACHABLE entries first appear in part b115
+(rows 38/40: initLegacyNotifySettings, lambda$initLegacyNotifySettings$0, lambda$new$1,
+all kind closed_by_api_level), merged in the b113-b117 batch, commit 74c0bc18.
+No earlier part (b001-b114) and no inline graph_def UNREACHABLE entry names any of
+the three (first part appearance verified: b115.py + b116.py only; the graph_def.py
+hits for these names are hand EDGES, not entries). The b113-b117 post-G9 build
+records them as the 3 NEW warnings (incoming edges E9d220da3 onCreate edge,
+E9f932f66, E17cd04e4). Mechanism: the build's verdict ladder gives UNREACHABLE
+entries precedence over paths, so an entry flips a method with existing incoming
+edges from REACHABLE to UNREACHABLE; the edges stay, which is why the three warn
+today (UNREACHABLE with incoming edges).
+
+REASON (evidence-cited, per method): the whole legacy-notify chain is gated off
+at API 27 (the build target) by the SDK check in onCreate.
+- initLegacyNotifySettings: its only caller is onCreate under
+  `if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)` (AppearanceSettingsFragment.java:118-119);
+  at API 27 the guard is false, so the body (:128-190) never runs. Part b115 row 38
+  reason, verbatim in substance: "Only caller is onCreate under if (SDK_INT < O)
+  (:118-119); at API 27 the guard is false, so the body (:128-190) never runs.
+  Call-site-gated, not body-early-return." Confirmed_by INFERRED (entry carries no
+  confirmed_by element); ref SRC :118-119.
+- lambda$initLegacyNotifySettings$0: the notify-sound click-listener lambda is
+  registered only inside initLegacyNotifySettings (AppearanceSettingsFragment.java:144-167);
+  same API-27 gate as row 38. Part b115 row 39 reason, in substance.
+- lambda$new$1: the ringtone-picker result lambda (AppearanceSettingsFragment.java:200-217);
+  its only trigger is ringtonePicker.launch(intent) at :164, inside
+  initLegacyNotifySettings, gated off at API 27. Part b115 row 40 reason, in substance.
+
+BEFORE-STATE DISCLOSURE (not papered over): the b113-b117 batch note records its
+200 rows as "70 newly resolved (62 R + 8 U), 130 already REACHABLE; no label flips",
+which taken literally puts the 3 Appearance rows (among the 8 U) as previously
+UNRESOLVED, not REACHABLE. Against that, AppearanceSettingsFragment.onCreate is
+REACHABLE in the current build and is not a b113-b117 row (its verdict was settled
+earlier; only a passing comment in b018 names it), and the onCreate -> initLegacyNotifySettings
+CALL edge (graph_def.py line 2247) plus the auto edge give the chain a path
+structure consistent with REACHABLE before the b115 entries landed. No pre-b113
+methods.csv survives in the work tree to settle this definitively, so the
+before-state is recorded as NOT DEFINITIVELY ESTABLISHED from available records:
+the flip point (b115 entries, b113-b117 merge, 74c0bc18) and the API-27-gate reason
+are established; whether the three were REACHABLE or UNRESOLVED immediately before
+that merge is not. The user framed them as REACHABLE -> UNREACHABLE flips; the
+batch note's "no label flips" accounting is the conflicting record, disclosed here
+for the gate rather than silently resolved. Nothing in this section changes any
+label, edge, or verdict: it records reasons only.
+
+Related, NOT part of the three: the five SettingsRepositoryImpl legacy-notify
+methods (ledIndicatorNotify, ledIndicatorColorNotify, notifySound, playSoundNotify,
+vibrationNotify) are a different class (methods CALLED FROM AppearanceSettingsFragment,
+not methods OF it); their warnings disposition (R4 notifySound (a)/(b)) remains owed
+and is untouched here.
