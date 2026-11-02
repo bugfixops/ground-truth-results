@@ -68,7 +68,7 @@ e('TorrentEngine.addListener', 'TorrentSessionImpl.addListener', 'CALL', 'Forwar
   evidence='INFERRED interface dispatch; SRC core/model/TorrentEngine.java:307-309; core/model/session/TorrentSessionImpl.java:184-188')
 e('TorrentEngine.doStart', 'TorrentSessionImpl.start', 'CALL', 'Start the libtorrent session',
   cls='non_standard', via='TorrentSession interface field (TorrentEngine.java:100); TorrentSessionImpl implements it',
-  evidence='INFERRED interface dispatch; SRC core/model/TorrentEngine.java:234-235,259; core/model/session/TorrentSessionImpl.java:862-863')
+  evidence='SRC core/model/TorrentEngine.java:234-235,259; core/model/session/TorrentSessionImpl.java:862-863')
 e('TorrentSessionImpl.start', 'TorrentSessionImpl.onAfterStart', 'FRAMEWORK', 'libtorrent session start calls the onAfterStart hook',
   cls='non_standard', via='libtorrent4j SessionManager.start(SessionParams) calls the protected onAfterStart hook (library, not in upload)',
   evidence='INFERRED libtorrent4j SessionManager.start calls onAfterStart; SRC core/model/session/TorrentSessionImpl.java:907,990-991')

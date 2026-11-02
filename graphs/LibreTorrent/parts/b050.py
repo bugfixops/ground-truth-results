@@ -31,7 +31,7 @@ e('DetailTorrentViewModel.observeTags', 'TagRepositoryImpl.observeByTorrentId', 
 e('AddTagViewModel.setRandomColor', 'TagRepositoryImpl.update', 'CALL', 'Tag colour assignment updates the tag', cls='explicit', evidence='SRC ui/addtag/AddTagViewModel.java:71; SRC TagRepositoryImpl.java:44-46')
 
 # TorrentRepositoryImpl construction and class init.
-e('RepositoryHelper.getTorrentRepository', 'TorrentRepositoryImpl.<clinit>', 'FRAMEWORK', 'First torrent-repository construction initialises the class', cls='non_standard', via='JVM class initialization on first active use of TorrentRepositoryImpl', evidence='INFERRED JVM dispatch; SRC RepositoryHelper.java:43-47; SRC TorrentRepositoryImpl.java:41')
+e('RepositoryHelper.getTorrentRepository', 'TorrentRepositoryImpl.<clinit>', 'FRAMEWORK', 'First torrent-repository construction initialises the class', cls='non_standard', via='JVM class initialization on first active use of TorrentRepositoryImpl', evidence='SRC RepositoryHelper.java:43-47; SRC TorrentRepositoryImpl.java:41')
 e('RepositoryHelper.getTorrentRepository', 'TorrentRepositoryImpl.<init>', 'CALL', 'Torrent repository getter constructs the implementation', cls='explicit', evidence='SRC RepositoryHelper.java:46-47; SRC TorrentRepositoryImpl.java:50-53')
 
 # TorrentRepositoryImpl methods from their printed callers.

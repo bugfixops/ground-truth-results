@@ -450,3 +450,83 @@ None of these stops the run. Each row stays unlabelled until its question is ans
 - G15:2060 APPLIED at this merge (merger edit to graph_def.py, not to any part): deleted the hand edge AddFeedDialog.onCreateDialog -> AddFeedDialog.initAlertDialog (was graph_def:2114-2115, edge E111a4f1c), verified against printed source before deleting — onCreateDialog (AddFeedDialog.java:180-209) calls initLayoutView() at :205 and never calls initAlertDialog directly; initLayoutView (:220-255) calls initAlertDialog(binding.getRoot()) at :255. Post-deletion build scratch/build_b073_b074_b075.txt: methods 4732, edges 6648 (-1 exactly), REACHABLE 3276, UNREACHABLE 724, UNRESOLVED 732, errors 732, warnings 17 (identical warning set); AddFeedDialog.initAlertDialog stays REACHABLE via onCreateDialog -> initLayoutView -> initAlertDialog (b075 edge). The pre-deletion build file is kept in tree scratch as build_b073_b074_b075_preG15.txt (not staged).
 - Check-2 (uncapped set + official tool, post-deletion build): 196 distinct / 136 problems, EMPTY diff vs b057 (and vs b072). Gate intent "no new problem" satisfied.
 - MERGED_PARTS now ends b075. The r58 wave (b058-b075) is now fully merged locally. Next in order: b076-b120 (waves beyond r58; rework/audit state to be surveyed before merging — see coordinator's STREAM D task), plus the D1 SOURCE restorations and D2 decision record.
+
+## A4 D1 correction (2026-11-02, merger; d1/AUDIT.md PASS, exactly 9 evidence edits, nothing else)
+
+- Applied the 9 audited evidence edits (drop only the leading INFERRED segment, citations verbatim): b000_trunks Ec72f4cc9, b035 Ed80aaae6, b022 Eb144a7e0, b034 E30c4eeda, b038 Eed6349a5, b042 Edfc1724d + E3d4a3ec6, b050 Eff073834, b054 Eb79f83d5.
+- Build scratch/build_d1.txt: methods 4732, edges 6648 (unchanged), REACHABLE 3276, UNREACHABLE 724, UNRESOLVED 732 (all unchanged — 0 verdict changes), errors 732, warnings 17 (both unchanged). Evidence INFERRED 1387 -> 1378 (-9), SRC 5249 -> 5258 (+9).
+- Confirmed_by (methods.csv diff vs a revert-rebuild baseline, INFERRED 4125 / SOURCE 607): exactly the 7 predicted flips INFERRED -> SOURCE (SessionErrorFilter.<clinit>, SessionLogger.<clinit>, TorrentSessionImpl.<clinit>, SessionSettings$EncryptMode.<init>, SessionSettings$ProxyType.<init>, TorrentRepositoryImpl.<clinit>, FileSystemFacadeImpl.<clinit>); the 12 predicted stays remain INFERRED with named blocking edges (d1/AUDIT.md section 4); plus 16 additional INFERRED -> SOURCE flips on UNCHANGED method-name shortest paths (only edge ids differ, as evidence edits change ids), all verdicts unchanged — FileSystemFacadeImpl.isStorageReadable, SessionSettings.getRandomRangePort, TorrentRepositoryImpl.getSessionFile, TorrentSessionImpl.applyProxy/convertEncryptMode/convertProxyType/defaultSettingsPack/dhtBootstrapNodes/getAllowedEncryptLevel/getIface/loadSettings/setRandomPort/settingsToSettingsPack/start, Utils.getAppVersionNumber/getVersionComponents. These are the mechanical path-derived consequence of the 9 audited edits, not label changes, and are reported here rather than hidden. D1 as ordered is not fully satisfiable without manufacturing evidence: the 12 stays are honest, not fudged.
+- Check-2 (scratch/check2_d1.txt): 196 distinct / 136 problems, EMPTY diff vs b075. D1 build reproduced byte-identically (methods.csv + graph JSON) on rebuild.
+- This commit also carries the D2 decision append below (23 REACHABLE -> UNREACHABLE flips accepted as labelled); the D2 text is forwarded to the coordinator for the handoff/MUSE_DECISIONS.md append (the merger never writes that file).
+
+## D2 decision — 23 REACHABLE→UNREACHABLE flips accepted as labelled (b075 tree; API level 27)
+
+No verdict is changed by this decision; it records why each flip is genuine
+rather than a merge artefact. All 23 were REACHABLE before their part merged
+(via auto edges and, for the Settings group, via pre-existing hand edges that
+now surface as warnings until their SUPPRESS pairs land) and are UNREACHABLE in
+the b075 tree (methods 4732, edges 6648, R3276/U724/UNRES732). Full 23-row
+table (part, printed guard line, API 27 reasoning) is in
+work/LibreTorrent/d2/D2_DECISION_DRAFT.md, forwarded to the coordinator for
+the handoff/MUSE_DECISIONS.md append (the merger never writes that file).
+
+### The 16th Settings method — gap closed, not guessed
+
+The previous "exactly 15" count covered only direct SettingsRepositoryImpl.*
+methods. The 16th is the nested-class method
+SettingsRepositoryImpl$Default.ledIndicatorColorNotify (b047), flipping with
+batch-44 row 17 (getter ledIndicatorColorNotify() :342-344 fallback argument;
+getter itself closed via AppearanceSettingsFragment.java:180 gated :118-119
+and TorrentNotifier.java:290 after early return :276). Settings group is
+exactly 16: sound 4, vibration 2, LED 5, ManageAllFiles 4, notification
+permission 1.
+
+### Settings group — closed_by_api_level (16)
+
+- b042 x3: askManageAllFilesPermission() (PermissionManager :60-67, :99-104,
+  R-gated, false at 27); askManageAllFilesPermission(boolean) (:117 R-gated);
+  askNotificationPermission(boolean) (:123 TIRAMISU-gated, 33 false at 27).
+- b044 x4: ledIndicatorColorNotify() (AppearanceSettingsFragment.java:180 in
+  initLegacyNotifySettings, SDK < O gate :118-119; TorrentNotifier.java:290 in
+  applyLegacyNotifySettings, early return :276 at SDK >= O — both sites dead
+  at 27); ledIndicatorColorNotify(int) (:250 branch, listener bound only in
+  initLegacyNotifySettings :181); ledIndicatorNotify() (:173 + :289, same
+  gates); ledIndicatorNotify(boolean) (:244 branch, listener bound :174).
+- b045 x4: notifySound() (:139, :151 + TorrentNotifier :282); notifySound(String)
+  (:213 ringtone-picker handler, picker launched only from listener :144-168
+  in initLegacyNotifySettings); playSoundNotify() (:133 + :281);
+  playSoundNotify(boolean) (:241 branch, listener bound :134).
+- b046 x2: showManageAllFilesWarningDialog() (Utils.java:706, third disjunct
+  of early-return :704-707; at 27 SDK_INT < R is TRUE so || short-circuits
+  and :706 is never evaluated); showManageAllFilesWarningDialog(boolean)
+  (:711, after the early return always taken at 27).
+- b047 x3: vibrationNotify() (:187 + TorrentNotifier :286, same gates);
+  vibrationNotify(boolean) (:247 branch, listener bound :188);
+  SettingsRepositoryImpl$Default.ledIndicatorColorNotify (see 16th above).
+Spot-verified in printed source: AppearanceSettingsFragment.java:118-119
+SDK < O gate and TorrentNotifier.java:276 SDK >= O early return.
+
+### Branch-never-taken group (7, b055+b056 pair build)
+
+- NormalizeUrl.join: only call site doNormalize :268, inside
+  if (options.removeDirectoryIndex.length > 0) :263; default empty
+  (NormalizeUrl.java:90); saved 252-file grep finds zero assignments.
+- NormalizeUrl.makeUserInfo: only call site urlToString :397, guarded
+  user != null && !user.isEmpty() :396; doNormalize :232-234 nulls
+  user/password whenever removeAuthentication is true, default true (:100).
+- PercentEncoder.<clinit>: inherited from decode (first active use behind
+  if (options.decode) :216; all 3 normalize callers set decode=false).
+- PercentEncoder.decode: only call site doNormalize :217, inside
+  if (options.decode) :216; callers DetailTorrentFragment :720,
+  CreateTorrentViewModel :309, AddLinkViewModel :68, all decode=false.
+- PercentEncoder.needsUnescaping: only call site decode :35 (decode never runs).
+- PercentEncoder.pow: only call site unhex :111 (unhex runs only from decode).
+- PercentEncoder.unhex: only call sites decode :54 and :79 (decode never runs).
+
+### Standing items carried, unchanged
+
+Batch-3 row 26 stays OPEN. 59/32 setVariable stays flagged (b059 row 32 kept
+REACHABLE as audited, edge kept for harness coverage, NOT claimed as a
+verified route). Check-4 FeedParser re-tripped lines remain known false
+alarms with no tools/ fix. F1 warnings-0 disposition still owed for all
+warning classes.

@@ -62,7 +62,7 @@ e('DownloadsCompletedListener.listen', 'DownloadsCompletedListener$1.onTorrentSt
 # engine listener's onSessionError.
 e('TorrentEngine.<init>', 'SessionErrorFilter.<clinit>', 'FRAMEWORK', 'First construction of a SessionErrorFilter initialises the class and its errors set',
   cls='non_standard', via='JVM class initialization on first active use',
-  evidence='INFERRED JVM class initialization; SRC TorrentEngine.java:113; SessionErrorFilter.java:26-28')
+  evidence='SRC TorrentEngine.java:113; SessionErrorFilter.java:26-28')
 e('TorrentEngine.<init>', 'SessionErrorFilter.<init>', 'CALL', 'Construct the session error filter owned by the engine',
   cls='explicit', evidence='SRC TorrentEngine.java:113; SessionErrorFilter.java:20-24')
 e('TorrentEngine$5.onSessionError', 'SessionErrorFilter.skip', 'CALL', 'Test whether a session error message is skippable',

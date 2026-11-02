@@ -44,7 +44,7 @@ e('TorrentSessionImpl$InnerListener.alert', 'SessionErrors.<clinit>', 'FRAMEWORK
 e('TorrentSessionImpl$InnerListener.alert', 'SessionErrors.getErrorMsg', 'CALL', 'Alert handling formats the session error message', cls='explicit', evidence='SRC TorrentSessionImpl.java:1117; SRC SessionErrors.java:59-62')
 e('TorrentSessionImpl$InnerListener.alert', 'SessionErrors.isNonCritical', 'CALL', 'Alert handling checks whether the session error is non-critical', cls='explicit', evidence='SRC TorrentSessionImpl.java:1118; SRC SessionErrors.java:45-57')
 e('SessionErrors.<clinit>', 'SessionErrors$Error.<init>', 'CALL', 'Static errors table constructs its error entries during class initialisation', cls='non_standard', via='JVM static initialiser dispatch', evidence='INFERRED JVM dispatch; SRC SessionErrors.java:40-43; SRC SessionErrors.java:33-38')
-e('TorrentSessionImpl.<init>', 'SessionLogger.<clinit>', 'FRAMEWORK', 'First construction of the session logger initialises its id counter', cls='non_standard', via='JVM class initialisation on first use', evidence='INFERRED JVM dispatch; SRC TorrentSessionImpl.java:170; SRC SessionLogger.java:34')
+e('TorrentSessionImpl.<init>', 'SessionLogger.<clinit>', 'FRAMEWORK', 'First construction of the session logger initialises its id counter', cls='non_standard', via='JVM class initialisation on first use', evidence='SRC TorrentSessionImpl.java:170; SRC SessionLogger.java:34')
 e('TorrentSessionImpl.<init>', 'SessionLogger.<init>', 'CALL', 'Session construction creates its logger', cls='explicit', evidence='SRC TorrentSessionImpl.java:170; SRC SessionLogger.java:111-115')
 
 UNREACHABLE.update({
