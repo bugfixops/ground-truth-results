@@ -319,3 +319,16 @@ An edge is written by the part that contains its source method; if the source is
 - MockNoteFactory wording (auditor-confirmed): source under multimediacard/test/ is pruned from the checker
   source index; NOT the brief's literal "no source in the upload" (the file exists, 2600 bytes, cited lines
   printed and correct).
+
+## Finish run 2026-11-01 — B4 check-8 explanations (auditor PASS with binding correction, audit/B4/AUDIT.md)
+- Paint-sync helper's "8 NEW entries" are NOT new: all 8 axis-paint pairs already exist in graph_def_mod/01.py
+  multi-pair sup() blocks (XAxisBarGraph :3699/:3700, XAxisHistoGram :3711/:3712, YAxisBarGraph :3796/:3800,
+  YAxisHistoGram :3795/:3799). VERIFY-ONLY; nothing added.
+- Applied the 1 ReliefLegend reason reword at graph_def_mod/01.py:3488-3490: getLegend() has no caller and
+  ReliefDrawer itself is never constructed, so the creation site never runs (ReliefDrawer.java:473-474 shows
+  getLegend() DOES create a ReliefLegend; labels and the 3 SUPPRESS entries stand).
+- Wrote graphs/AnkiDroid/scratch/check8_explained.md: all 169 scan lines, 205 method-section pairs,
+  partition 106 sibling-only / 52 remainder-only / 11 mixed; every entry caller-named with helper section.
+- scan_unreachable.py --callers still 169 of 911. Local build: methods 4186, edges 9178, 3275/911, errors 0,
+  warnings 0; check_citations 273/0; check_bytecode_lines --all 0 not-show; greps 5/6/7 all 0.
+- 0 routes, 0 label changes from B4.
