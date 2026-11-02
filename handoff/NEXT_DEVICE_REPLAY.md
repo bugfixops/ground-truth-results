@@ -28,6 +28,20 @@ APKs, classes, fixtures, and `ci/app_env.py`). No credentials, no
 tokens, no APK uploads into this repo. `adb`, `java`, and `python3`
 are on the runner.
 
+## Workflow-side requirements for Amaze SSH routes (for the
+user's reviewer — the workflow file itself is not edited here)
+
+For Amaze SSH routes, `.github/workflows/device-replay.yml` needs
+exactly these two items, and nothing else is asserted here:
+
+- a step installing openssh-server (apt);
+- WITH_SSH_SERVER=1 for Amaze jobs only.
+
+The reviewer applies these to the workflow; this file does not
+edit `.github/` or any workflow file. Amaze SSH routes are 07,
+08, 23, 29 and 30; all of them need the throwaway sshd
+(`device/run_app.sh` under WITH_SSH_SERVER=1) at run time.
+
 ## Route counts per app (D1)
 
 Ticked apps (one route per `verification.csv` path row):
@@ -44,9 +58,27 @@ Ticked apps (one route per `verification.csv` path row):
 | AnyMemo | 30 | 28 | 2 |
 | Total (ticked) | 245 | 240 | 5 |
 
-Other five apps (AmazeFileManager, AnkiDroid, MMEX, Aegis,
-LibreTorrent): counts pending — one route per final route-check
-sample row, once each app's route table is final.
+AmazeFileManager (this push): 30 routes, 26 scripted, 4
+unscriptable (13.3% — accepted under the user's cap ruling, so
+F1 is not blocked by the cap alone): route_05
+`StreamSource.getCurrentPosition` — reaching it requires a
+configured cloud provider account and a media file inside it;
+route_06 `StreamSource.read` — a live SMB server plus a resolving
+external player are required, and the jcifs SMB1 handshake and
+the player resolver remain unproven (a CI-host smbd is
+provisionable with sudo in principle, so root alone is not the
+reason); route_12 `StreamNotFoundException.<init>(Throwable)` —
+reachable only through a write failure the harness cannot
+arrange; route_22 `SmbSearchDialog$1.lambda$computerFound$0` —
+broadcast SMB discovery cannot cross the emulator router.
+Routes 08 and 23 converted to scripted in this push, and
+route_22's edge list was refreshed to the post-fix verification
+row. Amaze SSH routes (07, 08, 23, 29, 30) need
+WITH_SSH_SERVER=1 (see the workflow section above).
+
+Other four apps (AnkiDroid, MMEX, Aegis, LibreTorrent): counts
+pending — one route per final route-check sample row, once each
+app's route table is final.
 
 ## Unscriptable routes (with reasons)
 

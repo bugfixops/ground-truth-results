@@ -183,9 +183,13 @@ python3 -I "$DEVICE_DIR/route_info.py" "$APP" --all --root "$ROOT" > "$OUTDIR/.r
 # ssh-keygen is missing, or the server fails to start, the run
 # exits 2 immediately with a provisioning message — it never runs
 # SSH routes without a server and fails them confusingly. SMB is
-# NOT supported this way: smbd needs root (ports 139/445 plus user
-# management), so routes needing a live SMB host stay unscriptable
-# with that precise reason; no user-space SMB server is faked here.
+# NOT supported this way: a CI-host smbd is provisionable with
+# sudo in principle, so root alone is not the reason Amaze
+# route_06 stays unscriptable — it stays unscriptable because the
+# jcifs SMB1 handshake and the external-player resolver remain
+# unproven; Amaze route_22 stays unscriptable because broadcast
+# discovery cannot cross the emulator router. No user-space SMB
+# server is faked here.
 # The server is killed on exit (trap) so no per-run server outlives
 # the run.
 cleanup_ssh_server() {
@@ -208,10 +212,14 @@ if [ "${WITH_SSH_SERVER:-0}" = 1 ]; then
   ssh-keygen -t ed25519 -f "$OUTDIR/ssh_client_key" -N '' -C "device-replay-client" >/dev/null 2>&1 || { echo "run_app.sh: per-run client key generation failed" >&2; exit 2; }
   cp "$OUTDIR/ssh_client_key.pub" "$OUTDIR/authorized_keys"
   chmod 600 "$OUTDIR/ssh_host_key" "$OUTDIR/ssh_client_key" "$OUTDIR/authorized_keys"
+  # Privilege-separation directory required by sshd; the CI
+  # runner has sudo/root for this step (sudo first, plain mkdir
+  # when already root).
+  sudo mkdir -p /run/sshd 2>/dev/null || mkdir -p /run/sshd || { echo "run_app.sh: cannot create sshd privilege-separation dir /run/sshd" >&2; exit 2; }
   sshd -D -p "$SSH_PORT" -h "$OUTDIR/ssh_host_key" \
     -o ListenAddress=127.0.0.1 -o PidFile="$OUTDIR/sshd.pid" \
     -o StrictModes=no -o PasswordAuthentication=no \
-    -o PubkeyAuthentication=yes \
+    -o PubkeyAuthentication=yes -o UsePAM=no \
     -o AuthorizedKeysFile="$OUTDIR/authorized_keys" \
     >>"$OUTDIR/run.log" 2>&1 &
   SSHD_PID=$!
@@ -219,6 +227,9 @@ if [ "${WITH_SSH_SERVER:-0}" = 1 ]; then
   sleep 2
   if ! kill -0 "$SSHD_PID" 2>/dev/null; then
     echo "run_app.sh: throwaway sshd failed to start (see run.log)" >&2; exit 2
+  fi
+  if ! ssh -o BatchMode=yes -o StrictHostKeyChecking=no -o ConnectTimeout=10 -p "$SSH_PORT" -i "$OUTDIR/ssh_client_key" "$SSH_USER@127.0.0.1" true >>"$OUTDIR/run.log" 2>&1; then
+    echo "run_app.sh: throwaway sshd login probe failed (per-run key login to 127.0.0.1:$SSH_PORT did not succeed; sshd is not usable for SSH routes, see run.log)" >&2; exit 2
   fi
   log "throwaway sshd on 127.0.0.1:$SSH_PORT (emulator: 10.0.2.2:$SSH_PORT); per-run keys under outdir"
 fi
