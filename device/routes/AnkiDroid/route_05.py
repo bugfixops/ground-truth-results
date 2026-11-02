@@ -3,8 +3,9 @@
 
 Target: libanki.Utils$1.<init> (anonymous FileFilter in
     Utils.getImportableDecks, Utils.java:910).
-Table verdict: CORRECT (final draw, 14 steps; the BFS route IS the
-    judged route, so this script drives the BFS route).
+Table verdict: CORRECT (combined-merge redraw, row 05, 14 steps;
+    the BFS route IS the judged route, so this script drives the
+    BFS route). Edges unchanged.
 Route followed: final-draw BFS route from helper/judge-final/
     route_05.txt, edge ids verified against
     graphs/AnkiDroid/out/ankidroid_trigger_graph.json and

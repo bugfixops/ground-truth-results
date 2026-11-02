@@ -3,9 +3,10 @@
 
 Target: Template$1.compare (anonymous Comparator in
     Template.render_unescaped, Template.java:229-238).
-Table verdict: CORRECT (final draw, 17 steps; the BFS route IS the
-    judged route, so this script drives the BFS route, NOT the old
-    first-draw Template script's CardBrowser render route).
+Table verdict: CORRECT (combined-merge redraw, row 11, 17 steps;
+    the judged route, so this script drives the BFS route, NOT
+    the old first-draw Template script's CardBrowser render
+    route). Edges unchanged.
 Route followed: final-draw BFS route from helper/judge-final/
     route_10.txt, edge ids verified against
     graphs/AnkiDroid/out/ankidroid_trigger_graph.json and

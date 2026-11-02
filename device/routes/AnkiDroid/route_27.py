@@ -2,28 +2,26 @@
 """AnkiDroid final-draw route_27: Collection.close().
 
 Target: Collection.close() (via BackupManager.repairCollection).
-Table verdict: WRONG (final draw, route_table.md row 27; corrected
-    route). The printed BFS route entered the LOAD_FAILED dialog but
-    exited via the REPAIR_COLLECTION dialog's onPositive, a
-    wrong-dialog-id fiction. The corrected drive below keeps the
-    LOAD_FAILED entry and walks the real dialog chain: LOAD_FAILED
-    positive -> DIALOG_ERROR_HANDLING -> list selection "repair"
-    -> DIALOG_REPAIR_COLLECTION -> onPositive -> repairDeck ->
-    printed steps 7-10.
-Route followed: corrected route, 10 edges in ROUTES_rows.csv. The
-    graph collapses all DatabaseErrorDialog variants into the single
-    page node S_DLG_DATABASE_ERROR, so the ROUTES edge chain is the
-    page-collapsed chain (identical ids to the printed route); the
-    intermediate dialog transitions have graph edges for their
-    callbacks (E61571efb $1.onPositive, E1f36e8b7 $1 ->
-    showDatabaseErrorDialog, Ea3ee3296 $3.onSelection,
-    E49c947f6 $3 -> showDatabaseErrorDialog) but NO graph edge
-    returns from showDatabaseErrorDialog to the page node, so the
-    expanded chain cannot be made contiguous in graph terms. That
-    gap is recorded in NOTES.md; no id is invented for it. In this
-    script the three dialog taps share the page edge Ee8da2b4f
-    (multi-tap-per-edge convention, as first-draw route_01 did for
-    drawer taps), with comments naming the intermediate callbacks.
+Drive verdict: combined-merge device drive KEPT (14 edges,
+    underscore-page REPAIR drive, gate judge section 3c, NOT the
+    new-sample print and NOT the 15-edge @-page variant — its $3
+    edge guard says 'route 25 takes the restore branch', which
+    contradicts a repair drive). Chain: @LOAD_FAILED -> $1 ->
+    legacy ERROR_HANDLING page -> $3.onSelection (guard: value
+    2, repair, sqlite3 installed) -> REPAIR page -> $4.onPositive
+    (guard: collection non-null so repairCollection reaches
+    col.close()) -> repairDeck -> REPAIR_DECK task ->
+    repairCollection -> close(). Gate-verified as a route; not
+    in the new sample.
+Route followed: driven route, 14 edges in ROUTES.csv (REPAIR chain,
+    gate judge section 3c). The new graph carries distinct
+    @/underscore dialog pages, so the chain below is contiguous
+    edge-by-edge (verified in the new JSON); the old page-collapsed
+    explanation and the old intermediate callback ids
+    (E61571efb/E1f36e8b7/Ea3ee3296/E49c947f6) are OBSOLETE — those
+    four ids are ABSENT from the new JSON and must not remain cited
+    as live. The three dialog taps now map to distinct edges (see
+    body notes).
     This script is newly written; no first-draw script corresponds
     to this method (old route_27 was Decks.id).
 Preconditions/fixtures:
@@ -60,8 +58,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 from device.harness import Runner  # noqa: E402
 
 EDGE_IDS = [
-    "E48de6d58", "E26d20f74", "E1ad4ef9b", "Ed414cece", "Ee8da2b4f",
-    "E599359e9", "Eaae76619", "Eee65a7b8", "E002ceda8", "E5eaacfc5",
+    "E48de6d58", "E26d20f74", "E1ad4ef9b", "E76f091e5", "Efe87b1dc",
+    "Eb92c13df", "E7232c65a", "Ef5b276a2", "Eea3ff2de", "E599359e9",
+    "Eaae76619", "Eee65a7b8", "E002ceda8", "E5eaacfc5",
 ]
 
 
@@ -84,21 +83,29 @@ def main(argv=None):
     # E1ad4ef9b DeckPicker.<init> -> DeckPicker.onCreate.
     r.comment("system instantiates DeckPicker, then onCreate",
               edge="E1ad4ef9b")
-    # Ed414cece onCreate -> S_DLG_DATABASE_ERROR (LOAD_FAILED
+    # E76f091e5 DeckPicker.onCreate ->
+    # S_DLG_DATABASE_ERROR@LOAD_FAILED (dialog id 0; collection
+    # did not open).
     # dialog; collection did not open).
-    r.comment("LOAD_FAILED dialog shown", edge="Ed414cece")
-    # Ee8da2b4f S_DLG_DATABASE_ERROR -> DatabaseErrorDialog$4
-    # .onPositive, via the real intermediate chain (page-collapsed;
-    # see header): LOAD_FAILED positive ("Options", $1.onPositive
-    # E61571efb -> showDatabaseErrorDialog E1f36e8b7) shows
-    # ERROR_HANDLING; its "Repair database" item ($3.onSelection
-    # Ea3ee3296 -> showDatabaseErrorDialog E49c947f6) shows
-    # REPAIR_COLLECTION; the return-to-page step has no graph edge.
-    r.tap(edge="Ee8da2b4f", text="Options")
-    r.tap(edge="Ee8da2b4f", text="Repair database")
-    # Ee8da2b4f (same page edge): REPAIR dialog positive "Repair"
-    # -> repairDeck (DatabaseErrorDialog.java:207-212).
-    r.tap(edge="Ee8da2b4f", text="Repair")
+    r.comment("LOAD_FAILED dialog shown", edge="E76f091e5")
+    # Efe87b1dc S_DLG_DATABASE_ERROR@LOAD_FAILED ->
+    # DatabaseErrorDialog$1.onPositive (LOAD_FAILED positive,
+    # "Options", error_handling_options).
+    r.tap(edge="Efe87b1dc", text="Options")
+    # Eb92c13df $1.onPositive ->
+    # S_DLG_DATABASE_ERROR_ERROR_HANDLING (legacy underscore
+    # ERROR_HANDLING page).
+    r.comment("error-handling page shown", edge="Eb92c13df")
+    # E7232c65a S_DLG_DATABASE_ERROR_ERROR_HANDLING ->
+    # DatabaseErrorDialog$3.onSelection (guard: value 2, repair,
+    # sqlite3 installed; "Repair database", backup_error_menu_repair).
+    r.tap(edge="E7232c65a", text="Repair database")
+    # Ef5b276a2 $3.onSelection -> S_DLG_DATABASE_ERROR_REPAIR.
+    r.comment("repair page shown", edge="Ef5b276a2")
+    # Eea3ff2de S_DLG_DATABASE_ERROR_REPAIR ->
+    # DatabaseErrorDialog$4.onPositive (REPAIR dialog positive
+    # "Repair", dialog_positive_repair; guard: collection non-null).
+    r.tap(edge="Eea3ff2de", text="Repair")
     # E599359e9 $4.onPositive -> DeckPicker.repairDeck.
     r.comment("repairDeck", edge="E599359e9")
     # Eaae76619 repairDeck -> DeckTask.doInBackground@REPAIR_DECK

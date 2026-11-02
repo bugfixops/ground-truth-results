@@ -2,7 +2,8 @@
 """AnkiDroid final-draw route_21: DiffEngine.diff_cleanupSemanticScore.
 
 Target: DiffEngine.diff_cleanupSemanticScore.
-Table verdict: CORRECT (final draw, route_table.md row 21).
+Table verdict: CORRECT (combined-merge redraw, route_table.md
+    row 23). Edges unchanged.
 Route followed: the final BFS route (24 edges), never the first-draw
     route_20 UPDATE_FACT derivation. Prefix: IntentHandler -> DeckPicker
     -> study-options fragment (fragmented/tablet mode) -> Start button

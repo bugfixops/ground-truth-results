@@ -3,8 +3,10 @@
 
 Target: ModelEditorContextMenu.onCreateDialog (builds the
     MaterialDialog for a field row's context menu).
-Table verdict: CORRECT (final draw, 14 steps; the BFS route IS the
-    judged route, so this script drives the BFS route).
+Table verdict: CORRECT (combined-merge redraw, row 08, 14 steps;
+    the BFS route IS the judged route, so this script drives the
+    BFS route). Edges unchanged. Route-08 flag (INFERRED final
+    step) carried.
 Route followed: final-draw BFS route from helper/judge-final/
     route_08.txt, edge ids verified against
     graphs/AnkiDroid/out/ankidroid_trigger_graph.json and

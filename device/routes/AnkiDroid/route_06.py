@@ -3,8 +3,9 @@
 
 Target: Sched.revDue (called as the `if (revDue())` test itself,
     Sched.java:1906, inside _nextDueMsg).
-Table verdict: CORRECT (final draw, 16 steps; the BFS route IS the
-    judged route, so this script drives the BFS route).
+Table verdict: CORRECT (combined-merge redraw, row 06, 16 steps;
+    the BFS route IS the judged route, so this script drives the
+    BFS route). Edges unchanged.
 Route followed: final-draw BFS route from helper/judge-final/
     route_06.txt, edge ids verified against
     graphs/AnkiDroid/out/ankidroid_trigger_graph.json and

@@ -2,15 +2,15 @@
 """AnkiDroid final-draw route_23: Sched.getToday.
 
 Target: Sched.getToday.
-Table verdict: WRONG (final draw, route_table.md row 23; corrected
-    route). The printed BFS route's step 18 was a wrong-branch
-    fiction: _fillDyn's query contains only is:suspended / is:buried
-    / deck:filtered tokens, so _findCardState never takes the "due"
-    branch that calls getToday. The corrected route below uses the
-    SAME 18 edge ids; the correction is a data condition, not an
-    edge change: the rebuilt filtered deck's first search term
-    (terms[0], Sched.java:1558-1562) must itself contain is:due, so
-    _where sees is:due -> _findCardState("due") -> getToday.
+Table verdict: CORRECT (combined-merge redraw, row 21,
+    18 steps; the printed route IS the judged route). This is the
+    18-step is:due route: step 17 Ec9480f74 (_where ->
+    _findCardState@due, guard: the rebuilt deck's first search
+    term terms[0] contains is:due) and step 18 Ea2ff24e9 (@due ->
+    getToday, val "due") replace old steps 17-18
+    Efa260a34/E594578a7; steps 1-16 unchanged. The correction is
+    a data condition (terms[0] contains is:due), not a tap change.
+    Drive: overflow menu -> Rebuild.
 Route followed: corrected route, 18 edges, derived from the graph
     JSON by src/dst pairs and verified contiguous (see NOTES.md).
     No old first-draw script corresponds to this method (old
@@ -53,7 +53,7 @@ EDGE_IDS = [
     "E48de6d58", "E26d20f74", "E1ad4ef9b", "E5906a191", "Ef3e13961",
     "Eae89b47b", "Ea73b74da", "E57aebbea", "E2e103f8f", "E40f4f2c5",
     "E2f5e0703", "Eb48c622f", "Ecd526a93", "E163cfb49", "Ed12e8336",
-    "E76fba6ee", "Efa260a34", "E594578a7",
+    "E76fba6ee", "Ec9480f74", "Ea2ff24e9",
 ]
 
 
@@ -109,12 +109,14 @@ def main(argv=None):
     r.comment("_findCards", edge="Ed12e8336")
     # E76fba6ee -> Finder._where.
     r.comment("_where tokenizes the query", edge="E76fba6ee")
-    # Efa260a34 _where -> Finder._findCardState (is:due token).
-    r.comment("_findCardState for is:due", edge="Efa260a34")
-    # E594578a7 _findCardState -> Sched.getToday (target; the "due"
+    # Ec9480f74 _where -> _findCardState@due
+    # (guard: terms[0] contains is:due).
+    r.comment("_findCardState for is:due", edge="Ec9480f74")
+    # Ea2ff24e9 _findCardState@due -> Sched.getToday (target; val "due",
+    # Finder.java:466).
     # branch at Finder.java:465-467, reached only because terms[0]
     # contains is:due).
-    r.comment("getToday (target, due branch)", edge="E594578a7")
+    r.comment("getToday (target, due branch)", edge="Ea2ff24e9")
     r.done()
     return 0
 

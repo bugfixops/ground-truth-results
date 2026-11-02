@@ -2,8 +2,9 @@
 """AnkiDroid route_19: AdvancedStatistics$Card.setIvl.
 
 Target: AdvancedStatistics$Card.setIvl.
-Table verdict: CORRECT (final-draw verdict; this script drives the
-    printed BFS route, 35 edges, unchanged).
+Table verdict: CORRECT (combined-merge redraw, row 22, 35 steps;
+    the printed route IS the judged route, with the Statistics
+    drawer dispatch Ebf481404/Ebd71b23a). Edges unchanged.
 Route followed: printed route: fragment -> Study -> Reviewer ->
     drawer Statistics -> Statistics lifecycle -> pager
     getItemPosition -> chart fragment -> chart task -> renderChart
@@ -42,7 +43,7 @@ from device.harness import Runner  # noqa: E402
 EDGE_IDS = [
     "E48de6d58", "E26d20f74", "E1ad4ef9b", "E5906a191", "Ef3e13961",
     "Eae89b47b", "Ea73b74da", "E518f89ef", "E0b3abfeb", "Eb58e5599",
-    "Eed14720a", "Ed7470ef3", "Ea375fff8", "E0b2882d5", "E002cbed9",
+    "Eed14720a", "Ed7470ef3", "Ea375fff8", "Ebf481404", "Ebd71b23a",
     "E156e1693", "E267ed275", "Eaf3beafc", "E072f904d", "E5bf994da",
     "Efa80210f", "E9a6b7dfd", "E7974b03d", "Eb3bbd238", "E8e4a5c14",
     "Edbd9c947", "E776e20c8", "E66c764f8", "Ed7f1b8da", "Ebc9c4330",
@@ -90,13 +91,13 @@ def main(argv=None):
     r.comment("Reviewer collection loaded", edge="Ed7470ef3")
     # Ea375fff8 -> S_REVIEWER.
     r.comment("reviewer page shown", edge="Ea375fff8")
-    # E0b2882d5 S_REVIEWER -> onNavigationItemSelected: open the
+    # Ebf481404 S_REVIEWER -> onNavigationItemSelected: open the
     # drawer, then tap the nav_stats item. String verified in res:
     # statistics = "Statistics".
-    r.tap(edge="E0b2882d5", desc="Navigate up")
-    r.tap(edge="E0b2882d5", text="Statistics")
-    # E002cbed9 onNavigationItemSelected -> Statistics.<init>.
-    r.comment("startActivity Statistics", edge="E002cbed9")
+    r.tap(edge="Ebf481404", desc="Navigate up")
+    r.tap(edge="Ebf481404", text="Statistics")
+    # Ebd71b23a onNavigationItemSelected -> Statistics.<init>.
+    r.comment("startActivity Statistics", edge="Ebd71b23a")
     # E156e1693 Statistics.<init> -> onCreate.
     r.comment("Statistics onCreate", edge="E156e1693")
     # E267ed275 onCreate -> onCollectionLoaded.

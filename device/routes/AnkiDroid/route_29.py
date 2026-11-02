@@ -2,7 +2,8 @@
 """AnkiDroid final-draw route_29: Decks.id(String,boolean).
 
 Method: Decks.id(String,boolean)
-Table verdict: CORRECT (final draw, route_table.md row 29).
+Table verdict: CORRECT (combined-merge redraw, route_table.md
+    row 27). Edges unchanged.
 Route followed: the final BFS route (11 steps), identical to the
     first-draw route_27 route. This script is reused from first-draw
     route_27.py with only the route name/docstring updated; the edge

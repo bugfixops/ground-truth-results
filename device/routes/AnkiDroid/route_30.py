@@ -3,14 +3,18 @@
 
 Target: SimpleMessageDialog.<init> (the fragment's constructor,
     SimpleMessageDialog.java:23: new SimpleMessageDialog()).
-Table verdict: WRONG (final draw, route_table.md row 30; corrected
-    route). The printed BFS route entered the LOAD_FAILED dialog but
-    exited via the CONFIRM_DATABASE_CHECK dialog's onPositive, a
-    wrong-dialog-id fiction identical to route_24 step 5. The
-    corrected route below replaces the prefix with the
-    collection-open prefix (as route_24): DeckPicker menu
-    action_check_database -> CONFIRM dialog -> onPositive ->
-    integrityCheck -> printed steps 6-10.
+Drive verdict: combined-merge device drive KEPT (13 edges,
+    MENU @CONFIRM drive, NOT the new-sample print). The new-sample
+    row 29 print is CORRECT on its own 10-step showStartup route
+    and is NOT this drive. This drive: steps 1-8 shared with
+    route_24 through integrityCheck via $9@CONFIRM
+    (Ed463497a/Efb51fa08/Efa8d93c4); tail after integrityCheck is
+    the success branch E748990b0 -> E3f20427c (guard: result !=
+    null && result.getBoolean()) -> showSimpleMessageDialog ->
+    newInstance -> <init>. Old generic menu ENTERS
+    Ea13b2167/E044ff236 are dropped. Taps unchanged (options
+    menu -> Check database -> OK on the CONFIRM dialog -> wait
+    for success).
 Route followed: corrected route, 12 edges, derived from the graph
     JSON by src/dst pairs and verified contiguous (see NOTES.md).
     This script is adapted from first-draw route_08, but the target
@@ -55,8 +59,8 @@ from device.harness import Runner  # noqa: E402
 
 EDGE_IDS = [
     "E48de6d58", "E26d20f74", "E1ad4ef9b", "Eb3058057", "Ec0803f80",
-    "E044ff236", "Ea13b2167", "E748990b0", "E3f20427c", "E32539324",
-    "Eb4497af8", "E24224498",
+    "Ed463497a", "Efb51fa08", "Efa8d93c4", "E748990b0", "E3f20427c",
+    "E32539324", "Eb4497af8", "E24224498",
 ]
 
 
@@ -87,13 +91,19 @@ def main(argv=None):
     # Ec0803f80 S_DECKPICKER -> DeckPicker.onOptionsItemSelected:
     # open the options menu.
     r.tap(edge="Ec0803f80", desc="More options")
-    # E044ff236 onOptionsItemSelected -> S_DLG_DATABASE_ERROR
+    # Ed463497a onOptionsItemSelected -> S_DLG_DATABASE_ERROR@CONFIRM
+    # (guard: action_check_database).
     # (action_check_database -> CONFIRM_DATABASE_CHECK dialog).
-    r.tap(edge="E044ff236", text="Check database")
-    # Ea13b2167 S_DLG_DATABASE_ERROR -> DeckPicker.integrityCheck
+    r.tap(edge="Ed463497a", text="Check database")
+    # Efb51fa08 S_DLG_DATABASE_ERROR@CONFIRM ->
+    # DatabaseErrorDialog$9.onPositive@CONFIRM (@CONFIRM sole
+    # outgoing edge).
     # (guard: dialog variant is DIALOG_CONFIRM_DATABASE_CHECK;
     # positive button, DatabaseErrorDialog.java:294-302).
-    r.tap(edge="Ea13b2167", text="OK")
+    r.tap(edge="Efb51fa08", text="OK")
+    # Efa8d93c4 DatabaseErrorDialog$9.onPositive@CONFIRM ->
+    # DeckPicker.integrityCheck.
+    r.comment("integrityCheck", edge="Efa8d93c4")
     # E748990b0 integrityCheck -> DeckPicker$15.onPostExecute
     # (CHECK_DATABASE task listener; $15, NOT $16).
     r.dwell(edge="E748990b0", seconds=10)

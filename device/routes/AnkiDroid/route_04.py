@@ -3,8 +3,9 @@
 
 Target: Sched._cntFnNew (reflectively invoked via _walkingCount,
     Sched.java:337-353).
-Table verdict: CORRECT (final draw, 15 steps; the BFS route IS the
-    judged route, so this script drives the BFS route).
+Table verdict: CORRECT (combined-merge redraw, row 04, 15 steps;
+    the BFS route IS the judged route, so this script drives the
+    BFS route). Edges unchanged.
 Route followed: final-draw BFS route from helper/judge-final/
     route_04.txt, edge ids verified against
     graphs/AnkiDroid/out/ankidroid_trigger_graph.json and

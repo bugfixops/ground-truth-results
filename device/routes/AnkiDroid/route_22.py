@@ -2,7 +2,10 @@
 """AnkiDroid final-draw route_22: MetaDB.getNotificationStatus.
 
 Target: MetaDB.getNotificationStatus (via WidgetStatus.fetchDue).
-Table verdict: CORRECT (final draw, route_table.md row 22).
+Table verdict: CORRECT as history (combined merge: NOT in the
+    new sample; old CORRECT verdict stands as history, not
+    re-printed; 14 edges, drive unchanged). Do NOT claim gate
+    verification for this method.
 Route followed: the final BFS route (14 edges), identical to the
     first-draw route_09 route. This script is reused from first-draw
     route_09.py with only the route name/docstring updated; the edge

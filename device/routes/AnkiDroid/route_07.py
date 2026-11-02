@@ -6,16 +6,20 @@ Target: MediaCheckDialog$3.<init> (the RESULTS-dialog OK callback
     $3.<init> runs at dialog creation when onCreateDialog takes
     the RESULTS branch with unused empty, before any button tap,
     so the script performs no tap after the media check finishes.
-Table verdict: CORRECT (final draw, 16 steps on the BFS sync path;
-    see the table-vs-device-row distinction below). The BFS route
-    IS the judged route, but this device row is RE-DERIVED via the
-    menu entry to the same mediaCheck tail, exactly as WRONG rows'
-    device rows use corrected derivations. The re-derivation is
-    required because the BFS entry needs a real AnkiWeb account
-    plus a real sync whose server result is mediaSyncServerError,
-    which CI cannot do; the menu entry needs no account, no sync,
-    and no server result. The table verdict CORRECT stands
-    unchanged on the BFS sync path; only the device drive changes.
+Table verdict: CORRECT (combined-merge redraw, row 07,
+    16 steps on the sync-error print; device drive KEPT as the
+    14-edge menu chain below). The new-sample row 07 print is
+    the 16-edge sync-error drive (launch with sync-on-resume ->
+    sync-null -> $17.onPostExecute -> showSyncErrorDialog ->
+    S_DLG_SYNC_ERROR_MEDIA -> mediaCheck -> ... -> $3.<init>);
+    its condition is media-sync-server-error + check success +
+    logged-in hkey + online. THIS device row keeps the MENU
+    drive (options menu -> Check media -> OK on the confirm
+    dialog -> wait for the media check -> RESULTS dialog),
+    whose whole 14-edge chain still exists contiguously in the
+    new JSON. The live run must confirm the MENU drive, not the
+    sync drive (see NOTES_NEW.md, OPEN). No account, no sync,
+    and no server result are needed for the menu drive.
 Route followed: the 14-edge menu chain verified contiguous
     against graphs/AnkiDroid/out/ankidroid_trigger_graph.json
     (first src S_ENTRY, each dst equals the next src, last dst

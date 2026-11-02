@@ -2,17 +2,24 @@
 """AnkiDroid route_11: StudyOptionsActivity.closeStudyOptions(int).
 
 Target: StudyOptionsActivity.closeStudyOptions(int).
-Table verdict: WRONG (final-draw verdict; this script drives the
-    CORRECTED route, never the printed BFS route). The printed route
-    took the REBUILD_CRAM launch at StudyOptionsFragment.java:318,
-    whose listener never calls onCreateCustomStudySession; this
-    script takes the CustomStudyDialog launch instead, per
-    helper/judge-final/judge-11-20/JUDGEMENTS.md route 11.
-Route followed: corrected route, 24 edges: steps 1-7 as printed,
-    then custom-study menu item -> showCustomStudyContextMenu ->
-    custom-study dialog -> $2.onPositive -> createCustomStudySession
-    -> REBUILD_CRAM task -> $4.onPostExecute ->
-    DeckPicker.onCreateCustomStudySession -> openStudyOptions ->
+Drive verdict: combined-merge device drive KEPT (24 edges,
+    corrected custom-study drive, NOT the new-sample print).
+    The new-sample row 09 print is WRONG (33-step fiction,
+    step-23 E10ee7f20 plus the mFragmented guard tension) and is
+    NOT this drive. This drive's producer chain is the genuine
+    variant chain below (E9dee210a/E886e6770/E78bbf014/E8cc2ed4f).
+    The mFragmented guard tension (fragment prefix needs true,
+    StudyOptionsActivity tail needs false) is UNRESOLVED — see
+    NOTES_NEW.md, OPEN flag.
+Route followed: steps 1-12 as before (launch -> fragment ->
+    toolbar menu -> Custom study -> Review ahead -> OK ->
+    createCustomStudySession), then the producer-variant chain:
+    createCustomStudySession -> doInBackground@REBUILD_CRAM@
+    CustomStudyDialog -> onPostExecute@REBUILD_CRAM@CustomStudyDialog
+    -> TaskListener.onPostExecute@REBUILD_CRAM@CustomStudyDialog ->
+    CustomStudyDialog$4.onPostExecute (CALL edge, genuine producer
+    created inside createCustomStudySession) ->
+    onCreateCustomStudySession -> openStudyOptions ->
     StudyOptionsActivity -> Back -> closeStudyOptions(int).
 Preconditions: collection open with a non-dyn deck and cards to
     study, so the study-options fragment shows (not the congrats
@@ -48,8 +55,8 @@ from device.harness import Runner  # noqa: E402
 EDGE_IDS = [
     "E48de6d58", "E26d20f74", "E1ad4ef9b", "E5906a191", "Ef3e13961",
     "Eae89b47b", "Ea73b74da", "E57aebbea", "E3fa695ec", "E5ed4dccb",
-    "E0194a27c", "E479c4204", "Ef473d05e", "E6a8328b4", "Ed9e1ffa3",
-    "E46c212fb", "Ec59f2073", "Eeed3792f", "Eec5d8f89", "Ef09158d9",
+    "E0194a27c", "E479c4204", "E9dee210a", "E886e6770", "E78bbf014",
+    "E8cc2ed4f", "Ec59f2073", "Eeed3792f", "Eec5d8f89", "Ef09158d9",
     "E51a47dcb", "Ef8e134b9", "Eec10eebd", "E45f54dfb",
 ]
 
@@ -104,18 +111,25 @@ def main(argv=None):
     r.tap(edge="E0194a27c", text="OK")
     # E479c4204 $2.onPositive -> createCustomStudySession.
     r.comment("createCustomStudySession", edge="E479c4204")
-    # Ef473d05e createCustomStudySession ->
+    # E9dee210a createCustomStudySession ->
+    # DeckTask.doInBackground@REBUILD_CRAM@CustomStudyDialog
+    # (genuine producer-variant task node; guard: REBUILD_CRAM,
+    # launch site CustomStudyDialog.createCustomStudySession).
     # DeckTask.doInBackground@REBUILD_CRAM (the launchDeckTask call
     # at CustomStudyDialog.java:454-455 is collapsed into this ASYNC
     # edge; no separate launchDeckTask edge is carried).
-    r.comment("REBUILD_CRAM task launched", edge="Ef473d05e")
-    # E6a8328b4 -> onPostExecute@REBUILD_CRAM (framework delivery).
-    r.dwell(edge="E6a8328b4", seconds=5)
-    # Ed9e1ffa3 -> TaskListener.onPostExecute@REBUILD_CRAM.
-    r.comment("listener onPostExecute", edge="Ed9e1ffa3")
-    # E46c212fb -> CustomStudyDialog$4.onPostExecute (the listener
+    r.comment("REBUILD_CRAM task launched", edge="E9dee210a")
+    # E886e6770 -> onPostExecute@REBUILD_CRAM@CustomStudyDialog.
+    r.dwell(edge="E886e6770", seconds=5)
+    # E78bbf014 -> TaskListener.onPostExecute@
+    # REBUILD_CRAM@CustomStudyDialog.
+    r.comment("listener onPostExecute", edge="E78bbf014")
+    # E8cc2ed4f -> CustomStudyDialog$4.onPostExecute (CALL
+    # edge — the genuine producer step; the old E46c212fb id is
+    # DEAD in the new JSON and the generic-listener REGISTER edge
+    # is not used as a traversal step).
     # that calls onCreateCustomStudySession, :467).
-    r.comment("CustomStudyDialog$4 onPostExecute", edge="E46c212fb")
+    r.comment("CustomStudyDialog$4 onPostExecute", edge="E8cc2ed4f")
     # Ec59f2073 -> DeckPicker.onCreateCustomStudySession.
     r.comment("onCreateCustomStudySession", edge="Ec59f2073")
     # Eeed3792f -> openStudyOptions.

@@ -3,26 +3,27 @@
 
 Target: AbstractFlashcardViewer.typeAnswer (boolean predicate at
     AbstractFlashcardViewer.java:2326; evaluating it IS a call).
-Table verdict: WRONG (final draw, route_table.md row 28; corrected
-    route). The printed BFS route's step 9 was an interface fan-out
-    fiction: DeckPicker's LOAD_DECK_COUNTS launch registers
-    DeckPicker's own listener, never AbstractFlashcardViewer's
-    mAnswerCardHandler, so DeckTask.onPreExecute on that prefix
-    never reaches AFV$10.onPreExecute. The corrected route below
-    uses the Reviewer prefix (final-draw route_21 steps 1-13) and
-    the ANSWER_CARD launch that actually registers mAnswerCardHandler
-    (Reviewer.java:96-98): onCollectionLoaded -> launchDeckTask ->
-    onPreExecute -> mAnswerCardHandler.onPreExecute ($10) ->
-    blockControls -> typeAnswer.
-Route followed: corrected route, 18 edges, derived from the graph
+Table verdict: CORRECT as a route (combined merge,
+    gate-verified 16-step print; not in the new sample). The new
+    tail is the ANSWER_CARD launch with mAnswerCardHandler
+    (Eba52c92a) -> $10.onPreExecute via the hand edge E3a9489a8
+    (not the receiver-variant auto edge) -> blockControls ->
+    typeAnswer. The old 18-edge route's extra LOAD_DECK_COUNTS /
+    updateDeckList steps are gone. Taps unchanged (Study -> wait
+    for Reviewer collection load); the target runs automatically.
+    The old drive's 'tablet/large-screen' wording is a
+    precondition note, NOT a tap, left for merger confirmation —
+    see NOTES_NEW.md flag.
+Route followed: driven route, 16 edges, gate-verified print (ANSWER_CARD launch with mAnswerCardHandler)
     JSON by src/dst pairs and verified contiguous (see NOTES.md).
-    Note the corrected chain skips the S_REVIEWER page edge
-    (Ea375fff8): the ANSWER_CARD launch is inside onCollectionLoaded
-    itself (graph edge Ebeafa06d Reviewer.onCollectionLoaded ->
-    DeckTask.launchDeckTask), before the reviewer page is entered.
-    The tail edges E749e5944, E0bb0a19c, Eed5b25c0, Eadf19602,
-    E42fc2547 are the printed route's steps 7-11 with their producer
-    corrected; no new tail edge was needed. This script is newly
+    The new chain also skips the S_REVIEWER page edge (Ea375fff8):
+    the ANSWER_CARD launch sits inside onCollectionLoaded itself
+    (Eba52c92a), before the reviewer page is entered. The tail
+    is Eba52c92a -> E3a9489a8 (hand edge to $10.onPreExecute) ->
+    Eadf19602 (blockControls) -> E42fc2547 (typeAnswer). The
+    old tail ids Ebeafa06d/E749e5944/E0bb0a19c/Eed5b25c0 are
+    superseded by Eba52c92a/E3a9489a8 (Eadf19602/E42fc2547
+    unchanged).
     written; no first-draw script corresponds to this method.
 Preconditions/fixtures:
   - Tablet/large-screen config (mFragmented true); collection open;
@@ -54,8 +55,8 @@ from device.harness import Runner  # noqa: E402
 EDGE_IDS = [
     "E48de6d58", "E26d20f74", "E1ad4ef9b", "E5906a191", "Ef3e13961",
     "Eae89b47b", "Ea73b74da", "E518f89ef", "E0b3abfeb", "Eb58e5599",
-    "Eed14720a", "Ed7470ef3", "Ebeafa06d", "E749e5944", "E0bb0a19c",
-    "Eed5b25c0", "Eadf19602", "E42fc2547",
+    "Eed14720a", "Ed7470ef3", "Eba52c92a", "E3a9489a8", "Eadf19602",
+    "E42fc2547",
 ]
 
 
@@ -98,22 +99,16 @@ def main(argv=None):
               edge="Eed14720a")
     # Ed7470ef3 -> Reviewer.onCollectionLoaded (loader dispatch).
     r.dwell(edge="Ed7470ef3", seconds=5)
-    # Ebeafa06d Reviewer.onCollectionLoaded -> DeckTask.launchDeckTask
-    # (TASK_TYPE_ANSWER_CARD with mAnswerCardHandler, Reviewer
-    # .java:96-98). This is the corrected producer: the listener
-    # registered here IS the AFV listener, unlike the printed
-    # route's LOAD_DECK_COUNTS launch.
+    # Eba52c92a Reviewer.onCollectionLoaded -> ANSWER_CARD
+    # launch with mAnswerCardHandler (Reviewer.java:110-111).
+    # This is the genuine producer: the listener registered here
+    # IS the AFV listener.
     r.comment("ANSWER_CARD launch with mAnswerCardHandler",
-              edge="Ebeafa06d")
-    # E749e5944 launchDeckTask -> DeckTask.onPreExecute (AsyncTask
-    # execute -> onPreExecute on the UI thread).
-    r.comment("task onPreExecute", edge="E749e5944")
-    # E0bb0a19c onPreExecute -> TaskListener.onPreExecute
-    # (dispatch to this task's listener: mAnswerCardHandler).
-    r.comment("listener onPreExecute", edge="E0bb0a19c")
-    # Eed5b25c0 TaskListener.onPreExecute ->
-    # AbstractFlashcardViewer$10.onPreExecute (mAnswerCardHandler).
-    r.comment("mAnswerCardHandler onPreExecute", edge="Eed5b25c0")
+              edge="Eba52c92a")
+    # E3a9489a8 ANSWER_CARD launch -> $10.onPreExecute (hand
+    # edge, not the receiver-variant auto edge).
+    r.comment("mAnswerCardHandler onPreExecute",
+              edge="E3a9489a8")
     # Eadf19602 $10.onPreExecute -> blockControls.
     r.comment("blockControls", edge="Eadf19602")
     # E42fc2547 blockControls -> typeAnswer (target; predicate

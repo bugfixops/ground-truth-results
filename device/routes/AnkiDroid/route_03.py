@@ -3,17 +3,17 @@
 
 Target: Stats$1.compare (anonymous Comparator in
     Stats.calculateBreakdown, Stats.java:852-859).
-Table verdict: CORRECT (final draw, 26 steps; the BFS route IS the
-    judged route, so this script drives the BFS route, not a
-    corrected route).
+Table verdict: CORRECT (combined-merge redraw, row 03, 26 steps;
+    the judged route, with the Statistics drawer dispatch
+    Ebf481404/Ebd71b23a). Drive unchanged.
 Route followed: final-draw BFS route from helper/judge-final/
     route_03.txt, edge ids verified against
     graphs/AnkiDroid/out/ankidroid_trigger_graph.json and
     methods.csv (route_edge_ids identical). Head changed vs the
     first-draw Stats script (old route_04): StudyOptionsFragment
     -> Reviewer -> drawer -> Statistics (steps 4-15), not the old
-    deck-list drawer head. The drawer dispatch edge is E0b2882d5
-    (S_REVIEWER -> onNavigationItemSelected) followed by E002cbed9
+    deck-list drawer head. The drawer dispatch edge is Ebf481404
+    (S_REVIEWER -> onNavigationItemSelected) followed by Ebd71b23a
     (nav_stats -> Statistics.<init>).
 Preconditions (see ROUTES_rows.csv setup cell):
   - Collection open; deck with cards to study.
@@ -62,7 +62,7 @@ from device.harness import Runner  # noqa: E402
 EDGE_IDS = [
     "E48de6d58", "E26d20f74", "E1ad4ef9b", "E5906a191", "Ef3e13961",
     "Eae89b47b", "Ea73b74da", "E518f89ef", "E0b3abfeb", "Eb58e5599",
-    "Eed14720a", "Ed7470ef3", "Ea375fff8", "E0b2882d5", "E002cbed9",
+    "Eed14720a", "Ed7470ef3", "Ea375fff8", "Ebf481404", "Ebd71b23a",
     "E156e1693", "E267ed275", "Eaf3beafc", "E072f904d", "E5bf994da",
     "Efa80210f", "E9a6b7dfd", "E7974b03d", "Eb3bbd238", "E36391b1c",
     "Efcceb288",
@@ -111,14 +111,14 @@ def main(argv=None):
     r.dwell(edge="Ed7470ef3", seconds=5)
     # Ea375fff8 onCollectionLoaded -> S_REVIEWER.
     r.comment("Reviewer page shown", edge="Ea375fff8")
-    # E0b2882d5 S_REVIEWER -> NavigationDrawerActivity
+    # Ebf481404 S_REVIEWER -> NavigationDrawerActivity
     # .onNavigationItemSelected: open the drawer, then tap the
     # nav_stats item ("Statistics").
-    r.tap(edge="E0b2882d5", desc="Navigate up")
-    r.tap(edge="E0b2882d5", text="Statistics")
-    # E002cbed9 onNavigationItemSelected -> Statistics.<init>
+    r.tap(edge="Ebf481404", desc="Navigate up")
+    r.tap(edge="Ebf481404", text="Statistics")
+    # Ebd71b23a onNavigationItemSelected -> Statistics.<init>
     # (nav_stats case, NavigationDrawerActivity.java:265-268).
-    r.comment("drawer nav_stats starts Statistics", edge="E002cbed9")
+    r.comment("drawer nav_stats starts Statistics", edge="Ebd71b23a")
     # E156e1693 Statistics.<init> -> Statistics.onCreate.
     r.comment("Statistics onCreate", edge="E156e1693")
     # E267ed275 Statistics.onCreate -> Statistics.onCollectionLoaded

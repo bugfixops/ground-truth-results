@@ -2,12 +2,14 @@
 """AnkiDroid route_14: Models$TransformFieldDelete.<init>.
 
 Target: Models$TransformFieldDelete.<init>.
-Table verdict: WRONG (final-draw verdict; this script drives the
-    CORRECTED route, never the printed BFS route). The printed route
-    jumped from ModelBrowser's delete-model dialog to
-    ModelFieldEditor$3.confirm across the shared S_DLG_CONFIRMATION
-    page; this script stays inside ModelFieldEditor throughout, per
-    helper/judge-final/judge-11-20/JUDGEMENTS.md route 14.
+Table verdict: CORRECT (combined-merge redraw, row 16, 21 steps;
+    the printed route IS the judged route). This is the 21-step
+    DELETEFIELD variant: step 15 E59b6ceef (deleteFieldDialog ->
+    DELETEFIELD confirmation page, guard mFieldLabels.size() >= 2)
+    and step 16 E4daf57a4 ($3.confirm) replace old steps 15-16
+    E5cba0e2c/Ef84c6616; steps 17-21 (deleteField -> DELETE_FIELD
+    task -> remField -> TransformFieldDelete) are unchanged.
+    Drive: Delete field -> OK in the confirmation dialog.
 Route followed: corrected route, 21 edges: steps 1-6 as printed to
     S_MODELBROWSER, then model item CLICK -> ModelFieldEditor ->
     field list -> field tap -> context menu -> deleteFieldDialog ->
@@ -44,8 +46,8 @@ from device.harness import Runner  # noqa: E402
 EDGE_IDS = [
     "E48de6d58", "E26d20f74", "E1ad4ef9b", "Eb3058057", "Ec0803f80",
     "Ec31ec494", "E737f97f5", "Ebaef8dec", "E7ba5c3e5", "E27518d88",
-    "E6a434eae", "E7f0718c5", "E78a364ca", "Ee94b33d8", "E5cba0e2c",
-    "Ef84c6616", "Ea45d1c59", "Eb39e20a8", "E174b8f61", "Ef3f2eae2",
+    "E6a434eae", "E7f0718c5", "E78a364ca", "Ee94b33d8", "E59b6ceef",
+    "E4daf57a4", "Ea45d1c59", "Eb39e20a8", "E174b8f61", "Ef3f2eae2",
     "E11ebf3f9",
 ]
 
@@ -106,15 +108,19 @@ def main(argv=None):
     r.tap(edge="E78a364ca", text="Delete field")
     # Ee94b33d8 $9.onSelection -> deleteFieldDialog.
     r.comment("deleteFieldDialog", edge="Ee94b33d8")
-    # E5cba0e2c deleteFieldDialog -> S_DLG_CONFIRMATION. Guard:
+    # E59b6ceef deleteFieldDialog -> DELETEFIELD confirmation page
+    # (guard: mFieldLabels.size() >= 2, ModelFieldEditor.java:236-237).
     # at least 2 fields, else only a toast (ModelFieldEditor
     # .java:236-237); the fixture model must satisfy it.
-    r.comment("confirmation dialog shown", edge="E5cba0e2c")
-    # Ef84c6616 S_DLG_CONFIRMATION -> ModelFieldEditor$3.confirm:
+    r.comment("confirmation dialog shown", edge="E59b6ceef")
+    # E4daf57a4 DELETEFIELD confirmation -> ModelFieldEditor$3.confirm
+    # (this activity's own confirm, ModelFieldEditor.java:241-256,
+    # not ModelBrowser's delete-model confirm; positive text
+    # dialog_ok = "OK").
     # this activity's own confirm (ModelFieldEditor.java:241-256),
     # not ModelBrowser's delete-model confirm. Positive text is
     # dialog_ok = "OK" (ConfirmationDialog.java:38).
-    r.tap(edge="Ef84c6616", text="OK")
+    r.tap(edge="E4daf57a4", text="OK")
     # Ea45d1c59 $3.confirm -> deleteField.
     r.comment("deleteField", edge="Ea45d1c59")
     # Eb39e20a8 deleteField -> DeckTask.doInBackground@DELETE_FIELD.

@@ -2,12 +2,17 @@
 """AnkiDroid route_20: libanki.Utils.base62.
 
 Target: libanki.Utils.base62.
-Table verdict: WRONG (final-draw verdict; this script drives the
-    CORRECTED route, never the printed BFS route). The printed route
-    reached guid64 from the CHECK_MEDIA prefix, where the Note id is
-    an existing note id and the constructor takes the load() branch;
-    this script reaches guid64 from NoteEditor new-note creation,
-    per helper/judge-final/judge-11-20/JUDGEMENTS.md route 20.
+Drive verdict: combined-merge device drive KEPT (18 edges,
+    DeckPicker-origin NoteEditor add-mode drive, NOT the gate
+    judge's 28-step Reviewer-prefix best route). The old break at
+    old steps 15-16 (E80e8ad56/E62a24da3, CHECK_MEDIA fiction) is
+    gone; the genuine tail is E88fc471f (2-arg -> 3-arg @id-null,
+    guard: delegating call passes literal null) -> E64bc1607
+    (@id-null -> guid64, guard: id == null) -> Ed4aa2957 (guid64 ->
+    base91) -> E4a0aec25 (base91 -> base62, base62's sole incoming
+    edge). Gate-verified as a route; not in the new sample. Drive
+    taps unchanged (drawer -> Card browser -> More options -> Add
+    note); no Reviewer prefix is needed.
 Route followed: corrected route, 18 edges: deck picker -> drawer
     CardBrowser -> Add note -> NoteEditor lifecycle -> setNote ->
     Note constructors (id null) -> guid64 -> base91 -> base62.
@@ -46,8 +51,8 @@ from device.harness import Runner  # noqa: E402
 EDGE_IDS = [
     "E48de6d58", "E26d20f74", "E1ad4ef9b", "Eb3058057", "Ed1dad133",
     "E0e89f361", "Eb06cba16", "E352d419a", "E0281e707", "E83452f16",
-    "E1fcbaff3", "Ef51ca70b", "E34bd403a", "Ef9f80682", "E80e8ad56",
-    "E62a24da3", "Ed4aa2957", "E4a0aec25",
+    "E1fcbaff3", "Ef51ca70b", "E34bd403a", "Ef9f80682", "E88fc471f",
+    "E64bc1607", "Ed4aa2957", "E4a0aec25",
 ]
 
 
@@ -110,17 +115,22 @@ def main(argv=None):
               edge="E34bd403a")
     # Ef9f80682 setNote(Note) -> Note.<init>(Collection,JSONObject).
     r.comment("two-arg Note constructor", edge="Ef9f80682")
-    # E80e8ad56 Note.<init>(Collection,JSONObject) ->
+    # E88fc471f Note.<init>(Collection,JSONObject) ->
+    # Note.<init>(Collection,JSONObject,Long)@id-null (guard:
+    # delegating call passes literal null, Note.java:58-60).
     # Note.<init>(Collection,JSONObject,Long) with id null
     # (Note.java:58-60).
-    r.comment("three-arg Note constructor, id null", edge="E80e8ad56")
-    # E62a24da3 Note.<init>(Collection,JSONObject,Long) ->
+    r.comment("three-arg Note constructor, id null", edge="E88fc471f")
+    # E64bc1607 Note.<init>(Collection,JSONObject,Long)@id-null
+    # -> libanki.Utils.guid64 (guard: id == null, else branch
+    # assigns guid64(), Note.java:66-72). The old E62a24da3 id is
+    # ABSENT from the new JSON.
     # libanki.Utils.guid64: the id == null else branch runs
     # (Note.java:66-72). This edge id is the same id the printed
     # BFS route used at step 19, but the drive puts it in the
     # correct new-note branch; the id alone does not distinguish
     # branches.
-    r.comment("guid64 generated (new-note branch)", edge="E62a24da3")
+    r.comment("guid64 generated (new-note branch)", edge="E64bc1607")
     # Ed4aa2957 guid64 -> base91 (Utils.java:426-427).
     r.comment("base91 encoding", edge="Ed4aa2957")
     # E4a0aec25 base91 -> base62 (target; Utils.java:420-421).

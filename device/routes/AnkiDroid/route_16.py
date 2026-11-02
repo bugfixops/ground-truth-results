@@ -2,8 +2,10 @@
 """AnkiDroid route_16: Preferences.replaceString.
 
 Target: Preferences.replaceString.
-Table verdict: CORRECT (final-draw verdict; this script drives the
-    printed BFS route, 10 edges, unchanged). This is the
+Table verdict: CORRECT as history (combined merge: NOT in the
+    new sample; old CORRECT verdict stands as history, not
+    re-printed; 10 edges, drive unchanged). Do NOT claim gate
+    verification for this method. This is the
     initPreference route, not the old first-draw route_14 script's
     backupMax-drag terminal path: the call happens automatically
     while the Advanced screen inflates.

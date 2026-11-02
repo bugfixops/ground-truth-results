@@ -2,28 +2,30 @@
 """AnkiDroid final-draw route_25: BaseAsyncTask.onProgressUpdate.
 
 Target: BaseAsyncTask.onProgressUpdate (via DeckTask.onProgressUpdate).
-Table verdict: WRONG (final draw, route_table.md row 25; corrected
-    route). The printed BFS route entered the LOAD_FAILED dialog but
-    exited via the RESTORE_BACKUP dialog's onSelection, a
-    wrong-dialog-id fiction. The corrected drive below keeps the
-    LOAD_FAILED entry and walks the real dialog chain: LOAD_FAILED
-    positive -> DIALOG_ERROR_HANDLING -> list selection "restore"
-    -> DIALOG_RESTORE_BACKUP -> select a non-empty backup ->
-    restoreFromBackup -> printed steps 7-11.
-Route followed: corrected route, 11 edges in ROUTES_rows.csv. The
-    graph collapses all DatabaseErrorDialog variants into the single
-    page node S_DLG_DATABASE_ERROR, so the ROUTES edge chain is the
-    page-collapsed chain (identical ids to the printed route); the
-    intermediate dialog transitions have graph edges for their
-    callbacks (E61571efb $1.onPositive, E1f36e8b7 $1 ->
-    showDatabaseErrorDialog, Ea3ee3296 $3.onSelection,
-    E49c947f6 $3 -> showDatabaseErrorDialog) but NO graph edge
-    returns from showDatabaseErrorDialog to the page node, so the
-    expanded chain cannot be made contiguous in graph terms. That
-    gap is recorded in NOTES.md; no id is invented for it. In this
-    script the three dialog taps share the page edge Ecfd88980
-    (multi-tap-per-edge convention, as first-draw route_01 did for
-    drawer taps), with comments naming the intermediate callbacks.
+Drive verdict: combined-merge device drive KEPT (17 edges, @
+    RESTORE chain, gate judge section 2b, NOT the new-sample
+    print and NOT the 13-step sync route). Chain:
+    @LOAD_FAILED -> $1.onPositive -> helper@ERROR_HANDLING ->
+    @ERROR_HANDLING -> $3.onSelection (restore branch,
+    mRepairValues == 3) -> helper@RESTORE_BACKUP ->
+    @RESTORE_BACKUP -> $6.onSelection (backup list non-empty,
+    chosen backup length > 0) -> restoreFromBackup ->
+    importReplace -> IMPORT_REPLACE task -> onProgressUpdate ->
+    BaseAsyncTask.onProgressUpdate. The 16-edge
+    legacy-underscore variant is NOT used (its $3 guard says
+    repair while its onward edge requires restore).
+    Gate-verified as a route; not in the new sample.
+Route followed: driven route, 17 edges in ROUTES.csv (@ RESTORE
+    chain, gate judge section 2b). The new graph carries distinct
+    @ dialog pages, so the chain below is contiguous edge-by-edge
+    (verified in the new JSON); the old page-collapsed explanation
+    and the old intermediate callback ids
+    (E61571efb/E1f36e8b7/Ea3ee3296/E49c947f6) are OBSOLETE — those
+    four ids are ABSENT from the new JSON and must not remain cited
+    as live. The three dialog taps now map to distinct edges (see
+    body notes); the old multi-tap-per-edge note ('the three dialog
+    taps share the page edge Ecfd88980') is STALE and must be
+    deleted wherever it appears.
     This script is newly written; no first-draw script corresponds
     to this method.
 Preconditions/fixtures:
@@ -71,9 +73,10 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 from device.harness import Runner  # noqa: E402
 
 EDGE_IDS = [
-    "E48de6d58", "E26d20f74", "E1ad4ef9b", "Ed414cece", "Ecfd88980",
-    "E8606904f", "Edefdf964", "Edd5f59a3", "E19e47dc6", "Eb0fa26f7",
-    "Eda96a2a1",
+    "E48de6d58", "E26d20f74", "E1ad4ef9b", "E76f091e5", "Efe87b1dc",
+    "E096587df", "E832f6db8", "E41b7fcb0", "E041e4962", "Ed4572b17",
+    "E28a894d2", "E8606904f", "Edefdf964", "Edd5f59a3", "E19e47dc6",
+    "Eb0fa26f7", "Eda96a2a1",
 ]
 
 
@@ -96,24 +99,42 @@ def main(argv=None):
     # E1ad4ef9b DeckPicker.<init> -> DeckPicker.onCreate.
     r.comment("system instantiates DeckPicker, then onCreate",
               edge="E1ad4ef9b")
-    # Ed414cece onCreate -> S_DLG_DATABASE_ERROR (LOAD_FAILED
-    # dialog; collection did not open).
-    r.comment("LOAD_FAILED dialog shown", edge="Ed414cece")
-    # Ecfd88980 S_DLG_DATABASE_ERROR -> DatabaseErrorDialog$6
-    # .onSelection, via the real intermediate chain (page-collapsed;
-    # see header): LOAD_FAILED positive ("Options", $1.onPositive
-    # E61571efb -> showDatabaseErrorDialog E1f36e8b7) shows
-    # ERROR_HANDLING; its "Restore from backup" item ($3.onSelection
-    # Ea3ee3296 -> showDatabaseErrorDialog E49c947f6) shows
-    # RESTORE_BACKUP; the return-to-page step has no graph edge.
-    r.tap(edge="Ecfd88980", text="Options")
-    r.tap(edge="Ecfd88980", text="Restore from backup")
-    # BACKUP-ITEM GAP (see header): select a non-empty backup entry
-    # from the RESTORE_BACKUP list. Item text is a run-time date
-    # ("YYYY-MM-DD (HH:MM h)"); no tap text is fabricated here.
-    r.comment("BACKUP-ITEM GAP: tap the non-empty backup entry "
-              "(run-time date text; fill from a live uiautomator "
-              "dump before a real run)", edge="Ecfd88980")
+    # E76f091e5 DeckPicker.onCreate ->
+    # S_DLG_DATABASE_ERROR@LOAD_FAILED (dialog id 0; collection
+    # did not open).
+    r.comment("LOAD_FAILED dialog shown", edge="E76f091e5")
+    # Efe87b1dc S_DLG_DATABASE_ERROR@LOAD_FAILED ->
+    # DatabaseErrorDialog$1.onPositive (LOAD_FAILED positive,
+    # "Options", error_handling_options).
+    r.tap(edge="Efe87b1dc", text="Options")
+    # E096587df $1.onPositive ->
+    # DeckPicker.showDatabaseErrorDialog@ERROR_HANDLING.
+    r.comment("error-handling dialog shown", edge="E096587df")
+    # E832f6db8 showDatabaseErrorDialog@ERROR_HANDLING ->
+    # S_DLG_DATABASE_ERROR@ERROR_HANDLING.
+    r.comment("error-handling page shown", edge="E832f6db8")
+    # E41b7fcb0 S_DLG_DATABASE_ERROR@ERROR_HANDLING ->
+    # DatabaseErrorDialog$3.onSelection (guard: restore branch,
+    # mRepairValues == 3; "Restore from backup", backup_restore).
+    r.tap(edge="E41b7fcb0", text="Restore from backup")
+    # E041e4962 $3.onSelection ->
+    # DeckPicker.showDatabaseErrorDialog@RESTORE_BACKUP.
+    r.comment("restore-backup dialog shown", edge="E041e4962")
+    # Ed4572b17 showDatabaseErrorDialog@RESTORE_BACKUP ->
+    # S_DLG_DATABASE_ERROR@RESTORE_BACKUP.
+    r.comment("restore-backup page shown", edge="Ed4572b17")
+    # Backup entry (D9): the entry text is a run-time date
+    # supplied by setup_route_25.py via GEN_DIR/backup_entry.txt
+    # (format "YYYY-MM-DD (HH:MM h)", see NOTES_NEW.md). No date
+    # is hard-coded here; if the file is absent, fail loudly
+    # rather than tapping a fabricated date.
+    _gen = os.environ.get("GEN_DIR", "")
+    _entry_path = os.path.join(_gen, "backup_entry.txt") if _gen \
+        else os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                          "backup_entry.txt")
+    with open(_entry_path, encoding="utf-8") as _f:
+        _backup_entry = _f.read().strip()
+    r.tap(edge="E28a894d2", text=_backup_entry)
     # E8606904f $6.onSelection -> DeckPicker.restoreFromBackup
     # (guard: chosen backup file non-empty).
     r.comment("restoreFromBackup", edge="E8606904f")

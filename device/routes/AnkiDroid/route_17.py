@@ -2,8 +2,10 @@
 """AnkiDroid route_17: DeckPicker$5.onProgressUpdate.
 
 Target: DeckPicker$5.onProgressUpdate.
-Table verdict: CORRECT (final-draw verdict; this script drives the
-    printed BFS route, 16 edges, unchanged).
+Table verdict: CORRECT as history (combined merge: NOT in the
+    new sample; old CORRECT verdict stands as history, not
+    re-printed; 16 edges, drive unchanged). Do NOT claim gate
+    verification for this method.
 Route followed: printed route: deck picker -> Import dialog ->
     importAdd -> IMPORT task -> AnkiPackageImporter.run ->
     publishProgress -> ProgressCallback -> doProgress ->

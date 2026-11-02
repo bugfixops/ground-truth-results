@@ -2,14 +2,16 @@
 """AnkiDroid route_12: HttpFetcher.downloadFileToSdCardMethod.
 
 Target: HttpFetcher.downloadFileToSdCardMethod.
-Table verdict: WRONG (final-draw verdict; this script drives the
-    CORRECTED route, never the printed BFS route). The printed step
-    15 named DeckPicker.openCardBrowser for a Reviewer receiver; the
-    corrected step 15 is Reviewer.openCardBrowser, per
-    helper/judge-final/judge-11-20/JUDGEMENTS.md route 12. All other
-    steps are unchanged (37 edges).
-Route followed: corrected route, identical to the printed route
-    except steps 15-16 relabelled to the Reviewer override.
+Table verdict: CORRECT (combined-merge redraw, row 12,
+    37 steps; the printed route IS the judged route). The drawer
+    dispatch is the Reviewer override at steps 14-16
+    (Ebf481404/E09ef790a/E5285c072 = Reviewer.openCardBrowser);
+    the old step-14/15 ids E0b2882d5/E1e676c95 are gone and the
+    old fiction Ea0eba485 has 0 occurrences. Drive: drawer ->
+    Card browser (Reviewer.openCardBrowser) -> Add note ->
+    Pronunciation -> Load -> Beolingus download.
+Route followed: printed route, 37 steps (combined-merge redraw, row 12;
+    drawer dispatch is the Reviewer override at steps 14-16).
 Preconditions: collection open; deck with cards to study; a note
     whose field has non-empty text; TEXT field controller, so the
     pronounce button exists; network on with the Beolingus page
@@ -42,7 +44,7 @@ from device.harness import Runner  # noqa: E402
 EDGE_IDS = [
     "E48de6d58", "E26d20f74", "E1ad4ef9b", "E5906a191", "Ef3e13961",
     "Eae89b47b", "Ea73b74da", "E518f89ef", "E0b3abfeb", "Eb58e5599",
-    "Eed14720a", "Ed7470ef3", "Ea375fff8", "E0b2882d5", "E1e676c95",
+    "Eed14720a", "Ed7470ef3", "Ea375fff8", "Ebf481404", "E09ef790a",
     "E5285c072", "Eb06cba16", "E352d419a", "E0281e707", "E37ba8c1f",
     "E94833ec9", "E44749e19", "Ed63b7964", "E7b61f827", "Eb7034235",
     "E1e29f3f5", "Ea9606e5d", "E1ae02f15", "Ed9c9d15a", "E34e471f3",
@@ -92,20 +94,19 @@ def main(argv=None):
     r.comment("Reviewer collection loaded", edge="Ed7470ef3")
     # Ea375fff8 -> S_REVIEWER.
     r.comment("reviewer page shown", edge="Ea375fff8")
-    # E0b2882d5 S_REVIEWER -> onNavigationItemSelected: open the
+    # Ebf481404 S_REVIEWER -> onNavigationItemSelected: open the
     # drawer, then tap the nav_browser item. String verified in
     # res: card_browser = "Card browser".
-    r.tap(edge="E0b2882d5", desc="Navigate up")
-    r.tap(edge="E0b2882d5", text="Card browser")
-    # E1e676c95 onNavigationItemSelected -> Reviewer.openCardBrowser
-    # (CORRECTED step 15: the receiver is Reviewer, so virtual
-    # dispatch runs Reviewer.openCardBrowser, Reviewer.java:508-518,
-    # not DeckPicker.openCardBrowser. The @Reviewer variant edge
-    # E367a70a5 exists but would break chain contiguity here, since
-    # the previous edge ends at the unvariant node; the unvariant
-    # edge is therefore carried and the choice recorded in NOTES).
-    r.comment("Reviewer.openCardBrowser (corrected receiver)",
-              edge="E1e676c95")
+    r.tap(edge="Ebf481404", desc="Navigate up")
+    r.tap(edge="Ebf481404", text="Card browser")
+    # E09ef790a onNavigationItemSelected -> Reviewer.openCardBrowser
+    # (steps 14-16 Reviewer override: Ebf481404 drawer dispatch,
+    # E09ef790a dispatch to Reviewer.openCardBrowser,
+    # Reviewer.java:508-518, E5285c072 -> CardBrowser.<init>).
+    # The old ids E0b2882d5/E1e676c95 and the @Reviewer variant
+    # edge E367a70a5 are ABSENT from the new JSON; no variant edge
+    # is carried.
+    r.comment("Reviewer.openCardBrowser", edge="E09ef790a")
     # E5285c072 Reviewer.openCardBrowser -> CardBrowser.<init>.
     r.comment("startActivity CardBrowser", edge="E5285c072")
     # Eb06cba16 CardBrowser.<init> -> onCreate.

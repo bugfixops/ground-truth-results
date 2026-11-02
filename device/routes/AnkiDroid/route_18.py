@@ -2,8 +2,8 @@
 """AnkiDroid route_18: Sched.sortCards(long[],int,int,boolean,boolean).
 
 Target: Sched.sortCards(long[],int,int,boolean,boolean).
-Table verdict: CORRECT (final-draw verdict; this script drives the
-    printed BFS route, 19 edges, unchanged).
+Table verdict: CORRECT (combined-merge redraw, row 20; 19 edges,
+    unchanged).
 Route followed: printed route: fragment -> exportDeck -> export
     dialog -> exportApkg -> EXPORT_APKG task -> exportInto ->
     exportFiltered -> super exportInto -> resetCards -> forgetCards

@@ -3,9 +3,9 @@
 
 Target: Finder.findNotes (Collection.findNotes ->
     new Finder(this).findNotes(query), Collection.java:1077).
-Table verdict: CORRECT (final draw, 34 steps; the BFS route IS the
-    judged route, so this script drives the BFS route, not a
-    corrected route).
+Table verdict: CORRECT (combined-merge redraw, row 10, 34 steps;
+    the judged route, with the Reviewer drawer dispatch
+    Ebf481404/E09ef790a/E5285c072). Drive unchanged.
 Route followed: final-draw BFS route from helper/judge-final/
     route_09.txt, edge ids verified against
     graphs/AnkiDroid/out/ankidroid_trigger_graph.json and
@@ -44,7 +44,7 @@ Mapping notes:
     uiautomator dump before a real run, as with "Navigate up" and
     "More options".
   - The drawer-open tap and the "Card browser" tap share edge
-    E0b2882d5 (two log lines, one edge); the same applies to the
+    Ebf481404 (two log lines, one edge); the same applies to the
     "More options" tap and the "Add note" tap (E0281e707 /
     E37ba8c1f).
   - Leaving the Previewer so its for-result result returns to the
@@ -68,8 +68,8 @@ from device.harness import Runner  # noqa: E402
 EDGE_IDS = [
     "E48de6d58", "E26d20f74", "E1ad4ef9b", "E5906a191", "Ef3e13961",
     "Eae89b47b", "Ea73b74da", "E518f89ef", "E0b3abfeb", "Eb58e5599",
-    "Eed14720a", "Ed7470ef3", "Ea375fff8", "E0b2882d5", "Ea0eba485",
-    "E0e89f361", "Eb06cba16", "E352d419a", "E0281e707", "E37ba8c1f",
+    "Eed14720a", "Ed7470ef3", "Ea375fff8", "Ebf481404", "E09ef790a",
+    "E5285c072", "Eb06cba16", "E352d419a", "E0281e707", "E37ba8c1f",
     "E43fdf761", "E1daab677", "Ee8a3d32e", "E9d2d3b7f", "E731864d1",
     "Ef2bc6ed3", "E3112e0db", "E2b5d9886", "E9f7ec141", "Eb21e33e0",
     "E8d8741a0", "E2a61410a", "E94ef2a85", "E2d26f33d",
@@ -118,17 +118,17 @@ def main(argv=None):
     r.dwell(edge="Ed7470ef3", seconds=5)
     # Ea375fff8 onCollectionLoaded -> S_REVIEWER.
     r.comment("Reviewer page shown", edge="Ea375fff8")
-    # E0b2882d5 S_REVIEWER -> NavigationDrawerActivity
+    # Ebf481404 S_REVIEWER -> NavigationDrawerActivity
     # .onNavigationItemSelected: open the drawer, then tap the
     # nav_browser item ("Card browser").
-    r.tap(edge="E0b2882d5", desc="Navigate up")
-    r.tap(edge="E0b2882d5", text="Card browser")
-    # Ea0eba485 onNavigationItemSelected -> DeckPicker.openCardBrowser
+    r.tap(edge="Ebf481404", desc="Navigate up")
+    r.tap(edge="Ebf481404", text="Card browser")
+    # E09ef790a onNavigationItemSelected -> Reviewer.openCardBrowser
     # (nav_browser case).
     r.comment("drawer nav_browser opens CardBrowser",
-              edge="Ea0eba485")
-    # E0e89f361 openCardBrowser -> CardBrowser.<init> (Intent).
-    r.comment("startActivityForResult CardBrowser", edge="E0e89f361")
+              edge="E09ef790a")
+    # E5285c072 Reviewer.openCardBrowser -> CardBrowser.<init> (Intent).
+    r.comment("startActivityForResult CardBrowser", edge="E5285c072")
     # Eb06cba16 CardBrowser.<init> -> CardBrowser.onCreate.
     r.comment("system instantiates CardBrowser, then onCreate",
               edge="Eb06cba16")

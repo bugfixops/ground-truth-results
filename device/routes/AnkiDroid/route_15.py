@@ -2,8 +2,8 @@
 """AnkiDroid route_15: Anki2Importer._mediaPick.
 
 Target: Anki2Importer._mediaPick.
-Table verdict: CORRECT (final-draw verdict; this script drives the
-    printed BFS route, 16 edges, unchanged).
+Table verdict: CORRECT (combined-merge redraw, row 14;
+    16 edges, unchanged).
 Route followed: printed route: deck picker -> Import dialog ->
     importAdd -> IMPORT task -> AnkiPackageImporter.run ->
     Anki2Importer chain -> _mungeMedia -> compareMedia -> _mediaPick.

@@ -2,8 +2,8 @@
 """AnkiDroid route_13: Sound.notifyConfigurationChanged.
 
 Target: Sound.notifyConfigurationChanged.
-Table verdict: CORRECT (final-draw verdict; this script drives the
-    printed BFS route, 24 edges, unchanged).
+Table verdict: CORRECT (combined-merge redraw, row 13; this
+    script drives the judged route, 24 edges, unchanged).
 Route followed: printed route: fragment -> Study -> Reviewer ->
     options menu -> action_replay -> playSounds -> Sound chain ->
     VideoPlayer -> rotate -> notifyConfigurationChanged.

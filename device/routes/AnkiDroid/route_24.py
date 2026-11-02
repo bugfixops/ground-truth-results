@@ -2,20 +2,27 @@
 """AnkiDroid final-draw route_24: DB.insert.
 
 Target: DB.insert (Collection._logRem -> mDb.insert("graves", ...)).
-Table verdict: WRONG (final draw, route_table.md row 24; corrected
-    route). The printed BFS route entered the LOAD_FAILED dialog but
-    exited via the CONFIRM_DATABASE_CHECK dialog's onPositive, a
-    wrong-dialog-id fiction. The corrected route below replaces the
-    prefix with the collection-open prefix: DeckPicker menu
-    action_check_database -> CONFIRM dialog -> onPositive ->
-    integrityCheck, then printed steps 6-11 unchanged.
+Drive verdict: combined-merge device drive KEPT (14 edges,
+    MENU @CONFIRM drive, NOT the new-sample print). The new-sample
+    row 25 print is CORRECT on its own 11-step showStartup
+    integrity-check route and is NOT this drive. This drive:
+    DeckPicker menu action_check_database -> @CONFIRM variant
+    Ed463497a (guard: action_check_database) -> Efb51fa08
+    (@CONFIRM sole outgoing to $9@CONFIRM) -> Efa8d93c4
+    ($9@CONFIRM -> integrityCheck) -> CHECK_DATABASE task ->
+    fixIntegrity -> _remNotes -> _logRem -> DB.insert. Old
+    generic menu ENTERS Ea13b2167/E044ff236 are dropped (0
+    occurrences in the new list). Taps unchanged (options menu
+    -> Check database -> OK on the CONFIRM dialog).
 Route followed: corrected route, 13 edges, derived from the graph
     JSON by src/dst pairs and verified contiguous (see NOTES.md).
     The menu prefix (Eb3058057, Ec0803f80, E044ff236, Ea13b2167)
     is reused from first-draw route_08 (SimpleMessageDialog$1),
     which drove the same CONFIRM dialog; the tail from
     integrityCheck onward is new (route_08's tail went to the
-    message dialog instead).
+    message dialog instead). (edge ids updated to the @CONFIRM
+    variant Ed463497a/Efb51fa08/Efa8d93c4; tail from Ed79280db
+    onward identical to the old tail).
 Preconditions/fixtures:
   - Collection open; SD card available so the Check database menu
     item is enabled (DeckPicker.java:528).
@@ -48,8 +55,8 @@ from device.harness import Runner  # noqa: E402
 
 EDGE_IDS = [
     "E48de6d58", "E26d20f74", "E1ad4ef9b", "Eb3058057", "Ec0803f80",
-    "E044ff236", "Ea13b2167", "Ed79280db", "E0e270167", "E02689004",
-    "Ee4200db9", "E441361aa", "E91887e80",
+    "Ed463497a", "Efb51fa08", "Efa8d93c4", "Ed79280db", "E0e270167",
+    "E02689004", "Ee4200db9", "E441361aa", "E91887e80",
 ]
 
 
@@ -78,14 +85,20 @@ def main(argv=None):
     # Ec0803f80 S_DECKPICKER -> DeckPicker.onOptionsItemSelected:
     # open the options menu.
     r.tap(edge="Ec0803f80", desc="More options")
-    # E044ff236 onOptionsItemSelected -> S_DLG_DATABASE_ERROR
+    # Ed463497a onOptionsItemSelected -> S_DLG_DATABASE_ERROR@CONFIRM
+    # (guard: action_check_database; menu @CONFIRM variant).
     # (action_check_database -> CONFIRM_DATABASE_CHECK dialog).
-    r.tap(edge="E044ff236", text="Check database")
-    # Ea13b2167 S_DLG_DATABASE_ERROR -> DeckPicker.integrityCheck
+    r.tap(edge="Ed463497a", text="Check database")
+    # Efb51fa08 S_DLG_DATABASE_ERROR@CONFIRM ->
+    # DatabaseErrorDialog$9.onPositive@CONFIRM (@CONFIRM sole
+    # outgoing edge).
     # (CONFIRM dialog positive button, DatabaseErrorDialog
     # .java:294-302). This is the corrected dialog variant, not the
     # printed route's LOAD_FAILED entry.
-    r.tap(edge="Ea13b2167", text="OK")
+    r.tap(edge="Efb51fa08", text="OK")
+    # Efa8d93c4 DatabaseErrorDialog$9.onPositive@CONFIRM ->
+    # DeckPicker.integrityCheck.
+    r.comment("integrityCheck", edge="Efa8d93c4")
     # Ed79280db integrityCheck -> DeckTask.doInBackground
     # @CHECK_DATABASE (launchDeckTask TASK_TYPE_CHECK_DATABASE).
     r.dwell(edge="Ed79280db", seconds=10)
