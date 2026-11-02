@@ -3679,3 +3679,34 @@ again only at MMEX's turn unless the coordinator orders otherwise).
 ## AMAZE-G4-ENDORSEMENT (coordinator decision, Muse's own, for the user and Yang to review; 2026-11-02 ~10:38 EST)
 
 AmazeFileManager route_08 tally: the pushed route table's fixed-25 count STANDS — route_08 stays "fixed" per the verdict key, and the 24+1 alternative (counting route_08 separately from the 24 fixed) is NOT adopted. No re-tally and no verdict change is made. Rate is 0.833 either way (5 correct / 25 fixed / 0 wrong / 0 unclear over 30), so this endorsement changes no number; it removes the assessment's qualification on finality. If the user disagrees, their word overturns this ruling.
+
+# FORWARD TO COORDINATOR — for handoff/MUSE_DECISIONS.md append (merger never writes that file)
+
+## MMEX-D3-CAP-ACCEPT-ROUND2 — Cap decision for the 26/4 package (coordinator decision, Muse's own, for the user and Yang to review)
+
+MMEX at 26 scripted / 4 unscriptable = 13.3% is ACCEPTED under the
+user's cap ruling, so F1 is not blocked by the cap alone. Per-route
+reasons for the four that stay unscriptable: route_07 Morningstar HTTP
+download + provider switch (specified-but-unverified HTTP substitute:
+hosts remount + CI-host server, outside the current run_app contract);
+route_08 Fixer HTTPS download + JSON (specified-but-unverified HTTPS
+substitute: local HTTPS server + system-CA install); route_11 real
+online cloud-storage account only (Dropbox/OneDrive/GoogleDrive/Box/
+pCloud enum; no WebDAV); route_19 double blocker (null-base-currency
+branch unreachable with an app-created database; Toast-throw trigger
+uncreatable on a normal foreground flow). This supersedes, and does
+not erase, the MMEX-B3-CAP 22/8 = 26.7% acceptance for the earlier
+package. Routes 06, 10, 12 and 14 were converted to scripted in this
+round (UI-driving setups under the MMEX-B3-UIDRIVE contract: account,
+transaction and recurring-bill entry; wm size 1920x1200 + density 240
+for the route_12 tablet layout), each independently audit-PASS under
+the 1-in-3 script audit (audit/fix2-1in3/AUDIT.md, all 10 sampled
+scripts PASS, all five contract questions ACCEPT).
+
+Status of this forward: CONFIRMED for Push 1. The 26/4 ROUTES.csv, the
+four new scripts + setups, and the doc-only fixes are Push-1 content
+in the one-app-at-a-time regime; this decision takes effect when
+Push 1 lands. (It previously sat in DECISIONS as a FORWARDED DRAFT,
+"DRAFT until the package pushes at MMEX's turn"; the per-route
+reasons above are unchanged from the draft — only the status line
+changes, from DRAFT to confirmed.)
