@@ -15,7 +15,7 @@
 - [K] AmazeFileManager (labels, route checks, logs and device scripts DONE 2026-11-02; CI run 33e3ca1a; D9 run 41483333085-1 PASSED; awaiting user tick)
 # 2026-10-27 21:20: these three are for the overnight convert run (handoff/RESUME_PROMPT_CONVERT.md, tools/resume_convert.sh). "- [C]" = run queue, not ticked.
 - [L] AnkiDroid (labelled overnight 2026-10-30: UNRESOLVED 0, errors 0, warnings 0; route checks not started)
-- [L] MMEX (labelled overnight 2026-10-31: UNRESOLVED 0, errors 0, warnings 0; route checks not started)
+- [K] MMEX (labels, route checks, logs and device scripts DONE 2026-11-02; CI run 70607c2c; D9 run 41535141998-1 PASSED; awaiting user tick)
 # 2026-10-28: "- [H]" = handed to ChatGPT (brief: handoff/CHATGPT_BRIEF_LIBRETORRENT.md). Not in the Claude queue; not ticked.
 - [M] LibreTorrent (handed to Muse by the user 2026-10-31; the Claude run was stopped at 18:10 EDT; see graphs/LibreTorrent/AGENT_NOTES.md "## Stopped by the user" and handoff/MUSE_HANDOVER.md)
 # 2026-10-29: "- [N]" = NEXT step, not started (device replay of sampled routes on API 27 emulators in GitHub Actions, repo bugfixops/test-13). Plan: handoff/NEXT_DEVICE_REPLAY.md. Start only after all apps finish and the user says go.
