@@ -3570,3 +3570,108 @@ Audit §2.8 / §7 item 8 (MMEX B3 re-audit, PASS on all 9 changed items): UI-dri
 
 ## MMEX-B3-CAP — Cap decision for this pass: 22 scripted / 8 unscriptable = 26.7% (coordinator decision, Muse's own, for the user and Yang to review)
 MMEX B3 package: ROUTES.csv 30 rows, 22 scripted / 8 unscriptable. Only routes 11 (real online cloud-storage account only) and 19 (double blocker: null-base-currency branch + Toast fault) are genuinely unscriptable on current evidence. The other six are "unscriptable in this pass" with named follow-ups in device-fix/NOTES.md (06 split/recurring-form creation ungrounded; 07 Morningstar HTTP download + provider; 08 Fixer HTTPS download + JSON; 10 payee-report row needs a transaction; 12 tablet layout mechanism; 14 due-bill seed ungrounded + notification). DECISION: the B3 package pushes now with the 26.7% cap recorded, under the standing user cap-acceptance rule (record a per-route decision and accept; do not leave F1 blocked by the cap alone) — with the follow-ups explicitly remaining OPEN, so the six in-pass routes may convert in a later pass and the cap figure may fall; this acceptance covers this pass only and does not close those six routes as permanently unscriptable. Per-route reasons are in device-fix/NOTES.md; the package's drycheck is MMEX 30 PASS / 0 FAIL in both plain and --load-scripts modes after the prose-only touches.
+
+## ANKI-ROUTES-CRITERION — ROUTES rows judged by the route_table driven-route criterion, not literal 30/30 vs verification.csv (coordinator decision, Muse's own, for the user and Yang to review)
+AnkiDroid device audit (push-round commit 78e6f174): ROUTES edge lists match verification.csv path rows on only 22/30. The 8 differences are exactly the documented corrected derivations (route_07's 14-vs-16 menu re-derivation; WRONG routes 11, 14, 20, 24, 28, 30 corrected derivations; route_12's 37-vs-37 with two edges swapped to Reviewer.openCardBrowser), each verified contiguous against the 9,608-edge graph and matched by its script. DECISION: the auditor's qualification is APPROVED — the merger must NOT "fix" these 8 rows to match verification.csv, which would reintroduce 7 judged fictions plus a CI-impossible sync entry. The gate criterion is the route_table.md driven-route criterion: ROUTES rows must match the judged/corrected drivable routes; verification.csv path rows for WRONG routes are by definition the judged-wrong BFS routes, not the drivable ones. Consequence for the fix round: variant-fixed WRONG routes should become genuine BFS routes, after which their ROUTES rows will match the new path rows. If the user disagrees, their word overturns this ruling and the 8 rows are re-examined.
+
+## D2 decision — 23 REACHABLE→UNREACHABLE flips accepted as labelled (b075 tree; API level 27)
+
+No verdict is changed by this decision; it records why each flip is genuine
+rather than a merge artefact. All 23 were REACHABLE before their part merged
+(via auto edges and, for the Settings group, via pre-existing hand edges that
+now surface as warnings until their SUPPRESS pairs land) and are UNREACHABLE in
+the b075 tree (methods 4732, edges 6648, R3276/U724/UNRES732). Full 23-row
+table (part, printed guard line, API 27 reasoning) is in
+work/LibreTorrent/d2/D2_DECISION_DRAFT.md, forwarded to the coordinator for
+the handoff/MUSE_DECISIONS.md append (the merger never writes that file).
+
+### The 16th Settings method — gap closed, not guessed
+
+The previous "exactly 15" count covered only direct SettingsRepositoryImpl.*
+methods. The 16th is the nested-class method
+SettingsRepositoryImpl$Default.ledIndicatorColorNotify (b047), flipping with
+batch-44 row 17 (getter ledIndicatorColorNotify() :342-344 fallback argument;
+getter itself closed via AppearanceSettingsFragment.java:180 gated :118-119
+and TorrentNotifier.java:290 after early return :276). Settings group is
+exactly 16: sound 4, vibration 2, LED 5, ManageAllFiles 4, notification
+permission 1.
+
+### Settings group — closed_by_api_level (16)
+
+- b042 x3: askManageAllFilesPermission() (PermissionManager :60-67, :99-104,
+  R-gated, false at 27); askManageAllFilesPermission(boolean) (:117 R-gated);
+  askNotificationPermission(boolean) (:123 TIRAMISU-gated, 33 false at 27).
+- b044 x4: ledIndicatorColorNotify() (AppearanceSettingsFragment.java:180 in
+  initLegacyNotifySettings, SDK < O gate :118-119; TorrentNotifier.java:290 in
+  applyLegacyNotifySettings, early return :276 at SDK >= O — both sites dead
+  at 27); ledIndicatorColorNotify(int) (:250 branch, listener bound only in
+  initLegacyNotifySettings :181); ledIndicatorNotify() (:173 + :289, same
+  gates); ledIndicatorNotify(boolean) (:244 branch, listener bound :174).
+- b045 x4: notifySound() (:139, :151 + TorrentNotifier :282); notifySound(String)
+  (:213 ringtone-picker handler, picker launched only from listener :144-168
+  in initLegacyNotifySettings); playSoundNotify() (:133 + :281);
+  playSoundNotify(boolean) (:241 branch, listener bound :134).
+- b046 x2: showManageAllFilesWarningDialog() (Utils.java:706, third disjunct
+  of early-return :704-707; at 27 SDK_INT < R is TRUE so || short-circuits
+  and :706 is never evaluated); showManageAllFilesWarningDialog(boolean)
+  (:711, after the early return always taken at 27).
+- b047 x3: vibrationNotify() (:187 + TorrentNotifier :286, same gates);
+  vibrationNotify(boolean) (:247 branch, listener bound :188);
+  SettingsRepositoryImpl$Default.ledIndicatorColorNotify (see 16th above).
+Spot-verified in printed source: AppearanceSettingsFragment.java:118-119
+SDK < O gate and TorrentNotifier.java:276 SDK >= O early return.
+
+### Branch-never-taken group (7, b055+b056 pair build)
+
+- NormalizeUrl.join: only call site doNormalize :268, inside
+  if (options.removeDirectoryIndex.length > 0) :263; default empty
+  (NormalizeUrl.java:90); saved 252-file grep finds zero assignments.
+- NormalizeUrl.makeUserInfo: only call site urlToString :397, guarded
+  user != null && !user.isEmpty() :396; doNormalize :232-234 nulls
+  user/password whenever removeAuthentication is true, default true (:100).
+- PercentEncoder.<clinit>: inherited from decode (first active use behind
+  if (options.decode) :216; all 3 normalize callers set decode=false).
+- PercentEncoder.decode: only call site doNormalize :217, inside
+  if (options.decode) :216; callers DetailTorrentFragment :720,
+  CreateTorrentViewModel :309, AddLinkViewModel :68, all decode=false.
+- PercentEncoder.needsUnescaping: only call site decode :35 (decode never runs).
+- PercentEncoder.pow: only call site unhex :111 (unhex runs only from decode).
+- PercentEncoder.unhex: only call sites decode :54 and :79 (decode never runs).
+
+### Standing items carried, unchanged
+
+Batch-3 row 26 stays OPEN. 59/32 setVariable stays flagged (b059 row 32 kept
+REACHABLE as audited, edge kept for harness coverage, NOT claimed as a
+verified route). Check-4 FeedParser re-tripped lines remain known false
+alarms with no tools/ fix. F1 warnings-0 disposition still owed for all
+warning classes.
+
+# FORWARD TO COORDINATOR — for handoff/MUSE_DECISIONS.md append (merger never writes that file)
+
+## MMEX-D3-CAP-ACCEPT-ROUND2 — Cap decision for the 26/4 package (coordinator decision, Muse's own, for the user and Yang to review)
+
+MMEX at 26 scripted / 4 unscriptable = 13.3% is ACCEPTED under the
+user's cap ruling, so F1 is not blocked by the cap alone. Per-route
+reasons for the four that stay unscriptable: route_07 Morningstar HTTP
+download + provider switch (specified-but-unverified HTTP substitute:
+hosts remount + CI-host server, outside the current run_app contract);
+route_08 Fixer HTTPS download + JSON (specified-but-unverified HTTPS
+substitute: local HTTPS server + system-CA install); route_11 real
+online cloud-storage account only (Dropbox/OneDrive/GoogleDrive/Box/
+pCloud enum; no WebDAV); route_19 double blocker (null-base-currency
+branch unreachable with an app-created database; Toast-throw trigger
+uncreatable on a normal foreground flow). This supersedes, and does
+not erase, the MMEX-B3-CAP 22/8 = 26.7% acceptance for the earlier
+package. Routes 06, 10, 12 and 14 were converted to scripted in this
+round (UI-driving setups under the MMEX-B3-UIDRIVE contract: account,
+transaction and recurring-bill entry; wm size 1920x1200 + density 240
+for the route_12 tablet layout), each independently audit-PASS under
+the 1-in-3 script audit (audit/fix2-1in3/AUDIT.md, all 10 sampled
+scripts PASS, all five contract questions ACCEPT).
+
+Status of this forward: DRAFT until the package pushes at MMEX's turn.
+The 26/4 ROUTES.csv, the four new scripts + setups, and the doc-only
+fixes are staged locally at work/MMEX/device-fix2/merge/ and
+work/MMEX/device-fix2/routes/, NOT pushed, per the 2026-11-02 ~09:43
+EST coordinator amendment (one-app-at-a-time regime; MMEX pushes
+again only at MMEX's turn unless the coordinator orders otherwise).
