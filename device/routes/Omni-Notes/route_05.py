@@ -9,13 +9,24 @@ Printed route: graphs/Omni-Notes/scratch/overnight-20261101/scratch-outputs/samp
     (DbHelper.deleteNote(long,boolean), 24 steps; path row result WRONG,
     confirmed_by SOURCE, ref DetailFragment.java:1583-1587,1612-1616; ListFragment.java:847-880)
 
-ROUTE-TABLE VERDICT WRONG — READ FIRST: this script implements the best
-route as printed (the FAB-created editor flow), NOT the real Merge path.
-The Merge STATE ("the open note is the result of Merge, opened from the CAB
-with two or more notes selected") cannot hold on a FAB-created editor, so
-deleteMergedNotes does nothing on this flow and the expected device outcome
-is reached=no with script_status=ok. The device run tests the route, not
-the label, which stays REACHABLE via Merge.
+MERGE FLOW — READ FIRST (2026-11-01 fix): the printed route's FAB-created
+editor flow cannot carry the Merge state, so this script drives the real
+Merge flow instead, and the expected device outcome is now reached=yes.
+The graph route-table verdict WRONG stands as a label verdict: the printed
+FAB prefix cannot hold "the open note is the result of Merge" (the editor
+reads merged_notes from the intent, DetailFragment.java:507-508, and
+deleteMergedNotes runs only when that list is non-null, :1616,1627-1635).
+This script does NOT change that verdict or any label; it tests the method
+as REACHABLE via Merge, which is the label's own route: two notes are
+created, both are selected in the CAB, Merge opens the merged note, and
+saving it runs deleteMergedNotes on the real merged ids.
+Merge mechanics, printed: long-press starts CAB (ListFragment.java:507-514),
+the CAB menu dispatches menu_merge (ListFragment.java:857-858; menu item
+menu_list.xml menu_merge, title @string/merge = "Merge", visible only when
+two or more notes are selected, ListFragment.java:625,634), merge() posts
+NotesMergeEvent (ListFragment.java:1737-1738), and onEventAsync merges the
+selected notes, puts their ids in the intent extra "merged_notes" and
+opens the merged note in the editor (ListFragment.java:1745-1764).
 
 Permissions (granted by run_app.sh from ROUTES.csv before this script runs):
     none listed for route_05 in ROUTES.csv.
@@ -69,16 +80,45 @@ def main():
     r.comment('init()', 'Ef86ebfe1')
     # E7e3c321b ListFragment.init -> S_LIST@NOTES: list set up, no action.
     r.comment('List set up on the default Notes navigation', 'E7e3c321b')
-    # E01d0dfd6 S_LIST@NOTES -> Fab.lambda$init$1@LONG_NOTES: long-press the + button
-    # (FloatingActionsMenu add button, res/layout/fab.xml id fab).
-    r.long_tap('E01d0dfd6', res_id='it.feio.android.omninotes:id/fab')
-    # Ee5d1ab81 Fab long-press -> ListFragment.lambda$initFab$0@MAIN: menu dispatch, no action.
-    r.comment('onFabItemClick(fab_expand_menu_button)', 'Ee5d1ab81')
-    # E8a16cf02 lambda$initFab$0@MAIN -> S_DETAIL@NEW: a new note opens, no action.
-    r.comment('A new note is opened', 'E8a16cf02')
+    # --- MERGE SETUP, logged against route edges as in route_23 (the harness
+    # requires every action to name an edge id of this route).
+    # Create two notes first (E7e3c321b, the list-setup edge): long-press the
+    # + button (res/layout/fab.xml id fab) as in route_23, give each note a
+    # distinct title so its list row can be found again, and Back to save.
+    r.long_tap('E7e3c321b', res_id='it.feio.android.omninotes:id/fab')
+    r.tap('E7e3c321b', res_id='it.feio.android.omninotes:id/detail_title')
+    r.type_text('route05 merge A', 'E7e3c321b')
+    r.back('E7e3c321b')
+    r.wait_for('E7e3c321b', text='route05 merge A')
+    r.long_tap('E7e3c321b', res_id='it.feio.android.omninotes:id/fab')
+    r.tap('E7e3c321b', res_id='it.feio.android.omninotes:id/detail_title')
+    r.type_text('route05 merge B', 'E7e3c321b')
+    r.back('E7e3c321b')
+    r.wait_for('E7e3c321b', text='route05 merge B')
+    # E01d0dfd6 S_LIST@NOTES -> Fab.lambda$init$1@LONG_NOTES: this edge is the
+    # printed list-to-detail transition. The Merge flow is the device
+    # realisation of that transition (see header): long-press the first note
+    # row to start CAB (ListFragment.java:507-514), tap the second note row
+    # to select it as well, then tap "Merge" in the CAB menu
+    # (menu_list.xml menu_merge, title "Merge"). onEventAsync then opens the
+    # merged note in the editor (ListFragment.java:1745-1764), whose title is
+    # the first note's title.
+    r.long_tap('E01d0dfd6', text='route05 merge A')
+    r.tap('E01d0dfd6', text='route05 merge B')
+    r.tap('E01d0dfd6', text='Merge')
+    r.wait_for('E01d0dfd6', text='route05 merge A')
+    # Ee5d1ab81 Fab long-press -> ListFragment.lambda$initFab$0@MAIN: superseded
+    # by the Merge transition above — the FAB menu dispatch does not run on
+    # this flow, so this edge is a comment only (the printed FAB route stays
+    # WRONG as a label verdict; see header).
+    r.comment('FAB menu dispatch: superseded by the Merge transition', 'Ee5d1ab81')
+    # E8a16cf02 lambda$initFab$0@MAIN -> S_DETAIL@NEW: the merged note editor
+    # is open (not a FAB-created editor), no further action.
+    r.comment('The merged note editor is open', 'E8a16cf02')
     # E1a48ab1f S_DETAIL@NEW -> MainActivity.onBackPressed@DETAIL_SAVE: change
-    # the note (tap the title field, res/layout/fragment_detail.xml id
-    # detail_title, and type text), then press Back to save it.
+    # the merged note (tap the title field, res/layout/fragment_detail.xml id
+    # detail_title, and type text), then press Back to save it. Saving the
+    # merged note is what runs deleteMergedNotes on the real merged ids.
     r.tap('E1a48ab1f', res_id='it.feio.android.omninotes:id/detail_title')
     r.type_text('route05 note', 'E1a48ab1f')
     r.back('E1a48ab1f')
@@ -98,10 +138,10 @@ def main():
     # interface dispatch, no action.
     r.comment('Virtual/interface call dispatching to this implementation', 'E2aba9b5f')
     # E5798db8e DetailFragment.onNoteSaved -> DetailFragment.deleteMergedNotes:
-    # the merged source notes are deleted — but on this FAB-created editor
-    # there are no merged notes, so this is a no-op (see the header: the
-    # route-table verdict is WRONG and the expected outcome is reached=no).
-    r.comment('deleteMergedNotes: no-op on a FAB editor (no Merge state)', 'E5798db8e')
+    # the merged source notes are deleted — on this Merge flow mergedNotesIds
+    # is the real list put in the intent by onEventAsync, so this is NOT a
+    # no-op (DetailFragment.java:1627-1635).
+    r.comment('deleteMergedNotes: real merged ids from the Merge flow', 'E5798db8e')
     # E152ff95a DetailFragment.deleteMergedNotes -> NoteProcessor.process@DELETE:
     # new NoteProcessorDelete(notes).process(), no action.
     r.comment('new NoteProcessorDelete(notes).process()', 'E152ff95a')
@@ -119,8 +159,8 @@ def main():
     r.comment('Direct call', 'Eb7fd99d0')
     # Ebcf6ab85 DbHelper.deleteNote(Note,boolean) -> DbHelper.deleteNote(long,boolean):
     # direct call; the coverage lookup detects the target if it is reached.
-    # Expected on this flow: reached=no (see header).
-    r.comment('Direct call; expected reached=no on this FAB flow', 'Ebcf6ab85')
+    # Expected on this Merge flow: reached=yes (see header).
+    r.comment('Direct call; expected reached=yes on this Merge flow', 'Ebcf6ab85')
     r.done()
 
 

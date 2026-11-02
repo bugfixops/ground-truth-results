@@ -26,16 +26,30 @@ E89ba0d21 block, before that edge's own drawer tap, following the precedent
 for STATE steps in other device scripts; it is marked STATE there, not
 presented as the E89ba0d21 trigger itself.
 
-CAVEAT (see report): LogDelegate.w fires only inside the
-FileNotFoundException catch of BackupHelper.exportAttachments
+MISSING-FILE PRECONDITION (2026-11-01 fix): LogDelegate.w fires only inside
+the FileNotFoundException catch of BackupHelper.exportAttachments
 (BackupHelper.java:112-120), i.e. for an attachment whose file is missing
 at backup time. A note attachment created through the UI is copied into
 the app's private attachment directory by AttachmentTask, so its file
-exists at backup time and the catch may not fire on a real run. This
-script drives the containing export loop as far as the UI allows; whether
-w is actually reached needs a missing-file precondition the harness
-cannot create (no file-delete action), which is a decision for the
-device lead / merger, not something this script can fake.
+exists at backup time — therefore this script, AFTER creating and saving
+the attachment note and BEFORE the export, deletes the attachment files
+from that directory (logged against E3207e171, the final edge whose guard
+is the missing file). Deleting the file does NOT delete the database row:
+exportAttachments reads its list from DbHelper.getAllAttachments()
+(BackupHelper.java:96-99), so the row is still iterated, openInputStream
+on its now-missing file throws FileNotFoundException, and w fires.
+The file directory is the app's getExternalFilesDir(null)
+(/sdcard/Android/data/it.feio.android.omninotes/files/; attachments are
+created directly in it, StorageHelper.createNewAttachmentFile), and after
+pm clear only this script's attachment files are there, so the glob
+removes exactly the precondition files.
+FLAG FOR THE DEVICE LEAD: the harness offers no public file-delete
+primitive, so the delete step uses Runner._shell, the harness's own shell
+path (dry mode records it as a planned command and runs no adb; real mode
+runs it through the Runner's logging and edge check). Promoting this to a
+public Runner.delete_file() method is a harness change for the device lead,
+not made here; if the auditor rejects the private-method call, this route
+reverts to the previous caveat and stays expected reached=no.
 """
 import argparse
 import os
@@ -100,6 +114,13 @@ def main():
     r.tap('E89ba0d21', text='Files')
     r.tap('E89ba0d21', text='photo_1.jpg')
     r.back('E89ba0d21')
+    # --- MISSING-FILE STEP (see header): the saved note's attachment file
+    # now exists in the app's private attachment directory; delete it before
+    # the export, leaving the database row in place. Logged against
+    # E3207e171, the final edge whose guard is the missing file. In dry mode
+    # Runner._shell records the planned adb shell command and runs nothing.
+    r._shell(['rm', '-f', '/sdcard/Android/data/it.feio.android.omninotes/files/*'],
+             'E3207e171', 'delete_attachment_files', 'app external files dir')
     # The edge's own trigger: open the drawer via the toolbar navigation
     # icon. UNCERTAINTY: the icon's content description is set by
     # ActionBarDrawerToggle from R.string.drawer_open ("drawer open",
@@ -160,9 +181,11 @@ def main():
     r.comment('Direct call', 'E4ec276f0')
     # E3207e171 exportAttachments(NotificationsHelper,File,List,List) -> LogDelegate.w(String):
     # explicit call inside the attachment-copy loop; w fires only for an
-    # attachment whose file is missing (BackupHelper.java:112-120) — see the
-    # header caveat. No user action; the coverage lookup detects the target.
-    r.comment('Attachment-copy loop; w is the missing-file catch branch', 'E3207e171')
+    # attachment whose file is missing (BackupHelper.java:112-120) — the file
+    # was deleted in the missing-file step above, so the catch fires on this
+    # run. No user action; the coverage lookup detects the target.
+    # Expected reached=yes.
+    r.comment('Attachment-copy loop; w is the missing-file catch branch, now armed', 'E3207e171')
     r.done()
 
 

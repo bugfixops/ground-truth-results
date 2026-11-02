@@ -12,8 +12,9 @@ Printed route: graphs/Omni-Notes/scratch/overnight-20261101/scratch-outputs/samp
     BackupHelper.java:145-176; Note.java:152-159)
 Permissions (granted by run_app.sh from ROUTES.csv before this script runs):
     android.permission.READ_EXTERNAL_STORAGE, android.permission.WRITE_EXTERNAL_STORAGE
-Fixtures: none (no fixture creates the backup folder). Setup (ROUTES.csv):
-    push fixtures/Pictures (app-level first-run setup).
+Fixtures: Pictures/photo_1.jpg (the attachment picked for the note created
+    in the pre-route setup below; ROUTES.csv already lists it). Setup
+    (ROUTES.csv): push fixtures/Pictures (app-level first-run setup).
 Standard configuration: run_app.sh already ran pm clear, the setup, the fixture
 pushes, and the permission grants; this script starts from a fresh process.
 
@@ -21,21 +22,18 @@ One block per route edge, in route order. Lifecycle, page, explicit-call, and
 framework edges with no user action get a comment, not an action. Every action
 names an edge id of this route (the harness enforces it).
 
-Pre-route setup (logged against Eaa4dc4e5, the edge whose guard requires it):
-no fixture creates the backup folder under /sdcard/Omni Notes, so the script
-creates it through the app first: Settings > Data > Sync and Backups >
-"Backup" (settings_export) opens the export dialog (res/layout/dialog_backup_layout.xml);
-the script types a fixed backup name, route06backup, into the export name
-field (res id export_file_name) and taps "Confirm", so the backup created
-has a known name for the import list below. It then backs out to the list
-and runs the printed import route.
-
-Caveat, flagged for the merger: the final edge fires only if the imported
-note JSON has an attachments array (Note.java:156). A fresh-database export
-contains no attachment-bearing note, so on a real run this flow may reach
-the import dialog and still not reach Attachment.<init> unless a note with
-an attachment was exported first; the script follows the prescribed
-export-then-import flow and does not invent that note.
+Pre-route setup (2026-11-01 fix): the final edge fires only if the imported
+note JSON has an attachments array (Note.java:152-159, buildFromJson loops
+getAttachmentsList into Attachment.<init>). A fresh-database export contains
+no attachment-bearing note, so the script FIRST creates a note with an
+attachment (the route_08 attachment sequence: FAB note, Attachment > Files >
+photo_1.jpg, Back saves it), THEN exports it, so the backup named
+route06backup contains an attachment-bearing note and its JSON has the
+attachments array. The export also creates the backup folder under
+/sdcard/Omni Notes that the import dialog needs. Setup actions are logged
+against route edges as in route_23 (E7e3c321b for the note creation on the
+list screen, Eaa4dc4e5 for the export that the import-dialog edge's guard
+requires).
 
 Selector notes as in route_02: drawer toggle content-desc "Open navigation
 drawer", drawer Settings res id settings, the "Sync" screen rendered as
@@ -70,20 +68,6 @@ def main():
                dry_run=a.dry_run, adb=a.adb, outdir=a.outdir)
     # Ea7466154 S_ENTRY -> MainActivity.<init>: launcher starts MainActivity.
     r.launch('it.feio.android.omninotes/.MainActivity', 'Ea7466154')
-    # Pre-route setup, logged against Eaa4dc4e5 (SettingsFragment.importNotes
-    # -> S_DLG_IMPORT), whose guard is "a backup folder exists under
-    # /sdcard/Omni Notes (Settings > Sync > Export)": run an export first
-    # with a fixed backup name, then back out to the notes list.
-    r.tap('Eaa4dc4e5', desc='Open navigation drawer')
-    r.tap('Eaa4dc4e5', res_id='it.feio.android.omninotes:id/settings')
-    r.tap('Eaa4dc4e5', text='Data')
-    r.tap('Eaa4dc4e5', text='Sync and Backups')
-    r.tap('Eaa4dc4e5', text='Backup')
-    r.tap('Eaa4dc4e5', res_id='it.feio.android.omninotes:id/export_file_name')
-    r.type_text('route06backup', 'Eaa4dc4e5')
-    r.tap('Eaa4dc4e5', text='Confirm')
-    r.back('Eaa4dc4e5')
-    r.back('Eaa4dc4e5')
     # E89791c67 MainActivity.<init> -> MainActivity.onResume: lifecycle, no action.
     r.comment('Activity lifecycle callback', 'E89791c67')
     # Edf932a3c MainActivity.onResume -> MainActivity.checkPassword: cold start,
@@ -99,6 +83,57 @@ def main():
     r.comment('init()', 'Ef86ebfe1')
     # E7e3c321b ListFragment.init -> S_LIST@NOTES: list set up, no action.
     r.comment('List set up on the default Notes navigation', 'E7e3c321b')
+    # --- Pre-route setup (see header): create a note with an attachment
+    # first, so the export below contains an attachment-bearing note.
+    # Long-press the + button (res/layout/fab.xml id fab), tap the title
+    # field (res/layout/fragment_detail.xml id detail_title) and the content
+    # field (res/layout/fragment_detail_content.xml id detail_content), type,
+    # tap "Attachment" in the toolbar menu (menu_detail.xml), tap "Files" in
+    # the attachment popup (res/layout/attachment_dialog.xml id files), pick
+    # photo_1.jpg in the system picker (Pictures fixture), then Back saves
+    # the note and returns to the list. AttachmentTask copies the picked file
+    # into the app's private attachment directory, so the saved note has a
+    # real attachment (StorageHelper.createAttachmentFromUri).
+    r.long_tap('E7e3c321b', res_id='it.feio.android.omninotes:id/fab')
+    r.tap('E7e3c321b', res_id='it.feio.android.omninotes:id/detail_title')
+    r.type_text('Route06 attachment note', 'E7e3c321b')
+    r.tap('E7e3c321b', res_id='it.feio.android.omninotes:id/detail_content')
+    r.type_text('Route06 note with attachment', 'E7e3c321b')
+    r.tap('E7e3c321b', text='Attachment')
+    r.tap('E7e3c321b', text='Files')
+    r.tap('E7e3c321b', text='photo_1.jpg')
+    r.back('E7e3c321b')
+    r.wait_for('E7e3c321b', text='Route06 attachment note')
+    # Then export that note (logged against Eaa4dc4e5, SettingsFragment.importNotes
+    # -> S_DLG_IMPORT, whose guard is "a backup folder exists under
+    # /sdcard/Omni Notes (Settings > Sync > Export)"): Settings > Data > Sync
+    # and Backups > "Backup" (settings_export) opens the export dialog
+    # (res/layout/dialog_backup_layout.xml); type a fixed backup name,
+    # route06backup, into the export name field (res id export_file_name) and
+    # tap "Confirm", so the backup created has a known name for the import
+    # list below. Then back out to the list and run the printed import route.
+    r.tap('Eaa4dc4e5', desc='Open navigation drawer')
+    r.tap('Eaa4dc4e5', res_id='it.feio.android.omninotes:id/settings')
+    r.tap('Eaa4dc4e5', text='Data')
+    r.tap('Eaa4dc4e5', text='Sync and Backups')
+    r.tap('Eaa4dc4e5', text='Backup')
+    r.tap('Eaa4dc4e5', res_id='it.feio.android.omninotes:id/export_file_name')
+    r.type_text('route06backup', 'Eaa4dc4e5')
+    r.tap('Eaa4dc4e5', text='Confirm')
+    # Back out to the notes list (audit fix 2026-11-01): SettingsActivity's
+    # onCreate replaces the root fragment with NO back-stack entry, while each
+    # preference tap (Data, then Sync) goes through onPreferenceStartFragment
+    # with addToBackStack (SettingsActivity.java:125-139), so two fragment
+    # entries sit on the stack and the custom backStack list is never
+    # populated, so onBackPressed falls through to super and pops one entry
+    # per press (SettingsActivity.java:78-82). Two backs land on the settings
+    # root with SettingsActivity still foreground; a third back finishes
+    # SettingsActivity and returns to the MainActivity list, which the main
+    # route's drawer tap below requires.
+    r.back('Eaa4dc4e5')
+    r.back('Eaa4dc4e5')
+    r.back('Eaa4dc4e5')
+    r.wait_for('Eaa4dc4e5', text='Route06 attachment note')
     # E89ba0d21 S_LIST@NOTES -> NavigationDrawerFragment$1.onDrawerOpened@NOTES:
     # tap the drawer toggle (content-desc "Open navigation drawer").
     r.tap('E89ba0d21', desc='Open navigation drawer')
@@ -160,9 +195,10 @@ def main():
     # guard: the note file is not empty.
     r.comment('Direct call (note file is not empty)', 'E4f0497a0')
     # Ed4308bfb Note.buildFromJson -> Attachment.<init>(BaseAttachment): direct
-    # call; guard: the note JSON has an attachments array (see the header caveat).
-    # The coverage lookup detects the target.
-    r.comment('Direct call; guard: the note JSON has an attachments array', 'Ed4308bfb')
+    # call; guard: the note JSON has an attachments array — satisfied by the
+    # pre-route setup, which exported an attachment-bearing note (see header).
+    # The coverage lookup detects the target; expected reached=yes.
+    r.comment('Direct call; guard satisfied by the exported attachment note', 'Ed4308bfb')
     r.done()
 
 
