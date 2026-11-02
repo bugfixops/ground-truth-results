@@ -1,0 +1,339 @@
+Fresh printed evidence for LibreTorrent batch 40 (converter C06, 2026-11-01).
+Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ (org/nanohttpd/ resolved under the java root).
+Citations in parts/b040.py: 76 unique file:line ranges. Each section below was printed fresh from the clone tree with sed -n.
+
+### core/model/session/TorrentSessionImpl.java:867-867  (file lines: 1720)
+867:         SessionParams params = loadSettings();
+
+### core/model/session/TorrentSessionImpl.java:1192-1192  (file lines: 1720)
+1192:     private SessionParams loadSettings()
+
+### core/model/session/TorrentSessionImpl.java:281-281  (file lines: 1720)
+281:             mergeTorrent(torrent.id, params, bencode);
+
+### core/model/session/TorrentSessionImpl.java:537-537  (file lines: 1720)
+537:     private void mergeTorrent(String id, AddTorrentParams params, byte[] bencode) {
+
+### core/model/session/TorrentSessionImpl.java:1081-1081  (file lines: 1720)
+1081:                     torrentTasks.put(hash, newTask(th, hash));
+
+### core/model/session/TorrentSessionImpl.java:1430-1430  (file lines: 1720)
+1430:     private TorrentDownload newTask(TorrentHandle th, String id)
+
+### core/model/session/TorrentSessionImpl.java:388-388  (file lines: 1720)
+388:             notifyListeners((listener) ->
+
+### core/model/session/TorrentSessionImpl.java:1445-1445  (file lines: 1720)
+1445:     private void notifyListeners(@NonNull CallListener l)
+
+### core/model/session/TorrentSessionImpl.java:907-907  (file lines: 1720)
+907:         super.start(params);
+
+### core/model/session/TorrentSessionImpl.java:991-1013  (file lines: 1720)
+991:     protected void onAfterStart()
+992:     {
+993:         /*
+994:          * Overwrite default behaviour of super.start()
+995:          * and enable logging in onAfterStart()
+996:          */
+997:         if (settings.logging) {
+998:             SettingsPack sp = settings();
+999:             if (sp == null)
+1000:                 return;
+1001:             sp.setInteger(settings_pack.int_types.alert_mask.swigValue(), getAlertMask(settings).to_int());
+1002:             applySettingsPack(sp);
+1003: 
+1004:             enableSessionLogger(true);
+1005:         }
+1006: 
+1007:         saveSettings();
+1008:         started = true;
+1009:         disposables.add(Completable.fromRunnable(() ->
+1010:                 notifyListeners(TorrentEngineListener::onSessionStarted))
+1011:                 .subscribeOn(Schedulers.io())
+1012:                 .subscribe());
+1013:     }
+
+### core/model/session/TorrentSessionImpl.java:947-947  (file lines: 1720)
+947:             super.stop();
+
+### core/model/session/TorrentSessionImpl.java:1041-1045  (file lines: 1720)
+1041:     protected void onAfterStop()
+1042:     {
+1043:         notifyListeners(TorrentEngineListener::onSessionStopped);
+1044:         stopRequested.set(false);
+1045:     }
+
+### core/model/session/TorrentSessionImpl.java:1381-1381  (file lines: 1720)
+1381:         applySettings(sp);
+
+### core/model/session/TorrentSessionImpl.java:1048-1051  (file lines: 1720)
+1048:     protected void onApplySettings(SettingsPack sp)
+1049:     {
+1050:         saveSettings();
+1051:     }
+
+### core/model/session/TorrentSessionImpl.java:984-988  (file lines: 1720)
+984:     protected void onBeforeStart()
+985:     {
+986:         addListener(torrentTaskListener);
+987:         addListener(innerListener);
+988:     }
+
+### core/model/session/TorrentSessionImpl.java:1028-1038  (file lines: 1720)
+1028:     protected void onBeforeStop()
+1029:     {
+1030:         disposables.clear();
+1031:         started = false;
+1032:         enableSessionLogger(false);
+1033:         parseIpFilterThread = null;
+1034:         magnets.clear();
+1035:         loadedMagnets.clear();
+1036:         removeListener(torrentTaskListener);
+1037:         removeListener(innerListener);
+1038:     }
+
+### core/model/session/TorrentSessionImpl.java:260-260  (file lines: 1720)
+260:         if (operationNotAllowed())
+
+### core/model/session/TorrentSessionImpl.java:245-245  (file lines: 1720)
+245:     private boolean operationNotAllowed()
+
+### core/model/TorrentEngine.java:428-428  (file lines: 1659)
+428:         return session.parseMagnet(uri);
+
+### core/model/session/TorrentSessionImpl.java:444-444  (file lines: 1720)
+444:     public MagnetInfo parseMagnet(@NonNull String uri)
+
+### core/model/session/TorrentSessionImpl.java:432-432  (file lines: 1720)
+432:         org.libtorrent4j.AddTorrentParams params = parseMagnetUri(uri);
+
+### core/model/session/TorrentSessionImpl.java:514-514  (file lines: 1720)
+514:     private org.libtorrent4j.AddTorrentParams parseMagnetUri(String uri)
+
+### core/model/TorrentEngine.java:321-321  (file lines: 1659)
+321:                         session.pauseAll();
+
+### core/model/session/TorrentSessionImpl.java:756-756  (file lines: 1720)
+756:     public void pauseAll()
+
+### core/model/TorrentEngine.java:655-655  (file lines: 1659)
+655:                         session.pauseAllManually();
+
+### core/model/session/TorrentSessionImpl.java:782-782  (file lines: 1720)
+782:     public void pauseAllManually()
+
+### core/model/TorrentEngine.java:312-312  (file lines: 1659)
+312:         session.removeListener(listener);
+
+### core/model/session/TorrentSessionImpl.java:191-191  (file lines: 1720)
+191:     public void removeListener(TorrentEngineListener listener)
+
+### core/model/session/TorrentSessionImpl.java:275-275  (file lines: 1720)
+275:             removeLoadedMagnet(params.sha1hash);
+
+### core/model/session/TorrentSessionImpl.java:240-240  (file lines: 1720)
+240:     public void removeLoadedMagnet(String hash)
+
+### core/model/TorrentEngine.java:299-299  (file lines: 1659)
+299:         session.requestStop();
+
+### core/model/session/TorrentSessionImpl.java:911-911  (file lines: 1720)
+911:     public void requestStop()
+
+### core/model/session/TorrentSessionImpl.java:1517-1517  (file lines: 1720)
+1517:                     restoreDownload(torrentId);
+
+### core/model/session/TorrentSessionImpl.java:1681-1681  (file lines: 1720)
+1681:     private void restoreDownload(String id) throws IOException
+
+### core/model/TorrentEngine.java:1088-1088  (file lines: 1659)
+1088:                         session.restoreTorrents();
+
+### core/model/session/TorrentSessionImpl.java:396-396  (file lines: 1720)
+396:     public void restoreTorrents()
+
+### core/model/TorrentEngine.java:323-323  (file lines: 1659)
+323:                         session.resumeAll();
+
+### core/model/session/TorrentSessionImpl.java:769-769  (file lines: 1720)
+769:     public void resumeAll()
+
+### core/model/TorrentEngine.java:664-664  (file lines: 1659)
+664:                         session.resumeAllManually();
+
+### core/model/session/TorrentSessionImpl.java:795-795  (file lines: 1720)
+795:     public void resumeAllManually()
+
+### core/model/session/TorrentSessionImpl.java:423-423  (file lines: 1720)
+423:         runNextLoadTorrentTask();
+
+### core/model/session/TorrentSessionImpl.java:1453-1453  (file lines: 1720)
+1453:     private void runNextLoadTorrentTask()
+
+### core/model/session/TorrentSessionImpl.java:916-916  (file lines: 1720)
+916:         saveAllResumeData();
+
+### core/model/session/TorrentSessionImpl.java:950-950  (file lines: 1720)
+950:     private void saveAllResumeData()
+
+### core/model/session/TorrentSessionImpl.java:1007-1007  (file lines: 1720)
+1007:         saveSettings();
+
+### core/model/session/TorrentSessionImpl.java:1228-1228  (file lines: 1720)
+1228:     private void saveSettings()
+
+### core/model/TorrentEngine.java:1579-1579  (file lines: 1659)
+1579:             session.setAutoManaged(pref.autoManage());
+
+### core/model/session/TorrentSessionImpl.java:836-836  (file lines: 1720)
+836:     public void setAutoManaged(boolean autoManaged)
+
+### core/model/TorrentEngine.java:1648-1648  (file lines: 1659)
+1648:             session.setDefaultTrackersList(pref.defaultTrackersList().split("\n"));
+
+### core/model/session/TorrentSessionImpl.java:1677-1677  (file lines: 1720)
+1677:     public void setDefaultTrackersList(@NonNull String[] trackersList) {
+
+### core/model/TorrentEngine.java:1490-1490  (file lines: 1659)
+1490:             session.setMaxConnectionsPerTorrent(pref.maxConnectionsPerTorrent());
+
+### core/model/session/TorrentSessionImpl.java:808-808  (file lines: 1720)
+808:     public void setMaxConnectionsPerTorrent(int connections)
+
+### core/model/TorrentEngine.java:1493-1493  (file lines: 1659)
+1493:             session.setMaxUploadsPerTorrent(pref.maxUploadsPerTorrent());
+
+### core/model/session/TorrentSessionImpl.java:822-822  (file lines: 1720)
+822:     public void setMaxUploadsPerTorrent(int uploads)
+
+### core/model/session/TorrentSessionImpl.java:903-903  (file lines: 1720)
+903:             setRandomPort(settings);
+
+### core/model/session/TorrentSessionImpl.java:1402-1402  (file lines: 1720)
+1402:     private void setRandomPort(SessionSettings settings) {
+
+### core/model/TorrentEngine.java:1105-1105  (file lines: 1659)
+1105:         session.setSettings(s);
+
+### core/model/session/TorrentSessionImpl.java:202-202  (file lines: 1720)
+202:     public void setSettings(@NonNull SessionSettings settings) {
+
+### core/model/TorrentEngine.java:139-139  (file lines: 1659)
+139:         session.setSettings(pref.readSessionSettings(), false);
+
+### core/model/session/TorrentSessionImpl.java:207-207  (file lines: 1720)
+207:     public void setSettings(@NonNull SessionSettings settings, boolean keepPort)
+
+### core/model/session/TorrentSessionImpl.java:905-905  (file lines: 1720)
+905:         settingsToSettingsPack(settings, params.getSettings());
+
+### core/model/session/TorrentSessionImpl.java:1250-1250  (file lines: 1720)
+1250:     private void settingsToSettingsPack(SessionSettings settings, SettingsPack sp)
+
+### core/model/TorrentEngine.java:259-259  (file lines: 1659)
+259:         session.start();
+
+### core/model/session/TorrentSessionImpl.java:862-862  (file lines: 1720)
+862:     public void start()
+
+### core/model/session/TorrentSessionImpl.java:917-917  (file lines: 1720)
+917:         stopTasks();
+
+### core/model/session/TorrentSessionImpl.java:920-920  (file lines: 1720)
+920:     private void stopTasks()
+
+### core/model/session/TorrentSessionImpl.java:1053-1059  (file lines: 1720)
+1053:     private final TorrentEngineListener torrentTaskListener = new TorrentEngineListener() {
+1054:         @Override
+1055:         public void onTorrentRemoved(@NonNull String id)
+1056:         {
+1057:             torrentTasks.remove(id);
+1058:         }
+1059:     };
+
+### core/model/session/TorrentSessionImpl.java:162-162  (file lines: 1720)
+162:     public TorrentSessionImpl(@NonNull TorrentRepository repo,
+
+### core/model/session/TorrentSessionImpl.java:389-389  (file lines: 1720)
+389:                     listener.onTorrentRemoved(id));
+
+### core/model/session/TorrentSessionImpl.java:174-174  (file lines: 1720)
+174:         innerListener = new InnerListener();
+
+### core/model/session/TorrentSessionImpl.java:1061-1061  (file lines: 1720)
+1061:     private final class InnerListener implements AlertListener
+
+### core/model/session/TorrentSessionImpl.java:987-987  (file lines: 1720)
+987:         addListener(innerListener);
+
+### core/model/session/TorrentSessionImpl.java:1070-1107  (file lines: 1720)
+1070:         public void alert(Alert<?> alert)
+1071:         {
+1072:             switch (alert.type()) {
+1073:                 case ADD_TORRENT:
+1074:                     TorrentAlert<?> torrentAlert = (TorrentAlert<?>)alert;
+1075:                     TorrentHandle th = find(torrentAlert.handle().infoHash());
+1076:                     if (th == null)
+1077:                         break;
+1078:                     String hash = th.infoHash().toHex();
+1079:                     if (magnets.contains(hash))
+1080:                         break;
+1081:                     torrentTasks.put(hash, newTask(th, hash));
+1082:                     if (addTorrentsList.contains(hash))
+1083:                         notifyListeners((listener) ->
+1084:                                 listener.onTorrentAdded(hash));
+1085:                     else
+1086:                         notifyListeners((listener) ->
+1087:                                 listener.onTorrentLoaded(hash));
+1088:                     addTorrentsList.remove(hash);
+1089:                     checkStop();
+1090:                     runNextLoadTorrentTask();
+1091:                     break;
+1092:                 case METADATA_RECEIVED:
+1093:                     handleMetadataReceived((MetadataReceivedAlert) alert);
+1094:                     break;
+1095:                 case SESSION_STATS:
+1096:                     handleStats();
+1097:                     break;
+1098:                 case SAVE_RESUME_DATA:
+1099:                     handleSaveMetadata((SaveResumeDataAlert) alert);
+1100:                 default:
+1101:                     checkError(alert);
+1102:                     if (settings.logging)
+1103:                         sessionLogger.send(alert);
+1104:                     break;
+1105:             }
+1106:         }
+1107:     }
+
+### core/model/session/TorrentSessionImpl.java:1083-1084  (file lines: 1720)
+1083:                         notifyListeners((listener) ->
+1084:                                 listener.onTorrentAdded(hash));
+
+### core/model/session/TorrentSessionImpl.java:553-556  (file lines: 1720)
+553:         // TODO: temporary disable due to the bug: https://github.com/aldenml/libtorrent4j/pull/244
+554:         if (false) {
+555:             try {
+556:                 mergeTrackersAndSeeds(id, params, bencode);
+
+### core/model/session/TorrentSessionImpl.java:570-588  (file lines: 1720)
+570:     private void mergeTrackersAndSeeds(String id, AddTorrentParams params, byte[] bencode) throws IOException {
+571:         var th = find(Sha1Hash.parseHex(id));
+572:         if (th != null) {
+573:             byte[] b;
+574:             if (bencode == null) {
+575:                 b = FileUtils.readFileToByteArray(new File(Uri.parse(params.source).getPath()));
+576:             } else {
+577:                 b = bencode;
+578:             }
+579:             bdecode_node n = BDecodeNode.bdecode(b).swig();
+580: 
+581:             for (var tracker : extractTrackers(n, params.fromMagnet)) {
+582:                 th.addTracker(tracker);
+583:             }
+584:             for (var webSeed : extractUrlSeeds(n)) {
+585:                 th.addUrlSeed(webSeed);
+586:             }
+587:         }
+588:     }
