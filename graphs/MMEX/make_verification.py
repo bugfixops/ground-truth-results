@@ -72,6 +72,13 @@ DEFAULT_CORRECTED_EDGES = 'graphs/MMEX/scratch/corrected_edges.tsv'
 DEFAULT_METHODS = 'graphs/MMEX/out/methods.csv'
 DEFAULT_GRAPH = 'graphs/MMEX/out/mmex_trigger_graph.json'
 DEFAULT_OUT = 'graphs/MMEX/verification.csv'
+# D7 (brief section 5.6): DEVICE rows live in graphs/MMEX/device/results.csv
+# (written by device/compare.py from a committed device/results/<run>/).
+# If that file exists, one DEVICE path row per results row is appended
+# AFTER the seeded rows (result correct when reached, else unclear; a
+# not-reached route never becomes wrong; no label changes). If it does
+# not exist, the output is byte-identical to the seeded rows.
+DEFAULT_DEVICE_RESULTS = 'graphs/MMEX/device/results.csv'
 # Convention for table-derived path rows (see docstring): the table has
 # no per-route confirmed_by or ref field.
 TABLE_CONFIRMED_BY = 'SOURCE'
@@ -310,6 +317,32 @@ def main():
     # file order) was deterministic but not sorted; the brief section 4
     # phrase "fixed, sorted order" is implemented as this sort.
     out_rows.sort(key=lambda r: (r['type'], r['item']))
+    # D7 DEVICE rows (appended after the seeded rows, so the seeded
+    # section is byte-identical with or without a results file).
+    device_path = os.path.join(REPO_ROOT, DEFAULT_DEVICE_RESULTS)
+    n_device = 0
+    if os.path.isfile(device_path):
+        with open(device_path, encoding='utf-8') as f:
+            for d in csv.DictReader(f):
+                reached = (d.get('reached') or '').strip()
+                result = 'correct' if reached == 'yes' else 'unclear'
+                status = (d.get('script_status') or '').strip()
+                if result == 'unclear':
+                    if status == 'unscriptable':
+                        reason = 'unscriptable'
+                    elif status == 'ok':
+                        reason = 'not reached'
+                    else:
+                        reason = 'script failed (%s)' % status
+                    note = 'device script %s; %s' % (status, reason)
+                else:
+                    note = 'device script %s' % status
+                out_rows.append({'type': 'path', 'item': d['method'],
+                                 'result': result, 'confirmed_by': 'DEVICE',
+                                 'ref': 'device run %s/%s' % (d.get('run'), d.get('script')),
+                                 'edges': d.get('edges') or '', 'note': note})
+                n_device += 1
+        print('make_verification: DEVICE rows added: %d' % n_device)
     with open(dest, 'w', encoding='utf-8', newline='') as f:
         w = csv.DictWriter(f, fieldnames=['type', 'item', 'result', 'confirmed_by', 'ref', 'edges', 'note'])
         w.writeheader()

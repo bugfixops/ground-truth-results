@@ -9,7 +9,10 @@
 # permissions, unlike the work-emulator tool runner), then per route:
 #   (1) pm clear; (2) setup.py (if present) + per-route setup
 #   setup_<route>.py (if present, generates run-time files into
-#   <outdir>/gen/<route>/); (3) ROUTES.csv fixtures and grants;
+#   <outdir>/gen/<route>/, or drives the app UI to seed state —
+#   UI-driving setups are an admitted pattern, see the per-route
+#   setup comment below and decision MMEX-B3-UIDRIVE);
+#   (3) ROUTES.csv fixtures and grants;
 #   (4) one coverage dump, discarded; (5) route script with a
 #   10-minute timeout; (6) final coverage dump; (7) JaCoCo report
 #   for that dump (--classfiles from $WEMU ci/app_env.py CLASSES);
@@ -289,11 +292,25 @@ while IFS="$(printf '\t')" read -r route method edges perms fixtures setup statu
     fi
   fi
   # Per-route setup (generates run-time files, e.g. zips built with
-  # python zipfile, or a system font copy): if
-  # device/routes/<App>/setup_<route>.py exists, run it; it writes
-  # generated files into $OUTDIR/gen/<route>/, which the fixture
-  # phase below pushes for gen: entries. Nothing generated here is
-  # ever committed (it lives only under <outdir>).
+  # python zipfile, or a system font copy, or drives the app UI to
+  # seed state — UI-driving setups are an admitted pattern, decision
+  # MMEX-B3-UIDRIVE, not a silent deviation from the old "generates
+  # files" wording): if device/routes/<App>/setup_<route>.py exists,
+  # run it; it writes generated files into $OUTDIR/gen/<route>/,
+  # which the fixture phase below pushes for gen: entries. Nothing
+  # generated here is ever committed (it lives only under <outdir>).
+  # Two consequences of UI-driving setups, recorded in MMEX-B3-UIDRIVE:
+  # (a) DRYCHECK GAP — drycheck never executes setups (it only
+  # py_compiles a setup when it backs a gen: fixture, and the MMEX
+  # setups back no fixture, so they are entirely dry-unvalidated);
+  # a drycheck PASS says nothing about a setup's live behaviour.
+  # (b) RETURN-TO-HOME RULE — the route script's launch is a plain
+  # `am start -W -n` with no task-clearing flags, so setup UI state
+  # leaks into the route script's starting state; every UI-driving
+  # setup must therefore end back on the route's starting screen
+  # (setup_route_03's portfolio-ending hazard is the recorded
+  # example: its CLEAR_TASK relaunch + wait_for("RetryInv") exists
+  # exactly to satisfy this rule).
   if [ -f "$ROUTES_DIR/setup_$route.py" ]; then
     mkdir -p "$OUTDIR/gen/$route"
     if ! GEN_DIR="$OUTDIR/gen/$route" python3 -I "$ROUTES_DIR/setup_$route.py" --package "$PKG" \
