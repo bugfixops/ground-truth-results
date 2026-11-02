@@ -889,21 +889,13 @@ e('WatchlistItemsFragment.displayHeaderData', 'WatchlistItemsFragment.getAccount
 sup(('SyncService.onHandleWork', 'SyncService.sendMessage'))  # E060e9c23: single auto record at :132 (UPLOAD site) over-approximates sites :107, :128, :132
 sup(('SyncService.triggerSync', 'SyncService.sendMessage'))  # E87011444: single auto record at :217 (local-only UPLOAD site) over-approximates sites :185, :197, :210, :217
 
-# DOWNLOAD branch: direct DOWNLOAD action (SyncService.java:126-128).
-e('SyncService.onHandleWork', 'SyncService.sendMessage@DOWNLOAD', 'CALL',
-  'onHandleWork takes the DOWNLOAD branch: pullDatabase, then sendMessage with DOWNLOAD_COMPLETE',
-  guard='action == INTENT_ACTION_DOWNLOAD (SyncService.java:126-128)',
-  evidence='SRC sync/SyncService.java:124-129 (switch at 124; DOWNLOAD case at 126; pullDatabase at 127; sendMessage DOWNLOAD_COMPLETE at 128)')
+
 # DOWNLOAD branch: SYNC action, remote-modified only (SyncService.java:207-210).
 e('SyncService.triggerSync', 'SyncService.sendMessage@DOWNLOAD', 'CALL',
   'triggerSync takes the remote-modified-only branch: pullDatabase, then sendMessage with DOWNLOAD_COMPLETE',
   guard='isRemoteModified AND NOT isLocalModified (SyncService.java:207-210)',
   evidence='SRC sync/SyncService.java:180-181 (isLocalModified, isRemoteModified), 207-210 (remote-only branch; pullDatabase and sendMessage DOWNLOAD_COMPLETE at 210)')
-# OTHER branch: direct sites that are not DOWNLOAD.
-e('SyncService.onHandleWork', 'SyncService.sendMessage@OTHER', 'CALL',
-  'onHandleWork sends a message that is not DOWNLOAD_COMPLETE: NOT_ON_WIFI when offline, or UPLOAD_COMPLETE in the UPLOAD branch',
-  guard='device offline (NOT_ON_WIFI, SyncService.java:104-108) OR action == INTENT_ACTION_UPLOAD (SyncService.java:130-132)',
-  evidence='SRC sync/SyncService.java:104-108 (offline check and sendMessage NOT_ON_WIFI at 107), 130-132 (UPLOAD case; pushDatabase at 131; sendMessage UPLOAD_COMPLETE at 132)')
+
 # OTHER branch: triggerSync sites that are not DOWNLOAD.
 e('SyncService.triggerSync', 'SyncService.sendMessage@OTHER', 'CALL',
   'triggerSync sends a message that is not DOWNLOAD_COMPLETE: FILE_NOT_CHANGED, CONFLICT, or UPLOAD_COMPLETE',
@@ -920,16 +912,20 @@ e('SyncService.sendMessage@OTHER', 'SyncServiceMessageHandler.handleMessage@OTHE
   evidence='SRC sync/SyncService.java:222-236 (msg.what at 226; outMessenger.send at 229); SRC sync/SyncManager.java:209-212; SRC sync/SyncServiceMessageHandler.java:61-110 (switch over codes; only DOWNLOAD_COMPLETE posts at 89); FW-SRC core/java/android/os/Handler.java:97-106; INFERRED android.os.Messenger (not in fw_src; not read)')
 # Posts, DOWNLOAD only (NO handleMessage@OTHER -> onEvent edge).
 e('SyncServiceMessageHandler.handleMessage@DOWNLOAD', 'SyncPreferenceFragment.onEvent', 'ASYNC',
-  'the sync service sends DOWNLOAD_COMPLETE to the handler (case at line 84) and the handler posts a new DbFileDownloadedEvent to EventBus (line 89); EventBus delivers it to the registered subscriber onEvent. The cloud download is the one forceDownload starts (the Download preference, line 236)',
-  env=env_text('the cloud download that the Download preference starts (forceDownload) completes in the sync service; it needs the network and the cloud storage', ('network',)),
+  'the sync service sends DOWNLOAD_COMPLETE to the handler (case at line 84) and the handler posts a new DbFileDownloadedEvent to EventBus (line 89); EventBus delivers it to the registered subscriber onEvent',
+  guard='the subscriber is registered at delivery: SyncPreferenceFragment.onStart has run (register at SyncPreferenceFragment.java:107) and onStop has not (unregister at :114); AND the sync was started with an Activity context, so a Messenger/handler exist (SyncManager.java:209-212 creates the Messenger only when the caller context is an AppCompatActivity; SyncService.java:222-223 returns without sending when the Messenger is null) — i.e. the sync is in flight while the fragment is open because either the sync-on-start service is still running when the user opens the Sync preferences, or a menu-sync triggered in MainActivity is still in flight when the user opens the Sync preferences. Heartbeat-triggered syncs are EXCLUDED: a broadcast receiver’s context is never an AppCompatActivity, so no Messenger exists on that path (see DESIGN §2.5 item 3).',
+  needs_state=state_text('the user opened the Sync preferences (SettingsFragment.java:156 -> SyncPreferencesActivity.java:37 setSettingFragment(new SyncPreferenceFragment())) and the fragment is still started, so its onStart registration (SyncPreferenceFragment.java:107) is live while an Activity-context sync (sync-on-start, or menu-sync still in flight) is in flight', ('session',)),
+  env=env_text('a sync (sync-on-start, or menu-sync still in flight) whose remote file is the only modified file completes a cloud download in the sync service; it needs the network and the cloud storage', ('network',)),
   cls='non_standard',
   via='EventBus (greenrobot) post at SyncServiceMessageHandler.java:89 to the @Subscribe method onEvent(DbFileDownloadedEvent) (library dispatch, INFERRED)',
-  evidence='SRC sync/SyncServiceMessageHandler.java:61 (handleMessage), 84-89 (post at 89); SRC sync/SyncPreferenceFragment.java:120-123; precedent label_032 DebugTree.log -> MmxBaseFragmentActivity.onEvent (ASYNC)')
+  evidence='SRC sync/SyncServiceMessageHandler.java:61 (handleMessage), 84-89 (post at 89); SRC sync/SyncPreferenceFragment.java:103-108 (register at 107), 111-114 (unregister at 114), 120-123 (@Subscribe onEvent); SRC settings/SettingsFragment.java:148-157 (SyncPreferencesActivity start at 156); SRC settings/SyncPreferencesActivity.java:34-37 (setSettingFragment at 37); SRC settings/BaseSettingsFragmentActivity.java:71-91 (transaction replace at 78, tx.commit() at 91); SRC sync/SyncManager.java:209-212 (Messenger only for AppCompatActivity context); SRC sync/SyncService.java:222-223 (null Messenger returns without sending); SRC home/MainActivity.java:1210-1224 (sync-on-start trigger at 1224), 610-616 (menu_sync trigger at 615); INFERRED EventBus library dispatch (library source not read)')
 e('SyncServiceMessageHandler.handleMessage@DOWNLOAD', 'MainActivity.onEvent(DbFileDownloadedEvent)', 'ASYNC',
   'the sync service reports DOWNLOAD_COMPLETE: the handler posts DbFileDownloadedEvent, and MainActivity uses the downloaded database file',
+  guard='MainActivity is still started at delivery: MmxBaseFragmentActivity.onStart has run (register at MmxBaseFragmentActivity.java:141) and onStop has not (unregister at :146); AND the sync was started with an Activity context (sync-on-start or menu-sync), so a Messenger exists (SyncManager.java:209-212). Heartbeat-triggered syncs are excluded for MainActivity too: no Messenger exists on the receiver path, so sendMessage returns without sending (SyncService.java:222-223) and no post reaches MainActivity either (see DESIGN §2.5 item 3).',
+  needs_state=state_text('MainActivity is still started when the handler posts, so its MmxBaseFragmentActivity.onStart registration is live', ('session',)),
   cls='non_standard',
   via='EventBus (greenrobot) post at SyncServiceMessageHandler.java:89; subscriber registered in MmxBaseFragmentActivity.onStart',
-  evidence='SRC sync/SyncServiceMessageHandler.java:84-90 (post at 89); SRC sync/SyncService.java:125-129 (download route); SRC home/MainActivity.java:526-530 (529 useDownloadedDatabase); INFERRED EventBus delivery (library source not read)')
+  evidence='SRC sync/SyncServiceMessageHandler.java:84-90 (post at 89); SRC sync/SyncService.java:125-129 (download route); SRC home/MainActivity.java:526-530 (529 useDownloadedDatabase); SRC common/MmxBaseFragmentActivity.java:134-148 (register at 141; unregister at 146); SRC sync/SyncManager.java:209-212 (Messenger only for AppCompatActivity context); SRC sync/SyncService.java:222-223 (null Messenger returns without sending); INFERRED EventBus delivery (library source not read)')
 
 # R3 guard corrections (AUTO edges -> hand replacements; old ids retire,
 # step counts unchanged). Steps 4-6 (launch-SYNC edges) + SYNC-branch
@@ -938,18 +934,10 @@ e('MainActivity.initializeSync', 'SyncManager.triggerSynchronization@MAIN', 'CAL
   'initializeSync triggers synchronization on app start when sync is enabled',
   guard='sync active AND sync-on-start preference true AND dbUpdateCheckDone false (MainActivity.java:1212, :1222-1224)',
   evidence='SRC home/MainActivity.java:1210-1224 (early return if !sync.isActive() at 1212; trigger only if syncOnStart && !dbUpdateCheckDone at 1222-1224; call at 1224)')
-e('SyncManager.triggerSynchronization', 'SyncManager.invokeSyncService', 'CALL',
+e('SyncManager.triggerSynchronization', 'SyncManager.invokeSyncService@SYNC', 'CALL',
   'triggerSynchronization invokes the sync service with the SYNC action after validating paths',
   guard='sync active AND local path non-empty AND remote path non-empty (SyncManager.java:332-348)',
-  evidence='SRC sync/SyncManager.java:332-348 (isActive return at 332; empty-localPath return; empty-remotePath return; invokeSyncService(INTENT_ACTION_SYNC) at 348)')
-e('SyncManager.invokeSyncService', 'SyncService.enqueueWork', 'CALL',
-  'invokeSyncService enqueues work for the sync service with the caller Messenger',
-  guard='remote file preference non-empty (SyncManager.java:190-192)',
-  evidence='SRC sync/SyncManager.java:188-192 (remoteFile validation; return if empty at 190-192); SRC sync/SyncManager.java:209-217 (Messenger at 209-212; enqueueWork at 217)')
-e('SyncService.onHandleWork', 'SyncService.triggerSync', 'CALL',
-  'onHandleWork takes the SYNC branch and calls triggerSync',
-  guard='action == INTENT_ACTION_SYNC (SyncService.java:134-135)',
-  evidence='SRC sync/SyncService.java:124-125 (switch), 134-135 (SYNC case calls triggerSync)')
+  evidence='SRC sync/SyncManager.java:332-348 (isActive return at 333; empty-localPath return; empty-remotePath return; invokeSyncService(INTENT_ACTION_SYNC) at 348)')
 
 # ==================================================================
 # B6-RESULT2 ROUTE 3: DatabaseManager.getContext — DECISION: FALL BACK
@@ -1241,3 +1229,89 @@ e('MainActivity.onCreate', 'MainActivity.populateScheduledTransactions', 'CALL',
   'Direct call',
   guard='!showPrerequisite() (MainActivity.java:184-187; definition :1478-1499: no tutorial needed (:1351-1353) and a database available (:1338-1348: stored path non-empty, not an unpassworded .emb file, and the file exists))',
   evidence='SRC MainActivity.java:244 (bytecode)')
+
+# ==================================================================
+# B6-SYNC-V2: action-partition chain (Sync re-feed v2, amended package
+# section 2.3 additions + 2.2 suppressions). A1 is the D5 retarget in
+# place above; R-S9a is the 04.py retarget. S1/S2 suppress auto edges
+# only (belt-and-braces; base-pair suppression already kills them
+# once A2/A3 exist).
+sup(('SyncManager.triggerDownload', 'SyncManager.invokeSyncService'),
+    ('SyncManager.triggerUpload', 'SyncManager.invokeSyncService'))
+
+# A2.
+e('SyncManager.triggerDownload', 'SyncManager.invokeSyncService@DOWNLOAD', 'CALL',
+  'triggerDownload invokes the sync service with the DOWNLOAD action',
+  evidence='SRC sync/SyncManager.java:356-357 (triggerDownload; invokeSyncService(INTENT_ACTION_DOWNLOAD) at 357)')
+# A3.
+e('SyncManager.triggerUpload', 'SyncManager.invokeSyncService@UPLOAD', 'CALL',
+  'triggerUpload invokes the sync service with the UPLOAD action',
+  evidence='SRC sync/SyncManager.java:360-361 (triggerUpload; invokeSyncService(INTENT_ACTION_UPLOAD) at 361)')
+# A4.
+e('SyncManager.invokeSyncService@SYNC', 'SyncService.enqueueWork@SYNC', 'CALL',
+  'invokeSyncService enqueues work for the sync service with the SYNC action and the caller Messenger',
+  guard='remote file preference non-empty (SyncManager.java:190-192)',
+  evidence='SRC sync/SyncManager.java:188-192 (remoteFile validation; return if empty at 190-192); SRC sync/SyncManager.java:209-217 (Messenger at 209-212; enqueueWork at 217); SRC IntentFactory.java:38-52 (setAction at 42 preserves the SYNC action)')
+# A5.
+e('SyncManager.invokeSyncService@DOWNLOAD', 'SyncService.enqueueWork@DOWNLOAD', 'CALL',
+  'invokeSyncService enqueues work for the sync service with the DOWNLOAD action and the caller Messenger',
+  guard='remote file preference non-empty (SyncManager.java:190-192)',
+  evidence='SRC sync/SyncManager.java:188-192 (remoteFile validation; return if empty at 190-192); SRC sync/SyncManager.java:209-217 (Messenger at 209-212; enqueueWork at 217); SRC IntentFactory.java:38-52 (setAction at 42 preserves the DOWNLOAD action)')
+# A6.
+e('SyncManager.invokeSyncService@UPLOAD', 'SyncService.enqueueWork@UPLOAD', 'CALL',
+  'invokeSyncService enqueues work for the sync service with the UPLOAD action and the caller Messenger',
+  guard='remote file preference non-empty (SyncManager.java:190-192)',
+  evidence='SRC sync/SyncManager.java:188-192 (remoteFile validation; return if empty at 190-192); SRC sync/SyncManager.java:209-217 (Messenger at 209-212; enqueueWork at 217); SRC IntentFactory.java:38-52 (setAction at 42 preserves the UPLOAD action)')
+# A7.
+e('SyncService.enqueueWork@SYNC', 'SyncService.onHandleWork@SYNC', 'FRAMEWORK',
+  'JobIntentService delivers the queued SYNC-action intent to onHandleWork on its worker thread (INFERRED from the androidx contract)',
+  evidence='SRC sync/SyncService.java:90 (onHandleWork), 151-153 (enqueueWork); INFERRED androidx JobIntentService (not read)')
+# A8.
+e('SyncService.enqueueWork@DOWNLOAD', 'SyncService.onHandleWork@DOWNLOAD', 'FRAMEWORK',
+  'JobIntentService delivers the queued DOWNLOAD-action intent to onHandleWork on its worker thread (INFERRED from the androidx contract)',
+  evidence='SRC sync/SyncService.java:90 (onHandleWork), 151-153 (enqueueWork); INFERRED androidx JobIntentService (not read)')
+# A9.
+e('SyncService.enqueueWork@UPLOAD', 'SyncService.onHandleWork@UPLOAD', 'FRAMEWORK',
+  'JobIntentService delivers the queued UPLOAD-action intent to onHandleWork on its worker thread (INFERRED from the androidx contract)',
+  evidence='SRC sync/SyncService.java:90 (onHandleWork), 151-153 (enqueueWork); INFERRED androidx JobIntentService (not read)')
+# A10.
+e('SyncService.onHandleWork@SYNC', 'SyncService.triggerSync', 'CALL',
+  'onHandleWork takes the SYNC branch and calls triggerSync',
+  guard='action == INTENT_ACTION_SYNC (SyncService.java:134-135)',
+  evidence='SRC sync/SyncService.java:124-125 (switch), 134-135 (SYNC case calls triggerSync)')
+# A11.
+e('SyncService.onHandleWork@DOWNLOAD', 'SyncService.sendMessage@DOWNLOAD', 'CALL',
+  'onHandleWork takes the DOWNLOAD branch: pullDatabase, then sendMessage with DOWNLOAD_COMPLETE',
+  guard='action == INTENT_ACTION_DOWNLOAD (SyncService.java:126-128)',
+  evidence='SRC sync/SyncService.java:124-129 (switch at 124; DOWNLOAD case at 126; pullDatabase at 127; sendMessage DOWNLOAD_COMPLETE at 128)')
+# A12.
+e('SyncService.onHandleWork@UPLOAD', 'SyncService.sendMessage@OTHER', 'CALL',
+  'onHandleWork takes the UPLOAD branch: pushDatabase, then sendMessage with UPLOAD_COMPLETE',
+  guard='action == INTENT_ACTION_UPLOAD (SyncService.java:130-132)',
+  evidence='SRC sync/SyncService.java:130-132 (UPLOAD case; pushDatabase at 131; sendMessage UPLOAD_COMPLETE at 132)')
+# A13 (three offline edges, one per action variant).
+e('SyncService.onHandleWork@SYNC', 'SyncService.sendMessage@OTHER', 'CALL',
+  'onHandleWork finds the device offline before the action switch and sends NOT_ON_WIFI',
+  guard='device offline (SyncService.java:104-108)',
+  evidence='SRC sync/SyncService.java:104-108 (offline check and sendMessage NOT_ON_WIFI at 107)')
+e('SyncService.onHandleWork@DOWNLOAD', 'SyncService.sendMessage@OTHER', 'CALL',
+  'onHandleWork finds the device offline before the action switch and sends NOT_ON_WIFI',
+  guard='device offline (SyncService.java:104-108)',
+  evidence='SRC sync/SyncService.java:104-108 (offline check and sendMessage NOT_ON_WIFI at 107)')
+e('SyncService.onHandleWork@UPLOAD', 'SyncService.sendMessage@OTHER', 'CALL',
+  'onHandleWork finds the device offline before the action switch and sends NOT_ON_WIFI',
+  guard='device offline (SyncService.java:104-108)',
+  evidence='SRC sync/SyncService.java:104-108 (offline check and sendMessage NOT_ON_WIFI at 107)')
+# A14 (service-lifecycle mirrors).
+e('SyncService.enqueueWork@SYNC', 'SyncService.<init>', 'FRAMEWORK',
+  'JobIntentService creates the service instance for the queued intent (INFERRED androidx contract)',
+  evidence='SRC sync/SyncService.java:151-153; FW-SRC core/java/android/app/ActivityThread.java:3311-3321 (handleCreateService; newInstance at 3321); INFERRED androidx JobIntentService (library not in the dataset; not read)')
+e('SyncService.onHandleWork@SYNC', 'SyncService.onDestroy', 'LIFECYCLE',
+  'when the queued work is done JobIntentService stops itself, and the framework then runs onDestroy (INFERRED androidx stopSelf path)',
+  evidence='FW-SRC core/java/android/app/ActivityThread.java:3499-3504 (handleStopService; s.onDestroy at 3504); FW-SRC core/java/android/app/Service.java:515; INFERRED androidx JobIntentService (not read)')
+e('SyncService.onHandleWork@DOWNLOAD', 'SyncService.onDestroy', 'LIFECYCLE',
+  'when the queued work is done JobIntentService stops itself, and the framework then runs onDestroy (INFERRED androidx stopSelf path)',
+  evidence='FW-SRC core/java/android/app/ActivityThread.java:3499-3504 (handleStopService; s.onDestroy at 3504); FW-SRC core/java/android/app/Service.java:515; INFERRED androidx JobIntentService (not read)')
+e('SyncService.onHandleWork@UPLOAD', 'SyncService.onDestroy', 'LIFECYCLE',
+  'when the queued work is done JobIntentService stops itself, and the framework then runs onDestroy (INFERRED androidx stopSelf path)',
+  evidence='FW-SRC core/java/android/app/ActivityThread.java:3499-3504 (handleStopService; s.onDestroy at 3504); FW-SRC core/java/android/app/Service.java:515; INFERRED androidx JobIntentService (not read)')

@@ -5283,21 +5283,9 @@ e('SyncManager.stopSyncServiceAlarm', 'SyncSchedulerBroadcastReceiver.onReceive'
 
 # ---- the sync service: JobIntentService.enqueueWork starts it (INFERRED androidx); the framework creates it and runs onCreate, then onHandleWork; onDestroy after the work
 
-e('SyncService.enqueueWork', 'SyncService.<init>', 'FRAMEWORK',
-  'the static enqueueWork (lines 151-153) hands the intent to JobIntentService.enqueueWork, which starts the service; the framework constructs it. The same pattern as the RecurringTransactionIntentService edges in graph_def.py',
-  evidence='SRC sync/SyncService.java:151-153; FW-SRC core/java/android/app/ActivityThread.java:3311-3321 (handleCreateService; newInstance at 3321); INFERRED androidx JobIntentService (library not in the dataset; not read)')
-
-e('SyncService.enqueueWork', 'SyncService.onHandleWork', 'FRAMEWORK',
-  'JobIntentService delivers each queued intent to onHandleWork on its worker thread (INFERRED from the androidx contract)',
-  evidence='SRC sync/SyncService.java:90 (onHandleWork), 151-153; INFERRED androidx JobIntentService (not read)')
-
 e('SyncService.<init>', 'SyncService.onCreate', 'LIFECYCLE',
   'the framework calls onCreate after it constructs the service (handleCreateService)',
   evidence='FW-SRC core/java/android/app/ActivityThread.java:3339 (service.onCreate); SRC sync/SyncService.java:79-87')
-
-e('SyncService.onHandleWork', 'SyncService.onDestroy', 'LIFECYCLE',
-  'when the queued work is done JobIntentService stops itself, and the framework then runs onDestroy (INFERRED androidx stopSelf path)',
-  evidence='FW-SRC core/java/android/app/ActivityThread.java:3499-3504 (handleStopService; s.onDestroy at 3504); FW-SRC core/java/android/app/Service.java:515; INFERRED androidx JobIntentService (not read)')
 
 # B6-EVENT: plain SyncService.sendMessage -> SyncServiceMessageHandler.handleMessage partitioned to @DOWNLOAD/@OTHER in graph_def_mod/03.py (plain edge deleted; visit-agnostic — delivers every code to the same plain handler node).
 

@@ -56,7 +56,7 @@ e('SyncManager.triggerSynchronization', 'DatabaseManager.getDatabasePath', 'CALL
 # evidence only. The other 9 @MAIN outs arrive by auto-mirroring for free
 # and must NOT be hand-mirrored (each hand mirror would suppress the
 # corresponding plain auto out and force a pointless re-assert).
-e('SyncManager.triggerSynchronization@MAIN', 'SyncManager.invokeSyncService', 'CALL',
+e('SyncManager.triggerSynchronization@MAIN', 'SyncManager.invokeSyncService@SYNC', 'CALL',
   'triggerSynchronization invokes the sync service with the SYNC action after validating paths',
   guard='sync active AND local path non-empty AND remote path non-empty (SyncManager.java:332-348)',
-  evidence='SRC sync/SyncManager.java:332-348 (isActive return at 332; empty-localPath return; empty-remotePath return; invokeSyncService(INTENT_ACTION_SYNC) at 348); variant @MAIN')
+  evidence='SRC sync/SyncManager.java:332-348 (isActive return at 333; empty-localPath return; empty-remotePath return; invokeSyncService(INTENT_ACTION_SYNC) at 348); variant @MAIN; reconciled Sync v2: dst retargeted to @SYNC (was plain invokeSyncService)')

@@ -1128,3 +1128,69 @@ Efec640e8, Eafb31232). All B7 references must cite 4, not 5. Metadata
 shifts expected at B7 per audit M3: confirmed_by SOURCE→INFERRED for exactly
 5 tail methods, incoming_edges counts change for 12 methods — verdicts
 unchanged, not regressions.)
+
+## Sync re-feed v2 (applied 2026-11-02, verification PASS; route 12 stays WRONG until final redraw)
+
+Package: helper/sync-refeed-impl/IMPLEMENTATION.md (amended §2.4 — F1 guard
+curly U+2019, B-1 fix). Audit trail: implementation audit
+audit/sync-refeed-impl/AUDIT.md FAIL (B-1 only: printed ASCII apostrophe
+hashed to E522a9a41, not E75720ed3) -> fix note
+helper/sync-refeed-impl/FIX_NOTE.md (one character, line 395, U+0027 -> U+2019)
+-> focused re-audit audit/sync-refeed-impl-reaudit/RE_AUDIT.md PASS (B-1
+closed; DESIGN §4.4 inconsistency = doc-only note, not blocking, DESIGN left
+untouched) -> §6 gate helper/sync-v2-gate/GATE_BUILD.md PASS -> verification
+helper/sync-v2-verify/VERIFICATION.md PASS.
+What changed: action partition A1-A14 + §9 reconciliation retarget R-S9a
+(04.py:59 dst -> invokeSyncService@SYNC, evidence :332 -> :333) + F1/F2
+rewrites (§4.4, session needs_state, heartbeat excluded as a delivery witness,
+forceDownload ENV removed from F1) + S1/S2 auto suppressions. Home-file
+deletions D1-D8; kept <init> -> onCreate. Deviations, all required and
+recorded: IntentFactory citation in basename form (check-2 fix, DESIGN §5.1
+authorized); isActive return :333 (not :332) for A1/R-S9a; F2 adopted as a
+rewrite (not left unchanged); A14 FW-SRC re-printed by the merger from the
+clone fw_src (ActivityThread.java:3311 handleCreateService, :3321 newInstance,
+:3499 handleStopService, :3504 s.onDestroy) and re-verified by the gate helper
+and the verifier — A14 flag CLOSED.
+Build (verifier, real tool rebuild.sh, private copy of the applied tree):
+4270 methods, 3430/840, 8411 edges, errors 0, warnings 0; delta +48 = -13
+retired + 22 new hand + 39 auto fanout (18 invokeSyncService + 21
+onHandleWork); 0 label flips; check 2: 0 (250 distinct), check 3: 0, check 4: 0
+(5996 checked, 614 skipped, 149 implicit), checks 5-7: 0, check 8: 19/840;
+needs_state 57 -> 59 (exactly F1 + F2), STATE methods 522 -> 526, ENV methods
+80; step counts onEvent 10 -> 11, MainActivity onEvent 10 -> 11,
+useDownloadedDatabase 11 -> 12, getInstance 12 -> 13, getUploadImmediately 8 -> 8
+byte-identical; onDestroy/<init>/onCreate still REACHABLE; §6 grep: each onEvent
+dst exactly REGISTER + new F1/F2, no third edge; plain invokeSyncService/
+enqueueWork/onHandleWork zero incomings; @SYNC incomings exactly A1 + R-S9a;
+exactly 56 changed routes, all inside the sync subtree; 6 further rows differ
+only in the incoming_edges count column (+3 each, variant fanout —
+paths/steps/verdicts unchanged, B7 must expect these, not misread them).
+Parsed-field comparison (real tree vs gate copy vs package §2): 0 mismatches
+(01/02/03/04: 567/107/179/3 calls), 0 missing/extra edges, sup pairs identical,
+all 9 deleted combinations absent, all 22 new combinations present; F1 guard
+character-identical to the package (848 chars, U+2019 at position 745, zero
+ASCII apostrophes, em dash at 427).
+Every-step audit: all 22 steps of both 11-step routes hold against printed
+source; heartbeat appears only as an exclusion, never as a delivery witness;
+zero forceDownload wording on either drawn edge. NO verdict claimed here:
+route 12 stays WRONG in the route table until the final redraw + re-judge;
+no rate recomputed.
+Caveats for B7 / final redraw (not defects in this apply): (1)
+DbFileDownloadedEvent.<init> @OTHER-tail path is an auto-fanout representative
+only (runs only at :89 DOWNLOAD_COMPLETE) — must NOT be cited as OTHER-message
+delivery evidence. (2) Step-9 kept edge Ecdf1af97 (triggerSync ->
+sendMessage@DOWNLOAD, byte-identical baseline vs repaired, untouched by v2):
+cited ranges a few lines off (declarations at :177-178, not :180-181; branch
+test at :206, not inside :207-210); claims true on printed source; recommend
+correcting the two ranges in a follow-up — NOT applied here, since changing
+evidence changes the id and needs its own audit; never silently edit a
+drawn-route edge. (3) B7 stale-id list = package §5 table (13 retired ids
+with successors; landing-order rule: §9 landed first, v2 reconciles against
+the §9 tree, never silently union; Eafb31232 is BOTH a §9 id and a
+Sync-retired id — the Sync retirement wins as the later landing). (4) 03.py
+1317 lines = 1243 pre-Sync + 55 gate §2 edit lines + 19 merger formatting
+lines (header + section comments/blanks); no edge duplicated or missing.
+Merger apply checks (own, before verification): all graph files parse;
+deleted plain pairs 0 hits; kept edges present; new variant-edge counts match
+§2 exactly; F1 guard codepoints verified (848 chars, U+2019 at 745, exactly one
+U+2019 in 03.py).
