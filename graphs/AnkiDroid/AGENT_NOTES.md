@@ -394,3 +394,33 @@ An edge is written by the part that contains its source method; if the source is
   merger/route_print_firstdraw/ (work dir, not pushed).
 - Route table: scratch/route_table.md — WRONG 18, FIXED 9, UNCLEAR 2,
   CORRECT 1; first-draw error rate 27/28 = 0.9643.
+
+## Finish run 2026-11-02 — B7 verification log (writer modelled on AnyMemo)
+
+- make_verification.py (new; AnkiDroid had no writer before): path rows
+  use the BUILT route (methods.csv route_edge_ids) with the audited
+  route-table verdict; WRONG-route notes point at the corrected
+  derivation in scratch/route_table.md (the built route is wrong for
+  those routes, so the table — not the BFS route — is the judged route).
+  Path confirmed_by is SOURCE only when every built-route edge is
+  source-evidenced, else INFERRED (same rule as the label rows). Label
+  rows: 911 UNREACHABLE (graph labels) + 30 sampled REACHABLE. Edge
+  rows: 7 B6 variant-page edges (ids re-derived from the final graph
+  by pair, asserted unique) + one row per distinct FW-SRC citation
+  with line numbers. Rows: path 30 (WRONG 18, FIXED 9, UNCLEAR 2,
+  CORRECT 1), label 941, edge 231. The writer raises (STOPs) on any
+  mismatch: missing method, non-REACHABLE path item, ref not on the
+  route evidence, empty note, non-unique variant pair, missing edge.
+- Determinism: two runs byte-identical (cmp passed); verification.csv
+  479,626 B, 1203 lines (header + 1202 rows), header exactly
+  type,item,result,confirmed_by,ref,edges,note.
+- Checks on the final graph (saved in merger/checks_final/): check 2
+  273 distinct, 0 problems; check 3 0 routes flagged; check 4 6901
+  checked, 0 where the cited line does not show the callee (6901 vs
+  B3's 6904: 3 auto bytecode edges replaced by B6 hand edges); check 8
+  scan --callers 169 of 911 have a bytecode caller outside the set
+  (all 169 explained in scratch/check8_explained.md, B4); greps:
+  DEAD/FRAMEWORK_ONLY 0, FW-MEMORY 0, PENDING 0; STRICT = True.
+- readme_notes.md (five headings in order) + LESSONS.md (8 bullets)
+  written. The redraw/sample divergence is recorded in both
+  route_table.md and readme_notes.md as a coordinator ruling item.
