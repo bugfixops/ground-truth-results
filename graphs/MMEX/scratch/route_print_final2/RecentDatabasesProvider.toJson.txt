@@ -1,0 +1,72 @@
+## RecentDatabasesProvider.toJson  REACHABLE  confirmed_by=SOURCE path=UNCHECKED
+   env=- state=- classes=explicit;standard explicit_standard_route=yes
+   1. E71c76102 ENTRY/standard*
+      S_ENTRY -> MainActivity.<init>
+      The MAIN / LAUNCHER activity is started from the launcher
+      evidence: SRC AndroidManifest.xml:136-143 (MAIN + LAUNCHER intent filter of com.money.manager.ex.home.MainActivity)
+        136                  android:name=".home.MainActivity"
+        137                  android:label="@string/application_name" android:exported="true">
+        138              <intent-filter>
+        139                  <action android:name="android.intent.action.MAIN" />
+        140  
+        141                  <category android:name="android.intent.category.LAUNCHER" />
+        142                  <!-- Samsung MultiWindow Function -->
+        143                  <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
+   2. E2e074fc1 LIFECYCLE/standard*
+      MainActivity.<init> -> MainActivity.onCreate
+      the framework calls onCreate after it creates the activity instance
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2722-2731 (callActivityOnCreate); FW-SRC core/java/android/app/Instrumentation.java:1212-1216; FW-SRC core/java/android/app/Activity.java:6993-7000 (performCreate calls onCreate); same route as graph_def.py AccountEditActivity.<init> -> onCreate
+       2722                  int theme = r.activityInfo.getThemeResource();
+       2723                  if (theme != 0) {
+       2724                      activity.setTheme(theme);
+       2725                  }
+       2726  
+       2727                  activity.mCalled = false;
+       2728                  if (r.isPersistable()) {
+       2729                      mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+       2730                  } else {
+       2731                      mInstrumentation.callActivityOnCreate(activity, r.state);
+       1212      public void callActivityOnCreate(Activity activity, Bundle icicle) {
+       1213          prePerformCreate(activity);
+       1214          activity.performCreate(icicle);
+       1215          postPerformCreate(activity);
+       1216      }
+       6993      final void performCreate(Bundle icicle, PersistableBundle persistentState) {
+       6994          mCanEnterPictureInPicture = true;
+       6995          restoreHasCurrentPermissionRequest(icicle);
+       6996          if (persistentState != null) {
+       6997              onCreate(icicle, persistentState);
+       6998          } else {
+       6999              onCreate(icicle);
+       7000          }
+   3. Ee128b245 CALL/explicit*
+      MainActivity.onCreate -> MainActivity.migrateRecentDatabases
+      Direct call
+      evidence: SRC MainActivity.java:190 (bytecode)
+        190          migrateRecentDatabases();
+   4. E0afa172d CALL/explicit*
+      MainActivity.migrateRecentDatabases -> RecentDatabasesProvider.getCurrent
+      Direct call
+      evidence: SRC MainActivity.java:1523 (bytecode)
+       1523                  DatabaseMetadata currentEntry = databases.getCurrent();
+   5. Ebaf2798b CALL/explicit*
+      RecentDatabasesProvider.getCurrent -> RecentDatabasesProvider.add(DatabaseMetadata)
+      Direct call
+      evidence: SRC RecentDatabasesProvider.java:130 (bytecode)
+        130          add(defaultDb);
+   6. E92284171 CALL/explicit*
+      RecentDatabasesProvider.add(DatabaseMetadata) -> RecentDatabasesProvider.add(String,DatabaseMetadata)
+      Direct call
+      evidence: SRC RecentDatabasesProvider.java:81 (bytecode)
+         81          return add(entry.localPath, entry);
+   7. E2d19d91e CALL/explicit*
+      RecentDatabasesProvider.add(String,DatabaseMetadata) -> RecentDatabasesProvider.save
+      Direct call
+      evidence: SRC RecentDatabasesProvider.java:75 (bytecode)
+         75          this.save();
+   8. Ec87e03f4 CALL/explicit*
+      RecentDatabasesProvider.save -> RecentDatabasesProvider.toJson
+      Direct call
+      evidence: SRC RecentDatabasesProvider.java:171 (bytecode)
+        171          String value = toJson();
+

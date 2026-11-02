@@ -1,0 +1,70 @@
+## AccountRepository.first  REACHABLE  confirmed_by=SOURCE path=UNCHECKED
+   env=- state=- classes=explicit;standard explicit_standard_route=yes
+   1. E2b98cbaa ENTRY/standard*
+      S_ENTRY -> SingleAccountWidget.<init>
+      the framework creates the widget receiver by class name because the manifest declares it exported with the APPWIDGET_UPDATE intent-filter; the framework then calls onReceive on it
+      evidence: SRC AndroidManifest.xml:114-124 (receiver name 115, APPWIDGET_UPDATE 118); SRC widget/SingleAccountWidget.java:48 (class declaration, implicit constructor); FW-SRC core/java/android/app/ActivityThread.java:3141, 3166, 3187
+        114          <receiver
+        115                  android:name=".widget.SingleAccountWidget"
+        116                  android:label="@string/single_account" android:exported="true">
+        117              <intent-filter>
+        118                  <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+        119              </intent-filter>
+        120  
+        121              <meta-data
+        122                  android:name="android.appwidget.provider"
+        123                  android:resource="@xml/widget_info_single_account" />
+        124          </receiver>
+         48  public class SingleAccountWidget
+       3141      private void handleReceiver(ReceiverData data) {
+   2. E3ffa36d3 LIFECYCLE/standard*
+      SingleAccountWidget.<init> -> SingleAccountWidget.onUpdate
+      AppWidgetProvider.onReceive calls this.onUpdate for ACTION_APPWIDGET_UPDATE
+      guard: intent action == AppWidgetManager.ACTION_APPWIDGET_UPDATE AND intent extras != null AND appWidgetIds != null AND appWidgetIds.length > 0 (FW AppWidgetProvider.java:61, :63, :65-66)
+      evidence: FW-SRC core/java/android/appwidget/AppWidgetProvider.java:66; FW-SRC services/appwidget/java/com/android/server/appwidget/AppWidgetServiceImpl.java:2283-2286 (setComponent 2286); SRC widget/SingleAccountWidget.java:69-70 (override)
+         66                      this.onUpdate(context, AppWidgetManager.getInstance(context), appWidgetIds);
+       2283      private void sendUpdateIntentLocked(Provider provider, int[] appWidgetIds) {
+       2284          Intent intent = new Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+       2285          intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds);
+       2286          intent.setComponent(provider.info.provider);
+         69      @Override
+         70      public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
+   3. E9eb5ff4d CALL/explicit*
+      SingleAccountWidget.onUpdate -> SingleAccountWidget.updateAppWidget
+      Direct call
+      evidence: SRC SingleAccountWidget.java:74 (bytecode)
+         74              updateAppWidget(context, appWidgetManager, appWidgetIds[i]);
+   4. Ea4c507f5 CALL/explicit*
+      SingleAccountWidget.updateAppWidget -> SingleAccountWidget.displayAccountInfo
+      updateAppWidget shows the account info for the configured default account
+      guard: defaultAccountId != null (SingleAccountWidget.java:174)
+      evidence: SRC widget/SingleAccountWidget.java:171-176 (settings lookup :172, null check :174, displayAccountInfo call :176)
+        171          AppSettings settings = new AppSettings(context);
+        172          Integer defaultAccountId = settings.getGeneralSettings().getDefaultAccountId();
+        173  //        if (StringUtils.isNotEmpty(defaultAccountId)) {
+        174          if (defaultAccountId != null) {
+        175              String defaultAccountString = Integer.toString(defaultAccountId);
+        176              displayAccountInfo(context, defaultAccountString, views);
+   5. Ebb29c7ff CALL/explicit*
+      SingleAccountWidget.displayAccountInfo -> SingleAccountWidget.loadAccount
+      Direct call
+      evidence: SRC SingleAccountWidget.java:195 (bytecode)
+        195          Account account = loadAccount(context, accountId);
+   6. E64510675 CALL/explicit*
+      SingleAccountWidget.loadAccount -> AccountRepository.load
+      Direct call
+      evidence: SRC SingleAccountWidget.java:250 (bytecode)
+        250          return repository.load(accountId);
+   7. Ef7590543 CALL/explicit*
+      AccountRepository.load -> AccountRepository.first
+      load returns the first account matching the where clause for the given id
+      guard: id != Constants.NOT_SET (AccountRepository.java:52; NOT_SET = -1)
+      evidence: SRC datalayer/AccountRepository.java:51-57 (load :51, NOT_SET early return :52, first call :57)
+         51      public Account load(int id) {
+         52          if (id == Constants.NOT_SET) return null;
+         53  
+         54          WhereStatementGenerator where = new WhereStatementGenerator();
+         55          where.addStatement(Account.ACCOUNTID, "=", id);
+         56  
+         57          return first(where.getWhere());
+

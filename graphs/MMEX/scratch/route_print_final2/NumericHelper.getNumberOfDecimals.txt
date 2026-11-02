@@ -1,0 +1,113 @@
+## NumericHelper.getNumberOfDecimals  REACHABLE  confirmed_by=SOURCE path=UNCHECKED
+   env=- state=- classes=explicit;standard explicit_standard_route=yes
+   1. Eabecce51 ENTRY/standard*
+      S_ENTRY -> AccountBillsWidgetProvider.<init>
+      the framework creates the widget receiver by class name because the manifest declares it exported with the APPWIDGET_UPDATE intent-filter; the framework then calls onReceive on that receiver
+      evidence: SRC AndroidManifest.xml:89-99; FW-SRC core/java/android/app/ActivityThread.java:3141-3166 (handleReceiver: loadClass(component).newInstance() at 3166), 3187 (receiver.onReceive); the matching of the intent-filter to the broadcast is not in fw_src: INFERRED, source not read
+         89          <receiver
+         90                  android:name=".widget.AccountBillsWidgetProvider"
+         91                  android:label="@string/widget_all_accounts" android:exported="true">
+         92              <intent-filter>
+         93                  <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+         94              </intent-filter>
+         95  
+         96              <meta-data
+         97                  android:name="android.appwidget.provider"
+         98                  android:resource="@xml/widget_account_bills" />
+         99          </receiver>
+       3141      private void handleReceiver(ReceiverData data) {
+       3142          // If we are getting ready to gc after going to the background, well
+       3143          // we are back active so skip it.
+       3144          unscheduleGcIdler();
+       3145  
+       3146          String component = data.intent.getComponent().getClassName();
+       3147  
+       3148          LoadedApk packageInfo = getPackageInfoNoCheck(
+       3149                  data.info.applicationInfo, data.compatInfo);
+       3150  
+       3151          IActivityManager mgr = ActivityManager.getService();
+       3152  
+       3153          Application app;
+       3154          BroadcastReceiver receiver;
+      ...  (12 more lines)
+   2. Ec0bef66f LIFECYCLE/standard*
+      AccountBillsWidgetProvider.<init> -> AccountBillsWidgetProvider.onUpdate
+      the framework calls onReceive on the receiver it has just created; AppWidgetProvider.onReceive calls this.onUpdate when the action is ACTION_APPWIDGET_UPDATE
+      guard: broadcast action == ACTION_APPWIDGET_UPDATE AND intent extras non-null AND EXTRA_APPWIDGET_IDS non-null and non-empty (FW AppWidgetProvider.java:61-66)
+      evidence: FW-SRC core/java/android/appwidget/AppWidgetProvider.java:57-68 (onReceive; this.onUpdate at 66); FW-SRC core/java/android/app/ActivityThread.java:3187; SRC widget/AccountBillsWidgetProvider.java:40-77 (the override)
+         57      public void onReceive(Context context, Intent intent) {
+         58          // Protect against rogue update broadcasts (not really a security issue,
+         59          // just filter bad broacasts out so subclasses are less likely to crash).
+         60          String action = intent.getAction();
+         61          if (AppWidgetManager.ACTION_APPWIDGET_UPDATE.equals(action)) {
+         62              Bundle extras = intent.getExtras();
+         63              if (extras != null) {
+         64                  int[] appWidgetIds = extras.getIntArray(AppWidgetManager.EXTRA_APPWIDGET_IDS);
+         65                  if (appWidgetIds != null && appWidgetIds.length > 0) {
+         66                      this.onUpdate(context, AppWidgetManager.getInstance(context), appWidgetIds);
+         67                  }
+         68              }
+       3187              receiver.onReceive(context.getReceiverRestrictedContext(),
+         40      @Override
+         41      public void onUpdate(Context context, AppWidgetManager appWidgetManager,
+         42                           int[] appWidgetIds) {
+         43          super.onUpdate(context, appWidgetManager, appWidgetIds);
+         44  
+         45          MmexApplication app = new MmexApplication();
+         46          CurrencyService currencyService = new CurrencyService(context);
+         47  
+         48          for (int i = 0; i < appWidgetIds.length; ++i) {
+         49              RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.widget_account_bills);
+         50              remoteViews.setTextViewText(R.id.textViewUserName, app.loadUserNameFromDatabase(context));
+         51              remoteViews.setTextViewText(R.id.textViewTotalAccounts, context.getString(R.string.summary) + ": "
+         52                      + currencyService.getBaseCurrencyFormatted(MoneyFactory.fromDouble(app.getSummaryAccounts(context))));
+         53  
+      ...  (24 more lines)
+   3. Ef46663fc CALL/explicit*
+      AccountBillsWidgetProvider.onUpdate -> CurrencyService.getBaseCurrencyFormatted
+      Direct call
+      evidence: SRC AccountBillsWidgetProvider.java:52 (bytecode)
+         52                      + currencyService.getBaseCurrencyFormatted(MoneyFactory.fromDouble(app.getSummaryAccounts(context))));
+   4. E526e2cf0 CALL/explicit*
+      CurrencyService.getBaseCurrencyFormatted -> CurrencyService.getCurrencyFormatted
+      Direct call
+      evidence: SRC CurrencyService.java:280 (bytecode)
+        280          return this.getCurrencyFormatted(baseCurrencyId, value);
+   5. E8707ce77 CALL/explicit*
+      CurrencyService.getCurrencyFormatted -> FormatUtilities.format(Money,Currency)
+      getCurrencyFormatted formats the value with the currency for the given id
+      guard: getCurrency(currencyId) non-null (CurrencyService.java:297-309; null yields value.toString() at :301-303 / String.valueOf at :312, format call only at :309)
+      evidence: SRC currency/CurrencyService.java:297-309 (currencyId null check :297, getCurrency :298, null returns :301-303, format call :309)
+        297          if (currencyId != null) {
+        298              Currency currency = getCurrency(currencyId);
+        299  //            NumericHelper helper = new NumericHelper(mContext);
+        300  
+        301              if (currency == null) {
+        302                  // no currency
+        303                  return value.toString();
+        304                  // we can not simply cut off the decimals!
+        305  //                result = String.format("%.2f", value);
+        306              } else {
+        307                  // formatted value
+        308                  FormatUtilities formats = new FormatUtilities(getContext());
+        309                  result = formats.format(value, currency);
+   6. E1c7f52cc CALL/explicit*
+      FormatUtilities.format(Money,Currency) -> FormatUtilities.format(Money,boolean,Currency)
+      Direct call
+      evidence: SRC FormatUtilities.java:180 (bytecode)
+        180          return format(value, true, currency);
+   7. E8c18509f CALL/explicit*
+      FormatUtilities.format(Money,boolean,Currency) -> FormatUtilities.format(Money,int,String,String)
+      format forwards to the scale/pattern overload with the currency
+      guard: currency non-null (FormatUtilities.java:157; null returns "n/a")
+      evidence: SRC FormatUtilities.java:157-160 (null check :157, forwarding call :159-160)
+        157          if (currency == null) return "n/a";
+        158  
+        159          String result = this.format(value, currency.getScale(),
+        160              currency.getDecimalSeparator(), currency.getGroupSeparator());
+   8. E75f796ec CALL/explicit*
+      FormatUtilities.format(Money,int,String,String) -> NumericHelper.getNumberOfDecimals
+      Direct call
+      evidence: SRC FormatUtilities.java:191 (bytecode)
+        191          int decimals = new NumericHelper(getContext()).getNumberOfDecimals(scale);
+

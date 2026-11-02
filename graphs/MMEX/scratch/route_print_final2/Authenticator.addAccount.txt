@@ -1,0 +1,74 @@
+## Authenticator.addAccount  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=other_app state=- classes=non_standard;standard explicit_standard_route=no
+   1. E5fc12eb9 ENTRY/standard* [ENV: outside package: the system Settings app adds an account of type example.com (res/xml/authenticator.xml:20), and AccountManager binds AuthenticatorService (exported=false)]
+      S_ENTRY -> AuthenticatorService.<init>
+      the Add account list in system settings shows MMEX (authenticator.xml label app_name); choosing it makes AccountManager bind AuthenticatorService, and the framework creates the service by class name
+      evidence: SRC AndroidManifest.xml:455-465 (service, exported=false, intent-filter android.accounts.AccountAuthenticator); SRC res/xml/authenticator.xml:19-22; FW-SRC core/java/android/app/ActivityThread.java:3311-3321 (handleCreateService; newInstance at 3321); INFERRED AccountManagerService binds the authenticator (system_server, not read)
+        455          <service
+        456              android:name=".sync.adapter.AuthenticatorService"
+        457              android:exported="false">
+        458              <intent-filter>
+        459                  <action android:name="android.accounts.AccountAuthenticator" />
+        460              </intent-filter>
+        461  
+        462              <meta-data
+        463                  android:name="android.accounts.AccountAuthenticator"
+        464                  android:resource="@xml/authenticator" />
+        465          </service>
+         19  <!-- authenticator for sync framework -->
+         20  <account-authenticator
+         21      xmlns:android="http://schemas.android.com/apk/res/android"
+         22      android:accountType="example.com"
+       3311      private void handleCreateService(CreateServiceData data) {
+       3312          // If we are getting ready to gc after going to the background, well
+       3313          // we are back active so skip it.
+       3314          unscheduleGcIdler();
+       3315  
+       3316          LoadedApk packageInfo = getPackageInfoNoCheck(
+       3317                  data.info.applicationInfo, data.compatInfo);
+       3318          Service service = null;
+       3319          try {
+       3320              java.lang.ClassLoader cl = packageInfo.getClassLoader();
+       3321              service = (Service) cl.loadClass(data.info.name).newInstance();
+   2. E608059ee LIFECYCLE/standard*
+      AuthenticatorService.<init> -> AuthenticatorService.onCreate
+      the framework calls onCreate on the new service (handleCreateService)
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:3339 (service.onCreate); SRC sync/adapter/AuthenticatorService.java:33-37
+       3339              service.onCreate();
+         33      @Override
+         34      public void onCreate() {
+         35          // Create a new authenticator object
+         36          mAuthenticator = new Authenticator(this);
+         37      }
+   3. E5e89100e LIFECYCLE/standard*
+      AuthenticatorService.onCreate -> AuthenticatorService.onBind
+      a client binds the created service, and the framework calls onBind (handleBindService)
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:3356-3366 (handleBindService; s.onBind at 3366); SRC sync/adapter/AuthenticatorService.java:42-45
+       3356      private void handleBindService(BindServiceData data) {
+       3357          Service s = mServices.get(data.token);
+       3358          if (DEBUG_SERVICE)
+       3359              Slog.v(TAG, "handleBindService s=" + s + " rebind=" + data.rebind);
+       3360          if (s != null) {
+       3361              try {
+       3362                  data.intent.setExtrasClassLoader(s.getClassLoader());
+       3363                  data.intent.prepareToEnterProcess();
+       3364                  try {
+       3365                      if (!data.rebind) {
+       3366                          IBinder binder = s.onBind(data.intent);
+         42      @Override
+         43      public IBinder onBind(Intent intent) {
+         44          return mAuthenticator.getIBinder();
+         45      }
+   4. E202d507b FRAMEWORK/non_standard(AbstractAccountAuthenticator binder stub: onBind returns the IBinder from getIBinder, and the stub dispatches addAccount (the library and AccountManagerService are not in fw_src; INFERRED))
+      AuthenticatorService.onBind -> Authenticator.addAccount
+      the system Add account flow calls addAccount through the binder that onBind returns (getIBinder, AuthenticatorService.java:44); addAccount returns null, so no account is created
+      evidence: SRC sync/adapter/AuthenticatorService.java:42-45; SRC sync/adapter/Authenticator.java:43-46; INFERRED framework binder dispatch (AbstractAccountAuthenticator not read)
+         42      @Override
+         43      public IBinder onBind(Intent intent) {
+         44          return mAuthenticator.getIBinder();
+         45      }
+         43      @Override
+         44      public Bundle addAccount(AccountAuthenticatorResponse accountAuthenticatorResponse, String s, String s1, String[] strings, Bundle bundle) throws NetworkErrorException
+         45          return null;
+         46      }
+

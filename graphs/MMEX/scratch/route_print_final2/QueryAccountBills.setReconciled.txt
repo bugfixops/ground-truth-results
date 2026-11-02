@@ -1,0 +1,163 @@
+## QueryAccountBills.setReconciled  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=- state=- classes=explicit;standard explicit_standard_route=yes
+   1. E71c76102 ENTRY/standard*
+      S_ENTRY -> MainActivity.<init>
+      The MAIN / LAUNCHER activity is started from the launcher
+      evidence: SRC AndroidManifest.xml:136-143 (MAIN + LAUNCHER intent filter of com.money.manager.ex.home.MainActivity)
+        136                  android:name=".home.MainActivity"
+        137                  android:label="@string/application_name" android:exported="true">
+        138              <intent-filter>
+        139                  <action android:name="android.intent.action.MAIN" />
+        140  
+        141                  <category android:name="android.intent.category.LAUNCHER" />
+        142                  <!-- Samsung MultiWindow Function -->
+        143                  <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
+   2. E2e074fc1 LIFECYCLE/standard*
+      MainActivity.<init> -> MainActivity.onCreate
+      the framework calls onCreate after it creates the activity instance
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2722-2731 (callActivityOnCreate); FW-SRC core/java/android/app/Instrumentation.java:1212-1216; FW-SRC core/java/android/app/Activity.java:6993-7000 (performCreate calls onCreate); same route as graph_def.py AccountEditActivity.<init> -> onCreate
+       2722                  int theme = r.activityInfo.getThemeResource();
+       2723                  if (theme != 0) {
+       2724                      activity.setTheme(theme);
+       2725                  }
+       2726  
+       2727                  activity.mCalled = false;
+       2728                  if (r.isPersistable()) {
+       2729                      mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+       2730                  } else {
+       2731                      mInstrumentation.callActivityOnCreate(activity, r.state);
+       1212      public void callActivityOnCreate(Activity activity, Bundle icicle) {
+       1213          prePerformCreate(activity);
+       1214          activity.performCreate(icicle);
+       1215          postPerformCreate(activity);
+       1216      }
+       6993      final void performCreate(Bundle icicle, PersistableBundle persistentState) {
+       6994          mCanEnterPictureInPicture = true;
+       6995          restoreHasCurrentPermissionRequest(icicle);
+       6996          if (persistentState != null) {
+       6997              onCreate(icicle, persistentState);
+       6998          } else {
+       6999              onCreate(icicle);
+       7000          }
+   3. E42f75996 LIFECYCLE/standard*
+      MainActivity.onCreate -> MainActivity.onStart
+      the framework starts the activity right after onCreate (performLaunchActivity runs performStart)
+      evidence: SRC home/MainActivity.java:179-181, 248-249; FW-SRC core/java/android/app/ActivityThread.java:2740-2760 (performStart at 2741)
+        179      protected void onCreate(Bundle savedInstanceState) {
+        180          super.onCreate(savedInstanceState);
+        181  
+       2740                  if (!r.activity.mFinished) {
+       2741                      activity.performStart();
+       2742                      r.stopped = false;
+       2743                  }
+       2744                  if (!r.activity.mFinished) {
+       2745                      if (r.isPersistable()) {
+       2746                          if (r.state != null || r.persistentState != null) {
+       2747                              mInstrumentation.callActivityOnRestoreInstanceState(activity, r.state,
+       2748                                      r.persistentState);
+       2749                          }
+       2750                      } else if (r.state != null) {
+       2751                          mInstrumentation.callActivityOnRestoreInstanceState(activity, r.state);
+       2752                      }
+       2753                  }
+      ...  (7 more lines)
+   4. Ed7c3255d LIFECYCLE/standard*
+      MainActivity.onStart -> MainActivity.onResume
+      after onStart the framework resumes the activity (performResume)
+      evidence: SRC home/MainActivity.java:248-249, 271-273; FW-SRC core/java/android/app/ActivityThread.java:2950; FW-SRC core/java/android/app/Activity.java:7098-7104
+        248      protected void onStart() {
+        249          super.onStart();
+       2950              r.activity.performResume();
+       7098      final void performResume() {
+       7099          performRestart();
+       7100  
+       7101          mFragments.execPendingActions();
+       7102  
+       7103          mLastNonConfigurationInstances = null;
+       7104  
+   5. E907a4a17 FRAMEWORK/standard*
+      MainActivity.onResume -> HomeFragment.onResume
+      super.onResume (MainActivity.java:273, inside try 272-276) dispatches onResume to the fragments
+      evidence: SRC home/MainActivity.java:271-276; SRC home/HomeFragment.java:378-401; INFERRED androidx FragmentActivity dispatch (library not read); pattern graph_def.py:2071
+        271      protected void onResume() {
+        272          try {
+        273              super.onResume();
+        274          } catch (Exception e) {
+        275              Timber.e(e, "resuming main activity");
+        276          }
+        378      @Override
+        379      public void onResume() {
+        380          super.onResume();
+        381  
+        382          refreshSettings();
+        383  
+        384          // Toolbar
+        385          FragmentActivity parent = getActivity();
+        386          if (parent instanceof AppCompatActivity) {
+        387              AppCompatActivity activity = (AppCompatActivity) getActivity();
+        388  
+        389              // show title
+        390              activity.getSupportActionBar().setDisplayShowTitleEnabled(true);
+        391  
+      ...  (10 more lines)
+   6. E4612a5e5 CALL/explicit*
+      HomeFragment.onResume -> HomeFragment.startLoaders
+      Direct call
+      evidence: SRC HomeFragment.java:400 (bytecode)
+        400          startLoaders();
+   7. Ef3db1a02 FRAMEWORK/standard*
+      HomeFragment.startLoaders -> HomeFragment.onCreateLoader
+      restartLoader(LOADER_ACCOUNT_BILLS) and restartLoader(LOADER_INCOME_EXPENSES) (HomeFragment.java:535-536) make the LoaderManager call onCreateLoader
+      evidence: SRC home/HomeFragment.java:531-537; INFERRED androidx LoaderManager (library not read); pattern label_073.py:32-34
+        531      public void startLoaders() {
+        532          LoaderManager loaderManager = getLoaderManager();
+        533  //        loaderManager.restartLoader(LOADER_USER_NAME, null, this);
+        534          loadUsername();
+        535          loaderManager.restartLoader(LOADER_ACCOUNT_BILLS, null, this);
+        536          loaderManager.restartLoader(LOADER_INCOME_EXPENSES, null, this);
+        537      }
+   8. Eaf7907a9 FRAMEWORK/standard*
+      HomeFragment.onCreateLoader -> HomeFragment.onLoadFinished
+      the loader delivers its cursor to onLoadFinished when the load completes
+      evidence: SRC home/HomeFragment.java:222-273, 287-288; INFERRED androidx Loader delivery (library not read); pattern label_073.py:27-29
+        222      public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        223          MmxCursorLoader result;
+        224          Select query;
+        225  
+        226          switch (id) {
+        227              case LOADER_ACCOUNT_BILLS:
+        228                  setListViewAccountBillsVisible(false);
+        229  
+        230                  LookAndFeelSettings settings = new AppSettings(getContext()).getLookAndFeelSettings();
+        231                  // compose whereClause
+        232                  String where = "";
+        233                  // check if show only open accounts
+        234                  if (settings.getViewOpenAccounts()) {
+        235                      where = "LOWER(" + QueryAccountBills.STATUS + ")='open'";
+      ...  (38 more lines)
+   9. Ea7478604 CALL/explicit*
+      HomeFragment.onLoadFinished -> HomeFragment.renderAccountsList
+      onLoadFinished renders the account list for the account-bills loader result
+      guard: loader.getId() == LOADER_ACCOUNT_BILLS (HomeFragment.java:288-291)
+      evidence: SRC home/HomeFragment.java:287-291 (loader-id switch :287-288, LOADER_ACCOUNT_BILLS branch :288-291, renderAccountsList call :291)
+        287      public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        288          switch (loader.getId()) {
+        289              case LOADER_ACCOUNT_BILLS:
+        290                  try {
+        291                      renderAccountsList(data);
+  10. E0ef3fa39 CALL/explicit*
+      HomeFragment.renderAccountsList -> HomeFragment.showAccountTotals
+      Direct call
+      evidence: SRC HomeFragment.java:804 (bytecode)
+        804              showAccountTotals(cursor);
+  11. E6cc59a43 CALL/explicit*
+      HomeFragment.showAccountTotals -> QueryAccountBills.setValueFromCursor
+      Direct call
+      evidence: SRC HomeFragment.java:823 (bytecode)
+        823              accountTransaction.setValueFromCursor(cursor);
+  12. E6c8e7c4e CALL/explicit*
+      QueryAccountBills.setValueFromCursor -> QueryAccountBills.setReconciled
+      Direct call
+      evidence: SRC QueryAccountBills.java:221 (bytecode)
+        221          this.setReconciled(c.getDouble(c.getColumnIndex(RECONCILED)));
+

@@ -1,0 +1,102 @@
+## SyncPreferences.getUploadImmediately  REACHABLE  confirmed_by=SOURCE path=UNCHECKED
+   env=- state=- classes=explicit;standard explicit_standard_route=yes
+   1. E71c76102 ENTRY/standard*
+      S_ENTRY -> MainActivity.<init>
+      The MAIN / LAUNCHER activity is started from the launcher
+      evidence: SRC AndroidManifest.xml:136-143 (MAIN + LAUNCHER intent filter of com.money.manager.ex.home.MainActivity)
+        136                  android:name=".home.MainActivity"
+        137                  android:label="@string/application_name" android:exported="true">
+        138              <intent-filter>
+        139                  <action android:name="android.intent.action.MAIN" />
+        140  
+        141                  <category android:name="android.intent.category.LAUNCHER" />
+        142                  <!-- Samsung MultiWindow Function -->
+        143                  <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
+   2. E2e074fc1 LIFECYCLE/standard*
+      MainActivity.<init> -> MainActivity.onCreate
+      the framework calls onCreate after it creates the activity instance
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2722-2731 (callActivityOnCreate); FW-SRC core/java/android/app/Instrumentation.java:1212-1216; FW-SRC core/java/android/app/Activity.java:6993-7000 (performCreate calls onCreate); same route as graph_def.py AccountEditActivity.<init> -> onCreate
+       2722                  int theme = r.activityInfo.getThemeResource();
+       2723                  if (theme != 0) {
+       2724                      activity.setTheme(theme);
+       2725                  }
+       2726  
+       2727                  activity.mCalled = false;
+       2728                  if (r.isPersistable()) {
+       2729                      mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+       2730                  } else {
+       2731                      mInstrumentation.callActivityOnCreate(activity, r.state);
+       1212      public void callActivityOnCreate(Activity activity, Bundle icicle) {
+       1213          prePerformCreate(activity);
+       1214          activity.performCreate(icicle);
+       1215          postPerformCreate(activity);
+       1216      }
+       6993      final void performCreate(Bundle icicle, PersistableBundle persistentState) {
+       6994          mCanEnterPictureInPicture = true;
+       6995          restoreHasCurrentPermissionRequest(icicle);
+       6996          if (persistentState != null) {
+       6997              onCreate(icicle, persistentState);
+       6998          } else {
+       6999              onCreate(icicle);
+       7000          }
+   3. E1975beaa CALL/explicit*
+      MainActivity.onCreate -> InfoService.setInfoValue
+      onCreate generates and stores a UID for this install when none is set
+      guard: !showPrerequisite() (MainActivity.java:184-187) AND (uid == null OR uid.isEmpty()) where uid = getInfoValue(UID) (MainActivity.java:228-233)
+      evidence: SRC home/MainActivity.java:184-187 (prerequisite gate), 226-233 (UID read :228, setInfoValue call :233); SRC servicelayer/InfoService.java:139 (exists check)
+        184          if (showPrerequisite()) {
+        185              finish();
+        186              return;
+        187          }
+        139          boolean exists = (getInfoValue(key) != null);
+   4. Ece87d249 CALL/explicit*
+      InfoService.setInfoValue -> InfoRepositorySql.update
+      setInfoValue updates the existing info row for the key
+      guard: exists, i.e. getInfoValue(key) != null (InfoService.java:139, :144-145)
+      evidence: SRC servicelayer/InfoService.java:139 (exists assignment), :144-145 (if (exists) update call)
+        139          boolean exists = (getInfoValue(key) != null);
+   5. E2409594a CALL/explicit*
+      InfoRepositorySql.update -> SqlRepositoryBase.update
+      Direct call
+      evidence: SRC InfoRepositorySql.java:76 (bytecode)
+         76          return update(entity, Info.INFONAME + "=?", entity.getName());
+   6. Ef6bd6929 CALL/explicit*
+      SqlRepositoryBase.update -> SqlRepositoryBase.notifySync
+      update notifies sync listeners when a row was actually changed
+      guard: updateResult != 0 (SqlRepositoryBase.java:117-118)
+      evidence: SRC datalayer/SqlRepositoryBase.java:110-118 (database.update :110-115, result check :117, notifySync call :118)
+        110          int updateResult = database.update(tableName,
+        111                  CONFLICT_FAIL,
+        112                  values,
+        113                  where,
+        114                  selectionArgs
+        115          );
+        116  
+        117          if (updateResult != 0) {
+        118              notifySync();
+   7. Ef8378602 CALL/explicit*
+      SqlRepositoryBase.notifySync -> SyncManager.dataChanged
+      Direct call
+      evidence: SRC SqlRepositoryBase.java:132 (bytecode)
+        132          new SyncManager(MmexApplication.getApp()).dataChanged();
+   8. Ee260f9b8 CALL/explicit*
+      SyncManager.dataChanged -> SyncPreferences.getUploadImmediately
+      dataChanged checks whether an immediate upload is configured
+      guard: isSyncEnabled() (SyncManager.java:131) AND !TextUtils.isEmpty(getRemotePath()) (:134-135) AND !mAutoUploadDisabled (:141) AND canSync() (:142-145)
+      evidence: SRC sync/SyncManager.java:131-149 (isSyncEnabled :131, remote check :134-135, auto-upload flag :141, canSync :142-145, getUploadImmediately call :149)
+        131          if (!isSyncEnabled()) return;
+        132  
+        133          // Check if the current database is linked to a cloud service.
+        134          String remotePath = getRemotePath();
+        135          if (TextUtils.isEmpty(remotePath)) return;
+        136  
+        137          // Mark local file as changed.
+        138          markLocalFileChanged(true);
+        139  
+        140          // Should we upload automatically?
+        141          if (mAutoUploadDisabled) return;
+        142          if (!canSync()) {
+        143              Timber.i("No network connection. Not synchronizing.");
+        144              return;
+      ...  (5 more lines)
+

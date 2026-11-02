@@ -1,0 +1,91 @@
+## AppSettings.getPreferences  REACHABLE  confirmed_by=SOURCE path=UNCHECKED
+   env=- state=- classes=explicit;standard explicit_standard_route=yes
+   1. E71c76102 ENTRY/standard*
+      S_ENTRY -> MainActivity.<init>
+      The MAIN / LAUNCHER activity is started from the launcher
+      evidence: SRC AndroidManifest.xml:136-143 (MAIN + LAUNCHER intent filter of com.money.manager.ex.home.MainActivity)
+        136                  android:name=".home.MainActivity"
+        137                  android:label="@string/application_name" android:exported="true">
+        138              <intent-filter>
+        139                  <action android:name="android.intent.action.MAIN" />
+        140  
+        141                  <category android:name="android.intent.category.LAUNCHER" />
+        142                  <!-- Samsung MultiWindow Function -->
+        143                  <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
+   2. E2e074fc1 LIFECYCLE/standard*
+      MainActivity.<init> -> MainActivity.onCreate
+      the framework calls onCreate after it creates the activity instance
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2722-2731 (callActivityOnCreate); FW-SRC core/java/android/app/Instrumentation.java:1212-1216; FW-SRC core/java/android/app/Activity.java:6993-7000 (performCreate calls onCreate); same route as graph_def.py AccountEditActivity.<init> -> onCreate
+       2722                  int theme = r.activityInfo.getThemeResource();
+       2723                  if (theme != 0) {
+       2724                      activity.setTheme(theme);
+       2725                  }
+       2726  
+       2727                  activity.mCalled = false;
+       2728                  if (r.isPersistable()) {
+       2729                      mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+       2730                  } else {
+       2731                      mInstrumentation.callActivityOnCreate(activity, r.state);
+       1212      public void callActivityOnCreate(Activity activity, Bundle icicle) {
+       1213          prePerformCreate(activity);
+       1214          activity.performCreate(icicle);
+       1215          postPerformCreate(activity);
+       1216      }
+       6993      final void performCreate(Bundle icicle, PersistableBundle persistentState) {
+       6994          mCanEnterPictureInPicture = true;
+       6995          restoreHasCurrentPermissionRequest(icicle);
+       6996          if (persistentState != null) {
+       6997              onCreate(icicle, persistentState);
+       6998          } else {
+       6999              onCreate(icicle);
+       7000          }
+   3. Ee0c1d96c CALL/explicit*
+      MainActivity.onCreate -> MainActivity.handleIntent
+      onCreate handles the launch intent after the prerequisite check passes
+      guard: !showPrerequisite() (MainActivity.java:184-187; tutorial not needed and a database available)
+      evidence: SRC home/MainActivity.java:184-187 (prerequisite gate), 210 (handleIntent call)
+        184          if (showPrerequisite()) {
+        185              finish();
+        186              return;
+        187          }
+   4. E74cee0fe CALL/explicit*
+      MainActivity.handleIntent -> MainActivity.changeDatabase
+      handleIntent switches to the database named by the launch intent file URI
+      guard: intent != null (MainActivity.java:1186) AND intent.getData() != null (:1189) AND no exception from URLDecoder.decode / DatabaseMetadataFactory.getInstance (:1192-1198)
+      evidence: SRC home/MainActivity.java:1186-1202 (intent null check :1186, getData check :1189, try block :1192-1200, exception path :1201-1202)
+       1186          if (intent == null) return;
+       1187  
+       1188          // Open a db file
+       1189          if (intent.getData() != null) {
+       1190              String pathFile = getIntent().getData().getEncodedPath();
+       1191              // decode
+       1192              try {
+       1193                  String filePath = URLDecoder.decode(pathFile, "UTF-8"); // decode file path
+       1194                  Timber.d("Path intent file to open: %s", filePath);
+       1195  
+       1196                  // Open this database.
+       1197                  startActivity(new Intent(MainActivity.this, PasswordActivity.class));
+       1198                  DatabaseMetadata db = DatabaseMetadataFactory.getInstance(filePath);
+       1199                  changeDatabase(db);
+      ...  (3 more lines)
+   5. Ecb944bb8 CALL/explicit*
+      MainActivity.changeDatabase -> MmxDatabaseUtils.useDatabase
+      Direct call
+      evidence: SRC MainActivity.java:546 (bytecode)
+        546              dbUtils.useDatabase(database);
+   6. E80087d60 CALL/explicit*
+      MmxDatabaseUtils.useDatabase -> DatabaseSettings.setDatabasePath
+      Direct call
+      evidence: SRC MmxDatabaseUtils.java:210 (bytecode)
+        210                  .setDatabasePath(database.localPath);
+   7. Eeab0559c CALL/explicit*
+      DatabaseSettings.setDatabasePath -> SettingsBase.set(Integer,String)@AppSettings
+      Direct call (through AppSettings.set)
+      evidence: SRC DatabaseSettings.java:38 (bytecode)
+         38          mAppSettings.set(R.string.pref_database_path, path);
+   8. Ebb73a633 CALL/explicit*
+      SettingsBase.set(Integer,String)@AppSettings -> AppSettings.getPreferences
+      Direct call
+      evidence: SRC SettingsBase.java:90 (bytecode)
+         90          getPreferences().edit()
+
