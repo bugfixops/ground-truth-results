@@ -435,3 +435,10 @@ None of these stops the run. Each row stays unlabelled until its question is ans
 - Delta reconciliation: 200 batch rows (164 REACHABLE + 36 UNREACHABLE); 71 REACHABLE rows were already REACHABLE before this merge, so newly resolved = 93 + 36 = 129 = UNRESOLVED drop. No label flips.
 - Check-2 (uncapped set + official tool): 196 distinct / 136 problems, EMPTY diff vs b057 (and vs b062). Gate intent "no new problem" satisfied.
 - MERGED_PARTS now ends b067. Next in order: b068-b072 (incl. FAIL-fix b070/b071), then b073-b075 (incl. b074 + G15:2060 at b075).
+
+## A4 b068-b072 (2026-11-02, merger continuation; r58 basename rework, LT-2205-1; r58 audit PASS)
+- Merged reworked parts/b068.py-b072.py in one 5-part build, in merger order (rework/r58/ .py files; .md/printed from parts-staging, unchanged). Harness re-run PASS this session for all five on the merged tree copies (b068 31R/9U/31/0, b069 32R/8U/32/0, b070 32R/8U/27/0, b071 40R/0U/31/0, b072 39R/1U/33/0); zero tripping citations re-verified in the reworked files. No merger edits to any part in this group. This group carries the FAIL-fix parts b070/b071: the 6 audit-FAIL edge ids (b070 E8cdde130, Ee9681d80, E2b46ecd2, Ef9b72631; b071 E92044e27, E3d3e83f6) are absent from the current check-2 problem owners, as the r58 audit required.
+- Build scratch/build_b068_b069_b070_b071_b072.txt: methods 4732, edges 6626 (+68), REACHABLE 3220 (+67), UNREACHABLE 715 (+26), UNRESOLVED 797 (-93), errors 797 (error set = UNRESOLVED set), warnings 15 (identical warning set to b067).
+- Delta reconciliation: 200 batch rows (174 REACHABLE + 26 UNREACHABLE); 107 REACHABLE rows were already REACHABLE before this merge, so newly resolved = 67 + 26 = 93 = UNRESOLVED drop. No label flips.
+- Check-2 (uncapped set + official tool): 196 distinct / 136 problems, EMPTY diff vs b057 (and vs b067). Gate intent "no new problem" satisfied.
+- MERGED_PARTS now ends b072. Next in order: b073-b075 (incl. b074 FAIL-fix + G15:2060 hand-edge removal at b075).
