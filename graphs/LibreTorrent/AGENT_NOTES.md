@@ -595,3 +595,53 @@ warning classes.
 - Check-8: 33 of 764, byte-identical to baseline (re-derived on the snapshot scan).
 - Untouched pending-ruling items: Class A 134 file-not-found (108 data-binding incl. 2 variant forms + 26 Room, composition identical to baseline); Class B 7 close-edge ids present with byte-identical citations; notifySound auto edge E673d2ce0 present with byte-identical evidence (SRC AppearanceSettingsFragment.java:213 (bytecode)). No suppression, deletion, invented citation, silent drop, or explained-class recording. This package claims NO F1 bar met: check-4 bad 141, warnings 16, check-8 33, errors 86.
 - Next: D7 labels gate.
+
+## Logs step
+
+Logs step (2026-11-02, docs-only helper; push pending): base
+a9e8b93d / graph_def 564da867 / 4732 methods / 7293 edges /
+R3882 / U764 / UNRES86. Logs-step package: writer +
+verification.csv + eight checks + C4 docs (readme_notes.md,
+LESSONS.md, ROUTES_NOTES.md, this AGENT_NOTES delta). B6 final
+table: 27 routes (STATE pool empty, not 30), 407 steps, 294
+distinct edges, CORRECT 19 / WRONG 8 / UNCLEAR 0 / BLOCKED 0,
+rate 8/27 ≈ 0.2963, FIXED 0.
+
+Logs step complete pending push; next: coordinator-dispatched
+push, then device D1/D3/D7, then CI rebuild → SUMMARY gate →
+dry-run request → D9. No device run started; no F1 claim. B6 did
+NOT fix WRONG routes in place (FIXED = 0): the 8 WRONG routes stay
+WRONG with their decisive-step reasons; fix directions in the B6
+report are NOT applied here.
+
+Note on placement: the branch file has no "## Current step"
+section (its only "Current step" text is a bullet at line 5 inside
+"## Current status"); that bullet is left untouched. The former
+block-2 content is carried in this section, not as a replacement
+of any existing section.
+
+## Decisions
+
+Decisions (Muse's own, for user/Yang review — NEVER attributed to
+Yang), 2026-11-02 logs step:
+- Caveat-2 ruling (i) adopted: TorrentDownloadImpl.havePiece is CORRECT under ruling (i) — the caveat attaches ONLY to drawn route steps, and its shutdown-first premise chain
+  (SchedulerReceiver/TorrentService/Utils setup methods, all in
+  unresolved_86.txt) was verified directly from source, not from
+  the graph, so it is setup history, not a drawn step.
+  Contingency, NOT adopted: if the gate adopts rule (ii) (caveat
+  attaches to any method the verdict depends on), route 2 becomes
+  BLOCKED with no verdict, counts become CORRECT 18 / WRONG 8 /
+  BLOCKED 1, rate 8/26 ≈ 0.3077. Both the adopted ruling and the
+  exact alternative disposition are carried.
+- The 59/32 edge Ea751b47d appears in ZERO sampled routes and is
+  never claimed as a verified route. All 407 drawn steps have 0
+  src/dst touches of unresolved_86.txt.
+- The STATE stratum pool is empty (0 STATE-gated methods in all 4732 rows), which is why the sample is 27, not 30 — do NOT pad it to 30.
+- No label changes in this step: labels stay R3882/U764/UNRES86
+  unless a separate audited T1 execution (NOT this task) changes
+  them.
+- T1 + R1–R8 still owed: technical blocker T1 (86 UNRESOLVED)
+  and user-owed rulings R1 D4 FeedParser, R2 D5 Class A route,
+  R3 D5 Class B handling, R4 notifySound option, R5 b034 dedupe,
+  R6 batch-3 row 26 OPEN flag, R7 59/32 label question, R8
+  check-2 131 disposition. None closed by this logs step.
