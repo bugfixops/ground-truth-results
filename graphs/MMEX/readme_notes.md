@@ -55,6 +55,35 @@ the reading rule).
 - One path row per route in this final sample appears in
   `verification.csv`; the label rows cover all 840
   UNREACHABLE methods plus the 30 sampled reachable methods.
+- The sample above was drawn before the log step (the B7
+  writer run) wrote `verification.csv`. The label rows the
+  log step wrote change which 30 methods the sampler picks
+  on the final graph, so a fresh sampler run now draws a
+  different 30; the judged routes in this table are still
+  current — the writer's STALE check passed (every path
+  row's edges equal the method's current `route_edge_ids`,
+  0 STALE refusals) and the cdab515a status-check rebuild
+  ran with checks 2/4 at 0 and 0 STALE warnings.
+- Why `verification.csv` has 0 edge rows although the final
+  table has 11 FIXED steps: an edge row is emitted for
+  exactly one thing — a corrected graph edge listed in
+  `scratch/corrected_edges.tsv` (writer docstring and code;
+  B7 run-log section 5). The 11 FIXED steps are judging
+  corrections (guard/citation readings recorded on the
+  route's path row), not corrections to any graph edge's
+  text, and no audited MMEX source names a corrected edge
+  with an id and ref; the B6 construction changes (edges
+  added, suppressed, retargeted) are already represented
+  through the path rows' current `route_edge_ids`, and
+  re-listing them as edge rows would double-count
+  construction as route-check evidence. `corrected_edges.tsv`
+  is therefore explicitly empty (0 bytes), which is the
+  writer's required way to record zero edge rows — not a
+  missing input. Inventing edge rows from FIXED steps would
+  violate the no-invention rule; if a qualifying corrected
+  edge with audited evidence is later identified, the remedy
+  is to populate `corrected_edges.tsv` and re-run the writer,
+  never to hand-add a row to `verification.csv`.
 
 ## What waits for a device (API 27)
 
