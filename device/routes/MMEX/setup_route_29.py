@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """MMEX per-route setup for route_29 (AppSettings.getPreferences) -- bootstrap (audit §3.2).
 
-Bootstrap only: no seed rows are needed, because route_20's chain needs
+Bootstrap only: no seed rows are needed, because route_29's chain needs
 nothing but a reachable home screen (drawer -> About -> Logcat button).
 
 What this setup does, in run_app.sh order (after `pm clear`, before the

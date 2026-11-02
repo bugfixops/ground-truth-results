@@ -22,7 +22,7 @@
 ## Final tally
 
 - Routes: CORRECT 20 / FIXED 8 / WRONG 0 / UNCLEAR 2 = 30.
-- Steps: correct 436 / fixed 11 / wrong 0 / unclear 3 = 450.
+- Steps: correct 433 / fixed 14 / wrong 0 / unclear 3 = 450.
 - Final error rate = (fixed + wrong) / (correct + fixed + wrong)
   = (8 + 0) / (20 + 8 + 0) = 8 / 28 = 0.2857.
   (UNCLEAR excluded per the formula. The B6 rate 0.5357 is NOT

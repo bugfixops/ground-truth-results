@@ -65,10 +65,10 @@ the reading rule).
   0 STALE refusals) and the cdab515a status-check rebuild
   ran with checks 2/4 at 0 and 0 STALE warnings.
 - Why `verification.csv` has 0 edge rows although the final
-  table has 11 FIXED steps: an edge row is emitted for
+  table has 14 FIXED steps: an edge row is emitted for
   exactly one thing — a corrected graph edge listed in
   `scratch/corrected_edges.tsv` (writer docstring and code;
-  B7 run-log section 5). The 11 FIXED steps are judging
+  B7 run-log section 5). The 14 FIXED steps are judging
   corrections (guard/citation readings recorded on the
   route's path row), not corrections to any graph edge's
   text, and no audited MMEX source names a corrected edge

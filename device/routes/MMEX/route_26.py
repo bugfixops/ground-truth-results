@@ -12,7 +12,7 @@ Permissions: none (print header env=-, so no ENV permission gate;
     no permission is granted by this script).
 Fixtures: none (print header state=-; no STATE file gate; no
     $WEMU/fixtures file is needed).
-Setup: none (apps.csv MMEX setup is "none (minSdk 22)").
+Setup: setup_route_26.py bootstrap (app-created database + tutorial off + databasepath).
 State precondition NOT created by this script (read before replay):
     MainActivity.onCreate calls populateScheduledTransactions only
     after showPrerequisite() returns false (home/MainActivity.java:184-187;

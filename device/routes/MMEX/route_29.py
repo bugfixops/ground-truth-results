@@ -12,11 +12,10 @@ Permissions: none (print header env=-, so no ENV permission gate;
     no permission is granted by this script).
 Fixtures: none (no $WEMU/fixtures file is listed: the .mmb file this
     route needs is NOT in $WEMU/fixtures -- see Setup).
-Setup: a valid .mmb database file on the device, named in the launch
-    intent below. This is not a fixture (none exists in
-    $WEMU/fixtures) and not apps.csv setup (MMEX setup is "none
-    (minSdk 22)"): the file must be supplied by whoever stages the
-    run, and MmxDatabaseUtils.useDatabase rejects a file that is not
+Setup: setup_route_29.py stages it: the setup copies the
+    app-initialised bootstrap database to
+    /sdcard/Download/database.mmb before this script runs, and
+    MmxDatabaseUtils.useDatabase rejects a file that is not
     a valid database (utils/MmxDatabaseUtils.java:204-206).
 State precondition NOT created by this script (read before replay):
     The intent is handled only after showPrerequisite() returns

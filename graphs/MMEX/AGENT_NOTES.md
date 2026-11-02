@@ -2,8 +2,9 @@
 
 ## Current step
 - 2026-11-02: finish run — B6, routes 8+18, showPrerequisite guard, section-9 getContext repair, Sync re-feed v2, and route-14 loader-id partition all landed on work-2026-10-31 (commits ae6313df, b559d1c8, 18e5080b, 81cab02f). Final tree build: 4270 methods, 3430 REACHABLE / 840 UNREACHABLE, 8441 edges, errors 0, warnings 0.
-- 2026-11-02: final redraw + fresh judging, independently audited (PASS): final table CORRECT 20 / FIXED 8 / WRONG 0 / UNCLEAR 2, error rate 8/28 = 0.2857. B7 logs staged (writer v2, no-arg from repo root; verification.csv 900 rows: 30 path / 870 label / 0 edge). B7 audit of the staged batch is next, then the B2 push.
-- Next: device D1/D3/D7 (ROUTES.csv + scripts from the final sample, drycheck); CI SUMMARY + D9 dry-run gates remain coordinator-owned. No real emulator run in this stream.
+- 2026-11-02: final redraw + fresh judging, independently audited (PASS): final table CORRECT 20 / FIXED 8 / WRONG 0 / UNCLEAR 2, error rate 8/28 = 0.2857. B7 logs pushed as B2 (commit 1132070e; writer v2, no-arg from repo root; verification.csv 900 rows: 30 path / 870 label / 0 edge).
+- 2026-11-02: device B3 pushed (commit cdab515a; see "## Device B3 (pushed 2026-11-02)" below) and the round readme note pushed (commit c3806a05). The device merge to 26 scripted / 4 unscriptable is complete LOCALLY (routes 06/10/12/14 converted; merged-layout drycheck 30/0 in both modes; writer reproduction byte-identical to branch verification.csv); it is Push-1 content in the one-app-at-a-time regime and is NOT on the branch yet. The route-14 push is NOT pending: it landed as 81cab02f, and the "push pending at append time" wording in the route-14 section below is historical (true at append time only).
+- Next: Push-1 assembly (device merge + this B3 section + ROUTES_NOTES.md + FIXED-steps recount resolution), then coordinator-dispatched CI rebuild request, CI SUMMARY gate, D9 dry-run gate, and the coordinator's [K] line. No real emulator run in this stream.
 - Decisions made by Muse for user/Yang review are in "## Decisions made by Muse (for the user and Yang to review)" at the end of this file.
 
 ## Facts checked
@@ -454,6 +455,104 @@ own design + audit). B7 stale ids: Ef9d523dd -> Ef27e0542,
 E3a19df72 -> E428631c7 (functional successor; regenerate rows, never
 hand-swap). Full record: merger/scratch/fix_log.md (route-14
 section). No verdict claimed until the final redraw + re-judge.
+
+## Device B3 (pushed 2026-11-02, commit cdab515a)
+
+B3 package as pushed (43 files, 43/43 blob read-back; parent e9938693).
+This section was excluded from the B3 push by scope and is written in
+the MMEX turn as Push-1 content; it changes no graph, writer, or
+script fact.
+
+- ROUTES.csv (blob 4ed18b4c): 30 rows, 22 scripted / 8 unscriptable.
+  Unscriptable in B3: routes 06, 07, 08, 10, 11, 12, 14, 19. The
+  B3-stage reasons for the four later converted routes: route_06
+  needed a valid saved recurring transaction with a new split
+  category and an account to save against, with the form-entry tap
+  sequence ungrounded; route_10 needed the payee report query to
+  return at least one row, with the transaction-entry flow
+  ungrounded; route_12 needed a tablet layout (fragmentChart exists
+  only in layout-sw600dp-land and layout-sw720dp-port) plus
+  populated income/expense data, with the transaction seed
+  ungrounded; route_14 needed a database with a due recurring
+  transaction (QueryBillDeposits DAYSLEFT<=0) and a set passcode,
+  with no fixture or setup to create either, plus an ungrounded
+  notification-shade tap.
+- Scripts: 22 route scripts + 18 setups, from the final sample only.
+- Writer (blob 625e2e4e): branch writer v2 plus the DEVICE block
+  only; output without a results file is byte-identical to the
+  branch writer, and exactly 3 DEVICE rows are appended when a
+  synthetic results file is supplied.
+- run_app.sh (blob 25dab457): branch run_app.sh plus the
+  comment-only MMEX-B3-UIDRIVE amendment (see below).
+- verification.csv was NOT re-pushed in B3 (AnkiDroid D1 precedent:
+  the B2 csv already reproduces byte-identically from the writer).
+- Seeded-writer drift flag, RESOLVED: a re-auditor's mismatch came
+  from a stale 8256-edge tree out/methods.csv; on the fresh
+  8441-edge build the route_edge_ids match the tree
+  verification.csv exactly on all 7 flagged methods. The writer
+  contract is against a faithful build, never stale out/.
+
+Decisions recorded for B3 (both present in branch
+handoff/MUSE_DECISIONS.md at commit 0cd4446c, blob fa6d1e14,
+verified, never duplicated by this file):
+
+- MMEX-B3-UIDRIVE: UI-driving setups are ACCEPTED, with the
+  run_app.sh contract amendment (run_app.sh runs any setup_<route>.py
+  and only its exit code matters; the harness logs setups in the
+  separate setup log, never against a route edge; a setup runs
+  before the discard coverage dump so coverage stays clean). The
+  amendment records two limits: (a) the drycheck gap — drycheck
+  never executes setups, and MMEX setups back no gen: fixture, so
+  they are entirely dry-unvalidated; (b) the return-to-home rule —
+  launch is plain am start -W -n with no task-clearing flags, so
+  setup UI state leaks into route start (setup_03's CLEAR_TASK
+  relaunch + wait_for("RetryInv") is the recorded example). Silent
+  shipment under the old "generates files" wording is forbidden.
+  Rejection was rejected because the SQLCipher database cannot be
+  seeded by a plaintext file.
+- MMEX-B3-CAP: 22/8 = 26.7% accepted FOR THAT PASS ONLY under the
+  user's cap ruling, with follow-ups for the six in-pass routes
+  open; only routes 11 and 19 were genuinely unscriptable at that
+  time. This acceptance is superseded, not erased, by the 26/4
+  cap decision for the merged package (forwarded separately to the
+  coordinator; the merger never writes handoff/MUSE_DECISIONS.md).
+
+Merged 26/4 package (turn evidence, LOCAL ONLY until Push 1):
+
+- Routes 06, 10, 12, 14 converted to scripted with UI-driving
+  setups under MMEX-B3-UIDRIVE: account, transaction, and
+  recurring-bill entry; route_12 via wm size 1920x1200 +
+  density 240 for the tablet layout. Merged ROUTES.csv: 30 rows,
+  26 scripted / 4 unscriptable (07, 08, 11, 19) = 13.3%.
+  Cell-diff vs the B3 ROUTES.csv: ONLY setup + status cells on
+  06/10/12/14 change; methods, edges, and sources are identical
+  on all 30 rows. Route_26/29 merge diffs are doc-only (route
+  docstring setup descriptions rewritten to the setup scripts;
+  setup docstrings' route-number typo fixed, route_20 to
+  route_26 / route_29). No code change in either.
+- 1-in-3 script audit PASS (audit/fix2-1in3/AUDIT.md: all 10
+  sampled scripts, all five contract rulings ACCEPT, including
+  route_12 wm reset in finally, route_14 kill_app ending +
+  passcode, route_10 drawer collision, route_14 shade via
+  live-only adb, route_06 two fresh splits + "$0.00" anchoring).
+- Merged-layout drycheck 30/0 in both plain and --load-scripts
+  modes on the fresh 8441-edge graph (turn/drycheck-plain.log,
+  turn/drycheck-load.log). The earlier b3-sweep 27/3 was a
+  stale-graph-input artifact (8256-edge tree missing design-era
+  edges), not a script defect.
+- Writer no-args reproduction byte-identical to branch
+  verification.csv (blob 7adf3ebc; turn/writer-repro.log).
+- Cap: the 26/4 decision text was forwarded to the coordinator
+  as a DRAFT ("DRAFT until the package pushes at MMEX's turn")
+  and sits in DECISIONS in that form; the confirmed version is
+  forwarded with Push 1.
+
+Push note: the first B3 push attempt's session vanished with the
+branch verified unchanged, and the second attempt's session was
+SIGTERMed after about 30 minutes — but the commit had landed
+(14:16:17Z), confirmed by read-back; no duplicates were issued.
+The AGENT_NOTES B3 section and ROUTES_NOTES.md were not in that
+push by scope and ride Push 1 instead.
 
 ## Decisions made by Muse (for the user and Yang to review)
 
