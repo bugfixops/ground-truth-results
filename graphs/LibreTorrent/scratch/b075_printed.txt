@@ -1,0 +1,347 @@
+# Batch 75 printed evidence (fresh, C11 converter, 2026-11-01)
+# Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+# Cited files (basenames, for check_part check 8): AddFeedDialog.java, AddFeedMutableParams.java, AddFeedViewModel.java
+
+=== ui/addfeed/AddFeedDialog.java ===
+   103:     }
+   104: 
+*  105:     private void unsubscribeClipboardManager() {
+*  106:         ClipboardManager clipboard = (ClipboardManager)activity.getSystemService(Activity.CLIPBOARD_SERVICE);
+*  107:         clipboard.removePrimaryClipChangedListener(clipListener);
+*  108:     }
+   109: 
+   110:     private ClipboardManager.OnPrimaryClipChangedListener clipListener = this::switchClipboardButton;
+---
+   110:     private ClipboardManager.OnPrimaryClipChangedListener clipListener = this::switchClipboardButton;
+   111: 
+*  112:     private final ViewTreeObserver.OnWindowFocusChangeListener onFocusChanged =
+*  113:             (__) -> switchClipboardButton();
+   114: 
+   115:     private void switchClipboardButton()
+---
+   113:             (__) -> switchClipboardButton();
+   114: 
+*  115:     private void switchClipboardButton()
+*  116:     {
+*  117:         ClipData clip = Utils.getClipData(activity.getApplicationContext());
+*  118:         viewModel.showClipboardButton.set(clip != null);
+*  119:     }
+   120: 
+   121:     @Override
+---
+   139: 
+   140:     @Override
+*  141:     public void onResume()
+*  142:     {
+*  143:         super.onResume();
+*  144: 
+*  145:         /* Back button handle */
+*  146:         getDialog().setOnKeyListener((DialogInterface dialog, int keyCode, KeyEvent event) -> {
+*  147:             if (keyCode == KeyEvent.KEYCODE_BACK) {
+*  148:                 if (event.getAction() != KeyEvent.ACTION_DOWN) {
+*  149:                     return true;
+*  150:                 } else {
+*  151:                     onBackPressed();
+*  152:                     return true;
+*  153:                 }
+*  154:             } else {
+*  155:                 return false;
+*  156:             }
+*  157:         });
+*  158:     }
+   159: 
+   160:     @Override
+---
+   159: 
+   160:     @Override
+*  161:     public void onStop()
+*  162:     {
+*  163:         super.onStop();
+*  164: 
+*  165:         unsubscribeClipboardManager();
+*  166:         disposables.clear();
+*  167:     }
+   168: 
+   169:     @Override
+---
+   168: 
+   169:     @Override
+*  170:     public void onStart()
+*  171:     {
+*  172:         super.onStart();
+*  173: 
+*  174:         subscribeAlertDialog();
+*  175:         subscribeClipboardManager();
+*  176:     }
+   177: 
+   178:     @NonNull
+---
+   178:     @NonNull
+   179:     @Override
+*  180:     public Dialog onCreateDialog(Bundle savedInstanceState)
+*  181:     {
+*  182:         if (activity == null)
+*  183:             activity = (AppCompatActivity)getActivity();
+*  184: 
+*  185:         ViewModelProvider provider = new ViewModelProvider(activity);
+*  186:         viewModel = provider.get(AddFeedViewModel.class);
+*  187:         dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+*  188:         clipboardViewModel = provider.get(ClipboardDialog.SharedViewModel.class);
+*  189: 
+*  190:         FragmentManager fm = getChildFragmentManager();
+*  191:         deleteFeedDialog = (BaseAlertDialog)fm.findFragmentByTag(TAG_DELETE_FEED_DIALOG);
+*  192:         clipboardDialog = (ClipboardDialog)fm.findFragmentByTag(TAG_CLIPBOARD_DIALOG);
+*  193: 
+*  194:         long feedId = getArguments().getLong(TAG_FEED_ID, -1);
+*  195:         Uri uri = getArguments().getParcelable(TAG_URI);
+*  196:         /* Clean */
+*  197:         getArguments().putLong(TAG_FEED_ID, -1);
+*  198:         getArguments().putParcelable(TAG_URI, null);
+*  199:         initParams(uri, feedId);
+*  200: 
+*  201:         LayoutInflater i = LayoutInflater.from(activity);
+*  202:         binding = DataBindingUtil.inflate(i, R.layout.dialog_add_feed_channel, null, false);
+*  203:         binding.setViewModel(viewModel);
+*  204: 
+*  205:         initLayoutView();
+*  206: 
+*  207:         binding.getRoot().getViewTreeObserver().addOnWindowFocusChangeListener(onFocusChanged);
+*  208: 
+*  209:         return alert;
+   210:     }
+   211: 
+---
+   211: 
+   212:     @Override
+*  213:     public void onDestroyView()
+*  214:     {
+*  215:         binding.getRoot().getViewTreeObserver().removeOnWindowFocusChangeListener(onFocusChanged);
+*  216: 
+*  217:         super.onDestroyView();
+*  218:     }
+   219: 
+   220:     private void initLayoutView()
+---
+   220:     private void initLayoutView()
+   221:     {
+*  222:         binding.url.addTextChangedListener(new TextWatcher() {
+*  223:             @Override
+*  224:             public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+*  225: 
+*  226:             @Override
+*  227:             public void onTextChanged(CharSequence s, int start, int before, int count) { }
+*  228: 
+*  229:             @Override
+*  230:             public void afterTextChanged(Editable s)
+*  231:             {
+*  232:                 binding.layoutUrl.setErrorEnabled(false);
+*  233:                 binding.layoutUrl.setError(null);
+*  234:             }
+*  235:         });
+*  236:         binding.filter.addTextChangedListener(new TextWatcher() {
+*  237:             @Override
+*  238:             public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+*  239: 
+*  240:             @Override
+*  241:             public void onTextChanged(CharSequence s, int start, int before, int count) { }
+*  242: 
+*  243:             @Override
+*  244:             public void afterTextChanged(Editable s)
+*  245:             {
+*  246:                 binding.layoutFilter.setErrorEnabled(false);
+*  247:                 binding.layoutFilter.setError(null);
+*  248:             }
+*  249:         });
+*  250:         binding.layoutFilter.setEndIconOnClickListener((v) -> binding.expandableLayout.toggle());
+   251: 
+   252:         binding.clipboardButton.setOnClickListener((v) -> showClipboardDialog());
+---
+   250:         binding.layoutFilter.setEndIconOnClickListener((v) -> binding.expandableLayout.toggle());
+   251: 
+*  252:         binding.clipboardButton.setOnClickListener((v) -> showClipboardDialog());
+*  253:         switchClipboardButton();
+   254: 
+   255:         initAlertDialog(binding.getRoot());
+---
+   253:         switchClipboardButton();
+   254: 
+*  255:         initAlertDialog(binding.getRoot());
+   256:     }
+   257: 
+---
+   256:     }
+   257: 
+*  258:     private void initAlertDialog(View view)
+*  259:     {
+*  260:         AlertDialog.Builder builder = new AlertDialog.Builder(activity)
+*  261:                 .setNegativeButton(R.string.cancel, null)
+*  262:                 .setView(view);
+*  263: 
+*  264:         if (viewModel.getMode() == AddFeedViewModel.Mode.EDIT) {
+*  265:             builder.setTitle(R.string.edit_feed_channel);
+*  266:             builder.setPositiveButton(R.string.edit, null);
+*  267:             builder.setNeutralButton(R.string.delete, null);
+*  268:         } else {
+*  269:             builder.setTitle(R.string.add_feed_channel);
+*  270:             builder.setPositiveButton(R.string.add, null);
+*  271:         }
+*  272: 
+*  273:         alert = builder.create();
+*  274:         alert.setCanceledOnTouchOutside(false);
+*  275:         alert.setOnShowListener((DialogInterface dialog) -> {
+*  276:             if (viewModel.getMode() == AddFeedViewModel.Mode.EDIT) {
+*  277:                 Button editButton = alert.getButton(AlertDialog.BUTTON_POSITIVE);
+*  278:                 Button deleteButton = alert.getButton(AlertDialog.BUTTON_NEUTRAL);
+*  279:                 editButton.setOnClickListener((v) -> updateChannel());
+*  280:                 deleteButton.setOnClickListener((v) -> deleteFeedDialog());
+*  281:             } else {
+*  282:                 Button addButton = alert.getButton(AlertDialog.BUTTON_POSITIVE);
+*  283:                 addButton.setOnClickListener((v) -> addChannel());
+*  284:             }
+*  285:             Button cancelButton = alert.getButton(AlertDialog.BUTTON_NEGATIVE);
+*  286:             cancelButton.setOnClickListener((v) ->
+*  287:                     finish(new Intent(), FragmentCallback.ResultCode.CANCEL));
+*  288:         });
+   289:     }
+   290: 
+---
+   289:     }
+   290: 
+*  291:     private void showClipboardDialog()
+*  292:     {
+*  293:         if (!isAdded())
+*  294:             return;
+*  295: 
+*  296:         FragmentManager fm = getChildFragmentManager();
+*  297:         if (fm.findFragmentByTag(TAG_CLIPBOARD_DIALOG) == null) {
+*  298:             clipboardDialog = ClipboardDialog.newInstance();
+*  299:             clipboardDialog.show(fm, TAG_CLIPBOARD_DIALOG);
+*  300:         }
+*  301:     }
+   302: 
+   303:     private void subscribeAlertDialog()
+---
+   301:     }
+   302: 
+*  303:     private void subscribeAlertDialog()
+*  304:     {
+*  305:         Disposable d = dialogViewModel.observeEvents()
+*  306:                 .subscribe((event) -> {
+*  307:                     if (event.dialogTag == null)
+*  308:                         return;
+*  309: 
+*  310:                     switch (event.type) {
+*  311:                         case POSITIVE_BUTTON_CLICKED:
+*  312:                             if (event.dialogTag.equals(TAG_DELETE_FEED_DIALOG) && deleteFeedDialog != null) {
+*  313:                                 deleteChannel();
+*  314:                                 deleteFeedDialog.dismiss();
+*  315:                             }
+*  316:                             break;
+*  317:                         case NEGATIVE_BUTTON_CLICKED:
+*  318:                             if (event.dialogTag.equals(TAG_DELETE_FEED_DIALOG) && deleteFeedDialog != null)
+*  319:                                 deleteFeedDialog.dismiss();
+*  320:                             break;
+*  321:                     }
+*  322:                 });
+*  323:         disposables.add(d);
+*  324: 
+*  325:         d = clipboardViewModel.observeSelectedItem().subscribe((item) -> {
+*  326:             if (TAG_CLIPBOARD_DIALOG.equals(item.dialogTag))
+*  327:                 handleUrlClipItem(item.str);
+*  328:         });
+   329:         disposables.add(d);
+   330:     }
+---
+   393:     }
+   394: 
+*  395:     private void updateChannel()
+*  396:     {
+*  397:         if (!checkUrlField(binding.url.getText()))
+*  398:             return;
+*  399: 
+*  400:         if (!viewModel.updateChannel()) {
+*  401:             Toast.makeText(activity,
+*  402:                     R.string.error_cannot_edit_channel,
+*  403:                     Toast.LENGTH_SHORT)
+*  404:                     .show();
+*  405:             return;
+*  406:         }
+*  407: 
+*  408:         finish(new Intent(), FragmentCallback.ResultCode.OK);
+*  409:     }
+   410: 
+   411:     private void deleteChannel()
+---
+
+=== ui/addfeed/AddFeedMutableParams.java ===
+    25: import org.proninyaroslav.libretorrent.BR;
+    26: 
+*   27: public class AddFeedMutableParams extends BaseObservable
+*   28: {
+*   29:     private long feedId = -1;
+*   30:     private String url;
+*   31:     private String name;
+*   32:     private boolean autoDownload = false;
+*   33:     private boolean notDownloadImmediately = true;
+*   34:     private String filter;
+*   35:     private boolean regexFilter = false;
+    36: 
+    37:     public long getFeedId()
+---
+    35:     private boolean regexFilter = false;
+    36: 
+*   37:     public long getFeedId()
+*   38:     {
+*   39:         return feedId;
+*   40:     }
+    41: 
+    42:     public void setFeedId(long feedId)
+---
+    94: 
+    95:     @Bindable
+*   96:     public String getFilter()
+*   97:     {
+*   98:         return filter;
+*   99:     }
+   100: 
+   101:     public void setFilter(String filter)
+---
+
+=== ui/addfeed/AddFeedViewModel.java ===
+    46: public class AddFeedViewModel extends AndroidViewModel
+    47: {
+*   48:     public AddFeedMutableParams mutableParams = new AddFeedMutableParams();
+    49:     public ObservableBoolean showClipboardButton = new ObservableBoolean();
+    50:     private Mode mode;
+---
+   143:     }
+   144: 
+*  145:     private void fetchParams()
+*  146:     {
+*  147:         long feedId = mutableParams.getFeedId();
+*  148:         if (feedId == -1)
+   149:             return;
+   150: 
+---
+   162:     }
+   163: 
+*  164:     private long applyParams(boolean newChannel)
+*  165:     {
+*  166:         long feedId = mutableParams.getFeedId();
+*  167:         if (!newChannel && feedId == -1)
+*  168:             return -1;
+*  169:         String url = mutableParams.getUrl();
+*  170:         if (TextUtils.isEmpty(url))
+*  171:             return -1;
+*  172: 
+*  173:         FeedChannel channel = new FeedChannel(url,
+*  174:                 mutableParams.getName(),
+*  175:                 0,
+*  176:                 mutableParams.isAutoDownload(),
+*  177:                 mutableParams.getFilter(),
+*  178:                 mutableParams.isRegexFilter(),
+*  179:                 null);
+   180:         if (!newChannel)
+   181:             channel.id = feedId;
+---
+

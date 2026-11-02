@@ -1,0 +1,388 @@
+# Batch 73 printed evidence (fresh, C11 converter, 2026-11-01)
+# Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+# Cited files (basenames, for check_part check 8): AddFeedDialog.java, BaseAlertDialog.java, ClipboardDialog.java, DetailTorrentFilesFragment.java, FileItem.java, FragmentCallback.java, TorrentContentFileItem.java, TorrentContentFilesAdapter.java
+
+=== ui/BaseAlertDialog.java ===
+    69:     }
+    70: 
+*   71:     public enum EventType
+*   72:     {
+*   73:         POSITIVE_BUTTON_CLICKED,
+*   74:         NEGATIVE_BUTTON_CLICKED,
+*   75:         NEUTRAL_BUTTON_CLICKED,
+*   76:         DIALOG_SHOWN
+*   77:     }
+    78: 
+    79:     public static class Event
+---
+    77:     }
+    78: 
+*   79:     public static class Event
+*   80:     {
+*   81:         @Nullable
+*   82:         public String dialogTag;
+*   83:         public EventType type;
+*   84: 
+*   85:         public Event(@Nullable String dialogTag, EventType type)
+*   86:         {
+*   87:             this.dialogTag = dialogTag;
+*   88:             this.type = type;
+*   89:         }
+*   90:     }
+*   91: 
+    92:     /* In the absence of any parameter need set 0 or null */
+    93: 
+---
+   114:     @NonNull
+   115:     @Override
+*  116:     public Dialog onCreateDialog(Bundle savedInstanceState)
+*  117:     {
+*  118:         viewModel = new ViewModelProvider(getActivity()).get(SharedViewModel.class);
+   119: 
+   120:         Bundle args = getArguments();
+---
+   136:     }
+   137: 
+*  138:     private Event makeEvent(EventType type)
+*  139:     {
+*  140:         return new Event(getTag(), type);
+*  141:     }
+   142: 
+   143:     protected AlertDialog buildDialog(String title, String message,
+---
+   165:             dialog.setNeutralButton(neutralText, null);
+   166: 
+*  167:         final AlertDialog alert = dialog.create();
+*  168:         alert.setOnShowListener((DialogInterface dialogInterface) -> {
+*  169:             Button positiveButton = alert.getButton(AlertDialog.BUTTON_POSITIVE);
+*  170:             Button negativeButton = alert.getButton(AlertDialog.BUTTON_NEGATIVE);
+*  171:             Button neutralButton = alert.getButton(AlertDialog.BUTTON_NEUTRAL);
+*  172:             if (positiveButton != null) {
+*  173:                 positiveButton.setOnClickListener((v) -> {
+*  174:                     viewModel.sendEvent(makeEvent(EventType.POSITIVE_BUTTON_CLICKED));
+*  175:                     if (autoDismiss)
+*  176:                         dismiss();
+*  177:                 });
+*  178:             }
+*  179:             if (negativeButton != null) {
+*  180:                 negativeButton.setOnClickListener((v) -> {
+*  181:                     viewModel.sendEvent(makeEvent(EventType.NEGATIVE_BUTTON_CLICKED));
+*  182:                     if (autoDismiss)
+*  183:                         dismiss();
+*  184:                 });
+*  185:             }
+*  186:             if (neutralButton != null) {
+*  187:                 neutralButton.setOnClickListener((v) -> {
+*  188:                     viewModel.sendEvent(makeEvent(EventType.NEUTRAL_BUTTON_CLICKED));
+*  189:                     if (autoDismiss)
+*  190:                         dismiss();
+*  191:                 });
+*  192:             }
+*  193: 
+*  194:             viewModel.sendEvent(makeEvent(EventType.DIALOG_SHOWN));
+   195:         });
+   196: 
+---
+
+=== ui/ClipboardDialog.java ===
+    38: public class ClipboardDialog extends DialogFragment
+    39: {
+*   40:     private static final String TAG = ClipboardDialog.class.getSimpleName();
+    41: 
+    42:     private AppCompatActivity activity;
+---
+    53:         }
+    54: 
+*   55:         public void sendSelectedItem(Item item)
+*   56:         {
+*   57:             selectedItemSubject.onNext(item);
+*   58:         }
+    59:     }
+    60: 
+---
+    62:     {
+    63:         public String dialogTag;
+*   64:         public String str;
+*   65: 
+*   66:         public Item(String dialogTag, String str)
+*   67:         {
+*   68:             this.dialogTag = dialogTag;
+*   69:             this.str = str;
+*   70:         }
+    71:     }
+    72: 
+---
+    71:     }
+    72: 
+*   73:     public static ClipboardDialog newInstance()
+*   74:     {
+*   75:         ClipboardDialog frag = new ClipboardDialog();
+*   76: 
+*   77:         Bundle args = new Bundle();
+    78:         frag.setArguments(args);
+    79: 
+---
+    82: 
+    83:     @Override
+*   84:     public void onAttach(@NonNull Context context)
+*   85:     {
+*   86:         super.onAttach(context);
+*   87: 
+*   88:         if (context instanceof AppCompatActivity)
+*   89:             activity = (AppCompatActivity)context;
+*   90:     }
+    91: 
+    92:     @NonNull
+---
+    92:     @NonNull
+    93:     @Override
+*   94:     public Dialog onCreateDialog(Bundle savedInstanceState)
+*   95:     {
+*   96:         if (activity == null)
+*   97:             activity = (AppCompatActivity)getActivity();
+*   98: 
+*   99:         viewModel = new ViewModelProvider(getActivity()).get(SharedViewModel.class);
+*  100: 
+*  101:         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(activity)
+*  102:                 .setTitle(R.string.clipboard)
+*  103:                 .setNegativeButton(R.string.cancel, (dialog, which) -> dialog.dismiss());
+*  104: 
+*  105:         List<CharSequence> clipboardText = Utils.getClipboardText(activity.getApplicationContext());
+*  106:         adapter = new ArrayAdapter<>(activity, R.layout.item_clipboard_list);
+*  107:         adapter.addAll(clipboardText);
+*  108: 
+*  109:         dialogBuilder.setAdapter(adapter, (dialog, which) -> {
+*  110:             CharSequence item = adapter.getItem(which);
+*  111:             if (item != null)
+*  112:                 viewModel.sendSelectedItem(new Item(getTag(), item.toString()));
+*  113:         });
+*  114: 
+*  115:         return dialogBuilder.create();
+*  116:     }
+   117: }
+   118: 
+---
+
+=== ui/FileItem.java ===
+    37:     public long size;
+    38: 
+*   39:     public FileItem(int index, String name, boolean isFile, long size)
+*   40:     {
+*   41:         this.index = index;
+*   42:         this.name = name;
+*   43:         this.isFile = isFile;
+*   44:         this.size = size;
+*   45:     }
+*   46: 
+*   47:     public FileItem(Parcel source)
+*   48:     {
+*   49:         index = source.readInt();
+*   50:         name = source.readString();
+*   51:         isFile = source.readByte() != 0;
+*   52:         size = source.readLong();
+*   53:     }
+*   54: 
+    55:     @Override
+    56:     public int describeContents()
+---
+    59:     }
+    60: 
+*   61:     @Override
+*   62:     public void writeToParcel(Parcel dest, int flags)
+*   63:     {
+*   64:         dest.writeInt(index);
+*   65:         dest.writeString(name);
+*   66:         dest.writeByte((byte)(isFile ? 1 : 0));
+*   67:         dest.writeLong(size);
+*   68:     }
+    69: 
+    70:     public static final Creator<FileItem> CREATOR =
+---
+    68:     }
+    69: 
+*   70:     public static final Creator<FileItem> CREATOR =
+*   71:             new Creator<FileItem>()
+*   72:             {
+*   73:                 @Override
+*   74:                 public FileItem createFromParcel(Parcel source)
+*   75:                 {
+*   76:                     return new FileItem(source);
+*   77:                 }
+*   78: 
+*   79:                 @Override
+*   80:                 public FileItem[] newArray(int size)
+*   81:                 {
+*   82:                     return new FileItem[size];
+*   83:                 }
+*   84:             };
+    85: 
+    86:     @Override
+---
+    84:             };
+    85: 
+*   86:     @Override
+*   87:     public boolean equals(@Nullable Object o)
+*   88:     {
+*   89:         if (!(o instanceof FileItem))
+*   90:             return false;
+*   91: 
+*   92:         if (o == this)
+*   93:             return true;
+*   94: 
+*   95:         FileItem item = (FileItem) o;
+*   96: 
+*   97:         return index == item.index &&
+*   98:                 (name == null || name.equals(item.name)) &&
+*   99:                 isFile == item.isFile;
+*  100:     }
+   101: 
+   102:     @Override
+---
+   100:     }
+   101: 
+*  102:     @Override
+*  103:     public int hashCode()
+*  104:     {
+*  105:         int prime = 31, result = 1;
+*  106: 
+*  107:         result = prime * result + ((name == null) ? 0 : name.hashCode());
+*  108:         if (isFile)
+*  109:             result = prime * result + index;
+*  110: 
+*  111:         return result;
+*  112:     }
+   113: 
+   114:     @Override
+---
+
+=== ui/FragmentCallback.java ===
+    29:  */
+    30: 
+*   31: public interface FragmentCallback
+*   32: {
+*   33:     String TAG = FragmentCallback.class.getSimpleName();
+    34: 
+    35:     enum ResultCode {
+---
+    33:     String TAG = FragmentCallback.class.getSimpleName();
+    34: 
+*   35:     enum ResultCode {
+*   36:         OK, CANCEL, BACK
+*   37:     }
+    38: 
+    39:     void onFragmentFinished(@NonNull Fragment f, Intent intent, @NonNull ResultCode code);
+---
+
+=== ui/addfeed/AddFeedDialog.java ===
+   289:     }
+   290: 
+*  291:     private void showClipboardDialog()
+*  292:     {
+*  293:         if (!isAdded())
+*  294:             return;
+*  295: 
+*  296:         FragmentManager fm = getChildFragmentManager();
+*  297:         if (fm.findFragmentByTag(TAG_CLIPBOARD_DIALOG) == null) {
+*  298:             clipboardDialog = ClipboardDialog.newInstance();
+*  299:             clipboardDialog.show(fm, TAG_CLIPBOARD_DIALOG);
+*  300:         }
+*  301:     }
+   302: 
+   303:     private void subscribeAlertDialog()
+---
+   323:         disposables.add(d);
+   324: 
+*  325:         d = clipboardViewModel.observeSelectedItem().subscribe((item) -> {
+*  326:             if (TAG_CLIPBOARD_DIALOG.equals(item.dialogTag))
+*  327:                 handleUrlClipItem(item.str);
+*  328:         });
+   329:         disposables.add(d);
+   330:     }
+---
+   427:     }
+   428: 
+*  429:     private void finish(Intent intent, FragmentCallback.ResultCode code)
+*  430:     {
+*  431:         alert.dismiss();
+*  432:         ((FragmentCallback)activity).onFragmentFinished(this, intent, code);
+*  433:     }
+   434: }
+   435: 
+---
+
+=== ui/detailtorrent/pages/files/DetailTorrentFilesFragment.java ===
+   152:     }
+   153: 
+*  154:     private void subscribeAdapter()
+*  155:     {
+*  156:         disposables.add(viewModel.getDirChildren()
+*  157:                 .subscribeOn(Schedulers.computation())
+*  158:                 .flatMapSingle((children) ->
+*  159:                         Flowable.fromIterable(children)
+*  160:                                 .map(TorrentContentFileItem::new)
+*  161:                                 .toList()
+*  162:                 )
+*  163:                 .observeOn(AndroidSchedulers.mainThread())
+*  164:                 .subscribe((children) -> {
+*  165:                     adapter.submitList(children);
+*  166:                     updateFileSize();
+*  167:                 }));
+   168:     }
+   169: 
+---
+
+=== ui/detailtorrent/pages/files/TorrentContentFileItem.java ===
+    36:     public double availability;
+    37: 
+*   38:     public TorrentContentFileItem(@NonNull TorrentContentFileTree tree)
+*   39:     {
+*   40:         super(tree.getIndex(), tree.getName(), tree.isFile(), tree.size());
+*   41: 
+    42:         priority = tree.getFilePriority();
+    43:         receivedBytes = tree.getReceivedBytes();
+---
+    45:     }
+    46: 
+*   47:     public TorrentContentFileItem(Parcel source)
+*   48:     {
+*   49:         super(source);
+*   50: 
+    51:         priority = (FilePriority)source.readSerializable();
+    52:         receivedBytes = source.readLong();
+---
+    60:     }
+    61: 
+*   62:     @Override
+*   63:     public void writeToParcel(Parcel dest, int flags)
+*   64:     {
+*   65:         super.writeToParcel(dest, flags);
+*   66: 
+    67:         dest.writeSerializable(priority);
+    68:         dest.writeLong(receivedBytes);
+---
+
+=== ui/detailtorrent/pages/files/TorrentContentFilesAdapter.java ===
+    83: 
+    84:     @Override
+*   85:     public void onBindViewHolder(@NonNull ViewHolder holder, int position)
+*   86:     {
+*   87:         TorrentContentFileItem item = getItem(position);
+*   88:         if (selectionTracker != null)
+*   89:             holder.setSelected(selectionTracker.isSelected(item));
+*   90: 
+*   91:         holder.bind(item, listener);
+    92:     }
+    93: 
+---
+   116:         }
+   117: 
+*  118:         @Override
+*  119:         public boolean areItemsTheSame(@NonNull TorrentContentFileItem oldItem,
+*  120:                                        @NonNull TorrentContentFileItem newItem)
+*  121:         {
+*  122:             return oldItem.equals(newItem);
+*  123:         }
+   124:     };
+   125: 
+---
+

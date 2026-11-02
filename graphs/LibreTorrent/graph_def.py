@@ -2111,8 +2111,6 @@ e('AddFeedDialog.initParams', 'AddFeedViewModel.initAddModeFromClipboard', 'CALL
   guard='uri == null && feedId == -1', cls='explicit', evidence='SRC ui/addfeed/AddFeedDialog.java:135-145; ui/addfeed/AddFeedViewModel.java:87-97')
 e('AddFeedDialog.onCreateDialog', 'AddFeedDialog.initLayoutView', 'CALL', 'Initialize feed fields and clipboard controls',
   cls='explicit', evidence='SRC ui/addfeed/AddFeedDialog.java:165-209,211-242')
-e('AddFeedDialog.onCreateDialog', 'AddFeedDialog.initAlertDialog', 'CALL', 'Build add/edit/delete feed actions',
-  cls='explicit', evidence='SRC ui/addfeed/AddFeedDialog.java:230-242,244-282')
 e('AddFeedDialog.onStart', 'AddFeedDialog.subscribeAlertDialog', 'CALL', 'Observe delete confirmation and clipboard selection',
   cls='explicit', evidence='SRC ui/addfeed/AddFeedDialog.java:157-163,285-312')
 e('AddFeedDialog.onStart', 'AddFeedDialog.subscribeClipboardManager', 'CALL', 'Listen for clipboard changes while dialog is visible',
@@ -3927,7 +3925,7 @@ SUPPRESS.update({
 # Each merged batch part is its own file, parts/b<NNN>.py, run here in this namespace in the order of MERGED_PARTS.
 # Batches 13 and 14 are already pasted inline above; never list them here. Append one name at a time, in plan order,
 # and build after each append (C1). Keeping the parts in their own files keeps every file below the connector's 1 MB limit.
-MERGED_PARTS = ['b000_trunks.py', 'b001.py', 'b002.py', 'b003.py', 'b004.py', 'b005.py', 'b006.py', 'b007.py', 'b008.py', 'b009.py', 'b010.py', 'b011.py', 'b012.py', 'b015.py', 'b016.py', 'b017.py', 'b018.py', 'b019.py', 'b020.py', 'b021.py', 'b022.py', 'b023.py', 'b024.py', 'b025.py', 'b026.py', 'b027.py', 'b028.py', 'b029.py', 'b030.py', 'b031.py', 'b032.py', 'b033.py', 'b034.py', 'b035.py', 'b036.py', 'b037.py', 'b038.py', 'b039.py', 'b040.py', 'b041.py', 'b042.py', 'b043.py', 'b044.py', 'b045.py', 'b046.py', 'b047.py', 'b048.py', 'b049.py', 'b050.py', 'b051.py', 'b052.py', 'b053.py', 'b054.py', 'b055.py', 'b056.py', 'b057.py', 'b058.py', 'b059.py', 'b060.py', 'b061.py', 'b062.py', 'b063.py', 'b064.py', 'b065.py', 'b066.py', 'b067.py', 'b068.py', 'b069.py', 'b070.py', 'b071.py', 'b072.py']
+MERGED_PARTS = ['b000_trunks.py', 'b001.py', 'b002.py', 'b003.py', 'b004.py', 'b005.py', 'b006.py', 'b007.py', 'b008.py', 'b009.py', 'b010.py', 'b011.py', 'b012.py', 'b015.py', 'b016.py', 'b017.py', 'b018.py', 'b019.py', 'b020.py', 'b021.py', 'b022.py', 'b023.py', 'b024.py', 'b025.py', 'b026.py', 'b027.py', 'b028.py', 'b029.py', 'b030.py', 'b031.py', 'b032.py', 'b033.py', 'b034.py', 'b035.py', 'b036.py', 'b037.py', 'b038.py', 'b039.py', 'b040.py', 'b041.py', 'b042.py', 'b043.py', 'b044.py', 'b045.py', 'b046.py', 'b047.py', 'b048.py', 'b049.py', 'b050.py', 'b051.py', 'b052.py', 'b053.py', 'b054.py', 'b055.py', 'b056.py', 'b057.py', 'b058.py', 'b059.py', 'b060.py', 'b061.py', 'b062.py', 'b063.py', 'b064.py', 'b065.py', 'b066.py', 'b067.py', 'b068.py', 'b069.py', 'b070.py', 'b071.py', 'b072.py', 'b073.py', 'b074.py', 'b075.py']
 import os as _mp_os
 for _mp_name in MERGED_PARTS:
     _mp_path = _mp_os.path.join(GDIR, 'parts', _mp_name)

@@ -1,0 +1,503 @@
+# Batch 74 printed evidence (fresh, C11 converter, 2026-11-01)
+# Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+# Cited files (basenames, for check_part check 8): AddFeedActivity.java, AddFeedDialog.java, PermissionManager.java, SchedulerReceiver.java, TorrentEngine.java, TorrentNotifier.java
+
+=== core/model/TorrentEngine.java ===
+  1068: 
+  1069:         torrentStreamServer = new TorrentStreamServer(hostname, port);
+* 1070:         try {
+* 1071:             torrentStreamServer.start(appContext);
+* 1072: 
+* 1073:         } catch (IOException e) {
+* 1074:             Log.e(TAG, Log.getStackTraceString(e));
+* 1075:             notifier.makeErrorNotify(appContext.getString(R.string.pref_streaming_error));
+* 1076:         }
+  1077:     }
+  1078: 
+---
+  1205:     }
+  1206: 
+* 1207:     private void handleAddTorrentError(String name, Throwable e) {
+* 1208:         if (e instanceof TorrentAlreadyExistsException) {
+* 1209:             notifier.makeTorrentInfoNotify(name, appContext.getString(R.string.torrent_exist));
+* 1210:             return;
+* 1211:         }
+* 1212:         Log.e(TAG, Log.getStackTraceString(e));
+* 1213:         String message;
+* 1214:         if (e instanceof FileNotFoundException)
+* 1215:             message = appContext.getString(R.string.error_file_not_found_add_torrent);
+* 1216:         else if (e instanceof IOException)
+* 1217:             message = appContext.getString(R.string.error_io_add_torrent);
+* 1218:         else
+* 1219:             message = appContext.getString(R.string.error_add_torrent);
+* 1220:         notifier.makeTorrentErrorNotify(name, message);
+* 1221:     }
+  1222: 
+  1223:     private void cleanTemp() {
+---
+  1303:         }
+  1304: 
+* 1305:         @Override
+* 1306:         public void onTorrentFinished(@NonNull String id) {
+* 1307:             disposables.add(repo.getTorrentByIdSingle(id)
+* 1308:                     .subscribeOn(Schedulers.io())
+* 1309:                     .filter(Objects::nonNull)
+* 1310:                     .subscribe((torrent) -> {
+* 1311:                                 notifier.makeTorrentFinishedNotify(torrent);
+* 1312:                                 if (torrent.visibility != Torrent.VISIBILITY_HIDDEN)
+* 1313:                                     markAsHiddenSync(torrent);
+* 1314: 
+  1315:                                 if (pref.moveAfterDownload()) {
+  1316:                                     String curPath = torrent.downloadPath.toString();
+---
+  1327: 
+  1328:         @Override
+* 1329:         public void onTorrentMoving(@NonNull String id) {
+* 1330:             disposables.add(repo.getTorrentByIdSingle(id)
+* 1331:                     .subscribeOn(Schedulers.io())
+* 1332:                     .observeOn(AndroidSchedulers.mainThread())
+* 1333:                     .subscribe((torrent) -> {
+* 1334:                                 String name;
+* 1335:                                 if (torrent == null)
+* 1336:                                     name = id;
+* 1337:                                 else
+* 1338:                                     name = torrent.name;
+* 1339: 
+* 1340:                                 notifier.makeMovingTorrentNotify(name);
+* 1341:                             },
+  1342:                             (Throwable t) -> Log.e(TAG, "Getting torrent " + id + " error: " +
+  1343:                                     Log.getStackTraceString(t)))
+---
+  1382:         }
+  1383: 
+* 1384:         @Override
+* 1385:         public void onSessionError(@NonNull String errorMsg) {
+* 1386:             if (errorFilter.skip(errorMsg)) {
+* 1387:                 return;
+* 1388:             }
+* 1389:             notifier.makeSessionErrorNotify(errorMsg);
+* 1390:         }
+  1391: 
+  1392:         @Override
+---
+  1390:         }
+  1391: 
+* 1392:         @Override
+* 1393:         public void onNatError(@NonNull String errorMsg) {
+* 1394:             Log.e(TAG, "NAT error: " + errorMsg);
+* 1395:             if (pref.showNatErrors())
+* 1396:                 notifier.makeNatErrorNotify(errorMsg);
+* 1397:         }
+  1398: 
+  1399:         @Override
+---
+
+=== receiver/SchedulerReceiver.java ===
+    63:     }
+    64: 
+*   65:     private void onStartApp(Context appContext, SettingsRepository pref, TorrentNotifier notifier)
+*   66:     {
+*   67:         if (!pref.enableSchedulingStart())
+*   68:             return;
+*   69: 
+*   70:         boolean oneshot = pref.schedulingRunOnlyOnce();
+*   71:         if (oneshot) {
+*   72:             pref.enableSchedulingStart(false);
+*   73:         } else if (!Scheduler.setStartAppAlarm(appContext, pref.schedulingStartTime())) {
+*   74:             notifier.makeExactAlarmPermissionNotify();
+*   75:         }
+    76:         if (pref.schedulingSwitchWiFi())
+    77:             ((WifiManager)appContext.getApplicationContext()
+---
+
+=== ui/PermissionManager.java ===
+   126:     }
+   127: 
+*  128:     public boolean checkStoragePermissions() {
+*  129:         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && hasManageExternalStoragePermission) {
+*  130:             return Environment.isExternalStorageManager();
+*  131:         } else {
+*  132:             return ContextCompat.checkSelfPermission(appContext,
+*  133:                     Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+*  134:         }
+*  135:     }
+   136: 
+   137:     public boolean checkNotificationsPermissions() {
+---
+   135:     }
+   136: 
+*  137:     public boolean checkNotificationsPermissions() {
+*  138:         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+*  139:             return ContextCompat.checkSelfPermission(appContext,
+*  140:                     Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
+*  141:         } else {
+*  142:             return false;
+*  143:         }
+*  144:     }
+   145: 
+   146:     public boolean checkPermissions() {
+---
+   144:     }
+   145: 
+*  146:     public boolean checkPermissions() {
+*  147:         return checkStoragePermissions() && checkNotificationsPermissions();
+*  148:     }
+   149: 
+   150:     public interface Callback {
+---
+
+=== ui/TorrentNotifier.java ===
+    63:     private SettingsRepository pref;
+    64: 
+*   65:     public static TorrentNotifier getInstance(@NonNull Context appContext) {
+*   66:         if (INSTANCE == null) {
+*   67:             synchronized (TorrentNotifier.class) {
+*   68:                 if (INSTANCE == null)
+*   69:                     INSTANCE = new TorrentNotifier(appContext);
+*   70:             }
+*   71:         }
+*   72:         return INSTANCE;
+*   73:     }
+    74: 
+    75:     private TorrentNotifier(Context appContext) {
+---
+    73:     }
+    74: 
+*   75:     private TorrentNotifier(Context appContext) {
+*   76:         this.appContext = appContext;
+*   77:         notifyManager = (NotificationManager) appContext.getSystemService(NOTIFICATION_SERVICE);
+*   78:         pref = RepositoryHelper.getSettingsRepository(appContext);
+*   79:     }
+    80: 
+    81:     public void makeNotifyChans() {
+---
+   114:     }
+   115: 
+*  116:     public void makeTorrentErrorNotify(@NonNull String name, @NonNull String message) {
+*  117:         NotificationCompat.Builder builder = new NotificationCompat.Builder(appContext,
+*  118:                 DEFAULT_NOTIFY_CHAN_ID)
+*  119:                 .setSmallIcon(R.drawable.ic_error_white_24dp)
+*  120:                 .setColor(ContextCompat.getColor(appContext, R.color.primary))
+*  121:                 .setContentTitle(name)
+*  122:                 .setTicker(appContext.getString(R.string.torrent_error_notify_title))
+*  123:                 .setContentText(appContext.getString(R.string.error_template, message))
+*  124:                 .setAutoCancel(true)
+*  125:                 .setWhen(System.currentTimeMillis());
+*  126: 
+*  127:         builder.setCategory(Notification.CATEGORY_ERROR);
+*  128: 
+*  129:         notifyManager.notify(name.hashCode(), builder.build());
+*  130:     }
+   131: 
+   132:     public void makeTorrentInfoNotify(@NonNull String name, @NonNull String message) {
+---
+   130:     }
+   131: 
+*  132:     public void makeTorrentInfoNotify(@NonNull String name, @NonNull String message) {
+*  133:         NotificationCompat.Builder builder = new NotificationCompat.Builder(appContext,
+*  134:                 DEFAULT_NOTIFY_CHAN_ID)
+*  135:                 .setSmallIcon(R.drawable.ic_info_white_24dp)
+*  136:                 .setColor(ContextCompat.getColor(appContext, R.color.primary))
+*  137:                 .setContentTitle(name)
+*  138:                 .setTicker(message)
+*  139:                 .setContentText(message)
+*  140:                 .setAutoCancel(true)
+*  141:                 .setWhen(System.currentTimeMillis());
+*  142: 
+*  143:         builder.setCategory(Notification.CATEGORY_STATUS);
+*  144: 
+*  145:         notifyManager.notify(name.hashCode(), builder.build());
+*  146:     }
+   147: 
+   148:     public void makeErrorNotify(@NonNull String message) {
+---
+   146:     }
+   147: 
+*  148:     public void makeErrorNotify(@NonNull String message) {
+*  149:         NotificationCompat.Builder builder = new NotificationCompat.Builder(appContext,
+*  150:                 DEFAULT_NOTIFY_CHAN_ID)
+*  151:                 .setSmallIcon(R.drawable.ic_error_white_24dp)
+*  152:                 .setColor(ContextCompat.getColor(appContext, R.color.primary))
+*  153:                 .setContentTitle(appContext.getString(R.string.error))
+*  154:                 .setTicker(message)
+*  155:                 .setContentText(message)
+*  156:                 .setAutoCancel(true)
+*  157:                 .setWhen(System.currentTimeMillis());
+*  158: 
+*  159:         builder.setCategory(Notification.CATEGORY_ERROR);
+*  160: 
+*  161:         notifyManager.notify(message.hashCode(), builder.build());
+*  162:     }
+   163: 
+   164:     public void makeSessionErrorNotify(@NonNull String message) {
+---
+   162:     }
+   163: 
+*  164:     public void makeSessionErrorNotify(@NonNull String message) {
+*  165:         NotificationCompat.Builder builder = new NotificationCompat.Builder(appContext,
+*  166:                 DEFAULT_NOTIFY_CHAN_ID)
+*  167:                 .setSmallIcon(R.drawable.ic_error_white_24dp)
+*  168:                 .setColor(ContextCompat.getColor(appContext, R.color.primary))
+*  169:                 .setContentTitle(appContext.getString(R.string.session_error_title))
+*  170:                 .setTicker(appContext.getString(R.string.session_error_title))
+*  171:                 .setContentText(appContext.getString(R.string.error_template, message))
+*  172:                 .setAutoCancel(true)
+*  173:                 .setWhen(System.currentTimeMillis());
+*  174: 
+*  175:         builder.setCategory(Notification.CATEGORY_ERROR);
+*  176: 
+*  177:         notifyManager.notify(SESSION_ERROR_NOTIFICATION_ID, builder.build());
+*  178:     }
+   179: 
+   180:     public void makeNatErrorNotify(@NonNull String message) {
+---
+   178:     }
+   179: 
+*  180:     public void makeNatErrorNotify(@NonNull String message) {
+*  181:         NotificationCompat.Builder builder = new NotificationCompat.Builder(appContext,
+*  182:                 DEFAULT_NOTIFY_CHAN_ID)
+*  183:                 .setSmallIcon(R.drawable.ic_error_white_24dp)
+*  184:                 .setColor(ContextCompat.getColor(appContext, R.color.primary))
+*  185:                 .setContentTitle(appContext.getString(R.string.nat_error_title))
+*  186:                 .setTicker(appContext.getString(R.string.nat_error_title))
+*  187:                 .setContentText(appContext.getString(R.string.error_template, message))
+*  188:                 .setAutoCancel(true)
+*  189:                 .setWhen(System.currentTimeMillis());
+*  190: 
+*  191:         builder.setCategory(Notification.CATEGORY_ERROR);
+*  192: 
+*  193:         notifyManager.notify(NAT_ERROR_NOTIFICATION_ID, builder.build());
+*  194:     }
+   195: 
+   196:     public void makeMovingTorrentNotify(@NonNull String name) {
+---
+   194:     }
+   195: 
+*  196:     public void makeMovingTorrentNotify(@NonNull String name) {
+*  197:         NotificationCompat.Builder builder = new NotificationCompat.Builder(appContext,
+*  198:                 DEFAULT_NOTIFY_CHAN_ID)
+*  199:                 .setSmallIcon(R.drawable.ic_folder_move_white_24dp)
+*  200:                 .setColor(ContextCompat.getColor(appContext, R.color.primary))
+*  201:                 .setContentTitle(name)
+*  202:                 .setTicker(appContext.getString(R.string.torrent_moving_title))
+*  203:                 .setContentText(appContext.getString(R.string.torrent_moving_content, name))
+*  204:                 .setAutoCancel(true)
+*  205:                 .setWhen(System.currentTimeMillis());
+*  206: 
+*  207:         builder.setCategory(Notification.CATEGORY_STATUS);
+*  208: 
+*  209:         notifyManager.notify(name.hashCode(), builder.build());
+*  210:     }
+   211: 
+   212:     public void makeTorrentFinishedNotify(@NonNull Torrent torrent) {
+---
+   210:     }
+   211: 
+*  212:     public void makeTorrentFinishedNotify(@NonNull Torrent torrent) {
+*  213:         if (!pref.torrentFinishNotify() || torrent.visibility == Torrent.VISIBILITY_HIDDEN)
+*  214:             return;
+*  215: 
+*  216:         NotificationCompat.Builder builder = new NotificationCompat.Builder(appContext,
+*  217:                 FINISH_NOTIFY_CHAN_ID)
+*  218:                 .setSmallIcon(R.drawable.ic_done_white_24dp)
+*  219:                 .setColor(ContextCompat.getColor(appContext, R.color.primary))
+*  220:                 .setContentTitle(appContext.getString(R.string.torrent_finished_notify))
+*  221:                 .setTicker(appContext.getString(R.string.torrent_finished_notify))
+*  222:                 .setContentText(torrent.name)
+*  223:                 .setAutoCancel(true)
+*  224:                 .setWhen(System.currentTimeMillis());
+*  225: 
+*  226:         builder.setCategory(Notification.CATEGORY_STATUS);
+*  227: 
+*  228:         applyLegacyNotifySettings(builder);
+   229: 
+   230:         Intent openIntent = new Intent(appContext, DetailTorrentActivity.class);
+---
+   242:     }
+   243: 
+*  244:     public void makeExactAlarmPermissionNotify() {
+*  245:         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+*  246:             return;
+*  247:         }
+*  248:         var requestPendingIntent = PendingIntent.getActivity(
+*  249:                 appContext,
+*  250:                 EXACT_ALARM_PERMISSION_NOTIFICATION_ID,
+*  251:                 Utils.buildExactAlarmPermissionRequest(appContext),
+*  252:                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+*  253:         );
+*  254:         var builder = new NotificationCompat.Builder(appContext,
+*  255:                 DEFAULT_NOTIFY_CHAN_ID)
+*  256:                 .setSmallIcon(R.drawable.ic_error_white_24dp)
+*  257:                 .setColor(ContextCompat.getColor(appContext, R.color.primary))
+*  258:                 .setContentTitle(appContext.getString(R.string.permission_denied))
+   259:                 .setTicker(appContext.getString(R.string.permission_denied))
+   260:                 .setContentText(appContext.getString(R.string.exact_alarm_permission_warning))
+---
+   273:      */
+   274: 
+*  275:     private void applyLegacyNotifySettings(NotificationCompat.Builder builder) {
+*  276:         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+*  277:             return;
+*  278: 
+   279:         SettingsRepository pref = RepositoryHelper.getSettingsRepository(appContext);
+   280: 
+---
+
+=== ui/addfeed/AddFeedActivity.java ===
+    59:             if (ACTION_EDIT_FEED.equals(i.getAction())) {
+    60:                 long feedId = i.getLongExtra(TAG_FEED_ID, -1);
+*   61:                 addFeedDialog = AddFeedDialog.newInstance(feedId);
+*   62:             } else {
+*   63:                 addFeedDialog = AddFeedDialog.newInstance(getUriFromIntent());
+*   64:             }
+*   65: 
+*   66:             addFeedDialog.show(fm, TAG_ADD_FEED_DIALOG);
+    67:         }
+    68:     }
+---
+
+=== ui/addfeed/AddFeedDialog.java ===
+    59: public class AddFeedDialog extends DialogFragment
+    60: {
+*   61:     private static final String TAG = AddFeedDialog.class.getSimpleName();
+    62: 
+    63:     private static final String TAG_URI = "uri";
+---
+   277:                 Button editButton = alert.getButton(AlertDialog.BUTTON_POSITIVE);
+   278:                 Button deleteButton = alert.getButton(AlertDialog.BUTTON_NEUTRAL);
+*  279:                 editButton.setOnClickListener((v) -> updateChannel());
+*  280:                 deleteButton.setOnClickListener((v) -> deleteFeedDialog());
+   281:             } else {
+   282:                 Button addButton = alert.getButton(AlertDialog.BUTTON_POSITIVE);
+---
+   280:                 deleteButton.setOnClickListener((v) -> deleteFeedDialog());
+   281:             } else {
+*  282:                 Button addButton = alert.getButton(AlertDialog.BUTTON_POSITIVE);
+*  283:                 addButton.setOnClickListener((v) -> addChannel());
+   284:             }
+   285:             Button cancelButton = alert.getButton(AlertDialog.BUTTON_NEGATIVE);
+---
+   301:     }
+   302: 
+*  303:     private void subscribeAlertDialog()
+*  304:     {
+*  305:         Disposable d = dialogViewModel.observeEvents()
+*  306:                 .subscribe((event) -> {
+*  307:                     if (event.dialogTag == null)
+*  308:                         return;
+*  309: 
+*  310:                     switch (event.type) {
+*  311:                         case POSITIVE_BUTTON_CLICKED:
+*  312:                             if (event.dialogTag.equals(TAG_DELETE_FEED_DIALOG) && deleteFeedDialog != null) {
+*  313:                                 deleteChannel();
+*  314:                                 deleteFeedDialog.dismiss();
+*  315:                             }
+   316:                             break;
+   317:                         case NEGATIVE_BUTTON_CLICKED:
+---
+   323:         disposables.add(d);
+   324: 
+*  325:         d = clipboardViewModel.observeSelectedItem().subscribe((item) -> {
+*  326:             if (TAG_CLIPBOARD_DIALOG.equals(item.dialogTag))
+*  327:                 handleUrlClipItem(item.str);
+*  328:         });
+   329:         disposables.add(d);
+   330:     }
+---
+   330:     }
+   331: 
+*  332:     private void handleUrlClipItem(String item)
+*  333:     {
+*  334:         if (TextUtils.isEmpty(item))
+*  335:             return;
+*  336: 
+*  337:         viewModel.mutableParams.setUrl(item);
+*  338:     }
+   339: 
+   340:     private void deleteFeedDialog()
+---
+   338:     }
+   339: 
+*  340:     private void deleteFeedDialog()
+*  341:     {
+*  342:         if (!isAdded())
+*  343:             return;
+*  344: 
+*  345:         FragmentManager fm = getChildFragmentManager();
+*  346:         if (fm.findFragmentByTag(TAG_DELETE_FEED_DIALOG) == null) {
+*  347:             deleteFeedDialog = BaseAlertDialog.newInstance(
+*  348:                     getString(R.string.deleting),
+*  349:                     getString(R.string.delete_selected_channel),
+*  350:                     0,
+*  351:                     getString(R.string.ok),
+*  352:                     getString(R.string.cancel),
+*  353:                     null,
+*  354:                     false);
+*  355: 
+*  356:             deleteFeedDialog.show(fm, TAG_DELETE_FEED_DIALOG);
+*  357:         }
+*  358:     }
+   359: 
+   360:     private boolean checkUrlField(Editable s)
+---
+   358:     }
+   359: 
+*  360:     private boolean checkUrlField(Editable s)
+*  361:     {
+*  362:         if (s == null)
+*  363:             return false;
+*  364: 
+*  365:         if (TextUtils.isEmpty(s)) {
+*  366:             binding.layoutUrl.setErrorEnabled(true);
+*  367:             binding.layoutUrl.setError(getString(R.string.error_empty_link));
+*  368:             binding.layoutUrl.requestFocus();
+*  369: 
+*  370:             return false;
+*  371:         }
+*  372: 
+*  373:         binding.layoutUrl.setErrorEnabled(false);
+*  374:         binding.layoutUrl.setError(null);
+*  375: 
+*  376:         return true;
+*  377:     }
+   378: 
+   379:     private void addChannel()
+---
+   377:     }
+   378: 
+*  379:     private void addChannel()
+*  380:     {
+*  381:         if (!checkUrlField(binding.url.getText()))
+*  382:             return;
+*  383: 
+*  384:         if (!viewModel.addChannel()) {
+*  385:             Toast.makeText(activity,
+*  386:                     R.string.error_cannot_add_channel,
+*  387:                     Toast.LENGTH_SHORT)
+*  388:                     .show();
+*  389:             return;
+*  390:         }
+*  391: 
+*  392:         finish(new Intent(), FragmentCallback.ResultCode.OK);
+*  393:     }
+   394: 
+   395:     private void updateChannel()
+---
+   409:     }
+   410: 
+*  411:     private void deleteChannel()
+*  412:     {
+*  413:         if (!viewModel.deleteChannel()) {
+*  414:             Toast.makeText(activity,
+*  415:                     R.string.error_cannot_delete_channel,
+*  416:                     Toast.LENGTH_SHORT)
+*  417:                     .show();
+*  418:             return;
+*  419:         }
+*  420: 
+*  421:         finish(new Intent(), FragmentCallback.ResultCode.OK);
+*  422:     }
+   423: 
+   424:     public void onBackPressed()
+---
+
