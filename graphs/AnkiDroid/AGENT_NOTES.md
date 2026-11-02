@@ -305,3 +305,17 @@ An edge is written by the part that contains its source method; if the source is
 - check_citations.py: 273 distinct, 0 problems (was 276/3). Root cause: tools/check_citations.py:20 ROOT_STYLE
   is an unanchored regex matching the services/...java:<digits> substring inside the full-path SRC citation;
   the citation-side word-form fix is the only in-rules resolution (tools/ read-only, untouched).
+
+## Finish run 2026-11-01 — B3 check-4 bytecode lines (auditor PASS, audit/B3/AUDIT.md)
+- Appended ONE combined EDIT after the module-loader block in graph_def.py (single EDIT definition):
+  23 TaskData/ChartBuilder/DisplayPair entries (helper b3-taskdata, incl. DeckPicker.deleteDeck 2017->2067)
+  + 25 Utils-pin/MockNoteFactory-INFERRED entries (helper b3-utils-mock). Dicts verbatim from EDITS.md.
+- Verified in the rebuilt trigger JSON: 48/48 new evidence strings present, 0 old remnants.
+- Local build: methods 4186, edges 9178, REACHABLE 3275, UNREACHABLE 911, errors 0, warnings 0.
+- check_bytecode_lines.py AnkiDroid --all: 6904 checked, 1001 skipped, 211 implicit,
+  0 where the cited line does not show the callee. Disclosed caveat: the 23 B3-a edges drop out of the
+  checker's checked set because their (bytecode line was N) form doesn't match its pattern; verification
+  rests on printed lines + auditor re-prints + merger spot-prints. check_citations still 273/0.
+- MockNoteFactory wording (auditor-confirmed): source under multimediacard/test/ is pruned from the checker
+  source index; NOT the brief's literal "no source in the upload" (the file exists, 2600 bytes, cited lines
+  printed and correct).
