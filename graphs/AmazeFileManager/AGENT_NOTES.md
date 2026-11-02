@@ -745,3 +745,18 @@ C7 finish_01 00:02 R=2218 U=422 UNRES=341 errors=885 (down from 1211). Fixed reg
   focus edge, route_24 :221 -> :211-213, route_28 :422 -> :423, route_01
   String->Bitmap caveat (recorded in the table row + Notes + writer note;
   route_01 edges/verdict unchanged).
+
+## Decisions made by Muse (for the user and Yang to review)
+
+The full decision record for this run is handoff/MUSE_DECISIONS.md;
+the AmazeFileManager decisions operative at this writing are:
+- Amaze-D3-CAP-ACCEPT-ROUND3 (2026-11-01 ~23:11 EST): Amaze at 26
+  scripted / 4 unscriptable = 13.3% is ACCEPTED under the user's
+  cap ruling, so F1 is not blocked by the cap alone. Per-route
+  reasons: route_05 real online cloud account; route_06 live SMB
+  server plus a resolving external player, both unproven; route_12
+  (Throwable) constructor only via a write failure the harness
+  cannot arrange; route_22 broadcast SMB discovery cannot cross
+  the emulator router. This renews, and does not erase, the earlier
+  Amaze cap acceptances. Routes 08 and 23 were converted to
+  scripted in this round (system picker / throwaway SSH server).
