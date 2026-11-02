@@ -86,7 +86,7 @@ draft script is staged and dry-loads", never "proven on device".
 
 ## Setup decision proposal (merger must confirm)
 
-- No UI-driving shared setup.py is shipped. `routes/setup.py` is an
+- No UI-driving shared setup.py is shipped. `device/routes/Aegis/setup.py` is an
   intentional no-op (logs only). Reason: the runner invokes shared
   setup.py once per route with no route argument, so it cannot know
   which route it is setting up; any intro-driving shared setup would

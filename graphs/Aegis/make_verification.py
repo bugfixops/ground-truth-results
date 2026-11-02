@@ -101,7 +101,7 @@ GDIR = Path(__file__).resolve().parent
 # Promoted table location: GDIR is graphs/Aegis, so the promoted
 # table is GDIR / 'scratch' / 'ROUTE_TABLE_NEW.md', inside the repo.
 # The staging GDIR.parents[3] resolution is removed entirely.
-TABLE_FILE = GDIR / 'scratch' / 'ROUTE_TABLE_NEW.md'
+TABLE_FILE = GDIR / 'scratch' / 'route_table.md'
 GRAPH_GLOB = str(GDIR / 'out' / '*_trigger_graph.json')
 METHODS_FILE = GDIR / 'out' / 'methods.csv'
 SAMPLE_FILE = GDIR / 'scratch' / 'sample_new.txt'
