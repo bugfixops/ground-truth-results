@@ -530,3 +530,8 @@ REACHABLE as audited, edge kept for harness coverage, NOT claimed as a
 verified route). Check-4 FeedParser re-tripped lines remain known false
 alarms with no tools/ fix. F1 warnings-0 disposition still owed for all
 warning classes.
+
+## r76 b076-b080 (2026-11-02, merger; r76 citation-form rework, group-1 audit PASS + merge-time re-verification PASS)
+- Merged reworked parts/b076.py-b080.py in one 5-part build, in merger order (rework/r76/ .py files; .md/printed from parts-staging, unchanged). Verifier READY + independent auditor AUDIT-PASS for all five (audit in merger/scratch-tmp/verify-b076-b080/AUDIT.md).
+- Build scratch/build_b076_b077_b078_b079_b080.txt: methods 4732, edges 6681 (+33), REACHABLE 3322 (+46), UNREACHABLE 724 (+0), UNRESOLVED 686 (-46), errors 686 (-46, must-not-rise satisfied), warnings 17 (identical set, verified by sorted diff vs baseline). Delta reconciliation: 200 batch rows, all REACHABLE; 46 were previously UNRESOLVED and resolved, 154 already REACHABLE; no label flips (U unchanged, R gain = UNRES loss exactly).
+- MERGED_PARTS now ends b080. Next in order: b081 (audit PASS, queued), then b082 (HELD — disposition pending).

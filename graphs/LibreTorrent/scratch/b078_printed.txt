@@ -1,0 +1,317 @@
+# Batch 78 printed evidence (fresh, C12 converter, 2026-11-01)
+# Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+# Convention: each section lists clone lines in order; the first line shown is the range start.
+# Cited files (basenames, for check_part check 8): AddTagDialog.java, AddTagState.java, AddTagViewModel.java, AddTorrentActivity.java
+
+=== ui/addtag/AddTagDialog.java:105-134 ===
+        super.onStop();
+
+        disposables.clear();
+    }
+
+    @NonNull
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
+        if (activity == null) {
+            activity = (AppCompatActivity) getActivity();
+        }
+
+        ViewModelProvider provider = new ViewModelProvider(activity);
+        viewModel = provider.get(AddTagViewModel.class);
+        TagInfo initInfo = getArguments().getParcelable(TAG_INIT_INFO);
+        if (initInfo != null) {
+            viewModel.setInitValues(initInfo);
+            getArguments().putParcelable(TAG_INIT_INFO, null);
+        } else if (viewModel.state.getColor() == -1) {
+            viewModel.setRandomColor();
+        }
+
+        LayoutInflater i = LayoutInflater.from(activity);
+        binding = DataBindingUtil.inflate(i, R.layout.dialog_add_tag, null, false);
+        binding.setViewModel(viewModel);
+
+=== ui/addtag/AddTagDialog.java:137-157 ===
+    private void initLayoutView() {
+        binding.name.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                binding.nameLayout.setErrorEnabled(false);
+                binding.nameLayout.setError(null);
+            }
+        });
+        binding.color.setOnClickListener((v) -> ColorPickerDialog.newBuilder()
+                .setColor(viewModel.state.getColor())
+                .show(activity)
+        );
+    }
+
+=== ui/addtag/AddTagState.java (full file) ===
+/*
+ * Copyright (C) 2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.addtag;
+
+import androidx.databinding.BaseObservable;
+import androidx.databinding.Bindable;
+
+import org.proninyaroslav.libretorrent.BR;
+
+public class AddTagState extends BaseObservable {
+    private Long existsTagId;
+    private String name;
+    private int color = -1;
+
+    @Bindable
+    public Long getExistsTagId() {
+        return existsTagId;
+    }
+
+    public void setExistsTagId(Long existsTagId) {
+        this.existsTagId = existsTagId;
+        notifyPropertyChanged(BR.existsTagId);
+    }
+
+    @Bindable
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+        notifyPropertyChanged(BR.name);
+    }
+
+    @Bindable
+    public int getColor() {
+        return color;
+    }
+
+    public void setColor(int color) {
+        this.color = color;
+        notifyPropertyChanged(BR.color);
+    }
+}
+
+=== ui/addtag/AddTagViewModel.java (full file) ===
+/*
+ * Copyright (C) 2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.addtag;
+
+import android.app.Application;
+
+import androidx.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
+
+import org.proninyaroslav.libretorrent.core.RepositoryHelper;
+import org.proninyaroslav.libretorrent.core.model.data.entity.TagInfo;
+import org.proninyaroslav.libretorrent.core.storage.TagRepository;
+import org.proninyaroslav.libretorrent.core.utils.Utils;
+
+import io.reactivex.Completable;
+
+public class AddTagViewModel extends AndroidViewModel {
+    private final TagRepository tagRepo;
+    public AddTagState state;
+
+    public AddTagViewModel(@NonNull Application application) {
+        super(application);
+
+        state = new AddTagState();
+        tagRepo = RepositoryHelper.getTagRepository(getApplication());
+    }
+
+    public void setInitValues(@NonNull TagInfo info) {
+        state.setExistsTagId(info.id);
+        state.setName(info.name);
+        state.setColor(info.color);
+    }
+
+    public void setRandomColor() {
+        state.setColor(Utils.getRandomColor());
+    }
+
+    Completable saveTag() {
+        TagInfo info;
+        Long existsTagId = state.getExistsTagId();
+        if (existsTagId == null) {
+            info = new TagInfo(state.getName(), state.getColor());
+        } else {
+            info = new TagInfo(existsTagId, state.getName(), state.getColor());
+        }
+        return Completable.fromCallable(() -> {
+            if (existsTagId == null) {
+                TagInfo oldTag = tagRepo.getByName(info.name);
+                if (oldTag != null) {
+                    throw new TagAlreadyExistsException();
+                }
+                tagRepo.insert(info);
+            } else {
+                tagRepo.update(info);
+            }
+            return null;
+        });
+    }
+
+    public static class TagAlreadyExistsException extends Exception { }
+}
+
+=== ui/addtorrent/AddTorrentActivity.java:142-168 ===
+    private void fillMutableParams() {
+        viewModel.mutableParams.setSequentialDownload(
+                localPref.getBoolean(
+                        getString(R.string.add_torrent_sequential_download),
+                        false
+                )
+        );
+        viewModel.mutableParams.setStartAfterAdd(
+                localPref.getBoolean(
+                        getString(R.string.add_torrent_start_after_add),
+                        true
+                )
+        );
+        viewModel.mutableParams.setIgnoreFreeSpace(
+                localPref.getBoolean(
+                        getString(R.string.add_torrent_ignore_free_space),
+                        false
+                )
+        );
+        viewModel.mutableParams.setFirstLastPiecePriority(
+                localPref.getBoolean(
+                        getString(R.string.add_torrent_download_first_last_pieces),
+                        false
+                )
+        );
+    }
+
+=== ui/addtorrent/AddTorrentActivity.java:237-275 ===
+    private void handleAlertDialogEvent(BaseAlertDialog.Event event) {
+        if (event.dialogTag == null) {
+            return;
+        }
+        if (event.dialogTag.equals(TAG_ERR_REPORT_DIALOG)) {
+            switch (event.type) {
+                case POSITIVE_BUTTON_CLICKED:
+                    if (errReportDialog != null) {
+                        Dialog dialog = errReportDialog.getDialog();
+                        if (dialog != null) {
+                            TextInputEditText editText = dialog.findViewById(R.id.comment);
+                            Editable e = editText.getText();
+                            String comment = (e == null ? null : e.toString());
+
+                            Utils.reportError(viewModel.errorReport, comment);
+                            errReportDialog.dismiss();
+                        }
+                    }
+                    finish();
+                    break;
+                case NEGATIVE_BUTTON_CLICKED:
+                    if (errReportDialog != null) {
+                        errReportDialog.dismiss();
+                    }
+                    finish();
+                    break;
+            }
+        } else if (event.dialogTag.equals(TAG_PERM_DENIED_DIALOG)) {
+            if (event.type != BaseAlertDialog.EventType.DIALOG_SHOWN) {
+                permDeniedDialog.dismiss();
+            }
+            if (event.type == BaseAlertDialog.EventType.NEGATIVE_BUTTON_CLICKED) {
+                permissionManager.requestPermissions();
+            }
+            if (event.type == BaseAlertDialog.EventType.POSITIVE_BUTTON_CLICKED) {
+                permissionManager.setDoNotAskStorage(true);
+            }
+        }
+    }
+
+=== ui/addtorrent/AddTorrentActivity.java:350-392 ===
+    private Uri getUri()
+    {
+        Intent i = getIntent();
+        /* Implicit intent with path to torrent file, http or magnet link */
+        if (i.getData() != null)
+            return i.getData();
+        else if (!TextUtils.isEmpty(i.getStringExtra(Intent.EXTRA_TEXT)))
+            return Uri.parse(i.getStringExtra(Intent.EXTRA_TEXT));
+        else
+            return i.getParcelableExtra(TAG_URI);
+    }
+
+    private void addTorrent()
+    {
+        String name = viewModel.mutableParams.getName();
+        if (TextUtils.isEmpty(name)) {
+            Snackbar.make(binding.coordinatorLayout,
+                    R.string.error_empty_name,
+                    Snackbar.LENGTH_LONG)
+                    .show();
+            return;
+        }
+
+        try {
+            if (viewModel.addTorrent())
+                finish();
+
+        } catch (Exception e) {
+            if (e instanceof TorrentAlreadyExistsException) {
+                Toast.makeText(getApplication(),
+                        R.string.torrent_exist,
+                        Toast.LENGTH_SHORT)
+                        .show();
+                finish();
+
+            } else {
+                handleAddException(e);
+            }
+        }
+    }
+
+=== ui/addtorrent/AddTorrentActivity.java:565-571 ===
+    @Override
+    public void finish()
+    {
+        viewModel.finish();
+
+        super.finish();
+    }

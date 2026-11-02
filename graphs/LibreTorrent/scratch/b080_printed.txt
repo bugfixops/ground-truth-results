@@ -1,0 +1,600 @@
+# Batch 80 printed evidence (fresh, C12 converter, 2026-11-01)
+# Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+# Convention: each section lists clone lines in order; the first line shown is the range start.
+# Cited files (basenames, for check_part check 8): AddTorrentInfoFragment.java, AddTorrentMutableParams.java, AddTorrentActivity.java, AddTorrentViewModel.java, add_torrent_info.xml, fragment_add_torrent_info.xml
+# NOTE on the row-23 binding citation: fragment_add_torrent_info.xml itself is a 21-line wrapper that
+# includes @layout/add_torrent_info with app:viewModel="@{viewModel}"; the dirName binding text itself is
+# at add_torrent_info.xml:73 (save_path TextView, android:text="@{viewModel.mutableParams.dirName}").
+# The task's "fragment_add_torrent_info.xml:73" citation is therefore read as the included layout's line 73.
+
+=== ui/addtorrent/AddTorrentInfoFragment.java:90-213 ===
+
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_add_torrent_info, container, false);
+
+        return binding.getRoot();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        viewModel = new ViewModelProvider(activity).get(AddTorrentViewModel.class);
+        binding.setViewModel(viewModel);
+
+        binding.info.folderChooserButton.setOnClickListener((v) -> showChooseDirDialog());
+        binding.info.name.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                checkNameField(s);
+            }
+        });
+        binding.info.tagsList.setListener(tagsListener);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        subscribeTags();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        disposables.clear();
+    }
+
+    final ActivityResultLauncher<Intent> selectTag = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            (result) -> {
+                Intent data = result.getData();
+                if (result.getResultCode() == Activity.RESULT_OK && data != null) {
+                    TagInfo tag = data.getParcelableExtra(SelectTagActivity.TAG_RESULT_SELECTED_TAG);
+                    if (tag != null) {
+                        viewModel.addTag(tag);
+                    }
+                }
+            }
+    );
+
+    final ActivityResultLauncher<Intent> chooseDir = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(), (result) -> {
+                if (result.getResultCode() != Activity.RESULT_OK) {
+                    return;
+                }
+                Intent data = result.getData();
+                if (data == null || data.getData() == null) {
+                    showOpenDirErrorDialog();
+                    return;
+                }
+                viewModel.mutableParams.getDirPath().set(data.getData());
+            });
+
+    private final TorrentTagsList.Listener tagsListener = new TorrentTagsList.Listener() {
+        @Override
+        public void onAddTagClick() {
+            disposables.add(Observable.fromIterable(viewModel.getCurrentTags())
+                    .map((tag) -> tag.id)
+                    .toList()
+                    .subscribe((ids) -> {
+                        Intent i = new Intent(activity, SelectTagActivity.class);
+                        i.putExtra(
+                                SelectTagActivity.TAG_EXCLUDE_TAGS_ID,
+                                ArrayUtils.toPrimitive(ids.toArray(new Long[0]))
+                        );
+                        selectTag.launch(i);
+                    })
+            );
+        }
+
+        @Override
+        public void onTagRemoved(@NonNull TagInfo info) {
+            viewModel.removeTag(info);
+        }
+    };
+
+    private void subscribeTags() {
+        disposables.add(viewModel.observeTags()
+                .subscribe(binding.info.tagsList::submit)
+        );
+    }
+
+    private void showChooseDirDialog() {
+        Intent i = new Intent(activity, FileManagerDialog.class);
+
+        FileSystemFacade fs = SystemFacadeHelper.getFileSystemFacade(
+                activity.getApplicationContext()
+        );
+        String path;
+        try {
+            path = fs.getDirPath(viewModel.mutableParams.getDirPath().get());
+        } catch (UnknownUriException e) {
+            path = null;
+        }
+
+        FileManagerConfig config = new FileManagerConfig(
+                path,
+                getString(R.string.select_folder_to_save),
+                FileManagerConfig.DIR_CHOOSER_MODE
+        );
+
+        i.putExtra(FileManagerDialog.TAG_CONFIG, config);
+        chooseDir.launch(i);
+    }
+
+=== ui/addtorrent/AddTorrentMutableParams.java (full file) ===
+/*
+ * Copyright (C) 2018-2022 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.addtorrent;
+
+import android.net.Uri;
+
+import androidx.annotation.NonNull;
+import androidx.databinding.BaseObservable;
+import androidx.databinding.Bindable;
+import androidx.databinding.ObservableField;
+
+import org.proninyaroslav.libretorrent.BR;
+
+public class AddTorrentMutableParams extends BaseObservable
+{
+    /* File path or magnet link */
+    private String source;
+    private boolean fromMagnet;
+    private String name;
+    private ObservableField<Uri> dirPath = new ObservableField<>();
+    private String dirName;
+    private long storageFreeSpace = -1;
+    private boolean sequentialDownload;
+    private boolean startAfterAdd;
+    private boolean ignoreFreeSpace;
+    private boolean firstLastPiecePriority;
+
+    public String getSource()
+    {
+        return source;
+    }
+
+    public void setSource(String source)
+    {
+        this.source = source;
+    }
+
+    public boolean isFromMagnet()
+    {
+        return fromMagnet;
+    }
+
+    public void setFromMagnet(boolean fromMagnet)
+    {
+        this.fromMagnet = fromMagnet;
+    }
+
+    @Bindable
+    public String getName()
+    {
+        return name;
+    }
+
+    public void setName(String name)
+    {
+        this.name = name;
+        notifyPropertyChanged(BR.name);
+    }
+
+    public ObservableField<Uri> getDirPath()
+    {
+        return dirPath;
+    }
+
+    @Bindable
+    public String getDirName()
+    {
+        return dirName;
+    }
+
+    public void setDirName(String dirName)
+    {
+        this.dirName = dirName;
+        notifyPropertyChanged(BR.dirName);
+    }
+
+    @Bindable
+    public long getStorageFreeSpace()
+    {
+        return storageFreeSpace;
+    }
+
+    public void setStorageFreeSpace(long storageFreeSpace)
+    {
+        this.storageFreeSpace = storageFreeSpace;
+        notifyPropertyChanged(BR.storageFreeSpace);
+    }
+
+    @Bindable
+    public boolean isSequentialDownload()
+    {
+        return sequentialDownload;
+    }
+
+    public void setSequentialDownload(boolean sequentialDownload)
+    {
+        this.sequentialDownload = sequentialDownload;
+        notifyPropertyChanged(BR.sequentialDownload);
+    }
+
+    @Bindable
+    public boolean isStartAfterAdd()
+    {
+        return startAfterAdd;
+    }
+
+    public void setStartAfterAdd(boolean startAfterAdd)
+    {
+        this.startAfterAdd = startAfterAdd;
+        notifyPropertyChanged(BR.startAfterAdd);
+    }
+
+    @Bindable
+    public boolean isIgnoreFreeSpace()
+    {
+        return ignoreFreeSpace;
+    }
+
+    public void setIgnoreFreeSpace(boolean ignoreFreeSpace)
+    {
+        this.ignoreFreeSpace = ignoreFreeSpace;
+        notifyPropertyChanged(BR.ignoreFreeSpace);
+    }
+
+    @Bindable
+    public boolean isFirstLastPiecePriority()
+    {
+        return firstLastPiecePriority;
+    }
+
+    public void setFirstLastPiecePriority(boolean firstLastPiecePriority)
+    {
+        this.firstLastPiecePriority = firstLastPiecePriority;
+        notifyPropertyChanged(BR.firstLastPiecePriority);
+    }
+
+    @NonNull
+    @Override
+    public String toString()
+    {
+        return "AddTorrentMutableParams{" +
+                "source='" + source + '\'' +
+                ", fromMagnet=" + fromMagnet +
+                ", name='" + name + '\'' +
+                ", dirPath=" + dirPath +
+                ", dirName='" + dirName + '\'' +
+                ", storageFreeSpace=" + storageFreeSpace +
+                ", sequentialDownload=" + sequentialDownload +
+                ", startAfterAdd=" + startAfterAdd +
+                ", ignoreFreeSpace=" + ignoreFreeSpace +
+                ", firstLastPiecePriority=" + firstLastPiecePriority +
+                '}';
+    }
+}
+
+=== ui/addtorrent/AddTorrentViewModel.java:75-94 ===
+public class AddTorrentViewModel extends AndroidViewModel {
+    private static final String TAG = AddTorrentViewModel.class.getSimpleName();
+
+    public AddTorrentMutableParams mutableParams = new AddTorrentMutableParams();
+    public ObservableField<TorrentMetaInfo> info = new ObservableField<>();
+    private MutableLiveData<DecodeState> decodeState = new MutableLiveData<>();
+    private FileSystemFacade fs;
+    private TorrentEngine engine;
+    private SettingsRepository pref;
+    private TorrentDecodeTask decodeTask;
+    /* BEP53 standard. Optional field */
+    private ArrayList<Priority> magnetPriorities;
+    private CompositeDisposable disposable = new CompositeDisposable();
+    private Disposable observeEngineRunning;
+
+    public BencodeFileTree fileTree;
+    private BencodeFileTree[] treeLeaves;
+
+=== ui/addtorrent/AddTorrentViewModel.java:220-274 ===
+                return null;
+
+            Uri uri = params[0];
+            try {
+                switch (uri.getScheme()) {
+                    case Utils.FILE_PREFIX:
+                    case Utils.CONTENT_PREFIX:
+                        v.mutableParams.setSource(uri.toString());
+                        v.decodeState.postValue(
+                                new DecodeState(AddTorrentViewModel.Status.DECODE_TORRENT_FILE));
+                        break;
+                    case Utils.MAGNET_PREFIX:
+                        v.mutableParams.setSource(uri.toString());
+                        v.decodeState.postValue(
+                                new DecodeState(AddTorrentViewModel.Status.FETCHING_MAGNET));
+                        v.mutableParams.setFromMagnet(true);
+
+                        Pair<MagnetInfo, Single<TorrentMetaInfo>> res = v.engine.fetchMagnet(uri.toString());
+                        if (res == null)
+                            break;
+                        MagnetInfo magnetInfo = res.first;
+                        if (magnetInfo != null && !isCancelled()) {
+                            v.info.set(new TorrentMetaInfo(magnetInfo.getName(), magnetInfo.getSha1hash()));
+                            v.observeFetchedMetadata(res.second);
+
+                            if (magnetInfo.getFilePriorities() != null)
+                                v.magnetPriorities = new ArrayList<>(magnetInfo.getFilePriorities());
+                        }
+                        break;
+                    case Utils.HTTP_PREFIX:
+                    case Utils.HTTPS_PREFIX:
+                        v.decodeState.postValue(new DecodeState(AddTorrentViewModel.Status.FETCHING_HTTP));
+
+                        File httpTmp = v.fs.makeTempFile(".torrent");
+                        byte[] response = Utils.fetchHttpUrl(v.getApplication(), uri.toString());
+                        org.apache.commons.io.FileUtils.writeByteArrayToFile(httpTmp, response);
+
+                        if (httpTmp.exists() && !isCancelled()) {
+                            v.mutableParams.setSource(
+                                    v.fs.normalizeFileSystemPath(httpTmp.getAbsolutePath()));
+                        } else {
+                            return new IllegalArgumentException("Unknown path to the torrent file");
+                        }
+
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Invalid scheme");
+                }
+
+                String tmpSource = v.mutableParams.getSource();
+                boolean fromMagnet = v.mutableParams.isFromMagnet();
+                if (tmpSource != null && !fromMagnet && !isCancelled())
+                    readTorrentFile(Uri.parse(tmpSource));
+
+=== ui/addtorrent/AddTorrentViewModel.java:340-364 ===
+            TorrentMetaInfo downloadInfo = info.get();
+            if (downloadInfo == null)
+                return;
+
+            mutableParams.setName(downloadInfo.torrentName);
+        }
+    };
+
+    private Observable.OnPropertyChangedCallback dirPathCallback = new Observable.OnPropertyChangedCallback() {
+        @Override
+        public void onPropertyChanged(Observable sender, int propertyId) {
+            Uri dirPath = mutableParams.getDirPath().get();
+            if (dirPath == null)
+                return;
+
+            disposable.add(Completable.fromRunnable(() -> {
+                try {
+                    mutableParams.setStorageFreeSpace(fs.getDirAvailableBytes(dirPath));
+                    mutableParams.setDirName(fs.getDirPath(dirPath));
+                } catch (UnknownUriException e) {
+                    Log.e(TAG, Log.getStackTraceString(e));
+                }
+            })
+                    .subscribeOn(Schedulers.io())
+                    .subscribe());
+
+=== ui/addtorrent/AddTorrentViewModel.java:545-564 ===
+        return true;
+    }
+
+    private boolean checkFreeSpace() {
+        if (fileTree == null)
+            return false;
+
+        long storageFreeSpace = mutableParams.getStorageFreeSpace();
+        long treeFreeSpace = fileTree.selectedFileSize();
+
+        return storageFreeSpace == -1 || storageFreeSpace >= treeFreeSpace;
+    }
+
+    public void finish() {
+        if (decodeTask != null)
+            decodeTask.cancel(true);
+
+        cancelFetchMagnet();
+    }
+
+=== ui/addtorrent/AddTorrentActivity.java:142-168 ===
+    private void fillMutableParams() {
+        viewModel.mutableParams.setSequentialDownload(
+                localPref.getBoolean(
+                        getString(R.string.add_torrent_sequential_download),
+                        false
+                )
+        );
+        viewModel.mutableParams.setStartAfterAdd(
+                localPref.getBoolean(
+                        getString(R.string.add_torrent_start_after_add),
+                        true
+                )
+        );
+        viewModel.mutableParams.setIgnoreFreeSpace(
+                localPref.getBoolean(
+                        getString(R.string.add_torrent_ignore_free_space),
+                        false
+                )
+        );
+        viewModel.mutableParams.setFirstLastPiecePriority(
+                localPref.getBoolean(
+                        getString(R.string.add_torrent_download_first_last_pieces),
+                        false
+                )
+        );
+    }
+
+=== ui/addtorrent/AddTorrentActivity.java:193-233 ===
+    private final Observable.OnPropertyChangedCallback onMutableParamsChanged =
+            new Observable.OnPropertyChangedCallback() {
+        @Override
+        public void onPropertyChanged(Observable sender, int propertyId) {
+            if (propertyId == BR.sequentialDownload) {
+                localPref.edit()
+                        .putBoolean(
+                                getString(R.string.add_torrent_sequential_download),
+                                viewModel.mutableParams.isSequentialDownload()
+                        )
+                        .apply();
+            } else if (propertyId == BR.startAfterAdd) {
+                localPref.edit()
+                        .putBoolean(
+                                getString(R.string.add_torrent_start_after_add),
+                                viewModel.mutableParams.isStartAfterAdd()
+                        )
+                        .apply();
+            } else if (propertyId == BR.ignoreFreeSpace) {
+                localPref.edit()
+                        .putBoolean(
+                                getString(R.string.add_torrent_ignore_free_space),
+                                viewModel.mutableParams.isIgnoreFreeSpace()
+                        )
+                        .apply();
+            } else if (propertyId == BR.firstLastPiecePriority) {
+                localPref.edit()
+                        .putBoolean(
+                                getString(R.string.add_torrent_download_first_last_pieces),
+                                viewModel.mutableParams.isFirstLastPiecePriority()
+                        )
+                        .apply();
+            }
+        }
+    };
+
+=== ui/addtorrent/AddTorrentActivity.java:350-392 ===
+    private Uri getUri()
+    {
+        Intent i = getIntent();
+        /* Implicit intent with path to torrent file, http or magnet link */
+        if (i.getData() != null)
+            return i.getData();
+        else if (!TextUtils.isEmpty(i.getStringExtra(Intent.EXTRA_TEXT)))
+            return Uri.parse(i.getStringExtra(Intent.EXTRA_TEXT));
+        else
+            return i.getParcelableExtra(TAG_URI);
+    }
+
+    private void addTorrent()
+    {
+        String name = viewModel.mutableParams.getName();
+        if (TextUtils.isEmpty(name)) {
+            Snackbar.make(binding.coordinatorLayout,
+                    R.string.error_empty_name,
+                    Snackbar.LENGTH_LONG)
+                    .show();
+            return;
+        }
+
+        try {
+            if (viewModel.addTorrent())
+                finish();
+
+        } catch (Exception e) {
+            if (e instanceof TorrentAlreadyExistsException) {
+                Toast.makeText(getApplication(),
+                        R.string.torrent_exist,
+                        Toast.LENGTH_SHORT)
+                        .show();
+                finish();
+
+            } else {
+                handleAddException(e);
+            }
+        }
+    }
+
+=== res/layout/fragment_add_torrent_info.xml (full file, 21 lines) ===
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <variable
+            name="viewModel"
+            type="org.proninyaroslav.libretorrent.ui.addtorrent.AddTorrentViewModel" />
+    </data>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="?attr/background">
+
+        <include
+            layout="@layout/add_torrent_info"
+            android:id="@+id/info"
+            app:viewModel="@{viewModel}" />
+    </androidx.core.widget.NestedScrollView>
+</layout>
+
+=== res/layout/add_torrent_info.xml:55-94 ===
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingTop="16dp"
+                android:paddingBottom="16dp"
+                android:layout_marginEnd="48dp"
+                android:layout_alignParentStart="true"
+                android:paddingStart="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/upload_torrent_into"
+                    style="@style/TitleText" />
+
+                <TextView
+                    android:id="@+id/save_path"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@{viewModel.mutableParams.dirName}"
+                    style="@style/TextAppearance.MaterialComponents.Body1"/>
+            </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/folder_chooser_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="5dp"
+                android:layout_centerVertical="true"
+                android:background="?attr/transparentRoundRipple"
+                android:contentDescription="@string/dir_chooser_title"
+                app:srcCompat="@drawable/ic_folder_grey600_24dp"
+                android:layout_alignParentEnd="true" />
+        </RelativeLayout>
+
+        <com.google.android.material.internal.FlowLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:itemSpacing="8dp"
+            android:padding="16dp">
