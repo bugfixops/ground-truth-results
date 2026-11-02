@@ -1,0 +1,160 @@
+Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+
+===== core/model/TorrentEngine.java =====
+139:         session.setSettings(pref.readSessionSettings(), false);
+144:         if (pref.shutdownDownloadsComplete())
+1010:         boolean unmeteredOnly = pref.unmeteredConnectionsOnly();
+1066:         String hostname = pref.streamingHostname();
+1067:         int port = pref.streamingPort();
+1185:         Uri downloadPath = (savePath == null ? Uri.parse(pref.saveTorrentsIn()) : savePath);
+1273:             if (pref.saveTorrentFiles())
+1274:                 saveTorrentFileIn(repo.getTorrentById(id),
+1275:                         Uri.parse(pref.saveTorrentFilesIn()));
+1395:             if (pref.showNatErrors())
+1546:             setRandomPortRange(pref.useRandomPort());
+1609:             s.seedingOutgoingConnections = pref.seedingOutgoingConnections();
+1652:             s.validateHttpsTrackers = pref.validateHttpsTrackers();
+
+===== core/settings/SettingsRepositoryImpl.java =====
+212:     public SessionSettings readSessionSettings() {
+213:         SessionSettings settings = new SessionSettings();
+214:         settings.uploadRateLimit = maxUploadSpeedLimit();
+215:         settings.connectionsLimit = maxConnections();
+216:         settings.connectionsLimitPerTorrent = maxConnectionsPerTorrent();
+217:         settings.uploadsLimitPerTorrent = maxUploadsPerTorrent();
+218:         settings.activeDownloads = maxActiveDownloads();
+219:         settings.activeSeeds = maxActiveUploads();
+220:         settings.activeLimit = maxActiveTorrents();
+221:         settings.portRangeFirst = portRangeFirst();
+222:         settings.portRangeSecond = portRangeSecond();
+223:         settings.dhtEnabled = enableDht();
+224:         settings.lsdEnabled = enableLsd();
+225:         settings.utpEnabled = enableUtp();
+226:         settings.upnpEnabled = enableUpnp();
+227:         settings.natPmpEnabled = enableNatPmp();
+228:         settings.encryptModeIncoming = SessionSettings.EncryptMode.fromValue(encryptInConnectionsMode());
+229:         settings.encryptModeOutcoming = SessionSettings.EncryptMode.fromValue(encryptOutConnectionsMode());
+230:         settings.autoManaged = autoManage();
+231:         settings.anonymousMode = anonymousMode();
+232:         settings.seedingOutgoingConnections = seedingOutgoingConnections();
+233:         settings.useRandomPort = useRandomPort();
+234:         String[] trackers = defaultTrackersList().split("\n");
+235:         if (trackers.length == 1 && TextUtils.isEmpty(trackers[0])) {
+236:             settings.defaultTrackersList = new String[]{};
+237:         } else {
+238:             settings.defaultTrackersList = trackers;
+239:         }
+240:         settings.validateHttpsTrackers = validateHttpsTrackers();
+241:         settings.posixDiskIo = posixDiskIo();
+242: 
+243:         settings.proxyType = SessionSettings.ProxyType.fromValue(proxyType());
+244:         settings.proxyAddress = proxyAddress();
+245:         settings.proxyPort = proxyPort();
+246:         settings.proxyPeersToo = proxyPeersToo();
+247:         settings.proxyRequiresAuth = proxyRequiresAuth();
+248:         settings.proxyLogin = proxyLogin();
+249:         settings.proxyPassword = proxyPassword();
+250: 
+251:         settings.logging = logging();
+252:         settings.maxLogSize = maxLogSize();
+253:         settings.logSessionFilter = logSessionFilter();
+254:         settings.logDhtFilter = logDhtFilter();
+255:         settings.logPeerFilter = logPeerFilter();
+256:         settings.logPortmapFilter = logPortmapFilter();
+257:         settings.logTorrentFilter = logTorrentFilter();
+258: 
+259:         return settings;
+260:     }
+277:     public boolean torrentFinishNotify() {
+283:     public void torrentFinishNotify(boolean val) {
+329:     public int theme() {
+335:     public void theme(int val) {
+435:     public boolean shutdownDownloadsComplete() {
+441:     public void shutdownDownloadsComplete(boolean val) {
+513:     public boolean unmeteredConnectionsOnly() {
+519:     public void unmeteredConnectionsOnly(boolean val) {
+630:     public boolean useRandomPort() {
+636:     public void useRandomPort(boolean val) {
+695:     public boolean showNatErrors() {
+701:     public void showNatErrors(boolean val) {
+708:     public String saveTorrentsIn() {
+714:     public void saveTorrentsIn(String val) {
+747:     public boolean saveTorrentFiles() {
+753:     public void saveTorrentFiles(boolean val) {
+760:     public String saveTorrentFilesIn() {
+766:     public void saveTorrentFilesIn(String val) {
+942:     public boolean seedingOutgoingConnections() {
+948:     public void seedingOutgoingConnections(boolean val) {
+968:     public boolean validateHttpsTrackers() {
+974:     public void validateHttpsTrackers(boolean val) {
+1000:     public void proxyType(int val) {
+1124:     public int schedulingStartTime() {
+1130:     public void schedulingStartTime(int val) {
+1137:     public int schedulingShutdownTime() {
+1143:     public void schedulingShutdownTime(int val) {
+1150:     public boolean schedulingRunOnlyOnce() {
+1156:     public void schedulingRunOnlyOnce(boolean val) {
+1163:     public boolean schedulingSwitchWiFi() {
+1169:     public void schedulingSwitchWiFi(boolean val) {
+1202:     public long refreshFeedsInterval() {
+1208:     public void refreshFeedsInterval(long val) {
+1280:     public String streamingHostname() {
+1286:     public void streamingHostname(String val) {
+1293:     public int streamingPort() {
+1299:     public void streamingPort(int val) {
+1410:     public boolean showManageAllFilesWarningDialog() {
+1418:     public void showManageAllFilesWarningDialog(boolean val) {
+
+===== core/utils/Utils.java =====
+371:         return RepositoryHelper.getSettingsRepository(context).theme();
+704:         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R
+705:                 || Utils.hasManageExternalStoragePermission(appContext)
+706:                 || !pref.showManageAllFilesWarningDialog()) {
+707:             return;
+711:             pref.showManageAllFilesWarningDialog(false);
+
+===== ui/TorrentNotifier.java =====
+213:         if (!pref.torrentFinishNotify() || torrent.visibility == Torrent.VISIBILITY_HIDDEN)
+
+===== ui/settings/sections/AppearanceSettingsFragment.java =====
+229:             pref.theme(type);
+238:             pref.torrentFinishNotify((boolean)newValue);
+
+===== ui/settings/sections/BehaviorSettingsFragment.java =====
+223:             pref.unmeteredConnectionsOnly((boolean)newValue);
+232:             pref.shutdownDownloadsComplete((boolean)newValue);
+
+===== ui/settings/sections/FeedSettingsFragment.java =====
+133:                 long interval = pref.refreshFeedsInterval();
+134:                 Scheduler.runPeriodicalRefreshFeeds(context, interval);
+141:             pref.refreshFeedsInterval(interval);
+
+===== ui/settings/sections/NetworkSettingsFragment.java =====
+335:             pref.showNatErrors((boolean) newValue);
+338:             pref.useRandomPort((boolean) newValue);
+352:             pref.seedingOutgoingConnections((boolean) newValue);
+355:             pref.validateHttpsTrackers((boolean) newValue);
+
+===== ui/settings/sections/ProxySettingsFragment.java =====
+210:             pref.proxyType(type);
+
+===== ui/settings/sections/SchedulingSettingsFragment.java =====
+86:             startTime.setTime(pref.schedulingStartTime());
+93:             stopTime.setTime(pref.schedulingShutdownTime());
+100:             runOnlyOnce.setChecked(pref.schedulingRunOnlyOnce());
+107:             switchWiFi.setChecked(pref.schedulingSwitchWiFi());
+199:                 int time = pref.schedulingStartTime();
+212:                 int time = pref.schedulingStartTime();
+222:             pref.schedulingStartTime((int)newValue);
+228:             pref.schedulingShutdownTime((int)newValue);
+234:             pref.schedulingRunOnlyOnce((boolean)newValue);
+237:             pref.schedulingSwitchWiFi((boolean)newValue);
+
+===== ui/settings/sections/StorageSettingsFragment.java =====
+264:                     pref.saveTorrentFilesIn(path.toString());
+267:                     pref.saveTorrentsIn(path.toString());
+285:             pref.saveTorrentFiles((boolean) newValue);
+
+===== ui/settings/sections/StreamingSettingsFragment.java =====
+102:             pref.streamingHostname((String)newValue);
+108:                 pref.streamingPort(value);

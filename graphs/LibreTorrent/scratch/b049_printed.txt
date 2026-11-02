@@ -1,0 +1,4772 @@
+Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+
+$ sed -n '1,297p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/storage/DatabaseMigration.java
+/*
+ * Copyright (C) 2019-2022 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.core.storage;
+
+import android.content.Context;
+import android.database.Cursor;
+import android.util.Log;
+
+import androidx.annotation.NonNull;
+import androidx.room.migration.Migration;
+import androidx.sqlite.db.SupportSQLiteDatabase;
+
+import org.apache.commons.io.FileUtils;
+import org.proninyaroslav.libretorrent.core.system.FileSystemFacade;
+import org.proninyaroslav.libretorrent.core.system.SystemFacadeHelper;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+class DatabaseMigration
+{
+    private static final String TAG = DatabaseMigration.class.getSimpleName();
+
+    static Migration[] getMigrations(@NonNull Context appContext)
+    {
+        return new Migration[] {
+                MIGRATION_1_2,
+                MIGRATION_2_3,
+                MIGRATION_3_4,
+                new RoomDatabaseMigration(appContext),
+                MIGRATION_5_6,
+                MIGRATION_6_7,
+                MIGRATION_7_8,
+                MIGRATION_8_9
+        };
+    }
+
+    static final Migration MIGRATION_1_2 = new Migration(1, 2) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database)
+        {
+            database.execSQL("ALTER TABLE torrents ADD COLUMN downloading_metadata integer ");
+            database.execSQL("ALTER TABLE torrents ADD COLUMN datetime integer ");
+        }
+    };
+
+    static final Migration MIGRATION_2_3 = new Migration(2, 3) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database)
+        {
+            database.execSQL("CREATE TABLE feeds(_id integer primary key autoincrement, url text not null unique, name text, last_update integer, auto_download integer, filter text, is_regex_filter integer, fetch_error text);");
+            database.execSQL("CREATE TABLE feed_items(_id integer primary key autoincrement, feed_url text, title text not null unique, download_url text, article_url text, pub_date integer, fetch_date integer, read integer );");
+        }
+    };
+
+    static final Migration MIGRATION_3_4 = new Migration(3, 4) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database)
+        {
+            database.execSQL("ALTER TABLE torrents ADD COLUMN error text ");
+        }
+    };
+
+    static final Migration MIGRATION_5_6 = new Migration(5, 6) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database)
+        {
+            /* Torrent.VISIBILITY_VISIBLE_NOTIFY_FINISHED */
+            database.execSQL("ALTER TABLE `Torrent` ADD COLUMN `visibility` INTEGER NOT NULL DEFAULT 0");
+        }
+    };
+
+    static final Migration MIGRATION_6_7 = new Migration(6, 7) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("CREATE TABLE IF NOT EXISTS `TagInfo` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `color` INTEGER NOT NULL)");
+            database.execSQL("CREATE TABLE IF NOT EXISTS `TorrentTagInfo` (`tagId` INTEGER NOT NULL, `torrentId` TEXT NOT NULL, PRIMARY KEY(`tagId`, `torrentId`), FOREIGN KEY(`tagId`) REFERENCES `TagInfo`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`torrentId`) REFERENCES `Torrent`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )");
+            database.execSQL("CREATE INDEX IF NOT EXISTS `index_TorrentTagInfo_tagId` ON `TorrentTagInfo` (`tagId`)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS `index_TorrentTagInfo_torrentId` ON `TorrentTagInfo` (`torrentId`)");
+        }
+    };
+
+    static final Migration MIGRATION_7_8 = new Migration(7, 8) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE `Torrent` ADD COLUMN `sequentialDownload` INTEGER NOT NULL DEFAULT 0");
+        }
+    };
+
+    static final Migration MIGRATION_8_9 = new Migration(8, 9) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE `Torrent` ADD COLUMN `firstLastPiecePriority` INTEGER NOT NULL DEFAULT 0");
+        }
+    };
+
+    /*
+     * Migration from old database (ver. 4) to Room (ver. 5).
+     */
+
+    static class RoomDatabaseMigration extends Migration
+    {
+        static final class OldDataModel
+        {
+            static final String TORRENT_FILE_NAME = "torrent";
+            static final String TORRENT_RESUME_FILE_NAME = "fastresume";
+            static final String TORRENT_SESSION_FILE = "session";
+        }
+
+        private Context appContext;
+
+        public RoomDatabaseMigration(@NonNull Context appContext)
+        {
+            super(4, 5);
+
+            this.appContext = appContext;
+        }
+
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database)
+        {
+            database.beginTransaction();
+            try {
+                /* Create new tablets */
+                database.execSQL("CREATE TABLE IF NOT EXISTS `Torrent` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `downloadPath` TEXT NOT NULL, `dateAdded` INTEGER NOT NULL, `error` TEXT, `manuallyPaused` INTEGER NOT NULL, `magnet` TEXT, `downloadingMetadata` INTEGER NOT NULL, PRIMARY KEY(`id`))");
+                database.execSQL("CREATE TABLE IF NOT EXISTS `FastResume` (`torrentId` TEXT NOT NULL, `data` BLOB NOT NULL, PRIMARY KEY(`torrentId`), FOREIGN KEY(`torrentId`) REFERENCES `Torrent`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )");
+                database.execSQL("CREATE TABLE IF NOT EXISTS `FeedChannel` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `url` TEXT NOT NULL, `name` TEXT, `lastUpdate` INTEGER NOT NULL, `autoDownload` INTEGER NOT NULL, `filter` TEXT, `isRegexFilter` INTEGER NOT NULL, `fetchError` TEXT)");
+                database.execSQL("CREATE TABLE IF NOT EXISTS `FeedItem` (`id` TEXT NOT NULL, `title` TEXT NOT NULL, `feedId` INTEGER NOT NULL, `downloadUrl` TEXT, `articleUrl` TEXT, `pubDate` INTEGER NOT NULL, `fetchDate` INTEGER NOT NULL, `read` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`feedId`) REFERENCES `FeedChannel`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )");
+                database.execSQL("CREATE INDEX `index_FeedItem_feedId` ON `FeedItem` (`feedId`)");
+                database.execSQL("CREATE INDEX `index_FastResume_torrentId` ON `FastResume` (`torrentId`)");
+                database.execSQL("CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)");
+                database.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '9a928af8203fc8a72546bb3719135e08')");
+
+                /* Copy from old */
+                database.execSQL("ALTER TABLE torrents RENAME TO torrents_old;");
+                database.execSQL("INSERT INTO `Torrent` (`id`, `name`, `downloadPath`, `manuallyPaused`, `downloadingMetadata`, `magnet`, `dateAdded`, `error`) SELECT torrent_id, name, 'file://' || path_to_download, 0, downloading_metadata, CASE WHEN downloading_metadata THEN path_to_torrent ELSE NULL END path_to_torrent, datetime, error FROM torrents_old;");
+                database.execSQL("DROP TABLE torrents_old;");
+
+                database.execSQL("ALTER TABLE feeds RENAME TO feeds_old;");
+                database.execSQL("INSERT INTO `FeedChannel` (`url`, `name`, `lastUpdate`, `autoDownload`, `filter`, `isRegexFilter`, `fetchError`) SELECT url, name, last_update, auto_download, filter, is_regex_filter, fetch_error FROM feeds_old;");
+                database.execSQL("DROP TABLE feeds_old;");
+
+                /* Don't import feed items */
+                database.execSQL("DROP TABLE feed_items;");
+
+                database.setTransactionSuccessful();
+
+            } finally {
+                database.endTransaction();
+            }
+
+            try {
+                advancedMigration(database);
+
+            } catch (Exception e) {
+                Log.e(TAG, Log.getStackTraceString(e));
+            }
+        }
+
+        void advancedMigration(SupportSQLiteDatabase database)
+        {
+            removeSessionFile();
+            copyFastResumeData(database);
+        }
+
+        void copyFastResumeData(SupportSQLiteDatabase database)
+        {
+            List<String> idList = getTorrentIdList(database);
+
+            database.beginTransaction();
+            try {
+                for (String id : idList) {
+                    if (!torrentDataExists(id))
+                        continue;
+
+                    File dataDir = findTorrentDataDir(id);
+                    if (dataDir == null)
+                        continue;
+
+                    try {
+                        File fastResumeFile = new File(dataDir, OldDataModel.TORRENT_RESUME_FILE_NAME);
+                        if (!fastResumeFile.exists()) {
+                            backupTorrent(new File(dataDir, OldDataModel.TORRENT_FILE_NAME));
+                            continue;
+                        }
+
+                        addFastResume(database,
+                                id,
+                                FileUtils.readFileToByteArray(fastResumeFile));
+
+                    } catch (Exception e) {
+                        backupTorrent(new File(dataDir, OldDataModel.TORRENT_FILE_NAME));
+
+                    } finally {
+                        try {
+                            FileUtils.deleteDirectory(dataDir);
+
+                        } catch (IOException e) {
+                            /* Ignore */
+                        }
+                    }
+                }
+                database.setTransactionSuccessful();
+
+            } finally {
+                database.endTransaction();
+            }
+        }
+
+        private void removeSessionFile()
+        {
+            File dataDir = appContext.getExternalFilesDir(null);
+            if (dataDir != null) {
+                File session = new File(dataDir, OldDataModel.TORRENT_SESSION_FILE);
+                session.delete();
+            }
+        }
+
+        private boolean torrentDataExists(String id)
+        {
+            FileSystemFacade fs = SystemFacadeHelper.getFileSystemFacade(appContext);
+            File f = new File(appContext.getExternalFilesDir(null), id);
+
+            return fs.isStorageReadable() && f.exists();
+        }
+
+        private File findTorrentDataDir(String id)
+        {
+            FileSystemFacade fs = SystemFacadeHelper.getFileSystemFacade(appContext);
+
+            if (fs.isStorageReadable()) {
+                File dataDir = new File(appContext.getExternalFilesDir(null), id);
+                if (dataDir.exists())
+                    return dataDir;
+            }
+
+            return null;
+        }
+
+        private void backupTorrent(File torrent)
+        {
+            if (!torrent.exists())
+                return;
+
+            String userDir = SystemFacadeHelper.getFileSystemFacade(appContext).getUserDirPath();
+            if (userDir == null)
+                return;
+
+            File backupDir = new File(userDir, "LibreTorrent_backup");
+            try {
+                FileUtils.copyFileToDirectory(torrent, backupDir);
+
+            } catch (Exception e) {
+                /* Ignore */
+            }
+        }
+
+        private List<String> getTorrentIdList(SupportSQLiteDatabase database)
+        {
+            ArrayList<String> idList = new ArrayList<>();
+
+            Cursor cursor = database.query("SELECT `id` from `Torrent`");
+            while (cursor.moveToNext())
+                idList.add(cursor.getString(0));
+
+            cursor.close();
+
+            return idList;
+        }
+
+        private void addFastResume(SupportSQLiteDatabase database,
+                                   String torrentId, byte[] data)
+        {
+            database.execSQL("INSERT INTO `FastResume` (`torrentId`, `data`) VALUES(?, ?) ",
+                    new Object[] { torrentId, data });
+        }
+    }
+}
+
+$ sed -n '1,226p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/storage/FeedRepositoryImpl.java
+/*
+ * Copyright (C) 2019 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.core.storage;
+
+import android.content.Context;
+import android.net.Uri;
+
+import androidx.annotation.NonNull;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import org.proninyaroslav.libretorrent.core.exception.UnknownUriException;
+import org.proninyaroslav.libretorrent.core.model.data.entity.FeedChannel;
+import org.proninyaroslav.libretorrent.core.model.data.entity.FeedItem;
+import org.proninyaroslav.libretorrent.core.system.FileDescriptorWrapper;
+import org.proninyaroslav.libretorrent.core.system.FileSystemFacade;
+import org.proninyaroslav.libretorrent.core.system.SystemFacadeHelper;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+
+import io.reactivex.Flowable;
+import io.reactivex.Single;
+
+public class FeedRepositoryImpl implements FeedRepository
+{
+    private static final String TAG = FeedRepositoryImpl.class.getSimpleName();
+
+    public static final String SERIALIZE_FILE_FORMAT = "json";
+    public static final String SERIALIZE_MIME_TYPE = "application/json";
+    public static final String FILTER_SEPARATOR = "\\|";
+
+    private Context appContext;
+    private AppDatabase db;
+
+    public FeedRepositoryImpl(@NonNull Context appContext, @NonNull AppDatabase db)
+    {
+        this.appContext = appContext;
+        this.db = db;
+    }
+
+    @Override
+    public String getSerializeFileFormat()
+    {
+        return SERIALIZE_FILE_FORMAT;
+    }
+
+    @Override
+    public String getSerializeMimeType()
+    {
+        return SERIALIZE_MIME_TYPE;
+    }
+
+    @Override
+    public String getFilterSeparator()
+    {
+        return FILTER_SEPARATOR;
+    }
+
+    @Override
+    public long addFeed(@NonNull FeedChannel channel)
+    {
+        return db.feedDao().addFeed(channel);
+    }
+
+    @Override
+    public long[] addFeeds(@NonNull List<FeedChannel> feeds)
+    {
+        return db.feedDao().addFeeds(feeds);
+    }
+
+    @Override
+    public int updateFeed(@NonNull FeedChannel channel)
+    {
+        return db.feedDao().updateFeed(channel);
+    }
+
+    @Override
+    public void deleteFeed(@NonNull FeedChannel channel)
+    {
+        db.feedDao().deleteFeed(channel);
+    }
+
+    @Override
+    public void deleteFeeds(@NonNull List<FeedChannel> feeds)
+    {
+        db.feedDao().deleteFeeds(feeds);
+    }
+
+    @Override
+    public FeedChannel getFeedById(long id)
+    {
+        return db.feedDao().getFeedById(id);
+    }
+
+    @Override
+    public Single<FeedChannel> getFeedByIdSingle(long id)
+    {
+        return db.feedDao().getFeedByIdSingle(id);
+    }
+
+    @Override
+    public Flowable<List<FeedChannel>> observeAllFeeds()
+    {
+        return db.feedDao().observeAllFeeds();
+    }
+
+    @Override
+    public List<FeedChannel> getAllFeeds()
+    {
+        return db.feedDao().getAllFeeds();
+    }
+
+    @Override
+    public Single<List<FeedChannel>> getAllFeedsSingle()
+    {
+        return db.feedDao().getAllFeedsSingle();
+    }
+
+    @Override
+    public void serializeAllFeeds(@NonNull Uri file) throws IOException, UnknownUriException
+    {
+        SystemFacadeHelper.getFileSystemFacade(appContext)
+                .write(new Gson().toJson(getAllFeeds()), StandardCharsets.UTF_8, file);
+    }
+
+    @Override
+    public List<FeedChannel> deserializeFeeds(@NonNull Uri file) throws IOException, UnknownUriException
+    {
+        List<FeedChannel> feeds;
+        FileSystemFacade fs = SystemFacadeHelper.getFileSystemFacade(appContext);
+        try (FileDescriptorWrapper w = fs.getFD(file);
+             FileInputStream fin = new FileInputStream(w.open("r"));
+             InputStreamReader reader = new InputStreamReader(fin, StandardCharsets.UTF_8))
+        {
+            feeds = new Gson()
+                    .fromJson(reader, new TypeToken<ArrayList<FeedChannel>>(){}
+                            .getType());
+        }
+
+        return feeds;
+    }
+
+    @Override
+    public void addItems(@NonNull List<FeedItem> items)
+    {
+        db.feedDao().addItems(items);
+    }
+
+    @Override
+    public void deleteItemsOlderThan(long keepDateBorderTime)
+    {
+        db.feedDao().deleteItemsOlderThan(keepDateBorderTime);
+    }
+
+    @Override
+    public void markAsRead(@NonNull String itemId)
+    {
+        db.feedDao().markAsRead(itemId);
+    }
+
+    @Override
+    public void markAsUnread(@NonNull String itemId)
+    {
+        db.feedDao().markAsUnread(itemId);
+    }
+
+    @Override
+    public void markAsReadByFeedId(List<Long> feedId)
+    {
+        db.feedDao().markAsReadByFeedId(feedId);
+    }
+
+    @Override
+    public Flowable<List<FeedItem>> observeItemsByFeedId(long feedId)
+    {
+        return db.feedDao().observeItemsByFeedId(feedId);
+    }
+
+    @Override
+    public Single<List<FeedItem>> getItemsByFeedIdSingle(long feedId)
+    {
+        return db.feedDao().getItemsByFeedIdSingle(feedId);
+    }
+
+    @Override
+    public List<String> getItemsIdByFeedId(long feedId)
+    {
+        return db.feedDao().getItemsIdByFeedId(feedId);
+    }
+
+    @Override
+    public List<String> findItemsExistingTitles(@NonNull List<String> titles)
+    {
+        return db.feedDao().findItemsExistingTitles(titles);
+    }
+
+    @Override
+    public List<FeedItem> getItemsById(@NonNull String... itemsId)
+    {
+        return db.feedDao().getItemsById(itemsId);
+    }
+}
+
+$ sed -n '1,77p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/storage/TagRepositoryImpl.java
+/*
+ * Copyright (C) 2020 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.core.storage;
+
+import androidx.annotation.NonNull;
+
+import org.proninyaroslav.libretorrent.core.model.data.entity.TagInfo;
+
+import java.util.List;
+
+import io.reactivex.Flowable;
+import io.reactivex.Single;
+
+public class TagRepositoryImpl implements TagRepository {
+    private final @NonNull AppDatabase db;
+
+    public TagRepositoryImpl(@NonNull AppDatabase db) {
+        this.db = db;
+    }
+
+    @Override
+    public void insert(@NonNull TagInfo info) {
+        db.tagInfoDao().insert(info);
+    }
+
+    @Override
+    public void update(@NonNull TagInfo info) {
+        db.tagInfoDao().update(info);
+    }
+
+    @Override
+    public void delete(@NonNull TagInfo info) {
+        db.tagInfoDao().delete(info);
+    }
+
+    @Override
+    public TagInfo getByName(@NonNull String name) {
+        return db.tagInfoDao().getByName(name);
+    }
+
+    @Override
+    public Flowable<List<TagInfo>> observeAll() {
+        return db.tagInfoDao().observeAll();
+    }
+
+    @Override
+    public Flowable<List<TagInfo>> observeByTorrentId(String torrentId) {
+        return db.tagInfoDao().observeByTorrentId(torrentId);
+    }
+
+    @Override
+    public Single<List<TagInfo>> getByTorrentIdAsync(String torrentId) {
+        return db.tagInfoDao().getByTorrentIdAsync(torrentId);
+    }
+
+    @Override
+    public List<TagInfo> getByTorrentId(String torrentId) {
+        return db.tagInfoDao().getByTorrentId(torrentId);
+    }
+}
+
+$ sed -n '1,76p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/RepositoryHelper.java
+/*
+ * Copyright (C) 2019-2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.core;
+
+import android.content.Context;
+
+import androidx.annotation.NonNull;
+
+import org.proninyaroslav.libretorrent.core.settings.SettingsRepository;
+import org.proninyaroslav.libretorrent.core.settings.SettingsRepositoryImpl;
+import org.proninyaroslav.libretorrent.core.storage.AppDatabase;
+import org.proninyaroslav.libretorrent.core.storage.FeedRepository;
+import org.proninyaroslav.libretorrent.core.storage.FeedRepositoryImpl;
+import org.proninyaroslav.libretorrent.core.storage.TagRepository;
+import org.proninyaroslav.libretorrent.core.storage.TagRepositoryImpl;
+import org.proninyaroslav.libretorrent.core.storage.TorrentRepository;
+import org.proninyaroslav.libretorrent.core.storage.TorrentRepositoryImpl;
+
+public class RepositoryHelper
+{
+    private static FeedRepositoryImpl feedRepo;
+    private static TorrentRepositoryImpl torrentRepo;
+    private static SettingsRepositoryImpl settingsRepo;
+    private static TagRepository tagRepo;
+
+    public synchronized static TorrentRepository getTorrentRepository(@NonNull Context appContext)
+    {
+        if (torrentRepo == null)
+            torrentRepo = new TorrentRepositoryImpl(appContext,
+                    AppDatabase.getInstance(appContext));
+
+        return torrentRepo;
+    }
+
+    public synchronized static FeedRepository getFeedRepository(@NonNull Context appContext)
+    {
+        if (feedRepo == null)
+            feedRepo = new FeedRepositoryImpl(appContext,
+                    AppDatabase.getInstance(appContext));
+
+        return feedRepo;
+    }
+
+    public synchronized static SettingsRepository getSettingsRepository(@NonNull Context appContext)
+    {
+        if (settingsRepo == null)
+            settingsRepo = new SettingsRepositoryImpl(appContext);
+
+        return settingsRepo;
+    }
+
+    public synchronized static TagRepository getTagRepository(@NonNull Context appContext)
+    {
+        if (tagRepo == null)
+            tagRepo = new TagRepositoryImpl(AppDatabase.getInstance(appContext));
+
+        return tagRepo;
+    }
+}
+
+$ sed -n '1,86p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/storage/AppDatabase.java
+/*
+ * Copyright (C) 2019-2022 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.core.storage;
+
+import android.content.Context;
+
+import androidx.annotation.NonNull;
+import androidx.room.Database;
+import androidx.room.Room;
+import androidx.room.RoomDatabase;
+import androidx.room.TypeConverters;
+
+import org.proninyaroslav.libretorrent.core.model.data.entity.FastResume;
+import org.proninyaroslav.libretorrent.core.model.data.entity.FeedChannel;
+import org.proninyaroslav.libretorrent.core.model.data.entity.FeedItem;
+import org.proninyaroslav.libretorrent.core.model.data.entity.TagInfo;
+import org.proninyaroslav.libretorrent.core.model.data.entity.Torrent;
+import org.proninyaroslav.libretorrent.core.model.data.entity.TorrentTagInfo;
+import org.proninyaroslav.libretorrent.core.storage.converter.UriConverter;
+import org.proninyaroslav.libretorrent.core.storage.dao.FastResumeDao;
+import org.proninyaroslav.libretorrent.core.storage.dao.FeedDao;
+import org.proninyaroslav.libretorrent.core.storage.dao.TagInfoDao;
+import org.proninyaroslav.libretorrent.core.storage.dao.TorrentDao;
+
+@Database(
+        entities = {
+                Torrent.class,
+                FastResume.class,
+                FeedChannel.class,
+                FeedItem.class,
+                TagInfo.class,
+                TorrentTagInfo.class,
+        },
+        version = 9
+)
+@TypeConverters({UriConverter.class})
+
+public abstract class AppDatabase extends RoomDatabase
+{
+    private static final String DATABASE_NAME = "libretorrent.db";
+
+    private static volatile AppDatabase INSTANCE;
+
+    public abstract TorrentDao torrentDao();
+
+    public abstract FastResumeDao fastResumeDao();
+
+    public abstract FeedDao feedDao();
+
+    public abstract TagInfoDao tagInfoDao();
+
+    public static AppDatabase getInstance(@NonNull Context appContext)
+    {
+        if (INSTANCE == null) {
+            synchronized (AppDatabase.class) {
+                if (INSTANCE == null)
+                    INSTANCE = buildDatabase(appContext);
+            }
+        }
+
+        return INSTANCE;
+    }
+
+    private static AppDatabase buildDatabase(Context appContext)
+    {
+        return Room.databaseBuilder(appContext, AppDatabase.class, DATABASE_NAME)
+                .addMigrations(DatabaseMigration.getMigrations(appContext))
+                .build();
+    }
+}
+$ sed -n '1,220p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addfeed/AddFeedViewModel.java
+/*
+ * Copyright (C) 2019 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.addfeed;
+
+import android.app.Application;
+import android.net.Uri;
+import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
+import androidx.databinding.ObservableBoolean;
+import androidx.lifecycle.AndroidViewModel;
+import androidx.work.Data;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
+
+import org.proninyaroslav.libretorrent.core.RepositoryHelper;
+import org.proninyaroslav.libretorrent.core.model.data.entity.FeedChannel;
+import org.proninyaroslav.libretorrent.core.storage.FeedRepository;
+import org.proninyaroslav.libretorrent.core.utils.Utils;
+import org.proninyaroslav.libretorrent.service.FeedFetcherWorker;
+
+import java.util.List;
+import java.util.Objects;
+
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.schedulers.Schedulers;
+
+public class AddFeedViewModel extends AndroidViewModel
+{
+    public AddFeedMutableParams mutableParams = new AddFeedMutableParams();
+    public ObservableBoolean showClipboardButton = new ObservableBoolean();
+    private Mode mode;
+    private FeedRepository repo;
+    private CompositeDisposable disposables = new CompositeDisposable();
+
+    public enum Mode
+    {
+        ADD, EDIT
+    }
+
+    public AddFeedViewModel(@NonNull Application application)
+    {
+        super(application);
+
+        repo = RepositoryHelper.getFeedRepository(application);
+        mode = Mode.ADD;
+    }
+
+    @Override
+    protected void onCleared()
+    {
+        super.onCleared();
+
+        disposables.clear();
+    }
+
+    public Mode getMode()
+    {
+        return mode;
+    }
+
+    public void initAddMode(@NonNull Uri uri)
+    {
+        mode = Mode.ADD;
+        /* TODO: files support */
+        mutableParams.setUrl(uri.toString());
+    }
+
+    public void initAddModeFromClipboard()
+    {
+        List<CharSequence> clipboard = Utils.getClipboardText(getApplication());
+        if (clipboard.isEmpty())
+            return;
+
+        String firstItem = clipboard.get(0).toString();
+        String c = firstItem.toLowerCase();
+        if (c.startsWith(Utils.HTTP_PREFIX))
+            initAddMode(Uri.parse(firstItem));
+    }
+
+    public void initEditMode(long feedId)
+    {
+        mode = Mode.EDIT;
+        mutableParams.setFeedId(feedId);
+        fetchParams();
+    }
+
+    public boolean addChannel()
+    {
+        long id = applyParams(true);
+        refreshChannel(id);
+
+        return id != -1;
+    }
+
+    public boolean updateChannel()
+    {
+        long id = applyParams(false);
+        refreshChannel(id);
+
+        return id != -1;
+    }
+
+    public boolean deleteChannel()
+    {
+        long feedId = mutableParams.getFeedId();
+        if (feedId == -1)
+            return false;
+
+        /* Sync wait deleting */
+        try {
+            Thread t = new Thread(() -> {
+                FeedChannel channel = repo.getFeedById(feedId);
+                if (channel != null)
+                    repo.deleteFeed(channel);
+            });
+            t.start();
+            t.join();
+
+        } catch (InterruptedException e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private void fetchParams()
+    {
+        long feedId = mutableParams.getFeedId();
+        if (feedId == -1)
+            return;
+
+        disposables.add(repo.getFeedByIdSingle(feedId)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .filter(Objects::nonNull)
+                .subscribe((channel) -> {
+                    mutableParams.setUrl(channel.url);
+                    mutableParams.setName(channel.name);
+                    mutableParams.setAutoDownload(channel.autoDownload);
+                    mutableParams.setFilter(channel.filter);
+                    mutableParams.setRegexFilter(channel.isRegexFilter);
+                }));
+    }
+
+    private long applyParams(boolean newChannel)
+    {
+        long feedId = mutableParams.getFeedId();
+        if (!newChannel && feedId == -1)
+            return -1;
+        String url = mutableParams.getUrl();
+        if (TextUtils.isEmpty(url))
+            return -1;
+
+        FeedChannel channel = new FeedChannel(url,
+                mutableParams.getName(),
+                0,
+                mutableParams.isAutoDownload(),
+                mutableParams.getFilter(),
+                mutableParams.isRegexFilter(),
+                null);
+        if (!newChannel)
+            channel.id = feedId;
+
+        /* TODO: maybe rewrite to WorkManager */
+        /* Sync wait inserting/updating */
+        long[] retId = new long[]{-1};
+        try {
+            Thread t = new Thread(() -> {
+                if (newChannel)
+                    retId[0] = repo.addFeed(channel);
+                else if (repo.updateFeed(channel) == 1)
+                    retId[0] = feedId;
+            });
+            t.start();
+            t.join();
+
+        } catch (InterruptedException e) {
+            return retId[0];
+        }
+
+        return retId[0];
+    }
+
+    private void refreshChannel(long feedId)
+    {
+        if (feedId == -1)
+            return;
+
+        Data data = new Data.Builder()
+                .putString(FeedFetcherWorker.TAG_ACTION, FeedFetcherWorker.ACTION_FETCH_CHANNEL)
+                .putLong(FeedFetcherWorker.TAG_CHANNEL_ID, feedId)
+                .putBoolean(FeedFetcherWorker.TAG_NO_AUTO_DOWNLOAD, mutableParams.isNotDownloadImmediately())
+                .build();
+
+        OneTimeWorkRequest work = new OneTimeWorkRequest.Builder(FeedFetcherWorker.class)
+                .setInputData(data)
+                .build();
+
+        WorkManager.getInstance(getApplication()).enqueue(work);
+    }
+}
+
+$ sed -n '1,172p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/feeds/FeedViewModel.java
+/*
+ * Copyright (C) 2019 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.feeds;
+
+import android.app.Activity;
+import android.app.Application;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.net.Uri;
+
+import androidx.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
+import androidx.work.Data;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkInfo;
+import androidx.work.WorkManager;
+import androidx.work.WorkRequest;
+
+import org.proninyaroslav.libretorrent.core.RepositoryHelper;
+import org.proninyaroslav.libretorrent.core.exception.UnknownUriException;
+import org.proninyaroslav.libretorrent.core.model.data.entity.FeedChannel;
+import org.proninyaroslav.libretorrent.core.storage.FeedRepository;
+import org.proninyaroslav.libretorrent.service.FeedFetcherWorker;
+
+import java.io.IOException;
+import java.util.List;
+
+import io.reactivex.Completable;
+import io.reactivex.Flowable;
+import io.reactivex.Observable;
+import io.reactivex.Single;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.BehaviorSubject;
+
+public class FeedViewModel extends AndroidViewModel
+{
+    private FeedRepository repo;
+    private BehaviorSubject<Boolean> refreshStatus = BehaviorSubject.create();
+    private CompositeDisposable disposables = new CompositeDisposable();
+    public Throwable errorReport;
+
+    public FeedViewModel(@NonNull Application application)
+    {
+        super(application);
+
+        repo = RepositoryHelper.getFeedRepository(application);
+    }
+
+    @Override
+    protected void onCleared()
+    {
+        super.onCleared();
+
+        disposables.clear();
+    }
+
+    public Single<List<FeedChannel>> getAllFeedsSingle()
+    {
+        return repo.getAllFeedsSingle();
+    }
+
+    public Flowable<List<FeedChannel>> observerAllFeeds()
+    {
+        return repo.observeAllFeeds();
+    }
+
+    public void deleteFeeds(@NonNull List<FeedChannel> feeds)
+    {
+        disposables.add(Completable.fromRunnable(() -> repo.deleteFeeds(feeds))
+                .subscribeOn(Schedulers.io())
+                .subscribe());
+    }
+
+    public boolean copyFeedUrlToClipboard(@NonNull FeedChannel channel)
+    {
+        ClipboardManager clipboard = (ClipboardManager)getApplication().getSystemService(Activity.CLIPBOARD_SERVICE);
+        if (clipboard == null)
+            return false;
+
+        ClipData clip;
+        clip = ClipData.newPlainText("URL", channel.url);
+        clipboard.setPrimaryClip(clip);
+
+        return true;
+    }
+
+    public void refreshFeeds(@NonNull long[] feedIdList)
+    {
+        Data data = new Data.Builder()
+                .putString(FeedFetcherWorker.TAG_ACTION,FeedFetcherWorker.ACTION_FETCH_CHANNEL_LIST)
+                .putLongArray(FeedFetcherWorker.TAG_CHANNEL_ID_LIST, feedIdList)
+                .build();
+        OneTimeWorkRequest work = new OneTimeWorkRequest.Builder(FeedFetcherWorker.class)
+                .setInputData(data)
+                .build();
+
+        runFetchWorker(work);
+    }
+
+    public void refreshAllFeeds()
+    {
+        Data data = new Data.Builder()
+                .putString(FeedFetcherWorker.TAG_ACTION,FeedFetcherWorker.ACTION_FETCH_ALL_CHANNELS)
+                .build();
+        OneTimeWorkRequest work = new OneTimeWorkRequest.Builder(FeedFetcherWorker.class)
+                .setInputData(data)
+                .build();
+
+        runFetchWorker(work);
+    }
+
+    public Observable<Boolean> observeRefreshStatus()
+    {
+        return refreshStatus;
+    }
+
+    public void saveFeedsSync(@NonNull Uri file) throws IOException, UnknownUriException
+    {
+        repo.serializeAllFeeds(file);
+    }
+
+    public long[] restoreFeedsSync(@NonNull Uri file) throws IOException, UnknownUriException
+    {
+        List<FeedChannel> feeds = repo.deserializeFeeds(file);
+
+        return repo.addFeeds(feeds);
+    }
+
+    public void markAsReadFeeds(@NonNull List<Long> feedIdList)
+    {
+        disposables.add(Completable.fromRunnable(() -> repo.markAsReadByFeedId(feedIdList)).subscribeOn(Schedulers.io())
+          .subscribe());
+    }
+
+    private void runFetchWorker(WorkRequest work)
+    {
+        refreshStatus.onNext(true);
+
+        WorkManager.getInstance(getApplication()).enqueue(work);
+
+        WorkManager.getInstance(getApplication()).getWorkInfoByIdLiveData(work.getId())
+                .observeForever(this::observeWorkResult);
+    }
+
+    private void observeWorkResult(WorkInfo info)
+    {
+        boolean finished = info.getState().isFinished();
+        if (finished)
+            WorkManager.getInstance(getApplication()).getWorkInfoByIdLiveData(info.getId())
+                    .removeObserver(this::observeWorkResult);
+
+        refreshStatus.onNext(!finished);
+    }
+}
+
+$ sed -n '1,270p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/service/FeedFetcherWorker.java
+/*
+ * Copyright (C) 2018-2020 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.service;
+
+import android.content.Context;
+import android.text.TextUtils;
+import android.util.Log;
+
+import androidx.annotation.NonNull;
+import androidx.work.Data;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
+import androidx.work.Worker;
+import androidx.work.WorkerParameters;
+
+import org.proninyaroslav.libretorrent.core.FeedParser;
+import org.proninyaroslav.libretorrent.core.RepositoryHelper;
+import org.proninyaroslav.libretorrent.core.model.data.entity.FeedChannel;
+import org.proninyaroslav.libretorrent.core.model.data.entity.FeedItem;
+import org.proninyaroslav.libretorrent.core.settings.SettingsRepository;
+import org.proninyaroslav.libretorrent.core.storage.FeedRepository;
+import org.proninyaroslav.libretorrent.core.utils.Utils;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+
+/*
+ * The worker for fetching items from RSS/Atom channels.
+ */
+
+public class FeedFetcherWorker extends Worker
+{
+    private static final String TAG = FeedFetcherWorker.class.getSimpleName();
+
+    public static final String ACTION_FETCH_CHANNEL = "org.proninyaroslav.libretorrent.service.FeedFetcherWorker.ACTION_FETCH_CHANNEL";
+    public static final String ACTION_FETCH_CHANNEL_LIST = "org.proninyaroslav.libretorrent.service.FeedFetcherWorker.ACTION_FETCH_CHANNEL_LIST";
+    public static final String ACTION_FETCH_ALL_CHANNELS = "org.proninyaroslav.libretorrent.service.FeedFetcherWorker.ACTION_FETCH_ALL_CHANNELS";
+    public static final String TAG_ACTION = "action";
+    public static final String TAG_NO_AUTO_DOWNLOAD = "no_download";
+    public static final String TAG_CHANNEL_ID = "channel_url_id";
+    public static final String TAG_CHANNEL_ID_LIST = "channel_id_list";
+
+    private Context context;
+    private FeedRepository repo;
+    private SettingsRepository pref;
+
+    public FeedFetcherWorker(@NonNull Context context, @NonNull WorkerParameters params)
+    {
+        super(context, params);
+    }
+
+    @NonNull
+    @Override
+    public Result doWork()
+    {
+        context = getApplicationContext();
+        repo = RepositoryHelper.getFeedRepository(context);
+        pref = RepositoryHelper.getSettingsRepository(context);
+
+        long keepTime = pref.feedItemKeepTime();
+        long keepDateBorderTime = (keepTime > 0 ? System.currentTimeMillis() - keepTime : 0);
+
+        deleteOldItems(keepDateBorderTime);
+
+        Data data = getInputData();
+        String action = data.getString(TAG_ACTION);
+        boolean noAutoDownload = data.getBoolean(TAG_NO_AUTO_DOWNLOAD, false);
+
+        if (action == null)
+            return Result.failure();
+
+        switch (action) {
+            case ACTION_FETCH_CHANNEL:
+                return fetchChannel(data.getLong(TAG_CHANNEL_ID, -1),
+                        keepDateBorderTime, noAutoDownload);
+            case ACTION_FETCH_CHANNEL_LIST:
+                return fetchChannelsByUrl(data.getLongArray(TAG_CHANNEL_ID_LIST),
+                        keepDateBorderTime, noAutoDownload);
+            case ACTION_FETCH_ALL_CHANNELS:
+                return fetchChannels(repo.getAllFeeds(),
+                        keepDateBorderTime, noAutoDownload);
+            default:
+                return Result.failure();
+        }
+    }
+
+    private Result fetchChannelsByUrl(long[] ids, long acceptMinDate,
+                                      boolean noAutoDownload)
+    {
+        if (ids == null)
+            return Result.failure();
+
+        ArrayList<Result> results = new ArrayList<>();
+        for (long id : ids)
+            results.add(fetchChannel(id, acceptMinDate, noAutoDownload));
+
+        for (Result result : results)
+            if (result instanceof Result.Failure)
+                return result;
+
+        return Result.success();
+    }
+
+    private Result fetchChannels(List<FeedChannel> channels, long acceptMinDate,
+                                 boolean noAutoDownload)
+    {
+        if (channels == null)
+            return Result.failure();
+
+        ArrayList<Result> results = new ArrayList<>();
+        for (FeedChannel channel : channels) {
+            if (channel == null)
+                continue;
+            results.add(fetchChannel(channel.id, acceptMinDate, noAutoDownload));
+        }
+
+        for (Result result : results)
+            if (result instanceof Result.Failure)
+                return result;
+
+        return Result.success();
+    }
+
+    private Result fetchChannel(long id, long acceptMinDate,
+                                boolean noAutoDownload)
+    {
+        if (id == -1)
+            return Result.failure();
+
+        FeedChannel channel = repo.getFeedById(id);
+        if (channel == null)
+            return Result.failure();
+
+        FeedParser parser;
+        try {
+            parser = new FeedParser(getApplicationContext(), channel);
+
+        } catch (Exception e) {
+            channel.fetchError = e.getMessage();
+            repo.updateFeed(channel);
+
+            return Result.failure();
+        }
+
+        List<FeedItem> items = parser.getItems();
+
+        filterItems(id, items, acceptMinDate);
+
+        if (pref.feedRemoveDuplicates())
+            filterItemDuplicates(items);
+
+        repo.addItems(items);
+
+        channel.fetchError = null;
+        if (TextUtils.isEmpty(channel.name)) {
+            channel.name = parser.getTitle();
+            if (TextUtils.isEmpty(channel.name))
+                channel.name = channel.url;
+        }
+        channel.lastUpdate = System.currentTimeMillis();
+        repo.updateFeed(channel);
+
+        if (!noAutoDownload && channel.autoDownload)
+            sendFetchedItems(channel, items);
+
+        return Result.success();
+    }
+
+    private void filterItems(long id, List<FeedItem> items, long acceptMinDate)
+    {
+        List<String> existingItemsId = repo.getItemsIdByFeedId(id);
+        /* Also filtering the items that we already have in db */
+        items.removeIf(item -> item != null && (item.pubDate > 0 && item.pubDate <= acceptMinDate || existingItemsId.contains(item.id)));
+    }
+
+    private void filterItemDuplicates(List<FeedItem> items)
+    {
+        List<String> titles = new ArrayList<>();
+        for (FeedItem item : items)
+            titles.add(item.title);
+
+        List<String> existingTitles = repo.findItemsExistingTitles(titles);
+        items.removeIf(item -> item != null && existingTitles.contains(item.title));
+    }
+
+    private void deleteOldItems(long keepDateBorderTime)
+    {
+        if (keepDateBorderTime > 0)
+            repo.deleteItemsOlderThan(keepDateBorderTime);
+    }
+
+    private void sendFetchedItems(FeedChannel channel, List<FeedItem> items)
+    {
+        ArrayList<String> ids = new ArrayList<>();
+        for (FeedItem item : items) {
+            if (item == null || item.read)
+                continue;
+
+            if (isMatch(item, channel.filter, channel.isRegexFilter)) {
+                ids.add(item.id);
+                repo.markAsRead(item.id);
+            }
+        }
+
+        if (ids.isEmpty())
+            return;
+
+        Data data = new Data.Builder()
+                .putString(FeedDownloaderWorker.TAG_ACTION, FeedDownloaderWorker.ACTION_DOWNLOAD_TORRENT_LIST)
+                .putStringArray(FeedDownloaderWorker.TAG_ITEM_ID_LIST, ids.toArray(new String[0]))
+                .build();
+        OneTimeWorkRequest work = new OneTimeWorkRequest.Builder(FeedDownloaderWorker.class)
+                .setInputData(data)
+                .build();
+
+        WorkManager.getInstance(context).enqueue(work);
+    }
+
+    private boolean isMatch(FeedItem item, String filters, boolean isRegex)
+    {
+        if (filters == null || TextUtils.isEmpty(filters))
+            return true;
+
+        for (String filter : filters.split(Utils.NEWLINE_PATTERN)) {
+            if (TextUtils.isEmpty(filter))
+                continue;
+
+            if (isRegex) {
+                Pattern pattern;
+                try {
+                    pattern = Pattern.compile(filter);
+
+                } catch (PatternSyntaxException e) {
+                    /* TODO: maybe there is an option better? */
+                    Log.e(TAG, "Invalid pattern: " + filter);
+                    return true;
+                }
+
+                return pattern.matcher(item.title).matches();
+            } else {
+                String[] words = filter.split(repo.getFilterSeparator());
+                for (String word : words)
+                    if (item.title.toLowerCase().contains(word.toLowerCase().trim()))
+                        return true;
+            }
+        }
+
+        return false;
+    }
+}
+
+$ sed -n '1,215p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/service/FeedDownloaderWorker.java
+/*
+ * Copyright (C) 2018, 2019 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.service;
+
+import android.content.Context;
+import android.net.Uri;
+import android.util.Log;
+
+import androidx.annotation.NonNull;
+import androidx.work.Data;
+import androidx.work.Worker;
+import androidx.work.WorkerParameters;
+
+import org.proninyaroslav.libretorrent.core.RepositoryHelper;
+import org.proninyaroslav.libretorrent.core.exception.DecodeException;
+import org.proninyaroslav.libretorrent.core.exception.FetchLinkException;
+import org.proninyaroslav.libretorrent.core.exception.UnknownUriException;
+import org.proninyaroslav.libretorrent.core.model.AddTorrentParams;
+import org.proninyaroslav.libretorrent.core.model.TorrentEngine;
+import org.proninyaroslav.libretorrent.core.model.data.MagnetInfo;
+import org.proninyaroslav.libretorrent.core.model.data.Priority;
+import org.proninyaroslav.libretorrent.core.model.data.entity.FeedItem;
+import org.proninyaroslav.libretorrent.core.model.data.metainfo.TorrentMetaInfo;
+import org.proninyaroslav.libretorrent.core.settings.SettingsRepository;
+import org.proninyaroslav.libretorrent.core.storage.FeedRepository;
+import org.proninyaroslav.libretorrent.core.system.FileSystemFacade;
+import org.proninyaroslav.libretorrent.core.system.SystemFacadeHelper;
+import org.proninyaroslav.libretorrent.core.utils.Utils;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+
+/*
+ * The worker for downloading torrents from RSS/Atom items.
+ */
+
+public class FeedDownloaderWorker extends Worker
+{
+    private static final String TAG = FeedDownloaderWorker.class.getSimpleName();
+
+    public static final String ACTION_DOWNLOAD_TORRENT_LIST = "org.proninyaroslav.libretorrent.service.FeedDownloaderWorker.ACTION_DOWNLOAD_TORRENT_LIST";
+    public static final String TAG_ACTION = "action";
+    public static final String TAG_ITEM_ID_LIST = "item_id_list";
+
+    private static final long START_ENGINE_RETRY_TIME = 3000; /* ms */
+
+    private TorrentEngine engine;
+    private FeedRepository repo;
+    private SettingsRepository pref;
+
+    public FeedDownloaderWorker(@NonNull Context context, @NonNull WorkerParameters params)
+    {
+        super(context, params);
+    }
+
+    @NonNull
+    @Override
+    public Result doWork()
+    {
+        engine = TorrentEngine.getInstance(getApplicationContext());
+        repo = RepositoryHelper.getFeedRepository(getApplicationContext());
+        pref = RepositoryHelper.getSettingsRepository(getApplicationContext());
+
+        Data data = getInputData();
+        String action = data.getString(TAG_ACTION);
+
+        if (action == null)
+            return Result.failure();
+
+        if (ACTION_DOWNLOAD_TORRENT_LIST.equals(action))
+            return addTorrents(fetchTorrents(data.getStringArray(TAG_ITEM_ID_LIST)));
+
+        return Result.failure();
+    }
+
+    private ArrayList<AddTorrentParams> fetchTorrents(String... ids)
+    {
+        ArrayList<AddTorrentParams> paramsList = new ArrayList<>();
+        if (ids == null)
+            return paramsList;
+
+        for (FeedItem item : repo.getItemsById(ids)) {
+            AddTorrentParams params = fetchTorrent(item);
+            if (params != null)
+                paramsList.add(params);
+        }
+
+        return paramsList;
+    }
+
+    private AddTorrentParams fetchTorrent(FeedItem item)
+    {
+        if (item == null)
+            return null;
+
+        Uri downloadPath = Utils.getTorrentDownloadPath(getApplicationContext());
+        if (downloadPath == null)
+            return null;
+        String name;
+        Priority[] priorities = null;
+        boolean isMagnet = false;
+        String source, sha1hash;
+
+        if (item.downloadUrl.startsWith(Utils.MAGNET_PREFIX)) {
+            MagnetInfo info;
+            try {
+                info = engine.parseMagnet(item.downloadUrl);
+
+            } catch (IllegalArgumentException e) {
+                Log.e(TAG, e.getMessage());
+                return null;
+            }
+            sha1hash = info.getSha1hash();
+            name = info.getName();
+            isMagnet = true;
+            source = item.downloadUrl;
+
+        } else {
+            byte[] response;
+            TorrentMetaInfo info;
+            try {
+                response = Utils.fetchHttpUrl(getApplicationContext(), item.downloadUrl);
+                info = new TorrentMetaInfo(response);
+
+            } catch (FetchLinkException e) {
+                Log.e(TAG, "URL fetch error: " + Log.getStackTraceString(e));
+                return null;
+            } catch (DecodeException e) {
+                Log.e(TAG, "Invalid torrent: " + Log.getStackTraceString(e));
+                return null;
+            }
+            FileSystemFacade fs = SystemFacadeHelper.getFileSystemFacade(getApplicationContext());
+            long availableBytes;
+            try {
+                availableBytes = fs.getDirAvailableBytes(downloadPath);
+            } catch (UnknownUriException e) {
+                Log.e(TAG, "Unable to fetch torrent: " + Log.getStackTraceString(e));
+                return null;
+            }
+            if (availableBytes < info.torrentSize) {
+                Log.e(TAG, "Not enough free space for " + info.torrentName);
+                return null;
+            }
+            File tmp;
+            try {
+                tmp = fs.makeTempFile(".torrent");
+                org.apache.commons.io.FileUtils.writeByteArrayToFile(tmp, response);
+
+            } catch (Exception e) {
+                Log.e(TAG, "Error write torrent file " + info.torrentName + ": " + Log.getStackTraceString(e));
+                return null;
+            }
+            priorities = new Priority[info.fileList.size()];
+            Arrays.fill(priorities, Priority.DEFAULT);
+            sha1hash = info.sha1Hash;
+            name = info.torrentName;
+            source = Uri.fromFile(tmp).toString();
+        }
+
+        return new AddTorrentParams(
+                source,
+                isMagnet,
+                sha1hash,
+                name,
+                priorities,
+                downloadPath,
+                false,
+                !pref.feedStartTorrents(),
+                new ArrayList<>(),
+                false
+        );
+    }
+
+    private Result addTorrents(ArrayList<AddTorrentParams> paramsList)
+    {
+        if (paramsList == null || paramsList.isEmpty())
+            return Result.failure();
+
+        if (!engine.isRunning())
+            engine.start();
+
+        /* TODO: maybe refactor */
+        while (!engine.isRunning()) {
+            try {
+                Thread.sleep(START_ENGINE_RETRY_TIME);
+                engine.start();
+
+            } catch (InterruptedException e) {
+                return Result.failure();
+            }
+        }
+
+        engine.addTorrents(paramsList, true);
+
+        return Result.success();
+    }
+}
+
+$ sed -n '1,155p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/feeditems/FeedItemsViewModel.java
+/*
+ * Copyright (C) 2019 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.feeditems;
+
+import android.app.Application;
+
+import androidx.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
+import androidx.work.Data;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkInfo;
+import androidx.work.WorkManager;
+import androidx.work.WorkRequest;
+
+import org.proninyaroslav.libretorrent.core.RepositoryHelper;
+import org.proninyaroslav.libretorrent.core.model.data.entity.FeedItem;
+import org.proninyaroslav.libretorrent.core.storage.FeedRepository;
+import org.proninyaroslav.libretorrent.service.FeedFetcherWorker;
+
+import java.util.Collections;
+import java.util.List;
+
+import io.reactivex.Completable;
+import io.reactivex.Flowable;
+import io.reactivex.Observable;
+import io.reactivex.Single;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.BehaviorSubject;
+
+public class FeedItemsViewModel extends AndroidViewModel
+{
+    private FeedRepository repo;
+    private long feedId;
+    private BehaviorSubject<Boolean> refreshStatus = BehaviorSubject.create();
+    private CompositeDisposable disposables = new CompositeDisposable();
+
+    public FeedItemsViewModel(@NonNull Application application)
+    {
+        super(application);
+
+        repo = RepositoryHelper.getFeedRepository(application);
+        feedId = -1;
+    }
+
+    @Override
+    protected void onCleared()
+    {
+        super.onCleared();
+
+        disposables.clear();
+    }
+
+    public void clearData()
+    {
+        disposables.clear();
+        feedId = -1;
+    }
+
+    public void setFeedId(long feedId)
+    {
+        this.feedId = feedId;
+    }
+
+    public Flowable<List<FeedItem>> observeItemsByFeedId()
+    {
+        return repo.observeItemsByFeedId(feedId);
+    }
+
+    public Single<List<FeedItem>> getItemsByFeedIdSingle()
+    {
+        return repo.getItemsByFeedIdSingle(feedId);
+    }
+
+    public Observable<Boolean> observeRefreshStatus()
+    {
+        return refreshStatus;
+    }
+
+    public void refreshChannel()
+    {
+        if (feedId == -1)
+            return;
+
+        Data data = new Data.Builder()
+                .putString(FeedFetcherWorker.TAG_ACTION, FeedFetcherWorker.ACTION_FETCH_CHANNEL)
+                .putLong(FeedFetcherWorker.TAG_CHANNEL_ID, feedId)
+                .build();
+        OneTimeWorkRequest work = new OneTimeWorkRequest.Builder(FeedFetcherWorker.class)
+                .setInputData(data)
+                .build();
+
+        runFetchWorker(work);
+    }
+
+    public void markAllAsRead()
+    {
+        if (feedId == -1)
+            return;
+
+        disposables.add(Completable.fromRunnable(() -> repo.markAsReadByFeedId(Collections.singletonList(feedId))).subscribeOn(Schedulers.io())
+          .subscribe());
+    }
+
+    public void markAsRead(@NonNull String itemId)
+    {
+        disposables.add(Completable.fromRunnable(() -> repo.markAsRead(itemId))
+                .subscribeOn(Schedulers.io())
+                .subscribe());
+    }
+
+    public void markAsUnread(@NonNull String itemId)
+    {
+        disposables.add(Completable.fromRunnable(() -> repo.markAsUnread(itemId))
+                .subscribeOn(Schedulers.io())
+                .subscribe());
+    }
+
+    private void runFetchWorker(WorkRequest work)
+    {
+        refreshStatus.onNext(true);
+
+        WorkManager.getInstance(getApplication()).enqueue(work);
+
+        WorkManager.getInstance(getApplication()).getWorkInfoByIdLiveData(work.getId())
+                .observeForever(this::observeWorkResult);
+    }
+
+    private void observeWorkResult(WorkInfo info)
+    {
+        boolean finished = info.getState().isFinished();
+        if (finished)
+            WorkManager.getInstance(getApplication()).getWorkInfoByIdLiveData(info.getId())
+                    .removeObserver(this::observeWorkResult);
+
+        refreshStatus.onNext(!finished);
+    }
+}
+
+$ sed -n '1,78p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtag/AddTagViewModel.java
+/*
+ * Copyright (C) 2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.addtag;
+
+import android.app.Application;
+
+import androidx.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
+
+import org.proninyaroslav.libretorrent.core.RepositoryHelper;
+import org.proninyaroslav.libretorrent.core.model.data.entity.TagInfo;
+import org.proninyaroslav.libretorrent.core.storage.TagRepository;
+import org.proninyaroslav.libretorrent.core.utils.Utils;
+
+import io.reactivex.Completable;
+
+public class AddTagViewModel extends AndroidViewModel {
+    private final TagRepository tagRepo;
+    public AddTagState state;
+
+    public AddTagViewModel(@NonNull Application application) {
+        super(application);
+
+        state = new AddTagState();
+        tagRepo = RepositoryHelper.getTagRepository(getApplication());
+    }
+
+    public void setInitValues(@NonNull TagInfo info) {
+        state.setExistsTagId(info.id);
+        state.setName(info.name);
+        state.setColor(info.color);
+    }
+
+    public void setRandomColor() {
+        state.setColor(Utils.getRandomColor());
+    }
+
+    Completable saveTag() {
+        TagInfo info;
+        Long existsTagId = state.getExistsTagId();
+        if (existsTagId == null) {
+            info = new TagInfo(state.getName(), state.getColor());
+        } else {
+            info = new TagInfo(existsTagId, state.getName(), state.getColor());
+        }
+        return Completable.fromCallable(() -> {
+            if (existsTagId == null) {
+                TagInfo oldTag = tagRepo.getByName(info.name);
+                if (oldTag != null) {
+                    throw new TagAlreadyExistsException();
+                }
+                tagRepo.insert(info);
+            } else {
+                tagRepo.update(info);
+            }
+            return null;
+        });
+    }
+
+    public static class TagAlreadyExistsException extends Exception { }
+}
+
+$ sed -n '1,610p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/detailtorrent/DetailTorrentViewModel.java
+/*
+ * Copyright (C) 2019-2022 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.detailtorrent;
+
+import android.app.Application;
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
+import android.util.Log;
+import android.webkit.MimeTypeMap;
+
+import androidx.annotation.NonNull;
+import androidx.core.content.FileProvider;
+import androidx.core.util.Pair;
+import androidx.databinding.Observable;
+import androidx.databinding.library.baseAdapters.BR;
+import androidx.lifecycle.AndroidViewModel;
+
+import org.proninyaroslav.libretorrent.R;
+import org.proninyaroslav.libretorrent.core.RepositoryHelper;
+import org.proninyaroslav.libretorrent.core.exception.UnknownUriException;
+import org.proninyaroslav.libretorrent.core.model.TorrentEngine;
+import org.proninyaroslav.libretorrent.core.model.TorrentInfoProvider;
+import org.proninyaroslav.libretorrent.core.model.data.AdvancedTorrentInfo;
+import org.proninyaroslav.libretorrent.core.model.data.PeerInfo;
+import org.proninyaroslav.libretorrent.core.model.data.Priority;
+import org.proninyaroslav.libretorrent.core.model.data.TorrentInfo;
+import org.proninyaroslav.libretorrent.core.model.data.TrackerInfo;
+import org.proninyaroslav.libretorrent.core.model.data.entity.TagInfo;
+import org.proninyaroslav.libretorrent.core.model.data.entity.Torrent;
+import org.proninyaroslav.libretorrent.core.model.data.metainfo.BencodeFileItem;
+import org.proninyaroslav.libretorrent.core.model.data.metainfo.TorrentMetaInfo;
+import org.proninyaroslav.libretorrent.core.model.filetree.FileNode;
+import org.proninyaroslav.libretorrent.core.model.filetree.FilePriority;
+import org.proninyaroslav.libretorrent.core.model.filetree.TorrentContentFileTree;
+import org.proninyaroslav.libretorrent.core.model.stream.TorrentStreamServer;
+import org.proninyaroslav.libretorrent.core.settings.SettingsRepository;
+import org.proninyaroslav.libretorrent.core.storage.TagRepository;
+import org.proninyaroslav.libretorrent.core.storage.TorrentRepository;
+import org.proninyaroslav.libretorrent.core.system.FileSystemFacade;
+import org.proninyaroslav.libretorrent.core.system.SystemFacadeHelper;
+import org.proninyaroslav.libretorrent.core.utils.TorrentContentFileTreeUtils;
+import org.proninyaroslav.libretorrent.core.utils.Utils;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Random;
+import java.util.concurrent.locks.ReentrantLock;
+
+import io.reactivex.Completable;
+import io.reactivex.Flowable;
+import io.reactivex.Single;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.BehaviorSubject;
+import io.reactivex.subjects.PublishSubject;
+
+public class DetailTorrentViewModel extends AndroidViewModel {
+    private static final String TAG = DetailTorrentViewModel.class.getSimpleName();
+
+    private String torrentId;
+    private final TorrentInfoProvider infoProvider;
+    private final TorrentEngine engine;
+    private final TorrentRepository repo;
+    private final FileSystemFacade fs;
+    private final SettingsRepository pref;
+    private final CompositeDisposable disposable = new CompositeDisposable();
+    public TorrentDetailsInfo info = new TorrentDetailsInfo();
+    public TorrentDetailsMutableParams mutableParams = new TorrentDetailsMutableParams();
+    private final PublishSubject<Boolean> freeSpaceError = PublishSubject.create();
+    public Throwable errorReport;
+    private final TagRepository tagRepo;
+
+    private final ReentrantLock syncBuildFileTree = new ReentrantLock();
+    public TorrentContentFileTree fileTree;
+    private TorrentContentFileTree[] treeLeaves;
+    private final BehaviorSubject<List<TorrentContentFileTree>> children = BehaviorSubject.create();
+    /* Current directory */
+    private TorrentContentFileTree curDir;
+
+    public DetailTorrentViewModel(@NonNull Application application) {
+        super(application);
+
+        infoProvider = TorrentInfoProvider.getInstance(application);
+        engine = TorrentEngine.getInstance(application);
+        repo = RepositoryHelper.getTorrentRepository(application);
+        fs = SystemFacadeHelper.getFileSystemFacade(application);
+        pref = RepositoryHelper.getSettingsRepository(application);
+        mutableParams.addOnPropertyChangedCallback(mutableParamsCallback);
+        info.addOnPropertyChangedCallback(infoCallback);
+        tagRepo = RepositoryHelper.getTagRepository(application);
+    }
+
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+
+        disposable.clear();
+        mutableParams.removeOnPropertyChangedCallback(mutableParamsCallback);
+        info.removeOnPropertyChangedCallback(infoCallback);
+    }
+
+    public void setTorrentId(@NonNull String id) {
+        torrentId = id;
+    }
+
+    public void clearData() {
+        disposable.clear();
+        torrentId = null;
+        info.removeOnPropertyChangedCallback(infoCallback);
+        info = new TorrentDetailsInfo();
+        info.addOnPropertyChangedCallback(infoCallback);
+        mutableParams.removeOnPropertyChangedCallback(mutableParamsCallback);
+        mutableParams = new TorrentDetailsMutableParams();
+        mutableParams.addOnPropertyChangedCallback(mutableParamsCallback);
+        fileTree = null;
+        treeLeaves = null;
+    }
+
+    public Single<List<TagInfo>> getTags() {
+        return tagRepo.getByTorrentIdAsync(torrentId);
+    }
+
+    public Flowable<List<TagInfo>> observeTags() {
+        return tagRepo.observeByTorrentId(torrentId);
+    }
+
+    public Completable addTag(@NonNull TagInfo info) {
+        return Completable.fromRunnable(() -> repo.addTag(torrentId, info));
+    }
+
+    public Completable removeTag(@NonNull TagInfo info) {
+        return Completable.fromRunnable(() -> repo.deleteTag(torrentId, info));
+    }
+
+    public io.reactivex.Observable<Boolean> observeFreeSpaceError() {
+        return freeSpaceError;
+    }
+
+    public io.reactivex.Observable<List<TorrentContentFileTree>> getDirChildren() {
+        return children;
+    }
+
+    public Flowable<TorrentInfo> observeTorrentInfo() {
+        return infoProvider.observeInfo(torrentId);
+    }
+
+    public Flowable<AdvancedTorrentInfo> observeAdvancedTorrentInfo() {
+        return infoProvider.observeAdvancedInfo(torrentId);
+    }
+
+    public Flowable<Torrent> observeTorrent() {
+        return repo.observeTorrentById(torrentId);
+    }
+
+    public Flowable<List<TrackerInfo>> observeTrackers() {
+        return infoProvider.observeTrackersInfo(torrentId);
+    }
+
+    public Flowable<List<PeerInfo>> observePeers() {
+        return infoProvider.observePeersInfo(torrentId);
+    }
+
+    public Flowable<boolean[]> observePieces() {
+        return infoProvider.observePiecesInfo(torrentId);
+    }
+
+    public Flowable<Pair<Torrent, TorrentInfo>> observeTorrentInfoPair() {
+        return Flowable.combineLatest(observeTorrent(), observeTorrentInfo(), Pair::create);
+    }
+
+    public Flowable<TorrentMetaInfo> observeTorrentMetaInfo() {
+        return engine.observeTorrentMetaInfo(torrentId);
+    }
+
+    public void updateInfo(TorrentMetaInfo metaInfo) {
+        info.setMetaInfo(metaInfo);
+
+        if (fileTree == null)
+            startMakeFileTree();
+    }
+
+    public void updateInfo(Torrent torrent, TorrentInfo ti) {
+        boolean firstUpdate = info.getTorrent() == null;
+
+        info.setTorrent(torrent);
+        info.setTorrentInfo(ti);
+
+        if (firstUpdate)
+            initMutableParams();
+        if (fileTree == null)
+            startMakeFileTree();
+    }
+
+    public void updateInfo(AdvancedTorrentInfo advancedInfo) {
+        info.setAdvancedInfo(advancedInfo);
+    }
+
+    /*
+     * Navigate back to an upper directory.
+     */
+
+    public void upToParentDirectory() {
+        updateCurDir(curDir.getParent());
+    }
+
+    public List<TorrentContentFileTree> getChildren(TorrentContentFileTree node) {
+        List<TorrentContentFileTree> children = new ArrayList<>();
+        if (node == null || node.isFile())
+            return children;
+
+        /* Adding parent dir for navigation */
+        if (curDir != fileTree && curDir.getParent() != null)
+            children.add(0, new TorrentContentFileTree(TorrentContentFileTree.PARENT_DIR, 0L,
+                    FileNode.Type.DIR, curDir.getParent()));
+
+        children.addAll(curDir.getChildren());
+
+        return children;
+    }
+
+    public void chooseDirectory(@NonNull String name) {
+        TorrentContentFileTree node = curDir.getChild(name);
+        if (node == null)
+            return;
+
+        if (node.isFile())
+            node = fileTree;
+
+        updateCurDir(node);
+    }
+
+    public boolean isFile(@NonNull String name) {
+        TorrentContentFileTree node = curDir.getChild(name);
+
+        return node != null && node.isFile();
+    }
+
+    public Single<Uri> getFilePath(@NonNull String name) {
+        Context context = getApplication();
+        TorrentContentFileTree node = curDir.getChild(name);
+        if (node == null)
+            return Single.error(new NullPointerException("node is null"));
+
+        String relativePath = node.getPath();
+
+        Torrent torrent = info.getTorrent();
+        if (torrent == null)
+            return Single.error(new NullPointerException("torrent is null"));
+
+        return Single.fromCallable(() -> {
+            Uri path = fs.getFileUri(relativePath, torrent.downloadPath);
+            if (path == null)
+                throw new FileNotFoundException(torrent.downloadPath + relativePath);
+
+            if (Utils.isFileSystemPath(path))
+                path = FileProvider.getUriForFile(context,
+                        context.getPackageName() + ".provider",
+                        new File(path.getPath()));
+
+            return path;
+        });
+    }
+
+    /*
+     * Compare the array with randomly selected priority.
+     * If some elements not equals with this priority,
+     * set priority type as MIXED, else return randomly selected priority
+     */
+
+    public FilePriority getFilesPriority(@NonNull List<String> fileNames) {
+        List<FilePriority> priorities = new ArrayList<>();
+        for (String name : fileNames) {
+            TorrentContentFileTree file = curDir.getChild(name);
+            if (file != null)
+                priorities.add(file.getFilePriority());
+        }
+        if (priorities.size() == 0)
+            return null;
+
+
+        FilePriority randomPriority = priorities.get(new Random().nextInt(priorities.size()));
+        boolean isMixedPriority = false;
+
+        if (randomPriority != null && randomPriority.getType() == FilePriority.Type.MIXED) {
+            isMixedPriority = true;
+
+        } else {
+            for (FilePriority priority : priorities) {
+                if (randomPriority != null && !randomPriority.equals(priority)) {
+                    isMixedPriority = true;
+                    break;
+                }
+            }
+        }
+
+        if (randomPriority != null && !isMixedPriority)
+            return randomPriority;
+        else
+            return new FilePriority(FilePriority.Type.MIXED);
+    }
+
+    public void applyPriority(@NonNull List<String> fileNames,
+                              @NonNull FilePriority priority) {
+        disposable.add(io.reactivex.Observable.fromIterable(fileNames)
+                .map((fileName) -> curDir.getChild(fileName))
+                .filter(Objects::nonNull)
+                .subscribe((file) -> {
+                    file.setPriority(priority, true);
+                    updateChildren();
+                    mutableParams.setPrioritiesChanged(true);
+                }));
+    }
+
+    public String getStreamUrl(int fileIndex) {
+        String hostname = pref.streamingHostname();
+        int port = pref.streamingPort();
+
+        return TorrentStreamServer.makeStreamUrl(hostname, port, torrentId, fileIndex);
+    }
+
+    public void deleteTrackers(@NonNull List<String> urls) {
+        engine.deleteTrackers(torrentId, urls);
+    }
+
+    public void replaceTrackers(@NonNull List<String> urls) {
+        engine.replaceTrackers(torrentId, urls);
+    }
+
+    public void addTrackers(@NonNull List<String> urls) {
+        engine.addTrackers(torrentId, urls);
+    }
+
+    public void pauseResumeTorrent() {
+        engine.pauseResumeTorrent(torrentId);
+    }
+
+    public void deleteTorrent(boolean withFiles) {
+        engine.deleteTorrents(Collections.singletonList(torrentId), withFiles);
+    }
+
+    public void forceRecheckTorrent() {
+        engine.forceRecheckTorrents(Collections.singletonList(torrentId));
+    }
+
+    public void forceAnnounceTorrent() {
+        engine.forceAnnounceTorrents(Collections.singletonList(torrentId));
+    }
+
+    public int getUploadSpeedLimit() {
+        return engine.getUploadSpeedLimit(torrentId);
+    }
+
+    public int getDownloadSpeedLimit() {
+        return engine.getDownloadSpeedLimit(torrentId);
+    }
+
+    public String makeMagnet(boolean includePriorities) {
+        return engine.makeMagnet(torrentId, includePriorities);
+    }
+
+    public void copyTorrentFile(@NonNull Uri destFile) throws IOException, UnknownUriException {
+        byte[] bencode = engine.getBencode(torrentId);
+        if (bencode == null)
+            throw new IOException("Cannot read bencode");
+
+        fs.write(bencode, destFile);
+    }
+
+    public void setSpeedLimit(int uploadSpeedLimit, int downloadSpeedLimit) {
+        engine.setUploadSpeedLimit(torrentId, uploadSpeedLimit);
+        engine.setDownloadSpeedLimit(torrentId, downloadSpeedLimit);
+    }
+
+    public Intent makeOpenFileIntent(@NonNull String fileName, @NonNull Uri path) {
+        String extension = fs.getExtension(fileName);
+        String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+        /* If MIME type is unknown, give user a choice than to open file */
+        if (mimeType == null)
+            mimeType = "*/*";
+
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_VIEW);
+        intent.setDataAndType(path, mimeType);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+        return Intent.createChooser(intent, getApplication().getString(R.string.open_using));
+    }
+
+    private Priority[] getFilePriorities() {
+        if (treeLeaves == null)
+            return null;
+
+        Priority[] priorities = new Priority[treeLeaves.length];
+        for (TorrentContentFileTree file : treeLeaves)
+            if (file != null && (file.getIndex() >= 0 && file.getIndex() < treeLeaves.length))
+                priorities[file.getIndex()] = file.getFilePriority().getPriority();
+
+        return priorities;
+    }
+
+    private boolean checkFreeSpace() {
+        long storageFreeSpace = info.getStorageFreeSpace();
+
+        return storageFreeSpace == -1 || storageFreeSpace >= fileTree.nonIgnoreFileSize();
+    }
+
+    private void initMutableParams() {
+        var torrent = info.getTorrent();
+        if (torrent == null) {
+            return;
+        }
+
+        mutableParams.setName(torrent.name);
+        mutableParams.setDirPath(torrent.downloadPath);
+        mutableParams.setSequentialDownload(engine.isSequentialDownload(torrentId));
+        mutableParams.setFirstLastPiecePriority(engine.isFirstLastPiecePriority(torrentId));
+    }
+
+    private final Observable.OnPropertyChangedCallback mutableParamsCallback = new Observable.OnPropertyChangedCallback() {
+        @Override
+        public void onPropertyChanged(Observable sender, int propertyId) {
+            if (propertyId == BR.dirPath) {
+                Uri dirPath = mutableParams.getDirPath();
+                if (dirPath == null)
+                    return;
+
+                disposable.add(Completable.fromRunnable(() -> {
+                    try {
+                        info.setStorageFreeSpace(fs.getDirAvailableBytes(dirPath));
+                        info.setDirName(fs.getDirPath(dirPath));
+                    } catch (UnknownUriException e) {
+                        Log.e(TAG, Log.getStackTraceString(e));
+                    }
+                })
+                        .subscribeOn(Schedulers.io())
+                        .subscribe());
+            }
+
+            checkParamsChanged(propertyId);
+        }
+    };
+
+    private final Observable.OnPropertyChangedCallback infoCallback = new Observable.OnPropertyChangedCallback() {
+        @Override
+        public void onPropertyChanged(Observable sender, int propertyId) {
+            if (propertyId == BR.advancedInfo) {
+                AdvancedTorrentInfo advancedInfo = info.getAdvancedInfo();
+                if (advancedInfo != null)
+                    updateFiles(advancedInfo.filesReceivedBytes, advancedInfo.filesAvailability);
+            }
+        }
+    };
+
+    private void checkParamsChanged(int propertyId) {
+        Torrent torrent = info.getTorrent();
+        TorrentInfo ti = info.getTorrentInfo();
+        if (torrent == null || ti == null)
+            return;
+
+        switch (propertyId) {
+            case BR.name:
+                String name = mutableParams.getName();
+                if (name != null && !torrent.name.equals(name))
+                    engine.setTorrentName(torrentId, name);
+
+                break;
+            case BR.dirPath:
+                Uri dirPath = mutableParams.getDirPath();
+                if (dirPath != null && !torrent.downloadPath.equals(dirPath))
+                    engine.setDownloadPath(torrentId, dirPath);
+
+                break;
+            case BR.sequentialDownload:
+                boolean sequential = mutableParams.isSequentialDownload();
+                if (ti.sequentialDownload != sequential)
+                    engine.setSequentialDownload(torrentId, sequential);
+
+                break;
+            case BR.prioritiesChanged:
+                if (mutableParams.isPrioritiesChanged()) {
+                    Priority[] priorities = getFilePriorities();
+                    if (priorities != null) {
+                        if (!checkFreeSpace())
+                            freeSpaceError.onNext(true);
+                        engine.prioritizeFiles(torrentId, priorities);
+                    }
+                }
+            case BR.firstLastPiecePriority:
+                var firstLastPiecePriority = mutableParams.isFirstLastPiecePriority();
+                if (ti.firstLastPiecePriority != firstLastPiecePriority) {
+                    engine.setFirstLastPiecePriority(torrentId, firstLastPiecePriority);
+                }
+
+                break;
+        }
+    }
+
+    private void startMakeFileTree() {
+        disposable.add(Completable.fromRunnable(this::makeFileTree)
+                .subscribeOn(Schedulers.computation())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(() -> updateCurDir(fileTree)));
+    }
+
+    private void makeFileTree() {
+        try {
+            syncBuildFileTree.lock();
+
+            if (fileTree != null)
+                return;
+
+            TorrentMetaInfo metaInfo = info.getMetaInfo();
+            if (metaInfo == null)
+                return;
+            List<BencodeFileItem> files = metaInfo.fileList;
+            if (files.isEmpty())
+                return;
+            Torrent torrent = info.getTorrent();
+            TorrentInfo ti = info.getTorrentInfo();
+            if (torrent == null || ti == null || ti.filePriorities.length != metaInfo.fileCount)
+                return;
+
+            ArrayList<FilePriority> priorities = new ArrayList<>();
+            for (Priority p : ti.filePriorities)
+                priorities.add(new FilePriority(p));
+
+            Pair<TorrentContentFileTree, TorrentContentFileTree[]> res = TorrentContentFileTreeUtils.buildFileTree(files);
+            TorrentContentFileTree fileTree = res.first;
+            treeLeaves = res.second;
+
+            /* Set priorities */
+            for (int i = 0; i < files.size(); i++) {
+                BencodeFileItem f = files.get(i);
+                TorrentContentFileTree file = treeLeaves[f.getIndex()];
+                if (file != null)
+                    file.setPriority(priorities.get(i), false);
+            }
+
+            this.fileTree = fileTree;
+
+        } finally {
+            syncBuildFileTree.unlock();
+        }
+    }
+
+    private void updateFiles(long[] receivedBytes, double[] availability) {
+        disposable.add(Completable.fromRunnable(() -> {
+            try {
+                syncBuildFileTree.lock();
+
+                if (fileTree == null)
+                    return;
+
+                if (receivedBytes != null) {
+                    for (int i = 0; i < receivedBytes.length; i++) {
+                        TorrentContentFileTree file = treeLeaves[i];
+                        if (file != null)
+                            file.setReceivedBytes(receivedBytes[i]);
+                    }
+                }
+                if (availability != null) {
+                    for (int i = 0; i < availability.length; i++) {
+                        TorrentContentFileTree file = treeLeaves[i];
+                        if (file != null)
+                            file.setAvailability(availability[i]);
+                    }
+                }
+
+            } finally {
+                syncBuildFileTree.unlock();
+            }
+        })
+                .subscribeOn(Schedulers.computation())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(this::updateChildren));
+    }
+
+    private void updateCurDir(TorrentContentFileTree node) {
+        curDir = node;
+        updateChildren();
+    }
+
+    private void updateChildren() {
+        children.onNext(getChildren(curDir));
+    }
+}
+
+$ sed -n '1,189p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/MainViewModel.java
+/*
+ * Copyright (C) 2019, 2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.main;
+
+import android.app.Application;
+import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.lifecycle.AndroidViewModel;
+
+import org.proninyaroslav.libretorrent.core.RepositoryHelper;
+import org.proninyaroslav.libretorrent.core.filter.TorrentFilter;
+import org.proninyaroslav.libretorrent.core.filter.TorrentFilterCollection;
+import org.proninyaroslav.libretorrent.core.model.TorrentEngine;
+import org.proninyaroslav.libretorrent.core.model.TorrentInfoProvider;
+import org.proninyaroslav.libretorrent.core.model.data.TorrentInfo;
+import org.proninyaroslav.libretorrent.core.model.data.entity.TagInfo;
+import org.proninyaroslav.libretorrent.core.sorting.TorrentSorting;
+import org.proninyaroslav.libretorrent.core.sorting.TorrentSortingComparator;
+import org.proninyaroslav.libretorrent.core.storage.TagRepository;
+
+import java.util.List;
+
+import io.reactivex.Completable;
+import io.reactivex.Flowable;
+import io.reactivex.Observable;
+import io.reactivex.Single;
+import io.reactivex.subjects.PublishSubject;
+
+public class MainViewModel extends AndroidViewModel {
+    private TorrentInfoProvider stateProvider;
+    private TorrentEngine engine;
+    private TorrentSortingComparator sorting = new TorrentSortingComparator(
+            new TorrentSorting(TorrentSorting.SortingColumns.none, TorrentSorting.Direction.ASC));
+    private TorrentFilter statusFilter = TorrentFilterCollection.all();
+    private TorrentFilter dateAddedFilter = TorrentFilterCollection.all();
+    private TorrentFilter tagFilter = TorrentFilterCollection.all();
+    private PublishSubject<Boolean> forceSortAndFilter = PublishSubject.create();
+    private TagRepository tagRepo;
+
+    private String searchQuery;
+    private TorrentFilter searchFilter = (state) -> {
+        if (TextUtils.isEmpty(searchQuery))
+            return true;
+
+        String filterPattern = searchQuery.toLowerCase().trim();
+
+        return state.name.toLowerCase().contains(filterPattern);
+    };
+
+    public MainViewModel(@NonNull Application application) {
+        super(application);
+
+        stateProvider = TorrentInfoProvider.getInstance(application);
+        engine = TorrentEngine.getInstance(application);
+        tagRepo = RepositoryHelper.getTagRepository(application);
+    }
+
+    public Flowable<List<TorrentInfo>> observeAllTorrentsInfo() {
+        return stateProvider.observeInfoList();
+    }
+
+    public Single<List<TorrentInfo>> getAllTorrentsInfoSingle() {
+        return stateProvider.getInfoListSingle();
+    }
+
+    public Flowable<String> observeTorrentsDeleted() {
+        return stateProvider.observeTorrentsDeleted();
+    }
+
+    public void setSort(@NonNull TorrentSortingComparator sorting, boolean force) {
+        this.sorting = sorting;
+        if (force && !sorting.getSorting().getColumnName().equals(TorrentSorting.SortingColumns.none.name()))
+            forceSortAndFilter.onNext(true);
+    }
+
+    public TorrentSortingComparator getSorting() {
+        return sorting;
+    }
+
+    public void setStatusFilter(@NonNull TorrentFilter statusFilter, boolean force) {
+        this.statusFilter = statusFilter;
+        if (force)
+            forceSortAndFilter.onNext(true);
+    }
+
+    public void setDateAddedFilter(@NonNull TorrentFilter dateAddedFilter, boolean force) {
+        this.dateAddedFilter = dateAddedFilter;
+        if (force)
+            forceSortAndFilter.onNext(true);
+    }
+
+    public void setTagFilter(@NonNull TorrentFilter tagFilter, boolean force) {
+        this.tagFilter = tagFilter;
+        if (force) {
+            forceSortAndFilter.onNext(true);
+        }
+    }
+
+    public TorrentFilter getFilter() {
+        return (state) -> statusFilter.test(state) &&
+                dateAddedFilter.test(state) &&
+                searchFilter.test(state) &&
+                tagFilter.test(state);
+    }
+
+    public void setSearchQuery(@Nullable String searchQuery) {
+        this.searchQuery = searchQuery;
+        forceSortAndFilter.onNext(true);
+    }
+
+    public void resetSearch() {
+        setSearchQuery(null);
+    }
+
+    public Observable<Boolean> observeForceSortAndFilter() {
+        return forceSortAndFilter;
+    }
+
+    public void pauseResumeTorrent(@NonNull String id) {
+        engine.pauseResumeTorrent(id);
+    }
+
+    public void deleteTorrents(@NonNull List<String> ids, boolean withFiles) {
+        engine.deleteTorrents(ids, withFiles);
+    }
+
+    public void forceRecheckTorrents(@NonNull List<String> ids) {
+        engine.forceRecheckTorrents(ids);
+    }
+
+    public void forceAnnounceTorrents(@NonNull List<String> ids) {
+        engine.forceAnnounceTorrents(ids);
+    }
+
+    public Flowable<Boolean> observeNeedStartEngine() {
+        return engine.observeNeedStartEngine();
+    }
+
+    public void startEngine() {
+        engine.start();
+    }
+
+    public void restartForegroundNotification() {
+        engine.restartForegroundNotification();
+    }
+
+    public void requestStopEngine() {
+        engine.requestStop();
+    }
+
+    public void stopEngine() {
+        engine.forceStop();
+    }
+
+    public void pauseAll() {
+        engine.pauseAll();
+    }
+
+    public void resumeAll() {
+        engine.resumeAll();
+    }
+
+    public Flowable<List<TagInfo>> observeTags() {
+        return tagRepo.observeAll();
+    }
+
+    public Completable deleteTag(@NonNull TagInfo info) {
+        return Completable.fromRunnable(() -> tagRepo.delete(info));
+    }
+}
+
+$ sed -n '1,1658p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java
+/*
+ * Copyright (C) 2019-2024 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.core.model;
+
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
+import android.util.Log;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.util.Pair;
+
+import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.proninyaroslav.libretorrent.R;
+import org.proninyaroslav.libretorrent.core.RepositoryHelper;
+import org.proninyaroslav.libretorrent.core.TorrentFileObserver;
+import org.proninyaroslav.libretorrent.core.exception.DecodeException;
+import org.proninyaroslav.libretorrent.core.exception.FreeSpaceException;
+import org.proninyaroslav.libretorrent.core.exception.TorrentAlreadyExistsException;
+import org.proninyaroslav.libretorrent.core.exception.UnknownUriException;
+import org.proninyaroslav.libretorrent.core.logger.LogEntry;
+import org.proninyaroslav.libretorrent.core.logger.Logger;
+import org.proninyaroslav.libretorrent.core.model.data.AdvancedTorrentInfo;
+import org.proninyaroslav.libretorrent.core.model.data.MagnetInfo;
+import org.proninyaroslav.libretorrent.core.model.data.PeerInfo;
+import org.proninyaroslav.libretorrent.core.model.data.Priority;
+import org.proninyaroslav.libretorrent.core.model.data.TorrentInfo;
+import org.proninyaroslav.libretorrent.core.model.data.TrackerInfo;
+import org.proninyaroslav.libretorrent.core.model.data.entity.TagInfo;
+import org.proninyaroslav.libretorrent.core.model.data.entity.Torrent;
+import org.proninyaroslav.libretorrent.core.model.data.metainfo.TorrentMetaInfo;
+import org.proninyaroslav.libretorrent.core.model.session.TorrentDownload;
+import org.proninyaroslav.libretorrent.core.model.session.TorrentSession;
+import org.proninyaroslav.libretorrent.core.model.session.TorrentSessionImpl;
+import org.proninyaroslav.libretorrent.core.model.stream.TorrentInputStream;
+import org.proninyaroslav.libretorrent.core.model.stream.TorrentStream;
+import org.proninyaroslav.libretorrent.core.model.stream.TorrentStreamServer;
+import org.proninyaroslav.libretorrent.core.settings.SessionSettings;
+import org.proninyaroslav.libretorrent.core.settings.SettingsRepository;
+import org.proninyaroslav.libretorrent.core.storage.TagRepository;
+import org.proninyaroslav.libretorrent.core.storage.TorrentRepository;
+import org.proninyaroslav.libretorrent.core.system.FileDescriptorWrapper;
+import org.proninyaroslav.libretorrent.core.system.FileSystemFacade;
+import org.proninyaroslav.libretorrent.core.system.SystemFacadeHelper;
+import org.proninyaroslav.libretorrent.core.utils.Utils;
+import org.proninyaroslav.libretorrent.receiver.ConnectionReceiver;
+import org.proninyaroslav.libretorrent.receiver.PowerReceiver;
+import org.proninyaroslav.libretorrent.service.TorrentService;
+import org.proninyaroslav.libretorrent.ui.TorrentNotifier;
+
+import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import io.reactivex.BackpressureStrategy;
+import io.reactivex.Completable;
+import io.reactivex.Flowable;
+import io.reactivex.Observable;
+import io.reactivex.Single;
+import io.reactivex.SingleEmitter;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.disposables.Disposables;
+import io.reactivex.schedulers.Schedulers;
+
+public class TorrentEngine {
+    private static final String TAG = TorrentEngine.class.getSimpleName();
+
+    private Context appContext;
+    private TorrentSession session;
+    private TorrentStreamServer torrentStreamServer;
+    private TorrentRepository repo;
+    private TagRepository tagRepo;
+    private SettingsRepository pref;
+    private TorrentNotifier notifier;
+    private CompositeDisposable disposables = new CompositeDisposable();
+    private TorrentFileObserver fileObserver;
+    private PowerReceiver powerReceiver = new PowerReceiver();
+    private ConnectionReceiver connectionReceiver = new ConnectionReceiver();
+    private FileSystemFacade fs;
+    private DownloadsCompletedListener downloadsCompleted;
+    private ExecutorService exec = Executors.newSingleThreadExecutor();
+    private SessionErrorFilter errorFilter = new SessionErrorFilter();
+
+    private static volatile TorrentEngine INSTANCE;
+
+    public static TorrentEngine getInstance(@NonNull Context appContext) {
+        if (INSTANCE == null) {
+            synchronized (TorrentEngine.class) {
+                if (INSTANCE == null)
+                    INSTANCE = new TorrentEngine(appContext);
+            }
+        }
+
+        return INSTANCE;
+    }
+
+    private TorrentEngine(@NonNull Context appContext) {
+        this.appContext = appContext;
+        repo = RepositoryHelper.getTorrentRepository(appContext);
+        tagRepo = RepositoryHelper.getTagRepository(appContext);
+        fs = SystemFacadeHelper.getFileSystemFacade(appContext);
+        pref = RepositoryHelper.getSettingsRepository(appContext);
+        notifier = TorrentNotifier.getInstance(appContext);
+        downloadsCompleted = new DownloadsCompletedListener(this);
+        session = new TorrentSessionImpl(repo,
+                fs,
+                SystemFacadeHelper.getSystemFacade(appContext));
+        session.setSettings(pref.readSessionSettings(), false);
+        session.addListener(engineListener);
+    }
+
+    private void handleAutoStop() {
+        if (pref.shutdownDownloadsComplete())
+            forceStop();
+    }
+
+    public void start() {
+        if (isRunning())
+            return;
+
+        Utils.startServiceBackground(appContext, new Intent(appContext, TorrentService.class));
+    }
+
+    public void restartForegroundNotification() {
+        Intent i = new Intent(appContext, TorrentService.class);
+        i.setAction(TorrentService.ACTION_RESTART_FOREGROUND_NOTIFICATION);
+        Utils.startServiceBackground(appContext, i);
+    }
+
+    public Flowable<Boolean> observeNeedStartEngine() {
+        return Flowable.create((emitter) -> {
+            if (emitter.isCancelled())
+                return;
+
+            Runnable emitLoop = () -> {
+                while (!Thread.interrupted()) {
+                    try {
+                        Thread.sleep(1000);
+
+                    } catch (InterruptedException e) {
+                        return;
+                    }
+
+                    if (emitter.isCancelled() || isRunning())
+                        return;
+
+                    emitter.onNext(true);
+                }
+            };
+
+            Disposable d = observeEngineRunning()
+                    .subscribeOn(Schedulers.io())
+                    .subscribe((isRunning) -> {
+                        if (emitter.isCancelled())
+                            return;
+
+                        if (!isRunning) {
+                            emitter.onNext(true);
+                            exec.submit(emitLoop);
+                        }
+                    });
+
+            if (!emitter.isCancelled()) {
+                emitter.onNext(!isRunning());
+                emitter.setDisposable(d);
+            }
+
+        }, BackpressureStrategy.LATEST);
+    }
+
+    public Flowable<Boolean> observeEngineRunning() {
+        return Flowable.create((emitter) -> {
+            if (emitter.isCancelled())
+                return;
+
+            TorrentEngineListener listener = new TorrentEngineListener() {
+                @Override
+                public void onSessionStarted() {
+                    if (!emitter.isCancelled())
+                        emitter.onNext(true);
+                }
+
+                @Override
+                public void onSessionStopped() {
+                    if (!emitter.isCancelled())
+                        emitter.onNext(false);
+                }
+            };
+
+            if (!emitter.isCancelled()) {
+                emitter.onNext(isRunning());
+                addListener(listener);
+                emitter.setDisposable(Disposables.fromAction(() -> removeListener(listener)));
+            }
+
+        }, BackpressureStrategy.LATEST);
+    }
+
+    /*
+     * Only calls from TorrentService
+     */
+
+    public void doStart() {
+        if (isRunning())
+            return;
+
+        switchConnectionReceiver();
+        switchPowerReceiver();
+        disposables.add(pref.observeSettingsChanged()
+                .subscribe(this::handleSettingsChanged));
+
+        disposables.add(downloadsCompleted.listen()
+                .subscribe(
+                        this::handleAutoStop,
+                        (err) -> {
+                            Log.e(TAG, "Auto stop error: " +
+                                    Log.getStackTraceString(err));
+                            handleAutoStop();
+                        }
+                ));
+
+        disposables.add(session.getLogger().observeDataSetChanged()
+                .subscribe((change) -> {
+                    if (change.reason == Logger.DataSetChange.Reason.NEW_ENTRIES && change.entries != null)
+                        printSessionLog(change.entries);
+                }));
+
+        session.start();
+    }
+
+    private void printSessionLog(List<LogEntry> entries) {
+        for (LogEntry entry : entries) {
+            if (entry == null)
+                continue;
+
+            Log.i(TAG, entry.toString());
+        }
+    }
+
+    /*
+     * Leaves the right to the engine to decide whether to shutdown or not
+     */
+
+    public void requestStop() {
+        if (pref.keepAlive())
+            return;
+
+        forceStop();
+    }
+
+    public void forceStop() {
+        Intent i = new Intent(appContext, TorrentService.class);
+        i.setAction(TorrentService.ACTION_SHUTDOWN);
+        Utils.startServiceBackground(appContext, i);
+    }
+
+    /*
+     * Only calls from TorrentService
+     */
+
+    public void doStop() {
+        if (!isRunning())
+            return;
+
+        disposables.clear();
+        stopWatchDir();
+        stopStreamingServer();
+        session.requestStop();
+        cleanTemp();
+    }
+
+    public boolean isRunning() {
+        return session.isRunning();
+    }
+
+    public void addListener(TorrentEngineListener listener) {
+        session.addListener(listener);
+    }
+
+    public void removeListener(TorrentEngineListener listener) {
+        session.removeListener(listener);
+    }
+
+    public void rescheduleTorrents() {
+        disposables.add(Completable.fromRunnable(() -> {
+                    if (!isRunning())
+                        return;
+
+                    if (checkPauseTorrents())
+                        session.pauseAll();
+                    else
+                        session.resumeAll();
+
+                }).subscribeOn(Schedulers.io())
+                .subscribe());
+    }
+
+    public void addTorrent(@NonNull AddTorrentParams params,
+                           boolean removeFile) {
+        disposables.add(Completable.fromRunnable(() -> {
+                    try {
+                        addTorrentSync(params, removeFile);
+
+                    } catch (Exception e) {
+                        handleAddTorrentError(params.name, e);
+                    }
+                }).subscribeOn(Schedulers.io())
+                .subscribe());
+    }
+
+    public void addTorrents(@NonNull List<AddTorrentParams> paramsList,
+                            boolean removeFile) {
+        if (!isRunning())
+            return;
+
+        disposables.add(Observable.fromIterable(paramsList)
+                .subscribeOn(Schedulers.io())
+                .subscribe((params) -> {
+                    try {
+                        session.addTorrent(params, removeFile);
+
+                    } catch (Exception e) {
+                        handleAddTorrentError(params.name, e);
+                    }
+                }));
+    }
+
+    public void addTorrent(@NonNull Uri file) {
+        addTorrent(file, null);
+    }
+
+    public void addTorrent(@NonNull Uri file, @Nullable Uri savePath) {
+        disposables.add(addTorrentCompletable(file, savePath)
+                .subscribeOn(Schedulers.io())
+                .subscribe()
+        );
+    }
+
+    public Completable addTorrentCompletable(@NonNull Uri file) {
+        return addTorrentCompletable(file, null);
+    }
+
+    public Completable addTorrentCompletable(@NonNull Uri file, @Nullable Uri savePath) {
+        return Completable.fromRunnable(() -> {
+            if (!isRunning())
+                return;
+
+            TorrentMetaInfo info = null;
+            try (FileDescriptorWrapper w = fs.getFD(file)) {
+                FileDescriptor outFd = w.open("r");
+
+                try (FileInputStream is = new FileInputStream(outFd)) {
+                    info = new TorrentMetaInfo(is);
+
+                } catch (Exception e) {
+                    throw new DecodeException(e);
+                }
+                addTorrentSync(file, info, savePath);
+
+            } catch (Exception e) {
+                handleAddTorrentError((info == null ? file.getPath() : info.torrentName), e);
+            }
+        });
+    }
+
+    /*
+     * Do not run in the UI thread
+     */
+
+    public Torrent addTorrentSync(
+            @NonNull AddTorrentParams params,
+            boolean removeFile
+    ) throws
+            IOException,
+            TorrentAlreadyExistsException,
+            DecodeException,
+            UnknownUriException {
+        if (!isRunning())
+            return null;
+
+        return session.addTorrent(params, removeFile);
+    }
+
+    public Pair<MagnetInfo, Single<TorrentMetaInfo>> fetchMagnet(@NonNull String uri) throws Exception {
+        if (!isRunning())
+            return null;
+
+        MagnetInfo info = session.fetchMagnet(uri);
+        if (info == null)
+            return null;
+        Single<TorrentMetaInfo> res = createFetchMagnetSingle(info.getSha1hash());
+
+        return Pair.create(info, res);
+    }
+
+    public MagnetInfo parseMagnet(@NonNull String uri) {
+        return session.parseMagnet(uri);
+    }
+
+    private Single<TorrentMetaInfo> createFetchMagnetSingle(String targetHash) {
+        return Single.create((emitter) -> {
+            TorrentEngineListener listener = new TorrentEngineListener() {
+                @Override
+                public void onMagnetLoaded(@NonNull String hash, byte[] bencode) {
+                    if (!targetHash.equals(hash))
+                        return;
+
+                    if (!emitter.isDisposed()) {
+                        if (bencode == null)
+                            emitter.onError(new IOException(new NullPointerException("bencode is null")));
+                        else
+                            sendInfoToEmitter(emitter, bencode);
+                    }
+                }
+            };
+            if (!emitter.isDisposed()) {
+                /* Check if metadata is already loaded */
+                byte[] bencode = session.getLoadedMagnet(targetHash);
+                if (bencode == null) {
+                    session.addListener(listener);
+                    emitter.setDisposable(Disposables.fromAction(() ->
+                            session.removeListener(listener)));
+                } else {
+                    sendInfoToEmitter(emitter, bencode);
+                }
+            }
+        });
+    }
+
+    private void sendInfoToEmitter(SingleEmitter<TorrentMetaInfo> emitter, byte[] bencode) {
+        TorrentMetaInfo info;
+        try {
+            info = new TorrentMetaInfo(bencode);
+
+        } catch (DecodeException e) {
+            Log.e(TAG, Log.getStackTraceString(e));
+            if (!emitter.isDisposed())
+                emitter.onError(e);
+            return;
+        }
+
+        if (!emitter.isDisposed())
+            emitter.onSuccess(info);
+    }
+
+    /*
+     * Used only for magnets from the magnetList (non added magnets)
+     */
+
+    public void cancelFetchMagnet(@NonNull String infoHash) {
+        if (!isRunning())
+            return;
+
+        session.cancelFetchMagnet(infoHash);
+    }
+
+    public void pauseResumeTorrent(@NonNull String id) {
+        disposables.add(Completable.fromRunnable(() -> {
+                    TorrentDownload task = session.getTask(id);
+                    if (task == null)
+                        return;
+                    try {
+                        if (task.isPaused())
+                            task.resumeManually();
+                        else
+                            task.pauseManually();
+
+                    } catch (Exception e) {
+                        /* Ignore */
+                    }
+
+                }).subscribeOn(Schedulers.io())
+                .subscribe());
+    }
+
+    public void forceRecheckTorrents(@NonNull List<String> ids) {
+        disposables.add(Observable.fromIterable(ids)
+                .filter(Objects::nonNull)
+                .subscribe((id) -> {
+                    if (!isRunning())
+                        return;
+
+                    TorrentDownload task = session.getTask(id);
+                    if (task != null)
+                        task.forceRecheck();
+                }));
+    }
+
+    public void forceAnnounceTorrents(@NonNull List<String> ids) {
+        disposables.add(Observable.fromIterable(ids)
+                .filter(Objects::nonNull)
+                .subscribe((id) -> {
+                    if (!isRunning())
+                        return;
+
+                    TorrentDownload task = session.getTask(id);
+                    if (task != null)
+                        task.requestTrackerAnnounce();
+                }));
+    }
+
+    public void deleteTorrents(@NonNull List<String> ids, boolean withFiles) {
+        disposables.add(Observable.fromIterable(ids)
+                .observeOn(Schedulers.io())
+                .subscribe((id) -> {
+                    if (!isRunning())
+                        return;
+                    session.deleteTorrent(id, withFiles);
+                }));
+    }
+
+    public void deleteTrackers(@NonNull String id, @NonNull List<String> urls) {
+        if (!isRunning())
+            return;
+
+        TorrentDownload task = session.getTask(id);
+        if (task == null)
+            return;
+
+        Set<String> trackers = task.getTrackersUrl();
+        trackers.removeAll(urls);
+
+        task.replaceTrackers(trackers);
+    }
+
+    public void replaceTrackers(@NonNull String id, @NonNull List<String> urls) {
+        if (!isRunning())
+            return;
+
+        TorrentDownload task = session.getTask(id);
+        if (task == null)
+            return;
+
+        task.replaceTrackers(new HashSet<>(urls));
+    }
+
+    public void addTrackers(@NonNull String id, @NonNull List<String> urls) {
+        if (!isRunning())
+            return;
+
+        TorrentDownload task = session.getTask(id);
+        if (task != null)
+            task.addTrackers(new HashSet<>(urls));
+    }
+
+    public String makeMagnet(@NonNull String id, boolean includePriorities) {
+        if (!isRunning())
+            return null;
+
+        TorrentDownload task = session.getTask(id);
+        if (task == null)
+            return null;
+
+        return task.makeMagnet(includePriorities);
+    }
+
+    public Flowable<TorrentMetaInfo> observeTorrentMetaInfo(@NonNull String id) {
+        return Flowable.create((emitter) -> {
+            TorrentEngineListener listener = new TorrentEngineListener() {
+                @Override
+                public void onTorrentMetadataLoaded(@NonNull String torrentId, Exception err) {
+                    if (!id.equals(torrentId) || emitter.isCancelled())
+                        return;
+
+                    if (err == null) {
+                        TorrentMetaInfo info = getTorrentMetaInfo(id);
+                        if (info == null)
+                            emitter.onError(new NullPointerException());
+                        else
+                            emitter.onNext(info);
+                    } else {
+                        emitter.onError(err);
+                    }
+                }
+            };
+            if (!emitter.isCancelled()) {
+                TorrentMetaInfo info = getTorrentMetaInfo(id);
+                if (info == null)
+                    emitter.onError(new NullPointerException());
+                else
+                    emitter.onNext(info);
+
+                session.addListener(listener);
+                emitter.setDisposable(Disposables.fromAction(() ->
+                        session.removeListener(listener)));
+            }
+        }, BackpressureStrategy.LATEST);
+    }
+
+    public TorrentMetaInfo getTorrentMetaInfo(@NonNull String id) {
+        if (!isRunning())
+            return null;
+
+        TorrentDownload task = session.getTask(id);
+        if (task == null)
+            return null;
+
+        TorrentMetaInfo info = null;
+        try {
+            info = task.getTorrentMetaInfo();
+
+        } catch (DecodeException e) {
+            Log.e(TAG, "Can't decode torrent info: ");
+            Log.e(TAG, Log.getStackTraceString(e));
+        }
+
+        return info;
+    }
+
+    public boolean[] getPieces(@NonNull String id) {
+        if (!isRunning())
+            return new boolean[0];
+
+        TorrentDownload task = session.getTask(id);
+        if (task == null)
+            return new boolean[0];
+
+        return task.pieces();
+    }
+
+    public void pauseAll() {
+        disposables.add(Completable.fromRunnable(() -> {
+                    if (isRunning())
+                        session.pauseAllManually();
+
+                }).subscribeOn(Schedulers.io())
+                .subscribe());
+    }
+
+    public void resumeAll() {
+        disposables.add(Completable.fromRunnable(() -> {
+                    if (isRunning())
+                        session.resumeAllManually();
+
+                }).subscribeOn(Schedulers.io())
+                .subscribe());
+    }
+
+    public void setTorrentName(@NonNull String id, @NonNull String name) {
+        disposables.add(Completable.fromRunnable(() -> {
+                    if (!isRunning())
+                        return;
+
+                    TorrentDownload task = session.getTask(id);
+                    if (task != null)
+                        task.setTorrentName(name);
+
+                }).subscribeOn(Schedulers.io())
+                .subscribe());
+    }
+
+    public void setDownloadPath(@NonNull String id, @NonNull Uri path) {
+        disposables.add(Completable.fromRunnable(() -> {
+                    if (!isRunning())
+                        return;
+
+                    TorrentDownload task = session.getTask(id);
+                    if (task != null)
+                        task.setDownloadPath(path);
+
+                }).subscribeOn(Schedulers.io())
+                .subscribe());
+    }
+
+    public void setSequentialDownload(@NonNull String id, boolean sequential) {
+        disposables.add(Completable.fromRunnable(() -> {
+                    if (!isRunning())
+                        return;
+
+                    TorrentDownload task = session.getTask(id);
+                    if (task != null)
+                        task.setSequentialDownload(sequential);
+
+                }).subscribeOn(Schedulers.io())
+                .subscribe());
+    }
+
+    public void setFirstLastPiecePriority(@NonNull String id, boolean enabled) {
+        disposables.add(Completable.fromRunnable(() -> {
+            if (!isRunning()) {
+                return;
+            }
+            var task = session.getTask(id);
+            if (task != null) {
+                task.setFirstLastPiecePriority(enabled);
+            }
+        }).subscribeOn(Schedulers.io()).subscribe());
+    }
+
+    public boolean isFirstLastPiecePriority(@NonNull String id) {
+        if (!isRunning()) {
+            return false;
+        }
+
+        var task = session.getTask(id);
+        if (task == null) {
+            return false;
+        }
+
+        return task.isFirstLastPiecePriority();
+    }
+
+    public void prioritizeFiles(@NonNull String id, @NonNull Priority[] priorities) {
+        disposables.add(Completable.fromRunnable(() -> {
+                    if (!isRunning())
+                        return;
+
+                    TorrentDownload task = session.getTask(id);
+                    if (task != null)
+                        task.prioritizeFiles(priorities);
+
+                }).subscribeOn(Schedulers.io())
+                .subscribe());
+    }
+
+    public TorrentStream getStream(@NonNull String id, int fileIndex) {
+        if (!isRunning())
+            return null;
+
+        TorrentDownload task = session.getTask(id);
+        if (task == null)
+            return null;
+
+        return task.getStream(fileIndex);
+    }
+
+    public TorrentInputStream getTorrentInputStream(@NonNull TorrentStream stream) {
+        return new TorrentInputStream(session, stream);
+    }
+
+    /*
+     * Do not run in the UI thread
+     */
+
+    public TorrentInfo makeInfoSync(@NonNull String id) {
+        Torrent torrent = repo.getTorrentById(id);
+        if (torrent == null) {
+            return null;
+        }
+        List<TagInfo> tags = tagRepo.getByTorrentId(id);
+
+        return makeInfo(torrent, tags);
+    }
+
+    private TorrentInfo makeInfo(Torrent torrent, List<TagInfo> tags) {
+        TorrentDownload task = session.getTask(torrent.id);
+        if (task == null || !task.isValid() || task.isStopped()) {
+            return new TorrentInfo(
+                    torrent.id,
+                    torrent.name,
+                    torrent.dateAdded,
+                    torrent.error,
+                    tags
+            );
+        } else {
+            return new TorrentInfo(
+                    torrent.id,
+                    torrent.name,
+                    task.getStateCode(),
+                    task.getProgress(),
+                    task.getReceivedBytes(),
+                    task.getTotalSentBytes(),
+                    task.getTotalWanted(),
+                    task.getDownloadSpeed(),
+                    task.getUploadSpeed(),
+                    task.getETA(),
+                    torrent.dateAdded,
+                    task.getTotalPeers(),
+                    task.getConnectedPeers(),
+                    torrent.error,
+                    task.isSequentialDownload(),
+                    task.getFilePriorities(),
+                    tags,
+                    task.isFirstLastPiecePriority()
+            );
+        }
+    }
+
+    /*
+     * Do not run in the UI thread
+     */
+
+    public List<TorrentInfo> makeInfoListSync() {
+        ArrayList<TorrentInfo> stateList = new ArrayList<>();
+
+        for (Torrent torrent : repo.getAllTorrents()) {
+            if (torrent == null) {
+                continue;
+            }
+            List<TagInfo> tags = tagRepo.getByTorrentId(torrent.id);
+            stateList.add(makeInfo(torrent, tags));
+        }
+
+        return stateList;
+    }
+
+    /*
+     * Do not run in the UI thread
+     */
+
+    public AdvancedTorrentInfo makeAdvancedInfoSync(@NonNull String id) {
+        if (!isRunning())
+            return null;
+
+        TorrentDownload task = session.getTask(id);
+        if (task == null)
+            return null;
+
+        Torrent torrent = repo.getTorrentById(id);
+        if (torrent == null)
+            return null;
+
+        int[] piecesAvail = task.getPiecesAvailability();
+
+        return new AdvancedTorrentInfo(
+                torrent.id,
+                task.getFilesReceivedBytes(),
+                task.getTotalSeeds(),
+                task.getConnectedSeeds(),
+                task.getNumDownloadedPieces(),
+                task.getShareRatio(),
+                task.getActiveTime(),
+                task.getSeedingTime(),
+                task.getAvailability(piecesAvail),
+                task.getFilesAvailability(piecesAvail),
+                task.getConnectedLeechers(),
+                task.getTotalLeechers());
+    }
+
+    public List<TrackerInfo> makeTrackerInfoList(@NonNull String id) {
+        if (!isRunning())
+            return new ArrayList<>();
+
+        TorrentDownload task = session.getTask(id);
+        if (task == null)
+            return new ArrayList<>();
+
+        return task.getTrackerInfoList();
+    }
+
+    public List<PeerInfo> makePeerInfoList(@NonNull String id) {
+        if (!isRunning())
+            return new ArrayList<>();
+
+        TorrentDownload task = session.getTask(id);
+        if (task == null)
+            return new ArrayList<>();
+
+        return task.getPeerInfoList();
+    }
+
+    public int getUploadSpeedLimit(@NonNull String id) {
+        if (!isRunning())
+            return -1;
+
+        TorrentDownload task = session.getTask(id);
+        if (task == null)
+            return -1;
+
+        return task.getUploadSpeedLimit();
+    }
+
+    public int getDownloadSpeedLimit(@NonNull String id) {
+        if (!isRunning())
+            return -1;
+
+        TorrentDownload task = session.getTask(id);
+        if (task == null)
+            return -1;
+
+        return task.getDownloadSpeedLimit();
+    }
+
+    public void setDownloadSpeedLimit(@NonNull String id, int limit) {
+        if (!isRunning())
+            return;
+
+        TorrentDownload task = session.getTask(id);
+        if (task == null)
+            return;
+
+        task.setDownloadSpeedLimit(limit);
+    }
+
+    public void setUploadSpeedLimit(@NonNull String id, int limit) {
+        if (!isRunning())
+            return;
+
+        TorrentDownload task = session.getTask(id);
+        if (task == null)
+            return;
+
+        task.setUploadSpeedLimit(limit);
+    }
+
+    public byte[] getBencode(@NonNull String id) {
+        if (!isRunning())
+            return null;
+
+        TorrentDownload task = session.getTask(id);
+        if (task == null)
+            return null;
+
+        return task.getBencode();
+    }
+
+    public boolean isSequentialDownload(@NonNull String id) {
+        if (!isRunning())
+            return false;
+
+        TorrentDownload task = session.getTask(id);
+        if (task == null)
+            return false;
+
+        return task.isSequentialDownload();
+    }
+
+    public int[] getPieceSizeList() {
+        return session.getPieceSizeList();
+    }
+
+    public int[] getTorrentVersionList() {
+        return session.getTorrentVersionList();
+    }
+
+    public Logger getSessionLogger() {
+        return session.getLogger();
+    }
+
+    private void saveTorrentFileIn(@NonNull Torrent torrent,
+                                   @NonNull Uri saveDir) {
+        String torrentFileName = torrent.name + ".torrent";
+        try {
+            if (!saveTorrentFile(torrent.id, saveDir, torrentFileName))
+                Log.w(TAG, "Could not save torrent file + " + torrentFileName);
+
+        } catch (Exception e) {
+            Log.w(TAG, "Could not save torrent file + " + torrentFileName + ": ", e);
+        }
+    }
+
+    private boolean saveTorrentFile(String id, Uri destDir, String fileName) throws IOException, UnknownUriException {
+        byte[] bencode = getBencode(id);
+        if (bencode == null)
+            return false;
+
+        String name = (fileName != null ? fileName : id);
+
+        Uri path = fs.createFile(destDir, name, true);
+        if (path == null)
+            return false;
+
+        fs.write(bencode, path);
+
+        return true;
+    }
+
+    private void switchPowerReceiver() {
+        boolean batteryControl = pref.batteryControl();
+        boolean customBatteryControl = pref.customBatteryControl();
+        boolean onlyCharging = pref.onlyCharging();
+
+        try {
+            appContext.unregisterReceiver(powerReceiver);
+
+        } catch (IllegalArgumentException e) {
+            /* Ignore non-registered receiver */
+        }
+        if (customBatteryControl) {
+            appContext.registerReceiver(powerReceiver, PowerReceiver.getCustomFilter());
+            /* Custom receiver doesn't send sticky intent, reschedule manually */
+            rescheduleTorrents();
+        } else if (batteryControl || onlyCharging) {
+            appContext.registerReceiver(powerReceiver, PowerReceiver.getFilter());
+        }
+    }
+
+    private void switchConnectionReceiver() {
+        boolean unmeteredOnly = pref.unmeteredConnectionsOnly();
+        boolean roaming = pref.enableRoaming();
+
+        try {
+            appContext.unregisterReceiver(connectionReceiver);
+
+        } catch (IllegalArgumentException e) {
+            /* Ignore non-registered receiver */
+        }
+        if (unmeteredOnly || roaming)
+            appContext.registerReceiver(connectionReceiver, ConnectionReceiver.getFilter());
+    }
+
+    private boolean checkPauseTorrents() {
+        boolean batteryControl = pref.batteryControl();
+        boolean customBatteryControl = pref.customBatteryControl();
+        int customBatteryControlValue = pref.customBatteryControlValue();
+        boolean onlyCharging = pref.onlyCharging();
+        boolean unmeteredOnly = pref.unmeteredConnectionsOnly();
+        boolean roaming = pref.enableRoaming();
+
+        boolean stop = false;
+        if (roaming)
+            stop = Utils.isRoaming(appContext);
+        if (unmeteredOnly)
+            stop = Utils.isMetered(appContext);
+        if (onlyCharging)
+            stop |= !Utils.isBatteryCharging(appContext);
+        if (customBatteryControl)
+            stop |= Utils.isBatteryBelowThreshold(appContext, customBatteryControlValue);
+        else if (batteryControl)
+            stop |= Utils.isBatteryLow(appContext);
+
+        return stop;
+    }
+
+    private void handleOnSessionStarted() {
+        if (pref.enableIpFiltering()) {
+            String path = pref.ipFilteringFile();
+            if (path != null)
+                session.enableIpFilter(Uri.parse(path));
+        }
+
+        if (pref.watchDir())
+            startWatchDir();
+
+        boolean enableStreaming = pref.enableStreaming();
+        if (enableStreaming)
+            startStreamingServer();
+
+        loadTorrents();
+    }
+
+    private void startStreamingServer() {
+        stopStreamingServer();
+
+        String hostname = pref.streamingHostname();
+        int port = pref.streamingPort();
+
+        torrentStreamServer = new TorrentStreamServer(hostname, port);
+        try {
+            torrentStreamServer.start(appContext);
+
+        } catch (IOException e) {
+            Log.e(TAG, Log.getStackTraceString(e));
+            notifier.makeErrorNotify(appContext.getString(R.string.pref_streaming_error));
+        }
+    }
+
+    private void stopStreamingServer() {
+        if (torrentStreamServer != null)
+            torrentStreamServer.stop();
+        torrentStreamServer = null;
+    }
+
+    private void loadTorrents() {
+        disposables.add(Completable.fromRunnable(() -> {
+                    if (isRunning())
+                        session.restoreTorrents();
+
+                }).subscribeOn(Schedulers.io())
+                .subscribe());
+    }
+
+    private void setProxy() {
+        SessionSettings s = session.getSettings();
+
+        s.proxyType = SessionSettings.ProxyType.fromValue(pref.proxyType());
+        s.proxyAddress = pref.proxyAddress();
+        s.proxyPort = pref.proxyPort();
+        s.proxyPeersToo = pref.proxyPeersToo();
+        s.proxyRequiresAuth = pref.proxyRequiresAuth();
+        s.proxyLogin = pref.proxyLogin();
+        s.proxyPassword = pref.proxyPassword();
+
+        session.setSettings(s);
+    }
+
+    private SessionSettings.EncryptMode getEncryptInConnectionsMode() {
+        return SessionSettings.EncryptMode.fromValue(pref.encryptInConnectionsMode());
+    }
+
+    private SessionSettings.EncryptMode getEncryptOutConnectionsMode() {
+        return SessionSettings.EncryptMode.fromValue(pref.encryptOutConnectionsMode());
+    }
+
+    private void startWatchDir() {
+        String dir = pref.dirToWatch();
+        Uri uri = Uri.parse(dir);
+        if (!Utils.isFileSystemPath(uri))
+            throw new IllegalArgumentException("SAF is not supported:" + uri);
+        dir = uri.getPath();
+
+        scanTorrentsInDir(dir);
+        fileObserver = makeTorrentFileObserver(dir);
+        fileObserver.startWatching();
+    }
+
+    private void stopWatchDir() {
+        if (fileObserver == null)
+            return;
+
+        fileObserver.stopWatching();
+        fileObserver = null;
+    }
+
+    private TorrentFileObserver makeTorrentFileObserver(String pathToDir) {
+        return new TorrentFileObserver(pathToDir) {
+            @Override
+            public void onEvent(int event, @Nullable String name) {
+                if (name == null)
+                    return;
+
+                File f = new File(pathToDir, name);
+                if (!f.exists())
+                    return;
+                if (f.isDirectory() || !f.getName().endsWith(".torrent"))
+                    return;
+                Uri uri = Uri.fromFile(f);
+                disposables.add(addTorrentCompletable(uri)
+                        .subscribeOn(Schedulers.io())
+                        .subscribe(() -> {
+                            if (pref.watchDirDeleteFile()) {
+                                try {
+                                    fs.deleteFile(uri);
+                                } catch (IOException | UnknownUriException e) {
+                                    Log.w(TAG, "[Watch] Unable to delete file: "
+                                            + Log.getStackTraceString(e));
+                                }
+                            }
+                        })
+                );
+            }
+        };
+    }
+
+    private void scanTorrentsInDir(String pathToDir) {
+        File dir = new File(pathToDir);
+        if (!dir.exists())
+            return;
+        for (File file : org.apache.commons.io.FileUtils.listFiles(dir, FileFilterUtils.suffixFileFilter(".torrent"), null)) {
+            if (!file.exists())
+                continue;
+            addTorrent(Uri.fromFile(file));
+        }
+    }
+
+    private Torrent addTorrentSync(Uri file, TorrentMetaInfo info, Uri savePath)
+            throws IOException,
+            FreeSpaceException,
+            TorrentAlreadyExistsException,
+            DecodeException,
+            UnknownUriException {
+        Priority[] priorities = new Priority[info.fileCount];
+        Arrays.fill(priorities, Priority.DEFAULT);
+        Uri downloadPath = (savePath == null ? Uri.parse(pref.saveTorrentsIn()) : savePath);
+
+        AddTorrentParams params = new AddTorrentParams(
+                file.toString(),
+                false,
+                info.sha1Hash,
+                info.torrentName,
+                priorities,
+                downloadPath,
+                false,
+                false,
+                new ArrayList<>(),
+                false
+        );
+
+        if (fs.getDirAvailableBytes(downloadPath) < info.torrentSize) {
+            throw new FreeSpaceException();
+        }
+
+        return addTorrentSync(params, false);
+    }
+
+    private void handleAddTorrentError(String name, Throwable e) {
+        if (e instanceof TorrentAlreadyExistsException) {
+            notifier.makeTorrentInfoNotify(name, appContext.getString(R.string.torrent_exist));
+            return;
+        }
+        Log.e(TAG, Log.getStackTraceString(e));
+        String message;
+        if (e instanceof FileNotFoundException)
+            message = appContext.getString(R.string.error_file_not_found_add_torrent);
+        else if (e instanceof IOException)
+            message = appContext.getString(R.string.error_io_add_torrent);
+        else
+            message = appContext.getString(R.string.error_add_torrent);
+        notifier.makeTorrentErrorNotify(name, message);
+    }
+
+    private void cleanTemp() {
+        try {
+            fs.cleanTempDir();
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error during setup of temp directory: ", e);
+        }
+    }
+
+    private void setRandomPortRange(boolean useRandomPort) {
+        SessionSettings settings = session.getSettings();
+        settings.useRandomPort = useRandomPort;
+        if (!useRandomPort) {
+            int first = pref.portRangeFirst();
+            int second = pref.portRangeSecond();
+            if (first != -1 && second != -1) {
+                settings.portRangeFirst = first;
+                settings.portRangeSecond = second;
+            }
+        }
+        session.setSettings(settings, false);
+    }
+
+    private void setPortRange(int first, int second) {
+        if (first == -1 || second == -1)
+            return;
+
+        SessionSettings settings = session.getSettings();
+        settings.portRangeFirst = first;
+        settings.portRangeSecond = second;
+        session.setSettings(settings, false);
+    }
+
+    /*
+     * Disable notifications for torrent
+     */
+
+    private void markAsHiddenSync(Torrent torrent) {
+        torrent.visibility = Torrent.VISIBILITY_HIDDEN;
+        repo.updateTorrent(torrent);
+    }
+
+    private final TorrentEngineListener engineListener = new TorrentEngineListener() {
+        @Override
+        public void onSessionStarted() {
+            handleOnSessionStarted();
+        }
+
+        @Override
+        public void onTorrentAdded(@NonNull String id) {
+            if (pref.saveTorrentFiles())
+                saveTorrentFileIn(repo.getTorrentById(id),
+                        Uri.parse(pref.saveTorrentFilesIn()));
+
+            if (checkPauseTorrents()) {
+                disposables.add(Completable.fromRunnable(() -> {
+                            if (!isRunning())
+                                return;
+                            TorrentDownload task = session.getTask(id);
+                            if (task != null)
+                                task.pause();
+
+                        }).subscribeOn(Schedulers.io())
+                        .subscribe());
+            }
+        }
+
+        @Override
+        public void onTorrentLoaded(@NonNull String id) {
+            if (checkPauseTorrents()) {
+                disposables.add(Completable.fromRunnable(() -> {
+                            if (!isRunning())
+                                return;
+                            TorrentDownload task = session.getTask(id);
+                            if (task != null)
+                                task.pause();
+
+                        }).subscribeOn(Schedulers.io())
+                        .subscribe());
+            }
+        }
+
+        @Override
+        public void onTorrentFinished(@NonNull String id) {
+            disposables.add(repo.getTorrentByIdSingle(id)
+                    .subscribeOn(Schedulers.io())
+                    .filter(Objects::nonNull)
+                    .subscribe((torrent) -> {
+                                notifier.makeTorrentFinishedNotify(torrent);
+                                if (torrent.visibility != Torrent.VISIBILITY_HIDDEN)
+                                    markAsHiddenSync(torrent);
+
+                                if (pref.moveAfterDownload()) {
+                                    String curPath = torrent.downloadPath.toString();
+                                    String newPath = pref.moveAfterDownloadIn();
+
+                                    if (!curPath.equals(newPath))
+                                        setDownloadPath(id, Uri.parse(newPath));
+                                }
+                            },
+                            (Throwable t) -> Log.e(TAG, "Getting torrent " + id + " error: " +
+                                    Log.getStackTraceString(t)))
+            );
+        }
+
+        @Override
+        public void onTorrentMoving(@NonNull String id) {
+            disposables.add(repo.getTorrentByIdSingle(id)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe((torrent) -> {
+                                String name;
+                                if (torrent == null)
+                                    name = id;
+                                else
+                                    name = torrent.name;
+
+                                notifier.makeMovingTorrentNotify(name);
+                            },
+                            (Throwable t) -> Log.e(TAG, "Getting torrent " + id + " error: " +
+                                    Log.getStackTraceString(t)))
+            );
+        }
+
+        @Override
+        public void onTorrentMoved(@NonNull String id, boolean success) {
+            disposables.add(repo.getTorrentByIdSingle(id)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe((torrent) -> {
+                                String name;
+                                if (torrent == null)
+                                    name = id;
+                                else
+                                    name = torrent.name;
+
+                                if (success)
+                                    notifier.makeTorrentInfoNotify(name,
+                                            appContext.getString(R.string.torrent_move_success));
+                                else
+                                    notifier.makeTorrentErrorNotify(name,
+                                            appContext.getString(R.string.torrent_move_fail));
+                            },
+                            (Throwable t) -> Log.e(TAG, "Getting torrent " + id + " error: " +
+                                    Log.getStackTraceString(t)))
+            );
+        }
+
+        @Override
+        public void onIpFilterParsed(int ruleCount) {
+            disposables.add(Completable.fromRunnable(() -> Toast.makeText(appContext,
+                                    (ruleCount > 0 ?
+                                            appContext.getString(R.string.ip_filter_add_success) :
+                                            appContext.getString(R.string.ip_filter_add_error, ruleCount)),
+                                    Toast.LENGTH_LONG)
+                            .show())
+                    .subscribeOn(AndroidSchedulers.mainThread())
+                    .subscribe()
+            );
+        }
+
+        @Override
+        public void onSessionError(@NonNull String errorMsg) {
+            if (errorFilter.skip(errorMsg)) {
+                return;
+            }
+            notifier.makeSessionErrorNotify(errorMsg);
+        }
+
+        @Override
+        public void onNatError(@NonNull String errorMsg) {
+            Log.e(TAG, "NAT error: " + errorMsg);
+            if (pref.showNatErrors())
+                notifier.makeNatErrorNotify(errorMsg);
+        }
+
+        @Override
+        public void onRestoreSessionError(@NonNull String id) {
+            disposables.add(repo.getTorrentByIdSingle(id)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe((torrent) -> {
+                                String name;
+                                if (torrent == null)
+                                    name = id;
+                                else
+                                    name = torrent.name;
+
+                                notifier.makeTorrentErrorNotify(name,
+                                        appContext.getString(R.string.restore_torrent_error));
+                            },
+                            (Throwable t) -> Log.e(TAG, "Getting torrent " + id + " error: " +
+                                    Log.getStackTraceString(t)))
+            );
+        }
+
+        @Override
+        public void onTorrentMetadataLoaded(@NonNull String id, Exception err) {
+            if (err != null) {
+                Log.e(TAG, "Load metadata error: ");
+                Log.e(TAG, Log.getStackTraceString(err));
+            }
+
+            disposables.add(repo.getTorrentByIdSingle(id)
+                    .subscribeOn(Schedulers.io())
+                    .filter(Objects::nonNull)
+                    .subscribe((torrent) -> {
+                                if (err == null) {
+                                    if (pref.saveTorrentFiles())
+                                        saveTorrentFileIn(torrent, Uri.parse(pref.saveTorrentFilesIn()));
+
+                                } else if (err instanceof FreeSpaceException) {
+                                    notifier.makeTorrentErrorNotify(torrent.name, appContext.getString(R.string.error_free_space));
+                                }
+                            },
+                            (Throwable t) -> Log.e(TAG, "Getting torrent " + id + " error: " +
+                                    Log.getStackTraceString(t)))
+            );
+
+            if (checkPauseTorrents()) {
+                disposables.add(Completable.fromRunnable(() -> {
+                            if (!isRunning())
+                                return;
+                            TorrentDownload task = session.getTask(id);
+                            if (task != null)
+                                task.pause();
+
+                        }).subscribeOn(Schedulers.io())
+                        .subscribe());
+            }
+        }
+    };
+
+    private void handleSettingsChanged(String key) {
+        boolean reschedule = false;
+
+        if (key.equals(appContext.getString(R.string.pref_key_unmetered_connections_only)) ||
+                key.equals(appContext.getString(R.string.pref_key_enable_roaming))) {
+            reschedule = true;
+            switchConnectionReceiver();
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_download_and_upload_only_when_charging)) ||
+                key.equals(appContext.getString(R.string.pref_key_battery_control))) {
+            reschedule = true;
+            switchPowerReceiver();
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_custom_battery_control)) ||
+                key.equals(appContext.getString(R.string.pref_key_custom_battery_control_value))) {
+            switchPowerReceiver();
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_max_download_speed))) {
+            SessionSettings s = session.getSettings();
+            s.downloadRateLimit = pref.maxDownloadSpeedLimit();
+            session.setSettings(s);
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_max_upload_speed))) {
+            SessionSettings s = session.getSettings();
+            s.uploadRateLimit = pref.maxUploadSpeedLimit();
+            session.setSettings(s);
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_max_connections))) {
+            SessionSettings s = session.getSettings();
+            s.connectionsLimit = pref.maxConnections();
+            s.maxPeerListSize = s.connectionsLimit;
+            session.setSettings(s);
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_max_connections_per_torrent))) {
+            session.setMaxConnectionsPerTorrent(pref.maxConnectionsPerTorrent());
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_max_uploads_per_torrent))) {
+            session.setMaxUploadsPerTorrent(pref.maxUploadsPerTorrent());
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_max_active_downloads))) {
+            SessionSettings s = session.getSettings();
+            s.activeDownloads = pref.maxActiveDownloads();
+            session.setSettings(s);
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_max_active_uploads))) {
+            SessionSettings s = session.getSettings();
+            s.activeSeeds = pref.maxActiveUploads();
+            session.setSettings(s);
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_max_active_torrents))) {
+            SessionSettings s = session.getSettings();
+            s.activeLimit = pref.maxActiveTorrents();
+            session.setSettings(s);
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_enable_dht))) {
+            SessionSettings s = session.getSettings();
+            s.dhtEnabled = pref.enableDht();
+            session.setSettings(s);
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_enable_lsd))) {
+            SessionSettings s = session.getSettings();
+            s.lsdEnabled = pref.enableLsd();
+            session.setSettings(s);
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_enable_utp))) {
+            SessionSettings s = session.getSettings();
+            s.utpEnabled = pref.enableUtp();
+            session.setSettings(s);
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_enable_upnp))) {
+            SessionSettings s = session.getSettings();
+            s.upnpEnabled = pref.enableUpnp();
+            session.setSettings(s);
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_enable_natpmp))) {
+            SessionSettings s = session.getSettings();
+            s.natPmpEnabled = pref.enableNatPmp();
+            session.setSettings(s);
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_enc_in_connections_mode))) {
+            SessionSettings s = session.getSettings();
+            s.encryptModeIncoming = getEncryptInConnectionsMode();
+            session.setSettings(s);
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_enc_out_connections_mode))) {
+            SessionSettings s = session.getSettings();
+            s.encryptModeOutcoming = getEncryptOutConnectionsMode();
+            session.setSettings(s);
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_use_random_port))) {
+            setRandomPortRange(pref.useRandomPort());
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_port_range_first)) ||
+                key.equals(appContext.getString(R.string.pref_key_port_range_second))) {
+            int portFirst = pref.portRangeFirst();
+            int portSecond = pref.portRangeSecond();
+            setPortRange(portFirst, portSecond);
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_enable_ip_filtering))) {
+            if (pref.enableIpFiltering()) {
+                String path = pref.ipFilteringFile();
+                if (path != null)
+                    session.enableIpFilter(Uri.parse(path));
+            } else {
+                session.disableIpFilter();
+            }
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_ip_filtering_file))) {
+            String path = pref.ipFilteringFile();
+            if (path != null)
+                session.enableIpFilter(Uri.parse(path));
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_apply_proxy))) {
+            if (pref.applyProxy()) {
+                pref.applyProxy(false);
+                setProxy();
+                Toast.makeText(appContext,
+                                R.string.proxy_settings_applied,
+                                Toast.LENGTH_SHORT)
+                        .show();
+            }
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_auto_manage))) {
+            session.setAutoManaged(pref.autoManage());
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_watch_dir))) {
+            if (pref.watchDir())
+                startWatchDir();
+            else
+                stopWatchDir();
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_dir_to_watch))) {
+            if (pref.watchDir()) {
+                stopWatchDir();
+                startWatchDir();
+            }
+        } else if (key.equals(appContext.getString(R.string.pref_key_streaming_enable))) {
+            if (pref.enableStreaming())
+                startStreamingServer();
+            else
+                stopStreamingServer();
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_streaming_port)) ||
+                key.equals(appContext.getString(R.string.pref_key_streaming_hostname))) {
+            startStreamingServer();
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_anonymous_mode))) {
+            SessionSettings s = session.getSettings();
+            s.anonymousMode = pref.anonymousMode();
+            session.setSettings(s);
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_seeding_outgoing_connections))) {
+            SessionSettings s = session.getSettings();
+            s.seedingOutgoingConnections = pref.seedingOutgoingConnections();
+            session.setSettings(s);
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_enable_logging))) {
+            SessionSettings s = session.getSettings();
+            s.logging = pref.logging();
+            session.setSettings(s);
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_log_session_filter))) {
+            SessionSettings s = session.getSettings();
+            s.logSessionFilter = pref.logSessionFilter();
+            session.setSettings(s);
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_log_dht_filter))) {
+            SessionSettings s = session.getSettings();
+            s.logDhtFilter = pref.logDhtFilter();
+            session.setSettings(s);
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_log_peer_filter))) {
+            SessionSettings s = session.getSettings();
+            s.logPeerFilter = pref.logPeerFilter();
+            session.setSettings(s);
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_log_portmap_filter))) {
+            SessionSettings s = session.getSettings();
+            s.logPortmapFilter = pref.logPortmapFilter();
+            session.setSettings(s);
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_log_torrent_filter))) {
+            SessionSettings s = session.getSettings();
+            s.logTorrentFilter = pref.logTorrentFilter();
+            session.setSettings(s);
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_max_log_size))) {
+            SessionSettings s = session.getSettings();
+            s.maxLogSize = pref.maxLogSize();
+            session.setSettings(s);
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_default_trackers_list))) {
+            session.setDefaultTrackersList(pref.defaultTrackersList().split("\n"));
+
+        } else if (key.equals(appContext.getString(R.string.pref_key_validate_https_trackers))) {
+            SessionSettings s = session.getSettings();
+            s.validateHttpsTrackers = pref.validateHttpsTrackers();
+            session.setSettings(s);
+        }
+
+        if (reschedule)
+            rescheduleTorrents();
+    }
+}
+$ sed -n '1,412p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/feeds/FeedActivity.java
+/*
+ * Copyright (C) 2018-2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.feeds;
+
+import android.app.Activity;
+import android.app.Dialog;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Bundle;
+import android.text.Editable;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.Toast;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.ViewModelProvider;
+
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.gson.JsonSyntaxException;
+
+import org.proninyaroslav.libretorrent.R;
+import org.proninyaroslav.libretorrent.core.storage.FeedRepositoryImpl;
+import org.proninyaroslav.libretorrent.core.system.FileSystemFacade;
+import org.proninyaroslav.libretorrent.core.system.SystemFacadeHelper;
+import org.proninyaroslav.libretorrent.core.utils.Utils;
+import org.proninyaroslav.libretorrent.ui.BaseAlertDialog;
+import org.proninyaroslav.libretorrent.ui.FragmentCallback;
+import org.proninyaroslav.libretorrent.ui.detailtorrent.BlankFragment;
+import org.proninyaroslav.libretorrent.ui.errorreport.ErrorReportDialog;
+import org.proninyaroslav.libretorrent.ui.feeditems.FeedItemsActivity;
+import org.proninyaroslav.libretorrent.ui.feeditems.FeedItemsFragment;
+import org.proninyaroslav.libretorrent.ui.filemanager.FileManagerConfig;
+import org.proninyaroslav.libretorrent.ui.filemanager.FileManagerDialog;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
+
+import io.reactivex.Completable;
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
+
+public class FeedActivity extends AppCompatActivity implements FragmentCallback
+{
+    private static final String TAG = FeedActivity.class.getSimpleName();
+
+    private static final String TAG_BACKUP_FEEDS_ERROR_REPORT_DIALOG = "backup_feeds_error_report_dialog";
+    private static final String TAG_RESTORE_FEEDS_ERROR_DIALOG = "restore_feeds_error_dialog";
+    private static final String TAG_RESTORE_FEEDS_ERROR_REPORT_DIALOG = "restore_feeds_error_report_dialog";
+
+    /* Android data binding doesn't work with layout aliases */
+    private Toolbar toolbar;
+
+    private FeedViewModel viewModel;
+    private MsgFeedViewModel msgViewModel;
+    private CompositeDisposable disposables = new CompositeDisposable();
+    private BaseAlertDialog.SharedViewModel dialogViewModel;
+    private ErrorReportDialog backupFeedsReportDialog, restoreFeedsReportDialog;
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState)
+    {
+        setTheme(Utils.getAppTheme(getApplicationContext()));
+        super.onCreate(savedInstanceState);
+
+        ViewModelProvider provider = new ViewModelProvider(this);
+        viewModel = provider.get(FeedViewModel.class);
+        msgViewModel = provider.get(MsgFeedViewModel.class);
+        dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+
+        setContentView(R.layout.activity_feed);
+        initLayout();
+
+        FragmentManager fm = getSupportFragmentManager();
+        backupFeedsReportDialog = (ErrorReportDialog)fm.findFragmentByTag(TAG_BACKUP_FEEDS_ERROR_REPORT_DIALOG);
+        restoreFeedsReportDialog = (ErrorReportDialog)fm.findFragmentByTag(TAG_RESTORE_FEEDS_ERROR_REPORT_DIALOG);
+    }
+
+    private void initLayout()
+    {
+        showBlankFragment();
+        toolbar = findViewById(R.id.toolbar);
+        toolbar.setTitle(R.string.feed);
+        toolbar.inflateMenu(R.menu.feed);
+        setSupportActionBar(toolbar);
+        toolbar.setNavigationOnClickListener((v) -> finish());
+        if (getSupportActionBar() != null)
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    }
+
+    @Override
+    public void onStart()
+    {
+        super.onStart();
+
+        subscribeAlertDialog();
+        subscribeMsgViewModel();
+    }
+
+    @Override
+    protected void onStop()
+    {
+        super.onStop();
+
+        disposables.clear();
+    }
+
+    private void subscribeAlertDialog()
+    {
+        Disposable d = dialogViewModel.observeEvents()
+                .subscribe((event) -> {
+                    if (event.dialogTag == null)
+                        return;
+
+                    switch (event.type) {
+                        case POSITIVE_BUTTON_CLICKED:
+                            if (event.dialogTag.equals(TAG_BACKUP_FEEDS_ERROR_REPORT_DIALOG) &&
+                                    backupFeedsReportDialog != null) {
+                                sendErrorReport(backupFeedsReportDialog.getDialog());
+                                backupFeedsReportDialog.dismiss();
+
+                            } else if (event.dialogTag.equals(TAG_RESTORE_FEEDS_ERROR_REPORT_DIALOG) &&
+                                    restoreFeedsReportDialog!= null) {
+                                sendErrorReport(restoreFeedsReportDialog.getDialog());
+                                restoreFeedsReportDialog.dismiss();
+                            }
+                            break;
+                        case NEGATIVE_BUTTON_CLICKED:
+                            if (event.dialogTag.equals(TAG_BACKUP_FEEDS_ERROR_REPORT_DIALOG) &&
+                                    backupFeedsReportDialog!= null) {
+                                backupFeedsReportDialog.dismiss();
+
+                            } else if (event.dialogTag.equals(TAG_RESTORE_FEEDS_ERROR_REPORT_DIALOG) &&
+                                    restoreFeedsReportDialog!= null) {
+                                restoreFeedsReportDialog.dismiss();
+                            }
+                    }
+                });
+        disposables.add(d);
+    }
+
+    private void subscribeMsgViewModel()
+    {
+        disposables.add(msgViewModel.observeFeedItemsOpened()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(this::showFeedItems));
+
+        disposables.add(msgViewModel.observeFeedItemsClosed()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((__) -> showBlankFragment()));
+
+        disposables.add(msgViewModel.observeFeedsDeleted()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((ids) -> {
+                    FeedItemsFragment f = getCurrentFeedItemsFragment();
+                    if (f != null && ids.contains(f.getFeedId()))
+                        showBlankFragment();
+                }));
+    }
+
+    private void showBlankFragment()
+    {
+        if (Utils.isTwoPane(this)) {
+            FragmentManager fm = getSupportFragmentManager();
+            BlankFragment blank = BlankFragment.newInstance(getString(R.string.select_or_add_feed_channel));
+            fm.beginTransaction()
+                    .replace(R.id.feed_items_fragmentContainer, blank)
+                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)
+                    .commitAllowingStateLoss();
+        }
+    }
+
+    private void showFeedItems(long feedId)
+    {
+        if (Utils.isTwoPane(this)) {
+            FragmentManager fm = getSupportFragmentManager();
+            FeedItemsFragment items = FeedItemsFragment.newInstance(feedId);
+            Fragment fragment = fm.findFragmentById(R.id.feed_items_fragmentContainer);
+
+            if (fragment instanceof FeedItemsFragment) {
+                long oldId = ((FeedItemsFragment)fragment).getFeedId();
+                if (feedId == oldId)
+                    return;
+            }
+            fm.beginTransaction()
+                    .replace(R.id.feed_items_fragmentContainer, items)
+                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                    .commit();
+
+        } else {
+            Intent i = new Intent(this, FeedItemsActivity.class);
+            i.putExtra(FeedItemsActivity.TAG_FEED_ID, feedId);
+            startActivity(i);
+        }
+    }
+
+    private FeedItemsFragment getCurrentFeedItemsFragment()
+    {
+        if (!Utils.isTwoPane(this))
+            return null;
+
+        FragmentManager fm = getSupportFragmentManager();
+        Fragment fragment = fm.findFragmentById(R.id.feed_items_fragmentContainer);
+
+        return (fragment instanceof FeedItemsFragment ? (FeedItemsFragment)fragment : null);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu)
+    {
+        toolbar.inflateMenu(R.menu.feed);
+        toolbar.setOnMenuItemClickListener(this::onOptionsItemSelected);
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
+        int itemId = item.getItemId();
+        if (itemId == R.id.refresh_feed_channel_menu) {
+            viewModel.refreshAllFeeds();
+        } else if (itemId == R.id.backup_feed_channels_menu) {
+            backupFeedsChooseDialog();
+        } else if (itemId == R.id.restore_feed_channels_backup_menu) {
+            restoreFeedsChooseDialog();
+        }
+
+        return true;
+    }
+
+    private void backupFeedsChooseDialog()
+    {
+        Intent i = new Intent(this, FileManagerDialog.class);
+        FileSystemFacade fs = SystemFacadeHelper.getFileSystemFacade(getApplicationContext());
+        FileManagerConfig config = new FileManagerConfig(fs.getUserDirPath(),
+                null,
+                FileManagerConfig.SAVE_FILE_MODE);
+        config.fileName = "Feeds-" + new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.getDefault())
+                .format(new Date(System.currentTimeMillis())) +
+                "." + FeedRepositoryImpl.SERIALIZE_FILE_FORMAT;
+        config.mimeType = FeedRepositoryImpl.SERIALIZE_MIME_TYPE;
+
+        i.putExtra(FileManagerDialog.TAG_CONFIG, config);
+        backupFeedsChoose.launch(i);
+    }
+
+    private void restoreFeedsChooseDialog()
+    {
+        Intent i = new Intent(this, FileManagerDialog.class);
+        FileSystemFacade fs = SystemFacadeHelper.getFileSystemFacade(getApplicationContext());
+        FileManagerConfig config = new FileManagerConfig(fs.getUserDirPath(),
+                getString(R.string.feeds_backup_selection_dialog_title),
+                FileManagerConfig.FILE_CHOOSER_MODE);
+        config.highlightFileTypes = new ArrayList<>();
+        config.highlightFileTypes.add(FeedRepositoryImpl.SERIALIZE_FILE_FORMAT);
+
+        i.putExtra(FileManagerDialog.TAG_CONFIG, config);
+        restoreFeedsBackupChoose.launch(i);
+    }
+
+    private void backupFeedsErrorDialog(Throwable e)
+    {
+        viewModel.errorReport = e;
+        FragmentManager fm = getSupportFragmentManager();
+        if (fm.findFragmentByTag(TAG_BACKUP_FEEDS_ERROR_REPORT_DIALOG) == null) {
+            backupFeedsReportDialog = ErrorReportDialog.newInstance(
+                    getString(R.string.error),
+                    getString(R.string.error_backup_feeds),
+                    (e != null ? Log.getStackTraceString(e) : null));
+
+            backupFeedsReportDialog.show(fm, TAG_BACKUP_FEEDS_ERROR_REPORT_DIALOG);
+        }
+    }
+
+    private void restoreFeedsBackupErrorDialog(Throwable e)
+    {
+        FragmentManager fm = getSupportFragmentManager();
+        if (e instanceof JsonSyntaxException) {
+            if (fm.findFragmentByTag(TAG_RESTORE_FEEDS_ERROR_DIALOG) == null) {
+                BaseAlertDialog errDialog = BaseAlertDialog.newInstance(
+                        getString(R.string.error),
+                        getString(R.string.error_import_invalid_format),
+                        0,
+                        getString(R.string.ok),
+                        null,
+                        null,
+                        true);
+                errDialog.show(fm, TAG_RESTORE_FEEDS_ERROR_DIALOG);
+            }
+        } else {
+            viewModel.errorReport = e;
+            if (fm.findFragmentByTag(TAG_RESTORE_FEEDS_ERROR_REPORT_DIALOG) == null) {
+                restoreFeedsReportDialog = ErrorReportDialog.newInstance(
+                        getString(R.string.error),
+                        getString(R.string.error_restore_feeds_backup),
+                        (e != null ? Log.getStackTraceString(e) : null));
+
+                restoreFeedsReportDialog.show(fm, TAG_RESTORE_FEEDS_ERROR_REPORT_DIALOG);
+            }
+        }
+    }
+
+    private void sendErrorReport(Dialog errDialog)
+    {
+        if (errDialog == null)
+            return;
+
+        TextInputEditText editText = errDialog.findViewById(R.id.comment);
+        Editable e = editText.getText();
+        String comment = (e == null ? null : e.toString());
+
+        Utils.reportError(viewModel.errorReport, comment);
+    }
+
+    private void backupFeeds(Uri file)
+    {
+        disposables.add(Completable.fromCallable(() -> {
+            viewModel.saveFeedsSync(file);
+            return true;
+        }).subscribeOn(Schedulers.io())
+          .observeOn(AndroidSchedulers.mainThread())
+          .subscribe(() -> Toast.makeText(this,
+                  R.string.backup_feeds_successfully,
+                  Toast.LENGTH_SHORT)
+                  .show(), this::restoreFeedsBackupErrorDialog));
+    }
+
+    private void restoreFeedsBackup(Uri file)
+    {
+        disposables.add(Observable.fromCallable(() -> viewModel.restoreFeedsSync(file))
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((feedIdList) -> {
+                        Toast.makeText(this,
+                                R.string.restore_feeds_backup_successfully,
+                                Toast.LENGTH_SHORT)
+                                .show();
+                        viewModel.refreshFeeds(feedIdList);
+                    }, this::backupFeedsErrorDialog));
+    }
+
+    final ActivityResultLauncher<Intent> backupFeedsChoose = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                Intent data = result.getData();
+                if (result.getResultCode() != Activity.RESULT_OK)
+                    return;
+
+                if (data == null || data.getData() == null) {
+                    backupFeedsErrorDialog(null);
+                    return;
+                }
+
+                backupFeeds(data.getData());
+            }
+    );
+
+    final ActivityResultLauncher<Intent> restoreFeedsBackupChoose = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                Intent data = result.getData();
+                if (result.getResultCode() != Activity.RESULT_OK)
+                    return;
+
+                if (data == null || data.getData() == null) {
+                    restoreFeedsBackupErrorDialog(null);
+                    return;
+                }
+
+                restoreFeedsBackup(data.getData());
+            }
+    );
+
+    @Override
+    public void onFragmentFinished(@NonNull Fragment f, Intent intent,
+                                   @NonNull ResultCode code)
+    {
+        if (f instanceof FeedItemsFragment && Utils.isTwoPane(this))
+            msgViewModel.feedItemsClosed();
+    }
+}

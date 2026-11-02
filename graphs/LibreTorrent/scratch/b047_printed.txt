@@ -1,0 +1,218 @@
+Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+
+===== core/model/TorrentEngine.java =====
+1053:         if (pref.watchDir())
+1136:     private TorrentFileObserver makeTorrentFileObserver(String pathToDir) {
+1137:         return new TorrentFileObserver(pathToDir) {
+1138:             @Override
+1152:                             if (pref.watchDirDeleteFile()) {
+
+===== core/settings/SettingsRepositoryImpl.java =====
+316:     public boolean vibrationNotify() {
+317:         return pref.getBoolean(appContext.getString(R.string.pref_key_vibration_notify),
+318:                 Default.vibrationNotify);
+322:     public void vibrationNotify(boolean val) {
+323:         pref.edit()
+324:                 .putBoolean(appContext.getString(R.string.pref_key_vibration_notify), val)
+325:                 .apply();
+326:     }
+327: 
+328:     @Override
+329:     public int theme() {
+330:         return pref.getInt(appContext.getString(R.string.pref_key_theme),
+331:                 Default.theme(appContext));
+342:     public int ledIndicatorColorNotify() {
+343:         return pref.getInt(appContext.getString(R.string.pref_key_led_indicator_color_notify),
+344:                 Default.ledIndicatorColorNotify(appContext));
+355:     public String foregroundNotifyStatusFilter() {
+356:         return pref.getString(
+357:                 appContext.getString(R.string.pref_key_foreground_notify_status_filter),
+358:                 Default.foregroundNotifyStatusFilter(appContext)
+373:     public String foregroundNotifySorting() {
+374:         return pref.getString(
+375:                 appContext.getString(R.string.pref_key_foreground_notify_sorting),
+376:                 Default.foregroundNotifySorting(appContext)
+643:     public int encryptInConnectionsMode() {
+644:         return pref.getInt(appContext.getString(R.string.pref_key_enc_in_connections_mode),
+645:                 Default.encryptInConnectionsMode(appContext));
+656:     public int encryptOutConnectionsMode() {
+657:         return pref.getInt(appContext.getString(R.string.pref_key_enc_out_connections_mode),
+658:                 Default.encryptOutConnectionsMode(appContext));
+708:     public String saveTorrentsIn() {
+709:         return fs.normalizeFileSystemPath(pref.getString(appContext.getString(R.string.pref_key_save_torrents_in),
+710:                 Default.saveTorrentsIn(appContext)));
+734:     public String moveAfterDownloadIn() {
+735:         return fs.normalizeFileSystemPath(pref.getString(appContext.getString(R.string.pref_key_move_after_download_in),
+736:                 Default.moveAfterDownloadIn(appContext)));
+760:     public String saveTorrentFilesIn() {
+761:         return fs.normalizeFileSystemPath(pref.getString(appContext.getString(R.string.pref_key_save_torrent_files_in),
+762:                 Default.saveTorrentFilesIn(appContext)));
+773:     public boolean watchDir() {
+779:     public void watchDir(boolean val) {
+786:     public String dirToWatch() {
+787:         return fs.normalizeFileSystemPath(pref.getString(appContext.getString(R.string.pref_key_dir_to_watch),
+788:                 Default.dirToWatch(appContext)));
+799:     public boolean watchDirDeleteFile() {
+805:     public void watchDirDeleteFile(boolean val) {
+
+===== core/sorting/BaseSorting.java =====
+52:     public BaseSorting(String columnName, Direction direction)
+53:     {
+54:         this.direction = direction;
+55:         this.columnName = columnName;
+56:     }
+57: 
+58:     public Direction getDirection()
+59:     {
+60:         return direction;
+61:     }
+62: 
+63:     public String getColumnName()
+64:     {
+65:         return columnName;
+66:     }
+70:     public String toString()
+71:     {
+72:         return "BaseSorting{" +
+73:                 "direction=" + direction +
+74:                 ", columnName='" + columnName + '\'' +
+75:                 '}';
+76:     }
+
+===== core/sorting/TorrentSorting.java =====
+28:         none {
+29:             @Override
+30:             public int compare(TorrentInfo item1, TorrentInfo item2,
+31:                                Direction direction)
+32:             {
+33:                 return 0;
+34:             }
+35:         },
+36:         name {
+37:             @Override
+38:             public int compare(TorrentInfo item1, TorrentInfo item2,
+39:                                Direction direction)
+40:             {
+41:                 if (direction == Direction.ASC)
+42:                     return item1.name.compareTo(item2.name);
+43:                 else
+44:                     return item2.name.compareTo(item1.name);
+45:             }
+46:         },
+47:         size {
+48:             @Override
+49:             public int compare(TorrentInfo item1, TorrentInfo item2,
+50:                                Direction direction)
+51:             {
+52:                 if (direction == Direction.ASC)
+53:                     return Long.compare(item1.totalBytes, item2.totalBytes);
+54:                 else
+55:                     return Long.compare(item2.totalBytes, item1.totalBytes);
+56:             }
+57:         },
+58:         progress {
+59:             @Override
+60:             public int compare(TorrentInfo item1, TorrentInfo item2,
+61:                                Direction direction)
+62:             {
+63:                 if (direction == Direction.ASC)
+64:                     return Integer.compare(item1.progress, item2.progress);
+65:                 else
+66:                     return Integer.compare(item2.progress, item1.progress);
+67:             }
+68:         },
+69:         ETA {
+70:             @Override
+71:             public int compare(TorrentInfo item1, TorrentInfo item2,
+72:                                Direction direction)
+73:             {
+74:                 if (direction == Direction.ASC)
+75:                     return Long.compare(item1.ETA, item2.ETA);
+76:                 else
+77:                     return Long.compare(item2.ETA, item1.ETA);
+78:             }
+79:         },
+80:         peers {
+81:             @Override
+82:             public int compare(TorrentInfo item1, TorrentInfo item2,
+83:                                Direction direction)
+84:             {
+85:                 if (direction == Direction.ASC)
+86:                     return Integer.compare(item1.peers, item2.peers);
+87:                 else
+88:                     return Integer.compare(item2.peers, item1.peers);
+89:             }
+90:         },
+91:         dateAdded {
+92:             @Override
+93:             public int compare(TorrentInfo item1, TorrentInfo item2,
+94:                                Direction direction)
+95:             {
+96:                 if (direction == Direction.ASC)
+97:                     return Long.compare(item1.dateAdded, item2.dateAdded);
+98:                 else
+99:                     return Long.compare(item2.dateAdded, item1.dateAdded);
+100:             }
+101:         };
+113:     public TorrentSorting(SortingColumns columnName, Direction direction)
+114:     {
+115:         super(columnName.name(), direction);
+116:     }
+
+===== core/sorting/TorrentSortingComparator.java =====
+43:         return TorrentSorting.SortingColumns.fromValue(sorting.getColumnName())
+44:                 .compare(state1, state2, sorting.getDirection());
+
+===== core/utils/Utils.java =====
+892:     public static TorrentSortingComparator getForegroundNotifySorting(
+893:             @NonNull Context context,
+894:             @NonNull SettingsRepository pref
+895:     ) {
+896:         String val = pref.foregroundNotifySorting();
+897:         if (val.equals(context.getString(R.string.pref_foreground_notify_sorting_name_asc_value))) {
+898:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.name, TorrentSorting.Direction.ASC));
+899:         } else if (val.equals(context.getString(R.string.pref_foreground_notify_sorting_name_desc_value))) {
+900:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.name, TorrentSorting.Direction.DESC));
+901:         } else if (val.equals(context.getString(R.string.pref_foreground_notify_sorting_date_added_asc_value))) {
+902:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.dateAdded, TorrentSorting.Direction.ASC));
+903:         } else if (val.equals(context.getString(R.string.pref_foreground_notify_sorting_date_added_desc_value))) {
+904:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.dateAdded, TorrentSorting.Direction.DESC));
+905:         } else if (val.equals(context.getString(R.string.pref_foreground_notify_sorting_size_asc_value))) {
+906:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.size, TorrentSorting.Direction.ASC));
+907:         } else if (val.equals(context.getString(R.string.pref_foreground_notify_sorting_size_desc_value))) {
+908:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.size, TorrentSorting.Direction.DESC));
+909:         } else if (val.equals(context.getString(R.string.pref_foreground_notify_sorting_progress_asc_value))) {
+910:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.progress, TorrentSorting.Direction.ASC));
+911:         } else if (val.equals(context.getString(R.string.pref_foreground_notify_sorting_progress_desc_value))) {
+912:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.progress, TorrentSorting.Direction.DESC));
+913:         } else if (val.equals(context.getString(R.string.pref_foreground_notify_sorting_eta_asc_value))) {
+914:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.ETA, TorrentSorting.Direction.ASC));
+915:         } else if (val.equals(context.getString(R.string.pref_foreground_notify_sorting_eta_desc_value))) {
+916:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.ETA, TorrentSorting.Direction.DESC));
+917:         } else if (val.equals(context.getString(R.string.pref_foreground_notify_sorting_peers_asc_value))) {
+918:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.peers, TorrentSorting.Direction.ASC));
+919:         } else if (val.equals(context.getString(R.string.pref_foreground_notify_sorting_peers_desc_value))) {
+920:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.peers, TorrentSorting.Direction.DESC));
+921:         } else if (val.equals(context.getString(R.string.pref_foreground_notify_sorting_no_sorting_value))) {
+922:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.none, TorrentSorting.Direction.ASC));
+
+===== ui/TorrentNotifier.java =====
+276:         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+286:         if (pref.vibrationNotify())
+290:             int color = pref.ledIndicatorColorNotify();
+
+===== ui/main/MainViewModel.java =====
+51:     private TorrentSortingComparator sorting = new TorrentSortingComparator(
+52:             new TorrentSorting(TorrentSorting.SortingColumns.none, TorrentSorting.Direction.ASC));
+
+===== ui/settings/sections/AppearanceSettingsFragment.java =====
+118:         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
+119:             initLegacyNotifySettings(pref);
+180:             ledIndicatorColor.saveValue(pref.ledIndicatorColorNotify());
+187:             vibration.setChecked(pref.vibrationNotify());
+188:             bindOnPreferenceChangeListener(vibration);
+247:             pref.vibrationNotify((boolean)newValue);
+
+===== ui/settings/sections/StorageSettingsFragment.java =====
+281:             pref.watchDir((boolean) newValue);
+287:             pref.watchDirDeleteFile((boolean) newValue);
