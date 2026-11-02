@@ -240,6 +240,9 @@ FIX_LINES = {
     ('WinAuthImporter$State.convert', 'UUIDMap.iterator', 'SRC WinAuthImporter.java:39 (bytecode)'): 'SRC WinAuthImporter.java:39 (for-each loop: the iterator() call is implicit)',
     ('Vault.toJson(EntryFilter)', 'UUIDMap.iterator', 'SRC Vault.java:38 (bytecode)'): 'SRC Vault.java:38 (for-each loop: the iterator() call is implicit)',
     ('SlotList.toJson', 'UUIDMap.iterator', 'SRC SlotList.java:16 (bytecode)'): 'SRC SlotList.java:16 (for-each loop: the iterator() call is implicit)',
+    # Row 23 variant: auto replication onto SlotList.toJson@RAW strips the for-each qualifier to bare (bytecode),
+    # which check 4 then flags (line 16 is a for-each, the iterator() call is implicit). Same correction as the base edge.
+    ('SlotList.toJson@RAW', 'UUIDMap.iterator', 'SRC SlotList.java:16 (bytecode)'): 'SRC SlotList.java:16 (for-each loop: the iterator() call is implicit)',
     ('SlotList.find', 'UUIDMap.iterator', 'SRC SlotList.java:40 (bytecode)'): 'SRC SlotList.java:40 (for-each loop: the iterator() call is implicit)',
     ('SlotList.findAll', 'UUIDMap.iterator', 'SRC SlotList.java:50 (bytecode)'): 'SRC SlotList.java:50 (for-each loop: the iterator() call is implicit)',
     ('SlotList.exportable', 'UUIDMap.iterator', 'SRC SlotList.java:90 (bytecode)'): 'SRC SlotList.java:90 (for-each loop: the iterator() call is implicit)',
@@ -463,12 +466,38 @@ e('SecurityPreferencesFragment.lambda$onCreatePreferences$4', 'Dialogs.showSecur
 e('VaultManager.disableEncryption', 'VaultManager.save', 'CALL', 'the vault is saved as plain text: the credentials were cleared first',
   guard='credentials cleared (VaultManager.java:120), so isEncryptionEnabled() is false and the header has no crypt parameters (VaultRepository.java:119-122, 348-354; VaultFile.java:102-105)',
   evidence='SRC vault/VaultManager.java:120-121; SRC vault/VaultRepository.java:119-122,348-354; SRC vault/VaultFile.java:102-105')
-e('VaultFile$Header.toJson', 'SlotList.toJson', 'CALL', 'the header writes the slots of an encrypted vault',
-  guard='_slots is not null: the header has slots only for an encrypted vault (VaultFile.java:161; setContent sets Header(null, null) at VaultFile.java:104)',
-  evidence='SRC vault/VaultFile.java:161,102-105')
 e('VaultFile$Header.toJson', 'CryptParameters.toJson', 'CALL', 'the header writes its crypt parameters, which exist only for an encrypted vault',
   guard='the header has crypt parameters: _params is not null (VaultFile.java:162)', needs_state=ST_VAULT_ENCRYPTED,
   evidence='SRC vault/VaultFile.java:162; SRC vault/VaultRepository.java:119-121')
+# --- Row 23 fix (audit PASS, fix-row23): @RAW variant chain, design sections 4.1-4.4.
+# 4.1: the base junction edge VaultFile$Header.toJson -> SlotList.toJson (Efb793e9d) is DELETED here
+# (it was the line above this block in the pre-fix file); it was the only base incoming edge to
+# SlotList.toJson, so deleting it kills the disable prefix's tail. The sibling CryptParameters edge above is untouched.
+# Expected delta vs post-F2 baseline 6366: +24 (6390) with both sups below, +25 without the defensive
+# Slot.toJson sup (audit C1). Fix-log corrections C2-C5: the @RAW route carries STATE kinds file + data
+# (not 1); Password/Biometric CHA routes are 17 steps (not 16); CryptParameters comparison is 2-vs-2
+# kinds decided on steps 27 < 29; import-alternative lines are AegisImporter.java:66-67, decrypt at 81-85, 89-101.
+e('AuthActivity.finish', 'AegisActivity.saveAndBackupVault@RAW', 'CALL', 'the unlock repaired the password slot, so the vault is saved and backed up at once: the repaired-slot save after unlock', guard='the unlock repaired the password slot (PasswordSlotDecryptTask.Result.isSlotRepaired, AuthActivity.java:300-301,355; the repair branch is PasswordSlotDecryptTask.java:66-79) and the live credentials are the file header slots (AuthActivity.java:296,131), so the save is encrypted', evidence='SRC ui/AuthActivity.java:301 (bytecode)')
+e('AegisActivity.saveAndBackupVault@RAW', 'VaultManager.saveAndBackup@RAW', 'CALL', 'the repaired-slot save after unlock backs the vault up', guard='called from the unlock repaired-slot save (AuthActivity.java:301)', evidence='SRC ui/AegisActivity.java:141 (bytecode)')
+e('VaultManager.saveAndBackup@RAW', 'VaultManager.save@RAW', 'CALL', 'the repaired-slot save after unlock saves the vault', guard='called from the unlock repaired-slot save (AuthActivity.java:301)', evidence='SRC vault/VaultManager.java:140 (bytecode)')
+e('VaultManager.save@RAW', 'VaultRepository.save@RAW', 'CALL', 'the repaired-slot save after unlock saves the repository', guard='called from the unlock repaired-slot save (AuthActivity.java:301)', evidence='SRC vault/VaultManager.java:136 (bytecode)')
+e('VaultRepository.save@RAW', 'VaultFile.toBytes@RAW', 'CALL', 'the repaired-slot save after unlock serializes the vault file: credentials are non-null, so the encrypted branch ran', guard='isEncryptionEnabled() is true (VaultRepository.java:352-354,119-121): the credentials are the file header slots from AuthActivity.java:296, so setContent(obj, _creds) built Header(creds.getSlots(), params) (VaultFile.java:114)', evidence='SRC vault/VaultRepository.java:126 (bytecode)')
+e('VaultFile.toBytes@RAW', 'VaultFile.toJson@RAW', 'CALL', 'the repaired-slot save after unlock writes the vault JSON', guard='called from the unlock repaired-slot save (AuthActivity.java:301)', evidence='SRC vault/VaultFile.java:52 (bytecode)')
+e('VaultFile.toJson@RAW', 'VaultFile$Header.toJson@RAW', 'CALL', 'the repaired-slot save after unlock writes the vault header', guard='called from the unlock repaired-slot save (AuthActivity.java:301)', evidence='SRC vault/VaultFile.java:43 (bytecode)')
+e('VaultFile$Header.toJson@RAW', 'SlotList.toJson@RAW', 'CALL', 'the header writes the slots of the unlocked encrypted vault', guard='_slots is not null: the header was built by setContent(obj, _creds) with the file header slots (VaultFile.java:114), not by the plain setContent that sets Header(null, null) (VaultFile.java:104)', evidence='SRC vault/VaultFile.java:161,102-105,114')
+e('SlotList.toJson@RAW', 'Slot.toJson@RawSlot', 'CALL', 'the slot list of the unlocked encrypted vault is serialized: the iterated slot is the plain raw slot from the file header', guard='the iterated slot is a plain RawSlot deserialized from the file header slots array with type TYPE_RAW (Slot.java:131-133; AuthActivity.java:131 keeps that list as _slots)', evidence='SRC vault/slots/SlotList.java:17 (bytecode)')
+# 4.3: re-write the eight suppressed base edges by hand (same trigger/evidence as the auto edges, so ids are preserved).
+e('AuthActivity.finish', 'AegisActivity.saveAndBackupVault', 'CALL', 'Direct call', evidence='SRC AuthActivity.java:301 (bytecode)')
+e('AegisActivity.saveAndBackupVault', 'VaultManager.saveAndBackup', 'CALL', 'Direct call', evidence='SRC AegisActivity.java:141 (bytecode)')
+e('VaultManager.saveAndBackup', 'VaultManager.save', 'CALL', 'Direct call', evidence='SRC VaultManager.java:140 (bytecode)')
+e('VaultManager.save', 'VaultRepository.save', 'CALL', 'Direct call', evidence='SRC VaultManager.java:136 (bytecode)')
+e('VaultRepository.save', 'VaultFile.toBytes', 'CALL', 'Direct call', evidence='SRC VaultRepository.java:126 (bytecode)')
+e('VaultFile.toBytes', 'VaultFile.toJson', 'CALL', 'Direct call', evidence='SRC VaultFile.java:52 (bytecode)')
+e('VaultFile.toJson', 'VaultFile$Header.toJson', 'CALL', 'Direct call', evidence='SRC VaultFile.java:43 (bytecode)')
+e('SlotList.toJson', 'Slot.toJson', 'CALL', 'Direct call', evidence='SRC SlotList.java:17 (bytecode)')
+# 4.4: suppress two false auto CHA edges, base pairs only. Do NOT sup the BiometricSlot pairs (that would flip BiometricSlot.getType to UNREACHABLE).
+sup(('AuthActivity$PasswordDerivationListener.onTaskFinished', 'RawSlot.getType'))
+sup(('Slot.toJson', 'RawSlot.getType'))
 e('MainActivity.onStart', 'MainActivity.setGroups', 'CALL', 'the group chips are refreshed (list loaded earlier in this instance)',
   guard='the vault is loaded and this instance loaded the list before (the _loaded branch at 978-980)', needs_state=ST_LIST_LOADED,
   evidence='SRC ui/MainActivity.java:978-980')
