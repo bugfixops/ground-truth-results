@@ -1,0 +1,613 @@
+$ source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java (clone)
+$ sed -n 97,103p org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentActivity.java | nl -ba -v 97
+    97	    protected void onCreate(Bundle savedInstanceState)
+    98	    {
+    99	        setTheme(Utils.getAppTheme(getApplicationContext()));
+   100	        super.onCreate(savedInstanceState);
+   101	
+   102	        binding = DataBindingUtil.setContentView(this, R.layout.activity_add_torrent);
+   103	        ViewModelProvider provider = new ViewModelProvider(this);
+
+$ sed -n 9,80p com/ernieyu/feedparser/Enclosure.java | nl -ba -v 9
+     9	public class Enclosure {
+    10		private String url;
+    11		private String type;
+    12		private long length;
+    13	
+    14		public Enclosure(String url, String type, long length) {
+    15			this.url = url;
+    16			this.type = type;
+    17			this.length = length;
+    18		}
+    19	
+    20		/**
+    21		 * Returns the enclosure URL.
+    22		 * <p>
+    23		 *
+    24		 * @return the enclosure URL, <b>null</b> if none.
+    25		 *
+    26		 */
+    27	
+    28		public String getUrl(){
+    29			return url;
+    30		}
+    31	
+    32		/**
+    33		 * Returns the enclosure type.
+    34		 * <p>
+    35		 *
+    36		 * @return the enclosure type, <b>null</b> if none.
+    37		 *
+    38		 */
+    39	
+    40		public String getType() {
+    41			return type;
+    42		}
+    43	
+    44		/**
+    45		 * Returns the enclosure length.
+    46		 * <p>
+    47		 *
+    48		 * @return the enclosure length, <b>0</b> if none.
+    49		 *
+    50		 */
+    51	
+    52		public long getLength() {
+    53			return length;
+    54		}
+    55	
+    56		@Override
+    57		public boolean equals(Object o) {
+    58			if (this == o) return true;
+    59			if (o == null || getClass() != o.getClass()) return false;
+    60	
+    61			Enclosure enclosure = (Enclosure) o;
+    62	
+    63			if (length != enclosure.length) return false;
+    64			if (url != null ? !url.equals(enclosure.url) : enclosure.url != null)
+    65				return false;
+    66			return type != null ? type.equals(enclosure.type) : enclosure.type == null;
+    67		}
+    68	
+    69		@Override
+    70		public int hashCode() {
+    71			int result = url != null ? url.hashCode() : 0;
+    72			result = 31 * result + (type != null ? type.hashCode() : 0);
+    73			result = 31 * result + (int) (length ^ (length >>> 32));
+    74			return result;
+    75		}
+    76	
+    77		@NonNull
+    78	    @Override
+    79		public String toString() {
+    80			return "Enclosure{" +
+
+$ sed -n 19,135p com/ernieyu/feedparser/EzRssTorrentItem.java | nl -ba -v 19
+    19	public class EzRssTorrentItem {
+    20	    private String fileName;
+    21	    private String magnetUri;
+    22	    private String infoHash;
+    23	    private long contentLength;
+    24	    private int seeds;
+    25	    private int peers;
+    26	    private boolean verified;
+    27	
+    28	    public EzRssTorrentItem(String fileName, String magnetUri,
+    29	                            String infoHash, long contentLength,
+    30	                            int seeds, int peers, boolean verified)
+    31	    {
+    32	        this.fileName = fileName;
+    33	        this.magnetUri = magnetUri;
+    34	        this.infoHash = infoHash;
+    35	        this.contentLength = contentLength;
+    36	        this.seeds = seeds;
+    37	        this.peers = peers;
+    38	        this.verified = verified;
+    39	    }
+    40	
+    41	    /**
+    42	     * @return file name or <b>null</b> if none
+    43	     */
+    44	
+    45	    public String getFileName() {
+    46	        return fileName;
+    47	    }
+    48	
+    49	    /**
+    50	     * @return magnet link or <b>null</b> if none
+    51	     */
+    52	
+    53	    public String getMagnetUri() {
+    54	        return magnetUri;
+    55	    }
+    56	
+    57	    /**
+    58	     * @return sha-1 info hash or <b>null</b> if none
+    59	     */
+    60	
+    61	    public String getInfoHash() {
+    62	        return infoHash;
+    63	    }
+    64	
+    65	    /**
+    66	     * @return torrent content length in bytes or <b>0</b> if none.
+    67	     */
+    68	
+    69	    public long getContentLength() {
+    70	        return contentLength;
+    71	    }
+    72	
+    73	    /**
+    74	     * @return torrent seeds or <b>0</b> if none.
+    75	     */
+    76	
+    77	    public int getSeeds() {
+    78	        return seeds;
+    79	    }
+    80	
+    81	    /**
+    82	     * @return torrent peers or <b>0</b> if none.
+    83	     */
+    84	
+    85	    public int getPeers() {
+    86	        return peers;
+    87	    }
+    88	
+    89	    /**
+    90	     * @return true if the torrent is verified
+    91	     */
+    92	
+    93	    public boolean isVerified() {
+    94	        return verified;
+    95	    }
+    96	
+    97	    @Override
+    98	    public boolean equals(Object o) {
+    99	        if (this == o) return true;
+   100	        if (o == null || getClass() != o.getClass()) return false;
+   101	
+   102	        EzRssTorrentItem that = (EzRssTorrentItem) o;
+   103	
+   104	        if (contentLength != that.contentLength) return false;
+   105	        if (seeds != that.seeds) return false;
+   106	        if (peers != that.peers) return false;
+   107	        if (verified != that.verified) return false;
+   108	        if (fileName != null ? !fileName.equals(that.fileName) : that.fileName != null)
+   109	            return false;
+   110	        if (magnetUri != null ? !magnetUri.equals(that.magnetUri) : that.magnetUri != null)
+   111	            return false;
+   112	        return infoHash != null ? infoHash.equals(that.infoHash) : that.infoHash == null;
+   113	    }
+   114	
+   115	    @Override
+   116	    public int hashCode() {
+   117	        int result = fileName != null ? fileName.hashCode() : 0;
+   118	        result = 31 * result + (magnetUri != null ? magnetUri.hashCode() : 0);
+   119	        result = 31 * result + (infoHash != null ? infoHash.hashCode() : 0);
+   120	        result = 31 * result + (int) (contentLength ^ (contentLength >>> 32));
+   121	        result = 31 * result + seeds;
+   122	        result = 31 * result + peers;
+   123	        result = 31 * result + (verified ? 1 : 0);
+   124	        return result;
+   125	    }
+   126	
+   127	    @NonNull
+   128	    @Override
+   129	    public String toString() {
+   130	        return "TorrentMetadata{" +
+   131	            "fileName='" + fileName + '\'' +
+   132	            ", magnetUri='" + magnetUri + '\'' +
+   133	            ", infoHash='" + infoHash + '\'' +
+   134	            ", contentLength=" + contentLength +
+   135	            ", seeds=" + seeds +
+
+$ sed -n 1,25p com/ernieyu/feedparser/FeedException.java | nl -ba -v 1
+     1	package com.ernieyu.feedparser;
+     2	
+     3	/**
+     4	 * A general exception with the feed.
+     5	 */
+     6	public class FeedException extends Exception {
+     7	
+     8		public FeedException() {
+     9		}
+    10	
+    11		public FeedException(String message) {
+    12			super(message);
+    13		}
+    14	
+    15		public FeedException(Throwable cause) {
+    16			super(cause);
+    17		}
+    18	
+    19		public FeedException(String message, Throwable cause) {
+    20			super(message, cause);
+    21		}
+    22	
+    23	}
+
+$ sed -n 16,27p com/ernieyu/feedparser/FeedParserFactory.java | nl -ba -v 16
+    16	public class FeedParserFactory {
+    17	
+    18		/**
+    19		 * Creates a new instance of FeedParser.
+    20		 * 
+    21		 * @return new instance of FeedParser
+    22		 */
+    23		public static FeedParser newParser() {
+    24		    // TODO add options for "minimal" parser, max item count
+    25			return new DefaultFeedParser();
+    26		}
+    27	}
+
+$ sed -n 26,35p com/ernieyu/feedparser/FeedUtils.java | nl -ba -v 26
+    26	     * @return Date object, or null if string cannot be parsed
+    27	     */
+    28	    public static Date convertAtomDate(String dateStr) {
+    29	        dateStr = dateStr.trim();
+    30	        
+    31	        // Process time zone offset.
+    32	        int tzpos;
+    33	        if (dateStr.endsWith("Z")) {
+    34	            // Replace trailing Z with GMT time zone.
+    35	            tzpos = dateStr.lastIndexOf('Z');
+
+$ sed -n 79,115p com/ernieyu/feedparser/FeedUtils.java | nl -ba -v 79
+    79	     * @return Date object, or null if string cannot be parsed
+    80	     */
+    81	    public static Date convertRss1Date(String dateStr) {
+    82	        // Use Atom parser for now.  Note that Atom actually follows a 
+    83	        // stricter version of the RSS 1.0 date/time format.
+    84	        return convertAtomDate(dateStr);
+    85	    }
+    86	
+    87	    /**
+    88	     * Converts the specified RSS 2.0 date string to a Date.  RSS 2.0 uses a
+    89	     * date format specified by RFC 822.
+    90	     * 
+    91	     * @param dateStr RSS 2.0 date/time string
+    92	     * @return Date object, or null if string cannot be parsed
+    93	     */
+    94	    public static Date convertRss2Date(String dateStr) {
+    95	        try {
+    96	            // Parse date using RSS format.
+    97	            return RSS2_DATE.parse(dateStr.trim());
+    98	            
+    99	        } catch (ParseException ex) {
+   100	            // Return null if date cannot be parsed.
+   101	            return null;
+   102	        }
+   103	    }
+   104	    
+   105	    /**
+   106	     * Compares the two specified objects for equality.
+   107	     * 
+   108	     * @param obj1 first object to compare
+   109	     * @param obj2 second object to compare
+   110	     * @return true if both objects are equal or both objects are null
+   111	     */
+   112	    public static boolean equalsOrNull(Object obj1, Object obj2) {
+   113	        if (obj1 != null) {
+   114	            return obj1.equals(obj2);
+   115	        } else {
+
+$ sed -n 8,16p com/ernieyu/feedparser/XML.java | nl -ba -v 8
+     8	{
+     9		public static String hash(CharSequence s) {
+    10			final Integer code = SPECIALS.get(s.toString());
+    11			if (code != null) {
+    12				return "&#" + code + ";";
+    13			}
+    14			return null;
+    15		}
+    16	
+
+$ sed -n 27,55p com/ernieyu/feedparser/XMLInputStream.java | nl -ba -v 27
+    27	    public XMLInputStream(InputStream in) {
+    28	        super(in);
+    29	    }
+    30	
+    31	    public int length() {
+    32	        try {
+    33	            StringBuilder s = read(MIN_LENGTH);
+    34	            pushBack.append(s);
+    35	            return s.length();
+    36	        } catch (IOException ex) {
+    37	            /* Ignore */
+    38	        }
+    39	        return 0;
+    40	    }
+    41	
+    42	    private StringBuilder read(int n) throws IOException {
+    43	        // Input stream finished?
+    44	        boolean eof = false;
+    45	        // Read that many.
+    46	        StringBuilder s = new StringBuilder(n);
+    47	        while (s.length() < n && !eof) {
+    48	            // Always get from the pushBack buffer.
+    49	            if (pushBack.length() == 0) {
+    50	                // Read something from the stream into pushBack.
+    51	                eof = readIntoPushBack();
+    52	            }
+    53	
+    54	            // Pushback only contains deliverable codes.
+    55	            if (pushBack.length() > 0) {
+
+$ sed -n 68,110p com/ernieyu/feedparser/XMLInputStream.java | nl -ba -v 68
+    68	    private boolean readIntoPushBack() throws IOException {
+    69	        // File finished?
+    70	        boolean eof = false;
+    71	        // Next char.
+    72	        int ch = in.read();
+    73	        if (ch >= 0) {
+    74	            // Discard whitespace at start?
+    75	            if (!(pulled == 0 && isWhiteSpace(ch))) {
+    76	                // Good code.
+    77	                pulled += 1;
+    78	                // Parse out the &stuff;
+    79	                if (ch == '&') {
+    80	                    // Process the &
+    81	                    readAmpersand();
+    82	                } else {
+    83	                    // Not an '&', just append.
+    84	                    pushBack.append((char) ch);
+    85	                }
+    86	            }
+    87	        } else {
+    88	            // Hit end of file.
+    89	            eof = true;
+    90	        }
+    91	        return eof;
+    92	    }
+    93	
+    94	    // Deal with an ampersand in the stream.
+    95	    private void readAmpersand() throws IOException {
+    96	        // Read the whole word, up to and including the ;
+    97	        StringBuilder reference = new StringBuilder();
+    98	        int ch;
+    99	        // Should end in a ';'
+   100	        for (ch = in.read(); isAlphaNumeric(ch); ch = in.read()) {
+   101	            reference.append((char) ch);
+   102	        }
+   103	        // Did we tidily finish?
+   104	        if (ch == ';') {
+   105	            // Yes! Translate it into a &#nnn; code.
+   106	            String code = XML.hash(reference);
+   107	            if (code != null) {
+   108	                // Keep it.
+   109	                pushBack.append(code);
+   110	            } else {
+
+$ sed -n 121,162p com/ernieyu/feedparser/XMLInputStream.java | nl -ba -v 121
+   121	    private void given(CharSequence s, int wanted, int got) {
+   122	        // Keep track of what we've given them.
+   123	        red.append(s);
+   124	        given += got;
+   125	    }
+   126	
+   127	    @Override
+   128	    public int read() throws IOException {
+   129	        StringBuilder s = read(1);
+   130	        given(s, 1, 1);
+   131	        return s.length() > 0 ? s.charAt(0) : -1;
+   132	    }
+   133	
+   134	    @Override
+   135	    public int read(byte[] data, int offset, int length) throws IOException {
+   136	        int n = 0;
+   137	        StringBuilder s = read(length);
+   138	        for (int i = 0; i < Math.min(length, s.length()); i++) {
+   139	            data[offset + i] = (byte) s.charAt(i);
+   140	            n += 1;
+   141	        }
+   142	        given(s, length, n);
+   143	        return n > 0 ? n : -1;
+   144	    }
+   145	
+   146	    private boolean isWhiteSpace(int ch) {
+   147	        switch (ch) {
+   148	            case ' ':
+   149	            case '\r':
+   150	            case '\n':
+   151	            case '\t':
+   152	                return true;
+   153	        }
+   154	        return false;
+   155	    }
+   156	
+   157	    private boolean isAlphaNumeric(int ch) {
+   158	        return ('a' <= ch && ch <= 'z')
+   159	            || ('A' <= ch && ch <= 'Z')
+   160	            || ('0' <= ch && ch <= '9');
+   161	    }
+   162	}
+
+$ sed -n 34,50p com/ernieyu/feedparser/impl/AtomFeed.java | nl -ba -v 34
+    34		public AtomFeed(String uri, String name, Attributes attributes) {
+    35		    super(uri, name, attributes);
+    36		}
+    37		
+    38	    @Override
+    39		public FeedType getType() {
+    40			return FeedType.ATOM_1_0;
+    41		}
+    42		
+    43	    @Override
+    44		public String getTitle() {
+    45		    Element title = getElement(TITLE);
+    46		    return (title != null) ? title.getContent() : null;
+    47		}
+    48		
+    49	    @Override
+    50		public String getLink() {
+
+$ sed -n 94,113p com/ernieyu/feedparser/impl/AtomFeed.java | nl -ba -v 94
+    94		public List<Item> getItemList() {
+    95	        // Get element list for entries.
+    96		    List<Element> elementList = getElementList(ENTRY);
+    97	        List<Item> itemList = new ArrayList<Item>();
+    98		    
+    99	        // Build item list.
+   100	        if (elementList != null) {
+   101	            for (Element element : elementList) {
+   102	                itemList.add((Item) element);
+   103	            }
+   104	        }
+   105		    
+   106		    return itemList;
+   107		}
+   108	    
+   109	    @NonNull
+   110	    @Override
+   111	    public String toString() {
+   112	        return getTitle();
+   113	    }
+
+$ sed -n 30,35p com/ernieyu/feedparser/impl/AtomItem.java | nl -ba -v 30
+    30	    public AtomItem(String uri, String name, Attributes attributes) {
+    31	        super(uri, name, attributes);
+    32	    }
+    33	    
+    34	    @Override
+    35	    public FeedType getType() {
+
+$ sed -n 57,62p com/ernieyu/feedparser/impl/AtomItem.java | nl -ba -v 57
+    57	    public String getDescription() {
+    58	        Element descr = getElement(CONTENT);
+    59	        if (descr == null) descr = getElement(SUMMARY);
+    60	        return (descr != null) ? descr.getContent() : null;
+    61	    }
+    62	
+
+$ sed -n 99,110p com/ernieyu/feedparser/impl/AtomItem.java | nl -ba -v 99
+    99	    public List<Enclosure> getEnclosures() {
+   100	        ArrayList<Enclosure> enclosures = new ArrayList<Enclosure>();
+   101	        List<Element> links = getElementList(LINK);
+   102	
+   103	        for (Element link : links) {
+   104	            Attributes attr = link.getAttributes();
+   105	            String rel = attr.getValue("rel");
+   106	            if (rel == null || !rel.equalsIgnoreCase("enclosure"))
+   107	                continue;
+   108	
+   109	            String url = attr.getValue("href");
+   110	            String type = attr.getValue("type");
+
+$ sed -n 30,69p com/ernieyu/feedparser/impl/BaseItem.java | nl -ba -v 30
+    30	    private String getUniqueId() {
+    31	        String id = getGuid();
+    32	        if (id == null) {
+    33	            List<String> links = getLinks();
+    34	            if (links.size() == 1)
+    35	                id = links.get(0);
+    36	        }
+    37	        if (id == null) {
+    38	            id = getTitle();
+    39	        }
+    40	        if (id == null) {
+    41	            id = getDescription();
+    42	        }
+    43	        return id;
+    44	    }
+    45	
+    46	    @NonNull
+    47	    @Override
+    48	    public String toString() {
+    49	        return getTitle();
+    50	    }
+    51	    
+    52	    @Override
+    53	    public boolean equals(Object obj) {
+    54	        // Compare ids for equality.
+    55	        if (obj instanceof BaseItem) {
+    56	            String id1 = getUniqueId();
+    57	            String id2 = ((BaseItem) obj).getUniqueId();
+    58	            return FeedUtils.equalsOrNull(id1, id2);
+    59	        }
+    60	        
+    61	        return false;
+    62	    }
+    63	    
+    64	    @Override
+    65	    public int hashCode() {
+    66	        // Use same fields as equals method. 
+    67	        String id = getUniqueId();
+    68	        return (id != null) ? id.hashCode() : 0;
+    69	    }
+
+$ sed -n 84,115p org/proninyaroslav/libretorrent/core/FeedParser.java | nl -ba -v 84
+    84	    public String getTitle()
+    85	    {
+    86	        return feed.getTitle();
+    87	    }
+    88	
+    89	    public List<FeedItem> getItems()
+    90	    {
+    91	        List<FeedItem> items = new ArrayList<>();
+    92	        if (feed == null)
+    93	            return items;
+    94	
+    95	        for (Item item : feed.getItemList()) {
+    96	            List<String> links = item.getLinks();
+    97	            String articleUrl = getFirstNotNullLink(links);
+    98	            String downloadUrl = watchDownloadableLink(links);
+    99	
+   100	            /* Find url with torrent/magnet */
+   101	            if (downloadUrl == null)
+   102	                downloadUrl = findDownloadUrl(item);
+   103	
+   104	            Date pubDate = item.getPubDate();
+   105	            long pubDateTime = 0;
+   106	            if (pubDate != null)
+   107	                pubDateTime = pubDate.getTime();
+   108	
+   109	            FeedItem feedItem = new FeedItem(feedChannel.id, downloadUrl,
+   110	                    articleUrl, item.getTitle(), pubDateTime);
+   111	            feedItem.fetchDate = System.currentTimeMillis();
+   112	            items.add(feedItem);
+   113	        }
+   114	
+   115	        return items;
+
+$ sed -n 168,176p org/proninyaroslav/libretorrent/core/FeedParser.java | nl -ba -v 168
+   168	    private String watchEnclosure(Item item)
+   169	    {
+   170	        for (Enclosure enclosure : item.getEnclosures()) {
+   171	            if (enclosure == null)
+   172	                continue;
+   173	
+   174	            String url = enclosure.getUrl();
+   175	            String type = enclosure.getType();
+   176	            if (isMagnetOrTorrent(url) || (type != null && type.equals(Utils.MIME_TORRENT)))
+
+$ sed -n 236,243p org/proninyaroslav/libretorrent/core/FeedParser.java | nl -ba -v 236
+   236	    private String watchTorrentInfoHash(Item item)
+   237	    {
+   238	        EzRssTorrentItem torrentItem = item.getEzRssTorrentItem();
+   239	        if (torrentItem == null)
+   240	            return null;
+   241	
+   242	        String infoHash = torrentItem.getInfoHash();
+   243	        if (infoHash != null && Utils.isHash(infoHash))
+
+$ sed -n 165,176p org/proninyaroslav/libretorrent/service/FeedFetcherWorker.java | nl -ba -v 165
+   165	        List<FeedItem> items = parser.getItems();
+   166	
+   167	        filterItems(id, items, acceptMinDate);
+   168	
+   169	        if (pref.feedRemoveDuplicates())
+   170	            filterItemDuplicates(items);
+   171	
+   172	        repo.addItems(items);
+   173	
+   174	        channel.fetchError = null;
+   175	        if (TextUtils.isEmpty(channel.name)) {
+   176	            channel.name = parser.getTitle();
+
+$ grep -rn 'DataBindingUtil' org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentActivity.java org/proninyaroslav/libretorrent/ui/log/LogActivity.java org/proninyaroslav/libretorrent/ui/main/MainFragment.java 2>/dev/null | head
+org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentActivity.java:37:import androidx.databinding.DataBindingUtil;
+org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentActivity.java:102:        binding = DataBindingUtil.setContentView(this, R.layout.activity_add_torrent);
+org/proninyaroslav/libretorrent/ui/log/LogActivity.java:38:import androidx.databinding.DataBindingUtil;
+org/proninyaroslav/libretorrent/ui/log/LogActivity.java:93:        binding = DataBindingUtil.setContentView(this, R.layout.activity_log);
+$ grep -c 'DataBindingUtil' across app java (count only)
+68
