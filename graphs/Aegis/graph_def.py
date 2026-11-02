@@ -4577,9 +4577,10 @@ sup(('IconAdapter.lambda$onBindViewHolder$2', 'AssignIconsActivity$1.onCustomSel
 # so its edges stay as documentation only. The search-clear path calls
 # loadIcons(pack, false) unconditionally (IconAdapter.setQuery, IconAdapter.java:92-96),
 # so it goes to a @NOCUSTOM variant whose grid has no DummyIcon row and therefore no
-# onCustomSelected dispatch. onIconSelected dispatch is NOT split here (it cannot reach
-# CustomSvgIcon; selectIcon/setNewIcon routes keep the shared dispatch as a known
-# residual of the same class, recorded in the fix log).
+# onCustomSelected dispatch. onIconSelected dispatch is split in the block below
+# (after the onCustomSelected forwarder block): the @EDIT/@ASSIGN forwarder variants
+# carry the non-Dummy tap to the installing activity's listener, so selectIcon and
+# setNewIcon routes no longer share a dispatch.
 _PICK_EDIT = 'IconPickerDialog.create@EDIT'
 _PICK_ASSIGN = 'IconPickerDialog.create@ASSIGN'
 e('EditEntryActivity.startIconSelection', _PICK_EDIT, 'CALL',
@@ -4699,6 +4700,38 @@ e('IconPickerDialog$1.onCustomSelected@ASSIGN', 'AssignIconsActivity$1.onCustomS
   'the picker forwarder dismisses and calls the assign-icons listener: nothing happens',
   guard='the picker was opened by the assign-icons page (IconPickerDialog.java:53-66); the listener body is empty (AssignIconsActivity.java:201)',
   evidence='SRC ui/dialogs/IconPickerDialog.java:62-64; SRC ui/AssignIconsActivity.java:201')
+# onIconSelected dispatch is split the same way as onCustomSelected above (fix-1
+# pattern, applied to the non-Dummy tap): the adapter's listener is always the
+# IconPickerDialog$1 forwarder created in create(), which forwards to the installing
+# activity's listener (IconPickerDialog.java:55-57); without this split the @ASSIGN
+# prefix would still reach EditEntryActivity$1 through the shared forwarder, and the
+# direct @ASSIGN lambda edge would still reach it (judged selectIcon step 41).
+# The guards use the non-Dummy branch (IconAdapter.java:176-177), not the Dummy
+# branch (:174-175) the onCustomSelected edges use.
+e('IconAdapter.lambda$onBindViewHolder$2@EDIT', 'EditEntryActivity$1.onIconSelected', 'CALL',
+  'the tapped icon is passed to the edit page listener: the edit page keeps the icon',
+  guard='the row is a non-Dummy icon row (IconAdapter.java:176-177) and the picker was opened by the edit page (EditEntryActivity.java:594)',
+  evidence='SRC ui/views/IconAdapter.java:173-179; SRC ui/EditEntryActivity.java:594-597')
+e('IconAdapter.lambda$onBindViewHolder$2@ASSIGN', 'AssignIconsActivity$1.onIconSelected', 'CALL',
+  'the tapped icon is passed to the assign-icons listener: the imported entry keeps the icon',
+  guard='the row is a non-Dummy icon row (IconAdapter.java:176-177) and the picker was opened by the assign-icons page (AssignIconsActivity.java:194)',
+  evidence='SRC ui/views/IconAdapter.java:173-179; SRC ui/AssignIconsActivity.java:194-197')
+e('IconAdapter.lambda$onBindViewHolder$2@EDIT', 'IconPickerDialog$1.onIconSelected@EDIT', 'CALL',
+  'the tapped icon is passed to the adapter listener (the picker forwarder)',
+  guard='the row is a non-Dummy icon row (IconAdapter.java:176-177); the adapter listener is the IconPickerDialog$1 instance created in create() (IconPickerDialog.java:53-57)',
+  evidence='SRC ui/views/IconAdapter.java:173-179; SRC ui/dialogs/IconPickerDialog.java:53-57')
+e('IconAdapter.lambda$onBindViewHolder$2@ASSIGN', 'IconPickerDialog$1.onIconSelected@ASSIGN', 'CALL',
+  'the tapped icon is passed to the adapter listener (the picker forwarder)',
+  guard='the row is a non-Dummy icon row (IconAdapter.java:176-177); the adapter listener is the IconPickerDialog$1 instance created in create() (IconPickerDialog.java:53-57)',
+  evidence='SRC ui/views/IconAdapter.java:173-179; SRC ui/dialogs/IconPickerDialog.java:53-57')
+e('IconPickerDialog$1.onIconSelected@EDIT', 'EditEntryActivity$1.onIconSelected', 'CALL',
+  'the picker forwarder dismisses and calls the edit page listener: the edit page keeps the icon',
+  guard='the picker was opened by the edit page (IconPickerDialog.java:53-66); the forwarder calls the listener passed to create() (:57)',
+  evidence='SRC ui/dialogs/IconPickerDialog.java:53-57; SRC ui/EditEntryActivity.java:596-597')
+e('IconPickerDialog$1.onIconSelected@ASSIGN', 'AssignIconsActivity$1.onIconSelected', 'CALL',
+  'the picker forwarder dismisses and calls the assign-icons listener: the imported entry keeps the icon',
+  guard='the picker was opened by the assign-icons page (IconPickerDialog.java:53-66); the forwarder calls the listener passed to create() (:57)',
+  evidence='SRC ui/dialogs/IconPickerDialog.java:53-57; SRC ui/AssignIconsActivity.java:196-197')
 # the search-clear path: setQuery(null) reloads with showAddCustom false, so its grid
 # has no DummyIcon row and no onCustomSelected dispatch; the chain ends at the row fill
 sup(('IconAdapter.setQuery', 'IconAdapter.loadIcons'))
