@@ -1750,6 +1750,63 @@ e('ImportEntriesActivity.processImporterState@FILE_AUTHY', 'AuthyImporter$Encryp
   'the picked file import is an encrypted Authy backup: the importer asks for the password and decrypts it',
   guard='the file import picked Authy, a `.key` entry is found in the preferences XML, and some entry in the file lacks both `decryptedSecret` and `secretSeed`, so read returns EncryptedState (AuthyImporter.java:101-135)',
   evidence='SRC ui/ImportEntriesActivity.java:176-182; SRC importers/AuthyImporter.java:101-135')
+# --- FreeOtp stage 2 F2 (PRIVATE BUILD, not pushed): @FREEOTP app-import producer chain F1–F13 (LAST).
+# Design helper/freeotp-design/DESIGN.md section 4 stage 2 (audit PASS). Mirrors the @STRATUM
+# block node for node with @FREEOTP in place of @STRATUM. No app-version-warning lambdas
+# (FreeOtp never reaches them: default supported = true) and no onCreate@FREEOTP side
+# branches (not on the route; methods stay reachable via @APP/@FILE variants). Deliberately
+# unchanged: GA pick/OK edges, lambda$startImportApp$5 -> GoogleAuthImporter.readFromApp,
+# GA State label, processDecrypted branch. F2 gates (R4): FreeOtp decrypt 1 -> 2 (variant
+# file E19 + F13); no other decrypt's incoming count changes; stage-2 auto total 27
+# (pick 1, <init> 1, onCreate 6, startImport 8, startImportApp 1, onPostExecute 1,
+# lambda$5 4, processImporterState 5 — the design's section 6 processImporterState 10 is
+# corrected to 5 post-v2, since all six v2 decrypt pairs are suppressed and the @FREEOTP
+# dispatch node gets only the 5 non-decrypt auto outs); any deviation explained edge by
+# edge per design section 7 stop rule; any incoming edge to FreeOtp decrypt beyond
+# E19/F13 sends the design back to audit. Independent pre-merge audit required (design
+# section 7 item 5: auditor checks >= 1 in 3 new edges) before any push.
+gui('Dialogs.showImportersDialog@APP', 'Dialogs.lambda$showImportersDialog$26@FREEOTP', 'Tap the FreeOTP row in the importer list (its help text is shown)',
+  guard='the FreeOTP row is tapped (the default checked row on the direct dialog is Authy, `i` stays 0, Dialogs.java:519-522,528; FreeOTP is a `supportsDirect` entry, DatabaseImporter.java:42,99-102)',
+  evidence=FW_ITEM + '; SRC ui/dialogs/Dialogs.java:523-531; SRC importers/DatabaseImporter.java:42; FW-SRC core/java/android/widget/AbsListView.java:1136-1150')
+gui('Dialogs.lambda$showImportersDialog$26@FREEOTP', 'Dialogs.lambda$showImportersDialog$27@FREEOTP', 'Tap OK after the FreeOTP row was tapped (gives the chosen importer to the listener)',
+  guard='the FreeOTP row was tapped first, so OK reads the FreeOTP importer (Dialogs.java:537)',
+  evidence=FW_CLICK + '; SRC ui/dialogs/Dialogs.java:533-538')
+e('Dialogs.lambda$showImportersDialog$27@FREEOTP', 'ImportExportPreferencesFragment.lambda$onCreatePreferences$7@FREEOTP', 'CALL',
+  'the OK button gives the chosen importer to the import-app listener: the import page opens',
+  guard='the dialog was opened by Import from another app (isDirect true, ImportExportPreferencesFragment.java:119)',
+  evidence='SRC ui/dialogs/Dialogs.java:536-538; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:119-121')
+e('ImportExportPreferencesFragment.lambda$onCreatePreferences$7@FREEOTP', 'ImportExportPreferencesFragment.startImportEntriesActivity@FREEOTP', 'CALL',
+  'Direct call', evidence='SRC ImportExportPreferencesFragment.java:120 (bytecode)')
+e('ImportExportPreferencesFragment.startImportEntriesActivity@FREEOTP', 'ImportEntriesActivity.<init>@FREEOTP', 'INTENT',
+  'the import page opens with the chosen importer and no file (app import)',
+  guard='the file argument is null on the app import path (ImportExportPreferencesFragment.java:120)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:161-165; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:120')
+e('ImportEntriesActivity.<init>@FREEOTP', 'ImportEntriesActivity.onCreate@FREEOTP', 'LIFECYCLE',
+  'Activity.onCreate of the import page',
+  evidence=FW_CREATE + '; SRC ui/ImportEntriesActivity.java:62')
+e('ImportEntriesActivity.onCreate@FREEOTP', 'ImportEntriesActivity.startImport@FREEOTP', 'CALL',
+  'the import page starts the import from its intent extras',
+  guard='abortIfOrphan(savedInstanceState) is false (ImportEntriesActivity.java:64-66; AegisActivity.java:154-157) and the file extra is null (ImportEntriesActivity.java:104,109)',
+  evidence='SRC ui/ImportEntriesActivity.java:62-66,103-104; SRC ui/AegisActivity.java:154-157')
+e('ImportEntriesActivity.startImport@FREEOTP', 'ImportEntriesActivity.startImportApp@FREEOTP', 'CALL',
+  'no file was passed and the installed app version is supported: the entries are read from the app',
+  guard='no file was passed (ImportEntriesActivity.java:109) and isInstalledAppVersionSupported is true by default (DatabaseImporter.java:69-71; FreeOtpImporter does not override it, so no warning branch exists)',
+  evidence='SRC ui/ImportEntriesActivity.java:109-111; SRC importers/DatabaseImporter.java:69-71')
+e('ImportEntriesActivity.startImportApp@FREEOTP', 'RootShellTask.doInBackground@FREEOTP', 'ASYNC',
+  'AsyncTask runs doInBackground on the worker thread (open the root shell; started by AsyncTask.execute, not ProgressDialogTask.execute)',
+  evidence=FW_ASYNC + '; SRC ui/ImportEntriesActivity.java:173; SRC ui/tasks/RootShellTask.java:17-20')
+e('RootShellTask.doInBackground@FREEOTP', 'RootShellTask.onPostExecute@FREEOTP', 'ASYNC',
+  'the shell is posted to the main thread',
+  evidence=FW_ASYNC + '; SRC ui/tasks/RootShellTask.java:17,23-25')
+e('RootShellTask.onPostExecute@FREEOTP', 'ImportEntriesActivity.lambda$startImportApp$5@FREEOTP', 'CALL',
+  '_cb.onTaskFinished(shell): the callback reads the entries from the installed app, or closes the page when there is no root',
+  evidence='SRC ui/tasks/RootShellTask.java:25,28-30; SRC ui/ImportEntriesActivity.java:143-174')
+e('ImportEntriesActivity.lambda$startImportApp$5@FREEOTP', 'ImportEntriesActivity.processImporterState@FREEOTP', 'CALL',
+  'Direct call', evidence='SRC ImportEntriesActivity.java:157 (bytecode)')
+e('ImportEntriesActivity.processImporterState@FREEOTP', 'FreeOtpImporter$EncryptedState.decrypt(Context,DecryptListener)', 'CALL',
+  'the FreeOTP app import is a V2 backup: the importer asks for the password and decrypts it',
+  guard="the page's importer is FreeOTP (F1–F2 pick, DatabaseImporter.java:42); the root shell is present and root (ImportEntriesActivity.java:149-153, otherwise toast + finish before dispatch); the app state is a V2 EncryptedState (readFromApp → read(stream, true) → magic → readV2 → super(true): DatabaseImporter.java:79-87; FreeOtpImporter.java:69-78,106-110,130); and isEncrypted() is true so dispatch calls decrypt (ImportEntriesActivity.java:176-179)",
+  evidence='SRC ui/ImportEntriesActivity.java:176-182; SRC importers/FreeOtpImporter.java:69-78,106-110,130; SRC importers/DatabaseImporter.java:42')
 # CORRECTION 2026-11-01 (Stratum-correction step; refutes fix-4 edge, kept out of
 # the judged table): the processImporterState@STRATUM -> Stratum decrypt edge is
 # REMOVED. DatabaseImporter.readFromApp passes isInternal=true
