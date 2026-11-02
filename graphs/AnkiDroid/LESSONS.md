@@ -1,9 +1,12 @@
 # AnkiDroid lessons (finish run)
 
-- A task-dispatch switch is not a route: most WRONG routes (8 of 18)
-  launched one DeckTask type and then took another type's branch
-  (LOAD_DECK_COUNTS vs RENDER_BROWSER_QA). The fix is a rebuilt prefix
-  from the actually-launched task, never a variant split of the switch.
+- A task-dispatch switch is not a route: most first-draw WRONG routes
+  (8 of 18) launched one DeckTask type and then took another type's
+  branch (LOAD_DECK_COUNTS vs RENDER_BROWSER_QA). B6 fixed them with
+  rebuilt prefixes and no split; Stream A (user order 2026-11-02) then
+  overrode the no-split restriction and applied the per-type variant
+  split in the graph (B6 step 7), which is what makes the final-draw
+  routes genuine. Record which rule governed which round.
 - Dialog pages are not interchangeable: three WRONG routes conflated
   dialogs that share a page node (SyncErrorDialog types 0/9,
   ConfirmationDialog DeckPicker-full-sync vs ModelFieldEditor-rename vs

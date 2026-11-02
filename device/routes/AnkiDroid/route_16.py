@@ -1,32 +1,31 @@
 #!/usr/bin/env python3
-"""AnkiDroid route_16: Sched.haveBuried(long).
+"""AnkiDroid route_16: Preferences.replaceString.
 
-Method: Sched.haveBuried(long)
-Target verdict: CORRECT (route_table.md route 16)
-Route followed: the final BFS route (10 steps, all correct as printed).
-Edge ids in order:
-    E48de6d58 E26d20f74 E1ad4ef9b Eb3058057 E53ebd7d4 E3da9d804
-    E5d3708ba E55d4b4d0 E5f50a6f6 E22471726
-Printed route: graphs/AnkiDroid/scratch/route_print/Sched.haveBuried(long).txt
-Permissions: android.permission.WRITE_EXTERNAL_STORAGE (graph env on
-    Eb3058057; manifest also declares VIBRATE, INTERNET,
-    ACCESS_NETWORK_STATE, RECORD_AUDIO, WAKE_LOCK, none of which this
-    route exercises).
-Fixtures: collection file collection.anki2 exists; at least one deck
-    exists; the deck row tapped is named Default.
-Launcher: <package>/.IntentHandler (AndroidManifest.xml:81-89,
+Target: Preferences.replaceString.
+Table verdict: CORRECT (final-draw verdict; this script drives the
+    printed BFS route, 10 edges, unchanged). This is the
+    initPreference route, not the old first-draw route_14 script's
+    backupMax-drag terminal path: the call happens automatically
+    while the Advanced screen inflates.
+Route followed: printed route: launch under the no-collection guard
+    -> S_PREFERENCES -> SettingsFragment -> initAllPreferences ->
+    initPreference -> updateSummary -> replaceString.
+Preconditions (launch state, arranged by run setup, not by this
+    script): collection NOT open; WRITE_EXTERNAL_STORAGE granted;
+    SD mounted; AnkiDroid directory NOT accessible. The Advanced
+    screen must contain backupMax (default 8, range 0-10).
+Mapping notes:
+  - The script performs no tap: every step after launch is
+    framework/inflation dispatch. If the launch screen is not the
+    Advanced screen, the live run must navigate to it first; that
+    fallback has no graph edge and is flagged here, not invented.
+Launcher: com.ichi2.anki/.IntentHandler (AndroidManifest.xml:81-89,
     MAIN/LAUNCHER). run_app.sh already does pm clear, permission
     grants, fixture pushes, and per-app setup before this script, so
     the script performs only the route actions starting from launch.
-    At merge time this file lives under device/routes/AnkiDroid/, so
-    the import below matches the Currency layout exactly.
-
-Mapping notes:
-  - The deck row is long-pressed by its deck-name text "Default".
-    That text is a fixture value, not an app-source string; verify it
-    against a live uiautomator dump before a real run.
-  - getListIds and haveBuried run while the context menu is built;
-    no further tap is needed after the long-press.
+Draft status: final-draw device draft for the merger; dry/static
+    checks only. No live run has been performed with this script, and
+    nothing in this file claims one.
 """
 
 import argparse
@@ -38,8 +37,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 from device.harness import Runner  # noqa: E402
 
 EDGE_IDS = [
-    "E48de6d58", "E26d20f74", "E1ad4ef9b", "Eb3058057", "E53ebd7d4",
-    "E3da9d804", "E5d3708ba", "E55d4b4d0", "E5f50a6f6", "E22471726",
+    "E48de6d58", "E26d20f74", "E1ad4ef9b", "Edd09dca3", "E60725a5c",
+    "E48af4570", "E692d53dd", "Ee26a292c", "E0817366c", "Ec779c0bd",
 ]
 
 
@@ -54,41 +53,45 @@ def main(argv=None):
     r = Runner(package=args.package, route="route_16", edge_ids=EDGE_IDS,
                log_path=args.log, dry_run=args.dry_run, adb=args.adb,
                outdir=args.outdir)
-    # E48de6d58 S_ENTRY -> IntentHandler.onCreate: launch the
-    # MAIN/LAUNCHER activity (AndroidManifest.xml:81-89).
+    # E48de6d58 S_ENTRY -> IntentHandler.onCreate: launch MAIN/LAUNCHER.
     r.launch(args.package + "/.IntentHandler", edge="E48de6d58")
-    # E26d20f74 IntentHandler.onCreate -> DeckPicker.<init>: the else
-    # branch at IntentHandler.java:132-138 runs (neither ACTION_VIEW
-    # nor DO_SYNC). No user action.
-    r.comment("launcher else branch starts DeckPicker", edge="E26d20f74")
-    # E1ad4ef9b DeckPicker.<init> -> DeckPicker.onCreate: the system
-    # instantiates DeckPicker, then onCreate (DeckPicker.java:353).
+    # E26d20f74 IntentHandler.onCreate -> DeckPicker.<init> (else branch).
+    r.comment("IntentHandler else branch starts DeckPicker",
+              edge="E26d20f74")
+    # E1ad4ef9b DeckPicker.<init> -> DeckPicker.onCreate.
     r.comment("system instantiates DeckPicker, then onCreate",
               edge="E1ad4ef9b")
-    # Eb3058057 DeckPicker.onCreate -> S_DECKPICKER: DeckPicker page
-    # shown; needs a collection file and WRITE_EXTERNAL_STORAGE.
-    r.comment("DeckPicker page shown, collection open", edge="Eb3058057")
-    # E53ebd7d4 S_DECKPICKER -> DeckPicker$4.onLongClick: long-press
-    # a deck row (DeckPicker.java:229-235, 387).
-    r.long_tap(edge="E53ebd7d4", text="Default")
-    # E3da9d804 DeckPicker$4.onLongClick ->
-    # DeckPickerContextMenu.newInstance: the long-press handler builds
-    # the context menu (DeckPicker.java:233). Automatic.
-    r.comment("context menu fragment created", edge="E3da9d804")
-    # E5d3708ba DeckPickerContextMenu.newInstance ->
-    # DeckPickerContextMenu.<init>. Automatic.
-    r.comment("context menu fragment instantiated", edge="E5d3708ba")
-    # E55d4b4d0 DeckPickerContextMenu.<init> ->
-    # DeckPickerContextMenu.onCreateDialog. Automatic.
-    r.comment("context menu dialog created", edge="E55d4b4d0")
-    # E5f50a6f6 DeckPickerContextMenu.onCreateDialog ->
-    # DeckPickerContextMenu.getListIds (DeckPickerContextMenu.java:65).
-    # Automatic.
-    r.comment("menu item ids computed", edge="E5f50a6f6")
-    # E22471726 DeckPickerContextMenu.getListIds ->
-    # Sched.haveBuried(long) (DeckPickerContextMenu.java:110).
-    # Automatic; this is the target edge.
-    r.comment("haveBuried evaluated for the deck", edge="E22471726")
+    # Edd09dca3 DeckPicker.onCreate -> S_PREFERENCES (graph-fixed
+    # step 4: storage permission granted, SD mounted, but the
+    # AnkiDroid directory is NOT accessible, DeckPicker.java:418-428.
+    # No tap: the launch state itself opens Preferences.
+    # The intent carries the Advanced subscreen
+    # (CompatV11.java:41-48); if a different subscreen shows, tap
+    # its Advanced entry first (fallback, no graph edge).
+    r.comment("no-collection guard opens Advanced preferences",
+              edge="Edd09dca3")
+    # E60725a5c S_PREFERENCES -> SettingsFragment.<init>.
+    r.comment("SettingsFragment created", edge="E60725a5c")
+    # E48af4570 SettingsFragment.<init> -> onCreate.
+    r.comment("SettingsFragment onCreate", edge="E48af4570")
+    # E692d53dd onCreate -> initAllPreferences.
+    r.comment("initAllPreferences", edge="E692d53dd")
+    # Ee26a292c initAllPreferences -> initPreference (iterates the
+    # screen, including nested groups, calling initPreference on
+    # each leaf).
+    r.comment("initPreference", edge="Ee26a292c")
+    # E0817366c initPreference -> updateSummary (unconditional at
+    # the end of initPreference).
+    r.comment("updateSummary", edge="E0817366c")
+    # Ec779c0bd updateSummary -> replaceString (target; reached for
+    # a NumberRange/SeekBar/List/EditTextPreference with a non-empty
+    # old summary and value, key not
+    # minimumCardsDueForNotification, Preferences.java:613-636.
+    # backupMax ("Max number of backups", summary "XXX") on the
+    # Advanced screen is such a preference, so the call happens
+    # automatically at screen inflation; no drag is needed for
+    # this BFS terminal path).
+    r.comment("replaceString reached (target)", edge="Ec779c0bd")
     r.done()
     return 0
 

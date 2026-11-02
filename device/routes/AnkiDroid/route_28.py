@@ -1,51 +1,46 @@
 #!/usr/bin/env python3
-"""AnkiDroid route_28: NoteEditor.closeNoteEditor(int,Intent).
+"""AnkiDroid final-draw route_28: AbstractFlashcardViewer.typeAnswer.
 
-Method: NoteEditor.closeNoteEditor(int,Intent)
-Target verdict: WRONG (route_table.md route 28)
-Route followed: the CORRECTED route from the note-editor page (10
-    steps), never the BFS dispatch route via the generic page through
-    ModelBrowser deleteModelDialog. Prefix: CardBrowser card-row tap
-    edits an existing note (edit mode, not add mode). changeNoteType
-    appears twice because the first call throws and the confirm
-    re-calls it, not because of a duplicated graph edge.
-Edge ids in order (prefix 10 + note-editor steps 10):
-    E48de6d58 E26d20f74 E1ad4ef9b Eb3058057 Ed1dad133 E0e89f361
-    Eb06cba16 E352d419a Ed736a06a E79c27e7e Ec7b4ddbb Ee8811021
-    E927dc587 Ed22fab27 E30f7c51d E3cc3b1c8 Ea1cb2a50 Ecbf73392
-    E8da0bfba E4b3e5a5a
-Sources: route_table.md route 28; helper/b6fix-r25-30/
-    CORRECTED_ROUTES.md route 28.
-Permissions: android.permission.WRITE_EXTERNAL_STORAGE (graph env on
-    Eb3058057; see route_16 for the full manifest list).
-Fixtures: collection file exists; deck has cards to study; an
-    existing note is opened for editing (edit mode, not mAddNote);
-    the note type is changed to a different model
-    (!newModel.equals(oldModel)); the card mapping does NOT lose
-    cards, so the direct call at NoteEditor.java:701 is taken (not
-    the $5 lose-cards dialog at :688-698); schema not yet marked
-    changed, so changeNoteType throws ConfirmModSchemaException.
-Launcher: <package>/.IntentHandler (AndroidManifest.xml:81-89,
-    MAIN/LAUNCHER). run_app.sh setup precedes this script; see
-    route_16. At merge time this file lives under
-    device/routes/AnkiDroid/, so the import matches Currency.
-
+Target: AbstractFlashcardViewer.typeAnswer (boolean predicate at
+    AbstractFlashcardViewer.java:2326; evaluating it IS a call).
+Table verdict: WRONG (final draw, route_table.md row 28; corrected
+    route). The printed BFS route's step 9 was an interface fan-out
+    fiction: DeckPicker's LOAD_DECK_COUNTS launch registers
+    DeckPicker's own listener, never AbstractFlashcardViewer's
+    mAnswerCardHandler, so DeckTask.onPreExecute on that prefix
+    never reaches AFV$10.onPreExecute. The corrected route below
+    uses the Reviewer prefix (final-draw route_21 steps 1-13) and
+    the ANSWER_CARD launch that actually registers mAnswerCardHandler
+    (Reviewer.java:96-98): onCollectionLoaded -> launchDeckTask ->
+    onPreExecute -> mAnswerCardHandler.onPreExecute ($10) ->
+    blockControls -> typeAnswer.
+Route followed: corrected route, 18 edges, derived from the graph
+    JSON by src/dst pairs and verified contiguous (see NOTES.md).
+    Note the corrected chain skips the S_REVIEWER page edge
+    (Ea375fff8): the ANSWER_CARD launch is inside onCollectionLoaded
+    itself (graph edge Ebeafa06d Reviewer.onCollectionLoaded ->
+    DeckTask.launchDeckTask), before the reviewer page is entered.
+    The tail edges E749e5944, E0bb0a19c, Eed5b25c0, Eadf19602,
+    E42fc2547 are the printed route's steps 7-11 with their producer
+    corrected; no new tail edge was needed. This script is newly
+    written; no first-draw script corresponds to this method.
+Preconditions/fixtures:
+  - Tablet/large-screen config (mFragmented true); collection open;
+    deck with cards to study, so the Start button opens Reviewer.
+    No file fixture is pushed.
 Mapping notes:
-  - Drawer and card-row selectors ("Card browser", the card row)
-    are UI values not fixed by the graph edges; verify them against
-    a live uiautomator dump before a real run. The card row tapped
-    must be a card whose note can change type without losing cards.
-  - UNRESOLVED STEP (no edge invented): there is no dedicated graph
-    edge from NoteEditor.<init> to S_NOTEEDITOR on this edit path
-    (the addNote path carries E70e741c7 instead). The system
-    instantiation and editor page are logged with r.comment.
-  - PRECONDITION ACTION (no graph edge): changing the note type in
-    the editor (note-type selector, choose a different model) must
-    happen before Save is tapped; it is logged with r.comment, not
-    invented as an edge id.
-  - The 16 confirm + 8 cancel virtual-dispatch edges from the
-    generic page are deliberately left unsuppressed in the graph;
-    this script uses only the variant-page confirm E3cc3b1c8.
+  - The "Study" tap text is inherited from first-draw route_05
+    (E518f89ef); verify it against a live uiautomator dump.
+  - blockControls -> typeAnswer is automatic: blockControls
+    evaluates typeAnswer() at AbstractFlashcardViewer.java:2449
+    regardless of the predicate's value, so no card interaction is
+    needed after Reviewer loads; the script dwells while the
+    ANSWER_CARD task's onPreExecute runs.
+  - No live run is claimed by this script.
+Launcher: com.ichi2.anki/.IntentHandler (AndroidManifest.xml:81-89,
+    MAIN/LAUNCHER). run_app.sh already does pm clear, permission
+    grants, fixture pushes, and per-app setup before this script, so
+    the script performs only the route actions starting from launch.
 """
 
 import argparse
@@ -57,10 +52,10 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 from device.harness import Runner  # noqa: E402
 
 EDGE_IDS = [
-    "E48de6d58", "E26d20f74", "E1ad4ef9b", "Eb3058057", "Ed1dad133",
-    "E0e89f361", "Eb06cba16", "E352d419a", "Ed736a06a", "E79c27e7e",
-    "Ec7b4ddbb", "Ee8811021", "E927dc587", "Ed22fab27", "E30f7c51d",
-    "E3cc3b1c8", "Ea1cb2a50", "Ecbf73392", "E8da0bfba", "E4b3e5a5a",
+    "E48de6d58", "E26d20f74", "E1ad4ef9b", "E5906a191", "Ef3e13961",
+    "Eae89b47b", "Ea73b74da", "E518f89ef", "E0b3abfeb", "Eb58e5599",
+    "Eed14720a", "Ed7470ef3", "Ebeafa06d", "E749e5944", "E0bb0a19c",
+    "Eed5b25c0", "Eadf19602", "E42fc2547",
 ]
 
 
@@ -75,76 +70,56 @@ def main(argv=None):
     r = Runner(package=args.package, route="route_28", edge_ids=EDGE_IDS,
                log_path=args.log, dry_run=args.dry_run, adb=args.adb,
                outdir=args.outdir)
-    # E48de6d58 S_ENTRY -> IntentHandler.onCreate.
+    # E48de6d58 S_ENTRY -> IntentHandler.onCreate: launch MAIN/LAUNCHER.
     r.launch(args.package + "/.IntentHandler", edge="E48de6d58")
     # E26d20f74 IntentHandler.onCreate -> DeckPicker.<init>.
-    r.comment("launcher else branch starts DeckPicker", edge="E26d20f74")
+    r.comment("IntentHandler else branch starts DeckPicker",
+              edge="E26d20f74")
     # E1ad4ef9b DeckPicker.<init> -> DeckPicker.onCreate.
     r.comment("system instantiates DeckPicker, then onCreate",
               edge="E1ad4ef9b")
-    # Eb3058057 DeckPicker.onCreate -> S_DECKPICKER.
-    r.comment("DeckPicker page shown, collection open", edge="Eb3058057")
-    # Ed1dad133 S_DECKPICKER -> DeckPicker.openCardBrowser: drawer
-    # item nav_browser.
-    r.tap(edge="Ed1dad133", text="Card browser")
-    # E0e89f361 DeckPicker.openCardBrowser -> CardBrowser.<init>.
-    r.comment("CardBrowser started", edge="E0e89f361")
-    # Eb06cba16 CardBrowser.<init> -> CardBrowser.onCreate.
-    r.comment("system instantiates CardBrowser, then onCreate",
-              edge="Eb06cba16")
-    # E352d419a CardBrowser.onCreate -> S_CARDBROWSER.
-    r.comment("card browser page shown", edge="E352d419a")
-    # Ed736a06a S_CARDBROWSER -> CardBrowser$7.onItemClick: tap an
-    # existing card row to edit its note.
-    r.tap(edge="Ed736a06a", text="Default")
-    # E79c27e7e CardBrowser$7.onItemClick -> NoteEditor.<init>:
-    # edit mode (existing note). Automatic after the tap.
-    r.comment("note editor started in edit mode", edge="E79c27e7e")
-    # UNRESOLVED STEP (see header): system instantiates NoteEditor
-    # and shows the editor page. No NoteEditor.<init> ->
-    # S_NOTEEDITOR edge is carried here.
-    r.comment("SYSTEM: NoteEditor instantiated, editor page shown", edge="Ec7b4ddbb")
-    # PRECONDITION ACTION (see header): change the note type to a
-    # different model, with a mapping that does not lose cards.
-    r.comment("PRECONDITION: change the note type to a different "
-              "model (mapping must not lose cards)", edge="Ec7b4ddbb")
-    # Ec7b4ddbb S_NOTEEDITOR -> NoteEditor.onOptionsItemSelected:
-    # tap the Save action-bar item (R.id.action_save, :834).
-    r.tap(edge="Ec7b4ddbb", desc="Save")
-    # Ee8811021 NoteEditor.onOptionsItemSelected ->
-    # NoteEditor.saveNote (action_save case, :836). Automatic.
-    r.comment("note saved", edge="Ee8811021")
-    # E927dc587 NoteEditor.saveNote ->
-    # NoteEditor.changeNoteTypeWithErrorHandling (edit mode, model
-    # changed, mapping does not lose cards, :684-701). Automatic.
-    r.comment("note-type change with error handling",
-              edge="E927dc587")
-    # Ed22fab27 NoteEditor.changeNoteTypeWithErrorHandling ->
-    # NoteEditor.changeNoteType: first, throwing attempt (try at
-    # :747-748). Automatic.
-    r.comment("note-type change attempted, throws",
-              edge="Ed22fab27")
-    # E30f7c51d NoteEditor.changeNoteTypeWithErrorHandling ->
-    # S_DLG_CONFIRMATION_NOTEEDITOR_CHANGETYPE: guard changeNoteType
-    # throws ConfirmModSchemaException (catch block :749-765).
-    r.comment("change-type confirmation dialog shown",
-              edge="E30f7c51d")
-    # E3cc3b1c8 S_DLG_CONFIRMATION_NOTEEDITOR_CHANGETYPE ->
-    # NoteEditor$6.confirm: tap Confirm (NoteEditor.java:753-757).
-    r.tap(edge="E3cc3b1c8", text="OK")
-    # Ea1cb2a50 NoteEditor$6.confirm -> NoteEditor.changeNoteType:
-    # second, successful call, after modSchemaNoCheck at :755.
-    r.comment("note-type change retried", edge="Ea1cb2a50")
-    # Ecbf73392 NoteEditor.changeNoteType ->
-    # NoteEditor.closeNoteEditor() (end of changeNoteType, :781).
-    r.comment("editor closing, no-arg variant", edge="Ecbf73392")
-    # E8da0bfba NoteEditor.closeNoteEditor() ->
-    # NoteEditor.closeNoteEditor(Intent) (:932-933). Automatic.
-    r.comment("editor closing, intent variant", edge="E8da0bfba")
-    # E4b3e5a5a NoteEditor.closeNoteEditor(Intent) ->
-    # NoteEditor.closeNoteEditor(int,Intent) (:937-951, target at
-    # :960). Automatic; this is the target edge.
-    r.comment("editor closed with result", edge="E4b3e5a5a")
+    # E5906a191 onCreate -> showStartupScreensAndDialogs (colOpen).
+    r.comment("startup screens (collection open)", edge="E5906a191")
+    # Ef3e13961 -> onFinishedStartup (nothing-special branch).
+    r.comment("finished startup", edge="Ef3e13961")
+    # Eae89b47b -> loadStudyOptionsFragment (fragmented mode).
+    r.comment("fragmented mode loads study options", edge="Eae89b47b")
+    # Ea73b74da -> S_STUDYOPTIONS_FRAG.
+    r.comment("study options fragment shown", edge="Ea73b74da")
+    # E518f89ef S_STUDYOPTIONS_FRAG -> StudyOptionsFragment$1.onClick:
+    # Start button; guard deck has cards to study.
+    r.tap(edge="E518f89ef", text="Study")
+    # E0b3abfeb onClick -> openReviewer.
+    r.comment("openReviewer", edge="E0b3abfeb")
+    # Eb58e5599 openReviewer -> Reviewer.<init>.
+    r.comment("Reviewer started", edge="Eb58e5599")
+    # Eed14720a Reviewer.<init> -> onCreate@Reviewer.
+    r.comment("Reviewer onCreate, collection loading starts",
+              edge="Eed14720a")
+    # Ed7470ef3 -> Reviewer.onCollectionLoaded (loader dispatch).
+    r.dwell(edge="Ed7470ef3", seconds=5)
+    # Ebeafa06d Reviewer.onCollectionLoaded -> DeckTask.launchDeckTask
+    # (TASK_TYPE_ANSWER_CARD with mAnswerCardHandler, Reviewer
+    # .java:96-98). This is the corrected producer: the listener
+    # registered here IS the AFV listener, unlike the printed
+    # route's LOAD_DECK_COUNTS launch.
+    r.comment("ANSWER_CARD launch with mAnswerCardHandler",
+              edge="Ebeafa06d")
+    # E749e5944 launchDeckTask -> DeckTask.onPreExecute (AsyncTask
+    # execute -> onPreExecute on the UI thread).
+    r.comment("task onPreExecute", edge="E749e5944")
+    # E0bb0a19c onPreExecute -> TaskListener.onPreExecute
+    # (dispatch to this task's listener: mAnswerCardHandler).
+    r.comment("listener onPreExecute", edge="E0bb0a19c")
+    # Eed5b25c0 TaskListener.onPreExecute ->
+    # AbstractFlashcardViewer$10.onPreExecute (mAnswerCardHandler).
+    r.comment("mAnswerCardHandler onPreExecute", edge="Eed5b25c0")
+    # Eadf19602 $10.onPreExecute -> blockControls.
+    r.comment("blockControls", edge="Eadf19602")
+    # E42fc2547 blockControls -> typeAnswer (target; predicate
+    # evaluated at AbstractFlashcardViewer.java:2449).
+    r.comment("typeAnswer predicate evaluated (target)",
+              edge="E42fc2547")
     r.done()
     return 0
 

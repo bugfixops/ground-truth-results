@@ -1,42 +1,48 @@
 #!/usr/bin/env python3
-"""AnkiDroid route_01: Phrase.<init>.
+"""AnkiDroid route_01 (final draw): Phrase.<init>.
 
-Target: Phrase.<init> (glosbe json Phrase, implicit default constructor).
-Table verdict: WRONG (first-draw verdict; this script drives the
-    CORRECTED route C01, never the printed BFS route).
-Route followed: CORRECTED route C01 from
-    helper/b6fix-r01-06/CORRECTED_ROUTES.md, with the final-graph edge
-    ids from route_table.md row 01 (35 edges). The printed BFS route
-    launched LOAD_DECK_COUNTS then took the RENDER_BROWSER_QA branch;
-    this script follows the LOAD_DECK_COUNTS dispatch, the deck-list
-    page, and the drawer CardBrowser launch instead.
-Preconditions/fixtures:
-  - Collection open, with a deck and a note whose first field has
-    non-empty text (the media button needs it, and the translate
-    button needs non-empty source text).
-  - Network on: glosbe.com reachable. The corrected env is Glosbe,
-    NOT the AnkiWeb sync server named in the printed route.
+Target: Phrase.<init> (Glosbe JSON Phrase, reflective Gson construction).
+Table verdict: CORRECT (final draw, 38 steps; the BFS route IS the
+    judged route, so this script drives the BFS route, not a
+    corrected route).
+Route followed: final-draw BFS route from helper/judge-final/
+    route_01.txt, edge ids verified against
+    graphs/AnkiDroid/out/ankidroid_trigger_graph.json and
+    methods.csv (route_edge_ids identical). Head changed vs the
+    first-draw script: StudyOptionsFragment -> Reviewer -> drawer
+    -> CardBrowser (steps 4-16), not the old deck-list drawer head.
+    Tail from CardBrowser onward matches the old script.
+Preconditions (see ROUTES_rows.csv setup cell):
+  - Collection open, deck with cards to study, a note whose first
+    field has non-empty text (media button needs it, and the
+    translate button needs non-empty source text).
+  - Network on: glosbe.com reachable. The env is Glosbe, NOT the
+    AnkiWeb sync server named in the methods.csv env prose.
   - Translation language spinners: if their defaults are empty, run
-    setup must pre-set translatorLastLanguageFrom/To preferences to a
-    valid pair; verify against a live run (see mapping notes).
+    setup must pre-set translatorLastLanguageFrom/To preferences to
+    a valid pair; verify against a live run.
 Mapping notes:
-  - The drawer-open tap and the "Card browser" tap share edge
-    Ed1dad133 (two log lines, one edge; same convention as the
-    harness rotate, which logs two lines for one edge). The same
-    applies to the "More options" tap and the "Add note" tap
-    (E0281e707 / E37ba8c1f).
-  - DeckPicker$22.onPostExecute -> S_DECKPICKER is a page
-    abstraction with no dedicated graph edge; it is noted in the
-    E10a14596 comment, not given an invented id.
-  - The final edge Edd1d361a (showPickTranslationDialog ->
-    Phrase.<init>) is INFERRED: no printed Gson library source shows
-    Gson reflectively invoking Phrase.<init>. The script drives every
-    UI step up to the pick-translation dialog; the construction
-    itself is a library consequence, logged with r.comment.
+  - Selectors verified against the printed tree: "Study"
+    (studyoptions_start string), "Card browser" (nav_browser title),
+    "Add note" (menu_add_note string), media-button content
+    description "Attach multimedia content to the note"
+    (card_multimedia_editline.xml + multimedia_editor_attach_mm_content),
+    "Translation" (multimedia_editor_text_field_editing_translate),
+    "Glosbe.com" (BasicTextFieldController.java:169 source list),
+    "Translate" (multimedia_editor_trans_translate).
   - The "Navigate up" and "More options" content descriptions are
     the standard framework/AppCompat descriptions; verify them
-    against a live uiautomator dump before a real run, as the
-    Currency route_01 script does for its one unverified selector.
+    against a live uiautomator dump before a real run.
+  - The drawer-open tap and the "Card browser" tap share edge
+    E0b2882d5 (two log lines, one edge); the same applies to the
+    "More options" tap and the "Add note" tap (E0281e707 /
+    E37ba8c1f).
+  - The final edge Edd1d361a (showPickTranslationDialog ->
+    Phrase.<init>) is INFERRED: no printed Gson library source shows
+    Gson reflectively invoking Phrase.<init>. The script drives
+    every UI step up to the pick-translation dialog; the
+    construction itself is a library consequence, logged with
+    r.comment.
 Launcher: com.ichi2.anki/.IntentHandler (AndroidManifest.xml:81-89,
     MAIN/LAUNCHER). run_app.sh already does pm clear, permission
     grants, fixture pushes, and per-app setup before this script, so
@@ -52,13 +58,14 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 from device.harness import Runner  # noqa: E402
 
 EDGE_IDS = [
-    "E48de6d58", "E26d20f74", "E1ad4ef9b", "E553ad2d8", "E0b111c68",
-    "E8b5d2971", "E460971ee", "Ee1634710", "E3e610385", "Eee369b5f",
-    "E10a14596", "Ed1dad133", "E0e89f361", "Eb06cba16", "E352d419a",
-    "E0281e707", "E37ba8c1f", "E94833ec9", "E44749e19", "Ed63b7964",
-    "E7b61f827", "Eb7034235", "Ed31d10af", "Eabfa7572", "E92aeb8ec",
-    "Ebb46b041", "E31bccb82", "Eaa5fd795", "E57ec0f8c", "Ece92d132",
-    "E4591472f", "E2c3f2e9e", "Eb9c36e0c", "Ec32ee4bb", "Edd1d361a",
+    "E48de6d58", "E26d20f74", "E1ad4ef9b", "E5906a191", "Ef3e13961",
+    "Eae89b47b", "Ea73b74da", "E518f89ef", "E0b3abfeb", "Eb58e5599",
+    "Eed14720a", "Ed7470ef3", "Ea375fff8", "E0b2882d5", "Ea0eba485",
+    "E0e89f361", "Eb06cba16", "E352d419a", "E0281e707", "E37ba8c1f",
+    "E94833ec9", "E44749e19", "Ed63b7964", "E7b61f827", "Eb7034235",
+    "Ed31d10af", "Eabfa7572", "E92aeb8ec", "Ebb46b041", "E31bccb82",
+    "Eaa5fd795", "E57ec0f8c", "Ece92d132", "E4591472f", "E2c3f2e9e",
+    "Eb9c36e0c", "Ec32ee4bb", "Edd1d361a",
 ]
 
 
@@ -75,39 +82,48 @@ def main(argv=None):
                outdir=args.outdir)
     # E48de6d58 S_ENTRY -> IntentHandler.onCreate: launch MAIN/LAUNCHER.
     r.launch(args.package + "/.IntentHandler", edge="E48de6d58")
-    # E26d20f74 IntentHandler.onCreate -> DeckPicker.<init> (else branch).
+    # E26d20f74 IntentHandler.onCreate -> DeckPicker.<init>.
     r.comment("IntentHandler else branch starts DeckPicker",
               edge="E26d20f74")
     # E1ad4ef9b DeckPicker.<init> -> DeckPicker.onCreate.
     r.comment("system instantiates DeckPicker, then onCreate",
               edge="E1ad4ef9b")
-    # E553ad2d8 DeckPicker.onCreate -> DeckPicker.onResume.
-    r.comment("onStart -> onResume", edge="E553ad2d8")
-    # E0b111c68 DeckPicker.onResume -> DeckPicker.updateDeckList
-    # (guard: not mSyncOnResume and colIsOpen()).
-    r.comment("resume takes updateDeckList (not sync)", edge="E0b111c68")
-    # E8b5d2971 updateDeckList -> launchDeckTask (LOAD_DECK_COUNTS).
-    r.comment("launchDeckTask TASK_TYPE_LOAD_DECK_COUNTS",
-              edge="E8b5d2971")
-    # E460971ee launchDeckTask -> doInBackground.
-    r.comment("DeckTask execute -> doInBackground", edge="E460971ee")
-    # Ee1634710 doInBackground -> doInBackgroundLoadDeckCounts
-    # (DeckTask.java:234-235; the RENDER_BROWSER_QA case is not taken).
-    r.comment("dispatch takes LOAD_DECK_COUNTS case", edge="Ee1634710")
-    # E3e610385 doInBackground -> onPostExecute (framework delivery).
-    r.dwell(edge="E3e610385", seconds=5)
-    # Eee369b5f onPostExecute -> TaskListener.onPostExecute.
-    r.comment("listener onPostExecute", edge="Eee369b5f")
-    # E10a14596 TaskListener -> DeckPicker$22.onPostExecute; the deck
-    # list is built, so the app is on the deck-picker page (page
-    # abstraction: no dedicated graph edge for $22 -> S_DECKPICKER).
-    r.comment("updateDeckList listener; deck list built, deck-picker "
-              "page shown (page abstraction, no dedicated edge)",
-              edge="E10a14596")
-    # Ed1dad133 S_DECKPICKER -> DeckPicker.openCardBrowser: open the
-    # drawer, then tap the nav_browser item ("Card browser").
-    r.tap(edge="Ed1dad133", desc="Navigate up")
-    r.tap(edge="Ed1dad133", text="Card browser")
+    # E5906a191 DeckPicker.onCreate -> showStartupScreensAndDialogs
+    # (colOpen branch, DeckPicker.java:417).
+    r.comment("showStartupScreensAndDialogs (collection open)",
+              edge="E5906a191")
+    # Ef3e13961 showStartupScreensAndDialogs -> onFinishedStartup.
+    r.comment("onFinishedStartup", edge="Ef3e13961")
+    # Eae89b47b onFinishedStartup -> loadStudyOptionsFragment.
+    r.comment("loadStudyOptionsFragment", edge="Eae89b47b")
+    # Ea73b74da loadStudyOptionsFragment -> S_STUDYOPTIONS_FRAG
+    # (fragment replace/commit, DeckPicker.java:1650-1655).
+    r.comment("study options fragment shown", edge="Ea73b74da")
+    # E518f89ef S_STUDYOPTIONS_FRAG -> StudyOptionsFragment$1.onClick:
+    # tap Study; cards due, so content is not CONGRATS and the click
+    # calls openReviewer (StudyOptionsFragment.java:120-136).
+    r.tap(edge="E518f89ef", text="Study")
+    # E0b3abfeb $1.onClick -> openReviewer.
+    r.comment("openReviewer", edge="E0b3abfeb")
+    # Eb58e5599 openReviewer -> Reviewer.<init> (Intent).
+    r.comment("startActivity Reviewer", edge="Eb58e5599")
+    # Eed14720a Reviewer.<init> -> AbstractFlashcardViewer.onCreate
+    # @Reviewer.
+    r.comment("Reviewer onCreate", edge="Eed14720a")
+    # Ed7470ef3 onCreate -> Reviewer.onCollectionLoaded (collection
+    # load via AnkiActivity).
+    r.dwell(edge="Ed7470ef3", seconds=5)
+    # Ea375fff8 onCollectionLoaded -> S_REVIEWER.
+    r.comment("Reviewer page shown", edge="Ea375fff8")
+    # E0b2882d5 S_REVIEWER -> NavigationDrawerActivity
+    # .onNavigationItemSelected: open the drawer, then tap the
+    # nav_browser item ("Card browser").
+    r.tap(edge="E0b2882d5", desc="Navigate up")
+    r.tap(edge="E0b2882d5", text="Card browser")
+    # Ea0eba485 onNavigationItemSelected -> DeckPicker.openCardBrowser
+    # (nav_browser case, NavigationDrawerActivity.java:262-264).
+    r.comment("drawer nav_browser opens CardBrowser",
+              edge="Ea0eba485")
     # E0e89f361 openCardBrowser -> CardBrowser.<init> (Intent).
     r.comment("startActivityForResult CardBrowser", edge="E0e89f361")
     # Eb06cba16 CardBrowser.<init> -> CardBrowser.onCreate.
@@ -119,15 +135,14 @@ def main(argv=None):
     # open the options menu.
     r.tap(edge="E0281e707", desc="More options")
     # E37ba8c1f onOptionsItemSelected -> S_NOTEEDITOR (Add note item,
-    # drawer toggle does not consume the item; guard !editModelMode
-    # is satisfied by the next tap's target, see below).
+    # CardBrowser.java:630-634).
     r.tap(edge="E37ba8c1f", text="Add note")
     # E94833ec9 S_NOTEEDITOR -> NoteEditor$11.onClick: tap the media
     # button of a field with non-empty text.
     r.tap(edge="E94833ec9",
           desc="Attach multimedia content to the note")
     # E44749e19 $11.onClick -> startMultimediaFieldEditor
-    # (guard: field text non-empty).
+    # (guard: field text non-empty, NoteEditor.java:1135-1141).
     r.comment("startMultimediaFieldEditor (field text non-empty)",
               edge="E44749e19")
     # Ed63b7964 -> MultimediaEditFieldActivity.<init>.

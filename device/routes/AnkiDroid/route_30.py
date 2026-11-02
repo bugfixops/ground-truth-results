@@ -1,52 +1,48 @@
 #!/usr/bin/env python3
-"""AnkiDroid route_30: Models._availClozeOrds(JSONObject,String,boolean).
+"""AnkiDroid final-draw route_30: SimpleMessageDialog.<init>.
 
-Method: Models._availClozeOrds(JSONObject,String,boolean)
-Target verdict: WRONG (route_table.md route 30)
-Route followed: the CORRECTED route via DeckTask SAVE_MODEL (10
-    corrected steps, expanded here with the UI prefix to the
-    template editor), never the BFS old-DeckPicker prefix: that
-    prefix is guard-inconsistent, because save(m,false) at
-    Models.java:174 cannot satisfy the templates==true guard on the
-    save -> _syncTemplates edge (Models.java:191-192).
-Edge ids in order (prefix 15 + SAVE_MODEL chain 10):
-    E48de6d58 E26d20f74 E1ad4ef9b Eb3058057 Ed1dad133 E0e89f361
-    Eb06cba16 E352d419a E0281e707 E37ba8c1f E43fdf761 E1daab677
-    Ee8a3d32e E9d2d3b7f E731864d1 Ef2bc6ed3 E982d45bb E460971ee
-    E5de4e7fd Eace758ad E9003799e Eb5a7a949 E3185702b E459f83ca
-    Eda12e377
-Sources: route_table.md route 30; helper/b6fix-r25-30/
-    CORRECTED_ROUTES.md route 30.
-Permissions: android.permission.WRITE_EXTERNAL_STORAGE (graph env on
-    Eb3058057; see route_16 for the full manifest list).
-Fixtures: collection file exists; template editor opened from a
-    note; template text edited, so modelHasChanged is true; the
-    model has an id (m non-null, has id, id != 0); the model type
-    is MODEL_CLOZE; the notes query returns at least one row, so
-    genCards runs availOrds.
-Launcher: <package>/.IntentHandler (AndroidManifest.xml:81-89,
-    MAIN/LAUNCHER). run_app.sh setup precedes this script; see
-    route_16. At merge time this file lives under
-    device/routes/AnkiDroid/, so the import matches Currency.
-
+Target: SimpleMessageDialog.<init> (the fragment's constructor,
+    SimpleMessageDialog.java:23: new SimpleMessageDialog()).
+Table verdict: WRONG (final draw, route_table.md row 30; corrected
+    route). The printed BFS route entered the LOAD_FAILED dialog but
+    exited via the CONFIRM_DATABASE_CHECK dialog's onPositive, a
+    wrong-dialog-id fiction identical to route_24 step 5. The
+    corrected route below replaces the prefix with the
+    collection-open prefix (as route_24): DeckPicker menu
+    action_check_database -> CONFIRM dialog -> onPositive ->
+    integrityCheck -> printed steps 6-10.
+Route followed: corrected route, 12 edges, derived from the graph
+    JSON by src/dst pairs and verified contiguous (see NOTES.md).
+    This script is adapted from first-draw route_08, but the target
+    is DIFFERENT and the adaptation is not blind: first-draw
+    route_08 targeted SimpleMessageDialog$1.<init> (a dialog-button
+    callback, reached via two further edges Ea9d64477 and
+    E79016988 after <init>); this script STOPS at <init>
+    (E24224498) and does not use those two edges at all. The menu
+    prefix and the integrity-check tail through newInstance are
+    shared with route_08 and are reused.
+Preconditions/fixtures:
+  - Collection open; SD card available so the Check database menu
+    item is enabled (DeckPicker.java:528).
+  - The integrity check completes with result non-null and true
+    (DeckPicker.java:1170), so showSimpleMessageDialog runs instead
+    of handleDbError. Whether a healthy collection yields that
+    result is flagged in NOTES.md (inherited from route_08's
+    assumption flag); if a healthy check shows no message dialog,
+    this script diverges at that step. No file fixture is pushed.
 Mapping notes:
-  - Drawer and menu selectors ("Card browser", "Add", "Cards",
-    "Save model") are UI strings not fixed by the graph edges;
-    verify them against a live uiautomator dump before a real run.
-  - Text input uses r.type_text, proven by the shared harness copy
-    (device/stage/device/harness/harness.py: type_text(s, edge)).
-    The template text is edited by appending " edited" to the
-    focused template field, so modelHasChanged is true before Save
-    model is tapped. This assumes the template field is focused on
-    entry; verify the focus target on a live dump, and tap the
-    field first if it is not focused. The typing is logged against
-    the next edge in script order (Ef2bc6ed3, the Save press).
-  - The provider route (CardContentProvider.java:609, also
-    save(m,true)) was not chosen: the DeckTask route is the app's
-    own model-save flow.
-  - A guard-checking redraw must reject the old DeckPicker prefix
-    in favour of this SAVE_MODEL prefix; the builder's best route
-    still shows the old prefix because it ignores guard text.
+  - Menu texts: "Check database" (check_db string; also used by
+    first-draw route_08) and "OK" (dialog_ok string) for the
+    CONFIRM dialog's positive button. The "More options" content
+    description is the standard AppCompat overflow description;
+    verify it against a live uiautomator dump.
+  - NO $16 edge is used anywhere: bytecode shows $15 =
+    CHECK_DATABASE and $16 = CHECK_MEDIA, so the task listener here
+    is DeckPicker$15 (CHECK_DATABASE), as in first-draw route_08.
+  - The <init> step itself is automatic (newInstance allocates the
+    fragment); no onCreateDialog step is claimed, unlike route_08.
+  - No live run is claimed by this script.
+Launcher: com.ichi2.anki/.IntentHandler (AndroidManifest.xml:81-89).
 """
 
 import argparse
@@ -58,11 +54,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 from device.harness import Runner  # noqa: E402
 
 EDGE_IDS = [
-    "E48de6d58", "E26d20f74", "E1ad4ef9b", "Eb3058057", "Ed1dad133",
-    "E0e89f361", "Eb06cba16", "E352d419a", "E0281e707", "E37ba8c1f",
-    "E43fdf761", "E1daab677", "Ee8a3d32e", "E9d2d3b7f", "E731864d1",
-    "Ef2bc6ed3", "E982d45bb", "E460971ee", "E5de4e7fd", "Eace758ad",
-    "E9003799e", "Eb5a7a949", "E3185702b", "E459f83ca", "Eda12e377",
+    "E48de6d58", "E26d20f74", "E1ad4ef9b", "Eb3058057", "Ec0803f80",
+    "E044ff236", "Ea13b2167", "E748990b0", "E3f20427c", "E32539324",
+    "Eb4497af8", "E24224498",
 ]
 
 
@@ -77,87 +71,46 @@ def main(argv=None):
     r = Runner(package=args.package, route="route_30", edge_ids=EDGE_IDS,
                log_path=args.log, dry_run=args.dry_run, adb=args.adb,
                outdir=args.outdir)
-    # E48de6d58 S_ENTRY -> IntentHandler.onCreate.
+    # E48de6d58 S_ENTRY -> IntentHandler.onCreate: launch MAIN/LAUNCHER.
     r.launch(args.package + "/.IntentHandler", edge="E48de6d58")
     # E26d20f74 IntentHandler.onCreate -> DeckPicker.<init>.
-    r.comment("launcher else branch starts DeckPicker", edge="E26d20f74")
+    r.comment("IntentHandler else branch starts DeckPicker",
+              edge="E26d20f74")
     # E1ad4ef9b DeckPicker.<init> -> DeckPicker.onCreate.
     r.comment("system instantiates DeckPicker, then onCreate",
               edge="E1ad4ef9b")
-    # Eb3058057 DeckPicker.onCreate -> S_DECKPICKER.
-    r.comment("DeckPicker page shown, collection open", edge="Eb3058057")
-    # Ed1dad133 S_DECKPICKER -> DeckPicker.openCardBrowser: drawer
-    # item nav_browser.
-    r.tap(edge="Ed1dad133", text="Card browser")
-    # E0e89f361 DeckPicker.openCardBrowser -> CardBrowser.<init>.
-    r.comment("CardBrowser started", edge="E0e89f361")
-    # Eb06cba16 CardBrowser.<init> -> CardBrowser.onCreate.
-    r.comment("system instantiates CardBrowser, then onCreate",
-              edge="Eb06cba16")
-    # E352d419a CardBrowser.onCreate -> S_CARDBROWSER.
-    r.comment("card browser page shown", edge="E352d419a")
-    # E0281e707 S_CARDBROWSER -> CardBrowser.onOptionsItemSelected.
-    r.tap(edge="E0281e707", text="Add")
-    # E37ba8c1f CardBrowser.onOptionsItemSelected -> S_NOTEEDITOR:
-    # guard action_add_card_from_card_browser, drawer toggle does
-    # not consume the item. Automatic after the tap.
-    r.comment("note editor page shown (add-card flow)",
-              edge="E37ba8c1f")
-    # E43fdf761 S_NOTEEDITOR -> NoteEditor$2.onClick: tap the Cards
-    # button (NoteEditor.java:352-353, 357).
-    r.tap(edge="E43fdf761", text="Cards")
-    # E1daab677 NoteEditor$2.onClick ->
-    # NoteEditor.showCardTemplateEditor. Automatic.
-    r.comment("template editor requested", edge="E1daab677")
-    # Ee8a3d32e NoteEditor.showCardTemplateEditor ->
-    # CardTemplateEditor.<init> (valid model id required). Automatic.
-    r.comment("template editor started", edge="Ee8a3d32e")
-    # E9d2d3b7f CardTemplateEditor.<init> ->
-    # CardTemplateEditor.onCreate.
-    r.comment("system instantiates template editor, then onCreate",
-              edge="E9d2d3b7f")
-    # E731864d1 CardTemplateEditor.onCreate -> S_CARDTEMPLATEEDITOR.
-    r.comment("template editor page shown", edge="E731864d1")
-    # Edit the template text so modelHasChanged is true (see
-    # header for the focus assumption).
-    r.type_text(" edited", edge="Ef2bc6ed3")
-    # Ef2bc6ed3 S_CARDTEMPLATEEDITOR ->
-    # CardTemplateEditor$CardTemplateFragment.onOptionsItemSelected:
-    # tap Save model (action_confirm, modelHasChanged true,
-    # CardTemplateEditor.java:507-512).
-    r.tap(edge="Ef2bc6ed3", text="Save model")
-    # E982d45bb fragment onOptionsItemSelected ->
-    # DeckTask.launchDeckTask (TASK_TYPE_SAVE_MODEL,
-    # mSaveModelAndExitHandler, :512). Automatic after the tap.
-    r.comment("SAVE_MODEL task launched", edge="E982d45bb")
-    # E460971ee DeckTask.launchDeckTask -> DeckTask.doInBackground.
-    r.comment("task running", edge="E460971ee")
-    # E5de4e7fd DeckTask.doInBackground ->
-    # DeckTask.doInBackgroundSaveModel (TASK_TYPE_SAVE_MODEL case,
-    # :330-331). Automatic.
-    r.comment("save-model task running", edge="E5de4e7fd")
-    # Eace758ad DeckTask.doInBackgroundSaveModel ->
-    # Models.save(JSONObject,boolean): save(m,true) at :1075.
-    r.comment("model saved with templates true", edge="Eace758ad")
-    # E9003799e Models.save(JSONObject,boolean) ->
-    # Models._syncTemplates: guard templates true and m non-null
-    # with id and id != 0 (Models.java:191-192). Automatic.
-    r.comment("templates synced", edge="E9003799e")
-    # Eb5a7a949 Models._syncTemplates -> Collection.genCards(long[])
-    # (Models.java:884-885). Automatic.
-    r.comment("cards generated", edge="Eb5a7a949")
-    # E3185702b Collection.genCards(long[]) -> Models.availOrds:
-    # guard notes query returns at least one row (:653). Automatic.
-    r.comment("available ords computed", edge="E3185702b")
-    # E459f83ca Models.availOrds ->
-    # Models._availClozeOrds(JSONObject,String): guard model type
-    # MODEL_CLOZE (Models.java:1127-1129). Automatic.
-    r.comment("cloze ords computed", edge="E459f83ca")
-    # Eda12e377 Models._availClozeOrds(JSONObject,String) ->
-    # Models._availClozeOrds(JSONObject,String,boolean): unconditional
-    # delegation (Models.java:1185-1186). Automatic; target edge.
-    r.comment("cloze ords with boolean flag reached",
-              edge="Eda12e377")
+    # Eb3058057 DeckPicker.onCreate -> S_DECKPICKER (collection open;
+    # this open-collection state is required, unlike the printed
+    # route's not-colOpen entry).
+    r.comment("deck-picker page shown, collection open",
+              edge="Eb3058057")
+    # Ec0803f80 S_DECKPICKER -> DeckPicker.onOptionsItemSelected:
+    # open the options menu.
+    r.tap(edge="Ec0803f80", desc="More options")
+    # E044ff236 onOptionsItemSelected -> S_DLG_DATABASE_ERROR
+    # (action_check_database -> CONFIRM_DATABASE_CHECK dialog).
+    r.tap(edge="E044ff236", text="Check database")
+    # Ea13b2167 S_DLG_DATABASE_ERROR -> DeckPicker.integrityCheck
+    # (guard: dialog variant is DIALOG_CONFIRM_DATABASE_CHECK;
+    # positive button, DatabaseErrorDialog.java:294-302).
+    r.tap(edge="Ea13b2167", text="OK")
+    # E748990b0 integrityCheck -> DeckPicker$15.onPostExecute
+    # (CHECK_DATABASE task listener; $15, NOT $16).
+    r.dwell(edge="E748990b0", seconds=10)
+    # E3f20427c $15.onPostExecute -> showSimpleMessageDialog
+    # (guard: result != null and result.getBoolean(); else
+    # handleDbError runs instead -- see header assumption).
+    r.comment("check result shows message dialog", edge="E3f20427c")
+    # E32539324 showSimpleMessageDialog -> newInstance(String,boolean).
+    r.comment("showSimpleMessageDialog builds dialog",
+              edge="E32539324")
+    # Eb4497af8 newInstance(String,boolean) ->
+    # newInstance(String,String,boolean).
+    r.comment("newInstance delegates to 3-arg form", edge="Eb4497af8")
+    # E24224498 newInstance(String,String,boolean) ->
+    # SimpleMessageDialog.<init> (target; fragment constructor,
+    # NOT the $1 button callback of first-draw route_08).
+    r.comment("dialog instance created (target)", edge="E24224498")
     r.done()
     return 0
 

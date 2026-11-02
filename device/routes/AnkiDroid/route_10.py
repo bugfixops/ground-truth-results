@@ -1,39 +1,61 @@
 #!/usr/bin/env python3
-"""AnkiDroid route_10: Template$1.compare.
+"""AnkiDroid route_10 (final draw): Template$1.compare.
 
 Target: Template$1.compare (anonymous Comparator in
-    Template.render_unescaped tag sorting).
-Table verdict: FIXED (first-draw verdict; this script drives the
-    final BFS route from methods.csv, 15 edges).
-Route followed: final BFS route, with one documented trigger
-    substitution. The BFS head (updateDeckList -> launchDeckTask ->
-    doInBackground -> doInBackgroundRenderBrowserQA) is the graph's
-    cheapest head, but on a device the RENDER_BROWSER_QA task is
-    genuinely launched by scrolling the CardBrowser list
-    (CardBrowser.java:1156 scroll, :1170 scroll-state idle). The
-    script therefore drives drawer -> CardBrowser -> scroll, and the
-    tail edges from doInBackgroundRenderBrowserQA onward are exactly
-    the BFS tail. The merger should confirm this substitution; if
-    the BFS head is itself ruled a dispatch artifact, the script's
-    trigger is the genuine one and only the head edges change.
-Preconditions/fixtures (the F2 guard set):
-  - Collection open (colOpen).
-  - Fixture model: non-cloze, with at least one template; the card
-    being rendered has a plain tag plus a multi-modifier tag whose
-    field is absent from the context (txt == null,
-    Template.java:201-206), with >= 2 modifiers so Collections.sort
-    calls compare (Template.java:229-238). The rendered data are
-    synthetic _reqForTemplate values, not a real note.
-  - The scroll target text must be a card row visible in the
-    CardBrowser list; set FIXTURE_CARD_TEXT from setup.
+    Template.render_unescaped, Template.java:229-238).
+Table verdict: CORRECT (final draw, 17 steps; the BFS route IS the
+    judged route, so this script drives the BFS route, NOT the old
+    first-draw Template script's CardBrowser render route).
+Route followed: final-draw BFS route from helper/judge-final/
+    route_10.txt, edge ids verified against
+    graphs/AnkiDroid/out/ankidroid_trigger_graph.json and
+    methods.csv (route_edge_ids identical). No first-draw script
+    drives this route: the old route_10 script drove a
+    CardBrowser-scroll render path, which is a different prefix.
+Route shape: launch-only. On a cold start where the collection is
+    not yet open, DeckPicker.onCreate takes the colOpen==false
+    branch (permission granted, directory accessible) and calls
+    CollectionHelper.exceededCursorSizeLimit, which calls getCol;
+    getCol opens the collection via Storage.Collection when it is
+    not already open (CollectionHelper.java:99). With a stored
+    schema below SCHEMA_VERSION, Storage._upgrade runs and saves
+    each model; a saved model with non-zero id takes _updateRequired,
+    which renders each template via _reqForTemplate -> _renderQA ->
+    Template.render -> render_tags -> render_unescaped, where the
+    multi-modifier tag sort calls Template$1.compare.
+Preconditions (see ROUTES_rows.csv setup cell):
+  - Cold start with the collection not yet open;
+    WRITE_EXTERNAL_STORAGE granted; AnkiDroid directory accessible.
+  - Stored collection schema below SCHEMA_VERSION so
+    Storage._upgrade runs (Storage.java:65-67).
+  - A saved model with non-zero id (Models.java:189 guard).
+  - A non-cloze model with a template whose qfmt contains a tag
+    with at least 2 modifiers whose field is absent from the
+    _reqForTemplate context (Template.java:199-240; JDK sort calls
+    compare only for >= 2 modifiers). The _reqForTemplate values are
+    synthetic (Models.java:1079, 1082), not a real note.
+  - Judge caveat carried, not hidden: the judge's steps 4-6 note
+    describes this as a transient first-open failure followed by a
+    successful retry inside exceededCursorSizeLimit -> getCol ->
+    Storage.Collection, and states no printed line contradicts it.
+    The script drives the launch that enters this probe; whether
+    the probe's getCol open is the first or a retry open is a
+    live-run observation, flagged in NOTES.md for the live run to
+    confirm (a run whose collection opens by the ordinary
+    firstCollectionOpen path without entering the upgrade chain
+    would not reach the target).
 Mapping notes:
-  - The drawer taps and the scroll are logged under the render edge
-    E07ddaa6d, which is the edge they trigger; no graph edge exists
-    for opening the drawer or for the scroll itself.
-  - The "Navigate up" content description is the standard framework
-    description; verify it against a live uiautomator dump before a
-    real run.
-Launcher: com.ichi2.anki/.IntentHandler (AndroidManifest.xml:81-89).
+  - No UI tap exists on this route after launch: every step after
+    onCreate is an automatic collection-open/upgrade consequence,
+    logged with r.comment (and one dwell for the open/upgrade).
+  - The final edge Ef98eff28 (render_unescaped -> Template$1
+    .compare) is a JDK sort dispatch, INFERRED (java.util not in
+    the tree); the comparator's existence at Template.java:229-238
+    is printed.
+Launcher: com.ichi2.anki/.IntentHandler (AndroidManifest.xml:81-89,
+    MAIN/LAUNCHER). run_app.sh already does pm clear, permission
+    grants, fixture pushes, and per-app setup before this script, so
+    the script performs only the route actions starting from launch.
 """
 
 import argparse
@@ -45,14 +67,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 from device.harness import Runner  # noqa: E402
 
 EDGE_IDS = [
-    "E48de6d58", "E26d20f74", "E1ad4ef9b", "E553ad2d8", "E0b111c68",
-    "E8b5d2971", "E460971ee", "Eba94fbde", "E07ddaa6d", "E6ae91770",
-    "Ebcdf07cd", "Ef0029247", "Ef3d963e0", "E82c9f13e", "Ef98eff28",
+    "E48de6d58", "E26d20f74", "E1ad4ef9b", "E45d63a96", "E37e55142",
+    "E4c7e034e", "Eae4674b9", "E9ce50a2f", "E8c772cd2", "E2fe95109",
+    "Ed609aaee", "E61c27691", "E1eb126ee", "Ef0029247", "Ef3d963e0",
+    "E82c9f13e", "Ef98eff28",
 ]
-
-# Card row text in the CardBrowser list, from the fixture model card.
-# Set this to the fixture card's rendered text before a real run.
-FIXTURE_CARD_TEXT = "FIXTURE_CARD_TEXT"
 
 
 def main(argv=None):
@@ -74,38 +93,54 @@ def main(argv=None):
     # E1ad4ef9b DeckPicker.<init> -> DeckPicker.onCreate.
     r.comment("system instantiates DeckPicker, then onCreate",
               edge="E1ad4ef9b")
-    # E553ad2d8 DeckPicker.onCreate -> DeckPicker.onResume.
-    r.comment("onStart -> onResume", edge="E553ad2d8")
-    # E0b111c68 onResume -> updateDeckList.
-    r.comment("deck list loads", edge="E0b111c68")
-    # E8b5d2971 updateDeckList -> launchDeckTask (BFS head edge).
-    r.comment("BFS head: launchDeckTask (see header: genuine trigger "
-              "is the CardBrowser scroll below)", edge="E8b5d2971")
-    # E460971ee launchDeckTask -> doInBackground.
-    r.comment("DeckTask execute -> doInBackground", edge="E460971ee")
-    # Eba94fbde doInBackground -> doInBackgroundRenderBrowserQA.
-    r.comment("render task (genuinely launched by CardBrowser scroll)",
-              edge="Eba94fbde")
-    # E07ddaa6d doInBackgroundRenderBrowserQA ->
-    # CardBrowser.updateSearchItemQA: open the drawer, open the
-    # CardBrowser, and scroll its list to fire the render task.
-    r.tap(edge="E07ddaa6d", desc="Navigate up")
-    r.tap(edge="E07ddaa6d", text="Card browser")
-    r.scroll_to(edge="E07ddaa6d", text=FIXTURE_CARD_TEXT)
-    # E6ae91770 updateSearchItemQA -> Card._getQA(boolean,boolean).
-    r.comment("render QA for the browser item", edge="E6ae91770")
-    # Ebcdf07cd Card._getQA -> Collection._renderQA.
-    r.comment("collection renders QA", edge="Ebcdf07cd")
-    # Ef0029247 _renderQA -> Template.render.
+    # E45d63a96 DeckPicker.onCreate -> CollectionHelper
+    # .exceededCursorSizeLimit (colOpen==false else-branch,
+    # DeckPicker.java:430; permission granted, directory accessible).
+    r.comment("collection-open probe (colOpen false branch)",
+              edge="E45d63a96")
+    # E37e55142 exceededCursorSizeLimit -> CollectionHelper.getCol
+    # (CollectionHelper.java:126, inside the probe).
+    r.comment("probe calls getCol", edge="E37e55142")
+    # E4c7e034e getCol -> Storage.Collection (CollectionHelper
+    # .java:99, when not already open).
+    r.dwell(edge="E4c7e034e", seconds=5)
+    # Eae4674b9 Storage.Collection -> Storage._upgrade (old-schema
+    # condition, Storage.java:65-67).
+    r.comment("old schema -> _upgrade", edge="Eae4674b9")
+    # E9ce50a2f _upgrade -> Models.save(JSONObject) (Storage
+    # .java:227 upgrade block, per model).
+    r.comment("upgrade saves each model", edge="E9ce50a2f")
+    # E8c772cd2 save(JSONObject) -> save(JSONObject,boolean)
+    # (Models.java:174).
+    r.comment("save delegates", edge="E8c772cd2")
+    # E2fe95109 save(JSONObject,boolean) -> _updateRequired
+    # (Models.java:189, non-zero-id condition).
+    r.comment("_updateRequired (non-zero model id)", edge="E2fe95109")
+    # Ed609aaee _updateRequired -> _reqForTemplate (Models.java:1056,
+    # per template).
+    r.comment("_reqForTemplate", edge="Ed609aaee")
+    # E61c27691 _reqForTemplate -> Collection._renderQA(Object[])
+    # (Models.java:1082, :1085, :1095, :1105; synthetic field values
+    # at :1079, :1082).
+    r.comment("_renderQA with synthetic values", edge="E61c27691")
+    # E1eb126ee _renderQA(Object[]) -> _renderQA(Object[],String,
+    # String) (Collection.java:962).
+    r.comment("_renderQA overload", edge="E1eb126ee")
+    # Ef0029247 _renderQA -> Template.render (Collection.java:1009,
+    # new Template(format, fields).render()).
     r.comment("Template.render", edge="Ef0029247")
-    # Ef3d963e0 Template.render -> render_tags.
+    # Ef3d963e0 render -> render_tags (Template.java:89).
     r.comment("render_tags", edge="Ef3d963e0")
-    # E82c9f13e render_tags -> render_unescaped.
+    # E82c9f13e render_tags -> render_unescaped (Template.java:
+    # 169-170, untyped tag).
     r.comment("render_unescaped", edge="E82c9f13e")
     # Ef98eff28 render_unescaped -> Template$1.compare (target;
-    # fixture model conditions from the header must hold).
-    r.comment("tag sort calls Template$1.compare (target)",
-              edge="Ef98eff28")
+    # Template.java:199-200 first lookup null, :209-218 multi-part
+    # tag with >= 2 modifiers and absent field, :229 sort; JDK sort
+    # dispatch INFERRED; non-cloze condition matches Collection
+    # .java:986-990 STD branch).
+    r.comment("tag sort calls Template$1.compare (target; JDK "
+              "dispatch INFERRED)", edge="Ef98eff28")
     r.done()
     return 0
 

@@ -1,45 +1,31 @@
 #!/usr/bin/env python3
-"""AnkiDroid route_18: Finder.findNotes.
+"""AnkiDroid route_18: Sched.sortCards(long[],int,int,boolean,boolean).
 
-Method: Finder.findNotes
-Target verdict: WRONG (route_table.md route 18)
-Route followed: the CORRECTED route, never the printed BFS route.
-    Rebuilt prefix R1-R7 (launcher -> DeckPicker page -> drawer
-    openCardBrowser -> CardBrowser) + the merger-redraw bridge into
-    the template editor (CardBrowser add-card steps, identical to
-    route 23 steps 13-19) + audited tail T1-T9 from
-    S_CARDTEMPLATEEDITOR. The printed CardBrowser-Previewer-result
-    continuation is NOT scripted: that Previewer was launched with
-    plain startActivity, so its result cannot return to the fragment.
-Edge ids in order:
-    E48de6d58 E26d20f74 E1ad4ef9b Eb3058057 Ed1dad133 E0e89f361
-    Eb06cba16 E352d419a E0281e707 E37ba8c1f E43fdf761 E1daab677
-    Ee8a3d32e E9d2d3b7f E731864d1 Ef2bc6ed3 E35d06ed2 E37519322
-    Ecb6f2b21 E8a25b1c0 Eb9d6a916 E2a61410a E94ef2a85 E2d26f33d
-Sources: route_table.md route 18; helper/b6fix-r13-18-rework/
-    CORRECTED_ROUTES.md section 3 (R1-R7, T1-T9).
-Permissions: android.permission.WRITE_EXTERNAL_STORAGE (graph env on
-    Eb3058057; see route_16 for the full manifest list).
-Fixtures: collection file exists; at least one deck and one note; a
-    valid model id, so showCardTemplateEditor starts the editor; a
-    real or dummy card id exists, so the Previewer does not finish
-    early (Previewer.java:35-38).
-Launcher: <package>/.IntentHandler (AndroidManifest.xml:81-89,
-    MAIN/LAUNCHER). run_app.sh setup precedes this script; see
-    route_16. At merge time this file lives under
-    device/routes/AnkiDroid/, so the import matches Currency.
-
+Target: Sched.sortCards(long[],int,int,boolean,boolean).
+Table verdict: CORRECT (final-draw verdict; this script drives the
+    printed BFS route, 19 edges, unchanged).
+Route followed: printed route: fragment -> exportDeck -> export
+    dialog -> exportApkg -> EXPORT_APKG task -> exportInto ->
+    exportFiltered -> super exportInto -> resetCards -> forgetCards
+    -> sortCards -> sortCards 5-arg.
+Preconditions: collection open; tablet/fragmented layout, so the
+    fragment toolbar shows the export item; a deck with cards to
+    export (deck id non-null, so the export dialog defaults
+    "Include scheduling" unchecked).
 Mapping notes:
-  - Drawer and menu selectors ("Card browser", "Add", "Cards",
-    "Preview") are UI strings not fixed by the graph edges; verify
-    each against a live uiautomator dump before a real run.
-  - R5 Ed1dad133 is the direct drawer edge; its expanded form is
-    E02986fa7 (drawer item selected) + Ea0eba485 (navigation handler
-    calls openCardBrowser), the same step expanded, not an extra tap.
-  - Leaving the Previewer so its for-result result returns to the
-    fragment is a Back navigation, driven by r.back, proven by the
-    shared harness copy (device/stage/device/harness/harness.py:
-    back(edge)) and by Amaze route scripts using back(edge).
+  - No old first-draw script targets this method; the export-dialog
+    walk is newly written from ExportDialog.java:58-100, with the
+    dialog default (deck export -> scheduling unchecked) verified
+    in source, so no checkbox tap is scripted.
+  - "More options" is the standard AppCompat overflow description;
+    verify it against a live uiautomator dump before a real run.
+Launcher: com.ichi2.anki/.IntentHandler (AndroidManifest.xml:81-89,
+    MAIN/LAUNCHER). run_app.sh already does pm clear, permission
+    grants, fixture pushes, and per-app setup before this script, so
+    the script performs only the route actions starting from launch.
+Draft status: final-draw device draft for the merger; dry/static
+    checks only. No live run has been performed with this script, and
+    nothing in this file claims one.
 """
 
 import argparse
@@ -51,11 +37,10 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 from device.harness import Runner  # noqa: E402
 
 EDGE_IDS = [
-    "E48de6d58", "E26d20f74", "E1ad4ef9b", "Eb3058057", "Ed1dad133",
-    "E0e89f361", "Eb06cba16", "E352d419a", "E0281e707", "E37ba8c1f",
-    "E43fdf761", "E1daab677", "Ee8a3d32e", "E9d2d3b7f", "E731864d1",
-    "Ef2bc6ed3", "E35d06ed2", "E37519322", "Ecb6f2b21", "E8a25b1c0",
-    "Eb9d6a916", "E2a61410a", "E94ef2a85", "E2d26f33d",
+    "E48de6d58", "E26d20f74", "E1ad4ef9b", "E5906a191", "Ef3e13961",
+    "Eae89b47b", "Ea73b74da", "Ec39ae90b", "E8d6724a8", "E3e8831e9",
+    "E5e4e8c54", "Eb2e355d4", "Ea376a2dd", "E087771e4", "E87da187c",
+    "Ebf658596", "E43fe9c4c", "E5d61e25c", "E1bf5f73b",
 ]
 
 
@@ -70,77 +55,63 @@ def main(argv=None):
     r = Runner(package=args.package, route="route_18", edge_ids=EDGE_IDS,
                log_path=args.log, dry_run=args.dry_run, adb=args.adb,
                outdir=args.outdir)
-    # E48de6d58 S_ENTRY -> IntentHandler.onCreate (R1).
+    # E48de6d58 S_ENTRY -> IntentHandler.onCreate: launch MAIN/LAUNCHER.
     r.launch(args.package + "/.IntentHandler", edge="E48de6d58")
-    # E26d20f74 IntentHandler.onCreate -> DeckPicker.<init> (R2).
-    r.comment("launcher else branch starts DeckPicker", edge="E26d20f74")
-    # E1ad4ef9b DeckPicker.<init> -> DeckPicker.onCreate (R3).
+    # E26d20f74 IntentHandler.onCreate -> DeckPicker.<init> (else branch).
+    r.comment("IntentHandler else branch starts DeckPicker",
+              edge="E26d20f74")
+    # E1ad4ef9b DeckPicker.<init> -> DeckPicker.onCreate.
     r.comment("system instantiates DeckPicker, then onCreate",
               edge="E1ad4ef9b")
-    # Eb3058057 DeckPicker.onCreate -> S_DECKPICKER (R4).
-    r.comment("DeckPicker page shown, collection open", edge="Eb3058057")
-    # Ed1dad133 S_DECKPICKER -> DeckPicker.openCardBrowser (R5):
-    # drawer item nav_browser, not already checked.
-    r.tap(edge="Ed1dad133", text="Card browser")
-    # E0e89f361 DeckPicker.openCardBrowser -> CardBrowser.<init> (R6).
-    r.comment("CardBrowser started for result", edge="E0e89f361")
-    # Eb06cba16 CardBrowser.<init> -> CardBrowser.onCreate (R7).
-    r.comment("system instantiates CardBrowser, then onCreate",
-              edge="Eb06cba16")
-    # E352d419a CardBrowser.onCreate -> S_CARDBROWSER.
-    r.comment("card browser page shown", edge="E352d419a")
-    # E0281e707 S_CARDBROWSER -> CardBrowser.onOptionsItemSelected:
-    # open the options menu (bridge into the template editor).
-    r.tap(edge="E0281e707", text="Add")
-    # E37ba8c1f CardBrowser.onOptionsItemSelected -> S_NOTEEDITOR:
-    # guard action_add_card_from_card_browser, drawer toggle does
-    # not consume the item. Automatic after the tap.
-    r.comment("note editor page shown (add-card flow)",
-              edge="E37ba8c1f")
-    # E43fdf761 S_NOTEEDITOR -> NoteEditor$2.onClick: tap the Cards
-    # button (NoteEditor.java:352-353, 357).
-    r.tap(edge="E43fdf761", text="Cards")
-    # E1daab677 NoteEditor$2.onClick ->
-    # NoteEditor.showCardTemplateEditor. Automatic.
-    r.comment("template editor requested", edge="E1daab677")
-    # Ee8a3d32e NoteEditor.showCardTemplateEditor ->
-    # CardTemplateEditor.<init>. Automatic.
-    r.comment("template editor started", edge="Ee8a3d32e")
-    # E9d2d3b7f CardTemplateEditor.<init> ->
-    # CardTemplateEditor.onCreate.
-    r.comment("system instantiates template editor, then onCreate",
-              edge="E9d2d3b7f")
-    # E731864d1 CardTemplateEditor.onCreate -> S_CARDTEMPLATEEDITOR.
-    r.comment("template editor page shown", edge="E731864d1")
-    # Ef2bc6ed3 S_CARDTEMPLATEEDITOR ->
-    # CardTemplateEditor$CardTemplateFragment.onOptionsItemSelected
-    # (T1): tap Preview (action_preview, card id exists).
-    r.tap(edge="Ef2bc6ed3", text="Preview")
-    # E35d06ed2 fragment onOptionsItemSelected -> Previewer.<init>
-    # (T2): started for result (REQUEST_PREVIEWER). Automatic.
-    r.comment("Previewer started for result", edge="E35d06ed2")
-    # E37519322 Previewer.<init> -> Previewer.onCreate (T3).
-    r.comment("system instantiates Previewer, then onCreate",
-              edge="E37519322")
-    # Ecb6f2b21 Previewer.onCreate -> Previewer.onCollectionLoaded
-    # (T4): card id is not -1, so no early finish. Automatic.
-    r.comment("Previewer collection loaded", edge="Ecb6f2b21")
-    # E8a25b1c0 Previewer.onCollectionLoaded -> S_PREVIEWER (T5).
-    r.comment("previewer page shown", edge="E8a25b1c0")
-    # Eb9d6a916 S_PREVIEWER ->
-    # CardTemplateEditor$CardTemplateFragment.onActivityResult (T6):
-    # valid here ONLY because this Previewer was launched for result
-    # by this fragment. Press Back to leave the Previewer.
-    r.back(edge="Eb9d6a916")
-    # E2a61410a fragment onActivityResult ->
-    # fragment.deleteDummyCards (T7). Automatic.
-    r.comment("dummy cards deleted", edge="E2a61410a")
-    # E94ef2a85 fragment.deleteDummyCards -> Collection.findNotes
-    # (T8). Automatic.
-    r.comment("findNotes called for dummy tag", edge="E94ef2a85")
-    # E2d26f33d Collection.findNotes -> Finder.findNotes (T9).
-    # Automatic; this is the target edge.
-    r.comment("Finder.findNotes reached", edge="E2d26f33d")
+    # E5906a191 DeckPicker.onCreate -> showStartupScreensAndDialogs.
+    r.comment("showStartupScreensAndDialogs", edge="E5906a191")
+    # Ef3e13961 -> onFinishedStartup.
+    r.comment("onFinishedStartup", edge="Ef3e13961")
+    # Eae89b47b -> loadStudyOptionsFragment.
+    r.comment("loadStudyOptionsFragment", edge="Eae89b47b")
+    # Ea73b74da -> S_STUDYOPTIONS_FRAG.
+    r.comment("study-options fragment page shown", edge="Ea73b74da")
+    # Ec39ae90b S_STUDYOPTIONS_FRAG -> DeckPicker.exportDeck:
+    # action_export case (StudyOptionsFragment.java:334-335).
+    # Guard: the export item is visible only in fragmented
+    # (tablet) mode (:364-370), so the run needs a tablet layout.
+    # Open the fragment toolbar menu, then tap the item. String
+    # verified in res: export_deck = "Export deck".
+    r.tap(edge="Ec39ae90b", desc="More options")
+    r.tap(edge="Ec39ae90b", text="Export deck")
+    # E8d6724a8 exportDeck -> S_DLG_EXPORT (ExportDialog).
+    r.comment("export dialog shown", edge="E8d6724a8")
+    # E3e8831e9 S_DLG_EXPORT -> DeckPicker.exportApkg: tap OK
+    # (ExportDialog positiveText is android.R.string.ok). The
+    # single consistent guard is includeSched=false: for a deck
+    # export the dialog defaults "Include scheduling" unchecked
+    # (ExportDialog.java:58-61, did != -1), so no checkbox tap is
+    # needed; if the dialog shows it checked, the live run must
+    # uncheck it first or the exportFiltered/resetCards branch
+    # will not run.
+    r.tap(edge="E3e8831e9", text="OK")
+    # E5e4e8c54 exportApkg -> DeckTask.doInBackground@EXPORT_APKG.
+    r.comment("EXPORT_APKG task launched", edge="E5e4e8c54")
+    # Eb2e355d4 -> doInBackgroundExportApkg.
+    r.comment("doInBackgroundExportApkg", edge="Eb2e355d4")
+    # Ea376a2dd -> AnkiPackageExporter.exportInto.
+    r.comment("exportInto", edge="Ea376a2dd")
+    # E087771e4 exportInto -> exportFiltered (filtered path, since
+    # the export is not the verbatim full-export case).
+    r.comment("exportFiltered", edge="E087771e4")
+    # E87da187c exportFiltered -> AnkiExporter.exportInto.
+    r.comment("super exportInto", edge="E87da187c")
+    # Ebf658596 AnkiExporter.exportInto -> Sched.resetCards (the
+    # !mIncludeSched branch, AnkiPackageExporter.java:142-149).
+    # Wait for the export to reach the reset.
+    r.dwell(edge="Ebf658596", seconds=10)
+    # E43fe9c4c resetCards -> forgetCards.
+    r.comment("forgetCards", edge="E43fe9c4c")
+    # E5d61e25c forgetCards -> sortCards(long[],int).
+    r.comment("sortCards(long[],int)", edge="E5d61e25c")
+    # E1bf5f73b sortCards(long[],int) ->
+    # sortCards(long[],int,int,boolean,boolean) (target; :2204).
+    r.comment("sortCards 5-arg reached (target)", edge="E1bf5f73b")
     r.done()
     return 0
 

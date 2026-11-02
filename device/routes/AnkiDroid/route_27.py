@@ -1,41 +1,54 @@
 #!/usr/bin/env python3
-"""AnkiDroid route_27: Decks.id(String,boolean).
+"""AnkiDroid final-draw route_27: Collection.close().
 
-Method: Decks.id(String,boolean)
-Target verdict: FIXED (route_table.md route 27)
-Route followed: the final BFS route (11 steps). The fix guards are
-    in the graph; the script must satisfy them: not mSyncOnResume
-    and collection open; focused deck differs from the current deck;
-    deck id not in the displayed deck list; deck has at least one
-    parent (name contains "::").
-Edge ids in order:
-    E48de6d58 E26d20f74 E1ad4ef9b E553ad2d8 E0b111c68 Ed294a91e
-    Edd7cc90a E70bf0011 E7e48b538 E390606b0 E5762310b
-Printed route: graphs/AnkiDroid/scratch/route_print/
-    Decks.id(String,boolean).txt
-Permissions: android.permission.WRITE_EXTERNAL_STORAGE (run_app.sh
-    grant for collection access; see route_16 for the full manifest
-    list). No graph env entry is carried on this route's edges.
-Fixtures: collection file exists; a nested deck whose name contains
-    "::" (so it has at least one parent); a stored focused deck that
-    differs from the current deck and whose id is not in the displayed
-    deck list; launch is not a sync-on-resume launch and the
-    collection is open.
-Launcher: <package>/.IntentHandler (AndroidManifest.xml:81-89,
-    MAIN/LAUNCHER). run_app.sh setup precedes this script; see
-    route_16. At merge time this file lives under
-    device/routes/AnkiDroid/, so the import matches Currency.
-
+Target: Collection.close() (via BackupManager.repairCollection).
+Table verdict: WRONG (final draw, route_table.md row 27; corrected
+    route). The printed BFS route entered the LOAD_FAILED dialog but
+    exited via the REPAIR_COLLECTION dialog's onPositive, a
+    wrong-dialog-id fiction. The corrected drive below keeps the
+    LOAD_FAILED entry and walks the real dialog chain: LOAD_FAILED
+    positive -> DIALOG_ERROR_HANDLING -> list selection "repair"
+    -> DIALOG_REPAIR_COLLECTION -> onPositive -> repairDeck ->
+    printed steps 7-10.
+Route followed: corrected route, 10 edges in ROUTES_rows.csv. The
+    graph collapses all DatabaseErrorDialog variants into the single
+    page node S_DLG_DATABASE_ERROR, so the ROUTES edge chain is the
+    page-collapsed chain (identical ids to the printed route); the
+    intermediate dialog transitions have graph edges for their
+    callbacks (E61571efb $1.onPositive, E1f36e8b7 $1 ->
+    showDatabaseErrorDialog, Ea3ee3296 $3.onSelection,
+    E49c947f6 $3 -> showDatabaseErrorDialog) but NO graph edge
+    returns from showDatabaseErrorDialog to the page node, so the
+    expanded chain cannot be made contiguous in graph terms. That
+    gap is recorded in NOTES.md; no id is invented for it. In this
+    script the three dialog taps share the page edge Ee8da2b4f
+    (multi-tap-per-edge convention, as first-draw route_01 did for
+    drawer taps), with comments naming the intermediate callbacks.
+    This script is newly written; no first-draw script corresponds
+    to this method (old route_27 was Decks.id).
+Preconditions/fixtures:
+  - Launch state in which the collection fails to load, so the
+    LOAD_FAILED dialog is shown (DeckPicker.java:431-433), AND a
+    non-null collection, because repairCollection dereferences
+    col.getPath() (BackupManager.java:243) before reaching
+    col.close() at :245. That tension is flagged in NOTES.md.
+  - sqlite3 installed on the device, so the ERROR_HANDLING "repair"
+    option (value 2) is offered (DatabaseErrorDialog.java:144-148).
+    No file fixture is pushed.
 Mapping notes:
-  - No user action is needed after launch: every step is automatic
-    once the deck list loads, given the fixtures above.
-  - FIXTURE FLAG: the exact mechanism that sets the stored focused
-    deck (which preference or intent extra sets mFocusedDeck) was
-    not re-verified in this draft beyond the guard text on
-    Edd7cc90a ("focused deck differs from current deck; result
-    non-null"). The merger must confirm the fixture sets that state
-    before a real run; if it cannot be set, this route needs a
-    different entry, not a forced tap.
+  - Dialog texts verified from source/strings, not guessed:
+    LOAD_FAILED positive is "Options" (error_handling_options);
+    ERROR_HANDLING repair item is "Repair database"
+    (backup_error_menu_repair, value 2, iff sqlite3 installed);
+    REPAIR dialog positive is "Repair" (dialog_positive_repair).
+  - REPAIR_DECK is exempt from the collection-null abort
+    (DeckTask.java:228), but repairCollection still needs a
+    non-null collection to reach close(); see header.
+  - No live run is claimed by this script.
+Launcher: com.ichi2.anki/.IntentHandler (AndroidManifest.xml:81-89,
+    MAIN/LAUNCHER). run_app.sh already does pm clear, permission
+    grants, fixture pushes, and per-app setup before this script, so
+    the script performs only the route actions starting from launch.
 """
 
 import argparse
@@ -47,9 +60,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 from device.harness import Runner  # noqa: E402
 
 EDGE_IDS = [
-    "E48de6d58", "E26d20f74", "E1ad4ef9b", "E553ad2d8", "E0b111c68",
-    "Ed294a91e", "Edd7cc90a", "E70bf0011", "E7e48b538", "E390606b0",
-    "E5762310b",
+    "E48de6d58", "E26d20f74", "E1ad4ef9b", "Ed414cece", "Ee8da2b4f",
+    "E599359e9", "Eaae76619", "Eee65a7b8", "E002ceda8", "E5eaacfc5",
 ]
 
 
@@ -64,37 +76,42 @@ def main(argv=None):
     r = Runner(package=args.package, route="route_27", edge_ids=EDGE_IDS,
                log_path=args.log, dry_run=args.dry_run, adb=args.adb,
                outdir=args.outdir)
-    # E48de6d58 S_ENTRY -> IntentHandler.onCreate.
+    # E48de6d58 S_ENTRY -> IntentHandler.onCreate: launch MAIN/LAUNCHER.
     r.launch(args.package + "/.IntentHandler", edge="E48de6d58")
     # E26d20f74 IntentHandler.onCreate -> DeckPicker.<init>.
-    r.comment("launcher else branch starts DeckPicker", edge="E26d20f74")
+    r.comment("IntentHandler else branch starts DeckPicker",
+              edge="E26d20f74")
     # E1ad4ef9b DeckPicker.<init> -> DeckPicker.onCreate.
     r.comment("system instantiates DeckPicker, then onCreate",
               edge="E1ad4ef9b")
-    # E553ad2d8 DeckPicker.onCreate -> DeckPicker.onResume.
-    r.comment("DeckPicker resumed", edge="E553ad2d8")
-    # E0b111c68 DeckPicker.onResume -> DeckPicker.updateDeckList:
-    # guard not mSyncOnResume and collection open (colIsOpen()).
-    r.comment("deck list updated", edge="E0b111c68")
-    # Ed294a91e DeckPicker.updateDeckList ->
-    # DeckPicker$22.onPostExecute. Automatic.
-    r.comment("deck list load finished", edge="Ed294a91e")
-    # Edd7cc90a DeckPicker$22.onPostExecute ->
-    # DeckPicker.scrollDecklistToDeck: guard focused deck differs
-    # from current deck, result non-null. Automatic.
-    r.comment("scroll to focused deck", edge="Edd7cc90a")
-    # E70bf0011 DeckPicker.scrollDecklistToDeck ->
-    # DeckAdapter.findDeckPosition. Automatic.
-    r.comment("deck position looked up", edge="E70bf0011")
-    # E7e48b538 DeckAdapter.findDeckPosition -> Decks.parents: guard
-    # deck id not in the displayed deck list. Automatic.
-    r.comment("deck parents walked", edge="E7e48b538")
-    # E390606b0 Decks.parents -> Decks.id(String): guard deck has at
-    # least one parent (name contains "::"). Automatic.
-    r.comment("parent deck id resolved", edge="E390606b0")
-    # E5762310b Decks.id(String) -> Decks.id(String,boolean).
-    # Automatic; this is the target edge.
-    r.comment("deck id with boolean flag reached", edge="E5762310b")
+    # Ed414cece onCreate -> S_DLG_DATABASE_ERROR (LOAD_FAILED
+    # dialog; collection did not open).
+    r.comment("LOAD_FAILED dialog shown", edge="Ed414cece")
+    # Ee8da2b4f S_DLG_DATABASE_ERROR -> DatabaseErrorDialog$4
+    # .onPositive, via the real intermediate chain (page-collapsed;
+    # see header): LOAD_FAILED positive ("Options", $1.onPositive
+    # E61571efb -> showDatabaseErrorDialog E1f36e8b7) shows
+    # ERROR_HANDLING; its "Repair database" item ($3.onSelection
+    # Ea3ee3296 -> showDatabaseErrorDialog E49c947f6) shows
+    # REPAIR_COLLECTION; the return-to-page step has no graph edge.
+    r.tap(edge="Ee8da2b4f", text="Options")
+    r.tap(edge="Ee8da2b4f", text="Repair database")
+    # Ee8da2b4f (same page edge): REPAIR dialog positive "Repair"
+    # -> repairDeck (DatabaseErrorDialog.java:207-212).
+    r.tap(edge="Ee8da2b4f", text="Repair")
+    # E599359e9 $4.onPositive -> DeckPicker.repairDeck.
+    r.comment("repairDeck", edge="E599359e9")
+    # Eaae76619 repairDeck -> DeckTask.doInBackground@REPAIR_DECK
+    # (launchDeckTask TASK_TYPE_REPAIR_DECK).
+    r.dwell(edge="Eaae76619", seconds=10)
+    # Eee65a7b8 -> doInBackgroundRepairDeck (task-type dispatch).
+    r.comment("repair-deck background work", edge="Eee65a7b8")
+    # E002ceda8 -> BackupManager.repairCollection (col.close(false)
+    # first if col != null, then repair).
+    r.comment("repairCollection", edge="E002ceda8")
+    # E5eaacfc5 repairCollection -> Collection.close() (target;
+    # requires col != null, BackupManager.java:243-245).
+    r.comment("Collection.close (target)", edge="E5eaacfc5")
     r.done()
     return 0
 

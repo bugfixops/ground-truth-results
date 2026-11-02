@@ -1,38 +1,80 @@
 #!/usr/bin/env python3
-"""AnkiDroid route_07: libanki.Utils$1.<init>.
+"""AnkiDroid route_07 (final draw): MediaCheckDialog$3.<init>.
 
-Target: libanki.Utils$1.<init> (anonymous FileFilter in
-    getImportableDecks, Utils.java:910).
-Table verdict: WRONG (first-draw verdict; this script drives the
-    CORRECTED derivation, never the printed BFS route).
-Route followed: CORRECTED derivation (SELECT entry) from
-    helper/b6fix-r07-12/CORRECTED_ROUTES.md, with final-graph edge
-    ids (18 edges, second instance repeated). The printed route
-    fixed the dialog id to DIALOG_IMPORT_ADD_CONFIRM, whose case
-    never calls getImportableDecks; only the SELECT case does. This
-    script enters through the HINT dialog: menu Import -> HINT ->
-    positive -> SELECT.
-Preconditions/fixtures:
-  - Collection open; Import menu reachable.
-  - The AnkiDroid directory exists and is a directory, so the
-    getImportableDecks guard (dir.exists() and dir.isDirectory(),
-    Utils.java:909-910) holds and the FileFilter is instantiated.
+Target: MediaCheckDialog$3.<init> (the RESULTS-dialog OK callback
+    for the unused-empty branch; MediaCheckDialog.java:132-139).
+    $3.<init> runs at dialog creation when onCreateDialog takes
+    the RESULTS branch with unused empty, before any button tap,
+    so the script performs no tap after the media check finishes.
+Table verdict: CORRECT (final draw, 16 steps on the BFS sync path;
+    see the table-vs-device-row distinction below). The BFS route
+    IS the judged route, but this device row is RE-DERIVED via the
+    menu entry to the same mediaCheck tail, exactly as WRONG rows'
+    device rows use corrected derivations. The re-derivation is
+    required because the BFS entry needs a real AnkiWeb account
+    plus a real sync whose server result is mediaSyncServerError,
+    which CI cannot do; the menu entry needs no account, no sync,
+    and no server result. The table verdict CORRECT stands
+    unchanged on the BFS sync path; only the device drive changes.
+Route followed: the 14-edge menu chain verified contiguous
+    against graphs/AnkiDroid/out/ankidroid_trigger_graph.json
+    (first src S_ENTRY, each dst equals the next src, last dst
+    MediaCheckDialog$3.<init>). Steps 1-5 are the shared
+    collection-open head (identical ids to the BFS head through
+    S_DECKPICKER); steps 6-14 are the menu entry plus the tail
+    identical to the printed route's steps 11-16:
+    DeckPicker options menu case R.id.action_check_media
+    (DeckPicker.java:600-602) -> showMediaCheckDialog(
+    DIALOG_CONFIRM_MEDIA_CHECK) -> confirm-dialog OK ->
+    MediaCheckDialog$1.onPositive -> DeckPicker.mediaCheck
+    (MediaCheckDialog.java:70) -> $16.onPostExecute ->
+    showMediaCheckDialog(int, List) (DeckPicker.java:1207,
+    success branch result.getBoolean()) -> newInstance(int, List)
+    -> <init> -> onCreateDialog -> $3.<init>.
+    This chain is a REWRITE, not a reuse: the old first-draw
+    route_07.py targeted a different method (libanki.Utils$1)
+    with an 18-edge HINT/SELECT chain, and the delivered dev-01-10
+    route 07 row was unscriptable (no script). No old script's
+    chain or drive is carried over.
+Preconditions (see ROUTES_rows.csv setup cell):
+  - Collection open; WRITE_EXTERNAL_STORAGE granted;
+    collection.anki2 exists in the AnkiDroid folder.
+  - SD card mounted, so the Check media menu item is enabled
+    (DeckPicker.java:529).
+  - Media check succeeds (DeckPicker.java:1207 success branch).
+  - Check result has ZERO unused files, so the RESULTS dialog
+    takes the else branch (MediaCheckDialog.java:132). This is a
+    collection-state precondition (clean media directory / all
+    media referenced), not a server result.
 Mapping notes:
-  - The ImportDialog.<init> -> onCreateDialog steps (E88404d0f,
-    both instances) are INFERRED: they rest on the support-v4
-    DialogFragment lifecycle, whose source is not in the tree. The
-    script drives the real show calls; the lifecycle transition is
-    their direct consequence.
-  - ImportDialog.onCreateDialog -> S_DLG_IMPORT (the dialog being
-    shown) has no dedicated graph edge; it is a page abstraction,
-    noted in the E88404d0f comments, not given an invented id.
-  - The HINT dialog's positive button is ImportDialog$1.onPositive
-    (ImportDialog.java:75-77; the positive at :76 calls
-    showImportDialog(DIALOG_IMPORT_SELECT)).
-  - The "More options" content description is the standard AppCompat
-    overflow description; verify it against a live uiautomator dump
-    before a real run.
-Launcher: com.ichi2.anki/.IntentHandler (AndroidManifest.xml:81-89).
+  - Selectors verified against the printed tree: "Check media"
+    (menu item action_check_media in res/menu/deck_picker.xml,
+    title @string/check_media, res/values/02-strings.xml:131
+    "Check media"); "OK" for the confirm dialog's positive
+    button (MediaCheckDialog.java:67-73 uses
+    R.string.dialog_ok, res/values/03-dialogs.xml:81 "OK").
+    The RESULTS dialog's own OK button is never tapped: $3 is
+    its callback's constructor, which runs at dialog creation.
+  - The "More options" content description is the standard
+    AppCompat overflow description; verify it against a live
+    uiautomator dump before a real run (see NOTES.md).
+  - The final lifecycle step E72b1fcb3 (<init> ->
+    onCreateDialog) is INFERRED: the graph evidence cites an
+    inferred DialogFragment lifecycle and no framework source is
+    in the tree. The script drives the real show call (the
+    RESULTS dialog is shown by DeckPicker.showMediaCheckDialog);
+    onCreateDialog is its direct framework consequence, and
+    $3.<init> is constructed inside onCreateDialog at
+    MediaCheckDialog.java:133 (graph evidence for Ed68ff3d0).
+  - No live run is claimed by this script. The live run must
+    confirm the items listed in NOTES.md (menu item visibility,
+    confirm-dialog OK label rendering, zero-unused-files
+    collection state, RESULTS dialog appearance, and the wait
+    duration for the media check).
+Launcher: com.ichi2.anki/.IntentHandler (AndroidManifest.xml:81-89,
+    MAIN/LAUNCHER). run_app.sh already does pm clear, permission
+    grants, fixture pushes, and per-app setup before this script, so
+    the script performs only the route actions starting from launch.
 """
 
 import argparse
@@ -45,9 +87,8 @@ from device.harness import Runner  # noqa: E402
 
 EDGE_IDS = [
     "E48de6d58", "E26d20f74", "E1ad4ef9b", "Eb3058057", "Ec0803f80",
-    "Ed832b176", "E0ca886ae", "Eb7dfd04d", "E2da7107c", "E88404d0f",
-    "E284aeafe", "E2821c117", "E0ca886ae", "Eb7dfd04d", "E2da7107c",
-    "E88404d0f", "Ee61e1dd8", "Ecb463f10",
+    "E1f73edbe", "E4c24ccb4", "Ef671cae6", "Ecf295e7b", "E4fb91c49",
+    "E73517f6d", "Ef167e308", "E72b1fcb3", "Ed68ff3d0",
 ]
 
 
@@ -70,49 +111,48 @@ def main(argv=None):
     # E1ad4ef9b DeckPicker.<init> -> DeckPicker.onCreate.
     r.comment("system instantiates DeckPicker, then onCreate",
               edge="E1ad4ef9b")
-    # Eb3058057 DeckPicker.onCreate -> S_DECKPICKER.
+    # Eb3058057 DeckPicker.onCreate -> S_DECKPICKER (collection file
+    # exists, WRITE_EXTERNAL_STORAGE granted).
     r.comment("deck-picker page shown", edge="Eb3058057")
     # Ec0803f80 S_DECKPICKER -> DeckPicker.onOptionsItemSelected:
     # open the options menu.
     r.tap(edge="Ec0803f80", desc="More options")
-    # Ed832b176 onOptionsItemSelected -> showImportDialog(int):
-    # action_import shows the HINT dialog (DeckPicker.java:561-563).
-    r.tap(edge="Ed832b176", text="Import")
-    # E0ca886ae showImportDialog(int) -> showImportDialog(int,String).
-    r.comment("showImportDialog delegates", edge="E0ca886ae")
-    # Eb7dfd04d showImportDialog -> ImportDialog.newInstance.
-    r.comment("HINT dialog newInstance", edge="Eb7dfd04d")
-    # E2da7107c newInstance -> ImportDialog.<init>.
-    r.comment("HINT dialog instance created", edge="E2da7107c")
-    # E88404d0f <init> -> onCreateDialog (INFERRED support-v4
-    # lifecycle; the dialog is then shown: S_DLG_IMPORT page
-    # abstraction, no dedicated edge).
-    r.comment("HINT dialog onCreateDialog (INFERRED lifecycle; "
-              "dialog shown, page abstraction, no dedicated edge)",
-              edge="E88404d0f")
-    # E284aeafe S_DLG_IMPORT -> ImportDialog$1.onPositive: tap OK on
-    # the HINT dialog (dialog_ok = "OK").
-    r.tap(edge="E284aeafe", text="OK")
-    # E2821c117 $1.onPositive -> showImportDialog(int): the HINT
-    # positive calls showImportDialog(DIALOG_IMPORT_SELECT).
-    r.comment("HINT positive enters SELECT", edge="E2821c117")
-    # E0ca886ae showImportDialog(int) -> showImportDialog(int,String).
-    r.comment("showImportDialog delegates", edge="E0ca886ae")
-    # Eb7dfd04d showImportDialog -> ImportDialog.newInstance (SELECT).
-    r.comment("SELECT dialog newInstance", edge="Eb7dfd04d")
-    # E2da7107c newInstance -> ImportDialog.<init> (SELECT).
-    r.comment("SELECT dialog instance created", edge="E2da7107c")
-    # E88404d0f <init> -> onCreateDialog (SELECT; INFERRED).
-    r.comment("SELECT dialog onCreateDialog (INFERRED lifecycle)",
-              edge="E88404d0f")
-    # Ee61e1dd8 onCreateDialog -> getImportableDecks (guard: mType
-    # == DIALOG_IMPORT_SELECT, ImportDialog.java:86-88; the
-    # ADD_CONFIRM case never calls it).
-    r.comment("SELECT case calls getImportableDecks", edge="Ee61e1dd8")
-    # Ecb463f10 getImportableDecks -> Utils$1.<init> (target; guard:
-    # dir.exists() and dir.isDirectory(), Utils.java:909-910).
-    r.comment("directory guard instantiates FileFilter $1 (target)",
-              edge="Ecb463f10")
+    # E1f73edbe onOptionsItemSelected -> S_DLG_MEDIA_CHECK
+    # (action_check_media, DeckPicker.java:600-603; menu item
+    # enabled only when the SD card is mounted, :529).
+    r.tap(edge="E1f73edbe", text="Check media")
+    # E4c24ccb4 S_DLG_MEDIA_CHECK -> MediaCheckDialog$1.onPositive:
+    # tap OK on the confirm dialog (MediaCheckDialog.java:67-73;
+    # positive text is R.string.dialog_ok, "OK").
+    r.tap(edge="E4c24ccb4", text="OK")
+    # Ef671cae6 $1.onPositive -> DeckPicker.mediaCheck
+    # (MediaCheckDialog.java:70).
+    r.comment("confirm OK starts mediaCheck", edge="Ef671cae6")
+    # Ecf295e7b DeckPicker.mediaCheck -> DeckPicker$16.onPostExecute:
+    # wait for the background media check to finish.
+    r.dwell(edge="Ecf295e7b", seconds=5)
+    # E4fb91c49 $16.onPostExecute -> showMediaCheckDialog(int,List)
+    # (DeckPicker.java:1207, success branch result.getBoolean()).
+    r.comment("media check succeeded, RESULTS dialog shown",
+              edge="E4fb91c49")
+    # E73517f6d showMediaCheckDialog(int,List) ->
+    # MediaCheckDialog.newInstance(int,List).
+    r.comment("RESULTS dialog newInstance", edge="E73517f6d")
+    # Ef167e308 newInstance(int,List) -> MediaCheckDialog.<init>.
+    r.comment("RESULTS dialog instance created", edge="Ef167e308")
+    # E72b1fcb3 <init> -> onCreateDialog (INFERRED DialogFragment
+    # lifecycle step; the shown fragment's onCreateDialog at
+    # MediaCheckDialog.java:56 is called by the framework once
+    # shown, and takes the RESULTS branch).
+    r.comment("RESULTS dialog onCreateDialog (INFERRED lifecycle)",
+              edge="E72b1fcb3")
+    # Ed68ff3d0 onCreateDialog -> MediaCheckDialog$3.<init>
+    # (target; MediaCheckDialog.java:133, the else branch at :132
+    # with unused empty: the OK-only RESULTS dialog's callback
+    # constructor runs at dialog creation, before any button tap,
+    # so no further tap is performed).
+    r.comment("unused-empty branch constructs $3 (target; no tap "
+              "needed, runs at dialog creation)", edge="Ed68ff3d0")
     r.done()
     return 0
 

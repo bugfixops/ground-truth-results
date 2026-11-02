@@ -1,36 +1,54 @@
 #!/usr/bin/env python3
-"""AnkiDroid route_03: StepsPreference.updateSettings.
+"""AnkiDroid route_03 (final draw): Stats$1.compare.
 
-Target: StepsPreference.updateSettings (called by the
-    (Context, AttributeSet) constructor during DeckOptions inflation).
-Table verdict: WRONG (first-draw verdict; this script drives the
-    CORRECTED route C03, never the printed BFS route).
-Route followed: CORRECTED route C03 from
-    helper/b6fix-r01-06/CORRECTED_ROUTES.md, with final-graph edge
-    ids (23 edges). The printed route took the LOAD_DECK_COUNTS task
-    but the undo listener; this script uses the UNDO task and its own
-    listener throughout, so task type, listener, and guard match.
-Preconditions/fixtures:
-  - Collection open; deck "Default" with at least one due card, and
-    the deck already selected. Selecting a new deck clears undo
-    history (DeckPicker.java:1719-1720), so the preamble reviews a
-    card in the already-selected deck.
-  - The preamble (review one card) establishes the undo state the
-    route needs: after grading, the undo name is the review string,
-    so DeckPicker$13.onPostExecute takes the isReview branch to
-    openReviewer. Preamble taps are logged under the first UI edge
-    Ec0803f80 with PREAMBLE comments; they are not that edge's own
-    action, but no graph edge exists for the review taps.
+Target: Stats$1.compare (anonymous Comparator in
+    Stats.calculateBreakdown, Stats.java:852-859).
+Table verdict: CORRECT (final draw, 26 steps; the BFS route IS the
+    judged route, so this script drives the BFS route, not a
+    corrected route).
+Route followed: final-draw BFS route from helper/judge-final/
+    route_03.txt, edge ids verified against
+    graphs/AnkiDroid/out/ankidroid_trigger_graph.json and
+    methods.csv (route_edge_ids identical). Head changed vs the
+    first-draw Stats script (old route_04): StudyOptionsFragment
+    -> Reviewer -> drawer -> Statistics (steps 4-15), not the old
+    deck-list drawer head. The drawer dispatch edge is E0b2882d5
+    (S_REVIEWER -> onNavigationItemSelected) followed by E002cbed9
+    (nav_stats -> Statistics.<init>).
+Preconditions (see ROUTES_rows.csv setup cell):
+  - Collection open; deck with cards to study.
+  - Review history giving at least 2 hourly-breakdown entries: the
+    comparator is called only when the breakdown list has >= 2
+    entries (the list is forced to >= 1 at Stats.java:847-849).
+  - The HOURLY_BREAKDOWN ChartFragment is attached, created
+    (mIsCreated), measured non-zero, and its size/type/deck changed
+    since creation, so checkAndUpdate calls createChart
+    (Statistics.java:522-545 guard).
 Mapping notes:
-  - The Undo menu item title is dynamic: "Undo %s" with the undo
-    name (DeckPicker.java:516-517). After a review it reads
-    "Undo last review" (undo_action_review = "last review").
-  - The Reviewer options-menu item for deck options is titled
-    "Deck options" (study_options string, reviewer.xml).
-  - The "More options" content description is the standard AppCompat
-    overflow description; verify it against a live uiautomator dump
-    before a real run.
-Launcher: com.ichi2.anki/.IntentHandler (AndroidManifest.xml:81-89).
+  - Selectors verified against the printed tree: "Study"
+    (studyoptions_start string), "Statistics" (nav_stats title).
+  - The "Navigate up" content description is the standard framework
+    description; verify it against a live uiautomator dump before a
+    real run.
+  - The drawer-open tap and the "Statistics" tap share edge
+    E0b2882d5 (two log lines, one edge).
+  - Step 21 citation correction (judge file): the HOURLY_BREAKDOWN
+    case is Statistics.java:503, not :514 (the CARDS_TYPES case of
+    the same call); the edge itself is genuine either way.
+  - The getItemPosition path applies to already-instantiated
+    fragments (Statistics.java:293-302); the script dwells after
+    onCollectionLoaded so fragments instantiate and the chart draws.
+  - The JDK-sort link itself (Collections.sort calling compare) is
+    INFERRED: java.util is not in the tree. The comparator's
+    existence at Stats.java:852-859 is printed.
+  - Live-run check still open: which chart tab is shown by default
+    when Statistics opens, and whether the HOURLY_BREAKDOWN fragment
+    is the one created without an extra tab tap; verify against a
+    live run (see NOTES.md).
+Launcher: com.ichi2.anki/.IntentHandler (AndroidManifest.xml:81-89,
+    MAIN/LAUNCHER). run_app.sh already does pm clear, permission
+    grants, fixture pushes, and per-app setup before this script, so
+    the script performs only the route actions starting from launch.
 """
 
 import argparse
@@ -42,14 +60,13 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 from device.harness import Runner  # noqa: E402
 
 EDGE_IDS = [
-    "E48de6d58", "E26d20f74", "E1ad4ef9b", "Eb3058057", "Ec0803f80",
-    "Eee750606", "Eb4c40f11", "E460971ee", "E3e610385", "Eee369b5f",
-    "E69bc1fda", "E6d576f07", "E251b66e4", "E8fb9dd46", "E63fbdec5",
-    "Ee2fb37d3", "Ea375fff8", "E875f2b99", "Ec1df4e42", "E1997e0e7",
-    "E49c1f965", "E61f57fc4", "E5b96f052",
+    "E48de6d58", "E26d20f74", "E1ad4ef9b", "E5906a191", "Ef3e13961",
+    "Eae89b47b", "Ea73b74da", "E518f89ef", "E0b3abfeb", "Eb58e5599",
+    "Eed14720a", "Ed7470ef3", "Ea375fff8", "E0b2882d5", "E002cbed9",
+    "E156e1693", "E267ed275", "Eaf3beafc", "E072f904d", "E5bf994da",
+    "Efa80210f", "E9a6b7dfd", "E7974b03d", "Eb3bbd238", "E36391b1c",
+    "Efcceb288",
 ]
-
-FIXTURE_DECK = "Default"
 
 
 def main(argv=None):
@@ -71,70 +88,69 @@ def main(argv=None):
     # E1ad4ef9b DeckPicker.<init> -> DeckPicker.onCreate.
     r.comment("system instantiates DeckPicker, then onCreate",
               edge="E1ad4ef9b")
-    # Eb3058057 DeckPicker.onCreate -> S_DECKPICKER (collection file
-    # exists, WRITE_EXTERNAL_STORAGE granted).
-    r.comment("deck-picker page shown", edge="Eb3058057")
-    # PREAMBLE (logged under Ec0803f80): review one card so that an
-    # undo of a review exists. Tapping a due deck on a
-    # non-fragmented layout jumps straight to the Reviewer.
-    r.tap(edge="Ec0803f80", text=FIXTURE_DECK)
-    r.wait_for(edge="Ec0803f80", text="Show answer")
-    r.tap(edge="Ec0803f80", text="Show answer")
-    r.tap(edge="Ec0803f80", text="Good")
-    # Back returns from the Reviewer to the deck picker.
-    r.back(edge="Ec0803f80")
-    # Ec0803f80 S_DECKPICKER -> DeckPicker.onOptionsItemSelected:
-    # open the options menu (drawer toggle must not consume it).
-    r.tap(edge="Ec0803f80", desc="More options")
-    # Eee750606 onOptionsItemSelected -> DeckPicker.undo: tap Undo.
-    r.tap(edge="Eee750606", text="Undo last review")
-    # Eb4c40f11 undo -> launchDeckTask (TASK_TYPE_UNDO, $13 listener).
-    r.comment("launchDeckTask TASK_TYPE_UNDO", edge="Eb4c40f11")
-    # E460971ee launchDeckTask -> doInBackground (UNDO case).
-    r.comment("doInBackground takes UNDO case", edge="E460971ee")
-    # E3e610385 doInBackground -> onPostExecute (framework delivery).
-    r.dwell(edge="E3e610385", seconds=5)
-    # Eee369b5f onPostExecute -> TaskListener.onPostExecute.
-    r.comment("listener onPostExecute", edge="Eee369b5f")
-    # E69bc1fda TaskListener -> DeckPicker$13.onPostExecute: this is
-    # the undo listener registered by undo() itself, not the
-    # updateDeckList listener.
-    r.comment("undo listener $13 onPostExecute", edge="E69bc1fda")
-    # E6d576f07 $13.onPostExecute -> openReviewer (guard: isReview,
-    # satisfied because the preamble graded a card).
-    r.comment("isReview branch opens Reviewer", edge="E6d576f07")
-    # E251b66e4 openReviewer -> Reviewer.<init>.
-    r.comment("startActivityForResult Reviewer", edge="E251b66e4")
-    # E8fb9dd46 Reviewer.<init> -> AbstractFlashcardViewer.<init>.
-    r.comment("Reviewer extends AbstractFlashcardViewer",
-              edge="E8fb9dd46")
-    # E63fbdec5 AFV.<init> -> AFV.onCreate.
-    r.comment("AbstractFlashcardViewer onCreate", edge="E63fbdec5")
-    # Ee2fb37d3 AFV.onCreate -> Reviewer.onCollectionLoaded
-    # (guard: col != null and colIsOpen()).
-    r.comment("collection loaded, Reviewer onCollectionLoaded",
-              edge="Ee2fb37d3")
-    # Ea375fff8 Reviewer.onCollectionLoaded -> S_REVIEWER.
-    r.comment("reviewer page shown", edge="Ea375fff8")
-    # E875f2b99 S_REVIEWER -> Reviewer.onOptionsItemSelected:
-    # open the options menu.
-    r.tap(edge="E875f2b99", desc="More options")
-    # Ec1df4e42 onOptionsItemSelected -> DeckOptions.<init>
-    # (action_open_deck_options).
-    r.tap(edge="Ec1df4e42", text="Deck options")
-    # E1997e0e7 DeckOptions.<init> -> DeckOptions.onCreate.
-    r.comment("DeckOptions onCreate", edge="E1997e0e7")
-    # E49c1f965 DeckOptions.onCreate -> S_DECKOPTIONS (collection
-    # loaded, so addPreferencesFromResource is reached).
-    r.comment("deck options page shown", edge="E49c1f965")
-    # E61f57fc4 S_DECKOPTIONS -> StepsPreference.<init>: inflation
-    # of deck_options.xml constructs StepsPreference for the
-    # newSteps/lapSteps entries.
-    r.comment("inflation constructs StepsPreference", edge="E61f57fc4")
-    # E5b96f052 StepsPreference.<init> -> updateSettings (target;
-    # constructor calls updateSettings at StepsPreference.java:47).
-    r.comment("constructor calls updateSettings (target)",
-              edge="E5b96f052")
+    # E5906a191 DeckPicker.onCreate -> showStartupScreensAndDialogs.
+    r.comment("showStartupScreensAndDialogs (collection open)",
+              edge="E5906a191")
+    # Ef3e13961 showStartupScreensAndDialogs -> onFinishedStartup.
+    r.comment("onFinishedStartup", edge="Ef3e13961")
+    # Eae89b47b onFinishedStartup -> loadStudyOptionsFragment.
+    r.comment("loadStudyOptionsFragment", edge="Eae89b47b")
+    # Ea73b74da loadStudyOptionsFragment -> S_STUDYOPTIONS_FRAG.
+    r.comment("study options fragment shown", edge="Ea73b74da")
+    # E518f89ef S_STUDYOPTIONS_FRAG -> StudyOptionsFragment$1.onClick:
+    # tap Study; cards due, so openReviewer runs.
+    r.tap(edge="E518f89ef", text="Study")
+    # E0b3abfeb $1.onClick -> openReviewer.
+    r.comment("openReviewer", edge="E0b3abfeb")
+    # Eb58e5599 openReviewer -> Reviewer.<init> (Intent).
+    r.comment("startActivity Reviewer", edge="Eb58e5599")
+    # Eed14720a Reviewer.<init> -> AbstractFlashcardViewer.onCreate
+    # @Reviewer.
+    r.comment("Reviewer onCreate", edge="Eed14720a")
+    # Ed7470ef3 onCreate -> Reviewer.onCollectionLoaded.
+    r.dwell(edge="Ed7470ef3", seconds=5)
+    # Ea375fff8 onCollectionLoaded -> S_REVIEWER.
+    r.comment("Reviewer page shown", edge="Ea375fff8")
+    # E0b2882d5 S_REVIEWER -> NavigationDrawerActivity
+    # .onNavigationItemSelected: open the drawer, then tap the
+    # nav_stats item ("Statistics").
+    r.tap(edge="E0b2882d5", desc="Navigate up")
+    r.tap(edge="E0b2882d5", text="Statistics")
+    # E002cbed9 onNavigationItemSelected -> Statistics.<init>
+    # (nav_stats case, NavigationDrawerActivity.java:265-268).
+    r.comment("drawer nav_stats starts Statistics", edge="E002cbed9")
+    # E156e1693 Statistics.<init> -> Statistics.onCreate.
+    r.comment("Statistics onCreate", edge="E156e1693")
+    # E267ed275 Statistics.onCreate -> Statistics.onCollectionLoaded
+    # (startLoadingCollection; AnkiActivity delivery).
+    r.dwell(edge="E267ed275", seconds=3)
+    # Eaf3beafc onCollectionLoaded -> SectionsPagerAdapter
+    # .getItemPosition (notifyDataSetChanged; support-v4 ViewPager
+    # dispatch to attached fragments; INFERRED framework step).
+    r.dwell(edge="Eaf3beafc", seconds=3)
+    # E072f904d getItemPosition -> ChartFragment.checkAndUpdate.
+    r.comment("fragment checkAndUpdate", edge="E072f904d")
+    # E5bf994da checkAndUpdate -> createChart (guards: mIsCreated,
+    # non-zero size, changed state, Statistics.java:522-545).
+    r.comment("createChart", edge="E5bf994da")
+    # Efa80210f createChart -> AnkiStatsTaskHandler.createChart
+    # (mChartType == HOURLY_BREAKDOWN, Statistics.java:503).
+    r.comment("handler createChart HOURLY_BREAKDOWN", edge="Efa80210f")
+    # E9a6b7dfd handler createChart -> CreateChartTask.doInBackground
+    # (AnkiStatsTaskHandler.java:65-69; FW AsyncTask).
+    r.comment("CreateChartTask doInBackground", edge="E9a6b7dfd")
+    # E7974b03d doInBackground -> ChartBuilder.renderChart.
+    r.comment("renderChart", edge="E7974b03d")
+    # Eb3bbd238 renderChart -> calcStats.
+    r.comment("calcStats", edge="Eb3bbd238")
+    # E36391b1c calcStats -> Stats.calculateBreakdown
+    # (HOURLY_BREAKDOWN case, ChartBuilder.java:85).
+    r.comment("calculateBreakdown HOURLY_BREAKDOWN", edge="E36391b1c")
+    # Efcceb288 calculateBreakdown -> Stats$1.compare (target;
+    # guard: breakdown list has >= 2 entries; JDK sort dispatch
+    # itself is INFERRED).
+    r.comment("sort calls Stats$1.compare (target; JDK dispatch "
+              "INFERRED)", edge="Efcceb288")
     r.done()
     return 0
 

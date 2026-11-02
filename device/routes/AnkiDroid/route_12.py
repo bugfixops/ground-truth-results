@@ -1,42 +1,34 @@
 #!/usr/bin/env python3
-"""AnkiDroid route_12: Sound.notifyConfigurationChanged.
+"""AnkiDroid route_12: HttpFetcher.downloadFileToSdCardMethod.
 
-Target: Sound.notifyConfigurationChanged (called from
-    VideoPlayer.onConfigurationChanged).
-Table verdict: WRONG (first-draw verdict; this script drives the
-    REBUILT reviewer-flow route, never the printed route).
-Route followed: rebuilt route from
-    helper/b6fix-r07-12/CORRECTED_ROUTES.md route 12, with
-    final-graph edge ids (29 edges). The printed route launched
-    LOAD_DECK_COUNTS then took the RENDER_BROWSER_QA branch and its
-    empty DeckPicker progress listener, so it never entered
-    AbstractFlashcardViewer. This script grades a card (ANSWER_CARD
-    task with mAnswerCardHandler), so the progress update drives
-    displayCardQuestion for the next card, whose video sound opens
-    VideoPlayer; rotating then fires onConfigurationChanged.
-Preconditions/fixtures:
-  - Collection open; deck "Default" with due cards (the
-    openReviewer guard is "deck has cards to study").
-  - The NEXT card's question side contains a video sound file:
-    video extension whitelist or video MIME type, plus a non-null
-    video thumbnail (Sound.java:283-289), and the calling activity
-    non-null, so playVideo runs. The first card only needs to be
-    gradeable; the video card must come second.
-  - Device rotation allowed (the VideoPlayer manifest entry lists
-    keyboardHidden|orientation|locale|screenSize).
+Target: HttpFetcher.downloadFileToSdCardMethod.
+Table verdict: WRONG (final-draw verdict; this script drives the
+    CORRECTED route, never the printed BFS route). The printed step
+    15 named DeckPicker.openCardBrowser for a Reviewer receiver; the
+    corrected step 15 is Reviewer.openCardBrowser, per
+    helper/judge-final/judge-11-20/JUDGEMENTS.md route 12. All other
+    steps are unchanged (37 edges).
+Route followed: corrected route, identical to the printed route
+    except steps 15-16 relabelled to the Reviewer override.
+Preconditions: collection open; deck with cards to study; a note
+    whose field has non-empty text; TEXT field controller, so the
+    pronounce button exists; network on with the Beolingus page
+    (dict.tu-chemnitz.de) reachable. No AnkiWeb account is needed.
 Mapping notes:
-  - S_REVIEWER -> AbstractFlashcardViewer$5.onClick has no graph
-    edge: the Show-answer tap (reveals ease buttons) and the Good
-    tap (grades) are both logged under E07fe57ce ($5.onClick ->
-    answerCard), which is the grade tap's edge.
-  - The reviewer-flow steps from displayCardQuestion onward reuse
-    the printed steps 12-23 edges, which are real in isolation and
-    are the tail of this rebuilt route.
-  - notifyConfigurationChanged is a no-op unless mMediaPlayer is
-    non-null (Sound.java:360-364); the video must actually be
-    playing when the rotation happens, so the script rotates
-    immediately after VideoPlayer opens.
-Launcher: com.ichi2.anki/.IntentHandler (AndroidManifest.xml:81-89).
+  - This script reuses the old first-draw route_13 script's tail
+    (CardBrowser onward, including its strings-grounded button
+    texts) but replaces its rebuilt drawer prefix with the final
+    route's Reviewer prefix and the corrected step 15.
+  - "Navigate up" and "More options" are the standard
+    framework/AppCompat descriptions; verify them against a live
+    uiautomator dump before a real run.
+Launcher: com.ichi2.anki/.IntentHandler (AndroidManifest.xml:81-89,
+    MAIN/LAUNCHER). run_app.sh already does pm clear, permission
+    grants, fixture pushes, and per-app setup before this script, so
+    the script performs only the route actions starting from launch.
+Draft status: final-draw device draft for the merger; dry/static
+    checks only. No live run has been performed with this script, and
+    nothing in this file claims one.
 """
 
 import argparse
@@ -48,15 +40,15 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 from device.harness import Runner  # noqa: E402
 
 EDGE_IDS = [
-    "E48de6d58", "E26d20f74", "E1ad4ef9b", "Eb3058057", "E84e49f54",
-    "E251b66e4", "E8fb9dd46", "E63fbdec5", "Ee2fb37d3", "Ea375fff8",
-    "E07fe57ce", "E73158174", "E460971ee", "E96744bef", "E9f86ddb2",
-    "Eb7581a2a", "E5b45a9a5", "Ebabd7196", "E96087c3c", "E7a69fc28",
-    "E182b01ce", "E7729f801", "E92a6fecf", "Ef6c02372", "Edc5290aa",
-    "E2277be29", "Ea8e5a419", "Eb66c3488", "Ed0faab27",
+    "E48de6d58", "E26d20f74", "E1ad4ef9b", "E5906a191", "Ef3e13961",
+    "Eae89b47b", "Ea73b74da", "E518f89ef", "E0b3abfeb", "Eb58e5599",
+    "Eed14720a", "Ed7470ef3", "Ea375fff8", "E0b2882d5", "E1e676c95",
+    "E5285c072", "Eb06cba16", "E352d419a", "E0281e707", "E37ba8c1f",
+    "E94833ec9", "E44749e19", "Ed63b7964", "E7b61f827", "Eb7034235",
+    "E1e29f3f5", "Ea9606e5d", "E1ae02f15", "Ed9c9d15a", "E34e471f3",
+    "E70e68337", "Ece5d578d", "Ea4a2a47a", "E22a358c4", "E19aee917",
+    "Ea27383e7", "Ef9fac826",
 ]
-
-FIXTURE_DECK = "Default"
 
 
 def main(argv=None):
@@ -72,82 +64,117 @@ def main(argv=None):
                outdir=args.outdir)
     # E48de6d58 S_ENTRY -> IntentHandler.onCreate: launch MAIN/LAUNCHER.
     r.launch(args.package + "/.IntentHandler", edge="E48de6d58")
-    # E26d20f74 IntentHandler.onCreate -> DeckPicker.<init>.
+    # E26d20f74 IntentHandler.onCreate -> DeckPicker.<init> (else branch).
     r.comment("IntentHandler else branch starts DeckPicker",
               edge="E26d20f74")
     # E1ad4ef9b DeckPicker.<init> -> DeckPicker.onCreate.
     r.comment("system instantiates DeckPicker, then onCreate",
               edge="E1ad4ef9b")
-    # Eb3058057 DeckPicker.onCreate -> S_DECKPICKER.
-    r.comment("deck-picker page shown", edge="Eb3058057")
-    # E84e49f54 S_DECKPICKER -> DeckPicker.openReviewer: tap a due
-    # deck (guard: deck has cards to study; non-fragmented layout
-    # jumps straight to the Reviewer).
-    r.tap(edge="E84e49f54", text=FIXTURE_DECK)
-    # E251b66e4 openReviewer -> Reviewer.<init>.
-    r.comment("openReviewer starts Reviewer", edge="E251b66e4")
-    # E8fb9dd46 Reviewer.<init> -> AbstractFlashcardViewer.<init>.
-    r.comment("Reviewer extends AbstractFlashcardViewer",
-              edge="E8fb9dd46")
-    # E63fbdec5 AFV.<init> -> AFV.onCreate.
-    r.comment("AbstractFlashcardViewer onCreate", edge="E63fbdec5")
-    # Ee2fb37d3 AFV.onCreate -> Reviewer.onCollectionLoaded.
-    r.comment("collection loaded", edge="Ee2fb37d3")
-    # Ea375fff8 Reviewer.onCollectionLoaded -> S_REVIEWER.
+    # E5906a191 DeckPicker.onCreate -> showStartupScreensAndDialogs.
+    r.comment("showStartupScreensAndDialogs", edge="E5906a191")
+    # Ef3e13961 -> onFinishedStartup.
+    r.comment("onFinishedStartup", edge="Ef3e13961")
+    # Eae89b47b -> loadStudyOptionsFragment.
+    r.comment("loadStudyOptionsFragment", edge="Eae89b47b")
+    # Ea73b74da -> S_STUDYOPTIONS_FRAG.
+    r.comment("study-options fragment page shown", edge="Ea73b74da")
+    # E518f89ef S_STUDYOPTIONS_FRAG -> StudyOptionsFragment$1.onClick:
+    # the start-study button. Guard: deck has cards to study.
+    # String verified in res: studyoptions_start = "Study".
+    r.tap(edge="E518f89ef", text="Study")
+    # E0b3abfeb $1.onClick -> openReviewer.
+    r.comment("openReviewer", edge="E0b3abfeb")
+    # Eb58e5599 openReviewer -> Reviewer.<init>.
+    r.comment("startActivity Reviewer", edge="Eb58e5599")
+    # Eed14720a Reviewer.<init> -> onCreate@Reviewer.
+    r.comment("Reviewer onCreate", edge="Eed14720a")
+    # Ed7470ef3 onCreate@Reviewer -> Reviewer.onCollectionLoaded.
+    r.comment("Reviewer collection loaded", edge="Ed7470ef3")
+    # Ea375fff8 -> S_REVIEWER.
     r.comment("reviewer page shown", edge="Ea375fff8")
-    # E07fe57ce $5.onClick -> answerCard: show the answer, then
-    # grade Good. (No graph edge covers S_REVIEWER -> $5.onClick;
-    # both taps are logged under the grade tap's edge.)
-    r.tap(edge="E07fe57ce", text="Show answer")
-    r.tap(edge="E07fe57ce", text="Good")
-    # E73158174 answerCard -> launchDeckTask (TASK_TYPE_ANSWER_CARD,
-    # mAnswerCardHandler).
-    r.comment("answerCard launches ANSWER_CARD task", edge="E73158174")
-    # E460971ee launchDeckTask -> doInBackground.
-    r.comment("DeckTask execute -> doInBackground", edge="E460971ee")
-    # E96744bef doInBackground -> doInBackgroundAnswerCard
-    # (ANSWER_CARD dispatch, DeckTask.java:240-241).
-    r.comment("dispatch takes ANSWER_CARD case", edge="E96744bef")
-    # E9f86ddb2 doInBackgroundAnswerCard -> onProgressUpdate
-    # (publishProgress with the next card).
-    r.dwell(edge="E9f86ddb2", seconds=5)
-    # Eb7581a2a onProgressUpdate -> TaskListener.onProgressUpdate.
-    r.comment("progress update to listener", edge="Eb7581a2a")
-    # E5b45a9a5 TaskListener -> $10.onProgressUpdate
-    # (mAnswerCardHandler).
-    r.comment("mAnswerCardHandler onProgressUpdate", edge="E5b45a9a5")
-    # Ebabd7196 $10.onProgressUpdate -> displayCardQuestion
-    # (guard: next card non-null and question side).
-    r.comment("next card question displayed", edge="Ebabd7196")
-    # E96087c3c displayCardQuestion -> updateCard.
-    r.comment("updateCard", edge="E96087c3c")
-    # E7a69fc28 updateCard -> playSounds (guard: not
-    # mConfigurationChanged).
-    r.comment("updateCard plays sounds", edge="E7a69fc28")
-    # E182b01ce playSounds -> Sound.playSounds (question branch:
-    # not useTTS, not sDisplayAnswer).
-    r.comment("question-side sounds", edge="E182b01ce")
-    # E7729f801 Sound.playSounds -> playSound(String,OnCompletion).
-    r.comment("playSound question", edge="E7729f801")
-    # E92a6fecf playSound -> playSound(String,OnCompletion,VideoView).
-    r.comment("playSound with VideoView", edge="E92a6fecf")
-    # Ef6c02372 playSound(VideoView) -> playVideo (guards: sound is
-    # video, thumbnail non-null, videoView null, activity non-null).
-    r.comment("video sound opens VideoPlayer", edge="Ef6c02372")
-    # Edc5290aa playVideo -> VideoPlayer.<init> (Intent).
-    r.comment("startActivity VideoPlayer", edge="Edc5290aa")
-    # E2277be29 VideoPlayer.<init> -> VideoPlayer.onCreate.
-    r.comment("VideoPlayer onCreate", edge="E2277be29")
-    # Ea8e5a419 VideoPlayer.onCreate -> S_VIDEOPLAYER (its own Sound
-    # instance is created here).
-    r.comment("video player page shown", edge="Ea8e5a419")
-    # Eb66c3488 S_VIDEOPLAYER -> VideoPlayer.onConfigurationChanged:
-    # rotate to landscape now, while the video is playing.
-    r.rotate(edge="Eb66c3488", orientation="landscape")
-    # Ed0faab27 onConfigurationChanged -> notifyConfigurationChanged
-    # (target; configures video only if mMediaPlayer != null).
-    r.comment("configuration change notifies Sound (target)",
-              edge="Ed0faab27")
+    # E0b2882d5 S_REVIEWER -> onNavigationItemSelected: open the
+    # drawer, then tap the nav_browser item. String verified in
+    # res: card_browser = "Card browser".
+    r.tap(edge="E0b2882d5", desc="Navigate up")
+    r.tap(edge="E0b2882d5", text="Card browser")
+    # E1e676c95 onNavigationItemSelected -> Reviewer.openCardBrowser
+    # (CORRECTED step 15: the receiver is Reviewer, so virtual
+    # dispatch runs Reviewer.openCardBrowser, Reviewer.java:508-518,
+    # not DeckPicker.openCardBrowser. The @Reviewer variant edge
+    # E367a70a5 exists but would break chain contiguity here, since
+    # the previous edge ends at the unvariant node; the unvariant
+    # edge is therefore carried and the choice recorded in NOTES).
+    r.comment("Reviewer.openCardBrowser (corrected receiver)",
+              edge="E1e676c95")
+    # E5285c072 Reviewer.openCardBrowser -> CardBrowser.<init>.
+    r.comment("startActivity CardBrowser", edge="E5285c072")
+    # Eb06cba16 CardBrowser.<init> -> onCreate.
+    r.comment("CardBrowser onCreate", edge="Eb06cba16")
+    # E352d419a -> S_CARDBROWSER.
+    r.comment("card browser page shown", edge="E352d419a")
+    # E0281e707 S_CARDBROWSER -> onOptionsItemSelected: open the
+    # options menu (standard AppCompat overflow description).
+    r.tap(edge="E0281e707", desc="More options")
+    # E37ba8c1f onOptionsItemSelected -> S_NOTEEDITOR (Add note
+    # item; string verified: card_editor_add_card = "Add note").
+    r.tap(edge="E37ba8c1f", text="Add note")
+    # E94833ec9 S_NOTEEDITOR -> NoteEditor$11.onClick: tap the media
+    # button of a field with non-empty text. Guard: !editModelMode.
+    # Description from the old route_13 script (strings-grounded).
+    r.tap(edge="E94833ec9",
+          desc="Attach multimedia content to the note")
+    # E44749e19 $11.onClick -> startMultimediaFieldEditor.
+    r.comment("startMultimediaFieldEditor (field text non-empty)",
+              edge="E44749e19")
+    # Ed63b7964 -> MultimediaEditFieldActivity.<init>.
+    r.comment("startActivity MultimediaEditFieldActivity",
+              edge="Ed63b7964")
+    # E7b61f827 -> onCreate.
+    r.comment("MultimediaEditFieldActivity onCreate", edge="E7b61f827")
+    # Eb7034235 -> S_MULTIMEDIA_EDIT_FIELD.
+    r.comment("multimedia edit field page shown", edge="Eb7034235")
+    # E1e29f3f5 S_MULTIMEDIA_EDIT_FIELD -> $2.onClick (Pronunciation
+    # button; needs TEXT field controller, source text non-empty).
+    # Text from the old route_13 script (strings-grounded).
+    r.tap(edge="E1e29f3f5", text="Pronunciation")
+    # Ea9606e5d $2.onClick -> LoadPronounciationActivity.<init>.
+    r.comment("startActivity LoadPronounciationActivity",
+              edge="Ea9606e5d")
+    # E1ae02f15 -> onCreate.
+    r.comment("LoadPronounciationActivity onCreate", edge="E1ae02f15")
+    # Ed9c9d15a -> S_LOAD_PRONOUNCIATION.
+    r.comment("load pronunciation page shown", edge="Ed9c9d15a")
+    # E34e471f3 S_LOAD_PRONOUNCIATION -> $1.onClick: tap Load.
+    # Text from the old route_13 script (strings-grounded).
+    r.tap(edge="E34e471f3", text="Load")
+    # E70e68337 $1.onClick -> onLoadPronunciation.
+    r.comment("onLoadPronunciation", edge="E70e68337")
+    # Ece5d578d onLoadPronunciation -> BackgroundPost.doInBackground
+    # (guard: Connection.isOnline(); env: Beolingus page reachable).
+    r.comment("BackgroundPost fetches translation page",
+              edge="Ece5d578d")
+    # Ea4a2a47a doInBackground -> onPostExecute (first cycle:
+    # translation post). Wait for the fetch.
+    r.dwell(edge="Ea4a2a47a", seconds=10)
+    # E22a358c4 onPostExecute -> processPostFinished (translation
+    # post; launches the second BackgroundPost for the
+    # pronunciation page, same edges firing again).
+    r.comment("translation post finished; second BackgroundPost "
+              "cycle fetches pronunciation page", edge="E22a358c4")
+    r.dwell(edge="Ea4a2a47a", seconds=10)
+    # E19aee917 processPostFinished (pronunciation post) ->
+    # DownloadFileTask.doInBackground (guard: !mStopped, mp3 address
+    # not "no").
+    r.comment("pronunciation post launches download task",
+              edge="E19aee917")
+    # Ea27383e7 DownloadFileTask.doInBackground ->
+    # HttpFetcher.downloadFileToSdCard.
+    r.comment("download task calls downloadFileToSdCard",
+              edge="Ea27383e7")
+    # Ef9fac826 downloadFileToSdCard -> downloadFileToSdCardMethod
+    # (target; :125 unconditional GET).
+    r.comment("unconditional GET calls target method (target)",
+              edge="Ef9fac826")
     r.done()
     return 0
 

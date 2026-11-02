@@ -1499,11 +1499,9 @@ e('S_DECKPICKER', 'CardBrowser.<clinit>', 'INTENT',
   evidence='SRC com/ichi2/anki/DeckPicker.java:1708-1713; FW-SRC core/java/android/app/Instrumentation.java:1170-1174',
   note='Entry edge into batch 009. It skips the DeckPicker.openCardBrowser node (batch 003), which has no INTENT edge into CardBrowser in its part.')
 
-e('CardBrowser.<clinit>', 'CardBrowser.<init>', 'FRAMEWORK',
-  'newInstance constructs the instance after the class is initialized',
-  env=None,
-  evidence='FW-SRC core/java/android/app/Instrumentation.java:1170-1174; SRC com/ichi2/anki/CardBrowser.java:121, 134-135',
-  note='Java class initialization runs before the first constructor call (not cited).')
+# Stream A: hand <clinit> -> <init> edge DELETED (was Eefecf867, route 13).
+# A static call triggers <clinit> but never constructs an Activity; launch is covered by
+# INTENT edges from openCardBrowser (DeckPicker.java:1709-1713). Best-route Set G, re-audit PASS.
 
 e('S_CARDBROWSER', 'CardBrowser.onOptionsItemSelected', 'GUI',
   'tap a menu item in the card browser action bar',
@@ -5690,11 +5688,9 @@ e('CardTemplateEditor$CardTemplateFragment.deleteTemplate', 'CardTemplateEditor$
 
 # --- Fragment: preview result, menu, add and delete routes.
 
-e('S_PREVIEWER', 'CardTemplateEditor$CardTemplateFragment.onActivityResult', 'RESULT',
-  'the preview returns to the template editor, which hands the result to the fragment',
-  env=None,
-  evidence='SRC com/ichi2/anki/CardTemplateEditor.java:503-504, 557-560',
-  note='Page edge, destination in this part. Launched by startActivityForResult(i, REQUEST_PREVIEWER) (CardTemplateEditor.java:504). The hand-off to the fragment is support-library FragmentActivity dispatch (INFERRED, source not read). Precedent: S_CARDTEMPLATEEDITOR -> NoteEditor.onActivityResult (label_012).')
+# Stream A: generic-page RESULT edge DELETED (was Eb9d6a916, route 18) — MOVED, not copied.
+# The for-result page S_PREVIEWER_FORRESULT carries the RESULT edge (Set G); the generic page must
+# lose it, or the CardBrowser plain-startActivity shortcut survives (AnkiActivity.java:158-161).
 
 e('CardTemplateEditor$CardTemplateFragment.onOptionsItemSelected', 'Previewer.<init>', 'INTENT',
   'open the previewer for the template being edited (explicit Intent to Previewer, card id extra)',
@@ -7320,3 +7316,290 @@ e('Collection.genCards(long[])', 'Models.availOrds', 'CALL', 'Direct call',
 e('Models.availOrds', 'Models._availClozeOrds(JSONObject,String)', 'CALL', 'Direct call',
   guard='model type == MODEL_CLOZE',
   evidence='SRC Models.java:1129 (bytecode)')
+# ---- DeckTask / Connection variant-pruning EDIT clause (design section 2.3 item 5) ----
+# PLACEMENT (mandatory, design sections 2.3 item 5 and 5.4): append this whole snippet to
+# graphs/AnkiDroid/graph_def.py AFTER the current final EDIT definition -- in this tree the
+# B6 wrapper at graph_def.py:7162, whose predecessor _B6_EDIT_PREV is saved at :7159 (B3
+# itself is at :7044). Do NOT put this snippet in graph_def_mod/02.py: the mod loader in
+# graph_def.py runs before the B3/B6 EDIT definitions, so an EDIT written in a mod file would
+# be replaced by them and never applied. Do NOT replace EDIT anywhere: this snippet saves the
+# previous EDIT in _EDIT_PREV_VARIANT and calls it first, exactly as the B6 wrapper saved and
+# called the B3 EDIT. There is no second EDIT definition in any file in this helper folder:
+# the companion 02-decktask.py defines e() edges only.
+# The clause below is the design's verbatim specification (design section 2.3 item 5), with
+# names adapted only as the design permits. It is applied by the builder to every edge,
+# including auto edges, after fan-out and before ids are made (build_graph.py:343-347).
+# It only ever changes kind to REGISTER; it never changes evidence, so REGISTER copies keep
+# their auto evidence and check 4 still examines them (design section 1.3). It returns
+# immediately for hand edges (including every variant chain edge in 02-decktask.py) and for
+# any src that is not a DeckTask/Connection variant with a TASK_TYPE / SYNC / LOGIN suffix.
+# Receiver-variant suffixes (listener class names such as AbstractFlashcardViewer$10,
+# CardBrowser$13, Reviewer) NEVER match, so receiver-variant edges are untouched.
+# Expected rebuild outcome (design section 6 step 3): in the full split the clause prunes
+# only the surviving $27 POST copies, 33 of them (one per post variant except FIND_EMPTY_CARDS,
+# $27's own type); progress $27 contributes none, because the base
+# (DeckTask.onProgressUpdate, DeckPicker$27.onProgressUpdate) pair is already suppressed in
+# graph_def.py:798 and no such edge exists in the out JSON. Any large REGISTER count means
+# the body/listener tables are incomplete; report the count from the rebuild, do not assume it.
+
+# Variant-pruning clause, chained after the B6 EDIT wrapper.
+# TASK_TYPE names only: a suffix is a variant type iff it is exactly
+# one of the 34 TASK_TYPE_* constant names (without the prefix).
+# Receiver-variant suffixes (listener class names such as
+# AbstractFlashcardViewer$10, CardBrowser$13, Reviewer) NEVER match,
+# so receiver-variant edges are untouched by this clause.
+_TASK_TYPES = {
+    'LOAD_DECK_COUNTS', 'SAVE_COLLECTION', 'ANSWER_CARD', 'ADD_FACT',
+    'UPDATE_FACT', 'UNDO', 'SEARCH_CARDS', 'DISMISS', 'CHECK_DATABASE',
+    'REPAIR_DECK', 'UPDATE_VALUES_FROM_DECK', 'DELETE_DECK',
+    'REBUILD_CRAM', 'EMPTY_CRAM', 'IMPORT', 'IMPORT_REPLACE',
+    'EXPORT_APKG', 'REORDER', 'CONF_CHANGE', 'CONF_RESET',
+    'CONF_REMOVE', 'CONF_SET_SUBDECKS', 'RENDER_BROWSER_QA',
+    'CHECK_MEDIA', 'ADD_TEMPLATE', 'REMOVE_TEMPLATE', 'COUNT_MODELS',
+    'DELETE_MODEL', 'DELETE_FIELD', 'REPOSITION_FIELD', 'ADD_FIELD',
+    'CHANGE_SORT_FIELD', 'SAVE_MODEL', 'FIND_EMPTY_CARDS',
+}
+# Body per type, from the switch at DeckTask.java:234-341 (case line
+# in parentheses; body names are verbatim from the return line, so
+# the capital-G spellings are preserved -- the auto dsts use them).
+_BODY = {
+    # case :235 / :237 / :241 / :244 / :247 / :250 / :253 / :256
+    'LOAD_DECK_COUNTS': 'doInBackgroundLoadDeckCounts',
+    'SAVE_COLLECTION': 'doInBackgroundSaveCollection',
+    'ANSWER_CARD': 'doInBackgroundAnswerCard',
+    'ADD_FACT': 'doInBackgroundAddNote',
+    'UPDATE_FACT': 'doInBackgroundUpdateNote',
+    'UNDO': 'doInBackgroundUndo',
+    'SEARCH_CARDS': 'doInBackgroundSearchCards',
+    'DISMISS': 'doInBackgroundDismissNote',
+    # case :259 / :262 / :265 / :268 / :271 / :274 / :277 / :280
+    'CHECK_DATABASE': 'doInBackgroundCheckDatabase',
+    'REPAIR_DECK': 'doInBackgroundRepairDeck',
+    'UPDATE_VALUES_FROM_DECK': 'doInBackgroundUpdateValuesFromDeck',
+    'DELETE_DECK': 'doInBackgroundDeleteDeck',
+    'REBUILD_CRAM': 'doInBackgroundRebuildCram',
+    'EMPTY_CRAM': 'doInBackgroundEmptyCram',
+    'IMPORT': 'doInBackgroundImportAdd',
+    'IMPORT_REPLACE': 'doInBackgroundImportReplace',
+    # case :283 / :286 / :289 / :292 / :295 / :298 / :301 / :304
+    'EXPORT_APKG': 'doInBackgroundExportApkg',
+    'REORDER': 'doInBackgroundReorder',
+    'CONF_CHANGE': 'doInBackgroundConfChange',
+    'CONF_RESET': 'doInBackgroundConfReset',
+    'CONF_REMOVE': 'doInBackgroundConfRemove',
+    'CONF_SET_SUBDECKS': 'doInBackgroundConfSetSubdecks',
+    'RENDER_BROWSER_QA': 'doInBackgroundRenderBrowserQA',
+    'CHECK_MEDIA': 'doInBackgroundCheckMedia',
+    # case :307 / :310 / :313 / :316 / :319 / :322 / :325 / :328 / :331 / :333
+    'ADD_TEMPLATE': 'doInBackgroundAddTemplate',
+    'REMOVE_TEMPLATE': 'doInBackgroundRemoveTemplate',
+    'COUNT_MODELS': 'doInBackgroundCountModels',
+    'DELETE_MODEL': 'doInBackGroundDeleteModel',
+    'DELETE_FIELD': 'doInBackGroundDeleteField',
+    'REPOSITION_FIELD': 'doInBackGroundRepositionField',
+    'ADD_FIELD': 'doInBackGroundAddField',
+    'CHANGE_SORT_FIELD': 'doInBackgroundChangeSortField',
+    'SAVE_MODEL': 'doInBackgroundSaveModel',
+    'FIND_EMPTY_CARDS': 'doInBackGroundFindEmptyCards',
+}
+# Listener sets per type, union over all sites of that type (section 2.2,
+# with the re-audit confirmations: $14 = REPAIR_DECK, $24 =
+# DELETE_DECK, $25 = mSimpleProgressListener, StudyOptionsFragment$3
+# = getDeckTaskListener listener; $5/$6/$7 = mImportAddListener /
+# mImportReplaceListener / mExportListener by body matching).
+# Post sets cover exactly the 28 post fan-out edges in the out
+# JSON, and progress sets exactly the 12 progress fan-out edges
+# (verified by intersecting section 2.2 with the out-JSON fan-outs), so
+# after a full split the shared TaskListener post/progress nodes
+# have no outgoing edges left (section 2.6). An empty progress set means
+# the type's listeners have no progress fan-out edge in the built
+# graph (method absent, empty, or suppressed in graph_def.py --
+# e.g. $22/$24/$25 progress are suppressed, $14/$15/$16 DeckPicker
+# progress are suppressed); it does NOT mean the listener lacks
+# an onProgressUpdate method in source. DISMISS progress keeps
+# $14/$15 (empty bodies, but their virtual-dispatch edges exist)
+# alongside $8, the only competing progress listener.
+# FIND_EMPTY_CARDS post is DeckPicker$27, which is a DeckTask.Listener
+# (not TaskListener) and is dispatched directly; it is listed here
+# for completeness but is enforced by the onPostExecute@T branch
+# below, not by the TaskListener@T branch (no TaskListener->$27
+# auto edge exists).
+_POST_LISTENERS = {
+    'LOAD_DECK_COUNTS': {'DeckPicker$22.onPostExecute'},
+    'SAVE_COLLECTION': {'UIUtils$1.onPostExecute'},
+    'ANSWER_CARD': {'AbstractFlashcardViewer$10.onPostExecute'},
+    'ADD_FACT': {'NoteEditor$1.onPostExecute'},
+    'UPDATE_FACT': {'AbstractFlashcardViewer$9.onPostExecute',
+                    'CardBrowser$13.onPostExecute'},
+    'UNDO': {'DeckPicker$13.onPostExecute',
+             'AbstractFlashcardViewer$10.onPostExecute'},
+    'SEARCH_CARDS': {'CardBrowser$16.onPostExecute'},
+    'DISMISS': {'AbstractFlashcardViewer$8.onPostExecute',
+                'CardBrowser$14.onPostExecute',
+                'CardBrowser$15.onPostExecute'},
+    'CHECK_DATABASE': {'DeckPicker$15.onPostExecute'},
+    'REPAIR_DECK': {'DeckPicker$14.onPostExecute'},
+    'UPDATE_VALUES_FROM_DECK': {'StudyOptionsFragment$3.onPostExecute'},
+    'DELETE_DECK': {'DeckPicker$24.onPostExecute'},
+    'REBUILD_CRAM': {'DeckPicker$25.onPostExecute',
+                     'StudyOptionsFragment$3.onPostExecute',
+                     'CustomStudyDialog$4.onPostExecute'},
+    'EMPTY_CRAM': {'DeckPicker$25.onPostExecute',
+                   'StudyOptionsFragment$3.onPostExecute'},
+    'IMPORT': {'DeckPicker$5.onPostExecute'},
+    'IMPORT_REPLACE': {'DeckPicker$6.onPostExecute'},
+    'EXPORT_APKG': {'DeckPicker$7.onPostExecute'},
+    'REORDER': {'DeckOptions$DeckPreferenceHack$Editor$2.onPostExecute'},
+    'CONF_CHANGE': {'DeckOptions$DeckPreferenceHack$Editor$2.onPostExecute'},
+    'CONF_RESET': {'DeckOptions$DeckPreferenceHack$Editor$2.onPostExecute'},
+    'CONF_REMOVE': {'DeckOptions$DeckPreferenceHack$Editor$2.onPostExecute'},
+    'CONF_SET_SUBDECKS': {'DeckOptions$DeckPreferenceHack$Editor$2.onPostExecute'},
+    'RENDER_BROWSER_QA': {'CardBrowser$17.onPostExecute'},
+    'CHECK_MEDIA': {'DeckPicker$16.onPostExecute'},
+    'ADD_TEMPLATE': {'CardTemplateEditor$1.onPostExecute'},
+    'REMOVE_TEMPLATE': {'CardTemplateEditor$1.onPostExecute'},
+    'COUNT_MODELS': {'ModelBrowser$1.onPostExecute'},
+    'DELETE_MODEL': {'ModelBrowser$2.onPostExecute'},
+    'DELETE_FIELD': {'ModelFieldEditor$8.onPostExecute'},
+    'REPOSITION_FIELD': {'ModelFieldEditor$8.onPostExecute'},
+    'ADD_FIELD': {'ModelFieldEditor$8.onPostExecute'},
+    'CHANGE_SORT_FIELD': {'ModelFieldEditor$8.onPostExecute'},
+    'SAVE_MODEL': {'CardTemplateEditor$CardTemplateFragment$2.onPostExecute'},
+    'FIND_EMPTY_CARDS': {'DeckPicker$27.onPostExecute'},
+}
+_PROG_LISTENERS = {
+    'LOAD_DECK_COUNTS': set(),
+    'SAVE_COLLECTION': set(),
+    'ANSWER_CARD': {'AbstractFlashcardViewer$10.onProgressUpdate'},
+    'ADD_FACT': {'NoteEditor$1.onProgressUpdate'},
+    'UPDATE_FACT': {'AbstractFlashcardViewer$9.onProgressUpdate',
+                    'CardBrowser$13.onProgressUpdate'},
+    'UNDO': {'DeckPicker$13.onProgressUpdate',
+             'AbstractFlashcardViewer$10.onProgressUpdate'},
+    'SEARCH_CARDS': {'CardBrowser$16.onProgressUpdate'},
+    'DISMISS': {'AbstractFlashcardViewer$8.onProgressUpdate',
+                'CardBrowser$14.onProgressUpdate',
+                'CardBrowser$15.onProgressUpdate'},
+    'CHECK_DATABASE': set(),
+    'REPAIR_DECK': set(),
+    'UPDATE_VALUES_FROM_DECK': set(),
+    'DELETE_DECK': set(),
+    'REBUILD_CRAM': set(),
+    'EMPTY_CRAM': set(),
+    'IMPORT': {'DeckPicker$5.onProgressUpdate'},
+    'IMPORT_REPLACE': {'DeckPicker$6.onProgressUpdate'},
+    'EXPORT_APKG': set(),
+    'REORDER': set(),
+    'CONF_CHANGE': set(),
+    'CONF_RESET': set(),
+    'CONF_REMOVE': set(),
+    'CONF_SET_SUBDECKS': set(),
+    'RENDER_BROWSER_QA': {'CardBrowser$17.onProgressUpdate'},
+    'CHECK_MEDIA': set(),
+    'ADD_TEMPLATE': set(),
+    'REMOVE_TEMPLATE': set(),
+    'COUNT_MODELS': set(),
+    'DELETE_MODEL': set(),
+    'DELETE_FIELD': set(),
+    'REPOSITION_FIELD': set(),
+    'ADD_FIELD': set(),
+    'CHANGE_SORT_FIELD': set(),
+    'SAVE_MODEL': set(),
+    'FIND_EMPTY_CARDS': set(),
+}
+# Non-body auto calls from DeckTask.doInBackground that are legitimate
+# for every variant (DeckTask.java:228, :225, :204):
+_LEGIT_BODY_HOP = {
+    'CollectionHelper.getColSafe', 'CollectionHelper.getInstance',
+    'AnkiDroidApp.getInstance', 'AnkiDroidApp.<clinit>',
+    'BaseAsyncTask.doInBackground',
+}
+
+# Connection variant types (second rework, defect 6): the verbatim
+# regex below now covers Connection as well as DeckTask, so the
+# code and the section 3.7 prose match. Connection has only two branches,
+# and its auto calls are only doOneInBackground and
+# BaseAsyncTask.doInBackground (Connection.java:178, :174) for
+# doInBackground, and the two bodies (Connection.java:188, :185)
+# for doOneInBackground; both bodies are hand-covered by section 3.7, so
+# in practice no variant-to-shared copy survives suppression and
+# the Connection branch below is a safety net, not a live prune.
+_CONN_TYPES = {'SYNC', 'LOGIN'}
+_CONN_BODY = {'SYNC': 'doInBackgroundSync',
+              'LOGIN': 'doInBackgroundLogin'}
+
+def _variant_type(src):
+    # Returns (family, suffix), or (None, None).
+    # Family 'DeckTask': DeckTask.doInBackground@T,
+    # DeckTask.onPostExecute@T, DeckTask.onProgressUpdate@T,
+    # DeckTask$TaskListener.onPostExecute@T,
+    # DeckTask$TaskListener.onProgressUpdate@T, with T in _TASK_TYPES.
+    # Family 'Connection': Connection.doInBackground@T,
+    # Connection.doOneInBackground@T, with T in _CONN_TYPES.
+    # Receiver-variant suffixes (listener class names) match neither
+    # set and return (None, None), so receiver-variant edges are
+    # untouched by this clause.
+    import re
+    m = re.match(
+        r'^DeckTask\.(doInBackground|onPostExecute|onProgressUpdate)@(.+)$'
+        r'|^DeckTask\$TaskListener\.(onPostExecute|onProgressUpdate)@(.+)$',
+        src)
+    if m:
+        t = m.group(2) or m.group(4)
+        return ('DeckTask', t) if t in _TASK_TYPES else (None, None)
+    m = re.match(
+        r'^Connection\.(doInBackground|doOneInBackground)@(.+)$', src)
+    if m:
+        t = m.group(2)
+        return ('Connection', t) if t in _CONN_TYPES else (None, None)
+    return (None, None)
+
+_EDIT_PREV_VARIANT = EDIT  # the current final EDIT (B6 wrapper)
+def EDIT(x):
+    _EDIT_PREV_VARIANT(x)
+    if not x.get('auto'):
+        return  # hand edges (including every variant chain edge) are never pruned
+    family, t = _variant_type(x['src'])
+    if family is None:
+        return  # not a task/listener variant src; receiver variants included
+    src = x['src']
+    dst = x['dst']
+    if family == 'Connection':
+        # doInBackground@T keeps only its own doOneInBackground@T
+        # (hand edge, so defensive) and the legitimate super-call;
+        # doOneInBackground@T keeps only its own body (hand edge,
+        # so defensive). Any other auto copy becomes REGISTER.
+        if src == 'Connection.doInBackground@' + t:
+            if dst not in ('Connection.doOneInBackground@' + t,
+                           'BaseAsyncTask.doInBackground'):
+                x['kind'] = 'REGISTER'
+        elif src == 'Connection.doOneInBackground@' + t:
+            if dst != 'Connection.' + _CONN_BODY[t]:
+                x['kind'] = 'REGISTER'
+        return
+    if src == 'DeckTask.doInBackground@' + t:
+        # Keep only the variant's own body (hand edge, so this branch
+        # is defensive) and the 5 legitimate non-body calls; every
+        # other body copy becomes REGISTER (BFS-invisible).
+        if dst != ('DeckTask.' + _BODY[t]) and dst not in _LEGIT_BODY_HOP:
+            x['kind'] = 'REGISTER'
+    elif src in ('DeckTask.onPostExecute@' + t, 'DeckTask.onProgressUpdate@' + t):
+        # Keep only the legitimate super-call. The shared TaskListener
+        # copy (if any survives suppression) is pruned: the variant's
+        # listener hop is the hand edge to TaskListener@T, never the
+        # shared node. The $27 direct copy is pruned for every type
+        # except FIND_EMPTY_CARDS, $27's own type.
+        method = 'onPostExecute' if 'onPostExecute' in src else 'onProgressUpdate'
+        allowed = {'BaseAsyncTask.' + method}
+        if t == 'FIND_EMPTY_CARDS':
+            allowed.add('DeckPicker$27.' + method)
+        if dst not in allowed:
+            x['kind'] = 'REGISTER'
+    elif src in ('DeckTask$TaskListener.onPostExecute@' + t,
+                 'DeckTask$TaskListener.onProgressUpdate@' + t):
+        # Keep only this type's own listener set; every other
+        # listener copy becomes REGISTER.
+        allowed = (_POST_LISTENERS if 'onPostExecute' in src
+                   else _PROG_LISTENERS).get(t, set())
+        if dst not in allowed:
+            x['kind'] = 'REGISTER'

@@ -58,13 +58,32 @@ def methods_csv_path(app, root):
 
 
 def find_manifest(app, root):
-    """The app's main manifest (prefers a src/main path)."""
+    """The app's main manifest (Stream A: LAUNCHER manifest first,
+    then a src/main path, then shortest path).
+
+    The LAUNCHER check reads each candidate manifest for
+    android.intent.category.LAUNCHER: a library/module manifest (e.g.
+    AnkiDroid's api module) has no LAUNCHER activity, while the app
+    manifest does. Sorting LAUNCHER first therefore picks the app
+    manifest even when a module manifest path is shorter. Tested on
+    all 13 apps: it changes only AnkiDroid (api/src/main ->
+    AnkiDroid/src/main); every other app's pick is unchanged.
+    """
     base = os.path.join(root, "final_java_only", app, "app")
     hits = []
     for dirpath, _dirs, files in os.walk(base):
         if "AndroidManifest.xml" in files:
             hits.append(os.path.join(dirpath, "AndroidManifest.xml"))
-    hits.sort(key=lambda p: ("/src/main/" not in p, len(p)))
+
+    def sort_key(p):
+        try:
+            with open(p, encoding="utf-8", errors="replace") as f:
+                has_launcher = "android.intent.category.LAUNCHER" in f.read()
+        except OSError:
+            has_launcher = False
+        return (not has_launcher, "/src/main/" not in p, len(p))
+
+    hits.sort(key=sort_key)
     return hits[0] if hits else None
 
 

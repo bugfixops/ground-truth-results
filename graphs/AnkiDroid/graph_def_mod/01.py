@@ -2353,12 +2353,9 @@ e('Stats.calculateBreakdown', 'Stats$1.compare', 'CALL',
   evidence='SRC com/ichi2/libanki/Stats.java:852-858; INFERRED java.util.Collections.sort calls Comparator.compare (java.util is not in fw_src)',
   note='No gate constant applies. The compare call happens only when the list has two or more rows (JDK behaviour, INFERRED).')
 
-e('Stats.calculateDue(Context,AxisType)', 'AdvancedStatistics.runFilter', 'CALL',
-  'The forecast entry point runs the advancedStatistics hook through Hooks.runFilter. The hook list holds AdvancedStatistics only when the preference advanced_statistics_enabled is true, so the hook runFilter runs only then.',
-  cls='non_standard',
-  via=['hook registry dispatch (Hooks.runFilter loops over the Hook objects registered under the key advancedStatistics)'],
-  evidence='SRC com/ichi2/libanki/Stats.java:308-311; com/ichi2/libanki/hooks/Hooks.java:61-62, 138-150; com/ichi2/libanki/hooks/AdvancedStatistics.java:141-148',
-  note='MISSING GATE MG943: the preference advanced_statistics_enabled (default false, Hooks.java:61) must be true for AdvancedStatistics to be installed. Without it, calculateDue(AxisType) at Stats.java:331 runs instead.')
+# Stream A: direct hand edge Stats.calculateDue -> AdvancedStatistics.runFilter DELETED (was Edf6d8bd0).
+# Replaced by the @advancedStatistics variant path (dialog design, re-audit PASS); keeping it would
+# leave route 19 on the direct edge and make the variant decorative.
 
 UNREACHABLE['Storage.<init>'] = ('no_trigger_in_app',
   'Storage declares no constructor, so only the implicit default constructor exists. Nothing in the source roots constructs it: there is no new Storage expression, no subclass of Storage, and no Storage.class reference. Every use of Storage is a static call (Storage.Collection, Storage.addIndices), so no instance is ever created.',
@@ -4195,11 +4192,9 @@ e('TranslationActivity.showPickTranslationDialog', 'S_DLG_PICK_STRING', 'ENTERS'
 # Whiteboard.onDraw from S_REVIEWER (7002), S_STATISTICS -> ChartView.onDraw (7657), the Reviewer.<init> lifecycle chain.
 # Automatic CALL edges come from auto_calls.json and are not written here.
 
-e('AbstractFlashcardViewer.onCreate', 'Reviewer.onCollectionLoaded', 'ASYNC',
-  'the collection finishes loading and the loader calls onCollectionLoaded on the Reviewer (AnkiActivity.onLoadFinished dispatch)',
-  env=None,
-  evidence='SRC com/ichi2/anki/AbstractFlashcardViewer.java:859; SRC com/ichi2/anki/AnkiActivity.java:255-262, 283-290; SRC com/ichi2/anki/Reviewer.java:96-98',
-  note='The loader callback is androidx Loader, a library step: INFERRED, source not read. AnkiActivity.onLoadFinished has no inbound edge in out/, so the edge is written from the base onCreate, following the CardBrowser.onCreate -> CardBrowser.onCollectionLoaded ASYNC precedent (graph_def.py:1500-1510). Reviewer.java:96-97 is an @Override of AnkiActivity.onCollectionLoaded, so the virtual call at AnkiActivity.java:286 reaches the Reviewer method.')
+# Stream A: base-onCreate Reviewer hand edge DELETED (was Ee2fb37d3).
+# Replaced by the receiver-variant entry Reviewer.<init> -> AbstractFlashcardViewer.onCreate@Reviewer
+# -> Reviewer.onCollectionLoaded (best-route Set G, re-audit PASS).
 
 e('Reviewer.onCollectionLoaded', 'S_REVIEWER', 'ENTERS',
   'the review screen is live once the collection is loaded: the cards and the controls are set up',
@@ -4207,17 +4202,11 @@ e('Reviewer.onCollectionLoaded', 'S_REVIEWER', 'ENTERS',
   evidence='SRC com/ichi2/anki/Reviewer.java:97-115; SRC com/ichi2/anki/AbstractFlashcardViewer.java:879-890',
   note='Page ENTERS from a method of this batch, following Previewer.onCollectionLoaded -> S_PREVIEWER (parts/label_036.py:151-155). Without it S_REVIEWER has no inbound edge, so every S_REVIEWER page edge (onCreateOptionsMenu, onKeyUp, onOptionsItemSelected, onWindowFocusChanged, Whiteboard.onDraw, Reviewer$1.onTouch and the AbstractFlashcardViewer page edges) stays UNRESOLVED.')
 
-e('AbstractFlashcardViewer.onCreate', 'Reviewer.restorePreferences', 'CALL',
-  'AbstractFlashcardViewer.onCreate calls restorePreferences(), which dispatches to the Reviewer override',
-  env=None,
-  evidence='SRC com/ichi2/anki/AbstractFlashcardViewer.java:849-855; SRC com/ichi2/anki/Reviewer.java:396-397',
-  note='Virtual dispatch: Reviewer.java:396 overrides restorePreferences (super call at line 397). The auto edge from the variant AbstractFlashcardViewer.onCreate@Reviewer has no inbound edge in out/, so this base-node edge is the route.')
+# Stream A: base-onCreate Reviewer hand edge DELETED (was E3e5784f2).
+# The variant AbstractFlashcardViewer.onCreate@Reviewer now carries this flow via its auto edges (Set G).
 
-e('AbstractFlashcardViewer.onCreate', 'Reviewer.getContentViewAttr', 'CALL',
-  'AbstractFlashcardViewer.onCreate calls getContentViewAttr() to choose the layout, which dispatches to the Reviewer override',
-  env=None,
-  evidence='SRC com/ichi2/anki/AbstractFlashcardViewer.java:855, 862-864; SRC com/ichi2/anki/Reviewer.java:82',
-  note='Same reason as the restorePreferences edge above. Reviewer.java:82 overrides AbstractFlashcardViewer.getContentViewAttr(int).')
+# Stream A: base-onCreate Reviewer hand edge DELETED (was Ea1ef11ff).
+# The variant AbstractFlashcardViewer.onCreate@Reviewer now carries this flow via its auto edges (Set G).
 
 e('Statistics.onCreate', 'S_STATISTICS', 'ENTERS',
   'the statistics screen is created and its layout is set (activity_anki_stats)',

@@ -1,44 +1,43 @@
 #!/usr/bin/env python3
-"""AnkiDroid route_04: Stats$1.compare.
+"""AnkiDroid route_04 (final draw): Sched._cntFnNew.
 
-Target: Stats$1.compare (anonymous Comparator in
-    Stats.calculateBreakdown).
-Table verdict: WRONG (first-draw verdict; this script drives the
-    CORRECTED route C04, never the printed BFS route).
-Route followed: CORRECTED route C04 from
-    helper/b6fix-r01-06/CORRECTED_ROUTES.md, with final-graph edge
-    ids (24 edges). The printed route launched LOAD_DECK_COUNTS then
-    took the RENDER_BROWSER_QA branch; this script follows the
-    LOAD_DECK_COUNTS dispatch, the deck list it produces, and the
-    navigation-drawer Statistics destination. No CardBrowser detour
-    is needed: Statistics is a drawer destination of every
-    NavigationDrawerActivity page.
-Edge-id note: the helper file cites E47fbe466 for
-    onResume -> updateDeckList, but that id is absent from the final
-    graph build_F5.json; the final graph carries the same transition
-    as E0b111c68 (guard: not mSyncOnResume and colIsOpen()), which
-    this script uses instead. All other helper ids verified present.
-Preconditions/fixtures:
-  - Collection open; deck list loaded.
-  - Review history giving at least 2 hourly-breakdown entries: the
-    comparator is called only when the breakdown list has >= 2
-    entries (the list is forced to >= 1 at Stats.java:838-840).
+Target: Sched._cntFnNew (reflectively invoked via _walkingCount,
+    Sched.java:337-353).
+Table verdict: CORRECT (final draw, 15 steps; the BFS route IS the
+    judged route, so this script drives the BFS route).
+Route followed: final-draw BFS route from helper/judge-final/
+    route_04.txt, edge ids verified against
+    graphs/AnkiDroid/out/ankidroid_trigger_graph.json and
+    methods.csv (route_edge_ids identical). No first-draw script
+    exists for this method; this script is written fresh in the old
+    scripts' style.
+Route shape: launch-only. On resume DeckPicker takes the colIsOpen
+    branch (not mSyncOnResume) to updateDeckList, which launches the
+    LOAD_DECK_COUNTS DeckTask; deckDueTree -> deckDueList calls
+    _checkDay, and with day rollover pending (Utils.now() >
+    mDayCutoff, Sched.java:1882) reset() runs _resetNew ->
+    _resetNewCount -> _walkingCount, which reflectively invokes the
+    _cntFnNew method passed at Sched.java:564-565.
+Preconditions (see ROUTES_rows.csv setup cell):
+  - Collection open; not sync-on-resume.
+  - Day rollover pending: the run collection's day cutoff must
+    already have passed when the deck list loads, otherwise
+    _checkDay does not call reset and the target is not reached.
+    This is a collection-state precondition the live run must
+    arrange and confirm; it is not statically verifiable here and
+    no fixture is claimed for it (see NOTES.md).
 Mapping notes:
-  - DeckPicker$22.onPostExecute -> S_DECKPICKER is a page
-    abstraction with no dedicated graph edge; it is noted in the
-    E10a14596 comment, not given an invented id.
-  - The getItemPosition path applies to already-instantiated
-    fragments (Statistics.java:296-298); the script dwells after
-    onCollectionLoaded so fragments instantiate and the chart draws.
-  - The JDK-sort link itself (Collections.sort calling compare) is
-    INFERRED: java.util is not in the tree. The comparator's
-    existence at Stats.java:852-859 is printed.
-  - The drawer-open tap and the "Statistics" tap share edge
-    E02986fa7 (two log lines, one edge).
-  - The "Navigate up" content description is the standard framework
-    description; verify it against a live uiautomator dump before a
-    real run.
-Launcher: com.ichi2.anki/.IntentHandler (AndroidManifest.xml:81-89).
+  - No UI tap exists on this route after launch: every step after
+    onResume is an automatic task/lifecycle consequence, logged with
+    r.comment (and one dwell for the background task).
+  - The final edge Ee3f8c63a (_walkingCount -> _cntFnNew) is a
+    reflective invoke, not a UI action; the script drives the launch
+    and waits for the deck-list load, and the invoke is the task's
+    consequence.
+Launcher: com.ichi2.anki/.IntentHandler (AndroidManifest.xml:81-89,
+    MAIN/LAUNCHER). run_app.sh already does pm clear, permission
+    grants, fixture pushes, and per-app setup before this script, so
+    the script performs only the route actions starting from launch.
 """
 
 import argparse
@@ -51,10 +50,8 @@ from device.harness import Runner  # noqa: E402
 
 EDGE_IDS = [
     "E48de6d58", "E26d20f74", "E1ad4ef9b", "E553ad2d8", "E0b111c68",
-    "E8b5d2971", "E460971ee", "Ee1634710", "E3e610385", "Eee369b5f",
-    "E10a14596", "E02986fa7", "E002cbed9", "E156e1693", "E267ed275",
-    "Eaf3beafc", "E072f904d", "E5bf994da", "Efa80210f", "E9a6b7dfd",
-    "E7974b03d", "Eb3bbd238", "E36391b1c", "Efcceb288",
+    "E9ce827b1", "E0b825f58", "E8425c0fa", "E9b11a75d", "E41f469b6",
+    "E7da70881", "Ea3a16a29", "Ea457b3e5", "E91386df9", "Ee3f8c63a",
 ]
 
 
@@ -79,65 +76,38 @@ def main(argv=None):
               edge="E1ad4ef9b")
     # E553ad2d8 DeckPicker.onCreate -> DeckPicker.onResume.
     r.comment("onStart -> onResume", edge="E553ad2d8")
-    # E0b111c68 onResume -> updateDeckList (guard: not mSyncOnResume
-    # and colIsOpen()).
+    # E0b111c68 DeckPicker.onResume -> DeckPicker.updateDeckList
+    # (guard: not mSyncOnResume and colIsOpen()).
     r.comment("resume takes updateDeckList (not sync)", edge="E0b111c68")
-    # E8b5d2971 updateDeckList -> launchDeckTask (LOAD_DECK_COUNTS).
+    # E9ce827b1 updateDeckList -> DeckTask.doInBackground
+    # @LOAD_DECK_COUNTS (DeckPicker.java:1823; FW AsyncTask).
     r.comment("launchDeckTask TASK_TYPE_LOAD_DECK_COUNTS",
-              edge="E8b5d2971")
-    # E460971ee launchDeckTask -> doInBackground.
-    r.comment("DeckTask execute -> doInBackground", edge="E460971ee")
-    # Ee1634710 doInBackground -> doInBackgroundLoadDeckCounts
-    # (DeckTask.java:234-235).
-    r.comment("dispatch takes LOAD_DECK_COUNTS case", edge="Ee1634710")
-    # E3e610385 doInBackground -> onPostExecute (framework delivery).
-    r.dwell(edge="E3e610385", seconds=5)
-    # Eee369b5f onPostExecute -> TaskListener.onPostExecute.
-    r.comment("listener onPostExecute", edge="Eee369b5f")
-    # E10a14596 TaskListener -> DeckPicker$22.onPostExecute; the deck
-    # list is built, so the app is on the deck-picker page (page
-    # abstraction: no dedicated graph edge for $22 -> S_DECKPICKER).
-    r.comment("updateDeckList listener; deck list built, deck-picker "
-              "page shown (page abstraction, no dedicated edge)",
-              edge="E10a14596")
-    # E02986fa7 S_DECKPICKER -> onNavigationItemSelected: open the
-    # drawer, then tap the nav_stats item ("Statistics").
-    r.tap(edge="E02986fa7", desc="Navigate up")
-    r.tap(edge="E02986fa7", text="Statistics")
-    # E002cbed9 onNavigationItemSelected -> Statistics.<init>
-    # (nav_stats case).
-    r.comment("drawer nav_stats starts Statistics", edge="E002cbed9")
-    # E156e1693 Statistics.<init> -> Statistics.onCreate.
-    r.comment("Statistics onCreate", edge="E156e1693")
-    # E267ed275 Statistics.onCreate -> Statistics.onCollectionLoaded
-    # (guard: col != null and colIsOpen()).
-    r.comment("collection loaded", edge="E267ed275")
-    # Eaf3beafc onCollectionLoaded -> getItemPosition
-    # (notifyDataSetChanged; already-instantiated fragments).
-    r.dwell(edge="Eaf3beafc", seconds=3)
-    # E072f904d getItemPosition -> ChartFragment.checkAndUpdate.
-    r.comment("fragment checkAndUpdate", edge="E072f904d")
-    # E5bf994da checkAndUpdate -> createChart (guards: mIsCreated,
-    # non-zero size, changed state).
-    r.comment("createChart", edge="E5bf994da")
-    # Efa80210f createChart -> AnkiStatsTaskHandler.createChart
-    # (mChartType == HOURLY_BREAKDOWN).
-    r.comment("handler createChart HOURLY_BREAKDOWN", edge="Efa80210f")
-    # E9a6b7dfd handler createChart -> CreateChartTask.doInBackground
-    # (guard: mIsRunning).
-    r.comment("CreateChartTask doInBackground", edge="E9a6b7dfd")
-    # E7974b03d doInBackground -> ChartBuilder.renderChart.
-    r.comment("renderChart", edge="E7974b03d")
-    # Eb3bbd238 renderChart -> calcStats.
-    r.comment("calcStats", edge="Eb3bbd238")
-    # E36391b1c calcStats -> Stats.calculateBreakdown
-    # (HOURLY_BREAKDOWN case, ChartBuilder.java:84-85).
-    r.comment("calculateBreakdown HOURLY_BREAKDOWN", edge="E36391b1c")
-    # Efcceb288 calculateBreakdown -> Stats$1.compare (target;
-    # guard: breakdown list has >= 2 entries; JDK sort dispatch
-    # itself is INFERRED).
-    r.comment("sort calls Stats$1.compare (target; JDK dispatch "
-              "INFERRED)", edge="Efcceb288")
+              edge="E9ce827b1")
+    # E0b825f58 doInBackground@LOAD_DECK_COUNTS ->
+    # doInBackgroundLoadDeckCounts (DeckTask.java:234-235).
+    r.comment("dispatch takes LOAD_DECK_COUNTS case", edge="E0b825f58")
+    # E8425c0fa doInBackgroundLoadDeckCounts -> Sched.deckDueTree
+    # (DeckTask.java:485 col.getSched().deckDueTree()).
+    r.comment("deckDueTree", edge="E8425c0fa")
+    # E9b11a75d deckDueTree -> deckDueList (Sched.java:433).
+    r.comment("deckDueList", edge="E9b11a75d")
+    # E41f469b6 deckDueList -> _checkDay (Sched.java:380).
+    r.comment("_checkDay", edge="E41f469b6")
+    # E7da70881 _checkDay -> reset (guard: Utils.now() > mDayCutoff,
+    # Sched.java:1882; day-rollover precondition, see header).
+    r.dwell(edge="E7da70881", seconds=5)
+    # Ea3a16a29 reset -> _resetNew (Sched.java:138).
+    r.comment("reset -> _resetNew", edge="Ea3a16a29")
+    # Ea457b3e5 _resetNew -> _resetNewCount (Sched.java:581).
+    r.comment("_resetNew -> _resetNewCount", edge="Ea457b3e5")
+    # E91386df9 _resetNewCount -> _walkingCount (Sched.java:564-565,
+    # passing the _cntFnNew method by reflection).
+    r.comment("_resetNewCount -> _walkingCount (_cntFnNew passed)",
+              edge="E91386df9")
+    # Ee3f8c63a _walkingCount -> _cntFnNew (target; reflective
+    # invoke at Sched.java:337-353, no user action).
+    r.comment("_walkingCount reflectively invokes _cntFnNew (target)",
+              edge="Ee3f8c63a")
     r.done()
     return 0
 
