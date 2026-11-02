@@ -1773,7 +1773,7 @@ e('WidgetStatus$UpdateDeckStatusAsyncTask.onPostExecute', 'NotificationService.<
   guard='sNotificationEnabled is true (set in WidgetStatus.update from minimumCardsDueForNotification, WidgetStatus.java:56); the start is at WidgetStatus.java:111-115',
   env=None,
   needs_state=STATE_SETTINGS,
-  evidence='SRC com/ichi2/widget/WidgetStatus.java:56, 111-115; SRC com/ichi2/anki/services/NotificationService.java:37',
+  evidence='SRC com/ichi2/widget/WidgetStatus.java:56, 111-115; SRC com/ichi2/anki/services/NotificationService.java (line 37)',
   note='Explicit intent start (WidgetStatus.java:113-114). The framework creates the service through its constructor; the next hops NotificationService.onCreate and onStartCommand are the FRAMEWORK edge in label_049.py. Gate STATE_SETTINGS (notification preference). env None: the start needs no outside event.')
 
 UNREACHABLE['MethodLogger.<init>'] = ('no_trigger_in_app', 'Private constructor of a static utility class. grep for new MethodLogger over the source root finds nothing.', 'SRC com/ichi2/utils/MethodLogger.java:42-45', 'SOURCE')

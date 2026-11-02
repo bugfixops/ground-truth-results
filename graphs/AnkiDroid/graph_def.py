@@ -294,7 +294,7 @@ for cb, lsrc in lc_chain('CardContentProvider', ('onCreate',)):
     e(lsrc, 'CardContentProvider.' + cb, 'LIFECYCLE', 'lifecycle callback of CardContentProvider (ContentProvider)', evidence='INFERRED system calls this callback in order (framework source not read for this component); SRC com/ichi2/anki/provider/CardContentProvider.java:151')
 
 for cb, lsrc in lc_chain('NotificationService', ('onCreate',)):
-    e(lsrc, 'NotificationService.' + cb, 'LIFECYCLE', 'lifecycle callback of NotificationService (Service)', evidence='FW-SRC core/java/android/app/Service.java:343 (onCreate), 515 (onDestroy); SRC com/ichi2/anki/services/NotificationService.java:47')
+    e(lsrc, 'NotificationService.' + cb, 'LIFECYCLE', 'lifecycle callback of NotificationService (Service)', evidence='FW-SRC core/java/android/app/Service.java:343 (onCreate), 515 (onDestroy); SRC com/ichi2/anki/services/NotificationService.java (line 47)')
 
 for cb, lsrc in lc_chain('AppCompatPreferenceActivity', ('onCreate', 'onStop', 'onDestroy')):
     e(lsrc, 'AppCompatPreferenceActivity.' + cb, 'LIFECYCLE', 'lifecycle callback of AppCompatPreferenceActivity (PreferenceActivity)', evidence='FW-SRC core/java/android/app/Activity.java:989 (onCreate), 1239 (onStart), 1311 (onResume), 1673 (onPause), 1858 (onStop), 1909 (onDestroy); SRC com/ichi2/ui/AppCompatPreferenceActivity.java:43, com/ichi2/ui/AppCompatPreferenceActivity.java:107, com/ichi2/ui/AppCompatPreferenceActivity.java:113')
@@ -6415,7 +6415,7 @@ e('NotificationService.onCreate', 'NotificationService.onStartCommand', 'FRAMEWO
   'the framework calls onStartCommand after onCreate for the start request sent by the widget status update',
   env=None,
   needs_state=STATE_SETTINGS,
-  evidence='SRC com/ichi2/anki/services/NotificationService.java:46-54; SRC com/ichi2/widget/WidgetStatus.java:56, 111-115; FW-SRC core/java/android/app/ActivityThread.java:3339, 3464, 3474',
+  evidence='SRC com/ichi2/anki/services/NotificationService.java (lines 46-54); SRC com/ichi2/widget/WidgetStatus.java:56, 111-115; FW-SRC core/java/android/app/ActivityThread.java:3339, 3464, 3474',
   note='The start request comes from WidgetStatus.UpdateDeckStatusAsyncTask.onPostExecute only when minimumCardsDueForNotification is below 1000000 (WidgetStatus.java:56, 111-115). That is the settings gate STATE_SETTINGS. The framework order (onCreate, then onStartCommand) is ActivityThread.java:3339 and 3474.')
 
 # --- UNREACHABLE: the service has no intent-filter and no app code binds to it.
