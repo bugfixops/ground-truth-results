@@ -7656,3 +7656,102 @@ core/TorrentBuilder.java:116:    public TorrentBuilder addTrackers(@NonNull List
 core/TorrentBuilder.java:127:    public TorrentBuilder addUrlSeeds(@NonNull List<String> urls)
 core/TorrentBuilder.java:173:    public Single<byte[]> build()
 core/TorrentBuilder.java:177:        return Single.fromCallable(() -> builder.generate().entry().bencode());
+$ A3 extension (2026-11-01, batch 18 conversion): ranges cited by the new b018.py that were not already printed above as source lines
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/log/LogSettingsFragment.java" | sed -n '52,75p'
+52:    public void onCreate(Bundle savedInstanceState)
+53:    {
+54:        super.onCreate(savedInstanceState);
+55:
+56:        Context context = getActivity().getApplicationContext();
+57:        pref = RepositoryHelper.getSettingsRepository(context);
+58:
+59:        InputFilter[] maxFilter = new InputFilter[] {
+60:                new InputFilterRange.Builder()
+61:                        .setMin(1)
+62:                        .setMax(Integer.MAX_VALUE)
+63:                        .build()
+64:        };
+65:
+66:        String keyMaxLogSize= getString(R.string.pref_key_max_log_size);
+67:        EditTextPreference maxLogSize  = findPreference(keyMaxLogSize);
+68:        if (maxLogSize != null) {
+69:            String value = Integer.toString(pref.maxLogSize());
+70:            maxLogSize.setOnBindEditTextListener((editText) -> editText.setFilters(maxFilter));
+71:            maxLogSize.setSummary(value);
+72:            maxLogSize.setText(value);
+73:            bindOnPreferenceChangeListener(maxLogSize);
+74:        }
+75:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/MainFragment.java" | sed -n '110,125p'
+110:        return binding.mainCoordinatorLayout;
+111:    }
+112:
+113:    @Nullable
+114:    @Override
+115:    public View onCreateView(@NonNull LayoutInflater inflater,
+116:                             @Nullable ViewGroup container,
+117:                             @Nullable Bundle savedInstanceState)
+118:    {
+119:        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_main, container, false);
+120:
+121:        return binding.getRoot();
+122:    }
+123:
+124:    @Override
+125:    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java" | sed -n '117,141p'
+117:    public static TorrentEngine getInstance(@NonNull Context appContext) {
+118:        if (INSTANCE == null) {
+119:            synchronized (TorrentEngine.class) {
+120:                if (INSTANCE == null)
+121:                    INSTANCE = new TorrentEngine(appContext);
+122:            }
+123:        }
+124:
+125:        return INSTANCE;
+126:    }
+127:
+128:    private TorrentEngine(@NonNull Context appContext) {
+129:        this.appContext = appContext;
+130:        repo = RepositoryHelper.getTorrentRepository(appContext);
+131:        tagRepo = RepositoryHelper.getTagRepository(appContext);
+132:        fs = SystemFacadeHelper.getFileSystemFacade(appContext);
+133:        pref = RepositoryHelper.getSettingsRepository(appContext);
+134:        notifier = TorrentNotifier.getInstance(appContext);
+135:        downloadsCompleted = new DownloadsCompletedListener(this);
+136:        session = new TorrentSessionImpl(repo,
+137:                fs,
+138:                SystemFacadeHelper.getSystemFacade(appContext));
+139:        session.setSettings(pref.readSessionSettings(), false);
+140:        session.addListener(engineListener);
+141:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentInfoProvider.java" | sed -n '76,87p'
+76:    public static TorrentInfoProvider getInstance(@NonNull Context appContext) {
+77:        if (INSTANCE == null) {
+78:            synchronized (TorrentInfoProvider.class) {
+79:                if (INSTANCE == null)
+80:                    INSTANCE = new TorrentInfoProvider(
+81:                            TorrentEngine.getInstance(appContext),
+82:                            RepositoryHelper.getTagRepository(appContext)
+83:                    );
+84:            }
+85:        }
+86:        return INSTANCE;
+87:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/service/FeedFetcherWorker.java" | sed -n '72,80p'
+72:    @NonNull
+73:    @Override
+74:    public Result doWork()
+75:    {
+76:        context = getApplicationContext();
+77:        repo = RepositoryHelper.getFeedRepository(context);
+78:        pref = RepositoryHelper.getSettingsRepository(context);
+79:
+80:        long keepTime = pref.feedItemKeepTime();
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/TorrentBuilder.java" | sed -n '173,178p'
+173:    public Single<byte[]> build()
+174:    {
+175:        subscribeProgress();
+176:
+177:        return Single.fromCallable(() -> builder.generate().entry().bencode());
+178:    }

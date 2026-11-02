@@ -1,0 +1,673 @@
+$ A3 part converter prints for batch 19 (LibreTorrent 3.5.2)
+$ Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/TorrentBuilder.java" | sed -n '41,86p'
+41:public class TorrentBuilder
+42:{
+43:    private Context context;
+44:    private org.libtorrent4j.TorrentBuilder builder;
+45:    private Predicate<String> fileNameFilter;
+46:    private BehaviorSubject<Progress> progress = BehaviorSubject.create();
+47:
+48:    public static class Tracker
+49:    {
+50:        public final String url;
+51:        public final int tier;
+52:
+53:        public Tracker(@NonNull String url, int tier)
+54:        {
+55:            this.url = url;
+56:            this.tier = tier;
+57:        }
+58:    }
+59:
+60:    public static final class Progress
+61:    {
+62:        public final int piece;
+63:        public final int numPieces;
+64:
+65:        public Progress(int piece, int numPieces)
+66:        {
+67:            this.piece = piece;
+68:            this.numPieces = numPieces;
+69:        }
+70:    }
+71:
+72:    public enum TorrentVersion {
+73:        V1_ONLY (org.libtorrent4j.TorrentBuilder.V1_ONLY),
+74:        V2_ONLY (org.libtorrent4j.TorrentBuilder.V2_ONLY),
+75:        HYBRID (create_flags_t.from_int(0));
+76:
+77:        private final create_flags_t flag;
+78:
+79:        final create_flags_t flag() {
+80:            return this.flag;
+81:        }
+82:
+83:        TorrentVersion(create_flags_t flag) {
+84:            this.flag = flag;
+85:        }
+86:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/TorrentBuilder.java" | sed -n '94,200p'
+94:    public TorrentBuilder setSeedPath(Uri path) throws UnknownUriException
+95:    {
+96:        String seedPathStr = SystemFacadeHelper.getFileSystemFacade(context)
+97:                .makeFileSystemPath(path);
+98:        builder.path(new File(seedPathStr));
+99:
+100:        return this;
+101:    }
+102:
+103:    /*
+104:     * The size of each piece in bytes. It must
+105:     * be a multiple of 16 kiB. If a piece size of 0 is specified, a
+106:     * piece size will be calculated such that the torrent file is roughly 40 kB
+107:     */
+108:
+109:    public TorrentBuilder setPieceSize(int size)
+110:    {
+111:        builder.pieceSize(size);
+112:
+113:        return this;
+114:    }
+115:
+116:    public TorrentBuilder addTrackers(@NonNull List<Tracker> trackers)
+117:    {
+118:        ArrayList<Pair<String, Integer>> list = new ArrayList<>();
+119:        for (Tracker tracker : trackers)
+120:            list.add(new Pair<>(tracker.url, tracker.tier));
+121:
+122:        builder.addTrackers(list);
+123:
+124:        return this;
+125:    }
+126:
+127:    public TorrentBuilder addUrlSeeds(@NonNull List<String> urls)
+128:    {
+129:        builder.addUrlSeeds(urls);
+130:
+131:        return this;
+132:    }
+133:
+134:    public TorrentBuilder setAsPrivate(boolean isPrivate)
+135:    {
+136:        builder.setPrivate(isPrivate);
+137:
+138:        return this;
+139:    }
+140:
+141:    public TorrentBuilder setCreator(String creator)
+142:    {
+143:        builder.creator(creator);
+144:
+145:        return this;
+146:    }
+147:
+148:    public TorrentBuilder setComment(String comment)
+149:    {
+150:        builder.comment(comment);
+151:
+152:        return this;
+153:    }
+154:
+155:    public TorrentBuilder setFileNameFilter(Predicate<String> fileNameFilter)
+156:    {
+157:        this.fileNameFilter = fileNameFilter;
+158:
+159:        return this;
+160:    }
+161:
+162:    public TorrentBuilder setTorrentVersion(TorrentVersion version) {
+163:        builder.flags(builder.flags().or_(version.flag()));
+164:
+165:        return this;
+166:    }
+167:
+168:    public Observable<Progress> observeProgress()
+169:    {
+170:        return progress;
+171:    }
+172:
+173:    public Single<byte[]> build()
+174:    {
+175:        subscribeProgress();
+176:
+177:        return Single.fromCallable(() -> builder.generate().entry().bencode());
+178:    }
+179:
+180:    private void subscribeProgress()
+181:    {
+182:        builder.listener(new org.libtorrent4j.TorrentBuilder.Listener() {
+183:            @Override
+184:            public boolean accept(String filename)
+185:            {
+186:                try {
+187:                    return fileNameFilter == null || fileNameFilter.test(filename);
+188:
+189:                } catch (Exception e) {
+190:                    return false;
+191:                }
+192:            }
+193:
+194:            @Override
+195:            public void progress(int pieceIndex, int numPieces)
+196:            {
+197:                progress.onNext(new Progress(pieceIndex, numPieces));
+198:            }
+199:        });
+200:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/createtorrent/CreateTorrentViewModel.java" | sed -n '151,200p'
+151:    public void buildTorrent()
+152:    {
+153:        state.setValue(new BuildState(BuildState.Status.BUILDING, null));
+154:
+155:        TorrentBuilder builder;
+156:        try {
+157:            builder = makeBuilder();
+158:
+159:        } catch (Exception e) {
+160:            onBuildError(e);
+161:
+162:            return;
+163:        }
+164:
+165:        resetPercentProgress();
+166:        disposables.add(builder.observeProgress()
+167:                .subscribeOn(Schedulers.io())
+168:                .filter(Objects::nonNull)
+169:                .subscribe(this::makePercentProgress)
+170:        );
+171:        disposables.add(builder.build()
+172:                .subscribeOn(Schedulers.io())
+173:                .subscribe(this::onBuildSuccess, this::onBuildError)
+174:        );
+175:    }
+176:
+177:    private TorrentBuilder makeBuilder() throws Exception
+178:    {
+179:        Uri seedPath = mutableParams.getSeedPath().get();
+180:        if (seedPath == null)
+181:            throw new IllegalArgumentException("Seed path is null");
+182:        Uri savePath = mutableParams.getSavePath();
+183:        if (savePath == null)
+184:            throw new IllegalArgumentException("Save path is null");
+185:
+186:        if (!Utils.isFileSystemPath(seedPath))
+187:            throw new IllegalArgumentException("SAF doesn't supported");
+188:
+189:        return new TorrentBuilder(getApplication())
+190:                .setSeedPath(seedPath)
+191:                .setPieceSize(getPieceSizeByIndex(mutableParams.getPieceSizeIndex()))
+192:                .setTorrentVersion(getTorrentVersionByIndex(mutableParams.getTorrentVersionIndex()))
+193:                .addTrackers(getAndValidateTrackers())
+194:                .addUrlSeeds(getAndValidateWebSeeds())
+195:                .setAsPrivate(mutableParams.isPrivateTorrent())
+196:                .setCreator(makeCreator())
+197:                .setComment(mutableParams.getComments())
+198:                .setFileNameFilter((fileName) -> {
+199:                    List<String> skipFilesList = decodeSkipFilesList();
+200:                    if (skipFilesList.isEmpty())
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/createtorrent/CreateTorrentViewModel.java" | sed -n '264,280p'
+264:    private List<TorrentBuilder.Tracker> getAndValidateTrackers() throws InvalidTrackerException
+265:    {
+266:        List<TorrentBuilder.Tracker> validTrackers = new ArrayList<>();
+267:        int tier = 0;
+268:        for (String url : decodeUrls(mutableParams.getTrackerUrls())) {
+269:            try {
+270:                url = normalizeAndValidateUrl(url);
+271:
+272:            } catch (IllegalArgumentException e) {
+273:                throw new InvalidTrackerException(url);
+274:            }
+275:            validTrackers.add(new TorrentBuilder.Tracker(url, tier++));
+276:        }
+277:
+278:        return validTrackers;
+279:    }
+280:
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/createtorrent/CreateTorrentViewModel.java" | sed -n '338,349p'
+338:    private TorrentBuilder.TorrentVersion getTorrentVersionByIndex(int index) {
+339:        int version = engine.getTorrentVersionList()[index];
+340:        if (version == 0) {
+341:            return TorrentBuilder.TorrentVersion.HYBRID;
+342:        } else if (version == 1) {
+343:            return TorrentBuilder.TorrentVersion.V1_ONLY;
+344:        } else if (version == 2) {
+345:            return TorrentBuilder.TorrentVersion.V2_ONLY;
+346:        } else {
+347:            Log.e(TAG, "Unknown torrent version " + version);
+348:            return TorrentBuilder.TorrentVersion.HYBRID;
+349:        }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java" | sed -n '1050,1060p'
+1050:                session.enableIpFilter(Uri.parse(path));
+1051:        }
+1052:
+1053:        if (pref.watchDir())
+1054:            startWatchDir();
+1055:
+1056:        boolean enableStreaming = pref.enableStreaming();
+1057:        if (enableStreaming)
+1058:            startStreamingServer();
+1059:
+1060:        loadTorrents();
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java" | sed -n '1116,1140p'
+1116:    private void startWatchDir() {
+1117:        String dir = pref.dirToWatch();
+1118:        Uri uri = Uri.parse(dir);
+1119:        if (!Utils.isFileSystemPath(uri))
+1120:            throw new IllegalArgumentException("SAF is not supported:" + uri);
+1121:        dir = uri.getPath();
+1122:
+1123:        scanTorrentsInDir(dir);
+1124:        fileObserver = makeTorrentFileObserver(dir);
+1125:        fileObserver.startWatching();
+1126:    }
+1127:
+1128:    private void stopWatchDir() {
+1129:        if (fileObserver == null)
+1130:            return;
+1131:
+1132:        fileObserver.stopWatching();
+1133:        fileObserver = null;
+1134:    }
+1135:
+1136:    private TorrentFileObserver makeTorrentFileObserver(String pathToDir) {
+1137:        return new TorrentFileObserver(pathToDir) {
+1138:            @Override
+1139:            public void onEvent(int event, @Nullable String name) {
+1140:                if (name == null)
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java" | sed -n '1580,1595p'
+1580:
+1581:        } else if (key.equals(appContext.getString(R.string.pref_key_watch_dir))) {
+1582:            if (pref.watchDir())
+1583:                startWatchDir();
+1584:            else
+1585:                stopWatchDir();
+1586:
+1587:        } else if (key.equals(appContext.getString(R.string.pref_key_dir_to_watch))) {
+1588:            if (pref.watchDir()) {
+1589:                stopWatchDir();
+1590:                startWatchDir();
+1591:            }
+1592:        } else if (key.equals(appContext.getString(R.string.pref_key_streaming_enable))) {
+1593:            if (pref.enableStreaming())
+1594:                startStreamingServer();
+1595:            else
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java" | sed -n '65,92p'
+65:    private FixedRingBuffer<LogEntry> lazyGetInputBuf()
+66:    {
+67:        if (inputBuf == null)
+68:            inputBuf = new FixedRingBuffer<>(calcInitBufCapacity(maxStoredLogs), maxStoredLogs);
+69:
+70:        if (pendingThread == null) {
+71:            pendingThread = new Thread(this::periodicSwapBuffers);
+72:            pendingThread.start();
+73:
+74:        } else if (!pendingThread.isAlive()) {
+75:            try {
+76:                pendingThread.start();
+77:
+78:            } catch (IllegalThreadStateException e) {
+79:                /* Already started, ignore */
+80:            }
+81:        }
+82:
+83:        return inputBuf;
+84:    }
+85:
+86:    private FixedRingBuffer<LogEntry> lazyGetOutputBuf()
+87:    {
+88:        if (outputBuf == null)
+89:            outputBuf = new FixedRingBuffer<>(calcInitBufCapacity(maxStoredLogs), maxStoredLogs);
+90:
+91:        return outputBuf;
+92:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java" | sed -n '99,111p'
+99:    protected void send(@NonNull LogEntry entry)
+100:    {
+101:        logLock.lock();
+102:
+103:        try {
+104:            lazyGetInputBuf().add(entry);
+105:            if (numPendingLogs < maxStoredLogs)
+106:                numPendingLogs++;
+107:
+108:        } finally {
+109:            logLock.unlock();
+110:        }
+111:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java" | sed -n '139,166p'
+139:    private void swapBuffers()
+140:    {
+141:        if (numPendingLogs == 0)
+142:            return;
+143:
+144:        FixedRingBuffer<LogEntry> inputBuf = lazyGetInputBuf();
+145:        if (inputBuf.isEmpty())
+146:            return;
+147:        FixedRingBuffer<LogEntry> outputBuf = lazyGetOutputBuf();
+148:
+149:        ArrayList<LogEntry> newEntries = new ArrayList<>(numPendingLogs);
+150:        int size = inputBuf.size();
+151:        for (int i = size - numPendingLogs; i < size; i++) {
+152:            LogEntry entry = applyFilters(inputBuf.get(i));
+153:            if (entry != null) {
+154:                outputBuf.add(entry);
+155:                newEntries.add(entry);
+156:
+157:                /* Move old position back */
+158:                if (recording && recordStartIndex > 0)
+159:                    recordStartIndex--;
+160:            }
+161:        }
+162:        numPendingLogs = 0;
+163:
+164:        if (!newEntries.isEmpty())
+165:            submitDataSetChanged(new DataSetChange(DataSetChange.Reason.NEW_ENTRIES, newEntries));
+166:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java" | sed -n '244,257p'
+244:    private void forceFilterBuf()
+245:    {
+246:        FixedRingBuffer<LogEntry> inputBuf = lazyGetInputBuf();
+247:        FixedRingBuffer<LogEntry> outputBuf = lazyGetOutputBuf();
+248:
+249:        outputBuf.clear();
+250:        for (LogEntry entry : inputBuf) {
+251:            entry = applyFilters(entry);
+252:            if (entry != null)
+253:                outputBuf.add(entry);
+254:        }
+255:
+256:        submitDataSetChanged(new DataSetChange(DataSetChange.Reason.FILTER));
+257:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/collections/FixedRingBuffer.java" | sed -n '38,230p'
+38:public class FixedRingBuffer<E> implements Iterable<E>
+39:{
+40:    private E[] elements;
+41:    private int head = -1;
+42:    private int tail;
+43:    private int capacity;
+44:
+45:    public FixedRingBuffer(int capacity)
+46:    {
+47:        this(0, capacity);
+48:    }
+49:
+50:    public FixedRingBuffer(int initCapacity, int capacity)
+51:    {
+52:        if (initCapacity < 0)
+53:            throw new IllegalArgumentException("Initial capacity must be greater or equal 0");
+54:
+55:        if (capacity <= 0)
+56:            throw new IllegalArgumentException("Capacity must be greater than 0");
+57:
+58:        if (initCapacity > capacity)
+59:            throw new IllegalArgumentException("Initial capacity cannot be greater than capacity");
+60:
+61:        this.capacity = capacity;
+62:        elements = (E[])new Object[initCapacity == 0 ? capacity : initCapacity];
+63:    }
+64:
+65:    public int size()
+66:    {
+67:        if (head == -1)
+68:            return 0;
+69:        else if (tail <= head)
+70:            return (capacity - head) + tail;
+71:        else
+72:            return tail - head;
+73:    }
+74:
+75:    public int getAllocatedSize()
+76:    {
+77:        return elements.length;
+78:    }
+79:
+80:    public void add(@NonNull Iterable<E> list)
+81:    {
+82:        for (E e : list)
+83:            add(e);
+84:    }
+85:
+86:    public void add(E element)
+87:    {
+88:        tryGrow();
+89:
+90:        if (head < 0)
+91:            head = 0;
+92:        else if (tail == head)
+93:            head = ++head % capacity;
+94:
+95:        elements[tail] = element;
+96:        tail = ++tail % capacity;
+97:    }
+98:
+99:    @Nullable
+100:    public E remove(E element)
+101:    {
+102:        if (element == null)
+103:            return null;
+104:
+105:        int index = indexOf(element);
+106:        if (index != -1)
+107:            return removeAt(index);
+108:
+109:        return null;
+110:    }
+111:
+112:    public int indexOf(E element)
+113:    {
+114:        if (element == null)
+115:            return -1;
+116:
+117:        for (int i = 0; i < size(); i++) {
+118:            if (element.equals(elements[(head + i) % capacity]))
+119:                return i;
+120:        }
+121:
+122:        return -1;
+123:    }
+124:
+125:    public E removeAt(int index)
+126:    {
+127:        int size = size();
+128:        if (index < 0 || index >= size)
+129:            throw new IndexOutOfBoundsException("index = " + index + ", size = " + size);
+130:
+131:        E res = elements[(head + index) % capacity];
+132:        for (int i = index; i < size - 1; i++)
+133:            elements[(head + i) % capacity] = elements[(head + i + 1) % capacity];
+134:
+135:        elements[(head + size - 1) % capacity] = null;
+136:
+137:        if (tail == 0)
+138:            tail = size - 1;
+139:        else
+140:            tail--;
+141:
+142:        if (tail == head) {
+143:            if (head >= 0)
+144:                head--;
+145:        }
+146:
+147:        return res;
+148:    }
+149:
+150:    public E get(int index)
+151:    {
+152:        int size = size();
+153:        if (index < 0 || index >= size)
+154:            throw new IndexOutOfBoundsException("index = " + index + ", size = " + size);
+155:
+156:        return elements[(head + index) % capacity];
+157:    }
+158:
+159:    public void clear()
+160:    {
+161:        if (isEmpty())
+162:            return;
+163:
+164:        Arrays.fill(elements, 0, size() - 1, null);
+165:
+166:        resetHead();
+167:    }
+168:
+169:    public boolean isEmpty()
+170:    {
+171:        return size() == 0;
+172:    }
+173:
+174:    public boolean isFull()
+175:    {
+176:        return size() == capacity;
+177:    }
+178:
+179:    public boolean contains(E element)
+180:    {
+181:        for (int i = 0; i < size(); i++) {
+182:            E e = elements[(head + i) % capacity];
+183:            if ((element == null && e == null) || (element != null && element.equals(e)))
+184:                return true;
+185:        }
+186:
+187:        return false;
+188:    }
+189:
+190:    private void resetHead()
+191:    {
+192:        head = -1;
+193:        tail = 0;
+194:    }
+195:
+196:    private void tryGrow()
+197:    {
+198:        if (size() < elements.length || elements.length == capacity)
+199:            return;
+200:
+201:        int newSize = Math.min(elements.length * 2, capacity);
+202:        E[] newArray = (E[])new Object[newSize];
+203:        System.arraycopy(elements, 0, newArray, 0, elements.length);
+204:        elements = newArray;
+205:    }
+206:
+207:    @NonNull
+208:    @Override
+209:    public Iterator<E> iterator()
+210:    {
+211:        return new FixedRingBufferIterator();
+212:    }
+213:
+214:    private class FixedRingBufferIterator implements Iterator<E>
+215:    {
+216:        private int index;
+217:
+218:        @Override
+219:        public boolean hasNext()
+220:        {
+221:            return index < size();
+222:        }
+223:
+224:        @Override
+225:        public E next()
+226:        {
+227:            return get(index++);
+228:        }
+229:    }
+230:}
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/data/metainfo/TorrentMetaInfo.java" | sed -n '60,95p'
+60:        this.sha1Hash = sha1hash;
+61:    }
+62:
+63:    public TorrentMetaInfo(@NonNull byte[] data) throws DecodeException
+64:    {
+65:        try {
+66:            getMetaInfo(TorrentInfo.bdecode(data));
+67:
+68:        } catch (Exception e) {
+69:            throw new DecodeException(e);
+70:        }
+71:    }
+72:
+73:    public TorrentMetaInfo(TorrentInfo info) throws DecodeException
+74:    {
+75:        try {
+76:            getMetaInfo(info);
+77:
+78:        } catch (Exception e) {
+79:            throw new DecodeException(e);
+80:        }
+81:    }
+82:
+83:    public TorrentMetaInfo(FileInputStream is) throws DecodeException
+84:    {
+85:        FileChannel chan = null;
+86:        try {
+87:            chan = is.getChannel();
+88:            getMetaInfo(new TorrentInfo(chan
+89:                    .map(FileChannel.MapMode.READ_ONLY, 0, chan.size())));
+90:
+91:        } catch (Exception e) {
+92:            throw new DecodeException(e);
+93:        } finally {
+94:            IOUtils.closeQuietly(chan);
+95:        }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/utils/Utils.java" | sed -n '462,475p'
+462:    public static byte[] fetchHttpUrl(@NonNull Context context,
+463:                                      @NonNull String url) throws FetchLinkException {
+464:        byte[][] response = new byte[1][];
+465:
+466:        if (!Utils.checkConnectivity(context))
+467:            throw new FetchLinkException("No network connection");
+468:
+469:        final ArrayList<Throwable> errorArray = new ArrayList<>(1);
+470:        HttpConnection connection;
+471:        try {
+472:            connection = new HttpConnection(url);
+473:        } catch (Exception e) {
+474:            throw new FetchLinkException(e);
+475:        }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/exception/DecodeException.java" | sed -n '24,39p'
+24: */
+25:
+26:public class DecodeException extends Exception
+27:{
+28:    public DecodeException() { }
+29:
+30:    public DecodeException(String message)
+31:    {
+32:        super(message);
+33:    }
+34:
+35:    public DecodeException(Exception e)
+36:    {
+37:        super(e.getMessage());
+38:        super.setStackTrace(e.getStackTrace());
+39:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/exception/FetchLinkException.java" | sed -n '24,38p'
+24: */
+25:
+26:public class FetchLinkException extends Exception
+27:{
+28:    public FetchLinkException() { }
+29:
+30:    public FetchLinkException(String message)
+31:    {
+32:        super(message);
+33:    }
+34:
+35:    public FetchLinkException(Exception e)
+36:    {
+37:        super(e);
+38:    }
+$ A3 extension: TorrentFileObserver def (cited by b019.py)
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/TorrentFileObserver.java" | sed -n '30,40p'
+30:public abstract class TorrentFileObserver extends FileObserver
+31:{
+32:    private static final int mask = FileObserver.CREATE | FileObserver.MOVED_TO |
+33:                                    FileObserver.MODIFY | FileObserver.ATTRIB;
+34:
+35:    public TorrentFileObserver(String pathToDir)
+36:    {
+37:        super(pathToDir, mask);
+38:    }
+39:
+40:    public abstract void onEvent(int event, @Nullable String name);
