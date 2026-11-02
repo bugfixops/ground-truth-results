@@ -1,0 +1,670 @@
+# Printed source for batch 54 part (b054).
+# Every SRC citation in parts/b054.py and every printed file:lines cell in parts/b054.md is covered below.
+# Line numbers are the clone source line numbers (final_java_only tree).
+
+===== core/model/TorrentEngine.java =====
+--- core/model/TorrentEngine.java:374-381 ---
+374:     public Completable addTorrentCompletable(@NonNull Uri file, @Nullable Uri savePath) {
+375:         return Completable.fromRunnable(() -> {
+376:             if (!isRunning())
+377:                 return;
+378: 
+379:             TorrentMetaInfo info = null;
+380:             try (FileDescriptorWrapper w = fs.getFD(file)) {
+381:                 FileDescriptor outFd = w.open("r");
+--- core/model/TorrentEngine.java:973-987 ---
+973:     private boolean saveTorrentFile(String id, Uri destDir, String fileName) throws IOException, UnknownUriException {
+974:         byte[] bencode = getBencode(id);
+975:         if (bencode == null)
+976:             return false;
+977: 
+978:         String name = (fileName != null ? fileName : id);
+979: 
+980:         Uri path = fs.createFile(destDir, name, true);
+981:         if (path == null)
+982:             return false;
+983: 
+984:         fs.write(bencode, path);
+985: 
+986:         return true;
+987:     }
+--- core/model/TorrentEngine.java:1154-1154 ---
+1154:                                     fs.deleteFile(uri);
+--- core/model/TorrentEngine.java:1200-1200 ---
+1200:         if (fs.getDirAvailableBytes(downloadPath) < info.torrentSize) {
+--- core/model/TorrentEngine.java:1223-1225 ---
+1223:     private void cleanTemp() {
+1224:         try {
+1225:             fs.cleanTempDir();
+
+===== core/model/session/IPFilterParser.java =====
+--- core/model/session/IPFilterParser.java:59-63 ---
+59:     public int parseFile(@NonNull Uri path, @NonNull FileSystemFacade fs, @NonNull IPFilter filter)
+60:     {
+61:         int ruleCount = 0;
+62:         try {
+63:             if (!fs.fileExists(path))
+
+===== core/model/session/TorrentDownloadImpl.java =====
+--- core/model/session/TorrentDownloadImpl.java:1215-1229 ---
+1215:     public synchronized void setDownloadPath(@NonNull Uri path)
+1216:     {
+1217:         criticalWork.setMoving(true);
+1218: 
+1219:         Torrent torrent = repo.getTorrentById(id);
+1220:         if (torrent == null)
+1221:             return;
+1222: 
+1223:         torrent.downloadPath = path;
+1224:         repo.updateTorrent(torrent);
+1225: 
+1226:         notifyListeners((listener) -> listener.onTorrentMoving(id));
+1227: 
+1228:         try {
+1229:             String pathStr = fs.makeFileSystemPath(path);
+--- core/model/session/TorrentDownloadImpl.java:1284-1299 ---
+1284:     public Uri getPartsFile()
+1285:     {
+1286:         if (!hasMetadata()) {
+1287:             return null;
+1288:         }
+1289: 
+1290:         TorrentInfo ti = th.torrentFile();
+1291:         if (ti == null)
+1292:             return null;
+1293: 
+1294:         Torrent torrent = repo.getTorrentById(id);
+1295:         if (torrent == null)
+1296:             return null;
+1297: 
+1298:         try {
+1299:             return fs.getFileUri(torrent.downloadPath, "." + ti.infoHash() + ".parts");
+
+===== core/model/session/TorrentSessionImpl.java =====
+--- core/model/session/TorrentSessionImpl.java:328-341 ---
+328:     private void download(String id, AddTorrentParams params, byte[] bencode) throws IOException, UnknownUriException
+329:     {
+330:         if (operationNotAllowed())
+331:             return;
+332: 
+333:         cancelFetchMagnet(id);
+334: 
+335:         Torrent torrent = repo.getTorrentById(id);
+336:         if (torrent == null)
+337:             throw new IOException("Torrent " + id + " is null");
+338: 
+339:         addTorrentsList.add(params.sha1hash);
+340: 
+341:         String path = fs.makeFileSystemPath(params.downloadPath);
+--- core/model/session/TorrentSessionImpl.java:396-407 ---
+396:     public void restoreTorrents()
+397:     {
+398:         if (operationNotAllowed())
+399:             return;
+400: 
+401:         for (Torrent torrent : repo.getAllTorrents()) {
+402:             if (torrent == null || isTorrentAlreadyRunning(torrent.id))
+403:                 continue;
+404: 
+405:             String path = null;
+406:             try {
+407:                 path = fs.makeFileSystemPath(torrent.downloadPath);
+
+===== core/storage/FeedRepositoryImpl.java =====
+--- core/storage/FeedRepositoryImpl.java:144-147 ---
+144:     public void serializeAllFeeds(@NonNull Uri file) throws IOException, UnknownUriException
+145:     {
+146:         SystemFacadeHelper.getFileSystemFacade(appContext)
+147:                 .write(new Gson().toJson(getAllFeeds()), StandardCharsets.UTF_8, file);
+
+===== core/storage/TorrentRepositoryImpl.java =====
+--- core/storage/TorrentRepositoryImpl.java:109-110 ---
+109:     public String getSessionFile() {
+110:         if (SystemFacadeHelper.getFileSystemFacade(appContext).isStorageReadable()) {
+--- core/storage/TorrentRepositoryImpl.java:145-146 ---
+145:     private String getTorrentDataDir(Context context, String id) {
+146:         if (SystemFacadeHelper.getFileSystemFacade(context).isStorageReadable()) {
+
+===== core/system/DefaultFsModule.java =====
+--- core/system/DefaultFsModule.java:85-88 ---
+85:     public FileDescriptorWrapper openFD(@NonNull Uri path)
+86:     {
+87:         return new FileDescriptorWrapperImpl(appContext, path);
+88:     }
+--- core/system/DefaultFsModule.java:121-124 ---
+121:     public String makeFileSystemPath(@NonNull Uri uri, String relativePath)
+122:     {
+123:         return uri.getPath();
+124:     }
+--- core/system/DefaultFsModule.java:127-132 ---
+127:     public Uri getParentDirUri(@NonNull Uri filePath)
+128:     {
+129:         File parent = new File(filePath.getPath()).getParentFile();
+130: 
+131:         return (parent != null && parent.exists() ? Uri.fromFile(parent) : null);
+132:     }
+
+===== core/system/FileDescriptorWrapperImpl.java =====
+--- core/system/FileDescriptorWrapperImpl.java:39-43 ---
+39:     public FileDescriptorWrapperImpl(@NonNull Context appContext, @NonNull Uri path)
+40:     {
+41:         contentResolver = appContext.getContentResolver();
+42:         this.path = path;
+43:     }
+--- core/system/FileDescriptorWrapperImpl.java:46-51 ---
+46:     public FileDescriptor open(@NonNull String mode) throws FileNotFoundException
+47:     {
+48:         pfd = contentResolver.openFileDescriptor(path, mode);
+49: 
+50:         return (pfd == null ? null : pfd.getFileDescriptor());
+51:     }
+--- core/system/FileDescriptorWrapperImpl.java:54-58 ---
+54:     public void close() throws IOException
+55:     {
+56:         if (pfd != null)
+57:             pfd.close();
+58:     }
+
+===== core/system/FileSystemFacadeImpl.java =====
+--- core/system/FileSystemFacadeImpl.java:44-47 ---
+44:     private static final String TAG = FileSystemFacadeImpl.class.getSimpleName();
+45: 
+46:     private static final String EXTENSION_SEPARATOR = ".";
+47:     private static final String TEMP_DIR = "temp";
+--- core/system/FileSystemFacadeImpl.java:52-57 ---
+52:     public FileSystemFacadeImpl(@NonNull Context appContext,
+53:                                 @NonNull FsModuleResolver fsResolver)
+54:     {
+55:         this.appContext = appContext;
+56:         this.fsResolver = fsResolver;
+57:     }
+--- core/system/FileSystemFacadeImpl.java:60-65 ---
+60:     public FileDescriptorWrapper getFD(@NonNull Uri path) throws UnknownUriException
+61:     {
+62:         FsModule fsModule = fsResolver.resolveFsByUri(path);
+63: 
+64:         return fsModule.openFD(path);
+65:     }
+--- core/system/FileSystemFacadeImpl.java:68-71 ---
+68:     public String getExtensionSeparator()
+69:     {
+70:         return EXTENSION_SEPARATOR;
+71:     }
+--- core/system/FileSystemFacadeImpl.java:80-90 ---
+80:     public String getDefaultDownloadPath()
+81:     {
+82:         String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+83:                 .getAbsolutePath();
+84: 
+85:         File dir = new File(path);
+86:         if (dir.exists() && dir.isDirectory())
+87:             return path;
+88:         else
+89:             return dir.mkdirs() ? path : null;
+90:     }
+--- core/system/FileSystemFacadeImpl.java:98-107 ---
+98:     public String getUserDirPath()
+99:     {
+100:         String path = Environment.getExternalStorageDirectory().getAbsolutePath();
+101: 
+102:         File dir = new File(path);
+103:         if (dir.exists() && dir.isDirectory())
+104:             return path;
+105:         else
+106:             return dir.mkdirs() ? path : null;
+107:     }
+--- core/system/FileSystemFacadeImpl.java:110-115 ---
+110:     public boolean deleteFile(@NonNull Uri path) throws FileNotFoundException, UnknownUriException
+111:     {
+112:         FsModule fsModule = fsResolver.resolveFsByUri(path);
+113: 
+114:         return fsModule.delete(path);
+115:     }
+--- core/system/FileSystemFacadeImpl.java:122-136 ---
+122:     public Uri getFileUri(@NonNull Uri dir,
+123:                           @NonNull String fileName) throws UnknownUriException
+124:     {
+125:         FsModule fsModule = fsResolver.resolveFsByUri(dir);
+126: 
+127:         Uri path = null;
+128:         try {
+129:             path = fsModule.getFileUri(dir, fileName, false);
+130: 
+131:         } catch (IOException e) {
+132:             Log.e(TAG, Log.getStackTraceString(e));
+133:         }
+134: 
+135:         return path;
+136:     }
+--- core/system/FileSystemFacadeImpl.java:144-150 ---
+144:     public Uri getFileUri(@NonNull String relativePath,
+145:                           @NonNull Uri dir) throws UnknownUriException
+146:     {
+147:         FsModule fsModule = fsResolver.resolveFsByUri(dir);
+148: 
+149:         return fsModule.getFileUri(relativePath, dir);
+150:     }
+--- core/system/FileSystemFacadeImpl.java:153-158 ---
+153:     public boolean fileExists(@NonNull Uri filePath) throws UnknownUriException
+154:     {
+155:         FsModule fsModule = fsResolver.resolveFsByUri(filePath);
+156: 
+157:         return fsModule.fileExists(filePath);
+158:     }
+--- core/system/FileSystemFacadeImpl.java:185-191 ---
+185:     public boolean isStorageReadable()
+186:     {
+187:         String state = Environment.getExternalStorageState();
+188: 
+189:         return Environment.MEDIA_MOUNTED.equals(state) ||
+190:                 Environment.MEDIA_MOUNTED_READ_ONLY.equals(state);
+191:     }
+--- core/system/FileSystemFacadeImpl.java:199-218 ---
+199:     public Uri createFile(@NonNull Uri dir,
+200:                           @NonNull String fileName,
+201:                           boolean replace) throws IOException, UnknownUriException
+202:     {
+203:         FsModule fsModule = fsResolver.resolveFsByUri(dir);
+204:         try {
+205:             Uri path = fsModule.getFileUri(dir, fileName, false);
+206:             if (path != null) {
+207:                 if (!replace)
+208:                     return path;
+209:                 else if (!fsModule.delete(path))
+210:                     return null;
+211:             }
+212: 
+213:             return fsModule.getFileUri(dir, fileName, true);
+214: 
+215:         } catch (SecurityException e) {
+216:             throw new IOException(e);
+217:         }
+218:     }
+--- core/system/FileSystemFacadeImpl.java:221-229 ---
+221:     public void write(@NonNull byte[] data,
+222:                       @NonNull Uri destFile) throws IOException, UnknownUriException
+223:     {
+224:         try (FileDescriptorWrapper w = getFD(destFile)) {
+225:             try (FileOutputStream fout = new FileOutputStream(w.open("rw"))) {
+226:                 IOUtils.write(data, fout);
+227:             }
+228:         }
+229:     }
+--- core/system/FileSystemFacadeImpl.java:232-241 ---
+232:     public void write(@NonNull CharSequence data,
+233:                       @NonNull Charset charset,
+234:                       @NonNull Uri destFile) throws IOException, UnknownUriException
+235:     {
+236:         try (FileDescriptorWrapper w = getFD(destFile)) {
+237:             try (FileOutputStream fout = new FileOutputStream(w.open("rw"))) {
+238:                 IOUtils.write(data, fout, charset);
+239:             }
+240:         }
+241:     }
+--- core/system/FileSystemFacadeImpl.java:248-251 ---
+248:     public String makeFileSystemPath(@NonNull Uri uri) throws UnknownUriException
+249:     {
+250:         return makeFileSystemPath(uri, null);
+251:     }
+--- core/system/FileSystemFacadeImpl.java:248-260 ---
+248:     public String makeFileSystemPath(@NonNull Uri uri) throws UnknownUriException
+249:     {
+250:         return makeFileSystemPath(uri, null);
+251:     }
+252: 
+253:     @Override
+254:     public String makeFileSystemPath(@NonNull Uri uri,
+255:                                      String relativePath) throws UnknownUriException
+256:     {
+257:         FsModule fsModule = fsResolver.resolveFsByUri(uri);
+258: 
+259:         return fsModule.makeFileSystemPath(uri, relativePath);
+260:     }
+--- core/system/FileSystemFacadeImpl.java:254-260 ---
+254:     public String makeFileSystemPath(@NonNull Uri uri,
+255:                                      String relativePath) throws UnknownUriException
+256:     {
+257:         FsModule fsModule = fsResolver.resolveFsByUri(uri);
+258: 
+259:         return fsModule.makeFileSystemPath(uri, relativePath);
+260:     }
+--- core/system/FileSystemFacadeImpl.java:268-282 ---
+268:     public long getDirAvailableBytes(@NonNull Uri dir) throws UnknownUriException
+269:     {
+270:         long availableBytes = -1;
+271: 
+272:         FsModule fsModule = fsResolver.resolveFsByUri(dir);
+273:         try {
+274:             availableBytes = fsModule.getDirAvailableBytes(dir);
+275: 
+276:         } catch (IllegalArgumentException | IOException e) {
+277:             Log.e(TAG, Log.getStackTraceString(e));
+278:             return availableBytes;
+279:         }
+280: 
+281:         return availableBytes;
+282:     }
+--- core/system/FileSystemFacadeImpl.java:285-293 ---
+285:     public File getTempDir()
+286:     {
+287:         File tmpDir = new File(appContext.getExternalFilesDir(null), TEMP_DIR);
+288:         if (!tmpDir.exists())
+289:             if (!tmpDir.mkdirs())
+290:                 return null;
+291: 
+292:         return tmpDir;
+293:     }
+--- core/system/FileSystemFacadeImpl.java:296-303 ---
+296:     public void cleanTempDir() throws IOException
+297:     {
+298:         File tmpDir = getTempDir();
+299:         if (tmpDir == null)
+300:             throw new FileNotFoundException("Temp dir not found");
+301: 
+302:         org.apache.commons.io.FileUtils.cleanDirectory(tmpDir);
+303:     }
+--- core/system/FileSystemFacadeImpl.java:306-309 ---
+306:     public File makeTempFile(@NonNull String postfix)
+307:     {
+308:         return new File(getTempDir(), UUID.randomUUID().toString() + postfix);
+309:     }
+--- core/system/FileSystemFacadeImpl.java:312-325 ---
+312:     public String getExtension(String fileName)
+313:     {
+314:         if (fileName == null)
+315:             return null;
+316: 
+317:         int extensionPos = fileName.lastIndexOf(EXTENSION_SEPARATOR);
+318:         int lastSeparator = fileName.lastIndexOf(File.separator);
+319:         int index = (lastSeparator > extensionPos ? -1 : extensionPos);
+320: 
+321:         if (index == -1)
+322:             return "";
+323:         else
+324:             return fileName.substring(index + 1);
+325:     }
+--- core/system/FileSystemFacadeImpl.java:343-363 ---
+343:     public String buildValidFatFilename(String name)
+344:     {
+345:         if (TextUtils.isEmpty(name) || ".".equals(name) || "..".equals(name))
+346:             return "(invalid)";
+347: 
+348:         final StringBuilder res = new StringBuilder(name.length());
+349:         for (int i = 0; i < name.length(); i++) {
+350:             final char c = name.charAt(i);
+351:             if (isValidFatFilenameChar(c))
+352:                 res.append(c);
+353:             else
+354:                 res.append('_');
+355:         }
+356:         /*
+357:          * Even though vfat allows 255 UCS-2 chars, we might eventually write to
+358:          * ext4 through a FUSE layer, so use that limit
+359:          */
+360:         trimFilename(res, 255);
+361: 
+362:         return res.toString();
+363:     }
+--- core/system/FileSystemFacadeImpl.java:365-384 ---
+365:     private boolean isValidFatFilenameChar(char c)
+366:     {
+367:         if ((0x00 <= c && c <= 0x1f))
+368:             return false;
+369:         switch (c) {
+370:             case '"':
+371:             case '*':
+372:             case '/':
+373:             case ':':
+374:             case '<':
+375:             case '>':
+376:             case '?':
+377:             case '\\':
+378:             case '|':
+379:             case 0x7F:
+380:                 return false;
+381:             default:
+382:                 return true;
+383:         }
+384:     }
+--- core/system/FileSystemFacadeImpl.java:386-397 ---
+386:     private void trimFilename(StringBuilder res, int maxBytes)
+387:     {
+388:         byte[] raw = res.toString().getBytes(StandardCharsets.UTF_8);
+389:         if (raw.length > maxBytes) {
+390:             maxBytes -= 3;
+391:             while (raw.length > maxBytes) {
+392:                 res.deleteCharAt(res.length() / 2);
+393:                 raw = res.toString().getBytes(StandardCharsets.UTF_8);
+394:             }
+395:             res.insert(res.length() / 2, "...");
+396:         }
+397:     }
+--- core/system/FileSystemFacadeImpl.java:404-411 ---
+404:     public String normalizeFileSystemPath(String path)
+405:     {
+406:         return (TextUtils.isEmpty(path) ||
+407:                 path.startsWith("file://") ||
+408:                 path.startsWith("content://") ?
+409:                 path :
+410:                 "file://" + path);
+411:     }
+--- core/system/FileSystemFacadeImpl.java:418-423 ---
+418:     public String getDirPath(@NonNull Uri dir) throws UnknownUriException
+419:     {
+420:         FsModule fsModule = fsResolver.resolveFsByUri(dir);
+421: 
+422:         return fsModule.getDirPath(dir);
+423:     }
+--- core/system/FileSystemFacadeImpl.java:430-435 ---
+430:     public String getFilePath(@NonNull Uri filePath) throws UnknownUriException
+431:     {
+432:         FsModule fsModule = fsResolver.resolveFsByUri(filePath);
+433: 
+434:         return fsModule.getFilePath(filePath);
+435:     }
+--- core/system/FileSystemFacadeImpl.java:438-443 ---
+438:     public Uri getParentDirUri(@NonNull Uri filePath) throws UnknownUriException
+439:     {
+440:         FsModule fsModule = fsResolver.resolveFsByUri(filePath);
+441: 
+442:         return fsModule.getParentDirUri(filePath);
+443:     }
+
+===== core/system/FsModuleResolverImpl.java =====
+--- core/system/FsModuleResolverImpl.java:35-39 ---
+35:     public FsModuleResolverImpl(@NonNull Context appContext) {
+36:         this.appContext = appContext;
+37:         this.safModule = new SafFsModule(appContext);
+38:         this.defaultModule = new DefaultFsModule(appContext);
+39:     }
+--- core/system/FsModuleResolverImpl.java:42-50 ---
+42:     public FsModule resolveFsByUri(@NonNull Uri uri) throws UnknownUriException {
+43:         if (Utils.isSafPath(appContext, uri)) {
+44:             return safModule;
+45:         } else if (Utils.isFileSystemPath(uri)) {
+46:             return defaultModule;
+47:         } else {
+48:             throw new UnknownUriException("Cannot resolve file system for the given uri: " + uri);
+49:         }
+50:     }
+
+===== core/system/SafFileSystem.java =====
+--- core/system/SafFileSystem.java:66-70 ---
+66:     private static final int CACHE_MAX_SIZE = 1000;
+67: 
+68:     private static volatile SafFileSystem INSTANCE;
+69:     private Context appContext;
+70:     private static final LruCache<String, DocumentFile> CACHE = new LruCache<>(CACHE_MAX_SIZE);
+--- core/system/SafFileSystem.java:72-82 ---
+72:     public static SafFileSystem getInstance(@NonNull Context appContext)
+73:     {
+74:         if (INSTANCE == null) {
+75:             synchronized (SafFileSystem.class) {
+76:                 if (INSTANCE == null)
+77:                     INSTANCE = new SafFileSystem(appContext);
+78:             }
+79:         }
+80: 
+81:         return INSTANCE;
+82:     }
+--- core/system/SafFileSystem.java:84-87 ---
+84:     private SafFileSystem(Context appContext)
+85:     {
+86:         this.appContext = appContext;
+87:     }
+--- core/system/SafFileSystem.java:310-313 ---
+310:     public boolean delete(@NonNull Uri filePath) throws FileNotFoundException
+311:     {
+312:         return DocumentsContract.deleteDocument(appContext.getContentResolver(), filePath);
+313:     }
+--- core/system/SafFileSystem.java:330-341 ---
+330:     public boolean exists(@NonNull Uri filePath)
+331:     {
+332:         String cacheKey = filePath.toString();
+333:         DocumentFile f = CACHE.get(cacheKey);
+334:         if (f == null) {
+335:             f = DocumentFile.fromSingleUri(appContext, filePath);
+336:             if (f != null)
+337:                 CACHE.put(cacheKey, f);
+338:         }
+339: 
+340:         return f != null && f.exists();
+341:     }
+
+===== core/system/SafFsModule.java =====
+--- core/system/SafFsModule.java:84-89 ---
+84:     public boolean delete(@NonNull Uri filePath) throws FileNotFoundException
+85:     {
+86:         SafFileSystem fs = SafFileSystem.getInstance(appContext);
+87: 
+88:         return fs.delete(filePath);
+89:     }
+--- core/system/SafFsModule.java:136-139 ---
+136:     public boolean fileExists(@NonNull Uri filePath)
+137:     {
+138:         return SafFileSystem.getInstance(appContext).exists(filePath);
+139:     }
+
+===== core/system/SystemFacadeHelper.java =====
+--- core/system/SystemFacadeHelper.java:39-46 ---
+39:     public synchronized static FileSystemFacade getFileSystemFacade(@NonNull Context appContext)
+40:     {
+41:         if (fileSystemFacade == null)
+42:             fileSystemFacade = new FileSystemFacadeImpl(appContext,
+43:                     new FsModuleResolverImpl(appContext));
+44: 
+45:         return fileSystemFacade;
+46:     }
+
+===== core/utils/Utils.java =====
+--- core/utils/Utils.java:638-647 ---
+638:     public static Uri getTorrentDownloadPath(@NonNull Context appContext) {
+639:         SettingsRepository pref = RepositoryHelper.getSettingsRepository(appContext);
+640:         String path = pref.saveTorrentsIn();
+641: 
+642:         FileSystemFacade fs = SystemFacadeHelper.getFileSystemFacade(appContext);
+643: 
+644:         path = (TextUtils.isEmpty(path) ? fs.getDefaultDownloadPath() : path);
+645: 
+646:         return (path == null ? null : Uri.parse(fs.normalizeFileSystemPath(path)));
+647:     }
+
+===== ui/addtorrent/AddTorrentViewModel.java =====
+--- ui/addtorrent/AddTorrentViewModel.java:253-253 ---
+253:                         File httpTmp = v.fs.makeTempFile(".torrent");
+--- ui/addtorrent/AddTorrentViewModel.java:259-259 ---
+259:                                     v.fs.normalizeFileSystemPath(httpTmp.getAbsolutePath()));
+
+===== ui/createtorrent/CreateTorrentViewModel.java =====
+--- ui/createtorrent/CreateTorrentViewModel.java:352-357 ---
+352:     public Completable downloadTorrent() throws UnknownUriException {
+353:         /* Use seed path parent; otherwise use save torrent file path */
+354:         Uri savePath;
+355:         Uri seedPath = mutableParams.getSeedPath().get();
+356:         if (seedPath != null) {
+357:             savePath = fs.getParentDirUri(seedPath);
+
+===== ui/detailtorrent/DetailTorrentViewModel.java =====
+--- ui/detailtorrent/DetailTorrentViewModel.java:262-275 ---
+262:     public Single<Uri> getFilePath(@NonNull String name) {
+263:         Context context = getApplication();
+264:         TorrentContentFileTree node = curDir.getChild(name);
+265:         if (node == null)
+266:             return Single.error(new NullPointerException("node is null"));
+267: 
+268:         String relativePath = node.getPath();
+269: 
+270:         Torrent torrent = info.getTorrent();
+271:         if (torrent == null)
+272:             return Single.error(new NullPointerException("torrent is null"));
+273: 
+274:         return Single.fromCallable(() -> {
+275:             Uri path = fs.getFileUri(relativePath, torrent.downloadPath);
+--- ui/detailtorrent/DetailTorrentViewModel.java:398-399 ---
+398:     public Intent makeOpenFileIntent(@NonNull String fileName, @NonNull Uri path) {
+399:         String extension = fs.getExtension(fileName);
+
+===== ui/feeds/FeedActivity.java =====
+--- ui/feeds/FeedActivity.java:262-266 ---
+262:     private void backupFeedsChooseDialog()
+263:     {
+264:         Intent i = new Intent(this, FileManagerDialog.class);
+265:         FileSystemFacade fs = SystemFacadeHelper.getFileSystemFacade(getApplicationContext());
+266:         FileManagerConfig config = new FileManagerConfig(fs.getUserDirPath(),
+--- ui/feeds/FeedActivity.java:278-282 ---
+278:     private void restoreFeedsChooseDialog()
+279:     {
+280:         Intent i = new Intent(this, FileManagerDialog.class);
+281:         FileSystemFacade fs = SystemFacadeHelper.getFileSystemFacade(getApplicationContext());
+282:         FileManagerConfig config = new FileManagerConfig(fs.getUserDirPath(),
+
+===== ui/filemanager/FileManagerViewModel.java =====
+--- ui/filemanager/FileManagerViewModel.java:229-243 ---
+229:     private String appendExtension(String fileName)
+230:     {
+231:         MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
+232:         String extension = fs.getExtension(fileName);
+233: 
+234:         if (TextUtils.isEmpty(extension)) {
+235:             extension = mimeTypeMap.getExtensionFromMimeType(config.mimeType);
+236:         } else {
+237:             String mimeType = mimeTypeMap.getMimeTypeFromExtension(extension);
+238:             if (mimeType == null || !mimeType.equals(config.mimeType))
+239:                 extension = mimeTypeMap.getExtensionFromMimeType(config.mimeType);
+240:         }
+241: 
+242:         if (extension != null && !fileName.endsWith(extension))
+243:             fileName += fs.getExtensionSeparator() + extension;
+--- ui/filemanager/FileManagerViewModel.java:248-253 ---
+248:     public Uri createFile(String fileName) throws SecurityException
+249:     {
+250:         if (TextUtils.isEmpty(fileName))
+251:             fileName = config.fileName;
+252: 
+253:         fileName = appendExtension(fs.buildValidFatFilename(fileName));
+
+===== ui/settings/sections/NetworkSettingsFragment.java =====
+--- ui/settings/sections/NetworkSettingsFragment.java:208-208 ---
+208:                     ipFilterFile.setSummary(fs.getFilePath(Uri.parse(path)));
+
+===== ui/settings/sections/StorageSettingsFragment.java =====
+--- ui/settings/sections/StorageSettingsFragment.java:81-99 ---
+81:     public void onCreate(Bundle savedInstanceState)
+82:     {
+83:         super.onCreate(savedInstanceState);
+84: 
+85:         if (savedInstanceState != null)
+86:             dirChooserBindPref = savedInstanceState.getString(TAG_DIR_CHOOSER_BIND_PREF);
+87: 
+88:         Context context = getActivity().getApplicationContext();
+89:         fs = SystemFacadeHelper.getFileSystemFacade(context);
+90:         pref = RepositoryHelper.getSettingsRepository(context);
+91: 
+92:         String keySaveTorrentsIn = getString(R.string.pref_key_save_torrents_in);
+93:         Preference saveTorrentsIn = findPreference(keySaveTorrentsIn);
+94:         if (saveTorrentsIn != null) {
+95:             String path = pref.saveTorrentsIn();
+96:             if (path != null) {
+97:                 Uri uri = Uri.parse(path);
+98:                 try {
+99:                     saveTorrentsIn.setSummary(fs.getDirPath(uri));

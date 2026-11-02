@@ -1,0 +1,1471 @@
+Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+
+$ sed -n '1,110p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/storage/dao/FeedDao.java
+/*
+ * Copyright (C) 2019 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.core.storage.dao;
+
+import androidx.room.Dao;
+import androidx.room.Delete;
+import androidx.room.Insert;
+import androidx.room.OnConflictStrategy;
+import androidx.room.Query;
+import androidx.room.Update;
+
+import org.proninyaroslav.libretorrent.core.model.data.entity.FeedChannel;
+import org.proninyaroslav.libretorrent.core.model.data.entity.FeedItem;
+
+import java.util.List;
+
+import io.reactivex.Flowable;
+import io.reactivex.Single;
+
+@Dao
+public interface FeedDao
+{
+    String QUERY_GET_ALL_FEEDS = "SELECT * FROM FeedChannel";
+    String QUERY_GET_FEED_BY_ID = "SELECT * FROM FeedChannel WHERE id = :id";
+    String QUERY_DELETE_ITEMS_OLDER_THAN = "DELETE FROM FeedItem WHERE fetchDate < :keepDateBorderTime";
+    String QUERY_MARK_AS_READ = "UPDATE FeedItem SET read = 1 WHERE id = :itemId";
+    String QUERY_MARK_AS_UNREAD = "UPDATE FeedItem SET read = 0 WHERE id = :itemId";
+    String QUERY_MARK_AS_READ_BY_FEED_ID = "UPDATE FeedItem SET read = 1 WHERE feedId IN (:feedId)";
+    String QUERY_GET_ITEMS_BY_FEED_ID = "SELECT * FROM FeedItem WHERE feedId = :feedId";
+    String QUERY_GET_ITEMS_ID_BY_FEED_ID = "SELECT id FROM FeedItem WHERE feedId = :feedId";
+    String QUERY_FIND_ITEMS_EXISTING_TITLES = "SELECT title FROM FeedItem WHERE title IN (:titles)";
+    String QUERY_GET_ITEMS_BY_ID = "SELECT * FROM FeedItem WHERE id IN (:itemsId)";
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    long addFeed(FeedChannel channel);
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    long[] addFeeds(List<FeedChannel> feeds);
+
+    @Update
+    int updateFeed(FeedChannel channel);
+
+    @Delete
+    void deleteFeed(FeedChannel channel);
+
+    @Delete
+    void deleteFeeds(List<FeedChannel> feeds);
+
+    @Query(QUERY_GET_FEED_BY_ID)
+    FeedChannel getFeedById(long id);
+
+    @Query(QUERY_GET_FEED_BY_ID)
+    Single<FeedChannel> getFeedByIdSingle(long id);
+
+    @Query(QUERY_GET_ALL_FEEDS)
+    Flowable<List<FeedChannel>> observeAllFeeds();
+
+    @Query(QUERY_GET_ALL_FEEDS)
+    List<FeedChannel> getAllFeeds();
+
+    @Query(QUERY_GET_ALL_FEEDS)
+    Single<List<FeedChannel>> getAllFeedsSingle();
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    void addItems(List<FeedItem> items);
+
+    @Query(QUERY_DELETE_ITEMS_OLDER_THAN)
+    void deleteItemsOlderThan(long keepDateBorderTime);
+
+    @Query(QUERY_MARK_AS_READ)
+    void markAsRead(String itemId);
+
+    @Query(QUERY_MARK_AS_UNREAD)
+    void markAsUnread(String itemId);
+
+    @Query(QUERY_MARK_AS_READ_BY_FEED_ID)
+    void markAsReadByFeedId(List<Long> feedId);
+
+    @Query(QUERY_GET_ITEMS_BY_FEED_ID)
+    Flowable<List<FeedItem>> observeItemsByFeedId(long feedId);
+
+    @Query(QUERY_GET_ITEMS_BY_FEED_ID)
+    Single<List<FeedItem>> getItemsByFeedIdSingle(long feedId);
+
+    @Query(QUERY_GET_ITEMS_ID_BY_FEED_ID)
+    List<String> getItemsIdByFeedId(long feedId);
+
+    @Query(QUERY_FIND_ITEMS_EXISTING_TITLES)
+    List<String> findItemsExistingTitles(List<String> titles);
+
+    @Query(QUERY_GET_ITEMS_BY_ID)
+    List<FeedItem> getItemsById(String... itemsId);
+}
+
+$ sed -n '1,226p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/storage/FeedRepositoryImpl.java
+/*
+ * Copyright (C) 2019 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.core.storage;
+
+import android.content.Context;
+import android.net.Uri;
+
+import androidx.annotation.NonNull;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import org.proninyaroslav.libretorrent.core.exception.UnknownUriException;
+import org.proninyaroslav.libretorrent.core.model.data.entity.FeedChannel;
+import org.proninyaroslav.libretorrent.core.model.data.entity.FeedItem;
+import org.proninyaroslav.libretorrent.core.system.FileDescriptorWrapper;
+import org.proninyaroslav.libretorrent.core.system.FileSystemFacade;
+import org.proninyaroslav.libretorrent.core.system.SystemFacadeHelper;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+
+import io.reactivex.Flowable;
+import io.reactivex.Single;
+
+public class FeedRepositoryImpl implements FeedRepository
+{
+    private static final String TAG = FeedRepositoryImpl.class.getSimpleName();
+
+    public static final String SERIALIZE_FILE_FORMAT = "json";
+    public static final String SERIALIZE_MIME_TYPE = "application/json";
+    public static final String FILTER_SEPARATOR = "\\|";
+
+    private Context appContext;
+    private AppDatabase db;
+
+    public FeedRepositoryImpl(@NonNull Context appContext, @NonNull AppDatabase db)
+    {
+        this.appContext = appContext;
+        this.db = db;
+    }
+
+    @Override
+    public String getSerializeFileFormat()
+    {
+        return SERIALIZE_FILE_FORMAT;
+    }
+
+    @Override
+    public String getSerializeMimeType()
+    {
+        return SERIALIZE_MIME_TYPE;
+    }
+
+    @Override
+    public String getFilterSeparator()
+    {
+        return FILTER_SEPARATOR;
+    }
+
+    @Override
+    public long addFeed(@NonNull FeedChannel channel)
+    {
+        return db.feedDao().addFeed(channel);
+    }
+
+    @Override
+    public long[] addFeeds(@NonNull List<FeedChannel> feeds)
+    {
+        return db.feedDao().addFeeds(feeds);
+    }
+
+    @Override
+    public int updateFeed(@NonNull FeedChannel channel)
+    {
+        return db.feedDao().updateFeed(channel);
+    }
+
+    @Override
+    public void deleteFeed(@NonNull FeedChannel channel)
+    {
+        db.feedDao().deleteFeed(channel);
+    }
+
+    @Override
+    public void deleteFeeds(@NonNull List<FeedChannel> feeds)
+    {
+        db.feedDao().deleteFeeds(feeds);
+    }
+
+    @Override
+    public FeedChannel getFeedById(long id)
+    {
+        return db.feedDao().getFeedById(id);
+    }
+
+    @Override
+    public Single<FeedChannel> getFeedByIdSingle(long id)
+    {
+        return db.feedDao().getFeedByIdSingle(id);
+    }
+
+    @Override
+    public Flowable<List<FeedChannel>> observeAllFeeds()
+    {
+        return db.feedDao().observeAllFeeds();
+    }
+
+    @Override
+    public List<FeedChannel> getAllFeeds()
+    {
+        return db.feedDao().getAllFeeds();
+    }
+
+    @Override
+    public Single<List<FeedChannel>> getAllFeedsSingle()
+    {
+        return db.feedDao().getAllFeedsSingle();
+    }
+
+    @Override
+    public void serializeAllFeeds(@NonNull Uri file) throws IOException, UnknownUriException
+    {
+        SystemFacadeHelper.getFileSystemFacade(appContext)
+                .write(new Gson().toJson(getAllFeeds()), StandardCharsets.UTF_8, file);
+    }
+
+    @Override
+    public List<FeedChannel> deserializeFeeds(@NonNull Uri file) throws IOException, UnknownUriException
+    {
+        List<FeedChannel> feeds;
+        FileSystemFacade fs = SystemFacadeHelper.getFileSystemFacade(appContext);
+        try (FileDescriptorWrapper w = fs.getFD(file);
+             FileInputStream fin = new FileInputStream(w.open("r"));
+             InputStreamReader reader = new InputStreamReader(fin, StandardCharsets.UTF_8))
+        {
+            feeds = new Gson()
+                    .fromJson(reader, new TypeToken<ArrayList<FeedChannel>>(){}
+                            .getType());
+        }
+
+        return feeds;
+    }
+
+    @Override
+    public void addItems(@NonNull List<FeedItem> items)
+    {
+        db.feedDao().addItems(items);
+    }
+
+    @Override
+    public void deleteItemsOlderThan(long keepDateBorderTime)
+    {
+        db.feedDao().deleteItemsOlderThan(keepDateBorderTime);
+    }
+
+    @Override
+    public void markAsRead(@NonNull String itemId)
+    {
+        db.feedDao().markAsRead(itemId);
+    }
+
+    @Override
+    public void markAsUnread(@NonNull String itemId)
+    {
+        db.feedDao().markAsUnread(itemId);
+    }
+
+    @Override
+    public void markAsReadByFeedId(List<Long> feedId)
+    {
+        db.feedDao().markAsReadByFeedId(feedId);
+    }
+
+    @Override
+    public Flowable<List<FeedItem>> observeItemsByFeedId(long feedId)
+    {
+        return db.feedDao().observeItemsByFeedId(feedId);
+    }
+
+    @Override
+    public Single<List<FeedItem>> getItemsByFeedIdSingle(long feedId)
+    {
+        return db.feedDao().getItemsByFeedIdSingle(feedId);
+    }
+
+    @Override
+    public List<String> getItemsIdByFeedId(long feedId)
+    {
+        return db.feedDao().getItemsIdByFeedId(feedId);
+    }
+
+    @Override
+    public List<String> findItemsExistingTitles(@NonNull List<String> titles)
+    {
+        return db.feedDao().findItemsExistingTitles(titles);
+    }
+
+    @Override
+    public List<FeedItem> getItemsById(@NonNull String... itemsId)
+    {
+        return db.feedDao().getItemsById(itemsId);
+    }
+}
+
+$ sed -n '1,86p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/storage/AppDatabase.java
+/*
+ * Copyright (C) 2019-2022 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.core.storage;
+
+import android.content.Context;
+
+import androidx.annotation.NonNull;
+import androidx.room.Database;
+import androidx.room.Room;
+import androidx.room.RoomDatabase;
+import androidx.room.TypeConverters;
+
+import org.proninyaroslav.libretorrent.core.model.data.entity.FastResume;
+import org.proninyaroslav.libretorrent.core.model.data.entity.FeedChannel;
+import org.proninyaroslav.libretorrent.core.model.data.entity.FeedItem;
+import org.proninyaroslav.libretorrent.core.model.data.entity.TagInfo;
+import org.proninyaroslav.libretorrent.core.model.data.entity.Torrent;
+import org.proninyaroslav.libretorrent.core.model.data.entity.TorrentTagInfo;
+import org.proninyaroslav.libretorrent.core.storage.converter.UriConverter;
+import org.proninyaroslav.libretorrent.core.storage.dao.FastResumeDao;
+import org.proninyaroslav.libretorrent.core.storage.dao.FeedDao;
+import org.proninyaroslav.libretorrent.core.storage.dao.TagInfoDao;
+import org.proninyaroslav.libretorrent.core.storage.dao.TorrentDao;
+
+@Database(
+        entities = {
+                Torrent.class,
+                FastResume.class,
+                FeedChannel.class,
+                FeedItem.class,
+                TagInfo.class,
+                TorrentTagInfo.class,
+        },
+        version = 9
+)
+@TypeConverters({UriConverter.class})
+
+public abstract class AppDatabase extends RoomDatabase
+{
+    private static final String DATABASE_NAME = "libretorrent.db";
+
+    private static volatile AppDatabase INSTANCE;
+
+    public abstract TorrentDao torrentDao();
+
+    public abstract FastResumeDao fastResumeDao();
+
+    public abstract FeedDao feedDao();
+
+    public abstract TagInfoDao tagInfoDao();
+
+    public static AppDatabase getInstance(@NonNull Context appContext)
+    {
+        if (INSTANCE == null) {
+            synchronized (AppDatabase.class) {
+                if (INSTANCE == null)
+                    INSTANCE = buildDatabase(appContext);
+            }
+        }
+
+        return INSTANCE;
+    }
+
+    private static AppDatabase buildDatabase(Context appContext)
+    {
+        return Room.databaseBuilder(appContext, AppDatabase.class, DATABASE_NAME)
+                .addMigrations(DatabaseMigration.getMigrations(appContext))
+                .build();
+    }
+}
+$ sed -n '1,220p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addfeed/AddFeedViewModel.java
+/*
+ * Copyright (C) 2019 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.addfeed;
+
+import android.app.Application;
+import android.net.Uri;
+import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
+import androidx.databinding.ObservableBoolean;
+import androidx.lifecycle.AndroidViewModel;
+import androidx.work.Data;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
+
+import org.proninyaroslav.libretorrent.core.RepositoryHelper;
+import org.proninyaroslav.libretorrent.core.model.data.entity.FeedChannel;
+import org.proninyaroslav.libretorrent.core.storage.FeedRepository;
+import org.proninyaroslav.libretorrent.core.utils.Utils;
+import org.proninyaroslav.libretorrent.service.FeedFetcherWorker;
+
+import java.util.List;
+import java.util.Objects;
+
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.schedulers.Schedulers;
+
+public class AddFeedViewModel extends AndroidViewModel
+{
+    public AddFeedMutableParams mutableParams = new AddFeedMutableParams();
+    public ObservableBoolean showClipboardButton = new ObservableBoolean();
+    private Mode mode;
+    private FeedRepository repo;
+    private CompositeDisposable disposables = new CompositeDisposable();
+
+    public enum Mode
+    {
+        ADD, EDIT
+    }
+
+    public AddFeedViewModel(@NonNull Application application)
+    {
+        super(application);
+
+        repo = RepositoryHelper.getFeedRepository(application);
+        mode = Mode.ADD;
+    }
+
+    @Override
+    protected void onCleared()
+    {
+        super.onCleared();
+
+        disposables.clear();
+    }
+
+    public Mode getMode()
+    {
+        return mode;
+    }
+
+    public void initAddMode(@NonNull Uri uri)
+    {
+        mode = Mode.ADD;
+        /* TODO: files support */
+        mutableParams.setUrl(uri.toString());
+    }
+
+    public void initAddModeFromClipboard()
+    {
+        List<CharSequence> clipboard = Utils.getClipboardText(getApplication());
+        if (clipboard.isEmpty())
+            return;
+
+        String firstItem = clipboard.get(0).toString();
+        String c = firstItem.toLowerCase();
+        if (c.startsWith(Utils.HTTP_PREFIX))
+            initAddMode(Uri.parse(firstItem));
+    }
+
+    public void initEditMode(long feedId)
+    {
+        mode = Mode.EDIT;
+        mutableParams.setFeedId(feedId);
+        fetchParams();
+    }
+
+    public boolean addChannel()
+    {
+        long id = applyParams(true);
+        refreshChannel(id);
+
+        return id != -1;
+    }
+
+    public boolean updateChannel()
+    {
+        long id = applyParams(false);
+        refreshChannel(id);
+
+        return id != -1;
+    }
+
+    public boolean deleteChannel()
+    {
+        long feedId = mutableParams.getFeedId();
+        if (feedId == -1)
+            return false;
+
+        /* Sync wait deleting */
+        try {
+            Thread t = new Thread(() -> {
+                FeedChannel channel = repo.getFeedById(feedId);
+                if (channel != null)
+                    repo.deleteFeed(channel);
+            });
+            t.start();
+            t.join();
+
+        } catch (InterruptedException e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private void fetchParams()
+    {
+        long feedId = mutableParams.getFeedId();
+        if (feedId == -1)
+            return;
+
+        disposables.add(repo.getFeedByIdSingle(feedId)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .filter(Objects::nonNull)
+                .subscribe((channel) -> {
+                    mutableParams.setUrl(channel.url);
+                    mutableParams.setName(channel.name);
+                    mutableParams.setAutoDownload(channel.autoDownload);
+                    mutableParams.setFilter(channel.filter);
+                    mutableParams.setRegexFilter(channel.isRegexFilter);
+                }));
+    }
+
+    private long applyParams(boolean newChannel)
+    {
+        long feedId = mutableParams.getFeedId();
+        if (!newChannel && feedId == -1)
+            return -1;
+        String url = mutableParams.getUrl();
+        if (TextUtils.isEmpty(url))
+            return -1;
+
+        FeedChannel channel = new FeedChannel(url,
+                mutableParams.getName(),
+                0,
+                mutableParams.isAutoDownload(),
+                mutableParams.getFilter(),
+                mutableParams.isRegexFilter(),
+                null);
+        if (!newChannel)
+            channel.id = feedId;
+
+        /* TODO: maybe rewrite to WorkManager */
+        /* Sync wait inserting/updating */
+        long[] retId = new long[]{-1};
+        try {
+            Thread t = new Thread(() -> {
+                if (newChannel)
+                    retId[0] = repo.addFeed(channel);
+                else if (repo.updateFeed(channel) == 1)
+                    retId[0] = feedId;
+            });
+            t.start();
+            t.join();
+
+        } catch (InterruptedException e) {
+            return retId[0];
+        }
+
+        return retId[0];
+    }
+
+    private void refreshChannel(long feedId)
+    {
+        if (feedId == -1)
+            return;
+
+        Data data = new Data.Builder()
+                .putString(FeedFetcherWorker.TAG_ACTION, FeedFetcherWorker.ACTION_FETCH_CHANNEL)
+                .putLong(FeedFetcherWorker.TAG_CHANNEL_ID, feedId)
+                .putBoolean(FeedFetcherWorker.TAG_NO_AUTO_DOWNLOAD, mutableParams.isNotDownloadImmediately())
+                .build();
+
+        OneTimeWorkRequest work = new OneTimeWorkRequest.Builder(FeedFetcherWorker.class)
+                .setInputData(data)
+                .build();
+
+        WorkManager.getInstance(getApplication()).enqueue(work);
+    }
+}
+
+$ sed -n '1,172p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/feeds/FeedViewModel.java
+/*
+ * Copyright (C) 2019 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.feeds;
+
+import android.app.Activity;
+import android.app.Application;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.net.Uri;
+
+import androidx.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
+import androidx.work.Data;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkInfo;
+import androidx.work.WorkManager;
+import androidx.work.WorkRequest;
+
+import org.proninyaroslav.libretorrent.core.RepositoryHelper;
+import org.proninyaroslav.libretorrent.core.exception.UnknownUriException;
+import org.proninyaroslav.libretorrent.core.model.data.entity.FeedChannel;
+import org.proninyaroslav.libretorrent.core.storage.FeedRepository;
+import org.proninyaroslav.libretorrent.service.FeedFetcherWorker;
+
+import java.io.IOException;
+import java.util.List;
+
+import io.reactivex.Completable;
+import io.reactivex.Flowable;
+import io.reactivex.Observable;
+import io.reactivex.Single;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.BehaviorSubject;
+
+public class FeedViewModel extends AndroidViewModel
+{
+    private FeedRepository repo;
+    private BehaviorSubject<Boolean> refreshStatus = BehaviorSubject.create();
+    private CompositeDisposable disposables = new CompositeDisposable();
+    public Throwable errorReport;
+
+    public FeedViewModel(@NonNull Application application)
+    {
+        super(application);
+
+        repo = RepositoryHelper.getFeedRepository(application);
+    }
+
+    @Override
+    protected void onCleared()
+    {
+        super.onCleared();
+
+        disposables.clear();
+    }
+
+    public Single<List<FeedChannel>> getAllFeedsSingle()
+    {
+        return repo.getAllFeedsSingle();
+    }
+
+    public Flowable<List<FeedChannel>> observerAllFeeds()
+    {
+        return repo.observeAllFeeds();
+    }
+
+    public void deleteFeeds(@NonNull List<FeedChannel> feeds)
+    {
+        disposables.add(Completable.fromRunnable(() -> repo.deleteFeeds(feeds))
+                .subscribeOn(Schedulers.io())
+                .subscribe());
+    }
+
+    public boolean copyFeedUrlToClipboard(@NonNull FeedChannel channel)
+    {
+        ClipboardManager clipboard = (ClipboardManager)getApplication().getSystemService(Activity.CLIPBOARD_SERVICE);
+        if (clipboard == null)
+            return false;
+
+        ClipData clip;
+        clip = ClipData.newPlainText("URL", channel.url);
+        clipboard.setPrimaryClip(clip);
+
+        return true;
+    }
+
+    public void refreshFeeds(@NonNull long[] feedIdList)
+    {
+        Data data = new Data.Builder()
+                .putString(FeedFetcherWorker.TAG_ACTION,FeedFetcherWorker.ACTION_FETCH_CHANNEL_LIST)
+                .putLongArray(FeedFetcherWorker.TAG_CHANNEL_ID_LIST, feedIdList)
+                .build();
+        OneTimeWorkRequest work = new OneTimeWorkRequest.Builder(FeedFetcherWorker.class)
+                .setInputData(data)
+                .build();
+
+        runFetchWorker(work);
+    }
+
+    public void refreshAllFeeds()
+    {
+        Data data = new Data.Builder()
+                .putString(FeedFetcherWorker.TAG_ACTION,FeedFetcherWorker.ACTION_FETCH_ALL_CHANNELS)
+                .build();
+        OneTimeWorkRequest work = new OneTimeWorkRequest.Builder(FeedFetcherWorker.class)
+                .setInputData(data)
+                .build();
+
+        runFetchWorker(work);
+    }
+
+    public Observable<Boolean> observeRefreshStatus()
+    {
+        return refreshStatus;
+    }
+
+    public void saveFeedsSync(@NonNull Uri file) throws IOException, UnknownUriException
+    {
+        repo.serializeAllFeeds(file);
+    }
+
+    public long[] restoreFeedsSync(@NonNull Uri file) throws IOException, UnknownUriException
+    {
+        List<FeedChannel> feeds = repo.deserializeFeeds(file);
+
+        return repo.addFeeds(feeds);
+    }
+
+    public void markAsReadFeeds(@NonNull List<Long> feedIdList)
+    {
+        disposables.add(Completable.fromRunnable(() -> repo.markAsReadByFeedId(feedIdList)).subscribeOn(Schedulers.io())
+          .subscribe());
+    }
+
+    private void runFetchWorker(WorkRequest work)
+    {
+        refreshStatus.onNext(true);
+
+        WorkManager.getInstance(getApplication()).enqueue(work);
+
+        WorkManager.getInstance(getApplication()).getWorkInfoByIdLiveData(work.getId())
+                .observeForever(this::observeWorkResult);
+    }
+
+    private void observeWorkResult(WorkInfo info)
+    {
+        boolean finished = info.getState().isFinished();
+        if (finished)
+            WorkManager.getInstance(getApplication()).getWorkInfoByIdLiveData(info.getId())
+                    .removeObserver(this::observeWorkResult);
+
+        refreshStatus.onNext(!finished);
+    }
+}
+
+$ sed -n '1,270p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/service/FeedFetcherWorker.java
+/*
+ * Copyright (C) 2018-2020 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.service;
+
+import android.content.Context;
+import android.text.TextUtils;
+import android.util.Log;
+
+import androidx.annotation.NonNull;
+import androidx.work.Data;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
+import androidx.work.Worker;
+import androidx.work.WorkerParameters;
+
+import org.proninyaroslav.libretorrent.core.FeedParser;
+import org.proninyaroslav.libretorrent.core.RepositoryHelper;
+import org.proninyaroslav.libretorrent.core.model.data.entity.FeedChannel;
+import org.proninyaroslav.libretorrent.core.model.data.entity.FeedItem;
+import org.proninyaroslav.libretorrent.core.settings.SettingsRepository;
+import org.proninyaroslav.libretorrent.core.storage.FeedRepository;
+import org.proninyaroslav.libretorrent.core.utils.Utils;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+
+/*
+ * The worker for fetching items from RSS/Atom channels.
+ */
+
+public class FeedFetcherWorker extends Worker
+{
+    private static final String TAG = FeedFetcherWorker.class.getSimpleName();
+
+    public static final String ACTION_FETCH_CHANNEL = "org.proninyaroslav.libretorrent.service.FeedFetcherWorker.ACTION_FETCH_CHANNEL";
+    public static final String ACTION_FETCH_CHANNEL_LIST = "org.proninyaroslav.libretorrent.service.FeedFetcherWorker.ACTION_FETCH_CHANNEL_LIST";
+    public static final String ACTION_FETCH_ALL_CHANNELS = "org.proninyaroslav.libretorrent.service.FeedFetcherWorker.ACTION_FETCH_ALL_CHANNELS";
+    public static final String TAG_ACTION = "action";
+    public static final String TAG_NO_AUTO_DOWNLOAD = "no_download";
+    public static final String TAG_CHANNEL_ID = "channel_url_id";
+    public static final String TAG_CHANNEL_ID_LIST = "channel_id_list";
+
+    private Context context;
+    private FeedRepository repo;
+    private SettingsRepository pref;
+
+    public FeedFetcherWorker(@NonNull Context context, @NonNull WorkerParameters params)
+    {
+        super(context, params);
+    }
+
+    @NonNull
+    @Override
+    public Result doWork()
+    {
+        context = getApplicationContext();
+        repo = RepositoryHelper.getFeedRepository(context);
+        pref = RepositoryHelper.getSettingsRepository(context);
+
+        long keepTime = pref.feedItemKeepTime();
+        long keepDateBorderTime = (keepTime > 0 ? System.currentTimeMillis() - keepTime : 0);
+
+        deleteOldItems(keepDateBorderTime);
+
+        Data data = getInputData();
+        String action = data.getString(TAG_ACTION);
+        boolean noAutoDownload = data.getBoolean(TAG_NO_AUTO_DOWNLOAD, false);
+
+        if (action == null)
+            return Result.failure();
+
+        switch (action) {
+            case ACTION_FETCH_CHANNEL:
+                return fetchChannel(data.getLong(TAG_CHANNEL_ID, -1),
+                        keepDateBorderTime, noAutoDownload);
+            case ACTION_FETCH_CHANNEL_LIST:
+                return fetchChannelsByUrl(data.getLongArray(TAG_CHANNEL_ID_LIST),
+                        keepDateBorderTime, noAutoDownload);
+            case ACTION_FETCH_ALL_CHANNELS:
+                return fetchChannels(repo.getAllFeeds(),
+                        keepDateBorderTime, noAutoDownload);
+            default:
+                return Result.failure();
+        }
+    }
+
+    private Result fetchChannelsByUrl(long[] ids, long acceptMinDate,
+                                      boolean noAutoDownload)
+    {
+        if (ids == null)
+            return Result.failure();
+
+        ArrayList<Result> results = new ArrayList<>();
+        for (long id : ids)
+            results.add(fetchChannel(id, acceptMinDate, noAutoDownload));
+
+        for (Result result : results)
+            if (result instanceof Result.Failure)
+                return result;
+
+        return Result.success();
+    }
+
+    private Result fetchChannels(List<FeedChannel> channels, long acceptMinDate,
+                                 boolean noAutoDownload)
+    {
+        if (channels == null)
+            return Result.failure();
+
+        ArrayList<Result> results = new ArrayList<>();
+        for (FeedChannel channel : channels) {
+            if (channel == null)
+                continue;
+            results.add(fetchChannel(channel.id, acceptMinDate, noAutoDownload));
+        }
+
+        for (Result result : results)
+            if (result instanceof Result.Failure)
+                return result;
+
+        return Result.success();
+    }
+
+    private Result fetchChannel(long id, long acceptMinDate,
+                                boolean noAutoDownload)
+    {
+        if (id == -1)
+            return Result.failure();
+
+        FeedChannel channel = repo.getFeedById(id);
+        if (channel == null)
+            return Result.failure();
+
+        FeedParser parser;
+        try {
+            parser = new FeedParser(getApplicationContext(), channel);
+
+        } catch (Exception e) {
+            channel.fetchError = e.getMessage();
+            repo.updateFeed(channel);
+
+            return Result.failure();
+        }
+
+        List<FeedItem> items = parser.getItems();
+
+        filterItems(id, items, acceptMinDate);
+
+        if (pref.feedRemoveDuplicates())
+            filterItemDuplicates(items);
+
+        repo.addItems(items);
+
+        channel.fetchError = null;
+        if (TextUtils.isEmpty(channel.name)) {
+            channel.name = parser.getTitle();
+            if (TextUtils.isEmpty(channel.name))
+                channel.name = channel.url;
+        }
+        channel.lastUpdate = System.currentTimeMillis();
+        repo.updateFeed(channel);
+
+        if (!noAutoDownload && channel.autoDownload)
+            sendFetchedItems(channel, items);
+
+        return Result.success();
+    }
+
+    private void filterItems(long id, List<FeedItem> items, long acceptMinDate)
+    {
+        List<String> existingItemsId = repo.getItemsIdByFeedId(id);
+        /* Also filtering the items that we already have in db */
+        items.removeIf(item -> item != null && (item.pubDate > 0 && item.pubDate <= acceptMinDate || existingItemsId.contains(item.id)));
+    }
+
+    private void filterItemDuplicates(List<FeedItem> items)
+    {
+        List<String> titles = new ArrayList<>();
+        for (FeedItem item : items)
+            titles.add(item.title);
+
+        List<String> existingTitles = repo.findItemsExistingTitles(titles);
+        items.removeIf(item -> item != null && existingTitles.contains(item.title));
+    }
+
+    private void deleteOldItems(long keepDateBorderTime)
+    {
+        if (keepDateBorderTime > 0)
+            repo.deleteItemsOlderThan(keepDateBorderTime);
+    }
+
+    private void sendFetchedItems(FeedChannel channel, List<FeedItem> items)
+    {
+        ArrayList<String> ids = new ArrayList<>();
+        for (FeedItem item : items) {
+            if (item == null || item.read)
+                continue;
+
+            if (isMatch(item, channel.filter, channel.isRegexFilter)) {
+                ids.add(item.id);
+                repo.markAsRead(item.id);
+            }
+        }
+
+        if (ids.isEmpty())
+            return;
+
+        Data data = new Data.Builder()
+                .putString(FeedDownloaderWorker.TAG_ACTION, FeedDownloaderWorker.ACTION_DOWNLOAD_TORRENT_LIST)
+                .putStringArray(FeedDownloaderWorker.TAG_ITEM_ID_LIST, ids.toArray(new String[0]))
+                .build();
+        OneTimeWorkRequest work = new OneTimeWorkRequest.Builder(FeedDownloaderWorker.class)
+                .setInputData(data)
+                .build();
+
+        WorkManager.getInstance(context).enqueue(work);
+    }
+
+    private boolean isMatch(FeedItem item, String filters, boolean isRegex)
+    {
+        if (filters == null || TextUtils.isEmpty(filters))
+            return true;
+
+        for (String filter : filters.split(Utils.NEWLINE_PATTERN)) {
+            if (TextUtils.isEmpty(filter))
+                continue;
+
+            if (isRegex) {
+                Pattern pattern;
+                try {
+                    pattern = Pattern.compile(filter);
+
+                } catch (PatternSyntaxException e) {
+                    /* TODO: maybe there is an option better? */
+                    Log.e(TAG, "Invalid pattern: " + filter);
+                    return true;
+                }
+
+                return pattern.matcher(item.title).matches();
+            } else {
+                String[] words = filter.split(repo.getFilterSeparator());
+                for (String word : words)
+                    if (item.title.toLowerCase().contains(word.toLowerCase().trim()))
+                        return true;
+            }
+        }
+
+        return false;
+    }
+}
+
+$ sed -n '1,215p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/service/FeedDownloaderWorker.java
+/*
+ * Copyright (C) 2018, 2019 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.service;
+
+import android.content.Context;
+import android.net.Uri;
+import android.util.Log;
+
+import androidx.annotation.NonNull;
+import androidx.work.Data;
+import androidx.work.Worker;
+import androidx.work.WorkerParameters;
+
+import org.proninyaroslav.libretorrent.core.RepositoryHelper;
+import org.proninyaroslav.libretorrent.core.exception.DecodeException;
+import org.proninyaroslav.libretorrent.core.exception.FetchLinkException;
+import org.proninyaroslav.libretorrent.core.exception.UnknownUriException;
+import org.proninyaroslav.libretorrent.core.model.AddTorrentParams;
+import org.proninyaroslav.libretorrent.core.model.TorrentEngine;
+import org.proninyaroslav.libretorrent.core.model.data.MagnetInfo;
+import org.proninyaroslav.libretorrent.core.model.data.Priority;
+import org.proninyaroslav.libretorrent.core.model.data.entity.FeedItem;
+import org.proninyaroslav.libretorrent.core.model.data.metainfo.TorrentMetaInfo;
+import org.proninyaroslav.libretorrent.core.settings.SettingsRepository;
+import org.proninyaroslav.libretorrent.core.storage.FeedRepository;
+import org.proninyaroslav.libretorrent.core.system.FileSystemFacade;
+import org.proninyaroslav.libretorrent.core.system.SystemFacadeHelper;
+import org.proninyaroslav.libretorrent.core.utils.Utils;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+
+/*
+ * The worker for downloading torrents from RSS/Atom items.
+ */
+
+public class FeedDownloaderWorker extends Worker
+{
+    private static final String TAG = FeedDownloaderWorker.class.getSimpleName();
+
+    public static final String ACTION_DOWNLOAD_TORRENT_LIST = "org.proninyaroslav.libretorrent.service.FeedDownloaderWorker.ACTION_DOWNLOAD_TORRENT_LIST";
+    public static final String TAG_ACTION = "action";
+    public static final String TAG_ITEM_ID_LIST = "item_id_list";
+
+    private static final long START_ENGINE_RETRY_TIME = 3000; /* ms */
+
+    private TorrentEngine engine;
+    private FeedRepository repo;
+    private SettingsRepository pref;
+
+    public FeedDownloaderWorker(@NonNull Context context, @NonNull WorkerParameters params)
+    {
+        super(context, params);
+    }
+
+    @NonNull
+    @Override
+    public Result doWork()
+    {
+        engine = TorrentEngine.getInstance(getApplicationContext());
+        repo = RepositoryHelper.getFeedRepository(getApplicationContext());
+        pref = RepositoryHelper.getSettingsRepository(getApplicationContext());
+
+        Data data = getInputData();
+        String action = data.getString(TAG_ACTION);
+
+        if (action == null)
+            return Result.failure();
+
+        if (ACTION_DOWNLOAD_TORRENT_LIST.equals(action))
+            return addTorrents(fetchTorrents(data.getStringArray(TAG_ITEM_ID_LIST)));
+
+        return Result.failure();
+    }
+
+    private ArrayList<AddTorrentParams> fetchTorrents(String... ids)
+    {
+        ArrayList<AddTorrentParams> paramsList = new ArrayList<>();
+        if (ids == null)
+            return paramsList;
+
+        for (FeedItem item : repo.getItemsById(ids)) {
+            AddTorrentParams params = fetchTorrent(item);
+            if (params != null)
+                paramsList.add(params);
+        }
+
+        return paramsList;
+    }
+
+    private AddTorrentParams fetchTorrent(FeedItem item)
+    {
+        if (item == null)
+            return null;
+
+        Uri downloadPath = Utils.getTorrentDownloadPath(getApplicationContext());
+        if (downloadPath == null)
+            return null;
+        String name;
+        Priority[] priorities = null;
+        boolean isMagnet = false;
+        String source, sha1hash;
+
+        if (item.downloadUrl.startsWith(Utils.MAGNET_PREFIX)) {
+            MagnetInfo info;
+            try {
+                info = engine.parseMagnet(item.downloadUrl);
+
+            } catch (IllegalArgumentException e) {
+                Log.e(TAG, e.getMessage());
+                return null;
+            }
+            sha1hash = info.getSha1hash();
+            name = info.getName();
+            isMagnet = true;
+            source = item.downloadUrl;
+
+        } else {
+            byte[] response;
+            TorrentMetaInfo info;
+            try {
+                response = Utils.fetchHttpUrl(getApplicationContext(), item.downloadUrl);
+                info = new TorrentMetaInfo(response);
+
+            } catch (FetchLinkException e) {
+                Log.e(TAG, "URL fetch error: " + Log.getStackTraceString(e));
+                return null;
+            } catch (DecodeException e) {
+                Log.e(TAG, "Invalid torrent: " + Log.getStackTraceString(e));
+                return null;
+            }
+            FileSystemFacade fs = SystemFacadeHelper.getFileSystemFacade(getApplicationContext());
+            long availableBytes;
+            try {
+                availableBytes = fs.getDirAvailableBytes(downloadPath);
+            } catch (UnknownUriException e) {
+                Log.e(TAG, "Unable to fetch torrent: " + Log.getStackTraceString(e));
+                return null;
+            }
+            if (availableBytes < info.torrentSize) {
+                Log.e(TAG, "Not enough free space for " + info.torrentName);
+                return null;
+            }
+            File tmp;
+            try {
+                tmp = fs.makeTempFile(".torrent");
+                org.apache.commons.io.FileUtils.writeByteArrayToFile(tmp, response);
+
+            } catch (Exception e) {
+                Log.e(TAG, "Error write torrent file " + info.torrentName + ": " + Log.getStackTraceString(e));
+                return null;
+            }
+            priorities = new Priority[info.fileList.size()];
+            Arrays.fill(priorities, Priority.DEFAULT);
+            sha1hash = info.sha1Hash;
+            name = info.torrentName;
+            source = Uri.fromFile(tmp).toString();
+        }
+
+        return new AddTorrentParams(
+                source,
+                isMagnet,
+                sha1hash,
+                name,
+                priorities,
+                downloadPath,
+                false,
+                !pref.feedStartTorrents(),
+                new ArrayList<>(),
+                false
+        );
+    }
+
+    private Result addTorrents(ArrayList<AddTorrentParams> paramsList)
+    {
+        if (paramsList == null || paramsList.isEmpty())
+            return Result.failure();
+
+        if (!engine.isRunning())
+            engine.start();
+
+        /* TODO: maybe refactor */
+        while (!engine.isRunning()) {
+            try {
+                Thread.sleep(START_ENGINE_RETRY_TIME);
+                engine.start();
+
+            } catch (InterruptedException e) {
+                return Result.failure();
+            }
+        }
+
+        engine.addTorrents(paramsList, true);
+
+        return Result.success();
+    }
+}
+
+$ sed -n '1,155p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/feeditems/FeedItemsViewModel.java
+/*
+ * Copyright (C) 2019 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.feeditems;
+
+import android.app.Application;
+
+import androidx.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
+import androidx.work.Data;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkInfo;
+import androidx.work.WorkManager;
+import androidx.work.WorkRequest;
+
+import org.proninyaroslav.libretorrent.core.RepositoryHelper;
+import org.proninyaroslav.libretorrent.core.model.data.entity.FeedItem;
+import org.proninyaroslav.libretorrent.core.storage.FeedRepository;
+import org.proninyaroslav.libretorrent.service.FeedFetcherWorker;
+
+import java.util.Collections;
+import java.util.List;
+
+import io.reactivex.Completable;
+import io.reactivex.Flowable;
+import io.reactivex.Observable;
+import io.reactivex.Single;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.BehaviorSubject;
+
+public class FeedItemsViewModel extends AndroidViewModel
+{
+    private FeedRepository repo;
+    private long feedId;
+    private BehaviorSubject<Boolean> refreshStatus = BehaviorSubject.create();
+    private CompositeDisposable disposables = new CompositeDisposable();
+
+    public FeedItemsViewModel(@NonNull Application application)
+    {
+        super(application);
+
+        repo = RepositoryHelper.getFeedRepository(application);
+        feedId = -1;
+    }
+
+    @Override
+    protected void onCleared()
+    {
+        super.onCleared();
+
+        disposables.clear();
+    }
+
+    public void clearData()
+    {
+        disposables.clear();
+        feedId = -1;
+    }
+
+    public void setFeedId(long feedId)
+    {
+        this.feedId = feedId;
+    }
+
+    public Flowable<List<FeedItem>> observeItemsByFeedId()
+    {
+        return repo.observeItemsByFeedId(feedId);
+    }
+
+    public Single<List<FeedItem>> getItemsByFeedIdSingle()
+    {
+        return repo.getItemsByFeedIdSingle(feedId);
+    }
+
+    public Observable<Boolean> observeRefreshStatus()
+    {
+        return refreshStatus;
+    }
+
+    public void refreshChannel()
+    {
+        if (feedId == -1)
+            return;
+
+        Data data = new Data.Builder()
+                .putString(FeedFetcherWorker.TAG_ACTION, FeedFetcherWorker.ACTION_FETCH_CHANNEL)
+                .putLong(FeedFetcherWorker.TAG_CHANNEL_ID, feedId)
+                .build();
+        OneTimeWorkRequest work = new OneTimeWorkRequest.Builder(FeedFetcherWorker.class)
+                .setInputData(data)
+                .build();
+
+        runFetchWorker(work);
+    }
+
+    public void markAllAsRead()
+    {
+        if (feedId == -1)
+            return;
+
+        disposables.add(Completable.fromRunnable(() -> repo.markAsReadByFeedId(Collections.singletonList(feedId))).subscribeOn(Schedulers.io())
+          .subscribe());
+    }
+
+    public void markAsRead(@NonNull String itemId)
+    {
+        disposables.add(Completable.fromRunnable(() -> repo.markAsRead(itemId))
+                .subscribeOn(Schedulers.io())
+                .subscribe());
+    }
+
+    public void markAsUnread(@NonNull String itemId)
+    {
+        disposables.add(Completable.fromRunnable(() -> repo.markAsUnread(itemId))
+                .subscribeOn(Schedulers.io())
+                .subscribe());
+    }
+
+    private void runFetchWorker(WorkRequest work)
+    {
+        refreshStatus.onNext(true);
+
+        WorkManager.getInstance(getApplication()).enqueue(work);
+
+        WorkManager.getInstance(getApplication()).getWorkInfoByIdLiveData(work.getId())
+                .observeForever(this::observeWorkResult);
+    }
+
+    private void observeWorkResult(WorkInfo info)
+    {
+        boolean finished = info.getState().isFinished();
+        if (finished)
+            WorkManager.getInstance(getApplication()).getWorkInfoByIdLiveData(info.getId())
+                    .removeObserver(this::observeWorkResult);
+
+        refreshStatus.onNext(!finished);
+    }
+}
