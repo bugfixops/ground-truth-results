@@ -1320,8 +1320,13 @@ e('ImportEntriesActivity.processImporterState@FILE', 'AegisImporter$EncryptedSta
 # other importers), the auto CHA edge to AndOtp decrypt is suppressed, and only the
 # @FILE variant reaches AndOtp decrypt. The @APP prefix keeps the base node and its
 # other importers' dispatch, but no longer reaches AndOtp decrypt.
-e('ImportEntriesActivity.startImportFile', 'ImportEntriesActivity.processImporterState', 'CALL',
-  'Direct call', evidence='SRC ImportEntriesActivity.java:134 (bytecode)')
+# --- file-pick v2 V8 (PRIVATE BUILD, not pushed): base-feed deletion (LAST, design section 5 step 2).
+# The file-to-base hand edge is DELETED (it was fix 2's pre-variant compromise: "the file
+# reader feeds ... the base node, for all other importers"). Once every non-default importer
+# has its own variant dispatch, the base feed is a pure leak. KEPT: startImportFile ->
+# processImporterState@FILE (Aegis-default and decrypted-only @FILE routes). After V8 the
+# base node is reachable only from lambda$startImportApp$5 (the @APP feed), and no decrypt
+# incoming count changes (all eight variant targets already land only via their variant E19s).
 e('ImportEntriesActivity.startImportFile', 'ImportEntriesActivity.processImporterState@FILE', 'CALL',
   'the file just read is processed on the file-import path',
   guard='the import page was opened with a file (startImport@FILE, ImportEntriesActivity.java:109,127)',
@@ -1349,10 +1354,402 @@ sup(('ImportEntriesActivity.processImporterState', 'AndOtpImporter$EncryptedStat
 e('ImportEntriesActivity.lambda$startImportApp$5', 'ImportEntriesActivity.processImporterState', 'CALL',
   'Direct call', evidence='SRC ImportEntriesActivity.java:157 (bytecode)')
 sup(('ImportEntriesActivity.processImporterState', 'StratumImporter$EncryptedState.decrypt(Context,DecryptListener)'))
-e('ImportEntriesActivity.processImporterState@FILE', 'StratumImporter$EncryptedState.decrypt(Context,DecryptListener)', 'CALL',
+# --- file-pick v2 V2 (PRIVATE BUILD, not pushed): Stratum @FILE_STRATUM variant chain (E1, E3-E16, 2x E19).
+# Template DESIGN.md 4.2/4.4 (audit PASS); E2/E17/E18 deleted by audit D1/D2 (auto expansion).
+# One pick chain, two dispatch guards (AUTHENTICATORPRO header -> Encrypted; AuthenticatorPro
+# legacy header -> Legacy). V2 combined private state: the old @FILE Encrypted hand edge
+# (E8360a30f) is DELETED, replaced by the variant Encrypted E19 below; the Legacy base-pair
+# sup below lands with the chain (the variant Legacy E19 hand edge already suppresses the
+# Legacy auto copies by the manual-edge base-pair rule — verified in the chain-first build,
+# where Legacy incoming was already [variant] only — so the sup is explicit, not load-bearing).
+# Encrypted incoming 1 (variant only); Legacy incoming 1 (variant only). Never pushed in an
+# intermediate state (R1: single final commit when full section 9 passes).
+sup(('ImportEntriesActivity.processImporterState', 'StratumImporter$LegacyEncryptedState.decrypt(Context,DecryptListener)'))
+gui('Dialogs.showImportersDialog@FILE', 'Dialogs.lambda$showImportersDialog$26@FILE_STRATUM', 'Tap the `Stratum` row in the importer list (its help text is shown)',
+  guard='the `Stratum` row is tapped (the dialog lists all importers when isDirect is false, DatabaseImporter.java:99-106; a tap sets the checked row in the single-choice list, FW-SRC AbsListView.java:1136-1150 and/or dialog_importers.xml choiceMode="singleChoice", Dialogs.java:529-531)',
+  evidence=FW_ITEM + '; SRC ui/dialogs/Dialogs.java:523-531; SRC importers/DatabaseImporter.java:99-106; FW-SRC core/java/android/widget/AbsListView.java:1136-1150')
+gui('Dialogs.lambda$showImportersDialog$26@FILE_STRATUM', 'Dialogs.lambda$showImportersDialog$27@FILE_STRATUM', 'Tap OK after the `Stratum` row was tapped (gives the chosen importer to the listener)',
+  guard='the `Stratum` row was tapped first: in the single-choice list a tap sets the checked row (FW-SRC AbsListView.java:1136-1150, dialog_importers.xml choiceMode="singleChoice"), so OK reads the `Stratum` importer (Dialogs.java:537), not the default Aegis row',
+  evidence=FW_CLICK + '; SRC ui/dialogs/Dialogs.java:533-538; FW-SRC core/java/android/widget/AbsListView.java:1136-1150')
+e('Dialogs.lambda$showImportersDialog$27@FILE_STRATUM', 'ImportExportPreferencesFragment.lambda$onCreatePreferences$5@FILE_STRATUM', 'CALL',
+  'the OK button gives the chosen `Stratum` importer to the import listener: the file picker opens',
+  guard='the dialog was opened by the Import preference (showImportersDialog with isDirect false, ImportExportPreferencesFragment.java:107) and the `Stratum` row was tapped',
+  evidence='SRC ui/dialogs/Dialogs.java:536-538; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:105-112')
+e('ImportExportPreferencesFragment.lambda$onCreatePreferences$5@FILE_STRATUM', 'VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_STRATUM', 'CALL',
+  'the file picker opens (ACTION_GET_CONTENT) through the import launcher, after the `Stratum` importer is chosen',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:105-112')
+e('VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_STRATUM', 'ImportExportPreferencesFragment.lambda$new$0@FILE_STRATUM', 'RESULT',
+  'the file picker returns a file: the import launcher runs onImportSelectResult',
+  guard='the picker returned RESULT_OK with a URI (ImportExportPreferencesFragment.java:146-148) and the launcher callback data is not null (ImportExportPreferencesFragment.java:73-79)',
+  evidence=FW_LAUNCHER + '; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:146-148; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:73-79')
+e('ImportExportPreferencesFragment.lambda$new$0@FILE_STRATUM', 'ImportExportPreferencesFragment.onImportSelectResult@FILE_STRATUM', 'CALL',
+  'the picker result carries data: onImportSelectResult runs',
+  guard='activityResult.getData() is not null (ImportExportPreferencesFragment.java:76)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:73-79')
+e('ImportExportPreferencesFragment.onImportSelectResult@FILE_STRATUM', 'ImportFileTask.doInBackground@FILE_STRATUM', 'ASYNC',
+  'AsyncTask runs doInBackground on the worker thread (read the picked file)',
+  evidence=FW_ASYNC + '; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:146,151-158; SRC ui/tasks/ImportFileTask.java:18')
+e('ImportFileTask.doInBackground@FILE_STRATUM', 'ImportFileTask.onPostExecute@FILE_STRATUM', 'ASYNC',
+  'the result is posted to the main thread (the `Stratum` file-import task)',
+  evidence=FW_ASYNC + '; SRC ui/tasks/ImportFileTask.java:53-56')
+e('ImportFileTask.onPostExecute@FILE_STRATUM', 'ImportExportPreferencesFragment.lambda$onImportSelectResult$11@FILE_STRATUM', 'CALL',
+  'the file is read: the callback opens the import page, or shows the read error',
+  guard='result.getError() is null (ImportExportPreferencesFragment.java:152-155)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:152-155')
+e('ImportExportPreferencesFragment.lambda$onImportSelectResult$11@FILE_STRATUM', 'ImportExportPreferencesFragment.startImportEntriesActivity@FILE_STRATUM', 'CALL',
+  'Direct call',
+  guard='`_importerDef` is the `Stratum` definition and the task result file (ImportExportPreferencesFragment.java:152-153) is passed to the import page',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:152-153; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:161-165')
+e('ImportExportPreferencesFragment.startImportEntriesActivity@FILE_STRATUM', 'ImportEntriesActivity.<init>@FILE_STRATUM', 'INTENT',
+  'the import page opens with the chosen `Stratum` importer and the file (file import)',
+  guard='the file argument is non-null (ImportExportPreferencesFragment.java:161-165)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:161-165')
+e('ImportEntriesActivity.<init>@FILE_STRATUM', 'ImportEntriesActivity.onCreate@FILE_STRATUM', 'LIFECYCLE',
+  'Activity.onCreate of the import page',
+  evidence=FW_CREATE + '; SRC ui/ImportEntriesActivity.java:62')
+e('ImportEntriesActivity.onCreate@FILE_STRATUM', 'ImportEntriesActivity.startImport@FILE_STRATUM', 'CALL',
+  'the import page starts the import from its intent extras',
+  guard='abortIfOrphan is false (ImportEntriesActivity.java:64-66) and the file extra is non-null (ImportEntriesActivity.java:104,109)',
+  evidence='SRC ui/ImportEntriesActivity.java:62-66,103-104')
+e('ImportEntriesActivity.startImport@FILE_STRATUM', 'ImportEntriesActivity.startImportFile@FILE_STRATUM', 'CALL',
+  'Direct call',
+  guard='a file was passed (ImportEntriesActivity.java:109,127)',
+  evidence='SRC ImportEntriesActivity.java:127 (bytecode); SRC ui/ImportEntriesActivity.java:109,127')
+e('ImportEntriesActivity.startImportFile@FILE_STRATUM', 'ImportEntriesActivity.processImporterState@FILE_STRATUM', 'CALL',
+  'the file just read is processed on the `Stratum` file-import path',
+  guard='the import page was opened with a file for the `Stratum` importer',
+  evidence='SRC ImportEntriesActivity.java:134 (bytecode); SRC ui/ImportEntriesActivity.java:131-134; SRC importers/DatabaseImporter.java:75-76')
+e('ImportEntriesActivity.processImporterState@FILE_STRATUM', 'StratumImporter$EncryptedState.decrypt(Context,DecryptListener)', 'CALL',
   'the picked file import is an encrypted Stratum backup: the importer asks for the password and decrypts it',
   guard='the file import picked Stratum and the file is not JSON, so readExternal falls to readEncrypted and the AUTHENTICATORPRO header yields EncryptedState (StratumImporter.java:80-105)',
   evidence='SRC ui/ImportEntriesActivity.java:176-182; SRC importers/StratumImporter.java:80-105')
+e('ImportEntriesActivity.processImporterState@FILE_STRATUM', 'StratumImporter$LegacyEncryptedState.decrypt(Context,DecryptListener)', 'CALL',
+  'the picked file import is a legacy-header Stratum backup: the importer asks for the password and decrypts it',
+  guard='the file import picked Stratum and the file is not JSON, so readExternal falls to readEncrypted and the AuthenticatorPro (legacy) header yields LegacyEncryptedState (StratumImporter.java:80-105)',
+  evidence='SRC ui/ImportEntriesActivity.java:176-182; SRC importers/StratumImporter.java:80-105')
+# --- file-pick v2 V3 (PRIVATE BUILD, not pushed): TOTP Authenticator @FILE_TOTP variant chain (E1, E3-E16, E19).
+# Template DESIGN.md 4.2/4.4 (audit PASS); E2/E17/E18 deleted by audit D1/D2 (auto expansion).
+# V3 combined private state: the TOTP base-pair sup below lands with the chain (the variant E19
+# hand edge already suppressed all three TOTP auto copies in the chain-first build — incoming
+# was already [variant] only — so the sup is explicit, not load-bearing). TOTP incoming 1
+# (variant only). Never pushed in an intermediate state (R1).
+sup(('ImportEntriesActivity.processImporterState', 'TotpAuthenticatorImporter$EncryptedState.decrypt(Context,DecryptListener)'))
+gui('Dialogs.showImportersDialog@FILE', 'Dialogs.lambda$showImportersDialog$26@FILE_TOTP', 'Tap the `TOTP Authenticator` row in the importer list (its help text is shown)',
+  guard='the `TOTP Authenticator` row is tapped (the dialog lists all importers when isDirect is false, DatabaseImporter.java:99-106; a tap sets the checked row in the single-choice list, FW-SRC AbsListView.java:1136-1150 and/or dialog_importers.xml choiceMode="singleChoice", Dialogs.java:529-531)',
+  evidence=FW_ITEM + '; SRC ui/dialogs/Dialogs.java:523-531; SRC importers/DatabaseImporter.java:99-106; FW-SRC core/java/android/widget/AbsListView.java:1136-1150')
+gui('Dialogs.lambda$showImportersDialog$26@FILE_TOTP', 'Dialogs.lambda$showImportersDialog$27@FILE_TOTP', 'Tap OK after the `TOTP Authenticator` row was tapped (gives the chosen importer to the listener)',
+  guard='the `TOTP Authenticator` row was tapped first: in the single-choice list a tap sets the checked row (FW-SRC AbsListView.java:1136-1150, dialog_importers.xml choiceMode="singleChoice"), so OK reads the `TOTP Authenticator` importer (Dialogs.java:537), not the default Aegis row',
+  evidence=FW_CLICK + '; SRC ui/dialogs/Dialogs.java:533-538; FW-SRC core/java/android/widget/AbsListView.java:1136-1150')
+e('Dialogs.lambda$showImportersDialog$27@FILE_TOTP', 'ImportExportPreferencesFragment.lambda$onCreatePreferences$5@FILE_TOTP', 'CALL',
+  'the OK button gives the chosen `TOTP Authenticator` importer to the import listener: the file picker opens',
+  guard='the dialog was opened by the Import preference (showImportersDialog with isDirect false, ImportExportPreferencesFragment.java:107) and the `TOTP Authenticator` row was tapped',
+  evidence='SRC ui/dialogs/Dialogs.java:536-538; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:105-112')
+e('ImportExportPreferencesFragment.lambda$onCreatePreferences$5@FILE_TOTP', 'VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_TOTP', 'CALL',
+  'the file picker opens (ACTION_GET_CONTENT) through the import launcher, after the `TOTP Authenticator` importer is chosen',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:105-112')
+e('VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_TOTP', 'ImportExportPreferencesFragment.lambda$new$0@FILE_TOTP', 'RESULT',
+  'the file picker returns a file: the import launcher runs onImportSelectResult',
+  guard='the picker returned RESULT_OK with a URI (ImportExportPreferencesFragment.java:146-148) and the launcher callback data is not null (ImportExportPreferencesFragment.java:73-79)',
+  evidence=FW_LAUNCHER + '; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:146-148; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:73-79')
+e('ImportExportPreferencesFragment.lambda$new$0@FILE_TOTP', 'ImportExportPreferencesFragment.onImportSelectResult@FILE_TOTP', 'CALL',
+  'the picker result carries data: onImportSelectResult runs',
+  guard='activityResult.getData() is not null (ImportExportPreferencesFragment.java:76)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:73-79')
+e('ImportExportPreferencesFragment.onImportSelectResult@FILE_TOTP', 'ImportFileTask.doInBackground@FILE_TOTP', 'ASYNC',
+  'AsyncTask runs doInBackground on the worker thread (read the picked file)',
+  evidence=FW_ASYNC + '; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:146,151-158; SRC ui/tasks/ImportFileTask.java:18')
+e('ImportFileTask.doInBackground@FILE_TOTP', 'ImportFileTask.onPostExecute@FILE_TOTP', 'ASYNC',
+  'the result is posted to the main thread (the `TOTP Authenticator` file-import task)',
+  evidence=FW_ASYNC + '; SRC ui/tasks/ImportFileTask.java:53-56')
+e('ImportFileTask.onPostExecute@FILE_TOTP', 'ImportExportPreferencesFragment.lambda$onImportSelectResult$11@FILE_TOTP', 'CALL',
+  'the file is read: the callback opens the import page, or shows the read error',
+  guard='result.getError() is null (ImportExportPreferencesFragment.java:152-155)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:152-155')
+e('ImportExportPreferencesFragment.lambda$onImportSelectResult$11@FILE_TOTP', 'ImportExportPreferencesFragment.startImportEntriesActivity@FILE_TOTP', 'CALL',
+  'Direct call',
+  guard='`_importerDef` is the `TOTP Authenticator` definition and the task result file (ImportExportPreferencesFragment.java:152-153) is passed to the import page',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:152-153; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:161-165')
+e('ImportExportPreferencesFragment.startImportEntriesActivity@FILE_TOTP', 'ImportEntriesActivity.<init>@FILE_TOTP', 'INTENT',
+  'the import page opens with the chosen `TOTP Authenticator` importer and the file (file import)',
+  guard='the file argument is non-null (ImportExportPreferencesFragment.java:161-165)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:161-165')
+e('ImportEntriesActivity.<init>@FILE_TOTP', 'ImportEntriesActivity.onCreate@FILE_TOTP', 'LIFECYCLE',
+  'Activity.onCreate of the import page',
+  evidence=FW_CREATE + '; SRC ui/ImportEntriesActivity.java:62')
+e('ImportEntriesActivity.onCreate@FILE_TOTP', 'ImportEntriesActivity.startImport@FILE_TOTP', 'CALL',
+  'the import page starts the import from its intent extras',
+  guard='abortIfOrphan is false (ImportEntriesActivity.java:64-66) and the file extra is non-null (ImportEntriesActivity.java:104,109)',
+  evidence='SRC ui/ImportEntriesActivity.java:62-66,103-104')
+e('ImportEntriesActivity.startImport@FILE_TOTP', 'ImportEntriesActivity.startImportFile@FILE_TOTP', 'CALL',
+  'Direct call',
+  guard='a file was passed (ImportEntriesActivity.java:109,127)',
+  evidence='SRC ImportEntriesActivity.java:127 (bytecode); SRC ui/ImportEntriesActivity.java:109,127')
+e('ImportEntriesActivity.startImportFile@FILE_TOTP', 'ImportEntriesActivity.processImporterState@FILE_TOTP', 'CALL',
+  'the file just read is processed on the `TOTP Authenticator` file-import path',
+  guard='the import page was opened with a file for the `TOTP Authenticator` importer',
+  evidence='SRC ImportEntriesActivity.java:134 (bytecode); SRC ui/ImportEntriesActivity.java:131-134; SRC importers/DatabaseImporter.java:75-76')
+e('ImportEntriesActivity.processImporterState@FILE_TOTP', 'TotpAuthenticatorImporter$EncryptedState.decrypt(Context,DecryptListener)', 'CALL',
+  'the picked file import is an encrypted TOTP Authenticator backup: the importer asks for the password and decrypts it',
+  guard='the file import picked TOTP Authenticator and the file read is the external (isInternal false) branch, so read returns EncryptedState (TotpAuthenticatorImporter.java:70-95); the internal branch always yields DecryptedState and never reaches decrypt',
+  evidence='SRC ui/ImportEntriesActivity.java:176-182; SRC importers/TotpAuthenticatorImporter.java:70-95')
+# --- file-pick v2 V4 (PRIVATE BUILD, not pushed): FreeOTP @FILE_FREEOTP variant chain (E1, E3-E16, E19).
+# Template DESIGN.md 4.2/4.4 (audit PASS); E2/E17/E18 deleted by audit D1/D2 (auto expansion).
+# V4 combined private state: the FreeOTP base-pair sup below lands with the chain (the variant E19
+# hand edge already suppressed all three FreeOTP auto copies in the chain-first build — incoming
+# was already [variant] only — so the sup is explicit, not load-bearing). FreeOTP incoming 1
+# (variant only). Never pushed in an intermediate state (R1). R3: v2 item 1 for FreeOTP
+# evaluated here (file route through @FILE_FREEOTP); re-read after F2 as shortest-FILE-route.
+sup(('ImportEntriesActivity.processImporterState', 'FreeOtpImporter$EncryptedState.decrypt(Context,DecryptListener)'))
+gui('Dialogs.showImportersDialog@FILE', 'Dialogs.lambda$showImportersDialog$26@FILE_FREEOTP', 'Tap the `FreeOTP` row in the importer list (its help text is shown)',
+  guard='the `FreeOTP` row is tapped (the dialog lists all importers when isDirect is false, DatabaseImporter.java:99-106; a tap sets the checked row in the single-choice list, FW-SRC AbsListView.java:1136-1150 and/or dialog_importers.xml choiceMode="singleChoice", Dialogs.java:529-531)',
+  evidence=FW_ITEM + '; SRC ui/dialogs/Dialogs.java:523-531; SRC importers/DatabaseImporter.java:99-106; FW-SRC core/java/android/widget/AbsListView.java:1136-1150')
+gui('Dialogs.lambda$showImportersDialog$26@FILE_FREEOTP', 'Dialogs.lambda$showImportersDialog$27@FILE_FREEOTP', 'Tap OK after the `FreeOTP` row was tapped (gives the chosen importer to the listener)',
+  guard='the `FreeOTP` row was tapped first: in the single-choice list a tap sets the checked row (FW-SRC AbsListView.java:1136-1150, dialog_importers.xml choiceMode="singleChoice"), so OK reads the `FreeOTP` importer (Dialogs.java:537), not the default Aegis row',
+  evidence=FW_CLICK + '; SRC ui/dialogs/Dialogs.java:533-538; FW-SRC core/java/android/widget/AbsListView.java:1136-1150')
+e('Dialogs.lambda$showImportersDialog$27@FILE_FREEOTP', 'ImportExportPreferencesFragment.lambda$onCreatePreferences$5@FILE_FREEOTP', 'CALL',
+  'the OK button gives the chosen `FreeOTP` importer to the import listener: the file picker opens',
+  guard='the dialog was opened by the Import preference (showImportersDialog with isDirect false, ImportExportPreferencesFragment.java:107) and the `FreeOTP` row was tapped',
+  evidence='SRC ui/dialogs/Dialogs.java:536-538; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:105-112')
+e('ImportExportPreferencesFragment.lambda$onCreatePreferences$5@FILE_FREEOTP', 'VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_FREEOTP', 'CALL',
+  'the file picker opens (ACTION_GET_CONTENT) through the import launcher, after the `FreeOTP` importer is chosen',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:105-112')
+e('VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_FREEOTP', 'ImportExportPreferencesFragment.lambda$new$0@FILE_FREEOTP', 'RESULT',
+  'the file picker returns a file: the import launcher runs onImportSelectResult',
+  guard='the picker returned RESULT_OK with a URI (ImportExportPreferencesFragment.java:146-148) and the launcher callback data is not null (ImportExportPreferencesFragment.java:73-79)',
+  evidence=FW_LAUNCHER + '; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:146-148; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:73-79')
+e('ImportExportPreferencesFragment.lambda$new$0@FILE_FREEOTP', 'ImportExportPreferencesFragment.onImportSelectResult@FILE_FREEOTP', 'CALL',
+  'the picker result carries data: onImportSelectResult runs',
+  guard='activityResult.getData() is not null (ImportExportPreferencesFragment.java:76)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:73-79')
+e('ImportExportPreferencesFragment.onImportSelectResult@FILE_FREEOTP', 'ImportFileTask.doInBackground@FILE_FREEOTP', 'ASYNC',
+  'AsyncTask runs doInBackground on the worker thread (read the picked file)',
+  evidence=FW_ASYNC + '; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:146,151-158; SRC ui/tasks/ImportFileTask.java:18')
+e('ImportFileTask.doInBackground@FILE_FREEOTP', 'ImportFileTask.onPostExecute@FILE_FREEOTP', 'ASYNC',
+  'the result is posted to the main thread (the `FreeOTP` file-import task)',
+  evidence=FW_ASYNC + '; SRC ui/tasks/ImportFileTask.java:53-56')
+e('ImportFileTask.onPostExecute@FILE_FREEOTP', 'ImportExportPreferencesFragment.lambda$onImportSelectResult$11@FILE_FREEOTP', 'CALL',
+  'the file is read: the callback opens the import page, or shows the read error',
+  guard='result.getError() is null (ImportExportPreferencesFragment.java:152-155)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:152-155')
+e('ImportExportPreferencesFragment.lambda$onImportSelectResult$11@FILE_FREEOTP', 'ImportExportPreferencesFragment.startImportEntriesActivity@FILE_FREEOTP', 'CALL',
+  'Direct call',
+  guard='`_importerDef` is the `FreeOTP` definition and the task result file (ImportExportPreferencesFragment.java:152-153) is passed to the import page',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:152-153; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:161-165')
+e('ImportExportPreferencesFragment.startImportEntriesActivity@FILE_FREEOTP', 'ImportEntriesActivity.<init>@FILE_FREEOTP', 'INTENT',
+  'the import page opens with the chosen `FreeOTP` importer and the file (file import)',
+  guard='the file argument is non-null (ImportExportPreferencesFragment.java:161-165)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:161-165')
+e('ImportEntriesActivity.<init>@FILE_FREEOTP', 'ImportEntriesActivity.onCreate@FILE_FREEOTP', 'LIFECYCLE',
+  'Activity.onCreate of the import page',
+  evidence=FW_CREATE + '; SRC ui/ImportEntriesActivity.java:62')
+e('ImportEntriesActivity.onCreate@FILE_FREEOTP', 'ImportEntriesActivity.startImport@FILE_FREEOTP', 'CALL',
+  'the import page starts the import from its intent extras',
+  guard='abortIfOrphan is false (ImportEntriesActivity.java:64-66) and the file extra is non-null (ImportEntriesActivity.java:104,109)',
+  evidence='SRC ui/ImportEntriesActivity.java:62-66,103-104')
+e('ImportEntriesActivity.startImport@FILE_FREEOTP', 'ImportEntriesActivity.startImportFile@FILE_FREEOTP', 'CALL',
+  'Direct call',
+  guard='a file was passed (ImportEntriesActivity.java:109,127)',
+  evidence='SRC ImportEntriesActivity.java:127 (bytecode); SRC ui/ImportEntriesActivity.java:109,127')
+e('ImportEntriesActivity.startImportFile@FILE_FREEOTP', 'ImportEntriesActivity.processImporterState@FILE_FREEOTP', 'CALL',
+  'the file just read is processed on the `FreeOTP` file-import path',
+  guard='the import page was opened with a file for the `FreeOTP` importer',
+  evidence='SRC ImportEntriesActivity.java:134 (bytecode); SRC ui/ImportEntriesActivity.java:131-134; SRC importers/DatabaseImporter.java:75-76')
+e('ImportEntriesActivity.processImporterState@FILE_FREEOTP', 'FreeOtpImporter$EncryptedState.decrypt(Context,DecryptListener)', 'CALL',
+  'the picked file import is an encrypted FreeOTP backup: the importer asks for the password and decrypts it',
+  guard='the file import picked FreeOTP and the file has V2 magic, so read returns EncryptedState via readV2 (FreeOtpImporter.java:69-86,106-115); a V1 file yields DecryptedStateV1 and takes the decrypted branch instead',
+  evidence='SRC ui/ImportEntriesActivity.java:176-182; SRC importers/FreeOtpImporter.java:69-115')
+# --- file-pick v2 V5 (PRIVATE BUILD, not pushed): 2FAS @FILE_TWOFAS variant chain (E1, E3-E16, E19) + sup.
+# Template DESIGN.md 4.2/4.4 (audit PASS); E2/E17/E18 deleted by audit D1/D2 (auto expansion).
+# Combined single build per design section 5 step 1 (chain + sup together; the hand-E19
+# suppression mechanism is already proven at V2/V3/V4, so no separate chain-first build is
+# needed here — the combined gates below verify the outcome). Never pushed in an
+# intermediate state (R1).
+sup(('ImportEntriesActivity.processImporterState', 'TwoFASImporter$EncryptedState.decrypt(Context,DecryptListener)'))
+gui('Dialogs.showImportersDialog@FILE', 'Dialogs.lambda$showImportersDialog$26@FILE_TWOFAS', 'Tap the `2FAS` row in the importer list (its help text is shown)',
+  guard='the `2FAS` row is tapped (the dialog lists all importers when isDirect is false, DatabaseImporter.java:99-106; a tap sets the checked row in the single-choice list, FW-SRC AbsListView.java:1136-1150 and/or dialog_importers.xml choiceMode="singleChoice", Dialogs.java:529-531)',
+  evidence=FW_ITEM + '; SRC ui/dialogs/Dialogs.java:523-531; SRC importers/DatabaseImporter.java:99-106; FW-SRC core/java/android/widget/AbsListView.java:1136-1150')
+gui('Dialogs.lambda$showImportersDialog$26@FILE_TWOFAS', 'Dialogs.lambda$showImportersDialog$27@FILE_TWOFAS', 'Tap OK after the `2FAS` row was tapped (gives the chosen importer to the listener)',
+  guard='the `2FAS` row was tapped first: in the single-choice list a tap sets the checked row (FW-SRC AbsListView.java:1136-1150, dialog_importers.xml choiceMode="singleChoice"), so OK reads the `2FAS` importer (Dialogs.java:537), not the default Aegis row',
+  evidence=FW_CLICK + '; SRC ui/dialogs/Dialogs.java:533-538; FW-SRC core/java/android/widget/AbsListView.java:1136-1150')
+e('Dialogs.lambda$showImportersDialog$27@FILE_TWOFAS', 'ImportExportPreferencesFragment.lambda$onCreatePreferences$5@FILE_TWOFAS', 'CALL',
+  'the OK button gives the chosen `2FAS` importer to the import listener: the file picker opens',
+  guard='the dialog was opened by the Import preference (showImportersDialog with isDirect false, ImportExportPreferencesFragment.java:107) and the `2FAS` row was tapped',
+  evidence='SRC ui/dialogs/Dialogs.java:536-538; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:105-112')
+e('ImportExportPreferencesFragment.lambda$onCreatePreferences$5@FILE_TWOFAS', 'VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_TWOFAS', 'CALL',
+  'the file picker opens (ACTION_GET_CONTENT) through the import launcher, after the `2FAS` importer is chosen',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:105-112')
+e('VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_TWOFAS', 'ImportExportPreferencesFragment.lambda$new$0@FILE_TWOFAS', 'RESULT',
+  'the file picker returns a file: the import launcher runs onImportSelectResult',
+  guard='the picker returned RESULT_OK with a URI (ImportExportPreferencesFragment.java:146-148) and the launcher callback data is not null (ImportExportPreferencesFragment.java:73-79)',
+  evidence=FW_LAUNCHER + '; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:146-148; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:73-79')
+e('ImportExportPreferencesFragment.lambda$new$0@FILE_TWOFAS', 'ImportExportPreferencesFragment.onImportSelectResult@FILE_TWOFAS', 'CALL',
+  'the picker result carries data: onImportSelectResult runs',
+  guard='activityResult.getData() is not null (ImportExportPreferencesFragment.java:76)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:73-79')
+e('ImportExportPreferencesFragment.onImportSelectResult@FILE_TWOFAS', 'ImportFileTask.doInBackground@FILE_TWOFAS', 'ASYNC',
+  'AsyncTask runs doInBackground on the worker thread (read the picked file)',
+  evidence=FW_ASYNC + '; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:146,151-158; SRC ui/tasks/ImportFileTask.java:18')
+e('ImportFileTask.doInBackground@FILE_TWOFAS', 'ImportFileTask.onPostExecute@FILE_TWOFAS', 'ASYNC',
+  'the result is posted to the main thread (the `2FAS` file-import task)',
+  evidence=FW_ASYNC + '; SRC ui/tasks/ImportFileTask.java:53-56')
+e('ImportFileTask.onPostExecute@FILE_TWOFAS', 'ImportExportPreferencesFragment.lambda$onImportSelectResult$11@FILE_TWOFAS', 'CALL',
+  'the file is read: the callback opens the import page, or shows the read error',
+  guard='result.getError() is null (ImportExportPreferencesFragment.java:152-155)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:152-155')
+e('ImportExportPreferencesFragment.lambda$onImportSelectResult$11@FILE_TWOFAS', 'ImportExportPreferencesFragment.startImportEntriesActivity@FILE_TWOFAS', 'CALL',
+  'Direct call',
+  guard='`_importerDef` is the `2FAS` definition and the task result file (ImportExportPreferencesFragment.java:152-153) is passed to the import page',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:152-153; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:161-165')
+e('ImportExportPreferencesFragment.startImportEntriesActivity@FILE_TWOFAS', 'ImportEntriesActivity.<init>@FILE_TWOFAS', 'INTENT',
+  'the import page opens with the chosen `2FAS` importer and the file (file import)',
+  guard='the file argument is non-null (ImportExportPreferencesFragment.java:161-165)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:161-165')
+e('ImportEntriesActivity.<init>@FILE_TWOFAS', 'ImportEntriesActivity.onCreate@FILE_TWOFAS', 'LIFECYCLE',
+  'Activity.onCreate of the import page',
+  evidence=FW_CREATE + '; SRC ui/ImportEntriesActivity.java:62')
+e('ImportEntriesActivity.onCreate@FILE_TWOFAS', 'ImportEntriesActivity.startImport@FILE_TWOFAS', 'CALL',
+  'the import page starts the import from its intent extras',
+  guard='abortIfOrphan is false (ImportEntriesActivity.java:64-66) and the file extra is non-null (ImportEntriesActivity.java:104,109)',
+  evidence='SRC ui/ImportEntriesActivity.java:62-66,103-104')
+e('ImportEntriesActivity.startImport@FILE_TWOFAS', 'ImportEntriesActivity.startImportFile@FILE_TWOFAS', 'CALL',
+  'Direct call',
+  guard='a file was passed (ImportEntriesActivity.java:109,127)',
+  evidence='SRC ImportEntriesActivity.java:127 (bytecode); SRC ui/ImportEntriesActivity.java:109,127')
+e('ImportEntriesActivity.startImportFile@FILE_TWOFAS', 'ImportEntriesActivity.processImporterState@FILE_TWOFAS', 'CALL',
+  'the file just read is processed on the `2FAS` file-import path',
+  guard='the import page was opened with a file for the `2FAS` importer',
+  evidence='SRC ImportEntriesActivity.java:134 (bytecode); SRC ui/ImportEntriesActivity.java:131-134; SRC importers/DatabaseImporter.java:75-76')
+e('ImportEntriesActivity.processImporterState@FILE_TWOFAS', 'TwoFASImporter$EncryptedState.decrypt(Context,DecryptListener)', 'CALL',
+  'the picked file import is an encrypted 2FAS backup: the importer asks for the password and decrypts it',
+  guard='the file import picked 2FAS (supportsDirect false, DatabaseImporter.java:33; getAppPath throws, TwoFASImporter.java:55-57) and the file is valid JSON with schemaVersion ≤ 4 and `servicesEncrypted` split into ≥ 3 parts, so read returns EncryptedState (TwoFASImporter.java:60-84)',
+  evidence='SRC ui/ImportEntriesActivity.java:176-182; SRC importers/TwoFASImporter.java:60-84')
+# --- file-pick v2 V6 (PRIVATE BUILD, not pushed): Authenticator Plus @FILE_AUTHPLUS variant chain (E1, E3-E16, E19) + sup.
+# Template DESIGN.md 4.2/4.4 (audit PASS); E2/E17/E18 deleted by audit D1/D2 (auto expansion).
+# Combined single build per design section 5 step 1 (chain + sup together). Never pushed in an
+# intermediate state (R1).
+sup(('ImportEntriesActivity.processImporterState', 'AuthenticatorPlusImporter$EncryptedState.decrypt(Context,DecryptListener)'))
+gui('Dialogs.showImportersDialog@FILE', 'Dialogs.lambda$showImportersDialog$26@FILE_AUTHPLUS', 'Tap the `Authenticator Plus` row in the importer list (its help text is shown)',
+  guard='the `Authenticator Plus` row is tapped (the dialog lists all importers when isDirect is false, DatabaseImporter.java:99-106; a tap sets the checked row in the single-choice list, FW-SRC AbsListView.java:1136-1150 and/or dialog_importers.xml choiceMode="singleChoice", Dialogs.java:529-531)',
+  evidence=FW_ITEM + '; SRC ui/dialogs/Dialogs.java:523-531; SRC importers/DatabaseImporter.java:99-106; FW-SRC core/java/android/widget/AbsListView.java:1136-1150')
+gui('Dialogs.lambda$showImportersDialog$26@FILE_AUTHPLUS', 'Dialogs.lambda$showImportersDialog$27@FILE_AUTHPLUS', 'Tap OK after the `Authenticator Plus` row was tapped (gives the chosen importer to the listener)',
+  guard='the `Authenticator Plus` row was tapped first: in the single-choice list a tap sets the checked row (FW-SRC AbsListView.java:1136-1150, dialog_importers.xml choiceMode="singleChoice"), so OK reads the `Authenticator Plus` importer (Dialogs.java:537), not the default Aegis row',
+  evidence=FW_CLICK + '; SRC ui/dialogs/Dialogs.java:533-538; FW-SRC core/java/android/widget/AbsListView.java:1136-1150')
+e('Dialogs.lambda$showImportersDialog$27@FILE_AUTHPLUS', 'ImportExportPreferencesFragment.lambda$onCreatePreferences$5@FILE_AUTHPLUS', 'CALL',
+  'the OK button gives the chosen `Authenticator Plus` importer to the import listener: the file picker opens',
+  guard='the dialog was opened by the Import preference (showImportersDialog with isDirect false, ImportExportPreferencesFragment.java:107) and the `Authenticator Plus` row was tapped',
+  evidence='SRC ui/dialogs/Dialogs.java:536-538; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:105-112')
+e('ImportExportPreferencesFragment.lambda$onCreatePreferences$5@FILE_AUTHPLUS', 'VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_AUTHPLUS', 'CALL',
+  'the file picker opens (ACTION_GET_CONTENT) through the import launcher, after the `Authenticator Plus` importer is chosen',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:105-112')
+e('VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_AUTHPLUS', 'ImportExportPreferencesFragment.lambda$new$0@FILE_AUTHPLUS', 'RESULT',
+  'the file picker returns a file: the import launcher runs onImportSelectResult',
+  guard='the picker returned RESULT_OK with a URI (ImportExportPreferencesFragment.java:146-148) and the launcher callback data is not null (ImportExportPreferencesFragment.java:73-79)',
+  evidence=FW_LAUNCHER + '; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:146-148; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:73-79')
+e('ImportExportPreferencesFragment.lambda$new$0@FILE_AUTHPLUS', 'ImportExportPreferencesFragment.onImportSelectResult@FILE_AUTHPLUS', 'CALL',
+  'the picker result carries data: onImportSelectResult runs',
+  guard='activityResult.getData() is not null (ImportExportPreferencesFragment.java:76)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:73-79')
+e('ImportExportPreferencesFragment.onImportSelectResult@FILE_AUTHPLUS', 'ImportFileTask.doInBackground@FILE_AUTHPLUS', 'ASYNC',
+  'AsyncTask runs doInBackground on the worker thread (read the picked file)',
+  evidence=FW_ASYNC + '; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:146,151-158; SRC ui/tasks/ImportFileTask.java:18')
+e('ImportFileTask.doInBackground@FILE_AUTHPLUS', 'ImportFileTask.onPostExecute@FILE_AUTHPLUS', 'ASYNC',
+  'the result is posted to the main thread (the `Authenticator Plus` file-import task)',
+  evidence=FW_ASYNC + '; SRC ui/tasks/ImportFileTask.java:53-56')
+e('ImportFileTask.onPostExecute@FILE_AUTHPLUS', 'ImportExportPreferencesFragment.lambda$onImportSelectResult$11@FILE_AUTHPLUS', 'CALL',
+  'the file is read: the callback opens the import page, or shows the read error',
+  guard='result.getError() is null (ImportExportPreferencesFragment.java:152-155)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:152-155')
+e('ImportExportPreferencesFragment.lambda$onImportSelectResult$11@FILE_AUTHPLUS', 'ImportExportPreferencesFragment.startImportEntriesActivity@FILE_AUTHPLUS', 'CALL',
+  'Direct call',
+  guard='`_importerDef` is the `Authenticator Plus` definition and the task result file (ImportExportPreferencesFragment.java:152-153) is passed to the import page',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:152-153; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:161-165')
+e('ImportExportPreferencesFragment.startImportEntriesActivity@FILE_AUTHPLUS', 'ImportEntriesActivity.<init>@FILE_AUTHPLUS', 'INTENT',
+  'the import page opens with the chosen `Authenticator Plus` importer and the file (file import)',
+  guard='the file argument is non-null (ImportExportPreferencesFragment.java:161-165)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:161-165')
+e('ImportEntriesActivity.<init>@FILE_AUTHPLUS', 'ImportEntriesActivity.onCreate@FILE_AUTHPLUS', 'LIFECYCLE',
+  'Activity.onCreate of the import page',
+  evidence=FW_CREATE + '; SRC ui/ImportEntriesActivity.java:62')
+e('ImportEntriesActivity.onCreate@FILE_AUTHPLUS', 'ImportEntriesActivity.startImport@FILE_AUTHPLUS', 'CALL',
+  'the import page starts the import from its intent extras',
+  guard='abortIfOrphan is false (ImportEntriesActivity.java:64-66) and the file extra is non-null (ImportEntriesActivity.java:104,109)',
+  evidence='SRC ui/ImportEntriesActivity.java:62-66,103-104')
+e('ImportEntriesActivity.startImport@FILE_AUTHPLUS', 'ImportEntriesActivity.startImportFile@FILE_AUTHPLUS', 'CALL',
+  'Direct call',
+  guard='a file was passed (ImportEntriesActivity.java:109,127)',
+  evidence='SRC ImportEntriesActivity.java:127 (bytecode); SRC ui/ImportEntriesActivity.java:109,127')
+e('ImportEntriesActivity.startImportFile@FILE_AUTHPLUS', 'ImportEntriesActivity.processImporterState@FILE_AUTHPLUS', 'CALL',
+  'the file just read is processed on the `Authenticator Plus` file-import path',
+  guard='the import page was opened with a file for the `Authenticator Plus` importer',
+  evidence='SRC ImportEntriesActivity.java:134 (bytecode); SRC ui/ImportEntriesActivity.java:131-134; SRC importers/DatabaseImporter.java:75-76')
+e('ImportEntriesActivity.processImporterState@FILE_AUTHPLUS', 'AuthenticatorPlusImporter$EncryptedState.decrypt(Context,DecryptListener)', 'CALL',
+  'the picked file import is an encrypted Authenticator Plus backup: the importer asks for the password and decrypts it',
+  guard='the file import picked Authenticator Plus (supportsDirect false, DatabaseImporter.java:36; getAppPath throws, AuthenticatorPlusImporter.java:26-28) and read returns EncryptedState for any file (AuthenticatorPlusImporter.java:31-35)',
+  evidence='SRC ui/ImportEntriesActivity.java:176-182; SRC importers/AuthenticatorPlusImporter.java:31-35')
+# --- file-pick v2 V7 (PRIVATE BUILD, not pushed): Authy @FILE_AUTHY variant chain (E1, E3-E16, E19) + sup.
+# Template DESIGN.md 4.2/4.4 (audit PASS); E2/E17/E18 deleted by audit D1/D2 (auto expansion).
+# Combined single build per design section 5 step 1 (chain + sup together). After V7, all six
+# v2 sups have landed, so the transient auto cross-edges from variant dispatch nodes should
+# read ZERO (verified below). Never pushed in an intermediate state (R1).
+sup(('ImportEntriesActivity.processImporterState', 'AuthyImporter$EncryptedState.decrypt(Context,DecryptListener)'))
+gui('Dialogs.showImportersDialog@FILE', 'Dialogs.lambda$showImportersDialog$26@FILE_AUTHY', 'Tap the `Authy` row in the importer list (its help text is shown)',
+  guard='the `Authy` row is tapped (the dialog lists all importers when isDirect is false, DatabaseImporter.java:99-106; a tap sets the checked row in the single-choice list, FW-SRC AbsListView.java:1136-1150 and/or dialog_importers.xml choiceMode="singleChoice", Dialogs.java:529-531)',
+  evidence=FW_ITEM + '; SRC ui/dialogs/Dialogs.java:523-531; SRC importers/DatabaseImporter.java:99-106; FW-SRC core/java/android/widget/AbsListView.java:1136-1150')
+gui('Dialogs.lambda$showImportersDialog$26@FILE_AUTHY', 'Dialogs.lambda$showImportersDialog$27@FILE_AUTHY', 'Tap OK after the `Authy` row was tapped (gives the chosen importer to the listener)',
+  guard='the `Authy` row was tapped first: in the single-choice list a tap sets the checked row (FW-SRC AbsListView.java:1136-1150, dialog_importers.xml choiceMode="singleChoice"), so OK reads the `Authy` importer (Dialogs.java:537), not the default Aegis row',
+  evidence=FW_CLICK + '; SRC ui/dialogs/Dialogs.java:533-538; FW-SRC core/java/android/widget/AbsListView.java:1136-1150')
+e('Dialogs.lambda$showImportersDialog$27@FILE_AUTHY', 'ImportExportPreferencesFragment.lambda$onCreatePreferences$5@FILE_AUTHY', 'CALL',
+  'the OK button gives the chosen `Authy` importer to the import listener: the file picker opens',
+  guard='the dialog was opened by the Import preference (showImportersDialog with isDirect false, ImportExportPreferencesFragment.java:107) and the `Authy` row was tapped',
+  evidence='SRC ui/dialogs/Dialogs.java:536-538; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:105-112')
+e('ImportExportPreferencesFragment.lambda$onCreatePreferences$5@FILE_AUTHY', 'VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_AUTHY', 'CALL',
+  'the file picker opens (ACTION_GET_CONTENT) through the import launcher, after the `Authy` importer is chosen',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:105-112')
+e('VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_AUTHY', 'ImportExportPreferencesFragment.lambda$new$0@FILE_AUTHY', 'RESULT',
+  'the file picker returns a file: the import launcher runs onImportSelectResult',
+  guard='the picker returned RESULT_OK with a URI (ImportExportPreferencesFragment.java:146-148) and the launcher callback data is not null (ImportExportPreferencesFragment.java:73-79)',
+  evidence=FW_LAUNCHER + '; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:146-148; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:73-79')
+e('ImportExportPreferencesFragment.lambda$new$0@FILE_AUTHY', 'ImportExportPreferencesFragment.onImportSelectResult@FILE_AUTHY', 'CALL',
+  'the picker result carries data: onImportSelectResult runs',
+  guard='activityResult.getData() is not null (ImportExportPreferencesFragment.java:76)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:73-79')
+e('ImportExportPreferencesFragment.onImportSelectResult@FILE_AUTHY', 'ImportFileTask.doInBackground@FILE_AUTHY', 'ASYNC',
+  'AsyncTask runs doInBackground on the worker thread (read the picked file)',
+  evidence=FW_ASYNC + '; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:146,151-158; SRC ui/tasks/ImportFileTask.java:18')
+e('ImportFileTask.doInBackground@FILE_AUTHY', 'ImportFileTask.onPostExecute@FILE_AUTHY', 'ASYNC',
+  'the result is posted to the main thread (the `Authy` file-import task)',
+  evidence=FW_ASYNC + '; SRC ui/tasks/ImportFileTask.java:53-56')
+e('ImportFileTask.onPostExecute@FILE_AUTHY', 'ImportExportPreferencesFragment.lambda$onImportSelectResult$11@FILE_AUTHY', 'CALL',
+  'the file is read: the callback opens the import page, or shows the read error',
+  guard='result.getError() is null (ImportExportPreferencesFragment.java:152-155)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:152-155')
+e('ImportExportPreferencesFragment.lambda$onImportSelectResult$11@FILE_AUTHY', 'ImportExportPreferencesFragment.startImportEntriesActivity@FILE_AUTHY', 'CALL',
+  'Direct call',
+  guard='`_importerDef` is the `Authy` definition and the task result file (ImportExportPreferencesFragment.java:152-153) is passed to the import page',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:152-153; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:161-165')
+e('ImportExportPreferencesFragment.startImportEntriesActivity@FILE_AUTHY', 'ImportEntriesActivity.<init>@FILE_AUTHY', 'INTENT',
+  'the import page opens with the chosen `Authy` importer and the file (file import)',
+  guard='the file argument is non-null (ImportExportPreferencesFragment.java:161-165)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:161-165')
+e('ImportEntriesActivity.<init>@FILE_AUTHY', 'ImportEntriesActivity.onCreate@FILE_AUTHY', 'LIFECYCLE',
+  'Activity.onCreate of the import page',
+  evidence=FW_CREATE + '; SRC ui/ImportEntriesActivity.java:62')
+e('ImportEntriesActivity.onCreate@FILE_AUTHY', 'ImportEntriesActivity.startImport@FILE_AUTHY', 'CALL',
+  'the import page starts the import from its intent extras',
+  guard='abortIfOrphan is false (ImportEntriesActivity.java:64-66) and the file extra is non-null (ImportEntriesActivity.java:104,109)',
+  evidence='SRC ui/ImportEntriesActivity.java:62-66,103-104')
+e('ImportEntriesActivity.startImport@FILE_AUTHY', 'ImportEntriesActivity.startImportFile@FILE_AUTHY', 'CALL',
+  'Direct call',
+  guard='a file was passed (ImportEntriesActivity.java:109,127)',
+  evidence='SRC ImportEntriesActivity.java:127 (bytecode); SRC ui/ImportEntriesActivity.java:109,127')
+e('ImportEntriesActivity.startImportFile@FILE_AUTHY', 'ImportEntriesActivity.processImporterState@FILE_AUTHY', 'CALL',
+  'the file just read is processed on the `Authy` file-import path',
+  guard='the import page was opened with a file for the `Authy` importer',
+  evidence='SRC ImportEntriesActivity.java:134 (bytecode); SRC ui/ImportEntriesActivity.java:131-134; SRC importers/DatabaseImporter.java:75-76')
+e('ImportEntriesActivity.processImporterState@FILE_AUTHY', 'AuthyImporter$EncryptedState.decrypt(Context,DecryptListener)', 'CALL',
+  'the picked file import is an encrypted Authy backup: the importer asks for the password and decrypts it',
+  guard='the file import picked Authy, a `.key` entry is found in the preferences XML, and some entry in the file lacks both `decryptedSecret` and `secretSeed`, so read returns EncryptedState (AuthyImporter.java:101-135)',
+  evidence='SRC ui/ImportEntriesActivity.java:176-182; SRC importers/AuthyImporter.java:101-135')
 # CORRECTION 2026-11-01 (Stratum-correction step; refutes fix-4 edge, kept out of
 # the judged table): the processImporterState@STRATUM -> Stratum decrypt edge is
 # REMOVED. DatabaseImporter.readFromApp passes isInternal=true
@@ -1403,7 +1800,67 @@ e('RootShellTask.onPostExecute@STRATUM', 'ImportEntriesActivity.lambda$startImpo
   evidence='SRC ui/tasks/RootShellTask.java:25,28-30; SRC ui/ImportEntriesActivity.java:143-174')
 e('ImportEntriesActivity.lambda$startImportApp$5@STRATUM', 'ImportEntriesActivity.processImporterState@STRATUM', 'CALL',
   'Direct call', evidence='SRC ImportEntriesActivity.java:157 (bytecode)')
-e('ImportEntriesActivity.processImporterState@FILE', 'AndOtpImporter$EncryptedState.decrypt(Context,DecryptListener)', 'CALL',
+# --- file-pick v2 V1 (PRIVATE BUILD, not pushed): andOTP @FILE_ANDOTP variant chain (E1, E3-E16, E19).
+# Template DESIGN.md 4.2/4.4 (audit PASS); E2/E17/E18 deleted by audit D1/D2 (auto expansion).
+# V1 combined private state: the old @FILE hand edge (Efee7d0a4) is DELETED and replaced by the
+# variant E19 below, in the same private sequence (D3: chain and hand-move never separate).
+# AndOtp decrypt incoming is 1 (variant E19 only). Never pushed in an intermediate state
+# (R1: single final commit when full section 9 passes).
+gui('Dialogs.showImportersDialog@FILE', 'Dialogs.lambda$showImportersDialog$26@FILE_ANDOTP', 'Tap the `andOTP` row in the importer list (its help text is shown)',
+  guard='the `andOTP` row is tapped (the dialog lists all importers when isDirect is false, DatabaseImporter.java:99-106; a tap sets the checked row in the single-choice list, FW-SRC AbsListView.java:1136-1150 and/or dialog_importers.xml choiceMode="singleChoice", Dialogs.java:529-531)',
+  evidence=FW_ITEM + '; SRC ui/dialogs/Dialogs.java:523-531; SRC importers/DatabaseImporter.java:99-106; FW-SRC core/java/android/widget/AbsListView.java:1136-1150')
+gui('Dialogs.lambda$showImportersDialog$26@FILE_ANDOTP', 'Dialogs.lambda$showImportersDialog$27@FILE_ANDOTP', 'Tap OK after the `andOTP` row was tapped (gives the chosen importer to the listener)',
+  guard='the `andOTP` row was tapped first: in the single-choice list a tap sets the checked row (FW-SRC AbsListView.java:1136-1150, dialog_importers.xml choiceMode="singleChoice"), so OK reads the `andOTP` importer (Dialogs.java:537), not the default Aegis row',
+  evidence=FW_CLICK + '; SRC ui/dialogs/Dialogs.java:533-538; FW-SRC core/java/android/widget/AbsListView.java:1136-1150')
+e('Dialogs.lambda$showImportersDialog$27@FILE_ANDOTP', 'ImportExportPreferencesFragment.lambda$onCreatePreferences$5@FILE_ANDOTP', 'CALL',
+  'the OK button gives the chosen `andOTP` importer to the import listener: the file picker opens',
+  guard='the dialog was opened by the Import preference (showImportersDialog with isDirect false, ImportExportPreferencesFragment.java:107) and the `andOTP` row was tapped',
+  evidence='SRC ui/dialogs/Dialogs.java:536-538; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:105-112')
+e('ImportExportPreferencesFragment.lambda$onCreatePreferences$5@FILE_ANDOTP', 'VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_ANDOTP', 'CALL',
+  'the file picker opens (ACTION_GET_CONTENT) through the import launcher, after the `andOTP` importer is chosen',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:105-112')
+e('VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_ANDOTP', 'ImportExportPreferencesFragment.lambda$new$0@FILE_ANDOTP', 'RESULT',
+  'the file picker returns a file: the import launcher runs onImportSelectResult',
+  guard='the picker returned RESULT_OK with a URI (ImportExportPreferencesFragment.java:146-148) and the launcher callback data is not null (ImportExportPreferencesFragment.java:73-79)',
+  evidence=FW_LAUNCHER + '; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:146-148; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:73-79')
+e('ImportExportPreferencesFragment.lambda$new$0@FILE_ANDOTP', 'ImportExportPreferencesFragment.onImportSelectResult@FILE_ANDOTP', 'CALL',
+  'the picker result carries data: onImportSelectResult runs',
+  guard='activityResult.getData() is not null (ImportExportPreferencesFragment.java:76)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:73-79')
+e('ImportExportPreferencesFragment.onImportSelectResult@FILE_ANDOTP', 'ImportFileTask.doInBackground@FILE_ANDOTP', 'ASYNC',
+  'AsyncTask runs doInBackground on the worker thread (read the picked file)',
+  evidence=FW_ASYNC + '; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:146,151-158; SRC ui/tasks/ImportFileTask.java:18')
+e('ImportFileTask.doInBackground@FILE_ANDOTP', 'ImportFileTask.onPostExecute@FILE_ANDOTP', 'ASYNC',
+  'the result is posted to the main thread (the `andOTP` file-import task)',
+  evidence=FW_ASYNC + '; SRC ui/tasks/ImportFileTask.java:53-56')
+e('ImportFileTask.onPostExecute@FILE_ANDOTP', 'ImportExportPreferencesFragment.lambda$onImportSelectResult$11@FILE_ANDOTP', 'CALL',
+  'the file is read: the callback opens the import page, or shows the read error',
+  guard='result.getError() is null (ImportExportPreferencesFragment.java:152-155)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:152-155')
+e('ImportExportPreferencesFragment.lambda$onImportSelectResult$11@FILE_ANDOTP', 'ImportExportPreferencesFragment.startImportEntriesActivity@FILE_ANDOTP', 'CALL',
+  'Direct call',
+  guard='`_importerDef` is the `andOTP` definition and the task result file (ImportExportPreferencesFragment.java:152-153) is passed to the import page',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:152-153; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:161-165')
+e('ImportExportPreferencesFragment.startImportEntriesActivity@FILE_ANDOTP', 'ImportEntriesActivity.<init>@FILE_ANDOTP', 'INTENT',
+  'the import page opens with the chosen `andOTP` importer and the file (file import)',
+  guard='the file argument is non-null (ImportExportPreferencesFragment.java:161-165)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:161-165')
+e('ImportEntriesActivity.<init>@FILE_ANDOTP', 'ImportEntriesActivity.onCreate@FILE_ANDOTP', 'LIFECYCLE',
+  'Activity.onCreate of the import page',
+  evidence=FW_CREATE + '; SRC ui/ImportEntriesActivity.java:62')
+e('ImportEntriesActivity.onCreate@FILE_ANDOTP', 'ImportEntriesActivity.startImport@FILE_ANDOTP', 'CALL',
+  'the import page starts the import from its intent extras',
+  guard='abortIfOrphan is false (ImportEntriesActivity.java:64-66) and the file extra is non-null (ImportEntriesActivity.java:104,109)',
+  evidence='SRC ui/ImportEntriesActivity.java:62-66,103-104')
+e('ImportEntriesActivity.startImport@FILE_ANDOTP', 'ImportEntriesActivity.startImportFile@FILE_ANDOTP', 'CALL',
+  'Direct call',
+  guard='a file was passed (ImportEntriesActivity.java:109,127)',
+  evidence='SRC ImportEntriesActivity.java:127 (bytecode); SRC ui/ImportEntriesActivity.java:109,127')
+e('ImportEntriesActivity.startImportFile@FILE_ANDOTP', 'ImportEntriesActivity.processImporterState@FILE_ANDOTP', 'CALL',
+  'the file just read is processed on the `andOTP` file-import path',
+  guard='the import page was opened with a file for the `andOTP` importer',
+  evidence='SRC ImportEntriesActivity.java:134 (bytecode); SRC ui/ImportEntriesActivity.java:131-134; SRC importers/DatabaseImporter.java:75-76')
+e('ImportEntriesActivity.processImporterState@FILE_ANDOTP', 'AndOtpImporter$EncryptedState.decrypt(Context,DecryptListener)', 'CALL',
   'the picked file import is an encrypted andOTP backup: the importer asks for the format and password and decrypts it',
   guard='the file import picked andOTP (supportsDirect false, DatabaseImporter.java:35; getAppPath throws, AndOtpImporter.java:59-62) and the file is not JSON, so read returns EncryptedState (AndOtpImporter.java:76-80)',
   evidence='SRC ui/ImportEntriesActivity.java:176-182; SRC importers/AndOtpImporter.java:66-80')
