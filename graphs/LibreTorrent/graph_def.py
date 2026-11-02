@@ -1167,8 +1167,6 @@ e('TorrentSessionImpl.addTorrent', 'TorrentSessionImpl.download(String,AddTorren
   guard='!operationNotAllowed() && torrent is not already present', cls='explicit', evidence='SRC core/model/session/TorrentSessionImpl.java:251-310')
 e('TorrentSessionImpl.download(String,AddTorrentParams,byte[])', 'TorrentSessionImpl.download(TorrentInfo,File,Priority[],boolean,boolean,List)', 'CALL', 'Build libtorrent parameters from a local torrent file and its selected priorities',
   guard='!params.fromMagnet && !torrent.isDownloadingMetadata() && torrent file descriptor opens', cls='explicit', evidence='SRC core/model/session/TorrentSessionImpl.java:328-371')
-e('TorrentSessionImpl.download(TorrentInfo,File,Priority[],boolean,boolean,List)', 'PriorityConverter.convert(Priority)#2', 'CALL', 'Convert each non-null selected file priority to the libtorrent priority enum',
-  guard='priorities != null && ti.files().numFiles() == priorities.length && priority != null', cls='explicit', evidence='SRC core/model/session/TorrentSessionImpl.java:1541-1575; core/model/session/PriorityConverter.java:94-101; dst qualified to the :94 app->lib overload (build name #2) at b003 merge: the :1574 call passes app Priority and .swig()s a lib Priority; the bare form resolves to the :103 lib->app overload, which has zero callers')
 e('AddTorrentViewModel.finish', 'AddTorrentViewModel.cancelFetchMagnet', 'CALL', 'Cancel an active magnet fetch when leaving the screen',
   guard='decodeState != null && decodeState.status == FETCHING_MAGNET', cls='explicit', evidence='SRC ui/addtorrent/AddTorrentViewModel.java:557-570')
 e('AddTorrentActivity.initLayout', 'AddTorrentPagerAdapter.createFragment', 'FRAMEWORK', 'Create the selected add-torrent page on demand',
@@ -3929,7 +3927,7 @@ SUPPRESS.update({
 # Each merged batch part is its own file, parts/b<NNN>.py, run here in this namespace in the order of MERGED_PARTS.
 # Batches 13 and 14 are already pasted inline above; never list them here. Append one name at a time, in plan order,
 # and build after each append (C1). Keeping the parts in their own files keeps every file below the connector's 1 MB limit.
-MERGED_PARTS = ['b000_trunks.py', 'b001.py', 'b002.py', 'b003.py', 'b004.py', 'b005.py', 'b006.py', 'b007.py', 'b008.py', 'b009.py', 'b010.py', 'b011.py', 'b012.py', 'b015.py', 'b016.py', 'b017.py', 'b018.py', 'b019.py', 'b020.py', 'b021.py', 'b022.py', 'b023.py', 'b024.py', 'b025.py', 'b026.py', 'b027.py', 'b028.py', 'b029.py', 'b030.py', 'b031.py', 'b032.py', 'b033.py']
+MERGED_PARTS = ['b000_trunks.py', 'b001.py', 'b002.py', 'b003.py', 'b004.py', 'b005.py', 'b006.py', 'b007.py', 'b008.py', 'b009.py', 'b010.py', 'b011.py', 'b012.py', 'b015.py', 'b016.py', 'b017.py', 'b018.py', 'b019.py', 'b020.py', 'b021.py', 'b022.py', 'b023.py', 'b024.py', 'b025.py', 'b026.py', 'b027.py', 'b028.py', 'b029.py', 'b030.py', 'b031.py', 'b032.py', 'b033.py', 'b034.py']
 import os as _mp_os
 for _mp_name in MERGED_PARTS:
     _mp_path = _mp_os.path.join(GDIR, 'parts', _mp_name)

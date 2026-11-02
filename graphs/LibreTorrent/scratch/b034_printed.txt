@@ -1,0 +1,634 @@
+===== core/model/data/PeerInfo.java (248 lines total) =====
+--- core/model/data/PeerInfo.java:66 ---
+66:         port = peer.port();
+--- core/model/data/PeerInfo.java:110 ---
+110:         if (peer.isUtp())
+
+===== core/model/filetree/BencodeFileTree.java (132 lines total) =====
+--- core/model/filetree/BencodeFileTree.java:117 ---
+117:             size = this.size();
+
+===== core/model/filetree/FileTree.java (222 lines total) =====
+--- core/model/filetree/FileTree.java:159-162 ---
+159:     public void setType(int type)
+160:     {
+161:         isLeaf = (type == FileNode.Type.FILE);
+162:     }
+--- core/model/filetree/FileTree.java:164-171 ---
+164:     public long size()
+165:     {
+166:         if (size == 0 && children.size() != 0)
+167:             for (F child : children.values())
+168:                 size += child.size();
+169: 
+170:         return size;
+171:     }
+--- core/model/filetree/FileTree.java:211-221 ---
+211:     public String toString()
+212:     {
+213:         return "FileTree{" +
+214:                 "index=" + index +
+215:                 ", name='" + name + '\'' +
+216:                 ", size=" + size +
+217:                 ", isLeaf=" + isLeaf +
+218:                 ", parent=" + parent +
+219:                 ", children=" + children.size() +
+220:                 '}';
+221:     }
+
+===== core/model/filetree/TorrentContentFileTree.java (184 lines total) =====
+--- core/model/filetree/TorrentContentFileTree.java:33-36 ---
+33:     public TorrentContentFileTree(String name, long size, int type)
+34:     {
+35:         super(name, size, type);
+36:     }
+--- core/model/filetree/TorrentContentFileTree.java:38-43 ---
+38:     public TorrentContentFileTree(int index, String name,
+39:                                   long size, int type,
+40:                                   TorrentContentFileTree parent)
+41:     {
+42:         super(index, name, size, type, parent);
+43:     }
+--- core/model/filetree/TorrentContentFileTree.java:45-49 ---
+45:     public TorrentContentFileTree(String name, long size,
+46:                                   int type, TorrentContentFileTree parent)
+47:     {
+48:         super(name, size, type, parent);
+49:     }
+--- core/model/filetree/TorrentContentFileTree.java:51-54 ---
+51:     public FilePriority getFilePriority()
+52:     {
+53:         return priority;
+54:     }
+--- core/model/filetree/TorrentContentFileTree.java:56-65 ---
+56:     public long getReceivedBytes()
+57:     {
+58:         if (children.size() != 0) {
+59:             receivedBytes = 0;
+60:             for (TorrentContentFileTree node : children.values())
+61:                 receivedBytes += node.getReceivedBytes();
+62:         }
+63: 
+64:         return receivedBytes;
+65:     }
+--- core/model/filetree/TorrentContentFileTree.java:67-70 ---
+67:     public synchronized void setReceivedBytes(long bytes)
+68:     {
+69:         receivedBytes = bytes;
+70:     }
+--- core/model/filetree/TorrentContentFileTree.java:78-81 ---
+78:     public void setPriority(@NonNull FilePriority priority, boolean forceUpdateParent)
+79:     {
+80:         changePriority(priority, true, forceUpdateParent);
+81:     }
+--- core/model/filetree/TorrentContentFileTree.java:83-98 ---
+83:     private void changePriority(FilePriority p,
+84:                                 boolean updateParent,
+85:                                 boolean forceUpdateParent)
+86:     {
+87:         priority = p;
+88: 
+89:         /* Sending change event up the tree */
+90:         if (updateParent && parent != null)
+91:             parent.onChangePriority(p, forceUpdateParent);
+92: 
+93:         /* Sending change event down the tree */
+94:         if (children.size() != 0)
+95:             for (TorrentContentFileTree node : children.values())
+96:                 if (node.priority.getType() != p.getType())
+97:                     node.changePriority(p, false, forceUpdateParent);
+98:     }
+--- core/model/filetree/TorrentContentFileTree.java:100-128 ---
+100:     private synchronized void onChangePriority(FilePriority p, boolean forceUpdateParent)
+101:     {
+102:         ++numChangedChildren;
+103: 
+104:         boolean allChildrenChanged = numChangedChildren == children.size();
+105:         if (allChildrenChanged)
+106:             numChangedChildren = 0;
+107: 
+108:         if (children.size() != 0 && (forceUpdateParent || allChildrenChanged)) {
+109:             boolean isMixedPriority = false;
+110: 
+111:             for (TorrentContentFileTree child : children.values()) {
+112:                 if (p == null)
+113:                     p = child.getFilePriority();
+114: 
+115:                 if (child.priority.getType() != p.getType()) {
+116:                     isMixedPriority = true;
+117:                     break;
+118:                 }
+119:             }
+120: 
+121:             if (p != null)
+122:                 priority = (isMixedPriority ? new FilePriority(FilePriority.Type.MIXED) : p);
+123: 
+124:             /* Sending change event up the tree */
+125:             if (parent != null)
+126:                 parent.onChangePriority(priority, forceUpdateParent);
+127:         }
+128:     }
+--- core/model/filetree/TorrentContentFileTree.java:130-143 ---
+130:     public long nonIgnoreFileSize()
+131:     {
+132:         long size = 0;
+133: 
+134:         if (children.size() != 0) {
+135:             for (TorrentContentFileTree child : children.values())
+136:                 if (child.priority.getType() != FilePriority.Type.IGNORE)
+137:                     size += child.nonIgnoreFileSize();
+138:         } else if (priority.getType() != FilePriority.Type.IGNORE) {
+139:             size = this.size();
+140:         }
+141: 
+142:         return size;
+143:     }
+--- core/model/filetree/TorrentContentFileTree.java:145-148 ---
+145:     public synchronized void setAvailability(double availability)
+146:     {
+147:         this.availability = availability;
+148:     }
+--- core/model/filetree/TorrentContentFileTree.java:150-171 ---
+150:     public double getAvailability()
+151:     {
+152:         if (children.size() != 0) {
+153:             double avail = 0;
+154:             long size = 0;
+155:             for (TorrentContentFileTree node : children.values()) {
+156:                 if (node.getFilePriority().getType() == FilePriority.Type.IGNORE)
+157:                     continue;
+158:                 double childAvail = node.getAvailability();
+159:                 long childSize = node.size();
+160:                 if (childAvail >= 0)
+161:                     avail += childAvail * childSize;
+162:                 size += childSize;
+163:             }
+164:             if (size > 0)
+165:                 availability = avail / size;
+166:             else
+167:                 availability = -1;
+168:         }
+169: 
+170:         return availability;
+171:     }
+--- core/model/filetree/TorrentContentFileTree.java:175-183 ---
+175:     public String toString()
+176:     {
+177:         return "TorrentContentFileTree{" +
+178:                 super.toString() +
+179:                 ", priority=" + priority +
+180:                 ", receivedBytes=" + receivedBytes +
+181:                 ", availability=" + availability +
+182:                 '}';
+183:     }
+
+===== core/model/session/AdvancedPeerInfo.java (65 lines total) =====
+--- core/model/session/AdvancedPeerInfo.java:36-43 ---
+36:     public AdvancedPeerInfo(peer_info p)
+37:     {
+38:         super(p);
+39: 
+40:         port = p.getIp().port();
+41:         pieces = new PieceIndexBitfield(p.get_pieces());
+42:         isUtp = p.getFlags().and_(peer_info.utp_socket).non_zero();
+43:     }
+--- core/model/session/AdvancedPeerInfo.java:45-48 ---
+45:     public int port()
+46:     {
+47:         return port;
+48:     }
+--- core/model/session/AdvancedPeerInfo.java:56-59 ---
+56:     public PieceIndexBitfield pieces()
+57:     {
+58:         return pieces;
+59:     }
+--- core/model/session/AdvancedPeerInfo.java:61-64 ---
+61:     public boolean isUtp()
+62:     {
+63:         return isUtp;
+64:     }
+
+===== core/model/session/IPFilterImpl.java (68 lines total) =====
+--- core/model/session/IPFilterImpl.java:33-36 ---
+33:     public IPFilterImpl()
+34:     {
+35:         filter = new ip_filter();
+36:     }
+--- core/model/session/IPFilterImpl.java:39-62 ---
+39:     public void addRange(@NonNull String first, @NonNull String last) throws IPFilterException
+40:     {
+41:         error_code ec = new error_code();
+42:         address firstAddr = address.from_string(first, ec);
+43:         if (ec.value() > 0)
+44:             throw new IPFilterException("Invalid first IP in range: " + first);
+45:         ec.clear();
+46: 
+47:         address lastAddr;
+48:         if (first.equals(last)) {
+49:             lastAddr = firstAddr;
+50: 
+51:         } else {
+52:             lastAddr = address.from_string(last, ec);
+53:             if (ec.value() > 0)
+54:                 throw new IPFilterException("Invalid last IP in range: " + last);
+55: 
+56:             if (firstAddr.is_v4() != lastAddr.is_v4() ||
+57:                 firstAddr.is_v6() != lastAddr.is_v6())
+58:                 throw new IPFilterException("IP range is malformed. One IP is IPv6 and the other is IPv4!");
+59:         }
+60: 
+61:         filter.add_rule(firstAddr, lastAddr, ip_filter.access_flags.blocked.swigValue());
+62:     }
+--- core/model/session/IPFilterImpl.java:64-67 ---
+64:     public ip_filter getFilter()
+65:     {
+66:         return filter;
+67:     }
+
+===== core/model/session/IPFilterParser.java (270 lines total) =====
+--- core/model/session/IPFilterParser.java:43 ---
+43:     private static final String TAG = IPFilterParser.class.getSimpleName();
+--- core/model/session/IPFilterParser.java:49-52 ---
+49:     public IPFilterParser()
+50:     {
+51:        logEnabled = true;
+52:     }
+--- core/model/session/IPFilterParser.java:59-94 ---
+59:     public int parseFile(@NonNull Uri path, @NonNull FileSystemFacade fs, @NonNull IPFilter filter)
+60:     {
+61:         int ruleCount = 0;
+62:         try {
+63:             if (!fs.fileExists(path))
+64:                 return ruleCount;
+65:         } catch (UnknownUriException e) {
+66:             Log.e(TAG, Log.getStackTraceString(e));
+67:             return ruleCount;
+68:         }
+69: 
+70:         Log.d(TAG, "Start parsing IP filter file");
+71: 
+72:         try (FileDescriptorWrapper w = fs.getFD(path);
+73:              FileInputStream is = new FileInputStream(w.open("r"))) {
+74: 
+75:             String pathStr = path.toString().toLowerCase();
+76:             if (pathStr.endsWith(".dat"))
+77:                 ruleCount = parseDAT(is, filter);
+78:             else if (pathStr.endsWith(".p2p"))
+79:                 ruleCount = parseP2P(is, filter);
+80: 
+81:         } catch (IOException | UnknownUriException e) {
+82:             Log.e(TAG, Log.getStackTraceString(e));
+83:             return ruleCount;
+84: 
+85:         } finally {
+86:             Log.d(TAG, "Completed parsing IP filter file, is success = " + ruleCount);
+87:         }
+88: 
+89:         return ruleCount;
+90:     }
+91: 
+92:     /*
+93:      * Parser for eMule ip filter in DAT format
+94:      */
+--- core/model/session/IPFilterParser.java:96-268 ---
+96:     public int parseDAT(@NonNull InputStream is, @NonNull IPFilter filter)
+97:     {
+98:         int ruleCount = 0;
+99:         long lineNum = 0;
+100:         int parseErrorCount = 0;
+101:         LineIterator it;
+102: 
+103:         try {
+104:             it = IOUtils.lineIterator(is, "UTF-8");
+105: 
+106:         } catch (IOException e) {
+107:             Log.e(TAG, Log.getStackTraceString(e));
+108: 
+109:             return ruleCount;
+110:         }
+111: 
+112:         while (it.hasNext()) {
+113:             lineNum++;
+114: 
+115:             String line = it.nextLine();
+116:             line = (line == null ? null : line.trim());
+117:             if (line == null || line.isEmpty())
+118:                 continue;
+119: 
+120:             /* Ignoring commented lines */
+121:             if (line.startsWith("#") || line.startsWith("//"))
+122:                 continue;
+123: 
+124:             /* Line should be split by commas */
+125:             String[] parts = line.split(",");
+126:             /* Check if there is at least one item (ip range) */
+127:             if (parts.length == 0)
+128:                 continue;
+129: 
+130:             /* Check if there is an access value (apparently not mandatory) */
+131:             if (parts.length > 1) {
+132:                 int accessNum = Integer.parseInt(parts[1].trim());
+133:                 /* Ignoring this rule because access value is too high */
+134:                 if (accessNum > 127)
+135:                     continue;
+136:             }
+137: 
+138:             /* IP Range should be split by a dash */
+139:             String[] ips = parts[0].split("-");
+140:             if (ips.length != 2) {
+141:                 parseErrorCount++;
+142:                 errLog(parseErrorCount, "DAT", "line " + lineNum + " is malformed. Line was " + line);
+143:                 continue;
+144:             }
+145: 
+146:             String startAddr = parseIpAddress(ips[0]);
+147:             if (startAddr == null) {
+148:                 parseErrorCount++;
+149:                 errLog(parseErrorCount, "DAT", "line " + lineNum +
+150:                         " is malformed. Start IP of the range is invalid: " + ips[0]);
+151:                 continue;
+152:             }
+153: 
+154:             String endAddr = parseIpAddress(ips[1]);
+155:             if (endAddr == null) {
+156:                 parseErrorCount++;
+157:                 errLog(parseErrorCount, "DAT", "line " + lineNum +
+158:                         " is malformed. End IP of the range is invalid: " + ips[1]);
+159:                 continue;
+160:             }
+161: 
+162:             try {
+163:                 filter.addRange(startAddr, endAddr);
+164:                 ruleCount++;
+165: 
+166:             } catch (Exception e) {
+167:                 parseErrorCount++;
+168:                 errLog(parseErrorCount, "DAT", "line " + lineNum +
+169:                         " is malformed. Line was " + line + ": " + e.getMessage());
+170:             }
+171:         }
+172: 
+173:         return ruleCount;
+174:     }
+175: 
+176:     /*
+177:      * Parser for PeerGuardian ip filter in p2p format
+178:      */
+179: 
+180:     public int parseP2P(@NonNull InputStream is, @NonNull IPFilter filter)
+181:     {
+182:         int ruleCount = 0;
+183:         long lineNum = 0;
+184:         int parseErrorCount = 0;
+185:         LineIterator it;
+186: 
+187:         try {
+188:             it = IOUtils.lineIterator(is, "UTF-8");
+189: 
+190:         } catch (IOException e) {
+191:             Log.e(TAG, Log.getStackTraceString(e));
+192: 
+193:             return ruleCount;
+194:         }
+195: 
+196:         while (it.hasNext()) {
+197:             lineNum++;
+198: 
+199:             String line = it.nextLine();
+200:             line = (line == null ? null : line.trim());
+201:             if (line == null || line.isEmpty())
+202:                 continue;
+203: 
+204:             /* Ignoring commented lines */
+205:             if (line.startsWith("#") || line.startsWith("//"))
+206:                 continue;
+207: 
+208:             /* Line should be split by ':' */
+209:             String[] parts = line.split(":");
+210:             if (parts.length < 2) {
+211:                 parseErrorCount++;
+212:                 errLog(parseErrorCount, "P2P", "line " + lineNum + " is malformed");
+213:                 continue;
+214:             }
+215: 
+216:             /* IP Range should be split by a dash */
+217:             String[] ips = parts[1].split("-");
+218:             if (ips.length != 2) {
+219:                 parseErrorCount++;
+220:                 errLog(parseErrorCount, "P2P", "line " + lineNum + " is malformed. Line was" + line);
+221:                 continue;
+222:             }
+223: 
+224:             String startAddr = parseIpAddress(ips[0]);
+225:             if (startAddr == null) {
+226:                 parseErrorCount++;
+227:                 errLog(parseErrorCount, "P2P", "line " + lineNum +
+228:                         " is malformed. Start IP of the range is invalid: " + ips[0]);
+229:                 continue;
+230:             }
+231: 
+232:             String endAddr = parseIpAddress(ips[1]);
+233:             if (endAddr == null) {
+234:                 parseErrorCount++;
+235:                 errLog(parseErrorCount, "P2P", "line " + lineNum +
+236:                         " is malformed. End IP of the range is invalid: " + ips[1]);
+237:                 continue;
+238:             }
+239: 
+240:             try {
+241:                 filter.addRange(startAddr, endAddr);
+242:                 ruleCount++;
+243: 
+244:             } catch (Exception e) {
+245:                 parseErrorCount++;
+246:                 errLog(parseErrorCount, "P2P", "line " + lineNum +
+247:                         " is malformed. Line was " + line + ": " + e.getMessage());
+248:             }
+249:         }
+250: 
+251:         return ruleCount;
+252:     }
+253: 
+254:     private String parseIpAddress(String ip)
+255:     {
+256:         if (ip == null || ip.isEmpty()) {
+257:             return null;
+258:         } else {
+259:             return ip.trim();
+260:         }
+261:     }
+262: 
+263:     private void errLog(int parseErrorCount, String prefix, String msg)
+264:     {
+265:         if (!logEnabled || parseErrorCount > MAX_LOGGED_ERRORS)
+266:             return;
+267: 
+268:         Log.e(TAG, prefix + ": " + msg);
+
+===== core/model/session/PriorityConverter.java (111 lines total) =====
+--- core/model/session/PriorityConverter.java:30-52 ---
+30:     private static final SparseArray<org.libtorrent4j.Priority> PRIOR_TO_LIB_PRIOR = new SparseArray<>();
+31:     static {
+32:         PRIOR_TO_LIB_PRIOR.put(Priority.IGNORE.value(), org.libtorrent4j.Priority.IGNORE);
+33:         PRIOR_TO_LIB_PRIOR.put(Priority.LOW.value(), org.libtorrent4j.Priority.LOW);
+34:         PRIOR_TO_LIB_PRIOR.put(Priority.TWO.value(), org.libtorrent4j.Priority.TWO);
+35:         PRIOR_TO_LIB_PRIOR.put(Priority.THREE.value(), org.libtorrent4j.Priority.THREE);
+36:         PRIOR_TO_LIB_PRIOR.put(Priority.DEFAULT.value(), org.libtorrent4j.Priority.DEFAULT);
+37:         PRIOR_TO_LIB_PRIOR.put(Priority.FIVE.value(), org.libtorrent4j.Priority.FIVE);
+38:         PRIOR_TO_LIB_PRIOR.put(Priority.SIX.value(), org.libtorrent4j.Priority.SIX);
+39:         PRIOR_TO_LIB_PRIOR.put(Priority.TOP_PRIORITY.value(), org.libtorrent4j.Priority.TOP_PRIORITY);
+40:     }
+41: 
+42:     private static final SparseArray<Priority> LIB_PRIOR_TO_PRIOR = new SparseArray<>();
+43:     static {
+44:         LIB_PRIOR_TO_PRIOR.put(org.libtorrent4j.Priority.IGNORE.swig(), Priority.IGNORE);
+45:         LIB_PRIOR_TO_PRIOR.put(org.libtorrent4j.Priority.LOW.swig(), Priority.LOW);
+46:         LIB_PRIOR_TO_PRIOR.put(org.libtorrent4j.Priority.TWO.swig(), Priority.TWO);
+47:         LIB_PRIOR_TO_PRIOR.put(org.libtorrent4j.Priority.THREE.swig(), Priority.THREE);
+48:         LIB_PRIOR_TO_PRIOR.put(org.libtorrent4j.Priority.DEFAULT.swig(), Priority.DEFAULT);
+49:         LIB_PRIOR_TO_PRIOR.put(org.libtorrent4j.Priority.FIVE.swig(), Priority.FIVE);
+50:         LIB_PRIOR_TO_PRIOR.put(org.libtorrent4j.Priority.SIX.swig(), Priority.SIX);
+51:         LIB_PRIOR_TO_PRIOR.put(org.libtorrent4j.Priority.TOP_PRIORITY.swig(), Priority.TOP_PRIORITY);
+52:     }
+--- core/model/session/PriorityConverter.java:54-72 ---
+54:     public static org.libtorrent4j.Priority[] convert(@NonNull Priority[] priorities)
+55:     {
+56:         int n = priorities.length;
+57:         org.libtorrent4j.Priority[] p = new org.libtorrent4j.Priority[n];
+58:         for (int i = 0; i < n; i++) {
+59:             Priority priority = priorities[i];
+60:             if (priority == null) {
+61:                 p[i] = null;
+62:                 continue;
+63:             }
+64:             org.libtorrent4j.Priority converted = PRIOR_TO_LIB_PRIOR.get(priority.value());
+65:             if (converted == null)
+66:                 converted = org.libtorrent4j.Priority.DEFAULT;
+67: 
+68:             p[i] = converted;
+69:         }
+70: 
+71:         return p;
+72:     }
+--- core/model/session/PriorityConverter.java:74-92 ---
+74:     public static Priority[] convert(@NonNull org.libtorrent4j.Priority[] priorities)
+75:     {
+76:         int n = priorities.length;
+77:         Priority[] p = new Priority[n];
+78:         for (int i = 0; i < n; i++) {
+79:             org.libtorrent4j.Priority priority = priorities[i];
+80:             if (priority == null) {
+81:                 p[i] = null;
+82:                 continue;
+83:             }
+84:             Priority converted = LIB_PRIOR_TO_PRIOR.get(priority.swig());
+85:             if (converted == null)
+86:                 converted = Priority.DEFAULT;
+87: 
+88:             p[i] = converted;
+89:         }
+90: 
+91:         return p;
+92:     }
+--- core/model/session/PriorityConverter.java:94-101 ---
+94:     public static org.libtorrent4j.Priority convert(@NonNull Priority priority)
+95:     {
+96:         org.libtorrent4j.Priority converted = PRIOR_TO_LIB_PRIOR.get(priority.value());
+97:         if (converted == null)
+98:             converted = org.libtorrent4j.Priority.DEFAULT;
+99: 
+100:         return converted;
+101:     }
+
+===== core/model/session/SessionErrors.java (63 lines total) =====
+--- core/model/session/SessionErrors.java:33-38 ---
+33:         Error(int errCode, String errMsg)
+34:         {
+35:             this.errCode = errCode;
+36:             this.errMsg = errMsg;
+37:         }
+38:     }
+--- core/model/session/SessionErrors.java:40-43 ---
+40:     private static final Error[] errors = new Error[] {
+41:             new Error(11, "Try again"),
+42:             new Error(22, "Invalid argument"),
+43:     };
+--- core/model/session/SessionErrors.java:45-57 ---
+45:     static boolean isNonCritical(@NonNull ErrorCode error)
+46:     {
+47:         if (!error.isError())
+48:             return true;
+49: 
+50:         for (Error nonCriticalError : errors) {
+51:             if (error.getValue() == nonCriticalError.errCode &&
+52:                 nonCriticalError.errMsg.equalsIgnoreCase(error.getMessage()))
+53:                 return true;
+54:         }
+55: 
+56:         return false;
+57:     }
+--- core/model/session/SessionErrors.java:59-62 ---
+59:     static String getErrorMsg(ErrorCode error)
+60:     {
+61:         return (error == null ? "" : error.getMessage() + ", code " + error.getValue());
+62:     }
+
+===== core/model/session/SessionLogger.java (202 lines total) =====
+--- core/model/session/SessionLogger.java:34 ---
+34:     private static int nextLogEntryId = 0;
+--- core/model/session/SessionLogger.java:111-115 ---
+111:     SessionLogger()
+112:     {
+113:         /* Default stub */
+114:         super(1);
+115:     }
+
+===== core/model/session/TorrentDownloadImpl.java (1711 lines total) =====
+--- core/model/session/TorrentDownloadImpl.java:731 ---
+731:         org.libtorrent4j.Priority[] p = PriorityConverter.convert(priorities);
+--- core/model/session/TorrentDownloadImpl.java:944 ---
+944:             l.add(new AdvancedPeerInfo(v.get(i)));
+--- core/model/session/TorrentDownloadImpl.java:1528 ---
+1528:             PieceIndexBitfield peerPieces = peer.pieces();
+
+===== core/model/session/TorrentSessionImpl.java (1720 lines total) =====
+--- core/model/session/TorrentSessionImpl.java:170 ---
+170:         this.sessionLogger = new SessionLogger();
+--- core/model/session/TorrentSessionImpl.java:437 ---
+437:         List<Priority> priorities = Arrays.asList(PriorityConverter.convert(resParams.filePriorities()));
+--- core/model/session/TorrentSessionImpl.java:730-731 ---
+730:             IPFilterImpl filter = new IPFilterImpl();
+731:             int ruleCount = new IPFilterParser().parseFile(path, fs, filter);
+--- core/model/session/TorrentSessionImpl.java:735 ---
+735:                 swig().set_ip_filter(filter.getFilter());
+--- core/model/session/TorrentSessionImpl.java:1117-1118 ---
+1117:                     msg = SessionErrors.getErrorMsg(error);
+1118:                     if (!SessionErrors.isNonCritical(error))
+--- core/model/session/TorrentSessionImpl.java:1574 ---
+1574:                     v.add(PriorityConverter.convert(priority).swig());
+
+===== core/utils/TorrentContentFileTreeUtils.java (127 lines total) =====
+--- core/utils/TorrentContentFileTreeUtils.java:48 ---
+48:         TorrentContentFileTree root = new TorrentContentFileTree(FileTree.ROOT, 0L, FileNode.Type.DIR);
+--- core/utils/TorrentContentFileTreeUtils.java:124 ---
+124:                 new TorrentContentFileTree(index, name, size, FileNode.Type.FILE, parent) :
+
+===== ui/detailtorrent/DetailTorrentViewModel.java (610 lines total) =====
+--- ui/detailtorrent/DetailTorrentViewModel.java:237-238 ---
+237:             children.add(0, new TorrentContentFileTree(TorrentContentFileTree.PARENT_DIR, 0L,
+238:                     FileNode.Type.DIR, curDir.getParent()));
+--- ui/detailtorrent/DetailTorrentViewModel.java:299 ---
+299:                 priorities.add(file.getFilePriority());
+--- ui/detailtorrent/DetailTorrentViewModel.java:332 ---
+332:                     file.setPriority(priority, true);
+--- ui/detailtorrent/DetailTorrentViewModel.java:428 ---
+428:         return storageFreeSpace == -1 || storageFreeSpace >= fileTree.nonIgnoreFileSize();
+--- ui/detailtorrent/DetailTorrentViewModel.java:582 ---
+582:                             file.setReceivedBytes(receivedBytes[i]);
+--- ui/detailtorrent/DetailTorrentViewModel.java:589 ---
+589:                             file.setAvailability(availability[i]);
+
+===== ui/detailtorrent/pages/files/TorrentContentFileItem.java (110 lines total) =====
+--- ui/detailtorrent/pages/files/TorrentContentFileItem.java:43-44 ---
+43:         receivedBytes = tree.getReceivedBytes();
+44:         availability = tree.getAvailability();
