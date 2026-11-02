@@ -467,7 +467,6 @@ e('VaultFile$Header.toJson', 'CryptParameters.toJson', 'CALL', 'the header write
 # Slot.toJson sup (audit C1). Fix-log corrections C2-C5: the @RAW route carries STATE kinds file + data
 # (not 1); Password/Biometric CHA routes are 17 steps (not 16); CryptParameters comparison is 2-vs-2
 # kinds decided on steps 27 < 29; import-alternative lines are AegisImporter.java:66-67, decrypt at 81-85, 89-101.
-e('AuthActivity.finish', 'AegisActivity.saveAndBackupVault@RAW', 'CALL', 'the unlock repaired the password slot, so the vault is saved and backed up at once: the repaired-slot save after unlock', guard='the unlock repaired the password slot (PasswordSlotDecryptTask.Result.isSlotRepaired, AuthActivity.java:300-301,355; the repair branch is PasswordSlotDecryptTask.java:66-79) and the live credentials are the file header slots (AuthActivity.java:296,131), so the save is encrypted', evidence='SRC ui/AuthActivity.java:301 (bytecode)')
 e('AegisActivity.saveAndBackupVault@RAW', 'VaultManager.saveAndBackup@RAW', 'CALL', 'the repaired-slot save after unlock backs the vault up', guard='called from the unlock repaired-slot save (AuthActivity.java:301)', evidence='SRC ui/AegisActivity.java:141 (bytecode)')
 e('VaultManager.saveAndBackup@RAW', 'VaultManager.save@RAW', 'CALL', 'the repaired-slot save after unlock saves the vault', guard='called from the unlock repaired-slot save (AuthActivity.java:301)', evidence='SRC vault/VaultManager.java:140 (bytecode)')
 e('VaultManager.save@RAW', 'VaultRepository.save@RAW', 'CALL', 'the repaired-slot save after unlock saves the repository', guard='called from the unlock repaired-slot save (AuthActivity.java:301)', evidence='SRC vault/VaultManager.java:136 (bytecode)')
@@ -6319,3 +6318,48 @@ for _d, _srcs in _B42_CALLERS.items():
     _k, _r, _ref, _st = UNREACHABLE[_d]
     _plural = len(_srcs) > 1
     UNREACHABLE[_d] = (_k, _r + ' Bytecode caller%s %s %s UNREACHABLE too (each has its own reason), so %s not drawn.' % ('s' if _plural else '', ', '.join(sorted(_srcs)), 'are' if _plural else 'is', 'these calls are' if _plural else 'this call is'), _ref, _st)
+
+# --- DESIGN_V2 section 1.2: @IMP chain (append-last, binding) + L3 feeder.
+# The @RAW tail itself is unchanged: 9 edges total from saveAndBackupVault@RAW
+# to RawSlot.getType, including Ea9adb818 as the SlotList-to-Slot dispatch edge.
+# I2 cites IntroActivity.java:57-62 for the imported skip branch (audit note 2).
+# No password-prefixed chain, node, or edge anywhere in this block. No bytecode token on
+# any new hand edge. Deletion of the line-470 feeder edge (above) + feeder L3 are one atomic change.
+e('IntroActivity.onBeforeSlideChanged@IMPORTED', 'IntroBaseActivity.skipToSlide@IMP', 'CALL', 'the Welcome slide imported a vault: the picker and setup are skipped',
+  guard='the Welcome slide imported a vault (IntroActivity.java:57-62)', needs_state=ST_IMPORTED,
+  evidence='SRC ui/IntroActivity.java:57-62')
+e('IntroBaseActivity.skipToSlide@IMP', 'S_INTRO_DONE@IMP', 'ENTERS', 'the Done slide is shown after the skip',
+  guard='the skip is the imported-vault skip (IntroActivity.java:57-62)',
+  evidence='SRC ui/intro/IntroBaseActivity.java:104; SRC ui/IntroActivity.java:57-62')
+gui('S_INTRO_DONE@IMP', 'IntroActivity.onDonePressed@IMP', 'Tap Next on the Done slide',
+    evidence=FW_CLICK + '; SRC ui/intro/IntroBaseActivity.java:47,80-93')
+e('IntroActivity.onDonePressed@IMP', 'IntroActivity.onDonePressed@SAVED@IMP', 'CALL', 'the imported vault is read and loaded, then onDonePressed goes on',
+  guard='the Welcome slide imported a vault (IntroActivity.java:57-62) and readVaultFile and loadFrom return without an error (IntroActivity.java:106-123)', needs_state=ST_IMPORTED,
+  evidence='SRC ui/IntroActivity.java:106-123')
+e('IntroActivity.onDonePressed@SAVED@IMP', 'MainActivity.lambda$new$1@IMP', 'RESULT', "setResult(RESULT_OK) and finish() return the result to the caller's launcher",
+  guard='the vault was loaded from the import, with no error dialog (the error branches return at 113 and 121)',
+  evidence='SRC ui/IntroActivity.java:125-129; ' + FW_RESULT + '; ' + FW_FINISH + '; ' + FW_LAUNCHER)
+e('MainActivity.lambda$new$1@IMP', 'MainActivity.onIntroResult@IMP', 'CALL', 'RESULT_OK from the intro: the list is loaded',
+  guard='the intro returned RESULT_OK (MainActivity.java:145)',
+  evidence='SRC ui/MainActivity.java:142-148')
+e('MainActivity.onIntroResult@IMP', 'MainActivity.loadEntries@IMP', 'CALL', 'the entries are loaded after the intro',
+  evidence='SRC ui/MainActivity.java:752-754')
+e('MainActivity.loadEntries@IMP', 'S_LIST@IMP', 'ENTERS', 'the list is shown (vault loaded, list loaded in this instance)',
+  guard='list not yet loaded in this instance (_loaded false, MainActivity.java:1134) and the vault is loaded (getVault() throws when none is loaded, VaultManager.java:231-233): a producer of the loaded vault must come earlier on the route (the intro result)',
+  evidence='SRC ui/MainActivity.java:1133-1144; SRC vault/VaultManager.java:231-233')
+gui('S_LIST@IMP', 'MainActivity.lambda$startAssignGroupsDialog$15@IMP', 'Tap OK in the assign-groups dialog (assigns the groups to the selected entries)',
+    needs_state=ST_ASSIGN_DIALOG, evidence=FW_CLICK + '; SRC ui/MainActivity.java:570-597')
+e('MainActivity.lambda$startAssignGroupsDialog$15@IMP', 'MainActivity.saveAndBackupVault@IMP', 'CALL', 'Direct call',
+  evidence='SRC ui/MainActivity.java:594')
+e('MainActivity.saveAndBackupVault@IMP', 'AegisActivity.saveAndBackupVault@RAW', 'CALL', 'the imported live vault is saved and backed up: the plain save calls the superclass save',
+  guard='this is a plain (unconditional) save from the imported live vault, not a repaired-slot save: the override calls super (MainActivity.java:1370-1371) and the superclass save backs the vault up (AegisActivity.java:139-141)',
+  evidence='SRC ui/MainActivity.java:1370-1371; SRC ui/AegisActivity.java:139-141')
+# --- DESIGN_V3_CORRECTED section 1.2: plain counterparts P1/P2 (append-last, binding).
+# P1/P2 DO use the (bytecode) token deliberately, to preserve the ids of the suppressed
+# plain auto edges Ed3fd969c and E30bbb737: short file form, no ui/ prefix, verbatim.
+# P1/P2 are plain-to-plain restorations only: neither feeds a @RAW node, and neither
+# adds a new base pair beyond L2/L3. P1 first, then P2.
+e('MainActivity.lambda$startAssignGroupsDialog$15', 'MainActivity.saveAndBackupVault', 'CALL', 'Direct call',
+  evidence='SRC MainActivity.java:594 (bytecode)')
+e('MainActivity.saveAndBackupVault', 'AegisActivity.saveAndBackupVault', 'CALL', 'Direct call',
+  evidence='SRC MainActivity.java:1371 (bytecode)')

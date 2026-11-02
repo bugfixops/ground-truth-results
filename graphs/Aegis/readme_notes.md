@@ -1,28 +1,260 @@
+Aegis final build (V3-corrected):
+2995 methods, 2537 REACHABLE / 458 UNREACHABLE, 6430 edges,
+errors 0, warnings 0. Final route table (post-fix redraw, seed
+20261025): 25 routes, 1093 steps, 446 distinct edges; CORRECT 13
+/ WRONG 1 / UNCLEAR 11; fixed 2 (AndOtp, Stratum); distinct error
+rate 3/14 = 0.2143; table-formula rate 3/16 = 0.1875. CI SUMMARY
+at the final commit is pending (coordinator gate); no CI count
+is claimed here.
+
 ## What the re-audit changed (compared with the schema 1 graph)
-Pending: this section is written when the Aegis graph reaches 0 errors.
+
+- The schema 1 graph was converted to schema 2 and then re-audited
+  batch by batch (batches 14-42 in AGENT_NOTES, followed by the
+  finish-run C1-C3 work and this turn's V3 correction). Labels and
+  edges now rest on printed app source; bytecode
+  (`auto_calls.json`, `javap`) is INFERRED evidence for generated
+  and library code only, never a substitute for reading the app
+  source around a guard.
+- Check 2 was driven to zero, including the two edges that cited
+  `services/LaunchScannerTileService.java` as "file not held": the
+  file exists under the Aegis source tree and the citations were
+  rewritten in the form passing Aegis citations use, with the lines
+  printed (C1).
+- The route checker reads every step against printed source,
+  including if/catch/for conditions. Where the printed source
+  showed a branch crossing (a step following an edge the guard
+  forbids), the graph was fixed rather than the verdict bent: the
+  toolbar lock-icon edge was separated from the Settings step
+  (batch 40), and the intro Next/Previous transitions were rebuilt
+  on page states (S_INTRO_WELCOME through S_INTRO_DONE) so the
+  escape route walks Welcome, Picker, Setup, Done, then
+  onDonePressed (batch 41).
+- Structural ERROR steps that no single edge could express were
+  fixed with variant nodes reached only by the producer chain (the
+  `MainActivity.doShortcutActions@SCAN` technique), and the
+  selectIcon path was split the same way so that distinct caller
+  chains no longer share one node. Tools were never edited to make
+  a route pass.
+- The importer decrypt paths were wired from printed source:
+  reflection CALL edges from `DatabaseImporter.create` to each
+  importer constructor, the password-dialog listener chains through
+  `Dialogs.lambda$showTextInputDialog$7`, the PBKDF/Argon2 task
+  chains, and the per-importer decrypt overloads that genuinely
+  have no trigger (labelled UNREACHABLE `no_trigger_in_app` from
+  source, not from absence alone). A decrypt edge that re-printing
+  proved false (the Stratum file-path fallback edge) was removed
+  rather than defended; the correction changed no label.
+- Generated code is labelled as generated code: the Glide
+  option/request clusters (no app-source reference to GlideApp,
+  GlideRequest or GlideOptions in the app tree grep), the protobuf
+  accessors, and the Dagger/Hilt component families (one
+  UNREACHABLE group per kind where no path exists, with the ten
+  Hilt methods the tool run reached given explicit paths). STRICT
+  mode is on.
+- The finish-run importer sequence: the selectIcon split
+  (5957 -> 5954 edges), the per-importer @FILE variant chains
+  V1–V8 (6326 edges), FreeOTP stage 2 F1–F13 (6366 edges), the
+  row-23 @RAW chain (6390 edges), and the vault round's three
+  shared deletions (6387 edges). This turn's V3 correction then
+  rebuilt the RawSlot chain on the @IMP prefix (I1–I8, L1–L3,
+  plus P1/P2 hand edges), giving the V3-corrected final build:
+  2995 methods, 2537 REACHABLE / 458 UNREACHABLE, 6430 edges,
+  errors 0, warnings 0. Eight checks on the V3-corrected build (corrected copy + re-audit PASS): check 2:
+  22 distinct / 0 problems; check 3: 0 flagged; check 4: 4273
+  checked / 345 skipped / 168 implicit / 0 mismatches; checks 5–7:
+  0; check 8: 0 of 458. CI SUMMARY at the final commit is pending
+  (coordinator gate); no CI count is claimed here.
 
 ## How the checked paths were chosen
-Pending: this section is written when the Aegis graph reaches 0 errors.
+
+- Sampling command, as actually run: `python3 -I
+  tools/verify_sample.py Aegis 30 20261025` on the V3-corrected
+  graph (6430 edges), after the last fix and the redraw.
+- Final sample size: 25 routes, not 30, because the PLAIN pool
+  holds only 2 routes (Hilt_AegisApplication, 2 steps;
+  AegisApplication, 1 step) against a quota of 7, as in earlier
+  draws. The sample file is the redraw sampler output
+  (25 routes, 1093 steps, 446 distinct edges, seed 20261025).
+- The final table (new table, independently audit-PASS) covers
+  ONLY the final draw: 25 routes judged fresh, every step, with
+  no prior verdict carried over except the 23 edge-identical
+  carried rows whose verdicts and decisive summaries are carried
+  unchanged from the old table (see the new table's Verification
+  section; RawSlot re-judged, Auth judged fresh). Tally: CORRECT
+  13, WRONG 1, UNCLEAR 11. Fixed (strict: first-draw WRONG ->
+  final CORRECT) = 2 (AndOtp, Stratum). Error rates, with the
+  counting rule stated: distinct rate = (fixed + wrong) /
+  (correct-only + fixed + wrong) = (2 + 1) / (11 + 2 + 1) =
+  3/14 = 0.2143; table-formula rate = (fixed + wrong) /
+  (CORRECT + fixed + wrong) = (2 + 1) / (13 + 2 + 1) = 3/16 =
+  0.1875. UNCLEAR routes are excluded from both rates. Fixed
+  routes are already among the CORRECT routes and must not be
+  double-counted. The sole WRONG route is
+  AuthActivity.lambda$onCreate$3 (36 steps, ENV
+  hardware;time): two independent false steps on printed app
+  source — step 28 (lock-icon tap impossible on the unencrypted
+  vault) and step 35 (biometric-button tap impossible with null
+  header slots). RawSlot.getType is UNCLEAR (42 steps, @IMP
+  route), not WRONG: every step true on action and operative
+  condition, no step false, producer-less type-0 premise. The
+  dropped row EditEntryActivity$CustomSvgIcon.<init> (old CORRECT
+  + fixed) left on the 9–9 ENV coverage tie and is NOT a 26th
+  row. Gate 5 stays FAIL as written under the path-(A)
+  exception (identical-list requirement waived only); the
+  exception conditions (new-row judging, recompute, correction
+  note, stale-guard disposition) are recorded in the new table
+  notes. The C3 table rate (5/9) is not comparable as a trend:
+  the sample itself changed.
+- Dropped rows' verdicts are superseded, not carried over; their
+  reasons stay on record in the fix log and the old table (kept
+  untouched). The verification log (`verification.csv`, written
+  only by `make_verification.py`) has, in its current regenerated
+  staging form, one path row per final-sample route (25), 483
+  label rows (458 UNREACHABLE + 25 sampled), and 26 edge rows
+  (8 variant dispatch edges + 18 FW-SRC citation-representative
+  edges) — 534 data rows, 535 lines total. See the counts note
+  below for which file each total describes; do not quote the
+  superseded 533/25 figures for this file.
+- Sample-timing note (NOT dropped; fallback wording verified):
+  the log step does not change the sampler's input for Aegis.
+  Verification, read-only, in this turn: the sampler
+  (`tools/verify_sample.py`, line 36) reads ONLY
+  `graphs/<app>/out/methods.csv` for REACHABLE rows — it does not
+  read verification.csv; the writer writes ONLY verification.csv
+  and never touches out/. The MMEX mechanism (sample drawn
+  before the log step, log-step label rows changing the sampler's
+  picks) therefore does not transfer to Aegis. The judged routes
+  remain current because the writer's path-edge check asserts
+  every path edge list equals methods.csv route_edge_ids exactly
+  for all 25 rows. (If the merger runs a post-writer sampler
+  re-run, its result should be recorded here as evidence; until
+  then this paragraph rests on the input/output verification
+  above, not on a re-run.)
 
 ## What waits for a device (API 27)
-Pending: this section is written when the Aegis graph reaches 0 errors.
+
+- ENV-gated routes: camera scan (ENV_CAMERA), image-pick import
+  (ENV_PICK_IMAGE / ENV_PICKER), QR-code presentation (ENV_QR_CODE),
+  biometric success/failure (ENV_BIOMETRIC / ENV_BIOMETRIC_FAIL),
+  autofill (ENV_AUTOFILL), backup/restore (ENV_BACKUP / ENV_RESTORE),
+  boot and quick-settings tile listening (ENV_BOOT / ENV_QS),
+  export result and backup result (ENV_EXPORT_RESULT /
+  ENV_BACKUP_RESULT), incoming VIEW/SEND intents (ENV_VIEW /
+  ENV_SEND). The device scripts (`device/routes/Aegis/`,
+  ROUTES.csv) are the per-route record; this section is the
+  summary, not the record. No device result is claimed here: the final-sample device scripts ship in this same push, staged at device/routes/Aegis/ with ROUTES.csv (25 rows: 22 scripted / 3 unscriptable); the cap proposal (3/25 = 12.0%) is pending a user decision, and the pre-fix ROUTES_DRAFT.csv must never be renamed into place as ROUTES.csv.
+- Backup agent: with `android:fullBackupOnly="true"` in the
+  manifest, a full-backup run on API 27 should show only
+  onFullBackup and onRestoreFile running; onBackup, onRestore and
+  onQuotaExceeded are UNREACHABLE (INFERRED: BackupAgent source is
+  not in fw_src).
+- The export dialog's groups filter: the framework filter chain
+  (getFilter, performFiltering, publishResults, predicate lambda)
+  is REACHABLE from a tool run even though typing is closed by
+  `allow_filtering="false"`; the on-device trigger (tap vs dialog
+  opening) is unidentified from app source.
+- The Glide decode/fetch/cancel/key edges and the Hilt
+  fragment/activity component paths are INFERRED (library source
+  not read); the backup `createBackup` overloads carry no strategy
+  guard, so which strategy runs is a device check.
+- Icon-pack and export-entry producer chains, and any route whose
+  gate is a STATE with no producer step on the route, need the
+  device run to confirm the state is actually produced before the
+  gated step.
+- Device items still open at C4 time (recorded in AGENT_NOTES, not
+  hidden): the CI-side verification-object injection for the
+  generated README (see Limits), and any live-dump
+  selector/fixture gaps the device scripts flag for the first real
+  run. No real emulator run was started by this turn.
 
 ## Hazard candidates (from reading the code, not reproduced)
-Pending: this section is written when the Aegis graph reaches 0 errors.
+
+- `SwitchPreference.setChecked(boolean)` ignores its argument and
+  always sets the switch on; the stored value is set through the
+  androidx initial-value path (INFERRED, androidx source not read).
+  Hazard candidate for the security page.
+- Full-backup-only manifest flag (see device section above): a
+  restore path that assumes onRestore runs would silently never
+  execute.
+- The export groups filter running despite filtering being disabled
+  (see device section above): any export flow that assumes the
+  group list is unfiltered is suspect.
+- Biometric error/non-match callbacks and the autofill type query
+  on the no-autofill fields: framework behaviour the app cannot
+  trigger from its own UI, so a device run is the only confirmation
+  (see device section above).
+- Nothing in this section was reproduced on a device. Each item is
+  a reading of the code, labelled as such, and none of them changes
+  a label.
 
 ## Limits
-- Warnings after the batch-36 build (96 errors, 68 warnings; batches 33 to 36 added none): 67 are UNREACHABLE consistency flags (the 62 listed below from batch 22, plus the two TextDrawable$Builder flags, the two Dialogs flags and the batch-30 flag at the end of this list), and one is the REVIEW line. Each flagged method is UNREACHABLE, and every incoming edge comes from a caller that is also UNREACHABLE. None has a REACHABLE or UNRESOLVED caller, so no edge contradicts a verdict. The reasons:
-  - GlideOptions (26 methods): generated Glide option class. The app source has no reference to GlideApp, GlideRequest or GlideOptions (grep of src/main/java, 0 hits). The instance methods are reached only from the static xxxOf and xxxTransform factories, which are UNREACHABLE. The GlideRequest and GlideRequests clusters are labelled in batch 22 (see the bullets below).
-  - GlideRequest.apply and GlideRequest.<init>(Class,RequestBuilder) (2): UNREACHABLE in batch 22. Their only in-universe caller is GlideRequest.getDownloadOnlyRequest (auto_calls.json rows), which is also UNREACHABLE: the download paths (download, downloadOnly) are never called by the app (grep of the Glide-importing app files). Same consistency flag as the rest of this list.
-  - Glide library path (batch 22, INFERRED; the Glide library source is not read): into(ImageView) at ui/glide/GlideHelper.java:41 and :54 reaches GlideRequest.clone, autoClone, optionalCenterCrop, optionalCenterInside and optionalFitCenter only when the ImageView scale type maps to them. These five are ENV-dependent on the view's scale type and were not tested on a device. GlideRequest.lock and GlideRequests.clearOnStop are UNREACHABLE INFERRED because the library may call them internally.
-  - GoogleAuthProtos MigrationPayload (13) and OtpParameters (17): generated protobuf accessors. The app reads the payload through getOtpParametersList, getBatchId, getBatchIndex and getBatchSize (GoogleAuthInfo.java:204-271), none of which is flagged. The flagged methods (singular getOtpParameters, hasBatchIndex, clear*, set*Value, *Bytes, addOtpParameters(int,...), setOtpParameters, removeOtpParameters) have no caller outside the generated file. The protobuf cluster is not finished (its other methods are still errors).
-  - ApkSignaturePin (2: getFingerprint, getSHA256Fingerprint): vendored library (info.guardianproject.trustedintents). The callers are getMD5Fingerprint, getSHA1Fingerprint, getSHA256Fingerprint and doFingerprintsMatchCertificates, all UNREACHABLE; the app source does not call any of them.
-  - TrustedIntents.isIntentSane (1): private method of the same library. Its callers isReceiverTrusted(Intent) and startActivity are UNREACHABLE; the app source does not call isReceiverTrusted.
-  - EntryAdapter.onItemDismiss (1): the only caller is SimpleItemTouchHelperCallback.onSwiped (SimpleItemTouchHelperCallback.java:98), which is UNREACHABLE because the touch helper enables only UP and DOWN drag, so no swipe starts (batch 18).
-- One REVIEW line (not a method warning): the NONSTD_HINT regex at tools/build_graph.py:61 flags 7 edges (Ed430de74, Ed3b2fc19, E1c3ead1c, E9eaaba0b, E9e40d82d, E3c923e18, Ebdc15ea3) whose evidence contains the words dagger, library or reflect. Their edges are plain FRAMEWORK edges, so they are false positives. Not fixed; tools/ is not edited.
-- TextDrawable$Builder.rect and TextDrawable$Builder.roundRect (batch 28, 2 flags): each has one incoming CALL edge, from buildRect and buildRoundRect. Both callers are UNREACHABLE (no app code calls them; grep of the app tree). No REACHABLE or UNRESOLVED caller exists, so no edge contradicts a verdict.
-- Dialogs (batch 29, 2 flags): Dialogs.showErrorDialog(Context,String,Exception,OnClickListener) has one incoming CALL edge from the UNREACHABLE 3-argument String overload (Dialogs.java:360), and Dialogs.showTextInputDialog(Context,int,int,TextInputListener,boolean) has one incoming CALL edge from the UNREACHABLE 2-argument showPasswordInputDialog (Dialogs.java:255). Both callers have no app call sites (bytecode call rows), so the flags are the same kind as the batch-22 list.
-- NotificationService.serviceMethod (batch 30, 1 flag): its one incoming CALL edge is from onStartCommand, which is UNREACHABLE because nothing starts the service. The start call in VaultManager.startNotificationService is inside a comment (VaultManager.java:280-283, issue #1047), and the manifest entry is not exported (AndroidManifest.xml:105). Same kind as the flags above.
-- Batch 30 open items for a device check (not tested): (a) SwitchPreference.setChecked(boolean) ignores its argument and always sets the switch on; the stored value is set through the androidx initial-value path (INFERRED, androidx source not read). Hazard candidate for the security page. (b) With android:fullBackupOnly="true" (AndroidManifest.xml:24), onBackup, onRestore and onQuotaExceeded are UNREACHABLE (INFERRED: the BackupAgent source is not in fw_src). A full-backup run on API 27 should show only onFullBackup and onRestoreFile running.
-- DropdownCheckBoxes filter (batch 28, INFERRED): the framework runs the group filter (getFilter, performFiltering, publishResults, and the predicate lambda) even though typing is closed by app:allow_filtering="false" (dialog_export.xml:98, input type 0). The app source gives no trigger for that framework run, and the AutoCompleteTextView source is not held. A tool run recorded the filter running, so these four routes are REACHABLE. Open item for a device check: open the export dialog's groups field and see whether the popup filters the rows as the tap or the dialog opening triggers it.
-- ENV-gated methods (on the best route, not tested on a device): MainActivity.handleIncomingIntent (ENV_VIEW, ENV_SEND); MainActivity.lambda$new$7 (ENV_PICK_IMAGE); ScannerActivity.<init> and onCreate (ENV_CAMERA); WelcomeSlide lambdas (ENV_PICKER); ImportExportPreferencesFragment.lambda$new$0 and IconPacksManagerFragment.lambda$new$0 (ENV_PICKER); BackupsPreferencesFragment.lambda$new$0 (ENV_BACKUP_RESULT); export RESULT lambdas (ENV_EXPORT_RESULT); BiometricSlotInitializer.onAuthenticationSucceeded (ENV_BIOMETRIC).
+
+- The route search is state-blind: it compares env, needs_state
+  count and steps, but never checks that a state is produced before
+  it is consumed. Producer-chain variant nodes (section 1 above)
+  work around this per route; they do not fix the router, and tools
+  are not edited in this project.
+- Tool coverage, the old generated graphs, and the build's
+  REACHABLE count are never evidence. Every label and edge rests
+  on printed source, or is marked INFERRED with "source not read"
+  where the source (Glide, Hilt, androidx, JDK, protobuf runtime)
+  was not read.
+- UNREACHABLE consistency flags (a UNREACHABLE method with an
+  incoming edge from a caller that is also UNREACHABLE) are not
+  contradictions: no flagged method in the list below has a
+  REACHABLE or UNRESOLVED caller. The flag list below is carried
+  from the batch-22/28/29/30 record; the V3-corrected build has
+  warnings 0, so no new flag class arises at C4 time. The reasons
+  are as in the current readme (GlideOptions/GlideRequest clusters,
+  GoogleAuthProtos accessors, ApkSignaturePin, TrustedIntents,
+  EntryAdapter.onItemDismiss, TextDrawable builders, Dialogs
+  overloads, NotificationService.serviceMethod) — carried
+  unchanged here; the merger updates this list only from a fresh
+  post-C4 flag run, never by copying it blindly. Two follow-ups
+  recorded in the Stratum correction work (Legacy/Totp suspect
+  app-import decrypt edges) are follow-ups, not C3 blockers, and
+  are not added to the flag list on this draft's authority.
+- One REVIEW line (not a method warning): the NONSTD_HINT regex at
+  tools/build_graph.py:61 flags 7 edges (Ed430de74, Ed3b2fc19,
+  E1c3ead1c, E9eaaba0b, E4e40d82d, E3c923e18, Ebdc15ea3) whose
+  evidence contains the words dagger, library or reflect. Their
+  edges are plain FRAMEWORK edges, so they are false positives.
+  Not fixed; tools/ is not edited.
+- TextDrawable$Builder.rect and TextDrawable$Builder.roundRect
+  (batch 28, 2 flags); Dialogs overloads (batch 29, 2 flags);
+  NotificationService.serviceMethod (batch 30, 1 flag); batch-30
+  open items for a device check (SwitchPreference, full-backup-only
+  agent); DropdownCheckBoxes filter (batch 28, INFERRED); ENV-gated
+  methods (best route, not tested on a device) — all as in the
+  current readme, carried unchanged; see that file for the full
+  wordings, which this draft does not re-argue.
+- Writer/README gap (C4 decision 2, open, not hidden):
+  `make_verification.py` writes only `verification.csv` and never
+  touches `out/` (brief section 2.3), so it does not inject the
+  `verification` object that `gen_readme_v2.py` reads. Until CI
+  injects that object (or the generator is changed to read the
+  CSV), a CI-generated README will print "No verification log
+  yet" for Aegis even though the CSV exists and is validated.
+  Check 5/7 tallies for Aegis are not stated here: they must be
+  read from the final CI SUMMARY.txt at merge time, not copied
+  from another app or from an intermediate build.
+- Open follow-ups, not blockers for this log, as the merger states
+  them at C4 time: the stale-guard DEBT on RawSlot tail steps
+  34–39 and 41 (see the new table notes); the Legacy/Totp suspect
+  edges above. Neither changes a verdict, count, or rate in this
+  draft.
+
+Counts note (which file each total describes — merger to confirm
+at merge time): 534 data rows / 26 edge rows / 535 lines =
+the current regenerated verification.csv in staging
+(turn/writer/work/graphs/Aegis/verification.csv, 263,972 bytes,
+SHA-256
+83c527cad5a03ec8c5e002e2b5177ceee79572e0ec8885133635139cb4074321)
+AND the C2 re-audited file (same row/edge counts, different
+verdicts/routes/notes). 533 rows / 25 edge rows = the superseded
+pre-redraw C4 writer output described in the line-841 C4 logs
+entry (before the E9edc8c99 edge-row addition). 535 lines is the
+line count including the header for both 534-row files, not a
+third total. Do not quote 533/25 for the current file, and do not
+quote 534/26 for the superseded file.
