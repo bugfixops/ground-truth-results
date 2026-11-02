@@ -1,118 +1,155 @@
-# AnkiDroid route table — FINAL draw (seed 20261025), after Stream A fixes
+# AnkiDroid — FINAL route table (combined merge, redraw seed 20261025)
 
 Sample: `python3 -I tools/verify_sample.py AnkiDroid 30 20261025` on the
-Stream A graph (methods 4186, pages 49, edges 9608, REACHABLE 3275,
-UNREACHABLE 911, errors 0, warnings 0 — the single stale
-pre-Stream-A verification.csv warning was cleared by regeneration in A4). Sample file:
-`graphs/AnkiDroid/scratch/sample_30.txt` (30 of 3275, 325 distinct edges
-on the Stream A graph). This table REPLACES the first-draw table: it
-covers the final draw only, as ordered for Stream A (A3).
+combined-merge graph (new mod file `graph_def_mod/03.py` + chained EDIT
+wrappers after the final EDIT; 16 generic DatabaseErrorDialog deletions).
+Graph: 4186 methods, 56 pages, 9815 edges; labels REACHABLE 3275 /
+UNREACHABLE 911 (zero flips vs the round-commit baseline); build errors 0.
+Judgments: independent per-method reads of the new prints
+(`turn/merge/newsample-routes-30.log`, `turn/merge/JUDGE-A.md`,
+`turn/merge/JUDGE-B.md`, `turn/merge/JUDGE-C.md`), plus the gate judge
+(`turn/merge/JUDGE-GATES.md`) for four dropped-out targets.
 
-Verdicts are the AUDITED final-draw judgements (helpers judge-01-10,
-judge-11-20, judge-21-30, each step checked against printed source; full
-step tables in `helper/judge-final/judge-*/JUDGEMENTS.md`): CORRECT 20,
-WRONG 10, UNCLEAR 0. Error rate = wrong / (correct + wrong) = 10/30 =
-0.3333. There is no FIXED category in this draw: the Stream A graph
-fixes are already in the graph, so a route whose printed steps are all
-genuine is CORRECT, and a route with a fiction step is WRONG with its
-corrected derivation below.
+Totals: CORRECT 27 / WRONG 3 / UNCLEAR 0. Rate = WRONG / (CORRECT + WRONG)
+= 3 / 30 = 0.1000.
 
-How to read the "steps" column: for CORRECT routes it is the final BFS
-route's step count (the BFS route IS the judged route). For WRONG routes
-it is the printed BFS route's step count (the BFS route is wrong; the
-corrected derivation is the table route, from the judgement file cited).
+Composition vs the old final draw (seed 20261025, old graph): 23 methods
+carried over, 7 dropped, 7 new. Dropped: Preferences.replaceString,
+DeckPicker$5.onProgressUpdate, libanki.Utils.base62, MetaDB.getNotificationStatus,
+BaseAsyncTask.onProgressUpdate, Collection.close(),
+AbstractFlashcardViewer.typeAnswer — all still REACHABLE (labels unchanged).
+New: Models.rem, Models$TransformFieldMove.<init>, Models.validateBrackets,
+FullSyncer.syncURL, UIUtils$1.onPostExecute, Collection.getServer,
+AnkiActivity.openUrl.
 
-WRONG and the tools/ clause (A3): every WRONG below is a route-builder
-(tools/) limitation, stated per route. Stating a corrected route needs
-no tools/ edit — each corrected derivation is built from printed source
-edges. But making the BUILDER print the corrected route (instead of the
-fiction) needs a tools/ change: the builder must become receiver-aware
-for drawer/listener/interface dispatch, branch-aware for constructor
-branches, and dialog-id-aware for shared dialog pages (see the per-route
-reasons). Per-route graph_def patches are NOT applied here: they would
-change edge ids, and the sampler spreads over route_edge_ids, so the
-sample would move again. The graph fixes in Stream A (A1) were for the
-18 first-draw WRONG routes; these 10 final-draw WRONGs are recorded with
-their corrected routes, as the first-draw table did.
+Binding constraints carried from the old table (still in force on this graph):
+the generic `S_DLG_DATABASE_ERROR` page now has ZERO incoming and ZERO
+outgoing edges (the 16 deletions killed it; it is not re-provided); no
+suppression of the 16 confirm + 8 cancel dispatch edges (they stay
+auto-dispatched); the single-EDIT rule (r11/r12/r14v2/r28 wrappers chain the
+previous EDIT, never replace it); Stats Edf6d8bd0 stays deleted (the
+predecessor edge is gone; no new edge for it); BackgroundPost Ecba7dfd7 stays
+ENV_NETWORK (ENV label set is not the correctness set, and its route still
+exists in the graph).
 
-Composition vs the first draw: 16 methods carry over (Phrase,
-EasyX509TrustManager, Stats$1.compare, libanki.Utils$1,
-ModelEditorContextMenu, Template$1.compare, Sound, HttpFetcher,
-Preferences.replaceString, Finder, AdvancedStatistics$Card.setIvl,
-DiffEngine, libanki.Utils.base62, MetaDB, CollectionLoader, Decks.id);
-AbstractFlashcardViewer.typeAnswer returns from the post-B6 redraw set;
-13 are new to this draw (Sched._cntFnNew, Sched.revDue,
-MediaCheckDialog$3, StudyOptionsActivity.closeStudyOptions,
-Models$TransformFieldDelete, Anki2Importer._mediaPick,
-DeckPicker$5.onProgressUpdate, Sched.sortCards, Sched.getToday,
-DB.insert, BaseAsyncTask.onProgressUpdate, Collection.close(),
-SimpleMessageDialog.<init>). 14 first-draw methods drop out of this draw
-(StepsPreference, Sched.totalRevForCurrentDeck, SimpleMessageDialog$1,
-FilteredDeckOptions, api.Utils.entsToTxt, Sched.haveBuried,
-ModelFieldEditor$6$1, CustomTabsFallback, CardTemplateEditor$3, Hook,
-ModelFieldEditor$1, NoteEditor.closeNoteEditor, DB.executeScript,
-Models._availClozeOrds) — every one of them remains REACHABLE on the
-Stream A graph; dropping out of a sample is not a label change.
+Route-08 flag (carried, not re-litigated): row 08 is judged CORRECT here, but
+the same method was UNCLEAR in the first draw (row 06) because its final
+`<init> -> onCreateDialog` step has no printed framework evidence and stays
+INFERRED (support-v4 DialogFragment source absent from the tree). If the
+table auditor rules UNCLEAR, row 08 flips to UNCLEAR with no other change
+(totals become CORRECT 26, WRONG 3, UNCLEAR 1, rate 3/29 = 0.1034).
 
-Route-08 flag (auditor ruling owed): final-draw route 08
-(ModelEditorContextMenu.onCreateDialog) is judged CORRECT here, but the
-same method was UNCLEAR in the first draw (route 06) because its final
-`<init> -> onCreateDialog` step has no printed framework evidence and
-stays INFERRED (support-v4 DialogFragment source absent from the tree).
-The final-draw judge marks that step genuine-INFERRED (the fragment's
-own onCreateDialog is printed at ModelEditorContextMenu.java:31, and
-support-v4 lifecycle calls it once the fragment is shown) and therefore
-CORRECT, the same genuine-INFERRED convention used for route 02's Apache
-dispatch and route 01's Gson step. If the table auditor rules UNCLEAR,
-this row flips to UNCLEAR with no other change (totals become
-CORRECT 19, UNCLEAR 1, error rate 10/29 = 0.3448).
+## Final table (new draw, redraw order)
 
-Binding constraints carried from the first-draw table (still in force):
-single EDIT definition (B3 EDIT chained through F3 and F2 wrappers and
-the Stream A DeckTask wrapper, never replaced); no $16 edge for
-SimpleMessageDialog (bytecode: $15 = CHECK_DATABASE, $16 = CHECK_MEDIA);
-no suppression of the 16 confirm + 8 cancel dispatch edges;
-BackgroundPost Ecba7dfd7 stays ENV_NETWORK; the direct hand edge
-Stats.calculateDue -> AdvancedStatistics.runFilter (Edf6d8bd0) stays
-deleted (route 19 runs only via @advancedStatistics).
-
-| # | method | verdict | steps | reason / corrected route |
+| # | Method | Verdict | Steps | Reason |
 |---|---|---|---|---|
-| 01 | Phrase.<init> | CORRECT | 38 | All 38 steps genuine. Reviewer-head GUI chain (StudyOptionsFragment -> Reviewer -> drawer -> CardBrowser -> NoteEditor media button -> multimedia field editor -> Glosbe translate -> TranslationActivity.showPickTranslationDialog -> Phrase). Final Gson step stays INFERRED (reflective construction, no printed Gson source), as in C01. Condition: cards due. |
-| 02 | EasyX509TrustManager.<init> | CORRECT | 20 | All 20 steps genuine. SYNC task via the onResume head (DeckPicker.sync -> sync(String) -> Connection.sync -> doInBackground@SYNC -> doOneInBackground@SYNC -> doInBackgroundSync -> Syncer -> RemoteServer -> HttpSyncer.req chain -> EasySSLSocketFactory -> EasyX509TrustManager). Steps 17-20 are library-INFERRED (Apache Commons HttpClient absent from the tree; dispatch unavoidable once the https scheme is registered with that factory). Condition: logged-in hkey + online. |
-| 03 | Stats$1.compare | CORRECT | 26 | All 26 steps genuine. Reviewer-head chain to Statistics chart (HOURLY_BREAKDOWN case at Statistics.java:503, not :514; checkAndUpdate -> createChart requires the created/measured/changed guard), sort at Stats.java:852-859, JDK-sort dispatch INFERRED (java.util not in fw_src). Condition: cards due. |
-| 04 | Sched._cntFnNew | CORRECT | 15 | All 15 steps genuine as printed (full step table in judge-01-10). Condition: day rollover. |
-| 05 | libanki.Utils$1.<init> | CORRECT | 14 | All 14 steps genuine. @SELECT dialog-id chain (DIALOG_IMPORT_SELECT entry -> ImportDialog -> getImportableDecks -> $1.<init>); the @SELECT split propagates unchanged through steps 8-12. |
-| 06 | Sched.revDue | CORRECT | 16 | All 16 steps genuine as printed (full step table in judge-01-10). Evidence wording says androidx lifecycle; the tree imports android.support.v4.app.Fragment (e.g. StudyOptionsFragment.java:22) — dispatch is support-v4, still genuine-INFERRED. Condition: finished deck. |
-| 07 | MediaCheckDialog$3.<init> | CORRECT | 16 | All 16 steps genuine as printed (full step table in judge-01-10). Condition: media-sync-server-error + check success; logged-in hkey + online. |
-| 08 | ModelEditorContextMenu.onCreateDialog | CORRECT | 14 | All 14 steps genuine; final step genuine-INFERRED (support-v4 DialogFragment lifecycle, not androidx as the evidence says; onCreateDialog printed at ModelEditorContextMenu.java:31, called once the fragment is shown). Condition: model list loaded successfully (ModelBrowser onPostExecute requires result.getBoolean(), ModelBrowser.java:108-118). See the route-08 flag above: first-draw precedent was UNCLEAR for this step; auditor rules. |
-| 09 | Finder.findNotes | CORRECT | 34 | All 34 steps genuine. Reviewer head + for-result tail: CardTemplateEditor starts Previewer with startActivityForResult, fragment onActivityResult unconditionally calls deleteDummyCards -> Collection.findNotes -> Finder.findNotes. Condition: cards due. |
-| 10 | Template$1.compare | CORRECT | 17 | All 17 steps genuine. Steps 4-6 require a transient first-open failure followed by a successful retry inside exceededCursorSizeLimit -> getCol -> Storage.Collection; no printed line contradicts this. Condition: old schema + non-zero model id + multi-modifier absent-field template tag. (This also clears the stale verification.csv warning: the old Template$1.compare path is no longer best.) |
-| 11 | StudyOptionsActivity.closeStudyOptions(int) | WRONG | 20 | Fiction at step 12 (E46c212fb, listener fan-out): the REBUILD_CRAM launch at StudyOptionsFragment.java:318 passes getDeckTaskListener(true) (StudyOptionsFragment.java:503-511+), whose onPostExecute only dismisses the dialog and refreshes views — it never calls onCreateCustomStudySession. The $4 listener that does (CustomStudyDialog.java:467) belongs to a different REBUILD_CRAM launch (CustomStudyDialog.createCustomStudySession, :455). Corrected route: steps 1-7, then custom-study menu item (StudyOptionsFragment.java:306-309) -> showCustomStudyContextMenu -> CustomStudyDialog -> createCustomStudySession (:421+) -> REBUILD_CRAM launch (:455) -> @REBUILD_CRAM -> $4.onPostExecute -> onCreateCustomStudySession -> openStudyOptions -> StudyOptionsActivity -> back press -> closeStudyOptions(int). Tools/ reason: the builder's @REBUILD_CRAM variant node conflates two listener instances from different launches; fixing needs producer-aware listener dispatch in tools/. |
-| 12 | HttpFetcher.downloadFileToSdCardMethod | WRONG | 37 | Fiction at step 15 (Ea0eba485, wrong override): from a Reviewer receiver, nav_browser dispatches to Reviewer.openCardBrowser (Reviewer.java:508-518), not DeckPicker.openCardBrowser (DeckPicker.java:1707-1713, the cited evidence). Corrected route: identical except steps 15-16 relabelled to Reviewer.openCardBrowser -> CardBrowser.<init>; target still reachable. Tools/ reason: the builder's drawer dispatch is receiver-unaware (single onNavigationItemSelected node serves every activity); fixing needs receiver-variant dispatch in tools/. |
-| 13 | Sound.notifyConfigurationChanged | CORRECT | 24 | All 24 steps genuine. Reviewer.onOptionsItemSelected -> playSounds (SRC Reviewer.java:152 bytecode) -> Sound chain -> VideoPlayer -> onConfigurationChanged -> target. Conditions: non-TTS replay, video sound with thumbnail, VideoPlayer's declared configChanges (AndroidManifest.xml:184). The design's ANSWER progress chain still exists ($10 via @ANSWER) but BFS finds this shorter genuine route. |
-| 14 | Models$TransformFieldDelete.<init> | WRONG | 17 | Fiction at step 12 (Ef84c6616, shared-dialog page jump): ModelBrowser.deleteModelDialog's ConfirmationDialog confirm() calls deleteModel() (ModelBrowser.java:452-458, 470-476), never deleteField(). ModelFieldEditor$3.confirm (ModelFieldEditor.java:241-256) belongs to deleteFieldDialog in a different activity; the shared S_DLG_CONFIRMATION page let BFS jump activities. Corrected route: steps 1-6 to S_MODELBROWSER, then item click (ModelBrowser.java:271-280) -> ModelFieldEditor -> field context menu -> deleteFieldDialog (:235) -> $3.confirm -> deleteField (:279-283) -> @DELETE_FIELD -> remField -> TransformFieldDelete (guard: >=2 fields). Tools/ reason: shared dialog pages need dialog-id/activity-aware routing in tools/ (the B6 route-26 page splits show the graph-side pattern; the builder must not route one activity's dialog through another's confirm). |
-| 15 | Anki2Importer._mediaPick | CORRECT | 16 | All 16 steps genuine as printed (full step table in judge-11-20). |
-| 16 | Preferences.replaceString | CORRECT | 10 | All 10 steps genuine. InitPreference route (NOT the 9-edge page-GUI route): dir-inaccessible branch (DeckPicker.java:418-428) + initAllPreferences -> initPreference -> updateSummary -> replaceString, with a qualifying preference (Preferences.java:636). This is the Stream A Option A expectation. |
-| 17 | DeckPicker$5.onProgressUpdate | CORRECT | 16 | All 16 steps genuine. The Stream A IMPORT progress chain: DeckPicker.importAdd -> doInBackground@IMPORT -> doInBackgroundImportAdd -> AnkiPackageImporter.run -> Anki2Importer.publishProgress (:89) -> ProgressCallback.publishProgress -> doProgress -> onProgressUpdate@IMPORT -> TaskListener@IMPORT -> $5 (DeckPicker.java:260-262). The importer does call the progress callback on the IMPORT path (callback installed with setProgressCallback at DeckTask.java:750, importer run at :751). |
-| 18 | Sched.sortCards(long[],int,int,boolean,boolean) | CORRECT | 19 | All 19 steps genuine as printed (full step table in judge-11-20). Single consistent guard: includeSched=false. |
-| 19 | AdvancedStatistics$Card.setIvl | CORRECT | 35 | All 35 steps genuine. @advancedStatistics variant chain (direct Stats.calculateDue -> AdvancedStatistics.runFilter edge deleted, correctly bypassed); hook installed only when pref advanced_statistics_enabled is on (Hooks.java:61-63); forecast tab (Statistics.java:485-488 -> ChartBuilder.java:73); 7-edge tail as designed. The 35th step vs the design's 34 is the Reviewer head (see fix_log.md). |
-| 20 | libanki.Utils.base62 | WRONG | 21 | Fiction at step 19 (E62a24da3, guard-contradicted branch): Note.<init>(Collection,JSONObject,Long) calls guid64() only in the id == null (new-note) branch (Note.java:67-72); on the CHECK_MEDIA prefix the id is an existing note id from _normalizeNoteRefs -> getNote, so the constructor takes the load() branch and steps 20-21 (guid64 -> base91 -> base62) are unreachable there. The CHECK_MEDIA prefix steps 1-18 are genuine in isolation. Corrected route: NoteEditor new-note creation (CardBrowser action_add_card_from_card_browser, CardBrowser.java:630-634) -> NoteEditor.setNote(null) -> new Note(getCol(), model) (NoteEditor.java:1370) -> Note.<init>(Collection,JSONObject) -> Note.<init>(Collection,JSONObject,Long) with id == null (Note.java:58-60) -> else branch guid64 (Note.java:72) -> base91 -> base62. Tools/ reason: the builder routes every Note-constructor caller into both branches; fixing needs branch-sensitive (id-null vs id-set) constructor routing in tools/. |
-| 21 | DiffEngine.diff_cleanupSemanticScore | CORRECT | 24 | All 24 steps genuine. Type-answer route: Reviewer.onKeyUp -> displayCardAnswer@Reviewer -> typeAnsAnswerFilter -> diff_main -> diff_compute -> diff_cleanupSemantic -> diff_cleanupSemanticLossless (DiffEngine.java:795 calls it) -> diff_cleanupSemanticScore. |
-| 22 | MetaDB.getNotificationStatus | CORRECT | 14 | All 14 steps genuine as printed (full step table in judge-21-30). Support-v4-only dispatches marked genuine-but-INFERRED, never SOURCE, where the surrounding code makes the dispatch unavoidable. |
-| 23 | Sched.getToday | WRONG | 18 | Fiction at step 18 (E594578a7, wrong branch): _fillDyn's query is user terms + -is:suspended -is:buried -deck:filtered (Sched.java:1569), and _findCardState calls getToday() only for val "due" (Finder.java:466-467); suspended/buried branches return constants (460-463). The printed route's query contains only is:suspended / is:buried / deck:filtered tokens, so getToday is never called on it. Corrected route: steps 1-17 exactly as printed, with the rebuilt dyn deck's first search term (terms[0], Sched.java:1558-1562) containing is:due, so _where -> _findCardState("due") (Finder.java:324, 465-467) -> getToday. Tools/ reason: the builder routes a query's tokens without checking which branch they select; fixing needs token-aware branch routing in tools/. |
-| 24 | DB.insert | WRONG | 11 | Fiction at step 5 (Ea13b2167, wrong dialog id): the entered LOAD_FAILED dialog (DatabaseErrorDialog.java:76-96) has exactly two buttons, positive -> DIALOG_ERROR_HANDLING (85-91) and negative -> exit() (92-94); it has no button calling integrityCheck. Cited lines 294-302 are the different DIALOG_CONFIRM_DATABASE_CHECK dialog's onPositive, never shown on this prefix. Guard contradiction as well: ERROR_HANDLING's check_db option requires colIsOpen() (136-141), contradicted by the failed-load prefix (DeckPicker.java:414-433). Corrected route: collection-open prefix (DeckPicker menu action_check_database, DeckPicker.java:596-598) -> CONFIRM dialog -> onPositive -> integrityCheck (DatabaseErrorDialog.java:294-302) -> printed steps 6-11 (requiring orphan notes for _remNotes -> _logRem -> DB.insert). Tools/ reason: shared S_DLG_DATABASE_ERROR page needs dialog-id-aware routing in tools/ (same class as routes 25, 27, 30). |
-| 25 | BaseAsyncTask.onProgressUpdate | WRONG | 11 | Fiction at step 5 (Ecfd88980, wrong dialog id): cited lines 251-270 are the DIALOG_RESTORE_BACKUP single-choice onSelection, never shown on the LOAD_FAILED prefix (whose buttons go only to ERROR_HANDLING or exit(), DatabaseErrorDialog.java:85-94). Corrected route: LOAD_FAILED positive -> ERROR_HANDLING -> select restore (value 3, always offered, :176-180) -> RESTORE_BACKUP dialog -> select a non-empty backup -> restoreFromBackup -> steps 7-11 (valid backup apkg required); or menu action_restore_backup (DeckPicker.java:617-619) -> CONFIRM_RESTORE_BACKUP -> RESTORE_BACKUP -> same continuation. Note the printed failed-load prefix also fails at step 10 (doInBackgroundImportReplace dereferences col.getPath(), DeckTask.java:758-762), so a usable collection context is required. Tools/ reason: shared dialog page needs dialog-id-aware routing in tools/ (same class as routes 24, 27, 30). |
-| 26 | CollectionLoader.deliverResult | CORRECT | 11 | All 11 steps genuine as printed (full step table in judge-21-30). Support-v4 loader dispatch genuine-but-INFERRED, never SOURCE. |
-| 27 | Collection.close() | WRONG | 10 | Fiction at step 5 (Ee8da2b4f, wrong dialog id): cited lines 207-212 are the DIALOG_REPAIR_COLLECTION onPositive -> repairDeck, not the entered LOAD_FAILED dialog (buttons only to ERROR_HANDLING or exit(), DatabaseErrorDialog.java:85-94). Corrected route: LOAD_FAILED positive -> ERROR_HANDLING -> select repair (value 2, requires sqlite3, :144-148) -> REPAIR dialog -> repairDeck -> steps 7-10, with a non-null collection (repairCollection dereferences col.getPath() at BackupManager.java:243 before col.close() at 245). Tools/ reason: shared dialog page needs dialog-id-aware routing in tools/ (same class as routes 24, 25, 30). |
-| 28 | AbstractFlashcardViewer.typeAnswer | WRONG | 11 | Fiction at step 9 (Eed5b25c0, interface fan-out to an unregistered listener): the AFV listener whose onPreExecute calls blockControls() is mAnswerCardHandler (AbstractFlashcardViewer.java:578-585), registered only by AFV/Reviewer ANSWER_CARD launches (AbstractFlashcardViewer.java:1076, 1092, 1172, 1320; Reviewer.java:96-98). Step 6's LOAD_DECK_COUNTS launch (DeckPicker.java:1823) registers DeckPicker's own listener, never AFV's; DeckTask.onPreExecute (DeckTask.java:346) delegates only to that task's listener. Steps 10-11 genuine in isolation (blockControls at :584; typeAnswer predicate evaluation at :2449 IS a call). Corrected route: route-21 Reviewer prefix + ANSWER_CARD launch with mAnswerCardHandler (Reviewer.java:96-98) -> onPreExecute -> blockControls -> typeAnswer. Tools/ reason: the builder's interface dispatch ignores which listener a launch registered (the same producer-awareness gap as route 11, here at pre-execute); fixing needs producer-aware listener dispatch in tools/. |
-| 29 | Decks.id(String,boolean) | CORRECT | 11 | All 11 steps genuine as printed (full step table in judge-21-30). |
-| 30 | SimpleMessageDialog.<init> | WRONG | 10 | Fiction at step 5 (Ea13b2167, wrong dialog id), identical to route 24 step 5: entered LOAD_FAILED dialog's buttons go only to ERROR_HANDLING or exit(); cited lines 294-302 are the CONFIRM dialog's onPositive, never shown on this prefix, and ERROR_HANDLING's check_db option requires colIsOpen(), contradicted by the failed-load prefix. Judged on the printed <init> target (new SimpleMessageDialog() at SimpleMessageDialog.java:23, distinct from first-draw route 08's $1.<init> callback). Steps 6-10 genuine (step 7 requires a successful database check, DeckPicker.java:1170). Corrected route: collection-open prefix as route 24 (menu action_check_database -> CONFIRM dialog -> onPositive -> integrityCheck) -> printed steps 6-10. Tools/ reason: shared dialog page needs dialog-id-aware routing in tools/ (same class as routes 24, 25, 27). |
+| 01 | Phrase.<init> | CORRECT | 38 | All steps genuine; Reviewer-head GUI chain to TranslationActivity; final Gson step INFERRED. Condition: cards due. |
+| 02 | EasyX509TrustManager.<init> | CORRECT | 20 | All steps genuine; SYNC task via the onResume head; Apache steps library-INFERRED. Condition: logged-in hkey + online. |
+| 03 | Stats$1.compare | CORRECT | 26 | All steps genuine; HOURLY_BREAKDOWN case (Statistics.java:503), sort at Stats.java:852-859, JDK-sort INFERRED. Condition: cards due. |
+| 04 | Sched._cntFnNew | CORRECT | 15 | All steps genuine as printed. Condition: day rollover. |
+| 05 | libanki.Utils$1.<init> | CORRECT | 14 | All steps genuine; @SELECT dialog-id chain (DIALOG_IMPORT_SELECT entry -> ImportDialog -> getImportableDecks); dir-exists guard. |
+| 06 | Sched.revDue | CORRECT | 16 | All steps genuine as printed; _nextDueMsg calls revDue as a predicate. Condition: finished deck. |
+| 07 | MediaCheckDialog$3.<init> | CORRECT | 16 | All steps genuine as printed. Condition: media-sync-server-error + check success; logged-in hkey + online. |
+| 08 | ModelEditorContextMenu.onCreateDialog | CORRECT | 14 | All steps genuine; final lifecycle step genuine-INFERRED (support-v4 DialogFragment, not androidx; onCreateDialog at ModelEditorContextMenu.java:31). Condition: model list loaded successfully. See the route-08 flag above. |
+| 09 | StudyOptionsActivity.closeStudyOptions(int) | WRONG | 33 | Fiction at step 23 (E10ee7f20): the TagsDialog shown by CardBrowser installs CardBrowser's own search listener, never CustomStudyDialog$1$1; PLUS guard contradiction (step 6 needs mFragmented true, step 28's openStudyOptions else branch needs mFragmented false for the same DeckPicker). Step 25 is producer-exact in isolation ($4 created inside createCustomStudySession, CustomStudyDialog.java:455-468, calling onCreateCustomStudySession) but the chain never starts on this prefix. The old E46c212fb fiction is dead; BFS now prints a longer pre-existing interface fiction. No corrected derivation proven on this graph: the old custom-study-menu derivation shares the mFragmented tension. Follow-up owed: TagsDialog producer-split fix + phone-pure prefix investigation (new scope, not in this merge). |
+| 10 | Finder.findNotes | CORRECT | 34 | All steps genuine; Reviewer head + for-result tail (startActivityForResult -> fragment onActivityResult -> deleteDummyCards -> findNotes). This print contains no Finder/_where steps, so the route-23 query fix is irrelevant here. Condition: cards due. |
+| 11 | Template$1.compare | CORRECT | 17 | All steps genuine; upgrade-time save chain renders a two-modifier template tag through the sort comparator; transient first-open failure + successful retry. Condition: old schema + non-zero model id + multi-modifier absent-field template tag. |
+| 12 | HttpFetcher.downloadFileToSdCardMethod | CORRECT | 37 | All steps genuine; drawer dispatch now resolves to the Reviewer override (step 14 new variant page id Ebf481404, step 15 new variant dispatch id E09ef790a, step 16 pre-existing E5285c072 — NOT the old step-16 id E0e89f361, because the receiver changed from DeckPicker.openCardBrowser to Reviewer.openCardBrowser; steps 17-37 same; old fiction Ea0eba485 gone, 0 occurrences). Pronunciation download in the field editor. Condition: network + Beolingus. |
+| 13 | Sound.notifyConfigurationChanged | CORRECT | 24 | All steps genuine; replay menu plays a video sound with a thumbnail, VideoPlayer rotation calls back into Sound. Conditions: non-TTS replay, video sound with thumbnail, VideoPlayer configChanges (AndroidManifest.xml:184). |
+| 14 | Anki2Importer._mediaPick | CORRECT | 16 | All steps genuine; import chain reaches media comparison, which picks bytes from both streams. |
+| 15 | Models.rem | CORRECT | 16 | All steps genuine; long-press delete confirmation launches the delete-model task, which calls rem. (New to the sample.) |
+| 16 | Models$TransformFieldDelete.<init> | CORRECT | 21 | All steps genuine; the field-delete confirmation (not sort) drives the delete-field task into remField's TransformFieldDelete: $3.confirm -> deleteField -> DeckTask.doInBackground@DELETE_FIELD -> DeckTask.doInBackGroundDeleteField -> Models.remField -> TransformFieldDelete. NOT a sort-prefix print ($9.onSelection takes the FIELD_DELETE case, ModelFieldEditor.java:601; sort is a separate case; deleteFieldDialog guard mFieldLabels.size() >= 2, ModelFieldEditor.java:236-237). Only the $3 leg is exhibited by this print; source checks confirm the siblings ($4 second confirm also calls deleteField; $2$1 nested confirm in addFieldDialog launches ADD_FIELD, ModelFieldEditor.java:205-209; $7/$8 confirms in deleteModelDialog call deleteModel, ModelBrowser.java:455, 472). |
+| 17 | Models$TransformFieldMove.<init> | CORRECT | 20 | All steps genuine; the reposition dialog confirmation launches the reposition task into moveField's TransformFieldMove. (New to the sample.) |
+| 18 | Models.validateBrackets | WRONG | 17 | Fiction at step 7: its guard picks repair (value 2, case 2 -> REPAIR_COLLECTION, DatabaseErrorDialog.java:180-183) but step 8 requires restore (value 3, case 3 -> RESTORE_BACKUP, DatabaseErrorDialog.java:184-187) from the same single onSelection call. The genuine continuation exists with the corrected guard (pick restore, value 3, always offered): steps 9-17 check out (RESTORE_BACKUP -> restoreFromBackup -> importReplace -> IMPORT_REPLACE -> tmpCol.validCollection at DeckTask.java:791 -> validateModel -> validateBrackets at Models.java:1392, conditional on a valid non-empty backup). Verdict stays WRONG because the printed route, as printed, contains the contradiction. Note: the same guard-text pattern (repair-guarded $3 edge carrying restore traffic) appears in the legacy underscore ERROR_HANDLING page — see the disclosure below; a guard-neutralization fix is follow-up work, not in this merge. (New to the sample.) |
+| 19 | FullSyncer.syncURL | CORRECT | 19 | All steps genuine; the empty-collection full-sync download runs req on a FullSyncer receiver, so syncURL dispatches to the FullSyncer override (HttpSyncer.java:207 calls syncURL() virtually). (New to the sample.) |
+| 20 | Sched.sortCards(long[],int,int,boolean,boolean) | CORRECT | 19 | All steps genuine as printed; single consistent guard includeSched=false; filtered export resets cards, forgets them, and repositions via the two-argument sortCards. |
+| 21 | Sched.getToday | CORRECT | 18 | Corrected pattern confirmed: step 17 _where -> _findCardState@due with is:due in terms[0], step 18 @due -> getToday for val "due" (Finder.java:466). Condition: the rebuilt deck's first search term actually contains is:due. |
+| 22 | AdvancedStatistics$Card.setIvl | CORRECT | 35 | All steps genuine, including the forecast-tab chain into the advanced-statistics hook and the simulation tail ending at setIvl. Condition: advanced_statistics_enabled on, or the hook is never installed. |
+| 23 | DiffEngine.diff_cleanupSemanticScore | CORRECT | 24 | All steps genuine along the typed-answer route from the Reviewer key release through the diff cleanup chain. Condition: the typed answer differs from the correct answer. |
+| 24 | UIUtils$1.onPostExecute | CORRECT | 11 | All steps genuine, from DeckPicker onStop saving the collection in the background to the registered task listener's onPostExecute. Condition: the collection is open at onStop. (New to the sample.) |
+| 25 | DB.insert | CORRECT | 11 | All steps genuine on the new showStartup integrity-check route, with no base-page dialog step and no Ea13b2167 edge. Condition: the integrity check finds orphan notes to delete. |
+| 26 | CollectionLoader.deliverResult | CORRECT | 11 | All steps genuine from the no-space dialog through the loader restart to deliverResult; support-library dispatch genuine-but-INFERRED. |
+| 27 | Decks.id(String,boolean) | CORRECT | 11 | All steps genuine from the deck-list refresh through the parent-deck fallback to id(String, boolean). Condition: the deck is missing from the displayed list. |
+| 28 | Collection.getServer | WRONG | 10 | Fiction at step 8: on the load-failed prefix the collection object is null (or closed with a null database), so closeCollection's null guard and Collection.close's mDb-null guard skip Collection.close, and steps 9-10 (Media.close -> getServer) never run on this prefix. The close-to-getServer calls are real code, just unreachable after a failed first open. A corrected route needs an open-collection prefix, not the load-failed prefix. (New to the sample; pre-existing print fiction, NOT caused by the merge.) |
+| 29 | SimpleMessageDialog.<init> | CORRECT | 10 | All steps genuine on the new showStartup integrity-check route via $15.onPostExecute; step 7 requires a successful database check (DeckPicker.java:1170). No Ea13b2167 edge. Condition: the integrity check reports success. |
+| 30 | AnkiActivity.openUrl | CORRECT | 11 | All steps genuine from the not-logged-in sync dialog through MyAccount to the sign-up button opening the registration page. Condition: empty sync key so the login dialog appears and the login view is shown. (New to the sample.) |
 
-## Totals
+## Dropped-out targets: gate verdicts (not sample rows; do not count in the totals)
 
-- Routes: 30. CORRECT 20, WRONG 10, UNCLEAR 0.
-- Error rate (final draw): 10/30 = 0.3333.
-- Labels: 0 flips in Stream A (REACHABLE 3275, UNREACHABLE 911 throughout).
-- Graph after Stream A: methods 4186, pages 49, edges 9608, errors 0, warnings 0 (stale verification.csv warning cleared by regeneration in A4).
-- No route was left WRONG because a graph_def edit was pending: every WRONG above names the tools/ builder limitation that makes the builder print the fiction, with a corrected derivation from printed source. The first-draw table's WRONG routes are superseded by this table; their corrected derivations remain valid history but are not this draw's routes.
+The four dropped old-WRONG targets were re-printed on the merged graph and
+independently judged GENUINE (`turn/merge/JUDGE-GATES.md`, GATES-PASS):
+
+- libanki.Utils.base62 — 28 steps GENUINE: NoteEditor add-mode (head
+  S_NOTEEDITOR) -> setNote() -> setNote(Note) -> 2-arg -> 3-arg @id-null ->
+  guid64 -> base91 -> base62 (Note.java:58-72, Utils.java:421/427); old
+  CHECK_MEDIA route gone as best route; base62's sole incoming is E4a0aec25
+  from base91; @id-set leads only to Note.load; 3-arg + base62 REACHABLE.
+- BaseAsyncTask.onProgressUpdate — 13-step sync route GENUINE (final
+  super-call Connection.java:152-153, Connection extends BaseAsyncTask) AND
+  the restore chain hand-traced at exactly 17 edges via @ pages
+  (@LOAD_FAILED -> $1 -> @ERROR_HANDLING -> $3 -> @RESTORE_BACKUP -> $6 ->
+  restoreFromBackup -> importReplace -> IMPORT_REPLACE task -> onProgressUpdate
+  -> target). $6's sole incoming is from @RESTORE_BACKUP; every route to $6
+  passes through the $3 error-handling selection.
+- Collection.close() — 14 steps GENUINE: download via $17 (fullSync +
+  empty-collection branch DeckPicker.java:1450-1452 -> sync("download") ->
+  download branch Connection.java:334-337 -> FullSyncer.download -> close()).
+  Download incoming exactly [$11.onPositive, $17.onPostExecute, SyncErrorDialog$5,
+  SyncErrorDialog$8]; upload incoming exactly [SyncErrorDialog$4, SyncErrorDialog$7].
+  REPAIR chain exists (14 edges via underscore pages, 15 via @ pages):
+  $3 -> REPAIR page -> $4 -> repairDeck -> REPAIR_DECK task -> repairCollection
+  -> close().
+- AbstractFlashcardViewer.typeAnswer — 16 steps GENUINE: Reviewer prefix +
+  ANSWER_CARD launch with mAnswerCardHandler (Reviewer.java:110-111) ->
+  @ANSWER_CARD -> $10 -> blockControls -> typeAnswer. NO LOAD_DECK_COUNTS /
+  updateDeckList step; NO receiver-variant auto edge used (step 14 is E3a9489a8
+  from the @ANSWER_CARD node). @ANSWER_CARD has exactly 1 non-REGISTER
+  outgoing edge (the hand edge to $10) plus 27 REGISTER edges.
+
+Mechanical re-confirmation on the merged graph (all PASS): integrityCheck
+incoming exactly [V03, showStartup]; @CONFIRM sole outgoing Efb51fa08 to
+$9@CONFIRM; @CONFIRM variant path to DB.insert available at exactly 14 edges;
+generic page 0 in / 0 out; plain $9.onPositive 0 incoming; $8.onPositive sole
+incoming E80338edd from @NEW_COLLECTION; all six @ variant pages
+BFS-reachable from S_ENTRY.
+
+Disclosure (does not change any verdict): a raw 16-edge restore variant via
+the legacy underscore ERROR_HANDLING page exists but is guard-inconsistent
+(repair guard in, restore branch out); the guard-consistent chain is the
+17-edge @ chain. The literal "@-only" bypass wording is therefore FALSE in
+the narrow sense, but NO path bypasses the error-handling STAGE or
+@RESTORE_BACKUP, so the r25 no-bypass gate holds in substance. The same
+repair-guard text on the underscore $3 edge is what makes row 18
+(validateBrackets) WRONG as printed: restore traffic through that edge
+contradicts its guard. Neutralizing the D01/V05 $3-edge guards to
+branch-neutral wording is follow-up work (guard-text change + rebuild +
+re-judge of row 18 only); it is NOT in this merge, and the audited r27 v4
+fragment text was not altered to chase it.
+
+The three other dropped targets (Preferences.replaceString, DeckPicker$5,
+MetaDB) were not re-printed; their old CORRECT verdicts stand as history
+only and are not counted here.
+
+## Notes on the fixed routes (for the device delta)
+
+- r11 closeStudyOptions: NOT fixed by this merge — row 09 stays WRONG (see
+  above). The r11 fragment did its audited job (old E46c212fb fiction dead),
+  but the printed route is a different, longer pre-existing fiction.
+- r12 HttpFetcher: FIXED — row 12 CORRECT (37 steps, variant dispatch).
+- r14 TransformFieldDelete: FIXED — row 16 CORRECT (21 steps, DELETEFIELD
+  variant sequence; $3 leg exhibited, siblings confirmed in source).
+- r20 base62: FIXED as a route (gate-verified 28-step genuine print) but
+  dropped from the sample; the old CHECK_MEDIA fiction is gone.
+- r23 getToday: FIXED — row 21 CORRECT (18 steps, is:due pattern).
+- r24/r30 DB.insert + SimpleMessageDialog: FIXED — rows 25/29 CORRECT
+  (11/10 steps, showStartup route; @CONFIRM variant path also available at
+  14 edges to DB.insert for the device drive).
+- r25 BaseAsyncTask: FIXED as a route (gate-verified 13-step sync print +
+  17-edge @ restore chain) but dropped from the sample.
+- r27 Collection.close: FIXED as a route (gate-verified 14-step download
+  print + REPAIR chain) but dropped from the sample.
+- r28 typeAnswer: FIXED as a route (gate-verified 16-step print) but dropped
+  from the sample.
+- New WRONG rows (validateBrackets, Collection.getServer) are pre-existing
+  print fictions surfaced by the redraw, not regressions from the merge:
+  neither method's route was touched by any fragment.

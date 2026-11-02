@@ -855,11 +855,7 @@ e('DeckPicker.onCreate', 'S_PREFERENCES', 'ENTERS',
   note='B6FIX (route 14): the branch is the !colOpen else branch (DeckPicker.java:418) with storage permission (line 420), SD card mounted (line 422) and the AnkiDroid directory NOT accessible (lines 425-428, intent via getPreferenceSubscreenIntent with "com.ichi2.anki.prefs.advanced"). The old ENV_STORAGE text ("mounted and writable") was backwards on the last clause: the branch requires the directory to be inaccessible.',
   evidence='SRC com/ichi2/anki/DeckPicker.java:418-428')
 
-e('DeckPicker.onCreate', 'S_DLG_DATABASE_ERROR', 'ENTERS',
-  'the collection is not open and the storage checks pass: the cursor-size dialog (id 9) or the load-failed dialog (id 0) is shown',
-  env=None,
-  note='MISSING GATE MG1: no STATE exists for an unopenable collection. The gate is not modelled here; env and needs_state are unset.',
-  evidence='SRC com/ichi2/anki/DeckPicker.java:418, 430-433; SRC com/ichi2/anki/dialogs/DatabaseErrorDialog.java:27-36')
+
 
 e('DeckPicker.addNote', 'S_NOTEEDITOR', 'ENTERS',
   'the add-note floating button is tapped and the note editor opens for a new note',
@@ -878,11 +874,7 @@ e('DeckPicker.onOptionsItemSelected', 'S_DLG_IMPORT', 'ENTERS',
   env=None,
   evidence='SRC com/ichi2/anki/DeckPicker.java:561-563')
 
-e('DeckPicker.onOptionsItemSelected', 'S_DLG_DATABASE_ERROR', 'ENTERS',
-  'the check-database or restore-backup menu item is tapped and the database dialog opens (ids 6 and 7)',
-  env=None,
-  note='User-initiated, so no MG. The dialog is shown through the showDatabaseErrorDialog helper (DeckPicker.java:1026-1028).',
-  evidence='SRC com/ichi2/anki/DeckPicker.java:595-598, 616-619, 1026-1028')
+
 
 e('DeckPicker.onOptionsItemSelected', 'S_DLG_MEDIA_CHECK', 'ENTERS',
   'the check-media menu item is tapped and the media check dialog opens',
@@ -912,17 +904,9 @@ e('DeckPicker.confirmDeckDeletion(long)', 'S_DLG_DECKPICKER_DELETE_DECK', 'ENTER
   note='Guard: did != 1 (line 1977) and cnt != 0 (line 1994). When cnt is 0, deleteDeck is called directly (line 1995).',
   evidence='SRC com/ichi2/anki/DeckPicker.java:1972-1978, 1991-1995, 2008')
 
-e('DeckPicker.handleDbError', 'S_DLG_DATABASE_ERROR', 'ENTERS',
-  'a database error result is reported and the load-failed dialog opens',
-  env=None,
-  note='MISSING GATE MG1: no STATE for an unopenable collection or load failure. The gate is not modelled here.',
-  evidence='SRC com/ichi2/anki/DeckPicker.java:1243-1245')
 
-e('DeckPicker.onCollectionLoadError', 'S_DLG_DATABASE_ERROR', 'ENTERS',
-  'the collection load error is reported and the load-failed dialog opens through DialogHandler (indirect)',
-  env=None,
-  note='MISSING GATE MG1 (indirect through the DialogHandler message path).',
-  evidence='SRC com/ichi2/anki/DeckPicker.java:835-837; SRC com/ichi2/anki/dialogs/DialogHandler.java:58-60')
+
+
 
 e('DeckPicker.deleteUnused', 'S_DLG_SIMPLE_MESSAGE', 'ENTERS',
   'unused media is deleted and a simple message reports the result (indirect through showSimpleMessageDialog)',
@@ -1027,14 +1011,9 @@ gui('S_DLG_IMPORT', 'DeckPicker.importReplace',
     'the replace button of the import dialog is tapped',
     evidence='SRC com/ichi2/anki/dialogs/ImportDialog.java:147-148')
 
-gui('S_DLG_DATABASE_ERROR', 'DeckPicker.integrityCheck',
-    'the positive button of the database-check confirmation is tapped',
-    evidence='SRC com/ichi2/anki/dialogs/DatabaseErrorDialog.java:294-302')
 
-gui('S_DLG_DATABASE_ERROR', 'DeckPicker.exit',
-    'the negative button of the load-failed dialog is tapped',
-    note='MISSING GATE MG1: the page is reached only through the unopenable-collection path (no STATE). The gate is not modelled here.',
-    evidence='SRC com/ichi2/anki/dialogs/DatabaseErrorDialog.java:89-92')
+
+
 
 gui('S_DLG_MEDIA_CHECK', 'DeckPicker.mediaCheck',
     'the positive button of the media check dialog is tapped',
@@ -5498,80 +5477,30 @@ e('S_DLG_DECKPICKER_NO_SPACE', 'DeckPickerNoSpaceLeftDialog$1.onCancel', 'GUI',
 # Predefined constants are not used: no ENV or STATE kind fits these gates.
 # Page node: S_DLG_DATABASE_ERROR.
 
-# --- Load-failed dialog (id 0, LOAD_FAILED case, DatabaseErrorDialog.java:73-94).
-e('S_DLG_DATABASE_ERROR', 'DatabaseErrorDialog$1.onPositive', 'GUI',
-  'tap error handling options on the load-failed dialog',
-  gui=['tap error handling options on the load-failed dialog'],
-  evidence='SRC com/ichi2/anki/dialogs/DatabaseErrorDialog.java:80-87; SRC com/ichi2/anki/DeckPicker.java:433, 1243-1245, 1478-1479',
-  note='MISSING GATE MG352: the load-failed dialog opens only after a collection open failure or a database or I/O failure (DeckPicker.java:433, 1243-1245, 1478-1479). No predefined ENV or STATE kind covers it; env and needs_state unset.')
+# --- Combined fix batch (2026-11-02): the generic DatabaseErrorDialog page
+# dispatches below were all moved to dialog-id variant pages (see
+# graph_def_mod/03.py); the generic page has no ENTERS left. The section
+# comments that headed each deleted edge are removed with it.
 
-e('S_DLG_DATABASE_ERROR', 'DatabaseErrorDialog$1.onNegative', 'GUI',
-  'tap close on the load-failed dialog (DeckPicker.exit)',
-  gui=['tap close on the load-failed dialog (DeckPicker.exit)'],
-  evidence='SRC com/ichi2/anki/dialogs/DatabaseErrorDialog.java:89-92',
-  note='MISSING GATE MG352: the load-failed dialog opens only after a collection open failure or a database or I/O failure. No predefined ENV or STATE kind covers it; env and needs_state unset.')
 
-# --- Error handling list (id 2, ERROR_HANDLING case, DatabaseErrorDialog.java:129-199).
-e('S_DLG_DATABASE_ERROR', 'DatabaseErrorDialog$3.onSelection', 'GUI',
-  'pick one repair option in the error handling list',
-  gui=['pick one repair option in the error handling list'],
-  evidence='SRC com/ichi2/anki/dialogs/DatabaseErrorDialog.java:134-156, 168-196',
-  note='The list itself has no gate: the list is offered from the no-backup restore dialog (standard route) and from the load-failed dialog (MG352). Option 1 (check database) is offered only when the collection is open (line 134). Option 2 (repair) is offered only with sqlite3 (line 144, MISSING GATE MG353).')
 
-# --- Repair (id 3, REPAIR case, DatabaseErrorDialog.java:201-214).
-e('S_DLG_DATABASE_ERROR', 'DatabaseErrorDialog$4.onPositive', 'GUI',
-  'tap repair on the repair dialog (repairDeck)',
-  gui=['tap repair on the repair dialog (repairDeck)'],
-  evidence='SRC com/ichi2/anki/dialogs/DatabaseErrorDialog.java:65-70, 144-147, 207-212',
-  note='MISSING GATE MG353: the repair option is offered only when the sqlite3 command runs with exit code 0 (Runtime exec sqlite3 --version, DatabaseErrorDialog.java:65-70). No predefined ENV or STATE kind covers it; env and needs_state unset.')
 
-# --- Restore, no backup (id 5, RESTORE_BACKUP case, DatabaseErrorDialog.java:216-234).
-e('S_DLG_DATABASE_ERROR', 'DatabaseErrorDialog$5.onPositive', 'GUI',
-  'tap OK on the no-backup restore dialog (back to the error handling list)',
-  gui=['tap OK on the no-backup restore dialog (back to the error handling list)'],
-  evidence='SRC com/ichi2/anki/dialogs/DatabaseErrorDialog.java:224-234; SRC com/ichi2/anki/BackupManager.java:311-326',
-  note='No gate on the standard route: the menu item action_restore_backup has no enabled attribute (res/menu/deck_picker.xml:35-38 (src/main)). Caveat: a fresh install is assumed to have no backup file. env and needs_state unset.')
 
-# --- Restore with backups (ids 7 and 6, DatabaseErrorDialog.java:235-273).
-e('S_DLG_DATABASE_ERROR', 'DatabaseErrorDialog$6.onSelection', 'GUI',
-  'pick a backup date in the restore list (restoreFromBackup)',
-  gui=['pick a backup date in the restore list (restoreFromBackup)'],
-  evidence='SRC com/ichi2/anki/dialogs/DatabaseErrorDialog.java:251-270; SRC com/ichi2/anki/BackupManager.java:311-326',
-  note='MISSING GATE MG355: the restore list is built only when at least one backup .apkg exists (BackupManager.getBackups non-empty, BackupManager.java:311-326). No predefined ENV or STATE kind covers it; env and needs_state unset.')
 
-e('S_DLG_DATABASE_ERROR', 'DatabaseErrorDialog$7.onNegative', 'GUI',
-  'tap cancel on the restore list (dismiss only)',
-  gui=['tap cancel on the restore list (dismiss only)'],
-  evidence='SRC com/ichi2/anki/dialogs/DatabaseErrorDialog.java:243-248',
-  note='MISSING GATE MG355: the restore list is built only when at least one backup .apkg exists (BackupManager.getBackups non-empty, BackupManager.java:311-326). No predefined ENV or STATE kind covers it; env and needs_state unset.')
 
-# --- New collection (id 5, NEW_COLLECTION case, DatabaseErrorDialog.java:275-292).
-e('S_DLG_DATABASE_ERROR', 'DatabaseErrorDialog$8.onPositive', 'GUI',
-  'tap create on the new-collection dialog (the old database moves to the broken folder)',
-  gui=['tap create on the new-collection dialog (the old database moves to the broken folder)'],
-  evidence='SRC com/ichi2/anki/dialogs/DatabaseErrorDialog.java:280-290',
-  note='No gate on the standard route: the error handling list always offers option 5 (DatabaseErrorDialog.java:155-156, 192-194). env and needs_state unset.')
 
-# --- Database check (id 6, CONFIRM_DATABASE_CHECK case, DatabaseErrorDialog.java:294-306).
-e('S_DLG_DATABASE_ERROR', 'DatabaseErrorDialog$9.onPositive', 'GUI',
-  'tap OK on the database-check confirmation (integrityCheck)',
-  gui=['tap OK on the database-check confirmation (integrityCheck)'],
-  evidence='SRC com/ichi2/anki/dialogs/DatabaseErrorDialog.java:139-141, 299-304; SRC com/ichi2/anki/DeckPicker.java:528, 595-598',
-  note='No gate on the error handling list route (option 1 is offered when the collection is open, line 134). The menu route (action_check_database) needs ENV_STORAGE (DeckPicker.java:528; res/menu/deck_picker.xml:20-24 (src/main)). env and needs_state unset.')
 
-# --- Restore confirmation (id 7, CONFIRM_RESTORE_BACKUP case, DatabaseErrorDialog.java:308-320).
-e('S_DLG_DATABASE_ERROR', 'DatabaseErrorDialog$10.onPositive', 'GUI',
-  'tap continue on the restore confirmation (the restore dialog for id 4 follows)',
-  gui=['tap continue on the restore confirmation (the restore dialog for id 4 follows)'],
-  evidence='SRC com/ichi2/anki/dialogs/DatabaseErrorDialog.java:313-318; SRC com/ichi2/anki/DeckPicker.java:616-619',
-  note='No gate: the menu item action_restore_backup has no enabled attribute and is hidden only on ChromeOS (DeckPicker.java:535). env and needs_state unset.')
 
-# --- Full sync from server (id 8, FULL_SYNC_FROM_SERVER case, DatabaseErrorDialog.java:322-334).
-e('S_DLG_DATABASE_ERROR', 'DatabaseErrorDialog$11.onPositive', 'GUI',
-  'tap overwrite on the full-sync confirmation (sync download)',
-  gui=['tap overwrite on the full-sync confirmation (sync download)'],
-  evidence='SRC com/ichi2/anki/dialogs/DatabaseErrorDialog.java:155-156, 188-191, 327-332',
-  note='No gate on the dialog: the error handling list always offers option 4 (DatabaseErrorDialog.java:151-153). The sync it starts needs ENV_NETWORK and belongs to the sync batch; env and needs_state unset.')
+
+
+
+
+
+
+
+
+
+
 
 # --- DB_ERROR (id 1): never created. Grep over the source root: no caller passes DIALOG_DB_ERROR, and the replayed
 # dialogType (DialogHandler.java:87) is the stored id of a fragment, which is never 1.
@@ -7603,3 +7532,260 @@ def EDIT(x):
                    else _PROG_LISTENERS).get(t, set())
         if dst not in allowed:
             x['kind'] = 'REGISTER'
+
+# ---- Combined fix batch EDIT wrappers (merge lead, 2026-11-02) ----
+# Each clause below saves the current EDIT and calls it first (chained
+# extension, never a replacement). The wrappers' own 'DRAFT / NOT merged'
+# headers are stale as of this merge: the clauses below ARE merged.
+# Order: route 11, route 12, route 14 v2, route 28.
+
+# ---- route 11 EDIT ----
+# ---- AnkiDroid route 11 EDIT DRAFT (helper draft only; NOT merged) ----
+# PLACEMENT (mandatory): append this whole snippet to graphs/AnkiDroid/graph_def.py
+# AFTER the current final EDIT definition at merge time (whatever wrapper is
+# final then: B6, DeckTask variant-pruning, or a later chained wrapper). Do NOT
+# put this snippet in fragment.py and do NOT put it in graph_def_mod/02.py:
+# a mod file runs before the EDIT definitions, so an EDIT written there would
+# be replaced by them and never applied. Do NOT replace EDIT anywhere: this
+# snippet saves the previous EDIT and calls it first, exactly as the B6 wrapper
+# and the DeckTask wrapper did. There is no second EDIT definition here, only
+# a chained extension of the single EDIT definition.
+#
+# WHY EDIT IS NEEDED (see NOTES.md): the fiction edge is a HAND edge from
+# graph_def_mod/02.py, so the hand-covering rule alone cannot remove it: that
+# rule suppresses auto edges, and this edge is not auto. EDIT runs over every
+# edge, hand and auto, after fan-out and before ids are made, so a chained
+# EDIT clause is the in-convention way to take exactly this one edge out of
+# BFS without touching any other edge. The builder's route-finding skips
+# REGISTER-kind edges, so re-kinding this edge to REGISTER retires the
+# fiction path (old id E46c212fb) while leaving its evidence text untouched
+# for check examination. The genuine $4 dispatch is NOT deleted: it is
+# preserved and made producer-exact by the fragment.py variant chain.
+# This snippet uses no suppression call and changes no evidence text.
+#
+# Rule 1: retire the shared type-union fan-out edge, by exact (src, dst)
+# (B6 precedent: matching by exact pair, so no other edge is touched).
+# Rule 2: prune auto fan-out copies emitted FROM the new producer-variant
+# nodes. The existing DeckTask EDIT wrapper does not match these nodes: its
+# type test requires the suffix after '@' to be exactly a task-type name,
+# and the producer suffix is longer. Without Rule 2, the auto fan-out from
+# the base methods would copy unrelated listener dispatches onto the
+# producer nodes (notably the direct listener copy from the producer
+# onPostExecute node). Body auto copies are already suppressed by the
+# hand-covering rule (the body hand edges in 02.py and fragment.py share
+# the base pair), so the doInBackground branch below is defensive; the
+# onPostExecute and TaskListener branches do live pruning work. Hand edges
+# from the producer nodes are never touched by Rule 2 (it applies to auto
+# edges only), so the fragment.py chain itself is unaffected.
+# Rule 1 is idempotent: if the merger instead deletes the 02.py line, Rule 1
+# simply matches nothing.
+
+_EDIT_PREV_ROUTE11 = EDIT  # the current final EDIT (whatever wrapper is final at merge time)
+def EDIT(x):
+    _EDIT_PREV_ROUTE11(x)
+    if (x['src'], x['dst']) == ('DeckTask$TaskListener.onPostExecute@REBUILD_CRAM', 'CustomStudyDialog$4.onPostExecute'):
+        # Fiction fan-out copy: the type-union edge lets every REBUILD_CRAM
+        # launch reach $4. Genuine $4 dispatch now runs only through the
+        # producer variant chain in fragment.py.
+        x['kind'] = 'REGISTER'
+        return
+    if not x.get('auto'):
+        return
+    src = x['src']
+    dst = x['dst']
+    if src == 'DeckTask.doInBackground@REBUILD_CRAM@CustomStudyDialog':
+        # Keep only the variant's own body (hand edge, so this branch is
+        # defensive) and the legitimate non-body calls shared with every
+        # DeckTask variant (DeckTask.java:228, :225, :204).
+        if dst != 'DeckTask.doInBackgroundRebuildCram' and dst not in (
+                'CollectionHelper.getColSafe', 'CollectionHelper.getInstance',
+                'AnkiDroidApp.getInstance', 'AnkiDroidApp.<clinit>',
+                'BaseAsyncTask.doInBackground'):
+            x['kind'] = 'REGISTER'
+    elif src == 'DeckTask.onPostExecute@REBUILD_CRAM@CustomStudyDialog':
+        # Keep only the legitimate super-call. The listener hop for this
+        # producer node is the hand edge to the producer TaskListener node,
+        # never the shared node and never a direct listener copy.
+        if dst != 'BaseAsyncTask.onPostExecute':
+            x['kind'] = 'REGISTER'
+    elif src == 'DeckTask$TaskListener.onPostExecute@REBUILD_CRAM@CustomStudyDialog':
+        # Keep only this producer's own listener: $4. Every other listener
+        # copy from this producer node becomes REGISTER.
+        if dst != 'CustomStudyDialog$4.onPostExecute':
+            x['kind'] = 'REGISTER'
+
+# ---- route 12 EDIT ----
+# ---- AnkiDroid route 12 EDIT-wrapper DRAFT (turn lead merges; this file is NOT merged by its author) ----
+# PLACEMENT (mandatory): append this whole snippet to graphs/AnkiDroid/graph_def.py
+# AFTER the current final EDIT definition -- in the push2 tree read for this draft, the
+# DeckTask/Connection variant-pruning EDIT at graph_def.py:7558, whose predecessor
+# _EDIT_PREV_VARIANT is saved at :7557 (the B6 wrapper is at :7162, B3 at :7044).
+# Do NOT put this snippet in fragment.py or in any graph_def_mod/NN.py file: the mod
+# loader in graph_def.py runs before the EDIT definitions, so an EDIT written in a mod
+# file would be replaced by them and never applied. Do NOT replace EDIT anywhere: this
+# snippet saves the previous EDIT in _EDIT_PREV_ROUTE12 and calls it first, exactly as
+# the B6 wrapper saved and called the B3 EDIT and the variant-pruning wrapper saved and
+# called the B6 EDIT.
+#
+# WHY THIS CLAUSE EXISTS (see NOTES.md section 4): fragment.py alone cannot change the
+# printed route. The corrected variant chain and the shared chain have identical BFS
+# cost, and the builder's cheapest() breaks cost ties by edge-definition order, where
+# the shared page edges (graph_def.py batch 036) precede any fragment edge. This clause
+# therefore reclassifies exactly two hand page edges -- S_REVIEWER and S_DECKPICKER to
+# the shared dispatch node -- to kind REGISTER, which BFS skips. The variant page edges
+# in fragment.py then become the only drawer entry from those two pages, so the
+# Reviewer prefix deterministically prints Reviewer.openCardBrowser at step 15.
+# The clause changes kind only, on exactly these two edges; it never changes evidence,
+# guard, env, or needs_state, and it touches no dispatch edge, no dialog edge, and no
+# auto edge. The shared dispatch node itself stays fully intact for the StudyOptions,
+# Statistics, and CardBrowser screens, which keep their shared page edges.
+#
+# EQUIVALENT ALTERNATIVE (merger's choice, not both): instead of this clause, DELETE
+# the same two hand page edges from graph_def.py (batch 036: S_REVIEWER and
+# S_DECKPICKER to NavigationDrawerActivity.onNavigationItemSelected). Deletion and
+# this clause have the same routing effect; deletion also removes the edges from the
+# edge list, while this clause keeps them as REGISTER edges with recomputed ids (the
+# id hash covers kind, so the old step-14 edge id changes either way, and the
+# verification.csv path row for route 12 must be re-printed either way). Do NOT apply
+# both: applying both is harmless but redundant.
+#
+# LOSSLESS CHECK (why pruning these two page edges strands nothing): fragment.py
+# mirrors every hand out-edge of the shared dispatch node on each variant node --
+# Decks, Statistics, Settings, the receiver's own openCardBrowser, night-mode, and
+# drawer-closed -- at the same kind, trigger, evidence, and (unset) env/needs_state as
+# the shared edges. The nav_help / nav_feedback items need no hand mirror: the
+# extractor's auto call records from each variant node already cover them. After this
+# clause, every destination the shared node offered from S_REVIEWER or S_DECKPICKER
+# is still offered from the matching variant node at the same BFS cost.
+
+_EDIT_PREV_ROUTE12 = EDIT
+def EDIT(x):
+    _EDIT_PREV_ROUTE12(x)
+    if (x['src'], x['dst']) in (
+            ('S_REVIEWER', 'NavigationDrawerActivity.onNavigationItemSelected'),
+            ('S_DECKPICKER', 'NavigationDrawerActivity.onNavigationItemSelected')):
+        x['kind'] = 'REGISTER'
+
+# ---- route 14 v2 EDIT (v1 never merged) ----
+# ---- DRAFT ONLY, AnkiDroid route 14: companion EDIT-wrapper draft, v2 ----
+# Turn-lead merge only. NEVER place this text inside fragment.py.
+# PLACEMENT (mandatory): place this whole snippet in
+# graphs/AnkiDroid/graph_def.py AFTER the current final EDIT definition
+# (in the tree read for this draft, the DeckTask variant wrapper whose
+# predecessor is saved at graph_def.py:7557 as _EDIT_PREV_VARIANT, itself
+# chained after the B6 wrapper). The merger MUST re-check which EDIT is
+# final at merge time and save that one as the predecessor below; a
+# second standalone EDIT assignment would silently replace the B3/B6/
+# variant wrappers and must never be created.
+# The wrapper below chains: it calls the predecessor first, exactly as
+# the B6 wrapper saved and called the B3 EDIT, and as the DeckTask
+# wrapper saved and called the B6 EDIT.
+#
+# WHAT IT DOES (exactly three edges, all hand ENTERS edges, all
+# BFS-invisible after this change):
+#   ('ModelBrowser.deleteModelDialog', 'S_DLG_CONFIRMATION')
+#   ('ModelFieldEditor.deleteFieldDialog', 'S_DLG_CONFIRMATION')
+#   ('ModelFieldEditor$2.onPositive', 'S_DLG_CONFIRMATION')
+# For each, kind is changed to REGISTER. The builder never follows
+# REGISTER edges for reachability (build_graph.py BFS skips kind
+# REGISTER), so BFS can no longer enter the generic page from any of
+# these three show-methods. Their dialogs are NOT lost: each has a
+# 1:1 replacement ENTERS edge in v2/fragment.py onto its own variant
+# page, with the same dialog's confirm/cancel dispatch edges on that
+# page, so $7/$8, $3/$4, and $2$1 stay reachable with no label change.
+#
+# WHAT IT DOES NOT DO (binding constraints, verified by construction):
+# - It does NOT close ModelFieldEditor.sortByField ->
+#   S_DLG_CONFIRMATION. That entry stays open in v2 on purpose (see
+#   NOTES.md section 6): it is the last entry keeping the generic page
+#   reachable, and closing it as well would orphan 14 labeled
+#   REACHABLE methods with no variant page. The sort split is a
+#   follow-up turn, not smuggled in here.
+# - It does not touch any ConfirmationDialog$1.onPositive -> confirm
+#   dispatch edge (16 edges) or any ConfirmationDialog$1.onNegative ->
+#   cancel dispatch edge (8 edges). Those auto fan-out edges stay
+#   exactly as built; they are simply no longer reachable from these
+#   three prefixes, because none of the three prefixes can reach the
+#   generic page. (They stay reachable from the sortByField prefix,
+#   which is why the generic page itself stays reachable in v2.)
+# - It does not touch any direct generic-page GUI edge
+#   (S_DLG_CONFIRMATION -> $3/$4/$7/$8/$2$1 confirm/cancel, or any
+#   other dialog's generic-page edge). Those edges stay in the graph;
+#   only the three entries into the page from these show-methods are
+#   closed.
+# - It does not touch any other ENTERS edge into S_DLG_CONFIRMATION.
+#   The complete list of hand ENTERS edges into the generic page in
+#   the tree read for this draft is exactly four: the three closed
+#   here plus sortByField (graph_def.py:4745), which stays open.
+# - It changes no guard, evidence, env, or needs_state on any edge.
+#   Guard text alone cannot change BFS (the cost model ignores guard
+#   text), which is why the kind change, not a guard note, is the
+#   load-bearing step.
+#
+# WHY A WRAPPER, NOT A SUPPRESSION CALL: sup() removes auto
+# (bytecode) edges only. All three generic ENTERS edges are
+# hand-written, so no sup() call can remove them. Changing kind in the
+# chained wrapper is the same technique the DeckTask variant wrapper
+# already uses (kind -> REGISTER for pruned variant copies).
+#
+# MERGER CHECK AT REBUILD: after applying v2/fragment.py + this
+# wrapper, confirm (a) route 14 re-prints through
+# S_DLG_CONFIRMATION_MODELFIELDEDITOR_DELETEFIELD, not through
+# S_DLG_CONFIRMATION and not through the sortByField prefix (see
+# NOTES.md section 7 for the tie warning); (b) ModelBrowser$7/$8
+# confirm/cancel are still reachable, via the DELETEMODEL variant
+# page; (c) ModelFieldEditor$2$1.confirm/cancel are still reachable,
+# via the ADDFIELD variant page; (d) the generic page still has its
+# sortByField entry and its dispatches; (e) no label moves
+# (REACHABLE 3275 / UNREACHABLE 911 baseline). Any label move means
+# stop, back out, report; it is not explained away.
+
+_R14V2_EDIT_PREV = EDIT  # the current final EDIT (re-check at merge time)
+def EDIT(x):
+    _R14V2_EDIT_PREV(x)
+    if x.get('kind') == 'ENTERS' and not x.get('auto'):
+        if (x['src'], x['dst']) in (
+            ('ModelBrowser.deleteModelDialog', 'S_DLG_CONFIRMATION'),
+            ('ModelFieldEditor.deleteFieldDialog', 'S_DLG_CONFIRMATION'),
+            ('ModelFieldEditor$2.onPositive', 'S_DLG_CONFIRMATION'),
+        ):
+            x['kind'] = 'REGISTER'
+
+# ---- route 28 EDIT ----
+# ---- AnkiDroid route 28 EDIT-wrapper DRAFT ONLY (companion to fragment.py) ----
+# PLACEMENT (mandatory): append this whole snippet to
+# graphs/AnkiDroid/graph_def.py AFTER the current final EDIT definition
+# (the B6 wrapper), never inside fragment.py and never inside
+# graph_def_mod/02.py. Do NOT replace EDIT anywhere: this snippet saves
+# the previous EDIT in _EDIT_PREV_PRE28 and calls it first, exactly as
+# the B6 wrapper saved and called the B3 EDIT and as the DeckTask variant
+# wrapper saved and called the B6 EDIT.
+# WHY IT IS NEEDED: fragment.py writes one hand edge out of the variant
+# node DeckTask$TaskListener.onPreExecute@ANSWER_CARD. The builder's
+# auto-edge step copies every shared TaskListener.onPreExecute fan-out
+# call onto each variant of that source, so without this clause the
+# variant node would also reach every other listener's onPreExecute --
+# the same fan-out error, only moved onto the variant node. The hand
+# edge to AbstractFlashcardViewer$10.onPreExecute itself is not an auto
+# edge, so this clause leaves it untouched (it returns immediately for
+# non-auto edges, as the DeckTask variant wrapper does).
+# SCOPE: this clause touches ONLY auto edges whose source is the single
+# variant node above. It has no rule for any shared source, so the shared
+# DeckTask.onPreExecute -> TaskListener.onPreExecute hop and every shared
+# fan-out copy to listeners other than $10 survive unchanged (see
+# NOTES.md). It does not restore or create any edge: an edge the
+# hand-covering rule already skipped is not recreated by this clause.
+
+_EDIT_PREV_PRE28 = EDIT
+def EDIT(x):
+    _EDIT_PREV_PRE28(x)
+    if not x.get('auto'):
+        return  # hand edges (including both fragment.py edges) are never pruned
+    if x['src'] == 'DeckTask$TaskListener.onPreExecute@ANSWER_CARD':
+        # ANSWER_CARD pre-execute listener set is exactly
+        # {AbstractFlashcardViewer$10} (fragment.py evidence). Every auto
+        # fan-out copy from this variant node to another listener is a
+        # false producer, so it becomes BFS-invisible. The $10 hop is a
+        # hand edge and is not reached here.
+        x['kind'] = 'REGISTER'
+

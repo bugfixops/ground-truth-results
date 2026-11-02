@@ -7,13 +7,13 @@ if a path/label item is missing, a verdict does not match, an edge id
 does not exist, or a path row's cited file is not on that method's route.
 All paths it uses are inside graphs/AnkiDroid/ or tools/.
 
-Path rows: one per method in the FINAL-draw sample after the Stream A
-graph fixes (graphs/AnkiDroid/scratch/sample_30.txt, seed 20261025,
-re-drawn on the Stream A graph: methods 4186, pages 49, edges 9608).
+Path rows: one per method in the FINAL-draw sample after the combined
+merge (graphs/AnkiDroid/scratch/sample_30.txt, seed 20261025,
+re-drawn on the combined-merge graph: methods 4186, pages 56, edges 9815).
 The `edges` field is the method's built route (methods.csv
 route_edge_ids, i.e. the graph's best route as built); the `result` is
-the AUDITED route-table verdict (scratch/route_table.md: CORRECT 20,
-WRONG 10, UNCLEAR 0). For WRONG routes the built route is wrong and the
+the AUDITED route-table verdict (scratch/route_table.md: CORRECT 27,
+WRONG 3, UNCLEAR 0). For WRONG routes the built route is wrong and the
 corrected derivation is in route_table.md (the note says so); for
 CORRECT routes the built route IS the judged route. The `ref` is a
 file:line from the built route's own evidence, so it validates against
@@ -49,28 +49,28 @@ VERDICT = {
     'Sched.revDue': 'correct',
     'MediaCheckDialog$3.<init>': 'correct',
     'ModelEditorContextMenu.onCreateDialog': 'correct',
+    'StudyOptionsActivity.closeStudyOptions(int)': 'wrong',
     'Finder.findNotes': 'correct',
     'Template$1.compare': 'correct',
-    'StudyOptionsActivity.closeStudyOptions(int)': 'wrong',
-    'HttpFetcher.downloadFileToSdCardMethod': 'wrong',
+    'HttpFetcher.downloadFileToSdCardMethod': 'correct',
     'Sound.notifyConfigurationChanged': 'correct',
-    'Models$TransformFieldDelete.<init>': 'wrong',
     'Anki2Importer._mediaPick': 'correct',
-    'Preferences.replaceString': 'correct',
-    'DeckPicker$5.onProgressUpdate': 'correct',
+    'Models.rem': 'correct',
+    'Models$TransformFieldDelete.<init>': 'correct',
+    'Models$TransformFieldMove.<init>': 'correct',
+    'Models.validateBrackets': 'wrong',
+    'FullSyncer.syncURL': 'correct',
     'Sched.sortCards(long[],int,int,boolean,boolean)': 'correct',
+    'Sched.getToday': 'correct',
     'AdvancedStatistics$Card.setIvl': 'correct',
-    'libanki.Utils.base62': 'wrong',
     'DiffEngine.diff_cleanupSemanticScore': 'correct',
-    'MetaDB.getNotificationStatus': 'correct',
-    'Sched.getToday': 'wrong',
-    'DB.insert': 'wrong',
-    'BaseAsyncTask.onProgressUpdate': 'wrong',
+    'UIUtils$1.onPostExecute': 'correct',
+    'DB.insert': 'correct',
     'CollectionLoader.deliverResult': 'correct',
-    'Collection.close()': 'wrong',
-    'AbstractFlashcardViewer.typeAnswer': 'wrong',
     'Decks.id(String,boolean)': 'correct',
-    'SimpleMessageDialog.<init>': 'wrong',
+    'Collection.getServer': 'wrong',
+    'SimpleMessageDialog.<init>': 'correct',
+    'AnkiActivity.openUrl': 'correct',
 }
 assert set(VERDICT) == set(sample), ('verdict set != sample',
                                      sorted(set(sample) - set(VERDICT)),
@@ -86,28 +86,28 @@ NOTE = {
     'Sched.revDue': 'CORRECT: all 16 steps genuine as printed; support-v4 lifecycle (evidence wording says androidx); condition: finished deck.',
     'MediaCheckDialog$3.<init>': 'CORRECT: all 16 steps genuine as printed; condition: media-sync-server-error + check success; logged-in hkey + online.',
     'ModelEditorContextMenu.onCreateDialog': 'CORRECT: all 14 steps genuine; final step genuine-INFERRED (support-v4 DialogFragment lifecycle, not androidx as evidence says; onCreateDialog at ModelEditorContextMenu.java:31); condition: model list loaded successfully.',
-    'Finder.findNotes': 'CORRECT: all 34 steps genuine; Reviewer head + for-result tail (startActivityForResult -> fragment onActivityResult -> deleteDummyCards -> findNotes); condition: cards due.',
+    'StudyOptionsActivity.closeStudyOptions(int)': 'WRONG: step 23 fiction (TagsDialog shown by CardBrowser installs CardBrowser\'s own search listener, never CustomStudyDialog$1$1); PLUS guard contradiction (step 6 needs mFragmented true, step 28 needs mFragmented false for the same DeckPicker); step 25 producer-exact in isolation but the chain never starts on this prefix; old E46c212fb fiction dead; no corrected derivation proven on this graph (old custom-study-menu derivation shares the mFragmented tension); follow-up: TagsDialog producer-split fix + phone-pure prefix investigation.',
+    'Finder.findNotes': 'CORRECT: all 34 steps genuine; Reviewer head + for-result tail (startActivityForResult -> fragment onActivityResult -> deleteDummyCards -> findNotes); this print has no Finder/_where steps, so the route-23 query fix is irrelevant here; condition: cards due.',
     'Template$1.compare': 'CORRECT: all 17 steps genuine; steps 4-6 need a transient first-open failure + successful retry (exceededCursorSizeLimit -> getCol -> Storage.Collection); condition: old schema + non-zero model id + multi-modifier absent-field template tag.',
-    'StudyOptionsActivity.closeStudyOptions(int)': 'WRONG: step 12 fiction (listener fan-out: menu-item REBUILD_CRAM listener never calls onCreateCustomStudySession; $4 belongs to the CustomStudyDialog launch); corrected route via custom-study menu item -> CustomStudyDialog -> its REBUILD_CRAM listener; tools/ reason: producer-aware listener dispatch.',
-    'HttpFetcher.downloadFileToSdCardMethod': 'WRONG: step 15 fiction (wrong override: Reviewer.openCardBrowser, Reviewer.java:508-518, not DeckPicker.openCardBrowser); corrected route relabels steps 15-16; tools/ reason: receiver-aware drawer dispatch.',
+    'HttpFetcher.downloadFileToSdCardMethod': 'CORRECT: all 37 steps genuine; drawer dispatch now resolves to the Reviewer override (step 14 new variant page id, step 15 new variant dispatch id, step 16 pre-existing E5285c072 differing from old E0e89f361 by receiver change, steps 17-37 same; old fiction Ea0eba485 gone); condition: network + Beolingus.',
     'Sound.notifyConfigurationChanged': 'CORRECT: all 24 steps genuine; Reviewer.onOptionsItemSelected -> playSounds (Reviewer.java:152) -> Sound chain -> VideoPlayer -> onConfigurationChanged -> target; conditions: non-TTS replay, video sound with thumbnail, VideoPlayer configChanges (AndroidManifest.xml:184).',
-    'Models$TransformFieldDelete.<init>': 'WRONG: step 12 fiction (shared-dialog page jump: ModelBrowser deleteModelDialog confirm calls deleteModel(), never deleteField()); corrected route via ModelFieldEditor deleteFieldDialog -> $3.confirm -> deleteField -> @DELETE_FIELD -> remField; tools/ reason: dialog-id/activity-aware shared-page routing.',
     'Anki2Importer._mediaPick': 'CORRECT: all 16 steps genuine as printed.',
-    'Preferences.replaceString': 'CORRECT: all 10 steps genuine; initPreference route (Option A, NOT the 9-edge page-GUI route); dir-inaccessible branch + qualifying preference (Preferences.java:636).',
-    'DeckPicker$5.onProgressUpdate': 'CORRECT: all 16 steps genuine; Stream A IMPORT progress chain (importAdd -> @IMPORT -> ImportAdd body -> importer -> ProgressCallback -> doProgress -> onProgressUpdate@IMPORT -> TaskListener@IMPORT -> $5).',
+    'Models.rem': 'CORRECT: all 16 steps genuine; long-press delete confirmation launches the delete-model task, which calls rem.',
+    'Models$TransformFieldDelete.<init>': 'CORRECT: all 21 steps genuine; field-delete confirmation (not sort) drives the delete-field task into remField\'s TransformFieldDelete ($3.confirm -> deleteField -> @DELETE_FIELD -> remField); NOT a sort-prefix print; only the $3 leg is exhibited, siblings confirmed in source.',
+    'Models$TransformFieldMove.<init>': 'CORRECT: all 20 steps genuine; reposition dialog confirmation launches the reposition task into moveField\'s TransformFieldMove.',
+    'Models.validateBrackets': 'WRONG: step 7/8 guard contradiction (step 7 picks repair value 2, step 8 requires restore value 3, same single onSelection call); genuine continuation exists with the corrected guard (pick restore, value 3, always offered), steps 9-17 check out (RESTORE_BACKUP -> restoreFromBackup -> importReplace -> IMPORT_REPLACE -> tmpCol.validCollection -> validateModel -> validateBrackets, valid non-empty backup required).',
+    'FullSyncer.syncURL': 'CORRECT: all 19 steps genuine; empty-collection full-sync download runs req on a FullSyncer receiver, so syncURL dispatches to the FullSyncer override (HttpSyncer.java:207 virtual call).',
     'Sched.sortCards(long[],int,int,boolean,boolean)': 'CORRECT: all 19 steps genuine as printed; single consistent guard includeSched=false.',
+    'Sched.getToday': 'CORRECT: all 18 steps genuine; corrected pattern: step 17 _where -> _findCardState@due with is:due in terms[0], step 18 @due -> getToday for val "due" (Finder.java:466); condition: first search term contains is:due.',
     'AdvancedStatistics$Card.setIvl': 'CORRECT: all 35 steps genuine; @advancedStatistics variant chain (direct edge deleted, correctly bypassed); hook installed only when pref advanced_statistics_enabled is on (Hooks.java:61-63).',
-    'libanki.Utils.base62': 'WRONG: step 19 fiction (guard-contradicted branch: Note id==null branch vs existing id from getNote on the CHECK_MEDIA prefix); corrected route via NoteEditor new-note creation (NoteEditor.java:1370) -> guid64 -> base91 -> base62; tools/ reason: branch-sensitive constructor routing.',
     'DiffEngine.diff_cleanupSemanticScore': 'CORRECT: all 24 steps genuine; type-answer route (Reviewer.onKeyUp -> displayCardAnswer@Reviewer -> typeAnsAnswerFilter -> diff chain).',
-    'MetaDB.getNotificationStatus': 'CORRECT: all 14 steps genuine as printed; support-v4-only dispatches genuine-but-INFERRED, never SOURCE.',
-    'Sched.getToday': 'WRONG: step 18 fiction (wrong branch: _findCardState calls getToday() only for "due", Finder.java:466-467; printed query has only suspended/buried/filtered tokens); corrected route adds is:due to terms[0] (Sched.java:1558-1562); tools/ reason: token-aware branch routing.',
-    'DB.insert': 'WRONG: step 5 fiction (wrong dialog id: entered LOAD_FAILED dialog has no integrityCheck button; cited lines are the CONFIRM dialog); corrected route via collection-open prefix (menu action_check_database -> CONFIRM -> integrityCheck); tools/ reason: dialog-id-aware shared-page routing.',
-    'BaseAsyncTask.onProgressUpdate': 'WRONG: step 5 fiction (wrong dialog id: cited lines are RESTORE_BACKUP onSelection, never shown on LOAD_FAILED); corrected route via LOAD_FAILED -> ERROR_HANDLING -> restore (value 3) -> RESTORE_BACKUP -> non-empty backup; tools/ reason: dialog-id-aware shared-page routing.',
+    'UIUtils$1.onPostExecute': 'CORRECT: all 11 steps genuine; DeckPicker onStop saves the collection in the background to the registered task listener\'s onPostExecute; condition: collection open at onStop.',
+    'DB.insert': 'CORRECT: all 11 steps genuine on the new showStartup integrity-check route, with no base-page dialog step and no Ea13b2167 edge; condition: integrity check finds orphan notes to delete.',
     'CollectionLoader.deliverResult': 'CORRECT: all 11 steps genuine as printed; support-v4 loader dispatch genuine-but-INFERRED, never SOURCE.',
-    'Collection.close()': 'WRONG: step 5 fiction (wrong dialog id: cited lines are REPAIR_COLLECTION onPositive, not LOAD_FAILED); corrected route via LOAD_FAILED -> ERROR_HANDLING -> repair (value 2, sqlite3 required) -> REPAIR -> repairDeck -> close(); tools/ reason: dialog-id-aware shared-page routing.',
-    'AbstractFlashcardViewer.typeAnswer': 'WRONG: step 9 fiction (interface fan-out to an unregistered listener: LOAD_DECK_COUNTS launch never registers mAnswerCardHandler); corrected route via Reviewer prefix + ANSWER_CARD launch with mAnswerCardHandler -> blockControls -> typeAnswer; tools/ reason: producer-aware listener dispatch.',
     'Decks.id(String,boolean)': 'CORRECT: all 11 steps genuine as printed.',
-    'SimpleMessageDialog.<init>': 'WRONG: step 5 fiction (wrong dialog id, identical to DB.insert step 5); corrected route via collection-open prefix (menu action_check_database -> CONFIRM -> integrityCheck) -> printed steps 6-10 (successful check required at step 7); tools/ reason: dialog-id-aware shared-page routing.',
+    'Collection.getServer': 'WRONG: step 8 fiction (load-failed prefix: collection null or closed with null database, so close guards skip Collection.close and steps 9-10 never run); close-to-getServer calls are real code, just unreachable after a failed first open; corrected route needs an open-collection prefix, not the load-failed prefix.',
+    'SimpleMessageDialog.<init>': 'CORRECT: all 10 steps genuine on the new showStartup integrity-check route via $15.onPostExecute; step 7 requires a successful database check (DeckPicker.java:1170); no Ea13b2167 edge.',
+    'AnkiActivity.openUrl': 'CORRECT: all 11 steps genuine; not-logged-in sync dialog -> MyAccount -> sign-up button opens the registration page; condition: empty sync key so the login dialog appears.',
 }
 
 
