@@ -1389,16 +1389,16 @@ UNREACHABLE['SevenZOutputFile.writeUnpackInfo'] = (
 # This method sets up the dialog and registers several lambdas
 
 e('SftpConnectDialog.onCreateDialog', 'SftpConnectDialog.lambda$onCreateDialog$9', 'FRAMEWORK',
-  'portET.setOnFocusChangeListener registers lambda$onCreateDialog$9',
-  evidence='SRC SftpConnectDialog.java:132 portET.setOnFocusChangeListener((v, hasFocus) -> {...')
+  'dialogBuilder.onPositive registers lambda$onCreateDialog$9 for positive button',
+  evidence='SRC SftpConnectDialog.java:157 dialogBuilder.onPositive((dialog, which) -> {...')
 
 e('SftpConnectDialog.onCreateDialog', 'SftpConnectDialog.lambda$onCreateDialog$1', 'FRAMEWORK',
   'selectPemBTN.setOnClickListener registers lambda$onCreateDialog$1',
   evidence='SRC SftpConnectDialog.java:139 selectPemBTN.setOnClickListener(v -> {...')
 
 e('SftpConnectDialog.onCreateDialog', 'SftpConnectDialog.lambda$onCreateDialog$0', 'FRAMEWORK',
-  'dialogBuilder.onPositive registers lambda$onCreateDialog$0 for positive button',
-  evidence='SRC SftpConnectDialog.java:157 dialogBuilder.onPositive((dialog, which) -> {...')
+  'portET.setOnFocusChangeListener registers lambda$onCreateDialog$0',
+  evidence='SRC SftpConnectDialog.java:132 portET.setOnFocusChangeListener((v, hasFocus) -> {...')
 
 e('SftpConnectDialog.onCreateDialog', 'SftpConnectDialog.lambda$onCreateDialog$13', 'FRAMEWORK',
   'dialogBuilder.onNegative registers lambda$onCreateDialog$13 for negative button',
@@ -1418,43 +1418,19 @@ e('SftpConnectDialog.onCreateDialog', 'SimpleTextWatcher.<init>', 'CALL',
   'onCreateDialog creates SimpleTextWatcher anonymous subclass for validator',
   evidence='SRC SftpConnectDialog.java:264 TextWatcher validator = new SimpleTextWatcher() {...')
 
-# lambda$onCreateDialog$9 - focus change listener for port EditText
+# lambda$onCreateDialog$0 - focus change listener for port EditText
 # Lines 131-134
 
 # lambda$onCreateDialog$1 - click listener for select PEM button
 # Lines 139-144
 
 
-# lambda$onCreateDialog$0 - main positive button handler
+# lambda$onCreateDialog$9 - main positive button handler
 # Lines 157-231
-
-e('SftpConnectDialog.lambda$onCreateDialog$0', 'UtilsHandler.getSshHostKey', 'CALL',
-  'lambda retrieves existing SSH host key',
-  evidence='SRC SftpConnectDialog.java:169 String sshHostKey = utilsHandler.getSshHostKey(deriveSftpPathFrom(...));')
-
-e('SftpConnectDialog.lambda$onCreateDialog$0', 'SshConnectionPool.getInstance', 'CALL',
-  'lambda gets SshConnectionPool singleton',
-  evidence='SRC SftpConnectDialog.java:176 SshConnectionPool.getInstance().removeConnection(...);')
-
-e('SftpConnectDialog.lambda$onCreateDialog$0', 'SshConnectionPool.removeConnection', 'CALL',
-  'lambda removes existing connection before reconnecting',
-  evidence='SRC SftpConnectDialog.java:176-177 SshConnectionPool.getInstance().removeConnection(SshClientUtils.deriveSftpPathFrom(...), () -> {...')
-
-e('SftpConnectDialog.lambda$onCreateDialog$0', 'SftpConnectDialog.lambda$null$2', 'ASYNC',
-  'removeConnection callback registers lambda$null$2',
-  evidence='SRC SftpConnectDialog.java:177 removeConnection(..., () -> {...')
-
-e('SftpConnectDialog.lambda$onCreateDialog$0', 'GetSshHostFingerprintTask.<init>', 'CALL',
-  'lambda creates GetSshHostFingerprintTask for new connection (no existing key)',
-  evidence='SRC SftpConnectDialog.java:203 new GetSshHostFingerprintTask(hostname, port, taskResult -> {...')
 
 e('SftpConnectDialog.lambda$onCreateDialog$9', 'GetSshHostFingerprintTask.doInBackground', 'ASYNC',
   'lambda executes GetSshHostFingerprintTask',
   evidence='SRC SftpConnectDialog.java:229 }).execute();')
-
-e('SftpConnectDialog.lambda$onCreateDialog$0', 'SftpConnectDialog.lambda$null$6', 'ASYNC',
-  'GetSshHostFingerprintTask callback registers lambda$null$6',
-  evidence='SRC SftpConnectDialog.java:203 new GetSshHostFingerprintTask(hostname, port, taskResult -> {...')
 
 
 # lambda$null$2 - callback from removeConnection
@@ -1497,31 +1473,17 @@ e('SftpConnectDialog.lambda$null$4', 'SftpConnectDialog.authenticateAndSaveSetup
 # lambda$null$5 - negative button in host key changed dialog
 # Lines 196
 
-# lambda$null$6 - callback from GetSshHostFingerprintTask (new connection)
+# lambda$null$6 - positive button in host key verification dialog
+# Lines 217-226
+
+
+# lambda$null$7 - negative button in host key verification dialog
+# Lines 227
+
+
+
+# lambda$null$8 - callback from GetSshHostFingerprintTask (new connection)
 # Lines 203-230
-
-
-
-e('SftpConnectDialog.lambda$null$6', 'SftpConnectDialog.lambda$null$7', 'CALL',
-  'setPositiveButton registers lambda$null$7',
-  evidence='SRC SftpConnectDialog.java:217 .setPositiveButton(R.string.yes, (dialog1, which1) -> {...')
-
-e('SftpConnectDialog.lambda$null$6', 'SftpConnectDialog.lambda$null$8', 'CALL',
-  'setNegativeButton registers lambda$null$8',
-  evidence='SRC SftpConnectDialog.java:229 .setNegativeButton(R.string.no, (dialog1, which1) -> dialog1.dismiss()).show();')
-
-
-# lambda$null$7 - positive button in host key verification dialog
-# Lines 217-228
-
-e('SftpConnectDialog.lambda$null$7', 'SftpConnectDialog.authenticateAndSaveSetup', 'CALL',
-  'lambda calls authenticateAndSaveSetup after user accepts key',
-  evidence='SRC SftpConnectDialog.java:220-222 authenticateAndSaveSetup(connectionName, hostname, port, hostKeyFingerprint, username, password, selectedParsedKeyPairName, selectedParsedKeyPair, edit)')
-
-
-
-# lambda$null$8 - negative button in host key verification dialog
-# Lines 229
 
 # lambda$onCreateDialog$13 - negative button handler (non-edit mode)
 # Line 232
@@ -2162,6 +2124,14 @@ e('S_ENTRY', 'PrefFrag.onPause', 'LIFECYCLE',
 e('PrefFrag.onCreate', 'PrefFrag.onPreferenceClick', 'CALL',
   'onCreate sets preference click listener',
   evidence='SRC fragments/preference_fragments/PrefFrag.java:89: for (String PREFERENCE_KEY : PREFERENCE_KEYS) { findPreference(PREFERENCE_KEY).setOnPreferenceClickListener(this); } // PrefFrag implements OnPreferenceClickListener')
+
+# Hand-written override of the auto onPreferenceClick -> selectItem edge: the auto
+# edge cites :221 (the ADVANCEDSEARCH case); the route through FoldersPref uses
+# the FRAGMENT_FOLDERS case at :211-213, so this edge carries the route-consistent
+# citation and suppresses the auto edge for the same (src, dst) pair.
+e('PrefFrag.onPreferenceClick', 'PreferencesActivity.selectItem', 'CALL',
+  'FOLDERS case calls selectItem with FOLDERS_PREFERENCE',
+  evidence='SRC fragments/preference_fragments/PrefFrag.java:211-213')
 
 e('S_ENTRY', 'PrefFrag.onResume', 'LIFECYCLE',
   'PreferenceFragment onResume lifecycle callback',
@@ -4409,7 +4379,7 @@ e('AbstractProgressiveService.addDatapoint', 'ProcessViewerFragment$CustomServic
   evidence='INFERRED INFERRED')
 e('ProcessViewerFragment$CustomServiceConnection$1.onUpdate', 'ProcessViewerFragment$CustomServiceConnection$1.lambda$onUpdate$0', 'ASYNC',
   'Lambda for runOnUiThread inside onUpdate',
-  evidence='SRC ProcessViewerFragment.java:422')
+  evidence='SRC ProcessViewerFragment.java:423')
 
 # PropertiesSheet$1 - anonymous OnScrollChangeListener
 
@@ -5329,6 +5299,8 @@ e('SftpConnectDialog.lambda$onCreateDialog$9', 'SshConnectionPool.getInstance', 
 
 e('SftpConnectDialog.lambda$onCreateDialog$9', 'SshConnectionPool.removeConnection', 'CALL',
   'Lambda removes existing connection before updating',
+  guard='!isEmpty(sshHostKey)',
+  needs_state=NEED_SAVED_SSH_KEY,
   evidence='SRC SftpConnectDialog.java:176 shows SshConnectionPool.getInstance().removeConnection(..., () -> { ... })')
 
 e('SftpConnectDialog.lambda$onCreateDialog$9', 'SftpConnectDialog.lambda$null$2', 'CALL',

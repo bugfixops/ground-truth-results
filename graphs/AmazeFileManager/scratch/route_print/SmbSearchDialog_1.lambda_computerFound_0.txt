@@ -1,29 +1,65 @@
 METHOD: SmbSearchDialog$1.lambda$computerFound$0
-verdict: REACHABLE   steps_from_launch: 12
-route steps: 12 edges
+verdict: REACHABLE   steps_from_launch: 15
+route steps: 15 edges
 ======================================================================
 
-STEP 1  edge E61915364
-  S_ENTRY -> MainActivity.onOptionsItemSelected
+STEP 1  edge E380fe171
+  S_ENTRY -> MainActivity.onCreate
   class: standard   kind: LIFECYCLE
   guard: None
   needs_state: None
   env: None
-  evidence: FW-SRC Activity.java onOptionsItemSelected lifecycle
+  evidence: FW-SRC Activity.java onCreate lifecycle method
   (no file:line citations in evidence)
 
-STEP 2  edge E5cdeb079
-  MainActivity.onOptionsItemSelected -> CloudSheetFragment.<init>
+STEP 2  edge E98cdd8f4
+  MainActivity.onCreate -> MainActivity.initialiseFab
   class: explicit   kind: CALL
   guard: None
   needs_state: None
   env: None
-  evidence: SRC MainActivity.java:1953
-  cite [SRC] MainActivity.java:1953
-    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/activities/MainActivity.java)
-     1953:                     BottomSheetDialogFragment fragment = new CloudSheetFragment();
+  evidence: SRC activities/MainActivity.java:325
+  cite [SRC] activities/MainActivity.java:325
+      325:         // setting window background color instead of each item, in order to reduce pixel overdraw
 
-STEP 3  edge Ebefb95e4
+STEP 3  edge E77bdc678
+  MainActivity.initialiseFab -> MainActivity$FabActionListener.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainActivity.java:1508 shows floatingActionButton.setOnActionSelectedListener(new FabActionListener(this)); 1935 shows FabActionListener(MainActivity mainActivity) constructor
+  cite [SRC] MainActivity.java:1508
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/activities/MainActivity.java)
+     1508:         floatingActionButton.setOnActionSelectedListener(new FabActionListener(this));
+
+STEP 4  edge E01239703
+  MainActivity$FabActionListener.<init> -> MainActivity$FabActionListener.onActionSelected
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainActivity.java:1940-1941 shows @Override public boolean onActionSelected(SpeedDialActionItem actionItem); GUI callback when FAB item selected
+  cite [SRC] MainActivity.java:1940-1941
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/activities/MainActivity.java)
+     1940:         @Override
+     1941:         public boolean onActionSelected(SpeedDialActionItem actionItem) {
+
+STEP 5  edge E57be7166
+  MainActivity$FabActionListener.onActionSelected -> CloudSheetFragment.<init>
+  class: explicit   kind: CALL
+  guard: actionItem.getId() == R.id.menu_new_cloud
+  needs_state: None
+  env: None
+  evidence: SRC activities/MainActivity.java:1952-1956
+  cite [SRC] activities/MainActivity.java:1952-1956
+     1952:                 case R.id.menu_new_cloud:
+     1953:                     BottomSheetDialogFragment fragment = new CloudSheetFragment();
+     1954:                     fragment.show(ma.getActivity().getSupportFragmentManager(),
+     1955:                             CloudSheetFragment.TAG_FRAGMENT);
+     1956:                     break;
+
+STEP 6  edge Ebefb95e4
   CloudSheetFragment.<init> -> CloudSheetFragment.setupDialog
   class: standard   kind: LIFECYCLE
   guard: None
@@ -76,7 +112,7 @@ STEP 3  edge Ebefb95e4
        86:     /**
        87:      * Determines whether cloud provider is installed or not
 
-STEP 4  edge E8e9507b8
+STEP 7  edge E8e9507b8
   CloudSheetFragment.setupDialog -> CloudSheetFragment.onClick
   class: explicit   kind: CALL
   guard: None
@@ -93,7 +129,7 @@ STEP 4  edge E8e9507b8
        75:         mSmbLayout.setOnClickListener(this);
        76:         mScpLayout.setOnClickListener(this);
 
-STEP 5  edge E234e41e0
+STEP 8  edge E234e41e0
   CloudSheetFragment.onClick -> SmbSearchDialog.<init>
   class: explicit   kind: CALL
   guard: None
@@ -103,7 +139,7 @@ STEP 5  edge E234e41e0
   cite [SRC] fragments/CloudSheetFragment.java:108
       108:                 SmbSearchDialog smbDialog=new SmbSearchDialog();
 
-STEP 6  edge Ee9c6203f
+STEP 9  edge Ee9c6203f
   SmbSearchDialog.<init> -> SmbSearchDialog.onCreate
   class: standard   kind: LIFECYCLE
   guard: None
@@ -118,7 +154,7 @@ STEP 6  edge Ee9c6203f
        44:         utilsProvider = ((BasicActivity) getActivity()).getUtilsProvider();
        45: 
 
-STEP 7  edge E5e77cce3
+STEP 10  edge E5e77cce3
   SmbSearchDialog.onCreate -> SmbSearchDialog.onCreateDialog
   class: standard   kind: LIFECYCLE
   guard: None
@@ -174,7 +210,7 @@ STEP 7  edge E5e77cce3
        98:                             Toast.makeText(getActivity(), getString(R.string.no_device_found), Toast.LENGTH_SHORT).show();
        99:                             MainActivity mainActivity = (MainActivity) getActivity();
 
-STEP 8  edge E26eee992
+STEP 11  edge E26eee992
   SmbSearchDialog.onCreateDialog -> SubnetScanner.<init>
   class: explicit   kind: CALL
   guard: None
@@ -184,7 +220,7 @@ STEP 8  edge E26eee992
   cite [SRC] ui/dialogs/SmbSearchDialog.java:80
        80:         subnetScanner = new SubnetScanner(getActivity());
 
-STEP 9  edge E49bf7876
+STEP 12  edge E49bf7876
   SubnetScanner.<init> -> SubnetScanner.run
   class: standard   kind: FRAMEWORK
   guard: None
@@ -196,7 +232,7 @@ STEP 9  edge E49bf7876
   cite [SRC] utils/SubnetScanner.java:84
        84:     public void run() {
 
-STEP 10  edge E5b3c7bea
+STEP 13  edge E5b3c7bea
   SubnetScanner.run -> SubnetScanner.onFound
   class: explicit   kind: CALL
   guard: None
@@ -206,7 +242,7 @@ STEP 10  edge E5b3c7bea
   cite [SRC] utils/SubnetScanner.java:109
       109:                                     onFound(computer);
 
-STEP 11  edge Eb5bca6b7
+STEP 14  edge Eb5bca6b7
   SubnetScanner.onFound -> SmbSearchDialog$1.computerFound
   class: standard   kind: FRAMEWORK
   guard: None
@@ -230,7 +266,7 @@ STEP 11  edge Eb5bca6b7
        89:                     });
        90:             }
 
-STEP 12  edge Ef57ae321
+STEP 15  edge Ef57ae321
   SmbSearchDialog$1.computerFound -> SmbSearchDialog$1.lambda$computerFound$0
   class: explicit   kind: CALL
   guard: None

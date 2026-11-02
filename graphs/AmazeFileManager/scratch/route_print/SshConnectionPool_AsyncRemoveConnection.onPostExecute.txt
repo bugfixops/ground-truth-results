@@ -1,109 +1,111 @@
 METHOD: SshConnectionPool$AsyncRemoveConnection.onPostExecute
-verdict: REACHABLE   steps_from_launch: 12
-route steps: 12 edges
+verdict: REACHABLE   steps_from_launch: 13
+route steps: 13 edges
 ======================================================================
 
-STEP 1  edge E61915364
-  S_ENTRY -> MainActivity.onOptionsItemSelected
+STEP 1  edge E393625fa
+  S_ENTRY -> MainActivity.onResume
   class: standard   kind: LIFECYCLE
   guard: None
   needs_state: None
   env: None
-  evidence: FW-SRC Activity.java onOptionsItemSelected lifecycle
+  evidence: FW-SRC Activity.java onResume lifecycle
   (no file:line citations in evidence)
 
-STEP 2  edge E5cdeb079
-  MainActivity.onOptionsItemSelected -> CloudSheetFragment.<init>
+STEP 2  edge E88f218aa
+  MainActivity.onResume -> Drawer.refreshDrawer
   class: explicit   kind: CALL
   guard: None
   needs_state: None
   env: None
-  evidence: SRC MainActivity.java:1953
-  cite [SRC] MainActivity.java:1953
+  evidence: SRC MainActivity.java:1112 shows drawer.refreshDrawer()
+  cite [SRC] MainActivity.java:1112
     (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/activities/MainActivity.java)
-     1953:                     BottomSheetDialogFragment fragment = new CloudSheetFragment();
+     1112:         drawer.refreshDrawer();
 
-STEP 3  edge Ebefb95e4
-  CloudSheetFragment.<init> -> CloudSheetFragment.setupDialog
-  class: standard   kind: LIFECYCLE
-  guard: None
-  needs_state: None
-  env: None
-  evidence: SRC CloudSheetFragment.java:45-87
-  cite [SRC] CloudSheetFragment.java:45-87
-    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/fragments/CloudSheetFragment.java)
-       45:     public void setupDialog(Dialog dialog, int style) {
-       46:         super.setupDialog(dialog, style);
-       47: 
-       48:         rootView = getActivity().getLayoutInflater().inflate(R.layout.fragment_sheet_cloud, null);
-       49: 
-       50:         if (((MainActivity) getActivity()).getAppTheme().equals(AppTheme.DARK)) {
-       51:             rootView.setBackgroundColor(Utils.getColor(getContext(), R.color.holo_dark_background));
-       52:         } else if (((MainActivity) getActivity()).getAppTheme().equals(AppTheme.BLACK)) {
-       53:             rootView.setBackgroundColor(Utils.getColor(getContext(), android.R.color.black));
-       54:         } else {
-       55:             rootView.setBackgroundColor(Utils.getColor(getContext(), android.R.color.white));
-       56:         }
-       57: 
-       58:         mSmbLayout = rootView.findViewById(R.id.linear_layout_smb);
-       59:         mScpLayout = rootView.findViewById(R.id.linear_layout_scp);
-       60:         mBoxLayout = rootView.findViewById(R.id.linear_layout_box);
-       61:         mDropboxLayout = rootView.findViewById(R.id.linear_layout_dropbox);
-       62:         mGoogleDriveLayout = rootView.findViewById(R.id.linear_layout_google_drive);
-       63:         mOnedriveLayout = rootView.findViewById(R.id.linear_layout_onedrive);
-       64:         mGetCloudLayout = rootView.findViewById(R.id.linear_layout_get_cloud);
-       65: 
-       66:         if (isCloudProviderAvailable(getContext())) {
-       67: 
-       68:             mBoxLayout.setVisibility(View.VISIBLE);
-       69:             mDropboxLayout.setVisibility(View.VISIBLE);
-       70:             mGoogleDriveLayout.setVisibility(View.VISIBLE);
-       71:             mOnedriveLayout.setVisibility(View.VISIBLE);
-       72:             mGetCloudLayout.setVisibility(View.GONE);
-       73:         }
-       74: 
-       75:         mSmbLayout.setOnClickListener(this);
-       76:         mScpLayout.setOnClickListener(this);
-       77:         mBoxLayout.setOnClickListener(this);
-       78:         mDropboxLayout.setOnClickListener(this);
-       79:         mGoogleDriveLayout.setOnClickListener(this);
-       80:         mOnedriveLayout.setOnClickListener(this);
-       81:         mGetCloudLayout.setOnClickListener(this);
-       82: 
-       83:         dialog.setContentView(rootView);
-       84:     }
-       85: 
-       86:     /**
-       87:      * Determines whether cloud provider is installed or not
-
-STEP 4  edge E8e9507b8
-  CloudSheetFragment.setupDialog -> CloudSheetFragment.onClick
+STEP 3  edge E51ddec28
+  Drawer.refreshDrawer -> Drawer.lambda$addNewItem$5
   class: explicit   kind: CALL
   guard: None
   needs_state: None
   env: None
-  evidence: SRC CloudSheetFragment.java:70-76
-  cite [SRC] CloudSheetFragment.java:70-76
-    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/fragments/CloudSheetFragment.java)
-       70:             mGoogleDriveLayout.setVisibility(View.VISIBLE);
-       71:             mOnedriveLayout.setVisibility(View.VISIBLE);
-       72:             mGetCloudLayout.setVisibility(View.GONE);
-       73:         }
-       74: 
-       75:         mSmbLayout.setOnClickListener(this);
-       76:         mScpLayout.setOnClickListener(this);
+  evidence: SRC Drawer.java:402-439 addNewItem calls create MenuMetadata with lambda Runnables for FTP/Apps/Settings menu items; Drawer.java:597 meta.onClickListener.onClick() calls the lambda
+  cite [SRC] Drawer.java:402-439
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/drawer/Drawer.java)
+      402:         addNewItem(menu, LASTGROUP, order++, R.string.ftp,
+      403:                 new MenuMetadata(() -> {
+      404:                     FragmentTransaction transaction2 = mainActivity.getSupportFragmentManager().beginTransaction();
+      405:                     transaction2.replace(R.id.content_frame, new FtpServerFragment());
+      406:                     mainActivity.getAppbar()
+      407:                             .getAppbarLayout()
+      408:                             .animate()
+      409:                             .translationY(0)
+      410:                             .setInterpolator(new DecelerateInterpolator(2))
+      411:                             .start();
+      412:                     pending_fragmentTransaction = transaction2;
+      413:                     if (!isDrawerLocked) close();
+      414:                     else onDrawerClosed();
+      415:                 }),
+      416:                 R.drawable.ic_ftp_white_24dp, null);
+      417: 
+      418:         addNewItem(menu, LASTGROUP, order++, R.string.apps,
+      419:                 new MenuMetadata(() -> {
+      420:                     FragmentTransaction transaction2 = mainActivity.getSupportFragmentManager().beginTransaction();
+      421:                     transaction2.replace(R.id.content_frame, new AppsListFragment());
+      422:                     mainActivity.getAppbar()
+      423:                             .getAppbarLayout()
+      424:                             .animate()
+      425:                             .translationY(0)
+      426:                             .setInterpolator(new DecelerateInterpolator(2))
+      427:                             .start();
+      428:                     pending_fragmentTransaction = transaction2;
+      429:                     if (!isDrawerLocked) close();
+      430:                     else onDrawerClosed();
+      431:                 }),
+      432:                 R.drawable.ic_android_white_24dp, null);
+      433: 
+      434: 
+      435:         addNewItem(menu, LASTGROUP, order++, R.string.setting,
+      436:                 new MenuMetadata(() -> {
+      437:                     Intent in = new Intent(mainActivity, PreferencesActivity.class);
+      438:                     mainActivity.startActivity(in);
+      439:                     mainActivity.finish();
+  cite [SRC] Drawer.java:597
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/drawer/Drawer.java)
+      597:                 meta.onClickListener.onClick();
 
-STEP 5  edge Ea12be5f9
-  CloudSheetFragment.onClick -> SftpConnectDialog.<init>
+STEP 4  edge Eba2f1368
+  Drawer.lambda$addNewItem$5 -> Drawer.onNavigationItemActionClick
   class: explicit   kind: CALL
   guard: None
   needs_state: None
   env: None
-  evidence: SRC fragments/CloudSheetFragment.java:113 shows "SftpConnectDialog sftpConnectDialog = new SftpConnectDialog()"
-  cite [SRC] fragments/CloudSheetFragment.java:113
-      113:                 SftpConnectDialog sftpConnectDialog = new SftpConnectDialog();
+  evidence: SRC Drawer.java:494 (bytecode)
+  cite [SRC] Drawer.java:494
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/drawer/Drawer.java)
+      494:             item.getActionView().setOnClickListener((view) -> onNavigationItemActionClick(item));
 
-STEP 6  edge E747b933b
+STEP 5  edge E9896632a
+  Drawer.onNavigationItemActionClick -> MainActivity.showSftpDialog
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC Drawer.java:626 (bytecode)
+  cite [SRC] Drawer.java:626
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/drawer/Drawer.java)
+      626:                     mainActivity.showSftpDialog(title, path, true);
+
+STEP 6  edge E973b24af
+  MainActivity.showSftpDialog -> SftpConnectDialog.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED from dialog usage
+  (no file:line citations in evidence)
+
+STEP 7  edge E747b933b
   SftpConnectDialog.<init> -> SftpConnectDialog.onCreate
   class: standard   kind: LIFECYCLE
   guard: None
@@ -113,7 +115,7 @@ STEP 6  edge E747b933b
   cite [SRC] ui/dialogs/SftpConnectDialog.java:75
        75: public class SftpConnectDialog extends DialogFragment {
 
-STEP 7  edge Ed024bdda
+STEP 8  edge Ed024bdda
   SftpConnectDialog.onCreate -> SftpConnectDialog.onCreateDialog
   class: standard   kind: LIFECYCLE
   guard: None
@@ -123,29 +125,29 @@ STEP 7  edge Ed024bdda
   cite [SRC] ui/dialogs/SftpConnectDialog.java:102
       102:     public Dialog onCreateDialog(Bundle savedInstanceState) {
 
-STEP 8  edge E0ab9a03d
+STEP 9  edge Edf9fdb80
   SftpConnectDialog.onCreateDialog -> SftpConnectDialog.lambda$onCreateDialog$9
   class: standard   kind: FRAMEWORK
   guard: None
   needs_state: None
   env: None
-  evidence: SRC SftpConnectDialog.java:132 portET.setOnFocusChangeListener((v, hasFocus) -> {...
-  cite [SRC] SftpConnectDialog.java:132
+  evidence: SRC SftpConnectDialog.java:157 dialogBuilder.onPositive((dialog, which) -> {...
+  cite [SRC] SftpConnectDialog.java:157
     (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/dialogs/SftpConnectDialog.java)
-      132:         portET.setOnFocusChangeListener((v, hasFocus) -> {
+      157:         dialogBuilder.positiveColor(accentColor);
 
-STEP 9  edge Ebd856bd7
+STEP 10  edge Eaa386f86
   SftpConnectDialog.lambda$onCreateDialog$9 -> SshConnectionPool.removeConnection
   class: explicit   kind: CALL
-  guard: None
-  needs_state: None
+  guard: !isEmpty(sshHostKey)
+  needs_state: A saved SSH host key exists for the SFTP host
   env: None
   evidence: SRC SftpConnectDialog.java:176 shows SshConnectionPool.getInstance().removeConnection(..., () -> { ... })
   cite [SRC] SftpConnectDialog.java:176
     (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/dialogs/SftpConnectDialog.java)
       176:                 SshConnectionPool.getInstance().removeConnection(SshClientUtils.deriveSftpPathFrom(hostname, port, username, password,
 
-STEP 10  edge Ef1b214fb
+STEP 11  edge Ef1b214fb
   SshConnectionPool.removeConnection -> SshConnectionPool$AsyncRemoveConnection.<init>
   class: explicit   kind: CALL
   guard: None
@@ -156,7 +158,7 @@ STEP 10  edge Ef1b214fb
     (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/filesystem/ssh/SshConnectionPool.java)
        95:         new AsyncRemoveConnection(url, callback).execute();
 
-STEP 11  edge Ef65bce02
+STEP 12  edge Ef65bce02
   SshConnectionPool$AsyncRemoveConnection.<init> -> SshConnectionPool$AsyncRemoveConnection.doInBackground
   class: standard   kind: ASYNC
   guard: None
@@ -166,7 +168,7 @@ STEP 11  edge Ef65bce02
   cite [SRC] filesystem/ssh/SshConnectionPool.java:291
       291:         protected Void doInBackground(Void... voids) {
 
-STEP 12  edge E6c12ada4
+STEP 13  edge E6c12ada4
   SshConnectionPool$AsyncRemoveConnection.doInBackground -> SshConnectionPool$AsyncRemoveConnection.onPostExecute
   class: explicit   kind: CALL
   guard: None

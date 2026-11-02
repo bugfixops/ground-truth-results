@@ -37,7 +37,7 @@ def p(m, res, ref, note):
 p('ApkImageDataFetcher.cancel', 'correct', 'Drawer.java:99',
   'Round verdict: correct. Drawer apps item -> AppsListFragment -> GlideApp.with (:98) -> generated module -> registerComponents (:20-23) -> ApkImageModelLoaderFactory (:21) -> build -> loader (:25) -> buildLoadData -> fetcher (:27) -> cancel (Glide lifecycle, INFERRED standard).')
 p('CloudIconDataFetcher.cancel', 'fixed', 'Drawer.java:99',
-  'Round verdict: fixed (citations only + spurious factory <init> edge deleted). Drawer -> AppsListFragment -> GlideApp.with -> generated module -> registerComponents -> CloudIconModelFactory -> factory.build -> loader -> cancel (:55-58); the factory <init> does not construct the loader (built in build() at CloudIconModelFactory.java:24).')
+  'Round verdict: fixed (citations only + spurious factory <init> edge deleted). Drawer -> AppsListFragment -> GlideApp.with -> generated module -> registerComponents -> CloudIconModelFactory -> factory.build -> loader -> cancel (:55-58); the factory <init> does not construct the loader (built in build() at CloudIconModelFactory.java:24). Caveat (route_01 follow-up): steps 10-14 need a String -> Bitmap cloud-model load (CloudIconModelLoader implements ModelLoader<String, Bitmap> and only handles cloud/smb/ssh prefixes); the Apps preload is String -> Drawable (AppsAdapterPreloadModel), so live replay proves the chain only to factory construction.')
 p('CompressedExplorerFragment.onDestroyView', 'fixed', 'MainActivity.java:319',
   'Round verdict: fixed (citations only). MainActivity onCreate -> checkForExternalIntent (:319) -> openCompressed (:525, :797-798) -> CompressedExplorerFragment -> onDestroyView. Requires a zip/rar VIEW intent from another app (ENV other_app, recorded not encoded).')
 p('FileUtils.lambda$scanFile$1', 'fixed', 'Operations.java:480-485',
@@ -68,8 +68,8 @@ p('PemToKeyPairTask.toastOnParseError', 'fixed', 'PemToKeyPairTask.java:155',
   'Round verdict: fixed (citations only). SftpConnectDialog onCreateDialog -> picker (:146) -> onActivityResult (:303) -> task execute (:322) -> publishProgress (:118) -> onProgressUpdate lambda (:153-157) -> toastOnParseError (:155).')
 p('ProcessViewerFragment$CustomServiceConnection$1.<init>', 'correct', 'ProcessViewerFragment.java:416',
   'Round verdict: correct. MainActivity (:390) -> ProcessViewerFragment -> onCreateView -> onActivityCreated -> onResume -> onServiceConnected (bindService x5, :159-171) -> anonymous ProgressListener $1.<init> (:416).')
-p('ProcessViewerFragment$CustomServiceConnection$1.lambda$onUpdate$0', 'fixed', 'ProcessViewerFragment.java:422',
-  'Round verdict: fixed (citation only). ExtractService chain (:165-169 manifest, lambda :142-143, publishResults :143, addDatapoint :161, onUpdate :189) -> runOnUiThread lambda (:422).')
+p('ProcessViewerFragment$CustomServiceConnection$1.lambda$onUpdate$0', 'fixed', 'ProcessViewerFragment.java:423',
+  'Round verdict: fixed (citation only). ExtractService chain (:165-169 manifest, lambda :142-143, publishResults :143, addDatapoint :161, onUpdate :189) -> runOnUiThread lambda (:423).')
 p('ReadFileTask$ReturnedValues.<init>(int)', 'fixed', 'TextEditorActivity.java:291',
   'Round verdict: fixed (wrong route re-routed). S_ENTRY TextEditorActivity (:129-144 manifest, ENV other_app) -> onCreate -> load -> ReadFileTask.doInBackground (:291) -> ReturnedValues.<init> (:115). Old BasicActivity prefix deleted (both activities extend ThemedActivity).')
 p('ShareAdapter$ViewHolder.lambda$render$0', 'fixed', 'AppsAdapter.java:170',
@@ -79,7 +79,7 @@ p('SmbSearchDialog$1.lambda$computerFound$0', 'fixed', 'SmbSearchDialog.java:109
 p('SshAuthenticationTask$1.getPublic', 'fixed', 'SshAuthenticationTask.java:144',
   'Round verdict: fixed (citations + summary evidence). CopyService -> mkdir (:446) -> SshAuthenticationTask doInBackground (:117) -> KeyProvider (:131) -> getType (:143) -> getPublic (:144).')
 p('SshConnectionPool$AsyncRemoveConnection.onPostExecute', 'fixed', 'SshConnectionPool.java:301',
-  'Round verdict: fixed (citations only). SftpConnectDialog onCreateDialog -> focus listener (:132) -> removeConnection (:176) -> AsyncRemoveConnection.<init> (:95) -> doInBackground (:291) -> onPostExecute (:301).')
+  'Round verdict: fixed (WRONG route re-routed, route_08 follow-up). Drawer saved-ssh item -> onNavigationItemActionClick (:494) -> showSftpDialog (:626) -> SftpConnectDialog onCreateDialog -> onPositive lambda$onCreateDialog$9 (:157-160) -> removeConnection (:176, STATE gate: saved SSH host key exists, :175 !isEmpty(sshHostKey)) -> AsyncRemoveConnection.<init> (:95) -> doInBackground (:291) -> onPostExecute (:301). The B6 print wrongly routed via the options menu and the focus listener (:132, which only selectAlls on focus and never calls removeConnection); the false focus -> removeConnection edge and the swapped $0/$9 registration evidence are deleted/corrected. The FAB menu_new_cloud prefix (:1952-1956) is the alternate true entry to the same dialog (see SmbSearchDialog route); the finder prints the shorter Drawer entry here.')
 p('StreamNotFoundException.<init>(Throwable)', 'fixed', 'TextEditorActivity.java:357',
   'Round verdict: fixed (citations only). S_ENTRY TextEditorActivity (:129-144) -> onCreate -> onOptionsItemSelected (:357) -> save case (:364) -> saveFile -> WriteFileAbstraction (:262) -> doInBackground -> throw StreamNotFoundException (:69).')
 p('StreamSource.getCurrentPosition', 'fixed', 'MainFragment.java:930',
@@ -126,7 +126,7 @@ edge_note('CompressedExplorerFragment$1.onActionItemClicked', 'Decompressor.deco
 # ---- UNREACHABLE labels: one row per UNREACHABLE method; note derived from the graph's own (source-based) reason.
 unre = {m for m, l in g['labels'].items() if l.get('unreachable')}
 U = {}
-for m in unre:
+for m in sorted(unre):
     lab = g['labels'][m]
     ur = lab['unreachable']
     U[m] = (lab['confirmed_by'], lab['source_ref'],

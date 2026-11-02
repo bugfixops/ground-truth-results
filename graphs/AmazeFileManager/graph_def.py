@@ -136,6 +136,7 @@ NEED_ENCRYPTED = state_text('An encrypted .aze file or encrypted connection exis
 NEED_CLOUD_CONN = state_text('A cloud storage connection (Dropbox/Drive/OneDrive/Box) is configured', ('account',))
 NEED_SMB_CONN = state_text('An SMB connection is configured', ('account',))
 NEED_SSH_CONN = state_text('An SSH/SFTP connection is configured', ('account',))
+NEED_SAVED_SSH_KEY = state_text('A saved SSH host key exists for the SFTP host', ('data',))
 NEED_FTP_RUNNING = state_text('The FTP server is currently running', ('session',))
 NEED_OPERATION = state_text('A copy/move/extract/compress operation is in progress or queued', ('session',))
 NEED_SELECTION = state_text('One or more files are selected in the file manager', ('session',))
@@ -1659,9 +1660,10 @@ e('CloudHandler.getAllEntries', 'CloudPluginException.<init>', 'CALL', 'Throws w
 e('CloudUtil.listFiles', 'CloudPluginException.<init>', 'CALL', 'Throws when cloud provider unavailable',
   evidence='SRC CloudUtil.java:59-82')
 
-# CloudSheetFragment - shown from MainActivity
-e('MainActivity.onOptionsItemSelected', 'CloudSheetFragment.<init>', 'CALL', 'Creates cloud sheet dialog fragment',
-  evidence='SRC MainActivity.java:1953')
+# CloudSheetFragment - shown from the MainActivity FAB menu (menu_new_cloud case)
+e('MainActivity$FabActionListener.onActionSelected', 'CloudSheetFragment.<init>', 'CALL', 'FAB menu_new_cloud case creates cloud sheet dialog fragment',
+  guard='actionItem.getId() == R.id.menu_new_cloud',
+  evidence='SRC activities/MainActivity.java:1952-1956')
 e('CloudSheetFragment.<init>', 'CloudSheetFragment.onCreate', 'LIFECYCLE', 'Android framework calls onCreate on fragment creation',
   evidence='SRC CloudSheetFragment.java:40-41')
 e('CloudSheetFragment.<init>', 'CloudSheetFragment.setupDialog', 'LIFECYCLE', 'Android framework calls setupDialog during dialog setup',
@@ -4987,9 +4989,6 @@ e('CloudHandler.getAllEntries', 'CloudPluginException.<init>', 'CALL', 'Throws w
 e('CloudUtil.listFiles', 'CloudPluginException.<init>', 'CALL', 'Throws when cloud provider unavailable',
   evidence='SRC CloudUtil.java:59-82')
 
-
-e('MainActivity.onOptionsItemSelected', 'CloudSheetFragment.<init>', 'CALL', 'Creates cloud sheet dialog fragment',
-  evidence='SRC MainActivity.java:1953')
 
 e('CloudSheetFragment.<init>', 'CloudSheetFragment.onCreate', 'LIFECYCLE', 'Android framework calls onCreate on fragment creation',
   evidence='SRC CloudSheetFragment.java:40-41')

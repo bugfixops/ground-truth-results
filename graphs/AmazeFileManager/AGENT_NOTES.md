@@ -660,3 +660,88 @@ C7 finish_01 00:02 R=2218 U=422 UNRES=341 errors=885 (down from 1211). Fixed reg
   load; Apps preload is String->Drawable, so live replay proves the
   chain only up to factory construction). None blocks D1/D3: scripts
   faithfully drive their printed triggers.
+
+## Route_08 follow-up (2026-11-01, after the B6 push; merger's own work, no helper)
+- Finding (verified from printed source + bytecode, not taken on trust):
+  SftpConnectDialog.java:131-135 focus listener body is only
+  `if(hasFocus) portET.selectAll();` — on focus loss it does nothing and
+  never calls removeConnection. The only verified caller is the onPositive
+  lambda at :157-160, whose body (:171-177) does getSshHostKey, the
+  :175 `if (!isEmpty(sshHostKey))` guard, getInstance().removeConnection
+  (:176). Bytecode: lambda$onCreateDialog$0(EditText,View,boolean) is
+  static and contains only selectAll+return (focus); lambda$onCreateDialog$9
+  (5x EditText,boolean,MaterialDialog,DialogAction) contains
+  getText/parseInt/isEmpty/getSshHostKey/isEmpty-guard/getInstance/
+  removeConnection (offset 152) (onPositive). So the graph's $0/$9
+  labels were swapped in the repair block.
+- Graph fixes (graph_def.py + graph_def_mod/01.py, rebuild verified):
+  (a) deleted both copies of the false MainActivity.onOptionsItemSelected
+  -> CloudSheetFragment.<init> edge (the :1953 site is inside
+  MainActivity$FabActionListener.onActionSelected, :1941, menu_new_cloud
+  case :1952-1956, NOT inside onOptionsItemSelected :928-1044);
+  added the true FabActionListener.onActionSelected -> CloudSheetFragment
+  edge (guard: menu_new_cloud case, evidence :1952-1956);
+  (b) corrected the swapped $0/$9 registration evidence
+  ($0 = focus :132, $9 = onPositive :157-160);
+  (c) deleted the six repair-block $0-action edges ($0 is focus and does
+  none of them; every pair already covered by true $9 edges elsewhere);
+  (d) gated the true $9 -> removeConnection edge with
+  guard='!isEmpty(sshHostKey)' + needs_state=NEED_SAVED_SSH_KEY (new,
+  "A saved SSH host key exists for the SFTP host", data kind);
+  (e) deleted the three inverted $null$6/7/8 repair-block edges
+  ($null$6 -> $null$7, $null$6 -> $null$8, $null$7 -> authenticateAndSaveSetup):
+  bytecode proves $null$8 is the :203 taskResult callback (builds the
+  fingerprint dialog), $null$6 is the :217 positive button
+  (authenticateAndSaveSetup + "Saved setup"), $null$7 is the :227 negative
+  button (dismiss only); the true $null$8 -> $null$6 / $null$8 -> $null$7 /
+  $null$6 -> authenticateAndSaveSetup edges already exist elsewhere;
+  (f) route_24 citation: PrefFrag.java:221 (ADVANCEDSEARCH case) ->
+  :211-213 (FRAGMENT_FOLDERS case, the route-consistent case; added as a
+  hand edge, which suppresses the auto :221 edge for the same pair);
+  (g) route_28 citation: ProcessViewerFragment.java:422 (a closing brace)
+  -> :423 (the runOnUiThread call).
+- Printed-route outcome: the finder prints route_08 via the shorter TRUE
+  Drawer entry (onResume -> refreshDrawer -> saved-ssh item ->
+  onNavigationItemActionClick :494 -> showSftpDialog :626 ->
+  SftpConnectDialog :1643 -> onCreateDialog -> $9 -> gated removeConnection
+  -> AsyncRemoveConnection -> onPostExecute), 13 steps; the FAB prefix is
+  the alternate true entry (it is what SmbSearchDialog prints, 15 steps).
+  PemToKeyPairTask likewise reprints via Drawer (13 steps); the rest of
+  both routes unchanged. Rebuild: methods 2981, REACHABLE 2512,
+  UNREACHABLE 469, errors 0, warnings 0, edges 7758 -> 7747; checks 2/3/4/
+  5/6/7 at 0, check 8 = 3 of 469 (same B4-explained pairs); all 30 B6-sample
+  routes reprinted (229 distinct edges; 5 prints changed, 25 byte-identical)
+  and all 30 reach their targets. Labels unchanged (no flips).
+- Verdicts: route_08 stays "fixed" under the table's verdict key
+  (wrong = could not be repaired; route_08 WAS repaired, as ReadFileTask
+  was); tally correct 5 / fixed 25 / wrong 0 / unclear 0, rate 0.833
+  UNCHANGED. The brief's alternative tally (fixed 24, wrong 1, same rate)
+  was considered and not adopted (see route_table.md post-fix note).
+- Writer determinism (coordinator item 5, same push): make_verification.py
+  line 129 `for m in unre:` -> `for m in sorted(unre):`; regenerated
+  verification.csv via the writer only. Proof: row SET identical
+  pre-sort vs post-sort (543 rows, header same; first raw diff at line 32
+  is the UNREACHABLE label block now alphabetical); three runs under
+  PYTHONHASHSEED=0/1/42 byte-identical.
+- verification.csv changes (writer only, 8 rows): 5 path edge lists
+  (route_08, PemToKeyPairTask, SmbSearchDialog, ThemedImageView,
+  lambda$onUpdate$0) + route_08 label gates (state=- -> state=data) +
+  lambda$onUpdate$0 label ref (:422 -> :423) + route_08 / route_28 /
+  route_01 path notes. Totals unchanged: path 30 (5 correct / 25 fixed),
+  label 499, edge 14.
+- Redraw note: fresh draw at seed 20261025 after this fix gives 29/30
+  overlap (MediaStoreHack.mkfile replaces
+  UtilsHandler.getSshAuthPrivateKeyColumn, 233 distinct edges). The B6
+  sample is RETAINED as the judged sample; redraw adoption (judge the new
+  route, re-tally) is a coordinator decision. Diagnostic saved at
+  scratch/sample_30_redraw_after_route08fix.txt (NOT the adopted sample).
+- D1 staleness (reported, NOT edited here): device/routes/AmazeFileManager/
+  ROUTES.csv rows for the 5 reprinted methods now reference superseded
+  edge ids (route_08's row was already unscriptable "false trigger +
+  gated caller" and stands; the other four rows' scripts still match
+  ROUTES.csv as pushed, so drycheck is unaffected). A D1 refresh needs
+  re-audit of those rows' edge lists; coordinator/device-lead owned.
+- Carried flags from the previous section now FIXED here: route_08 false
+  focus edge, route_24 :221 -> :211-213, route_28 :422 -> :423, route_01
+  String->Bitmap caveat (recorded in the table row + Notes + writer note;
+  route_01 edges/verdict unchanged).
