@@ -849,13 +849,7 @@ e('AccountTransactionListFragment.isFilterSelected', 'AccountTransactionListFrag
 # already exist).
 # ==================================================================
 
-e('FixerService.onContentDownloaded', 'WatchlistFragment.onEvent(PriceDownloadedEvent)@RETURNED', 'ASYNC',
-  'FixerService posts a PriceDownloadedEvent for each currency rate it downloads; if the user has returned to the MainActivity watchlist screen before the Retrofit response arrives, EventBus delivers it to the re-registered watchlist fragment, which then runs onPriceDownloaded with the currency code',
-  guard='the fragment is re-registered: the user returned to the MainActivity watchlist screen before the response arrived, so WatchlistFragment.onStart has re-run (line 131) and onStop has not (line 138)',
-  needs_state=state_text('the user returned to the MainActivity watchlist screen before the Retrofit response arrived, so WatchlistFragment re-registered in onStart (WatchlistFragment.java:131) while the Fixer download was still in flight', ('session',)),
-  cls='non_standard',
-  via='EventBus post at FixerService.java:120 to the subscriber re-registered in onStart (library dispatch, INFERRED)',
-  evidence='SRC investment/prices/FixerService.java:100-121 (post at 120); SRC investment/watchlist/WatchlistFragment.java:128-139 (register at 131, unregister at 138), 290-293; INFERRED EventBus library dispatch (library source not read)')
+# DELETION 2026-11-02 (routes 8+18 design): the @RETURNED variant edge below was DELETED (it was the partitioned form of plain Ea9af2cd3). Reason: no Fixer prefix ever creates, shows, starts, or registers a WatchlistFragment, so the Fixer post has no watchlist recipient; the Fixer post still reaches the currency list (graph_def.py:4666) and the Watchlist still receives its own security updaters' posts. History kept: the partition rationale above is superseded, not erased.
 
 # R2 guard corrections (AUTO edges -> hand replacements).
 e('WatchlistFragment.onPriceDownloaded', 'WatchlistFragment.completePriceUpdate', 'CALL',
@@ -940,7 +934,7 @@ e('SyncServiceMessageHandler.handleMessage@DOWNLOAD', 'MainActivity.onEvent(DbFi
 # R3 guard corrections (AUTO edges -> hand replacements; old ids retire,
 # step counts unchanged). Steps 4-6 (launch-SYNC edges) + SYNC-branch
 # guard on onHandleWork -> triggerSync (auto E4ee94586).
-e('MainActivity.initializeSync', 'SyncManager.triggerSynchronization', 'CALL',
+e('MainActivity.initializeSync', 'SyncManager.triggerSynchronization@MAIN', 'CALL',
   'initializeSync triggers synchronization on app start when sync is enabled',
   guard='sync active AND sync-on-start preference true AND dbUpdateCheckDone false (MainActivity.java:1212, :1222-1224)',
   evidence='SRC home/MainActivity.java:1210-1224 (early return if !sync.isActive() at 1212; trigger only if syncOnStart && !dbUpdateCheckDone at 1222-1224; call at 1224)')
@@ -1131,3 +1125,119 @@ e('WatchlistFragment$4.onClick', 'MorningstarPriceUpdater.downloadPrices', 'CALL
   'the watchlist price-update dialog calls the configured security price updater; the Morningstar implementation runs only when Morningstar is the configured quote provider',
   guard='InvestmentSettings.getQuoteProvider() == QuoteProviders.Morningstar (SecurityPriceUpdaterFactory.java:38-42: getQuoteProvider at :38, switch at :40, Morningstar branch :41-42)',
   evidence='SRC investment/SecurityPriceUpdaterFactory.java:38-42 (getQuoteProvider :38; switch :40; Morningstar branch :41-42); SRC investment/watchlist/WatchlistFragment.java:472-474 (getUpdaterInstance :472-473; interface downloadPrices call :474)')
+
+# B6-RESULT: InvestmentTransactionEditActivity calculator partitioned to
+# @NUM_SHARES / @PURCHASE_PRICE / @COMMISSION / @CURRENT_PRICE (routes 8+18
+# design 2026-11-02). The plain RESULT edge (01.py) and the four plain INTENT
+# edges (graph_def.py) are deleted with this section; the four chains below
+# are the only ITEA calculator paths. Plain equals-key routes (AccountEdit,
+# PriceEdit, Checking, Search) keep the plain edge at 03.py:463.
+e('InvestmentTransactionEditActivity.onNumSharesClick', 'CalculatorActivity.<init>@NUM_SHARES', 'INTENT',
+  'the num shares field opens the calculator: Calculator.show starts CalculatorActivity (NUM_SHARES-launched calculator only)',
+  guard='the launch uses REQUEST_NUM_SHARES (= 1) (InvestmentTransactionEditActivity.java)',
+  cls='standard',
+  evidence='SRC investment/InvestmentTransactionEditActivity.java:211-219 (@OnClick at 211; forActivity 215, amount 216, roundToCurrency 217, show 218); SRC common/Calculator.java:70 (intent for CalculatorActivity.class), 77-83 (show: startActivityForResult at 79); FW-SRC core/java/android/app/ActivityThread.java:2669-2670 (mInstrumentation.newActivity); FW-SRC core/java/android/app/Instrumentation.java:1170-1174 (loadClass(className).newInstance() at 1174); variant @NUM_SHARES')
+e('CalculatorActivity.<init>@NUM_SHARES', 'CalculatorActivity.onCreate@NUM_SHARES', 'LIFECYCLE',
+  'the framework calls onCreate right after the constructor (NUM_SHARES-launched calculator)',
+  evidence='FW-SRC core/java/android/app/ActivityThread.java:2729-2731 (callActivityOnCreate after newActivity at 2669); FW-SRC core/java/android/app/Instrumentation.java:1212-1214 (callActivityOnCreate calls performCreate at 1214); FW-SRC core/java/android/app/Activity.java:6993-6999 (performCreate calls onCreate at 6999); variant @NUM_SHARES')
+e('CalculatorActivity.onCreate@NUM_SHARES', 'S_CALCULATOR@NUM_SHARES', 'ENTERS',
+  'onCreate sets the layout (line 115) and wires the keys through initializeControls (line 127): the calculator screen is shown (NUM_SHARES-launched calculator)',
+  cls='page',
+  evidence='SRC common/CalculatorActivity.java:111-128 (setContentView at 115, ButterKnife.bind at 118, initializeControls at 127); variant @NUM_SHARES')
+e('S_CALCULATOR@NUM_SHARES', 'CalculatorActivity.onEqualsClicked@NUM_SHARES', 'GUI',
+  'the equals key runs the @OnClick handler, which returns the entered amount (NUM_SHARES-launched calculator)',
+  gui=['Tap the equals key on the calculator'],
+  cls='non_standard', via='ButterKnife @OnClick(R.id.buttonKeyEqual) at CalculatorActivity.java:247, bound by the generated CalculatorActivity_ViewBinding (INFERRED: the library and generated source are not in the source root)',
+  evidence='SRC common/CalculatorActivity.java:247-250 (@OnClick at 247, handler 248-250); SRC res/layout/activity_calculator.xml:162 (buttonKeyEqual); auto_calls.json record CalculatorActivity_ViewBinding$2.doClick -> onEqualsClicked (CalculatorActivity_ViewBinding.java:49) is the generated path (batch 028); INFERRED ButterKnife binding (library not read); variant @NUM_SHARES')
+e('CalculatorActivity.onEqualsClicked@NUM_SHARES', 'CalculatorActivity.returnResult@NUM_SHARES', 'CALL',
+  'the equals key returns the entered amount (NUM_SHARES-launched calculator)',
+  evidence='SRC common/CalculatorActivity.java:249 (bytecode); variant @NUM_SHARES')
+e('CalculatorActivity.returnResult@NUM_SHARES', 'InvestmentTransactionEditActivity.onActivityResult@NUM_SHARES', 'RESULT',
+  'the calculator returns the amount and finishes: setResult(RESULT_OK) at 443, finish at 444, and the framework delivers the result to the editor that started it (NUM_SHARES-launched calculator only)',
+  guard='requestCode is REQUEST_NUM_SHARES (= 1) and resultCode is RESULT_OK with data non-null (InvestmentTransactionEditActivity.java:119-158; cancelled or null-data early return at 123; NUM_SHARES branch at 128-132: mStock.setNumberOfShares at 129, showNumberOfShares at 130)',
+  evidence='SRC common/CalculatorActivity.java:435-445 (returnResult: setResult(RESULT_OK) at 443, finish at 444); SRC common/Calculator.java:79 (activity.startActivityForResult(intent, requestCode)); SRC investment/InvestmentTransactionEditActivity.java:119-158 (onActivityResult; Calculator.getAmountFromResult at 125; switch on the four request codes); FW-SRC core/java/android/app/ActivityThread.java:4253-4265; FW-SRC core/java/android/app/Activity.java:7259-7266; variant @NUM_SHARES')
+e('InvestmentTransactionEditActivity.onPurchasePriceClick', 'CalculatorActivity.<init>@PURCHASE_PRICE', 'INTENT',
+  'the purchase price field opens the calculator: Calculator.show starts CalculatorActivity (PURCHASE_PRICE-launched calculator only)',
+  guard='mAccount is not null (InvestmentTransactionEditActivity.java:223 returns early when it is null); the launch uses REQUEST_PURCHASE_PRICE (= 2) (InvestmentTransactionEditActivity.java)',
+  cls='standard',
+  evidence='SRC investment/InvestmentTransactionEditActivity.java:221-230 (@OnClick at 221; guard 223; forActivity 225, roundToCurrency 226, amount 227, currency 228, show 229); SRC common/Calculator.java:70 (intent for CalculatorActivity.class), 77-83 (show: startActivityForResult at 79); FW-SRC core/java/android/app/ActivityThread.java:2669-2670 (mInstrumentation.newActivity); FW-SRC core/java/android/app/Instrumentation.java:1170-1174 (loadClass(className).newInstance() at 1174); variant @PURCHASE_PRICE')
+e('CalculatorActivity.<init>@PURCHASE_PRICE', 'CalculatorActivity.onCreate@PURCHASE_PRICE', 'LIFECYCLE',
+  'the framework calls onCreate right after the constructor (PURCHASE_PRICE-launched calculator)',
+  evidence='FW-SRC core/java/android/app/ActivityThread.java:2729-2731 (callActivityOnCreate after newActivity at 2669); FW-SRC core/java/android/app/Instrumentation.java:1212-1214 (callActivityOnCreate calls performCreate at 1214); FW-SRC core/java/android/app/Activity.java:6993-6999 (performCreate calls onCreate at 6999); variant @PURCHASE_PRICE')
+e('CalculatorActivity.onCreate@PURCHASE_PRICE', 'S_CALCULATOR@PURCHASE_PRICE', 'ENTERS',
+  'onCreate sets the layout (line 115) and wires the keys through initializeControls (line 127): the calculator screen is shown (PURCHASE_PRICE-launched calculator)',
+  cls='page',
+  evidence='SRC common/CalculatorActivity.java:111-128 (setContentView at 115, ButterKnife.bind at 118, initializeControls at 127); variant @PURCHASE_PRICE')
+e('S_CALCULATOR@PURCHASE_PRICE', 'CalculatorActivity.onEqualsClicked@PURCHASE_PRICE', 'GUI',
+  'the equals key runs the @OnClick handler, which returns the entered amount (PURCHASE_PRICE-launched calculator)',
+  gui=['Tap the equals key on the calculator'],
+  cls='non_standard', via='ButterKnife @OnClick(R.id.buttonKeyEqual) at CalculatorActivity.java:247, bound by the generated CalculatorActivity_ViewBinding (INFERRED: the library and generated source are not in the source root)',
+  evidence='SRC common/CalculatorActivity.java:247-250 (@OnClick at 247, handler 248-250); SRC res/layout/activity_calculator.xml:162 (buttonKeyEqual); auto_calls.json record CalculatorActivity_ViewBinding$2.doClick -> onEqualsClicked (CalculatorActivity_ViewBinding.java:49) is the generated path (batch 028); INFERRED ButterKnife binding (library not read); variant @PURCHASE_PRICE')
+e('CalculatorActivity.onEqualsClicked@PURCHASE_PRICE', 'CalculatorActivity.returnResult@PURCHASE_PRICE', 'CALL',
+  'the equals key returns the entered amount (PURCHASE_PRICE-launched calculator)',
+  evidence='SRC common/CalculatorActivity.java:249 (bytecode); variant @PURCHASE_PRICE')
+e('CalculatorActivity.returnResult@PURCHASE_PRICE', 'InvestmentTransactionEditActivity.onActivityResult@PURCHASE_PRICE', 'RESULT',
+  'the calculator returns the amount and finishes: setResult(RESULT_OK) at 443, finish at 444, and the framework delivers the result to the editor that started it (PURCHASE_PRICE-launched calculator only)',
+  guard='requestCode is REQUEST_PURCHASE_PRICE (= 2) and resultCode is RESULT_OK with data non-null (InvestmentTransactionEditActivity.java:119-158; cancelled or null-data early return at 123; PURCHASE_PRICE branch at 134-145: mStock.setPurchasePrice at 135, showPurchasePrice at 136)',
+  evidence='SRC common/CalculatorActivity.java:435-445 (returnResult: setResult(RESULT_OK) at 443, finish at 444); SRC common/Calculator.java:79 (activity.startActivityForResult(intent, requestCode)); SRC investment/InvestmentTransactionEditActivity.java:119-158 (onActivityResult; Calculator.getAmountFromResult at 125; switch on the four request codes); FW-SRC core/java/android/app/ActivityThread.java:4253-4265; FW-SRC core/java/android/app/Activity.java:7259-7266; variant @PURCHASE_PRICE')
+e('InvestmentTransactionEditActivity.onCommissionClick', 'CalculatorActivity.<init>@COMMISSION', 'INTENT',
+  'the commission field opens the calculator: Calculator.show starts CalculatorActivity (COMMISSION-launched calculator only)',
+  guard='the launch uses REQUEST_COMMISSION (= 3) (InvestmentTransactionEditActivity.java)',
+  cls='standard',
+  evidence='SRC investment/InvestmentTransactionEditActivity.java:232-238 (@OnClick at 232; forActivity 234, amount 235, currency 236, show 237); SRC common/Calculator.java:70 (intent for CalculatorActivity.class), 77-83 (show: startActivityForResult at 79); FW-SRC core/java/android/app/ActivityThread.java:2669-2670 (mInstrumentation.newActivity); FW-SRC core/java/android/app/Instrumentation.java:1170-1174 (loadClass(className).newInstance() at 1174); variant @COMMISSION')
+e('CalculatorActivity.<init>@COMMISSION', 'CalculatorActivity.onCreate@COMMISSION', 'LIFECYCLE',
+  'the framework calls onCreate right after the constructor (COMMISSION-launched calculator)',
+  evidence='FW-SRC core/java/android/app/ActivityThread.java:2729-2731 (callActivityOnCreate after newActivity at 2669); FW-SRC core/java/android/app/Instrumentation.java:1212-1214 (callActivityOnCreate calls performCreate at 1214); FW-SRC core/java/android/app/Activity.java:6993-6999 (performCreate calls onCreate at 6999); variant @COMMISSION')
+e('CalculatorActivity.onCreate@COMMISSION', 'S_CALCULATOR@COMMISSION', 'ENTERS',
+  'onCreate sets the layout (line 115) and wires the keys through initializeControls (line 127): the calculator screen is shown (COMMISSION-launched calculator)',
+  cls='page',
+  evidence='SRC common/CalculatorActivity.java:111-128 (setContentView at 115, ButterKnife.bind at 118, initializeControls at 127); variant @COMMISSION')
+e('S_CALCULATOR@COMMISSION', 'CalculatorActivity.onEqualsClicked@COMMISSION', 'GUI',
+  'the equals key runs the @OnClick handler, which returns the entered amount (COMMISSION-launched calculator)',
+  gui=['Tap the equals key on the calculator'],
+  cls='non_standard', via='ButterKnife @OnClick(R.id.buttonKeyEqual) at CalculatorActivity.java:247, bound by the generated CalculatorActivity_ViewBinding (INFERRED: the library and generated source are not in the source root)',
+  evidence='SRC common/CalculatorActivity.java:247-250 (@OnClick at 247, handler 248-250); SRC res/layout/activity_calculator.xml:162 (buttonKeyEqual); auto_calls.json record CalculatorActivity_ViewBinding$2.doClick -> onEqualsClicked (CalculatorActivity_ViewBinding.java:49) is the generated path (batch 028); INFERRED ButterKnife binding (library not read); variant @COMMISSION')
+e('CalculatorActivity.onEqualsClicked@COMMISSION', 'CalculatorActivity.returnResult@COMMISSION', 'CALL',
+  'the equals key returns the entered amount (COMMISSION-launched calculator)',
+  evidence='SRC common/CalculatorActivity.java:249 (bytecode); variant @COMMISSION')
+e('CalculatorActivity.returnResult@COMMISSION', 'InvestmentTransactionEditActivity.onActivityResult@COMMISSION', 'RESULT',
+  'the calculator returns the amount and finishes: setResult(RESULT_OK) at 443, finish at 444, and the framework delivers the result to the editor that started it (COMMISSION-launched calculator only)',
+  guard='requestCode is REQUEST_COMMISSION (= 3) and resultCode is RESULT_OK with data non-null (InvestmentTransactionEditActivity.java:119-158; cancelled or null-data early return at 123; COMMISSION branch at 146-149: mStock.setCommission at 147, showCommission at 148)',
+  evidence='SRC common/CalculatorActivity.java:435-445 (returnResult: setResult(RESULT_OK) at 443, finish at 444); SRC common/Calculator.java:79 (activity.startActivityForResult(intent, requestCode)); SRC investment/InvestmentTransactionEditActivity.java:119-158 (onActivityResult; Calculator.getAmountFromResult at 125; switch on the four request codes); FW-SRC core/java/android/app/ActivityThread.java:4253-4265; FW-SRC core/java/android/app/Activity.java:7259-7266; variant @COMMISSION')
+e('InvestmentTransactionEditActivity.onCurrentPriceClick', 'CalculatorActivity.<init>@CURRENT_PRICE', 'INTENT',
+  'the current price field opens the calculator: Calculator.show starts CalculatorActivity (CURRENT_PRICE-launched calculator only)',
+  guard='the launch uses REQUEST_CURRENT_PRICE (= 4) (InvestmentTransactionEditActivity.java)',
+  cls='standard',
+  evidence='SRC investment/InvestmentTransactionEditActivity.java:240-246 (@OnClick at 240; forActivity 242, currency 243, amount 244, show 245); SRC common/Calculator.java:70 (intent for CalculatorActivity.class), 77-83 (show: startActivityForResult at 79); FW-SRC core/java/android/app/ActivityThread.java:2669-2670 (mInstrumentation.newActivity); FW-SRC core/java/android/app/Instrumentation.java:1170-1174 (loadClass(className).newInstance() at 1174); variant @CURRENT_PRICE')
+e('CalculatorActivity.<init>@CURRENT_PRICE', 'CalculatorActivity.onCreate@CURRENT_PRICE', 'LIFECYCLE',
+  'the framework calls onCreate right after the constructor (CURRENT_PRICE-launched calculator)',
+  evidence='FW-SRC core/java/android/app/ActivityThread.java:2729-2731 (callActivityOnCreate after newActivity at 2669); FW-SRC core/java/android/app/Instrumentation.java:1212-1214 (callActivityOnCreate calls performCreate at 1214); FW-SRC core/java/android/app/Activity.java:6993-6999 (performCreate calls onCreate at 6999); variant @CURRENT_PRICE')
+e('CalculatorActivity.onCreate@CURRENT_PRICE', 'S_CALCULATOR@CURRENT_PRICE', 'ENTERS',
+  'onCreate sets the layout (line 115) and wires the keys through initializeControls (line 127): the calculator screen is shown (CURRENT_PRICE-launched calculator)',
+  cls='page',
+  evidence='SRC common/CalculatorActivity.java:111-128 (setContentView at 115, ButterKnife.bind at 118, initializeControls at 127); variant @CURRENT_PRICE')
+e('S_CALCULATOR@CURRENT_PRICE', 'CalculatorActivity.onEqualsClicked@CURRENT_PRICE', 'GUI',
+  'the equals key runs the @OnClick handler, which returns the entered amount (CURRENT_PRICE-launched calculator)',
+  gui=['Tap the equals key on the calculator'],
+  cls='non_standard', via='ButterKnife @OnClick(R.id.buttonKeyEqual) at CalculatorActivity.java:247, bound by the generated CalculatorActivity_ViewBinding (INFERRED: the library and generated source are not in the source root)',
+  evidence='SRC common/CalculatorActivity.java:247-250 (@OnClick at 247, handler 248-250); SRC res/layout/activity_calculator.xml:162 (buttonKeyEqual); auto_calls.json record CalculatorActivity_ViewBinding$2.doClick -> onEqualsClicked (CalculatorActivity_ViewBinding.java:49) is the generated path (batch 028); INFERRED ButterKnife binding (library not read); variant @CURRENT_PRICE')
+e('CalculatorActivity.onEqualsClicked@CURRENT_PRICE', 'CalculatorActivity.returnResult@CURRENT_PRICE', 'CALL',
+  'the equals key returns the entered amount (CURRENT_PRICE-launched calculator)',
+  evidence='SRC common/CalculatorActivity.java:249 (bytecode); variant @CURRENT_PRICE')
+e('CalculatorActivity.returnResult@CURRENT_PRICE', 'InvestmentTransactionEditActivity.onActivityResult@CURRENT_PRICE', 'RESULT',
+  'the calculator returns the amount and finishes: setResult(RESULT_OK) at 443, finish at 444, and the framework delivers the result to the editor that started it (CURRENT_PRICE-launched calculator only)',
+  guard='requestCode is REQUEST_CURRENT_PRICE (= 4) and resultCode is RESULT_OK with data non-null (InvestmentTransactionEditActivity.java:119-158; cancelled or null-data early return at 123; CURRENT_PRICE branch at 151-155: mStock.setCurrentPrice at 152, showCurrentPrice at 153)',
+  evidence='SRC common/CalculatorActivity.java:435-445 (returnResult: setResult(RESULT_OK) at 443, finish at 444); SRC common/Calculator.java:79 (activity.startActivityForResult(intent, requestCode)); SRC investment/InvestmentTransactionEditActivity.java:119-158 (onActivityResult; Calculator.getAmountFromResult at 125; switch on the four request codes); FW-SRC core/java/android/app/ActivityThread.java:4253-4265; FW-SRC core/java/android/app/Activity.java:7259-7266; variant @CURRENT_PRICE')
+
+# B6-GUARD: showPrerequisite guard on MainActivity.onCreate ->
+# MainActivity.populateScheduledTransactions (routes 15 + 26 step 3,
+# route 27 step 3): hand replacement of AUTO edge Ec1f84c25; trigger and
+# evidence verbatim, only the guard is added, so the id change is the
+# sole diff. Primary (full four-conjunct) guard text per audit-approved
+# design section (c)(i); no cls/via/gui/needs_state/env (matches the
+# AUTO edge, which has gui [] and via null, and the sibling
+# E73c83312 hand edge, which carries no cls/via).
+e('MainActivity.onCreate', 'MainActivity.populateScheduledTransactions', 'CALL',
+  'Direct call',
+  guard='!showPrerequisite() (MainActivity.java:184-187; definition :1478-1499: no tutorial needed (:1351-1353) and a database available (:1338-1348: stored path non-empty, not an unpassworded .emb file, and the file exists))',
+  evidence='SRC MainActivity.java:244 (bytecode)')

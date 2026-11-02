@@ -2194,22 +2194,7 @@ e('EditTransactionCommonFunctions$3.onClick', 'CalculatorActivity.<init>', 'INTE
   'a click listener opens the calculator for a result: Calculator.show (line 446) starts CalculatorActivity',
   evidence='SRC transactions/EditTransactionCommonFunctions.java:444-446 (forActivity 444, currency 445, amount 445, show 446); ' + EV_START)
 
-e('InvestmentTransactionEditActivity.onNumSharesClick', 'CalculatorActivity.<init>', 'INTENT',
-  'the number-of-shares field opens the calculator: Calculator.show (line 218) starts CalculatorActivity',
-  evidence='SRC investment/InvestmentTransactionEditActivity.java:211-219 (@OnClick at 211; forActivity 215, amount 216, roundToCurrency 217, show 218); ' + EV_START)
 
-e('InvestmentTransactionEditActivity.onPurchasePriceClick', 'CalculatorActivity.<init>', 'INTENT',
-  'the purchase price field opens the calculator: Calculator.show (line 229) starts CalculatorActivity',
-  guard='mAccount is not null (InvestmentTransactionEditActivity.java:223 returns early when it is null)',
-  evidence='SRC investment/InvestmentTransactionEditActivity.java:221-230 (@OnClick at 221; guard 223; forActivity 225, roundToCurrency 226, amount 227, currency 228, show 229); ' + EV_START)
-
-e('InvestmentTransactionEditActivity.onCommissionClick', 'CalculatorActivity.<init>', 'INTENT',
-  'the commission field opens the calculator: Calculator.show (line 237) starts CalculatorActivity',
-  evidence='SRC investment/InvestmentTransactionEditActivity.java:232-238 (@OnClick at 232; forActivity 234, amount 235, currency 236, show 237); ' + EV_START)
-
-e('InvestmentTransactionEditActivity.onCurrentPriceClick', 'CalculatorActivity.<init>', 'INTENT',
-  'the current price field opens the calculator: Calculator.show (line 245) starts CalculatorActivity',
-  evidence='SRC investment/InvestmentTransactionEditActivity.java:240-246 (@OnClick at 240; forActivity 242, currency 243, amount 244, show 245); ' + EV_START)
 
 e('PriceEditActivity.onPriceClick', 'CalculatorActivity.<init>', 'INTENT',
   'the price field opens the calculator: Calculator.show (line 140) starts CalculatorActivity',

@@ -1288,11 +1288,7 @@ e('InvestmentTransactionEditActivity$2.onClick', 'InvestmentTransactionEditActiv
   gui=['Tap the date text, then tap OK in the date picker'],
   evidence='SRC investment/InvestmentTransactionEditActivity.java:351-356 (lambda listener; setDirty at 352); SRC investment/InvestmentTransactionEditActivity.java:358-364 (DatePickerDialog built with the listener); FW-SRC core/java/android/app/DatePickerDialog.java:120-123 (BUTTON_POSITIVE set at 122), 164-174 (mDateSetListener.onDateSet at 171); INFERRED: the dialog button dispatch to DatePickerDialog.onClick is not read (AlertController not read)')
 
-# ---- the calculator result returned to the editor
-
-e('CalculatorActivity.returnResult', 'InvestmentTransactionEditActivity.onActivityResult', 'RESULT',
-  'a calculator result is returned: returnResult sets RESULT_OK and finishes, and the framework delivers the result to the editor, whose onActivityResult stores the amount in the field that was tapped',
-  evidence='SRC common/CalculatorActivity.java:435-445 (returnResult; setResult(RESULT_OK) at 443; finish at 444; called at 149 and 249); SRC investment/InvestmentTransactionEditActivity.java:119-158 (onActivityResult; Calculator.getAmountFromResult at 125; switch on the four request codes); FW-SRC core/java/android/app/ActivityThread.java:4253-4264 (deliverResults); FW-SRC core/java/android/app/Activity.java:7259-7266 (dispatchActivityResult)')
+# ---- the calculator result returned to the editor (plain RESULT edge deleted; delivery now via the four @X variant chains in graph_def_mod/03.py)
 
 # ---- UNREACHABLE entries (each has a reason, evidence and basis; a method with no caller in the app)
 
@@ -1980,7 +1976,7 @@ e('YqlSecurityPriceUpdaterRetrofit.onContentDownloaded', 'WatchlistFragment.onEv
   cls='non_standard', via='EventBus post at YqlSecurityPriceUpdaterRetrofit.java:130 to the subscriber registered in onStart (library dispatch, INFERRED)',
   evidence='SRC investment/yql/YqlSecurityPriceUpdaterRetrofit.java:113-131 (post at 130); SRC investment/SecurityPriceUpdaterFactory.java:44-45, 50-52; SRC settings/InvestmentSettings.java:75; SRC WatchlistFragment.java:290-293')
 
-# B6-EVENT: plain FixerService.onContentDownloaded -> WatchlistFragment.onEvent(PriceDownloadedEvent) partitioned to @RETURNED in graph_def_mod/03.py (plain edge deleted; linear reading false — delivery needs return-interleaving, priced as session needs_state).
+# B6-EVENT: plain FixerService.onContentDownloaded -> WatchlistFragment.onEvent(PriceDownloadedEvent) DELETED (was partitioned to @RETURNED in graph_def_mod/03.py; deletion per routes 8+18 design 2026-11-02: no Fixer prefix ever has a WatchlistFragment subscriber; Fixer delivery to the currency list at graph_def.py:4666 and Watchlist delivery via the security updaters are retained).
 
 e('WatchlistItemsFragment.onContextItemSelected', 'WatchlistFragment.onEvent(PriceUpdateRequestEvent)', 'ASYNC',
   'the user chooses Download price in the context menu of a watchlist row; EventBus delivers PriceUpdateRequestEvent to the registered watchlist fragment',

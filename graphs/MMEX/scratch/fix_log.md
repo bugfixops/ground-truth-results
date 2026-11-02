@@ -930,7 +930,7 @@ routes (ValueError in snippet(), int('') on citations of the form
 trailing comma). Pre-existing bug (the crashing ENTRY edge is B4-era),
 NOT caused by B6 edges; tools/ is out of the merger's scope, so it was
 NOT edited. Workaround: merger script
-dump_routes.py (merger work dir) (NOT in tools/)
+~/workspace/finish/work/MMEX/merger/dump_routes.py (NOT in tools/)
 replicates the print with a citation parser handling comma-space
 multi-ranges. All 30 dumps regenerated into
 tree/graphs/MMEX/scratch/route_print_final/ (first-draw route_print/
@@ -1021,3 +1021,110 @@ re-feed, (2) routes 8 + 18 recipient-identity repairs, (3)
 showPrerequisite guard on :244, (4) §9 getContext 32-edge repair, (5)
 B7 + D1/D3/D7 from the final sample. Each repair needs a fresh redraw +
 re-judge; 0.5357 is the audited rate for the CURRENT graph.
+
+## Routes 8 + 18 repairs (applied 2026-11-02, verification PASS)
+
+Route 8 — StockHistoryRepository.getContentValues, step 17 (WRONG).
+Lines printed: investment/prices/FixerService.java:100-121 (post at 120);
+investment/watchlist/WatchlistFragment.java:128-139 (register at 131,
+unregister at 138), 290-293, 161-172 (onCreateView), 330-345
+(onPriceDownloaded); currency/list/CurrencyListFragment.java:111-121,
+354-356; currency/CurrencyService.java:495-522;
+investment/SecurityPriceUpdaterFactory.java:40-52.
+What changed: deleted graph_def_mod/03.py:852-858 (FixerService ->
+WatchlistFragment.onEvent(PriceDownloadedEvent)@RETURNED, ASYNC,
+E992e5393; its auto fan-out E887d2bcd goes with it) + updated the
+01.py partition comment (now at 1979 after the R18 deletion above it) and the 03.py ROUTE 2 header to record the
+deletion. No label change. New best route is the 21-step PriceEdit route;
+re-judge outcome CORRECT-or-FIXED pending the single final redraw.
+
+Route 18 — Stock.getNumberOfShares, step 15 (WRONG).
+Lines printed: account/AccountEditActivity.java:147-175, 301-309;
+common/Calculator.java:70, 77-83; common/CalculatorActivity.java:111-128,
+247-250, 435-445; investment/InvestmentTransactionEditActivity.java:73-76,
+119-158, 211-246; core/RequestCodes.java:28;
+FW-SRC ActivityThread.java:4253-4266, 2669-2670, 2729-2731;
+FW-SRC Activity.java:7259-7268, 6993-6999;
+FW-SRC Instrumentation.java:1170-1174, 1212-1214.
+What changed: deleted the 4 plain ITEA INTENT edges (graph_def.py
+2197-2199, 2201-2204, 2206-2208, 2210-2212) + the plain RESULT edge
+(01.py:1293-1295, E282384e2; retitle comment at 1291 per implementation-audit
+defect A1), and added 24 variant-chain edges in
+graph_def_mod/03.py (6 per launcher: INTENT with cls='standard',
+LIFECYCLE, ENTERS with cls='page', GUI with cls='non_standard',
+CALL, RESULT) — all four chains in the same build as the deletions.
+No label change. New best route for getNumberOfShares is the 20-step
+pre-fill route via ITEA.java:213; calculator delivery is verified via
+the 25-step onActivityResult variant route. Re-judge outcome CORRECT
+pending the single final redraw (pre-commitment, not a promise).
+
+Verification (independent, disk rebuilds): applied tree 4270 methods,
+3430/840, 8361 edges, errors 0, warnings 0, INFERRED 2770/SOURCE 1500;
+baseline (stage-B6) 8256 edges; diff exactly 30 route changes, 0 label
+flips; deleted ids absent; plain onActivityResult incoming non-REGISTER
+= []; plain returnResult destinations exactly AccountEdit/Checking/
+PriceEdit/Search; fan-out exactly 11 incl. Stock.getCurrentPrice;
+zero cross-branch best routes (full 4270-route scan).
+
+## showPrerequisite guard (applied 2026-11-02, verification PASS; audit M1 corrected)
+
+Route 15 — RecurringTransactionListActivity.onActivityResult, step 3 (FIXED).
+Route 26 — MmxContentProvider.prepareQuery, step 3 (FIXED).
+Route 27 — MmxContentProvider.logUpdate, step 3 (unrecorded step-3 text gap inside an otherwise CORRECT route; design correction).
+Lines printed: home/MainActivity.java:179-245 (onCreate gate :184-187, populate call :244; scan of :188-243 finds zero return statements); :1231 (populate definition); :1338-1353 (isDatabaseAvailable :1338-1348, isTutorialNeeded :1351-1353); :1478-1500 (showPrerequisite definition, return false :1499).
+What changed: appended one hand edge to graph_def_mod/03.py (last-loaded module, B6 section-10 precedent for AUTO-edge guard corrections): MainActivity.onCreate -> MainActivity.populateScheduledTransactions, CALL, trigger 'Direct call' verbatim, evidence 'SRC MainActivity.java:244 (bytecode)' verbatim, guard '!showPrerequisite() (MainActivity.java:184-187; definition :1478-1499: no tutorial needed (:1351-1353) and a database available (:1338-1348: stored path non-empty, not an unpassworded .emb file, and the file exists))' (primary full four-conjunct text, not the shorthand fallback). The AUTO edge Ec1f84c25 is suppressed by the hand edge's base pair and retires; one new id takes its place: E00ecbc65 — VERIFIED from the independent verification build (not the preparer's prediction). No other edge added, deleted, or changed; no needs_state/env/variant. Build: 4270 methods, 3430/840, 8361 edges (auto 6998 -> 6997), errors 0, warnings 0, 0 label flips; methods.csv diff exactly 145 rows, each one Ec1f84c25 -> E00ecbc65 at the same position, node sequences identical in all 4270 rows. Routes 15, 26, and 27 step 3 gain the guard; all other steps byte-identical. No route-table verdict claimed here: re-judge of routes 15, 26, and 27 at the single final redraw decides CORRECT vs FIXED.
+(Merger note — audit M1: the package §(d) draft header addressed this entry to graphs/MMEX/merger/scratch/fix_log.md, which does not exist; it is appended here at the correct path work/MMEX/merger/scratch/fix_log.md. B7-prep §2c row filled: Ec1f84c25 -> E00ecbc65; B7 grep rule: any Ec1f84c25 hit in writer output after this landing is a stale-row bug.)
+
+## §9 getContext repair (applied 2026-11-02, verification PASS; count corrected to 4)
+
+§10 (follow-up to §9): DatabaseManager.getContext — CORRECTED §4 partition
+applied (design helper/getcontext32-design/DESIGN.md §4, audit
+audit/getcontext32-design/AUDIT.md PASS with D1–D5; implementation package
+helper/getcontext32-impl/IMPLEMENTATION.md; implementation audit
+audit/getcontext32-impl/AUDIT.md PASS; verification
+helper/getcontext32-verify/VERIFICATION.md PASS).
+Method: §4.1 sup() of 6 contradicted getDatabasePath callers
+(showCurrentDatabasePath, MmexApplication.createDbInstance,
+MainActivity.onOpenDatabaseClick, DatabaseMetadataFactory.createDefaultEntry,
+HomeFragment.createWelcomeView, SyncManager.useDownloadedDatabase) +
+§4.2 triggerSync partition: initializeSync hand edge edited to
+triggerSynchronization@MAIN (graph_def_mod/03.py:937, current numbering;
+trigger/guard/evidence unchanged), @GROUP drawer feeder added,
+(triggerSync, getDatabasePath) base pair suppressed, hand re-assert for
+plain only, hand mirror @MAIN -> invokeSyncService (DESIGN-literal texts;
+mirror id Eafb31232). New file graph_def_mod/04.py (merger-applied header
+per implementation-audit M1; edge texts verbatim); no other file edited.
+Lines printed: home/MainActivity.java:1210-1224, :613-616, :1071, :860-861
+(Synchronization null children; :861 blank padding noted);
+sync/SyncManager.java:332-348, :336; SyncBroadcastReceiver.java:45;
+MoneyManagerBackupAgentHelper manifest AndroidManifest.xml:56-57
+(backup untouched). Honesty note: the 6 sup()s delete real early-return
+calls (graph conflates early-return with fall-through branch); confined to
+getDatabasePath edges; fallback A0 kept available.
+What changed: local disk build 4270 methods, 3430 REACHABLE / 840
+UNREACHABLE (unchanged), edges 8361 -> 8363 (+2), errors 0, warnings 0;
+0 label flips; 79 cheapest routes change (60 pure @MAIN node-swaps + 19
+reroutes: 7 getDatabasePath subtree incl. getContext now on a 12-step
+FileStorageHelper prefix, 4 toast chain, 8 knock-ons); plain triggerSync
+keeps 1 feeder (broadcast) + all 11 outs; @MAIN has 2 feeders + 10 outs
+with NO getDatabasePath out; checks 2/4 at pre-repair 0/0 (re-assert
+mechanically check-4-clean; other 3 new hand edges hand-verified, see
+IMPLEMENTATION.md §4.2). Route 29 NOT re-judged here: its new prefix's
+exception-branch step (FileStorageHelper.java:60-70 catch branch, edge
+E82bed177) awaits the final redraw + re-judge + audit; no CORRECT claim
+made. Stale ids for B7: see IMPLEMENTATION.md §6.
+(Merger verification additions: independent verification build confirms
+8363/0/0, reconciliation 8361 − 11 + 13 = 8363 (13 new = 4 hand +
+9 auto-mirrored), 79 changes member-for-member, mirror Eafb31232 exactly,
+broadcast feeder routes 2 after repair (getDatabasePath,
+getDefaultDatabasePath) vs 0 before; full rebuild.sh in the verification
+copy (02:25 UTC, exit 0) additionally confirms check 3: 0 flagged,
+checks 5–7 all 0, STRICT = 1; check 8 lists the pre-existing 19 B4 methods
+(not a §9 item); verification.csv missing is expected (B7 pending).
+COUNT CORRECTION (implementation-audit adjudication): the design's "5 new
+hand edges" is a miscount — DESIGN §4.2 has 5 actions, one a sup() creating
+no id; correct count is 4 new hand-edge ids (E9af7d91f, Eaad801ab,
+Efec640e8, Eafb31232). All B7 references must cite 4, not 5. Metadata
+shifts expected at B7 per audit M3: confirmed_by SOURCE→INFERRED for exactly
+5 tail methods, incoming_edges counts change for 12 methods — verdicts
+unchanged, not regressions.)
