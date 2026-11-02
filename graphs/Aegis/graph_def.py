@@ -409,9 +409,6 @@ e('MainActivity.onStart', 'Dialogs.showErrorDialog(Context,int,Exception,OnClick
   evidence='SRC ui/MainActivity.java:963-971 (plain-text branch; loadFrom at 965; catch at 966-971)')
 e('MainActivity.onStart', 'MainActivity.startIntroActivity', 'CALL', 'no vault file exists (fresh install): the intro starts and onStart returns',
   guard='vault init needed: no vault file exists', evidence='SRC ui/MainActivity.java:942-948')
-e('MainActivity.onStart', 'MainActivity.startAuthActivity', 'CALL', 'an encrypted vault file exists and is not loaded: the unlock screen starts',
-  guard='a vault file exists and is encrypted (the plain-text branch at 951-973 did not load it)', needs_state=ST_ENCRYPTED_VAULT_FILE,
-  evidence='SRC ui/MainActivity.java:950-977')
 e('MainActivity.onStart', 'VaultManager.loadFrom(VaultFile)', 'CALL', 'the plain-text vault file is read and loaded in onStart',
   guard='the vault is not loaded yet and the vault file is not encrypted (MainActivity.java:951-973)', needs_state=ST_PLAIN_VAULT_FILE,
   evidence='SRC ui/MainActivity.java:951-965')
@@ -435,13 +432,6 @@ e('YandexInfo.validateSecret', 'YandexInfo.getNumberOfLeadingZeros', 'CALL',
   'the checksum loop runs; a secret from a QR code (16 bytes) returns before it',
   guard='the Yandex secret is the 26-byte checksummed form (SECRET_FULL_LENGTH; the 16-byte form returns at YandexInfo.java:116-118)',
   evidence='SRC otp/YandexInfo.java:110-118,156')
-e('MainActivity.onStart', 'MainActivity.loadEntries', 'CALL', 'vault unlocked in this process: the list is loaded in onStart',
-  guard='the vault is loaded and this instance has not loaded the list (the else branch at 991-996)', needs_state=ST_UNLOCKED,
-  evidence='SRC ui/MainActivity.java:991-996')
-e('MainActivity.onStart', 'MainActivity.loadEntries', 'CALL', 'plain-text vault (intro chose no security): loaded in onStart',
-  guard='the plain-text vault file is loaded earlier in this same onStart call (VaultManager.loadFrom, MainActivity.java:963-965) with no early return at 947, 960 or 971, isVaultLoaded() is true (MainActivity.java:976-977 not taken), and this instance has not loaded the list (else branch at 991-992; _loaded false at 978)',
-  needs_state=ST_PLAIN_VAULT_FILE,
-  evidence='SRC ui/MainActivity.java:950-974,991-992')
 # batch k (group B): the first-load and the later-start refresh calls, each with its state (loadEntries runs before the call, MainActivity.java:992)
 e('MainActivity.onStart', 'EntryListView.onRefreshStart', 'CALL', 'plain-text vault (intro chose no security): the list is loaded, then its codes are refreshed',
   guard='the plain-text vault file is loaded earlier in this onStart call (MainActivity.java:963-965) and this instance has not loaded the list: the else branch at 991-996 runs loadEntries (992) before onRefreshStart (996)',
