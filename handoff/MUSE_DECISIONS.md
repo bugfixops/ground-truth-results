@@ -3675,3 +3675,7 @@ fixes are staged locally at work/MMEX/device-fix2/merge/ and
 work/MMEX/device-fix2/routes/, NOT pushed, per the 2026-11-02 ~09:43
 EST coordinator amendment (one-app-at-a-time regime; MMEX pushes
 again only at MMEX's turn unless the coordinator orders otherwise).
+
+## AMAZE-G4-ENDORSEMENT (coordinator decision, Muse's own, for the user and Yang to review; 2026-11-02 ~10:38 EST)
+
+AmazeFileManager route_08 tally: the pushed route table's fixed-25 count STANDS — route_08 stays "fixed" per the verdict key, and the 24+1 alternative (counting route_08 separately from the 24 fixed) is NOT adopted. No re-tally and no verdict change is made. Rate is 0.833 either way (5 correct / 25 fixed / 0 wrong / 0 unclear over 30), so this endorsement changes no number; it removes the assessment's qualification on finality. If the user disagrees, their word overturns this ruling.
