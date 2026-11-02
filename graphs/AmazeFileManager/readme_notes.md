@@ -54,6 +54,8 @@ scratch/fix_log.md. Routes dropped by redraws were judged and fixed in
 their own draws; their fixes are in fix_log.md but they are not in the
 final table.
 
+Note on sample timing: the sample was drawn before the log step. The label rows written by the log step change which 30 methods the sampler picks on the final graph, so a fresh draw on the final graph would not necessarily pick the same 30 methods. The judged routes are still current: the final verification run reports 0 STALE warnings, so every judged route still matches the final graph.
+
 ## What waits for a device (API 27)
 
 Device checks are deferred: they run in GitHub CI when the user starts
