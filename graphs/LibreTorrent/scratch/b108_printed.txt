@@ -1,0 +1,1705 @@
+Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+
+$ sed -n '1,811p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/MainActivity.java
+/*
+ * Copyright (C) 2016-2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.main;
+
+import android.app.Dialog;
+import android.app.SearchManager;
+import android.content.Context;
+import android.content.Intent;
+import android.content.res.Resources;
+import android.net.Uri;
+import android.os.Bundle;
+import android.text.Html;
+import android.text.format.Formatter;
+import android.text.method.LinkMovementMethod;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.preference.PreferenceManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.snackbar.Snackbar;
+import com.h6ah4i.android.widget.advrecyclerview.animator.GeneralItemAnimator;
+import com.h6ah4i.android.widget.advrecyclerview.animator.RefactoredDefaultItemAnimator;
+import com.h6ah4i.android.widget.advrecyclerview.expandable.RecyclerViewExpandableItemManager;
+
+import net.cachapa.expandablelayout.ExpandableLayout;
+
+import org.proninyaroslav.libretorrent.R;
+import org.proninyaroslav.libretorrent.core.filter.TorrentFilterCollection;
+import org.proninyaroslav.libretorrent.core.model.TorrentInfoProvider;
+import org.proninyaroslav.libretorrent.core.model.data.SessionStats;
+import org.proninyaroslav.libretorrent.core.system.SystemFacadeHelper;
+import org.proninyaroslav.libretorrent.core.utils.Utils;
+import org.proninyaroslav.libretorrent.receiver.NotificationReceiver;
+import org.proninyaroslav.libretorrent.ui.BaseAlertDialog;
+import org.proninyaroslav.libretorrent.ui.FragmentCallback;
+import org.proninyaroslav.libretorrent.ui.PermissionDeniedDialog;
+import org.proninyaroslav.libretorrent.ui.PermissionManager;
+import org.proninyaroslav.libretorrent.ui.addtag.AddTagActivity;
+import org.proninyaroslav.libretorrent.ui.customviews.ExpansionHeader;
+import org.proninyaroslav.libretorrent.ui.detailtorrent.BlankFragment;
+import org.proninyaroslav.libretorrent.ui.detailtorrent.DetailTorrentActivity;
+import org.proninyaroslav.libretorrent.ui.detailtorrent.DetailTorrentFragment;
+import org.proninyaroslav.libretorrent.ui.feeds.FeedActivity;
+import org.proninyaroslav.libretorrent.ui.log.LogActivity;
+import org.proninyaroslav.libretorrent.ui.main.drawer.AbstractTagItem;
+import org.proninyaroslav.libretorrent.ui.main.drawer.DrawerExpandableAdapter;
+import org.proninyaroslav.libretorrent.ui.main.drawer.DrawerGroup;
+import org.proninyaroslav.libretorrent.ui.main.drawer.DrawerGroupItem;
+import org.proninyaroslav.libretorrent.ui.main.drawer.EmptyTagItem;
+import org.proninyaroslav.libretorrent.ui.main.drawer.NoTagsItem;
+import org.proninyaroslav.libretorrent.ui.main.drawer.TagItem;
+import org.proninyaroslav.libretorrent.ui.main.drawer.TagsAdapter;
+import org.proninyaroslav.libretorrent.ui.settings.SettingsActivity;
+
+import java.util.List;
+
+import io.reactivex.Flowable;
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
+
+public class MainActivity extends AppCompatActivity implements FragmentCallback {
+    private static final String TAG = MainActivity.class.getSimpleName();
+
+    private static final String TAG_ABOUT_DIALOG = "about_dialog";
+    private static final String TAG_PERM_DENIED_DIALOG = "perm_denied_dialog";
+
+    public static final String ACTION_ADD_TORRENT_SHORTCUT = "org.proninyaroslav.libretorrent.ADD_TORRENT_SHORTCUT";
+
+    /* Android data binding doesn't work with layout aliases */
+    private MainFragment mainFragment;
+    private Toolbar toolbar;
+    private DrawerLayout drawerLayout;
+    private NavigationView navigationView;
+    private ActionBarDrawerToggle toggle;
+    private RecyclerView drawerItemsList;
+    private LinearLayoutManager layoutManager;
+    private DrawerExpandableAdapter drawerAdapter;
+    private RecyclerView.Adapter wrappedDrawerAdapter;
+    private RecyclerViewExpandableItemManager drawerItemManager;
+    private SearchView searchView;
+    private TextView sessionDhtNodesStat, sessionDownloadStat,
+            sessionUploadStat, sessionListenPortStat;
+    private ExpansionHeader tagsGroupHeader;
+    private ExpandableLayout tagsExpandable;
+    private MaterialButton addTagButton;
+    private RecyclerView tagsList;
+    private TagsAdapter tagsAdapter;
+
+    private MainViewModel viewModel;
+    private MsgMainViewModel msgViewModel;
+    private CompositeDisposable disposables = new CompositeDisposable();
+    private BaseAlertDialog.SharedViewModel dialogViewModel;
+    private BaseAlertDialog aboutDialog;
+    private TorrentInfoProvider infoProvider;
+    private PermissionDeniedDialog permDeniedDialog;
+    private PermissionManager permissionManager;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        setTheme(Utils.getAppTheme(getApplicationContext()));
+        super.onCreate(savedInstanceState);
+
+        if (getIntent().getAction() != null &&
+                getIntent().getAction().equals(NotificationReceiver.NOTIFY_ACTION_SHUTDOWN_APP)) {
+            finish();
+            return;
+        }
+
+        infoProvider = TorrentInfoProvider.getInstance(getApplicationContext());
+        ViewModelProvider provider = new ViewModelProvider(this);
+        viewModel = provider.get(MainViewModel.class);
+        msgViewModel = provider.get(MsgMainViewModel.class);
+        dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+
+        FragmentManager fm = getSupportFragmentManager();
+        permissionManager = new PermissionManager(this, new PermissionManager.Callback() {
+            @Override
+            public void onStorageResult(boolean isGranted, boolean shouldRequestStoragePermission) {
+                if (!isGranted && shouldRequestStoragePermission) {
+                    if (fm.findFragmentByTag(TAG_PERM_DENIED_DIALOG) == null) {
+                        permDeniedDialog = PermissionDeniedDialog.newInstance();
+                        FragmentTransaction ft = fm.beginTransaction();
+                        ft.add(permDeniedDialog, TAG_PERM_DENIED_DIALOG);
+                        ft.commitAllowingStateLoss();
+                    }
+                }
+            }
+
+            @Override
+            public void onNotificationResult(boolean isGranted, boolean shouldRequestNotificationPermission) {
+                permissionManager.setDoNotAskNotifications(!isGranted);
+                if (isGranted) {
+                    viewModel.restartForegroundNotification();
+                }
+            }
+        });
+        aboutDialog = (BaseAlertDialog) fm.findFragmentByTag(TAG_ABOUT_DIALOG);
+        permDeniedDialog = (PermissionDeniedDialog) fm.findFragmentByTag(TAG_PERM_DENIED_DIALOG);
+
+        if (!permissionManager.checkPermissions() && permDeniedDialog == null) {
+            permissionManager.requestPermissions();
+        }
+        Utils.showManageAllFilesWarningDialog(getApplicationContext(), getSupportFragmentManager());
+
+        setContentView(R.layout.activity_main);
+
+        mainFragment = (MainFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.main_fragmentContainer);
+
+        cleanGarbageFragments();
+        initLayout();
+    }
+
+    private void initLayout() {
+        showBlankFragment();
+
+        toolbar = findViewById(R.id.toolbar);
+        navigationView = findViewById(R.id.navigation_view);
+        drawerLayout = findViewById(R.id.drawer_layout);
+        drawerItemsList = findViewById(R.id.drawer_items_list);
+        layoutManager = new LinearLayoutManager(this) {
+            @Override
+            public boolean canScrollVertically() {
+                /* Disable scroll, because RecyclerView is wrapped in ScrollView */
+                return false;
+            }
+        };
+        sessionDhtNodesStat = findViewById(R.id.session_dht_nodes_stat);
+        sessionDownloadStat = findViewById(R.id.session_download_stat);
+        sessionUploadStat = findViewById(R.id.session_upload_stat);
+        sessionListenPortStat = findViewById(R.id.session_listen_port_stat);
+        tagsGroupHeader = findViewById(R.id.tags_group_header);
+        tagsExpandable = findViewById(R.id.tags_expandable);
+        addTagButton = findViewById(R.id.add_tag_button);
+        tagsList = findViewById(R.id.tags_list);
+
+        toolbar.setTitle(R.string.app_name);
+        toolbar.inflateMenu(R.menu.main);
+        setSupportActionBar(toolbar);
+
+        if (drawerLayout != null) {
+            toggle = new ActionBarDrawerToggle(this,
+                    drawerLayout,
+                    toolbar,
+                    R.string.open_navigation_drawer,
+                    R.string.close_navigation_drawer);
+            drawerLayout.addDrawerListener(toggle);
+        }
+        initDrawer();
+        viewModel.resetSearch();
+    }
+
+    private void initDrawer() {
+        drawerItemManager = new RecyclerViewExpandableItemManager(null);
+        drawerItemManager.setDefaultGroupsExpandedState(false);
+        drawerItemManager.setOnGroupCollapseListener((groupPosition, fromUser, payload) -> {
+            if (fromUser)
+                saveGroupExpandState(groupPosition, false);
+        });
+        drawerItemManager.setOnGroupExpandListener((groupPosition, fromUser, payload) -> {
+            if (fromUser)
+                saveGroupExpandState(groupPosition, true);
+        });
+        GeneralItemAnimator animator = new RefactoredDefaultItemAnimator();
+        /*
+         * Change animations are enabled by default since support-v7-recyclerview v22.
+         * Need to disable them when using animation indicator.
+         */
+        animator.setSupportsChangeAnimations(false);
+
+        List<DrawerGroup> groups = Utils.getNavigationDrawerItems(this,
+                PreferenceManager.getDefaultSharedPreferences(this));
+        drawerAdapter = new DrawerExpandableAdapter(groups, drawerItemManager, this::onDrawerItemSelected);
+        wrappedDrawerAdapter = drawerItemManager.createWrappedAdapter(drawerAdapter);
+        onDrawerGroupsCreated();
+
+        drawerItemsList.setLayoutManager(layoutManager);
+        drawerItemsList.setAdapter(wrappedDrawerAdapter);
+        drawerItemsList.setItemAnimator(animator);
+        drawerItemsList.setHasFixedSize(false);
+
+        drawerItemManager.attachRecyclerView(drawerItemsList);
+
+        sessionDhtNodesStat.setText(getString(R.string.session_stats_dht_nodes, 0));
+        String downloadUploadFmt = getString(R.string.session_stats_download_upload,
+                Formatter.formatFileSize(this, 0),
+                Formatter.formatFileSize(this, 0));
+        sessionDownloadStat.setText(downloadUploadFmt);
+        sessionUploadStat.setText(downloadUploadFmt);
+        sessionListenPortStat.setText(getString(R.string.session_stats_listen_port,
+                getString(R.string.not_available)));
+
+        tagsList.setLayoutManager(new LinearLayoutManager(this));
+        tagsAdapter = new TagsAdapter(tagsClickListener);
+        tagsList.setAdapter(tagsAdapter);
+        addTagButton.setOnClickListener(
+                (v) -> startActivity(new Intent(this, AddTagActivity.class))
+        );
+
+        boolean tagsExpanded = PreferenceManager
+                .getDefaultSharedPreferences(this)
+                .getBoolean(getString(R.string.drawer_tags_is_expanded), false);
+        tagsGroupHeader.setExpanded(tagsExpanded);
+        tagsExpandable.setExpanded(tagsExpanded);
+        tagsGroupHeader.setOnClickListener((v) -> {
+            tagsExpandable.toggle();
+            tagsGroupHeader.toggleExpand();
+            PreferenceManager.getDefaultSharedPreferences(this)
+                    .edit()
+                    .putBoolean(
+                            getString(R.string.drawer_tags_is_expanded),
+                            tagsExpandable.isExpanded()
+                    )
+                    .apply();
+        });
+    }
+
+    private final TagsAdapter.OnClickListener tagsClickListener = new TagsAdapter.OnClickListener() {
+        @Override
+        public void onTagSelected(@NonNull AbstractTagItem item) {
+            if (item instanceof TagItem) {
+                viewModel.setTagFilter(
+                        TorrentFilterCollection.tag(((TagItem) item).info),
+                        true
+                );
+            } else if (item instanceof EmptyTagItem) {
+                viewModel.setTagFilter(TorrentFilterCollection.all(), true);
+            } else if (item instanceof NoTagsItem) {
+                viewModel.setTagFilter(TorrentFilterCollection.noTags(), true);
+            }
+
+            saveSelectedTag(item);
+
+            if (drawerLayout != null)
+                drawerLayout.closeDrawer(GravityCompat.START);
+        }
+
+        @Override
+        public void onTagMenuClicked(@NonNull AbstractTagItem abstractItem, int menuId) {
+            if (!(abstractItem instanceof TagItem)) {
+                return;
+            }
+            TagItem item = ((TagItem) abstractItem);
+            if (menuId == R.id.edit_tag_menu) {
+                Intent i = new Intent(MainActivity.this, AddTagActivity.class);
+                i.putExtra(AddTagActivity.TAG_INIT_INFO, item.info);
+                startActivity(i);
+            } else if (menuId == R.id.delete_tag_menu) {
+                disposables.add(viewModel.deleteTag(item.info)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                () -> {
+                                    if (item.isSame(tagsAdapter.getSelectedItem())) {
+                                        EmptyTagItem emptyItem = new EmptyTagItem();
+                                        saveSelectedTag(emptyItem);
+                                        tagsAdapter.setSelectedItem(emptyItem);
+                                        viewModel.setTagFilter(TorrentFilterCollection.all(), true);
+                                    }
+                                },
+                                (e) -> {
+                                    Log.e(TAG, Log.getStackTraceString(e));
+                                    Snackbar.make(
+                                            mainFragment.getCoordinatorLayout(),
+                                            R.string.tag_deleting_failed,
+                                            Snackbar.LENGTH_LONG
+                                    ).show();
+                                }
+                        )
+                );
+            }
+        }
+    };
+
+    private void saveSelectedTag(@NonNull AbstractTagItem item) {
+        String tagId = null;
+        if (item instanceof TagItem) {
+            tagId = Long.toString(((TagItem) item).info.id);
+        } else if (item instanceof EmptyTagItem) {
+            tagId = getString(R.string.tag_empty_item);
+        } else if (item instanceof NoTagsItem) {
+            tagId = getString(R.string.tag_no_tags_item);
+        }
+
+        PreferenceManager
+                .getDefaultSharedPreferences(MainActivity.this)
+                .edit()
+                .putString(
+                        getString(R.string.drawer_tags_selected_item),
+                        tagId
+                )
+                .apply();
+    }
+
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+
+        if (toggle != null)
+            toggle.syncState();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        subscribeAlertDialog();
+        subscribeMsgViewModel();
+        subscribeSessionStats();
+        subscribeNeedStartEngine();
+        subscribeTags();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        disposables.clear();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (viewModel != null)
+            viewModel.requestStopEngine();
+
+        super.onDestroy();
+    }
+
+    private void subscribeAlertDialog() {
+        Disposable d = dialogViewModel.observeEvents()
+                .subscribe((event) -> {
+                    if (event.dialogTag == null) {
+                        return;
+                    }
+
+                    if (event.dialogTag.equals(TAG_ABOUT_DIALOG)) {
+                        switch (event.type) {
+                            case NEGATIVE_BUTTON_CLICKED:
+                                openChangelogLink();
+                                break;
+                            case DIALOG_SHOWN:
+                                initAboutDialog();
+                                break;
+                        }
+                    } else if (event.dialogTag.equals(TAG_PERM_DENIED_DIALOG)) {
+                        if (event.type != BaseAlertDialog.EventType.DIALOG_SHOWN) {
+                            permDeniedDialog.dismiss();
+                        }
+                        if (event.type == BaseAlertDialog.EventType.NEGATIVE_BUTTON_CLICKED) {
+                            permissionManager.requestPermissions();
+                        }
+                        if (event.type == BaseAlertDialog.EventType.POSITIVE_BUTTON_CLICKED) {
+                            permissionManager.setDoNotAskStorage(true);
+                        }
+                    }
+                });
+        disposables.add(d);
+    }
+
+    private void subscribeMsgViewModel() {
+        disposables.add(msgViewModel.observeTorrentDetailsOpened()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(this::showDetailTorrent));
+
+        disposables.add(msgViewModel.observeTorrentDetailsClosed()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((__) -> showBlankFragment()));
+
+        disposables.add(viewModel.observeTorrentsDeleted()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((id) -> {
+                    DetailTorrentFragment f = getCurrentDetailFragment();
+                    if (f != null && id.equals(f.getTorrentId()))
+                        showBlankFragment();
+                }));
+    }
+
+    private void subscribeSessionStats() {
+        disposables.add(infoProvider.observeSessionStats()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(this::updateSessionStats));
+    }
+
+    private void subscribeNeedStartEngine() {
+        disposables.add(viewModel.observeNeedStartEngine()
+                .subscribeOn(Schedulers.io())
+                .filter((needStart) -> needStart)
+                .subscribe((needStart) -> viewModel.startEngine()));
+    }
+
+    private void subscribeTags() {
+        disposables.add(viewModel.observeTags()
+                .subscribeOn(Schedulers.io())
+                .flatMapSingle((list) ->
+                        Flowable.concat(
+                                Flowable.just(new EmptyTagItem()),
+                                Flowable.just(new NoTagsItem()),
+                                Flowable.fromIterable(list).map(TagItem::new)
+                        ).toList()
+                )
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((items) -> {
+                    if (tagsAdapter.getItemCount() == 0) {
+                        setInitSelection(items);
+                    }
+                    tagsAdapter.submitList(items);
+                })
+        );
+    }
+
+    private void setInitSelection(List<AbstractTagItem> items) {
+        String selectedTagIdStr = PreferenceManager
+                .getDefaultSharedPreferences(this)
+                .getString(
+                        getString(R.string.drawer_tags_selected_item),
+                        getString(R.string.tag_empty_item)
+                );
+        if (selectedTagIdStr.equals(getString(R.string.tag_empty_item))) {
+            tagsAdapter.setSelectedItem(new EmptyTagItem());
+            viewModel.setTagFilter(TorrentFilterCollection.all(), true);
+        } else if (selectedTagIdStr.equals(getString(R.string.tag_no_tags_item))) {
+            tagsAdapter.setSelectedItem(new NoTagsItem());
+            viewModel.setTagFilter(TorrentFilterCollection.noTags(), true);
+        } else {
+            long selectedTagId;
+            try {
+                selectedTagId = Long.parseLong(selectedTagIdStr);
+            } catch (NumberFormatException e) {
+                Log.e(TAG, "Unable to parse tag id: " + Log.getStackTraceString(e));
+                tagsAdapter.setSelectedItem(new EmptyTagItem());
+                viewModel.setTagFilter(TorrentFilterCollection.all(), true);
+                return;
+            }
+            disposables.add(Observable.fromIterable(items)
+                    .subscribeOn(Schedulers.computation())
+                    .filter((item) -> item instanceof TagItem &&
+                            ((TagItem) item).info.id == selectedTagId)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe((item) -> {
+                        tagsAdapter.setSelectedItem(item);
+                        viewModel.setTagFilter(
+                                TorrentFilterCollection.tag(((TagItem) item).info),
+                                true
+                        );
+                    })
+            );
+        }
+    }
+
+    private void updateSessionStats(SessionStats stats) {
+        long dhtNodes = 0;
+        long totalDownload = 0;
+        long totalUpload = 0;
+        long downloadSpeed = 0;
+        long uploadSpeed = 0;
+        int listenPort = -1;
+
+        if (stats != null) {
+            dhtNodes = stats.dhtNodes;
+            totalDownload = stats.totalDownload;
+            totalUpload = stats.totalUpload;
+            downloadSpeed = stats.downloadSpeed;
+            uploadSpeed = stats.uploadSpeed;
+            listenPort = stats.listenPort;
+        }
+
+        sessionDhtNodesStat.setText(getString(R.string.session_stats_dht_nodes, dhtNodes));
+        sessionDownloadStat.setText(getString(R.string.session_stats_download_upload,
+                Formatter.formatFileSize(this, totalDownload),
+                Formatter.formatFileSize(this, downloadSpeed)));
+        sessionUploadStat.setText(getString(R.string.session_stats_download_upload,
+                Formatter.formatFileSize(this, totalUpload),
+                Formatter.formatFileSize(this, uploadSpeed)));
+        sessionListenPortStat.setText(getString(R.string.session_stats_listen_port,
+                listenPort <= 0 ?
+                        getString(R.string.not_available) :
+                        Integer.toString(listenPort)));
+    }
+
+    private void saveGroupExpandState(int groupPosition, boolean expanded) {
+        DrawerGroup group = drawerAdapter.getGroup(groupPosition);
+        if (group == null)
+            return;
+
+        Resources res = getResources();
+        String prefKey = null;
+        if (group.id == res.getInteger(R.integer.drawer_status_id))
+            prefKey = getString(R.string.drawer_status_is_expanded);
+
+        else if (group.id == res.getInteger(R.integer.drawer_sorting_id))
+            prefKey = getString(R.string.drawer_sorting_is_expanded);
+
+        else if (group.id == res.getInteger(R.integer.drawer_date_added_id))
+            prefKey = getString(R.string.drawer_time_is_expanded);
+
+        if (prefKey != null)
+            PreferenceManager.getDefaultSharedPreferences(this)
+                    .edit()
+                    .putBoolean(prefKey, expanded)
+                    .apply();
+    }
+
+    private void onDrawerGroupsCreated() {
+        for (int pos = 0; pos < drawerAdapter.getGroupCount(); pos++) {
+            DrawerGroup group = drawerAdapter.getGroup(pos);
+            if (group == null)
+                return;
+
+            Resources res = getResources();
+            if (group.id == res.getInteger(R.integer.drawer_status_id)) {
+                viewModel.setStatusFilter(
+                        Utils.getDrawerGroupStatusFilter(this, group.getSelectedItemId()), false);
+
+            } else if (group.id == res.getInteger(R.integer.drawer_sorting_id)) {
+                viewModel.setSort(Utils.getDrawerGroupItemSorting(this, group.getSelectedItemId()), false);
+            } else if (group.id == res.getInteger(R.integer.drawer_date_added_id)) {
+                viewModel.setDateAddedFilter(Utils.getDrawerGroupDateAddedFilter(this, group.getSelectedItemId()), false);
+            }
+
+            applyExpandState(group, pos);
+        }
+    }
+
+    private void applyExpandState(DrawerGroup group, int pos) {
+        if (group.getDefaultExpandState())
+            drawerItemManager.expandGroup(pos);
+        else
+            drawerItemManager.collapseGroup(pos);
+    }
+
+    private void onDrawerItemSelected(DrawerGroup group, DrawerGroupItem item) {
+        Resources res = getResources();
+        String prefKey = null;
+        if (group.id == res.getInteger(R.integer.drawer_status_id)) {
+            prefKey = getString(R.string.drawer_status_selected_item);
+            viewModel.setStatusFilter(Utils.getDrawerGroupStatusFilter(this, item.id), true);
+
+        } else if (group.id == res.getInteger(R.integer.drawer_sorting_id)) {
+            prefKey = getString(R.string.drawer_sorting_selected_item);
+            viewModel.setSort(Utils.getDrawerGroupItemSorting(this, item.id), true);
+
+        } else if (group.id == res.getInteger(R.integer.drawer_date_added_id)) {
+            prefKey = getString(R.string.drawer_time_selected_item);
+            viewModel.setDateAddedFilter(Utils.getDrawerGroupDateAddedFilter(this, item.id), true);
+        }
+
+        if (prefKey != null)
+            saveSelectionState(prefKey, item);
+
+        if (drawerLayout != null)
+            drawerLayout.closeDrawer(GravityCompat.START);
+    }
+
+    private void saveSelectionState(String prefKey, DrawerGroupItem item) {
+        PreferenceManager.getDefaultSharedPreferences(this)
+                .edit()
+                .putLong(prefKey, item.id)
+                .apply();
+    }
+
+    private void cleanGarbageFragments() {
+        /* Clean detail and blank fragments after rotate for tablets */
+        if (Utils.isLargeScreenDevice(this)) {
+            FragmentManager fm = getSupportFragmentManager();
+            List<Fragment> fragments = fm.getFragments();
+            FragmentTransaction ft = fm.beginTransaction();
+            for (Fragment f : fragments)
+                if (f instanceof DetailTorrentFragment || f instanceof BlankFragment)
+                    ft.remove(f);
+            ft.commitAllowingStateLoss();
+        }
+    }
+
+    private void showDetailTorrent(String id) {
+        if (Utils.isTwoPane(this)) {
+            FragmentManager fm = getSupportFragmentManager();
+            DetailTorrentFragment detail = DetailTorrentFragment.newInstance(id);
+            Fragment fragment = fm.findFragmentById(R.id.detail_torrent_fragmentContainer);
+
+            if (fragment instanceof DetailTorrentFragment) {
+                String oldId = ((DetailTorrentFragment) fragment).getTorrentId();
+                if (id.equals(oldId))
+                    return;
+            }
+            fm.beginTransaction()
+                    .replace(R.id.detail_torrent_fragmentContainer, detail)
+                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                    .commit();
+
+        } else {
+            Intent i = new Intent(this, DetailTorrentActivity.class);
+            i.putExtra(DetailTorrentActivity.TAG_TORRENT_ID, id);
+            startActivity(i);
+        }
+    }
+
+    private void showBlankFragment() {
+        if (Utils.isTwoPane(this)) {
+            FragmentManager fm = getSupportFragmentManager();
+            BlankFragment blank = BlankFragment.newInstance(getString(R.string.select_or_add_torrent));
+            fm.beginTransaction()
+                    .replace(R.id.detail_torrent_fragmentContainer, blank)
+                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)
+                    .commitAllowingStateLoss();
+        }
+    }
+
+    public DetailTorrentFragment getCurrentDetailFragment() {
+        if (!Utils.isTwoPane(this))
+            return null;
+
+        FragmentManager fm = getSupportFragmentManager();
+        Fragment fragment = fm.findFragmentById(R.id.detail_torrent_fragmentContainer);
+
+        return (fragment instanceof DetailTorrentFragment ? (DetailTorrentFragment) fragment : null);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        toolbar.inflateMenu(R.menu.main);
+        searchView = (SearchView) toolbar.getMenu().findItem(R.id.search).getActionView();
+        initSearch();
+        toolbar.setOnMenuItemClickListener(this::onOptionsItemSelected);
+
+        return true;
+    }
+
+    private void initSearch() {
+        searchView.setMaxWidth(Integer.MAX_VALUE);
+        searchView.setOnCloseListener(() -> {
+            viewModel.resetSearch();
+
+            return false;
+        });
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                viewModel.setSearchQuery(query);
+                /* Submit the search will hide the keyboard */
+                searchView.clearFocus();
+
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                viewModel.setSearchQuery(newText);
+
+                return true;
+            }
+        });
+        searchView.setQueryHint(getString(R.string.search));
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        /* Assumes current activity is the searchable activity */
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int itemId = item.getItemId();
+        if (itemId == R.id.feed_menu) {
+            startActivity(new Intent(this, FeedActivity.class));
+        } else if (itemId == R.id.settings_menu) {
+            startActivity(new Intent(this, SettingsActivity.class));
+        } else if (itemId == R.id.about_menu) {
+            showAboutDialog();
+        } else if (itemId == R.id.shutdown_app_menu) {
+            closeOptionsMenu();
+            viewModel.stopEngine();
+            finish();
+        } else if (itemId == R.id.pause_all_menu) {
+            viewModel.pauseAll();
+        } else if (itemId == R.id.resume_all_menu) {
+            viewModel.resumeAll();
+        } else if (itemId == R.id.log_menu) {
+            showLog();
+        }
+
+        return true;
+    }
+
+    private void showAboutDialog() {
+        FragmentManager fm = getSupportFragmentManager();
+        if (fm.findFragmentByTag(TAG_ABOUT_DIALOG) == null) {
+            aboutDialog = BaseAlertDialog.newInstance(
+                    getString(R.string.about_title),
+                    null,
+                    R.layout.dialog_about,
+                    getString(R.string.ok),
+                    getString(R.string.about_changelog),
+                    null,
+                    true);
+            aboutDialog.show(fm, TAG_ABOUT_DIALOG);
+        }
+    }
+
+    private void initAboutDialog() {
+        if (aboutDialog == null)
+            return;
+
+        Dialog dialog = aboutDialog.getDialog();
+        if (dialog != null) {
+            TextView versionTextView = dialog.findViewById(R.id.about_version);
+            TextView descriptionTextView = dialog.findViewById(R.id.about_description);
+            String versionName = SystemFacadeHelper.getSystemFacade(getApplicationContext())
+                    .getAppVersionName();
+            if (versionName != null)
+                versionTextView.setText(versionName);
+            descriptionTextView.setText(
+                    Html.fromHtml(getString(R.string.about_description), Html.FROM_HTML_MODE_LEGACY)
+            );
+            descriptionTextView.setMovementMethod(LinkMovementMethod.getInstance());
+        }
+    }
+
+    private void openChangelogLink() {
+        Intent i = new Intent(Intent.ACTION_VIEW);
+        i.setData(Uri.parse(getString(R.string.about_changelog_link)));
+        startActivity(i);
+    }
+
+    private void showLog() {
+        startActivity(new Intent(this, LogActivity.class));
+    }
+
+    @Override
+    public void onFragmentFinished(@NonNull Fragment f, Intent intent,
+                                   @NonNull ResultCode code) {
+        if (f instanceof DetailTorrentFragment && Utils.isTwoPane(this))
+            msgViewModel.torrentDetailsClosed();
+    }
+}
+
+$ sed -n '1,120p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/log/SessionLogFilterDialog.java
+/*
+ * Copyright (C) 2020 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.log;
+
+import android.app.Dialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.os.Bundle;
+import android.view.KeyEvent;
+import android.view.LayoutInflater;
+import android.view.View;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.databinding.DataBindingUtil;
+import androidx.fragment.app.DialogFragment;
+import androidx.lifecycle.ViewModelProvider;
+
+import org.proninyaroslav.libretorrent.R;
+import org.proninyaroslav.libretorrent.databinding.DialogLogFilterBinding;
+
+public class SessionLogFilterDialog extends DialogFragment
+{
+    private static final String TAG = SessionLogFilterDialog.class.getSimpleName();
+
+    private AlertDialog alert;
+    private AppCompatActivity activity;
+    private DialogLogFilterBinding binding;
+    private LogViewModel viewModel;
+
+    public static SessionLogFilterDialog newInstance()
+    {
+        SessionLogFilterDialog frag = new SessionLogFilterDialog();
+
+        Bundle args = new Bundle();
+        frag.setArguments(args);
+
+        return frag;
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context)
+    {
+        super.onAttach(context);
+
+        if (context instanceof AppCompatActivity)
+            activity = (AppCompatActivity)context;
+    }
+
+    @Override
+    public void onResume()
+    {
+        super.onResume();
+
+        /* Back button handle */
+        getDialog().setOnKeyListener((DialogInterface dialog, int keyCode, KeyEvent event) -> {
+            if (keyCode == KeyEvent.KEYCODE_BACK) {
+                if (event.getAction() != KeyEvent.ACTION_DOWN) {
+                    return true;
+                } else {
+                    onBackPressed();
+                    return true;
+                }
+            } else {
+                return false;
+            }
+        });
+    }
+
+    @NonNull
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState)
+    {
+        if (activity == null)
+            activity = (AppCompatActivity) getActivity();
+
+        viewModel = new ViewModelProvider(activity).get(LogViewModel.class);
+
+        LayoutInflater i = LayoutInflater.from(activity);
+        binding = DataBindingUtil.inflate(i, R.layout.dialog_log_filter, null, false);
+        binding.setViewModel(viewModel);
+
+        initLayoutView(binding.getRoot());
+
+        return alert;
+    }
+
+    private void initLayoutView(View view)
+    {
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity)
+                .setTitle(R.string.filter)
+                .setNegativeButton(R.string.cancel, (dialog, which) -> onBackPressed())
+                .setView(view);
+
+        alert = builder.create();
+    }
+
+    private void onBackPressed()
+    {
+        alert.dismiss();
+    }
+}
+
+$ sed -n '1,470p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/log/LogActivity.java
+/*
+ * Copyright (C) 2020-2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.log;
+
+import android.content.Intent;
+import android.content.res.TypedArray;
+import android.net.Uri;
+import android.os.Bundle;
+import android.os.Handler;
+import android.util.TypedValue;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.databinding.DataBindingUtil;
+import androidx.databinding.library.baseAdapters.BR;
+import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.snackbar.Snackbar;
+
+import org.proninyaroslav.libretorrent.R;
+import org.proninyaroslav.libretorrent.core.logger.LogEntry;
+import org.proninyaroslav.libretorrent.core.utils.Utils;
+import org.proninyaroslav.libretorrent.databinding.ActivityLogBinding;
+import org.proninyaroslav.libretorrent.ui.customviews.RecyclerViewDividerDecoration;
+import org.proninyaroslav.libretorrent.ui.filemanager.FileManagerConfig;
+import org.proninyaroslav.libretorrent.ui.filemanager.FileManagerDialog;
+
+import io.reactivex.disposables.CompositeDisposable;
+
+public class LogActivity extends AppCompatActivity
+    implements LogAdapter.ClickListener
+{
+    private static final String TAG_AUTO_SCROLL = "auto_scroll";
+    private static final String TAG_SCROLL_POSITION = "scroll_position";
+    private static final String TAG_FILTER_DIALOG = "filter_dialog";
+
+    private ActivityLogBinding binding;
+    private LogViewModel viewModel;
+    private Toolbar toolbar;
+    private LinearLayoutManager layoutManager;
+    private LogAdapter adapter;
+    private Handler handler;
+    private boolean ignoreScrollEvent;
+    private boolean autoScroll = true;
+    private int scrollPosition = 0;
+    private CompositeDisposable disposables = new CompositeDisposable();
+    private SessionLogFilterDialog filterDialog;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState)
+    {
+        setTheme(Utils.getAppTheme(getApplicationContext()));
+        super.onCreate(savedInstanceState);
+
+        FragmentManager fm = getSupportFragmentManager();
+        filterDialog = (SessionLogFilterDialog) fm.findFragmentByTag(TAG_FILTER_DIALOG);
+
+        if (savedInstanceState != null) {
+            autoScroll = savedInstanceState.getBoolean(TAG_AUTO_SCROLL);
+            scrollPosition = savedInstanceState.getInt(TAG_SCROLL_POSITION);
+        }
+
+        handler = new Handler();
+
+        viewModel = new ViewModelProvider(this).get(LogViewModel.class);
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_log);
+        binding.setViewModel(viewModel);
+
+        toolbar = binding.rootLayout.findViewById(R.id.toolbar);
+        toolbar.setTitle(R.string.log_journal);
+        setSupportActionBar(toolbar);
+        toolbar.setNavigationOnClickListener((v) -> finish());
+        if (getSupportActionBar() != null)
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        updateToolbarSubtitle();
+
+        layoutManager = new LinearLayoutManager(this);
+        layoutManager.setStackFromEnd(true);
+        binding.logList.setLayoutManager(layoutManager);
+        binding.logList.setEmptyView(binding.emptyViewLog);
+        TypedArray a = obtainStyledAttributes(new TypedValue().data, new int[]{ R.attr.divider });
+        binding.logList.addItemDecoration(new RecyclerViewDividerDecoration(a.getDrawable(0)));
+        a.recycle();
+
+        /* Disable animation, so as not to blink while updating the list */
+        binding.logList.setItemAnimator(null);
+        binding.logList.setLayoutAnimation(null);
+
+        adapter = new LogAdapter(this);
+        binding.logList.setAdapter(adapter);
+
+        viewModel.observeLog().observe(this, (entries) ->
+            adapter.submitList(entries, handleUpdateAdapter));
+
+        binding.logList.addOnScrollListener(scrollCallback);
+
+        binding.fabUp.setOnClickListener((v) -> {
+            viewModel.pauseLog();
+
+            hideFabUp();
+            autoScroll = false;
+            layoutManager.scrollToPositionWithOffset(0, 0);
+
+            resumeLog();
+        });
+
+        binding.fabDown.setOnClickListener((v) -> {
+            viewModel.pauseLog();
+
+            hideFabUp();
+            ignoreScrollEvent = true;
+            autoScroll = true;
+            layoutManager.scrollToPosition(adapter.getItemCount() - 1);
+
+            resumeLog();
+        });
+
+        hideFabUp();
+        hideFabDown();
+    }
+
+    @Override
+    protected void onDestroy()
+    {
+        super.onDestroy();
+
+        handler.removeCallbacksAndMessages(null);
+        resumeLog();
+    }
+
+    @Override
+    protected void onStop()
+    {
+        super.onStop();
+
+        disposables.clear();
+        viewModel.mutableParams.removeOnPropertyChangedCallback(paramsCallback);
+    }
+
+    @Override
+    protected void onStart()
+    {
+        super.onStart();
+
+        viewModel.mutableParams.addOnPropertyChangedCallback(paramsCallback);
+    }
+
+    private final androidx.databinding.Observable.OnPropertyChangedCallback paramsCallback =
+            new androidx.databinding.Observable.OnPropertyChangedCallback() {
+                @Override
+                public void onPropertyChanged(androidx.databinding.Observable sender, int propertyId)
+                {
+                    if (propertyId == BR.logging)
+                        invalidateOptionsMenu();
+                }
+            };
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState)
+    {
+        outState.putBoolean(TAG_AUTO_SCROLL, autoScroll);
+        outState.putInt(TAG_SCROLL_POSITION, scrollPosition);
+
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu)
+    {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.log, menu);
+
+        return true;
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu)
+    {
+        menu.setGroupVisible(R.id.log_menu, viewModel.mutableParams.isLogging());
+
+        MenuItem pauseResume = menu.findItem(R.id.pause_resume_log_menu);
+        if (viewModel.logPausedManually()) {
+            pauseResume.setIcon(R.drawable.ic_play_arrow_white_24dp);
+            pauseResume.setTitle(R.string.resume_torrent);
+
+        } else {
+            pauseResume.setIcon(R.drawable.ic_pause_white_24dp);
+            pauseResume.setTitle(R.string.pause_torrent);
+        }
+
+        MenuItem record = menu.findItem(R.id.record_log_menu);
+        if (viewModel.logRecording()) {
+            record.setIcon(R.drawable.ic_stop_white_24dp);
+            record.setTitle(R.string.journal_stop_recording);
+
+        } else {
+            record.setIcon(R.drawable.ic_record_white_24dp);
+            record.setTitle(R.string.journal_start_recording);
+        }
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
+        int itemId = item.getItemId();
+        if (itemId == R.id.pause_resume_log_menu) {
+            pauseResumeLog();
+        } else if (itemId == R.id.record_log_menu) {
+            toggleRecord();
+        } else if (itemId == R.id.save_log_menu) {
+            saveLogPathChooseDialog();
+        } else if (itemId == R.id.filter_log_menu) {
+            showFilterDialog();
+        } else if (itemId == R.id.log_settings_menu) {
+            showLogSettings();
+        }
+
+        return true;
+    }
+
+    private void showFilterDialog()
+    {
+        FragmentManager fm = getSupportFragmentManager();
+        if (fm.findFragmentByTag(TAG_FILTER_DIALOG) == null) {
+            filterDialog = SessionLogFilterDialog.newInstance();
+            filterDialog.show(fm, TAG_FILTER_DIALOG);
+        }
+    }
+
+    private void showLogSettings()
+    {
+        startActivity(new Intent(this, LogSettingsActivity.class));
+    }
+
+    private void pauseResumeLog()
+    {
+        boolean newPausedState = !viewModel.logPausedManually();
+        if (newPausedState)
+            viewModel.pauseLogManually();
+        else
+            viewModel.resumeLogManually();
+
+        invalidateOptionsMenu();
+    }
+
+    private void resumeLog()
+    {
+        if (!viewModel.logPausedManually())
+            viewModel.resumeLog();
+    }
+
+    private void toggleRecord()
+    {
+        boolean recording = !viewModel.logRecording();
+
+        if (recording && viewModel.logPausedManually())
+            return;
+
+        if (recording) {
+            Snackbar.make(binding.coordinatorLayout,
+                    getString(R.string.journal_started_recording),
+                    Snackbar.LENGTH_SHORT)
+                    .show();
+
+            viewModel.startLogRecording();
+
+            invalidateOptionsMenu();
+
+        } else {
+            viewModel.pauseLog();
+            saveLogPathChooseDialog();
+        }
+    }
+
+    private void saveLogPathChooseDialog()
+    {
+        Intent i = new Intent(this, FileManagerDialog.class);
+        FileManagerConfig config = new FileManagerConfig(
+                null,
+                getString(R.string.pref_journal_save_log_to),
+                FileManagerConfig.SAVE_FILE_MODE);
+        config.fileName = viewModel.getSaveLogFileName();
+        config.mimeType = Utils.MIME_TEXT_PLAIN;
+
+        i.putExtra(FileManagerDialog.TAG_CONFIG, config);
+        saveLogPathChoose.launch(i);
+    }
+
+    final ActivityResultLauncher<Intent> saveLogPathChoose = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                Intent data = result.getData();
+                if (result.getResultCode() == RESULT_OK && data != null) {
+                    Uri filePath = data.getData();
+                    if (filePath == null)
+                        return;
+
+                    viewModel.saveLog(filePath);
+
+                } else {
+                    viewModel.stopLogRecording();
+                    resumeLog();
+                }
+
+                invalidateOptionsMenu();
+            }
+    );
+
+    RecyclerView.OnScrollListener scrollCallback = new RecyclerView.OnScrollListener() {
+
+        int lastDy = 0;
+
+        @Override
+        public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy)
+        {
+            super.onScrolled(recyclerView, dx, dy);
+
+            if (dy > 0 && lastDy <= 0) {
+                hideFabUp();
+                showFabDown();
+
+            } else if (dy < 0 && lastDy >= 0) {
+                showFabUp();
+                hideFabDown();
+            }
+            lastDy = dy;
+        }
+
+        @Override
+        public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState)
+        {
+            super.onScrollStateChanged(recyclerView, newState);
+
+            if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
+                autoScroll = false;
+                if (lastDy > 0) {
+                    hideFabUp();
+                    showFabDown();
+
+                } else if (lastDy < 0) {
+                    showFabUp();
+                    hideFabDown();
+                }
+
+            } else {
+                int firstPos = -1;
+                if (!autoScroll && newState == RecyclerView.SCROLL_STATE_IDLE)
+                    firstPos = layoutManager.findFirstCompletelyVisibleItemPosition();
+
+                int pos = layoutManager.findLastCompletelyVisibleItemPosition();
+                if (pos == RecyclerView.NO_POSITION) {
+                    autoScroll = false;
+                    return;
+                }
+
+                if (ignoreScrollEvent) {
+                    if (pos == adapter.getItemCount())
+                        ignoreScrollEvent = false;
+                    return;
+                }
+
+                if (pos == 0)
+                    hideFabUp();
+
+                if (firstPos == RecyclerView.NO_POSITION)
+                    firstPos = layoutManager.findFirstCompletelyVisibleItemPosition();
+
+                scrollPosition = firstPos;
+                autoScroll = pos == adapter.getItemCount() - 1;
+
+                if (autoScroll) {
+                    hideFabUp();
+                    hideFabDown();
+                }
+            }
+        }
+    };
+
+    private void showFabUp()
+    {
+        handler.removeCallbacks(hideFabUpRunnable);
+        binding.fabUp.show();
+        handler.postDelayed(hideFabUpRunnable, 2000);
+    }
+
+    private void hideFabUp()
+    {
+        handler.removeCallbacks(hideFabUpRunnable);
+        binding.fabUp.hide();
+    }
+
+    private void showFabDown()
+    {
+        handler.removeCallbacks(hideFabDownRunnable);
+        binding.fabDown.show();
+        handler.postDelayed(hideFabDownRunnable, 2000);
+    }
+
+    private void hideFabDown()
+    {
+        handler.removeCallbacks(hideFabDownRunnable);
+        binding.fabDown.hide();
+    }
+
+    private final Runnable hideFabUpRunnable = () -> binding.fabUp.hide();
+
+    private final Runnable hideFabDownRunnable = () -> binding.fabDown.hide();
+
+    private final Runnable handleUpdateAdapter = () -> {
+        scrollLogList();
+        updateToolbarSubtitle();
+    };
+
+    private void updateToolbarSubtitle()
+    {
+        int numEntries = viewModel.getLogEntriesCount();
+        if (numEntries > 1)
+            toolbar.setSubtitle(Integer.toString(numEntries));
+        else
+            toolbar.setSubtitle(null);
+    }
+
+    private void scrollLogList()
+    {
+        if (autoScroll)
+            layoutManager.scrollToPosition(adapter.getItemCount() - 1);
+        else
+            layoutManager.scrollToPositionWithOffset(scrollPosition, 0);
+    }
+
+    @Override
+    public void onItemClicked(@NonNull LogEntry entry)
+    {
+        if (viewModel.copyLogEntryToClipboard(entry)) {
+            Snackbar.make(binding.coordinatorLayout,
+                    R.string.text_copied_to_clipboard,
+                    Snackbar.LENGTH_SHORT)
+                    .show();
+        }
+    }
+}
+
+$ sed -n '1,295p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/AndroidManifest.xml
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:installLocation="auto">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" tools:node="replace" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.QUICKBOOT_POWERON" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:ignore="ScopedStorage" />
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" tools:ignore="ScopedStorage" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false" />
+    <uses-feature android:name="android.software.leanback"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.wifi"
+        android:required="false" />
+
+    <application
+        android:name="MainApplication"
+        android:icon="@mipmap/ic_launcher"
+        android:banner="@drawable/ic_banner"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme"
+        android:supportsRtl="true"
+        android:allowBackup="true"
+        android:fullBackupContent="true"
+        android:usesCleartextTraffic="true"
+        android:requestLegacyExternalStorage="true">
+
+        <activity android:name=".ui.main.MainActivity"
+            android:theme="@style/AppTheme.Launcher"
+            android:exported="true">
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+            <meta-data android:name="android.app.searchable"
+                android:resource="@xml/searchable"/>
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:exported="true"
+            android:name=".ui.addtorrent.AddTorrentActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:host="*" android:mimeType="application/x-bittorrent" android:scheme="file" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:host="*" android:pathPattern=".*\\.torrent" android:scheme="file" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:host="*" android:mimeType="application/x-bittorrent" android:scheme="content" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:host="*" android:pathPattern=".*\\.torrent" android:scheme="content" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:host="*" android:pathPattern=".*\\.torrent" android:scheme="http" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:host="*" android:pathPattern=".*\\.torrent" android:scheme="https" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:host="*" android:mimeType="*/*" android:pathPattern=".*\\.torrent" android:scheme="http" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:host="*" android:mimeType="*/*" android:pathPattern=".*\\.torrent" android:scheme="https" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:host="*" android:mimeType="application/x-bittorrent" android:scheme="http" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:host="*" android:mimeType="application/x-bittorrent" android:scheme="https" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="magnet" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name=".ui.filemanager.FileManagerDialog" />
+
+        <activity android:name=".ui.detailtorrent.DetailTorrentActivity" />
+
+        <activity android:name=".ui.SendTextToClipboard"
+            android:label="@string/send_text_to_clipboard"
+            android:icon="@drawable/ic_content_copy_grey600_48dp"
+            android:theme="@android:style/Theme.NoDisplay"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.ALTERNATIVE" />
+                <data android:name="android.content.Intent.FLAG_ACTIVITY_NO_ANIMATION" />
+                <data android:mimeType="text/*" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name=".ui.settings.SettingsActivity"
+            android:label="@string/settings"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.APPLICATION_PREFERENCES" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".ui.settings.PreferenceActivity" />
+
+        <activity android:name=".ui.errorreport.ErrorReportActivity"
+            android:theme="@style/AppTheme.Translucent"
+            android:process=":acra"
+            android:excludeFromRecents="true"
+            android:finishOnTaskLaunch="true"
+            android:launchMode="singleInstance" />
+
+        <activity android:name=".ui.feeds.FeedActivity" />
+
+        <activity android:name=".ui.feeditems.FeedItemsActivity" />
+
+        <activity
+            android:name=".ui.addfeed.AddFeedActivity"
+            android:exported="true"
+            android:theme="@style/AppTheme.Translucent">
+
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:name="android.content.Intent.FLAG_ACTIVITY_NO_ANIMATION" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:name="android.content.Intent.FLAG_ACTIVITY_NO_ANIMATION" />
+                <data android:scheme="http"  android:host="*" android:mimeType="*/*" />
+                <data android:pathPattern=".*\\.xml" />
+                <data android:pathPattern=".*\\.rss" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:name="android.content.Intent.FLAG_ACTIVITY_NO_ANIMATION" />
+                <data android:scheme="http" android:host="*" />
+                <data android:mimeType="text/xml" />
+                <data android:mimeType="application/rss+xml" />
+                <data android:mimeType="application/atom+xml" />
+                <data android:mimeType="application/xml" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:name="android.content.Intent.FLAG_ACTIVITY_NO_ANIMATION" />
+                <data android:scheme="https" android:host="*" android:mimeType="*/*" />
+                <data android:pathPattern=".*\\.xml" />
+                <data android:pathPattern=".*\\.rss" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:name="android.content.Intent.FLAG_ACTIVITY_NO_ANIMATION" />
+                <data android:scheme="https" android:host="*" />
+                <data android:mimeType="text/xml" />
+                <data android:mimeType="application/rss+xml" />
+                <data android:mimeType="application/atom+xml" />
+                <data android:mimeType="application/xml" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".ui.createtorrent.CreateTorrentActivity"
+            android:theme="@style/AppTheme.Translucent" />
+
+        <activity
+            android:name=".ui.addlink.AddLinkActivity"
+            android:theme="@style/AppTheme.Translucent" />
+
+        <activity
+            android:name=".ui.log.LogActivity" />
+
+        <activity
+            android:name=".ui.log.LogSettingsActivity" />
+
+        <activity
+            android:name=".ui.addtag.AddTagActivity"
+            android:theme="@style/AppTheme.Translucent" />
+
+        <activity
+            android:name=".ui.tag.SelectTagActivity"
+            android:theme="@style/AppTheme.Translucent" />
+
+        <service
+            android:name=".service.TorrentService"
+            android:foregroundServiceType="dataSync" />
+
+        <receiver
+            android:name=".receiver.NotificationReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="org.proninyaroslav.libretorrent.receivers.NotificationReceiver.NOTIFY_ACTION_SHUTDOWN_APP" />
+                <action android:name="org.proninyaroslav.libretorrent.receivers.NotificationReceiver.NOTIFY_ACTION_ADD_TORRENT" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".receiver.BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".receiver.SchedulerReceiver" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths"/>
+        </provider>
+            <receiver android:name=".JacocoInstrument.SMSInstrumentedReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="edu.gatech.m3.emma.COLLECT_COVERAGE" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>

@@ -1,0 +1,1928 @@
+Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+
+$ sed -n '1,811p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/MainActivity.java
+/*
+ * Copyright (C) 2016-2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.main;
+
+import android.app.Dialog;
+import android.app.SearchManager;
+import android.content.Context;
+import android.content.Intent;
+import android.content.res.Resources;
+import android.net.Uri;
+import android.os.Bundle;
+import android.text.Html;
+import android.text.format.Formatter;
+import android.text.method.LinkMovementMethod;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.preference.PreferenceManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.snackbar.Snackbar;
+import com.h6ah4i.android.widget.advrecyclerview.animator.GeneralItemAnimator;
+import com.h6ah4i.android.widget.advrecyclerview.animator.RefactoredDefaultItemAnimator;
+import com.h6ah4i.android.widget.advrecyclerview.expandable.RecyclerViewExpandableItemManager;
+
+import net.cachapa.expandablelayout.ExpandableLayout;
+
+import org.proninyaroslav.libretorrent.R;
+import org.proninyaroslav.libretorrent.core.filter.TorrentFilterCollection;
+import org.proninyaroslav.libretorrent.core.model.TorrentInfoProvider;
+import org.proninyaroslav.libretorrent.core.model.data.SessionStats;
+import org.proninyaroslav.libretorrent.core.system.SystemFacadeHelper;
+import org.proninyaroslav.libretorrent.core.utils.Utils;
+import org.proninyaroslav.libretorrent.receiver.NotificationReceiver;
+import org.proninyaroslav.libretorrent.ui.BaseAlertDialog;
+import org.proninyaroslav.libretorrent.ui.FragmentCallback;
+import org.proninyaroslav.libretorrent.ui.PermissionDeniedDialog;
+import org.proninyaroslav.libretorrent.ui.PermissionManager;
+import org.proninyaroslav.libretorrent.ui.addtag.AddTagActivity;
+import org.proninyaroslav.libretorrent.ui.customviews.ExpansionHeader;
+import org.proninyaroslav.libretorrent.ui.detailtorrent.BlankFragment;
+import org.proninyaroslav.libretorrent.ui.detailtorrent.DetailTorrentActivity;
+import org.proninyaroslav.libretorrent.ui.detailtorrent.DetailTorrentFragment;
+import org.proninyaroslav.libretorrent.ui.feeds.FeedActivity;
+import org.proninyaroslav.libretorrent.ui.log.LogActivity;
+import org.proninyaroslav.libretorrent.ui.main.drawer.AbstractTagItem;
+import org.proninyaroslav.libretorrent.ui.main.drawer.DrawerExpandableAdapter;
+import org.proninyaroslav.libretorrent.ui.main.drawer.DrawerGroup;
+import org.proninyaroslav.libretorrent.ui.main.drawer.DrawerGroupItem;
+import org.proninyaroslav.libretorrent.ui.main.drawer.EmptyTagItem;
+import org.proninyaroslav.libretorrent.ui.main.drawer.NoTagsItem;
+import org.proninyaroslav.libretorrent.ui.main.drawer.TagItem;
+import org.proninyaroslav.libretorrent.ui.main.drawer.TagsAdapter;
+import org.proninyaroslav.libretorrent.ui.settings.SettingsActivity;
+
+import java.util.List;
+
+import io.reactivex.Flowable;
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
+
+public class MainActivity extends AppCompatActivity implements FragmentCallback {
+    private static final String TAG = MainActivity.class.getSimpleName();
+
+    private static final String TAG_ABOUT_DIALOG = "about_dialog";
+    private static final String TAG_PERM_DENIED_DIALOG = "perm_denied_dialog";
+
+    public static final String ACTION_ADD_TORRENT_SHORTCUT = "org.proninyaroslav.libretorrent.ADD_TORRENT_SHORTCUT";
+
+    /* Android data binding doesn't work with layout aliases */
+    private MainFragment mainFragment;
+    private Toolbar toolbar;
+    private DrawerLayout drawerLayout;
+    private NavigationView navigationView;
+    private ActionBarDrawerToggle toggle;
+    private RecyclerView drawerItemsList;
+    private LinearLayoutManager layoutManager;
+    private DrawerExpandableAdapter drawerAdapter;
+    private RecyclerView.Adapter wrappedDrawerAdapter;
+    private RecyclerViewExpandableItemManager drawerItemManager;
+    private SearchView searchView;
+    private TextView sessionDhtNodesStat, sessionDownloadStat,
+            sessionUploadStat, sessionListenPortStat;
+    private ExpansionHeader tagsGroupHeader;
+    private ExpandableLayout tagsExpandable;
+    private MaterialButton addTagButton;
+    private RecyclerView tagsList;
+    private TagsAdapter tagsAdapter;
+
+    private MainViewModel viewModel;
+    private MsgMainViewModel msgViewModel;
+    private CompositeDisposable disposables = new CompositeDisposable();
+    private BaseAlertDialog.SharedViewModel dialogViewModel;
+    private BaseAlertDialog aboutDialog;
+    private TorrentInfoProvider infoProvider;
+    private PermissionDeniedDialog permDeniedDialog;
+    private PermissionManager permissionManager;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        setTheme(Utils.getAppTheme(getApplicationContext()));
+        super.onCreate(savedInstanceState);
+
+        if (getIntent().getAction() != null &&
+                getIntent().getAction().equals(NotificationReceiver.NOTIFY_ACTION_SHUTDOWN_APP)) {
+            finish();
+            return;
+        }
+
+        infoProvider = TorrentInfoProvider.getInstance(getApplicationContext());
+        ViewModelProvider provider = new ViewModelProvider(this);
+        viewModel = provider.get(MainViewModel.class);
+        msgViewModel = provider.get(MsgMainViewModel.class);
+        dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+
+        FragmentManager fm = getSupportFragmentManager();
+        permissionManager = new PermissionManager(this, new PermissionManager.Callback() {
+            @Override
+            public void onStorageResult(boolean isGranted, boolean shouldRequestStoragePermission) {
+                if (!isGranted && shouldRequestStoragePermission) {
+                    if (fm.findFragmentByTag(TAG_PERM_DENIED_DIALOG) == null) {
+                        permDeniedDialog = PermissionDeniedDialog.newInstance();
+                        FragmentTransaction ft = fm.beginTransaction();
+                        ft.add(permDeniedDialog, TAG_PERM_DENIED_DIALOG);
+                        ft.commitAllowingStateLoss();
+                    }
+                }
+            }
+
+            @Override
+            public void onNotificationResult(boolean isGranted, boolean shouldRequestNotificationPermission) {
+                permissionManager.setDoNotAskNotifications(!isGranted);
+                if (isGranted) {
+                    viewModel.restartForegroundNotification();
+                }
+            }
+        });
+        aboutDialog = (BaseAlertDialog) fm.findFragmentByTag(TAG_ABOUT_DIALOG);
+        permDeniedDialog = (PermissionDeniedDialog) fm.findFragmentByTag(TAG_PERM_DENIED_DIALOG);
+
+        if (!permissionManager.checkPermissions() && permDeniedDialog == null) {
+            permissionManager.requestPermissions();
+        }
+        Utils.showManageAllFilesWarningDialog(getApplicationContext(), getSupportFragmentManager());
+
+        setContentView(R.layout.activity_main);
+
+        mainFragment = (MainFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.main_fragmentContainer);
+
+        cleanGarbageFragments();
+        initLayout();
+    }
+
+    private void initLayout() {
+        showBlankFragment();
+
+        toolbar = findViewById(R.id.toolbar);
+        navigationView = findViewById(R.id.navigation_view);
+        drawerLayout = findViewById(R.id.drawer_layout);
+        drawerItemsList = findViewById(R.id.drawer_items_list);
+        layoutManager = new LinearLayoutManager(this) {
+            @Override
+            public boolean canScrollVertically() {
+                /* Disable scroll, because RecyclerView is wrapped in ScrollView */
+                return false;
+            }
+        };
+        sessionDhtNodesStat = findViewById(R.id.session_dht_nodes_stat);
+        sessionDownloadStat = findViewById(R.id.session_download_stat);
+        sessionUploadStat = findViewById(R.id.session_upload_stat);
+        sessionListenPortStat = findViewById(R.id.session_listen_port_stat);
+        tagsGroupHeader = findViewById(R.id.tags_group_header);
+        tagsExpandable = findViewById(R.id.tags_expandable);
+        addTagButton = findViewById(R.id.add_tag_button);
+        tagsList = findViewById(R.id.tags_list);
+
+        toolbar.setTitle(R.string.app_name);
+        toolbar.inflateMenu(R.menu.main);
+        setSupportActionBar(toolbar);
+
+        if (drawerLayout != null) {
+            toggle = new ActionBarDrawerToggle(this,
+                    drawerLayout,
+                    toolbar,
+                    R.string.open_navigation_drawer,
+                    R.string.close_navigation_drawer);
+            drawerLayout.addDrawerListener(toggle);
+        }
+        initDrawer();
+        viewModel.resetSearch();
+    }
+
+    private void initDrawer() {
+        drawerItemManager = new RecyclerViewExpandableItemManager(null);
+        drawerItemManager.setDefaultGroupsExpandedState(false);
+        drawerItemManager.setOnGroupCollapseListener((groupPosition, fromUser, payload) -> {
+            if (fromUser)
+                saveGroupExpandState(groupPosition, false);
+        });
+        drawerItemManager.setOnGroupExpandListener((groupPosition, fromUser, payload) -> {
+            if (fromUser)
+                saveGroupExpandState(groupPosition, true);
+        });
+        GeneralItemAnimator animator = new RefactoredDefaultItemAnimator();
+        /*
+         * Change animations are enabled by default since support-v7-recyclerview v22.
+         * Need to disable them when using animation indicator.
+         */
+        animator.setSupportsChangeAnimations(false);
+
+        List<DrawerGroup> groups = Utils.getNavigationDrawerItems(this,
+                PreferenceManager.getDefaultSharedPreferences(this));
+        drawerAdapter = new DrawerExpandableAdapter(groups, drawerItemManager, this::onDrawerItemSelected);
+        wrappedDrawerAdapter = drawerItemManager.createWrappedAdapter(drawerAdapter);
+        onDrawerGroupsCreated();
+
+        drawerItemsList.setLayoutManager(layoutManager);
+        drawerItemsList.setAdapter(wrappedDrawerAdapter);
+        drawerItemsList.setItemAnimator(animator);
+        drawerItemsList.setHasFixedSize(false);
+
+        drawerItemManager.attachRecyclerView(drawerItemsList);
+
+        sessionDhtNodesStat.setText(getString(R.string.session_stats_dht_nodes, 0));
+        String downloadUploadFmt = getString(R.string.session_stats_download_upload,
+                Formatter.formatFileSize(this, 0),
+                Formatter.formatFileSize(this, 0));
+        sessionDownloadStat.setText(downloadUploadFmt);
+        sessionUploadStat.setText(downloadUploadFmt);
+        sessionListenPortStat.setText(getString(R.string.session_stats_listen_port,
+                getString(R.string.not_available)));
+
+        tagsList.setLayoutManager(new LinearLayoutManager(this));
+        tagsAdapter = new TagsAdapter(tagsClickListener);
+        tagsList.setAdapter(tagsAdapter);
+        addTagButton.setOnClickListener(
+                (v) -> startActivity(new Intent(this, AddTagActivity.class))
+        );
+
+        boolean tagsExpanded = PreferenceManager
+                .getDefaultSharedPreferences(this)
+                .getBoolean(getString(R.string.drawer_tags_is_expanded), false);
+        tagsGroupHeader.setExpanded(tagsExpanded);
+        tagsExpandable.setExpanded(tagsExpanded);
+        tagsGroupHeader.setOnClickListener((v) -> {
+            tagsExpandable.toggle();
+            tagsGroupHeader.toggleExpand();
+            PreferenceManager.getDefaultSharedPreferences(this)
+                    .edit()
+                    .putBoolean(
+                            getString(R.string.drawer_tags_is_expanded),
+                            tagsExpandable.isExpanded()
+                    )
+                    .apply();
+        });
+    }
+
+    private final TagsAdapter.OnClickListener tagsClickListener = new TagsAdapter.OnClickListener() {
+        @Override
+        public void onTagSelected(@NonNull AbstractTagItem item) {
+            if (item instanceof TagItem) {
+                viewModel.setTagFilter(
+                        TorrentFilterCollection.tag(((TagItem) item).info),
+                        true
+                );
+            } else if (item instanceof EmptyTagItem) {
+                viewModel.setTagFilter(TorrentFilterCollection.all(), true);
+            } else if (item instanceof NoTagsItem) {
+                viewModel.setTagFilter(TorrentFilterCollection.noTags(), true);
+            }
+
+            saveSelectedTag(item);
+
+            if (drawerLayout != null)
+                drawerLayout.closeDrawer(GravityCompat.START);
+        }
+
+        @Override
+        public void onTagMenuClicked(@NonNull AbstractTagItem abstractItem, int menuId) {
+            if (!(abstractItem instanceof TagItem)) {
+                return;
+            }
+            TagItem item = ((TagItem) abstractItem);
+            if (menuId == R.id.edit_tag_menu) {
+                Intent i = new Intent(MainActivity.this, AddTagActivity.class);
+                i.putExtra(AddTagActivity.TAG_INIT_INFO, item.info);
+                startActivity(i);
+            } else if (menuId == R.id.delete_tag_menu) {
+                disposables.add(viewModel.deleteTag(item.info)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                () -> {
+                                    if (item.isSame(tagsAdapter.getSelectedItem())) {
+                                        EmptyTagItem emptyItem = new EmptyTagItem();
+                                        saveSelectedTag(emptyItem);
+                                        tagsAdapter.setSelectedItem(emptyItem);
+                                        viewModel.setTagFilter(TorrentFilterCollection.all(), true);
+                                    }
+                                },
+                                (e) -> {
+                                    Log.e(TAG, Log.getStackTraceString(e));
+                                    Snackbar.make(
+                                            mainFragment.getCoordinatorLayout(),
+                                            R.string.tag_deleting_failed,
+                                            Snackbar.LENGTH_LONG
+                                    ).show();
+                                }
+                        )
+                );
+            }
+        }
+    };
+
+    private void saveSelectedTag(@NonNull AbstractTagItem item) {
+        String tagId = null;
+        if (item instanceof TagItem) {
+            tagId = Long.toString(((TagItem) item).info.id);
+        } else if (item instanceof EmptyTagItem) {
+            tagId = getString(R.string.tag_empty_item);
+        } else if (item instanceof NoTagsItem) {
+            tagId = getString(R.string.tag_no_tags_item);
+        }
+
+        PreferenceManager
+                .getDefaultSharedPreferences(MainActivity.this)
+                .edit()
+                .putString(
+                        getString(R.string.drawer_tags_selected_item),
+                        tagId
+                )
+                .apply();
+    }
+
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+
+        if (toggle != null)
+            toggle.syncState();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        subscribeAlertDialog();
+        subscribeMsgViewModel();
+        subscribeSessionStats();
+        subscribeNeedStartEngine();
+        subscribeTags();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        disposables.clear();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (viewModel != null)
+            viewModel.requestStopEngine();
+
+        super.onDestroy();
+    }
+
+    private void subscribeAlertDialog() {
+        Disposable d = dialogViewModel.observeEvents()
+                .subscribe((event) -> {
+                    if (event.dialogTag == null) {
+                        return;
+                    }
+
+                    if (event.dialogTag.equals(TAG_ABOUT_DIALOG)) {
+                        switch (event.type) {
+                            case NEGATIVE_BUTTON_CLICKED:
+                                openChangelogLink();
+                                break;
+                            case DIALOG_SHOWN:
+                                initAboutDialog();
+                                break;
+                        }
+                    } else if (event.dialogTag.equals(TAG_PERM_DENIED_DIALOG)) {
+                        if (event.type != BaseAlertDialog.EventType.DIALOG_SHOWN) {
+                            permDeniedDialog.dismiss();
+                        }
+                        if (event.type == BaseAlertDialog.EventType.NEGATIVE_BUTTON_CLICKED) {
+                            permissionManager.requestPermissions();
+                        }
+                        if (event.type == BaseAlertDialog.EventType.POSITIVE_BUTTON_CLICKED) {
+                            permissionManager.setDoNotAskStorage(true);
+                        }
+                    }
+                });
+        disposables.add(d);
+    }
+
+    private void subscribeMsgViewModel() {
+        disposables.add(msgViewModel.observeTorrentDetailsOpened()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(this::showDetailTorrent));
+
+        disposables.add(msgViewModel.observeTorrentDetailsClosed()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((__) -> showBlankFragment()));
+
+        disposables.add(viewModel.observeTorrentsDeleted()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((id) -> {
+                    DetailTorrentFragment f = getCurrentDetailFragment();
+                    if (f != null && id.equals(f.getTorrentId()))
+                        showBlankFragment();
+                }));
+    }
+
+    private void subscribeSessionStats() {
+        disposables.add(infoProvider.observeSessionStats()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(this::updateSessionStats));
+    }
+
+    private void subscribeNeedStartEngine() {
+        disposables.add(viewModel.observeNeedStartEngine()
+                .subscribeOn(Schedulers.io())
+                .filter((needStart) -> needStart)
+                .subscribe((needStart) -> viewModel.startEngine()));
+    }
+
+    private void subscribeTags() {
+        disposables.add(viewModel.observeTags()
+                .subscribeOn(Schedulers.io())
+                .flatMapSingle((list) ->
+                        Flowable.concat(
+                                Flowable.just(new EmptyTagItem()),
+                                Flowable.just(new NoTagsItem()),
+                                Flowable.fromIterable(list).map(TagItem::new)
+                        ).toList()
+                )
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((items) -> {
+                    if (tagsAdapter.getItemCount() == 0) {
+                        setInitSelection(items);
+                    }
+                    tagsAdapter.submitList(items);
+                })
+        );
+    }
+
+    private void setInitSelection(List<AbstractTagItem> items) {
+        String selectedTagIdStr = PreferenceManager
+                .getDefaultSharedPreferences(this)
+                .getString(
+                        getString(R.string.drawer_tags_selected_item),
+                        getString(R.string.tag_empty_item)
+                );
+        if (selectedTagIdStr.equals(getString(R.string.tag_empty_item))) {
+            tagsAdapter.setSelectedItem(new EmptyTagItem());
+            viewModel.setTagFilter(TorrentFilterCollection.all(), true);
+        } else if (selectedTagIdStr.equals(getString(R.string.tag_no_tags_item))) {
+            tagsAdapter.setSelectedItem(new NoTagsItem());
+            viewModel.setTagFilter(TorrentFilterCollection.noTags(), true);
+        } else {
+            long selectedTagId;
+            try {
+                selectedTagId = Long.parseLong(selectedTagIdStr);
+            } catch (NumberFormatException e) {
+                Log.e(TAG, "Unable to parse tag id: " + Log.getStackTraceString(e));
+                tagsAdapter.setSelectedItem(new EmptyTagItem());
+                viewModel.setTagFilter(TorrentFilterCollection.all(), true);
+                return;
+            }
+            disposables.add(Observable.fromIterable(items)
+                    .subscribeOn(Schedulers.computation())
+                    .filter((item) -> item instanceof TagItem &&
+                            ((TagItem) item).info.id == selectedTagId)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe((item) -> {
+                        tagsAdapter.setSelectedItem(item);
+                        viewModel.setTagFilter(
+                                TorrentFilterCollection.tag(((TagItem) item).info),
+                                true
+                        );
+                    })
+            );
+        }
+    }
+
+    private void updateSessionStats(SessionStats stats) {
+        long dhtNodes = 0;
+        long totalDownload = 0;
+        long totalUpload = 0;
+        long downloadSpeed = 0;
+        long uploadSpeed = 0;
+        int listenPort = -1;
+
+        if (stats != null) {
+            dhtNodes = stats.dhtNodes;
+            totalDownload = stats.totalDownload;
+            totalUpload = stats.totalUpload;
+            downloadSpeed = stats.downloadSpeed;
+            uploadSpeed = stats.uploadSpeed;
+            listenPort = stats.listenPort;
+        }
+
+        sessionDhtNodesStat.setText(getString(R.string.session_stats_dht_nodes, dhtNodes));
+        sessionDownloadStat.setText(getString(R.string.session_stats_download_upload,
+                Formatter.formatFileSize(this, totalDownload),
+                Formatter.formatFileSize(this, downloadSpeed)));
+        sessionUploadStat.setText(getString(R.string.session_stats_download_upload,
+                Formatter.formatFileSize(this, totalUpload),
+                Formatter.formatFileSize(this, uploadSpeed)));
+        sessionListenPortStat.setText(getString(R.string.session_stats_listen_port,
+                listenPort <= 0 ?
+                        getString(R.string.not_available) :
+                        Integer.toString(listenPort)));
+    }
+
+    private void saveGroupExpandState(int groupPosition, boolean expanded) {
+        DrawerGroup group = drawerAdapter.getGroup(groupPosition);
+        if (group == null)
+            return;
+
+        Resources res = getResources();
+        String prefKey = null;
+        if (group.id == res.getInteger(R.integer.drawer_status_id))
+            prefKey = getString(R.string.drawer_status_is_expanded);
+
+        else if (group.id == res.getInteger(R.integer.drawer_sorting_id))
+            prefKey = getString(R.string.drawer_sorting_is_expanded);
+
+        else if (group.id == res.getInteger(R.integer.drawer_date_added_id))
+            prefKey = getString(R.string.drawer_time_is_expanded);
+
+        if (prefKey != null)
+            PreferenceManager.getDefaultSharedPreferences(this)
+                    .edit()
+                    .putBoolean(prefKey, expanded)
+                    .apply();
+    }
+
+    private void onDrawerGroupsCreated() {
+        for (int pos = 0; pos < drawerAdapter.getGroupCount(); pos++) {
+            DrawerGroup group = drawerAdapter.getGroup(pos);
+            if (group == null)
+                return;
+
+            Resources res = getResources();
+            if (group.id == res.getInteger(R.integer.drawer_status_id)) {
+                viewModel.setStatusFilter(
+                        Utils.getDrawerGroupStatusFilter(this, group.getSelectedItemId()), false);
+
+            } else if (group.id == res.getInteger(R.integer.drawer_sorting_id)) {
+                viewModel.setSort(Utils.getDrawerGroupItemSorting(this, group.getSelectedItemId()), false);
+            } else if (group.id == res.getInteger(R.integer.drawer_date_added_id)) {
+                viewModel.setDateAddedFilter(Utils.getDrawerGroupDateAddedFilter(this, group.getSelectedItemId()), false);
+            }
+
+            applyExpandState(group, pos);
+        }
+    }
+
+    private void applyExpandState(DrawerGroup group, int pos) {
+        if (group.getDefaultExpandState())
+            drawerItemManager.expandGroup(pos);
+        else
+            drawerItemManager.collapseGroup(pos);
+    }
+
+    private void onDrawerItemSelected(DrawerGroup group, DrawerGroupItem item) {
+        Resources res = getResources();
+        String prefKey = null;
+        if (group.id == res.getInteger(R.integer.drawer_status_id)) {
+            prefKey = getString(R.string.drawer_status_selected_item);
+            viewModel.setStatusFilter(Utils.getDrawerGroupStatusFilter(this, item.id), true);
+
+        } else if (group.id == res.getInteger(R.integer.drawer_sorting_id)) {
+            prefKey = getString(R.string.drawer_sorting_selected_item);
+            viewModel.setSort(Utils.getDrawerGroupItemSorting(this, item.id), true);
+
+        } else if (group.id == res.getInteger(R.integer.drawer_date_added_id)) {
+            prefKey = getString(R.string.drawer_time_selected_item);
+            viewModel.setDateAddedFilter(Utils.getDrawerGroupDateAddedFilter(this, item.id), true);
+        }
+
+        if (prefKey != null)
+            saveSelectionState(prefKey, item);
+
+        if (drawerLayout != null)
+            drawerLayout.closeDrawer(GravityCompat.START);
+    }
+
+    private void saveSelectionState(String prefKey, DrawerGroupItem item) {
+        PreferenceManager.getDefaultSharedPreferences(this)
+                .edit()
+                .putLong(prefKey, item.id)
+                .apply();
+    }
+
+    private void cleanGarbageFragments() {
+        /* Clean detail and blank fragments after rotate for tablets */
+        if (Utils.isLargeScreenDevice(this)) {
+            FragmentManager fm = getSupportFragmentManager();
+            List<Fragment> fragments = fm.getFragments();
+            FragmentTransaction ft = fm.beginTransaction();
+            for (Fragment f : fragments)
+                if (f instanceof DetailTorrentFragment || f instanceof BlankFragment)
+                    ft.remove(f);
+            ft.commitAllowingStateLoss();
+        }
+    }
+
+    private void showDetailTorrent(String id) {
+        if (Utils.isTwoPane(this)) {
+            FragmentManager fm = getSupportFragmentManager();
+            DetailTorrentFragment detail = DetailTorrentFragment.newInstance(id);
+            Fragment fragment = fm.findFragmentById(R.id.detail_torrent_fragmentContainer);
+
+            if (fragment instanceof DetailTorrentFragment) {
+                String oldId = ((DetailTorrentFragment) fragment).getTorrentId();
+                if (id.equals(oldId))
+                    return;
+            }
+            fm.beginTransaction()
+                    .replace(R.id.detail_torrent_fragmentContainer, detail)
+                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                    .commit();
+
+        } else {
+            Intent i = new Intent(this, DetailTorrentActivity.class);
+            i.putExtra(DetailTorrentActivity.TAG_TORRENT_ID, id);
+            startActivity(i);
+        }
+    }
+
+    private void showBlankFragment() {
+        if (Utils.isTwoPane(this)) {
+            FragmentManager fm = getSupportFragmentManager();
+            BlankFragment blank = BlankFragment.newInstance(getString(R.string.select_or_add_torrent));
+            fm.beginTransaction()
+                    .replace(R.id.detail_torrent_fragmentContainer, blank)
+                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)
+                    .commitAllowingStateLoss();
+        }
+    }
+
+    public DetailTorrentFragment getCurrentDetailFragment() {
+        if (!Utils.isTwoPane(this))
+            return null;
+
+        FragmentManager fm = getSupportFragmentManager();
+        Fragment fragment = fm.findFragmentById(R.id.detail_torrent_fragmentContainer);
+
+        return (fragment instanceof DetailTorrentFragment ? (DetailTorrentFragment) fragment : null);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        toolbar.inflateMenu(R.menu.main);
+        searchView = (SearchView) toolbar.getMenu().findItem(R.id.search).getActionView();
+        initSearch();
+        toolbar.setOnMenuItemClickListener(this::onOptionsItemSelected);
+
+        return true;
+    }
+
+    private void initSearch() {
+        searchView.setMaxWidth(Integer.MAX_VALUE);
+        searchView.setOnCloseListener(() -> {
+            viewModel.resetSearch();
+
+            return false;
+        });
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                viewModel.setSearchQuery(query);
+                /* Submit the search will hide the keyboard */
+                searchView.clearFocus();
+
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                viewModel.setSearchQuery(newText);
+
+                return true;
+            }
+        });
+        searchView.setQueryHint(getString(R.string.search));
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        /* Assumes current activity is the searchable activity */
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int itemId = item.getItemId();
+        if (itemId == R.id.feed_menu) {
+            startActivity(new Intent(this, FeedActivity.class));
+        } else if (itemId == R.id.settings_menu) {
+            startActivity(new Intent(this, SettingsActivity.class));
+        } else if (itemId == R.id.about_menu) {
+            showAboutDialog();
+        } else if (itemId == R.id.shutdown_app_menu) {
+            closeOptionsMenu();
+            viewModel.stopEngine();
+            finish();
+        } else if (itemId == R.id.pause_all_menu) {
+            viewModel.pauseAll();
+        } else if (itemId == R.id.resume_all_menu) {
+            viewModel.resumeAll();
+        } else if (itemId == R.id.log_menu) {
+            showLog();
+        }
+
+        return true;
+    }
+
+    private void showAboutDialog() {
+        FragmentManager fm = getSupportFragmentManager();
+        if (fm.findFragmentByTag(TAG_ABOUT_DIALOG) == null) {
+            aboutDialog = BaseAlertDialog.newInstance(
+                    getString(R.string.about_title),
+                    null,
+                    R.layout.dialog_about,
+                    getString(R.string.ok),
+                    getString(R.string.about_changelog),
+                    null,
+                    true);
+            aboutDialog.show(fm, TAG_ABOUT_DIALOG);
+        }
+    }
+
+    private void initAboutDialog() {
+        if (aboutDialog == null)
+            return;
+
+        Dialog dialog = aboutDialog.getDialog();
+        if (dialog != null) {
+            TextView versionTextView = dialog.findViewById(R.id.about_version);
+            TextView descriptionTextView = dialog.findViewById(R.id.about_description);
+            String versionName = SystemFacadeHelper.getSystemFacade(getApplicationContext())
+                    .getAppVersionName();
+            if (versionName != null)
+                versionTextView.setText(versionName);
+            descriptionTextView.setText(
+                    Html.fromHtml(getString(R.string.about_description), Html.FROM_HTML_MODE_LEGACY)
+            );
+            descriptionTextView.setMovementMethod(LinkMovementMethod.getInstance());
+        }
+    }
+
+    private void openChangelogLink() {
+        Intent i = new Intent(Intent.ACTION_VIEW);
+        i.setData(Uri.parse(getString(R.string.about_changelog_link)));
+        startActivity(i);
+    }
+
+    private void showLog() {
+        startActivity(new Intent(this, LogActivity.class));
+    }
+
+    @Override
+    public void onFragmentFinished(@NonNull Fragment f, Intent intent,
+                                   @NonNull ResultCode code) {
+        if (f instanceof DetailTorrentFragment && Utils.isTwoPane(this))
+            msgViewModel.torrentDetailsClosed();
+    }
+}
+
+$ sed -n '1,637p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/MainFragment.java
+/*
+ * Copyright (C) 2016-2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.main;
+
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.app.Dialog;
+import android.content.Context;
+import android.content.Intent;
+import android.content.res.TypedArray;
+import android.os.Bundle;
+import android.os.Parcelable;
+import android.util.Log;
+import android.util.TypedValue;
+import android.view.ContextMenu;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.CheckBox;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.ActionMode;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.databinding.DataBindingUtil;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.selection.MutableSelection;
+import androidx.recyclerview.selection.SelectionPredicates;
+import androidx.recyclerview.selection.SelectionTracker;
+import androidx.recyclerview.selection.StorageStrategy;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.leinardi.android.speeddial.SpeedDialActionItem;
+
+import org.proninyaroslav.libretorrent.R;
+import org.proninyaroslav.libretorrent.core.utils.Utils;
+import org.proninyaroslav.libretorrent.databinding.FragmentMainBinding;
+import org.proninyaroslav.libretorrent.ui.BaseAlertDialog;
+import org.proninyaroslav.libretorrent.ui.addlink.AddLinkActivity;
+import org.proninyaroslav.libretorrent.ui.addtorrent.AddTorrentActivity;
+import org.proninyaroslav.libretorrent.ui.createtorrent.CreateTorrentActivity;
+import org.proninyaroslav.libretorrent.ui.customviews.RecyclerViewDividerDecoration;
+import org.proninyaroslav.libretorrent.ui.filemanager.FileManagerConfig;
+import org.proninyaroslav.libretorrent.ui.filemanager.FileManagerDialog;
+
+import java.util.Collections;
+
+import io.reactivex.Flowable;
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
+
+/*
+ * The list of torrents.
+ */
+
+public class MainFragment extends Fragment
+        implements TorrentListAdapter.ClickListener
+{
+    private static final String TAG = MainFragment.class.getSimpleName();
+
+    private static final String TAG_TORRENT_LIST_STATE = "torrent_list_state";
+    private static final String SELECTION_TRACKER_ID = "selection_tracker_0";
+    private static final String TAG_DELETE_TORRENTS_DIALOG = "delete_torrents_dialog";
+    private static final String TAG_OPEN_FILE_ERROR_DIALOG = "open_file_error_dialog";
+
+    private AppCompatActivity activity;
+    private TorrentListAdapter adapter;
+    private LinearLayoutManager layoutManager;
+    /* Save state scrolling */
+    private Parcelable torrentListState;
+    private SelectionTracker<TorrentListItem> selectionTracker;
+    private ActionMode actionMode;
+    private FragmentMainBinding binding;
+    private MainViewModel viewModel;
+    private MsgMainViewModel msgViewModel;
+    private BaseAlertDialog.SharedViewModel dialogViewModel;
+    private BaseAlertDialog deleteTorrentsDialog;
+    private CompositeDisposable disposables = new CompositeDisposable();
+
+    public CoordinatorLayout getCoordinatorLayout() {
+        return binding.mainCoordinatorLayout;
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState)
+    {
+        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_main, container, false);
+
+        return binding.getRoot();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        if (activity == null)
+            activity = (AppCompatActivity)getActivity();
+
+        ViewModelProvider provider = new ViewModelProvider(activity);
+        viewModel = provider.get(MainViewModel.class);
+        msgViewModel = provider.get(MsgMainViewModel.class);
+        dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+
+        adapter = new TorrentListAdapter(this);
+        /*
+         * A RecyclerView by default creates another copy of the ViewHolder in order to
+         * fade the views into each other. This causes the problem because the old ViewHolder gets
+         * the payload but then the new one doesn't. So needs to explicitly tell it to reuse the old one.
+         */
+        DefaultItemAnimator animator = new DefaultItemAnimator() {
+            @Override
+            public boolean canReuseUpdatedViewHolder(@NonNull RecyclerView.ViewHolder viewHolder) {
+                return true;
+            }
+        };
+        layoutManager = new LinearLayoutManager(activity);
+        binding.torrentList.setLayoutManager(layoutManager);
+        binding.torrentList.setItemAnimator(animator);
+        binding.torrentList.setEmptyView(binding.emptyViewTorrentList);
+        TypedArray a = activity.obtainStyledAttributes(new TypedValue().data, new int[]{R.attr.divider});
+        binding.torrentList.addItemDecoration(new RecyclerViewDividerDecoration(a.getDrawable(0)));
+        a.recycle();
+        binding.torrentList.setAdapter(adapter);
+
+        selectionTracker = new SelectionTracker.Builder<>(
+                SELECTION_TRACKER_ID,
+                binding.torrentList,
+                new TorrentListAdapter.KeyProvider(adapter),
+                new TorrentListAdapter.ItemLookup(binding.torrentList),
+                StorageStrategy.createParcelableStorage(TorrentListItem.class))
+                .withSelectionPredicate(SelectionPredicates.createSelectAnything())
+                .build();
+
+        selectionTracker.addObserver(new SelectionTracker.SelectionObserver<TorrentListItem>() {
+            @Override
+            public void onSelectionChanged()
+            {
+                super.onSelectionChanged();
+
+                if (selectionTracker.hasSelection() && actionMode == null) {
+                    actionMode = activity.startSupportActionMode(actionModeCallback);
+                    setActionModeTitle(selectionTracker.getSelection().size());
+
+                } else if (!selectionTracker.hasSelection()) {
+                    if (actionMode != null)
+                        actionMode.finish();
+                    actionMode = null;
+
+                } else {
+                    setActionModeTitle(selectionTracker.getSelection().size());
+                }
+            }
+
+            @Override
+            public void onSelectionRestored()
+            {
+                super.onSelectionRestored();
+
+                actionMode = activity.startSupportActionMode(actionModeCallback);
+                setActionModeTitle(selectionTracker.getSelection().size());
+            }
+        });
+
+        if (savedInstanceState != null)
+            selectionTracker.onRestoreInstanceState(savedInstanceState);
+        adapter.setSelectionTracker(selectionTracker);
+
+        initFabSpeedDial();
+
+        Intent i = activity.getIntent();
+        if (i != null && MainActivity.ACTION_ADD_TORRENT_SHORTCUT.equals(i.getAction())) {
+            /* Prevents re-reading action after device configuration changes */
+            i.setAction(null);
+            showAddTorrentMenu();
+        }
+    }
+
+    private void showAddTorrentMenu()
+    {
+        /* Show add torrent menu after window is displayed */
+        View v = activity.getWindow().findViewById(android.R.id.content);
+        if (v == null)
+            return;
+        v.post(() -> {
+            registerForContextMenu(v);
+            activity.openContextMenu(v);
+            unregisterForContextMenu(v);
+        });
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context)
+    {
+        super.onAttach(context);
+
+        if (context instanceof AppCompatActivity)
+            activity = (AppCompatActivity)context;
+    }
+
+    @Override
+    public void onStart()
+    {
+        super.onStart();
+
+        subscribeAdapter();
+        subscribeAlertDialog();
+        subscribeForceSortAndFilter();
+        subscribeTorrentsDeleted();
+        subscribeMsgViewModel();
+    }
+
+    @Override
+    public void onStop()
+    {
+        super.onStop();
+
+        disposables.clear();
+    }
+
+    @Override
+    public void onResume()
+    {
+        super.onResume();
+
+        if (torrentListState != null)
+            layoutManager.onRestoreInstanceState(torrentListState);
+    }
+
+    @Override
+    public void onViewStateRestored(@Nullable Bundle savedInstanceState)
+    {
+        super.onViewStateRestored(savedInstanceState);
+
+        if (savedInstanceState != null)
+            torrentListState = savedInstanceState.getParcelable(TAG_TORRENT_LIST_STATE);
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState)
+    {
+        torrentListState = layoutManager.onSaveInstanceState();
+        outState.putParcelable(TAG_TORRENT_LIST_STATE, torrentListState);
+        selectionTracker.onSaveInstanceState(outState);
+
+        super.onSaveInstanceState(outState);
+    }
+
+    private void subscribeAdapter()
+    {
+        disposables.add(observeTorrents());
+    }
+
+    private Disposable observeTorrents()
+    {
+        return viewModel.observeAllTorrentsInfo()
+                .subscribeOn(Schedulers.io())
+                .flatMapSingle((infoList) ->
+                        Flowable.fromIterable(infoList)
+                                .filter(viewModel.getFilter())
+                                .map(TorrentListItem::new)
+                                .sorted(viewModel.getSorting())
+                                .toList()
+                )
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(adapter::submitList,
+                        (Throwable t) -> Log.e(TAG, "Getting torrent info list error: " +
+                                Log.getStackTraceString(t)));
+    }
+
+    private void subscribeAlertDialog()
+    {
+        Disposable d = dialogViewModel.observeEvents()
+                .subscribe((event) -> {
+                    if (event.dialogTag == null)
+                        return;
+
+                    switch (event.type) {
+                        case POSITIVE_BUTTON_CLICKED:
+                            if (event.dialogTag.equals(TAG_DELETE_TORRENTS_DIALOG) && deleteTorrentsDialog != null) {
+                                deleteTorrents();
+                                deleteTorrentsDialog.dismiss();
+                            }
+                            break;
+                        case NEGATIVE_BUTTON_CLICKED:
+                            if (event.dialogTag.equals(TAG_DELETE_TORRENTS_DIALOG) && deleteTorrentsDialog != null)
+                                deleteTorrentsDialog.dismiss();
+                            break;
+                    }
+                });
+        disposables.add(d);
+    }
+
+    private void subscribeForceSortAndFilter()
+    {
+        disposables.add(viewModel.observeForceSortAndFilter()
+                .filter((force) -> force)
+                .observeOn(Schedulers.io())
+                .subscribe((force) -> disposables.add(getAllTorrentsSingle())));
+    }
+
+    private Disposable getAllTorrentsSingle()
+    {
+        return viewModel.getAllTorrentsInfoSingle()
+                .subscribeOn(Schedulers.io())
+                .flatMap((infoList) ->
+                        Observable.fromIterable(infoList)
+                                .filter(viewModel.getFilter())
+                                .map(TorrentListItem::new)
+                                .sorted(viewModel.getSorting())
+                                .toList()
+                )
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(adapter::submitList,
+                        (Throwable t) -> Log.e(TAG, "Getting torrent info list error: " +
+                                Log.getStackTraceString(t)));
+    }
+
+    private void subscribeTorrentsDeleted()
+    {
+        disposables.add(viewModel.observeTorrentsDeleted()
+                .subscribeOn(Schedulers.io())
+                .filter((id) -> {
+                    TorrentListItem item = adapter.getOpenedItem();
+                    if (item == null)
+                        return false;
+
+                    return id.equals(item.torrentId);
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((__) -> {
+                    if (Utils.isTwoPane(activity))
+                        adapter.markAsOpen(null);
+                }));
+    }
+
+    private void subscribeMsgViewModel()
+    {
+        disposables.add(msgViewModel.observeTorrentDetailsClosed()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((__) -> {
+                    if (Utils.isTwoPane(activity))
+                        adapter.markAsOpen(null);
+                }));
+    }
+
+    @Override
+    public void onItemClicked(@NonNull TorrentListItem item)
+    {
+        if (Utils.isTwoPane(activity))
+            adapter.markAsOpen(item);
+        msgViewModel.torrentDetailsOpened(item.torrentId);
+    }
+
+    @Override
+    public void onItemPauseClicked(@NonNull TorrentListItem item)
+    {
+        viewModel.pauseResumeTorrent(item.torrentId);
+    }
+
+    @Override
+    public void onCreateContextMenu(@NonNull ContextMenu menu, @NonNull View v,
+                                    ContextMenu.ContextMenuInfo menuInfo)
+    {
+        super.onCreateContextMenu(menu, v, menuInfo);
+
+        activity.getMenuInflater().inflate(R.menu.main_context, menu);
+    }
+
+    @Override
+    public boolean onContextItemSelected(@NonNull MenuItem item)
+    {
+        int itemId = item.getItemId();
+        if (itemId == R.id.add_link_menu) {
+            addLinkDialog();
+        } else if (itemId == R.id.open_file_menu) {
+            openTorrentFileDialog();
+        }
+
+        return true;
+    }
+
+    private void initFabSpeedDial()
+    {
+        binding.fabButton.setOnActionSelectedListener((item) -> {
+            int id = item.getId();
+            if (id == R.id.main_fab_add_link) {
+                addLinkDialog();
+            } else if (id == R.id.main_fab_open_file) {
+                openTorrentFileDialog();
+            } else if (id == R.id.main_fab_create_torrent) {
+                createTorrentDialog();
+            } else {
+                return false;
+            }
+
+            binding.fabButton.close();
+
+            return true;
+        });
+
+        binding.fabButton.addActionItem(new SpeedDialActionItem.Builder(
+                R.id.main_fab_create_torrent,
+                R.drawable.ic_mode_edit_18dp)
+                .setLabel(R.string.create_torrent)
+                .create());
+
+        binding.fabButton.addActionItem(new SpeedDialActionItem.Builder(
+                R.id.main_fab_open_file,
+                R.drawable.ic_file_18dp)
+                .setLabel(R.string.open_file)
+                .create());
+
+        binding.fabButton.addActionItem(new SpeedDialActionItem.Builder(
+                R.id.main_fab_add_link,
+                R.drawable.ic_link_18dp)
+                .setLabel(R.string.add_link)
+                .create());
+    }
+
+    private void setActionModeTitle(int itemCount)
+    {
+        actionMode.setTitle(String.valueOf(itemCount));
+    }
+
+    private final ActionMode.Callback actionModeCallback = new ActionMode.Callback()
+    {
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu)
+        {
+            return false;
+        }
+
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu)
+        {
+            mode.getMenuInflater().inflate(R.menu.main_action_mode, menu);
+            Utils.showActionModeStatusBar(activity, true);
+
+            return true;
+        }
+
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item)
+        {
+            int itemId = item.getItemId();
+            if (itemId == R.id.delete_torrent_menu) {
+                deleteTorrentsDialog();
+            } else if (itemId == R.id.select_all_torrent_menu) {
+                selectAllTorrents();
+            } else if (itemId == R.id.force_recheck_torrent_menu) {
+                forceRecheckTorrents();
+                mode.finish();
+            } else if (itemId == R.id.force_announce_torrent_menu) {
+                forceAnnounceTorrents();
+                mode.finish();
+            }
+
+            return true;
+        }
+
+        @Override
+        public void onDestroyActionMode(ActionMode mode)
+        {
+            selectionTracker.clearSelection();
+            Utils.showActionModeStatusBar(activity, false);
+        }
+    };
+
+    private void deleteTorrentsDialog()
+    {
+        if (!isAdded())
+            return;
+
+        FragmentManager fm = getChildFragmentManager();
+        if (fm.findFragmentByTag(TAG_DELETE_TORRENTS_DIALOG) == null) {
+            deleteTorrentsDialog = BaseAlertDialog.newInstance(
+                    getString(R.string.deleting),
+                    (selectionTracker.getSelection().size() > 1 ?
+                            getString(R.string.delete_selected_torrents) :
+                            getString(R.string.delete_selected_torrent)),
+                    R.layout.dialog_delete_torrent,
+                    getString(R.string.ok),
+                    getString(R.string.cancel),
+                    null,
+                    false);
+
+            deleteTorrentsDialog.show(fm, TAG_DELETE_TORRENTS_DIALOG);
+        }
+    }
+
+    private void addLinkDialog()
+    {
+        startActivity(new Intent(activity, AddLinkActivity.class));
+    }
+
+    private void openTorrentFileDialog()
+    {
+        Intent i = new Intent(activity, FileManagerDialog.class);
+
+        FileManagerConfig config = new FileManagerConfig(null,
+                getString(R.string.torrent_file_chooser_title),
+                FileManagerConfig.FILE_CHOOSER_MODE);
+        config.highlightFileTypes = Collections.singletonList("torrent");
+
+        i.putExtra(FileManagerDialog.TAG_CONFIG, config);
+        torrentFileChoose.launch(i);
+    }
+
+    private void openFileErrorDialog()
+    {
+        if (!isAdded())
+            return;
+
+        FragmentManager fm = getChildFragmentManager();
+        if (fm.findFragmentByTag(TAG_OPEN_FILE_ERROR_DIALOG) == null) {
+            BaseAlertDialog openFileErrorDialog = BaseAlertDialog.newInstance(
+                    getString(R.string.error),
+                    getString(R.string.error_open_torrent_file),
+                    0,
+                    getString(R.string.ok),
+                    null,
+                    null,
+                    true);
+
+            openFileErrorDialog.show(fm, TAG_OPEN_FILE_ERROR_DIALOG);
+        }
+    }
+
+    private void createTorrentDialog()
+    {
+        startActivity(new Intent(activity, CreateTorrentActivity.class));
+    }
+
+    private void deleteTorrents()
+    {
+        Dialog dialog = deleteTorrentsDialog.getDialog();
+        if (dialog == null)
+            return;
+
+        CheckBox withFilesCheckBox = dialog.findViewById(R.id.delete_with_downloaded_files);
+        boolean withFiles = withFilesCheckBox.isChecked();
+
+        MutableSelection<TorrentListItem> selections = new MutableSelection<>();
+        selectionTracker.copySelection(selections);
+
+        disposables.add(Observable.fromIterable(selections)
+                .map((selection -> selection.torrentId))
+                .toList()
+                .subscribe((ids) -> viewModel.deleteTorrents(ids, withFiles)));
+
+        if (actionMode != null)
+            actionMode.finish();
+    }
+
+    @SuppressLint("RestrictedApi")
+    private void selectAllTorrents()
+    {
+        int n = adapter.getItemCount();
+        if (n > 0) {
+            selectionTracker.startRange(0);
+            selectionTracker.extendRange(adapter.getItemCount() - 1);
+        }
+    }
+
+    private void forceRecheckTorrents()
+    {
+        MutableSelection<TorrentListItem> selections = new MutableSelection<>();
+        selectionTracker.copySelection(selections);
+
+        disposables.add(Observable.fromIterable(selections)
+                .map((selection -> selection.torrentId))
+                .toList()
+                .subscribe((ids) -> viewModel.forceRecheckTorrents(ids)));
+    }
+
+    private void forceAnnounceTorrents()
+    {
+        MutableSelection<TorrentListItem> selections = new MutableSelection<>();
+        selectionTracker.copySelection(selections);
+
+        disposables.add(Observable.fromIterable(selections)
+                .map((selection -> selection.torrentId))
+                .toList()
+                .subscribe((ids) -> viewModel.forceAnnounceTorrents(ids)));
+    }
+
+    final ActivityResultLauncher<Intent> torrentFileChoose = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                Intent data = result.getData();
+                if (result.getResultCode() != Activity.RESULT_OK) {
+                    return;
+                }
+
+                if (data == null || data.getData() == null) {
+                    openFileErrorDialog();
+                    return;
+                }
+
+                Intent i = new Intent(activity, AddTorrentActivity.class);
+                i.putExtra(AddTorrentActivity.TAG_URI, data.getData());
+                startActivity(i);
+            }
+    );
+}
+
+$ sed -n '1,316p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/drawer/TagsAdapter.java
+/*
+ * Copyright (C) 2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.main.drawer;
+
+import android.content.res.TypedArray;
+import android.graphics.drawable.Drawable;
+import android.util.TypedValue;
+import android.view.LayoutInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.widget.PopupMenu;
+import androidx.databinding.DataBindingUtil;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.ListAdapter;
+import androidx.recyclerview.widget.RecyclerView;
+
+import org.proninyaroslav.libretorrent.R;
+import org.proninyaroslav.libretorrent.databinding.DrawerEmptyTagsListItemBinding;
+import org.proninyaroslav.libretorrent.databinding.DrawerNoTagsListItemBinding;
+import org.proninyaroslav.libretorrent.databinding.DrawerTagsListItemBinding;
+
+public class TagsAdapter extends ListAdapter<AbstractTagItem, TagsAdapter.AbstractViewHolder> {
+    private static final int TYPE_EMPTY_ITEM = 0;
+    private static final int TYPE_TAG_ITEM = 1;
+    private static final int TYPE_NO_TAGS_ITEM = 2;
+
+    private AbstractTagItem selectedItem;
+
+    @NonNull
+    private final OnClickListener listener;
+
+    public TagsAdapter(@NonNull OnClickListener listener) {
+        super(diffCallback);
+
+        this.listener = listener;
+    }
+
+    @NonNull
+    @Override
+    public AbstractViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+        switch (viewType) {
+            case TYPE_EMPTY_ITEM: {
+                DrawerEmptyTagsListItemBinding binding = DataBindingUtil.inflate(
+                        inflater,
+                        R.layout.drawer_empty_tags_list_item,
+                        parent,
+                        false
+                );
+                return new EmptyItemViewHolder(binding);
+            }
+            case TYPE_TAG_ITEM: {
+                DrawerTagsListItemBinding binding = DataBindingUtil.inflate(
+                        inflater,
+                        R.layout.drawer_tags_list_item,
+                        parent,
+                        false
+                );
+                return new ItemViewHolder(binding);
+            }
+            case TYPE_NO_TAGS_ITEM: {
+                DrawerNoTagsListItemBinding binding = DataBindingUtil.inflate(
+                        inflater,
+                        R.layout.drawer_no_tags_list_item,
+                        parent,
+                        false
+                );
+                return new NoTagsItemViewHolder(binding);
+            }
+        }
+
+        throw new IllegalStateException("Unknown item type: " + viewType);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull AbstractViewHolder holder, int position) {
+        AbstractTagItem item = getItem(position);
+        if (item != null) {
+            holder.bind(item, listener);
+        }
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        AbstractTagItem item = getItem(position);
+        if (item instanceof TagItem) {
+            return TYPE_TAG_ITEM;
+        } else if (item instanceof EmptyTagItem) {
+            return TYPE_EMPTY_ITEM;
+        } else if (item instanceof NoTagsItem) {
+            return TYPE_NO_TAGS_ITEM;
+        }
+
+        throw new IllegalStateException("Unknown item: " + item);
+    }
+
+    public void setSelectedItem(@NonNull AbstractTagItem item) {
+        selectedItem = item;
+        int position = getCurrentList().indexOf(item);
+        if (position == -1) {
+            return;
+        }
+        notifyDataSetChanged();
+    }
+
+    public AbstractTagItem getSelectedItem() {
+        return selectedItem;
+    }
+
+    static final DiffUtil.ItemCallback<AbstractTagItem> diffCallback =
+            new DiffUtil.ItemCallback<AbstractTagItem>() {
+                @Override
+                public boolean areContentsTheSame(
+                        @NonNull AbstractTagItem oldItem,
+                        @NonNull AbstractTagItem newItem
+                ) {
+                    return oldItem.equals(newItem);
+                }
+
+                @Override
+                public boolean areItemsTheSame(
+                        @NonNull AbstractTagItem oldItem,
+                        @NonNull AbstractTagItem newItem
+                ) {
+                    return oldItem.isSame(newItem);
+                }
+            };
+
+    public interface OnClickListener {
+        void onTagSelected(@NonNull AbstractTagItem item);
+
+        void onTagMenuClicked(@NonNull AbstractTagItem item, int menuId);
+    }
+
+    static abstract class AbstractViewHolder extends RecyclerView.ViewHolder {
+        public AbstractViewHolder(@NonNull View itemView) {
+            super(itemView);
+        }
+
+        abstract void bind(
+                @NonNull AbstractTagItem item,
+                OnClickListener listener
+        );
+    }
+
+    class ItemViewHolder extends AbstractViewHolder {
+        @NonNull
+        private final DrawerTagsListItemBinding binding;
+
+        public ItemViewHolder(@NonNull DrawerTagsListItemBinding binding) {
+            super(binding.getRoot());
+
+            this.binding = binding;
+        }
+
+        @Override
+        void bind(
+                @NonNull AbstractTagItem item,
+                OnClickListener listener
+        ) {
+            if (item instanceof TagItem) {
+                bind((TagItem) item, listener);
+            }
+        }
+
+        private void bind(
+                @NonNull TagItem item,
+                OnClickListener listener
+        ) {
+            binding.name.setText(item.info.name);
+            binding.color.setColor(item.info.color);
+            binding.getRoot().setOnClickListener((v) -> {
+                setSelectedItem(item);
+                if (listener != null) {
+                    listener.onTagSelected(item);
+                }
+            });
+            binding.menu.setOnClickListener((v) -> {
+                PopupMenu popup = new PopupMenu(v.getContext(), v);
+                popup.inflate(R.menu.tag_item_popup);
+                popup.setOnMenuItemClickListener((MenuItem menuItem) -> {
+                    if (listener != null) {
+                        listener.onTagMenuClicked(item, menuItem.getItemId());
+                    }
+                    return true;
+                });
+                popup.show();
+            });
+
+            TypedArray a = itemView.getContext().obtainStyledAttributes(
+                    new TypedValue().data,
+                    new int[]{
+                            R.attr.selectableDrawer,
+                            R.attr.dialogRectRipple
+                    });
+            int colorIdx = item.isSame(selectedItem) ? 0 : 1;
+            Drawable d = a.getDrawable(colorIdx);
+            if (d != null) {
+                itemView.setBackground(d);
+            }
+            a.recycle();
+        }
+    }
+
+    class EmptyItemViewHolder extends AbstractViewHolder {
+        @NonNull
+        private final DrawerEmptyTagsListItemBinding binding;
+
+        public EmptyItemViewHolder(@NonNull DrawerEmptyTagsListItemBinding binding) {
+            super(binding.getRoot());
+
+            this.binding = binding;
+        }
+
+        @Override
+        void bind(
+                @NonNull AbstractTagItem item,
+                OnClickListener listener
+        ) {
+            if (item instanceof EmptyTagItem) {
+                bind((EmptyTagItem) item, listener);
+            }
+        }
+
+        private void bind(
+                @NonNull EmptyTagItem item,
+                OnClickListener listener
+        ) {
+            binding.getRoot().setOnClickListener((v) -> {
+                setSelectedItem(item);
+                if (listener != null) {
+                    listener.onTagSelected(item);
+                }
+            });
+
+            TypedArray a = itemView.getContext().obtainStyledAttributes(
+                    new TypedValue().data,
+                    new int[]{
+                            R.attr.selectableDrawer,
+                            R.attr.dialogRectRipple
+                    });
+            int colorIdx = item.isSame(selectedItem) ? 0 : 1;
+            Drawable d = a.getDrawable(colorIdx);
+            if (d != null) {
+                itemView.setBackground(d);
+            }
+            a.recycle();
+        }
+    }
+
+    class NoTagsItemViewHolder extends AbstractViewHolder {
+        @NonNull
+        private final DrawerNoTagsListItemBinding binding;
+
+        public NoTagsItemViewHolder(@NonNull DrawerNoTagsListItemBinding binding) {
+            super(binding.getRoot());
+
+            this.binding = binding;
+        }
+
+        @Override
+        void bind(
+                @NonNull AbstractTagItem item,
+                OnClickListener listener
+        ) {
+            if (item instanceof NoTagsItem) {
+                bind((NoTagsItem) item, listener);
+            }
+        }
+
+        private void bind(
+                @NonNull NoTagsItem item,
+                OnClickListener listener
+        ) {
+            binding.getRoot().setOnClickListener((v) -> {
+                setSelectedItem(item);
+                if (listener != null) {
+                    listener.onTagSelected(item);
+                }
+            });
+
+            TypedArray a = itemView.getContext().obtainStyledAttributes(
+                    new TypedValue().data,
+                    new int[]{
+                            R.attr.selectableDrawer,
+                            R.attr.dialogRectRipple
+                    });
+            int colorIdx = item.isSame(selectedItem) ? 0 : 1;
+            Drawable d = a.getDrawable(colorIdx);
+            if (d != null) {
+                itemView.setBackground(d);
+            }
+            a.recycle();
+        }
+    }
+}
+
+$ sed -n '1,155p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/PermissionManager.java
+/*
+ * Copyright (C) 2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui;
+
+import android.Manifest;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Environment;
+import android.provider.Settings;
+
+import androidx.activity.ComponentActivity;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+
+import org.proninyaroslav.libretorrent.core.RepositoryHelper;
+import org.proninyaroslav.libretorrent.core.settings.SettingsRepository;
+import org.proninyaroslav.libretorrent.core.utils.Utils;
+
+import java.util.ArrayList;
+
+public class PermissionManager {
+    private ActivityResultLauncher<Intent> manageExternalStoragePermission;
+    private ActivityResultLauncher<String[]> permissions;
+    private final Context appContext;
+    private SettingsRepository pref;
+    private boolean hasManageExternalStoragePermission;
+
+    public PermissionManager(
+            @NonNull ComponentActivity activity,
+            @NonNull Callback callback
+    ) {
+        appContext = activity.getApplicationContext();
+        pref = RepositoryHelper.getSettingsRepository(appContext);
+        // MANAGE_EXTERNAL_STORAGE is disabled for the Google Play version
+        // so we need to check before requesting permission
+        hasManageExternalStoragePermission = Utils.hasManageExternalStoragePermission(appContext);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && hasManageExternalStoragePermission) {
+            manageExternalStoragePermission = activity.registerForActivityResult(
+                    new ActivityResultContracts.StartActivityForResult(),
+                    result -> callback.onStorageResult(
+                            checkStoragePermissions(),
+                            pref.askManageAllFilesPermission()
+                    )
+            );
+        }
+
+        permissions = activity.registerForActivityResult(
+                new ActivityResultContracts.RequestMultiplePermissions(),
+                result -> {
+                    Boolean storageResult = result.get(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                    Boolean notificationsResult;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        notificationsResult = result.get(Manifest.permission.POST_NOTIFICATIONS);
+                    } else {
+                        notificationsResult = true;
+                    }
+                    if (storageResult != null) {
+                        callback.onStorageResult(
+                                storageResult,
+                                Utils.shouldRequestStoragePermission(activity)
+                        );
+                    }
+                    if (notificationsResult != null) {
+                        callback.onNotificationResult(
+                                notificationsResult,
+                                pref.askNotificationPermission()
+                        );
+                    }
+                }
+        );
+    }
+
+    public void requestPermissions() {
+        ArrayList<String> permissionsList = new ArrayList<>();
+        if (!checkStoragePermissions()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && hasManageExternalStoragePermission) {
+                if (pref.askManageAllFilesPermission()) {
+                    var uri = Uri.fromParts("package", appContext.getPackageName(), null);
+                    var i = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+                            .setData(uri);
+                    manageExternalStoragePermission.launch(i);
+                }
+            } else {
+                permissionsList.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            }
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && pref.askNotificationPermission() && !checkNotificationsPermissions()) {
+            permissionsList.add(Manifest.permission.POST_NOTIFICATIONS);
+        }
+        permissions.launch(permissionsList.toArray(new String[0]));
+    }
+
+    public void setDoNotAskStorage(boolean doNotAsk) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            pref.askManageAllFilesPermission(!doNotAsk);
+        }
+    }
+
+    public void setDoNotAskNotifications(boolean doNotAsk) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            pref.askNotificationPermission(!doNotAsk);
+        }
+    }
+
+    public boolean checkStoragePermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && hasManageExternalStoragePermission) {
+            return Environment.isExternalStorageManager();
+        } else {
+            return ContextCompat.checkSelfPermission(appContext,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        }
+    }
+
+    public boolean checkNotificationsPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            return ContextCompat.checkSelfPermission(appContext,
+                    Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean checkPermissions() {
+        return checkStoragePermissions() && checkNotificationsPermissions();
+    }
+
+    public interface Callback {
+        void onStorageResult(boolean isGranted, boolean shouldRequestStoragePermission);
+
+        void onNotificationResult(boolean isGranted, boolean shouldRequestNotificationPermission);
+    }
+}
