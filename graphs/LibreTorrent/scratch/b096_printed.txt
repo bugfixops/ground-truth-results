@@ -1,0 +1,441 @@
+# Batch 96 printed evidence (fresh, C16 converter, 2026-11-01)
+# Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+# Cited files (basenames, for check_part check 8): DetailTorrentTrackersFragment.java, ErrorReportActivity.java, ErrorReportDialog.java, FeedActivity.java, FeedItemsActivity.java, FeedItemsAdapter.java, FeedItemsFragment.java, MainApplication.java, TrackerListAdapter.java
+
+=== MainApplication.java (83 lines) ===
+--- MainApplication.java:58-58 ---
+58:                 .withReportDialogClass(ErrorReportActivity.class)
+
+=== ui/detailtorrent/pages/trackers/DetailTorrentTrackersFragment.java (406 lines) ===
+--- ui/detailtorrent/pages/trackers/DetailTorrentTrackersFragment.java:176-176 ---
+176:         binding.trackerList.setAdapter(adapter);
+--- ui/detailtorrent/pages/trackers/DetailTorrentTrackersFragment.java:178-182 ---
+178:         selectionTracker = new SelectionTracker.Builder<>(
+179:                 SELECTION_TRACKER_ID,
+180:                 binding.trackerList,
+181:                 new TrackerListAdapter.KeyProvider(adapter),
+182:                 new TrackerListAdapter.ItemLookup(binding.trackerList),
+--- ui/detailtorrent/pages/trackers/DetailTorrentTrackersFragment.java:224-224 ---
+224:         adapter.setSelectionTracker(selectionTracker);
+--- ui/detailtorrent/pages/trackers/DetailTorrentTrackersFragment.java:268-268 ---
+268:                 .subscribe((children) -> adapter.submitList(children)));
+
+=== ui/detailtorrent/pages/trackers/TrackerListAdapter.java (299 lines) ===
+--- ui/detailtorrent/pages/trackers/TrackerListAdapter.java:60-60 ---
+60:         super(diffCallback);
+--- ui/detailtorrent/pages/trackers/TrackerListAdapter.java:63-65 ---
+63:     public void setSelectionTracker(SelectionTracker<TrackerItem> selectionTracker)
+64:     {
+65:         this.selectionTracker = selectionTracker;
+--- ui/detailtorrent/pages/trackers/TrackerListAdapter.java:70-79 ---
+70:     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType)
+71:     {
+72:         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+73:         ItemTrackersListBinding binding = DataBindingUtil.inflate(inflater,
+74:                 R.layout.item_trackers_list,
+75:                 parent,
+76:                 false);
+77:
+78:         return new ViewHolder(binding);
+79:     }
+--- ui/detailtorrent/pages/trackers/TrackerListAdapter.java:86-86 ---
+86:             holder.setSelected(selectionTracker.isSelected(item));
+--- ui/detailtorrent/pages/trackers/TrackerListAdapter.java:88-88 ---
+88:         holder.bind(item);
+--- ui/detailtorrent/pages/trackers/TrackerListAdapter.java:92-99 ---
+92:     public void submitList(@Nullable List<TrackerItem> list)
+93:     {
+94:         if (list != null)
+95:             Collections.sort(list);
+96:
+97:         super.submitList(list);
+98:     }
+99:
+--- ui/detailtorrent/pages/trackers/TrackerListAdapter.java:115-132 ---
+115:     private static final DiffUtil.ItemCallback<TrackerItem> diffCallback = new DiffUtil.ItemCallback<>()
+116:     {
+117:         @Override
+118:         public boolean areContentsTheSame(@NonNull TrackerItem oldItem,
+119:                                           @NonNull TrackerItem newItem)
+120:         {
+121:             return oldItem.equalsContent(newItem);
+122:         }
+123:
+124:         @Override
+125:         public boolean areItemsTheSame(@NonNull TrackerItem oldItem,
+126:                                        @NonNull TrackerItem newItem)
+127:         {
+128:             return oldItem.equals(newItem);
+129:         }
+130:     };
+131:
+132:     interface ViewHolderWithDetails
+--- ui/detailtorrent/pages/trackers/TrackerListAdapter.java:145-150 ---
+145:         public ViewHolder(ItemTrackersListBinding binding)
+146:         {
+147:             super(binding.getRoot());
+148:
+149:             this.binding = binding;
+150:         }
+--- ui/detailtorrent/pages/trackers/TrackerListAdapter.java:152-208 ---
+152:         void bind(TrackerItem item)
+153:         {
+154:             Context context = itemView.getContext();
+155:
+156:             selectionKey = item;
+157:
+158:             TypedArray a = context.obtainStyledAttributes(new TypedValue().data, new int[] {
+159:                     R.attr.selectableColor,
+160:                     R.attr.defaultRectRipple,
+161:                     R.attr.colorError,
+162:                     R.attr.colorOk
+163:             });
+164:
+165:             if (isSelected)
+166:                 Utils.setBackground(itemView, a.getDrawable(0));
+167:             else
+168:                 Utils.setBackground(itemView, a.getDrawable(1));
+169:
+170:             binding.url.setText(item.url);
+171:
+172:             String status = "";
+173:             switch (item.status) {
+174:                 case TrackerInfo.Status.NOT_CONTACTED:
+175:                     status = context.getString(R.string.tracker_state_not_contacted);
+176:                     break;
+177:                 case TrackerInfo.Status.WORKING:
+178:                     status = context.getString(R.string.tracker_state_working);
+179:                     break;
+180:                 case TrackerInfo.Status.UPDATING:
+181:                     status = context.getString(R.string.tracker_state_updating);
+182:                     break;
+183:                 case TrackerInfo.Status.NOT_WORKING:
+184:                     status = context.getString(R.string.tracker_state_not_working);
+185:                     break;
+186:             }
+187:             if (TextUtils.isEmpty(status)) {
+188:                 binding.status.setVisibility(View.GONE);
+189:             } else {
+190:                 binding.status.setVisibility(View.VISIBLE);
+191:                 binding.status.setText(status);
+192:             }
+193:             if (TextUtils.isEmpty(item.message)) {
+194:                 binding.message.setVisibility(View.GONE);
+195:             } else {
+196:                 binding.message.setVisibility(View.VISIBLE);
+197:                 binding.message.setText(item.message);
+198:             }
+199:
+200:             if (item.status == TrackerInfo.Status.WORKING)
+201:                 binding.status.setTextColor(a.getColor(3, 0));
+202:             else if (item.status == TrackerInfo.Status.NOT_WORKING)
+203:                 binding.status.setTextColor(a.getColor(2, 0));
+204:             else
+205:                 binding.status.setTextColor(ContextCompat.getColor(context, R.color.text_secondary));
+206:
+207:             a.recycle();
+208:         }
+--- ui/detailtorrent/pages/trackers/TrackerListAdapter.java:210-213 ---
+210:         private void setSelected(boolean isSelected)
+211:         {
+212:             this.isSelected = isSelected;
+213:         }
+--- ui/detailtorrent/pages/trackers/TrackerListAdapter.java:216-219 ---
+216:         public ItemDetails getItemDetails()
+217:         {
+218:             return new ItemDetails(selectionKey, getBindingAdapterPosition());
+219:         }
+--- ui/detailtorrent/pages/trackers/TrackerListAdapter.java:230-236 ---
+230:         KeyProvider(Selectable<TrackerItem> selectable)
+231:         {
+232:             super(SCOPE_MAPPED);
+233:
+234:             this.selectable = selectable;
+235:         }
+236:
+--- ui/detailtorrent/pages/trackers/TrackerListAdapter.java:239-242 ---
+239:         public TrackerItem getKey(int position)
+240:         {
+241:             return selectable.getItemKey(position);
+242:         }
+--- ui/detailtorrent/pages/trackers/TrackerListAdapter.java:245-248 ---
+245:         public int getPosition(@NonNull TrackerItem key)
+246:         {
+247:             return selectable.getItemPosition(key);
+248:         }
+--- ui/detailtorrent/pages/trackers/TrackerListAdapter.java:256-260 ---
+256:         ItemDetails(TrackerItem selectionKey, int adapterPosition)
+257:         {
+258:             this.selectionKey = selectionKey;
+259:             this.adapterPosition = adapterPosition;
+260:         }
+--- ui/detailtorrent/pages/trackers/TrackerListAdapter.java:264-268 ---
+264:         public TrackerItem getSelectionKey()
+265:         {
+266:             return selectionKey;
+267:         }
+268:
+--- ui/detailtorrent/pages/trackers/TrackerListAdapter.java:270-273 ---
+270:         public int getPosition()
+271:         {
+272:             return adapterPosition;
+273:         }
+--- ui/detailtorrent/pages/trackers/TrackerListAdapter.java:280-283 ---
+280:         ItemLookup(RecyclerView recyclerView)
+281:         {
+282:             this.recyclerView = recyclerView;
+283:         }
+--- ui/detailtorrent/pages/trackers/TrackerListAdapter.java:287-295 ---
+287:         public ItemDetails<TrackerItem> getItemDetails(@NonNull MotionEvent e)
+288:         {
+289:             View view = recyclerView.findChildViewUnder(e.getX(), e.getY());
+290:             if (view != null) {
+291:                 RecyclerView.ViewHolder viewHolder = recyclerView.getChildViewHolder(view);
+292:                 if (viewHolder instanceof ViewHolder)
+293:                     return ((ViewHolder)viewHolder).getItemDetails();
+294:             }
+295:
+
+=== ui/errorreport/ErrorReportActivity.java (143 lines) ===
+--- ui/errorreport/ErrorReportActivity.java:46-46 ---
+46:     private static final String TAG = ErrorReportActivity.class.getSimpleName();
+--- ui/errorreport/ErrorReportActivity.java:55-72 ---
+55:     public void onCreate(@Nullable Bundle savedInstanceState)
+56:     {
+57:         super.onCreate(savedInstanceState);
+58:
+59:         helper = new CrashReportDialogHelper(this, getIntent());
+60:         dialogViewModel = new ViewModelProvider(this).get(BaseAlertDialog.SharedViewModel.class);
+61:         errDialog = (ErrorReportDialog)getSupportFragmentManager().findFragmentByTag(TAG_ERROR_DIALOG);
+62:
+63:         if (errDialog == null) {
+64:             errDialog = ErrorReportDialog.newInstance(
+65:                     getString(R.string.error),
+66:                     getString(R.string.app_error_occurred),
+67:                     getStackTrace());
+68:
+69:             errDialog.show(getSupportFragmentManager(), TAG_ERROR_DIALOG);
+70:         }
+71:     }
+72:
+--- ui/errorreport/ErrorReportActivity.java:74-80 ---
+74:     public void onStop()
+75:     {
+76:         super.onStop();
+77:
+78:         disposables.clear();
+79:     }
+80:
+--- ui/errorreport/ErrorReportActivity.java:82-87 ---
+82:     public void onStart()
+83:     {
+84:         super.onStart();
+85:
+86:         subscribeAlertDialog();
+87:     }
+--- ui/errorreport/ErrorReportActivity.java:89-93 ---
+89:     private void subscribeAlertDialog()
+90:     {
+91:         Disposable d = dialogViewModel.observeEvents().subscribe(this::handleAlertDialogEvent);
+92:         disposables.add(d);
+93:     }
+--- ui/errorreport/ErrorReportActivity.java:95-117 ---
+95:     private void handleAlertDialogEvent(BaseAlertDialog.Event event)
+96:     {
+97:         if (event.dialogTag == null || !event.dialogTag.equals(TAG_ERROR_DIALOG) || errDialog == null)
+98:             return;
+99:         switch (event.type) {
+100:             case POSITIVE_BUTTON_CLICKED:
+101:                 Dialog dialog = errDialog.getDialog();
+102:                 if (dialog != null) {
+103:                     TextInputEditText editText = dialog.findViewById(R.id.comment);
+104:                     Editable e = editText.getText();
+105:                     String comment = (e == null ? null : e.toString());
+106:
+107:                     helper.sendCrash(comment, null);
+108:                     finish();
+109:                 }
+110:                 break;
+111:             case NEGATIVE_BUTTON_CLICKED:
+112:                 helper.cancelReports();
+113:                 finish();
+114:                 break;
+115:         }
+116:     }
+117:
+--- ui/errorreport/ErrorReportActivity.java:119-125 ---
+119:     public void finish()
+120:     {
+121:         if (errDialog != null)
+122:             errDialog.dismiss();
+123:
+124:         super.finish();
+125:     }
+--- ui/errorreport/ErrorReportActivity.java:127-143 ---
+127:     private String getStackTrace()
+128:     {
+129:         Intent i = getIntent();
+130:         if (i == null)
+131:             return null;
+132:
+133:         CrashReportData crashReportData;
+134:         try {
+135:             crashReportData = helper.getReportData();
+136:
+137:         } catch (IOException e) {
+138:             return null;
+139:         }
+140:
+141:         return crashReportData.getString(ReportField.STACK_TRACE);
+142:     }
+143: }
+
+=== ui/errorreport/ErrorReportDialog.java (84 lines) ===
+--- ui/errorreport/ErrorReportDialog.java:33-35 ---
+33:     private static final String TAG = ErrorReportDialog.class.getSimpleName();
+34:
+35:     protected static final String TAG_DETAIL_ERROR = "detail_error";
+--- ui/errorreport/ErrorReportDialog.java:39-49 ---
+39:     public static ErrorReportDialog newInstance(String title, String message,
+40:                                                 String detailError)
+41:     {
+42:         ErrorReportDialog frag = new ErrorReportDialog();
+43:
+44:         Bundle args = new Bundle();
+45:         args.putString(TAG_TITLE, title);
+46:         args.putString(TAG_MESSAGE, message);
+47:         args.putString(TAG_DETAIL_ERROR, detailError);
+48:
+49:         frag.setArguments(args);
+--- ui/errorreport/ErrorReportDialog.java:56-75 ---
+56:     public Dialog onCreateDialog(Bundle savedInstanceState)
+57:     {
+58:         super.onCreateDialog(savedInstanceState);
+59:
+60:         Bundle args = getArguments();
+61:         String title = args.getString(TAG_TITLE);
+62:         String message = args.getString(TAG_MESSAGE);
+63:         String positiveText = getString(R.string.report);
+64:         String negativeText = getString(R.string.cancel);
+65:         String detailError = args.getString(TAG_DETAIL_ERROR);
+66:
+67:         LayoutInflater i = LayoutInflater.from(getActivity());
+68:         DialogErrorBinding binding = DataBindingUtil.inflate(i, R.layout.dialog_error, null, false);
+69:         binding.setDetailError(detailError);
+70:
+71:         initLayoutView(binding);
+72:
+73:         return buildDialog(title, message, binding.getRoot(),
+74:                 positiveText, negativeText, null, false);
+75:     }
+--- ui/errorreport/ErrorReportDialog.java:77-83 ---
+77:     private void initLayoutView(DialogErrorBinding binding)
+78:     {
+79:         binding.expansionHeader.setOnClickListener((View view) -> {
+80:             binding.expandableLayout.toggle();
+81:             binding.expansionHeader.toggleExpand();
+82:         });
+83:     }
+
+=== ui/feeditems/FeedItemsActivity.java (67 lines) ===
+--- ui/feeditems/FeedItemsActivity.java:37-39 ---
+37:     private static final String TAG = FeedItemsActivity.class.getSimpleName();
+38:
+39:     public static final String TAG_FEED_ID = "feed_id";
+--- ui/feeditems/FeedItemsActivity.java:42-60 ---
+42:     protected void onCreate(@Nullable Bundle savedInstanceState)
+43:     {
+44:         setTheme(Utils.getAppTheme(getApplicationContext()));
+45:         super.onCreate(savedInstanceState);
+46:
+47:         if (Utils.isTwoPane(this)) {
+48:             finish();
+49:             return;
+50:         }
+51:
+52:         setContentView(R.layout.activity_feed_items);
+53:
+54:         FeedItemsFragment feedItemsFragment = (FeedItemsFragment)getSupportFragmentManager()
+55:                 .findFragmentById(R.id.feed_items_fragmentContainer);
+56:
+57:         if (feedItemsFragment != null)
+58:             feedItemsFragment.setFeedId(getIntent().getLongExtra(TAG_FEED_ID, -1));
+59:     }
+60:
+--- ui/feeditems/FeedItemsActivity.java:62-66 ---
+62:     public void onFragmentFinished(@NonNull Fragment f, Intent intent,
+63:                                    @NonNull FragmentCallback.ResultCode code)
+64:     {
+65:         finish();
+66:     }
+
+=== ui/feeditems/FeedItemsAdapter.java (184 lines) ===
+--- ui/feeditems/FeedItemsAdapter.java:51-51 ---
+51:     private static final String TAG = FeedItemsAdapter.class.getSimpleName();
+--- ui/feeditems/FeedItemsAdapter.java:55-57 ---
+55:     public FeedItemsAdapter(ClickListener listener)
+56:     {
+57:         super(diffCallback);
+--- ui/feeditems/FeedItemsAdapter.java:91-97 ---
+91:     public FeedItemsListItem getItemKey(int position)
+92:     {
+93:         if (position < 0 || position >= getCurrentList().size())
+94:             return null;
+95:
+96:         return getItem(position);
+97:     }
+--- ui/feeditems/FeedItemsAdapter.java:105-105 ---
+105:     private static final DiffUtil.ItemCallback<FeedItemsListItem> diffCallback = new DiffUtil.ItemCallback<FeedItemsListItem>()
+
+=== ui/feeditems/FeedItemsFragment.java (329 lines) ===
+--- ui/feeditems/FeedItemsFragment.java:117-156 ---
+117:     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+118:         super.onViewCreated(view, savedInstanceState);
+119:
+120:         if (activity == null)
+121:             activity = (AppCompatActivity)getActivity();
+122:
+123:         viewModel = new ViewModelProvider(activity).get(FeedItemsViewModel.class);
+124:
+125:         /* Remove previous data if fragment changed */
+126:         if (Utils.isTwoPane(activity))
+127:             viewModel.clearData();
+128:         viewModel.setFeedId(feedId);
+129:
+130:         if (Utils.isTwoPane(activity)) {
+131:             binding.toolbar.inflateMenu(R.menu.feed_items);
+132:             binding.toolbar.setNavigationIcon(ContextCompat.getDrawable(activity.getApplicationContext(),
+133:                     R.drawable.ic_arrow_back_white_24dp));
+134:             binding.toolbar.setOnMenuItemClickListener(this::onOptionsItemSelected);
+135:
+136:         } else {
+137:             binding.toolbar.setTitle(R.string.details);
+138:             activity.setSupportActionBar(binding.toolbar);
+139:             setHasOptionsMenu(true);
+140:             if (activity.getSupportActionBar() != null)
+141:                 activity.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+142:         }
+143:         binding.toolbar.setNavigationOnClickListener((v) -> onBackPressed());
+144:
+145:         layoutManager = new LinearLayoutManager(activity);
+146:         binding.feedItemsList.setLayoutManager(layoutManager);
+147:         TypedArray a = activity.obtainStyledAttributes(new TypedValue().data, new int[]{ R.attr.divider });
+148:         binding.feedItemsList.addItemDecoration(new RecyclerViewDividerDecoration(a.getDrawable(0)));
+149:         a.recycle();
+150:         binding.feedItemsList.setEmptyView(binding.emptyViewFeedItems);
+151:
+152:         adapter = new FeedItemsAdapter(this);
+153:         binding.feedItemsList.setAdapter(adapter);
+154:
+155:         binding.swipeContainer.setOnRefreshListener(() -> viewModel.refreshChannel());
+156:     }
+--- ui/feeditems/FeedItemsFragment.java:325-328 ---
+325:     private void finish(Intent intent, FragmentCallback.ResultCode code)
+326:     {
+327:         ((FragmentCallback)activity).onFragmentFinished(this, intent, code);
+328:     }
+
+=== ui/feeds/FeedActivity.java (412 lines) ===
+--- ui/feeds/FeedActivity.java:221-222 ---
+221:             Intent i = new Intent(this, FeedItemsActivity.class);
+222:             i.putExtra(FeedItemsActivity.TAG_FEED_ID, feedId);

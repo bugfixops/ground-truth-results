@@ -1,0 +1,347 @@
+# Batch 93 printed evidence (fresh, C15 converter, 2026-11-01)
+# Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+# Cited files (basenames, for check_part check 8): DetailTorrentFilesFragment.java, DetailTorrentPeersFragment.java, TorrentContentFilesAdapter.java
+
+=== ui/detailtorrent/pages/files/DetailTorrentFilesFragment.java ===
+   163:                 .observeOn(AndroidSchedulers.mainThread())
+   164:                 .subscribe((children) -> {
+*  165:                     adapter.submitList(children);
+   166:                     updateFileSize();
+   167:                 }));
+---
+   205:         layoutManager = new LinearLayoutManager(activity);
+   206:         binding.fileList.setLayoutManager(layoutManager);
+*  207:         adapter = new TorrentContentFilesAdapter(this);
+   208:         /*
+   209:          * A RecyclerView by default creates another copy of the ViewHolder in order to
+---
+   220:         binding.fileList.setAdapter(adapter);
+   221: 
+*  222:         selectionTracker = new SelectionTracker.Builder<>(
+*  223:                 SELECTION_TRACKER_ID,
+*  224:                 binding.fileList,
+*  225:                 new TorrentContentFilesAdapter.KeyProvider(adapter),
+*  226:                 new TorrentContentFilesAdapter.ItemLookup(binding.fileList),
+*  227:                 StorageStrategy.createParcelableStorage(TorrentContentFileItem.class))
+*  228:                 .withSelectionPredicate(new SelectionTracker.SelectionPredicate<TorrentContentFileItem>() {
+   229:                     @Override
+   230:                     public boolean canSetStateForKey(@NonNull TorrentContentFileItem key, boolean nextState)
+---
+   284:         if (savedInstanceState != null)
+   285:             selectionTracker.onRestoreInstanceState(savedInstanceState);
+*  286:         adapter.setSelectionTracker(selectionTracker);
+   287: 
+   288:         FragmentManager fm = getChildFragmentManager();
+---
+
+=== ui/detailtorrent/pages/files/TorrentContentFilesAdapter.java ===
+    57:     private SelectionTracker<TorrentContentFileItem> selectionTracker;
+    58: 
+*   59:     public TorrentContentFilesAdapter(ClickListener listener)
+*   60:     {
+*   61:         super(diffCallback);
+*   62: 
+*   63:         this.listener = listener;
+    64:     }
+    65: 
+---
+    64:     }
+    65: 
+*   66:     public void setSelectionTracker(SelectionTracker<TorrentContentFileItem> selectionTracker)
+*   67:     {
+*   68:         this.selectionTracker = selectionTracker;
+*   69:     }
+    70: 
+    71:     @NonNull
+---
+    79:                 false);
+    80: 
+*   81:         return new ViewHolder(binding);
+    82:     }
+    83: 
+---
+    87:         TorrentContentFileItem item = getItem(position);
+    88:         if (selectionTracker != null)
+*   89:             holder.setSelected(selectionTracker.isSelected(item));
+    90: 
+    91:         holder.bind(item, listener);
+---
+    93: 
+    94:     @Override
+*   95:     public TorrentContentFileItem getItemKey(int position)
+*   96:     {
+*   97:         if (position < 0 || position >= getCurrentList().size())
+*   98:             return null;
+*   99: 
+*  100:         return getItem(position);
+*  101:     }
+*  102: 
+   103:     @Override
+   104:     public int getItemPosition(TorrentContentFileItem key)
+---
+   102: 
+   103:     @Override
+*  104:     public int getItemPosition(TorrentContentFileItem key)
+*  105:     {
+*  106:         return getCurrentList().indexOf(key);
+*  107:     }
+   108: 
+   109:     private static final DiffUtil.ItemCallback<TorrentContentFileItem> diffCallback = new DiffUtil.ItemCallback<TorrentContentFileItem>()
+---
+   107:     }
+   108: 
+*  109:     private static final DiffUtil.ItemCallback<TorrentContentFileItem> diffCallback = new DiffUtil.ItemCallback<TorrentContentFileItem>()
+*  110:     {
+*  111:         @Override
+*  112:         public boolean areContentsTheSame(@NonNull TorrentContentFileItem oldItem,
+*  113:                                           @NonNull TorrentContentFileItem newItem)
+*  114:         {
+*  115:             return oldItem.equalsContent(newItem);
+*  116:         }
+*  117: 
+*  118:         @Override
+*  119:         public boolean areItemsTheSame(@NonNull TorrentContentFileItem oldItem,
+*  120:                                        @NonNull TorrentContentFileItem newItem)
+*  121:         {
+*  122:             return oldItem.equals(newItem);
+*  123:         }
+*  124:     };
+*  125: 
+   126:     interface ViewHolderWithDetails
+   127:     {
+---
+   137:         private boolean isSelected;
+   138: 
+*  139:         public ViewHolder(ItemTorrentContentFileBinding binding)
+*  140:         {
+*  141:             super(binding.getRoot());
+*  142: 
+*  143:             this.binding = binding;
+*  144:             Utils.colorizeProgressBar(itemView.getContext(), binding.progress);
+*  145:         }
+   146: 
+   147:         void bind(TorrentContentFileItem item, ClickListener listener)
+---
+   240:         }
+   241: 
+*  242:         private void setSelected(boolean isSelected)
+*  243:         {
+*  244:             this.isSelected = isSelected;
+*  245:         }
+   246: 
+   247:         @Override
+---
+   246: 
+   247:         @Override
+*  248:         public ItemDetails getItemDetails()
+*  249:         {
+*  250:             return new ItemDetails(selectionKey, getBindingAdapterPosition());
+*  251:         }
+   252:     }
+   253: 
+---
+   267:         private Selectable<TorrentContentFileItem> selectable;
+   268: 
+*  269:         KeyProvider(Selectable<TorrentContentFileItem> selectable)
+*  270:         {
+*  271:             super(SCOPE_MAPPED);
+*  272: 
+*  273:             this.selectable = selectable;
+*  274:         }
+   275: 
+   276:         @Nullable
+---
+   276:         @Nullable
+   277:         @Override
+*  278:         public TorrentContentFileItem getKey(int position)
+*  279:         {
+*  280:             return selectable.getItemKey(position);
+*  281:         }
+   282: 
+   283:         @Override
+---
+   282: 
+   283:         @Override
+*  284:         public int getPosition(@NonNull TorrentContentFileItem key)
+*  285:         {
+*  286:             return selectable.getItemPosition(key);
+*  287:         }
+   288:     }
+   289: 
+---
+   293:         private int adapterPosition;
+   294: 
+*  295:         ItemDetails(TorrentContentFileItem selectionKey, int adapterPosition)
+*  296:         {
+*  297:             this.selectionKey = selectionKey;
+*  298:             this.adapterPosition = adapterPosition;
+*  299:         }
+   300: 
+   301:         @Nullable
+---
+   301:         @Nullable
+   302:         @Override
+*  303:         public TorrentContentFileItem getSelectionKey()
+*  304:         {
+*  305:             return selectionKey;
+*  306:         }
+*  307: 
+   308:         @Override
+   309:         public int getPosition()
+---
+   307: 
+   308:         @Override
+*  309:         public int getPosition()
+*  310:         {
+*  311:             return adapterPosition;
+*  312:         }
+   313:     }
+   314: 
+---
+   317:         private final RecyclerView recyclerView;
+   318: 
+*  319:         ItemLookup(RecyclerView recyclerView)
+*  320:         {
+*  321:             this.recyclerView = recyclerView;
+*  322:         }
+*  323: 
+   324:         @Nullable
+   325:         @Override
+---
+   324:         @Nullable
+   325:         @Override
+*  326:         public ItemDetails<TorrentContentFileItem> getItemDetails(@NonNull MotionEvent e)
+*  327:         {
+*  328:             View view = recyclerView.findChildViewUnder(e.getX(), e.getY());
+*  329:             if (view != null) {
+*  330:                 RecyclerView.ViewHolder viewHolder = recyclerView.getChildViewHolder(view);
+*  331:                 if (viewHolder instanceof ViewHolder)
+*  332:                     return ((ViewHolder)viewHolder).getItemDetails();
+*  333:             }
+*  334: 
+*  335:             return null;
+   336:         }
+   337:     }
+---
+
+=== ui/detailtorrent/pages/peers/DetailTorrentPeersFragment.java ===
+    54:  */
+    55: 
+*   56: public class DetailTorrentPeersFragment extends Fragment
+*   57:     implements PeerListAdapter.ClickListener
+*   58: {
+*   59:     private static final String TAG = DetailTorrentPeersFragment.class.getSimpleName();
+*   60: 
+*   61:     private static final String TAG_LIST_TRACKER_STATE = "list_tracker_state";
+*   62: 
+    63:     private AppCompatActivity activity;
+    64:     private FragmentDetailTorrentPeerListBinding binding;
+---
+    70:     private CompositeDisposable disposables = new CompositeDisposable();
+    71: 
+*   72:     public static DetailTorrentPeersFragment newInstance()
+*   73:     {
+*   74:         DetailTorrentPeersFragment fragment = new DetailTorrentPeersFragment();
+*   75: 
+*   76:         fragment.setArguments(new Bundle());
+*   77: 
+*   78:         return fragment;
+*   79:     }
+    80: 
+    81:     @Override
+---
+    97: 
+    98:     @Override
+*   99:     public void onStop()
+*  100:     {
+*  101:         super.onStop();
+*  102: 
+*  103:         disposables.clear();
+*  104:     }
+*  105: 
+   106:     @Override
+   107:     public void onStart()
+---
+   105: 
+   106:     @Override
+*  107:     public void onStart()
+*  108:     {
+*  109:         super.onStart();
+*  110: 
+*  111:         subscribeAdapter();
+*  112:     }
+   113: 
+   114:     @Override
+---
+   113: 
+   114:     @Override
+*  115:     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+*  116:         super.onViewCreated(view, savedInstanceState);
+*  117: 
+*  118:         if (activity == null)
+*  119:             activity = (AppCompatActivity) getActivity();
+*  120: 
+*  121:         viewModel = new ViewModelProvider(activity).get(DetailTorrentViewModel.class);
+*  122: 
+*  123:         layoutManager = new LinearLayoutManager(activity);
+*  124:         binding.peerList.setLayoutManager(layoutManager);
+*  125:         binding.peerList.setEmptyView(binding.emptyViewPeerList);
+*  126:         adapter = new PeerListAdapter(this);
+*  127:         /*
+*  128:          * A RecyclerView by default creates another copy of the ViewHolder in order to
+*  129:          * fade the views into each other. This causes the problem because the old ViewHolder gets
+*  130:          * the payload but then the new one doesn't. So needs to explicitly tell it to reuse the old one.
+*  131:          */
+*  132:         DefaultItemAnimator animator = new DefaultItemAnimator() {
+*  133:             @Override
+*  134:             public boolean canReuseUpdatedViewHolder(@NonNull RecyclerView.ViewHolder viewHolder) {
+*  135:                 return true;
+*  136:             }
+*  137:         };
+*  138:         binding.peerList.setItemAnimator(animator);
+*  139:         TypedArray a = activity.obtainStyledAttributes(new TypedValue().data, new int[]{R.attr.divider});
+*  140:         binding.peerList.addItemDecoration(new RecyclerViewDividerDecoration(a.getDrawable(0)));
+*  141:         a.recycle();
+*  142:         binding.peerList.setAdapter(adapter);
+*  143:     }
+   144: 
+   145:     @Override
+---
+   144: 
+   145:     @Override
+*  146:     public void onSaveInstanceState(@NonNull Bundle outState)
+*  147:     {
+*  148:         listPeerState = layoutManager.onSaveInstanceState();
+*  149:         outState.putParcelable(TAG_LIST_TRACKER_STATE, listPeerState);
+*  150: 
+*  151:         super.onSaveInstanceState(outState);
+*  152:     }
+*  153: 
+   154:     @Override
+   155:     public void onViewStateRestored(Bundle savedInstanceState)
+---
+   153: 
+   154:     @Override
+*  155:     public void onViewStateRestored(Bundle savedInstanceState)
+*  156:     {
+*  157:         super.onViewStateRestored(savedInstanceState);
+*  158: 
+*  159:         if (savedInstanceState != null)
+*  160:             listPeerState = savedInstanceState.getParcelable(TAG_LIST_TRACKER_STATE);
+*  161:     }
+   162: 
+   163:     @Override
+---
+   162: 
+   163:     @Override
+*  164:     public void onResume()
+*  165:     {
+*  166:         super.onResume();
+*  167: 
+*  168:         if (listPeerState != null)
+*  169:             layoutManager.onRestoreInstanceState(listPeerState);
+*  170:     }
+   171: 
+   172:     private void subscribeAdapter()
+---
+
