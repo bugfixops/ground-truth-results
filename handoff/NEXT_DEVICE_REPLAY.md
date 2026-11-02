@@ -1,10 +1,12 @@
 # Next device replay (API 27, GitHub Actions)
 
-Status: device preparation for the eight ticked apps' route lists is
-done (D1). Route scripts (D3) for those apps are in progress; the
-other five apps' route lists and scripts start when each app's final
-route table exists. No real emulator run has started, and none starts
-from here: the user starts it by hand (below).
+Status (2026-11-02, generated from the branch ROUTES.csv files):
+device route lists (D1) and route scripts (D3) are done for the
+eight ticked apps and for AmazeFileManager (9 apps, 275 routes,
+264 scripted, 11 unscriptable); the other four apps' route lists
+and scripts start when each app's final route table exists.
+No real emulator run has started, and none starts from here:
+the user starts it by hand (below).
 
 ## Where and how
 
@@ -50,13 +52,13 @@ Ticked apps (one route per `verification.csv` path row):
 |---|---|---|---|
 | Currency | 28 | 28 | 0 |
 | Diary | 30 | 30 | 0 |
-| hash-checker | 37 | 37 | 0 |
+| hash-checker | 37 | 36 | 1 |
 | Omni-Notes | 33 | 31 | 2 |
 | openlauncher | 27 | 26 | 1 |
 | Vanilla-Music | 30 | 30 | 0 |
 | Markor | 30 | 30 | 0 |
-| AnyMemo | 30 | 28 | 2 |
-| Total (ticked) | 245 | 240 | 5 |
+| AnyMemo | 30 | 27 | 3 |
+| Total (ticked) | 245 | 238 | 7 |
 
 AmazeFileManager (this push): 30 routes, 26 scripted, 4
 unscriptable (13.3% — accepted under the user's cap ruling, so
@@ -82,14 +84,10 @@ app's route table is final.
 
 ## Unscriptable routes (with reasons)
 
-- Omni-Notes route_01 `DetailFragment.onCoordinatesResolved`:
-  geocoder backend unavailable on an AOSP emulator (Android
-  Geocoder returns no results without a backend service).
-- Omni-Notes route_15 `DetailFragment.removeAttachment(Attachment)`:
-  the verification path row has no edges and `methods.csv` marks
-  the method UNREACHABLE (`branch_never_taken`); there is no route
-  to script. Flagged to the ticked-app stream: whether this path
-  row should stay a path row is their call, not a device change.
+- Omni-Notes route_13 `TextHelper.getAlternativeTitle`:
+  needs the DashClock or Pushbullet host app installed and calling the extension; neither host app is available on the AOSP emulator.
+- Omni-Notes route_17 `UpgradeProcessor.<init>`:
+  needs an older-version database on disk (install an old build with data, then update); no old-version database fixture exists in $WEMU/fixtures.
 - openlauncher route_14 `AutoFinishActivity.onCreate`: the caller
   package must be `org.kustom.wallpaper` or `org.kustom.widget`;
   adb runs as shell with no calling package, and no such caller app
@@ -99,10 +97,17 @@ app's route table is final.
   token cannot be created by adb on an AOSP emulator (no account or
   token fixture exists; OAuth login in an external browser/Custom
   Tab and api.dropboxapi.com reachability required).
+- AnyMemo route_17 `Card.toString`:
+  DAO-failure state cannot be created by adb on an AOSP emulator (Card.toString fires only in the RuntimeException at LearnQueueManager.java:267 when cardDao.update returns 0; this chain's flush is the build-time flush with an empty dirtyCache; and deleting the card trips the earlier :263 LearningData check first).
+- hash-checker route_31 `LogUtils.e`:
+  LogUtils.e fires only in the ActivityNotFoundException catch when no app handles ACTION_OPEN_DOCUMENT (HashCalculatorFragment.java:191-200); on the replay image DocumentsUI handles the intent, and the harness has no supported component-disable action.
 
 All other ticked routes are scripted. Unscriptable share per app is
-within the 10% limit everywhere (Omni-Notes 6.1%, openlauncher
-3.7%, AnyMemo 6.7%, the rest 0%).
+within the 10% limit everywhere except AnyMemo, which is exactly at
+it: Omni-Notes 6.1% (2/33), openlauncher 3.7% (1/27), AnyMemo 10.0%
+(3/30), hash-checker 2.7% (1/37), the rest 0%. AmazeFileManager
+(4/30 = 13.3%) is covered by its own cap acceptance above, not by
+this paragraph.
 
 ## After a run, in order
 
