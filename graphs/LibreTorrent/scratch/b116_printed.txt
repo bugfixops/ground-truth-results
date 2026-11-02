@@ -1,0 +1,498 @@
+===== ui/settings/PreferenceActivity.java =====
+98:                 return (F)AppearanceSettingsFragment.newInstance();
+100:                 return (F)BehaviorSettingsFragment.newInstance();
+
+===== ui/settings/SettingsFragment.java =====
+94:                 setFragment(AppearanceSettingsFragment.newInstance(),
+141:                     setFragment(AppearanceSettingsFragment.newInstance(),
+150:                     setFragment(BehaviorSettingsFragment.newInstance(),
+153:                     startActivity(BehaviorSettingsFragment.class,
+
+===== ui/settings/sections/AppearanceSettingsFragment.java =====
+57:     public static AppearanceSettingsFragment newInstance()
+58:     {
+59:         AppearanceSettingsFragment fragment = new AppearanceSettingsFragment();
+60:         fragment.setArguments(new Bundle());
+61: 
+62:         return fragment;
+63:     }
+66:     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState)
+67:     {
+68:         super.onViewCreated(view, savedInstanceState);
+69: 
+70:         coordinatorLayout = view.findViewById(R.id.coordinator_layout);
+71:     }
+74:     public void onCreate(Bundle savedInstanceState)
+75:     {
+76:         super.onCreate(savedInstanceState);
+77: 
+78:         pref = RepositoryHelper.getSettingsRepository(getActivity().getApplicationContext());
+79: 
+80:         String keyTheme = getString(R.string.pref_key_theme);
+81:         ListPreference theme = findPreference(keyTheme);
+82:         if (theme != null) {
+83:             int type = pref.theme();
+84:             theme.setValueIndex(type);
+85:             bindOnPreferenceChangeListener(theme);
+86:         }
+87: 
+88:         String keyTorrentFinishNotify = getString(R.string.pref_key_torrent_finish_notify);
+89:         SwitchPreferenceCompat torrentFinishNotify = findPreference(keyTorrentFinishNotify);
+90:         if (torrentFinishNotify != null) {
+91:             torrentFinishNotify.setChecked(pref.torrentFinishNotify());
+92:             bindOnPreferenceChangeListener(torrentFinishNotify);
+93:         }
+94: 
+95:         String keyForegroundNotifyStatusFilter = getString(R.string.pref_key_foreground_notify_status_filter);
+96:         ListPreference foregroundNotifyStatusFilter = findPreference(keyForegroundNotifyStatusFilter);
+97:         if (foregroundNotifyStatusFilter != null) {
+98:             int type = Integer.parseInt(pref.foregroundNotifyStatusFilter());
+99:             foregroundNotifyStatusFilter.setValueIndex(type);
+100:             bindOnPreferenceChangeListener(foregroundNotifyStatusFilter);
+101:         }
+102: 
+103:         String keyForegroundNotifySorting = getString(R.string.pref_key_foreground_notify_sorting);
+104:         ListPreference foregroundNotifySorting = findPreference(keyForegroundNotifySorting);
+105:         if (foregroundNotifySorting != null) {
+106:             int type = Integer.parseInt(pref.foregroundNotifySorting());
+107:             foregroundNotifySorting.setValueIndex(type);
+108:             bindOnPreferenceChangeListener(foregroundNotifySorting);
+109:         }
+110: 
+111:         String keyCombinedPauseButton = getString(R.string.pref_key_foreground_notify_combined_pause_button);
+112:         SwitchPreferenceCompat combinedPauseButton = findPreference(keyCombinedPauseButton);
+113:         if (combinedPauseButton != null) {
+114:             combinedPauseButton.setChecked(pref.foregroundNotifyCombinedPauseButton());
+115:             bindOnPreferenceChangeListener(combinedPauseButton);
+116:         }
+117: 
+118:         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
+119:             initLegacyNotifySettings(pref);
+120:     }
+193:     public void onCreatePreferences(Bundle savedInstanceState, String rootKey)
+194:     {
+195:         setPreferencesFromResource(R.xml.pref_appearance, rootKey);
+196:     }
+225:     public boolean onPreferenceChange(Preference preference, Object newValue)
+226:     {
+227:         if (preference.getKey().equals(getString(R.string.pref_key_theme))) {
+228:             int type = Integer.parseInt((String)newValue);
+229:             pref.theme(type);
+230: 
+231:             Snackbar.make(coordinatorLayout,
+232:                     R.string.theme_settings_apply_after_reboot,
+233:                     Snackbar.LENGTH_LONG)
+234:                     .setAction(R.string.apply, (v) -> restartMainActivity())
+235:                     .show();
+236: 
+237:         } else if (preference.getKey().equals(getString(R.string.pref_key_torrent_finish_notify))) {
+238:             pref.torrentFinishNotify((boolean)newValue);
+239: 
+240:         } else if (preference.getKey().equals(getString(R.string.pref_key_play_sound_notify))) {
+241:             pref.playSoundNotify((boolean)newValue);
+242: 
+243:         } else if (preference.getKey().equals(getString(R.string.pref_key_led_indicator_notify))) {
+244:             pref.ledIndicatorNotify((boolean)newValue);
+245: 
+246:         } else if (preference.getKey().equals(getString(R.string.pref_key_vibration_notify))) {
+247:             pref.vibrationNotify((boolean)newValue);
+248: 
+249:         } else if (preference.getKey().equals(getString(R.string.pref_key_led_indicator_color_notify))) {
+250:             pref.ledIndicatorColorNotify((int)newValue);
+251: 
+252:         } else if (preference.getKey().equals(getString(R.string.pref_key_foreground_notify_status_filter))) {
+253:             pref.foregroundNotifyStatusFilter((String)newValue);
+254: 
+255:         } else if (preference.getKey().equals(getString(R.string.pref_key_foreground_notify_sorting))) {
+256:             pref.foregroundNotifySorting((String)newValue);
+257: 
+258:         }  else if (preference.getKey().equals(getString(R.string.pref_key_foreground_notify_combined_pause_button))) {
+259:             pref.foregroundNotifyCombinedPauseButton((boolean)newValue);
+260:         }
+261: 
+262:         return true;
+263:     }
+265:     private void restartMainActivity()
+266:     {
+267:         Intent intent = new Intent(getActivity().getApplicationContext(), MainActivity.class);
+268:         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+269:         startActivity(intent);
+270:     }
+
+===== ui/settings/sections/BehaviorSettingsFragment.java =====
+45:     private static final String TAG = BehaviorSettingsFragment.class.getSimpleName();
+53:     public static BehaviorSettingsFragment newInstance()
+54:     {
+55:         BehaviorSettingsFragment fragment = new BehaviorSettingsFragment();
+56:         fragment.setArguments(new Bundle());
+57: 
+58:         return fragment;
+59:     }
+63:     public void onCreate(Bundle savedInstanceState)
+64:     {
+65:         super.onCreate(savedInstanceState);
+66: 
+67:         dialogViewModel = new ViewModelProvider(getActivity()).get(BaseAlertDialog.SharedViewModel.class);
+68: 
+69:         pref = RepositoryHelper.getSettingsRepository(getActivity().getApplicationContext());
+70: 
+71:         String keyAutostart = getString(R.string.pref_key_autostart);
+72:         SwitchPreferenceCompat autostart = findPreference(keyAutostart);
+73:         if (autostart != null) {
+74:             autostart.setChecked(pref.autostart());
+75:             bindOnPreferenceChangeListener(autostart);
+76:         }
+77: 
+78:         String keyKeepAlive = getString(R.string.pref_key_keep_alive);
+79:         SwitchPreferenceCompat keepAlive = findPreference(keyKeepAlive);
+80:         if (keepAlive != null) {
+81:             keepAlive.setChecked(pref.keepAlive());
+82:             bindOnPreferenceChangeListener(keepAlive);
+83:         }
+84: 
+85:         String keyShutdownComplete = getString(R.string.pref_key_shutdown_downloads_complete);
+86:         SwitchPreferenceCompat shutdownComplete = findPreference(keyShutdownComplete);
+87:         if (shutdownComplete != null) {
+88:             shutdownComplete.setChecked(pref.shutdownDownloadsComplete());
+89:             bindOnPreferenceChangeListener(shutdownComplete);
+90:         }
+91: 
+92:         String keyCpuSleep = getString(R.string.pref_key_cpu_do_not_sleep);
+93:         SwitchPreferenceCompat cpuSleep = findPreference(keyCpuSleep);
+94:         if (cpuSleep != null) {
+95:             cpuSleep.setChecked(pref.cpuDoNotSleep());
+96:             bindOnPreferenceChangeListener(cpuSleep);
+97:         }
+98: 
+99:         String keyOnlyCharging = getString(R.string.pref_key_download_and_upload_only_when_charging);
+100:         SwitchPreferenceCompat onlyCharging = findPreference(keyOnlyCharging);
+101:         if (onlyCharging != null) {
+102:             onlyCharging.setChecked(pref.onlyCharging());
+103:             bindOnPreferenceChangeListener(onlyCharging);
+104:         }
+105: 
+106:         String keyBatteryControl = getString(R.string.pref_key_battery_control);
+107:         SwitchPreferenceCompat batteryControl = findPreference(keyBatteryControl);
+108:         if (batteryControl != null) {
+109:             batteryControl.setSummary(getString(R.string.pref_battery_control_summary,
+110:                     Utils.getDefaultBatteryLowLevel()));
+111:             batteryControl.setChecked(pref.batteryControl());
+112:             bindOnPreferenceChangeListener(batteryControl);
+113:         }
+114: 
+115:         String keyCustomBatteryControl = getString(R.string.pref_key_custom_battery_control);
+116:         SwitchPreferenceCompat customBatteryControl = findPreference(keyCustomBatteryControl);
+117:         if (customBatteryControl != null) {
+118:             customBatteryControl.setSummary(getString(R.string.pref_custom_battery_control_summary,
+119:                     Utils.getDefaultBatteryLowLevel()));
+120:             customBatteryControl.setChecked(pref.customBatteryControl());
+121:             bindOnPreferenceChangeListener(customBatteryControl);
+122:         }
+123: 
+124:         String keyCustomBatteryControlValue = getString(R.string.pref_key_custom_battery_control_value);
+125:         SeekBarPreference customBatteryControlValue = findPreference(keyCustomBatteryControlValue);
+126:         if (customBatteryControlValue != null) {
+127:             customBatteryControlValue.setValue(pref.customBatteryControlValue());
+128:             customBatteryControlValue.setMin(10);
+129:             customBatteryControlValue.setMax(90);
+130:             bindOnPreferenceChangeListener(customBatteryControlValue);
+131:         }
+132: 
+133:         String keyUmneteredOnly = getString(R.string.pref_key_unmetered_connections_only);
+134:         SwitchPreferenceCompat unmeteredOnly = findPreference(keyUmneteredOnly);
+135:         if (unmeteredOnly != null) {
+136:             unmeteredOnly.setChecked(pref.unmeteredConnectionsOnly());
+137:             bindOnPreferenceChangeListener(unmeteredOnly);
+138:         }
+139: 
+140:         String keyRoaming = getString(R.string.pref_key_enable_roaming);
+141:         SwitchPreferenceCompat roaming = findPreference(keyRoaming);
+142:         if (roaming != null) {
+143:             roaming.setChecked(pref.enableRoaming());
+144:             bindOnPreferenceChangeListener(roaming);
+145:         }
+146: 
+147:         String keyDefaultTrackersList = getString(R.string.pref_key_default_trackers_list);
+148:         EditTextPreference defaultTrackersList = findPreference(keyDefaultTrackersList);
+149:         if (defaultTrackersList != null) {
+150:             defaultTrackersList.setDialogMessage(R.string.dialog_add_trackers);
+151:             defaultTrackersList.setOnBindEditTextListener((editText) ->
+152:                 editText.setSingleLine(false)
+153:             );
+154:             defaultTrackersList.setText(pref.defaultTrackersList());
+155:             bindOnPreferenceChangeListener(defaultTrackersList);
+156:         }
+157:     }
+160:     public void onStop()
+161:     {
+162:         super.onStop();
+163: 
+164:         disposables.clear();
+165:     }
+168:     public void onStart()
+169:     {
+170:         super.onStart();
+171: 
+172:         subscribeAlertDialog();
+173:     }
+175:     private void subscribeAlertDialog()
+176:     {
+177:         Disposable d = dialogViewModel.observeEvents()
+178:                 .subscribe((event) -> {
+179:                     if (event.dialogTag == null || !event.dialogTag.equals(TAG_CUSTOM_BATTERY_DIALOG))
+180:                         return;
+181:                     if (event.type == BaseAlertDialog.EventType.NEGATIVE_BUTTON_CLICKED)
+182:                         disableCustomBatteryControl();
+183:                 });
+184:         disposables.add(d);
+185:     }
+188:     public void onCreatePreferences(Bundle savedInstanceState, String rootKey)
+189:     {
+190:         setPreferencesFromResource(R.xml.pref_behavior, rootKey);
+191:     }
+193:     private void bindOnPreferenceChangeListener(Preference preference)
+194:     {
+195:         preference.setOnPreferenceChangeListener(this);
+196:     }
+199:     public boolean onPreferenceChange(final Preference preference, Object newValue)
+200:     {
+201:         if (preference.getKey().equals(getString(R.string.pref_key_autostart))) {
+202:             Utils.enableBootReceiver(getActivity(), (boolean)newValue);
+203:             pref.autostart((boolean)newValue);
+204: 
+205:         } else if (preference.getKey().equals(getString(R.string.pref_key_download_and_upload_only_when_charging))) {
+206:             pref.onlyCharging((boolean)newValue);
+207: 
+208:             if(!((SwitchPreferenceCompat) preference).isChecked())
+209:                 disableBatteryControl();
+210: 
+211:         } else if (preference.getKey().equals(getString(R.string.pref_key_battery_control))) {
+212:             pref.batteryControl((boolean)newValue);
+213: 
+214:             if(((SwitchPreferenceCompat) preference).isChecked())
+215:                 disableCustomBatteryControl();
+216: 
+217:         } else if (preference.getKey().equals(getString(R.string.pref_key_custom_battery_control))) {
+218:             pref.customBatteryControl((boolean)newValue);
+219: 
+220:             if (!((SwitchPreferenceCompat) preference).isChecked())
+221:                 showCustomBatteryDialog();
+222:         } else if (preference.getKey().equals(getString(R.string.pref_key_unmetered_connections_only))) {
+223:             pref.unmeteredConnectionsOnly((boolean)newValue);
+224: 
+225:         } else if (preference.getKey().equals(getString(R.string.pref_key_enable_roaming))) {
+226:             pref.enableRoaming((boolean)newValue);
+227: 
+228:         } else if (preference.getKey().equals(getString(R.string.pref_key_keep_alive))) {
+229:             pref.keepAlive((boolean)newValue);
+230: 
+231:         } else if (preference.getKey().equals(getString(R.string.pref_key_shutdown_downloads_complete))) {
+232:             pref.shutdownDownloadsComplete((boolean)newValue);
+233: 
+234:         } else if (preference.getKey().equals(getString(R.string.pref_key_cpu_do_not_sleep))) {
+235:             pref.cpuDoNotSleep((boolean)newValue);
+236: 
+237:         } else if (preference.getKey().equals(getString(R.string.pref_key_custom_battery_control_value))) {
+238:             pref.customBatteryControlValue((int)newValue);
+239: 
+240:         }  else if (preference.getKey().equals(getString(R.string.pref_key_default_trackers_list))) {
+241:             pref.defaultTrackersList((String)newValue);
+242:         }
+243: 
+244:         return true;
+245:     }
+247:     private void showCustomBatteryDialog()
+248:     {
+249:         if (!isAdded())
+250:             return;
+251: 
+252:         FragmentManager fm = getChildFragmentManager();
+253:         if (fm.findFragmentByTag(TAG_CUSTOM_BATTERY_DIALOG) == null) {
+254:             BaseAlertDialog customBatteryDialog = BaseAlertDialog.newInstance(
+255:                     getString(R.string.warning),
+256:                     getString(R.string.pref_custom_battery_control_dialog_summary),
+257:                     0,
+258:                     getString(R.string.yes),
+259:                     getString(R.string.no),
+260:                     null,
+261:                     true);
+262: 
+263:             customBatteryDialog.show(fm, TAG_CUSTOM_BATTERY_DIALOG);
+264:         }
+265:     }
+267:     private void disableBatteryControl()
+268:     {
+269:         String keyBatteryControl = getString(R.string.pref_key_battery_control);
+270:         SwitchPreferenceCompat batteryControl = findPreference(keyBatteryControl);
+271:         if (batteryControl != null)
+272:             batteryControl.setChecked(false);
+273:         pref.batteryControl(false);
+274:         disableCustomBatteryControl();
+275:     }
+277:     private void disableCustomBatteryControl()
+278:     {
+279:         String keyCustomBatteryControl = getString(R.string.pref_key_custom_battery_control);
+280:         SwitchPreferenceCompat batteryControl = findPreference(keyCustomBatteryControl);
+281:         if (batteryControl != null)
+282:             batteryControl.setChecked(false);
+283:         pref.customBatteryControl(false);
+284:     }
+
+===== ui/settings/sections/FeedSettingsFragment.java =====
+38:     private static final String TAG = FeedSettingsFragment.class.getSimpleName();
+42:     public static FeedSettingsFragment newInstance()
+43:     {
+44:         FeedSettingsFragment fragment = new FeedSettingsFragment();
+45:         fragment.setArguments(new Bundle());
+46: 
+47:         return fragment;
+48:     }
+51:     public void onCreate(Bundle savedInstanceState)
+52:     {
+53:         super.onCreate(savedInstanceState);
+54: 
+55:         pref = RepositoryHelper.getSettingsRepository(getActivity().getApplicationContext());
+56: 
+57:         String keyAutoRefresh = getString(R.string.pref_key_feed_auto_refresh);
+58:         SwitchPreferenceCompat autoRefresh = findPreference(keyAutoRefresh);
+59:         if (autoRefresh != null) {
+60:             autoRefresh.setChecked(pref.autoRefreshFeeds());
+61:             bindOnPreferenceChangeListener(autoRefresh);
+62:         }
+63: 
+64:         String keyRefreshInterval = getString(R.string.pref_key_feed_refresh_interval);
+65:         ListPreference refreshInterval = findPreference(keyRefreshInterval);
+66:         if (refreshInterval != null) {
+67:             String interval = Long.toString(pref.refreshFeedsInterval());
+68:             int intervalIndex = refreshInterval.findIndexOfValue(interval);
+69:             if (intervalIndex >= 0)
+70:                 refreshInterval.setValueIndex(intervalIndex);
+71:             bindOnPreferenceChangeListener(refreshInterval);
+72:         }
+73: 
+74:         String keyUnmeteredOnly = getString(R.string.pref_key_feed_auto_refresh_unmetered_connections_only);
+75:         SwitchPreferenceCompat unmeteredOnly = findPreference(keyUnmeteredOnly);
+76:         if (unmeteredOnly != null) {
+77:             unmeteredOnly.setChecked(pref.autoRefreshFeedsUnmeteredConnectionsOnly());
+78:             bindOnPreferenceChangeListener(unmeteredOnly);
+79:         }
+80: 
+81:         String keyRoaming = getString(R.string.pref_key_feed_auto_refresh_enable_roaming);
+82:         SwitchPreferenceCompat roaming = findPreference(keyRoaming);
+83:         if (roaming != null) {
+84:             roaming.setChecked(pref.autoRefreshFeedsEnableRoaming());
+85:             bindOnPreferenceChangeListener(roaming);
+86:         }
+87: 
+88:         String keyKeepTime = getString(R.string.pref_key_feed_keep_items_time);
+89:         ListPreference keepTime = findPreference(keyKeepTime);
+90:         if (keepTime != null) {
+91:             String time = Long.toString(pref.feedItemKeepTime());
+92:             int timeIndex = keepTime.findIndexOfValue(time);
+93:             if (timeIndex >= 0)
+94:                 keepTime.setValueIndex(timeIndex);
+95:             bindOnPreferenceChangeListener(keepTime);
+96:         }
+97: 
+98:         String keyStartTorrents = getString(R.string.pref_key_feed_start_torrents);
+99:         SwitchPreferenceCompat startTorrents = findPreference(keyStartTorrents);
+100:         if (startTorrents != null) {
+101:             startTorrents.setChecked(pref.feedStartTorrents());
+102:             bindOnPreferenceChangeListener(startTorrents);
+103:         }
+104: 
+105:         String keyRemoveDuplicates = getString(R.string.pref_key_feed_remove_duplicates);
+106:         SwitchPreferenceCompat removeDuplicates = findPreference(keyRemoveDuplicates);
+107:         if (removeDuplicates != null) {
+108:             removeDuplicates.setChecked(pref.feedRemoveDuplicates());
+109:             bindOnPreferenceChangeListener(removeDuplicates);
+110:         }
+111:     }
+114:     public void onCreatePreferences(Bundle savedInstanceState, String rootKey)
+115:     {
+116:         setPreferencesFromResource(R.xml.pref_feed, rootKey);
+117:     }
+119:     private void bindOnPreferenceChangeListener(Preference preference)
+120:     {
+121:         preference.setOnPreferenceChangeListener(this);
+122:     }
+125:     public boolean onPreferenceChange(Preference preference, Object newValue)
+126:     {
+127:         Context context = getActivity().getApplicationContext();
+128: 
+129:         if (preference.getKey().equals(getString(R.string.pref_key_feed_auto_refresh))) {
+130:             pref.autoRefreshFeeds((boolean)newValue);
+131: 
+132:             if ((boolean)newValue) {
+133:                 long interval = pref.refreshFeedsInterval();
+134:                 Scheduler.runPeriodicalRefreshFeeds(context, interval);
+135:             } else {
+136:                 Scheduler.cancelPeriodicalRefreshFeeds(context);
+137:             }
+138: 
+139:         } else if (preference.getKey().equals(getString(R.string.pref_key_feed_refresh_interval))) {
+140:             long interval = Long.parseLong((String)newValue);
+141:             pref.refreshFeedsInterval(interval);
+142:             Scheduler.runPeriodicalRefreshFeeds(context, interval);
+143: 
+144:         } else if (preference.getKey().equals(getString(R.string.pref_key_feed_keep_items_time))) {
+145:             long keepTime = Long.parseLong((String)newValue);
+146:             pref.feedItemKeepTime(keepTime);
+147: 
+148:         } else if (preference.getKey().equals(getString(R.string.pref_key_feed_auto_refresh_unmetered_connections_only))) {
+149:             pref.autoRefreshFeedsUnmeteredConnectionsOnly((boolean)newValue);
+150: 
+151:         } else if (preference.getKey().equals(getString(R.string.pref_key_feed_auto_refresh_enable_roaming))) {
+152:             pref.autoRefreshFeedsEnableRoaming((boolean)newValue);
+153: 
+154:         } else if (preference.getKey().equals(getString(R.string.pref_key_feed_start_torrents))) {
+155:             pref.feedStartTorrents((boolean)newValue);
+156: 
+157:         } else if (preference.getKey().equals(getString(R.string.pref_key_feed_remove_duplicates))) {
+158:             pref.feedRemoveDuplicates((boolean)newValue);
+159:         }
+160: 
+161:         return true;
+162:     }
+
+===== ui/settings/sections/LimitationsSettingsFragment.java =====
+40:     private static final String TAG = LimitationsSettingsFragment.class.getSimpleName();
+44:     public static LimitationsSettingsFragment newInstance()
+45:     {
+46:         LimitationsSettingsFragment fragment = new LimitationsSettingsFragment();
+47:         fragment.setArguments(new Bundle());
+48: 
+49:         return fragment;
+59:         InputFilter[] speedFilter = new InputFilter[] { InputFilterRange.UNSIGNED_INT };
+60:         InputFilter[] queueingFilter = new InputFilter[] {
+61:                 new InputFilterRange.Builder()
+62:                         .setMin(-1)
+63:                         .setMax(Integer.MAX_VALUE)
+64:                         .build()
+65:         };
+66:         InputFilter[] maxFilter = new InputFilter[] {
+67:                 new InputFilterRange.Builder()
+68:                         .setMax(Integer.MAX_VALUE)
+69:                         .build()
+70:         };
+77:             maxDownloadSpeedLimit.setOnBindEditTextListener((editText) -> editText.setFilters(speedFilter));
+80:             bindOnPreferenceChangeListener(maxDownloadSpeedLimit);
+88:             maxUploadSpeedLimit.setOnBindEditTextListener((editText) -> editText.setFilters(speedFilter));
+91:             bindOnPreferenceChangeListener(maxUploadSpeedLimit);
+99:             maxConnections.setOnBindEditTextListener((editText) -> editText.setFilters(maxFilter));
+102:             bindOnPreferenceChangeListener(maxConnections);
+109:             bindOnPreferenceChangeListener(autoManage);
+117:             maxActiveUploads.setOnBindEditTextListener((editText) -> editText.setFilters(queueingFilter));
+120:             bindOnPreferenceChangeListener(maxActiveUploads);
+128:             maxActiveDownloads.setOnBindEditTextListener((editText) -> editText.setFilters(queueingFilter));
+131:             bindOnPreferenceChangeListener(maxActiveDownloads);
+139:             maxActiveTorrents.setOnBindEditTextListener((editText) -> editText.setFilters(queueingFilter));
+142:             bindOnPreferenceChangeListener(maxActiveTorrents);
+150:             maxConnectionsPerTorrent.setOnBindEditTextListener((editText) -> editText.setFilters(maxFilter));
+153:             bindOnPreferenceChangeListener(maxConnectionsPerTorrent);
+161:             maxUploadsPerTorrent.setOnBindEditTextListener((editText) -> editText.setFilters(queueingFilter));
+164:             bindOnPreferenceChangeListener(maxUploadsPerTorrent);
+174:     private void bindOnPreferenceChangeListener(Preference preference)
+175:     {
+176:         preference.setOnPreferenceChangeListener(this);
+177:     }
