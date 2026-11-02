@@ -15,6 +15,14 @@ or PASS and FAIL (from dryrun_report.txt). A row can count in both
 "not reached" and "script failed" (a failed script usually also did
 not reach its method); the columns are per-column counts, not a
 partition.
+
+Fallback: when collected/ holds NO device-* directory but holds
+dryrun_report.txt or results.csv flat at its top level, collected/
+itself is treated as ONE artifact. Its app name comes from the
+dryrun_report.txt final "<App>: N PASS, M FAIL" line first, else the
+results.csv app column; if neither yields a name, the previous
+"No device-* artifacts found." behavior is kept rather than inventing
+a section.
 """
 
 import csv
@@ -96,6 +104,69 @@ def summarize_dryrun(path):
     return n_pass, n_fail
 
 
+def _safe_app_name(name):
+    """Strip an app name, rejecting anything that could escape dest."""
+    name = name.strip()
+    if not name or name in (".", "..") or "/" in name or "\\" in name:
+        return None
+    return name
+
+
+def infer_app_from_dryrun(path):
+    """App name from a dryrun_report.txt final '<App>: N PASS, M FAIL' line.
+
+    Returns None when the last non-blank line is not in that form.
+    """
+    try:
+        with open(path, encoding="utf-8") as f:
+            lines = [line.strip() for line in f if line.strip()]
+    except OSError:
+        return None
+    if not lines or ": " not in lines[-1]:
+        return None
+    name, rest = lines[-1].split(": ", 1)
+    first = rest.split(",")[0].split()
+    if len(first) == 2 and first[0].isdigit() and first[1] == "PASS":
+        return _safe_app_name(name)
+    return None
+
+
+def infer_app_from_results(path):
+    """App name from a results.csv first data row's app column."""
+    try:
+        with open(path, newline="", encoding="utf-8") as f:
+            for row in csv.DictReader(f):
+                app = (row.get("app") or "").strip()
+                if app:
+                    return _safe_app_name(app)
+    except (OSError, csv.Error):
+        return None
+    return None
+
+
+def app_section(app, dest_app, copied, skipped):
+    """SUMMARY section text for one app's copied artifact."""
+    lines = ["## %s\n" % app,
+             "copied %d text file(s), skipped %d non-text/other file(s).\n" % (copied, skipped)]
+    res = os.path.join(dest_app, "results.csv")
+    dry = os.path.join(dest_app, "dryrun_report.txt")
+    if os.path.isfile(res):
+        routes, reached, notreached, failed, unscript = \
+            summarize_results(res)
+        lines.append("| routes | reached | not reached | script failed | unscriptable |")
+        lines.append("|---|---|---|---|---|")
+        lines.append("| %d | %d | %d | %d | %d |" % (
+            routes, reached, notreached, failed, unscript))
+    if os.path.isfile(dry):
+        n_pass, n_fail = summarize_dryrun(dry)
+        lines.append("| PASS | FAIL |")
+        lines.append("|---|---|")
+        lines.append("| %d | %d |" % (n_pass, n_fail))
+    if not os.path.isfile(res) and not os.path.isfile(dry):
+        lines.append("no results.csv or dryrun_report.txt in artifact.\n")
+    return "\n".join(lines)
+
+
 def main(argv):
     if len(argv) != 2:
         sys.stderr.write("usage: collect.py <collected_dir> <dest_dir>\n")
@@ -113,25 +184,27 @@ def main(argv):
             dest_app = os.path.join(dest, app)
             copied, skipped = collect_app(artifact, dest_app)
             apps.append(app)
-            lines = ["## %s\n" % app,
-                     "copied %d text file(s), skipped %d non-text/other file(s).\n" % (copied, skipped)]
-            res = os.path.join(dest_app, "results.csv")
-            dry = os.path.join(dest_app, "dryrun_report.txt")
-            if os.path.isfile(res):
-                routes, reached, notreached, failed, unscript = \
-                    summarize_results(res)
-                lines.append("| routes | reached | not reached | script failed | unscriptable |")
-                lines.append("|---|---|---|---|---|")
-                lines.append("| %d | %d | %d | %d | %d |" % (
-                    routes, reached, notreached, failed, unscript))
-            if os.path.isfile(dry):
-                n_pass, n_fail = summarize_dryrun(dry)
-                lines.append("| PASS | FAIL |")
-                lines.append("|---|---|")
-                lines.append("| %d | %d |" % (n_pass, n_fail))
-            if not os.path.isfile(res) and not os.path.isfile(dry):
-                lines.append("no results.csv or dryrun_report.txt in artifact.\n")
-            sections.append("\n".join(lines))
+            sections.append(app_section(app, dest_app, copied, skipped))
+        if not apps:
+            # Flat fallback: no device-* directory, but the report and/or
+            # results landed at the top level of collected/ itself.
+            # The report's final line names the app first; the results
+            # app column is the fallback. No name from either means no
+            # section is invented: the "No device-* artifacts found."
+            # behavior below is kept.
+            dry_flat = os.path.join(collected, "dryrun_report.txt")
+            res_flat = os.path.join(collected, "results.csv")
+            if os.path.isfile(dry_flat) or os.path.isfile(res_flat):
+                app = None
+                if os.path.isfile(dry_flat):
+                    app = infer_app_from_dryrun(dry_flat)
+                if app is None and os.path.isfile(res_flat):
+                    app = infer_app_from_results(res_flat)
+                if app is not None:
+                    dest_app = os.path.join(dest, app)
+                    copied, skipped = collect_app(collected, dest_app)
+                    apps.append(app)
+                    sections.append(app_section(app, dest_app, copied, skipped))
     with open(os.path.join(dest, "SUMMARY.md"), "w", encoding="utf-8") as f:
         f.write("# Device collection summary\n\n")
         if not apps:
