@@ -1,0 +1,436 @@
+# Batch 031 printed evidence (C04, fresh print 2026-11-01)
+# Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+# Each block prints the cited file lines with line numbers, exactly as cited in b031.py/.md.
+# Path citations only; bare-filename prose mentions in .md reasons resolve to these same lines.
+
+=== core/FeedParser.java (268 lines) ===
+--- core/FeedParser.java:109-110 ---
+109:             FeedItem feedItem = new FeedItem(feedChannel.id, downloadUrl,
+110:                     articleUrl, item.getTitle(), pubDateTime);
+
+=== core/model/data/entity/FeedChannel.java (148 lines) ===
+--- core/model/data/entity/FeedChannel.java:92-102 ---
+92:     public void writeToParcel(Parcel dest, int flags)
+93:     {
+94:         dest.writeLong(id);
+95:         dest.writeString(url);
+96:         dest.writeString(name);
+97:         dest.writeLong(lastUpdate);
+98:         dest.writeByte((byte)(autoDownload ? 1 : 0));
+99:         dest.writeString(filter);
+100:         dest.writeByte((byte)(isRegexFilter ? 1 : 0));
+101:         dest.writeString(fetchError);
+102:     }
+--- core/model/data/entity/FeedChannel.java:104-118 ---
+104:     public static final Creator<FeedChannel> CREATOR =
+105:             new Creator<FeedChannel>()
+106:             {
+107:                 @Override
+108:                 public FeedChannel createFromParcel(Parcel source)
+109:                 {
+110:                     return new FeedChannel(source);
+111:                 }
+112: 
+113:                 @Override
+114:                 public FeedChannel[] newArray(int size)
+115:                 {
+116:                     return new FeedChannel[size];
+117:                 }
+118:             };
+--- core/model/data/entity/FeedChannel.java:108-111 ---
+108:                 public FeedChannel createFromParcel(Parcel source)
+109:                 {
+110:                     return new FeedChannel(source);
+111:                 }
+--- core/model/data/entity/FeedChannel.java:113-117 ---
+113:                 @Override
+114:                 public FeedChannel[] newArray(int size)
+115:                 {
+116:                     return new FeedChannel[size];
+117:                 }
+--- core/model/data/entity/FeedChannel.java:120-124 ---
+120:     @Override
+121:     public int hashCode()
+122:     {
+123:         return (int)(id ^ (id >>> 32));
+124:     }
+--- core/model/data/entity/FeedChannel.java:132-146 ---
+132:     @NonNull
+133:     @Override
+134:     public String toString()
+135:     {
+136:         return "FeedChannel{" +
+137:                 "id='" + id + '\'' +
+138:                 ", name='" + name + '\'' +
+139:                 ", url='" + url + '\'' +
+140:                 ", lastUpdate=" + SimpleDateFormat.getDateTimeInstance().format(new Date(lastUpdate)) +
+141:                 ", autoDownload=" + autoDownload +
+142:                 ", filter='" + filter + '\'' +
+143:                 ", isRegexFilter=" + isRegexFilter +
+144:                 ", fetchError='" + fetchError + '\'' +
+145:                 '}';
+146:     }
+
+=== core/model/data/entity/FeedItem.java (158 lines) ===
+--- core/model/data/entity/FeedItem.java:62-72 ---
+62:     public FeedItem(@NonNull String id, long feedId,
+63:                     String downloadUrl, String articleUrl,
+64:                     @NonNull String title, long pubDate)
+65:     {
+66:         this.id = id;
+67:         this.feedId = feedId;
+68:         this.downloadUrl = downloadUrl;
+69:         this.articleUrl = articleUrl;
+70:         this.title = title;
+71:         this.pubDate = pubDate;
+72:     }
+--- core/model/data/entity/FeedItem.java:75-80 ---
+75:     public FeedItem(long feedId, String downloadUrl,
+76:                     String articleUrl, @NonNull String title,
+77:                     long pubDate)
+78:     {
+79:         this(feedId + "_" + title, feedId, downloadUrl, articleUrl, title, pubDate);
+80:     }
+--- core/model/data/entity/FeedItem.java:79 ---
+79:         this(feedId + "_" + title, feedId, downloadUrl, articleUrl, title, pubDate);
+--- core/model/data/entity/FeedItem.java:83-93 ---
+83:     public FeedItem(Parcel source)
+84:     {
+85:         id = source.readString();
+86:         feedId = source.readLong();
+87:         downloadUrl = source.readString();
+88:         articleUrl = source.readString();
+89:         title = source.readString();
+90:         pubDate = source.readLong();
+91:         fetchDate = source.readLong();
+92:         read = source.readByte() != 0;
+93:     }
+--- core/model/data/entity/FeedItem.java:95-99 ---
+95:     @Override
+96:     public int describeContents()
+97:     {
+98:         return 0;
+99:     }
+--- core/model/data/entity/FeedItem.java:101-112 ---
+101:     @Override
+102:     public void writeToParcel(Parcel dest, int flags)
+103:     {
+104:         dest.writeString(id);
+105:         dest.writeLong(feedId);
+106:         dest.writeString(downloadUrl);
+107:         dest.writeString(articleUrl);
+108:         dest.writeString(title);
+109:         dest.writeLong(pubDate);
+110:         dest.writeLong(fetchDate);
+111:         dest.writeInt((byte)(read ? 1 : 0));
+112:     }
+--- core/model/data/entity/FeedItem.java:114-128 ---
+114:     public static final Creator<FeedItem> CREATOR =
+115:             new Creator<FeedItem>()
+116:             {
+117:                 @Override
+118:                 public FeedItem createFromParcel(Parcel source)
+119:                 {
+120:                     return new FeedItem(source);
+121:                 }
+122: 
+123:                 @Override
+124:                 public FeedItem[] newArray(int size)
+125:                 {
+126:                     return new FeedItem[size];
+127:                 }
+128:             };
+--- core/model/data/entity/FeedItem.java:118-121 ---
+118:                 public FeedItem createFromParcel(Parcel source)
+119:                 {
+120:                     return new FeedItem(source);
+121:                 }
+--- core/model/data/entity/FeedItem.java:124-127 ---
+124:                 public FeedItem[] newArray(int size)
+125:                 {
+126:                     return new FeedItem[size];
+127:                 }
+--- core/model/data/entity/FeedItem.java:130-134 ---
+130:     @Override
+131:     public int hashCode()
+132:     {
+133:         return id.hashCode();
+134:     }
+--- core/model/data/entity/FeedItem.java:136-140 ---
+136:     @Override
+137:     public boolean equals(Object o)
+138:     {
+139:         return o instanceof FeedItem && (o == this || id.equals(((FeedItem)o).id));
+140:     }
+--- core/model/data/entity/FeedItem.java:142-156 ---
+142:     @NonNull
+143:     @Override
+144:     public String toString()
+145:     {
+146:         return "FeedItem{" +
+147:                 "id=" + id +
+148:                 "feedId='" + feedId + '\'' +
+149:                 ", title='" + title + '\'' +
+150:                 ", downloadUrl='" + downloadUrl + '\'' +
+151:                 ", articleUrl='" + articleUrl + '\'' +
+152:                 ", pubDate=" + SimpleDateFormat.getDateTimeInstance().format(new Date(pubDate)) +
+153:                 ", fetchDate=" + SimpleDateFormat.getDateTimeInstance().format(new Date(fetchDate)) +
+154:                 ", read=" + read +
+155:                 '}';
+156:     }
+
+=== core/model/data/entity/TagInfo.java (111 lines) ===
+--- core/model/data/entity/TagInfo.java:38-42 ---
+38:     public TagInfo(long id, @NonNull String name, int color) {
+39:         this.id = id;
+40:         this.name = name;
+41:         this.color = color;
+42:     }
+--- core/model/data/entity/TagInfo.java:45-48 ---
+45:     public TagInfo(@NonNull String name, int color) {
+46:         this.name = name;
+47:         this.color = color;
+48:     }
+--- core/model/data/entity/TagInfo.java:58-60 ---
+58:     public int describeContents() {
+59:         return 0;
+60:     }
+--- core/model/data/entity/TagInfo.java:63-67 ---
+63:     public void writeToParcel(Parcel dest, int flags) {
+64:         dest.writeLong(id);
+65:         dest.writeString(name);
+66:         dest.writeInt(color);
+67:     }
+--- core/model/data/entity/TagInfo.java:69-79 ---
+69:     public static final Parcelable.Creator<TagInfo> CREATOR = new Parcelable.Creator<TagInfo>() {
+70:         @Override
+71:         public TagInfo createFromParcel(Parcel source) {
+72:             return new TagInfo(source);
+73:         }
+74: 
+75:         @Override
+76:         public TagInfo[] newArray(int size) {
+77:             return new TagInfo[size];
+78:         }
+79:     };
+--- core/model/data/entity/TagInfo.java:71-73 ---
+71:         public TagInfo createFromParcel(Parcel source) {
+72:             return new TagInfo(source);
+73:         }
+--- core/model/data/entity/TagInfo.java:75-78 ---
+75:         @Override
+76:         public TagInfo[] newArray(int size) {
+77:             return new TagInfo[size];
+78:         }
+--- core/model/data/entity/TagInfo.java:82-91 ---
+82:     public boolean equals(Object o) {
+83:         if (this == o) return true;
+84:         if (o == null || getClass() != o.getClass()) return false;
+85: 
+86:         TagInfo tagInfo = (TagInfo) o;
+87: 
+88:         if (id != tagInfo.id) return false;
+89:         if (color != tagInfo.color) return false;
+90:         return name.equals(tagInfo.name);
+91:     }
+--- core/model/data/entity/TagInfo.java:101-109 ---
+101:     @NonNull
+102:     @Override
+103:     public String toString() {
+104:         return "TagInfo{" +
+105:                 "id=" + id +
+106:                 ", name='" + name + '\'' +
+107:                 ", color=" + color +
+108:                 '}';
+109:     }
+
+=== core/model/data/entity/Torrent.java (202 lines) ===
+--- core/model/data/entity/Torrent.java:72-87 ---
+72:     public Torrent(@NonNull String id,
+73:                    @NonNull Uri downloadPath,
+74:                    @NonNull String name,
+75:                    boolean manuallyPaused,
+76:                    long dateAdded,
+77:                    boolean sequentialDownload,
+78:                    boolean firstLastPiecePriority
+79:     ){
+80:         this.id = id;
+81:         this.name = name;
+82:         this.downloadPath = downloadPath;
+83:         this.manuallyPaused = manuallyPaused;
+84:         this.dateAdded = dateAdded;
+85:         this.sequentialDownload = sequentialDownload;
+86:         this.firstLastPiecePriority = firstLastPiecePriority;
+87:     }
+--- core/model/data/entity/Torrent.java:89-101 ---
+89:     public Torrent(@NonNull String id,
+90:                    String magnet,
+91:                    @NonNull Uri downloadPath,
+92:                    @NonNull String name,
+93:                    boolean manuallyPaused,
+94:                    long dateAdded,
+95:                    boolean sequentialDownload,
+96:                    boolean firstLastPiecePriority
+97:     ){
+98:         this(id, downloadPath, name, manuallyPaused, dateAdded, sequentialDownload, firstLastPiecePriority);
+99: 
+100:         this.magnet = magnet;
+101:     }
+--- core/model/data/entity/Torrent.java:103-117 ---
+103:     @Ignore
+104:     public Torrent(Parcel source)
+105:     {
+106:         id = source.readString();
+107:         magnet = source.readString();
+108:         downloadPath = source.readParcelable(Uri.class.getClassLoader());
+109:         name = source.readString();
+110:         downloadingMetadata = source.readByte() != 0;
+111:         dateAdded = source.readLong();
+112:         error = source.readString();
+113:         manuallyPaused = source.readByte() != 0;
+114:         visibility = source.readInt();
+115:         sequentialDownload = source.readByte() != 0;
+116:         firstLastPiecePriority = source.readByte() != 0;
+117:     }
+--- core/model/data/entity/Torrent.java:119-122 ---
+119:     public boolean isDownloadingMetadata()
+120:     {
+121:         return downloadingMetadata;
+122:     }
+--- core/model/data/entity/Torrent.java:124-127 ---
+124:     public String getMagnet()
+125:     {
+126:         return magnet;
+127:     }
+--- core/model/data/entity/Torrent.java:129-133 ---
+129:     public void setMagnetUri(String magnet)
+130:     {
+131:         this.magnet = magnet;
+132:         downloadingMetadata = magnet != null;
+133:     }
+--- core/model/data/entity/Torrent.java:135-139 ---
+135:     @Override
+136:     public int describeContents()
+137:     {
+138:         return 0;
+139:     }
+--- core/model/data/entity/Torrent.java:157-170 ---
+157:     public static final Creator<Torrent> CREATOR = new Creator<>()
+158:             {
+159:                 @Override
+160:                 public Torrent createFromParcel(Parcel source)
+161:                 {
+162:                     return new Torrent(source);
+163:                 }
+164: 
+165:                 @Override
+166:                 public Torrent[] newArray(int size)
+167:                 {
+168:                     return new Torrent[size];
+169:                 }
+170:             };
+--- core/model/data/entity/Torrent.java:172-176 ---
+172:     @Override
+173:     public int hashCode()
+174:     {
+175:         return id.hashCode();
+176:     }
+--- core/model/data/entity/Torrent.java:178-182 ---
+178:     @Override
+179:     public boolean equals(Object o)
+180:     {
+181:         return o instanceof Torrent && (o == this || id.equals(((Torrent)o).id));
+182:     }
+--- core/model/data/entity/Torrent.java:184-200 ---
+184:     @NonNull
+185:     @Override
+186:     public String toString() {
+187:         return "Torrent{" +
+188:                 "id='" + id + '\'' +
+189:                 ", name='" + name + '\'' +
+190:                 ", downloadPath=" + downloadPath +
+191:                 ", dateAdded=" + SimpleDateFormat.getDateTimeInstance().format(new Date(dateAdded)) +
+192:                 ", error='" + error + '\'' +
+193:                 ", manuallyPaused=" + manuallyPaused +
+194:                 ", sequentialDownload=" + sequentialDownload +
+195:                 ", magnet='" + magnet + '\'' +
+196:                 ", downloadingMetadata=" + downloadingMetadata +
+197:                 ", visibility=" + visibility +
+198:                 ", firstLastPiecePriority=" + firstLastPiecePriority +
+199:                 '}';
+200:     }
+
+=== core/model/session/TorrentSessionImpl.java (1721 lines) ===
+--- core/model/session/TorrentSessionImpl.java:263-270 ---
+263:         Torrent torrent = new Torrent(
+264:                 params.sha1hash,
+265:                 params.downloadPath,
+266:                 params.name,
+267:                 params.addPaused, System.currentTimeMillis(),
+268:                 params.sequentialDownload,
+269:                 params.firstLastPiecePriority
+270:         );
+--- core/model/session/TorrentSessionImpl.java:273-277 ---
+273:         if (params.fromMagnet) {
+274:             bencode = getLoadedMagnet(params.sha1hash);
+275:             removeLoadedMagnet(params.sha1hash);
+276:             if (bencode == null)
+277:                 torrent.setMagnetUri(params.source);
+--- core/model/session/TorrentSessionImpl.java:413 ---
+413:             if (path != null && torrent.isDownloadingMetadata()) {
+--- core/model/session/TorrentSessionImpl.java:413-415 ---
+413:             if (path != null && torrent.isDownloadingMetadata()) {
+414:                 loadTask.putMagnet(
+415:                         torrent.getMagnet(),
+
+=== core/storage/TorrentRepositoryImpl.java (173 lines) ===
+--- core/storage/TorrentRepositoryImpl.java:86-87 ---
+86:     public List<Torrent> getAllTorrents() {
+87:         return db.torrentDao().getAllTorrents();
+
+=== ui/addtag/AddTagDialog.java (234 lines) ===
+--- ui/addtag/AddTagDialog.java:67-71 ---
+67:     public static AddTagDialog newInstance(@Nullable TagInfo initInfo) {
+68:         AddTagDialog frag = new AddTagDialog();
+69: 
+70:         Bundle args = new Bundle();
+71:         args.putParcelable(TAG_INIT_INFO, initInfo);
+--- ui/addtag/AddTagDialog.java:112-119 ---
+112:     public Dialog onCreateDialog(Bundle savedInstanceState) {
+113:         if (activity == null) {
+114:             activity = (AppCompatActivity) getActivity();
+115:         }
+116: 
+117:         ViewModelProvider provider = new ViewModelProvider(activity);
+118:         viewModel = provider.get(AddTagViewModel.class);
+119:         TagInfo initInfo = getArguments().getParcelable(TAG_INIT_INFO);
+
+=== ui/addtag/AddTagViewModel.java (79 lines) ===
+--- ui/addtag/AddTagViewModel.java:59 ---
+59:             info = new TagInfo(state.getName(), state.getColor());
+--- ui/addtag/AddTagViewModel.java:59-61 ---
+59:             info = new TagInfo(state.getName(), state.getColor());
+60:         } else {
+61:             info = new TagInfo(existsTagId, state.getName(), state.getColor());
+--- ui/addtag/AddTagViewModel.java:61 ---
+61:             info = new TagInfo(existsTagId, state.getName(), state.getColor());
+
+=== ui/addtorrent/AddTorrentViewModel.java (575 lines) ===
+--- ui/addtorrent/AddTorrentViewModel.java:162-163 ---
+162:     public void removeTag(@NonNull TagInfo info) {
+163:         tags.remove(info);
+
+=== ui/feeditems/FeedItemsListItem.java (76 lines) ===
+--- ui/feeditems/FeedItemsListItem.java:51-53 ---
+51:     public boolean equals(Object o)
+52:     {
+53:         return super.equals(o);
+
+=== ui/feeds/FeedFragment.java (520 lines) ===
+--- ui/feeds/FeedFragment.java:137-142 ---
+137:         selectionTracker = new SelectionTracker.Builder<>(
+138:                 SELECTION_TRACKER_ID,
+139:                 binding.feedList,
+140:                 new FeedChannelListAdapter.KeyProvider(adapter),
+141:                 new FeedChannelListAdapter.ItemLookup(binding.feedList),
+142:                 StorageStrategy.createParcelableStorage(FeedChannelItem.class))

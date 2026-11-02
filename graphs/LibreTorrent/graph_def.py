@@ -3929,7 +3929,7 @@ SUPPRESS.update({
 # Each merged batch part is its own file, parts/b<NNN>.py, run here in this namespace in the order of MERGED_PARTS.
 # Batches 13 and 14 are already pasted inline above; never list them here. Append one name at a time, in plan order,
 # and build after each append (C1). Keeping the parts in their own files keeps every file below the connector's 1 MB limit.
-MERGED_PARTS = ['b000_trunks.py', 'b001.py', 'b002.py', 'b003.py', 'b004.py', 'b005.py', 'b006.py', 'b007.py', 'b008.py', 'b009.py', 'b010.py', 'b011.py', 'b012.py', 'b015.py', 'b016.py', 'b017.py', 'b018.py', 'b019.py', 'b020.py', 'b021.py', 'b022.py', 'b023.py', 'b024.py', 'b025.py', 'b026.py', 'b027.py']
+MERGED_PARTS = ['b000_trunks.py', 'b001.py', 'b002.py', 'b003.py', 'b004.py', 'b005.py', 'b006.py', 'b007.py', 'b008.py', 'b009.py', 'b010.py', 'b011.py', 'b012.py', 'b015.py', 'b016.py', 'b017.py', 'b018.py', 'b019.py', 'b020.py', 'b021.py', 'b022.py', 'b023.py', 'b024.py', 'b025.py', 'b026.py', 'b027.py', 'b028.py', 'b029.py', 'b030.py', 'b031.py', 'b032.py', 'b033.py']
 import os as _mp_os
 for _mp_name in MERGED_PARTS:
     _mp_path = _mp_os.path.join(GDIR, 'parts', _mp_name)

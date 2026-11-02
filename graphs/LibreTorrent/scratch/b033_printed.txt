@@ -1,0 +1,358 @@
+# Batch 033 printed evidence (C04, fresh print 2026-11-01)
+# Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+# Each block prints the cited file lines with line numbers, exactly as cited in b033.py/.md.
+# Path citations only; bare-filename prose mentions in .md reasons resolve to these same lines.
+
+=== core/model/filetree/BencodeFileTree.java (133 lines) ===
+--- core/model/filetree/BencodeFileTree.java:35-38 ---
+35:     public BencodeFileTree(String name, long size, int type)
+36:     {
+37:         super(name, size, type);
+38:     }
+--- core/model/filetree/BencodeFileTree.java:37 ---
+37:         super(name, size, type);
+--- core/model/filetree/BencodeFileTree.java:42 ---
+42:         super(index, name, size, type, parent);
+--- core/model/filetree/BencodeFileTree.java:45-48 ---
+45:     public BencodeFileTree(String name, long size, int type, BencodeFileTree parent)
+46:     {
+47:         super(name, size, type, parent);
+48:     }
+--- core/model/filetree/BencodeFileTree.java:47 ---
+47:         super(name, size, type, parent);
+--- core/model/filetree/BencodeFileTree.java:50-53 ---
+50:     public boolean isSelected()
+51:     {
+52:         return selected;
+53:     }
+--- core/model/filetree/BencodeFileTree.java:61-64 ---
+61:     public void select(boolean check, boolean forceUpdateParent)
+62:     {
+63:         doSelect(check, true, forceUpdateParent);
+64:     }
+--- core/model/filetree/BencodeFileTree.java:63 ---
+63:         doSelect(check, true, forceUpdateParent);
+--- core/model/filetree/BencodeFileTree.java:66-79 ---
+66:     private void doSelect(boolean check, boolean updateParent, boolean forceUpdateParent)
+67:     {
+68:         selected = check;
+69: 
+70:         /* Sending select change event up the parent */
+71:         if (updateParent && parent != null)
+72:             parent.onChildSelectChange(forceUpdateParent);
+73: 
+74:         /* Sending select change event down the tree */
+75:         if (getChildrenCount() != 0)
+76:             for (BencodeFileTree node : children.values())
+77:                 if (node.selected != check)
+78:                     node.doSelect(check, false, forceUpdateParent);
+79:     }
+--- core/model/filetree/BencodeFileTree.java:72 ---
+72:             parent.onChildSelectChange(forceUpdateParent);
+--- core/model/filetree/BencodeFileTree.java:75 ---
+75:         if (getChildrenCount() != 0)
+--- core/model/filetree/BencodeFileTree.java:85-87 ---
+85:     private synchronized void onChildSelectChange(boolean forceUpdateParent)
+86:     {
+87:         ++numChangedChildren;
+--- core/model/filetree/BencodeFileTree.java:107-121 ---
+107:     public long selectedFileSize()
+108:     {
+109:         long size = 0;
+110: 
+111:         if (children.size() != 0) {
+112:             for (BencodeFileTree child : children.values())
+113:                 if (child.selected)
+114:                     size += child.selectedFileSize();
+115: 
+116:         } else if (selected) {
+117:             size = this.size();
+118:         }
+119: 
+120:         return size;
+121:     }
+--- core/model/filetree/BencodeFileTree.java:125-131 ---
+125:     public String toString()
+126:     {
+127:         return "BencodeFileTree{" +
+128:                 super.toString() +
+129:                 ", selected=" + selected +
+130:                 '}';
+131:     }
+
+=== core/model/filetree/FileNode.java (49 lines) ===
+--- core/model/filetree/FileNode.java:32-36 ---
+32:     class Type implements Serializable
+33:     {
+34:         public static int DIR = 0;
+35:         public static int FILE = 1;
+36:     }
+
+=== core/model/filetree/FilePriority.java (114 lines) ===
+--- core/model/filetree/FilePriority.java:34 ---
+34:     public enum Type {MIXED, IGNORE, NORMAL, HIGH}
+--- core/model/filetree/FilePriority.java:36-40 ---
+36:     public FilePriority(Priority priority)
+37:     {
+38:         this.priority = priority.value();
+39:         this.type = typeFrom(priority);
+40:     }
+--- core/model/filetree/FilePriority.java:39 ---
+39:         this.type = typeFrom(priority);
+--- core/model/filetree/FilePriority.java:42-46 ---
+42:     public FilePriority(Type type)
+43:     {
+44:         this.priority = priorityFrom(type);
+45:         this.type = type;
+46:     }
+--- core/model/filetree/FilePriority.java:44 ---
+44:         this.priority = priorityFrom(type);
+--- core/model/filetree/FilePriority.java:48-51 ---
+48:     public Priority getPriority()
+49:     {
+50:         return Priority.fromValue(priority);
+51:     }
+--- core/model/filetree/FilePriority.java:53-56 ---
+53:     public Type getType()
+54:     {
+55:         return type;
+56:     }
+--- core/model/filetree/FilePriority.java:58-75 ---
+58:     public static Type typeFrom(Priority priority)
+59:     {
+60:         switch (priority) {
+61:             case IGNORE:
+62:                 return Type.IGNORE;
+63:             case LOW:
+64:             case TWO:
+65:             case THREE:
+66:             case DEFAULT:
+67:             case FIVE:
+68:             case SIX:
+69:                 return Type.NORMAL;
+70:             case TOP_PRIORITY:
+71:                 return Type.HIGH;
+72:             default:
+73:                 return null;
+74:         }
+75:     }
+--- core/model/filetree/FilePriority.java:77-89 ---
+77:     private static int priorityFrom(Type type)
+78:     {
+79:         switch (type) {
+80:             case IGNORE:
+81:                 return Priority.IGNORE.value();
+82:             case NORMAL:
+83:                 return Priority.DEFAULT.value();
+84:             case HIGH:
+85:                 return Priority.TOP_PRIORITY.value();
+86:             default:
+87:                 return -1;
+88:         }
+89:     }
+--- core/model/filetree/FilePriority.java:92-103 ---
+92:     public boolean equals(@Nullable Object o)
+93:     {
+94:         if (!(o instanceof FilePriority))
+95:             return false;
+96: 
+97:         if (o == this)
+98:             return true;
+99: 
+100:          FilePriority filePriority = (FilePriority)o;
+101: 
+102:          return priority == filePriority.priority && type.equals(filePriority.getType());
+103:     }
+--- core/model/filetree/FilePriority.java:107-113 ---
+107:     public String toString()
+108:     {
+109:         return "FilePriority{" +
+110:                 "priority=" + priority +
+111:                 ", type=" + type +
+112:                 '}';
+113:     }
+
+=== core/model/filetree/FileTree.java (223 lines) ===
+--- core/model/filetree/FileTree.java:40-42 ---
+40:     public static final String ROOT = File.separator;
+41:     /* The name for pointer to the parent node */
+42:     public static final String PARENT_DIR = "..";
+--- core/model/filetree/FileTree.java:51-54 ---
+51:     public FileTree(String name, long size, int type)
+52:     {
+53:         this(-1, name, size, type, null);
+54:     }
+--- core/model/filetree/FileTree.java:56-59 ---
+56:     public FileTree(String name, long size, int type, F parent)
+57:     {
+58:         this(-1, name, size, type, parent);
+59:     }
+--- core/model/filetree/FileTree.java:66-73 ---
+66:     public FileTree(int index, String name, long size, int type, F parent)
+67:     {
+68:         this.index = index;
+69:         this.name = name;
+70:         this.size = size;
+71:         isLeaf = (type == FileNode.Type.FILE);
+72:         this.parent = parent;
+73:     }
+--- core/model/filetree/FileTree.java:75-78 ---
+75:     public synchronized void addChild(F node)
+76:     {
+77:         children.put(node.getName(), node);
+78:     }
+--- core/model/filetree/FileTree.java:77 ---
+77:         children.put(node.getName(), node);
+--- core/model/filetree/FileTree.java:80-83 ---
+80:     public boolean contains(String name)
+81:     {
+82:         return children.containsKey(name);
+83:     }
+--- core/model/filetree/FileTree.java:85-88 ---
+85:     public F getChild(String name)
+86:     {
+87:         return children.get(name);
+88:     }
+--- core/model/filetree/FileTree.java:90-93 ---
+90:     public Collection<F> getChildren()
+91:     {
+92:         return children.values();
+93:     }
+--- core/model/filetree/FileTree.java:95-98 ---
+95:     public Set<String> getChildrenName()
+96:     {
+97:         return children.keySet();
+98:     }
+--- core/model/filetree/FileTree.java:100-108 ---
+100:     public List<Integer> getChildrenIndexes()
+101:     {
+102:         List<Integer> indexes = new ArrayList<>();
+103: 
+104:         for (F child : children.values())
+105:             indexes.add(child.getIndex());
+106: 
+107:         return indexes;
+108:     }
+--- core/model/filetree/FileTree.java:110-113 ---
+110:     public int getChildrenCount()
+111:     {
+112:         return children.size();
+113:     }
+--- core/model/filetree/FileTree.java:115-118 ---
+115:     public boolean isFile()
+116:     {
+117:         return isLeaf;
+118:     }
+--- core/model/filetree/FileTree.java:120-123 ---
+120:     public F getParent()
+121:     {
+122:         return parent;
+123:     }
+--- core/model/filetree/FileTree.java:125-128 ---
+125:     public void setParent(F parent)
+126:     {
+127:         this.parent = parent;
+128:     }
+--- core/model/filetree/FileTree.java:131-134 ---
+131:     public void setName(String name)
+132:     {
+133:         this.name = name;
+134:     }
+--- core/model/filetree/FileTree.java:137-140 ---
+137:     public String getName()
+138:     {
+139:         return name;
+140:     }
+--- core/model/filetree/FileTree.java:142-145 ---
+142:     public void setIndex(int index)
+143:     {
+144:         this.index = index;
+145:     }
+--- core/model/filetree/FileTree.java:147-150 ---
+147:     public int getIndex()
+148:     {
+149:         return index;
+150:     }
+--- core/model/filetree/FileTree.java:153-156 ---
+153:     public int getType()
+154:     {
+155:         return (isLeaf ? FileNode.Type.FILE : FileNode.Type.DIR);
+156:     }
+--- core/model/filetree/FileTree.java:173-184 ---
+173:     public String getPath()
+174:     {
+175:         StringBuilder path = new StringBuilder();
+176:         FileTree<?> curNode = this;
+177: 
+178:         while (curNode.parent != null) {
+179:             path.insert(0, curNode.name + File.separator);
+180:             curNode = curNode.parent;
+181:         }
+182: 
+183:         return path.toString();
+184:     }
+--- core/model/filetree/FileTree.java:187-190 ---
+187:     public int compareTo(@NonNull FileTree another)
+188:     {
+189:         return name.compareTo(another.getName());
+190:     }
+--- core/model/filetree/FileTree.java:193-207 ---
+193:     public boolean equals(@Nullable Object o)
+194:     {
+195:         if (!(o instanceof FileTree))
+196:             return false;
+197: 
+198:         if (o == this)
+199:             return true;
+200: 
+201:         FileTree<?> fileTree = (FileTree<?>)o;
+202: 
+203:         return index == fileTree.index &&
+204:                 (name == null || name.equals(fileTree.name)) &&
+205:                 size == fileTree.size &&
+206:                 isLeaf == fileTree.isLeaf;
+207:     }
+
+=== core/model/filetree/TorrentContentFileTree.java (185 lines) ===
+--- core/model/filetree/TorrentContentFileTree.java:96 ---
+96:                 if (node.priority.getType() != p.getType())
+
+=== core/utils/BencodeFileTreeUtils.java (128 lines) ===
+--- core/utils/BencodeFileTreeUtils.java:48 ---
+48:         BencodeFileTree root = new BencodeFileTree(FileTree.ROOT, 0L, FileNode.Type.DIR);
+--- core/utils/BencodeFileTreeUtils.java:100 ---
+100:                 if (!parentTree.contains(nodes[i])) {
+--- core/utils/BencodeFileTreeUtils.java:106 ---
+106:                     parentTree.addChild(leaf);
+--- core/utils/BencodeFileTreeUtils.java:109 ---
+109:                 BencodeFileTree nextParent = parentTree.getChild(nodes[i]);
+--- core/utils/BencodeFileTreeUtils.java:111 ---
+111:                 if (!nextParent.isFile())
+--- core/utils/BencodeFileTreeUtils.java:125 ---
+125:                 new BencodeFileTree(name, 0L, FileNode.Type.DIR, parent));
+
+=== ui/addtorrent/AddTorrentViewModel.java (575 lines) ===
+--- ui/addtorrent/AddTorrentViewModel.java:384 ---
+384:             fileTree.select(true, false);
+--- ui/addtorrent/AddTorrentViewModel.java:417 ---
+417:         if (curDir != fileTree && curDir.getParent() != null)
+--- ui/addtorrent/AddTorrentViewModel.java:420 ---
+420:         children.addAll(curDir.getChildren());
+--- ui/addtorrent/AddTorrentViewModel.java:460 ---
+460:             if (file.isSelected())
+--- ui/addtorrent/AddTorrentViewModel.java:461 ---
+461:                 indexes.add(file.getIndex());
+--- ui/addtorrent/AddTorrentViewModel.java:553 ---
+553:         long treeFreeSpace = fileTree.selectedFileSize();
+
+=== ui/detailtorrent/DetailTorrentViewModel.java (611 lines) ===
+--- ui/detailtorrent/DetailTorrentViewModel.java:268 ---
+268:         String relativePath = node.getPath();
+--- ui/detailtorrent/DetailTorrentViewModel.java:313 ---
+313:                 if (randomPriority != null && !randomPriority.equals(priority)) {
+--- ui/detailtorrent/DetailTorrentViewModel.java:323 ---
+323:             return new FilePriority(FilePriority.Type.MIXED);
+--- ui/detailtorrent/DetailTorrentViewModel.java:420 ---
+420:                 priorities[file.getIndex()] = file.getFilePriority().getPriority();
+--- ui/detailtorrent/DetailTorrentViewModel.java:549 ---
+549:                 priorities.add(new FilePriority(p));

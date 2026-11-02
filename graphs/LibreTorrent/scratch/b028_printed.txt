@@ -1,0 +1,503 @@
+# Batch 028 printed evidence (C04, fresh print 2026-11-01)
+# Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+# Each block prints the cited file lines with line numbers, exactly as cited in b028.py/.md.
+# Path citations only; bare-filename prose mentions in .md reasons resolve to these same lines.
+
+=== core/model/TorrentEngine.java (1659 lines) ===
+--- core/model/TorrentEngine.java:415-419 ---
+415:     public Pair<MagnetInfo, Single<TorrentMetaInfo>> fetchMagnet(@NonNull String uri) throws Exception {
+416:         if (!isRunning())
+417:             return null;
+418: 
+419:         MagnetInfo info = session.fetchMagnet(uri);
+--- core/model/TorrentEngine.java:846-860 ---
+846:         return new AdvancedTorrentInfo(
+847:                 torrent.id,
+848:                 task.getFilesReceivedBytes(),
+849:                 task.getTotalSeeds(),
+850:                 task.getConnectedSeeds(),
+851:                 task.getNumDownloadedPieces(),
+852:                 task.getShareRatio(),
+853:                 task.getActiveTime(),
+854:                 task.getSeedingTime(),
+855:                 task.getAvailability(piecesAvail),
+856:                 task.getFilesAvailability(piecesAvail),
+857:                 task.getConnectedLeechers(),
+858:                 task.getTotalLeechers());
+859:     }
+860: 
+
+=== core/model/TorrentInfoProvider.java (499 lines) ===
+--- core/model/TorrentInfoProvider.java:147 ---
+147:             TorrentEngineListener listener = new TorrentEngineListener() {
+--- core/model/TorrentInfoProvider.java:149-161 ---
+149:                 public void onTorrentStateChanged(@NonNull String torrentId,
+150:                                                   @NonNull TorrentStateCode prevState,
+151:                                                   @NonNull TorrentStateCode curState) {
+152:                     try {
+153:                         handleEvent.accept(torrentId);
+154: 
+155:                     } catch (Exception e) {
+156:                         if (!emitter.isCancelled())
+157:                             emitter.onError(e);
+158:                     }
+159:                 }
+160: 
+161:                 @Override
+--- core/model/TorrentInfoProvider.java:162-172 ---
+162:                 public void onTorrentPaused(@NonNull String torrentId) {
+163:                     try {
+164:                         handleEvent.accept(torrentId);
+165: 
+166:                     } catch (Exception e) {
+167:                         if (!emitter.isCancelled())
+168:                             emitter.onError(e);
+169:                     }
+170:                 }
+171: 
+172:                 @Override
+--- core/model/TorrentInfoProvider.java:173-182 ---
+173:                 public void onRestoreSessionError(@NonNull String torrentId) {
+174:                     try {
+175:                         handleEvent.accept(torrentId);
+176: 
+177:                     } catch (Exception e) {
+178:                         if (!emitter.isCancelled())
+179:                             emitter.onError(e);
+180:                     }
+181:                 }
+182: 
+--- core/model/TorrentInfoProvider.java:184-194 ---
+184:                 public void onTorrentError(@NonNull String torrentId, Exception e) {
+185:                     try {
+186:                         handleEvent.accept(torrentId);
+187: 
+188:                     } catch (Exception ex) {
+189:                         if (!emitter.isCancelled())
+190:                             emitter.onError(ex);
+191:                     }
+192:                 }
+193: 
+194:                 @Override
+--- core/model/TorrentInfoProvider.java:195-204 ---
+195:                 public void onSessionStats(@NonNull SessionStats stats) {
+196:                     try {
+197:                         handleEvent.accept(id);
+198: 
+199:                     } catch (Exception ex) {
+200:                         if (!emitter.isCancelled())
+201:                             emitter.onError(ex);
+202:                     }
+203:                 }
+204:             };
+--- core/model/TorrentInfoProvider.java:214 ---
+214:                         engine.addListener(listener);
+--- core/model/TorrentInfoProvider.java:253 ---
+253:             TorrentEngineListener listener = new TorrentEngineListener() {
+--- core/model/TorrentInfoProvider.java:255-261 ---
+255:                 public void onTorrentStateChanged(@NonNull String torrentId,
+256:                                                   @NonNull TorrentStateCode prevState,
+257:                                                   @NonNull TorrentStateCode curState) {
+258:                     handleInfo.run();
+259:                 }
+260: 
+261:                 @Override
+--- core/model/TorrentInfoProvider.java:262-266 ---
+262:                 public void onTorrentPaused(@NonNull String torrentId) {
+263:                     handleInfo.run();
+264:                 }
+265: 
+266:                 @Override
+--- core/model/TorrentInfoProvider.java:267-271 ---
+267:                 public void onTorrentRemoved(@NonNull String torrentId) {
+268:                     handleInfo.run();
+269:                 }
+270: 
+271:                 @Override
+--- core/model/TorrentInfoProvider.java:272-276 ---
+272:                 public void onRestoreSessionError(@NonNull String torrentId) {
+273:                     handleInfo.run();
+274:                 }
+275: 
+276:                 @Override
+--- core/model/TorrentInfoProvider.java:277-281 ---
+277:                 public void onTorrentError(@NonNull String torrentId, Exception e) {
+278:                     handleInfo.run();
+279:                 }
+280: 
+281:                 @Override
+--- core/model/TorrentInfoProvider.java:282-286 ---
+282:                 public void onSessionStats(@NonNull SessionStats stats) {
+283:                     handleInfo.run();
+284:                 }
+285:             };
+286: 
+--- core/model/TorrentInfoProvider.java:293 ---
+293:                         engine.addListener(listener);
+--- core/model/TorrentInfoProvider.java:323-331 ---
+323:     private Flowable<AdvancedTorrentInfo> makeAdvancedInfoFlowable(String id) {
+324:         return Flowable.create((emitter) -> {
+325:             final AtomicReference<AdvancedTorrentInfo> info = new AtomicReference<>();
+326: 
+327:             Disposable d = Observable.interval(GET_INFO_SYNC_TIME, TimeUnit.MILLISECONDS)
+328:                     .subscribe((__) -> {
+329:                                 AdvancedTorrentInfo newInfo = engine.makeAdvancedInfoSync(id);
+330:                                 AdvancedTorrentInfo oldInfo = info.get();
+331:                                 if (newInfo != null && !newInfo.equals(oldInfo)) {
+--- core/model/TorrentInfoProvider.java:457 ---
+457:             TorrentEngineListener listener = new TorrentEngineListener() {
+--- core/model/TorrentInfoProvider.java:459-463 ---
+459:                 public void onTorrentRemoved(@NonNull String id) {
+460:                     if (!emitter.isCancelled())
+461:                         emitter.onNext(id);
+462:                 }
+463:             };
+--- core/model/TorrentInfoProvider.java:466 ---
+466:                 engine.addListener(listener);
+--- core/model/TorrentInfoProvider.java:478 ---
+478:             TorrentEngineListener listener = new TorrentEngineListener() {
+--- core/model/TorrentInfoProvider.java:480-488 ---
+480:                 public void onSessionStats(@NonNull SessionStats newStats) {
+481:                     SessionStats oldStats = stats.get();
+482:                     if (!newStats.equals(oldStats)) {
+483:                         stats.set(newStats);
+484:                         if (!emitter.isCancelled())
+485:                             emitter.onNext(newStats);
+486:                     }
+487:                 }
+488:             };
+--- core/model/TorrentInfoProvider.java:491 ---
+491:                 engine.addListener(listener);
+
+=== core/model/data/AbstractInfoParcel.java (63 lines) ===
+--- core/model/data/AbstractInfoParcel.java:36-39 ---
+36:     protected AbstractInfoParcel()
+37:     {
+38:         parcelId = UUID.randomUUID().toString();
+39:     }
+--- core/model/data/AbstractInfoParcel.java:41-44 ---
+41:     protected AbstractInfoParcel(String parcelId)
+42:     {
+43:         this.parcelId = parcelId;
+44:     }
+--- core/model/data/AbstractInfoParcel.java:46-49 ---
+46:     protected AbstractInfoParcel(Parcel source)
+47:     {
+48:         parcelId = source.readString();
+49:     }
+--- core/model/data/AbstractInfoParcel.java:52-55 ---
+52:     public void writeToParcel(Parcel dest, int flags)
+53:     {
+54:         dest.writeString(parcelId);
+55:     }
+
+=== core/model/data/AdvancedTorrentInfo.java (209 lines) ===
+--- core/model/data/AdvancedTorrentInfo.java:54-75 ---
+54:     public AdvancedTorrentInfo(String torrentId, long[] filesReceivedBytes,
+55:                                int totalSeeds, int seeds, int downloadedPieces,
+56:                                double shareRatio, long activeTime, long seedingTime,
+57:                                double availability, double[] filesAvailability,
+58:                                int leechers, int totalLeechers)
+59:     {
+60:         super(torrentId);
+61: 
+62:         this.torrentId = torrentId;
+63:         this.filesReceivedBytes = filesReceivedBytes;
+64:         this.totalSeeds = totalSeeds;
+65:         this.seeds = seeds;
+66:         this.downloadedPieces = downloadedPieces;
+67:         this.shareRatio = shareRatio;
+68:         this.activeTime = activeTime;
+69:         this.seedingTime = seedingTime;
+70:         this.availability = availability;
+71:         this.filesAvailability = filesAvailability;
+72:         this.leechers = leechers;
+73:         this.totalLeechers = totalLeechers;
+74:     }
+75: 
+--- core/model/data/AdvancedTorrentInfo.java:76-93 ---
+76:     public AdvancedTorrentInfo(Parcel source)
+77:     {
+78:         super(source);
+79: 
+80:         torrentId = source.readString();
+81:         filesReceivedBytes = source.createLongArray();
+82:         totalSeeds = source.readInt();
+83:         seeds = source.readInt();
+84:         downloadedPieces = source.readInt();
+85:         shareRatio = source.readDouble();
+86:         activeTime = source.readLong();
+87:         seedingTime = source.readLong();
+88:         availability = source.readDouble();
+89:         filesAvailability = source.createDoubleArray();
+90:         leechers = source.readInt();
+91:         totalLeechers = source.readInt();
+92:     }
+93: 
+--- core/model/data/AdvancedTorrentInfo.java:95-98 ---
+95:     public int describeContents()
+96:     {
+97:         return 0;
+98:     }
+--- core/model/data/AdvancedTorrentInfo.java:101-117 ---
+101:     public void writeToParcel(Parcel dest, int flags)
+102:     {
+103:         super.writeToParcel(dest, flags);
+104: 
+105:         dest.writeString(torrentId);
+106:         dest.writeLongArray(filesReceivedBytes);
+107:         dest.writeInt(totalSeeds);
+108:         dest.writeInt(seeds);
+109:         dest.writeInt(downloadedPieces);
+110:         dest.writeDouble(shareRatio);
+111:         dest.writeLong(activeTime);
+112:         dest.writeLong(seedingTime);
+113:         dest.writeDouble(availability);
+114:         dest.writeDoubleArray(filesAvailability);
+115:         dest.writeInt(leechers);
+116:         dest.writeInt(totalLeechers);
+117:     }
+--- core/model/data/AdvancedTorrentInfo.java:119-134 ---
+119:     public static final Parcelable.Creator<AdvancedTorrentInfo> CREATOR =
+120:             new Parcelable.Creator<AdvancedTorrentInfo>()
+121:             {
+122:                 @Override
+123:                 public AdvancedTorrentInfo createFromParcel(Parcel source)
+124:                 {
+125:                     return new AdvancedTorrentInfo(source);
+126:                 }
+127: 
+128:                 @Override
+129:                 public AdvancedTorrentInfo[] newArray(int size)
+130:                 {
+131:                     return new AdvancedTorrentInfo[size];
+132:                 }
+133:             };
+134: 
+--- core/model/data/AdvancedTorrentInfo.java:123-126 ---
+123:                 public AdvancedTorrentInfo createFromParcel(Parcel source)
+124:                 {
+125:                     return new AdvancedTorrentInfo(source);
+126:                 }
+--- core/model/data/AdvancedTorrentInfo.java:129-132 ---
+129:                 public AdvancedTorrentInfo[] newArray(int size)
+130:                 {
+131:                     return new AdvancedTorrentInfo[size];
+132:                 }
+--- core/model/data/AdvancedTorrentInfo.java:136-139 ---
+136:     public int compareTo(@NonNull Object another)
+137:     {
+138:         return torrentId.compareTo(((AdvancedTorrentInfo)another).torrentId);
+139:     }
+--- core/model/data/AdvancedTorrentInfo.java:142-163 ---
+142:     public int hashCode()
+143:     {
+144:         int prime = 31, result = 1;
+145: 
+146:         result = prime * result + ((torrentId == null) ? 0 : torrentId.hashCode());
+147:         result += Arrays.hashCode(filesReceivedBytes);
+148:         result = prime * result + totalSeeds;
+149:         result = prime * result + seeds;
+150:         result = prime * result + downloadedPieces;
+151:         long shareRationBits = Double.doubleToLongBits(shareRatio);
+152:         result = prime * result + (int) (shareRationBits ^ (shareRationBits >>> 32));
+153:         result = prime * result + (int) (activeTime ^ (activeTime >>> 32));
+154:         result = prime * result + (int) (seedingTime ^ (seedingTime >>> 32));
+155:         long availabilityBits = Double.doubleToLongBits(availability);
+156:         result = prime * result + (int) (availabilityBits ^ (availabilityBits >>> 32));
+157:         result += Arrays.hashCode(filesAvailability);
+158:         result = prime * result + leechers;
+159:         result = prime * result + totalLeechers;
+160: 
+161:         return result;
+162:     }
+163: 
+--- core/model/data/AdvancedTorrentInfo.java:165-187 ---
+165:     public boolean equals(Object o)
+166:     {
+167:         if (!(o instanceof AdvancedTorrentInfo))
+168:             return false;
+169: 
+170:         if (o == this)
+171:             return true;
+172: 
+173:         AdvancedTorrentInfo state = (AdvancedTorrentInfo)o;
+174: 
+175:         return (torrentId == null || torrentId.equals(state.torrentId)) &&
+176:                 totalSeeds == state.totalSeeds &&
+177:                 seeds == state.seeds &&
+178:                 downloadedPieces == state.downloadedPieces &&
+179:                 Arrays.equals(filesReceivedBytes, state.filesReceivedBytes) &&
+180:                 shareRatio == state.shareRatio &&
+181:                 activeTime == state.activeTime &&
+182:                 seedingTime == state.seedingTime &&
+183:                 availability == state.availability &&
+184:                 Arrays.equals(filesAvailability, state.filesAvailability) &&
+185:                 leechers == state.leechers &&
+186:                 totalLeechers == state.totalLeechers;
+187:     }
+--- core/model/data/AdvancedTorrentInfo.java:191-207 ---
+191:     public String toString()
+192:     {
+193:         return "AdvancedTorrentInfo{" +
+194:                 "torrentId='" + torrentId + '\'' +
+195:                 ", totalSeeds=" + totalSeeds +
+196:                 ", seeds=" + seeds +
+197:                 ", downloadedPieces=" + downloadedPieces +
+198:                 ", filesReceivedBytes=" + Arrays.toString(filesReceivedBytes) +
+199:                 ", shareRatio=" + shareRatio +
+200:                 ", activeTime=" + activeTime +
+201:                 ", seedingTime=" + seedingTime +
+202:                 ", availability=" + availability +
+203:                 ", filesAvailability=" + Arrays.toString(filesAvailability) +
+204:                 ", leechers=" + leechers +
+205:                 ", totalLeechers=" + totalLeechers +
+206:                 '}';
+207:     }
+
+=== core/model/data/MagnetInfo.java (133 lines) ===
+--- core/model/data/MagnetInfo.java:48-54 ---
+48:     public MagnetInfo(String uri, String sha1hash, String name, List<Priority> filePriorities)
+49:     {
+50:         this.uri = uri;
+51:         this.sha1hash = sha1hash;
+52:         this.name = name;
+53:         this.filePriorities = filePriorities;
+54:     }
+--- core/model/data/MagnetInfo.java:56-63 ---
+56:     public MagnetInfo(Parcel s)
+57:     {
+58:         uri = s.readString();
+59:         sha1hash = s.readString();
+60:         name = s.readString();
+61:         filePriorities = s.readArrayList(Priority.class.getClassLoader());
+62:     }
+63: 
+--- core/model/data/MagnetInfo.java:65-68 ---
+65:     public int describeContents()
+66:     {
+67:         return 0;
+68:     }
+--- core/model/data/MagnetInfo.java:79-93 ---
+79:     public static final Parcelable.Creator<MagnetInfo> CREATOR =
+80:             new Parcelable.Creator<MagnetInfo>()
+81:             {
+82:                 @Override
+83:                 public MagnetInfo createFromParcel(Parcel source)
+84:                 {
+85:                     return new MagnetInfo(source);
+86:                 }
+87: 
+88:                 @Override
+89:                 public MagnetInfo[] newArray(int size)
+90:                 {
+91:                     return new MagnetInfo[size];
+92:                 }
+93:             };
+--- core/model/data/MagnetInfo.java:100-102 ---
+100:     public String getSha1hash()
+101:     {
+102:         return sha1hash;
+--- core/model/data/MagnetInfo.java:105-107 ---
+105:     public String getName()
+106:     {
+107:         return name;
+--- core/model/data/MagnetInfo.java:110-112 ---
+110:     public List<Priority> getFilePriorities()
+111:     {
+112:         return filePriorities;
+
+=== core/model/data/SessionStats.java (149 lines) ===
+--- core/model/data/SessionStats.java:36-47 ---
+36:     public SessionStats(long dhtNodes, long totalDownload,
+37:                         long totalUpload, long downloadSpeed,
+38:                         long uploadSpeed, int listenPort)
+39:     {
+40:         this.dhtNodes = dhtNodes;
+41:         this.totalDownload = totalDownload;
+42:         this.totalUpload = totalUpload;
+43:         this.downloadSpeed = downloadSpeed;
+44:         this.uploadSpeed = uploadSpeed;
+45:         this.listenPort = listenPort;
+46:     }
+47: 
+
+=== core/model/data/TorrentInfo.java (271 lines) ===
+--- core/model/data/TorrentInfo.java:61-68 ---
+61:     public TorrentInfo(
+62:             @NonNull String torrentId,
+63:             String name,
+64:             long dateAdded,
+65:             String error,
+66:             @NonNull List<TagInfo> tags
+67:     ) {
+68:         super(torrentId);
+--- core/model/data/TorrentInfo.java:120-121 ---
+120:     public TorrentInfo(Parcel source) {
+121:         super(source);
+--- core/model/data/TorrentInfo.java:150-151 ---
+150:     public void writeToParcel(Parcel dest, int flags) {
+151:         super.writeToParcel(dest, flags);
+
+=== core/model/session/TorrentDownloadImpl.java (1712 lines) ===
+--- core/model/session/TorrentDownloadImpl.java:224-230 ---
+224:                 case STATE_CHANGED:
+225:                     StateChangedAlert a = ((StateChangedAlert)alert);
+226:                     notifyListeners((listener) ->
+227:                             listener.onTorrentStateChanged(id,
+228:                                     stateToStateCode(a.getPrevState()),
+229:                                     stateToStateCode(a.getState())));
+230:                     break;
+--- core/model/session/TorrentDownloadImpl.java:237-240 ---
+237:                 case TORRENT_PAUSED:
+238:                     notifyListeners((listener) ->
+239:                             listener.onTorrentPaused(id));
+240:                     break;
+--- core/model/session/TorrentDownloadImpl.java:333-336 ---
+333: 
+334:         notifyListeners((listener) ->
+335:                 listener.onTorrentError(id, new Exception(errorMsg)));
+336:     }
+--- core/model/session/TorrentDownloadImpl.java:421-424 ---
+421:             pause();
+422:             notifyListeners((listener) ->
+423:                     listener.onTorrentError(id, e));
+424: 
+--- core/model/session/TorrentDownloadImpl.java:456-460 ---
+456:     private void torrentRemoved()
+457:     {
+458:         notifyListeners((listener) ->
+459:                 listener.onTorrentRemoved(id));
+460: 
+
+=== core/model/session/TorrentSessionImpl.java (1721 lines) ===
+--- core/model/session/TorrentSessionImpl.java:388-390 ---
+388:             notifyListeners((listener) ->
+389:                     listener.onTorrentRemoved(id));
+390:         } else {
+--- core/model/session/TorrentSessionImpl.java:439-440 ---
+439:         return new MagnetInfo(uri, resParams.getInfoHashes().getBest().toHex(),
+440:                 resParams.getName(), priorities);
+--- core/model/session/TorrentSessionImpl.java:1168-1178 ---
+1168:     private void handleStats()
+1169:     {
+1170:         if (operationNotAllowed())
+1171:             return;
+1172: 
+1173:         notifyListeners((listener) -> listener.onSessionStats(
+1174:                 new SessionStats(dhtNodes(),
+1175:                         getTotalDownload(),
+1176:                         getTotalUpload(),
+1177:                         getDownloadSpeed(),
+1178:                         getUploadSpeed(),
+--- core/model/session/TorrentSessionImpl.java:1527-1529 ---
+1527:                 notifyListeners((listener) ->
+1528:                         listener.onRestoreSessionError(torrentId));
+1529:             }
+
+=== ui/addtorrent/AddTorrentViewModel.java (575 lines) ===
+--- ui/addtorrent/AddTorrentViewModel.java:242 ---
+242:                             v.info.set(new TorrentMetaInfo(magnetInfo.getName(), magnetInfo.getSha1hash()));
+--- ui/addtorrent/AddTorrentViewModel.java:245-246 ---
+245:                             if (magnetInfo.getFilePriorities() != null)
+246:                                 v.magnetPriorities = new ArrayList<>(magnetInfo.getFilePriorities());
