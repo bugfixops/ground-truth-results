@@ -1194,3 +1194,64 @@ Merger apply checks (own, before verification): all graph files parse;
 deleted plain pairs 0 hits; kept edges present; new variant-edge counts match
 §2 exactly; F1 guard codepoints verified (848 chars, U+2019 at 745, exactly one
 U+2019 in 03.py).
+
+Route 14 (IncomeVsExpensesListFragment$1.run) — loader-id partition,
+fix round (DESIGN §5, design audit PASS, implementation audit PASS,
+verification PASS — helper/route14-verify/VERIFICATION.md, 22,497 B):
+deleted plain onLoadFinished -> $1.run hand edge Ef9d523dd
+(graph_def_mod/01.py, tombstone comment, 4 lines) and appended six hand
+edges to graph_def_mod/04.py (R14-1 Ebfbf7e82, R14-2 E6df1962a, R14-3
+E428631c7, R14-4 Ed2e1013e, R14-5 E645f3932, R14-6 Ef27e0542), sealing
+the @REPORT chain behind startLoader@YEARS. Independent private-copy
+rebuilds (verifier, real tool, tree read-only): baseline 4270 methods,
+3430 REACHABLE / 840 UNREACHABLE, 8411 edges, 0/0; repaired 4270,
+3430 / 840 (0 label flips), 8441 edges (+30 = +6 hand +26 fan-out
+-1 deleted hand -1 suppressed plain auto E3a19df72), errors 0,
+warnings 0. $1.run redraws 11 -> 14 steps (steps 1-8 byte-identical,
+exact id list E71c76102 E2e074fc1 E5d5a9c2f Eff22f7d2 Ef93f69de
+E6b63531e Eac39a25e E470440ef Ebfbf7e82 E6df1962a E428631c7 Ed2e1013e
+E645f3932 Ef27e0542); exactly one best route/verdict/steps change;
+raw methods.csv diff 16 rows, 15 of them count-only (+2 incoming
+each, all listed in the verification report); plain startLoader
+unchanged 3 -> 3; zero cross-branch best routes; check_routes 0
+flagged; check 2: 250 distinct, 0 problems; check 4: 6019 checked,
+616 skipped, 149 implicit, 0 mismatches. (Check 8 and checks 5-7 were
+not re-run in the route-14 verification; 0 label flips, so the
+unreachable set is unchanged — the full suite runs at the F1 gate.)
+All six edge texts verbatim vs package §2(b); tombstone verbatim vs
+§2(a); all six single-feeder checks hold; $1.run incoming exactly
+Ef27e0542 (no third edge); both retired ids absent. No verdict
+claimed here: the final redraw + re-judge decides route 14.
+Step 3 (:238, E5d5a9c2f) untouched — record byte-identical baseline
+vs repaired (CALL, auto, guard None, SRC MainActivity.java:238
+(bytecode)), still at step 3; its guard follow-up is separate (needs
+its own design + audit, since the edge is a shared launch-prefix edge
+also traversed by route 29 step 3); do not describe step 3 as
+graph-fixed. No tools/ edit was needed for route 14. B7 stale ids:
+Ef9d523dd -> Ef27e0542 (sole incoming of $1.run), E3a19df72 ->
+E428631c7 (sole incoming of startLoader@YEARS; functional successor;
+regenerate rows, never hand-swap). Stored surface: Ef9d523dd appears
+only in the two old $1.run prints (history, not edited); no scratch
+file names E3a19df72. N-B closure: the three ranges the design audit
+could not re-print locally (:74-75 loader-id constants, :89-96 year
+seeding, :171 null-data return) were re-printed from the intact clone
+sources by the implementer, the implementation auditor, the merger,
+and the route-14 verifier — all four read exactly as quoted
+(:74 ID_LOADER_REPORT = 1, :75 ID_LOADER_YEARS = 2, :89-96 saved-state
+branch + else current year, :171 if (data == null) return;). No
+stop-and-re-audit was triggered. Tree note: applied 04.py is 89 lines
+(vs the package's 96 and the auditor's 90) — comment formatting only;
+all six edge texts verbatim, all ids exact. Residuals carried
+forward (DESIGN §10, audit §6 — acknowledged, not hidden, none
+blocking this landing): R14-1 branch-blind fan-out is real in the
+edge set with zero measured effect on any best route; R14-2
+sort/dialog REPORT deliveries to $1.run are no longer modelled (the
+plain startLoader chain itself survives intact; only the path from it
+to $1.run is unmodelled — a sampler change would be needed to model
+multiple deliveries to one target, out of scope for a graph repair);
+R14-3 plain chain stays conflated for adapter/reset (out of scope
+for the flagged step); R14-4 YEARS empty-cursor dead end lives only
+in guard text (standard guard-as-text convention; the re-judge
+checklist requires confirming :200 rather than assuming
+enforcement); R14-5 sample churn (no rate claimed here; redraw rules
+in DESIGN §9 stage (b) apply).

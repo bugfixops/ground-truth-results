@@ -3272,11 +3272,10 @@ e('IncomeVsExpensesListFragment.showDialogYears', 'IncomeVsExpensesListFragment$
 
 # ---- 5. the dual-panel chart (the Runnable is posted only when mIsDualPanel is true)
 
-e('IncomeVsExpensesListFragment.onLoadFinished', 'IncomeVsExpensesListFragment$1.run', 'FRAMEWORK',
-  'the report loader has data and the device shows the dual-panel layout: a Handler posts the Runnable with a 1000 ms delay, and the Runnable calls showChart on the main looper',
-  env=env_text('tablet layout with the fragmentChart view (the sw600dp landscape or sw720dp portrait layout): IncomeVsExpensesActivity.java:46 sets mIsDualPanel only when fragmentChart exists (res layout-sw600dp-land line 38, layout-sw720dp-port line 40)', ('hardware',)),
-  guard='mIsDualPanel is true (IncomeVsExpensesListFragment.java:188); the post runs only then',
-  evidence='SRC reports/IncomeVsExpensesListFragment.java:188-196 (guard 188; new Handler 189; postDelayed 190-195 with 1000 at 195; run calls showChart at 193); FW-SRC core/java/android/os/Handler.java:427-430 (postDelayed queues through sendMessageDelayed), 789-791 (handleCallback runs callback.run); SRC reports/IncomeVsExpensesActivity.java:46; res layout-sw600dp-land/report_chart_fragments_activity.xml:38 and layout-sw720dp-port/report_chart_fragments_activity.xml:40')
+# ROUTE14: plain IncomeVsExpensesListFragment.onLoadFinished -> IncomeVsExpensesListFragment$1.run DELETED
+# (was Ef9d523dd in the baseline build; REPORT-branch post only, :188-196; the YEARS delivery at :199-212
+# never posts). Replaced by the @REPORT variant edge in graph_def_mod/04.py; the plain node keeps its
+# adapter/reset outs (see DESIGN).
 
 # ---- 6. the payee report adapter (the fragment is batch 106; the cursor change is in BaseReportFragment, batch 103)
 
