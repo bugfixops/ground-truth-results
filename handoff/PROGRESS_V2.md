@@ -12,7 +12,7 @@
 - [ ] Aegis
 # 2026-10-27: the four apps below are assigned to Kiro (handoff/KIRO_CONVERT_APPS.md). "- [K]" = not ticked: the run must not take them.
 # 2026-10-29 23:25: the user moved AmazeFileManager, AnkiDroid and MMEX into the overnight run, labelling only, in this order.
-- [L] AmazeFileManager (labelled overnight 2026-10-30: UNRESOLVED 0, errors 0, warnings 0; route checks not started)
+- [K] AmazeFileManager (labels, route checks, logs and device scripts DONE 2026-11-02; CI run 33e3ca1a; D9 run 41483333085-1 PASSED; awaiting user tick)
 # 2026-10-27 21:20: these three are for the overnight convert run (handoff/RESUME_PROMPT_CONVERT.md, tools/resume_convert.sh). "- [C]" = run queue, not ticked.
 - [L] AnkiDroid (labelled overnight 2026-10-30: UNRESOLVED 0, errors 0, warnings 0; route checks not started)
 - [L] MMEX (labelled overnight 2026-10-31: UNRESOLVED 0, errors 0, warnings 0; route checks not started)
