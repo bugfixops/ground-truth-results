@@ -23,7 +23,7 @@ Rows are written in a fixed order: path rows in sample order, then label
 rows sorted by item, then edge rows sorted by item. Two runs are
 byte-identical.
 """
-import csv, glob, json, re, sys
+import csv, glob, json, os as _os, re, sys
 sys.path.insert(0, 'tools')
 import build_graph as b
 
@@ -211,6 +211,34 @@ for c in sorted(cites):
     i = cites[c]
     ref = c.replace('FW-SRC ', '').split(' and ')[0].strip()
     emit_edge(i, 'framework claim checked: AOSP 8.1.0_r1 lines read for ' + ref)
+
+# D7: DEVICE rows (device prep). If graphs/AnkiDroid/device/results.csv
+# exists (written by the CI device run, not by this run), append one row
+# per results row, in results order, AFTER all existing rows. If the file
+# does not exist, this block does nothing and the output is the B7 file
+# exactly. DEVICE rows are device confirmations only: they never feed
+# back into labels, edges, or route checks, and a not-reached route
+# never becomes 'wrong'. Pattern copied from graphs/AnyMemo/
+# make_verification.py (D7).
+_res = 'graphs/%s/device/results.csv' % APP
+if _os.path.exists(_res):
+    with open(_res, encoding='utf-8', newline='') as _f:
+        for _row in csv.DictReader(_f):
+            _reached = _row['reached']
+            _status = _row['script_status']
+            if _reached == 'yes':
+                _res2, _note = 'correct', _status
+            elif _status == 'unscriptable':
+                _res2, _note = 'unclear', 'unscriptable'
+            elif _status == 'timeout' or _status.startswith('failed_at_step_'):
+                _res2, _note = 'unclear', _status + '; script failed'
+            elif _reached == 'no':
+                _res2, _note = 'unclear', _status + '; not reached'
+            else:  # reached=not_run with status ok (defensive; should not occur)
+                _res2, _note = 'unclear', _status + '; not run'
+            out.append(['path', _row['method'], _res2, 'DEVICE',
+                        'device run %s/%s' % (_row['run'], _row['script']),
+                        _row['edges'], _note])
 
 with open('graphs/%s/verification.csv' % APP, 'w', encoding='utf-8', newline='') as f:
     csv.writer(f).writerows(out)

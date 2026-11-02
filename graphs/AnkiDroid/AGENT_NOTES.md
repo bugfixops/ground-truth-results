@@ -424,3 +424,52 @@ An edge is written by the part that contains its source method; if the source is
 - readme_notes.md (five headings in order) + LESSONS.md (8 bullets)
   written. The redraw/sample divergence is recorded in both
   route_table.md and readme_notes.md as a coordinator ruling item.
+
+## Finish run 2026-11-02 — D1/D3 device preparation (audit + re-audit PASS)
+
+- D1: device/routes/AnkiDroid/ROUTES.csv — 30 rows (first-draw sample,
+  seed 20261025), Currency 10-column header, routes in order 01-30.
+  Status: 27 scripted, 3 unscriptable = 10.0%, exactly at (not over)
+  the 10% cap; no over-cap acceptance is triggered by the arithmetic.
+  If the cap is read as strictly below 10%, the coordinator must rule
+  (audit note); the cap alone must not block F1 per the user's ruling.
+- D3: 28 scripts under device/routes/AnkiDroid/ (27 scripted routes
+  + route_26b.py, the second script for route 26's rename-flow
+  route B; route A is route_26.py and the CSV row). Scripts follow
+  the corrected routes for WRONG routes (never BFS where the audit
+  says BFS misleads), the final BFS route for FIXED/CORRECT routes.
+  Unscriptable reason files: ROUTE_UNSCRIPTABLE_02.md (real AnkiWeb
+  account + real HTTPS sync; the user's account/credential exception),
+  ROUTE_UNSCRIPTABLE_15.md (external host app via exported
+  CardContentProvider; harness has no provider-call action),
+  ROUTE_UNSCRIPTABLE_25.md (no-space dialog; no UI action produces
+  it, threshold unverified, revival path recorded).
+- Audit: device-draft/AUDIT.md FAIL narrowly on 5 r.comment calls
+  missing the required edge argument (D1-D5, routes 19/20/22/28);
+  fixed by attaching the auditor-specified following edges; narrow
+  re-audit device-draft/REAUDIT.md PASS (AST 0 bare comment calls,
+  4 fixed scripts exit 0 under branch-harness --dry-run, CSVs
+  re-parsed 30 rows, permissions normalised to the qualified form).
+  Full-audit rulings (a)-(f) all RULED-ACCEPTED, including route 21
+  menu-sync entry (not onResume), route 10 trigger substitution,
+  routes 06/08 scripted despite INFERRED steps. Dry-run status: all
+  28 scripts exit 0 under harness --dry-run (24 in the full audit +
+  4 in the re-audit); no emulator/adb/device was started. The full
+  device/drycheck.py run and D9 remain coordinator gates.
+- D7: make_verification.py carries the DEVICE-row block (pattern
+  copied from AnyMemo's D7 writer): if
+  graphs/AnkiDroid/device/results.csv exists (written by the CI
+  device run, not by this run), one DEVICE-confirmed path row per
+  results row is appended after all existing rows; otherwise the
+  output is the B7 file exactly. Verified: two runs with the D7
+  block and no results file are byte-identical to the pushed B7
+  verification.csv, so verification.csv is NOT re-pushed here.
+  DEVICE rows never feed back into labels, edges, or route checks.
+- Gaps carried (flagged in the drafts and confirmed by audit, not
+  resolved silently): selectors needing a live uiautomator dump
+  (drawer "Navigate up", "More options", route_10 FIXTURE_CARD_TEXT,
+  route_11 FIXTURE_DYN_DECK, route_14 Advanced-screen navigation);
+  fixtures (tablet config for 05/11, route_08 integrity-check
+  assumption, route_12 video fixture, route_20 StudyOptions entry
+  variant, route_27 focused-deck mechanism, route_01 language
+  spinners, glosbe.com/Beolingus reachability unchecked here).
