@@ -1,0 +1,718 @@
+$ A3 part converter prints for batch 22 (LibreTorrent 3.5.2)
+$ Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/AddTorrentParams.java" | sed -n '96,119p'
+96:    public void writeToParcel(Parcel dest, int flags) {
+97:        dest.writeString(source);
+98:        dest.writeByte((byte) (fromMagnet ? 1 : 0));
+99:        dest.writeString(sha1hash);
+100:        dest.writeString(name);
+101:        dest.writeArray(filePriorities);
+102:        dest.writeParcelable(downloadPath, flags);
+103:        dest.writeByte((byte) (sequentialDownload ? 1 : 0));
+104:        dest.writeByte((byte) (addPaused ? 1 : 0));
+105:        dest.writeTypedList(tags);
+106:        dest.writeByte((byte) (firstLastPiecePriority ? 1 : 0));
+107:    }
+108:
+109:    public static final Parcelable.Creator<AddTorrentParams> CREATOR = new Parcelable.Creator<>() {
+110:                @Override
+111:                public AddTorrentParams createFromParcel(Parcel source) {
+112:                    return new AddTorrentParams(source);
+113:                }
+114:
+115:                @Override
+116:                public AddTorrentParams[] newArray(int size) {
+117:                    return new AddTorrentParams[size];
+118:                }
+119:            };
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java" | sed -n '97,145p'
+97:    private static final String TAG = TorrentEngine.class.getSimpleName();
+98:
+99:    private Context appContext;
+100:    private TorrentSession session;
+101:    private TorrentStreamServer torrentStreamServer;
+102:    private TorrentRepository repo;
+103:    private TagRepository tagRepo;
+104:    private SettingsRepository pref;
+105:    private TorrentNotifier notifier;
+106:    private CompositeDisposable disposables = new CompositeDisposable();
+107:    private TorrentFileObserver fileObserver;
+108:    private PowerReceiver powerReceiver = new PowerReceiver();
+109:    private ConnectionReceiver connectionReceiver = new ConnectionReceiver();
+110:    private FileSystemFacade fs;
+111:    private DownloadsCompletedListener downloadsCompleted;
+112:    private ExecutorService exec = Executors.newSingleThreadExecutor();
+113:    private SessionErrorFilter errorFilter = new SessionErrorFilter();
+114:
+115:    private static volatile TorrentEngine INSTANCE;
+116:
+117:    public static TorrentEngine getInstance(@NonNull Context appContext) {
+118:        if (INSTANCE == null) {
+119:            synchronized (TorrentEngine.class) {
+120:                if (INSTANCE == null)
+121:                    INSTANCE = new TorrentEngine(appContext);
+122:            }
+123:        }
+124:
+125:        return INSTANCE;
+126:    }
+127:
+128:    private TorrentEngine(@NonNull Context appContext) {
+129:        this.appContext = appContext;
+130:        repo = RepositoryHelper.getTorrentRepository(appContext);
+131:        tagRepo = RepositoryHelper.getTagRepository(appContext);
+132:        fs = SystemFacadeHelper.getFileSystemFacade(appContext);
+133:        pref = RepositoryHelper.getSettingsRepository(appContext);
+134:        notifier = TorrentNotifier.getInstance(appContext);
+135:        downloadsCompleted = new DownloadsCompletedListener(this);
+136:        session = new TorrentSessionImpl(repo,
+137:                fs,
+138:                SystemFacadeHelper.getSystemFacade(appContext));
+139:        session.setSettings(pref.readSessionSettings(), false);
+140:        session.addListener(engineListener);
+141:    }
+142:
+143:    private void handleAutoStop() {
+144:        if (pref.shutdownDownloadsComplete())
+145:            forceStop();
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java" | sed -n '234,260p'
+234:    public void doStart() {
+235:        if (isRunning())
+236:            return;
+237:
+238:        switchConnectionReceiver();
+239:        switchPowerReceiver();
+240:        disposables.add(pref.observeSettingsChanged()
+241:                .subscribe(this::handleSettingsChanged));
+242:
+243:        disposables.add(downloadsCompleted.listen()
+244:                .subscribe(
+245:                        this::handleAutoStop,
+246:                        (err) -> {
+247:                            Log.e(TAG, "Auto stop error: " +
+248:                                    Log.getStackTraceString(err));
+249:                            handleAutoStop();
+250:                        }
+251:                ));
+252:
+253:        disposables.add(session.getLogger().observeDataSetChanged()
+254:                .subscribe((change) -> {
+255:                    if (change.reason == Logger.DataSetChange.Reason.NEW_ENTRIES && change.entries != null)
+256:                        printSessionLog(change.entries);
+257:                }));
+258:
+259:        session.start();
+260:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java" | sed -n '282,310p'
+282:    public void forceStop() {
+283:        Intent i = new Intent(appContext, TorrentService.class);
+284:        i.setAction(TorrentService.ACTION_SHUTDOWN);
+285:        Utils.startServiceBackground(appContext, i);
+286:    }
+287:
+288:    /*
+289:     * Only calls from TorrentService
+290:     */
+291:
+292:    public void doStop() {
+293:        if (!isRunning())
+294:            return;
+295:
+296:        disposables.clear();
+297:        stopWatchDir();
+298:        stopStreamingServer();
+299:        session.requestStop();
+300:        cleanTemp();
+301:    }
+302:
+303:    public boolean isRunning() {
+304:        return session.isRunning();
+305:    }
+306:
+307:    public void addListener(TorrentEngineListener listener) {
+308:        session.addListener(listener);
+309:    }
+310:
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java" | sed -n '315,335p'
+315:    public void rescheduleTorrents() {
+316:        disposables.add(Completable.fromRunnable(() -> {
+317:                    if (!isRunning())
+318:                        return;
+319:
+320:                    if (checkPauseTorrents())
+321:                        session.pauseAll();
+322:                    else
+323:                        session.resumeAll();
+324:
+325:                }).subscribeOn(Schedulers.io())
+326:                .subscribe());
+327:    }
+328:
+329:    public void addTorrent(@NonNull AddTorrentParams params,
+330:                           boolean removeFile) {
+331:        disposables.add(Completable.fromRunnable(() -> {
+332:                    try {
+333:                        addTorrentSync(params, removeFile);
+334:
+335:                    } catch (Exception e) {
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java" | sed -n '342,390p'
+342:    public void addTorrents(@NonNull List<AddTorrentParams> paramsList,
+343:                            boolean removeFile) {
+344:        if (!isRunning())
+345:            return;
+346:
+347:        disposables.add(Observable.fromIterable(paramsList)
+348:                .subscribeOn(Schedulers.io())
+349:                .subscribe((params) -> {
+350:                    try {
+351:                        session.addTorrent(params, removeFile);
+352:
+353:                    } catch (Exception e) {
+354:                        handleAddTorrentError(params.name, e);
+355:                    }
+356:                }));
+357:    }
+358:
+359:    public void addTorrent(@NonNull Uri file) {
+360:        addTorrent(file, null);
+361:    }
+362:
+363:    public void addTorrent(@NonNull Uri file, @Nullable Uri savePath) {
+364:        disposables.add(addTorrentCompletable(file, savePath)
+365:                .subscribeOn(Schedulers.io())
+366:                .subscribe()
+367:        );
+368:    }
+369:
+370:    public Completable addTorrentCompletable(@NonNull Uri file) {
+371:        return addTorrentCompletable(file, null);
+372:    }
+373:
+374:    public Completable addTorrentCompletable(@NonNull Uri file, @Nullable Uri savePath) {
+375:        return Completable.fromRunnable(() -> {
+376:            if (!isRunning())
+377:                return;
+378:
+379:            TorrentMetaInfo info = null;
+380:            try (FileDescriptorWrapper w = fs.getFD(file)) {
+381:                FileDescriptor outFd = w.open("r");
+382:
+383:                try (FileInputStream is = new FileInputStream(outFd)) {
+384:                    info = new TorrentMetaInfo(is);
+385:
+386:                } catch (Exception e) {
+387:                    throw new DecodeException(e);
+388:                }
+389:                addTorrentSync(file, info, savePath);
+390:
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java" | sed -n '401,413p'
+401:    public Torrent addTorrentSync(
+402:            @NonNull AddTorrentParams params,
+403:            boolean removeFile
+404:    ) throws
+405:            IOException,
+406:            TorrentAlreadyExistsException,
+407:            DecodeException,
+408:            UnknownUriException {
+409:        if (!isRunning())
+410:            return null;
+411:
+412:        return session.addTorrent(params, removeFile);
+413:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java" | sed -n '415,429p'
+415:    public Pair<MagnetInfo, Single<TorrentMetaInfo>> fetchMagnet(@NonNull String uri) throws Exception {
+416:        if (!isRunning())
+417:            return null;
+418:
+419:        MagnetInfo info = session.fetchMagnet(uri);
+420:        if (info == null)
+421:            return null;
+422:        Single<TorrentMetaInfo> res = createFetchMagnetSingle(info.getSha1hash());
+423:
+424:        return Pair.create(info, res);
+425:    }
+426:
+427:    public MagnetInfo parseMagnet(@NonNull String uri) {
+428:        return session.parseMagnet(uri);
+429:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java" | sed -n '431,486p'
+431:    private Single<TorrentMetaInfo> createFetchMagnetSingle(String targetHash) {
+432:        return Single.create((emitter) -> {
+433:            TorrentEngineListener listener = new TorrentEngineListener() {
+434:                @Override
+435:                public void onMagnetLoaded(@NonNull String hash, byte[] bencode) {
+436:                    if (!targetHash.equals(hash))
+437:                        return;
+438:
+439:                    if (!emitter.isDisposed()) {
+440:                        if (bencode == null)
+441:                            emitter.onError(new IOException(new NullPointerException("bencode is null")));
+442:                        else
+443:                            sendInfoToEmitter(emitter, bencode);
+444:                    }
+445:                }
+446:            };
+447:            if (!emitter.isDisposed()) {
+448:                /* Check if metadata is already loaded */
+449:                byte[] bencode = session.getLoadedMagnet(targetHash);
+450:                if (bencode == null) {
+451:                    session.addListener(listener);
+452:                    emitter.setDisposable(Disposables.fromAction(() ->
+453:                            session.removeListener(listener)));
+454:                } else {
+455:                    sendInfoToEmitter(emitter, bencode);
+456:                }
+457:            }
+458:        });
+459:    }
+460:
+461:    private void sendInfoToEmitter(SingleEmitter<TorrentMetaInfo> emitter, byte[] bencode) {
+462:        TorrentMetaInfo info;
+463:        try {
+464:            info = new TorrentMetaInfo(bencode);
+465:
+466:        } catch (DecodeException e) {
+467:            Log.e(TAG, Log.getStackTraceString(e));
+468:            if (!emitter.isDisposed())
+469:                emitter.onError(e);
+470:            return;
+471:        }
+472:
+473:        if (!emitter.isDisposed())
+474:            emitter.onSuccess(info);
+475:    }
+476:
+477:    /*
+478:     * Used only for magnets from the magnetList (non added magnets)
+479:     */
+480:
+481:    public void cancelFetchMagnet(@NonNull String infoHash) {
+482:        if (!isRunning())
+483:            return;
+484:
+485:        session.cancelFetchMagnet(infoHash);
+486:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java" | sed -n '507,557p'
+507:    public void forceRecheckTorrents(@NonNull List<String> ids) {
+508:        disposables.add(Observable.fromIterable(ids)
+509:                .filter(Objects::nonNull)
+510:                .subscribe((id) -> {
+511:                    if (!isRunning())
+512:                        return;
+513:
+514:                    TorrentDownload task = session.getTask(id);
+515:                    if (task != null)
+516:                        task.forceRecheck();
+517:                }));
+518:    }
+519:
+520:    public void forceAnnounceTorrents(@NonNull List<String> ids) {
+521:        disposables.add(Observable.fromIterable(ids)
+522:                .filter(Objects::nonNull)
+523:                .subscribe((id) -> {
+524:                    if (!isRunning())
+525:                        return;
+526:
+527:                    TorrentDownload task = session.getTask(id);
+528:                    if (task != null)
+529:                        task.requestTrackerAnnounce();
+530:                }));
+531:    }
+532:
+533:    public void deleteTorrents(@NonNull List<String> ids, boolean withFiles) {
+534:        disposables.add(Observable.fromIterable(ids)
+535:                .observeOn(Schedulers.io())
+536:                .subscribe((id) -> {
+537:                    if (!isRunning())
+538:                        return;
+539:                    session.deleteTorrent(id, withFiles);
+540:                }));
+541:    }
+542:
+543:    public void deleteTrackers(@NonNull String id, @NonNull List<String> urls) {
+544:        if (!isRunning())
+545:            return;
+546:
+547:        TorrentDownload task = session.getTask(id);
+548:        if (task == null)
+549:            return;
+550:
+551:        Set<String> trackers = task.getTrackersUrl();
+552:        trackers.removeAll(urls);
+553:
+554:        task.replaceTrackers(trackers);
+555:    }
+556:
+557:    public void replaceTrackers(@NonNull String id, @NonNull List<String> urls) {
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java" | sed -n '568,575p'
+568:    public void addTrackers(@NonNull String id, @NonNull List<String> urls) {
+569:        if (!isRunning())
+570:            return;
+571:
+572:        TorrentDownload task = session.getTask(id);
+573:        if (task != null)
+574:            task.addTrackers(new HashSet<>(urls));
+575:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java" | sed -n '927,936p'
+927:    public byte[] getBencode(@NonNull String id) {
+928:        if (!isRunning())
+929:            return null;
+930:
+931:        TorrentDownload task = session.getTask(id);
+932:        if (task == null)
+933:            return null;
+934:
+935:        return task.getBencode();
+936:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java" | sed -n '965,980p'
+965:            if (!saveTorrentFile(torrent.id, saveDir, torrentFileName))
+966:                Log.w(TAG, "Could not save torrent file + " + torrentFileName);
+967:
+968:        } catch (Exception e) {
+969:            Log.w(TAG, "Could not save torrent file + " + torrentFileName + ": ", e);
+970:        }
+971:    }
+972:
+973:    private boolean saveTorrentFile(String id, Uri destDir, String fileName) throws IOException, UnknownUriException {
+974:        byte[] bencode = getBencode(id);
+975:        if (bencode == null)
+976:            return false;
+977:
+978:        String name = (fileName != null ? fileName : id);
+979:
+980:        Uri path = fs.createFile(destDir, name, true);
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java" | sed -n '1023,1032p'
+1023:    private boolean checkPauseTorrents() {
+1024:        boolean batteryControl = pref.batteryControl();
+1025:        boolean customBatteryControl = pref.customBatteryControl();
+1026:        int customBatteryControlValue = pref.customBatteryControlValue();
+1027:        boolean onlyCharging = pref.onlyCharging();
+1028:        boolean unmeteredOnly = pref.unmeteredConnectionsOnly();
+1029:        boolean roaming = pref.enableRoaming();
+1030:
+1031:        boolean stop = false;
+1032:        if (roaming)
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java" | sed -n '1116,1180p'
+1116:    private void startWatchDir() {
+1117:        String dir = pref.dirToWatch();
+1118:        Uri uri = Uri.parse(dir);
+1119:        if (!Utils.isFileSystemPath(uri))
+1120:            throw new IllegalArgumentException("SAF is not supported:" + uri);
+1121:        dir = uri.getPath();
+1122:
+1123:        scanTorrentsInDir(dir);
+1124:        fileObserver = makeTorrentFileObserver(dir);
+1125:        fileObserver.startWatching();
+1126:    }
+1127:
+1128:    private void stopWatchDir() {
+1129:        if (fileObserver == null)
+1130:            return;
+1131:
+1132:        fileObserver.stopWatching();
+1133:        fileObserver = null;
+1134:    }
+1135:
+1136:    private TorrentFileObserver makeTorrentFileObserver(String pathToDir) {
+1137:        return new TorrentFileObserver(pathToDir) {
+1138:            @Override
+1139:            public void onEvent(int event, @Nullable String name) {
+1140:                if (name == null)
+1141:                    return;
+1142:
+1143:                File f = new File(pathToDir, name);
+1144:                if (!f.exists())
+1145:                    return;
+1146:                if (f.isDirectory() || !f.getName().endsWith(".torrent"))
+1147:                    return;
+1148:                Uri uri = Uri.fromFile(f);
+1149:                disposables.add(addTorrentCompletable(uri)
+1150:                        .subscribeOn(Schedulers.io())
+1151:                        .subscribe(() -> {
+1152:                            if (pref.watchDirDeleteFile()) {
+1153:                                try {
+1154:                                    fs.deleteFile(uri);
+1155:                                } catch (IOException | UnknownUriException e) {
+1156:                                    Log.w(TAG, "[Watch] Unable to delete file: "
+1157:                                            + Log.getStackTraceString(e));
+1158:                                }
+1159:                            }
+1160:                        })
+1161:                );
+1162:            }
+1163:        };
+1164:    }
+1165:
+1166:    private void scanTorrentsInDir(String pathToDir) {
+1167:        File dir = new File(pathToDir);
+1168:        if (!dir.exists())
+1169:            return;
+1170:        for (File file : org.apache.commons.io.FileUtils.listFiles(dir, FileFilterUtils.suffixFileFilter(".torrent"), null)) {
+1171:            if (!file.exists())
+1172:                continue;
+1173:            addTorrent(Uri.fromFile(file));
+1174:        }
+1175:    }
+1176:
+1177:    private Torrent addTorrentSync(Uri file, TorrentMetaInfo info, Uri savePath)
+1178:            throws IOException,
+1179:            FreeSpaceException,
+1180:            TorrentAlreadyExistsException,
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java" | sed -n '1177,1205p'
+1177:    private Torrent addTorrentSync(Uri file, TorrentMetaInfo info, Uri savePath)
+1178:            throws IOException,
+1179:            FreeSpaceException,
+1180:            TorrentAlreadyExistsException,
+1181:            DecodeException,
+1182:            UnknownUriException {
+1183:        Priority[] priorities = new Priority[info.fileCount];
+1184:        Arrays.fill(priorities, Priority.DEFAULT);
+1185:        Uri downloadPath = (savePath == null ? Uri.parse(pref.saveTorrentsIn()) : savePath);
+1186:
+1187:        AddTorrentParams params = new AddTorrentParams(
+1188:                file.toString(),
+1189:                false,
+1190:                info.sha1Hash,
+1191:                info.torrentName,
+1192:                priorities,
+1193:                downloadPath,
+1194:                false,
+1195:                false,
+1196:                new ArrayList<>(),
+1197:                false
+1198:        );
+1199:
+1200:        if (fs.getDirAvailableBytes(downloadPath) < info.torrentSize) {
+1201:            throw new FreeSpaceException();
+1202:        }
+1203:
+1204:        return addTorrentSync(params, false);
+1205:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java" | sed -n '1223,1227p'
+1223:    private void cleanTemp() {
+1224:        try {
+1225:            fs.cleanTempDir();
+1226:
+1227:        } catch (Exception e) {
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java" | sed -n '1265,1280p'
+1265:    private final TorrentEngineListener engineListener = new TorrentEngineListener() {
+1266:        @Override
+1267:        public void onSessionStarted() {
+1268:            handleOnSessionStarted();
+1269:        }
+1270:
+1271:        @Override
+1272:        public void onTorrentAdded(@NonNull String id) {
+1273:            if (pref.saveTorrentFiles())
+1274:                saveTorrentFileIn(repo.getTorrentById(id),
+1275:                        Uri.parse(pref.saveTorrentFilesIn()));
+1276:
+1277:            if (checkPauseTorrents()) {
+1278:                disposables.add(Completable.fromRunnable(() -> {
+1279:                            if (!isRunning())
+1280:                                return;
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java" | sed -n '1385,1390p'
+1385:        public void onSessionError(@NonNull String errorMsg) {
+1386:            if (errorFilter.skip(errorMsg)) {
+1387:                return;
+1388:            }
+1389:            notifier.makeSessionErrorNotify(errorMsg);
+1390:        }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java" | sed -n '1428,1435p'
+1428:                    .filter(Objects::nonNull)
+1429:                    .subscribe((torrent) -> {
+1430:                                if (err == null) {
+1431:                                    if (pref.saveTorrentFiles())
+1432:                                        saveTorrentFileIn(torrent, Uri.parse(pref.saveTorrentFilesIn()));
+1433:
+1434:                                } else if (err instanceof FreeSpaceException) {
+1435:                                    notifier.makeTorrentErrorNotify(torrent.name, appContext.getString(R.string.error_free_space));
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/DownloadsCompletedListener.java" | sed -n '40,86p'
+40:    DownloadsCompletedListener(@NonNull TorrentEngine engine)
+41:    {
+42:        this.engine = engine;
+43:    }
+44:
+45:    public Completable listen()
+46:    {
+47:        return Completable.create((emitter) -> {
+48:            ArrayList<String> torrentsInProgress = new ArrayList<>();
+49:
+50:            Runnable eventHandler = () -> {
+51:                if (!emitter.isDisposed() && torrentsInProgress.isEmpty())
+52:                    emitter.onComplete();
+53:            };
+54:
+55:            TorrentEngineListener listener = new TorrentEngineListener() {
+56:                @Override
+57:                public void onTorrentStateChanged(@NonNull String id,
+58:                                                  @NonNull TorrentStateCode prevState,
+59:                                                  @NonNull TorrentStateCode curState)
+60:                {
+61:                    if (curState == TorrentStateCode.DOWNLOADING)
+62:                        torrentsInProgress.add(id);
+63:                }
+64:
+65:                @Override
+66:                public void onTorrentFinished(@NonNull String id)
+67:                {
+68:                    if (torrentsInProgress.remove(id))
+69:                        eventHandler.run();
+70:                }
+71:
+72:                @Override
+73:                public void onTorrentRemoved(@NonNull String id)
+74:                {
+75:                    if (torrentsInProgress.remove(id))
+76:                        eventHandler.run();
+77:                }
+78:            };
+79:
+80:            if (!emitter.isDisposed()) {
+81:                engine.addListener(listener);
+82:                emitter.setDisposable(Disposables.fromAction(() ->
+83:                        engine.removeListener(listener)));
+84:            }
+85:        });
+86:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/SessionErrorFilter.java" | sed -n '18,33p'
+18: */
+19:
+20:package org.proninyaroslav.libretorrent.core.model;
+21:
+22:import java.util.HashSet;
+23:
+24:public class SessionErrorFilter {
+25:    static final HashSet<String> filteredErrors = new HashSet<>();
+26:    static {
+27:        filteredErrors.add("Operation not supported on transport endpoint, code 95");
+28:    }
+29:
+30:    boolean skip(String errorMsg) {
+31:        return filteredErrors.contains(errorMsg);
+32:    }
+33:}
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/service/TorrentService.java" | sed -n '105,135p'
+105:    @Override
+106:    public void onCreate()
+107:    {
+108:        pref = RepositoryHelper.getSettingsRepository(getApplicationContext());
+109:        engine = TorrentEngine.getInstance(getApplicationContext());
+110:        stateProvider = TorrentInfoProvider.getInstance(getApplicationContext());
+111:
+112:        initPendingIntents();
+113:        makeForegroundNotify();
+114:    }
+115:
+116:    private void init()
+117:    {
+118:        Log.i(TAG, "Start " + TAG);
+119:
+120:        makeForegroundNotify();
+121:        subscribeCombinedPauseButtonState();
+122:        setFilterAndSorting();
+123:        subscribeForceSortAndFilter();
+124:
+125:        disposables.add(pref.observeSettingsChanged()
+126:                .subscribe(this::handleSettingsChanged));
+127:
+128:        Utils.enableBootReceiverIfNeeded(getApplicationContext());
+129:        setKeepCpuAwake(pref.cpuDoNotSleep());
+130:
+131:        engine.doStart();
+132:        engine.addListener(engineListener);
+133:
+134:        startUpdateForegroundNotify();
+135:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/service/TorrentService.java" | sed -n '157,165p'
+157:    private void stopEngine()
+158:    {
+159:        shuttingDown.set(true);
+160:        forceClearForeground();
+161:        engine.doStop();
+162:    }
+163:
+164:    private void stopService()
+165:    {
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/service/FeedDownloaderWorker.java" | sed -n '192,212p'
+192:    private Result addTorrents(ArrayList<AddTorrentParams> paramsList)
+193:    {
+194:        if (paramsList == null || paramsList.isEmpty())
+195:            return Result.failure();
+196:
+197:        if (!engine.isRunning())
+198:            engine.start();
+199:
+200:        /* TODO: maybe refactor */
+201:        while (!engine.isRunning()) {
+202:            try {
+203:                Thread.sleep(START_ENGINE_RETRY_TIME);
+204:                engine.start();
+205:
+206:            } catch (InterruptedException e) {
+207:                return Result.failure();
+208:            }
+209:        }
+210:
+211:        engine.addTorrents(paramsList, true);
+212:
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/detailtorrent/DetailTorrentViewModel.java" | sed -n '345,355p'
+345:    public void deleteTrackers(@NonNull List<String> urls) {
+346:        engine.deleteTrackers(torrentId, urls);
+347:    }
+348:
+349:    public void replaceTrackers(@NonNull List<String> urls) {
+350:        engine.replaceTrackers(torrentId, urls);
+351:    }
+352:
+353:    public void addTrackers(@NonNull List<String> urls) {
+354:        engine.addTrackers(torrentId, urls);
+355:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/MainViewModel.java" | sed -n '142,152p'
+142:    public void deleteTorrents(@NonNull List<String> ids, boolean withFiles) {
+143:        engine.deleteTorrents(ids, withFiles);
+144:    }
+145:
+146:    public void forceRecheckTorrents(@NonNull List<String> ids) {
+147:        engine.forceRecheckTorrents(ids);
+148:    }
+149:
+150:    public void forceAnnounceTorrents(@NonNull List<String> ids) {
+151:        engine.forceAnnounceTorrents(ids);
+152:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentViewModel.java" | sed -n '217,240p'
+217:        protected Throwable doInBackground(Uri... params) {
+218:            AddTorrentViewModel v = viewModel.get();
+219:            if (v == null || isCancelled())
+220:                return null;
+221:
+222:            Uri uri = params[0];
+223:            try {
+224:                switch (uri.getScheme()) {
+225:                    case Utils.FILE_PREFIX:
+226:                    case Utils.CONTENT_PREFIX:
+227:                        v.mutableParams.setSource(uri.toString());
+228:                        v.decodeState.postValue(
+229:                                new DecodeState(AddTorrentViewModel.Status.DECODE_TORRENT_FILE));
+230:                        break;
+231:                    case Utils.MAGNET_PREFIX:
+232:                        v.mutableParams.setSource(uri.toString());
+233:                        v.decodeState.postValue(
+234:                                new DecodeState(AddTorrentViewModel.Status.FETCHING_MAGNET));
+235:                        v.mutableParams.setFromMagnet(true);
+236:
+237:                        Pair<MagnetInfo, Single<TorrentMetaInfo>> res = v.engine.fetchMagnet(uri.toString());
+238:                        if (res == null)
+239:                            break;
+240:                        MagnetInfo magnetInfo = res.first;
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentViewModel.java" | sed -n '565,575p'
+565:    private void cancelFetchMagnet() {
+566:        TorrentMetaInfo infoVal = info.get();
+567:        if (infoVal == null)
+568:            return;
+569:
+570:        DecodeState state = decodeState.getValue();
+571:        if (state != null && state.status == Status.FETCHING_MAGNET)
+572:            engine.cancelFetchMagnet(infoVal.sha1Hash);
+573:    }
+574:}

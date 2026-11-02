@@ -1,0 +1,708 @@
+Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+
+$ sed -n '1,498p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentInfoProvider.java
+/*
+ * Copyright (C) 2019 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.core.model;
+
+import android.content.Context;
+import android.util.Log;
+
+import androidx.annotation.NonNull;
+
+import org.proninyaroslav.libretorrent.core.RepositoryHelper;
+import org.proninyaroslav.libretorrent.core.model.data.AdvancedTorrentInfo;
+import org.proninyaroslav.libretorrent.core.model.data.PeerInfo;
+import org.proninyaroslav.libretorrent.core.model.data.SessionStats;
+import org.proninyaroslav.libretorrent.core.model.data.TorrentInfo;
+import org.proninyaroslav.libretorrent.core.model.data.TorrentStateCode;
+import org.proninyaroslav.libretorrent.core.model.data.TrackerInfo;
+import org.proninyaroslav.libretorrent.core.storage.TagRepository;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+
+import io.reactivex.BackpressureStrategy;
+import io.reactivex.Flowable;
+import io.reactivex.Observable;
+import io.reactivex.Single;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.disposables.Disposables;
+import io.reactivex.functions.Consumer;
+
+/*
+ * Provides runtime information about torrent, which isn't saved to the database.
+ */
+
+public class TorrentInfoProvider {
+    private static final String TAG = TorrentInfoProvider.class.getSimpleName();
+
+    private static final int GET_INFO_SYNC_TIME = 1000; /* ms */
+
+    private static volatile TorrentInfoProvider INSTANCE;
+    private TorrentEngine engine;
+    private TagRepository tagRepo;
+
+    public static TorrentInfoProvider getInstance(
+            @NonNull TorrentEngine engine,
+            @NonNull TagRepository tagRepo
+    ) {
+        if (INSTANCE == null) {
+            synchronized (TorrentInfoProvider.class) {
+                if (INSTANCE == null)
+                    INSTANCE = new TorrentInfoProvider(engine, tagRepo);
+            }
+        }
+        return INSTANCE;
+    }
+
+    public static TorrentInfoProvider getInstance(@NonNull Context appContext) {
+        if (INSTANCE == null) {
+            synchronized (TorrentInfoProvider.class) {
+                if (INSTANCE == null)
+                    INSTANCE = new TorrentInfoProvider(
+                            TorrentEngine.getInstance(appContext),
+                            RepositoryHelper.getTagRepository(appContext)
+                    );
+            }
+        }
+        return INSTANCE;
+    }
+
+    private TorrentInfoProvider(TorrentEngine engine, TagRepository tagRepo) {
+        this.engine = engine;
+        this.tagRepo = tagRepo;
+    }
+
+    public Flowable<TorrentInfo> observeInfo(@NonNull String id) {
+        return makeInfoFlowable(id);
+    }
+
+    public Flowable<List<TorrentInfo>> observeInfoList() {
+        return makeInfoListFlowable();
+    }
+
+    public Single<List<TorrentInfo>> getInfoListSingle() {
+        return makeInfoListSingle();
+    }
+
+    public Flowable<AdvancedTorrentInfo> observeAdvancedInfo(@NonNull String id) {
+        return makeAdvancedInfoFlowable(id);
+    }
+
+    public Flowable<List<TrackerInfo>> observeTrackersInfo(@NonNull String id) {
+        return makeTrackersInfoFlowable(id);
+    }
+
+    public Flowable<List<PeerInfo>> observePeersInfo(@NonNull String id) {
+        return makePeersInfoFlowable(id);
+    }
+
+    public Flowable<boolean[]> observePiecesInfo(@NonNull String id) {
+        return makePiecesFlowable(id);
+    }
+
+    public Flowable<String> observeTorrentsDeleted() {
+        return makeTorrentsDeletedFlowable();
+    }
+
+    public Flowable<SessionStats> observeSessionStats() {
+        return makeSessionStatsFlowable();
+    }
+
+    private Flowable<TorrentInfo> makeInfoFlowable(String id) {
+        return Flowable.create((emitter) -> {
+            final AtomicReference<TorrentInfo> info = new AtomicReference<>();
+
+            Consumer<String> handleEvent = (torrentId) -> {
+                if (!id.equals(torrentId))
+                    return;
+
+                TorrentInfo newInfo = engine.makeInfoSync(id);
+                TorrentInfo oldInfo = info.get();
+                if (newInfo != null && !newInfo.equals(oldInfo)) {
+                    info.set(newInfo);
+                    if (!emitter.isCancelled())
+                        emitter.onNext(newInfo);
+                }
+            };
+
+            TorrentEngineListener listener = new TorrentEngineListener() {
+                @Override
+                public void onTorrentStateChanged(@NonNull String torrentId,
+                                                  @NonNull TorrentStateCode prevState,
+                                                  @NonNull TorrentStateCode curState) {
+                    try {
+                        handleEvent.accept(torrentId);
+
+                    } catch (Exception e) {
+                        if (!emitter.isCancelled())
+                            emitter.onError(e);
+                    }
+                }
+
+                @Override
+                public void onTorrentPaused(@NonNull String torrentId) {
+                    try {
+                        handleEvent.accept(torrentId);
+
+                    } catch (Exception e) {
+                        if (!emitter.isCancelled())
+                            emitter.onError(e);
+                    }
+                }
+
+                @Override
+                public void onRestoreSessionError(@NonNull String torrentId) {
+                    try {
+                        handleEvent.accept(torrentId);
+
+                    } catch (Exception e) {
+                        if (!emitter.isCancelled())
+                            emitter.onError(e);
+                    }
+                }
+
+                @Override
+                public void onTorrentError(@NonNull String torrentId, Exception e) {
+                    try {
+                        handleEvent.accept(torrentId);
+
+                    } catch (Exception ex) {
+                        if (!emitter.isCancelled())
+                            emitter.onError(ex);
+                    }
+                }
+
+                @Override
+                public void onSessionStats(@NonNull SessionStats stats) {
+                    try {
+                        handleEvent.accept(id);
+
+                    } catch (Exception ex) {
+                        if (!emitter.isCancelled())
+                            emitter.onError(ex);
+                    }
+                }
+            };
+
+            if (!emitter.isCancelled()) {
+                Thread t = new Thread(() -> {
+                    TorrentInfo s = engine.makeInfoSync(id);
+                    info.set(s);
+                    if (!emitter.isCancelled()) {
+                        /* Emit once to avoid missing any data and also easy chaining */
+                        if (s != null)
+                            emitter.onNext(s);
+                        engine.addListener(listener);
+                        CompositeDisposable disposables = new CompositeDisposable();
+                        disposables.add(Disposables.fromAction(() ->
+                                engine.removeListener(listener))
+                        );
+                        disposables.add(tagRepo.observeByTorrentId(id)
+                                .subscribe((__) -> {
+                                    try {
+                                        handleEvent.accept(id);
+                                    } catch (Exception ex) {
+                                        if (!emitter.isCancelled())
+                                            emitter.onError(ex);
+                                    }
+                                })
+                        );
+                        emitter.setDisposable(disposables);
+                    }
+                });
+                t.start();
+            }
+
+        }, BackpressureStrategy.LATEST);
+    }
+
+    private Flowable<List<TorrentInfo>> makeInfoListFlowable() {
+        return Flowable.create((emitter) -> {
+            final AtomicReference<List<TorrentInfo>> infoList = new AtomicReference<>();
+
+            Runnable handleInfo = () -> {
+                List<TorrentInfo> newInfoList = engine.makeInfoListSync();
+                List<TorrentInfo> oldInfoList = infoList.get();
+                if (oldInfoList == null || oldInfoList.size() != newInfoList.size() ||
+                        !oldInfoList.containsAll(newInfoList)) {
+                    infoList.set(newInfoList);
+                    if (!emitter.isCancelled())
+                        emitter.onNext(newInfoList);
+                }
+            };
+
+            TorrentEngineListener listener = new TorrentEngineListener() {
+                @Override
+                public void onTorrentStateChanged(@NonNull String torrentId,
+                                                  @NonNull TorrentStateCode prevState,
+                                                  @NonNull TorrentStateCode curState) {
+                    handleInfo.run();
+                }
+
+                @Override
+                public void onTorrentPaused(@NonNull String torrentId) {
+                    handleInfo.run();
+                }
+
+                @Override
+                public void onTorrentRemoved(@NonNull String torrentId) {
+                    handleInfo.run();
+                }
+
+                @Override
+                public void onRestoreSessionError(@NonNull String torrentId) {
+                    handleInfo.run();
+                }
+
+                @Override
+                public void onTorrentError(@NonNull String torrentId, Exception e) {
+                    handleInfo.run();
+                }
+
+                @Override
+                public void onSessionStats(@NonNull SessionStats stats) {
+                    handleInfo.run();
+                }
+            };
+
+            if (!emitter.isCancelled()) {
+                Thread t = new Thread(() -> {
+                    infoList.set(engine.makeInfoListSync());
+                    if (!emitter.isCancelled()) {
+                        /* Emit once to avoid missing any data and also easy chaining */
+                        emitter.onNext(infoList.get());
+                        engine.addListener(listener);
+                        CompositeDisposable disposables = new CompositeDisposable();
+                        disposables.add(Disposables.fromAction(() ->
+                                engine.removeListener(listener))
+                        );
+                        disposables.add(tagRepo.observeAll()
+                                .subscribe((__) -> handleInfo.run())
+                        );
+                        emitter.setDisposable(disposables);
+                    }
+                });
+                t.start();
+            }
+
+        }, BackpressureStrategy.LATEST);
+    }
+
+    private Single<List<TorrentInfo>> makeInfoListSingle() {
+        return Single.create((emitter) -> {
+            if (!emitter.isDisposed()) {
+                Thread t = new Thread(() -> {
+                    List<TorrentInfo> infoList = engine.makeInfoListSync();
+                    if (!emitter.isDisposed())
+                        emitter.onSuccess(infoList);
+                });
+                t.start();
+            }
+        });
+    }
+
+    private Flowable<AdvancedTorrentInfo> makeAdvancedInfoFlowable(String id) {
+        return Flowable.create((emitter) -> {
+            final AtomicReference<AdvancedTorrentInfo> info = new AtomicReference<>();
+
+            Disposable d = Observable.interval(GET_INFO_SYNC_TIME, TimeUnit.MILLISECONDS)
+                    .subscribe((__) -> {
+                                AdvancedTorrentInfo newInfo = engine.makeAdvancedInfoSync(id);
+                                AdvancedTorrentInfo oldInfo = info.get();
+                                if (newInfo != null && !newInfo.equals(oldInfo)) {
+                                    info.set(newInfo);
+                                    if (!emitter.isCancelled())
+                                        emitter.onNext(newInfo);
+                                }
+                            },
+                            (Throwable t) -> Log.e(TAG, "Getting advanced info for torrent " + id + " error: " +
+                                    Log.getStackTraceString(t)));
+
+            if (!emitter.isCancelled()) {
+                Thread t = new Thread(() -> {
+                    AdvancedTorrentInfo s = engine.makeAdvancedInfoSync(id);
+                    info.set(s);
+                    if (!emitter.isCancelled()) {
+                        /* Emit once to avoid missing any data and also easy chaining */
+                        if (s != null)
+                            emitter.onNext(s);
+                        emitter.setDisposable(d);
+                    }
+                });
+                t.start();
+            }
+
+        }, BackpressureStrategy.LATEST);
+    }
+
+    private Flowable<List<TrackerInfo>> makeTrackersInfoFlowable(String id) {
+        return Flowable.create((emitter) -> {
+            final AtomicReference<List<TrackerInfo>> infoList = new AtomicReference<>();
+
+            Disposable d = Observable.interval(GET_INFO_SYNC_TIME, TimeUnit.MILLISECONDS)
+                    .subscribe((__) -> {
+                                List<TrackerInfo> newInfoList = engine.makeTrackerInfoList(id);
+                                List<TrackerInfo> oldInfoList = infoList.get();
+                                if (oldInfoList == null || oldInfoList.size() != newInfoList.size() ||
+                                        !oldInfoList.containsAll(newInfoList)) {
+                                    infoList.set(newInfoList);
+                                    if (!emitter.isCancelled())
+                                        emitter.onNext(newInfoList);
+                                }
+                            },
+                            (Throwable t) -> Log.e(TAG, "Getting trackers info for torrent " + id + " error: " +
+                                    Log.getStackTraceString(t)));
+
+            if (!emitter.isCancelled()) {
+                Thread t = new Thread(() -> {
+                    infoList.set(engine.makeTrackerInfoList(id));
+                    if (!emitter.isCancelled()) {
+                        /* Emit once to avoid missing any data and also easy chaining */
+                        emitter.onNext(infoList.get());
+                        emitter.setDisposable(d);
+                    }
+                });
+                t.start();
+            }
+
+        }, BackpressureStrategy.LATEST);
+    }
+
+    private Flowable<List<PeerInfo>> makePeersInfoFlowable(String id) {
+        return Flowable.create((emitter) -> {
+            final AtomicReference<List<PeerInfo>> infoList = new AtomicReference<>();
+
+            Disposable d = Observable.interval(GET_INFO_SYNC_TIME, TimeUnit.MILLISECONDS)
+                    .subscribe((__) -> {
+                                List<PeerInfo> newInfoList = engine.makePeerInfoList(id);
+                                List<PeerInfo> oldInfoList = infoList.get();
+                                if (oldInfoList == null || oldInfoList.size() != newInfoList.size() ||
+                                        !oldInfoList.containsAll(newInfoList)) {
+                                    infoList.set(newInfoList);
+                                    if (!emitter.isCancelled())
+                                        emitter.onNext(newInfoList);
+                                }
+                            },
+                            (Throwable t) -> Log.e(TAG, "Getting peers info for torrent " + id + " error: " +
+                                    Log.getStackTraceString(t)));
+
+            if (!emitter.isCancelled()) {
+                Thread t = new Thread(() -> {
+                    infoList.set(engine.makePeerInfoList(id));
+                    if (!emitter.isCancelled()) {
+                        /* Emit once to avoid missing any data and also easy chaining */
+                        emitter.onNext(infoList.get());
+                        emitter.setDisposable(d);
+                    }
+                });
+                t.start();
+            }
+
+        }, BackpressureStrategy.LATEST);
+    }
+
+    private Flowable<boolean[]> makePiecesFlowable(String id) {
+        return Flowable.create((emitter) -> {
+            final AtomicReference<boolean[]> infoList = new AtomicReference<>();
+
+            Disposable d = Observable.interval(GET_INFO_SYNC_TIME, TimeUnit.MILLISECONDS)
+                    .subscribe((__) -> {
+                                boolean[] newInfoList = engine.getPieces(id);
+                                boolean[] oldInfoList = infoList.get();
+                                if (!Arrays.equals(oldInfoList, newInfoList)) {
+                                    infoList.set(newInfoList);
+                                    if (!emitter.isCancelled())
+                                        emitter.onNext(newInfoList);
+                                }
+                            },
+                            (Throwable t) -> Log.e(TAG, "Getting pieces for torrent " + id + " error: " +
+                                    Log.getStackTraceString(t)));
+
+            if (!emitter.isCancelled()) {
+                Thread t = new Thread(() -> {
+                    infoList.set(engine.getPieces(id));
+                    if (!emitter.isCancelled()) {
+                        /* Emit once to avoid missing any data and also easy chaining */
+                        emitter.onNext(infoList.get());
+                        emitter.setDisposable(d);
+                    }
+                });
+                t.start();
+            }
+
+        }, BackpressureStrategy.LATEST);
+    }
+
+    private Flowable<String> makeTorrentsDeletedFlowable() {
+        return Flowable.create((emitter) -> {
+            TorrentEngineListener listener = new TorrentEngineListener() {
+                @Override
+                public void onTorrentRemoved(@NonNull String id) {
+                    if (!emitter.isCancelled())
+                        emitter.onNext(id);
+                }
+            };
+
+            if (!emitter.isCancelled()) {
+                engine.addListener(listener);
+                emitter.setDisposable(Disposables.fromAction(() ->
+                        engine.removeListener(listener)));
+            }
+
+        }, BackpressureStrategy.DROP);
+    }
+
+    private Flowable<SessionStats> makeSessionStatsFlowable() {
+        return Flowable.create((emitter) -> {
+            final AtomicReference<SessionStats> stats = new AtomicReference<>();
+
+            TorrentEngineListener listener = new TorrentEngineListener() {
+                @Override
+                public void onSessionStats(@NonNull SessionStats newStats) {
+                    SessionStats oldStats = stats.get();
+                    if (!newStats.equals(oldStats)) {
+                        stats.set(newStats);
+                        if (!emitter.isCancelled())
+                            emitter.onNext(newStats);
+                    }
+                }
+            };
+
+            if (!emitter.isCancelled()) {
+                engine.addListener(listener);
+                emitter.setDisposable(Disposables.fromAction(() ->
+                        engine.removeListener(listener)));
+            }
+
+        }, BackpressureStrategy.LATEST);
+    }
+}
+
+$ sed -n '160,200p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/detailtorrent/DetailTorrentViewModel.java
+        return freeSpaceError;
+    }
+
+    public io.reactivex.Observable<List<TorrentContentFileTree>> getDirChildren() {
+        return children;
+    }
+
+    public Flowable<TorrentInfo> observeTorrentInfo() {
+        return infoProvider.observeInfo(torrentId);
+    }
+
+    public Flowable<AdvancedTorrentInfo> observeAdvancedTorrentInfo() {
+        return infoProvider.observeAdvancedInfo(torrentId);
+    }
+
+    public Flowable<Torrent> observeTorrent() {
+        return repo.observeTorrentById(torrentId);
+    }
+
+    public Flowable<List<TrackerInfo>> observeTrackers() {
+        return infoProvider.observeTrackersInfo(torrentId);
+    }
+
+    public Flowable<List<PeerInfo>> observePeers() {
+        return infoProvider.observePeersInfo(torrentId);
+    }
+
+    public Flowable<boolean[]> observePieces() {
+        return infoProvider.observePiecesInfo(torrentId);
+    }
+
+    public Flowable<Pair<Torrent, TorrentInfo>> observeTorrentInfoPair() {
+        return Flowable.combineLatest(observeTorrent(), observeTorrentInfo(), Pair::create);
+    }
+
+    public Flowable<TorrentMetaInfo> observeTorrentMetaInfo() {
+        return engine.observeTorrentMetaInfo(torrentId);
+    }
+
+    public void updateInfo(TorrentMetaInfo metaInfo) {
+        info.setMetaInfo(metaInfo);
+
+$ sed -n '75,90p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/MainViewModel.java
+    }
+
+    public Flowable<List<TorrentInfo>> observeAllTorrentsInfo() {
+        return stateProvider.observeInfoList();
+    }
+
+    public Single<List<TorrentInfo>> getAllTorrentsInfoSingle() {
+        return stateProvider.getInfoListSingle();
+    }
+
+    public Flowable<String> observeTorrentsDeleted() {
+        return stateProvider.observeTorrentsDeleted();
+    }
+
+    public void setSort(@NonNull TorrentSortingComparator sorting, boolean force) {
+        this.sorting = sorting;
+
+$ sed -n '380,390p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/MainActivity.java
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        subscribeAlertDialog();
+        subscribeMsgViewModel();
+        subscribeSessionStats();
+        subscribeNeedStartEngine();
+        subscribeTags();
+    }
+
+
+$ sed -n '450,465p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/MainActivity.java
+                    DetailTorrentFragment f = getCurrentDetailFragment();
+                    if (f != null && id.equals(f.getTorrentId()))
+                        showBlankFragment();
+                }));
+    }
+
+    private void subscribeSessionStats() {
+        disposables.add(infoProvider.observeSessionStats()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(this::updateSessionStats));
+    }
+
+    private void subscribeNeedStartEngine() {
+        disposables.add(viewModel.observeNeedStartEngine()
+                .subscribeOn(Schedulers.io())
+
+$ sed -n '280,295p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/MainFragment.java
+    private void subscribeAdapter()
+    {
+        disposables.add(observeTorrents());
+    }
+
+    private Disposable observeTorrents()
+    {
+        return viewModel.observeAllTorrentsInfo()
+                .subscribeOn(Schedulers.io())
+                .flatMapSingle((infoList) ->
+                        Flowable.fromIterable(infoList)
+                                .filter(viewModel.getFilter())
+                                .map(TorrentListItem::new)
+                                .sorted(viewModel.getSorting())
+                                .toList()
+                )
+
+$ sed -n '330,340p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/MainFragment.java
+                .subscribe((force) -> disposables.add(getAllTorrentsSingle())));
+    }
+
+    private Disposable getAllTorrentsSingle()
+    {
+        return viewModel.getAllTorrentsInfoSingle()
+                .subscribeOn(Schedulers.io())
+                .flatMap((infoList) ->
+                        Observable.fromIterable(infoList)
+                                .filter(viewModel.getFilter())
+                                .map(TorrentListItem::new)
+
+$ sed -n '350,355p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/MainFragment.java
+    private void subscribeTorrentsDeleted()
+    {
+        disposables.add(viewModel.observeTorrentsDeleted()
+                .subscribeOn(Schedulers.io())
+                .filter((id) -> {
+                    TorrentListItem item = adapter.getOpenedItem();
+
+$ sed -n '170,180p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/detailtorrent/pages/peers/DetailTorrentPeersFragment.java
+    }
+
+    private void subscribeAdapter()
+    {
+        disposables.add(viewModel.observePeers()
+                .subscribeOn(Schedulers.io())
+                .flatMapSingle((children) ->
+                        Flowable.fromIterable(children)
+                                .map(PeerItem::new)
+                                .toList()
+                )
+
+$ sed -n '130,145p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/detailtorrent/pages/pieces/DetailTorrentPiecesFragment.java
+            scrollPosition = savedInstanceState.getIntArray(TAG_SCROLL_POSITION);
+            if (scrollPosition != null && scrollPosition.length == 2)
+                binding.pieceMapScrollView.scrollTo(scrollPosition[0], scrollPosition[1]);
+        }
+    }
+
+    private void subscribeAdapter()
+    {
+        disposables.add(viewModel.observePieces()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((pieces) -> binding.pieceMap.setPieces(pieces)));
+    }
+}
+
+$ sed -n '255,265p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/detailtorrent/pages/trackers/DetailTorrentTrackersFragment.java
+            layoutManager.onRestoreInstanceState(listTrackerState);
+    }
+
+    private void subscribeAdapter()
+    {
+        disposables.add(viewModel.observeTrackers()
+                .subscribeOn(Schedulers.io())
+                .flatMapSingle((children) ->
+                        Flowable.fromIterable(children)
+                                .map(TrackerItem::new)
+                                .toList()
+
+$ sed -n '245,275p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/detailtorrent/DetailTorrentFragment.java
+        outState.putString(TAG_TORRENT_ID, torrentId);
+        outState.putInt(TAG_CURRENT_FRAG_POS, currentFragPos);
+
+        super.onSaveInstanceState(outState);
+    }
+
+    private void subscribeTorrentInfo()
+    {
+        if (torrentId == null)
+            return;
+
+        disposables.add(viewModel.observeTorrentMetaInfo()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((metaInfo) -> viewModel.updateInfo(metaInfo),
+                        (Throwable e) -> {
+                            Log.e(TAG, "Getting meta info error: " + Log.getStackTraceString(e));
+                            finish(new Intent(), FragmentCallback.ResultCode.CANCEL);
+                        }));
+
+        disposables.add(viewModel.observeTorrentInfoPair()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(this::handleTorrentInfo,
+                        (Throwable e) -> Log.e(TAG, "Getting info error: " + Log.getStackTraceString(e))));
+
+        disposables.add(viewModel.observeAdvancedTorrentInfo()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((info) -> viewModel.updateInfo(info),
+                        (Throwable e) -> Log.e(TAG, "Getting advanced info error: " + Log.getStackTraceString(e))));
+

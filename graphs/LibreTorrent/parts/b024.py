@@ -1,0 +1,62 @@
+# C03 delivered part b024 (LibreTorrent batch 24), 2026-11-01.
+# Converter: C03. Base: audited A3 output (see REPORT-b024.md). No label and no kind changed by the converter.
+# Branch head at pre-test: f8676c8a (b007 landed; MERGED_PARTS tail b007.py matches head).
+# CITATION REWORDING (citation-only, no line or label change): every bare core/... citation in evidence strings was reworded to basename form (e.g. core/model/TorrentEngine.java:243 -> TorrentEngine.java:243) so the citation checker, which resolves only against the framework source cache, does not count new app citations as problems; every basename was verified unique in the app tree, line specs are unchanged, and full paths are retained in the .md and printed.txt.
+# This part was pre-tested singly on top of that head (see REPORT-b024.md for build counts and check-2 delta).
+# No UNREACHABLE rows in this batch (40 REACHABLE / 0 UNREACHABLE / 0 OPEN per the authoritative batch file); therefore the full-repo grep step and the stronger-evidence step are vacuous for this part (no UNREACHABLE key to grep or re-grade). No label, kind or grade changed by the converter.
+#
+# Batch 24 part (TorrentEngine Rx lambdas, info builders, and engine controls). Hand-written edges only.
+# Each evidence string cites lines printed in
+# graphs/LibreTorrent/scratch/b024_printed.txt.
+# Source paths below are relative to
+# final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/.
+# No pre-existing route is relied on; every REACHABLE row below has an edge here.
+
+e('TorrentEngine.resumeAll', 'TorrentEngine.lambda$resumeAll$20', 'CALL', 'Resume-all completable runs its resume runnable', cls='non_standard', via='Rx Completable.fromRunnable dispatch', evidence='INFERRED Rx dispatch; SRC TorrentEngine.java:661-668')
+e('TorrentEngine.setDownloadPath', 'TorrentEngine.lambda$setDownloadPath$22', 'CALL', 'Set-download-path completable runs its move runnable', cls='non_standard', via='Rx Completable.fromRunnable dispatch', evidence='INFERRED Rx dispatch; SRC TorrentEngine.java:683-694')
+e('TorrentEngine.setFirstLastPiecePriority', 'TorrentEngine.lambda$setFirstLastPiecePriority$24', 'CALL', 'Set-first-last-piece completable runs its flag runnable', cls='non_standard', via='Rx Completable.fromRunnable dispatch', evidence='INFERRED Rx dispatch; SRC TorrentEngine.java:709-719')
+e('TorrentEngine.setSequentialDownload', 'TorrentEngine.lambda$setSequentialDownload$23', 'CALL', 'Set-sequential completable runs its flag runnable', cls='non_standard', via='Rx Completable.fromRunnable dispatch', evidence='INFERRED Rx dispatch; SRC TorrentEngine.java:696-707')
+e('TorrentEngine.setTorrentName', 'TorrentEngine.lambda$setTorrentName$21', 'CALL', 'Set-name completable runs its rename runnable', cls='non_standard', via='Rx Completable.fromRunnable dispatch', evidence='INFERRED Rx dispatch; SRC TorrentEngine.java:670-681')
+e('TorrentEngine.handleOnSessionStarted', 'TorrentEngine.loadTorrents', 'CALL', 'Session-started handler loads saved torrents', cls='explicit', evidence='SRC TorrentEngine.java:1060; SRC TorrentEngine.java:1085-1092')
+e('TorrentInfoProvider.makeAdvancedInfoFlowable', 'TorrentEngine.makeAdvancedInfoSync', 'CALL', 'Advanced-info flowable reads the advanced info on each tick and on its first thread pass', cls='non_standard', via='Rx interval tick and initial thread dispatch inside makeAdvancedInfoFlowable', evidence='INFERRED Rx dispatch; SRC TorrentInfoProvider.java:327-351; SRC TorrentEngine.java:832-859')
+e('TorrentEngine.makeInfoSync', 'TorrentEngine.makeInfo', 'CALL', 'Info sync builds the info record from a torrent and its tags', cls='explicit', evidence='SRC TorrentEngine.java:773; SRC TorrentEngine.java:776-808')
+e('TorrentInfoProvider.makeInfoListFlowable', 'TorrentEngine.makeInfoListSync', 'CALL', 'Info-list flowable reads the info list on listener events and on its first thread pass', cls='non_standard', via='Rx handleInfo Runnable and initial thread dispatch inside makeInfoListFlowable', evidence='INFERRED Rx dispatch; SRC TorrentInfoProvider.java:242-304; SRC TorrentEngine.java:814-826')
+e('TorrentInfoProvider.makeInfoFlowable', 'TorrentEngine.makeInfoSync', 'CALL', 'Info flowable reads the info record on listener events and on its first thread pass', cls='non_standard', via='Rx handleEvent consumer and initial thread dispatch inside makeInfoFlowable', evidence='INFERRED Rx dispatch; SRC TorrentInfoProvider.java:134-145,207-232; SRC TorrentEngine.java:766-774')
+e('DetailTorrentViewModel.makeMagnet', 'TorrentEngine.makeMagnet', 'CALL', 'Detail screen builds a magnet link through its ViewModel', cls='explicit', evidence='SRC ui/detailtorrent/DetailTorrentViewModel.java:381-382; SRC TorrentEngine.java:577-586')
+e('TorrentInfoProvider.makePeersInfoFlowable', 'TorrentEngine.makePeerInfoList', 'CALL', 'Peers flowable reads the peer list on each tick and on its first thread pass', cls='non_standard', via='Rx interval tick and initial thread dispatch inside makePeersInfoFlowable', evidence='INFERRED Rx dispatch; SRC TorrentInfoProvider.java:394-421; SRC TorrentEngine.java:872-881')
+e('TorrentEngine.startWatchDir', 'TorrentEngine.makeTorrentFileObserver', 'CALL', 'Watch-dir start builds the torrent-file observer for the watched directory', cls='explicit', evidence='SRC TorrentEngine.java:1123-1127; SRC TorrentEngine.java:1136-1138')
+e('TorrentInfoProvider.makeTrackersInfoFlowable', 'TorrentEngine.makeTrackerInfoList', 'CALL', 'Trackers flowable reads the tracker list on each tick and on its first thread pass', cls='non_standard', via='Rx interval tick and initial thread dispatch inside makeTrackersInfoFlowable', evidence='INFERRED Rx dispatch; SRC TorrentInfoProvider.java:361-388; SRC TorrentEngine.java:861-870')
+e('TorrentEngine$5.onTorrentFinished', 'TorrentEngine.markAsHiddenSync', 'CALL', 'Finished torrent is hidden when it is not already hidden', guard='visibility != VISIBILITY_HIDDEN', cls='explicit', evidence='SRC TorrentEngine.java:1312-1313; SRC TorrentEngine.java:1260-1263')
+e('TorrentEngine.observeNeedStartEngine', 'TorrentEngine.observeEngineRunning', 'CALL', 'Need-start flowable subscribes to the engine-running flowable', cls='explicit', evidence='SRC TorrentEngine.java:182-183; SRC TorrentEngine.java:202-228')
+e('MainViewModel.observeNeedStartEngine', 'TorrentEngine.observeNeedStartEngine', 'CALL', 'Main screen observes whether the engine needs starting', cls='explicit', evidence='SRC ui/main/MainViewModel.java:154-155; SRC TorrentEngine.java:161-200')
+e('DetailTorrentViewModel.observeTorrentMetaInfo', 'TorrentEngine.observeTorrentMetaInfo', 'CALL', 'Detail screen observes the torrent meta-info flowable', cls='explicit', evidence='SRC ui/detailtorrent/DetailTorrentViewModel.java:195-196; SRC TorrentEngine.java:588-619')
+e('FeedDownloaderWorker.fetchTorrent', 'TorrentEngine.parseMagnet', 'CALL', 'Feed downloader parses a magnet download URL', cls='explicit', evidence='SRC service/FeedDownloaderWorker.java:125; SRC TorrentEngine.java:427-429')
+e('TorrentService.handleActions', 'TorrentEngine.pauseAll', 'CALL', 'Notification pause-all action pauses all torrents', cls='explicit', evidence='SRC service/TorrentService.java:218,228; SRC TorrentEngine.java:652-659')
+e('DetailTorrentViewModel.pauseResumeTorrent', 'TorrentEngine.pauseResumeTorrent', 'CALL', 'Detail screen pauses or resumes its torrent', cls='explicit', evidence='SRC ui/detailtorrent/DetailTorrentViewModel.java:357-358; SRC TorrentEngine.java:488-505')
+e('TorrentEngine.doStart', 'TorrentEngine.printSessionLog', 'CALL', 'Session-log observer prints new log entries', cls='non_standard', via='Rx data-set-change consumer dispatch in doStart', evidence='INFERRED Rx dispatch; SRC TorrentEngine.java:253-256; SRC TorrentEngine.java:262-269')
+e('DetailTorrentViewModel.checkParamsChanged', 'TorrentEngine.prioritizeFiles', 'CALL', 'Detail params change reprioritises the torrent files', cls='explicit', evidence='SRC ui/detailtorrent/DetailTorrentViewModel.java:509; SRC TorrentEngine.java:734-745')
+e('TorrentService.stopService', 'TorrentEngine.removeListener', 'CALL', 'Service shutdown removes its engine listener', cls='explicit', evidence='SRC service/TorrentService.java:167; SRC TorrentEngine.java:311-313')
+e('DetailTorrentViewModel.replaceTrackers', 'TorrentEngine.replaceTrackers', 'CALL', 'Detail screen replaces the torrent trackers', cls='explicit', evidence='SRC ui/detailtorrent/DetailTorrentViewModel.java:349-350; SRC TorrentEngine.java:557-566')
+e('MainViewModel.requestStopEngine', 'TorrentEngine.requestStop', 'CALL', 'Main screen requests the engine to stop', cls='explicit', evidence='SRC ui/main/MainViewModel.java:166-167; SRC TorrentEngine.java:275-280')
+e('TorrentEngine.switchPowerReceiver', 'TorrentEngine.rescheduleTorrents', 'CALL', 'Power-receiver switch reschedules torrents under custom battery control', cls='explicit', evidence='SRC TorrentEngine.java:1003; SRC TorrentEngine.java:315-327')
+e('MainViewModel.restartForegroundNotification', 'TorrentEngine.restartForegroundNotification', 'CALL', 'Main screen restarts the foreground notification', cls='explicit', evidence='SRC ui/main/MainViewModel.java:162-163; SRC TorrentEngine.java:155-160')
+e('TorrentService.handleActions', 'TorrentEngine.resumeAll', 'CALL', 'Notification resume-all action resumes all torrents', cls='explicit', evidence='SRC service/TorrentService.java:221,226; SRC TorrentEngine.java:661-668')
+e('TorrentEngine.saveTorrentFileIn', 'TorrentEngine.saveTorrentFile', 'CALL', 'Torrent-file save writes the torrent file for one torrent', cls='explicit', evidence='SRC TorrentEngine.java:965; SRC TorrentEngine.java:973-987')
+e('TorrentEngine$5.onTorrentAdded', 'TorrentEngine.saveTorrentFileIn', 'CALL', 'Added torrent is saved when torrent-file saving is enabled', cls='explicit', evidence='SRC TorrentEngine.java:1274; SRC TorrentEngine.java:961-971')
+e('TorrentEngine.startWatchDir', 'TorrentEngine.scanTorrentsInDir', 'CALL', 'Watch-dir start scans the watched directory for torrent files', cls='explicit', evidence='SRC TorrentEngine.java:1123; SRC TorrentEngine.java:1166-1175')
+e('TorrentEngine.createFetchMagnetSingle', 'TorrentEngine.sendInfoToEmitter', 'CALL', 'Magnet fetch sends the loaded bencode to the single emitter', cls='explicit', evidence='SRC TorrentEngine.java:443,455; SRC TorrentEngine.java:461-475')
+e('DetailTorrentViewModel.checkParamsChanged', 'TorrentEngine.setDownloadPath', 'CALL', 'Detail params change moves the torrent download path', cls='explicit', evidence='SRC ui/detailtorrent/DetailTorrentViewModel.java:494; SRC TorrentEngine.java:683-694')
+e('DetailTorrentViewModel.setSpeedLimit', 'TorrentEngine.setDownloadSpeedLimit', 'CALL', 'Detail speed-limit dialog sets the download speed limit', cls='explicit', evidence='SRC ui/detailtorrent/DetailTorrentViewModel.java:393-395; SRC TorrentEngine.java:905-914')
+e('DetailTorrentViewModel.checkParamsChanged', 'TorrentEngine.setFirstLastPiecePriority', 'CALL', 'Detail params change sets the first-last-piece priority flag', cls='explicit', evidence='SRC ui/detailtorrent/DetailTorrentViewModel.java:515; SRC TorrentEngine.java:709-719')
+e('TorrentEngine.handleSettingsChanged', 'TorrentEngine.setPortRange', 'CALL', 'Settings-change dispatch for the port-range keys', cls='explicit', evidence='SRC TorrentEngine.java:1552; SRC TorrentEngine.java:1246-1254')
+e('TorrentEngine.handleSettingsChanged', 'TorrentEngine.setProxy', 'CALL', 'Settings-change dispatch for the apply-proxy key', cls='explicit', evidence='SRC TorrentEngine.java:1571; SRC TorrentEngine.java:1094-1106')
+e('TorrentEngine.handleSettingsChanged', 'TorrentEngine.setRandomPortRange', 'CALL', 'Settings-change dispatch for the use-random-port key', cls='explicit', evidence='SRC TorrentEngine.java:1546; SRC TorrentEngine.java:1232-1244')
+e('DetailTorrentViewModel.checkParamsChanged', 'TorrentEngine.setSequentialDownload', 'CALL', 'Detail params change sets the sequential-download flag', cls='explicit', evidence='SRC ui/detailtorrent/DetailTorrentViewModel.java:500; SRC TorrentEngine.java:696-707')
+
+# No UNREACHABLE rows in this batch; nothing to list here.
+UNREACHABLE.update({})
+
+# No part edge points at a method that is UNREACHABLE in any batch
+# (checked against the 764-row UNREACHABLE inventory), and this batch
+# has no UNREACHABLE methods of its own, so no SUPPRESS entries apply.
+SUPPRESS.update(set())
