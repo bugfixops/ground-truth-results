@@ -69,6 +69,7 @@ Nothing here is `confirmed_by DEVICE` (0 of 900). What an emulator replay should
 - **Bytecode-derived edges (637 of 1515) carry no guard by default**; guards were added by hand only where a sampled route, or an obviously conditional call site noticed while writing the UNREACHABLE dict, needed one. A route not in the sample could in principle still hide an un-added guard.
 - The three vendored libraries (`smoothviewpager`, `materialpreffragment`, `launcheranim`) are cited as `SRC` (their source is in the dataset and was read), not `INFERRED`, matching the existing convention for other apps' vendored copies.
 - The standard configuration is `flavorDefault`, debug build (DATASET.txt provenance and `app/build/intermediates/javac/flavorDefaultDebug` agree); there is only one flavor in this project, so no cross-flavor ambiguity.
+- **check 7 counts 1 line (graph_def.py:942), which is AsyncTask code text, not a placeholder.** Line 942 is the `HideAppsFragment.onCreateView -> HideAppsFragment$AsyncWorkerList.onPreExecute` edge, whose guard is `taskList.getStatus() == PENDING (first time)` - the `AsyncTask.Status.PENDING` check from `HideAppsFragment.java:66-69`. The word PENDING there is the framework status constant in a real guard, not a pending-work page id, so it is left as written.
 
 ## JSON shape (short)
 

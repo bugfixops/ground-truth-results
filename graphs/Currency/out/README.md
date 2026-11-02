@@ -50,6 +50,8 @@ Sanity check against tool coverage (never used to set a label): 103 methods ran 
 
 `tools/verify_sample.py Currency 30` (seed 20261025) picks methods by stratum (a non-standard edge, an inferred label, a STATE gate, an ENV gate, a long route, the rest), the method adding the most unseen edges first: 28 methods whose routes cover 109 of the 163 distinct edges on all best routes. Every step was read with `tools/show_route.py` against the cited source lines, including the guards. Of the 28: 23 correct, 1 wrong and fixed, 4 unclear.
 
+Note on sample timing: the sample was drawn before the log step. The label rows written by the log step change which 30 methods the sampler picks on the final graph, so a fresh draw on the final graph would not necessarily pick the same 30 methods. The judged routes are still current: the final verification run reports 0 STALE warnings, so every judged route still matches the final graph.
+
 ## What waits for a device (API 27)
 
 - **Launcher behaviour.** Placing the widget, starting its configure activity and deleting a widget whose configuration was cancelled are done by the launcher (another app); its source was not read. Affects the widget methods that need the launcher to place the widget.
