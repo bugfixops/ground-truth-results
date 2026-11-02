@@ -1,0 +1,8 @@
+Blocker fixture for Diary route_14. This regular text file is pushed
+by run_app.sh to /sdcard/Diary/css, exactly where Diary expects the
+css/ directory of its resolved home folder (/sdcard/Diary/css). With
+a file standing there, Editor.write()'s mkdirs() on the parent fails
+silently and new FileWriter(/sdcard/Diary/css/styles.css) throws
+ENOTDIR, so Editor calls alertDialog — the route_14 target. This file
+itself is never read by the app; its presence as a non-directory path
+component is the whole mechanism.
