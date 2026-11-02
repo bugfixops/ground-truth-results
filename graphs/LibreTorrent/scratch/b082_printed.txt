@@ -1,0 +1,2522 @@
+Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+
+$ sed -n '1,155p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/PermissionManager.java
+/*
+ * Copyright (C) 2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui;
+
+import android.Manifest;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Environment;
+import android.provider.Settings;
+
+import androidx.activity.ComponentActivity;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+
+import org.proninyaroslav.libretorrent.core.RepositoryHelper;
+import org.proninyaroslav.libretorrent.core.settings.SettingsRepository;
+import org.proninyaroslav.libretorrent.core.utils.Utils;
+
+import java.util.ArrayList;
+
+public class PermissionManager {
+    private ActivityResultLauncher<Intent> manageExternalStoragePermission;
+    private ActivityResultLauncher<String[]> permissions;
+    private final Context appContext;
+    private SettingsRepository pref;
+    private boolean hasManageExternalStoragePermission;
+
+    public PermissionManager(
+            @NonNull ComponentActivity activity,
+            @NonNull Callback callback
+    ) {
+        appContext = activity.getApplicationContext();
+        pref = RepositoryHelper.getSettingsRepository(appContext);
+        // MANAGE_EXTERNAL_STORAGE is disabled for the Google Play version
+        // so we need to check before requesting permission
+        hasManageExternalStoragePermission = Utils.hasManageExternalStoragePermission(appContext);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && hasManageExternalStoragePermission) {
+            manageExternalStoragePermission = activity.registerForActivityResult(
+                    new ActivityResultContracts.StartActivityForResult(),
+                    result -> callback.onStorageResult(
+                            checkStoragePermissions(),
+                            pref.askManageAllFilesPermission()
+                    )
+            );
+        }
+
+        permissions = activity.registerForActivityResult(
+                new ActivityResultContracts.RequestMultiplePermissions(),
+                result -> {
+                    Boolean storageResult = result.get(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                    Boolean notificationsResult;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        notificationsResult = result.get(Manifest.permission.POST_NOTIFICATIONS);
+                    } else {
+                        notificationsResult = true;
+                    }
+                    if (storageResult != null) {
+                        callback.onStorageResult(
+                                storageResult,
+                                Utils.shouldRequestStoragePermission(activity)
+                        );
+                    }
+                    if (notificationsResult != null) {
+                        callback.onNotificationResult(
+                                notificationsResult,
+                                pref.askNotificationPermission()
+                        );
+                    }
+                }
+        );
+    }
+
+    public void requestPermissions() {
+        ArrayList<String> permissionsList = new ArrayList<>();
+        if (!checkStoragePermissions()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && hasManageExternalStoragePermission) {
+                if (pref.askManageAllFilesPermission()) {
+                    var uri = Uri.fromParts("package", appContext.getPackageName(), null);
+                    var i = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+                            .setData(uri);
+                    manageExternalStoragePermission.launch(i);
+                }
+            } else {
+                permissionsList.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            }
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && pref.askNotificationPermission() && !checkNotificationsPermissions()) {
+            permissionsList.add(Manifest.permission.POST_NOTIFICATIONS);
+        }
+        permissions.launch(permissionsList.toArray(new String[0]));
+    }
+
+    public void setDoNotAskStorage(boolean doNotAsk) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            pref.askManageAllFilesPermission(!doNotAsk);
+        }
+    }
+
+    public void setDoNotAskNotifications(boolean doNotAsk) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            pref.askNotificationPermission(!doNotAsk);
+        }
+    }
+
+    public boolean checkStoragePermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && hasManageExternalStoragePermission) {
+            return Environment.isExternalStorageManager();
+        } else {
+            return ContextCompat.checkSelfPermission(appContext,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        }
+    }
+
+    public boolean checkNotificationsPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            return ContextCompat.checkSelfPermission(appContext,
+                    Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean checkPermissions() {
+        return checkStoragePermissions() && checkNotificationsPermissions();
+    }
+
+    public interface Callback {
+        void onStorageResult(boolean isGranted, boolean shouldRequestStoragePermission);
+
+        void onNotificationResult(boolean isGranted, boolean shouldRequestNotificationPermission);
+    }
+}
+
+$ sed -n '1,197p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentFilesFragment.java
+/*
+ * Copyright (C) 2016, 2018 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.addtorrent;
+
+import android.content.Context;
+import android.os.Bundle;
+import android.os.Parcelable;
+import android.text.format.Formatter;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.databinding.DataBindingUtil;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+
+import org.proninyaroslav.libretorrent.R;
+import org.proninyaroslav.libretorrent.core.model.filetree.BencodeFileTree;
+import org.proninyaroslav.libretorrent.databinding.FragmentAddTorrentFilesBinding;
+
+import io.reactivex.Flowable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.schedulers.Schedulers;
+
+/*
+ * The fragment for list files of torrent. Part of AddTorrentFragment.
+ */
+
+public class AddTorrentFilesFragment extends Fragment
+        implements
+        DownloadableFilesAdapter.ClickListener
+{
+    private static final String TAG = AddTorrentFilesFragment.class.getSimpleName();
+
+    private static final String TAG_LIST_FILES_STATE = "list_files_state";
+
+    private AppCompatActivity activity;
+    private FragmentAddTorrentFilesBinding binding;
+    private AddTorrentViewModel viewModel;
+    private LinearLayoutManager layoutManager;
+    private DownloadableFilesAdapter adapter;
+    /* Save state scrolling */
+    private Parcelable listFilesState;
+    private CompositeDisposable disposable = new CompositeDisposable();
+
+    public static AddTorrentFilesFragment newInstance()
+    {
+        AddTorrentFilesFragment fragment = new AddTorrentFilesFragment();
+
+        Bundle args = new Bundle();
+        fragment.setArguments(args);
+
+        return fragment;
+    }
+
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    {
+        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_add_torrent_files, container, false);
+
+        return binding.getRoot();
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context)
+    {
+        super.onAttach(context);
+
+        if (context instanceof AppCompatActivity)
+            activity = (AppCompatActivity)context;
+    }
+
+    @Override
+    public void onStop()
+    {
+        super.onStop();
+
+        disposable.clear();
+    }
+
+    @Override
+    public void onStart()
+    {
+        super.onStart();
+
+        subscribeAdapter();
+    }
+
+    private void subscribeAdapter()
+    {
+        disposable.add(viewModel.children
+                .subscribeOn(Schedulers.computation())
+                .flatMapSingle((children) ->
+                        Flowable.fromIterable(children)
+                                .map(DownloadableFileItem::new)
+                                .toList()
+                )
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((children) -> {
+                    adapter.submitList(children);
+                    updateFileSize();
+                }));
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        if (activity == null)
+            activity = (AppCompatActivity) getActivity();
+
+        viewModel = new ViewModelProvider(activity).get(AddTorrentViewModel.class);
+        binding.setViewModel(viewModel);
+
+        layoutManager = new LinearLayoutManager(activity);
+        binding.fileList.setLayoutManager(layoutManager);
+        adapter = new DownloadableFilesAdapter(this);
+        binding.fileList.setAdapter(adapter);
+    }
+
+    private void updateFileSize()
+    {
+        if (viewModel.fileTree == null)
+            return;
+
+        binding.filesSize.setText(getString(R.string.files_size,
+                Formatter.formatFileSize(activity.getApplicationContext(),
+                        viewModel.fileTree.selectedFileSize()),
+                Formatter.formatFileSize(activity.getApplicationContext(),
+                        viewModel.fileTree.size())));
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState)
+    {
+        listFilesState = layoutManager.onSaveInstanceState();
+        outState.putParcelable(TAG_LIST_FILES_STATE, listFilesState);
+
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onViewStateRestored(@Nullable Bundle savedInstanceState)
+    {
+        super.onViewStateRestored(savedInstanceState);
+
+        if (savedInstanceState != null)
+            listFilesState = savedInstanceState.getParcelable(TAG_LIST_FILES_STATE);
+    }
+
+    @Override
+    public void onResume()
+    {
+        super.onResume();
+
+        if (listFilesState != null)
+            layoutManager.onRestoreInstanceState(listFilesState);
+    }
+
+    @Override
+    public void onItemClicked(@NonNull DownloadableFileItem item)
+    {
+        if (item.name.equals(BencodeFileTree.PARENT_DIR))
+            viewModel.upToParentDirectory();
+        else if (!item.isFile)
+            viewModel.chooseDirectory(item.name);
+    }
+
+    @Override
+    public void onItemCheckedChanged(@NonNull DownloadableFileItem item, boolean selected)
+    {
+        viewModel.selectFile(item.name, selected);
+        updateFileSize();
+    }
+}
+
+$ sed -n '1,574p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentViewModel.java
+/*
+ * Copyright (C) 2019-2022 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.addtorrent;
+
+import android.app.Application;
+import android.content.ContentResolver;
+import android.net.Uri;
+import android.os.AsyncTask;
+import android.os.ParcelFileDescriptor;
+import android.text.TextUtils;
+import android.util.Log;
+
+import androidx.annotation.NonNull;
+import androidx.collection.ArraySet;
+import androidx.core.util.Pair;
+import androidx.databinding.Observable;
+import androidx.databinding.ObservableField;
+import androidx.lifecycle.AndroidViewModel;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+
+import org.proninyaroslav.libretorrent.core.RepositoryHelper;
+import org.proninyaroslav.libretorrent.core.exception.DecodeException;
+import org.proninyaroslav.libretorrent.core.exception.FreeSpaceException;
+import org.proninyaroslav.libretorrent.core.exception.NoFilesSelectedException;
+import org.proninyaroslav.libretorrent.core.exception.UnknownUriException;
+import org.proninyaroslav.libretorrent.core.model.AddTorrentParams;
+import org.proninyaroslav.libretorrent.core.model.TorrentEngine;
+import org.proninyaroslav.libretorrent.core.model.data.MagnetInfo;
+import org.proninyaroslav.libretorrent.core.model.data.Priority;
+import org.proninyaroslav.libretorrent.core.model.data.entity.TagInfo;
+import org.proninyaroslav.libretorrent.core.model.data.metainfo.BencodeFileItem;
+import org.proninyaroslav.libretorrent.core.model.data.metainfo.TorrentMetaInfo;
+import org.proninyaroslav.libretorrent.core.model.filetree.BencodeFileTree;
+import org.proninyaroslav.libretorrent.core.model.filetree.FileNode;
+import org.proninyaroslav.libretorrent.core.settings.SettingsRepository;
+import org.proninyaroslav.libretorrent.core.system.FileSystemFacade;
+import org.proninyaroslav.libretorrent.core.system.SystemFacadeHelper;
+import org.proninyaroslav.libretorrent.core.utils.BencodeFileTreeUtils;
+import org.proninyaroslav.libretorrent.core.utils.Utils;
+
+import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import io.reactivex.Completable;
+import io.reactivex.Single;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.BehaviorSubject;
+
+public class AddTorrentViewModel extends AndroidViewModel {
+    private static final String TAG = AddTorrentViewModel.class.getSimpleName();
+
+    public AddTorrentMutableParams mutableParams = new AddTorrentMutableParams();
+    public ObservableField<TorrentMetaInfo> info = new ObservableField<>();
+    private MutableLiveData<DecodeState> decodeState = new MutableLiveData<>();
+    private FileSystemFacade fs;
+    private TorrentEngine engine;
+    private SettingsRepository pref;
+    private TorrentDecodeTask decodeTask;
+    /* BEP53 standard. Optional field */
+    private ArrayList<Priority> magnetPriorities;
+    private CompositeDisposable disposable = new CompositeDisposable();
+    private Disposable observeEngineRunning;
+
+    public BencodeFileTree fileTree;
+    private BencodeFileTree[] treeLeaves;
+    public BehaviorSubject<List<BencodeFileTree>> children = BehaviorSubject.create();
+    /* Current directory */
+    private BencodeFileTree curDir;
+    public Throwable errorReport;
+
+    private final ArrayList<TagInfo> tags = new ArrayList<>();
+    private final BehaviorSubject<List<TagInfo>> tagsSubject = BehaviorSubject.createDefault(tags);
+
+    public enum Status {
+        UNKNOWN,
+        DECODE_TORRENT_FILE,
+        DECODE_TORRENT_COMPLETED,
+        FETCHING_MAGNET,
+        FETCHING_HTTP,
+        FETCHING_MAGNET_COMPLETED,
+        FETCHING_HTTP_COMPLETED,
+        ERROR
+    }
+
+    public static class DecodeState {
+        public Status status;
+        public Throwable error;
+
+        public DecodeState(Status status, Throwable error) {
+            this.status = status;
+            this.error = error;
+        }
+
+        public DecodeState(Status status) {
+            this(status, null);
+        }
+    }
+
+    public AddTorrentViewModel(@NonNull Application application) {
+        super(application);
+
+        fs = SystemFacadeHelper.getFileSystemFacade(application);
+        pref = RepositoryHelper.getSettingsRepository(application);
+        engine = TorrentEngine.getInstance(getApplication());
+
+        disposable.add(engine.observeNeedStartEngine()
+                .subscribeOn(Schedulers.io())
+                .filter((needStart) -> needStart)
+                .subscribe((needStart) -> engine.start()));
+
+        info.addOnPropertyChangedCallback(infoCallback);
+        mutableParams.getDirPath().addOnPropertyChangedCallback(dirPathCallback);
+        decodeState.setValue(new DecodeState(Status.UNKNOWN));
+
+        /* Init download dir */
+        String path = pref.saveTorrentsIn();
+        mutableParams.getDirPath().set(Uri.parse(path));
+    }
+
+    public List<TagInfo> getCurrentTags() {
+        return tags;
+    }
+
+    public io.reactivex.Observable<List<TagInfo>> observeTags() {
+        return tagsSubject;
+    }
+
+    public void addTag(@NonNull TagInfo info) {
+        tags.add(info);
+        tagsSubject.onNext(tags);
+    }
+
+    public void removeTag(@NonNull TagInfo info) {
+        tags.remove(info);
+        tagsSubject.onNext(tags);
+    }
+
+    public LiveData<DecodeState> getDecodeState() {
+        return decodeState;
+    }
+
+    public void restartForegroundNotification() {
+        engine.restartForegroundNotification();
+    }
+
+    @Override
+    protected void onCleared() {
+        disposable.clear();
+        info.removeOnPropertyChangedCallback(infoCallback);
+        mutableParams.getDirPath().removeOnPropertyChangedCallback(dirPathCallback);
+    }
+
+    public void startDecode(@NonNull Uri uri) {
+        if (observeEngineRunning != null && observeEngineRunning.isDisposed())
+            return;
+
+        observeEngineRunning = engine.observeEngineRunning()
+                .subscribeOn(Schedulers.io())
+                .subscribe((isRunning) -> {
+                    if (isRunning) {
+                        startDecodeTask(uri);
+                        if (observeEngineRunning != null)
+                            observeEngineRunning.dispose();
+                    }
+                });
+    }
+
+    public void startDecodeTask(Uri uri) {
+        decodeTask = new TorrentDecodeTask(this);
+        decodeTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, uri);
+    }
+
+    private static class TorrentDecodeTask extends AsyncTask<Uri, Void, Throwable> {
+        private final WeakReference<AddTorrentViewModel> viewModel;
+
+        private TorrentDecodeTask(AddTorrentViewModel viewModel) {
+            super();
+
+            this.viewModel = new WeakReference<>(viewModel);
+        }
+
+        @Override
+        protected void onPreExecute() {
+            /* Nothing */
+        }
+
+        @Override
+        protected Throwable doInBackground(Uri... params) {
+            AddTorrentViewModel v = viewModel.get();
+            if (v == null || isCancelled())
+                return null;
+
+            Uri uri = params[0];
+            try {
+                switch (uri.getScheme()) {
+                    case Utils.FILE_PREFIX:
+                    case Utils.CONTENT_PREFIX:
+                        v.mutableParams.setSource(uri.toString());
+                        v.decodeState.postValue(
+                                new DecodeState(AddTorrentViewModel.Status.DECODE_TORRENT_FILE));
+                        break;
+                    case Utils.MAGNET_PREFIX:
+                        v.mutableParams.setSource(uri.toString());
+                        v.decodeState.postValue(
+                                new DecodeState(AddTorrentViewModel.Status.FETCHING_MAGNET));
+                        v.mutableParams.setFromMagnet(true);
+
+                        Pair<MagnetInfo, Single<TorrentMetaInfo>> res = v.engine.fetchMagnet(uri.toString());
+                        if (res == null)
+                            break;
+                        MagnetInfo magnetInfo = res.first;
+                        if (magnetInfo != null && !isCancelled()) {
+                            v.info.set(new TorrentMetaInfo(magnetInfo.getName(), magnetInfo.getSha1hash()));
+                            v.observeFetchedMetadata(res.second);
+
+                            if (magnetInfo.getFilePriorities() != null)
+                                v.magnetPriorities = new ArrayList<>(magnetInfo.getFilePriorities());
+                        }
+                        break;
+                    case Utils.HTTP_PREFIX:
+                    case Utils.HTTPS_PREFIX:
+                        v.decodeState.postValue(new DecodeState(AddTorrentViewModel.Status.FETCHING_HTTP));
+
+                        File httpTmp = v.fs.makeTempFile(".torrent");
+                        byte[] response = Utils.fetchHttpUrl(v.getApplication(), uri.toString());
+                        org.apache.commons.io.FileUtils.writeByteArrayToFile(httpTmp, response);
+
+                        if (httpTmp.exists() && !isCancelled()) {
+                            v.mutableParams.setSource(
+                                    v.fs.normalizeFileSystemPath(httpTmp.getAbsolutePath()));
+                        } else {
+                            return new IllegalArgumentException("Unknown path to the torrent file");
+                        }
+
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Invalid scheme");
+                }
+
+                String tmpSource = v.mutableParams.getSource();
+                boolean fromMagnet = v.mutableParams.isFromMagnet();
+                if (tmpSource != null && !fromMagnet && !isCancelled())
+                    readTorrentFile(Uri.parse(tmpSource));
+
+            } catch (Throwable e) {
+                return e;
+            }
+
+            return null;
+        }
+
+        private void readTorrentFile(Uri uri) throws IOException, DecodeException {
+            AddTorrentViewModel v = viewModel.get();
+            if (v == null || isCancelled())
+                return;
+
+            ContentResolver contentResolver = v.getApplication().getContentResolver();
+            try (ParcelFileDescriptor outPfd = contentResolver.openFileDescriptor(uri, "r")) {
+                if (outPfd == null) {
+                    throw new IOException("ParcelFileDescriptor is null");
+                }
+                FileDescriptor outFd = outPfd.getFileDescriptor();
+                try (FileInputStream is = new FileInputStream(outFd)) {
+                    v.info.set(new TorrentMetaInfo(is));
+                }
+            } catch (FileNotFoundException e) {
+                throw new FileNotFoundException(uri.toString() + ": " + e.getMessage());
+            }
+        }
+
+        @Override
+        protected void onPostExecute(Throwable e) {
+            AddTorrentViewModel v = viewModel.get();
+            if (v == null || isCancelled())
+                return;
+
+            if (e != null) {
+                v.decodeState.postValue(new DecodeState(AddTorrentViewModel.Status.ERROR, e));
+                return;
+            }
+
+            DecodeState prevState = v.decodeState.getValue();
+            if (prevState == null)
+                return;
+
+            switch (prevState.status) {
+                case DECODE_TORRENT_FILE:
+                    v.decodeState.postValue(
+                            new DecodeState(AddTorrentViewModel.Status.DECODE_TORRENT_COMPLETED));
+                    break;
+                case FETCHING_HTTP:
+                    v.decodeState.postValue(
+                            new DecodeState(AddTorrentViewModel.Status.FETCHING_HTTP_COMPLETED));
+                    break;
+            }
+        }
+    }
+
+    private void observeFetchedMetadata(Single<TorrentMetaInfo> single) {
+        disposable.add(single.subscribe(
+                (downloadInfo) -> {
+                    info.set(downloadInfo);
+                    decodeState.postValue(new DecodeState(Status.FETCHING_MAGNET_COMPLETED));
+                },
+                (e) -> decodeState.postValue(new DecodeState(Status.ERROR, e))));
+    }
+
+    private Observable.OnPropertyChangedCallback infoCallback = new Observable.OnPropertyChangedCallback() {
+        @Override
+        public void onPropertyChanged(Observable sender, int propertyId) {
+            TorrentMetaInfo downloadInfo = info.get();
+            if (downloadInfo == null)
+                return;
+
+            mutableParams.setName(downloadInfo.torrentName);
+        }
+    };
+
+    private Observable.OnPropertyChangedCallback dirPathCallback = new Observable.OnPropertyChangedCallback() {
+        @Override
+        public void onPropertyChanged(Observable sender, int propertyId) {
+            Uri dirPath = mutableParams.getDirPath().get();
+            if (dirPath == null)
+                return;
+
+            disposable.add(Completable.fromRunnable(() -> {
+                try {
+                    mutableParams.setStorageFreeSpace(fs.getDirAvailableBytes(dirPath));
+                    mutableParams.setDirName(fs.getDirPath(dirPath));
+                } catch (UnknownUriException e) {
+                    Log.e(TAG, Log.getStackTraceString(e));
+                }
+            })
+                    .subscribeOn(Schedulers.io())
+                    .subscribe());
+        }
+    };
+
+    public void makeFileTree() {
+        if (fileTree != null)
+            return;
+
+        TorrentMetaInfo infoObj = info.get();
+        if (infoObj == null)
+            return;
+        List<BencodeFileItem> files = infoObj.fileList;
+        if (files.isEmpty())
+            return;
+
+        Pair<BencodeFileTree, BencodeFileTree[]> res = BencodeFileTreeUtils.buildFileTree(files);
+        this.fileTree = res.first;
+        this.treeLeaves = res.second;
+
+        if (magnetPriorities == null || magnetPriorities.size() == 0) {
+            fileTree.select(true, false);
+
+        } else {
+            /* Select files that have non-IGNORE priority (see BEP35 standard) */
+            for (int i = 0; i < files.size(); i++) {
+                BencodeFileTree file = treeLeaves[i];
+                if (file != null) {
+                    Priority p = (i >= magnetPriorities.size() ?
+                            Priority.IGNORE :
+                            magnetPriorities.get(i));
+                    file.select(p != Priority.IGNORE, false);
+                }
+            }
+        }
+
+        /* Is assigned the root dir of the file tree */
+        updateCurDir(fileTree);
+    }
+
+    /*
+     * Navigate back to an upper directory.
+     */
+
+    public void upToParentDirectory() {
+        updateCurDir(curDir.getParent());
+    }
+
+    public List<BencodeFileTree> getChildren(BencodeFileTree node) {
+        List<BencodeFileTree> children = new ArrayList<>();
+        if (node == null || node.isFile())
+            return children;
+
+        /* Adding parent dir for navigation */
+        if (curDir != fileTree && curDir.getParent() != null)
+            children.add(0, new BencodeFileTree(BencodeFileTree.PARENT_DIR, 0L, FileNode.Type.DIR, curDir.getParent()));
+
+        children.addAll(curDir.getChildren());
+
+        return children;
+    }
+
+    public void chooseDirectory(@NonNull String name) {
+        BencodeFileTree node = curDir.getChild(name);
+        if (node == null)
+            return;
+
+        if (node.isFile())
+            node = fileTree;
+
+        updateCurDir(node);
+    }
+
+    public void selectFile(@NonNull String name, boolean selected) {
+        BencodeFileTree node = curDir.getChild(name);
+        if (node == null)
+            return;
+
+        node.select(selected, true);
+        updateChildren();
+    }
+
+    private void updateCurDir(BencodeFileTree node) {
+        curDir = node;
+        updateChildren();
+    }
+
+    private void updateChildren() {
+        children.onNext(getChildren(curDir));
+    }
+
+    private Set<Integer> getSelectedFileIndexes() {
+        if (fileTree == null || treeLeaves == null)
+            return new HashSet<>();
+
+        Set<Integer> indexes = new ArraySet<>();
+        for (BencodeFileTree file : treeLeaves)
+            if (file.isSelected())
+                indexes.add(file.getIndex());
+
+        return indexes;
+    }
+
+    public boolean addTorrent() throws Exception {
+        TorrentMetaInfo downloadInfo = info.get();
+        if (downloadInfo == null)
+            return false;
+
+        boolean fromMagnet = mutableParams.isFromMagnet();
+        DecodeState state = decodeState.getValue();
+
+        String source = mutableParams.getSource();
+        if (source == null)
+            return false;
+
+        Uri dirPath = mutableParams.getDirPath().get();
+        if (dirPath == null)
+            return false;
+
+        String name = mutableParams.getName();
+        if (TextUtils.isEmpty(name))
+            return false;
+
+        boolean ignoreFreeSpace = mutableParams.isIgnoreFreeSpace();
+        Set<Integer> selectedFiles = getSelectedFileIndexes();
+        if (!ignoreFreeSpace && state != null &&
+                (state.status == Status.DECODE_TORRENT_COMPLETED ||
+                        state.status == Status.FETCHING_MAGNET_COMPLETED ||
+                        state.status == Status.FETCHING_HTTP_COMPLETED)) {
+            if (selectedFiles.isEmpty())
+                throw new NoFilesSelectedException();
+
+            if (!checkFreeSpace())
+                throw new FreeSpaceException();
+        }
+
+        Priority[] priorities = new Priority[downloadInfo.fileCount];
+        if (downloadInfo.fileCount != 0) {
+            if (selectedFiles.size() == downloadInfo.fileCount) {
+                Arrays.fill(priorities, Priority.DEFAULT);
+            } else {
+                Arrays.fill(priorities, Priority.IGNORE);
+                for (int index : selectedFiles)
+                    priorities[index] = Priority.DEFAULT;
+            }
+        }
+
+        AddTorrentParams params = new AddTorrentParams(
+                source,
+                fromMagnet,
+                downloadInfo.sha1Hash,
+                name,
+                priorities,
+                dirPath,
+                mutableParams.isSequentialDownload(),
+                !mutableParams.isStartAfterAdd(),
+                tags,
+                mutableParams.isFirstLastPiecePriority()
+        );
+
+        /* TODO: maybe rewrite to WorkManager */
+        /* Sync wait inserting */
+        Exception[] err = new Exception[1];
+        try {
+            Thread t = new Thread(() -> {
+                try {
+                    engine.addTorrentSync(params, false);
+
+                } catch (Exception e) {
+                    err[0] = e;
+                }
+            });
+            t.start();
+            t.join();
+
+        } catch (InterruptedException e) {
+            return false;
+        }
+
+        if (err[0] != null)
+            throw err[0];
+
+        return true;
+    }
+
+    private boolean checkFreeSpace() {
+        if (fileTree == null)
+            return false;
+
+        long storageFreeSpace = mutableParams.getStorageFreeSpace();
+        long treeFreeSpace = fileTree.selectedFileSize();
+
+        return storageFreeSpace == -1 || storageFreeSpace >= treeFreeSpace;
+    }
+
+    public void finish() {
+        if (decodeTask != null)
+            decodeTask.cancel(true);
+
+        cancelFetchMagnet();
+    }
+
+    private void cancelFetchMagnet() {
+        TorrentMetaInfo infoVal = info.get();
+        if (infoVal == null)
+            return;
+
+        DecodeState state = decodeState.getValue();
+        if (state != null && state.status == Status.FETCHING_MAGNET)
+            engine.cancelFetchMagnet(infoVal.sha1Hash);
+    }
+}
+
+$ sed -n '1,86p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/DownloadableFileItem.java
+/*
+ * Copyright (C) 2018, 2019 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.addtorrent;
+
+import android.os.Parcel;
+
+import androidx.annotation.NonNull;
+
+import org.proninyaroslav.libretorrent.core.model.filetree.BencodeFileTree;
+import org.proninyaroslav.libretorrent.ui.FileItem;
+
+public class DownloadableFileItem extends FileItem
+{
+    public boolean selected;
+
+    public DownloadableFileItem(@NonNull BencodeFileTree tree)
+    {
+        super(tree.getIndex(), tree.getName(), tree.isFile(), tree.size());
+
+        selected = tree.isSelected();
+    }
+
+    public DownloadableFileItem(Parcel source)
+    {
+        super(source);
+
+        selected = source.readByte() != 0;
+    }
+
+    @Override
+    public int describeContents()
+    {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags)
+    {
+        super.writeToParcel(dest, flags);
+
+        dest.writeByte((byte)(selected ? 1 : 0));
+    }
+
+    public static final Creator<DownloadableFileItem> CREATOR =
+            new Creator<DownloadableFileItem>()
+            {
+                @Override
+                public DownloadableFileItem createFromParcel(Parcel source)
+                {
+                    return new DownloadableFileItem(source);
+                }
+
+                @Override
+                public DownloadableFileItem[] newArray(int size)
+                {
+                    return new DownloadableFileItem[size];
+                }
+            };
+
+    @NonNull
+    @Override
+    public String toString()
+    {
+        return "DownloadableFileItem{" +
+                super.toString() +
+                "selected=" + selected +
+                '}';
+    }
+}
+
+$ sed -n '1,155p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/DownloadableFilesAdapter.java
+/*
+ * Copyright (C) 2016, 2019 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.addtorrent;
+
+import android.content.Context;
+import android.text.format.Formatter;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
+import androidx.annotation.NonNull;
+import androidx.databinding.DataBindingUtil;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.ListAdapter;
+import androidx.recyclerview.widget.RecyclerView;
+
+import org.proninyaroslav.libretorrent.R;
+import org.proninyaroslav.libretorrent.core.model.filetree.BencodeFileTree;
+import org.proninyaroslav.libretorrent.databinding.ItemTorrentDownloadableFileBinding;
+
+/*
+ * The adapter for directory or file chooser dialog.
+ */
+
+public class DownloadableFilesAdapter extends ListAdapter<DownloadableFileItem, DownloadableFilesAdapter.ViewHolder>
+{
+    private static final String TAG = DownloadableFilesAdapter.class.getSimpleName();
+
+    private ClickListener clickListener;
+
+    public DownloadableFilesAdapter(ClickListener clickListener)
+    {
+        super(diffCallback);
+
+        this.clickListener = clickListener;
+    }
+
+    @NonNull
+    @Override
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType)
+    {
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+        ItemTorrentDownloadableFileBinding binding = DataBindingUtil.inflate(inflater,
+                R.layout.item_torrent_downloadable_file,
+                parent,
+                false);
+
+        return new ViewHolder(binding);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position)
+    {
+        holder.bind(getItem(position), clickListener);
+    }
+
+    public static final DiffUtil.ItemCallback<DownloadableFileItem> diffCallback = new DiffUtil.ItemCallback<DownloadableFileItem>()
+    {
+        @Override
+        public boolean areContentsTheSame(@NonNull DownloadableFileItem oldItem,
+                                          @NonNull DownloadableFileItem newItem)
+        {
+            return oldItem.equals(newItem);
+        }
+
+        @Override
+        public boolean areItemsTheSame(@NonNull DownloadableFileItem oldItem,
+                                       @NonNull DownloadableFileItem newItem)
+        {
+            return oldItem.equals(newItem);
+        }
+    };
+
+    public static class ViewHolder extends RecyclerView.ViewHolder
+    {
+        private ItemTorrentDownloadableFileBinding binding;
+
+        public ViewHolder(ItemTorrentDownloadableFileBinding binding)
+        {
+            super(binding.getRoot());
+
+            this.binding = binding;
+        }
+
+        void bind(DownloadableFileItem item, ClickListener listener)
+        {
+            Context context = itemView.getContext();
+
+            itemView.setOnClickListener((v) -> {
+                if (item.isFile) {
+                    /* Check file if it clicked */
+                    binding.selected.performClick();
+                }
+                if (listener != null)
+                    listener.onItemClicked(item);
+            });
+            binding.selected.setOnClickListener((View v) -> {
+                if (listener != null)
+                    listener.onItemCheckedChanged(item, binding.selected.isChecked());
+            });
+
+            binding.name.setText(item.name);
+
+            boolean isParentDir = item.name.equals(BencodeFileTree.PARENT_DIR);
+
+            if (item.isFile) {
+                binding.icon.setImageResource(R.drawable.ic_file_grey600_24dp);
+                binding.icon.setContentDescription(context.getString(R.string.file));
+
+            } else {
+                if (isParentDir) {
+                    binding.icon.setImageResource(R.drawable.ic_arrow_up_bold_grey600_24dp);
+                    binding.icon.setContentDescription(context.getString(R.string.parent_folder));
+                } else {
+                    binding.icon.setImageResource(R.drawable.ic_folder_grey600_24dp);
+                    binding.icon.setContentDescription(context.getString(R.string.folder));
+                }
+            }
+
+            if (isParentDir) {
+                binding.selected.setVisibility(View.GONE);
+                binding.size.setVisibility(View.GONE);
+            } else {
+                binding.selected.setVisibility(View.VISIBLE);
+                binding.selected.setChecked(item.selected);
+                binding.size.setVisibility(View.VISIBLE);
+                binding.size.setText(Formatter.formatFileSize(context, item.size));
+            }
+        }
+    }
+
+    public interface ClickListener
+    {
+        void onItemClicked(@NonNull DownloadableFileItem item);
+
+        void onItemCheckedChanged(@NonNull DownloadableFileItem item, boolean selected);
+    }
+}
+
+$ sed -n '1,140p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/createtorrent/CreateTorrentActivity.java
+/*
+ * Copyright (C) 2019-2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.createtorrent;
+
+import android.content.Intent;
+import android.os.Bundle;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.ViewModelProvider;
+
+import org.proninyaroslav.libretorrent.core.utils.Utils;
+import org.proninyaroslav.libretorrent.ui.BaseAlertDialog;
+import org.proninyaroslav.libretorrent.ui.FragmentCallback;
+import org.proninyaroslav.libretorrent.ui.PermissionDeniedDialog;
+import org.proninyaroslav.libretorrent.ui.PermissionManager;
+
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
+
+public class CreateTorrentActivity extends AppCompatActivity
+    implements FragmentCallback
+{
+    private static final String TAG_CREATE_TORRENT_DIALOG = "create_torrent_dialog";
+    private static final String TAG_PERM_DENIED_DIALOG = "perm_denied_dialog";
+
+    private CreateTorrentDialog createTorrentDialog;
+    private PermissionDeniedDialog permDeniedDialog;
+    private BaseAlertDialog.SharedViewModel dialogViewModel;
+    private CompositeDisposable disposable = new CompositeDisposable();
+    private PermissionManager permissionManager;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState)
+    {
+        setTheme(Utils.getTranslucentAppTheme(getApplicationContext()));
+        super.onCreate(savedInstanceState);
+
+        ViewModelProvider provider = new ViewModelProvider(this);
+        dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+
+        FragmentManager fm = getSupportFragmentManager();
+        permissionManager = new PermissionManager(this, new PermissionManager.Callback() {
+            @Override
+            public void onStorageResult(boolean isGranted, boolean shouldRequestStoragePermission) {
+                if (!isGranted && shouldRequestStoragePermission) {
+                    if (fm.findFragmentByTag(TAG_PERM_DENIED_DIALOG) == null) {
+                        permDeniedDialog = PermissionDeniedDialog.newInstance();
+                        FragmentTransaction ft = fm.beginTransaction();
+                        ft.add(permDeniedDialog, TAG_PERM_DENIED_DIALOG);
+                        ft.commitAllowingStateLoss();
+                    }
+                }
+            }
+
+            @Override
+            public void onNotificationResult(boolean isGranted, boolean shouldRequestNotificationPermission) {
+                permissionManager.setDoNotAskNotifications(!isGranted);
+            }
+        });
+
+        createTorrentDialog = (CreateTorrentDialog)fm.findFragmentByTag(TAG_CREATE_TORRENT_DIALOG);
+        if (createTorrentDialog == null) {
+            createTorrentDialog = CreateTorrentDialog.newInstance();
+            createTorrentDialog.show(fm, TAG_CREATE_TORRENT_DIALOG);
+        }
+
+        if (!permissionManager.checkPermissions() && permDeniedDialog == null) {
+            permissionManager.requestPermissions();
+        }
+        Utils.showManageAllFilesWarningDialog(getApplicationContext(), getSupportFragmentManager());
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        subscribeAlertDialog();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        disposable.clear();
+    }
+
+    private void subscribeAlertDialog() {
+        Disposable d = dialogViewModel.observeEvents().subscribe(event -> {
+            if (event.dialogTag == null) {
+                return;
+            }
+            if (event.dialogTag.equals(TAG_PERM_DENIED_DIALOG)) {
+                if (event.type != BaseAlertDialog.EventType.DIALOG_SHOWN) {
+                    permDeniedDialog.dismiss();
+                }
+                if (event.type == BaseAlertDialog.EventType.NEGATIVE_BUTTON_CLICKED) {
+                    permissionManager.requestPermissions();
+                }
+                if (event.type == BaseAlertDialog.EventType.POSITIVE_BUTTON_CLICKED) {
+                    permissionManager.setDoNotAskStorage(true);
+                }
+            }
+        });
+        disposable.add(d);
+    }
+
+    @Override
+    public void onFragmentFinished(@NonNull Fragment f, Intent intent, @NonNull ResultCode code)
+    {
+        finish();
+    }
+
+    @Override
+    public void onBackPressed()
+    {
+        createTorrentDialog.onBackPressed();
+    }
+}
+
+$ sed -n '1,561p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/createtorrent/CreateTorrentDialog.java
+/*
+ * Copyright (C) 2019-2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.createtorrent;
+
+import android.app.Activity;
+import android.app.Dialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextUtils;
+import android.text.TextWatcher;
+import android.util.Log;
+import android.view.KeyEvent;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.Toast;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.databinding.DataBindingUtil;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.ViewModelProvider;
+
+import com.google.android.material.textfield.TextInputEditText;
+
+import org.proninyaroslav.libretorrent.R;
+import org.proninyaroslav.libretorrent.core.exception.UnknownUriException;
+import org.proninyaroslav.libretorrent.core.utils.Utils;
+import org.proninyaroslav.libretorrent.databinding.DialogCreateTorrentBinding;
+import org.proninyaroslav.libretorrent.ui.BaseAlertDialog;
+import org.proninyaroslav.libretorrent.ui.FragmentCallback;
+import org.proninyaroslav.libretorrent.ui.errorreport.ErrorReportDialog;
+import org.proninyaroslav.libretorrent.ui.filemanager.FileManagerConfig;
+import org.proninyaroslav.libretorrent.ui.filemanager.FileManagerDialog;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
+
+public class CreateTorrentDialog extends DialogFragment
+{
+    private static final String TAG = CreateTorrentDialog.class.getSimpleName();
+
+    private static final String TAG_OPEN_PATH_ERROR_DIALOG = "open_path_error_dialog";
+    private static final String TAG_CREATE_FILE_ERROR_DIALOG = "create_file_error_dialog";
+    private static final String TAG_FILE_OR_FOLDER_NOT_FOUND_ERROR_DIALOG = "file_or_folder_not_found_error_fialog";
+    private static final String TAG_ERROR_FOLDER_IS_EMPTY = "error_folder_is_empty";
+    private static final String TAG_ERROR_REPORT_DIALOG = "error_report_dialog";
+
+    private AlertDialog alert;
+    private AppCompatActivity activity;
+    private CreateTorrentViewModel viewModel;
+    private DialogCreateTorrentBinding binding;
+    private CompositeDisposable disposables = new CompositeDisposable();
+    private BaseAlertDialog.SharedViewModel dialogViewModel;
+    private ErrorReportDialog errReportDialog;
+
+    public static CreateTorrentDialog newInstance()
+    {
+        CreateTorrentDialog frag = new CreateTorrentDialog();
+        frag.setArguments(new Bundle());
+
+        return frag;
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context)
+    {
+        super.onAttach(context);
+
+        if (context instanceof AppCompatActivity)
+            activity = (AppCompatActivity)context;
+    }
+
+    @Override
+    public void onResume()
+    {
+        super.onResume();
+
+        /* Back button handle */
+        getDialog().setOnKeyListener((DialogInterface dialog, int keyCode, KeyEvent event) -> {
+            if (keyCode == KeyEvent.KEYCODE_BACK) {
+                if (event.getAction() != KeyEvent.ACTION_DOWN) {
+                    return true;
+                } else {
+                    onBackPressed();
+                    return true;
+                }
+            } else {
+                return false;
+            }
+        });
+    }
+
+    @Override
+    public void onStop()
+    {
+        super.onStop();
+
+        disposables.clear();
+    }
+
+    @Override
+    public void onStart()
+    {
+        super.onStart();
+
+        subscribeAlertDialog();
+    }
+
+    private void subscribeAlertDialog()
+    {
+        Disposable d = dialogViewModel.observeEvents()
+                .subscribe((event) -> {
+                    if (event.dialogTag == null)
+                        return;
+
+                    switch (event.type) {
+                        case POSITIVE_BUTTON_CLICKED:
+                            if (event.dialogTag.equals(TAG_ERROR_REPORT_DIALOG) && errReportDialog != null) {
+                                Dialog dialog = errReportDialog.getDialog();
+                                if (dialog != null) {
+                                    TextInputEditText editText = dialog.findViewById(R.id.comment);
+                                    Editable e = editText.getText();
+                                    String comment = (e == null ? null : e.toString());
+
+                                    Utils.reportError(viewModel.errorReport, comment);
+                                    errReportDialog.dismiss();
+                                }
+                            }
+                            break;
+                        case NEGATIVE_BUTTON_CLICKED:
+                            if (event.dialogTag.equals(TAG_ERROR_REPORT_DIALOG) && errReportDialog != null)
+                                errReportDialog.dismiss();
+                            break;
+                    }
+                });
+        disposables.add(d);
+    }
+
+    @NonNull
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState)
+    {
+        if (activity == null)
+            activity = (AppCompatActivity)getActivity();
+
+        ViewModelProvider provider = new ViewModelProvider(activity);
+        viewModel = provider.get(CreateTorrentViewModel.class);
+        dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+
+        FragmentManager fm = getChildFragmentManager();
+        errReportDialog = (ErrorReportDialog)fm.findFragmentByTag(TAG_ERROR_REPORT_DIALOG);
+
+        LayoutInflater i = LayoutInflater.from(activity);
+        binding = DataBindingUtil.inflate(i, R.layout.dialog_create_torrent, null, false);
+        binding.setLifecycleOwner(this);
+        binding.setViewModel(viewModel);
+
+        initLayoutView();
+
+        return alert;
+    }
+
+    private void initLayoutView()
+    {
+        /* Dismiss error label if user has changed the text */
+        binding.trackerUrls.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) { }
+
+            @Override
+            public void afterTextChanged(Editable s)
+            {
+                binding.layoutTrackerUrls.setErrorEnabled(false);
+                binding.layoutTrackerUrls.setError(null);
+            }
+        });
+
+        binding.webSeedUrls.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) { }
+
+            @Override
+            public void afterTextChanged(Editable s)
+            {
+                binding.layoutWebSeedUrls.setErrorEnabled(false);
+                binding.layoutWebSeedUrls.setError(null);
+            }
+        });
+
+        binding.piecesSize.setSelection(viewModel.mutableParams.getPieceSizeIndex());
+        binding.piecesSize.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
+        {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l)
+            {
+                viewModel.setPiecesSizeIndex(binding.piecesSize.getSelectedItemPosition());
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView)
+            {
+                /* Nothing */
+            }
+        });
+
+        binding.torrentVersion.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
+        {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l)
+            {
+                viewModel.setTorrentVersionIndex(binding.torrentVersion.getSelectedItemPosition());
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView)
+            {
+                /*  Nothing  */
+            }
+        });
+
+        binding.fileChooserButton.setOnClickListener((v) -> {
+            Intent i = new Intent(activity, FileManagerDialog.class);
+            FileManagerConfig config = new FileManagerConfig(
+                    null,
+                    null,
+                    FileManagerConfig.FILE_CHOOSER_MODE);
+            i.putExtra(FileManagerDialog.TAG_CONFIG, config);
+            chooseFile.launch(i);
+        });
+
+        binding.folderChooserButton.setOnClickListener((v) -> {
+            Intent i = new Intent(activity, FileManagerDialog.class);
+            FileManagerConfig config = new FileManagerConfig(
+                    null,
+                    null,
+                    FileManagerConfig.DIR_CHOOSER_MODE);
+            i.putExtra(FileManagerDialog.TAG_CONFIG, config);
+            chooseDir.launch(i);
+        });
+
+        initAlertDialog(binding.getRoot());
+    }
+
+    private void initAlertDialog(View view)
+    {
+        alert = new AlertDialog.Builder(activity)
+                .setTitle(R.string.create_torrent)
+                .setNegativeButton(R.string.cancel, null)
+                .setPositiveButton(R.string.add, null)
+                .setView(view)
+                .create();
+
+
+        alert.setCanceledOnTouchOutside(false);
+        alert.setOnShowListener((DialogInterface dialog) -> {
+            Button cancelButton = alert.getButton(AlertDialog.BUTTON_NEGATIVE);
+            Button addButton = alert.getButton(AlertDialog.BUTTON_POSITIVE);
+
+            viewModel.getState().observe(this, (state) -> {
+                if (state.status == CreateTorrentViewModel.BuildState.Status.BUILDING) {
+                    alert.setTitle(R.string.creating_torrent_progress);
+                    addButton.setVisibility(View.GONE);
+                } else {
+                    alert.setTitle(R.string.create_torrent);
+                    addButton.setVisibility(View.VISIBLE);
+                }
+
+                if (state.status == CreateTorrentViewModel.BuildState.Status.FINISHED)
+                    handleFinish();
+
+                else if (state.status == CreateTorrentViewModel.BuildState.Status.ERROR)
+                    handleBuildError(state.err);
+            });
+
+            cancelButton.setOnClickListener((v) ->
+                    finish(new Intent(), FragmentCallback.ResultCode.CANCEL));
+            addButton.setOnClickListener((v) -> {
+                if(TextUtils.isEmpty(viewModel.mutableParams.getSeedPathName()) || "null".equals(viewModel.mutableParams.getSeedPathName())) {
+                    binding.layoutFileOrDirPath.setErrorEnabled(true);
+                    binding.layoutFileOrDirPath.setError(getText(R.string.error_please_select_file_or_folder_for_seeding_first));
+                }
+                else{
+                    choosePathToSaveDialog();
+                }
+            });
+        });
+    }
+
+    private void choosePathToSaveDialog()
+    {
+        Intent i = new Intent(activity, FileManagerDialog.class);
+        FileManagerConfig config = new FileManagerConfig(
+                null,
+                getString(R.string.select_folder_to_save),
+                FileManagerConfig.SAVE_FILE_MODE);
+        config.mimeType = Utils.MIME_TORRENT;
+
+        i.putExtra(FileManagerDialog.TAG_CONFIG, config);
+        choosePathToSave.launch(i);
+    }
+
+    private void buildTorrent()
+    {
+        binding.layoutTrackerUrls.setErrorEnabled(false);
+        binding.layoutTrackerUrls.setError(null);
+        binding.layoutWebSeedUrls.setErrorEnabled(false);
+        binding.layoutWebSeedUrls.setError(null);
+
+        viewModel.buildTorrent();
+    }
+
+    private void handleBuildError(Throwable err)
+    {
+        if (err == null)
+            return;
+
+        Log.e(TAG, Log.getStackTraceString(err));
+
+        if (err instanceof CreateTorrentViewModel.InvalidTrackerException) {
+            binding.layoutTrackerUrls.setErrorEnabled(true);
+            binding.layoutTrackerUrls.setError(getString(R.string.invalid_url,
+                    ((CreateTorrentViewModel.InvalidTrackerException)err).url));
+            binding.layoutTrackerUrls.requestFocus();
+
+        } else if (err instanceof CreateTorrentViewModel.InvalidWebSeedException) {
+            binding.layoutWebSeedUrls.setErrorEnabled(true);
+            binding.layoutWebSeedUrls.setError(getString(R.string.invalid_url,
+                    ((CreateTorrentViewModel.InvalidWebSeedException)err).url));
+            binding.layoutWebSeedUrls.requestFocus();
+
+        } else if (err instanceof FileNotFoundException) {
+            fileOrFolderNotFoundDialog((FileNotFoundException)err);
+
+        } else if (err instanceof IOException) {
+            if (err.getMessage().contains("content total size can't be 0"))
+                emptyFolderErrorDialog();
+            else
+                errorReportDialog(err);
+        } else {
+            errorReportDialog(err);
+        }
+    }
+
+    private void handleFinish()
+    {
+        Uri savePath = viewModel.mutableParams.getSavePath();
+        if (savePath != null) {
+            Toast.makeText(activity.getApplicationContext(),
+                    getString(R.string.torrent_saved_to, savePath.getPath()),
+                    Toast.LENGTH_SHORT)
+                    .show();
+        }
+        if (viewModel.mutableParams.isStartSeeding()) {
+            try {
+                disposables.add(viewModel.downloadTorrent()
+                        .subscribeOn(Schedulers.io())
+                        .subscribe(
+                                () -> finish(new Intent(), FragmentCallback.ResultCode.OK),
+                                this::handleBuildError)
+                );
+            } catch (UnknownUriException e) {
+                handleBuildError(e);
+            }
+        } else {
+            finish(new Intent(), FragmentCallback.ResultCode.OK);
+        }
+    }
+
+    private void openPathErrorDialog(boolean isFile)
+    {
+        if (!isAdded())
+            return;
+
+        FragmentManager fm = getChildFragmentManager();
+        if (fm.findFragmentByTag(TAG_ERROR_FOLDER_IS_EMPTY) == null) {
+            BaseAlertDialog errDialog = BaseAlertDialog.newInstance(
+                    getString(R.string.error),
+                    getString(isFile ? R.string.unable_to_open_file : R.string.unable_to_open_folder),
+                    0,
+                    getString(R.string.ok),
+                    null,
+                    null,
+                    true);
+
+            errDialog.show(fm, TAG_ERROR_FOLDER_IS_EMPTY);
+        }
+    }
+
+    private void fileOrFolderNotFoundDialog(FileNotFoundException e)
+    {
+        if (!isAdded())
+            return;
+
+        FragmentManager fm = getChildFragmentManager();
+        if (fm != null && fm.findFragmentByTag(TAG_FILE_OR_FOLDER_NOT_FOUND_ERROR_DIALOG) == null) {
+            BaseAlertDialog errDialog = BaseAlertDialog.newInstance(
+                    getString(R.string.error),
+                    e.getMessage(),
+                    0,
+                    getString(R.string.ok),
+                    null,
+                    null,
+                    true);
+
+            errDialog.show(fm, TAG_FILE_OR_FOLDER_NOT_FOUND_ERROR_DIALOG);
+        }
+    }
+
+    private void emptyFolderErrorDialog()
+    {
+        if (!isAdded())
+            return;
+
+        FragmentManager fm = getChildFragmentManager();
+        if (fm != null && fm.findFragmentByTag(TAG_OPEN_PATH_ERROR_DIALOG) == null) {
+            BaseAlertDialog errDialog = BaseAlertDialog.newInstance(
+                    getString(R.string.error),
+                    getString(R.string.folder_is_empty),
+                    0,
+                    getString(R.string.ok),
+                    null,
+                    null,
+                    true);
+
+            errDialog.show(fm, TAG_OPEN_PATH_ERROR_DIALOG);
+        }
+    }
+
+    private void errorReportDialog(Throwable e)
+    {
+        viewModel.errorReport = e;
+
+        FragmentManager fm = getChildFragmentManager();
+        if (fm != null && fm.findFragmentByTag(TAG_ERROR_REPORT_DIALOG) == null) {
+            errReportDialog = ErrorReportDialog.newInstance(
+                    getString(R.string.error),
+                    getString(R.string.error_create_torrent) + ": " + e.getMessage(),
+                    Log.getStackTraceString(e));
+
+            errReportDialog.show(fm, TAG_ERROR_REPORT_DIALOG);
+        }
+    }
+
+    private void createFileErrorDialog()
+    {
+        if (!isAdded())
+            return;
+
+        FragmentManager fm = getChildFragmentManager();
+        if (fm != null && fm.findFragmentByTag(TAG_CREATE_FILE_ERROR_DIALOG) == null) {
+            BaseAlertDialog createFileErrorDialog = BaseAlertDialog.newInstance(
+                    getString(R.string.error),
+                    getString(R.string.unable_to_create_file),
+                    0,
+                    getString(R.string.ok),
+                    null,
+                    null,
+                    true);
+
+            createFileErrorDialog.show(fm, TAG_CREATE_FILE_ERROR_DIALOG);
+        }
+    }
+
+    final ActivityResultLauncher<Intent> chooseDir = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                Intent data = result.getData();
+                if (result.getResultCode() != Activity.RESULT_OK)
+                    return;
+                if (data == null || data.getData() == null) {
+                    openPathErrorDialog(false);
+                    return;
+                }
+                binding.layoutFileOrDirPath.setErrorEnabled(false);
+                binding.layoutFileOrDirPath.setError(null);
+
+                viewModel.mutableParams.getSeedPath().set(data.getData());
+            }
+    );
+
+    final ActivityResultLauncher<Intent> chooseFile = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                Intent data = result.getData();
+                if (result.getResultCode() != Activity.RESULT_OK)
+                    return;
+                if (data == null || data.getData() == null) {
+                    openPathErrorDialog(true);
+                    return;
+                }
+                binding.layoutFileOrDirPath.setErrorEnabled(false);
+                binding.layoutFileOrDirPath.setError(null);
+
+                viewModel.mutableParams.getSeedPath().set(data.getData());
+            }
+    );
+
+    final ActivityResultLauncher<Intent> choosePathToSave = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                Intent data = result.getData();
+                if (result.getResultCode() != Activity.RESULT_OK)
+                    return;
+                if (data == null || data.getData() == null) {
+                    createFileErrorDialog();
+                    return;
+                }
+
+                viewModel.mutableParams.setSavePath(data.getData());
+                buildTorrent();
+            }
+    );
+
+    public void onBackPressed()
+    {
+        finish(new Intent(), FragmentCallback.ResultCode.BACK);
+    }
+
+    private void finish(Intent intent, FragmentCallback.ResultCode code)
+    {
+        viewModel.finish();
+        alert.dismiss();
+        ((FragmentCallback)activity).onFragmentFinished(this, intent, code);
+    }
+}
+
+$ sed -n '1,637p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/MainFragment.java
+/*
+ * Copyright (C) 2016-2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.main;
+
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.app.Dialog;
+import android.content.Context;
+import android.content.Intent;
+import android.content.res.TypedArray;
+import android.os.Bundle;
+import android.os.Parcelable;
+import android.util.Log;
+import android.util.TypedValue;
+import android.view.ContextMenu;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.CheckBox;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.ActionMode;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.databinding.DataBindingUtil;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.selection.MutableSelection;
+import androidx.recyclerview.selection.SelectionPredicates;
+import androidx.recyclerview.selection.SelectionTracker;
+import androidx.recyclerview.selection.StorageStrategy;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.leinardi.android.speeddial.SpeedDialActionItem;
+
+import org.proninyaroslav.libretorrent.R;
+import org.proninyaroslav.libretorrent.core.utils.Utils;
+import org.proninyaroslav.libretorrent.databinding.FragmentMainBinding;
+import org.proninyaroslav.libretorrent.ui.BaseAlertDialog;
+import org.proninyaroslav.libretorrent.ui.addlink.AddLinkActivity;
+import org.proninyaroslav.libretorrent.ui.addtorrent.AddTorrentActivity;
+import org.proninyaroslav.libretorrent.ui.createtorrent.CreateTorrentActivity;
+import org.proninyaroslav.libretorrent.ui.customviews.RecyclerViewDividerDecoration;
+import org.proninyaroslav.libretorrent.ui.filemanager.FileManagerConfig;
+import org.proninyaroslav.libretorrent.ui.filemanager.FileManagerDialog;
+
+import java.util.Collections;
+
+import io.reactivex.Flowable;
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
+
+/*
+ * The list of torrents.
+ */
+
+public class MainFragment extends Fragment
+        implements TorrentListAdapter.ClickListener
+{
+    private static final String TAG = MainFragment.class.getSimpleName();
+
+    private static final String TAG_TORRENT_LIST_STATE = "torrent_list_state";
+    private static final String SELECTION_TRACKER_ID = "selection_tracker_0";
+    private static final String TAG_DELETE_TORRENTS_DIALOG = "delete_torrents_dialog";
+    private static final String TAG_OPEN_FILE_ERROR_DIALOG = "open_file_error_dialog";
+
+    private AppCompatActivity activity;
+    private TorrentListAdapter adapter;
+    private LinearLayoutManager layoutManager;
+    /* Save state scrolling */
+    private Parcelable torrentListState;
+    private SelectionTracker<TorrentListItem> selectionTracker;
+    private ActionMode actionMode;
+    private FragmentMainBinding binding;
+    private MainViewModel viewModel;
+    private MsgMainViewModel msgViewModel;
+    private BaseAlertDialog.SharedViewModel dialogViewModel;
+    private BaseAlertDialog deleteTorrentsDialog;
+    private CompositeDisposable disposables = new CompositeDisposable();
+
+    public CoordinatorLayout getCoordinatorLayout() {
+        return binding.mainCoordinatorLayout;
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState)
+    {
+        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_main, container, false);
+
+        return binding.getRoot();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        if (activity == null)
+            activity = (AppCompatActivity)getActivity();
+
+        ViewModelProvider provider = new ViewModelProvider(activity);
+        viewModel = provider.get(MainViewModel.class);
+        msgViewModel = provider.get(MsgMainViewModel.class);
+        dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+
+        adapter = new TorrentListAdapter(this);
+        /*
+         * A RecyclerView by default creates another copy of the ViewHolder in order to
+         * fade the views into each other. This causes the problem because the old ViewHolder gets
+         * the payload but then the new one doesn't. So needs to explicitly tell it to reuse the old one.
+         */
+        DefaultItemAnimator animator = new DefaultItemAnimator() {
+            @Override
+            public boolean canReuseUpdatedViewHolder(@NonNull RecyclerView.ViewHolder viewHolder) {
+                return true;
+            }
+        };
+        layoutManager = new LinearLayoutManager(activity);
+        binding.torrentList.setLayoutManager(layoutManager);
+        binding.torrentList.setItemAnimator(animator);
+        binding.torrentList.setEmptyView(binding.emptyViewTorrentList);
+        TypedArray a = activity.obtainStyledAttributes(new TypedValue().data, new int[]{R.attr.divider});
+        binding.torrentList.addItemDecoration(new RecyclerViewDividerDecoration(a.getDrawable(0)));
+        a.recycle();
+        binding.torrentList.setAdapter(adapter);
+
+        selectionTracker = new SelectionTracker.Builder<>(
+                SELECTION_TRACKER_ID,
+                binding.torrentList,
+                new TorrentListAdapter.KeyProvider(adapter),
+                new TorrentListAdapter.ItemLookup(binding.torrentList),
+                StorageStrategy.createParcelableStorage(TorrentListItem.class))
+                .withSelectionPredicate(SelectionPredicates.createSelectAnything())
+                .build();
+
+        selectionTracker.addObserver(new SelectionTracker.SelectionObserver<TorrentListItem>() {
+            @Override
+            public void onSelectionChanged()
+            {
+                super.onSelectionChanged();
+
+                if (selectionTracker.hasSelection() && actionMode == null) {
+                    actionMode = activity.startSupportActionMode(actionModeCallback);
+                    setActionModeTitle(selectionTracker.getSelection().size());
+
+                } else if (!selectionTracker.hasSelection()) {
+                    if (actionMode != null)
+                        actionMode.finish();
+                    actionMode = null;
+
+                } else {
+                    setActionModeTitle(selectionTracker.getSelection().size());
+                }
+            }
+
+            @Override
+            public void onSelectionRestored()
+            {
+                super.onSelectionRestored();
+
+                actionMode = activity.startSupportActionMode(actionModeCallback);
+                setActionModeTitle(selectionTracker.getSelection().size());
+            }
+        });
+
+        if (savedInstanceState != null)
+            selectionTracker.onRestoreInstanceState(savedInstanceState);
+        adapter.setSelectionTracker(selectionTracker);
+
+        initFabSpeedDial();
+
+        Intent i = activity.getIntent();
+        if (i != null && MainActivity.ACTION_ADD_TORRENT_SHORTCUT.equals(i.getAction())) {
+            /* Prevents re-reading action after device configuration changes */
+            i.setAction(null);
+            showAddTorrentMenu();
+        }
+    }
+
+    private void showAddTorrentMenu()
+    {
+        /* Show add torrent menu after window is displayed */
+        View v = activity.getWindow().findViewById(android.R.id.content);
+        if (v == null)
+            return;
+        v.post(() -> {
+            registerForContextMenu(v);
+            activity.openContextMenu(v);
+            unregisterForContextMenu(v);
+        });
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context)
+    {
+        super.onAttach(context);
+
+        if (context instanceof AppCompatActivity)
+            activity = (AppCompatActivity)context;
+    }
+
+    @Override
+    public void onStart()
+    {
+        super.onStart();
+
+        subscribeAdapter();
+        subscribeAlertDialog();
+        subscribeForceSortAndFilter();
+        subscribeTorrentsDeleted();
+        subscribeMsgViewModel();
+    }
+
+    @Override
+    public void onStop()
+    {
+        super.onStop();
+
+        disposables.clear();
+    }
+
+    @Override
+    public void onResume()
+    {
+        super.onResume();
+
+        if (torrentListState != null)
+            layoutManager.onRestoreInstanceState(torrentListState);
+    }
+
+    @Override
+    public void onViewStateRestored(@Nullable Bundle savedInstanceState)
+    {
+        super.onViewStateRestored(savedInstanceState);
+
+        if (savedInstanceState != null)
+            torrentListState = savedInstanceState.getParcelable(TAG_TORRENT_LIST_STATE);
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState)
+    {
+        torrentListState = layoutManager.onSaveInstanceState();
+        outState.putParcelable(TAG_TORRENT_LIST_STATE, torrentListState);
+        selectionTracker.onSaveInstanceState(outState);
+
+        super.onSaveInstanceState(outState);
+    }
+
+    private void subscribeAdapter()
+    {
+        disposables.add(observeTorrents());
+    }
+
+    private Disposable observeTorrents()
+    {
+        return viewModel.observeAllTorrentsInfo()
+                .subscribeOn(Schedulers.io())
+                .flatMapSingle((infoList) ->
+                        Flowable.fromIterable(infoList)
+                                .filter(viewModel.getFilter())
+                                .map(TorrentListItem::new)
+                                .sorted(viewModel.getSorting())
+                                .toList()
+                )
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(adapter::submitList,
+                        (Throwable t) -> Log.e(TAG, "Getting torrent info list error: " +
+                                Log.getStackTraceString(t)));
+    }
+
+    private void subscribeAlertDialog()
+    {
+        Disposable d = dialogViewModel.observeEvents()
+                .subscribe((event) -> {
+                    if (event.dialogTag == null)
+                        return;
+
+                    switch (event.type) {
+                        case POSITIVE_BUTTON_CLICKED:
+                            if (event.dialogTag.equals(TAG_DELETE_TORRENTS_DIALOG) && deleteTorrentsDialog != null) {
+                                deleteTorrents();
+                                deleteTorrentsDialog.dismiss();
+                            }
+                            break;
+                        case NEGATIVE_BUTTON_CLICKED:
+                            if (event.dialogTag.equals(TAG_DELETE_TORRENTS_DIALOG) && deleteTorrentsDialog != null)
+                                deleteTorrentsDialog.dismiss();
+                            break;
+                    }
+                });
+        disposables.add(d);
+    }
+
+    private void subscribeForceSortAndFilter()
+    {
+        disposables.add(viewModel.observeForceSortAndFilter()
+                .filter((force) -> force)
+                .observeOn(Schedulers.io())
+                .subscribe((force) -> disposables.add(getAllTorrentsSingle())));
+    }
+
+    private Disposable getAllTorrentsSingle()
+    {
+        return viewModel.getAllTorrentsInfoSingle()
+                .subscribeOn(Schedulers.io())
+                .flatMap((infoList) ->
+                        Observable.fromIterable(infoList)
+                                .filter(viewModel.getFilter())
+                                .map(TorrentListItem::new)
+                                .sorted(viewModel.getSorting())
+                                .toList()
+                )
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(adapter::submitList,
+                        (Throwable t) -> Log.e(TAG, "Getting torrent info list error: " +
+                                Log.getStackTraceString(t)));
+    }
+
+    private void subscribeTorrentsDeleted()
+    {
+        disposables.add(viewModel.observeTorrentsDeleted()
+                .subscribeOn(Schedulers.io())
+                .filter((id) -> {
+                    TorrentListItem item = adapter.getOpenedItem();
+                    if (item == null)
+                        return false;
+
+                    return id.equals(item.torrentId);
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((__) -> {
+                    if (Utils.isTwoPane(activity))
+                        adapter.markAsOpen(null);
+                }));
+    }
+
+    private void subscribeMsgViewModel()
+    {
+        disposables.add(msgViewModel.observeTorrentDetailsClosed()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((__) -> {
+                    if (Utils.isTwoPane(activity))
+                        adapter.markAsOpen(null);
+                }));
+    }
+
+    @Override
+    public void onItemClicked(@NonNull TorrentListItem item)
+    {
+        if (Utils.isTwoPane(activity))
+            adapter.markAsOpen(item);
+        msgViewModel.torrentDetailsOpened(item.torrentId);
+    }
+
+    @Override
+    public void onItemPauseClicked(@NonNull TorrentListItem item)
+    {
+        viewModel.pauseResumeTorrent(item.torrentId);
+    }
+
+    @Override
+    public void onCreateContextMenu(@NonNull ContextMenu menu, @NonNull View v,
+                                    ContextMenu.ContextMenuInfo menuInfo)
+    {
+        super.onCreateContextMenu(menu, v, menuInfo);
+
+        activity.getMenuInflater().inflate(R.menu.main_context, menu);
+    }
+
+    @Override
+    public boolean onContextItemSelected(@NonNull MenuItem item)
+    {
+        int itemId = item.getItemId();
+        if (itemId == R.id.add_link_menu) {
+            addLinkDialog();
+        } else if (itemId == R.id.open_file_menu) {
+            openTorrentFileDialog();
+        }
+
+        return true;
+    }
+
+    private void initFabSpeedDial()
+    {
+        binding.fabButton.setOnActionSelectedListener((item) -> {
+            int id = item.getId();
+            if (id == R.id.main_fab_add_link) {
+                addLinkDialog();
+            } else if (id == R.id.main_fab_open_file) {
+                openTorrentFileDialog();
+            } else if (id == R.id.main_fab_create_torrent) {
+                createTorrentDialog();
+            } else {
+                return false;
+            }
+
+            binding.fabButton.close();
+
+            return true;
+        });
+
+        binding.fabButton.addActionItem(new SpeedDialActionItem.Builder(
+                R.id.main_fab_create_torrent,
+                R.drawable.ic_mode_edit_18dp)
+                .setLabel(R.string.create_torrent)
+                .create());
+
+        binding.fabButton.addActionItem(new SpeedDialActionItem.Builder(
+                R.id.main_fab_open_file,
+                R.drawable.ic_file_18dp)
+                .setLabel(R.string.open_file)
+                .create());
+
+        binding.fabButton.addActionItem(new SpeedDialActionItem.Builder(
+                R.id.main_fab_add_link,
+                R.drawable.ic_link_18dp)
+                .setLabel(R.string.add_link)
+                .create());
+    }
+
+    private void setActionModeTitle(int itemCount)
+    {
+        actionMode.setTitle(String.valueOf(itemCount));
+    }
+
+    private final ActionMode.Callback actionModeCallback = new ActionMode.Callback()
+    {
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu)
+        {
+            return false;
+        }
+
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu)
+        {
+            mode.getMenuInflater().inflate(R.menu.main_action_mode, menu);
+            Utils.showActionModeStatusBar(activity, true);
+
+            return true;
+        }
+
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item)
+        {
+            int itemId = item.getItemId();
+            if (itemId == R.id.delete_torrent_menu) {
+                deleteTorrentsDialog();
+            } else if (itemId == R.id.select_all_torrent_menu) {
+                selectAllTorrents();
+            } else if (itemId == R.id.force_recheck_torrent_menu) {
+                forceRecheckTorrents();
+                mode.finish();
+            } else if (itemId == R.id.force_announce_torrent_menu) {
+                forceAnnounceTorrents();
+                mode.finish();
+            }
+
+            return true;
+        }
+
+        @Override
+        public void onDestroyActionMode(ActionMode mode)
+        {
+            selectionTracker.clearSelection();
+            Utils.showActionModeStatusBar(activity, false);
+        }
+    };
+
+    private void deleteTorrentsDialog()
+    {
+        if (!isAdded())
+            return;
+
+        FragmentManager fm = getChildFragmentManager();
+        if (fm.findFragmentByTag(TAG_DELETE_TORRENTS_DIALOG) == null) {
+            deleteTorrentsDialog = BaseAlertDialog.newInstance(
+                    getString(R.string.deleting),
+                    (selectionTracker.getSelection().size() > 1 ?
+                            getString(R.string.delete_selected_torrents) :
+                            getString(R.string.delete_selected_torrent)),
+                    R.layout.dialog_delete_torrent,
+                    getString(R.string.ok),
+                    getString(R.string.cancel),
+                    null,
+                    false);
+
+            deleteTorrentsDialog.show(fm, TAG_DELETE_TORRENTS_DIALOG);
+        }
+    }
+
+    private void addLinkDialog()
+    {
+        startActivity(new Intent(activity, AddLinkActivity.class));
+    }
+
+    private void openTorrentFileDialog()
+    {
+        Intent i = new Intent(activity, FileManagerDialog.class);
+
+        FileManagerConfig config = new FileManagerConfig(null,
+                getString(R.string.torrent_file_chooser_title),
+                FileManagerConfig.FILE_CHOOSER_MODE);
+        config.highlightFileTypes = Collections.singletonList("torrent");
+
+        i.putExtra(FileManagerDialog.TAG_CONFIG, config);
+        torrentFileChoose.launch(i);
+    }
+
+    private void openFileErrorDialog()
+    {
+        if (!isAdded())
+            return;
+
+        FragmentManager fm = getChildFragmentManager();
+        if (fm.findFragmentByTag(TAG_OPEN_FILE_ERROR_DIALOG) == null) {
+            BaseAlertDialog openFileErrorDialog = BaseAlertDialog.newInstance(
+                    getString(R.string.error),
+                    getString(R.string.error_open_torrent_file),
+                    0,
+                    getString(R.string.ok),
+                    null,
+                    null,
+                    true);
+
+            openFileErrorDialog.show(fm, TAG_OPEN_FILE_ERROR_DIALOG);
+        }
+    }
+
+    private void createTorrentDialog()
+    {
+        startActivity(new Intent(activity, CreateTorrentActivity.class));
+    }
+
+    private void deleteTorrents()
+    {
+        Dialog dialog = deleteTorrentsDialog.getDialog();
+        if (dialog == null)
+            return;
+
+        CheckBox withFilesCheckBox = dialog.findViewById(R.id.delete_with_downloaded_files);
+        boolean withFiles = withFilesCheckBox.isChecked();
+
+        MutableSelection<TorrentListItem> selections = new MutableSelection<>();
+        selectionTracker.copySelection(selections);
+
+        disposables.add(Observable.fromIterable(selections)
+                .map((selection -> selection.torrentId))
+                .toList()
+                .subscribe((ids) -> viewModel.deleteTorrents(ids, withFiles)));
+
+        if (actionMode != null)
+            actionMode.finish();
+    }
+
+    @SuppressLint("RestrictedApi")
+    private void selectAllTorrents()
+    {
+        int n = adapter.getItemCount();
+        if (n > 0) {
+            selectionTracker.startRange(0);
+            selectionTracker.extendRange(adapter.getItemCount() - 1);
+        }
+    }
+
+    private void forceRecheckTorrents()
+    {
+        MutableSelection<TorrentListItem> selections = new MutableSelection<>();
+        selectionTracker.copySelection(selections);
+
+        disposables.add(Observable.fromIterable(selections)
+                .map((selection -> selection.torrentId))
+                .toList()
+                .subscribe((ids) -> viewModel.forceRecheckTorrents(ids)));
+    }
+
+    private void forceAnnounceTorrents()
+    {
+        MutableSelection<TorrentListItem> selections = new MutableSelection<>();
+        selectionTracker.copySelection(selections);
+
+        disposables.add(Observable.fromIterable(selections)
+                .map((selection -> selection.torrentId))
+                .toList()
+                .subscribe((ids) -> viewModel.forceAnnounceTorrents(ids)));
+    }
+
+    final ActivityResultLauncher<Intent> torrentFileChoose = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                Intent data = result.getData();
+                if (result.getResultCode() != Activity.RESULT_OK) {
+                    return;
+                }
+
+                if (data == null || data.getData() == null) {
+                    openFileErrorDialog();
+                    return;
+                }
+
+                Intent i = new Intent(activity, AddTorrentActivity.class);
+                i.putExtra(AddTorrentActivity.TAG_URI, data.getData());
+                startActivity(i);
+            }
+    );
+}
