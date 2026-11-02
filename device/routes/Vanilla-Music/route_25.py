@@ -65,13 +65,14 @@ def main():
     parser.add_argument("--log", required=True)
     parser.add_argument("--outdir", required=True)
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--adb", default="adb")
     args = parser.parse_args()
 
     r = Runner(package=args.package, route="route_25", edge_ids=[
         "E47380ade", "E29472d10", "E80427a98", "Ed9ad8ad1", "Ee8de0c7d",
         "Ec8635c32", "E49924471", "E63ca4fce", "Ea32e63ba", "E8291b22a",
         "Ece8f9411",
-    ], log_path=args.log, dry_run=args.dry_run, outdir=args.outdir)
+    ], log_path=args.log, dry_run=args.dry_run, adb=args.adb, outdir=args.outdir)
 
     # E47380ade -- MAIN / LAUNCHER intent starts LibraryActivity.
     r.launch(args.package + "/.LibraryActivity", "E47380ade")

@@ -66,10 +66,11 @@ def main():
     ap.add_argument("--log", required=True)
     ap.add_argument("--outdir", required=True)
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--adb", default="adb")
     args = ap.parse_args()
 
     r = Runner(package=args.package, route="route_17", edge_ids=EDGE_IDS,
-               log_path=args.log, dry_run=args.dry_run, outdir=args.outdir)
+               log_path=args.log, dry_run=args.dry_run, adb=args.adb, outdir=args.outdir)
 
     # E53636d07 -- ENTRY: the system delivers ACTION_MEDIA_BUTTON to
     # the exported receiver (gui: "Press the headset / media button").

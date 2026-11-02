@@ -102,13 +102,14 @@ def main():
     parser.add_argument("--log", required=True)
     parser.add_argument("--outdir", required=True)
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--adb", default="adb")
     args = parser.parse_args()
 
     r = Runner(package=args.package, route="route_23", edge_ids=[
         "E47380ade", "E3aea4024", "E8ee3f512", "E8e6e45c2", "Ea1ca8276",
         "E4507ab7d", "Ea8a7ea8d", "Ec9aed208", "Ebc00a1d8", "E467e73e0",
         "E2605fb72", "E4fbbd6e1", "Eb25f681d",
-    ], log_path=args.log, dry_run=args.dry_run, outdir=args.outdir)
+    ], log_path=args.log, dry_run=args.dry_run, adb=args.adb, outdir=args.outdir)
 
     # E47380ade -- MAIN / LAUNCHER intent starts LibraryActivity.
     # Wait for library content after launch, then SETUP (not the

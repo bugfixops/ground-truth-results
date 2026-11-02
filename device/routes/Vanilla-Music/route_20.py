@@ -90,10 +90,11 @@ def main():
     ap.add_argument("--log", required=True)
     ap.add_argument("--outdir", required=True)
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--adb", default="adb")
     args = ap.parse_args()
 
     r = Runner(package=args.package, route="route_20", edge_ids=EDGE_IDS,
-               log_path=args.log, dry_run=args.dry_run, outdir=args.outdir)
+               log_path=args.log, dry_run=args.dry_run, adb=args.adb, outdir=args.outdir)
 
     # E47380ade -- ENTRY: MAIN / LAUNCHER intent starts LibraryActivity.
     r.launch(PACKAGE_ACTIVITY, "E47380ade")

@@ -33,9 +33,10 @@ def main():
     ap.add_argument("--log", required=True)
     ap.add_argument("--outdir", default=None)
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--adb", default="adb")
     a = ap.parse_args()
     r = Runner(package=a.package, route="route_27", edge_ids=EDGE_IDS,
-               log_path=a.log, dry_run=a.dry_run, outdir=a.outdir)
+               log_path=a.log, dry_run=a.dry_run, adb=a.adb, outdir=a.outdir)
     # E47380ade: S_ENTRY -> LibraryActivity.<init>
     # MAIN / LAUNCHER intent starts LibraryActivity.
     r.launch("ch.blinkenlights.android.vanilla/.LibraryActivity",

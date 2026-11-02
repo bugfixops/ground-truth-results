@@ -93,10 +93,11 @@ def main():
     ap.add_argument("--log", required=True)
     ap.add_argument("--outdir", required=True)
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--adb", default="adb")
     args = ap.parse_args()
 
     r = Runner(package=args.package, route="route_13", edge_ids=EDGE_IDS,
-               log_path=args.log, dry_run=args.dry_run, outdir=args.outdir)
+               log_path=args.log, dry_run=args.dry_run, adb=args.adb, outdir=args.outdir)
 
     # E1d7b888a -- ENTRY: another app opens an audio file with
     # ACTION_VIEW (file:// or content:// data). Storage is granted

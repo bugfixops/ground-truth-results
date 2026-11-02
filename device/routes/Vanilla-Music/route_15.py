@@ -71,10 +71,11 @@ def main():
     ap.add_argument("--log", required=True)
     ap.add_argument("--outdir", required=True)
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--adb", default="adb")
     args = ap.parse_args()
 
     r = Runner(package=args.package, route="route_15", edge_ids=EDGE_IDS,
-               log_path=args.log, dry_run=args.dry_run, outdir=args.outdir)
+               log_path=args.log, dry_run=args.dry_run, adb=args.adb, outdir=args.outdir)
 
     # E88dba2a9 -- ENTRY: another app sends MEDIA_PLAY_FROM_SEARCH.
     # Storage is granted first so the permission check in onCreate
