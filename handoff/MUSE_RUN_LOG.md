@@ -1235,3 +1235,17 @@ Item 5 NOT DONE (edge set audit-PASS, package NOT PUSHABLE). Lead + auditor, all
 Sweeps (standing after-any-device-push rule). Sweep #1 (post-collect, head ebfcc1a2): 10/12 PASS both modes; Aegis FAIL 3/22 (pre-flatten layout + stale JSON); Anki FAIL 3/27 (stale JSON only); LibreTorrent not swept (no branch ROUTES.csv). Method disclosure: the connector refuses files too large to display (proven on graphs/MMEX/out/methods.csv, 3,357,449 B), so branch copies came from a credential-less public sparse clone (no token, no auth, read-only) verified against the connector: 447/447 material files match, 0 mismatches; 48 excluded files are deliberate non-inputs. Final sweep (head 2dfba2be, clone 542/542 matched): 10/12 PASS both modes (Amaze 30/0, AnyMemo 30/0, Diary 30/0, MMEX 30/0, Markor 30/0, Vanilla 30/0, Currency 28/0, Omni-Notes 33/0, hash-checker 37/0, openlauncher 27/0); Aegis 11/14 (0 missing-script, 0 fixture — flatten cured sweep #1's classes; 14 remaining all edge-not-in-graph, branch JSON 5,483 vs V3 build 6,430); Anki 3/25 (all stale-JSON, branch 9,178 vs merged 9,815). Verdict NOT clean; both need their planned CI rebuilds (not dispatched by the sweep lead, read-only brief).
 
 User rulings in the hour (recorded in DECISIONS): Path A authorized ~17:06 EST; D2 accepted + D3 = POLL EDGE ~17:09 EST; one-script deletion order ~18:14 EST. At hour end 3 pushers were running; at close 0 running. Standing cron hourly-logs-decisions-push left running as infrastructure (mmex-d9-watch removed). End state of Step 2: items 1, 2, 3 done; item 4 half (4b done, 4a blocked); item 5 validated but unpushed. Still owed after Step 2: Aegis/Anki CI rebuilds → SUMMARY gates → dry-run requests → D9 gates → cap decision (Aegis 02/09/17) → user ticks; LibreTorrent item-5 push chain (redraw → writer → pusher), item-4(a) tools/ ruling, R1–R8 (minus D1/D2/D3 executed), device D1/D3/D7, CI/D9, F1 lines for the 3 remaining apps.
+
+## 2026-11-02 23:14 EST — Kiro finish run
+
+- Step 0: origin/work-2026-10-31 at 3003df16; 11 local LibreTorrent commits; fast-forward OK.
+- Step 1: 11 commits rewritten to author and committer bugfixops (old head 677d69c8, new head 29147e19); `git diff --stat` between them empty.
+- Step 2: pushed 3003df16..29147e19; remote head = local head.
+- Step 3: CI request 185cd5e1 (all apps); bot commit ae203fe7 `[ci] rebuild and checks`. All 13 apps errors 0, warnings 0, check 2 0 problems, check 4 0, STRICT 1, check 3 0 (AnyMemo 1, allowed). LibreTorrent REACHABLE 3967, UNREACHABLE 765. Table: graphs/LibreTorrent/scratch/kiro/ci_all.txt.
+- Step 4: LibreTorrent dry-run request 49c03514; bot commit bed45c56, run 41575076492-1: LibreTorrent 29 PASS, 0 FAIL.
+- Step 5: PROGRESS_V2 LibreTorrent line to [K] (CI run ae203fe7; D9 run 41575076492-1 PASSED), commit 9c343c0d; one line changed.
+- Step 6: all-apps dry-run request e6f343d8; bot commit c6c547f9, run 41576644702-1: all 13 apps FAIL 0, PASS 28/30/37/33/27/30/30/30/25/30/30/30/29 (Currency, Diary, hash-checker, Omni-Notes, openlauncher, Vanilla-Music, Markor, AnyMemo, Aegis, AmazeFileManager, AnkiDroid, MMEX, LibreTorrent).
+- Step 7: NEXT_DEVICE_REPLAY.md for all 13 apps (389 routes, 355 scripted, 34 unscriptable), commit 31c78832.
+- Step 8: MUSE_FINISH_SUMMARY.md, commit a44e369a.
+- Step 9: this entry; then cleanup commit deleting handoff/workspace_bundle (Steps 3, 4 and 6 all passed).
+- Report: graphs/LibreTorrent/scratch/kiro/KIRO_REPORT_2.md, pushed last.
