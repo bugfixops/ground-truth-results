@@ -4028,3 +4028,38 @@ def CLASSIFY(x):
     if 'DataBinderMapperImpl' in x['src'] or 'DataBinderMapperImpl' in x['dst']:
         return ('non_standard', 'data binding (androidx DataBindingUtil creates the generated DataBinderMapperImpl and calls it)')
     return None
+
+
+# ---- Kiro K3 (2026-11-03): try-with-resources close() calls (check 4).
+# The compiler calls close() at the end of each try-with-resources block, so no source line shows "close".
+# Each range runs from the "try (FileDescriptorWrapper w = ...)" line to the line that closes its block
+# (printed in scratch/kiro/prints/step4_try_blocks.txt).
+_K3_TWR = ' (try-with-resources: the compiler calls close() at the end of the block)'
+_K3_CLOSE_FIX = {
+    ('FeedRepositoryImpl.deserializeFeeds', 'FileDescriptorWrapperImpl.close', 'SRC FeedRepositoryImpl.java:155 (bytecode)'):
+        'SRC FeedRepositoryImpl.java:155-162' + _K3_TWR,
+    ('FileSystemFacadeImpl.write(CharSequence,Charset,Uri)', 'FileDescriptorWrapperImpl.close', 'SRC FileSystemFacadeImpl.java:236 (bytecode)'):
+        'SRC FileSystemFacadeImpl.java:236-240' + _K3_TWR,
+    ('TorrentEngine.lambda$addTorrentCompletable$10', 'FileDescriptorWrapperImpl.close', 'SRC TorrentEngine.java:380 (bytecode)'):
+        'SRC TorrentEngine.java:380-391' + _K3_TWR,
+    ('TorrentSessionImpl.addTorrent', 'FileDescriptorWrapperImpl.close', 'SRC TorrentSessionImpl.java:296 (bytecode)'):
+        'SRC TorrentSessionImpl.java:296-303' + _K3_TWR,
+    ('TorrentSessionImpl.download(String,AddTorrentParams,byte[])', 'FileDescriptorWrapperImpl.close', 'SRC TorrentSessionImpl.java:360 (bytecode)'):
+        'SRC TorrentSessionImpl.java:360-372' + _K3_TWR,
+    ('IPFilterParser.parseFile', 'FileDescriptorWrapperImpl.close', 'SRC IPFilterParser.java:72 (bytecode)'):
+        'SRC IPFilterParser.java:72-81' + _K3_TWR,
+    ('SaveLogWorker.saveLog', 'FileDescriptorWrapperImpl.close', 'SRC SaveLogWorker.java:89 (bytecode)'):
+        'SRC SaveLogWorker.java:89-99' + _K3_TWR,
+}
+
+
+def _kiro_k3_edit(edge):
+    _kiro_k1_edit(edge)
+    ev = edge.get('evidence') or ''
+    for (s, d, old), new in _K3_CLOSE_FIX.items():
+        if edge.get('src') == s and edge.get('dst') == d and old in ev:
+            ev = ev.replace(old, new)
+    edge['evidence'] = ev
+
+
+EDIT = _kiro_k3_edit
