@@ -1,0 +1,339 @@
+== org/proninyaroslav/libretorrent/ui/TorrentNotifier.java:270-292
+270:      * Starting with the version of Android 8.0,
+271:      * setting notifications from the app preferences isn't working,
+272:      * you can change them only in the settings of Android 8.0
+273:      */
+274: 
+275:     private void applyLegacyNotifySettings(NotificationCompat.Builder builder) {
+276:         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+277:             return;
+278: 
+279:         SettingsRepository pref = RepositoryHelper.getSettingsRepository(appContext);
+280: 
+281:         if (pref.playSoundNotify()) {
+282:             Uri sound = Uri.parse(pref.notifySound());
+283:             builder.setSound(sound);
+284:         }
+285: 
+286:         if (pref.vibrationNotify())
+287:             builder.setVibrate(new long[]{1000}); /* ms */
+288: 
+289:         if (pref.ledIndicatorNotify()) {
+290:             int color = pref.ledIndicatorColorNotify();
+291:             builder.setLights(color, 1000, 1000); /* ms */
+292:         }
+== org/proninyaroslav/libretorrent/ui/settings/sections/AppearanceSettingsFragment.java:225-255
+225:     public boolean onPreferenceChange(Preference preference, Object newValue)
+226:     {
+227:         if (preference.getKey().equals(getString(R.string.pref_key_theme))) {
+228:             int type = Integer.parseInt((String)newValue);
+229:             pref.theme(type);
+230: 
+231:             Snackbar.make(coordinatorLayout,
+232:                     R.string.theme_settings_apply_after_reboot,
+233:                     Snackbar.LENGTH_LONG)
+234:                     .setAction(R.string.apply, (v) -> restartMainActivity())
+235:                     .show();
+236: 
+237:         } else if (preference.getKey().equals(getString(R.string.pref_key_torrent_finish_notify))) {
+238:             pref.torrentFinishNotify((boolean)newValue);
+239: 
+240:         } else if (preference.getKey().equals(getString(R.string.pref_key_play_sound_notify))) {
+241:             pref.playSoundNotify((boolean)newValue);
+242: 
+243:         } else if (preference.getKey().equals(getString(R.string.pref_key_led_indicator_notify))) {
+244:             pref.ledIndicatorNotify((boolean)newValue);
+245: 
+246:         } else if (preference.getKey().equals(getString(R.string.pref_key_vibration_notify))) {
+247:             pref.vibrationNotify((boolean)newValue);
+248: 
+249:         } else if (preference.getKey().equals(getString(R.string.pref_key_led_indicator_color_notify))) {
+250:             pref.ledIndicatorColorNotify((int)newValue);
+251: 
+252:         } else if (preference.getKey().equals(getString(R.string.pref_key_foreground_notify_status_filter))) {
+253:             pref.foregroundNotifyStatusFilter((String)newValue);
+254: 
+255:         } else if (preference.getKey().equals(getString(R.string.pref_key_foreground_notify_sorting))) {
+== org/proninyaroslav/libretorrent/ui/PermissionManager.java:116-126
+116:     public void setDoNotAskStorage(boolean doNotAsk) {
+117:         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+118:             pref.askManageAllFilesPermission(!doNotAsk);
+119:         }
+120:     }
+121: 
+122:     public void setDoNotAskNotifications(boolean doNotAsk) {
+123:         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+124:             pref.askNotificationPermission(!doNotAsk);
+125:         }
+126:     }
+== org/proninyaroslav/libretorrent/core/utils/Utils.java:700-715
+700:             @NonNull Context appContext,
+701:             @NonNull FragmentManager fm
+702:     ) {
+703:         var pref = RepositoryHelper.getSettingsRepository(appContext);
+704:         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R
+705:                 || Utils.hasManageExternalStoragePermission(appContext)
+706:                 || !pref.showManageAllFilesWarningDialog()) {
+707:             return;
+708:         }
+709: 
+710:         if (fm.findFragmentByTag(TAG_MANAGE_ALL_FILES_WARNING_DIALOG) == null) {
+711:             pref.showManageAllFilesWarningDialog(false);
+712: 
+713:             var dialog = ManageAllFilesWarningDialog.newInstance();
+714:             var ft = fm.beginTransaction();
+715:             ft.add(dialog, TAG_MANAGE_ALL_FILES_WARNING_DIALOG);
+== org/nanohttpd/NanoHTTPD.java:288-298
+288:          * Response's HTTP Headers.
+289:          *
+290:          * @param response
+291:          *            The Response object to which headers the queued cookies
+292:          *            will be added.
+293:          */
+294:         public void unloadQueue(Response response) {
+295:             for (Cookie cookie : this.queue) {
+296:                 response.addHeader("Set-Cookie", cookie.getHTTPHeader());
+297:             }
+298:         }
+== org/nanohttpd/NanoHTTPD.java:388-396
+388:             this.tempFiles = new ArrayList<TempFile>();
+389:         }
+390:         @Override
+391:         public void clear() {
+392:             for (TempFile file : this.tempFiles) {
+393:                 try {
+394:                     file.delete();
+395:                 } catch (Exception ignored) {
+396:                     NanoHTTPD.LOG.log(Level.WARNING, "could not delete file ", ignored);
+== org/nanohttpd/NanoHTTPD.java:1800-1816
+1800:     public void start(final int timeout) throws IOException {
+1801:         start(timeout, true);
+1802:     }
+1803:     /**
+1804:      * Start the server.
+1805:      *
+1806:      * @param timeout
+1807:      *            timeout to use for socket connections.
+1808:      * @param daemon
+1809:      *            start the thread daemon or not.
+1810:      * @throws IOException
+1811:      *             if the socket is in use.
+1812:      */
+1813:     public void start(final int timeout, boolean daemon) throws IOException {
+1814:         this.myServerSocket = this.getServerSocketFactory().create();
+1815:         this.myServerSocket.setReuseAddress(true);
+1816:         ServerRunnable serverRunnable = createServerRunnable(timeout);
+== org/nanohttpd/NanoHTTPD.java:700-722
+700:                 BufferedReader hin = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(buf, 0, this.rlen)));
+701:                 // Decode the header into parms and header java properties
+702:                 Map<String, String> pre = new HashMap<String, String>();
+703:                 decodeHeader(hin, pre, this.parms, this.headers);
+704:                 if (null != this.remoteIp) {
+705:                     this.headers.put("remote-addr", this.remoteIp);
+706:                     this.headers.put("http-client-ip", this.remoteIp);
+707:                 }
+708:                 this.method = Method.lookup(pre.get("method"));
+709:                 if (this.method == null) {
+710:                     throw new ResponseException(Response.Status.BAD_REQUEST, "BAD REQUEST: Syntax error.");
+711:                 }
+712:                 this.uri = pre.get("uri");
+713:                 this.cookies = new CookieHandler(this.headers);
+714:                 String connection = this.headers.get("connection");
+715:                 boolean keepAlive = protocolVersion.equals("HTTP/1.1") && (connection == null || !connection.matches("(?i).*close.*"));
+716:                 // Ok, now do the serve()
+717:                 // TODO: long body_size = getBodySize();
+718:                 // TODO: long pos_before_serve = this.inputStream.totalRead()
+719:                 // (requires implementaion for totalRead())
+720:                 r = serve(this);
+721:                 // TODO: this.inputStream.skip(body_size -
+722:                 // (this.inputStream.totalRead() - pos_before_serve))
+== org/proninyaroslav/libretorrent/core/urlnormalizer/NormalizeUrl.java:205-270
+205:         if (!isRelativeUrl)
+206:             url = url.replaceFirst("^(?!(?:\\w+:)?//)|^//", options.defaultProtocol + "://");
+207: 
+208:         URL urlObj = URL.parse(url);
+209:         String protocol, hash, user, password, path, queryStr, host;
+210:         Map<String, Collection<String>> query;
+211: 
+212:         protocol = urlObj.getScheme();
+213:         hash = urlObj.getFragment();
+214:         user = urlObj.getUsername();
+215:         password = urlObj.getPassword();
+216:         if (options.decode) {
+217:             queryStr = (urlObj.getQuery() == null ? null : PercentEncoder.decode(urlObj.getQuery()));
+218:             path = urlObj.getPath();
+219:             host = IDN.toUnicode(urlObj.getHost());
+220:         } else {
+221:             queryStr = urlObj.getQuery();
+222:             path = urlObj.getRawPath();
+223:             host = urlObj.getHost();
+224:         }
+225:         query = parseQuery(queryStr);
+226: 
+227:         if (options.forceHttp && protocol.equals("https"))
+228:             protocol = "http";
+229:         if (options.forceHttps && protocol.equals("http"))
+230:             protocol = "https";
+231: 
+232:         if (options.removeAuthentication) {
+233:             user = null;
+234:             password = null;
+235:         }
+236: 
+237:         if (options.removeHash)
+238:             hash = null;
+239: 
+240:         if (host != null) {
+241:             /* Remove trailing dot */
+242:             host = host.replaceFirst("\\.$", "");
+243:             /* Ignore default ports */
+244:             Integer port = DEFAULT_PORT_LIST.get(protocol);
+245:             if (port != null)
+246:                 host = host.replaceFirst(":" + port + "$", "");
+247: 
+248:             if (options.removeWWW && host.matches("www\\.([a-z\\-\\d]{2,63})\\.([a-z.]{2,5})$")) {
+249:                 /*
+250:                  * Each label should be max 63 at length (min: 2).
+251:                  * The extension should be max 5 at length (min: 2).
+252:                  * See: https://en.wikipedia.org/wiki/Hostname#Restrictions_on_valid_host_names
+253:                  */
+254:                 host = host.replaceFirst("^www\\.", "");
+255:             }
+256:         }
+257: 
+258:         if (path != null) {
+259:             path = PathResolver.resolve(path, path);
+260:             /* Remove duplicate slashes if not preceded by a protocol */
+261:             path = path.replaceAll("(?<!:)/{2,}", "/");
+262: 
+263:             if (options.removeDirectoryIndex.length > 0) {
+264:                 String[] pathComponents = path.split("/");
+265:                 if (pathComponents.length > 0) {
+266:                     String lastComponent = pathComponents[pathComponents.length - 1];
+267:                     if (isMatch(lastComponent, options.removeDirectoryIndex))
+268:                         path = '/' + join("/", Arrays.copyOfRange(pathComponents, 1, pathComponents.length - 1));
+269:                     if (!path.endsWith("/"))
+270:                         path += '/';
+== org/proninyaroslav/libretorrent/core/urlnormalizer/NormalizeUrl.java:385-399
+385:     }
+386: 
+387:     private static String urlToString(String protocol, String user, String password,
+388:                                       String host, String path,
+389:                                       String query, String hash)
+390:     {
+391:         StringBuilder output = new StringBuilder();
+392: 
+393:         output.append(protocol).append(':');
+394: 
+395:         output.append("//");
+396:         if (user != null && !user.isEmpty())
+397:             output.append(makeUserInfo(user, password)).append('@');
+398: 
+399:         if (host != null)
+== com/ernieyu/feedparser/impl/BaseItem.java:36-60
+36:         }
+37:         if (id == null) {
+38:             id = getTitle();
+39:         }
+40:         if (id == null) {
+41:             id = getDescription();
+42:         }
+43:         return id;
+44:     }
+45: 
+46:     @NonNull
+47:     @Override
+48:     public String toString() {
+49:         return getTitle();
+50:     }
+51:     
+52:     @Override
+53:     public boolean equals(Object obj) {
+54:         // Compare ids for equality.
+55:         if (obj instanceof BaseItem) {
+56:             String id1 = getUniqueId();
+57:             String id2 = ((BaseItem) obj).getUniqueId();
+58:             return FeedUtils.equalsOrNull(id1, id2);
+59:         }
+60:         
+== org/proninyaroslav/libretorrent/ui/feeds/FeedChannelListAdapter.java:270-298
+270:     /*
+271:      * Selection support stuff
+272:      */
+273: 
+274:     public static final class KeyProvider extends ItemKeyProvider<FeedChannelItem>
+275:     {
+276:         private Selectable<FeedChannelItem> selectable;
+277: 
+278:         KeyProvider(Selectable<FeedChannelItem> selectable)
+279:         {
+280:             super(SCOPE_MAPPED);
+281: 
+282:             this.selectable = selectable;
+283:         }
+284: 
+285:         @Nullable
+286:         @Override
+287:         public FeedChannelItem getKey(int position)
+288:         {
+289:             return selectable.getItemKey(position);
+290:         }
+291: 
+292:         @Override
+293:         public int getPosition(@NonNull FeedChannelItem key)
+294:         {
+295:             return selectable.getItemPosition(key);
+296:         }
+297:     }
+298: 
+== org/proninyaroslav/libretorrent/ui/main/TorrentListAdapter.java:330-352
+330:     {
+331:         private Selectable<TorrentListItem> selectable;
+332: 
+333:         KeyProvider(Selectable<TorrentListItem> selectable)
+334:         {
+335:             super(SCOPE_MAPPED);
+336: 
+337:             this.selectable = selectable;
+338:         }
+339: 
+340:         @Nullable
+341:         @Override
+342:         public TorrentListItem getKey(int position)
+343:         {
+344:             return selectable.getItemKey(position);
+345:         }
+346: 
+347:         @Override
+348:         public int getPosition(@NonNull TorrentListItem key)
+349:         {
+350:             return selectable.getItemPosition(key);
+351:         }
+352:     }
+== org/proninyaroslav/libretorrent/ui/detailtorrent/pages/trackers/TrackerListAdapter.java:228-249
+228:         private Selectable<TrackerItem> selectable;
+229: 
+230:         KeyProvider(Selectable<TrackerItem> selectable)
+231:         {
+232:             super(SCOPE_MAPPED);
+233: 
+234:             this.selectable = selectable;
+235:         }
+236: 
+237:         @Nullable
+238:         @Override
+239:         public TrackerItem getKey(int position)
+240:         {
+241:             return selectable.getItemKey(position);
+242:         }
+243: 
+244:         @Override
+245:         public int getPosition(@NonNull TrackerItem key)
+246:         {
+247:             return selectable.getItemPosition(key);
+248:         }
+249:     }
+org/proninyaroslav/libretorrent/ui/feeds/FeedFragment.java:140:                new FeedChannelListAdapter.KeyProvider(adapter),
+org/proninyaroslav/libretorrent/ui/main/MainFragment.java:160:                new TorrentListAdapter.KeyProvider(adapter),
+org/proninyaroslav/libretorrent/ui/detailtorrent/pages/trackers/DetailTorrentTrackersFragment.java:181:                new TrackerListAdapter.KeyProvider(adapter),
+org/proninyaroslav/libretorrent/ui/detailtorrent/pages/files/DetailTorrentFilesFragment.java:225:                new TorrentContentFilesAdapter.KeyProvider(adapter),
