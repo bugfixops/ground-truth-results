@@ -1,5 +1,7 @@
 # Device replay: what this directory is
 
+> **Status 2026-11-03: the real run is done.** Run `41593209101-1` (Google APIs, API 27, x86) reached 104 of 389 routes (100 DEVICE_OK); results in `device/results/41593209101-1/` and `run_result/emulator/`. Since 2026-11-03 the workflow was edited (Google APIs x86 default, SSH server for Amaze, plan job decides dry or real) and a real run can also be started by pushing `handoff/DEVICE_REPLAY_REQUEST.txt`; the text below describes the preparation as it was written before the run.
+
 Schema 2 ground-truth routes are replayed on an API 27 emulator in
 GitHub Actions, after all labelling, route checks, and logs are done.
 Nothing in this directory runs an emulator by itself, and no real

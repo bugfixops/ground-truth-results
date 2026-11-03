@@ -19,6 +19,7 @@
 # 2026-10-28: "- [H]" = handed to ChatGPT (brief: handoff/CHATGPT_BRIEF_LIBRETORRENT.md). Not in the Claude queue; not ticked.
 - [x] LibreTorrent (labels, route checks, logs and device scripts DONE 2026-11-03; CI run ae203fe7; D9 run 41575076492-1 PASSED; ticked by the user 2026-11-03)
 # 2026-10-29: "- [N]" = NEXT step, not started (device replay of sampled routes on API 27 emulators in GitHub Actions, repo bugfixops/test-13). Plan: handoff/NEXT_DEVICE_REPLAY.md. Start only after all apps finish and the user says go.
-- [N] Device replay on GitHub Actions (bugfixops/test-13): not started
+# 2026-11-03: device replay DONE (this line was "- [N] ... not started"); it ran in this repo (.github/workflows/device-replay.yml), not in bugfixops/test-13.
+- [x] Device replay on GitHub Actions (bugfixops/ground-truth-results, device-replay.yml): DONE 2026-11-03; run 41593209101-1 (Google APIs, API 27, x86) reached 104 of 389 routes, 100 DEVICE_OK; DEVICE rows in every verification.csv; DEVICE-row tool fix 8185289c (CI 60e7e0a6), README fix 458eaa6d (CI 125b2e60); results in run_result/emulator/ (ticked at the user's instruction 2026-11-03)
 # 2026-10-27: AnyMemo round 3 finished by Kiro (handoff/KIRO_FIX_ANYMEMO.md); "- [K]" until the user decides to tick it.
 - [x] AnyMemo (round 3 by Kiro 2026-10-27; checked by the orchestrator 2026-10-27 18:50: build 0/0, PENDING 0, citations and bytecode checks pass, 30 path rows; see graphs/AnyMemo/AGENT_NOTES.md)

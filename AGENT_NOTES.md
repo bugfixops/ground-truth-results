@@ -1,3 +1,5 @@
+> **Old file (2026-10-31 upload).** These are early AmazeFileManager conversion notes left at the top level. The current notes are `graphs/AmazeFileManager/AGENT_NOTES.md`; the final results are in `run_result/`.
+
 # Agent Notes - AmazeFileManager
 
 ## C7 Build Log

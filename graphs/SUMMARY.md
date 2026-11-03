@@ -1,5 +1,7 @@
 # Trigger graphs of the 13 Java-only apps
 
+> **Superseded (2026-11-03).** This index and its numbers describe the first (schema 1) graphs of 2026-10-25. The final graphs, audit logs and emulator results are summarised in the main `README.md` and collected in `run_result/`.
+
 Each folder `graphs/<App>/out/` holds the same set of files as `share/` has for Currency: `<prefix>_trigger_graph.json` (pages, methods, verdicts, edges with evidence labels), `methods.csv` (one row per method: verdict, steps from launch, taps on the best path, path, baseline hits), `README.md` (numbers, how much to trust it, limits), `<prefix>_trigger_graph.html` (optional viewer) and `build_report.txt` (validation output). **The JSON and the CSV are the data.**
 
 ## Two ways of building
