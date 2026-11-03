@@ -113,7 +113,7 @@ EDGE_IDS = [
 ]
 
 PKG_COMPONENT = ("org.liberty.android.fantastischmemopro/"
-                 "org.liberty.android.fantastischmemopro.ui.AnyMemo")
+                 "org.liberty.android.fantastischmemo.ui.AnyMemo")
 
 
 def main(argv=None):

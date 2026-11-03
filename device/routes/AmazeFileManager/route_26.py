@@ -32,7 +32,7 @@ Standard configuration: run_app.sh starts from `pm clear` and
 Mapping notes (printed source evidence):
   - MainActivity is the MAIN/LAUNCHER activity
     (AndroidManifest.xml:58, intent filter :61-65), so the script
-    launches com.amaze.filemanager.debug/.activities.MainActivity.
+    launches com.amaze.filemanager.debug/com.amaze.filemanager.activities.MainActivity.
   - Navigation to a folder uses the documented `path` intent
     extra: MainActivity.onNewIntent loads the directory when the
     extra names one (MainActivity.java:1571-1578; the same extra
@@ -86,7 +86,7 @@ EDGE_IDS = [
 ]
 
 PKG = "com.amaze.filemanager.debug"
-MAIN = PKG + "/.activities.MainActivity"
+MAIN = PKG + "/com.amaze.filemanager.activities.MainActivity"
 FIXTURE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                        "route26_source.txt")
 FILENAME = "route26_source.txt"

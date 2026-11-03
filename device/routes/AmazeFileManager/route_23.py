@@ -167,7 +167,7 @@ def main():
     # /sdcard/Download/device_replay_key by run_app.sh's fixture
     # phase before this script runs (see the ROUTES fixtures cell).
     # E393625fa S_ENTRY -> MainActivity.onResume: launch.
-    r.launch(a.package + '/.activities.MainActivity', 'E393625fa')
+    r.launch(a.package + '/com.amaze.filemanager.activities.MainActivity', 'E393625fa')
     # FAB menu -> Cloud Connection -> cloud sheet -> SCP/SFTP row.
     r.tap('E393625fa', res_id='com.amaze.filemanager:id/fabs_menu')
     r.tap('E393625fa', text='Cloud Connection')

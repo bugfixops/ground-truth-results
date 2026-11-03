@@ -94,7 +94,7 @@ def main(argv=None):
                dry_run=args.dry_run, adb=args.adb, outdir=args.outdir)
     # E380fe171 S_ENTRY -> MainActivity.onCreate: launch MainActivity
     # (MAIN/LAUNCHER).
-    r.launch(args.package + "/.activities.MainActivity", "E380fe171")
+    r.launch(args.package + "/com.amaze.filemanager.activities.MainActivity", "E380fe171")
     # E45d73a86 MainActivity.onCreate -> MainActivity.goToMain:
     # goToMain runs from the async callback (MainActivity.java:414,
     # 416, 420). No user action.

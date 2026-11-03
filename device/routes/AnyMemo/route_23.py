@@ -95,7 +95,7 @@ EDGE_IDS = [
     "E4634e0cf", "E7392b1e1",
 ]
 
-COMPONENT = "org.liberty.android.fantastischmemopro.ui.AnyMemo"
+COMPONENT = "org.liberty.android.fantastischmemo.ui.AnyMemo"
 
 
 def main():

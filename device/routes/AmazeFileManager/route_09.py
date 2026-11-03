@@ -70,7 +70,7 @@ EDGE_IDS = [
 ]
 
 PKG = "com.amaze.filemanager.debug"
-MAIN = PKG + "/.activities.MainActivity"
+MAIN = PKG + "/com.amaze.filemanager.activities.MainActivity"
 SOURCE_DIR = "/sdcard/Download"
 FILE_ROW = "amaze_search.txt"
 

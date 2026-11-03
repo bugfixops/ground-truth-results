@@ -30,7 +30,7 @@ Standard configuration: run_app.sh starts from `pm clear` and grants
 Mapping notes (printed source):
   - MainActivity is the MAIN/LAUNCHER activity
     (AndroidManifest.xml:58-65); the script launches
-    <package>/.activities.MainActivity.
+    <package>/com.amaze.filemanager.activities.MainActivity.
   - List long-press selects: RecyclerAdapter.java:543-549 sets a row
     long-click listener that calls toggleChecked; toggleChecked
     (RecyclerAdapter.java:162-199, esp. 192-197) starts the support
@@ -94,7 +94,7 @@ def main(argv=None):
     # E795acdbd S_ENTRY -> MainActivity.onSaveInstanceState: setup
     # for this edge (the edge itself is entered by the HOME key at
     # the end of this block). Launch MainActivity first.
-    r.launch(args.package + "/.activities.MainActivity", "E795acdbd")
+    r.launch(args.package + "/com.amaze.filemanager.activities.MainActivity", "E795acdbd")
     # Setup, still logged under E795acdbd (Runner requires every
     # action to carry an edge id from this route): wait for the
     # run-harness fixture in the default folder listing.

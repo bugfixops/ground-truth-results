@@ -61,7 +61,7 @@ sys.path.insert(0, _ROOT)
 from device.harness import Runner
 
 COMPONENT = ("org.liberty.android.fantastischmemopro/"
-             "org.liberty.android.fantastischmemopro.ui.AnyMemo")
+             "org.liberty.android.fantastischmemo.ui.AnyMemo")
 
 EDGE_IDS = [
     "Eddc920eb", "Ee33f0797", "E0b0115b9", "Ed9aa2280", "Efe6c7871",

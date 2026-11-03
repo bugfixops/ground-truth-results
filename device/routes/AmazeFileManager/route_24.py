@@ -118,7 +118,7 @@ def main(argv=None):
     # 92-96, 255). The MainActivity launch and drawer navigation
     # are logged under this entry edge; PrefFrag.onCreate itself
     # is framework-driven after PreferencesActivity starts.
-    r.launch(args.package + "/.activities.MainActivity", "Ebe9ec603")
+    r.launch(args.package + "/com.amaze.filemanager.activities.MainActivity", "Ebe9ec603")
     r.tap("Ebe9ec603", desc="Open navigation drawer")
     r.scroll_to("Ebe9ec603", text="Settings")
     r.tap("Ebe9ec603", text="Settings")

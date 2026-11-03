@@ -92,7 +92,7 @@ def main():
                outdir=args.outdir)
     try:
         # Eddc920eb: MAIN / LAUNCHER intent starts AnyMemo.
-        r.launch(args.package + "/.ui.AnyMemo", edge="Eddc920eb")
+        r.launch(args.package + "/org.liberty.android.fantastischmemo.ui.AnyMemo", edge="Eddc920eb")
         # Ee33f0797: system instantiates AnyMemo, then onCreate.
         r.comment("system instantiates AnyMemo, then calls onCreate",
                   edge="Ee33f0797")

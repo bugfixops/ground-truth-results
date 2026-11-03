@@ -97,7 +97,7 @@ EDGE_IDS = [
 ]
 
 PKG = "com.amaze.filemanager.debug"
-MAIN = PKG + "/.activities.MainActivity"
+MAIN = PKG + "/com.amaze.filemanager.activities.MainActivity"
 FIXTURE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                        "route27_source.txt")
 OLD_NAME = "route27_source.txt"

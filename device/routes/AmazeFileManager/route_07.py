@@ -86,7 +86,7 @@ EDGE_IDS = ('E6b899d64 E1a11c9d3 E2893b094 Ed4036ed5 Eb25bb213 Ea09956cb '
             'E8fc7f103 Eaf0babf6 E6202e994 E791408d8 Ea364138c '
             'E7f65d2ff').split()
 
-MAIN = 'com.amaze.filemanager/.activities.MainActivity'
+MAIN = 'com.amaze.filemanager/com.amaze.filemanager.activities.MainActivity'
 SOURCE_DIR = '/sdcard/Download'
 FILE_ROW = 'amaze_search.txt'
 CONNECTION_NAME = 'SCP/SFTP Connection'
@@ -106,7 +106,7 @@ def main():
     ssh_user = os.environ.get('SSH_USER', 'runner')
     # E6b899d64 (precondition 1): create + save the SSH
     # connection through the SFTP dialog (mirrors route_30).
-    r.launch(a.package + '/.activities.MainActivity', 'E6b899d64')
+    r.launch(a.package + '/com.amaze.filemanager.activities.MainActivity', 'E6b899d64')
     r.tap('E6b899d64', res_id='com.amaze.filemanager:id/fabs_menu')
     r.tap('E6b899d64', text='Cloud Connection')
     r.tap('E6b899d64',

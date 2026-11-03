@@ -74,7 +74,7 @@ from device.harness.harness import Runner  # noqa: E402
 EDGE_IDS = ('E13267468 E84fa3666 E766a13d0 Ece10abda Ec1142890 '
             'E70854c04 E5887a330').split()
 
-MAIN = 'com.amaze.filemanager/.activities.MainActivity'
+MAIN = 'com.amaze.filemanager/com.amaze.filemanager.activities.MainActivity'
 SOURCE_DIR = '/sdcard/Download'
 FILE_ROW = 'amaze_search.txt'
 CONNECTION_NAME = 'SCP/SFTP Connection'
@@ -95,7 +95,7 @@ def main():
     ssh_user = os.environ.get('SSH_USER', 'runner')
     # E13267468 (precondition 1): create + save the SSH
     # connection through the SFTP dialog (mirrors route_30).
-    r.launch(a.package + '/.activities.MainActivity', 'E13267468')
+    r.launch(a.package + '/com.amaze.filemanager.activities.MainActivity', 'E13267468')
     r.tap('E13267468', res_id='com.amaze.filemanager:id/fabs_menu')
     r.tap('E13267468', text='Cloud Connection')
     r.tap('E13267468',

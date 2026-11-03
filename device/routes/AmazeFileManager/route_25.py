@@ -135,7 +135,7 @@ def main(argv=None):
     r.start_intent("Ec83d9c18", action="android.intent.action.VIEW",
                    data="file://" + FIXTURE_DEVICE_PATH,
                    mime="application/zip",
-                   component=args.package + "/.activities.MainActivity")
+                   component=args.package + "/com.amaze.filemanager.activities.MainActivity")
     # E45a4d528 MainActivity.checkForExternalIntent ->
     # MainActivity.openCompressed: for ACTION_VIEW with a
     # non-folder MIME type, checkForExternalIntent sets openzip

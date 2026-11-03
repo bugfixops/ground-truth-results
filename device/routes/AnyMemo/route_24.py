@@ -15,7 +15,7 @@ Setup: none. This is a process-start route: launching the launcher
     card, or UI state is needed, and no permission or fixture is
     granted or pushed by this script (run_app.sh owns that phase).
 Launch component: org.liberty.android.fantastischmemopro /
-    org.liberty.android.fantastischmemopro.ui.AnyMemo (the launcher
+    org.liberty.android.fantastischmemo.ui.AnyMemo (the launcher
     activity from AndroidManifest.xml:23-46); starting it starts the
     process whose Application is AMApplication.
 """
@@ -51,7 +51,7 @@ EDGE_IDS = [
     "Ef3365f92", "Eccdaf854", "E76a773c7", "E59c50255", "E53a88770",
 ]
 
-COMPONENT = "org.liberty.android.fantastischmemopro.ui.AnyMemo"
+COMPONENT = "org.liberty.android.fantastischmemo.ui.AnyMemo"
 
 
 def main():

@@ -24,7 +24,7 @@ Fixtures: none. Setup: the device/emulator must satisfy the network
 Mapping notes (printed source evidence):
   - MainActivity is the MAIN/LAUNCHER activity
     (AndroidManifest.xml:58, intent filter :61-65), so the script
-    launches com.amaze.filemanager.debug/.activities.MainActivity.
+    launches com.amaze.filemanager.debug/com.amaze.filemanager.activities.MainActivity.
   - The drawer toggle carries the "open drawer" description
     (Drawer.java:221, R.string.drawer_open = "Open navigation
     drawer", strings.xml:25), so the script opens the drawer by
@@ -103,7 +103,7 @@ def main(argv=None):
     # MainActivity (MAIN/LAUNCHER) and open the navigation drawer.
     # The drawer toggle description is "Open navigation drawer"
     # (Drawer.java:221, strings.xml:25).
-    r.launch(args.package + "/.activities.MainActivity", "Ef3576ae6")
+    r.launch(args.package + "/com.amaze.filemanager.activities.MainActivity", "Ef3576ae6")
     r.tap("Ef3576ae6", desc="Open navigation drawer")
     # The "FTP Server" row sits in the LASTGROUP rows at the end of
     # the drawer list (Drawer.java:402-414), so scroll to it first.

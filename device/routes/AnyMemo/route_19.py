@@ -140,7 +140,7 @@ def main(argv=None):
     r = Runner(args.package, "route_19", EDGE_IDS, args.log,
                dry_run=args.dry_run, adb=args.adb, outdir=args.outdir)
     # Eddc920eb S_ENTRY -> AnyMemo.<init>: MAIN / LAUNCHER intent.
-    r.launch(args.package + "/org.liberty.android.fantastischmemopro.ui.AnyMemo",
+    r.launch(args.package + "/org.liberty.android.fantastischmemo.ui.AnyMemo",
              "Eddc920eb")
     # Ee33f0797 AnyMemo.<init> -> AnyMemo.onCreate: lifecycle.
     r.comment("system instantiates AnyMemo, then onCreate", "Ee33f0797")

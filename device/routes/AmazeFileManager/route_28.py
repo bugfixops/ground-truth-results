@@ -58,7 +58,7 @@ Mapping notes (printed source evidence):
     enlarge the fixture; do not claim the lambda fired.
   - MainActivity is the MAIN/LAUNCHER activity
     (AndroidManifest.xml:58, intent filter :61-65), so the script
-    launches com.amaze.filemanager.debug/.activities.MainActivity.
+    launches com.amaze.filemanager.debug/com.amaze.filemanager.activities.MainActivity.
   - Navigation to a folder uses the documented `path` intent
     extra (MainActivity.java:1571-1578; same extra at :308).
   - Tapping the archive row opens the archive dialog:
@@ -105,7 +105,7 @@ EDGE_IDS = [
 ]
 
 PKG = "com.amaze.filemanager.debug"
-MAIN = PKG + "/.activities.MainActivity"
+MAIN = PKG + "/com.amaze.filemanager.activities.MainActivity"
 ARCHIVE_NAME = "route28_archive.zip"
 # Archive generated at run time by setup_route_28.py; run_app.sh
 # sets GEN_DIR to the run's gen dir. Prefer the generated file

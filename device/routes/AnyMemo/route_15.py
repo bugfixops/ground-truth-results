@@ -62,7 +62,7 @@ sys.path.insert(0, _ROOT)
 from device.harness import Runner
 
 COMPONENT = ("org.liberty.android.fantastischmemopro/"
-             "org.liberty.android.fantastischmemopro.ui.AnyMemo")
+             "org.liberty.android.fantastischmemo.ui.AnyMemo")
 SAMPLE_DB = "french-body-parts.db"
 
 EDGE_IDS = [

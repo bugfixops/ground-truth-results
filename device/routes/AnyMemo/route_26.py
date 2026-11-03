@@ -15,7 +15,7 @@ Setup: none. This is a process-start / lifecycle route: the framework
     (AnyMemo.java:147). No deck, card, or UI state is needed, and
     no permission or fixture is granted or pushed by this script.
 Launch component: org.liberty.android.fantastischmemopro /
-    org.liberty.android.fantastischmemopro.ui.AnyMemo (the launcher
+    org.liberty.android.fantastischmemo.ui.AnyMemo (the launcher
     activity from AndroidManifest.xml:23-46).
 """
 
@@ -50,7 +50,7 @@ EDGE_IDS = [
     "Eddc920eb", "Ee33f0797", "Ef13e0cc3", "Edfef12bc",
 ]
 
-COMPONENT = "org.liberty.android.fantastischmemopro.ui.AnyMemo"
+COMPONENT = "org.liberty.android.fantastischmemo.ui.AnyMemo"
 
 
 def main():
