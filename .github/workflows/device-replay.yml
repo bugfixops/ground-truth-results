@@ -49,9 +49,6 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  # REAL_REQ: this push changed handoff/DEVICE_REPLAY_REQUEST.txt (real-run request); any other push is a dry run.
-  REAL_REQ: ${{ github.event_name == 'push' && (contains(toJSON(github.event.commits.*.modified), 'handoff/DEVICE_REPLAY_REQUEST.txt') || contains(toJSON(github.event.commits.*.added), 'handoff/DEVICE_REPLAY_REQUEST.txt')) }}
-  DRY: ${{ github.event_name == 'push' && ((contains(toJSON(github.event.commits.*.modified), 'handoff/DEVICE_REPLAY_REQUEST.txt') || contains(toJSON(github.event.commits.*.added), 'handoff/DEVICE_REPLAY_REQUEST.txt')) && 'false' || 'true') || inputs.dry_run }}
   ROUTES_GLOB: ${{ inputs.routes || 'route_*.py' }}
 
 jobs:
@@ -60,20 +57,36 @@ jobs:
     timeout-minutes: 10
     outputs:
       matrix: ${{ steps.plan.outputs.matrix }}
+      dry: ${{ steps.plan.outputs.dry }}
     steps:
       - uses: actions/checkout@v6
         with:
           ref: work-2026-10-31
           fetch-depth: 1
+      # dry: a push is a real run only when its head commit changes handoff/DEVICE_REPLAY_REQUEST.txt;
+      # any other push (handoff/DEVICE_DRYRUN_REQUEST.txt) is a dry run; by hand, the dry_run input decides.
       - id: plan
         env:
           EVENT: ${{ github.event_name }}
           IN_APPS: ${{ inputs.apps }}
+          IN_DRY: ${{ inputs.dry_run }}
+          SHA: ${{ github.sha }}
         run: |
           req=handoff/DEVICE_DRYRUN_REQUEST.txt
-          if [ "$REAL_REQ" = "true" ]; then req=handoff/DEVICE_REPLAY_REQUEST.txt; fi
-          if [ "$EVENT" = "push" ]; then apps=$(grep -v '^#' "$req" | tr ',\n' '  '); else apps="$IN_APPS"; fi
-          echo "event=$EVENT real_request=$REAL_REQ dry=$DRY request_file=$req"
+          dry=true
+          if [ "$EVENT" = "push" ]; then
+            git fetch -q --depth=2 origin "$SHA"
+            if git diff-tree --no-commit-id --name-only -r "$SHA" | grep -qx 'handoff/DEVICE_REPLAY_REQUEST.txt'; then
+              req=handoff/DEVICE_REPLAY_REQUEST.txt
+              dry=false
+            fi
+            apps=$(grep -v '^#' "$req" | tr ',\n' '  ')
+          else
+            apps="$IN_APPS"
+            dry="${IN_DRY:-false}"
+          fi
+          echo "event=$EVENT sha=$SHA dry=$dry request_file=$req apps=$apps"
+          echo "dry=$dry" >> "$GITHUB_OUTPUT"
           python3 -I device/plan.py $apps >> "$GITHUB_OUTPUT"
 
   run:
@@ -86,6 +99,7 @@ jobs:
       matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     env:
       WEMU: ${{ github.workspace }}/wemu
+      DRY: ${{ needs.plan.outputs.dry }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -151,6 +165,8 @@ jobs:
     if: ${{ !cancelled() && needs.plan.result == 'success' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    env:
+      DRY: ${{ needs.plan.outputs.dry }}
     steps:
       - uses: actions/checkout@v6
         with:
