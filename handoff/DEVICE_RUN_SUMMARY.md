@@ -3,14 +3,14 @@
 - Run: `41593209101-1` (GitHub Actions "Device replay" run 41593209101, started by a push of `handoff/DEVICE_REPLAY_REQUEST.txt`, user instruction 2026-11-03).
 - Image: Google APIs, API 27, **x86** (Google publishes no API 27 `google_apis` x86_64 image; see "Runs before this one").
 - Date: 2026-11-03.
-- CI after the DEVICE-row fix: `<CI commit>` `[ci] rebuild and checks`: all 13 apps errors 0, warnings 0, check 2 0 problems, check 4 0, verdicts unchanged, DEVICE rows on their own `verification device:` line (the first CI after the DEVICE rows, `c2e5b6b7`, request `21c73e8e`, read them wrongly; see the correction below).
+- CI after the DEVICE-row fix: `60e7e0a6` `[ci] rebuild and checks`: all 13 apps errors 0, warnings 0, check 2 0 problems, check 4 0, verdicts unchanged, DEVICE rows on their own `verification device:` line (the first CI after the DEVICE rows, `c2e5b6b7`, request `21c73e8e`, read them wrongly; see the correction below).
 - Numbers below are copied from `device/results/41593209101-1/SUMMARY.md` and the per-app `results.csv` / step logs.
 
 **"Not reached" never changes a label.** A route that was not reached, whose script failed, or that is unscriptable gives an `unclear` DEVICE row; no route becomes `wrong` and no label changes. These routes are candidates for the reviewer and Yang to look at; they are not errors in the graph.
 
 ## Correction after the reviewer's check (2026-11-03)
 
-The first CI after the DEVICE rows (`c2e5b6b7`) let `tools/build_graph.py` treat the DEVICE rows like the reviewer's path rows: the path error rates counted routes twice, the 14 WRONG routes and 210 SOURCE_OK routes showed UNCHECKED, and `paths[]` listed methods twice. Fixed in `<fix commit>`: DEVICE rows are counted on their own line (`verification device:`), never lower a path status, and never override WRONG; a reached route whose script ran to the end is `DEVICE_OK` (100 routes). The 4 routes that reached the method although the script stopped early (Currency route_05; Vanilla-Music route_05, route_23, route_25) keep a `correct` DEVICE row but their path keeps its earlier status. Verdicts, labels and the path error rates are again exactly those of `f435fca8`.
+The first CI after the DEVICE rows (`c2e5b6b7`) let `tools/build_graph.py` treat the DEVICE rows like the reviewer's path rows: the path error rates counted routes twice, the 14 WRONG routes and 210 SOURCE_OK routes showed UNCHECKED, and `paths[]` listed methods twice. Fixed in `8185289c`: DEVICE rows are counted on their own line (`verification device:`), never lower a path status, and never override WRONG; a reached route whose script ran to the end is `DEVICE_OK` (100 routes). The 4 routes that reached the method although the script stopped early (Currency route_05; Vanilla-Music route_05, route_23, route_25) keep a `correct` DEVICE row but their path keeps its earlier status. Verdicts, labels and the path error rates are again exactly those of `f435fca8`.
 
 | App | Routes | Reached | Not reached | Script failed | Unscriptable | Share reached |
 |---|---|---|---|---|---|---|
