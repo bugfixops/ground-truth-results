@@ -219,11 +219,15 @@ if [ "${WITH_SSH_SERVER:-0}" = 1 ]; then
   # runner has sudo/root for this step (sudo first, plain mkdir
   # when already root).
   sudo mkdir -p /run/sshd 2>/dev/null || mkdir -p /run/sshd || { echo "run_app.sh: cannot create sshd privilege-separation dir /run/sshd" >&2; exit 2; }
-  sshd -D -p "$SSH_PORT" -h "$OUTDIR/ssh_host_key" \
-    -o ListenAddress=127.0.0.1 -o PidFile="$OUTDIR/sshd.pid" \
+  # Kiro 2026-11-03 (run 41580035601: "sshd re-exec requires execution with an absolute path"): start sshd by
+  # its absolute path, and give it absolute key paths (a relative AuthorizedKeysFile is read from $HOME).
+  SSHD_BIN="$(command -v sshd)"
+  SSH_DIR_ABS="$(cd "$OUTDIR" && pwd)"
+  "$SSHD_BIN" -D -p "$SSH_PORT" -h "$SSH_DIR_ABS/ssh_host_key" \
+    -o ListenAddress=127.0.0.1 -o PidFile="$SSH_DIR_ABS/sshd.pid" \
     -o StrictModes=no -o PasswordAuthentication=no \
     -o PubkeyAuthentication=yes -o UsePAM=no \
-    -o AuthorizedKeysFile="$OUTDIR/authorized_keys" \
+    -o AuthorizedKeysFile="$SSH_DIR_ABS/authorized_keys" \
     >>"$OUTDIR/run.log" 2>&1 &
   SSHD_PID=$!
   trap cleanup_ssh_server EXIT
@@ -252,7 +256,12 @@ else
   log "touchscreen node discovery failed; scripts fall back to /dev/input/event0"
 fi
 
-while IFS="$(printf '\t')" read -r route method edges perms fixtures setup status; do
+# Kiro 2026-11-03 (real run 41580035601 ran 1 route per app with shifted fields): read the route list on fd 3,
+# so adb calls inside the loop cannot consume it, and split on 0x1f instead of tab, because tab is IFS
+# whitespace and `read` would collapse empty columns (permissions, fixtures, setup) and shift the rest.
+US="$(printf '\037')"
+tr '\t' '\037' < "$OUTDIR/.routes.tsv" > "$OUTDIR/.routes.us"
+while IFS="$US" read -r route method edges perms fixtures setup status <&3; do
   [ -z "$route" ] && continue
   if [[ "$status" == unscriptable* ]]; then
     reason="${status#unscriptable:}"
@@ -411,6 +420,6 @@ while IFS="$(printf '\t')" read -r route method edges perms fixtures setup statu
   fi
   echo "$APP,$route,$method,$edges,$reached,$script_status,$steps_done,$steps_total,$(csv_escape "$error"),$RUN_ID" >> "$OUTDIR/results.csv"
   log "$route $script_status reached=$reached steps=$steps_done/$steps_total $error"
-done < "$OUTDIR/.routes.tsv"
-rm -f "$OUTDIR/.routes.tsv"
+done 3< "$OUTDIR/.routes.us"
+rm -f "$OUTDIR/.routes.tsv" "$OUTDIR/.routes.us"
 log "done $APP; results in $OUTDIR/results.csv"
