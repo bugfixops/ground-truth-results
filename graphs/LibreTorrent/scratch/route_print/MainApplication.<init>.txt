@@ -1,0 +1,68 @@
+METHOD: MainApplication.<init>
+verdict: REACHABLE   steps_from_launch: 1
+route steps: 1 edges
+======================================================================
+
+STEP 1  edge Edbdfd5b2
+  S_ENTRY -> MainApplication.<init>
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC AndroidManifest.xml:31-32; MainApplication.java:37; FW-SRC core/java/android/app/LoadedApk.java:959-985; core/java/android/app/Instrumentation.java:1084-1104
+  cite [SRC] AndroidManifest.xml:31-32
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/AndroidManifest.xml)
+       31:     <application
+       32:         android:name="MainApplication"
+  cite [SRC] MainApplication.java:37
+       37: public class MainApplication extends MultiDexApplication {
+  cite [FW-SRC] core/java/android/app/LoadedApk.java:959-985
+      959:     public Application makeApplication(boolean forceDefaultAppClass,
+      960:             Instrumentation instrumentation) {
+      961:         if (mApplication != null) {
+      962:             return mApplication;
+      963:         }
+      964: 
+      965:         Trace.traceBegin(Trace.TRACE_TAG_ACTIVITY_MANAGER, "makeApplication");
+      966: 
+      967:         Application app = null;
+      968: 
+      969:         String appClass = mApplicationInfo.className;
+      970:         if (forceDefaultAppClass || (appClass == null)) {
+      971:             appClass = "android.app.Application";
+      972:         }
+      973: 
+      974:         try {
+      975:             java.lang.ClassLoader cl = getClassLoader();
+      976:             if (!mPackageName.equals("android")) {
+      977:                 Trace.traceBegin(Trace.TRACE_TAG_ACTIVITY_MANAGER,
+      978:                         "initializeJavaContextClassLoader");
+      979:                 initializeJavaContextClassLoader();
+      980:                 Trace.traceEnd(Trace.TRACE_TAG_ACTIVITY_MANAGER);
+      981:             }
+      982:             ContextImpl appContext = ContextImpl.createAppContext(mActivityThread, this);
+      983:             app = mActivityThread.mInstrumentation.newApplication(
+      984:                     cl, appClass, appContext);
+      985:             appContext.setOuterContext(app);
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1084-1104
+     1084:     public Application newApplication(ClassLoader cl, String className, Context context)
+     1085:             throws InstantiationException, IllegalAccessException, 
+     1086:             ClassNotFoundException {
+     1087:         return newApplication(cl.loadClass(className), context);
+     1088:     }
+     1089:     
+     1090:     /**
+     1091:      * Perform instantiation of the process's {@link Application} object.  The
+     1092:      * default implementation provides the normal system behavior.
+     1093:      * 
+     1094:      * @param clazz The class used to create an Application object from.
+     1095:      * @param context The context to initialize the application with
+     1096:      * 
+     1097:      * @return The newly instantiated Application object.
+     1098:      */
+     1099:     static public Application newApplication(Class<?> clazz, Context context)
+     1100:             throws InstantiationException, IllegalAccessException, 
+     1101:             ClassNotFoundException {
+     1102:         Application app = (Application)clazz.newInstance();
+     1103:         app.attach(context);
+     1104:         return app;

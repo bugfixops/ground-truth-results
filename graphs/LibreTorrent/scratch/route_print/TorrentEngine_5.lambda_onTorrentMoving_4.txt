@@ -1,0 +1,661 @@
+METHOD: TorrentEngine$5.lambda$onTorrentMoving$4
+verdict: REACHABLE   steps_from_launch: 17
+route steps: 17 edges
+======================================================================
+
+STEP 1  edge E2f8f0c2f
+  S_ENTRY -> NotificationReceiver.onReceive
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: PendingIntent.getBroadcast(
+  evidence: SRC AndroidManifest.xml:256-263; service/TorrentService.java:497-524; receiver/NotificationReceiver.java:41-81
+  cite [SRC] AndroidManifest.xml:256-263
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/AndroidManifest.xml)
+      256:         <receiver
+      257:             android:name=".receiver.NotificationReceiver"
+      258:             android:exported="false">
+      259:             <intent-filter>
+      260:                 <action android:name="org.proninyaroslav.libretorrent.receivers.NotificationReceiver.NOTIFY_ACTION_SHUTDOWN_APP" />
+      261:                 <action android:name="org.proninyaroslav.libretorrent.receivers.NotificationReceiver.NOTIFY_ACTION_ADD_TORRENT" />
+      262:             </intent-filter>
+      263:         </receiver>
+  cite [SRC] service/TorrentService.java:497-524
+      497:     private void initPendingIntents() {
+      498:         Intent shutdownIntent = new Intent(getApplicationContext(), NotificationReceiver.class);
+      499:         shutdownIntent.setAction(NotificationReceiver.NOTIFY_ACTION_SHUTDOWN_APP);
+      500:         shutdownPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0,
+      501:                 shutdownIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+      502:         );
+      503: 
+      504:         Intent pauseButtonIntent = new Intent(getApplicationContext(), NotificationReceiver.class);
+      505:         pauseButtonIntent.setAction(NotificationReceiver.NOTIFY_ACTION_PAUSE_ALL);
+      506:         pauseButtonPendingIntent = PendingIntent.getBroadcast(
+      507:                 getApplicationContext(), 0, pauseButtonIntent,
+      508:                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+      509:         );
+      510: 
+      511:         Intent resumeButtonIntent = new Intent(getApplicationContext(), NotificationReceiver.class);
+      512:         resumeButtonIntent.setAction(NotificationReceiver.NOTIFY_ACTION_RESUME_ALL);
+      513:         resumeButtonPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0,
+      514:                 resumeButtonIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+      515:         );
+      516: 
+      517:         Intent pauseResumeButtonIntent = new Intent(getApplicationContext(), NotificationReceiver.class);
+      518:         pauseResumeButtonIntent.setAction(NotificationReceiver.NOTIFY_ACTION_PAUSE_RESUME_ALL);
+      519:         pauseResumePendingIntent = PendingIntent.getBroadcast(
+      520:                 getApplicationContext(), 0, pauseResumeButtonIntent,
+      521:                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+      522:         );
+      523: 
+      524:     }
+  cite [SRC] receiver/NotificationReceiver.java:41-81
+       41:     @Override
+       42:     public void onReceive(Context context, Intent intent)
+       43:     {
+       44:         String action = intent.getAction();
+       45:         if (action == null)
+       46:             return;
+       47:         Intent mainIntent, serviceIntent;
+       48:         switch (action) {
+       49:             /* Send action to the already running service */
+       50:             case NOTIFY_ACTION_SHUTDOWN_APP:
+       51:                 mainIntent = new Intent(context.getApplicationContext(), MainActivity.class);
+       52:                 mainIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+       53:                 mainIntent.setAction(NOTIFY_ACTION_SHUTDOWN_APP);
+       54:                 context.startActivity(mainIntent);
+       55: 
+       56:                 serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+       57:                 serviceIntent.setAction(NOTIFY_ACTION_SHUTDOWN_APP);
+       58:                 context.startService(serviceIntent);
+       59:                 break;
+       60:             case NOTIFY_ACTION_ADD_TORRENT:
+       61:                 mainIntent = new Intent(context.getApplicationContext(), MainActivity.class);
+       62:                 mainIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+       63:                 mainIntent.setAction(NOTIFY_ACTION_ADD_TORRENT);
+       64:                 context.startActivity(mainIntent);
+       65:                 break;
+       66:             case NOTIFY_ACTION_PAUSE_ALL:
+       67:                 serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+       68:                 serviceIntent.setAction(NOTIFY_ACTION_PAUSE_ALL);
+       69:                 context.startService(serviceIntent);
+       70:                 break;
+       71:             case NOTIFY_ACTION_RESUME_ALL:
+       72:                 serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+       73:                 serviceIntent.setAction(NOTIFY_ACTION_RESUME_ALL);
+       74:                 context.startService(serviceIntent);
+       75:                 break;
+       76:             case NOTIFY_ACTION_PAUSE_RESUME_ALL:
+       77:                 serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+       78:                 serviceIntent.setAction(NOTIFY_ACTION_PAUSE_RESUME_ALL);
+       79:                 context.startService(serviceIntent);
+       80:                 break;
+       81:         }
+
+STEP 2  edge Ef82a6423
+  NotificationReceiver.onReceive -> TorrentService.onStartCommand
+  class: standard   kind: INTENT
+  guard: action is one of NOTIFY_ACTION_SHUTDOWN_APP, NOTIFY_ACTION_PAUSE_ALL, NOTIFY_ACTION_RESUME_ALL, NOTIFY_ACTION_PAUSE_RESUME_ALL
+  needs_state: None
+  env: None
+  evidence: SRC receiver/NotificationReceiver.java:50-58,66-80; service/TorrentService.java:175-232; FW-SRC core/java/android/app/ActivityThread.java:3464-3475
+  cite [SRC] receiver/NotificationReceiver.java:50-58, 66-80
+       50:             case NOTIFY_ACTION_SHUTDOWN_APP:
+       51:                 mainIntent = new Intent(context.getApplicationContext(), MainActivity.class);
+       52:                 mainIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+       53:                 mainIntent.setAction(NOTIFY_ACTION_SHUTDOWN_APP);
+       54:                 context.startActivity(mainIntent);
+       55: 
+       56:                 serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+       57:                 serviceIntent.setAction(NOTIFY_ACTION_SHUTDOWN_APP);
+       58:                 context.startService(serviceIntent);
+       66:             case NOTIFY_ACTION_PAUSE_ALL:
+       67:                 serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+       68:                 serviceIntent.setAction(NOTIFY_ACTION_PAUSE_ALL);
+       69:                 context.startService(serviceIntent);
+       70:                 break;
+       71:             case NOTIFY_ACTION_RESUME_ALL:
+       72:                 serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+       73:                 serviceIntent.setAction(NOTIFY_ACTION_RESUME_ALL);
+       74:                 context.startService(serviceIntent);
+       75:                 break;
+       76:             case NOTIFY_ACTION_PAUSE_RESUME_ALL:
+       77:                 serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+       78:                 serviceIntent.setAction(NOTIFY_ACTION_PAUSE_RESUME_ALL);
+       79:                 context.startService(serviceIntent);
+       80:                 break;
+  cite [SRC] service/TorrentService.java:175-232
+      175:     @Override
+      176:     public int onStartCommand(Intent intent, int flags, int startId)
+      177:     {
+      178:         String action = null;
+      179:         if (intent != null)
+      180:             action = intent.getAction();
+      181: 
+      182:         /* Handle shutdown actions before init service */
+      183:         if (action != null) {
+      184:             int ret = handleShutdownActions(action);
+      185:             if (ret >= 0)
+      186:                 return ret;
+      187:         }
+      188: 
+      189:         /* The first start */
+      190:         if (isAlreadyRunning.compareAndSet(false, true))
+      191:             init();
+      192: 
+      193:         if (action != null)
+      194:             handleActions(action);
+      195: 
+      196:         return START_STICKY;
+      197:     }
+      198: 
+      199:     private int handleShutdownActions(String action)
+      200:     {
+      201:         switch (action) {
+      202:             case NotificationReceiver.NOTIFY_ACTION_SHUTDOWN_APP:
+      203:             case ACTION_SHUTDOWN:
+      204:                 shutdown();
+      205:                 return START_NOT_STICKY;
+      206:             case ACTION_RESTART_FOREGROUND_NOTIFICATION:
+      207:                 makeForegroundNotify();
+      208:                 return START_STICKY;
+      209:         }
+      210: 
+      211:         return -1;
+      212:     }
+      213: 
+      214:     private void handleActions(String action)
+      215:     {
+      216:         switch (action) {
+      217:             case NotificationReceiver.NOTIFY_ACTION_PAUSE_ALL:
+      218:                 engine.pauseAll();
+      219:                 break;
+      220:             case NotificationReceiver.NOTIFY_ACTION_RESUME_ALL:
+      221:                 engine.resumeAll();
+      222:                 break;
+      223:             case NotificationReceiver.NOTIFY_ACTION_PAUSE_RESUME_ALL:
+      224:                 boolean paused = combinedPauseButtonState.getValue();
+      225:                 if (paused) {
+      226:                     engine.resumeAll();
+      227:                 } else {
+      228:                     engine.pauseAll();
+      229:                 }
+      230:                 combinedPauseButtonState.onNext(!paused);
+      231:                 break;
+      232:         }
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:3464-3475
+     3464:     private void handleServiceArgs(ServiceArgsData data) {
+     3465:         Service s = mServices.get(data.token);
+     3466:         if (s != null) {
+     3467:             try {
+     3468:                 if (data.args != null) {
+     3469:                     data.args.setExtrasClassLoader(s.getClassLoader());
+     3470:                     data.args.prepareToEnterProcess();
+     3471:                 }
+     3472:                 int res;
+     3473:                 if (!data.taskRemoved) {
+     3474:                     res = s.onStartCommand(data.args, data.flags, data.startId);
+     3475:                 } else {
+
+STEP 3  edge Eec7bf268
+  TorrentService.onStartCommand -> TorrentService.init
+  class: explicit   kind: CALL
+  guard: isAlreadyRunning.compareAndSet(false, true)
+  needs_state: None
+  env: None
+  evidence: SRC service/TorrentService.java:189-192
+  cite [SRC] service/TorrentService.java:189-192
+      189:         /* The first start */
+      190:         if (isAlreadyRunning.compareAndSet(false, true))
+      191:             init();
+      192: 
+
+STEP 4  edge E8b3b5478
+  TorrentService.init -> TorrentEngine.doStart
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC service/TorrentService.java:131; TorrentEngine.java:234-260
+  cite [SRC] service/TorrentService.java:131
+      131:         engine.doStart();
+  cite [SRC] TorrentEngine.java:234-260
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java)
+      234:     public void doStart() {
+      235:         if (isRunning())
+      236:             return;
+      237: 
+      238:         switchConnectionReceiver();
+      239:         switchPowerReceiver();
+      240:         disposables.add(pref.observeSettingsChanged()
+      241:                 .subscribe(this::handleSettingsChanged));
+      242: 
+      243:         disposables.add(downloadsCompleted.listen()
+      244:                 .subscribe(
+      245:                         this::handleAutoStop,
+      246:                         (err) -> {
+      247:                             Log.e(TAG, "Auto stop error: " +
+      248:                                     Log.getStackTraceString(err));
+      249:                             handleAutoStop();
+      250:                         }
+      251:                 ));
+      252: 
+      253:         disposables.add(session.getLogger().observeDataSetChanged()
+      254:                 .subscribe((change) -> {
+      255:                     if (change.reason == Logger.DataSetChange.Reason.NEW_ENTRIES && change.entries != null)
+      256:                         printSessionLog(change.entries);
+      257:                 }));
+      258: 
+      259:         session.start();
+      260:     }
+
+STEP 5  edge E2873f863
+  TorrentEngine.doStart -> TorrentSessionImpl.start
+  class: non_standard   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TorrentEngine.java:234-235,259; TorrentSessionImpl.java:862-863
+  cite [SRC] TorrentEngine.java:234-235, 259
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java)
+      234:     public void doStart() {
+      235:         if (isRunning())
+      259:         session.start();
+  cite [SRC] TorrentSessionImpl.java:862-863
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+      862:     public void start()
+      863:     {
+
+STEP 6  edge E33bc70d9
+  TorrentSessionImpl.start -> TorrentSessionImpl.onBeforeStart
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED library dispatch; SRC TorrentSessionImpl.java:907; SRC TorrentSessionImpl.java:984-988
+  cite [SRC] TorrentSessionImpl.java:907
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+      907:         super.start(params);
+  cite [SRC] TorrentSessionImpl.java:984-988
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+      984:     protected void onBeforeStart()
+      985:     {
+      986:         addListener(torrentTaskListener);
+      987:         addListener(innerListener);
+      988:     }
+
+STEP 7  edge E2fc26f92
+  TorrentSessionImpl.onBeforeStart -> TorrentSessionImpl$InnerListener.alert
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED library dispatch; SRC TorrentSessionImpl.java:987; SRC TorrentSessionImpl.java:1070-1107
+  cite [SRC] TorrentSessionImpl.java:987
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+      987:         addListener(innerListener);
+  cite [SRC] TorrentSessionImpl.java:1070-1107
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+     1070:         public void alert(Alert<?> alert)
+     1071:         {
+     1072:             switch (alert.type()) {
+     1073:                 case ADD_TORRENT:
+     1074:                     TorrentAlert<?> torrentAlert = (TorrentAlert<?>)alert;
+     1075:                     TorrentHandle th = find(torrentAlert.handle().infoHash());
+     1076:                     if (th == null)
+     1077:                         break;
+     1078:                     String hash = th.infoHash().toHex();
+     1079:                     if (magnets.contains(hash))
+     1080:                         break;
+     1081:                     torrentTasks.put(hash, newTask(th, hash));
+     1082:                     if (addTorrentsList.contains(hash))
+     1083:                         notifyListeners((listener) ->
+     1084:                                 listener.onTorrentAdded(hash));
+     1085:                     else
+     1086:                         notifyListeners((listener) ->
+     1087:                                 listener.onTorrentLoaded(hash));
+     1088:                     addTorrentsList.remove(hash);
+     1089:                     checkStop();
+     1090:                     runNextLoadTorrentTask();
+     1091:                     break;
+     1092:                 case METADATA_RECEIVED:
+     1093:                     handleMetadataReceived((MetadataReceivedAlert) alert);
+     1094:                     break;
+     1095:                 case SESSION_STATS:
+     1096:                     handleStats();
+     1097:                     break;
+     1098:                 case SAVE_RESUME_DATA:
+     1099:                     handleSaveMetadata((SaveResumeDataAlert) alert);
+     1100:                 default:
+     1101:                     checkError(alert);
+     1102:                     if (settings.logging)
+     1103:                         sessionLogger.send(alert);
+     1104:                     break;
+     1105:             }
+     1106:         }
+     1107:     }
+
+STEP 8  edge E282c7f46
+  TorrentSessionImpl$InnerListener.alert -> TorrentSessionImpl.newTask
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TorrentSessionImpl.java:1081; SRC TorrentSessionImpl.java:1430
+  cite [SRC] TorrentSessionImpl.java:1081
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+     1081:                     torrentTasks.put(hash, newTask(th, hash));
+  cite [SRC] TorrentSessionImpl.java:1430
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+     1430:     private TorrentDownload newTask(TorrentHandle th, String id)
+
+STEP 9  edge E43e2f14b
+  TorrentSessionImpl.newTask -> TorrentDownloadImpl.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TorrentSessionImpl.java:1432; SRC TorrentDownloadImpl.java:148-180
+  cite [SRC] TorrentSessionImpl.java:1432
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+     1432:         TorrentDownload task = new TorrentDownloadImpl(this, repo, fs, listeners,
+  cite [SRC] TorrentDownloadImpl.java:148-180
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java)
+      148:     public TorrentDownloadImpl(SessionManager sessionManager,
+      149:                                TorrentRepository repo,
+      150:                                FileSystemFacade fs,
+      151:                                final Queue<TorrentEngineListener> listeners,
+      152:                                String id,
+      153:                                TorrentHandle handle,
+      154:                                boolean autoManaged)
+      155:     {
+      156:         this.id = id;
+      157:         this.repo = repo;
+      158:         this.fs = fs;
+      159:         this.sessionManager = sessionManager;
+      160:         this.autoManaged = autoManaged;
+      161:         this.listeners = listeners;
+      162:         this.th = handle;
+      163:         this.name = new AtomicReference<>(handle.getName());
+      164:         partsFile = getPartsFile();
+      165:         listener = new InnerListener();
+      166:         sessionManager.addListener(listener);
+      167: 
+      168:         var torrent = repo.getTorrentById(id);
+      169:         if (torrent != null) {
+      170:             hasFirstLastPiecePriority = torrent.firstLastPiecePriority;
+      171:             applyFirstLastPiecePriority(hasFirstLastPiecePriority);
+      172:         }
+      173: 
+      174:         /*
+      175:          * Save resume data after first start, if needed
+      176:          * (e.g torrent just added)
+      177:          */
+      178:         if (th.needSaveResumeData())
+      179:             saveResumeData(true);
+      180:     }
+
+STEP 10  edge E0adf068c
+  TorrentDownloadImpl.<init> -> TorrentDownloadImpl$InnerListener.alert
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED library dispatch; SRC TorrentDownloadImpl.java:165-166; SRC TorrentDownloadImpl.java:214-281
+  cite [SRC] TorrentDownloadImpl.java:165-166
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java)
+      165:         listener = new InnerListener();
+      166:         sessionManager.addListener(listener);
+  cite [SRC] TorrentDownloadImpl.java:214-281
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java)
+      214:         public void alert(Alert<?> alert)
+      215:         {
+      216:             if (!(alert instanceof TorrentAlert<?>))
+      217:                 return;
+      218: 
+      219:             if (!((TorrentAlert<?>) alert).handle().swig().eq(th.swig()))
+      220:                 return;
+      221: 
+      222:             AlertType type = alert.type();
+      223:             switch (type) {
+      224:                 case STATE_CHANGED:
+      225:                     StateChangedAlert a = ((StateChangedAlert)alert);
+      226:                     notifyListeners((listener) ->
+      227:                             listener.onTorrentStateChanged(id,
+      228:                                     stateToStateCode(a.getPrevState()),
+      229:                                     stateToStateCode(a.getState())));
+      230:                     break;
+      231:                 case TORRENT_FINISHED:
+      232:                     handleTorrentFinished();
+      233:                     break;
+      234:                 case TORRENT_REMOVED:
+      235:                     torrentRemoved();
+      236:                     break;
+      237:                 case TORRENT_PAUSED:
+      238:                     notifyListeners((listener) ->
+      239:                             listener.onTorrentPaused(id));
+      240:                     break;
+      241:                 case TORRENT_RESUMED:
+      242:                     resetTorrentError();
+      243: 
+      244:                     notifyListeners((listener) ->
+      245:                             listener.onTorrentResumed(id));
+      246:                     break;
+      247:                 case SAVE_RESUME_DATA:
+      248:                     serializeResumeData((SaveResumeDataAlert)alert);
+      249:                     break;
+      250:                 case STORAGE_MOVED:
+      251:                     onStorageMoved(true);
+      252:                     break;
+      253:                 case STORAGE_MOVED_FAILED:
+      254:                     onStorageMoved(false);
+      255:                     break;
+      256:                 case PIECE_FINISHED:
+      257:                     saveResumeData(false);
+      258:                     int piece = ((PieceFinishedAlert)alert).pieceIndex();
+      259:                     notifyListeners((listener) ->
+      260:                             listener.onPieceFinished(id, piece));
+      261:                     break;
+      262:                 case METADATA_RECEIVED:
+      263:                     handleMetadata((MetadataReceivedAlert)alert);
+      264:                     // If first/last piece priority was specified when adding this torrent,
+      265:                     // we should apply it now that we have metadata.
+      266:                     if (hasFirstLastPiecePriority) {
+      267:                         applyFirstLastPiecePriority(true);
+      268:                     }
+      269:                     saveResumeData(true);
+      270:                     break;
+      271:                 case READ_PIECE:
+      272:                     handleReadPiece((ReadPieceAlert)alert);
+      273:                     break;
+      274:                 case TORRENT_CHECKED:
+      275:                     handleTorrentChecked();
+      276:                     break;
+      277:                 default:
+      278:                     checkError(alert);
+      279:                     break;
+      280:             }
+      281:         }
+
+STEP 11  edge E529332c7
+  TorrentDownloadImpl$InnerListener.alert -> TorrentDownloadImpl.handleTorrentFinished
+  class: non_standard   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED library dispatch; SRC TorrentDownloadImpl.java:232; SRC TorrentDownloadImpl.java:478-486
+  cite [SRC] TorrentDownloadImpl.java:232
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java)
+      232:                     handleTorrentFinished();
+  cite [SRC] TorrentDownloadImpl.java:478-486
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java)
+      478:     private void handleTorrentFinished()
+      479:     {
+      480:         hasMissingFiles = false;
+      481: 
+      482:         notifyListeners((listener) ->
+      483:                 listener.onTorrentFinished(id));
+      484:         saveResumeData(true);
+      485:     }
+      486: 
+
+STEP 12  edge E5d13c871
+  TorrentDownloadImpl.handleTorrentFinished -> TorrentEngine$5.onTorrentFinished
+  class: non_standard   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED session dispatch; SRC TorrentDownloadImpl.java:482-483; SRC TorrentEngine.java:1306-1326
+  cite [SRC] TorrentDownloadImpl.java:482-483
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java)
+      482:         notifyListeners((listener) ->
+      483:                 listener.onTorrentFinished(id));
+  cite [SRC] TorrentEngine.java:1306-1326
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java)
+     1306:         public void onTorrentFinished(@NonNull String id) {
+     1307:             disposables.add(repo.getTorrentByIdSingle(id)
+     1308:                     .subscribeOn(Schedulers.io())
+     1309:                     .filter(Objects::nonNull)
+     1310:                     .subscribe((torrent) -> {
+     1311:                                 notifier.makeTorrentFinishedNotify(torrent);
+     1312:                                 if (torrent.visibility != Torrent.VISIBILITY_HIDDEN)
+     1313:                                     markAsHiddenSync(torrent);
+     1314: 
+     1315:                                 if (pref.moveAfterDownload()) {
+     1316:                                     String curPath = torrent.downloadPath.toString();
+     1317:                                     String newPath = pref.moveAfterDownloadIn();
+     1318: 
+     1319:                                     if (!curPath.equals(newPath))
+     1320:                                         setDownloadPath(id, Uri.parse(newPath));
+     1321:                                 }
+     1322:                             },
+     1323:                             (Throwable t) -> Log.e(TAG, "Getting torrent " + id + " error: " +
+     1324:                                     Log.getStackTraceString(t)))
+     1325:             );
+     1326:         }
+
+STEP 13  edge E7bbb6046
+  TorrentEngine$5.onTorrentFinished -> TorrentEngine$5.lambda$onTorrentFinished$2
+  class: non_standard   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED Rx dispatch; SRC TorrentEngine.java:1307-1325
+  cite [SRC] TorrentEngine.java:1307-1325
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java)
+     1307:             disposables.add(repo.getTorrentByIdSingle(id)
+     1308:                     .subscribeOn(Schedulers.io())
+     1309:                     .filter(Objects::nonNull)
+     1310:                     .subscribe((torrent) -> {
+     1311:                                 notifier.makeTorrentFinishedNotify(torrent);
+     1312:                                 if (torrent.visibility != Torrent.VISIBILITY_HIDDEN)
+     1313:                                     markAsHiddenSync(torrent);
+     1314: 
+     1315:                                 if (pref.moveAfterDownload()) {
+     1316:                                     String curPath = torrent.downloadPath.toString();
+     1317:                                     String newPath = pref.moveAfterDownloadIn();
+     1318: 
+     1319:                                     if (!curPath.equals(newPath))
+     1320:                                         setDownloadPath(id, Uri.parse(newPath));
+     1321:                                 }
+     1322:                             },
+     1323:                             (Throwable t) -> Log.e(TAG, "Getting torrent " + id + " error: " +
+     1324:                                     Log.getStackTraceString(t)))
+     1325:             );
+
+STEP 14  edge E4c8bb7e2
+  TorrentEngine$5.lambda$onTorrentFinished$2 -> TorrentEngine.setDownloadPath
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TorrentEngine.java:1320 (bytecode)
+  cite [SRC] TorrentEngine.java:1320
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java)
+     1320:                                         setDownloadPath(id, Uri.parse(newPath));
+
+STEP 15  edge Ea4796154
+  TorrentEngine.setDownloadPath -> TorrentDownloadImpl.setDownloadPath
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TorrentEngine.java:690; SRC TorrentDownloadImpl.java:1215-1232
+  cite [SRC] TorrentEngine.java:690
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java)
+      690:                         task.setDownloadPath(path);
+  cite [SRC] TorrentDownloadImpl.java:1215-1232
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java)
+     1215:     public synchronized void setDownloadPath(@NonNull Uri path)
+     1216:     {
+     1217:         criticalWork.setMoving(true);
+     1218: 
+     1219:         Torrent torrent = repo.getTorrentById(id);
+     1220:         if (torrent == null)
+     1221:             return;
+     1222: 
+     1223:         torrent.downloadPath = path;
+     1224:         repo.updateTorrent(torrent);
+     1225: 
+     1226:         notifyListeners((listener) -> listener.onTorrentMoving(id));
+     1227: 
+     1228:         try {
+     1229:             String pathStr = fs.makeFileSystemPath(path);
+     1230:             th.moveStorage(pathStr, MoveFlags.ALWAYS_REPLACE_FILES);
+     1231:         } catch (Exception e) {
+     1232:             Log.e(TAG, "Error changing save path: ");
+
+STEP 16  edge Ee5a8fda4
+  TorrentDownloadImpl.setDownloadPath -> TorrentEngine$5.onTorrentMoving
+  class: non_standard   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED session dispatch; SRC TorrentDownloadImpl.java:1226; SRC TorrentEngine.java:1329-1345
+  cite [SRC] TorrentDownloadImpl.java:1226
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java)
+     1226:         notifyListeners((listener) -> listener.onTorrentMoving(id));
+  cite [SRC] TorrentEngine.java:1329-1345
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java)
+     1329:         public void onTorrentMoving(@NonNull String id) {
+     1330:             disposables.add(repo.getTorrentByIdSingle(id)
+     1331:                     .subscribeOn(Schedulers.io())
+     1332:                     .observeOn(AndroidSchedulers.mainThread())
+     1333:                     .subscribe((torrent) -> {
+     1334:                                 String name;
+     1335:                                 if (torrent == null)
+     1336:                                     name = id;
+     1337:                                 else
+     1338:                                     name = torrent.name;
+     1339: 
+     1340:                                 notifier.makeMovingTorrentNotify(name);
+     1341:                             },
+     1342:                             (Throwable t) -> Log.e(TAG, "Getting torrent " + id + " error: " +
+     1343:                                     Log.getStackTraceString(t)))
+     1344:             );
+     1345:         }
+
+STEP 17  edge E4a70eeae
+  TorrentEngine$5.onTorrentMoving -> TorrentEngine$5.lambda$onTorrentMoving$4
+  class: non_standard   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED Rx dispatch; SRC TorrentEngine.java:1330-1344
+  cite [SRC] TorrentEngine.java:1330-1344
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java)
+     1330:             disposables.add(repo.getTorrentByIdSingle(id)
+     1331:                     .subscribeOn(Schedulers.io())
+     1332:                     .observeOn(AndroidSchedulers.mainThread())
+     1333:                     .subscribe((torrent) -> {
+     1334:                                 String name;
+     1335:                                 if (torrent == null)
+     1336:                                     name = id;
+     1337:                                 else
+     1338:                                     name = torrent.name;
+     1339: 
+     1340:                                 notifier.makeMovingTorrentNotify(name);
+     1341:                             },
+     1342:                             (Throwable t) -> Log.e(TAG, "Getting torrent " + id + " error: " +
+     1343:                                     Log.getStackTraceString(t)))
+     1344:             );

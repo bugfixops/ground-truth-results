@@ -1,0 +1,119 @@
+== final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/storage/FeedRepositoryImpl.java 152-167
+1+151	    {
+2+151	        List<FeedChannel> feeds;
+3+151	        FileSystemFacade fs = SystemFacadeHelper.getFileSystemFacade(appContext);
+4+151	        try (FileDescriptorWrapper w = fs.getFD(file);
+5+151	             FileInputStream fin = new FileInputStream(w.open("r"));
+6+151	             InputStreamReader reader = new InputStreamReader(fin, StandardCharsets.UTF_8))
+7+151	        {
+8+151	            feeds = new Gson()
+9+151	                    .fromJson(reader, new TypeToken<ArrayList<FeedChannel>>(){}
+10+151	                            .getType());
+11+151	        }
+12+151	
+13+151	        return feeds;
+14+151	    }
+15+151	
+16+151	    @Override
+== final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/system/FileSystemFacadeImpl.java 233-248
+1+232	                      @NonNull Charset charset,
+2+232	                      @NonNull Uri destFile) throws IOException, UnknownUriException
+3+232	    {
+4+232	        try (FileDescriptorWrapper w = getFD(destFile)) {
+5+232	            try (FileOutputStream fout = new FileOutputStream(w.open("rw"))) {
+6+232	                IOUtils.write(data, fout, charset);
+7+232	            }
+8+232	        }
+9+232	    }
+10+232	
+11+232	    /*
+12+232	     * If the uri is a file system path, returns the path as is
+13+232	     */
+14+232	
+15+232	    @Override
+16+232	    public String makeFileSystemPath(@NonNull Uri uri) throws UnknownUriException
+== final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java 377-392
+1+376	                return;
+2+376	
+3+376	            TorrentMetaInfo info = null;
+4+376	            try (FileDescriptorWrapper w = fs.getFD(file)) {
+5+376	                FileDescriptor outFd = w.open("r");
+6+376	
+7+376	                try (FileInputStream is = new FileInputStream(outFd)) {
+8+376	                    info = new TorrentMetaInfo(is);
+9+376	
+10+376	                } catch (Exception e) {
+11+376	                    throw new DecodeException(e);
+12+376	                }
+13+376	                addTorrentSync(file, info, savePath);
+14+376	
+15+376	            } catch (Exception e) {
+16+376	                handleAddTorrentError((info == null ? file.getPath() : info.torrentName), e);
+== final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java 293-308
+1+292	             * has already been created and nothing is known about the received data
+2+292	             */
+3+292	            if (params.filePriorities.length == 0) {
+4+292	                try (FileDescriptorWrapper w = fs.getFD(Uri.parse(params.source))) {
+5+292	                    FileDescriptor outFd = w.open("r");
+6+292	                    try (FileInputStream is = new FileInputStream(outFd)) {
+7+292	                        TorrentMetaInfo info = new TorrentMetaInfo(is);
+8+292	                        params.filePriorities = new Priority[info.fileCount];
+9+292	                        Arrays.fill(params.filePriorities, Priority.DEFAULT);
+10+292	                    }
+11+292	                } catch (FileNotFoundException e) {
+12+292	                    /* Ignore */
+13+292	                }
+14+292	            }
+15+292	        }
+16+292	
+== final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java 357-372
+1+356	                    params.addPaused,
+2+356	                    null);
+3+356	        } else {
+4+356	            try (FileDescriptorWrapper w = fs.getFD(Uri.parse(params.source))) {
+5+356	                FileDescriptor fd = w.open("r");
+6+356	                try (FileInputStream fin = new FileInputStream(fd)) {
+7+356	                    FileChannel chan = fin.getChannel();
+8+356	
+9+356	                    download(new TorrentInfo(chan.map(FileChannel.MapMode.READ_ONLY, 0, chan.size())),
+10+356	                            saveDir,
+11+356	                            params.filePriorities,
+12+356	                            params.sequentialDownload,
+13+356	                            params.addPaused,
+14+356	                            null);
+15+356	                }
+16+356	            }
+== final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/IPFilterParser.java 69-84
+1+68	
+2+68	        Log.d(TAG, "Start parsing IP filter file");
+3+68	
+4+68	        try (FileDescriptorWrapper w = fs.getFD(path);
+5+68	             FileInputStream is = new FileInputStream(w.open("r"))) {
+6+68	
+7+68	            String pathStr = path.toString().toLowerCase();
+8+68	            if (pathStr.endsWith(".dat"))
+9+68	                ruleCount = parseDAT(is, filter);
+10+68	            else if (pathStr.endsWith(".p2p"))
+11+68	                ruleCount = parseP2P(is, filter);
+12+68	
+13+68	        } catch (IOException | UnknownUriException e) {
+14+68	            Log.e(TAG, Log.getStackTraceString(e));
+15+68	            return ruleCount;
+16+68	
+== final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/service/SaveLogWorker.java 86-101
+1+85	        Logger logger = engine.getSessionLogger();
+2+85	        logger.pause();
+3+85	
+4+85	        try (FileDescriptorWrapper w = fs.getFD(filePath);
+5+85	             FileOutputStream fout = new FileOutputStream(w.open("rw"))) {
+6+85	
+7+85	            if (logger.isRecording())
+8+85	                logger.stopRecording(fout, true);
+9+85	            else
+10+85	                logger.write(fout, true);
+11+85	
+12+85	            showSuccessToast(fs.getFilePath(filePath));
+13+85	
+14+85	        } catch (IOException | UnknownUriException e) {
+15+85	            Log.e(TAG, "Cannot save log: " + Log.getStackTraceString(e));
+16+85	

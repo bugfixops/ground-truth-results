@@ -1,0 +1,591 @@
+METHOD: SafFileSystem$FakePath.serialize
+verdict: REACHABLE   steps_from_launch: 15
+route steps: 15 edges
+======================================================================
+
+STEP 1  edge Ec711e542
+  S_ENTRY -> AddTorrentActivity.onCreate
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: android:exported="true"
+  evidence: SRC AndroidManifest.xml:62-92; FW-SRC core/java/android/app/ActivityThread.java:2727-2732; core/java/android/app/Instrumentation.java:1212-1215
+  cite [SRC] AndroidManifest.xml:62-92
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/AndroidManifest.xml)
+       62:         <activity
+       63:             android:exported="true"
+       64:             android:name=".ui.addtorrent.AddTorrentActivity">
+       65:             <intent-filter>
+       66:                 <action android:name="android.intent.action.SEND" />
+       67:                 <category android:name="android.intent.category.DEFAULT" />
+       68:             </intent-filter>
+       69:             <intent-filter>
+       70:                 <action android:name="android.intent.action.VIEW" />
+       71:                 <category android:name="android.intent.category.DEFAULT" />
+       72:                 <category android:name="android.intent.category.BROWSABLE" />
+       73:                 <data android:host="*" android:mimeType="application/x-bittorrent" android:scheme="file" />
+       74:             </intent-filter>
+       75:             <intent-filter>
+       76:                 <action android:name="android.intent.action.VIEW" />
+       77:                 <category android:name="android.intent.category.DEFAULT" />
+       78:                 <category android:name="android.intent.category.BROWSABLE" />
+       79:                 <data android:host="*" android:pathPattern=".*\\.torrent" android:scheme="file" />
+       80:             </intent-filter>
+       81:             <intent-filter>
+       82:                 <action android:name="android.intent.action.VIEW" />
+       83:                 <category android:name="android.intent.category.DEFAULT" />
+       84:                 <category android:name="android.intent.category.BROWSABLE" />
+       85:                 <data android:host="*" android:mimeType="application/x-bittorrent" android:scheme="content" />
+       86:             </intent-filter>
+       87:             <intent-filter>
+       88:                 <action android:name="android.intent.action.VIEW" />
+       89:                 <category android:name="android.intent.category.DEFAULT" />
+       90:                 <category android:name="android.intent.category.BROWSABLE" />
+       91:                 <data android:host="*" android:pathPattern=".*\\.torrent" android:scheme="content" />
+       92:             </intent-filter>
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2727-2732
+     2727:                 activity.mCalled = false;
+     2728:                 if (r.isPersistable()) {
+     2729:                     mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+     2730:                 } else {
+     2731:                     mInstrumentation.callActivityOnCreate(activity, r.state);
+     2732:                 }
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1212-1215
+     1212:     public void callActivityOnCreate(Activity activity, Bundle icicle) {
+     1213:         prePerformCreate(activity);
+     1214:         activity.performCreate(icicle);
+     1215:         postPerformCreate(activity);
+
+STEP 2  edge Ee1225b55
+  AddTorrentActivity.onCreate -> AddTorrentActivity.onStart
+  class: standard   kind: LIFECYCLE
+  guard: !mFinished
+  needs_state: None
+  env: None
+  evidence: SRC ui/addtorrent/AddTorrentActivity.java:96-140,178-185; FW-SRC core/java/android/app/ActivityThread.java:2738-2745; core/java/android/app/Instrumentation.java:1333-1335
+  cite [SRC] ui/addtorrent/AddTorrentActivity.java:96-140, 178-185
+       96:     @Override
+       97:     protected void onCreate(Bundle savedInstanceState)
+       98:     {
+       99:         setTheme(Utils.getAppTheme(getApplicationContext()));
+      100:         super.onCreate(savedInstanceState);
+      101: 
+      102:         binding = DataBindingUtil.setContentView(this, R.layout.activity_add_torrent);
+      103:         ViewModelProvider provider = new ViewModelProvider(this);
+      104:         viewModel = provider.get(AddTorrentViewModel.class);
+      105:         permissionManager = new PermissionManager(this, new PermissionManager.Callback() {
+      106:             @Override
+      107:             public void onStorageResult(boolean isGranted, boolean shouldRequestStoragePermission) {
+      108:                 var fm = getSupportFragmentManager();
+      109:                 if (!isGranted && shouldRequestStoragePermission) {
+      110:                     if (fm.findFragmentByTag(TAG_PERM_DENIED_DIALOG) == null) {
+      111:                         permDeniedDialog = PermissionDeniedDialog.newInstance();
+      112:                         FragmentTransaction ft = fm.beginTransaction();
+      113:                         ft.add(permDeniedDialog, TAG_PERM_DENIED_DIALOG);
+      114:                         ft.commitAllowingStateLoss();
+      115:                     }
+      116:                 }
+      117:             }
+      118: 
+      119:             @Override
+      120:             public void onNotificationResult(boolean isGranted, boolean shouldRequestNotificationPermission) {
+      121:                 permissionManager.setDoNotAskNotifications(!isGranted);
+      122:                 if (isGranted) {
+      123:                     viewModel.restartForegroundNotification();
+      124:                 }
+      125:             }
+      126:         });
+      127: 
+      128:         dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+      129:         errReportDialog = (ErrorReportDialog)getSupportFragmentManager().findFragmentByTag(TAG_ERR_REPORT_DIALOG);
+      130:         localPref = PreferenceManager.getDefaultSharedPreferences(this);
+      131:         fillMutableParams();
+      132: 
+      133:         if (!permissionManager.checkPermissions() && permDeniedDialog == null) {
+      134:             permissionManager.requestPermissions();
+      135:         }
+      136:         Utils.showManageAllFilesWarningDialog(getApplicationContext(), getSupportFragmentManager());
+      137: 
+      138:         initLayout();
+      139:         observeDecodeState();
+      140:     }
+      178:     @Override
+      179:     public void onStart()
+      180:     {
+      181:         super.onStart();
+      182: 
+      183:         subscribeAlertDialog();
+      184:         subscribeParamsChanged();
+      185:     }
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2738-2745
+     2738:                 r.activity = activity;
+     2739:                 r.stopped = true;
+     2740:                 if (!r.activity.mFinished) {
+     2741:                     activity.performStart();
+     2742:                     r.stopped = false;
+     2743:                 }
+     2744:                 if (!r.activity.mFinished) {
+     2745:                     if (r.isPersistable()) {
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1333-1335
+     1333:     public void callActivityOnStart(Activity activity) {
+     1334:         activity.onStart();
+     1335:     }
+
+STEP 3  edge Ee73669cc
+  AddTorrentActivity.onStart -> AddTorrentActivity.onPrepareOptionsMenu
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AppCompat menu dispatch; SRC ui/addtorrent/AddTorrentActivity.java:277-280,539-548
+  cite [SRC] ui/addtorrent/AddTorrentActivity.java:277-280, 539-548
+      277:     private void initLayout()
+      278:     {
+      279:         binding.toolbar.setTitle(R.string.add_torrent_title);
+      280:         setSupportActionBar(binding.toolbar);
+      539:     @Override
+      540:     public boolean onPrepareOptionsMenu(Menu menu)
+      541:     {
+      542:         getMenuInflater().inflate(R.menu.add_torrent, menu);
+      543: 
+      544:         MenuItem add = menu.findItem(R.id.add_torrent_dialog_add_menu);
+      545:         if (add != null)
+      546:             add.setVisible(showAddButton);
+      547: 
+      548:         return true;
+
+STEP 4  edge Eae09e857
+  AddTorrentActivity.onPrepareOptionsMenu -> AddTorrentActivity.onOptionsItemSelected
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AppCompat menu dispatch; SRC ui/addtorrent/AddTorrentActivity.java:539-562; FW-SRC core/java/android/app/Activity.java:3431-3451
+  cite [SRC] ui/addtorrent/AddTorrentActivity.java:539-562
+      539:     @Override
+      540:     public boolean onPrepareOptionsMenu(Menu menu)
+      541:     {
+      542:         getMenuInflater().inflate(R.menu.add_torrent, menu);
+      543: 
+      544:         MenuItem add = menu.findItem(R.id.add_torrent_dialog_add_menu);
+      545:         if (add != null)
+      546:             add.setVisible(showAddButton);
+      547: 
+      548:         return true;
+      549:     }
+      550: 
+      551:     @Override
+      552:     public boolean onOptionsItemSelected(MenuItem item)
+      553:     {
+      554:         int itemId = item.getItemId();
+      555:         if (itemId == android.R.id.home) {
+      556:             finish();
+      557:         } else if (itemId == R.id.add_torrent_dialog_add_menu) {
+      558:             addTorrent();
+      559:         }
+      560: 
+      561:         return true;
+      562:     }
+  cite [FW-SRC] core/java/android/app/Activity.java:3431-3451
+     3431:      * Default implementation of
+     3432:      * {@link android.view.Window.Callback#onMenuItemSelected}
+     3433:      * for activities.  This calls through to the new
+     3434:      * {@link #onOptionsItemSelected} method for the
+     3435:      * {@link android.view.Window#FEATURE_OPTIONS_PANEL}
+     3436:      * panel, so that subclasses of
+     3437:      * Activity don't need to deal with feature codes.
+     3438:      */
+     3439:     public boolean onMenuItemSelected(int featureId, MenuItem item) {
+     3440:         CharSequence titleCondensed = item.getTitleCondensed();
+     3441: 
+     3442:         switch (featureId) {
+     3443:             case Window.FEATURE_OPTIONS_PANEL:
+     3444:                 // Put event logging here so it gets called even if subclass
+     3445:                 // doesn't call through to superclass's implmeentation of each
+     3446:                 // of these methods below
+     3447:                 if(titleCondensed != null) {
+     3448:                     EventLog.writeEvent(50000, 0, titleCondensed.toString());
+     3449:                 }
+     3450:                 if (onOptionsItemSelected(item)) {
+     3451:                     return true;
+
+STEP 5  edge Ef943d0a6
+  AddTorrentActivity.onOptionsItemSelected -> AddTorrentActivity.addTorrent
+  class: explicit   kind: CALL
+  guard: itemId == R.id.add_torrent_dialog_add_menu
+  needs_state: None
+  env: None
+  evidence: SRC ui/addtorrent/AddTorrentActivity.java:552-562; ui/addtorrent/AddTorrentActivity.java:362-389
+  cite [SRC] ui/addtorrent/AddTorrentActivity.java:552-562
+      552:     public boolean onOptionsItemSelected(MenuItem item)
+      553:     {
+      554:         int itemId = item.getItemId();
+      555:         if (itemId == android.R.id.home) {
+      556:             finish();
+      557:         } else if (itemId == R.id.add_torrent_dialog_add_menu) {
+      558:             addTorrent();
+      559:         }
+      560: 
+      561:         return true;
+      562:     }
+  cite [SRC] ui/addtorrent/AddTorrentActivity.java:362-389
+      362:     private void addTorrent()
+      363:     {
+      364:         String name = viewModel.mutableParams.getName();
+      365:         if (TextUtils.isEmpty(name)) {
+      366:             Snackbar.make(binding.coordinatorLayout,
+      367:                     R.string.error_empty_name,
+      368:                     Snackbar.LENGTH_LONG)
+      369:                     .show();
+      370:             return;
+      371:         }
+      372: 
+      373:         try {
+      374:             if (viewModel.addTorrent())
+      375:                 finish();
+      376: 
+      377:         } catch (Exception e) {
+      378:             if (e instanceof TorrentAlreadyExistsException) {
+      379:                 Toast.makeText(getApplication(),
+      380:                         R.string.torrent_exist,
+      381:                         Toast.LENGTH_SHORT)
+      382:                         .show();
+      383:                 finish();
+      384: 
+      385:             } else {
+      386:                 handleAddException(e);
+      387:             }
+      388:         }
+      389:     }
+
+STEP 6  edge E95dff3d5
+  AddTorrentActivity.addTorrent -> AddTorrentViewModel.addTorrent
+  class: explicit   kind: CALL
+  guard: !TextUtils.isEmpty(name)
+  needs_state: None
+  env: None
+  evidence: SRC ui/addtorrent/AddTorrentActivity.java:362-389; ui/addtorrent/AddTorrentViewModel.java:466-520
+  cite [SRC] ui/addtorrent/AddTorrentActivity.java:362-389
+      362:     private void addTorrent()
+      363:     {
+      364:         String name = viewModel.mutableParams.getName();
+      365:         if (TextUtils.isEmpty(name)) {
+      366:             Snackbar.make(binding.coordinatorLayout,
+      367:                     R.string.error_empty_name,
+      368:                     Snackbar.LENGTH_LONG)
+      369:                     .show();
+      370:             return;
+      371:         }
+      372: 
+      373:         try {
+      374:             if (viewModel.addTorrent())
+      375:                 finish();
+      376: 
+      377:         } catch (Exception e) {
+      378:             if (e instanceof TorrentAlreadyExistsException) {
+      379:                 Toast.makeText(getApplication(),
+      380:                         R.string.torrent_exist,
+      381:                         Toast.LENGTH_SHORT)
+      382:                         .show();
+      383:                 finish();
+      384: 
+      385:             } else {
+      386:                 handleAddException(e);
+      387:             }
+      388:         }
+      389:     }
+  cite [SRC] ui/addtorrent/AddTorrentViewModel.java:466-520
+      466:     public boolean addTorrent() throws Exception {
+      467:         TorrentMetaInfo downloadInfo = info.get();
+      468:         if (downloadInfo == null)
+      469:             return false;
+      470: 
+      471:         boolean fromMagnet = mutableParams.isFromMagnet();
+      472:         DecodeState state = decodeState.getValue();
+      473: 
+      474:         String source = mutableParams.getSource();
+      475:         if (source == null)
+      476:             return false;
+      477: 
+      478:         Uri dirPath = mutableParams.getDirPath().get();
+      479:         if (dirPath == null)
+      480:             return false;
+      481: 
+      482:         String name = mutableParams.getName();
+      483:         if (TextUtils.isEmpty(name))
+      484:             return false;
+      485: 
+      486:         boolean ignoreFreeSpace = mutableParams.isIgnoreFreeSpace();
+      487:         Set<Integer> selectedFiles = getSelectedFileIndexes();
+      488:         if (!ignoreFreeSpace && state != null &&
+      489:                 (state.status == Status.DECODE_TORRENT_COMPLETED ||
+      490:                         state.status == Status.FETCHING_MAGNET_COMPLETED ||
+      491:                         state.status == Status.FETCHING_HTTP_COMPLETED)) {
+      492:             if (selectedFiles.isEmpty())
+      493:                 throw new NoFilesSelectedException();
+      494: 
+      495:             if (!checkFreeSpace())
+      496:                 throw new FreeSpaceException();
+      497:         }
+      498: 
+      499:         Priority[] priorities = new Priority[downloadInfo.fileCount];
+      500:         if (downloadInfo.fileCount != 0) {
+      501:             if (selectedFiles.size() == downloadInfo.fileCount) {
+      502:                 Arrays.fill(priorities, Priority.DEFAULT);
+      503:             } else {
+      504:                 Arrays.fill(priorities, Priority.IGNORE);
+      505:                 for (int index : selectedFiles)
+      506:                     priorities[index] = Priority.DEFAULT;
+      507:             }
+      508:         }
+      509: 
+      510:         AddTorrentParams params = new AddTorrentParams(
+      511:                 source,
+      512:                 fromMagnet,
+      513:                 downloadInfo.sha1Hash,
+      514:                 name,
+      515:                 priorities,
+      516:                 dirPath,
+      517:                 mutableParams.isSequentialDownload(),
+      518:                 !mutableParams.isStartAfterAdd(),
+      519:                 tags,
+      520:                 mutableParams.isFirstLastPiecePriority()
+
+STEP 7  edge E3915b22f
+  AddTorrentViewModel.addTorrent -> AddTorrentViewModel.lambda$addTorrent$5
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED java.lang.Thread Runnable dispatch; SRC ui/addtorrent/AddTorrentViewModel.java:527-536
+  cite [SRC] ui/addtorrent/AddTorrentViewModel.java:527-536
+      527:             Thread t = new Thread(() -> {
+      528:                 try {
+      529:                     engine.addTorrentSync(params, false);
+      530: 
+      531:                 } catch (Exception e) {
+      532:                     err[0] = e;
+      533:                 }
+      534:             });
+      535:             t.start();
+      536:             t.join();
+
+STEP 8  edge E7d8bf649
+  AddTorrentViewModel.lambda$addTorrent$5 -> TorrentEngine.addTorrentSync(AddTorrentParams,boolean)
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/addtorrent/AddTorrentViewModel.java:527-534
+  cite [SRC] ui/addtorrent/AddTorrentViewModel.java:527-534
+      527:             Thread t = new Thread(() -> {
+      528:                 try {
+      529:                     engine.addTorrentSync(params, false);
+      530: 
+      531:                 } catch (Exception e) {
+      532:                     err[0] = e;
+      533:                 }
+      534:             });
+
+STEP 9  edge Ed404c00b
+  TorrentEngine.addTorrentSync(AddTorrentParams,boolean) -> TorrentSessionImpl.addTorrent
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TorrentEngine.java:412; SRC TorrentSessionImpl.java:251
+  cite [SRC] TorrentEngine.java:412
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java)
+      412:         return session.addTorrent(params, removeFile);
+  cite [SRC] TorrentSessionImpl.java:251
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+      251:     public Torrent addTorrent(
+
+STEP 10  edge Eb1a24a4a
+  TorrentSessionImpl.addTorrent -> TorrentSessionImpl.download(String,AddTorrentParams,byte[])
+  class: explicit   kind: CALL
+  guard: !operationNotAllowed() && torrent is not already present
+  needs_state: None
+  env: None
+  evidence: SRC TorrentSessionImpl.java:251-310
+  cite [SRC] TorrentSessionImpl.java:251-310
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+      251:     public Torrent addTorrent(
+      252:             @NonNull AddTorrentParams params,
+      253:             boolean removeFile
+      254:     ) throws
+      255:             IOException,
+      256:             TorrentAlreadyExistsException,
+      257:             DecodeException,
+      258:             UnknownUriException
+      259:     {
+      260:         if (operationNotAllowed())
+      261:             return null;
+      262: 
+      263:         Torrent torrent = new Torrent(
+      264:                 params.sha1hash,
+      265:                 params.downloadPath,
+      266:                 params.name,
+      267:                 params.addPaused, System.currentTimeMillis(),
+      268:                 params.sequentialDownload,
+      269:                 params.firstLastPiecePriority
+      270:         );
+      271: 
+      272:         byte[] bencode = null;
+      273:         if (params.fromMagnet) {
+      274:             bencode = getLoadedMagnet(params.sha1hash);
+      275:             removeLoadedMagnet(params.sha1hash);
+      276:             if (bencode == null)
+      277:                 torrent.setMagnetUri(params.source);
+      278:         }
+      279: 
+      280:         if (repo.getTorrentById(torrent.id) != null) {
+      281:             mergeTorrent(torrent.id, params, bencode);
+      282:             throw new TorrentAlreadyExistsException();
+      283:         }
+      284: 
+      285:         repo.addTorrent(torrent);
+      286:         if (!params.tags.isEmpty()) {
+      287:             repo.replaceTags(torrent.id, params.tags);
+      288:         }
+      289: 
+      290:         if (!torrent.isDownloadingMetadata()) {
+      291:             /*
+      292:              * This is possible if the magnet data came after Torrent object
+      293:              * has already been created and nothing is known about the received data
+      294:              */
+      295:             if (params.filePriorities.length == 0) {
+      296:                 try (FileDescriptorWrapper w = fs.getFD(Uri.parse(params.source))) {
+      297:                     FileDescriptor outFd = w.open("r");
+      298:                     try (FileInputStream is = new FileInputStream(outFd)) {
+      299:                         TorrentMetaInfo info = new TorrentMetaInfo(is);
+      300:                         params.filePriorities = new Priority[info.fileCount];
+      301:                         Arrays.fill(params.filePriorities, Priority.DEFAULT);
+      302:                     }
+      303:                 } catch (FileNotFoundException e) {
+      304:                     /* Ignore */
+      305:                 }
+      306:             }
+      307:         }
+      308: 
+      309:         try {
+      310:             download(torrent.id, params, bencode);
+
+STEP 11  edge E8472da01
+  TorrentSessionImpl.download(String,AddTorrentParams,byte[]) -> FileSystemFacadeImpl.makeFileSystemPath(Uri)
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TorrentSessionImpl.java:328-341; SRC FileSystemFacadeImpl.java:248-251
+  cite [SRC] TorrentSessionImpl.java:328-341
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+      328:     private void download(String id, AddTorrentParams params, byte[] bencode) throws IOException, UnknownUriException
+      329:     {
+      330:         if (operationNotAllowed())
+      331:             return;
+      332: 
+      333:         cancelFetchMagnet(id);
+      334: 
+      335:         Torrent torrent = repo.getTorrentById(id);
+      336:         if (torrent == null)
+      337:             throw new IOException("Torrent " + id + " is null");
+      338: 
+      339:         addTorrentsList.add(params.sha1hash);
+      340: 
+      341:         String path = fs.makeFileSystemPath(params.downloadPath);
+  cite [SRC] FileSystemFacadeImpl.java:248-251
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/system/FileSystemFacadeImpl.java)
+      248:     public String makeFileSystemPath(@NonNull Uri uri) throws UnknownUriException
+      249:     {
+      250:         return makeFileSystemPath(uri, null);
+      251:     }
+
+STEP 12  edge Ec2f76e6f
+  FileSystemFacadeImpl.makeFileSystemPath(Uri) -> FileSystemFacadeImpl.makeFileSystemPath(Uri,String)
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC FileSystemFacadeImpl.java:248-260; SRC FileSystemFacadeImpl.java:254-260
+  cite [SRC] FileSystemFacadeImpl.java:248-260
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/system/FileSystemFacadeImpl.java)
+      248:     public String makeFileSystemPath(@NonNull Uri uri) throws UnknownUriException
+      249:     {
+      250:         return makeFileSystemPath(uri, null);
+      251:     }
+      252: 
+      253:     @Override
+      254:     public String makeFileSystemPath(@NonNull Uri uri,
+      255:                                      String relativePath) throws UnknownUriException
+      256:     {
+      257:         FsModule fsModule = fsResolver.resolveFsByUri(uri);
+      258: 
+      259:         return fsModule.makeFileSystemPath(uri, relativePath);
+      260:     }
+  cite [SRC] FileSystemFacadeImpl.java:254-260
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/system/FileSystemFacadeImpl.java)
+      254:     public String makeFileSystemPath(@NonNull Uri uri,
+      255:                                      String relativePath) throws UnknownUriException
+      256:     {
+      257:         FsModule fsModule = fsResolver.resolveFsByUri(uri);
+      258: 
+      259:         return fsModule.makeFileSystemPath(uri, relativePath);
+      260:     }
+
+STEP 13  edge E127a23cd
+  FileSystemFacadeImpl.makeFileSystemPath(Uri,String) -> SafFsModule.makeFileSystemPath
+  class: non_standard   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC FileSystemFacadeImpl.java:254-259; SRC SafFsModule.java:151-155
+  cite [SRC] FileSystemFacadeImpl.java:254-259
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/system/FileSystemFacadeImpl.java)
+      254:     public String makeFileSystemPath(@NonNull Uri uri,
+      255:                                      String relativePath) throws UnknownUriException
+      256:     {
+      257:         FsModule fsModule = fsResolver.resolveFsByUri(uri);
+      258: 
+      259:         return fsModule.makeFileSystemPath(uri, relativePath);
+  cite [SRC] SafFsModule.java:151-155
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/system/SafFsModule.java)
+      151:     public String makeFileSystemPath(@NonNull Uri uri, String relativePath)
+      152:     {
+      153:         return new SafFileSystem.FakePath(uri, (relativePath == null ? "" : relativePath))
+      154:                 .toString();
+      155:     }
+
+STEP 14  edge E377479af
+  SafFsModule.makeFileSystemPath -> SafFileSystem$FakePath.toString
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC SafFsModule.java:154 (bytecode)
+  cite [SRC] SafFsModule.java:154
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/system/SafFsModule.java)
+      154:                 .toString();
+
+STEP 15  edge E8085cfad
+  SafFileSystem$FakePath.toString -> SafFileSystem$FakePath.serialize
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC SafFileSystem.java:164-167; SRC SafFileSystem.java:132-138
+  cite [SRC] SafFileSystem.java:164-167
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/system/SafFileSystem.java)
+      164:         public String toString()
+      165:         {
+      166:             return serialize();
+      167:         }
+  cite [SRC] SafFileSystem.java:132-138
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/system/SafFileSystem.java)
+      132:         private String serialize()
+      133:         {
+      134:             /* Remove 'content://' scheme */
+      135:             String safRootStr = safRoot.toString().substring(SCHEME.length());
+      136: 
+      137:             return SAF_ROOT_TAG_OPEN + safRootStr + SAF_ROOT_TAG_CLOSE + relativePath;
+      138:         }

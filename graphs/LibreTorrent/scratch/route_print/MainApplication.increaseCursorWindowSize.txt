@@ -1,0 +1,78 @@
+METHOD: MainApplication.increaseCursorWindowSize
+verdict: REACHABLE   steps_from_launch: 2
+route steps: 2 edges
+======================================================================
+
+STEP 1  edge Ec86728f9
+  S_ENTRY -> MainApplication.onCreate
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC AndroidManifest.xml:31-32; FW-SRC core/java/android/app/ActivityThread.java:5709-5742; core/java/android/app/Instrumentation.java:1118-1119
+  cite [SRC] AndroidManifest.xml:31-32
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/AndroidManifest.xml)
+       31:     <application
+       32:         android:name="MainApplication"
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:5709-5742
+     5709:         Application app;
+     5710:         final StrictMode.ThreadPolicy savedPolicy = StrictMode.allowThreadDiskWrites();
+     5711:         final StrictMode.ThreadPolicy writesAllowedPolicy = StrictMode.getThreadPolicy();
+     5712:         try {
+     5713:             // If the app is being launched for full backup or restore, bring it up in
+     5714:             // a restricted environment with the base application class.
+     5715:             app = data.info.makeApplication(data.restrictedBackupMode, null);
+     5716:             mInitialApplication = app;
+     5717: 
+     5718:             // don't bring up providers in restricted mode; they may depend on the
+     5719:             // app's custom Application class
+     5720:             if (!data.restrictedBackupMode) {
+     5721:                 if (!ArrayUtils.isEmpty(data.providers)) {
+     5722:                     installContentProviders(app, data.providers);
+     5723:                     // For process that contains content providers, we want to
+     5724:                     // ensure that the JIT is enabled "at some point".
+     5725:                     mH.sendEmptyMessageDelayed(H.ENABLE_JIT, 10*1000);
+     5726:                 }
+     5727:             }
+     5728: 
+     5729:             // Do this after providers, since instrumentation tests generally start their
+     5730:             // test thread at this point, and we don't want that racing.
+     5731:             try {
+     5732:                 mInstrumentation.onCreate(data.instrumentationArgs);
+     5733:             }
+     5734:             catch (Exception e) {
+     5735:                 throw new RuntimeException(
+     5736:                     "Exception thrown in onCreate() of "
+     5737:                     + data.instrumentationName + ": " + e.toString(), e);
+     5738:             }
+     5739:             try {
+     5740:                 mInstrumentation.callApplicationOnCreate(app);
+     5741:             } catch (Exception e) {
+     5742:                 if (!mInstrumentation.onException(app, e)) {
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1118-1119
+     1118:     public void callApplicationOnCreate(Application app) {
+     1119:         app.onCreate();
+
+STEP 2  edge E288f9e11
+  MainApplication.onCreate -> MainApplication.increaseCursorWindowSize
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainApplication.java:66-70,73-82
+  cite [SRC] MainApplication.java:66-70, 73-82
+       66:         ACRA.init(this, builder);
+       67: 
+       68:         increaseCursorWindowSize();
+       69: 
+       70:         TorrentNotifier.getInstance(this).makeNotifyChans();
+       73:     @SuppressLint("DiscouragedPrivateApi")
+       74:     private void increaseCursorWindowSize() {
+       75:         try {
+       76:             var field = CursorWindow.class.getDeclaredField("sCursorWindowSize");
+       77:             field.setAccessible(true);
+       78:             field.set(null, 100 * 1024 * 1024); // 100MB
+       79:         } catch (Exception e) {
+       80:             Log.e(TAG, "Unable to increase CursorWindow size", e);
+       81:         }
+       82:     }

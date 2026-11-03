@@ -1,0 +1,435 @@
+METHOD: BaseElement.getUri
+verdict: REACHABLE   steps_from_launch: 19
+route steps: 19 edges
+======================================================================
+
+STEP 1  edge Ef4711e98
+  S_ENTRY -> MainActivity.onCreate
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: android:exported="true"
+  evidence: SRC AndroidManifest.xml:43-59; FW-SRC core/java/android/app/ActivityThread.java:2727-2732; core/java/android/app/Instrumentation.java:1212-1215
+  cite [SRC] AndroidManifest.xml:43-59
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/AndroidManifest.xml)
+       43:         <activity android:name=".ui.main.MainActivity"
+       44:             android:theme="@style/AppTheme.Launcher"
+       45:             android:exported="true">
+       46:             <meta-data
+       47:                 android:name="android.app.shortcuts"
+       48:                 android:resource="@xml/shortcuts" />
+       49:             <meta-data android:name="android.app.searchable"
+       50:                 android:resource="@xml/searchable"/>
+       51: 
+       52:             <intent-filter>
+       53:                 <action android:name="android.intent.action.MAIN" />
+       54:                 <category android:name="android.intent.category.LAUNCHER" />
+       55:                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+       56:             </intent-filter>
+       57:             <intent-filter>
+       58:                 <action android:name="android.intent.action.SEARCH" />
+       59:             </intent-filter>
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2727-2732
+     2727:                 activity.mCalled = false;
+     2728:                 if (r.isPersistable()) {
+     2729:                     mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+     2730:                 } else {
+     2731:                     mInstrumentation.callActivityOnCreate(activity, r.state);
+     2732:                 }
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1212-1215
+     1212:     public void callActivityOnCreate(Activity activity, Bundle icicle) {
+     1213:         prePerformCreate(activity);
+     1214:         activity.performCreate(icicle);
+     1215:         postPerformCreate(activity);
+
+STEP 2  edge E9278e2d5
+  MainActivity.onCreate -> MainActivity.onStart
+  class: standard   kind: LIFECYCLE
+  guard: getIntent().getAction() != NOTIFY_ACTION_SHUTDOWN_APP; !mFinished
+  needs_state: None
+  env: None
+  evidence: SRC ui/main/MainActivity.java:140-144,381-389; FW-SRC core/java/android/app/ActivityThread.java:2738-2745; core/java/android/app/Activity.java:7014-7023; core/java/android/app/Instrumentation.java:1333-1335
+  cite [SRC] ui/main/MainActivity.java:140-144, 381-389
+      140:         if (getIntent().getAction() != null &&
+      141:                 getIntent().getAction().equals(NotificationReceiver.NOTIFY_ACTION_SHUTDOWN_APP)) {
+      142:             finish();
+      143:             return;
+      144:         }
+      381:     public void onStart() {
+      382:         super.onStart();
+      383: 
+      384:         subscribeAlertDialog();
+      385:         subscribeMsgViewModel();
+      386:         subscribeSessionStats();
+      387:         subscribeNeedStartEngine();
+      388:         subscribeTags();
+      389:     }
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2738-2745
+     2738:                 r.activity = activity;
+     2739:                 r.stopped = true;
+     2740:                 if (!r.activity.mFinished) {
+     2741:                     activity.performStart();
+     2742:                     r.stopped = false;
+     2743:                 }
+     2744:                 if (!r.activity.mFinished) {
+     2745:                     if (r.isPersistable()) {
+  cite [FW-SRC] core/java/android/app/Activity.java:7014-7023
+     7014:     final void performStart() {
+     7015:         mActivityTransitionState.setEnterActivityOptions(this, getActivityOptions());
+     7016:         mFragments.noteStateNotSaved();
+     7017:         mCalled = false;
+     7018:         mFragments.execPendingActions();
+     7019:         mInstrumentation.callActivityOnStart(this);
+     7020:         if (!mCalled) {
+     7021:             throw new SuperNotCalledException(
+     7022:                 "Activity " + mComponent.toShortString() +
+     7023:                 " did not call through to super.onStart()");
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1333-1335
+     1333:     public void callActivityOnStart(Activity activity) {
+     1334:         activity.onStart();
+     1335:     }
+
+STEP 3  edge E37e3a4dc
+  MainActivity.onStart -> MainActivity.onCreateOptionsMenu
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AppCompat menu callback dispatch; SRC ui/main/MainActivity.java:214-216,697-705
+  cite [SRC] ui/main/MainActivity.java:214-216, 697-705
+      214:         toolbar.setTitle(R.string.app_name);
+      215:         toolbar.inflateMenu(R.menu.main);
+      216:         setSupportActionBar(toolbar);
+      697:     @Override
+      698:     public boolean onCreateOptionsMenu(Menu menu) {
+      699:         toolbar.inflateMenu(R.menu.main);
+      700:         searchView = (SearchView) toolbar.getMenu().findItem(R.id.search).getActionView();
+      701:         initSearch();
+      702:         toolbar.setOnMenuItemClickListener(this::onOptionsItemSelected);
+      703: 
+      704:         return true;
+      705:     }
+
+STEP 4  edge E6507c563
+  MainActivity.onCreateOptionsMenu -> MainActivity.onOptionsItemSelected
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AppCompat menu callback dispatch; SRC ui/main/MainActivity.java:698-705,738-758
+  cite [SRC] ui/main/MainActivity.java:698-705, 738-758
+      698:     public boolean onCreateOptionsMenu(Menu menu) {
+      699:         toolbar.inflateMenu(R.menu.main);
+      700:         searchView = (SearchView) toolbar.getMenu().findItem(R.id.search).getActionView();
+      701:         initSearch();
+      702:         toolbar.setOnMenuItemClickListener(this::onOptionsItemSelected);
+      703: 
+      704:         return true;
+      705:     }
+      738:     public boolean onOptionsItemSelected(MenuItem item) {
+      739:         int itemId = item.getItemId();
+      740:         if (itemId == R.id.feed_menu) {
+      741:             startActivity(new Intent(this, FeedActivity.class));
+      742:         } else if (itemId == R.id.settings_menu) {
+      743:             startActivity(new Intent(this, SettingsActivity.class));
+      744:         } else if (itemId == R.id.about_menu) {
+      745:             showAboutDialog();
+      746:         } else if (itemId == R.id.shutdown_app_menu) {
+      747:             closeOptionsMenu();
+      748:             viewModel.stopEngine();
+      749:             finish();
+      750:         } else if (itemId == R.id.pause_all_menu) {
+      751:             viewModel.pauseAll();
+      752:         } else if (itemId == R.id.resume_all_menu) {
+      753:             viewModel.resumeAll();
+      754:         } else if (itemId == R.id.log_menu) {
+      755:             showLog();
+      756:         }
+      757: 
+      758:         return true;
+
+STEP 5  edge Ef969f0d4
+  MainActivity.onOptionsItemSelected -> FeedActivity.onCreate
+  class: standard   kind: INTENT
+  guard: itemId == R.id.feed_menu
+  needs_state: None
+  env: None
+  evidence: SRC ui/main/MainActivity.java:738-758; AndroidManifest.xml:174-175; FW-SRC core/java/android/app/ActivityThread.java:2727-2732; core/java/android/app/Instrumentation.java:1212-1215
+  cite [SRC] ui/main/MainActivity.java:738-758
+      738:     public boolean onOptionsItemSelected(MenuItem item) {
+      739:         int itemId = item.getItemId();
+      740:         if (itemId == R.id.feed_menu) {
+      741:             startActivity(new Intent(this, FeedActivity.class));
+      742:         } else if (itemId == R.id.settings_menu) {
+      743:             startActivity(new Intent(this, SettingsActivity.class));
+      744:         } else if (itemId == R.id.about_menu) {
+      745:             showAboutDialog();
+      746:         } else if (itemId == R.id.shutdown_app_menu) {
+      747:             closeOptionsMenu();
+      748:             viewModel.stopEngine();
+      749:             finish();
+      750:         } else if (itemId == R.id.pause_all_menu) {
+      751:             viewModel.pauseAll();
+      752:         } else if (itemId == R.id.resume_all_menu) {
+      753:             viewModel.resumeAll();
+      754:         } else if (itemId == R.id.log_menu) {
+      755:             showLog();
+      756:         }
+      757: 
+      758:         return true;
+  cite [SRC] AndroidManifest.xml:174-175
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/AndroidManifest.xml)
+      174:         <activity android:name=".ui.feeds.FeedActivity" />
+      175: 
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2727-2732
+     2727:                 activity.mCalled = false;
+     2728:                 if (r.isPersistable()) {
+     2729:                     mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+     2730:                 } else {
+     2731:                     mInstrumentation.callActivityOnCreate(activity, r.state);
+     2732:                 }
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1212-1215
+     1212:     public void callActivityOnCreate(Activity activity, Bundle icicle) {
+     1213:         prePerformCreate(activity);
+     1214:         activity.performCreate(icicle);
+     1215:         postPerformCreate(activity);
+
+STEP 6  edge Ec7da6918
+  FeedActivity.onCreate -> FeedActivity.onCreateOptionsMenu
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED framework dispatch; SRC ui/feeds/FeedActivity.java:91-107; SRC ui/feeds/FeedActivity.java:239-244
+  cite [SRC] ui/feeds/FeedActivity.java:91-107
+       91:     protected void onCreate(@Nullable Bundle savedInstanceState)
+       92:     {
+       93:         setTheme(Utils.getAppTheme(getApplicationContext()));
+       94:         super.onCreate(savedInstanceState);
+       95: 
+       96:         ViewModelProvider provider = new ViewModelProvider(this);
+       97:         viewModel = provider.get(FeedViewModel.class);
+       98:         msgViewModel = provider.get(MsgFeedViewModel.class);
+       99:         dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+      100: 
+      101:         setContentView(R.layout.activity_feed);
+      102:         initLayout();
+      103: 
+      104:         FragmentManager fm = getSupportFragmentManager();
+      105:         backupFeedsReportDialog = (ErrorReportDialog)fm.findFragmentByTag(TAG_BACKUP_FEEDS_ERROR_REPORT_DIALOG);
+      106:         restoreFeedsReportDialog = (ErrorReportDialog)fm.findFragmentByTag(TAG_RESTORE_FEEDS_ERROR_REPORT_DIALOG);
+      107:     }
+  cite [SRC] ui/feeds/FeedActivity.java:239-244
+      239:     public boolean onCreateOptionsMenu(Menu menu)
+      240:     {
+      241:         toolbar.inflateMenu(R.menu.feed);
+      242:         toolbar.setOnMenuItemClickListener(this::onOptionsItemSelected);
+      243: 
+      244:         return true;
+
+STEP 7  edge E9e89e680
+  FeedActivity.onCreateOptionsMenu -> FeedActivity.onOptionsItemSelected
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AppCompat menu callback dispatch; SRC ui/feeds/FeedActivity.java:241-242,248-252
+  cite [SRC] ui/feeds/FeedActivity.java:241-242, 248-252
+      241:         toolbar.inflateMenu(R.menu.feed);
+      242:         toolbar.setOnMenuItemClickListener(this::onOptionsItemSelected);
+      248:     public boolean onOptionsItemSelected(MenuItem item)
+      249:     {
+      250:         int itemId = item.getItemId();
+      251:         if (itemId == R.id.refresh_feed_channel_menu) {
+      252:             viewModel.refreshAllFeeds();
+
+STEP 8  edge E13b62585
+  FeedActivity.onOptionsItemSelected -> FeedViewModel.refreshAllFeeds
+  class: explicit   kind: CALL
+  guard: itemId == R.id.refresh_feed_channel_menu
+  needs_state: None
+  env: None
+  evidence: SRC ui/feeds/FeedActivity.java:251-252; ui/feeds/FeedViewModel.java:118-127
+  cite [SRC] ui/feeds/FeedActivity.java:251-252
+      251:         if (itemId == R.id.refresh_feed_channel_menu) {
+      252:             viewModel.refreshAllFeeds();
+  cite [SRC] ui/feeds/FeedViewModel.java:118-127
+      118:     public void refreshAllFeeds()
+      119:     {
+      120:         Data data = new Data.Builder()
+      121:                 .putString(FeedFetcherWorker.TAG_ACTION,FeedFetcherWorker.ACTION_FETCH_ALL_CHANNELS)
+      122:                 .build();
+      123:         OneTimeWorkRequest work = new OneTimeWorkRequest.Builder(FeedFetcherWorker.class)
+      124:                 .setInputData(data)
+      125:                 .build();
+      126: 
+      127:         runFetchWorker(work);
+
+STEP 9  edge Eb73dd275
+  FeedViewModel.refreshAllFeeds -> FeedViewModel.runFetchWorker
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/feeds/FeedViewModel.java:118-127,153-157
+  cite [SRC] ui/feeds/FeedViewModel.java:118-127, 153-157
+      118:     public void refreshAllFeeds()
+      119:     {
+      120:         Data data = new Data.Builder()
+      121:                 .putString(FeedFetcherWorker.TAG_ACTION,FeedFetcherWorker.ACTION_FETCH_ALL_CHANNELS)
+      122:                 .build();
+      123:         OneTimeWorkRequest work = new OneTimeWorkRequest.Builder(FeedFetcherWorker.class)
+      124:                 .setInputData(data)
+      125:                 .build();
+      126: 
+      127:         runFetchWorker(work);
+      153:     private void runFetchWorker(WorkRequest work)
+      154:     {
+      155:         refreshStatus.onNext(true);
+      156: 
+      157:         WorkManager.getInstance(getApplication()).enqueue(work);
+
+STEP 10  edge E6cdf3d51
+  FeedViewModel.runFetchWorker -> FeedFetcherWorker.doWork
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED WorkManager worker dispatch; SRC ui/feeds/FeedViewModel.java:157; service/FeedFetcherWorker.java:51,74
+  cite [SRC] ui/feeds/FeedViewModel.java:157
+      157:         WorkManager.getInstance(getApplication()).enqueue(work);
+  cite [SRC] service/FeedFetcherWorker.java:51, 74
+       51: public class FeedFetcherWorker extends Worker
+       74:     public Result doWork()
+
+STEP 11  edge Ed9eb3987
+  FeedFetcherWorker.doWork -> FeedFetcherWorker.fetchChannel
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC FeedFetcherWorker.java:94 (bytecode)
+  cite [SRC] FeedFetcherWorker.java:94
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/service/FeedFetcherWorker.java)
+       94:                 return fetchChannel(data.getLong(TAG_CHANNEL_ID, -1),
+
+STEP 12  edge E8a9d6b40
+  FeedFetcherWorker.fetchChannel -> FeedParser.getItems
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC service/FeedFetcherWorker.java:165
+  cite [SRC] service/FeedFetcherWorker.java:165
+      165:         List<FeedItem> items = parser.getItems();
+
+STEP 13  edge Efb3d40a1
+  FeedParser.getItems -> FeedParser.findDownloadUrl
+  class: explicit   kind: CALL
+  guard: downloadUrl == null
+  needs_state: None
+  env: None
+  evidence: SRC libretorrent/core/FeedParser.java:101-102
+  cite [SRC] libretorrent/core/FeedParser.java:101-102
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/FeedParser.java)
+      101:             if (downloadUrl == null)
+      102:                 downloadUrl = findDownloadUrl(item);
+
+STEP 14  edge Ed8f7051d
+  FeedParser.findDownloadUrl -> FeedParser.watchTorrentInfoHash
+  class: explicit   kind: CALL
+  guard: watchEnclosure returned null
+  needs_state: None
+  env: None
+  evidence: SRC libretorrent/core/FeedParser.java:151-152
+  cite [SRC] libretorrent/core/FeedParser.java:151-152
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/FeedParser.java)
+      151:         String infoHash = watchTorrentInfoHash(item);
+      152:         if (infoHash != null)
+
+STEP 15  edge E3c27eadb
+  FeedParser.watchTorrentInfoHash -> Rss2Item.getEzRssTorrentItem
+  class: non_standard   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED interface dispatch; SRC libretorrent/core/FeedParser.java:236-238; impl/Rss2Item.java:119-120
+  cite [SRC] libretorrent/core/FeedParser.java:236-238
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/FeedParser.java)
+      236:     private String watchTorrentInfoHash(Item item)
+      237:     {
+      238:         EzRssTorrentItem torrentItem = item.getEzRssTorrentItem();
+  cite [SRC] impl/Rss2Item.java:119-120
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/com/ernieyu/feedparser/impl/Rss2Item.java)
+      119:     public EzRssTorrentItem getEzRssTorrentItem() {
+      120:         return new EzRss01Parser(this).parse();
+
+STEP 16  edge Eff7c2d2c
+  Rss2Item.getEzRssTorrentItem -> EzRss01Parser.parse
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC impl/Rss2Item.java:120; impl/EzRss01Parser.java:26-36
+  cite [SRC] impl/Rss2Item.java:120
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/com/ernieyu/feedparser/impl/Rss2Item.java)
+      120:         return new EzRss01Parser(this).parse();
+  cite [SRC] impl/EzRss01Parser.java:26-36
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/com/ernieyu/feedparser/impl/EzRss01Parser.java)
+       26:     public EzRssTorrentItem parse() {
+       27:         String fileName = parseFileName();
+       28:         String magnetUri = parseMagnetUri();
+       29:         String infoHash = parseInfoHash();
+       30:         long contentLength = parseContentLength();
+       31:         int seeds = parseSeeds();
+       32:         int peers = parsePeers();
+       33:         boolean verified = parseVerified();
+       34: 
+       35:         return new EzRssTorrentItem(fileName, magnetUri, infoHash,
+       36:             contentLength, seeds, peers, verified);
+
+STEP 17  edge Eaf0fb9a7
+  EzRss01Parser.parse -> EzRss01Parser.parseFileName
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC impl/EzRss01Parser.java:27
+  cite [SRC] impl/EzRss01Parser.java:27
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/com/ernieyu/feedparser/impl/EzRss01Parser.java)
+       27:         String fileName = parseFileName();
+
+STEP 18  edge Ebe38d717
+  EzRss01Parser.parseFileName -> EzRss01Parser.isEzRssElement
+  class: explicit   kind: CALL
+  guard: element is not null
+  needs_state: None
+  env: None
+  evidence: SRC impl/EzRss01Parser.java:41; impl/EzRss01Parser.java:118-121
+  cite [SRC] impl/EzRss01Parser.java:41
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/com/ernieyu/feedparser/impl/EzRss01Parser.java)
+       41:         if (element == null || !isEzRssElement(element))
+  cite [SRC] impl/EzRss01Parser.java:118-121
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/com/ernieyu/feedparser/impl/EzRss01Parser.java)
+      118:     private boolean isEzRssElement(Element element) {
+      119:         return element.getUri() != null &&
+      120:             element.getUri().startsWith(EZRSS_NAMESPACE_URI);
+      121:     }
+
+STEP 19  edge E4826dcc0
+  EzRss01Parser.isEzRssElement -> BaseElement.getUri
+  class: non_standard   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED interface dispatch; SRC impl/EzRss01Parser.java:119-120; impl/BaseElement.java:45-48
+  cite [SRC] impl/EzRss01Parser.java:119-120
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/com/ernieyu/feedparser/impl/EzRss01Parser.java)
+      119:         return element.getUri() != null &&
+      120:             element.getUri().startsWith(EZRSS_NAMESPACE_URI);
+  cite [SRC] impl/BaseElement.java:45-48
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/com/ernieyu/feedparser/impl/BaseElement.java)
+       45:     @Override
+       46:     public String getUri() {
+       47:         return uri;
+       48:     }

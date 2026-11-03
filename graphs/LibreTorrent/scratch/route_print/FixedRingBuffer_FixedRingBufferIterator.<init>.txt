@@ -1,0 +1,295 @@
+METHOD: FixedRingBuffer$FixedRingBufferIterator.<init>
+verdict: REACHABLE   steps_from_launch: 12
+route steps: 12 edges
+======================================================================
+
+STEP 1  edge Ef4711e98
+  S_ENTRY -> MainActivity.onCreate
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: android:exported="true"
+  evidence: SRC AndroidManifest.xml:43-59; FW-SRC core/java/android/app/ActivityThread.java:2727-2732; core/java/android/app/Instrumentation.java:1212-1215
+  cite [SRC] AndroidManifest.xml:43-59
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/AndroidManifest.xml)
+       43:         <activity android:name=".ui.main.MainActivity"
+       44:             android:theme="@style/AppTheme.Launcher"
+       45:             android:exported="true">
+       46:             <meta-data
+       47:                 android:name="android.app.shortcuts"
+       48:                 android:resource="@xml/shortcuts" />
+       49:             <meta-data android:name="android.app.searchable"
+       50:                 android:resource="@xml/searchable"/>
+       51: 
+       52:             <intent-filter>
+       53:                 <action android:name="android.intent.action.MAIN" />
+       54:                 <category android:name="android.intent.category.LAUNCHER" />
+       55:                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+       56:             </intent-filter>
+       57:             <intent-filter>
+       58:                 <action android:name="android.intent.action.SEARCH" />
+       59:             </intent-filter>
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2727-2732
+     2727:                 activity.mCalled = false;
+     2728:                 if (r.isPersistable()) {
+     2729:                     mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+     2730:                 } else {
+     2731:                     mInstrumentation.callActivityOnCreate(activity, r.state);
+     2732:                 }
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1212-1215
+     1212:     public void callActivityOnCreate(Activity activity, Bundle icicle) {
+     1213:         prePerformCreate(activity);
+     1214:         activity.performCreate(icicle);
+     1215:         postPerformCreate(activity);
+
+STEP 2  edge E3dee7bcc
+  MainActivity.onCreate -> TorrentInfoProvider.getInstance(Context)
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/main/MainActivity.java:146; TorrentInfoProvider.java:76-87
+  cite [SRC] ui/main/MainActivity.java:146
+      146:         infoProvider = TorrentInfoProvider.getInstance(getApplicationContext());
+  cite [SRC] TorrentInfoProvider.java:76-87
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentInfoProvider.java)
+       76:     public static TorrentInfoProvider getInstance(@NonNull Context appContext) {
+       77:         if (INSTANCE == null) {
+       78:             synchronized (TorrentInfoProvider.class) {
+       79:                 if (INSTANCE == null)
+       80:                     INSTANCE = new TorrentInfoProvider(
+       81:                             TorrentEngine.getInstance(appContext),
+       82:                             RepositoryHelper.getTagRepository(appContext)
+       83:                     );
+       84:             }
+       85:         }
+       86:         return INSTANCE;
+       87:     }
+
+STEP 3  edge E29d6b10c
+  TorrentInfoProvider.getInstance(Context) -> TorrentEngine.getInstance
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TorrentInfoProvider.java:76-87
+  cite [SRC] TorrentInfoProvider.java:76-87
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentInfoProvider.java)
+       76:     public static TorrentInfoProvider getInstance(@NonNull Context appContext) {
+       77:         if (INSTANCE == null) {
+       78:             synchronized (TorrentInfoProvider.class) {
+       79:                 if (INSTANCE == null)
+       80:                     INSTANCE = new TorrentInfoProvider(
+       81:                             TorrentEngine.getInstance(appContext),
+       82:                             RepositoryHelper.getTagRepository(appContext)
+       83:                     );
+       84:             }
+       85:         }
+       86:         return INSTANCE;
+       87:     }
+
+STEP 4  edge Eeac5d0c4
+  TorrentEngine.getInstance -> TorrentEngine.<init>
+  class: explicit   kind: CALL
+  guard: INSTANCE == null
+  needs_state: None
+  env: None
+  evidence: SRC TorrentEngine.java:117-125
+  cite [SRC] TorrentEngine.java:117-125
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java)
+      117:     public static TorrentEngine getInstance(@NonNull Context appContext) {
+      118:         if (INSTANCE == null) {
+      119:             synchronized (TorrentEngine.class) {
+      120:                 if (INSTANCE == null)
+      121:                     INSTANCE = new TorrentEngine(appContext);
+      122:             }
+      123:         }
+      124: 
+      125:         return INSTANCE;
+
+STEP 5  edge Ea8858d14
+  TorrentEngine.<init> -> TorrentSessionImpl.setSettings(SessionSettings,boolean)
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TorrentEngine.java:139; SRC TorrentSessionImpl.java:207
+  cite [SRC] TorrentEngine.java:139
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java)
+      139:         session.setSettings(pref.readSessionSettings(), false);
+  cite [SRC] TorrentSessionImpl.java:207
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+      207:     public void setSettings(@NonNull SessionSettings settings, boolean keepPort)
+
+STEP 6  edge E792ffb50
+  TorrentSessionImpl.setSettings(SessionSettings,boolean) -> TorrentSessionImpl.applySettings
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TorrentSessionImpl.java:213; SRC TorrentSessionImpl.java:1385
+  cite [SRC] TorrentSessionImpl.java:213
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+      213:             applySettings(settings, keepPort);
+  cite [SRC] TorrentSessionImpl.java:1385
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+     1385:     private void applySettings(SessionSettings settings, boolean keepPort)
+
+STEP 7  edge Ee3ffda2b
+  TorrentSessionImpl.applySettings -> TorrentSessionImpl.applySessionLoggerFilters
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TorrentSessionImpl.java:1388; SRC TorrentSessionImpl.java:1416
+  cite [SRC] TorrentSessionImpl.java:1388
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+     1388:         applySessionLoggerFilters(settings);
+  cite [SRC] TorrentSessionImpl.java:1416
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+     1416:     private void applySessionLoggerFilters(SessionSettings settings)
+
+STEP 8  edge Ec2784d78
+  TorrentSessionImpl.applySessionLoggerFilters -> SessionLogger.applyFilterParams
+  class: non_standard   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED Rx dispatch; SRC TorrentSessionImpl.java:1418-1427; SRC SessionLogger.java:169-201
+  cite [SRC] TorrentSessionImpl.java:1418-1427
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+     1418:         disposables.add(Completable.fromRunnable(() ->
+     1419:                 sessionLogger.applyFilterParams(new SessionLogger.SessionFilterParams(
+     1420:                         settings.logSessionFilter,
+     1421:                         settings.logDhtFilter,
+     1422:                         settings.logPeerFilter,
+     1423:                         settings.logPortmapFilter,
+     1424:                         settings.logTorrentFilter
+     1425:         )))
+     1426:         .subscribeOn(Schedulers.computation())
+     1427:         .subscribe());
+  cite [SRC] SessionLogger.java:169-201
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/SessionLogger.java)
+      169:     void applyFilterParams(SessionFilterParams params)
+      170:     {
+      171:         Logger.NewFilter[] addFilters = new Logger.NewFilter[5];
+      172:         String[] removeFilters = new String[5];
+      173: 
+      174:         if (params.filterSessionLog)
+      175:             addFilters[0] = SessionLogger.SessionLogFilter.SESSION.filter();
+      176:         else
+      177:             removeFilters[0] = SessionLogger.SessionLogFilter.SESSION.name();
+      178: 
+      179:         if (params.filterDhtLog)
+      180:             addFilters[1] = SessionLogger.SessionLogFilter.DHT.filter();
+      181:         else
+      182:             removeFilters[1] = SessionLogger.SessionLogFilter.DHT.name();
+      183: 
+      184:         if (params.filterPeerLog)
+      185:             addFilters[2] = SessionLogger.SessionLogFilter.PEER.filter();
+      186:         else
+      187:             removeFilters[2] = SessionLogger.SessionLogFilter.PEER.name();
+      188: 
+      189:         if (params.filterPortmapLog)
+      190:             addFilters[3] = SessionLogger.SessionLogFilter.PORTMAP.filter();
+      191:         else
+      192:             removeFilters[3] = SessionLogger.SessionLogFilter.PORTMAP.name();
+      193: 
+      194:         if (params.filterTorrentLog)
+      195:             addFilters[4] = SessionLogger.SessionLogFilter.TORRENT.filter();
+      196:         else
+      197:             removeFilters[4] = SessionLogger.SessionLogFilter.TORRENT.name();
+      198: 
+      199:         removeFilter(removeFilters);
+      200:         addFilter(addFilters);
+      201:     }
+
+STEP 9  edge Eea8e96fb
+  SessionLogger.applyFilterParams -> Logger.addFilter
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC SessionLogger.java:200; Logger.java:202-221
+  cite [SRC] SessionLogger.java:200
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/SessionLogger.java)
+      200:         addFilter(addFilters);
+  cite [SRC] Logger.java:202-221
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java)
+      202:     public void addFilter(@NonNull NewFilter... filters)
+      203:     {
+      204:         logLock.lock();
+      205: 
+      206:         try {
+      207:             int addedFilters = 0;
+      208:             for (NewFilter filter : filters) {
+      209:                 if (filter == null)
+      210:                     continue;
+      211: 
+      212:                 this.filters.put(filter.name, filter.filter);
+      213:                 addedFilters++;
+      214:             }
+      215:             if (addedFilters > 0)
+      216:                 forceFilterBuf();
+      217: 
+      218:         } finally {
+      219:             logLock.unlock();
+      220:         }
+      221:     }
+
+STEP 10  edge E42b59764
+  Logger.addFilter -> Logger.forceFilterBuf
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC Logger.java:216; Logger.java:244-257
+  cite [SRC] Logger.java:216
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java)
+      216:                 forceFilterBuf();
+  cite [SRC] Logger.java:244-257
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java)
+      244:     private void forceFilterBuf()
+      245:     {
+      246:         FixedRingBuffer<LogEntry> inputBuf = lazyGetInputBuf();
+      247:         FixedRingBuffer<LogEntry> outputBuf = lazyGetOutputBuf();
+      248: 
+      249:         outputBuf.clear();
+      250:         for (LogEntry entry : inputBuf) {
+      251:             entry = applyFilters(entry);
+      252:             if (entry != null)
+      253:                 outputBuf.add(entry);
+      254:         }
+      255: 
+      256:         submitDataSetChanged(new DataSetChange(DataSetChange.Reason.FILTER));
+      257:     }
+
+STEP 11  edge Edf4f8b2f
+  Logger.forceFilterBuf -> FixedRingBuffer.iterator
+  class: non_standard   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED compiler iterator dispatch; SRC Logger.java:250; FixedRingBuffer.java:209-213
+  cite [SRC] Logger.java:250
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java)
+      250:         for (LogEntry entry : inputBuf) {
+  cite [SRC] FixedRingBuffer.java:209-213
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/collections/FixedRingBuffer.java)
+      209:     public Iterator<E> iterator()
+      210:     {
+      211:         return new FixedRingBufferIterator();
+      212:     }
+      213: 
+
+STEP 12  edge Ebe5533f4
+  FixedRingBuffer.iterator -> FixedRingBuffer$FixedRingBufferIterator.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC FixedRingBuffer.java:211,214
+  cite [SRC] FixedRingBuffer.java:211, 214
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/collections/FixedRingBuffer.java)
+      211:         return new FixedRingBufferIterator();
+      214:     private class FixedRingBufferIterator implements Iterator<E>

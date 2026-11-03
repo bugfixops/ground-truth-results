@@ -1,0 +1,588 @@
+METHOD: FeedDao_Impl$11.finalize
+verdict: REACHABLE   steps_from_launch: 20
+route steps: 20 edges
+======================================================================
+
+STEP 1  edge Ef4711e98
+  S_ENTRY -> MainActivity.onCreate
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: android:exported="true"
+  evidence: SRC AndroidManifest.xml:43-59; FW-SRC core/java/android/app/ActivityThread.java:2727-2732; core/java/android/app/Instrumentation.java:1212-1215
+  cite [SRC] AndroidManifest.xml:43-59
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/AndroidManifest.xml)
+       43:         <activity android:name=".ui.main.MainActivity"
+       44:             android:theme="@style/AppTheme.Launcher"
+       45:             android:exported="true">
+       46:             <meta-data
+       47:                 android:name="android.app.shortcuts"
+       48:                 android:resource="@xml/shortcuts" />
+       49:             <meta-data android:name="android.app.searchable"
+       50:                 android:resource="@xml/searchable"/>
+       51: 
+       52:             <intent-filter>
+       53:                 <action android:name="android.intent.action.MAIN" />
+       54:                 <category android:name="android.intent.category.LAUNCHER" />
+       55:                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+       56:             </intent-filter>
+       57:             <intent-filter>
+       58:                 <action android:name="android.intent.action.SEARCH" />
+       59:             </intent-filter>
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2727-2732
+     2727:                 activity.mCalled = false;
+     2728:                 if (r.isPersistable()) {
+     2729:                     mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+     2730:                 } else {
+     2731:                     mInstrumentation.callActivityOnCreate(activity, r.state);
+     2732:                 }
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1212-1215
+     1212:     public void callActivityOnCreate(Activity activity, Bundle icicle) {
+     1213:         prePerformCreate(activity);
+     1214:         activity.performCreate(icicle);
+     1215:         postPerformCreate(activity);
+
+STEP 2  edge E9278e2d5
+  MainActivity.onCreate -> MainActivity.onStart
+  class: standard   kind: LIFECYCLE
+  guard: getIntent().getAction() != NOTIFY_ACTION_SHUTDOWN_APP; !mFinished
+  needs_state: None
+  env: None
+  evidence: SRC ui/main/MainActivity.java:140-144,381-389; FW-SRC core/java/android/app/ActivityThread.java:2738-2745; core/java/android/app/Activity.java:7014-7023; core/java/android/app/Instrumentation.java:1333-1335
+  cite [SRC] ui/main/MainActivity.java:140-144, 381-389
+      140:         if (getIntent().getAction() != null &&
+      141:                 getIntent().getAction().equals(NotificationReceiver.NOTIFY_ACTION_SHUTDOWN_APP)) {
+      142:             finish();
+      143:             return;
+      144:         }
+      381:     public void onStart() {
+      382:         super.onStart();
+      383: 
+      384:         subscribeAlertDialog();
+      385:         subscribeMsgViewModel();
+      386:         subscribeSessionStats();
+      387:         subscribeNeedStartEngine();
+      388:         subscribeTags();
+      389:     }
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2738-2745
+     2738:                 r.activity = activity;
+     2739:                 r.stopped = true;
+     2740:                 if (!r.activity.mFinished) {
+     2741:                     activity.performStart();
+     2742:                     r.stopped = false;
+     2743:                 }
+     2744:                 if (!r.activity.mFinished) {
+     2745:                     if (r.isPersistable()) {
+  cite [FW-SRC] core/java/android/app/Activity.java:7014-7023
+     7014:     final void performStart() {
+     7015:         mActivityTransitionState.setEnterActivityOptions(this, getActivityOptions());
+     7016:         mFragments.noteStateNotSaved();
+     7017:         mCalled = false;
+     7018:         mFragments.execPendingActions();
+     7019:         mInstrumentation.callActivityOnStart(this);
+     7020:         if (!mCalled) {
+     7021:             throw new SuperNotCalledException(
+     7022:                 "Activity " + mComponent.toShortString() +
+     7023:                 " did not call through to super.onStart()");
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1333-1335
+     1333:     public void callActivityOnStart(Activity activity) {
+     1334:         activity.onStart();
+     1335:     }
+
+STEP 3  edge E37e3a4dc
+  MainActivity.onStart -> MainActivity.onCreateOptionsMenu
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AppCompat menu callback dispatch; SRC ui/main/MainActivity.java:214-216,697-705
+  cite [SRC] ui/main/MainActivity.java:214-216, 697-705
+      214:         toolbar.setTitle(R.string.app_name);
+      215:         toolbar.inflateMenu(R.menu.main);
+      216:         setSupportActionBar(toolbar);
+      697:     @Override
+      698:     public boolean onCreateOptionsMenu(Menu menu) {
+      699:         toolbar.inflateMenu(R.menu.main);
+      700:         searchView = (SearchView) toolbar.getMenu().findItem(R.id.search).getActionView();
+      701:         initSearch();
+      702:         toolbar.setOnMenuItemClickListener(this::onOptionsItemSelected);
+      703: 
+      704:         return true;
+      705:     }
+
+STEP 4  edge E6507c563
+  MainActivity.onCreateOptionsMenu -> MainActivity.onOptionsItemSelected
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AppCompat menu callback dispatch; SRC ui/main/MainActivity.java:698-705,738-758
+  cite [SRC] ui/main/MainActivity.java:698-705, 738-758
+      698:     public boolean onCreateOptionsMenu(Menu menu) {
+      699:         toolbar.inflateMenu(R.menu.main);
+      700:         searchView = (SearchView) toolbar.getMenu().findItem(R.id.search).getActionView();
+      701:         initSearch();
+      702:         toolbar.setOnMenuItemClickListener(this::onOptionsItemSelected);
+      703: 
+      704:         return true;
+      705:     }
+      738:     public boolean onOptionsItemSelected(MenuItem item) {
+      739:         int itemId = item.getItemId();
+      740:         if (itemId == R.id.feed_menu) {
+      741:             startActivity(new Intent(this, FeedActivity.class));
+      742:         } else if (itemId == R.id.settings_menu) {
+      743:             startActivity(new Intent(this, SettingsActivity.class));
+      744:         } else if (itemId == R.id.about_menu) {
+      745:             showAboutDialog();
+      746:         } else if (itemId == R.id.shutdown_app_menu) {
+      747:             closeOptionsMenu();
+      748:             viewModel.stopEngine();
+      749:             finish();
+      750:         } else if (itemId == R.id.pause_all_menu) {
+      751:             viewModel.pauseAll();
+      752:         } else if (itemId == R.id.resume_all_menu) {
+      753:             viewModel.resumeAll();
+      754:         } else if (itemId == R.id.log_menu) {
+      755:             showLog();
+      756:         }
+      757: 
+      758:         return true;
+
+STEP 5  edge Ef969f0d4
+  MainActivity.onOptionsItemSelected -> FeedActivity.onCreate
+  class: standard   kind: INTENT
+  guard: itemId == R.id.feed_menu
+  needs_state: None
+  env: None
+  evidence: SRC ui/main/MainActivity.java:738-758; AndroidManifest.xml:174-175; FW-SRC core/java/android/app/ActivityThread.java:2727-2732; core/java/android/app/Instrumentation.java:1212-1215
+  cite [SRC] ui/main/MainActivity.java:738-758
+      738:     public boolean onOptionsItemSelected(MenuItem item) {
+      739:         int itemId = item.getItemId();
+      740:         if (itemId == R.id.feed_menu) {
+      741:             startActivity(new Intent(this, FeedActivity.class));
+      742:         } else if (itemId == R.id.settings_menu) {
+      743:             startActivity(new Intent(this, SettingsActivity.class));
+      744:         } else if (itemId == R.id.about_menu) {
+      745:             showAboutDialog();
+      746:         } else if (itemId == R.id.shutdown_app_menu) {
+      747:             closeOptionsMenu();
+      748:             viewModel.stopEngine();
+      749:             finish();
+      750:         } else if (itemId == R.id.pause_all_menu) {
+      751:             viewModel.pauseAll();
+      752:         } else if (itemId == R.id.resume_all_menu) {
+      753:             viewModel.resumeAll();
+      754:         } else if (itemId == R.id.log_menu) {
+      755:             showLog();
+      756:         }
+      757: 
+      758:         return true;
+  cite [SRC] AndroidManifest.xml:174-175
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/AndroidManifest.xml)
+      174:         <activity android:name=".ui.feeds.FeedActivity" />
+      175: 
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2727-2732
+     2727:                 activity.mCalled = false;
+     2728:                 if (r.isPersistable()) {
+     2729:                     mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+     2730:                 } else {
+     2731:                     mInstrumentation.callActivityOnCreate(activity, r.state);
+     2732:                 }
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1212-1215
+     1212:     public void callActivityOnCreate(Activity activity, Bundle icicle) {
+     1213:         prePerformCreate(activity);
+     1214:         activity.performCreate(icicle);
+     1215:         postPerformCreate(activity);
+
+STEP 6  edge Ef2176f7c
+  FeedActivity.onCreate -> FeedActivity.onStart
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/feeds/FeedActivity.java:75-101,119-132; FW-SRC core/java/android/app/ActivityThread.java:2738-2745; core/java/android/app/Instrumentation.java:1333-1335
+  cite [SRC] ui/feeds/FeedActivity.java:75-101, 119-132
+       75:     private static final String TAG = FeedActivity.class.getSimpleName();
+       76: 
+       77:     private static final String TAG_BACKUP_FEEDS_ERROR_REPORT_DIALOG = "backup_feeds_error_report_dialog";
+       78:     private static final String TAG_RESTORE_FEEDS_ERROR_DIALOG = "restore_feeds_error_dialog";
+       79:     private static final String TAG_RESTORE_FEEDS_ERROR_REPORT_DIALOG = "restore_feeds_error_report_dialog";
+       80: 
+       81:     /* Android data binding doesn't work with layout aliases */
+       82:     private Toolbar toolbar;
+       83: 
+       84:     private FeedViewModel viewModel;
+       85:     private MsgFeedViewModel msgViewModel;
+       86:     private CompositeDisposable disposables = new CompositeDisposable();
+       87:     private BaseAlertDialog.SharedViewModel dialogViewModel;
+       88:     private ErrorReportDialog backupFeedsReportDialog, restoreFeedsReportDialog;
+       89: 
+       90:     @Override
+       91:     protected void onCreate(@Nullable Bundle savedInstanceState)
+       92:     {
+       93:         setTheme(Utils.getAppTheme(getApplicationContext()));
+       94:         super.onCreate(savedInstanceState);
+       95: 
+       96:         ViewModelProvider provider = new ViewModelProvider(this);
+       97:         viewModel = provider.get(FeedViewModel.class);
+       98:         msgViewModel = provider.get(MsgFeedViewModel.class);
+       99:         dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+      100: 
+      101:         setContentView(R.layout.activity_feed);
+      119:     }
+      120: 
+      121:     @Override
+      122:     public void onStart()
+      123:     {
+      124:         super.onStart();
+      125: 
+      126:         subscribeAlertDialog();
+      127:         subscribeMsgViewModel();
+      128:     }
+      129: 
+      130:     @Override
+      131:     protected void onStop()
+      132:     {
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2738-2745
+     2738:                 r.activity = activity;
+     2739:                 r.stopped = true;
+     2740:                 if (!r.activity.mFinished) {
+     2741:                     activity.performStart();
+     2742:                     r.stopped = false;
+     2743:                 }
+     2744:                 if (!r.activity.mFinished) {
+     2745:                     if (r.isPersistable()) {
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1333-1335
+     1333:     public void callActivityOnStart(Activity activity) {
+     1334:         activity.onStart();
+     1335:     }
+
+STEP 7  edge E3a6833e8
+  FeedActivity.onStart -> FeedActivity.subscribeMsgViewModel
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/feeds/FeedActivity.java:119-132,169-189
+  cite [SRC] ui/feeds/FeedActivity.java:119-132, 169-189
+      119:     }
+      120: 
+      121:     @Override
+      122:     public void onStart()
+      123:     {
+      124:         super.onStart();
+      125: 
+      126:         subscribeAlertDialog();
+      127:         subscribeMsgViewModel();
+      128:     }
+      129: 
+      130:     @Override
+      131:     protected void onStop()
+      132:     {
+      169:         disposables.add(d);
+      170:     }
+      171: 
+      172:     private void subscribeMsgViewModel()
+      173:     {
+      174:         disposables.add(msgViewModel.observeFeedItemsOpened()
+      175:                 .observeOn(AndroidSchedulers.mainThread())
+      176:                 .subscribe(this::showFeedItems));
+      177: 
+      178:         disposables.add(msgViewModel.observeFeedItemsClosed()
+      179:                 .observeOn(AndroidSchedulers.mainThread())
+      180:                 .subscribe((__) -> showBlankFragment()));
+      181: 
+      182:         disposables.add(msgViewModel.observeFeedsDeleted()
+      183:                 .observeOn(AndroidSchedulers.mainThread())
+      184:                 .subscribe((ids) -> {
+      185:                     FeedItemsFragment f = getCurrentFeedItemsFragment();
+      186:                     if (f != null && ids.contains(f.getFeedId()))
+      187:                         showBlankFragment();
+      188:                 }));
+      189:     }
+
+STEP 8  edge E34c7b5a2
+  FeedActivity.subscribeMsgViewModel -> FeedActivity.showFeedItems
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/feeds/FeedActivity.java:174-176; INFERRED RxJava subscribe dispatch
+  cite [SRC] ui/feeds/FeedActivity.java:174-176
+      174:         disposables.add(msgViewModel.observeFeedItemsOpened()
+      175:                 .observeOn(AndroidSchedulers.mainThread())
+      176:                 .subscribe(this::showFeedItems));
+
+STEP 9  edge E9b4b24a7
+  FeedActivity.showFeedItems -> FeedItemsFragment.newInstance
+  class: explicit   kind: CALL
+  guard: Utils.isTwoPane(this)
+  needs_state: None
+  env: None
+  evidence: SRC ui/feeds/FeedActivity.java:203-227
+  cite [SRC] ui/feeds/FeedActivity.java:203-227
+      203:     private void showFeedItems(long feedId)
+      204:     {
+      205:         if (Utils.isTwoPane(this)) {
+      206:             FragmentManager fm = getSupportFragmentManager();
+      207:             FeedItemsFragment items = FeedItemsFragment.newInstance(feedId);
+      208:             Fragment fragment = fm.findFragmentById(R.id.feed_items_fragmentContainer);
+      209: 
+      210:             if (fragment instanceof FeedItemsFragment) {
+      211:                 long oldId = ((FeedItemsFragment)fragment).getFeedId();
+      212:                 if (feedId == oldId)
+      213:                     return;
+      214:             }
+      215:             fm.beginTransaction()
+      216:                     .replace(R.id.feed_items_fragmentContainer, items)
+      217:                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+      218:                     .commit();
+      219: 
+      220:         } else {
+      221:             Intent i = new Intent(this, FeedItemsActivity.class);
+      222:             i.putExtra(FeedItemsActivity.TAG_FEED_ID, feedId);
+      223:             startActivity(i);
+      224:         }
+      225:     }
+      226: 
+      227:     private FeedItemsFragment getCurrentFeedItemsFragment()
+
+STEP 10  edge Ed7bad68f
+  FeedItemsFragment.newInstance -> FeedItemsFragment.onAttach
+  class: non_standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX Fragment lifecycle dispatch; SRC ui/feeditems/FeedItemsFragment.java:80-87,99-104
+  cite [SRC] ui/feeditems/FeedItemsFragment.java:80-87, 99-104
+       80:     public static FeedItemsFragment newInstance(long feedId)
+       81:     {
+       82:         FeedItemsFragment fragment = new FeedItemsFragment();
+       83:         fragment.setFeedId(feedId);
+       84:         fragment.setArguments(new Bundle());
+       85: 
+       86:         return fragment;
+       87:     }
+       99:     @Override
+      100:     public void onAttach(@NonNull Context context)
+      101:     {
+      102:         super.onAttach(context);
+      103: 
+      104:         if (context instanceof AppCompatActivity)
+
+STEP 11  edge Ed9f15dc8
+  FeedItemsFragment.onAttach -> FeedItemsFragment.onCreateView
+  class: non_standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX Fragment lifecycle dispatch; SRC ui/feeditems/FeedItemsFragment.java:99-114
+  cite [SRC] ui/feeditems/FeedItemsFragment.java:99-114
+       99:     @Override
+      100:     public void onAttach(@NonNull Context context)
+      101:     {
+      102:         super.onAttach(context);
+      103: 
+      104:         if (context instanceof AppCompatActivity)
+      105:             activity = (AppCompatActivity)context;
+      106:     }
+      107: 
+      108:     @Override
+      109:     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+      110:     {
+      111:         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_feed_items, container, false);
+      112: 
+      113:         return binding.getRoot();
+      114:     }
+
+STEP 12  edge Ea2db48be
+  FeedItemsFragment.onCreateView -> FeedItemsFragment.onViewCreated
+  class: non_standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX Fragment lifecycle dispatch; SRC ui/feeditems/FeedItemsFragment.java:116-156
+  cite [SRC] ui/feeditems/FeedItemsFragment.java:116-156
+      116:     @Override
+      117:     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+      118:         super.onViewCreated(view, savedInstanceState);
+      119: 
+      120:         if (activity == null)
+      121:             activity = (AppCompatActivity)getActivity();
+      122: 
+      123:         viewModel = new ViewModelProvider(activity).get(FeedItemsViewModel.class);
+      124: 
+      125:         /* Remove previous data if fragment changed */
+      126:         if (Utils.isTwoPane(activity))
+      127:             viewModel.clearData();
+      128:         viewModel.setFeedId(feedId);
+      129: 
+      130:         if (Utils.isTwoPane(activity)) {
+      131:             binding.toolbar.inflateMenu(R.menu.feed_items);
+      132:             binding.toolbar.setNavigationIcon(ContextCompat.getDrawable(activity.getApplicationContext(),
+      133:                     R.drawable.ic_arrow_back_white_24dp));
+      134:             binding.toolbar.setOnMenuItemClickListener(this::onOptionsItemSelected);
+      135: 
+      136:         } else {
+      137:             binding.toolbar.setTitle(R.string.details);
+      138:             activity.setSupportActionBar(binding.toolbar);
+      139:             setHasOptionsMenu(true);
+      140:             if (activity.getSupportActionBar() != null)
+      141:                 activity.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+      142:         }
+      143:         binding.toolbar.setNavigationOnClickListener((v) -> onBackPressed());
+      144: 
+      145:         layoutManager = new LinearLayoutManager(activity);
+      146:         binding.feedItemsList.setLayoutManager(layoutManager);
+      147:         TypedArray a = activity.obtainStyledAttributes(new TypedValue().data, new int[]{ R.attr.divider });
+      148:         binding.feedItemsList.addItemDecoration(new RecyclerViewDividerDecoration(a.getDrawable(0)));
+      149:         a.recycle();
+      150:         binding.feedItemsList.setEmptyView(binding.emptyViewFeedItems);
+      151: 
+      152:         adapter = new FeedItemsAdapter(this);
+      153:         binding.feedItemsList.setAdapter(adapter);
+      154: 
+      155:         binding.swipeContainer.setOnRefreshListener(() -> viewModel.refreshChannel());
+      156:     }
+
+STEP 13  edge Edb748470
+  FeedItemsFragment.onViewCreated -> FeedItemsFragment.onStart
+  class: non_standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX Fragment lifecycle dispatch; SRC ui/feeditems/FeedItemsFragment.java:158-165
+  cite [SRC] ui/feeditems/FeedItemsFragment.java:158-165
+      158:     @Override
+      159:     public void onStart()
+      160:     {
+      161:         super.onStart();
+      162: 
+      163:         subscribeAdapter();
+      164:         subscribeRefreshStatus();
+      165:     }
+
+STEP 14  edge E27e8b62f
+  FeedItemsFragment.onStart -> FeedItemsFragment.subscribeAdapter
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/feeditems/FeedItemsFragment.java:158-165,202-221
+  cite [SRC] ui/feeditems/FeedItemsFragment.java:158-165, 202-221
+      158:     @Override
+      159:     public void onStart()
+      160:     {
+      161:         super.onStart();
+      162: 
+      163:         subscribeAdapter();
+      164:         subscribeRefreshStatus();
+      165:     }
+      202:     private void subscribeAdapter()
+      203:     {
+      204:         getAllFeedItemsSingle();
+      205:         disposables.add(observeFeedItems());
+      206:     }
+      207: 
+      208:     private Disposable observeFeedItems()
+      209:     {
+      210:         return viewModel.observeItemsByFeedId()
+      211:                 .subscribeOn(Schedulers.io())
+      212:                 .flatMapSingle((itemList) ->
+      213:                         Flowable.fromIterable(itemList)
+      214:                                 .map(FeedItemsListItem::new)
+      215:                                 .toList()
+      216:                 )
+      217:                 .observeOn(AndroidSchedulers.mainThread())
+      218:                 .subscribe(adapter::submitList,
+      219:                         (Throwable t) -> Log.e(TAG, "Getting item list error: " +
+      220:                                 Log.getStackTraceString(t)));
+      221:     }
+
+STEP 15  edge E4d8c9499
+  FeedItemsFragment.subscribeAdapter -> FeedItemsFragment.observeFeedItems
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/feeditems/FeedItemsFragment.java:205
+  cite [SRC] ui/feeditems/FeedItemsFragment.java:205
+      205:         disposables.add(observeFeedItems());
+
+STEP 16  edge E38bcd1c3
+  FeedItemsFragment.observeFeedItems -> FeedItemsViewModel.observeItemsByFeedId
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/feeditems/FeedItemsFragment.java:208-210; SRC ui/feeditems/FeedItemsViewModel.java:82-85
+  cite [SRC] ui/feeditems/FeedItemsFragment.java:208-210
+      208:     private Disposable observeFeedItems()
+      209:     {
+      210:         return viewModel.observeItemsByFeedId()
+  cite [SRC] ui/feeditems/FeedItemsViewModel.java:82-85
+       82:     public Flowable<List<FeedItem>> observeItemsByFeedId()
+       83:     {
+       84:         return repo.observeItemsByFeedId(feedId);
+       85:     }
+
+STEP 17  edge E1c77904d
+  FeedItemsViewModel.observeItemsByFeedId -> FeedRepositoryImpl.observeItemsByFeedId
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/feeditems/FeedItemsViewModel.java:84; SRC FeedRepositoryImpl.java:198-201
+  cite [SRC] ui/feeditems/FeedItemsViewModel.java:84
+       84:         return repo.observeItemsByFeedId(feedId);
+  cite [SRC] FeedRepositoryImpl.java:198-201
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/storage/FeedRepositoryImpl.java)
+      198:     public Flowable<List<FeedItem>> observeItemsByFeedId(long feedId)
+      199:     {
+      200:         return db.feedDao().observeItemsByFeedId(feedId);
+      201:     }
+
+STEP 18  edge E6ac37b87
+  FeedRepositoryImpl.observeItemsByFeedId -> FeedDao_Impl.observeItemsByFeedId
+  class: non_standard   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED Room dispatch; SRC FeedRepositoryImpl.java:198-201; SRC FeedDao.java:97
+  cite [SRC] FeedRepositoryImpl.java:198-201
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/storage/FeedRepositoryImpl.java)
+      198:     public Flowable<List<FeedItem>> observeItemsByFeedId(long feedId)
+      199:     {
+      200:         return db.feedDao().observeItemsByFeedId(feedId);
+      201:     }
+  cite [SRC] FeedDao.java:97
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/storage/dao/FeedDao.java)
+       97:     Flowable<List<FeedItem>> observeItemsByFeedId(long feedId);
+
+STEP 19  edge Ec4d16492
+  FeedDao_Impl.observeItemsByFeedId -> FeedDao_Impl$11.<init>
+  class: non_standard   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED Room dispatch; SRC FeedRepositoryImpl.java:200; SRC FeedDao.java:97
+  cite [SRC] FeedRepositoryImpl.java:200
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/storage/FeedRepositoryImpl.java)
+      200:         return db.feedDao().observeItemsByFeedId(feedId);
+  cite [SRC] FeedDao.java:97
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/storage/dao/FeedDao.java)
+       97:     Flowable<List<FeedItem>> observeItemsByFeedId(long feedId);
+
+STEP 20  edge E8756175a
+  FeedDao_Impl$11.<init> -> FeedDao_Impl$11.finalize
+  class: non_standard   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED JVM dispatch; SRC FeedRepositoryImpl.java:200; SRC FeedDao.java:97
+  cite [SRC] FeedRepositoryImpl.java:200
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/storage/FeedRepositoryImpl.java)
+      200:         return db.feedDao().observeItemsByFeedId(feedId);
+  cite [SRC] FeedDao.java:97
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/storage/dao/FeedDao.java)
+       97:     Flowable<List<FeedItem>> observeItemsByFeedId(long feedId);

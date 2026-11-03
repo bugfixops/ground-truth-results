@@ -1,0 +1,649 @@
+METHOD: AddTagViewModel$TagAlreadyExistsException.<init>
+verdict: REACHABLE   steps_from_launch: 15
+route steps: 15 edges
+======================================================================
+
+STEP 1  edge Ef4711e98
+  S_ENTRY -> MainActivity.onCreate
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: android:exported="true"
+  evidence: SRC AndroidManifest.xml:43-59; FW-SRC core/java/android/app/ActivityThread.java:2727-2732; core/java/android/app/Instrumentation.java:1212-1215
+  cite [SRC] AndroidManifest.xml:43-59
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/AndroidManifest.xml)
+       43:         <activity android:name=".ui.main.MainActivity"
+       44:             android:theme="@style/AppTheme.Launcher"
+       45:             android:exported="true">
+       46:             <meta-data
+       47:                 android:name="android.app.shortcuts"
+       48:                 android:resource="@xml/shortcuts" />
+       49:             <meta-data android:name="android.app.searchable"
+       50:                 android:resource="@xml/searchable"/>
+       51: 
+       52:             <intent-filter>
+       53:                 <action android:name="android.intent.action.MAIN" />
+       54:                 <category android:name="android.intent.category.LAUNCHER" />
+       55:                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+       56:             </intent-filter>
+       57:             <intent-filter>
+       58:                 <action android:name="android.intent.action.SEARCH" />
+       59:             </intent-filter>
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2727-2732
+     2727:                 activity.mCalled = false;
+     2728:                 if (r.isPersistable()) {
+     2729:                     mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+     2730:                 } else {
+     2731:                     mInstrumentation.callActivityOnCreate(activity, r.state);
+     2732:                 }
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1212-1215
+     1212:     public void callActivityOnCreate(Activity activity, Bundle icicle) {
+     1213:         prePerformCreate(activity);
+     1214:         activity.performCreate(icicle);
+     1215:         postPerformCreate(activity);
+
+STEP 2  edge E11aae28f
+  MainActivity.onCreate -> MainActivity.initLayout
+  class: explicit   kind: CALL
+  guard: getIntent().getAction() != NOTIFY_ACTION_SHUTDOWN_APP
+  needs_state: None
+  env: None
+  evidence: SRC ui/main/MainActivity.java:140-144,182-189; ui/main/MainActivity.java:191-228
+  cite [SRC] ui/main/MainActivity.java:140-144, 182-189
+      140:         if (getIntent().getAction() != null &&
+      141:                 getIntent().getAction().equals(NotificationReceiver.NOTIFY_ACTION_SHUTDOWN_APP)) {
+      142:             finish();
+      143:             return;
+      144:         }
+      182:         setContentView(R.layout.activity_main);
+      183: 
+      184:         mainFragment = (MainFragment) getSupportFragmentManager()
+      185:                 .findFragmentById(R.id.main_fragmentContainer);
+      186: 
+      187:         cleanGarbageFragments();
+      188:         initLayout();
+      189:     }
+  cite [SRC] ui/main/MainActivity.java:191-228
+      191:     private void initLayout() {
+      192:         showBlankFragment();
+      193: 
+      194:         toolbar = findViewById(R.id.toolbar);
+      195:         navigationView = findViewById(R.id.navigation_view);
+      196:         drawerLayout = findViewById(R.id.drawer_layout);
+      197:         drawerItemsList = findViewById(R.id.drawer_items_list);
+      198:         layoutManager = new LinearLayoutManager(this) {
+      199:             @Override
+      200:             public boolean canScrollVertically() {
+      201:                 /* Disable scroll, because RecyclerView is wrapped in ScrollView */
+      202:                 return false;
+      203:             }
+      204:         };
+      205:         sessionDhtNodesStat = findViewById(R.id.session_dht_nodes_stat);
+      206:         sessionDownloadStat = findViewById(R.id.session_download_stat);
+      207:         sessionUploadStat = findViewById(R.id.session_upload_stat);
+      208:         sessionListenPortStat = findViewById(R.id.session_listen_port_stat);
+      209:         tagsGroupHeader = findViewById(R.id.tags_group_header);
+      210:         tagsExpandable = findViewById(R.id.tags_expandable);
+      211:         addTagButton = findViewById(R.id.add_tag_button);
+      212:         tagsList = findViewById(R.id.tags_list);
+      213: 
+      214:         toolbar.setTitle(R.string.app_name);
+      215:         toolbar.inflateMenu(R.menu.main);
+      216:         setSupportActionBar(toolbar);
+      217: 
+      218:         if (drawerLayout != null) {
+      219:             toggle = new ActionBarDrawerToggle(this,
+      220:                     drawerLayout,
+      221:                     toolbar,
+      222:                     R.string.open_navigation_drawer,
+      223:                     R.string.close_navigation_drawer);
+      224:             drawerLayout.addDrawerListener(toggle);
+      225:         }
+      226:         initDrawer();
+      227:         viewModel.resetSearch();
+      228:     }
+
+STEP 3  edge E186de24d
+  MainActivity.initLayout -> MainActivity.initDrawer
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/main/MainActivity.java:191-228; ui/main/MainActivity.java:230-293
+  cite [SRC] ui/main/MainActivity.java:191-228
+      191:     private void initLayout() {
+      192:         showBlankFragment();
+      193: 
+      194:         toolbar = findViewById(R.id.toolbar);
+      195:         navigationView = findViewById(R.id.navigation_view);
+      196:         drawerLayout = findViewById(R.id.drawer_layout);
+      197:         drawerItemsList = findViewById(R.id.drawer_items_list);
+      198:         layoutManager = new LinearLayoutManager(this) {
+      199:             @Override
+      200:             public boolean canScrollVertically() {
+      201:                 /* Disable scroll, because RecyclerView is wrapped in ScrollView */
+      202:                 return false;
+      203:             }
+      204:         };
+      205:         sessionDhtNodesStat = findViewById(R.id.session_dht_nodes_stat);
+      206:         sessionDownloadStat = findViewById(R.id.session_download_stat);
+      207:         sessionUploadStat = findViewById(R.id.session_upload_stat);
+      208:         sessionListenPortStat = findViewById(R.id.session_listen_port_stat);
+      209:         tagsGroupHeader = findViewById(R.id.tags_group_header);
+      210:         tagsExpandable = findViewById(R.id.tags_expandable);
+      211:         addTagButton = findViewById(R.id.add_tag_button);
+      212:         tagsList = findViewById(R.id.tags_list);
+      213: 
+      214:         toolbar.setTitle(R.string.app_name);
+      215:         toolbar.inflateMenu(R.menu.main);
+      216:         setSupportActionBar(toolbar);
+      217: 
+      218:         if (drawerLayout != null) {
+      219:             toggle = new ActionBarDrawerToggle(this,
+      220:                     drawerLayout,
+      221:                     toolbar,
+      222:                     R.string.open_navigation_drawer,
+      223:                     R.string.close_navigation_drawer);
+      224:             drawerLayout.addDrawerListener(toggle);
+      225:         }
+      226:         initDrawer();
+      227:         viewModel.resetSearch();
+      228:     }
+  cite [SRC] ui/main/MainActivity.java:230-293
+      230:     private void initDrawer() {
+      231:         drawerItemManager = new RecyclerViewExpandableItemManager(null);
+      232:         drawerItemManager.setDefaultGroupsExpandedState(false);
+      233:         drawerItemManager.setOnGroupCollapseListener((groupPosition, fromUser, payload) -> {
+      234:             if (fromUser)
+      235:                 saveGroupExpandState(groupPosition, false);
+      236:         });
+      237:         drawerItemManager.setOnGroupExpandListener((groupPosition, fromUser, payload) -> {
+      238:             if (fromUser)
+      239:                 saveGroupExpandState(groupPosition, true);
+      240:         });
+      241:         GeneralItemAnimator animator = new RefactoredDefaultItemAnimator();
+      242:         /*
+      243:          * Change animations are enabled by default since support-v7-recyclerview v22.
+      244:          * Need to disable them when using animation indicator.
+      245:          */
+      246:         animator.setSupportsChangeAnimations(false);
+      247: 
+      248:         List<DrawerGroup> groups = Utils.getNavigationDrawerItems(this,
+      249:                 PreferenceManager.getDefaultSharedPreferences(this));
+      250:         drawerAdapter = new DrawerExpandableAdapter(groups, drawerItemManager, this::onDrawerItemSelected);
+      251:         wrappedDrawerAdapter = drawerItemManager.createWrappedAdapter(drawerAdapter);
+      252:         onDrawerGroupsCreated();
+      253: 
+      254:         drawerItemsList.setLayoutManager(layoutManager);
+      255:         drawerItemsList.setAdapter(wrappedDrawerAdapter);
+      256:         drawerItemsList.setItemAnimator(animator);
+      257:         drawerItemsList.setHasFixedSize(false);
+      258: 
+      259:         drawerItemManager.attachRecyclerView(drawerItemsList);
+      260: 
+      261:         sessionDhtNodesStat.setText(getString(R.string.session_stats_dht_nodes, 0));
+      262:         String downloadUploadFmt = getString(R.string.session_stats_download_upload,
+      263:                 Formatter.formatFileSize(this, 0),
+      264:                 Formatter.formatFileSize(this, 0));
+      265:         sessionDownloadStat.setText(downloadUploadFmt);
+      266:         sessionUploadStat.setText(downloadUploadFmt);
+      267:         sessionListenPortStat.setText(getString(R.string.session_stats_listen_port,
+      268:                 getString(R.string.not_available)));
+      269: 
+      270:         tagsList.setLayoutManager(new LinearLayoutManager(this));
+      271:         tagsAdapter = new TagsAdapter(tagsClickListener);
+      272:         tagsList.setAdapter(tagsAdapter);
+      273:         addTagButton.setOnClickListener(
+      274:                 (v) -> startActivity(new Intent(this, AddTagActivity.class))
+      275:         );
+      276: 
+      277:         boolean tagsExpanded = PreferenceManager
+      278:                 .getDefaultSharedPreferences(this)
+      279:                 .getBoolean(getString(R.string.drawer_tags_is_expanded), false);
+      280:         tagsGroupHeader.setExpanded(tagsExpanded);
+      281:         tagsExpandable.setExpanded(tagsExpanded);
+      282:         tagsGroupHeader.setOnClickListener((v) -> {
+      283:             tagsExpandable.toggle();
+      284:             tagsGroupHeader.toggleExpand();
+      285:             PreferenceManager.getDefaultSharedPreferences(this)
+      286:                     .edit()
+      287:                     .putBoolean(
+      288:                             getString(R.string.drawer_tags_is_expanded),
+      289:                             tagsExpandable.isExpanded()
+      290:                     )
+      291:                     .apply();
+      292:         });
+      293:     }
+
+STEP 4  edge E67d79dae
+  MainActivity.initDrawer -> MainActivity.lambda$initDrawer$2
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/main/MainActivity.java:273-275; FW-SRC core/java/android/view/View.java:6289-6305
+  cite [SRC] ui/main/MainActivity.java:273-275
+      273:         addTagButton.setOnClickListener(
+      274:                 (v) -> startActivity(new Intent(this, AddTagActivity.class))
+      275:         );
+  cite [FW-SRC] core/java/android/view/View.java:6289-6305
+     6289:     public boolean performClick() {
+     6290:         final boolean result;
+     6291:         final ListenerInfo li = mListenerInfo;
+     6292:         if (li != null && li.mOnClickListener != null) {
+     6293:             playSoundEffect(SoundEffectConstants.CLICK);
+     6294:             li.mOnClickListener.onClick(this);
+     6295:             result = true;
+     6296:         } else {
+     6297:             result = false;
+     6298:         }
+     6299: 
+     6300:         sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_CLICKED);
+     6301: 
+     6302:         notifyEnterOrExitForAutoFillIfNeeded(true);
+     6303: 
+     6304:         return result;
+     6305:     }
+
+STEP 5  edge E33e767ed
+  MainActivity.lambda$initDrawer$2 -> AddTagActivity.onCreate
+  class: standard   kind: INTENT
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/main/MainActivity.java:273-275; AndroidManifest.xml:245-251; FW-SRC core/java/android/app/ActivityThread.java:2727-2732; core/java/android/app/Instrumentation.java:1212-1215
+  cite [SRC] ui/main/MainActivity.java:273-275
+      273:         addTagButton.setOnClickListener(
+      274:                 (v) -> startActivity(new Intent(this, AddTagActivity.class))
+      275:         );
+  cite [SRC] AndroidManifest.xml:245-251
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/AndroidManifest.xml)
+      245:             android:name=".ui.addtag.AddTagActivity"
+      246:             android:theme="@style/AppTheme.Translucent" />
+      247: 
+      248:         <activity
+      249:             android:name=".ui.tag.SelectTagActivity"
+      250:             android:theme="@style/AppTheme.Translucent" />
+      251: 
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2727-2732
+     2727:                 activity.mCalled = false;
+     2728:                 if (r.isPersistable()) {
+     2729:                     mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+     2730:                 } else {
+     2731:                     mInstrumentation.callActivityOnCreate(activity, r.state);
+     2732:                 }
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1212-1215
+     1212:     public void callActivityOnCreate(Activity activity, Bundle icicle) {
+     1213:         prePerformCreate(activity);
+     1214:         activity.performCreate(icicle);
+     1215:         postPerformCreate(activity);
+
+STEP 6  edge E9f107470
+  AddTagActivity.onCreate -> AddTagDialog.newInstance
+  class: explicit   kind: CALL
+  guard: findFragmentByTag(TAG_DIALOG) == null
+  needs_state: None
+  env: None
+  evidence: SRC ui/addtag/AddTagActivity.java:51-69; ui/addtag/AddTagDialog.java:59-68
+  cite [SRC] ui/addtag/AddTagActivity.java:51-69
+       51:         ViewModelProvider provider = new ViewModelProvider(this);
+       52:         viewModel = provider.get(AddTagViewModel.class);
+       53: 
+       54:         FragmentManager fm = getSupportFragmentManager();
+       55:         dialog = (AddTagDialog) fm.findFragmentByTag(TAG_DIALOG);
+       56:         if (dialog == null) {
+       57:             TagInfo initInfo = getIntent().getParcelableExtra(TAG_INIT_INFO);
+       58:             dialog = AddTagDialog.newInstance(initInfo);
+       59:             dialog.show(fm, TAG_DIALOG);
+       60:         }
+       61:     }
+       62: 
+       63:     @Override
+       64:     public void onFragmentFinished(
+       65:             @NonNull Fragment f,
+       66:             Intent intent,
+       67:             @NonNull ResultCode code
+       68:     ) {
+       69:         finish();
+  cite [SRC] ui/addtag/AddTagDialog.java:59-68
+       59:     private static final String TAG_INIT_INFO = "init_info";
+       60: 
+       61:     private AlertDialog alert;
+       62:     private AppCompatActivity activity;
+       63:     private AddTagViewModel viewModel;
+       64:     private DialogAddTagBinding binding;
+       65:     private final CompositeDisposable disposables = new CompositeDisposable();
+       66: 
+       67:     public static AddTagDialog newInstance(@Nullable TagInfo initInfo) {
+       68:         AddTagDialog frag = new AddTagDialog();
+
+STEP 7  edge E0ebf7d79
+  AddTagDialog.newInstance -> AddTagDialog.onAttach
+  class: non_standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX DialogFragment lifecycle dispatch; SRC ui/addtag/AddTagDialog.java:59-84
+  cite [SRC] ui/addtag/AddTagDialog.java:59-84
+       59:     private static final String TAG_INIT_INFO = "init_info";
+       60: 
+       61:     private AlertDialog alert;
+       62:     private AppCompatActivity activity;
+       63:     private AddTagViewModel viewModel;
+       64:     private DialogAddTagBinding binding;
+       65:     private final CompositeDisposable disposables = new CompositeDisposable();
+       66: 
+       67:     public static AddTagDialog newInstance(@Nullable TagInfo initInfo) {
+       68:         AddTagDialog frag = new AddTagDialog();
+       69: 
+       70:         Bundle args = new Bundle();
+       71:         args.putParcelable(TAG_INIT_INFO, initInfo);
+       72:         frag.setArguments(args);
+       73: 
+       74:         return frag;
+       75:     }
+       76: 
+       77:     @Override
+       78:     public void onAttach(@NonNull Context context) {
+       79:         super.onAttach(context);
+       80: 
+       81:         if (context instanceof AppCompatActivity) {
+       82:             activity = (AppCompatActivity) context;
+       83:         }
+       84:     }
+
+STEP 8  edge E6006b085
+  AddTagDialog.onAttach -> AddTagDialog.onCreateDialog
+  class: non_standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX DialogFragment lifecycle dispatch; SRC ui/addtag/AddTagDialog.java:112-152
+  cite [SRC] ui/addtag/AddTagDialog.java:112-152
+      112:     public Dialog onCreateDialog(Bundle savedInstanceState) {
+      113:         if (activity == null) {
+      114:             activity = (AppCompatActivity) getActivity();
+      115:         }
+      116: 
+      117:         ViewModelProvider provider = new ViewModelProvider(activity);
+      118:         viewModel = provider.get(AddTagViewModel.class);
+      119:         TagInfo initInfo = getArguments().getParcelable(TAG_INIT_INFO);
+      120:         if (initInfo != null) {
+      121:             viewModel.setInitValues(initInfo);
+      122:             getArguments().putParcelable(TAG_INIT_INFO, null);
+      123:         } else if (viewModel.state.getColor() == -1) {
+      124:             viewModel.setRandomColor();
+      125:         }
+      126: 
+      127:         LayoutInflater i = LayoutInflater.from(activity);
+      128:         binding = DataBindingUtil.inflate(i, R.layout.dialog_add_tag, null, false);
+      129:         binding.setViewModel(viewModel);
+      130: 
+      131:         initLayoutView();
+      132:         initAlertDialog(binding.getRoot());
+      133: 
+      134:         return alert;
+      135:     }
+      136: 
+      137:     private void initLayoutView() {
+      138:         binding.name.addTextChangedListener(new TextWatcher() {
+      139:             @Override
+      140:             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+      141:             }
+      142: 
+      143:             @Override
+      144:             public void onTextChanged(CharSequence s, int start, int before, int count) {
+      145:             }
+      146: 
+      147:             @Override
+      148:             public void afterTextChanged(Editable s) {
+      149:                 binding.nameLayout.setErrorEnabled(false);
+      150:                 binding.nameLayout.setError(null);
+      151:             }
+      152:         });
+
+STEP 9  edge E33d4ecdf
+  AddTagDialog.onCreateDialog -> AddTagDialog.initAlertDialog
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/addtag/AddTagDialog.java:150-152,180-202
+  cite [SRC] ui/addtag/AddTagDialog.java:150-152, 180-202
+      150:                 binding.nameLayout.setError(null);
+      151:             }
+      152:         });
+      180:                 .setNegativeButton(R.string.cancel, null)
+      181:                 .setView(view);
+      182: 
+      183:         alert = builder.create();
+      184:         alert.setCanceledOnTouchOutside(false);
+      185:         alert.setOnShowListener((DialogInterface dialog) -> {
+      186:             Button addButton = alert.getButton(AlertDialog.BUTTON_POSITIVE);
+      187:             addButton.setOnClickListener((v) -> addTag());
+      188: 
+      189:             Button cancelButton = alert.getButton(AlertDialog.BUTTON_NEGATIVE);
+      190:             cancelButton.setOnClickListener(
+      191:                     (v) -> finish(new Intent(), FragmentCallback.ResultCode.CANCEL)
+      192:             );
+      193:         });
+      194:     }
+      195: 
+      196:     private void addTag() {
+      197:         if (!checkName()) {
+      198:             return;
+      199:         }
+      200:         disposables.add(viewModel.saveTag()
+      201:                 .subscribeOn(Schedulers.io())
+      202:                 .observeOn(AndroidSchedulers.mainThread())
+
+STEP 10  edge E69523c18
+  AddTagDialog.initAlertDialog -> AddTagDialog.lambda$initAlertDialog$4
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/addtag/AddTagDialog.java:180-202; FW-SRC core/java/android/app/Dialog.java:1294-1302,1358-1367
+  cite [SRC] ui/addtag/AddTagDialog.java:180-202
+      180:                 .setNegativeButton(R.string.cancel, null)
+      181:                 .setView(view);
+      182: 
+      183:         alert = builder.create();
+      184:         alert.setCanceledOnTouchOutside(false);
+      185:         alert.setOnShowListener((DialogInterface dialog) -> {
+      186:             Button addButton = alert.getButton(AlertDialog.BUTTON_POSITIVE);
+      187:             addButton.setOnClickListener((v) -> addTag());
+      188: 
+      189:             Button cancelButton = alert.getButton(AlertDialog.BUTTON_NEGATIVE);
+      190:             cancelButton.setOnClickListener(
+      191:                     (v) -> finish(new Intent(), FragmentCallback.ResultCode.CANCEL)
+      192:             );
+      193:         });
+      194:     }
+      195: 
+      196:     private void addTag() {
+      197:         if (!checkName()) {
+      198:             return;
+      199:         }
+      200:         disposables.add(viewModel.saveTag()
+      201:                 .subscribeOn(Schedulers.io())
+      202:                 .observeOn(AndroidSchedulers.mainThread())
+  cite [FW-SRC] core/java/android/app/Dialog.java:1294-1302, 1358-1367
+     1294:     public void setOnShowListener(@Nullable OnShowListener listener) {
+     1295:         if (listener != null) {
+     1296:             mShowMessage = mListenersHandler.obtainMessage(SHOW, listener);
+     1297:         } else {
+     1298:             mShowMessage = null;
+     1299:         }
+     1300:     }
+     1301: 
+     1302:     /**
+     1358:         public void handleMessage(Message msg) {
+     1359:             switch (msg.what) {
+     1360:                 case DISMISS:
+     1361:                     ((OnDismissListener) msg.obj).onDismiss(mDialog.get());
+     1362:                     break;
+     1363:                 case CANCEL:
+     1364:                     ((OnCancelListener) msg.obj).onCancel(mDialog.get());
+     1365:                     break;
+     1366:                 case SHOW:
+     1367:                     ((OnShowListener) msg.obj).onShow(mDialog.get());
+
+STEP 11  edge E615b0faf
+  AddTagDialog.lambda$initAlertDialog$4 -> AddTagDialog.lambda$initAlertDialog$2
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/addtag/AddTagDialog.java:190-194; FW-SRC core/java/android/view/View.java:6289-6305
+  cite [SRC] ui/addtag/AddTagDialog.java:190-194
+      190:             cancelButton.setOnClickListener(
+      191:                     (v) -> finish(new Intent(), FragmentCallback.ResultCode.CANCEL)
+      192:             );
+      193:         });
+      194:     }
+  cite [FW-SRC] core/java/android/view/View.java:6289-6305
+     6289:     public boolean performClick() {
+     6290:         final boolean result;
+     6291:         final ListenerInfo li = mListenerInfo;
+     6292:         if (li != null && li.mOnClickListener != null) {
+     6293:             playSoundEffect(SoundEffectConstants.CLICK);
+     6294:             li.mOnClickListener.onClick(this);
+     6295:             result = true;
+     6296:         } else {
+     6297:             result = false;
+     6298:         }
+     6299: 
+     6300:         sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_CLICKED);
+     6301: 
+     6302:         notifyEnterOrExitForAutoFillIfNeeded(true);
+     6303: 
+     6304:         return result;
+     6305:     }
+
+STEP 12  edge E18ed1c0f
+  AddTagDialog.lambda$initAlertDialog$2 -> AddTagDialog.addTag
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/addtag/AddTagDialog.java:190-194,204-240
+  cite [SRC] ui/addtag/AddTagDialog.java:190-194, 204-240
+      190:             cancelButton.setOnClickListener(
+      191:                     (v) -> finish(new Intent(), FragmentCallback.ResultCode.CANCEL)
+      192:             );
+      193:         });
+      194:     }
+      204:                         () -> finish(new Intent(), FragmentCallback.ResultCode.OK),
+      205:                         (e) -> {
+      206:                             if (e instanceof AddTagViewModel.TagAlreadyExistsException) {
+      207:                                 Toast.makeText(
+      208:                                         activity,
+      209:                                         R.string.tag_already_exists,
+      210:                                         Toast.LENGTH_SHORT
+      211:                                 ).show();
+      212:                             } else {
+      213:                                 Log.e(TAG, Log.getStackTraceString(e));
+      214:                                 Toast.makeText(
+      215:                                         activity,
+      216:                                         R.string.add_tag_failed,
+      217:                                         Toast.LENGTH_SHORT
+      218:                                 ).show();
+      219:                             }
+      220:                         }
+      221:                 )
+      222:         );
+      223:     }
+      224: 
+      225:     public void onBackPressed() {
+      226:         finish(new Intent(), FragmentCallback.ResultCode.BACK);
+      227:     }
+      228: 
+      229:     private void finish(Intent intent, FragmentCallback.ResultCode code) {
+      230:         alert.dismiss();
+      231:         ((FragmentCallback) activity).onFragmentFinished(this, intent, code);
+      232:     }
+      233: }
+      234: <line out of range (file has 233 lines)>
+      235: <line out of range (file has 233 lines)>
+      236: <line out of range (file has 233 lines)>
+      237: <line out of range (file has 233 lines)>
+      238: <line out of range (file has 233 lines)>
+      239: <line out of range (file has 233 lines)>
+      240: <line out of range (file has 233 lines)>
+
+STEP 13  edge Eacaab45d
+  AddTagDialog.addTag -> AddTagViewModel.saveTag
+  class: explicit   kind: CALL
+  guard: checkName() returns true
+  needs_state: None
+  env: None
+  evidence: SRC ui/addtag/AddTagDialog.java:204-215; ui/addtag/AddTagViewModel.java:55-75
+  cite [SRC] ui/addtag/AddTagDialog.java:204-215
+      204:                         () -> finish(new Intent(), FragmentCallback.ResultCode.OK),
+      205:                         (e) -> {
+      206:                             if (e instanceof AddTagViewModel.TagAlreadyExistsException) {
+      207:                                 Toast.makeText(
+      208:                                         activity,
+      209:                                         R.string.tag_already_exists,
+      210:                                         Toast.LENGTH_SHORT
+      211:                                 ).show();
+      212:                             } else {
+      213:                                 Log.e(TAG, Log.getStackTraceString(e));
+      214:                                 Toast.makeText(
+      215:                                         activity,
+  cite [SRC] ui/addtag/AddTagViewModel.java:55-75
+       55:     Completable saveTag() {
+       56:         TagInfo info;
+       57:         Long existsTagId = state.getExistsTagId();
+       58:         if (existsTagId == null) {
+       59:             info = new TagInfo(state.getName(), state.getColor());
+       60:         } else {
+       61:             info = new TagInfo(existsTagId, state.getName(), state.getColor());
+       62:         }
+       63:         return Completable.fromCallable(() -> {
+       64:             if (existsTagId == null) {
+       65:                 TagInfo oldTag = tagRepo.getByName(info.name);
+       66:                 if (oldTag != null) {
+       67:                     throw new TagAlreadyExistsException();
+       68:                 }
+       69:                 tagRepo.insert(info);
+       70:             } else {
+       71:                 tagRepo.update(info);
+       72:             }
+       73:             return null;
+       74:         });
+       75:     }
+
+STEP 14  edge E8e6842dc
+  AddTagViewModel.saveTag -> AddTagViewModel.lambda$saveTag$0
+  class: non_standard   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED Rx dispatch; SRC ui/addtag/AddTagViewModel.java:63-74
+  cite [SRC] ui/addtag/AddTagViewModel.java:63-74
+       63:         return Completable.fromCallable(() -> {
+       64:             if (existsTagId == null) {
+       65:                 TagInfo oldTag = tagRepo.getByName(info.name);
+       66:                 if (oldTag != null) {
+       67:                     throw new TagAlreadyExistsException();
+       68:                 }
+       69:                 tagRepo.insert(info);
+       70:             } else {
+       71:                 tagRepo.update(info);
+       72:             }
+       73:             return null;
+       74:         });
+
+STEP 15  edge Ef94b096d
+  AddTagViewModel.lambda$saveTag$0 -> AddTagViewModel$TagAlreadyExistsException.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/addtag/AddTagViewModel.java:67; SRC ui/addtag/AddTagViewModel.java:77
+  cite [SRC] ui/addtag/AddTagViewModel.java:67
+       67:                     throw new TagAlreadyExistsException();
+  cite [SRC] ui/addtag/AddTagViewModel.java:77
+       77:     public static class TagAlreadyExistsException extends Exception { }

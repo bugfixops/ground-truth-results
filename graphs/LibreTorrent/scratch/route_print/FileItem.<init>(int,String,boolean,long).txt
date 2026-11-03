@@ -1,0 +1,369 @@
+METHOD: FileItem.<init>(int,String,boolean,long)
+verdict: REACHABLE   steps_from_launch: 12
+route steps: 12 edges
+======================================================================
+
+STEP 1  edge Ec711e542
+  S_ENTRY -> AddTorrentActivity.onCreate
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: android:exported="true"
+  evidence: SRC AndroidManifest.xml:62-92; FW-SRC core/java/android/app/ActivityThread.java:2727-2732; core/java/android/app/Instrumentation.java:1212-1215
+  cite [SRC] AndroidManifest.xml:62-92
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/AndroidManifest.xml)
+       62:         <activity
+       63:             android:exported="true"
+       64:             android:name=".ui.addtorrent.AddTorrentActivity">
+       65:             <intent-filter>
+       66:                 <action android:name="android.intent.action.SEND" />
+       67:                 <category android:name="android.intent.category.DEFAULT" />
+       68:             </intent-filter>
+       69:             <intent-filter>
+       70:                 <action android:name="android.intent.action.VIEW" />
+       71:                 <category android:name="android.intent.category.DEFAULT" />
+       72:                 <category android:name="android.intent.category.BROWSABLE" />
+       73:                 <data android:host="*" android:mimeType="application/x-bittorrent" android:scheme="file" />
+       74:             </intent-filter>
+       75:             <intent-filter>
+       76:                 <action android:name="android.intent.action.VIEW" />
+       77:                 <category android:name="android.intent.category.DEFAULT" />
+       78:                 <category android:name="android.intent.category.BROWSABLE" />
+       79:                 <data android:host="*" android:pathPattern=".*\\.torrent" android:scheme="file" />
+       80:             </intent-filter>
+       81:             <intent-filter>
+       82:                 <action android:name="android.intent.action.VIEW" />
+       83:                 <category android:name="android.intent.category.DEFAULT" />
+       84:                 <category android:name="android.intent.category.BROWSABLE" />
+       85:                 <data android:host="*" android:mimeType="application/x-bittorrent" android:scheme="content" />
+       86:             </intent-filter>
+       87:             <intent-filter>
+       88:                 <action android:name="android.intent.action.VIEW" />
+       89:                 <category android:name="android.intent.category.DEFAULT" />
+       90:                 <category android:name="android.intent.category.BROWSABLE" />
+       91:                 <data android:host="*" android:pathPattern=".*\\.torrent" android:scheme="content" />
+       92:             </intent-filter>
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2727-2732
+     2727:                 activity.mCalled = false;
+     2728:                 if (r.isPersistable()) {
+     2729:                     mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+     2730:                 } else {
+     2731:                     mInstrumentation.callActivityOnCreate(activity, r.state);
+     2732:                 }
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1212-1215
+     1212:     public void callActivityOnCreate(Activity activity, Bundle icicle) {
+     1213:         prePerformCreate(activity);
+     1214:         activity.performCreate(icicle);
+     1215:         postPerformCreate(activity);
+
+STEP 2  edge E3176d46a
+  AddTorrentActivity.onCreate -> AddTorrentActivity.initLayout
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/addtorrent/AddTorrentActivity.java:136-140; ui/addtorrent/AddTorrentActivity.java:277-303
+  cite [SRC] ui/addtorrent/AddTorrentActivity.java:136-140
+      136:         Utils.showManageAllFilesWarningDialog(getApplicationContext(), getSupportFragmentManager());
+      137: 
+      138:         initLayout();
+      139:         observeDecodeState();
+      140:     }
+  cite [SRC] ui/addtorrent/AddTorrentActivity.java:277-303
+      277:     private void initLayout()
+      278:     {
+      279:         binding.toolbar.setTitle(R.string.add_torrent_title);
+      280:         setSupportActionBar(binding.toolbar);
+      281:         if (getSupportActionBar() != null)
+      282:             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+      283:         /* Disable elevation for portrait mode */
+      284:         if (!Utils.isTwoPane(this)) {
+      285:             binding.toolbar.setElevation(0);
+      286:         }
+      287: 
+      288:         adapter = new AddTorrentPagerAdapter(this);
+      289:         binding.viewpager.setAdapter(adapter);
+      290:         binding.viewpager.setOffscreenPageLimit(AddTorrentPagerAdapter.NUM_FRAGMENTS);
+      291:         new TabLayoutMediator(binding.tabLayout, binding.viewpager,
+      292:                 (tab, position) -> {
+      293:                     switch (position) {
+      294:                         case AddTorrentPagerAdapter.INFO_FRAG_POS:
+      295:                             tab.setText(R.string.torrent_info);
+      296:                             break;
+      297:                         case AddTorrentPagerAdapter.FILES_FRAG_POS:
+      298:                             tab.setText(R.string.torrent_files);
+      299:                             break;
+      300:                     }
+      301:                 }
+      302:         ).attach();
+      303:     }
+
+STEP 3  edge Ee09520a5
+  AddTorrentActivity.initLayout -> AddTorrentPagerAdapter.createFragment
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX pager adapter dispatch; SRC ui/addtorrent/AddTorrentActivity.java:288-303; ui/addtorrent/AddTorrentPagerAdapter.java:37-53
+  cite [SRC] ui/addtorrent/AddTorrentActivity.java:288-303
+      288:         adapter = new AddTorrentPagerAdapter(this);
+      289:         binding.viewpager.setAdapter(adapter);
+      290:         binding.viewpager.setOffscreenPageLimit(AddTorrentPagerAdapter.NUM_FRAGMENTS);
+      291:         new TabLayoutMediator(binding.tabLayout, binding.viewpager,
+      292:                 (tab, position) -> {
+      293:                     switch (position) {
+      294:                         case AddTorrentPagerAdapter.INFO_FRAG_POS:
+      295:                             tab.setText(R.string.torrent_info);
+      296:                             break;
+      297:                         case AddTorrentPagerAdapter.FILES_FRAG_POS:
+      298:                             tab.setText(R.string.torrent_files);
+      299:                             break;
+      300:                     }
+      301:                 }
+      302:         ).attach();
+      303:     }
+  cite [SRC] ui/addtorrent/AddTorrentPagerAdapter.java:37-53
+       37:     }
+       38: 
+       39:     @NonNull
+       40:     @Override
+       41:     public Fragment createFragment(int position) {
+       42:         switch (position) {
+       43:             case INFO_FRAG_POS:
+       44:                 return AddTorrentInfoFragment.newInstance();
+       45:             case FILES_FRAG_POS:
+       46:                 return AddTorrentFilesFragment.newInstance();
+       47:             default:
+       48:                 return new Fragment();
+       49:         }
+       50:     }
+       51: 
+       52:     @Override
+       53:     public int getItemCount() {
+
+STEP 4  edge E0085b998
+  AddTorrentPagerAdapter.createFragment -> AddTorrentFilesFragment.newInstance
+  class: explicit   kind: CALL
+  guard: position == FILES_FRAG_POS
+  needs_state: None
+  env: None
+  evidence: SRC ui/addtorrent/AddTorrentPagerAdapter.java:43-49
+  cite [SRC] ui/addtorrent/AddTorrentPagerAdapter.java:43-49
+       43:             case INFO_FRAG_POS:
+       44:                 return AddTorrentInfoFragment.newInstance();
+       45:             case FILES_FRAG_POS:
+       46:                 return AddTorrentFilesFragment.newInstance();
+       47:             default:
+       48:                 return new Fragment();
+       49:         }
+
+STEP 5  edge Eb9fb47a2
+  AddTorrentFilesFragment.newInstance -> AddTorrentFilesFragment.onAttach
+  class: non_standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX FragmentManager lifecycle dispatch; SRC ui/addtorrent/AddTorrentFilesFragment.java:62-93
+  cite [SRC] ui/addtorrent/AddTorrentFilesFragment.java:62-93
+       62:     private LinearLayoutManager layoutManager;
+       63:     private DownloadableFilesAdapter adapter;
+       64:     /* Save state scrolling */
+       65:     private Parcelable listFilesState;
+       66:     private CompositeDisposable disposable = new CompositeDisposable();
+       67: 
+       68:     public static AddTorrentFilesFragment newInstance()
+       69:     {
+       70:         AddTorrentFilesFragment fragment = new AddTorrentFilesFragment();
+       71: 
+       72:         Bundle args = new Bundle();
+       73:         fragment.setArguments(args);
+       74: 
+       75:         return fragment;
+       76:     }
+       77: 
+       78:     @Override
+       79:     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+       80:     {
+       81:         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_add_torrent_files, container, false);
+       82: 
+       83:         return binding.getRoot();
+       84:     }
+       85: 
+       86:     @Override
+       87:     public void onAttach(@NonNull Context context)
+       88:     {
+       89:         super.onAttach(context);
+       90: 
+       91:         if (context instanceof AppCompatActivity)
+       92:             activity = (AppCompatActivity)context;
+       93:     }
+
+STEP 6  edge E3910c3c3
+  AddTorrentFilesFragment.onAttach -> AddTorrentFilesFragment.onCreateView
+  class: non_standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX FragmentManager lifecycle dispatch; SRC ui/addtorrent/AddTorrentFilesFragment.java:127-141
+  cite [SRC] ui/addtorrent/AddTorrentFilesFragment.java:127-141
+      127:     @Override
+      128:     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+      129:         super.onViewCreated(view, savedInstanceState);
+      130: 
+      131:         if (activity == null)
+      132:             activity = (AppCompatActivity) getActivity();
+      133: 
+      134:         viewModel = new ViewModelProvider(activity).get(AddTorrentViewModel.class);
+      135:         binding.setViewModel(viewModel);
+      136: 
+      137:         layoutManager = new LinearLayoutManager(activity);
+      138:         binding.fileList.setLayoutManager(layoutManager);
+      139:         adapter = new DownloadableFilesAdapter(this);
+      140:         binding.fileList.setAdapter(adapter);
+      141:     }
+
+STEP 7  edge E8fd4f6b9
+  AddTorrentFilesFragment.onCreateView -> AddTorrentFilesFragment.onViewCreated
+  class: non_standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX FragmentManager lifecycle dispatch; SRC ui/addtorrent/AddTorrentFilesFragment.java:127-141
+  cite [SRC] ui/addtorrent/AddTorrentFilesFragment.java:127-141
+      127:     @Override
+      128:     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+      129:         super.onViewCreated(view, savedInstanceState);
+      130: 
+      131:         if (activity == null)
+      132:             activity = (AppCompatActivity) getActivity();
+      133: 
+      134:         viewModel = new ViewModelProvider(activity).get(AddTorrentViewModel.class);
+      135:         binding.setViewModel(viewModel);
+      136: 
+      137:         layoutManager = new LinearLayoutManager(activity);
+      138:         binding.fileList.setLayoutManager(layoutManager);
+      139:         adapter = new DownloadableFilesAdapter(this);
+      140:         binding.fileList.setAdapter(adapter);
+      141:     }
+
+STEP 8  edge E64667477
+  AddTorrentFilesFragment.onViewCreated -> AddTorrentFilesFragment.onStart
+  class: non_standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX FragmentManager lifecycle dispatch; SRC ui/addtorrent/AddTorrentFilesFragment.java:103-141
+  cite [SRC] ui/addtorrent/AddTorrentFilesFragment.java:103-141
+      103:     @Override
+      104:     public void onStart()
+      105:     {
+      106:         super.onStart();
+      107: 
+      108:         subscribeAdapter();
+      109:     }
+      110: 
+      111:     private void subscribeAdapter()
+      112:     {
+      113:         disposable.add(viewModel.children
+      114:                 .subscribeOn(Schedulers.computation())
+      115:                 .flatMapSingle((children) ->
+      116:                         Flowable.fromIterable(children)
+      117:                                 .map(DownloadableFileItem::new)
+      118:                                 .toList()
+      119:                 )
+      120:                 .observeOn(AndroidSchedulers.mainThread())
+      121:                 .subscribe((children) -> {
+      122:                     adapter.submitList(children);
+      123:                     updateFileSize();
+      124:                 }));
+      125:     }
+      126: 
+      127:     @Override
+      128:     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+      129:         super.onViewCreated(view, savedInstanceState);
+      130: 
+      131:         if (activity == null)
+      132:             activity = (AppCompatActivity) getActivity();
+      133: 
+      134:         viewModel = new ViewModelProvider(activity).get(AddTorrentViewModel.class);
+      135:         binding.setViewModel(viewModel);
+      136: 
+      137:         layoutManager = new LinearLayoutManager(activity);
+      138:         binding.fileList.setLayoutManager(layoutManager);
+      139:         adapter = new DownloadableFilesAdapter(this);
+      140:         binding.fileList.setAdapter(adapter);
+      141:     }
+
+STEP 9  edge E0a529f46
+  AddTorrentFilesFragment.onStart -> AddTorrentFilesFragment.subscribeAdapter
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/addtorrent/AddTorrentFilesFragment.java:103-124
+  cite [SRC] ui/addtorrent/AddTorrentFilesFragment.java:103-124
+      103:     @Override
+      104:     public void onStart()
+      105:     {
+      106:         super.onStart();
+      107: 
+      108:         subscribeAdapter();
+      109:     }
+      110: 
+      111:     private void subscribeAdapter()
+      112:     {
+      113:         disposable.add(viewModel.children
+      114:                 .subscribeOn(Schedulers.computation())
+      115:                 .flatMapSingle((children) ->
+      116:                         Flowable.fromIterable(children)
+      117:                                 .map(DownloadableFileItem::new)
+      118:                                 .toList()
+      119:                 )
+      120:                 .observeOn(AndroidSchedulers.mainThread())
+      121:                 .subscribe((children) -> {
+      122:                     adapter.submitList(children);
+      123:                     updateFileSize();
+      124:                 }));
+
+STEP 10  edge E308bc858
+  AddTorrentFilesFragment.subscribeAdapter -> AddTorrentFilesFragment.lambda$subscribeAdapter$0
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED RxJava dispatch; SRC ui/addtorrent/AddTorrentFilesFragment.java:111-119
+  cite [SRC] ui/addtorrent/AddTorrentFilesFragment.java:111-119
+      111:     private void subscribeAdapter()
+      112:     {
+      113:         disposable.add(viewModel.children
+      114:                 .subscribeOn(Schedulers.computation())
+      115:                 .flatMapSingle((children) ->
+      116:                         Flowable.fromIterable(children)
+      117:                                 .map(DownloadableFileItem::new)
+      118:                                 .toList()
+      119:                 )
+
+STEP 11  edge E02a038f2
+  AddTorrentFilesFragment.lambda$subscribeAdapter$0 -> DownloadableFileItem.<init>(BencodeFileTree)
+  class: non_standard   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED RxJava map dispatch; SRC ui/addtorrent/AddTorrentFilesFragment.java:115-119
+  cite [SRC] ui/addtorrent/AddTorrentFilesFragment.java:115-119
+      115:                 .flatMapSingle((children) ->
+      116:                         Flowable.fromIterable(children)
+      117:                                 .map(DownloadableFileItem::new)
+      118:                                 .toList()
+      119:                 )
+
+STEP 12  edge E850d53c3
+  DownloadableFileItem.<init>(BencodeFileTree) -> FileItem.<init>(int,String,boolean,long)
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC DownloadableFileItem.java:35 (bytecode)
+  cite [SRC] DownloadableFileItem.java:35
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/DownloadableFileItem.java)
+       35:         super(tree.getIndex(), tree.getName(), tree.isFile(), tree.size());

@@ -1,0 +1,603 @@
+METHOD: AddLinkViewModel.normalizeUrl
+verdict: REACHABLE   steps_from_launch: 18
+route steps: 18 edges
+======================================================================
+
+STEP 1  edge Ef4711e98
+  S_ENTRY -> MainActivity.onCreate
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: android:exported="true"
+  evidence: SRC AndroidManifest.xml:43-59; FW-SRC core/java/android/app/ActivityThread.java:2727-2732; core/java/android/app/Instrumentation.java:1212-1215
+  cite [SRC] AndroidManifest.xml:43-59
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/AndroidManifest.xml)
+       43:         <activity android:name=".ui.main.MainActivity"
+       44:             android:theme="@style/AppTheme.Launcher"
+       45:             android:exported="true">
+       46:             <meta-data
+       47:                 android:name="android.app.shortcuts"
+       48:                 android:resource="@xml/shortcuts" />
+       49:             <meta-data android:name="android.app.searchable"
+       50:                 android:resource="@xml/searchable"/>
+       51: 
+       52:             <intent-filter>
+       53:                 <action android:name="android.intent.action.MAIN" />
+       54:                 <category android:name="android.intent.category.LAUNCHER" />
+       55:                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+       56:             </intent-filter>
+       57:             <intent-filter>
+       58:                 <action android:name="android.intent.action.SEARCH" />
+       59:             </intent-filter>
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2727-2732
+     2727:                 activity.mCalled = false;
+     2728:                 if (r.isPersistable()) {
+     2729:                     mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+     2730:                 } else {
+     2731:                     mInstrumentation.callActivityOnCreate(activity, r.state);
+     2732:                 }
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1212-1215
+     1212:     public void callActivityOnCreate(Activity activity, Bundle icicle) {
+     1213:         prePerformCreate(activity);
+     1214:         activity.performCreate(icicle);
+     1215:         postPerformCreate(activity);
+
+STEP 2  edge Ed8e7f5f9
+  MainActivity.onCreate -> MainFragment.<init>
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX FragmentContainerView class inflation; SRC ui/main/MainActivity.java:182-185; res/values/layouts.xml:1-4; res/values-large-land-notouch/layouts.xml:1-4; res/layout/activity_main_drawer.xml:22-28; res/layout/activity_main_two_pane.xml:26-32; ui/main/MainFragment.java:85-87
+  cite [SRC] ui/main/MainActivity.java:182-185
+      182:         setContentView(R.layout.activity_main);
+      183: 
+      184:         mainFragment = (MainFragment) getSupportFragmentManager()
+      185:                 .findFragmentById(R.id.main_fragmentContainer);
+  cite [SRC] res/values/layouts.xml:1-4
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/res/values/layouts.xml)
+        1: <?xml version="1.0" encoding="utf-8"?>
+        2: <resources>
+        3:     <item name="activity_main" type="layout">@layout/activity_main_drawer</item>
+        4:     <item name="activity_feed" type="layout">@layout/activity_feed_portrait</item>
+  cite [SRC] res/values-large-land-notouch/layouts.xml:1-4
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/res/values-large-land-notouch/layouts.xml)
+        1: <?xml version="1.0" encoding="utf-8"?>
+        2: <resources>
+        3:     <item name="activity_main" type="layout">@layout/activity_main_two_pane</item>
+        4:     <item name="activity_feed" type="layout">@layout/activity_feed_two_pane</item>
+  cite [SRC] res/layout/activity_main_drawer.xml:22-28
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/res/layout/activity_main_drawer.xml)
+       22:             <androidx.fragment.app.FragmentContainerView
+       23:                 class="org.proninyaroslav.libretorrent.ui.main.MainFragment"
+       24:                 android:id="@+id/main_fragmentContainer"
+       25:                 android:layout_width="match_parent"
+       26:                 android:layout_height="match_parent"
+       27:                 android:layout_below="@id/toolbar" />
+       28:         </RelativeLayout>
+  cite [SRC] res/layout/activity_main_two_pane.xml:26-32
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/res/layout/activity_main_two_pane.xml)
+       26:             <androidx.fragment.app.FragmentContainerView
+       27:                 class="org.proninyaroslav.libretorrent.ui.main.MainFragment"
+       28:                 android:id="@+id/main_fragmentContainer"
+       29:                 android:layout_width="match_parent"
+       30:                 android:layout_height="match_parent"
+       31:                 android:layout_below="@id/toolbar" />
+       32:         </RelativeLayout>
+  cite [SRC] ui/main/MainFragment.java:85-87
+       85: public class MainFragment extends Fragment
+       86:         implements TorrentListAdapter.ClickListener
+       87: {
+
+STEP 3  edge Ee453d286
+  MainFragment.<init> -> MainFragment.onAttach
+  class: non_standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX FragmentManager lifecycle dispatch; SRC ui/main/MainFragment.java:85-87,223-230
+  cite [SRC] ui/main/MainFragment.java:85-87, 223-230
+       85: public class MainFragment extends Fragment
+       86:         implements TorrentListAdapter.ClickListener
+       87: {
+      223:     @Override
+      224:     public void onAttach(@NonNull Context context)
+      225:     {
+      226:         super.onAttach(context);
+      227: 
+      228:         if (context instanceof AppCompatActivity)
+      229:             activity = (AppCompatActivity)context;
+      230:     }
+
+STEP 4  edge E28c54333
+  MainFragment.onAttach -> MainFragment.onCreateView
+  class: non_standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX FragmentManager lifecycle dispatch; SRC ui/main/MainFragment.java:223-230,113-122
+  cite [SRC] ui/main/MainFragment.java:223-230, 113-122
+      223:     @Override
+      224:     public void onAttach(@NonNull Context context)
+      225:     {
+      226:         super.onAttach(context);
+      227: 
+      228:         if (context instanceof AppCompatActivity)
+      229:             activity = (AppCompatActivity)context;
+      230:     }
+      113:     @Nullable
+      114:     @Override
+      115:     public View onCreateView(@NonNull LayoutInflater inflater,
+      116:                              @Nullable ViewGroup container,
+      117:                              @Nullable Bundle savedInstanceState)
+      118:     {
+      119:         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_main, container, false);
+      120: 
+      121:         return binding.getRoot();
+      122:     }
+
+STEP 5  edge E2e46bfdf
+  MainFragment.onCreateView -> MainFragment.onViewCreated
+  class: non_standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX FragmentManager lifecycle dispatch; SRC ui/main/MainFragment.java:115-127
+  cite [SRC] ui/main/MainFragment.java:115-127
+      115:     public View onCreateView(@NonNull LayoutInflater inflater,
+      116:                              @Nullable ViewGroup container,
+      117:                              @Nullable Bundle savedInstanceState)
+      118:     {
+      119:         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_main, container, false);
+      120: 
+      121:         return binding.getRoot();
+      122:     }
+      123: 
+      124:     @Override
+      125:     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+      126:         super.onViewCreated(view, savedInstanceState);
+      127: 
+
+STEP 6  edge E17916b8d
+  MainFragment.onViewCreated -> MainFragment.initFabSpeedDial
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/main/MainFragment.java:157-208
+  cite [SRC] ui/main/MainFragment.java:157-208
+      157:         selectionTracker = new SelectionTracker.Builder<>(
+      158:                 SELECTION_TRACKER_ID,
+      159:                 binding.torrentList,
+      160:                 new TorrentListAdapter.KeyProvider(adapter),
+      161:                 new TorrentListAdapter.ItemLookup(binding.torrentList),
+      162:                 StorageStrategy.createParcelableStorage(TorrentListItem.class))
+      163:                 .withSelectionPredicate(SelectionPredicates.createSelectAnything())
+      164:                 .build();
+      165: 
+      166:         selectionTracker.addObserver(new SelectionTracker.SelectionObserver<TorrentListItem>() {
+      167:             @Override
+      168:             public void onSelectionChanged()
+      169:             {
+      170:                 super.onSelectionChanged();
+      171: 
+      172:                 if (selectionTracker.hasSelection() && actionMode == null) {
+      173:                     actionMode = activity.startSupportActionMode(actionModeCallback);
+      174:                     setActionModeTitle(selectionTracker.getSelection().size());
+      175: 
+      176:                 } else if (!selectionTracker.hasSelection()) {
+      177:                     if (actionMode != null)
+      178:                         actionMode.finish();
+      179:                     actionMode = null;
+      180: 
+      181:                 } else {
+      182:                     setActionModeTitle(selectionTracker.getSelection().size());
+      183:                 }
+      184:             }
+      185: 
+      186:             @Override
+      187:             public void onSelectionRestored()
+      188:             {
+      189:                 super.onSelectionRestored();
+      190: 
+      191:                 actionMode = activity.startSupportActionMode(actionModeCallback);
+      192:                 setActionModeTitle(selectionTracker.getSelection().size());
+      193:             }
+      194:         });
+      195: 
+      196:         if (savedInstanceState != null)
+      197:             selectionTracker.onRestoreInstanceState(savedInstanceState);
+      198:         adapter.setSelectionTracker(selectionTracker);
+      199: 
+      200:         initFabSpeedDial();
+      201: 
+      202:         Intent i = activity.getIntent();
+      203:         if (i != null && MainActivity.ACTION_ADD_TORRENT_SHORTCUT.equals(i.getAction())) {
+      204:             /* Prevents re-reading action after device configuration changes */
+      205:             i.setAction(null);
+      206:             showAddTorrentMenu();
+      207:         }
+      208:     }
+
+STEP 7  edge Ed7e1785e
+  MainFragment.initFabSpeedDial -> MainFragment.lambda$initFabSpeedDial$11
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED SpeedDial library callback dispatch; SRC ui/main/MainFragment.java:414-431
+  cite [SRC] ui/main/MainFragment.java:414-431
+      414:     private void initFabSpeedDial()
+      415:     {
+      416:         binding.fabButton.setOnActionSelectedListener((item) -> {
+      417:             int id = item.getId();
+      418:             if (id == R.id.main_fab_add_link) {
+      419:                 addLinkDialog();
+      420:             } else if (id == R.id.main_fab_open_file) {
+      421:                 openTorrentFileDialog();
+      422:             } else if (id == R.id.main_fab_create_torrent) {
+      423:                 createTorrentDialog();
+      424:             } else {
+      425:                 return false;
+      426:             }
+      427: 
+      428:             binding.fabButton.close();
+      429: 
+      430:             return true;
+      431:         });
+
+STEP 8  edge E53bc255d
+  MainFragment.lambda$initFabSpeedDial$11 -> MainFragment.addLinkDialog
+  class: explicit   kind: CALL
+  guard: item.getId() == R.id.main_fab_add_link
+  needs_state: None
+  env: None
+  evidence: SRC ui/main/MainFragment.java:416-430; ui/main/MainFragment.java:523-526
+  cite [SRC] ui/main/MainFragment.java:416-430
+      416:         binding.fabButton.setOnActionSelectedListener((item) -> {
+      417:             int id = item.getId();
+      418:             if (id == R.id.main_fab_add_link) {
+      419:                 addLinkDialog();
+      420:             } else if (id == R.id.main_fab_open_file) {
+      421:                 openTorrentFileDialog();
+      422:             } else if (id == R.id.main_fab_create_torrent) {
+      423:                 createTorrentDialog();
+      424:             } else {
+      425:                 return false;
+      426:             }
+      427: 
+      428:             binding.fabButton.close();
+      429: 
+      430:             return true;
+  cite [SRC] ui/main/MainFragment.java:523-526
+      523:     private void addLinkDialog()
+      524:     {
+      525:         startActivity(new Intent(activity, AddLinkActivity.class));
+      526:     }
+
+STEP 9  edge Edb99c793
+  MainFragment.addLinkDialog -> AddLinkActivity.onCreate
+  class: standard   kind: INTENT
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/main/MainFragment.java:523-526; AndroidManifest.xml:235-238; FW-SRC core/java/android/app/ActivityThread.java:2727-2732; core/java/android/app/Instrumentation.java:1212-1215
+  cite [SRC] ui/main/MainFragment.java:523-526
+      523:     private void addLinkDialog()
+      524:     {
+      525:         startActivity(new Intent(activity, AddLinkActivity.class));
+      526:     }
+  cite [SRC] AndroidManifest.xml:235-238
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/AndroidManifest.xml)
+      235:             android:name=".ui.addlink.AddLinkActivity"
+      236:             android:theme="@style/AppTheme.Translucent" />
+      237: 
+      238:         <activity
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2727-2732
+     2727:                 activity.mCalled = false;
+     2728:                 if (r.isPersistable()) {
+     2729:                     mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+     2730:                 } else {
+     2731:                     mInstrumentation.callActivityOnCreate(activity, r.state);
+     2732:                 }
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1212-1215
+     1212:     public void callActivityOnCreate(Activity activity, Bundle icicle) {
+     1213:         prePerformCreate(activity);
+     1214:         activity.performCreate(icicle);
+     1215:         postPerformCreate(activity);
+
+STEP 10  edge E0884fdcf
+  AddLinkActivity.onCreate -> AddLinkDialog.newInstance
+  class: explicit   kind: CALL
+  guard: findFragmentByTag(TAG_ADD_LINK_DIALOG) == null
+  needs_state: None
+  env: None
+  evidence: SRC ui/addlink/AddLinkActivity.java:21-37; ui/addlink/AddLinkDialog.java:73-81
+  cite [SRC] ui/addlink/AddLinkActivity.java:21-37
+       21: 
+       22:     @Override
+       23:     public void onCreate(@Nullable Bundle savedInstanceState)
+       24:     {
+       25:         setTheme(Utils.getTranslucentAppTheme(getApplicationContext()));
+       26:         super.onCreate(savedInstanceState);
+       27: 
+       28:         FragmentManager fm = getSupportFragmentManager();
+       29:         addLinkDialog = (AddLinkDialog)fm.findFragmentByTag(TAG_ADD_LINK_DIALOG);
+       30:         if (addLinkDialog == null) {
+       31:             addLinkDialog = AddLinkDialog.newInstance();
+       32:             addLinkDialog.show(fm, TAG_ADD_LINK_DIALOG);
+       33:         }
+       34:     }
+       35: 
+       36:     @Override
+       37:     public void onFragmentFinished(@NonNull Fragment f, Intent intent, @NonNull ResultCode code)
+  cite [SRC] ui/addlink/AddLinkDialog.java:73-81
+       73:     public static AddLinkDialog newInstance()
+       74:     {
+       75:         AddLinkDialog frag = new AddLinkDialog();
+       76: 
+       77:         Bundle args = new Bundle();
+       78:         frag.setArguments(args);
+       79: 
+       80:         return frag;
+       81:     }
+
+STEP 11  edge E67270a38
+  AddLinkDialog.newInstance -> AddLinkDialog.onAttach
+  class: non_standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX DialogFragment lifecycle dispatch; SRC ui/addlink/AddLinkDialog.java:73-90
+  cite [SRC] ui/addlink/AddLinkDialog.java:73-90
+       73:     public static AddLinkDialog newInstance()
+       74:     {
+       75:         AddLinkDialog frag = new AddLinkDialog();
+       76: 
+       77:         Bundle args = new Bundle();
+       78:         frag.setArguments(args);
+       79: 
+       80:         return frag;
+       81:     }
+       82: 
+       83:     @Override
+       84:     public void onAttach(@NonNull Context context)
+       85:     {
+       86:         super.onAttach(context);
+       87: 
+       88:         if (context instanceof AppCompatActivity)
+       89:             activity = (AppCompatActivity)context;
+       90:     }
+
+STEP 12  edge E0be419ef
+  AddLinkDialog.onAttach -> AddLinkDialog.onCreateDialog
+  class: non_standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX DialogFragment lifecycle dispatch; SRC ui/addlink/AddLinkDialog.java:169-192
+  cite [SRC] ui/addlink/AddLinkDialog.java:169-192
+      169:     @NonNull
+      170:     @Override
+      171:     public Dialog onCreateDialog(Bundle savedInstanceState)
+      172:     {
+      173:         if (activity == null)
+      174:             activity = (AppCompatActivity)getActivity();
+      175: 
+      176:         ViewModelProvider provider = new ViewModelProvider(activity);
+      177:         viewModel = provider.get(AddLinkViewModel.class);
+      178:         clipboardViewModel = provider.get(ClipboardDialog.SharedViewModel.class);
+      179: 
+      180:         FragmentManager fm = getChildFragmentManager();
+      181:         clipboardDialog = (ClipboardDialog)fm.findFragmentByTag(TAG_CLIPBOARD_DIALOG);
+      182: 
+      183:         LayoutInflater i = LayoutInflater.from(activity);
+      184:         binding = DataBindingUtil.inflate(i, R.layout.dialog_add_link, null, false);
+      185:         binding.setViewModel(viewModel);
+      186: 
+      187:         initLayoutView();
+      188: 
+      189:         binding.getRoot().getViewTreeObserver().addOnWindowFocusChangeListener(onFocusChanged);
+      190: 
+      191:         return alert;
+      192:     }
+
+STEP 13  edge E05f42392
+  AddLinkDialog.onCreateDialog -> AddLinkDialog.initLayoutView
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/addlink/AddLinkDialog.java:171-191,202-226
+  cite [SRC] ui/addlink/AddLinkDialog.java:171-191, 202-226
+      171:     public Dialog onCreateDialog(Bundle savedInstanceState)
+      172:     {
+      173:         if (activity == null)
+      174:             activity = (AppCompatActivity)getActivity();
+      175: 
+      176:         ViewModelProvider provider = new ViewModelProvider(activity);
+      177:         viewModel = provider.get(AddLinkViewModel.class);
+      178:         clipboardViewModel = provider.get(ClipboardDialog.SharedViewModel.class);
+      179: 
+      180:         FragmentManager fm = getChildFragmentManager();
+      181:         clipboardDialog = (ClipboardDialog)fm.findFragmentByTag(TAG_CLIPBOARD_DIALOG);
+      182: 
+      183:         LayoutInflater i = LayoutInflater.from(activity);
+      184:         binding = DataBindingUtil.inflate(i, R.layout.dialog_add_link, null, false);
+      185:         binding.setViewModel(viewModel);
+      186: 
+      187:         initLayoutView();
+      188: 
+      189:         binding.getRoot().getViewTreeObserver().addOnWindowFocusChangeListener(onFocusChanged);
+      190: 
+      191:         return alert;
+      202:     private void initLayoutView()
+      203:     {
+      204:         /* Dismiss error label if user has changed the text */
+      205:         binding.link.addTextChangedListener(new TextWatcher()
+      206:         {
+      207:             @Override
+      208:             public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+      209: 
+      210:             @Override
+      211:             public void onTextChanged(CharSequence s, int start, int before, int count) { }
+      212: 
+      213:             @Override
+      214:             public void afterTextChanged(Editable s)
+      215:             {
+      216:                 binding.layoutLink.setErrorEnabled(false);
+      217:                 binding.layoutLink.setError(null);
+      218:             }
+      219:         });
+      220: 
+      221:         binding.clipboardButton.setOnClickListener((v) -> showClipboardDialog());
+      222:         switchClipboardButton();
+      223:         viewModel.initLinkFromClipboard();
+      224: 
+      225:         initAlertDialog(binding.getRoot());
+      226:     }
+
+STEP 14  edge E0bdc65f2
+  AddLinkDialog.initLayoutView -> AddLinkDialog.initAlertDialog
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/addlink/AddLinkDialog.java:221-226,228-246
+  cite [SRC] ui/addlink/AddLinkDialog.java:221-226, 228-246
+      221:         binding.clipboardButton.setOnClickListener((v) -> showClipboardDialog());
+      222:         switchClipboardButton();
+      223:         viewModel.initLinkFromClipboard();
+      224: 
+      225:         initAlertDialog(binding.getRoot());
+      226:     }
+      228:     private void initAlertDialog(View view)
+      229:     {
+      230:         AlertDialog.Builder builder = new AlertDialog.Builder(activity)
+      231:                 .setTitle(R.string.dialog_add_link_title)
+      232:                 .setPositiveButton(R.string.add, null)
+      233:                 .setNegativeButton(R.string.cancel, null)
+      234:                 .setView(view);
+      235: 
+      236:         alert = builder.create();
+      237:         alert.setCanceledOnTouchOutside(false);
+      238:         alert.setOnShowListener((DialogInterface dialog) -> {
+      239:             Button addButton = alert.getButton(AlertDialog.BUTTON_POSITIVE);
+      240:             addButton.setOnClickListener((v) -> addLink());
+      241: 
+      242:             Button cancelButton = alert.getButton(AlertDialog.BUTTON_NEGATIVE);
+      243:             cancelButton.setOnClickListener((v) ->
+      244:                     finish(new Intent(), FragmentCallback.ResultCode.CANCEL));
+      245:         });
+      246:     }
+
+STEP 15  edge Eb00ec938
+  AddLinkDialog.initAlertDialog -> AddLinkDialog.lambda$initAlertDialog$6
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED onShow dispatch; SRC ui/addlink/AddLinkDialog.java:238-245
+  cite [SRC] ui/addlink/AddLinkDialog.java:238-245
+      238:         alert.setOnShowListener((DialogInterface dialog) -> {
+      239:             Button addButton = alert.getButton(AlertDialog.BUTTON_POSITIVE);
+      240:             addButton.setOnClickListener((v) -> addLink());
+      241: 
+      242:             Button cancelButton = alert.getButton(AlertDialog.BUTTON_NEGATIVE);
+      243:             cancelButton.setOnClickListener((v) ->
+      244:                     finish(new Intent(), FragmentCallback.ResultCode.CANCEL));
+      245:         });
+
+STEP 16  edge Ea674eaf3
+  AddLinkDialog.lambda$initAlertDialog$6 -> AddLinkDialog.lambda$initAlertDialog$4
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED click dispatch; SRC ui/addlink/AddLinkDialog.java:238-241
+  cite [SRC] ui/addlink/AddLinkDialog.java:238-241
+      238:         alert.setOnShowListener((DialogInterface dialog) -> {
+      239:             Button addButton = alert.getButton(AlertDialog.BUTTON_POSITIVE);
+      240:             addButton.setOnClickListener((v) -> addLink());
+      241: 
+
+STEP 17  edge E130d2f8c
+  AddLinkDialog.lambda$initAlertDialog$4 -> AddLinkDialog.addLink
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/addlink/AddLinkDialog.java:238-241,260-288
+  cite [SRC] ui/addlink/AddLinkDialog.java:238-241, 260-288
+      238:         alert.setOnShowListener((DialogInterface dialog) -> {
+      239:             Button addButton = alert.getButton(AlertDialog.BUTTON_POSITIVE);
+      240:             addButton.setOnClickListener((v) -> addLink());
+      241: 
+      260:     private void addLink()
+      261:     {
+      262:         if (!isAdded()) {
+      263:             return;
+      264:         }
+      265: 
+      266:         String s = viewModel.link.get();
+      267:         if (TextUtils.isEmpty(s))
+      268:             return;
+      269:         if (!checkUrlField())
+      270:             return;
+      271: 
+      272:         try {
+      273:             s = viewModel.normalizeUrl(s);
+      274: 
+      275:         } catch (NormalizeUrlException e) {
+      276:             binding.layoutLink.setErrorEnabled(true);
+      277:             binding.layoutLink.setError(getString(R.string.invalid_url, e.getMessage()));
+      278:             binding.layoutLink.requestFocus();
+      279: 
+      280:             return;
+      281:         }
+      282: 
+      283:         Intent i = new Intent(activity, AddTorrentActivity.class);
+      284:         i.putExtra(AddTorrentActivity.TAG_URI, Uri.parse(s));
+      285:         startActivity(i);
+      286: 
+      287:         finish(new Intent(), FragmentCallback.ResultCode.OK);
+      288:     }
+
+STEP 18  edge E23a4ea72
+  AddLinkDialog.addLink -> AddLinkViewModel.normalizeUrl
+  class: explicit   kind: CALL
+  guard: checkUrlField() returns true
+  needs_state: None
+  env: None
+  evidence: SRC ui/addlink/AddLinkDialog.java:266-281; ui/addlink/AddLinkViewModel.java:61-73
+  cite [SRC] ui/addlink/AddLinkDialog.java:266-281
+      266:         String s = viewModel.link.get();
+      267:         if (TextUtils.isEmpty(s))
+      268:             return;
+      269:         if (!checkUrlField())
+      270:             return;
+      271: 
+      272:         try {
+      273:             s = viewModel.normalizeUrl(s);
+      274: 
+      275:         } catch (NormalizeUrlException e) {
+      276:             binding.layoutLink.setErrorEnabled(true);
+      277:             binding.layoutLink.setError(getString(R.string.invalid_url, e.getMessage()));
+      278:             binding.layoutLink.requestFocus();
+      279: 
+      280:             return;
+      281:         }
+  cite [SRC] ui/addlink/AddLinkViewModel.java:61-73
+       61:     String normalizeUrl(@NonNull String link) throws NormalizeUrlException
+       62:     {
+       63:         if (Utils.isHash(link)) {
+       64:             link = Utils.normalizeMagnetHash(link);
+       65: 
+       66:         } else if (!link.toLowerCase().startsWith(Utils.MAGNET_PREFIX)) {
+       67:             NormalizeUrl.Options options = new NormalizeUrl.Options();
+       68:             options.decode = false;
+       69:             link = NormalizeUrl.normalize(link, options);
+       70:         }
+       71: 
+       72:         return link;
+       73:     }

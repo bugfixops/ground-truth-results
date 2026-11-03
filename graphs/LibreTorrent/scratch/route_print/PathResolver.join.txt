@@ -1,0 +1,786 @@
+METHOD: PathResolver.join
+verdict: REACHABLE   steps_from_launch: 22
+route steps: 22 edges
+======================================================================
+
+STEP 1  edge Ef4711e98
+  S_ENTRY -> MainActivity.onCreate
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: android:exported="true"
+  evidence: SRC AndroidManifest.xml:43-59; FW-SRC core/java/android/app/ActivityThread.java:2727-2732; core/java/android/app/Instrumentation.java:1212-1215
+  cite [SRC] AndroidManifest.xml:43-59
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/AndroidManifest.xml)
+       43:         <activity android:name=".ui.main.MainActivity"
+       44:             android:theme="@style/AppTheme.Launcher"
+       45:             android:exported="true">
+       46:             <meta-data
+       47:                 android:name="android.app.shortcuts"
+       48:                 android:resource="@xml/shortcuts" />
+       49:             <meta-data android:name="android.app.searchable"
+       50:                 android:resource="@xml/searchable"/>
+       51: 
+       52:             <intent-filter>
+       53:                 <action android:name="android.intent.action.MAIN" />
+       54:                 <category android:name="android.intent.category.LAUNCHER" />
+       55:                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+       56:             </intent-filter>
+       57:             <intent-filter>
+       58:                 <action android:name="android.intent.action.SEARCH" />
+       59:             </intent-filter>
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2727-2732
+     2727:                 activity.mCalled = false;
+     2728:                 if (r.isPersistable()) {
+     2729:                     mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+     2730:                 } else {
+     2731:                     mInstrumentation.callActivityOnCreate(activity, r.state);
+     2732:                 }
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1212-1215
+     1212:     public void callActivityOnCreate(Activity activity, Bundle icicle) {
+     1213:         prePerformCreate(activity);
+     1214:         activity.performCreate(icicle);
+     1215:         postPerformCreate(activity);
+
+STEP 2  edge Ed8e7f5f9
+  MainActivity.onCreate -> MainFragment.<init>
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX FragmentContainerView class inflation; SRC ui/main/MainActivity.java:182-185; res/values/layouts.xml:1-4; res/values-large-land-notouch/layouts.xml:1-4; res/layout/activity_main_drawer.xml:22-28; res/layout/activity_main_two_pane.xml:26-32; ui/main/MainFragment.java:85-87
+  cite [SRC] ui/main/MainActivity.java:182-185
+      182:         setContentView(R.layout.activity_main);
+      183: 
+      184:         mainFragment = (MainFragment) getSupportFragmentManager()
+      185:                 .findFragmentById(R.id.main_fragmentContainer);
+  cite [SRC] res/values/layouts.xml:1-4
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/res/values/layouts.xml)
+        1: <?xml version="1.0" encoding="utf-8"?>
+        2: <resources>
+        3:     <item name="activity_main" type="layout">@layout/activity_main_drawer</item>
+        4:     <item name="activity_feed" type="layout">@layout/activity_feed_portrait</item>
+  cite [SRC] res/values-large-land-notouch/layouts.xml:1-4
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/res/values-large-land-notouch/layouts.xml)
+        1: <?xml version="1.0" encoding="utf-8"?>
+        2: <resources>
+        3:     <item name="activity_main" type="layout">@layout/activity_main_two_pane</item>
+        4:     <item name="activity_feed" type="layout">@layout/activity_feed_two_pane</item>
+  cite [SRC] res/layout/activity_main_drawer.xml:22-28
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/res/layout/activity_main_drawer.xml)
+       22:             <androidx.fragment.app.FragmentContainerView
+       23:                 class="org.proninyaroslav.libretorrent.ui.main.MainFragment"
+       24:                 android:id="@+id/main_fragmentContainer"
+       25:                 android:layout_width="match_parent"
+       26:                 android:layout_height="match_parent"
+       27:                 android:layout_below="@id/toolbar" />
+       28:         </RelativeLayout>
+  cite [SRC] res/layout/activity_main_two_pane.xml:26-32
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/res/layout/activity_main_two_pane.xml)
+       26:             <androidx.fragment.app.FragmentContainerView
+       27:                 class="org.proninyaroslav.libretorrent.ui.main.MainFragment"
+       28:                 android:id="@+id/main_fragmentContainer"
+       29:                 android:layout_width="match_parent"
+       30:                 android:layout_height="match_parent"
+       31:                 android:layout_below="@id/toolbar" />
+       32:         </RelativeLayout>
+  cite [SRC] ui/main/MainFragment.java:85-87
+       85: public class MainFragment extends Fragment
+       86:         implements TorrentListAdapter.ClickListener
+       87: {
+
+STEP 3  edge Ee453d286
+  MainFragment.<init> -> MainFragment.onAttach
+  class: non_standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX FragmentManager lifecycle dispatch; SRC ui/main/MainFragment.java:85-87,223-230
+  cite [SRC] ui/main/MainFragment.java:85-87, 223-230
+       85: public class MainFragment extends Fragment
+       86:         implements TorrentListAdapter.ClickListener
+       87: {
+      223:     @Override
+      224:     public void onAttach(@NonNull Context context)
+      225:     {
+      226:         super.onAttach(context);
+      227: 
+      228:         if (context instanceof AppCompatActivity)
+      229:             activity = (AppCompatActivity)context;
+      230:     }
+
+STEP 4  edge E28c54333
+  MainFragment.onAttach -> MainFragment.onCreateView
+  class: non_standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX FragmentManager lifecycle dispatch; SRC ui/main/MainFragment.java:223-230,113-122
+  cite [SRC] ui/main/MainFragment.java:223-230, 113-122
+      223:     @Override
+      224:     public void onAttach(@NonNull Context context)
+      225:     {
+      226:         super.onAttach(context);
+      227: 
+      228:         if (context instanceof AppCompatActivity)
+      229:             activity = (AppCompatActivity)context;
+      230:     }
+      113:     @Nullable
+      114:     @Override
+      115:     public View onCreateView(@NonNull LayoutInflater inflater,
+      116:                              @Nullable ViewGroup container,
+      117:                              @Nullable Bundle savedInstanceState)
+      118:     {
+      119:         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_main, container, false);
+      120: 
+      121:         return binding.getRoot();
+      122:     }
+
+STEP 5  edge E2e46bfdf
+  MainFragment.onCreateView -> MainFragment.onViewCreated
+  class: non_standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX FragmentManager lifecycle dispatch; SRC ui/main/MainFragment.java:115-127
+  cite [SRC] ui/main/MainFragment.java:115-127
+      115:     public View onCreateView(@NonNull LayoutInflater inflater,
+      116:                              @Nullable ViewGroup container,
+      117:                              @Nullable Bundle savedInstanceState)
+      118:     {
+      119:         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_main, container, false);
+      120: 
+      121:         return binding.getRoot();
+      122:     }
+      123: 
+      124:     @Override
+      125:     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+      126:         super.onViewCreated(view, savedInstanceState);
+      127: 
+
+STEP 6  edge E17916b8d
+  MainFragment.onViewCreated -> MainFragment.initFabSpeedDial
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/main/MainFragment.java:157-208
+  cite [SRC] ui/main/MainFragment.java:157-208
+      157:         selectionTracker = new SelectionTracker.Builder<>(
+      158:                 SELECTION_TRACKER_ID,
+      159:                 binding.torrentList,
+      160:                 new TorrentListAdapter.KeyProvider(adapter),
+      161:                 new TorrentListAdapter.ItemLookup(binding.torrentList),
+      162:                 StorageStrategy.createParcelableStorage(TorrentListItem.class))
+      163:                 .withSelectionPredicate(SelectionPredicates.createSelectAnything())
+      164:                 .build();
+      165: 
+      166:         selectionTracker.addObserver(new SelectionTracker.SelectionObserver<TorrentListItem>() {
+      167:             @Override
+      168:             public void onSelectionChanged()
+      169:             {
+      170:                 super.onSelectionChanged();
+      171: 
+      172:                 if (selectionTracker.hasSelection() && actionMode == null) {
+      173:                     actionMode = activity.startSupportActionMode(actionModeCallback);
+      174:                     setActionModeTitle(selectionTracker.getSelection().size());
+      175: 
+      176:                 } else if (!selectionTracker.hasSelection()) {
+      177:                     if (actionMode != null)
+      178:                         actionMode.finish();
+      179:                     actionMode = null;
+      180: 
+      181:                 } else {
+      182:                     setActionModeTitle(selectionTracker.getSelection().size());
+      183:                 }
+      184:             }
+      185: 
+      186:             @Override
+      187:             public void onSelectionRestored()
+      188:             {
+      189:                 super.onSelectionRestored();
+      190: 
+      191:                 actionMode = activity.startSupportActionMode(actionModeCallback);
+      192:                 setActionModeTitle(selectionTracker.getSelection().size());
+      193:             }
+      194:         });
+      195: 
+      196:         if (savedInstanceState != null)
+      197:             selectionTracker.onRestoreInstanceState(savedInstanceState);
+      198:         adapter.setSelectionTracker(selectionTracker);
+      199: 
+      200:         initFabSpeedDial();
+      201: 
+      202:         Intent i = activity.getIntent();
+      203:         if (i != null && MainActivity.ACTION_ADD_TORRENT_SHORTCUT.equals(i.getAction())) {
+      204:             /* Prevents re-reading action after device configuration changes */
+      205:             i.setAction(null);
+      206:             showAddTorrentMenu();
+      207:         }
+      208:     }
+
+STEP 7  edge Ed7e1785e
+  MainFragment.initFabSpeedDial -> MainFragment.lambda$initFabSpeedDial$11
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED SpeedDial library callback dispatch; SRC ui/main/MainFragment.java:414-431
+  cite [SRC] ui/main/MainFragment.java:414-431
+      414:     private void initFabSpeedDial()
+      415:     {
+      416:         binding.fabButton.setOnActionSelectedListener((item) -> {
+      417:             int id = item.getId();
+      418:             if (id == R.id.main_fab_add_link) {
+      419:                 addLinkDialog();
+      420:             } else if (id == R.id.main_fab_open_file) {
+      421:                 openTorrentFileDialog();
+      422:             } else if (id == R.id.main_fab_create_torrent) {
+      423:                 createTorrentDialog();
+      424:             } else {
+      425:                 return false;
+      426:             }
+      427: 
+      428:             binding.fabButton.close();
+      429: 
+      430:             return true;
+      431:         });
+
+STEP 8  edge Ef906f38f
+  MainFragment.lambda$initFabSpeedDial$11 -> MainFragment.openTorrentFileDialog
+  class: explicit   kind: CALL
+  guard: item.getId() == R.id.main_fab_open_file
+  needs_state: None
+  env: None
+  evidence: SRC ui/main/MainFragment.java:416-430; ui/main/MainFragment.java:528-533
+  cite [SRC] ui/main/MainFragment.java:416-430
+      416:         binding.fabButton.setOnActionSelectedListener((item) -> {
+      417:             int id = item.getId();
+      418:             if (id == R.id.main_fab_add_link) {
+      419:                 addLinkDialog();
+      420:             } else if (id == R.id.main_fab_open_file) {
+      421:                 openTorrentFileDialog();
+      422:             } else if (id == R.id.main_fab_create_torrent) {
+      423:                 createTorrentDialog();
+      424:             } else {
+      425:                 return false;
+      426:             }
+      427: 
+      428:             binding.fabButton.close();
+      429: 
+      430:             return true;
+  cite [SRC] ui/main/MainFragment.java:528-533
+      528:     private void openTorrentFileDialog()
+      529:     {
+      530:         Intent i = new Intent(activity, FileManagerDialog.class);
+      531: 
+      532:         FileManagerConfig config = new FileManagerConfig(null,
+      533:                 getString(R.string.torrent_file_chooser_title),
+
+STEP 9  edge Ec3b3ca78
+  MainFragment.openTorrentFileDialog -> FileManagerDialog.onCreate
+  class: non_standard   kind: INTENT
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX ActivityResult dispatch; SRC ui/main/MainFragment.java:528-539,619-636; AndroidManifest.xml:137-138
+  cite [SRC] ui/main/MainFragment.java:528-539, 619-636
+      528:     private void openTorrentFileDialog()
+      529:     {
+      530:         Intent i = new Intent(activity, FileManagerDialog.class);
+      531: 
+      532:         FileManagerConfig config = new FileManagerConfig(null,
+      533:                 getString(R.string.torrent_file_chooser_title),
+      534:                 FileManagerConfig.FILE_CHOOSER_MODE);
+      535:         config.highlightFileTypes = Collections.singletonList("torrent");
+      536: 
+      537:         i.putExtra(FileManagerDialog.TAG_CONFIG, config);
+      538:         torrentFileChoose.launch(i);
+      539:     }
+      619:     final ActivityResultLauncher<Intent> torrentFileChoose = registerForActivityResult(
+      620:             new ActivityResultContracts.StartActivityForResult(),
+      621:             result -> {
+      622:                 Intent data = result.getData();
+      623:                 if (result.getResultCode() != Activity.RESULT_OK) {
+      624:                     return;
+      625:                 }
+      626: 
+      627:                 if (data == null || data.getData() == null) {
+      628:                     openFileErrorDialog();
+      629:                     return;
+      630:                 }
+      631: 
+      632:                 Intent i = new Intent(activity, AddTorrentActivity.class);
+      633:                 i.putExtra(AddTorrentActivity.TAG_URI, data.getData());
+      634:                 startActivity(i);
+      635:             }
+      636:     );
+  cite [SRC] AndroidManifest.xml:137-138
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/AndroidManifest.xml)
+      137:         <activity android:name=".ui.filemanager.FileManagerDialog" />
+      138: 
+
+STEP 10  edge Ecb9d6ac3
+  FileManagerDialog.onCreate -> FileManagerDialog.onOptionsItemSelected
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED framework dispatch; SRC ui/filemanager/FileManagerDialog.java:120; SRC ui/filemanager/FileManagerDialog.java:499-516
+  cite [SRC] ui/filemanager/FileManagerDialog.java:120
+      120:     public void onCreate(Bundle savedInstanceState) {
+  cite [SRC] ui/filemanager/FileManagerDialog.java:499-516
+      499:     public boolean onOptionsItemSelected(MenuItem item) {
+      500:         int itemId = item.getItemId();
+      501:         if (itemId == android.R.id.home) {
+      502:             onBackPressed();
+      503:         } else if (itemId == R.id.filemanager_home_menu) {
+      504:             openHomeDirectory();
+      505:         } else if (itemId == R.id.filemanager_ok_menu) {
+      506:             saveCurDirectoryPath();
+      507:             if (viewModel.config.showMode == FileManagerConfig.SAVE_FILE_MODE)
+      508:                 createFile(false);
+      509:             else
+      510:                 returnDirectoryUri();
+      511:         } else if (itemId == R.id.filemanager_go_to_folder_menu) {
+      512:             goToDirectoryDialog();
+      513:         }
+      514: 
+      515:         return true;
+      516:     }
+
+STEP 11  edge Eaf40c0ee
+  FileManagerDialog.onOptionsItemSelected -> FileManagerDialog.createFile
+  class: explicit   kind: CALL
+  guard: itemId == R.id.filemanager_ok_menu && showMode == SAVE_FILE_MODE
+  needs_state: None
+  env: None
+  evidence: SRC ui/filemanager/FileManagerDialog.java:499-515,570-591
+  cite [SRC] ui/filemanager/FileManagerDialog.java:499-515, 570-591
+      499:     public boolean onOptionsItemSelected(MenuItem item) {
+      500:         int itemId = item.getItemId();
+      501:         if (itemId == android.R.id.home) {
+      502:             onBackPressed();
+      503:         } else if (itemId == R.id.filemanager_home_menu) {
+      504:             openHomeDirectory();
+      505:         } else if (itemId == R.id.filemanager_ok_menu) {
+      506:             saveCurDirectoryPath();
+      507:             if (viewModel.config.showMode == FileManagerConfig.SAVE_FILE_MODE)
+      508:                 createFile(false);
+      509:             else
+      510:                 returnDirectoryUri();
+      511:         } else if (itemId == R.id.filemanager_go_to_folder_menu) {
+      512:             goToDirectoryDialog();
+      513:         }
+      514: 
+      515:         return true;
+      570:     private void createFile(boolean replace) {
+      571:         if (!checkFileNameField())
+      572:             return;
+      573: 
+      574:         Editable editable = binding.fileName.getText();
+      575:         String fileName = (editable == null ? null : editable.toString());
+      576:         if (!replace && viewModel.fileExists(fileName)) {
+      577:             showReplaceFileDialog();
+      578:             return;
+      579:         }
+      580: 
+      581:         Intent i = new Intent();
+      582:         try {
+      583:             i.setData(viewModel.createFile(fileName));
+      584: 
+      585:         } catch (SecurityException e) {
+      586:             permissionDeniedToast();
+      587:             return;
+      588:         }
+      589:         setResult(RESULT_OK, i);
+      590:         finish();
+      591:     }
+
+STEP 12  edge E40039873
+  FileManagerDialog.createFile -> CreateTorrentDialog.lambda$new$11
+  class: non_standard   kind: RESULT
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX ActivityResultLauncher dispatch; SRC ui/filemanager/FileManagerDialog.java:570-591; ui/createtorrent/CreateTorrentDialog.java:534-548
+  cite [SRC] ui/filemanager/FileManagerDialog.java:570-591
+      570:     private void createFile(boolean replace) {
+      571:         if (!checkFileNameField())
+      572:             return;
+      573: 
+      574:         Editable editable = binding.fileName.getText();
+      575:         String fileName = (editable == null ? null : editable.toString());
+      576:         if (!replace && viewModel.fileExists(fileName)) {
+      577:             showReplaceFileDialog();
+      578:             return;
+      579:         }
+      580: 
+      581:         Intent i = new Intent();
+      582:         try {
+      583:             i.setData(viewModel.createFile(fileName));
+      584: 
+      585:         } catch (SecurityException e) {
+      586:             permissionDeniedToast();
+      587:             return;
+      588:         }
+      589:         setResult(RESULT_OK, i);
+      590:         finish();
+      591:     }
+  cite [SRC] ui/createtorrent/CreateTorrentDialog.java:534-548
+      534:     final ActivityResultLauncher<Intent> choosePathToSave = registerForActivityResult(
+      535:             new ActivityResultContracts.StartActivityForResult(),
+      536:             result -> {
+      537:                 Intent data = result.getData();
+      538:                 if (result.getResultCode() != Activity.RESULT_OK)
+      539:                     return;
+      540:                 if (data == null || data.getData() == null) {
+      541:                     createFileErrorDialog();
+      542:                     return;
+      543:                 }
+      544: 
+      545:                 viewModel.mutableParams.setSavePath(data.getData());
+      546:                 buildTorrent();
+      547:             }
+      548:     );
+
+STEP 13  edge E754d59cb
+  CreateTorrentDialog.lambda$new$11 -> CreateTorrentDialog.buildTorrent
+  class: explicit   kind: CALL
+  guard: resultCode == Activity.RESULT_OK && data != null && data.getData() != null
+  needs_state: None
+  env: None
+  evidence: SRC ui/createtorrent/CreateTorrentDialog.java:534-548
+  cite [SRC] ui/createtorrent/CreateTorrentDialog.java:534-548
+      534:     final ActivityResultLauncher<Intent> choosePathToSave = registerForActivityResult(
+      535:             new ActivityResultContracts.StartActivityForResult(),
+      536:             result -> {
+      537:                 Intent data = result.getData();
+      538:                 if (result.getResultCode() != Activity.RESULT_OK)
+      539:                     return;
+      540:                 if (data == null || data.getData() == null) {
+      541:                     createFileErrorDialog();
+      542:                     return;
+      543:                 }
+      544: 
+      545:                 viewModel.mutableParams.setSavePath(data.getData());
+      546:                 buildTorrent();
+      547:             }
+      548:     );
+
+STEP 14  edge Eb01f6dda
+  CreateTorrentDialog.buildTorrent -> CreateTorrentViewModel.buildTorrent
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/createtorrent/CreateTorrentDialog.java:338-346
+  cite [SRC] ui/createtorrent/CreateTorrentDialog.java:338-346
+      338:     private void buildTorrent()
+      339:     {
+      340:         binding.layoutTrackerUrls.setErrorEnabled(false);
+      341:         binding.layoutTrackerUrls.setError(null);
+      342:         binding.layoutWebSeedUrls.setErrorEnabled(false);
+      343:         binding.layoutWebSeedUrls.setError(null);
+      344: 
+      345:         viewModel.buildTorrent();
+      346:     }
+
+STEP 15  edge E609cd7d4
+  CreateTorrentViewModel.buildTorrent -> CreateTorrentViewModel.makeBuilder
+  class: explicit   kind: CALL
+  guard: builder construction succeeds
+  needs_state: None
+  env: None
+  evidence: SRC ui/createtorrent/CreateTorrentViewModel.java:151-164,177-209
+  cite [SRC] ui/createtorrent/CreateTorrentViewModel.java:151-164, 177-209
+      151:     public void buildTorrent()
+      152:     {
+      153:         state.setValue(new BuildState(BuildState.Status.BUILDING, null));
+      154: 
+      155:         TorrentBuilder builder;
+      156:         try {
+      157:             builder = makeBuilder();
+      158: 
+      159:         } catch (Exception e) {
+      160:             onBuildError(e);
+      161: 
+      162:             return;
+      163:         }
+      164: 
+      177:     private TorrentBuilder makeBuilder() throws Exception
+      178:     {
+      179:         Uri seedPath = mutableParams.getSeedPath().get();
+      180:         if (seedPath == null)
+      181:             throw new IllegalArgumentException("Seed path is null");
+      182:         Uri savePath = mutableParams.getSavePath();
+      183:         if (savePath == null)
+      184:             throw new IllegalArgumentException("Save path is null");
+      185: 
+      186:         if (!Utils.isFileSystemPath(seedPath))
+      187:             throw new IllegalArgumentException("SAF doesn't supported");
+      188: 
+      189:         return new TorrentBuilder(getApplication())
+      190:                 .setSeedPath(seedPath)
+      191:                 .setPieceSize(getPieceSizeByIndex(mutableParams.getPieceSizeIndex()))
+      192:                 .setTorrentVersion(getTorrentVersionByIndex(mutableParams.getTorrentVersionIndex()))
+      193:                 .addTrackers(getAndValidateTrackers())
+      194:                 .addUrlSeeds(getAndValidateWebSeeds())
+      195:                 .setAsPrivate(mutableParams.isPrivateTorrent())
+      196:                 .setCreator(makeCreator())
+      197:                 .setComment(mutableParams.getComments())
+      198:                 .setFileNameFilter((fileName) -> {
+      199:                     List<String> skipFilesList = decodeSkipFilesList();
+      200:                     if (skipFilesList.isEmpty())
+      201:                         return true;
+      202: 
+      203:                     for (String skipFile : skipFilesList)
+      204:                         if (fileName.toLowerCase().endsWith(skipFile.toLowerCase().trim()))
+      205:                             return false;
+      206: 
+      207:                     return true;
+      208:                 });
+      209:     }
+
+STEP 16  edge Ef62e8d01
+  CreateTorrentViewModel.makeBuilder -> CreateTorrentViewModel.getAndValidateTrackers
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/createtorrent/CreateTorrentViewModel.java:189-195,264-279
+  cite [SRC] ui/createtorrent/CreateTorrentViewModel.java:189-195, 264-279
+      189:         return new TorrentBuilder(getApplication())
+      190:                 .setSeedPath(seedPath)
+      191:                 .setPieceSize(getPieceSizeByIndex(mutableParams.getPieceSizeIndex()))
+      192:                 .setTorrentVersion(getTorrentVersionByIndex(mutableParams.getTorrentVersionIndex()))
+      193:                 .addTrackers(getAndValidateTrackers())
+      194:                 .addUrlSeeds(getAndValidateWebSeeds())
+      195:                 .setAsPrivate(mutableParams.isPrivateTorrent())
+      264:     private List<TorrentBuilder.Tracker> getAndValidateTrackers() throws InvalidTrackerException
+      265:     {
+      266:         List<TorrentBuilder.Tracker> validTrackers = new ArrayList<>();
+      267:         int tier = 0;
+      268:         for (String url : decodeUrls(mutableParams.getTrackerUrls())) {
+      269:             try {
+      270:                 url = normalizeAndValidateUrl(url);
+      271: 
+      272:             } catch (IllegalArgumentException e) {
+      273:                 throw new InvalidTrackerException(url);
+      274:             }
+      275:             validTrackers.add(new TorrentBuilder.Tracker(url, tier++));
+      276:         }
+      277: 
+      278:         return validTrackers;
+      279:     }
+
+STEP 17  edge E6e462a64
+  CreateTorrentViewModel.getAndValidateTrackers -> CreateTorrentViewModel.normalizeAndValidateUrl
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/createtorrent/CreateTorrentViewModel.java:268-275,306-321
+  cite [SRC] ui/createtorrent/CreateTorrentViewModel.java:268-275, 306-321
+      268:         for (String url : decodeUrls(mutableParams.getTrackerUrls())) {
+      269:             try {
+      270:                 url = normalizeAndValidateUrl(url);
+      271: 
+      272:             } catch (IllegalArgumentException e) {
+      273:                 throw new InvalidTrackerException(url);
+      274:             }
+      275:             validTrackers.add(new TorrentBuilder.Tracker(url, tier++));
+      306:     private String normalizeAndValidateUrl(String url)
+      307:     {
+      308:         NormalizeUrl.Options options = new NormalizeUrl.Options();
+      309:         options.decode = false;
+      310:         try {
+      311:             url = NormalizeUrl.normalize(url, options);
+      312: 
+      313:         } catch (NormalizeUrlException e) {
+      314:             throw new IllegalArgumentException();
+      315:         }
+      316: 
+      317:         if (!Utils.isValidTrackerUrl(url))
+      318:             throw new IllegalArgumentException();
+      319: 
+      320:         return url;
+      321:     }
+
+STEP 18  edge Ec45f2213
+  CreateTorrentViewModel.normalizeAndValidateUrl -> NormalizeUrl.normalize(String,Options)
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC CreateTorrentViewModel.java:311 (bytecode)
+  cite [SRC] CreateTorrentViewModel.java:311
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/createtorrent/CreateTorrentViewModel.java)
+      311:             url = NormalizeUrl.normalize(url, options);
+
+STEP 19  edge Ed8f75258
+  NormalizeUrl.normalize(String,Options) -> NormalizeUrl.doNormalize
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC NormalizeUrl.java:178-189; SRC NormalizeUrl.java:191
+  cite [SRC] NormalizeUrl.java:178-189
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/urlnormalizer/NormalizeUrl.java)
+      178:     public static String normalize(String url, Options options) throws NormalizeUrlException
+      179:     {
+      180:         String normalizedUrl;
+      181:         try {
+      182:             normalizedUrl = doNormalize(url, options);
+      183: 
+      184:         } catch (Exception e) {
+      185:             throw new NormalizeUrlException("Cannot normalize URL", e);
+      186:         }
+      187: 
+      188:         return normalizedUrl;
+      189:     }
+  cite [SRC] NormalizeUrl.java:191
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/urlnormalizer/NormalizeUrl.java)
+      191:     private static String doNormalize(String url, Options options) throws MalformedURLException
+
+STEP 20  edge E2960b78a
+  NormalizeUrl.doNormalize -> PathResolver.resolve(String,String)
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC NormalizeUrl.java:259; SRC PathResolver.java:27-34
+  cite [SRC] NormalizeUrl.java:259
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/urlnormalizer/NormalizeUrl.java)
+      259:             path = PathResolver.resolve(path, path);
+  cite [SRC] PathResolver.java:27-34
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/urlnormalizer/PathResolver.java)
+       27:     public static String resolve(String base, String ref) {
+       28:         String merged = merge(base, ref);
+       29:         if (merged == null || merged.isEmpty()) {
+       30:             return "";
+       31:         }
+       32:         String[] parts = merged.split("/", -1);
+       33:         return resolve(parts);
+       34:     }
+
+STEP 21  edge Eaa0d3eda
+  PathResolver.resolve(String,String) -> PathResolver.resolve(String[])
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC PathResolver.java:27-34; SRC PathResolver.java:72-108
+  cite [SRC] PathResolver.java:27-34
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/urlnormalizer/PathResolver.java)
+       27:     public static String resolve(String base, String ref) {
+       28:         String merged = merge(base, ref);
+       29:         if (merged == null || merged.isEmpty()) {
+       30:             return "";
+       31:         }
+       32:         String[] parts = merged.split("/", -1);
+       33:         return resolve(parts);
+       34:     }
+  cite [SRC] PathResolver.java:72-108
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/urlnormalizer/PathResolver.java)
+       72:     private static String resolve(String[] parts) {
+       73:         if (parts.length == 0) {
+       74:             return "";
+       75:         }
+       76: 
+       77:         List<String> result = new ArrayList<>();
+       78: 
+       79:         for (String part : parts) {
+       80:             switch (part) {
+       81:                 case "":
+       82:                 case ".":
+       83:                     // Ignore
+       84:                     break;
+       85:                 case "..":
+       86:                     if (result.size() > 0) {
+       87:                         result.remove(result.size() - 1);
+       88:                     }
+       89:                     break;
+       90:                 default:
+       91:                     result.add(part);
+       92:                     break;
+       93:             }
+       94:         }
+       95: 
+       96:         // Get last element, if it was '.' or '..' we need
+       97:         // to end in a slash.
+       98:         switch (parts[parts.length - 1]) {
+       99:             case ".":
+      100:             case "..":
+      101:                 // Add an empty last string, it will be turned into
+      102:                 // a slash when joined together.
+      103:                 result.add("");
+      104:                 break;
+      105:         }
+      106: 
+      107:         return "/" + join("/", result);
+      108:     }
+
+STEP 22  edge E40a14951
+  PathResolver.resolve(String[]) -> PathResolver.join
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC PathResolver.java:72-108; SRC PathResolver.java:110-124
+  cite [SRC] PathResolver.java:72-108
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/urlnormalizer/PathResolver.java)
+       72:     private static String resolve(String[] parts) {
+       73:         if (parts.length == 0) {
+       74:             return "";
+       75:         }
+       76: 
+       77:         List<String> result = new ArrayList<>();
+       78: 
+       79:         for (String part : parts) {
+       80:             switch (part) {
+       81:                 case "":
+       82:                 case ".":
+       83:                     // Ignore
+       84:                     break;
+       85:                 case "..":
+       86:                     if (result.size() > 0) {
+       87:                         result.remove(result.size() - 1);
+       88:                     }
+       89:                     break;
+       90:                 default:
+       91:                     result.add(part);
+       92:                     break;
+       93:             }
+       94:         }
+       95: 
+       96:         // Get last element, if it was '.' or '..' we need
+       97:         // to end in a slash.
+       98:         switch (parts[parts.length - 1]) {
+       99:             case ".":
+      100:             case "..":
+      101:                 // Add an empty last string, it will be turned into
+      102:                 // a slash when joined together.
+      103:                 result.add("");
+      104:                 break;
+      105:         }
+      106: 
+      107:         return "/" + join("/", result);
+      108:     }
+  cite [SRC] PathResolver.java:110-124
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/urlnormalizer/PathResolver.java)
+      110:     private static String join(CharSequence delimiter, List<String> tokens)
+      111:     {
+      112:         int length = tokens.size();
+      113:         if (length == 0)
+      114:             return "";
+      115: 
+      116:         StringBuilder sb = new StringBuilder();
+      117:         sb.append(tokens.get(0));
+      118:         for (int i = 1; i < length; i++) {
+      119:             sb.append(delimiter);
+      120:             sb.append(tokens.get(i));
+      121:         }
+      122: 
+      123:         return sb.toString();
+      124:     }

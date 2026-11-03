@@ -1,0 +1,55 @@
+final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentViewModel.java:95:    public BehaviorSubject<List<BencodeFileTree>> children = BehaviorSubject.create();
+final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentViewModel.java:368:    public void makeFileTree() {
+final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentViewModel.java:411:    public List<BencodeFileTree> getChildren(BencodeFileTree node) {
+final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentViewModel.java:412:        List<BencodeFileTree> children = new ArrayList<>();
+final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentViewModel.java:414:            return children;
+final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentViewModel.java:418:            children.add(0, new BencodeFileTree(BencodeFileTree.PARENT_DIR, 0L, FileNode.Type.DIR, curDir.getParent()));
+final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentViewModel.java:420:        children.addAll(curDir.getChildren());
+final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentViewModel.java:422:        return children;
+final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentViewModel.java:442:        updateChildren();
+final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentViewModel.java:447:        updateChildren();
+final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentViewModel.java:450:    private void updateChildren() {
+final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentViewModel.java:451:        children.onNext(getChildren(curDir));
+final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentActivity.java:345:        viewModel.makeFileTree();
+368:     public void makeFileTree() {
+369:         if (fileTree != null)
+370:             return;
+372:         TorrentMetaInfo infoObj = info.get();
+373:         if (infoObj == null)
+374:             return;
+375:         List<BencodeFileItem> files = infoObj.fileList;
+376:         if (files.isEmpty())
+377:             return;
+379:         Pair<BencodeFileTree, BencodeFileTree[]> res = BencodeFileTreeUtils.buildFileTree(files);
+380:         this.fileTree = res.first;
+381:         this.treeLeaves = res.second;
+383:         if (magnetPriorities == null || magnetPriorities.size() == 0) {
+384:             fileTree.select(true, false);
+386:         } else {
+387:             /* Select files that have non-IGNORE priority (see BEP35 standard) */
+388:             for (int i = 0; i < files.size(); i++) {
+389:                 BencodeFileTree file = treeLeaves[i];
+390:                 if (file != null) {
+391:                     Priority p = (i >= magnetPriorities.size() ?
+393:                             magnetPriorities.get(i));
+394:                     file.select(p != Priority.IGNORE, false);
+395:                 }
+396:             }
+397:         }
+399:         /* Is assigned the root dir of the file tree */
+400:         updateCurDir(fileTree);
+401:     }
+403:     /*
+404:      * Navigate back to an upper directory.
+405:      */
+407:     public void upToParentDirectory() {
+408:         updateCurDir(curDir.getParent());
+409:     }
+411:     public List<BencodeFileTree> getChildren(BencodeFileTree node) {
+412:         List<BencodeFileTree> children = new ArrayList<>();
+413:         if (node == null || node.isFile())
+414:             return children;
+416:         /* Adding parent dir for navigation */
+417:         if (curDir != fileTree && curDir.getParent() != null)
+418:             children.add(0, new BencodeFileTree(BencodeFileTree.PARENT_DIR, 0L, FileNode.Type.DIR, curDir.getParent()));
+420:         children.addAll(curDir.getChildren());
