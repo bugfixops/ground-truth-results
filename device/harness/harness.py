@@ -120,6 +120,30 @@ def find_row_action(root, row_text, res_id):
     return best
 
 
+def _env_seconds(name, default):
+    """Positive number of seconds from the environment, else default."""
+    try:
+        v = float(os.environ.get(name, ""))
+        return v if v > 0 else default
+    except ValueError:
+        return default
+
+
+def visible_labels(root, limit=25):
+    """Short diagnostic: package, then the first texts / content-descs / short resource ids on screen."""
+    if root is None:
+        return "no-dump"
+    out, pkg = [], ""
+    for n in root.iter("node"):
+        pkg = pkg or n.get("package", "")
+        for v in (n.get("text", ""), n.get("content-desc", ""), n.get("resource-id", "").split("/")[-1]):
+            if v and v not in out:
+                out.append(v[:40])
+        if len(out) >= limit:
+            break
+    return "pkg=%s|%s" % (pkg, "|".join(out))
+
+
 def parse_dump(xml_text):
     """Parse uiautomator dump XML text; returns the root Element.
 
@@ -331,13 +355,23 @@ class Runner:
             self.planned.append("%s shell input tap <%s>" % (self.adb, target))
             self._log_line(edge, action, target, "planned")
             return None
-        root = self._raw_dump()
-        node = find_node(root, text=text, res_id=res_id, desc=desc)
+        # Kiro 2026-11-03 (real run 41581852815): a single dump right after a launch often comes before the
+        # screen is drawn on a cold, software-rendered emulator. Poll for the target up to TAP_WAIT seconds
+        # (env HARNESS_TAP_WAIT, default 20) before failing; this only waits, it never taps anything else.
+        deadline = time.time() + _env_seconds("HARNESS_TAP_WAIT", 20)
+        while True:
+            root = self._raw_dump()
+            node = find_node(root, text=text, res_id=res_id, desc=desc)
+            if node is not None or time.time() >= deadline:
+                break
+            time.sleep(1.5)
         if node is None:
             self._log_line(edge, action,
                            "text=%s" % text if text is not None else (
                                "res_id=%s" % res_id if res_id is not None
                                else "desc=%s" % desc), "failed")
+            print("harness: %s %s target not on screen; visible: %s" % (self.route, edge, visible_labels(root)),
+                  file=sys.stderr)
             raise LookupError("no UI node for tap target")
         return node
 
@@ -658,7 +692,10 @@ class Runner:
             self.planned.append("%s wait for %s" % (self.adb, label))
             self._log_line(edge, "wait_for", label, "planned")
             return
-        deadline = time.time() + timeout
+        # Kiro 2026-11-03: never wait less than HARNESS_MIN_WAIT seconds (default 30) on a real device; the
+        # scripts' 10 s defaults were written for a warm device (run 41581852815 timed out on cold starts).
+        deadline = time.time() + max(timeout, _env_seconds("HARNESS_MIN_WAIT", 30))
+        root = None
         while time.time() < deadline:
             root = self._raw_dump()
             if find_node(root, text=text, res_id=res_id,
@@ -667,6 +704,8 @@ class Runner:
                 return
             time.sleep(1)
         self._log_line(edge, "wait_for", label, "failed")
+        print("harness: %s %s wait_for %s; visible: %s" % (self.route, edge, label, visible_labels(root)),
+              file=sys.stderr)
         raise TimeoutError("wait_for timed out for %s" % label)
 
     def dwell(self, edge, seconds):
