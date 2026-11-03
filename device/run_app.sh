@@ -163,6 +163,24 @@ adb wait-for-device
 log "installing $APK_ABS WITHOUT -g"
 adb install -r -t "$APK_ABS" || { echo "run_app.sh: install failed" >&2; exit 1; }
 
+# Kiro 2026-11-03 (real run 41589762145: Vanilla library empty, Omni-Notes/Markor without their files): the
+# standard device state of the baseline tool runs (work-emulator ci/run_app.sh, "install and fixtures") has the
+# four fixture folders on shared storage and the media scanned. The ROUTES.csv setup notes of these apps
+# ("push fixtures/Music + media scan", "push fixtures/Pictures", "push fixtures/Documents") assume it. Shared
+# storage survives `pm clear`, so this runs once per app. Permissions stay per route (no -g).
+for d in Download Music Pictures Documents; do
+  if [ -d "$WEMU/fixtures/$d" ]; then
+    adb push "$WEMU/fixtures/$d" /sdcard/ </dev/null >/dev/null 2>&1 || log "push of fixtures/$d failed"
+  fi
+done
+for f in "$WEMU"/fixtures/Music/* "$WEMU"/fixtures/Pictures/*; do
+  [ -f "$f" ] || continue
+  # Device-side quotes: several fixture names contain spaces ("09 Low Tide.mp3") and adb shell joins its args.
+  adb shell "am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d 'file:///sdcard/$(basename "$(dirname "$f")")/$(basename "$f")'" \
+    </dev/null >/dev/null 2>&1
+done
+log "baseline fixtures on /sdcard (Download, Music, Pictures, Documents) and media scan"
+
 mkdir -p "$OUTDIR/steps" "$OUTDIR/steps_dry" "$OUTDIR/screens" \
   "$OUTDIR/logcat" "$OUTDIR/dumps" "$OUTDIR/coverage"
 echo "app,route,method,edges,reached,script_status,steps_done,steps_total,error,run_id" > "$OUTDIR/results.csv"
