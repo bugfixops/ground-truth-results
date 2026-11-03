@@ -14,6 +14,8 @@ Note on sample timing: the sample was drawn before the log step. The label rows 
 
 ## What waits for a device (API 27)
 
+- **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 18 of 28 routes reached their target method; 17 of them ran the whole script and are now `DEVICE_OK`. 1 more reached the method although the script stopped early; its path keeps its earlier status. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
+
 - **Launcher behaviour.** Placing the widget, starting its configure activity and deleting a widget whose configuration was cancelled are done by the launcher (another app); its source was not read. Affects the widget methods that need the launcher to place the widget.
 - **Soft keyboard.** `Main.onEditorAction` needs the soft keyboard (or a hardware Enter key); IME behaviour was not read.
 

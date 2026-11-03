@@ -518,8 +518,13 @@ def main(argv):
 
     # audit log (verification.csv): confirmations, path status, stored paths, error rates
     vrows = load_verification(gdir)
+    # Device replay rows (type path, confirmed_by DEVICE; written by make_verification.py from device/results.csv)
+    # are read after every other row (stable sort), so the reviewer's judgment is in place before them.
+    vrows = sorted(vrows, key=lambda r: ((r.get('type') or '').strip() == 'path'
+                                         and (r.get('confirmed_by') or '').strip() == 'DEVICE'))
     edge_ids = {x['id'] for x in edges}
     counts = {t: collections.Counter() for t in VERIFY_TYPES}
+    device = collections.Counter()
     stored_paths = []
     for r in vrows:
         t, item, res = r['type'].strip(), (r.get('item') or '').strip(), (r.get('result') or '').strip()
@@ -533,6 +538,39 @@ def main(argv):
                 continue
         elif item not in labels:
             errors.append('verification.csv: unknown method %s' % item)
+            continue
+        if t == 'path' and cb == 'DEVICE':
+            # D7: a device row is correct (reached) or unclear, never wrong. It is counted apart from the reviewer's
+            # path sample (each route is counted once there), never lowers a path status and never overrides
+            # WRONG. Only a reached route whose script ran to the end (note without failed / timeout) on the
+            # current best route becomes DEVICE_OK.
+            if res not in ('correct', 'unclear'):
+                errors.append('verification.csv: DEVICE path row for %s is %s; D7 allows correct or unclear only' % (item, res))
+                continue
+            note = (r.get('note') or '').lower()
+            finished = 'failed' not in note and 'timeout' not in note
+            device['routes'] += 1
+            device[res] += 1
+            if res == 'correct' and finished:
+                device['finished'] += 1
+                if verdict[item] == 'REACHABLE' and labels[item]['path_status'] != 'WRONG':
+                    ids = (r.get('edges') or '').split()
+                    current = [x['id'] for x in info[item]['path']]
+                    if ids != current:
+                        warnings.append('verification.csv: the device-replayed path of %s is no longer the best route: re-run it' % item)
+                        continue
+                    labels[item]['path_status'] = 'DEVICE_OK'
+                    dref = (r.get('ref') or '').strip() or None
+                    known = [sp for sp in stored_paths if sp['method'] == item]
+                    if known:
+                        known[0]['verified_by'], known[0]['ref'] = 'DEVICE', dref
+                    else:
+                        p = info[item]['path']
+                        cls = sorted({x['edge_class'] for x in p} - {'page'})
+                        stored_paths.append({'method': item, 'edges': current, 'edge_classes': cls,
+                                             'explicit_standard_only': 'non_standard' not in cls,
+                                             'env': labels[item]['env'], 'state': labels[item]['state'],
+                                             'verified_by': 'DEVICE', 'ref': dref})
             continue
         counts[t][res] += 1
         if t == 'label' and res in ('correct', 'fixed'):
@@ -567,6 +605,9 @@ def main(argv):
             verification[t] = {'checked': checked, 'correct': c['correct'], 'errors_found': c['fixed'] + c['wrong'], 'unclear': c['unclear'],
                                'error_rate': round((c['fixed'] + c['wrong']) / checked, 3) if checked else None}
         verification['reachable_methods'] = sum(1 for m in methods if verdict[m] == 'REACHABLE')
+        if device['routes']:
+            verification['device'] = {'routes': device['routes'], 'reached': device['correct'],
+                                      'reached_script_finished': device['finished'], 'unclear': device['unclear']}
 
     if todo:
         (errors if strict else warnings).extend(['TO CLASSIFY ' + s for s in todo[:200]] + (['TO CLASSIFY ... %d more' % (len(todo) - 200)] if len(todo) > 200 else []))
@@ -705,6 +746,10 @@ def main(argv):
         for t in VERIFY_TYPES:
             v = verification[t]
             rep.append('verification %s: checked %d, errors found %d (rate %s), unclear %d' % (t, v['checked'], v['errors_found'], v['error_rate'], v['unclear']))
+        if verification.get('device'):
+            d = verification['device']
+            rep.append('verification device: routes %d, reached %d (script finished %d), unclear %d' % (
+                d['routes'], d['reached'], d['reached_script_finished'], d['unclear']))
     if cov:
         contra = [m for m in methods if verdict[m] == 'UNREACHABLE' and tool_hit(m)]
         gated_hit = [m for m in methods if verdict[m] == 'REACHABLE' and tool_hit(m) and info[m]['env_gated']]

@@ -102,6 +102,12 @@ def main(argv):
         for t, name in (('label', 'labels'), ('edge', 'edges (framework and other claims read against source)'), ('path', 'paths (stratified sample, read step by step)')):
             v = ver[t]
             L.append('| %s | %d | %d | %d | %d |' % (name, v['checked'] + v['unclear'], v['correct'], v['errors_found'], v['unclear']))
+        dv = ver.get('device')
+        if dv:
+            L.append('')
+            L.append('Device replay on the emulator (API 27): %d of %d routes reached their target method; %d of these ran the '
+                     'whole script and are `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or '
+                     'unscriptable), never wrong; see `../device/results.csv`.' % (dv['reached'], dv['routes'], dv['reached_script_finished']))
         L.append('')
         L.append('Path status over all reachable methods: %s.' % ', '.join('%s %d' % kv for kv in sorted(pstat.items())))
         L.append('The rows are the items that were individually checked, not a random sample of all labels; see the notes below for how they were chosen and what the unclear rows wait for.')

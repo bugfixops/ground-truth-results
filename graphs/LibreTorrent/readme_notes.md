@@ -56,6 +56,8 @@ Changes made on top of the first-draw graph (`a9e8b93d`: R3882 / U764 / UNRES86)
 
 ## What waits for a device (API 27)
 
+- **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 7 of 29 routes reached their target method; 7 of them ran the whole script and are now `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
+
 Nothing in this file is a device result. The device scripts in `device/routes/LibreTorrent/`
 (one per scripted row of `ROUTES.csv`) passed only the dry run (`device/drycheck.py`); no emulator
 was used. The judged premises (a fresh install of `org.proninyaroslav.libretorrent.debug` on an

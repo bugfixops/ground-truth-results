@@ -17,6 +17,8 @@
 
 ## What waits for a device (API 27)
 
+- **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 8 of 30 routes reached their target method; 5 of them ran the whole script and are now `DEVICE_OK`. 3 more reached the method although the script stopped early; their path keeps its earlier status. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
+
 - **The launcher's handling of the four home-screen widgets** (`OneCellWidget`, `FourLongWidget`, `FourSquareWidget`, `FourWhiteWidget`, plus `WidgetD`/`WidgetE`): placing a widget, resizing it, and removing it are done by the launcher app (another process); its source was not read, so the `other_app` ENV gate on every widget method is as far as this audit goes.
 - **The runtime storage-permission dialog itself** (`PermissionRequestActivity` only starts it and reads the result; the system permission UI is another app/process) and whether the OS actually re-delivers `onRequestPermissionsResult` exactly as `Activity.java` describes on a real API 27 image.
 - **IME behaviour** for every text field (the search box, the playlist name dialog, the jump-to-time dialog, the folder-browser path field): the soft keyboard is not part of this app and was not read.

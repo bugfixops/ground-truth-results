@@ -46,6 +46,8 @@
 
 ## What waits for a device (API 27)
 
+- **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 7 of 30 routes reached their target method; 7 of them ran the whole script and are now `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
+
 - Tab realization order (ViewPager timing and the fragment transaction). The graph gives the order from source; it was not run.
 - The first-start intro: IntroActivity.optStart is called from MainActivity.onResume (MainActivity.java:301). Not run.
 - The storage permission request on API 27. The result path (StoragePermissionActivity.onActivityResult) is closed on API 27 (GsContextUtils.java:2387-2401), so this was not run.

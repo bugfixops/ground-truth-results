@@ -17,6 +17,8 @@ Note on sample timing: the sample was drawn before the log step. The label rows 
 
 ## What waits for a device (API 27)
 
+- **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 23 of 37 routes reached their target method; 23 of them ran the whole script and are now `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
+
 Nothing here was confirmed on the emulator (confirmed_by DEVICE: 0). What a device check should settle: that the system file picker (`com.android.documentsui`) returns the document or tree the routes assume, for file, folder and the two `ACTION_CREATE_DOCUMENT` exports; that the launcher shortcuts "Text" and "File" start `MainActivity` with the action the code reads, and that an explicit VIEW intent with a `content://` URI starts the file path (`adb shell am start` can send it); that the 60-second clipboard clear fires; that a configuration change relaunches `MainActivity` (the manifest has no `android:configChanges`; the portrait lock only stops rotation). No method is closed by the API level: the shortcut code needs SDK_INT 26 or higher, true on API 27.
 
 ## Hazard candidates (from reading the code, not reproduced)

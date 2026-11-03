@@ -12,6 +12,8 @@
 
 ## What waits for a device (API 27)
 
+- **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 5 of 27 routes reached their target method; 5 of them ran the whole script and are now `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
+
 Nothing here is `confirmed_by DEVICE` (0 of 900). What an emulator replay should settle: that the system widget picker and a widget's own configure activity really return `RESULT_OK`/`RESULT_CANCELED` the way `Home.onActivityResult` assumes; that `org.kustom.wallpaper` / `org.kustom.widget` (or a stand-in package with the same name) can actually reach `FiveSecsDelayContentProvider.delete` from outside the app; that the legacy `com.android.launcher.action.INSTALL_SHORTCUT` broadcast is still delivered on API 27 (it predates the modern pinned-shortcut API); that dragging an icon out of the app drawer onto the desktop behaves as `DragState`/`WindowManagerService` suggest (ENTERED/EXITED/DROP ordering); that activating/deactivating OpenLauncher as a device administrator in Settings actually fires `DeviceAdminReceiver`; and that a real low-memory condition calls `onLowMemory` the way `ActivityThread.handleLowMemory` claims. No method is closed by the API level: nothing here is gated on an `SDK_INT` check that fails on 27.
 
 ## Hazard candidates (from reading the code, not reproduced)

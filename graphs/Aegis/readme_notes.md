@@ -134,6 +134,8 @@ is claimed here.
 
 ## What waits for a device (API 27)
 
+- **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 1 of 25 routes reached their target method; 1 of them ran the whole script and are now `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
+
 - ENV-gated routes: camera scan (ENV_CAMERA), image-pick import
   (ENV_PICK_IMAGE / ENV_PICKER), QR-code presentation (ENV_QR_CODE),
   biometric success/failure (ENV_BIOMETRIC / ENV_BIOMETRIC_FAIL),

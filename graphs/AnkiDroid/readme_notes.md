@@ -107,6 +107,8 @@
 
 ## What waits for a device (API 27)
 
+- **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 0 of 30 routes reached their target method; 0 of them ran the whole script and are now `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
+
 - Device preparation (D1/D3) is separate from this log work: the final
   sample's 30 routes need device/routes/AnkiDroid/ROUTES.csv and one
   script per scripted route, plus DEVICE rows in make_verification.py,

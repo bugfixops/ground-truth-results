@@ -58,6 +58,8 @@ Note on sample timing: the sample was drawn before the log step. The label rows 
 
 ## What waits for a device (API 27)
 
+- **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 0 of 30 routes reached their target method; 0 of them ran the whole script and are now `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
+
 Device checks are deferred: they run in GitHub CI when the user starts
 `.github/workflows/device-replay.yml` by hand; no emulator run has been
 started in this run. Device preparation (D1 route list, D3 scripts, D7

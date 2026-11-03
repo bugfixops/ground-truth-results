@@ -44,7 +44,7 @@ for a in $apps; do
   python3 -I tools/scan_unreachable.py "$a" --callers > "$o/8b_scan_callers.txt" 2>&1
   {
     echo "app $a | commit $(git rev-parse --short HEAD 2>/dev/null) | $(date -u '+%Y-%m-%d %H:%M UTC')"
-    grep -E '^(methods|verdicts|unreachable by kind|labels confirmed by|verification (label|edge|path)|errors|warnings|exit)' "$o/1_build.txt"
+    grep -E '^(methods|verdicts|unreachable by kind|labels confirmed by|verification (label|edge|path|device)|errors|warnings|exit)' "$o/1_build.txt"
     echo "check 2: $(grep -E '^citations' "$o/2_citations.txt" || tail -1 "$o/2_citations.txt")"
     echo "check 3: $(tail -1 "$o/3_routes.txt")"
     echo "check 4: $(grep -E 'where the cited line does not show the callee' "$o/4_bytecode.txt" || echo 'no summary line (see 4_bytecode.txt; a traceback means the check crashed)')"

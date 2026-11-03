@@ -18,6 +18,8 @@ Note on sample timing: the sample was drawn before the log step. The label rows 
 
 ## What waits for a device (API 27)
 
+- **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 8 of 33 routes reached their target method; 8 of them ran the whole script and are now `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
+
 Nothing here was confirmed on the emulator (confirmed_by DEVICE: 0). What a device check should settle:
 
 - **Whether the postpone flow of `SnoozeActivity` crashes** (list "Add reminder", notification "postpone"; see the hazard below). If it does, `SnoozeActivity.onReminderPicked` and `onRecurrenceReminderPicked`, which run only after the picker, could not run in the standard configuration; whether a certain crash closes them (closed_by_configuration) is a decision for the rules, not for this file.

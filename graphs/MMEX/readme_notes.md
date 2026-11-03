@@ -87,6 +87,8 @@ the reading rule).
 
 ## What waits for a device (API 27)
 
+- **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 6 of 30 routes reached their target method; 6 of them ran the whole script and are now `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
+
 - Everything device-side. This CSV carries SOURCE/INFERRED
   rows only; no DEVICE row appears (DEVICE rows are a later,
   separate change, when device results exist). No emulator
