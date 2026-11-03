@@ -90,6 +90,13 @@ def find_node(root, text=None, res_id=None, desc=None):
         raise ValueError("find_node needs exactly one of text, res_id, desc")
     matches = [n for n in root.iter("node")
                if _node_matches(n, text=text, res_id=res_id, desc=desc)]
+    if not matches and (text is not None or desc is not None):
+        # Kiro 2026-11-03 (real run 41586297765): on API 27 the dump carries the TRANSFORMED text of all-caps
+        # buttons and tabs ("ARTISTS", "SKIP", "DENY"), while scripts use the resource strings ("Artists",
+        # "Skip"). Fall back to a case-insensitive whole-string match only when nothing matches exactly.
+        attr, want = ("text", text) if text is not None else ("content-desc", desc)
+        matches = [n for n in root.iter("node")
+                   if n.get(attr, "").casefold() == want.casefold()]
     if not matches:
         return None
     matches.sort(key=lambda n: 0 if n.get("clickable") == "true" else 1)
