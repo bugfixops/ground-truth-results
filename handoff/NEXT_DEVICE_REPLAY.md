@@ -4,14 +4,20 @@ Status (2026-11-03, generated from the branch ROUTES.csv files):
 device route lists (D1) and route scripts (D3) are done for all
 13 apps (389 routes, 355 scripted, 34 unscriptable), and every app
 passed the final all-apps dry run `41576644702-1` (FAIL 0 for all
-13). The workflow is ready for the real run (commit `e6ad6ad8`:
-Google APIs x86_64 default, Amaze SSH server), and the all-apps dry
-run after that edit, `41578222764-1`, passed (FAIL 0 for all 13).
-No real emulator run has started, and none starts from here: the
-user starts it by hand (below).
+13). The real run has happened: `41593209101-1` (Google APIs API 27
+x86) reached 104 of 389 routes; its results are in
+`device/results/41593209101-1/`, the DEVICE rows are in every app's
+`verification.csv`, and `handoff/DEVICE_RUN_SUMMARY.md` lists every
+route that was not reached. The fixes that got the run working are in
+`handoff/KIRO_REPORT_EMULATOR.md`.
 
-Emulator image: Google APIs, x86_64, API 27 (`target: google_apis`),
-user decision 2026-11-03.
+Emulator image: Google APIs, API 27 (`target: google_apis`), user
+decision 2026-11-03, on **x86**: Google publishes no API 27
+`google_apis` x86_64 image (the first run, 41578755210, failed on it).
+A real run can also be started by pushing
+`handoff/DEVICE_REPLAY_REQUEST.txt` (line 1 a comment, line 2
+`# request <UTC time> <purpose>`, then app names or `all`), added at
+the user's instruction of 2026-11-03.
 
 ## Where and how
 
@@ -25,7 +31,7 @@ user decision 2026-11-03.
   minutes. Accept when every app shows all scripted routes PASS in
   `device/dryrun/<run>/SUMMARY.md`.
 - Real run: the user starts it by hand from the workflow page with
-  `dry_run=false` (image chosen: Google APIs x86_64, see below).
+  `dry_run=false` (image chosen: Google APIs API 27 x86, see below).
   Never start a real run from an agent, and never run adb against
   a real device.
 
@@ -57,7 +63,7 @@ throwaway sshd for them at run time.
    - routes `route_*.py`
    - api_level `27`
    - target `google_apis`
-   - arch `x86_64`
+   - arch `x86` (Google APIs API 27 has no x86_64 image)
    - dry_run `false`
 3. Wait about 1 to 1.5 hours (all 13 apps run in parallel; each
    route stops after 10 minutes at most; each app's job stops after
