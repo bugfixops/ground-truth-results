@@ -1,5 +1,8 @@
 # LibreTorrent running notes
 
+## Current step
+- 2026-11-03 (Kiro, local branch `kiro-libretorrent`, not pushed): handover Steps 0-10 done; Step 11 (device scripts) and Step 12 (final checks) follow. Build: 4732 methods, REACHABLE 3967, UNREACHABLE 765, UNRESOLVED 0, errors 0, warnings 0; checks 2/3/4 at 0, check 8 named 33/33. Route table redone on the final graph: 29 routes, CORRECT 18 / WRONG 9 / UNCLEAR 2, rate 9/27. Report: `scratch/kiro/KIRO_REPORT.md`. The older "Current status" section below is history.
+
 ## Current status
 
 - Current step (2026-10-31 17:20 EDT, Claude run): batches 10 and 11 are DONE_LABEL (batch 10: 39 UNREACHABLE, 1 REACHABLE `FeedItemsListItem.compareTo`; batch 11: 9 UNREACHABLE). Batch 12 is DONE_LABEL except one OPEN_NO_SOURCE row (29 REACHABLE, 10 UNREACHABLE). Labelled this run: batch 3 (39 UNREACHABLE), batch 4 (40 UNREACHABLE), batches 5–9 (200 generated binding statics), batches 10–12. LibreTorrent stays [C]; it is NOT DONE.
@@ -708,3 +711,22 @@ methods (ledIndicatorNotify, ledIndicatorColorNotify, notifySound, playSoundNoti
 vibrationNotify) are a different class (methods CALLED FROM AppearanceSettingsFragment,
 not methods OF it); their warnings disposition (R4 notifySound (a)/(b)) remains owed
 and is untouched here.
+
+## Decisions made by Muse (for the user and Yang to review)
+
+- Kiro (2026-11-03): Step 1 case C. Part b121 reaches 85 of the 86 UNRESOLVED methods by adding the missing delivery edge next to an existing REGISTER edge (Path A); `TorrentInputStream.toUnsignedByte` is UNREACHABLE no_trigger_in_app (D2); `DialogSelectTagBindingImpl.hasPendingBindings` is REACHABLE through the existing INFERRED edge E99f87464 (D3). Evidence: `parts/b121.md`, `scratch/b121_printed.txt`.
+- Kiro (2026-11-03): 17 hand-written select-tag edges cited lines from another version of SelectTagDialog.java (6 past its 195-line end); corrected by `_K4_CITE_FIX` (graph_def.py) from printed lines.
+- Kiro (2026-11-03): `AddTorrentInfoFragment.showOpenDirErrorDialog` left REACHABLE through edge Ef80b5c5d (guard data == null), mirroring `DetailTorrentInfoFragment.showOpenDirErrorDialog`; printed lines suggest the guard never holds while the public Download dir exists. Reviewer to decide whether both become branch_never_taken.
+- Kiro (2026-11-03): Step 6 cleared the 16 graph warnings without label changes: 12 automatic edges suppressed (`parts/k01_warnings.py`) and 5 hand edges dropped (`_K6_HAND_DROPS`), each starting at an UNREACHABLE method or behind an SDK guard false on API 27 (`scratch/kiro/prints/step6_warnings.txt`).
+- Kiro (2026-11-03): route 5 (`SafFileSystem$FakePath.serialize`) judged WRONG at step 13 although first-draw row 5 (same first 13 steps, method not in the final sample) was judged CORRECT; the printed save-path writers show the dir is always file:// (`scratch/kiro/prints/judge_saf.txt`).
+- Kiro (2026-11-03): routes 9 and 10 (select-tag row) judged UNCLEAR: they need a tag no earlier step creates (Aegis precedent for STATE data). The torrent-row premise of their shared prefix was accepted as in first-draw rows 1 and 16.
+- Kiro (2026-11-03): no helper agents ran. Host memory stayed critical and the requested helper model `claude-haiku-5-5` was refused by the runtime (InvalidModelError); I did not switch helpers to another model.
+
+## Kiro log (2026-11-03)
+
+- 3003df16: start commit; baseline matched the handover start numbers.
+- a04a8b05: tools/check_citations.py line 20 (Step 2; 12 other apps 0 problems, distinct counts as expected).
+- fa6abe75: K1 citation form (Step 3). c9384b65: K2 data-binding class (Step 5). 7997c893: K3 close() citations (Step 4).
+- 2a294908: part b121 + K4 (Step 1). fd4a16b0: warnings to 0 (Step 6). 58a3600a: check-8 callers (Step 7); labels gate passed.
+- 558a9939: route check on the final graph (Step 9).
+- Step 10 (writer, verification.csv, readme_notes.md, LESSONS.md, this file): see KIRO_REPORT.md for its commit.

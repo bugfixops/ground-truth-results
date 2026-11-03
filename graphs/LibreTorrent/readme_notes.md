@@ -1,173 +1,100 @@
-# LibreTorrent logs — readme notes (B6 logs step)
+# LibreTorrent logs — readme notes (Kiro final local state, 2026-11-03)
 
-Prose/docs only. This file changes no verdict, no label, and no graph
-file, and it claims no device result. Every fact below comes from the
-B6 final route table, the final B6 judgments, the B6 audits, the D7
-labels-gate report, or the D5/D6 report listed in DOCS_REPORT.md.
+Docs only. Every fact below comes from a build or file of the local branch `kiro-libretorrent`
+(`graphs/LibreTorrent/scratch/kiro/KIRO_REPORT.md` lists the commits and the printed numbers).
+The first-draw notes (B6 logs step, graph `a9e8b93d`) are superseded; their route table is kept as
+`scratch/route_table_first_draw.md`.
 
 ## What the re-audit changed (compared with the schema 1 graph)
 
-The graph judged in B6 is the schema-2 rebuild from printed source:
-120 parts merged, on branch base commit `a9e8b93d` with graph_def blob
-`564da867` — 4732 methods, 7293 edges, R3882 / U764 / UNRES86. The D7
-gate rebuild reproduces the audited D5 post-fix graph byte-identically,
-so the judged graph is the stable, fully measured graph, not a fresh
-variant.
+The graph is the schema-2 rebuild from printed source: 121 batch parts plus two Kiro parts
+(`k01_warnings.py`, `k02_check8.py`) merged in `graph_def.py`. Final build: 4732 methods,
+7303 edges, REACHABLE 3967 / UNREACHABLE 765 / UNRESOLVED 0; labels confirmed by SOURCE 621,
+INFERRED 4111; errors 0, warnings 0.
 
-D5 citation fixes took check-4 bad from 166 to 141. The remaining 141
-are not zero and are not hidden: Class A 134 file-not-found lines
-(generated code absent from the source tree: data-binding 108 + Room
-26) plus Class B 7 name-not-within-2 lines (compiler-emitted
-try-with-resources closes). Their disposition is ruling-owed (R2/R3),
-not closed in this logs step — see Limits below.
+Changes made on top of the first-draw graph (`a9e8b93d`: R3882 / U764 / UNRES86):
 
-No label changes were made in this step. Labels stay R3882 / U764 /
-UNRES86 unless a separate audited T1 execution (NOT this task) changes
-them.
+- Part b121 labels the last 86 methods: 85 REACHABLE through missing delivery edges from callers
+  that were already REACHABLE (Handler post, AlarmManager delivery, TextWatcher, Observable
+  callbacks, RxJava stages, clicks, ActivityResult), and `TorrentInputStream.toUnsignedByte`
+  UNREACHABLE (ruling D2). `DialogSelectTagBindingImpl.hasPendingBindings` is REACHABLE through the
+  existing INFERRED edge from `SelectTagDialog.onCreateDialog` (ruling D3). Stale line numbers on 17
+  select-tag edges were corrected (K4).
+- Citation form (K1): app files under `libretorrent/core/` are cited by file name; generated
+  binding/Room classes are cited as INFERRED generated code. With the one-line fix in
+  `tools/check_citations.py`, check 2 is 65 distinct citations, 0 problems.
+- Check 4 is 0: the 7 try-with-resources `close()` edges cite the whole block (K3).
+- The 95 data-binding edges are `non_standard` (K2, same rule as AnyMemo).
+- The 16 "UNREACHABLE but has incoming edges" warnings are cleared by suppressing or dropping edges
+  whose caller never runs on API 27 (k01, K6). No label changed.
+- Every check-8 reason names its bytecode caller (k02; 33 named, 0 missing;
+  `scratch/check8_explained.md`).
 
 ## How the checked paths were chosen
 
-The sample was drawn with seed 20261025
-(`python3 -I tools/verify_sample.py LibreTorrent 30 20261025`) from
-the 3882 REACHABLE methods, stratified by quota: NONSTD 4, INFERRED 4,
-ENV 6, LONG 6, PLAIN 7, STATE 3. The STATE stratum pool is empty
-(0 STATE-gated methods in all 4732 rows), so its quota of 3 went
-unfilled and the sample is 27 routes, not 30 — do NOT pad it to 30.
-
-The first draw IS the final draw: there was no redraw. A confirmatory
-second sampler run was cmp-identical. The 27 routes total 407 steps
-and 294 distinct edges.
-
-Judging standard: every step needs BOTH action TRUE (the source
-actually calls/reaches the destination as drawn, on printed lines) AND
-operative condition TRUE (guards and STATE/ENV preconditions
-satisfiable in ONE execution: fresh install, API 27, instrumented
-debug build). A step failing either is FALSE.
-
-Every route was judged by a helper and independently audited (A1–A5).
-Two routes were overturned on audit and went to a fresh re-judge plus
-re-audit: route 2 (havePiece, WRONG → CORRECT) and route 19 (safRoot,
-CORRECT → WRONG). The superseded original judgments are NOT used here.
-Final counts: CORRECT 19 / WRONG 8 / UNCLEAR 0 / BLOCKED 0, rate
-8/27 ≈ 0.2963.
-
-B6 did NOT fix WRONG routes in place (FIXED = 0): the 8 WRONG routes
-stay WRONG with their decisive-step reasons; fix directions in the B6
-report are NOT applied here.
+- Sample command: `python3 -I tools/verify_sample.py LibreTorrent 30 20261025`, drawn on the
+  labels-gate graph (commit `58a3600a`). It gives 29 routes, not 30: the sampler header reads
+  "29 of 3967 reachable methods". The STATE stratum (quota 3) has a pool for the first time (the
+  select-tag row tap carries the gate `adapter.getItemCount() > 0`), but only 2 methods carry a
+  STATE gate, so one STATE place stays empty. The 29 routes total 457 steps and 306 distinct edges.
+- The sample was drawn before the log step (`make_verification.py` and the new `verification.csv`).
+  The log step's label rows could change which methods the sampler picks on the final graph; a
+  redraw with the same command after the log step was checked and gave the same 29 methods in the
+  same order, so the judged routes are current.
+- Judging: Appendix D of the Kiro handover. Each step needs action TRUE and condition TRUE in one
+  run (fresh install, API 27, instrumented debug build, only the earlier steps of the same route).
+  A printed line that contradicts a step makes it FALSE (route WRONG); a step that depends on code
+  not in the upload or on state no earlier step creates is UNCLEAR. 22 routes are the same route
+  as in the first draw and carry its verdict; 7 are new and were judged step by step
+  (`scratch/kiro/judgments/`).
+- Result: CORRECT 18, WRONG 9, UNCLEAR 2, fixed 0.
+- Error rate = (fixed + wrong) / (correct-only + fixed + wrong), where fixed = WRONG in an earlier
+  draw and CORRECT in the final draw, correct-only = CORRECT minus fixed, every route counted once,
+  UNCLEAR reported separately. Here (0 + 9) / (18 + 0 + 9) = 9/27 ≈ 0.3333.
+- Stopping rule (user decision, as for AnkiDroid and Aegis): the final draw is judged once, with no
+  fix round. WRONG routes stay WRONG with their reasons and count in the rate.
 
 ## What waits for a device (API 27)
 
-Device work comes AFTER logs. No device ROUTES rows, no device
-scripts, and no DEVICE rows were built in this logs step, and no
-device result is claimed anywhere in these docs.
-
-What is pending, in coordinator-dispatched order: the logs-step push,
-then device D1/D3/D7, then CI rebuild → SUMMARY gate → dry-run
-request → D9. The judging precondition throughout B6 was a fresh
-install on API 27 in an instrumented debug build; whether the judged
-premises hold on a real device run is exactly what that later device
-phase is for, and it has not happened yet.
+Nothing in this file is a device result. The device scripts in `device/routes/LibreTorrent/`
+(one per scripted row of `ROUTES.csv`) passed only the dry run (`device/drycheck.py`); no emulator
+was used. The judged premises (a fresh install of `org.proninyaroslav.libretorrent.debug` on an
+Android 8.1 emulator, runtime permissions granted only where a route needs them) are what a later
+device run must confirm. Routes judged WRONG have no script; their rows are
+`unscriptable: route WRONG as drawn (see route_table.md)`.
 
 ## Hazard candidates (from reading the code, not reproduced)
 
-Each item below is a READING HAZARD drawn only from the B6 judgments
-— a place where a future route, script, or device step could go wrong
-in the same way a judged route already did. None of these was
-reproduced on a device in this step, and none is claimed as a device
-failure.
+Reading hazards from the judgments; none was reproduced on a device.
 
-- GC-finalize nondeterminism (route 3, FeedDao_Impl$11.finalize):
-  a drawn step from a constructor to `finalize` rests on garbage
-  collection, which is nondeterministic and not guaranteed in one
-  execution. Reading hazard, not a reproduced failure.
-- SAF content:// prefix no in-app action can supply (routes 17 and
-  19, SafFileSystem.getParentDirUri and safRoot): on a fresh install
-  the seed/save path is necessarily file://, the in-app picker returns
-  Uri.fromFile results only, and no in-app action makes a path
-  content:// — so any route or script that needs a content:// prefix
-  must supply it from outside the app or not be drawn that way.
-  Reading hazard, not a reproduced failure.
-- ADD/EDIT dialog-mode conflation (routes 4 and 7, PathResolver.join
-  and FeedDao_Impl$1.bind): prefixes launched in one dialog mode
-  (FILE_CHOOSER_MODE, ADD mode) were mixed with middles/tails from
-  another mode (SAVE_FILE_MODE, EDIT mode), so steps that are each
-  sound in isolation do not form one real execution. Reading hazard,
-  not a reproduced failure.
-- Worker action-dispatch mismatch (route 8, BaseElement.getUri):
-  fixing the work input to one action (ACTION_FETCH_ALL_CHANNELS)
-  dispatches to the plural handler (fetchChannels), not the singular
-  handler the route draws. Reading hazard, not a reproduced failure.
-- Fragment-commit versus header-click path (route 10,
-  SettingsRepositoryImpl.proxyLogin): the fragment committed by the
-  drawn step is AppearanceSettingsFragment; the Network fragment
-  arrives only via the unprinted network-header click path, and a
-  satisfiable screen-size guard cannot change which fragment was
-  committed. Reading hazard, not a reproduced failure.
-- Cancel-button versus positive-button listener (route 6,
-  AddTagViewModel$TagAlreadyExistsException): the drawn cancel-button
-  listener calls finish(CANCEL) and never calls addTag; addTag is
-  reachable only via the positive/add button listener, which the
-  route does not draw. Reading hazard, not a reproduced failure.
+- SAF dispatch needs a content:// dir that the app never stores (routes 5, 20, 22 and first-draw
+  row 19): the resolver picks SafFsModule only for scheme content (`FsModuleResolverImpl.java:42-49`,
+  `SafFileSystem.java:191-198`), while every save path the app writes is file://
+  (`SettingsRepositoryImpl.java:102-103`, `StorageSettingsFragment.java:227-239,267`,
+  `FileManagerViewModel.java:282`). First-draw row 5 (`SafFileSystem$FakePath.normalizeRelativePath`,
+  not in the final sample) shares the step judged FALSE in final route 5; it is likely WRONG too.
+- Fragment-commit versus header-click path (route 12 and first-draw row 10): `setFragment` from
+  `SettingsFragment.onViewCreated` commits AppearanceSettingsFragment, never the Network page.
+- Interface calls resolved to one implementation: automatic edges map every dialog's
+  `FragmentCallback.onFragmentFinished` call to `SelectTagActivity.onFragmentFinished`, and the
+  KeyProvider `selectable.getItemKey` calls to every Selectable adapter. Such edges can join
+  screens that never meet in one run.
+- Rows that need user data: tapping a torrent row or a tag row needs a torrent or tag the route
+  does not create (routes 9 and 10 are UNCLEAR for the tag; the first-draw judges accepted the
+  torrent row as a premise).
+- GC finalization (route 3), dialog-mode mixing (routes 4 and 6), worker action dispatch (route 7)
+  and the cancel-versus-add button listener (route 11) are carried over from the first draw.
 
 ## Limits
 
-Honest, measured limits. None of these is closed here.
-
-- Check-2 has 131 problems (ruling-owed R8): all "file not held",
-  over 10 app paths, all app citations in `core/...` short form that
-  the checker matches against framework sources only. Disposition
-  owed: explained checker-scope artifact, citation-form rewrite, or
-  checker exemption.
-- Check-4 bad is 141, NOT zero (ruling-owed R2/R3): Class A 134
-  file-not-found + Class B 7 name-not-within-2. The `checked` figure
-  (1673) excludes file-not-found lines, so bad is NOT a subset of
-  checked.
-- Check-8 has 33 explained rows (33 of 764 unreachable methods have a
-  bytecode caller outside the set); check-8 --all 0 is 0 by
-  construction and is not the substantive figure (the default split
-  is 606 with other mentions / 158 with none).
-- Warnings total 16 (15 method warnings + 1 REVIEW line), including
-  the notifySound warning (ruling-owed R4: keep-and-explain versus
-  suppress).
-- Errors total 86, exactly the 86 UNRESOLVED methods — technical
-  blocker T1, blocking F1 until labeled (or until a ruling disposes
-  of them; none granted). T1 plus user-owed rulings R1–R8 are all
-  still owed: R1 D4 FeedParser lines/edges, R2 D5 Class A route,
-  R3 D5 Class B handling, R4 notifySound option, R5 b034 hand-edge
-  dedupe auditor ruling, R6 batch-3 row 26 OPEN flag,
-  R7 59/32 setVariable label question, R8 check-2 131 disposition.
-- The 59/32 edge Ea751b47d appears in ZERO sampled routes and is
-  never claimed as a verified route. All 407 drawn steps have 0
-  src/dst touches of unresolved_86.txt.
-- Batch-3 row 26 (TagInfo.hashCode) stays flagged OPEN: its
-  'closed by b003' marking is NOT accepted, and the provenance /
-  documentation dispute (accept cells-govern or reopen) is owed as
-  R6, not settled here. The label itself (UNREACHABLE / SOURCE) is
-  present and audited; the OPEN flag is the dispute.
-- The b034 hand-edge dedupe ruling is owed (R5): edge E147e95ca is
-  present and is the sole edge from TorrentSessionImpl.download to
-  convert(Priority)#2, but the dedupe itself is NOT treated as
-  settled.
-- Route-2 caveat-2 ruling (i) + rule-(ii) contingency, carried in
-  full: TorrentDownloadImpl.havePiece is CORRECT under ruling (i) —
-  the caveat attaches ONLY to drawn route steps, and its
-  shutdown-first premise chain (SchedulerReceiver/TorrentService/
-  Utils setup methods, all in unresolved_86.txt) was verified
-  directly from source, not from the graph, so it is setup history,
-  not a drawn step. Contingency, NOT adopted: if the gate adopts
-  rule (ii) (caveat attaches to any method the verdict depends on),
-  route 2 becomes BLOCKED with no verdict, counts become CORRECT 18
-  / WRONG 8 / BLOCKED 1, rate 8/26 ≈ 0.3077.
-- No label changes in this step: labels stay R3882/U764/UNRES86
-  unless a separate audited T1 execution (NOT this task) changes
-  them.
-- B6 did NOT fix WRONG routes in place (FIXED = 0): the 8 WRONG
-  routes stay WRONG with their decisive-step reasons; fix directions
-  in the B6 report are NOT applied here.
-- The STATE stratum pool is empty (0 STATE-gated methods in all
-  4732 rows), which is why the sample is 27, not 30 — do NOT pad it
-  to 30.
-- Two drawn steps are UNVERIFIABLE (generated Room code absent from
-  the upload), both explicitly non-decisive: FeedDao_Impl$1.bind
-  step 14 and FeedDao_Impl$11.finalize step 19. No route was left
-  unjudgeable on their account.
+- The route rate is measured on 27 judged routes (29 minus 2 UNCLEAR); the 22 carried-over verdicts
+  were not re-judged step by step. Their edge lists were compared with the first-draw graph
+  (`scratch/kiro/same_route_diff.txt`): same nodes, kinds, guards and gates; only citation text
+  changed.
+- No helper agent ran (host memory stayed critical and the requested helper model was not
+  available), so every judgment had one reader and no independent audit.
+- `AddTorrentInfoFragment.showOpenDirErrorDialog` and `DetailTorrentInfoFragment.showOpenDirErrorDialog`
+  are REACHABLE through a guard (`data == null`) that the printed lines suggest never holds while the
+  public Download directory exists; left for the reviewer.
+- 4111 of 4732 labels are INFERRED; 10 of them stay INFERRED by ruling LT-4A-STAYS-INFERRED.
+- The tools change (`tools/check_citations.py` line 20) needs the reviewer's approval before push.

@@ -15,11 +15,12 @@ writes out/), never the trigger JSON, never a DECISIONS entry.
 Inputs (branch layout, file-anchored):
   GDIR/out/*_trigger_graph.json   exactly one trigger graph (asserted)
   GDIR/out/methods.csv            built routes, labels, gates
-  GDIR/scratch/sample_30.txt      B6 sample: 27 routes (STATE quota
-                                  unfilled), same order as the table
-  GDIR/scratch/route_table.md     B6 final table (27 rows, CORRECT 19 /
-                                  WRONG 8 / UNCLEAR 0 / BLOCKED 0,
-                                  rate 8/27 = 0.2963)
+  GDIR/scratch/sample_30.txt      final sample: N routes (N read from
+                                  this file; 29 on the Kiro final draw),
+                                  same order as the table
+  GDIR/scratch/route_table.md     final table (N rows; Kiro final draw:
+                                  CORRECT 18 / WRONG 9 / UNCLEAR 2,
+                                  rate 9/27 = 0.3333)
   GDIR/device/results.csv         ONLY if a CI device run wrote it (D7);
                                   absent at this step, so DEVICE rows = 0.
 
@@ -34,7 +35,7 @@ Path rows: one per sampled method, mechanically parsed from the table
 with exactly six fields; the Reason field may itself contain '|'
 (row 19 writes 'file://' || path_to_download), so the parser splits
 on only the first five '|' separators and keeps the rest verbatim.
-Asserted: row numbers 1..27 in order, table order == sample order,
+Asserted: row numbers 1..N in order, table order == sample order,
 table stratum == sample stratum, table steps == sample steps ==
 methods.csv steps_from_launch == len(route_edge_ids), and every sampled
 method is REACHABLE in methods.csv (otherwise the run refuses and
@@ -53,16 +54,17 @@ contingency (ii) with its 18/8/1 counts and 8/26 rate), so the gate
 sees both.
 
 Label rows: one per UNREACHABLE method, where the graph-label set MUST
-equal the methods.csv UNREACHABLE set (764), note =
+equal the methods.csv UNREACHABLE set (765 at Kiro K7), note =
 "UNREACHABLE <kind>: <text>" from the graph label, result 'correct',
 confirmed_by/ref from the graph label; PLUS one row per sampled method
-(27), result = table verdict, confirmed_by/ref as for path rows,
+(N), result = table verdict, confirmed_by/ref as for path rows,
 note = "REACHABLE confirmed: the route was read step by step (see the
 path row and route_table.md); gates read: env=<...> state=<...>".
-Total label rows: 764 + 27 = 791.
+Total label rows: UNREACHABLE count + N (765 + 29 = 794 at Kiro K7).
 
-The 86 UNRESOLVED methods get NO label row and NO invented verdict:
-they are asserted (from methods.csv verdict UNRESOLVED, count 86) to
+UNRESOLVED methods would get NO label row and NO invented verdict.
+Since part b121 (Kiro K5) the graph has none: the writer asserts the
+methods.csv UNRESOLVED count is 0, and would assert any to
 appear in neither path rows nor label rows, and no edge row is ever
 emitted for an edge touching them as a sampled-route step (zero drawn
 steps touch them). Their exclusion does NOT make faithful completion
@@ -171,8 +173,9 @@ for _l in open(SAMPLE_FILE, encoding='utf-8'):
         sample.append(_t[-1])
         sample_stratum[_t[-1]] = _t[0]
         sample_steps[_t[-1]] = int(_t[2])
-assert len(sample) == 27, ('sample size', len(sample))
-assert len(set(sample)) == 27, ('duplicate method in sample', sample)
+N = len(sample)
+assert N > 0, ('empty sample', SAMPLE_FILE)
+assert len(set(sample)) == N, ('duplicate method in sample', sample)
 
 # ---- mechanical parse of the B6 final table (route_table.md) ----
 # A data row is a line starting with '| ' whose first field is an
@@ -210,8 +213,8 @@ for _line in _table_lines:
     _table_methods.append(_method)
     _table_numbers.append(int(_n))
     assert _stratum == sample_stratum.get(_method), ('table stratum != sample stratum', _method)
-assert _table_numbers == list(range(1, 28)), ('table row numbers', _table_numbers)
-assert len(VERDICT) == 27, ('table row count', len(VERDICT))
+assert _table_numbers == list(range(1, N + 1)), ('table row numbers', _table_numbers)
+assert len(VERDICT) == N, ('table row count', len(VERDICT))
 assert _table_methods == sample, ('table order != sample order', _table_methods, sample)
 for _m in sample:
     assert sample_steps[_m] == int(rows[_m]['steps_from_launch']), ('sample steps != methods.csv steps', _m)
@@ -277,22 +280,24 @@ assert VERDICT[HAVE_PIECE] == 'correct', ('route 2 verdict changed', VERDICT[HAV
 CAVEAT_2 = (
     'Caveat-2 disclosure (adopted ruling (i)): the CORRECT verdict\'s '
     'shutdown-first premise depends on setup-history methods listed in '
-    'unresolved_86.txt -- SchedulerReceiver.<init>, '
+    'unresolved_86.txt (first draw) -- SchedulerReceiver.<init>, '
     'SchedulerReceiver.onReceive, SchedulerReceiver.onStopApp, '
     'TorrentService.<init>, TorrentService.onCreate, '
     'TorrentService.initPendingIntents, '
     'Utils.lambda$startServiceBackground$0 -- verified directly from '
     'source, not from the graph, so they are setup history, not drawn '
     'route steps; the caveat attaches ONLY to drawn route steps, and '
-    'zero drawn-step edges touch any of the 86 UNRESOLVED methods. '
+    'zero drawn-step edges touched any of the 86 then-UNRESOLVED methods. '
     'Load-bearing: without the premise chain, step 3 fails as the first '
     'helper judged; residual risk: the premise methods\' '
     'launch-reachability is not graph-proven, so step 3 rests on source '
     'reading plus standard platform behaviour (AlarmManager, framework '
     'service creation). Contingency NOT adopted: if the gate adopts rule '
     '(ii) (caveat attaches to any method the verdict depends on), route 2 '
-    'becomes BLOCKED with no verdict, counts become CORRECT 18 / WRONG 8 '
-    '/ BLOCKED 1, rate 8/26 = 0.3077.')
+    'becomes BLOCKED with no verdict (first-draw counts CORRECT 18 / WRONG 8 '
+    '/ BLOCKED 1, rate 8/26 = 0.3077). Kiro final draw: part b121 (K5) '
+    'gives all seven premise methods a graph route (REACHABLE), so the '
+    'premise is now graph-backed; the verdict is carried over unchanged.')
 NOTE[HAVE_PIECE] = NOTE[HAVE_PIECE] + ' ' + CAVEAT_2
 
 # ---- UNREACHABLE labels (exactly the graph's unreachable set) ----
@@ -312,7 +317,7 @@ for m in unre:
 
 # ---- UNRESOLVED exclusion (no row, no invented verdict) ----
 unresolved = {m for m, r in rows.items() if r['verdict'] == 'UNRESOLVED'}
-assert len(unresolved) == 86, ('unresolved count', len(unresolved))
+assert len(unresolved) == 0, ('unresolved count', len(unresolved))
 assert not (unresolved & set(sample)), ('sampled method is UNRESOLVED', sorted(unresolved & set(sample)))
 assert not (unresolved & unre), ('unreachable/unresolved overlap', sorted(unresolved & unre))
 print('UNRESOLVED methods excluded from all rows:', len(unresolved))
@@ -425,7 +430,7 @@ for m in sample:
                        route_ref(m), '',
                        'REACHABLE confirmed: the route was read step by step (see the path row and route_table.md); gates read: env=%s state=%s'
                        % (r['env_kinds'] or '-', r['state_kinds'] or '-')])
-assert len(label_rows) == 764 + 27, ('label row count', len(label_rows))
+assert len(label_rows) == len(U) + N, ('label row count', len(label_rows))
 assert len({r[1] for r in label_rows}) == len(label_rows), ('duplicate label item', len(label_rows))
 assert not ({r[1] for r in label_rows} & unresolved), ('label row for UNRESOLVED method')
 for _row in sorted(label_rows, key=lambda r: r[1]):
