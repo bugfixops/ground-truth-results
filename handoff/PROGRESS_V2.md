@@ -9,12 +9,12 @@
 - [x] Vanilla-Music
 # 2026-10-26 23:15 EDT: AnyMemo moved to the end and paused (not finished). Resume it from graphs/AnyMemo/AGENT_NOTES.md, section PAUSE POINT.
 - [x] Markor
-- [ ] Aegis
+- [K] Aegis (labels, route checks, logs and device scripts DONE 2026-11-02; CI run 2195fccb; D9 run 41557528925-1 PASSED; awaiting user tick)
 # 2026-10-27: the four apps below are assigned to Kiro (handoff/KIRO_CONVERT_APPS.md). "- [K]" = not ticked: the run must not take them.
 # 2026-10-29 23:25: the user moved AmazeFileManager, AnkiDroid and MMEX into the overnight run, labelling only, in this order.
 - [K] AmazeFileManager (labels, route checks, logs and device scripts DONE 2026-11-02; CI run 33e3ca1a; D9 run 41483333085-1 PASSED; awaiting user tick)
 # 2026-10-27 21:20: these three are for the overnight convert run (handoff/RESUME_PROMPT_CONVERT.md, tools/resume_convert.sh). "- [C]" = run queue, not ticked.
-- [L] AnkiDroid (labelled overnight 2026-10-30: UNRESOLVED 0, errors 0, warnings 0; route checks not started)
+- [K] AnkiDroid (labels, route checks, logs and device scripts DONE 2026-11-02; CI run 2195fccb; D9 run 41557528925-1 PASSED; awaiting user tick)
 - [K] MMEX (labels, route checks, logs and device scripts DONE 2026-11-02; CI run 70607c2c; D9 run 41535141998-1 PASSED; awaiting user tick)
 # 2026-10-28: "- [H]" = handed to ChatGPT (brief: handoff/CHATGPT_BRIEF_LIBRETORRENT.md). Not in the Claude queue; not ticked.
 - [M] LibreTorrent (handed to Muse by the user 2026-10-31; the Claude run was stopped at 18:10 EDT; see graphs/LibreTorrent/AGENT_NOTES.md "## Stopped by the user" and handoff/MUSE_HANDOVER.md)
