@@ -3919,7 +3919,7 @@ SUPPRESS.update({
 # Each merged batch part is its own file, parts/b<NNN>.py, run here in this namespace in the order of MERGED_PARTS.
 # Batches 13 and 14 are already pasted inline above; never list them here. Append one name at a time, in plan order,
 # and build after each append (C1). Keeping the parts in their own files keeps every file below the connector's 1 MB limit.
-MERGED_PARTS = ['b000_trunks.py', 'b001.py', 'b002.py', 'b003.py', 'b004.py', 'b005.py', 'b006.py', 'b007.py', 'b008.py', 'b009.py', 'b010.py', 'b011.py', 'b012.py', 'b015.py', 'b016.py', 'b017.py', 'b018.py', 'b019.py', 'b020.py', 'b021.py', 'b022.py', 'b023.py', 'b024.py', 'b025.py', 'b026.py', 'b027.py', 'b028.py', 'b029.py', 'b030.py', 'b031.py', 'b032.py', 'b033.py', 'b034.py', 'b035.py', 'b036.py', 'b037.py', 'b038.py', 'b039.py', 'b040.py', 'b041.py', 'b042.py', 'b043.py', 'b044.py', 'b045.py', 'b046.py', 'b047.py', 'b048.py', 'b049.py', 'b050.py', 'b051.py', 'b052.py', 'b053.py', 'b054.py', 'b055.py', 'b056.py', 'b057.py', 'b058.py', 'b059.py', 'b060.py', 'b061.py', 'b062.py', 'b063.py', 'b064.py', 'b065.py', 'b066.py', 'b067.py', 'b068.py', 'b069.py', 'b070.py', 'b071.py', 'b072.py', 'b073.py', 'b074.py', 'b075.py', 'b076.py', 'b077.py', 'b078.py', 'b079.py', 'b080.py', 'b081.py', 'b082.py', 'b083.py', 'b084.py', 'b085.py', 'b086.py', 'b087.py', 'b088.py', 'b089.py', 'b090.py', 'b091.py', 'b092.py', 'b093.py', 'b094.py', 'b095.py', 'b096.py', 'b097.py', 'b098.py', 'b099.py', 'b100.py', 'b101.py', 'b102.py', 'b103.py', 'b104.py', 'b105.py', 'b106.py', 'b107.py', 'b108.py', 'b109.py', 'b110.py', 'b111.py', 'b112.py', 'b113.py', 'b114.py', 'b115.py', 'b116.py', 'b117.py', 'b118.py', 'b119.py', 'b120.py']
+MERGED_PARTS = ['b000_trunks.py', 'b001.py', 'b002.py', 'b003.py', 'b004.py', 'b005.py', 'b006.py', 'b007.py', 'b008.py', 'b009.py', 'b010.py', 'b011.py', 'b012.py', 'b015.py', 'b016.py', 'b017.py', 'b018.py', 'b019.py', 'b020.py', 'b021.py', 'b022.py', 'b023.py', 'b024.py', 'b025.py', 'b026.py', 'b027.py', 'b028.py', 'b029.py', 'b030.py', 'b031.py', 'b032.py', 'b033.py', 'b034.py', 'b035.py', 'b036.py', 'b037.py', 'b038.py', 'b039.py', 'b040.py', 'b041.py', 'b042.py', 'b043.py', 'b044.py', 'b045.py', 'b046.py', 'b047.py', 'b048.py', 'b049.py', 'b050.py', 'b051.py', 'b052.py', 'b053.py', 'b054.py', 'b055.py', 'b056.py', 'b057.py', 'b058.py', 'b059.py', 'b060.py', 'b061.py', 'b062.py', 'b063.py', 'b064.py', 'b065.py', 'b066.py', 'b067.py', 'b068.py', 'b069.py', 'b070.py', 'b071.py', 'b072.py', 'b073.py', 'b074.py', 'b075.py', 'b076.py', 'b077.py', 'b078.py', 'b079.py', 'b080.py', 'b081.py', 'b082.py', 'b083.py', 'b084.py', 'b085.py', 'b086.py', 'b087.py', 'b088.py', 'b089.py', 'b090.py', 'b091.py', 'b092.py', 'b093.py', 'b094.py', 'b095.py', 'b096.py', 'b097.py', 'b098.py', 'b099.py', 'b100.py', 'b101.py', 'b102.py', 'b103.py', 'b104.py', 'b105.py', 'b106.py', 'b107.py', 'b108.py', 'b109.py', 'b110.py', 'b111.py', 'b112.py', 'b113.py', 'b114.py', 'b115.py', 'b116.py', 'b117.py', 'b118.py', 'b119.py', 'b120.py', 'b121.py']
 import os as _mp_os
 for _mp_name in MERGED_PARTS:
     _mp_path = _mp_os.path.join(GDIR, 'parts', _mp_name)
@@ -4063,3 +4063,45 @@ def _kiro_k3_edit(edge):
 
 
 EDIT = _kiro_k3_edit
+
+
+# ---- Kiro K4 (2026-11-03, Step 1 / b121): stale line numbers on the select-tag edges.
+# b121 puts these hand-written edges on live routes. Their cited lines do not match the uploaded
+# ui/tag/SelectTagDialog.java (195 lines; several citations point past its end), SelectTagActivity.java,
+# TagsAdapter.java or the manifest. New ranges are printed in scratch/b121_printed.txt.
+_K4_CITE_FIX = {
+    ('SelectTagActivity.onCreate', 'SelectTagDialog.newInstance'):
+        [('SelectTagActivity.java:35-51; ui/tag/SelectTagDialog.java:60-70', 'SelectTagActivity.java:41-54; ui/tag/SelectTagDialog.java:63-71')],
+    ('SelectTagDialog.newInstance', 'SelectTagDialog.<init>'): [('SelectTagDialog.java:60-70', 'SelectTagDialog.java:63-71')],
+    ('SelectTagDialog.newInstance', 'SelectTagDialog.onAttach'): [('SelectTagDialog.java:60-88', 'SelectTagDialog.java:63-80')],
+    ('SelectTagDialog.onAttach', 'SelectTagDialog.onCreateDialog'): [('SelectTagDialog.java:126-154', 'SelectTagDialog.java:73-80,113-136')],
+    ('SelectTagDialog.onCreateDialog', 'tag.TagsAdapter.<init>'):
+        [('SelectTagDialog.java:126-154; ui/tag/TagsAdapter.java:34-42', 'SelectTagDialog.java:130; ui/tag/TagsAdapter.java:38-42')],
+    ('SelectTagDialog.onCreateDialog', 'SelectTagDialog.initLayoutView'): [('SelectTagDialog.java:142-154,156-160', 'SelectTagDialog.java:132,138-142')],
+    ('SelectTagDialog.onCreateDialog', 'SelectTagDialog.initAlertDialog'): [('SelectTagDialog.java:152-154,163-182', 'SelectTagDialog.java:133,144-163')],
+    ('SelectTagDialog.initAlertDialog', 'SelectTagDialog.lambda$initAlertDialog$3'): [('SelectTagDialog.java:163-182', 'SelectTagDialog.java:144-163')],
+    ('SelectTagDialog.lambda$initAlertDialog$3', 'SelectTagDialog.lambda$initAlertDialog$1'): [('SelectTagDialog.java:172-176', 'SelectTagDialog.java:156-158')],
+    ('SelectTagDialog.lambda$initAlertDialog$3', 'SelectTagDialog.lambda$initAlertDialog$2'): [('SelectTagDialog.java:177-180', 'SelectTagDialog.java:159-161')],
+    ('SelectTagDialog.lambda$initAlertDialog$1', 'AddTagActivity.<init>'):
+        [('SelectTagDialog.java:172-176; AndroidManifest.xml:165-168', 'SelectTagDialog.java:156-158; AndroidManifest.xml:244-246')],
+    ('SelectTagDialog.lambda$initAlertDialog$2', 'SelectTagDialog.finish'): [('SelectTagDialog.java:177-180,235-242', 'SelectTagDialog.java:159-161,191-194')],
+    ('SelectTagDialog.onStart', 'SelectTagDialog.subscribeTags'): [('SelectTagDialog.java:103-111,184-197', 'SelectTagDialog.java:99-104,165-176')],
+    ('SelectTagDialog.subscribeTags', 'SelectTagDialog.lambda$subscribeTags$4'): [('SelectTagDialog.java:184-197', 'SelectTagDialog.java:165-176')],
+    ('tag.TagsAdapter$ViewHolder.lambda$bind$0', 'SelectTagDialog.onTagClicked'): [('SelectTagDialog.java:199-207', 'SelectTagDialog.java:178-184')],
+    ('SelectTagDialog.onTagClicked', 'SelectTagDialog.finish'): [('SelectTagDialog.java:199-207,235-242', 'SelectTagDialog.java:178-184,191-194')],
+    ('SelectTagDialog.finish', 'SelectTagActivity.onFragmentFinished'):
+        [('SelectTagDialog.java:235-242; ui/tag/SelectTagActivity.java:54-64', 'SelectTagDialog.java:191-194; ui/tag/SelectTagActivity.java:56-66')],
+}
+
+
+def _kiro_k4_edit(edge):
+    _kiro_k3_edit(edge)
+    fixes = _K4_CITE_FIX.get((edge.get('src'), edge.get('dst')))
+    if fixes and not edge.get('auto'):
+        ev = edge.get('evidence') or ''
+        for old, new in fixes:
+            ev = ev.replace(old, new)
+        edge['evidence'] = ev
+
+
+EDIT = _kiro_k4_edit
