@@ -17,7 +17,7 @@
 - [K] AnkiDroid (labels, route checks, logs and device scripts DONE 2026-11-02; CI run 2195fccb; D9 run 41557528925-1 PASSED; awaiting user tick)
 - [K] MMEX (labels, route checks, logs and device scripts DONE 2026-11-02; CI run 70607c2c; D9 run 41535141998-1 PASSED; awaiting user tick)
 # 2026-10-28: "- [H]" = handed to ChatGPT (brief: handoff/CHATGPT_BRIEF_LIBRETORRENT.md). Not in the Claude queue; not ticked.
-- [M] LibreTorrent (handed to Muse by the user 2026-10-31; the Claude run was stopped at 18:10 EDT; see graphs/LibreTorrent/AGENT_NOTES.md "## Stopped by the user" and handoff/MUSE_HANDOVER.md)
+- [K] LibreTorrent (labels, route checks, logs and device scripts DONE 2026-11-03; CI run ae203fe7; D9 run 41575076492-1 PASSED; awaiting user tick)
 # 2026-10-29: "- [N]" = NEXT step, not started (device replay of sampled routes on API 27 emulators in GitHub Actions, repo bugfixops/test-13). Plan: handoff/NEXT_DEVICE_REPLAY.md. Start only after all apps finish and the user says go.
 - [N] Device replay on GitHub Actions (bugfixops/test-13): not started
 # 2026-10-27: AnyMemo round 3 finished by Kiro (handoff/KIRO_FIX_ANYMEMO.md); "- [K]" until the user decides to tick it.
