@@ -35,5 +35,15 @@
 ## Not fixed (per-app first-start state; candidates for the reviewer and Yang)
 - AnkiDroid opens on Preferences instead of the deck list on most routes (20 misses); Markor shows its intro and then a storage request (14); Omni-Notes shows an empty notes list where scripts expect content (15); AmazeFileManager crashes ("Amaze Debug has stopped"); openlauncher stays in its own launcher/onboarding states. Fixing these needs app-specific setup (preset preferences, seed data) in ticked apps' route scripts.
 
+## Part C: DEVICE-row fix
+- C0: head `09de7506` (Kiro emulator report Part B).
+- C1: `tools/build_graph.py` copied to `tools/build_graph_v9_backup.py`; reviewer patch printed `patched` for tools/build_graph.py, tools/gen_readme_v2.py, handoff/ci/rebuild.sh. `git diff --stat`: handoff/ci/rebuild.sh 2 (+1/-1), tools/build_graph.py 45 (+45), tools/gen_readme_v2.py 6 (+6); backup untracked.
+- C2: local `rebuild.sh all` exit 0; `check_device_fix.py`: PASS for all 13, `ALL PASS`.
+- C3: device bullet added as the first bullet under `## What waits for a device (API 27)` in 12 apps (Currency +1 and Vanilla-Music +3 "reached but script stopped early" sentences); Diary line 9 replaced by the Appendix A text. Rebuild exit 0, `ALL PASS`, every readme_notes.md has 5 `## ` headings, `graphs/Diary/out/README.md` shows the device sentence and "Path status over all reachable methods: DEVICE_OK 16, SOURCE_OK 11, UNCHECKED 238."
+- C4: correction section added to `handoff/DEVICE_RUN_SUMMARY.md`, CI line rewritten.
+- C5: fix commit `8185289c` (18 files); CI request `001fd881`; bot commit `60e7e0a6` `[ci] rebuild and checks`. All 13 SUMMARY files name `001fd881`; errors 0 and warnings 0 for all 13; each has a `verification device: routes N, reached R (script finished F), unclear U` line. `check_device_fix.py` on the CI outputs: `ALL PASS`; DEVICE_OK total 100, WRONG total 14.
+- C6: placeholders in `handoff/DEVICE_RUN_SUMMARY.md` filled (`8185289c`, `60e7e0a6`); this section; pushed last.
+- Model: this session cannot switch itself to claude-haiku-5-5; it ran on the session model. No helper agents were used (host memory critical).
+
 ## Blocked
 - none. Notes: `git config user.email` in this clone prints a personal address, not bugfixops (the handover expected it set); every commit was made with GIT_AUTHOR_*/GIT_COMMITTER_* set to `bugfixops <bugfixops@users.noreply.github.com>` instead, and the config was left unchanged. The model could not be switched to claude-haiku-5-5 from inside the session. At the A1 push, the only running Actions job was GitHub's own "Graph Update: pip" dependency scan, not a CI or dry-run job.
