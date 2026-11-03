@@ -29,9 +29,9 @@ Verification log (`verification.csv`), counts of what was checked and found:
 |---|---:|---:|---:|---:|
 | labels | 51 | 44 | 7 | 0 |
 | edges (framework and other claims read against source) | 47 | 37 | 0 | 10 |
-| paths (stratified sample, read step by step) | 30 | 18 | 7 | 5 |
+| paths (stratified sample, read step by step) | 60 | 34 | 7 | 19 |
 
-Path status over all reachable methods: SOURCE_OK 25, UNCHECKED 240.
+Path status over all reachable methods: DEVICE_OK 16, UNCHECKED 249.
 The rows are the items that were individually checked, not a random sample of all labels; see the notes below for how they were chosen and what the unclear rows wait for.
 
 Edges whose evidence is not a source line (52 of 1435): E41cf8b5e (S_EXIT -> S_ENTRY); Eff02ee30 (Diary.onBackPressed@BROWSE -> Diary$1.onPageFinished); Ecc51ba5c (Diary.listYears -> Diary.lambda$listYears$1); Ee8021a1a (Diary.listMonths -> Diary.lambda$listMonths$2); Ed3097966 (Diary.listDays -> Diary.lambda$listDays$3); Ea16ba1a8 (Diary.sortFiles -> Diary.lambda$sortFiles$0); Ebfa0014d (Diary.loadMarkdown(CharSequence) -> Diary$1.onPageFinished); E03c29845 (S_DIARY_VIEW -> Diary$1.shouldOverrideUrlLoading); E30d249c1 (S_DIARY_VIEW_CHANGED -> Diary$1.shouldOverrideUrlLoading); Ed2f9b82e (S_DIARY_BROWSE -> Diary$1.shouldOverrideUrlLoading); Eb6f2a0d2 (S_DIARY_SEARCH@VIEW -> Diary$1.shouldOverrideUrlLoading); E5d9f47db (Diary.lambda$setListeners$6 -> Diary.onActionModeStarted) ...

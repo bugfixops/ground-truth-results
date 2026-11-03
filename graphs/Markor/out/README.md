@@ -29,9 +29,9 @@ Verification log (`verification.csv`), counts of what was checked and found:
 |---|---:|---:|---:|---:|
 | labels | 445 | 397 | 48 | 0 |
 | edges (framework and other claims read against source) | 87 | 42 | 40 | 5 |
-| paths (stratified sample, read step by step) | 30 | 13 | 17 | 0 |
+| paths (stratified sample, read step by step) | 60 | 20 | 17 | 23 |
 
-Path status over all reachable methods: SOURCE_OK 11, UNCHECKED 2439.
+Path status over all reachable methods: DEVICE_OK 7, UNCHECKED 2443.
 The rows are the items that were individually checked, not a random sample of all labels; see the notes below for how they were chosen and what the unclear rows wait for.
 
 Edges whose evidence is not a source line (1464 of 6891): Ed24d8dc8 (MainActivity.<init> -> MainActivity.<clinit>); E0ecb8e4d (MainActivity.onPostResume -> S_NOTEBOOK); E54b4aedd (S_NOTEBOOK -> MainActivity.lambda$onCreate$0); Ec7635dfe (S_TODO -> MainActivity.lambda$onCreate$0); Ed5b7d224 (S_QUICKNOTE -> MainActivity.lambda$onCreate$0); E4ca7bd0d (S_MORE -> MainActivity.lambda$onCreate$0); E80c409ce (MainActivity.lambda$onCreate$0 -> S_TODO); E4db63107 (MainActivity.lambda$onCreate$0 -> S_QUICKNOTE); Ec433d118 (MainActivity.lambda$onCreate$0 -> S_MORE); E45a58a9a (MainActivity.lambda$onCreate$0 -> S_NOTEBOOK); Eb6c73931 (MainActivity.lambda$onCreate$0 -> MainActivity$1.onPageSelected); E96323c18 (MainActivity.onActivityFirstTimeVisible -> MainActivity.lambda$onActivityFirstTimeVisible$1) ...

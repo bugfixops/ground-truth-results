@@ -29,9 +29,9 @@ Verification log (`verification.csv`), counts of what was checked and found:
 |---|---:|---:|---:|---:|
 | labels | 52 | 50 | 2 | 0 |
 | edges (framework and other claims read against source) | 35 | 9 | 26 | 0 |
-| paths (stratified sample, read step by step) | 37 | 24 | 13 | 0 |
+| paths (stratified sample, read step by step) | 74 | 47 | 13 | 14 |
 
-Path status over all reachable methods: SOURCE_OK 37, UNCHECKED 470.
+Path status over all reachable methods: DEVICE_OK 23, UNCHECKED 484.
 The rows are the items that were individually checked, not a random sample of all labels; see the notes below for how they were chosen and what the unclear rows wait for.
 
 Edges whose evidence is not a source line (157 of 1314): Ec9b0d520 (MainActivity.showFragment@CALC_XURI -> HashCalculatorFragment.onAttach@XURI); Ee781a5b8 (HashCalculatorFragment.onAttach@XURI -> BaseFragment.onCreateView@HashCalculatorFragment_XURI); Ee861279f (BaseFragment.onCreateView@HashCalculatorFragment_XURI -> HashCalculatorFragment.onViewCreated@XURI); E21ea7944 (MainActivity.showFragment@CALC_XTEXT -> HashCalculatorFragment.onAttach@XTEXT); Ef8b0149d (HashCalculatorFragment.onAttach@XTEXT -> BaseFragment.onCreateView@HashCalculatorFragment_XTEXT); E3a41bb03 (BaseFragment.onCreateView@HashCalculatorFragment_XTEXT -> HashCalculatorFragment.onViewCreated@XTEXT); E51602476 (MainActivity.showFragment@CALC_XFILE -> HashCalculatorFragment.onAttach@XFILE); E1a2c0ce6 (HashCalculatorFragment.onAttach@XFILE -> BaseFragment.onCreateView@HashCalculatorFragment_XFILE); Ee7706acf (BaseFragment.onCreateView@HashCalculatorFragment_XFILE -> HashCalculatorFragment.onViewCreated@XFILE); E2cbba8c6 (MainActivity.onCreate -> BaseActivity.getTheme@MainActivity); Ee606bb4f (MainActivity.create -> HashCalculatorFragment.<clinit>); E3755babd (MainActivity.showFragment@CALC -> HashCalculatorFragment.onAttach) ...

@@ -29,9 +29,9 @@ Verification log (`verification.csv`), counts of what was checked and found:
 |---|---:|---:|---:|---:|
 | labels | 288 | 281 | 7 | 0 |
 | edges (framework and other claims read against source) | 49 | 15 | 34 | 0 |
-| paths (stratified sample, read step by step) | 33 | 3 | 30 | 0 |
+| paths (stratified sample, read step by step) | 66 | 11 | 30 | 25 |
 
-Path status over all reachable methods: SOURCE_OK 31, UNCHECKED 1170, WRONG 1.
+Path status over all reachable methods: DEVICE_OK 8, UNCHECKED 1194.
 The rows are the items that were individually checked, not a random sample of all labels; see the notes below for how they were chosen and what the unclear rows wait for.
 
 Edges whose evidence is not a source line (356 of 3803): Ed965d44a (MainActivity.onCreate -> MainActivity_ViewBinding.<init>(MainActivity,View)); E7c78e9af (MainActivity.onCreate -> NavigationDrawerFragment.<init>); E449a3211 (NavigationDrawerFragment.<init> -> NavigationDrawerFragment.onCreate); E02a461c5 (NavigationDrawerFragment.<init> -> NavigationDrawerFragment.onCreateView); E0c960f14 (NavigationDrawerFragment.<init> -> NavigationDrawerFragment.onActivityCreated); E16eb2c51 (NavigationDrawerFragment.<init> -> NavigationDrawerFragment.onStart); E8c98d772 (ListFragment.<init> -> ListFragment.onCreate); Ef56e2127 (ListFragment.<init> -> ListFragment.onCreateView); E54b170af (ListFragment.<init> -> ListFragment.onActivityCreated); E995b7be1 (ListFragment.<init> -> ListFragment.onResume); E24faa205 (ListFragment.<init> -> ListFragment.onCreateOptionsMenu); E2b5eb400 (ListFragment.<init> -> ListFragment.onPrepareOptionsMenu) ...

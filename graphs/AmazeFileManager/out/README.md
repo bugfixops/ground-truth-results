@@ -29,9 +29,9 @@ Verification log (`verification.csv`), counts of what was checked and found:
 |---|---:|---:|---:|---:|
 | labels | 499 | 474 | 25 | 0 |
 | edges (framework and other claims read against source) | 14 | 4 | 10 | 0 |
-| paths (stratified sample, read step by step) | 30 | 5 | 25 | 0 |
+| paths (stratified sample, read step by step) | 60 | 5 | 25 | 30 |
 
-Path status over all reachable methods: SOURCE_OK 30, UNCHECKED 2482.
+Path status over all reachable methods: UNCHECKED 2512.
 The rows are the items that were individually checked, not a random sample of all labels; see the notes below for how they were chosen and what the unclear rows wait for.
 
 Edges whose evidence is not a source line (580 of 7747): E9c493cd5 (MainActivity.onResume -> MainActivity.onCreateOptionsMenu); E7a0b9a37 (MainActivity.onCreateOptionsMenu -> MainActivity.onOptionsItemSelected); E745b85ef (MainActivity$1.<init> -> MainActivity$1.doInBackground); Ed18978e9 (MainActivity$1.doInBackground -> MainActivity$1.onPostExecute); Ef643161a (TabFragment.onCreateView -> MainFragment.<init>); E3f533b40 (MainFragment.<init> -> MainFragment.onCreate); Ebd761bbf (MainFragment.onCreate -> MainFragment.onCreateView); E9adbdc5d (MainFragment.onCreateView -> MainFragment.onActivityCreated); E199e866f (RecyclerAdapter.<init> -> RecyclerAdapter.onCreateViewHolder); Ee1989850 (RecyclerAdapter.onCreateViewHolder -> RecyclerAdapter.onBindViewHolder); E6c3cfc3a (RecyclerAdapter.setItems(RecyclerView,ArrayList,boolean) -> RecyclerPreloadModelProvider.getPreloadRequestBuilder); Eacc36ed3 (Drawer.<init> -> Drawer.onNavigationItemSelected) ...

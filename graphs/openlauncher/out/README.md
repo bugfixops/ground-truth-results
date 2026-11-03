@@ -29,9 +29,9 @@ Verification log (`verification.csv`), counts of what was checked and found:
 |---|---:|---:|---:|---:|
 | labels | 199 | 199 | 0 | 0 |
 | edges (framework and other claims read against source) | 37 | 34 | 3 | 0 |
-| paths (stratified sample, read step by step) | 27 | 26 | 1 | 0 |
+| paths (stratified sample, read step by step) | 54 | 31 | 1 | 22 |
 
-Path status over all reachable methods: SOURCE_OK 27, UNCHECKED 701.
+Path status over all reachable methods: DEVICE_OK 5, UNCHECKED 723.
 The rows are the items that were individually checked, not a random sample of all labels; see the notes below for how they were chosen and what the unclear rows wait for.
 
 Edges whose evidence is not a source line (182 of 1515): E5443509f (Home.<init> -> Home.<clinit>); E5245b855 (S_ENTRY -> FiveSecsDelayContentProvider.query); Ee0bafc0f (S_ENTRY -> FiveSecsDelayContentProvider.insert); E8d693829 (S_ENTRY -> FiveSecsDelayContentProvider.update); E4d2b8aaa (S_ENTRY -> FiveSecsDelayContentProvider.getType); E8828e57a (S_ENTRY -> FiveSecsDelayContentProvider.delete); E15938fe2 (S_ENTRY -> DeviceAdminReceiver.<init>); E52bc2f77 (DeviceAdminReceiver.<init> -> DeviceAdminReceiver.onReceive); E1d6f1e01 (S_ENTRY -> ShortcutReceiver.onReceive); E5aa97973 (Init.onCreate -> S_INTRO); E8b7dd43a (S_INTRO -> Init.onSkipButtonPressed); E0fe9628f (S_INTRO -> Init.onFinishButtonPressed) ...

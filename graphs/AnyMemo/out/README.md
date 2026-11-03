@@ -29,9 +29,9 @@ Verification log (`verification.csv`), counts of what was checked and found:
 |---|---:|---:|---:|---:|
 | labels | 271 | 271 | 0 | 0 |
 | edges (framework and other claims read against source) | 45 | 38 | 7 | 0 |
-| paths (stratified sample, read step by step) | 30 | 30 | 0 | 0 |
+| paths (stratified sample, read step by step) | 60 | 35 | 0 | 25 |
 
-Path status over all reachable methods: SOURCE_OK 30, UNCHECKED 1936.
+Path status over all reachable methods: DEVICE_OK 5, UNCHECKED 1961.
 The rows are the items that were individually checked, not a random sample of all labels; see the notes below for how they were chosen and what the unclear rows wait for.
 
 Edges whose evidence is not a source line (836 of 4492): E612d7778 (AMApplication.<init> -> AMApplication.<clinit>); E21a1ff1d (CardProvider.<init> -> CardProvider.<clinit>); E1597aa9e (CardProvider.onCreate -> CardProvider.query); Eda12bfa1 (CardProvider.onCreate -> CardProvider.insert); E45e40cab (CardProvider.onCreate -> CardProvider.update); Ed29a3dd6 (CardProvider.onCreate -> CardProvider.delete); E897c4318 (CardProvider.onCreate -> CardProvider.getType); E9d821a48 (DatabasesProvider.onCreate -> DatabasesProvider.query); E9f0e5ffe (DatabasesProvider.onCreate -> DatabasesProvider.insert); E5c2dcaf1 (DatabasesProvider.onCreate -> DatabasesProvider.update); E6cf94e21 (DatabasesProvider.onCreate -> DatabasesProvider.delete); E16059cda (DatabasesProvider.onCreate -> DatabasesProvider.getType) ...

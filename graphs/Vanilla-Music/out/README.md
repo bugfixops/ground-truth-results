@@ -29,9 +29,9 @@ Verification log (`verification.csv`), counts of what was checked and found:
 |---|---:|---:|---:|---:|
 | labels | 178 | 178 | 0 | 0 |
 | edges (framework and other claims read against source) | 80 | 70 | 10 | 0 |
-| paths (stratified sample, read step by step) | 30 | 11 | 19 | 0 |
+| paths (stratified sample, read step by step) | 60 | 19 | 19 | 22 |
 
-Path status over all reachable methods: SOURCE_OK 30, UNCHECKED 1295.
+Path status over all reachable methods: DEVICE_OK 8, UNCHECKED 1317.
 The rows are the items that were individually checked, not a random sample of all labels; see the notes below for how they were chosen and what the unclear rows wait for.
 
 Edges whose evidence is not a source line (50 of 3429): Ee2a9c908 (LibraryActivity.<init> -> LibraryActivity.<clinit>); Ee0cdc86c (LibraryActivity.onCreate -> LibraryPagerAdapter.getCount); Ead28b45b (LibraryActivity.onCreate -> LibraryPagerAdapter.isViewFromObject); E402bba6c (LibraryActivity.onCreate -> LibraryPagerAdapter.getItemPosition); Edb19c27c (LibraryActivity.onCreate -> LibraryPagerAdapter.setPrimaryItem); E8076a9d0 (LibraryActivity.onCreate -> LibraryPagerAdapter.destroyItem); Eb282789e (LibraryActivity.onCreate -> LibraryPagerAdapter.instantiateItem); E0aef3ecf (LibraryActivity.onCreate -> LibraryPagerAdapter.instantiateItem@ARTIST); Eead57580 (LibraryActivity.onCreate -> LibraryPagerAdapter.instantiateItem@ALBUM); Ec793fbf9 (SlidingTabLayout$TabClickListener.onClick -> LibraryPagerAdapter.instantiateItem@ARTIST); E2d459ca2 (SlidingTabLayout$TabClickListener.onClick -> LibraryPagerAdapter.instantiateItem@ALBUM); Ea507ffd7 (SlidingTabLayout$TabClickListener.onClick -> LibraryPagerAdapter.instantiateItem@SONG) ...
