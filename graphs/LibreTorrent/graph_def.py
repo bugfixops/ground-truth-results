@@ -33,10 +33,24 @@ _GENERATED_EDGE_DROPS = {
     ('Scheduler.cancelStartAppAlarm', 'S_SYS_SchedulerReceiver', 'INTENT'),
     ('Scheduler.cancelStopAppAlarm', 'S_SYS_SchedulerReceiver', 'INTENT'),
 }
+# Kiro K6 (2026-11-03, handover Step 6): hand-written edges whose call never runs in the standard
+# configuration (API 27). Their targets stay UNREACHABLE; printed lines in
+# scratch/kiro/prints/step6_warnings.txt. See also parts/k01_warnings.py.
+_K6_HAND_DROPS = {
+    # read() is UNREACHABLE (parts/b041.py); TorrentInputStream.java:248 runs only inside read().
+    ('TorrentInputStream.read()', 'TorrentInputStream.toUnsignedByte', 'CALL'),
+    # PermissionManager.java:99: launch(:104) needs SDK_INT >= R (30); false on API 27.
+    ('PermissionManager.requestPermissions', 'PermissionManager.lambda$new$0', 'RESULT'),
+    # AppearanceSettingsFragment.java:118: initLegacyNotifySettings runs only when SDK_INT < O; false on API 27.
+    ('AppearanceSettingsFragment.onCreate', 'AppearanceSettingsFragment.initLegacyNotifySettings', 'CALL'),
+    # Both start inside initLegacyNotifySettings (UNREACHABLE closed_by_api_level), :140-167.
+    ('AppearanceSettingsFragment.initLegacyNotifySettings', 'AppearanceSettingsFragment.lambda$initLegacyNotifySettings$0', 'FRAMEWORK'),
+    ('AppearanceSettingsFragment.lambda$initLegacyNotifySettings$0', 'AppearanceSettingsFragment.lambda$new$1', 'RESULT'),
+}
 _append_edge = e
 
 def _filter_generated_edge(src, dst, kind, trigger, *args, **kwargs):
-    if (src, dst, kind) in _GENERATED_EDGE_DROPS:
+    if (src, dst, kind) in _GENERATED_EDGE_DROPS or (src, dst, kind) in _K6_HAND_DROPS:
         return
     return _append_edge(src, dst, kind, trigger, *args, **kwargs)
 
@@ -3919,7 +3933,7 @@ SUPPRESS.update({
 # Each merged batch part is its own file, parts/b<NNN>.py, run here in this namespace in the order of MERGED_PARTS.
 # Batches 13 and 14 are already pasted inline above; never list them here. Append one name at a time, in plan order,
 # and build after each append (C1). Keeping the parts in their own files keeps every file below the connector's 1 MB limit.
-MERGED_PARTS = ['b000_trunks.py', 'b001.py', 'b002.py', 'b003.py', 'b004.py', 'b005.py', 'b006.py', 'b007.py', 'b008.py', 'b009.py', 'b010.py', 'b011.py', 'b012.py', 'b015.py', 'b016.py', 'b017.py', 'b018.py', 'b019.py', 'b020.py', 'b021.py', 'b022.py', 'b023.py', 'b024.py', 'b025.py', 'b026.py', 'b027.py', 'b028.py', 'b029.py', 'b030.py', 'b031.py', 'b032.py', 'b033.py', 'b034.py', 'b035.py', 'b036.py', 'b037.py', 'b038.py', 'b039.py', 'b040.py', 'b041.py', 'b042.py', 'b043.py', 'b044.py', 'b045.py', 'b046.py', 'b047.py', 'b048.py', 'b049.py', 'b050.py', 'b051.py', 'b052.py', 'b053.py', 'b054.py', 'b055.py', 'b056.py', 'b057.py', 'b058.py', 'b059.py', 'b060.py', 'b061.py', 'b062.py', 'b063.py', 'b064.py', 'b065.py', 'b066.py', 'b067.py', 'b068.py', 'b069.py', 'b070.py', 'b071.py', 'b072.py', 'b073.py', 'b074.py', 'b075.py', 'b076.py', 'b077.py', 'b078.py', 'b079.py', 'b080.py', 'b081.py', 'b082.py', 'b083.py', 'b084.py', 'b085.py', 'b086.py', 'b087.py', 'b088.py', 'b089.py', 'b090.py', 'b091.py', 'b092.py', 'b093.py', 'b094.py', 'b095.py', 'b096.py', 'b097.py', 'b098.py', 'b099.py', 'b100.py', 'b101.py', 'b102.py', 'b103.py', 'b104.py', 'b105.py', 'b106.py', 'b107.py', 'b108.py', 'b109.py', 'b110.py', 'b111.py', 'b112.py', 'b113.py', 'b114.py', 'b115.py', 'b116.py', 'b117.py', 'b118.py', 'b119.py', 'b120.py', 'b121.py']
+MERGED_PARTS = ['b000_trunks.py', 'b001.py', 'b002.py', 'b003.py', 'b004.py', 'b005.py', 'b006.py', 'b007.py', 'b008.py', 'b009.py', 'b010.py', 'b011.py', 'b012.py', 'b015.py', 'b016.py', 'b017.py', 'b018.py', 'b019.py', 'b020.py', 'b021.py', 'b022.py', 'b023.py', 'b024.py', 'b025.py', 'b026.py', 'b027.py', 'b028.py', 'b029.py', 'b030.py', 'b031.py', 'b032.py', 'b033.py', 'b034.py', 'b035.py', 'b036.py', 'b037.py', 'b038.py', 'b039.py', 'b040.py', 'b041.py', 'b042.py', 'b043.py', 'b044.py', 'b045.py', 'b046.py', 'b047.py', 'b048.py', 'b049.py', 'b050.py', 'b051.py', 'b052.py', 'b053.py', 'b054.py', 'b055.py', 'b056.py', 'b057.py', 'b058.py', 'b059.py', 'b060.py', 'b061.py', 'b062.py', 'b063.py', 'b064.py', 'b065.py', 'b066.py', 'b067.py', 'b068.py', 'b069.py', 'b070.py', 'b071.py', 'b072.py', 'b073.py', 'b074.py', 'b075.py', 'b076.py', 'b077.py', 'b078.py', 'b079.py', 'b080.py', 'b081.py', 'b082.py', 'b083.py', 'b084.py', 'b085.py', 'b086.py', 'b087.py', 'b088.py', 'b089.py', 'b090.py', 'b091.py', 'b092.py', 'b093.py', 'b094.py', 'b095.py', 'b096.py', 'b097.py', 'b098.py', 'b099.py', 'b100.py', 'b101.py', 'b102.py', 'b103.py', 'b104.py', 'b105.py', 'b106.py', 'b107.py', 'b108.py', 'b109.py', 'b110.py', 'b111.py', 'b112.py', 'b113.py', 'b114.py', 'b115.py', 'b116.py', 'b117.py', 'b118.py', 'b119.py', 'b120.py', 'b121.py', 'k01_warnings.py']
 import os as _mp_os
 for _mp_name in MERGED_PARTS:
     _mp_path = _mp_os.path.join(GDIR, 'parts', _mp_name)
