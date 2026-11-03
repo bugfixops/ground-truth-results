@@ -27,8 +27,8 @@ on:
         description: 'Android API level of the emulator'
         default: '27'
       target:
-        description: 'System image: default (AOSP) or google_apis'
-        default: 'default'
+        description: 'System image: google_apis (chosen 2026-11-03) or default (AOSP)'
+        default: 'google_apis'
       arch:
         description: 'x86_64 or x86'
         default: 'x86_64'
@@ -105,12 +105,21 @@ jobs:
         if: ${{ env.DRY != 'true' }}
         run: bash wemu/ci/get_jacoco.sh
 
+      - name: SSH server for Amaze SSH routes
+        if: ${{ env.DRY != 'true' && matrix.app == 'AmazeFileManager' }}
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q openssh-server
+          command -v sshd && command -v ssh-keygen
+
       - name: Emulator and route replay
         if: ${{ env.DRY != 'true' }}
+        env:
+          WITH_SSH_SERVER: ${{ matrix.app == 'AmazeFileManager' && '1' || '0' }}
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ inputs.api_level || '27' }}
-          target: ${{ inputs.target || 'default' }}
+          target: ${{ inputs.target || 'google_apis' }}
           arch: ${{ inputs.arch || 'x86_64' }}
           profile: pixel_2
           cores: 3
