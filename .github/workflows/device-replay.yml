@@ -3,7 +3,9 @@ name: Device replay
 # Replays the scripted routes in device/routes/<App>/ on an Android emulator (default API 27, AOSP, x86_64, the image of
 # the baseline tool runs in bugfixops/work-emulator) and commits the text results to device/results/<run id>/.
 #
-# Real emulator runs start ONLY by hand: Actions -> Device replay -> Run workflow (the user decides when).
+# Real emulator runs start by hand (Actions -> Device replay -> Run workflow), or, by the user's instruction of
+# 2026-11-03, when handoff/DEVICE_REPLAY_REQUEST.txt is pushed (apps listed one per line, or "all").
+# Image: Google APIs, API 27, x86 (Google publishes no API 27 google_apis x86_64 image; all 13 APKs run on x86).
 # A dry run (no emulator: every route script is loaded, its planned adb actions are printed and its edge ids are
 # checked against the current graph) starts by hand with dry_run=true, or when handoff/DEVICE_DRYRUN_REQUEST.txt
 # is pushed (apps listed one per line, or "all").
@@ -30,14 +32,14 @@ on:
         description: 'System image: google_apis (chosen 2026-11-03) or default (AOSP)'
         default: 'google_apis'
       arch:
-        description: 'x86_64 or x86'
-        default: 'x86_64'
+        description: 'x86 (google_apis API 27 has no x86_64 image) or x86_64 (default/AOSP only)'
+        default: 'x86'
       dry_run:
         description: 'true = no emulator, only plan and validate the scripts'
         default: 'false'
   push:
     branches: [work-2026-10-31]
-    paths: [handoff/DEVICE_DRYRUN_REQUEST.txt]
+    paths: [handoff/DEVICE_DRYRUN_REQUEST.txt, handoff/DEVICE_REPLAY_REQUEST.txt]
 
 permissions:
   contents: write
@@ -47,7 +49,9 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  DRY: ${{ github.event_name == 'push' && 'true' || inputs.dry_run }}
+  # REAL_REQ: this push changed handoff/DEVICE_REPLAY_REQUEST.txt (real-run request); any other push is a dry run.
+  REAL_REQ: ${{ github.event_name == 'push' && (contains(toJSON(github.event.commits.*.modified), 'handoff/DEVICE_REPLAY_REQUEST.txt') || contains(toJSON(github.event.commits.*.added), 'handoff/DEVICE_REPLAY_REQUEST.txt')) }}
+  DRY: ${{ github.event_name == 'push' && ((contains(toJSON(github.event.commits.*.modified), 'handoff/DEVICE_REPLAY_REQUEST.txt') || contains(toJSON(github.event.commits.*.added), 'handoff/DEVICE_REPLAY_REQUEST.txt')) && 'false' || 'true') || inputs.dry_run }}
   ROUTES_GLOB: ${{ inputs.routes || 'route_*.py' }}
 
 jobs:
@@ -66,7 +70,10 @@ jobs:
           EVENT: ${{ github.event_name }}
           IN_APPS: ${{ inputs.apps }}
         run: |
-          if [ "$EVENT" = "push" ]; then apps=$(grep -v '^#' handoff/DEVICE_DRYRUN_REQUEST.txt | tr ',\n' '  '); else apps="$IN_APPS"; fi
+          req=handoff/DEVICE_DRYRUN_REQUEST.txt
+          if [ "$REAL_REQ" = "true" ]; then req=handoff/DEVICE_REPLAY_REQUEST.txt; fi
+          if [ "$EVENT" = "push" ]; then apps=$(grep -v '^#' "$req" | tr ',\n' '  '); else apps="$IN_APPS"; fi
+          echo "event=$EVENT real_request=$REAL_REQ dry=$DRY request_file=$req"
           python3 -I device/plan.py $apps >> "$GITHUB_OUTPUT"
 
   run:
@@ -120,7 +127,7 @@ jobs:
         with:
           api-level: ${{ inputs.api_level || '27' }}
           target: ${{ inputs.target || 'google_apis' }}
-          arch: ${{ inputs.arch || 'x86_64' }}
+          arch: ${{ inputs.arch || 'x86' }}
           profile: pixel_2
           cores: 3
           ram-size: 3072M
