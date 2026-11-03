@@ -82,6 +82,28 @@
   supersedes the 3 / 30 = 0.1000 figure, which used the WRONG /
   (CORRECT + WRONG) definition; scratch/route_table.md has been
   updated to this definition (no verdict changed).
+- Corrected rate (round 2, user order 2026-11-02): rate =
+  (fixed + wrong) / (correct-only + fixed + wrong), where fixed
+  means WRONG in ANY earlier draw (first draw at 3213cea2 included)
+  AND CORRECT in the final draw, correct-only means CORRECT in the
+  final draw and never WRONG in any earlier draw, and each route is
+  counted once. Fixed routes (13, verified mechanically against the
+  first-draw table, the earlier-draw table, and the final table):
+  Phrase.<init>, EasyX509TrustManager.<init>, Stats$1.compare,
+  libanki.Utils$1.<init>, Finder.findNotes,
+  HttpFetcher.downloadFileToSdCardMethod,
+  Sound.notifyConfigurationChanged,
+  Models$TransformFieldDelete.<init>, Sched.getToday,
+  AdvancedStatistics$Card.setIvl,
+  DiffEngine.diff_cleanupSemanticScore, DB.insert,
+  SimpleMessageDialog.<init>. Correct-only 14, wrong 3 (rows
+  09/18/28). Arithmetic: (13 + 3) / (14 + 13 + 3) = 16 / 30 =
+  0.5333 (approx). This supersedes the 8 / 35 = 0.2286 figure,
+  which double-counted the fixed routes inside correct. Row-08
+  contingency: row 08's method ModelEditorContextMenu.onCreateDialog
+  is correct-only (UNCLEAR in the first draw, CORRECT in the earlier
+  draw, never WRONG), so if it flips to UNCLEAR the rate becomes
+  (13 + 3) / (13 + 13 + 3) = 16 / 29 = 0.5517 (approx).
 
 ## What waits for a device (API 27)
 

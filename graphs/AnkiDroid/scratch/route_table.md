@@ -11,13 +11,22 @@ Judgments: independent per-method reads of the new prints
 (`turn/merge/JUDGE-GATES.md`) for four dropped-out targets.
 
 Totals: CORRECT 27 / WRONG 3 / UNCLEAR 0. Rate = (fixed + wrong) /
-(correct + fixed + wrong) = (5 + 3) / (27 + 5 + 3) = 8 / 35 =
-0.2286 (approx), where fixed means WRONG in an earlier draw AND
-CORRECT in the final draw (the Aegis definition), correct is the
-final-draw CORRECT count (27, which includes the fixed routes),
-and the fixed routes are HttpFetcher.downloadFileToSdCardMethod
-(row 12), Models$TransformFieldDelete.<init> (row 16), Sched.getToday
-(row 21), DB.insert (row 25), SimpleMessageDialog.<init> (row 29).
+(correct-only + fixed + wrong) = (13 + 3) / (14 + 13 + 3) = 16 / 30 =
+0.5333 (approx), where fixed means WRONG in ANY earlier draw (first
+draw at 3213cea2 included) AND CORRECT in the final draw, correct-only
+means CORRECT in the final draw and never WRONG in any earlier draw
+(14), wrong means the final-draw WRONG count (3), and each route is
+counted once. The fixed routes (13, verified mechanically against
+both earlier-draw tables and the final table, in final-table row
+order): Phrase.<init> (row 01), EasyX509TrustManager.<init> (row 02),
+Stats$1.compare (row 03), libanki.Utils$1.<init> (row 05),
+Finder.findNotes (row 10), HttpFetcher.downloadFileToSdCardMethod
+(row 12), Sound.notifyConfigurationChanged (row 13),
+Models$TransformFieldDelete.<init> (row 16), Sched.getToday
+(row 21), AdvancedStatistics$Card.setIvl (row 22),
+DiffEngine.diff_cleanupSemanticScore (row 23), DB.insert (row 25),
+SimpleMessageDialog.<init> (row 29). This supersedes the 8 / 35 =
+0.2286 figure, which double-counted the fixed routes inside correct.
 (The earlier figure 3 / 30 = 0.1000 used the WRONG / (CORRECT +
 WRONG) definition; no verdict changed.)
 
@@ -45,9 +54,13 @@ the same method was UNCLEAR in the first draw (row 06) because its final
 `<init> -> onCreateDialog` step has no printed framework evidence and stays
 INFERRED (support-v4 DialogFragment source absent from the tree). If the
 table auditor rules UNCLEAR, row 08 flips to UNCLEAR with no other change
-(totals become CORRECT 26, WRONG 3, UNCLEAR 1, rate (5 + 3) /
-(26 + 5 + 3) = 8 / 34 = 0.2353 (approx) under the work-order
-definition).
+(totals become CORRECT 26, WRONG 3, UNCLEAR 1, rate (13 + 3) /
+(13 + 13 + 3) = 16 / 29 = 0.5517 (approx) under the corrected
+definition; row 08's method ModelEditorContextMenu.onCreateDialog is
+in the correct-only 14, not the fixed 13 — it was UNCLEAR in the
+first draw (row 06) and CORRECT in the earlier draw (row 08), never
+WRONG — so the fixed count stays 13 and the correct-only count
+drops 14 to 13).
 
 ## Final table (new draw, redraw order)
 
