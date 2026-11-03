@@ -9,15 +9,15 @@
 - [x] Vanilla-Music
 # 2026-10-26 23:15 EDT: AnyMemo moved to the end and paused (not finished). Resume it from graphs/AnyMemo/AGENT_NOTES.md, section PAUSE POINT.
 - [x] Markor
-- [K] Aegis (labels, route checks, logs and device scripts DONE 2026-11-02; CI run 2195fccb; D9 run 41557528925-1 PASSED; awaiting user tick)
+- [x] Aegis (labels, route checks, logs and device scripts DONE 2026-11-02; CI run 2195fccb; D9 run 41557528925-1 PASSED; ticked by the user 2026-11-03)
 # 2026-10-27: the four apps below are assigned to Kiro (handoff/KIRO_CONVERT_APPS.md). "- [K]" = not ticked: the run must not take them.
 # 2026-10-29 23:25: the user moved AmazeFileManager, AnkiDroid and MMEX into the overnight run, labelling only, in this order.
-- [K] AmazeFileManager (labels, route checks, logs and device scripts DONE 2026-11-02; CI run 33e3ca1a; D9 run 41483333085-1 PASSED; awaiting user tick)
+- [x] AmazeFileManager (labels, route checks, logs and device scripts DONE 2026-11-02; CI run 33e3ca1a; D9 run 41483333085-1 PASSED; ticked by the user 2026-11-03)
 # 2026-10-27 21:20: these three are for the overnight convert run (handoff/RESUME_PROMPT_CONVERT.md, tools/resume_convert.sh). "- [C]" = run queue, not ticked.
-- [K] AnkiDroid (labels, route checks, logs and device scripts DONE 2026-11-02; CI run 2195fccb; D9 run 41557528925-1 PASSED; awaiting user tick)
-- [K] MMEX (labels, route checks, logs and device scripts DONE 2026-11-02; CI run 70607c2c; D9 run 41535141998-1 PASSED; awaiting user tick)
+- [x] AnkiDroid (labels, route checks, logs and device scripts DONE 2026-11-02; CI run 2195fccb; D9 run 41557528925-1 PASSED; ticked by the user 2026-11-03)
+- [x] MMEX (labels, route checks, logs and device scripts DONE 2026-11-02; CI run 70607c2c; D9 run 41535141998-1 PASSED; ticked by the user 2026-11-03)
 # 2026-10-28: "- [H]" = handed to ChatGPT (brief: handoff/CHATGPT_BRIEF_LIBRETORRENT.md). Not in the Claude queue; not ticked.
-- [K] LibreTorrent (labels, route checks, logs and device scripts DONE 2026-11-03; CI run ae203fe7; D9 run 41575076492-1 PASSED; awaiting user tick)
+- [x] LibreTorrent (labels, route checks, logs and device scripts DONE 2026-11-03; CI run ae203fe7; D9 run 41575076492-1 PASSED; ticked by the user 2026-11-03)
 # 2026-10-29: "- [N]" = NEXT step, not started (device replay of sampled routes on API 27 emulators in GitHub Actions, repo bugfixops/test-13). Plan: handoff/NEXT_DEVICE_REPLAY.md. Start only after all apps finish and the user says go.
 - [N] Device replay on GitHub Actions (bugfixops/test-13): not started
 # 2026-10-27: AnyMemo round 3 finished by Kiro (handoff/KIRO_FIX_ANYMEMO.md); "- [K]" until the user decides to tick it.
