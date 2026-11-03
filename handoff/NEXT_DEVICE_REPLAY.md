@@ -4,22 +4,30 @@ Status (2026-11-03, generated from the branch ROUTES.csv files):
 device route lists (D1) and route scripts (D3) are done for all
 13 apps (389 routes, 355 scripted, 34 unscriptable), and every app
 passed the final all-apps dry run `41576644702-1` (FAIL 0 for all
-13). No real emulator run has started, and none starts from here:
-the user starts it by hand (below).
+13). The workflow is ready for the real run (commit `e6ad6ad8`:
+Google APIs x86_64 default, Amaze SSH server), and the all-apps dry
+run after that edit, `41578222764-1`, passed (FAIL 0 for all 13).
+No real emulator run has started, and none starts from here: the
+user starts it by hand (below).
+
+Emulator image: Google APIs, x86_64, API 27 (`target: google_apis`),
+user decision 2026-11-03.
 
 ## Where and how
 
 - Repo: `bugfixops/ground-truth-results`, branch `work-2026-10-31`.
 - Workflow: `.github/workflows/device-replay.yml` (read it first;
-  never edit it or anything under `.github/`).
+  agents never edit it or anything under `.github/`, except the
+  user-approved edit of 2026-11-03, commit `e6ad6ad8`).
 - Dry run: push `handoff/DEVICE_DRYRUN_REQUEST.txt` (line 1 a
   comment, line 2 `# request <UTC time> <purpose>`, then app names
   or `all`). Only the coordinator sends it, at most once per 15
   minutes. Accept when every app shows all scripted routes PASS in
   `device/dryrun/<run>/SUMMARY.md`.
 - Real run: the user starts it by hand from the workflow page with
-  `dry_run=false`, after choosing the emulator image. Never start a
-  real run from an agent, and never run adb against a real device.
+  `dry_run=false` (image chosen: Google APIs x86_64, see below).
+  Never start a real run from an agent, and never run adb against
+  a real device.
 
 ## Environment and secrets
 
@@ -29,19 +37,34 @@ APKs, classes, fixtures, and `ci/app_env.py`). No credentials, no
 tokens, no APK uploads into this repo. `adb`, `java`, and `python3`
 are on the runner.
 
-## Workflow-side requirements for Amaze SSH routes (for the
-user's reviewer — the workflow file itself is not edited here)
+## Workflow-side requirements for Amaze SSH routes: Done
 
-For Amaze SSH routes, `.github/workflows/device-replay.yml` needs
-exactly these two items, and nothing else is asserted here:
+Done in commit `e6ad6ad8` (user decision 2026-11-03): the workflow
+has a step "SSH server for Amaze SSH routes" that installs
+openssh-server (apt) for the AmazeFileManager job only, and the
+"Emulator and route replay" step sets `WITH_SSH_SERVER=1` for the
+AmazeFileManager job only (`0` for every other app). Amaze SSH
+routes are 07, 08, 23, 29 and 30; `device/run_app.sh` starts the
+throwaway sshd for them at run time.
 
-- a step installing openssh-server (apt);
-- WITH_SSH_SERVER=1 for Amaze jobs only.
+## How the user starts the real run
 
-The reviewer applies these to the workflow; this file does not
-edit `.github/` or any workflow file. Amaze SSH routes are 07,
-08, 23, 29 and 30; all of them need the throwaway sshd
-(`device/run_app.sh` under WITH_SSH_SERVER=1) at run time.
+1. On GitHub: Settings → General → Default branch, switch to
+   `work-2026-10-31`, and confirm.
+2. Actions → "Device replay" → Run workflow. Choose branch
+   `work-2026-10-31` and set:
+   - apps `all`
+   - routes `route_*.py`
+   - api_level `27`
+   - target `google_apis`
+   - arch `x86_64`
+   - dry_run `false`
+3. Wait about 1 to 1.5 hours (all 13 apps run in parallel; each
+   route stops after 10 minutes at most; each app's job stops after
+   340 minutes at most). The last job (`collect`) commits
+   `[device] results <run>`, with the results under
+   `device/results/<run>/`.
+4. Tell Kiro the run id; processing the results (Part B) starts then.
 
 ## Route counts per app (D1)
 
