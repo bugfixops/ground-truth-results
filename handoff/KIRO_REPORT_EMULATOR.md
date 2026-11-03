@@ -7,8 +7,33 @@
 - A3: `handoff/NEXT_DEVICE_REPLAY.md` updated: status paragraph (workflow ready at `e6ad6ad8`, dry run `41578222764-1` passed, no real run started), image choice (Google APIs x86_64, API 27, user decision 2026-11-03), the Amaze SSH section replaced by a "Done" note, and a new section "How the user starts the real run" (steps and expected time). Committed with this report.
 - No real emulator run was started.
 
-## Part B: process the run results
-(not started: waits for the user's real run id)
+## Between Part A and Part B: getting a real run to work (user instruction 2026-11-03: "run it yourself, fix what needs to be fixed")
+- 41578755210 (user's manual run, b3356c5b): all 13 jobs failed in the emulator setup in about 23 s. Google's image list (dl.google.com sys-img google_apis) has no `system-images;android-27;google_apis;x86_64`; it has x86 and arm64-v8a. All 13 APKs have no native code or ship x86 libs (checked in the local APKs). Fix e97b62cb: `arch` default `x86` (still Google APIs), plus a real-run request file `handoff/DEVICE_REPLAY_REQUEST.txt` (no API token on this machine; the push credential is in the keychain and was not read). Dry run 41579127015-1 after the edit: 13 apps, FAIL 0.
+- 41579432533 (1890c6a8): the real request ran as a dry run (the push-payload expression did not match). Fix 60862462: the plan job decides `dry` from `git diff-tree` of the pushed commit and the run/collect jobs read it from `needs.plan.outputs.dry`.
+- 41580035601 (60862462): real run, 1 route per app. `device/run_app.sh`: `IFS=tab read` collapsed empty columns (status read as fixtures) and adb inside the loop consumed the route list; sshd needs an absolute path. Fix a147c559 (fd 3, 0x1f separator; absolute sshd and key paths). Local test: 28/29 routes read with correct columns.
+- 41580858995 (a147c559): every UI dump failed to parse ("junk after document element", the status line after the XML); method names with commas shifted results.csv; non-root sshd could not read /etc/ssh/sshd_config.d. Fix 453a3b6a (parse only <hierarchy>, quote the method field, own sshd config file). 30 harness tests pass.
+- 41581852815 (453a3b6a): first complete run, workflow success, 70/389 reached. Taps raced cold starts. Fix 71d7ca9d (tap polls up to 20 s, wait_for at least 30 s, visible labels to stderr on a miss).
+- 41583852305 (71d7ca9d): 62/359 reached; Markor job lost to a JaCoCo download error (curl 22); AnyMemo and AmazeFileManager never came to the front: their launch components used the application id (`...fantastischmemopro`, `...filemanager.debug`) as the class package. Fix 3404c1c9 (56 component strings in 44 scripts, drycheck 30/30 PASS each; JaCoCo download retried).
+- 41586297765 (3404c1c9): 76/389. API 27 dumps all-caps buttons/tabs as ARTISTS, SKIP; Diary's start-up permission dialog covered 16 routes. Fix 5c2bc466 (case-insensitive fallback after an exact match; Diary: 22 empty permission cells filled with the 4 permissions Diary requests on start).
+- 41589762145 (5c2bc466): 102/389. The baseline fixture folders were never pushed (ROUTES setup notes "push fixtures/Music + media scan" etc.); Vanilla needs storage to show its library. Fix d4b1e3af (push Download/Music/Pictures/Documents and media-scan once per app, as work-emulator ci/run_app.sh does; Vanilla: 26 empty permission cells filled with READ/WRITE_EXTERNAL_STORAGE).
+- 41593209101 (d4b1e3af): 104/389 reached; the run of record for Part B.
+
+## Part B: process the run results (run 41593209101-1)
+- B0: `[device] results 41593209101-1` (ab7c5f90); all 13 app jobs and collect finished with success; 13 `results.csv` present.
+- B1: `device/compare.py` wrote 13 `graphs/<App>/device/results.csv` (rows = routes for every app).
+- B2: all 13 writers ran twice with exit 0 and byte-identical output (md5); DEVICE rows = routes for every app (Currency 28, Diary 30, hash-checker 37, Omni-Notes 33, openlauncher 27, Vanilla-Music 30, Markor 30, AnyMemo 30, Aegis 25, AmazeFileManager 30, AnkiDroid 30, MMEX 30, LibreTorrent 29); DEVICE `correct` = reached in every app, no `wrong`; only DEVICE lines were added, no other line changed.
+- B3: commit with the 26 files, CI request 21c73e8e, bot commit c2e5b6b7 `[ci] rebuild and checks`: every SUMMARY names 21c73e8e; errors 0, warnings 0, check 2 0 problems, check 4 0 for all 13; verdicts identical to the previous CI table; `verification.csv rows: ... DEVICE n` with n = routes everywhere; no "no longer the best route" warning.
+- B4: `handoff/DEVICE_RUN_SUMMARY.md`: reached 104/389 (26.7%); lowest shares AmazeFileManager 0/30, AnkiDroid 0/30, Aegis 1/25.
+
+## Decisions (Kiro, 2026-11-03, for the reviewer)
+- Image Google APIs x86 instead of x86_64 (the x86_64 image does not exist for API 27).
+- A real-run request file (`handoff/DEVICE_REPLAY_REQUEST.txt`) was added as a second trigger, because the user asked Kiro to run it and no API token is available. Pushing `handoff/DEVICE_DRYRUN_REQUEST.txt` still gives a dry run.
+- Shared fixtures pushed once per app (the baseline tool runs' device state); permissions still per route, install still without `-g`.
+- Diary (22 rows) and Vanilla-Music (26 rows): permissions the app requests on every start were added to the empty cells; permission-dialog routes untouched.
+- Run-to-run noise exists (AnyMemo 6 then 5, hash-checker 25 then 23 reached between the last two runs); the numbers are one run.
+
+## Not fixed (per-app first-start state; candidates for the reviewer and Yang)
+- AnkiDroid opens on Preferences instead of the deck list on most routes (20 misses); Markor shows its intro and then a storage request (14); Omni-Notes shows an empty notes list where scripts expect content (15); AmazeFileManager crashes ("Amaze Debug has stopped"); openlauncher stays in its own launcher/onboarding states. Fixing these needs app-specific setup (preset preferences, seed data) in ticked apps' route scripts.
 
 ## Blocked
 - none. Notes: `git config user.email` in this clone prints a personal address, not bugfixops (the handover expected it set); every commit was made with GIT_AUTHOR_*/GIT_COMMITTER_* set to `bugfixops <bugfixops@users.noreply.github.com>` instead, and the config was left unchanged. The model could not be switched to claude-haiku-5-5 from inside the session. At the A1 push, the only running Actions job was GitHub's own "Graph Update: pip" dependency scan, not a CI or dry-run job.
