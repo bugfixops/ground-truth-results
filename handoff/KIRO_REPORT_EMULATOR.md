@@ -45,5 +45,13 @@
 - C6: placeholders in `handoff/DEVICE_RUN_SUMMARY.md` filled (`8185289c`, `60e7e0a6`); this section; pushed last.
 - Model: this session cannot switch itself to claude-haiku-5-5; it ran on the session model. No helper agents were used (host memory critical).
 
+## Part D: AnkiDroid README fix
+- Head before: `c32acfc3`. Reviewer patch `apply_readme_fix.py` printed `patched` for tools/gen_readme_v2.py and handoff/ci/rebuild.sh; `git diff --stat`: only those 2 files (4 insertions, 2 deletions).
+- Fix commit `458eaa6d`; CI request (REQ) `c2e359a1`; bot commit `125b2e60` `[ci] rebuild and checks` (Actions run 41673925549, success).
+- `grep -h '^readme:' ... | grep -c 'readme: wrote'`: 13.
+- `git diff --stat 60e7e0a6 HEAD -- 'graphs/*/out/README.md'`: only graphs/AnkiDroid/out/README.md (283 lines changed: 224 insertions, 59 deletions).
+- `check_device_fix.py`: ALL PASS.
+- All 13 SUMMARY files name `c2e359a1`.
+
 ## Blocked
 - none. Notes: `git config user.email` in this clone prints a personal address, not bugfixops (the handover expected it set); every commit was made with GIT_AUTHOR_*/GIT_COMMITTER_* set to `bugfixops <bugfixops@users.noreply.github.com>` instead, and the config was left unchanged. The model could not be switched to claude-haiku-5-5 from inside the session. At the A1 push, the only running Actions job was GitHub's own "Graph Update: pip" dependency scan, not a CI or dry-run job.
