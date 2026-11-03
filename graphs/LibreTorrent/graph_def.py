@@ -3977,3 +3977,40 @@ def _d5_fix_edit(edge):
 
 
 EDIT = _d5_fix_edit
+
+
+# ---- Kiro K1 (2026-11-03): citation form for check 2, generated-code evidence for check 4.
+# K1a. Check 2 reads any "core/..." path as an Android framework path. The app's own files under
+#      org/proninyaroslav/libretorrent/core/ are therefore cited by file name (each name below is
+#      unique in the app), as ruling LT-CHECK2-BASENAME orders. FeedParser.java is not unique (the
+#      library com/ernieyu/feedparser has one too), so it is cited as libretorrent/core/FeedParser.java.
+# K1b. Rule B3 of handoff/MUSE_FINISH_ALL.md: a bytecode citation of a generated class that has no
+#      source in the upload (data binding *BindingImpl and DataBinderMapperImpl, Room *Dao_Impl)
+#      becomes "INFERRED generated <Class> (no source in the upload; bytecode call)".
+import re as _k_re
+_K_CITE_FORM = {
+    'core/RepositoryHelper.java': 'RepositoryHelper.java',
+    'core/settings/SettingsRepositoryImpl.java': 'SettingsRepositoryImpl.java',
+    'core/model/TorrentEngine.java': 'TorrentEngine.java',
+    'core/model/session/TorrentSessionImpl.java': 'TorrentSessionImpl.java',
+    'core/utils/Utils.java': 'Utils.java',
+    'core/system/SystemFacadeHelper.java': 'SystemFacadeHelper.java',
+    'core/model/stream/TorrentStreamServer.java': 'TorrentStreamServer.java',
+    'core/system/FileSystemFacadeImpl.java': 'FileSystemFacadeImpl.java',
+    'core/model/TorrentInfoProvider.java': 'TorrentInfoProvider.java',
+    'core/FeedParser.java': 'libretorrent/core/FeedParser.java',
+}
+_K_CITE_RX = _k_re.compile(r'(?<![\w/])(' + '|'.join(_k_re.escape(p) for p in _K_CITE_FORM) + r')(?=:\d)')
+_K_GEN_RX = _k_re.compile(r'SRC (\w+Binding\w*Impl|\w+Dao_Impl|DataBinderMapperImpl)\.java:\d+ \(bytecode\)')
+
+
+def _kiro_k1_edit(edge):
+    _d5_fix_edit(edge)
+    ev = edge.get('evidence') or ''
+    ev = _K_CITE_RX.sub(lambda m: _K_CITE_FORM[m.group(1)], ev)
+    ev = _K_GEN_RX.sub(lambda m: 'INFERRED generated %s (no source in the upload; bytecode call)' % m.group(1), ev)
+    edge['evidence'] = ev
+
+
+EDIT = _kiro_k1_edit
+
