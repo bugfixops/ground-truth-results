@@ -29,9 +29,11 @@ Verification log (`verification.csv`), counts of what was checked and found:
 |---|---:|---:|---:|---:|
 | labels | 794 | 783 | 9 | 2 |
 | edges (framework and other claims read against source) | 78 | 53 | 25 | 0 |
-| paths (stratified sample, read step by step) | 58 | 25 | 9 | 24 |
+| paths (stratified sample, read step by step) | 29 | 18 | 9 | 2 |
 
-Path status over all reachable methods: DEVICE_OK 7, UNCHECKED 3960.
+Device replay on the emulator (API 27): 7 of 29 routes reached their target method; 7 of these ran the whole script and are `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; see `../device/results.csv`.
+
+Path status over all reachable methods: DEVICE_OK 7, SOURCE_OK 7, UNCHECKED 3944, WRONG 9.
 The rows are the items that were individually checked, not a random sample of all labels; see the notes below for how they were chosen and what the unclear rows wait for.
 
 Edges whose evidence is not a source line (2181 of 7303): E6f0891c5 (S_ENTRY -> MainApplication.<clinit>); E50191c30 (S_ENTRY -> MainActivity.<clinit>); E0f555379 (S_ENTRY -> AddTorrentActivity.<clinit>); E6c221f79 (S_ENTRY -> SettingsActivity.<clinit>); E70444373 (MainActivity.initDrawer -> DrawerExpandableAdapter.onBindChildViewHolder); E79785310 (MainActivity.initDrawer -> MainActivity.lambda$initDrawer$0); Eea644f43 (MainActivity.initDrawer -> MainActivity.lambda$initDrawer$0); Ecebe3a05 (MainActivity.initDrawer -> MainActivity.lambda$initDrawer$1); Ed0bb2c8b (MainActivity.initDrawer -> MainActivity.lambda$initDrawer$1); Ec7ef9327 (MainActivity$3.onTagMenuClicked -> MainActivity$3.lambda$onTagMenuClicked$0); E83e4ed2d (MainActivity$3.onTagMenuClicked -> MainActivity$3.lambda$onTagMenuClicked$0); E34551cd4 (MainActivity$3.onTagMenuClicked -> MainActivity$3.lambda$onTagMenuClicked$1) ...
@@ -95,6 +97,8 @@ Changes made on top of the first-draw graph (`a9e8b93d`: R3882 / U764 / UNRES86)
   fix round. WRONG routes stay WRONG with their reasons and count in the rate.
 
 ## What waits for a device (API 27)
+
+- **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 7 of 29 routes reached their target method; 7 of them ran the whole script and are now `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
 
 Nothing in this file is a device result. The device scripts in `device/routes/LibreTorrent/`
 (one per scripted row of `ROUTES.csv`) passed only the dry run (`device/drycheck.py`); no emulator

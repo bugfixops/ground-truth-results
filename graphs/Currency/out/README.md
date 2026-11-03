@@ -29,9 +29,11 @@ Verification log (`verification.csv`), counts of what was checked and found:
 |---|---:|---:|---:|---:|
 | labels | 47 | 24 | 23 | 0 |
 | edges (framework and other claims read against source) | 23 | 20 | 0 | 3 |
-| paths (stratified sample, read step by step) | 56 | 41 | 1 | 14 |
+| paths (stratified sample, read step by step) | 28 | 23 | 1 | 4 |
 
-Path status over all reachable methods: DEVICE_OK 18, UNCHECKED 122.
+Device replay on the emulator (API 27): 18 of 28 routes reached their target method; 17 of these ran the whole script and are `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; see `../device/results.csv`.
+
+Path status over all reachable methods: DEVICE_OK 17, SOURCE_OK 8, UNCHECKED 115.
 The rows are the items that were individually checked, not a random sample of all labels; see the notes below for how they were chosen and what the unclear rows wait for.
 
 Edges whose evidence is not a source line (8 of 393): Ee6434656 (S_EXIT -> S_ENTRY); E854be197 (S_NAV_POPUP -> S_MAIN_DISPLAY); Eb876502c (S_DLG_UPDATE -> S_MAIN_DISPLAY); E9c7fb26f (S_MAIN_DISPLAY -> S_MAIN_EDIT); Ee1252495 (S_MAIN_EDIT -> S_MAIN_DISPLAY); E1cfacc94 (S_ENTRY -> CurrencyWidgetConfigure.<init>@ADD); Ee3672287 (CurrencyWidgetConfigure.lambda$onCreate$1@ADD -> CurrencyWidgetProvider.<init>@DELETED); Eb645f0b9 (CurrencyWidgetConfigure.lambda$onCreate$1@ADD -> S_ENTRY)
@@ -53,6 +55,8 @@ Sanity check against tool coverage (never used to set a label): 103 methods ran 
 Note on sample timing: the sample was drawn before the log step. The label rows written by the log step change which 30 methods the sampler picks on the final graph, so a fresh draw on the final graph would not necessarily pick the same 30 methods. The judged routes are still current: the final verification run reports 0 STALE warnings, so every judged route still matches the final graph.
 
 ## What waits for a device (API 27)
+
+- **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 18 of 28 routes reached their target method; 17 of them ran the whole script and are now `DEVICE_OK`. 1 more reached the method although the script stopped early; its path keeps its earlier status. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
 
 - **Launcher behaviour.** Placing the widget, starting its configure activity and deleting a widget whose configuration was cancelled are done by the launcher (another app); its source was not read. Affects the widget methods that need the launcher to place the widget.
 - **Soft keyboard.** `Main.onEditorAction` needs the soft keyboard (or a hardware Enter key); IME behaviour was not read.

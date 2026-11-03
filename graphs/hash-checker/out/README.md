@@ -29,9 +29,11 @@ Verification log (`verification.csv`), counts of what was checked and found:
 |---|---:|---:|---:|---:|
 | labels | 52 | 50 | 2 | 0 |
 | edges (framework and other claims read against source) | 35 | 9 | 26 | 0 |
-| paths (stratified sample, read step by step) | 74 | 47 | 13 | 14 |
+| paths (stratified sample, read step by step) | 37 | 24 | 13 | 0 |
 
-Path status over all reachable methods: DEVICE_OK 23, UNCHECKED 484.
+Device replay on the emulator (API 27): 23 of 37 routes reached their target method; 23 of these ran the whole script and are `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; see `../device/results.csv`.
+
+Path status over all reachable methods: DEVICE_OK 23, SOURCE_OK 14, UNCHECKED 470.
 The rows are the items that were individually checked, not a random sample of all labels; see the notes below for how they were chosen and what the unclear rows wait for.
 
 Edges whose evidence is not a source line (157 of 1314): Ec9b0d520 (MainActivity.showFragment@CALC_XURI -> HashCalculatorFragment.onAttach@XURI); Ee781a5b8 (HashCalculatorFragment.onAttach@XURI -> BaseFragment.onCreateView@HashCalculatorFragment_XURI); Ee861279f (BaseFragment.onCreateView@HashCalculatorFragment_XURI -> HashCalculatorFragment.onViewCreated@XURI); E21ea7944 (MainActivity.showFragment@CALC_XTEXT -> HashCalculatorFragment.onAttach@XTEXT); Ef8b0149d (HashCalculatorFragment.onAttach@XTEXT -> BaseFragment.onCreateView@HashCalculatorFragment_XTEXT); E3a41bb03 (BaseFragment.onCreateView@HashCalculatorFragment_XTEXT -> HashCalculatorFragment.onViewCreated@XTEXT); E51602476 (MainActivity.showFragment@CALC_XFILE -> HashCalculatorFragment.onAttach@XFILE); E1a2c0ce6 (HashCalculatorFragment.onAttach@XFILE -> BaseFragment.onCreateView@HashCalculatorFragment_XFILE); Ee7706acf (BaseFragment.onCreateView@HashCalculatorFragment_XFILE -> HashCalculatorFragment.onViewCreated@XFILE); E2cbba8c6 (MainActivity.onCreate -> BaseActivity.getTheme@MainActivity); Ee606bb4f (MainActivity.create -> HashCalculatorFragment.<clinit>); E3755babd (MainActivity.showFragment@CALC -> HashCalculatorFragment.onAttach) ...
@@ -56,6 +58,8 @@ Sanity check against tool coverage (never used to set a label): 404 methods ran 
 Note on sample timing: the sample was drawn before the log step. The label rows written by the log step change which 30 methods the sampler picks on the final graph, so a fresh draw on the final graph would not necessarily pick the same 30 methods. The judged routes are still current: the final verification run reports 0 STALE warnings, so every judged route still matches the final graph.
 
 ## What waits for a device (API 27)
+
+- **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 23 of 37 routes reached their target method; 23 of them ran the whole script and are now `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
 
 Nothing here was confirmed on the emulator (confirmed_by DEVICE: 0). What a device check should settle: that the system file picker (`com.android.documentsui`) returns the document or tree the routes assume, for file, folder and the two `ACTION_CREATE_DOCUMENT` exports; that the launcher shortcuts "Text" and "File" start `MainActivity` with the action the code reads, and that an explicit VIEW intent with a `content://` URI starts the file path (`adb shell am start` can send it); that the 60-second clipboard clear fires; that a configuration change relaunches `MainActivity` (the manifest has no `android:configChanges`; the portrait lock only stops rotation). No method is closed by the API level: the shortcut code needs SDK_INT 26 or higher, true on API 27.
 

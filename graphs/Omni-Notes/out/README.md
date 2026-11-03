@@ -29,9 +29,11 @@ Verification log (`verification.csv`), counts of what was checked and found:
 |---|---:|---:|---:|---:|
 | labels | 288 | 281 | 7 | 0 |
 | edges (framework and other claims read against source) | 49 | 15 | 34 | 0 |
-| paths (stratified sample, read step by step) | 66 | 11 | 30 | 25 |
+| paths (stratified sample, read step by step) | 33 | 3 | 30 | 0 |
 
-Path status over all reachable methods: DEVICE_OK 8, UNCHECKED 1194.
+Device replay on the emulator (API 27): 8 of 33 routes reached their target method; 8 of these ran the whole script and are `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; see `../device/results.csv`.
+
+Path status over all reachable methods: DEVICE_OK 8, SOURCE_OK 23, UNCHECKED 1170, WRONG 1.
 The rows are the items that were individually checked, not a random sample of all labels; see the notes below for how they were chosen and what the unclear rows wait for.
 
 Edges whose evidence is not a source line (356 of 3803): Ed965d44a (MainActivity.onCreate -> MainActivity_ViewBinding.<init>(MainActivity,View)); E7c78e9af (MainActivity.onCreate -> NavigationDrawerFragment.<init>); E449a3211 (NavigationDrawerFragment.<init> -> NavigationDrawerFragment.onCreate); E02a461c5 (NavigationDrawerFragment.<init> -> NavigationDrawerFragment.onCreateView); E0c960f14 (NavigationDrawerFragment.<init> -> NavigationDrawerFragment.onActivityCreated); E16eb2c51 (NavigationDrawerFragment.<init> -> NavigationDrawerFragment.onStart); E8c98d772 (ListFragment.<init> -> ListFragment.onCreate); Ef56e2127 (ListFragment.<init> -> ListFragment.onCreateView); E54b170af (ListFragment.<init> -> ListFragment.onActivityCreated); E995b7be1 (ListFragment.<init> -> ListFragment.onResume); E24faa205 (ListFragment.<init> -> ListFragment.onCreateOptionsMenu); E2b5eb400 (ListFragment.<init> -> ListFragment.onPrepareOptionsMenu) ...
@@ -57,6 +59,8 @@ Sanity check against tool coverage (never used to set a label): 848 methods ran 
 Note on sample timing: the sample was drawn before the log step. The label rows written by the log step change which 30 methods the sampler picks on the final graph, so a fresh draw on the final graph would not necessarily pick the same 30 methods. The judged routes are still current: the final verification run reports 0 STALE warnings, so every judged route still matches the final graph.
 
 ## What waits for a device (API 27)
+
+- **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 8 of 33 routes reached their target method; 8 of them ran the whole script and are now `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
 
 Nothing here was confirmed on the emulator (confirmed_by DEVICE: 0). What a device check should settle:
 

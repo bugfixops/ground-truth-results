@@ -29,9 +29,11 @@ Verification log (`verification.csv`), counts of what was checked and found:
 |---|---:|---:|---:|---:|
 | labels | 483 | 471 | 1 | 11 |
 | edges (framework and other claims read against source) | 26 | 26 | 0 | 0 |
-| paths (stratified sample, read step by step) | 50 | 14 | 1 | 35 |
+| paths (stratified sample, read step by step) | 25 | 13 | 1 | 11 |
 
-Path status over all reachable methods: DEVICE_OK 1, UNCHECKED 2536.
+Device replay on the emulator (API 27): 1 of 25 routes reached their target method; 1 of these ran the whole script and are `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; see `../device/results.csv`.
+
+Path status over all reachable methods: DEVICE_OK 1, SOURCE_OK 2, UNCHECKED 2533, WRONG 1.
 The rows are the items that were individually checked, not a random sample of all labels; see the notes below for how they were chosen and what the unclear rows wait for.
 
 Edges whose evidence is not a source line (897 of 6430): E5b266140 (AegisApplication.<init> -> Hilt_AegisApplication.onCreate); Ed430de74 (Hilt_AegisApplication.generatedComponent -> Hilt_AegisApplication$1.get); E1e4b62ae (AegisActivity.onCreate -> Hilt_AegisActivity$1.onContextAvailable); Ed3b2fc19 (Hilt_AegisActivity.generatedComponent -> DaggerAegisApplication_HiltComponents_SingletonC$SingletonCImpl.retainedComponentBuilder); E1c3ead1c (Hilt_AegisActivity.generatedComponent -> DaggerAegisApplication_HiltComponents_SingletonC$ActivityRetainedCBuilder.build); E9eaaba0b (Hilt_AegisActivity.generatedComponent -> DaggerAegisApplication_HiltComponents_SingletonC$ActivityRetainedCImpl.activityComponentBuilder); E9e40d82d (Hilt_AegisActivity.generatedComponent -> DaggerAegisApplication_HiltComponents_SingletonC$ActivityCBuilder.activity); E3c923e18 (Hilt_AegisActivity.generatedComponent -> DaggerAegisApplication_HiltComponents_SingletonC$ActivityCBuilder.build); E983da919 (AegisApplicationBase.onCreate -> AegisApplicationBase$AppLifecycleObserver.onStateChanged); E313f4f87 (S_PROCESS -> VaultLockReceiver.onReceive); Ed3c98a2a (S_PROCESS -> QsTileRefreshReceiver.onReceive); E436827e4 (MainActivity.onStart -> AegisActivity.onResume) ...
@@ -173,6 +175,8 @@ is claimed here.
   above, not on a re-run.)
 
 ## What waits for a device (API 27)
+
+- **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 1 of 25 routes reached their target method; 1 of them ran the whole script and are now `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
 
 - ENV-gated routes: camera scan (ENV_CAMERA), image-pick import
   (ENV_PICK_IMAGE / ENV_PICKER), QR-code presentation (ENV_QR_CODE),

@@ -29,9 +29,11 @@ Verification log (`verification.csv`), counts of what was checked and found:
 |---|---:|---:|---:|---:|
 | labels | 870 | 860 | 8 | 2 |
 | edges (framework and other claims read against source) | 0 | 0 | 0 | 0 |
-| paths (stratified sample, read step by step) | 60 | 26 | 8 | 26 |
+| paths (stratified sample, read step by step) | 30 | 20 | 8 | 2 |
 
-Path status over all reachable methods: DEVICE_OK 6, UNCHECKED 3424.
+Device replay on the emulator (API 27): 6 of 30 routes reached their target method; 6 of these ran the whole script and are `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; see `../device/results.csv`.
+
+Path status over all reachable methods: DEVICE_OK 6, SOURCE_OK 23, UNCHECKED 3401.
 The rows are the items that were individually checked, not a random sample of all labels; see the notes below for how they were chosen and what the unclear rows wait for.
 
 Edges whose evidence is not a source line (859 of 8441): E19395ce1 (S_ENTRY -> PayeeActivity.<clinit>); E76a7aa66 (SearchParametersFragment$1.onClick -> PayeeActivity.<clinit>); E6f579f87 (EditTransactionCommonFunctions$9.onClick -> PayeeActivity.<clinit>); E87a1872f (AboutActivity.onCreate -> AboutTabAdapter.getCount); Ee835bc9a (AboutActivity.onCreate -> AboutTabAdapter.getItem); Eb0b17b72 (S_ABOUT_ACTIVITY -> AboutTabAdapter.getItem); E388582e3 (AboutActivity.onCreate -> AboutTabAdapter.getPageTitle); E503e054a (AboutActivity.onCreate -> AboutActivity.onRestoreInstanceState); Ea0013de2 (AboutCreditsFragment.<init> -> AboutCreditsFragment.onCreateView); Eeff0a2bf (AboutCreditsFragment.onCreateView -> AboutCreditsFragment.onActivityCreated); Ecef22362 (AboutFragment.<init> -> AboutFragment.onCreateView); E9a349a2e (S_ABOUT_TAB -> AboutFragment$1.onClick) ...
@@ -126,6 +128,8 @@ the reading rule).
   never to hand-add a row to `verification.csv`.
 
 ## What waits for a device (API 27)
+
+- **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 6 of 30 routes reached their target method; 6 of them ran the whole script and are now `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
 
 - Everything device-side. This CSV carries SOURCE/INFERRED
   rows only; no DEVICE row appears (DEVICE rows are a later,

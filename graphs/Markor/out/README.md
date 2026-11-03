@@ -29,9 +29,11 @@ Verification log (`verification.csv`), counts of what was checked and found:
 |---|---:|---:|---:|---:|
 | labels | 445 | 397 | 48 | 0 |
 | edges (framework and other claims read against source) | 87 | 42 | 40 | 5 |
-| paths (stratified sample, read step by step) | 60 | 20 | 17 | 23 |
+| paths (stratified sample, read step by step) | 30 | 13 | 17 | 0 |
 
-Path status over all reachable methods: DEVICE_OK 7, UNCHECKED 2443.
+Device replay on the emulator (API 27): 7 of 30 routes reached their target method; 7 of these ran the whole script and are `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; see `../device/results.csv`.
+
+Path status over all reachable methods: DEVICE_OK 7, SOURCE_OK 4, UNCHECKED 2439.
 The rows are the items that were individually checked, not a random sample of all labels; see the notes below for how they were chosen and what the unclear rows wait for.
 
 Edges whose evidence is not a source line (1464 of 6891): Ed24d8dc8 (MainActivity.<init> -> MainActivity.<clinit>); E0ecb8e4d (MainActivity.onPostResume -> S_NOTEBOOK); E54b4aedd (S_NOTEBOOK -> MainActivity.lambda$onCreate$0); Ec7635dfe (S_TODO -> MainActivity.lambda$onCreate$0); Ed5b7d224 (S_QUICKNOTE -> MainActivity.lambda$onCreate$0); E4ca7bd0d (S_MORE -> MainActivity.lambda$onCreate$0); E80c409ce (MainActivity.lambda$onCreate$0 -> S_TODO); E4db63107 (MainActivity.lambda$onCreate$0 -> S_QUICKNOTE); Ec433d118 (MainActivity.lambda$onCreate$0 -> S_MORE); E45a58a9a (MainActivity.lambda$onCreate$0 -> S_NOTEBOOK); Eb6c73931 (MainActivity.lambda$onCreate$0 -> MainActivity$1.onPageSelected); E96323c18 (MainActivity.onActivityFirstTimeVisible -> MainActivity.lambda$onActivityFirstTimeVisible$1) ...
@@ -85,6 +87,8 @@ Sanity check against tool coverage (never used to set a label): 1611 methods ran
 - Checks run on this build (2026-10-27): build 0 errors, 0 warnings; check_citations 36 distinct, 0 problems; check_bytecode_lines 4352 checked, 748 skipped (lambda, clinit, anonymous), 130 implicit (super, enum, Dagger), 0 bad; check_routes 0 flagged; check_v2 Markor skipped (schema 2; apps with problems 0); no DEAD or FRAMEWORK_ONLY hits; sanity check 1611 methods ran, 0 UNREACHABLE but ran.
 
 ## What waits for a device (API 27)
+
+- **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 7 of 30 routes reached their target method; 7 of them ran the whole script and are now `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
 
 - Tab realization order (ViewPager timing and the fragment transaction). The graph gives the order from source; it was not run.
 - The first-start intro: IntroActivity.optStart is called from MainActivity.onResume (MainActivity.java:301). Not run.
