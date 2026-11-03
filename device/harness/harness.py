@@ -121,7 +121,16 @@ def find_row_action(root, row_text, res_id):
 
 
 def parse_dump(xml_text):
-    """Parse uiautomator dump XML text; returns the root Element."""
+    """Parse uiautomator dump XML text; returns the root Element.
+
+    `uiautomator dump /dev/tty` prints a status line ("UI hierchary dumped to: /dev/tty") right after the XML
+    on the same stream, which ElementTree rejects as "junk after document element" (real run 41580858995,
+    Kiro 2026-11-03). Parse only the <hierarchy> element itself.
+    """
+    start = xml_text.find("<hierarchy")
+    end = xml_text.rfind("</hierarchy>")
+    if start != -1 and end != -1:
+        xml_text = xml_text[start:end + len("</hierarchy>")]
     return ET.fromstring(xml_text)
 
 

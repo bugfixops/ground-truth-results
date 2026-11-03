@@ -223,19 +223,32 @@ if [ "${WITH_SSH_SERVER:-0}" = 1 ]; then
   # its absolute path, and give it absolute key paths (a relative AuthorizedKeysFile is read from $HOME).
   SSHD_BIN="$(command -v sshd)"
   SSH_DIR_ABS="$(cd "$OUTDIR" && pwd)"
-  "$SSHD_BIN" -D -p "$SSH_PORT" -h "$SSH_DIR_ABS/ssh_host_key" \
-    -o ListenAddress=127.0.0.1 -o PidFile="$SSH_DIR_ABS/sshd.pid" \
-    -o StrictModes=no -o PasswordAuthentication=no \
-    -o PubkeyAuthentication=yes -o UsePAM=no \
-    -o AuthorizedKeysFile="$SSH_DIR_ABS/authorized_keys" \
+  # Own config file (-f): the system /etc/ssh/sshd_config includes sshd_config.d/*, which a non-root sshd
+  # cannot read (run 41580858995: "50-cloud-init.conf: Permission denied"). SFTP is served in-process.
+  cat > "$SSH_DIR_ABS/sshd_config" <<SSHD_EOF
+Port $SSH_PORT
+ListenAddress 127.0.0.1
+HostKey $SSH_DIR_ABS/ssh_host_key
+PidFile $SSH_DIR_ABS/sshd.pid
+AuthorizedKeysFile $SSH_DIR_ABS/authorized_keys
+StrictModes no
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PubkeyAuthentication yes
+UsePAM no
+Subsystem sftp internal-sftp
+SSHD_EOF
+  "$SSHD_BIN" -D -f "$SSH_DIR_ABS/sshd_config" -E "$SSH_DIR_ABS/sshd.log" \
     >>"$OUTDIR/run.log" 2>&1 &
   SSHD_PID=$!
   trap cleanup_ssh_server EXIT
   sleep 2
   if ! kill -0 "$SSHD_PID" 2>/dev/null; then
+    cat "$SSH_DIR_ABS/sshd.log" >>"$OUTDIR/run.log" 2>/dev/null
     echo "run_app.sh: throwaway sshd failed to start (see run.log)" >&2; exit 2
   fi
   if ! ssh -o BatchMode=yes -o StrictHostKeyChecking=no -o ConnectTimeout=10 -p "$SSH_PORT" -i "$OUTDIR/ssh_client_key" "$SSH_USER@127.0.0.1" true >>"$OUTDIR/run.log" 2>&1; then
+    cat "$SSH_DIR_ABS/sshd.log" >>"$OUTDIR/run.log" 2>/dev/null
     echo "run_app.sh: throwaway sshd login probe failed (per-run key login to 127.0.0.1:$SSH_PORT did not succeed; sshd is not usable for SSH routes, see run.log)" >&2; exit 2
   fi
   log "throwaway sshd on 127.0.0.1:$SSH_PORT (emulator: 10.0.2.2:$SSH_PORT); per-run keys under outdir"
@@ -263,9 +276,11 @@ US="$(printf '\037')"
 tr '\t' '\037' < "$OUTDIR/.routes.tsv" > "$OUTDIR/.routes.us"
 while IFS="$US" read -r route method edges perms fixtures setup status <&3; do
   [ -z "$route" ] && continue
+  # Method names can hold commas (e.g. FileItem.<init>(int,String,boolean,long)): quote the CSV field.
+  method_csv="\"${method//\"/\"\"}\""
   if [[ "$status" == unscriptable* ]]; then
     reason="${status#unscriptable:}"
-    echo "$APP,$route,$method,$edges,not_run,unscriptable,0,0,$(csv_escape "$reason"),$RUN_ID" >> "$OUTDIR/results.csv"
+    echo "$APP,$route,$method_csv,$edges,not_run,unscriptable,0,0,$(csv_escape "$reason"),$RUN_ID" >> "$OUTDIR/results.csv"
     log "$route unscriptable: $reason"
     continue
   fi
@@ -276,7 +291,7 @@ while IFS="$US" read -r route method edges perms fixtures setup status <&3; do
     *) log "$route skipped (outside glob $GLOB)"; continue ;;
   esac
   if [ ! -f "$script" ]; then
-    echo "$APP,$route,$method,$edges,not_run,failed_at_step_1,0,0,missing_script,$RUN_ID" >> "$OUTDIR/results.csv"
+    echo "$APP,$route,$method_csv,$edges,not_run,failed_at_step_1,0,0,missing_script,$RUN_ID" >> "$OUTDIR/results.csv"
     log "$route missing script"
     continue
   fi
@@ -284,7 +299,7 @@ while IFS="$US" read -r route method edges perms fixtures setup status <&3; do
   mkdir -p "$OUTDIR/gen/$route"
   if ! GEN_DIR="$OUTDIR/gen/$route" python3 -I "$script" --package "$PKG" --log "$OUTDIR/steps_dry/$route.log" \
       --outdir "$OUTDIR" --dry-run >>"$OUTDIR/run.log" 2>&1 < /dev/null; then
-    echo "$APP,$route,$method,$edges,no,failed_at_step_1,0,0,dry_run_failed,$RUN_ID" >> "$OUTDIR/results.csv"
+    echo "$APP,$route,$method_csv,$edges,no,failed_at_step_1,0,0,dry_run_failed,$RUN_ID" >> "$OUTDIR/results.csv"
     log "$route dry plan failed"
     continue
   fi
@@ -295,7 +310,7 @@ while IFS="$US" read -r route method edges perms fixtures setup status <&3; do
     if ! python3 -I "$ROUTES_DIR/setup.py" --package "$PKG" \
         --log "$OUTDIR/steps/$route.setup.log" --outdir "$OUTDIR" \
         >>"$OUTDIR/run.log" 2>&1 < /dev/null; then
-      echo "$APP,$route,$method,$edges,no,failed_at_step_0,0,$steps_total,setup_failed,$RUN_ID" >> "$OUTDIR/results.csv"
+      echo "$APP,$route,$method_csv,$edges,no,failed_at_step_0,0,$steps_total,setup_failed,$RUN_ID" >> "$OUTDIR/results.csv"
       log "$route setup failed"
       continue
     fi
@@ -326,7 +341,7 @@ while IFS="$US" read -r route method edges perms fixtures setup status <&3; do
         --log "$OUTDIR/steps/$route.gensetup.log" --outdir "$OUTDIR" \
         --gen-dir "$OUTDIR/gen/$route" \
         >>"$OUTDIR/run.log" 2>&1 < /dev/null; then
-      echo "$APP,$route,$method,$edges,no,failed_at_step_0,0,$steps_total,setup_failed,$RUN_ID" >> "$OUTDIR/results.csv"
+      echo "$APP,$route,$method_csv,$edges,no,failed_at_step_0,0,$steps_total,setup_failed,$RUN_ID" >> "$OUTDIR/results.csv"
       log "$route per-route setup failed"
       continue
     fi
@@ -359,7 +374,7 @@ while IFS="$US" read -r route method edges perms fixtures setup status <&3; do
     IFS="$oldifs"
   fi
   if [ "$fixture_failed" = 1 ]; then
-    echo "$APP,$route,$method,$edges,no,failed_at_step_0,0,$steps_total,fixture_push_failed,$RUN_ID" >> "$OUTDIR/results.csv"
+    echo "$APP,$route,$method_csv,$edges,no,failed_at_step_0,0,$steps_total,fixture_push_failed,$RUN_ID" >> "$OUTDIR/results.csv"
     continue
   fi
   # Grants, with one exception: permission-dialog routes (method
@@ -418,7 +433,7 @@ while IFS="$US" read -r route method edges perms fixtures setup status <&3; do
       error="jacoco_report_failed"
     fi
   fi
-  echo "$APP,$route,$method,$edges,$reached,$script_status,$steps_done,$steps_total,$(csv_escape "$error"),$RUN_ID" >> "$OUTDIR/results.csv"
+  echo "$APP,$route,$method_csv,$edges,$reached,$script_status,$steps_done,$steps_total,$(csv_escape "$error"),$RUN_ID" >> "$OUTDIR/results.csv"
   log "$route $script_status reached=$reached steps=$steps_done/$steps_total $error"
 done 3< "$OUTDIR/.routes.us"
 rm -f "$OUTDIR/.routes.tsv" "$OUTDIR/.routes.us"
