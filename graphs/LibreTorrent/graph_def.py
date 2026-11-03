@@ -4014,3 +4014,17 @@ def _kiro_k1_edit(edge):
 
 EDIT = _kiro_k1_edit
 
+
+# ---- Kiro K2 (2026-11-03): edge classes for the data binding edges (clears the build's REVIEW warning).
+# Same rule as graphs/AnyMemo/graph_def.py CLASSIFY: the androidx data binding library creates the generated
+# <Layout>Binding...Impl classes through the generated DataBinderMapperImpl, so these links are non_standard.
+import re as _k2_re
+_K2_BINDING_IMPL = _k2_re.compile(r'Binding\w*Impl\b')
+
+
+def CLASSIFY(x):
+    if _K2_BINDING_IMPL.search(x['src']):
+        return ('non_standard', 'data binding (androidx DataBindingUtil creates the generated <Layout>BindingImpl through DataBinderMapperImpl)')
+    if 'DataBinderMapperImpl' in x['src'] or 'DataBinderMapperImpl' in x['dst']:
+        return ('non_standard', 'data binding (androidx DataBindingUtil creates the generated DataBinderMapperImpl and calls it)')
+    return None
