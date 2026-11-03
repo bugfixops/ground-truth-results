@@ -88,7 +88,8 @@ def main(argv):
         ', '.join('%s %d' % kv for kv in sorted(env_k.items())) or 'none', ', '.join('%s %d' % kv for kv in sorted(state_k.items())) or 'none',
         sum(1 for r in reach if not r['env_kinds'] and not r['state_kinds'])))
     L.append('- Edge classes: %s. Non-standard edges: %d%s.' % (', '.join('%s %d' % kv for kv in sorted(cls.items())), len(nonstd),
-                                                              ' (' + '; '.join(sorted({x['via'] for x in nonstd if x['via']}))[:300] + ')' if nonstd else ''))
+                                                              ' (' + '; '.join(sorted({'; '.join(v) if isinstance(v, list) else v
+                                                                                        for v in (x['via'] for x in nonstd) if v}))[:300] + ')' if nonstd else ''))
     L.append('- %d reachable methods have a non-standard edge on their best route; %d have no explicit-or-standard-only route at all.' % (len(nonstd_route), len(no_es)))
     L.append('- Labels confirmed by: %s (SOURCE: every edge of the best route cites a source line, in the app or in the Android 8.1 / library source; INFERRED: some edge rests on inference or on another app).' % ', '.join('%s %d' % kv for kv in sorted(conf.items())))
     L.append('')

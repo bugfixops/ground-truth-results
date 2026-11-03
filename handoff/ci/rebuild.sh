@@ -26,7 +26,7 @@ for a in $apps; do
     case "$(basename "$f")" in "${x}_trigger_graph.json"|"${x}_trigger_graph.html") ;; *) rm -f "$f"; echo "removed stale $f" ;; esac
   done
   python3 -I tools/build_graph.py "graphs/$a" "$x" > "$o/1_build.txt" 2>&1; echo "exit $?" >> "$o/1_build.txt"
-  python3 -I tools/gen_readme_v2.py "$a" > "$o/gen_readme.txt" 2>&1
+  python3 -I tools/gen_readme_v2.py "$a" > "$o/gen_readme.txt" 2>&1; echo "exit $?" >> "$o/gen_readme.txt"
   python3 -I tools/check_citations.py "$a" > "$o/2_citations.txt" 2>&1
   python3 -I tools/check_routes.py "$a" > "$o/3_routes.txt" 2>&1
   python3 -I tools/check_bytecode_lines.py "$a" > "$o/4_bytecode.txt" 2>&1
@@ -45,6 +45,7 @@ for a in $apps; do
   {
     echo "app $a | commit $(git rev-parse --short HEAD 2>/dev/null) | $(date -u '+%Y-%m-%d %H:%M UTC')"
     grep -E '^(methods|verdicts|unreachable by kind|labels confirmed by|verification (label|edge|path|device)|errors|warnings|exit)' "$o/1_build.txt"
+    echo "readme: $(grep -m1 -E '^wrote ' "$o/gen_readme.txt" || echo "FAILED ($(grep -v '^exit ' "$o/gen_readme.txt" | tail -1))")"
     echo "check 2: $(grep -E '^citations' "$o/2_citations.txt" || tail -1 "$o/2_citations.txt")"
     echo "check 3: $(tail -1 "$o/3_routes.txt")"
     echo "check 4: $(grep -E 'where the cited line does not show the callee' "$o/4_bytecode.txt" || echo 'no summary line (see 4_bytecode.txt; a traceback means the check crashed)')"
