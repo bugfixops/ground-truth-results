@@ -1,6 +1,6 @@
 # run_result: the final results
 
-A frozen copy of every final result, taken on 2026-11-03 from commit `57d051a0` (official CI request `9c51c99c`, emulator run `41593209101-1`).
+A frozen copy of every final result, taken on 2026-11-05 from commit `7ed4e78b` (official CI request `9c51c99c`, emulator run `41593209101-1`).
 
 The live files stay where the tools use them (`graphs/`, `device/`). This folder only collects them in one place, so nothing here needs to be rebuilt. For what was done and how, see the [main README](../README.md).
 
@@ -43,7 +43,7 @@ run_result/
 | LibreTorrent | 4,732 | 7,303 | 3,967 | 765 | 9 of 792 (0.011) | 25 of 78 (0.321) | 9 of 27 (0.333) | 7 of 29 | 7 |
 | **Total** | 29,024 | 63,008 | 24,304 | 4,720 | 133 of 5,103 (0.026) | 155 of 735 (0.211) | 134 of 365 (0.367) | 104 of 389 | 100 |
 
-**Known problems.** In Aegis, AmazeFileManager, AnkiDroid, LibreTorrent and MMEX, the state, env and GUI labels of reachable methods have known errors (a review on 3 November 2026 estimates 30–40% wrong on the sampled targets). Their label rates mostly measure the dead verdicts. See "Known problems" in the [main README](../README.md).
+**Known problems.** In Aegis, AmazeFileManager, AnkiDroid, LibreTorrent and MMEX, the state, env and GUI labels of reachable methods have known errors (a review on 3 November 2026 found only 59% agreement with an independent hand-labelled sample). Their label rates mostly measure the dead verdicts. See "Known problems" in the [main README](../README.md).
 
 ## Columns of `SUMMARY.csv`
 

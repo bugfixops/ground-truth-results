@@ -1,6 +1,6 @@
 # Ground-truth trigger graphs for 13 Android apps: results
 
-This branch holds the finished ground truth for the 13 Java-only Android apps of the ICST 2027 study. All work is here: the trigger graphs, the audit logs, the automated checks, the route scripts, and the emulator run that replayed the routes.
+This branch holds the finished ground truth for 13 Java-only Android apps. All work is here: the trigger graphs, the audit logs, the automated checks, the route scripts, and the emulator run that replayed the routes.
 
 **Status on 2026-11-03: all 13 apps are complete.** In the official CI, every graph builds with 0 errors and 0 warnings, and the citation and bytecode checks report 0 problems. The emulator run on Android 8.1 (API 27) is done, and its results are written into every app's audit log.
 
@@ -52,17 +52,19 @@ Route status over all reachable methods: DEVICE_OK 100, SOURCE_OK 214, WRONG 14,
 
 ## Known problems: state, env and GUI labels in five apps
 
-A review on 3 November 2026 compared the full labels of Aegis, AmazeFileManager, AnkiDroid, LibreTorrent and MMEX with the paper's hand-labelled sample (50 unreached targets per app), and checked 23 disagreements against the source. We re-checked the review: it read our labels correctly in all 23 cases, and 6 of 6 cases we checked in the source agreed with it.
+A review on 3 November 2026 compared the labels of Aegis, AmazeFileManager, AnkiDroid, LibreTorrent and MMEX with an independent hand-labelled sample of 50 unreached methods per app, and checked 23 disagreements against the source. We re-checked the review: it read our labels correctly in all 23 cases, and 6 of 6 cases we checked in the source agreed with it.
 
-- **The finding.** In these five apps the full labels put too few unreached targets in **state** (21.9%; about 38–40% after the review's correction) and too many in **GUI-only** (about 23%; about 10% after correction). On the sampled targets an estimated 30–40% of the full labels have the wrong class.
+- **The finding.** On the 249 sampled methods, our labels agree with the sample on only 59% of the classes. Two errors are systematic:
+  - **too much gui:** many methods labelled gui need state or the environment, or are dead;
+  - **too little state:** many methods labelled env have an in-app route that needs only state.
 - **The causes**, all in how the best route is derived:
   - conditions on the route are ignored (for example an empty report, or a menu that exists only for Investment accounts);
   - some routes start from an exported or external entry although an in-app route exists;
-  - some call edges cannot occur at run time (calls on objects never created on the route);
+  - some call edges cannot occur at run time (calls dispatched to types that are never created);
   - data from other apps, older app versions or servers is missed;
   - one-time intro screens are used as routes.
-- **What holds up:** the dead verdicts (57 of the 58 sampled dead targets agree) and the labels of the paper's eight apps (no unreached target changes class).
-- **Until these are fixed,** use the state, env and GUI split of reachable methods in these five apps with care. The verdicts (REACHABLE or UNREACHABLE) are not affected.
+- **What holds up:** the dead verdicts. 57 of the 58 sampled methods our labels mark dead are dead in the sample too.
+- **Until these are fixed,** use the state, env and GUI split of reachable methods in these five apps with care. The verdicts (REACHABLE or UNREACHABLE) are not affected. A re-audit of the five apps is planned.
 
 Since the review, `methods.csv` has a `jvm_class` column with each method's full JVM class name. The `method` key adds a package prefix only where simple class names clash, so match on `jvm_class` and `jvm_descriptor` when joining with other data.
 
@@ -106,13 +108,13 @@ The full results, all 8 runs (7 attempts that led to the working run), 10 dry ru
 - **Reach is one run.** 26.7% of routes reached is a single run, and repeats vary by a route or two per app. A higher share would need app-specific setup (sample data, preset settings) for the apps with the lowest share.
 - **"Reached" is a weaker claim than "the drawn route was walked".** For 4 routes the target method ran although the script stopped early (Currency route_05; Vanilla-Music routes 05, 23 and 25). Their emulator row says the method ran, but their route keeps its earlier status.
 - **Some code was never read.** Library code and other apps' code that were not available are marked INFERRED in the evidence, never SOURCE.
-- **The state, env and GUI labels of the five apps outside the paper's eight have known errors.** See "Known problems" above.
+- **The state, env and GUI labels of Aegis, AmazeFileManager, AnkiDroid, LibreTorrent and MMEX have known errors.** See "Known problems" above.
 
 ## Where everything is
 
 | Folder | What it holds |
 |---|---|
-| [`run_result/`](run_result/) | **the final results** (frozen copy from commit `57d051a0`; see its README) |
+| [`run_result/`](run_result/) | **the final results** (frozen copy from commit `7ed4e78b`; see its README) |
 | `graphs/<App>/` | the live working folder per app: `graph_def.py`, `out/` (graph outputs), `verification.csv`, `make_verification.py` (writes the audit log), `readme_notes.md` (notes per app), `AGENT_NOTES.md` (work log), `scratch/` (working files and the latest CI output) |
 | `device/` | the emulator side: route lists and scripts (`routes/`), harness, runner (`run_app.sh`), collect and compare tools, all run results (`results/`) and dry runs (`dryrun/`) |
 | `.github/workflows/` | `rebuild-graphs.yml` (the official checks) and `device-replay.yml` (the emulator job) |
