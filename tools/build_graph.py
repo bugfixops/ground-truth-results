@@ -686,7 +686,7 @@ def main(argv):
         w = csv.writer(f)
         w.writerow(['method', 'verdict', 'unreachable_kind', 'unreachable_reason', 'env_kinds', 'env', 'state_kinds', 'state',
                     'route_edge_classes', 'explicit_standard_route', 'confirmed_by', 'source_ref', 'path_status',
-                    'steps_from_launch', 'gui_steps_on_shortest_path', 'shortest_path', 'route_edge_ids', 'incoming_edges', 'note', 'jvm_descriptor'])
+                    'steps_from_launch', 'gui_steps_on_shortest_path', 'shortest_path', 'route_edge_ids', 'incoming_edges', 'note', 'jvm_descriptor', 'jvm_class'])
         for m in methods:
             p, lab = info[m]['path'], labels[m]
             un = lab.get('unreachable') or {}
@@ -700,7 +700,7 @@ def main(argv):
                         len(p) if p else '', ' ; '.join(gui_steps(p)),
                         ' > '.join([p[0]['src']] + [x['dst'] for x in p]) if p else '', ' '.join(x['id'] for x in p),
                         sum(1 for x in inn.get(m, []) if x['kind'] != 'REGISTER'),
-                        notes.get(m) or '', r['desc']])
+                        notes.get(m) or '', r['desc'], r['class'].replace('/', '.')])
 
     if cov:    # one-way sanity check: a method a tool ran cannot be UNREACHABLE; never used to set a label
         with open(os.path.join(outdir, 'sanity_check.csv'), 'w', newline='', encoding='utf-8') as f:
