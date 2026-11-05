@@ -7,7 +7,7 @@ How every method of **hash-checker** is triggered, in the standard configuration
 | File | What it is |
 |---|---|
 | `hash-checker_trigger_graph.json` | pages, methods, `verdict`, `labels` (per-method fields), `edges` (with `edge_class`, `env_kinds`, `state_kinds`, stable ids), `paths` (verified paths only), `verification` (counts) |
-| `methods.csv` | one row per method: verdict, UNREACHABLE reason, ENV and STATE kinds and texts, edge classes on the best route, whether an explicit/standard-only route exists, how the label was confirmed, path status, and the derived best route (`shortest_path`, `route_edge_ids`) |
+| `methods.csv` | one row per method: verdict, UNREACHABLE reason, ENV and STATE kinds and texts, edge classes on the best route, whether an explicit/standard-only route exists, how the label was confirmed, path status, the derived best route (`shortest_path`, `route_edge_ids`), and the full JVM class and descriptor (`jvm_class`, `jvm_descriptor`; the `method` key adds a package prefix only where simple class names clash) |
 | `../verification.csv` | the audit log: one row per label, edge or path that was checked, with result, how, and where (file:line) |
 | `sanity_check.csv` | tool coverage (Monkey / APE, API 27) next to the labels; a one-way check only, it never sets a label |
 | `hash-checker_trigger_graph.html`, `build_report.txt` | the viewer and the validation report |
