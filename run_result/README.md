@@ -1,6 +1,6 @@
 # run_result: the final results
 
-A frozen copy of every final result, taken on 2026-11-03 from commit `5099f10d` (official CI request `c2e359a1`, emulator run `41593209101-1`).
+A frozen copy of every final result, taken on 2026-11-03 from commit `57d051a0` (official CI request `9c51c99c`, emulator run `41593209101-1`).
 
 The live files stay where the tools use them (`graphs/`, `device/`). This folder only collects them in one place, so nothing here needs to be rebuilt. For what was done and how, see the [main README](../README.md).
 
@@ -13,7 +13,7 @@ run_result/
     graph/                    the trigger graph and its outputs
       <prefix>_trigger_graph.json   pages, methods, verdicts, labels, edges with evidence, verified routes
       <prefix>_trigger_graph.html   viewer for the same graph (open it in a browser)
-      methods.csv             one row per method: verdict, gates, best route, path status
+      methods.csv             one row per method: verdict, gates, best route, path status, full JVM class (jvm_class)
       README.md               generated summary of the app's graph, with the notes below
       build_report.txt, sanity_check.csv   build report; tool-coverage sanity check (never evidence)
     verification.csv          audit log: every label, edge and route checked, plus the emulator (DEVICE) rows
@@ -42,6 +42,8 @@ run_result/
 | MMEX | 4,270 | 8,441 | 3,430 | 840 | 8 of 868 (0.009) | none checked | 8 of 28 (0.286) | 6 of 30 | 6 |
 | LibreTorrent | 4,732 | 7,303 | 3,967 | 765 | 9 of 792 (0.011) | 25 of 78 (0.321) | 9 of 27 (0.333) | 7 of 29 | 7 |
 | **Total** | 29,024 | 63,008 | 24,304 | 4,720 | 133 of 5,103 (0.026) | 155 of 735 (0.211) | 134 of 365 (0.367) | 104 of 389 | 100 |
+
+**Known problems.** In Aegis, AmazeFileManager, AnkiDroid, LibreTorrent and MMEX, the state, env and GUI labels of reachable methods have known errors (a review on 3 November 2026 estimates 30–40% wrong on the sampled targets). Their label rates mostly measure the dead verdicts. See "Known problems" in the [main README](../README.md).
 
 ## Columns of `SUMMARY.csv`
 

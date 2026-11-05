@@ -15,7 +15,7 @@ This branch holds the finished ground truth for the 13 Java-only Android apps of
 | Trigger graph (schema 2) for every app | done, 13 of 13 | [`run_result/apps/<App>/graph/`](run_result/apps/), live copy in `graphs/<App>/out/` |
 | Audit against Yang's rules (labels, ENV and STATE gates, edge classes, routes, API 27) | done, 13 of 13, each app ticked by the user | [`handoff/PROGRESS_V2.md`](handoff/PROGRESS_V2.md) |
 | Audit log per app | 5,118 label rows, 753 edge rows, 389 route rows | `run_result/apps/<App>/verification.csv` |
-| Eight automated checks, run by the official CI | 13 of 13 at 0 errors, 0 warnings (CI request `c2e359a1`) | `run_result/apps/<App>/ci/` |
+| Eight automated checks, run by the official CI | 13 of 13 at 0 errors, 0 warnings (CI request `9c51c99c`) | `run_result/apps/<App>/ci/` |
 | Route scripts for the emulator | 389 routes: 355 scripted, 34 unscriptable (reason recorded) | `device/routes/<App>/`, list in `run_result/apps/<App>/routes.csv` |
 | Emulator run on GitHub Actions (API 27) | done 2026-11-03, run `41593209101-1`: 104 of 389 routes reached, 100 confirmed (DEVICE_OK) | [`run_result/emulator/`](run_result/emulator/) |
 | Emulator results written into the audit logs | done; a route that was not reached never changes a label | `verification.csv` rows with `confirmed_by=DEVICE` |
@@ -46,8 +46,25 @@ How to read the table:
 - **Items still wrong:** 13 labels and 14 routes. These are in AnkiDroid, Aegis and LibreTorrent, where the agreed stopping rule allowed no further fix rounds, plus 1 Omni-Notes route. Each is a row with `result=wrong` in that app's `verification.csv`, and the routes show path status WRONG in the graph.
 - **Rates:** each rate is errors found ÷ items checked. Each route is counted once.
 - **Emulator columns:** "reached" means the emulator's coverage data shows the route's target method actually ran. "DEVICE_OK" means it was reached **and** the whole route script ran to the end.
+- **What the label rates cover:** in Aegis, AmazeFileManager, AnkiDroid, LibreTorrent and MMEX, 94–97% of the label rows are UNREACHABLE methods. Only 25–30 reachable methods per app were audited, so these apps' label rates mostly measure the dead verdicts, not the state, env and GUI labels of reachable methods (see "Known problems" below).
 
 Route status over all reachable methods: DEVICE_OK 100, SOURCE_OK 214, WRONG 14, UNCHECKED 23,976. "UNCHECKED" means that method's route was not confirmed, either by hand or on the emulator. It does not mean the route is wrong.
+
+## Known problems: state, env and GUI labels in five apps
+
+A review on 3 November 2026 compared the full labels of Aegis, AmazeFileManager, AnkiDroid, LibreTorrent and MMEX with the paper's hand-labelled sample (50 unreached targets per app), and checked 23 disagreements against the source. We re-checked the review: it read our labels correctly in all 23 cases, and 6 of 6 cases we checked in the source agreed with it.
+
+- **The finding.** In these five apps the full labels put too few unreached targets in **state** (21.9%; about 38–40% after the review's correction) and too many in **GUI-only** (about 23%; about 10% after correction). On the sampled targets an estimated 30–40% of the full labels have the wrong class.
+- **The causes**, all in how the best route is derived:
+  - conditions on the route are ignored (for example an empty report, or a menu that exists only for Investment accounts);
+  - some routes start from an exported or external entry although an in-app route exists;
+  - some call edges cannot occur at run time (calls on objects never created on the route);
+  - data from other apps, older app versions or servers is missed;
+  - one-time intro screens are used as routes.
+- **What holds up:** the dead verdicts (57 of the 58 sampled dead targets agree) and the labels of the paper's eight apps (no unreached target changes class).
+- **Until these are fixed,** use the state, env and GUI split of reachable methods in these five apps with care. The verdicts (REACHABLE or UNREACHABLE) are not affected.
+
+Since the review, `methods.csv` has a `jvm_class` column with each method's full JVM class name. The `method` key adds a package prefix only where simple class names clash, so match on `jvm_class` and `jvm_descriptor` when joining with other data.
 
 ## How the graphs were built and checked
 
@@ -89,12 +106,13 @@ The full results, all 8 runs (7 attempts that led to the working run), 10 dry ru
 - **Reach is one run.** 26.7% of routes reached is a single run, and repeats vary by a route or two per app. A higher share would need app-specific setup (sample data, preset settings) for the apps with the lowest share.
 - **"Reached" is a weaker claim than "the drawn route was walked".** For 4 routes the target method ran although the script stopped early (Currency route_05; Vanilla-Music routes 05, 23 and 25). Their emulator row says the method ran, but their route keeps its earlier status.
 - **Some code was never read.** Library code and other apps' code that were not available are marked INFERRED in the evidence, never SOURCE.
+- **The state, env and GUI labels of the five apps outside the paper's eight have known errors.** See "Known problems" above.
 
 ## Where everything is
 
 | Folder | What it holds |
 |---|---|
-| [`run_result/`](run_result/) | **the final results** (frozen copy from commit `5099f10d`; see its README) |
+| [`run_result/`](run_result/) | **the final results** (frozen copy from commit `57d051a0`; see its README) |
 | `graphs/<App>/` | the live working folder per app: `graph_def.py`, `out/` (graph outputs), `verification.csv`, `make_verification.py` (writes the audit log), `readme_notes.md` (notes per app), `AGENT_NOTES.md` (work log), `scratch/` (working files and the latest CI output) |
 | `device/` | the emulator side: route lists and scripts (`routes/`), harness, runner (`run_app.sh`), collect and compare tools, all run results (`results/`) and dry runs (`dryrun/`) |
 | `.github/workflows/` | `rebuild-graphs.yml` (the official checks) and `device-replay.yml` (the emulator job) |
