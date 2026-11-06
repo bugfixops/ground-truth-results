@@ -1,0 +1,45 @@
+# Round-2 review fix 1 (Kiro): AmazeFileManager NONE rows that said "covered by a gate earlier on the route". Each
+# step now carries the gate its own guard needs (or a specific NONE reason).
+E8b965b20 ; STATE ; file ; CompressedExplorerFragment.java:410-420 ; an archive file is open in the archive viewer (decompressor not null, :410; changePath executes the listing task at :420); the baseline storage has no archive
+E30a1c990 ; STATE ; file ; FileUtils.java:1022-1026 ; a bookmarked folder no longer exists (it was deleted after it was bookmarked), so checkForPath recreates it (:1024-1026); the baseline bookmarks exist
+Edf9fdb80 ; NONE ; ; SftpConnectDialog.java:150-160 ; GUI: the Create button of the SFTP connection dialog, which the + button's cloud sheet opens (CloudSheetFragment.java:111-119); registering the button callback has no condition
+Ef4a86111 ; ENV ; network ; SftpConnectDialog.java:202-205 ; network: an SSH server answers the host fingerprint request for the typed host (GetSshHostFingerprintTask, :203-205)
+Eba1be93e ; ENV ; network ; MainFragment.java:913-919 ; network: a saved SFTP connection's server lists the folder, and the tapped row is an SFTP file (case SFTP, :917-919)
+E120cfd11 ; STATE ; data ; HybridFile.java:1154-1156 ; a saved SFTP connection exists and the new folder is on it (isSftp(), :1155); the baseline has none (reviewer's correction)
+E4c6b48e5 ; NONE ; ; AppsAdapterPreloadModel, ApkImageModelLoaderFactory ; baseline: the app list shows the installed apps, and Glide builds this factory when it preloads their APK icons
+E44ea6c85 ; NONE ; ; ApkImageModelLoader ; baseline: Glide asks this loader for the load data of each installed app's APK icon in the app list
+E18952e7d ; NONE ; ; CloudIconModelFactory ; baseline: Glide builds every factory registered for String models when the app list preloads String paths (registerComponents of the generated module)
+E2cf492c6 ; STATE ; data ; CloudIconModelLoader ; a cloud, SMB or SFTP entry is shown (CloudIconModelLoader handles only those path prefixes, so Glide asks it for load data only then); the baseline has none
+E8498f7d5 ; STATE ; file ; SevenZipHelperTask.addElements ; a 7z archive is open in the archive viewer (the 7z listing task publishes its progress); the baseline storage has none
+Eac1e4965 ; STATE ; session ; ServiceWatcherUtil.java:163-170 ; a file operation is already running when a second one starts (one pending intent, case 1 at :167-170)
+E2085ff1f ; STATE ; file ; Coders.java:73-79 ; a 7z archive whose coder is Deflate is opened (findByMethod picks DeflateDecoder, :73); the baseline storage has none
+E67e984df ; STATE ; file ; SevenZFile.java:465-466 ; a 7z archive with a substreams-info header is opened (:465); the baseline storage has none
+Ecbaf2dbf ; ENV ; other_app ; Drawer, GeneralDialogCreation.showCloudDialog ; outside package: the Amaze cloud plugin app is installed and a cloud entry is in the drawer (its long-press shows this dialog)
+Eae1786fc ; ENV ; other_app ; MainFragment.generalShare, FileUtils.shareCloudFile ; outside package: the Amaze cloud plugin app is installed and a cloud file is shared
+E9ea27947 ; ENV ; other_app ; GeneralDialogCreation.java:523-536,1160 ; the device is rooted (su available) and root explorer is enabled in settings (the permissions table is shown only then)
+Ee024d89c ; ENV ; network ; LoadFilesListTask.java:108-113 ; network: an SMB server answers the folder listing (hFile.getSmbFile(5000).listFiles(), :112)
+Ec8d4bbc8 ; ENV ; hardware+other_app ; HybridFile.java:605-606 ; hardware: a USB OTG device is connected and its folder is granted in the system folder picker (case OTG)
+Eb8ced77e ; STATE ; file ; SevenZFile.java:457-458 ; a 7z archive is opened (its header has unpack info, :457); the baseline storage has none
+E66b1e129 ; STATE ; file ; MainActivity.java:719-722 ; an archive file is open in the archive viewer (the shown fragment is CompressedExplorerFragment, :719); the baseline storage has no archive
+E5f7e13d1 ; ENV ; other_app ; CloudHandler.java:171-190 ; outside package: the Amaze cloud plugin app is installed (:171) and a cloud account is stored (cursor rows, :185-190)
+E5cf0f26f ; ENV ; network ; SshClientUtils.java:69-74 ; network: an SSH server at the saved host is reachable (getConnection returns a client, :72-74)
+Efe553c1f ; STATE ; session ; CloudStreamServer.java:272-277 ; the SMB streamer holds the port from an earlier stream in this session (BindException, :276-277)
+Efcea112e ; ENV ; hardware+other_app ; MainActivity.java:1134-1139 ; hardware: a USB OTG mass-storage device is connected (:1136) and its folder is granted in the system folder picker (:1137)
+Ef76f1fb9 ; STATE ; file ; SevenZFile.java:512-517 ; a 7z archive with at least one folder is opened (:516-517); the baseline storage has none
+Ecf4658af ; STATE ; file ; Coders.java:73-79 ; a password-protected (AES) 7z archive is opened (findByMethod picks AES256SHA256Decoder); the baseline storage has none
+Ecaf3eccf ; ENV ; other_app ; GeneralDialogCreation.java:1160-1166 ; the device is rooted (su available) and root explorer is enabled in settings
+Eca94ce6b ; ENV ; hardware+other_app ; FileUtils.java:816-822 ; hardware: a USB OTG device is connected and its folder is granted (the DocumentFile overload opens OTG files), and no app opens the file type (:820-822)
+Ec65c3d24 ; STATE ; session ; StreamServer.java:208-212 ; the cloud streamer holds the port from an earlier stream in this session (BindException, :211-212)
+Ec4450351 ; STATE ; file ; SevenZFile.java:323-335 ; a 7z archive with a valid signature and version is opened (:323-332); the baseline storage has none
+Ec0143aed ; STATE ; file ; SevenZipHelperTask.java:72-80 ; a 7z archive with an entry in the browsed folder is open (:78-80); the baseline storage has none
+Eb2cfbaf7 ; STATE ; file ; LZMA2Decoder.java:68-72 ; a 7z archive compressed with LZMA2 is opened (on decode the options are the dictionary-size number, not LZMA2Options, :69-72)
+Eb05c7d7f ; STATE ; file ; BoundedFileChannelInputStream ; a 7z archive is read (the bounded channel stream exists only while a 7z file is decoded)
+Eb03e6dfc ; STATE ; file ; MoveFiles.java:183-194 ; an encrypted .aze file with its stored entry is moved (cryptHandler.findEntry finds it); the baseline storage has none
+Ea98e7eb5 ; STATE ; file ; ArchivePasswordCache.java:61 ; an archive is extracted or opened (the extractors are the only users of the password cache, so its holder class initialises then)
+E9142d88d ; STATE ; data ; GenerateHashesTask.java:55-69 ; a saved SFTP connection exists and the file in the properties dialog is on it (file.isSftp(), :55)
+E8726a14e ; STATE ; data ; GenerateHashesTask.java:55-69 ; a saved SFTP connection exists and the file in the properties dialog is on it (file.isSftp(), :55)
+E79534443 ; ENV ; other_app ; CloudUtil.checkToken ; outside package: the Amaze cloud plugin app is installed and a cloud account's token is checked (a cloud drawer entry is tapped)
+E67e401b6 ; STATE ; file ; Coders.java:73-79 ; a 7z archive compressed with LZMA is opened (findByMethod picks LZMADecoder); the baseline storage has none
+E27a9ce31 ; STATE ; file ; CompressedHelper.java:119-120 ; a .tar.bz2 or .tbz archive is opened (isBzippedTar); the baseline storage has none
+E00987782 ; STATE ; data ; UtilsHandler.java:216-217 ; a saved SFTP connection is removed (case SFTP); the baseline has none
+Eb8b16b2e ; ENV ; other_app ; CloudUtil.java:241-245 ; outside package: the cloud plugin app is installed and a stored cloud account's token is lost (:241-245)
