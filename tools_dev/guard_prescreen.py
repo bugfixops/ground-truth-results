@@ -101,6 +101,8 @@ def screen_line(lines, n):
                 in_comment = True
         s = strip_code(s)
         if i == n:
+            meth = [x for x in stack if x[0] == 'method']
+            screen_line.last_method = meth[-1][2] if meth else ''
             # The step line itself. Record EVERY guard of the line, not only the innermost block (reviewer
             # finding on round 1): all enclosing control blocks of its method (outermost first), a ?: or a
             # control statement on the line, and every earlier exit in the method.
@@ -174,6 +176,65 @@ def screen_line(lines, n):
     return 'no_source', 'line beyond the end of the file', None, ''
 
 
+def method_name(header):
+    """The name of the method whose header text is given (the identifier before its parameter list)."""
+    h = re.sub(r'\([^()]*\)', '()', header or '')
+    m = re.search(r'([A-Za-z_$][\w$]*)\s*\(\)\s*(throws [\w.,\s]+)?$', h.strip())
+    return m.group(1) if m else ''
+
+
+def src_method_name(src):
+    """'Foo$1.onBindViewHolder@X' -> 'onBindViewHolder'; '' for constructors, lambdas and generated names."""
+    n = src.split('@')[0].split('(')[0].split('.')[-1]
+    return '' if n.startswith(('<', 'lambda$', 'access$')) else n
+
+
+def method_body(lines, name):
+    """(start, end) 1-based line range of the first method declaration called name in the file, or None."""
+    decl = re.compile(r'^\s*(public|protected|private|static|final|synchronized|abstract|@\w+|\s)*[\w<>\[\],.? ]+\s+'
+                      + re.escape(name) + r'\s*\(')
+    for i, l in enumerate(lines, 1):
+        if decl.search(l) and not l.rstrip().endswith(';'):
+            depth, seen = 0, False
+            for j in range(i, len(lines) + 1):
+                t = strip_code(lines[j - 1])
+                depth += t.count('{') - t.count('}')
+                seen = seen or '{' in t
+                if seen and depth <= 0:
+                    return i, j
+            return None
+    return None
+
+
+def helper_level(lines, n, src, flag, reason, gl, gt):
+    """Review 2 (Kiro): follow one helper-call level. When the cited line of a step sits in a helper method, not in
+    the step's source method, the call of that helper in the source method is screened too, and its guards are
+    added to the step's guards (the reviewer's Q-W8-2 finding: RecyclerAdapter.onBindViewHolder ->
+    GlideRequests.load(Integer) cited a line in showRoundedThumbnail)."""
+    helper = method_name(getattr(screen_line, 'last_method', ''))
+    own = src_method_name(src)
+    if not helper or not own or helper == own:
+        return flag, reason, gl, gt
+    body = method_body(lines, own)
+    if not body:
+        return flag, reason, gl, gt
+    call = re.compile(r'\b' + re.escape(helper) + r'\s*\(')
+    sites = [k for k in range(body[0] + 1, body[1] + 1) if call.search(strip_code(lines[k - 1]))]
+    extra = []
+    for k in sites:
+        f2, r2, g2, t2 = screen_line(lines, k)
+        if f2 == 'yes':
+            extra.append((k, r2, g2, t2))
+    if not extra:
+        return flag, reason, gl, gt
+    k, r2, g2, t2 = extra[0]
+    text = ' || '.join(x for x in (gt, 'helper %s called at %d: %s' % (helper, k, t2)) if x)
+    why = 'helper-call guarded (%s called from %s at line %d: %s)' % (helper, own, k, r2)
+    if flag == 'yes':
+        why = reason + '; ' + why
+    return 'yes', why, gl or g2, text
+
+
 def prescreen(app):
     g = json.load(open(glob.glob('graphs/%s/out/*_trigger_graph.json' % app)[0], encoding='utf-8'))
     E = {e['id']: e for e in g['edges']}
@@ -208,6 +269,7 @@ def prescreen(app):
             path = src.find(m.group(1))
             if path:
                 flag, reason, gl, gt = screen_line(src.lines(path), int(m.group(2)))
+                flag, reason, gl, gt = helper_level(src.lines(path), int(m.group(2)), e['src'], flag, reason, gl, gt)
             else:
                 reason = 'cited file not found in the app source'
         if flag == 'no' and e['kind'] == 'GUI':
@@ -244,6 +306,7 @@ def main():
             if not p:
                 continue
             flag, reason, gl, gt = screen_line(src.lines(p), int(m.group(2)))
+            flag, reason, gl, gt = helper_level(src.lines(p), int(m.group(2)), r['src'], flag, reason, gl, gt)
             if flag == 'no' and r['kind'] == 'GUI' and GUI_NEEDS.search(' '.join((r['src'], r['dst']))):
                 flag, reason = 'yes', 'GUI step on a list item, selection or dialog'
             if flag == 'no' and r['reason'] == 'GUI step on a list item, selection or dialog':
@@ -257,6 +320,50 @@ def main():
         t = sum(1 for r in rows if r['reason'] == 'only inside try/finally blocks')
         print('%s: rescreened %d steps: flagged %d (try/finally only %d), unflagged %d, no_source %d'
               % (app, len(rows), c['yes'], t, c['no'], c['no_source']))
+        return 0
+    if sys.argv[1] == '--merge':
+        # Review 2 (Kiro): re-run the pre-screen on the CURRENT build and merge it into guard_steps.csv. Rows already
+        # listed keep their place (and their judgments, which are keyed by edge id) and are re-screened with the
+        # helper-call level; steps on the current best routes of the targets that the pre-W7 list did not have are
+        # appended (their targets count is from the current build).
+        app = sys.argv[2]
+        path = 'graphs/%s/scratch/reaudit/guard_steps.csv' % app
+        rows = list(csv.DictReader(open(path, encoding='utf-8')))
+        have = {r['edge_id'] for r in rows}
+        keys = {(r['kind'], r['src'], r['dst']) for r in rows}
+        src = Sources(app)
+        changed = 0
+        for r in rows:
+            m = re.match(r'([\w/$.-]+\.java):(\d+)$', r['cited'] or '')
+            if not m:
+                continue
+            p = src.find(m.group(1))
+            if not p:
+                continue
+            flag, reason, gl, gt = screen_line(src.lines(p), int(m.group(2)))
+            flag, reason, gl, gt = helper_level(src.lines(p), int(m.group(2)), r['src'], flag, reason, gl, gt)
+            if flag == 'no' and r['kind'] == 'GUI' and GUI_NEEDS.search(' '.join((r['src'], r['dst']))):
+                flag, reason = 'yes', 'GUI step on a list item, selection or dialog'
+            if flag == 'no' and r['reason'] == 'GUI step on a list item, selection or dialog':
+                flag, reason = 'yes', r['reason']
+            if (flag, reason) != (r['flag'], r['reason']):
+                changed += 1
+            r['flag'], r['reason'], r['guard_line'], r['guard_text'] = flag, reason, gl or '', gt
+        _t, out = prescreen(app)
+        added = 0
+        for o in out:
+            if o[0] in have or (o[1], o[2], o[3]) in keys:
+                continue
+            rows.append(dict(zip(['edge_id', 'kind', 'src', 'dst', 'cited', 'flag', 'reason', 'guard_line',
+                                  'guard_text', 'targets'], [str(x) for x in o])))
+            added += 1
+        with open(path, 'w', newline='', encoding='utf-8') as f:
+            w = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
+            w.writeheader()
+            w.writerows(rows)
+        c = collections.Counter(r['flag'] for r in rows)
+        print('%s: merged: %d rows re-screened with a changed flag or reason, %d new steps from the current build; '
+              'flagged %d, unflagged %d, no_source %d' % (app, changed, added, c['yes'], c['no'], c['no_source']))
         return 0
     app = sys.argv[1]
     targets, out = prescreen(app)

@@ -34,7 +34,22 @@ The try rule now counts every guard of a step line (242 rows back to PENDING), t
 | MMEX | 3,999 | 20.8 / 0.2 / 3.7 / 11.2 / 14.3 / 49.9 | 189 | 205 / 19 / 12 / 0 / 1,268 | 89.5% |
 | weighted | | 27.4 / 1.2 / 9.2 / 14.7 / 13.2 / 34.3 | 1,094 | | |
 
-The PENDING rows that remain (3,961) are the long tail: each is used by few never-run targets (mostly 1 to 3), so together they hold about 10% of the flagged target-uses per app (4% for Aegis). Their gui share is still over-counted by at most that much. All judgments are self-checked only (second: pending reviewer). Two AmazeFileManager steps that run only on API 19 or 23 are DEAD, and the 9 methods behind them are UNREACHABLE closed_by_api_level.
+The PENDING rows that remained (3,961) were the long tail: each is used by few never-run targets (mostly 1 to 3). The gui share is still over-counted, and the size of the over-count is not known yet: re-reading the 20 changed AmazeFileManager sample routes (W8) and the reviewer's round-2 fixes moved its state share from 7.1% to 27.4% (local builds), far more than the share of flagged target-uses that was still PENDING.
+
+### After the reviewer's round-2 check (local builds, not yet CI)
+
+"Covered by a gate earlier on the route" is no longer a NONE reason (REAUDIT-R2-NONE): the rows that said so and left gui/library targets on their routes were re-judged one step per line. AmazeFileManager drops 154 INFERRED "framework calls ... after construction" edges (REAUDIT-R2-INFERRED). The pre-screen now follows one helper-call level and was re-run on the current build; the steps it found on the current best routes were added (Aegis 105, AmazeFileManager 199, AnkiDroid 154, LibreTorrent 85, MMEX 137), so the judged share of flagged target-uses fell again (Aegis 95.3%, AmazeFileManager 77.0%, AnkiDroid 83.6%, LibreTorrent 86.6%, MMEX 87.0%).
+
+| App | dead / config / env / state / library / gui (%) |
+|---|---|
+| Aegis | 20.8 / 0.0 / 21.1 / 16.7 / 8.6 / 32.8 |
+| AmazeFileManager | 24.1 / 1.0 / 10.8 / 27.4 / 3.8 / 33.0 |
+| AnkiDroid | 38.8 / 3.0 / 12.0 / 10.4 / 0.3 / 35.5 |
+| LibreTorrent | 27.8 / 0.9 / 10.9 / 29.1 / 28.7 / 2.6 |
+| MMEX | 20.8 / 0.2 / 4.5 / 12.9 / 12.7 / 49.0 |
+| weighted | 27.4 / 1.2 / 11.1 / 18.8 / 11.4 / 30.2 |
+
+All judgments are self-checked only (second: pending reviewer). Two AmazeFileManager steps that run only on API 19 or 23 are DEAD, and the 9 methods behind them are UNREACHABLE closed_by_api_level.
 
 ## Aegis
 
