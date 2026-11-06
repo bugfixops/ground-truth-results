@@ -10053,3 +10053,67 @@ def EDIT(x):
     if _via and x.get('edge_class') != 'non_standard':
         x['edge_class'] = 'non_standard'
         x['via'] = _via
+
+
+# ---- W6 REAUDIT (Kiro): outside data the route consumes ----
+# Each entry puts an env gate on the edge that consumes data from outside the app; decisions and the
+# pattern sweep: graphs/AmazeFileManager/scratch/reaudit/outside_data.csv.
+_W6_ENV = {
+    ('SshAuthenticationTask.doInBackground', 'SshAuthenticationTask.onPostExecute', 'ASYNC'):
+        ('network: an SSH server at the saved host answers the connection and authentication (sshClient.connect and authPassword/authPublickey, SshAuthenticationTask.java:117-131); onPostExecute consumes that result (line 164)', ['network']),
+    ('SftpConnectDialog.onCreateDialog', 'SftpConnectDialog.onActivityResult', 'RESULT'):
+        ('other_app: the system document picker returns the chosen SSH key file (ACTION_GET_CONTENT, SftpConnectDialog.java:142-146)', ['other_app']),
+    ('MainActivity.onActivityResult', 'Drawer.onActivityResult', 'RESULT'):
+        ('other_app: the system image picker returns the drawer header image (ACTION_OPEN_DOCUMENT or ACTION_GET_CONTENT, type image/*, Drawer.java:140-152)', ['other_app']),
+}
+_W6_ORIG_EDIT = globals().get('EDIT')
+
+
+def EDIT(x):
+    if _W6_ORIG_EDIT:
+        _W6_ORIG_EDIT(x)
+    _g = _W6_ENV.get((x['src'], x['dst'], x['kind']))
+    if _g and not x.get('env'):
+        x['env'], x['env_kinds'] = _g[0], list(_g[1])
+# W6 (Kiro), network and servers: rules matched on the edge (decisions in outside_data.csv).
+_W6_RULES = [
+    ('CloudStreamServer.lambda$new$0', 'CloudStreamServer$HTTPSession.<init>', 'CALL',
+     'network: another app or device connects to the local streaming server (myServerSocket.accept, CloudStreamServer.java:216-217)', ['network', 'other_app']),
+    ('StreamServer.<init>', 'StreamServer$HTTPSession.<init>', 'ASYNC',
+     'network: another app or device connects to the local streaming server (myServerSocket.accept, StreamServer.java:179-180)', ['network', 'other_app']),
+    ('CloudHandler.<init>', 'CloudHandler.onUpgrade', 'FRAMEWORK',
+     'data only an older app version writes: a database file with an older schema version; SQLiteOpenHelper calls onUpgrade only when the stored version is lower than the version the app asks for (FW-SRC core/java/android/database/sqlite/SQLiteOpenHelper.java:354-365)', ['other']),
+    ('CryptHandler.<init>', 'CryptHandler.onUpgrade', 'FRAMEWORK',
+     'data only an older app version writes: a database file with an older schema version; SQLiteOpenHelper calls onUpgrade only when the stored version is lower than the version the app asks for (FW-SRC core/java/android/database/sqlite/SQLiteOpenHelper.java:354-365)', ['other']),
+    ('SortHandler.<init>', 'SortHandler.onUpgrade', 'LIFECYCLE',
+     'data only an older app version writes: a database file with an older schema version; SQLiteOpenHelper calls onUpgrade only when the stored version is lower than the version the app asks for (FW-SRC core/java/android/database/sqlite/SQLiteOpenHelper.java:354-365)', ['other']),
+    ('TabHandler.<init>', 'TabHandler.onUpgrade', 'LIFECYCLE',
+     'data only an older app version writes: a database file with an older schema version; SQLiteOpenHelper calls onUpgrade only when the stored version is lower than the version the app asks for (FW-SRC core/java/android/database/sqlite/SQLiteOpenHelper.java:354-365)', ['other']),
+    ('S_ENTRY', 'UtilsHandler.onUpgrade', 'LIFECYCLE',
+     'data only an older app version writes: a database file with an older schema version; SQLiteOpenHelper calls onUpgrade only when the stored version is lower than the version the app asks for (FW-SRC core/java/android/database/sqlite/SQLiteOpenHelper.java:354-365)', ['other']),
+    ('TabHandler.<init>', 'TabHandler.onDowngrade', 'LIFECYCLE',
+     'other: data a newer app version writes: a tab database with a higher schema version; SQLiteOpenHelper calls onDowngrade only then (FW-SRC core/java/android/database/sqlite/SQLiteOpenHelper.java:354-365)', ['other']),
+]
+_W6B_ORIG_EDIT = globals().get('EDIT')
+
+
+def EDIT(x):
+    if _W6B_ORIG_EDIT:
+        _W6B_ORIG_EDIT(x)
+    if x.get('env'):
+        return
+    for _src, _dst, _kind, _text, _kinds in _W6_RULES:
+        if x['kind'] == _kind and x['src'].split('@')[0] == _src and x['dst'].split('@')[0] == _dst:
+            x['env'], x['env_kinds'] = _text, list(_kinds)
+            return
+_W6C_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _W6C_ORIG_EDIT(x)
+    if (not x.get('env') and x['kind'] == 'FRAMEWORK' and x['src'].split('@')[0].startswith('SshClientUtils.execute(')
+            and x['dst'].endswith('.execute')):
+        x['env'] = ('network: an SSH server at the saved host is reachable: SshClientUtils.execute runs the template only with a '
+                    'connection from SshConnectionPool.getConnection (SshClientUtils.java:68-74, 94-102, 126-134)')
+        x['env_kinds'] = ['network']
+

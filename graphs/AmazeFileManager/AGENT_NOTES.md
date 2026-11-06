@@ -765,3 +765,4 @@ the AmazeFileManager decisions operative at this writing are:
 - 2026-11-06 04:28 UTC: Kiro, re-audit W3 done for AmazeFileManager (text editor and FtpReceiver in-app edges; exported-entry routes 57 -> 5); next W4 (RTA, AmazeFileManager-20).
 - 2026-11-06 04:39 UTC: Kiro, re-audit W4 done for AmazeFileManager (RTA on; HybridFile templates renumbered from javap; HybridFile$9.execute UNREACHABLE); next W5 (ESR_CREATION).
 - 2026-11-06 04:46 UTC: Kiro, re-audit W5 done for AmazeFileManager (ESR_CREATION on; library_edges.csv); next W6 (outside data).
+- 2026-11-06 04:53 UTC: Kiro, re-audit W6 done for AmazeFileManager (outside_data.csv); next W7 (guards).
