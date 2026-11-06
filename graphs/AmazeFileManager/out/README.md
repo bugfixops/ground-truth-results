@@ -14,12 +14,12 @@ How every method of **AmazeFileManager** is triggered, in the standard configura
 
 ## Numbers
 
-- **2981 methods**, **12 pages** (including pseudo pages), **7747 edges**. Verdicts: **2512 REACHABLE**, **469 UNREACHABLE**.
-- UNREACHABLE by reason: closed_by_api_level 9, framework_never_calls 38, no_trigger_in_app 422.
-- ENV gates (methods): other_app 57, system_event 7. STATE gates (methods): data 4, session 3. Methods with no gate: 2443.
-- Edge classes: explicit 6523, non_standard 26, page 11, standard 1187. Non-standard edges: 26 (EventBus @Subscribe delivery of FtpReceiverActions; EventBus post of FtpReceiverActions to @Subscribe methods; Glide generated code; android:onClick reflection lookup of onClick(View)).
-- 47 reachable methods have a non-standard edge on their best route; 45 have no explicit-or-standard-only route at all.
-- Labels confirmed by: INFERRED 1547, SOURCE 1434 (SOURCE: every edge of the best route cites a source line, in the app or in the Android 8.1 / library source; INFERRED: some edge rests on inference or on another app).
+- **2981 methods**, **12 pages** (including pseudo pages), **7735 edges**. Verdicts: **2507 REACHABLE**, **474 UNREACHABLE**.
+- UNREACHABLE by reason: closed_by_api_level 9, framework_never_calls 38, no_trigger_in_app 427.
+- ENV gates (methods): network 27, other 6, other_app 43, system_event 7. STATE gates (methods): data 5, file 80, session 3. Methods with no gate: 2359.
+- Edge classes: explicit 6509, non_standard 39, page 11, standard 1176. Non-standard edges: 39 (EventBus @Subscribe delivery of FtpReceiverActions; EventBus post of FtpReceiverActions to @Subscribe methods; Glide generated code; XML inflation: LayoutInflater or the preference inflater builds this class from its XML tag through the (Context, AttributeSet) constructor (layout or preference XML c).
+- 79 reachable methods have a non-standard edge on their best route; 128 have no explicit-or-standard-only route at all.
+- Labels confirmed by: INFERRED 1544, SOURCE 1437 (SOURCE: every edge of the best route cites a source line, in the app or in the Android 8.1 / library source; INFERRED: some edge rests on inference or on another app).
 
 ## How much to trust it
 
@@ -33,10 +33,10 @@ Verification log (`verification.csv`), counts of what was checked and found:
 
 Device replay on the emulator (API 27): 0 of 30 routes reached their target method; 0 of these ran the whole script and are `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; see `../device/results.csv`.
 
-Path status over all reachable methods: SOURCE_OK 30, UNCHECKED 2482.
+Path status over all reachable methods: SOURCE_OK 21, STALE 9, UNCHECKED 2477.
 The rows are the items that were individually checked, not a random sample of all labels; see the notes below for how they were chosen and what the unclear rows wait for.
 
-Edges whose evidence is not a source line (580 of 7747): E9c493cd5 (MainActivity.onResume -> MainActivity.onCreateOptionsMenu); E7a0b9a37 (MainActivity.onCreateOptionsMenu -> MainActivity.onOptionsItemSelected); E745b85ef (MainActivity$1.<init> -> MainActivity$1.doInBackground); Ed18978e9 (MainActivity$1.doInBackground -> MainActivity$1.onPostExecute); Ef643161a (TabFragment.onCreateView -> MainFragment.<init>); E3f533b40 (MainFragment.<init> -> MainFragment.onCreate); Ebd761bbf (MainFragment.onCreate -> MainFragment.onCreateView); E9adbdc5d (MainFragment.onCreateView -> MainFragment.onActivityCreated); E199e866f (RecyclerAdapter.<init> -> RecyclerAdapter.onCreateViewHolder); Ee1989850 (RecyclerAdapter.onCreateViewHolder -> RecyclerAdapter.onBindViewHolder); E6c3cfc3a (RecyclerAdapter.setItems(RecyclerView,ArrayList,boolean) -> RecyclerPreloadModelProvider.getPreloadRequestBuilder); Eacc36ed3 (Drawer.<init> -> Drawer.onNavigationItemSelected) ...
+Edges whose evidence is not a source line (580 of 7735): E9c493cd5 (MainActivity.onResume -> MainActivity.onCreateOptionsMenu); E7a0b9a37 (MainActivity.onCreateOptionsMenu -> MainActivity.onOptionsItemSelected); E745b85ef (MainActivity$1.<init> -> MainActivity$1.doInBackground); Ed18978e9 (MainActivity$1.doInBackground -> MainActivity$1.onPostExecute); Ef643161a (TabFragment.onCreateView -> MainFragment.<init>); E3f533b40 (MainFragment.<init> -> MainFragment.onCreate); Ebd761bbf (MainFragment.onCreate -> MainFragment.onCreateView); E9adbdc5d (MainFragment.onCreateView -> MainFragment.onActivityCreated); E199e866f (RecyclerAdapter.<init> -> RecyclerAdapter.onCreateViewHolder); Ee1989850 (RecyclerAdapter.onCreateViewHolder -> RecyclerAdapter.onBindViewHolder); E6c3cfc3a (RecyclerAdapter.setItems(RecyclerView,ArrayList,boolean) -> RecyclerPreloadModelProvider.getPreloadRequestBuilder); Eacc36ed3 (Drawer.<init> -> Drawer.onNavigationItemSelected) ...
 
 Sanity check against tool coverage (never used to set a label): 1132 methods ran in the 1-hour Monkey / APE runs on API 27; **19** of them are labelled UNREACHABLE.
 

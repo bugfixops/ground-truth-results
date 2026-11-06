@@ -14,12 +14,12 @@ How every method of **MMEX** is triggered, in the standard configuration: the in
 
 ## Numbers
 
-- **4270 methods**, **43 pages** (including pseudo pages), **8441 edges**. Verdicts: **3430 REACHABLE**, **840 UNREACHABLE**.
+- **4270 methods**, **43 pages** (including pseudo pages), **8447 edges**. Verdicts: **3430 REACHABLE**, **840 UNREACHABLE**.
 - UNREACHABLE by reason: branch_never_taken 13, closed_by_api_level 9, framework_never_calls 77, no_trigger_in_app 741.
-- ENV gates (methods): hardware 9, network 4, other 11, other_app 44, system_event 28, time 6. STATE gates (methods): account 386, data 42, session 9, settings 481. Methods with no gate: 2860.
-- Edge classes: explicit 6965, non_standard 497, page 53, standard 926. Non-standard edges: 497 (AbstractAccountAuthenticator binder stub: onBind returns the IBinder from getIBinder, and the stub dispatches addAccount (the library and AccountManagerService are not in fw_src; INFERRED); Activity.runOnUiThread (fw_src core/java/android/app/Activity.java:6170-6176); AmplitudeKt.Amplitude (com.ampl).
-- 1396 reachable methods have a non-standard edge on their best route; 931 have no explicit-or-standard-only route at all.
-- Labels confirmed by: INFERRED 2756, SOURCE 1514 (SOURCE: every edge of the best route cites a source line, in the app or in the Android 8.1 / library source; INFERRED: some edge rests on inference or on another app).
+- ENV gates (methods): hardware 9, network 31, other 11, other_app 47, system_event 28, time 6. STATE gates (methods): account 5, data 42, session 9, settings 94. Methods with no gate: 3215.
+- Edge classes: explicit 6971, non_standard 499, page 53, standard 924. Non-standard edges: 499 (AbstractAccountAuthenticator binder stub: onBind returns the IBinder from getIBinder, and the stub dispatches addAccount (the library and AccountManagerService are not in fw_src; INFERRED); Activity.runOnUiThread (fw_src core/java/android/app/Activity.java:6170-6176); AmplitudeKt.Amplitude (com.ampl).
+- 1378 reachable methods have a non-standard edge on their best route; 1039 have no explicit-or-standard-only route at all.
+- Labels confirmed by: INFERRED 2753, SOURCE 1517 (SOURCE: every edge of the best route cites a source line, in the app or in the Android 8.1 / library source; INFERRED: some edge rests on inference or on another app).
 
 ## How much to trust it
 
@@ -33,10 +33,10 @@ Verification log (`verification.csv`), counts of what was checked and found:
 
 Device replay on the emulator (API 27): 6 of 30 routes reached their target method; 6 of these ran the whole script and are `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; see `../device/results.csv`.
 
-Path status over all reachable methods: DEVICE_OK 6, SOURCE_OK 23, UNCHECKED 3401.
+Path status over all reachable methods: DEVICE_OK 3, SOURCE_OK 19, STALE 7, UNCHECKED 3401.
 The rows are the items that were individually checked, not a random sample of all labels; see the notes below for how they were chosen and what the unclear rows wait for.
 
-Edges whose evidence is not a source line (859 of 8441): E19395ce1 (S_ENTRY -> PayeeActivity.<clinit>); E76a7aa66 (SearchParametersFragment$1.onClick -> PayeeActivity.<clinit>); E6f579f87 (EditTransactionCommonFunctions$9.onClick -> PayeeActivity.<clinit>); E87a1872f (AboutActivity.onCreate -> AboutTabAdapter.getCount); Ee835bc9a (AboutActivity.onCreate -> AboutTabAdapter.getItem); Eb0b17b72 (S_ABOUT_ACTIVITY -> AboutTabAdapter.getItem); E388582e3 (AboutActivity.onCreate -> AboutTabAdapter.getPageTitle); E503e054a (AboutActivity.onCreate -> AboutActivity.onRestoreInstanceState); Ea0013de2 (AboutCreditsFragment.<init> -> AboutCreditsFragment.onCreateView); Eeff0a2bf (AboutCreditsFragment.onCreateView -> AboutCreditsFragment.onActivityCreated); Ecef22362 (AboutFragment.<init> -> AboutFragment.onCreateView); E9a349a2e (S_ABOUT_TAB -> AboutFragment$1.onClick) ...
+Edges whose evidence is not a source line (859 of 8447): E19395ce1 (S_ENTRY -> PayeeActivity.<clinit>); E76a7aa66 (SearchParametersFragment$1.onClick -> PayeeActivity.<clinit>); E6f579f87 (EditTransactionCommonFunctions$9.onClick -> PayeeActivity.<clinit>); E87a1872f (AboutActivity.onCreate -> AboutTabAdapter.getCount); Ee835bc9a (AboutActivity.onCreate -> AboutTabAdapter.getItem); Eb0b17b72 (S_ABOUT_ACTIVITY -> AboutTabAdapter.getItem); E388582e3 (AboutActivity.onCreate -> AboutTabAdapter.getPageTitle); E503e054a (AboutActivity.onCreate -> AboutActivity.onRestoreInstanceState); Ea0013de2 (AboutCreditsFragment.<init> -> AboutCreditsFragment.onCreateView); Eeff0a2bf (AboutCreditsFragment.onCreateView -> AboutCreditsFragment.onActivityCreated); Ecef22362 (AboutFragment.<init> -> AboutFragment.onCreateView); E9a349a2e (S_ABOUT_TAB -> AboutFragment$1.onClick) ...
 
 Sanity check against tool coverage (never used to set a label): 271 methods ran in the 1-hour Monkey / APE runs on API 27; **0** of them are labelled UNREACHABLE.
 
