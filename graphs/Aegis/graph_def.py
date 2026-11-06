@@ -6430,3 +6430,38 @@ e('MainActivity.onStart', 'MainActivity.startAuthActivity', 'CALL',
   guard='the vault exists (isVaultInitNeeded() false, MainActivity.java:942-947), the file reads without error (954-960), it is encrypted, so loadFrom is skipped (963-973), and isVaultLoaded() is false (976)',
   note='baseline: the setup vault is password-protected (Q3), so a launcher start opens the unlock screen (W3)',
   evidence='SRC ui/MainActivity.java:942-977')
+
+
+# ---- W4 REAUDIT (Kiro): rapid type analysis for bytecode cha edges (brief W1 T2) ----
+RTA = True
+# ---- W4 REAUDIT (Kiro): impossible calls RTA cannot see (Aegis-16) ----
+# DatabaseImporter.readFromApp runs only for the import-from-app path:
+# ImportEntriesActivity.startImport calls startImportApp when no file was
+# given (ImportEntriesActivity.java:107-112), and the only start without a file
+# is the pref_import_app dialog, which lists getImporters(true), the importers
+# that support direct import (ImportExportPreferencesFragment.java:117-123;
+# DatabaseImporter.java:99-101). The nine importers defined with
+# supportsDirect false (DatabaseImporter.java:33-36, 39, 41, 46, 47, 51) never
+# reach readFromApp, so its virtual calls getAppPath() (line 80) and
+# read(stream, true) (line 84) never dispatch to them; their getAppPath also
+# just throws UnsupportedOperationException. The bytecode cha edges are
+# suppressed (every class is created by DatabaseImporter.create, so RTA keeps
+# them); the getAppPath methods have no other caller and become UNREACHABLE.
+# Printed lines: graphs/Aegis/scratch/reaudit/w4_printed.txt.
+_W4_NOT_DIRECT = {
+    'TwoFASImporter': ('read', 55), 'AegisImporter': ('read', 40), 'AndOtpImporter': ('read(InputStream,boolean)', 61),
+    'AuthenticatorPlusImporter': ('read', 26), 'BitwardenImporter': ('read', 37), 'EnteAuthImporter': ('read', 18),
+    'GoogleAuthUriImporter': ('read', 22), 'ProtonAuthenticatorImporter': ('read', 31), 'WinAuthImporter': ('read', 16),
+}
+for _c, (_read, _line) in _W4_NOT_DIRECT.items():
+    # the base pair and the receiver variant readFromApp@<importer> from auto_calls.json (an orphan node: nothing calls it)
+    sup(('DatabaseImporter.readFromApp', _c + '.getAppPath'), ('DatabaseImporter.readFromApp', _c + '.' + _read),
+        ('DatabaseImporter.readFromApp@' + _c, _c + '.getAppPath'), ('DatabaseImporter.readFromApp@' + _c, _c + '.' + _read))
+    UNREACHABLE[_c + '.getAppPath'] = ('no_trigger_in_app',
+        'its only caller is the virtual call getAppPath() in DatabaseImporter.readFromApp (DatabaseImporter.java:80), '
+        'which runs only on the import-from-app path; that path lists only the importers that support direct import '
+        '(getImporters(true), DatabaseImporter.java:99-101; ImportExportPreferencesFragment.java:117-123), and %s is '
+        'defined with supportsDirect false (DatabaseImporter.java:33-51); the method itself only throws '
+        'UnsupportedOperationException (%s.java:%d-%d)' % (_c, _c, _line, _line + 2),
+        'importers/%s.java:%d' % (_c, _line), 'SOURCE')
+del _c, _read, _line
