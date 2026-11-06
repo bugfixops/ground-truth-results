@@ -6505,3 +6505,24 @@ def EDIT(x):
     _g = _W6_ENV.get((x['src'], x['dst'], x['kind']))
     if _g and not x.get('env'):
         x['env'], x['env_kinds'] = _g[0], list(_g[1])
+
+
+# ---- W7 REAUDIT (Kiro), round 1: settings sub-pages are standard GUI navigation (Q7) ----
+# The checked cases Aegis-38 and Aegis-39 (KeyDerivationTask.onPostExecute and KeyDerivationTask$Result.<init>)
+# have source class gui: Settings > Security reaches them without any gate (review/TASK_NOTE.md item 2). Their
+# only route opens the Security page, which PreferencesActivity creates with
+# FragmentFactory.instantiate(getClassLoader(), pref.getFragment()) for the tapped header row
+# (PreferencesActivity.java:80-84; res/xml/preferences.xml:8-44). That is the androidx preference header
+# navigation the app calls itself, with the class fixed by the tapped row, so these seven edges are standard
+# (MUSE_REAUDIT_QUESTIONS.md Q7). Other reflection edges keep non_standard.
+_W7_ORIG_EDIT_Q7 = EDIT
+
+
+def EDIT(x):
+    _W7_ORIG_EDIT_Q7(x)
+    if (x['src'] == 'PreferencesActivity.onPreferenceStartFragment' and x['dst'].endswith('PreferencesFragment.<init>')
+            and x.get('edge_class') == 'non_standard'):
+        x['edge_class'] = 'standard'
+        x['via'] = None
+        x['note'] = ((x.get('note') + ' | ') if x.get('note') else '') + (
+            'W7/Q7: preference header navigation, standard (FragmentFactory.instantiate of the tapped row, PreferencesActivity.java:81)')
