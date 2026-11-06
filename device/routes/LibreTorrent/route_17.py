@@ -2,7 +2,7 @@
 
 Method: TorrentDownloadImpl.pieces
 Edge ids (in route order):
-    Ef4711e98 Ed8e7f5f9 Ee453d286 E28c54333 E2e46bfdf E3b5adb16
+    Ebe0bf90d Ed8e7f5f9 Ee453d286 E28c54333 E2e46bfdf Eabce0a94
     E9d948322 Ef521ec44 Efe87970e Ee6073c26 E9fb4a1ea E883c34be
     E87241f3c E2c864273 Efd617da3 E00bf2e7e Eef3f4c88 E3641e92f
     E0a9fdf94 Ef9db34f4 E8c11bcd7 E83702792 E3086a8a3 Ebf32eec0
@@ -30,12 +30,12 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 from device.harness import Runner
 
 EDGE_IDS = [
-    "Ef4711e98",
+    "Ebe0bf90d",
     "Ed8e7f5f9",
     "Ee453d286",
     "E28c54333",
     "E2e46bfdf",
-    "E3b5adb16",
+    "Eabce0a94",
     "E9d948322",
     "Ef521ec44",
     "Efe87970e",
@@ -73,8 +73,8 @@ def main():
                outdir=args.outdir)
     gen_dir = os.environ.get("GEN_DIR", "")
     try:
-        # Ef4711e98: S_ENTRY -> MainActivity.onCreate [ENTRY]. Launcher activity startup
-        r.launch("org.proninyaroslav.libretorrent.debug/org.proninyaroslav.libretorrent.ui.main.MainActivity", edge="Ef4711e98")
+        # Ebe0bf90d: S_ENTRY -> MainActivity.onCreate [ENTRY]. Launcher activity startup
+        r.launch("org.proninyaroslav.libretorrent.debug/org.proninyaroslav.libretorrent.ui.main.MainActivity", edge="Ebe0bf90d")
         # Ed8e7f5f9: MainActivity.onCreate -> MainFragment.<init> [FRAMEWORK]. Inflate MainFragment from
         # the selected activity_main layout
         r.comment("Inflate MainFragment from the selected activity_main layout", edge="Ed8e7f5f9")
@@ -87,9 +87,9 @@ def main():
         # E2e46bfdf: MainFragment.onCreateView -> MainFragment.onViewCreated [LIFECYCLE]. Initialize main
         # fragment after creating its view
         r.comment("Initialize main fragment after creating its view", edge="E2e46bfdf")
-        # E3b5adb16: MainFragment.onViewCreated -> TorrentListAdapter.onBindViewHolder [FRAMEWORK]. Bind
+        # Eabce0a94: MainFragment.onViewCreated -> TorrentListAdapter.onBindViewHolder [FRAMEWORK]. Bind
         # torrent rows through the RecyclerView adapter
-        r.comment("Bind torrent rows through the RecyclerView adapter", edge="E3b5adb16")
+        r.comment("Bind torrent rows through the RecyclerView adapter", edge="Eabce0a94")
         # E9d948322: TorrentListAdapter.onBindViewHolder -> TorrentListAdapter$ViewHolder.bind [CALL].
         # Bind a torrent row and its click listeners
         r.comment("Bind a torrent row and its click listeners", edge="E9d948322")

@@ -69,7 +69,7 @@ from device.harness import Runner  # noqa: E402
 
 EDGE_IDS = [
     "E48de6d58", "E26d20f74", "E1ad4ef9b", "E45d63a96", "E37e55142",
-    "E4c7e034e", "Eae4674b9", "E9ce50a2f", "E8c772cd2", "E2fe95109",
+    "E4c7e034e", "Eda786c6a", "E9ce50a2f", "E8c772cd2", "E2fe95109",
     "Ed609aaee", "E61c27691", "E1eb126ee", "Ef0029247", "Ef3d963e0",
     "E82c9f13e", "Ef98eff28",
 ]
@@ -105,9 +105,9 @@ def main(argv=None):
     # E4c7e034e getCol -> Storage.Collection (CollectionHelper
     # .java:99, when not already open).
     r.dwell(edge="E4c7e034e", seconds=5)
-    # Eae4674b9 Storage.Collection -> Storage._upgrade (old-schema
+    # Eda786c6a Storage.Collection -> Storage._upgrade (old-schema
     # condition, Storage.java:65-67).
-    r.comment("old schema -> _upgrade", edge="Eae4674b9")
+    r.comment("old schema -> _upgrade", edge="Eda786c6a")
     # E9ce50a2f _upgrade -> Models.save(JSONObject) (Storage
     # .java:227 upgrade block, per model).
     r.comment("upgrade saves each model", edge="E9ce50a2f")

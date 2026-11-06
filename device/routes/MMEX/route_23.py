@@ -2,7 +2,7 @@
 
 Method: DateRange.<init>()
 Edge ids (in route order):
-    E71c76102 E2e074fc1 E5d5a9c2f Eff22f7d2 E76c8c62d Ee424c2e8
+    E71c76102 E2e074fc1 E5d5a9c2f Eff22f7d2 Ebbb78d0f Ee424c2e8
     Ebc409bd4 Ebb57ba7f E5e7583d5 E6cd10559 E994a6b75 Edad2b982
     E1dd987db Ea773e4f7 E43508b78 E3f0cbcb4 Eca2a9c6b E5d608793
     E568f7b56 Eb1779c19 E57e26427 E42bcd793 Ea6a1e9e4 E5b8cbc4b
@@ -40,7 +40,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 from device.harness import Runner
 
 EDGE_IDS = [
-    "E71c76102", "E2e074fc1", "E5d5a9c2f", "Eff22f7d2", "E76c8c62d",
+    "E71c76102", "E2e074fc1", "E5d5a9c2f", "Eff22f7d2", "Ebbb78d0f",
     "Ee424c2e8", "Ebc409bd4", "Ebb57ba7f", "E5e7583d5", "E6cd10559",
     "E994a6b75", "Edad2b982", "E1dd987db", "Ea773e4f7", "E43508b78",
     "E3f0cbcb4", "Eca2a9c6b", "E5d608793", "E568f7b56", "Eb1779c19",
@@ -78,7 +78,7 @@ def main():
         # (MainActivity.java:1308-1324). No user action.
         r.comment("home screen shown (HomeFragment committed)",
                   edge="Eff22f7d2")
-        # E76c8c62d: Tap an account row (a child row) in the account
+        # Ebbb78d0f: Tap an account row (a child row) in the account
         # list. Child rows inflate res/layout/item_account_bills.xml
         # and carry the account name in @+id/textViewItemAccountName
         # (HomeAccountsExpandableAdapter.java:201-204, 219;
@@ -87,7 +87,7 @@ def main():
         # header, never onChildClick (audit §1.2). setup_route_23.py
         # seeds a known non-investment account "RetryMain", and this
         # tap(text=...) resolves that child row's own text node.
-        r.tap(text="RetryMain", edge="E76c8c62d")
+        r.tap(text="RetryMain", edge="Ebbb78d0f")
         # Ee424c2e8: The row tap posts RequestAccountFragmentEvent on
         # the EventBus (HomeFragment.java:704; subscriber registered
         # in MmxBaseFragmentActivity.onStart). Automatic on the tap.

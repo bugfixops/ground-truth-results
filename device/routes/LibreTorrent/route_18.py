@@ -2,7 +2,7 @@
 
 Method: AddLinkViewModel.normalizeUrl
 Edge ids (in route order):
-    Ef4711e98 Ed8e7f5f9 Ee453d286 E28c54333 E2e46bfdf E17916b8d
+    Ebe0bf90d Ed8e7f5f9 Ee453d286 E28c54333 E2e46bfdf E17916b8d
     Ed7e1785e E53bc255d Edb99c793 E0884fdcf E67270a38 E0be419ef
     E05f42392 E0bdc65f2 Eb00ec938 Ea674eaf3 E130d2f8c E23a4ea72
 Printed route source:
@@ -28,7 +28,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 from device.harness import Runner
 
 EDGE_IDS = [
-    "Ef4711e98",
+    "Ebe0bf90d",
     "Ed8e7f5f9",
     "Ee453d286",
     "E28c54333",
@@ -62,8 +62,8 @@ def main():
                outdir=args.outdir)
     gen_dir = os.environ.get("GEN_DIR", "")
     try:
-        # Ef4711e98: S_ENTRY -> MainActivity.onCreate [ENTRY]. Launcher activity startup
-        r.launch("org.proninyaroslav.libretorrent.debug/org.proninyaroslav.libretorrent.ui.main.MainActivity", edge="Ef4711e98")
+        # Ebe0bf90d: S_ENTRY -> MainActivity.onCreate [ENTRY]. Launcher activity startup
+        r.launch("org.proninyaroslav.libretorrent.debug/org.proninyaroslav.libretorrent.ui.main.MainActivity", edge="Ebe0bf90d")
         # Ed8e7f5f9: MainActivity.onCreate -> MainFragment.<init> [FRAMEWORK]. Inflate MainFragment from
         # the selected activity_main layout
         r.comment("Inflate MainFragment from the selected activity_main layout", edge="Ed8e7f5f9")

@@ -65,7 +65,7 @@ VAULT_PASSWORD = "testpassword"
 
 EDGE_IDS = [
     "Eb9515d18", "E5b266140", "E1ef992ce", "E88ed9829", "E28ffc58c",
-    "Eb76444fd", "E3a06baed", "Eaddf1fe5", "Edabaca93", "E06e7036f",
+    "Eb76444fd", "E3a06baed", "E91009a78", "Edabaca93", "E06e7036f",
     "E30bbb737", "E7cb8517e", "Ebf4514a2", "E5c9ce641", "E6de9a837",
     "Eb5ab3bf3", "E406c4867", "E70cfbd13", "E41c81365", "E75d86940",
     "Ea076a7d4", "Eb7b2b852",
@@ -136,8 +136,8 @@ def main():
         r.comment("MainActivity onCreate after constructor", edge="Eb76444fd")
         # 7. E3a06baed: MainActivity.onCreate -> MainActivity.onStart
         r.comment("Activity.onStart after onCreate", edge="E3a06baed")
-        # 8. Eaddf1fe5: MainActivity.onStart -> MainActivity.checkIconOptimization
-        r.comment("first list load: icon optimisation check", edge="Eaddf1fe5")
+        # 8. E91009a78: MainActivity.onStart -> MainActivity.checkIconOptimization
+        r.comment("first list load: icon optimisation check", edge="E91009a78")
         # 9. Edabaca93: MainActivity.checkIconOptimization -> MainActivity.onIconsOptimized
         r.comment("no entry icon needs optimising (imported vault, entries "
                   "empty; iconsOptimized false): empty result applied at once",

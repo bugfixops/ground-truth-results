@@ -2,7 +2,7 @@
 
 Method: SaveLogWorker.lambda$showSuccessToast$1
 Edge ids (in route order):
-    Ef4711e98 E9278e2d5 E37e3a4dc E6507c563 E1556c93c E13221336
+    Ebe0bf90d E9278e2d5 E37e3a4dc E6507c563 E1556c93c E13221336
     E28ecff82 E4fb31cce E9fd837ac Ede62e53d E7e34e931 E36d86b00
     Ec386e352 E9ccb84f5 Eea48d199
 Printed route source:
@@ -28,7 +28,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 from device.harness import Runner
 
 EDGE_IDS = [
-    "Ef4711e98",
+    "Ebe0bf90d",
     "E9278e2d5",
     "E37e3a4dc",
     "E6507c563",
@@ -59,8 +59,8 @@ def main():
                outdir=args.outdir)
     gen_dir = os.environ.get("GEN_DIR", "")
     try:
-        # Ef4711e98: S_ENTRY -> MainActivity.onCreate [ENTRY]. Launcher activity startup
-        r.launch("org.proninyaroslav.libretorrent.debug/org.proninyaroslav.libretorrent.ui.main.MainActivity", edge="Ef4711e98")
+        # Ebe0bf90d: S_ENTRY -> MainActivity.onCreate [ENTRY]. Launcher activity startup
+        r.launch("org.proninyaroslav.libretorrent.debug/org.proninyaroslav.libretorrent.ui.main.MainActivity", edge="Ebe0bf90d")
         # E9278e2d5: MainActivity.onCreate -> MainActivity.onStart [LIFECYCLE]. Activity starts after
         # successful creation Guard: getIntent().getAction() != NOTIFY_ACTION_SHUTDOWN_APP; !mFinished.
         r.comment("Activity starts after successful creation", edge="E9278e2d5")

@@ -58,7 +58,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 from device.harness import Runner  # noqa: E402
 
 EDGE_IDS = [
-    "E48de6d58", "E26d20f74", "E1ad4ef9b", "Eb3058057", "Ec0803f80",
+    "E48de6d58", "E26d20f74", "E1ad4ef9b", "Efe74add3", "Ec0803f80",
     "Ed463497a", "Efb51fa08", "Efa8d93c4", "E748990b0", "E3f20427c",
     "E32539324", "Eb4497af8", "E24224498",
 ]
@@ -83,11 +83,11 @@ def main(argv=None):
     # E1ad4ef9b DeckPicker.<init> -> DeckPicker.onCreate.
     r.comment("system instantiates DeckPicker, then onCreate",
               edge="E1ad4ef9b")
-    # Eb3058057 DeckPicker.onCreate -> S_DECKPICKER (collection open;
+    # Efe74add3 DeckPicker.onCreate -> S_DECKPICKER (collection open;
     # this open-collection state is required, unlike the printed
     # route's not-colOpen entry).
     r.comment("deck-picker page shown, collection open",
-              edge="Eb3058057")
+              edge="Efe74add3")
     # Ec0803f80 S_DECKPICKER -> DeckPicker.onOptionsItemSelected:
     # open the options menu.
     r.tap(edge="Ec0803f80", desc="More options")

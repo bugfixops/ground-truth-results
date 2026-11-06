@@ -3,7 +3,7 @@
 
 Method: AllDataListFragment.displayRunningBalances
 Edge ids (in route order):
-    E71c76102 E2e074fc1 E5d5a9c2f Eff22f7d2 E76c8c62d Ee424c2e8
+    E71c76102 E2e074fc1 E5d5a9c2f Eff22f7d2 Ebbb78d0f Ee424c2e8
     Ebc409bd4 Ebb57ba7f E5e7583d5 E6cd10559 E994a6b75 Edad2b982
     E1dd987db Ea773e4f7 E5b32226d E8fff51bb Ec61a85d5 E389c8c33
     Eb2d9679c E681ef2c6 E559fcfcd E0fa71f9a Efa1f37dd Ecac14a18
@@ -43,7 +43,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 from device.harness import Runner
 
 EDGE_IDS = [
-    "E71c76102", "E2e074fc1", "E5d5a9c2f", "Eff22f7d2", "E76c8c62d",
+    "E71c76102", "E2e074fc1", "E5d5a9c2f", "Eff22f7d2", "Ebbb78d0f",
     "Ee424c2e8", "Ebc409bd4", "Ebb57ba7f", "E5e7583d5", "E6cd10559",
     "E994a6b75", "Edad2b982", "E1dd987db", "Ea773e4f7", "E5b32226d",
     "E8fff51bb", "Ec61a85d5", "E389c8c33", "Eb2d9679c", "E681ef2c6",
@@ -75,12 +75,12 @@ def main():
         # Eff22f7d2: HomeFragment committed; home screen shown.
         r.comment("home screen shown (HomeFragment committed)",
                   edge="Eff22f7d2")
-        # E76c8c62d: Tap the seeded account child row. The row's
+        # Ebbb78d0f: Tap the seeded account child row. The row's
         # text is the setup-known name "RetryCheck"
         # (home/HomeFragment.java:686-706: onChildClick posts the
         # account event at 704; the account exists because setup
         # created it, and its group is expanded by default).
-        r.tap(text="RetryCheck", edge="E76c8c62d")
+        r.tap(text="RetryCheck", edge="Ebbb78d0f")
         # Ee424c2e8: onChildClick posts RequestAccountFragmentEvent
         # (non-investment branch, HomeFragment.java:701-703).
         r.comment("child click posts RequestAccountFragmentEvent",

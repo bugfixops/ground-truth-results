@@ -34,7 +34,7 @@ Mapping notes:
   - "More options" is the standard AppCompat overflow description;
     verify it against a live uiautomator dump before a real run.
   - The S_DLG_CUSTOM_STUDY page covers two dialog stages (context
-    menu, then input dialog); both taps share edge E0194a27c.
+    menu, then input dialog); both taps share edge E0ee30d62.
 Launcher: com.ichi2.anki/.IntentHandler (AndroidManifest.xml:81-89,
     MAIN/LAUNCHER). run_app.sh already does pm clear, permission
     grants, fixture pushes, and per-app setup before this script, so
@@ -54,8 +54,8 @@ from device.harness import Runner  # noqa: E402
 
 EDGE_IDS = [
     "E48de6d58", "E26d20f74", "E1ad4ef9b", "E5906a191", "Ef3e13961",
-    "Eae89b47b", "Ea73b74da", "E57aebbea", "E3fa695ec", "E5ed4dccb",
-    "E0194a27c", "E479c4204", "E9dee210a", "E886e6770", "E78bbf014",
+    "Eae89b47b", "Ea73b74da", "E3e2454e8", "E3fa695ec", "E638ffef5",
+    "E0ee30d62", "E479c4204", "E9dee210a", "E886e6770", "E78bbf014",
     "E8cc2ed4f", "Ec59f2073", "Eeed3792f", "Eec5d8f89", "Ef09158d9",
     "E51a47dcb", "Ef8e134b9", "Eec10eebd", "E45f54dfb",
 ]
@@ -88,27 +88,27 @@ def main(argv=None):
     r.comment("loadStudyOptionsFragment", edge="Eae89b47b")
     # Ea73b74da -> S_STUDYOPTIONS_FRAG.
     r.comment("study-options fragment page shown", edge="Ea73b74da")
-    # E57aebbea S_STUDYOPTIONS_FRAG -> onMenuItemClick: open the
+    # E3e2454e8 S_STUDYOPTIONS_FRAG -> onMenuItemClick: open the
     # fragment toolbar menu (overflow description is the standard
     # AppCompat description; verify against a live dump).
-    r.tap(edge="E57aebbea", desc="More options")
+    r.tap(edge="E3e2454e8", desc="More options")
     # E3fa695ec onMenuItemClick -> showCustomStudyContextMenu:
     # action_custom_study case (StudyOptionsFragment.java:306-309).
     # Guard: custom-study item visible only for a non-dyn deck and
     # when the congrats view is not shown (:350-356, 360-362).
     # String verified in res: custom_study = "Custom study".
     r.tap(edge="E3fa695ec", text="Custom study")
-    # E5ed4dccb showCustomStudyContextMenu -> S_DLG_CUSTOM_STUDY.
-    r.comment("custom-study dialog page shown", edge="E5ed4dccb")
-    # E0194a27c S_DLG_CUSTOM_STUDY -> CustomStudyDialog$2.onPositive.
+    # E638ffef5 showCustomStudyContextMenu -> S_DLG_CUSTOM_STUDY.
+    r.comment("custom-study dialog page shown", edge="E638ffef5")
+    # E0ee30d62 S_DLG_CUSTOM_STUDY -> CustomStudyDialog$2.onPositive.
     # The S_DLG_CUSTOM_STUDY page covers both dialog stages: first
     # pick a custom-study option in the context menu (here "Review
     # ahead", res custom_study_review_ahead), which opens the input
     # dialog, then tap its positive button ("OK", res dialog_ok).
     # Both taps are logged under this edge, the page-abstraction
     # convention used for shared-edge taps in the old scripts.
-    r.tap(edge="E0194a27c", text="Review ahead")
-    r.tap(edge="E0194a27c", text="OK")
+    r.tap(edge="E0ee30d62", text="Review ahead")
+    r.tap(edge="E0ee30d62", text="OK")
     # E479c4204 $2.onPositive -> createCustomStudySession.
     r.comment("createCustomStudySession", edge="E479c4204")
     # E9dee210a createCustomStudySession ->

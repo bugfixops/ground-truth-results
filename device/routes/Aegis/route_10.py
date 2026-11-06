@@ -11,7 +11,7 @@ Method: EntryAdapter.setTempHighlightEntry
 Edge ids (in route order):
     Eb9515d18 E5b266140 E1ef992ce E88ed9829 E28ffc58c Eb76444fd E3a06baed
     E0602e719 E4ce5043a E5e63fbe7 E93598a00 E1440feb8 E6830b6dc E32450899
-    E553f11f7 E251ac3f4 E7216511b E8da5177a E3f8e1ae8 E0182bb68 Ef2e59617
+    E553f11f7 E251ac3f4 E7216511b E0ee134dc E3f8e1ae8 E0182bb68 Ed86a6d87
     E0197aeab E743b6812 E5f44da38 Ebdf8bea9 Ea76ae1a0 E2e3490fc Eebad02db
     E554aee35 E75d0fba5 E0979a03c Ec66f5e2c E6597c1f8 Ee228ce53 Ef6ab7dd8
     E69bb265a E1436e4f3 E7c838ae7 E563cb84a Ea80bb15d E16eb2dbc E3d6ab8a1
@@ -57,8 +57,8 @@ from device.harness import Runner
 EDGE_IDS = [
     "Eb9515d18", "E5b266140", "E1ef992ce", "E88ed9829", "E28ffc58c", "Eb76444fd",
     "E3a06baed", "E0602e719", "E4ce5043a", "E5e63fbe7", "E93598a00", "E1440feb8",
-    "E6830b6dc", "E32450899", "E553f11f7", "E251ac3f4", "E7216511b", "E8da5177a",
-    "E3f8e1ae8", "E0182bb68", "Ef2e59617", "E0197aeab", "E743b6812", "E5f44da38",
+    "E6830b6dc", "E32450899", "E553f11f7", "E251ac3f4", "E7216511b", "E0ee134dc",
+    "E3f8e1ae8", "E0182bb68", "Ed86a6d87", "E0197aeab", "E743b6812", "E5f44da38",
     "Ebdf8bea9", "Ea76ae1a0", "E2e3490fc", "Eebad02db", "E554aee35", "E75d0fba5",
     "E0979a03c", "Ec66f5e2c", "E6597c1f8", "Ee228ce53", "Ef6ab7dd8", "E69bb265a",
     "E1436e4f3", "E7c838ae7", "E563cb84a", "Ea80bb15d", "E16eb2dbc", "E3d6ab8a1",
@@ -112,14 +112,14 @@ def main():
         r.comment("Next button calls goToNextSlide", edge="E251ac3f4")
         # E7216511b: IntroBaseActivity.goToNextSlide@NONE -> IntroActivity.onBeforeSlideChanged@NONE :: the pager moves on: setPagerPosition calls onBeforeSlideChanged, which IntroActivity overrides
         r.comment("pager moves on; onBeforeSlideChanged runs", edge="E7216511b")
-        # E8da5177a: IntroActivity.onBeforeSlideChanged@NONE -> IntroBaseActivity.skipToSlide :: security "none" skips the setup slide
-        r.comment("security none skips the setup slide", edge="E8da5177a")
+        # E0ee134dc: IntroActivity.onBeforeSlideChanged@NONE -> IntroBaseActivity.skipToSlide :: security "none" skips the setup slide
+        r.comment("security none skips the setup slide", edge="E0ee134dc")
         # E3f8e1ae8: IntroBaseActivity.skipToSlide -> S_INTRO_DONE :: the Done slide is shown after the skip
         r.comment("Done slide is shown after the skip", edge="E3f8e1ae8")
         # E0182bb68: S_INTRO_DONE -> IntroActivity.onDonePressed :: Tap Next on the Done slide: goToNextSlide calls onDonePressed (the tap path is lambda -> goToNextSlide -> onDonePressed)
         r.tap(res_id="btnNext", edge="E0182bb68")
-        # Ef2e59617: IntroActivity.onDonePressed -> VaultManager.initNew :: a new vault is created (no import)
-        r.comment("new vault is created (Welcome did not import)", edge="Ef2e59617")
+        # Ed86a6d87: IntroActivity.onDonePressed -> VaultManager.initNew :: a new vault is created (no import)
+        r.comment("new vault is created (Welcome did not import)", edge="Ed86a6d87")
         # E0197aeab: VaultManager.initNew -> IntroActivity.onDonePressed@SAVED :: initNew returns: the new vault exists and onDonePressed goes on to set the intro-done flag and return
         r.comment("initNew returns; intro-done flag is set", edge="E0197aeab")
         # E743b6812: IntroActivity.onDonePressed@SAVED -> MainActivity.lambda$new$1 :: setResult(RESULT_OK) and finish() return the result to the caller's launcher

@@ -15,7 +15,7 @@ Route followed: the final BFS route (19 steps), identical to the
 Edge ids in order:
     E48de6d58 E26d20f74 E1ad4ef9b E553ad2d8 E566132dd E9dc72f95
     Ebb41c7a4 Eafa3e29c E6f0d3ce4 Eedf35254 Ed60c6dbd E14a95115
-    E0407582b E08b01837 Eb6092981 E90e8c8e9 Ea5042e15 E4ca0f18c
+    E0407582b E31bc4d9e Eb6092981 E90e8c8e9 Ea5042e15 E4ca0f18c
     Ec68f6b60
 Preconditions/fixtures:
   - Collection open but empty; full sync with download
@@ -47,7 +47,7 @@ from device.harness import Runner  # noqa: E402
 EDGE_IDS = [
     "E48de6d58", "E26d20f74", "E1ad4ef9b", "E553ad2d8", "E566132dd",
     "E9dc72f95", "Ebb41c7a4", "Eafa3e29c", "E6f0d3ce4", "Eedf35254",
-    "Ed60c6dbd", "E14a95115", "E0407582b", "E08b01837", "Eb6092981",
+    "Ed60c6dbd", "E14a95115", "E0407582b", "E31bc4d9e", "Eb6092981",
     "E90e8c8e9", "Ea5042e15", "E4ca0f18c", "Ec68f6b60",
 ]
 
@@ -91,8 +91,8 @@ def main(argv=None):
     r.comment("SYNC download branch taken", edge="E14a95115")
     # E0407582b doInBackgroundSync -> FullSyncer.download.
     r.comment("FullSyncer download starts", edge="E0407582b")
-    # E08b01837 FullSyncer.download -> HttpSyncer.req(String)@FullSyncer.
-    r.comment("sync request issued", edge="E08b01837")
+    # E31bc4d9e FullSyncer.download -> HttpSyncer.req(String)@FullSyncer.
+    r.comment("sync request issued", edge="E31bc4d9e")
     # Eb6092981 req(String) -> req(String,InputStream).
     r.comment("request overload chain", edge="Eb6092981")
     # E90e8c8e9 req(String,InputStream) -> req(String,InputStream,int).

@@ -12,11 +12,11 @@ Method: GoogleAuthProtos$MigrationPayload$DigitCount$DigitCountVerifier.<init>
 Edge ids (in route order):
     Eb9515d18 E5b266140 E1ef992ce E88ed9829 E28ffc58c Eb76444fd
     E3a06baed E0602e719 E4ce5043a E5e63fbe7 E93598a00 E1440feb8
-    E6830b6dc E32450899 E553f11f7 E251ac3f4 E7216511b E8da5177a
-    E3f8e1ae8 E0182bb68 Ef2e59617 E0197aeab E743b6812 E5f44da38
+    E6830b6dc E32450899 E553f11f7 E251ac3f4 E7216511b E0ee134dc
+    E3f8e1ae8 E0182bb68 Ed86a6d87 E0197aeab E743b6812 E5f44da38
     Ebdf8bea9 Ea76ae1a0 E887b87bf Ef4e32054 Ef64f95ee E640fb9eb
     E94201299 E50e3cfda E382bc001 Eccc3a740 E3452b602 E63d9f2a4
-    E245f8b40 E8e4d066b E1f7435e7 Eba2c5bb9 E72e1a8df Ec5f95bb3
+    E245f8b40 E8e4d066b E1f7435e7 Eff96a909 E72e1a8df Ec5f95bb3
     E6817ac19 Ee0ce6c02 Ea8a623d5 E75a4904b E00b93575 E6c7b88cc
     Ec45d78f1
 Printed route source: graphs/Aegis/scratch/routes_postvault.txt,
@@ -85,11 +85,11 @@ ENTRY_COUNT = 11
 EDGE_IDS = [
     "Eb9515d18", "E5b266140", "E1ef992ce", "E88ed9829", "E28ffc58c", "Eb76444fd",
     "E3a06baed", "E0602e719", "E4ce5043a", "E5e63fbe7", "E93598a00", "E1440feb8",
-    "E6830b6dc", "E32450899", "E553f11f7", "E251ac3f4", "E7216511b", "E8da5177a",
-    "E3f8e1ae8", "E0182bb68", "Ef2e59617", "E0197aeab", "E743b6812", "E5f44da38",
+    "E6830b6dc", "E32450899", "E553f11f7", "E251ac3f4", "E7216511b", "E0ee134dc",
+    "E3f8e1ae8", "E0182bb68", "Ed86a6d87", "E0197aeab", "E743b6812", "E5f44da38",
     "Ebdf8bea9", "Ea76ae1a0", "E887b87bf", "Ef4e32054", "Ef64f95ee", "E640fb9eb",
     "E94201299", "E50e3cfda", "E382bc001", "Eccc3a740", "E3452b602", "E63d9f2a4",
-    "E245f8b40", "E8e4d066b", "E1f7435e7", "Eba2c5bb9", "E72e1a8df", "Ec5f95bb3",
+    "E245f8b40", "E8e4d066b", "E1f7435e7", "Eff96a909", "E72e1a8df", "Ec5f95bb3",
     "E6817ac19", "Ee0ce6c02", "Ea8a623d5", "E75a4904b", "E00b93575", "E6c7b88cc",
     "Ec45d78f1"
 ]
@@ -172,16 +172,16 @@ def main():
         # onBeforeSlideChanged.
         r.comment("pager moves on via onBeforeSlideChanged",
                   edge="E7216511b")
-        # E8da5177a: Security "none" skips the setup slide.
+        # E0ee134dc: Security "none" skips the setup slide.
         r.comment("security none skips the setup slide",
-                  edge="E8da5177a")
+                  edge="E0ee134dc")
         # E3f8e1ae8: The Done slide is shown after the skip.
         r.comment("Done slide shown after the skip", edge="E3f8e1ae8")
         # E0182bb68: Tap Next (check icon) on the Done slide:
         # goToNextSlide calls onDonePressed.
         r.tap(res_id="btnNext", edge="E0182bb68")
-        # Ef2e59617: A new vault is created (no import).
-        r.comment("new vault created, no import", edge="Ef2e59617")
+        # Ed86a6d87: A new vault is created (no import).
+        r.comment("new vault created, no import", edge="Ed86a6d87")
         # E0197aeab: initNew returns: the new vault exists and
         # onDonePressed sets the intro-done flag and returns.
         r.comment("initNew returns; intro-done flag set",
@@ -239,11 +239,11 @@ def main():
         # Export (direct call).
         r.comment("Google Authenticator style export starts",
                   edge="E1f7435e7")
-        # Eba2c5bb9: The export page opens with the QR batches:
+        # Eff96a909: The export page opens with the QR batches:
         # at least one qualifying entry, so the export list is
         # not empty (here: 11 entries, 2 batches).
         r.comment("transfer page opens with 2 QR batches",
-                  edge="Eba2c5bb9")
+                  edge="Eff96a909")
         # E72e1a8df: Activity.onCreate of the transfer page.
         r.comment("TransferEntriesActivity onCreate", edge="E72e1a8df")
         # Ec5f95bb3: Tap Next (shown only when the list has more

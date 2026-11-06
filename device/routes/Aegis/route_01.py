@@ -11,12 +11,12 @@ Method: AndOtpImporter$EncryptedState.decryptNewFormat(SecretKey)
 Edge ids (in route order):
     Eb9515d18 E5b266140 E1ef992ce E88ed9829 E28ffc58c Eb76444fd
     E3a06baed E0602e719 E4ce5043a E5e63fbe7 E93598a00 E1440feb8
-    E6830b6dc E32450899 E553f11f7 E251ac3f4 E7216511b E8da5177a
-    E3f8e1ae8 E0182bb68 Ef2e59617 E0197aeab E743b6812 E5f44da38
+    E6830b6dc E32450899 E553f11f7 E251ac3f4 E7216511b E0ee134dc
+    E3f8e1ae8 E0182bb68 Ed86a6d87 E0197aeab E743b6812 E5f44da38
     Ebdf8bea9 Ea76ae1a0 E887b87bf Ef4e32054 Ef64f95ee E640fb9eb
     E94201299 E50e3cfda E382bc001 Eccc3a740 E3452b602 E63d9f2a4
     E245f8b40 E91eeed07 Eb87e30cd E01a58312 E70725476 Ec9f89766
-    E36789acd E80f6c632 E31663255 E9554bc19 Ee1545fce Ee0c18eba
+    E36789acd E1a802824 E31663255 E9554bc19 Ee1545fce Ee0c18eba
     E6882a2c1 E2d576d7a E3c10497d Eda718e99 E826c9bd8 Ee380b6cb
     E0fac12e7 E597a7949 E01aaffdd E14fc61f8 E5107926b E231abefd
     E9be28c08 Ee204f827 E6fff18d2 Ef19126e7 Ee4728d7f E766b165c
@@ -59,12 +59,12 @@ from device.harness import Runner
 EDGE_IDS = [
     "Eb9515d18", "E5b266140", "E1ef992ce", "E88ed9829", "E28ffc58c", "Eb76444fd",
     "E3a06baed", "E0602e719", "E4ce5043a", "E5e63fbe7", "E93598a00", "E1440feb8",
-    "E6830b6dc", "E32450899", "E553f11f7", "E251ac3f4", "E7216511b", "E8da5177a",
-    "E3f8e1ae8", "E0182bb68", "Ef2e59617", "E0197aeab", "E743b6812", "E5f44da38",
+    "E6830b6dc", "E32450899", "E553f11f7", "E251ac3f4", "E7216511b", "E0ee134dc",
+    "E3f8e1ae8", "E0182bb68", "Ed86a6d87", "E0197aeab", "E743b6812", "E5f44da38",
     "Ebdf8bea9", "Ea76ae1a0", "E887b87bf", "Ef4e32054", "Ef64f95ee", "E640fb9eb",
     "E94201299", "E50e3cfda", "E382bc001", "Eccc3a740", "E3452b602", "E63d9f2a4",
     "E245f8b40", "E91eeed07", "Eb87e30cd", "E01a58312", "E70725476", "Ec9f89766",
-    "E36789acd", "E80f6c632", "E31663255", "E9554bc19", "Ee1545fce", "Ee0c18eba",
+    "E36789acd", "E1a802824", "E31663255", "E9554bc19", "Ee1545fce", "Ee0c18eba",
     "E6882a2c1", "E2d576d7a", "E3c10497d", "Eda718e99", "E826c9bd8", "Ee380b6cb",
     "E0fac12e7", "E597a7949", "E01aaffdd", "E14fc61f8", "E5107926b", "E231abefd",
     "E9be28c08", "Ee204f827", "E6fff18d2", "Ef19126e7", "Ee4728d7f", "E766b165c",
@@ -118,14 +118,14 @@ def main():
         r.comment("the Next button calls goToNextSlide", edge="E251ac3f4")
         # 17. E7216511b: IntroBaseActivity.goToNextSlide@NONE -> IntroActivity.onBeforeSlideChanged@NONE: the pager moves on: setPagerPosition calls onBeforeSlideChanged, which IntroActivity overrides
         r.comment("the pager moves on: setPagerPosition calls onBeforeSlideChanged, which IntroActivity overrides", edge="E7216511b")
-        # 18. E8da5177a: IntroActivity.onBeforeSlideChanged@NONE -> IntroBaseActivity.skipToSlide: security "none" skips the setup slide
-        r.comment("security \"none\" skips the setup slide", edge="E8da5177a")
+        # 18. E0ee134dc: IntroActivity.onBeforeSlideChanged@NONE -> IntroBaseActivity.skipToSlide: security "none" skips the setup slide
+        r.comment("security \"none\" skips the setup slide", edge="E0ee134dc")
         # 19. E3f8e1ae8: IntroBaseActivity.skipToSlide -> S_INTRO_DONE: the Done slide is shown after the skip
         r.comment("the Done slide is shown after the skip", edge="E3f8e1ae8")
         # 20. E0182bb68: S_INTRO_DONE -> IntroActivity.onDonePressed: Tap Next on the Done slide: goToNextSlide calls onDonePressed (the tap path is lambda -> goToNextSlide -> onDonePressed)
         r.tap(res_id="btnNext", edge="E0182bb68")  # last slide: btnNext shows the check icon (IntroBaseActivity.java:161)
-        # 21. Ef2e59617: IntroActivity.onDonePressed -> VaultManager.initNew: a new vault is created (no import)
-        r.comment("a new vault is created (no import)", edge="Ef2e59617")
+        # 21. Ed86a6d87: IntroActivity.onDonePressed -> VaultManager.initNew: a new vault is created (no import)
+        r.comment("a new vault is created (no import)", edge="Ed86a6d87")
         # 22. E0197aeab: VaultManager.initNew -> IntroActivity.onDonePressed@SAVED: initNew returns: the new vault exists and onDonePressed goes on to set the intro-done flag and return
         r.comment("initNew returns: the new vault exists and onDonePressed goes on to set the intro-done flag and return", edge="E0197aeab")
         # 23. E743b6812: IntroActivity.onDonePressed@SAVED -> MainActivity.lambda$new$1: setResult(RESULT_OK) and finish() return the result to the caller's launcher
@@ -170,8 +170,8 @@ def main():
         r.comment("the OK button gives the chosen `andOTP` importer to the import listener: the file picker opens", edge="Ec9f89766")
         # 43. E36789acd: ImportExportPreferencesFragment.lambda$onCreatePreferences$5@FILE_ANDOTP -> VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_ANDOTP: the file picker opens (ACTION_GET_CONTENT) through the import launcher, after the `andOTP` importer is chosen
         r.comment("the file picker opens (ACTION_GET_CONTENT) through the import launcher, after the `andOTP` importer is chosen", edge="E36789acd")
-        # 44. E80f6c632: VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_ANDOTP -> ImportExportPreferencesFragment.lambda$new$0@FILE_ANDOTP: the file picker returns a file: the import launcher runs onImportSelectResult
-        r.tap(text="andotp_backup.bin", edge="E80f6c632")  # PICKER PATTERN (Diary route_06 / hash-checker route_07 precedent): the pick happens in the system picker (ACTION_GET_CONTENT */*, ImportExportPreferencesFragment.java:110-112); if the picker first shows a folder list or a chooser, the device lead inserts that navigation before this tap; this tap is the file-pick step (RESULT_OK with the URI)
+        # 44. E1a802824: VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_ANDOTP -> ImportExportPreferencesFragment.lambda$new$0@FILE_ANDOTP: the file picker returns a file: the import launcher runs onImportSelectResult
+        r.tap(text="andotp_backup.bin", edge="E1a802824")  # PICKER PATTERN (Diary route_06 / hash-checker route_07 precedent): the pick happens in the system picker (ACTION_GET_CONTENT */*, ImportExportPreferencesFragment.java:110-112); if the picker first shows a folder list or a chooser, the device lead inserts that navigation before this tap; this tap is the file-pick step (RESULT_OK with the URI)
         # 45. E31663255: ImportExportPreferencesFragment.lambda$new$0@FILE_ANDOTP -> ImportExportPreferencesFragment.onImportSelectResult@FILE_ANDOTP: the picker result carries data: onImportSelectResult runs
         r.comment("the picker result carries data: onImportSelectResult runs", edge="E31663255")
         # 46. E9554bc19: ImportExportPreferencesFragment.onImportSelectResult@FILE_ANDOTP -> ImportFileTask.doInBackground@FILE_ANDOTP: AsyncTask runs doInBackground on the worker thread (read the picked file)

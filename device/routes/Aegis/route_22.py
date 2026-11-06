@@ -12,9 +12,9 @@ Method: EditEntryActivity.deleteAndFinish
 Edge ids (in route order):
     Eb9515d18 E5b266140 E1ef992ce E88ed9829 E28ffc58c Eb76444fd
     E3a06baed E0602e719 E4ce5043a E5e63fbe7 E93598a00 E1440feb8
-    E6830b6dc E32450899 E553f11f7 E251ac3f4 E7216511b E8da5177a
-    E3f8e1ae8 E0182bb68 Ef2e59617 E0197aeab E743b6812 E5f44da38
-    Ebdf8bea9 Ea76ae1a0 E925839a0 E614708b9 Eec2cee41 Eecd32631
+    E6830b6dc E32450899 E553f11f7 E251ac3f4 E7216511b E0ee134dc
+    E3f8e1ae8 E0182bb68 Ed86a6d87 E0197aeab E743b6812 E5f44da38
+    Ebdf8bea9 Ea76ae1a0 E7b3c936f E614708b9 Eec2cee41 Eecd32631
     E61a741b2 Ee1fbd7db Edcca50e0 Ed53a4891 Ed78bc83b E117654d4
     Ed46b4aa9 E94c17e0d
 Printed route source: graphs/Aegis/scratch/routes_postvault.txt,
@@ -79,9 +79,9 @@ SECRET = "JBSWY3DPEHPK3PXP"
 EDGE_IDS = [
     "Eb9515d18", "E5b266140", "E1ef992ce", "E88ed9829", "E28ffc58c", "Eb76444fd",
     "E3a06baed", "E0602e719", "E4ce5043a", "E5e63fbe7", "E93598a00", "E1440feb8",
-    "E6830b6dc", "E32450899", "E553f11f7", "E251ac3f4", "E7216511b", "E8da5177a",
-    "E3f8e1ae8", "E0182bb68", "Ef2e59617", "E0197aeab", "E743b6812", "E5f44da38",
-    "Ebdf8bea9", "Ea76ae1a0", "E925839a0", "E614708b9", "Eec2cee41", "Eecd32631",
+    "E6830b6dc", "E32450899", "E553f11f7", "E251ac3f4", "E7216511b", "E0ee134dc",
+    "E3f8e1ae8", "E0182bb68", "Ed86a6d87", "E0197aeab", "E743b6812", "E5f44da38",
+    "Ebdf8bea9", "Ea76ae1a0", "E7b3c936f", "E614708b9", "Eec2cee41", "Eecd32631",
     "E61a741b2", "Ee1fbd7db", "Edcca50e0", "Ed53a4891", "Ed78bc83b", "E117654d4",
     "Ed46b4aa9", "E94c17e0d"
 ]
@@ -163,16 +163,16 @@ def main():
         # onBeforeSlideChanged.
         r.comment("pager moves on via onBeforeSlideChanged",
                   edge="E7216511b")
-        # E8da5177a: Security "none" skips the setup slide.
+        # E0ee134dc: Security "none" skips the setup slide.
         r.comment("security none skips the setup slide",
-                  edge="E8da5177a")
+                  edge="E0ee134dc")
         # E3f8e1ae8: The Done slide is shown after the skip.
         r.comment("Done slide shown after the skip", edge="E3f8e1ae8")
         # E0182bb68: Tap Next (check icon) on the Done slide:
         # goToNextSlide calls onDonePressed.
         r.tap(res_id="btnNext", edge="E0182bb68")
-        # Ef2e59617: A new vault is created (no import).
-        r.comment("new vault created, no import", edge="Ef2e59617")
+        # Ed86a6d87: A new vault is created (no import).
+        r.comment("new vault created, no import", edge="Ed86a6d87")
         # E0197aeab: initNew returns: the new vault exists and
         # onDonePressed sets the intro-done flag and returns.
         r.comment("initNew returns; intro-done flag set",
@@ -191,9 +191,9 @@ def main():
         r.comment("list shown; creating one entry first (unlisted "
                   "setup for the step-27 long-press)", edge="Ea76ae1a0")
         create_entry(r, "Ea76ae1a0")
-        # E925839a0: Long press an entry in the list (the row
+        # E7b3c936f: Long press an entry in the list (the row
         # long-click listener). The row shows the issuer text.
-        r.long_tap(text=ISSUER, edge="E925839a0")
+        r.long_tap(text=ISSUER, edge="E7b3c936f")
         # E614708b9: EntryAdapter long-click -> EntryListView
         # onLongEntryClick (direct call).
         r.comment("long-click reaches EntryListView", edge="E614708b9")

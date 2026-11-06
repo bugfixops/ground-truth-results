@@ -16,7 +16,7 @@ Drive verdict: combined-merge device drive KEPT (14 edges,
     -> Check database -> OK on the CONFIRM dialog).
 Route followed: corrected route, 13 edges, derived from the graph
     JSON by src/dst pairs and verified contiguous (see NOTES.md).
-    The menu prefix (Eb3058057, Ec0803f80, E044ff236, Ea13b2167)
+    The menu prefix (Efe74add3, Ec0803f80, E044ff236, Ea13b2167)
     is reused from first-draw route_08 (SimpleMessageDialog$1),
     which drove the same CONFIRM dialog; the tail from
     integrityCheck onward is new (route_08's tail went to the
@@ -54,7 +54,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 from device.harness import Runner  # noqa: E402
 
 EDGE_IDS = [
-    "E48de6d58", "E26d20f74", "E1ad4ef9b", "Eb3058057", "Ec0803f80",
+    "E48de6d58", "E26d20f74", "E1ad4ef9b", "Efe74add3", "Ec0803f80",
     "Ed463497a", "Efb51fa08", "Efa8d93c4", "Ed79280db", "E0e270167",
     "E02689004", "Ee4200db9", "E441361aa", "E91887e80",
 ]
@@ -79,9 +79,9 @@ def main(argv=None):
     # E1ad4ef9b DeckPicker.<init> -> DeckPicker.onCreate.
     r.comment("system instantiates DeckPicker, then onCreate",
               edge="E1ad4ef9b")
-    # Eb3058057 onCreate -> S_DECKPICKER (collection open).
+    # Efe74add3 onCreate -> S_DECKPICKER (collection open).
     r.comment("deck-picker page shown, collection open",
-              edge="Eb3058057")
+              edge="Efe74add3")
     # Ec0803f80 S_DECKPICKER -> DeckPicker.onOptionsItemSelected:
     # open the options menu.
     r.tap(edge="Ec0803f80", desc="More options")

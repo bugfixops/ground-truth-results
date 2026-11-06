@@ -2,7 +2,7 @@
 
 Method: FixedRingBuffer$FixedRingBufferIterator.<init>
 Edge ids (in route order):
-    Ef4711e98 E3dee7bcc E29d6b10c Eeac5d0c4 Ea8858d14 E792ffb50
+    Ebe0bf90d E3dee7bcc E29d6b10c Eeac5d0c4 Ea8858d14 E792ffb50
     Ee3ffda2b Ec2784d78 Eea8e96fb E42b59764 Edf4f8b2f Ebe5533f4
 Printed route source:
     graphs/LibreTorrent/scratch/route_print/FixedRingBuffer_FixedRingBufferIterator.<init>.txt
@@ -27,7 +27,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 from device.harness import Runner
 
 EDGE_IDS = [
-    "Ef4711e98",
+    "Ebe0bf90d",
     "E3dee7bcc",
     "E29d6b10c",
     "Eeac5d0c4",
@@ -55,8 +55,8 @@ def main():
                outdir=args.outdir)
     gen_dir = os.environ.get("GEN_DIR", "")
     try:
-        # Ef4711e98: S_ENTRY -> MainActivity.onCreate [ENTRY]. Launcher activity startup
-        r.launch("org.proninyaroslav.libretorrent.debug/org.proninyaroslav.libretorrent.ui.main.MainActivity", edge="Ef4711e98")
+        # Ebe0bf90d: S_ENTRY -> MainActivity.onCreate [ENTRY]. Launcher activity startup
+        r.launch("org.proninyaroslav.libretorrent.debug/org.proninyaroslav.libretorrent.ui.main.MainActivity", edge="Ebe0bf90d")
         # E3dee7bcc: MainActivity.onCreate -> TorrentInfoProvider.getInstance(Context) [CALL]. Initialize
         # torrent info provider for main screen
         r.comment("Initialize torrent info provider for main screen", edge="E3dee7bcc")

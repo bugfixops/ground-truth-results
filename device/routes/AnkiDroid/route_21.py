@@ -24,7 +24,7 @@ Preconditions/fixtures:
     this holds (see mapping notes). No file fixture is pushed.
 Mapping notes:
   - The "Study" tap text is inherited from first-draw route_05
-    (E518f89ef); verify it against a live uiautomator dump.
+    (E8972c27b); verify it against a live uiautomator dump.
   - The answer field must be UNFOCUSED when Enter is pressed
     (AbstractFlashcardViewer.java:1016 guard). Typing focuses the
     field, so the live run must defocus it (tap outside the field)
@@ -52,7 +52,7 @@ from device.harness import Runner  # noqa: E402
 
 EDGE_IDS = [
     "E48de6d58", "E26d20f74", "E1ad4ef9b", "E5906a191", "Ef3e13961",
-    "Eae89b47b", "Ea73b74da", "E518f89ef", "E0b3abfeb", "Eb58e5599",
+    "Eae89b47b", "Ea73b74da", "E8972c27b", "E0b3abfeb", "Eb58e5599",
     "Eed14720a", "Ed7470ef3", "Ea375fff8", "E5e78b2d2", "E6d1d7be6",
     "E32795cf7", "Ed006b7e1", "E858abb10", "E2115c14e", "Eede34ab8",
     "E0e396506", "E74e7f2c0", "E6ad06c68", "E54d98842",
@@ -97,9 +97,9 @@ def main(argv=None):
     r.comment("fragmented mode loads study options", edge="Eae89b47b")
     # Ea73b74da -> S_STUDYOPTIONS_FRAG.
     r.comment("study options fragment shown", edge="Ea73b74da")
-    # E518f89ef S_STUDYOPTIONS_FRAG -> StudyOptionsFragment$1.onClick:
+    # E8972c27b S_STUDYOPTIONS_FRAG -> StudyOptionsFragment$1.onClick:
     # Start button; guard deck has cards to study.
-    r.tap(edge="E518f89ef", text="Study")
+    r.tap(edge="E8972c27b", text="Study")
     # E0b3abfeb onClick -> openReviewer.
     r.comment("openReviewer", edge="E0b3abfeb")
     # Eb58e5599 openReviewer -> Reviewer.<init>.

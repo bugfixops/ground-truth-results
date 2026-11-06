@@ -66,9 +66,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 from device.harness import Runner  # noqa: E402
 
 EDGE_IDS = [
-    "E48de6d58", "E26d20f74", "E1ad4ef9b", "Eb3058057", "Ec0803f80",
-    "Ec31ec494", "E737f97f5", "Ebaef8dec", "E7ba5c3e5", "E27518d88",
-    "E6a434eae", "Ee0eb2278", "E2c1af362", "Ea860d9d5",
+    "E48de6d58", "E26d20f74", "E1ad4ef9b", "Efe74add3", "Ec0803f80",
+    "Ec31ec494", "E5b688301", "Ebaef8dec", "E7ba5c3e5", "E0761bd82",
+    "E887ae910", "Ee0eb2278", "E2c1af362", "Ea860d9d5",
 ]
 
 FIXTURE_MODEL = "Basic"
@@ -94,31 +94,31 @@ def main(argv=None):
     # E1ad4ef9b DeckPicker.<init> -> DeckPicker.onCreate.
     r.comment("system instantiates DeckPicker, then onCreate",
               edge="E1ad4ef9b")
-    # Eb3058057 DeckPicker.onCreate -> S_DECKPICKER (collection file
+    # Efe74add3 DeckPicker.onCreate -> S_DECKPICKER (collection file
     # exists, WRITE_EXTERNAL_STORAGE granted).
-    r.comment("deck-picker page shown", edge="Eb3058057")
+    r.comment("deck-picker page shown", edge="Efe74add3")
     # Ec0803f80 S_DECKPICKER -> DeckPicker.onOptionsItemSelected:
     # open the options menu.
     r.tap(edge="Ec0803f80", desc="More options")
     # Ec31ec494 onOptionsItemSelected -> S_MODELBROWSER
     # (action_model_browser_open; drawer toggle does not consume it).
     r.tap(edge="Ec31ec494", text="Manage note types")
-    # E737f97f5 S_MODELBROWSER -> ModelBrowser$4.onItemClick: tap a
+    # E5b688301 S_MODELBROWSER -> ModelBrowser$4.onItemClick: tap a
     # model row (state: models loaded, position valid; the list and
     # listener exist only after onCollectionLoaded).
-    r.tap(edge="E737f97f5", text=FIXTURE_MODEL)
+    r.tap(edge="E5b688301", text=FIXTURE_MODEL)
     # Ebaef8dec $4.onItemClick -> ModelFieldEditor.<init> (Intent
     # with noteTypeID extra).
     r.comment("startActivityForResult ModelFieldEditor",
               edge="Ebaef8dec")
     # E7ba5c3e5 ModelFieldEditor.<init> -> ModelFieldEditor.onCreate.
     r.comment("ModelFieldEditor onCreate", edge="E7ba5c3e5")
-    # E27518d88 ModelFieldEditor.onCreate -> S_MODELFIELDEDITOR.
-    r.comment("model field editor page shown", edge="E27518d88")
-    # E6a434eae S_MODELFIELDEDITOR -> ModelFieldEditor$1.onItemClick:
+    # E0761bd82 ModelFieldEditor.onCreate -> S_MODELFIELDEDITOR.
+    r.comment("model field editor page shown", edge="E0761bd82")
+    # E887ae910 S_MODELFIELDEDITOR -> ModelFieldEditor$1.onItemClick:
     # tap a field row (state: onCollectionLoaded has run and
     # createfieldLabels registered the listener).
-    r.tap(edge="E6a434eae", text=FIXTURE_FIELD)
+    r.tap(edge="E887ae910", text=FIXTURE_FIELD)
     # Ee0eb2278 $1.onItemClick -> ModelEditorContextMenu.newInstance
     # (label + listener).
     r.comment("field tap creates context menu instance",

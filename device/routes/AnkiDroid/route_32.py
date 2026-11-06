@@ -13,8 +13,8 @@ Route followed: the final BFS route (20 steps), identical to the
     OK -> REPOSITION_FIELD task -> doInBackGroundRepositionField
     -> Models.moveField -> Models$TransformFieldMove.<init>.
 Edge ids in order:
-    E48de6d58 E26d20f74 E1ad4ef9b Eb3058057 Ec0803f80 Ec31ec494
-    E737f97f5 Ebaef8dec E7ba5c3e5 E27518d88 E6a434eae E7f0718c5
+    E48de6d58 E26d20f74 E1ad4ef9b Efe74add3 Ec0803f80 Ec31ec494
+    E5b688301 Ebaef8dec E7ba5c3e5 E0761bd82 E887ae910 E7f0718c5
     E78a364ca Ee41f94d4 Eaac1b7fd E442921a6 Ee1989f34 E37331a72
     E61c549d6 Ec14b3e6c
 Preconditions/fixtures:
@@ -55,9 +55,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 from device.harness import Runner  # noqa: E402
 
 EDGE_IDS = [
-    "E48de6d58", "E26d20f74", "E1ad4ef9b", "Eb3058057", "Ec0803f80",
-    "Ec31ec494", "E737f97f5", "Ebaef8dec", "E7ba5c3e5", "E27518d88",
-    "E6a434eae", "E7f0718c5", "E78a364ca", "Ee41f94d4", "Eaac1b7fd",
+    "E48de6d58", "E26d20f74", "E1ad4ef9b", "Efe74add3", "Ec0803f80",
+    "Ec31ec494", "E5b688301", "Ebaef8dec", "E7ba5c3e5", "E0761bd82",
+    "E887ae910", "E7f0718c5", "E78a364ca", "Ee41f94d4", "Eaac1b7fd",
     "E442921a6", "Ee1989f34", "E37331a72", "E61c549d6", "Ec14b3e6c",
 ]
 
@@ -80,27 +80,27 @@ def main(argv=None):
     # E1ad4ef9b DeckPicker.<init> -> DeckPicker.onCreate.
     r.comment("system instantiates DeckPicker, then onCreate",
               edge="E1ad4ef9b")
-    # Eb3058057 DeckPicker.onCreate -> S_DECKPICKER: collection open.
-    r.comment("deck-picker page shown", edge="Eb3058057")
+    # Efe74add3 DeckPicker.onCreate -> S_DECKPICKER: collection open.
+    r.comment("deck-picker page shown", edge="Efe74add3")
     # Ec0803f80 S_DECKPICKER -> DeckPicker.onOptionsItemSelected.
     r.tap(edge="Ec0803f80", desc="More options")
     # Ec31ec494 onOptionsItemSelected -> S_MODELBROWSER: the model
     # browser menu item is tapped.
     r.tap(edge="Ec31ec494", text="Manage note types")
-    # E737f97f5 S_MODELBROWSER -> ModelBrowser$4.onItemClick: tap a
+    # E5b688301 S_MODELBROWSER -> ModelBrowser$4.onItemClick: tap a
     # note type in the list (opens its field editor).
-    r.tap(edge="E737f97f5", desc="note type row")
+    r.tap(edge="E5b688301", desc="note type row")
     # Ebaef8dec onItemClick -> ModelFieldEditor.<init>.
     r.comment("field editor opened for the tapped note type",
               edge="Ebaef8dec")
     # E7ba5c3e5 ModelFieldEditor.<init> -> ModelFieldEditor.onCreate.
     r.comment("system instantiates ModelFieldEditor, then onCreate",
               edge="E7ba5c3e5")
-    # E27518d88 onCreate -> S_MODELFIELDEDITOR: field list shown.
-    r.comment("field editor screen shown", edge="E27518d88")
-    # E6a434eae S_MODELFIELDEDITOR -> ModelFieldEditor$1.onItemClick:
+    # E0761bd82 onCreate -> S_MODELFIELDEDITOR: field list shown.
+    r.comment("field editor screen shown", edge="E0761bd82")
+    # E887ae910 S_MODELFIELDEDITOR -> ModelFieldEditor$1.onItemClick:
     # tap a field name row on the field editor screen.
-    r.tap(edge="E6a434eae", desc="field row")
+    r.tap(edge="E887ae910", desc="field row")
     # E7f0718c5 onItemClick -> S_DLG_MODELEDITOR_CONTEXT: the field
     # context menu is shown for the tapped row.
     r.comment("field context menu shown", edge="E7f0718c5")

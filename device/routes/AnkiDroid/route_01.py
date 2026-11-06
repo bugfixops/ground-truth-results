@@ -60,7 +60,7 @@ from device.harness import Runner  # noqa: E402
 
 EDGE_IDS = [
     "E48de6d58", "E26d20f74", "E1ad4ef9b", "E5906a191", "Ef3e13961",
-    "Eae89b47b", "Ea73b74da", "E518f89ef", "E0b3abfeb", "Eb58e5599",
+    "Eae89b47b", "Ea73b74da", "E8972c27b", "E0b3abfeb", "Eb58e5599",
     "Eed14720a", "Ed7470ef3", "Ea375fff8", "Ebf481404", "E09ef790a",
     "E5285c072", "Eb06cba16", "E352d419a", "E0281e707", "E37ba8c1f",
     "E94833ec9", "E44749e19", "Ed63b7964", "E7b61f827", "Eb7034235",
@@ -100,10 +100,10 @@ def main(argv=None):
     # Ea73b74da loadStudyOptionsFragment -> S_STUDYOPTIONS_FRAG
     # (fragment replace/commit, DeckPicker.java:1650-1655).
     r.comment("study options fragment shown", edge="Ea73b74da")
-    # E518f89ef S_STUDYOPTIONS_FRAG -> StudyOptionsFragment$1.onClick:
+    # E8972c27b S_STUDYOPTIONS_FRAG -> StudyOptionsFragment$1.onClick:
     # tap Study; cards due, so content is not CONGRATS and the click
     # calls openReviewer (StudyOptionsFragment.java:120-136).
-    r.tap(edge="E518f89ef", text="Study")
+    r.tap(edge="E8972c27b", text="Study")
     # E0b3abfeb $1.onClick -> openReviewer.
     r.comment("openReviewer", edge="E0b3abfeb")
     # Eb58e5599 openReviewer -> Reviewer.<init> (Intent).

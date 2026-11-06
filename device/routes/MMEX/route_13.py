@@ -3,7 +3,7 @@ CONVERTED (retry).
 
 Method: RecurringTransactionIntentService.onHandleWork
 Edge ids (in route order):
-    Ef7b742ce E5e28ba39 E345a16d3 Ed94f083b Ee8264341 Ef6aef24f
+    Ef7b742ce E5e28ba39 E345a16d3 E8368c44e E9e535c7e Ef6aef24f
     Eef61d710
 Printed route source:
     graphs/MMEX/scratch/route_print_final2/RecurringTransactionIntentService.onHandleWork.txt
@@ -57,7 +57,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 from device.harness import Runner
 
 EDGE_IDS = [
-    "Ef7b742ce", "E5e28ba39", "E345a16d3", "Ed94f083b", "Ee8264341",
+    "Ef7b742ce", "E5e28ba39", "E345a16d3", "E8368c44e", "E9e535c7e",
     "Ef6aef24f", "Eef61d710",
 ]
 
@@ -113,7 +113,7 @@ def main():
                   edge="E5e28ba39")
         # E345a16d3: onReceive calls setAlarm (:43). No user action.
         r.comment("onReceive calls setAlarm", edge="E345a16d3")
-        # Ed94f083b: setAlarm schedules the daily repeating
+        # E8368c44e: setAlarm schedules the daily repeating
         # RTC_WAKEUP alarm (setRepeating at :83-84) for the
         # notification time armed by setup_route_13.py. The alarm
         # delivery itself is a framework edge; the wait below is
@@ -138,13 +138,13 @@ def main():
                 # Fallback: wait for natural (inexact) delivery.
                 time.sleep(480)
         r.comment("daily alarm fires (framework AlarmManager delivery)",
-                  edge="Ed94f083b")
-        # Ee8264341: The system creates RecurringTransactionReceiver
+                  edge="E8368c44e")
+        # E9e535c7e: The system creates RecurringTransactionReceiver
         # and calls onReceive; the notification setting is on by
         # setup (default true, notifications/RecurringTransaction-
         # Receiver.java:31-39). No user action.
         r.comment("alarm broadcast calls Receiver.onReceive",
-                  edge="Ee8264341")
+                  edge="E9e535c7e")
         # Ef6aef24f: onReceive enqueues the job service (:38).
         r.comment("Receiver.onReceive enqueues IntentService",
                   edge="Ef6aef24f")

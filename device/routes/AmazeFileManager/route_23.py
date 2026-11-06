@@ -4,7 +4,7 @@
 Method: PemToKeyPairTask.toastOnParseError
 Edge ids in order:
     E393625fa E88f218aa E51ddec28 Eba2f1368 E9896632a E973b24af
-    E747b933b Ed024bdda E83d7c4eb Ece114399 E99fa54db E8cb8ea76
+    E747b933b Ed024bdda E9dc8ba1d Ece114399 E99fa54db E8cb8ea76
     E9b91a366
 Printed route: edge list identical to the AmazeFileManager
 ROUTES.csv route_23 row (as changed by the accompanying row
@@ -141,7 +141,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)),
 from device.harness.harness import Runner  # noqa: E402
 
 EDGE_IDS = ('E393625fa E88f218aa E51ddec28 Eba2f1368 E9896632a '
-            'E973b24af E747b933b Ed024bdda E83d7c4eb Ece114399 '
+            'E973b24af E747b933b Ed024bdda E9dc8ba1d Ece114399 '
             'E99fa54db E8cb8ea76 E9b91a366').split()
 
 CONNECTION_NAME = 'SCP/SFTP Connection'
@@ -232,19 +232,19 @@ def main():
     # DialogFragment.onCreateDialog to create the dialog".
     r.comment('Edit dialog visible, pre-filled from the saved row',
               'Ed024bdda')
-    # E83d7c4eb SftpConnectDialog.onCreateDialog ->
+    # E9dc8ba1d SftpConnectDialog.onCreateDialog ->
     # onActivityResult: tap selectPemBTN (SftpConnectDialog
     # .java:141-146: ACTION_GET_CONTENT, type */*), then pick
     # the BAD key in the system SAF picker. Trigger: "Framework
     # delivers activity result when user picks SSH key file".
-    r.tap('E83d7c4eb', res_id='com.amaze.filemanager:id/selectPemBTN')
+    r.tap('E9dc8ba1d', res_id='com.amaze.filemanager:id/selectPemBTN')
     try:
-        r.wait_for('E83d7c4eb', text=BAD_KEY_NAME, timeout=10)
-        r.tap('E83d7c4eb', text=BAD_KEY_NAME)
+        r.wait_for('E9dc8ba1d', text=BAD_KEY_NAME, timeout=10)
+        r.tap('E9dc8ba1d', text=BAD_KEY_NAME)
     except TimeoutError:
-        r.tap('E83d7c4eb', desc='Show roots')
-        r.tap('E83d7c4eb', text='Download')
-        r.tap('E83d7c4eb', text=BAD_KEY_NAME)
+        r.tap('E9dc8ba1d', desc='Show roots')
+        r.tap('E9dc8ba1d', text='Download')
+        r.tap('E9dc8ba1d', text=BAD_KEY_NAME)
     # Ece114399 SftpConnectDialog.onActivityResult ->
     # PemToKeyPairTask.doInBackground: onActivityResult executes
     # the task (SftpConnectDialog.java:322), no UI action.

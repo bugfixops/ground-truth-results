@@ -39,7 +39,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 from device.harness import Runner  # noqa: E402
 
 EDGE_IDS = [
-    "E48de6d58", "E26d20f74", "E1ad4ef9b", "Eb3058057", "Ec0803f80",
+    "E48de6d58", "E26d20f74", "E1ad4ef9b", "Efe74add3", "Ec0803f80",
     "Ef124bec5", "Ef971cdc8", "E7207076d", "E3b62fa3a", "E1a9a3f49",
     "E8e37bd07", "E444e91f6", "E21716df8", "Eb9b4b814", "Edc863911",
     "Ebc55db92",
@@ -68,9 +68,9 @@ def main(argv=None):
     # E1ad4ef9b DeckPicker.<init> -> DeckPicker.onCreate.
     r.comment("system instantiates DeckPicker, then onCreate",
               edge="E1ad4ef9b")
-    # Eb3058057 DeckPicker.onCreate -> S_DECKPICKER (collection file
+    # Efe74add3 DeckPicker.onCreate -> S_DECKPICKER (collection file
     # exists, WRITE_EXTERNAL_STORAGE granted).
-    r.comment("deck-picker page shown", edge="Eb3058057")
+    r.comment("deck-picker page shown", edge="Efe74add3")
     # Ec0803f80 S_DECKPICKER -> onOptionsItemSelected: open the
     # options menu (standard AppCompat overflow description).
     r.tap(edge="Ec0803f80", desc="More options")

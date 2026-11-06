@@ -12,8 +12,8 @@ Route followed: the final BFS route (16 steps), identical to the
     menu -> Delete -> confirmation OK -> deleteModel -> DELETE_MODEL
     task -> doInBackGroundDeleteModel -> Models.rem.
 Edge ids in order:
-    E48de6d58 E26d20f74 E1ad4ef9b Eb3058057 Ec0803f80 Ec31ec494
-    E91ae72e8 E5384a709 E82ba5876 Eedf5a98f E55c22d4f Ee84d976b
+    E48de6d58 E26d20f74 E1ad4ef9b Efe74add3 Ec0803f80 Ec31ec494
+    E68bf41c2 E5384a709 E82ba5876 Eedf5a98f E55c22d4f Ee84d976b
     Ea9dfcb07 E2e9e4956 E38b4440a E57ec7c14
 Preconditions/fixtures:
   - Collection open; at least two note types (the delete
@@ -41,8 +41,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 from device.harness import Runner  # noqa: E402
 
 EDGE_IDS = [
-    "E48de6d58", "E26d20f74", "E1ad4ef9b", "Eb3058057", "Ec0803f80",
-    "Ec31ec494", "E91ae72e8", "E5384a709", "E82ba5876", "Eedf5a98f",
+    "E48de6d58", "E26d20f74", "E1ad4ef9b", "Efe74add3", "Ec0803f80",
+    "Ec31ec494", "E68bf41c2", "E5384a709", "E82ba5876", "Eedf5a98f",
     "E55c22d4f", "Ee84d976b", "Ea9dfcb07", "E2e9e4956", "E38b4440a",
     "E57ec7c14",
 ]
@@ -66,16 +66,16 @@ def main(argv=None):
     # E1ad4ef9b DeckPicker.<init> -> DeckPicker.onCreate.
     r.comment("system instantiates DeckPicker, then onCreate",
               edge="E1ad4ef9b")
-    # Eb3058057 DeckPicker.onCreate -> S_DECKPICKER: collection open.
-    r.comment("deck-picker page shown", edge="Eb3058057")
+    # Efe74add3 DeckPicker.onCreate -> S_DECKPICKER: collection open.
+    r.comment("deck-picker page shown", edge="Efe74add3")
     # Ec0803f80 S_DECKPICKER -> DeckPicker.onOptionsItemSelected.
     r.tap(edge="Ec0803f80", desc="More options")
     # Ec31ec494 onOptionsItemSelected -> S_MODELBROWSER: the model
     # browser menu item is tapped.
     r.tap(edge="Ec31ec494", text="Manage note types")
-    # E91ae72e8 S_MODELBROWSER -> ModelBrowser$5.onItemLongClick:
+    # E68bf41c2 S_MODELBROWSER -> ModelBrowser$5.onItemLongClick:
     # long-press a note type in the list.
-    r.long_tap(edge="E91ae72e8", desc="note type row")
+    r.long_tap(edge="E68bf41c2", desc="note type row")
     # E5384a709 onItemLongClick -> S_DLG_MODELBROWSER_CONTEXT.
     r.comment("note type context menu shown", edge="E5384a709")
     # E82ba5876 S_DLG_MODELBROWSER_CONTEXT -> ModelBrowser$3.onSelection:

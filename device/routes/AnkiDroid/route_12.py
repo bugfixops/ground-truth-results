@@ -43,11 +43,11 @@ from device.harness import Runner  # noqa: E402
 
 EDGE_IDS = [
     "E48de6d58", "E26d20f74", "E1ad4ef9b", "E5906a191", "Ef3e13961",
-    "Eae89b47b", "Ea73b74da", "E518f89ef", "E0b3abfeb", "Eb58e5599",
+    "Eae89b47b", "Ea73b74da", "E8972c27b", "E0b3abfeb", "Eb58e5599",
     "Eed14720a", "Ed7470ef3", "Ea375fff8", "Ebf481404", "E09ef790a",
     "E5285c072", "Eb06cba16", "E352d419a", "E0281e707", "E37ba8c1f",
     "E94833ec9", "E44749e19", "Ed63b7964", "E7b61f827", "Eb7034235",
-    "E1e29f3f5", "Ea9606e5d", "E1ae02f15", "Ed9c9d15a", "E34e471f3",
+    "Eca8101f0", "Ea9606e5d", "E1ae02f15", "Ed9c9d15a", "E34e471f3",
     "E70e68337", "Ece5d578d", "Ea4a2a47a", "E22a358c4", "E19aee917",
     "Ea27383e7", "Ef9fac826",
 ]
@@ -80,10 +80,10 @@ def main(argv=None):
     r.comment("loadStudyOptionsFragment", edge="Eae89b47b")
     # Ea73b74da -> S_STUDYOPTIONS_FRAG.
     r.comment("study-options fragment page shown", edge="Ea73b74da")
-    # E518f89ef S_STUDYOPTIONS_FRAG -> StudyOptionsFragment$1.onClick:
+    # E8972c27b S_STUDYOPTIONS_FRAG -> StudyOptionsFragment$1.onClick:
     # the start-study button. Guard: deck has cards to study.
     # String verified in res: studyoptions_start = "Study".
-    r.tap(edge="E518f89ef", text="Study")
+    r.tap(edge="E8972c27b", text="Study")
     # E0b3abfeb $1.onClick -> openReviewer.
     r.comment("openReviewer", edge="E0b3abfeb")
     # Eb58e5599 openReviewer -> Reviewer.<init>.
@@ -134,10 +134,10 @@ def main(argv=None):
     r.comment("MultimediaEditFieldActivity onCreate", edge="E7b61f827")
     # Eb7034235 -> S_MULTIMEDIA_EDIT_FIELD.
     r.comment("multimedia edit field page shown", edge="Eb7034235")
-    # E1e29f3f5 S_MULTIMEDIA_EDIT_FIELD -> $2.onClick (Pronunciation
+    # Eca8101f0 S_MULTIMEDIA_EDIT_FIELD -> $2.onClick (Pronunciation
     # button; needs TEXT field controller, source text non-empty).
     # Text from the old route_13 script (strings-grounded).
-    r.tap(edge="E1e29f3f5", text="Pronunciation")
+    r.tap(edge="Eca8101f0", text="Pronunciation")
     # Ea9606e5d $2.onClick -> LoadPronounciationActivity.<init>.
     r.comment("startActivity LoadPronounciationActivity",
               edge="Ea9606e5d")

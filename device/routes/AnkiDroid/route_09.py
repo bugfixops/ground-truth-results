@@ -67,7 +67,7 @@ from device.harness import Runner  # noqa: E402
 
 EDGE_IDS = [
     "E48de6d58", "E26d20f74", "E1ad4ef9b", "E5906a191", "Ef3e13961",
-    "Eae89b47b", "Ea73b74da", "E518f89ef", "E0b3abfeb", "Eb58e5599",
+    "Eae89b47b", "Ea73b74da", "E8972c27b", "E0b3abfeb", "Eb58e5599",
     "Eed14720a", "Ed7470ef3", "Ea375fff8", "Ebf481404", "E09ef790a",
     "E5285c072", "Eb06cba16", "E352d419a", "E0281e707", "E37ba8c1f",
     "E43fdf761", "E1daab677", "Ee8a3d32e", "E9d2d3b7f", "E731864d1",
@@ -104,9 +104,9 @@ def main(argv=None):
     r.comment("loadStudyOptionsFragment", edge="Eae89b47b")
     # Ea73b74da loadStudyOptionsFragment -> S_STUDYOPTIONS_FRAG.
     r.comment("study options fragment shown", edge="Ea73b74da")
-    # E518f89ef S_STUDYOPTIONS_FRAG -> StudyOptionsFragment$1.onClick:
+    # E8972c27b S_STUDYOPTIONS_FRAG -> StudyOptionsFragment$1.onClick:
     # tap Study; cards due, so openReviewer runs.
-    r.tap(edge="E518f89ef", text="Study")
+    r.tap(edge="E8972c27b", text="Study")
     # E0b3abfeb $1.onClick -> openReviewer.
     r.comment("openReviewer", edge="E0b3abfeb")
     # Eb58e5599 openReviewer -> Reviewer.<init> (Intent).

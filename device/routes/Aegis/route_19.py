@@ -12,8 +12,8 @@ Method: SlotIntegrityException.<init>(Throwable)
 Edge ids (in route order):
     Eb9515d18 E5b266140 E1ef992ce E88ed9829 E28ffc58c Eb76444fd
     E3a06baed E0602e719 E4ce5043a E5e63fbe7 E93598a00 E1440feb8
-    E6830b6dc E32450899 E553f11f7 E251ac3f4 E7216511b E8da5177a
-    E3f8e1ae8 E0182bb68 Ef2e59617 E0197aeab E743b6812 E5f44da38
+    E6830b6dc E32450899 E553f11f7 E251ac3f4 E7216511b E0ee134dc
+    E3f8e1ae8 E0182bb68 Ed86a6d87 E0197aeab E743b6812 E5f44da38
     Ebdf8bea9 Ea76ae1a0 E887b87bf Ef4e32054 Ef64f95ee E640fb9eb
     E94201299 E50e3cfda E382bc001 Eccc3a740 E3452b602 Ed19f3b08
     E5c8f972e Ee4227c2d Ec2217fba Edd00aa28 Ec6728d2c Eb31da5f7
@@ -86,8 +86,8 @@ WRONG_PIN = "654321"
 EDGE_IDS = [
     "Eb9515d18", "E5b266140", "E1ef992ce", "E88ed9829", "E28ffc58c", "Eb76444fd",
     "E3a06baed", "E0602e719", "E4ce5043a", "E5e63fbe7", "E93598a00", "E1440feb8",
-    "E6830b6dc", "E32450899", "E553f11f7", "E251ac3f4", "E7216511b", "E8da5177a",
-    "E3f8e1ae8", "E0182bb68", "Ef2e59617", "E0197aeab", "E743b6812", "E5f44da38",
+    "E6830b6dc", "E32450899", "E553f11f7", "E251ac3f4", "E7216511b", "E0ee134dc",
+    "E3f8e1ae8", "E0182bb68", "Ed86a6d87", "E0197aeab", "E743b6812", "E5f44da38",
     "Ebdf8bea9", "Ea76ae1a0", "E887b87bf", "Ef4e32054", "Ef64f95ee", "E640fb9eb",
     "E94201299", "E50e3cfda", "E382bc001", "Eccc3a740", "E3452b602", "Ed19f3b08",
     "E5c8f972e", "Ee4227c2d", "Ec2217fba", "Edd00aa28", "Ec6728d2c", "Eb31da5f7",
@@ -156,16 +156,16 @@ def main():
         # onBeforeSlideChanged.
         r.comment("pager moves on via onBeforeSlideChanged",
                   edge="E7216511b")
-        # E8da5177a: Security "none" skips the setup slide.
+        # E0ee134dc: Security "none" skips the setup slide.
         r.comment("security none skips the setup slide",
-                  edge="E8da5177a")
+                  edge="E0ee134dc")
         # E3f8e1ae8: The Done slide is shown after the skip.
         r.comment("Done slide shown after the skip", edge="E3f8e1ae8")
         # E0182bb68: Tap Next (check icon) on the Done slide:
         # goToNextSlide calls onDonePressed.
         r.tap(res_id="btnNext", edge="E0182bb68")
-        # Ef2e59617: A new vault is created (no import).
-        r.comment("new vault created, no import", edge="Ef2e59617")
+        # Ed86a6d87: A new vault is created (no import).
+        r.comment("new vault created, no import", edge="Ed86a6d87")
         # E0197aeab: initNew returns: the new vault exists and
         # onDonePressed sets the intro-done flag and returns.
         r.comment("initNew returns; intro-done flag set",
