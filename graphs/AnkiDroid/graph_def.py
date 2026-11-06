@@ -7981,3 +7981,54 @@ def EDIT(x):
             x['needs_state'], x['state_kinds'] = _g[1], list(_g[2])
         elif _g[0] == 'ENV' and not x.get('env'):
             x['env'], x['env_kinds'] = _g[1], list(_g[2])
+# W7 round 2: the advanced statistics hook runs only when advanced_statistics_enabled is on (default off, Hooks.java:61).
+_W7_ADVSTATS_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _W7_ADVSTATS_ORIG_EDIT(x)
+    if x['dst'].startswith('Hooks.runFilter@advancedStatistics') and not x.get('needs_state'):
+        x['needs_state'] = 'advanced statistics are on (advanced_statistics_enabled, default off; the hook is registered only then, Hooks.java:61)'
+        x['state_kinds'] = ['settings']
+# W7 round 2: every DeckPicker call of loadStudyOptionsFragment sits under if (mFragmented) (DeckPicker.java:828-829,
+# 1545, 1698, 1954, 2085), and mFragmented is true only with the tablet layout res/layout-xlarge/homescreen.xml
+# (DeckPicker.java:365-367). DeckPicker.automaticSync syncs only when the user is logged in to AnkiWeb and
+# automaticSyncMode is on (DeckPicker.java:767, default off).
+_W7_TABLET_ORIG_EDIT = EDIT
+_W7_TABLET = ('hardware: a tablet-size screen: the study options pane exists only in res/layout-xlarge/homescreen.xml, so '
+              'mFragmented is true only there (DeckPicker.java:365-367); on a phone the deck tap opens StudyOptionsActivity')
+
+
+def EDIT(x):
+    _W7_TABLET_ORIG_EDIT(x)
+    if (x['src'].split('@')[0].startswith('DeckPicker') and x['dst'].split('@')[0] == 'DeckPicker.loadStudyOptionsFragment'
+            and not x.get('env')):
+        x['env'], x['env_kinds'] = _W7_TABLET, ['hardware']
+    if x['src'].split('@')[0] == 'DeckPicker.automaticSync' and not x.get('env'):
+        x['env'] = ('network: the user is logged in to AnkiWeb and automatic sync is on (hkey set and automaticSyncMode, '
+                    'default off, DeckPicker.java:767); the sync then needs the AnkiWeb server')
+        x['env_kinds'] = ['network']
+# W7 round 2: review/TASK_NOTE.md counts runtime-permission prompts as GUI actions. An env gate whose only kind is
+# permission is therefore removed (the prompt is a GUI step), so it no longer steers the best route; the old text
+# stays in the note. Gates that combine permission with another kind keep the other kind's gate.
+_W7_PERM_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _W7_PERM_ORIG_EDIT(x)
+    if x.get('env') and list(x.get('env_kinds') or globals().get('ENV_KINDS_OF', {}).get(x['env']) or ()) == ['permission']:
+        x['note'] = ((x.get('note') + ' | ') if x.get('note') else '') + 'W7: runtime-permission prompt, a GUI action (was env: %s)' % x['env']
+        x['env'], x['env_kinds'] = None, []
+# W7 round 2: the restore-backup dialog takes its "no backups" branch ($5: OK goes to the error-handling list) only
+# when no backup file exists (mBackups.length == 0, DatabaseErrorDialog.java:216-233); the startup backup in
+# DeckPicker.onFinishedStartup (performBackupInBackground, DeckPicker.java:806) creates one after the first start,
+# so the branch needs the backups removed (file state).
+_W7_NOBACKUP_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _W7_NOBACKUP_ORIG_EDIT(x)
+    if x['src'].startswith('S_DLG_DATABASE_ERROR@RESTORE_BACKUP') and x['dst'] == 'DatabaseErrorDialog$5.onPositive' and not x.get('needs_state'):
+        x['needs_state'] = ('no backup file exists in the backup folder (mBackups.length == 0, DatabaseErrorDialog.java:216-233); '
+                            'the startup backup (DeckPicker.java:806) creates one after the first start')
+        x['state_kinds'] = ['file']

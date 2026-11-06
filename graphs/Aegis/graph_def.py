@@ -6566,3 +6566,14 @@ def EDIT(x):
         x['env'] = ('the device grants Aegis root access, so the root shell opens and reports root '
                     '(ImportEntriesActivity.java:149-153; RootShellTask.java:17-20)')
         x['env_kinds'] = ['other']
+# W7 round 2: review/TASK_NOTE.md counts runtime-permission prompts as GUI actions. An env gate whose only kind is
+# permission is therefore removed (the prompt is a GUI step), so it no longer steers the best route; the old text
+# stays in the note. Gates that combine permission with another kind keep the other kind's gate.
+_W7_PERM_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _W7_PERM_ORIG_EDIT(x)
+    if x.get('env') and list(x.get('env_kinds') or globals().get('ENV_KINDS_OF', {}).get(x['env']) or ()) == ['permission']:
+        x['note'] = ((x.get('note') + ' | ') if x.get('note') else '') + 'W7: runtime-permission prompt, a GUI action (was env: %s)' % x['env']
+        x['env'], x['env_kinds'] = None, []
