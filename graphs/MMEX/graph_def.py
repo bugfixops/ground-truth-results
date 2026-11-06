@@ -6239,3 +6239,42 @@ for _gdmod_name in sorted(_gdmod_os.listdir(_gdmod_os.path.join(GDIR, 'graph_def
         _gdmod_path = _gdmod_os.path.join(GDIR, 'graph_def_mod', _gdmod_name)
         exec(compile(open(_gdmod_path, encoding='utf-8').read(), _gdmod_path, 'exec'))
 del _gdmod_os, _gdmod_name, _gdmod_path
+
+
+# ---- W2 REAUDIT: baseline and setup-only screens (appended after the
+# graph_def_mod loader, so EDIT below wraps the effective EDIT) ----
+# Baseline for MMEX: one checking account exists (the setup account); every
+# setting is at its default. Baseline state never counts as state, so the
+# gates the baseline already satisfies are cleared in EDIT below, with the
+# reason recorded in the edge note. The first-run tutorial page goes into
+# SETUP_ONLY (it is shown before the app actually runs, MainActivity.java:
+# 1478-1482); its gate text itself is kept. Per-gate decisions and source
+# evidence: graphs/MMEX/scratch/reaudit/state_gates.csv.
+SETUP_ONLY = {'S_TUTORIAL'}
+
+_W2_CLEARED = {
+    'at least one account exists, so the account list shows rows (HomeFragment.java:793), and the row group is expanded (group expansion is saved in settings, HomeFragment.java:719 and 731)':
+        'baseline: one checking account exists, so the account rows show, and account groups are expanded by default (HomeFragment.java:793; HomeFragment.java:754)',
+    'at least one account exists, so the group headers are shown (HomeFragment.java:793), and the group is expanded (its saved setting is true, HomeFragment.java:754)':
+        'baseline: one checking account exists, so the group headers show, and account groups are expanded by default (HomeFragment.java:793; HomeFragment.java:754)',
+    'at least one account exists, so the group headers are shown (HomeFragment.java:793), and the group is collapsed (its saved setting is false, HomeFragment.java:719)':
+        'baseline: one checking account exists, so the group headers show; collapsing a group is a tap on its header on the same screen (HomeFragment.java:793; HomeFragment.java:710)',
+    'a child row exists: the account type group holds at least one account (mAccountsByType, HomeAccountsExpandableAdapter.java:77)':
+        'baseline: the setup checking account sits in its account-type group, so that group holds at least one account and has a child row (HomeAccountsExpandableAdapter.java:76-77)',
+    'the quote provider setting is YahooYql (the default when the setting is unset)':
+        'baseline: the quote provider is unset in a fresh database, and the unset default is YahooYql (InvestmentSettings.java:75; InvestmentSettings.java:79-80)',
+    'the repeating transaction notifications setting is on (default on, BehaviourSettings.java:42)':
+        'baseline: the repeating transaction notifications setting defaults to on (BehaviourSettings.java:41-42)',
+    'sync is enabled and the sync interval is above 0 (SyncSchedulerBroadcastReceiver.java:76, 82)':
+        'baseline: sync defaults to enabled with a 30-minute interval (SyncPreferences.java:58; SyncPreferences.java:62)',
+}
+_W2_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _W2_ORIG_EDIT(x)
+    _t = x.get('needs_state')
+    if _t in _W2_CLEARED:
+        x['needs_state'] = None
+        x['state_kinds'] = []
+        x['note'] = ((x.get('note') + ' | ') if x.get('note') else '') + _W2_CLEARED[_t]
