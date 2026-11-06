@@ -1,0 +1,92 @@
+# javap -c -p (JDK 17.0.21) of classes/AmazeFileManager/0/com/amaze/filemanager/filesystem/HybridFile.class
+# every 'new HybridFile$N' with the method that holds it:
+  public long lastModified() throws jcifs.smb.SmbException; ::       40: new           #59                 // class com/amaze/filemanager/filesystem/HybridFile$1
+  public long length(); ::       44: new           #67                 // class com/amaze/filemanager/filesystem/HybridFile$2
+  public boolean isDirectory(android.content.Context); ::       60: new           #113                // class com/amaze/filemanager/filesystem/HybridFile$3
+  public long folderSize(android.content.Context); ::       64: new           #122                // class com/amaze/filemanager/filesystem/HybridFile$4
+  public long getUsableSpace(); ::      156: new           #131                // class com/amaze/filemanager/filesystem/HybridFile$5
+  public long getTotal(android.content.Context); ::      150: new           #134                // class com/amaze/filemanager/filesystem/HybridFile$6
+  public void forEachChildrenFile(android.content.Context, boolean, com.amaze.filemanager.utils.OnFileFound); ::       60: new           #136                // class com/amaze/filemanager/filesystem/HybridFile$7
+  public java.util.ArrayList<com.amaze.filemanager.filesystem.HybridFileParcelable> listFiles(android.content.Context, boolean); ::       68: new           #158                // class com/amaze/filemanager/filesystem/HybridFile$8
+  public java.io.InputStream getInputStream(); ::        7: new           #170                // class com/amaze/filemanager/filesystem/HybridFile$9
+  public java.io.InputStream getInputStream(android.content.Context); ::       60: new           #179                // class com/amaze/filemanager/filesystem/HybridFile$10
+  public java.io.OutputStream getOutputStream(android.content.Context); ::       44: new           #188                // class com/amaze/filemanager/filesystem/HybridFile$11
+  public boolean exists(); ::        9: new           #195                // class com/amaze/filemanager/filesystem/HybridFile$12
+  public void mkdir(android.content.Context); ::        7: new           #214                // class com/amaze/filemanager/filesystem/HybridFile$13
+  public boolean delete(android.content.Context, boolean) throws com.amaze.filemanager.exceptions.ShellNotRunningException; ::        7: new           #222                // class com/amaze/filemanager/filesystem/HybridFile$14
+
+# the no-arg getInputStream() in full:
+  public java.io.InputStream getInputStream();
+    Code:
+       0: aload_0
+       1: invokevirtual #18                 // Method isSftp:()Z
+       4: ifeq          26
+       7: new           #170                // class com/amaze/filemanager/filesystem/HybridFile$9
+      10: dup
+      11: aload_0
+      12: aload_0
+      13: getfield      #6                  // Field path:Ljava/lang/String;
+      16: invokespecial #171                // Method com/amaze/filemanager/filesystem/HybridFile$9."<init>":(Lcom/amaze/filemanager/filesystem/HybridFile;Ljava/lang/String;)V
+      19: invokestatic  #61                 // Method com/amaze/filemanager/filesystem/ssh/SshClientUtils.execute:(Lcom/amaze/filemanager/filesystem/ssh/SFtpClientTemplate;)Ljava/lang/Object;
+      22: checkcast     #172                // class java/io/InputStream
+      25: areturn
+      26: aload_0
+      27: invokevirtual #10                 // Method isSmb:()Z
+      30: ifeq          61
+      33: new           #88                 // class jcifs/smb/SmbFile
+      36: dup
+      37: aload_0
+      38: getfield      #6                  // Field path:Ljava/lang/String;
+      41: invokespecial #89                 // Method jcifs/smb/SmbFile."<init>":(Ljava/lang/String;)V
+      44: invokevirtual #173                // Method jcifs/smb/SmbFile.getInputStream:()Ljava/io/InputStream;
+      47: astore_1
+      48: goto          83
+      51: astore_2
+      52: aconst_null
+      53: astore_1
+      54: aload_2
+      55: invokevirtual #150                // Method java/io/IOException.printStackTrace:()V
+      58: goto          83
+      61: new           #175                // class java/io/FileInputStream
+      64: dup
+      65: aload_0
+      66: getfield      #6                  // Field path:Ljava/lang/String;
+      69: invokespecial #176                // Method java/io/FileInputStream."<init>":(Ljava/lang/String;)V
+      72: astore_1
+      73: goto          83
+      76: astore_2
+      77: aconst_null
+      78: astore_1
+      79: aload_2
+      80: invokevirtual #178                // Method java/io/FileNotFoundException.printStackTrace:()V
+      83: aload_1
+      84: areturn
+    Exception table:
+       from    to  target type
+          33    48    51   Class java/io/IOException
+          61    73    76   Class java/io/FileNotFoundException
+
+# inner classes: supertype and the classes each creates
+HybridFile$1 extends com.amaze.filemanager.filesystem.ssh.SFtpClientTemplate | creates: 
+HybridFile$10 extends com.amaze.filemanager.filesystem.ssh.SFtpClientTemplate | creates: HybridFile$10$1 
+HybridFile$10$1 extends net.schmizz.sshj.sftp.RemoteFile$RemoteFileInputStream | creates: 
+HybridFile$11 extends com.amaze.filemanager.filesystem.ssh.SshClientTemplate | creates: HybridFile$11$1 
+HybridFile$11$1 extends net.schmizz.sshj.sftp.RemoteFile$RemoteFileOutputStream | creates: 
+HybridFile$12 extends com.amaze.filemanager.filesystem.ssh.SFtpClientTemplate | creates: 
+HybridFile$13 extends com.amaze.filemanager.filesystem.ssh.SFtpClientTemplate | creates: 
+HybridFile$14 extends com.amaze.filemanager.filesystem.ssh.SFtpClientTemplate | creates: 
+HybridFile$15 extends class com.amaze.filemanager.filesystem.HybridFile$15 | creates: 
+HybridFile$2 extends com.amaze.filemanager.filesystem.ssh.SFtpClientTemplate | creates: 
+HybridFile$3 extends com.amaze.filemanager.filesystem.ssh.SFtpClientTemplate | creates: 
+HybridFile$4 extends com.amaze.filemanager.filesystem.ssh.SFtpClientTemplate | creates: 
+HybridFile$5 extends com.amaze.filemanager.filesystem.ssh.SFtpClientTemplate | creates: 
+HybridFile$6 extends com.amaze.filemanager.filesystem.ssh.SFtpClientTemplate | creates: 
+HybridFile$7 extends com.amaze.filemanager.filesystem.ssh.SFtpClientTemplate | creates: 
+HybridFile$8 extends com.amaze.filemanager.filesystem.ssh.SFtpClientTemplate | creates: 
+HybridFile$9 extends com.amaze.filemanager.filesystem.ssh.SFtpClientTemplate | creates: HybridFile$9$1 
+HybridFile$9$1 extends net.schmizz.sshj.sftp.RemoteFile$RemoteFileInputStream | creates: 
+
+# CloudUtil.launchCloud calls:
+     110: invokevirtual #68                 // Method jcifs/smb/SmbFile.getInputStream:()Ljava/io/InputStream;
+       3: invokevirtual #85                 // Method com/amaze/filemanager/filesystem/HybridFileParcelable.getInputStream:(Landroid/content/Context;)Ljava/io/InputStream;
+# callers of the no-arg overload in both class directories: none (grep of javap -c for getInputStream:()Ljava/io/InputStream; on HybridFile*)

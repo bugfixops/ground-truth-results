@@ -4574,10 +4574,9 @@ e('ZipService$1.<init>', 'ZipService$1.onReceive', 'FRAMEWORK',
   'BroadcastReceiver.onReceive called by framework',
   evidence='SRC ZipService.java:86, 307')
 
-# HybridFile$9$1.close, HybridFile$11$1.close
-e('HybridFile$9$1.<init>', 'HybridFile$9$1.close', 'CALL',
-  'InputStream.close() called when stream closed',
-  evidence='SRC filesystem/HybridFile.java:909-920')
+# HybridFile$11$1.close
+# W4 REAUDIT (Kiro): the edge HybridFile$9$1.<init> -> HybridFile$9$1.close is removed: HybridFile$9 exists only after
+# the no-arg getInputStream(), which nothing calls, so both ends are UNREACHABLE (graph_def.py W4 block, AmazeFileManager-20)
 e('HybridFile$11$1.<init>', 'HybridFile$11$1.close', 'CALL',
   'InputStream.close() called when stream closed',
   evidence='SRC filesystem/HybridFile.java:952-965')

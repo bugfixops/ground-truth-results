@@ -21,3 +21,5 @@ Default used: **RTA is implemented exactly as T2 specifies** (it dropped 1 cha e
 
 ## Q6. Aegis baseline: what are the two vault entries, and which security does the setup vault use?
 Default used: **two default TOTP entries (SHA1, 6 digits, 30 s) in a password-protected vault.** A new entry defaults to TOTP (VaultEntry.java:253-255) with SHA1 and 6 digits (OtpInfo.java:14-15) and a 30 s period (TotpInfo.java:14, 20); the password follows Q3. So W2 clears the Google Authenticator export gate, the password-slot gate and the encrypted-vault gate, and keeps the MOTP, Yandex, HOTP, biometric-slot and plain-text-vault gates. Raised by Kiro 2026-11-06 04:18 UTC (Aegis W2).
+
+**Q5 answered by Kiro (2026-11-06 04:39 UTC, W4):** javap shows listFiles creates HybridFile$8 and only the uncalled no-arg getInputStream() creates HybridFile$9. The two hand edges in Q5 named the wrong anonymous class (the hand block was one number off from $4 on); after the fix, HybridFile$9.execute is UNREACHABLE with evidence (graphs/AmazeFileManager/scratch/reaudit/w4_hybridfile_javap.txt).
