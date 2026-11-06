@@ -476,3 +476,4 @@ An edge is written by the part that contains its source method; if the source is
   assumption, route_12 video fixture, route_20 StudyOptions entry
   variant, route_27 focused-deck mechanism, route_01 language
   spinners, glosbe.com/Beolingus reachability unchecked here).
+- 2026-11-06 04:41 UTC: Kiro, re-audit W4 done for AnkiDroid (RTA on); next W5 (ESR_CREATION).

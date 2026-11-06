@@ -7828,3 +7828,7 @@ def EDIT(x):
         x['needs_state'] = None
         x['state_kinds'] = []
         x['note'] = ((x.get('note') + '; ') if x.get('note') else '') + cleared
+
+
+# ---- W4 REAUDIT (Kiro): rapid type analysis for bytecode cha edges (brief W1 T2) ----
+RTA = True
