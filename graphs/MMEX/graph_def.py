@@ -6422,3 +6422,17 @@ def EDIT(x):
             x['needs_state'], x['state_kinds'] = _g[1], list(_g[2])
         elif _g[0] == 'ENV' and not x.get('env'):
             x['env'], x['env_kinds'] = _g[1], list(_g[2])
+# W7 round 2 (and a W3 miss): the four home-screen widget receivers are started only by the launcher's AppWidget host
+# (APPWIDGET_UPDATE, AndroidManifest.xml widget receivers); their ENTRY edges had no env gate, so 385 best routes into
+# CheckingTransactionEditActivity started there instead of in the app (the app's own add button reaches it too).
+_W7_WIDGET_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _W7_WIDGET_ORIG_EDIT(x)
+    if (x['kind'] == 'ENTRY' and x['src'] == 'S_ENTRY' and x['dst'] in (
+            'ButtonAddTransactionWidgetProvider.<init>', 'AccountBillsWidgetProvider.<init>',
+            'SummaryWidgetProvider.<init>', 'SingleAccountWidget.<init>') and not x.get('env')):
+        x['env'] = ('outside package: the user adds the MMEX widget to the home screen, and the launcher\'s AppWidget host '
+                    'sends APPWIDGET_UPDATE to the widget receiver (AndroidManifest.xml widget receivers)')
+        x['env_kinds'] = ['other_app']
