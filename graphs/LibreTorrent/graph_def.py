@@ -4189,3 +4189,7 @@ e('AddLinkDialog.addLink', 'AddTorrentActivity.onCreate', 'INTENT', 'Create the 
 e('AddLinkDialog.addLink', 'AddTorrentActivity.<clinit>', 'INTENT', 'Initialize the add-torrent activity class before ActivityThread constructs it',
   guard='normalizeUrl succeeds', cls='standard',
   evidence='SRC ui/addlink/AddLinkDialog.java:272-287; ui/addtorrent/AddTorrentActivity.java:73; INFERRED JVM class initialization before construction; ' + _FW_NEW)
+
+
+# ---- W4 REAUDIT (Kiro): rapid type analysis for bytecode cha edges (brief W1 T2) ----
+RTA = True
