@@ -6373,3 +6373,25 @@ def EDIT(x):
         if x['kind'] == _kind and x['src'].split('@')[0] == _src and x['dst'].split('@')[0] == _dst:
             x['env'], x['env_kinds'] = _text, list(_kinds)
             return
+
+
+# ---- W7 REAUDIT (Kiro), round 1: guard decisions written on the edges ----
+# Decisions and the pre-screen: graphs/MMEX/scratch/reaudit/guard_decisions.csv and guard_steps.csv
+# (tools_dev/guard_prescreen.py). Each entry: (src, dst, kind) -> (needs_state text, kinds).
+_W7_STATE = {
+    ('S_PAYEE_REPORT', 'PieChartFragment.onValueSelected', 'GUI'):
+        ('the payee report has at least one row: transactions with payees exist (showChart returns early when the adapter, its cursor or its first row is missing, PayeeReportFragment.java:216-221)', ['data']),
+    ('CheckingTransactionEditActivity.handleIntent', 'CheckingTransactionEditActivity.loadScheduledTransaction', 'CALL'):
+        ('a recurring (scheduled) transaction exists and its id comes with the ACTION_INSERT intent (KEY_BDID_ID > NOT_SET, CheckingTransactionEditActivity.java:494-497)', ['data']),
+    ('InvestmentTransactionEditActivity.save', 'StockRepository.insert', 'CALL'):
+        ('a new stock is saved in the portfolio of an Investment account: an Investment account exists (the baseline has one checking account) and the stock has no id yet (InvestmentTransactionEditActivity.java:429-434)', ['data']),
+}
+_W7_ORIG_EDIT = globals().get('EDIT')
+
+
+def EDIT(x):
+    if _W7_ORIG_EDIT:
+        _W7_ORIG_EDIT(x)
+    _g = _W7_STATE.get((x['src'], x['dst'], x['kind']))
+    if _g and not x.get('needs_state'):
+        x['needs_state'], x['state_kinds'] = _g[0], list(_g[1])
