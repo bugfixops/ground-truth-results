@@ -7913,3 +7913,44 @@ def EDIT(x):
         if x['kind'] == _kind and x['src'].split('@')[0] == _src and x['dst'].split('@')[0] == _dst:
             x['env'], x['env_kinds'] = _text, list(_kinds)
             return
+
+
+# ---- W7 REAUDIT (Kiro), round 1: guard decisions written on the edges ----
+# Decisions and the pre-screen: graphs/AnkiDroid/scratch/reaudit/guard_decisions.csv and guard_steps.csv
+# (tools_dev/guard_prescreen.py). Each entry: (src, dst, kind) -> (needs_state text, kinds).
+_W7_STATE = {
+    ('DeckPicker.onCreate', 'S_DLG_DATABASE_ERROR@LOAD_FAILED', 'ENTERS'):
+        ('the collection file cannot be opened (colOpen false with storage permission, SD card mounted and the directory accessible, DeckPicker.java:415-433); the baseline collection opens', ['file']),
+    ('DeckPicker.onCreate', 'S_DLG_DATABASE_ERROR_LOAD_FAILED', 'ENTERS'):
+        ('the collection file cannot be opened (colOpen false with storage permission, SD card mounted and the directory accessible, DeckPicker.java:415-433); the baseline collection opens', ['file']),
+}
+_W7_ORIG_EDIT = globals().get('EDIT')
+
+
+def EDIT(x):
+    if _W7_ORIG_EDIT:
+        _W7_ORIG_EDIT(x)
+    _g = _W7_STATE.get((x['src'], x['dst'], x['kind']))
+    if _g and not x.get('needs_state'):
+        x['needs_state'], x['state_kinds'] = _g[0], list(_g[1])
+# The settings screen page: Preferences.onCreate builds the headers list (Preferences.java:109-121, 140-141).
+# Without this page entry the page S_PREFERENCES was entered only from the DeckPicker error branch
+# (directory inaccessible), so 75 best routes carried that branch's env gate.
+e('Preferences.onCreate', 'S_PREFERENCES', 'ENTERS', 'the settings screen is shown: the headers list is built in onCreate and onBuildHeaders',
+  evidence='SRC com/ichi2/anki/Preferences.java:109-121, 140-141')
+# Every database-error dialog that DeckPicker.onCreate shows comes from the !colOpen branch (DeckPicker.java:418-433):
+# the collection fails to open or exceeds the cursor size limit. The baseline collection opens, so each such page entry
+# needs a broken collection file (state, file).
+_W7_ORIG_EDIT_DBERR = EDIT
+
+
+def EDIT(x):
+    _W7_ORIG_EDIT_DBERR(x)
+    # widened: the load-failed and cursor-limit dialogs are also shown by handleDbError, onCollectionLoadError and
+    # showDatabaseErrorDialog(DIALOG_LOAD_FAILED) (DeckPicker.java:835-837, 1026, 1244), each after a failed load
+    if (x['kind'] == 'ENTERS' and x['dst'].startswith('S_DLG_DATABASE_ERROR')
+            and (x['src'] == 'DeckPicker.onCreate' or x['dst'].endswith(('LOAD_FAILED', 'CURSOR_SIZE_LIMIT_EXCEEDED')))
+            and not x.get('needs_state')):
+        x['needs_state'] = ('the collection file cannot be opened or is too large for the cursor window (colOpen false, '
+                            'DeckPicker.java:418-433); the baseline collection opens')
+        x['state_kinds'] = ['file']
