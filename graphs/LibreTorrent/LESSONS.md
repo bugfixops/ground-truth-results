@@ -6,3 +6,10 @@
 - Read which object a call really receives: `setFragment(AppearanceSettingsFragment.newInstance(), ...)` cannot create NetworkSettingsFragment (route 12), and an interface call resolved by bytecode to one implementation (`SelectTagActivity.onFragmentFinished` from every dialog) can join screens that never meet.
 - Count STATE honestly: a row tap needs a row, and a row needs data that the route must create; with no earlier step creating a tag, the select-tag routes are UNCLEAR, not CORRECT.
 - Generated-code citations are a citation-form problem, not a route problem: 134 check-4 lines cited data-binding/Room files that are not in the upload, and rewriting them as INFERRED generated code (with the 7 try-with-resources closes cited by block) took check 4 from 141 to 0 without changing a label.
+
+## Re-audit lessons (Kiro, November 2026)
+
+- Clearing a baseline gate can move many best routes onto an outside entry that was cheaper before; after every baseline edit, count the methods whose best route carries an env gate, not only the cleared texts.
+- A gate edit changes the edge id (the id hashes the gate texts), so device route files and verification paths that name edge ids go stale; map old to new ids by src, dst and kind before a dry run.
+- Check anonymous-class numbers with javap: javac numbers them in source order, and one skipped number shifts every later class.
+

@@ -14,6 +14,13 @@ the reading rule).
 
 ## What the re-audit changed (compared with the schema 1 graph)
 
+Re-audit of November 2026 (rounds of W2 to W7, see handoff/MUSE_REAUDIT_SUMMARY.md):
+
+- Baseline (W2, Muse): the setup checking account satisfies seven gate texts; the first-run tutorial is setup-only.
+- Shared helper (W4): showFragment_Internal is cloned for the Accounts drawer item, so the Portfolio event route no longer reaches the account list; with ESR_CREATION the account list's callbacks are library (MMEX-03).
+- Outside data (W6): the Yahoo and Fixer price servers, the backup document picker and database upgrades are env (MMEX-38).
+- Guards (W7, round 1): the payee chart, scheduled transactions and new stocks need data (MMEX-41, -49, -20).
+
 - Strict mode on, and the check backlogs cleared: citation
   problems (43 at B2 start) to 0, bytecode-line problems (244
   at B3 start) to 0, with the DEAD wording reworded (B5) and
@@ -86,6 +93,8 @@ the reading rule).
   never to hand-add a row to `verification.csv`.
 
 ## What waits for a device (API 27)
+
+- Re-audit round 1: the device route files were updated to the renamed edge ids (a gate edit changes an edge id); the sampled routes whose best route changed wait for re-verification and a device run.
 
 - **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 6 of 30 routes reached their target method; 6 of them ran the whole script and are now `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
 

@@ -1,5 +1,13 @@
 ## What the re-audit changed (compared with the schema 1 graph)
 
+Re-audit of November 2026 (rounds of W2 to W7, see handoff/MUSE_REAUDIT_SUMMARY.md):
+
+- No first-run screen (W2); the text editor and the FTP receiver get in-app starts (W3; exported-entry routes 57 to 5).
+- HybridFile templates (W4): the anonymous template classes are renumbered from javap; HybridFile$9 exists only in the uncalled no-arg getInputStream(), so its execute is UNREACHABLE (AmazeFileManager-20).
+- Library class (W5): 12 classes built from XML tags are created through non_standard edges.
+- Outside data (W6): SSH, SFTP, stream servers, pickers and database upgrades are env (AmazeFileManager-12).
+- Guards (W7, round 1): .db and .apk files, USB OTG locations need state or a device (AmazeFileManager-01, -27, -46).
+
 The schema 1 graph was a generated draft; the schema 2 graph was rebuilt from
 the AmazeFileManager sources (AmazeFileManager-#1837) with hand-written
 edges, each cited to printed lines or marked INFERRED where the source is
@@ -57,6 +65,8 @@ final table.
 Note on sample timing: the sample was drawn before the log step. The label rows written by the log step change which 30 methods the sampler picks on the final graph, so a fresh draw on the final graph would not necessarily pick the same 30 methods. The judged routes are still current: the final verification run reports 0 STALE warnings, so every judged route still matches the final graph.
 
 ## What waits for a device (API 27)
+
+- Re-audit round 1: the device route files were updated to the renamed edge ids (a gate edit changes an edge id); the sampled routes whose best route changed wait for re-verification and a device run.
 
 - **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 0 of 30 routes reached their target method; 0 of them ran the whole script and are now `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
 

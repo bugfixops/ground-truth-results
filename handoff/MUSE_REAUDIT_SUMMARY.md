@@ -1,0 +1,80 @@
+# Re-audit of five apps: summary (Kiro, round 1)
+
+Kiro took over from Muse at `e0866b9c` (W1 done; W2 done for LibreTorrent, AnkiDroid and MMEX). Kiro worked alone: no helpers could start (host memory critical, spawn gate paused), so every decision below is self-checked only, and every check the brief gives to a second agent is marked "second: pending reviewer". The session ran on its default model, not `claude-haiku-5-5` (the session cannot switch models).
+
+Round 1 covers W2 to W7. CI of round 1: `9371563e` (built `018a3e43`): all 13 apps at 0 errors; the eight other apps at 0 warnings; the five apps warn only on stale `verification.csv` paths (W8 point 2); checks 2 and 4 at 0; `check_unchanged_apps.py` prints ALL UNCHANGED.
+
+The tuning half of the sample (`review/sample_tune/`) never arrived on the branch, so W0, the round measurement (W8 point 5) and the agreement numbers could not be run.
+
+## Class shares over never-run methods
+
+Classes follow `review/TASK_NOTE.md`; "before" is the CI output at `e0866b9c`, "after" is CI `9371563e` (`tools_dev/reaudit_shares.py e0866b9c`).
+
+| App | never-run | before: dead / config / env / state / library / gui (%) | after (%) |
+|---|---|---|---|
+| Aegis | 2,244 | 20.4 / 0.0 / 7.8 / 69.6 / 0.9 / 1.3 | 20.8 / 0.0 / 11.6 / 8.2 / 11.9 / 47.5 |
+| AmazeFileManager | 1,849 | 23.9 / 0.5 / 1.9 / 0.2 / 1.1 / 72.5 | 24.1 / 0.5 / 3.3 / 2.7 / 3.5 / 66.0 |
+| AnkiDroid | 2,175 | 38.8 / 3.0 / 9.0 / 33.1 / 0.0 / 16.1 | 38.8 / 3.0 / 8.8 / 3.1 / 0.5 / 45.7 |
+| LibreTorrent | 2,652 | 27.8 / 0.9 / 70.8 / 0.0 / 0.4 / 0.0 | 27.8 / 0.9 / 3.9 / 25.2 / 41.4 / 0.7 |
+| MMEX | 3,999 | 20.8 / 0.2 / 1.9 / 11.5 / 11.2 / 54.5 | 20.8 / 0.2 / 2.5 / 2.0 / 22.5 / 52.0 |
+| weighted (`review/measure.py` weights) | | 27.3 / 1.1 / 20.4 / 20.4 / 2.9 / 27.8 | 27.4 / 1.1 / 5.8 / 8.6 / 17.0 / 40.2 |
+
+Read with care: W2 removed the setup and baseline gates (Aegis's intro gates sat on about 1,500 best routes, AnkiDroid's sample-deck gates on about 1,600), and W7's guard work is mostly still open (4,814 flagged steps PENDING). Until those guards are judged, gui is over-counted: the review's "too much gui" finding is not yet fixed by this round.
+
+## Aegis
+
+- CI `9371563e`: methods 2,995; REACHABLE 2,528; UNREACHABLE 467 (no_trigger_in_app 435, framework_never_calls 31, branch_never_taken 1).
+- W2: baseline = onboarding passed, password vault (Q3) with two default TOTP entries (Q6); 12 gate texts cleared, 23 kept, the four intro pages SETUP_ONLY (37 setup-only methods).
+- W3: MainActivity.onStart -> startAuthActivity restored; methods with env on the best route 1,613 -> 218. Exported entries kept: panic app, backup agent, quick-settings tiles.
+- W4: RTA dropped 0 edges; Aegis-16 hand fix for the nine non-direct importers (9 getAppPath UNREACHABLE).
+- W5: ESR_CREATION on; 4 listed edges kept.
+- W6: Aegis-46 (old vault format) and Aegis-47 (document-picker backup) env; 7 import-picker variants env.
+- W7 round 1: 1,124 flagged or unreadable steps; 189 NONE by rule, 935 PENDING; Q7 makes the settings sub-page navigation standard (Aegis-38, -39 gui).
+- Checked cases: 5 of 5 match their source class.
+- Routes re-verified: none yet (11 path warnings). Device: dry run 2 `42168202056-1` 25 PASS / 0 FAIL; real run requested. Reachable audit: 60 drawn, not checked.
+
+## AmazeFileManager
+
+- CI `9371563e`: methods 2,981; REACHABLE 2,507; UNREACHABLE 474 (no_trigger_in_app 427, framework_never_calls 38, closed_by_api_level 9).
+- W2: no first-run screen; both state texts kept.
+- W3: in-app text-editor and FTP-receiver starts; exported-entry routes 57 -> 5.
+- W4: HybridFile templates renumbered from javap; HybridFile$9.execute and 4 related methods UNREACHABLE (AmazeFileManager-20); RTA dropped 2 edges, 1 method lost every route.
+- W5: 12 XML-inflated constructors non_standard.
+- W6: 24 consuming edges env (SSH, stream servers, pickers, database upgrades; AmazeFileManager-12).
+- W7 round 1: 982 rows; 7 STATE, 1 ENV, 87 NONE, 887 PENDING (AmazeFileManager-01, -27, -46).
+- Checked cases: 6 of 6 match. Routes re-verified: none yet (9 path warnings). Device: dry run 2 30 / 0; real run requested. Reachable audit: 60 drawn, not checked.
+
+## AnkiDroid
+
+- CI `9371563e`: methods 4,186; REACHABLE 3,275; UNREACHABLE 911 (no_trigger_in_app 749, branch_never_taken 48, framework_never_calls 48, closed_by_api_level 44, closed_by_configuration 22).
+- W2 (Muse): 5 gate texts cleared (sample deck). W3: no change (no in-app start for the provider, AddContentApi, widget or SD-card receiver). W4: RTA dropped 0.
+- W5: 6 XML-inflated preference constructors non_standard.
+- W6: 9 consuming edges env (AnkiWeb sync, image picker, upgrades; AnkiDroid-34).
+- W7 round 1: 940 rows; 8 STATE, 119 NONE, 813 PENDING; database-error dialogs need a broken collection (AnkiDroid-07); S_PREFERENCES gets its page entry from Preferences.onCreate.
+- Checked cases: 2 of 2 match. Routes re-verified: none yet (46 path warnings). Device: dry run 2 30 / 0; real run requested. Reachable audit: 60 drawn, not checked.
+
+## LibreTorrent
+
+- CI `9371563e`: methods 4,732; REACHABLE 3,967; UNREACHABLE 765 (no_trigger_in_app 715, closed_by_api_level 24, framework_never_calls 13, branch_never_taken 12, closed_by_configuration 1).
+- W2 (Muse): no first-run screen.
+- W3: launcher gates removed (Ef4711e98, E558b0012, E50191c30), 5 in-app starts, torrent-row bind needs data; exported-entry routes 3,918 -> 9.
+- W4: RTA dropped 1 edge, 0 lost. W5: 35 data-binding and 2 Rx edges non_standard. W6: stream server and Room migrations env.
+- W7 round 1: 794 rows; 3 STATE, 42 NONE, 749 PENDING (LibreTorrent-16, -19).
+- Checked cases: 4 of 4 match. Routes re-verified: none yet (24 path warnings). Device: dry run 2 29 / 0; real run requested. Reachable audit: 60 drawn, not checked.
+
+## MMEX
+
+- CI `9371563e`: methods 4,270; REACHABLE 3,430; UNREACHABLE 840 (no_trigger_in_app 741, framework_never_calls 77, branch_never_taken 13, closed_by_api_level 9).
+- W2 (Muse): 7 gate texts cleared; tutorial SETUP_ONLY. W3: no change (no in-app start for any exported entry on a best route).
+- W4: RTA dropped 0; MMEX-03 @ACCOUNTS clone of showFragment_Internal. W5: 2 XML-inflated views non_standard; MMEX-03 library.
+- W6: 6 consuming edges env (price and rate servers, backup picker, database upgrade; MMEX-38).
+- W7 round 1: 1,499 rows; 3 STATE, 66 NONE, 1,430 PENDING (MMEX-41, -49, -20).
+- Checked cases: 6 of 6 match. Routes re-verified: none yet (10 path warnings). Device: dry run 2 30 / 0; real run requested. Reachable audit: 60 drawn, not checked.
+
+## Rounds
+
+One round. A second round would need the W7 guard judging and the measurement first; the gates that wait (G4 verified only against Appendix B; G5, G6, G7 waiting for re-verification, the reachable-audit checks and the rounds folder) are listed in the run log and the final message.
+
+## Markor (Q4)
+
+Markor is not touched. In its CI output (`9371563e`), 10 of its 2,450 REACHABLE best routes pass its intro (the page S_INTRO or an Intro class on the shortest path).

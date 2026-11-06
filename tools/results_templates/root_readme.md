@@ -37,19 +37,23 @@ Route status over all reachable methods: {{PS}}. "UNCHECKED" means that method's
 
 ## Known problems: state, env and GUI labels in five apps
 
-A review on 3 November 2026 compared the labels of Aegis, AmazeFileManager, AnkiDroid, LibreTorrent and MMEX with an independent hand-labelled sample of 50 unreached methods per app, and checked 23 disagreements against the source. We re-checked the review: it read our labels correctly in all 23 cases, and 6 of 6 cases we checked in the source agreed with it.
+A review on 3 November 2026 compared the labels of Aegis, AmazeFileManager, AnkiDroid, LibreTorrent and MMEX with an independent hand-labelled sample of 50 unreached methods per app: the classes agreed on only 59% of the 249 sampled methods, with too much gui and too little state. A re-audit of the five apps followed in November 2026.
 
-- **The finding.** On the 249 sampled methods, our labels agree with the sample on only 59% of the classes. Two errors are systematic:
-  - **too much gui:** many methods labelled gui need state or the environment, or are dead;
-  - **too little state:** many methods labelled env have an in-app route that needs only state.
-- **The causes**, all in how the best route is derived:
-  - conditions on the route are ignored (for example an empty report, or a menu that exists only for Investment accounts);
-  - some routes start from an exported or external entry although an in-app route exists;
-  - some call edges cannot occur at run time (calls dispatched to types that are never created);
-  - data from other apps, older app versions or servers is missed;
-  - one-time intro screens are used as routes.
-- **What holds up:** the dead verdicts. 57 of the 58 sampled methods our labels mark dead are dead in the sample too.
-- **Until these are fixed,** use the state, env and GUI split of reachable methods in these five apps with care. The verdicts (REACHABLE or UNREACHABLE) are not affected. A re-audit of the five apps is planned.
+- **What was fixed** (round 1):
+  - routes start from the state after the first-run setup: baseline gates are cleared and intro or tutorial screens are setup-only;
+  - launcher and in-app starts replace exported or external entries where the app reaches the same code itself;
+  - virtual calls go only to types that some reachable method creates, plus hand fixes for calls that cannot happen;
+  - callbacks of objects that only a library, XML or reflection creates are library;
+  - data from other apps, servers and older app versions puts an env gate on the edge that consumes it;
+  - guards on the routes of the 23 checked cases are written on their edges. All 23 now have the class the source supports.
+- **The tuning-half agreement and the adjudication** were not measured in this round: the tuning half of the sample was not yet in the repository.
+- **The reachable audit** (15 methods per class per app) is drawn but not yet checked, so it has no error rates yet.
+- **What still remains:**
+  - most guard steps the pre-screen flags (about 4,800 in the five apps) are not yet judged;
+  - the sampled routes whose best route changed wait for re-verification;
+  - the device run of round 1 and the reachable audit's checks wait for the next step.
+- **What holds up:** the dead verdicts (57 of the 58 sampled dead methods agreed). The verdicts (REACHABLE or UNREACHABLE) changed only where the re-audit found an impossible call.
+- The held-out half of the sample is measured once by the reviewer.
 
 Since the review, `methods.csv` has a `jvm_class` column with each method's full JVM class name. The `method` key adds a package prefix only where simple class names clash, so match on `jvm_class` and `jvm_descriptor` when joining with other data.
 

@@ -37,3 +37,10 @@
 - Guards do not change BFS cost: after a guard fix, the best route can
   still show the old, now guard-inconsistent prefix. A guard-checking
   redraw (not a plain BFS re-print) is what validates a fixed route.
+
+## Re-audit lessons (Kiro, November 2026)
+
+- Clearing a baseline gate can move many best routes onto an outside entry that was cheaper before; after every baseline edit, count the methods whose best route carries an env gate, not only the cleared texts.
+- A gate edit changes the edge id (the id hashes the gate texts), so device route files and verification paths that name edge ids go stale; map old to new ids by src, dst and kind before a dry run.
+- Check anonymous-class numbers with javap: javac numbers them in source order, and one skipped number shifts every later class.
+

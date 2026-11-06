@@ -28,7 +28,7 @@ run_result/
 
 {{TABLE_MAIN}}
 
-**Known problems.** In Aegis, AmazeFileManager, AnkiDroid, LibreTorrent and MMEX, the state, env and GUI labels of reachable methods have known errors (a review on 3 November 2026 found only 59% agreement with an independent hand-labelled sample). Their label rates mostly measure the dead verdicts. See "Known problems" in the [main README](../README.md).
+**Known problems.** In Aegis, AmazeFileManager, AnkiDroid, LibreTorrent and MMEX, the state, env and GUI labels of reachable methods had known errors (59% agreement with an independent hand-labelled sample of 50 unreached methods per app). A re-audit in November 2026 fixed the causes the review named in round 1; the guard work, route re-verification and the reachable audit are still open. Their label rates mostly measure the dead verdicts. See "Known problems" in the [main README](../README.md).
 
 ## Columns of `SUMMARY.csv`
 

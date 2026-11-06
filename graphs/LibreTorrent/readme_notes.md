@@ -7,6 +7,14 @@ The first-draw notes (B6 logs step, graph `a9e8b93d`) are superseded; their rout
 
 ## What the re-audit changed (compared with the schema 1 graph)
 
+Re-audit of November 2026 (rounds of W2 to W7, see handoff/MUSE_REAUDIT_SUMMARY.md):
+
+- Launcher start (W3): MainActivity's launcher entries lose their env gate; five in-app starts are added; exported-entry routes 3,918 to 9.
+- A torrent row exists only after a torrent is added: the row-binding edge needs data (W3).
+- Library class (W5): data-binding mappers and two Rx error consumers are non_standard.
+- Outside data (W6): the torrent stream server and Room migrations are env.
+- Guards (W7, round 1): an empty file selection and a paused torrent need state (LibreTorrent-16, -19).
+
 The graph is the schema-2 rebuild from printed source: 121 batch parts plus two Kiro parts
 (`k01_warnings.py`, `k02_check8.py`) merged in `graph_def.py`. Final build: 4732 methods,
 7303 edges, REACHABLE 3967 / UNREACHABLE 765 / UNRESOLVED 0; labels confirmed by SOURCE 621,
@@ -55,6 +63,8 @@ Changes made on top of the first-draw graph (`a9e8b93d`: R3882 / U764 / UNRES86)
   fix round. WRONG routes stay WRONG with their reasons and count in the rate.
 
 ## What waits for a device (API 27)
+
+- Re-audit round 1: the device route files were updated to the renamed edge ids (a gate edit changes an edge id); the sampled routes whose best route changed wait for re-verification and a device run.
 
 - **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 7 of 29 routes reached their target method; 7 of them ran the whole script and are now `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
 

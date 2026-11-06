@@ -31,3 +31,10 @@
   absence: the empty `corrected_edges.tsv` records "B7
   carries no edge rows" in a way a missing file never could,
   because the fixed writer refuses on a missing file.
+
+## Re-audit lessons (Kiro, November 2026)
+
+- Clearing a baseline gate can move many best routes onto an outside entry that was cheaper before; after every baseline edit, count the methods whose best route carries an env gate, not only the cleared texts.
+- A gate edit changes the edge id (the id hashes the gate texts), so device route files and verification paths that name edge ids go stale; map old to new ids by src, dst and kind before a dry run.
+- Check anonymous-class numbers with javap: javac numbers them in source order, and one skipped number shifts every later class.
+
