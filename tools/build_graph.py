@@ -18,6 +18,12 @@ graph_def.py is executed with these names predefined:
   CLASSIFY = None       optional callable(edge) -> edge class or (edge class, via); applied to edges without cls
   EDIT = None           optional callable(edge): may change any field of every edge (e.g. add an ENV gate) before ids are made
   STRICT = False        True: anything still unclassified is an error (set it once an app is converted)
+  SETUP_ONLY = set()    pages or methods shown only during the first-run setup: best routes ignore edges into
+                        them or out of a setup page; a method reachable only through them stays REACHABLE and
+                        its methods.csv note gets 'only during the first-run setup'
+  ESR_CREATION = False  True: explicit_standard_route also requires a reachable <init> of the method's class
+                        under the same restriction, so callbacks of objects that only reflection or a library
+                        creates count as library (see esr_route)
   HTML = True           write the viewer page if the template exists
   PREFER_SETUP_OVER_ENV = False   # True: a method that needs in-app state but no environment gate is preferred
                                   # over a route that needs the environment
@@ -26,6 +32,8 @@ NOTES maps a base method name to a free-text note for methods.csv.
 USE_AUTO = True adds the call edges from <graph_dir>/auto_calls.json (tools/extract_calls.py) for every
 caller/callee pair that no hand-written edge already covers; SUPPRESS = {(src, dst), ...} or {src, ...}
 drops auto edges (e.g. calls inside branches that can never run). Lambda creations become REGISTER edges.
+RTA = True additionally drops a bytecode 'cha' auto edge when no class created anywhere on a reachable
+route can dispatch to its target (see apply_rta); it is off by default and changes nothing while off.
 
 Writes into <graph_dir>/out/:
   <prefix>_trigger_graph.json, methods.csv, <prefix>_trigger_graph.html (if the template exists),
@@ -126,12 +134,20 @@ def method_names(rows):
     return names, by_name
 
 
-def bfs(out, allow_setup, allow_env=True, classes=None):
+def setup_blocked(x, blocked):
+    """True when edge x is ignored while SETUP_ONLY routes are derived: it leads into a setup-only node, or out
+    of a setup-only page. Matched on base(node), so @variants of a setup page or method count too."""
+    return base(x['dst']) in blocked or (is_screen(x['src']) and base(x['src']) in blocked)
+
+
+def bfs(out, allow_setup, allow_env=True, classes=None, blocked=None):
     """Breadth-first reachability from S_ENTRY; classes: only follow edges of these edge classes."""
     prev, q = {'S_ENTRY': None}, ['S_ENTRY']
     for n in q:
         for x in out.get(n, []):
             if x['kind'] == 'REGISTER' or x['src'] == x['dst'] or x['dst'] in prev:
+                continue
+            if blocked and setup_blocked(x, blocked):
                 continue
             if x['needs_state'] and not allow_setup:
                 continue
@@ -144,7 +160,7 @@ def bfs(out, allow_setup, allow_env=True, classes=None):
     return prev
 
 
-def cheapest(out, allow_setup):
+def cheapest(out, allow_setup, blocked=None):
     """Like bfs, but each reachable node keeps the path with the fewest environment-gated edges, then the fewest
     earlier-setup (needs_state) edges, then the fewest steps.
     The returned dict is in settlement order (cheapest first), so the first variant found for a method is its best one."""
@@ -161,6 +177,8 @@ def cheapest(out, allow_setup):
         prev[n] = via[n]
         for x in out.get(n, []):
             if x['kind'] == 'REGISTER' or x['src'] == x['dst'] or x['dst'] in done:
+                continue
+            if blocked and setup_blocked(x, blocked):
                 continue
             if x['needs_state'] and not allow_setup:
                 continue
@@ -203,6 +221,10 @@ def gui_steps(path):
 
 
 def add_auto_edges(gdir, edges, e, suppress):
+    """Append the bytecode call/lambda edges. Returns a side table {id(edge): dispatch} for the call edges
+    ('exact' or 'cha'); the RTA switch reads it. dispatch is never stored on an edge dict itself, because the
+    JSON dump serializes whole edge dicts and a build with the switch off must stay byte-identical."""
+    dispatch_of = {}
     auto = json.load(open(os.path.join(gdir, 'auto_calls.json')))
     manual = {(base(x['src']), base(x['dst'])) for x in edges if x['kind'] != 'REGISTER'}
     manual_reg = {(base(x['src']), base(x['dst'])) for x in edges if x['kind'] == 'REGISTER'}
@@ -226,13 +248,75 @@ def add_auto_edges(gdir, edges, e, suppress):
         if c['via']:
             trig += ' (through ' + ', '.join(c['via']) + ')'
         for s in [c['src']] + sorted(variants.get(c['src'], ())):
+            before = len(edges)
             e(s, c['dst'], 'CALL', trig, evidence='SRC %s:%s (bytecode)' % (c['file'], c['line']), auto=True)
+            for x in edges[before:]:
+                dispatch_of[id(x)] = c['dispatch']
     for l in auto['lambdas']:
         p = (l['src'], l['dst'])
         if p in manual or p in manual_reg or p in suppress or l['src'] in suppress:
             continue
         e(l['src'], l['dst'], 'REGISTER', 'Creates the lambda / method reference (its body runs when invoked)',
           evidence='SRC %s:%s (bytecode)' % (l['file'], l['line']), auto=True)
+    return dispatch_of
+
+
+def apply_rta(edges, dispatch_of, impl_tbl, by_name, method_set):
+    """RTA switch (graph_def sets RTA = True): drop auto edges that came from a bytecode call with
+    dispatch == 'cha' when no instantiated class can dispatch to the edge's target method.
+    Instantiated = every class with a reachable <init> variant, reachability being bfs over all edges
+    (allow_setup=True, allow_env=True; edges of every kind count, because ENTRY, LIFECYCLE, FRAMEWORK,
+    INTENT and non_standard reflection edges create objects too). The task note's warning applies:
+    creation anywhere reachable is enough -- the object does NOT have to be created on the same route
+    as the call.
+    Resolution data: auto_calls.json 'impl'. It DOES list inherited methods -- verified on
+    AmazeFileManager, where 370 of its 3175 impl entries point to another class's node -- so an
+    instantiated class D (the target's own class or a subclass) resolves method m to the edge's dst
+    exactly when that dst node is among impl[D][m].values(); no separate subclass table is needed.
+    'exact' edges and hand-written edges are never dropped (they are not in dispatch_of as 'cha').
+    Repeats to a fixpoint. Returns (dropped, rounds, lost), lost being the methods that had a reachable
+    variant before RTA and have none after."""
+    def reachable():
+        out = collections.defaultdict(list)
+        for x in edges:
+            out[x['src']].append(x)
+        return bfs(out, allow_setup=True, allow_env=True)
+
+    def reached_methods(prev):
+        return {base(n) for n in prev if base(n) in method_set}
+
+    def resolved_nodes(prev):
+        inst = set()
+        for n in prev:
+            rec = by_name.get(base(n))
+            if rec is not None and rec.get('name') == '<init>':
+                inst.add(rec['class'].rsplit('/', 1)[-1])
+        res = collections.defaultdict(set)
+        for d in inst:
+            for m, tbl in impl_tbl.get(d, {}).items():
+                res[m].update(base(v) for v in tbl.values())
+        return res
+
+    before = reached_methods(reachable())
+    dropped = rounds = 0
+    while True:
+        res = resolved_nodes(reachable())
+        dead = []
+        for x in edges:
+            if dispatch_of.get(id(x)) != 'cha':
+                continue
+            rec = by_name.get(base(x['dst']))
+            if rec is None or not rec.get('name'):
+                continue    # dst outside the method universe: the validation below reports it; RTA proves nothing about it
+            if base(x['dst']) not in res.get(rec['name'], ()):
+                dead.append(x)
+        if not dead:
+            break
+        gone = {id(x) for x in dead}
+        edges[:] = [x for x in edges if id(x) not in gone]
+        dropped += len(dead)
+        rounds += 1
+    return dropped, rounds, before - reached_methods(reachable())
 
 
 def assign_ids(edges):
@@ -329,18 +413,23 @@ def main(argv):
           'USE_AUTO': False, 'SUPPRESS': set(), 'AUTO': auto_data, 'impl': impl, 'METHODS': list(methods),
           'GDIR': os.path.abspath(gdir), 'TOOLS': os.path.dirname(os.path.abspath(__file__)),
           'AUTO_DEAD': None, 'COVERAGE': None, 'CLASSIFY': None, 'EDIT': None, 'ENV_KINDS_OF': {}, 'STATE_KINDS_OF': {},
-          'STRICT': False, 'HTML': True, 'FRAMEWORK_NODES': {}}
+          'SETUP_ONLY': set(), 'STRICT': False, 'HTML': True, 'FRAMEWORK_NODES': {}, 'RTA': False, 'ESR_CREATION': False}
     src_path = os.path.join(gdir, 'graph_def.py')
     exec(compile(open(src_path, encoding='utf-8').read(), src_path, 'exec'), ns)
     screens, dead, fwo, notes = ns['SCREENS'], ns['DEAD'], ns['FRAMEWORK_ONLY'], ns['NOTES']
     strict = bool(ns['STRICT'])
+    setup_only = {base(n) for n in ns.get('SETUP_ONLY') or ()}   # matched on base(node) everywhere below
     for name, rec in ns['FRAMEWORK_NODES'].items():
         if name in by_name:
             raise KeyError('FRAMEWORK_NODES: %s is already in the method list' % name)
         methods.append(name)
         by_name[name] = rec
+    auto_dispatch = {}
     if ns['USE_AUTO']:
-        add_auto_edges(gdir, edges, e, set(ns['SUPPRESS']))
+        auto_dispatch = add_auto_edges(gdir, edges, e, set(ns['SUPPRESS']))
+    rta_stats = None
+    if ns.get('RTA'):
+        rta_stats = apply_rta(edges, auto_dispatch, (auto_data or {}).get('impl', {}), by_name, set(methods))
     if ns['EDIT']:
         for x in edges:
             ns['EDIT'](x)
@@ -433,14 +522,38 @@ def main(argv):
         out[x['src']].append(x)
         inn[base(x['dst'])].append(x)
 
-    prev = bfs(out, allow_setup=False)
-    prev_setup = bfs(out, allow_setup=True)
-    prev_noenv = bfs(out, allow_setup=True, allow_env=False)
-    prev_expl = bfs(out, allow_setup=True, classes={'explicit', 'standard', 'page'})
+    prev = bfs(out, allow_setup=False, blocked=setup_only)
+    prev_setup = bfs(out, allow_setup=True, blocked=setup_only)
+    prev_noenv = bfs(out, allow_setup=True, allow_env=False, blocked=setup_only)
+    prev_expl = bfs(out, allow_setup=True, classes={'explicit', 'standard', 'page'}, blocked=setup_only)
     prefer = bool(ns.get('PREFER_SETUP_OVER_ENV'))
-    prev_clean = bfs(out, allow_setup=False, allow_env=False) if prefer else None
-    best_first = cheapest(out, allow_setup=False)     # path choice: fewest environment gates, then fewest steps
-    best_setup = cheapest(out, allow_setup=True)
+    prev_clean = bfs(out, allow_setup=False, allow_env=False, blocked=setup_only) if prefer else None
+    best_first = cheapest(out, allow_setup=False, blocked=setup_only)     # path choice: fewest environment gates, then fewest steps
+    best_setup = cheapest(out, allow_setup=True, blocked=setup_only)
+    # unfiltered twins, used only so that (a) the page-reachability error check below still sees the setup
+    # pages as reachable and (b) a method reachable only through setup edges still gets a route, derived
+    # with those edges allowed. Aliased to the filtered dicts when SETUP_ONLY is empty.
+    prev_setup_all = bfs(out, allow_setup=True) if setup_only else prev_setup
+    best_first_all = cheapest(out, allow_setup=False) if setup_only else best_first
+    best_setup_all = cheapest(out, allow_setup=True) if setup_only else best_setup
+    prev_expl_all = bfs(out, allow_setup=True, classes={'explicit', 'standard', 'page'}) if setup_only else prev_expl
+    # ESR_CREATION (brief W1/T3; off by default, and nothing below runs differently with it off): with the
+    # switch on, explicit_standard_route additionally requires the creation condition in esr_route() below.
+    # Restricted sets over explicit/standard/page edges: env edges allowed (prev_expl / prev_expl_all) and
+    # env edges barred (prev_esr_noenv / prev_esr_noenv_all); the *_all twins serve setup-only methods,
+    # whose routes are derived with the setup edges allowed.
+    esr_on = bool(ns.get('ESR_CREATION'))
+    prev_esr_noenv = bfs(out, allow_setup=True, allow_env=False, classes={'explicit', 'standard', 'page'}, blocked=setup_only) if esr_on else None
+    prev_esr_noenv_all = bfs(out, allow_setup=True, allow_env=False, classes={'explicit', 'standard', 'page'}) if (esr_on and setup_only) else prev_esr_noenv
+    esr_init_classes = {}   # restricted set -> classes with a reachable <init> variant in it
+    if esr_on:
+        inits = collections.defaultdict(set)   # class -> base names of its <init> variants (method_list.json rows)
+        for r, mn in zip(rows, methods):
+            if r['name'] == '<init>':
+                inits[r['class']].add(mn)
+        for key, pv in (('f_env', prev_expl), ('f_noenv', prev_esr_noenv), ('u_env', prev_expl_all), ('u_noenv', prev_esr_noenv_all)):
+            reached = {base(n) for n in pv}
+            esr_init_classes[key] = {c for c, s in inits.items() if s & reached}
 
     def first_variant(m, pv):
         for n in pv:  # dict keeps BFS discovery order, so the first hit is the shortest
@@ -450,6 +563,7 @@ def main(argv):
 
     verdict, info = {}, {}
     auto_dead = set()
+    setup_only_methods = set()
     for m in methods:
         mode = None     # 'clean': a route without any needs_state edge; 'setup': a route that needs earlier in-app actions
         if m in unreach:
@@ -462,6 +576,9 @@ def main(argv):
             verdict[m], mode = 'REACHABLE', 'clean'
         elif first_variant(m, prev_setup):
             verdict[m], mode = 'REACHABLE', 'setup'
+        elif setup_only and first_variant(m, prev_setup_all):
+            verdict[m], mode = 'REACHABLE', 'setup'   # reachable only through setup edges: stays REACHABLE
+            setup_only_methods.add(m)
         elif ns.get('AUTO_DEAD'):
             verdict[m] = 'UNREACHABLE'
             auto_dead.add(m)
@@ -484,6 +601,11 @@ def main(argv):
                 v = first_variant(m, cand)
                 if v:
                     cands.append(path_to(v, cand))
+            if not cands and m in setup_only_methods:
+                for cand in (best_first_all, best_setup_all):   # the normal strict rule, with the setup edges allowed
+                    v = first_variant(m, cand)
+                    if v:
+                        cands.append(path_to(v, cand))
             p = min(cands, key=lambda q: (len({k for x in q for k in x['env_kinds']}), len({k for x in q for k in x['state_kinds']}), len(q)))
         elif mode:
             for cand in ([best_first] if mode == 'clean' else [best_setup]):
@@ -492,12 +614,40 @@ def main(argv):
                     pv = cand
                     break
             p = path_to(v, pv) if v else []
+            if not p and m in setup_only_methods:
+                v = first_variant(m, best_setup_all)
+                p = path_to(v, best_setup_all) if v else []
         info[m] = {'path': p, 'env_gated': any(x.get('env') for x in p)}
 
     pages = set(screens)
     for s in pages:
-        if s not in ('S_ENTRY',) and not any(base(n) == s for n in prev_setup):
+        if s not in ('S_ENTRY',) and not any(base(n) == s for n in prev_setup_all):
             errors.append('page not reachable from S_ENTRY: ' + s)
+
+    def esr_route(m):
+        """explicit_standard_route for m. SETUP_ONLY methods use the unfiltered sets (their routes are
+        derived with the setup edges allowed); all other methods use the filtered sets. ESR_CREATION off:
+        exactly the prev_expl computation. On (brief W1/T3): (a) a route over explicit/standard/page edges
+        reaches m in the restricted set chosen by whether m's best route has an env gate (env-gated: env
+        edges allowed; otherwise barred), and (b) for an instance method (not static, not <clinit>) some
+        <init> variant of its class is reachable in that same set, i.e. the object is created in-app, not
+        only by reflection or a library."""
+        if m in setup_only_methods:
+            env_pv, noenv_pv, keys = prev_expl_all, prev_esr_noenv_all, ('u_env', 'u_noenv')
+        else:
+            env_pv, noenv_pv, keys = prev_expl, prev_esr_noenv, ('f_env', 'f_noenv')
+        if not esr_on:
+            return bool(first_variant(m, env_pv))
+        if info[m]['env_gated']:
+            pv, key = env_pv, keys[0]
+        else:
+            pv, key = noenv_pv, keys[1]
+        if first_variant(m, pv) is None:
+            return False
+        r = by_name[m]
+        if 'static' in (r.get('flags') or ()) or r.get('name') == '<clinit>':
+            return True
+        return r.get('class') in esr_init_classes[key]
 
     # per-method labels
     labels = {}
@@ -510,7 +660,7 @@ def main(argv):
         else:
             lab = {'env': gate_items(p, 'env', 'env_kinds'), 'state': gate_items(p, 'needs_state', 'state_kinds'),
                    'route_edge_classes': sorted({x['edge_class'] for x in p} - {'page'}),
-                   'explicit_standard_route': bool(first_variant(m, prev_expl)),
+                   'explicit_standard_route': esr_route(m),
                    'confirmed_by': 'SOURCE' if p and all(edge_sourced(x) for x in p) else 'INFERRED',
                    'source_ref': evidence_ref(p[-1]['evidence']) if p else None,
                    'path_status': 'UNCHECKED'}
@@ -691,6 +841,9 @@ def main(argv):
             p, lab = info[m]['path'], labels[m]
             un = lab.get('unreachable') or {}
             r = by_name[m]
+            note_txt = notes.get(m) or ''
+            if m in setup_only_methods:
+                note_txt = (note_txt + '; ' if note_txt else '') + 'only during the first-run setup'
             w.writerow([m, verdict[m], un.get('kind', ''), un.get('text', ''),
                         kinds_of(lab.get('env', [])), ' | '.join(it['text'] for it in lab.get('env', [])),
                         kinds_of(lab.get('state', [])), ' | '.join(it['text'] for it in lab.get('state', [])),
@@ -700,7 +853,7 @@ def main(argv):
                         len(p) if p else '', ' ; '.join(gui_steps(p)),
                         ' > '.join([p[0]['src']] + [x['dst'] for x in p]) if p else '', ' '.join(x['id'] for x in p),
                         sum(1 for x in inn.get(m, []) if x['kind'] != 'REGISTER'),
-                        notes.get(m) or '', r['desc'], r['class'].replace('/', '.')])
+                        note_txt, r['desc'], r['class'].replace('/', '.')])
 
     if cov:    # one-way sanity check: a method a tool ran cannot be UNREACHABLE; never used to set a label
         with open(os.path.join(outdir, 'sanity_check.csv'), 'w', newline='', encoding='utf-8') as f:
@@ -726,11 +879,16 @@ def main(argv):
     vc = collections.Counter(verdict.values())
     rep.append('methods %d, pages %d, edges %d' % (len(methods), len(screens), len(edges)))
     rep.append('verdicts: ' + ', '.join('%s %d' % kv for kv in sorted(vc.items())))
+    if setup_only:
+        rep.append('setup-only nodes: %d; methods reachable only through them: %d' % (len(setup_only), len(setup_only_methods)))
     rep.append('unreachable by kind: ' + (', '.join('%s %d' % kv for kv in sorted(collections.Counter(u['kind'] for m, u in unreach.items() if m in methods).items())) or 'none'))
     rep.append('edge kinds: ' + ', '.join('%s %d' % kv for kv in sorted(collections.Counter(x['kind'] for x in edges).items())))
     rep.append('edge classes: ' + ', '.join('%s %d' % kv for kv in sorted(collections.Counter(x['edge_class'] for x in edges).items()))
                + '; class set by hand: %d of %d' % (sum(1 for x in edges if x['class_basis'] == 'authored'), len(edges)))
     rep.append('auto edges (from bytecode): %d of %d' % (sum(1 for x in edges if x.get('auto')), len(edges)))
+    if rta_stats is not None:
+        rep.append('RTA: dropped %d cha edges in %d rounds; methods that lost every route: %d'
+                   % (rta_stats[0], rta_stats[1], len(rta_stats[2])))
     rep.append('evidence: ' + ', '.join('%s %d' % kv for kv in sorted(collections.Counter(x['evidence'].split()[0] for x in edges).items())))
     rep.append('edges with a claim that cites no source line (FW-MEMORY, INFERRED, DYN, UNVERIFIED): %d of %d' % (sum(1 for x in edges if not edge_sourced(x)), len(edges)))
     rep.append('needs_state edges: %d; env edges: %d; methods with ENV: %d, with STATE: %d' % (
