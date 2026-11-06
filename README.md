@@ -114,7 +114,7 @@ The full results, all 8 runs (7 attempts that led to the working run), 10 dry ru
 
 | Folder | What it holds |
 |---|---|
-| [`run_result/`](run_result/) | **the final results** (frozen copy from commit `7ed4e78b`; see its README) |
+| [`run_result/`](run_result/) | **the final results** (frozen copy from commit `c5d9f093`; see its README) |
 | `graphs/<App>/` | the live working folder per app: `graph_def.py`, `out/` (graph outputs), `verification.csv`, `make_verification.py` (writes the audit log), `readme_notes.md` (notes per app), `AGENT_NOTES.md` (work log), `scratch/` (working files and the latest CI output) |
 | `device/` | the emulator side: route lists and scripts (`routes/`), harness, runner (`run_app.sh`), collect and compare tools, all run results (`results/`) and dry runs (`dryrun/`) |
 | `.github/workflows/` | `rebuild-graphs.yml` (the official checks) and `device-replay.yml` (the emulator job) |

@@ -1,6 +1,6 @@
 # run_result: the final results
 
-A frozen copy of every final result, taken on 2026-11-05 from commit `7ed4e78b` (official CI request `9c51c99c`, emulator run `41593209101-1`).
+A frozen copy of every final result, taken on 2026-11-05 from commit `c5d9f093` (official CI request `9c51c99c`, emulator run `41593209101-1`).
 
 The live files stay where the tools use them (`graphs/`, `device/`). This folder only collects them in one place, so nothing here needs to be rebuilt. For what was done and how, see the [main README](../README.md).
 
