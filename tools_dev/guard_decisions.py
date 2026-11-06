@@ -4,8 +4,7 @@
 Reads graphs/<App>/scratch/reaudit/guard_steps.csv (written by guard_prescreen.py on the pre-W7 build) and writes
 graphs/<App>/scratch/reaudit/guard_decisions.csv with one row per flagged step (flag yes or no_source):
   STATE / ENV   the edge now carries a needs_state / env gate (the W6 or W7 block of graph_def.py wrote it);
-  NONE          the step is flagged only because its line is inside a try or finally block, which runs on the
-                normal path (rule; no gate);
+  NONE          try and finally are the only blocks around the line and no other guard holds it (rule; no gate);
   PENDING       not judged in this round.
 Rows for hand decisions on edges the pre-screen does not list (ENTERS edges, steps of routes that changed) are
 appended from the build: every edge whose needs_state or env text comes from a W7 block (tagged in the note or
@@ -40,8 +39,10 @@ for s in steps:
         dec, text, helper = 'ENV', ev['env'], 'Kiro'
     elif st:
         dec, text, helper = 'STATE', st['needs_state'], 'Kiro'
-    elif s['reason'] in ('inside a try block', 'inside a finally block'):
-        dec, text, helper = 'NONE', 'the call is in a try (or finally) body, which runs on the normal path', 'rule:try-body'
+    elif s['reason'] == 'only inside try/finally blocks':
+        # only when try/finally are the ONLY enclosing blocks and no other guard (if, else, loop, switch, catch,
+        # ?:, earlier exit) holds the line; guard_prescreen.py records every enclosing guard
+        dec, text, helper = 'NONE', 'the call is in a try (or finally) body, which runs on the normal path; no other guard encloses it', 'rule:try-body'
     else:
         dec, text, helper = 'PENDING', '', ''
     out.append([s['edge_id'], s['kind'], s['src'], s['dst'], s['cited'], s['reason'], s['guard_line'], dec, text,

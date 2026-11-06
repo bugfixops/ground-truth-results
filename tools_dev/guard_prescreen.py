@@ -101,19 +101,31 @@ def screen_line(lines, n):
                 in_comment = True
         s = strip_code(s)
         if i == n:
-            # the step line itself: blocks opened earlier decide; a ?: on the line also flags
-            ctl = [x for x in stack[(method_depth or 0):] if x[0] in ('control', 'control-1')]
-            if ctl:
-                kw = CONTROL.search(ctl[-1][2])
-                return 'yes', 'inside a %s block' % (kw.group(1) if kw else 'control'), ctl[-1][1], ctl[-1][2].strip()[:160]
+            # The step line itself. Record EVERY guard of the line, not only the innermost block (reviewer
+            # finding on round 1): all enclosing control blocks of its method (outermost first), a ?: or a
+            # control statement on the line, and every earlier exit in the method.
+            guards = []
+            for x in stack[(method_depth or 0):]:
+                if x[0] in ('control', 'control-1'):
+                    kw = CONTROL.search(x[2])
+                    guards.append((kw.group(1) if kw else 'control', x[1], x[2].strip()[:120]))
             if re.search(r'\?[^:]*:', s) and '?' in s:
-                return 'yes', 'on a ?: expression', i, raw.strip()[:160]
+                guards.append(('?:', i, raw.strip()[:120]))
             if CONTROL.search(header + s.split('{')[0]) and re.search(r'\b(if|for|while|switch|case)\b', s):
-                return 'yes', 'on the control statement line', i, raw.strip()[:160]
-            if exits:
-                kw = EXIT.search(exits[-1][2])
-                return 'yes', 'after an earlier %s in the method' % (kw.group(1) if kw else 'exit'), exits[-1][1], exits[-1][2].strip()[:160]
-            return 'no', 'straight-line code of its method', None, ''
+                kw = re.search(r'\b(if|for|while|switch|case)\b', s)
+                guards.append((kw.group(1) + ' (on the line)', i, raw.strip()[:120]))
+            for _d, ln, txt in exits:
+                kw = EXIT.search(txt)
+                guards.append(('earlier ' + (kw.group(1) if kw else 'exit'), ln, txt.strip()[:120]))
+            if not guards:
+                return 'no', 'straight-line code of its method', None, ''
+            kinds = [g[0] for g in guards]
+            text = ' || '.join('%s@%d: %s' % g for g in guards)
+            if all(k in ('try', 'finally') for k in kinds):
+                # the only enclosing blocks are try/finally bodies, which run on the normal path
+                return 'yes', 'only inside try/finally blocks', guards[-1][1], text
+            real = [g for g in guards if g[0] not in ('try', 'finally')]
+            return 'yes', 'guarded: ' + ', '.join(k for k in kinds), real[-1][1], text
         for ch_i, ch in enumerate(s):
             if ch == '{':
                 txt = (header + s[:ch_i]).strip()
@@ -217,6 +229,35 @@ def main():
         ok = any(r[0] == 'yes' for r in res)
         print('MMEX-41 test (PayeeReportFragment.java:216-221 flagged):', 'PASS' if ok else 'FAIL')
         return 0 if ok else 1
+    if sys.argv[1] == '--rescreen':
+        # Re-screen the step list of an existing guard_steps.csv with the current rule (the list itself was taken
+        # on the pre-W7 build; re-deriving it on a later build would change the scope).
+        app = sys.argv[2]
+        path = 'graphs/%s/scratch/reaudit/guard_steps.csv' % app
+        rows = list(csv.DictReader(open(path, encoding='utf-8')))
+        src = Sources(app)
+        for r in rows:
+            m = re.match(r'([\w/$.-]+\.java):(\d+)$', r['cited'] or '')
+            if not m:
+                continue
+            p = src.find(m.group(1))
+            if not p:
+                continue
+            flag, reason, gl, gt = screen_line(src.lines(p), int(m.group(2)))
+            if flag == 'no' and r['kind'] == 'GUI' and GUI_NEEDS.search(' '.join((r['src'], r['dst']))):
+                flag, reason = 'yes', 'GUI step on a list item, selection or dialog'
+            if flag == 'no' and r['reason'] == 'GUI step on a list item, selection or dialog':
+                flag, reason = 'yes', r['reason']
+            r['flag'], r['reason'], r['guard_line'], r['guard_text'] = flag, reason, gl or '', gt
+        with open(path, 'w', newline='', encoding='utf-8') as f:
+            w = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
+            w.writeheader()
+            w.writerows(rows)
+        c = collections.Counter(r['flag'] for r in rows)
+        t = sum(1 for r in rows if r['reason'] == 'only inside try/finally blocks')
+        print('%s: rescreened %d steps: flagged %d (try/finally only %d), unflagged %d, no_source %d'
+              % (app, len(rows), c['yes'], t, c['no'], c['no_source']))
+        return 0
     app = sys.argv[1]
     targets, out = prescreen(app)
     path = 'graphs/%s/scratch/reaudit/guard_steps.csv' % app
