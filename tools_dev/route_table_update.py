@@ -3,8 +3,8 @@
 Usage: python3 -I tools_dev/route_table_update.py <App> < lines
 Each input line: method ; VERDICT ; note        (VERDICT: CORRECT, FIXED, WRONG or UNCLEAR)
 For each method the "### N. <method> — <stratum>, <k> steps — <VERDICT>" heading gets the current step count
-(from graphs/<App>/out/methods.csv), the new verdict and the qualifier "(re-verified 2026-11-07)"; a bullet
-"- Re-verified 2026-11-07 (Kiro, self-checked only, second: pending reviewer): <note>" goes right under it.
+(from graphs/<App>/out/methods.csv), the new verdict and the qualifier "(re-verified 2026-11-06)"; a bullet
+"- Re-verified 2026-11-06 (Kiro, self-checked only, second: pending reviewer): <note>" goes right under it.
 The earlier bullets stay as the record of the first verification. make_verification.py then writes the path rows."""
 import csv, re, sys
 
@@ -30,9 +30,9 @@ for line in open(T, encoding='utf-8').read().split('\n'):
         first = h.group(6) + (' ' + h.group(7) if h.group(7) and 're-verified' not in h.group(7) else '')
         if h.group(7) and 're-verified' in h.group(7):
             first = h.group(7).split('first verification: ', 1)[-1] if 'first verification: ' in h.group(7) else h.group(6)
-        out.append('%s%s%s%d%s%s (re-verified 2026-11-07; first verification: %s)' % (
+        out.append('%s%s%s%d%s%s (re-verified 2026-11-06; first verification: %s)' % (
             h.group(1), m, h.group(3), steps, h.group(5), v, first))
-        out.append('- Re-verified 2026-11-07 (Kiro, self-checked only, second: pending reviewer): %s' % note)
+        out.append('- Re-verified 2026-11-06 (Kiro, self-checked only, second: pending reviewer): %s' % note)
         done.add(m)
         continue
     out.append(line)
