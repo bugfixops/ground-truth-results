@@ -5,7 +5,8 @@ Reads graphs/<App>/scratch/reaudit/guard_steps.csv (written by guard_prescreen.p
 graphs/<App>/scratch/reaudit/guard_decisions.csv with one row per flagged step (flag yes or no_source):
   STATE / ENV   the edge now carries a needs_state / env gate (the W6 or W7 block of graph_def.py wrote it);
   NONE          try and finally are the only blocks around the line and no other guard holds it (rule; no gate);
-  PENDING       not judged in this round.
+  STATE/ENV/NONE/DEAD from scratch/reaudit/w7_judged.csv (tools_dev/guard_judge.py) take precedence;
+  PENDING       not judged yet.
 Rows for hand decisions on edges the pre-screen does not list (ENTERS edges, steps of routes that changed) are
 appended from the build: every edge whose needs_state or env text comes from a W7 block (tagged in the note or
 listed in _W7_STATE) and is not already a row.
@@ -24,6 +25,10 @@ for e in g['edges']:
 pre = {e['id']: e for e in json.load(open(S + 'pre_w7_edges.json', encoding='utf-8'))}
 cur_by_id = {e['id']: e for e in g['edges']}
 steps = list(csv.DictReader(open(S + 'guard_steps.csv', encoding='utf-8')))
+import os
+judged = {}
+if os.path.exists(S + 'w7_judged.csv'):
+    judged = {r['step']: r for r in csv.DictReader(open(S + 'w7_judged.csv', encoding='utf-8'))}
 out = []
 seen = set()
 for s in steps:
@@ -35,7 +40,10 @@ for s in steps:
     now = [cur] if cur else [e for e in by_key.get((s['src'], s['dst'], s['kind']), []) if e['id'] not in pre]
     st = next((e for e in now if e.get('needs_state') and not (p or {}).get('needs_state')), None)
     ev = next((e for e in now if e.get('env') and not (p or {}).get('env')), None)
-    if ev:
+    j = judged.get(s['edge_id'])
+    if j:
+        dec, text, helper = j['decision'], j['text'] + (' (%s)' % j['ref'] if j['ref'] else ''), 'Kiro'
+    elif ev:
         dec, text, helper = 'ENV', ev['env'], 'Kiro'
     elif st:
         dec, text, helper = 'STATE', st['needs_state'], 'Kiro'

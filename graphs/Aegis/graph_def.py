@@ -6526,3 +6526,43 @@ def EDIT(x):
         x['via'] = None
         x['note'] = ((x.get('note') + ' | ') if x.get('note') else '') + (
             'W7/Q7: preference header navigation, standard (FragmentFactory.instantiate of the tapped row, PreferencesActivity.java:81)')
+
+
+# ---- W7 REAUDIT (Kiro), round 2: judged guard steps ----
+# Each STATE or ENV row of scratch/reaudit/w7_judged.csv (written with tools_dev/guard_judge.py from the printed
+# source, tools_dev/guard_print.py) puts its gate on every edge with the same src, dst and kind that has no gate of
+# that type yet (only edges whose trigger contains the row's match text, when it has one). NONE and DEAD rows change nothing here (DEAD rows get their UNREACHABLE entries by hand).
+import csv as _w7j_csv
+import os as _w7j_os
+_W7J = {}
+_w7j_path = _w7j_os.path.join(GDIR, 'scratch', 'reaudit', 'w7_judged.csv')
+if _w7j_os.path.exists(_w7j_path):
+    for _r in _w7j_csv.DictReader(open(_w7j_path, encoding='utf-8')):
+        if _r['decision'] in ('STATE', 'ENV'):
+            _W7J.setdefault((_r['src'], _r['dst'], _r['kind']), []).append(
+                (_r['decision'], _r['text'], [k for k in _r['kinds'].split('+') if k], _r.get('match') or ''))
+_W7J_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _W7J_ORIG_EDIT(x)
+    for _g in _W7J.get((x['src'], x['dst'], x['kind']), ()):
+        if _g[3] and _g[3] not in (x.get('trigger') or ''):
+            continue
+        if _g[0] == 'STATE' and not x.get('needs_state'):
+            x['needs_state'], x['state_kinds'] = _g[1], list(_g[2])
+        elif _g[0] == 'ENV' and not x.get('env'):
+            x['env'], x['env_kinds'] = _g[1], list(_g[2])
+# The import-from-app route needs a rooted device: RootShellTask's result reaches the importer only when the shell
+# opens as root (ImportEntriesActivity.java:149-153). The gate sat only on the Google Authenticator readFromApp edge;
+# it belongs on the edge into the lambda, for every importer variant (W7 round 2).
+_W7_ROOT_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _W7_ROOT_ORIG_EDIT(x)
+    if (x['kind'] == 'CALL' and x['src'].split('@')[0] == 'RootShellTask.onPostExecute'
+            and x['dst'].split('@')[0] == 'ImportEntriesActivity.lambda$startImportApp$5' and not x.get('env')):
+        x['env'] = ('the device grants Aegis root access, so the root shell opens and reports root '
+                    '(ImportEntriesActivity.java:149-153; RootShellTask.java:17-20)')
+        x['env_kinds'] = ['other']
