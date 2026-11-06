@@ -4318,3 +4318,26 @@ def EDIT(x):
                     '(core/storage/DatabaseMigration.java; AppDatabase.buildDatabase adds them with addMigrations)')
         x['env_kinds'] = ['other']
 
+
+
+# ---- W7 REAUDIT (Kiro), round 1: guard decisions written on the edges ----
+# Decisions and the pre-screen: graphs/LibreTorrent/scratch/reaudit/guard_decisions.csv and guard_steps.csv
+_W7_STATE = {
+    ('AddTorrentViewModel.addTorrent', 'NoFilesSelectedException.<init>()', 'CALL'):
+        ('a torrent is decoded or its magnet fetched in the add screen and the user unchecks every file (selectedFiles empty '
+         'after DECODE_TORRENT_COMPLETED or FETCHING_*_COMPLETED, AddTorrentViewModel.java:487-492)', ['session']),
+    ('TorrentDownloadImpl$InnerListener.alert', 'TorrentEngineListener.onTorrentPaused', 'CALL'):
+        ('a torrent in the session is paused (TORRENT_PAUSED alert after the pause button on its row or Pause all, '
+         'TorrentDownloadImpl.java:237-239; MainFragment.java:389)', ['data']),
+    ('TorrentSessionImpl$InnerListener.alert', 'TorrentSessionImpl.newTask', 'CALL'):
+        ('a torrent is added to the session: one stored by an earlier add is restored at start, or one is added in the app '
+         '(TorrentSessionImpl.java:1081, 1430-1432)', ['data']),
+}
+_W7_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _W7_ORIG_EDIT(x)
+    _g = _W7_STATE.get((x['src'], x['dst'], x['kind']))
+    if _g and not x.get('needs_state'):
+        x['needs_state'], x['state_kinds'] = _g[0], list(_g[1])

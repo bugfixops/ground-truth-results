@@ -736,3 +736,4 @@ and is untouched here.
 - 2026-11-06 04:41 UTC: Kiro, re-audit W4 done for LibreTorrent (RTA on); next W5 (ESR_CREATION).
 - 2026-11-06 04:46 UTC: Kiro, re-audit W5 done for LibreTorrent (ESR_CREATION on; library_edges.csv); next W6 (outside data).
 - 2026-11-06 04:53 UTC: Kiro, re-audit W6 done for LibreTorrent (outside_data.csv); next W7 (guards).
+- 2026-11-06 05:02 UTC: Kiro, re-audit W7 round 1 done for LibreTorrent (pre-screen, checked-case guards; most flagged steps PENDING); next W8 (CI, re-verify routes, device runs).
