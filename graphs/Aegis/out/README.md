@@ -51,6 +51,14 @@ is claimed here.
 
 ## What the re-audit changed (compared with the schema 1 graph)
 
+Re-audit of November 2026 (rounds of W2 to W7, see handoff/MUSE_REAUDIT_SUMMARY.md):
+
+- Baseline (W2): the onboarding is passed and a password-protected vault holds two default TOTP entries; 12 gate texts the baseline satisfies are cleared, and the four intro pages are setup-only.
+- Launcher start (W3): MainActivity.onStart opens the unlock screen again (MainActivity.java:942-977), so unlock routes no longer start from the screen-off broadcast (env on best routes 1,613 to 218).
+- Impossible calls (W4): DatabaseImporter.readFromApp never dispatches to the nine importers without direct import; their getAppPath methods are UNREACHABLE (Aegis-16).
+- Library class (W5): ESR_CREATION is on; settings sub-pages opened by header rows count as standard navigation (Q7).
+- Outside data (W6): the old single-group vault format and the document-picker backup targets are env (Aegis-46, Aegis-47); picker results of the import variants are env.
+
 - The schema 1 graph was converted to schema 2 and then re-audited
   batch by batch (batches 14-42 in AGENT_NOTES, followed by the
   finish-run C1-C3 work and this turn's V3 correction). Labels and
@@ -175,6 +183,8 @@ is claimed here.
   above, not on a re-run.)
 
 ## What waits for a device (API 27)
+
+- Re-audit round 1: the device route files were updated to the renamed edge ids (a gate edit changes an edge id); the sampled routes whose best route changed wait for re-verification and a device run.
 
 - **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 1 of 25 routes reached their target method; 1 of them ran the whole script and are now `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
 

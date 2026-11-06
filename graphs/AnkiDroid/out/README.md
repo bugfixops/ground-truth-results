@@ -42,6 +42,13 @@ Sanity check against tool coverage (never used to set a label): 2011 methods ran
 
 ## What the re-audit changed (compared with the schema 1 graph)
 
+Re-audit of November 2026 (rounds of W2 to W7, see handoff/MUSE_REAUDIT_SUMMARY.md):
+
+- Baseline (W2, Muse): the imported sample deck satisfies five gate texts.
+- Library class (W5): six preference classes built from XML are created through non_standard edges.
+- Outside data (W6): AnkiWeb sync and media sync, the image picker, collection and preference upgrades are env (AnkiDroid-34).
+- Guards (W7, round 1): the database-error dialogs need a broken collection (AnkiDroid-07); the settings page gets its in-app entry from Preferences.onCreate.
+
 - STRICT mode on (B1, graph_def.py line 10: STRICT = True).
 - Check 2 (B2): the 3 NotificationService citation problems were a
   checker-regex artefact (tools/check_citations.py ROOT_STYLE matches the
@@ -148,6 +155,8 @@ Sanity check against tool coverage (never used to set a label): 2011 methods ran
   (13 + 3) / (13 + 13 + 3) = 16 / 29 = 0.5517 (approx).
 
 ## What waits for a device (API 27)
+
+- Re-audit round 1: the device route files were updated to the renamed edge ids (a gate edit changes an edge id); the sampled routes whose best route changed wait for re-verification and a device run.
 
 - **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 0 of 30 routes reached their target method; 0 of them ran the whole script and are now `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
 
