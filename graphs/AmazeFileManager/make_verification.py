@@ -108,7 +108,7 @@ def p8(m, res, ref, note):
 p8('CloudIconDataFetcher.cancel', 'correct', 'Drawer.java:99',
    'Only step 12 changed: CloudIconModelLoader.buildLoadData now carries the state its handles() needs (a cloud, SMB or SFTP entry), which the first verification recorded as a caveat. Steps 1-11 and 13-14 as before.')
 p8('CompressedExplorerFragment.onDestroyView', 'correct', 'FileUtils.java:753',
-   'New steps 1-9: the view-switch menu item (kind caveat) rebuilds the list, a row tap (kind caveat; MainFragment.java:933 default case) opens an .apk file (FileUtils.java:751-753, state: an .apk file), the package dialog negative button opens it as an archive (GeneralDialogCreation.java:917 -> MainActivity.openCompressed). Steps 10-16 as before.')
+   'New steps 1-9: the view-switch menu item (kind caveat) rebuilds the list, a row tap (kind caveat; MainFragment.java:933 default case) opens an .apk file (FileUtils.java:751-753, state: an .apk file), the package dialog negative button opens it as an archive (GeneralDialogCreation.java:917 -> MainActivity.openCompressed). Step 13 now carries the archive state (the refresh listener of the archive viewer, CompressedExplorerFragment.java:149). Steps 10-16 as before.')
 p8('FileUtils.lambda$scanFile$1', 'correct', 'MainFragment.java:705',
    'New steps 1-10: launch, goToMain -> TabFragment -> MainFragment, a long press starts the action mode (kind caveat), its Rename item (MainFragment.java:701-705) -> rename dialog (:1209-1226) -> MainActivityHelper.rename -> Operations.rename; a baseline folder is renamed. The INFERRED RecyclerAdapter.<init> -> MainFragment.rename edge was dropped (graph_def.py, Q-W8-1).')
 p8('GenericCopyUtil.doCopy', 'correct', 'CopyService.java:381',
@@ -130,7 +130,7 @@ p8('ReadFileTask$ReturnedValues.<init>(int)', 'correct', 'FileUtils.java:420',
 p8('SmbSearchDialog$1.lambda$computerFound$0', 'correct', 'SubnetScanner.java:109',
    'Only step 13 changed: SubnetScanner.run calls onFound for a host that answered (SubnetScanner.java:91-109; env network).')
 p8('SshAuthenticationTask$1.getPublic', 'correct', 'SftpConnectDialog.java:203',
-   'New steps 1-17: the + button and cloud sheet open the SFTP dialog, Create fetches the host fingerprint (SftpConnectDialog.java:203-205, env network), then authenticateAndSaveSetup -> SshConnectionPool.getConnection -> create -> SshAuthenticationTask (connects first, SshAuthenticationTask.java:124).')
+   'New steps 1-20: the + button and cloud sheet open the SFTP dialog (CloudSheetFragment.java:111-119); Create looks up the stored host key (SftpConnectDialog.java:171-176); with a saved connection to the typed host (state) the old connection is removed (:176-180) and authenticateAndSaveSetup runs; the task connects first (SshAuthenticationTask.java:124, env network) and, for a key login, builds the KeyProvider (:129-131, state) whose getPublic is called.')
 p8('SshConnectionPool$AsyncRemoveConnection.onPostExecute', 'correct', 'SftpConnectDialog.java:176',
    'New steps 1-8: the + button and cloud sheet open the SFTP dialog; on Create the stored host key of the typed host is looked up (SftpConnectDialog.java:171-176), so with a saved connection to that host (state) the old connection is removed. The rest as before.')
 p8('StreamNotFoundException.<init>(Throwable)', 'correct', 'FileUtils.java:420',
@@ -138,11 +138,13 @@ p8('StreamNotFoundException.<init>(Throwable)', 'correct', 'FileUtils.java:420',
 p8('StreamSource.getCurrentPosition', 'correct', 'MainFragment.java:930',
    'New steps 1-6: the view-switch menu item and a row tap (kind caveats) on a cloud file (MainFragment.java:925-930; env: the cloud plugin app) -> CloudUtil.launchCloud -> CloudStreamer; step 10 the client connection (env network).')
 p8('StreamSource.read(byte[],int,int)', 'correct', 'MainFragment.java:915',
-   'Steps 6 and 10 changed: a row tap on an SMB file (MainFragment.java:914-915, env: an SMB server) -> launchSMB -> Streamer, and the client connection (StreamServer.java:179-180, env).')
+   'Steps 6, 8, 13 changed: a row tap on an SMB file (MainFragment.java:914-915, env: an SMB server) -> launchSMB -> Streamer.getInstance -> Streamer.<init> (Streamer.java:39) -> StreamServer; the client connection (StreamServer.java:179-180, env) and handleResponse -> sendResponse (StreamServer.java:332), which reads the StreamSource. The sendError -> sendResponse edge is cut (graph_def.py): sendError passes null data (StreamServer.java:631).')
 p8('TextEditorActivity$2.onAnimationEnd', 'correct', 'FileUtils.java:420',
    'Same new prefix as ImmutableEntry.getValue; then the editor search item -> revealSearchView -> animator listener $2 as before.')
 p8('TextEditorActivity$3.onAnimationEnd', 'correct', 'FileUtils.java:420',
    'Same new prefix as ImmutableEntry.getValue; then the editor search item -> hideSearchView -> animator listener $3 as before.')
+p8('FtpTileService.updateTileState', 'correct', 'AndroidManifest.xml:195',
+   'The route is now the quick-settings tile itself: the system binds FtpTileService (BIND_QUICK_SETTINGS_TILE, AndroidManifest.xml:195-203; env: the user adds the tile), calls onStartListening when the tile is visible, and onStartListening calls updateTileState (FtpTileService.java:30-34). The first verification used the in-app start of the FTP server instead; both reach the method.')
 p8('UtilsHandler.getSshAuthPrivateKeyColumn', 'correct', 'UtilsHandler.java:427',
    'Only step 5 changed: the drawer entry action of a saved SFTP connection opens its dialog (MainActivity.showSftpDialog, state). The rest as before.')
 

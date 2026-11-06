@@ -42,12 +42,14 @@ The PENDING rows that remained (3,961) were the long tail: each is used by few n
 
 | App | dead / config / env / state / library / gui (%) |
 |---|---|
-| Aegis | 20.8 / 0.0 / 21.1 / 16.7 / 8.6 / 32.8 |
-| AmazeFileManager | 24.1 / 1.0 / 10.8 / 27.4 / 3.8 / 33.0 |
-| AnkiDroid | 38.8 / 3.0 / 12.0 / 10.4 / 0.3 / 35.5 |
-| LibreTorrent | 27.8 / 0.9 / 10.9 / 29.1 / 28.7 / 2.6 |
-| MMEX | 20.8 / 0.2 / 4.5 / 12.9 / 12.7 / 49.0 |
-| weighted | 27.4 / 1.2 / 11.1 / 18.8 / 11.4 / 30.2 |
+| Aegis | 20.8 / 0.0 / 22.5 / 16.7 / 8.4 / 31.6 |
+| AmazeFileManager | 24.1 / 1.0 / 11.5 / 27.2 / 3.7 / 32.5 |
+| AnkiDroid | 38.8 / 3.0 / 12.3 / 11.1 / 0.3 / 34.4 |
+| LibreTorrent | 27.8 / 0.9 / 11.5 / 29.2 / 28.0 / 2.6 |
+| MMEX | 20.8 / 0.2 / 4.6 / 13.3 / 12.6 / 48.6 |
+| weighted | 27.4 / 1.2 / 11.6 / 19.0 / 11.1 / 29.6 |
+
+NONE rows were also rewritten one step per line with their own reason and file:line (LibreTorrent, MMEX, Aegis and AnkiDroid in full; AmazeFileManager: the 150 rows that decide a class, 142 GUI/framework rows still share a batch text). The AmazeFileManager sample routes were re-verified: 30 of 30 hold, 0 build warnings.
 
 All judgments are self-checked only (second: pending reviewer). Two AmazeFileManager steps that run only on API 19 or 23 are DEAD, and the 9 methods behind them are UNREACHABLE closed_by_api_level.
 

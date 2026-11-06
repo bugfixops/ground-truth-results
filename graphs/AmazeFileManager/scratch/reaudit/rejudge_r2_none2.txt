@@ -1,0 +1,85 @@
+# Review 2 fix 8 (Kiro), AmazeFileManager batch 2: SAF results, copy/encrypt, FTP, cloud, preferences.
+E89a1e9d8 ; ENV ; hardware ; MainActivity.java:1310-1380 ; hardware: a folder on a removable SD card needs the SAF permission (the system folder picker result, operation mkdir/mkfile, :1332, :1380); the internal baseline storage does not
+E02894652 ; ENV ; hardware ; MainActivity.java:1310-1377 ; hardware: a folder on a removable SD card needs the SAF permission, and the list is updated after the operation (:1377)
+Ebbceb2e1 ; ENV ; hardware ; MainActivity.java:1310-1365 ; hardware: moving files into a folder on a removable SD card needs the SAF permission (operation MOVE, :1365)
+E80b0d13d ; ENV ; hardware ; MainActivity.java:1310-1334 ; hardware: deleting files on a removable SD card needs the SAF permission (operation DELETE, :1334)
+E50bd16b1 ; ENV ; hardware ; MainActivity.java:1310-1375 ; hardware: renaming a file on a removable SD card needs the SAF permission (operation RENAME, :1375)
+Eee24680e ; ENV ; hardware ; MainActivity.java:562-565 ; hardware: the SAF folder result on Android 5 or later checks the chosen folder (:563-565); the removable SD card is the case that asks for it
+Ee711771d ; ENV ; hardware ; MainActivity.java:1351 ; hardware: a copy into a folder on a removable SD card needs the SAF permission, then the service starts (:1351)
+E95c06f94 ; NONE ; ; CopyService.java:350-381 ; baseline: the target folder on internal storage is writable (checkFolder == 1, :350); copyFiles runs for each source file that is not root (:381)
+E6d73bd7e ; NONE ; ; CopyService.java:442-477 ; baseline: the copy is not cancelled (:443), the file name is valid (:451), so copy runs (:477)
+Ece10abda ; NONE ; ; EncryptService.java:186-191 ; baseline: the target folder is writable (checkFolder == 1, :186), so the CryptUtil runs (:191); the file to encrypt is gated on the service entry
+Ed73fe840 ; NONE ; ; DecryptService.java:142-149 ; baseline: the target folder is writable (checkFolder == 1, :142), so the CryptUtil runs (:149); the encrypted file is gated on the service entry
+E854db21d ; NONE ; ; PrepareCopyTask.java:112-118 ; GUI: the copy or cut is pasted into a folder on the same storage (:112-118)
+Eea9631f1 ; NONE ; ; PrepareCopyTask.java:105-113 ; GUI: the paste builds the root copy node (:113) after the storage-space check
+Ecd6b00b8 ; STATE ; file ; PrepareCopyTask.java:325-334 ; a folder with the same name exists at the destination (a conflicting directory, :325-326), so its files are listed (:334); the baseline destination has no such folder
+Ebb73fd3c ; NONE ; ; FileUtils.java:199-200 ; GUI: the total size of the pasted files is summed (the loop over the files, :199-200)
+E7d8a1a81 ; NONE ; ; FileUtils.java:206-207 ; GUI: a pasted file is a folder, so its size is taken (isDirectory, :206-207); the baseline has folders
+E7ea1261f ; NONE ; ; PrepareCopyTask.java checkConflicts ; GUI: the paste checks conflicts after the copy node is built
+Ed3039bdd ; NONE ; ; MainFragment.java:1188-1196 ; baseline: a readable folder is listed (file.isDirectory() && file.canRead(), :1188), so the file observer starts (:1196)
+E512ff7b5 ; NONE ; ; FtpServerFragment.java:132-137 ; GUI: the start button of the FTP server screen (:132)
+Eafb3b714 ; NONE ; ; FtpServerFragment.java:120 ; GUI: the FTP server screen shows its status when it opens (:120)
+E50e05168 ; NONE ; ; FtpServerFragment.java:132-137 ; GUI: the start button calls startServer when the server is not running (:133-137)
+E4da5d596 ; ENV ; other_app ; FtpReceiver.java:24 ; outside package: another app or the quick-settings tile sends the FTP start broadcast, which starts the service (:24)
+Efb671794 ; NONE ; ; FtpServerFragment.java:143 ; GUI: the FTP fragment's onActivityCreated runs the not-running branch (:143)
+E7cd3430d ; NONE ; ; FtpServerFragment.java:226-230 ; GUI: the FTP login dialog's positive button saves the typed credentials (:230)
+E57be7166 ; NONE ; ; MainActivity.java:1945-1952 ; GUI: the New cloud connection item of the + button (case menu_new_cloud, :1952)
+E8e9507b8 ; NONE ; ; CloudSheetFragment.java:66-76 ; GUI: the cloud sheet sets its click listeners when shown (:70-76)
+E234e41e0 ; NONE ; ; CloudSheetFragment.java:105-109 ; GUI: the SMB option of the cloud sheet (case linear_layout_smb, :108)
+E5e77cce3 ; NONE ; ; SmbSearchDialog.java:52-53 ; framework: the DialogFragment builds the SMB search dialog after onCreate; the subnet scanner is interrupted if it exists (:52-53)
+E49e15982 ; NONE ; ; MainFragment.java:1322 ; GUI: Back from a search result list adds the search worker fragment (:1322)
+E010fab1c ; NONE ; ; AppBar.java:291 ; GUI: a search text is submitted while the queue holds a search (:291)
+E31e2b95f ; NONE ; ; AsyncTask.execute ; framework: the search task's doInBackground runs on a worker thread after execute
+E973e4b98 ; NONE ; ; SearchWorkerFragment ; GUI: each search hit is added to the list as it is found
+E2d2e4ca5 ; NONE ; ; SearchWorkerFragment ; GUI: the search ends and the list is told (onSearchCompleted)
+E71956865 ; NONE ; ; MainActivity.java:971-972 ; GUI: the Sort by menu item of a folder list (ma != null, :971)
+E5686f33b ; NONE ; ; MainActivity.java:966-967 ; GUI: the Sort by menu item of the apps list (fragment instanceof AppsListFragment, :966)
+Ebe769c05 ; NONE ; ; FoldersPref.java:89-95 ; GUI: the Add shortcut preference of the Sidebar settings (case PREFERENCE_SHORTCUT, :89-90)
+Ef8df1bc2 ; NONE ; ; FoldersPref.java:58-59 ; baseline: the first-start bookmarks exist (MainActivity.java:358-359), so FoldersPref makes a preference for each
+E0157a0e3 ; NONE ; ; PrefFrag.java:204 ; GUI: the About preference (:204)
+E01ac1173 ; NONE ; ; TextEditorActivity.java:358-364 ; GUI: the Save item of the text editor menu (case R.id.save, :364)
+E8aad00a2 ; NONE ; ; ColorPickerDialog.java:102-108 ; GUI: the colour preference dialog binds its view (the restored-instance check at :102 does not apply)
+E6c1d2810 ; NONE ; ; ColorPickerDialog.java:214-220 ; GUI: closing the colour dialog saves the selected colour (positiveResult, :214-220)
+Ed058d82d ; NONE ; ; ColorPickerDialog.java:121-122 ; GUI: the colour dialog inflates one item for each colour (the loop at :121-122)
+E112adb8a ; NONE ; ; ColorPref ; GUI: the colour preference builds its adapter when the dialog opens
+E651d6e9a ; NONE ; ; TabFragment ; GUI: the tab fragment draws its coloured circles
+E64836430 ; NONE ; ; LoadFilesListTask / LayoutElementParcelable ; framework: unparceling the list items after the load task
+Ea99a2600 ; NONE ; ; AsyncTask ; framework: onPostExecute follows doInBackground of the file list load task
+Ebd73592a ; NONE ; ; AsyncTask ; framework: doInBackground of the database viewer task follows its construction
+Ec0ddbad1 ; NONE ; ; AsyncTask ; framework: doInBackground of the hash task follows its construction
+Eba425146 ; NONE ; ; AsyncTask ; framework: doInBackground of the delete task follows its construction
+Ef64ae9b7 ; NONE ; ; AsyncTask ; framework: doInBackground of the move task follows its construction
+E27e0b09c ; NONE ; ; AsyncTask ; framework: doInBackground of the file write task follows its construction
+Ec06d0db3 ; NONE ; ; MainActivity.java onCreate ; unconditional: onCreate runs work on the app's background executor
+E34ef529f ; NONE ; ; MainActivity.java onCreate ; unconditional: onCreate runs work on the app's parallel executor
+Ed689e8ea ; NONE ; ; AppConfig ; framework: the background executor runs the move task's post-execute lambda
+E7e97a39c ; NONE ; ; GeneralDialogCreation.java:461 ; GUI: the properties dialog starts the hash task (:461)
+E56a4ca7d ; NONE ; ; FileUtils.java:1024-1027 ; a bookmarked folder was deleted after it was bookmarked (the path does not exist, :1024), so the error callback object is made (:1027)
+E03292099 ; NONE ; ; ZipService ; GUI: the Compress action's service gets its output stream
+E65d0ad48 ; NONE ; ; Service.java ; framework: onCreate follows the construction of ExtractService
+Ed845d59b ; NONE ; ; Service.java ; framework: onStartCommand follows onCreate of ExtractService
+E5bdb5d78 ; NONE ; ; Service.java ; framework: onCreate follows the construction of DecryptService
+E71c51694 ; NONE ; ; Service.java ; framework: onStartCommand follows onCreate of DecryptService
+E84fa3666 ; NONE ; ; Service.java ; framework: onCreate follows the construction of EncryptService
+E766a13d0 ; NONE ; ; Service.java ; framework: onStartCommand follows onCreate of EncryptService
+Ea2e572e2 ; NONE ; ; Service.java ; framework: onStartCommand follows onCreate of CopyService
+E8b69c932 ; NONE ; ; Fragment.java performCreate ; framework: onCreate follows the construction of FtpServerFragment
+Edd7ffae0 ; NONE ; ; Fragment.java performCreate ; framework: onCreate follows the construction of AppsListFragment
+E5f0bd603 ; NONE ; ; Fragment.java performActivityCreated ; framework: onActivityCreated follows onCreate of AppsListFragment
+E3119bc2f ; NONE ; ; Fragment.java performCreateView ; framework: onCreateView follows the construction of ProcessViewerFragment
+E1ade216d ; NONE ; ; Fragment.java performActivityCreated ; framework: onActivityCreated follows onCreateView of ProcessViewerFragment
+Ef5ec4fc0 ; NONE ; ; Fragment.java performResume ; framework: onResume follows onActivityCreated of ProcessViewerFragment
+E6a8e3f69 ; NONE ; ; ProcessViewerFragment.java:191-195 ; GUI: the first result of the running operation sets up the drawables (!isInitialized, :191-195)
+E02c0db97 ; NONE ; ; AbstractProgressiveService.java:93-161 ; the service publishes results while it is not cancelled (:93), and adds the data point (:161)
+Eb41c849f ; NONE ; ; Glide ; framework: GlideApp.with creates the generated module
+E64795b93 ; NONE ; ; Glide ; framework: the generated module registers its components
+E64b023f9 ; NONE ; ; GeneratedAppGlideModuleImpl ; framework: the generated module calls the app's module
+E44015116 ; NONE ; ; AppsListFragment ; GUI: the apps list fragment builds its adapter when it is created
+E1e144752 ; NONE ; ; AppListLoader ; framework: the loader runs loadInBackground after start
+E29c46b81 ; NONE ; ; AppListLoader ; framework: the loader delivers its result after loadInBackground
+E091d00ff ; NONE ; ; AppListLoader ; framework: the loader framework calls onStartLoading
+Efb26d252 ; NONE ; ; AppsAdapter ; framework: ListView asks the apps adapter for each row (getView)
+Ec7a65e98 ; NONE ; ; Drawer ; GUI: the drawer's Storage entries open their properties dialog (long press)
+E0bf12725 ; NONE ; ; Drawer ; GUI: the drawer's Settings entry starts PreferencesActivity
+E210a3fcc ; NONE ; ; MainActivity.java:355-360 ; baseline: the first start adds the common bookmarks (:358-359)
+E4da5d596 ; ENV ; other_app ; FtpReceiver.java:24 ; outside package: another app or the quick-settings tile sends the FTP start broadcast, which starts the service (:24)

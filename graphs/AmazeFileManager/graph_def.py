@@ -37,12 +37,17 @@ TITLE = 'AmazeFileManager 3.4.2 trigger graph'
 import re as _r2_re
 _R2_FAMILY = _r2_re.compile(r'INFERRED framework calls .* after construction of')
 _R2_KEEP = {('SevenZMethodConfiguration.<init>(SevenZMethod,Object)', 'CoderBase.canAcceptOptions')}
+# judgement cuts of hand edges (see the notes at the end of this file): path-insensitive edges that open a wrong route
+_R2_CUT = {('StreamServer$HTTPSession.sendError', 'StreamServer$HTTPSession.sendResponse')}
 _R2_DROPPED = []
 _r2_orig_e = e
 
 
 def e(src, dst, kind, trigger, *a, **kw):
     ev = kw.get('evidence') or ''
+    if (src, dst) in _R2_CUT:
+        _R2_DROPPED.append((src, dst, kind))
+        return
     if _R2_FAMILY.search(ev) and (src, dst) not in _R2_KEEP:
         _R2_DROPPED.append((src, dst, kind))
         return
@@ -10354,3 +10359,8 @@ def EDIT(x):
     if x['dst'] == 'CompressedExplorerFragment.changePath' and not x.get('needs_state'):
         x['needs_state'] = 'an archive file exists and is open in the archive viewer; the baseline storage has none'
         x['state_kinds'] = ['file']
+# Review 2 (Kiro): StreamServer$HTTPSession.sendError calls sendResponse with null data (StreamServer.java:631), and
+# sendResponse reads the StreamSource only for non-null data (:638). The graph is path-insensitive, so the best route to
+# StreamSource.read ran serve-less through sendError. Judgement cut (same kind as the MMEX AbsListFragment$1 cut): the
+# sendError -> sendResponse edge is not used by the route search; sendResponse is still reached by the serving path.
+sup(('StreamServer$HTTPSession.sendError', 'StreamServer$HTTPSession.sendResponse'))  # auto edge; the hand edge is cut by _R2_CUT at the top
