@@ -7789,3 +7789,42 @@ def EDIT(x):
         # hand edge and is not reached here.
         x['kind'] = 'REGISTER'
 
+
+# ---- W2 REAUDIT: baseline and setup-only screens (append at end of graph_def.py,
+# after the current final EDIT, the route-28 wrapper) ----
+# Baseline for AnkiDroid: a sample deck is imported (a collection exists, a deck
+# exists, the deck has cards). Baseline state never counts as state, so the
+# gates the imported deck already satisfies are cleared in EDIT below, with the
+# reason recorded in the edge note. Per-gate decisions and source evidence:
+# graphs/AnkiDroid/scratch/reaudit/state_gates.csv.
+# SETUP_ONLY stays empty: no page in this build exists only during first-run
+# setup. On a fresh install, DeckPicker.showStartupScreensAndDialogs only
+# records the version and calls onFinishedStartup() (DeckPicker.java:856-860);
+# there is no intro/tutorial activity or introduction package in the source
+# tree (the only startup screen is Info on upgrade, which is also reachable
+# from the DeckPicker menu, so it is not setup-only).
+SETUP_ONLY = set()
+
+_W2_EDIT_PREV = EDIT
+
+W2_BASELINE_NOTES = {
+    'data: the deck has cards to study (new, learning or due)':
+        'baseline: the imported sample deck has cards to study (StudyOptionsFragment.java:570-586)',
+    'file: a collection file (collection.anki2) exists in the AnkiDroid folder':
+        'baseline: importing the sample deck creates the collection file (CollectionHelper.java:46, 217-218)',
+    'data: a deck exists in the collection (the user created or imported one)':
+        'baseline: the imported sample deck is a deck in the collection (StudyOptionsFragment.java:296-300)',
+    'data: at least one note exists in the collection':
+        'baseline: the imported deck has notes (its cards are generated from notes) (NoteEditor.java:801-808)',
+    'field type TEXT: the multimedia field editor uses a BasicTextFieldController, which creates the pronounce button':
+        "baseline: the imported deck's notes have text fields; editing one uses the text field controller (BasicControllerFactory.java:34-39)",
+}
+
+
+def EDIT(x):
+    _W2_EDIT_PREV(x)
+    cleared = W2_BASELINE_NOTES.get(x.get('needs_state'))
+    if cleared is not None:
+        x['needs_state'] = None
+        x['state_kinds'] = []
+        x['note'] = ((x.get('note') + '; ') if x.get('note') else '') + cleared
