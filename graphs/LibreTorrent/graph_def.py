@@ -4341,3 +4341,33 @@ def EDIT(x):
     _g = _W7_STATE.get((x['src'], x['dst'], x['kind']))
     if _g and not x.get('needs_state'):
         x['needs_state'], x['state_kinds'] = _g[0], list(_g[1])
+
+
+# ---- W5 REAUDIT (Kiro), consistency fix after the reviewer's round-1 check ----
+# The other four apps treat these mechanisms as standard: the AndroidX Fragment / FragmentManager / DialogFragment /
+# ViewPager2 lifecycle, JVM class initialisation on first use, TextWatcher dispatch, the AndroidX Activity Result
+# API and the AppCompat action bar. LibreTorrent had them non_standard; they become standard here (the old via is
+# kept in the note). Vias that also name data binding, a mapper, newInstance or layout inflation stay non_standard.
+# Matched edges with their printed source: graphs/LibreTorrent/scratch/reaudit/w5b_printed.txt (w5b_consistency.py).
+import re as _w5b_re
+_W5B_INCLUDE = [
+    r'^(AndroidX |Android |Framework )?(Fragment|FragmentManager|DialogFragment)( show and DialogFragment| transaction and| and)? lifecycle( dispatch)?( after show)?$',
+    r'^(ViewPager2 fragment lifecycle dispatch|AndroidX ViewPager2 / FragmentStateAdapter|FragmentStateAdapter dispatch|ViewPager2 dispatch after setAdapter)$',
+    r'^JVM (class|enum|enum class|interface|superclass)[ -](init|initiali[sz]ation)\b',
+    r'^TextWatcher (framework )?dispatch$',
+    r'Activity ?Result',
+    r'^AndroidX AppCompat action bar$',
+]
+_W5B_EXCLUDE = r'[Dd]ata[Bb]inding|DataBindingUtil|mapper|newInstance|inflation'
+_W5B_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _W5B_ORIG_EDIT(x)
+    _v = x.get('via')
+    _v = ' '.join(map(str, _v)) if isinstance(_v, list) else str(_v or '')
+    if (x.get('edge_class') == 'non_standard' and _v and not _w5b_re.search(_W5B_EXCLUDE, _v)
+            and any(_w5b_re.search(p, _v) for p in _W5B_INCLUDE)):
+        x['edge_class'] = 'standard'
+        x['via'] = None
+        x['note'] = ((x.get('note') + ' | ') if x.get('note') else '') + 'W5 consistency: standard, as in the other four apps (was non_standard via: %s)' % _v
