@@ -478,3 +478,4 @@ An edge is written by the part that contains its source method; if the source is
   spinners, glosbe.com/Beolingus reachability unchecked here).
 - 2026-11-06 04:41 UTC: Kiro, re-audit W4 done for AnkiDroid (RTA on); next W5 (ESR_CREATION).
 - 2026-11-06 04:46 UTC: Kiro, re-audit W5 done for AnkiDroid (ESR_CREATION on; library_edges.csv); next W6 (outside data).
+- 2026-11-06 04:53 UTC: Kiro, re-audit W6 done for AnkiDroid (outside_data.csv); next W7 (guards).

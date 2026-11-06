@@ -7862,3 +7862,54 @@ def EDIT(x):
     if _via and x.get('edge_class') != 'non_standard':
         x['edge_class'] = 'non_standard'
         x['via'] = _via
+
+
+# ---- W6 REAUDIT (Kiro): outside data the route consumes ----
+# Each entry puts an env gate on the edge that consumes data from outside the app; decisions and the
+# pattern sweep: graphs/AnkiDroid/scratch/reaudit/outside_data.csv.
+_W6_ENV = {
+    ('MediaSyncer.sync', 'Media.syncDelete', 'CALL'):
+        ('network: the AnkiWeb media server returns its media changes (mServer.mediaChanges, MediaSyncer.java:113); syncDelete runs for each file the server deleted (MediaSyncer.java:150)', ['network']),
+    ('BasicImageFieldController$1.onClick', 'MultimediaEditFieldActivity.onActivityResult', 'RESULT'):
+        ('other_app: the gallery app returns the picked image (ACTION_PICK on MediaStore images, BasicImageFieldController.java:103-104)', ['other_app']),
+}
+_W6_ORIG_EDIT = globals().get('EDIT')
+
+
+def EDIT(x):
+    if _W6_ORIG_EDIT:
+        _W6_ORIG_EDIT(x)
+    _g = _W6_ENV.get((x['src'], x['dst'], x['kind']))
+    if _g and not x.get('env'):
+        x['env'], x['env_kinds'] = _g[0], list(_g[1])
+# W6 (Kiro), network and servers: rules matched on the edge (decisions in outside_data.csv).
+_W6_RULES = [
+    ('RemoteMediaServer.uploadChanges', 'HttpSyncer.req(String,InputStream,int)', 'CALL',
+     'network: the AnkiWeb media server receives the upload and answers (HttpSyncer.req executes the HTTP POST, HttpSyncer.java:152-236)', ['network']),
+    ('FullSyncer.download', 'HttpSyncer.req(String)', 'CALL',
+     'network: the AnkiWeb sync server answers the full-sync download request (HttpSyncer.java:127, 152-236)', ['network']),
+    ('FullSyncer.upload', 'HttpSyncer.req(String,InputStream)', 'CALL',
+     'network: the AnkiWeb sync server answers the full-sync upload request (HttpSyncer.java:132, 152-236)', ['network']),
+    ('Syncer.sync(Connection)', 'HttpSyncer.stream2String(InputStream)', 'CALL',
+     'network: the AnkiWeb sync server answers the sync request; stream2String reads its response body (HttpSyncer.java:152-236)', ['network']),
+    ('RemoteServer.finish', 'HttpSyncer.req(String,InputStream)', 'CALL',
+     'network: the AnkiWeb sync server answers the finish request (HttpSyncer.java:132, 152-236)', ['network']),
+    ('MediaSyncer._downloadFiles', 'RemoteMediaServer.downloadFiles', 'CALL',
+     'network: the AnkiWeb media server sends the requested media files (RemoteMediaServer.downloadFiles; MediaSyncer.java:234)', ['network']),
+    ('Storage.Collection(Context,String,boolean,boolean)', 'Storage._upgrade', 'CALL',
+     'data only an older app version writes: a collection with a schema version below Consts.SCHEMA_VERSION; the baseline collection is created by this version (Storage.java:56-66)', ['other']),
+    ('DeckPicker.showStartupScreensAndDialogs', 'DeckPicker.upgradePreferences', 'CALL',
+     'data only an older app version writes: preferences left by an install older than CHECK_PREFERENCES_AT_VERSION (previous < upgradePrefsVersion, DeckPicker.java:917-925)', ['other']),
+]
+_W6B_ORIG_EDIT = globals().get('EDIT')
+
+
+def EDIT(x):
+    if _W6B_ORIG_EDIT:
+        _W6B_ORIG_EDIT(x)
+    if x.get('env'):
+        return
+    for _src, _dst, _kind, _text, _kinds in _W6_RULES:
+        if x['kind'] == _kind and x['src'].split('@')[0] == _src and x['dst'].split('@')[0] == _dst:
+            x['env'], x['env_kinds'] = _text, list(_kinds)
+            return
