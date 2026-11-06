@@ -32,3 +32,21 @@ Default used: **standard navigation** (Kiro, 2026-11-06 05:02 UTC, W7). The chec
 
 ## Q-W8-2 (Kiro, 2026-11-06): the W7 pre-screen misses helper-call steps
 Edges such as RecyclerAdapter.onBindViewHolder -> GlideRequests.load(Integer) were not flagged, because the call sits in a helper (showThumbnailWithBackground, showRoundedThumbnail) that the edge's source method does not contain. Their guards are therefore not in guard_steps.csv. Default used: gates written by hand where a sampled route exposed one; no re-run of the pre-screen.
+
+## Q-R3-1 (Kiro, 2026-11-06): is a selection, an open dialog or a typed form "state"? (review 3, fix 6)
+review/TASK_NOTE.md lists "a UI session (a selection, an open dialog, an unsaved form)" as state, but a dialog the route itself opens is a GUI action on the route. Default used, applied the same way in all five apps:
+- A selection that exists before the route's step (a row selected, an action mode open, a checked item) is STATE, kind `session`. The route cannot always make it, and the baseline has none.
+- A dialog that a step on the route opens, and a form the user types into after the dialog opens, are GUI: the open or the typing is a GUI action on the step itself, so there is no gate. A dialog that is already open when the route starts (for example one left open by an earlier run) would be STATE; no row uses that.
+- A form field that already holds saved text (an edited entry, an unsaved draft kept across a rotation) is STATE kind `session`.
+W0 will test this default against the sample: if the labelled sample treats a typed form or an open dialog as state, the rows with text beginning "GUI: the ... dialog" are the ones to flip, and the rule is then one grep over `w7_judged.csv`.
+
+## Q-R3-2 (Kiro, 2026-11-06): which files are STATE, which ENV? (review 3, fix 1)
+Rule used: a file is STATE only when an in-app action can create it (a zip written by ZipService, an .aze from Encrypt, a vault or .apk backup the app writes, an .apkg export, a .torrent from Create torrent, the feeds backup); any other file comes from another app or the user and is ENV `other_app` (or `network` for a download). Applied:
+- AmazeFileManager: 27 STATE file rows for .7z, .rar, .tar, .bz2, .tgz, .tbz, lzma, .xz, password-protected and AES archives became ENV other_app (the app creates only zip: ZipService and zip4j; SevenZOutputFile is never constructed).
+- Aegis: the icon-pack rows (4 w7 rows, hand edges with ST_ICON_PACK_INSTALLED) became ENV other_app (Aegis imports an icon pack but cannot make one); the "vault missing or unreadable" rows became ENV other (no in-app action corrupts the vault).
+- LibreTorrent: yes, the app creates and saves .torrent files itself (CreateTorrentDialog with the in-app FileManagerDialog in SAVE_FILE_MODE; CreateTorrentViewModel.java:211-217 `fs.write(bencode, savePath)`). So every .torrent row is STATE file (Ebd400945, Edcd2b301, Eb11be73f, E35438c83, E88a51caa, Ecc03ef24, Ed4fca1c6; Eda355555 is settings+file). IP filter files come from the system picker: ENV other_app.
+Exceptions kept, with the reason: (a) the checked cases AmazeFileManager-01 (DatabaseViewerActivity.getDbTableNames) and AmazeFileManager-46 (FileUtils.installApk) have source class state in Appendix B, and openFile picks the viewer by the file extension only, so a file created with New file and named x.db or x.apk starts them: .db and .apk gates stay STATE in AmazeFileManager. (b) AnkiDroid-07 BackupManager.repairCollection has source class state, so the broken-collection file rows stay STATE.
+Question for the reviewer: should the 7z, rar and tar gates follow the same extension argument (New file can name a file x.7z)? Default used: no, because those routes need the parsed content of a real archive, while openFile only checks the extension.
+
+## Q-R3-3 (Kiro, 2026-11-06): the AmazeFileManager Ec06d0db3 row has no call line in onCreate
+`MainActivity.onCreate -> AppConfig.runInBackground` has no direct call in onCreate (the runInBackground calls are at MainActivity.java:1001, 1012, 1701, 1720, all in other methods; onCreate starts its work with runInParallel at :365). The row's ref points at :365 and its text is kept ("unconditional"). Default used: leave the edge as a NONE row until W0 or the reviewer says it is an invented edge.

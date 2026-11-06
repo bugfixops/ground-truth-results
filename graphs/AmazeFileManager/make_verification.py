@@ -103,7 +103,9 @@ p('UtilsHandler.getSshAuthPrivateKeyColumn', 'correct', 'UtilsHandler.java:427',
 # gate the source needs is on the route, so the route holds; the GUI-step count is low by those steps.
 W8 = 'W8 re-verified 2026-11-06 (first verification: %s). '
 def p8(m, res, ref, note):
-    P[m] = (res, ref, W8 % P[m][0] + note)
+    # keep the first verdict when it was fixed or wrong (review 3, fix 4); the re-check is in the note
+    first = P[m][0]
+    P[m] = (first if first in ('fixed', 'wrong') else res, ref, W8 % first + note)
 
 p8('CloudIconDataFetcher.cancel', 'correct', 'Drawer.java:99',
    'Only step 12 changed: CloudIconModelLoader.buildLoadData now carries the state its handles() needs (a cloud, SMB or SFTP entry), which the first verification recorded as a caveat. Steps 1-11 and 13-14 as before.')

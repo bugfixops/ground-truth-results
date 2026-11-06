@@ -110,3 +110,11 @@ One round. A second round would need the W7 guard judging and the measurement fi
 ## Markor (Q4)
 
 Markor is not touched. In its CI output (`9371563e`), 10 of its 2,450 REACHABLE best routes pass its intro (the page S_INTRO or an Intro class on the shortest path).
+
+## Round 4 (review 3 fixes 1-6), shares not final
+
+After the file-as-state rule (REAUDIT-R3-FILE) the local rebuild gives errors 0 and warnings 11 / 0 / 46 / 24 / 10 (Aegis / AmazeFileManager / AnkiDroid / LibreTorrent / MMEX; the MMEX 10 and the AnkiDroid count are the stale-path warnings of verification.csv, the same 10 as in the committed MMEX report). `tools_dev/reaudit_shares.py e0866b9c` on that rebuild reads weighted 27.4 / 1.2 / 9.0 / 13.1 / 16.5 / 32.8 (dead / config / env / state / library / gui). Per app: Aegis 20.8 / 0.0 / 23.4 / 15.8 / 8.4 / 31.6, AmazeFileManager 24.1 / 1.0 / 13.6 / 25.1 / 3.7 / 32.5, AnkiDroid 38.8 / 3.0 / 8.8 / 3.1 / 0.5 / 45.7, LibreTorrent 27.8 / 0.9 / 3.9 / 25.2 / 41.4 / 0.7, MMEX 20.8 / 0.2 / 2.5 / 2.0 / 22.5 / 52.0.
+
+These do not match the round-3 table above for MMEX and AnkiDroid, whose inputs did not change in this round (MMEX has no file rows; its `out/` is byte-identical to the committed one). I have not found the cause: the round-3 table may have been read from a different `out/` state than a clean rebuild gives. Until that is settled, the round-3 table above and these numbers should both be treated as unconfirmed, and the shares go to the reviewer's local rebuild for a check. Open item for the next round.
+
+Checks: `check_cases.py` 23 of 23; `check_unchanged_apps.py` ALL UNCHANGED. AmazeFileManager verification.csv: 25 fixed and 5 correct path rows (first verdict kept; the 20 re-checked routes say "first verification: ..." in the note).

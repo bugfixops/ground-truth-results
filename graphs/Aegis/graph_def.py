@@ -87,6 +87,10 @@ ST_VAULT_UNREADABLE = ('The vault file exists but cannot be read (VaultRepositor
                        'an earlier run left it unreadable, and no step on any route writes it')
 ST_ICON_PACK_INSTALLED = ('An icon pack is already installed in the icons folder from an earlier run '
                           '(IconPackManager.java:33 rescans the folder at startup)')
+ENV_ICON_PACK = ('outside package: an icon pack is already installed in the icons folder (the app cannot create an icon pack: it only imports one '
+                 'from a file another app or the user supplies, ImportIconPackTask; IconPackManager.java:33 rescans the folder at startup)')
+ENV_VAULT_UNREADABLE = ('outside the app: the vault file exists but cannot be read (VaultRepository.readVaultFile throws, MainActivity.java:954-955); '
+                        'no in-app action corrupts it, so another app or a storage fault left it unreadable')
 ST_SEARCH_IN_GROUPS = ('SEARCH_IN_GROUPS is set in preferences and the app relaunched '
                        '(the mask is read once at MainActivity.onCreate, MainActivity.java:234; '
                        'set by BehaviorPreferencesFragment.java:57)')
@@ -115,13 +119,13 @@ ENV_KINDS_OF = {
     ENV_CAMERA: ['permission'], ENV_CAMERA_GRANTED: ['permission'], ENV_QR_CODE: ['hardware'], ENV_CLIPBOARD: ['other_app'], ENV_PICK_IMAGE: ['other_app'], ENV_PICK_ICON: ['other_app'],
     ENV_AUTO_TIME_OFF: ['time'], ENV_CLOCK_FORWARD: ['time'],ENV_EXPORT_RESULT: ['other_app'], ENV_BACKUP_RESULT: ['other_app'],
     ENV_BIOMETRIC_FAIL: ['hardware'], ENV_AUTOFILL: ['other_app'],
-    ENV_PICKER_SETTINGS: ['other_app'], ENV_PANIC_SENDER: ['other_app'], ENV_INSTALLED_GA: ['other_app'], ENV_ROOT: ['other'],
+    ENV_PICKER_SETTINGS: ['other_app'], ENV_PANIC_SENDER: ['other_app'], ENV_INSTALLED_GA: ['other_app'], ENV_ROOT: ['other'], ENV_ICON_PACK: ['other_app'], ENV_VAULT_UNREADABLE: ['other'],
 }
 STATE_KINDS_OF = {
     ST_VAULT_FILE: ['file'], ST_PLAIN_VAULT_FILE: ['file'], ST_ENCRYPTED_VAULT_FILE: ['file'], ST_REMINDER_DUE: ['settings'], ST_IMPORTED: ['data'], ST_NOT_IMPORTED: ['data'], ST_PASSWORD_SLOT: ['data'], ST_BIO_SLOT: ['data'], ST_SEARCH_IN_GROUPS: ['settings'],
     ST_UNLOCKED: ['session'], ST_LIST_LOADED: ['session'], ST_ACTIVITY_OPEN: ['session'], ST_PANIC_ON: ['settings'],
     ST_FAB_OPEN: ['session'], ST_SEARCH_OPEN: ['session'], ST_ACTION_MODE: ['session'], ST_ASSIGN_DIALOG: ['session'],
-    ST_SAVE_CHIP: ['session'], ST_ERROR_CARD: ['settings'], ST_VAULT_UNREADABLE: ['file'], ST_ICON_PACK_INSTALLED: ['file'], ST_CLIPBOARD_DIALOG: ['session'], ST_DELETE_DIALOG: ['session'],
+    ST_SAVE_CHIP: ['session'], ST_ERROR_CARD: ['settings'], ST_CLIPBOARD_DIALOG: ['session'], ST_DELETE_DIALOG: ['session'],
     ST_SECURITY_NONE: ['data'], ST_PAGE_UNFINISHED: ['session'], ST_ENCRYPTION_OFF: ['data'],
     ST_VAULT_ENCRYPTED: ['data'], ST_ICONS_NOT_OPTIMIZED: ['data'], ST_ENTRY_CHANGED: ['session'],
     ST_SHOW_NEXT_CODE: ['settings'], ST_HOLDERS_BOUND: ['session'], ST_SVG_PICK: ['session'], ST_SETTINGS_IMPORT: ['session'], ST_CAMERA_READY: ['session'], ST_BIOMETRICS_AVAILABLE: ['session'],
@@ -400,7 +404,7 @@ sup(('MainActivity.onStart', 'MainActivity.startIntroActivity'), ('MainActivity.
 e('MainActivity.onStart', 'Dialogs.showErrorDialog(Context,int,Exception,OnClickListener)', 'CALL',
   'the vault file cannot be read: an error dialog is shown and onStart returns (the unlock screen is not started)',
   guard='reading the vault file throws VaultRepositoryException (MainActivity.java:954-955; the catch shows the dialog at 957 and returns at 960); reached only when isVaultInitNeeded() is false (MainActivity.java:942-947) and isVaultLoaded() is false (MainActivity.java:951)',
-  needs_state=ST_VAULT_UNREADABLE,
+  env=ENV_VAULT_UNREADABLE,
   evidence='SRC ui/MainActivity.java:946-960 (intro return at 946-947; readVaultFile catch at 954-960: showErrorDialog at 957, return at 960)')
 e('MainActivity.onStart', 'Dialogs.showErrorDialog(Context,int,Exception,OnClickListener)', 'CALL',
   'the plain-text vault file cannot be loaded: an error dialog is shown and onStart returns',
@@ -2055,7 +2059,7 @@ e('EntryHolder.setData', 'EntryHolder.setShowProgress', 'CALL',
 e('MainActivity.lambda$new$2', 'MainActivity.onScanResult', 'CALL', 'the scan result reaches the main screen: the launcher passes the intent on',
   guard='the result is RESULT_OK with data (MainActivity.java:152-154)', evidence='SRC ui/MainActivity.java:150-156')
 e('IconPacksManagerFragment.onViewCreated', 'IconPackAdapter.addIconPack', 'CALL', 'each icon pack already installed is added to the list',
-  guard='at least one icon pack is installed (IconPacksManagerFragment.java:103-105)', needs_state=ST_ICON_PACK_INSTALLED,
+  guard='at least one icon pack is installed (IconPacksManagerFragment.java:103-105)', env=ENV_ICON_PACK,
   evidence='SRC ui/fragments/preferences/IconPacksManagerFragment.java:103-105')
 e('IconPackManager.removeIconPack', 'IconPackException.<init>(Throwable)', 'CALL', 'the pack folder cannot be deleted: the removal fails with an IconPackException',
   guard='deleting the pack folder fails: the IOException from deleteDir (IconPackManager.java:56-58; deleteDir throws when File.delete returns false, IconPackManager.java:219-220)',
@@ -3209,7 +3213,7 @@ e('IconPackManager.importPack', 'IconPackExistsException.<init>', 'CALL', 'the p
 # G5 (stage 2): the pack load in rescanIconPacks carries its guard (this hand edge replaces the auto row for the pair)
 e('IconPackManager.rescanIconPacks', 'IconPack.fromBytes', 'CALL', 'each pack folder with a UUID name and a readable definition file is parsed at startup',
   guard='the icons dir lists files, the entry is a directory with a UUID name, its latest version dir is non-null, and the pack definition file opens (IconPackManager.java:136-158)',
-  needs_state=ST_ICON_PACK_INSTALLED,
+  env=ENV_ICON_PACK,
   evidence='SRC icons/IconPackManager.java:136-158 (bytecode line 158)')
 # stage 3 round 3, batch 1b (G5 route check): guards and states on auto CALL rows (a hand edge on the same pair replaces the auto row)
 e('IconPack.fromJson', 'IconPack$Icon.fromJson', 'CALL', 'each icon of the pack is parsed from its JSON entry',
@@ -3288,7 +3292,7 @@ e('ImportIconPackTask.onPostExecute', 'IconPacksManagerFragment.lambda$importIco
   evidence='SRC ui/tasks/ImportIconPackTask.java:54-61; SRC ui/fragments/preferences/IconPacksManagerFragment.java:134-154')
 gui('IconPacksManagerFragment.lambda$importIconPack$5', 'IconPacksManagerFragment.lambda$importIconPack$4',
     'Tap Yes in the icon pack exists dialog (the old pack is removed, then the import runs again)',
-    guard='the import failed with IconPackExistsException (IconPacksManagerFragment.java:136-137)', needs_state=ST_ICON_PACK_INSTALLED,
+    guard='the import failed with IconPackExistsException (IconPacksManagerFragment.java:136-137)', env=ENV_ICON_PACK,
     evidence=FW_CLICK + '; SRC ui/fragments/preferences/IconPacksManagerFragment.java:137-147')
 
 # generated Hilt base and Dagger parts that no app code calls (one group per kind)
