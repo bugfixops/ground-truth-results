@@ -26,3 +26,9 @@ Default used: **two default TOTP entries (SHA1, 6 digits, 30 s) in a password-pr
 
 ## Q7. Aegis settings sub-pages: PreferencesActivity opens each settings page with FragmentFactory.instantiate(getClassLoader(), pref.getFragment()) for the tapped header (PreferencesActivity.java:80-84). Is that reflection (library) or standard navigation?
 Default used: **standard navigation** (Kiro, 2026-11-06 05:02 UTC, W7). The checked cases Aegis-38 and Aegis-39 have source class gui ("Settings > Security reaches the same code without any gate", review/TASK_NOTE.md item 2), and their only route opens the Security page this way; the seven header edges are set to standard. All other reflection edges keep non_standard.
+
+## Q-W8-1 (Kiro, 2026-11-07): the "framework calls X after construction" edge family in AmazeFileManager
+135 hand edges carry the evidence "INFERRED framework calls <Class>.<method> after construction of <Class>" (for example MainActivity.<init> -> MainFragment.hide, RecyclerAdapter.<init> -> MainFragment.rename, BasicActivity.<init> -> MainActivity.onActivityResult). Several are false: the method is called by app code (an action mode item, a click) or by nobody. They shorten best routes and can make a gui route skip a step. Default used: only the edges on re-verified sampled routes were fixed (MainActivity.<init> -> MainFragment.hide dropped; the onNewIntent and onActivityResult entries gated). The other edges are kept. A decision is needed on whether to audit all 135.
+
+## Q-W8-2 (Kiro, 2026-11-07): the W7 pre-screen misses helper-call steps
+Edges such as RecyclerAdapter.onBindViewHolder -> GlideRequests.load(Integer) were not flagged, because the call sits in a helper (showThumbnailWithBackground, showRoundedThumbnail) that the edge's source method does not contain. Their guards are therefore not in guard_steps.csv. Default used: gates written by hand where a sampled route exposed one; no re-run of the pre-screen.

@@ -3843,7 +3843,7 @@ e('LoadFilesListTask.<init>', 'CloudPluginException.<init>', 'FRAMEWORK', 'Throw
 e('LoadFilesListTask.<init>', 'MainFragment.addToSmb', 'FRAMEWORK', 'LoadFilesListTask calls addToSmb for SMB files', evidence='INFERRED LoadFilesListTask calls addToSmb for SMB files; INFERRED framework calls LoadFilesListTask.loadlist after construction of LoadFilesListTask')
 e('MainActivity.<init>', 'MainFragment.getCurrentPath', 'FRAMEWORK', 'MainActivity calls getCurrentPath', evidence='INFERRED MainActivity calls getCurrentPath; INFERRED framework calls MainActivity.getCurrentPath after construction of MainActivity')
 e('MainActivity.<init>', 'MainFragment.getElementsList', 'FRAMEWORK', 'MainActivity calls getElementsList', evidence='INFERRED MainActivity calls getElementsList; INFERRED framework calls MainActivity.getElementsList after construction of MainActivity')
-e('MainActivity.<init>', 'MainFragment.hide', 'FRAMEWORK', 'MainActivity.hide calls MainFragment.hide', evidence='INFERRED MainActivity.hide calls MainFragment.hide; INFERRED framework calls MainActivity.hide after construction of MainActivity')
+# W8 DROPPED (Kiro): MainActivity has no hide method; MainFragment.hide is called only by the action mode item R.id.hide (MainFragment.java:708-711, edge MainFragment$3.onActionItemClicked -> MainFragment.hide): e('MainActivity.<init>', 'MainFragment.hide', 'FRAMEWORK', 'MainActivity.hide calls MainFragment.hide', evidence='INFERRED MainActivity.hide calls MainFragment.hide; INFERRED framework calls MainActivity.hide after construction of MainActivity')
 e('MainActivity.<init>', 'MainFragment.home', 'FRAMEWORK', 'MainActivity.home calls MainFragment.home', evidence='INFERRED MainActivity.home calls MainFragment.home; INFERRED framework calls MainActivity.home after construction of MainActivity')
 e('MainActivity.<init>', 'BottomBar.setClickListener', 'FRAMEWORK', 'Fragment change sets listeners', evidence='INFERRED Fragment change sets listeners; INFERRED framework calls MainActivity.onFragmentChangedListener after construction of MainActivity')
 e('MainActivity.<init>', 'BottomBar.resetClickListener', 'FRAMEWORK', 'Fragment change resets listeners', evidence='INFERRED Fragment change resets listeners; INFERRED framework calls MainActivity.onFragmentChangedListener after construction of MainActivity')
@@ -10201,3 +10201,136 @@ _W7_API_DEAD = ('MediaStoreHack.mkdir', 'MediaStoreHack.getTemporaryAlbumId', 'M
                 'CustomFileObserver$FileTimerTask.compare')
 # the hand edges into these methods are commented out above; the auto edges into them are suppressed here
 sup(*[(s, d) for s in ('FileUtil.mkdir', 'CustomFileObserver.startWatching') + _W7_API_DEAD for d in _W7_API_DEAD])
+# W8 re-verification (Kiro): three shortcut edges let changed sampled routes skip what the source needs.
+# (1) MainActivity.goToMain calls openCompressed only when openzip and zippath were set by an archive intent from
+#     another app (MainActivity.java:797-799); (2) MainActivity.onNewIntent runs only when MainActivity, a
+#     singleInstance activity, is started again from outside (a home-screen shortcut made by MainFragment.java:1586,
+#     or another app's intent); (3) MainActivity.onActivityResult runs only for a result of an activity MainActivity
+#     started (the system pickers), whatever edge leads to it (BasicActivity.<init> -> MainActivity.onActivityResult
+#     claims a result after any activity construction). Each gets the gate the source needs.
+_W8_ORIG_EDIT = EDIT
+_W8_PICKER = ('outside package: the system document picker returns a result to MainActivity (SAF folder access, OTG '
+              'or image requests started with startActivityForResult)')
+
+
+def EDIT(x):
+    _W8_ORIG_EDIT(x)
+    if x['src'] == 'MainActivity.goToMain' and x['dst'] == 'MainActivity.openCompressed' and not x.get('env'):
+        x['env'] = 'outside package: another app opens an archive with Amaze (ACTION_VIEW intent, openzip set; MainActivity.java:797-799)'
+        x['env_kinds'] = ['other_app']
+    if x['dst'] == 'MainActivity.onNewIntent' and not x.get('env'):
+        x['env'] = ('outside package: MainActivity (singleInstance) is started again from outside, by a home-screen '
+                    'shortcut (MainFragment.java:1586) or another app\'s intent, so onNewIntent runs')
+        x['env_kinds'] = ['other_app']
+    if x['dst'] == 'MainActivity.onActivityResult' and not x.get('env'):
+        x['env'], x['env_kinds'] = _W8_PICKER, ['other_app']
+# W8 re-verification (Kiro), second pass: three more steps on changed sampled routes lacked the gate their branch
+# needs: the process viewer opened by MainActivity$1.onPostExecute only with openProcesses (MainActivity.java:386-390,
+# a running operation's notification); the broadcast branch of the SMB subnet scan finds a host only on a network
+# with one; the thumbnail of an SFTP file needs a saved SFTP connection.
+_W8B_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _W8B_ORIG_EDIT(x)
+    k = (x['src'], x['dst'])
+    if k == ('MainActivity$1.onPostExecute', 'ProcessViewerFragment.<init>') and not x.get('needs_state'):
+        x['needs_state'] = 'a file operation service is running and its notification opens the process viewer (openProcesses)'
+        x['state_kinds'] = ['session']
+    if k == ('SubnetScanner.tryWithBroadcast', 'SubnetScanner.onFound') and not x.get('env'):
+        x['env'], x['env_kinds'] = 'network: an SMB host answers on the local subnet during the scan', ['network']
+    if k == ('CloudUtil.getThumbnailInputStreamForCloud', 'SshClientUtils.execute(SFtpClientTemplate)') and not x.get('needs_state'):
+        x['needs_state'] = 'a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none'
+        x['state_kinds'] = ['data']
+# W8 re-verification (Kiro), third pass: HybridFile.forEachChildrenFile lists an SFTP folder only in its SFTP case
+# (HybridFile.java:735-737), so its SFTP template call needs a saved SFTP connection too; both inner scan threads of
+# SubnetScanner (run() at :109 and the broadcast thread at :157) call onFound only after a host answered.
+_W8C_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _W8C_ORIG_EDIT(x)
+    k = (x['src'], x['dst'])
+    if k == ('HybridFile.forEachChildrenFile', 'SshClientUtils.execute(SFtpClientTemplate)') and not x.get('needs_state'):
+        x['needs_state'] = 'a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none'
+        x['state_kinds'] = ['data']
+    if k in (('SubnetScanner$1.run', 'SubnetScanner.onFound'), ('SubnetScanner.run', 'SubnetScanner.onFound')) and not x.get('env'):
+        x['env'], x['env_kinds'] = 'network: an SMB host answers on the local subnet during the scan', ['network']
+# W8 (Kiro), fourth pass: every SshClientUtils.execute(...) overload ends in the same step into
+# SshConnectionPool.getConnection, which needs a saved SSH connection (SshClientUtils.java:60-74; the baseline has
+# none). One gate on that shared step replaces gating each caller.
+_W8D_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _W8D_ORIG_EDIT(x)
+    if (x['src'].startswith('SshClientUtils.execute(') and x['dst'] == 'SshConnectionPool.getConnection(String)'
+            and not x.get('needs_state')):
+        x['needs_state'] = 'a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none'
+        x['state_kinds'] = ['data']
+# W8 (Kiro), fifth pass: EncryptDecryptUtils.decryptFile runs only when the tapped file is an encrypted .aze file
+# (MainFragment.java onListItemClicked checks the extension); the W7 gate sat on one caller only.
+_W8E_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _W8E_ORIG_EDIT(x)
+    if x['dst'] == 'EncryptDecryptUtils.decryptFile' and not x.get('needs_state'):
+        x['needs_state'] = 'an encrypted .aze file exists in the browsed folder (the baseline storage has none)'
+        x['state_kinds'] = ['file']
+# W8 (Kiro), sixth pass: SshAuthenticationTask connects to the SSH server before it authenticates, so every start of
+# the task (the connection pool create step) needs a reachable SSH server. The W7 gate sat on the execute step only,
+# which the SFTP dialog's "connect" flow does not pass.
+_W8F_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _W8F_ORIG_EDIT(x)
+    if x['dst'].startswith('SshAuthenticationTask.<init>') and not x.get('env'):
+        x['env'], x['env_kinds'] = 'network: an SSH server at the saved or typed host is reachable (SshAuthenticationTask connects first)', ['network']
+# W8 (Kiro), seventh pass: the Encrypt popup item acts on a file row (ItemPopupMenu.java:158-166), and the baseline
+# storage has no file, only folders; the W7 gate sat on the service entry only.
+_W8G_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _W8G_ORIG_EDIT(x)
+    if x['src'] == 'EncryptDecryptUtils.startEncryption' and x['dst'] == 'EncryptService.<init>' and not x.get('needs_state'):
+        x['needs_state'] = 'a file to encrypt exists in the browsed folder (the Encrypt item is for a file row); the baseline storage has none'
+        x['state_kinds'] = ['file']
+# W8 (Kiro), eighth pass: Drawer.onDrawerClosed opens a file only when the selected drawer entry points to a file
+# (hFile.isSimpleFile(), Drawer.java:536-541); the baseline drawer entries are folders and the app's own sections.
+_W8H_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _W8H_ORIG_EDIT(x)
+    if x['src'] == 'Drawer.onDrawerClosed' and x['dst'].startswith('FileUtils.openFile(File') and not x.get('needs_state'):
+        x['needs_state'] = 'a drawer bookmark that points to a file exists (hFile.isSimpleFile(), Drawer.java:536-541); the baseline bookmarks are folders'
+        x['state_kinds'] = ['data']
+# W8 (Kiro), ninth pass: RecyclerAdapter loads a drawable id with GlideRequests.load(Integer) only for the thumbnail
+# of an image, video or APK row (showRoundedThumbnail, RecyclerAdapter.java:716-735; showThumbnailWithBackground,
+# :595-608) or for the broken-image drawable. The baseline storage has no such file. These edges were not in the W7
+# guard_steps list (the pre-screen did not flag the helper calls), so the gate is written here.
+_W8I_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _W8I_ORIG_EDIT(x)
+    if x['src'].startswith('RecyclerAdapter') and x['dst'] == 'GlideRequests.load(Integer)' and not x.get('needs_state'):
+        x['needs_state'] = 'an image, video or APK file is in the browsed folder (its thumbnail row loads a drawable); the baseline storage has none'
+        x['state_kinds'] = ['file']
+
+
+# W8 (Kiro), tenth pass: CompressedExplorerFragment.changePath runs only while the archive viewer is open (the
+# BottomBar path buttons call it only for a CompressedExplorerFragment). Several W7 NONE judgments assumed a gate
+# earlier on the route that a route through BottomBar does not pass, so every edge into changePath carries the
+# archive state itself.
+_W8J_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _W8J_ORIG_EDIT(x)
+    if x['dst'] == 'CompressedExplorerFragment.changePath' and not x.get('needs_state'):
+        x['needs_state'] = 'an archive file exists and is open in the archive viewer; the baseline storage has none'
+        x['state_kinds'] = ['file']
