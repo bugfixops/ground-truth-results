@@ -980,9 +980,9 @@ e('MainActivity.showFragment(Class)', 'AccountListFragment.<init>', 'CALL',
   gui=['Open the navigation drawer and tap Accounts'],
   evidence='SRC home/MainActivity.java:633-634 (case R.id.menu_account); SRC home/MainActivity.java:734-752 (newInstance at 743); SRC home/MainActivity.java:863-866 (drawer item menu_account)')
 
-e('MainActivity.showFragment_Internal', 'AccountListFragment.onActivityCreated', 'FRAMEWORK',
-  'the drawer fragment is committed (replace at 1460-1462, commit at 1466); the FragmentManager calls onActivityCreated later, in the fragment lifecycle',
-  evidence='SRC home/MainActivity.java:1446-1466; INFERRED androidx FragmentManager calls onActivityCreated after the transaction commits (library not read)')
+# W4 REAUDIT (Kiro, MMEX-03): the plain edge MainActivity.showFragment_Internal -> AccountListFragment.onActivityCreated
+# is replaced by the @ACCOUNTS clone at the end of this file. The shared helper commits whatever fragment its caller
+# passed, so the plain edge let the Portfolio event route (a PortfolioFragment) reach the account list.
 
 e('AccountListFragment.onActivityCreated', 'S_ACCOUNT_LIST', 'ENTERS',
   'the Accounts list is shown in the main screen (the fragment is set up in onActivityCreated)',
@@ -6278,3 +6278,33 @@ def EDIT(x):
         x['needs_state'] = None
         x['state_kinds'] = []
         x['note'] = ((x.get('note') + ' | ') if x.get('note') else '') + _W2_CLEARED[_t]
+
+
+# ---- W4 REAUDIT (Kiro): rapid type analysis for bytecode cha edges (brief W1 T2) ----
+RTA = True
+
+
+# ---- W4 REAUDIT (Kiro): MMEX-03, showFragment_Internal cloned per caller ----
+# MainActivity.showFragment_Internal (MainActivity.java:1446-1466) commits the fragment its caller passed. Only the
+# drawer case R.id.menu_account (MainActivity.java:633-634; drawer child item at 863-866) passes an AccountListFragment
+# (created by showFragment(Class) with newInstance, line 743), so the edge to AccountListFragment.onActivityCreated is
+# moved onto an @ACCOUNTS copy of the helper chain, as was done for @RECURRING (graph_def_mod/03.py). The
+# AccountListActivity route (an exported entry) keeps its own edge (AccountListActivity.java:47-55).
+e('MainActivity.onDrawerMenuAndOptionMenuSelected', 'MainActivity.showFragment(Class)@ACCOUNTS', 'CALL',
+  'the Accounts drawer case calls showFragment(AccountListFragment.class)',
+  guard='item id == R.id.menu_account',
+  evidence='SRC home/MainActivity.java:633-634 (case; showFragment call)')
+e('MainActivity.showFragment(Class)@ACCOUNTS', 'MainActivity.showFragment(Fragment)@ACCOUNTS', 'CALL',
+  'showFragment(Class) creates (or finds) the account-list fragment and shows it via showFragment(Fragment)',
+  guard='fragmentClass != null AND resulting fragment != null',
+  evidence='SRC home/MainActivity.java:734-752 (null guard 735; newInstance 743; showFragment(fragment) 751)')
+e('MainActivity.showFragment(Fragment)@ACCOUNTS', 'MainActivity.showFragment(Fragment,String)@ACCOUNTS', 'CALL',
+  'showFragment(Fragment) shows the fragment with its class name as tag',
+  evidence='SRC home/MainActivity.java:758-759')
+e('MainActivity.showFragment(Fragment,String)@ACCOUNTS', 'MainActivity.showFragment_Internal@ACCOUNTS', 'CALL',
+  'showFragment(Fragment,String) shows the fragment via showFragment_Internal',
+  evidence='SRC home/MainActivity.java:768-770 (showFragment_Internal call 770)')
+e('MainActivity.showFragment_Internal@ACCOUNTS', 'AccountListFragment.onActivityCreated', 'FRAMEWORK',
+  'the Accounts drawer item reaches showFragment_Internal with the account-list fragment, which replaces fragmentMain and commits; the framework then calls onActivityCreated',
+  guard='fragment not already added',
+  evidence='SRC home/MainActivity.java:1446-1466 (not-added guard 1448; replace 1462; commit 1466); SRC home/MainActivity.java:633-634; INFERRED androidx FragmentManager calls onActivityCreated after the commit (library not read)')
