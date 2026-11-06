@@ -6469,3 +6469,39 @@ del _c, _read, _line
 
 # ---- W5 REAUDIT (Kiro): library inherits through reflective creation (brief W1 T3) ----
 ESR_CREATION = True
+
+
+# ---- W6 REAUDIT (Kiro): outside data the route consumes ----
+# Each entry puts an env gate on the edge that consumes data from outside the app; decisions and the
+# pattern sweep: graphs/Aegis/scratch/reaudit/outside_data.csv.
+_W6_ENV = {
+    ('Vault.fromJson', 'Vault.setGroupsMigrationFresh', 'CALL'):
+        ('other: data only an older app version writes: a vault entry in the old single-group format, which migrateOldGroup converts (Vault.java:76-80); this version writes the groups list (Vault.java:65-73)', ['other']),
+    ('VaultBackupManager.createBackup(File,BackupsVersioningStrategy,Uri,int)', 'VaultBackupManager.createBackup(File,Uri)', 'CALL'):
+        ('other_app: the backup file comes from the system document creator (ACTION_CREATE_DOCUMENT, BackupsPreferencesFragment.java:256); the single-backup strategy writes to that Uri (VaultBackupManager.java:75-76, 84-93)', ['other_app']),
+    ('VaultBackupManager.createBackup(File,BackupsVersioningStrategy,Uri,int)', 'VaultBackupManager.createBackup(File,Uri,int)', 'CALL'):
+        ('other_app: the backup folder comes from the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:264); the multiple-backups strategy writes into that tree Uri (VaultBackupManager.java:77-78, 110-135)', ['other_app']),
+    ('VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_STRATUM', 'ImportExportPreferencesFragment.lambda$new$0@FILE_STRATUM', 'RESULT'):
+        ('the system document picker of another app returns a file (ACTION_GET_CONTENT, ImportExportPreferencesFragment.java:110-112)', ['other_app']),
+    ('VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_TOTP', 'ImportExportPreferencesFragment.lambda$new$0@FILE_TOTP', 'RESULT'):
+        ('the system document picker of another app returns a file (ACTION_GET_CONTENT, ImportExportPreferencesFragment.java:110-112)', ['other_app']),
+    ('VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_FREEOTP', 'ImportExportPreferencesFragment.lambda$new$0@FILE_FREEOTP', 'RESULT'):
+        ('the system document picker of another app returns a file (ACTION_GET_CONTENT, ImportExportPreferencesFragment.java:110-112)', ['other_app']),
+    ('VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_TWOFAS', 'ImportExportPreferencesFragment.lambda$new$0@FILE_TWOFAS', 'RESULT'):
+        ('the system document picker of another app returns a file (ACTION_GET_CONTENT, ImportExportPreferencesFragment.java:110-112)', ['other_app']),
+    ('VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_AUTHPLUS', 'ImportExportPreferencesFragment.lambda$new$0@FILE_AUTHPLUS', 'RESULT'):
+        ('the system document picker of another app returns a file (ACTION_GET_CONTENT, ImportExportPreferencesFragment.java:110-112)', ['other_app']),
+    ('VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_AUTHY', 'ImportExportPreferencesFragment.lambda$new$0@FILE_AUTHY', 'RESULT'):
+        ('the system document picker of another app returns a file (ACTION_GET_CONTENT, ImportExportPreferencesFragment.java:110-112)', ['other_app']),
+    ('VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_ANDOTP', 'ImportExportPreferencesFragment.lambda$new$0@FILE_ANDOTP', 'RESULT'):
+        ('the system document picker of another app returns a file (ACTION_GET_CONTENT, ImportExportPreferencesFragment.java:110-112)', ['other_app']),
+}
+_W6_ORIG_EDIT = globals().get('EDIT')
+
+
+def EDIT(x):
+    if _W6_ORIG_EDIT:
+        _W6_ORIG_EDIT(x)
+    _g = _W6_ENV.get((x['src'], x['dst'], x['kind']))
+    if _g and not x.get('env'):
+        x['env'], x['env_kinds'] = _g[0], list(_g[1])
