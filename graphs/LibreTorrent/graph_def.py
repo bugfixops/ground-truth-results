@@ -4193,3 +4193,95 @@ e('AddLinkDialog.addLink', 'AddTorrentActivity.<clinit>', 'INTENT', 'Initialize 
 
 # ---- W4 REAUDIT (Kiro): rapid type analysis for bytecode cha edges (brief W1 T2) ----
 RTA = True
+
+
+# ---- W5 REAUDIT (Kiro): library inherits through reflective creation (brief W1 T3) ----
+ESR_CREATION = True
+
+# W5 (Kiro): edges a library or reflection makes, set to non_standard (decisions: graphs/LibreTorrent/scratch/reaudit/library_edges.csv)
+_W5_NONSTD = {
+    ('databinding.DataBinderMapperImpl.<init>', 'libretorrent.DataBinderMapperImpl.<init>', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'DialogGoToFolderBindingImpl.<clinit>', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'DialogGoToFolderBindingImpl.<init>(DataBindingComponent,View)', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'DialogLogFilterBindingImpl.<clinit>', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'DialogLogFilterBindingImpl.<init>(DataBindingComponent,View)', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'DialogSelectTagBindingImpl.<clinit>', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'DialogSelectTagBindingImpl.<init>(DataBindingComponent,View)', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'DrawerEmptyTagsListItemBindingImpl.<clinit>', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'DrawerEmptyTagsListItemBindingImpl.<init>(DataBindingComponent,View)', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'DrawerNoTagsListItemBindingImpl.<clinit>', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'DrawerNoTagsListItemBindingImpl.<init>(DataBindingComponent,View)', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'DrawerTagsListItemBindingImpl.<clinit>', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'DrawerTagsListItemBindingImpl.<init>(DataBindingComponent,View)', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'FragmentAddTorrentFilesBindingImpl.<clinit>', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'FragmentAddTorrentFilesBindingImpl.<init>(DataBindingComponent,View)', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'FragmentAddTorrentInfoBindingImpl.<clinit>', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'FragmentAddTorrentInfoBindingImpl.<init>(DataBindingComponent,View)', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'FragmentAddTorrentInfoBindingLargeLandNotouchImpl.<clinit>', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'FragmentAddTorrentInfoBindingLargeLandNotouchImpl.<init>(DataBindingComponent,View)', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'FragmentAddTorrentInfoBindingSw600dpLandImpl.<clinit>', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'FragmentAddTorrentInfoBindingSw600dpLandImpl.<init>(DataBindingComponent,View)', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'FragmentDetailTorrentBindingImpl.<clinit>', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'FragmentDetailTorrentBindingImpl.<init>(DataBindingComponent,View)', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'FragmentDetailTorrentFilesBindingImpl.<clinit>', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'FragmentDetailTorrentFilesBindingImpl.<init>(DataBindingComponent,View)', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'FragmentDetailTorrentInfoBindingImpl.<clinit>', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'FragmentDetailTorrentInfoBindingImpl.<init>(DataBindingComponent,View)', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'FragmentDetailTorrentPeerListBindingImpl.<clinit>', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'FragmentDetailTorrentPeerListBindingImpl.<init>(DataBindingComponent,View)', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'FragmentDetailTorrentPiecesBindingImpl.<clinit>', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'FragmentDetailTorrentPiecesBindingImpl.<init>(DataBindingComponent,View)', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'FragmentDetailTorrentStateBindingImpl.<clinit>', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'FragmentDetailTorrentStateBindingImpl.<init>(DataBindingComponent,View)', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'FragmentDetailTorrentTrackerListBindingImpl.<clinit>', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'FragmentDetailTorrentTrackerListBindingImpl.<init>(DataBindingComponent,View)', 'CALL'):
+        'data binding: the generated DataBinderMapperImpl creates the Binding class for the inflated layout (DataBindingUtil.inflate; mapper line cited in the evidence)',
+    ('FeedActivity.restoreFeedsBackup', 'FeedActivity.backupFeedsErrorDialog', 'CALL'):
+        'Rx: subscribe(onNext, this::backupFeedsErrorDialog) - RxJava calls the error consumer (ui/feeds/FeedActivity.java:359-370)',
+    ('FeedActivity.backupFeeds', 'FeedActivity.restoreFeedsBackupErrorDialog', 'CALL'):
+        'Rx: subscribe(onComplete, this::restoreFeedsBackupErrorDialog) - RxJava calls the error consumer (ui/feeds/FeedActivity.java:346-356)',
+}
+_W5_ORIG_EDIT = globals().get('EDIT')
+
+
+def EDIT(x):
+    if _W5_ORIG_EDIT:
+        _W5_ORIG_EDIT(x)
+    _via = _W5_NONSTD.get((x['src'], x['dst'], x['kind']))
+    if _via and x.get('edge_class') != 'non_standard':
+        x['edge_class'] = 'non_standard'
+        x['via'] = _via

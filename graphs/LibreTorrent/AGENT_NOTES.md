@@ -734,3 +734,4 @@ and is untouched here.
 ## Current step
 - 2026-11-06 04:24 UTC: Kiro (takeover from Muse), re-audit W3 done for LibreTorrent (launcher gates removed, 5 in-app INTENT edges, row-bind state; exported-entry routes 3918 -> 9); next W4 (RTA).
 - 2026-11-06 04:41 UTC: Kiro, re-audit W4 done for LibreTorrent (RTA on); next W5 (ESR_CREATION).
+- 2026-11-06 04:46 UTC: Kiro, re-audit W5 done for LibreTorrent (ESR_CREATION on; library_edges.csv); next W6 (outside data).
