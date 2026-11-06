@@ -759,3 +759,6 @@ the AmazeFileManager decisions operative at this writing are:
   the emulator router. This renews, and does not erase, the earlier
   Amaze cap acceptances. Routes 08 and 23 were converted to
   scripted in this round (system picker / throwaway SSH server).
+
+## Current step
+- 2026-11-06 04:19 UTC: Kiro (takeover from Muse), re-audit W2 done for AmazeFileManager (no first-run screen, both state texts kept, SETUP_ONLY empty, check_w2 PASS); next W3.

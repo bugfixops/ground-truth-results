@@ -9942,3 +9942,14 @@ for _gdmod_name in sorted(_gdmod_os.listdir(_gdmod_os.path.join(GDIR, 'graph_def
         _gdmod_path = _gdmod_os.path.join(GDIR, 'graph_def_mod', _gdmod_name)
         exec(compile(open(_gdmod_path, encoding='utf-8').read(), _gdmod_path, 'exec'))
 del _gdmod_os, _gdmod_name, _gdmod_path
+
+
+# ---- W2 REAUDIT (Kiro): baseline and setup-only screens ----
+# AmazeFileManager has no first-run screen: its pages are the main screen and
+# tabs, the storage permission prompt (S_PERM, a runtime-permission prompt,
+# which counts as a GUI action), settings, about, the text editor, the
+# database viewer, the drawer, dialogs, the service and exit. Its two state
+# texts (a saved SSH host key; a pending copy or cut) are not satisfied by the
+# baseline, so no gate is cleared. SETUP_ONLY therefore stays empty.
+# Decisions and source evidence: graphs/AmazeFileManager/scratch/reaudit/state_gates.csv.
+SETUP_ONLY = set()
