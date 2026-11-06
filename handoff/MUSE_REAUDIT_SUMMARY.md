@@ -31,7 +31,7 @@ Read with care: W2 removed the setup and baseline gates (Aegis's intro gates sat
 - W6: Aegis-46 (old vault format) and Aegis-47 (document-picker backup) env; 7 import-picker variants env.
 - W7 round 1: 1,124 flagged or unreadable steps; 189 NONE by rule, 935 PENDING; Q7 makes the settings sub-page navigation standard (Aegis-38, -39 gui).
 - Checked cases: 5 of 5 match their source class.
-- Routes re-verified: none yet (11 path warnings). Device: dry run 2 `42168202056-1` 25 PASS / 0 FAIL; real run requested. Reachable audit: 60 drawn, not checked.
+- Routes re-verified: none yet (11 path warnings). Device: dry run 2 `42168202056-1` 25 PASS / 0 FAIL; real run `42168580707-1` reached 1 of 25 (DEVICE rows wait for route re-verification). Reachable audit: 60 drawn, not checked.
 
 ## AmazeFileManager
 
@@ -42,7 +42,7 @@ Read with care: W2 removed the setup and baseline gates (Aegis's intro gates sat
 - W5: 12 XML-inflated constructors non_standard.
 - W6: 24 consuming edges env (SSH, stream servers, pickers, database upgrades; AmazeFileManager-12).
 - W7 round 1: 982 rows; 7 STATE, 1 ENV, 87 NONE, 887 PENDING (AmazeFileManager-01, -27, -46).
-- Checked cases: 6 of 6 match. Routes re-verified: none yet (9 path warnings). Device: dry run 2 30 / 0; real run requested. Reachable audit: 60 drawn, not checked.
+- Checked cases: 6 of 6 match. Routes re-verified: none yet (9 path warnings). Device: dry run 2 30 / 0; real run `42168580707-1` reached 0 of 30 (DEVICE rows wait for route re-verification). Reachable audit: 60 drawn, not checked.
 
 ## AnkiDroid
 
@@ -51,7 +51,7 @@ Read with care: W2 removed the setup and baseline gates (Aegis's intro gates sat
 - W5: 6 XML-inflated preference constructors non_standard.
 - W6: 9 consuming edges env (AnkiWeb sync, image picker, upgrades; AnkiDroid-34).
 - W7 round 1: 940 rows; 8 STATE, 119 NONE, 813 PENDING; database-error dialogs need a broken collection (AnkiDroid-07); S_PREFERENCES gets its page entry from Preferences.onCreate.
-- Checked cases: 2 of 2 match. Routes re-verified: none yet (46 path warnings). Device: dry run 2 30 / 0; real run requested. Reachable audit: 60 drawn, not checked.
+- Checked cases: 2 of 2 match. Routes re-verified: none yet (46 path warnings). Device: dry run 2 30 / 0; real run `42168580707-1` reached 0 of 30 (DEVICE rows wait for route re-verification). Reachable audit: 60 drawn, not checked.
 
 ## LibreTorrent
 
@@ -60,7 +60,7 @@ Read with care: W2 removed the setup and baseline gates (Aegis's intro gates sat
 - W3: launcher gates removed (Ef4711e98, E558b0012, E50191c30), 5 in-app starts, torrent-row bind needs data; exported-entry routes 3,918 -> 9.
 - W4: RTA dropped 1 edge, 0 lost. W5: 35 data-binding and 2 Rx edges non_standard. W6: stream server and Room migrations env.
 - W7 round 1: 794 rows; 3 STATE, 42 NONE, 749 PENDING (LibreTorrent-16, -19).
-- Checked cases: 4 of 4 match. Routes re-verified: none yet (24 path warnings). Device: dry run 2 29 / 0; real run requested. Reachable audit: 60 drawn, not checked.
+- Checked cases: 4 of 4 match. Routes re-verified: none yet (24 path warnings). Device: dry run 2 29 / 0; real run `42168580707-1` reached 6 of 29 (DEVICE rows wait for route re-verification). Reachable audit: 60 drawn, not checked.
 
 ## MMEX
 
@@ -69,7 +69,7 @@ Read with care: W2 removed the setup and baseline gates (Aegis's intro gates sat
 - W4: RTA dropped 0; MMEX-03 @ACCOUNTS clone of showFragment_Internal. W5: 2 XML-inflated views non_standard; MMEX-03 library.
 - W6: 6 consuming edges env (price and rate servers, backup picker, database upgrade; MMEX-38).
 - W7 round 1: 1,499 rows; 3 STATE, 66 NONE, 1,430 PENDING (MMEX-41, -49, -20).
-- Checked cases: 6 of 6 match. Routes re-verified: none yet (10 path warnings). Device: dry run 2 30 / 0; real run requested. Reachable audit: 60 drawn, not checked.
+- Checked cases: 6 of 6 match. Routes re-verified: none yet (10 path warnings). Device: dry run 2 30 / 0; real run `42168580707-1` reached 7 of 30 (DEVICE rows wait for route re-verification). Reachable audit: 60 drawn, not checked.
 
 ## Rounds
 
