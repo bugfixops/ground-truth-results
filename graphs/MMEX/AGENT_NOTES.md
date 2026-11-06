@@ -609,3 +609,6 @@ is attributed to Yang, and none is a user tick (the user ticks).
 - MainActivity.onEvent needs NO table amendment: it is not a judged
   route, and a 31st route would change the audited 30-route sample
   without a redraw + re-judge.
+
+## Current step
+- 2026-11-06 04:29 UTC: Kiro (takeover from Muse), re-audit W3 done for MMEX (no in-app start exists for any exported entry on a best route; no graph change); next W4 (RTA, MMEX-03).
