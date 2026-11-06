@@ -1,0 +1,16 @@
+# Review 2 fix 8 (Kiro): NONE rows that shared a batch reason, one step per line with its own reason.
+Ebe0bf90d ; NONE ; ; AndroidManifest.xml:43-55 ; launcher start: MainActivity has the MAIN/LAUNCHER filter (:43-55), so the launcher starts it and the framework calls onCreate
+E9278e2d5 ; NONE ; ; MainActivity.java:140-142 ; baseline: the launcher intent has no NOTIFY_ACTION_SHUTDOWN_APP action (:140-142), so onCreate does not finish and the framework calls onStart
+E11aae28f ; NONE ; ; MainActivity.java:140-150 ; baseline: the launcher intent has no NOTIFY_ACTION_SHUTDOWN_APP action (:140-142), so onCreate goes on to initLayout
+Eec7bf268 ; NONE ; ; TorrentService.java:184-191 ; baseline: the first start of TorrentService (isAlreadyRunning is false, :190) runs init; the engine starts the service when MainActivity opens, and no shutdown action is passed (:184-186)
+E33bc70d9 ; NONE ; ; TorrentSessionImpl.java:864,902-907 ; baseline: the session is not running yet when the engine starts it at app start (:864), so start reaches super.start (:907), which calls onBeforeStart
+Eaf8a73d4 ; NONE ; ; TorrentEngine.java:235-241 ; baseline: the engine is not running yet at app start (:235-236), so doStart subscribes the settings-change handler unconditionally (:240-241)
+Ec86728f9 ; NONE ; ; AndroidManifest.xml:32 ; process start: the framework creates MainApplication (:32) and calls onCreate when the app starts
+E72e54e02 ; NONE ; ; AddFeedActivity.java:54-66 ; GUI: the feeds screen's add button starts AddFeedActivity without ACTION_EDIT_FEED, so the else branch makes the add dialog (:62-63)
+E5f9b9a52 ; STATE ; data ; DetailTorrentViewModel.java:450-463 ; a torrent is in the session: the detail view model's mutable params exist only on the detail screen of a torrent; the baseline has none
+Efe109fed ; STATE ; data ; DetailTorrentViewModel.java:210-215 ; a torrent is in the session: updateInfo runs with the torrent's info on its detail screen (the file tree is built on the first update, :214-215); the baseline has none
+E3915b22f ; NONE ; ; AddTorrentViewModel.java:240-242,468-529 ; GUI: a typed magnet link sets the torrent info from the magnet alone (:240-242), so addTorrent passes its checks (:468-495) and starts the insert thread (:527)
+E7d8bf649 ; NONE ; ; AddTorrentViewModel.java:527-529 ; GUI: the insert thread started for a typed magnet link calls addTorrentSync unconditionally (:529)
+Ed404c00b ; NONE ; ; TorrentEngine.java:409-412 ; baseline: the engine runs while MainActivity is shown (isRunning, :409), so the typed magnet link is added to the session (:412)
+E4b2d603c ; NONE ; ; AddTorrentViewModel.java:231-237 ; GUI: a typed magnet link takes the MAGNET_PREFIX case (:231) and fetchMagnet is called (:237)
+E4f5cad2e ; NONE ; ; AddTorrentViewModel.java:274-276, AddTorrentActivity.java:319-323 ; GUI: a typed http:// link whose download fails ends in the ERROR state (the decode task returns the exception, :274-276), and ERROR calls onStopDecode (:319-323)
