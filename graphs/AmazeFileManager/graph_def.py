@@ -2324,8 +2324,8 @@ e('MainFragment.updateList', 'CustomFileObserver.startWatching', 'CALL', 'Starts
 e('MainFragment.updateList', 'CustomFileObserver.stopWatching', 'CALL', 'Stops previous observer before creating new one',
   evidence='SRC MainFragment.java:1192')
 
-e('CustomFileObserver.startWatching', 'CustomFileObserver.startPollingSystem', 'CALL', 'Uses polling on API 23 due to framework bug',
-  evidence='SRC CustomFileObserver.java:67')
+# W7 DEAD (closed_by_api_level, see the end of this file): e('CustomFileObserver.startWatching', 'CustomFileObserver.startPollingSystem', 'CALL', 'Uses polling on API 23 due to framework bug',
+#   evidence='SRC CustomFileObserver.java:67')
 
 e('CustomFileObserver.startWatching', 'CustomFileObserver.startWatching', 'FRAMEWORK', 'Calls super on other API levels',
   evidence='SRC CustomFileObserver.java:69')
@@ -2347,12 +2347,12 @@ e('CustomFileObserver.onEvent', 'CustomFileObserver$1.<init>', 'CALL', 'Creates 
 e('CustomFileObserver$1.run', 'CustomFileObserver.sendMessages', 'CALL', 'Deferred call to send buffered messages',
   evidence='SRC CustomFileObserver.java:113')
 
-e('CustomFileObserver.startPollingSystem', 'CustomFileObserver$FileTimerTask.<init>', 'CALL', 'Creates polling task for API 23',
-  evidence='SRC CustomFileObserver.java:155')
+# W7 DEAD (closed_by_api_level, see the end of this file): e('CustomFileObserver.startPollingSystem', 'CustomFileObserver$FileTimerTask.<init>', 'CALL', 'Creates polling task for API 23',
+#   evidence='SRC CustomFileObserver.java:155')
 
 
-e('CustomFileObserver$FileTimerTask.run', 'CustomFileObserver$FileTimerTask.compare', 'CALL', 'Compares file lists to detect changes',
-  evidence='SRC CustomFileObserver.java:173,176')
+# W7 DEAD (closed_by_api_level, see the end of this file): e('CustomFileObserver$FileTimerTask.run', 'CustomFileObserver$FileTimerTask.compare', 'CALL', 'Compares file lists to detect changes',
+#   evidence='SRC CustomFileObserver.java:173,176')
 
 e('CustomFileObserver$FileTimerTask.run', 'CustomFileObserver.onEvent', 'CALL', 'Reports detected changes as events',
   evidence='SRC CustomFileObserver.java:173,176')
@@ -8898,18 +8898,18 @@ e('FileUtil.getDocumentFile', 'MediaStoreHack.getUriFromFile', 'CALL', 'FileUtil
   evidence='SRC FileUtil.java:122')
 e('FileUtil.getOutputStream', 'MediaStoreHack.getOutputStream', 'CALL', 'FileUtil.getOutputStream calls MediaStoreHack.getOutputStream at line 184',
   evidence='SRC FileUtil.java:184')
-e('FileUtil.mkdir', 'MediaStoreHack.mkdir', 'CALL', 'FileUtil.mkdir calls MediaStoreHack.mkdir at line 511',
-  evidence='SRC FileUtil.java:511')
+# W7 DEAD (closed_by_api_level, see the end of this file): e('FileUtil.mkdir', 'MediaStoreHack.mkdir', 'CALL', 'FileUtil.mkdir calls MediaStoreHack.mkdir at line 511',
+#   evidence='SRC FileUtil.java:511')
 e('FileUtil.mkfile', 'MediaStoreHack.mkfile', 'CALL', 'FileUtil.mkfile calls MediaStoreHack.mkfile at line 581',
   evidence='SRC FileUtil.java:581')
-e('MediaStoreHack.mkdir', 'MediaStoreHack.getTemporaryAlbumId', 'CALL', 'mkdir calls getTemporaryAlbumId at line 237',
-  evidence='SRC MediaStoreHack.java:237')
-e('MediaStoreHack.mkdir', 'MediaStoreHack.delete', 'CALL', 'mkdir calls delete at line 253',
-  evidence='SRC MediaStoreHack.java:253')
-e('MediaStoreHack.getTemporaryAlbumId', 'MediaStoreHack.installTemporaryTrack', 'CALL', 'getTemporaryAlbumId calls installTemporaryTrack at line 141',
-  evidence='SRC MediaStoreHack.java:141')
-e('MediaStoreHack.installTemporaryTrack', 'MediaStoreHack.getExternalFilesDir', 'CALL', 'installTemporaryTrack calls getExternalFilesDir at line 208',
-  evidence='SRC MediaStoreHack.java:208')
+# W7 DEAD (closed_by_api_level, see the end of this file): e('MediaStoreHack.mkdir', 'MediaStoreHack.getTemporaryAlbumId', 'CALL', 'mkdir calls getTemporaryAlbumId at line 237',
+#   evidence='SRC MediaStoreHack.java:237')
+# W7 DEAD (closed_by_api_level, see the end of this file): e('MediaStoreHack.mkdir', 'MediaStoreHack.delete', 'CALL', 'mkdir calls delete at line 253',
+#   evidence='SRC MediaStoreHack.java:253')
+# W7 DEAD (closed_by_api_level, see the end of this file): e('MediaStoreHack.getTemporaryAlbumId', 'MediaStoreHack.installTemporaryTrack', 'CALL', 'getTemporaryAlbumId calls installTemporaryTrack at line 141',
+#   evidence='SRC MediaStoreHack.java:141')
+# W7 DEAD (closed_by_api_level, see the end of this file): e('MediaStoreHack.installTemporaryTrack', 'MediaStoreHack.getExternalFilesDir', 'CALL', 'installTemporaryTrack calls getExternalFilesDir at line 208',
+#   evidence='SRC MediaStoreHack.java:208')
 
 # UNREACHABLE methods from this batch
 UNREACHABLE_BATCH_048 = {
@@ -10176,3 +10176,28 @@ def EDIT(x):
             x['needs_state'], x['state_kinds'] = _g[1], list(_g[2])
         elif _g[0] == 'ENV' and not x.get('env'):
             x['env'], x['env_kinds'] = _g[1], list(_g[2])
+# W7 round 2 (DEAD rows): two steps run only on another API level, so the methods behind them are closed on the
+# standard API 27 config (closed_by_api_level, the config class of review/TASK_NOTE.md).
+_W7_K = ('FileUtil.mkdir calls MediaStoreHack.mkdir only when Build.VERSION.SDK_INT == KITKAT (API 19, FileUtil.java:509-511); '
+         'the standard config is API 27, so %s never runs there')
+_W7_K_REF = 'SRC com/amaze/filemanager/filesystem/FileUtil.java:509-511; SRC com/amaze/filemanager/filesystem/MediaStoreHack.java'
+for _m, _why in (('MediaStoreHack.mkdir', 'it'),
+                 ('MediaStoreHack.getTemporaryAlbumId', 'it (its only caller is MediaStoreHack.mkdir)'),
+                 ('MediaStoreHack.installTemporaryTrack', 'it (its only caller is getTemporaryAlbumId)'),
+                 ('MediaStoreHack.getExternalFilesDir', 'it (its only caller is installTemporaryTrack)'),
+                 ('MediaStoreHack.delete', 'it (its only caller is MediaStoreHack.mkdir)')):
+    UNREACHABLE[_m] = ('closed_by_api_level', _W7_K % _why, _W7_K_REF, 'SOURCE')
+_W7_M = ('CustomFileObserver.startWatching calls startPollingSystem only when Build.VERSION.SDK_INT == M (API 23, '
+         'CustomFileObserver.java:66-67), otherwise FileObserver.startWatching; the standard config is API 27, so %s never runs there')
+_W7_M_REF = 'SRC com/amaze/filemanager/filesystem/CustomFileObserver.java:66-70'
+for _m, _why in (('CustomFileObserver.startPollingSystem', 'it'),
+                 ('CustomFileObserver$FileTimerTask.<init>', 'it (created only in startPollingSystem)'),
+                 ('CustomFileObserver$FileTimerTask.run', 'it (the timer task exists only after startPollingSystem)'),
+                 ('CustomFileObserver$FileTimerTask.compare', 'it (called only from FileTimerTask.run)')):
+    UNREACHABLE[_m] = ('closed_by_api_level', _W7_M % _why, _W7_M_REF, 'SOURCE')
+_W7_API_DEAD = ('MediaStoreHack.mkdir', 'MediaStoreHack.getTemporaryAlbumId', 'MediaStoreHack.installTemporaryTrack',
+                'MediaStoreHack.getExternalFilesDir', 'MediaStoreHack.delete', 'CustomFileObserver.startPollingSystem',
+                'CustomFileObserver$FileTimerTask.<init>', 'CustomFileObserver$FileTimerTask.run',
+                'CustomFileObserver$FileTimerTask.compare')
+# the hand edges into these methods are commented out above; the auto edges into them are suppressed here
+sup(*[(s, d) for s in ('FileUtil.mkdir', 'CustomFileObserver.startWatching') + _W7_API_DEAD for d in _W7_API_DEAD])

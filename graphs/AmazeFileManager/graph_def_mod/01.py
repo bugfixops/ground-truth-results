@@ -4322,13 +4322,13 @@ e('CustomFileObserver.onEvent', 'CustomFileObserver.sendMessages', 'CALL',
   'onEvent calls sendMessages',
   evidence='SRC filesystem/CustomFileObserver.java:126')
 
-e('CustomFileObserver$FileTimerTask.<init>', 'CustomFileObserver$FileTimerTask.run', 'FRAMEWORK',
-  'ScheduledExecutorService calls Runnable.run',
-  evidence='FW-SRC java/util/concurrent/ScheduledExecutorService.java')
+# W7 DEAD (closed_by_api_level, see the end of graph_def.py): e('CustomFileObserver$FileTimerTask.<init>', 'CustomFileObserver$FileTimerTask.run', 'FRAMEWORK',
+#   'ScheduledExecutorService calls Runnable.run',
+#   evidence='FW-SRC java/util/concurrent/ScheduledExecutorService.java')
 
-e('CustomFileObserver$FileTimerTask.run', 'CustomFileObserver$FileTimerTask.compare', 'CALL',
-  'run calls compare to detect file changes',
-  evidence='SRC filesystem/CustomFileObserver.java:191-197')
+# W7 DEAD (closed_by_api_level, see the end of graph_def.py): e('CustomFileObserver$FileTimerTask.run', 'CustomFileObserver$FileTimerTask.compare', 'CALL',
+#   'run calls compare to detect file changes',
+#   evidence='SRC filesystem/CustomFileObserver.java:191-197')
 
 e('Operations.rename', 'Operations$3.<init>', 'CALL',
   'rename creates anonymous AsyncTask',
