@@ -6330,3 +6330,46 @@ def EDIT(x):
     if _via and x.get('edge_class') != 'non_standard':
         x['edge_class'] = 'non_standard'
         x['via'] = _via
+
+
+# ---- W6 REAUDIT (Kiro): outside data the route consumes ----
+# Each entry puts an env gate on the edge that consumes data from outside the app; decisions and the
+# pattern sweep: graphs/MMEX/scratch/reaudit/outside_data.csv.
+_W6_ENV = {
+    ('YqlSecurityPriceUpdaterRetrofit.downloadPrices', 'YqlSecurityPriceUpdaterRetrofit$1.onResponse', 'FRAMEWORK'):
+        ('network: the Yahoo YQL price server answers the Retrofit request (yql.getPrices(query).enqueue, YqlSecurityPriceUpdaterRetrofit.java:89-103)', ['network']),
+    ('DatabaseSettingsFragment.requestBackup', 'DatabaseSettingsFragment.onActivityResult', 'RESULT'):
+        ('other_app: the system document creator returns the backup file location (ACTION_CREATE_DOCUMENT, DatabaseSettingsFragment.java:213-218)', ['other_app']),
+}
+_W6_ORIG_EDIT = globals().get('EDIT')
+
+
+def EDIT(x):
+    if _W6_ORIG_EDIT:
+        _W6_ORIG_EDIT(x)
+    _g = _W6_ENV.get((x['src'], x['dst'], x['kind']))
+    if _g and not x.get('env'):
+        x['env'], x['env_kinds'] = _g[0], list(_g[1])
+# W6 (Kiro), network and servers: rules matched on the edge (decisions in outside_data.csv).
+_W6_RULES = [
+    ('YahooCsvQuoteDownloaderRetrofit.downloadPrices', 'YahooCsvQuoteDownloaderRetrofit$1.onResponse', 'FRAMEWORK',
+     'network: the Yahoo CSV quote server answers the Retrofit request (service.getPrice(symbol).enqueue, YahooCsvQuoteDownloaderRetrofit.java:70-84)', ['network']),
+    ('FixerService.downloadPrices', 'FixerService$1.onResponse', 'FRAMEWORK',
+     'network: the Fixer exchange-rate server answers the Retrofit request (service.getPrices(...).enqueue, FixerService.java:78-93)', ['network']),
+    ('FixerService.downloadPrices', 'FixerService$1.onFailure', 'FRAMEWORK',
+     'network: the exchange-rate request is sent and fails before a response (no connection, timeout or server error; FixerService.java:83-93)', ['network']),
+    ('MmxOpenHelper.getReadableDatabase', 'MmxOpenHelper.onUpgrade', 'CALL',
+     'data only an older app version writes: a database file with an older schema version; SQLiteOpenHelper calls onUpgrade only when the stored version is lower (MmxOpenHelper.onUpgrade; FW-SRC core/java/android/database/sqlite/SQLiteOpenHelper.java:354-365)', ['other']),
+]
+_W6B_ORIG_EDIT = globals().get('EDIT')
+
+
+def EDIT(x):
+    if _W6B_ORIG_EDIT:
+        _W6B_ORIG_EDIT(x)
+    if x.get('env'):
+        return
+    for _src, _dst, _kind, _text, _kinds in _W6_RULES:
+        if x['kind'] == _kind and x['src'].split('@')[0] == _src and x['dst'].split('@')[0] == _dst:
+            x['env'], x['env_kinds'] = _text, list(_kinds)
+            return
