@@ -6465,3 +6465,7 @@ for _c, (_read, _line) in _W4_NOT_DIRECT.items():
         'UnsupportedOperationException (%s.java:%d-%d)' % (_c, _c, _line, _line + 2),
         'importers/%s.java:%d' % (_c, _line), 'SOURCE')
 del _c, _read, _line
+
+
+# ---- W5 REAUDIT (Kiro): library inherits through reflective creation (brief W1 T3) ----
+ESR_CREATION = True
