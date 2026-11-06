@@ -30,7 +30,8 @@
 
 ## Per-route verdicts (in sample order)
 
-### 1. DbModule_ProvideSqlBriteFactory.get — NONSTD, 31 steps — WRONG (re-verified 2026-11-06; first verification: CORRECT)
+### 1. DbModule_ProvideSqlBriteFactory.get — NONSTD, 27 steps — CORRECT (re-verified 2026-11-06; first verification: CORRECT)
+- Re-verified 2026-11-06 (Kiro, self-checked only, second: pending reviewer): review 2 fix 3: the shared AbsListFragment$1 listener no longer dispatches from the account list to the other lists (graph_def.py cut), so the route is again the first-verification route: drawer Budgets item (MainActivity.java:936-963, BudgetsActivity), a budget row (state: a budget exists, S_BUDGETS -> BudgetListFragment.onListItemClick), the budget detail loader and BudgetAdapter.getActualAmount -> getAmountForCategory (state: a budget entry, BudgetAdapter.java:208-213) -> loadTotalFor -> DbModule_ProvideDatabaseFactory.get -> DbModule_ProvideSqlBriteFactory.get. Steps 5-27 read; the class is state.
 - Re-verified 2026-11-06 (Kiro, self-checked only, second: pending reviewer): step 15 is AbsListFragment$1.onItemClick -> BudgetListFragment.onListItemClick, but the list on the route is the account list (S_ACCOUNT_LIST, steps 13-14): the shared AbsListFragment listener dispatches to the fragment that owns the list, so a tap on an account row cannot reach BudgetListFragment. The graph has one listener node for every AbsListFragment subclass, so the best route mixes receivers. The old route went through the Budgets drawer item and now needs a budget (state).
 - Steps 1-27 CORRECT. Drawer @GROUP prefix verified (Budgets group,
   null children, item menu_budgets); Dagger Lazy/Provider tail

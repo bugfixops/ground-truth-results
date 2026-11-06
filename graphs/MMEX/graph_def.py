@@ -6449,3 +6449,26 @@ def EDIT(x):
     _W8_SYNC_ORIG_EDIT(x)
     if x['src'].startswith('SyncManager.invokeSyncService@') and not x.get('env'):
         x['env'], x['env_kinds'] = _W8_REMOTE, ['other_app', 'network']
+# Review 2 fix 3 (Kiro): the shared list listener AbsListFragment$1.onItemClick is entered only from the account list
+# (S_ACCOUNT_LIST), and it dispatches to the fragment that owns the list (AbsListFragment.java:42-45). Its CHA fan-out to
+# the other lists' onListItemClick let an account-row tap reach BudgetListFragment (58 routes, the DbModule route of the
+# W8 sample). Same judgement cut as the payee list above: each of those lists reaches its own onListItemClick through
+# its own page edge. Those page edges get the row their list needs.
+sup(('AbsListFragment$1.onItemClick', 'BudgetListFragment.onListItemClick'),
+    ('AbsListFragment$1.onItemClick', 'PayeeReportFragment.onListItemClick'),
+    ('AbsListFragment$1.onItemClick', 'RecurringTransactionListFragment.onListItemClick'),
+    ('AbsListFragment$1.onItemClick', 'CategoriesReportFragment.onListItemClick'),
+    ('AbsListFragment$1.onItemClick', 'CurrencyListFragment.onListItemClick'),
+    ('AbsListFragment$1.onItemClick', 'AbsListFragment.onListItemClick'))
+_R2_ROWS_ORIG_EDIT = EDIT
+_R2_ROWS = {
+    'S_RECURRING_LIST': ('a recurring transaction exists (a row of the recurring list); the baseline has none', 'data'),
+    'S_PAYEE_REPORT': ('a payee with transactions exists (a row of the payee report); the baseline has none', 'data'),
+    'S_CATEGORIES_REPORT': ('transactions with categories exist (a row of the categories report); the baseline account has no transactions', 'data'),
+}
+
+
+def EDIT(x):
+    _R2_ROWS_ORIG_EDIT(x)
+    if x['kind'] == 'GUI' and x['src'] in _R2_ROWS and x['dst'].endswith('.onListItemClick') and not x.get('needs_state'):
+        x['needs_state'], x['state_kinds'] = _R2_ROWS[x['src']][0], [_R2_ROWS[x['src']][1]]
