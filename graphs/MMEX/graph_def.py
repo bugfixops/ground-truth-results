@@ -6308,3 +6308,25 @@ e('MainActivity.showFragment_Internal@ACCOUNTS', 'AccountListFragment.onActivity
   'the Accounts drawer item reaches showFragment_Internal with the account-list fragment, which replaces fragmentMain and commits; the framework then calls onActivityCreated',
   guard='fragment not already added',
   evidence='SRC home/MainActivity.java:1446-1466 (not-added guard 1448; replace 1462; commit 1466); SRC home/MainActivity.java:633-634; INFERRED androidx FragmentManager calls onActivityCreated after the commit (library not read)')
+
+
+# ---- W5 REAUDIT (Kiro): library inherits through reflective creation (brief W1 T3) ----
+ESR_CREATION = True
+
+# W5 (Kiro): edges a library or reflection makes, set to non_standard (decisions: graphs/MMEX/scratch/reaudit/library_edges.csv)
+_W5_NONSTD = {
+    ('CalculatorActivity.onCreate', 'RobotoButton.<init>(Context,AttributeSet)', 'FRAMEWORK'):
+        'XML inflation: LayoutInflater builds this view from its XML tag through the (Context, AttributeSet) constructor (layout XML cited in the evidence)',
+    ('SearchParametersFragment.onCreateView', 'RobotoCheckBox.<init>(Context,AttributeSet)', 'FRAMEWORK'):
+        'XML inflation: LayoutInflater builds this view from its XML tag through the (Context, AttributeSet) constructor (layout XML cited in the evidence)',
+}
+_W5_ORIG_EDIT = globals().get('EDIT')
+
+
+def EDIT(x):
+    if _W5_ORIG_EDIT:
+        _W5_ORIG_EDIT(x)
+    _via = _W5_NONSTD.get((x['src'], x['dst'], x['kind']))
+    if _via and x.get('edge_class') != 'non_standard':
+        x['edge_class'] = 'non_standard'
+        x['via'] = _via

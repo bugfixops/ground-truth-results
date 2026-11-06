@@ -613,3 +613,4 @@ is attributed to Yang, and none is a user tick (the user ticks).
 ## Current step
 - 2026-11-06 04:29 UTC: Kiro (takeover from Muse), re-audit W3 done for MMEX (no in-app start exists for any exported entry on a best route; no graph change); next W4 (RTA, MMEX-03).
 - 2026-11-06 04:41 UTC: Kiro, re-audit W4 done for MMEX (RTA on; MMEX-03 @ACCOUNTS clone); next W5 (ESR_CREATION).
+- 2026-11-06 04:46 UTC: Kiro, re-audit W5 done for MMEX (ESR_CREATION on; library_edges.csv); next W6 (outside data).
