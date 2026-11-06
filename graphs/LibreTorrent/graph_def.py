@@ -9,6 +9,17 @@ STRICT = True
 USE_AUTO = True
 PREFER_SETUP_OVER_ENV = True
 
+# W2 (re-audit, 2026-11-06): first-run / setup-only check for LibreTorrent.
+# The app has no intro, tutorial, welcome or onboarding screens and no
+# first-run flags: find over final_java_only/LibreTorrent for
+# *intro*/*tutorial*/*welcome*/*firstrun*/*onboard* files and grep for
+# first_run/firstRun/isFirstLaunch in the app source both printed nothing,
+# and the graph has the single screen S_ENTRY. SETUP_ONLY is therefore
+# empty for this app. The one needs_state text on a REACHABLE best route
+# ("adapter.getItemCount() > 0", 2 methods) is kept as state; see
+# graphs/LibreTorrent/scratch/reaudit/state_gates.csv.
+SETUP_ONLY = set()
+
 # These bytecode call pairs have no route-bearing caller.  Suppress them from
 # the inventory-derived auto edges after confirming their source call sites.
 SUPPRESS = {
