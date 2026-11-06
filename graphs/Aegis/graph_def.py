@@ -6363,3 +6363,53 @@ e('MainActivity.lambda$startAssignGroupsDialog$15', 'MainActivity.saveAndBackupV
   evidence='SRC MainActivity.java:594 (bytecode)')
 e('MainActivity.saveAndBackupVault', 'AegisActivity.saveAndBackupVault', 'CALL', 'Direct call',
   evidence='SRC MainActivity.java:1371 (bytecode)')
+
+
+# ---- W2 REAUDIT (Kiro): baseline and setup-only screens (appended at the end,
+# so EDIT below wraps the EDIT defined above) ----
+# Baseline for Aegis (review/TASK_NOTE.md): the onboarding is passed and the
+# vault holds two entries; the setup vault is password-protected (unlocking is
+# typing the password, a GUI action: MUSE_REAUDIT_QUESTIONS.md Q3) and the two
+# entries are default TOTP entries (Q6). Baseline state never counts as state,
+# so the gates the baseline satisfies are cleared in EDIT below, with the
+# reason in the edge note. The four intro pages are only shown during the
+# first-run setup, so they go into SETUP_ONLY (their gate texts are kept).
+# Per-text decisions and source evidence: graphs/Aegis/scratch/reaudit/state_gates.csv.
+SETUP_ONLY = {'S_INTRO_WELCOME', 'S_INTRO_PICKER', 'S_INTRO_SETUP', 'S_INTRO_DONE'}
+
+_W2_CLEARED = {
+    'The intro security picker chose none, so the setup slide is skipped (IntroActivity.java:50-55)':
+        'baseline: the onboarding (first-run setup) is passed; the intro picker branch belongs to that setup, and the intro pages are in SETUP_ONLY (IntroActivity.java:50-55)',
+    'The Welcome slide did not import a vault in this intro run (intro state "imported" is false, IntroActivity.java:86-100)':
+        'baseline: the onboarding is passed with a new vault, not an imported one; the intro Done branch belongs to the setup, and the intro pages are in SETUP_ONLY (IntroActivity.java:86-100)',
+    'The vault is loaded in this process and has not been locked since':
+        'baseline: the setup vault exists; a normal start reads it and, when it is encrypted, opens AuthActivity, where unlocking is typing the password (a GUI action, Q3) (MainActivity.java:950-976)',
+    'This MainActivity instance has loaded the entry list (loadEntries ran)':
+        'baseline: once the vault is loaded, MainActivity.onStart calls loadEntries on the normal start, which sets the entries of the list (MainActivity.java:991-992; MainActivity.java:1133-1138)',
+    'A vault file exists in the app data (created by an earlier intro run; MainActivity.onStart reads it)':
+        'baseline: the onboarding created the vault file, which MainActivity.onStart reads (MainActivity.java:950-953)',
+    'The vault holds a TOTP or HOTP entry with SHA-1 and 6 digits, so the Google Authenticator export is not empty (ImportExportPreferencesFragment.java:352-363)':
+        'baseline: the vault holds two entries; a new entry defaults to TOTP with SHA1 and 6 digits (Q6), so the export list is not empty (ImportExportPreferencesFragment.java:352-360; VaultEntry.java:253-255; OtpInfo.java:14-15)',
+    'At least one entry row is bound, so EntryAdapter.onBindViewHolder has added an EntryHolder to _holders (EntryAdapter.java:569)':
+        'baseline: the vault holds two entries, so the list binds their rows when the main screen shows them (EntryAdapter.java:569; MainActivity.java:1137)',
+    'The vault holds at least one entry (the loop in Vault.toJson(EntryFilter) runs, Vault.java:9-12)':
+        'baseline: the setup vault holds two entries, so the loop in Vault.toJson runs (Vault.java:9-12)',
+    'The vault has a password slot (the intro chose the password security)':
+        'baseline: the setup vault is password-protected (Q3), so it has a password slot (AuthActivity.java:172-174 (unlock with the password slots); MUSE_REAUDIT_QUESTIONS.md Q3)',
+    'the entry list passed in is not empty: the for loop at EntryAdapter.java:301 runs once per entry':
+        'baseline: the setup vault holds two entries, so loadEntries passes a non-empty list (EntryAdapter.java:301; MainActivity.java:1137)',
+    'The vault is encrypted: VaultRepository.isEncryptionEnabled is true (the vault has credentials, VaultRepository.java:352-354), so a save writes crypt parameters (VaultRepository.java:119-121)':
+        'baseline: the setup vault is password-protected (Q3), so it has credentials and isEncryptionEnabled is true (VaultRepository.java:352-354)',
+    'An AegisActivity is open and registered as a lock listener (AegisActivity.java:77)':
+        'baseline: every AegisActivity registers itself as a lock listener in onCreate, so any open app screen satisfies it (AegisActivity.java:76-77)',
+}
+_W2_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _W2_ORIG_EDIT(x)
+    _t = x.get('needs_state')
+    if _t in _W2_CLEARED:
+        x['needs_state'] = None
+        x['state_kinds'] = []
+        x['note'] = ((x.get('note') + ' | ') if x.get('note') else '') + _W2_CLEARED[_t]

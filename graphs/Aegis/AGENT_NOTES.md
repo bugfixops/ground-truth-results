@@ -924,3 +924,6 @@ Totals: 25 ERROR steps over 12 routes (detailedmulti 25 and 26 not counted). Ten
 - Branch graphs/Aegis/scratch/route_table.md (blob 578e395d, pre-fix table: CORRECT 14 / WRONG 1 / UNCLEAR 10, sole WRONG RawSlot) STAYS untouched by this assembly.
 - ROUTE_TABLE_NEW.md sits ALONGSIDE it (graphs/Aegis/scratch/ROUTE_TABLE_NEW.md in the push layout) and supersedes it by name; the promoted writer reads ROUTE_TABLE_NEW.md.
 - Nothing is overwritten or deleted by this assembly. This helper pushed nothing and edited no branch file; these assembled files are staging outputs for independent audit before they enter staging.
+
+## Current step
+- 2026-11-06 04:18 UTC: Kiro (takeover from Muse), re-audit W2 done for Aegis (state_gates.csv, SETUP_ONLY = four intro pages, check_w2 PASS); next W3 (in-app routes instead of exported or external entries).

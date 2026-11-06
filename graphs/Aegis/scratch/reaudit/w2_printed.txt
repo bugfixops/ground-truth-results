@@ -1,0 +1,153 @@
+== ui/MainActivity.java:755-780
+755: 
+756:     private void checkTimeSyncSetting() {
+757:         boolean autoTime = Settings.Global.getInt(getContentResolver(), Settings.Global.AUTO_TIME, 1) == 1;
+758:         if (!autoTime && _prefs.isTimeSyncWarningEnabled()) {
+759:             Dialogs.showTimeSyncWarningDialog(this, (dialog, which) -> {
+760:                 Intent intent = new Intent(Settings.ACTION_DATE_SETTINGS);
+761:                 startActivity(intent);
+762:             });
+763:         }
+764:     }
+765: 
+766:     private void checkIconOptimization() {
+767:         if (!_vaultManager.getVault().areIconsOptimized()) {
+768:             Map<UUID, VaultEntryIcon> oldIcons = _vaultManager.getVault().getEntries().stream()
+769:                     .filter(e -> e.getIcon() != null
+770:                             && !e.getIcon().getType().equals(IconType.SVG)
+771:                             && !BitmapHelper.isVaultEntryIconOptimized(e.getIcon()))
+772:                     .collect(Collectors.toMap(VaultEntry::getUUID, VaultEntry::getIcon));
+773: 
+774:             if (!oldIcons.isEmpty()) {
+775:                 IconOptimizationTask task = new IconOptimizationTask(this, this::onIconsOptimized);
+776:                 task.execute(getLifecycle(), oldIcons);
+777:             } else {
+778:                 onIconsOptimized(Collections.emptyMap());
+779:             }
+780:         }
+== vault/Vault.java:14-20
+14: public class Vault {
+15:     private static final int VERSION = 3;
+16:     private final UUIDMap<VaultEntry> _entries = new UUIDMap<>();
+17:     private final UUIDMap<VaultGroup> _groups = new UUIDMap<>();
+18:     private boolean _iconsOptimized = true;
+19: 
+20:     // Whether we've migrated the group list to the new format while parsing the vault
+== vault/Vault.java:80-97
+80:                 }
+81: 
+82:                 // check the vault has a group corresponding to each one the entry claims to be in
+83:                 for (UUID groupUuid: entry.getGroups()) {
+84:                     if (!groups.has(groupUuid)) {
+85:                         entry.removeGroup(groupUuid);
+86:                     }
+87:                 }
+88: 
+89:                 entries.add(entry);
+90:             }
+91: 
+92:             if (!obj.optBoolean("icons_optimized")) {
+93:                 vault.setIconsOptimized(false);
+94:             }
+95:         } catch (VaultEntryException | JSONException e) {
+96:             throw new VaultException(e);
+97:         }
+== ui/IntroActivity.java:45-105
+45:     protected boolean onBeforeSlideChanged(Class<? extends SlideFragment> oldSlide, @NonNull Class<? extends SlideFragment> newSlide) {
+46:         // hide the keyboard before every slide change
+47:         InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+48:         imm.hideSoftInputFromWindow(findViewById(android.R.id.content).getWindowToken(), 0);
+49: 
+50:         if (oldSlide == SecurityPickerSlide.class
+51:                 && newSlide == SecuritySetupSlide.class
+52:                 && getState().getInt("cryptType", CRYPT_TYPE_INVALID) == CRYPT_TYPE_NONE) {
+53:             skipToSlide(DoneSlide.class);
+54:             return true;
+55:         }
+56: 
+57:         if (oldSlide == WelcomeSlide.class
+58:                 && newSlide == SecurityPickerSlide.class
+59:                 && getState().getBoolean("imported")) {
+60:             skipToSlide(DoneSlide.class);
+61:             return true;
+62:         }
+63: 
+64:         // on the welcome page, we don't want the keyboard to push any views up
+65:         getWindow().setSoftInputMode(newSlide == WelcomeSlide.class
+66:                 ? WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING
+67:                 : WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+68: 
+69:         return false;
+70:     }
+71: 
+72:     @Override
+73:     protected void onAfterSlideChanged(@Nullable Class<? extends SlideFragment> oldSlide, @NonNull Class<? extends SlideFragment> newSlide) {
+74:         // If the user has enabled encryption, we need to request permission to show notifications
+75:         // in order to be able to show the "Vault unlocked" notification.
+76:         //
+77:         // NOTE: Disabled for now. See issue: #1047
+78:         /*if (newSlide == DoneSlide.class && getState().getSerializable("creds") != null) {
+79:             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+80:                 PermissionHelper.request(this, CODE_PERM_NOTIFICATIONS, Manifest.permission.POST_NOTIFICATIONS);
+81:             }
+82:         }*/
+83:     }
+84: 
+85:     @Override
+86:     protected void onDonePressed() {
+87:         Bundle state = getState();
+88: 
+89:         VaultFileCredentials creds = (VaultFileCredentials) state.getSerializable("creds");
+90:         if (!state.getBoolean("imported")) {
+91:             int cryptType = state.getInt("cryptType", CRYPT_TYPE_INVALID);
+92:             if (cryptType == CRYPT_TYPE_INVALID
+93:                     || (cryptType == CRYPT_TYPE_NONE && creds != null)
+94:                     || (cryptType == CRYPT_TYPE_PASS && (creds == null || !creds.getSlots().has(PasswordSlot.class)))
+95:                     || (cryptType == CRYPT_TYPE_BIOMETRIC && (creds == null || !creds.getSlots().has(PasswordSlot.class) || !creds.getSlots().has(BiometricSlot.class)))) {
+96:                 throw new RuntimeException(String.format("State of SecuritySetupSlide not properly propagated, cryptType: %d, creds: %s", cryptType, creds));
+97:             }
+98: 
+99:             try {
+100:                 _vaultManager.initNew(creds);
+101:             } catch (VaultRepositoryException e) {
+102:                 e.printStackTrace();
+103:                 Dialogs.showErrorDialog(this, R.string.vault_init_error, e);
+104:                 return;
+105:             }
+== ui/MainActivity.java:945-980
+945:             }
+946:             startIntroActivity();
+947:             return;
+948:         }
+949: 
+950:         // If the vault is not loaded yet, try to load it now in case it's plain text
+951:         if (!_vaultManager.isVaultLoaded()) {
+952:             VaultFile vaultFile;
+953:             try {
+954:                 vaultFile = VaultRepository.readVaultFile(this);
+955:             } catch (VaultRepositoryException e) {
+956:                 e.printStackTrace();
+957:                 Dialogs.showErrorDialog(this, R.string.vault_load_error, e, (dialog, which) -> {
+958:                     finish();
+959:                 });
+960:                 return;
+961:             }
+962: 
+963:             if (!vaultFile.isEncrypted()) {
+964:                 try {
+965:                     _vaultManager.loadFrom(vaultFile);
+966:                 } catch (VaultRepositoryException e) {
+967:                     e.printStackTrace();
+968:                     Dialogs.showErrorDialog(this, R.string.vault_load_error, e, (dialog, which) -> {
+969:                         finish();
+970:                     });
+971:                     return;
+972:                 }
+973:             }
+974:         }
+975: 
+976:         if (!_vaultManager.isVaultLoaded()) {
+977:             startAuthActivity(false);
+978:         } else if (_loaded) {
+979:             // update the list of groups in the entry list view so that the chip gets updated
+980:             setGroups(_vaultManager.getVault().getUsedGroups());
