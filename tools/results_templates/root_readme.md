@@ -47,7 +47,8 @@ A review on 3 November 2026 compared the labels of these five apps with an indep
   - virtual calls go only to types that some reachable method creates, plus hand fixes for calls that cannot happen;
   - callbacks of objects that only a library, XML or reflection creates are library;
   - data from other apps, servers and older app versions puts an env gate on the edge that consumes it.
-- **What is still open:** conditions (guards) on the routes. A pre-screen flags several thousand guarded steps on the routes of never-run methods, and most of them are not yet judged. **Until they are, the gui share is over-counted.**
+- **What round 2 changed:** conditions (guards) on the routes. A pre-screen flags the guarded steps on the routes of never-run methods; the steps used by the most never-run methods were judged from the source, about 90% of the flagged uses per app, and each judged condition is now a state or env gate (or a GUI step, or closed by the API level).
+- **What is still open:** the long tail of flagged steps (about 4,000, each used by few methods) is not yet judged, and the judgments are not yet checked by a second person. **Until the flagged guard steps are judged, the gui share is over-counted.**
 - **The 23 checked cases** from the review now all get the class the source supports, but they were fixed one by one, so they are not a measure of the overall error rate.
 - **Not yet measured:** the tuning-half agreement, the adjudication of disagreements, and the error rates of the reachable audit (drawn, not yet checked).
 - The held-out half of the sample is measured once by the reviewer.

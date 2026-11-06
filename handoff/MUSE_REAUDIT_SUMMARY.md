@@ -21,6 +21,21 @@ Classes follow `review/TASK_NOTE.md`; "before" is the CI output at `e0866b9c`, "
 
 Read with care: W2 removed the setup and baseline gates (Aegis's intro gates sat on about 1,500 best routes, AnkiDroid's sample-deck gates on about 1,600), and W7's guard work is mostly still open (4,814 flagged steps PENDING). Until those guards are judged, gui is over-counted: the review's "too much gui" finding is not yet fixed by this round.
 
+### After the reviewer's round-1 fixes and W7 round 2 (local builds, not yet CI)
+
+The try rule now counts every guard of a step line (242 rows back to PENDING), the LibreTorrent AndroidX vias are standard, and the flagged steps were judged in impact order (number of never-run targets using a step) until about 90% of the flagged target-uses per app were judged. A tool bug was found and fixed on the way: `guard_judge.py` had cut 43 judged STATE/ENV gate texts at a ';' and kept them off the graph; they are applied now (REAUDIT-W7-JUDGEFIX).
+
+| App | never-run | after round 2: dead / config / env / state / library / gui (%) | W7 judged rows | decision rows: NONE / STATE / ENV / DEAD / PENDING | flagged target-uses judged |
+|---|---|---|---|---|---|
+| Aegis | 2,244 | 20.8 / 0.0 / 21.1 / 16.7 / 8.6 / 32.8 | 155 | 240 / 14 / 15 / 0 / 858 | 95.8% |
+| AmazeFileManager | 1,849 | 24.1 / 1.0 / 7.5 / 7.1 / 3.4 / 56.9 | 398 | 377 / 38 / 25 / 4 / 538 | 89.8% |
+| AnkiDroid | 2,175 | 38.8 / 3.0 / 11.5 / 10.0 / 0.3 / 36.4 | 150 | 186 / 21 / 17 / 0 / 728 | 89.8% |
+| LibreTorrent | 2,652 | 27.8 / 0.9 / 6.3 / 27.1 / 35.2 / 2.6 | 202 | 195 / 19 / 11 / 0 / 569 | 89.3% |
+| MMEX | 3,999 | 20.8 / 0.2 / 3.7 / 11.2 / 14.3 / 49.9 | 189 | 205 / 19 / 12 / 0 / 1,268 | 89.5% |
+| weighted | | 27.4 / 1.2 / 9.2 / 14.7 / 13.2 / 34.3 | 1,094 | | |
+
+The PENDING rows that remain (3,961) are the long tail: each is used by few never-run targets (mostly 1 to 3), so together they hold about 10% of the flagged target-uses per app (4% for Aegis). Their gui share is still over-counted by at most that much. All judgments are self-checked only (second: pending reviewer). Two AmazeFileManager steps that run only on API 19 or 23 are DEAD, and the 9 methods behind them are UNREACHABLE closed_by_api_level.
+
 ## Aegis
 
 - CI `9371563e`: methods 2,995; REACHABLE 2,528; UNREACHABLE 467 (no_trigger_in_app 435, framework_never_calls 31, branch_never_taken 1).
