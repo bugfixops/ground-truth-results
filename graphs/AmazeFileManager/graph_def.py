@@ -10093,6 +10093,8 @@ _W6_RULES = [
      'data only an older app version writes: a database file with an older schema version; SQLiteOpenHelper calls onUpgrade only when the stored version is lower than the version the app asks for (FW-SRC core/java/android/database/sqlite/SQLiteOpenHelper.java:354-365)', ['other']),
     ('TabHandler.<init>', 'TabHandler.onDowngrade', 'LIFECYCLE',
      'other: data a newer app version writes: a tab database with a higher schema version; SQLiteOpenHelper calls onDowngrade only then (FW-SRC core/java/android/database/sqlite/SQLiteOpenHelper.java:354-365)', ['other']),
+    ('MainActivity.updateUsbInformation', 'SingletonUsbOtg.getUsbOtgRoot', 'CALL',
+     'hardware: a USB mass-storage device is connected (OTGUtil.getMassStorageDevicesConnected is not empty, MainActivity.java:1134-1137)', ['hardware']),
 ]
 _W6B_ORIG_EDIT = globals().get('EDIT')
 
@@ -10117,3 +10119,33 @@ def EDIT(x):
                     'connection from SshConnectionPool.getConnection (SshClientUtils.java:68-74, 94-102, 126-134)')
         x['env_kinds'] = ['network']
 
+
+
+# ---- W7 REAUDIT (Kiro), round 1: guard decisions written on the edges ----
+# Decisions and the pre-screen: graphs/AmazeFileManager/scratch/reaudit/guard_decisions.csv and guard_steps.csv
+# (tools_dev/guard_prescreen.py). Each entry: (src, dst, kind) -> (needs_state text, kinds).
+_W7_STATE = {
+    ('FileUtils.openFile(File,MainActivity,SharedPreferences)', 'DatabaseViewerActivity.<init>', 'INTENT'):
+        ('a database (.db) file exists in the browsed folder (openFile starts the viewer only for a .db file, FileUtils.java:755-757); the baseline storage has none', ['file']),
+    ('FileUtils.openFile(DocumentFile,MainActivity,SharedPreferences)', 'DatabaseViewerActivity.<init>', 'INTENT'):
+        ('a database (.db) file exists in the browsed folder (openFile starts the viewer only for a .db file, FileUtils.java:833-835); the baseline storage has none', ['file']),
+    ('FileUtils.openFile(File,MainActivity,SharedPreferences)', 'GeneralDialogCreation.showPackageDialog', 'CALL'):
+        ('an .apk file exists in the browsed folder (openFile shows the package dialog only for an .apk, FileUtils.java:751-753); the baseline storage has none', ['file']),
+    ('Drawer.onNavigationItemSelected', 'SingletonUsbOtg.getUsbOtgRoot', 'CALL'):
+        ('a drawer entry for a USB OTG location exists and is tapped (meta.path contains OTGUtil.PREFIX_OTG; the && evaluates getUsbOtgRoot only then, Drawer.java:579-581)', ['data']),
+    ('OTGUtil.getDocumentFile', 'SingletonUsbOtg.getUsbOtgRoot', 'CALL'):
+        ('a USB OTG location is open: OTGUtil reads the saved OTG root only for an OTG path (OTGUtil.java:96)', ['data']),
+    ('OTGUtil.getDocumentFiles', 'SingletonUsbOtg.getUsbOtgRoot', 'CALL'):
+        ('a USB OTG location is open: OTGUtil reads the saved OTG root only for an OTG path (OTGUtil.getDocumentFiles)', ['data']),
+    ('OTGUtil.isUsbUriAccessible', 'SingletonUsbOtg.getUsbOtgRoot', 'CALL'):
+        ('a USB OTG location is open: OTGUtil reads the saved OTG root only for an OTG path (OTGUtil.isUsbUriAccessible)', ['data']),
+}
+_W7_ORIG_EDIT = globals().get('EDIT')
+
+
+def EDIT(x):
+    if _W7_ORIG_EDIT:
+        _W7_ORIG_EDIT(x)
+    _g = _W7_STATE.get((x['src'], x['dst'], x['kind']))
+    if _g and not x.get('needs_state'):
+        x['needs_state'], x['state_kinds'] = _g[0], list(_g[1])
