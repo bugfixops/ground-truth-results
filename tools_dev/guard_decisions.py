@@ -32,7 +32,7 @@ if os.path.exists(S + 'w7_judged.csv'):
 out = []
 seen = set()
 for s in steps:
-    if s['flag'] == 'no':
+    if s['flag'] == 'no' and s['edge_id'] not in judged:
         continue
     p = pre.get(s['edge_id'])
     cur = cur_by_id.get(s['edge_id'])

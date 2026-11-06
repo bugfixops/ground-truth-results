@@ -3,7 +3,9 @@
 the edge's own trigger/guard text, the cited line and every guard line the pre-screen recorded (an earlier exit
 is printed with the line before it, so its condition shows).
 Usage, from the repo root: python3 -I tools_dev/guard_print.py <App> <offset> <count>
-Steps already in graphs/<App>/scratch/reaudit/w7_judged.csv are skipped."""
+Steps already in graphs/<App>/scratch/reaudit/w7_judged.csv are skipped.
+  --ids A,B,...  print exactly these steps (judged or not), in the given order; offset/count are ignored
+  --ctx N        also print the N source lines above the step and 2 below it (default 0)"""
 import csv
 import glob
 import json
@@ -14,7 +16,15 @@ import sys
 sys.path.insert(0, 'tools_dev')
 from guard_prescreen import Sources  # noqa: E402
 
-app, off, cnt = sys.argv[1], int(sys.argv[2]), int(sys.argv[3])
+argv = sys.argv[1:]
+want = None
+ctx = 0
+if '--ids' in argv:
+    i = argv.index('--ids'); want = argv[i + 1].split(','); del argv[i:i + 2]
+if '--ctx' in argv:
+    i = argv.index('--ctx'); ctx = int(argv[i + 1]); del argv[i:i + 2]
+app = argv[0]
+off, cnt = (int(argv[1]), int(argv[2])) if len(argv) > 2 else (0, 10 ** 6)
 S = 'graphs/%s/scratch/reaudit/' % app
 steps = {r['edge_id']: r for r in csv.DictReader(open(S + 'guard_steps.csv', encoding='utf-8'))}
 judged = set()
@@ -23,6 +33,13 @@ if os.path.exists(S + 'w7_judged.csv'):
 pend = [r for r in csv.DictReader(open(S + 'guard_decisions.csv', encoding='utf-8'))
         if r['decision'] == 'PENDING' and r['step'] not in judged]
 pend.sort(key=lambda r: -int((steps.get(r['step']) or {}).get('targets') or 0))
+if want:
+    allrows = {r['step']: r for r in csv.DictReader(open(S + 'guard_decisions.csv', encoding='utf-8'))}
+    for w in want:
+        if w not in allrows and w in steps:
+            allrows[w] = {'step': w, 'kind': steps[w]['kind'], 'src': steps[w]['src'], 'dst': steps[w]['dst']}
+    pend = [allrows[w] for w in want if w in allrows]
+    off, cnt = 0, len(pend)
 pre = {e['id']: e for e in json.load(open(S + 'pre_w7_edges.json', encoding='utf-8'))}
 g = json.load(open(glob.glob('graphs/%s/out/*_trigger_graph.json' % app)[0], encoding='utf-8'))
 cur = {(e['src'], e['dst'], e['kind']): e for e in g['edges']}
@@ -52,5 +69,9 @@ for r in pend[off:off + cnt]:
                 shown.add(k)
                 print('    %5d %-16s %s' % (k, kind if k == ln else '', L[k - 1].strip()[:120]))
     n = int(m.group(2))
-    if 0 < n <= len(L):
+    if ctx:
+        print('    --- %s:%d-%d' % (m.group(1), max(1, n - ctx), min(len(L), n + 2)))
+        for k in range(max(1, n - ctx), min(len(L), n + 2) + 1):
+            print('    %5d %s %s' % (k, '>' if k == n else ' ', L[k - 1].rstrip()[:130]))
+    elif 0 < n <= len(L):
         print('    %5d %-16s %s' % (n, 'STEP', L[n - 1].strip()[:120]))

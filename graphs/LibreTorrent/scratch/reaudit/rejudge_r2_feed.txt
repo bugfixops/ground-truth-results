@@ -1,0 +1,22 @@
+# Round-2 review fix 1 (Kiro): feed steps that had "covered by the gate earlier on the route". Each step runs only
+# after fetchChannel got a saved channel (FeedFetcherWorker.java:150-152) and FeedParser downloaded and parsed it
+# (constructor at :156 throws without a server answer, :158-162), so each carries the gate on its own edge.
+E8a9d6b40 ; ENV ; network ; FeedFetcherWorker.java:150-165 ; network: a saved feed channel's server answers, so FeedParser is built (:156) and getItems runs (:165); without a saved channel the method returns at :151-152
+Eaa0f66c7 ; ENV ; network ; FeedFetcherWorker.java:156-167 ; network: a saved feed channel's server answers, so the parsed items are filtered (:167); the step follows the FeedParser construction at :156
+E05dc9afb ; ENV ; network ; FeedFetcherWorker.java:156-170 ; network: a saved feed channel's server answers (FeedParser at :156); duplicate removal itself defaults to true (SettingsRepositoryImpl.java:161), so only the fetch is a condition
+E00b3bcf2 ; ENV ; network ; FeedFetcherWorker.java:156-172 ; network: a saved feed channel's server answers (FeedParser at :156), then the parsed items are stored (:172)
+E71650ee9 ; ENV ; network ; FeedFetcherWorker.java:156-176 ; network: a saved feed channel's server answers (FeedParser at :156); the title is read when the saved channel has no name (:175, the add dialog allows an empty name)
+E20e2682b ; ENV ; network ; FeedFetcherWorker.java:156-184 ; network: a saved feed channel's server answers (FeedParser at :156) and the channel has auto-download on (:183, a checkbox in the add-feed dialog)
+Ed569bd18 ; ENV ; network ; FeedFetcherWorker.java:216-236 ; network: the fetched feed holds unread items with a download URL (sendFetchedItems :216-226 returns when the id list is empty); the items come from a server answer
+Efb3d40a1 ; ENV ; network ; FeedParser.java:95-102 ; network: the downloaded feed has an item whose links hold no magnet or .torrent link (watchDownloadableLink returns null, :98-101)
+Eb0c8d9b0 ; ENV ; network ; FeedParser.java:95-104 ; network: the downloaded feed is an Atom feed with at least one entry (the loop at :95 reads its publication date, :104)
+Ed8f7051d ; ENV ; network ; FeedParser.java:147-151 ; network: the downloaded feed has an item without a torrent enclosure (watchEnclosure returns null, :147-149)
+Ee31c00c9 ; ENV ; network ; FeedParser.java:147-155 ; network: the downloaded feed has an item with neither a torrent enclosure nor an EzRSS info hash (:147-153)
+Ea7c3a7f5 ; ENV ; network ; FeedParser.java:147-159 ; network: the downloaded feed has an item with no enclosure, info hash or media:content URL (:147-157), so its guid is used
+E64fa5346 ; ENV ; network ; FeedParser.java:190-201 ; network: the downloaded feed has a media:content entry without a URL (:199-201)
+E14736de4 ; ENV ; network ; FeedDownloaderWorker.java:85-89 ; network: feed items exist to download: the DOWNLOAD_TORRENT_LIST work carries ids of items stored by a successful fetch (FeedFetcherWorker.java:172, :228-236)
+E076aada5 ; ENV ; network ; FeedDownloaderWorker.java:85-89 ; network: feed items exist to download (the work's ids come from items stored by a successful fetch, FeedFetcherWorker.java:172)
+E74a372cc ; ENV ; network ; FeedDownloaderWorker.java:97-101 ; network: the listed feed items exist in the database (repo.getItemsById, :100); they come from a successful fetch
+Efa283ba6 ; ENV ; network ; FeedDownloaderWorker.java:194-211 ; network: at least one feed item gave torrent parameters (paramsList not empty, :194-195), which needs the item's link to download from its server
+E769590ad ; ENV ; network ; FeedItemsAdapter.java:150-158 ; network: a feed item row exists in the feed items list (it comes from a successful fetch of a saved feed, FeedFetcherWorker.java:172)
+E00e524a9 ; STATE ; data ; AddFeedViewModel.java:125-133 ; a feed channel is saved (the delete action is in the edit dialog of a saved feed, feedId != -1 at :125); the baseline has none

@@ -37,7 +37,7 @@ Route status over all reachable methods: {{PS}}. "UNCHECKED" means that method's
 
 ## Known problems: state, env and GUI labels in five apps
 
-**The state, env and GUI split of reachable methods in Aegis, AmazeFileManager, AnkiDroid, LibreTorrent and MMEX still has known errors.** The verdicts (REACHABLE or UNREACHABLE) are not affected, and the dead verdicts hold up (57 of 58 sampled dead methods agreed).
+**The state, env and GUI split of reachable methods in Aegis, AmazeFileManager, AnkiDroid, LibreTorrent and MMEX still has known errors.** The known errors are in the class split; the verdicts hold up (57 of 58 sampled dead methods agreed).
 
 A review on 3 November 2026 compared the labels of these five apps with an independent hand-labelled sample of 50 unreached methods per app: the classes agreed on only 59% of the 249 sampled methods, with too much gui and too little state. A re-audit started in November 2026.
 
