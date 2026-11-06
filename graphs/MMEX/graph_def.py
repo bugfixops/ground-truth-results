@@ -6436,3 +6436,16 @@ def EDIT(x):
         x['env'] = ('outside package: the user adds the MMEX widget to the home screen, and the launcher\'s AppWidget host '
                     'sends APPWIDGET_UPDATE to the widget receiver (AndroidManifest.xml widget receivers)')
         x['env_kinds'] = ['other_app']
+# W8 re-verification (found on the DatabaseMetadataFactory.getInstance route): every variant of
+# SyncManager.invokeSyncService returns at once unless the current database has a remote file
+# (SyncManager.java:188-192), which only a database opened from a cloud document provider has. The W7 pre-screen
+# listed only the @SYNC variant; the gate now sits on every invokeSyncService variant's outgoing steps.
+_W8_SYNC_ORIG_EDIT = EDIT
+_W8_REMOTE = ('outside package: the database was opened from a cloud document provider (the recent-database entry has '
+              'a remote file, SyncManager.java:188-192), and the provider is reachable')
+
+
+def EDIT(x):
+    _W8_SYNC_ORIG_EDIT(x)
+    if x['src'].startswith('SyncManager.invokeSyncService@') and not x.get('env'):
+        x['env'], x['env_kinds'] = _W8_REMOTE, ['other_app', 'network']

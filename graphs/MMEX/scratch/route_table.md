@@ -30,13 +30,15 @@
 
 ## Per-route verdicts (in sample order)
 
-### 1. DbModule_ProvideSqlBriteFactory.get — NONSTD, 27 steps — CORRECT
+### 1. DbModule_ProvideSqlBriteFactory.get — NONSTD, 31 steps — WRONG (re-verified 2026-11-07; first verification: CORRECT)
+- Re-verified 2026-11-07 (Kiro, self-checked only, second: pending reviewer): step 15 is AbsListFragment$1.onItemClick -> BudgetListFragment.onListItemClick, but the list on the route is the account list (S_ACCOUNT_LIST, steps 13-14): the shared AbsListFragment listener dispatches to the fragment that owns the list, so a tap on an account row cannot reach BudgetListFragment. The graph has one listener node for every AbsListFragment subclass, so the best route mixes receivers. The old route went through the Budgets drawer item and now needs a budget (state).
 - Steps 1-27 CORRECT. Drawer @GROUP prefix verified (Budgets group,
   null children, item menu_budgets); Dagger Lazy/Provider tail
   (steps 26-27) INFERRED but topologically sound (DbModule.java:53 is
   the file's only SqlBrite provider; databaseLazy :85, get() :278).
 
-### 2. SplitCategoriesActivity$1.<init> — NONSTD, 24 steps — FIXED
+### 2. SplitCategoriesActivity$1.<init> — NONSTD, 27 steps — FIXED (re-verified 2026-11-07; first verification: FIXED)
+- Re-verified 2026-11-07 (Kiro, self-checked only, second: pending reviewer): the route now starts from the launcher: the home-screen add button (HomeFragment$1.onClick) starts CheckingTransactionEditActivity with ACTION_INSERT; the rest and the first verification's citation fix are unchanged.
 - Steps 1-23 CORRECT; step 24 FIXED (citation only: the listener is
   instantiated at SplitCategoriesActivity.java:321, not the cited
   :320 (setMessage); builder :318, listener :321; $1 identity holds).
@@ -44,7 +46,8 @@
   return verified, incl. RESULT_OK + data guard (:129) and requestCode
   >= 1000 guard (:142).
 
-### 3. InvestmentTransactionEditActivity.onActivityResult — NONSTD, 25 steps — CORRECT
+### 3. InvestmentTransactionEditActivity.onActivityResult — NONSTD, 25 steps — CORRECT (re-verified 2026-11-07; first verification: CORRECT)
+- Re-verified 2026-11-07 (Kiro, self-checked only, second: pending reviewer): new steps 7, 13-14: showPortfolioFragment with the Investment-account state gate, then the portfolio add button (PortfolioFragment.onFloatingActionButtonClicked -> openEditInvestmentActivity) instead of a stock row; the rest is unchanged.
 - Steps 1-25 CORRECT. Plain method's REACHABLE comes via the
   first_variant mapping to the @NUM_SHARES variant handlers: the
   methods.csv shortest_path ends at onActivityResult@NUM_SHARES.
@@ -54,7 +57,8 @@
   onActivityResult@NUM_SHARES (guard requestCode == NUM_SHARES and
   RESULT_OK with data non-null, :119-158).
 
-### 4. AllDataListFragment.displayRunningBalances — NONSTD, 24 steps — FIXED
+### 4. AllDataListFragment.displayRunningBalances — NONSTD, 24 steps — FIXED (re-verified 2026-11-07; first verification: FIXED)
+- Re-verified 2026-11-07 (Kiro, self-checked only, second: pending reviewer): only step 5 changed: the account row tap (HomeFragment$6.onChildClick, HomeFragment.java:686-706) replaces the old entry step, and the baseline account row exists. The first verification's fix (the guarded loadTransactions call at :576-587) still applies.
 - Steps 1-15 CORRECT; step 16 FIXED (guarded call: loadTransactions()
   at :587 only inside if(result) at :576; status cases :555-569,
   default :570-573 sets result false; tapped item must be a
@@ -80,7 +84,8 @@
   exactly (RecurringTransactionEditActivity.java:571-580:
   hasSplitCategories, id == null OR == NOT_SET, then insert).
 
-### 7. StockHistoryRepository$UpdateType.<init> — INFERRED, 21 steps — CORRECT
+### 7. StockHistoryRepository$UpdateType.<init> — INFERRED, 21 steps — CORRECT (re-verified 2026-11-07; first verification: CORRECT)
+- Re-verified 2026-11-07 (Kiro, self-checked only, second: pending reviewer): new steps 5, 7, 13: the account row tap, showWatchlistFragment with the Investment-account state gate, and Update prices with the security-row state gate (WatchlistFragment$4.onClick).
 - Steps 1-21 CORRECT. Watchlist prefix (INVESTMENT guard), Update-
   prices dialog OK ($4.onClick :463-476), Morningstar guard present
   in this print (SecurityPriceUpdaterFactory.java:38-42) — B6 FIXED
@@ -88,7 +93,8 @@
   lifecycle statement, no "attached" gap). RxJava doOnNext (step 16)
   INFERRED, flagged, acceptable under the consensus standard.
 
-### 8. CurrencyRepository.saveExchangeRate — INFERRED, 20 steps — FIXED
+### 8. CurrencyRepository.saveExchangeRate — INFERRED, 20 steps — FIXED (re-verified 2026-11-07; first verification: FIXED)
+- Re-verified 2026-11-07 (Kiro, self-checked only, second: pending reviewer): only step 15 changed: the Retrofit onResponse callback (FixerService.java:76-93) now carries the network gate, so the class is env. The first verification's fix still applies.
 - Steps 1-10 CORRECT; step 11 FIXED (only the Update-exchange-rate
   item, case 2 at CurrencyListFragment.java:264-266, continues to the
   :266 call; the print lists all four menu items without narrowing);
@@ -114,7 +120,8 @@
   resolveColorAttribute at PayeeReportAdapter.java:75); no
   CategoriesReport leak.
 
-### 11. DatabaseMetadataFactory.getInstance(String,String) — STATE, 13 steps — FIXED
+### 11. DatabaseMetadataFactory.getInstance(String,String) — STATE, 25 steps — FIXED (re-verified 2026-11-07; first verification: FIXED)
+- Re-verified 2026-11-07 (Kiro, self-checked only, second: pending reviewer): the route goes Settings > Synchronization > Download (SyncPreferenceFragment.java:233-236, 308) -> SyncManager.invokeSyncService@DOWNLOAD, which returns at once without a remote file (SyncManager.java:188-192). That guard had no gate on the DOWNLOAD and UPLOAD variants, so the route looked gui; fixed in graph_def.py (W8 wrapper: every invokeSyncService variant gets the cloud-provider env gate). Steps 19-25 checked: enqueueWork, the DOWNLOAD case (SyncService.java:126-128), the message handler, DbFileDownloadedEvent, useDownloadedDatabase.
 - Steps 1-8 CORRECT; step 9 FIXED (citation only: triggerSync flags
   are at SyncService.java:177-178, branch test at :206, not the cited
   :180-181 / :207-210; claims true, citations off — follow-up
@@ -135,7 +142,8 @@
   dual-panel guard :188 and null-data return :171). The B6 step-11
   WRONG is repaired by this chain.
 
-### 13. RecurringTransactionIntentService.onHandleWork — ENV, 7 steps — CORRECT
+### 13. RecurringTransactionIntentService.onHandleWork — ENV, 7 steps — CORRECT (re-verified 2026-11-07; first verification: CORRECT)
+- Re-verified 2026-11-07 (Kiro, self-checked only, second: pending reviewer): new steps 4-5: the daily AlarmManager broadcast to RecurringTransactionReceiver (env: the alarm fires) and its onReceive, which enqueues the job when the notification setting is on (default true).
 - Steps 1-7 CORRECT. BOOT_COMPLETED receiver, setAlarm, AlarmManager
   repeating broadcast PendingIntent (INFERRED, flagged), receiver
   onReceive (setting-on guard), enqueueWork, JobIntentService delivery
@@ -201,7 +209,8 @@
   null guard (AboutFragment.java:54-56) verified; $3 anonymous-
   listener numbering confirmed by source-order counting.
 
-### 21. DefinedDateRange$1.<init> — LONG, 20 steps — CORRECT
+### 21. DefinedDateRange$1.<init> — LONG, 17 steps — CORRECT (re-verified 2026-11-07; first verification: CORRECT)
+- Re-verified 2026-11-07 (Kiro, self-checked only, second: pending reviewer): new steps 5-13: tap the baseline checking account row (not an Investment account, HomeFragment.java:699-702), RequestAccountFragmentEvent -> showAccountFragment -> AccountTransactionListFragment.newInstance, fragment attach and onCreate, updateFilterDateRange -> DefinedDateRanges.<init>.
 - Steps 1-20 CORRECT. @GROUP drawer variant verified (Settings is a
   null-children group, MainActivity.java:924-925, :1107, case at
   :664-665); no EXTRA_FRAGMENT=PerDatabaseFragment so the default
@@ -219,7 +228,8 @@
   QueryAccountBills.java:210-221; satisfiable — the loader query is
   built from exactly getAllColumns()).
 
-### 23. DateRange.<init>() — LONG, 24 steps — CORRECT
+### 23. DateRange.<init>() — LONG, 24 steps — CORRECT (re-verified 2026-11-07; first verification: CORRECT)
+- Re-verified 2026-11-07 (Kiro, self-checked only, second: pending reviewer): only step 5 changed: the account row tap (HomeFragment.java:686-706) on the baseline account.
 - Steps 1-24 CORRECT. Drawn path is @RESTORED -> createFromParcel (not
   the fresh-Bundle path); stratum change STATE -> LONG is a sampler
   effect only, steps identical to B6. Restored-filter non-null guard
@@ -227,7 +237,8 @@
   Bundle/Parcel unparcel -> creator chain printed (Bundle.java:
   938-939, Parcel.java:2744-2745, :2841-2851).
 
-### 24. NumericHelper.getNumberOfDecimals — PLAIN, 8 steps — CORRECT
+### 24. NumericHelper.getNumberOfDecimals — PLAIN, 10 steps — CORRECT (re-verified 2026-11-07; first verification: CORRECT)
+- Re-verified 2026-11-07 (Kiro, self-checked only, second: pending reviewer): the route now starts from the launcher: row menu Balance account (HomeFragment.java:470, startBalanceAccount, dialog show :548) -> AmountInputDialog.onCreate -> initializeNewDialog -> NumericHelper.truncateToCurrency -> getNumberOfDecimals.
 - Steps 1-8 CORRECT. All guards present on the new dumps and matching
   source (widget-update FW :61/63/65-66; getCurrency non-null,
   CurrencyService.java:297-309, format only :309; currency non-null,
@@ -235,7 +246,8 @@
   acceptable under the consensus standard; both framework endpoints
   printed.
 
-### 25. AccountRepository.first — PLAIN, 7 steps — CORRECT
+### 25. AccountRepository.first — PLAIN, 10 steps — CORRECT (re-verified 2026-11-07; first verification: CORRECT)
+- Re-verified 2026-11-07 (Kiro, self-checked only, second: pending reviewer): the route now starts from the launcher (the widget entry has its AppWidget-host gate): home screen with the baseline checking account, row menu Edit (HomeFragment.java:455-466), AccountEditActivity.onCreate -> loadAccount (:113) -> AccountRepository.load (:577) -> first. New steps 1-9 checked against their cited lines; the rest unchanged.
 - Steps 1-7 CORRECT. Guards present + matching (widget-update;
   defaultAccountId != null, :174; NOT_SET, :52 = -1). Step 1
   INFERRED-delivery acceptable as in route 24.
@@ -249,7 +261,8 @@
   :385-388, :393, :395). Step 8 INFERRED ContentResolver routing
   acceptable under the consensus standard.
 
-### 27. MmxContentProvider.logUpdate — PLAIN, 9 steps — CORRECT
+### 27. MmxContentProvider.logUpdate — PLAIN, 16 steps — CORRECT (re-verified 2026-11-07; first verification: CORRECT)
+- Re-verified 2026-11-07 (Kiro, self-checked only, second: pending reviewer): new steps 3-13: home screen, row menu Edit on the baseline account, AccountEditActivity save (MenuHelper.save, onActionDoneClick -> saveAccount -> AccountRepository.save -> RepositoryBase.update); the update reaches the content provider and logUpdate as before.
 - Steps 1-9 CORRECT. Step 3 CORRECT: same E00ecbc65 guard as route 26,
   closing the B6 unrecorded step-3 text gap. Guards present +
   matching (populate :1234/:1236/:1248/:1259/:1261/:1282;
@@ -266,7 +279,8 @@
   guard + SyncManager guard chain (isSyncEnabled + remote path +
   !mAutoUploadDisabled + canSync) hold.
 
-### 29. AppSettings.getPreferences — PLAIN, 8 steps — CORRECT
+### 29. AppSettings.getPreferences — PLAIN, 7 steps — CORRECT (re-verified 2026-11-07; first verification: CORRECT)
+- Re-verified 2026-11-07 (Kiro, self-checked only, second: pending reviewer): new steps 3-7: home screen, tap the expanded group header to collapse it (HomeFragment.java:710-719; groups expanded by default, :754), AppSettings.set -> SettingsBase.set (:116) -> getPreferences.
 - Steps 1-8 CORRECT. handleIntent after the prerequisite check passes
   (step 3 guard !showPrerequisite() :184-187); intent/data/exception
   guards (step 4, :1186/:1189/:1192-1198); direct calls :546, :210,
