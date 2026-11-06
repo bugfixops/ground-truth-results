@@ -4130,3 +4130,62 @@ def _kiro_k4_edit(edge):
 
 
 EDIT = _kiro_k4_edit
+
+
+# ---- W3 REAUDIT (Kiro): launcher entries lose their env gate ----
+# MainActivity carries the MAIN / LAUNCHER intent filter (AndroidManifest.xml:
+# 43-59, action MAIN at line 53, category LAUNCHER at line 54), so starting it
+# from the launcher is the baseline, not an outside trigger. The three
+# launcher ENTRY edges stay; only their env gate goes (MUSE_DECISIONS.md
+# REAUDIT-W3-ENTRIES). Every other exported entry keeps its gate.
+_W3_LAUNCHER = {('S_ENTRY', 'MainActivity.onCreate'), ('S_ENTRY', 'MainActivity.<init>'),
+                ('S_ENTRY', 'MainActivity.<clinit>')}
+_W3_NOTE = ('baseline: launcher start; MainActivity has the MAIN/LAUNCHER intent filter '
+            '(AndroidManifest.xml:53-54), so the exported-entry env gate is removed (W3)')
+
+
+def _w3_launcher_edit(edge):
+    _kiro_k4_edit(edge)
+    if edge.get('kind') == 'ENTRY' and (edge.get('src'), edge.get('dst')) in _W3_LAUNCHER and edge.get('env'):
+        edge['env'] = None
+        edge['env_kinds'] = []
+        edge['note'] = ((edge.get('note') + ' | ') if edge.get('note') else '') + _W3_NOTE
+    # W3 point 4: with the launcher gate gone, the in-app routes to the row
+    # handlers (pause/resume button, row click, detail screen) are best. The
+    # RecyclerView binds a torrent row only when the list holds a torrent
+    # (the adapter is filled by submitList, MainFragment.java:297 and 345;
+    # onBindViewHolder reads getItem(position), TorrentListAdapter.java:88-102),
+    # so the bind edge needs a torrent in the list (data), the same text and
+    # kind the other row-binding edges use.
+    if (edge.get('src'), edge.get('dst'), edge.get('kind')) == (
+            'MainFragment.onViewCreated', 'TorrentListAdapter.onBindViewHolder', 'FRAMEWORK') and not edge.get('needs_state'):
+        edge['needs_state'] = 'adapter.getItemCount() > 0'
+        edge['state_kinds'] = ['data']
+        edge['note'] = ((edge.get('note') + ' | ') if edge.get('note') else '') + (
+            'W3: a torrent row is bound only when the torrent list holds a torrent '
+            '(MainFragment.java:297, 345; TorrentListAdapter.java:88-102)')
+
+
+EDIT = _w3_launcher_edit
+
+# ---- W3 REAUDIT (Kiro): in-app starts of exported activities ----
+# The app starts these activities itself with an explicit Intent, so the
+# in-app routes exist next to the exported entries (which keep their env
+# gate). The <init> INTENT edges were already there; the onCreate and
+# <clinit> steps of the same starts were missing.
+_FW_CREATE = 'FW-SRC core/java/android/app/ActivityThread.java:2727-2732; core/java/android/app/Instrumentation.java:1212-1215'
+_FW_NEW = 'FW-SRC core/java/android/app/ActivityThread.java:2665-2671; core/java/android/app/Instrumentation.java:1170-1175'
+e('FeedFragment.lambda$onViewCreated$1', 'AddFeedActivity.onCreate', 'INTENT', 'Create the add-feed activity from the feed list add button',
+  cls='standard', evidence='SRC ui/feeds/FeedFragment.java:187-188; AndroidManifest.xml:178-228; ' + _FW_CREATE)
+e('FeedFragment.editChannel', 'AddFeedActivity.onCreate', 'INTENT', 'Create the add-feed activity in edit mode for the selected channel',
+  guard='a feed channel is selected (it.hasNext(), FeedFragment.java:499-501)', cls='standard',
+  evidence='SRC ui/feeds/FeedFragment.java:494-507; AndroidManifest.xml:178-228; ' + _FW_CREATE)
+e('MainActivity.onOptionsItemSelected', 'SettingsActivity.<clinit>', 'INTENT', 'Initialize the settings activity class before ActivityThread constructs it',
+  guard='itemId == R.id.settings_menu', cls='standard',
+  evidence='SRC ui/main/MainActivity.java:738-758; ui/settings/SettingsActivity.java:35; INFERRED JVM class initialization before construction; ' + _FW_NEW)
+e('AddLinkDialog.addLink', 'AddTorrentActivity.onCreate', 'INTENT', 'Create the add-torrent activity for the entered link',
+  guard='normalizeUrl succeeds', cls='standard',
+  evidence='SRC ui/addlink/AddLinkDialog.java:272-287; AndroidManifest.xml:62-92; ' + _FW_CREATE)
+e('AddLinkDialog.addLink', 'AddTorrentActivity.<clinit>', 'INTENT', 'Initialize the add-torrent activity class before ActivityThread constructs it',
+  guard='normalizeUrl succeeds', cls='standard',
+  evidence='SRC ui/addlink/AddLinkDialog.java:272-287; ui/addtorrent/AddTorrentActivity.java:73; INFERRED JVM class initialization before construction; ' + _FW_NEW)

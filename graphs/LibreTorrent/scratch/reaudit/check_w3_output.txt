@@ -1,0 +1,39 @@
+== before W3 (graph at origin, this builder) ==
+LibreTorrent: env-gated ENTRY edges: 19
+LibreTorrent: REACHABLE methods whose best route uses an env gate from an exported or external entry: 3918 of 3967
+   2112  Ef4711e98  S_ENTRY -> MainActivity.onCreate  | other_app | android:exported="true"
+    750  Ec711e542  S_ENTRY -> AddTorrentActivity.onCreate  | other_app | android:exported="true"
+    601  E2f8f0c2f  S_ENTRY -> NotificationReceiver.onReceive  | system_event | PendingIntent.getBroadcast(
+    291  Ecf635b68  S_ENTRY -> SettingsActivity.onCreate  | other_app | android:exported="true"
+    140  E8830ab1c  S_ENTRY -> AddFeedActivity.onCreate  | other_app | android:exported="true"
+     11  E901bd6c0  S_ENTRY -> BootReceiver.onReceive  | system_event | isBootCompleted(action)
+      2  Eb4595c74  S_ENTRY -> AddTorrentActivity.<init>  | other_app | android:exported="true"
+      2  E558b0012  S_ENTRY -> MainActivity.<init>  | other_app | android:exported="true"
+      1  Ed0e10181  S_ENTRY -> BootReceiver.<init>  | system_event | isBootCompleted(action)
+      1  E8d91402a  S_ENTRY -> NotificationReceiver.<init>  | system_event | PendingIntent.getBroadcast(
+      1  E1706b6a9  S_ENTRY -> SendTextToClipboard.<init>  | other_app | android:exported="true"
+      1  E98bca879  S_ENTRY -> SendTextToClipboard.onCreate  | other_app | android:exported="true"
+      1  Ed466913c  S_ENTRY -> AddFeedActivity.<init>  | other_app | android:exported="true"
+      1  E0f555379  S_ENTRY -> AddTorrentActivity.<clinit>  | other_app | android:exported="true"
+      1  E50191c30  S_ENTRY -> MainActivity.<clinit>  | other_app | android:exported="true"
+      1  E6c221f79  S_ENTRY -> SettingsActivity.<clinit>  | other_app | android:exported="true"
+      1  E0df8c577  S_ENTRY -> SettingsActivity.<init>  | other_app | android:exported="true"
+verdicts: {'REACHABLE': 3967, 'UNREACHABLE': 765}
+
+== after W3 ==
+LibreTorrent: env-gated ENTRY edges: 16
+LibreTorrent: REACHABLE methods whose best route uses an env gate from an exported or external entry: 9 of 3967
+      4  E901bd6c0  S_ENTRY -> BootReceiver.onReceive  | system_event | isBootCompleted(action)
+      1  Ed0e10181  S_ENTRY -> BootReceiver.<init>  | system_event | isBootCompleted(action)
+      1  E8d91402a  S_ENTRY -> NotificationReceiver.<init>  | system_event | PendingIntent.getBroadcast(
+      1  E2f8f0c2f  S_ENTRY -> NotificationReceiver.onReceive  | system_event | PendingIntent.getBroadcast(
+      1  E1706b6a9  S_ENTRY -> SendTextToClipboard.<init>  | other_app | android:exported="true"
+      1  E98bca879  S_ENTRY -> SendTextToClipboard.onCreate  | other_app | android:exported="true"
+verdicts: {'REACHABLE': 3967, 'UNREACHABLE': 765}
+errors: 0
+warnings: 24
+
+== remaining cases, each kept with its env gate (reason) ==
+- BootReceiver (E901bd6c0, Ed0e10181): only the system sends BOOT_COMPLETED / QUICKBOOT_POWERON (AndroidManifest.xml:265-274, BootReceiver.java:54-58); the app never sends it.
+- NotificationReceiver (E8d91402a, E2f8f0c2f): delivered only through the notification's PendingIntent buttons (TorrentService.java:498-520); no in-app sendBroadcast. Its actions reach TorrentService.handleActions, whose engine calls also have in-app routes (MainActivity.onOptionsItemSelected -> MainViewModel.pauseAll/resumeAll; MainFragment.onItemPauseClicked -> MainViewModel.pauseResumeTorrent, MainFragment.java:389), so only the receiver's own two methods stay env.
+- SendTextToClipboard (E1706b6a9, E98bca879): started only by another app's SEND (AndroidManifest.xml:141-152); no in-app Intent names the class (grep: only its TAG line, SendTextToClipboard.java).

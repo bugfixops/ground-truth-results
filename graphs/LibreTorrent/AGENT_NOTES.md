@@ -730,3 +730,6 @@ and is untouched here.
 - 2a294908: part b121 + K4 (Step 1). fd4a16b0: warnings to 0 (Step 6). 58a3600a: check-8 callers (Step 7); labels gate passed.
 - 558a9939: route check on the final graph (Step 9).
 - Step 10 (writer, verification.csv, readme_notes.md, LESSONS.md, this file): see KIRO_REPORT.md for its commit.
+
+## Current step
+- 2026-11-06 04:24 UTC: Kiro (takeover from Muse), re-audit W3 done for LibreTorrent (launcher gates removed, 5 in-app INTENT edges, row-bind state; exported-entry routes 3918 -> 9); next W4 (RTA).
