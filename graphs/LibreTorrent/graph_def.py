@@ -4285,3 +4285,36 @@ def EDIT(x):
     if _via and x.get('edge_class') != 'non_standard':
         x['edge_class'] = 'non_standard'
         x['via'] = _via
+# W6 (Kiro), network and servers: rules matched on the edge (decisions in outside_data.csv).
+_W6_RULES = [
+    ('NanoHTTPD$ServerRunnable.run', 'NanoHTTPD$DefaultAsyncRunner.exec', 'CALL',
+     'network: a media player app connects to the torrent stream server (myServerSocket.accept, NanoHTTPD.java:1342-1347)', ['network', 'other_app']),
+    ('NanoHTTPD$ServerRunnable.run', 'NanoHTTPD.createClientHandler', 'CALL',
+     'network: a media player app connects to the torrent stream server (myServerSocket.accept, NanoHTTPD.java:1342-1347)', ['network', 'other_app']),
+]
+_W6B_ORIG_EDIT = globals().get('EDIT')
+
+
+def EDIT(x):
+    if _W6B_ORIG_EDIT:
+        _W6B_ORIG_EDIT(x)
+    if x.get('env'):
+        return
+    for _src, _dst, _kind, _text, _kinds in _W6_RULES:
+        if x['kind'] == _kind and x['src'].split('@')[0] == _src and x['dst'].split('@')[0] == _dst:
+            x['env'], x['env_kinds'] = _text, list(_kinds)
+            return
+_W6C_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _W6C_ORIG_EDIT(x)
+    _d = x['dst'].split('@')[0]
+    if not x.get('env') and (
+            (_d.startswith('DatabaseMigration') and _d.endswith('.migrate'))
+            or _d in ('AppDatabase_Impl$1.onPreMigrate', 'AppDatabase_Impl$1.onPostMigrate')):
+        x['env'] = ('other: data only an older app version writes: a database with an older Room schema version; Room runs the '
+                    'migrations and the onPreMigrate/onPostMigrate hooks only when the stored version is lower '
+                    '(core/storage/DatabaseMigration.java; AppDatabase.buildDatabase adds them with addMigrations)')
+        x['env_kinds'] = ['other']
+
