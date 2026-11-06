@@ -762,3 +762,4 @@ the AmazeFileManager decisions operative at this writing are:
 
 ## Current step
 - 2026-11-06 04:19 UTC: Kiro (takeover from Muse), re-audit W2 done for AmazeFileManager (no first-run screen, both state texts kept, SETUP_ONLY empty, check_w2 PASS); next W3.
+- 2026-11-06 04:28 UTC: Kiro, re-audit W3 done for AmazeFileManager (text editor and FtpReceiver in-app edges; exported-entry routes 57 -> 5); next W4 (RTA, AmazeFileManager-20).

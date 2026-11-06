@@ -9953,3 +9953,36 @@ del _gdmod_os, _gdmod_name, _gdmod_path
 # baseline, so no gate is cleared. SETUP_ONLY therefore stays empty.
 # Decisions and source evidence: graphs/AmazeFileManager/scratch/reaudit/state_gates.csv.
 SETUP_ONLY = set()
+
+
+# ---- W3 REAUDIT (Kiro): the text editor from the app's own file list ----
+# TextEditorActivity is not started by class name anywhere in the app; it
+# declares a VIEW filter for text/* (AndroidManifest.xml:129-140). The app's
+# own "open" paths send exactly such an implicit VIEW intent: openunknown for a
+# file whose MIME type is text (FileUtils.java:420-441) and the "Open as" dialog
+# choice Text (FileUtils.java:588-602, 617-620). The system resolver then
+# offers Amaze Text Editor (a GUI choice in the system chooser when another
+# app also matches). These in-app edges sit next to the exported entry
+# Edd3316a5, which keeps its env gate. The route needs a text file to open;
+# the baseline storage has none, so the edges carry a file state (the user can
+# create one in the app with New file).
+ST_TEXT_FILE = state_text('a text file exists in the browsed folder (the baseline storage has none; New file in the app creates one)', ['file'])
+e('FileUtils.openunknown(File,Context,boolean,boolean)', 'TextEditorActivity.<init>', 'INTENT',
+  'the app opens a text file with an implicit VIEW intent; the system resolves it to Amaze Text Editor',
+  guard='the MIME type is text/* (FileUtils.java:424-428) and Amaze Text Editor is chosen when the system offers a choice',
+  needs_state=ST_TEXT_FILE, cls='standard',
+  evidence='SRC FileUtils.java:420-441; AndroidManifest.xml:129-140; FW-SRC core/java/android/app/ActivityThread.java:2665-2671')
+e('FileUtils.lambda$openWith$3', 'TextEditorActivity.<init>', 'INTENT',
+  'the Open as dialog choice Text sends a VIEW intent for text/*; the system resolves it to Amaze Text Editor',
+  guard='item 0 (Text) is picked (FileUtils.java:598-601) and Amaze Text Editor is chosen when the system offers a choice',
+  needs_state=ST_TEXT_FILE, cls='standard',
+  evidence='SRC FileUtils.java:593-620; AndroidManifest.xml:129-140; FW-SRC core/java/android/app/ActivityThread.java:2665-2671')
+# The app sends ACTION_START_FTPSERVER to its own package (FtpServerFragment.
+# java:375-377); the system then creates a FtpReceiver for the broadcast
+# (FW ActivityThread.handleReceiver). The INTENT edge to onReceive existed;
+# the creation step was missing, so FtpReceiver.<init> and <clinit> were
+# reached only from the exported entry E32059be1 (which keeps its env gate).
+e('FtpServerFragment.startServer', 'FtpReceiver.<init>', 'INTENT',
+  'the app broadcasts ACTION_START_FTPSERVER to its own package; the system creates the receiver',
+  cls='standard',
+  evidence='SRC fragments/FtpServerFragment.java:375-377; asynchronous/services/ftp/FtpReceiver.java:11-17; FW-SRC core/java/android/app/ActivityThread.java:3141-3167')
