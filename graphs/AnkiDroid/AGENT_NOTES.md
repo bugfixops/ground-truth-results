@@ -480,3 +480,4 @@ An edge is written by the part that contains its source method; if the source is
 - 2026-11-06 04:46 UTC: Kiro, re-audit W5 done for AnkiDroid (ESR_CREATION on; library_edges.csv); next W6 (outside data).
 - 2026-11-06 04:53 UTC: Kiro, re-audit W6 done for AnkiDroid (outside_data.csv); next W7 (guards).
 - 2026-11-06 05:02 UTC: Kiro, re-audit W7 round 1 done for AnkiDroid (pre-screen, checked-case guards; most flagged steps PENDING); next W8 (CI, re-verify routes, device runs).
+- 2026-11-06 06:40 UTC: Kiro stops after round 1. Open: W7 PENDING guard steps, W8 point 2 route re-verification (stale verification paths block the writers and the publish), W9 checks of audit_draw.csv, W0 and the measurement (no review/sample_tune/).
