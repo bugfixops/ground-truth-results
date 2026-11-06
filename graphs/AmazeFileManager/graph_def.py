@@ -10011,3 +10011,45 @@ for _m in ('HybridFile$9.<init>', 'HybridFile$9.execute', 'HybridFile$9$1.<init>
 del _m
 # The bytecode edges inside the dead chain are suppressed, as for HybridFile$2 (graph_def_mod/01.py): both ends are UNREACHABLE.
 sup(('HybridFile.getInputStream()', 'HybridFile$9.<init>'), ('HybridFile$9.execute', 'HybridFile$9$1.<init>'))
+
+
+# ---- W5 REAUDIT (Kiro): library inherits through reflective creation (brief W1 T3) ----
+ESR_CREATION = True
+
+# W5 (Kiro): edges a library or reflection makes, set to non_standard (decisions: graphs/AmazeFileManager/scratch/reaudit/library_edges.csv)
+_W5_NONSTD = {
+    ('S_PREFS', 'SelectedColorsPreference.<init>', 'FRAMEWORK'):
+        'XML inflation: LayoutInflater or the preference inflater builds this class from its XML tag through the (Context, AttributeSet) constructor (layout or preference XML cited in the evidence)',
+    ('S_MAIN', 'ThemedImageButton.<init>(Context,AttributeSet)', 'FRAMEWORK'):
+        'XML inflation: LayoutInflater or the preference inflater builds this class from its XML tag through the (Context, AttributeSet) constructor (layout or preference XML cited in the evidence)',
+    ('RecyclerAdapter.onCreateViewHolder', 'ThemedTextView.<init>', 'FRAMEWORK'):
+        'XML inflation: LayoutInflater or the preference inflater builds this class from its XML tag through the (Context, AttributeSet) constructor (layout or preference XML cited in the evidence)',
+    ('GeneralDialogCreation.showEncryptAuthenticateDialog', 'WarnableTextInputLayout.<init>', 'FRAMEWORK'):
+        'XML inflation: LayoutInflater or the preference inflater builds this class from its XML tag through the (Context, AttributeSet) constructor (layout or preference XML cited in the evidence)',
+    ('ColorPref.loadSection1', 'ColorPickerDialog.<init>', 'FRAMEWORK'):
+        'XML inflation: LayoutInflater or the preference inflater builds this class from its XML tag through the (Context, AttributeSet) constructor (layout or preference XML cited in the evidence)',
+    ('ColorPickerDialog.inflateItem', 'CircularColorsView.<init>(Context,AttributeSet)', 'FRAMEWORK'):
+        'XML inflation: LayoutInflater or the preference inflater builds this class from its XML tag through the (Context, AttributeSet) constructor (layout or preference XML cited in the evidence)',
+    ('TabFragment.onCreateView', 'DisablableViewPager.<init>', 'FRAMEWORK'):
+        'XML inflation: LayoutInflater or the preference inflater builds this class from its XML tag through the (Context, AttributeSet) constructor (layout or preference XML cited in the evidence)',
+    ('MainFragment.onCreateView', 'FastScroller.<init>(Context,AttributeSet)', 'FRAMEWORK'):
+        'XML inflation: LayoutInflater or the preference inflater builds this class from its XML tag through the (Context, AttributeSet) constructor (layout or preference XML cited in the evidence)',
+    ('RecyclerAdapter.onCreateViewHolder', 'RoundedImageView.<init>', 'FRAMEWORK'):
+        'XML inflation: LayoutInflater or the preference inflater builds this class from its XML tag through the (Context, AttributeSet) constructor (layout or preference XML cited in the evidence)',
+    ('PathSwitchPreference.onCreateView', 'ThemedImageButton.<init>(Context,AttributeSet)', 'FRAMEWORK'):
+        'XML inflation: LayoutInflater or the preference inflater builds this class from its XML tag through the (Context, AttributeSet) constructor (layout or preference XML cited in the evidence)',
+    ('ColorPref.loadSection1', 'InvalidablePreferenceCategory.<init>', 'FRAMEWORK'):
+        'XML inflation: LayoutInflater or the preference inflater builds this class from its XML tag through the (Context, AttributeSet) constructor (layout or preference XML cited in the evidence)',
+    ('ColorPref.loadSection1', 'SelectedColorsPreference.<init>', 'FRAMEWORK'):
+        'XML inflation: LayoutInflater or the preference inflater builds this class from its XML tag through the (Context, AttributeSet) constructor (layout or preference XML cited in the evidence)',
+}
+_W5_ORIG_EDIT = globals().get('EDIT')
+
+
+def EDIT(x):
+    if _W5_ORIG_EDIT:
+        _W5_ORIG_EDIT(x)
+    _via = _W5_NONSTD.get((x['src'], x['dst'], x['kind']))
+    if _via and x.get('edge_class') != 'non_standard':
+        x['edge_class'] = 'non_standard'
+        x['via'] = _via
