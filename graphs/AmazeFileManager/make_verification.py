@@ -95,6 +95,57 @@ p('ThemedImageView.getActivity', 'fixed', 'PrefFrag.java:89',
 p('UtilsHandler.getSshAuthPrivateKeyColumn', 'correct', 'UtilsHandler.java:427',
   'Round verdict: correct. MainActivity onResume -> Drawer.refreshDrawer (:1112) -> addNewItem lambda -> onNavigationItemActionClick (:494) -> showSftpDialog (:626) -> getSshAuthPrivateKeyName (:1656) -> getSshAuthPrivateKeyColumn (:427).')
 
+# ---- W8 re-verification (Kiro, 2026-11-06, self-checked only, second: pending reviewer): the 20 sampled routes whose
+# best route changed in the re-audit (tools_dev/route_diff.py). Each new step was read in the source; these rows
+# replace the B6 rows above for those methods. "Kind caveat" marks a real user action that the graph writes as a
+# LIFECYCLE/FRAMEWORK/CALL edge (the menu tap S_ENTRY -> MainActivity.onOptionsItemSelected, the row tap
+# RecyclerAdapter.<init> -> MainFragment.onListItemClicked, the action-mode or FAB item): the action exists and every
+# gate the source needs is on the route, so the route holds; the GUI-step count is low by those steps.
+W8 = 'W8 re-verified 2026-11-06 (first verification: %s). '
+def p8(m, res, ref, note):
+    P[m] = (res, ref, W8 % P[m][0] + note)
+
+p8('CloudIconDataFetcher.cancel', 'correct', 'Drawer.java:99',
+   'Only step 12 changed: CloudIconModelLoader.buildLoadData now carries the state its handles() needs (a cloud, SMB or SFTP entry), which the first verification recorded as a caveat. Steps 1-11 and 13-14 as before.')
+p8('CompressedExplorerFragment.onDestroyView', 'correct', 'FileUtils.java:753',
+   'New steps 1-9: the view-switch menu item (kind caveat) rebuilds the list, a row tap (kind caveat; MainFragment.java:933 default case) opens an .apk file (FileUtils.java:751-753, state: an .apk file), the package dialog negative button opens it as an archive (GeneralDialogCreation.java:917 -> MainActivity.openCompressed). Steps 10-16 as before.')
+p8('FileUtils.lambda$scanFile$1', 'correct', 'MainFragment.java:705',
+   'New steps 1-10: launch, goToMain -> TabFragment -> MainFragment, a long press starts the action mode (kind caveat), its Rename item (MainFragment.java:701-705) -> rename dialog (:1209-1226) -> MainActivityHelper.rename -> Operations.rename; a baseline folder is renamed. The INFERRED RecyclerAdapter.<init> -> MainFragment.rename edge was dropped (graph_def.py, Q-W8-1).')
+p8('GenericCopyUtil.doCopy', 'correct', 'CopyService.java:381',
+   'Only step 1 changed: CopyService is entered through its in-app start, with the state the paste needs (a pending copy, AndroidManifest.xml:175-179: not exported). Steps 2-10 as before.')
+p8('GlideRequests.load(Integer)', 'correct', 'RecyclerAdapter.java:738',
+   'New steps 1-7: the view-switch menu item (kind caveat) rebuilds the list in grid mode, and onBindViewHolder loads the thumbnail drawable of an image, video or APK row (RecyclerAdapter.java:716-738; state: such a file).')
+p8('HybridFile$11.<init>', 'correct', 'HybridFile.java:1021',
+   'New steps 1-12: the + button, New file (MainActivity.java:1949-1951; kind caveat on the FAB item), the name dialog (MainActivityHelper.java:163-166) -> mkFile -> Operations.mkfile -> doInBackground (Operations.java:214) -> getOutputStream, SFTP case (HybridFile.java:1019-1021; env: a saved SFTP connection whose server lists the folder).')
+p8('ImmutableEntry.getValue', 'correct', 'FileUtils.java:420',
+   'New steps 1-8: the view-switch menu item and a row tap (kind caveats) open a text file (state), openFile -> openunknown, whose text/* VIEW intent resolves to the text editor (FileUtils.java:420-441). Steps 9-12 (search text task) as before.')
+p8('PemToKeyPairTask.toastOnParseError', 'correct', 'SftpConnectDialog.java:142',
+   'New steps 1-8: the + button, New cloud connection (MainActivity.java:1952-1956), the cloud sheet SFTP option (CloudSheetFragment.java:111-119) opens the SFTP dialog; the key picker is the system document picker (SftpConnectDialog.java:142-146, env). The rest as before.')
+p8('ProcessViewerFragment$CustomServiceConnection$1.<init>', 'correct', 'MainActivity.java:390',
+   'Only step 2 changed: MainActivity.onCreate opens the process viewer when the launch intent comes from a running operation notification (openProcesses, MainActivity.java:386-392; state).')
+p8('ProcessViewerFragment$CustomServiceConnection$1.lambda$onUpdate$0', 'correct', 'AndroidManifest.xml:165',
+   'Only step 1 changed: ExtractService through its in-app start with the state an extraction needs (an archive the user extracts; not exported, AndroidManifest.xml:165-169). The process viewer is opened by the user while it runs.')
+p8('ReadFileTask$ReturnedValues.<init>(int)', 'correct', 'FileUtils.java:420',
+   'Same new prefix as ImmutableEntry.getValue (row tap on a text file -> text editor); then TextEditorActivity.onCreate -> load -> ReadFileTask as before.')
+p8('SmbSearchDialog$1.lambda$computerFound$0', 'correct', 'SubnetScanner.java:109',
+   'Only step 13 changed: SubnetScanner.run calls onFound for a host that answered (SubnetScanner.java:91-109; env network).')
+p8('SshAuthenticationTask$1.getPublic', 'correct', 'SftpConnectDialog.java:203',
+   'New steps 1-17: the + button and cloud sheet open the SFTP dialog, Create fetches the host fingerprint (SftpConnectDialog.java:203-205, env network), then authenticateAndSaveSetup -> SshConnectionPool.getConnection -> create -> SshAuthenticationTask (connects first, SshAuthenticationTask.java:124).')
+p8('SshConnectionPool$AsyncRemoveConnection.onPostExecute', 'correct', 'SftpConnectDialog.java:176',
+   'New steps 1-8: the + button and cloud sheet open the SFTP dialog; on Create the stored host key of the typed host is looked up (SftpConnectDialog.java:171-176), so with a saved connection to that host (state) the old connection is removed. The rest as before.')
+p8('StreamNotFoundException.<init>(Throwable)', 'correct', 'FileUtils.java:420',
+   'Same new prefix as ImmutableEntry.getValue; then the editor Save item -> saveFile -> WriteFileAbstraction as before.')
+p8('StreamSource.getCurrentPosition', 'correct', 'MainFragment.java:930',
+   'New steps 1-6: the view-switch menu item and a row tap (kind caveats) on a cloud file (MainFragment.java:925-930; env: the cloud plugin app) -> CloudUtil.launchCloud -> CloudStreamer; step 10 the client connection (env network).')
+p8('StreamSource.read(byte[],int,int)', 'correct', 'MainFragment.java:915',
+   'Steps 6 and 10 changed: a row tap on an SMB file (MainFragment.java:914-915, env: an SMB server) -> launchSMB -> Streamer, and the client connection (StreamServer.java:179-180, env).')
+p8('TextEditorActivity$2.onAnimationEnd', 'correct', 'FileUtils.java:420',
+   'Same new prefix as ImmutableEntry.getValue; then the editor search item -> revealSearchView -> animator listener $2 as before.')
+p8('TextEditorActivity$3.onAnimationEnd', 'correct', 'FileUtils.java:420',
+   'Same new prefix as ImmutableEntry.getValue; then the editor search item -> hideSearchView -> animator listener $3 as before.')
+p8('UtilsHandler.getSshAuthPrivateKeyColumn', 'correct', 'UtilsHandler.java:427',
+   'Only step 5 changed: the drawer entry action of a saved SFTP connection opens its dialog (MainActivity.showSftpDialog, state). The rest as before.')
+
 # ---- edge rows: the B6 added/rewired edges, each checked to exist in the built graph.
 EDGE_NOTES = {}
 def edge_note(src, dst, res, ref, note):

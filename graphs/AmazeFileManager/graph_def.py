@@ -27,6 +27,26 @@
 #  L  UNREACHABLE table, ENV_KINDS_OF / STATE_KINDS_OF, CLASSIFY, EDIT, STRICT
 
 TITLE = 'AmazeFileManager 3.4.2 trigger graph'
+# Review 2 (Kiro, 2026-11-06, Q-W8-1): 155 hand edges carry the evidence "INFERRED framework calls <C>.<m> after
+# construction of <C>" (e.g. MainActivity.<init> -> MainFragment.hide, RecyclerAdapter.<init> -> MainFragment.rename).
+# No framework call does that: the target is called by app code (a popup or action-mode item, a click) that has its own
+# SRC edge in this graph. 154 of the 155 targets have such an edge, so these 154 edges are dropped here: they let best
+# routes skip the user action and the guard of the real caller (W8 re-verification of the sampled routes). The one
+# edge whose target has no other caller (SevenZMethodConfiguration.<init> -> CoderBase.canAcceptOptions, a library
+# call made by validateOptions) is kept. The list of dropped edges is printed by tools_dev/inferred_family.py.
+import re as _r2_re
+_R2_FAMILY = _r2_re.compile(r'INFERRED framework calls .* after construction of')
+_R2_KEEP = {('SevenZMethodConfiguration.<init>(SevenZMethod,Object)', 'CoderBase.canAcceptOptions')}
+_R2_DROPPED = []
+_r2_orig_e = e
+
+
+def e(src, dst, kind, trigger, *a, **kw):
+    ev = kw.get('evidence') or ''
+    if _R2_FAMILY.search(ev) and (src, dst) not in _R2_KEEP:
+        _R2_DROPPED.append((src, dst, kind))
+        return
+    return _r2_orig_e(src, dst, kind, trigger, *a, **kw)
 USE_AUTO = True
 STRICT = True
 

@@ -113,3 +113,11 @@ The redraw output is saved at scratch/sample_30_redraw_after_route08fix.txt
   FtpTileService.onStopListening, ObtainableServiceBinder.getService) were
   judged and fixed in their own draws; their fixes are in fix_log.md but
   they are NOT in this final table, per the brief (final table = final draw).
+
+## W8 re-verification (Kiro, 2026-11-06, self-checked only, second: pending reviewer)
+
+After the re-audit, 20 of the 30 sampled routes changed. Each new step was read in the source (tools_dev/route_diff.py
+lists them). The verdicts and notes are the `p8(...)` rows in graphs/AmazeFileManager/make_verification.py: 20 correct,
+with "kind caveat" where a real user action is written as a LIFECYCLE/FRAMEWORK/CALL edge. Reading them found missing
+gates (now in graph_def.py and scratch/reaudit/w7_judged.csv) and 154 wrong INFERRED "framework calls ... after
+construction" edges, now dropped (graph_def.py, top; tools_dev/inferred_family.py lists them).
