@@ -1,0 +1,69 @@
+# Review 2 fix 8 (Kiro), Aegis batch 1: one step per line, its own reason and file:line.
+Eb9515d18 ; NONE ; ; AndroidManifest.xml (application tag) ; process start: the framework creates AegisApplication when the app starts; no condition
+E1ef992ce ; NONE ; ; generated Hilt_AegisApplication ; generated Hilt code: the application's onCreate calls the base class onCreate (kept as it is, open question)
+E28ffc58c ; NONE ; ; AndroidManifest.xml (MainActivity MAIN/LAUNCHER filter) ; launcher start: the launcher creates MainActivity
+E7d4e454a ; NONE ; ; generated Hilt_AegisActivity ; generated Hilt code: the activity's context-available callback injects (kept as it is, open question)
+E262cce3d ; NONE ; ; generated Hilt_AegisActivity ; generated Hilt code: inject calls the component's injector (kept as it is, open question)
+Eada96a15 ; NONE ; ; generated DaggerAegisApplication_HiltComponent ; generated Dagger code: the singleton component injects the activity (kept as it is, open question)
+E75d86940 ; NONE ; ; generated AuditLogDao_Impl ; generated Room code: insert runs its transaction lambda (kept as it is)
+E887b87bf ; NONE ; ; MainActivity.java:1086 ; GUI: the entry list's options menu (onOptionsItemSelected)
+Ef4e32054 ; NONE ; ; MainActivity.java:1088-1089 ; GUI: the Settings menu item (action_settings, :1088)
+Ef64f95ee ; NONE ; ; MainActivity.java:827 ; GUI: the Settings item calls startPreferencesActivity (:827)
+E640fb9eb ; NONE ; ; MainActivity.java:826-830 ; GUI: startPreferencesActivity starts PreferencesActivity (:826)
+E4671dc4d ; NONE ; ; MainActivity.java:1093-1094 ; GUI: the Lock menu item (action_lock, :1093)
+E3452b602 ; NONE ; ; PreferencesActivity.java:19 ; GUI: a tap on a settings group opens its fragment (onPreferenceStartFragment)
+E382bc001 ; NONE ; ; PreferencesActivity.java:40-41 ; GUI: Settings opens for the first time on this screen (savedInstanceState null, :40), so it creates MainPreferencesFragment
+Eda9f6e40 ; NONE ; ; ImportExportPreferencesFragment.java:117-119 ; GUI: the Import from app preference of the Import and export screen (pref_import_app, :117)
+Ec00da88f ; NONE ; ; ImportExportPreferencesFragment.java:117-119 ; GUI: the Import from app preference opens the importer list dialog (:119)
+E5ede43e8 ; NONE ; ; ImportExportPreferencesFragment.java:120 ; GUI: the importer chosen in the dialog starts the import without a file (:120)
+E6e3022fc ; NONE ; ; ImportExportPreferencesFragment.java:120 ; GUI: the importer chosen in the dialog starts the import without a file (:120)
+E629987fd ; NONE ; ; ImportExportPreferencesFragment.java:125-127 ; GUI: the Export preference (pref_export, :125)
+Ed8c9ae46 ; NONE ; ; ImportExportPreferencesFragment.java:126-127 ; GUI: the Export preference calls startExport (:127)
+E76172dad ; NONE ; ; ImportExportPreferencesFragment.java:201 ; GUI: the export options dialog is built and shown (:201)
+E5353c8c7 ; NONE ; ; ImportExportPreferencesFragment.java:306-308 ; GUI: the export dialog's confirm button starts the export (:308)
+E8e4d066b ; NONE ; ; ImportExportPreferencesFragment.java:131-133 ; GUI: the Google Authenticator style export preference (:131)
+E1f7435e7 ; NONE ; ; ImportExportPreferencesFragment.java:133 ; GUI: the Google Authenticator style export preference calls startGoogleAuthenticatorStyleExport (:133)
+Eff96a909 ; NONE ; ; ImportExportPreferencesFragment.java:378-386 ; baseline: the vault has two default TOTP entries, so exports is not empty (:384) and the transfer screen starts (:386)
+E6817ac19 ; NONE ; ; TransferEntriesActivity.java:79-87 ; baseline: the transfer holds two entries (_authInfos.size() is 2), so the Next button steps through them (:81-87)
+E77cb1891 ; NONE ; ; ImportExportPreferencesFragment.java:161 ; GUI: startImportEntriesActivity starts ImportEntriesActivity for the chosen importer (:161); the FreeOTP importer is a list entry
+E8c36fb5d ; ENV ; other_app ; ImportEntriesActivity.java:107-111 ; outside package: the importer's app is installed in a supported version (isInstalledAppVersionSupported, :110) when no file is given (:109)
+E56c8d1c2 ; ENV ; other_app ; FreeOtpPlusImporter.java:33-37 ; outside package: the FreeOTP+ app's internal data is read (isInternal, :36-37), which needs the app installed and root
+E547f8d1f ; ENV ; other_app ; FreeOtpImporter.java:74-78 ; outside package: a FreeOTP export file with the v2 magic number is read (:77-78)
+E539b2c79 ; ENV ; other_app ; StratumImporter.java:70-71 ; outside package: a Stratum export file (not the installed app's data, isInternal false, :71) is read
+Eb1042e4d ; ENV ; other_app ; GoogleAuthImporter.java:84-86 ; outside package: the Google Authenticator app's database has entries (the loop at :84), read with root
+E6db189e4 ; ENV ; other_app ; ProtonAuthenticatorImporter.java:60-64 ; outside package: a Proton Authenticator export file with entries is read (:60-64)
+E75a4904b ; ENV ; other_app ; generated GoogleAuthProtos ; outside package: a Google Authenticator export payload (QR or file) is parsed by the generated protobuf class
+E7d588fa2 ; NONE ; ; SqlImporterHelper.java:59 ; unconditional: the su-file overload calls the plain-file overload (:59); the root shell that supplies the file is gated on its own edge
+Ece6b33ed ; ENV ; other_app ; ImportEntriesActivity.java:215-222 ; outside package: the imported file's entries have raster icons that are not optimised (icons not empty, :215-220)
+E840aaaea ; ENV ; other_app ; ImportEntriesActivity.java:239 ; outside package: the imported file has entries that are added to the import list (:239)
+E0e214f1e ; NONE ; ; OtpInfo.java:117-123 ; baseline: the vault's default entries are TOTP, so fromJson takes the TOTP case (:122-123)
+Eb1e5e482 ; NONE ; ; SlotList.java:27 ; baseline: the vault has at least one slot (the password slot), so the loop reads it (:27)
+Ecc90cdf7 ; NONE ; ; SCrypt.java:90 ; unconditional: generate calls MFcrypt (:90) when the password slot is derived; the baseline vault is password-encrypted
+E8ef49332 ; NONE ; ; PasswordSlotDecryptTask.java:35-37 ; baseline: the vault has a password slot, so the first slot is decrypted (:37)
+Ef1fa67ea ; NONE ; ; AuthActivity.java:356-361 ; GUI: a wrong password is typed on the unlock screen (the decryption fails, :357-360); the vault is password-encrypted in the baseline
+E27acc957 ; STATE ; file ; MainActivity.java:942-944 ; the vault file is missing or unreadable (isVaultInitNeeded, :942), which the baseline (a created vault) does not have
+E91009a78 ; NONE ; ; MainActivity.java:991-994 ; baseline: the vault is unlocked and loaded (the else branch at :991), so onStart checks the icon optimisation (:994)
+E0c98179f ; NONE ; ; MainActivity.java:1196 ; unconditional: updateErrorCard passes its info (null or an error card) to the list (:1196)
+E79f9824c ; NONE ; ; MainActivity.java:1138 ; unconditional: loadEntries sets the vault's entries on the list (:1138)
+Eecd32631 ; NONE ; ; MainActivity.java:1300 ; GUI: a long press on a baseline entry starts the action mode (:1300)
+E7b3c936f ; NONE ; ; EntryAdapter.java:520 ; GUI: a long press on a baseline entry (the two default entries exist)
+E453c0b01 ; STATE ; settings ; SimpleItemTouchHelperCallback.java:76-82 ; manual sorting is on, so the drag flags allow moving an entry (_dragFlags, :76-77); the default sort is by name
+E26d7696f ; NONE ; ; EntryListView.java:212-214 ; baseline: the default TOTP entries have a period, so getMostFrequentPeriod is not -1 (:213) and the refresher starts (:214)
+Efc5605a1 ; STATE ; settings ; EntryListView.java:526-532 ; the view mode is set to Tiles in Settings (ViewMode.TILES, :530); the default is the normal list
+E2cd01ba1 ; STATE ; data ; IconAdapter.java:86-90 ; an icon pack is imported, so the icon list has icons to bind (loadIcons fills _icons, :87-89); the baseline has none
+Ef6ab7dd8 ; NONE ; ; EditEntryActivity.java:656 ; framework: the window builds the options menu after onCreate; no condition
+E563cb84a ; NONE ; ; EditEntryActivity.java:668-670 ; GUI: Save of a new entry calls addAndFinish (:668)
+E7c838ae7 ; NONE ; ; EditEntryActivity.java:845-850 ; GUI: Save of a new entry (onSave, :845)
+E5cc2dc8a ; NONE ; ; EditEntryActivity.java:369 ; GUI: a tap on the Group field of the entry editor (:369)
+E79542abe ; NONE ; ; EditEntryActivity.java:307 ; GUI: typing in the Issuer field fires the text watcher (:307)
+Ec9f36898 ; NONE ; ; EditEntryActivity.java:956 ; unconditional: the activity-result lambda updates the back-press handler (:956)
+E16eb2dbc ; NONE ; ; MainActivity.java:177-181 ; GUI: the add-entry screen returns RESULT_OK with data (:179), as after a saved entry
+Eb9991987 ; NONE ; ; VaultEntry.java:224 ; GUI: comparing two entries (editing an entry compares the new one with the old one, :224)
+E15197a7a ; NONE ; ; SecurityPreferencesFragment.java:145 ; GUI: the Set password preference (pref_password, :145)
+Ee4227c2d ; NONE ; ; SecurityPreferencesFragment.java:151 ; GUI: the PIN keyboard preference change listener (pref_pin_keyboard, :151)
+Ec2217fba ; NONE ; ; SecurityPreferencesFragment.java:157 ; GUI: the password preference opens the password input dialog (:157)
+E545d55b8 ; NONE ; ; BackupsPreferencesFragment.java:79 ; GUI: the automatic backups preference change listener (:79)
+Ea96a459a ; NONE ; ; BackupsPreferencesFragment.java:97 ; GUI: the backup reminder preference change listener (:97)
+E25bc6338 ; NONE ; ; BackupsPreferencesFragment.java:81 ; GUI: the versioning strategy preference opens its dialog (:81)
+E786c6468 ; NONE ; ; AuditLogPreferencesFragment.java:75-76 ; baseline: the audit log screen observes the log entries and shows the empty view or the list (:75-76)
+E4ed27f23 ; NONE ; ; VaultManager.java:169-175 ; baseline: the backup directory exists or is created (:169), so the vault is exported to the temp file (:175); whether a backup runs is gated on the edge into scheduleBackup
