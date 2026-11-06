@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """W7 (Kiro): append judgments for flagged steps to graphs/<App>/scratch/reaudit/w7_judged.csv.
 Usage: python3 -I tools_dev/guard_judge.py <App> < lines
-Each input line: step_id ; DECISION ; kinds ; file:line ; text [ ; match ]
-  match (optional): a substring of the edge trigger; the gate then goes only on same-key edges whose trigger has it
+Each input line: step_id ; DECISION ; kinds ; file:line ; text [ ; match=SUBSTRING ]
+  text may contain ';'. Only a last part written as match=SUBSTRING is a match: a substring of the edge trigger, so
+  the gate goes only on same-key edges whose trigger has it. (Before 2026-11-07 a sixth part was always taken as the
+  match, which cut 43 gate texts at their first ';' and kept those gates off; the rows were rejoined.)
   DECISION is NONE (null check, always-true, baseline, a GUI action on the route, a framework call that always
   happens), STATE or ENV (text = the gate text written on the edge; kinds from the schema vocabulary), or DEAD.
   A step may name several ids separated by commas when one decision covers them.
@@ -26,8 +28,11 @@ with open(path, 'a', newline='', encoding='utf-8') as f:
             continue
         parts = [x.strip() for x in line.split(';')]
         ids, dec, kinds, ref = parts[:4]
-        text = parts[4]
-        match = parts[5] if len(parts) > 5 else ''
+        rest = parts[4:]
+        match = ''
+        if len(rest) > 1 and rest[-1].startswith('match='):
+            match = rest.pop()[len('match='):].strip()
+        text = '; '.join(rest)
         assert dec in ('NONE', 'STATE', 'ENV', 'DEAD'), line
         for i in ids.split(','):
             i = i.strip()
