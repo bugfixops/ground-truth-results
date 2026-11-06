@@ -6413,3 +6413,20 @@ def EDIT(x):
         x['needs_state'] = None
         x['state_kinds'] = []
         x['note'] = ((x.get('note') + ' | ') if x.get('note') else '') + _W2_CLEARED[_t]
+
+
+# ---- W3 REAUDIT (Kiro): the unlock screen from the normal launcher start ----
+# Under the re-audit baseline the setup vault exists and is password-protected
+# (MUSE_REAUDIT_QUESTIONS.md Q3, Q6), so a normal start from the launcher
+# reads the encrypted vault file, leaves it unloaded and starts the unlock
+# screen (MainActivity.java:950-977). The pair is in the onStart sup() block
+# (line 396) and its hand edge was removed in the earlier vault round, when
+# the encrypted vault counted as cross-run state; it is baseline now, so the
+# edge comes back without a state gate. Without it the unlock routes started
+# from the screen-off broadcast (S_PROCESS -> VaultLockReceiver.onReceive,
+# system_event), an outside entry where an in-app start exists (W3).
+e('MainActivity.onStart', 'MainActivity.startAuthActivity', 'CALL',
+  'the encrypted setup vault is not loaded yet: the unlock screen is started',
+  guard='the vault exists (isVaultInitNeeded() false, MainActivity.java:942-947), the file reads without error (954-960), it is encrypted, so loadFrom is skipped (963-973), and isVaultLoaded() is false (976)',
+  note='baseline: the setup vault is password-protected (Q3), so a launcher start opens the unlock screen (W3)',
+  evidence='SRC ui/MainActivity.java:942-977')

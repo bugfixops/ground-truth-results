@@ -927,3 +927,4 @@ Totals: 25 ERROR steps over 12 routes (detailedmulti 25 and 26 not counted). Ten
 
 ## Current step
 - 2026-11-06 04:18 UTC: Kiro (takeover from Muse), re-audit W2 done for Aegis (state_gates.csv, SETUP_ONLY = four intro pages, check_w2 PASS); next W3 (in-app routes instead of exported or external entries).
+- 2026-11-06 04:26 UTC: Kiro, re-audit W3 done for Aegis (onStart -> startAuthActivity restored; env on best routes 1613 -> 218); next W4 (RTA, Aegis-16).
