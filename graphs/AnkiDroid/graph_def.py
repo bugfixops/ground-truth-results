@@ -7832,3 +7832,33 @@ def EDIT(x):
 
 # ---- W4 REAUDIT (Kiro): rapid type analysis for bytecode cha edges (brief W1 T2) ----
 RTA = True
+
+
+# ---- W5 REAUDIT (Kiro): library inherits through reflective creation (brief W1 T3) ----
+ESR_CREATION = True
+
+# W5 (Kiro): edges a library or reflection makes, set to non_standard (decisions: graphs/AnkiDroid/scratch/reaudit/library_edges.csv)
+_W5_NONSTD = {
+    ('S_PREFERENCES', 'SeekBarPreference.<init>', 'FRAMEWORK'):
+        'XML inflation: the preference inflater builds this Preference class from its XML tag through the (Context, AttributeSet) constructor (preference XML cited in the evidence)',
+    ('S_DECKOPTIONS', 'CustomDialogPreference.<init>', 'FRAMEWORK'):
+        'XML inflation: the preference inflater builds this Preference class from its XML tag through the (Context, AttributeSet) constructor (preference XML cited in the evidence)',
+    ('S_PREFERENCES', 'CustomDialogPreference.<init>', 'FRAMEWORK'):
+        'XML inflation: the preference inflater builds this Preference class from its XML tag through the (Context, AttributeSet) constructor (preference XML cited in the evidence)',
+    ('S_PREFERENCES', 'NumberRangePreference.<init>(Context,AttributeSet)', 'FRAMEWORK'):
+        'XML inflation: the preference inflater builds this Preference class from its XML tag through the (Context, AttributeSet) constructor (preference XML cited in the evidence)',
+    ('S_DECKOPTIONS', 'NumberRangePreference.<init>(Context,AttributeSet)', 'FRAMEWORK'):
+        'XML inflation: the preference inflater builds this Preference class from its XML tag through the (Context, AttributeSet) constructor (preference XML cited in the evidence)',
+    ('S_FILTEREDDECKOPTIONS', 'NumberRangePreference.<init>(Context,AttributeSet)', 'FRAMEWORK'):
+        'XML inflation: the preference inflater builds this Preference class from its XML tag through the (Context, AttributeSet) constructor (preference XML cited in the evidence)',
+}
+_W5_ORIG_EDIT = globals().get('EDIT')
+
+
+def EDIT(x):
+    if _W5_ORIG_EDIT:
+        _W5_ORIG_EDIT(x)
+    _via = _W5_NONSTD.get((x['src'], x['dst'], x['kind']))
+    if _via and x.get('edge_class') != 'non_standard':
+        x['edge_class'] = 'non_standard'
+        x['via'] = _via
