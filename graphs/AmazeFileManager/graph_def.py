@@ -69,6 +69,19 @@ for _p in [('CryptUtil.encrypt', 'CryptUtil.rsaEncrypt'), ('CryptUtil.decrypt', 
            ('AppListLoader.onStartLoading', 'PackageReceiver.<init>'), ('PackageReceiver.<init>', 'PackageReceiver.onReceive'),
            ('AppConfig.getInstance', 'ScreenUtils.getScreeHeightInDb'),
            ('MainActivity.delete', 'GeneralDialogCreation.deleteFilesDialog'),
+           ('SubnetScanner.tryWithBroadcast', 'MainFragment$7.run'),  # INFERRED: MainFragment$7 is the launchSMB thread (MainFragment.java:1658-1677); the broadcast thread is SubnetScanner's own (SubnetScanner.java:143)
+           # API-level closures (W7 round 2, regressed: these hand edges came back in a later merge) and the KitKat MediaStoreHack I/O
+           ('CustomFileObserver.startWatching', 'CustomFileObserver.startPollingSystem'),
+           ('CustomFileObserver.startPollingSystem', 'CustomFileObserver$FileTimerTask.<init>'),
+           ('CustomFileObserver$FileTimerTask.<init>', 'CustomFileObserver$FileTimerTask.run'),
+           ('CustomFileObserver$FileTimerTask.run', 'CustomFileObserver$FileTimerTask.compare'),
+           ('FileUtil.mkdir', 'MediaStoreHack.mkdir'), ('MediaStoreHack.mkdir', 'MediaStoreHack.getTemporaryAlbumId'),
+           ('MediaStoreHack.mkdir', 'MediaStoreHack.delete'), ('MediaStoreHack.getTemporaryAlbumId', 'MediaStoreHack.installTemporaryTrack'),
+           ('MediaStoreHack.installTemporaryTrack', 'MediaStoreHack.getExternalFilesDir'),
+           ('GenericCopyUtil.doCopy', 'MediaStoreHack.getOutputStream'), ('GenericCopyUtil.startCopy', 'MediaStoreHack.getOutputStream'),
+           ('FileUtil.getOutputStream', 'MediaStoreHack.getOutputStream'), ('MediaStoreHack.mkfile', 'MediaStoreHack.getOutputStream'),
+           ('GenericCopyUtil.doCopy', 'MediaStoreHack.getInputStream'), ('GenericCopyUtil.startCopy', 'MediaStoreHack.getInputStream'),
+           ('FileUtil.mkfile', 'MediaStoreHack.mkfile'), ('MediaStoreHack.getOutputStream', 'MediaStoreHack.getUriFromFile'),
            ('FileUtils.openFile(File,MainActivity,SharedPreferences)', 'FileUtils.openFile(DocumentFile,MainActivity,SharedPreferences)')] + [
         (s, d) for s in ('CryptUtil.rsaEncrypt', 'CryptUtil.rsaDecrypt', 'CryptUtil.rsaEncryptPassword', 'CryptUtil.rsaDecryptPassword',
                          'CryptUtil$RSAKeygen.<init>', 'CryptUtil$RSAKeygen.getSecretKey', 'CryptUtil$RSAKeygen.generateKeyPair')
@@ -10522,3 +10535,15 @@ def EDIT(x):
         x['needs_state'] = ('a file operation is running while the process viewer listens: the service sends each data point to the listener '
                             'the open viewer registered (AbstractProgressiveService.java:187-189; ProcessViewerFragment.java:416)')
         x['state_kinds'] = ['data']
+
+# KitKat-only MediaStoreHack I/O (review 4 continuation): FileUtil.getOutputStream, GenericCopyUtil.startCopy/doCopy and FileUtil.mkfile
+# call these only when Build.VERSION.SDK_INT == KITKAT (FileUtil.java:182-184, 579-581; GenericCopyUtil.java:172-173, 271-273); the
+# standard config is API 27. The incoming hand edges are cut at the top (_R2_CUT), the bytecode edges here.
+for _m in ('MediaStoreHack.getOutputStream', 'MediaStoreHack.getInputStream', 'MediaStoreHack.mkfile'):
+    UNREACHABLE[_m] = ('closed_by_api_level', 'called only in the Build.VERSION.SDK_INT == KITKAT branches (FileUtil.java:182-184, 579-581; '
+                       'GenericCopyUtil.java:172-173, 271-273); the standard config is API 27, so %s never runs there' % _m,
+                       'SRC com/amaze/filemanager/filesystem/FileUtil.java:182-184,579-581; SRC com/amaze/filemanager/utils/files/GenericCopyUtil.java:172-173,271-273', 'SOURCE')
+sup(('GenericCopyUtil.doCopy', 'MediaStoreHack.getOutputStream'), ('GenericCopyUtil.startCopy', 'MediaStoreHack.getOutputStream'),
+    ('FileUtil.getOutputStream', 'MediaStoreHack.getOutputStream'), ('MediaStoreHack.mkfile', 'MediaStoreHack.getOutputStream'),
+    ('GenericCopyUtil.doCopy', 'MediaStoreHack.getInputStream'), ('GenericCopyUtil.startCopy', 'MediaStoreHack.getInputStream'),
+    ('FileUtil.mkfile', 'MediaStoreHack.mkfile'), ('MediaStoreHack.getOutputStream', 'MediaStoreHack.getUriFromFile'))
