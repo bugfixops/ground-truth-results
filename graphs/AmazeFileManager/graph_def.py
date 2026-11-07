@@ -65,6 +65,10 @@ _R2_CUT.update({('HiddenAdapter.<init>', 'HiddenAdapter.getItemId'), ('LoadFiles
                 ('ApkImageModelLoaderFactory.<init>', 'ApkImageModelLoaderFactory.teardown'), ('DeleteTask.doInBackground', 'DeleteTask.onProgressUpdate'),
                 ('LoadFilesListTask.listDocs', 'LoadFilesListTask.lambda$listDocs$5'),
                 ('CustomFileObserver.stopWatching', 'CustomFileObserver.stopPollingSystem')})  # r6-p05: SDK_INT == M only
+# W7 r6-p06: MainActivity.onCreate calls neither (the restore reads PasteHelper with readParcelableArray, which makes a plain Parcelable[]);
+# describeContents is asked by the framework when a copy intent with parcelable extras is sent (edge re-sourced at the end of the file)
+_R2_CUT.update({('MainActivity.onCreate', 'HybridFileParcelable.describeContents'), ('MainActivity.onCreate', 'HybridFileParcelable$1.newArray'),
+                ('FileUtil.getOutputStream', 'MediaStoreHack.<clinit>')})
 # review 4 continuation (see the R5 block at the end): RSA path (API < 23), the never-created PackageReceiver, the uncalled getScreeHeightInDb
 for _p in [('CryptUtil.encrypt', 'CryptUtil.rsaEncrypt'), ('CryptUtil.decrypt', 'CryptUtil.rsaDecrypt'),
            ('CryptUtil.encryptPassword', 'CryptUtil.rsaEncryptPassword'), ('CryptUtil.decryptPassword', 'CryptUtil.rsaDecryptPassword'),
@@ -10610,3 +10614,8 @@ UNREACHABLE['LoadFilesListTask.lambda$listDocs$5'] = ('branch_never_taken', 'lis
                                                      'SRC com/amaze/filemanager/asynchronous/asynctasks/LoadFilesListTask.java:337-356', 'SOURCE')
 UNREACHABLE['CustomFileObserver.stopPollingSystem'] = ('closed_by_api_level', 'CustomFileObserver.stopWatching calls stopPollingSystem only when Build.VERSION.SDK_INT == M (API 23, CustomFileObserver.java:77); the standard config is API 27, so it never runs there (W7 r6-p05, as for startPollingSystem)', 'SRC com/amaze/filemanager/filesystem/CustomFileObserver.java:77-80', 'SOURCE')
 sup(('CustomFileObserver.stopWatching', 'CustomFileObserver.stopPollingSystem'))  # r6-p05: the auto (bytecode) copy of the cut edge
+sup(('FileUtil.getOutputStream', 'MediaStoreHack.<clinit>'), ('MainActivity.onCreate', 'HybridFileParcelable$1.newArray'), ('MainActivity.onCreate', 'HybridFileParcelable.describeContents'))  # r6-p06 auto copies
+e('PrepareCopyTask.startService', 'HybridFileParcelable.describeContents', 'FRAMEWORK',
+  'starting the copy service with the parcelable source list makes the framework check Intent.hasFileDescriptors, whose Bundle walk asks each parcelable extra for describeContents',
+  evidence='SRC asynchronous/asynctasks/PrepareCopyTask.java:168-176 (putParcelableArrayListExtra, ServiceWatcherUtil.runService); INFERRED framework Intent.hasFileDescriptors -> Bundle.hasFileDescriptors (Q-R6-1)')
+UNREACHABLE['HybridFileParcelable$1.newArray'] = ('framework_never_calls', 'the app reads HybridFileParcelable arrays only with readParcelableArray (PasteHelper.java:28), which builds a plain Parcelable[] and never calls CREATOR.newArray, and lists with getParcelableArrayListExtra, which calls createFromParcel', 'SRC com/amaze/filemanager/filesystem/PasteHelper.java:26-39; SRC com/amaze/filemanager/filesystem/HybridFileParcelable.java:112', 'SOURCE')
