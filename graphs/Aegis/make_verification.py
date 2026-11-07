@@ -156,6 +156,7 @@ assert len(set(sample)) == 25, ('duplicate method in sample', sample)
 # Any violation refuses the run and writes nothing.
 _table_lines = open(TABLE_FILE, encoding='utf-8').read().splitlines()
 VERDICT = {}
+PATH_RESULT = {}
 NOTE = {}
 _table_methods = []
 _table_steps = {}
@@ -182,6 +183,8 @@ for _line in _table_lines:
     assert rows[_method]['route_edge_ids'].split() == _tedges, \
         ('table edge ids != methods.csv route_edge_ids', _method)
     VERDICT[_method] = _vtok
+    # review 6 fix 2: a 'CORRECT (fixed)' row is written with result=fixed on its path row
+    PATH_RESULT[_method] = 'fixed' if _verdict_raw.endswith(' (fixed)') else _vtok
     NOTE[_method] = '%s: %s' % (_verdict_raw, _decisive)
     _table_methods.append(_method)
     _table_steps[_method] = int(_steps)
@@ -277,7 +280,7 @@ for m in sample:
     ev_all = ' '.join(E[i].get('evidence') or '' for i in r['route_edge_ids'].split())
     assert base in ev_all, ('path ref not on route evidence', m, ref)
     assert NOTE[m].strip(), ('empty note', m)
-    out.append(['path', m, VERDICT[m], 'SOURCE' if sourced(m) else 'INFERRED',
+    out.append(['path', m, PATH_RESULT[m], 'SOURCE' if sourced(m) else 'INFERRED',
                 ref, r['route_edge_ids'], NOTE[m]])
 
 label_rows = []
