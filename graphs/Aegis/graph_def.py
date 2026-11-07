@@ -6581,3 +6581,7 @@ def EDIT(x):
     if x.get('env') and list(x.get('env_kinds') or globals().get('ENV_KINDS_OF', {}).get(x['env']) or ()) == ['permission']:
         x['note'] = ((x.get('note') + ' | ') if x.get('note') else '') + 'W7: runtime-permission prompt, a GUI action (was env: %s)' % x['env']
         x['env'], x['env_kinds'] = None, []
+# W7 r6-p08 DEAD step Ebca90d6c: TextDrawable.draw calls drawBorder only when borderThickness > 0 (TextDrawable.java:77-78);
+# borderThickness is set only by withBorder (:52,194-195), and no app code calls withBorder (grep of app/src/main/java).
+sup(('TextDrawable.draw', 'TextDrawable.drawBorder'))
+UNREACHABLE['TextDrawable.drawBorder'] = ('branch_never_taken', 'drawn only when borderThickness > 0 (TextDrawable.java:77-78), which only withBorder sets (:194-195); no app code calls withBorder, so the thickness stays 0', 'SRC com/amulyakhare/textdrawable/TextDrawable.java:52,77-78,169,194-195', 'SOURCE')
