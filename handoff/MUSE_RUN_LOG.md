@@ -1368,3 +1368,4 @@ User rulings in the hour (recorded in DECISIONS): Path A authorized ~17:06 EST; 
 - 2026-11-07 UTC | W7 PENDING r6 batch LibreTorrent p07 | 40 steps (rejudge_r6_p07.txt); sample route AdvancedPeerInfo.isUtp re-read (peer step env network), writer re-run | fresh build errors 0, 23 of 23 | PENDING 646/308/504/312/1060
 - 2026-11-07 UTC | W7 PENDING r6 batch MMEX p07 | 40 steps (rejudge_r6_p07.txt) | fresh build errors 0, 23 of 23 | PENDING 646/308/504/312/1020
 - 2026-11-07 UTC | W7 PENDING r6 batch Aegis p07 | 40 steps (rejudge_r6_p07.txt); sample route GroupAdapter.getGroupByUUID re-read (fixed kept), writer re-run | fresh build errors 0, 23 of 23 | PENDING 606/308/504/312/1020
+- 2026-11-07 UTC | W7 PENDING r6 batch AmazeFileManager p08 | 40 steps (rejudge_r6_p08.txt); verification edge row follows Edb17c4ce (selection gate), writer re-run | fresh build errors 0, 23 of 23 | PENDING 606/268/504/312/1020
