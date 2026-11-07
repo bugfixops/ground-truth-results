@@ -6472,3 +6472,50 @@ def EDIT(x):
     _R2_ROWS_ORIG_EDIT(x)
     if x['kind'] == 'GUI' and x['src'] in _R2_ROWS and x['dst'].endswith('.onListItemClick') and not x.get('needs_state'):
         x['needs_state'], x['state_kinds'] = _R2_ROWS[x['src']][0], [_R2_ROWS[x['src']][1]]
+
+# ---- Review 6 fix 1 (Kiro, 2026-11-07): gates on the routes the build actually uses ----
+# (a) SearchActivity.handleSearchRequest does anything only when the intent carries EXTRA_SEARCH_PARAMETERS
+# (SearchActivity.java:151-162). Only the Search item of a category row (CategoryListFragment.java:732-737), the
+# category and payee reports (CategoriesReportFragment.java:381, PayeeReportFragment.java:319), the payee list
+# (PayeeListFragment.java:237-238 through IntentFactory.getSearchIntent) and the income/expense report
+# (IncomeVsExpensesListFragment.java:391-392) pass it; the search menu and the drawer pass none. Those callers now
+# start the SearchActivity@PARAMS variant, and every step out of handleSearchRequest starts at its @PARAMS variant,
+# so the plain search page no longer reaches setSearchParameters, performSearch or the parcel reads.
+_R6_PARAMS = 'SearchActivity.<init>@PARAMS'
+for _s, _ref in (('CategoryListFragment.showSearchActivityFor', 'common/CategoryListFragment.java:732-737'),
+                 ('CategoriesReportFragment.showSearchActivityFor', 'reports/CategoriesReportFragment.java:378-383'),
+                 ('PayeeReportFragment.showSearchActivityFor', 'reports/PayeeReportFragment.java:316-321')):
+    e(_s, _R6_PARAMS, 'INTENT', 'the Search item starts SearchActivity with the search parameters (EXTRA_SEARCH_PARAMETERS)',
+      evidence='SRC %s (putExtra EXTRA_SEARCH_PARAMETERS, startActivity)' % _ref)
+e(_R6_PARAMS, 'SearchActivity.onCreate@PARAMS', 'LIFECYCLE', 'the framework calls onCreate after it creates the activity instance',
+  evidence='FW-SRC core/java/android/app/ActivityThread.java:2722-2731 (callActivityOnCreate)')
+e('SearchActivity.onCreate@PARAMS', 'SearchActivity.handleSearchRequest@PARAMS', 'CALL',
+  'onCreate reads the search request of the intent; this intent carries search parameters',
+  evidence='SRC search/SearchActivity.java:69, 151-162')
+e('SearchActivity.onCreate', 'SearchActivity.handleSearchRequest', 'CALL', 'onCreate reads the search request of the intent',
+  evidence='SRC search/SearchActivity.java:69')  # the plain call (the hand variant above makes the builder skip the bytecode copy)
+_R6_PARAMS_RETARGET = {('PayeeListFragment.onContextItemSelected', 'SearchActivity.<init>', 'INTENT'),
+                       ('IncomeVsExpensesListFragment$4.onItemClick', 'SearchActivity.<init>', 'INTENT')}
+# (b) MainActivity.populateScheduledTransactions: the loop over due recurring transactions (MainActivity.java:1262-1281)
+# runs only when one is due; some of its bytecode steps had no gate (the W7 row E00ecbc65 had deferred it to them).
+_R6_DUE = ('a recurring transaction is due (DAYSLEFT <= 0) and the repeating-transaction notification is on (default on); '
+           'the baseline has no recurring transactions (MainActivity.java:1236-1262)')
+import re as _r6_re
+_R6_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _R6_ORIG_EDIT(x)
+    if (x['src'], x['dst'], x['kind']) in _R6_PARAMS_RETARGET:
+        x['dst'] = _R6_PARAMS
+    if x['src'] == 'SearchActivity.handleSearchRequest':
+        x['src'] = 'SearchActivity.handleSearchRequest@PARAMS'
+    if (x['src'], x['dst']) == ('RecurringTransactionListFragment.onLoadFinished', 'AllDataAdapter.newView') and not x.get('needs_state'):
+        # (c) the recurring list makes a row view only for a stored recurring transaction, as its bindView step says
+        x['needs_state'], x['state_kinds'] = ('a recurring transaction exists: the recurring list makes a row view only for a '
+                                              'stored recurring transaction (RecurringTransactionListFragment.onLoadFinished); '
+                                              'the baseline has none'), ['data']
+    if x['src'] == 'MainActivity.populateScheduledTransactions' and not x.get('needs_state'):
+        _m = _r6_re.search(r'MainActivity\.java:(\d+)', x.get('evidence') or '')
+        if _m and 1262 <= int(_m.group(1)) <= 1281:
+            x['needs_state'], x['state_kinds'] = _R6_DUE, ['data']
