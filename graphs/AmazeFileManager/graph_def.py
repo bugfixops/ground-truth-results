@@ -63,7 +63,8 @@ _R2_CUT.add(('HybridFile.forEachChildrenFile', 'PrepareCopyTask.lambda$checkConf
 # W7 r6-p02 DEAD steps (their targets get UNREACHABLE entries at the end of the file)
 _R2_CUT.update({('HiddenAdapter.<init>', 'HiddenAdapter.getItemId'), ('LoadFilesListTask.onPostExecute', 'LayoutElementParcelable$1.newArray'),
                 ('ApkImageModelLoaderFactory.<init>', 'ApkImageModelLoaderFactory.teardown'), ('DeleteTask.doInBackground', 'DeleteTask.onProgressUpdate'),
-                ('LoadFilesListTask.listDocs', 'LoadFilesListTask.lambda$listDocs$5')})
+                ('LoadFilesListTask.listDocs', 'LoadFilesListTask.lambda$listDocs$5'),
+                ('CustomFileObserver.stopWatching', 'CustomFileObserver.stopPollingSystem')})  # r6-p05: SDK_INT == M only
 # review 4 continuation (see the R5 block at the end): RSA path (API < 23), the never-created PackageReceiver, the uncalled getScreeHeightInDb
 for _p in [('CryptUtil.encrypt', 'CryptUtil.rsaEncrypt'), ('CryptUtil.decrypt', 'CryptUtil.rsaDecrypt'),
            ('CryptUtil.encryptPassword', 'CryptUtil.rsaEncryptPassword'), ('CryptUtil.decryptPassword', 'CryptUtil.rsaDecryptPassword'),
@@ -10607,3 +10608,5 @@ UNREACHABLE['DeleteTask.onProgressUpdate'] = ('framework_never_calls', 'AsyncTas
 UNREACHABLE['LoadFilesListTask.lambda$listDocs$5'] = ('branch_never_taken', 'listDocs adds a file only when its full MediaStore path equals a bare extension such as ".pdf" '
                                                      '(Arrays.asList(types).contains(path)), which never holds, so the list is empty and the sort never calls the comparator',
                                                      'SRC com/amaze/filemanager/asynchronous/asynctasks/LoadFilesListTask.java:337-356', 'SOURCE')
+UNREACHABLE['CustomFileObserver.stopPollingSystem'] = ('closed_by_api_level', 'CustomFileObserver.stopWatching calls stopPollingSystem only when Build.VERSION.SDK_INT == M (API 23, CustomFileObserver.java:77); the standard config is API 27, so it never runs there (W7 r6-p05, as for startPollingSystem)', 'SRC com/amaze/filemanager/filesystem/CustomFileObserver.java:77-80', 'SOURCE')
+sup(('CustomFileObserver.stopWatching', 'CustomFileObserver.stopPollingSystem'))  # r6-p05: the auto (bytecode) copy of the cut edge
