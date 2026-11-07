@@ -1352,3 +1352,4 @@ User rulings in the hour (recorded in DECISIONS): Path A authorized ~17:06 EST; 
 - 2026-11-07 UTC | W7 PENDING r6 batch AnkiDroid p04 | 40 steps (rejudge_r6_p04.txt) | fresh build errors 0, 23 of 23 | PENDING 766/428/624/472/1180
 - 2026-11-07 UTC | W7 PENDING r6 batch LibreTorrent p04 | 40 steps (rejudge_r6_p04.txt) | fresh build errors 0, 23 of 23 | PENDING 766/428/624/432/1180
 - 2026-11-07 UTC | W7 PENDING r6 batch MMEX p04 | 40 steps (rejudge_r6_p04.txt) | fresh build errors 0, 23 of 23 | PENDING 766/428/624/432/1140
+- 2026-11-07 UTC | W7 PENDING r6 batch Aegis p04 | 40 steps (rejudge_r6_p04.txt); sample routes RawSlot.getType and AegisImporter$DecryptedState.getCredentials re-read (intro step now env other), writer re-run | fresh build errors 0, 23 of 23 | PENDING 726/428/624/432/1140
