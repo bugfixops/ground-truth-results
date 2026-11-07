@@ -60,6 +60,10 @@ def _r4_redirect(src, dst):
 _R2_CUT.add(('HybridFile$2.<init>', 'HybridFile$2.execute'))
 _R2_CUT.add(('MainActivity$2.onReceive', 'MainActivityHelper.showFailedOperationDialog'))  # $2 is mOtgReceiver (MainActivity.java:1171); receiver2 (:1610-1616) is $3 in the bytecode, whose own edge carries the gate  # dead chain: HybridFile.length() has no caller
 _R2_CUT.add(('HybridFile.forEachChildrenFile', 'PrepareCopyTask.lambda$checkConflicts$0'))  # PrepareCopyTask.checkConflicts -> the lambda exists
+# W7 r6-p02 DEAD steps (their targets get UNREACHABLE entries at the end of the file)
+_R2_CUT.update({('HiddenAdapter.<init>', 'HiddenAdapter.getItemId'), ('LoadFilesListTask.onPostExecute', 'LayoutElementParcelable$1.newArray'),
+                ('ApkImageModelLoaderFactory.<init>', 'ApkImageModelLoaderFactory.teardown'), ('DeleteTask.doInBackground', 'DeleteTask.onProgressUpdate'),
+                ('LoadFilesListTask.listDocs', 'LoadFilesListTask.lambda$listDocs$5')})
 # review 4 continuation (see the R5 block at the end): RSA path (API < 23), the never-created PackageReceiver, the uncalled getScreeHeightInDb
 for _p in [('CryptUtil.encrypt', 'CryptUtil.rsaEncrypt'), ('CryptUtil.decrypt', 'CryptUtil.rsaDecrypt'),
            ('CryptUtil.encryptPassword', 'CryptUtil.rsaEncryptPassword'), ('CryptUtil.decryptPassword', 'CryptUtil.rsaDecryptPassword'),
@@ -10588,3 +10592,18 @@ for _m, _why in (('CompressedObjectParcelable.describeContents', 'its constructo
 UNREACHABLE['IconDataParcelable$1.newArray'] = ('framework_never_calls', 'the app reads icon data with readParcelable (LayoutElementParcelable.java), which calls createFromParcel; '
                                                'newArray is used only by typed-array reads, which no app code makes for IconDataParcelable',
                                                'SRC com/amaze/filemanager/adapters/data/IconDataParcelable.java:75-77', 'SOURCE')
+# W7 r6-p02 (2026-11-07): DEAD steps; each target has no other incoming edge (out/*_trigger_graph.json).
+UNREACHABLE['HiddenAdapter.getItemId'] = ('framework_never_calls', 'RecyclerView calls Adapter.getItemId only for an adapter with stable ids (bindViewHolder: if hasStableIds); '
+                                         'HiddenAdapter never calls setHasStableIds (grep: only RecyclerAdapter.java:129 and CompressedExplorerAdapter.java:65), and no app code calls it',
+                                         'SRC com/amaze/filemanager/adapters/HiddenAdapter.java:36,128', 'SOURCE')
+UNREACHABLE['LayoutElementParcelable$1.newArray'] = ('framework_never_calls', 'no app code reads a LayoutElementParcelable array from a parcel; onPostExecute hands the list to the fragment '
+                                                    '(LoadFilesListTask.java:222-225), and readParcelable or list reads call createFromParcel, not newArray',
+                                                    'SRC com/amaze/filemanager/asynchronous/asynctasks/LoadFilesListTask.java:222-225', 'SOURCE')
+UNREACHABLE['ApkImageModelLoaderFactory.teardown'] = ('no_trigger_in_app', 'Glide calls a model-loader factory teardown only when its registry entry is replaced or removed or Glide is torn down; '
+                                                     'the app only prepends the factory (AmazeFileManagerModule.java:21) and never calls Glide.tearDown (grep: no hit)',
+                                                     'SRC com/amaze/filemanager/AmazeFileManagerModule.java:21', 'SOURCE')
+UNREACHABLE['DeleteTask.onProgressUpdate'] = ('framework_never_calls', 'AsyncTask calls onProgressUpdate only after publishProgress, which DeleteTask never calls (grep: no call in the task)',
+                                             'SRC com/amaze/filemanager/asynchronous/asynctasks/DeleteTask.java:71-72', 'SOURCE')
+UNREACHABLE['LoadFilesListTask.lambda$listDocs$5'] = ('branch_never_taken', 'listDocs adds a file only when its full MediaStore path equals a bare extension such as ".pdf" '
+                                                     '(Arrays.asList(types).contains(path)), which never holds, so the list is empty and the sort never calls the comparator',
+                                                     'SRC com/amaze/filemanager/asynchronous/asynctasks/LoadFilesListTask.java:337-356', 'SOURCE')
