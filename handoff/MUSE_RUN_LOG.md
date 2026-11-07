@@ -1340,3 +1340,4 @@ User rulings in the hour (recorded in DECISIONS): Path A authorized ~17:06 EST; 
 - 2026-11-07 UTC | W7 PENDING r6 batch Aegis p01 | 40 steps (rejudge_r6_p01.txt) | fresh build errors 0, 23 of 23 | PENDING 846/548/744/552/1260
 - 2026-11-07 UTC | W7 PENDING r6 batch AmazeFileManager p02 | 40 steps (rejudge_r6_p02.txt); 7 DEAD steps cut in graph_def.py with UNREACHABLE entries for 5 targets | fresh build errors 0, 23 of 23 | PENDING 846/508/744/552/1260
 - 2026-11-07 UTC | W7 PENDING r6 batch AnkiDroid p02 | 40 steps (rejudge_r6_p02.txt); sample route Collection.getServer re-read (first verdict wrong kept), verification edge row follows E20a1c122 to E4c7110ef, writer re-run | fresh build errors 0, 23 of 23 | PENDING 846/508/704/552/1260
+- 2026-11-07 UTC | W7 PENDING r6 batch LibreTorrent p02 | 40 steps (rejudge_r6_p02.txt) | fresh build errors 0, 23 of 23 | PENDING 846/508/704/512/1260
