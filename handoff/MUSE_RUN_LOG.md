@@ -1377,3 +1377,4 @@ User rulings in the hour (recorded in DECISIONS): Path A authorized ~17:06 EST; 
 - 2026-11-07 UTC | W7 PENDING r6 batch AnkiDroid p09 | 40 steps (rejudge_r6_p09.txt); verification edge rows follow E12afa18f and E80a654e3, writer re-run | fresh build errors 0, 23 of 23 | PENDING 566/228/424/272/980
 - 2026-11-07 UTC | W7 PENDING r6 batch LibreTorrent p09 | 40 steps (rejudge_r6_p09.txt); sample route TorrentCriticalWork.lambda$emitChangedEvent$0 re-read (14 steps through Resume all), writer re-run | fresh build errors 0, 23 of 23 | PENDING 566/228/424/232/980
 - 2026-11-07 UTC | W7 PENDING r6 batch MMEX p09 | 40 steps (rejudge_r6_p09.txt) | fresh build errors 0, 23 of 23 | PENDING 566/228/424/232/940
+- 2026-11-07 UTC | W7 PENDING r6 batch Aegis p09 | 40 steps (rejudge_r6_p09.txt) | fresh build errors 0, 23 of 23 | PENDING 526/228/424/232/940
