@@ -1357,3 +1357,4 @@ User rulings in the hour (recorded in DECISIONS): Path A authorized ~17:06 EST; 
 - 2026-11-07 UTC | W7 PENDING r6 batch AnkiDroid p05 | 40 steps (rejudge_r6_p05.txt); sample route Anki2Importer._mediaPick re-read (same steps, new state gate), writer re-run | fresh build errors 0, 23 of 23 | PENDING 726/388/584/432/1140
 - 2026-11-07 UTC | W7 PENDING r6 batch LibreTorrent p05 | 40 steps (rejudge_r6_p05.txt) | fresh build errors 0, 23 of 23 | PENDING 726/388/584/392/1140
 - 2026-11-07 UTC | W7 PENDING r6 batch MMEX p05 | 40 steps (rejudge_r6_p05.txt); sample routes DatabaseMetadataFactory.getInstance(String,String) (fixed kept) and RecurringTransactionListActivity.onActivityResult re-read, writer re-run | fresh build errors 0, 23 of 23 | PENDING 726/388/584/392/1100
+- 2026-11-07 UTC | W7 PENDING r6 batch Aegis p05 | 40 steps (rejudge_r6_p05.txt) | fresh build errors 0, 23 of 23 | PENDING 686/388/584/392/1100
