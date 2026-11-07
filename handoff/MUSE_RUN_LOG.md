@@ -1384,3 +1384,4 @@ User rulings in the hour (recorded in DECISIONS): Path A authorized ~17:06 EST; 
 - 2026-11-07 UTC | W7 PENDING r6 batch MMEX p10 | 40 steps (rejudge_r6_p10.txt) | fresh build errors 0, 23 of 23 | PENDING 526/188/384/192/900
 - 2026-11-07 UTC | W7 PENDING r6 batch Aegis p10 | 40 steps (rejudge_r6_p10.txt); 3 DEAD (Room migration and destructive hooks, version 1 database) | fresh build errors 0, 23 of 23 | PENDING 486/188/384/192/900
 - 2026-11-07 UTC | W7 PENDING r6 batch AmazeFileManager p11 | 40 steps (rejudge_r6_p11.txt); 1 DEAD (SMB search adapter getItemId, no stable ids); 3 TabFragment rows fixed to DEAD; 2 sample routes re-read (edge ids only) | fresh build errors 0, 23 of 23 | PENDING 486/148/384/192/900
+- 2026-11-07 UTC | W7 PENDING r6 batch AnkiDroid p11 | 40 steps (rejudge_r6_p11.txt); 1 sample route re-read (FullSyncer.syncURL, same steps, kept wrong) | fresh build errors 0, 23 of 23 | PENDING 486/148/344/192/900
