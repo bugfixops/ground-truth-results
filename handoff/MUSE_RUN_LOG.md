@@ -1360,3 +1360,4 @@ User rulings in the hour (recorded in DECISIONS): Path A authorized ~17:06 EST; 
 - 2026-11-07 UTC | W7 PENDING r6 batch Aegis p05 | 40 steps (rejudge_r6_p05.txt) | fresh build errors 0, 23 of 23 | PENDING 686/388/584/392/1100
 - 2026-11-07 UTC | W7 PENDING r6 batch AmazeFileManager p06 | 40 steps (rejudge_r6_p06.txt); 3 edges cut (describeContents re-sourced to PrepareCopyTask.startService, newArray UNREACHABLE framework_never_calls, KitKat MediaStoreHack clinit) | fresh build errors 0, 23 of 23 | PENDING 686/348/584/392/1100
 - 2026-11-07 UTC | W7 PENDING r6 batch AnkiDroid p06 | 40 steps (rejudge_r6_p06.txt); DEAD step E9c5a22a8 suppressed (below API 11 only); verification edge row follows E2d634caa, writer re-run | fresh build errors 0, 23 of 23 | PENDING 686/348/544/392/1100
+- 2026-11-07 UTC | W7 PENDING r6 batch LibreTorrent p06 | 40 steps (rejudge_r6_p06.txt) | fresh build errors 0, 23 of 23 | PENDING 686/348/544/352/1100
