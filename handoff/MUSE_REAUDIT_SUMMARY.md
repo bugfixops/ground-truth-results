@@ -49,7 +49,7 @@ The PENDING rows that remained (3,961) were the long tail: each is used by few n
 | MMEX | 20.8 / 0.2 / 4.6 / 13.3 / 12.6 / 48.6 |
 | weighted | 27.4 / 1.2 / 11.6 / 19.0 / 11.1 / 29.6 |
 
-NONE rows were also rewritten one step per line with their own reason and file:line (LibreTorrent, MMEX, Aegis and AnkiDroid in full; AmazeFileManager: the 150 rows that decide a class, 142 GUI/framework rows still share a batch text). The AmazeFileManager sample routes were re-verified: 30 of 30 hold, 0 build warnings.
+NONE rows were also rewritten one step per line with their own reason and file:line (LibreTorrent, MMEX, Aegis and AnkiDroid in full; AmazeFileManager: the 150 rows that decide a class, the 142 rows that shared a batch text were rewritten in round 5: 22 STATE, 22 ENV, 2 DEAD, 96 NONE with their own reason). The AmazeFileManager sample routes were re-verified: 30 of 30 hold, 0 build warnings.
 
 All judgments are self-checked only (second: pending reviewer). Two AmazeFileManager steps that run only on API 19 or 23 are DEAD, and the 9 methods behind them are UNREACHABLE closed_by_api_level.
 
