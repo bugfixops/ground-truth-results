@@ -8033,3 +8033,7 @@ def EDIT(x):
                             'the startup backup (DeckPicker.java:806) creates one after the first start')
         x['state_kinds'] = ['file']
 sup(('Reviewer.onCreateOptionsMenu', 'AbstractFlashcardViewer.clipboardHasText'))  # W7 r6-p06 DEAD E9c5a22a8: Reviewer.java:298-300 runs only below API 11 (closed_by_api_level)
+# W7 r6-p12 DEAD step Eddfc0d04: the audio field controller starts no activity (BasicAudioFieldController.java, AudioView.java: no
+# startActivityForResult), so MultimediaEditFieldActivity never gets a result while it is the controller
+sup(('MultimediaEditFieldActivity.onActivityResult', 'BasicAudioFieldController.onActivityResult'))
+UNREACHABLE['BasicAudioFieldController.onActivityResult'] = ('framework_never_calls', 'MultimediaEditFieldActivity passes a result to the current field controller (MultimediaEditFieldActivity.java:314-315); the audio field controller starts no activity (no startActivityForResult in BasicAudioFieldController.java or AudioView.java), so no result arrives while it is the controller', 'SRC com/ichi2/anki/multimediacard/fields/BasicAudioFieldController.java:98-99', 'SOURCE')
