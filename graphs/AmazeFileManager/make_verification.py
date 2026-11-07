@@ -149,6 +149,10 @@ p8('FtpTileService.updateTileState', 'correct', 'AndroidManifest.xml:195',
    'The route is now the quick-settings tile itself: the system binds FtpTileService (BIND_QUICK_SETTINGS_TILE, AndroidManifest.xml:195-203; env: the user adds the tile), calls onStartListening when the tile is visible, and onStartListening calls updateTileState (FtpTileService.java:30-34). The first verification used the in-app start of the FTP server instead; both reach the method.')
 p8('UtilsHandler.getSshAuthPrivateKeyColumn', 'correct', 'UtilsHandler.java:427',
    'Only step 5 changed: the drawer entry action of a saved SFTP connection opens its dialog (MainActivity.showSftpDialog, state). The rest as before.')
+p8('PasteHelper.<init>(Parcel)', 'correct', 'MainActivity.java:425',
+   'Review 4 re-check: step 2 is now MainActivity.onCreate -> MainActivity$1.onPostExecute (onCreate passes its callbacks to runInParallel at MainActivity.java:365; the old route went through the shared AppConfig$1 dispatch, cut in review 4 fix 2). onPostExecute reads the PasteHelper from savedInstanceState (:425) -> PasteHelper$1.createFromParcel -> <init>(Parcel) (PasteHelper.java:43-44). Gates as before: a pending copy or cut (state) and the system recreating MainActivity with its saved state (env).')
+p8('PasteHelper$1.createFromParcel', 'correct', 'MainActivity.java:425',
+   'Review 4 re-check: same new step 2 as PasteHelper.<init>(Parcel) (MainActivity.onCreate -> MainActivity$1.onPostExecute, MainActivity.java:365); onPostExecute reads the PasteHelper from savedInstanceState (:425). Gates as before (pending copy or cut; saved-state recreation).')
 
 # ---- edge rows: the B6 added/rewired edges, each checked to exist in the built graph.
 EDGE_NOTES = {}

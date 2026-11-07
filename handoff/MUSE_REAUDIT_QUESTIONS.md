@@ -50,3 +50,8 @@ Question for the reviewer: should the 7z, rar and tar gates follow the same exte
 
 ## Q-R3-3 (Kiro, 2026-11-06): the AmazeFileManager Ec06d0db3 row has no call line in onCreate
 `MainActivity.onCreate -> AppConfig.runInBackground` has no direct call in onCreate (the runInBackground calls are at MainActivity.java:1001, 1012, 1701, 1720, all in other methods; onCreate starts its work with runInParallel at :365). The row's ref points at :365 and its text is kept ("unconditional"). Default used: leave the edge as a NONE row until W0 or the reviewer says it is an invented edge.
+
+**Q-R3-2 and Q-R3-3 answered by the reviewer (review 4, 2026-11-07):** name-level archive steps stay STATE file, content-dependent steps are ENV other_app (REAUDIT-R4-ARCHIVE); Ec06d0db3 is cut (REAUDIT-R4-HELPER).
+
+## Q-R4-1 (Kiro, 2026-11-07): MMEX Icepick state classes
+MmxBaseFragmentActivity.onCreate and onSaveInstanceState reach the generated `<Activity>$$Icepick` classes of every activity (25 caller classes; Icepick looks the helper up by the runtime class). The edges are written from the base class, so MainActivity reaches AccountEditActivity$$Icepick.restore in 4 steps. Default used: left as it is in this round (the methods are generated code; a real route exists through each activity's own onCreate). Question: should each `$$Icepick` edge start at its own activity's onCreate, as REAUDIT-R4-HELPER does for lambdas? That would move about 15 methods from 4-step routes to the activity's own route; the class stays gui either way.

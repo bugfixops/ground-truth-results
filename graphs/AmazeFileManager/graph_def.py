@@ -38,7 +38,28 @@ import re as _r2_re
 _R2_FAMILY = _r2_re.compile(r'INFERRED framework calls .* after construction of')
 _R2_KEEP = {('SevenZMethodConfiguration.<init>(SevenZMethod,Object)', 'CoderBase.canAcceptOptions')}
 # judgement cuts of hand edges (see the notes at the end of this file): path-insensitive edges that open a wrong route
-_R2_CUT = {('StreamServer$HTTPSession.sendError', 'StreamServer$HTTPSession.sendResponse')}
+_R2_CUT = {('StreamServer$HTTPSession.sendError', 'StreamServer$HTTPSession.sendResponse'),
+           # review 4 fix 2: edges whose source has no such call, or that start at a shared helper (re-added at the end with the caller that passes the lambda)
+           ('MainActivity.onCreate', 'AppConfig.runInBackground'),
+           ('UtilsHandler.addCommonBookmarks', 'AppConfig.runInBackground'),
+           ('AppConfig.getInstance', 'AppConfig.getImageLoader'),
+           ('AppConfig.runInBackground', 'MoveFiles.lambda$onPostExecute$0'),
+           ('AppConfig.runInParallel', 'FileUtil$1.doInBackground'),
+           ('AppConfig.runInParallel', 'FileUtil$1.onPostExecute'),
+           ('Icons.getTypeOfFile', 'CompressedHelper.<clinit>')}
+# review 4 fix 2: hand edges that start at a shared helper are moved to the caller that passes the callback or template
+import re as _r4_re
+def _r4_redirect(src, dst):
+    if src == 'Operations.mkdir' and dst.startswith('FileUtils$5.'):
+        return 'FileUtils.checkForPath'
+    if src == 'Operations.mkdir' and dst.startswith('MainActivityHelper$4.'):
+        return 'MainActivityHelper.mkDir'
+    if src.startswith('SshClientUtils.execute(') and _r4_re.match(r'HybridFile\$\d+\.execute$', dst):
+        return dst.rsplit('.', 1)[0] + '.<init>'
+    return src
+_R2_CUT.add(('HybridFile$2.<init>', 'HybridFile$2.execute'))
+_R2_CUT.add(('MainActivity$2.onReceive', 'MainActivityHelper.showFailedOperationDialog'))  # $2 is mOtgReceiver (MainActivity.java:1171); receiver2 (:1610-1616) is $3 in the bytecode, whose own edge carries the gate  # dead chain: HybridFile.length() has no caller
+_R2_CUT.add(('HybridFile.forEachChildrenFile', 'PrepareCopyTask.lambda$checkConflicts$0'))  # PrepareCopyTask.checkConflicts -> the lambda exists
 _R2_DROPPED = []
 _r2_orig_e = e
 
@@ -49,6 +70,10 @@ def e(src, dst, kind, trigger, *a, **kw):
         _R2_DROPPED.append((src, dst, kind))
         return
     if _R2_FAMILY.search(ev) and (src, dst) not in _R2_KEEP:
+        _R2_DROPPED.append((src, dst, kind))
+        return
+    src = _r4_redirect(src, dst)
+    if (src, dst) in _R2_CUT:
         _R2_DROPPED.append((src, dst, kind))
         return
     return _r2_orig_e(src, dst, kind, trigger, *a, **kw)
@@ -5711,17 +5736,17 @@ e('AppConfig.onCreate', 'AppConfig.<init>', 'FRAMEWORK',
 # runInBackground - called from many places
 e('MainActivity.onCreate', 'AppConfig.runInBackground', 'CALL',
   'MainActivity calls runInBackground in multiple places',
-  evidence='SRC MainActivity.java:TBD (grep confirmed)')
+  evidence='SRC MainActivity.java:365')
 
 
 e('UtilsHandler.addCommonBookmarks', 'AppConfig.runInBackground', 'CALL',
   'UtilsHandler calls runInBackground',
-  evidence='SRC UtilsHandler.java:TBD (grep confirmed)')
+  evidence='SRC UtilsHandler.java:179,202')
 
 # runInParallel - called from FileUtil, MainActivity
 e('MainActivity.onCreate', 'AppConfig.runInParallel', 'CALL',
   'MainActivity calls runInParallel',
-  evidence='SRC MainActivity.java:TBD (grep confirmed)')
+  evidence='SRC MainActivity.java:365')
 
 
 # runInParallel creates AppConfig$1 (anonymous AsyncTask)
@@ -5746,7 +5771,7 @@ e('AppConfig$1.doInBackground', 'AppConfig$1.onPostExecute', 'LIFECYCLE',
 
 e('MainActivity.onCreate', 'AppConfig$CustomAsyncCallbacks.<init>', 'CALL',
   'MainActivity creates CustomAsyncCallbacks anonymous subclass',
-  evidence='SRC MainActivity.java:TBD (grep confirmed)')
+  evidence='SRC MainActivity.java:365')
 
 e('AppConfig.runInParallel', 'AppConfig$CustomAsyncCallbacks.onPreExecute', 'CALL',
   'runInParallel calls onPreExecute on callbacks',
@@ -5755,11 +5780,11 @@ e('AppConfig.runInParallel', 'AppConfig$CustomAsyncCallbacks.onPreExecute', 'CAL
 # getImageLoader - called from Drawer
 e('Drawer.<init>', 'AppConfig.getInstance', 'CALL',
   'Drawer gets AppConfig instance',
-  evidence='SRC Drawer.java:TBD (grep confirmed)')
+  evidence='SRC Drawer.java:156')
 
 e('AppConfig.getInstance', 'AppConfig.getImageLoader', 'CALL',
   'Drawer calls getImageLoader on AppConfig instance',
-  evidence='SRC Drawer.java:TBD (grep confirmed)')
+  evidence='SRC Drawer.java:156')
 
 # ---- part label_b002 (manual merge) ----
 # ---- Helper batch_002 label part (2026-10-27)
@@ -6957,7 +6982,7 @@ UNREACHABLE['CompressedObjectParcelable$1.newArray'] = ('framework_never_calls',
 # CompressedHelper.<clinit> - static initializer for SEPARATOR and other constants
 e('Icons.getTypeOfFile', 'CompressedHelper.<clinit>', 'FRAMEWORK',
   'Static field access triggers class initialization',
-  evidence='SRC Icons.java:TBD calls CompressedHelper.isFileExtractable which accesses static members')
+  evidence='SRC Icons.java:204 calls CompressedHelper.isFileExtractable which accesses static members')
 UNREACHABLE['CompressedHelper.<init>'] = ('no_trigger_in_app', 'Abstract class with all static methods; never instantiated', 'SRC CompressedHelper.java:53 public abstract class CompressedHelper; all methods static', 'SOURCE')
 
 
@@ -10138,7 +10163,8 @@ _W6C_ORIG_EDIT = EDIT
 
 def EDIT(x):
     _W6C_ORIG_EDIT(x)
-    if (not x.get('env') and x['kind'] == 'FRAMEWORK' and x['src'].split('@')[0].startswith('SshClientUtils.execute(')
+    if (not x.get('env') and x['kind'] == 'FRAMEWORK' and (x['src'].split('@')[0].startswith('SshClientUtils.execute(')
+                                                           or _r4_re.match(r'HybridFile\$\d+\.<init>', x['src']))
             and x['dst'].endswith('.execute')):
         x['env'] = ('network: an SSH server at the saved host is reachable: SshClientUtils.execute runs the template only with a '
                     'connection from SshConnectionPool.getConnection (SshClientUtils.java:68-74, 94-102, 126-134)')
@@ -10364,3 +10390,74 @@ def EDIT(x):
 # StreamSource.read ran serve-less through sendError. Judgement cut (same kind as the MMEX AbsListFragment$1 cut): the
 # sendError -> sendResponse edge is not used by the route search; sendResponse is still reached by the serving path.
 sup(('StreamServer$HTTPSession.sendError', 'StreamServer$HTTPSession.sendResponse'))  # auto edge; the hand edge is cut by _R2_CUT at the top
+
+
+# ---- Review 4 fix 2 (Kiro, 2026-11-07): edges that start at the caller that passes the lambda, not at the shared helper ----
+# AppConfig.runInBackground has 8 callers and runInParallel several; an edge from the helper to one caller's lambda
+# opened a route from every caller to that lambda. MoveFiles.onPostExecute -> its lambda already exists (graph_def_mod/01.py).
+e('FileUtil.writeUriToStorage', 'FileUtil$1.doInBackground', 'ASYNC', 'writeUriToStorage passes its callbacks to runInParallel; the executor runs doInBackground',
+  evidence='SRC filesystem/FileUtil.java:196-198')
+e('FileUtil.writeUriToStorage', 'FileUtil$1.onPostExecute', 'ASYNC', 'the parallel executor runs onPostExecute of the callbacks after doInBackground',
+  evidence='SRC filesystem/FileUtil.java:196-198; AppConfig.java:125-132')
+e('Icons.loadMimeIcon', 'CompressedHelper.<clinit>', 'FRAMEWORK', 'the static call CompressedHelper.isFileExtractable initializes the class',
+  evidence='SRC ui/icons/Icons.java:204')
+
+# AppConfig$1.doInBackground / onPostExecute call the callbacks' methods by virtual dispatch (bytecode); every caller of
+# runInParallel would reach every callback class. The callbacks are reached from the caller that creates them.
+sup(('AppConfig$1.doInBackground', 'FileUtil$1.doInBackground'), ('AppConfig$1.onPostExecute', 'FileUtil$1.onPostExecute'),
+    ('AppConfig$1.doInBackground', 'MainActivity$1.doInBackground'), ('AppConfig$1.onPostExecute', 'MainActivity$1.onPostExecute'))
+e('MainActivity.onCreate', 'MainActivity$1.doInBackground', 'ASYNC', 'onCreate passes its callbacks to runInParallel; the executor runs doInBackground',
+  evidence='SRC activities/MainActivity.java:365')
+e('MainActivity.onCreate', 'MainActivity$1.onPostExecute', 'ASYNC', 'the parallel executor runs onPostExecute of the callbacks after doInBackground',
+  evidence='SRC activities/MainActivity.java:365; AppConfig.java:125-132')
+
+
+# ---- Review 4 fix 1 (REAUDIT-R4-ARCHIVE, Kiro, 2026-11-07): content-dependent archive steps need a real archive ----
+# Amaze creates only zip archives (ZipService, zip4j). A file named x.7z / x.rar / x.tar... made with New file reaches the steps
+# that only look at the name (the decompressor choice, the helper task, the first parse call, which then throws): those stay
+# STATE file. Every step that runs only after the archive library has parsed real content (headers past the signature, the
+# entry loop, entry extraction, the progress callbacks) gets ENV other_app on every route. The gate sits on the outgoing edges
+# of the method that opens and parses the archive (the per-family table below); the name-level callees are left out.
+_R4_FAM = {  # class prefix -> (format, parse call lines in the extractor, in the helper task)
+    'SevenZip': ('7z', 'SevenZipExtractor.java:56-67', 'SevenZipHelperTask.java:72'),
+    'Tar': ('tar', 'TarExtractor.java:59', 'TarHelperTask.java:62'),
+    'Rar': ('rar', 'RarExtractor.java:58', 'RarHelperTask.java:66'),
+    'Gzip': ('gz / tar.gz', 'GzipExtractor.java:60', 'GzipHelperTask.java:68'),
+    'Bzip2': ('bz2 / tar.bz2', 'Bzip2Extractor.java:57', 'Bzip2HelperTask.java:60'),
+    'Lzma': ('lzma / tar.lzma', 'LzmaExtractor.java:57', 'LzmaHelperTask.java:60'),
+    'Xz': ('xz / tar.xz', 'XzExtractor.java:57', 'XzHelperTask.java:60'),
+}
+_R4_ARCH_SRC = _r4_re.compile(r'^(SevenZip|Tar|Rar|Gzip|Bzip2|Lzma|Xz)(Extractor\.extractWithFilter|HelperTask\.addElements)(@.*)?$')
+_R4_NAME_LEVEL = _r4_re.compile(r'(\.<clinit>$|^SevenZFile\.<init>|^ArchivePasswordCache\.)')
+_R4_7Z_HEADERS = ('SevenZFile.readStartHeader', 'SevenZFile.readEncodedHeader', 'SevenZFile.readHeader')
+_R4_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _R4_ORIG_EDIT(x)
+    if x.get('env'):
+        return
+    m = _R4_ARCH_SRC.match(x['src'])
+    if m and not _R4_NAME_LEVEL.search(x['dst']):
+        fam, ext, kind = m.group(1), _R4_FAM[m.group(1)], m.group(2)
+        ref = ext[1] if kind.startswith('Extractor') else ext[2]
+        x['env'] = ('outside package: a real %s archive is read: %s opens the archive and parses its entries (%s); a file made with New file and named '
+                    'like an archive fails at the first parse call, so this step runs only for an archive made by another app (Amaze writes only zip)'
+                    % (ext[0], x['src'].split('@')[0], ref))
+        x['env_kinds'] = ['other_app']
+        return
+    if x['src'].split('@')[0] == 'SevenZFile.readHeaders' and x['dst'] != 'SevenZFile.readFully':
+        x['env'] = ('outside package: a real 7z archive is read: the signature check (SevenZFile.java:321-325) throws for any other file, so the '
+                    'start header, the encoded header and the header parse (SevenZFile.java:335, 353, 358) and everything after them run only for an archive made by '
+                    'another app (Amaze writes only zip)')
+        x['env_kinds'] = ['other_app']
+
+# Review 4 fix 2: SshClientUtils$2.execute calls template.execute by virtual dispatch (bytecode), so every caller of
+# SshClientUtils.execute would reach every HybridFile$N.execute. The templates are reached from the HybridFile method that
+# creates them (HybridFile$N.<init> -> HybridFile$N.execute, with the SSH gate).
+sup(*[('SshClientUtils$2.execute', 'HybridFile$%d.execute' % _n) for _n in range(1, 15)],
+    ('SshClientUtils.execute(SshClientTemplate)', 'HybridFile$11.execute'))
+# HybridFile$14 is created at HybridFile.java:1214 (SftpClientTemplate of the SFTP delete case). Only the dispatch edge from the
+# SshClientUtils$2 wrapper reached its execute method, so it gets the same creator edge as the other templates.
+e('HybridFile$14.<init>', 'HybridFile$14.execute', 'FRAMEWORK', 'framework calls template.execute (the template is passed to SshClientUtils.execute)',
+  evidence='SRC HybridFile.java:1214; SshClientUtils.java:134')
