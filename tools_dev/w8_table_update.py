@@ -19,7 +19,22 @@ for l in sys.stdin:
 out, changed = [], []
 for l in open(table, encoding='utf-8').read().split('\n'):
     f = [c.strip() for c in l.strip().strip('|').split('|')] if l.startswith('| ') else []
-    if len(f) == 9 and f[0].isdigit():
+    if l.startswith('| ') and len(f) > 6 and f[0].isdigit() and len(f) != 9:
+        f = [c.strip() for c in l.strip()[1:-1].split('|', 5)]  # 6-column layout: the reason may hold '|'
+    six = len(f) == 6 and f[0].isdigit()
+    if six:  # | # | Method | Stratum | Steps | Verdict | Reason |  (LibreTorrent); changed = has a note
+        m = f[1]; r = rows[m]
+        if m in notes:
+            rc, note = notes.pop(m)
+            first = f[4]
+            keep = first == 'WRONG' or first.endswith('(fixed)')
+            verdict = first if keep else rc
+            old = f[5].split(' Earlier: ', 1)[-1] if f[5].startswith('W8 re-verified') else f[5]
+            f[3] = r['steps_from_launch']; f[4] = verdict
+            f[5] = 'W8 re-verified 2026-11-07 (first verification: %s; re-check: %s). %s Earlier: %s' % (first, rc, note, old)
+            changed.append((m, first, rc, verdict))
+            l = '| ' + ' | '.join(f) + ' |'
+    elif len(f) == 9 and f[0].isdigit():
         m = f[2]; r = rows[m]
         if r['route_edge_ids'].split() != f[8].split():
             assert m in notes, ('no note for changed route', m)
