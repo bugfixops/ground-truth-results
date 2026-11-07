@@ -1366,3 +1366,4 @@ User rulings in the hour (recorded in DECISIONS): Path A authorized ~17:06 EST; 
 - 2026-11-07 UTC | W7 PENDING r6 batch AmazeFileManager p07 | 40 steps (rejudge_r6_p07.txt) | fresh build errors 0, 23 of 23 | PENDING 646/308/544/352/1060
 - 2026-11-07 UTC | W7 PENDING r6 batch AnkiDroid p07 | 40 steps (rejudge_r6_p07.txt) | fresh build errors 0, 23 of 23 | PENDING 646/308/504/352/1060
 - 2026-11-07 UTC | W7 PENDING r6 batch LibreTorrent p07 | 40 steps (rejudge_r6_p07.txt); sample route AdvancedPeerInfo.isUtp re-read (peer step env network), writer re-run | fresh build errors 0, 23 of 23 | PENDING 646/308/504/312/1060
+- 2026-11-07 UTC | W7 PENDING r6 batch MMEX p07 | 40 steps (rejudge_r6_p07.txt) | fresh build errors 0, 23 of 23 | PENDING 646/308/504/312/1020
