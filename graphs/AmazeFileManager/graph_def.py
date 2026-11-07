@@ -69,6 +69,18 @@ for _p in [('CryptUtil.encrypt', 'CryptUtil.rsaEncrypt'), ('CryptUtil.decrypt', 
            ('AppListLoader.onStartLoading', 'PackageReceiver.<init>'), ('PackageReceiver.<init>', 'PackageReceiver.onReceive'),
            ('AppConfig.getInstance', 'ScreenUtils.getScreeHeightInDb'),
            ('MainActivity.delete', 'GeneralDialogCreation.deleteFilesDialog'),
+           # review 5 fix 1: hand edges whose trigger says "may" and that the source does not make
+           ('FileUtils.scanFile(Context,HybridFile[])', 'FileUtil.writeUriToStorage'),  # scanFile (FileUtils.java:242-256) never calls it; callers MainActivity.java:567,576,1389
+           ('ObtainableServiceBinder.getService', 'EncryptService.getProgressListener'),  # getService only returns the service; the getter is called by AbstractProgressiveService.addDatapoint (:188)
+           ('ObtainableServiceBinder.getService', 'EncryptService.setProgressListener'),  # the setter is called by ProcessViewerFragment (:416)
+           ('AppTheme.getSimpleTheme', 'AppTheme.getId'),  # getSimpleTheme switches on the id field (AppTheme.java:73-90)
+           ('CloudHandler.getAllEntries', 'CloudEntry.getId'),  # getAllEntries only calls setId (CloudHandler.java:187)
+           ('CompressedObjectParcelable.<init>()', 'CompressedObjectParcelable.describeContents'),  # the constructor calls nothing
+           ('CompressedHelper.getFileName', 'CompressedHelper.getExtension'),  # getFileName uses endsWith checks (CompressedHelper.java:147-156)
+           ('MainActivity.onPrepareOptionsMenu', 'MainActivity.showToast'),  # showToast is called only from onBackPressed (MainActivity.java:774)
+           ('CopyService.onStartCommand', 'HybridFileParcelable.equals'), ('CopyService.onStartCommand', 'HybridFileParcelable.hashCode'),  # onStartCommand compares no HybridFileParcelable (CopyService.java:104-170)
+           ('LayoutElementParcelable.<init>(Parcel)', 'IconDataParcelable$1.newArray'),  # readParcelable calls createFromParcel, not newArray
+           ('CompressedObjectParcelable.writeToParcel', 'IconDataParcelable.describeContents'),  # writeParcelable calls writeToParcel of the nested object, not describeContents
            ('SubnetScanner.tryWithBroadcast', 'MainFragment$7.run'),  # INFERRED: MainFragment$7 is the launchSMB thread (MainFragment.java:1658-1677); the broadcast thread is SubnetScanner's own (SubnetScanner.java:143)
            # API-level closures (W7 round 2, regressed: these hand edges came back in a later merge) and the KitKat MediaStoreHack I/O
            ('CustomFileObserver.startWatching', 'CustomFileObserver.startPollingSystem'),
@@ -10547,3 +10559,32 @@ sup(('GenericCopyUtil.doCopy', 'MediaStoreHack.getOutputStream'), ('GenericCopyU
     ('FileUtil.getOutputStream', 'MediaStoreHack.getOutputStream'), ('MediaStoreHack.mkfile', 'MediaStoreHack.getOutputStream'),
     ('GenericCopyUtil.doCopy', 'MediaStoreHack.getInputStream'), ('GenericCopyUtil.startCopy', 'MediaStoreHack.getInputStream'),
     ('FileUtil.mkfile', 'MediaStoreHack.mkfile'), ('MediaStoreHack.getOutputStream', 'MediaStoreHack.getUriFromFile'))
+
+# review 5 fix 1: three "may" hand edges are real; their evidence now names the call line
+_R6_EV = {('BottomBar.updatePath', 'BottomBar.showButtons'): 'SRC ui/views/appbar/BottomBar.java:473-475 (else branch: no path animation, the buttons are shown at once)',
+          ('AppListLoader.onStartLoading', 'AppListLoader.deliverResult'): 'SRC asynchronous/loaders/AppListLoader.java:110-113 (deliverResult when mApps is already loaded)',
+          ('AppListLoader.onStopLoading', 'AppListLoader.onCanceled'): 'SRC asynchronous/loaders/AppListLoader.java:131-132 (cancelLoad); INFERRED AsyncTaskLoader calls onCanceled for a cancelled load'}
+_R6_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _R6_ORIG_EDIT(x)
+    _v = _R6_EV.get((x['src'], x['dst']))
+    if _v and 'may' in (x.get('trigger') or ''):
+        x['evidence'] = _v
+# review 5 fix 1 (cont.): the real caller of HybridFileParcelable.equals is the move clean-up loop, through ArrayList.contains
+# (CopyService.java:418-421, inside CopyService$DoInBackground$Copy.execute); the cut CopyService.onStartCommand edge claimed it.
+e('CopyService$DoInBackground$Copy.execute', 'HybridFileParcelable.equals', 'CALL',
+  'a move deletes the sources that did not fail: failedFOps.contains(a) compares the parcelables with equals',
+  evidence='SRC asynchronous/services/CopyService.java:418-421 (ArrayList.contains calls equals)')
+UNREACHABLE['HybridFileParcelable.hashCode'] = ('no_trigger_in_app', 'no hash-based collection or map holds HybridFileParcelable objects in the app (grep finds no HashSet/HashMap of them); '
+                                               'the cut hand edge from CopyService.onStartCommand had no such call (CopyService.java:104-170)',
+                                               'SRC com/amaze/filemanager/filesystem/HybridFileParcelable.java:167-174', 'SOURCE')
+for _m, _why in (('CompressedObjectParcelable.describeContents', 'its constructor does not call it (the cut hand edge claimed it)'),
+                 ('IconDataParcelable.describeContents', 'Parcel.writeParcelable writes the nested icon data through writeToParcel, not describeContents (CompressedObjectParcelable.java:86)')):
+    UNREACHABLE[_m] = ('framework_never_calls', 'no app code calls describeContents, and %s; the framework asks it only through Bundle.hasFileDescriptors '
+                       'for a parcelable in an Intent or binder call, which these objects are not (Q-R6-1)' % _why,
+                       'SRC com/amaze/filemanager/adapters/data/CompressedObjectParcelable.java:73,86; SRC com/amaze/filemanager/adapters/data/IconDataParcelable.java:48', 'SOURCE')
+UNREACHABLE['IconDataParcelable$1.newArray'] = ('framework_never_calls', 'the app reads icon data with readParcelable (LayoutElementParcelable.java), which calls createFromParcel; '
+                                               'newArray is used only by typed-array reads, which no app code makes for IconDataParcelable',
+                                               'SRC com/amaze/filemanager/adapters/data/IconDataParcelable.java:75-77', 'SOURCE')
