@@ -57,6 +57,9 @@ _K6_HAND_DROPS = {
     # Both start inside initLegacyNotifySettings (UNREACHABLE closed_by_api_level), :140-167.
     ('AppearanceSettingsFragment.initLegacyNotifySettings', 'AppearanceSettingsFragment.lambda$initLegacyNotifySettings$0', 'FRAMEWORK'),
     ('AppearanceSettingsFragment.lambda$initLegacyNotifySettings$0', 'AppearanceSettingsFragment.lambda$new$1', 'RESULT'),
+    # W7 r6-p03 DEAD step Ef9e0acce: SaveLogWorker.java:72-74 never runs (the only enqueue puts a non-null uri, LogViewModel.java:204-208)
+    ('SaveLogWorker.doWork', 'SaveLogWorker.showFailToast', 'CALL'),
+    ('SaveLogWorker.showFailToast', 'SaveLogWorker.lambda$showFailToast$0', 'CALL'),
 }
 _append_edge = e
 
@@ -4398,3 +4401,10 @@ def EDIT(x):
             x['needs_state'], x['state_kinds'] = _g[1], list(_g[2])
         elif _g[0] == 'ENV' and not x.get('env'):
             x['env'], x['env_kinds'] = _g[1], list(_g[2])
+# W7 r6-p03 (2026-11-07): DEAD step Ef9e0acce. The only enqueue of SaveLogWorker puts a non-null file uri string
+# (LogViewModel.java:204-208), so the null check at SaveLogWorker.java:72 never holds; :74 is the only call of showFailToast.
+UNREACHABLE['SaveLogWorker.showFailToast'] = ('branch_never_taken', 'called only when the work input has no file uri (SaveLogWorker.java:72-74), but the only enqueue '
+                                             'puts filePath.toString() (LogViewModel.java:204-208), which is never null',
+                                             'SRC service/SaveLogWorker.java:72-74,112; ui/log/LogViewModel.java:204-208', 'SOURCE')
+UNREACHABLE['SaveLogWorker.lambda$showFailToast$0'] = ('branch_never_taken', 'posted only by showFailToast (SaveLogWorker.java:112-119), which never runs (see above)', 'SRC service/SaveLogWorker.java:112-119', 'SOURCE')
+SUPPRESS.update({('SaveLogWorker.doWork', 'SaveLogWorker.showFailToast'), ('SaveLogWorker.showFailToast', 'SaveLogWorker.lambda$showFailToast$0')})  # the auto (bytecode) copies of the two dropped edges
