@@ -60,6 +60,9 @@ _K6_HAND_DROPS = {
     # W7 r6-p03 DEAD step Ef9e0acce: SaveLogWorker.java:72-74 never runs (the only enqueue puts a non-null uri, LogViewModel.java:204-208)
     ('SaveLogWorker.doWork', 'SaveLogWorker.showFailToast', 'CALL'),
     ('SaveLogWorker.showFailToast', 'SaveLogWorker.lambda$showFailToast$0', 'CALL'),
+    # W7 r6-p10 DEAD step E17fa9639: the exact alarm dialog is shown only when an alarm cannot be set, which needs SDK_INT >= S
+    # (Scheduler.java:101-103); on API 27 its positive-button event never arrives (SchedulingSettingsFragment.java:133-137)
+    ('SchedulingSettingsFragment.lambda$subscribeAlertDialog$0', 'Utils.requestExactAlarmPermission', 'CALL'),
 }
 _append_edge = e
 
@@ -4408,3 +4411,5 @@ UNREACHABLE['SaveLogWorker.showFailToast'] = ('branch_never_taken', 'called only
                                              'SRC service/SaveLogWorker.java:72-74,112; ui/log/LogViewModel.java:204-208', 'SOURCE')
 UNREACHABLE['SaveLogWorker.lambda$showFailToast$0'] = ('branch_never_taken', 'posted only by showFailToast (SaveLogWorker.java:112-119), which never runs (see above)', 'SRC service/SaveLogWorker.java:112-119', 'SOURCE')
 SUPPRESS.update({('SaveLogWorker.doWork', 'SaveLogWorker.showFailToast'), ('SaveLogWorker.showFailToast', 'SaveLogWorker.lambda$showFailToast$0')})  # the auto (bytecode) copies of the two dropped edges
+UNREACHABLE['Utils.requestExactAlarmPermission'] = ('closed_by_api_level', 'called only for the positive button of the exact alarm dialog (SchedulingSettingsFragment.java:133-137), which is shown only when Scheduler cannot set the alarm, that is SDK_INT >= S without the permission (Scheduler.java:101-103); the standard config is API 27', 'SRC service/Scheduler.java:101-103', 'SOURCE')
+SUPPRESS.add(('SchedulingSettingsFragment.lambda$subscribeAlertDialog$0', 'Utils.requestExactAlarmPermission'))  # r6-p10 auto copy
