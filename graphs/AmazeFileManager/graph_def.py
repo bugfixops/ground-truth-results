@@ -74,6 +74,7 @@ _R2_CUT.update({('MainActivity.onCreate', 'HybridFileParcelable.describeContents
 # W7 r6-p10: the tab circles exist below Lollipop only (TabFragment.java:85-90); ColorPickerDialog state is read with readParcelable, never newArray
 _R2_CUT.update({('TabFragment.<init>', 'ColorCircleDrawable.<init>'), ('ColorPickerDialog$SavedState$1.<init>', 'ColorPickerDialog$SavedState$1.newArray')})
 _R2_CUT.update({('ColorCircleDrawable.<init>', 'ColorCircleDrawable.' + _m) for _m in ('draw', 'getOpacity', 'onBoundsChange', 'setAlpha', 'setColorFilter')})
+_R2_CUT.add(('SmbSearchDialog.onCreateDialog', 'SmbSearchDialog$ListViewAdapter.getItemId'))  # r6-p11: no stable ids
 # review 4 continuation (see the R5 block at the end): RSA path (API < 23), the never-created PackageReceiver, the uncalled getScreeHeightInDb
 for _p in [('CryptUtil.encrypt', 'CryptUtil.rsaEncrypt'), ('CryptUtil.decrypt', 'CryptUtil.rsaDecrypt'),
            ('CryptUtil.encryptPassword', 'CryptUtil.rsaEncryptPassword'), ('CryptUtil.decryptPassword', 'CryptUtil.rsaDecryptPassword'),
@@ -10638,3 +10639,4 @@ UNREACHABLE['ColorPickerDialog$SavedState$1.newArray'] = ('framework_never_calls
 UNREACHABLE['ItemPopupMenu$1.onButtonPressed(Intent)'] = ('framework_never_calls', 'the first callback (ItemPopupMenu.java:139-148) is passed only to showEncryptAuthenticateDialog, which calls onButtonPressed(Intent,String) (GeneralDialogCreation.java:757); the Intent-only calls (ItemPopupMenu.java:183, GeneralDialogCreation.java:655, :668) go to the second callback', 'SRC com/amaze/filemanager/ui/ItemPopupMenu.java:139-194', 'SOURCE')
 for _m in ('draw', 'getOpacity', 'onBoundsChange', 'setAlpha', 'setColorFilter'):
     UNREACHABLE['ColorCircleDrawable.' + _m] = ('closed_by_api_level', 'no ColorCircleDrawable is made on API 27: the only constructor calls are in TabFragment.updateIndicator, which runs below Lollipop only (TabFragment.java:85-90)', 'SRC com/amaze/filemanager/fragments/TabFragment.java:85-90', 'SOURCE')
+UNREACHABLE['SmbSearchDialog$ListViewAdapter.getItemId'] = ('framework_never_calls', 'RecyclerView calls Adapter.getItemId only for an adapter with stable ids (bindViewHolder: if hasStableIds); the SMB search list adapter never calls setHasStableIds (grep: none in SmbSearchDialog.java), and no app code calls it', 'SRC com/amaze/filemanager/ui/dialogs/SmbSearchDialog.java:174-177', 'SOURCE')
