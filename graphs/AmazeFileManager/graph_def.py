@@ -60,6 +60,19 @@ def _r4_redirect(src, dst):
 _R2_CUT.add(('HybridFile$2.<init>', 'HybridFile$2.execute'))
 _R2_CUT.add(('MainActivity$2.onReceive', 'MainActivityHelper.showFailedOperationDialog'))  # $2 is mOtgReceiver (MainActivity.java:1171); receiver2 (:1610-1616) is $3 in the bytecode, whose own edge carries the gate  # dead chain: HybridFile.length() has no caller
 _R2_CUT.add(('HybridFile.forEachChildrenFile', 'PrepareCopyTask.lambda$checkConflicts$0'))  # PrepareCopyTask.checkConflicts -> the lambda exists
+# review 4 continuation (see the R5 block at the end): RSA path (API < 23), the never-created PackageReceiver, the uncalled getScreeHeightInDb
+for _p in [('CryptUtil.encrypt', 'CryptUtil.rsaEncrypt'), ('CryptUtil.decrypt', 'CryptUtil.rsaDecrypt'),
+           ('CryptUtil.encryptPassword', 'CryptUtil.rsaEncryptPassword'), ('CryptUtil.decryptPassword', 'CryptUtil.rsaDecryptPassword'),
+           ('CryptUtil.initCipher', 'CryptUtil$RSAKeygen.<init>'), ('CryptUtil.initCipher', 'CryptUtil$RSAKeygen.getSecretKey'),
+           ('CryptUtil.rsaEncrypt', 'CryptUtil$RSAKeygen.<init>'), ('CryptUtil.rsaDecrypt', 'CryptUtil$RSAKeygen.<init>'),
+           ('CryptUtil.rsaEncryptPassword', 'CryptUtil$RSAKeygen.<init>'), ('CryptUtil.rsaDecryptPassword', 'CryptUtil$RSAKeygen.<init>'),
+           ('AppListLoader.onStartLoading', 'PackageReceiver.<init>'), ('PackageReceiver.<init>', 'PackageReceiver.onReceive'),
+           ('AppConfig.getInstance', 'ScreenUtils.getScreeHeightInDb')] + [
+        (s, d) for s in ('CryptUtil.rsaEncrypt', 'CryptUtil.rsaDecrypt', 'CryptUtil.rsaEncryptPassword', 'CryptUtil.rsaDecryptPassword',
+                         'CryptUtil$RSAKeygen.<init>', 'CryptUtil$RSAKeygen.getSecretKey', 'CryptUtil$RSAKeygen.generateKeyPair')
+        for d in ('CryptUtil$RSAKeygen.<init>', 'CryptUtil$RSAKeygen.getSecretKey', 'CryptUtil$RSAKeygen.generateKeyPair',
+                  'CryptUtil$RSAKeygen.setKeyPreference', 'CryptUtil$RSAKeygen.encryptAESKey', 'CryptUtil$RSAKeygen.decryptAESKey')]:
+    _R2_CUT.add(_p)
 _R2_DROPPED = []
 _r2_orig_e = e
 
@@ -10461,3 +10474,49 @@ sup(*[('SshClientUtils$2.execute', 'HybridFile$%d.execute' % _n) for _n in range
 # SshClientUtils$2 wrapper reached its execute method, so it gets the same creator edge as the other templates.
 e('HybridFile$14.<init>', 'HybridFile$14.execute', 'FRAMEWORK', 'framework calls template.execute (the template is passed to SshClientUtils.execute)',
   evidence='SRC HybridFile.java:1214; SshClientUtils.java:134')
+
+# ---- Review 4 continuation (Kiro, 2026-11-07): three steps found while rewriting the batch-reason NONE rows ----
+# (1) CryptUtil uses the RSA key path only on API 18-22: every caller branches on SDK_INT >= M first (CryptUtil.java:197-201,
+#     250-254, 471-476, 483-487, 496-505), so on the standard API 27 config the RSA methods never run (closed_by_api_level).
+_R5_RSA = ('CryptUtil.rsaEncrypt', 'CryptUtil.rsaDecrypt', 'CryptUtil.rsaEncryptPassword', 'CryptUtil.rsaDecryptPassword',
+           'CryptUtil$RSAKeygen.<init>', 'CryptUtil$RSAKeygen.getSecretKey', 'CryptUtil$RSAKeygen.generateKeyPair',
+           'CryptUtil$RSAKeygen.setKeyPreference', 'CryptUtil$RSAKeygen.encryptAESKey', 'CryptUtil$RSAKeygen.decryptAESKey')
+_R5_RSA_WHY = ('CryptUtil takes the RSA key path only when Build.VERSION.SDK_INT is below M (API 23): encrypt, decrypt, '
+               'encryptPassword, decryptPassword and initCipher test SDK_INT >= M first (CryptUtil.java:197-201, 250-254, 471-476, '
+               '483-487, 496-505); the standard config is API 27, so %s never runs there')
+for _m in _R5_RSA:
+    UNREACHABLE[_m] = ('closed_by_api_level', _R5_RSA_WHY % _m, 'SRC com/amaze/filemanager/utils/files/CryptUtil.java:197-201,250-254,471-505', 'SOURCE')
+_R5_RSA_IN = [('CryptUtil.encrypt', 'CryptUtil.rsaEncrypt'), ('CryptUtil.decrypt', 'CryptUtil.rsaDecrypt'),
+              ('CryptUtil.encryptPassword', 'CryptUtil.rsaEncryptPassword'), ('CryptUtil.decryptPassword', 'CryptUtil.rsaDecryptPassword'),
+              ('CryptUtil.initCipher', 'CryptUtil$RSAKeygen.<init>'), ('CryptUtil.initCipher', 'CryptUtil$RSAKeygen.getSecretKey')]
+for _p in _R5_RSA_IN:
+    _R2_CUT.add(_p)
+sup(*_R5_RSA_IN)
+# (2) AppListLoader.onStartLoading creates its PackageReceiver only when the field is already non-null (AppListLoader.java:119-120),
+#     and the field is set nowhere else (declared at :29, cleared at :154-157), so the receiver is never created.
+_R2_CUT.add(('AppListLoader.onStartLoading', 'PackageReceiver.<init>'))
+sup(('AppListLoader.onStartLoading', 'PackageReceiver.<init>'))
+for _m in ('PackageReceiver.<init>', 'PackageReceiver.onReceive'):
+    UNREACHABLE[_m] = ('branch_never_taken', 'AppListLoader.onStartLoading creates the PackageReceiver only inside `if (packageReceiver != null)` '
+                       '(AppListLoader.java:119-120), and the field is assigned nowhere else (declared at :29, set to null at :157), so %s never runs' % _m,
+                       'SRC com/amaze/filemanager/asynchronous/loaders/AppListLoader.java:29,119-120,154-157', 'SOURCE')
+# (3) ScreenUtils.getScreeHeightInDb has no caller in the app (grep: only its definition, ScreenUtils.java:41); the hand edge
+#     AppConfig.getInstance -> getScreeHeightInDb cited the method itself.
+_R2_CUT.add(('AppConfig.getInstance', 'ScreenUtils.getScreeHeightInDb'))
+UNREACHABLE['ScreenUtils.getScreeHeightInDb'] = ('no_trigger_in_app', 'no code in the app calls getScreeHeightInDb (grep finds only its definition, ScreenUtils.java:41-43)',
+                                                 'SRC com/amaze/filemanager/utils/ScreenUtils.java:41-43', 'SOURCE')
+# the bytecode edges inside the closed RSA set are suppressed too (both ends are UNREACHABLE), as for MediaStoreHack above
+sup(*[(s, d) for s in _R5_RSA for d in _R5_RSA])
+# W8 re-check (review 4 continuation): every service's addDatapoint reaches the process viewer's listener only while the viewer is
+# open and registered it (AbstractProgressiveService.java:187-189; ProcessViewerFragment.java:416). The bytecode clones of this
+# edge (one per service, @ExtractService and so on) are not in guard_steps.csv, so the gate is written here for all of them.
+_R5_PV_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _R5_PV_ORIG_EDIT(x)
+    if (x['src'].startswith('AbstractProgressiveService.addDatapoint') and x['dst'] == 'ProcessViewerFragment$CustomServiceConnection$1.onUpdate'
+            and not x.get('needs_state')):
+        x['needs_state'] = ('a file operation is running while the process viewer listens: the service sends each data point to the listener '
+                            'the open viewer registered (AbstractProgressiveService.java:187-189; ProcessViewerFragment.java:416)')
+        x['state_kinds'] = ['data']
