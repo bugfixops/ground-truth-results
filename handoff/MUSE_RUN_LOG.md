@@ -1379,3 +1379,4 @@ User rulings in the hour (recorded in DECISIONS): Path A authorized ~17:06 EST; 
 - 2026-11-07 UTC | W7 PENDING r6 batch MMEX p09 | 40 steps (rejudge_r6_p09.txt) | fresh build errors 0, 23 of 23 | PENDING 566/228/424/232/940
 - 2026-11-07 UTC | W7 PENDING r6 batch Aegis p09 | 40 steps (rejudge_r6_p09.txt) | fresh build errors 0, 23 of 23 | PENDING 526/228/424/232/940
 - 2026-11-07 UTC | W7 PENDING r6 batch AmazeFileManager p10 | 40 steps (rejudge_r6_p10.txt); 8 DEAD (ColorCircleDrawable below Lollipop only, ColorPickerDialog SavedState newArray, ItemPopupMenu$1.onButtonPressed(Intent)); 2 SFTP sample routes re-checked wrong as drawn (Q-R6-2) | fresh build errors 0, 23 of 23 | PENDING 526/188/424/232/940
+- 2026-11-07 UTC | W7 PENDING r6 batch AnkiDroid p10 | 40 steps (rejudge_r6_p10.txt) | fresh build errors 0, 23 of 23 | PENDING 526/188/384/232/940
