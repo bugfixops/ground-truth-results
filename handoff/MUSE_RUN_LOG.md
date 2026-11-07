@@ -1362,3 +1362,4 @@ User rulings in the hour (recorded in DECISIONS): Path A authorized ~17:06 EST; 
 - 2026-11-07 UTC | W7 PENDING r6 batch AnkiDroid p06 | 40 steps (rejudge_r6_p06.txt); DEAD step E9c5a22a8 suppressed (below API 11 only); verification edge row follows E2d634caa, writer re-run | fresh build errors 0, 23 of 23 | PENDING 686/348/544/392/1100
 - 2026-11-07 UTC | W7 PENDING r6 batch LibreTorrent p06 | 40 steps (rejudge_r6_p06.txt) | fresh build errors 0, 23 of 23 | PENDING 686/348/544/352/1100
 - 2026-11-07 UTC | W7 PENDING r6 batch MMEX p06 | 40 steps (rejudge_r6_p06.txt) | fresh build errors 0, 23 of 23 | PENDING 686/348/544/352/1060
+- 2026-11-07 UTC | W7 PENDING r6 batch Aegis p06 | 40 steps (rejudge_r6_p06.txt); sample route ScannerActivity.lambda$onQrCodeDetected$1 re-read (camera step env hardware), writer re-run | fresh build errors 0, 23 of 23 | PENDING 646/348/544/352/1060
