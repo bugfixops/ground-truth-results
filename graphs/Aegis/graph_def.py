@@ -5153,6 +5153,13 @@ e('IconPickerDialog.lambda$create$1@ASSIGN', 'IconAdapter.loadIcons@ASSIGN', 'CA
   'the pack switch refills the grid (still no custom row)',
   guard='the pack switch passes the same showAddCustom flag (IconPickerDialog.java:138)',
   evidence='SRC ui/dialogs/IconPickerDialog.java:138')
+# W7 r6-p11: the DummyIcon custom row is made only when showAddCustom is true (IconAdapter.java:63-64). This hand edge
+# replaces the bytecode edge loadIcons -> DummyIcon.<init>, which the build copied onto every variant, so the
+# @ASSIGN and @NOCUSTOM grids (showAddCustom false) no longer make the custom row.
+e('IconAdapter.loadIcons@EDIT', 'IconAdapter$DummyIcon.<init>', 'CALL',
+  'the edit page picker adds the custom row at the top of the suggested icons',
+  guard='showAddCustom is true (IconAdapter.java:63)',
+  evidence='SRC ui/views/IconAdapter.java:63-64')
 # the shared create machinery (focus, watcher, preloader, span lookup, grid inflation)
 # is replicated onto both variants so those methods stay reachable; the auto constructor
 # edges (create -> $1.<init>, $2.<init>, $1IconPreloadProvider.<init>) replicate on their own

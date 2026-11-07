@@ -1387,3 +1387,4 @@ User rulings in the hour (recorded in DECISIONS): Path A authorized ~17:06 EST; 
 - 2026-11-07 UTC | W7 PENDING r6 batch AnkiDroid p11 | 40 steps (rejudge_r6_p11.txt); 1 sample route re-read (FullSyncer.syncURL, same steps, kept wrong) | fresh build errors 0, 23 of 23 | PENDING 486/148/344/192/900
 - 2026-11-07 UTC | W7 PENDING r6 batch LibreTorrent p11 | 40 steps (rejudge_r6_p11.txt) | fresh build errors 0, 23 of 23 | PENDING 486/148/344/152/900
 - 2026-11-07 UTC | W7 PENDING r6 batch MMEX p11 | 40 steps (rejudge_r6_p11.txt) | fresh build errors 0, 23 of 23 | PENDING 486/148/344/152/860
+- 2026-11-07 UTC | W7 PENDING r6 batch Aegis p11 | 40 steps (rejudge_r6_p11.txt); DummyIcon custom row edge limited to the @EDIT picker; 1 sample route re-checked (IconPack$Icon.<init>, CORRECT) | fresh build errors 0, 23 of 23 | PENDING 446/148/344/152/860
