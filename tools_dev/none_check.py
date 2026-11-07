@@ -21,7 +21,11 @@ for r in csv.DictReader(open(G + 'out/methods.csv', encoding='utf-8')):
         continue
     for eid in r['route_edge_ids'].split():
         uses.setdefault(eid, []).append(r['method'])
-COV = re.compile(r'covered|already gated|gated upstream|gate earlier', re.I)
+# review 6 fix 1: the pattern now also catches the reasons that put the gate on another step ("is the state of the
+# steps that ...", "the gate of E...", "gated on the earlier steps", "the gate sits on an upstream step")
+COV = re.compile(r'is the (state|env|gate) of|(state|gate|env) of the steps?|the gate of E|gated (on|at|by) the earli|'
+                 r'is gated (on|at|by)|gate (sits|is) on (the|an) (earlier|upstream)|covered|already gated|'
+                 r'gated upstream|gate earlier', re.I)
 rows = []
 for r in csv.DictReader(open(G + 'scratch/reaudit/w7_judged.csv', encoding='utf-8')):
     if r['decision'] != 'NONE':

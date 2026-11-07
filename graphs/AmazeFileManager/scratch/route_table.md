@@ -43,7 +43,7 @@ A route fixed during B6 counts as "fixed" even though its final print is clean.
 | StreamSource.read(byte[],int,int) | 14 | correct | SMB StreamServer sendResponse :672 reads the SmbStreamer StreamSource (:75-79 override); the bogus SMB -> CloudStreamSource edge was deleted in round-2 |
 | TextEditorActivity$2.onAnimationEnd | 6 | fixed | Citations only: manifest :115-125 -> :129-144; onOptionsItemSelected :355 -> :357 |
 | TextEditorActivity$3.onAnimationEnd | 6 | fixed | Citations only: manifest :115-125 -> :129-144; onOptionsItemSelected :355 -> :357 |
-| ThemedImageView.getActivity | 10 | fixed | Citations only (PrefFrag listener) + route_24 follow-up: the onPreferenceClick -> selectItem citation :221 was the ADVANCEDSEARCH case; the route goes through the FRAGMENT_FOLDERS case :211-213 (FOLDERS_PREFERENCE -> FoldersPref, sidebar_folders_title) |
+| ThemedImageView.getActivity | 10 | fixed | Review 6 fix 3 re-check: step 2 is now the Settings row tap (FRAMEWORK edge with the user action, PrefFrag.java:88-90) in place of the invented CALL E4d630b84; same route, still correct. Earlier: Citations only (PrefFrag listener) + route_24 follow-up: the onPreferenceClick -> selectItem citation :221 was the ADVANCEDSEARCH case; the route goes through the FRAGMENT_FOLDERS case :211-213 (FOLDERS_PREFERENCE -> FoldersPref, sidebar_folders_title) |
 | UtilsHandler.getSshAuthPrivateKeyColumn | 7 | correct | Drawer refresh -> addNewItem lambda -> onNavigationItemActionClick :494 -> showSftpDialog :626 -> getSshAuthPrivateKeyName :1656 -> getSshAuthPrivateKeyColumn :427; lambda$addNewItem$5 identity follows the graph's bytecode-derived numbering (not re-derived) |
 
 ## Error rate

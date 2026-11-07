@@ -75,6 +75,24 @@ _R2_CUT.update({('MainActivity.onCreate', 'HybridFileParcelable.describeContents
 _R2_CUT.update({('TabFragment.<init>', 'ColorCircleDrawable.<init>'), ('ColorPickerDialog$SavedState$1.<init>', 'ColorPickerDialog$SavedState$1.newArray')})
 _R2_CUT.update({('ColorCircleDrawable.<init>', 'ColorCircleDrawable.' + _m) for _m in ('draw', 'getOpacity', 'onBoundsChange', 'setAlpha', 'setColorFilter')})
 _R2_CUT.add(('SmbSearchDialog.onCreateDialog', 'SmbSearchDialog$ListViewAdapter.getItemId'))  # r6-p11: no stable ids
+# review 6 fix 3: listener registrations modelled as a CALL from the registering lifecycle method (re-added as
+# FRAMEWORK edges that carry the user action, or cut, in the review 6 block at the end of the file)
+_R6_LISTENER_CUT = [
+    ('MainActivity.onCreate', 'MainActivity.renameBookmark'),
+    ('PrefFrag.onCreate', 'PrefFrag.onPreferenceClick'),
+    ('PrefFrag.onCreate', 'PrefFrag.lambda$onCreate$0'),
+    ('FoldersPref.onCreate', 'FoldersPref.onPreferenceClick'),
+    ('MainFragment.onCreateView', 'MainFragment.lambda$onCreateView$0'),
+    ('MainFragment.onCreateView', 'MainFragment.lambda$onCreateView$1'),
+    ('MainFragment.onCreateView', 'MainFragment.lambda$onCreateView$2'),
+    ('CompressedExplorerFragment.onCreateView', 'CompressedExplorerFragment.stopAnim'),
+    ('CompressedExplorerFragment.onActivityCreated', 'CompressedExplorerFragment.stopAnim'),
+    ('DatabaseViewerActivity.onCreate', 'DatabaseViewerActivity.lambda$onCreate$0'),
+    ('MainActivity.onCreate', 'MainActivity.lambda$onCreate$0'),
+    ('FileUtils$5.<init>', 'FileUtils$5.launchSAF(HybridFile)'),
+    ('FileUtils$5.<init>', 'FileUtils$5.launchSAF(HybridFile,HybridFile)'),
+]
+_R2_CUT.update(_R6_LISTENER_CUT)
 # r6-p12: onTerminate is never called on a device; AppConfig.getInstance does not call getScreenWidthInPx (the real call is Drawer.java:243 -> getScreenWidthInDp)
 _R2_CUT.update({('AppConfig.<init>', 'AppConfig.onTerminate'), ('AppConfig.getInstance', 'ScreenUtils.getScreenWidthInPx')})
 # review 4 continuation (see the R5 block at the end): RSA path (API < 23), the never-created PackageReceiver, the uncalled getScreeHeightInDb
@@ -10643,3 +10661,47 @@ for _m in ('draw', 'getOpacity', 'onBoundsChange', 'setAlpha', 'setColorFilter')
     UNREACHABLE['ColorCircleDrawable.' + _m] = ('closed_by_api_level', 'no ColorCircleDrawable is made on API 27: the only constructor calls are in TabFragment.updateIndicator, which runs below Lollipop only (TabFragment.java:85-90)', 'SRC com/amaze/filemanager/fragments/TabFragment.java:85-90', 'SOURCE')
 UNREACHABLE['SmbSearchDialog$ListViewAdapter.getItemId'] = ('framework_never_calls', 'RecyclerView calls Adapter.getItemId only for an adapter with stable ids (bindViewHolder: if hasStableIds); the SMB search list adapter never calls setHasStableIds (grep: none in SmbSearchDialog.java), and no app code calls it', 'SRC com/amaze/filemanager/ui/dialogs/SmbSearchDialog.java:174-177', 'SOURCE')
 UNREACHABLE['AppConfig.onTerminate'] = ('framework_never_calls', 'nothing in the app calls it; the framework calls Application.onTerminate only from the EXIT_APPLICATION message (FW-SRC core/java/android/app/ActivityThread.java), which AMS sends only for a process without a real pid or for system_server; a normal app process is killed instead (as hash-checker App.onTerminate)', 'SRC com/amaze/filemanager/utils/application/AppConfig.java:90-93', 'SOURCE')
+
+# Review 6 fix 3 (2026-11-07): listener registrations had been modelled as a CALL from the lifecycle method that
+# registers the listener, so a route could reach the callback without the click (or touch, or refresh) that runs it.
+# Each is cut here and, where the callback is real, re-added as a FRAMEWORK edge that carries the user action on the
+# screen where it happens. MainActivity.renameBookmark keeps only its real caller, Drawer.onNavigationItemActionClick
+# (Drawer.java:622, E03123fab). FileUtils$5 is passed only to Operations.mkdir (FileUtils.java:1026-1027), which calls
+# launchSAF(HybridFile) (its edge from Operations.mkdir stays); the two-file overload is called only by Operations.rename
+# (Operations.java:441), never with this callback.
+# The cut list is _R6_LISTENER_CUT near the top of the file (added to _R2_CUT there, so the old CALL edges are never
+# made); the edges below are added with _r2_orig_e, past that cut.
+SUPPRESS.update(_R6_LISTENER_CUT)  # an auto (bytecode) copy, if any, goes too
+# auto interface dispatch: the rename task calls errorCallBack.launchSAF(old, new) on the callback rename() was given
+# (Operations.java:441), never on FileUtils$5
+SUPPRESS.add(('Operations$3.doInBackground', 'FileUtils$5.launchSAF(HybridFile,HybridFile)'))
+
+
+def _r6_click(src, dst, action, ev):
+    _r2_orig_e(src, dst, 'FRAMEWORK', action, gui=[action], evidence=ev)
+
+
+_r6_click('PrefFrag.onCreate', 'PrefFrag.onPreferenceClick', 'Tap a row of the main Settings list',
+          'SRC fragments/preference_fragments/PrefFrag.java:88-90 (setOnPreferenceClickListener(this)); FW-SRC Preference.java performClick')
+_r6_click('PrefFrag.onCreate', 'PrefFrag.lambda$onCreate$0', 'Toggle the fingerprint check box in Settings',
+          'SRC fragments/preference_fragments/PrefFrag.java:117-145 (setOnPreferenceChangeListener); FW-SRC Preference.java callChangeListener')
+_r6_click('FoldersPref.onCreate', 'FoldersPref.onPreferenceClick', 'Tap Add shortcut in the Folders setting',
+          'SRC fragments/preference_fragments/FoldersPref.java:58 (setOnPreferenceClickListener(this)); FW-SRC Preference.java performClick')
+_r6_click('MainFragment.onCreateView', 'MainFragment.lambda$onCreateView$0', 'Touch the file list',
+          'SRC fragments/MainFragment.java:244-249 (listView.setOnTouchListener); FW-SRC View.java dispatchTouchEvent')
+_r6_click('MainFragment.onCreateView', 'MainFragment.lambda$onCreateView$1', 'Touch the toolbar above the file list',
+          'SRC fragments/MainFragment.java:250-256 (mToolbarContainer.setOnTouchListener); FW-SRC View.java dispatchTouchEvent')
+_r6_click('MainFragment.onCreateView', 'MainFragment.lambda$onCreateView$2', 'Pull down the file list to refresh it',
+          'SRC fragments/MainFragment.java:258-260 (mSwipeRefreshLayout.setOnRefreshListener); FW-SRC SwipeRefreshLayout onRefresh')
+_r6_click('CompressedExplorerFragment.onCreateView', 'CompressedExplorerFragment.stopAnim', 'Touch the file list of an open archive',
+          'SRC fragments/CompressedExplorerFragment.java:137-143 (listView.setOnTouchListener calls stopAnim); FW-SRC View.java dispatchTouchEvent')
+_r6_click('CompressedExplorerFragment.onActivityCreated', 'CompressedExplorerFragment.stopAnim', 'Touch the toolbar of an open archive',
+          'SRC fragments/CompressedExplorerFragment.java:170-178 (mToolbarContainer.setOnTouchListener calls stopAnim); FW-SRC View.java dispatchTouchEvent')
+_r6_click('DatabaseViewerActivity.onCreate', 'DatabaseViewerActivity.lambda$onCreate$0', 'Tap a table in the database viewer',
+          'SRC activities/DatabaseViewerActivity.java:133-142 (listView.setOnItemClickListener); FW-SRC AdapterView.java performItemClick')
+_r6_click('MainActivity.onCreate', 'MainActivity.lambda$onCreate$0', 'Type a search in the app bar and press Search',
+          'SRC activities/MainActivity.java:290 (new AppBar(..., queue -> ...)); SRC ui/views/appbar/SearchView.java:54-56 (IME_ACTION_SEARCH calls onSearch)')
+UNREACHABLE['FileUtils$5.launchSAF(HybridFile,HybridFile)'] = (
+    'no_trigger_in_app', 'the FileUtils$5 callback is passed only to Operations.mkdir (FileUtils.java:1026-1027), which calls the one-file '
+    'launchSAF; the two-file overload is called only by Operations.rename (Operations.java:441), which never gets this callback',
+    'SRC com/amaze/filemanager/utils/files/FileUtils.java:1026-1043', 'SOURCE')

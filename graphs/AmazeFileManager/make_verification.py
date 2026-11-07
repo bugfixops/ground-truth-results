@@ -153,6 +153,8 @@ p8('PasteHelper.<init>(Parcel)', 'correct', 'MainActivity.java:425',
    'Review 4 re-check: step 2 is now MainActivity.onCreate -> MainActivity$1.onPostExecute (onCreate passes its callbacks to runInParallel at MainActivity.java:365; the old route went through the shared AppConfig$1 dispatch, cut in review 4 fix 2). onPostExecute reads the PasteHelper from savedInstanceState (:425) -> PasteHelper$1.createFromParcel -> <init>(Parcel) (PasteHelper.java:43-44). Gates as before: a pending copy or cut (state) and the system recreating MainActivity with its saved state (env).')
 p8('PasteHelper$1.createFromParcel', 'correct', 'MainActivity.java:425',
    'Review 4 re-check: same new step 2 as PasteHelper.<init>(Parcel) (MainActivity.onCreate -> MainActivity$1.onPostExecute, MainActivity.java:365); onPostExecute reads the PasteHelper from savedInstanceState (:425). Gates as before (pending copy or cut; saved-state recreation).')
+p8('ThemedImageView.getActivity', 'correct', 'PrefFrag.java:89',
+   'Review 6 fix 3 re-check (2026-11-07): step 2 was the invented CALL PrefFrag.onCreate -> onPreferenceClick (E4d630b84); it is now the tap on a Settings row, a FRAMEWORK edge with the user action (PrefFrag.java:88-90). The tapped row is Folders (PreferencesActivity.selectItem FRAGMENT_FOLDERS case, :211-213), then FoldersPref builds its PathSwitchPreference rows -> ThemedImageButton -> ThemedImageView.getActivity. The same 10 methods; no gate is needed.')
 
 # ---- edge rows: the B6 added/rewired edges, each checked to exist in the built graph.
 EDGE_NOTES = {}
