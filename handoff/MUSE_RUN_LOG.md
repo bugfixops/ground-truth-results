@@ -1348,3 +1348,4 @@ User rulings in the hour (recorded in DECISIONS): Path A authorized ~17:06 EST; 
 - 2026-11-07 UTC | W7 PENDING r6 batch LibreTorrent p03 | 40 steps (rejudge_r6_p03.txt); DEAD step Ef9e0acce cut (SaveLogWorker.showFailToast and its lambda UNREACHABLE branch_never_taken) | fresh build errors 0, 23 of 23 | PENDING 806/468/664/472/1220
 - 2026-11-07 UTC | W7 PENDING r6 batch MMEX p03 | 40 steps (rejudge_r6_p03.txt) | fresh build errors 0, 23 of 23 | PENDING 806/468/664/472/1180
 - 2026-11-07 UTC | W7 PENDING r6 batch Aegis p03 | 40 steps (rejudge_r6_p03.txt) | fresh build errors 0, 23 of 23 | PENDING 766/468/664/472/1180
+- 2026-11-07 UTC | W7 PENDING r6 batch AmazeFileManager p04 | 40 steps (rejudge_r6_p04.txt) | fresh build errors 0, 23 of 23 | PENDING 766/428/664/472/1180
