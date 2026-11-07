@@ -1388,3 +1388,4 @@ User rulings in the hour (recorded in DECISIONS): Path A authorized ~17:06 EST; 
 - 2026-11-07 UTC | W7 PENDING r6 batch LibreTorrent p11 | 40 steps (rejudge_r6_p11.txt) | fresh build errors 0, 23 of 23 | PENDING 486/148/344/152/900
 - 2026-11-07 UTC | W7 PENDING r6 batch MMEX p11 | 40 steps (rejudge_r6_p11.txt) | fresh build errors 0, 23 of 23 | PENDING 486/148/344/152/860
 - 2026-11-07 UTC | W7 PENDING r6 batch Aegis p11 | 40 steps (rejudge_r6_p11.txt); DummyIcon custom row edge limited to the @EDIT picker; 1 sample route re-checked (IconPack$Icon.<init>, CORRECT) | fresh build errors 0, 23 of 23 | PENDING 446/148/344/152/860
+- 2026-11-07 UTC | W7 PENDING r6 batch AmazeFileManager p12 | 40 steps (rejudge_r6_p12.txt); 2 DEAD (AppConfig.onTerminate never called; INFERRED ScreenUtils edge cut) | fresh build errors 0, 23 of 23 | PENDING 446/108/344/152/860

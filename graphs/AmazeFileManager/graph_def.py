@@ -75,6 +75,8 @@ _R2_CUT.update({('MainActivity.onCreate', 'HybridFileParcelable.describeContents
 _R2_CUT.update({('TabFragment.<init>', 'ColorCircleDrawable.<init>'), ('ColorPickerDialog$SavedState$1.<init>', 'ColorPickerDialog$SavedState$1.newArray')})
 _R2_CUT.update({('ColorCircleDrawable.<init>', 'ColorCircleDrawable.' + _m) for _m in ('draw', 'getOpacity', 'onBoundsChange', 'setAlpha', 'setColorFilter')})
 _R2_CUT.add(('SmbSearchDialog.onCreateDialog', 'SmbSearchDialog$ListViewAdapter.getItemId'))  # r6-p11: no stable ids
+# r6-p12: onTerminate is never called on a device; AppConfig.getInstance does not call getScreenWidthInPx (the real call is Drawer.java:243 -> getScreenWidthInDp)
+_R2_CUT.update({('AppConfig.<init>', 'AppConfig.onTerminate'), ('AppConfig.getInstance', 'ScreenUtils.getScreenWidthInPx')})
 # review 4 continuation (see the R5 block at the end): RSA path (API < 23), the never-created PackageReceiver, the uncalled getScreeHeightInDb
 for _p in [('CryptUtil.encrypt', 'CryptUtil.rsaEncrypt'), ('CryptUtil.decrypt', 'CryptUtil.rsaDecrypt'),
            ('CryptUtil.encryptPassword', 'CryptUtil.rsaEncryptPassword'), ('CryptUtil.decryptPassword', 'CryptUtil.rsaDecryptPassword'),
@@ -10640,3 +10642,4 @@ UNREACHABLE['ItemPopupMenu$1.onButtonPressed(Intent)'] = ('framework_never_calls
 for _m in ('draw', 'getOpacity', 'onBoundsChange', 'setAlpha', 'setColorFilter'):
     UNREACHABLE['ColorCircleDrawable.' + _m] = ('closed_by_api_level', 'no ColorCircleDrawable is made on API 27: the only constructor calls are in TabFragment.updateIndicator, which runs below Lollipop only (TabFragment.java:85-90)', 'SRC com/amaze/filemanager/fragments/TabFragment.java:85-90', 'SOURCE')
 UNREACHABLE['SmbSearchDialog$ListViewAdapter.getItemId'] = ('framework_never_calls', 'RecyclerView calls Adapter.getItemId only for an adapter with stable ids (bindViewHolder: if hasStableIds); the SMB search list adapter never calls setHasStableIds (grep: none in SmbSearchDialog.java), and no app code calls it', 'SRC com/amaze/filemanager/ui/dialogs/SmbSearchDialog.java:174-177', 'SOURCE')
+UNREACHABLE['AppConfig.onTerminate'] = ('framework_never_calls', 'nothing in the app calls it; the framework calls Application.onTerminate only from the EXIT_APPLICATION message (FW-SRC core/java/android/app/ActivityThread.java), which AMS sends only for a process without a real pid or for system_server; a normal app process is killed instead (as hash-checker App.onTerminate)', 'SRC com/amaze/filemanager/utils/application/AppConfig.java:90-93', 'SOURCE')
