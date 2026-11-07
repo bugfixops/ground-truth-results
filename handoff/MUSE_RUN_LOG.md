@@ -1371,3 +1371,4 @@ User rulings in the hour (recorded in DECISIONS): Path A authorized ~17:06 EST; 
 - 2026-11-07 UTC | W7 PENDING r6 batch AmazeFileManager p08 | 40 steps (rejudge_r6_p08.txt); verification edge row follows Edb17c4ce (selection gate), writer re-run | fresh build errors 0, 23 of 23 | PENDING 606/268/504/312/1020
 - 2026-11-07 UTC | W7 PENDING r6 batch AnkiDroid p08 | 40 steps (rejudge_r6_p08.txt); verification edge row follows Ed28154fc (network gate), writer re-run | fresh build errors 0, 23 of 23 | PENDING 606/268/464/312/1020
 - 2026-11-07 UTC | W7 PENDING r6 batch LibreTorrent p08 | 40 steps (rejudge_r6_p08.txt); sample route TorrentDownloadImpl.pieces re-read, writer re-run | fresh build errors 0, 23 of 23 | PENDING 606/268/464/272/1020
+- 2026-11-07 UTC | W7 PENDING r6 batch MMEX p08 | 40 steps (rejudge_r6_p08.txt) | fresh build errors 0, 23 of 23 | PENDING 606/268/464/272/980
