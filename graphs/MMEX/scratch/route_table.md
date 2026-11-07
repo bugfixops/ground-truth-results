@@ -122,6 +122,7 @@
   CategoriesReport leak.
 
 ### 11. DatabaseMetadataFactory.getInstance(String,String) — STATE, 25 steps — FIXED (re-verified 2026-11-06; first verification: FIXED)
+- Re-verified 2026-11-06 (Kiro, self-checked only, second: pending reviewer): W7 r6-p05 re-check (the MainActivity DbFileDownloadedEvent step E81de3799 got the env gate other_app, so the route moved): steps 23-24 now deliver the download event to SyncPreferenceFragment.onEvent, which calls SyncManager.useDownloadedDatabase; this needs the sync preferences open while the download finishes (state, SyncPreferenceFragment registers on start) and the cloud file (env). One real execution; the first verdict FIXED is kept.
 - Re-verified 2026-11-06 (Kiro, self-checked only, second: pending reviewer): the route goes Settings > Synchronization > Download (SyncPreferenceFragment.java:233-236, 308) -> SyncManager.invokeSyncService@DOWNLOAD, which returns at once without a remote file (SyncManager.java:188-192). That guard had no gate on the DOWNLOAD and UPLOAD variants, so the route looked gui; fixed in graph_def.py (W8 wrapper: every invokeSyncService variant gets the cloud-provider env gate). Steps 19-25 checked: enqueueWork, the DOWNLOAD case (SyncService.java:126-128), the message handler, DbFileDownloadedEvent, useDownloadedDatabase.
 - Steps 1-8 CORRECT; step 9 FIXED (citation only: triggerSync flags
   are at SyncService.java:177-178, branch test at :206, not the cited
@@ -150,7 +151,8 @@
   onReceive (setting-on guard), enqueueWork, JobIntentService delivery
   (INFERRED, flagged; JOB_ID 1001).
 
-### 14. RecurringTransactionListActivity.onActivityResult — ENV, 9 steps — CORRECT
+### 14. RecurringTransactionListActivity.onActivityResult — ENV, 9 steps — CORRECT (re-verified 2026-11-06; first verification: CORRECT)
+- Re-verified 2026-11-06 (Kiro, self-checked only, second: pending reviewer): W7 r6-p05 re-check: the same 9 steps; step 6 (notifyRepeatingTransaction_Internal -> showNotification) is the same call under a new edge id (Ec7b6275e to E857b0f44) and now carries the state that a recurring transaction is due (RecurringTransactionNotifications.java:72-77).
 - Steps 1-9 CORRECT. Step 3 CORRECT now: the shared edge is E00ecbc65
   with the full !showPrerequisite() guard printed (:184-187;
   definition :1478-1499) — the B6 FIXED item is resolved by the
