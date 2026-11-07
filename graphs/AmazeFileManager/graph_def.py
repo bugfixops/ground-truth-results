@@ -71,6 +71,9 @@ _R2_CUT.update({('MainFragment$4$1.<init>', 'MainFragment$4$1.onMediaScannerConn
 # describeContents is asked by the framework when a copy intent with parcelable extras is sent (edge re-sourced at the end of the file)
 _R2_CUT.update({('MainActivity.onCreate', 'HybridFileParcelable.describeContents'), ('MainActivity.onCreate', 'HybridFileParcelable$1.newArray'),
                 ('FileUtil.getOutputStream', 'MediaStoreHack.<clinit>')})
+# W7 r6-p10: the tab circles exist below Lollipop only (TabFragment.java:85-90); ColorPickerDialog state is read with readParcelable, never newArray
+_R2_CUT.update({('TabFragment.<init>', 'ColorCircleDrawable.<init>'), ('ColorPickerDialog$SavedState$1.<init>', 'ColorPickerDialog$SavedState$1.newArray')})
+_R2_CUT.update({('ColorCircleDrawable.<init>', 'ColorCircleDrawable.' + _m) for _m in ('draw', 'getOpacity', 'onBoundsChange', 'setAlpha', 'setColorFilter')})
 # review 4 continuation (see the R5 block at the end): RSA path (API < 23), the never-created PackageReceiver, the uncalled getScreeHeightInDb
 for _p in [('CryptUtil.encrypt', 'CryptUtil.rsaEncrypt'), ('CryptUtil.decrypt', 'CryptUtil.rsaDecrypt'),
            ('CryptUtil.encryptPassword', 'CryptUtil.rsaEncryptPassword'), ('CryptUtil.decryptPassword', 'CryptUtil.rsaDecryptPassword'),
@@ -10623,3 +10626,15 @@ e('PrepareCopyTask.startService', 'HybridFileParcelable.describeContents', 'FRAM
 UNREACHABLE['HybridFileParcelable$1.newArray'] = ('framework_never_calls', 'the app reads HybridFileParcelable arrays only with readParcelableArray (PasteHelper.java:28), which builds a plain Parcelable[] and never calls CREATOR.newArray, and lists with getParcelableArrayListExtra, which calls createFromParcel', 'SRC com/amaze/filemanager/filesystem/PasteHelper.java:26-39; SRC com/amaze/filemanager/filesystem/HybridFileParcelable.java:112', 'SOURCE')
 UNREACHABLE['MainFragment$4$1.onMediaScannerConnected'] = ('framework_never_calls', 'MediaScannerConnection calls its client only after connect(); the connection made in receiver2 is never connected and its scanFile call is commented out (MainFragment.java:814-815), so connect() is never called', 'SRC com/amaze/filemanager/fragments/MainFragment.java:798-815', 'SOURCE')
 UNREACHABLE['MainFragment$4$1.onScanCompleted'] = ('framework_never_calls', 'MediaScannerConnection calls its client only after connect(); the connection made in receiver2 is never connected and its scanFile call is commented out (MainFragment.java:814-815), so the connection is never connected or asked to scan', 'SRC com/amaze/filemanager/fragments/MainFragment.java:798-815', 'SOURCE')
+# W7 r6-p10 DEAD steps
+sup(('TabFragment.onCreateView', 'TabFragment.updateIndicator'), ('TabFragment.onPageSelected', 'TabFragment.updateIndicator'),
+    ('TabFragment.updateIndicator', 'ColorCircleDrawable.<init>'))  # auto copies; both calls are guarded by circleDrawable1 != null (TabFragment.java:149, :311)
+sup(('ItemPopupMenu.onMenuItemClick', 'ItemPopupMenu$1.onButtonPressed(Intent)'),
+    ('GeneralDialogCreation.lambda$showEncryptWarningDialog$10', 'ItemPopupMenu$1.onButtonPressed(Intent)'),
+    ('GeneralDialogCreation.lambda$showEncryptWarningDialog$11', 'ItemPopupMenu$1.onButtonPressed(Intent)'))  # auto interface dispatch; the Intent-only call goes to $2
+UNREACHABLE['TabFragment.updateIndicator'] = ('closed_by_api_level', 'updateIndicator is called only when the tab circle views were looked up (TabFragment.java:149, :311), which happens below Lollipop only (TabFragment.java:85-90); the standard config is API 27', 'SRC com/amaze/filemanager/fragments/TabFragment.java:85-90', 'SOURCE')
+UNREACHABLE['ColorCircleDrawable.<init>'] = ('closed_by_api_level', 'the only constructor calls are in TabFragment.updateIndicator (TabFragment.java:386-390), which runs below Lollipop only (TabFragment.java:85-90); the standard config is API 27', 'SRC com/amaze/filemanager/fragments/TabFragment.java:379-391', 'SOURCE')
+UNREACHABLE['ColorPickerDialog$SavedState$1.newArray'] = ('framework_never_calls', 'the preference state is stored as one Parcelable in the saved hierarchy bundle and read with readParcelable, which calls createFromParcel, never newArray (Q-R6-1)', 'SRC com/amaze/filemanager/ui/dialogs/ColorPickerDialog.java:254-258', 'SOURCE')
+UNREACHABLE['ItemPopupMenu$1.onButtonPressed(Intent)'] = ('framework_never_calls', 'the first callback (ItemPopupMenu.java:139-148) is passed only to showEncryptAuthenticateDialog, which calls onButtonPressed(Intent,String) (GeneralDialogCreation.java:757); the Intent-only calls (ItemPopupMenu.java:183, GeneralDialogCreation.java:655, :668) go to the second callback', 'SRC com/amaze/filemanager/ui/ItemPopupMenu.java:139-194', 'SOURCE')
+for _m in ('draw', 'getOpacity', 'onBoundsChange', 'setAlpha', 'setColorFilter'):
+    UNREACHABLE['ColorCircleDrawable.' + _m] = ('closed_by_api_level', 'no ColorCircleDrawable is made on API 27: the only constructor calls are in TabFragment.updateIndicator, which runs below Lollipop only (TabFragment.java:85-90)', 'SRC com/amaze/filemanager/fragments/TabFragment.java:85-90', 'SOURCE')
