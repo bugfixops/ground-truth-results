@@ -8032,3 +8032,4 @@ def EDIT(x):
         x['needs_state'] = ('no backup file exists in the backup folder (mBackups.length == 0, DatabaseErrorDialog.java:216-233); '
                             'the startup backup (DeckPicker.java:806) creates one after the first start')
         x['state_kinds'] = ['file']
+sup(('Reviewer.onCreateOptionsMenu', 'AbstractFlashcardViewer.clipboardHasText'))  # W7 r6-p06 DEAD E9c5a22a8: Reviewer.java:298-300 runs only below API 11 (closed_by_api_level)
