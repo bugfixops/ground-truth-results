@@ -2125,7 +2125,9 @@ for _dst, _note in [
 ]:
     e('AegisModule.provideAppDatabase', _dst, 'FRAMEWORK', _note,
       evidence='INFERRED Room library (library source not read); generated AppDatabase_Impl (dataset, not source tree); SRC AegisModule.java:50-52')
-for _dst in ['createAllTables', 'dropAllTables', 'onCreate', 'onOpen', 'onPreMigrate', 'onPostMigrate', 'onValidateSchema']:
+# W7 r6-p10 DEAD steps E6bfc71e4 E5b611014 Eed188062: the database is version 1 with no migrations and no destructive fallback
+# (AppDatabase.java:12, AegisModule.java:51-53), so Room never migrates it or drops its tables
+for _dst in ['createAllTables', 'onCreate', 'onOpen', 'onValidateSchema']:
     e('AppDatabase_Impl.createOpenDelegate', 'AppDatabase_Impl$1.' + _dst, 'FRAMEWORK',
       'Room opens the database file on the first DAO call and calls this open-helper delegate callback (create, open, migrate or validate)',
       evidence='INFERRED Room library: RoomOpenHelper calls the delegate on open (library source not read); generated AppDatabase_Impl$1 (dataset, not source tree)')
@@ -6585,3 +6587,5 @@ def EDIT(x):
 # borderThickness is set only by withBorder (:52,194-195), and no app code calls withBorder (grep of app/src/main/java).
 sup(('TextDrawable.draw', 'TextDrawable.drawBorder'))
 UNREACHABLE['TextDrawable.drawBorder'] = ('branch_never_taken', 'drawn only when borderThickness > 0 (TextDrawable.java:77-78), which only withBorder sets (:194-195); no app code calls withBorder, so the thickness stays 0', 'SRC com/amulyakhare/textdrawable/TextDrawable.java:52,77-78,169,194-195', 'SOURCE')
+for _m, _w in (('dropAllTables', 'Room drops the tables only for a destructive migration'), ('onPreMigrate', 'Room calls the migration hooks only when the stored version differs'), ('onPostMigrate', 'Room calls the migration hooks only when the stored version differs')):
+    UNREACHABLE['AppDatabase_Impl$1.' + _m] = ('closed_by_configuration', _w + '; the audit log database is version 1 with no migrations and no fallbackToDestructiveMigration (AppDatabase.java:12, AegisModule.java:51-53), so every install opens it at version 1', 'SRC com/beemdevelopment/aegis/AegisModule.java:51-53', 'SOURCE')
