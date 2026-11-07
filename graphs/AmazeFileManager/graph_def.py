@@ -67,7 +67,9 @@ for _p in [('CryptUtil.encrypt', 'CryptUtil.rsaEncrypt'), ('CryptUtil.decrypt', 
            ('CryptUtil.rsaEncrypt', 'CryptUtil$RSAKeygen.<init>'), ('CryptUtil.rsaDecrypt', 'CryptUtil$RSAKeygen.<init>'),
            ('CryptUtil.rsaEncryptPassword', 'CryptUtil$RSAKeygen.<init>'), ('CryptUtil.rsaDecryptPassword', 'CryptUtil$RSAKeygen.<init>'),
            ('AppListLoader.onStartLoading', 'PackageReceiver.<init>'), ('PackageReceiver.<init>', 'PackageReceiver.onReceive'),
-           ('AppConfig.getInstance', 'ScreenUtils.getScreeHeightInDb')] + [
+           ('AppConfig.getInstance', 'ScreenUtils.getScreeHeightInDb'),
+           ('MainActivity.delete', 'GeneralDialogCreation.deleteFilesDialog'),
+           ('FileUtils.openFile(File,MainActivity,SharedPreferences)', 'FileUtils.openFile(DocumentFile,MainActivity,SharedPreferences)')] + [
         (s, d) for s in ('CryptUtil.rsaEncrypt', 'CryptUtil.rsaDecrypt', 'CryptUtil.rsaEncryptPassword', 'CryptUtil.rsaDecryptPassword',
                          'CryptUtil$RSAKeygen.<init>', 'CryptUtil$RSAKeygen.getSecretKey', 'CryptUtil$RSAKeygen.generateKeyPair')
         for d in ('CryptUtil$RSAKeygen.<init>', 'CryptUtil$RSAKeygen.getSecretKey', 'CryptUtil$RSAKeygen.generateKeyPair',
