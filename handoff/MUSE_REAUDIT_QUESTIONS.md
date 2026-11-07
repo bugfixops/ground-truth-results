@@ -61,3 +61,6 @@ PreferenceActivity hosts whichever settings fragment the intent names (Preferenc
 
 ## Q-R5-2 (Kiro, 2026-11-07, AnkiDroid W8): the shared note editor screen
 S_NOTEEDITOR is one screen node for every activity that opens the note editor (DeckPicker, CardBrowser, the reviewer), and its RESULT edges go to every caller's onActivityResult. Two re-checked routes open the editor from DeckPicker and return to CardBrowser or the reviewer, which is not one real execution (Sched.getToday, Sound.notifyConfigurationChanged: re-check wrong). Default used: written as wrong; the class of each target is right either way. Question: split S_NOTEEDITOR per caller (@DECKPICKER, @BROWSER, @REVIEWER), as the dialog variant pages already are? It changes route prints, not classes.
+
+## Q-R5-3 (Kiro, 2026-11-07, AnkiDroid PENDING): what is in the imported sample deck?
+review/TASK_NOTE.md says only "a sample deck imported". Steps that need card content (a link or sound tag in a card, a type-in field, a video) depend on it. Default used: the sample deck's notes have plain text fields with no media, links or type-in fields (as earlier rows already assumed for video and type-in), so those steps are STATE data (the content is added in the note editor, an in-app action). If the sample deck has sound files, E06cc43e8 and the sound rows become NONE.
