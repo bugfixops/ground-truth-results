@@ -2864,9 +2864,15 @@ gui(_B10_AP + 'onCreatePreferences', _B10_AP + 'lambda$onCreatePreferences$4', '
 gui(_B10_AP + 'lambda$onCreatePreferences$4', _B10_AP + 'lambda$onCreatePreferences$3', 'Pick a theme in the choose-theme dialog (the theme is saved and the activity is recreated)',
     evidence=FW_CHOICE + '; SRC ui/fragments/preferences/AppearancePreferencesFragment.java:56-67')
 
-# Appearance: dynamic colors (preference change; the activity is recreated)
-gui(_B10_AP + 'onCreatePreferences', _B10_AP + 'lambda$onCreatePreferences$5', 'Turn Dynamic colors on or off (pref_dynamic_colors; the activity is recreated)',
-    evidence=FW_PREF_CHANGE + '; SRC ui/fragments/preferences/AppearancePreferencesFragment.java:72-77')
+# Appearance: dynamic colors (preference change; the activity is recreated).
+# W7 r6-p16 DEAD step Efdc69a64: the row is enabled only when DynamicColors.isDynamicColorAvailable() (AppearancePreferencesFragment.java:73),
+# which needs SDK_INT >= S; the standard config is API 27, so the disabled row never fires its change listener. The edge is dropped.
+# gui(_B10_AP + 'onCreatePreferences', _B10_AP + 'lambda$onCreatePreferences$5', 'Turn Dynamic colors on or off (pref_dynamic_colors; the activity is recreated)',
+#     evidence=FW_PREF_CHANGE + '; SRC ui/fragments/preferences/AppearancePreferencesFragment.java:72-77')
+UNREACHABLE[_B10_AP + 'lambda$onCreatePreferences$5'] = (
+    'closed_by_api_level', 'the change listener of the Dynamic colors row, which is enabled only when DynamicColors.isDynamicColorAvailable() '
+    '(AppearancePreferencesFragment.java:73), that is SDK_INT >= S; the standard config is API 27, so the row stays disabled',
+    'SRC ui/fragments/preferences/AppearancePreferencesFragment.java:72-77', 'SOURCE')
 
 # Appearance: language (the row exists on SDK above 23 only)
 gui(_B10_AP + 'onCreatePreferences', _B10_AP + 'lambda$onCreatePreferences$7', 'Tap Language (pref_lang)',
@@ -5221,10 +5227,17 @@ e('IconAdapter.lambda$onBindViewHolder$2@EDIT', 'EditEntryActivity$1.onCustomSel
   'the custom icon row is tapped on the edit page: the custom icon page opens',
   guard='the tapped row is the custom entry (icon instanceof DummyIcon, which exists only when showAddCustom is true; ui/views/IconAdapter.java:63-64,174-175)',
   evidence='SRC ui/views/IconAdapter.java:168-175')
-e('IconAdapter.lambda$onBindViewHolder$2@ASSIGN', 'AssignIconsActivity$1.onCustomSelected', 'CALL',
-  'the custom icon row is tapped on the assign-icons page: nothing happens',
-  guard='the listener is AssignIconsActivity$1, whose onCustomSelected is empty (AssignIconsActivity.java:201); the chain dead-ends here',
-  evidence='SRC ui/views/IconAdapter.java:168-175; SRC ui/AssignIconsActivity.java:201')
+# W7 r6-p16 DEAD steps E9a7c0668, Efa0f00d3 (and the forwarder edge E3f7e735f): the assign-icons page opens the picker
+# with showAddCustom false (AssignIconsActivity.java:194), so no DummyIcon row exists (IconAdapter.java:63-64) and the
+# custom branch (:174-175) never runs on that picker. The three @ASSIGN custom edges are dropped.
+# e('IconAdapter.lambda$onBindViewHolder$2@ASSIGN', 'AssignIconsActivity$1.onCustomSelected', 'CALL',
+#   'the custom icon row is tapped on the assign-icons page: nothing happens',
+#   guard='the listener is AssignIconsActivity$1, whose onCustomSelected is empty (AssignIconsActivity.java:201); the chain dead-ends here',
+#   evidence='SRC ui/views/IconAdapter.java:168-175; SRC ui/AssignIconsActivity.java:201')
+UNREACHABLE['AssignIconsActivity$1.onCustomSelected'] = (
+    'branch_never_taken', 'the assign-icons page opens the icon picker with showAddCustom false (AssignIconsActivity.java:194), so the picker '
+    'has no DummyIcon row (IconAdapter.java:63-64) and the custom branch of the row tap (IconAdapter.java:174-175) never runs',
+    'SRC ui/AssignIconsActivity.java:194', 'SOURCE')
 # the forwarder path is split the same way: the adapter's listener is always the
 # IconPickerDialog$1 instance created in create(), which forwards to the installing
 # activity's listener (IconPickerDialog.java:62-64); without this split the @ASSIGN
@@ -5233,18 +5246,20 @@ e('IconAdapter.lambda$onBindViewHolder$2@EDIT', 'IconPickerDialog$1.onCustomSele
   'the tapped row is the custom entry: the adapter calls its listener (the picker forwarder)',
   guard='the tapped row is the custom entry (icon instanceof DummyIcon, which exists only when showAddCustom is true; ui/views/IconAdapter.java:63-64,174-175)',
   evidence='SRC ui/views/IconAdapter.java:168-175')
-e('IconAdapter.lambda$onBindViewHolder$2@ASSIGN', 'IconPickerDialog$1.onCustomSelected@ASSIGN', 'CALL',
-  'the tapped row is the custom entry: the adapter calls its listener (the picker forwarder)',
-  guard='the tapped row is the custom entry (IconAdapter.java:174-175); on this picker no DummyIcon row exists (showAddCustom false, :63-64), so the tap cannot occur — the edge documents the listener binding',
-  evidence='SRC ui/views/IconAdapter.java:168-175')
+# (r6-p16: dropped, no DummyIcon row on the assign-icons picker; see above)
+# e('IconAdapter.lambda$onBindViewHolder$2@ASSIGN', 'IconPickerDialog$1.onCustomSelected@ASSIGN', 'CALL',
+#   'the tapped row is the custom entry: the adapter calls its listener (the picker forwarder)',
+#   guard='the tapped row is the custom entry (IconAdapter.java:174-175); on this picker no DummyIcon row exists (showAddCustom false, :63-64), so the tap cannot occur — the edge documents the listener binding',
+#   evidence='SRC ui/views/IconAdapter.java:168-175')
 e('IconPickerDialog$1.onCustomSelected@EDIT', 'EditEntryActivity$1.onCustomSelected', 'CALL',
   'the picker forwarder dismisses and calls the edit page listener: the custom icon page opens',
   guard='the picker was opened by the edit page (IconPickerDialog.java:53-66)',
   evidence='SRC ui/dialogs/IconPickerDialog.java:62-64; SRC ui/EditEntryActivity.java:601-602')
-e('IconPickerDialog$1.onCustomSelected@ASSIGN', 'AssignIconsActivity$1.onCustomSelected', 'CALL',
-  'the picker forwarder dismisses and calls the assign-icons listener: nothing happens',
-  guard='the picker was opened by the assign-icons page (IconPickerDialog.java:53-66); the listener body is empty (AssignIconsActivity.java:201)',
-  evidence='SRC ui/dialogs/IconPickerDialog.java:62-64; SRC ui/AssignIconsActivity.java:201')
+# (r6-p16: dropped with the two edges above)
+# e('IconPickerDialog$1.onCustomSelected@ASSIGN', 'AssignIconsActivity$1.onCustomSelected', 'CALL',
+#   'the picker forwarder dismisses and calls the assign-icons listener: nothing happens',
+#   guard='the picker was opened by the assign-icons page (IconPickerDialog.java:53-66); the listener body is empty (AssignIconsActivity.java:201)',
+#   evidence='SRC ui/dialogs/IconPickerDialog.java:62-64; SRC ui/AssignIconsActivity.java:201')
 # onIconSelected dispatch is split the same way as onCustomSelected above (fix-1
 # pattern, applied to the non-Dummy tap): the adapter's listener is always the
 # IconPickerDialog$1 forwarder created in create(), which forwards to the installing
@@ -6600,3 +6615,11 @@ for _m, _w in (('dropAllTables', 'Room drops the tables only for a destructive m
 # W7 r6-p13 DEAD steps (bytecode calls on a branch that never runs; the targets keep their other callers)
 sup(('GoogleAuthInfo$Export.getUri', 'GoogleAuthInfoException.<init>(Uri,String)'),  # default type branch: only TOTP/HOTP are exported (ImportExportPreferencesFragment.java:356-358)
     ('EntryHolder.getOtp(int)', 'TotpInfo.getOtp()'))  # the else branch is for info that is not a TotpInfo (EntryHolder.java:325-328)
+
+# W7 r6-p16: the auto copies into the two methods made UNREACHABLE above are dropped too (no decision row uses them):
+# the forwarder's bytecode call into AssignIconsActivity$1.onCustomSelected (IconPickerDialog.java:62-64; the assign-icons
+# picker has no DummyIcon row, AssignIconsActivity.java:194), and the lambda creation of the Dynamic colors change listener
+# (AppearancePreferencesFragment.java:74; the row stays disabled below API 31).
+sup(('IconPickerDialog$1.onCustomSelected', 'AssignIconsActivity$1.onCustomSelected'),
+    ('IconPickerDialog$1.onCustomSelected@EDIT', 'AssignIconsActivity$1.onCustomSelected'),
+    ('AppearancePreferencesFragment.onCreatePreferences', 'AppearancePreferencesFragment.lambda$onCreatePreferences$5'))
