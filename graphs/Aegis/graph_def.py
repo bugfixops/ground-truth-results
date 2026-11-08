@@ -6623,3 +6623,24 @@ sup(('GoogleAuthInfo$Export.getUri', 'GoogleAuthInfoException.<init>(Uri,String)
 sup(('IconPickerDialog$1.onCustomSelected', 'AssignIconsActivity$1.onCustomSelected'),
     ('IconPickerDialog$1.onCustomSelected@EDIT', 'AssignIconsActivity$1.onCustomSelected'),
     ('AppearancePreferencesFragment.onCreatePreferences', 'AppearancePreferencesFragment.lambda$onCreatePreferences$5'))
+
+# W7 r6-p18 DEAD step Ef1ea1431: the intro's DecryptListener (WelcomeSlide$1) is passed only to an AegisImporter state
+# (WelcomeSlide.java:66-69), so no other importer's decrypt calls it. The CHA copies from the other importers are dropped;
+# the AegisImporter ones stay.
+sup(('AndOtpImporter$EncryptedState.lambda$decrypt$2', 'WelcomeSlide$1.onCanceled'),
+    ('AndOtpImporter$EncryptedState.lambda$decrypt$1', 'WelcomeSlide$1.onError'),
+    ('AndOtpImporter$EncryptedState.lambda$decrypt$0', 'WelcomeSlide$1.onError'),
+    ('TotpAuthenticatorImporter$EncryptedState.decrypt(char[],DecryptListener)', 'WelcomeSlide$1.onError'),
+    ('TotpAuthenticatorImporter$EncryptedState.lambda$decrypt$1', 'WelcomeSlide$1.onCanceled'),
+    ('AuthyImporter$EncryptedState.lambda$decrypt$1', 'WelcomeSlide$1.onCanceled'),
+    ('AuthyImporter$EncryptedState.lambda$decrypt$0', 'WelcomeSlide$1.onError'),
+    ('StratumImporter$EncryptedState.lambda$decrypt$2', 'WelcomeSlide$1.onCanceled'),
+    ('StratumImporter$EncryptedState.lambda$decrypt$0', 'WelcomeSlide$1.onError'),
+    ('StratumImporter$LegacyEncryptedState.lambda$decrypt$2', 'WelcomeSlide$1.onCanceled'),
+    ('StratumImporter$LegacyEncryptedState.lambda$decrypt$0', 'WelcomeSlide$1.onError'),
+    ('FreeOtpImporter$EncryptedState.lambda$decrypt$2', 'WelcomeSlide$1.onCanceled'),
+    ('FreeOtpImporter$EncryptedState.lambda$decrypt$0', 'WelcomeSlide$1.onError'),
+    ('TwoFASImporter$EncryptedState.lambda$decrypt$1', 'WelcomeSlide$1.onCanceled'),
+    ('TwoFASImporter$EncryptedState.lambda$decrypt$0', 'WelcomeSlide$1.onError'),
+    ('AuthenticatorPlusImporter$EncryptedState.lambda$decrypt$1', 'WelcomeSlide$1.onCanceled'),
+    ('AuthenticatorPlusImporter$EncryptedState.lambda$decrypt$0', 'WelcomeSlide$1.onError'))
