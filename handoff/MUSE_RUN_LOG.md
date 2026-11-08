@@ -1430,3 +1430,4 @@ User rulings in the hour (recorded in DECISIONS): Path A authorized ~17:06 EST; 
 - 2026-11-08 UTC | W7 PENDING r6 batch MMEX p20 | 40 steps (rejudge_r6_p20.txt); AnkiDroid sample route AnkiActivity.openUrl re-checked after r6-p20 (now the drawer Help item, 6 steps, CORRECT); route_table, make_verification and verification.csv updated | fresh build errors 0, 23 of 23 | PENDING 165/0/0/0/484
 - 2026-11-08 UTC | W7 PENDING r6 batch Aegis p19 | 40 steps (rejudge_r6_p19.txt) | fresh build errors 0, 23 of 23 | PENDING 125/0/0/0/484
 - 2026-11-08 UTC | W7 PENDING r6 batch Aegis p20 | 40 steps (rejudge_r6_p20.txt) | fresh build errors 0, 23 of 23 | PENDING 85/0/0/0/484
+- 2026-11-08 UTC | W7 PENDING r6 batch MMEX p21 | 40 steps (rejudge_r6_p21.txt); Aegis r6-p20 goes up with this push; duplicateTransaction copy into SplitRecurringCategory suppressed; question Q-R6-3 (recurring split parcels in the checking editor) | fresh build errors 0, 23 of 23 | PENDING 85/0/0/0/444
