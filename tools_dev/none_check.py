@@ -42,3 +42,36 @@ for n, s, a, b, t in rows:
         print('%4d %s %s -> %s | %s' % (n, s, a[:45], b[:45], t[:90]))
     bad += 1 if n else 0
 print('%s: %d NONE rows checked, %d with gui/library targets routed through them' % (app, len(rows), bad))
+
+# review 7 item 1 (structural test): a NONE row whose reason names another step id as carrying the gate is only
+# right when that step is on the built route of every gui/library target that uses the row's step. The named step
+# id is matched as its edge (src, dst, kind), so a step whose edge was split into copies (-2 suffix) still counts.
+eid_key = {e['id']: (e['src'], e['dst'], e['kind']) for e in g['edges']}
+key_ids = {}
+for i, k in eid_key.items():
+    key_ids.setdefault(k, set()).add(i)
+routes = {}
+for r in csv.DictReader(open(G + 'out/methods.csv', encoding='utf-8')):
+    if r['verdict'] == 'REACHABLE' and not r['env'] and not r['state']:
+        routes[r['method']] = set(r['route_edge_ids'].split())
+STEP_ID = re.compile(r'\bE[0-9a-f]{8}\b')
+# "as for E..." cites a row judged the same way (a like step elsewhere), not a step that carries this step's gate
+LIKE = re.compile(r'as for (E[0-9a-f]{8}(?:(?:,| and) E[0-9a-f]{8})*)')
+miss = 0
+for r in csv.DictReader(open(G + 'scratch/reaudit/w7_judged.csv', encoding='utf-8')):
+    if r['decision'] != 'NONE':
+        continue
+    like = {x for m in LIKE.findall(r['text']) for x in STEP_ID.findall(m)}
+    named = [x for x in STEP_ID.findall(r['text']) if x != r['step'] and x in eid_key and x not in like]
+    if not named:
+        continue
+    ids = by_key.get((r['src'], r['dst'], r['kind']), set())
+    targets = sorted(m for m, ro in routes.items() if ids & ro)
+    for x in named:
+        xs = key_ids[eid_key[x]]
+        off = [m for m in targets if not (xs & routes[m])]
+        if off:
+            miss += 1
+            print('STRUCT %s names %s, not on the route of %d of %d gui/library targets: %s' % (
+                r['step'], x, len(off), len(targets), ', '.join(off[:4])))
+print('%s: structural test: %d named-gate steps missing from a gui/library route' % (app, miss))

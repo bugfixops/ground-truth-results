@@ -91,6 +91,9 @@ _R6_LISTENER_CUT = [
     ('MainActivity.onCreate', 'MainActivity.lambda$onCreate$0'),
     ('FileUtils$5.<init>', 'FileUtils$5.launchSAF(HybridFile)'),
     ('FileUtils$5.<init>', 'FileUtils$5.launchSAF(HybridFile,HybridFile)'),
+    # review 7 item 2: the build is fdroidDebug (class_files.json), so src/fdroid/.../AboutActivity.java is the source
+    ('AboutActivity.onCreate', 'AboutActivity.lambda$onCreate$0'),
+    ('AboutActivity.onCreate', 'AboutActivity.lambda$onCreate$1'),
 ]
 _R2_CUT.update(_R6_LISTENER_CUT)
 # r6-p12: onTerminate is never called on a device; AppConfig.getInstance does not call getScreenWidthInPx (the real call is Drawer.java:243 -> getScreenWidthInDp)
@@ -10705,3 +10708,14 @@ UNREACHABLE['FileUtils$5.launchSAF(HybridFile,HybridFile)'] = (
     'no_trigger_in_app', 'the FileUtils$5 callback is passed only to Operations.mkdir (FileUtils.java:1026-1027), which calls the one-file '
     'launchSAF; the two-file overload is called only by Operations.rename (Operations.java:441), which never gets this callback',
     'SRC com/amaze/filemanager/utils/files/FileUtils.java:1026-1043', 'SOURCE')
+
+# Review 7 item 2 (2026-11-08): AboutActivity's two listeners, read in the flavor the build uses (fdroidDebug,
+# app/src/fdroid/java/com/amaze/filemanager/activities/AboutActivity.java). Neither is called by onCreate: the Palette
+# callback runs when the background palette task finishes, the offset listener when AppBarLayout dispatches an offset
+# (on its first layout and on every scroll of the About page). Both need no user action and no state.
+_r2_orig_e('AboutActivity.onCreate', 'AboutActivity.lambda$onCreate$0', 'FRAMEWORK',
+           'the palette of the header image is generated in the background and its listener runs when it finishes',
+           evidence='SRC fdroid activities/AboutActivity.java:90-98 (Palette.from(bitmap).generate(listener)); INFERRED androidx Palette.Builder.generate runs an AsyncTask that calls the listener in onPostExecute (library source not read)')
+_r2_orig_e('AboutActivity.onCreate', 'AboutActivity.lambda$onCreate$1', 'FRAMEWORK',
+           'the app bar of the About page is laid out or scrolled, and AppBarLayout dispatches its offset to the listener',
+           evidence='SRC fdroid activities/AboutActivity.java:100-102 (addOnOffsetChangedListener); INFERRED Material Components AppBarLayout.Behavior.onLayoutChild and setHeaderTopBottomOffset dispatch offset updates (library source not read)')

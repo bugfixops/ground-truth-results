@@ -4413,3 +4413,20 @@ UNREACHABLE['SaveLogWorker.lambda$showFailToast$0'] = ('branch_never_taken', 'po
 SUPPRESS.update({('SaveLogWorker.doWork', 'SaveLogWorker.showFailToast'), ('SaveLogWorker.showFailToast', 'SaveLogWorker.lambda$showFailToast$0')})  # the auto (bytecode) copies of the two dropped edges
 UNREACHABLE['Utils.requestExactAlarmPermission'] = ('closed_by_api_level', 'called only for the positive button of the exact alarm dialog (SchedulingSettingsFragment.java:133-137), which is shown only when Scheduler cannot set the alarm, that is SDK_INT >= S without the permission (Scheduler.java:101-103); the standard config is API 27', 'SRC service/Scheduler.java:101-103', 'SOURCE')
 SUPPRESS.add(('SchedulingSettingsFragment.lambda$subscribeAlertDialog$0', 'Utils.requestExactAlarmPermission'))  # r6-p10 auto copy
+
+# ---- Review 7 item 1 (Kiro, 2026-11-08): AddTorrentViewModel.addTorrent returns false at once when the add screen has
+# no decoded torrent info (info.get() == null, AddTorrentViewModel.java:466-469), so every step it makes after that check
+# (lines 471-544) needs the decoded torrent, the same state as Ecc03ef24 and Ec4496c93. Before, the W7 rows gated only
+# some of them, and a route through the worker-thread step (E3915b22f) reached TorrentEngine.addTorrentSync with no gate.
+import re as _r7_re
+_R7_DECODED = ('a .torrent file exists: the add screen has decoded torrent info (magnet metadata from peers, an HTTP '
+               'download or a .torrent file), so Add goes past the info check (info not null, AddTorrentViewModel.java:466-469)')
+_R7_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _R7_ORIG_EDIT(x)
+    if x['src'] == 'AddTorrentViewModel.addTorrent' and not x.get('needs_state'):
+        _m = _r7_re.search(r'AddTorrentViewModel\.java:(\d+)', x.get('evidence') or '')
+        if _m and 471 <= int(_m.group(1)) <= 544:
+            x['needs_state'], x['state_kinds'] = _R7_DECODED, ['file']
