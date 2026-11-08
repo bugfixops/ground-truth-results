@@ -8041,3 +8041,8 @@ UNREACHABLE['BasicAudioFieldController.onActivityResult'] = ('framework_never_ca
 # (LaTeX.java:115; HebrewFixFilter.java:32; ChessFilter.java:65); the kana and kanji filters are installed under fmod_kana and
 # fmod_kanji (FuriganaFilters.java:35-36), so the mungeQA run (Hooks.java:138-150) never calls them. Only the variant's auto copy is dropped.
 sup(('Hooks.runFilter@mungeQA', 'FuriganaFilters$Kana.runFilter'), ('Hooks.runFilter@mungeQA', 'FuriganaFilters$Kanji.runFilter'))
+# W7 r6-p18 DEAD steps Ebec346ed, E467abd28, E6f014b50: the same mungeQA hook list (LaTeX, Hebrew fix, chess) holds neither the
+# hint filter (fmod_hint, HintFilter.java:26) nor the furigana filter (fmod_furigana, FuriganaFilters.java:37), and all three
+# mungeQA filters override runFilter (LaTeX.java:108; HebrewFixFilter.java:26; ChessFilter.java:61), so the base Hook.runFilter never runs there.
+sup(('Hooks.runFilter@mungeQA', 'HintFilter$Hint.runFilter'), ('Hooks.runFilter@mungeQA', 'FuriganaFilters$Furigana.runFilter'),
+    ('Hooks.runFilter@mungeQA', 'Hook.runFilter'))
