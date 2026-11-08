@@ -6519,3 +6519,14 @@ def EDIT(x):
         _m = _r6_re.search(r'MainActivity\.java:(\d+)', x.get('evidence') or '')
         if _m and 1262 <= int(_m.group(1)) <= 1281:
             x['needs_state'], x['state_kinds'] = _R6_DUE, ['data']
+# W7 r6-p19 DEAD steps (Ee74e5fb3, E0676831e and the handleIntent setters): the checking editor's transactionEntity is always an
+# AccountTransaction (AccountTransaction.create() at CheckingTransactionEditActivity.java:99, AccountTransactionRepository at :390-394,
+# its own parcel at :649), so the calls on it in onCreate and handleIntent never dispatch to RecurringTransaction. Only these
+# callers are cut; loadScheduledTransactionInternal really reads a RecurringTransaction (:431-450) and keeps its edges.
+for _m in ('setAccountId', 'getAccountId', 'getAccountToId', 'setCategoryId', 'getPayeeId', 'setPayeeId', 'setDate', 'setNotes',
+           'setTransactionNumber', 'setAmount', 'setTransactionType', 'setAmountTo', 'getAmount', 'setAccountToId', 'setStatus', 'getStatus'):
+    sup(('CheckingTransactionEditActivity.handleIntent', 'RecurringTransaction.' + _m))
+for _m in ('setCategoryId', 'setPayeeId', 'getPayeeId'):
+    sup(('CheckingTransactionEditActivity.lambda$handleIntent$1', 'RecurringTransaction.' + _m))
+sup(('CheckingTransactionEditActivity.onCreate', 'RecurringTransaction.getTransactionType'),
+    ('CheckingTransactionEditActivity.onCreate@FRAG', 'RecurringTransaction.getTransactionType'))
