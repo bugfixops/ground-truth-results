@@ -6596,3 +6596,7 @@ sup(('TextDrawable.draw', 'TextDrawable.drawBorder'))
 UNREACHABLE['TextDrawable.drawBorder'] = ('branch_never_taken', 'drawn only when borderThickness > 0 (TextDrawable.java:77-78), which only withBorder sets (:194-195); no app code calls withBorder, so the thickness stays 0', 'SRC com/amulyakhare/textdrawable/TextDrawable.java:52,77-78,169,194-195', 'SOURCE')
 for _m, _w in (('dropAllTables', 'Room drops the tables only for a destructive migration'), ('onPreMigrate', 'Room calls the migration hooks only when the stored version differs'), ('onPostMigrate', 'Room calls the migration hooks only when the stored version differs')):
     UNREACHABLE['AppDatabase_Impl$1.' + _m] = ('closed_by_configuration', _w + '; the audit log database is version 1 with no migrations and no fallbackToDestructiveMigration (AppDatabase.java:12, AegisModule.java:51-53), so every install opens it at version 1', 'SRC com/beemdevelopment/aegis/AegisModule.java:51-53', 'SOURCE')
+
+# W7 r6-p13 DEAD steps (bytecode calls on a branch that never runs; the targets keep their other callers)
+sup(('GoogleAuthInfo$Export.getUri', 'GoogleAuthInfoException.<init>(Uri,String)'),  # default type branch: only TOTP/HOTP are exported (ImportExportPreferencesFragment.java:356-358)
+    ('EntryHolder.getOtp(int)', 'TotpInfo.getOtp()'))  # the else branch is for info that is not a TotpInfo (EntryHolder.java:325-328)
