@@ -1426,3 +1426,4 @@ User rulings in the hour (recorded in DECISIONS): Path A authorized ~17:06 EST; 
 - 2026-11-08 UTC | W7 PENDING r6 batch AnkiDroid p19 | 40 steps (rejudge_r6_p19.txt) | fresh build errors 0, 23 of 23 | PENDING 205/0/25/0/564
 - 2026-11-08 UTC | W7 PENDING r6 batch MMEX p19 | 40 steps (rejudge_r6_p19.txt); the checking editor onCreate/handleIntent dispatch copies into RecurringTransaction suppressed (transactionEntity is always an AccountTransaction) | fresh build errors 0, 23 of 23 | PENDING 205/0/25/0/524
 - 2026-11-08 UTC | W7 PENDING r6 batch Aegis p18 | 40 steps (rejudge_r6_p18.txt); the non-Aegis importer CHA copies into WelcomeSlide$1 suppressed (the intro listener is passed only to an AegisImporter state) | fresh build errors 0, 23 of 23 | PENDING 165/0/25/0/524
+- 2026-11-08 UTC | W7 PENDING r6 batch AnkiDroid p20 | 25 steps (rejudge_r6_p20.txt); the last PENDING of the app | fresh build errors 0, 23 of 23 | PENDING 165/0/0/0/524
