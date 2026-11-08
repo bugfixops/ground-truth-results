@@ -6534,3 +6534,6 @@ sup(('CheckingTransactionEditActivity.onCreate', 'RecurringTransaction.getTransa
 # loadTransaction read through SplitCategoriesRepository (CheckingTransactionEditActivity.java:397-399), which are SplitCategory
 # objects, so the call never dispatches to SplitRecurringCategory.
 sup(('CheckingTransactionEditActivity.duplicateTransaction', 'SplitRecurringCategory.setId'))
+# W7 r6-p25 DEAD step E33a348fe: the Categories report's category branch runs only for a menu item with a negative id
+# (CategoriesReportFragment.java:167), and no menu in the app adds one (resource ids, MenuHelper ids from 2, ContextMenuIds 1-9).
+sup(('CategoriesReportFragment.onOptionsItemSelected', 'BaseReportFragment.getWhereClause'))

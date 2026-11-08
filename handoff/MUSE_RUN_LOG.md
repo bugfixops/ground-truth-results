@@ -1437,3 +1437,4 @@ User rulings in the hour (recorded in DECISIONS): Path A authorized ~17:06 EST; 
 - 2026-11-08 UTC | W7 PENDING r6 batch MMEX p23 | 40 steps (rejudge_r6_p23.txt); two r6-p22 rows re-applied with the right file path (common/AllDataListFragment.java) | fresh build errors 0, 23 of 23 | PENDING 5/0/0/0/364
 - 2026-11-08 UTC | W7 PENDING r6 batch Aegis p23 | 5 steps (rejudge_r6_p23.txt); the last PENDING of the app | fresh build errors 0, 23 of 23 | PENDING 0/0/0/0/364
 - 2026-11-08 UTC | W7 PENDING r6 batch MMEX p24 | 40 steps (rejudge_r6_p24.txt) | fresh build errors 0, 23 of 23 | PENDING 0/0/0/0/324
+- 2026-11-08 UTC | W7 PENDING r6 batch MMEX p25 | 40 steps (rejudge_r6_p25.txt); the Categories report negative-id branch copy suppressed | fresh build errors 0, 23 of 23 | PENDING 0/0/0/0/284
