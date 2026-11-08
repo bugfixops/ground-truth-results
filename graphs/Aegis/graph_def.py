@@ -6644,3 +6644,14 @@ sup(('AndOtpImporter$EncryptedState.lambda$decrypt$2', 'WelcomeSlide$1.onCancele
     ('TwoFASImporter$EncryptedState.lambda$decrypt$0', 'WelcomeSlide$1.onError'),
     ('AuthenticatorPlusImporter$EncryptedState.lambda$decrypt$1', 'WelcomeSlide$1.onCanceled'),
     ('AuthenticatorPlusImporter$EncryptedState.lambda$decrypt$0', 'WelcomeSlide$1.onError'))
+
+# W7 r6-p22 DEAD step Ebd533b05: the password decrypt task gets only the vault's regular password slots
+# (findRegularPasswordSlots, AuthActivity.java:167-174), so the result's slot is always a PasswordSlot and the getType call
+# at AuthActivity.java:352 never dispatches to BiometricSlot.
+sup(('AuthActivity$PasswordDerivationListener.onTaskFinished', 'BiometricSlot.getType'))
+# W7 r6-p22: with the password-task dispatch cut, BiometricSlot.getType keeps its real caller: Slot.toJson calls getType()
+# (Slot.java:107) for every slot it writes, and a vault with biometric unlock set up holds a BiometricSlot, which Slot.fromJson
+# makes from the file header (Slot.java:131-147). The unlocked vault's save writes that slot through the same slot list.
+e('SlotList.toJson@RAW', 'Slot.toJson@BiometricSlot', 'CALL', 'the slot list of the unlocked vault is serialized: a biometric slot (set up earlier on a device with biometrics) is written',
+  guard='the file header holds a biometric slot (type TYPE_BIOMETRIC, Slot.java:131-147), which exists only after biometric unlock was turned on',
+  env=ENV_BIOMETRIC, evidence='SRC vault/slots/SlotList.java:17 (bytecode); SRC vault/slots/Slot.java:107,131-147')
