@@ -6537,3 +6537,10 @@ sup(('CheckingTransactionEditActivity.duplicateTransaction', 'SplitRecurringCate
 # W7 r6-p25 DEAD step E33a348fe: the Categories report's category branch runs only for a menu item with a negative id
 # (CategoriesReportFragment.java:167), and no menu in the app adds one (resource ids, MenuHelper ids from 2, ContextMenuIds 1-9).
 sup(('CategoriesReportFragment.onOptionsItemSelected', 'BaseReportFragment.getWhereClause'))
+# W7 r6-p26 DEAD step E4e937842: initBaseCurrency runs only from onCreate right after tables_v1.sql (MmxOpenHelper.java:98-99),
+# and that script inserts only the DATAVERSION info row, so no BASECURRENCYID row exists and the update branch (:300-302) never runs.
+sup(('MmxOpenHelper.initBaseCurrency', 'InfoService.updateRaw(SupportSQLiteDatabase,int,String,Integer)'))
+UNREACHABLE['InfoService.updateRaw(SupportSQLiteDatabase,int,String,Integer)'] = (
+    'branch_never_taken', 'its only caller is the update branch of MmxOpenHelper.initBaseCurrency (MmxOpenHelper.java:300-302), which runs '
+    'only when a BASECURRENCYID row exists; initBaseCurrency runs from onCreate right after tables_v1.sql, which has no such row',
+    'SRC database/MmxOpenHelper.java:98-99,256-302; SRC res/raw/tables_v1.sql', 'SOURCE')
