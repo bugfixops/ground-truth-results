@@ -17,7 +17,7 @@ import re
 import sys
 
 LINES = r'\d+(?:-\d+)?(?:\s*,\s*\d+(?:-\d+)?)*'
-ROOT_STYLE = re.compile(r'((?:core|services|data|libcore|packages)/[\w./\-]+\.(?:java|xml)):(' + LINES + ')')
+ROOT_STYLE = re.compile(r'(?<![\w/])((?:core|services|data|libcore|packages)/[\w./\-]+\.(?:java|xml)):(' + LINES + ')')
 TAG_STYLE = re.compile(r'android-8\.1\.0_r1:([\w./\-]+\.(?:java|xml)):(' + LINES + ')')
 LIB_STYLE = re.compile(r'FW-SRC lib |MPAndroidChart-v[\d.]+:')
 UNBACKED = re.compile(r'(?:^|;\s*)(FW-MEMORY|DYN|UNVERIFIED)\b')

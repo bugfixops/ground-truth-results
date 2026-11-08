@@ -1,0 +1,74 @@
+     1	/*
+     2	 * Copyright (C) 2019 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.addlink;
+    21	
+    22	import android.app.Application;
+    23	
+    24	import androidx.annotation.NonNull;
+    25	import androidx.databinding.ObservableBoolean;
+    26	import androidx.databinding.ObservableField;
+    27	import androidx.lifecycle.AndroidViewModel;
+    28	
+    29	import org.proninyaroslav.libretorrent.core.exception.NormalizeUrlException;
+    30	import org.proninyaroslav.libretorrent.core.urlnormalizer.NormalizeUrl;
+    31	import org.proninyaroslav.libretorrent.core.utils.Utils;
+    32	
+    33	import java.util.List;
+    34	
+    35	public class AddLinkViewModel extends AndroidViewModel
+    36	{
+    37	    public ObservableBoolean showClipboardButton = new ObservableBoolean();
+    38	    public ObservableField<String> link = new ObservableField<>();
+    39	
+    40	    public AddLinkViewModel(@NonNull Application application)
+    41	    {
+    42	        super(application);
+    43	    }
+    44	
+    45	    void initLinkFromClipboard()
+    46	    {
+    47	        List<CharSequence> clipboard = Utils.getClipboardText(getApplication());
+    48	        if (clipboard.isEmpty())
+    49	            return;
+    50	
+    51	        String firstItem = clipboard.get(0).toString();
+    52	        String c = firstItem.toLowerCase();
+    53	        if (c.startsWith(Utils.MAGNET_PREFIX) ||
+    54	            c.startsWith(Utils.HTTP_PREFIX) ||
+    55	            Utils.isHash(firstItem))
+    56	        {
+    57	            link.set(firstItem);
+    58	        }
+    59	    }
+    60	
+    61	    String normalizeUrl(@NonNull String link) throws NormalizeUrlException
+    62	    {
+    63	        if (Utils.isHash(link)) {
+    64	            link = Utils.normalizeMagnetHash(link);
+    65	
+    66	        } else if (!link.toLowerCase().startsWith(Utils.MAGNET_PREFIX)) {
+    67	            NormalizeUrl.Options options = new NormalizeUrl.Options();
+    68	            options.decode = false;
+    69	            link = NormalizeUrl.normalize(link, options);
+    70	        }
+    71	
+    72	        return link;
+    73	    }
+    74	}

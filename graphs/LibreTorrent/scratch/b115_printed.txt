@@ -1,0 +1,413 @@
+===== ui/settings/PreferenceActivity.java =====
+109:             else if (fragment.equals(AnonymousModeSettingsFragment.class.getSimpleName()))
+110:                 return (F) AnonymousModeSettingsFragment.newInstance();
+
+===== ui/settings/SettingsActivity.java =====
+47:         viewModel = new ViewModelProvider(this).get(SettingsViewModel.class);
+
+===== ui/settings/SettingsFragment.java =====
+88:         viewModel = new ViewModelProvider(activity).get(SettingsViewModel.class);
+232:     private <F extends PreferenceFragmentCompat> void startActivity(Class<F> fragment, String title)
+233:     {
+234:         Intent i = new Intent(activity, PreferenceActivity.class);
+235:         PreferenceActivityConfig config = new PreferenceActivityConfig(
+236:                 fragment.getSimpleName(),
+237:                 title);
+238: 
+239:         i.putExtra(PreferenceActivity.TAG_CONFIG, config);
+240:         startActivity(i);
+241:     }
+
+===== ui/settings/customprefs/SummaryPreference.java =====
+39:     public SummaryPreference(Context context)
+40:     {
+41:         this(context, null);
+42:     }
+43: 
+44:     public SummaryPreference(Context context, AttributeSet attrs)
+45:     {
+46:         /* Use the preferenceStyle as the default style */
+47:         this(context, attrs, R.attr.preferenceStyle);
+48:     }
+50:     public SummaryPreference(Context context, AttributeSet attrs, int defStyleAttr)
+51:     {
+52:         this(context, attrs, defStyleAttr, defStyleAttr);
+53:     }
+54: 
+55:     public SummaryPreference(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes)
+56:     {
+57:         super(context, attrs, defStyleAttr, defStyleRes);
+58: 
+59:         setLayoutResource(R.layout.preference_summary);
+60:         /* Icon stub */
+61:         setIcon(android.R.color.transparent);
+62:     }
+65:     public void onBindViewHolder(PreferenceViewHolder holder)
+66:     {
+67:         super.onBindViewHolder(holder);
+68: 
+69:         summaryView = (TextView)holder.findViewById(R.id.summary);
+70: 
+71:         /* Disable click */
+72:         holder.itemView.setClickable(false);
+73:         holder.itemView.setFocusable(false);
+74: 
+75:         summaryView.setText(getSummary());
+76:     }
+79:     public void setSummary(CharSequence summary)
+80:     {
+81:         super.setSummary(summary);
+82: 
+83:         summaryView.setText(summary);
+84:     }
+85: 
+87:     public void setSummary(int summaryResId)
+88:     {
+89:         super.setSummary(summaryResId);
+90: 
+91:         summaryView.setText(summaryResId);
+92:     }
+
+===== ui/settings/customprefs/SwitchBarPreference.java =====
+40:     public SwitchBarPreference(Context context)
+41:     {
+42:         this(context, null);
+43:     }
+44: 
+45:     public SwitchBarPreference(Context context, AttributeSet attrs)
+46:     {
+47:         /* Use the preferenceStyle as the default style */
+48:         this(context, attrs, R.attr.preferenceStyle);
+49:     }
+51:     public SwitchBarPreference(Context context, AttributeSet attrs, int defStyleAttr)
+52:     {
+53:         this(context, attrs, defStyleAttr, defStyleAttr);
+54:     }
+55: 
+56:     public SwitchBarPreference(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes)
+57:     {
+58:         super(context, attrs, defStyleAttr, defStyleRes);
+59: 
+60:         setLayoutResource(R.layout.preference_switchbar);
+61:     }
+64:     public void onBindViewHolder(PreferenceViewHolder holder)
+65:     {
+66:         super.onBindViewHolder(holder);
+67: 
+68:         switchButton = (SwitchBar)holder.findViewById(R.id.switchButton);
+69: 
+70:         switchButton.setOnCheckedChangeListener(listener);
+71:         switchButton.setChecked(isChecked());
+72:     }
+74:     private final CompoundButton.OnCheckedChangeListener listener = new CompoundButton.OnCheckedChangeListener() {
+76:         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
+77:         {
+78:             if (!callChangeListener(isChecked)) {
+79:                 /*
+80:                  * Listener didn't like it, change it back.
+81:                  * CompoundButton will make sure we don't recurse.
+82:                  */
+83:                 switchButton.setChecked(!isChecked);
+84:                 return;
+85:             }
+86: 
+87:             setChecked(isChecked);
+88:         }
+
+===== ui/settings/customprefs/TimePreference.java =====
+32:   public TimePreference(Context context)
+33:   {
+34:     // Delegate to other constructor
+35:     this(context, null);
+36:   }
+37: 
+38:   public TimePreference(Context context, AttributeSet attrs)
+39:   {
+40:     // Delegate to other constructor
+41:     // Use the preferenceStyle as the default style
+42:     this(context, attrs, R.attr.preferenceStyle);
+43:   }
+45:   public TimePreference(Context context, AttributeSet attrs, int defStyleAttr)
+46:   {
+47:     // Delegate to other constructor
+48:     this(context, attrs, defStyleAttr, defStyleAttr);
+49:   }
+50: 
+51:   public TimePreference(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes)
+52:   {
+53:     super(context, attrs, defStyleAttr, defStyleRes);
+54: 
+55:     // Du custom stuff here
+56:     // ...
+57:     // read attributes etc.
+58:   }
+59: 
+60:   /**
+61:    * Gets the time from the Shared Preferences
+62:    *
+65:   public int getTime()
+66:   {
+67:     return mTime;
+68:   }
+75:   public void setTime(int time)
+76:   {
+77:     mTime = time;
+78: 
+79:     // Save to SharedPreference
+80:     persistInt(time);
+81:     notifyChanged();
+82:   }
+83: 
+84:   /**
+88:   protected Object onGetDefaultValue(TypedArray a, int index)
+89:   {
+90:     // The type of this preference is Int, so we read the default value from the attributes
+91:     // as Int. Fallback value is set to 0.
+92:     return a.getInt(index, 0);
+93:   }
+94: 
+95:   /**
+99:   public int getDialogLayoutResource()
+100:   {
+101:     return mDialogLayoutResId;
+102:   }
+108:   protected void onSetInitialValue(boolean restorePersistedValue, Object defaultValue)
+109:   {
+110:     // If the value can be restored, do it. If not, use the default value.
+111:     setTime(restorePersistedValue ?
+112:             getPersistedInt(mTime) : (int) defaultValue);
+113:   }
+114: 
+116:     public CharSequence getSummary()
+117:     {
+118:         String prefix = (TextUtils.isEmpty(super.getSummary()) ? "" : super.getSummary() + "\n\n");
+119: 
+120:         return prefix + formatTime();
+121:     }
+123:   private String formatTime()
+124:   {
+125:       return DateFormat.getTimeFormat(getContext()).format(new Date(0, 0, 0, mTime / 60, mTime % 60));
+
+===== ui/settings/customprefs/TimePreferenceDialogFragmentCompat.java =====
+32:     public static TimePreferenceDialogFragmentCompat newInstance(String key)
+33:     {
+34:         final TimePreferenceDialogFragmentCompat
+35:                 fragment = new TimePreferenceDialogFragmentCompat();
+36:         final Bundle b = new Bundle(1);
+37:         b.putString(ARG_KEY, key);
+38:         fragment.setArguments(b);
+39: 
+40:         return fragment;
+41:     }
+44:     protected void onBindDialogView(View view)
+45:     {
+46:         super.onBindDialogView(view);
+47: 
+48:         mTimePicker = view.findViewById(R.id.time_picker);
+49: 
+50:         // Exception: There is no TimePicker with the id 'edit' in the dialog.
+51:         if (mTimePicker == null) {
+52:             throw new IllegalStateException("Dialog view must contain a TimePicker with id 'edit'");
+53:         }
+54: 
+55:         // Get the time from the related Preference
+56:         Integer minutesAfterMidnight = null;
+57:         DialogPreference preference = getPreference();
+58:         if (preference instanceof TimePreference) {
+59:             minutesAfterMidnight = ((TimePreference) preference).getTime();
+60:         }
+61: 
+62:         // Set the time to the TimePicker
+63:         if (minutesAfterMidnight != null) {
+64:             int hours = minutesAfterMidnight / 60;
+65:             int minutes = minutesAfterMidnight % 60;
+66:             boolean is24hour = DateFormat.is24HourFormat(getContext());
+67: 
+68:             mTimePicker.setIs24HourView(is24hour);
+69:             mTimePicker.setCurrentHour(hours);
+70:             mTimePicker.setCurrentMinute(minutes);
+71:         }
+72:     }
+80:     public void onDialogClosed(boolean positiveResult)
+81:     {
+82:         if (positiveResult) {
+83:             // Get the current values from the TimePicker
+84:             int hours;
+85:             int minutes;
+86:             hours = mTimePicker.getHour();
+87:             minutes = mTimePicker.getMinute();
+88: 
+89:             // Generate value to save
+90:             int minutesAfterMidnight = (hours * 60) + minutes;
+91: 
+92:             // Save the value
+93:             DialogPreference preference = getPreference();
+94:             if (preference instanceof TimePreference) {
+95:                 TimePreference timePreference = ((TimePreference) preference);
+96:                 // This allows the client to ignore the user value.
+97:                 if (timePreference.callChangeListener(minutesAfterMidnight)) {
+98:                     // Save the value
+99:                     timePreference.setTime(minutesAfterMidnight);
+100:                 }
+101:             }
+102:         }
+103:     }
+
+===== ui/settings/sections/AnonymousModeSettingsFragment.java =====
+36:     private static final String TAG = AnonymousModeSettingsFragment.class.getSimpleName();
+40:     public static AnonymousModeSettingsFragment newInstance()
+41:     {
+42:         AnonymousModeSettingsFragment fragment = new AnonymousModeSettingsFragment();
+43: 
+44:         fragment.setArguments(new Bundle());
+45: 
+46:         return fragment;
+47:     }
+50:     public void onCreate(Bundle savedInstanceState)
+51:     {
+52:         super.onCreate(savedInstanceState);
+53: 
+54:         pref = RepositoryHelper.getSettingsRepository(getActivity().getApplicationContext());
+55: 
+56:         String keyAnonymousMode = getString(R.string.pref_key_anonymous_mode);
+57:         SwitchBarPreference anonymousMode = findPreference(keyAnonymousMode);
+58:         if (anonymousMode != null) {
+59:             anonymousMode.setChecked(pref.anonymousMode());
+60:             bindOnPreferenceChangeListener(anonymousMode);
+61:         }
+62:     }
+65:     public void onCreatePreferences(Bundle savedInstanceState, String rootKey)
+66:     {
+67:         setPreferencesFromResource(R.xml.pref_anonymous_mode, rootKey);
+68:     }
+70:     private void bindOnPreferenceChangeListener(Preference preference)
+71:     {
+72:         preference.setOnPreferenceChangeListener(this);
+73:     }
+76:     public boolean onPreferenceChange(Preference preference, Object newValue)
+77:     {
+78:         if (preference.getKey().equals(getString(R.string.pref_key_anonymous_mode)))
+79:             pref.anonymousMode((boolean)newValue);
+80: 
+81:         return true;
+82:     }
+83: }
+
+===== ui/settings/sections/AppearanceSettingsFragment.java =====
+57:     public static AppearanceSettingsFragment newInstance()
+58:     {
+59:         AppearanceSettingsFragment fragment = new AppearanceSettingsFragment();
+60:         fragment.setArguments(new Bundle());
+61: 
+62:         return fragment;
+63:     }
+85:             bindOnPreferenceChangeListener(theme);
+92:             bindOnPreferenceChangeListener(torrentFinishNotify);
+100:             bindOnPreferenceChangeListener(foregroundNotifyStatusFilter);
+108:             bindOnPreferenceChangeListener(foregroundNotifySorting);
+115:             bindOnPreferenceChangeListener(combinedPauseButton);
+118:         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
+119:             initLegacyNotifySettings(pref);
+128:     private void initLegacyNotifySettings(SettingsRepository pref)
+129:     {
+130:         String keyPlaySound = getString(R.string.pref_key_play_sound_notify);
+131:         SwitchPreferenceCompat playSound = findPreference(keyPlaySound);
+132:         if (playSound != null) {
+133:             playSound.setChecked(pref.playSoundNotify());
+134:             bindOnPreferenceChangeListener(playSound);
+135:         }
+136: 
+137:         final String keyNotifySound = getString(R.string.pref_key_notify_sound);
+138:         Preference notifySound = findPreference(keyNotifySound);
+139:         String ringtone = pref.notifySound();
+140:         if (notifySound != null) {
+141:             notifySound.setSummary(RingtoneManager.getRingtone(getActivity().getApplicationContext(), Uri.parse(ringtone))
+142:                     .getTitle(getActivity().getApplicationContext()));
+143:             /* See https://code.google.com/p/android/issues/detail?id=183255 */
+144:             notifySound.setOnPreferenceClickListener((preference) -> {
+145:                 Intent intent = new Intent(RingtoneManager.ACTION_RINGTONE_PICKER);
+146:                 intent.putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_NOTIFICATION);
+147:                 intent.putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true);
+148:                 intent.putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, true);
+149:                 intent.putExtra(RingtoneManager.EXTRA_RINGTONE_DEFAULT_URI, Settings.System.DEFAULT_NOTIFICATION_URI);
+150: 
+151:                 String curRingtone = pref.notifySound();
+152:                 if (curRingtone != null) {
+153:                     if (curRingtone.length() == 0) {
+154:                         /* Select "Silent" */
+155:                         intent.putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, (Uri) null);
+156:                     } else {
+157:                         intent.putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, Uri.parse(curRingtone));
+158:                     }
+159: 
+160:                 } else {
+161:                     intent.putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, Settings.System.DEFAULT_NOTIFICATION_URI);
+162:                 }
+163: 
+164:                 ringtonePicker.launch(intent);
+165: 
+166:                 return true;
+167:             });
+168:         }
+169: 
+170:         String keyLedIndicator = getString(R.string.pref_key_led_indicator_notify);
+171:         SwitchPreferenceCompat ledIndicator = findPreference(keyLedIndicator);
+172:         if (ledIndicator != null) {
+173:             ledIndicator.setChecked(pref.ledIndicatorNotify());
+174:             bindOnPreferenceChangeListener(ledIndicator);
+175:         }
+176: 
+177:         String keyLedIndicatorColor = getString(R.string.pref_key_led_indicator_color_notify);
+178:         ColorPreferenceCompat ledIndicatorColor = findPreference(keyLedIndicatorColor);
+179:         if (ledIndicatorColor != null) {
+180:             ledIndicatorColor.saveValue(pref.ledIndicatorColorNotify());
+181:             bindOnPreferenceChangeListener(ledIndicatorColor);
+182:         }
+183: 
+184:         String keyVibration = getString(R.string.pref_key_vibration_notify);
+185:         SwitchPreferenceCompat vibration = findPreference(keyVibration);
+186:         if (vibration != null) {
+187:             vibration.setChecked(pref.vibrationNotify());
+188:             bindOnPreferenceChangeListener(vibration);
+189:         }
+190:     }
+200:             result -> {
+201:                 Intent data = result.getData();
+202:                 if (result.getResultCode() == Activity.RESULT_OK && data != null) {
+203:                     Uri ringtone = data.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI);
+204:                     if (ringtone != null) {
+205:                         String keyNotifySound = getString(R.string.pref_key_notify_sound);
+206:                         Preference notifySound = findPreference(keyNotifySound);
+207:                         if (notifySound != null) {
+208:                             Context context = getActivity().getApplicationContext();
+209:                             notifySound.setSummary(
+210:                                     RingtoneManager.getRingtone(context, ringtone).getTitle(context)
+211:                             );
+212:                         }
+213:                         pref.notifySound(ringtone.toString());
+214:                     }
+215:                 }
+216:             }
+217:     );
+219:     private void bindOnPreferenceChangeListener(Preference preference)
+220:     {
+221:         preference.setOnPreferenceChangeListener(this);
+222:     }
+
+===== ui/settings/sections/NetworkSettingsFragment.java =====
+248:                     setFragment(AnonymousModeSettingsFragment.newInstance(),
+
+===== ui/settings/sections/SchedulingSettingsFragment.java =====
+86:             startTime.setTime(pref.schedulingStartTime());
+93:             stopTime.setTime(pref.schedulingShutdownTime());
+166:         setPreferencesFromResource(R.xml.pref_scheduling, rootKey);
+175:     public void onDisplayPreferenceDialog(Preference preference)
+176:     {
+177:         DialogFragment dialogFragment = null;
+178:         if (preference instanceof TimePreference) {
+179:             dialogFragment = TimePreferenceDialogFragmentCompat.newInstance(preference.getKey());
+180:         }
+181:         if (dialogFragment != null && isAdded()) {
+182:             dialogFragment.setTargetFragment(this, 0);
+183:             dialogFragment.show(this.getParentFragmentManager(), "android.support.v7.preference" +
+184:                     ".PreferenceFragment.DIALOG");

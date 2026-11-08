@@ -1,0 +1,200 @@
+name: Device replay
+
+# Replays the scripted routes in device/routes/<App>/ on an Android emulator (default API 27, AOSP, x86_64, the image of
+# the baseline tool runs in bugfixops/work-emulator) and commits the text results to device/results/<run id>/.
+#
+# Real emulator runs start by hand (Actions -> Device replay -> Run workflow), or, by the user's instruction of
+# 2026-11-03, when handoff/DEVICE_REPLAY_REQUEST.txt is pushed (apps listed one per line, or "all").
+# Image: Google APIs, API 27, x86 (Google publishes no API 27 google_apis x86_64 image; all 13 APKs run on x86).
+# A dry run (no emulator: every route script is loaded, its planned adb actions are printed and its edge ids are
+# checked against the current graph) starts by hand with dry_run=true, or when handoff/DEVICE_DRYRUN_REQUEST.txt
+# is pushed (apps listed one per line, or "all").
+#
+# The scripts this workflow calls are written by Muse (handoff/MUSE_FINISH_ALL.md, section 5.6):
+#   device/plan.py <apps>                          prints "matrix=<json>" for apps that have route scripts
+#   device/run_app.sh <App> <glob> <outdir> [--dry-run]
+#   device/collect.py <collected_dir> <dest_dir>   writes the committed text results
+# APKs, class files, fixtures, ci/apps.csv, ci/app_env.py and the JaCoCo CLI come from bugfixops/work-emulator
+# (checked out at $WEMU). No secrets are used.
+on:
+  workflow_dispatch:
+    inputs:
+      apps:
+        description: 'App names separated by spaces, or all'
+        default: 'all'
+      routes:
+        description: 'Route script glob inside device/routes/<App>/'
+        default: 'route_*.py'
+      api_level:
+        description: 'Android API level of the emulator'
+        default: '27'
+      target:
+        description: 'System image: google_apis (chosen 2026-11-03) or default (AOSP)'
+        default: 'google_apis'
+      arch:
+        description: 'x86 (google_apis API 27 has no x86_64 image) or x86_64 (default/AOSP only)'
+        default: 'x86'
+      dry_run:
+        description: 'true = no emulator, only plan and validate the scripts'
+        default: 'false'
+  push:
+    branches: [work-2026-10-31]
+    paths: [handoff/DEVICE_DRYRUN_REQUEST.txt, handoff/DEVICE_REPLAY_REQUEST.txt]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: device-replay
+  cancel-in-progress: false
+
+env:
+  ROUTES_GLOB: ${{ inputs.routes || 'route_*.py' }}
+
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      dry: ${{ steps.plan.outputs.dry }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: work-2026-10-31
+          fetch-depth: 1
+      # dry: a push is a real run only when its head commit changes handoff/DEVICE_REPLAY_REQUEST.txt;
+      # any other push (handoff/DEVICE_DRYRUN_REQUEST.txt) is a dry run; by hand, the dry_run input decides.
+      - id: plan
+        env:
+          EVENT: ${{ github.event_name }}
+          IN_APPS: ${{ inputs.apps }}
+          IN_DRY: ${{ inputs.dry_run }}
+          SHA: ${{ github.sha }}
+        run: |
+          req=handoff/DEVICE_DRYRUN_REQUEST.txt
+          dry=true
+          if [ "$EVENT" = "push" ]; then
+            git fetch -q --depth=2 origin "$SHA"
+            if git diff-tree --no-commit-id --name-only -r "$SHA" | grep -qx 'handoff/DEVICE_REPLAY_REQUEST.txt'; then
+              req=handoff/DEVICE_REPLAY_REQUEST.txt
+              dry=false
+            fi
+            apps=$(grep -v '^#' "$req" | tr ',\n' '  ')
+          else
+            apps="$IN_APPS"
+            dry="${IN_DRY:-false}"
+          fi
+          echo "event=$EVENT sha=$SHA dry=$dry request_file=$req apps=$apps"
+          echo "dry=$dry" >> "$GITHUB_OUTPUT"
+          python3 -I device/plan.py $apps >> "$GITHUB_OUTPUT"
+
+  run:
+    name: ${{ matrix.app }}
+    needs: plan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 340
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    env:
+      WEMU: ${{ github.workspace }}/wemu
+      DRY: ${{ needs.plan.outputs.dry }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: work-2026-10-31
+          fetch-depth: 1
+      - uses: actions/checkout@v6
+        with:
+          repository: bugfixops/work-emulator
+          path: wemu
+          fetch-depth: 1
+
+      - name: Dry run (no emulator)
+        if: ${{ env.DRY == 'true' }}
+        run: bash device/run_app.sh "${{ matrix.app }}" "$ROUTES_GLOB" "out/${{ matrix.app }}" --dry-run
+
+      - name: Enable KVM
+        if: ${{ env.DRY != 'true' }}
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: JaCoCo command line tool
+        if: ${{ env.DRY != 'true' }}
+        # Retry: run 41583852305 lost the Markor job to one failed download (curl exit 22).
+        run: |
+          for i in 1 2 3 4; do
+            bash wemu/ci/get_jacoco.sh && exit 0
+            echo "get_jacoco.sh failed (attempt $i), retrying in 20 s"; sleep 20
+          done
+          exit 1
+
+      - name: SSH server for Amaze SSH routes
+        if: ${{ env.DRY != 'true' && matrix.app == 'AmazeFileManager' }}
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q openssh-server
+          command -v sshd && command -v ssh-keygen
+
+      - name: Emulator and route replay
+        if: ${{ env.DRY != 'true' }}
+        env:
+          WITH_SSH_SERVER: ${{ matrix.app == 'AmazeFileManager' && '1' || '0' }}
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ inputs.api_level || '27' }}
+          target: ${{ inputs.target || 'google_apis' }}
+          arch: ${{ inputs.arch || 'x86' }}
+          profile: pixel_2
+          cores: 3
+          ram-size: 3072M
+          heap-size: 512M
+          disk-size: 4096M
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none -camera-front none
+          disable-animations: true
+          script: bash device/run_app.sh "${{ matrix.app }}" "$ROUTES_GLOB" "out/${{ matrix.app }}"
+
+      - name: Upload results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: device-${{ matrix.app }}
+          path: out/${{ matrix.app }}
+          retention-days: 30
+          if-no-files-found: warn
+
+  collect:
+    needs: [plan, run]
+    if: ${{ !cancelled() && needs.plan.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      DRY: ${{ needs.plan.outputs.dry }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: work-2026-10-31
+          fetch-depth: 1
+      - uses: actions/download-artifact@v8
+        continue-on-error: true
+        with:
+          pattern: device-*
+          path: collected
+      - name: Collect and commit
+        run: |
+          kind=$([ "$DRY" = "true" ] && echo dryrun || echo results)
+          dest="device/$kind/${{ github.run_id }}-${{ github.run_attempt }}"
+          python3 -I device/collect.py collected "$dest"
+          git config user.name bugfixops
+          git config user.email bugfixops@users.noreply.github.com
+          git add -A device/
+          if git diff --cached --quiet; then echo "nothing to commit"; exit 0; fi
+          git commit -q -m "[device] $kind ${{ github.run_id }}-${{ github.run_attempt }}"
+          for i in 1 2 3 4 5; do
+            if git pull -q --rebase origin work-2026-10-31 && git push -q origin HEAD:work-2026-10-31; then exit 0; fi
+            sleep 15
+          done
+          exit 1

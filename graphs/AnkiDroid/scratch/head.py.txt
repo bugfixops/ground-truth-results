@@ -1,0 +1,156 @@
+# AnkiDroid 2.6beta6 (package com.ichi2.anki; source final_java_only/AnkiDroid/app/AnkiDroid-#4200/AnkiDroid/src/main/java,
+# flavor not stated in DATASET.txt, src/main only) trigger graph definition, schema 2.
+# Written by hand from the app sources after the schema-1 draft (graphs/AnkiDroid/generated_draft_graph_def.py.txt,
+# inventory only). Direct app-to-app calls come from the bytecode extractor (USE_AUTO, auto_calls.json). This file holds
+# the entry points (AndroidManifest.xml), one page per screen class, the lifecycle chains and the gate texts. The
+# GUI, intent, result and framework-callback edges are added in the label parts (graphs/AnkiDroid/parts/).
+
+TITLE = 'AnkiDroid 2.6beta6 trigger graph'
+USE_AUTO = True
+STRICT = False
+
+ENV_KINDS_OF, STATE_KINDS_OF = {}, {}
+
+
+def env_text(text, kinds):
+    ENV_KINDS_OF[text] = list(kinds)
+    return text
+
+
+def state_text(text, kinds):
+    STATE_KINDS_OF[text] = list(kinds)
+    return text
+
+
+def gui(src, dst, text, kind='GUI', **kw):
+    e(src, dst, kind, text, gui=[text], **kw)
+
+
+def sup(*pairs):
+    for p in pairs:
+        SUPPRESS.add(p)
+
+
+# Lifecycle order for the edges that start at a constructor (X.<init>) and for the callbacks after it (AnyMemo style).
+LC_RANK = {'onAttach': 0, 'onCreate': 1, 'onCreateDialog': 2, 'onCreateView': 2, 'onStart': 3, 'onResume': 4,
+           'onPause': 5, 'onStop': 6, 'onDestroyView': 7}
+LC_NO_TRIGGER = ('onDestroy', 'onDetach', 'onConfigurationChanged', 'onOptionsItemSelected')
+
+
+def lc_chain(cls, cbs):
+    has = tuple(cbs)
+    first = 'onAttach' if 'onAttach' in has else ('onCreate' if 'onCreate' in has else None)
+    out = []
+    for cb in has:
+        if cb in LC_NO_TRIGGER:
+            continue
+        if cb == first or first is None:
+            s = cls + '.<init>'
+        elif cb in LC_RANK:
+            below = [x for x in has if x in LC_RANK and LC_RANK[x] < LC_RANK[cb]]
+            s = (cls + '.' + max(below, key=lambda x: LC_RANK[x])) if below else (cls + '.<init>')
+        else:
+            s = (cls + '.onCreate') if 'onCreate' in has else (cls + '.<init>')
+        out.append((cb, s))
+    return out
+
+
+# ================================================================== A. pages (one per screen class)
+
+SCREENS = {
+    'S_ENTRY': 'Outside the app: launcher, another app or adb (VIEW .apkg, SEND, CREATE_FLASHCARD, DO_SYNC), a ContentProvider call, a system broadcast, a widget update, the test harness',
+    'S_DECKPICKER': 'DeckPicker: the main deck list (launcher home screen of the app)',
+    'S_STUDYOPTIONS': 'StudyOptionsActivity: study options for the selected deck',
+    'S_STUDYOPTIONS_FRAG': 'StudyOptionsFragment: the fragment shown inside StudyOptionsActivity',
+    'S_CARDBROWSER': 'CardBrowser: the card list browser',
+    'S_REVIEWER': 'Reviewer: the study screen (questions and answers, grading buttons)',
+    'S_PREVIEWER': 'Previewer: card preview',
+    'S_VIDEOPLAYER': 'VideoPlayer: video playback of a media file',
+    'S_MYACCOUNT': 'MyAccount: AnkiWeb account login and registration',
+    'S_PREFERENCES': 'Preferences: the settings screen',
+    'S_DECKOPTIONS': 'DeckOptions: the options of one deck (preference screen)',
+    'S_FILTEREDDECKOPTIONS': 'FilteredDeckOptions: the options of a filtered deck',
+    'S_INFO': 'Info: the about / information screen',
+    'S_NOTEEDITOR': 'NoteEditor: add or edit a note (also opened from other apps: CREATE_FLASHCARD, SEND)',
+    'S_CRASH_REPORT': 'AnkiDroidCrashReportDialog: the crash report activity',
+    'S_STATISTICS': 'Statistics: the statistics screen',
+    'S_MODELBROWSER': 'ModelBrowser: note type list',
+    'S_MODELFIELDEDITOR': 'ModelFieldEditor: edit the fields of a note type',
+    'S_CARDTEMPLATEEDITOR': 'CardTemplateEditor: edit the card templates of a note type',
+    'S_MULTIMEDIA_EDIT_FIELD': 'MultimediaEditFieldActivity: edit one multimedia field (image, sound, text)',
+    'S_TRANSLATION': 'TranslationActivity: translation lookup for a field',
+    'S_LOAD_PRONOUNCIATION': 'LoadPronounciationActivity: pronunciation lookup for a field',
+    'S_DLG_CARDBROWSER_CONTEXT': 'CardBrowserContextMenu: long-press menu of a card row',
+    'S_DLG_CARDBROWSER_SEARCHES': 'CardBrowserMySearchesDialog: saved searches',
+    'S_DLG_CARDBROWSER_ORDER': 'CardBrowserOrderDialog: sort order of the card list',
+    'S_DLG_CONFIRMATION': 'ConfirmationDialog: generic yes/no confirmation',
+    'S_DLG_CUSTOM_STUDY': 'CustomStudyDialog: custom study options',
+    'S_DLG_DATABASE_ERROR': 'DatabaseErrorDialog: the collection could not be opened or repaired',
+    'S_DLG_DECKPICKER_BACKUP_NO_SPACE': 'DeckPickerBackupNoSpaceLeftDialog: backup could not be made, no space left',
+    'S_DLG_DECKPICKER_DELETE_DECK': 'DeckPickerConfirmDeleteDeckDialog: confirm deleting a deck',
+    'S_DLG_DECKPICKER_CONTEXT': 'DeckPickerContextMenu: long-press menu of a deck row',
+    'S_DLG_DECKPICKER_EXPORT_DONE': 'DeckPickerExportCompleteDialog: export finished',
+    'S_DLG_DECKPICKER_NO_SPACE': 'DeckPickerNoSpaceLeftDialog: no space left on the device',
+    'S_DLG_EXPORT': 'ExportDialog: export options',
+    'S_DLG_IMPORT': 'ImportDialog: import options',
+    'S_DLG_MEDIA_CHECK': 'MediaCheckDialog: media check result',
+    'S_DLG_MODELBROWSER_CONTEXT': 'ModelBrowserContextMenu: long-press menu of a note type row',
+    'S_DLG_MODELEDITOR_CONTEXT': 'ModelEditorContextMenu: long-press menu of a field or template row',
+    'S_DLG_RESCHEDULE_CARD': 'NoteEditorRescheduleCard: reschedule the current card',
+    'S_DLG_SIMPLE_MESSAGE': 'SimpleMessageDialog: a message with OK',
+    'S_DLG_SYNC_ERROR': 'SyncErrorDialog: sync error with actions',
+    'S_DLG_TAGS': 'TagsDialog: tag selection',
+    'S_DLG_PICK_STRING': 'PickStringDialogFragment: pick one string value (multimedia field editing)',
+}
+
+# ================================================================== B. gate texts (predefined; helpers use these only)
+
+ENV_OTHER_APP_INTENT = env_text(
+    'outside package: another app (or adb) sends an intent to this exported component (VIEW of an .apkg, SEND of text, '
+    'org.openintents.action.CREATE_FLASHCARD, com.ichi2.anki.DO_SYNC), see AndroidManifest.xml', ('other_app',))
+ENV_PROVIDER_CALL = env_text(
+    'outside package: another app calls ContentResolver on the exported CardContentProvider (manifest exported=true, '
+    'permission com.ichi2.anki.permission.READ_WRITE_DATABASE)', ('other_app', 'permission'))
+ENV_SDCARD_EVENT = env_text(
+    'system event: the system broadcasts MEDIA_MOUNTED or MEDIA_EJECT for a file:// volume (SdCardReceiver, manifest exported=true)',
+    ('system_event',))
+ENV_WIDGET = env_text(
+    'outside package: the user adds the AnkiDroid widget to the home screen, or the AppWidget host sends APPWIDGET_UPDATE',
+    ('other_app', 'system_event'))
+ENV_NETWORK = env_text('network: the AnkiWeb sync server is reachable (sync, login, media sync)', ('network',))
+ENV_STORAGE = env_text('hardware: external storage (SD card or emulated storage) is mounted and writable', ('hardware',))
+ENV_PERM_STORAGE = env_text('permission: android.permission.WRITE_EXTERNAL_STORAGE granted at runtime', ('permission',))
+ENV_PERM_RECORD = env_text('permission: android.permission.RECORD_AUDIO granted at runtime', ('permission',))
+ENV_TTS = env_text('other: a text-to-speech engine is installed and ready (android.speech.tts)', ('other',))
+ENV_BROWSER = env_text('other_app: an external browser opens a URL (ACTION_VIEW to a web page)', ('other_app',))
+
+STATE_DECK = state_text('data: a deck exists in the collection (the user created or imported one)', ('data',))
+STATE_CARDS = state_text('data: the deck has cards to study (new, learning or due)', ('data',))
+STATE_NOTE = state_text('data: at least one note exists in the collection', ('data',))
+STATE_COLLECTION = state_text('file: a collection file (collection.anki2) exists in the AnkiDroid folder', ('file', 'data'))
+STATE_APKG = state_text('file: the .apkg file is available to import (the intent carries its content URI)', ('file',))
+STATE_ACCOUNT = state_text('account: an AnkiWeb account is logged in (hkey stored)', ('account',))
+STATE_SETTINGS = state_text('settings: the preference is set to the value the route needs', ('settings',))
+STATE_SESSION = state_text('session: the app has already run in this process (a second visit, not a cold start)', ('session',))
+
+# ================================================================== C. entry points (manifest)
+
+e('S_ENTRY', 'IntentHandler.onCreate', 'ENTRY', 'launcher (MAIN, LAUNCHER, MULTIWINDOW_LAUNCHER)',
+  evidence='SRC AndroidManifest.xml:81-89')
+e('S_ENTRY', 'IntentHandler.onCreate', 'ENTRY', 'VIEW of an .apkg / content URI, or the DO_SYNC action, from another app',
+  env=ENV_OTHER_APP_INTENT, evidence='SRC AndroidManifest.xml:91-130')
+e('S_ENTRY', 'AnkiDroidApp.onCreate', 'ENTRY', 'process start: the system creates the Application (manifest android:name)',
+  evidence='SRC AndroidManifest.xml:74; SRC com/ichi2/anki/AnkiDroidApp.java:146; INFERRED the system calls Application.onCreate at process start (framework source not read)')
+e('S_ENTRY', 'CardContentProvider.onCreate', 'ENTRY', 'process start: the system creates the exported provider before Application.onCreate',
+  evidence='SRC AndroidManifest.xml:324-330; SRC com/ichi2/anki/provider/CardContentProvider.java:151; INFERRED the system calls ContentProvider.onCreate at process start (framework source not read)')
+e('S_ENTRY', 'NoteEditor.<init>', 'ENTRY', 'another app starts NoteEditor (CREATE_FLASHCARD, SEND text/plain)',
+  env=ENV_OTHER_APP_INTENT, evidence='SRC AndroidManifest.xml:214-228')
+e('S_ENTRY', 'SdCardReceiver.onReceive', 'ENTRY', 'MEDIA_MOUNTED or MEDIA_EJECT broadcast for a file volume',
+  env=ENV_SDCARD_EVENT, evidence='SRC AndroidManifest.xml:268-282; SRC com/ichi2/anki/receiver/SdCardReceiver.java:42')
+e('S_ENTRY', 'AnkiDroidWidgetSmall.onUpdate', 'ENTRY', 'the AppWidget host sends APPWIDGET_UPDATE for the installed widget',
+  env=ENV_WIDGET, evidence='SRC AndroidManifest.xml:253-263; SRC com/ichi2/widget/AnkiDroidWidgetSmall.java:45')
+e('S_ENTRY', 'AnkiDroidWidgetSmall.onReceive', 'ENTRY', 'a broadcast to the widget receiver (manifest intent-filter APPWIDGET_UPDATE)',
+  env=ENV_WIDGET, evidence='SRC AndroidManifest.xml:253-263; SRC com/ichi2/widget/AnkiDroidWidgetSmall.java:70')
+
+# ================================================================== D. lifecycle chains (generated from the declarations; decl lines in each evidence)
+

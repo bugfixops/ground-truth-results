@@ -1,0 +1,591 @@
+Printed source for batch 84 (LibreTorrent).
+Source root (java): final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+Layouts: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/res/layout/
+
+===== ui/createtorrent/CreateTorrentDialog.java:172-192 =====
+172:     public Dialog onCreateDialog(Bundle savedInstanceState)
+173:     {
+174:         if (activity == null)
+175:             activity = (AppCompatActivity)getActivity();
+176: 
+177:         ViewModelProvider provider = new ViewModelProvider(activity);
+178:         viewModel = provider.get(CreateTorrentViewModel.class);
+179:         dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+180: 
+181:         FragmentManager fm = getChildFragmentManager();
+182:         errReportDialog = (ErrorReportDialog)fm.findFragmentByTag(TAG_ERROR_REPORT_DIALOG);
+183: 
+184:         LayoutInflater i = LayoutInflater.from(activity);
+185:         binding = DataBindingUtil.inflate(i, R.layout.dialog_create_torrent, null, false);
+186:         binding.setLifecycleOwner(this);
+187:         binding.setViewModel(viewModel);
+188: 
+189:         initLayoutView();
+190: 
+191:         return alert;
+192:     }
+
+===== ui/createtorrent/CreateTorrentDialog.java:194-278 =====
+194:     private void initLayoutView()
+195:     {
+196:         /* Dismiss error label if user has changed the text */
+197:         binding.trackerUrls.addTextChangedListener(new TextWatcher() {
+198:             @Override
+199:             public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+200: 
+201:             @Override
+202:             public void onTextChanged(CharSequence s, int start, int before, int count) { }
+203: 
+204:             @Override
+205:             public void afterTextChanged(Editable s)
+206:             {
+207:                 binding.layoutTrackerUrls.setErrorEnabled(false);
+208:                 binding.layoutTrackerUrls.setError(null);
+209:             }
+210:         });
+211: 
+212:         binding.webSeedUrls.addTextChangedListener(new TextWatcher() {
+213:             @Override
+214:             public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+215: 
+216:             @Override
+217:             public void onTextChanged(CharSequence s, int start, int before, int count) { }
+218: 
+219:             @Override
+220:             public void afterTextChanged(Editable s)
+221:             {
+222:                 binding.layoutWebSeedUrls.setErrorEnabled(false);
+223:                 binding.layoutWebSeedUrls.setError(null);
+224:             }
+225:         });
+226: 
+227:         binding.piecesSize.setSelection(viewModel.mutableParams.getPieceSizeIndex());
+228:         binding.piecesSize.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
+229:         {
+230:             @Override
+231:             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l)
+232:             {
+233:                 viewModel.setPiecesSizeIndex(binding.piecesSize.getSelectedItemPosition());
+234:             }
+235:             @Override
+236:             public void onNothingSelected(AdapterView<?> adapterView)
+237:             {
+238:                 /* Nothing */
+239:             }
+240:         });
+241: 
+242:         binding.torrentVersion.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
+243:         {
+244:             @Override
+245:             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l)
+246:             {
+247:                 viewModel.setTorrentVersionIndex(binding.torrentVersion.getSelectedItemPosition());
+248:             }
+249: 
+250:             @Override
+251:             public void onNothingSelected(AdapterView<?> adapterView)
+252:             {
+253:                 /*  Nothing  */
+254:             }
+255:         });
+256: 
+257:         binding.fileChooserButton.setOnClickListener((v) -> {
+258:             Intent i = new Intent(activity, FileManagerDialog.class);
+259:             FileManagerConfig config = new FileManagerConfig(
+260:                     null,
+261:                     null,
+262:                     FileManagerConfig.FILE_CHOOSER_MODE);
+263:             i.putExtra(FileManagerDialog.TAG_CONFIG, config);
+264:             chooseFile.launch(i);
+265:         });
+266: 
+267:         binding.folderChooserButton.setOnClickListener((v) -> {
+268:             Intent i = new Intent(activity, FileManagerDialog.class);
+269:             FileManagerConfig config = new FileManagerConfig(
+270:                     null,
+271:                     null,
+272:                     FileManagerConfig.DIR_CHOOSER_MODE);
+273:             i.putExtra(FileManagerDialog.TAG_CONFIG, config);
+274:             chooseDir.launch(i);
+275:         });
+276: 
+277:         initAlertDialog(binding.getRoot());
+278:     }
+
+===== ui/createtorrent/CreateTorrentDialog.java:313-321 =====
+313:             addButton.setOnClickListener((v) -> {
+314:                 if(TextUtils.isEmpty(viewModel.mutableParams.getSeedPathName()) || "null".equals(viewModel.mutableParams.getSeedPathName())) {
+315:                     binding.layoutFileOrDirPath.setErrorEnabled(true);
+316:                     binding.layoutFileOrDirPath.setError(getText(R.string.error_please_select_file_or_folder_for_seeding_first));
+317:                 }
+318:                 else{
+319:                     choosePathToSaveDialog();
+320:                 }
+321:             });
+
+===== ui/createtorrent/CreateTorrentDialog.java:338-346 =====
+338:     private void buildTorrent()
+339:     {
+340:         binding.layoutTrackerUrls.setErrorEnabled(false);
+341:         binding.layoutTrackerUrls.setError(null);
+342:         binding.layoutWebSeedUrls.setErrorEnabled(false);
+343:         binding.layoutWebSeedUrls.setError(null);
+344: 
+345:         viewModel.buildTorrent();
+346:     }
+
+===== ui/createtorrent/CreateTorrentDialog.java:380-403 =====
+380:     private void handleFinish()
+381:     {
+382:         Uri savePath = viewModel.mutableParams.getSavePath();
+383:         if (savePath != null) {
+384:             Toast.makeText(activity.getApplicationContext(),
+385:                     getString(R.string.torrent_saved_to, savePath.getPath()),
+386:                     Toast.LENGTH_SHORT)
+387:                     .show();
+388:         }
+389:         if (viewModel.mutableParams.isStartSeeding()) {
+390:             try {
+391:                 disposables.add(viewModel.downloadTorrent()
+392:                         .subscribeOn(Schedulers.io())
+393:                         .subscribe(
+394:                                 () -> finish(new Intent(), FragmentCallback.ResultCode.OK),
+395:                                 this::handleBuildError)
+396:                 );
+397:             } catch (UnknownUriException e) {
+398:                 handleBuildError(e);
+399:             }
+400:         } else {
+401:             finish(new Intent(), FragmentCallback.ResultCode.OK);
+402:         }
+403:     }
+
+===== ui/createtorrent/CreateTorrentDialog.java:534-548 =====
+534:     final ActivityResultLauncher<Intent> choosePathToSave = registerForActivityResult(
+535:             new ActivityResultContracts.StartActivityForResult(),
+536:             result -> {
+537:                 Intent data = result.getData();
+538:                 if (result.getResultCode() != Activity.RESULT_OK)
+539:                     return;
+540:                 if (data == null || data.getData() == null) {
+541:                     createFileErrorDialog();
+542:                     return;
+543:                 }
+544: 
+545:                 viewModel.mutableParams.setSavePath(data.getData());
+546:                 buildTorrent();
+547:             }
+548:     );
+
+===== ui/createtorrent/CreateTorrentDialog.java:555-559 =====
+555:     private void finish(Intent intent, FragmentCallback.ResultCode code)
+556:     {
+557:         viewModel.finish();
+558:         alert.dismiss();
+559:         ((FragmentCallback)activity).onFragmentFinished(this, intent, code);
+
+===== ui/createtorrent/CreateTorrentMutableParams.java:47-50 =====
+47:     public ObservableField<Uri> getSeedPath()
+48:     {
+49:         return seedPath;
+50:     }
+
+===== ui/createtorrent/CreateTorrentMutableParams.java:53-56 =====
+53:     public String getSeedPathName()
+54:     {
+55:         return seedPathName;
+56:     }
+
+===== ui/createtorrent/CreateTorrentMutableParams.java:58-62 =====
+58:     public void setSeedPathName(String seedPathName)
+59:     {
+60:         this.seedPathName = seedPathName;
+61:         notifyPropertyChanged(BR.seedPathName);
+62:     }
+
+===== ui/createtorrent/CreateTorrentMutableParams.java:65-68 =====
+65:     public String getSkipFiles()
+66:     {
+67:         return skipFiles;
+68:     }
+
+===== ui/createtorrent/CreateTorrentMutableParams.java:70-74 =====
+70:     public void setSkipFiles(String skipFiles)
+71:     {
+72:         this.skipFiles = skipFiles;
+73:         notifyPropertyChanged(BR.skipFiles);
+74:     }
+
+===== ui/createtorrent/CreateTorrentMutableParams.java:77-80 =====
+77:     public String getTrackerUrls()
+78:     {
+79:         return trackerUrls;
+80:     }
+
+===== ui/createtorrent/CreateTorrentMutableParams.java:82-86 =====
+82:     public void setTrackerUrls(String trackerUrls)
+83:     {
+84:         this.trackerUrls = trackerUrls;
+85:         notifyPropertyChanged(BR.trackerUrls);
+86:     }
+
+===== ui/createtorrent/CreateTorrentMutableParams.java:89-92 =====
+89:     public String getWebSeedUrls()
+90:     {
+91:         return webSeedUrls;
+92:     }
+
+===== ui/createtorrent/CreateTorrentMutableParams.java:94-99 =====
+94:     public void setWebSeedUrls(String webSeedUrls)
+95:     {
+96:         this.webSeedUrls = webSeedUrls;
+97: 
+98:     }
+99: 
+
+===== ui/createtorrent/CreateTorrentMutableParams.java:101-104 =====
+101:     public int getPieceSizeIndex()
+102:     {
+103:         return pieceSizeIndex;
+104:     }
+
+===== ui/createtorrent/CreateTorrentMutableParams.java:106-110 =====
+106:     public void setPieceSizeIndex(int pieceSizeIndex)
+107:     {
+108:         this.pieceSizeIndex = pieceSizeIndex;
+109:         notifyPropertyChanged(BR.pieceSizeIndex);
+110:     }
+
+===== ui/createtorrent/CreateTorrentMutableParams.java:113-116 =====
+113:     public int getTorrentVersionIndex()
+114:     {
+115:         return torrentVersionIndex;
+116:     }
+
+===== ui/createtorrent/CreateTorrentMutableParams.java:118-122 =====
+118:     public void setTorrentVersionIndex(int torrentVersionIndex)
+119:     {
+120:         this.torrentVersionIndex = torrentVersionIndex;
+121:         notifyPropertyChanged(BR.torrentVersionIndex);
+122:     }
+
+===== ui/createtorrent/CreateTorrentMutableParams.java:125-128 =====
+125:     public String getComments()
+126:     {
+127:         return comments;
+128:     }
+
+===== ui/createtorrent/CreateTorrentMutableParams.java:130-134 =====
+130:     public void setComments(String comments)
+131:     {
+132:         this.comments = comments;
+133:         notifyPropertyChanged(BR.comments);
+134:     }
+
+===== ui/createtorrent/CreateTorrentMutableParams.java:137-140 =====
+137:     public boolean isStartSeeding()
+138:     {
+139:         return startSeeding;
+140:     }
+
+===== ui/createtorrent/CreateTorrentMutableParams.java:142-146 =====
+142:     public void setStartSeeding(boolean startSeeding)
+143:     {
+144:         this.startSeeding = startSeeding;
+145:         notifyPropertyChanged(BR.startSeeding);
+146:     }
+
+===== ui/createtorrent/CreateTorrentMutableParams.java:149-152 =====
+149:     public boolean isPrivateTorrent()
+150:     {
+151:         return privateTorrent;
+152:     }
+
+===== ui/createtorrent/CreateTorrentMutableParams.java:154-158 =====
+154:     public void setPrivateTorrent(boolean privateTorrent)
+155:     {
+156:         this.privateTorrent = privateTorrent;
+157:         notifyPropertyChanged(BR.privateTorrent);
+158:     }
+
+===== ui/createtorrent/CreateTorrentMutableParams.java:161-164 =====
+161:     public Uri getSavePath()
+162:     {
+163:         return savePath;
+164:     }
+
+===== ui/createtorrent/CreateTorrentMutableParams.java:166-170 =====
+166:     public void setSavePath(Uri savePath)
+167:     {
+168:         this.savePath = savePath;
+169:         notifyPropertyChanged(BR.savePath);
+170:     }
+
+===== ui/createtorrent/CreateTorrentMutableParams.java:174-190 =====
+174:     public String toString()
+175:     {
+176:         return "CreateTorrentMutableParams{" +
+177:                 "seedPath=" + seedPath +
+178:                 ", seedPathName='" + seedPathName + '\'' +
+179:                 ", skipFiles='" + skipFiles + '\'' +
+180:                 ", trackerUrls='" + trackerUrls + '\'' +
+181:                 ", webSeedUrls='" + webSeedUrls + '\'' +
+182:                 ", pieceSizeIndex=" + pieceSizeIndex +
+183:                 ", torrentVersionIndex=" + torrentVersionIndex +
+184:                 ", comments='" + comments + '\'' +
+185:                 ", startSeeding=" + startSeeding +
+186:                 ", privateTorrent=" + privateTorrent +
+187:                 ", savePath=" + savePath +
+188:                 '}';
+189:     }
+190: }
+
+===== ui/createtorrent/CreateTorrentViewModel.java:57-57 =====
+57:     private static final String TAG = CreateTorrentViewModel.class.getSimpleName();
+
+===== ui/createtorrent/CreateTorrentViewModel.java:59-59 =====
+59:     public CreateTorrentMutableParams mutableParams = new CreateTorrentMutableParams();
+
+===== ui/createtorrent/CreateTorrentViewModel.java:101-116 =====
+101:     public CreateTorrentViewModel(@NonNull Application application)
+102:     {
+103:         super(application);
+104: 
+105:         engine = TorrentEngine.getInstance(application);
+106:         disposables.add(engine.observeNeedStartEngine()
+107:                 .subscribeOn(Schedulers.io())
+108:                 .filter((needStart) -> needStart)
+109:                 .subscribe((needStart) -> engine.start()));
+110: 
+111:         fs = SystemFacadeHelper.getFileSystemFacade(application);
+112:         mutableParams.getSeedPath().addOnPropertyChangedCallback(dirPathCallback);
+113:         state.setValue(new BuildState(BuildState.Status.UNKNOWN, null));
+114:         buildProgress.setValue(0);
+115:     }
+116: 
+
+===== ui/createtorrent/CreateTorrentViewModel.java:131-134 =====
+131:     public LiveData<Integer> getBuildProgress()
+132:     {
+133:         return buildProgress;
+134:     }
+
+===== ui/createtorrent/CreateTorrentViewModel.java:136-142 =====
+136:     public void setPiecesSizeIndex(int index)
+137:     {
+138:         if (index < 0 || index >= engine.getPieceSizeList().length)
+139:             return;
+140: 
+141:         mutableParams.setPieceSizeIndex(index);
+142:     }
+
+===== ui/createtorrent/CreateTorrentViewModel.java:144-209 =====
+144:     public void setTorrentVersionIndex(int index) {
+145:         if (index < 0 || index >= engine.getTorrentVersionList().length)
+146:             return;
+147: 
+148:         mutableParams.setTorrentVersionIndex(index);
+149:     }
+150: 
+151:     public void buildTorrent()
+152:     {
+153:         state.setValue(new BuildState(BuildState.Status.BUILDING, null));
+154: 
+155:         TorrentBuilder builder;
+156:         try {
+157:             builder = makeBuilder();
+158: 
+159:         } catch (Exception e) {
+160:             onBuildError(e);
+161: 
+162:             return;
+163:         }
+164: 
+165:         resetPercentProgress();
+166:         disposables.add(builder.observeProgress()
+167:                 .subscribeOn(Schedulers.io())
+168:                 .filter(Objects::nonNull)
+169:                 .subscribe(this::makePercentProgress)
+170:         );
+171:         disposables.add(builder.build()
+172:                 .subscribeOn(Schedulers.io())
+173:                 .subscribe(this::onBuildSuccess, this::onBuildError)
+174:         );
+175:     }
+176: 
+177:     private TorrentBuilder makeBuilder() throws Exception
+178:     {
+179:         Uri seedPath = mutableParams.getSeedPath().get();
+180:         if (seedPath == null)
+181:             throw new IllegalArgumentException("Seed path is null");
+182:         Uri savePath = mutableParams.getSavePath();
+183:         if (savePath == null)
+184:             throw new IllegalArgumentException("Save path is null");
+185: 
+186:         if (!Utils.isFileSystemPath(seedPath))
+187:             throw new IllegalArgumentException("SAF doesn't supported");
+188: 
+189:         return new TorrentBuilder(getApplication())
+190:                 .setSeedPath(seedPath)
+191:                 .setPieceSize(getPieceSizeByIndex(mutableParams.getPieceSizeIndex()))
+192:                 .setTorrentVersion(getTorrentVersionByIndex(mutableParams.getTorrentVersionIndex()))
+193:                 .addTrackers(getAndValidateTrackers())
+194:                 .addUrlSeeds(getAndValidateWebSeeds())
+195:                 .setAsPrivate(mutableParams.isPrivateTorrent())
+196:                 .setCreator(makeCreator())
+197:                 .setComment(mutableParams.getComments())
+198:                 .setFileNameFilter((fileName) -> {
+199:                     List<String> skipFilesList = decodeSkipFilesList();
+200:                     if (skipFilesList.isEmpty())
+201:                         return true;
+202: 
+203:                     for (String skipFile : skipFilesList)
+204:                         if (fileName.toLowerCase().endsWith(skipFile.toLowerCase().trim()))
+205:                             return false;
+206: 
+207:                     return true;
+208:                 });
+209:     }
+
+===== ui/createtorrent/CreateTorrentViewModel.java:264-279 =====
+264:     private List<TorrentBuilder.Tracker> getAndValidateTrackers() throws InvalidTrackerException
+265:     {
+266:         List<TorrentBuilder.Tracker> validTrackers = new ArrayList<>();
+267:         int tier = 0;
+268:         for (String url : decodeUrls(mutableParams.getTrackerUrls())) {
+269:             try {
+270:                 url = normalizeAndValidateUrl(url);
+271: 
+272:             } catch (IllegalArgumentException e) {
+273:                 throw new InvalidTrackerException(url);
+274:             }
+275:             validTrackers.add(new TorrentBuilder.Tracker(url, tier++));
+276:         }
+277: 
+278:         return validTrackers;
+279:     }
+
+===== ui/createtorrent/CreateTorrentViewModel.java:281-295 =====
+281:     private List<String> getAndValidateWebSeeds() throws InvalidWebSeedException
+282:     {
+283:         List<String> validWebSeeds = new ArrayList<>();
+284:         for (String url : decodeUrls(mutableParams.getWebSeedUrls())) {
+285:             try {
+286:                 url = normalizeAndValidateUrl(url);
+287: 
+288:             } catch (IllegalArgumentException e) {
+289:                 throw new InvalidWebSeedException(url);
+290:             }
+291:             validWebSeeds.add(url);
+292:         }
+293: 
+294:         return validWebSeeds;
+295:     }
+
+===== ui/createtorrent/CreateTorrentViewModel.java:297-304 =====
+297:     private String[] decodeUrls(String urlsStr)
+298:     {
+299:         String[] urls = new String[0];
+300:         if (!TextUtils.isEmpty(urlsStr))
+301:             urls = urlsStr.split("\n");
+302: 
+303:         return urls;
+304:     }
+
+===== ui/createtorrent/CreateTorrentViewModel.java:323-331 =====
+323:     private List<String> decodeSkipFilesList()
+324:     {
+325:         List<String> skipFilesList = new ArrayList<>();
+326:         if (!TextUtils.isEmpty(mutableParams.getSkipFiles()))
+327:             skipFilesList = new ArrayList<>(Arrays.asList(mutableParams.getSkipFiles()
+328:                     .split(CreateTorrentMutableParams.FILTER_SEPARATOR)));
+329: 
+330:         return skipFilesList;
+331:     }
+
+===== ui/createtorrent/CreateTorrentViewModel.java:352-389 =====
+352:     public Completable downloadTorrent() throws UnknownUriException {
+353:         /* Use seed path parent; otherwise use save torrent file path */
+354:         Uri savePath;
+355:         Uri seedPath = mutableParams.getSeedPath().get();
+356:         if (seedPath != null) {
+357:             savePath = fs.getParentDirUri(seedPath);
+358:             if (savePath == null)
+359:                 savePath = mutableParams.getSavePath();
+360:         } else {
+361:             savePath = mutableParams.getSavePath();
+362:         }
+363:         Uri torrentFilePath = mutableParams.getSavePath();
+364:         if (savePath == null || torrentFilePath == null)
+365:             return Completable.complete();
+366: 
+367:         Uri path = savePath;
+368:         return Completable.create((emitter) -> {
+369:             if (emitter.isDisposed())
+370:                 return;
+371: 
+372:             Disposable d = engine.observeEngineRunning()
+373:                     .subscribeOn(Schedulers.io())
+374:                     .subscribe((isRunning) -> {
+375:                         if (isRunning) {
+376:                             engine.addTorrent(torrentFilePath, path);
+377:                             if (!emitter.isDisposed())
+378:                                 emitter.onComplete();
+379:                         }
+380:                     });
+381: 
+382:             emitter.setDisposable(d);
+383:         });
+384:     }
+385: 
+386:     public void finish()
+387:     {
+388:         disposables.clear();
+389:     }
+
+===== ui/createtorrent/CreateTorrentViewModel.java:391-404 =====
+391:     private Observable.OnPropertyChangedCallback dirPathCallback = new Observable.OnPropertyChangedCallback()
+392:     {
+393:         @Override
+394:         public void onPropertyChanged(Observable sender, int propertyId)
+395:         {
+396:             Uri seedPath = mutableParams.getSeedPath().get();
+397:             if (seedPath == null)
+398:                 return;
+399:             try {
+400:                 mutableParams.setSeedPathName(fs.getDirPath(seedPath));
+401:             } catch (UnknownUriException e) {
+402:                 Log.e(TAG, Log.getStackTraceString(e));
+403:             }
+404:         }
+
+===== Layout excerpts cited in the .md reasons =====
+===== dialog_create_torrent.xml:9-11 =====
+9:             name="viewModel"
+10:             type="org.proninyaroslav.libretorrent.ui.createtorrent.CreateTorrentViewModel" />
+11:     </data>
+
+===== dialog_create_torrent.xml:36-36 =====
+36:                 android:progress="@{viewModel.buildProgress.intValue()}"
+
+===== dialog_create_torrent.xml:63-63 =====
+63:                             android:text="@{viewModel.mutableParams.seedPathName}"
+
+===== dialog_create_torrent.xml:113-113 =====
+113:                             android:checked="@={viewModel.mutableParams.startSeeding}"
+
+===== dialog_create_torrent.xml:120-120 =====
+120:                             android:checked="@={viewModel.mutableParams.privateTorrent}"
+
+===== dialog_create_torrent.xml:149-149 =====
+149:                             android:text="@={viewModel.mutableParams.skipFiles}"
+
+===== dialog_create_torrent.xml:177-177 =====
+177:                             android:text="@={viewModel.mutableParams.trackerUrls}"
+
+===== dialog_create_torrent.xml:205-205 =====
+205:                             android:text="@={viewModel.mutableParams.webSeedUrls}"
+
+===== dialog_create_torrent.xml:276-276 =====
+276:                             android:text="@={viewModel.mutableParams.comments}"
+

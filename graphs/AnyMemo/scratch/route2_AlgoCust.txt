@@ -1,0 +1,190 @@
+## AlgorithmCustomizationScreen$1$1.<init>  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=- state=session classes=explicit;standard explicit_standard_route=yes
+   1. Eddc920eb ENTRY/standard*
+      S_ENTRY -> AnyMemo.<init>
+      MAIN / LAUNCHER intent starts AnyMemo
+      evidence: SRC AndroidManifest.xml:23-46
+         23          <activity
+         24              android:name=".ui.AnyMemo"
+         25              android:label="@string/app_full_name"
+         26              android:theme="@style/AnyMemo.Theme.Dark.NoActionBar"
+         27              android:exported="true" >
+         28              <intent-filter>
+         29                  <action
+         30                      android:name="android.intent.action.MAIN" />
+         31                  <category
+         32                      android:name="android.intent.category.LAUNCHER" />
+         33              </intent-filter>
+         34              <intent-filter>
+         35                  <action android:name="android.intent.action.VIEW" />
+         36                  <category android:name="android.intent.category.DEFAULT" />
+      ...  (10 more lines)
+   2. Eda38ea0d LIFECYCLE/standard*
+      AnyMemo.<init> -> AnyMemo.onResume
+      Activity lifecycle / framework callback
+      evidence: FW-SRC core/java/android/app/Activity.java (Activity lifecycle callback dispatched by ActivityThread); SRC ui/AnyMemo.java:115-434
+      (core/java/android/app/Activity.java: no line numbers)
+        115      @Override
+        116      public void onCreate(Bundle savedInstanceState) {
+        117          activityComponents().inject(this);
+        118          super.onCreate(savedInstanceState);
+        119          disposables = new CompositeDisposable();
+        120  
+        121          binding = DataBindingUtil.setContentView(this, R.layout.main_tabs);
+        122  
+        123          // Request storage permission for API < 29
+        124          if (android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.Q) {
+        125              if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        126                      != PackageManager.PERMISSION_GRANTED) {
+        127                  ActivityCompat.requestPermissions(this,
+        128                          new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+      ...  (306 more lines)
+   3. E954353b1 ENTERS/page* [STATE: AnyMemo already finished loadUiComponents() once in this process]
+      AnyMemo.onResume -> S_MAIN_RECENT
+      isUiLoaded is already true (resumed, not a cold start): the last-selected tab is shown again
+      evidence: SRC ui/AnyMemo.java:145-162
+        145      @Override
+        146      public void onResume() {
+        147          super.onResume();
+        148          if (android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.Q) {
+        149              if (!isUiLoaded) {
+        150                  loadUiComponents();
+        151                  isUiLoaded = true;
+        152              }
+        153          } else {
+        154              if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        155                      == PackageManager.PERMISSION_GRANTED) {
+        156                  if (!isUiLoaded) {
+        157                      loadUiComponents();
+        158                      isUiLoaded = true;
+      ...  (4 more lines)
+   4. E61565a0d GUI/standard*
+      S_MAIN_RECENT -> AnyMemo$1.onNavigationItemSelected
+      Swipe in the drawer, tap a drawer entry (Recent / Open / Download / Misc / Options / About)
+      evidence: INFERRED com.google.android.material (BottomNavigationView / NavigationView / FloatingActionButton / Snackbar) dispatches the listener registered on it, the same way a platform View dispatches a click (Material Components source not read); SRC ui/AnyMemo.java:209-232
+        209          binding.navView.setNavigationItemSelectedListener(
+        210              new NavigationView.OnNavigationItemSelectedListener() {
+        211                  @Override
+        212                  public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+        213                      int itemId = menuItem.getItemId();
+        214                      if (itemId == R.id.recent_tab_menu) {
+        215                          binding.bottomNavigation.setSelectedItemId(R.id.recent_tab_menu);
+        216                      } else if (itemId == R.id.open_tab_menu) {
+        217                          binding.bottomNavigation.setSelectedItemId(R.id.open_tab_menu);
+        218                      } else if (itemId == R.id.download_tab_menu) {
+        219                          binding.bottomNavigation.setSelectedItemId(R.id.download_tab_menu);
+        220                      } else if (itemId == R.id.misc_tab_menu) {
+        221                          binding.bottomNavigation.setSelectedItemId(R.id.misc_tab_menu);
+        222                      } else if (itemId == R.id.option_tab_menu) {
+      ...  (10 more lines)
+   5. Ed7751fbe INTENT/standard*
+      AnyMemo$1.onNavigationItemSelected -> OptionScreen.<init>
+      startActivity(OptionScreen) for the Options drawer item
+      evidence: SRC ui/AnyMemo.java:222-223
+        222                      } else if (itemId == R.id.option_tab_menu) {
+        223                          startActivity(new Intent(AnyMemo.this, OptionScreen.class));
+   6. Eaca59498 LIFECYCLE/standard*
+      OptionScreen.<init> -> OptionScreen.onCreate
+      the system creates the activity and calls onCreate (PreferenceActivity)
+      evidence: FW-SRC core/java/android/app/Activity.java (Activity lifecycle callback dispatched by ActivityThread); SRC ui/OptionScreen.java:44-46
+      (core/java/android/app/Activity.java: no line numbers)
+         44      public void onCreate(Bundle savedInstanceState) {
+         45          super.onCreate(savedInstanceState);
+         46          addPreferencesFromResource(R.xml.option_screen);
+   7. Ebfe5218f ENTERS/page*
+      OptionScreen.onCreate -> S_OPTION_SCREEN
+      addPreferencesFromResource(option_screen)
+      evidence: SRC ui/OptionScreen.java:46
+         46          addPreferencesFromResource(R.xml.option_screen);
+   8. Ea2fed85c FRAMEWORK/standard*
+      S_OPTION_SCREEN -> OptionScreen$1.onPreferenceClick
+      tap "Customize scheduling algorithm"
+      evidence: INFERRED android.preference.PreferenceActivity / Preference calls the registered OnPreferenceClickListener when the preference row is tapped (platform preference framework source not read for this exact flow); SRC ui/OptionScreen.java:50-51,65-82
+         50          Preference algorithmCustomizationPreference = findPreference(CUSTOMIZE_SCHEDULING_ALGORITHM_KEY);
+         51          algorithmCustomizationPreference.setOnPreferenceClickListener(algorithmCustomizationPreferenceOnClickListener);
+         65      private Preference.OnPreferenceClickListener algorithmCustomizationPreferenceOnClickListener
+         66          = new Preference.OnPreferenceClickListener() {
+         67  			public boolean onPreferenceClick(Preference p) {
+         68                  new AlertDialog.Builder(OptionScreen.this)
+         69                      .setTitle(R.string.warning_text)
+         70                      .setMessage(R.string.customize_scheduling_algorithm_warning)
+         71                      .setPositiveButton(R.string.ok_text, new DialogInterface.OnClickListener() {
+         72  						public void onClick(DialogInterface dialog, int which) {
+         73                              Intent intent = new Intent(OptionScreen.this, AlgorithmCustomizationScreen.class);
+         74                              startActivity(intent);
+         75  						}
+         76                      })
+         77                      .setNegativeButton(R.string.cancel_text, null)
+         78                      .show();
+      ...  (4 more lines)
+   9. E5bca89c8 ENTERS/page*
+      OptionScreen$1.onPreferenceClick -> S_DLG_ALGORITHM_WARN
+      the warning dialog is shown
+      evidence: SRC ui/OptionScreen.java:68-78
+         68                  new AlertDialog.Builder(OptionScreen.this)
+         69                      .setTitle(R.string.warning_text)
+         70                      .setMessage(R.string.customize_scheduling_algorithm_warning)
+         71                      .setPositiveButton(R.string.ok_text, new DialogInterface.OnClickListener() {
+         72  						public void onClick(DialogInterface dialog, int which) {
+         73                              Intent intent = new Intent(OptionScreen.this, AlgorithmCustomizationScreen.class);
+         74                              startActivity(intent);
+         75  						}
+         76                      })
+         77                      .setNegativeButton(R.string.cancel_text, null)
+         78                      .show();
+  10. E10650dad GUI/standard*
+      S_DLG_ALGORITHM_WARN -> OptionScreen$1$1.onClick
+      Tap OK (open the algorithm screen)
+      evidence: INFERRED androidx.fragment.app.DialogFragment shows an android.app.Dialog and forwards its button/cancel/dismiss callbacks (androidx source not read); SRC ui/OptionScreen.java:71-76
+         71                      .setPositiveButton(R.string.ok_text, new DialogInterface.OnClickListener() {
+         72  						public void onClick(DialogInterface dialog, int which) {
+         73                              Intent intent = new Intent(OptionScreen.this, AlgorithmCustomizationScreen.class);
+         74                              startActivity(intent);
+         75  						}
+         76                      })
+  11. E98d4b43a ENTRY/standard*
+      OptionScreen$1$1.onClick -> AlgorithmCustomizationScreen.<init>
+      startActivity(AlgorithmCustomizationScreen)
+      evidence: SRC ui/OptionScreen.java:73-74
+         73                              Intent intent = new Intent(OptionScreen.this, AlgorithmCustomizationScreen.class);
+         74                              startActivity(intent);
+  12. E209e1e2e LIFECYCLE/standard*
+      AlgorithmCustomizationScreen.<init> -> AlgorithmCustomizationScreen.onCreate
+      the system creates the activity and calls onCreate (PreferenceActivity)
+      evidence: FW-SRC core/java/android/app/Activity.java (Activity lifecycle callback dispatched by ActivityThread); SRC ui/AlgorithmCustomizationScreen.java:42-44
+      (core/java/android/app/Activity.java: no line numbers)
+         42      public void onCreate(Bundle savedInstanceState) {
+         43          super.onCreate(savedInstanceState);
+         44          addPreferencesFromResource(R.xml.algorithm_customization_screen);
+  13. E93241413 ENTERS/page*
+      AlgorithmCustomizationScreen.onCreate -> S_ALGORITHM_SCREEN
+      addPreferencesFromResource(algorithm_customization_screen)
+      evidence: SRC ui/AlgorithmCustomizationScreen.java:43
+         43          super.onCreate(savedInstanceState);
+  14. E42d7661c FRAMEWORK/standard*
+      S_ALGORITHM_SCREEN -> AlgorithmCustomizationScreen$1.onPreferenceClick
+      tap "Reset customized algorithm"
+      evidence: INFERRED android.preference.PreferenceActivity / Preference calls the registered OnPreferenceClickListener when the preference row is tapped (platform preference framework source not read for this exact flow); SRC ui/AlgorithmCustomizationScreen.java:48-49,62-78
+         48          Preference resetPreference = findPreference(RESET_CUSTOMIZED_ALGORITHM_KEY);
+         49          resetPreference.setOnPreferenceClickListener(resetPreferenceOnClickListener);
+         62      private Preference.OnPreferenceClickListener resetPreferenceOnClickListener
+         63          = new Preference.OnPreferenceClickListener() {
+         64  			public boolean onPreferenceClick(Preference p) {
+         65                  new AlertDialog.Builder(AlgorithmCustomizationScreen.this)
+         66                      .setTitle(R.string.warning_text)
+         67                      .setMessage(R.string.customize_scheduling_algorithm_warning)
+         68                      .setPositiveButton(R.string.ok_text, new DialogInterface.OnClickListener() {
+         69  						public void onClick(DialogInterface dialog, int which) {
+         70                              finish();
+         71                              SchedulingAlgorithmParameters parameters = new SchedulingAlgorithmParameters(AlgorithmCustomizationScreen.this);
+         72                              parameters.reset();
+         73  						}
+         74                      })
+         75                      .setNegativeButton(R.string.cancel_text, null)
+      ...  (3 more lines)
+  15. E14933b48 CALL/explicit*
+      AlgorithmCustomizationScreen$1.onPreferenceClick -> AlgorithmCustomizationScreen$1$1.<init>
+      Direct call
+      evidence: SRC AlgorithmCustomizationScreen.java:67 (bytecode)
+         67                      .setMessage(R.string.customize_scheduling_algorithm_warning)
+

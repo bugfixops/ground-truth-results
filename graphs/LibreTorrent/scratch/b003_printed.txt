@@ -1,0 +1,544 @@
+$ Batch 3 printed source (from the local clone tree).
+$ Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java
+$ Every range below is cited by at least one row of batch3-merge-ready.md; every .py evidence ref traces here.
+$ sed -n '36,36p' org/proninyaroslav/libretorrent/core/RepositoryHelper.java
+    36	public class RepositoryHelper
+$ sed -n '43,43p' org/proninyaroslav/libretorrent/core/RepositoryHelper.java
+    43	    public synchronized static TorrentRepository getTorrentRepository(@NonNull Context appContext)
+$ sed -n '52,52p' org/proninyaroslav/libretorrent/core/RepositoryHelper.java
+    52	    public synchronized static FeedRepository getFeedRepository(@NonNull Context appContext)
+$ sed -n '61,61p' org/proninyaroslav/libretorrent/core/RepositoryHelper.java
+    61	    public synchronized static SettingsRepository getSettingsRepository(@NonNull Context appContext)
+$ sed -n '69,69p' org/proninyaroslav/libretorrent/core/RepositoryHelper.java
+    69	    public synchronized static TagRepository getTagRepository(@NonNull Context appContext)
+$ sed -n '45,49p' org/proninyaroslav/libretorrent/core/collections/FixedRingBuffer.java
+    45	    public FixedRingBuffer(int capacity)
+    46	    {
+    47	        this(0, capacity);
+    48	    }
+    49	
+$ sed -n '28,28p' org/proninyaroslav/libretorrent/core/exception/DecodeException.java
+    28	    public DecodeException() { }
+$ sed -n '30,30p' org/proninyaroslav/libretorrent/core/exception/DecodeException.java
+    30	    public DecodeException(String message)
+$ sed -n '28,28p' org/proninyaroslav/libretorrent/core/exception/FetchLinkException.java
+    28	    public FetchLinkException() { }
+$ sed -n '24,24p' org/proninyaroslav/libretorrent/core/exception/FileAlreadyExistsException.java
+    24	    public FileAlreadyExistsException() { }
+$ sed -n '26,26p' org/proninyaroslav/libretorrent/core/exception/FileAlreadyExistsException.java
+    26	    public FileAlreadyExistsException(String message)
+$ sed -n '35,35p' org/proninyaroslav/libretorrent/core/exception/FreeSpaceException.java
+    35	    public FreeSpaceException(Exception e)
+$ sed -n '24,24p' org/proninyaroslav/libretorrent/core/exception/IPFilterException.java
+    24	    public IPFilterException() { }
+$ sed -n '31,31p' org/proninyaroslav/libretorrent/core/exception/IPFilterException.java
+    31	    public IPFilterException(Exception e)
+$ sed -n '26,26p' org/proninyaroslav/libretorrent/core/exception/NoFilesSelectedException.java
+    26	    public NoFilesSelectedException(String message)
+$ sed -n '21,21p' org/proninyaroslav/libretorrent/core/exception/NormalizeUrlException.java
+    21	    public NormalizeUrlException(String message, Exception e)
+$ sed -n '27,27p' org/proninyaroslav/libretorrent/core/exception/NormalizeUrlException.java
+    27	    public NormalizeUrlException(String message)
+$ sed -n '26,26p' org/proninyaroslav/libretorrent/core/exception/TorrentAlreadyExistsException.java
+    26	    public TorrentAlreadyExistsException(String message)
+$ sed -n '26,101p' org/proninyaroslav/libretorrent/core/filter/TorrentFilterCollection.java
+    26	public class TorrentFilterCollection {
+    27	    public static TorrentFilter all() {
+    28	        return (state) -> true;
+    29	    }
+    30	
+    31	    public static TorrentFilter statusDownloading() {
+    32	        return (state) -> state.stateCode == TorrentStateCode.DOWNLOADING;
+    33	    }
+    34	
+    35	    public static TorrentFilter statusDownloaded() {
+    36	        return (state) -> state.stateCode == TorrentStateCode.SEEDING || state.receivedBytes == state.totalBytes;
+    37	    }
+    38	
+    39	    public static TorrentFilter statusDownloadingMetadata() {
+    40	        return (state) -> state.stateCode == TorrentStateCode.DOWNLOADING_METADATA;
+    41	    }
+    42	
+    43	    public static TorrentFilter statusError() {
+    44	        return (state) -> state.error != null;
+    45	    }
+    46	
+    47	    public static TorrentFilter dateAddedToday() {
+    48	        return (state) -> {
+    49	            long dateAdded = state.dateAdded;
+    50	            long timeMillis = System.currentTimeMillis();
+    51	
+    52	            return dateAdded >= DateUtils.startOfToday(timeMillis) &&
+    53	                    dateAdded <= DateUtils.endOfToday(timeMillis);
+    54	        };
+    55	    }
+    56	
+    57	    public static TorrentFilter dateAddedYesterday() {
+    58	        return (state) -> {
+    59	            long dateAdded = state.dateAdded;
+    60	            long timeMillis = System.currentTimeMillis();
+    61	
+    62	            return dateAdded >= DateUtils.startOfYesterday(timeMillis) &&
+    63	                    dateAdded <= DateUtils.endOfYesterday(timeMillis);
+    64	        };
+    65	    }
+    66	
+    67	    public static TorrentFilter dateAddedWeek() {
+    68	        return (state) -> {
+    69	            long dateAdded = state.dateAdded;
+    70	            long timeMillis = System.currentTimeMillis();
+    71	
+    72	            return dateAdded >= DateUtils.startOfWeek(timeMillis) &&
+    73	                    dateAdded <= DateUtils.endOfWeek(timeMillis);
+    74	        };
+    75	    }
+    76	
+    77	    public static TorrentFilter dateAddedMonth() {
+    78	        return (state) -> {
+    79	            long dateAdded = state.dateAdded;
+    80	            long timeMillis = System.currentTimeMillis();
+    81	
+    82	            return dateAdded >= DateUtils.startOfMonth(timeMillis) &&
+    83	                    dateAdded <= DateUtils.endOfMonth(timeMillis);
+    84	        };
+    85	    }
+    86	
+    87	    public static TorrentFilter dateAddedYear() {
+    88	        return (state) -> {
+    89	            long dateAdded = state.dateAdded;
+    90	            long timeMillis = System.currentTimeMillis();
+    91	
+    92	            return dateAdded >= DateUtils.startOfYear(timeMillis) &&
+    93	                    dateAdded <= DateUtils.endOfYear(timeMillis);
+    94	        };
+    95	    }
+    96	
+    97	    public static TorrentFilter tag(TagInfo tag) {
+    98	        return (state) -> tag == null || state.tags.contains(tag);
+    99	    }
+   100	
+   101	    public static TorrentFilter noTags() {
+$ sed -n '66,66p' org/proninyaroslav/libretorrent/core/logger/LogEntry.java
+    66	    public long getTimeStamp()
+$ sed -n '71,71p' org/proninyaroslav/libretorrent/core/logger/LogEntry.java
+    71	    public String getTimeStampAsString()
+$ sed -n '105,105p' org/proninyaroslav/libretorrent/core/logger/LogEntry.java
+   105	        return getTimeStampAsString() + " " + toString();
+$ sed -n '68,68p' org/proninyaroslav/libretorrent/core/logger/Logger.java
+    68	            inputBuf = new FixedRingBuffer<>(calcInitBufCapacity(maxStoredLogs), maxStoredLogs);
+$ sed -n '89,89p' org/proninyaroslav/libretorrent/core/logger/Logger.java
+    89	            outputBuf = new FixedRingBuffer<>(calcInitBufCapacity(maxStoredLogs), maxStoredLogs);
+$ sed -n '301,301p' org/proninyaroslav/libretorrent/core/logger/Logger.java
+   301	    public LogEntry getEntry(int pos)
+$ sed -n '362,362p' org/proninyaroslav/libretorrent/core/logger/Logger.java
+   362	    public int stopRecording()
+$ sed -n '367,367p' org/proninyaroslav/libretorrent/core/logger/Logger.java
+   367	    public int stopRecording(@Nullable OutputStream os)
+$ sed -n '372,372p' org/proninyaroslav/libretorrent/core/logger/Logger.java
+   372	    public int stopRecording(@Nullable OutputStream os, boolean timeStamp)
+$ sed -n '405,405p' org/proninyaroslav/libretorrent/core/logger/Logger.java
+   405	    public int write(@NonNull OutputStream os)
+$ sed -n '410,410p' org/proninyaroslav/libretorrent/core/logger/Logger.java
+   410	    public int write(@NonNull OutputStream os, boolean timeStamp)
+$ sed -n '329,340p' org/proninyaroslav/libretorrent/core/model/TorrentEngine.java
+   329	    public void addTorrent(@NonNull AddTorrentParams params,
+   330	                           boolean removeFile) {
+   331	        disposables.add(Completable.fromRunnable(() -> {
+   332	                    try {
+   333	                        addTorrentSync(params, removeFile);
+   334	
+   335	                    } catch (Exception e) {
+   336	                        handleAddTorrentError(params.name, e);
+   337	                    }
+   338	                }).subscribeOn(Schedulers.io())
+   339	                .subscribe());
+   340	    }
+$ sed -n '387,387p' org/proninyaroslav/libretorrent/core/model/TorrentEngine.java
+   387	                    throw new DecodeException(e);
+$ sed -n '846,858p' org/proninyaroslav/libretorrent/core/model/TorrentEngine.java
+   846	        return new AdvancedTorrentInfo(
+   847	                torrent.id,
+   848	                task.getFilesReceivedBytes(),
+   849	                task.getTotalSeeds(),
+   850	                task.getConnectedSeeds(),
+   851	                task.getNumDownloadedPieces(),
+   852	                task.getShareRatio(),
+   853	                task.getActiveTime(),
+   854	                task.getSeedingTime(),
+   855	                task.getAvailability(piecesAvail),
+   856	                task.getFilesAvailability(piecesAvail),
+   857	                task.getConnectedLeechers(),
+   858	                task.getTotalLeechers());
+$ sed -n '1149,1149p' org/proninyaroslav/libretorrent/core/model/TorrentEngine.java
+  1149	                disposables.add(addTorrentCompletable(uri)
+$ sed -n '1173,1173p' org/proninyaroslav/libretorrent/core/model/TorrentEngine.java
+  1173	            addTorrent(Uri.fromFile(file));
+$ sed -n '1201,1201p' org/proninyaroslav/libretorrent/core/model/TorrentEngine.java
+  1201	            throw new FreeSpaceException();
+$ sed -n '63,76p' org/proninyaroslav/libretorrent/core/model/TorrentInfoProvider.java
+    63	    public static TorrentInfoProvider getInstance(
+    64	            @NonNull TorrentEngine engine,
+    65	            @NonNull TagRepository tagRepo
+    66	    ) {
+    67	        if (INSTANCE == null) {
+    68	            synchronized (TorrentInfoProvider.class) {
+    69	                if (INSTANCE == null)
+    70	                    INSTANCE = new TorrentInfoProvider(engine, tagRepo);
+    71	            }
+    72	        }
+    73	        return INSTANCE;
+    74	    }
+    75	
+    76	    public static TorrentInfoProvider getInstance(@NonNull Context appContext) {
+$ sed -n '49,49p' org/proninyaroslav/libretorrent/core/model/data/AdvancedTorrentInfo.java
+    49	    public AdvancedTorrentInfo()
+$ sed -n '54,54p' org/proninyaroslav/libretorrent/core/model/data/AdvancedTorrentInfo.java
+    54	    public AdvancedTorrentInfo(String torrentId, long[] filesReceivedBytes,
+$ sed -n '76,76p' org/proninyaroslav/libretorrent/core/model/data/AdvancedTorrentInfo.java
+    76	    public AdvancedTorrentInfo(Parcel source)
+$ sed -n '123,125p' org/proninyaroslav/libretorrent/core/model/data/AdvancedTorrentInfo.java
+   123	                public AdvancedTorrentInfo createFromParcel(Parcel source)
+   124	                {
+   125	                    return new AdvancedTorrentInfo(source);
+$ sed -n '49,54p' org/proninyaroslav/libretorrent/core/model/data/PeerInfo.java
+    49	    public static class ConnectionType
+    50	    {
+    51	        public static final int BITTORRENT = 0;
+    52	        public static final int WEB = 1;
+    53	        public static final int UTP = 2;
+    54	    }
+$ sed -n '191,213p' org/proninyaroslav/libretorrent/core/model/data/TorrentInfo.java
+   191	    public int hashCode() {
+   192	        int prime = 31, result = 1;
+   193	
+   194	        result = prime * result + torrentId.hashCode();
+   195	        result = prime * result + ((name == null) ? 0 : name.hashCode());
+   196	        result = prime * result + ((stateCode == null) ? 0 : stateCode.hashCode());
+   197	        result = prime * result + progress;
+   198	        result = prime * result + (int) (receivedBytes ^ (receivedBytes >>> 32));
+   199	        result = prime * result + (int) (uploadedBytes ^ (uploadedBytes >>> 32));
+   200	        result = prime * result + (int) (totalBytes ^ (totalBytes >>> 32));
+   201	        result = prime * result + (int) (downloadSpeed ^ (downloadSpeed >>> 32));
+   202	        result = prime * result + (int) (uploadSpeed ^ (uploadSpeed >>> 32));
+   203	        result = prime * result + (int) (ETA ^ (ETA >>> 32));
+   204	        result = prime * result + (int) (dateAdded ^ (dateAdded >>> 32));
+   205	        result = prime * result + totalPeers;
+   206	        result = prime * result + peers;
+   207	        result = prime * result + ((error == null) ? 0 : error.hashCode());
+   208	        result = prime * result + (sequentialDownload ? 1 : 0);
+   209	        result = prime * result + Arrays.hashCode(filePriorities);
+   210	        result = prime * result + tags.hashCode();
+   211	        result = prime * result + (firstLastPiecePriority ? 1 : 0);
+   212	
+   213	        return result;
+$ sed -n '49,55p' org/proninyaroslav/libretorrent/core/model/data/TrackerInfo.java
+    49	    public static class Status {
+    50	        public static final int UNKNOWN = -1;
+    51	        public static final int WORKING = 0;
+    52	        public static final int UPDATING = 1;
+    53	        public static final int NOT_CONTACTED = 2;
+    54	        public static final int NOT_WORKING = 3;
+    55	    }
+$ sed -n '52,52p' org/proninyaroslav/libretorrent/core/model/data/entity/FeedChannel.java
+    52	    public FeedChannel(@NonNull String url, String name,
+$ sed -n '67,67p' org/proninyaroslav/libretorrent/core/model/data/entity/FeedChannel.java
+    67	    public FeedChannel(@NonNull String url)
+$ sed -n '73,73p' org/proninyaroslav/libretorrent/core/model/data/entity/FeedChannel.java
+    73	    public FeedChannel(Parcel source)
+$ sed -n '94,99p' org/proninyaroslav/libretorrent/core/model/data/entity/TagInfo.java
+    94	    public int hashCode() {
+    95	        int result = (int) (id ^ (id >>> 32));
+    96	        result = 31 * result + name.hashCode();
+    97	        result = 31 * result + color;
+    98	        return result;
+    99	    }
+$ sed -n '69,69p' org/proninyaroslav/libretorrent/core/model/data/metainfo/TorrentMetaInfo.java
+    69	            throw new DecodeException(e);
+$ sed -n '79,79p' org/proninyaroslav/libretorrent/core/model/data/metainfo/TorrentMetaInfo.java
+    79	            throw new DecodeException(e);
+$ sed -n '92,92p' org/proninyaroslav/libretorrent/core/model/data/metainfo/TorrentMetaInfo.java
+    92	            throw new DecodeException(e);
+$ sed -n '37,37p' org/proninyaroslav/libretorrent/core/model/filetree/BencodeFileTree.java
+    37	        super(name, size, type);
+$ sed -n '42,42p' org/proninyaroslav/libretorrent/core/model/filetree/BencodeFileTree.java
+    42	        super(index, name, size, type, parent);
+$ sed -n '47,47p' org/proninyaroslav/libretorrent/core/model/filetree/BencodeFileTree.java
+    47	        super(name, size, type, parent);
+$ sed -n '30,36p' org/proninyaroslav/libretorrent/core/model/filetree/FileNode.java
+    30	public interface FileNode<F> extends Comparable<F>
+    31	{
+    32	    class Type implements Serializable
+    33	    {
+    34	        public static int DIR = 0;
+    35	        public static int FILE = 1;
+    36	    }
+$ sed -n '51,51p' org/proninyaroslav/libretorrent/core/model/filetree/FileTree.java
+    51	    public FileTree(String name, long size, int type)
+$ sed -n '56,56p' org/proninyaroslav/libretorrent/core/model/filetree/FileTree.java
+    56	    public FileTree(String name, long size, int type, F parent)
+$ sed -n '61,61p' org/proninyaroslav/libretorrent/core/model/filetree/FileTree.java
+    61	    public FileTree(int index, String name, long size, int type)
+$ sed -n '66,66p' org/proninyaroslav/libretorrent/core/model/filetree/FileTree.java
+    66	    public FileTree(int index, String name, long size, int type, F parent)
+$ sed -n '35,35p' org/proninyaroslav/libretorrent/core/model/filetree/TorrentContentFileTree.java
+    35	        super(name, size, type);
+$ sed -n '42,42p' org/proninyaroslav/libretorrent/core/model/filetree/TorrentContentFileTree.java
+    42	        super(index, name, size, type, parent);
+$ sed -n '48,48p' org/proninyaroslav/libretorrent/core/model/filetree/TorrentContentFileTree.java
+    48	        super(name, size, type, parent);
+$ sed -n '44,44p' org/proninyaroslav/libretorrent/core/model/session/IPFilterImpl.java
+    44	            throw new IPFilterException("Invalid first IP in range: " + first);
+$ sed -n '54,54p' org/proninyaroslav/libretorrent/core/model/session/IPFilterImpl.java
+    54	                throw new IPFilterException("Invalid last IP in range: " + last);
+$ sed -n '58,58p' org/proninyaroslav/libretorrent/core/model/session/IPFilterImpl.java
+    58	                throw new IPFilterException("IP range is malformed. One IP is IPv6 and the other is IPv4!");
+$ sed -n '49,49p' org/proninyaroslav/libretorrent/core/model/session/IPFilterParser.java
+    49	    public IPFilterParser()
+$ sed -n '54,54p' org/proninyaroslav/libretorrent/core/model/session/IPFilterParser.java
+    54	    public IPFilterParser(boolean logEnabled)
+$ sed -n '28,28p' org/proninyaroslav/libretorrent/core/model/session/PriorityConverter.java
+    28	class PriorityConverter
+$ sed -n '54,54p' org/proninyaroslav/libretorrent/core/model/session/PriorityConverter.java
+    54	    public static org.libtorrent4j.Priority[] convert(@NonNull Priority[] priorities)
+$ sed -n '74,74p' org/proninyaroslav/libretorrent/core/model/session/PriorityConverter.java
+    74	    public static Priority[] convert(@NonNull org.libtorrent4j.Priority[] priorities)
+$ sed -n '94,101p' org/proninyaroslav/libretorrent/core/model/session/PriorityConverter.java
+    94	    public static org.libtorrent4j.Priority convert(@NonNull Priority priority)
+    95	    {
+    96	        org.libtorrent4j.Priority converted = PRIOR_TO_LIB_PRIOR.get(priority.value());
+    97	        if (converted == null)
+    98	            converted = org.libtorrent4j.Priority.DEFAULT;
+    99	
+   100	        return converted;
+   101	    }
+$ sed -n '103,110p' org/proninyaroslav/libretorrent/core/model/session/PriorityConverter.java
+   103	    public static Priority convert(@NonNull org.libtorrent4j.Priority priority)
+   104	    {
+   105	        Priority converted = LIB_PRIOR_TO_PRIOR.get(priority.swig());
+   106	        if (converted == null)
+   107	            converted = Priority.DEFAULT;
+   108	
+   109	        return converted;
+   110	    }
+$ sed -n '26,26p' org/proninyaroslav/libretorrent/core/model/session/SessionErrors.java
+    26	class SessionErrors
+$ sed -n '32,36p' org/proninyaroslav/libretorrent/core/model/session/TorrentCriticalWork.java
+    32	    public enum Type
+    33	    {
+    34	        MOVING,
+    35	        SAVE_RESUME
+    36	    }
+$ sed -n '63,63p' org/proninyaroslav/libretorrent/core/model/session/TorrentCriticalWork.java
+    63	    public boolean isMoving()
+$ sed -n '74,74p' org/proninyaroslav/libretorrent/core/model/session/TorrentCriticalWork.java
+    74	    public boolean isSaveResume()
+$ sed -n '45,45p' org/proninyaroslav/libretorrent/core/model/session/TorrentDownload.java
+    45	    String getTorrentId();
+$ sed -n '59,59p' org/proninyaroslav/libretorrent/core/model/session/TorrentDownload.java
+    59	    boolean isAutoManaged();
+$ sed -n '70,70p' org/proninyaroslav/libretorrent/core/model/session/TorrentDownload.java
+    70	    long getSize();
+$ sed -n '166,166p' org/proninyaroslav/libretorrent/core/model/session/TorrentDownload.java
+   166	    int getMaxConnections();
+$ sed -n '170,170p' org/proninyaroslav/libretorrent/core/model/session/TorrentDownload.java
+   170	    int getMaxUploads();
+$ sed -n '286,286p' org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java
+   286	        criticalWork.setMoving(false);
+$ sed -n '352,371p' org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java
+   352	                    sb.append(SessionErrors.getErrorMsg(error));
+   353	                    errorMsg = sb.toString();
+   354	
+   355	                    isNonCritical = SessionErrors.isNonCritical(error);
+   356	                }
+   357	                break;
+   358	            } case METADATA_FAILED: {
+   359	                MetadataFailedAlert metadataFailedAlert = (MetadataFailedAlert)alert;
+   360	                ErrorCode error = metadataFailedAlert.getError();
+   361	                if (error.isError())
+   362	                    errorMsg = SessionErrors.getErrorMsg(error);
+   363	                break;
+   364	            } case FILE_ERROR: {
+   365	                FileErrorAlert fileErrorAlert = (FileErrorAlert)alert;
+   366	                ErrorCode error = fileErrorAlert.error();
+   367	                String filename = fileErrorAlert.filename().substring(
+   368	                        fileErrorAlert.filename().lastIndexOf("/") + 1);
+   369	                if (error.isError()) {
+   370	                    errorMsg = "[" + fileErrorAlert.operation() + "][" + filename + "] " +
+   371	                            SessionErrors.getErrorMsg(error);
+$ sed -n '417,417p' org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java
+   417	                throw new FreeSpaceException("Not enough free space");
+$ sed -n '504,504p' org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java
+   504	                criticalWork.setSaveResume(true);
+$ sed -n '512,512p' org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java
+   512	            criticalWork.setSaveResume(false);
+$ sed -n '526,526p' org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java
+   526	            criticalWork.setSaveResume(false);
+$ sed -n '531,538p' org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java
+   531	    public String getTorrentId()
+   532	    {
+   533	        return id;
+   534	    }
+   535	
+   536	    @Override
+   537	    public Completable requestStop()
+   538	    {
+$ sed -n '550,550p' org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java
+   550	            Disposable d = criticalWork.observeStateChanging()
+$ sed -n '690,697p' org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java
+   690	    public boolean isAutoManaged()
+   691	    {
+   692	        return !operationNotAllowed() && th.status().flags().and_(TorrentFlags.AUTO_MANAGED).non_zero();
+   693	    }
+   694	
+   695	    @Override
+   696	    public int getProgress()
+   697	    {
+$ sed -n '745,752p' org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java
+   745	    public long getSize()
+   746	    {
+   747	        if (!hasMetadata()) {
+   748	            return 0;
+   749	        }
+   750	
+   751	        TorrentInfo info = th.torrentFile();
+   752	
+$ sed -n '1125,1145p' org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java
+  1125	
+  1126	        // Updating file priorities is an async operation in libtorrent,
+  1127	        // when we just updated it and immediately query it we might get the old/wrong values,
+  1128	        // so we rely on `updatedFilePriorities` in this case.
+  1129	        var ti = th.torrentFile();
+  1130	        var files = ti.files();
+  1131	        for (var index = 0; index < filePriorities.length; index++) {
+  1132	            var filePriority = filePriorities[index];
+  1133	            if (filePriority == Priority.IGNORE) {
+  1134	                continue;
+  1135	            }
+  1136	
+  1137	            // Determine the priority to set
+  1138	            var newPriority = enabled ? Priority.TOP_PRIORITY : filePriority;
+  1139	            var piecePriority = PriorityConverter.convert(newPriority);
+  1140	            var filePieces = getFilePieces(ti, index);
+  1141	            if (filePieces == null) {
+  1142	                continue;
+  1143	            }
+  1144	            // Worst case: AVI index = 1% of total file size (at the end of the file)
+  1145	            var numPieces = Math.ceil(files.fileSize(index) * 0.01 / ti.pieceLength());
+$ sed -n '1217,1217p' org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java
+  1217	        criticalWork.setMoving(true);
+$ sed -n '1436,1448p' org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java
+  1436	    public int getMaxConnections()
+  1437	    {
+  1438	        if (operationNotAllowed())
+  1439	            return -1;
+  1440	
+  1441	        return th.swig().max_connections();
+  1442	    }
+  1443	
+  1444	    @Override
+  1445	    public void setMaxUploads(int uploads)
+  1446	    {
+  1447	        if (operationNotAllowed())
+  1448	            return;
+$ sed -n '1453,1465p' org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java
+  1453	    public int getMaxUploads()
+  1454	    {
+  1455	        if (operationNotAllowed())
+  1456	            return -1;
+  1457	
+  1458	        return th.swig().max_uploads();
+  1459	    }
+  1460	
+  1461	    @Override
+  1462	    public double getAvailability(int[] piecesAvailability)
+  1463	    {
+  1464	        if (piecesAvailability == null || piecesAvailability.length == 0)
+  1465	            return 0;
+$ sed -n '282,282p' org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java
+   282	            throw new TorrentAlreadyExistsException();
+$ sed -n '731,731p' org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java
+   731	            int ruleCount = new IPFilterParser().parseFile(path, fs, filter);
+$ sed -n '1117,1134p' org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java
+  1117	                    msg = SessionErrors.getErrorMsg(error);
+  1118	                    if (!SessionErrors.isNonCritical(error))
+  1119	                        listener.onSessionError(msg);
+  1120	                    break;
+  1121	                }
+  1122	                case LISTEN_FAILED: {
+  1123	                    ListenFailedAlert listenFailedAlert = (ListenFailedAlert)alert;
+  1124	                    msg = SessionErrors.getErrorMsg(listenFailedAlert.error());
+  1125	                    ErrorCode error = listenFailedAlert.error();
+  1126	                    if (!SessionErrors.isNonCritical(error))
+  1127	                        listener.onSessionError(msg);
+  1128	                    break;
+  1129	                }
+  1130	                case PORTMAP_ERROR: {
+  1131	                    PortmapErrorAlert portmapErrorAlert = (PortmapErrorAlert)alert;
+  1132	                    ErrorCode error = portmapErrorAlert.error();
+  1133	                    msg = SessionErrors.getErrorMsg(error);
+  1134	                    if (!SessionErrors.isNonCritical(error))
+$ sed -n '1565,1580p' org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java
+  1565	        if (priorities != null) {
+  1566	            if (ti.files().numFiles() != priorities.length)
+  1567	                throw new IllegalArgumentException("Priorities count should be equals to the number of files");
+  1568	
+  1569	            byte_vector v = new byte_vector();
+  1570	            for (Priority priority : priorities) {
+  1571	                if (priority == null)
+  1572	                    v.add(org.libtorrent4j.Priority.IGNORE.swig());
+  1573	                else
+  1574	                    v.add(PriorityConverter.convert(priority).swig());
+  1575	            }
+  1576	
+  1577	            p.set_file_priorities(v);
+  1578	        }
+  1579	
+  1580	        if (peers != null && !peers.isEmpty()) {
+$ sed -n '185,185p' org/proninyaroslav/libretorrent/core/urlnormalizer/NormalizeUrl.java
+   185	            throw new NormalizeUrlException("Cannot normalize URL", e);
+$ sed -n '467,467p' org/proninyaroslav/libretorrent/core/utils/Utils.java
+   467	            throw new FetchLinkException("No network connection");
+$ sed -n '474,474p' org/proninyaroslav/libretorrent/core/utils/Utils.java
+   474	            throw new FetchLinkException(e);
+$ sed -n '493,493p' org/proninyaroslav/libretorrent/core/utils/Utils.java
+   493	                    errorArray.add(new FetchLinkException("Failed to fetch link, response code: " + code));
+$ sed -n '509,509p' org/proninyaroslav/libretorrent/core/utils/Utils.java
+   509	                errorArray.add(new FetchLinkException("Too many redirects"));
+$ sed -n '522,522p' org/proninyaroslav/libretorrent/core/utils/Utils.java
+   522	            throw new FetchLinkException(s.toString());
+$ sed -n '93,93p' org/proninyaroslav/libretorrent/service/SaveLogWorker.java
+    93	                logger.stopRecording(fout, true);
+$ sed -n '95,95p' org/proninyaroslav/libretorrent/service/SaveLogWorker.java
+    95	                logger.write(fout, true);
+$ sed -n '110,110p' org/proninyaroslav/libretorrent/service/TorrentService.java
+   110	        stateProvider = TorrentInfoProvider.getInstance(getApplicationContext());
+$ sed -n '173,179p' org/proninyaroslav/libretorrent/ui/addfeed/AddFeedViewModel.java
+   173	        FeedChannel channel = new FeedChannel(url,
+   174	                mutableParams.getName(),
+   175	                0,
+   176	                mutableParams.isAutoDownload(),
+   177	                mutableParams.getFilter(),
+   178	                mutableParams.isRegexFilter(),
+   179	                null);
+$ sed -n '493,493p' org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentViewModel.java
+   493	                throw new NoFilesSelectedException();
+$ sed -n '496,496p' org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentViewModel.java
+   496	                throw new FreeSpaceException();
+$ sed -n '376,376p' org/proninyaroslav/libretorrent/ui/createtorrent/CreateTorrentViewModel.java
+   376	                            engine.addTorrent(torrentFilePath, path);
+$ sed -n '142,142p' org/proninyaroslav/libretorrent/ui/log/LogViewModel.java
+   142	        engine.getSessionLogger().pause();
+$ sed -n '153,153p' org/proninyaroslav/libretorrent/ui/log/LogViewModel.java
+   153	        engine.getSessionLogger().resume();
+$ sed -n '164,164p' org/proninyaroslav/libretorrent/ui/log/LogViewModel.java
+   164	        return engine.getSessionLogger().getNumEntries();
+$ sed -n '176,176p' org/proninyaroslav/libretorrent/ui/log/LogViewModel.java
+   176	        engine.getSessionLogger().startRecording();
+$ sed -n '183,183p' org/proninyaroslav/libretorrent/ui/log/LogViewModel.java
+   183	        engine.getSessionLogger().stopRecording();
+$ sed -n '50,51p' org/proninyaroslav/libretorrent/ui/main/drawer/TagItem.java
+    50	    public int hashCode() {
+    51	        return info.hashCode();
+$ sed -n '49,50p' org/proninyaroslav/libretorrent/ui/tag/TagItem.java
+    49	    public int hashCode() {
+    50	        return info.hashCode();

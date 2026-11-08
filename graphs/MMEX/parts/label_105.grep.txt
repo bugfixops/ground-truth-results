@@ -1,0 +1,487 @@
+label_105.grep.txt: grep and sed evidence for batch 105 (graphs/MMEX/scratch/batches/batch_105.txt, 27 methods).
+Classes: reports/IncomeVsExpensesListFragment (<init> plus its methods; anonymous classes 1 to 4 for the Runnable, the dialog buttons and the list item listener) and reports/PayeeReportAdapter (<init>, bindView, newView).
+Source root: final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main (paths below are relative to the repo root). Commands: grep -n, nl -ba with sed -n (line numbers printed with the text), and python3 -I prints of graphs/MMEX/auto_calls.json. No build, no merge.
+
+---- section 1: the batch list (scratch/batches/batch_105.txt, lines 1-30)
+# batch 105: 27 methods, 2 class groups
+# class: com/money/manager/ex/reports/IncomeVsExpensesListFragment
+# class: com/money/manager/ex/reports/PayeeReportAdapter
+IncomeVsExpensesListFragment.<init>
+IncomeVsExpensesListFragment.addListViewFooter
+IncomeVsExpensesListFragment.addListViewHeader
+IncomeVsExpensesListFragment.initializeListView
+IncomeVsExpensesListFragment.onActivityCreated
+IncomeVsExpensesListFragment.onCreateLoader
+IncomeVsExpensesListFragment.onCreateOptionsMenu
+IncomeVsExpensesListFragment.onLoadFinished
+IncomeVsExpensesListFragment.onLoaderReset
+IncomeVsExpensesListFragment.onOptionsItemSelected
+IncomeVsExpensesListFragment.onSaveInstanceState
+IncomeVsExpensesListFragment.showChart
+IncomeVsExpensesListFragment.showChartInternal
+IncomeVsExpensesListFragment.showDialogYears
+IncomeVsExpensesListFragment.startLoader
+IncomeVsExpensesListFragment.updateListViewFooter
+IncomeVsExpensesListFragment$1.<init>
+IncomeVsExpensesListFragment$1.run
+IncomeVsExpensesListFragment$2.<init>
+IncomeVsExpensesListFragment$2.onClick
+IncomeVsExpensesListFragment$3.<init>
+IncomeVsExpensesListFragment$3.onClick
+IncomeVsExpensesListFragment$4.<init>
+IncomeVsExpensesListFragment$4.onItemClick
+PayeeReportAdapter.<init>
+PayeeReportAdapter.bindView
+PayeeReportAdapter.newView
+
+---- section 2: grep -n over IncomeVsExpensesListFragment.java (decision tokens)
+70:public class IncomeVsExpensesListFragment
+85:    public void onActivityCreated(Bundle savedInstanceState) {
+86:        super.onActivityCreated(savedInstanceState);
+87:        setHasOptionsMenu(true);
+98:        initializeListView();
+109:        setListAdapter(adapter);
+112:        //getLoaderManager().restartLoader(ID_LOADER_YEARS, null, this);
+113:        getLoaderManager().initLoader(ID_LOADER_YEARS, null, this);
+119:    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+152:    public void onLoaderReset(Loader<Cursor> loader) {
+154:        ((IncomeVsExpensesAdapter) getListAdapter()).changeCursor(null);
+158:    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+162:                ((IncomeVsExpensesAdapter) getListAdapter()).changeCursor(data);
+182:                updateListViewFooter(mFooterListView, income, expenses);
+188:                if (((IncomeVsExpensesActivity) getActivity()).mIsDualPanel) {
+189:                    Handler handler = new Handler();
+190:                    handler.postDelayed(new Runnable() {
+193:                            showChart();
+212:                    startLoader();
+220:    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+221:        super.onCreateOptionsMenu(menu, inflater);
+224:        MenuItem itemChart = menu.findItem(R.id.menu_chart);
+228:                itemChart.setVisible(!((IncomeVsExpensesActivity) activity).mIsDualPanel);
+234:    public boolean onOptionsItemSelected(MenuItem item) {
+235:        if (item.getItemId() == android.R.id.home) {
+237:        } else if (item.getItemId() == R.id.menu_sort_asceding || item.getItemId() == R.id.menu_sort_desceding) {
+238:            mSort = item.getItemId() == R.id.menu_sort_asceding ? SORT_ASCENDING : SORT_DESCENDING;
+239:            startLoader();
+241:        } else if (item.getItemId() == R.id.menu_chart) {
+242:            showChart();
+243:        } else if (item.getItemId() == R.id.menu_period) {
+244:            showDialogYears();
+247:        return super.onOptionsItemSelected(item);
+253:    public void onSaveInstanceState(Bundle outState) {
+254:        super.onSaveInstanceState(outState);
+269:    public void showDialogYears() {
+291:        builder.setMultiChoiceItems(items, checkedItems, new DialogInterface.OnMultiChoiceClickListener() {
+297:                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+308:                        startLoader();
+311:                .setNegativeButton(android.R.string.cancel, null)
+312:                .show();
+322:    private View addListViewFooter() {
+335:    private View addListViewHeader() {
+351:    private void initializeListView() {
+356:            setListAdapter(null);
+357:            addListViewHeader();
+358:            mFooterListView = addListViewFooter();
+363:        getListView().setOnItemClickListener(new AdapterView.OnItemClickListener() {
+391:                Intent intent = IntentFactory.getSearchIntent(getActivity(), params);
+392:                startActivity(intent);
+401:    private void startLoader() {
+410:        getLoaderManager().restartLoader(ID_LOADER_REPORT, bundle, this);
+420:    private void updateListViewFooter(View footer, double income, double expenses) {
+453:    private void showChart() {
+455:            showChartInternal();
+461:    private void showChartInternal() {
+513:                fragment = new IncomeVsExpensesChartFragment();
+521:            if (((IncomeVsExpensesActivity) getActivity()).mIsDualPanel) {
+522:                fragmentTransaction.replace(R.id.fragmentChart, fragment,
+525:                fragmentTransaction.replace(R.id.fragmentMain, fragment,
+527:                fragmentTransaction.addToBackStack(null);
+
+---- section 3: sed -n key ranges of IncomeVsExpensesListFragment.java (line numbers from nl -ba)
+    85	    public void onActivityCreated(Bundle savedInstanceState) {
+    86	        super.onActivityCreated(savedInstanceState);
+    87	        setHasOptionsMenu(true);
+    98	        initializeListView();
+   113	        getLoaderManager().initLoader(ID_LOADER_YEARS, null, this);
+   119	    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+   120	        String selection = null;
+   121	        Select query;
+   135	                QueryReportIncomeVsExpenses report = new QueryReportIncomeVsExpenses(getActivity());
+   136	                query = new Select(report.getAllColumns())
+   137	                    .where(selection)
+   138	                    .orderBy(IncomeVsExpenseReportEntity.YEAR + " " + mSort + ", " + IncomeVsExpenseReportEntity.Month + " " + mSort);
+   139	
+   140	                return new MmxCursorLoader(getActivity(), report.getUri(), query);
+   141	
+   142	            case ID_LOADER_YEARS:
+   143	                ViewMobileData mobileData = new ViewMobileData(getContext());
+   144	                selection = "SELECT DISTINCT Year FROM " + mobileData.getSource() + " ORDER BY Year DESC";
+   145	                query = new Select().where(selection);
+   146	                return new MmxCursorLoader(getActivity(), new SQLDataSet().getUri(), query);
+   152	    public void onLoaderReset(Loader<Cursor> loader) {
+   153	//        ((IncomeVsExpensesAdapter) getListAdapter()).swapCursor(null);
+   154	        ((IncomeVsExpensesAdapter) getListAdapter()).changeCursor(null);
+   155	    }
+   158	    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+   159	        switch (loader.getId()) {
+   160	            case ID_LOADER_REPORT:
+   161	//                ((IncomeVsExpensesAdapter) getListAdapter()).swapCursor(data);
+   162	                ((IncomeVsExpensesAdapter) getListAdapter()).changeCursor(data);
+   182	                updateListViewFooter(mFooterListView, income, expenses);
+   183	                if (data.getCount() > 0) {
+   184	                    getListView().removeFooterView(mFooterListView);
+   185	                    getListView().addFooterView(mFooterListView);
+   186	                }
+   187	
+   188	                if (((IncomeVsExpensesActivity) getActivity()).mIsDualPanel) {
+   189	                    Handler handler = new Handler();
+   190	                    handler.postDelayed(new Runnable() {
+   191	                        @Override
+   192	                        public void run() {
+   193	                            showChart();
+   194	                        }
+   195	                    }, 1000);
+   196	                }
+   212	                    startLoader();
+   220	    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+   221	        super.onCreateOptionsMenu(menu, inflater);
+   222	        inflater.inflate(R.menu.menu_report_income_vs_expenses, menu);
+   223	        // fix menu char
+   224	        MenuItem itemChart = menu.findItem(R.id.menu_chart);
+   225	        if (itemChart != null) {
+   226	            FragmentActivity activity = getActivity();
+   227	            if (activity instanceof IncomeVsExpensesActivity) {
+   228	                itemChart.setVisible(!((IncomeVsExpensesActivity) activity).mIsDualPanel);
+   229	            }
+   230	        }
+   231	    }
+   234	    public boolean onOptionsItemSelected(MenuItem item) {
+   235	        if (item.getItemId() == android.R.id.home) {
+   236	            getActivity().finish();
+   237	        } else if (item.getItemId() == R.id.menu_sort_asceding || item.getItemId() == R.id.menu_sort_desceding) {
+   238	            mSort = item.getItemId() == R.id.menu_sort_asceding ? SORT_ASCENDING : SORT_DESCENDING;
+   239	            startLoader();
+   240	            item.setChecked(true);
+   241	        } else if (item.getItemId() == R.id.menu_chart) {
+   242	            showChart();
+   243	        } else if (item.getItemId() == R.id.menu_period) {
+   244	            showDialogYears();
+   245	        }
+   246	
+   247	        return super.onOptionsItemSelected(item);
+   248	    }
+   269	    public void showDialogYears() {
+   270	        // Assuming mYearsSelected is a SparseBooleanArray
+   290	        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+   291	        builder.setMultiChoiceItems(items, checkedItems, new DialogInterface.OnMultiChoiceClickListener() {
+   292	                    @Override
+   293	                    public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+   294	                        checkedItems[which] = isChecked;
+   295	                    }
+   296	                })
+   297	                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+   298	                    @Override
+   299	                    public void onClick(DialogInterface dialog, int which) {
+   300	                        // Reset all years to false
+   301	                        for (int i = 0; i < mYearsSelected.size(); i++) {
+   302	                            mYearsSelected.put(mYearsSelected.keyAt(i), false);
+   303	                        }
+   304	                        // Set selected years
+   305	                        for (int i = 0; i < checkedItems.length; i++) {
+   306	                            mYearsSelected.put(mYearsSelected.keyAt(i), checkedItems[i]);
+   307	                        }
+   308	                        startLoader();
+   309	                    }
+   310	                })
+   311	                .setNegativeButton(android.R.string.cancel, null)
+   312	                .show();
+   322	    private View addListViewFooter() {
+   323	        TableRow row = (TableRow) View.inflate(getActivity(), R.layout.tablerow_income_vs_expenses, null);
+   336	        TableRow row = (TableRow) View.inflate(getActivity(), R.layout.tablerow_income_vs_expenses, null);
+   337	        int[] ids = new int[]{
+   351	    private void initializeListView() {
+   352	        setEmptyText(getString(R.string.no_data));
+   353	
+   354	        // add header and footer
+   355	        try {
+   356	            setListAdapter(null);
+   357	            addListViewHeader();
+   358	            mFooterListView = addListViewFooter();
+   363	        getListView().setOnItemClickListener(new AdapterView.OnItemClickListener() {
+   364	            @Override
+   365	            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+   366	                Object positionObj = parent.getItemAtPosition(position);
+   367	                Cursor cursor = (Cursor) positionObj;
+   368	                if (cursor == null) return; // i.e. footer row.
+   391	                Intent intent = IntentFactory.getSearchIntent(getActivity(), params);
+   392	                startActivity(intent);
+   401	    private void startLoader() {
+   402	        Bundle bundle = new Bundle();
+   403	        String years = "";
+   404	        for (int i = 0; i < mYearsSelected.size(); i++) {
+   405	            if (mYearsSelected.get(mYearsSelected.keyAt(i))) {
+   406	                years += (!TextUtils.isEmpty(years) ? ", " : "") + mYearsSelected.keyAt(i);
+   407	            }
+   408	        }
+   409	        bundle.putString(KEY_BUNDLE_YEAR, years);
+   410	        getLoaderManager().restartLoader(ID_LOADER_REPORT, bundle, this);
+   420	    private void updateListViewFooter(View footer, double income, double expenses) {
+   421	        if (footer == null) {
+   428	        CurrencyService currencyService = new CurrencyService(getActivity().getApplicationContext());
+   453	    private void showChart() {
+   454	        try {
+   455	            showChartInternal();
+   456	        } catch (IllegalStateException ise) {
+   457	            Timber.e(ise, "showing chart");
+   458	        }
+   459	    }
+   461	    private void showChartInternal() {
+   462	        // take a adapter and cursor
+   463	        IncomeVsExpensesAdapter adapter = ((IncomeVsExpensesAdapter) getListAdapter());
+   464	        if (adapter == null) return;
+   508	        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+   509	        if (fragmentManager != null) {
+   510	            IncomeVsExpensesChartFragment fragment;
+   511	            fragment = (IncomeVsExpensesChartFragment) fragmentManager.findFragmentByTag(IncomeVsExpensesChartFragment.class.getSimpleName());
+   512	            if (fragment == null) {
+   513	                fragment = new IncomeVsExpensesChartFragment();
+   514	            }
+   515	            fragment.setChartArguments(args);
+   516	            fragment.setDisplayHomeAsUpEnabled(true);
+   517	
+   518	            if (fragment.isVisible()) fragment.onResume();
+   521	            if (((IncomeVsExpensesActivity) getActivity()).mIsDualPanel) {
+   522	                fragmentTransaction.replace(R.id.fragmentChart, fragment,
+   523	                        IncomeVsExpensesChartFragment.class.getSimpleName());
+   524	            } else {
+   525	                fragmentTransaction.replace(R.id.fragmentMain, fragment,
+   526	                        IncomeVsExpensesChartFragment.class.getSimpleName());
+   527	                fragmentTransaction.addToBackStack(null);
+   528	            }
+   529	            fragmentTransaction.commit();
+
+---- section 4: creation sites of the batch classes in the source tree
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/IncomeVsExpensesListFragment.java:108:        IncomeVsExpensesAdapter adapter = new IncomeVsExpensesAdapter(getActivity(), null);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/IncomeVsExpensesActivity.java:31:    private final IncomeVsExpensesListFragment listFragment = new IncomeVsExpensesListFragment();
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/PayeeReportFragment.java:92:        PayeeReportAdapter adapter = new PayeeReportAdapter(getActivity(), null);
+
+---- section 5: IncomeVsExpensesActivity.java (field initializer line 31; onCreate; mIsDualPanel gate line 46)
+28:    public static final int SUBTOTAL_MONTH = 99;
+30:    public boolean mIsDualPanel = false;
+31:    private final IncomeVsExpensesListFragment listFragment = new IncomeVsExpensesListFragment();
+46:        mIsDualPanel = findViewById(R.id.fragmentChart) != null;
+52:                    .replace(R.id.fragmentMain, listFragment, IncomeVsExpensesListFragment.class.getSimpleName())
+53:                    .commit();
+    28	    public static final int SUBTOTAL_MONTH = 99;
+    29	
+    30	    public boolean mIsDualPanel = false;
+    31	    private final IncomeVsExpensesListFragment listFragment = new IncomeVsExpensesListFragment();
+    34	    protected void onCreate(Bundle savedInstanceState) {
+    35	        super.onCreate(savedInstanceState);
+    36	        setContentView(R.layout.report_chart_fragments_activity);
+    44	
+    45	        // check if is dual panel
+    46	        mIsDualPanel = findViewById(R.id.fragmentChart) != null;
+    50	        if (fm.findFragmentById(R.id.fragmentMain) == null) {
+    51	            fm.beginTransaction()
+    52	                    .replace(R.id.fragmentMain, listFragment, IncomeVsExpensesListFragment.class.getSimpleName())
+    53	                    .commit();
+
+---- section 6: MmxBaseFragmentActivity.java onSaveInstanceState (batch of common/ class, cross-batch source)
+   151	    @Override
+   152	    protected void onSaveInstanceState(Bundle outState) {
+   153	        super.onSaveInstanceState(outState);
+   154	
+   155	        Icepick.saveInstanceState(this, outState);
+   156	    }
+
+---- section 7: launch sites in MainActivity.java (batch 104 owns the INTENT edges)
+95:import com.money.manager.ex.reports.IncomeVsExpensesActivity;
+96:import com.money.manager.ex.reports.PayeesReportActivity;
+668:                startActivity(new Intent(this, PayeesReportActivity.class));
+683:                startActivity(new Intent(this, IncomeVsExpensesActivity.class));
+833:        startActivity(new Intent(this, IncomeVsExpensesActivity.class));
+
+---- section 8: menu ids (res/menu/menu_report_income_vs_expenses.xml) and dual-panel layouts
+21:        android:id="@+id/menu_chart"
+26:        android:id="@+id/menu_sort"
+33:                    android:id="@+id/menu_sort_asceding"
+37:                    android:id="@+id/menu_sort_desceding"
+43:        android:id="@+id/menu_period"
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/res/layout/report_chart_fragments_activity.xml:26:        android:id="@+id/fragmentMain"
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/res/layout-sw600dp-port/report_chart_fragments_activity.xml:29:        android:id="@+id/fragmentMain"
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/res/layout-sw600dp-land/report_chart_fragments_activity.xml:33:            android:id="@+id/fragmentMain"
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/res/layout-sw600dp-land/report_chart_fragments_activity.xml:38:            android:id="@+id/fragmentChart"
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/res/layout-sw720dp-port/report_chart_fragments_activity.xml:34:            android:id="@+id/fragmentMain"
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/res/layout-sw720dp-port/report_chart_fragments_activity.xml:40:            android:id="@+id/fragmentChart"
+
+---- section 9: PayeeReportAdapter.java (ctor 47-51, bindView 54-76, newView 79-81)
+    46	    @SuppressWarnings("deprecation")
+    47	    public PayeeReportAdapter(Context context, Cursor c) {
+    48	        super(context, c);
+    49	        mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    50	        mContext = context;
+    51	    }
+    52	
+    53	    @Override
+    54	    public void bindView(View view, Context context, Cursor cursor) {
+    66	        txtColumn2.setText(currencyService.getCurrencyFormatted(currencyService.getBaseCurrencyId(), MoneyFactory.fromDouble(total)));
+    67	        Core core = new Core(context);
+    75	        view.setBackgroundColor(core.resolveColorAttribute(cursor.getPosition() % 2 == 1 ? R.attr.row_dark_theme : R.attr.row_light_theme));
+    76	    }
+    77	
+    78	    @Override
+    79	    public View newView(Context context, Cursor cursor, ViewGroup root) {
+    80	        return mInflater.inflate(R.layout.item_generic_report_2_columns, root, false);
+    81	    }
+
+---- section 10: PayeeReportFragment.java (line 92 creates the adapter; 129-130 onLoadFinished calls super) and BaseReportFragment.java 142-144 (changeCursor)
+    92	        PayeeReportAdapter adapter = new PayeeReportAdapter(getActivity(), null);
+   129	    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+   130	        super.onLoadFinished(loader, data);
+   142	    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+   143	        if (loader.getId() == ID_LOADER) {//                ((CursorAdapter) getListAdapter()).swapCursor(data);
+   144	            ((CursorAdapter) getListAdapter()).changeCursor(data);
+
+---- section 11: framework lines (fw_src/android-8.1.0_r1/core/java)
+AlertDialog.Builder: setPositiveButton stores the listener; setMultiChoiceItems stores it
+   611	        public Builder setPositiveButton(@StringRes int textId, final OnClickListener listener) {
+   612	            P.mPositiveButtonText = P.mContext.getText(textId);
+   613	            P.mPositiveButtonListener = listener;
+   834	        public Builder setMultiChoiceItems(CharSequence[] items, boolean[] checkedItems,
+   835	                final OnMultiChoiceClickListener listener) {
+   836	            P.mItems = items;
+   837	            P.mOnCheckboxClickListener = listener;
+   838	            P.mCheckedItems = checkedItems;
+AlertController: ButtonHandler calls the positive, negative or neutral OnClickListener
+   160	        public void handleMessage(Message msg) {
+   161	            switch (msg.what) {
+   162	
+   163	                case DialogInterface.BUTTON_POSITIVE:
+   164	                case DialogInterface.BUTTON_NEGATIVE:
+   165	                case DialogInterface.BUTTON_NEUTRAL:
+   166	                    ((DialogInterface.OnClickListener) msg.obj).onClick(mDialog.get(), msg.what);
+AlertController: multi-choice list row tap calls mOnCheckboxClickListener.onClick
+  1146	                    }
+  1147	                });
+  1148	            } else if (mOnCheckboxClickListener != null) {
+  1149	                listView.setOnItemClickListener(new OnItemClickListener() {
+  1150	                    @Override
+  1151	                    public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
+  1152	                        if (mCheckedItems != null) {
+  1153	                            mCheckedItems[position] = listView.isItemChecked(position);
+  1154	                        }
+  1155	                        mOnCheckboxClickListener.onClick(
+  1156	                                dialog.mDialogInterface, position, listView.isItemChecked(position));
+Handler: postDelayed queues the runnable; handleCallback runs it
+   427	    public final boolean postDelayed(Runnable r, long delayMillis)
+   428	    {
+   429	        return sendMessageDelayed(getPostMessage(r), delayMillis);
+   789	    private static void handleCallback(Message message) {
+   790	        message.callback.run();
+   791	    }
+CursorAdapter: getView calls newView (no reuse) and bindView; changeCursor
+   276	    public View getView(int position, View convertView, ViewGroup parent) {
+   277	        if (!mDataValid) {
+   278	            throw new IllegalStateException("this should only be called when the cursor is valid");
+   279	        }
+   280	        if (!mCursor.moveToPosition(position)) {
+   281	            throw new IllegalStateException("couldn't move cursor to position " + position);
+   282	        }
+   283	        View v;
+   284	        if (convertView == null) {
+   285	            v = newView(mContext, mCursor, parent);
+   286	        } else {
+   287	            v = convertView;
+   288	        }
+   289	        bindView(v, mContext, mCursor);
+   290	        return v;
+   348	    public void changeCursor(Cursor cursor) {
+   349	        Cursor old = swapCursor(cursor);
+   350	        if (old != null) {
+   351	            old.close();
+   352	        }
+   353	    }
+
+---- section 12: graphs/MMEX/auto_calls.json records that touch batch 105 (src or dst; file and line as recorded)
+IncomeVsExpensesListFragment$4.onItemClick -> IntentFactory.getSearchIntent | IncomeVsExpensesListFragment.java 391 | exact []
+IncomeVsExpensesListFragment$4.onItemClick -> MmxDate.toDate | IncomeVsExpensesListFragment.java 389 | exact []
+IncomeVsExpensesListFragment$4.onItemClick -> MmxDate.lastDayOfMonth | IncomeVsExpensesListFragment.java 388 | exact []
+IncomeVsExpensesListFragment$4.onItemClick -> MmxDate.setMonth | IncomeVsExpensesListFragment.java 386 | exact []
+IncomeVsExpensesListFragment$4.onItemClick -> MmxDate.firstDayOfMonth | IncomeVsExpensesListFragment.java 382 | exact []
+IncomeVsExpensesListFragment$4.onItemClick -> IncomeVsExpenseReportEntity.getMonth | IncomeVsExpensesListFragment.java 377 | exact []
+IncomeVsExpensesListFragment$4.onItemClick -> MmxDate.setYear | IncomeVsExpensesListFragment.java 374 | exact []
+IncomeVsExpensesListFragment$4.onItemClick -> IncomeVsExpenseReportEntity.getYear | IncomeVsExpensesListFragment.java 374 | exact []
+IncomeVsExpensesListFragment$4.onItemClick -> MmxDate.<init>() | IncomeVsExpensesListFragment.java 373 | exact []
+IncomeVsExpensesListFragment$4.onItemClick -> SearchParameters.<init> | IncomeVsExpensesListFragment.java 370 | exact []
+IncomeVsExpensesListFragment$4.onItemClick -> IncomeVsExpenseReportEntity.from | IncomeVsExpensesListFragment.java 369 | exact []
+PayeeReportFragment.onActivityCreated -> BaseReportFragment.onActivityCreated@PayeeReportFragment | PayeeReportFragment.java 95 | exact []
+PayeeReportFragment.onActivityCreated -> AbsListFragment.setListAdapter | PayeeReportFragment.java 93 | exact []
+PayeeReportFragment.onActivityCreated -> PayeeReportAdapter.<init> | PayeeReportFragment.java 92 | exact []
+PayeeReportFragment.onActivityCreated -> BaseReportFragment.addListViewHeaderFooter | PayeeReportFragment.java 80 | exact []
+PayeeReportFragment.onActivityCreated -> AbsListFragment.getListView | PayeeReportFragment.java 77 | exact []
+PayeeReportFragment.onActivityCreated -> BaseListFragment.setSearchMenuVisible | PayeeReportFragment.java 65 | exact []
+IncomeVsExpensesListFragment$2.onClick -> IncomeVsExpensesListFragment.startLoader | IncomeVsExpensesListFragment.java 308 | exact ['IncomeVsExpensesListFragment.access$200']
+PayeeReportAdapter.bindView -> Core.resolveColorAttribute | PayeeReportAdapter.java 75 | exact []
+PayeeReportAdapter.bindView -> UIHelper.resolveAttribute | PayeeReportAdapter.java 72 | exact []
+PayeeReportAdapter.bindView -> UIHelper.<init> | PayeeReportAdapter.java 68 | exact []
+PayeeReportAdapter.bindView -> Core.<init> | PayeeReportAdapter.java 67 | exact []
+PayeeReportAdapter.bindView -> CurrencyService.getCurrencyFormatted | PayeeReportAdapter.java 66 | exact []
+PayeeReportAdapter.bindView -> CurrencyService.getBaseCurrencyId | PayeeReportAdapter.java 66 | exact []
+PayeeReportAdapter.bindView -> CurrencyService.<init> | PayeeReportAdapter.java 64 | exact []
+IncomeVsExpensesListFragment.onActivityCreated -> IncomeVsExpensesAdapter.<init> | IncomeVsExpensesListFragment.java 108 | exact []
+IncomeVsExpensesListFragment.onActivityCreated -> IncomeVsExpensesListFragment.initializeListView | IncomeVsExpensesListFragment.java 98 | exact []
+IncomeVsExpensesListFragment.onCreateLoader -> MmxCursorLoader.<init>(Context,Uri,Select) | IncomeVsExpensesListFragment.java 146 | exact []
+IncomeVsExpensesListFragment.onCreateLoader -> Dataset.getUri | IncomeVsExpensesListFragment.java 146 | exact []
+IncomeVsExpensesListFragment.onCreateLoader -> SQLDataSet.<init> | IncomeVsExpensesListFragment.java 146 | exact []
+IncomeVsExpensesListFragment.onCreateLoader -> Select.where(String) | IncomeVsExpensesListFragment.java 145 | exact []
+IncomeVsExpensesListFragment.onCreateLoader -> Select.<init>() | IncomeVsExpensesListFragment.java 145 | exact []
+IncomeVsExpensesListFragment.onCreateLoader -> Dataset.getSource | IncomeVsExpensesListFragment.java 144 | exact []
+IncomeVsExpensesListFragment.onCreateLoader -> ViewMobileData.<init> | IncomeVsExpensesListFragment.java 143 | exact []
+IncomeVsExpensesListFragment.onCreateLoader -> Select.orderBy | IncomeVsExpensesListFragment.java 138 | exact []
+IncomeVsExpensesListFragment.onCreateLoader -> Select.<init>(String[]) | IncomeVsExpensesListFragment.java 136 | exact []
+IncomeVsExpensesListFragment.onCreateLoader -> QueryReportIncomeVsExpenses.getAllColumns | IncomeVsExpensesListFragment.java 136 | exact []
+IncomeVsExpensesListFragment.onCreateLoader -> QueryReportIncomeVsExpenses.<init> | IncomeVsExpensesListFragment.java 135 | exact []
+IncomeVsExpensesListFragment.onLoadFinished -> IncomeVsExpensesListFragment.startLoader | IncomeVsExpensesListFragment.java 212 | exact []
+IncomeVsExpensesListFragment.onLoadFinished -> IncomeVsExpensesListFragment$1.<init> | IncomeVsExpensesListFragment.java 190 | exact []
+IncomeVsExpensesListFragment.onLoadFinished -> IncomeVsExpensesListFragment.updateListViewFooter | IncomeVsExpensesListFragment.java 182 | exact []
+IncomeVsExpensesListFragment.onOptionsItemSelected -> IncomeVsExpensesListFragment.showDialogYears | IncomeVsExpensesListFragment.java 244 | exact []
+IncomeVsExpensesListFragment.onOptionsItemSelected -> IncomeVsExpensesListFragment.showChart | IncomeVsExpensesListFragment.java 242 | exact []
+IncomeVsExpensesListFragment.onOptionsItemSelected -> IncomeVsExpensesListFragment.startLoader | IncomeVsExpensesListFragment.java 239 | exact []
+IncomeVsExpensesListFragment.showDialogYears -> IncomeVsExpensesListFragment$2.<init> | IncomeVsExpensesListFragment.java 291 | exact []
+IncomeVsExpensesListFragment.showDialogYears -> IncomeVsExpensesListFragment$3.<init> | IncomeVsExpensesListFragment.java 291 | exact []
+IncomeVsExpensesListFragment.initializeListView -> IncomeVsExpensesListFragment$4.<init> | IncomeVsExpensesListFragment.java 363 | exact []
+IncomeVsExpensesListFragment.initializeListView -> IncomeVsExpensesListFragment.addListViewFooter | IncomeVsExpensesListFragment.java 358 | exact []
+IncomeVsExpensesListFragment.initializeListView -> IncomeVsExpensesListFragment.addListViewHeader | IncomeVsExpensesListFragment.java 357 | exact []
+IncomeVsExpensesListFragment.updateListViewFooter -> UIHelper.resolveAttribute | IncomeVsExpensesListFragment.java 449 | exact []
+IncomeVsExpensesListFragment.updateListViewFooter -> UIHelper.<init> | IncomeVsExpensesListFragment.java 443 | exact []
+IncomeVsExpensesListFragment.updateListViewFooter -> CurrencyService.getCurrencyFormatted | IncomeVsExpensesListFragment.java 439 | exact []
+IncomeVsExpensesListFragment.updateListViewFooter -> CurrencyService.getBaseCurrencyId | IncomeVsExpensesListFragment.java 439 | exact []
+IncomeVsExpensesListFragment.updateListViewFooter -> CurrencyService.<init> | IncomeVsExpensesListFragment.java 428 | exact []
+IncomeVsExpensesListFragment.showChart -> IncomeVsExpensesListFragment.showChartInternal | IncomeVsExpensesListFragment.java 455 | exact []
+IncomeVsExpensesListFragment.showChartInternal -> IncomeVsExpensesChartFragment.onResume | IncomeVsExpensesListFragment.java 518 | exact []
+IncomeVsExpensesListFragment.showChartInternal -> IncomeVsExpensesChartFragment.setDisplayHomeAsUpEnabled | IncomeVsExpensesListFragment.java 516 | exact []
+IncomeVsExpensesListFragment.showChartInternal -> IncomeVsExpensesChartFragment.setChartArguments | IncomeVsExpensesListFragment.java 515 | exact []
+IncomeVsExpensesListFragment.showChartInternal -> IncomeVsExpensesChartFragment.<init> | IncomeVsExpensesListFragment.java 513 | exact []
+IncomeVsExpensesActivity.<init> -> IncomeVsExpensesListFragment.<init> | IncomeVsExpensesActivity.java 31 | exact []
+IncomeVsExpensesActivity.<init> -> MmxBaseFragmentActivity.<init> | IncomeVsExpensesActivity.java 26 | exact []
+IncomeVsExpensesActivity.onCreate -> MmxBaseFragmentActivity.setContentView | IncomeVsExpensesActivity.java 36 | exact []
+IncomeVsExpensesActivity.onCreate -> MmxBaseFragmentActivity.onCreate | IncomeVsExpensesActivity.java 35 | exact []
+IncomeVsExpensesListFragment$1.run -> IncomeVsExpensesListFragment.showChart | IncomeVsExpensesListFragment.java 193 | exact ['IncomeVsExpensesListFragment.access$000']
+
+---- section 13: auto_calls impl map for the anonymous classes ($1 Runnable, $2 OK, $3 multi-choice, $4 item listener)
+IncomeVsExpensesListFragment$1 {'<init>': {'(Lcom/money/manager/ex/reports/IncomeVsExpensesListFragment;)V': 'IncomeVsExpensesListFragment$1.<init>'}, 'run': {'()V': 'IncomeVsExpensesListFragment$1.run'}}
+IncomeVsExpensesListFragment$2 {'<init>': {'(Lcom/money/manager/ex/reports/IncomeVsExpensesListFragment;[Z)V': 'IncomeVsExpensesListFragment$2.<init>'}, 'onClick': {'(Landroid/content/DialogInterface;I)V': 'IncomeVsExpensesListFragment$2.onClick'}}
+IncomeVsExpensesListFragment$3 {'<init>': {'(Lcom/money/manager/ex/reports/IncomeVsExpensesListFragment;[Z)V': 'IncomeVsExpensesListFragment$3.<init>'}, 'onClick': {'(Landroid/content/DialogInterface;IZ)V': 'IncomeVsExpensesListFragment$3.onClick'}}
+IncomeVsExpensesListFragment$4 {'<init>': {'(Lcom/money/manager/ex/reports/IncomeVsExpensesListFragment;)V': 'IncomeVsExpensesListFragment$4.<init>'}, 'onItemClick': {'(Landroid/widget/AdapterView;Landroid/view/View;IJ)V': 'IncomeVsExpensesListFragment$4.onItemClick'}}
+
+---- section 14: batch 104 keys and edges already in parts (no duplicate edge into a batch 105 method)
+8:    'S_INCOME_VS_EXPENSES': 'Income vs. expenses report (IncomeVsExpensesActivity): a list of income, expenses and difference per month with a footer total; the bar chart of the same months is shown
+22:e('IncomeVsExpensesActivity.<init>', 'IncomeVsExpensesActivity.onCreate', 'LIFECYCLE',
+26:e('IncomeVsExpensesActivity.onCreate', 'S_INCOME_VS_EXPENSES', 'ENTERS',
+58:# ---- GUI edges from the report page S_INCOME_VS_EXPENSES (page -> method)
+59:gui('S_INCOME_VS_EXPENSES', 'IncomeVsExpensesChartFragment.onOptionsItemSelected', 'Tap the Up arrow in the toolbar while the chart is shown',
+62:gui('S_INCOME_VS_EXPENSES', 'IncomeVsExpensesChartFragment.onValueSelected', 'Tap a bar of the chart',
+65:gui('S_INCOME_VS_EXPENSES', 'IncomeVsExpensesChartFragment.onNothingSelected', 'Tap the chart where no bar is highlighted',
+31:e('IncomeVsExpensesListFragment.onLoadFinished', 'IncomeVsExpensesAdapter.newView', 'FRAMEWORK',
+36:e('IncomeVsExpensesListFragment.onLoadFinished', 'IncomeVsExpensesAdapter.bindView', 'FRAMEWORK',

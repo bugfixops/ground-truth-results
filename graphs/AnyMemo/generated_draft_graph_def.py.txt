@@ -1,0 +1,45 @@
+# AnyMemo 10.12.2 trigger graph
+# Generated part: tools/gen_edges.py derives entry points, lifecycle, callbacks, lambdas, intents, XML-instantiated classes
+# from the bytecode, AndroidManifest.xml and res/ XML (see its docstring). Direct app->app calls come from
+# tools/extract_calls.py. Everything below gen_edges.apply() is hand-written refinement for this app.
+# Rebuild: python3 -I tools/build_graph.py graphs/AnyMemo <prefix>
+
+TITLE = 'AnyMemo 10.12.2 trigger graph'
+USE_AUTO = True
+PREFER_SETUP_OVER_ENV = True
+AUTO_DEAD = ('Generated graph: no route found. Nothing in the app calls it and no entry point (manifest component, lifecycle or '
+             'UI callback of a constructed class, lambda, XML reference, class literal, intent action) leads to it. '
+             'Probably unused code; entries through reflection, JNI or code generators are not modelled.')
+
+import sys
+sys.path.insert(0, TOOLS)
+import gen_edges
+
+ENV_DROPBOX = 'outside package: a Dropbox account and network access (OAuth login in the browser)'
+ENV_NET = 'outside package: the AnyMemo / FlashcardExchange download servers must be reachable (network)'
+ENV_WIDGET = 'outside package: the user adds the AnyMemo widget on the launcher home screen / an alarm fires'
+ENV_PICKER = ('outside package: a file or folder is chosen in the system document picker (the baseline runs used -p <app>, which refuses to start other '
+              'packages, so onActivityResult only gets RESULT_CANCELED)')
+ENV_VIEW = ('outside package: another app opens a deck file with AnyMemo (an ACTION_VIEW intent: AnyMemo.loadUiComponents only calls handleOpenIntent '
+            'when the launch intent action is VIEW, AnyMemo.java:193)')
+ENV_TTS = 'outside package: a text-to-speech engine is installed and finishes speaking an utterance (OnUtteranceCompletedListener)'
+NEED_FILE = 'A file in this format is selected in the import dialog (the baseline Download folder has no Mnemosyne / SuperMemo / QA file)'
+
+CFG = {
+    'GROUPS': [         # (regex on node name, 'needs'|'env'|'guard', text): gates every edge that enters the group from outside it
+        (r'^(Dropbox|Oauth|UploadDropbox)', 'env', ENV_DROPBOX),
+        (r'^(AbstractDownloaderFragment|AnyMemoDownloaderFragment|DownloaderUtils|DownloadItem)\$?[\w$]*\.', 'env', ENV_NET),
+        (r'^(AnyMemoWidgetProvider|WidgetRemoteViewsFactory|UpdateWidgetService|AlarmReceiver)', 'env', ENV_WIDGET),
+        (r'^(Mnemosyne2CardsImporter|MnemosyneXMLImporter|Supermemo2008XMLImporter|SupermemoXMLImporter|QATxtImporter|ZipImporter)', 'needs', NEED_FILE),
+    ],
+    'EDGES': [          # (regex on source node, regex on target node, 'needs'|'env'|'guard', text): branch-specific gates read from the source at the frontier
+        (r'^AnyMemo\.loadUiComponents$', r'^AnyMemo\.handleOpenIntent$', 'env', ENV_VIEW),
+        (r'^MiscTabFragment\.onActivityResult$', r'.', 'env', ENV_PICKER),
+        (r'^AnyMemoTTSImpl\$2\.onUtteranceCompleted$', r'.', 'env', ENV_TTS),
+    ],
+    'STATIC_ADAPTERS': [],  # adapters whose rows exist without user data
+}
+
+gen_edges.apply(globals(), GDIR, 'AnyMemo', CFG)
+
+# ------------------------------------------------------------------ hand-written refinement

@@ -1,0 +1,108 @@
+Batch 124 grep and auto_calls.json evidence (SRC_MAIN = final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main, run from /Users/darshan/Desktop/yang/work)
+
+== A1: grep -rn "SyncNotificationFactory" SRC_MAIN
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncNotificationFactory.java:33:public class SyncNotificationFactory {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncNotificationFactory.java:34:    public SyncNotificationFactory(Context context) {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncService.java:168:        Notification notification = new SyncNotificationFactory(getApplicationContext())
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncService.java:252:        Notification notification = new SyncNotificationFactory(getApplicationContext())
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncService.java:262:        Notification notification = new SyncNotificationFactory(getApplicationContext())
+(callers outside the class: SyncService.java:168, 252, 262 only; each is a 'new SyncNotificationFactory(...)' followed by one get* call)
+
+== A2: grep -rn of the get* names and the upload/conflict show* methods in SRC_MAIN
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncNotificationFactory.java:48:    public Notification getNotificationForDownload() {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncNotificationFactory.java:67:    public Notification getNotificationDownloadComplete(PendingIntent pendingIntent) {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncNotificationFactory.java:94:    public Notification getNotificationUploading() {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncNotificationFactory.java:113:    public Notification getNotificationUploadComplete(PendingIntent pendingIntent) {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncNotificationFactory.java:145:    public Notification getNotificationBuilderProgress(NotificationCompat.Builder notification, int totalBytes, int byte
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncNotificationFactory.java:152:    public Notification getNotificationForConflict() {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncService.java:155:    private void showNotificationUploadComplete(boolean result, File localFile) {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncService.java:169:                .getNotificationUploadComplete(pendingIntent);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncService.java:203:            showNotificationForConflict();
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncService.java:251:    private void showNotificationUploading() {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncService.java:253:                .getNotificationUploading();
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncService.java:261:    private void showNotificationForConflict() {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncService.java:263:                .getNotificationForConflict();
+
+== A3: grep -rn of the names without the class prefix (method references, reflection) in the sync package
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncNotificationFactory.java:48:    public Notification getNotificationForDownload() {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncNotificationFactory.java:67:    public Notification getNotificationDownloadComplete(PendingIntent pendingIntent) {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncNotificationFactory.java:145:    public Notification getNotificationBuilderProgress(NotificationCompat.Builder notification, int totalBytes, int byte
+(only the SyncNotificationFactory.java declarations above; no method reference or reflection in the package)
+
+== B1: grep -n of the three never-called names in graphs/MMEX/auto_calls.json (records and index lines)
+42048:   "src": "SyncNotificationFactory.getNotificationForDownload",
+42056:   "src": "SyncNotificationFactory.getNotificationForDownload",
+42064:   "src": "SyncNotificationFactory.getNotificationDownloadComplete",
+42072:   "src": "SyncNotificationFactory.getNotificationDownloadComplete",
+72079:  "SyncNotificationFactory.getNotificationForDownload": [
+72092:  "SyncNotificationFactory.getNotificationDownloadComplete": [
+72141:  "SyncNotificationFactory.getNotificationBuilderProgress": [
+89330:    "()Landroid/app/Notification;": "SyncNotificationFactory.getNotificationForDownload"
+89333:    "(Landroid/app/PendingIntent;)Landroid/app/Notification;": "SyncNotificationFactory.getNotificationDownloadComplete"
+89342:    "(Landroidx/core/app/NotificationCompat$Builder;II)Landroid/app/Notification;": "SyncNotificationFactory.getNotificationBuilderProgress"
+(no record has these three as dst; the src records at 42048-42072 are the cut candidates in label_124.py)
+
+== B2: grep -n of the dst records for getNotificationUploading and getNotificationUploadComplete in auto_calls.json
+41881:   "dst": "SyncNotificationFactory.getNotificationUploadComplete",
+42017:   "dst": "SyncNotificationFactory.getNotificationUploading",
+
+== B3: grep -n of SyncService show* records (src) in auto_calls.json
+41880:   "src": "SyncService.showNotificationUploadComplete",
+41888:   "src": "SyncService.showNotificationUploadComplete",
+42016:   "src": "SyncService.showNotificationUploading",
+42024:   "src": "SyncService.showNotificationUploading",
+42032:   "src": "SyncService.showNotificationForConflict",
+42040:   "src": "SyncService.showNotificationForConflict",
+
+== C1: bytecode: class files under the javac output (grep -rl -a) that contain the three never-called names
+  final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/sync/SyncNotificationFactory.class
+(expected: SyncNotificationFactory.class only, its own definitions; INFERRED, javap not installed, so call sites are read from source)
+
+== C2: bytecode: class files containing the SyncService show* names (definitions; call sites are read from the source in A1-A2)
+  final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/sync/SyncService.class
+
+== B4: grep -n of the outgoing records of the factory getters (src, then dst on the next line within 3 lines), and of the incoming getContext records
+42048:   "src": "SyncNotificationFactory.getNotificationForDownload",
+42049-   "dst": "SyncNotificationFactory.getContext",
+42051-   "line": 59,
+42056:   "src": "SyncNotificationFactory.getNotificationForDownload",
+42057-   "dst": "NotificationUtils.createNotificationChannel",
+42059-   "line": 50,
+42064:   "src": "SyncNotificationFactory.getNotificationDownloadComplete",
+42065-   "dst": "SyncNotificationFactory.getContext",
+42067-   "line": 87,
+42072:   "src": "SyncNotificationFactory.getNotificationDownloadComplete",
+42073-   "dst": "NotificationUtils.createNotificationChannel",
+42075-   "line": 69,
+42080:   "src": "SyncNotificationFactory.getNotificationUploading",
+42081-   "dst": "SyncNotificationFactory.getContext",
+42083-   "line": 105,
+42088:   "src": "SyncNotificationFactory.getNotificationUploading",
+42089-   "dst": "NotificationUtils.createNotificationChannel",
+42091-   "line": 96,
+42096:   "src": "SyncNotificationFactory.getNotificationUploadComplete",
+42097-   "dst": "SyncNotificationFactory.getContext",
+42099-   "line": 132,
+42104:   "src": "SyncNotificationFactory.getNotificationUploadComplete",
+42105-   "dst": "NotificationUtils.createNotificationChannel",
+42107-   "line": 120,
+42112:   "src": "SyncNotificationFactory.getNotificationForConflict",
+42113-   "dst": "UIHelper.getToolbarItemColor",
+42115-   "line": 169,
+42120:   "src": "SyncNotificationFactory.getNotificationForConflict",
+42121-   "dst": "SyncNotificationFactory.getContext",
+42123-   "line": 166,
+42128:   "src": "SyncNotificationFactory.getNotificationForConflict",
+42129-   "dst": "NotificationUtils.createNotificationChannel",
+42131-   "line": 160,
+42136:   "src": "SyncNotificationFactory.getNotificationForConflict",
+42137-   "dst": "UIHelper.<init>",
+42139-   "line": 153,
+(the four UNREACHABLE getters have 2 outgoing records each, all cut in label_124.py; getNotificationBuilderProgress has none; getNotificationForConflict keeps its 4 records, reachable)
+
+== B5: grep -n of the getContext dst records in auto_calls.json (callers)
+42048-   "src": "SyncNotificationFactory.getNotificationForDownload",
+42064-   "src": "SyncNotificationFactory.getNotificationDownloadComplete",
+42080-   "src": "SyncNotificationFactory.getNotificationUploading",
+42096-   "src": "SyncNotificationFactory.getNotificationUploadComplete",
+42120-   "src": "SyncNotificationFactory.getNotificationForConflict",

@@ -1,0 +1,244 @@
+METHOD: FileUtils.lambda$scanFile$1
+verdict: REACHABLE   steps_from_launch: 8
+route steps: 8 edges
+======================================================================
+
+STEP 1  edge E69f5f041
+  S_ENTRY -> MainActivity.onActivityResult
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC Activity.java onActivityResult lifecycle
+  (no file:line citations in evidence)
+
+STEP 2  edge E50bd16b1
+  MainActivity.onActivityResult -> MainActivityHelper.rename
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainActivity.java:1375-1376 shows mainActivityHelper.rename(ma.openMode, (oppathe), (oppathe1), this, rootMode); in onActivityResult when operation == DataUtils.RENAME
+  cite [SRC] MainActivity.java:1375-1376
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/activities/MainActivity.java)
+     1375:                     mainActivityHelper.rename(ma.openMode, (oppathe),
+     1376:                             (oppathe1), mainActivity, isRootExplorer());
+
+STEP 3  edge Eddafb591
+  MainActivityHelper.rename -> Operations.rename
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainActivityHelper.java:265 (bytecode)
+  cite [SRC] MainActivityHelper.java:265
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/utils/MainActivityHelper.java)
+      265:         Operations.rename(new HybridFile(mode, oldPath), new HybridFile(mode, newPath), rootmode, context, new Operations.ErrorCallBack() {
+
+STEP 4  edge E15eca248
+  Operations.rename -> Operations$3.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC filesystem/Operations.java:335-488
+  cite [SRC] filesystem/Operations.java:335-488
+      335:         new AsyncTask<Void, Void, Void>() {
+      336: 
+      337:             private DataUtils dataUtils = DataUtils.getInstance();
+      338: 
+      339:             @Override
+      340:             protected Void doInBackground(Void... params) {
+      341:                 // check whether file names for new file are valid or recursion occurs
+      342:                 if (!Operations.isFileNameValid(newFile.getName(context))) {
+      343:                     errorCallBack.invalidName(newFile);
+      344:                     return null;
+      345:                 }
+      346: 
+      347:                 if (newFile.exists()) {
+      348:                     errorCallBack.exists(newFile);
+      349:                     return null;
+      350:                 }
+      351: 
+      352:                 if (oldFile.isSmb()) {
+      353:                     try {
+      354:                         SmbFile smbFile = new SmbFile(oldFile.getPath());
+      355:                         SmbFile smbFile1 = new SmbFile(newFile.getPath());
+      356:                         if (smbFile1.exists()) {
+      357:                             errorCallBack.exists(newFile);
+      358:                             return null;
+      359:                         }
+      360:                         smbFile.renameTo(smbFile1);
+      361:                         if (!smbFile.exists() && smbFile1.exists())
+      362:                             errorCallBack.done(newFile, true);
+      363:                     } catch (MalformedURLException e) {
+      364:                         e.printStackTrace();
+      365:                     } catch (SmbException e) {
+      366:                         e.printStackTrace();
+      367:                     }
+      368:                     return null;
+      369:                 } else if (oldFile.isSftp()) {
+      370:                     SshClientUtils.execute(new SFtpClientTemplate(oldFile.getPath()) {
+      371:                         @Override
+      372:                         public <Void> Void execute(@NonNull SFTPClient client) {
+      373:                             try {
+      374:                                 client.rename(SshClientUtils.extractRemotePathFrom(oldFile.getPath()),
+      375:                                         SshClientUtils.extractRemotePathFrom(newFile.getPath()));
+      376:                                 errorCallBack.done(newFile, true);
+      377:                             } catch(IOException e) {
+      378:                                 e.printStackTrace();
+      379:                                 errorCallBack.done(newFile, false);
+      380:                             }
+      381:                             return null;
+      382:                         }
+      383:                     });
+      384:                 } else if (oldFile.isDropBoxFile()) {
+      385:                     CloudStorage cloudStorageDropbox = dataUtils.getAccount(OpenMode.DROPBOX);
+      386:                     try {
+      387:                         cloudStorageDropbox.move(CloudUtil.stripPath(OpenMode.DROPBOX, oldFile.getPath()),
+      388:                                 CloudUtil.stripPath(OpenMode.DROPBOX, newFile.getPath()));
+      389:                         errorCallBack.done(newFile, true);
+      390:                     } catch (Exception e) {
+      391:                         e.printStackTrace();
+      392:                         errorCallBack.done(newFile, false);
+      393:                     }
+      394:                 } else if (oldFile.isBoxFile()) {
+      395:                     CloudStorage cloudStorageBox = dataUtils.getAccount(OpenMode.BOX);
+      396:                     try {
+      397:                         cloudStorageBox.move(CloudUtil.stripPath(OpenMode.BOX, oldFile.getPath()),
+      398:                                 CloudUtil.stripPath(OpenMode.BOX, newFile.getPath()));
+      399:                         errorCallBack.done(newFile, true);
+      400:                     } catch (Exception e) {
+      401:                         e.printStackTrace();
+      402:                         errorCallBack.done(newFile, false);
+      403:                     }
+      404:                 } else if (oldFile.isOneDriveFile()) {
+      405:                     CloudStorage cloudStorageOneDrive = dataUtils.getAccount(OpenMode.ONEDRIVE);
+      406:                     try {
+      407:                         cloudStorageOneDrive.move(CloudUtil.stripPath(OpenMode.ONEDRIVE, oldFile.getPath()),
+      408:                                 CloudUtil.stripPath(OpenMode.ONEDRIVE, newFile.getPath()));
+      409:                         errorCallBack.done(newFile, true);
+      410:                     } catch (Exception e) {
+      411:                         e.printStackTrace();
+      412:                         errorCallBack.done(newFile, false);
+      413:                     }
+      414:                 } else if (oldFile.isGoogleDriveFile()) {
+      415:                     CloudStorage cloudStorageGdrive = dataUtils.getAccount(OpenMode.GDRIVE);
+      416:                     try {
+      417:                         cloudStorageGdrive.move(CloudUtil.stripPath(OpenMode.GDRIVE, oldFile.getPath()),
+      418:                                 CloudUtil.stripPath(OpenMode.GDRIVE, newFile.getPath()));
+      419:                         errorCallBack.done(newFile, true);
+      420:                     } catch (Exception e) {
+      421:                         e.printStackTrace();
+      422:                         errorCallBack.done(newFile, false);
+      423:                     }
+      424:                 } else if (oldFile.isOtgFile()) {
+      425:                     DocumentFile oldDocumentFile = OTGUtil.getDocumentFile(oldFile.getPath(), context, false);
+      426:                     DocumentFile newDocumentFile = OTGUtil.getDocumentFile(newFile.getPath(), context, false);
+      427:                     if (newDocumentFile != null) {
+      428:                         errorCallBack.exists(newFile);
+      429:                         return null;
+      430:                     }
+      431:                     errorCallBack.done(newFile, oldDocumentFile.renameTo(newFile.getName(context)));
+      432:                     return null;
+      433:                 } else {
+      434: 
+      435:                     File file = new File(oldFile.getPath());
+      436:                     File file1 = new File(newFile.getPath());
+      437:                     switch (oldFile.getMode()) {
+      438:                         case FILE:
+      439:                             int mode = checkFolder(file.getParentFile(), context);
+      440:                             if (mode == 2) {
+      441:                                 errorCallBack.launchSAF(oldFile, newFile);
+      442:                             } else if (mode == 1 || mode == 0) {
+      443:                                 try {
+      444:                                     FileUtil.renameFolder(file, file1, context);
+      445:                                 } catch (ShellNotRunningException e) {
+      446:                                     e.printStackTrace();
+      447:                                 }
+      448:                                 boolean a = !file.exists() && file1.exists();
+      449:                                 if (!a && rootMode) {
+      450:                                     try {
+      451:                                         RootUtils.rename(file.getPath(), file1.getPath());
+      452:                                     } catch (ShellNotRunningException e) {
+      453:                                         e.printStackTrace();
+      454:                                     }
+      455:                                     oldFile.setMode(OpenMode.ROOT);
+      456:                                     newFile.setMode(OpenMode.ROOT);
+      457:                                     a = !file.exists() && file1.exists();
+      458:                                 }
+      459:                                 errorCallBack.done(newFile, a);
+      460:                                 return null;
+      461:                             }
+      462:                             break;
+      463:                         case ROOT:
+      464:                             try {
+      465:                                 RootUtils.rename(file.getPath(), file1.getPath());
+      466:                             } catch (ShellNotRunningException e) {
+      467:                                 e.printStackTrace();
+      468:                             }
+      469: 
+      470:                             newFile.setMode(OpenMode.ROOT);
+      471:                             errorCallBack.done(newFile, true);
+      472:                             break;
+      473: 
+      474:                     }
+      475:                 }
+      476:                 return null;
+      477:             }
+      478: 
+      479:             @Override
+      480:             protected void onPostExecute(Void aVoid) {
+      481:                 super.onPostExecute(aVoid);
+      482:                 if (newFile != null && oldFile != null) {
+      483:                     HybridFile[] hybridFiles = { newFile, oldFile};
+      484:                     FileUtils.scanFile(context, hybridFiles);
+      485:                 }
+      486:             }
+      487:         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+      488: 
+
+STEP 5  edge Eb41b8819
+  Operations$3.<init> -> Operations$3.doInBackground
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC android/os/AsyncTask.java
+  (no file:line citations in evidence)
+
+STEP 6  edge E0dcd9ee2
+  Operations$3.doInBackground -> Operations$3.onPostExecute
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC filesystem/Operations.java:480-485; FW-SRC android/os/AsyncTask.java
+  cite [SRC] filesystem/Operations.java:480-485
+      480:             protected void onPostExecute(Void aVoid) {
+      481:                 super.onPostExecute(aVoid);
+      482:                 if (newFile != null && oldFile != null) {
+      483:                     HybridFile[] hybridFiles = { newFile, oldFile};
+      484:                     FileUtils.scanFile(context, hybridFiles);
+      485:                 }
+
+STEP 7  edge E3ef101e1
+  Operations$3.onPostExecute -> FileUtils.scanFile(Context,HybridFile[])
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC filesystem/Operations.java:484
+  cite [SRC] filesystem/Operations.java:484
+      484:                     FileUtils.scanFile(context, hybridFiles);
+
+STEP 8  edge E903029d8
+  FileUtils.scanFile(Context,HybridFile[]) -> FileUtils.lambda$scanFile$1
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC FileUtils.java:243
+  cite [SRC] FileUtils.java:243
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/utils/files/FileUtils.java)
+      243:         AsyncTask.execute(() -> {

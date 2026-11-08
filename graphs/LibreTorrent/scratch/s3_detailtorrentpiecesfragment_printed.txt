@@ -1,0 +1,143 @@
+     1	/*
+     2	 * Copyright (C) 2016-2019 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.detailtorrent.pages.pieces;
+    21	
+    22	import android.content.Context;
+    23	import android.os.Bundle;
+    24	import android.view.LayoutInflater;
+    25	import android.view.View;
+    26	import android.view.ViewGroup;
+    27	
+    28	import androidx.annotation.NonNull;
+    29	import androidx.annotation.Nullable;
+    30	import androidx.appcompat.app.AppCompatActivity;
+    31	import androidx.databinding.DataBindingUtil;
+    32	import androidx.fragment.app.Fragment;
+    33	import androidx.lifecycle.ViewModelProvider;
+    34	
+    35	import org.proninyaroslav.libretorrent.R;
+    36	import org.proninyaroslav.libretorrent.databinding.FragmentDetailTorrentPiecesBinding;
+    37	import org.proninyaroslav.libretorrent.ui.detailtorrent.DetailTorrentViewModel;
+    38	
+    39	import io.reactivex.android.schedulers.AndroidSchedulers;
+    40	import io.reactivex.disposables.CompositeDisposable;
+    41	import io.reactivex.schedulers.Schedulers;
+    42	
+    43	/*
+    44	 * The fragment for displaying torrent pieces. Part of DetailTorrentFragment.
+    45	 */
+    46	
+    47	public class DetailTorrentPiecesFragment extends Fragment
+    48	{
+    49	    private static final String TAG = DetailTorrentPiecesFragment.class.getSimpleName();
+    50	
+    51	    private static final String TAG_SCROLL_POSITION = "scroll_position";
+    52	
+    53	    private AppCompatActivity activity;
+    54	    private FragmentDetailTorrentPiecesBinding binding;
+    55	    private DetailTorrentViewModel viewModel;
+    56	    private CompositeDisposable disposables = new CompositeDisposable();
+    57	    private int[] scrollPosition = new int[]{0, 0};
+    58	
+    59	    public static DetailTorrentPiecesFragment newInstance()
+    60	    {
+    61	        DetailTorrentPiecesFragment fragment = new DetailTorrentPiecesFragment();
+    62	
+    63	        fragment.setArguments(new Bundle());
+    64	
+    65	        return fragment;
+    66	    }
+    67	
+    68	    @Override
+    69	    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    70	    {
+    71	        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_detail_torrent_pieces, container, false);
+    72	
+    73	        return binding.getRoot();
+    74	    }
+    75	
+    76	    @Override
+    77	    public void onAttach(@NonNull Context context)
+    78	    {
+    79	        super.onAttach(context);
+    80	
+    81	        if (context instanceof AppCompatActivity)
+    82	            activity = (AppCompatActivity)context;
+    83	    }
+    84	
+    85	    @Override
+    86	    public void onStop()
+    87	    {
+    88	        super.onStop();
+    89	
+    90	        disposables.clear();
+    91	    }
+    92	
+    93	    @Override
+    94	    public void onStart()
+    95	    {
+    96	        super.onStart();
+    97	
+    98	        subscribeAdapter();
+    99	    }
+   100	
+   101	    @Override
+   102	    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+   103	        super.onViewCreated(view, savedInstanceState);
+   104	
+   105	        if (activity == null)
+   106	            activity = (AppCompatActivity) getActivity();
+   107	
+   108	        viewModel = new ViewModelProvider(activity).get(DetailTorrentViewModel.class);
+   109	        binding.setViewModel(viewModel);
+   110	    }
+   111	
+   112	    @Override
+   113	    public void onSaveInstanceState(@NonNull Bundle outState)
+   114	    {
+   115	        super.onSaveInstanceState(outState);
+   116	
+   117	        if (scrollPosition != null) {
+   118	            scrollPosition[0] = binding.pieceMapScrollView.getScrollX();
+   119	            scrollPosition[1] = binding.pieceMapScrollView.getScrollY();
+   120	            outState.putIntArray(TAG_SCROLL_POSITION, scrollPosition);
+   121	        }
+   122	    }
+   123	
+   124	    @Override
+   125	    public void onViewStateRestored(@Nullable Bundle savedInstanceState)
+   126	    {
+   127	        super.onViewStateRestored(savedInstanceState);
+   128	
+   129	        if (savedInstanceState != null) {
+   130	            scrollPosition = savedInstanceState.getIntArray(TAG_SCROLL_POSITION);
+   131	            if (scrollPosition != null && scrollPosition.length == 2)
+   132	                binding.pieceMapScrollView.scrollTo(scrollPosition[0], scrollPosition[1]);
+   133	        }
+   134	    }
+   135	
+   136	    private void subscribeAdapter()
+   137	    {
+   138	        disposables.add(viewModel.observePieces()
+   139	                .subscribeOn(Schedulers.io())
+   140	                .observeOn(AndroidSchedulers.mainThread())
+   141	                .subscribe((pieces) -> binding.pieceMap.setPieces(pieces)));
+   142	    }
+   143	}

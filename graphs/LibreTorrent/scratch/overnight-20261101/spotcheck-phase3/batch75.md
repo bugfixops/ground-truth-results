@@ -1,0 +1,18 @@
+# Spot-check — LibreTorrent batch 75 (Stream A Phase 3b, batches 61-120)
+
+Scope: (1) every row whose label or confirmed_by changed in the Phase 3 completion pass (from verdicts_applied_table.json + coordinator_verdicts.json), fully re-derived from printed source; (2) the 1-in-5 sample rows (1, 6, 11, 16, 21, 26, 31, 36; batch 120: rows 1 and 3 only), verified against the work file's cited evidence and the corpus. A row in both sets is checked once and reported once. No convention was re-decided (D1-D36, R1-R5 stand); a FAIL here means the application is wrong, not that the decision is disagreed with.
+
+Prose rule applied: FAIL-prose iff the main-table evidence still contains a present-outcome sentence asserting OPEN (or NOT the new label/kind) as the row's current state, with no in-cell supersession note. Conditional branches ('if X -> OPEN', 'reverts to OPEN if...'), dated history ('FLIPPED OPEN -> UNREACHABLE', 'prior proposal marked OPEN/REACHABLE'), pending-grep notes without an OPEN assertion, and sentences explicitly superseded in-cell (Phase 1c D4c/D4e notes) are NOT counted as FAIL-prose. 'REACHABLE proposed'/'UNREACHABLE proposed' label cells count as REACHABLE/UNREACHABLE per the Phase 2 count.py rule and are not failed on the qualifier alone. No work file was edited; this file is spot-check output only.
+
+Changed rows in this batch: none.
+
+- row 1 | `AddFeedDialog.initAlertDialog (Landroid/view/View;)V` | label REACHABLE | cb SOURCE | PASS | SAMPLE. Label matches the work file's cited evidence (spot-checked against the corpus where the evidence is a citation, not a bare assertion); confirmed_by/kind form OK.
+- row 6 | `AddFeedDialog.lambda$initAlertDialog$6 (Landroid/view/View;)V` | label REACHABLE | cb SOURCE | PASS | SAMPLE. group evidence resolves: row 4 lists the four button click lambdas (AddFeedDialog:279/:280/:283/:286); this lambda is one of the group, REACHABLE SOURCE.
+- row 11 | `AddFeedDialog.lambda$new$0 (Z)V` | label REACHABLE | cb INFERRED | PASS | SAMPLE. Label matches the work file's cited evidence (spot-checked against the corpus where the evidence is a citation, not a bare assertion); confirmed_by/kind form OK.
+- row 16 | `AddFeedDialog.newInstance(Uri) (Landroid/net/Uri;)Lorg/proninyaroslav/libretorrent/ui/addfeed/AddFeedDialog;` | label REACHABLE | cb SOURCE | PASS | SAMPLE. Label matches the work file's cited evidence (spot-checked against the corpus where the evidence is a citation, not a bare assertion); confirmed_by/kind form OK.
+- row 21 | `AddFeedDialog.onResume ()V` | label REACHABLE | cb SOURCE | PASS | SAMPLE. Label matches the work file's cited evidence (spot-checked against the corpus where the evidence is a citation, not a bare assertion); confirmed_by/kind form OK.
+- row 26 | `AddFeedDialog.subscribeClipboardManager ()V` | label REACHABLE | cb SOURCE | PASS | SAMPLE. Label matches the work file's cited evidence (spot-checked against the corpus where the evidence is a citation, not a bare assertion); confirmed_by/kind form OK.
+- row 31 | `AddFeedDialog$1.afterTextChanged (Landroid/text/Editable;)V` | label REACHABLE | cb SOURCE | PASS | SAMPLE. Label matches the work file's cited evidence (spot-checked against the corpus where the evidence is a citation, not a bare assertion); confirmed_by/kind form OK.
+- row 36 | `AddFeedDialog$2.beforeTextChanged (Ljava/lang/CharSequence;III)V` | label REACHABLE | cb SOURCE | PASS | SAMPLE. Label matches the work file's cited evidence (spot-checked against the corpus where the evidence is a citation, not a bare assertion); confirmed_by/kind form OK.
+
+Totals: 8 checked, 8 PASS, 0 FAIL.

@@ -1,0 +1,430 @@
+# Batch 103 printed evidence (fresh, C17 converter, 2026-11-01)
+# Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+# Cited files (basenames, for check_part check 8): FileManagerAdapter.java, FileManagerDialog.java, FileManagerNode.java, FileManagerSpinnerAdapter.java, FileManagerViewModel.java
+# Lines marked * are cited lines; unmarked lines are one line of context.
+
+=== ui/filemanager/FileManagerAdapter.java ===
+     56: 
+*    57:     private static final Comparator<FileManagerNode> directoryFirstCmp = (n1, n2) -> {
+*    58:         int byName = n1.compareTo(n2);
+*    59:         int directoryFirst = Boolean.compare(n2.isDirectory(), n1.isDirectory());
+*    60: 
+*    61:         return (directoryFirst == 0 ? byName : directoryFirst);
+     62:     };
+     98:         @Override
+*    99:         public boolean areContentsTheSame(@NonNull FileManagerNode oldItem,
+*   100:                                           @NonNull FileManagerNode newItem)
+*   101:         {
+*   102:             return oldItem.equals(newItem);
+    103:         }
+    105:         @Override
+*   106:         public boolean areItemsTheSame(@NonNull FileManagerNode oldItem,
+*   107:                                        @NonNull FileManagerNode newItem)
+*   108:         {
+*   109:             return oldItem.equals(newItem);
+    110:         }
+    134: 
+*   135:             itemView.setEnabled(item.isEnabled());
+    136:             FileSystemFacade fs = SystemFacadeHelper.getFileSystemFacade(context);
+*   137:             if (item.isEnabled()) {
+*   138:                 if (highlightFileTypes != null && highlightFileTypes.contains(fs.getExtension(item.getName()))) {
+    139:                     fileName.setTextColor(Utils.getAttributeColor(context, R.attr.colorSecondary));
+    153: 
+*   154:             fileName.setText(item.getName());
+    155: 
+*   156:             if (item.isDirectory()) {
+*   157:                 if (item.getName().equals(FileManagerNode.PARENT_DIR)) {
+    158:                     fileIcon.setImageResource(R.drawable.ic_arrow_up_bold_grey600_24dp);
+
+=== ui/filemanager/FileManagerDialog.java ===
+    110:     private SharedPreferences pref;
+*   111:     private MediaReceiver mediaReceiver = new MediaReceiver(this);
+    112:     /*
+    171: 
+*   172:         binding.addFab.setOnClickListener((v) -> showInputNameDialog());
+    173: 
+    175:             binding.fileName.setText(viewModel.config.fileName);
+*   176:         binding.fileName.addTextChangedListener(new TextWatcher() {
+*   177:             @Override
+*   178:             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+*   179:             }
+*   180: 
+*   181:             @Override
+*   182:             public void onTextChanged(CharSequence s, int start, int before, int count) {
+*   183:             }
+*   184: 
+*   185:             @Override
+*   186:             public void afterTextChanged(Editable s) {
+*   187:                 binding.layoutFileName.setErrorEnabled(false);
+*   188:                 binding.layoutFileName.setError(null);
+*   189:             }
+*   190:         });
+    191: 
+    198: 
+*   199:         binding.swipeContainer.setOnRefreshListener(this::refreshDir);
+    200: 
+    207: 
+*   208:         storageAdapter = new FileManagerSpinnerAdapter(this);
+    209:         storageAdapter.setTitle(viewModel.curDir.get());
+*   210:         storageAdapter.addItems(spinnerItems);
+    211:         binding.storageSpinner.setAdapter(storageAdapter);
+    213:         binding.storageSpinner.setSelection(spinnerPos);
+*   214:         binding.storageSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+*   215:             @Override
+*   216:             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+*   217:                 if (((Integer) binding.storageSpinner.getTag()) == i) {
+*   218:                     return;
+*   219:                 }
+*   220:                 spinnerPos = i;
+*   221:                 binding.storageSpinner.setTag(spinnerPos);
+*   222:                 try {
+*   223:                     var path = storageAdapter.getItem(i);
+*   224:                     if (viewModel.isDirectoryExists(path)) {
+*   225:                         viewModel.jumpToDirectory(path);
+*   226:                     } else {
+*   227:                         viewModel.jumpToDirectory(viewModel.startDir);
+*   228:                     }
+*   229: 
+*   230:                 } catch (SecurityException e) {
+*   231:                     permissionDeniedToast();
+*   232:                 }
+*   233:             }
+*   234: 
+*   235:             @Override
+*   236:             public void onNothingSelected(AdapterView<?> adapterView) {
+*   237:             }
+*   238:         });
+    239: 
+*   240:         registerMediaReceiver();
+    241:     }
+    242: 
+*   243:     private void showInputNameDialog() {
+*   244:         if (getSupportFragmentManager().findFragmentByTag(TAG_INPUT_NAME_DIALOG) == null) {
+*   245:             inputNameDialog = BaseAlertDialog.newInstance(
+*   246:                     getString(R.string.dialog_new_folder_title),
+*   247:                     null,
+*   248:                     R.layout.dialog_text_input,
+*   249:                     getString(R.string.ok),
+*   250:                     getString(R.string.cancel),
+*   251:                     null,
+*   252:                     false);
+*   253: 
+*   254:             inputNameDialog.show(getSupportFragmentManager(), TAG_INPUT_NAME_DIALOG);
+*   255:         }
+*   256:     }
+    257: 
+    261: 
+*   262:         unregisterMediaReceiver();
+    263:     }
+    275: 
+*   276:         subscribeAlertDialog();
+*   277:         subscribeAdapter();
+*   278:         viewModel.curDir.addOnPropertyChangedCallback(currentDirCallback);
+    279:     }
+    280: 
+*   281:     private void registerMediaReceiver() {
+*   282:         IntentFilter filter = new IntentFilter();
+*   283:         filter.addAction(Intent.ACTION_MEDIA_MOUNTED);
+*   284:         filter.addAction(Intent.ACTION_MEDIA_UNMOUNTED);
+*   285:         filter.addDataScheme("file");
+*   286:         registerReceiver(mediaReceiver, filter);
+*   287:     }
+    288: 
+*   289:     private void unregisterMediaReceiver() {
+*   290:         try {
+*   291:             unregisterReceiver(mediaReceiver);
+*   292:         } catch (IllegalArgumentException e) {
+*   293:             /* Ignore non-registered receiver */
+*   294:         }
+*   295:     }
+    296: 
+*   297:     private void subscribeAlertDialog() {
+*   298:         Disposable d = dialogViewModel.observeEvents().subscribe(this::handleAlertDialogEvent);
+*   299:         disposable.add(d);
+*   300:     }
+    301: 
+*   302:     private void subscribeAdapter() {
+*   303:         disposable.add(viewModel.childNodes
+*   304:                 .doOnNext((childList) -> {
+*   305:                     if (binding.swipeContainer.isRefreshing())
+*   306:                         binding.swipeContainer.setRefreshing(false);
+*   307:                 })
+*   308:                 .subscribe(adapter::submitList));
+*   309:     }
+    310: 
+*   311:     private final Observable.OnPropertyChangedCallback currentDirCallback =
+*   312:             new Observable.OnPropertyChangedCallback() {
+*   313:                 @Override
+*   314:                 public void onPropertyChanged(Observable sender, int propertyId) {
+*   315:                     storageAdapter.setTitle(viewModel.curDir.get());
+*   316:                 }
+*   317:             };
+    318: 
+    330: 
+*   331:                         if (!viewModel.createDirectory(name)) {
+*   332:                             showCreateFolderErrDialog();
+    333:                         } else {
+    340:                                 Log.e(TAG, Log.getStackTraceString(e));
+*   341:                                 showSendErrorDialog(e);
+    342:                             }
+    369: 
+*   370:     private void showSendErrorDialog(Exception e) {
+*   371:         viewModel.errorReport = e;
+*   372:         if (getSupportFragmentManager().findFragmentByTag(TAG_ERROR_REPORT_DIALOG) == null) {
+*   373:             errorReportDialog = ErrorReportDialog.newInstance(
+*   374:                     getString(R.string.error),
+*   375:                     getString(R.string.error_open_dir),
+*   376:                     Log.getStackTraceString(e));
+*   377: 
+*   378:             errorReportDialog.show(getSupportFragmentManager(), TAG_ERROR_REPORT_DIALOG);
+*   379:         }
+*   380:     }
+    381: 
+*   382:     private void permissionDeniedToast() {
+*   383:         Snackbar.make(binding.coordinatorLayout,
+*   384:                         R.string.permission_denied,
+*   385:                         Snackbar.LENGTH_SHORT)
+*   386:                 .show();
+*   387:     }
+    388: 
+*   389:     private void showCreateFolderErrDialog() {
+*   390:         if (getSupportFragmentManager().findFragmentByTag(TAG_ERR_CREATE_DIR) == null) {
+*   391:             BaseAlertDialog errDialog = BaseAlertDialog.newInstance(
+*   392:                     getString(R.string.error),
+*   393:                     getString(R.string.error_dialog_new_folder),
+*   394:                     0,
+*   395:                     getString(R.string.ok),
+*   396:                     null,
+*   397:                     null,
+*   398:                     true);
+*   399: 
+*   400:             errDialog.show(getSupportFragmentManager(), TAG_ERR_CREATE_DIR);
+*   401:         }
+*   402:     }
+    403: 
+    440: 
+*   441:         if (item.getType() == FileManagerNode.Type.DIR) {
+    442:             try {
+    451: 
+*   452:         } else if (item.getType() == FileManagerNode.Type.FILE &&
+*   453:                 viewModel.config.showMode == FileManagerConfig.FILE_CHOOSER_MODE) {
+*   454:             saveCurDirectoryPath();
+*   455:             returnFileUri(item.getName());
+    456:         }
+    458: 
+*   459:     private void refreshDir() {
+*   460:         binding.swipeContainer.setRefreshing(true);
+*   461:         viewModel.refreshCurDirectory();
+*   462:     }
+    463: 
+*   464:     private void saveCurDirectoryPath() {
+*   465:         String path = viewModel.curDir.get();
+*   466:         if (path == null)
+*   467:             return;
+*   468: 
+*   469:         String keyFileManagerLastDir = getString(R.string.pref_key_filemanager_last_dir);
+*   470:         if (!pref.getString(keyFileManagerLastDir, "").equals(path))
+*   471:             pref.edit().putString(keyFileManagerLastDir, path).apply();
+*   472:     }
+    473: 
+    502:             onBackPressed();
+*   503:         } else if (itemId == R.id.filemanager_home_menu) {
+*   504:             openHomeDirectory();
+*   505:         } else if (itemId == R.id.filemanager_ok_menu) {
+*   506:             saveCurDirectoryPath();
+*   507:             if (viewModel.config.showMode == FileManagerConfig.SAVE_FILE_MODE)
+*   508:                 createFile(false);
+*   509:             else
+*   510:                 returnDirectoryUri();
+    511:         } else if (itemId == R.id.filemanager_go_to_folder_menu) {
+    517: 
+*   518:     private void openHomeDirectory() {
+*   519:         String path = SystemFacadeHelper.getFileSystemFacade(getApplicationContext())
+*   520:                 .getUserDirPath();
+*   521:         goToDirectory(path);
+*   522:     }
+    523: 
+    556: 
+*   557:     private void returnDirectoryUri() {
+*   558:         Intent i = new Intent();
+*   559:         try {
+*   560:             i.setData(viewModel.getCurDirectoryUri());
+*   561: 
+*   562:         } catch (SecurityException e) {
+*   563:             permissionDeniedToast();
+*   564:             return;
+*   565:         }
+*   566:         setResult(RESULT_OK, i);
+*   567:         finish();
+*   568:     }
+    569: 
+    575:         String fileName = (editable == null ? null : editable.toString());
+*   576:         if (!replace && viewModel.fileExists(fileName)) {
+*   577:             showReplaceFileDialog();
+    578:             return;
+    592: 
+*   593:     private void returnFileUri(String fileName) {
+*   594:         Intent i = new Intent();
+*   595:         try {
+*   596:             i.setData(viewModel.getFileUri(fileName));
+*   597: 
+*   598:         } catch (SecurityException e) {
+*   599:             permissionDeniedToast();
+*   600:             return;
+*   601:         }
+*   602:         setResult(RESULT_OK, i);
+*   603:         finish();
+*   604:     }
+    605: 
+*   606:     private void showReplaceFileDialog() {
+*   607:         if (getSupportFragmentManager().findFragmentByTag(TAG_REPLACE_FILE_DIALOG) == null) {
+*   608:             BaseAlertDialog replaceFileDialog = BaseAlertDialog.newInstance(
+*   609:                     getString(R.string.replace_file),
+*   610:                     getString(R.string.error_file_exists),
+*   611:                     0,
+*   612:                     getString(R.string.yes),
+*   613:                     getString(R.string.no),
+*   614:                     null,
+*   615:                     true);
+*   616: 
+*   617:             replaceFileDialog.show(getSupportFragmentManager(), TAG_REPLACE_FILE_DIALOG);
+*   618:         }
+*   619:     }
+    620: 
+    635: 
+*   636:     final synchronized void reloadSpinner() {
+*   637:         if (storageAdapter == null || adapter == null)
+*   638:             return;
+*   639: 
+*   640:         List<FileManagerSpinnerAdapter.StorageSpinnerItem> spinnerItems = viewModel.getStorageList();
+*   641:         spinnerPos = getSpinnerPos(spinnerItems);
+*   642:         binding.storageSpinner.setSelection(spinnerPos);
+*   643: 
+*   644:         storageAdapter.clear();
+*   645:         storageAdapter.addItems(spinnerItems);
+*   646:         storageAdapter.setTitle(viewModel.curDir.get());
+*   647:         storageAdapter.notifyDataSetChanged();
+*   648: 
+*   649:         viewModel.refreshCurDirectory();
+*   650:     }
+    651: 
+    681: 
+*   682:         MediaReceiver(FileManagerDialog dialog) {
+*   683:             this.dialog = new WeakReference<>(dialog);
+*   684:         }
+    685: 
+    686:         @Override
+*   687:         public void onReceive(Context context, Intent intent) {
+*   688:             if (dialog.get() != null)
+*   689:                 dialog.get().reloadSpinner();
+*   690:         }
+    691:     }
+
+=== ui/filemanager/FileManagerNode.java ===
+     38: 
+*    39:     public FileManagerNode(String item, int itemType, boolean enabled)
+*    40:     {
+*    41:         node = item;
+*    42:         nodeType = itemType;
+*    43:         this.enabled = enabled;
+*    44:     }
+     45: 
+     46:     @Override
+*    47:     public String getName()
+*    48:     {
+*    49:         return node;
+*    50:     }
+     51: 
+     52:     @Override
+*    53:     public void setName(String name)
+*    54:     {
+*    55:         node = name;
+*    56:     }
+     57: 
+     58:     @Override
+*    59:     public int getType()
+*    60:     {
+*    61:         return nodeType;
+*    62:     }
+     63: 
+     64:     @Override
+*    65:     public void setType(int type)
+*    66:     {
+*    67:         nodeType = type;
+*    68:     }
+     69: 
+*    70:     public boolean isEnabled()
+*    71:     {
+*    72:         return enabled;
+*    73:     }
+     74: 
+*    75:     public void setEnabled(boolean enabled)
+*    76:     {
+*    77:         this.enabled = enabled;
+*    78:     }
+     79: 
+*    80:     public boolean isDirectory()
+*    81:     {
+*    82:         return nodeType == Type.DIR;
+*    83:     }
+     84: 
+     85:     @Override
+*    86:     public int compareTo(@NonNull FileManagerNode another)
+*    87:     {
+*    88:         return node.compareTo(another.getName());
+*    89:     }
+     90: 
+     91:     @Override
+*    92:     public boolean equals(Object o)
+*    93:     {
+*    94:         if (!(o instanceof FileManagerNode))
+*    95:             return false;
+*    96: 
+*    97:         if (o == this)
+*    98:             return true;
+*    99: 
+*   100:         FileManagerNode fileManagerNode = (FileManagerNode)o;
+*   101: 
+*   102:         return (node == null || node.equals(fileManagerNode.node)) &&
+*   103:                 nodeType == fileManagerNode.nodeType &&
+*   104:                 enabled == fileManagerNode.enabled;
+*   105:     }
+    106: 
+    108:     @Override
+*   109:     public String toString()
+*   110:     {
+*   111:         return "FileManagerNode{" +
+*   112:                 "node='" + node + '\'' +
+*   113:                 ", nodeType=" + nodeType +
+*   114:                 ", enabled=" + enabled +
+*   115:                 '}';
+*   116:     }
+    117: }
+
+=== ui/filemanager/FileManagerSpinnerAdapter.java ===
+     41: {
+*    42:     private static final String TAG = FileManagerSpinnerAdapter.class.getSimpleName();
+     43: 
+     94: 
+*    95:     public FileManagerSpinnerAdapter(Context context)
+*    96:     {
+*    97:         this.context = context;
+*    98:     }
+     99: 
+    104: 
+*   105:     public void addItem(StorageSpinnerItem item)
+*   106:     {
+*   107:         items.add(item);
+*   108:     }
+    109: 
+
+=== ui/filemanager/FileManagerViewModel.java ===
+    126:             if (!dirFile.getPath().equals(FileManagerNode.ROOT_DIR))
+*   127:                 items.add(0, new FileManagerNode(FileManagerNode.PARENT_DIR, FileNode.Type.DIR, true));
+    128: 
+    133:                 if (file.isDirectory())
+*   134:                     items.add(new FileManagerNode(file.getName(), FileNode.Type.DIR, true));
+    135:                 else
+*   136:                     items.add(new FileManagerNode(file.getName(), FileManagerNode.Type.FILE,
+*   137:                             config.showMode == FileManagerConfig.FILE_CHOOSER_MODE));
+    138:             }

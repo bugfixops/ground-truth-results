@@ -31,6 +31,8 @@ scratch/kiro_routes_all.txt and scratch/kiro_routes_edges.txt.
 
 ## What waits for a device (API 27)
 
+- **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 5 of 30 routes reached their target method; 5 of them ran the whole script and are now `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
+
 Several routes cross outside the app and can only be exercised on a real API 27 device with the right environment,
 not in the `-p <app>` baseline runs:
 

@@ -442,11 +442,10 @@ C7 finish_01 00:02 R=2218 U=422 UNRES=341 errors=885 (down from 1211). Fixed reg
 - C7 2026-10-30 10:44 EDT (logged late; applied at about 10:36) | build_finish_20 (backup scratch/graph_def_before_finish_20.py; scratch/fix14/apply_direct_20.py) | deleted the two spurious SshClientSessionTemplate.execute -> Statvfs$Response edges (getFileSystemId, getRawFileSystemId; no call site in source) and added UNREACHABLE entries for SortHandler.getAllEntries, Statvfs$Response.toString and Statvfs$Response.getFileSystemId. errors 132, warnings 106, UNRESOLVED 17.
 - C7 2026-10-30 10:44 EDT | build_finish_21 (backup scratch/graph_def_before_finish_21.py; decisions/N1.tsv and decisions/N2_applied.tsv; N2.tsv is the full helper output) | applied N1 (17 RENAME, 7 DELETE, 14 UNSURE left) and N2 minus U197 and U199-U206. Verifier fails 0 for both. A first build 21 that included U197 and U199-U206 raised the GUI page-rule error from 0 to 9, so the graph was restored from the backup and rebuilt without them. Result: errors 69 (unknown src 38, unknown dst 14, no path 17), warnings 105 (104 dead-chain, 1 REVIEW), UNRESOLVED 17. No category rose against build 20.
 
-## Current step (2026-10-30 10:44 EDT)
-- AmazeFileManager: BLOCKED, not labelled. Build 21: UNRESOLVED 17, errors 69, warnings 105. Gate: UNRESOLVED 0, errors 0, warnings 0, with the 9 AboutActivity methods excluded as the open item.
-- Blockers: (1) 104 dead-chain warnings and 1 REVIEW warning; the dead-chain policy is a user decision (conservative: keep entries and edges). (2) 52 unknown-node errors (38 unknown src, 14 unknown dst); 9 GUI edges from S_NESTED_SCROLL, S_PREFERENCE_click and S_EDITTEXT_watch stay unknown because a method source breaks the page-to-method GUI rule. (3) 8 non-AboutActivity no-path methods: CloudStreamServer.lambda$new$1, GeneralDialogCreation.lambda$showSortDialog$36 and $37, Indicator.onDraw, drawSelected, drawUnselected, getRetreatingJoinPath, getUnselectedPath.
-- Decisions and open items: handoff/HANDOFF_V2.md "## Convert run decisions (AmazeFileManager labelling run, 2026-10-30)".
-- Known faults: ENV texts are registered through env_text (graph_def.py:122-123) and build 21 has no "no kinds" error; RoundedImageView.onDraw has a FRAMEWORK route (graph_def.py:13115); the PasteHelper/UserColorPreferences grep was run on 2026-10-30 and PasteHelper$1.newArray's reason was corrected.
+## Current step (2026-11-02)
+- AmazeFileManager: labels, route checks, logs and device scripts are DONE except CI + D9. Final sample 30 routes, rate 0.833 (per B6); the writer is deterministic and the local dry run passes 30/30.
+- Device: 26 scripted / 4 unscriptable = 13.3% under Amaze-D3-CAP-ACCEPT-ROUND3 (routes 05, 06, 12, 22, each with an audited reason); F1 is not blocked by the cap alone.
+- Pending: E3 (the 9-app CI rebuild and dry run), and after that the PROGRESS tick line, which is written only when E3 fully passes and is not written by this edit. CI SUMMARY at the final commit + D9 dry-run PASS remain the gates.
 
 ## Prior step (2026-10-30 10:28 EDT)
 - Done since 10:14: builds 17 to 19 (above). Remaining unknown-node errors are those in N1/N2 batches (helpers running) plus UNSURE rows listed in decisions/*.tsv.
@@ -470,3 +469,302 @@ C7 finish_01 00:02 R=2218 U=422 UNRES=341 errors=885 (down from 1211). Fixed reg
 - Route checks not started (run rule). Decisions and open items: handoff/HANDOFF_V2.md, section "Convert run decisions (AmazeFileManager overnight labelling, 2026-10-30)".
 
 - 2026-10-30 16:20 EDT, rebuild on resume (scratch/build_finish_29.txt): exit 0; methods 2981; REACHABLE 2509; UNREACHABLE 472; UNRESOLVED 0; errors 0; warnings 0. Same graph as build 28, no edit made. The RoundedImageView.onDraw page route is at graph_def.py:12895 (the HANDOFF entry says 13115); its evidence is INFERRED from rowlayout.xml:49 and griditem.xml:25, and the SRC route RoundedImageView.<init> -> onDraw is at graph_def.py:16100. Route checks not started.
+
+## Finish run (2026-11-01, AmazeFileManager merger): B1-B3
+- B1 (verified, no edit): STRICT = True already (graph_def.py:31). Local rebuild
+  (bash handoff/ci/rebuild.sh AmazeFileManager) before any edit: methods 2981,
+  REACHABLE 2509, UNREACHABLE 472, errors 0, warnings 0.
+- B2 (check 2: 23 problems -> 0): root cause was tools/check_citations.py
+  ROOT_STYLE matching the substrings services/, data/ inside app citations
+  (e.g. 'SRC asynchronous/services/CopyService.java:100' matched as framework
+  path 'services/CopyService.java', absent from fw_src). All 10 files exist in
+  final_java_only/AmazeFileManager (asynchronous/services/*, adapters/data/*).
+  Fix: stripped the triggering components from app citations in graph_def.py
+  (8 occurrences) and graph_def_mod/01.py (18 asynchronous/services/ + 5
+  adapters/data/ = 31 replacements total), leaving the basename form the
+  passing citations of this app already use (e.g. 'SRC CopyService.java:100').
+  No label, edge, or line-number change.
+- B3 (check 4: 63 problems -> 0): implemented the EDIT hook in graph_def.py
+  (was a no-op). It applies the 59 FIX_LINES corrections from
+  'python3 -I tools/check_bytecode_lines.py AmazeFileManager --emit', rewrites
+  3 generated-class file-not-found edges to INFERRED generated <Class>
+  (GlideRequests, GeneratedAppGlideModuleImpl, GeneratedRequestManagerFactory;
+  no source in the upload; bytecode call), and rewrites CLI.main ->
+  SevenZFile.close to INFERRED try-with-resources implicit close (CLI.java:127
+  opens the resource, :132 closes the try block; no explicit close call exists
+  in source, so no SRC line can show the callee name). Edge ids change for
+  edited edges; no path rows exist yet, so nothing goes stale.
+- Local build after B2+B3 (2026-11-01 18:13 UTC): methods 2981, pages 12,
+  edges 7768, REACHABLE 2509, UNREACHABLE 472 (closed_by_api_level 9,
+  framework_never_calls 39, no_trigger_in_app 424), INFERRED 1661 / SOURCE 1320,
+  errors 0, warnings 0, exit 0; check 2: 0 problems; check 3: 0 flagged;
+  check 4: 0 where the cited line does not show the callee; checks 5-7: 0, 0, 0,
+  STRICT line 1; check 8: 4 of 472 (B4, next); verification.csv: missing (B7).
+
+## Finish run (2026-11-01, AmazeFileManager merger): B4
+- Check 8 went from 4 methods to 3, with one label flip. All four pairs were
+  already in SUPPRESS (mod/01.py sup() blocks), so no auto edge exists for any
+  of them and warnings stayed 0.
+- AES256SHA256Decoder$1.<init> FLIPPED to REACHABLE: decode() is REACHABLE via
+  Coders.addDecoder (Coders.java:57 registration, :79 dispatch) and
+  unconditionally instantiates the anonymous class at AES256SHA256Decoder.java:36.
+  Removed its four UNREACHABLE entries from graph_def.py and added a hand edge
+  decode -> $1.<init> (CALL, SRC AES256SHA256Decoder.java:36). Counts now:
+  methods 2981, REACHABLE 2510, UNREACHABLE 471 (framework_never_calls 38),
+  errors 0, warnings 0; checks 2/3/4 still 0/0/0.
+- CustomNavigationView$SavedState.<clinit> and .<init>(Parcelable) stay
+  UNREACHABLE closed_by_api_level: onSaveInstanceState:76 never runs at API 27
+  (isNavigationViewSavedStateMissing :115-118 true for SDK 23-28, early return
+  :70). Reasons extended in mod/01.py to name the caller and the exact lines.
+- HybridFile$2.<init> stays UNREACHABLE no_trigger_in_app with its reason
+  unchanged (already names the deprecated no-arg length() caller and the
+  length(Context) evidence). Full record: scratch/check8_explained.md.
+
+## Finish run (2026-11-01, AmazeFileManager merger): B6 route checks
+- Sample seed 20261025, four draws (sample is route-sensitive; each fix
+  batch redrew it). Final draw stable across the last redraw: 30 of 2512
+  reachable methods, 226 distinct edges. Final tally: correct 5, fixed 25,
+  wrong 0, unclear 0; error rate 25/30 = 0.833. Table:
+  scratch/route_table.md; fix record: scratch/fix_log.md; prints:
+  scratch/route_print/ (30 files, final draw only); judgments working file:
+  scratch/route_judgments_work.md (not pushed).
+- Systematic defects found and fixed: (1) manifest ENTRY citations shifted
+  for all 8 services + receiver (batch v2); (2) ZipService.execute linked
+  to 7 unrelated tasks' doInBackground/onPostExecute (2 PrepareCopyTask
+  deleted in batch v2, 5 Decrypt/Encrypt/MainFragment$6 deleted in round-2;
+  valid <init> -> doInBackground edges added where the deletions required
+  them); (3) SMB -> CloudStreamSource cross-implementation edge deleted,
+  faithful CloudStreamServer sendResponse -> read edge added; (4) false
+  BasicActivity superclass cluster for TextEditorActivity/
+  DatabaseViewerActivity (both extend ThemedActivity) — 4 edges deleted,
+  ReturnedValues re-routed via ACTION_VIEW; the wider BasicActivity cluster
+  (MainActivity extends PermissionsActivity, PreferencesActivity extends
+  ThemedActivity) is FLAGGED for its own audit, not changed here;
+  (5) Ee1a rewired to the real onActionItemClicked -> decompress edge
+  (:329); E89e2cedd does not exist in the current graph (no change; $2-vs-$6
+  numbering stays OPEN).
+- Label flips from printed app source (round-2): GlideRequest.listener and
+  IconDataParcelable.setImageBroken UNREACHABLE -> REACHABLE (UNREACHABLE
+  entries deleted, incoming edges added with printed sites). Counts moved
+  2510/471 -> 2512/469. Held: GlideRequests.as (needs generated source not
+  on disk), GlideOptions x5 (zero app-source references on full-tree grep).
+- Builds: rebuild 2 (2510/471, checks 0), rebuild 4 (2512/469, checks 0
+  after the DecryptService basename-citation repair), rebuild 5 (2512/469,
+  checks 0), rebuild 6 FINAL (methods 2981, REACHABLE 2512, UNREACHABLE 469
+  — closed_by_api_level 9, framework_never_calls 38, no_trigger_in_app 422 —
+  edges 7758, errors 0, warnings 0; check 2: 0, check 3: 0, check 4: 0,
+  checks 5-7: 0, check 8: 3 of 469 — the B4-explained pairs;
+  verification.csv: missing, expected until B7).
+- Known issues carried as INPUT ONLY and now resolved or held (see
+  fix_log.md for the full record): Glide group resolved except as +
+  GlideOptions (held, reasons stated); E89e no-action; Ee1a rewired;
+  Section B items (LayoutElementParcelable.writeToParcel,
+  RoundedImageView.setBackgroundColor, SimpleTextWatcher x3,
+  TextEditorActivity.<init> ENV question) were NOT re-verified — none is on
+  a sampled route and none was flipped; they remain OPEN for a later pass
+  if a future sample touches them. Coverage contradictions (GlideOptions x5,
+  GlideRequest x8 incl. listener — now REACHABLE — GlideRequests.as,
+  setRequestOptions, LayoutElementParcelable.writeToParcel, etc.) were never
+  used to flip a label; listener flipped on printed source, not coverage.
+
+## Finish run (2026-11-01, AmazeFileManager merger): B7 logs
+- make_verification.py written (modelled on AnyMemo's): path rows from the
+  B6 final sample (30: 5 correct, 25 fixed, results = route_table.md round
+  verdicts), label rows for all 469 UNREACHABLE + the 30 sampled REACHABLE
+  (499 total), edge rows for the 10 B6 added/rewired edges (fixed) + the 4
+  distinct FW-SRC framework claims (correct). Every row validated against
+  out/methods.csv + the trigger JSON; the script raises on any mismatch.
+  verification.csv header exactly type,item,result,confirmed_by,ref,edges,note.
+- readme_notes.md written with the five headings exactly, in order
+  (re-audit changes / checked paths / waits for a device / hazard candidates
+  / limits). gen_readme_v2.py runs inside handoff/ci/rebuild.sh (it is a
+  CI step that commits out/README.md); the local rebuild regenerated
+  out/README.md from the new notes (verified: it contains the B6
+  ZipService sweep and the 0.833 rate). out/ itself is never pushed by hand.
+- LESSONS.md written (7 bullets).
+- Final B7 rebuild (build_B7.txt): methods 2981, REACHABLE 2512,
+  UNREACHABLE 469, edges 7758, errors 0, warnings 0; check 2: 0, check 3: 0,
+  check 4: 0, checks 5-7: 0, check 8: 3 of 469 (B4-explained); the build
+  cross-checked verification.csv itself (label 499 with 25 fixed, edge 14
+  with 10 fixed, path 30 with 25 fixed, unclear 0 in all three — matching
+  the writer's counts exactly).
+- DEVICE rows (D7) are NOT in this writer yet, by design: D7 adds them
+  later, with the rule that while no device/results file exists the output
+  must stay byte-identical to this writer's output (verified by cmp at D7).
+
+## D7 (2026-11-01): DEVICE rows in make_verification.py
+- Added the D7 branch (spec device/D7_SPEC.md): when
+  graphs/AmazeFileManager/device/results.csv exists, one row per route is
+  appended AFTER all existing rows, in results order, no re-sort:
+  type=path, result=correct when reached=yes else unclear,
+  confirmed_by=DEVICE, ref="device run <run>/<script>", edges unchanged,
+  note = script status (unclear reasons: not reached / script failed /
+  unscriptable). Not-reached never becomes wrong; no label changes.
+- No-results behaviour: output row set identical to the committed
+  verification.csv (sorted comparison, same counts path 30 / label 499 /
+  edge 14). CAVEAT, pre-existing: the writer's UNREACHABLE label-row order
+  varies run to run (set iteration, line ~127); proven with the PRE-D7
+  writer run twice under PYTHONHASHSEED=0 (order-only difference). The D7
+  branch is inert without a results file, so it cannot cause this. The
+  branch verification.csv is therefore NOT regenerated or pushed by D7.
+  Recommendation: a follow-up edit sorting the label rows (row set
+  unchanged) would make the writer deterministic.
+- Synthetic test (private copy, evidence scratch/d7_synthetic_test.txt):
+  4 rows (yes/ok -> correct; no/ok -> unclear not-reached;
+  failed_at_step_3 -> unclear script-failed; unscriptable -> unclear)
+  appended last in input order; base row set unchanged; third run
+  reproduced the same 4 DEVICE rows. py_compile OK.
+
+## D1+D3 (2026-11-01): device routes list + 19 route scripts (auditor PASS)
+- ROUTES.csv: 30 rows (final sample size), 19 scripted / 11 unscriptable.
+  Unscriptable (each with a reason in the status column): 05 cloud OAuth
+  account, 06 SMB server + external player, 07 SSH handshake, 08 false
+  focus trigger + gated stored-host-key caller, 09/11 parcel recreation
+  only, 12 read-only-grant write failure, 22 SMB discovery, 23 system
+  SAF picker, 29 SSH branch, 30 saved-SSH-row prerequisite. 11/30 is
+  over the brief's 10% cap, reported honestly with reasons (Diary
+  precedent: 5/30 landed with reasons); no route was forced to scripted.
+- Scripts: 19, one per scripted route, each dry-run exit 0 with no
+  PYTHONPATH after merge (19/19 PASS). Independent auditor PASS
+  (audit/D3/AUDIT.md, 549 lines): 10 scripts read fully against
+  printed routes + handler source, 4 unscriptable reasons verified
+  against printed source (08, 12, 23, 30 all PASS), all EDGE_IDS exact.
+  Auditor-accepted: route_19 _shell horizontal swipe (ruling: accepted
+  for dry-run + live logging; public Runner.swipe() optional, not
+  required); route_27 SAF-retry -> direct-rename prefix substitution
+  (converges at Eddafb591); route_04 setup-under-first-edge logging.
+- Merge fixes (mechanical, logic unchanged): sys.path dirname-x3 ->
+  dirname-x4 for routes 01/02/03/04/10/26/27/28 (auditor-confirmed
+  list; the other 11 resolve as written); route_25 FIXTURE_LOCAL ->
+  script-dir-relative fixtures/sample.zip (was cwd-relative).
+- Fixtures committed beside the scripts (all UTF-8 text, < 900 KB):
+  amaze_search.txt (14/15), amaze_text_fixture.txt (16),
+  amaze_encrypt_fixture.txt (20), route26_source.txt (26),
+  route27_source.txt (27), fixtures/pastefixture.txt (10, created:
+  trivial text). Binary zips CANNOT be committed via the connector
+  (push-files rejects non-UTF-8 files), so setup must GENERATE:
+  fixtures/sample.zip (25: minimal zip, one text entry, placed beside
+  the script because route_25 pushes it script-dir-relative),
+  route04.zip (04: zip with sub/note.txt, pushed to
+  /sdcard/Download/route04.zip), and route28_archive.zip (62,934,136 B,
+  three 20 MiB entries, beside the script) — all documented in
+  ROUTES.csv. Setup notes in ROUTES.csv cover:
+  fixture pushes, route_27 fixture-only Download, route_15/16/19
+  600 ms animator settle, route_02 network guard + tile-listening
+  caveat, route_18 SEND_MULTIPLE resolver requirement.
+- Carried graph-side flags (NOT fixed here; coordinator to direct):
+  route_08 false focus edge (see B6-errata flag), route_24 print
+  citation :221 -> :211-213, route_28 print citation :422 -> :423,
+  route_01 print caveat (steps 10-14 need a String->Bitmap cloud-model
+  load; Apps preload is String->Drawable, so live replay proves the
+  chain only up to factory construction). None blocks D1/D3: scripts
+  faithfully drive their printed triggers.
+
+## Route_08 follow-up (2026-11-01, after the B6 push; merger's own work, no helper)
+- Finding (verified from printed source + bytecode, not taken on trust):
+  SftpConnectDialog.java:131-135 focus listener body is only
+  `if(hasFocus) portET.selectAll();` — on focus loss it does nothing and
+  never calls removeConnection. The only verified caller is the onPositive
+  lambda at :157-160, whose body (:171-177) does getSshHostKey, the
+  :175 `if (!isEmpty(sshHostKey))` guard, getInstance().removeConnection
+  (:176). Bytecode: lambda$onCreateDialog$0(EditText,View,boolean) is
+  static and contains only selectAll+return (focus); lambda$onCreateDialog$9
+  (5x EditText,boolean,MaterialDialog,DialogAction) contains
+  getText/parseInt/isEmpty/getSshHostKey/isEmpty-guard/getInstance/
+  removeConnection (offset 152) (onPositive). So the graph's $0/$9
+  labels were swapped in the repair block.
+- Graph fixes (graph_def.py + graph_def_mod/01.py, rebuild verified):
+  (a) deleted both copies of the false MainActivity.onOptionsItemSelected
+  -> CloudSheetFragment.<init> edge (the :1953 site is inside
+  MainActivity$FabActionListener.onActionSelected, :1941, menu_new_cloud
+  case :1952-1956, NOT inside onOptionsItemSelected :928-1044);
+  added the true FabActionListener.onActionSelected -> CloudSheetFragment
+  edge (guard: menu_new_cloud case, evidence :1952-1956);
+  (b) corrected the swapped $0/$9 registration evidence
+  ($0 = focus :132, $9 = onPositive :157-160);
+  (c) deleted the six repair-block $0-action edges ($0 is focus and does
+  none of them; every pair already covered by true $9 edges elsewhere);
+  (d) gated the true $9 -> removeConnection edge with
+  guard='!isEmpty(sshHostKey)' + needs_state=NEED_SAVED_SSH_KEY (new,
+  "A saved SSH host key exists for the SFTP host", data kind);
+  (e) deleted the three inverted $null$6/7/8 repair-block edges
+  ($null$6 -> $null$7, $null$6 -> $null$8, $null$7 -> authenticateAndSaveSetup):
+  bytecode proves $null$8 is the :203 taskResult callback (builds the
+  fingerprint dialog), $null$6 is the :217 positive button
+  (authenticateAndSaveSetup + "Saved setup"), $null$7 is the :227 negative
+  button (dismiss only); the true $null$8 -> $null$6 / $null$8 -> $null$7 /
+  $null$6 -> authenticateAndSaveSetup edges already exist elsewhere;
+  (f) route_24 citation: PrefFrag.java:221 (ADVANCEDSEARCH case) ->
+  :211-213 (FRAGMENT_FOLDERS case, the route-consistent case; added as a
+  hand edge, which suppresses the auto :221 edge for the same pair);
+  (g) route_28 citation: ProcessViewerFragment.java:422 (a closing brace)
+  -> :423 (the runOnUiThread call).
+- Printed-route outcome: the finder prints route_08 via the shorter TRUE
+  Drawer entry (onResume -> refreshDrawer -> saved-ssh item ->
+  onNavigationItemActionClick :494 -> showSftpDialog :626 ->
+  SftpConnectDialog :1643 -> onCreateDialog -> $9 -> gated removeConnection
+  -> AsyncRemoveConnection -> onPostExecute), 13 steps; the FAB prefix is
+  the alternate true entry (it is what SmbSearchDialog prints, 15 steps).
+  PemToKeyPairTask likewise reprints via Drawer (13 steps); the rest of
+  both routes unchanged. Rebuild: methods 2981, REACHABLE 2512,
+  UNREACHABLE 469, errors 0, warnings 0, edges 7758 -> 7747; checks 2/3/4/
+  5/6/7 at 0, check 8 = 3 of 469 (same B4-explained pairs); all 30 B6-sample
+  routes reprinted (229 distinct edges; 5 prints changed, 25 byte-identical)
+  and all 30 reach their targets. Labels unchanged (no flips).
+- Verdicts: route_08 stays "fixed" under the table's verdict key
+  (wrong = could not be repaired; route_08 WAS repaired, as ReadFileTask
+  was); tally correct 5 / fixed 25 / wrong 0 / unclear 0, rate 0.833
+  UNCHANGED. The brief's alternative tally (fixed 24, wrong 1, same rate)
+  was considered and not adopted (see route_table.md post-fix note).
+- Writer determinism (coordinator item 5, same push): make_verification.py
+  line 129 `for m in unre:` -> `for m in sorted(unre):`; regenerated
+  verification.csv via the writer only. Proof: row SET identical
+  pre-sort vs post-sort (543 rows, header same; first raw diff at line 32
+  is the UNREACHABLE label block now alphabetical); three runs under
+  PYTHONHASHSEED=0/1/42 byte-identical.
+- verification.csv changes (writer only, 8 rows): 5 path edge lists
+  (route_08, PemToKeyPairTask, SmbSearchDialog, ThemedImageView,
+  lambda$onUpdate$0) + route_08 label gates (state=- -> state=data) +
+  lambda$onUpdate$0 label ref (:422 -> :423) + route_08 / route_28 /
+  route_01 path notes. Totals unchanged: path 30 (5 correct / 25 fixed),
+  label 499, edge 14.
+- Redraw note: fresh draw at seed 20261025 after this fix gives 29/30
+  overlap (MediaStoreHack.mkfile replaces
+  UtilsHandler.getSshAuthPrivateKeyColumn, 233 distinct edges). The B6
+  sample is RETAINED as the judged sample; redraw adoption (judge the new
+  route, re-tally) is a coordinator decision. Diagnostic saved at
+  scratch/sample_30_redraw_after_route08fix.txt (NOT the adopted sample).
+- D1 staleness (reported, NOT edited here): device/routes/AmazeFileManager/
+  ROUTES.csv rows for the 5 reprinted methods now reference superseded
+  edge ids (route_08's row was already unscriptable "false trigger +
+  gated caller" and stands; the other four rows' scripts still match
+  ROUTES.csv as pushed, so drycheck is unaffected). A D1 refresh needs
+  re-audit of those rows' edge lists; coordinator/device-lead owned.
+- Carried flags from the previous section now FIXED here: route_08 false
+  focus edge, route_24 :221 -> :211-213, route_28 :422 -> :423, route_01
+  String->Bitmap caveat (recorded in the table row + Notes + writer note;
+  route_01 edges/verdict unchanged).
+
+## Decisions made by Muse (for the user and Yang to review)
+
+The full decision record for this run is handoff/MUSE_DECISIONS.md;
+the AmazeFileManager decisions operative at this writing are:
+- Amaze-D3-CAP-ACCEPT-ROUND3 (2026-11-01 ~23:11 EST): Amaze at 26
+  scripted / 4 unscriptable = 13.3% is ACCEPTED under the user's
+  cap ruling, so F1 is not blocked by the cap alone. Per-route
+  reasons: route_05 real online cloud account; route_06 live SMB
+  server plus a resolving external player, both unproven; route_12
+  (Throwable) constructor only via a write failure the harness
+  cannot arrange; route_22 broadcast SMB discovery cannot cross
+  the emulator router. This renews, and does not erase, the earlier
+  Amaze cap acceptances. Routes 08 and 23 were converted to
+  scripted in this round (system picker / throwaway SSH server).
+
+## Current step
+- 2026-11-06 04:19 UTC: Kiro (takeover from Muse), re-audit W2 done for AmazeFileManager (no first-run screen, both state texts kept, SETUP_ONLY empty, check_w2 PASS); next W3.
+- 2026-11-06 04:28 UTC: Kiro, re-audit W3 done for AmazeFileManager (text editor and FtpReceiver in-app edges; exported-entry routes 57 -> 5); next W4 (RTA, AmazeFileManager-20).
+- 2026-11-06 04:39 UTC: Kiro, re-audit W4 done for AmazeFileManager (RTA on; HybridFile templates renumbered from javap; HybridFile$9.execute UNREACHABLE); next W5 (ESR_CREATION).
+- 2026-11-06 04:46 UTC: Kiro, re-audit W5 done for AmazeFileManager (ESR_CREATION on; library_edges.csv); next W6 (outside data).
+- 2026-11-06 04:53 UTC: Kiro, re-audit W6 done for AmazeFileManager (outside_data.csv); next W7 (guards).
+- 2026-11-06 05:02 UTC: Kiro, re-audit W7 round 1 done for AmazeFileManager (pre-screen, checked-case guards; most flagged steps PENDING); next W8 (CI, re-verify routes, device runs).
+- 2026-11-06 06:40 UTC: Kiro stops after round 1. Open: W7 PENDING guard steps, W8 point 2 route re-verification (stale verification paths block the writers and the publish), W9 checks of audit_draw.csv, W0 and the measurement (no review/sample_tune/).

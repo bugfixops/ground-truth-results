@@ -1,0 +1,1667 @@
+===== core/model/data/AbstractInfoParcel.java =====
+     1	/*
+     2	 * Copyright (C) 2016 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.core.model.data;
+    21	
+    22	import android.os.Parcel;
+    23	import android.os.Parcelable;
+    24	
+    25	import java.util.UUID;
+    26	
+    27	/*
+    28	 * The class provides an abstract package model, sent from the service.
+    29	 */
+    30	
+    31	public abstract class AbstractInfoParcel
+    32	        implements Parcelable, Comparable
+    33	{
+    34	    public String parcelId;
+    35	
+    36	    protected AbstractInfoParcel()
+    37	    {
+    38	        parcelId = UUID.randomUUID().toString();
+    39	    }
+    40	
+    41	    protected AbstractInfoParcel(String parcelId)
+    42	    {
+    43	        this.parcelId = parcelId;
+    44	    }
+    45	
+    46	    protected AbstractInfoParcel(Parcel source)
+    47	    {
+    48	        parcelId = source.readString();
+    49	    }
+    50	
+    51	    @Override
+    52	    public void writeToParcel(Parcel dest, int flags)
+    53	    {
+    54	        dest.writeString(parcelId);
+    55	    }
+    56	
+    57	    @Override
+    58	    public abstract int hashCode();
+    59	
+    60	    @Override
+    61	    public abstract boolean equals(Object o);
+    62	}
+
+===== core/model/data/AdvancedTorrentInfo.java =====
+     1	/*
+     2	 * Copyright (C) 2018 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.core.model.data;
+    21	
+    22	import android.os.Parcel;
+    23	import android.os.Parcelable;
+    24	
+    25	import androidx.annotation.NonNull;
+    26	
+    27	import java.util.Arrays;
+    28	
+    29	/*
+    30	 * The class provides a package model with dynamically
+    31	 * changing information about state of the torrent.
+    32	 */
+    33	
+    34	public class AdvancedTorrentInfo extends AbstractInfoParcel
+    35	{
+    36	    public String torrentId = "";
+    37	    public int totalSeeds = 0;
+    38	    public int seeds = 0;
+    39	    public int downloadedPieces = 0;
+    40	    public long[] filesReceivedBytes = new long[0];
+    41	    public double shareRatio = 0.0;
+    42	    public long activeTime = 0L;
+    43	    public long seedingTime = 0L;
+    44	    public double availability = 0.0;
+    45	    public double[] filesAvailability = new double[0];
+    46	    public int leechers;
+    47	    public int totalLeechers;
+    48	
+    49	    public AdvancedTorrentInfo()
+    50	    {
+    51	        super();
+    52	    }
+    53	
+    54	    public AdvancedTorrentInfo(String torrentId, long[] filesReceivedBytes,
+    55	                               int totalSeeds, int seeds, int downloadedPieces,
+    56	                               double shareRatio, long activeTime, long seedingTime,
+    57	                               double availability, double[] filesAvailability,
+    58	                               int leechers, int totalLeechers)
+    59	    {
+    60	        super(torrentId);
+    61	
+    62	        this.torrentId = torrentId;
+    63	        this.filesReceivedBytes = filesReceivedBytes;
+    64	        this.totalSeeds = totalSeeds;
+    65	        this.seeds = seeds;
+    66	        this.downloadedPieces = downloadedPieces;
+    67	        this.shareRatio = shareRatio;
+    68	        this.activeTime = activeTime;
+    69	        this.seedingTime = seedingTime;
+    70	        this.availability = availability;
+    71	        this.filesAvailability = filesAvailability;
+    72	        this.leechers = leechers;
+    73	        this.totalLeechers = totalLeechers;
+    74	    }
+    75	
+    76	    public AdvancedTorrentInfo(Parcel source)
+    77	    {
+    78	        super(source);
+    79	
+    80	        torrentId = source.readString();
+    81	        filesReceivedBytes = source.createLongArray();
+    82	        totalSeeds = source.readInt();
+    83	        seeds = source.readInt();
+    84	        downloadedPieces = source.readInt();
+    85	        shareRatio = source.readDouble();
+    86	        activeTime = source.readLong();
+    87	        seedingTime = source.readLong();
+    88	        availability = source.readDouble();
+    89	        filesAvailability = source.createDoubleArray();
+    90	        leechers = source.readInt();
+    91	        totalLeechers = source.readInt();
+    92	    }
+    93	
+    94	    @Override
+    95	    public int describeContents()
+    96	    {
+    97	        return 0;
+    98	    }
+    99	
+   100	    @Override
+   101	    public void writeToParcel(Parcel dest, int flags)
+   102	    {
+   103	        super.writeToParcel(dest, flags);
+   104	
+   105	        dest.writeString(torrentId);
+   106	        dest.writeLongArray(filesReceivedBytes);
+   107	        dest.writeInt(totalSeeds);
+   108	        dest.writeInt(seeds);
+   109	        dest.writeInt(downloadedPieces);
+   110	        dest.writeDouble(shareRatio);
+   111	        dest.writeLong(activeTime);
+   112	        dest.writeLong(seedingTime);
+   113	        dest.writeDouble(availability);
+   114	        dest.writeDoubleArray(filesAvailability);
+   115	        dest.writeInt(leechers);
+   116	        dest.writeInt(totalLeechers);
+   117	    }
+   118	
+   119	    public static final Parcelable.Creator<AdvancedTorrentInfo> CREATOR =
+   120	            new Parcelable.Creator<AdvancedTorrentInfo>()
+   121	            {
+   122	                @Override
+   123	                public AdvancedTorrentInfo createFromParcel(Parcel source)
+   124	                {
+   125	                    return new AdvancedTorrentInfo(source);
+   126	                }
+   127	
+   128	                @Override
+   129	                public AdvancedTorrentInfo[] newArray(int size)
+   130	                {
+   131	                    return new AdvancedTorrentInfo[size];
+   132	                }
+   133	            };
+   134	
+   135	    @Override
+   136	    public int compareTo(@NonNull Object another)
+   137	    {
+   138	        return torrentId.compareTo(((AdvancedTorrentInfo)another).torrentId);
+   139	    }
+   140	
+   141	    @Override
+   142	    public int hashCode()
+   143	    {
+   144	        int prime = 31, result = 1;
+   145	
+   146	        result = prime * result + ((torrentId == null) ? 0 : torrentId.hashCode());
+   147	        result += Arrays.hashCode(filesReceivedBytes);
+   148	        result = prime * result + totalSeeds;
+   149	        result = prime * result + seeds;
+   150	        result = prime * result + downloadedPieces;
+   151	        long shareRationBits = Double.doubleToLongBits(shareRatio);
+   152	        result = prime * result + (int) (shareRationBits ^ (shareRationBits >>> 32));
+   153	        result = prime * result + (int) (activeTime ^ (activeTime >>> 32));
+   154	        result = prime * result + (int) (seedingTime ^ (seedingTime >>> 32));
+   155	        long availabilityBits = Double.doubleToLongBits(availability);
+   156	        result = prime * result + (int) (availabilityBits ^ (availabilityBits >>> 32));
+   157	        result += Arrays.hashCode(filesAvailability);
+   158	        result = prime * result + leechers;
+   159	        result = prime * result + totalLeechers;
+   160	
+   161	        return result;
+   162	    }
+   163	
+   164	    @Override
+   165	    public boolean equals(Object o)
+   166	    {
+   167	        if (!(o instanceof AdvancedTorrentInfo))
+   168	            return false;
+   169	
+   170	        if (o == this)
+   171	            return true;
+   172	
+   173	        AdvancedTorrentInfo state = (AdvancedTorrentInfo)o;
+   174	
+   175	        return (torrentId == null || torrentId.equals(state.torrentId)) &&
+   176	                totalSeeds == state.totalSeeds &&
+   177	                seeds == state.seeds &&
+   178	                downloadedPieces == state.downloadedPieces &&
+   179	                Arrays.equals(filesReceivedBytes, state.filesReceivedBytes) &&
+   180	                shareRatio == state.shareRatio &&
+   181	                activeTime == state.activeTime &&
+   182	                seedingTime == state.seedingTime &&
+   183	                availability == state.availability &&
+   184	                Arrays.equals(filesAvailability, state.filesAvailability) &&
+   185	                leechers == state.leechers &&
+   186	                totalLeechers == state.totalLeechers;
+   187	    }
+   188	
+   189	    @NonNull
+   190	    @Override
+   191	    public String toString()
+   192	    {
+   193	        return "AdvancedTorrentInfo{" +
+   194	                "torrentId='" + torrentId + '\'' +
+   195	                ", totalSeeds=" + totalSeeds +
+   196	                ", seeds=" + seeds +
+   197	                ", downloadedPieces=" + downloadedPieces +
+   198	                ", filesReceivedBytes=" + Arrays.toString(filesReceivedBytes) +
+   199	                ", shareRatio=" + shareRatio +
+   200	                ", activeTime=" + activeTime +
+   201	                ", seedingTime=" + seedingTime +
+   202	                ", availability=" + availability +
+   203	                ", filesAvailability=" + Arrays.toString(filesAvailability) +
+   204	                ", leechers=" + leechers +
+   205	                ", totalLeechers=" + totalLeechers +
+   206	                '}';
+   207	    }
+   208	}
+
+===== core/model/data/MagnetInfo.java =====
+     1	/*
+     2	 * Copyright (C) 2018 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.core.model.data;
+    21	
+    22	import android.os.Parcel;
+    23	import android.os.Parcelable;
+    24	
+    25	import androidx.annotation.NonNull;
+    26	
+    27	import java.util.List;
+    28	
+    29	/*
+    30	 * Provides full information about magnet.
+    31	 */
+    32	
+    33	public class MagnetInfo implements Parcelable
+    34	{
+    35	    private String uri;
+    36	    private String sha1hash;
+    37	    private String name;
+    38	    /*
+    39	     * BEP53 standard http://www.bittorrent.org/beps/bep_0053.html
+    40	     *
+    41	     * Note: priorities number may not coincide with
+    42	     *       the actual files number in the torrent.
+    43	     *       In this case, manually add the missing number
+    44	     *       of priorities to the end of the array
+    45	     */
+    46	    private List<Priority> filePriorities;
+    47	
+    48	    public MagnetInfo(String uri, String sha1hash, String name, List<Priority> filePriorities)
+    49	    {
+    50	        this.uri = uri;
+    51	        this.sha1hash = sha1hash;
+    52	        this.name = name;
+    53	        this.filePriorities = filePriorities;
+    54	    }
+    55	
+    56	    public MagnetInfo(Parcel s)
+    57	    {
+    58	        uri = s.readString();
+    59	        sha1hash = s.readString();
+    60	        name = s.readString();
+    61	        filePriorities = s.readArrayList(Priority.class.getClassLoader());
+    62	    }
+    63	
+    64	    @Override
+    65	    public int describeContents()
+    66	    {
+    67	        return 0;
+    68	    }
+    69	
+    70	    @Override
+    71	    public void writeToParcel(Parcel dest, int flags)
+    72	    {
+    73	        dest.writeString(uri);
+    74	        dest.writeString(sha1hash);
+    75	        dest.writeString(name);
+    76	        dest.writeList(filePriorities);
+    77	    }
+    78	
+    79	    public static final Parcelable.Creator<MagnetInfo> CREATOR =
+    80	            new Parcelable.Creator<MagnetInfo>()
+    81	            {
+    82	                @Override
+    83	                public MagnetInfo createFromParcel(Parcel source)
+    84	                {
+    85	                    return new MagnetInfo(source);
+    86	                }
+    87	
+    88	                @Override
+    89	                public MagnetInfo[] newArray(int size)
+    90	                {
+    91	                    return new MagnetInfo[size];
+    92	                }
+    93	            };
+    94	
+    95	    public String getUri()
+    96	    {
+    97	        return uri;
+    98	    }
+    99	
+   100	    public String getSha1hash()
+   101	    {
+   102	        return sha1hash;
+   103	    }
+   104	
+   105	    public String getName()
+   106	    {
+   107	        return name;
+   108	    }
+   109	
+   110	    public List<Priority> getFilePriorities()
+   111	    {
+   112	        return filePriorities;
+   113	    }
+   114	
+   115	    @Override
+   116	    public int hashCode()
+   117	    {
+   118	        return sha1hash.hashCode();
+   119	    }
+   120	
+   121	    @NonNull
+   122	    @Override
+   123	    public String toString()
+   124	    {
+   125	        return "MagnetInfo{" +
+   126	                "uri='" + uri + '\'' +
+   127	                ", sha1hash='" + sha1hash + '\'' +
+   128	                ", name='" + name + '\'' +
+   129	                ", filePriorities=" + filePriorities +
+   130	                '}';
+   131	    }
+   132	}
+
+===== core/model/data/SessionStats.java =====
+     1	/*
+     2	 * Copyright (C) 2019 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.core.model.data;
+    21	
+    22	import android.os.Parcel;
+    23	import android.os.Parcelable;
+    24	
+    25	import androidx.annotation.NonNull;
+    26	
+    27	public class SessionStats extends AbstractInfoParcel
+    28	{
+    29	    public long dhtNodes;
+    30	    public long totalDownload;
+    31	    public long totalUpload;
+    32	    public long downloadSpeed;
+    33	    public long uploadSpeed;
+    34	    public int listenPort;
+    35	
+    36	    public SessionStats(long dhtNodes, long totalDownload,
+    37	                        long totalUpload, long downloadSpeed,
+    38	                        long uploadSpeed, int listenPort)
+    39	    {
+    40	        this.dhtNodes = dhtNodes;
+    41	        this.totalDownload = totalDownload;
+    42	        this.totalUpload = totalUpload;
+    43	        this.downloadSpeed = downloadSpeed;
+    44	        this.uploadSpeed = uploadSpeed;
+    45	        this.listenPort = listenPort;
+    46	    }
+    47	
+    48	    public SessionStats(Parcel source)
+    49	    {
+    50	        super(source);
+    51	
+    52	        dhtNodes = source.readLong();
+    53	        totalDownload = source.readLong();
+    54	        totalUpload = source.readLong();
+    55	        downloadSpeed = source.readLong();
+    56	        uploadSpeed = source.readLong();
+    57	        listenPort = source.readInt();
+    58	    }
+    59	
+    60	    @Override
+    61	    public int describeContents()
+    62	    {
+    63	        return 0;
+    64	    }
+    65	
+    66	    @Override
+    67	    public void writeToParcel(Parcel dest, int flags)
+    68	    {
+    69	        super.writeToParcel(dest, flags);
+    70	
+    71	        dest.writeLong(dhtNodes);
+    72	        dest.writeLong(totalDownload);
+    73	        dest.writeLong(totalUpload);
+    74	        dest.writeLong(downloadSpeed);
+    75	        dest.writeLong(uploadSpeed);
+    76	        dest.writeInt(listenPort);
+    77	    }
+    78	
+    79	    public static final Parcelable.Creator<SessionStats> CREATOR =
+    80	            new Parcelable.Creator<SessionStats>()
+    81	            {
+    82	                @Override
+    83	                public SessionStats createFromParcel(Parcel source)
+    84	                {
+    85	                    return new SessionStats(source);
+    86	                }
+    87	
+    88	                @Override
+    89	                public SessionStats[] newArray(int size)
+    90	                {
+    91	                    return new SessionStats[size];
+    92	                }
+    93	            };
+    94	
+    95	    @Override
+    96	    public int hashCode()
+    97	    {
+    98	        int prime = 31, result = 1;
+    99	
+   100	        result = prime * result + (int) (dhtNodes ^ (dhtNodes >>> 32));
+   101	        result = prime * result + (int) (totalDownload ^ (totalDownload >>> 32));
+   102	        result = prime * result + (int) (totalUpload ^ (totalUpload >>> 32));
+   103	        result = prime * result + (int) (downloadSpeed ^ (downloadSpeed >>> 32));
+   104	        result = prime * result + (int) (uploadSpeed ^ (uploadSpeed >>> 32));
+   105	        result = prime * result + listenPort;
+   106	
+   107	        return result;
+   108	    }
+   109	
+   110	    @Override
+   111	    public int compareTo(@NonNull Object o)
+   112	    {
+   113	        return parcelId.compareTo(((SessionStats)o).parcelId);
+   114	    }
+   115	
+   116	    @Override
+   117	    public boolean equals(Object o)
+   118	    {
+   119	        if (!(o instanceof SessionStats))
+   120	            return false;
+   121	
+   122	        if (o == this)
+   123	            return true;
+   124	
+   125	        SessionStats stats = (SessionStats)o;
+   126	
+   127	        return dhtNodes == stats.dhtNodes &&
+   128	                totalDownload == stats.totalDownload &&
+   129	                totalUpload == stats.totalUpload &&
+   130	                downloadSpeed == stats.downloadSpeed &&
+   131	                uploadSpeed == stats.uploadSpeed &&
+   132	                listenPort == stats.listenPort;
+   133	    }
+   134	
+   135	    @NonNull
+   136	    @Override
+   137	    public String toString()
+   138	    {
+   139	        return "SessionStats{" +
+   140	                "dhtNodes=" + dhtNodes +
+   141	                ", totalDownload=" + totalDownload +
+   142	                ", totalUpload=" + totalUpload +
+   143	                ", downloadSpeed=" + downloadSpeed +
+   144	                ", uploadSpeed=" + uploadSpeed +
+   145	                ", listenPort=" + listenPort +
+   146	                '}';
+   147	    }
+   148	}
+
+===== core/model/data/TorrentInfo.java =====
+     1	/*
+     2	 * Copyright (C) 2018-2022 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.core.model.data;
+    21	
+    22	import android.os.Parcel;
+    23	import android.os.Parcelable;
+    24	
+    25	import androidx.annotation.NonNull;
+    26	
+    27	import org.proninyaroslav.libretorrent.core.model.data.entity.TagInfo;
+    28	
+    29	import java.util.ArrayList;
+    30	import java.util.Arrays;
+    31	import java.util.List;
+    32	
+    33	/*
+    34	 * The class provides a package model with dynamically changing information
+    35	 * about state of the torrent, sent from the service.
+    36	 */
+    37	
+    38	public class TorrentInfo extends AbstractInfoParcel {
+    39	    public static final long MAX_ETA = 8640000;
+    40	
+    41	    @NonNull
+    42	    public String torrentId;
+    43	    public String name;
+    44	    public TorrentStateCode stateCode;
+    45	    public int progress = 0;
+    46	    public long receivedBytes = 0L;
+    47	    public long uploadedBytes = 0L;
+    48	    public long totalBytes = 0L;
+    49	    public long downloadSpeed = 0L;
+    50	    public long uploadSpeed = 0L;
+    51	    public long ETA = MAX_ETA;
+    52	    public long dateAdded;
+    53	    public int totalPeers = 0;
+    54	    public int peers = 0;
+    55	    public String error;
+    56	    public boolean sequentialDownload = false;
+    57	    public Priority[] filePriorities = new Priority[0];
+    58	    public List<TagInfo> tags;
+    59	    public boolean firstLastPiecePriority = false;
+    60	
+    61	    public TorrentInfo(
+    62	            @NonNull String torrentId,
+    63	            String name,
+    64	            long dateAdded,
+    65	            String error,
+    66	            @NonNull List<TagInfo> tags
+    67	    ) {
+    68	        super(torrentId);
+    69	
+    70	        this.torrentId = torrentId;
+    71	        this.name = name;
+    72	        this.stateCode = TorrentStateCode.STOPPED;
+    73	        this.dateAdded = dateAdded;
+    74	        this.error = error;
+    75	        this.tags = tags;
+    76	    }
+    77	
+    78	    public TorrentInfo(
+    79	            @NonNull String torrentId,
+    80	            String name,
+    81	            TorrentStateCode stateCode,
+    82	            int progress,
+    83	            long receivedBytes,
+    84	            long uploadedBytes,
+    85	            long totalBytes,
+    86	            long downloadSpeed,
+    87	            long uploadSpeed,
+    88	            long ETA,
+    89	            long dateAdded,
+    90	            int totalPeers,
+    91	            int peers,
+    92	            String error,
+    93	            boolean sequentialDownload,
+    94	            Priority[] filePriorities,
+    95	            @NonNull List<TagInfo> tags,
+    96	            boolean firstLastPiecePriority
+    97	    ) {
+    98	        super(torrentId);
+    99	
+   100	        this.torrentId = torrentId;
+   101	        this.name = name;
+   102	        this.stateCode = stateCode;
+   103	        this.progress = progress;
+   104	        this.receivedBytes = receivedBytes;
+   105	        this.uploadedBytes = uploadedBytes;
+   106	        this.totalBytes = totalBytes;
+   107	        this.downloadSpeed = downloadSpeed;
+   108	        this.uploadSpeed = uploadSpeed;
+   109	        this.ETA = ETA;
+   110	        this.dateAdded = dateAdded;
+   111	        this.totalPeers = totalPeers;
+   112	        this.peers = peers;
+   113	        this.error = error;
+   114	        this.sequentialDownload = sequentialDownload;
+   115	        this.filePriorities = filePriorities;
+   116	        this.tags = tags;
+   117	        this.firstLastPiecePriority = firstLastPiecePriority;
+   118	    }
+   119	
+   120	    public TorrentInfo(Parcel source) {
+   121	        super(source);
+   122	
+   123	        torrentId = source.readString();
+   124	        name = source.readString();
+   125	        stateCode = TorrentStateCode.fromValue(source.readInt());
+   126	        progress = source.readInt();
+   127	        receivedBytes = source.readLong();
+   128	        uploadedBytes = source.readLong();
+   129	        totalBytes = source.readLong();
+   130	        downloadSpeed = source.readLong();
+   131	        uploadSpeed = source.readLong();
+   132	        ETA = source.readLong();
+   133	        dateAdded = source.readLong();
+   134	        totalPeers = source.readInt();
+   135	        peers = source.readInt();
+   136	        error = source.readString();
+   137	        sequentialDownload = source.readByte() != 0;
+   138	        filePriorities = (Priority[]) source.readArray(Priority.class.getClassLoader());
+   139	        tags = new ArrayList<>();
+   140	        source.readTypedList(tags, TagInfo.CREATOR);
+   141	        firstLastPiecePriority = source.readByte() != 0;
+   142	    }
+   143	
+   144	    @Override
+   145	    public int describeContents() {
+   146	        return 0;
+   147	    }
+   148	
+   149	    @Override
+   150	    public void writeToParcel(Parcel dest, int flags) {
+   151	        super.writeToParcel(dest, flags);
+   152	
+   153	        dest.writeString(torrentId);
+   154	        dest.writeString(name);
+   155	        dest.writeInt(stateCode.value());
+   156	        dest.writeInt(progress);
+   157	        dest.writeLong(receivedBytes);
+   158	        dest.writeLong(uploadedBytes);
+   159	        dest.writeLong(totalBytes);
+   160	        dest.writeLong(downloadSpeed);
+   161	        dest.writeLong(uploadSpeed);
+   162	        dest.writeLong(ETA);
+   163	        dest.writeLong(dateAdded);
+   164	        dest.writeInt(totalPeers);
+   165	        dest.writeInt(peers);
+   166	        dest.writeString(error);
+   167	        dest.writeByte((byte) (sequentialDownload ? 1 : 0));
+   168	        dest.writeArray(filePriorities);
+   169	        dest.writeTypedList(tags);
+   170	        dest.writeByte((byte) (firstLastPiecePriority ? 1 : 0));
+   171	    }
+   172	
+   173	    public static final Parcelable.Creator<TorrentInfo> CREATOR = new Parcelable.Creator<>() {
+   174	                @Override
+   175	                public TorrentInfo createFromParcel(Parcel source) {
+   176	                    return new TorrentInfo(source);
+   177	                }
+   178	
+   179	                @Override
+   180	                public TorrentInfo[] newArray(int size) {
+   181	                    return new TorrentInfo[size];
+   182	                }
+   183	            };
+   184	
+   185	    @Override
+   186	    public int compareTo(@NonNull Object another) {
+   187	        return name.compareTo(((TorrentInfo) another).name);
+   188	    }
+   189	
+   190	    @Override
+   191	    public int hashCode() {
+   192	        int prime = 31, result = 1;
+   193	
+   194	        result = prime * result + torrentId.hashCode();
+   195	        result = prime * result + ((name == null) ? 0 : name.hashCode());
+   196	        result = prime * result + ((stateCode == null) ? 0 : stateCode.hashCode());
+   197	        result = prime * result + progress;
+   198	        result = prime * result + (int) (receivedBytes ^ (receivedBytes >>> 32));
+   199	        result = prime * result + (int) (uploadedBytes ^ (uploadedBytes >>> 32));
+   200	        result = prime * result + (int) (totalBytes ^ (totalBytes >>> 32));
+   201	        result = prime * result + (int) (downloadSpeed ^ (downloadSpeed >>> 32));
+   202	        result = prime * result + (int) (uploadSpeed ^ (uploadSpeed >>> 32));
+   203	        result = prime * result + (int) (ETA ^ (ETA >>> 32));
+   204	        result = prime * result + (int) (dateAdded ^ (dateAdded >>> 32));
+   205	        result = prime * result + totalPeers;
+   206	        result = prime * result + peers;
+   207	        result = prime * result + ((error == null) ? 0 : error.hashCode());
+   208	        result = prime * result + (sequentialDownload ? 1 : 0);
+   209	        result = prime * result + Arrays.hashCode(filePriorities);
+   210	        result = prime * result + tags.hashCode();
+   211	        result = prime * result + (firstLastPiecePriority ? 1 : 0);
+   212	
+   213	        return result;
+   214	    }
+   215	
+   216	    @Override
+   217	    public boolean equals(Object o) {
+   218	        if (!(o instanceof TorrentInfo))
+   219	            return false;
+   220	
+   221	        if (o == this)
+   222	            return true;
+   223	
+   224	        TorrentInfo info = (TorrentInfo) o;
+   225	
+   226	        return (torrentId.equals(info.torrentId) &&
+   227	                (name == null || name.equals(info.name)) &&
+   228	                (stateCode == null || stateCode.equals(info.stateCode)) &&
+   229	                progress == info.progress &&
+   230	                receivedBytes == info.receivedBytes &&
+   231	                uploadedBytes == info.uploadedBytes &&
+   232	                totalBytes == info.totalBytes &&
+   233	                downloadSpeed == info.downloadSpeed &&
+   234	                uploadSpeed == info.uploadSpeed &&
+   235	                ETA == info.ETA &&
+   236	                dateAdded == info.dateAdded &&
+   237	                totalPeers == info.totalPeers &&
+   238	                peers == info.peers &&
+   239	                (error == null || error.equals(info.error)) &&
+   240	                sequentialDownload == info.sequentialDownload &&
+   241	                Arrays.equals(filePriorities, info.filePriorities) &&
+   242	                firstLastPiecePriority == info.firstLastPiecePriority &&
+   243	                tags.equals(info.tags));
+   244	    }
+   245	
+   246	    @NonNull
+   247	    @Override
+   248	    public String toString() {
+   249	        return "TorrentInfo{" +
+   250	                "torrentId='" + torrentId + '\'' +
+
+===== core/model/data/entity/Torrent.java =====
+     1	/*
+     2	 * Copyright (C) 2016-2022 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.core.model.data.entity;
+    21	
+    22	import android.net.Uri;
+    23	import android.os.Parcel;
+    24	import android.os.Parcelable;
+    25	
+    26	import androidx.annotation.NonNull;
+    27	import androidx.room.Entity;
+    28	import androidx.room.Ignore;
+    29	import androidx.room.PrimaryKey;
+    30	
+    31	import java.text.SimpleDateFormat;
+    32	import java.util.Date;
+    33	
+    34	/*
+    35	 * The class encapsulates the torrent file and its meta information.
+    36	 */
+    37	
+    38	@Entity
+    39	public class Torrent implements Parcelable
+    40	{
+    41	    /*
+    42	     * This torrent is visible and shows in the notifications after completion
+    43	     */
+    44	    public static final int VISIBILITY_VISIBLE_NOTIFY_FINISHED = 0;
+    45	    /*
+    46	     * This torrent doesn't show in the notifications
+    47	     */
+    48	    public static final int VISIBILITY_HIDDEN = 1;
+    49	
+    50	    /* Usually torrent SHA-1 hash */
+    51	    @NonNull
+    52	    @PrimaryKey
+    53	    public String id;
+    54	    @NonNull
+    55	    public String name;
+    56	    @NonNull
+    57	    public Uri downloadPath;
+    58	    public long dateAdded;
+    59	    public String error;
+    60	    public boolean manuallyPaused;
+    61	    public boolean sequentialDownload;
+    62	    /*
+    63	     * Warning: read-only field, do not change directly,
+    64	     *          only trough setMagnetUri
+    65	     */
+    66	    private String magnet;
+    67	    public boolean downloadingMetadata = false;
+    68	    public int visibility = VISIBILITY_VISIBLE_NOTIFY_FINISHED;
+    69	    public boolean firstLastPiecePriority;
+    70	
+    71	    @Ignore
+    72	    public Torrent(@NonNull String id,
+    73	                   @NonNull Uri downloadPath,
+    74	                   @NonNull String name,
+    75	                   boolean manuallyPaused,
+    76	                   long dateAdded,
+    77	                   boolean sequentialDownload,
+    78	                   boolean firstLastPiecePriority
+    79	    ){
+    80	        this.id = id;
+    81	        this.name = name;
+    82	        this.downloadPath = downloadPath;
+    83	        this.manuallyPaused = manuallyPaused;
+    84	        this.dateAdded = dateAdded;
+    85	        this.sequentialDownload = sequentialDownload;
+    86	        this.firstLastPiecePriority = firstLastPiecePriority;
+    87	    }
+    88	
+    89	    public Torrent(@NonNull String id,
+    90	                   String magnet,
+    91	                   @NonNull Uri downloadPath,
+    92	                   @NonNull String name,
+    93	                   boolean manuallyPaused,
+    94	                   long dateAdded,
+    95	                   boolean sequentialDownload,
+    96	                   boolean firstLastPiecePriority
+    97	    ){
+    98	        this(id, downloadPath, name, manuallyPaused, dateAdded, sequentialDownload, firstLastPiecePriority);
+    99	
+   100	        this.magnet = magnet;
+   101	    }
+   102	
+   103	    @Ignore
+   104	    public Torrent(Parcel source)
+   105	    {
+   106	        id = source.readString();
+   107	        magnet = source.readString();
+   108	        downloadPath = source.readParcelable(Uri.class.getClassLoader());
+   109	        name = source.readString();
+   110	        downloadingMetadata = source.readByte() != 0;
+   111	        dateAdded = source.readLong();
+   112	        error = source.readString();
+   113	        manuallyPaused = source.readByte() != 0;
+   114	        visibility = source.readInt();
+   115	        sequentialDownload = source.readByte() != 0;
+   116	        firstLastPiecePriority = source.readByte() != 0;
+   117	    }
+   118	
+   119	    public boolean isDownloadingMetadata()
+   120	    {
+   121	        return downloadingMetadata;
+   122	    }
+   123	
+   124	    public String getMagnet()
+   125	    {
+   126	        return magnet;
+   127	    }
+   128	
+   129	    public void setMagnetUri(String magnet)
+   130	    {
+   131	        this.magnet = magnet;
+   132	        downloadingMetadata = magnet != null;
+   133	    }
+   134	
+   135	    @Override
+   136	    public int describeContents()
+   137	    {
+   138	        return 0;
+   139	    }
+   140	
+   141	    @Override
+   142	    public void writeToParcel(Parcel dest, int flags)
+   143	    {
+   144	        dest.writeString(id);
+   145	        dest.writeString(magnet);
+   146	        dest.writeParcelable(downloadPath, flags);
+   147	        dest.writeString(name);
+   148	        dest.writeByte((byte)(downloadingMetadata ? 1 : 0));
+   149	        dest.writeLong(dateAdded);
+   150	        dest.writeString(error);
+   151	        dest.writeByte((byte)(manuallyPaused ? 1 : 0));
+   152	        dest.writeInt(visibility);
+   153	        dest.writeByte((byte)(sequentialDownload ? 1 : 0));
+   154	        dest.writeByte((byte)(firstLastPiecePriority ? 1 : 0));
+   155	    }
+   156	
+   157	    public static final Creator<Torrent> CREATOR = new Creator<>()
+   158	            {
+   159	                @Override
+   160	                public Torrent createFromParcel(Parcel source)
+   161	                {
+   162	                    return new Torrent(source);
+   163	                }
+   164	
+   165	                @Override
+   166	                public Torrent[] newArray(int size)
+   167	                {
+   168	                    return new Torrent[size];
+   169	                }
+   170	            };
+   171	
+   172	    @Override
+   173	    public int hashCode()
+   174	    {
+   175	        return id.hashCode();
+   176	    }
+   177	
+   178	    @Override
+   179	    public boolean equals(Object o)
+   180	    {
+   181	        return o instanceof Torrent && (o == this || id.equals(((Torrent)o).id));
+   182	    }
+   183	
+   184	    @NonNull
+   185	    @Override
+   186	    public String toString() {
+   187	        return "Torrent{" +
+   188	                "id='" + id + '\'' +
+   189	                ", name='" + name + '\'' +
+   190	                ", downloadPath=" + downloadPath +
+   191	                ", dateAdded=" + SimpleDateFormat.getDateTimeInstance().format(new Date(dateAdded)) +
+   192	                ", error='" + error + '\'' +
+   193	                ", manuallyPaused=" + manuallyPaused +
+   194	                ", sequentialDownload=" + sequentialDownload +
+   195	                ", magnet='" + magnet + '\'' +
+   196	                ", downloadingMetadata=" + downloadingMetadata +
+   197	                ", visibility=" + visibility +
+   198	                ", firstLastPiecePriority=" + firstLastPiecePriority +
+   199	                '}';
+   200	    }
+   201	}
+
+===== core/model/data/entity/TorrentTagInfo.java =====
+     1	/*
+     2	 * Copyright (C) 2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.core.model.data.entity;
+    21	
+    22	import androidx.annotation.NonNull;
+    23	import androidx.room.Entity;
+    24	import androidx.room.ForeignKey;
+    25	import androidx.room.Index;
+    26	
+    27	@Entity(
+    28	        foreignKeys = {
+    29	                @ForeignKey(
+    30	                        entity = TagInfo.class,
+    31	                        parentColumns = "id",
+    32	                        childColumns = "tagId",
+    33	                        onDelete = ForeignKey.CASCADE
+    34	                ),
+    35	                @ForeignKey(
+    36	                        entity = Torrent.class,
+    37	                        parentColumns = "id",
+    38	                        childColumns = "torrentId",
+    39	                        onDelete = ForeignKey.CASCADE
+    40	                ),
+    41	        },
+    42	        indices = {
+    43	                @Index("tagId"),
+    44	                @Index("torrentId"),
+    45	        },
+    46	        primaryKeys = {"tagId", "torrentId"}
+    47	)
+    48	public class TorrentTagInfo {
+    49	    public final long tagId;
+    50	
+    51	    @NonNull
+    52	    public final String torrentId;
+    53	
+    54	    public TorrentTagInfo(
+    55	            long tagId,
+    56	            @NonNull String torrentId
+    57	    ) {
+    58	        this.tagId = tagId;
+    59	        this.torrentId = torrentId;
+    60	    }
+    61	
+    62	    @Override
+    63	    public boolean equals(Object o) {
+    64	        if (this == o) return true;
+    65	        if (o == null || getClass() != o.getClass()) return false;
+    66	
+    67	        TorrentTagInfo that = (TorrentTagInfo) o;
+    68	
+    69	        if (tagId != that.tagId) return false;
+    70	        return torrentId.equals(that.torrentId);
+    71	    }
+    72	
+    73	    @Override
+    74	    public int hashCode() {
+    75	        int result = (int) (tagId ^ (tagId >>> 32));
+    76	        result = 31 * result + torrentId.hashCode();
+    77	        return result;
+    78	    }
+    79	
+    80	    @NonNull
+    81	    @Override
+    82	    public String toString() {
+    83	        return "TorrentTagInfo{" +
+    84	                "tagId='" + tagId + '\'' +
+    85	                ", torrentId='" + torrentId + '\'' +
+    86	                '}';
+    87	    }
+    88	}
+
+===== core/model/data/metainfo/BencodeFileItem.java =====
+     1	/*
+     2	 * Copyright (C) 2016 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.core.model.data.metainfo;
+    21	
+    22	import android.os.Parcel;
+    23	import android.os.Parcelable;
+    24	
+    25	import androidx.annotation.NonNull;
+    26	
+    27	/*
+    28	 * The class encapsulates path, index and file size, extracted from bencode.
+    29	 */
+    30	
+    31	public class BencodeFileItem implements Parcelable, Comparable<BencodeFileItem>
+    32	{
+    33	    private String path;
+    34	    private int index;
+    35	    private long size;
+    36	
+    37	    public BencodeFileItem(String path, int index, long size)
+    38	    {
+    39	        this.path = path;
+    40	        this.index = index;
+    41	        this.size = size;
+    42	    }
+    43	
+    44	    public BencodeFileItem(Parcel source)
+    45	    {
+    46	        path = source.readString();
+    47	        index = source.readInt();
+    48	        size = source.readLong();
+    49	    }
+    50	
+    51	    public String getPath()
+    52	    {
+    53	        return path;
+    54	    }
+    55	
+    56	    public void setPath(String path)
+    57	    {
+    58	        this.path = path;
+    59	    }
+    60	
+    61	    public long getSize()
+    62	    {
+    63	        return size;
+    64	    }
+    65	
+    66	    public void setSize(long size)
+    67	    {
+    68	        this.size = size;
+    69	    }
+    70	
+    71	    public int getIndex()
+    72	    {
+    73	        return index;
+    74	    }
+    75	
+    76	    public void setIndex(int index)
+    77	    {
+    78	        this.index = index;
+    79	    }
+    80	
+    81	    @Override
+    82	    public int describeContents()
+    83	    {
+    84	        return 0;
+    85	    }
+    86	
+    87	    @Override
+    88	    public void writeToParcel(Parcel dest, int flags)
+    89	    {
+    90	        dest.writeString(path);
+    91	        dest.writeInt(index);
+    92	        dest.writeLong(size);
+    93	    }
+    94	
+    95	    public static final Parcelable.Creator<BencodeFileItem> CREATOR =
+    96	            new Parcelable.Creator<BencodeFileItem>()
+    97	            {
+    98	                @Override
+    99	                public BencodeFileItem createFromParcel(Parcel source)
+   100	                {
+   101	                    return new BencodeFileItem(source);
+   102	                }
+   103	
+   104	                @Override
+   105	                public BencodeFileItem[] newArray(int size)
+   106	                {
+   107	                    return new BencodeFileItem[size];
+   108	                }
+   109	            };
+   110	
+   111	    @Override
+   112	    public int compareTo(@NonNull BencodeFileItem anotner)
+   113	    {
+   114	        return path.compareTo(anotner.path);
+   115	    }
+   116	
+   117	    @NonNull
+   118	    @Override
+   119	    public String toString()
+   120	    {
+   121	        return "BencodeFileItem{" +
+   122	                "path='" + path + '\'' +
+   123	                ", index=" + index +
+   124	                ", size=" + size +
+   125	                '}';
+   126	    }
+   127	}
+===== core/model/data/metainfo/TorrentMetaInfo.java =====
+     1	/*
+     2	 * Copyright (C) 2016, 2017, 2019 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.core.model.data.metainfo;
+    21	
+    22	import android.os.Parcel;
+    23	import android.os.Parcelable;
+    24	
+    25	import androidx.annotation.NonNull;
+    26	
+    27	import org.apache.commons.io.IOUtils;
+    28	import org.libtorrent4j.TorrentInfo;
+    29	import org.proninyaroslav.libretorrent.core.exception.DecodeException;
+    30	import org.proninyaroslav.libretorrent.core.utils.Utils;
+    31	
+    32	import java.io.FileInputStream;
+    33	import java.nio.channels.FileChannel;
+    34	import java.util.ArrayList;
+    35	
+    36	/*
+    37	 * Provides full information about the torrent, taken from bencode.
+    38	 */
+    39	
+    40	public class TorrentMetaInfo implements Parcelable
+    41	{
+    42	    @NonNull
+    43	    public String torrentName = "";
+    44	    @NonNull
+    45	    public String sha1Hash = "";
+    46	    @NonNull
+    47	    public String comment = "";
+    48	    @NonNull
+    49	    public String createdBy = "";
+    50	    public long torrentSize = 0L;
+    51	    public long creationDate = 0L;
+    52	    public int fileCount = 0;
+    53	    public int pieceLength = 0;
+    54	    public int numPieces = 0;
+    55	    public ArrayList<BencodeFileItem> fileList = new ArrayList<>();
+    56	
+    57	    public TorrentMetaInfo(@NonNull String torrentName, @NonNull String sha1hash)
+    58	    {
+    59	        this.torrentName = torrentName;
+    60	        this.sha1Hash = sha1hash;
+    61	    }
+    62	
+    63	    public TorrentMetaInfo(@NonNull byte[] data) throws DecodeException
+    64	    {
+    65	        try {
+    66	            getMetaInfo(TorrentInfo.bdecode(data));
+    67	
+    68	        } catch (Exception e) {
+    69	            throw new DecodeException(e);
+    70	        }
+    71	    }
+    72	
+    73	    public TorrentMetaInfo(TorrentInfo info) throws DecodeException
+    74	    {
+    75	        try {
+    76	            getMetaInfo(info);
+    77	
+    78	        } catch (Exception e) {
+    79	            throw new DecodeException(e);
+    80	        }
+    81	    }
+    82	
+    83	    public TorrentMetaInfo(FileInputStream is) throws DecodeException
+    84	    {
+    85	        FileChannel chan = null;
+    86	        try {
+    87	            chan = is.getChannel();
+    88	            getMetaInfo(new TorrentInfo(chan
+    89	                    .map(FileChannel.MapMode.READ_ONLY, 0, chan.size())));
+    90	
+    91	        } catch (Exception e) {
+    92	            throw new DecodeException(e);
+    93	        } finally {
+    94	            IOUtils.closeQuietly(chan);
+    95	        }
+    96	    }
+    97	
+    98	    private void getMetaInfo(TorrentInfo info)
+    99	    {
+   100	        torrentName = info.name();
+   101	        sha1Hash = info.infoHash().toHex();
+   102	        comment = info.comment();
+   103	        createdBy = info.creator();
+   104	        /* Correct convert UNIX time (time_t) */
+   105	        creationDate = info.creationDate() * 1000L;
+   106	        torrentSize = info.totalSize();
+   107	        fileCount = info.numFiles();
+   108	        fileList = Utils.getFileList(info.origFiles());
+   109	        pieceLength = info.pieceLength();
+   110	        numPieces = info.numPieces();
+   111	    }
+   112	
+   113	    public TorrentMetaInfo (Parcel source)
+   114	    {
+   115	        torrentName = source.readString();
+   116	        sha1Hash = source.readString();
+   117	        comment = source.readString();
+   118	        createdBy = source.readString();
+   119	        torrentSize = source.readLong();
+   120	        creationDate = source.readLong();
+   121	        fileCount = source.readInt();
+   122	        fileList = new ArrayList<>();
+   123	        source.readTypedList(fileList, BencodeFileItem.CREATOR);
+   124	        pieceLength = source.readInt();
+   125	        numPieces = source.readInt();
+   126	    }
+   127	
+   128	    @Override
+   129	    public int describeContents()
+   130	    {
+   131	        return 0;
+   132	    }
+   133	
+   134	    @Override
+   135	    public void writeToParcel(Parcel dest, int flags)
+   136	    {
+   137	        dest.writeString(torrentName);
+   138	        dest.writeString(sha1Hash);
+   139	        dest.writeString(comment);
+   140	        dest.writeString(createdBy);
+   141	        dest.writeLong(torrentSize);
+   142	        dest.writeLong(creationDate);
+   143	        dest.writeInt(fileCount);
+   144	        dest.writeTypedList(fileList);
+   145	        dest.writeInt(pieceLength);
+   146	        dest.writeInt(numPieces);
+   147	    }
+   148	
+   149	    public static final Parcelable.Creator<TorrentMetaInfo> CREATOR =
+   150	            new Parcelable.Creator<TorrentMetaInfo>()
+   151	            {
+   152	                @Override
+   153	                public TorrentMetaInfo createFromParcel(Parcel source)
+   154	                {
+   155	                    return new TorrentMetaInfo(source);
+   156	                }
+   157	
+   158	                @Override
+   159	                public TorrentMetaInfo[] newArray(int size)
+   160	                {
+   161	                    return new TorrentMetaInfo[size];
+   162	                }
+   163	            };
+   164	
+   165	    @Override
+   166	    public int hashCode()
+   167	    {
+   168	        return sha1Hash.hashCode();
+   169	    }
+   170	
+   171	    @Override
+   172	    public boolean equals(Object o)
+   173	    {
+   174	        if (!(o instanceof TorrentMetaInfo))
+   175	            return false;
+   176	
+   177	        if (o == this)
+   178	            return true;
+   179	
+   180	        TorrentMetaInfo info = (TorrentMetaInfo) o;
+   181	
+   182	        return torrentName.equals(info.torrentName) &&
+   183	                sha1Hash.equals(info.sha1Hash) &&
+   184	                comment.equals(info.comment) &&
+   185	                createdBy.equals(info.createdBy) &&
+   186	                torrentSize == info.torrentSize &&
+   187	                creationDate == info.creationDate &&
+   188	                fileCount == info.fileCount &&
+   189	                pieceLength == info.pieceLength &&
+   190	                numPieces == info.numPieces;
+   191	    }
+   192	
+   193	    @NonNull
+   194	    @Override
+   195	    public String toString()
+   196	    {
+   197	        return "TorrentMetaInfo{" +
+   198	                "torrentName='" + torrentName + '\'' +
+   199	                ", sha1Hash='" + sha1Hash + '\'' +
+   200	                ", comment='" + comment + '\'' +
+   201	                ", createdBy='" + createdBy + '\'' +
+   202	                ", torrentSize=" + torrentSize +
+   203	                ", creationDate=" + creationDate +
+   204	                ", fileCount=" + fileCount +
+   205	                ", pieceLength=" + pieceLength +
+   206	                ", numPieces=" + numPieces +
+   207	                ", fileList=" + fileList +
+   208	                '}';
+   209	    }
+   210	}
+
+===== core/model/filetree/FileTree.java =====
+     1	/*
+     2	 * Copyright (C) 2016 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.core.model.filetree;
+    21	
+    22	import androidx.annotation.NonNull;
+    23	import androidx.annotation.Nullable;
+    24	
+    25	import java.io.File;
+    26	import java.io.Serializable;
+    27	import java.util.ArrayList;
+    28	import java.util.Collection;
+    29	import java.util.LinkedHashMap;
+    30	import java.util.List;
+    31	import java.util.Map;
+    32	import java.util.Set;
+    33	
+    34	/*
+    35	 * The class represents a file tree model hierarchy. Based on trie.
+    36	 */
+    37	
+    38	public class FileTree<F extends FileTree<?>> implements FileNode<FileTree<?>>, Serializable
+    39	{
+    40	    public static final String ROOT = File.separator;
+    41	    /* The name for pointer to the parent node */
+    42	    public static final String PARENT_DIR = "..";
+    43	
+    44	    protected int index;
+    45	    protected String name;
+    46	    protected long size;
+    47	    protected boolean isLeaf;
+    48	    protected F parent;
+    49	    protected Map<String, F> children = new LinkedHashMap<>();
+    50	
+    51	    public FileTree(String name, long size, int type)
+    52	    {
+    53	        this(-1, name, size, type, null);
+    54	    }
+    55	
+    56	    public FileTree(String name, long size, int type, F parent)
+    57	    {
+    58	        this(-1, name, size, type, parent);
+    59	    }
+    60	
+    61	    public FileTree(int index, String name, long size, int type)
+    62	    {
+    63	        this(index, name, size, type, null);
+    64	    }
+    65	
+    66	    public FileTree(int index, String name, long size, int type, F parent)
+    67	    {
+    68	        this.index = index;
+    69	        this.name = name;
+    70	        this.size = size;
+    71	        isLeaf = (type == FileNode.Type.FILE);
+    72	        this.parent = parent;
+    73	    }
+    74	
+    75	    public synchronized void addChild(F node)
+    76	    {
+    77	        children.put(node.getName(), node);
+    78	    }
+    79	
+    80	    public boolean contains(String name)
+    81	    {
+    82	        return children.containsKey(name);
+    83	    }
+    84	
+    85	    public F getChild(String name)
+    86	    {
+    87	        return children.get(name);
+    88	    }
+    89	
+    90	    public Collection<F> getChildren()
+    91	    {
+    92	        return children.values();
+    93	    }
+    94	
+    95	    public Set<String> getChildrenName()
+    96	    {
+    97	        return children.keySet();
+    98	    }
+    99	
+   100	    public List<Integer> getChildrenIndexes()
+   101	    {
+   102	        List<Integer> indexes = new ArrayList<>();
+   103	
+   104	        for (F child : children.values())
+   105	            indexes.add(child.getIndex());
+   106	
+   107	        return indexes;
+   108	    }
+   109	
+   110	    public int getChildrenCount()
+   111	    {
+   112	        return children.size();
+   113	    }
+   114	
+   115	    public boolean isFile()
+   116	    {
+   117	        return isLeaf;
+   118	    }
+   119	
+   120	    public F getParent()
+   121	    {
+   122	        return parent;
+   123	    }
+   124	
+   125	    public void setParent(F parent)
+   126	    {
+   127	        this.parent = parent;
+   128	    }
+   129	
+   130	    @Override
+   131	    public void setName(String name)
+   132	    {
+   133	        this.name = name;
+   134	    }
+   135	
+   136	    @Override
+   137	    public String getName()
+   138	    {
+   139	        return name;
+   140	    }
+   141	
+   142	    public void setIndex(int index)
+   143	    {
+   144	        this.index = index;
+   145	    }
+   146	
+   147	    public int getIndex()
+   148	    {
+   149	        return index;
+   150	    }
+   151	
+   152	    @Override
+   153	    public int getType()
+   154	    {
+   155	        return (isLeaf ? FileNode.Type.FILE : FileNode.Type.DIR);
+   156	    }
+   157	
+   158	    @Override
+   159	    public void setType(int type)
+   160	    {
+   161	        isLeaf = (type == FileNode.Type.FILE);
+   162	    }
+   163	
+   164	    public long size()
+   165	    {
+   166	        if (size == 0 && children.size() != 0)
+   167	            for (F child : children.values())
+   168	                size += child.size();
+   169	
+   170	        return size;
+   171	    }
+   172	
+   173	    public String getPath()
+   174	    {
+   175	        StringBuilder path = new StringBuilder();
+   176	        FileTree<?> curNode = this;
+   177	
+   178	        while (curNode.parent != null) {
+   179	            path.insert(0, curNode.name + File.separator);
+   180	            curNode = curNode.parent;
+   181	        }
+   182	
+   183	        return path.toString();
+   184	    }
+   185	
+   186	    @Override
+   187	    public int compareTo(@NonNull FileTree another)
+   188	    {
+   189	        return name.compareTo(another.getName());
+   190	    }
+   191	
+   192	    @Override
+   193	    public boolean equals(@Nullable Object o)
+   194	    {
+   195	        if (!(o instanceof FileTree))
+   196	            return false;
+   197	
+   198	        if (o == this)
+   199	            return true;
+   200	
+   201	        FileTree<?> fileTree = (FileTree<?>)o;
+   202	
+   203	        return index == fileTree.index &&
+   204	                (name == null || name.equals(fileTree.name)) &&
+   205	                size == fileTree.size &&
+   206	                isLeaf == fileTree.isLeaf;
+   207	    }
+   208	
+   209	    @NonNull
+   210	    @Override
+   211	    public String toString()
+   212	    {
+   213	        return "FileTree{" +
+   214	                "index=" + index +
+   215	                ", name='" + name + '\'' +
+   216	                ", size=" + size +
+   217	                ", isLeaf=" + isLeaf +
+   218	                ", parent=" + parent +
+   219	                ", children=" + children.size() +
+   220	                '}';
+   221	    }
+   222	}
+

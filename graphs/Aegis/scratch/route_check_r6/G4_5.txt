@@ -1,0 +1,122 @@
+## GlideOptions.clone  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=- state=- classes=explicit;non_standard;standard explicit_standard_route=no
+   1. Eb9515d18 ENTRY/standard*
+      S_ENTRY -> AegisApplication.<init>
+      Any outside trigger starts the app process; the application class is created first, except in a backup or restore start, which uses the base Application class
+      guard: not a full backup or restore start (FW ActivityThread.java:5713-5715)
+      evidence: SRC AndroidManifest.xml:21-27 (android:name=".AegisApplication", backupAgent=".AegisBackupAgent")
+         21      <application
+         22          android:name=".AegisApplication"
+         23          android:allowBackup="true"
+         24          android:fullBackupOnly="true"
+         25          android:fullBackupContent="@xml/backup_rules_old"
+         26          android:dataExtractionRules="@xml/backup_rules"
+         27          android:backupAgent=".AegisBackupAgent"
+   2. E5b266140 LIFECYCLE/standard*
+      AegisApplication.<init> -> Hilt_AegisApplication.onCreate
+      Application.onCreate: the Hilt-generated superclass onCreate runs first (Hilt injection), then AegisApplicationBase.onCreate
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:5740 (the system calls Application.onCreate); INFERRED Hilt rewrites the superclass: AegisApplication extends Hilt_AegisApplication (generated file, not in the source tree; source AegisApplication.java:6 has no onCreate)
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+   3. E1ef992ce CALL/explicit
+      Hilt_AegisApplication.onCreate -> AegisApplicationBase.onCreate
+      Direct call
+      evidence: INFERRED generated code (Hilt_AegisApplication.java is not in the source tree; the call is in the build class, line 43)
+   4. E88ed9829 ENTERS/page*
+      AegisApplicationBase.onCreate -> S_PROCESS
+      the application is created: the process can start a component
+      evidence: SRC AegisApplicationBase.java:45-67; FW-SRC core/java/android/app/ActivityThread.java:5740 (the system calls Application.onCreate)
+         45      public void onCreate() {
+         46          super.onCreate();
+         47          _vaultManager = EarlyEntryPoints.get(this, EntryPoint.class).getVaultManager();
+         48  
+         49          VaultLockReceiver lockReceiver = new VaultLockReceiver();
+         50          IntentFilter intentFilter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
+         51          ContextCompat.registerReceiver(this, lockReceiver, intentFilter, ContextCompat.RECEIVER_NOT_EXPORTED);
+         52  
+         53          // lock the app if the user moves the application to the background
+         54          ProcessLifecycleOwner.get().getLifecycle().addObserver(new AppLifecycleObserver());
+         55  
+         56          // clear the cache directory on startup, to make sure no temporary vault export files remain
+         57          IOUtils.clearDirectory(getCacheDir(), false);
+         58  
+      ...  (9 more lines)
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+   5. E28ffc58c ENTRY/standard*
+      S_PROCESS -> MainActivity.<init>
+      Tap the Aegis icon in the launcher (MAIN / LAUNCHER)
+      evidence: SRC AndroidManifest.xml:44-51
+         44              android:name=".ui.MainActivity"
+         45              android:exported="true"
+         46              android:label="${title}">
+         47              <intent-filter>
+         48                  <action android:name="android.intent.action.MAIN" />
+         49  
+         50                  <category android:name="android.intent.category.LAUNCHER" />
+         51              </intent-filter>
+   6. Eb76444fd LIFECYCLE/standard*
+      MainActivity.<init> -> MainActivity.onCreate
+      Activity.onCreate after the constructor
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731,2741 (the system calls Activity.onCreate, then performStart); SRC ui/MainActivity.java:192-194
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+        192      @Override
+        193      protected void onCreate(Bundle savedInstanceState) {
+        194          super.onCreate(savedInstanceState);
+   7. E3e74e870 FRAMEWORK/non_standard(reflection: the androidx FragmentManager creates the fragment class named in the layout (android:name, res/layout/activity_main.xml:54-56))
+      MainActivity.onCreate -> EntryListView.<init>
+      the layout holds the entry list fragment (key_profiles): the FragmentManager creates it
+      evidence: INFERRED androidx.fragment: the fragment in the layout is created by the FragmentManager (source not read); SRC ui/MainActivity.java:195; SRC res/layout/activity_main.xml:54-56
+        195          setContentView(R.layout.activity_main);
+         54          <fragment
+         55              android:id="@+id/key_profiles"
+         56              android:name="com.beemdevelopment.aegis.ui.views.EntryListView"
+   8. E89bce4c8 LIFECYCLE/standard*
+      EntryListView.<init> -> EntryListView.onCreate
+      Fragment.onCreate after the constructor
+      evidence: INFERRED androidx.fragment: the FragmentManager calls onCreate (source not read); SRC ui/views/EntryListView.java:84
+         84      public void onCreate(Bundle savedInstanceState) {
+   9. Eda7e9bd0 LIFECYCLE/standard*
+      EntryListView.onCreate -> EntryListView.onCreateView
+      Fragment.onCreateView inflates the list and sets the adapter
+      evidence: INFERRED androidx.fragment: the FragmentManager calls onCreateView (source not read); SRC ui/views/EntryListView.java:97-144
+         97      public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+         98          View view = inflater.inflate(R.layout.fragment_entry_list_view, container, false);
+         99          _progressBar = view.findViewById(R.id.progressBar);
+        100          _vibrationHelper = new VibrationHelper(getContext());
+        101  
+        102          // set up the recycler view
+        103          _recyclerView = view.findViewById(R.id.rvKeyProfiles);
+        104          _recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+        105              @Override
+        106              public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+        107                  super.onScrolled(recyclerView, dx, dy);
+        108                  if (_listener != null) {
+        109                      _listener.onScroll(dx, dy);
+        110                  }
+      ...  (34 more lines)
+  10. E7805ee87 FRAMEWORK/non_standard(library lookup: Glide finds the generated request-manager factory through the generated module (Glide library source not on disk))
+      EntryListView.onCreateView -> GeneratedRequestManagerFactory.build
+      Glide.with: the library asks the generated request-manager factory for a request manager (GlideRequests)
+      evidence: INFERRED Glide library (source not read); generated GeneratedRequestManagerFactory is on disk in the build classes (dirs/com/bumptech/glide/GeneratedRequestManagerFactory.class, build method; not in the source tree); SRC ui/views/EntryListView.java:124
+        124          RecyclerViewPreloader<VaultEntry> preloader = new RecyclerViewPreloader<>(Glide.with(this), modelProvider, _preloadSizeProvider, 10);
+  11. Eab5f3cfb CALL/explicit*
+      GeneratedRequestManagerFactory.build -> GlideRequests.<init>
+      Direct call
+      evidence: INFERRED generated code (GeneratedRequestManagerFactory.java is not in the source tree; the call is in the build class, line 18)
+  12. E265bbd0b FRAMEWORK/non_standard(library virtual dispatch: the Glide RequestManager constructor calls setRequestOptions, which the generated GlideRequests overrides (Glide library source not on disk))
+      GlideRequests.<init> -> GlideRequests.setRequestOptions
+      the RequestManager constructor calls setRequestOptions, which the generated GlideRequests overrides (it wraps the options in GlideOptions)
+      evidence: INFERRED Glide library RequestManager constructor (source not read); generated GlideRequests (dataset, not source tree)
+  13. Edb1d9299 CALL/explicit*
+      GlideRequests.setRequestOptions -> GlideOptions.apply
+      the options are not a GlideOptions yet: the generated override wraps them with new GlideOptions().apply(toSet)
+      guard: the options passed in are not already a GlideOptions (GlideRequests.java:176 is the else branch of the instanceof check)
+      evidence: INFERRED generated code (GlideRequests.java is not in the source tree; the call is in the build class, line 176))
+  14. Ec449db03 FRAMEWORK/non_standard(library virtual dispatch: Glide RequestOptions.apply calls autoClone(), which the generated GlideOptions overrides (Glide library source not on disk))
+      GlideOptions.apply -> GlideOptions.autoClone
+      the library RequestOptions.apply calls autoClone() on the options (virtual call, so the generated override runs); the library source is not on disk, so this step is not verified
+      evidence: INFERRED Glide library RequestOptions.apply -> autoClone (library source not on disk); generated GlideOptions.java not in the source tree
+  15. E9d286870 FRAMEWORK/non_standard(library virtual dispatch: Glide RequestOptions.autoClone calls clone(), which the generated GlideOptions overrides (Glide library source not on disk))
+      GlideOptions.autoClone -> GlideOptions.clone
+      the library RequestOptions.autoClone copies the options by calling clone() (virtual call, so the generated override runs)
+      evidence: INFERRED Glide library RequestOptions.autoClone -> clone (library source not on disk)
+

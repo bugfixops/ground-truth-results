@@ -1,0 +1,399 @@
+METHOD: SaveLogWorker.lambda$showSuccessToast$1
+verdict: REACHABLE   steps_from_launch: 15
+route steps: 15 edges
+======================================================================
+
+STEP 1  edge Ef4711e98
+  S_ENTRY -> MainActivity.onCreate
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: android:exported="true"
+  evidence: SRC AndroidManifest.xml:43-59; FW-SRC core/java/android/app/ActivityThread.java:2727-2732; core/java/android/app/Instrumentation.java:1212-1215
+  cite [SRC] AndroidManifest.xml:43-59
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/AndroidManifest.xml)
+       43:         <activity android:name=".ui.main.MainActivity"
+       44:             android:theme="@style/AppTheme.Launcher"
+       45:             android:exported="true">
+       46:             <meta-data
+       47:                 android:name="android.app.shortcuts"
+       48:                 android:resource="@xml/shortcuts" />
+       49:             <meta-data android:name="android.app.searchable"
+       50:                 android:resource="@xml/searchable"/>
+       51: 
+       52:             <intent-filter>
+       53:                 <action android:name="android.intent.action.MAIN" />
+       54:                 <category android:name="android.intent.category.LAUNCHER" />
+       55:                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+       56:             </intent-filter>
+       57:             <intent-filter>
+       58:                 <action android:name="android.intent.action.SEARCH" />
+       59:             </intent-filter>
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2727-2732
+     2727:                 activity.mCalled = false;
+     2728:                 if (r.isPersistable()) {
+     2729:                     mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+     2730:                 } else {
+     2731:                     mInstrumentation.callActivityOnCreate(activity, r.state);
+     2732:                 }
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1212-1215
+     1212:     public void callActivityOnCreate(Activity activity, Bundle icicle) {
+     1213:         prePerformCreate(activity);
+     1214:         activity.performCreate(icicle);
+     1215:         postPerformCreate(activity);
+
+STEP 2  edge E9278e2d5
+  MainActivity.onCreate -> MainActivity.onStart
+  class: standard   kind: LIFECYCLE
+  guard: getIntent().getAction() != NOTIFY_ACTION_SHUTDOWN_APP; !mFinished
+  needs_state: None
+  env: None
+  evidence: SRC ui/main/MainActivity.java:140-144,381-389; FW-SRC core/java/android/app/ActivityThread.java:2738-2745; core/java/android/app/Activity.java:7014-7023; core/java/android/app/Instrumentation.java:1333-1335
+  cite [SRC] ui/main/MainActivity.java:140-144, 381-389
+      140:         if (getIntent().getAction() != null &&
+      141:                 getIntent().getAction().equals(NotificationReceiver.NOTIFY_ACTION_SHUTDOWN_APP)) {
+      142:             finish();
+      143:             return;
+      144:         }
+      381:     public void onStart() {
+      382:         super.onStart();
+      383: 
+      384:         subscribeAlertDialog();
+      385:         subscribeMsgViewModel();
+      386:         subscribeSessionStats();
+      387:         subscribeNeedStartEngine();
+      388:         subscribeTags();
+      389:     }
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2738-2745
+     2738:                 r.activity = activity;
+     2739:                 r.stopped = true;
+     2740:                 if (!r.activity.mFinished) {
+     2741:                     activity.performStart();
+     2742:                     r.stopped = false;
+     2743:                 }
+     2744:                 if (!r.activity.mFinished) {
+     2745:                     if (r.isPersistable()) {
+  cite [FW-SRC] core/java/android/app/Activity.java:7014-7023
+     7014:     final void performStart() {
+     7015:         mActivityTransitionState.setEnterActivityOptions(this, getActivityOptions());
+     7016:         mFragments.noteStateNotSaved();
+     7017:         mCalled = false;
+     7018:         mFragments.execPendingActions();
+     7019:         mInstrumentation.callActivityOnStart(this);
+     7020:         if (!mCalled) {
+     7021:             throw new SuperNotCalledException(
+     7022:                 "Activity " + mComponent.toShortString() +
+     7023:                 " did not call through to super.onStart()");
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1333-1335
+     1333:     public void callActivityOnStart(Activity activity) {
+     1334:         activity.onStart();
+     1335:     }
+
+STEP 3  edge E37e3a4dc
+  MainActivity.onStart -> MainActivity.onCreateOptionsMenu
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AppCompat menu callback dispatch; SRC ui/main/MainActivity.java:214-216,697-705
+  cite [SRC] ui/main/MainActivity.java:214-216, 697-705
+      214:         toolbar.setTitle(R.string.app_name);
+      215:         toolbar.inflateMenu(R.menu.main);
+      216:         setSupportActionBar(toolbar);
+      697:     @Override
+      698:     public boolean onCreateOptionsMenu(Menu menu) {
+      699:         toolbar.inflateMenu(R.menu.main);
+      700:         searchView = (SearchView) toolbar.getMenu().findItem(R.id.search).getActionView();
+      701:         initSearch();
+      702:         toolbar.setOnMenuItemClickListener(this::onOptionsItemSelected);
+      703: 
+      704:         return true;
+      705:     }
+
+STEP 4  edge E6507c563
+  MainActivity.onCreateOptionsMenu -> MainActivity.onOptionsItemSelected
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AppCompat menu callback dispatch; SRC ui/main/MainActivity.java:698-705,738-758
+  cite [SRC] ui/main/MainActivity.java:698-705, 738-758
+      698:     public boolean onCreateOptionsMenu(Menu menu) {
+      699:         toolbar.inflateMenu(R.menu.main);
+      700:         searchView = (SearchView) toolbar.getMenu().findItem(R.id.search).getActionView();
+      701:         initSearch();
+      702:         toolbar.setOnMenuItemClickListener(this::onOptionsItemSelected);
+      703: 
+      704:         return true;
+      705:     }
+      738:     public boolean onOptionsItemSelected(MenuItem item) {
+      739:         int itemId = item.getItemId();
+      740:         if (itemId == R.id.feed_menu) {
+      741:             startActivity(new Intent(this, FeedActivity.class));
+      742:         } else if (itemId == R.id.settings_menu) {
+      743:             startActivity(new Intent(this, SettingsActivity.class));
+      744:         } else if (itemId == R.id.about_menu) {
+      745:             showAboutDialog();
+      746:         } else if (itemId == R.id.shutdown_app_menu) {
+      747:             closeOptionsMenu();
+      748:             viewModel.stopEngine();
+      749:             finish();
+      750:         } else if (itemId == R.id.pause_all_menu) {
+      751:             viewModel.pauseAll();
+      752:         } else if (itemId == R.id.resume_all_menu) {
+      753:             viewModel.resumeAll();
+      754:         } else if (itemId == R.id.log_menu) {
+      755:             showLog();
+      756:         }
+      757: 
+      758:         return true;
+
+STEP 5  edge E1556c93c
+  MainActivity.onOptionsItemSelected -> MainActivity.showLog
+  class: explicit   kind: CALL
+  guard: itemId == R.id.log_menu
+  needs_state: None
+  env: None
+  evidence: SRC ui/main/MainActivity.java:754-758; ui/main/MainActivity.java:801-804
+  cite [SRC] ui/main/MainActivity.java:754-758
+      754:         } else if (itemId == R.id.log_menu) {
+      755:             showLog();
+      756:         }
+      757: 
+      758:         return true;
+  cite [SRC] ui/main/MainActivity.java:801-804
+      801:     private void showLog() {
+      802:         startActivity(new Intent(this, LogActivity.class));
+      803:     }
+      804: 
+
+STEP 6  edge E13221336
+  MainActivity.showLog -> LogActivity.onCreate
+  class: standard   kind: INTENT
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/main/MainActivity.java:801-804; AndroidManifest.xml:239-240; FW-SRC core/java/android/app/ActivityThread.java:2727-2732; core/java/android/app/Instrumentation.java:1212-1215
+  cite [SRC] ui/main/MainActivity.java:801-804
+      801:     private void showLog() {
+      802:         startActivity(new Intent(this, LogActivity.class));
+      803:     }
+      804: 
+  cite [SRC] AndroidManifest.xml:239-240
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/AndroidManifest.xml)
+      239:             android:name=".ui.log.LogActivity" />
+      240: 
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2727-2732
+     2727:                 activity.mCalled = false;
+     2728:                 if (r.isPersistable()) {
+     2729:                     mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+     2730:                 } else {
+     2731:                     mInstrumentation.callActivityOnCreate(activity, r.state);
+     2732:                 }
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1212-1215
+     1212:     public void callActivityOnCreate(Activity activity, Bundle icicle) {
+     1213:         prePerformCreate(activity);
+     1214:         activity.performCreate(icicle);
+     1215:         postPerformCreate(activity);
+
+STEP 7  edge E28ecff82
+  LogActivity.onCreate -> LogActivity.onCreateOptionsMenu
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AppCompat menu callback dispatch; SRC ui/log/LogActivity.java:57-58,194-200
+  cite [SRC] ui/log/LogActivity.java:57-58, 194-200
+       57: public class LogActivity extends AppCompatActivity
+       58:     implements LogAdapter.ClickListener
+      194:     @Override
+      195:     public boolean onCreateOptionsMenu(Menu menu)
+      196:     {
+      197:         MenuInflater inflater = getMenuInflater();
+      198:         inflater.inflate(R.menu.log, menu);
+      199: 
+      200:         return true;
+
+STEP 8  edge E4fb31cce
+  LogActivity.onCreateOptionsMenu -> LogActivity.onOptionsItemSelected
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AppCompat menu callback dispatch; SRC ui/log/LogActivity.java:194-200,231-248
+  cite [SRC] ui/log/LogActivity.java:194-200, 231-248
+      194:     @Override
+      195:     public boolean onCreateOptionsMenu(Menu menu)
+      196:     {
+      197:         MenuInflater inflater = getMenuInflater();
+      198:         inflater.inflate(R.menu.log, menu);
+      199: 
+      200:         return true;
+      231:     @Override
+      232:     public boolean onOptionsItemSelected(MenuItem item)
+      233:     {
+      234:         int itemId = item.getItemId();
+      235:         if (itemId == R.id.pause_resume_log_menu) {
+      236:             pauseResumeLog();
+      237:         } else if (itemId == R.id.record_log_menu) {
+      238:             toggleRecord();
+      239:         } else if (itemId == R.id.save_log_menu) {
+      240:             saveLogPathChooseDialog();
+      241:         } else if (itemId == R.id.filter_log_menu) {
+      242:             showFilterDialog();
+      243:         } else if (itemId == R.id.log_settings_menu) {
+      244:             showLogSettings();
+      245:         }
+      246: 
+      247:         return true;
+      248:     }
+
+STEP 9  edge E9fd837ac
+  LogActivity.onOptionsItemSelected -> LogActivity.saveLogPathChooseDialog
+  class: explicit   kind: CALL
+  guard: itemId == R.id.save_log_menu
+  needs_state: None
+  env: None
+  evidence: SRC ui/log/LogActivity.java:231-247,311-326
+  cite [SRC] ui/log/LogActivity.java:231-247, 311-326
+      231:     @Override
+      232:     public boolean onOptionsItemSelected(MenuItem item)
+      233:     {
+      234:         int itemId = item.getItemId();
+      235:         if (itemId == R.id.pause_resume_log_menu) {
+      236:             pauseResumeLog();
+      237:         } else if (itemId == R.id.record_log_menu) {
+      238:             toggleRecord();
+      239:         } else if (itemId == R.id.save_log_menu) {
+      240:             saveLogPathChooseDialog();
+      241:         } else if (itemId == R.id.filter_log_menu) {
+      242:             showFilterDialog();
+      243:         } else if (itemId == R.id.log_settings_menu) {
+      244:             showLogSettings();
+      245:         }
+      246: 
+      247:         return true;
+      311:         config.fileName = viewModel.getSaveLogFileName();
+      312:         config.mimeType = Utils.MIME_TEXT_PLAIN;
+      313: 
+      314:         i.putExtra(FileManagerDialog.TAG_CONFIG, config);
+      315:         saveLogPathChoose.launch(i);
+      316:     }
+      317: 
+      318:     final ActivityResultLauncher<Intent> saveLogPathChoose = registerForActivityResult(
+      319:             new ActivityResultContracts.StartActivityForResult(),
+      320:             result -> {
+      321:                 Intent data = result.getData();
+      322:                 if (result.getResultCode() == RESULT_OK && data != null) {
+      323:                     Uri filePath = data.getData();
+      324:                     if (filePath == null)
+      325:                         return;
+      326: 
+
+STEP 10  edge Ede62e53d
+  LogActivity.saveLogPathChooseDialog -> LogActivity.lambda$new$4
+  class: non_standard   kind: RESULT
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX ActivityResultLauncher result dispatch; SRC ui/log/LogActivity.java:304-336
+  cite [SRC] ui/log/LogActivity.java:304-336
+      304:     private void saveLogPathChooseDialog()
+      305:     {
+      306:         Intent i = new Intent(this, FileManagerDialog.class);
+      307:         FileManagerConfig config = new FileManagerConfig(
+      308:                 null,
+      309:                 getString(R.string.pref_journal_save_log_to),
+      310:                 FileManagerConfig.SAVE_FILE_MODE);
+      311:         config.fileName = viewModel.getSaveLogFileName();
+      312:         config.mimeType = Utils.MIME_TEXT_PLAIN;
+      313: 
+      314:         i.putExtra(FileManagerDialog.TAG_CONFIG, config);
+      315:         saveLogPathChoose.launch(i);
+      316:     }
+      317: 
+      318:     final ActivityResultLauncher<Intent> saveLogPathChoose = registerForActivityResult(
+      319:             new ActivityResultContracts.StartActivityForResult(),
+      320:             result -> {
+      321:                 Intent data = result.getData();
+      322:                 if (result.getResultCode() == RESULT_OK && data != null) {
+      323:                     Uri filePath = data.getData();
+      324:                     if (filePath == null)
+      325:                         return;
+      326: 
+      327:                     viewModel.saveLog(filePath);
+      328: 
+      329:                 } else {
+      330:                     viewModel.stopLogRecording();
+      331:                     resumeLog();
+      332:                 }
+      333: 
+      334:                 invalidateOptionsMenu();
+      335:             }
+      336:     );
+
+STEP 11  edge E7e34e931
+  LogActivity.lambda$new$4 -> LogViewModel.saveLog
+  class: explicit   kind: CALL
+  guard: result.getResultCode() == RESULT_OK && data != null && data.getData() != null
+  needs_state: None
+  env: None
+  evidence: SRC ui/log/LogActivity.java:320-328
+  cite [SRC] ui/log/LogActivity.java:320-328
+      320:             result -> {
+      321:                 Intent data = result.getData();
+      322:                 if (result.getResultCode() == RESULT_OK && data != null) {
+      323:                     Uri filePath = data.getData();
+      324:                     if (filePath == null)
+      325:                         return;
+      326: 
+      327:                     viewModel.saveLog(filePath);
+      328: 
+
+STEP 12  edge E36d86b00
+  LogViewModel.saveLog -> SaveLogWorker.doWork
+  class: non_standard   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED WorkManager dispatch; SRC ui/log/LogViewModel.java:208-212
+  cite [SRC] ui/log/LogViewModel.java:208-212
+      208:         OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(SaveLogWorker.class)
+      209:                 .setInputData(data)
+      210:                 .build();
+      211: 
+      212:         WorkManager.getInstance(getApplication()).enqueue(request);
+
+STEP 13  edge Ec386e352
+  SaveLogWorker.doWork -> SaveLogWorker.saveLog
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC service/SaveLogWorker.java:81
+  cite [SRC] service/SaveLogWorker.java:81
+       81:         return saveLog(Uri.parse(filePath), resume);
+
+STEP 14  edge E9ccb84f5
+  SaveLogWorker.saveLog -> SaveLogWorker.showSuccessToast
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC service/SaveLogWorker.java:97
+  cite [SRC] service/SaveLogWorker.java:97
+       97:             showSuccessToast(fs.getFilePath(filePath));
+
+STEP 15  edge Eea48d199
+  SaveLogWorker.showSuccessToast -> SaveLogWorker.lambda$showSuccessToast$1
+  class: non_standard   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED handler dispatch; SRC service/SaveLogWorker.java:123-127
+  cite [SRC] service/SaveLogWorker.java:123-127
+      123:         handler.post(() -> Toast.makeText(appContext,
+      124:                 appContext.getString(R.string.journal_save_log_success, fileName),
+      125:                 Toast.LENGTH_LONG)
+      126:                 .show()
+      127:         );

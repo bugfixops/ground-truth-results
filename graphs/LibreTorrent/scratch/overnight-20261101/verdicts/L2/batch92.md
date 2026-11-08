@@ -1,0 +1,6 @@
+# L2 verdicts — batch 92 (TorrentContentFileItem newArray)
+
+Scope: OPEN Parcelable-trio rows only. The rest of the TorrentContentFileItem trio (92/31 Parcel ctor SOURCE, 92/33 describeContents, 92/36 writeToParcel, 92/38 createFromParcel, all REACHABLE) stands on the printed storage site (DetailTorrentFilesFragment:227 `createParcelableStorage(TorrentContentFileItem.class)` + onSaveInstanceState :309) under D5d and is not re-verdicted here.
+
+| batch/row | method | old label | NEW label | confirmed_by | evidence (file:line or grep path) | revert condition |
+| 92/39 | TorrentContentFileItem$1.newArray | OPEN | UNREACHABLE | INFERRED | Kind: `no_trigger_in_app`. D19 all three tests pass (greps/L2/grep_array_apis.txt 0; grep_array_apis2.txt 0; grep_parcelable_array_type.txt 0; grep_array_fields.txt shows only the newArray return type at TorrentContentFileItem.java:82, no field). The storage site is not an array site (D5d: storage counts except newArray); no Bundle/array parcel path names this class. | A printed array site naming TorrentContentFileItem, or a printed Parcelable[] field/state for this class, or a printed androidx ParcelableStorage body showing newArray dispatch for the selection set. |

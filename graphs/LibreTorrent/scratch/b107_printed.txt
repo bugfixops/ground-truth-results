@@ -1,0 +1,1046 @@
+Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+
+$ sed -n '1,470p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/log/LogActivity.java
+/*
+ * Copyright (C) 2020-2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.log;
+
+import android.content.Intent;
+import android.content.res.TypedArray;
+import android.net.Uri;
+import android.os.Bundle;
+import android.os.Handler;
+import android.util.TypedValue;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.databinding.DataBindingUtil;
+import androidx.databinding.library.baseAdapters.BR;
+import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.snackbar.Snackbar;
+
+import org.proninyaroslav.libretorrent.R;
+import org.proninyaroslav.libretorrent.core.logger.LogEntry;
+import org.proninyaroslav.libretorrent.core.utils.Utils;
+import org.proninyaroslav.libretorrent.databinding.ActivityLogBinding;
+import org.proninyaroslav.libretorrent.ui.customviews.RecyclerViewDividerDecoration;
+import org.proninyaroslav.libretorrent.ui.filemanager.FileManagerConfig;
+import org.proninyaroslav.libretorrent.ui.filemanager.FileManagerDialog;
+
+import io.reactivex.disposables.CompositeDisposable;
+
+public class LogActivity extends AppCompatActivity
+    implements LogAdapter.ClickListener
+{
+    private static final String TAG_AUTO_SCROLL = "auto_scroll";
+    private static final String TAG_SCROLL_POSITION = "scroll_position";
+    private static final String TAG_FILTER_DIALOG = "filter_dialog";
+
+    private ActivityLogBinding binding;
+    private LogViewModel viewModel;
+    private Toolbar toolbar;
+    private LinearLayoutManager layoutManager;
+    private LogAdapter adapter;
+    private Handler handler;
+    private boolean ignoreScrollEvent;
+    private boolean autoScroll = true;
+    private int scrollPosition = 0;
+    private CompositeDisposable disposables = new CompositeDisposable();
+    private SessionLogFilterDialog filterDialog;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState)
+    {
+        setTheme(Utils.getAppTheme(getApplicationContext()));
+        super.onCreate(savedInstanceState);
+
+        FragmentManager fm = getSupportFragmentManager();
+        filterDialog = (SessionLogFilterDialog) fm.findFragmentByTag(TAG_FILTER_DIALOG);
+
+        if (savedInstanceState != null) {
+            autoScroll = savedInstanceState.getBoolean(TAG_AUTO_SCROLL);
+            scrollPosition = savedInstanceState.getInt(TAG_SCROLL_POSITION);
+        }
+
+        handler = new Handler();
+
+        viewModel = new ViewModelProvider(this).get(LogViewModel.class);
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_log);
+        binding.setViewModel(viewModel);
+
+        toolbar = binding.rootLayout.findViewById(R.id.toolbar);
+        toolbar.setTitle(R.string.log_journal);
+        setSupportActionBar(toolbar);
+        toolbar.setNavigationOnClickListener((v) -> finish());
+        if (getSupportActionBar() != null)
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        updateToolbarSubtitle();
+
+        layoutManager = new LinearLayoutManager(this);
+        layoutManager.setStackFromEnd(true);
+        binding.logList.setLayoutManager(layoutManager);
+        binding.logList.setEmptyView(binding.emptyViewLog);
+        TypedArray a = obtainStyledAttributes(new TypedValue().data, new int[]{ R.attr.divider });
+        binding.logList.addItemDecoration(new RecyclerViewDividerDecoration(a.getDrawable(0)));
+        a.recycle();
+
+        /* Disable animation, so as not to blink while updating the list */
+        binding.logList.setItemAnimator(null);
+        binding.logList.setLayoutAnimation(null);
+
+        adapter = new LogAdapter(this);
+        binding.logList.setAdapter(adapter);
+
+        viewModel.observeLog().observe(this, (entries) ->
+            adapter.submitList(entries, handleUpdateAdapter));
+
+        binding.logList.addOnScrollListener(scrollCallback);
+
+        binding.fabUp.setOnClickListener((v) -> {
+            viewModel.pauseLog();
+
+            hideFabUp();
+            autoScroll = false;
+            layoutManager.scrollToPositionWithOffset(0, 0);
+
+            resumeLog();
+        });
+
+        binding.fabDown.setOnClickListener((v) -> {
+            viewModel.pauseLog();
+
+            hideFabUp();
+            ignoreScrollEvent = true;
+            autoScroll = true;
+            layoutManager.scrollToPosition(adapter.getItemCount() - 1);
+
+            resumeLog();
+        });
+
+        hideFabUp();
+        hideFabDown();
+    }
+
+    @Override
+    protected void onDestroy()
+    {
+        super.onDestroy();
+
+        handler.removeCallbacksAndMessages(null);
+        resumeLog();
+    }
+
+    @Override
+    protected void onStop()
+    {
+        super.onStop();
+
+        disposables.clear();
+        viewModel.mutableParams.removeOnPropertyChangedCallback(paramsCallback);
+    }
+
+    @Override
+    protected void onStart()
+    {
+        super.onStart();
+
+        viewModel.mutableParams.addOnPropertyChangedCallback(paramsCallback);
+    }
+
+    private final androidx.databinding.Observable.OnPropertyChangedCallback paramsCallback =
+            new androidx.databinding.Observable.OnPropertyChangedCallback() {
+                @Override
+                public void onPropertyChanged(androidx.databinding.Observable sender, int propertyId)
+                {
+                    if (propertyId == BR.logging)
+                        invalidateOptionsMenu();
+                }
+            };
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState)
+    {
+        outState.putBoolean(TAG_AUTO_SCROLL, autoScroll);
+        outState.putInt(TAG_SCROLL_POSITION, scrollPosition);
+
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu)
+    {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.log, menu);
+
+        return true;
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu)
+    {
+        menu.setGroupVisible(R.id.log_menu, viewModel.mutableParams.isLogging());
+
+        MenuItem pauseResume = menu.findItem(R.id.pause_resume_log_menu);
+        if (viewModel.logPausedManually()) {
+            pauseResume.setIcon(R.drawable.ic_play_arrow_white_24dp);
+            pauseResume.setTitle(R.string.resume_torrent);
+
+        } else {
+            pauseResume.setIcon(R.drawable.ic_pause_white_24dp);
+            pauseResume.setTitle(R.string.pause_torrent);
+        }
+
+        MenuItem record = menu.findItem(R.id.record_log_menu);
+        if (viewModel.logRecording()) {
+            record.setIcon(R.drawable.ic_stop_white_24dp);
+            record.setTitle(R.string.journal_stop_recording);
+
+        } else {
+            record.setIcon(R.drawable.ic_record_white_24dp);
+            record.setTitle(R.string.journal_start_recording);
+        }
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
+        int itemId = item.getItemId();
+        if (itemId == R.id.pause_resume_log_menu) {
+            pauseResumeLog();
+        } else if (itemId == R.id.record_log_menu) {
+            toggleRecord();
+        } else if (itemId == R.id.save_log_menu) {
+            saveLogPathChooseDialog();
+        } else if (itemId == R.id.filter_log_menu) {
+            showFilterDialog();
+        } else if (itemId == R.id.log_settings_menu) {
+            showLogSettings();
+        }
+
+        return true;
+    }
+
+    private void showFilterDialog()
+    {
+        FragmentManager fm = getSupportFragmentManager();
+        if (fm.findFragmentByTag(TAG_FILTER_DIALOG) == null) {
+            filterDialog = SessionLogFilterDialog.newInstance();
+            filterDialog.show(fm, TAG_FILTER_DIALOG);
+        }
+    }
+
+    private void showLogSettings()
+    {
+        startActivity(new Intent(this, LogSettingsActivity.class));
+    }
+
+    private void pauseResumeLog()
+    {
+        boolean newPausedState = !viewModel.logPausedManually();
+        if (newPausedState)
+            viewModel.pauseLogManually();
+        else
+            viewModel.resumeLogManually();
+
+        invalidateOptionsMenu();
+    }
+
+    private void resumeLog()
+    {
+        if (!viewModel.logPausedManually())
+            viewModel.resumeLog();
+    }
+
+    private void toggleRecord()
+    {
+        boolean recording = !viewModel.logRecording();
+
+        if (recording && viewModel.logPausedManually())
+            return;
+
+        if (recording) {
+            Snackbar.make(binding.coordinatorLayout,
+                    getString(R.string.journal_started_recording),
+                    Snackbar.LENGTH_SHORT)
+                    .show();
+
+            viewModel.startLogRecording();
+
+            invalidateOptionsMenu();
+
+        } else {
+            viewModel.pauseLog();
+            saveLogPathChooseDialog();
+        }
+    }
+
+    private void saveLogPathChooseDialog()
+    {
+        Intent i = new Intent(this, FileManagerDialog.class);
+        FileManagerConfig config = new FileManagerConfig(
+                null,
+                getString(R.string.pref_journal_save_log_to),
+                FileManagerConfig.SAVE_FILE_MODE);
+        config.fileName = viewModel.getSaveLogFileName();
+        config.mimeType = Utils.MIME_TEXT_PLAIN;
+
+        i.putExtra(FileManagerDialog.TAG_CONFIG, config);
+        saveLogPathChoose.launch(i);
+    }
+
+    final ActivityResultLauncher<Intent> saveLogPathChoose = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                Intent data = result.getData();
+                if (result.getResultCode() == RESULT_OK && data != null) {
+                    Uri filePath = data.getData();
+                    if (filePath == null)
+                        return;
+
+                    viewModel.saveLog(filePath);
+
+                } else {
+                    viewModel.stopLogRecording();
+                    resumeLog();
+                }
+
+                invalidateOptionsMenu();
+            }
+    );
+
+    RecyclerView.OnScrollListener scrollCallback = new RecyclerView.OnScrollListener() {
+
+        int lastDy = 0;
+
+        @Override
+        public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy)
+        {
+            super.onScrolled(recyclerView, dx, dy);
+
+            if (dy > 0 && lastDy <= 0) {
+                hideFabUp();
+                showFabDown();
+
+            } else if (dy < 0 && lastDy >= 0) {
+                showFabUp();
+                hideFabDown();
+            }
+            lastDy = dy;
+        }
+
+        @Override
+        public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState)
+        {
+            super.onScrollStateChanged(recyclerView, newState);
+
+            if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
+                autoScroll = false;
+                if (lastDy > 0) {
+                    hideFabUp();
+                    showFabDown();
+
+                } else if (lastDy < 0) {
+                    showFabUp();
+                    hideFabDown();
+                }
+
+            } else {
+                int firstPos = -1;
+                if (!autoScroll && newState == RecyclerView.SCROLL_STATE_IDLE)
+                    firstPos = layoutManager.findFirstCompletelyVisibleItemPosition();
+
+                int pos = layoutManager.findLastCompletelyVisibleItemPosition();
+                if (pos == RecyclerView.NO_POSITION) {
+                    autoScroll = false;
+                    return;
+                }
+
+                if (ignoreScrollEvent) {
+                    if (pos == adapter.getItemCount())
+                        ignoreScrollEvent = false;
+                    return;
+                }
+
+                if (pos == 0)
+                    hideFabUp();
+
+                if (firstPos == RecyclerView.NO_POSITION)
+                    firstPos = layoutManager.findFirstCompletelyVisibleItemPosition();
+
+                scrollPosition = firstPos;
+                autoScroll = pos == adapter.getItemCount() - 1;
+
+                if (autoScroll) {
+                    hideFabUp();
+                    hideFabDown();
+                }
+            }
+        }
+    };
+
+    private void showFabUp()
+    {
+        handler.removeCallbacks(hideFabUpRunnable);
+        binding.fabUp.show();
+        handler.postDelayed(hideFabUpRunnable, 2000);
+    }
+
+    private void hideFabUp()
+    {
+        handler.removeCallbacks(hideFabUpRunnable);
+        binding.fabUp.hide();
+    }
+
+    private void showFabDown()
+    {
+        handler.removeCallbacks(hideFabDownRunnable);
+        binding.fabDown.show();
+        handler.postDelayed(hideFabDownRunnable, 2000);
+    }
+
+    private void hideFabDown()
+    {
+        handler.removeCallbacks(hideFabDownRunnable);
+        binding.fabDown.hide();
+    }
+
+    private final Runnable hideFabUpRunnable = () -> binding.fabUp.hide();
+
+    private final Runnable hideFabDownRunnable = () -> binding.fabDown.hide();
+
+    private final Runnable handleUpdateAdapter = () -> {
+        scrollLogList();
+        updateToolbarSubtitle();
+    };
+
+    private void updateToolbarSubtitle()
+    {
+        int numEntries = viewModel.getLogEntriesCount();
+        if (numEntries > 1)
+            toolbar.setSubtitle(Integer.toString(numEntries));
+        else
+            toolbar.setSubtitle(null);
+    }
+
+    private void scrollLogList()
+    {
+        if (autoScroll)
+            layoutManager.scrollToPosition(adapter.getItemCount() - 1);
+        else
+            layoutManager.scrollToPositionWithOffset(scrollPosition, 0);
+    }
+
+    @Override
+    public void onItemClicked(@NonNull LogEntry entry)
+    {
+        if (viewModel.copyLogEntryToClipboard(entry)) {
+            Snackbar.make(binding.coordinatorLayout,
+                    R.string.text_copied_to_clipboard,
+                    Snackbar.LENGTH_SHORT)
+                    .show();
+        }
+    }
+}
+
+$ sed -n '1,51p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/log/LogSettingsActivity.java
+/*
+ * Copyright (C) 2020 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.log;
+
+import android.os.Bundle;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+
+import org.proninyaroslav.libretorrent.R;
+import org.proninyaroslav.libretorrent.core.utils.Utils;
+
+public class LogSettingsActivity extends AppCompatActivity
+{
+    private static final String TAG = LogSettingsActivity.class.getSimpleName();
+
+    private Toolbar toolbar;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState)
+    {
+        setTheme(Utils.getSettingsTheme(getApplicationContext()));
+        super.onCreate(savedInstanceState);
+
+        setContentView(R.layout.activity_log_settings);
+
+        toolbar = findViewById(R.id.toolbar);
+        toolbar.setTitle(R.string.settings);
+        setSupportActionBar(toolbar);
+        toolbar.setNavigationOnClickListener((v) -> finish());
+        if (getSupportActionBar() != null)
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    }
+}
+
+$ sed -n '1,101p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/log/LogSettingsFragment.java
+/*
+ * Copyright (C) 2020-2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.log;
+
+import android.content.Context;
+import android.os.Bundle;
+import android.text.InputFilter;
+import android.text.TextUtils;
+
+import androidx.preference.EditTextPreference;
+import androidx.preference.Preference;
+import androidx.preference.PreferenceFragmentCompat;
+
+import org.proninyaroslav.libretorrent.R;
+import org.proninyaroslav.libretorrent.core.InputFilterRange;
+import org.proninyaroslav.libretorrent.core.RepositoryHelper;
+import org.proninyaroslav.libretorrent.core.settings.SettingsRepository;
+
+public class LogSettingsFragment extends PreferenceFragmentCompat
+        implements Preference.OnPreferenceChangeListener
+{
+    private static final String TAG = LogSettingsFragment.class.getSimpleName();
+
+    private SettingsRepository pref;
+
+    public static LogSettingsFragment newInstance()
+    {
+        LogSettingsFragment fragment = new LogSettingsFragment();
+        fragment.setArguments(new Bundle());
+
+        return fragment;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState)
+    {
+        super.onCreate(savedInstanceState);
+
+        Context context = getActivity().getApplicationContext();
+        pref = RepositoryHelper.getSettingsRepository(context);
+
+        InputFilter[] maxFilter = new InputFilter[] {
+                new InputFilterRange.Builder()
+                        .setMin(1)
+                        .setMax(Integer.MAX_VALUE)
+                        .build()
+        };
+
+        String keyMaxLogSize= getString(R.string.pref_key_max_log_size);
+        EditTextPreference maxLogSize  = findPreference(keyMaxLogSize);
+        if (maxLogSize != null) {
+            String value = Integer.toString(pref.maxLogSize());
+            maxLogSize.setOnBindEditTextListener((editText) -> editText.setFilters(maxFilter));
+            maxLogSize.setSummary(value);
+            maxLogSize.setText(value);
+            bindOnPreferenceChangeListener(maxLogSize);
+        }
+    }
+
+    @Override
+    public void onCreatePreferences(Bundle savedInstanceState, String rootKey)
+    {
+        setPreferencesFromResource(R.xml.pref_log, rootKey);
+    }
+
+    private void bindOnPreferenceChangeListener(Preference preference)
+    {
+        preference.setOnPreferenceChangeListener(this);
+    }
+
+    @Override
+    public boolean onPreferenceChange(Preference preference, Object newValue)
+    {
+        if (preference.getKey().equals(getString(R.string.pref_key_max_log_size))) {
+            int value = 1;
+            if (!TextUtils.isEmpty((String)newValue))
+                value = Integer.parseInt((String)newValue);
+            pref.maxLogSize(value);
+            preference.setSummary(Integer.toString(value));
+        }
+
+        return true;
+    }
+}
+
+$ sed -n '1,227p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/log/LogViewModel.java
+/*
+ * Copyright (C) 2020 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.log;
+
+import android.app.Activity;
+import android.app.Application;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.net.Uri;
+
+import androidx.annotation.NonNull;
+import androidx.databinding.library.baseAdapters.BR;
+import androidx.lifecycle.AndroidViewModel;
+import androidx.lifecycle.LiveData;
+import androidx.paging.LivePagedListBuilder;
+import androidx.paging.PagedList;
+import androidx.work.Data;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
+
+import org.proninyaroslav.libretorrent.R;
+import org.proninyaroslav.libretorrent.core.RepositoryHelper;
+import org.proninyaroslav.libretorrent.core.logger.LogEntry;
+import org.proninyaroslav.libretorrent.core.logger.Logger;
+import org.proninyaroslav.libretorrent.core.model.TorrentEngine;
+import org.proninyaroslav.libretorrent.core.settings.SettingsRepository;
+import org.proninyaroslav.libretorrent.service.SaveLogWorker;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
+public class LogViewModel extends AndroidViewModel
+{
+    private static final int PAGE_SIZE = 20;
+
+    private TorrentEngine engine;
+    private SettingsRepository pref;
+    public LogMutableParams mutableParams = new LogMutableParams();
+    private LogSourceFactory sourceFactory;
+    private PagedList.Config pageConfig = new PagedList.Config.Builder()
+            .setPageSize(PAGE_SIZE)
+            .setEnablePlaceholders(false)
+            .build();
+    private boolean logPaused;
+    private boolean recordingStopped;
+
+    public LogViewModel(@NonNull Application application)
+    {
+        super(application);
+
+        engine = TorrentEngine.getInstance(application);
+        pref = RepositoryHelper.getSettingsRepository(application);
+
+        Logger sessionLogger = engine.getSessionLogger();
+        logPaused = sessionLogger.isPaused();
+        recordingStopped = !sessionLogger.isRecording();
+        sourceFactory = new LogSourceFactory(sessionLogger);
+
+        initMutableParams();
+    }
+
+    private void initMutableParams()
+    {
+        mutableParams.setLogging(pref.logging());
+        mutableParams.setLogSessionFilter(pref.logSessionFilter());
+        mutableParams.setLogDhtFilter(pref.logDhtFilter());
+        mutableParams.setLogPeerFilter(pref.logPeerFilter());
+        mutableParams.setLogPortmapFilter(pref.logPortmapFilter());
+        mutableParams.setLogTorrentFilter(pref.logTorrentFilter());
+
+        mutableParams.addOnPropertyChangedCallback(paramsCallback);
+    }
+
+    LiveData<PagedList<LogEntry>> observeLog()
+    {
+        return new LivePagedListBuilder<>(sourceFactory, pageConfig)
+                .setInitialLoadKey(Integer.MAX_VALUE) /* Start from the last entry */
+                .build();
+    }
+
+    @Override
+    protected void onCleared()
+    {
+        super.onCleared();
+
+        mutableParams.removeOnPropertyChangedCallback(paramsCallback);
+    }
+
+    private final androidx.databinding.Observable.OnPropertyChangedCallback paramsCallback =
+            new androidx.databinding.Observable.OnPropertyChangedCallback() {
+        @Override
+        public void onPropertyChanged(androidx.databinding.Observable sender, int propertyId)
+        {
+            switch (propertyId) {
+                case BR.logging:
+                    boolean logging = mutableParams.isLogging();
+                    if (!logging) {
+                        logPaused = false;
+                        recordingStopped = false;
+                    }
+                    pref.logging(logging);
+                    break;
+                case BR.logSessionFilter:
+                    pref.logSessionFilter(mutableParams.isLogSessionFilter());
+                    break;
+                case BR.logDhtFilter:
+                    pref.logDhtFilter(mutableParams.isLogDhtFilter());
+                    break;
+                case BR.logPeerFilter:
+                    pref.logPeerFilter(mutableParams.isLogPeerFilter());
+                    break;
+                case BR.logPortmapFilter:
+                    pref.logPortmapFilter(mutableParams.isLogPortmapFilter());
+                    break;
+                case BR.logTorrentFilter:
+                    pref.logTorrentFilter(mutableParams.isLogTorrentFilter());
+                    break;
+            }
+        }
+    };
+
+    void pauseLog()
+    {
+        engine.getSessionLogger().pause();
+    }
+
+    void pauseLogManually()
+    {
+        pauseLog();
+        logPaused = true;
+    }
+
+    void resumeLog()
+    {
+        engine.getSessionLogger().resume();
+    }
+
+    void resumeLogManually()
+    {
+        resumeLog();
+        logPaused = false;
+    }
+
+    int getLogEntriesCount()
+    {
+        return engine.getSessionLogger().getNumEntries();
+    }
+
+    boolean logPausedManually()
+    {
+        return logPaused;
+    }
+
+    void startLogRecording()
+    {
+        recordingStopped = false;
+
+        engine.getSessionLogger().startRecording();
+    }
+
+    void stopLogRecording()
+    {
+        recordingStopped = true;
+
+        engine.getSessionLogger().stopRecording();
+    }
+
+    boolean logRecording()
+    {
+        return !recordingStopped && engine.getSessionLogger().isRecording();
+    }
+
+    String getSaveLogFileName()
+    {
+        String timeStamp = new SimpleDateFormat("MM-dd-yyyy_HH-mm-ss", Locale.getDefault())
+                .format(new Date());
+
+        return getApplication().getString(R.string.app_name) + "_log_" + timeStamp + ".txt";
+    }
+
+    void saveLog(@NonNull Uri filePath)
+    {
+        recordingStopped = true;
+
+        Data data = new Data.Builder()
+                .putString(SaveLogWorker.TAG_FILE_URI, filePath.toString())
+                .putBoolean(SaveLogWorker.TAG_RESUME_AFTER_SAVE, !logPausedManually())
+                .build();
+
+        OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(SaveLogWorker.class)
+                .setInputData(data)
+                .build();
+
+        WorkManager.getInstance(getApplication()).enqueue(request);
+    }
+
+    boolean copyLogEntryToClipboard(@NonNull LogEntry entry)
+    {
+        ClipboardManager clipboard = (ClipboardManager)getApplication().getSystemService(Activity.CLIPBOARD_SERVICE);
+        if (clipboard == null)
+            return false;
+
+        ClipData clip;
+        clip = ClipData.newPlainText("Log entry", entry.toString());
+        clipboard.setPrimaryClip(clip);
+
+        return true;
+    }
+}
+
+$ sed -n '1,43p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/log/LogSourceFactory.java
+/*
+ * Copyright (C) 2020 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.log;
+
+import androidx.annotation.NonNull;
+import androidx.paging.DataSource;
+
+import org.proninyaroslav.libretorrent.core.logger.LogEntry;
+import org.proninyaroslav.libretorrent.core.logger.Logger;
+
+class LogSourceFactory extends LogDataSource.Factory<Integer, LogEntry>
+{
+    private Logger logger;
+
+    public LogSourceFactory(@NonNull Logger logger)
+    {
+        this.logger = logger;
+    }
+
+    @NonNull
+    @Override
+    public DataSource<Integer, LogEntry> create()
+    {
+        return new LogDataSource(logger);
+    }
+}
+
+$ sed -n '1,120p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/log/SessionLogFilterDialog.java
+/*
+ * Copyright (C) 2020 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.log;
+
+import android.app.Dialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.os.Bundle;
+import android.view.KeyEvent;
+import android.view.LayoutInflater;
+import android.view.View;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.databinding.DataBindingUtil;
+import androidx.fragment.app.DialogFragment;
+import androidx.lifecycle.ViewModelProvider;
+
+import org.proninyaroslav.libretorrent.R;
+import org.proninyaroslav.libretorrent.databinding.DialogLogFilterBinding;
+
+public class SessionLogFilterDialog extends DialogFragment
+{
+    private static final String TAG = SessionLogFilterDialog.class.getSimpleName();
+
+    private AlertDialog alert;
+    private AppCompatActivity activity;
+    private DialogLogFilterBinding binding;
+    private LogViewModel viewModel;
+
+    public static SessionLogFilterDialog newInstance()
+    {
+        SessionLogFilterDialog frag = new SessionLogFilterDialog();
+
+        Bundle args = new Bundle();
+        frag.setArguments(args);
+
+        return frag;
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context)
+    {
+        super.onAttach(context);
+
+        if (context instanceof AppCompatActivity)
+            activity = (AppCompatActivity)context;
+    }
+
+    @Override
+    public void onResume()
+    {
+        super.onResume();
+
+        /* Back button handle */
+        getDialog().setOnKeyListener((DialogInterface dialog, int keyCode, KeyEvent event) -> {
+            if (keyCode == KeyEvent.KEYCODE_BACK) {
+                if (event.getAction() != KeyEvent.ACTION_DOWN) {
+                    return true;
+                } else {
+                    onBackPressed();
+                    return true;
+                }
+            } else {
+                return false;
+            }
+        });
+    }
+
+    @NonNull
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState)
+    {
+        if (activity == null)
+            activity = (AppCompatActivity) getActivity();
+
+        viewModel = new ViewModelProvider(activity).get(LogViewModel.class);
+
+        LayoutInflater i = LayoutInflater.from(activity);
+        binding = DataBindingUtil.inflate(i, R.layout.dialog_log_filter, null, false);
+        binding.setViewModel(viewModel);
+
+        initLayoutView(binding.getRoot());
+
+        return alert;
+    }
+
+    private void initLayoutView(View view)
+    {
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity)
+                .setTitle(R.string.filter)
+                .setNegativeButton(R.string.cancel, (dialog, which) -> onBackPressed())
+                .setView(view);
+
+        alert = builder.create();
+    }
+
+    private void onBackPressed()
+    {
+        alert.dismiss();
+    }
+}
+
+$ sed -n '1,19p' /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/res/layout/activity_log_settings.xml
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:context=".ui.log.LogSettingsActivity">
+
+    <include
+        layout="@layout/toolbar" />
+
+    <androidx.fragment.app.FragmentContainerView
+        class="org.proninyaroslav.libretorrent.ui.log.LogSettingsFragment"
+        android:id="@+id/settings_fragmentContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/toolbar" />
+</RelativeLayout>

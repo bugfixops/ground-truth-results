@@ -1,0 +1,24 @@
+# Batch 105 printed evidence
+
+Plan extraction:
+```sh
+awk -F '\\t' '$1==105 {print $3 "\\t" $4}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+```
+Result: 40 exact rows; full descriptors are shown in the report table.
+
+Bounded source scans:
+```sh
+rg -n 'initAlertDialog|initLayoutView|onResume|newInstance|onAttach|onBackPressed|onCreateDialog|afterTextChanged|beforeTextChanged|onTextChanged' .../ui/filemanager/GoToFolderDialog.java
+rg -n 'hideFabDown|hideFabUp|ActivityResult|onCreate|onCreateOptionsMenu|onDestroy|onItemClicked|onOptionsItemSelected|onPrepareOptionsMenu|onSaveInstanceState|onStart|onStop|pauseResumeLog|resumeLog|saveLogPathChooseDialog|scrollLogList' .../ui/log/LogActivity.java
+```
+Key output read:
+```
+GoToFolderDialog.java:55 newInstance; :65 onAttach; :73 onResume; :91 onCreateDialog
+:102 initLayoutView; :107 setup; :111-119 TextWatcher; :125 initAlertDialog; :128 dialog setup
+LogActivity.java:77 onCreate; :150 onDestroy; :159 onStop; :168 onStart; :186 save state
+:195 menu; :204 prepare menu; :232 menu handler; :264 pause; :275 resume
+:304 save path dialog; :318 result launcher; :331 resume after result
+:348-436 scroll FAB delayed handlers/runnables; :439-452 scrolling; :461 item click
+```
+These local source observations do not verify all row routes, guards, or framework result dispatch. All 40 remain OPEN.
+

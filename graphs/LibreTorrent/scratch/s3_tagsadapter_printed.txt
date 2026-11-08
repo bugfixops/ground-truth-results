@@ -1,0 +1,111 @@
+     1	/*
+     2	 * Copyright (C) 2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.tag;
+    21	
+    22	import android.view.LayoutInflater;
+    23	import android.view.ViewGroup;
+    24	
+    25	import androidx.annotation.NonNull;
+    26	import androidx.databinding.DataBindingUtil;
+    27	import androidx.recyclerview.widget.DiffUtil;
+    28	import androidx.recyclerview.widget.ListAdapter;
+    29	import androidx.recyclerview.widget.RecyclerView;
+    30	
+    31	import org.proninyaroslav.libretorrent.R;
+    32	import org.proninyaroslav.libretorrent.databinding.TagsListItemBinding;
+    33	
+    34	public class TagsAdapter extends ListAdapter<TagItem, TagsAdapter.ViewHolder> {
+    35	    @NonNull
+    36	    private final OnClickListener listener;
+    37	
+    38	    public TagsAdapter(@NonNull OnClickListener listener) {
+    39	        super(diffCallback);
+    40	
+    41	        this.listener = listener;
+    42	    }
+    43	
+    44	    @NonNull
+    45	    @Override
+    46	    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    47	        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+    48	        TagsListItemBinding binding = DataBindingUtil.inflate(
+    49	                inflater,
+    50	                R.layout.tags_list_item,
+    51	                parent,
+    52	                false
+    53	        );
+    54	        return new ViewHolder(binding);
+    55	    }
+    56	
+    57	    @Override
+    58	    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+    59	        TagItem item = getItem(position);
+    60	        if (item != null) {
+    61	            holder.bind(item, listener);
+    62	        }
+    63	    }
+    64	
+    65	    static final DiffUtil.ItemCallback<TagItem> diffCallback =
+    66	            new DiffUtil.ItemCallback<TagItem>() {
+    67	                @Override
+    68	                public boolean areContentsTheSame(
+    69	                        @NonNull TagItem oldItem,
+    70	                        @NonNull TagItem newItem
+    71	                ) {
+    72	                    return oldItem.equals(newItem);
+    73	                }
+    74	
+    75	                @Override
+    76	                public boolean areItemsTheSame(
+    77	                        @NonNull TagItem oldItem,
+    78	                        @NonNull TagItem newItem
+    79	                ) {
+    80	                    return oldItem.isSame(newItem);
+    81	                }
+    82	            };
+    83	
+    84	    public interface OnClickListener {
+    85	        void onTagClicked(@NonNull TagItem item);
+    86	    }
+    87	
+    88	    static class ViewHolder extends RecyclerView.ViewHolder {
+    89	        @NonNull
+    90	        private final TagsListItemBinding binding;
+    91	
+    92	        public ViewHolder(@NonNull TagsListItemBinding binding) {
+    93	            super(binding.getRoot());
+    94	
+    95	            this.binding = binding;
+    96	        }
+    97	
+    98	        void bind(
+    99	                @NonNull TagItem item,
+   100	                OnClickListener listener
+   101	        ) {
+   102	            binding.name.setText(item.info.name);
+   103	            binding.color.setColor(item.info.color);
+   104	            binding.getRoot().setOnClickListener((v) -> {
+   105	                if (listener != null) {
+   106	                    listener.onTagClicked(item);
+   107	                }
+   108	            });
+   109	        }
+   110	    }
+   111	}

@@ -1,0 +1,196 @@
+METHOD: RecurringTransactionListActivity.onActivityResult
+verdict: REACHABLE   steps_from_launch: 9
+route steps: 9 edges
+======================================================================
+
+STEP 1  edge E71c76102
+  S_ENTRY -> MainActivity.<init>
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC AndroidManifest.xml:136-143 (MAIN + LAUNCHER intent filter of com.money.manager.ex.home.MainActivity)
+  cite [SRC] AndroidManifest.xml:136-143
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/AndroidManifest.xml)
+      136:                 android:name=".home.MainActivity"
+      137:                 android:label="@string/application_name" android:exported="true">
+      138:             <intent-filter>
+      139:                 <action android:name="android.intent.action.MAIN" />
+      140: 
+      141:                 <category android:name="android.intent.category.LAUNCHER" />
+      142:                 <!-- Samsung MultiWindow Function -->
+      143:                 <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
+
+STEP 2  edge E2e074fc1
+  MainActivity.<init> -> MainActivity.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC core/java/android/app/ActivityThread.java:2722-2731 (callActivityOnCreate); FW-SRC core/java/android/app/Instrumentation.java:1212-1216; FW-SRC core/java/android/app/Activity.java:6993-7000 (performCreate calls onCreate); same route as graph_def.py AccountEditActivity.<init> -> onCreate
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2722-2731
+     2722:                 int theme = r.activityInfo.getThemeResource();
+     2723:                 if (theme != 0) {
+     2724:                     activity.setTheme(theme);
+     2725:                 }
+     2726: 
+     2727:                 activity.mCalled = false;
+     2728:                 if (r.isPersistable()) {
+     2729:                     mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+     2730:                 } else {
+     2731:                     mInstrumentation.callActivityOnCreate(activity, r.state);
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1212-1216
+     1212:     public void callActivityOnCreate(Activity activity, Bundle icicle) {
+     1213:         prePerformCreate(activity);
+     1214:         activity.performCreate(icicle);
+     1215:         postPerformCreate(activity);
+     1216:     }
+  cite [FW-SRC] core/java/android/app/Activity.java:6993-7000
+     6993:     final void performCreate(Bundle icicle, PersistableBundle persistentState) {
+     6994:         mCanEnterPictureInPicture = true;
+     6995:         restoreHasCurrentPermissionRequest(icicle);
+     6996:         if (persistentState != null) {
+     6997:             onCreate(icicle, persistentState);
+     6998:         } else {
+     6999:             onCreate(icicle);
+     7000:         }
+
+STEP 3  edge Ec1f84c25
+  MainActivity.onCreate -> MainActivity.populateScheduledTransactions
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainActivity.java:244 (bytecode)
+  cite [SRC] MainActivity.java:244
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java)
+      244:         populateScheduledTransactions();
+
+STEP 4  edge E44a6cda6
+  MainActivity.populateScheduledTransactions -> RecurringTransactionNotifications.notifyRepeatingTransaction
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainActivity.java:1239 (bytecode)
+  cite [SRC] MainActivity.java:1239
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java)
+     1239:                 notifications.notifyRepeatingTransaction();
+
+STEP 5  edge E18f2d60d
+  RecurringTransactionNotifications.notifyRepeatingTransaction -> RecurringTransactionNotifications.notifyRepeatingTransaction_Internal
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC RecurringTransactionNotifications.java:54 (bytecode)
+  cite [SRC] RecurringTransactionNotifications.java:54
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/notifications/RecurringTransactionNotifications.java)
+       54:             notifyRepeatingTransaction_Internal();
+
+STEP 6  edge Ec7b6275e
+  RecurringTransactionNotifications.notifyRepeatingTransaction_Internal -> RecurringTransactionNotifications.showNotification
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC RecurringTransactionNotifications.java:77 (bytecode)
+  cite [SRC] RecurringTransactionNotifications.java:77
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/notifications/RecurringTransactionNotifications.java)
+       77:             showNotification(model);
+
+STEP 7  edge E0d135dde
+  RecurringTransactionNotifications.showNotification -> RecurringTransactionListActivity.<init>
+  class: standard   kind: INTENT
+  guard: None
+  needs_state: a due bill exists: the query at RecurringTransactionNotifications.java:68-78 returns a row, and the notification setting is on (MainActivity.java:1236-1237 gates the poster)
+  env: the user taps the recurring transaction notification (the activity is started with INTENT_EXTRA_LAUNCH_NOTIFICATION)
+  evidence: SRC RecurringTransactionNotifications.java:90-94; SRC AndroidManifest.xml:235 (no intent-filter); SRC RecurringTransactionListActivity.java:33; FW-SRC core/java/android/app/Instrumentation.java:1143-1148 (clazz.newInstance); INFERRED PendingIntent.getActivity delivers the Intent (PendingIntent.java not in fw_src)
+  cite [SRC] RecurringTransactionNotifications.java:90-94
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/notifications/RecurringTransactionNotifications.java)
+       90:         Intent intent = new Intent(getContext(), RecurringTransactionListActivity.class);
+       91:         // set launch from notification // check pin code
+       92:         intent.putExtra(RecurringTransactionListActivity.INTENT_EXTRA_LAUNCH_NOTIFICATION, true);
+       93: 
+       94:         PendingIntent pendingIntent = PendingIntent.getActivity(getContext(), 0, intent, PendingIntent.FLAG_IMMUTABLE);
+  cite [SRC] AndroidManifest.xml:235
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/AndroidManifest.xml)
+      235:         <activity android:name=".recurring.transactions.RecurringTransactionListActivity" />
+  cite [SRC] RecurringTransactionListActivity.java:33
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/recurring/transactions/RecurringTransactionListActivity.java)
+       33: public class RecurringTransactionListActivity
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1143-1148
+     1143:     public Activity newActivity(Class<?> clazz, Context context, 
+     1144:             IBinder token, Application application, Intent intent, ActivityInfo info, 
+     1145:             CharSequence title, Activity parent, String id,
+     1146:             Object lastNonConfigurationInstance) throws InstantiationException, 
+     1147:             IllegalAccessException {
+     1148:         Activity activity = (Activity)clazz.newInstance();
+
+STEP 8  edge E5947e9db
+  RecurringTransactionListActivity.<init> -> RecurringTransactionListActivity.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC core/java/android/app/ActivityThread.java:2728-2731 (callActivityOnCreate); FW-SRC core/java/android/app/Instrumentation.java:1212-1215 (performCreate); FW-SRC core/java/android/app/Activity.java:989-990 (onCreate); SRC RecurringTransactionListActivity.java:43
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2728-2731
+     2728:                 if (r.isPersistable()) {
+     2729:                     mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+     2730:                 } else {
+     2731:                     mInstrumentation.callActivityOnCreate(activity, r.state);
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1212-1215
+     1212:     public void callActivityOnCreate(Activity activity, Bundle icicle) {
+     1213:         prePerformCreate(activity);
+     1214:         activity.performCreate(icicle);
+     1215:         postPerformCreate(activity);
+  cite [FW-SRC] core/java/android/app/Activity.java:989-990
+      989:     protected void onCreate(@Nullable Bundle savedInstanceState) {
+      990:         if (DEBUG_LIFECYCLE) Slog.v(TAG, "onCreate " + this + ": " + savedInstanceState);
+  cite [SRC] RecurringTransactionListActivity.java:43
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/recurring/transactions/RecurringTransactionListActivity.java)
+       43:     protected void onCreate(Bundle savedInstanceState) {
+
+STEP 9  edge Ea5a84992
+  RecurringTransactionListActivity.onCreate -> RecurringTransactionListActivity.onActivityResult
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: a passcode is set (settings): onCreate starts PasscodeActivity only when hasPasscode is true (RecurringTransactionListActivity.java:50-56)
+  env: None
+  evidence: SRC RecurringTransactionListActivity.java:48-58 and 72; FW-SRC core/java/android/app/ActivityThread.java:4253-4265 (deliverResults) and 4312 (its call site); FW-SRC core/java/android/app/Activity.java:7259-7266 (dispatchActivityResult calls onActivityResult)
+  cite [SRC] RecurringTransactionListActivity.java:48-58
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/recurring/transactions/RecurringTransactionListActivity.java)
+       48:         if (getIntent() != null && getIntent().getBooleanExtra(INTENT_EXTRA_LAUNCH_NOTIFICATION, false)) {
+       49:             Passcode passcode = new Passcode(getApplicationContext());
+       50:             if (passcode.hasPasscode()) {
+       51:                 Intent intent = new Intent(this, PasscodeActivity.class);
+       52:                 // set action and data
+       53:                 intent.setAction(PasscodeActivity.INTENT_REQUEST_PASSWORD);
+       54:                 intent.putExtra(PasscodeActivity.INTENT_MESSAGE_TEXT, getString(R.string.enter_your_passcode));
+       55:                 // start activity
+       56:                 startActivityForResult(intent, INTENT_REQUEST_PASSCODE);
+       57:             }
+       58:         }
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:4253-4265
+     4253:     private void deliverResults(ActivityClientRecord r, List<ResultInfo> results) {
+     4254:         final int N = results.size();
+     4255:         for (int i=0; i<N; i++) {
+     4256:             ResultInfo ri = results.get(i);
+     4257:             try {
+     4258:                 if (ri.mData != null) {
+     4259:                     ri.mData.setExtrasClassLoader(r.activity.getClassLoader());
+     4260:                     ri.mData.prepareToEnterProcess();
+     4261:                 }
+     4262:                 if (DEBUG_RESULTS) Slog.v(TAG,
+     4263:                         "Delivering result to activity " + r + " : " + ri);
+     4264:                 r.activity.dispatchActivityResult(ri.mResultWho,
+     4265:                         ri.mRequestCode, ri.mResultCode, ri.mData);
+  cite [FW-SRC] core/java/android/app/Activity.java:7259-7266
+     7259:     void dispatchActivityResult(String who, int requestCode,
+     7260:         int resultCode, Intent data) {
+     7261:         if (false) Log.v(
+     7262:             TAG, "Dispatching result: who=" + who + ", reqCode=" + requestCode
+     7263:             + ", resCode=" + resultCode + ", data=" + data);
+     7264:         mFragments.noteStateNotSaved();
+     7265:         if (who == null) {
+     7266:             onActivityResult(requestCode, resultCode, data);

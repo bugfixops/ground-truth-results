@@ -1,0 +1,350 @@
+## GoogleAuthProtos$MigrationPayload$DigitCount$DigitCountVerifier.<init>  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=- state=data;file classes=explicit;non_standard;standard explicit_standard_route=yes
+   1. Eb9515d18 ENTRY/standard*
+      S_ENTRY -> AegisApplication.<init>
+      Any outside trigger starts the app process; the application class is created first, except in a backup or restore start, which uses the base Application class
+      guard: not a full backup or restore start (FW ActivityThread.java:5713-5715)
+      evidence: SRC AndroidManifest.xml:21-27 (android:name=".AegisApplication", backupAgent=".AegisBackupAgent")
+         21      <application
+         22          android:name=".AegisApplication"
+         23          android:allowBackup="true"
+         24          android:fullBackupOnly="true"
+         25          android:fullBackupContent="@xml/backup_rules_old"
+         26          android:dataExtractionRules="@xml/backup_rules"
+         27          android:backupAgent=".AegisBackupAgent"
+   2. E5b266140 LIFECYCLE/standard*
+      AegisApplication.<init> -> Hilt_AegisApplication.onCreate
+      Application.onCreate: the Hilt-generated superclass onCreate runs first (Hilt injection), then AegisApplicationBase.onCreate
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:5740 (the system calls Application.onCreate); INFERRED Hilt rewrites the superclass: AegisApplication extends Hilt_AegisApplication (generated file, not in the source tree; source AegisApplication.java:6 has no onCreate)
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+   3. E1ef992ce CALL/explicit
+      Hilt_AegisApplication.onCreate -> AegisApplicationBase.onCreate
+      Direct call
+      evidence: INFERRED generated code (Hilt_AegisApplication.java is not in the source tree; the call is in the build class, line 43)
+   4. E88ed9829 ENTERS/page*
+      AegisApplicationBase.onCreate -> S_PROCESS
+      the application is created: the process can start a component
+      evidence: SRC AegisApplicationBase.java:45-67; FW-SRC core/java/android/app/ActivityThread.java:5740 (the system calls Application.onCreate)
+         45      public void onCreate() {
+         46          super.onCreate();
+         47          _vaultManager = EarlyEntryPoints.get(this, EntryPoint.class).getVaultManager();
+         48  
+         49          VaultLockReceiver lockReceiver = new VaultLockReceiver();
+         50          IntentFilter intentFilter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
+         51          ContextCompat.registerReceiver(this, lockReceiver, intentFilter, ContextCompat.RECEIVER_NOT_EXPORTED);
+         52  
+         53          // lock the app if the user moves the application to the background
+         54          ProcessLifecycleOwner.get().getLifecycle().addObserver(new AppLifecycleObserver());
+         55  
+         56          // clear the cache directory on startup, to make sure no temporary vault export files remain
+         57          IOUtils.clearDirectory(getCacheDir(), false);
+         58  
+      ...  (9 more lines)
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+   5. E28ffc58c ENTRY/standard*
+      S_PROCESS -> MainActivity.<init>
+      Tap the Aegis icon in the launcher (MAIN / LAUNCHER)
+      evidence: SRC AndroidManifest.xml:44-51
+         44              android:name=".ui.MainActivity"
+         45              android:exported="true"
+         46              android:label="${title}">
+         47              <intent-filter>
+         48                  <action android:name="android.intent.action.MAIN" />
+         49  
+         50                  <category android:name="android.intent.category.LAUNCHER" />
+         51              </intent-filter>
+   6. Eb76444fd LIFECYCLE/standard*
+      MainActivity.<init> -> MainActivity.onCreate
+      Activity.onCreate after the constructor
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731,2741 (the system calls Activity.onCreate, then performStart); SRC ui/MainActivity.java:192-194
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+        192      @Override
+        193      protected void onCreate(Bundle savedInstanceState) {
+        194          super.onCreate(savedInstanceState);
+   7. E3a06baed LIFECYCLE/standard*
+      MainActivity.onCreate -> MainActivity.onStart
+      Activity.onStart after onCreate
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731,2741 (the system calls Activity.onCreate, then performStart); SRC ui/MainActivity.java:938-940
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+        938      @Override
+        939      protected void onStart() {
+        940          super.onStart();
+   8. E20e76e09 CALL/explicit* [STATE: A plain-text vault file exists in the app data, saved by an earlier intro run that chose no security (cross-run state, no producer in this run; MainActivity.onStart reads it, MainActivity.java:951-973)]
+      MainActivity.onStart -> MainActivity.loadEntries
+      plain-text vault (intro chose no security): loaded in onStart
+      guard: the plain-text vault file is loaded earlier in this same onStart call (VaultManager.loadFrom, MainActivity.java:963-965) with no early return at 947, 960 or 971, isVaultLoaded() is true (MainActivity.java:976-977 not taken), and this instance has not loaded the list (else branch at 991-992; _loaded false at 978)
+      evidence: SRC ui/MainActivity.java:950-974,991-992
+        950          // If the vault is not loaded yet, try to load it now in case it's plain text
+        951          if (!_vaultManager.isVaultLoaded()) {
+        952              VaultFile vaultFile;
+        953              try {
+        954                  vaultFile = VaultRepository.readVaultFile(this);
+        955              } catch (VaultRepositoryException e) {
+        956                  e.printStackTrace();
+        957                  Dialogs.showErrorDialog(this, R.string.vault_load_error, e, (dialog, which) -> {
+        958                      finish();
+        959                  });
+        960                  return;
+        961              }
+        962  
+        963              if (!vaultFile.isEncrypted()) {
+      ...  (11 more lines)
+        991          } else {
+        992              loadEntries();
+   9. Ea76ae1a0 ENTERS/page*
+      MainActivity.loadEntries -> S_LIST
+      the list is shown (vault loaded, list loaded in this instance)
+      guard: list not yet loaded in this instance (_loaded false, MainActivity.java:1134) and the vault is loaded (getVault() throws when none is loaded, VaultManager.java:231-233): a producer of the loaded vault must come earlier on the route (the intro result, or an unlock)
+      evidence: SRC ui/MainActivity.java:1133-1144; SRC vault/VaultManager.java:231-233
+       1133      private void loadEntries() {
+       1134          if (!_loaded) {
+       1135              setGroups(_vaultManager.getVault().getUsedGroups());
+       1136              _entryListView.setUsageCounts(_prefs.getUsageCounts());
+       1137              _entryListView.setLastUsedTimestamps(_prefs.getLastUsedTimestamps());
+       1138              _entryListView.setEntries(_vaultManager.getVault().getEntries());
+       1139              if (!_isRecreated) {
+       1140                  _entryListView.runEntriesAnimation();
+       1141              }
+       1142              _loaded = true;
+       1143          }
+       1144      }
+        231      public VaultRepository getVault() {
+        232          if (!isVaultLoaded()) {
+        233              throw new IllegalStateException("Vault manager is not initialized");
+  10. E887b87bf GUI/standard*
+      S_LIST -> MainActivity.onOptionsItemSelected
+      Tap an item in the list toolbar or overflow menu: the lock icon, Settings, About or a sort option
+      evidence: INFERRED androidx.appcompat: a tap on a toolbar menu item calls onOptionsItemSelected (source not read); SRC ui/MainActivity.java:1086-1118
+       1086      public boolean onOptionsItemSelected(MenuItem item) {
+       1087          int itemId = item.getItemId();
+       1088          if (itemId == R.id.action_settings) {
+       1089              startPreferencesActivity();
+       1090          } else if (itemId == R.id.action_about) {
+       1091              Intent intent = new Intent(this, AboutActivity.class);
+       1092              startActivity(intent);
+       1093          } else if (itemId == R.id.action_lock) {
+       1094              _vaultManager.lock(true);
+       1095          } else {
+       1096              if (item.getGroupId() == R.id.action_sort_category) {
+       1097                  item.setChecked(true);
+       1098  
+       1099                  SortCategory sortCategory;
+      ...  (19 more lines)
+  11. Ef4e32054 CALL/explicit*
+      MainActivity.onOptionsItemSelected -> MainActivity.startPreferencesActivity()
+      the Settings item opens the settings page
+      guard: the Settings item was tapped (action_settings, MainActivity.java:1088-1089)
+      evidence: SRC ui/MainActivity.java:1088-1089
+       1088          if (itemId == R.id.action_settings) {
+       1089              startPreferencesActivity();
+  12. Ef64f95ee CALL/explicit*
+      MainActivity.startPreferencesActivity() -> MainActivity.startPreferencesActivity(Class,String)
+      Direct call
+      evidence: SRC MainActivity.java:827 (bytecode)
+        827          startPreferencesActivity(null, null);
+  13. E640fb9eb INTENT/standard*
+      MainActivity.startPreferencesActivity(Class,String) -> PreferencesActivity.<init>
+      the settings page opens (fragment and preference extras)
+      evidence: SRC ui/MainActivity.java:826-835; INFERRED androidx.activity.result: the launcher callback runs with the result (androidx source not cached)
+        826      private void startPreferencesActivity() {
+        827          startPreferencesActivity(null, null);
+        828      }
+        829  
+        830      private void startPreferencesActivity(Class<? extends PreferencesFragment> fragmentType, String preference) {
+        831          Intent intent = new Intent(this, PreferencesActivity.class);
+        832          intent.putExtra("fragment", fragmentType);
+        833          intent.putExtra("pref", preference);
+        834          preferenceResultLauncher.launch(intent);
+        835      }
+  14. E94201299 LIFECYCLE/standard*
+      PreferencesActivity.<init> -> PreferencesActivity.onCreate
+      Activity.onCreate of the settings page
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731,2741 (the system calls Activity.onCreate, then performStart); SRC ui/PreferencesActivity.java:24
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+         24      protected void onCreate(Bundle savedInstanceState) {
+  15. E50e3cfda CALL/explicit*
+      PreferencesActivity.onCreate -> MainPreferencesFragment.<init>
+      the settings page creates its main fragment on a fresh start
+      guard: onCreate did not abort (PreferencesActivity.java:26-27, abortIfOrphan returns false) and savedInstanceState is null (PreferencesActivity.java:40)
+      evidence: SRC ui/PreferencesActivity.java:26-27,40-41
+         26          if (abortIfOrphan(savedInstanceState)) {
+         27              return;
+         40          if (savedInstanceState == null) {
+         41              _fragment = new MainPreferencesFragment();
+  16. E382bc001 LIFECYCLE/standard*
+      MainPreferencesFragment.<init> -> MainPreferencesFragment.onCreatePreferences
+      the preference list is built after the attach (MainPreferencesFragment)
+      evidence: INFERRED androidx.fragment: a committed transaction attaches the fragment, then PreferenceFragmentCompat.onCreate builds the list (onCreatePreferences), then onResume runs (androidx source not cached); SRC ui/PreferencesActivity.java:41-46
+         41              _fragment = new MainPreferencesFragment();
+         42              _fragment.setArguments(getIntent().getExtras());
+         43  
+         44              getSupportFragmentManager().beginTransaction()
+         45                      .replace(R.id.content, _fragment)
+         46                      .commit();
+  17. Eccc3a740 ENTERS/page*
+      MainPreferencesFragment.onCreatePreferences -> S_SETTINGS_MAIN
+      the settings main list is shown (the preferences.xml rows)
+      evidence: SRC ui/PreferencesActivity.java:40-46; SRC ui/fragments/preferences/MainPreferencesFragment.java:7-12; SRC res/xml/preferences.xml:8-44
+         40          if (savedInstanceState == null) {
+         41              _fragment = new MainPreferencesFragment();
+         42              _fragment.setArguments(getIntent().getExtras());
+         43  
+         44              getSupportFragmentManager().beginTransaction()
+         45                      .replace(R.id.content, _fragment)
+         46                      .commit();
+          7  public class MainPreferencesFragment extends PreferencesFragment {
+          8      @Override
+          9      public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
+         10          addPreferencesFromResource(R.xml.preferences);
+         11      }
+         12  }
+          8          android:fragment="com.beemdevelopment.aegis.ui.fragments.preferences.AppearancePreferencesFragment"
+          9          app:icon="@drawable/ic_outline_brush_24"
+         10          app:title="@string/pref_section_appearance_title"
+         11          app:summary="@string/pref_section_appearance_summary" />
+         12  
+         13      <Preference
+         14          android:fragment="com.beemdevelopment.aegis.ui.fragments.preferences.BehaviorPreferencesFragment"
+         15          app:icon="@drawable/ic_outline_touch_app_24"
+         16          app:title="@string/pref_section_behavior_title"
+         17          app:summary="@string/pref_section_behavior_summary" />
+         18  
+         19      <Preference
+         20          android:fragment="com.beemdevelopment.aegis.ui.fragments.preferences.IconPacksManagerFragment"
+         21          android:title="@string/pref_section_icon_packs"
+      ...  (23 more lines)
+  18. E3452b602 GUI/standard*
+      S_SETTINGS_MAIN -> PreferencesActivity.onPreferenceStartFragment
+      Tap a row of the main settings list that opens a sub-page (android:fragment in preferences.xml)
+      evidence: INFERRED androidx.preference: a tap on a Preference row calls its OnPreferenceClickListener, or the activity callback OnPreferenceStartFragmentCallback for a row with android:fragment (androidx source not cached); SRC ui/PreferencesActivity.java:19,80-84; SRC res/xml/preferences.xml:8-44
+         19          PreferenceFragmentCompat.OnPreferenceStartFragmentCallback {
+         80      public boolean onPreferenceStartFragment(@NonNull PreferenceFragmentCompat caller, Preference pref) {
+         81          _fragment = getSupportFragmentManager().getFragmentFactory().instantiate(getClassLoader(), pref.getFragment());
+         82          _fragment.setArguments(pref.getExtras());
+         83          _fragment.setTargetFragment(caller, 0);
+         84          showFragment(_fragment);
+          8          android:fragment="com.beemdevelopment.aegis.ui.fragments.preferences.AppearancePreferencesFragment"
+          9          app:icon="@drawable/ic_outline_brush_24"
+         10          app:title="@string/pref_section_appearance_title"
+         11          app:summary="@string/pref_section_appearance_summary" />
+         12  
+         13      <Preference
+         14          android:fragment="com.beemdevelopment.aegis.ui.fragments.preferences.BehaviorPreferencesFragment"
+         15          app:icon="@drawable/ic_outline_touch_app_24"
+         16          app:title="@string/pref_section_behavior_title"
+         17          app:summary="@string/pref_section_behavior_summary" />
+         18  
+         19      <Preference
+         20          android:fragment="com.beemdevelopment.aegis.ui.fragments.preferences.IconPacksManagerFragment"
+         21          android:title="@string/pref_section_icon_packs"
+      ...  (23 more lines)
+  19. E63d9f2a4 CALL/non_standard(reflection: FragmentFactory.instantiate(getClassLoader(), pref.getFragment()) loads the class named in android:fragment and calls its constructor (PreferencesActivity.java:81; res/xml/preferences.xml:38))
+      PreferencesActivity.onPreferenceStartFragment -> ImportExportPreferencesFragment.<init>
+      the framework creates the sub-page named by the tapped row (ImportExportPreferencesFragment)
+      guard: the tapped row has android:fragment=ImportExportPreferencesFragment (res/xml/preferences.xml:38)
+      evidence: INFERRED androidx.fragment: a committed transaction attaches the fragment, then PreferenceFragmentCompat.onCreate builds the list (onCreatePreferences), then onResume runs (androidx source not cached); SRC ui/PreferencesActivity.java:80-84; SRC res/xml/preferences.xml:38
+         80      public boolean onPreferenceStartFragment(@NonNull PreferenceFragmentCompat caller, Preference pref) {
+         81          _fragment = getSupportFragmentManager().getFragmentFactory().instantiate(getClassLoader(), pref.getFragment());
+         82          _fragment.setArguments(pref.getExtras());
+         83          _fragment.setTargetFragment(caller, 0);
+         84          showFragment(_fragment);
+         38          android:fragment="com.beemdevelopment.aegis.ui.fragments.preferences.ImportExportPreferencesFragment"
+  20. E245f8b40 LIFECYCLE/standard*
+      ImportExportPreferencesFragment.<init> -> ImportExportPreferencesFragment.onCreatePreferences
+      the preference list is built after the attach (ImportExportPreferencesFragment)
+      evidence: INFERRED androidx.fragment: a committed transaction attaches the fragment, then PreferenceFragmentCompat.onCreate builds the list (onCreatePreferences), then onResume runs (androidx source not cached); SRC ui/PreferencesActivity.java:84,91-97
+         84          showFragment(_fragment);
+         91      private void showFragment(Fragment fragment) {
+         92          getSupportFragmentManager().beginTransaction()
+         93                  .setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left, R.anim.slide_in_left, R.anim.slide_out_right)
+         94                  .replace(R.id.content, fragment)
+         95                  .addToBackStack(null)
+         96                  .commit();
+         97      }
+  21. E8e4d066b FRAMEWORK/standard*
+      ImportExportPreferencesFragment.onCreatePreferences -> ImportExportPreferencesFragment.lambda$onCreatePreferences$10
+      Tap Google Authenticator style export (pref_google_auth_style_export)
+      evidence: INFERRED androidx.preference: a tap on a Preference row calls its OnPreferenceClickListener, or the activity callback OnPreferenceStartFragmentCallback for a row with android:fragment (androidx source not cached); SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:131-135
+        131          Preference googleAuthStyleExportPreference = requirePreference("pref_google_auth_style_export");
+        132          googleAuthStyleExportPreference.setOnPreferenceClickListener(preference -> {
+        133              startGoogleAuthenticatorStyleExport();
+        134              return true;
+        135          });
+  22. E1f7435e7 CALL/explicit*
+      ImportExportPreferencesFragment.lambda$onCreatePreferences$10 -> ImportExportPreferencesFragment.startGoogleAuthenticatorStyleExport
+      Direct call
+      evidence: SRC ImportExportPreferencesFragment.java:133 (bytecode)
+        133              startGoogleAuthenticatorStyleExport();
+  23. Eba2c5bb9 INTENT/standard* [STATE: The vault holds a TOTP or HOTP entry with SHA-1 and 6 digits, so the Google Authenticator export is not empty (ImportExportPreferencesFragment.java:352-363)]
+      ImportExportPreferencesFragment.startGoogleAuthenticatorStyleExport -> TransferEntriesActivity.<init>
+      the Google Authenticator style export page opens with the QR batches
+      guard: at least one entry is TOTP or HOTP with the default 6 digits and SHA-1, so the export list is not empty (ImportExportPreferencesFragment.java:357-363,384-390)
+      evidence: SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:384-390
+        384          if (exports.size() == 0) {
+        385              Toast.makeText(requireContext(), R.string.pref_google_auth_export_no_data, Toast.LENGTH_SHORT).show();
+        386          } else {
+        387              Intent intent = new Intent(requireContext(), TransferEntriesActivity.class);
+        388              intent.putExtra("authInfos", exports);
+        389              startActivity(intent);
+        390          }
+  24. E72e1a8df LIFECYCLE/standard*
+      TransferEntriesActivity.<init> -> TransferEntriesActivity.onCreate
+      Activity.onCreate of the transfer page
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731,2741 (the system calls Activity.onCreate, then performStart); SRC ui/TransferEntriesActivity.java:55
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+         55      protected void onCreate(Bundle savedInstanceState) {
+  25. Ec5f95bb3 FRAMEWORK/standard*
+      TransferEntriesActivity.onCreate -> TransferEntriesActivity.lambda$onCreate$0
+      Tap Next (shown only when the list has more than one entry; the Done label on the last entry closes the page)
+      guard: the Next button is shown: the list has more than one entry (TransferEntriesActivity.java:81-82)
+      evidence: FW-SRC core/java/android/view/View.java:6289-6296 (performClick calls the OnClickListener.onClick); SRC ui/TransferEntriesActivity.java:84-96
+      (core/java/android/view/View.java not found in the source tree)
+         84          _nextButton.setOnClickListener(v -> {
+         85              if (_currentEntryCount < _authInfos.size()) {
+         86                  _previousButton.setVisibility(View.VISIBLE);
+         87                  _currentEntryCount++;
+         88                  generateQR();
+         89  
+         90                  if (_currentEntryCount == _authInfos.size()) {
+         91                      _nextButton.setText(R.string.done);
+         92                  }
+         93              } else {
+         94                  finish();
+         95              }
+         96          });
+  26. E6817ac19 CALL/explicit*
+      TransferEntriesActivity.lambda$onCreate$0 -> TransferEntriesActivity.generateQR
+      Tap Next while entries remain: the next QR code is generated
+      guard: _currentEntryCount < _authInfos.size() (TransferEntriesActivity.java:85): the code is generated only while the count is below the list size; otherwise the else branch calls finish (line 94)
+      evidence: SRC ui/TransferEntriesActivity.java:85,88,94
+         85              if (_currentEntryCount < _authInfos.size()) {
+         88                  generateQR();
+         94                  finish();
+  27. Ee0ce6c02 CALL/explicit*
+      TransferEntriesActivity.generateQR -> GoogleAuthInfo$Export.getUri
+      Virtual/interface call that can dispatch to this implementation
+      evidence: SRC TransferEntriesActivity.java:213 (bytecode)
+        213              bitmap = QrCodeHelper.encodeToBitmap(selectedEntry.getUri().toString(), _qrImage.getWidth(), _qrImage.getWidth(), backgroundColor);
+  28. Ea8a623d5 FRAMEWORK/standard*
+      GoogleAuthInfo$Export.getUri -> GoogleAuthProtos$MigrationPayload.dynamicMethod
+      the built payload is finished and serialized (toByteArray, GoogleAuthInfo.java:459)
+      evidence: INFERRED protobuf-lite runtime (its source is not read; the generated GoogleAuthProtos classes are in the dataset, not the source tree); SRC otp/GoogleAuthInfo.java:459-460
+        459              String data = Base64.encode(builder.build().toByteArray());
+        460              exportUriBuilder.appendQueryParameter("data", data);
+  29. E75a4904b FRAMEWORK/standard*
+      GoogleAuthProtos$MigrationPayload.dynamicMethod -> GoogleAuthProtos$MigrationPayload$OtpParameters.dynamicMethod
+      the runtime reads or writes each OtpParameters message of the payload
+      evidence: INFERRED protobuf-lite runtime (its source is not read; the generated GoogleAuthProtos classes are in the dataset, not the source tree)
+  30. E00b93575 FRAMEWORK/standard*
+      GoogleAuthProtos$MigrationPayload$OtpParameters.dynamicMethod -> GoogleAuthProtos$MigrationPayload$DigitCount.internalGetVerifier
+      the runtime gets the DigitCount verifier of an OtpParameters field
+      evidence: INFERRED protobuf-lite runtime (its source is not read; the generated GoogleAuthProtos classes are in the dataset, not the source tree)
+  31. E6c7b88cc LIFECYCLE/standard*
+      GoogleAuthProtos$MigrationPayload$DigitCount.internalGetVerifier -> GoogleAuthProtos$MigrationPayload$DigitCount$DigitCountVerifier.<clinit>
+      the DigitCountVerifier singleton is created on first use
+      evidence: INFERRED JVM class initialization (JLS 12.4.1): the verifier class is initialized when its singleton is read; generated body (dataset)
+  32. Ec45d78f1 CALL/explicit*
+      GoogleAuthProtos$MigrationPayload$DigitCount$DigitCountVerifier.<clinit> -> GoogleAuthProtos$MigrationPayload$DigitCount$DigitCountVerifier.<init>
+      the DigitCountVerifier singleton constructor runs during class initialization
+      evidence: INFERRED generated GoogleAuthProtos body (dataset, not in the source tree): the verifier singleton is created in its static field
+

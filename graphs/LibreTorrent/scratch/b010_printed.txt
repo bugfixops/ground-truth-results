@@ -1,0 +1,726 @@
+$ source root
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java
+
+$ sed -n 24,50p ui/feeditems/FeedItemsListItem.java (Comparable :26, hashCode :38-40, compareTo :44-47)
+import org.proninyaroslav.libretorrent.core.model.data.entity.FeedItem;
+
+public class FeedItemsListItem extends FeedItem implements Comparable<FeedItemsListItem>
+{
+    public FeedItemsListItem(@NonNull FeedItem item)
+    {
+        super(item.id, item.feedId, item.downloadUrl,
+              item.articleUrl, item.title, item.pubDate);
+
+        read = item.read;
+        fetchDate = item.fetchDate;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return id.hashCode();
+    }
+
+    @Override
+    public int compareTo(@NonNull FeedItemsListItem o)
+    {
+
+        return Long.compare(o.pubDate, pubDate);
+    }
+
+    @Override
+
+$ sed -n 80,120p ui/feeditems/FeedItemsAdapter.java (submitList sort :82-87, getItemPosition :100-102, diffCallback :105+)
+
+    @Override
+    public void submitList(@Nullable List<FeedItemsListItem> list)
+    {
+        if (list != null)
+            Collections.sort(list);
+
+        super.submitList(list);
+    }
+
+    @Override
+    public FeedItemsListItem getItemKey(int position)
+    {
+        if (position < 0 || position >= getCurrentList().size())
+            return null;
+
+        return getItem(position);
+    }
+
+    @Override
+    public int getItemPosition(FeedItemsListItem key)
+    {
+        return getCurrentList().indexOf(key);
+    }
+
+    private static final DiffUtil.ItemCallback<FeedItemsListItem> diffCallback = new DiffUtil.ItemCallback<FeedItemsListItem>()
+    {
+        @Override
+        public boolean areContentsTheSame(@NonNull FeedItemsListItem oldItem,
+                                          @NonNull FeedItemsListItem newItem)
+        {
+            return oldItem.equalsContent(newItem);
+        }
+
+        @Override
+        public boolean areItemsTheSame(@NonNull FeedItemsListItem oldItem,
+                                       @NonNull FeedItemsListItem newItem)
+        {
+            return oldItem.equals(newItem);
+        }
+    };
+
+$ sed -n 148,156p ui/feeditems/FeedItemsFragment.java (adapter construction :152)
+        binding.feedItemsList.addItemDecoration(new RecyclerViewDividerDecoration(a.getDrawable(0)));
+        a.recycle();
+        binding.feedItemsList.setEmptyView(binding.emptyViewFeedItems);
+
+        adapter = new FeedItemsAdapter(this);
+        binding.feedItemsList.setAdapter(adapter);
+
+        binding.swipeContainer.setOnRefreshListener(() -> viewModel.refreshChannel());
+    }
+$ sed -n 214,236p ui/feeditems/FeedItemsFragment.java (subscribe adapter::submitList :218, :233)
+                                .map(FeedItemsListItem::new)
+                                .toList()
+                )
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(adapter::submitList,
+                        (Throwable t) -> Log.e(TAG, "Getting item list error: " +
+                                Log.getStackTraceString(t)));
+    }
+
+    private void getAllFeedItemsSingle()
+    {
+        disposables.add(viewModel.getItemsByFeedIdSingle()
+                .subscribeOn(Schedulers.io())
+                .flatMap((itemList) ->
+                        Observable.fromIterable(itemList)
+                                .map(FeedItemsListItem::new)
+                                .toList()
+                )
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(adapter::submitList,
+                        (Throwable t) -> Log.e(TAG, "Getting item list error: " +
+                                Log.getStackTraceString(t))));
+    }
+
+$ sed -n 26,45p ui/detailtorrent/pages/peers/PeerItem.java (hashCode :36-38)
+public class PeerItem extends PeerInfo
+{
+    public PeerItem(@NonNull PeerInfo state)
+    {
+        super(state.ip, state.client, state.totalDownload,
+                state.totalUpload, state.relevance, state.connectionType,
+                state.port, state.progress, state.downSpeed, state.upSpeed);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return ip.hashCode();
+    }
+
+    public boolean equalsContent(Object o)
+    {
+        return super.equals(o);
+    }
+
+$ sed -n 98,116p ui/detailtorrent/pages/peers/PeerListAdapter.java (diffCallback equals/equalsContent :100-113)
+    }
+
+    private static final DiffUtil.ItemCallback<PeerItem> diffCallback = new DiffUtil.ItemCallback<PeerItem>()
+    {
+        @Override
+        public boolean areContentsTheSame(@NonNull PeerItem oldItem,
+                                          @NonNull PeerItem newItem)
+        {
+            return oldItem.equalsContent(newItem);
+        }
+
+        @Override
+        public boolean areItemsTheSame(@NonNull PeerItem oldItem,
+                                       @NonNull PeerItem newItem)
+        {
+            return oldItem.equals(newItem);
+        }
+    };
+
+
+$ sed -n 26,61p ui/main/drawer/TagItem.java (hashCode :50-51, toString :56-60)
+public class TagItem extends AbstractTagItem {
+    @NonNull
+    public final TagInfo info;
+
+    public TagItem(@NonNull TagInfo info) {
+        this.info = info;
+    }
+
+    @Override
+    public boolean isSame(AbstractTagItem o) {
+        return o instanceof TagItem && info.id == ((TagItem) o).info.id;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        TagItem tagItem = (TagItem) o;
+
+        return info.equals(tagItem.info);
+    }
+
+    @Override
+    public int hashCode() {
+        return info.hashCode();
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return "TagItem{" +
+                "info=" + info +
+                '}';
+    }
+}
+$ sed -n 128,148p ui/main/drawer/TagsAdapter.java (diffCallback equals :137, isSame :145)
+    }
+
+    static final DiffUtil.ItemCallback<AbstractTagItem> diffCallback =
+            new DiffUtil.ItemCallback<AbstractTagItem>() {
+                @Override
+                public boolean areContentsTheSame(
+                        @NonNull AbstractTagItem oldItem,
+                        @NonNull AbstractTagItem newItem
+                ) {
+                    return oldItem.equals(newItem);
+                }
+
+                @Override
+                public boolean areItemsTheSame(
+                        @NonNull AbstractTagItem oldItem,
+                        @NonNull AbstractTagItem newItem
+                ) {
+                    return oldItem.isSame(newItem);
+                }
+            };
+
+$ sed -n 350,358p ui/main/MainActivity.java (Long.toString(info.id) :355, near-miss not a TagItem call)
+    };
+
+    private void saveSelectedTag(@NonNull AbstractTagItem item) {
+        String tagId = null;
+        if (item instanceof TagItem) {
+            tagId = Long.toString(((TagItem) item).info.id);
+        } else if (item instanceof EmptyTagItem) {
+            tagId = getString(R.string.tag_empty_item);
+        } else if (item instanceof NoTagsItem) {
+$ sed -n 473,480p ui/main/MainActivity.java (TagItem::new :477)
+                .flatMapSingle((list) ->
+                        Flowable.concat(
+                                Flowable.just(new EmptyTagItem()),
+                                Flowable.just(new NoTagsItem()),
+                                Flowable.fromIterable(list).map(TagItem::new)
+                        ).toList()
+                )
+                .observeOn(AndroidSchedulers.mainThread())
+
+$ sed -n 40,60p service/Scheduler.java (class :43, static members only, no explicit ctor)
+import java.util.Calendar;
+import java.util.concurrent.TimeUnit;
+
+public class Scheduler {
+    public static final String SCHEDULER_WORK_START_APP = "scheduler_work_start_app";
+    public static final String SCHEDULER_WORK_STOP_APP = "scheduler_work_stop_app";
+    public static final String SCHEDULER_WORK_PERIODICAL_REFRESH_FEEDS = "scheduler_work_periodical_refresh_feeds";
+
+    /*
+     * Time in minutes after 00:00
+     */
+
+    public static boolean setStartAppAlarm(@NonNull Context appContext, int time) {
+        return setStartStopAppAlarm(appContext, SCHEDULER_WORK_START_APP, time);
+    }
+
+    public static boolean setStopAppAlarm(@NonNull Context appContext, int time) {
+        return setStartStopAppAlarm(appContext, SCHEDULER_WORK_STOP_APP, time);
+    }
+
+    public static void cancelStartAppAlarm(@NonNull Context appContext) {
+
+$ sed -n 40,52p ui/log/LogSettingsFragment.java (newInstance :43-49)
+
+    private SettingsRepository pref;
+
+    public static LogSettingsFragment newInstance()
+    {
+        LogSettingsFragment fragment = new LogSettingsFragment();
+        fragment.setArguments(new Bundle());
+
+        return fragment;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState)
+
+$ sed -n 35,48p ui/customviews/RecyclerViewDividerDecoration.java (Drawable ctor :39, Context,int ctor :44)
+public class RecyclerViewDividerDecoration extends RecyclerView.ItemDecoration
+{
+    private Drawable divider;
+
+    public RecyclerViewDividerDecoration(Drawable divider)
+    {
+        this.divider = divider;
+    }
+
+    public RecyclerViewDividerDecoration(Context context, int dividerLayout)
+    {
+        divider = ContextCompat.getDrawable(context, dividerLayout);
+    }
+
+$ sed -n 50,68p ui/customviews/EmptyRecyclerView.java (1-arg ctor :54-56, 2-arg :59, 3-arg :64)
+            checkEmpty();
+        }
+    };
+
+    public EmptyRecyclerView(Context context)
+    {
+        super(context);
+    }
+
+    public EmptyRecyclerView(Context context, AttributeSet attrs)
+    {
+        super(context, attrs);
+    }
+
+    public EmptyRecyclerView(Context context, AttributeSet attrs, int defStyle)
+    {
+        super(context, attrs, defStyle);
+    }
+
+$ sed -n 52,76p ui/customviews/ExpansionHeader.java (1-arg ctor :56-58, 2-arg :63, 3-arg :70)
+    private boolean expanded = false;
+    private ImageView arrow;
+    private TextView textView;
+
+    public ExpansionHeader(@NonNull Context context)
+    {
+        super(context);
+
+        init(context, null);
+    }
+
+    public ExpansionHeader(@NonNull Context context, @Nullable AttributeSet attrs)
+    {
+        super(context, attrs);
+
+        init(context, attrs);
+    }
+
+    public ExpansionHeader(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr)
+    {
+        super(context, attrs, defStyleAttr);
+
+        init(context, attrs);
+    }
+
+$ sed -n 32,50p ui/customviews/FixHintTextInputEditText.java (1-arg ctor :35-36, 2-arg :39, 3-arg :43)
+
+public class FixHintTextInputEditText extends TextInputEditText {
+
+    public FixHintTextInputEditText(@NonNull Context context) {
+        super(context);
+    }
+
+    public FixHintTextInputEditText(@NonNull Context context, @Nullable AttributeSet attrs) {
+        super(context, attrs);
+    }
+
+    public FixHintTextInputEditText(
+            @NonNull Context context,
+            @Nullable AttributeSet attrs,
+            int defStyleAttr
+    ) {
+        super(context, attrs, defStyleAttr);
+    }
+
+$ sed -n 34,58p ui/customviews/SwitchBar.java (1-arg ctor :37-42, 2-arg :44, 3-arg :51)
+
+public class SwitchBar extends SwitchCompat
+{
+    public SwitchBar(@NonNull Context context)
+    {
+        super(new ContextThemeWrapper(context, R.style.SwitchBar));
+
+        init(context);
+    }
+
+    public SwitchBar(@NonNull Context context, @Nullable AttributeSet attrs)
+    {
+        super(new ContextThemeWrapper(context, R.style.SwitchBar), attrs);
+
+        init(context);
+    }
+
+    public SwitchBar(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr)
+    {
+        super(new ContextThemeWrapper(context, R.style.SwitchBar), attrs, defStyleAttr);
+
+        init(context);
+    }
+
+    private void init(Context context)
+$ sed -n 32,52p ui/customviews/ThemedSpeedDialView.java (1-arg ctor :35-37, 2-arg :40, 3-arg :46)
+
+public class ThemedSpeedDialView extends SpeedDialView
+{
+    public ThemedSpeedDialView(@NonNull Context context)
+    {
+        super(context);
+    }
+
+    public ThemedSpeedDialView(@NonNull Context context,
+                               @Nullable AttributeSet attrs)
+    {
+        super(context, attrs);
+    }
+
+    public ThemedSpeedDialView(@NonNull Context context,
+                               @Nullable AttributeSet attrs,
+                               int defStyleAttr)
+    {
+        super(context, attrs, defStyleAttr);
+    }
+
+
+$ sed -n 49,95p ui/filemanager/FileManagerSpinnerAdapter.java (StorageSpinnerItem :51-93: getName :64, setName :69, getStoragePath :74, setStoragePath :79, getSize :84, setSize :89)
+    private Context context;
+
+    public static class StorageSpinnerItem
+    {
+        private String name;
+        private String storagePath;
+        private long size;
+
+        public StorageSpinnerItem(String name, String storagePath, long size)
+        {
+            this.name = name;
+            this.storagePath = storagePath;
+            this.size = size;
+        }
+
+        public String getName()
+        {
+            return name;
+        }
+
+        public void setName(String name)
+        {
+            this.name = name;
+        }
+
+        public String getStoragePath()
+        {
+            return storagePath;
+        }
+
+        public void setStoragePath(String storagePath)
+        {
+            this.storagePath = storagePath;
+        }
+
+        public long getSize()
+        {
+            return size;
+        }
+
+        public void setSize(long size)
+        {
+            this.size = size;
+        }
+    }
+
+    public FileManagerSpinnerAdapter(Context context)
+$ sed -n 120,165p ui/filemanager/FileManagerSpinnerAdapter.java (getStoragePath use :124, inflate+findViewById :137-138, direct field reads :148-150, inflate :160-161)
+
+    @Override
+    public String getItem(int position)
+    {
+        return items.get(position).getStoragePath();
+    }
+
+    @Override
+    public long getItemId(int position)
+    {
+        return position;
+    }
+
+    @Override
+    public View getDropDownView(int position, View view, ViewGroup parent)
+    {
+        if (view == null || !view.getTag().toString().equals(DROPDOWN)) {
+            LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            view = inflater.inflate(R.layout.filemanager_storage_spinner_item_dropdown, parent, false);
+            view.setTag(DROPDOWN);
+        }
+
+        String nameAndSizeTemplate = context.getString(R.string.storage_name_and_size);
+        TextView nameAndSize = view.findViewById(R.id.storage_name_and_size);
+        TextView path = view.findViewById(R.id.storage_path);
+
+        StorageSpinnerItem item = getStorageItem(position);
+        if (item != null) {
+            nameAndSize.setText(String.format(nameAndSizeTemplate, item.name,
+                                Formatter.formatFileSize(context, item.size)));
+            path.setText(item.getStoragePath());
+        }
+
+        return view;
+    }
+
+    @Override
+    public View getView(int position, View view, ViewGroup parent)
+    {
+        if (view == null || !view.getTag().toString().equals(NON_DROPDOWN)) {
+            LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            view = inflater.inflate(R.layout.filemanager_storage_spinner_item, parent, false);
+            view.setTag(NON_DROPDOWN);
+        }
+
+        TextView title = view.findViewById(R.id.storage_title);
+
+$ grep -rn direct base-Binding static calls (expect 0 hits)
+(no hits)
+
+$ grep -rn bare batch-10 binding class references (DataBindingUtil type uses only)
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/DownloadableFilesAdapter.java:36:import org.proninyaroslav.libretorrent.databinding.ItemTorrentDownloadableFileBinding;
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/DownloadableFilesAdapter.java:60:        ItemTorrentDownloadableFileBinding binding = DataBindingUtil.inflate(inflater,
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/DownloadableFilesAdapter.java:93:        private ItemTorrentDownloadableFileBinding binding;
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/DownloadableFilesAdapter.java:95:        public ViewHolder(ItemTorrentDownloadableFileBinding binding)
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/detailtorrent/pages/trackers/TrackerListAdapter.java:45:import org.proninyaroslav.libretorrent.databinding.ItemTrackersListBinding;
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/detailtorrent/pages/trackers/TrackerListAdapter.java:73:        ItemTrackersListBinding binding = DataBindingUtil.inflate(inflater,
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/detailtorrent/pages/trackers/TrackerListAdapter.java:140:        private ItemTrackersListBinding binding;
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/detailtorrent/pages/trackers/TrackerListAdapter.java:145:        public ViewHolder(ItemTrackersListBinding binding)
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/TorrentListAdapter.java:49:import org.proninyaroslav.libretorrent.databinding.ItemTorrentListBinding;
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/TorrentListAdapter.java:79:        ItemTorrentListBinding binding = DataBindingUtil.inflate(inflater,
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/TorrentListAdapter.java:153:        private ItemTorrentListBinding binding;
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/TorrentListAdapter.java:161:        ViewHolder(ItemTorrentListBinding binding)
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/drawer/TagsAdapter.java:38:import org.proninyaroslav.libretorrent.databinding.DrawerEmptyTagsListItemBinding;
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/drawer/TagsAdapter.java:39:import org.proninyaroslav.libretorrent.databinding.DrawerNoTagsListItemBinding;
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/drawer/TagsAdapter.java:40:import org.proninyaroslav.libretorrent.databinding.DrawerTagsListItemBinding;
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/drawer/TagsAdapter.java:64:                DrawerEmptyTagsListItemBinding binding = DataBindingUtil.inflate(
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/drawer/TagsAdapter.java:73:                DrawerTagsListItemBinding binding = DataBindingUtil.inflate(
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/drawer/TagsAdapter.java:82:                DrawerNoTagsListItemBinding binding = DataBindingUtil.inflate(
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/drawer/TagsAdapter.java:168:        private final DrawerTagsListItemBinding binding;
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/drawer/TagsAdapter.java:170:        public ItemViewHolder(@NonNull DrawerTagsListItemBinding binding) {
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/drawer/TagsAdapter.java:227:        private final DrawerEmptyTagsListItemBinding binding;
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/drawer/TagsAdapter.java:229:        public EmptyItemViewHolder(@NonNull DrawerEmptyTagsListItemBinding binding) {
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/drawer/TagsAdapter.java:273:        private final DrawerNoTagsListItemBinding binding;
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/drawer/TagsAdapter.java:275:        public NoTagsItemViewHolder(@NonNull DrawerNoTagsListItemBinding binding) {
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/tag/TagsAdapter.java:32:import org.proninyaroslav.libretorrent.databinding.TagsListItemBinding;
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/tag/TagsAdapter.java:48:        TagsListItemBinding binding = DataBindingUtil.inflate(
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/tag/TagsAdapter.java:90:        private final TagsListItemBinding binding;
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/tag/TagsAdapter.java:92:        public ViewHolder(@NonNull TagsListItemBinding binding) {
+
+$ grep -rn 'new Scheduler(' (expect 0 hits)
+(no hits)
+$ grep -rn 'LogSettingsFragment.newInstance' (expect 0 hits)
+(no hits)
+$ grep -rn 'new (EmptyRecyclerView|ExpansionHeader|FixHintTextInputEditText|SwitchBar|ThemedSpeedDialView)\(' (expect 0 hits)
+(no hits)
+$ grep -rn 'extends (EmptyRecyclerView|ExpansionHeader|FixHintTextInputEditText|SwitchBar|ThemedSpeedDialView|PeerItem|FeedItemsListItem|Scheduler|RecyclerViewDividerDecoration|LogSettingsFragment)' (expect 0 hits)
+(no hits)
+$ grep -rn 'extends .*TagItem' drawer-tag subclasses check (EmptyTagItem/NoTagsItem extend AbstractTagItem, not drawer TagItem)
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/drawer/EmptyTagItem.java:25:public class EmptyTagItem extends AbstractTagItem {
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/drawer/NoTagsItem.java:22:public class NoTagsItem extends AbstractTagItem {
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/drawer/TagItem.java:26:public class TagItem extends AbstractTagItem {
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/drawer/TagsAdapter.java:42:public class TagsAdapter extends ListAdapter<AbstractTagItem, TagsAdapter.AbstractViewHolder> {
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/drawer/EmptyTagItem.java:25:public class EmptyTagItem extends AbstractTagItem {
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/drawer/NoTagsItem.java:22:public class NoTagsItem extends AbstractTagItem {
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/drawer/TagItem.java:26:public class TagItem extends AbstractTagItem {
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/drawer/TagsAdapter.java:42:public class TagsAdapter extends ListAdapter<AbstractTagItem, TagsAdapter.AbstractViewHolder> {
+
+$ grep -rn 'new RecyclerViewDividerDecoration(' construction sites (overload discrimination)
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/detailtorrent/pages/peers/DetailTorrentPeersFragment.java:140:        binding.peerList.addItemDecoration(new RecyclerViewDividerDecoration(a.getDrawable(0)));
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/detailtorrent/pages/trackers/DetailTorrentTrackersFragment.java:174:        binding.trackerList.addItemDecoration(new RecyclerViewDividerDecoration(a.getDrawable(0)));
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/feeditems/FeedItemsFragment.java:148:        binding.feedItemsList.addItemDecoration(new RecyclerViewDividerDecoration(a.getDrawable(0)));
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/feeds/FeedFragment.java:133:        binding.feedList.addItemDecoration(new RecyclerViewDividerDecoration(a.getDrawable(0)));
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/log/LogActivity.java:109:        binding.logList.addItemDecoration(new RecyclerViewDividerDecoration(a.getDrawable(0)));
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/MainFragment.java:153:        binding.torrentList.addItemDecoration(new RecyclerViewDividerDecoration(a.getDrawable(0)));
+
+$ grep -rn StorageSpinnerItem accessor calls (getName/getSize/setName/setSize/setStoragePath on any receiver)
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/filemanager/FileManagerAdapter.java:138:                if (highlightFileTypes != null && highlightFileTypes.contains(fs.getExtension(item.getName()))) {
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/filemanager/FileManagerAdapter.java:154:            fileName.setText(item.getName());
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/filemanager/FileManagerAdapter.java:157:                if (item.getName().equals(FileManagerNode.PARENT_DIR)) {
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/filemanager/FileManagerDialog.java:431:        if (item.getName().equals(FileManagerNode.PARENT_DIR)) {
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/filemanager/FileManagerDialog.java:443:                viewModel.openDirectory(item.getName());
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/filemanager/FileManagerDialog.java:455:            returnFileUri(item.getName());
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/filemanager/FileManagerNode.java:88:        return node.compareTo(another.getName());
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/filemanager/FileManagerViewModel.java:134:                    items.add(new FileManagerNode(file.getName(), FileNode.Type.DIR, true));
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/filemanager/FileManagerViewModel.java:136:                    items.add(new FileManagerNode(file.getName(), FileManagerNode.Type.FILE,
+$ grep -rn 'spinnerItems' uses (FileManagerDialog getStoragePath site)
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/filemanager/FileManagerDialog.java:201:        List<FileManagerSpinnerAdapter.StorageSpinnerItem> spinnerItems = viewModel.getStorageList();
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/filemanager/FileManagerDialog.java:205:            spinnerPos = getSpinnerPos(spinnerItems);
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/filemanager/FileManagerDialog.java:210:        storageAdapter.addItems(spinnerItems);
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/filemanager/FileManagerDialog.java:640:        List<FileManagerSpinnerAdapter.StorageSpinnerItem> spinnerItems = viewModel.getStorageList();
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/filemanager/FileManagerDialog.java:641:        spinnerPos = getSpinnerPos(spinnerItems);
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/filemanager/FileManagerDialog.java:645:        storageAdapter.addItems(spinnerItems);
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/filemanager/FileManagerDialog.java:652:    private int getSpinnerPos(List<FileManagerSpinnerAdapter.StorageSpinnerItem> spinnerItems) {
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/filemanager/FileManagerDialog.java:653:        for (int i = 0; i < spinnerItems.size(); i++) {
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/filemanager/FileManagerDialog.java:655:            if (curDir != null && curDir.startsWith(spinnerItems.get(i).getStoragePath())) {
+
+$ grep -rn '\.hashCode()' tree-wide, triaged to PeerItem/FeedItemsListItem/drawer-TagItem receivers (none receiver-typed)
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/com/ernieyu/feedparser/Enclosure.java:71:		int result = url != null ? url.hashCode() : 0;
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/com/ernieyu/feedparser/Enclosure.java:72:		result = 31 * result + (type != null ? type.hashCode() : 0);
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/com/ernieyu/feedparser/EzRssTorrentItem.java:117:        int result = fileName != null ? fileName.hashCode() : 0;
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/com/ernieyu/feedparser/EzRssTorrentItem.java:118:        result = 31 * result + (magnetUri != null ? magnetUri.hashCode() : 0);
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/com/ernieyu/feedparser/EzRssTorrentItem.java:119:        result = 31 * result + (infoHash != null ? infoHash.hashCode() : 0);
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/com/ernieyu/feedparser/impl/BaseItem.java:68:        return (id != null) ? id.hashCode() : 0;
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/com/ernieyu/feedparser/mediarss/Content.java:77:        int result = url != null ? url.hashCode() : 0;
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/com/ernieyu/feedparser/mediarss/Content.java:78:        result = 31 * result + (type != null ? type.hashCode() : 0);
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/com/ernieyu/feedparser/mediarss/Hash.java:68:        int result = value != null ? value.hashCode() : 0;
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/com/ernieyu/feedparser/mediarss/Hash.java:69:        result = 31 * result + (algorithm != null ? algorithm.hashCode() : 0);
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/com/ernieyu/feedparser/mediarss/PeerLink.java:56:        int result = href != null ? href.hashCode() : 0;
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/com/ernieyu/feedparser/mediarss/PeerLink.java:57:        result = 31 * result + (type != null ? type.hashCode() : 0);
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/LogEntry.java:96:        result = 31 * result + tag.hashCode();
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/LogEntry.java:97:        result = 31 * result + msg.hashCode();
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/AddTorrentParams.java:124:        return sha1hash.hashCode();
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/data/AdvancedTorrentInfo.java:146:        result = prime * result + ((torrentId == null) ? 0 : torrentId.hashCode());
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/data/MagnetInfo.java:118:        return sha1hash.hashCode();
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/data/PeerInfo.java:193:        result = prime * result + ((ip == null) ? 0 : ip.hashCode());
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/data/PeerInfo.java:194:        result = prime * result + ((client == null) ? 0 : client.hashCode());
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/data/TorrentInfo.java:194:        result = prime * result + torrentId.hashCode();
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/data/TorrentInfo.java:195:        result = prime * result + ((name == null) ? 0 : name.hashCode());
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/data/TorrentInfo.java:196:        result = prime * result + ((stateCode == null) ? 0 : stateCode.hashCode());
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/data/TorrentInfo.java:207:        result = prime * result + ((error == null) ? 0 : error.hashCode());
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/data/TorrentInfo.java:210:        result = prime * result + tags.hashCode();
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/data/TrackerInfo.java:216:        result = prime * result + ((url == null) ? 0 : url.hashCode());
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/data/TrackerInfo.java:217:        result = prime * result + ((message == null) ? 0 : message.hashCode());
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/data/entity/FeedItem.java:133:        return id.hashCode();
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/data/entity/TagInfo.java:96:        result = 31 * result + name.hashCode();
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/data/entity/Torrent.java:175:        return id.hashCode();
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/data/entity/TorrentTagInfo.java:76:        result = 31 * result + torrentId.hashCode();
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/data/metainfo/TorrentMetaInfo.java:168:        return sha1Hash.hashCode();
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/stream/TorrentStream.java:112:        return id.hashCode();
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/service/Scheduler.java:63:                appContext, SCHEDULER_WORK_START_APP.hashCode(), intent,
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/service/Scheduler.java:73:                appContext, SCHEDULER_WORK_STOP_APP.hashCode(), intent,
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/service/Scheduler.java:96:                appContext, workTag.hashCode(), intent,
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/FileItem.java:107:        result = prime * result + ((name == null) ? 0 : name.hashCode());
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/TorrentNotifier.java:129:        notifyManager.notify(name.hashCode(), builder.build());
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/TorrentNotifier.java:145:        notifyManager.notify(name.hashCode(), builder.build());
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/TorrentNotifier.java:161:        notifyManager.notify(message.hashCode(), builder.build());
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/TorrentNotifier.java:209:        notifyManager.notify(name.hashCode(), builder.build());
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/TorrentNotifier.java:236:                appContext, torrent.id.hashCode(), openIntent,
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/TorrentNotifier.java:241:        notifyManager.notify(torrent.id.hashCode(), builder.build());
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/detailtorrent/pages/peers/PeerItem.java:38:        return ip.hashCode();
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/detailtorrent/pages/trackers/TrackerItem.java:36:        return url.hashCode();
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/feeditems/FeedItemsListItem.java:40:        return id.hashCode();
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/TorrentListItem.java:57:        return torrentId.hashCode();
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/drawer/TagItem.java:51:        return info.hashCode();
+/home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/tag/TagItem.java:50:        return info.hashCode();
+$ grep -rn hash-backed collections holding PeerItem/FeedItemsListItem/TagItem (none)
+(no hits)
+
+$ grep -rn drawer TagItem toString/log/concat uses (MainActivity :355 Long.toString only; TagsAdapter reads .info only)
+42:public class TagsAdapter extends ListAdapter<AbstractTagItem, TagsAdapter.AbstractViewHolder> {
+47:    private AbstractTagItem selectedItem;
+97:        AbstractTagItem item = getItem(position);
+105:        AbstractTagItem item = getItem(position);
+106:        if (item instanceof TagItem) {
+108:        } else if (item instanceof EmptyTagItem) {
+117:    public void setSelectedItem(@NonNull AbstractTagItem item) {
+126:    public AbstractTagItem getSelectedItem() {
+130:    static final DiffUtil.ItemCallback<AbstractTagItem> diffCallback =
+131:            new DiffUtil.ItemCallback<AbstractTagItem>() {
+134:                        @NonNull AbstractTagItem oldItem,
+135:                        @NonNull AbstractTagItem newItem
+142:                        @NonNull AbstractTagItem oldItem,
+143:                        @NonNull AbstractTagItem newItem
+150:        void onTagSelected(@NonNull AbstractTagItem item);
+152:        void onTagMenuClicked(@NonNull AbstractTagItem item, int menuId);
+161:                @NonNull AbstractTagItem item,
+178:                @NonNull AbstractTagItem item,
+181:            if (item instanceof TagItem) {
+182:                bind((TagItem) item, listener);
+187:                @NonNull TagItem item,
+237:                @NonNull AbstractTagItem item,
+240:            if (item instanceof EmptyTagItem) {
+241:                bind((EmptyTagItem) item, listener);
+246:                @NonNull EmptyTagItem item,
+283:                @NonNull AbstractTagItem item,
+
+$ adopted existing evidence (small file, re-read in this session; key ranges re-printed fresh above):
+graphs/LibreTorrent/scratch/batch_010_drawer_tagitem_evidence.txt
+# batch 10: drawer.TagItem.hashCode (ui/main/drawer/TagItem.java:50-51)
+# command: sed -n '50,51p' ui/main/drawer/TagItem.java
+    public int hashCode() {
+        return info.hashCode();
+# command: sed -n '130,146p' ui/main/drawer/TagsAdapter.java
+    static final DiffUtil.ItemCallback<AbstractTagItem> diffCallback =
+            new DiffUtil.ItemCallback<AbstractTagItem>() {
+                @Override
+                public boolean areContentsTheSame(
+                        @NonNull AbstractTagItem oldItem,
+                        @NonNull AbstractTagItem newItem
+                ) {
+                    return oldItem.equals(newItem);
+                }
+
+                @Override
+                public boolean areItemsTheSame(
+                        @NonNull AbstractTagItem oldItem,
+                        @NonNull AbstractTagItem newItem
+                ) {
+                    return oldItem.isSame(newItem);
+                }
+# command: sed -n '474,485p' ui/main/MainActivity.java
+                        Flowable.concat(
+                                Flowable.just(new EmptyTagItem()),
+                                Flowable.just(new NoTagsItem()),
+                                Flowable.fromIterable(list).map(TagItem::new)
+                        ).toList()
+                )
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((items) -> {
+                    if (tagsAdapter.getItemCount() == 0) {
+                        setInitSelection(items);
+                    }
+                    tagsAdapter.submitList(items);
+# command: grep -rn -E 'hashCode|HashSet|HashMap|toSet|distinct|Set<|Map<' ui/main/drawer and ui/main/MainActivity.java
+ui/main/drawer/TagItem.java:50:    public int hashCode() {
+ui/main/drawer/TagItem.java:51:        return info.hashCode();
+# exit=0
+
+$ sed -n 85,95p fw_src/android-8.1.0_r1/core/java/android/view/LayoutInflater.java (mConstructorSignature Context,AttributeSet)
+$ sed -n 610,625p fw_src/android-8.1.0_r1/core/java/android/view/LayoutInflater.java (createView looks up only the 2-arg ctor)
+    private Factory2 mPrivateFactory;
+    private Filter mFilter;
+
+    final Object[] mConstructorArgs = new Object[2];
+
+    static final Class<?>[] mConstructorSignature = new Class[] {
+            Context.class, AttributeSet.class};
+
+    private static final HashMap<String, Constructor<? extends View>> sConstructorMap =
+            new HashMap<String, Constructor<? extends View>>();
+
+                    boolean allowed = mFilter.onLoadClass(clazz);
+                    if (!allowed) {
+                        failNotAllowed(name, prefix, attrs);
+                    }
+                }
+                constructor = clazz.getConstructor(mConstructorSignature);
+                constructor.setAccessible(true);
+                sConstructorMap.put(name, constructor);
+            } else {
+                // If we have a filter, apply it to cached constructor
+                if (mFilter != null) {
+                    // Have we seen this name before?
+                    Boolean allowedState = mFilterMap.get(name);
+                    if (allowedState == null) {
+                        // New class -- remember whether it is allowed
+                        clazz = mContext.getClassLoader().loadClass(

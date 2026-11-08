@@ -1,0 +1,48 @@
+== ui/tag/TorrentTagsList.java:23-56
+23:     public TorrentTagsList(Context context) {
+24:         super(context);
+26:         init(context);
+27:     }
+29:     public TorrentTagsList(Context context, AttributeSet attrs) {
+30:         super(context, attrs);
+32:         init(context);
+33:     }
+35:     void init(Context context) {
+36:         this.addTagButton = buildAddTagButton(context);
+37:         addView(addTagButton);
+38:     }
+40:     public void setListener(Listener listener) {
+41:         this.listener = listener;
+42:     }
+44:     public void submit(@NonNull List<TagInfo> tags) {
+45:         removeAllViews();
+46:         this.tags = tags;
+48:         for (TagInfo tag : tags) {
+49:             addView(buildChip(getContext(), tag));
+50:         }
+51:         addView(addTagButton);
+52:     }
+54:     private Chip buildChip(Context context, TagInfo info) {
+55:         Chip chip = new Chip(context);
+56:         chip.setText(info.name);
+== ui/detailtorrent/pages/DetailTorrentInfoFragment.java:99-115
+99:     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+100:         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_detail_torrent_info, container, false);
+102:         ViewModelProvider provider = new ViewModelProvider(activity);
+103:         viewModel = provider.get(DetailTorrentViewModel.class);
+104:         dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+105:         binding.setViewModel(viewModel);
+107:         FragmentManager fm = getChildFragmentManager();
+108:         editNameDialog = (BaseAlertDialog) fm.findFragmentByTag(TAG_EDIT_NAME_DIALOG);
+110:         binding.folderChooserButton.setOnClickListener((v) -> showChooseDirDialog());
+111:         binding.editNameButton.setOnClickListener((v) -> showEditNameDialog());
+112:         binding.tagsList.setListener(tagsListener);
+114:         return binding.getRoot();
+115:     }
+143:    public Single<List<TagInfo>> getTags() {
+144-        return tagRepo.getByTorrentIdAsync(torrentId);
+145-    }
+146-
+147-    public Flowable<List<TagInfo>> observeTags() {
+148-        return tagRepo.observeByTorrentId(torrentId);
+149-    }

@@ -1,78 +1,166 @@
-# LibreTorrent 3.5.2: page-jump and method-call graph (generated)
+# LibreTorrent 3.5.2 — source re-audit: method-level trigger graph (schema 2)
 
-A map of how every method of the open-source Android app **LibreTorrent** (proninyaroslav/libretorrent@3.5.2, source commit `d93e92ea`, package `org.proninyaroslav.libretorrent.debug`, APK sha256 `5e05d2ff…a1bd36bf`) can be triggered: from which page, by which user gesture or system event, through which framework callback or call. It is the build in `final_java_only/LibreTorrent`.
-
-**How this one differs from Currency, hash-checker, openlauncher and Omni-Notes:** those graphs were written by hand from reading the source. This one was **generated** by `tools/gen_edges.py` from the bytecode, `AndroidManifest.xml` and `res/` XML, and then checked against the baseline coverage and reviewed (see "How much to trust it"). Every number below is recomputed from the files in this folder.
+How every method of **LibreTorrent** is triggered, in the standard configuration: the instrumented debug build (`proninyaroslav/libretorrent@3.5.2`, commit `d93e92eacebc`, APK sha256 `5e05d2ff...`), an API 27 emulator, permissions and fixtures as in `final_java_only`. Labels follow `handoff/SCHEMA_V2.md`: REACHABLE or UNREACHABLE, ENV and STATE gates, edge classes (explicit, standard, non-standard), and how each label was confirmed.
 
 ## What is in this folder
 
 | File | What it is |
 |---|---|
-| `libretorrent_trigger_graph.json` | The graph: pages, methods, verdicts, edges. Every edge has an `evidence` label; an edge may carry `env` (needs something outside the app) and `needs_state` (needs an earlier action or setting). |
-| `methods.csv` | One row per method: verdict, steps from launch, the user taps on the best path, the path, number of incoming edges, note. Extra columns: `jvm_descriptor`, `monkey_hit`, `ape_hit` (1-hour API 27 baseline runs; empty = JaCoCo does not report the method), and for methods the baseline never ran `frontier_from`, `frontier_first_unrun`, `frontier_edge_kind`, `frontier_edge_evidence`, `steps_after_frontier` (where the chain from code that ran first enters code that never ran). |
-| `libretorrent_trigger_graph.html` | The same data in the viewer from the Currency example. Optional. |
-| `build_report.txt` | Output of the validation script (0 errors, 0 warnings, baseline cross-check, the list of reachable methods the baseline never ran). |
+| `libretorrent_trigger_graph.json` | pages, methods, `verdict`, `labels` (per-method fields), `edges` (with `edge_class`, `env_kinds`, `state_kinds`, stable ids), `paths` (verified paths only), `verification` (counts) |
+| `methods.csv` | one row per method: verdict, UNREACHABLE reason, ENV and STATE kinds and texts, edge classes on the best route, whether an explicit/standard-only route exists, how the label was confirmed, path status, the derived best route (`shortest_path`, `route_edge_ids`), and the full JVM class and descriptor (`jvm_class`, `jvm_descriptor`; the `method` key adds a package prefix only where simple class names clash) |
+| `../verification.csv` | the audit log: one row per label, edge or path that was checked, with result, how, and where (file:line) |
+| `sanity_check.csv` | tool coverage (Monkey / APE, API 27) next to the labels; a one-way check only, it never sets a label |
+| `libretorrent_trigger_graph.html`, `build_report.txt` | the viewer and the validation report |
 
 ## Numbers
 
-- **4732 methods** (the app's own code, aligned with what JaCoCo reports), **73 pages** (12 of them `S_NEW_<Class>` anchors: a class whose empty default constructor is not in the JaCoCo method universe is constructed through such a node), **12622 edges**: 3968 from the bytecode call extractor, 8654 added by the generator or by hand.
-- Edge kinds: ASYNC 130, CALL 4945, ENTERS 55, ENTRY 9, FRAMEWORK 4283, GUI 48, INTENT 54, LIFECYCLE 3042, REGISTER 2, SYSTEM 54.
-- Verdicts: **3108 reachable**, **1215 reachable after setup**, **409 dead**, 0 framework-only.
-- 113 edges are gated by an outside environment, 2077 need an earlier action or setting; 240 methods are reached only through an environment gate, 1215 only after setup. Average route length: 11.4 edges.
-- Evidence labels: 7662 `FW-MEMORY`, 54 `INFERRED`, 4906 `SRC`.
-- Largest dead groups (auto-classified, see limits): `NanoHTTPD` (19 of 37), `SafFileSystem` (8 of 24), `AtomFeed` (7 of 11), `Rss1Feed` (7 of 11), `Rss2Feed` (7 of 11), `EzRssTorrentItem` (6 of 11), `TorrentDownloadImpl` (6 of 112), `ActivityAddTorrentBinding` (6 of 7), `ActivityFilemanagerDialogBinding` (6 of 8), `ActivityLogBinding` (6 of 8), `AddTorrentInfoBinding` (6 of 8), `DetailTorrentAppbarBinding` (6 of 7), `DialogAddFeedChannelBinding` (6 of 8), `DialogAddLinkBinding` (6 of 8).
-
-## Comparison with the baseline coverage (APE and Monkey, 1 hour each, API 27)
-
-- 2080 of the 4726 observable methods ran in at least one run (Monkey 1560, APE 2063, both 1543). **0 dead or framework-only methods ran**, so the coverage contradicts no verdict.
-- **2646 methods were run by neither tool.** By the graph: 403 are dead; 240 are reachable only through an outside environment; 1147 need an earlier in-app action or setting; **856 are reachable with no modelled setup and no outside help, yet were never run** (the clearest target list for the paper). Classes holding most of them: `SettingsRepositoryImpl` (43), `TorrentSessionImpl` (33), `MainFragment` (15), `TorrentEngine` (14), `TorrentFilterCollection` (12), `Torrent` (12), `DateUtils` (11), `FragmentAddTorrentInfoBindingLargeLandNotouchImpl` (11), `FragmentAddTorrentInfoBindingSw600dpLandImpl` (11), `FeedFragment` (11), `MagnetInfo` (10), `TorrentInfo` (9), `DatabaseMigration$RoomDatabaseMigration` (9), `SafFsModule` (9).
-- **Where the baseline stopped (frontier).** For 2239 of the never-run reachable methods the graph gives the edge where the chain from methods that ran first enters code that never ran (`frontier_*` columns of `methods.csv`: `frontier_from` is the source of that edge, a method that ran or a screen entered from one; `frontier_first_unrun` is its target): 1070 FRAMEWORK, 1055 CALL, 47 LIFECYCLE, 38 ASYNC, 19 GUI, 9 INTENT, 1 SYSTEM. A `CALL` frontier is a branch inside code that ran and was not taken (a data, setting or error condition); a `FRAMEWORK`, `GUI`, `INTENT` or `SYSTEM` frontier is a callback, tap or start that no tool triggered. The ten frontier nodes that unlock the most never-run methods:
-  - `MainActivity.showDetailTorrent` (506 never-run methods behind it): reached from `MainActivity.subscribeMsgViewModel` by a `FRAMEWORK` edge (SRC MainActivity.java:439 (bytecode))
-  - `NanoHTTPD.createClientHandler` (120 never-run methods behind it): reached from `NanoHTTPD$ServerRunnable.run` by a `CALL` edge (SRC NanoHTTPD.java:1347 (bytecode))
-  - `TorrentSessionImpl.newTask` (95 never-run methods behind it): reached from `TorrentSessionImpl$InnerListener.alert` by a `CALL` edge (SRC TorrentSessionImpl.java:1081 (bytecode))
-  - `FeedParser.getItems` (91 never-run methods behind it): reached from `FeedFetcherWorker.fetchChannel` by a `CALL` edge (SRC FeedFetcherWorker.java:165 (bytecode))
-  - `FeedChannelListAdapter$KeyProvider.getKey` (52 never-run methods behind it): reached from `FeedChannelListAdapter$KeyProvider.<init>` by a `FRAMEWORK` edge (FW-MEMORY the framework / library calls this callback on an instance created by the app)
-  - `DefaultFeedParser.parse` (44 never-run methods behind it): reached from `FeedParser.<init>` by a `CALL` edge (SRC FeedParser.java:71 (bytecode))
-  - `CreateTorrentDialog.buildTorrent` (43 never-run methods behind it): reached from `CreateTorrentDialog.lambda$new$11` by a `CALL` edge (SRC CreateTorrentDialog.java:546 (bytecode))
-  - `AddTorrentViewModel.makeFileTree` (36 never-run methods behind it): reached from `AddTorrentActivity.onStopDecode` by a `CALL` edge (SRC AddTorrentActivity.java:345 (bytecode))
-  - `AddTorrentViewModel.lambda$addTorrent$5` (28 never-run methods behind it): reached from `AddTorrentViewModel.addTorrent` by a `ASYNC` edge (SRC AddTorrentViewModel.java:527 (bytecode))
-  - `TorrentEngine.makeInfo` (28 never-run methods behind it): reached from `TorrentEngine.makeInfoListSync` by a `CALL` edge (SRC TorrentEngine.java:822 (bytecode))
-- Harness facts that matter for target selection: `merged.ec` omits the launch dump `00000.ec`, so first-launch code can show `monkey_hit = 0` although it ran; one dump per tool may be unreadable, and a process that dies between 30-second dumps loses its coverage, so "never hit" does not strictly prove "never ran".
+- **4732 methods**, **1 pages** (including pseudo pages), **7307 edges**. Verdicts: **3967 REACHABLE**, **765 UNREACHABLE**.
+- UNREACHABLE by reason: branch_never_taken 12, closed_by_api_level 24, closed_by_configuration 1, framework_never_calls 13, no_trigger_in_app 715.
+- ENV gates (methods): network 75, other 18, other_app 77, system_event 7, time 4. STATE gates (methods): data 708, session 1. Methods with no gate: 3152.
+- Edge classes: explicit 4716, non_standard 2263, standard 328. Non-standard edges: 2263 (ACRA report-dialog dispatch; ActionMode creation dispatch; ActionMode dispatch; ActionMode dispatch (action mode started here); ActionMode menu-item dispatch; ActionMode prepare dispatch; ActionMode teardown dispatch; Activity Result dispatch; Activity back-press dispatch; ActivityResult delivery di).
+- 3711 reachable methods have a non-standard edge on their best route; 3644 have no explicit-or-standard-only route at all.
+- Labels confirmed by: INFERRED 4213, SOURCE 519 (SOURCE: every edge of the best route cites a source line, in the app or in the Android 8.1 / library source; INFERRED: some edge rests on inference or on another app).
 
 ## How much to trust it
 
-- **Method.** `gen_edges.py` applies Android framework rules to the compiled classes: process entry (Application, launcher, exported components behind an `env` gate), lifecycle callbacks and one page `S_<Activity|Fragment>` per screen, UI and system callbacks of every constructed class with a framework ancestor, lambdas and method references (creator method -> body, the tap label is read from the source line), `startActivity(new Intent(ctx, X.class))` and custom intent actions, classes named in layout / xml / menu / navigation files and where they are inflated, activity and permission results, `Handler` messages, ButterKnife / EventBus / data binding / Dagger / Glide / Icepick / Parceler / ORMLite / Room glue, static initialisers, and template-method receiver variants (`Base.m@Sub`). Direct calls come from the bytecode (`extract_calls.py`, class-hierarchy analysis for virtual calls). Methods that nothing reaches are reported DEAD (`AUTO_DEAD`).
-- **Calibration on the five hand-written apps** (the generator run on the same inputs, compared with the hand-written verdicts; `tools/calibrate.py`): dead-versus-alive agreement 97.2% (Currency), 96.5% (Diary), 98.5% (hash-checker), 92.9% (openlauncher), 93.8% (Omni-Notes); exact verdict agreement 93.8% (Currency), 95.5% (Diary), 71.1% (hash-checker), 76.9% (openlauncher), 63.1% (Omni-Notes). The gap is almost entirely `needs_state`: a human reads "needs a note / a folder / a setting" out of the code, the generator only knows list rows. (openlauncher and Omni-Notes were used while the generator rules were developed; Currency, Diary and hash-checker were not.)
-- **Checks done on this app:** the validation script (0 errors, 0 warnings: every method has a route or a DEAD verdict, every page is reachable); the baseline cross-check above (0 contradictions after the generator rules were completed by reading the contradictions one by one); random shortest paths were read for shortcuts.
-- **Not checked on a device.** Framework rules are `FW-MEMORY` (recalled, not checked against AOSP source); guesses are `INFERRED`.
+Verification log (`verification.csv`), counts of what was checked and found:
 
-## Limits (read before using a verdict)
+| Checked | Rows | Correct | Errors found (fixed) | Unclear |
+|---|---:|---:|---:|---:|
+| labels | 794 | 783 | 9 | 2 |
+| edges (framework and other claims read against source) | 76 | 51 | 25 | 0 |
+| paths (stratified sample, read step by step) | 29 | 18 | 9 | 2 |
 
-- **`REACHABLE` means "no modelled setup", not "no setup".** Gates beyond list rows (data that must exist, settings, earlier actions, incoming intents, files on the device) are modelled only where listed in the review notes. Adapter row callbacks, row-based listeners and action modes carry `needs_state` = "the list shows at least one row".
-- A callback is reachable as soon as an instance of its class is constructed; the real trigger (a tap on one specific control) is shown in the `gui_steps` column only where the source line names the control. Menu and click handlers that switch on `R.id.x` give one labelled edge per case (`case R.id.x`), found by the nearest preceding case label (`INFERRED`).
-- `Handler.handleMessage`, EventBus subscribers and Dagger-provided objects are linked from every send / post / graph-build site (`INFERRED`), so their routes can be shorter than the real ones.
-- DEAD is automatic: nothing in the bytecode, manifest, XML or the modelled libraries reaches the method. Entries through reflection, JNI, other generated code or libraries that are not modelled would be missed (the baseline contradiction check found and fixed every such case that the 1-hour runs exercised).
-- Calls inside catch blocks, data-dependent branches and feature flags are ordinary calls unless the review notes say otherwise.
+Device replay on the emulator (API 27): 7 of 29 routes reached their target method; 7 of these ran the whole script and are `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; see `../device/results.csv`.
 
-## Review notes for this app
+Path status over all reachable methods: SOURCE_OK 3, STALE 15, UNCHECKED 3940, WRONG 9.
+The rows are the items that were individually checked, not a random sample of all labels; see the notes below for how they were chosen and what the unclear rows wait for.
 
-What was reviewed by hand (class level, from method names, the manifest, the layouts and the baseline hit counts):
+Edges whose evidence is not a source line (2183 of 7307): E6f0891c5 (S_ENTRY -> MainApplication.<clinit>); E8228a4c6 (S_ENTRY -> MainActivity.<clinit>); E0f555379 (S_ENTRY -> AddTorrentActivity.<clinit>); E6c221f79 (S_ENTRY -> SettingsActivity.<clinit>); E70444373 (MainActivity.initDrawer -> DrawerExpandableAdapter.onBindChildViewHolder); E79785310 (MainActivity.initDrawer -> MainActivity.lambda$initDrawer$0); Eea644f43 (MainActivity.initDrawer -> MainActivity.lambda$initDrawer$0); Ecebe3a05 (MainActivity.initDrawer -> MainActivity.lambda$initDrawer$1); Ed0bb2c8b (MainActivity.initDrawer -> MainActivity.lambda$initDrawer$1); Ec7ef9327 (MainActivity$3.onTagMenuClicked -> MainActivity$3.lambda$onTagMenuClicked$0); E83e4ed2d (MainActivity$3.onTagMenuClicked -> MainActivity$3.lambda$onTagMenuClicked$0); E34551cd4 (MainActivity$3.onTagMenuClicked -> MainActivity$3.lambda$onTagMenuClicked$1) ...
 
-- **What the baseline reached.** 2,080 of 4,732 methods ran: the main list, the add-torrent dialogs, the create-torrent dialog, the settings screens, the feed screens, the Room database (`AppDatabase_Impl`, `*Dao_Impl`) and the torrent engine start-up. **No method of the torrent detail screens ran** (`DetailTorrentActivity`, `DetailTorrentFragment` and its info / files / peers / pieces / trackers / state fragments, `DetailTorrentViewModel`), and `TorrentDownloadImpl` (the wrapper around a torrent handle) ran in 6 of 112 methods.
-- **Content gate (`needs_state`):** the classes that need a torrent to exist (`DetailTorrent*`, `TorrentDownloadImpl`, `TorrentInputStream`, `TorrentContentFileTree`, `TorrentDetailsInfo`, `TrackerInfo`, `BencodeFileItem`, `FileTree`, `AdvancedTorrentInfo`, `AdvancedPeerInfo`, `PeerInfo`, `PieceInfo`, `TorrentInfoProvider`, `TorrentStream*`, `NanoHTTPD*`: the streaming HTTP server) carry "a torrent is in the list". The baseline fixtures contain no `.torrent` file.
-- **Environment gates:** the RSS / Atom feed parsers and workers (`EzRss01Parser`, `MediaRssParser`, `DefaultFeedParser`, `FeedHandler`, `FeedFetcherWorker`, `FeedDownloaderWorker`, `XMLInputStream`: a reachable feed URL) and the system receivers (`BootReceiver`, `SchedulerReceiver`, `PowerReceiver`). Services (`TorrentService`) and the notification receiver hang below `S_SYS_<Class>` anchors, entered from the app's own `startService` calls or from `S_ENTRY`.
-- **Branch gates read from the source at the frontier (`CFG['EDGES']`):** `MainActivity.showDetailTorrent` (a torrent row was tapped: `needs_state`), `TorrentSessionImpl$InnerListener.alert` -> `newTask` (the add-torrent alert of the native session: `needs_state`), `TorrentEngine.makeInfoListSync` -> `makeInfo` (the loop over the stored torrents: `needs_state`), `AddTorrentActivity.onStopDecode` -> `AddTorrentViewModel.makeFileTree` (a decoded `.torrent` / magnet link: `needs_state`), `CreateTorrentDialog` save-location callback -> `buildTorrent` (the system document picker returned a location: `env`).
-- **Data binding.** The project uses data binding with many layouts: `*Binding` (abstract) / `*BindingImpl` (concrete, plus `...Sw600dpLandImpl` and `...LargeLandNotouchImpl` variants) are in the method universe. The generator links each `...Impl` constructor to the method that mentions `R.layout.<name>` (DataBindingUtil inflate / setContentView) and to the generated `DataBinderMapperImpl`. The `inflate` / `bind` factories of the abstract `*Binding` classes are dead (the app only goes through `DataBindingUtil`).
-- **Room, Rx, WorkManager.** `AppDatabase_Impl` is linked from `Room.databaseBuilder(.., AppDatabase.class, ..)` (class literal of an abstract class with a generated implementation); RxJava lambdas and `Consumer` / `Function` anonymous classes are linked from the method that creates them; the feed workers are linked from the `OneTimeWorkRequest` builders (class literals).
-- **Node names.** Two classes are called `TagsAdapter` (in `ui.tag` and `ui.main.drawer`) and two `TagItem`: their methods are named `tag.TagsAdapter.<init>(...)` / `drawer.TagsAdapter...` in the CSV and JSON.
-- **Dead code** is mostly the bundled `NanoHTTPD` library (19 of 37 methods, the rest are behind the streaming server), `SafFileSystem` (8 of 24), the feed model classes of unused formats (`AtomFeed`, `Rss1Feed`, `Rss2Feed`, `EzRssTorrentItem` getters) and the `inflate` / `bind` factories of the data-binding classes.
-- **Not gated but never run (the target list):** `SettingsRepositoryImpl` preference accessors (43 of 184: battery, scheduling, roaming, watch-dir settings), `TorrentSessionImpl` / `TorrentEngine` add / delete / magnet-fetch paths, `CreateTorrentViewModel` and `TorrentBuilder` (building a torrent), `AddTorrentViewModel` metadata handling, `MainFragment` delete and filter lambdas, `TorrentFilterCollection` date filters, `DateUtils`.
+Sanity check against tool coverage (never used to set a label): 2080 methods ran in the 1-hour Monkey / APE runs on API 27; **2** of them are labelled UNREACHABLE.
+
+# LibreTorrent logs — readme notes (Kiro final local state, 2026-11-03)
+
+Docs only. Every fact below comes from a build or file of the local branch `kiro-libretorrent`
+(`graphs/LibreTorrent/scratch/kiro/KIRO_REPORT.md` lists the commits and the printed numbers).
+The first-draw notes (B6 logs step, graph `a9e8b93d`) are superseded; their route table is kept as
+`scratch/route_table_first_draw.md`.
+
+## What the re-audit changed (compared with the schema 1 graph)
+
+Re-audit of November 2026 (rounds of W2 to W7, see handoff/MUSE_REAUDIT_SUMMARY.md):
+
+- Launcher start (W3): MainActivity's launcher entries lose their env gate; five in-app starts are added; exported-entry routes 3,918 to 9.
+- A torrent row exists only after a torrent is added: the row-binding edge needs data (W3).
+- Library class (W5): data-binding mappers and two Rx error consumers are non_standard.
+- Outside data (W6): the torrent stream server and Room migrations are env.
+- Guards (W7, round 1): an empty file selection and a paused torrent need state (LibreTorrent-16, -19).
+
+The graph is the schema-2 rebuild from printed source: 121 batch parts plus two Kiro parts
+(`k01_warnings.py`, `k02_check8.py`) merged in `graph_def.py`. Final build: 4732 methods,
+7303 edges, REACHABLE 3967 / UNREACHABLE 765 / UNRESOLVED 0; labels confirmed by SOURCE 621,
+INFERRED 4111; errors 0, warnings 0.
+
+Changes made on top of the first-draw graph (`a9e8b93d`: R3882 / U764 / UNRES86):
+
+- Part b121 labels the last 86 methods: 85 REACHABLE through missing delivery edges from callers
+  that were already REACHABLE (Handler post, AlarmManager delivery, TextWatcher, Observable
+  callbacks, RxJava stages, clicks, ActivityResult), and `TorrentInputStream.toUnsignedByte`
+  UNREACHABLE (ruling D2). `DialogSelectTagBindingImpl.hasPendingBindings` is REACHABLE through the
+  existing INFERRED edge from `SelectTagDialog.onCreateDialog` (ruling D3). Stale line numbers on 17
+  select-tag edges were corrected (K4).
+- Citation form (K1): app files under `libretorrent/core/` are cited by file name; generated
+  binding/Room classes are cited as INFERRED generated code. With the one-line fix in
+  `tools/check_citations.py`, check 2 is 65 distinct citations, 0 problems.
+- Check 4 is 0: the 7 try-with-resources `close()` edges cite the whole block (K3).
+- The 95 data-binding edges are `non_standard` (K2, same rule as AnyMemo).
+- The 16 "UNREACHABLE but has incoming edges" warnings are cleared by suppressing or dropping edges
+  whose caller never runs on API 27 (k01, K6). No label changed.
+- Every check-8 reason names its bytecode caller (k02; 33 named, 0 missing;
+  `scratch/check8_explained.md`).
+
+## How the checked paths were chosen
+
+- Sample command: `python3 -I tools/verify_sample.py LibreTorrent 30 20261025`, drawn on the
+  labels-gate graph (commit `58a3600a`). It gives 29 routes, not 30: the sampler header reads
+  "29 of 3967 reachable methods". The STATE stratum (quota 3) has a pool for the first time (the
+  select-tag row tap carries the gate `adapter.getItemCount() > 0`), but only 2 methods carry a
+  STATE gate, so one STATE place stays empty. The 29 routes total 457 steps and 306 distinct edges.
+- The sample was drawn before the log step (`make_verification.py` and the new `verification.csv`).
+  The log step's label rows could change which methods the sampler picks on the final graph; a
+  redraw with the same command after the log step was checked and gave the same 29 methods in the
+  same order, so the judged routes are current.
+- Judging: Appendix D of the Kiro handover. Each step needs action TRUE and condition TRUE in one
+  run (fresh install, API 27, instrumented debug build, only the earlier steps of the same route).
+  A printed line that contradicts a step makes it FALSE (route WRONG); a step that depends on code
+  not in the upload or on state no earlier step creates is UNCLEAR. 22 routes are the same route
+  as in the first draw and carry its verdict; 7 are new and were judged step by step
+  (`scratch/kiro/judgments/`).
+- Result: CORRECT 18, WRONG 9, UNCLEAR 2, fixed 0.
+- Error rate = (fixed + wrong) / (correct-only + fixed + wrong), where fixed = WRONG in an earlier
+  draw and CORRECT in the final draw, correct-only = CORRECT minus fixed, every route counted once,
+  UNCLEAR reported separately. Here (0 + 9) / (18 + 0 + 9) = 9/27 ≈ 0.3333.
+- Stopping rule (user decision, as for AnkiDroid and Aegis): the final draw is judged once, with no
+  fix round. WRONG routes stay WRONG with their reasons and count in the rate.
+
+## What waits for a device (API 27)
+
+- Re-audit round 1: the device route files were updated to the renamed edge ids (a gate edit changes an edge id); the sampled routes whose best route changed wait for re-verification and a device run.
+
+- **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 7 of 29 routes reached their target method; 7 of them ran the whole script and are now `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
+
+Nothing in this file is a device result. The device scripts in `device/routes/LibreTorrent/`
+(one per scripted row of `ROUTES.csv`) passed only the dry run (`device/drycheck.py`); no emulator
+was used. The judged premises (a fresh install of `org.proninyaroslav.libretorrent.debug` on an
+Android 8.1 emulator, runtime permissions granted only where a route needs them) are what a later
+device run must confirm. Routes judged WRONG have no script; their rows are
+`unscriptable: route WRONG as drawn (see route_table.md)`.
+
+## Hazard candidates (from reading the code, not reproduced)
+
+Reading hazards from the judgments; none was reproduced on a device.
+
+- SAF dispatch needs a content:// dir that the app never stores (routes 5, 20, 22 and first-draw
+  row 19): the resolver picks SafFsModule only for scheme content (`FsModuleResolverImpl.java:42-49`,
+  `SafFileSystem.java:191-198`), while every save path the app writes is file://
+  (`SettingsRepositoryImpl.java:102-103`, `StorageSettingsFragment.java:227-239,267`,
+  `FileManagerViewModel.java:282`). First-draw row 5 (`SafFileSystem$FakePath.normalizeRelativePath`,
+  not in the final sample) shares the step judged FALSE in final route 5; it is likely WRONG too.
+- Fragment-commit versus header-click path (route 12 and first-draw row 10): `setFragment` from
+  `SettingsFragment.onViewCreated` commits AppearanceSettingsFragment, never the Network page.
+- Interface calls resolved to one implementation: automatic edges map every dialog's
+  `FragmentCallback.onFragmentFinished` call to `SelectTagActivity.onFragmentFinished`, and the
+  KeyProvider `selectable.getItemKey` calls to every Selectable adapter. Such edges can join
+  screens that never meet in one run.
+- Rows that need user data: tapping a torrent row or a tag row needs a torrent or tag the route
+  does not create (routes 9 and 10 are UNCLEAR for the tag; the first-draw judges accepted the
+  torrent row as a premise).
+- GC finalization (route 3), dialog-mode mixing (routes 4 and 6), worker action dispatch (route 7)
+  and the cancel-versus-add button listener (route 11) are carried over from the first draw.
+
+## Limits
+
+- The route rate is measured on 27 judged routes (29 minus 2 UNCLEAR); the 22 carried-over verdicts
+  were not re-judged step by step. Their edge lists were compared with the first-draw graph
+  (`scratch/kiro/same_route_diff.txt`): same nodes, kinds, guards and gates; only citation text
+  changed.
+- No helper agent ran (host memory stayed critical and the requested helper model was not
+  available), so every judgment had one reader and no independent audit.
+- `AddTorrentInfoFragment.showOpenDirErrorDialog` and `DetailTorrentInfoFragment.showOpenDirErrorDialog`
+  are REACHABLE through a guard (`data == null`) that the printed lines suggest never holds while the
+  public Download directory exists; left for the reviewer.
+- 4111 of 4732 labels are INFERRED; 10 of them stay INFERRED by ruling LT-4A-STAYS-INFERRED.
+- The tools change (`tools/check_citations.py` line 20) needs the reviewer's approval before push.
 
 ## JSON shape (short)
 
 ```
-{ "title", "screens": {page: description}, "methods": [...], "verdict": {method: REACHABLE|REACHABLE_AFTER_SETUP|DEAD|FRAMEWORK_ONLY},
-  "dead": {method: reason}, "framework_only": {method: reason},
-  "edges": [ {id, src, dst, kind, trigger, gui[], guard, reads[], writes[], note, needs_state, evidence, env} ] }
+{ "schema": 2, "title", "screens": {page: description}, "methods": [...], "verdict": {method: REACHABLE|UNREACHABLE},
+  "labels": {method: {unreachable: {kind, text}, env: [{kinds, text}], state: [{kinds, text}], route_edge_classes, explicit_standard_route,
+                      confirmed_by, source_ref, path_status}},
+  "edges": [ {id, src, dst, kind, edge_class, via, trigger, gui[], guard, reads[], writes[], note, needs_state, state_kinds, env, env_kinds, evidence, class_basis} ],
+  "paths": [ {method, edges[], edge_classes, explicit_standard_only, env, state, verified_by, ref} ], "verification": {...} }
 ```
-`src`/`dst` are methods (`Class.method`, overloads as `Class.method(Type,Type)`, classes that share a simple name get a package prefix) or pages (`S_...`). A suffix `@CONTEXT` is the same method in a specific receiver class (`Base.m@Sub`) or context.
+
+`src`/`dst` are methods (`Class.method`, overloads as `Class.method(Type,Type)`) or pages (`S_...`). A suffix `@CONTEXT` is the same method or page in a specific context. Edge ids are a hash of the edge content, so they stay stable when other edges change.

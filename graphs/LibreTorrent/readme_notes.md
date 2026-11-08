@@ -1,0 +1,112 @@
+# LibreTorrent logs — readme notes (Kiro final local state, 2026-11-03)
+
+Docs only. Every fact below comes from a build or file of the local branch `kiro-libretorrent`
+(`graphs/LibreTorrent/scratch/kiro/KIRO_REPORT.md` lists the commits and the printed numbers).
+The first-draw notes (B6 logs step, graph `a9e8b93d`) are superseded; their route table is kept as
+`scratch/route_table_first_draw.md`.
+
+## What the re-audit changed (compared with the schema 1 graph)
+
+Re-audit of November 2026 (rounds of W2 to W7, see handoff/MUSE_REAUDIT_SUMMARY.md):
+
+- Launcher start (W3): MainActivity's launcher entries lose their env gate; five in-app starts are added; exported-entry routes 3,918 to 9.
+- A torrent row exists only after a torrent is added: the row-binding edge needs data (W3).
+- Library class (W5): data-binding mappers and two Rx error consumers are non_standard.
+- Outside data (W6): the torrent stream server and Room migrations are env.
+- Guards (W7, round 1): an empty file selection and a paused torrent need state (LibreTorrent-16, -19).
+
+The graph is the schema-2 rebuild from printed source: 121 batch parts plus two Kiro parts
+(`k01_warnings.py`, `k02_check8.py`) merged in `graph_def.py`. Final build: 4732 methods,
+7303 edges, REACHABLE 3967 / UNREACHABLE 765 / UNRESOLVED 0; labels confirmed by SOURCE 621,
+INFERRED 4111; errors 0, warnings 0.
+
+Changes made on top of the first-draw graph (`a9e8b93d`: R3882 / U764 / UNRES86):
+
+- Part b121 labels the last 86 methods: 85 REACHABLE through missing delivery edges from callers
+  that were already REACHABLE (Handler post, AlarmManager delivery, TextWatcher, Observable
+  callbacks, RxJava stages, clicks, ActivityResult), and `TorrentInputStream.toUnsignedByte`
+  UNREACHABLE (ruling D2). `DialogSelectTagBindingImpl.hasPendingBindings` is REACHABLE through the
+  existing INFERRED edge from `SelectTagDialog.onCreateDialog` (ruling D3). Stale line numbers on 17
+  select-tag edges were corrected (K4).
+- Citation form (K1): app files under `libretorrent/core/` are cited by file name; generated
+  binding/Room classes are cited as INFERRED generated code. With the one-line fix in
+  `tools/check_citations.py`, check 2 is 65 distinct citations, 0 problems.
+- Check 4 is 0: the 7 try-with-resources `close()` edges cite the whole block (K3).
+- The 95 data-binding edges are `non_standard` (K2, same rule as AnyMemo).
+- The 16 "UNREACHABLE but has incoming edges" warnings are cleared by suppressing or dropping edges
+  whose caller never runs on API 27 (k01, K6). No label changed.
+- Every check-8 reason names its bytecode caller (k02; 33 named, 0 missing;
+  `scratch/check8_explained.md`).
+
+## How the checked paths were chosen
+
+- Sample command: `python3 -I tools/verify_sample.py LibreTorrent 30 20261025`, drawn on the
+  labels-gate graph (commit `58a3600a`). It gives 29 routes, not 30: the sampler header reads
+  "29 of 3967 reachable methods". The STATE stratum (quota 3) has a pool for the first time (the
+  select-tag row tap carries the gate `adapter.getItemCount() > 0`), but only 2 methods carry a
+  STATE gate, so one STATE place stays empty. The 29 routes total 457 steps and 306 distinct edges.
+- The sample was drawn before the log step (`make_verification.py` and the new `verification.csv`).
+  The log step's label rows could change which methods the sampler picks on the final graph; a
+  redraw with the same command after the log step was checked and gave the same 29 methods in the
+  same order, so the judged routes are current.
+- Judging: Appendix D of the Kiro handover. Each step needs action TRUE and condition TRUE in one
+  run (fresh install, API 27, instrumented debug build, only the earlier steps of the same route).
+  A printed line that contradicts a step makes it FALSE (route WRONG); a step that depends on code
+  not in the upload or on state no earlier step creates is UNCLEAR. 22 routes are the same route
+  as in the first draw and carry its verdict; 7 are new and were judged step by step
+  (`scratch/kiro/judgments/`).
+- Result: CORRECT 18, WRONG 9, UNCLEAR 2, fixed 0.
+- Error rate = (fixed + wrong) / (correct-only + fixed + wrong), where fixed = WRONG in an earlier
+  draw and CORRECT in the final draw, correct-only = CORRECT minus fixed, every route counted once,
+  UNCLEAR reported separately. Here (0 + 9) / (18 + 0 + 9) = 9/27 ≈ 0.3333.
+- Stopping rule (user decision, as for AnkiDroid and Aegis): the final draw is judged once, with no
+  fix round. WRONG routes stay WRONG with their reasons and count in the rate.
+
+## What waits for a device (API 27)
+
+- Re-audit round 1: the device route files were updated to the renamed edge ids (a gate edit changes an edge id); the sampled routes whose best route changed wait for re-verification and a device run.
+
+- **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 7 of 29 routes reached their target method; 7 of them ran the whole script and are now `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
+
+Nothing in this file is a device result. The device scripts in `device/routes/LibreTorrent/`
+(one per scripted row of `ROUTES.csv`) passed only the dry run (`device/drycheck.py`); no emulator
+was used. The judged premises (a fresh install of `org.proninyaroslav.libretorrent.debug` on an
+Android 8.1 emulator, runtime permissions granted only where a route needs them) are what a later
+device run must confirm. Routes judged WRONG have no script; their rows are
+`unscriptable: route WRONG as drawn (see route_table.md)`.
+
+## Hazard candidates (from reading the code, not reproduced)
+
+Reading hazards from the judgments; none was reproduced on a device.
+
+- SAF dispatch needs a content:// dir that the app never stores (routes 5, 20, 22 and first-draw
+  row 19): the resolver picks SafFsModule only for scheme content (`FsModuleResolverImpl.java:42-49`,
+  `SafFileSystem.java:191-198`), while every save path the app writes is file://
+  (`SettingsRepositoryImpl.java:102-103`, `StorageSettingsFragment.java:227-239,267`,
+  `FileManagerViewModel.java:282`). First-draw row 5 (`SafFileSystem$FakePath.normalizeRelativePath`,
+  not in the final sample) shares the step judged FALSE in final route 5; it is likely WRONG too.
+- Fragment-commit versus header-click path (route 12 and first-draw row 10): `setFragment` from
+  `SettingsFragment.onViewCreated` commits AppearanceSettingsFragment, never the Network page.
+- Interface calls resolved to one implementation: automatic edges map every dialog's
+  `FragmentCallback.onFragmentFinished` call to `SelectTagActivity.onFragmentFinished`, and the
+  KeyProvider `selectable.getItemKey` calls to every Selectable adapter. Such edges can join
+  screens that never meet in one run.
+- Rows that need user data: tapping a torrent row or a tag row needs a torrent or tag the route
+  does not create (routes 9 and 10 are UNCLEAR for the tag; the first-draw judges accepted the
+  torrent row as a premise).
+- GC finalization (route 3), dialog-mode mixing (routes 4 and 6), worker action dispatch (route 7)
+  and the cancel-versus-add button listener (route 11) are carried over from the first draw.
+
+## Limits
+
+- The route rate is measured on 27 judged routes (29 minus 2 UNCLEAR); the 22 carried-over verdicts
+  were not re-judged step by step. Their edge lists were compared with the first-draw graph
+  (`scratch/kiro/same_route_diff.txt`): same nodes, kinds, guards and gates; only citation text
+  changed.
+- No helper agent ran (host memory stayed critical and the requested helper model was not
+  available), so every judgment had one reader and no independent audit.
+- `AddTorrentInfoFragment.showOpenDirErrorDialog` and `DetailTorrentInfoFragment.showOpenDirErrorDialog`
+  are REACHABLE through a guard (`data == null`) that the printed lines suggest never holds while the
+  public Download directory exists; left for the reviewer.
+- 4111 of 4732 labels are INFERRED; 10 of them stay INFERRED by ruling LT-4A-STAYS-INFERRED.
+- The tools change (`tools/check_citations.py` line 20) needs the reviewer's approval before push.

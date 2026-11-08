@@ -1,0 +1,275 @@
+=== Manifest application and main launcher ===
+    31	    <application
+    32	        android:name="MainApplication"
+    33	        android:icon="@mipmap/ic_launcher"
+    34	        android:banner="@drawable/ic_banner"
+    35	        android:label="@string/app_name"
+    36	        android:theme="@style/AppTheme"
+    37	        android:supportsRtl="true"
+    38	        android:allowBackup="true"
+    39	        android:fullBackupContent="true"
+    40	        android:usesCleartextTraffic="true"
+    41	        android:requestLegacyExternalStorage="true">
+    42	
+    43	        <activity android:name=".ui.main.MainActivity"
+    44	            android:theme="@style/AppTheme.Launcher"
+    45	            android:exported="true">
+    46	            <meta-data
+    47	                android:name="android.app.shortcuts"
+    48	                android:resource="@xml/shortcuts" />
+    49	            <meta-data android:name="android.app.searchable"
+    50	                android:resource="@xml/searchable"/>
+    51	
+    52	            <intent-filter>
+    53	                <action android:name="android.intent.action.MAIN" />
+    54	                <category android:name="android.intent.category.LAUNCHER" />
+    55	                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+    56	            </intent-filter>
+    57	            <intent-filter>
+    58	                <action android:name="android.intent.action.SEARCH" />
+    59	            </intent-filter>
+    60	        </activity>
+=== MainApplication ===
+    37	public class MainApplication extends MultiDexApplication {
+    38	    public static final String TAG = MainApplication.class.getSimpleName();
+    39	
+    40	    static {
+    41	        /* Vector Drawable support in ImageView for API < 21 */
+    42	        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
+    43	    }
+    44	
+    45	    @Override
+    46	    public void onCreate() {
+    47	        super.onCreate();
+    48	
+    49	        CoreConfigurationBuilder builder = new CoreConfigurationBuilder();
+    50	        builder
+    51	                .withBuildConfigClass(BuildConfig.class)
+    52	                .withReportFormat(StringFormat.JSON);
+    53	        builder.withPluginConfigurations(new MailSenderConfigurationBuilder()
+    54	                .withMailTo("proninyaroslav@mail.ru")
+    55	                .build());
+    56	        builder.withPluginConfigurations(new DialogConfigurationBuilder()
+    57	                .withEnabled(true)
+    58	                .withReportDialogClass(ErrorReportActivity.class)
+    59	                .build());
+    60	        // Set stub handler
+    61	        if (Thread.getDefaultUncaughtExceptionHandler() == null) {
+    62	            Thread.setDefaultUncaughtExceptionHandler((t, e) ->
+    63	                    Log.e(TAG, "Uncaught exception in " + t + ": " + Log.getStackTraceString(e))
+    64	            );
+    65	        }
+    66	        ACRA.init(this, builder);
+    67	
+    68	        increaseCursorWindowSize();
+    69	
+    70	        TorrentNotifier.getInstance(this).makeNotifyChans();
+    71	    }
+=== MainActivity onCreate ===
+   135	    @Override
+   136	    protected void onCreate(Bundle savedInstanceState) {
+   137	        setTheme(Utils.getAppTheme(getApplicationContext()));
+   138	        super.onCreate(savedInstanceState);
+   139	
+   140	        if (getIntent().getAction() != null &&
+   141	                getIntent().getAction().equals(NotificationReceiver.NOTIFY_ACTION_SHUTDOWN_APP)) {
+   142	            finish();
+   143	            return;
+   144	        }
+   145	
+   146	        infoProvider = TorrentInfoProvider.getInstance(getApplicationContext());
+   147	        ViewModelProvider provider = new ViewModelProvider(this);
+   148	        viewModel = provider.get(MainViewModel.class);
+   149	        msgViewModel = provider.get(MsgMainViewModel.class);
+   150	        dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+   151	
+=== TorrentNotifier ===
+    65	    public static TorrentNotifier getInstance(@NonNull Context appContext) {
+    66	        if (INSTANCE == null) {
+    67	            synchronized (TorrentNotifier.class) {
+    68	                if (INSTANCE == null)
+    69	                    INSTANCE = new TorrentNotifier(appContext);
+    70	            }
+    71	        }
+    72	        return INSTANCE;
+    73	    }
+    74	
+    75	    private TorrentNotifier(Context appContext) {
+    76	        this.appContext = appContext;
+    77	        notifyManager = (NotificationManager) appContext.getSystemService(NOTIFICATION_SERVICE);
+    78	        pref = RepositoryHelper.getSettingsRepository(appContext);
+    79	    }
+    80	
+    81	    public void makeNotifyChans() {
+    82	        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
+    83	            return;
+=== AOSP Application startup ===
+  5709	        Application app;
+  5710	        final StrictMode.ThreadPolicy savedPolicy = StrictMode.allowThreadDiskWrites();
+  5711	        final StrictMode.ThreadPolicy writesAllowedPolicy = StrictMode.getThreadPolicy();
+  5712	        try {
+  5713	            // If the app is being launched for full backup or restore, bring it up in
+  5714	            // a restricted environment with the base application class.
+  5715	            app = data.info.makeApplication(data.restrictedBackupMode, null);
+  5716	            mInitialApplication = app;
+  5717	
+  5718	            // don't bring up providers in restricted mode; they may depend on the
+  5719	            // app's custom Application class
+  5720	            if (!data.restrictedBackupMode) {
+  5721	                if (!ArrayUtils.isEmpty(data.providers)) {
+  5722	                    installContentProviders(app, data.providers);
+  5723	                    // For process that contains content providers, we want to
+  5724	                    // ensure that the JIT is enabled "at some point".
+  5725	                    mH.sendEmptyMessageDelayed(H.ENABLE_JIT, 10*1000);
+  5726	                }
+  5727	            }
+  5728	
+  5729	            // Do this after providers, since instrumentation tests generally start their
+  5730	            // test thread at this point, and we don't want that racing.
+  5731	            try {
+  5732	                mInstrumentation.onCreate(data.instrumentationArgs);
+  5733	            }
+  5734	            catch (Exception e) {
+  5735	                throw new RuntimeException(
+  5736	                    "Exception thrown in onCreate() of "
+  5737	                    + data.instrumentationName + ": " + e.toString(), e);
+  5738	            }
+  5739	            try {
+  5740	                mInstrumentation.callApplicationOnCreate(app);
+  5741	            } catch (Exception e) {
+  5742	                if (!mInstrumentation.onException(app, e)) {
+  1116	     * @param app The application being created.
+  1117	     */
+  1118	    public void callApplicationOnCreate(Application app) {
+  1119	        app.onCreate();
+  1120	    }
+=== AOSP Activity launch ===
+  2727	                activity.mCalled = false;
+  2728	                if (r.isPersistable()) {
+  2729	                    mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+  2730	                } else {
+  2731	                    mInstrumentation.callActivityOnCreate(activity, r.state);
+  2732	                }
+  1212	    public void callActivityOnCreate(Activity activity, Bundle icicle) {
+  1213	        prePerformCreate(activity);
+  1214	        activity.performCreate(icicle);
+  1215	        postPerformCreate(activity);
+  1216	    }
+    76	    public static TorrentInfoProvider getInstance(@NonNull Context appContext) {
+    77	        if (INSTANCE == null) {
+    78	            synchronized (TorrentInfoProvider.class) {
+    79	                if (INSTANCE == null)
+    80	                    INSTANCE = new TorrentInfoProvider(
+    81	                            TorrentEngine.getInstance(appContext),
+    82	                            RepositoryHelper.getTagRepository(appContext)
+    83	                    );
+    84	            }
+    85	        }
+    86	        return INSTANCE;
+    87	    }
+=== MainActivity creation and start ===
+   136	    protected void onCreate(Bundle savedInstanceState) {
+   137	        setTheme(Utils.getAppTheme(getApplicationContext()));
+   138	        super.onCreate(savedInstanceState);
+   139	
+   140	        if (getIntent().getAction() != null &&
+   141	                getIntent().getAction().equals(NotificationReceiver.NOTIFY_ACTION_SHUTDOWN_APP)) {
+   142	            finish();
+   143	            return;
+   144	        }
+   145	
+   380	    @Override
+   381	    public void onStart() {
+   382	        super.onStart();
+   383	
+   384	        subscribeAlertDialog();
+   385	        subscribeMsgViewModel();
+   386	        subscribeSessionStats();
+   387	        subscribeNeedStartEngine();
+   388	        subscribeTags();
+   389	    }
+   390	
+=== AOSP create-to-start dispatch ===
+  2738	                r.activity = activity;
+  2739	                r.stopped = true;
+  2740	                if (!r.activity.mFinished) {
+  2741	                    activity.performStart();
+  2742	                    r.stopped = false;
+  2743	                }
+  2744	                if (!r.activity.mFinished) {
+  2745	                    if (r.isPersistable()) {
+  7014	    final void performStart() {
+  7015	        mActivityTransitionState.setEnterActivityOptions(this, getActivityOptions());
+  7016	        mFragments.noteStateNotSaved();
+  7017	        mCalled = false;
+  7018	        mFragments.execPendingActions();
+  7019	        mInstrumentation.callActivityOnStart(this);
+  7020	        if (!mCalled) {
+  7021	            throw new SuperNotCalledException(
+  7022	                "Activity " + mComponent.toShortString() +
+  7023	                " did not call through to super.onStart()");
+  1333	    public void callActivityOnStart(Activity activity) {
+  1334	        activity.onStart();
+  1335	    }
+=== Application class ===
+    37	public class MainApplication extends MultiDexApplication {
+    38	    public static final String TAG = MainApplication.class.getSimpleName();
+    39	
+    40	    static {
+    41	        /* Vector Drawable support in ImageView for API < 21 */
+    42	        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
+    43	    }
+    44	
+    45	    @Override
+    46	    public void onCreate() {
+    47	        super.onCreate();
+=== AOSP application instantiation ===
+   959	    public Application makeApplication(boolean forceDefaultAppClass,
+   960	            Instrumentation instrumentation) {
+   961	        if (mApplication != null) {
+   962	            return mApplication;
+   963	        }
+   964	
+   965	        Trace.traceBegin(Trace.TRACE_TAG_ACTIVITY_MANAGER, "makeApplication");
+   966	
+   967	        Application app = null;
+   968	
+   969	        String appClass = mApplicationInfo.className;
+   970	        if (forceDefaultAppClass || (appClass == null)) {
+   971	            appClass = "android.app.Application";
+   972	        }
+   973	
+   974	        try {
+   975	            java.lang.ClassLoader cl = getClassLoader();
+   976	            if (!mPackageName.equals("android")) {
+   977	                Trace.traceBegin(Trace.TRACE_TAG_ACTIVITY_MANAGER,
+   978	                        "initializeJavaContextClassLoader");
+   979	                initializeJavaContextClassLoader();
+   980	                Trace.traceEnd(Trace.TRACE_TAG_ACTIVITY_MANAGER);
+   981	            }
+   982	            ContextImpl appContext = ContextImpl.createAppContext(mActivityThread, this);
+   983	            app = mActivityThread.mInstrumentation.newApplication(
+   984	                    cl, appClass, appContext);
+   985	            appContext.setOuterContext(app);
+  1084	    public Application newApplication(ClassLoader cl, String className, Context context)
+  1085	            throws InstantiationException, IllegalAccessException, 
+  1086	            ClassNotFoundException {
+  1087	        return newApplication(cl.loadClass(className), context);
+  1088	    }
+  1089	    
+  1090	    /**
+  1091	     * Perform instantiation of the process's {@link Application} object.  The
+  1092	     * default implementation provides the normal system behavior.
+  1093	     * 
+  1094	     * @param clazz The class used to create an Application object from.
+  1095	     * @param context The context to initialize the application with
+  1096	     * 
+  1097	     * @return The newly instantiated Application object.
+  1098	     */
+  1099	    static public Application newApplication(Class<?> clazz, Context context)
+  1100	            throws InstantiationException, IllegalAccessException, 
+  1101	            ClassNotFoundException {
+  1102	        Application app = (Application)clazz.newInstance();
+  1103	        app.attach(context);
+  1104	        return app;
+  1105	    }

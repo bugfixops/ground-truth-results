@@ -1,0 +1,436 @@
+METHOD: TorrentCriticalWork.lambda$emitChangedEvent$0
+verdict: REACHABLE   steps_from_launch: 12
+route steps: 12 edges
+======================================================================
+
+STEP 1  edge E2f8f0c2f
+  S_ENTRY -> NotificationReceiver.onReceive
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: PendingIntent.getBroadcast(
+  evidence: SRC AndroidManifest.xml:256-263; service/TorrentService.java:497-524; receiver/NotificationReceiver.java:41-81
+  cite [SRC] AndroidManifest.xml:256-263
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/AndroidManifest.xml)
+      256:         <receiver
+      257:             android:name=".receiver.NotificationReceiver"
+      258:             android:exported="false">
+      259:             <intent-filter>
+      260:                 <action android:name="org.proninyaroslav.libretorrent.receivers.NotificationReceiver.NOTIFY_ACTION_SHUTDOWN_APP" />
+      261:                 <action android:name="org.proninyaroslav.libretorrent.receivers.NotificationReceiver.NOTIFY_ACTION_ADD_TORRENT" />
+      262:             </intent-filter>
+      263:         </receiver>
+  cite [SRC] service/TorrentService.java:497-524
+      497:     private void initPendingIntents() {
+      498:         Intent shutdownIntent = new Intent(getApplicationContext(), NotificationReceiver.class);
+      499:         shutdownIntent.setAction(NotificationReceiver.NOTIFY_ACTION_SHUTDOWN_APP);
+      500:         shutdownPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0,
+      501:                 shutdownIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+      502:         );
+      503: 
+      504:         Intent pauseButtonIntent = new Intent(getApplicationContext(), NotificationReceiver.class);
+      505:         pauseButtonIntent.setAction(NotificationReceiver.NOTIFY_ACTION_PAUSE_ALL);
+      506:         pauseButtonPendingIntent = PendingIntent.getBroadcast(
+      507:                 getApplicationContext(), 0, pauseButtonIntent,
+      508:                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+      509:         );
+      510: 
+      511:         Intent resumeButtonIntent = new Intent(getApplicationContext(), NotificationReceiver.class);
+      512:         resumeButtonIntent.setAction(NotificationReceiver.NOTIFY_ACTION_RESUME_ALL);
+      513:         resumeButtonPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0,
+      514:                 resumeButtonIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+      515:         );
+      516: 
+      517:         Intent pauseResumeButtonIntent = new Intent(getApplicationContext(), NotificationReceiver.class);
+      518:         pauseResumeButtonIntent.setAction(NotificationReceiver.NOTIFY_ACTION_PAUSE_RESUME_ALL);
+      519:         pauseResumePendingIntent = PendingIntent.getBroadcast(
+      520:                 getApplicationContext(), 0, pauseResumeButtonIntent,
+      521:                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+      522:         );
+      523: 
+      524:     }
+  cite [SRC] receiver/NotificationReceiver.java:41-81
+       41:     @Override
+       42:     public void onReceive(Context context, Intent intent)
+       43:     {
+       44:         String action = intent.getAction();
+       45:         if (action == null)
+       46:             return;
+       47:         Intent mainIntent, serviceIntent;
+       48:         switch (action) {
+       49:             /* Send action to the already running service */
+       50:             case NOTIFY_ACTION_SHUTDOWN_APP:
+       51:                 mainIntent = new Intent(context.getApplicationContext(), MainActivity.class);
+       52:                 mainIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+       53:                 mainIntent.setAction(NOTIFY_ACTION_SHUTDOWN_APP);
+       54:                 context.startActivity(mainIntent);
+       55: 
+       56:                 serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+       57:                 serviceIntent.setAction(NOTIFY_ACTION_SHUTDOWN_APP);
+       58:                 context.startService(serviceIntent);
+       59:                 break;
+       60:             case NOTIFY_ACTION_ADD_TORRENT:
+       61:                 mainIntent = new Intent(context.getApplicationContext(), MainActivity.class);
+       62:                 mainIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+       63:                 mainIntent.setAction(NOTIFY_ACTION_ADD_TORRENT);
+       64:                 context.startActivity(mainIntent);
+       65:                 break;
+       66:             case NOTIFY_ACTION_PAUSE_ALL:
+       67:                 serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+       68:                 serviceIntent.setAction(NOTIFY_ACTION_PAUSE_ALL);
+       69:                 context.startService(serviceIntent);
+       70:                 break;
+       71:             case NOTIFY_ACTION_RESUME_ALL:
+       72:                 serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+       73:                 serviceIntent.setAction(NOTIFY_ACTION_RESUME_ALL);
+       74:                 context.startService(serviceIntent);
+       75:                 break;
+       76:             case NOTIFY_ACTION_PAUSE_RESUME_ALL:
+       77:                 serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+       78:                 serviceIntent.setAction(NOTIFY_ACTION_PAUSE_RESUME_ALL);
+       79:                 context.startService(serviceIntent);
+       80:                 break;
+       81:         }
+
+STEP 2  edge Ef82a6423
+  NotificationReceiver.onReceive -> TorrentService.onStartCommand
+  class: standard   kind: INTENT
+  guard: action is one of NOTIFY_ACTION_SHUTDOWN_APP, NOTIFY_ACTION_PAUSE_ALL, NOTIFY_ACTION_RESUME_ALL, NOTIFY_ACTION_PAUSE_RESUME_ALL
+  needs_state: None
+  env: None
+  evidence: SRC receiver/NotificationReceiver.java:50-58,66-80; service/TorrentService.java:175-232; FW-SRC core/java/android/app/ActivityThread.java:3464-3475
+  cite [SRC] receiver/NotificationReceiver.java:50-58, 66-80
+       50:             case NOTIFY_ACTION_SHUTDOWN_APP:
+       51:                 mainIntent = new Intent(context.getApplicationContext(), MainActivity.class);
+       52:                 mainIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+       53:                 mainIntent.setAction(NOTIFY_ACTION_SHUTDOWN_APP);
+       54:                 context.startActivity(mainIntent);
+       55: 
+       56:                 serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+       57:                 serviceIntent.setAction(NOTIFY_ACTION_SHUTDOWN_APP);
+       58:                 context.startService(serviceIntent);
+       66:             case NOTIFY_ACTION_PAUSE_ALL:
+       67:                 serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+       68:                 serviceIntent.setAction(NOTIFY_ACTION_PAUSE_ALL);
+       69:                 context.startService(serviceIntent);
+       70:                 break;
+       71:             case NOTIFY_ACTION_RESUME_ALL:
+       72:                 serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+       73:                 serviceIntent.setAction(NOTIFY_ACTION_RESUME_ALL);
+       74:                 context.startService(serviceIntent);
+       75:                 break;
+       76:             case NOTIFY_ACTION_PAUSE_RESUME_ALL:
+       77:                 serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+       78:                 serviceIntent.setAction(NOTIFY_ACTION_PAUSE_RESUME_ALL);
+       79:                 context.startService(serviceIntent);
+       80:                 break;
+  cite [SRC] service/TorrentService.java:175-232
+      175:     @Override
+      176:     public int onStartCommand(Intent intent, int flags, int startId)
+      177:     {
+      178:         String action = null;
+      179:         if (intent != null)
+      180:             action = intent.getAction();
+      181: 
+      182:         /* Handle shutdown actions before init service */
+      183:         if (action != null) {
+      184:             int ret = handleShutdownActions(action);
+      185:             if (ret >= 0)
+      186:                 return ret;
+      187:         }
+      188: 
+      189:         /* The first start */
+      190:         if (isAlreadyRunning.compareAndSet(false, true))
+      191:             init();
+      192: 
+      193:         if (action != null)
+      194:             handleActions(action);
+      195: 
+      196:         return START_STICKY;
+      197:     }
+      198: 
+      199:     private int handleShutdownActions(String action)
+      200:     {
+      201:         switch (action) {
+      202:             case NotificationReceiver.NOTIFY_ACTION_SHUTDOWN_APP:
+      203:             case ACTION_SHUTDOWN:
+      204:                 shutdown();
+      205:                 return START_NOT_STICKY;
+      206:             case ACTION_RESTART_FOREGROUND_NOTIFICATION:
+      207:                 makeForegroundNotify();
+      208:                 return START_STICKY;
+      209:         }
+      210: 
+      211:         return -1;
+      212:     }
+      213: 
+      214:     private void handleActions(String action)
+      215:     {
+      216:         switch (action) {
+      217:             case NotificationReceiver.NOTIFY_ACTION_PAUSE_ALL:
+      218:                 engine.pauseAll();
+      219:                 break;
+      220:             case NotificationReceiver.NOTIFY_ACTION_RESUME_ALL:
+      221:                 engine.resumeAll();
+      222:                 break;
+      223:             case NotificationReceiver.NOTIFY_ACTION_PAUSE_RESUME_ALL:
+      224:                 boolean paused = combinedPauseButtonState.getValue();
+      225:                 if (paused) {
+      226:                     engine.resumeAll();
+      227:                 } else {
+      228:                     engine.pauseAll();
+      229:                 }
+      230:                 combinedPauseButtonState.onNext(!paused);
+      231:                 break;
+      232:         }
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:3464-3475
+     3464:     private void handleServiceArgs(ServiceArgsData data) {
+     3465:         Service s = mServices.get(data.token);
+     3466:         if (s != null) {
+     3467:             try {
+     3468:                 if (data.args != null) {
+     3469:                     data.args.setExtrasClassLoader(s.getClassLoader());
+     3470:                     data.args.prepareToEnterProcess();
+     3471:                 }
+     3472:                 int res;
+     3473:                 if (!data.taskRemoved) {
+     3474:                     res = s.onStartCommand(data.args, data.flags, data.startId);
+     3475:                 } else {
+
+STEP 3  edge Ee931cb01
+  TorrentService.onStartCommand -> TorrentService.handleShutdownActions
+  class: explicit   kind: CALL
+  guard: action != null
+  needs_state: None
+  env: None
+  evidence: SRC service/TorrentService.java:178-187; service/TorrentService.java:199-211
+  cite [SRC] service/TorrentService.java:178-187
+      178:         String action = null;
+      179:         if (intent != null)
+      180:             action = intent.getAction();
+      181: 
+      182:         /* Handle shutdown actions before init service */
+      183:         if (action != null) {
+      184:             int ret = handleShutdownActions(action);
+      185:             if (ret >= 0)
+      186:                 return ret;
+      187:         }
+  cite [SRC] service/TorrentService.java:199-211
+      199:     private int handleShutdownActions(String action)
+      200:     {
+      201:         switch (action) {
+      202:             case NotificationReceiver.NOTIFY_ACTION_SHUTDOWN_APP:
+      203:             case ACTION_SHUTDOWN:
+      204:                 shutdown();
+      205:                 return START_NOT_STICKY;
+      206:             case ACTION_RESTART_FOREGROUND_NOTIFICATION:
+      207:                 makeForegroundNotify();
+      208:                 return START_STICKY;
+      209:         }
+      210: 
+      211:         return -1;
+
+STEP 4  edge Eb1f77397
+  TorrentService.handleShutdownActions -> TorrentService.shutdown
+  class: explicit   kind: CALL
+  guard: action is NOTIFY_ACTION_SHUTDOWN_APP or ACTION_SHUTDOWN
+  needs_state: None
+  env: None
+  evidence: SRC service/TorrentService.java:199-205
+  cite [SRC] service/TorrentService.java:199-205
+      199:     private int handleShutdownActions(String action)
+      200:     {
+      201:         switch (action) {
+      202:             case NotificationReceiver.NOTIFY_ACTION_SHUTDOWN_APP:
+      203:             case ACTION_SHUTDOWN:
+      204:                 shutdown();
+      205:                 return START_NOT_STICKY;
+
+STEP 5  edge E972c1f58
+  TorrentService.shutdown -> TorrentService.stopEngine
+  class: non_standard   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED RxJava Completable.fromRunnable dispatch; SRC service/TorrentService.java:150-155
+  cite [SRC] service/TorrentService.java:150-155
+      150:     private void shutdown()
+      151:     {
+      152:         disposables.add(Completable.fromRunnable(this::stopEngine)
+      153:                 .subscribeOn(Schedulers.computation())
+      154:                 .subscribe());
+      155:     }
+
+STEP 6  edge Eb8202f81
+  TorrentService.stopEngine -> TorrentEngine.doStop
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC service/TorrentService.java:157-162; TorrentEngine.java:292-304
+  cite [SRC] service/TorrentService.java:157-162
+      157:     private void stopEngine()
+      158:     {
+      159:         shuttingDown.set(true);
+      160:         forceClearForeground();
+      161:         engine.doStop();
+      162:     }
+  cite [SRC] TorrentEngine.java:292-304
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java)
+      292:     public void doStop() {
+      293:         if (!isRunning())
+      294:             return;
+      295: 
+      296:         disposables.clear();
+      297:         stopWatchDir();
+      298:         stopStreamingServer();
+      299:         session.requestStop();
+      300:         cleanTemp();
+      301:     }
+      302: 
+      303:     public boolean isRunning() {
+      304:         return session.isRunning();
+
+STEP 7  edge Edc4245de
+  TorrentEngine.doStop -> TorrentSessionImpl.requestStop
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TorrentEngine.java:299; SRC TorrentSessionImpl.java:911
+  cite [SRC] TorrentEngine.java:299
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java)
+      299:         session.requestStop();
+  cite [SRC] TorrentSessionImpl.java:911
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+      911:     public void requestStop()
+
+STEP 8  edge E7a754d0a
+  TorrentSessionImpl.requestStop -> TorrentSessionImpl.saveAllResumeData
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TorrentSessionImpl.java:916; SRC TorrentSessionImpl.java:950
+  cite [SRC] TorrentSessionImpl.java:916
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+      916:         saveAllResumeData();
+  cite [SRC] TorrentSessionImpl.java:950
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+      950:     private void saveAllResumeData()
+
+STEP 9  edge E3d7269f0
+  TorrentSessionImpl.saveAllResumeData -> TorrentDownloadImpl.saveResumeData
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TorrentSessionImpl.java:955; SRC TorrentDownloadImpl.java:492-530
+  cite [SRC] TorrentSessionImpl.java:955
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+      955:             task.saveResumeData(false);
+  cite [SRC] TorrentDownloadImpl.java:492-530
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java)
+      492:     public void saveResumeData(boolean force)
+      493:     {
+      494:         long now = System.currentTimeMillis();
+      495: 
+      496:         if (force || (now - lastSaveResumeTime) >= SAVE_RESUME_SYNC_TIME)
+      497:             lastSaveResumeTime = now;
+      498:         else
+      499:             /* Skip, too fast, see SAVE_RESUME_SYNC_TIME */
+      500:             return;
+      501: 
+      502:         try {
+      503:             if (th.isValid()) {
+      504:                 criticalWork.setSaveResume(true);
+      505:                 th.saveResumeData(TorrentHandle.SAVE_INFO_DICT);
+      506:             }
+      507: 
+      508:         } catch (Exception e) {
+      509:             Log.w(TAG, "Error triggering resume data of " + id + ":");
+      510:             Log.w(TAG, Log.getStackTraceString(e));
+      511: 
+      512:             criticalWork.setSaveResume(false);
+      513:         }
+      514:     }
+      515: 
+      516:     private void serializeResumeData(SaveResumeDataAlert alert)
+      517:     {
+      518:         try {
+      519:             byte_vector data = libtorrent.write_resume_data(alert.params().swig()).bencode();
+      520:             repo.addFastResume(new FastResume(id, Vectors.byte_vector2bytes(data)));
+      521: 
+      522:         } catch (Throwable e) {
+      523:             Log.e(TAG, Log.getStackTraceString(e));
+      524: 
+      525:         } finally {
+      526:             criticalWork.setSaveResume(false);
+      527:         }
+      528:     }
+      529: 
+      530:     @Override
+
+STEP 10  edge Ebad41f68
+  TorrentDownloadImpl.saveResumeData -> TorrentCriticalWork.setSaveResume
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TorrentDownloadImpl.java:504; SRC TorrentDownloadImpl.java:512; SRC TorrentDownloadImpl.java:526; SRC TorrentCriticalWork.java:79-86
+  cite [SRC] TorrentDownloadImpl.java:504
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java)
+      504:                 criticalWork.setSaveResume(true);
+  cite [SRC] TorrentDownloadImpl.java:512
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java)
+      512:             criticalWork.setSaveResume(false);
+  cite [SRC] TorrentDownloadImpl.java:526
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java)
+      526:             criticalWork.setSaveResume(false);
+  cite [SRC] TorrentCriticalWork.java:79-86
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentCriticalWork.java)
+       79:     public void setSaveResume(boolean saveResume)
+       80:     {
+       81:         if (saveResume)
+       82:             this.saveResume.incrementAndGet();
+       83:         else
+       84:             this.saveResume.decrementAndGet();
+       85:         emitChangedEvent();
+       86:     }
+
+STEP 11  edge E312fb53f
+  TorrentCriticalWork.setSaveResume -> TorrentCriticalWork.emitChangedEvent
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TorrentCriticalWork.java:85; SRC TorrentCriticalWork.java:93-97
+  cite [SRC] TorrentCriticalWork.java:85
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentCriticalWork.java)
+       85:         emitChangedEvent();
+  cite [SRC] TorrentCriticalWork.java:93-97
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentCriticalWork.java)
+       93:     private void emitChangedEvent()
+       94:     {
+       95:         exec.submit(() -> stateChangedEvent.onNext(
+       96:                 new State(moving.get(), saveResume.get() > 0, System.currentTimeMillis())));
+       97:     }
+
+STEP 12  edge E91ff5ea6
+  TorrentCriticalWork.emitChangedEvent -> TorrentCriticalWork.lambda$emitChangedEvent$0
+  class: non_standard   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED thread-pool dispatch; SRC TorrentCriticalWork.java:95-96; SRC TorrentCriticalWork.java:93-97
+  cite [SRC] TorrentCriticalWork.java:95-96
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentCriticalWork.java)
+       95:         exec.submit(() -> stateChangedEvent.onNext(
+       96:                 new State(moving.get(), saveResume.get() > 0, System.currentTimeMillis())));
+  cite [SRC] TorrentCriticalWork.java:93-97
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentCriticalWork.java)
+       93:     private void emitChangedEvent()
+       94:     {
+       95:         exec.submit(() -> stateChangedEvent.onNext(
+       96:                 new State(moving.get(), saveResume.get() > 0, System.currentTimeMillis())));
+       97:     }

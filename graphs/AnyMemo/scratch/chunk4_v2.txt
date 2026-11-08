@@ -1,0 +1,222 @@
+# ---- section L part 2, pass 2, chunk 4 (2026-10-26) ----
+# Each evidence segment starts with its label (SRC, FW-SRC or INFERRED); evidence_labels() reads the first word of each ';' segment.
+# Constant text must not contain ';'.
+FW_RECYCLER = 'INFERRED androidx RecyclerView calls the Adapter callbacks (onCreateViewHolder, onBindViewHolder, getItemCount) and the ItemDecoration callbacks (onDraw, getItemOffsets) while it lays out the list (androidx source not read)'
+C4_JVM_FIN = 'INFERRED the JVM runs finalize() on an object after the garbage collector finds it unreachable (Java language rule, not read from a source)'
+C4_CLINIT = 'INFERRED the JVM runs a class static initialiser before the first constructor call or static use (Java language rule, not read from a source)'
+C4_CHART = 'INFERRED MPAndroidChart calls the ValueFormatter getFormattedValue methods while it draws the chart (library source not read)'
+C4_OKHTTP = 'INFERRED okhttp3 calls Callback.onFailure or Callback.onResponse on a worker thread after Call.enqueue (library source not read)'
+C4_LIST = 'INFERRED the list view and its fast scroller call the adapter item and section methods while the list is laid out (library source not read)'
+C4_IMG = 'INFERRED android.text.Html.fromHtml calls the registered Html.ImageGetter.getDrawable for each img tag (platform source not read)'
+C4_EQ = 'INFERRED the Java collection rule: HashSet, List and ArrayAdapter call equals and hashCode on their elements (library source not read)'
+C4_OPEN = 'INFERRED ORMLite opens the database through the open helper when a DAO is first used (library source not read)'
+C4_DAO_INH = 'SRC the callee is declared in dao/AbstractHelperDaoImpl.java and inherited by the DAO subclass; javac binds the call to the superclass method and the bytecode extractor does not follow an inherited call made through a subclass receiver (tool gap)'
+FW_ASYNC_SRC = 'FW-SRC core/java/android/os/AsyncTask.java:412 (execute runs onPreExecute on the calling thread before doInBackground)'
+NEED_OLD_DB = state_text('an existing database file was written by an older app version (its version is lower than the code version), so the open helper runs onUpgrade', ('file',))
+NEED_NEW_DB = state_text('an existing database file was written by a newer app version (its version is higher than the code version), so the open helper runs onDowngrade', ('file',))
+
+
+def dao_call(src, dst, trig, cite):
+    e(src, dst, 'CALL', trig, evidence=C4_DAO_INH + '; SRC ' + cite,
+      cls='non_standard', via='inherited AbstractHelperDaoImpl method called through a DAO subclass receiver (tool gap)')
+
+
+def dead(key, kind, reason, cite, conf):
+    UNREACHABLE[key] = (kind, reason, cite, conf)
+
+
+# A. Database open: a DAO getter opens the database through the open helper; the platform then calls onCreate, onUpgrade or onDowngrade
+for g_ in ('getCardDao', 'getCategoryDao', 'getSettingDao', 'getLearningDataDao'):
+    e('AnyMemoDBOpenHelper.' + g_, 'AnyMemoDBOpenHelper.onCreate', 'FRAMEWORK',
+      'first use of the database through the open helper: the platform runs onCreate when no database file exists',
+      evidence=C4_OPEN + '; FW-SRC core/java/android/database/sqlite/SQLiteOpenHelper.java:333 (onCreate call); SRC common/AnyMemoDBOpenHelper.java:49 (onCreate)',
+      cls='non_standard', via='ORMLite DaoManager opens the database (reflection; INFERRED)')
+    e('AnyMemoDBOpenHelper.' + g_, 'AnyMemoDBOpenHelper.onUpgrade', 'FRAMEWORK',
+      'first use of an older database file: the platform runs onUpgrade', needs_state=NEED_OLD_DB,
+      evidence=C4_OPEN + '; FW-SRC core/java/android/database/sqlite/SQLiteOpenHelper.java:338 (onUpgrade call); SRC common/AnyMemoDBOpenHelper.java:142 (onUpgrade)',
+      cls='non_standard', via='ORMLite DaoManager opens the database (reflection; INFERRED)')
+    e('AnyMemoDBOpenHelper.' + g_, 'AnyMemoDBOpenHelper.onDowngrade', 'FRAMEWORK',
+      'first use of a newer database file: the platform runs onDowngrade', needs_state=NEED_NEW_DB,
+      evidence=C4_OPEN + '; FW-SRC core/java/android/database/sqlite/SQLiteOpenHelper.java:336 (onDowngrade call); SRC common/AnyMemoDBOpenHelper.java:167 (onDowngrade)',
+      cls='non_standard', via='ORMLite DaoManager opens the database (reflection; INFERRED)')
+
+# B. Inherited AbstractHelperDaoImpl methods called through a DAO subclass receiver (the bytecode extractor does not show these calls)
+dao_call('AnyMemoDBOpenHelper.getCardDao', 'AbstractHelperDaoImpl.setHelper', 'getCardDao gives the new CardDaoImpl its open helper', 'common/AnyMemoDBOpenHelper.java:175')
+for src_, cite_ in (
+    ('PreviewEditActivity.onPostInit', 'ui/PreviewEditActivity.java:158'),
+    ('CardPlayerActivity.onPostInit', 'ui/CardPlayerActivity.java:109'),
+    ('CardWrapperListLoader.dbLoadInBackground', 'ui/loader/CardWrapperListLoader.java:43'),
+    ('Mnemosyne2CardsExporter.createXMLFile', 'converter/Mnemosyne2CardsExporter.java:129'),
+):
+    dao_call(src_, 'AbstractHelperDaoImpl.countOf', 'the card count is read from the database', cite_)
+for src_, cite_ in (
+    ('CategoryEditorFragment$InitTask.doInBackground', 'ui/CategoryEditorFragment.java:147'),
+    ('CardDaoImpl$3.call', 'dao/CardDaoImpl.java:520'),
+    ('CardDaoImpl.createCardsNoBatch', 'dao/CardDaoImpl.java:821'),
+):
+    dao_call(src_, 'AbstractHelperDaoImpl.queryForAll', 'the full list is read from the database', cite_)
+for src_, cite_ in (
+    ('CardDaoImpl$1.call', 'dao/CardDaoImpl.java:65'),
+    ('CardDaoImpl.queryNextCard(Card,Category)', 'dao/CardDaoImpl.java:137'),
+    ('CardDaoImpl.queryPrevCard(Card,Category)', 'dao/CardDaoImpl.java:178'),
+    ('CardDaoImpl.delete', 'dao/CardDaoImpl.java:191'),
+    ('CardDaoImpl.getCardsForReview', 'dao/CardDaoImpl.java:297'),
+    ('CardDaoImpl.getNewCards', 'dao/CardDaoImpl.java:338'),
+    ('CardDaoImpl.getCardsByCategory', 'dao/CardDaoImpl.java:591'),
+    ('CardDaoImpl$5.call', 'dao/CardDaoImpl.java:624'),
+    ('CardDaoImpl.getCardsByOrdinalAndSize', 'dao/CardDaoImpl.java:705'),
+    ('CardDaoImpl$7.call', 'dao/CardDaoImpl.java:727'),
+    ('CardDaoImpl$8.call', 'dao/CardDaoImpl.java:752'),
+    ('CardDaoImpl$9.call', 'dao/CardDaoImpl.java:778'),
+    ('CardDaoImpl.getRandomCards', 'dao/CardDaoImpl.java:809'),
+    ('DetailScreen$InitTask.doInBackground', 'ui/DetailScreen.java:270'),
+    ('CardEditor$InitTask.doInBackground', 'ui/CardEditor.java:539'),
+    ('GradeButtonsFragment$GradeTask.doInBackground', 'ui/GradeButtonsFragment.java:283'),
+    ('Mnemosyne2CardsExporter.createXMLFile', 'converter/Mnemosyne2CardsExporter.java:169'),
+    ('MnemosyneXMLExporter$1.call', 'converter/MnemosyneXMLExporter.java:56'),
+    ('CSVExporter$1.call', 'converter/CSVExporter.java:72'),
+    ('DatabaseUtil$1.call', 'utils/DatabaseUtil.java:65'),
+    ('LearnQueueManager.position', 'queue/LearnQueueManager.java:237'),
+    ('CardPlayerState.findNextCard', 'service/cardplayer/CardPlayerState.java:229'),
+    ('CardPlayerState.findPrevCard', 'service/cardplayer/CardPlayerState.java:251'),
+):
+    dao_call(src_, 'AbstractHelperDaoImpl.refresh', 'the card is reloaded from the database so its learning data and category are current', cite_)
+
+# C. Class initialisers: a class with a reachable constructor runs its static initialiser first
+for c_ in ('AlarmReceiver', 'CardPlayerService', 'CardListActivity', 'DatabaseMerger', 'DownloaderUtils',
+           'NotificationUtil', 'PreviewEditActivity', 'SettingsScreen', 'ConvertIntentService'):
+    e(c_ + '.<init>', c_ + '.<clinit>', 'LIFECYCLE', 'the JVM initialises the class before its first constructor call', evidence=C4_CLINIT)
+
+# D. Finalizers: the JVM runs finalize() after the garbage collector finds the object unreachable
+e('CardTTSUtil.<init>', 'CardTTSUtil.finalize', 'FRAMEWORK', 'the garbage collector finalizes the object after it is no longer reachable', evidence=C4_JVM_FIN)
+e('AnyMemoDBOpenHelper.<init>', 'AnyMemoDBOpenHelper.finalize', 'FRAMEWORK', 'the garbage collector finalizes the open helper after it is no longer reachable', evidence=C4_JVM_FIN + '; SRC common/AnyMemoDBOpenHelper.java:242')
+
+# E. Fragment lifecycle and the statistics entry
+for cb_, ln_ in (('onCreate', '100'), ('onAttach', '109'), ('onCreateView', '114'), ('onCreateAnimation', '202')):
+    e('CardFragment.<init>', 'CardFragment.' + cb_, 'LIFECYCLE', 'Fragment lifecycle callback', evidence=FW_FRAG + '; SRC ui/CardFragment.java:' + ln_)
+e('OpenActionsFragment$1.onClick', 'StatisticsScreen.<init>', 'ENTRY', 'v == statisticsItem: startActivity(StatisticsScreen)', evidence='SRC ui/OpenActionsFragment.java:165-166')
+
+# F. RecyclerView, options menu, action mode and list view callbacks
+for cb_ in ('onCreateViewHolder', 'onBindViewHolder', 'getItemCount'):
+    e('FileBrowserFragment.onCreateView', 'FileBrowserFragment$FileBrowserAdapter.' + cb_, 'FRAMEWORK', 'the RecyclerView asks the adapter for its rows', evidence=FW_RECYCLER + '; SRC ui/FileBrowserFragment.java:202-203')
+    e('RecentListFragment.onCreateView', 'RecentListFragment$RecentListAdapter.' + cb_, 'FRAMEWORK', 'the RecyclerView asks the adapter for its rows', evidence=FW_RECYCLER + '; SRC ui/RecentListFragment.java:182')
+for cb_ in ('onDraw', 'getItemOffsets'):
+    e('RecentListFragment.onCreateView', 'RecentListFragment$DividerItemDecoration.' + cb_, 'FRAMEWORK', 'the RecyclerView draws the divider between the rows', evidence=FW_RECYCLER + '; SRC ui/RecentListFragment.java:174')
+e('RecentListFragment.onCreateOptionsMenu', 'RecentListFragment.onOptionsItemSelected', 'FRAMEWORK', 'a tap on a menu item of the Recent list', evidence=FW_MENU + '; SRC ui/RecentListFragment.java:223')
+for cb_ in ('onPrepareActionMode', 'onActionItemClicked', 'onDestroyActionMode'):
+    e('RecentListActionModeUtil$ActionModeCallback.onCreateActionMode', 'RecentListActionModeUtil$ActionModeCallback.' + cb_, 'FRAMEWORK', 'the action mode calls its callback', evidence=FW_ACTIONMODE + '; SRC utils/RecentListActionModeUtil.java:111')
+for cb_ in ('getView', 'getSections', 'getSectionForPosition', 'getPositionForSection'):
+    e('CardListActivity$11.run', 'CardListActivity$CardListAdapter.' + cb_, 'FRAMEWORK', 'the list view and its fast scroller call the adapter', evidence=C4_LIST + '; SRC ui/CardListActivity.java:645-647')
+e('CardTextUtil.getSpannableText', 'CardImageGetter.getDrawable', 'FRAMEWORK', 'Html.fromHtml asks the image getter for each img tag', evidence=C4_IMG + '; SRC utils/CardTextUtil.java:58-60')
+
+# G. Statistics screen: AsyncTask and chart callbacks
+e('StatisticsScreen.onCreate', 'StatisticsScreen$ChartTask.onPreExecute', 'ASYNC', 'CardToReviewTask.execute runs onPreExecute on the main thread (inherited from ChartTask)', evidence=FW_ASYNC_SRC + '; SRC ui/StatisticsScreen.java:105')
+e('StatisticsScreen$1.onNavigationItemSelected', 'StatisticsScreen$ChartTask.onPreExecute', 'ASYNC', 'a statistics menu item starts a ChartTask subclass, which runs onPreExecute on the main thread', evidence=FW_ASYNC_SRC + '; SRC ui/StatisticsScreen.java:127,131,134,138')
+e('StatisticsScreen$ChartTask.onPostExecute', 'StatisticsScreen$ChartValueFormatter.getFormattedValue', 'FRAMEWORK', 'the chart calls the value formatter while it is drawn', evidence=C4_CHART + '; SRC ui/StatisticsScreen.java:173-174')
+e('StatisticsScreen$ChartTask.onPostExecute', 'StatisticsScreen$ChartYAxisValueFormatter.getFormattedValue', 'FRAMEWORK', 'the chart calls the axis formatter while it is drawn', evidence=C4_CHART + '; SRC ui/StatisticsScreen.java:173-174')
+
+# H. Loaders, services, widgets, dialogs and the downloader
+e('SettingsScreen.onCreate', 'SettingsScreen$SettingLoaderCallbacks.onLoaderReset', 'FRAMEWORK', 'the loader manager resets the Setting loader when it is no longer needed', evidence=FW_LOADER + '; SRC ui/SettingsScreen.java:137')
+e('AnyMemo$HandleOpenIntentLoaderCallbacks.onCreateLoader', 'AnyMemo$FileAsyncTaskLoader.loadInBackground', 'FRAMEWORK', 'the loader manager runs loadInBackground on a worker thread', evidence=FW_LOADER + '; SRC ui/AnyMemo.java:449')
+e('ConverterFragment.invokeConverterService', 'ConvertIntentService.<init>', 'FRAMEWORK', 'startService creates the service and calls its constructor', evidence=FW_CREATE_SVC + '; SRC ui/ConverterFragment.java:162')
+e('ConverterFragment.startConversion', 'ConverterFragment.onActivityResult', 'RESULT', 'the file picker returns its result to onActivityResult', evidence=FW_RESULT + '; SRC ui/ConverterFragment.java:134')
+e('AnyMemoWidgetProvider.onUpdate', 'UpdateWidgetService.<init>', 'FRAMEWORK', 'the widget host creates the RemoteViewsService named in the provider intent', evidence=FW_WIDGET + '; SRC widget/AnyMemoWidgetProvider.java:66')
+for cb_ in ('getCount', 'getItemId', 'getLoadingView', 'getViewTypeCount', 'hasStableIds'):
+    e('UpdateWidgetService.onGetViewFactory', 'WidgetRemoteViewsFactory.' + cb_, 'FRAMEWORK', 'the widget host asks the factory for the list', evidence=FW_WIDGET + '; SRC widget/UpdateWidgetService.java:11-12')
+e('DropboxApiHelper$1$1.<init>', 'DropboxApiHelper$1$1.onFailure', 'FRAMEWORK', 'okhttp calls onFailure when the request fails', evidence=C4_OKHTTP + '; SRC downloader/dropbox/DropboxApiHelper.java:87,89')
+e('DropboxApiHelper$1$1.<init>', 'DropboxApiHelper$1$1.onResponse', 'FRAMEWORK', 'okhttp calls onResponse when the server answers', evidence=C4_OKHTTP + '; SRC downloader/dropbox/DropboxApiHelper.java:87,94')
+e('PreviewEditActivity.showGesturesDialog', 'GestureSelectionDialogFragment.onDismiss', 'FRAMEWORK', 'the gesture dialog is dismissed', evidence=FW_DIALOGFRAG + '; SRC ui/PreviewEditActivity.java:578')
+e('StudyActivity.showGesturesDialog', 'GestureSelectionDialogFragment.onDismiss', 'FRAMEWORK', 'the gesture dialog is dismissed', evidence=FW_DIALOGFRAG + '; SRC ui/StudyActivity.java:651')
+e('AnyMemoDownloaderActivity.onCreate', 'AnyMemoDownloaderFragment.<init>', 'FRAMEWORK', 'the layout names AnyMemoDownloaderFragment and the FragmentManager creates it', evidence=FW_FRAG + '; SRC downloader/anymemo/AnyMemoDownloaderActivity.java:12; SRC res/layout/anymemo_downloader.xml:6')
+
+# I. Equals and hashCode called by collections
+e('CategoryEditorFragment$DeleteCategoryTask.onPostExecute', 'Category.equals', 'FRAMEWORK', 'ArrayAdapter.remove compares the list items with equals', evidence=C4_EQ + '; SRC ui/CategoryEditorFragment.java:314')
+e('QuizQueueManager.remove', 'Card.equals', 'FRAMEWORK', 'List or Set remove compares the stored cards with equals', evidence=C4_EQ + '; SRC queue/QuizQueueManager.java:82-83')
+e('QuizQueueManager.update', 'Card.equals', 'FRAMEWORK', 'HashSet.add compares the card with equal stored cards', evidence=C4_EQ + '; SRC queue/QuizQueueManager.java:140')
+e('QuizQueueManager.update', 'Card.hashCode', 'FRAMEWORK', 'HashSet.add computes the hash code of the card', evidence=C4_EQ + '; SRC queue/QuizQueueManager.java:140')
+
+# J. Activity results (RESULT) and RxJava
+e('ExportAnyMemoDbFragment.exportDatabase', 'ExportAnyMemoDbFragment.onActivityResult', 'RESULT', 'the file picker started by exportDatabase returns its result', evidence=FW_RESULT + '; SRC ui/ExportAnyMemoDbFragment.java:51')
+e('MiscTabFragment.onClick', 'MiscTabFragment.onActivityResult', 'RESULT', 'a picker started from the Misc tab returns its result', evidence=FW_RESULT + '; SRC ui/MiscTabFragment.java:251')
+e('MiscTabFragment.launchImportConvert', 'MiscTabFragment.onActivityResult', 'RESULT', 'the folder picker started by launchImportConvert returns its result', evidence=FW_RESULT + '; SRC ui/MiscTabFragment.java:413')
+e('ShareScreen.onClick', 'ShareScreen.onActivityResult', 'RESULT', 'the picker started by ShareScreen returns its result', evidence=FW_RESULT + '; SRC ui/ShareScreen.java:132')
+e('FolderImportExportUtil.exportFolder', 'FolderImportExportUtil$6.call', 'FRAMEWORK', 'Observable.fromCallable runs call() on the io scheduler', evidence=FW_RX + '; SRC utils/FolderImportExportUtil.java:83-89')
+
+# K. Volume-key handlers on the Quiz and Study screens: the variant node is the receiver of the inherited onKeyUp (edges are explicit in FIX 4, above)
+
+# L. Unreachable entries (step 1): each has a kind, a reason, a source cite and a label
+for k_, cite_ in (
+    ('AMEnv.<init>', 'common/AMEnv.java:34'),
+    ('AMPrefKeys.<init>', 'common/AMPrefKeys.java:26'),
+    ('AMSecrets.<init>', 'common/AMSecrets.java:25'),
+    ('AMStringUtils.<init>', 'utils/AMStringUtils.java:30'),
+    ('AMZipUtils.<init>', 'utils/AMZipUtils.java:23'),
+    ('AMGUIUtility.<init>', 'utils/AMGUIUtility.java:40'),
+    ('AnyMemoExecutor.<init>', 'utils/AnyMemoExecutor.java:32'),
+    ('ErrorUtil.<init>', 'utils/ErrorUtil.java:25'),
+):
+    dead(k_, 'no_trigger_in_app', 'no code creates an instance of this class (grep: no new call and no injection point asks for it); the class has only static members', 'SRC ' + cite_, 'SOURCE')
+dead('BaseActivity.appComponents', 'no_trigger_in_app', 'the getter has no caller (grep: no call)', 'SRC common/BaseActivity.java:73', 'SOURCE')
+dead('BaseActivity.isActivityCreated', 'no_trigger_in_app', 'no code calls isActivityCreated (grep: no call)', 'SRC common/BaseActivity.java:98', 'SOURCE')
+dead('BaseDialogFragment.appComponents', 'no_trigger_in_app', 'the getter has no caller (grep: no call)', 'SRC common/BaseDialogFragment.java:12', 'SOURCE')
+dead('BaseFragment.appComponents', 'no_trigger_in_app', 'the getter has no caller (grep: no call)', 'SRC common/BaseFragment.java:12', 'SOURCE')
+dead('AbstractDownloaderFragment$DownloadListAdapter.getList', 'no_trigger_in_app', 'no code calls getList on the download adapter (grep: no call)', 'SRC downloader/common/AbstractDownloaderFragment.java:375', 'SOURCE')
+dead('RecentListFragment$RecentListAdapter.getList', 'no_trigger_in_app', 'no code calls getList on the recent-list adapter (grep: no call)', 'SRC ui/RecentListFragment.java:460', 'SOURCE')
+dead('DownloadItem.clone', 'no_trigger_in_app', 'no code calls clone on a DownloadItem (grep: no call)', 'SRC downloader/common/DownloadItem.java:44', 'SOURCE')
+dead('CardFragment$Builder.setCardOnLongClickListener', 'no_trigger_in_app', 'no code calls the builder method (grep: no call)', 'SRC ui/CardFragment.java:262', 'SOURCE')
+dead('CardPlayerSettingDialogFragment.newInstance', 'no_trigger_in_app', 'no code calls newInstance (grep: no call)', 'SRC ui/CardPlayerSettingDialogFragment.java:56', 'SOURCE')
+dead('Card.toString', 'no_trigger_in_app', 'no direct call found; it would run only on an implicit string conversion of a Card, which the bytecode edges do not show (tool gap)', 'SRC entity/Card.java:153', 'INFERRED')
+dead('LearningData.toString', 'no_trigger_in_app', 'no direct call found; it would run only on an implicit string conversion of a LearningData, which the bytecode edges do not show (tool gap)', 'SRC entity/LearningData.java:166', 'INFERRED')
+dead('Deck.<init>', 'no_trigger_in_app', 'ORMLite builds a Deck only when a query returns a row, and no code runs a Deck query (getDeckDao has no caller)', 'SRC entity/Deck.java:28', 'INFERRED')
+dead('Filter.<init>', 'no_trigger_in_app', 'ORMLite builds a Filter only when a query returns a row, and no code runs a Filter query (getFilterDao has no caller)', 'SRC entity/Filter.java:27', 'INFERRED')
+dead('Stat.<init>', 'no_trigger_in_app', 'ORMLite builds a Stat only when a query returns a row, and no code runs a Stat query (StatDaoImpl has no caller)', 'SRC entity/Stat.java:31', 'INFERRED')
+for k_, cite_ in (
+    ('Setting.getAnswerField', 'entity/Setting.java:305'),
+    ('Setting.setAnswerField', 'entity/Setting.java:309'),
+    ('Setting.setAnswerFieldEnum', 'entity/Setting.java:313'),
+    ('Setting.getQuestionField', 'entity/Setting.java:289'),
+    ('Setting.setQuestionField', 'entity/Setting.java:293'),
+    ('Setting.getDisplayInHTML', 'entity/Setting.java:265'),
+    ('Setting.setDisplayInHTML', 'entity/Setting.java:269'),
+    ('Setting.getId', 'entity/Setting.java:129'),
+    ('Setting.setId', 'entity/Setting.java:133'),
+    ('Setting.getName', 'entity/Setting.java:137'),
+    ('Setting.setName', 'entity/Setting.java:141'),
+    ('Setting.getDescription', 'entity/Setting.java:145'),
+    ('Setting.setDescription', 'entity/Setting.java:149'),
+    ('Setting.getCreationDate', 'entity/Setting.java:342'),
+    ('Setting.getUpdateDate', 'entity/Setting.java:350'),
+):
+    dead(k_, 'no_trigger_in_app', 'no direct call found in the bytecode edges or by grep of the app source; calls made through the VersionableDomainObject interface type are not followed by the tool (tool gap)', 'SRC ' + cite_, 'INFERRED')
+for cb_ in ('onCancelled',):
+    dead('CategoryEditorFragment$NewCategoryTask.' + cb_, 'framework_never_calls', 'onCancelled runs only after cancel(); NewCategoryTask never calls cancel (grep: no cancel call in NewCategoryTask)', 'SRC ui/CategoryEditorFragment.java:254', 'SOURCE')
+dead('RecentListFragment.setUserVisibleHint', 'framework_never_calls', 'the framework calls setUserVisibleHint only for a fragment held by a ViewPager or FragmentPagerAdapter; no such pager hosts RecentListFragment (grep: no setUserVisibleHint call and no pager in main_tabs.xml), so this is INFERRED from the grep', 'SRC ui/RecentListFragment.java:160', 'INFERRED')
+for b_, cite_ in (
+    ('DropboxListActivityBinding', 'downloader/dropbox/DropboxListActivity.java:39'),
+    ('MainTabsBinding', 'ui/AnyMemo.java:121'),
+    ('UploadDropboxScreenBinding', 'downloader/dropbox/UploadDropboxActivity.java:47'),
+):
+    for sig_ in ('bind(View)', 'bind(View,Object)', 'inflate(LayoutInflater)', 'inflate(LayoutInflater,Object)',
+                 'inflate(LayoutInflater,ViewGroup,boolean)', 'inflate(LayoutInflater,ViewGroup,boolean,Object)'):
+        dead(b_ + '.' + sig_, 'no_trigger_in_app', 'no app code calls the static bind or inflate methods: the activity uses DataBindingUtil.setContentView, and the generated mapper calls only the *BindingImpl constructors (bytecode auto_calls.json)', 'SRC ' + cite_, 'INFERRED')
+dead('DataBindingTriggerClass.<init>', 'no_trigger_in_app', 'the generated data-binding marker class is created by no app code (bytecode: no invoke site)', 'SRC res/layout/main_tabs.xml:1', 'INFERRED')
+# Chain keys whose parent is UNREACHABLE (dead chains): each needs its own entry
+dead('CategoryDaoImpl$1.<init>', 'no_trigger_in_app', 'created only in CategoryDaoImpl.populateCategory (line 57), which has no caller', 'SRC dao/CategoryDaoImpl.java:61', 'SOURCE')
+dead('CategoryDaoImpl$1.call', 'no_trigger_in_app', 'the Callable is created only in CategoryDaoImpl.populateCategory (line 57), which has no caller', 'SRC dao/CategoryDaoImpl.java:61', 'SOURCE')
+dead('DropboxApiHelper$2.<init>', 'no_trigger_in_app', 'created only in DropboxApiHelper.createFolder (line 116), which has no caller', 'SRC downloader/dropbox/DropboxApiHelper.java:116-119', 'SOURCE')
+dead('DropboxApiHelper$2.subscribe', 'no_trigger_in_app', 'called only from DropboxApiHelper.createFolder (line 116), which has no caller', 'SRC downloader/dropbox/DropboxApiHelper.java:119', 'SOURCE')
+dead('DropboxApiHelper$2$1.<init>', 'no_trigger_in_app', 'created only in DropboxApiHelper$2.subscribe, which has no caller', 'SRC downloader/dropbox/DropboxApiHelper.java:127', 'SOURCE')
+dead('DropboxApiHelper$2$1.onFailure', 'no_trigger_in_app', 'okhttp callback of the dead createFolder chain (no caller)', 'SRC downloader/dropbox/DropboxApiHelper.java:129', 'SOURCE')
+dead('DropboxApiHelper$2$1.onResponse', 'no_trigger_in_app', 'okhttp callback of the dead createFolder chain (no caller)', 'SRC downloader/dropbox/DropboxApiHelper.java:134', 'SOURCE')
+dead('EditTabFragment.<init>', 'no_trigger_in_app', 'EditTabFragment is never instantiated (grep, including res/ layouts)', 'SRC ui/EditTabFragment.java:35', 'SOURCE')
+dead('EditTabFragment.onAttach', 'no_trigger_in_app', 'the framework calls onAttach only on an instantiated fragment, and EditTabFragment is never instantiated', 'SRC ui/EditTabFragment.java:43', 'SOURCE')
+dead('EditTabFragment$1.<init>', 'no_trigger_in_app', 'created only in EditTabFragment.onAttach, and EditTabFragment is never instantiated', 'SRC ui/EditTabFragment.java:43', 'SOURCE')
+dead('EditTabFragment$1.onFileBrowserFileClick', 'no_trigger_in_app', 'the listener is created only in EditTabFragment.onAttach, which has no trigger', 'SRC ui/EditTabFragment.java:51', 'SOURCE')
+dead('RecentListFragment$RecentListAdapter.stopActionMode', 'no_trigger_in_app', 'its only caller is RecentListFragment.setUserVisibleHint (line 164), which is itself UNREACHABLE', 'SRC ui/RecentListFragment.java:470', 'SOURCE')
+dead('RecentListActionModeUtil.stopActionMode', 'no_trigger_in_app', 'its only caller is RecentListFragment$RecentListAdapter.stopActionMode (line 471), which has no trigger', 'SRC utils/RecentListActionModeUtil.java:102', 'SOURCE')
+dead('AMGUIUtility$6.<init>', 'no_trigger_in_app', 'created only in AMGUIUtility.getDialogFinishListener, which has no caller', 'SRC utils/AMGUIUtility.java:145', 'SOURCE')
+dead('AMGUIUtility$6.onClick', 'no_trigger_in_app', 'the listener is created only in AMGUIUtility.getDialogFinishListener, which has no caller', 'SRC utils/AMGUIUtility.java:145', 'SOURCE')
+dead('ErrorUtil.getErrorString', 'no_trigger_in_app', 'used only by showFatalError (line 32) and showNonFatalError (line 52), which have no caller', 'SRC utils/ErrorUtil.java:66', 'SOURCE')
+for k_ in ('ErrorUtil$1.<init>', 'ErrorUtil$1.onCancel', 'ErrorUtil$2.<init>', 'ErrorUtil$2.onClick', 'ErrorUtil$3.<init>', 'ErrorUtil$3.onClick'):
+    dead(k_, 'no_trigger_in_app', 'the dialog listener is created only by ErrorUtil.showFatalError (line 32) or showNonFatalError (line 52), which have no caller', 'SRC utils/ErrorUtil.java:32,52', 'SOURCE')
+# ---- end pass 2 chunk 4 ----

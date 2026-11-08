@@ -1,0 +1,26 @@
+MutableSelection print attempts (D30 SelectionTracker resolver), 2026-11-01:
+- browser.search "androidx recyclerview selection MutableSelection source code HashSet storage":
+  only developer.android.com API reference pages (MutableSelection, Selection, SelectionTracker,
+  package-summary). Selection doc: "This class tracks selected items by managing two sets"
+  (primary + provisional) — a Set interface statement, NOT a concrete storage class and NOT
+  evidence that key.hashCode() is invoked (a Set may be hash-backed, tree-backed, or ArraySet).
+  No source file text returned.
+- browser.search "MutableSelection.java androidx recyclerview selection mPrimary OR HashSet OR ArraySet source":
+  same API pages only; no source text.
+- browser.search "cs.android.com androidx recyclerview-selection MutableSelection.java": API pages only.
+- browser.search '"Selection.java" "recyclerview" "selection" "ArraySet" OR "HashSet" "mProvisional"':
+  API pages only; no AOSP/GitHub source URL returned, so no source file text could be opened
+  (browser.open requires a verbatim URL from a tool result; none was supplied for the source file).
+Outcome: NO PRINTED MutableSelection/Selection source obtained. Per D30, the four
+SelectionTracker-linked rows stay OPEN with this print named as resolver.
+Independent chain finding (from printed app source, grep_selectiontracker.txt):
+  SelectionTracker keys in the app are ONLY TorrentListItem (MainFragment), FeedChannelItem
+  (FeedFragment), TrackerItem (DetailTorrentTrackersFragment), TorrentContentFileItem
+  (DetailTorrentFilesFragment). NO SelectionTracker<TagItem> site exists anywhere in the 281
+  files, so a hash-backed MutableSelection print would NOT reach drawer TagItem (10/39) and
+  therefore would NOT flip TagInfo.hashCode (3/26) via the D6 delegation claim. 3/26's
+  delegation chain fails at the MutableSelection -> drawer-TagItem link regardless of the print.
+  Additional consequence: TorrentContentFileItem keys DO enter MutableSelection
+  (DetailTorrentFilesFragment :438/:496/:511 copySelection), and TorrentContentFileItem
+  inherits hashCode from FileItem (73/31); so 73/31 shares the same open dispatcher question
+  and stays OPEN pending the same print, although D30's named list omits it.

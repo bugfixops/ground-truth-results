@@ -1,0 +1,85 @@
+     1	/*
+     2	 * Copyright (C) 2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.addtag;
+    21	
+    22	import androidx.annotation.NonNull;
+    23	import androidx.appcompat.app.AppCompatActivity;
+    24	import androidx.fragment.app.Fragment;
+    25	import androidx.fragment.app.FragmentManager;
+    26	import androidx.lifecycle.ViewModelProvider;
+    27	
+    28	import android.content.Intent;
+    29	import android.os.Bundle;
+    30	
+    31	import com.jaredrummler.android.colorpicker.ColorPickerDialogListener;
+    32	
+    33	import org.proninyaroslav.libretorrent.core.model.data.entity.TagInfo;
+    34	import org.proninyaroslav.libretorrent.core.utils.Utils;
+    35	import org.proninyaroslav.libretorrent.ui.FragmentCallback;
+    36	
+    37	public class AddTagActivity extends AppCompatActivity
+    38	        implements FragmentCallback, ColorPickerDialogListener {
+    39	    private static final String TAG_DIALOG = "dialog";
+    40	
+    41	    public static final String TAG_INIT_INFO = "init_info";
+    42	
+    43	    private AddTagDialog dialog;
+    44	    private AddTagViewModel viewModel;
+    45	
+    46	    @Override
+    47	    protected void onCreate(Bundle savedInstanceState) {
+    48	        setTheme(Utils.getTranslucentAppTheme(getApplicationContext()));
+    49	        super.onCreate(savedInstanceState);
+    50	
+    51	        ViewModelProvider provider = new ViewModelProvider(this);
+    52	        viewModel = provider.get(AddTagViewModel.class);
+    53	
+    54	        FragmentManager fm = getSupportFragmentManager();
+    55	        dialog = (AddTagDialog) fm.findFragmentByTag(TAG_DIALOG);
+    56	        if (dialog == null) {
+    57	            TagInfo initInfo = getIntent().getParcelableExtra(TAG_INIT_INFO);
+    58	            dialog = AddTagDialog.newInstance(initInfo);
+    59	            dialog.show(fm, TAG_DIALOG);
+    60	        }
+    61	    }
+    62	
+    63	    @Override
+    64	    public void onFragmentFinished(
+    65	            @NonNull Fragment f,
+    66	            Intent intent,
+    67	            @NonNull ResultCode code
+    68	    ) {
+    69	        finish();
+    70	    }
+    71	
+    72	    @Override
+    73	    public void onBackPressed() {
+    74	        dialog.onBackPressed();
+    75	    }
+    76	
+    77	    @Override
+    78	    public void onColorSelected(int dialogId, int color) {
+    79	        viewModel.state.setColor(color);
+    80	    }
+    81	
+    82	    @Override
+    83	    public void onDialogDismissed(int dialogId) {
+    84	    }
+    85	}

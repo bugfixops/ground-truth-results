@@ -1,0 +1,119 @@
+METHOD: UtilsHandler.getSshAuthPrivateKeyColumn
+verdict: REACHABLE   steps_from_launch: 7
+route steps: 7 edges
+======================================================================
+
+STEP 1  edge E393625fa
+  S_ENTRY -> MainActivity.onResume
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC Activity.java onResume lifecycle
+  (no file:line citations in evidence)
+
+STEP 2  edge E88f218aa
+  MainActivity.onResume -> Drawer.refreshDrawer
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainActivity.java:1112 shows drawer.refreshDrawer()
+  cite [SRC] MainActivity.java:1112
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/activities/MainActivity.java)
+     1112:         drawer.refreshDrawer();
+
+STEP 3  edge E51ddec28
+  Drawer.refreshDrawer -> Drawer.lambda$addNewItem$5
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC Drawer.java:402-439 addNewItem calls create MenuMetadata with lambda Runnables for FTP/Apps/Settings menu items; Drawer.java:597 meta.onClickListener.onClick() calls the lambda
+  cite [SRC] Drawer.java:402-439
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/drawer/Drawer.java)
+      402:         addNewItem(menu, LASTGROUP, order++, R.string.ftp,
+      403:                 new MenuMetadata(() -> {
+      404:                     FragmentTransaction transaction2 = mainActivity.getSupportFragmentManager().beginTransaction();
+      405:                     transaction2.replace(R.id.content_frame, new FtpServerFragment());
+      406:                     mainActivity.getAppbar()
+      407:                             .getAppbarLayout()
+      408:                             .animate()
+      409:                             .translationY(0)
+      410:                             .setInterpolator(new DecelerateInterpolator(2))
+      411:                             .start();
+      412:                     pending_fragmentTransaction = transaction2;
+      413:                     if (!isDrawerLocked) close();
+      414:                     else onDrawerClosed();
+      415:                 }),
+      416:                 R.drawable.ic_ftp_white_24dp, null);
+      417: 
+      418:         addNewItem(menu, LASTGROUP, order++, R.string.apps,
+      419:                 new MenuMetadata(() -> {
+      420:                     FragmentTransaction transaction2 = mainActivity.getSupportFragmentManager().beginTransaction();
+      421:                     transaction2.replace(R.id.content_frame, new AppsListFragment());
+      422:                     mainActivity.getAppbar()
+      423:                             .getAppbarLayout()
+      424:                             .animate()
+      425:                             .translationY(0)
+      426:                             .setInterpolator(new DecelerateInterpolator(2))
+      427:                             .start();
+      428:                     pending_fragmentTransaction = transaction2;
+      429:                     if (!isDrawerLocked) close();
+      430:                     else onDrawerClosed();
+      431:                 }),
+      432:                 R.drawable.ic_android_white_24dp, null);
+      433: 
+      434: 
+      435:         addNewItem(menu, LASTGROUP, order++, R.string.setting,
+      436:                 new MenuMetadata(() -> {
+      437:                     Intent in = new Intent(mainActivity, PreferencesActivity.class);
+      438:                     mainActivity.startActivity(in);
+      439:                     mainActivity.finish();
+  cite [SRC] Drawer.java:597
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/drawer/Drawer.java)
+      597:                 meta.onClickListener.onClick();
+
+STEP 4  edge Eba2f1368
+  Drawer.lambda$addNewItem$5 -> Drawer.onNavigationItemActionClick
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC Drawer.java:494 (bytecode)
+  cite [SRC] Drawer.java:494
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/drawer/Drawer.java)
+      494:             item.getActionView().setOnClickListener((view) -> onNavigationItemActionClick(item));
+
+STEP 5  edge E9896632a
+  Drawer.onNavigationItemActionClick -> MainActivity.showSftpDialog
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC Drawer.java:626 (bytecode)
+  cite [SRC] Drawer.java:626
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/drawer/Drawer.java)
+      626:                     mainActivity.showSftpDialog(title, path, true);
+
+STEP 6  edge E38acc839
+  MainActivity.showSftpDialog -> UtilsHandler.getSshAuthPrivateKeyName
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainActivity.java:1656 (bytecode)
+  cite [SRC] MainActivity.java:1656
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/activities/MainActivity.java)
+     1656:             bundle.putString("keypairName", utilsHandler.getSshAuthPrivateKeyName(path));
+
+STEP 7  edge Ef2ac2d04
+  UtilsHandler.getSshAuthPrivateKeyName -> UtilsHandler.getSshAuthPrivateKeyColumn
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC UtilsHandler.java:427 (bytecode)
+  cite [SRC] UtilsHandler.java:427
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/database/UtilsHandler.java)
+      427:         return getSshAuthPrivateKeyColumn(uri, COLUMN_PRIVATE_KEY_NAME);

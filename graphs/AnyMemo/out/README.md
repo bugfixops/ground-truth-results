@@ -7,7 +7,7 @@ How every method of **AnyMemo** is triggered, in the standard configuration: the
 | File | What it is |
 |---|---|
 | `anymemo_trigger_graph.json` | pages, methods, `verdict`, `labels` (per-method fields), `edges` (with `edge_class`, `env_kinds`, `state_kinds`, stable ids), `paths` (verified paths only), `verification` (counts) |
-| `methods.csv` | one row per method: verdict, UNREACHABLE reason, ENV and STATE kinds and texts, edge classes on the best route, whether an explicit/standard-only route exists, how the label was confirmed, path status, and the derived best route (`shortest_path`, `route_edge_ids`) |
+| `methods.csv` | one row per method: verdict, UNREACHABLE reason, ENV and STATE kinds and texts, edge classes on the best route, whether an explicit/standard-only route exists, how the label was confirmed, path status, the derived best route (`shortest_path`, `route_edge_ids`), and the full JVM class and descriptor (`jvm_class`, `jvm_descriptor`; the `method` key adds a package prefix only where simple class names clash) |
 | `../verification.csv` | the audit log: one row per label, edge or path that was checked, with result, how, and where (file:line) |
 | `sanity_check.csv` | tool coverage (Monkey / APE, API 27) next to the labels; a one-way check only, it never sets a label |
 | `anymemo_trigger_graph.html`, `build_report.txt` | the viewer and the validation report |
@@ -31,7 +31,9 @@ Verification log (`verification.csv`), counts of what was checked and found:
 | edges (framework and other claims read against source) | 45 | 38 | 7 | 0 |
 | paths (stratified sample, read step by step) | 30 | 30 | 0 | 0 |
 
-Path status over all reachable methods: SOURCE_OK 30, UNCHECKED 1936.
+Device replay on the emulator (API 27): 5 of 30 routes reached their target method; 5 of these ran the whole script and are `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; see `../device/results.csv`.
+
+Path status over all reachable methods: DEVICE_OK 5, SOURCE_OK 25, UNCHECKED 1936.
 The rows are the items that were individually checked, not a random sample of all labels; see the notes below for how they were chosen and what the unclear rows wait for.
 
 Edges whose evidence is not a source line (836 of 4492): E612d7778 (AMApplication.<init> -> AMApplication.<clinit>); E21a1ff1d (CardProvider.<init> -> CardProvider.<clinit>); E1597aa9e (CardProvider.onCreate -> CardProvider.query); Eda12bfa1 (CardProvider.onCreate -> CardProvider.insert); E45e40cab (CardProvider.onCreate -> CardProvider.update); Ed29a3dd6 (CardProvider.onCreate -> CardProvider.delete); E897c4318 (CardProvider.onCreate -> CardProvider.getType); E9d821a48 (DatabasesProvider.onCreate -> DatabasesProvider.query); E9f0e5ffe (DatabasesProvider.onCreate -> DatabasesProvider.insert); E5c2dcaf1 (DatabasesProvider.onCreate -> DatabasesProvider.update); E6cf94e21 (DatabasesProvider.onCreate -> DatabasesProvider.delete); E16059cda (DatabasesProvider.onCreate -> DatabasesProvider.getType) ...
@@ -70,6 +72,8 @@ each hop). All 30 routes were correct; none needed a fix. The sample and its rou
 scratch/kiro_routes_all.txt and scratch/kiro_routes_edges.txt.
 
 ## What waits for a device (API 27)
+
+- **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 5 of 30 routes reached their target method; 5 of them ran the whole script and are now `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
 
 Several routes cross outside the app and can only be exercised on a real API 27 device with the right environment,
 not in the `-p <app>` baseline runs:

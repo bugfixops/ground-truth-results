@@ -1,0 +1,62 @@
+     1	/*
+     2	 * Copyright (C) 2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui;
+    21	
+    22	import android.app.Dialog;
+    23	import android.os.Build;
+    24	import android.os.Bundle;
+    25	
+    26	import androidx.annotation.NonNull;
+    27	
+    28	import org.proninyaroslav.libretorrent.R;
+    29	
+    30	public class PermissionDeniedDialog extends BaseAlertDialog {
+    31	    public static PermissionDeniedDialog newInstance() {
+    32	        PermissionDeniedDialog frag = new PermissionDeniedDialog();
+    33	
+    34	        Bundle args = new Bundle();
+    35	        frag.setArguments(args);
+    36	
+    37	        return frag;
+    38	    }
+    39	
+    40	    @NonNull
+    41	    @Override
+    42	    public Dialog onCreateDialog(Bundle savedInstanceState) {
+    43	        super.onCreateDialog(savedInstanceState);
+    44	
+    45	        String title = getString(R.string.perm_denied_title);
+    46	        String message = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R ?
+    47	                getString(R.string.perm_denied_warning_android_r) :
+    48	                getString(R.string.perm_denied_warning);
+    49	        String positiveText = getString(R.string.yes);
+    50	        String negativeText = getString(R.string.no);
+    51	
+    52	        return buildDialog(
+    53	                title,
+    54	                message,
+    55	                null,
+    56	                positiveText,
+    57	                negativeText,
+    58	                null,
+    59	                false
+    60	        );
+    61	    }
+    62	}

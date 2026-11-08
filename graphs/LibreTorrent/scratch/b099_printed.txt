@@ -1,0 +1,524 @@
+# Batch 99 printed evidence (fresh, C16 converter, 2026-11-01)
+# Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+# Cited files (basenames, for check_part check 8): FeedActivity.java, FeedChannelItem.java, FeedChannelListAdapter.java, FeedFragment.java, FeedItemsFragment.java
+
+=== ui/feeditems/FeedItemsFragment.java (329 lines) ===
+--- ui/feeditems/FeedItemsFragment.java:321-327 ---
+321:     {
+322:         finish(new Intent(), FragmentCallback.ResultCode.BACK);
+323:     }
+324:
+325:     private void finish(Intent intent, FragmentCallback.ResultCode code)
+326:     {
+327:         ((FragmentCallback)activity).onFragmentFinished(this, intent, code);
+
+=== ui/feeds/FeedActivity.java (412 lines) ===
+--- ui/feeds/FeedActivity.java:91-107 ---
+91:     protected void onCreate(@Nullable Bundle savedInstanceState)
+92:     {
+93:         setTheme(Utils.getAppTheme(getApplicationContext()));
+94:         super.onCreate(savedInstanceState);
+95:
+96:         ViewModelProvider provider = new ViewModelProvider(this);
+97:         viewModel = provider.get(FeedViewModel.class);
+98:         msgViewModel = provider.get(MsgFeedViewModel.class);
+99:         dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+100:
+101:         setContentView(R.layout.activity_feed);
+102:         initLayout();
+103:
+104:         FragmentManager fm = getSupportFragmentManager();
+105:         backupFeedsReportDialog = (ErrorReportDialog)fm.findFragmentByTag(TAG_BACKUP_FEEDS_ERROR_REPORT_DIALOG);
+106:         restoreFeedsReportDialog = (ErrorReportDialog)fm.findFragmentByTag(TAG_RESTORE_FEEDS_ERROR_REPORT_DIALOG);
+107:     }
+--- ui/feeds/FeedActivity.java:109-111 ---
+109:     private void initLayout()
+110:     {
+111:         showBlankFragment();
+--- ui/feeds/FeedActivity.java:122-128 ---
+122:     public void onStart()
+123:     {
+124:         super.onStart();
+125:
+126:         subscribeAlertDialog();
+127:         subscribeMsgViewModel();
+128:     }
+--- ui/feeds/FeedActivity.java:131-135 ---
+131:     protected void onStop()
+132:     {
+133:         super.onStop();
+134:
+135:         disposables.clear();
+--- ui/feeds/FeedActivity.java:138-168 ---
+138:     private void subscribeAlertDialog()
+139:     {
+140:         Disposable d = dialogViewModel.observeEvents()
+141:                 .subscribe((event) -> {
+142:                     if (event.dialogTag == null)
+143:                         return;
+144:
+145:                     switch (event.type) {
+146:                         case POSITIVE_BUTTON_CLICKED:
+147:                             if (event.dialogTag.equals(TAG_BACKUP_FEEDS_ERROR_REPORT_DIALOG) &&
+148:                                     backupFeedsReportDialog != null) {
+149:                                 sendErrorReport(backupFeedsReportDialog.getDialog());
+150:                                 backupFeedsReportDialog.dismiss();
+151:
+152:                             } else if (event.dialogTag.equals(TAG_RESTORE_FEEDS_ERROR_REPORT_DIALOG) &&
+153:                                     restoreFeedsReportDialog!= null) {
+154:                                 sendErrorReport(restoreFeedsReportDialog.getDialog());
+155:                                 restoreFeedsReportDialog.dismiss();
+156:                             }
+157:                             break;
+158:                         case NEGATIVE_BUTTON_CLICKED:
+159:                             if (event.dialogTag.equals(TAG_BACKUP_FEEDS_ERROR_REPORT_DIALOG) &&
+160:                                     backupFeedsReportDialog!= null) {
+161:                                 backupFeedsReportDialog.dismiss();
+162:
+163:                             } else if (event.dialogTag.equals(TAG_RESTORE_FEEDS_ERROR_REPORT_DIALOG) &&
+164:                                     restoreFeedsReportDialog!= null) {
+165:                                 restoreFeedsReportDialog.dismiss();
+166:                             }
+167:                     }
+168:                 });
+--- ui/feeds/FeedActivity.java:172-188 ---
+172:     private void subscribeMsgViewModel()
+173:     {
+174:         disposables.add(msgViewModel.observeFeedItemsOpened()
+175:                 .observeOn(AndroidSchedulers.mainThread())
+176:                 .subscribe(this::showFeedItems));
+177:
+178:         disposables.add(msgViewModel.observeFeedItemsClosed()
+179:                 .observeOn(AndroidSchedulers.mainThread())
+180:                 .subscribe((__) -> showBlankFragment()));
+181:
+182:         disposables.add(msgViewModel.observeFeedsDeleted()
+183:                 .observeOn(AndroidSchedulers.mainThread())
+184:                 .subscribe((ids) -> {
+185:                     FeedItemsFragment f = getCurrentFeedItemsFragment();
+186:                     if (f != null && ids.contains(f.getFeedId()))
+187:                         showBlankFragment();
+188:                 }));
+--- ui/feeds/FeedActivity.java:191-201 ---
+191:     private void showBlankFragment()
+192:     {
+193:         if (Utils.isTwoPane(this)) {
+194:             FragmentManager fm = getSupportFragmentManager();
+195:             BlankFragment blank = BlankFragment.newInstance(getString(R.string.select_or_add_feed_channel));
+196:             fm.beginTransaction()
+197:                     .replace(R.id.feed_items_fragmentContainer, blank)
+198:                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE)
+199:                     .commitAllowingStateLoss();
+200:         }
+201:     }
+--- ui/feeds/FeedActivity.java:203-224 ---
+203:     private void showFeedItems(long feedId)
+204:     {
+205:         if (Utils.isTwoPane(this)) {
+206:             FragmentManager fm = getSupportFragmentManager();
+207:             FeedItemsFragment items = FeedItemsFragment.newInstance(feedId);
+208:             Fragment fragment = fm.findFragmentById(R.id.feed_items_fragmentContainer);
+209:
+210:             if (fragment instanceof FeedItemsFragment) {
+211:                 long oldId = ((FeedItemsFragment)fragment).getFeedId();
+212:                 if (feedId == oldId)
+213:                     return;
+214:             }
+215:             fm.beginTransaction()
+216:                     .replace(R.id.feed_items_fragmentContainer, items)
+217:                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+218:                     .commit();
+219:
+220:         } else {
+221:             Intent i = new Intent(this, FeedItemsActivity.class);
+222:             i.putExtra(FeedItemsActivity.TAG_FEED_ID, feedId);
+223:             startActivity(i);
+224:         }
+--- ui/feeds/FeedActivity.java:239-244 ---
+239:     public boolean onCreateOptionsMenu(Menu menu)
+240:     {
+241:         toolbar.inflateMenu(R.menu.feed);
+242:         toolbar.setOnMenuItemClickListener(this::onOptionsItemSelected);
+243:
+244:         return true;
+--- ui/feeds/FeedActivity.java:248-260 ---
+248:     public boolean onOptionsItemSelected(MenuItem item)
+249:     {
+250:         int itemId = item.getItemId();
+251:         if (itemId == R.id.refresh_feed_channel_menu) {
+252:             viewModel.refreshAllFeeds();
+253:         } else if (itemId == R.id.backup_feed_channels_menu) {
+254:             backupFeedsChooseDialog();
+255:         } else if (itemId == R.id.restore_feed_channels_backup_menu) {
+256:             restoreFeedsChooseDialog();
+257:         }
+258:
+259:         return true;
+260:     }
+--- ui/feeds/FeedActivity.java:278-289 ---
+278:     private void restoreFeedsChooseDialog()
+279:     {
+280:         Intent i = new Intent(this, FileManagerDialog.class);
+281:         FileSystemFacade fs = SystemFacadeHelper.getFileSystemFacade(getApplicationContext());
+282:         FileManagerConfig config = new FileManagerConfig(fs.getUserDirPath(),
+283:                 getString(R.string.feeds_backup_selection_dialog_title),
+284:                 FileManagerConfig.FILE_CHOOSER_MODE);
+285:         config.highlightFileTypes = new ArrayList<>();
+286:         config.highlightFileTypes.add(FeedRepositoryImpl.SERIALIZE_FILE_FORMAT);
+287:
+288:         i.putExtra(FileManagerDialog.TAG_CONFIG, config);
+289:         restoreFeedsBackupChoose.launch(i);
+--- ui/feeds/FeedActivity.java:306-332 ---
+306:     private void restoreFeedsBackupErrorDialog(Throwable e)
+307:     {
+308:         FragmentManager fm = getSupportFragmentManager();
+309:         if (e instanceof JsonSyntaxException) {
+310:             if (fm.findFragmentByTag(TAG_RESTORE_FEEDS_ERROR_DIALOG) == null) {
+311:                 BaseAlertDialog errDialog = BaseAlertDialog.newInstance(
+312:                         getString(R.string.error),
+313:                         getString(R.string.error_import_invalid_format),
+314:                         0,
+315:                         getString(R.string.ok),
+316:                         null,
+317:                         null,
+318:                         true);
+319:                 errDialog.show(fm, TAG_RESTORE_FEEDS_ERROR_DIALOG);
+320:             }
+321:         } else {
+322:             viewModel.errorReport = e;
+323:             if (fm.findFragmentByTag(TAG_RESTORE_FEEDS_ERROR_REPORT_DIALOG) == null) {
+324:                 restoreFeedsReportDialog = ErrorReportDialog.newInstance(
+325:                         getString(R.string.error),
+326:                         getString(R.string.error_restore_feeds_backup),
+327:                         (e != null ? Log.getStackTraceString(e) : null));
+328:
+329:                 restoreFeedsReportDialog.show(fm, TAG_RESTORE_FEEDS_ERROR_REPORT_DIALOG);
+330:             }
+331:         }
+332:     }
+--- ui/feeds/FeedActivity.java:334-344 ---
+334:     private void sendErrorReport(Dialog errDialog)
+335:     {
+336:         if (errDialog == null)
+337:             return;
+338:
+339:         TextInputEditText editText = errDialog.findViewById(R.id.comment);
+340:         Editable e = editText.getText();
+341:         String comment = (e == null ? null : e.toString());
+342:
+343:         Utils.reportError(viewModel.errorReport, comment);
+344:     }
+--- ui/feeds/FeedActivity.java:346-356 ---
+346:     private void backupFeeds(Uri file)
+347:     {
+348:         disposables.add(Completable.fromCallable(() -> {
+349:             viewModel.saveFeedsSync(file);
+350:             return true;
+351:         }).subscribeOn(Schedulers.io())
+352:           .observeOn(AndroidSchedulers.mainThread())
+353:           .subscribe(() -> Toast.makeText(this,
+354:                   R.string.backup_feeds_successfully,
+355:                   Toast.LENGTH_SHORT)
+356:                   .show(), this::restoreFeedsBackupErrorDialog));
+--- ui/feeds/FeedActivity.java:359-370 ---
+359:     private void restoreFeedsBackup(Uri file)
+360:     {
+361:         disposables.add(Observable.fromCallable(() -> viewModel.restoreFeedsSync(file))
+362:                 .subscribeOn(Schedulers.io())
+363:                 .observeOn(AndroidSchedulers.mainThread())
+364:                 .subscribe((feedIdList) -> {
+365:                         Toast.makeText(this,
+366:                                 R.string.restore_feeds_backup_successfully,
+367:                                 Toast.LENGTH_SHORT)
+368:                                 .show();
+369:                         viewModel.refreshFeeds(feedIdList);
+370:                     }, this::backupFeedsErrorDialog));
+--- ui/feeds/FeedActivity.java:389-401 ---
+389:     final ActivityResultLauncher<Intent> restoreFeedsBackupChoose = registerForActivityResult(
+390:             new ActivityResultContracts.StartActivityForResult(),
+391:             result -> {
+392:                 Intent data = result.getData();
+393:                 if (result.getResultCode() != Activity.RESULT_OK)
+394:                     return;
+395:
+396:                 if (data == null || data.getData() == null) {
+397:                     restoreFeedsBackupErrorDialog(null);
+398:                     return;
+399:                 }
+400:
+401:                 restoreFeedsBackup(data.getData());
+--- ui/feeds/FeedActivity.java:406-410 ---
+406:     public void onFragmentFinished(@NonNull Fragment f, Intent intent,
+407:                                    @NonNull ResultCode code)
+408:     {
+409:         if (f instanceof FeedItemsFragment && Utils.isTwoPane(this))
+410:             msgViewModel.feedItemsClosed();
+
+=== ui/feeds/FeedChannelItem.java (80 lines) ===
+--- ui/feeds/FeedChannelItem.java:30-38 ---
+30:     public FeedChannelItem(@NonNull FeedChannel channel)
+31:     {
+32:         super(channel.url, channel.name,
+33:               channel.lastUpdate, channel.autoDownload,
+34:               channel.filter, channel.isRegexFilter, channel.fetchError);
+35:
+36:         id = channel.id;
+37:     }
+38:
+--- ui/feeds/FeedChannelItem.java:40-43 ---
+40:     public int hashCode()
+41:     {
+42:         return (int)(id ^ (id >>> 32));
+43:     }
+--- ui/feeds/FeedChannelItem.java:46-52 ---
+46:     public int compareTo(@NonNull FeedChannelItem o)
+47:     {
+48:         String cmp1 = (TextUtils.isEmpty(name) ? url : name);
+49:         String cmp2 = (TextUtils.isEmpty(o.name) ? o.url : o.name);
+50:
+51:         return cmp1.compareTo(cmp2);
+52:     }
+--- ui/feeds/FeedChannelItem.java:55-58 ---
+55:     public boolean equals(Object o)
+56:     {
+57:         return super.equals(o);
+58:     }
+--- ui/feeds/FeedChannelItem.java:60-79 ---
+60:     public boolean equalsContent(Object o)
+61:     {
+62:         if (!(o instanceof FeedChannelItem))
+63:             return false;
+64:
+65:         if (o == this)
+66:             return true;
+67:
+68:         FeedChannelItem item = (FeedChannelItem)o;
+69:
+70:         return id == item.id &&
+71:                 url.equals(item.url) &&
+72:                 (name == null || name.equals(item.name)) &&
+73:                 lastUpdate == item.lastUpdate &&
+74:                 autoDownload == item.autoDownload &&
+75:                 (filter == null || filter.equals(item.filter)) &&
+76:                 isRegexFilter == item.isRegexFilter &&
+77:                 (fetchError == null || fetchError.equals(item.fetchError));
+78:
+79:    }
+
+=== ui/feeds/FeedChannelListAdapter.java (347 lines) ===
+--- ui/feeds/FeedChannelListAdapter.java:58-58 ---
+58:     private static final String TAG = FeedChannelListAdapter.class.getSimpleName();
+--- ui/feeds/FeedChannelListAdapter.java:65-70 ---
+65:     public FeedChannelListAdapter(ClickListener listener)
+66:     {
+67:         super(diffCallback);
+68:
+69:         this.listener = listener;
+70:     }
+--- ui/feeds/FeedChannelListAdapter.java:72-75 ---
+72:     public void setSelectionTracker(SelectionTracker<FeedChannelItem> selectionTracker)
+73:     {
+74:         this.selectionTracker = selectionTracker;
+75:     }
+--- ui/feeds/FeedChannelListAdapter.java:79-89 ---
+79:     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType)
+80:     {
+81:         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+82:         ItemFeedChannelListBinding binding = DataBindingUtil.inflate(inflater,
+83:                 R.layout.item_feed_channel_list,
+84:                 parent,
+85:                 false);
+86:
+87:         return new ViewHolder(binding);
+88:     }
+89:
+--- ui/feeds/FeedChannelListAdapter.java:91-106 ---
+91:     public void onBindViewHolder(@NonNull ViewHolder holder, int position)
+92:     {
+93:         onBind = true;
+94:
+95:         FeedChannelItem item = getItem(position);
+96:         if (selectionTracker != null)
+97:             holder.setSelected(selectionTracker.isSelected(item));
+98:
+99:         boolean isOpened = false;
+100:         FeedChannelItem currFeed = currOpenFeed.get();
+101:         if (currFeed != null)
+102:             isOpened = item.id == currFeed.id;
+103:
+104:         holder.bind(item, isOpened, listener);
+105:
+106:         onBind = false;
+--- ui/feeds/FeedChannelListAdapter.java:110-116 ---
+110:     public void submitList(@Nullable List<FeedChannelItem> list)
+111:     {
+112:         if (list != null)
+113:             Collections.sort(list);
+114:
+115:         super.submitList(list);
+116:     }
+--- ui/feeds/FeedChannelListAdapter.java:119-125 ---
+119:     public FeedChannelItem getItemKey(int position)
+120:     {
+121:         if (position < 0 || position >= getCurrentList().size())
+122:             return null;
+123:
+124:         return getItem(position);
+125:     }
+--- ui/feeds/FeedChannelListAdapter.java:128-131 ---
+128:     public int getItemPosition(FeedChannelItem key)
+129:     {
+130:         return getCurrentList().indexOf(key);
+131:     }
+--- ui/feeds/FeedChannelListAdapter.java:133-148 ---
+133:     public void markAsOpen(FeedChannelItem item)
+134:     {
+135:         FeedChannelItem prevItem = currOpenFeed.getAndSet(item);
+136:
+137:         if (onBind)
+138:             return;
+139:
+140:         int position = getItemPosition(prevItem);
+141:         if (position >= 0)
+142:             notifyItemChanged(position);
+143:
+144:         if (item != null) {
+145:             position = getItemPosition(item);
+146:             if (position >= 0)
+147:                 notifyItemChanged(position);
+148:         }
+--- ui/feeds/FeedChannelListAdapter.java:151-154 ---
+151:     public FeedChannelItem getOpenedItem()
+152:     {
+153:         return currOpenFeed.get();
+154:     }
+--- ui/feeds/FeedChannelListAdapter.java:156-156 ---
+156:     private static final DiffUtil.ItemCallback<FeedChannelItem> diffCallback = new DiffUtil.ItemCallback<FeedChannelItem>()
+--- ui/feeds/FeedChannelListAdapter.java:159-164 ---
+159:         public boolean areContentsTheSame(@NonNull FeedChannelItem oldItem,
+160:                                           @NonNull FeedChannelItem newItem)
+161:         {
+162:             return oldItem.equalsContent(newItem);
+163:         }
+164:
+--- ui/feeds/FeedChannelListAdapter.java:166-170 ---
+166:         public boolean areItemsTheSame(@NonNull FeedChannelItem oldItem,
+167:                                        @NonNull FeedChannelItem newItem)
+168:         {
+169:             return oldItem.equals(newItem);
+170:         }
+--- ui/feeds/FeedChannelListAdapter.java:191-196 ---
+191:         public ViewHolder(ItemFeedChannelListBinding binding)
+192:         {
+193:             super(binding.getRoot());
+194:
+195:             this.binding = binding;
+196:         }
+--- ui/feeds/FeedChannelListAdapter.java:264-267 ---
+264:         public ItemDetails getItemDetails()
+265:         {
+266:             return new ItemDetails(selectionKey, getBindingAdapterPosition());
+267:         }
+--- ui/feeds/FeedChannelListAdapter.java:278-283 ---
+278:         KeyProvider(Selectable<FeedChannelItem> selectable)
+279:         {
+280:             super(SCOPE_MAPPED);
+281:
+282:             this.selectable = selectable;
+283:         }
+--- ui/feeds/FeedChannelListAdapter.java:287-290 ---
+287:         public FeedChannelItem getKey(int position)
+288:         {
+289:             return selectable.getItemKey(position);
+290:         }
+--- ui/feeds/FeedChannelListAdapter.java:293-296 ---
+293:         public int getPosition(@NonNull FeedChannelItem key)
+294:         {
+295:             return selectable.getItemPosition(key);
+296:         }
+--- ui/feeds/FeedChannelListAdapter.java:304-308 ---
+304:         ItemDetails(FeedChannelItem selectionKey, int adapterPosition)
+305:         {
+306:             this.selectionKey = selectionKey;
+307:             this.adapterPosition = adapterPosition;
+308:         }
+--- ui/feeds/FeedChannelListAdapter.java:312-315 ---
+312:         public FeedChannelItem getSelectionKey()
+313:         {
+314:             return selectionKey;
+315:         }
+--- ui/feeds/FeedChannelListAdapter.java:318-321 ---
+318:         public int getPosition()
+319:         {
+320:             return adapterPosition;
+321:         }
+--- ui/feeds/FeedChannelListAdapter.java:328-332 ---
+328:         ItemLookup(RecyclerView recyclerView)
+329:         {
+330:             this.recyclerView = recyclerView;
+331:         }
+332:
+--- ui/feeds/FeedChannelListAdapter.java:335-346 ---
+335:         public ItemDetails<FeedChannelItem> getItemDetails(@NonNull MotionEvent e)
+336:         {
+337:             View view = recyclerView.findChildViewUnder(e.getX(), e.getY());
+338:             if (view != null) {
+339:                 RecyclerView.ViewHolder viewHolder = recyclerView.getChildViewHolder(view);
+340:                 if (viewHolder instanceof ViewHolder)
+341:                     return ((ViewHolder)viewHolder).getItemDetails();
+342:             }
+343:
+344:             return null;
+345:         }
+346:     }
+
+=== ui/feeds/FeedFragment.java (519 lines) ===
+--- ui/feeds/FeedFragment.java:116-116 ---
+116:         adapter = new FeedChannelListAdapter(this);
+--- ui/feeds/FeedFragment.java:135-135 ---
+135:         binding.feedList.setAdapter(adapter);
+--- ui/feeds/FeedFragment.java:137-142 ---
+137:         selectionTracker = new SelectionTracker.Builder<>(
+138:                 SELECTION_TRACKER_ID,
+139:                 binding.feedList,
+140:                 new FeedChannelListAdapter.KeyProvider(adapter),
+141:                 new FeedChannelListAdapter.ItemLookup(binding.feedList),
+142:                 StorageStrategy.createParcelableStorage(FeedChannelItem.class))
+--- ui/feeds/FeedFragment.java:183-183 ---
+183:         adapter.setSelectionTracker(selectionTracker);
+--- ui/feeds/FeedFragment.java:256-266 ---
+256:     private Disposable observeFeeds()
+257:     {
+258:         return viewModel.observerAllFeeds()
+259:                 .subscribeOn(Schedulers.io())
+260:                 .flatMapSingle((feedList) ->
+261:                         Flowable.fromIterable(feedList)
+262:                                 .map(FeedChannelItem::new)
+263:                                 .toList()
+264:                 )
+265:                 .observeOn(AndroidSchedulers.mainThread())
+266:                 .subscribe(adapter::submitList,
+--- ui/feeds/FeedFragment.java:286-297 ---
+286:     private void subscribeMsgViewModel()
+287:     {
+288:         disposables.add(msgViewModel.observeFeedItemsClosed()
+289:                 .observeOn(AndroidSchedulers.mainThread())
+290:                 .subscribe((__) -> {
+291:                     if (Utils.isTwoPane(activity))
+292:                         adapter.markAsOpen(null);
+293:                 }));
+294:
+295:         disposables.add(msgViewModel.observeFeedsDeleted()
+296:                 .filter((ids) -> {
+297:                     FeedChannelItem item = adapter.getOpenedItem();
+--- ui/feeds/FeedFragment.java:341-345 ---
+341:     public void onItemClicked(@NonNull FeedChannelItem item)
+342:     {
+343:         if (Utils.isTwoPane(activity))
+344:             adapter.markAsOpen(item);
+345:         msgViewModel.feedItemsOpened(item.id);
+--- ui/feeds/FeedFragment.java:444-447 ---
+444:     private void deleteFeeds()
+445:     {
+446:         MutableSelection<FeedChannelItem> selections = new MutableSelection<>();
+447:         selectionTracker.copySelection(selections);

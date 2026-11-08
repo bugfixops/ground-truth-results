@@ -1,0 +1,647 @@
+Printed source for batch 85 (LibreTorrent).
+Source root (java): final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+Layouts: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/res/layout/
+
+===== ui/createtorrent/CreateTorrentDialog.java:125-131 =====
+125:     public void onStop()
+126:     {
+127:         super.onStop();
+128: 
+129:         disposables.clear();
+130:     }
+131: 
+
+===== ui/createtorrent/CreateTorrentDialog.java:228-234 =====
+228:         binding.piecesSize.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
+229:         {
+230:             @Override
+231:             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l)
+232:             {
+233:                 viewModel.setPiecesSizeIndex(binding.piecesSize.getSelectedItemPosition());
+234:             }
+
+===== ui/createtorrent/CreateTorrentDialog.java:242-248 =====
+242:         binding.torrentVersion.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
+243:         {
+244:             @Override
+245:             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l)
+246:             {
+247:                 viewModel.setTorrentVersionIndex(binding.torrentVersion.getSelectedItemPosition());
+248:             }
+
+===== ui/createtorrent/CreateTorrentDialog.java:291-322 =====
+291:         alert.setOnShowListener((DialogInterface dialog) -> {
+292:             Button cancelButton = alert.getButton(AlertDialog.BUTTON_NEGATIVE);
+293:             Button addButton = alert.getButton(AlertDialog.BUTTON_POSITIVE);
+294: 
+295:             viewModel.getState().observe(this, (state) -> {
+296:                 if (state.status == CreateTorrentViewModel.BuildState.Status.BUILDING) {
+297:                     alert.setTitle(R.string.creating_torrent_progress);
+298:                     addButton.setVisibility(View.GONE);
+299:                 } else {
+300:                     alert.setTitle(R.string.create_torrent);
+301:                     addButton.setVisibility(View.VISIBLE);
+302:                 }
+303: 
+304:                 if (state.status == CreateTorrentViewModel.BuildState.Status.FINISHED)
+305:                     handleFinish();
+306: 
+307:                 else if (state.status == CreateTorrentViewModel.BuildState.Status.ERROR)
+308:                     handleBuildError(state.err);
+309:             });
+310: 
+311:             cancelButton.setOnClickListener((v) ->
+312:                     finish(new Intent(), FragmentCallback.ResultCode.CANCEL));
+313:             addButton.setOnClickListener((v) -> {
+314:                 if(TextUtils.isEmpty(viewModel.mutableParams.getSeedPathName()) || "null".equals(viewModel.mutableParams.getSeedPathName())) {
+315:                     binding.layoutFileOrDirPath.setErrorEnabled(true);
+316:                     binding.layoutFileOrDirPath.setError(getText(R.string.error_please_select_file_or_folder_for_seeding_first));
+317:                 }
+318:                 else{
+319:                     choosePathToSaveDialog();
+320:                 }
+321:             });
+322:         });
+
+===== ui/createtorrent/CreateTorrentViewModel.java:69-69 =====
+69:         public enum Status { UNKNOWN, BUILDING, FINISHED, ERROR }
+
+===== ui/createtorrent/CreateTorrentViewModel.java:74-78 =====
+74:         public BuildState(Status status, Throwable err)
+75:         {
+76:             this.status = status;
+77:             this.err = err;
+78:         }
+
+===== ui/createtorrent/CreateTorrentViewModel.java:85-89 =====
+85:         public InvalidTrackerException(@NonNull String url)
+86:         {
+87:             this.url = url;
+88:         }
+89:     }
+
+===== ui/createtorrent/CreateTorrentViewModel.java:95-99 =====
+95:         public InvalidWebSeedException(@NonNull String url)
+96:         {
+97:             this.url = url;
+98:         }
+99:     }
+
+===== ui/createtorrent/CreateTorrentViewModel.java:101-116 =====
+101:     public CreateTorrentViewModel(@NonNull Application application)
+102:     {
+103:         super(application);
+104: 
+105:         engine = TorrentEngine.getInstance(application);
+106:         disposables.add(engine.observeNeedStartEngine()
+107:                 .subscribeOn(Schedulers.io())
+108:                 .filter((needStart) -> needStart)
+109:                 .subscribe((needStart) -> engine.start()));
+110: 
+111:         fs = SystemFacadeHelper.getFileSystemFacade(application);
+112:         mutableParams.getSeedPath().addOnPropertyChangedCallback(dirPathCallback);
+113:         state.setValue(new BuildState(BuildState.Status.UNKNOWN, null));
+114:         buildProgress.setValue(0);
+115:     }
+116: 
+
+===== ui/createtorrent/CreateTorrentViewModel.java:118-124 =====
+118:     protected void onCleared()
+119:     {
+120:         super.onCleared();
+121: 
+122:         mutableParams.getSeedPath().removeOnPropertyChangedCallback(dirPathCallback);
+123:         disposables.clear();
+124:     }
+
+===== ui/createtorrent/CreateTorrentViewModel.java:126-129 =====
+126:     public LiveData<BuildState> getState()
+127:     {
+128:         return state;
+129:     }
+
+===== ui/createtorrent/CreateTorrentViewModel.java:136-142 =====
+136:     public void setPiecesSizeIndex(int index)
+137:     {
+138:         if (index < 0 || index >= engine.getPieceSizeList().length)
+139:             return;
+140: 
+141:         mutableParams.setPieceSizeIndex(index);
+142:     }
+
+===== ui/createtorrent/CreateTorrentViewModel.java:144-209 =====
+144:     public void setTorrentVersionIndex(int index) {
+145:         if (index < 0 || index >= engine.getTorrentVersionList().length)
+146:             return;
+147: 
+148:         mutableParams.setTorrentVersionIndex(index);
+149:     }
+150: 
+151:     public void buildTorrent()
+152:     {
+153:         state.setValue(new BuildState(BuildState.Status.BUILDING, null));
+154: 
+155:         TorrentBuilder builder;
+156:         try {
+157:             builder = makeBuilder();
+158: 
+159:         } catch (Exception e) {
+160:             onBuildError(e);
+161: 
+162:             return;
+163:         }
+164: 
+165:         resetPercentProgress();
+166:         disposables.add(builder.observeProgress()
+167:                 .subscribeOn(Schedulers.io())
+168:                 .filter(Objects::nonNull)
+169:                 .subscribe(this::makePercentProgress)
+170:         );
+171:         disposables.add(builder.build()
+172:                 .subscribeOn(Schedulers.io())
+173:                 .subscribe(this::onBuildSuccess, this::onBuildError)
+174:         );
+175:     }
+176: 
+177:     private TorrentBuilder makeBuilder() throws Exception
+178:     {
+179:         Uri seedPath = mutableParams.getSeedPath().get();
+180:         if (seedPath == null)
+181:             throw new IllegalArgumentException("Seed path is null");
+182:         Uri savePath = mutableParams.getSavePath();
+183:         if (savePath == null)
+184:             throw new IllegalArgumentException("Save path is null");
+185: 
+186:         if (!Utils.isFileSystemPath(seedPath))
+187:             throw new IllegalArgumentException("SAF doesn't supported");
+188: 
+189:         return new TorrentBuilder(getApplication())
+190:                 .setSeedPath(seedPath)
+191:                 .setPieceSize(getPieceSizeByIndex(mutableParams.getPieceSizeIndex()))
+192:                 .setTorrentVersion(getTorrentVersionByIndex(mutableParams.getTorrentVersionIndex()))
+193:                 .addTrackers(getAndValidateTrackers())
+194:                 .addUrlSeeds(getAndValidateWebSeeds())
+195:                 .setAsPrivate(mutableParams.isPrivateTorrent())
+196:                 .setCreator(makeCreator())
+197:                 .setComment(mutableParams.getComments())
+198:                 .setFileNameFilter((fileName) -> {
+199:                     List<String> skipFilesList = decodeSkipFilesList();
+200:                     if (skipFilesList.isEmpty())
+201:                         return true;
+202: 
+203:                     for (String skipFile : skipFilesList)
+204:                         if (fileName.toLowerCase().endsWith(skipFile.toLowerCase().trim()))
+205:                             return false;
+206: 
+207:                     return true;
+208:                 });
+209:     }
+
+===== ui/createtorrent/CreateTorrentViewModel.java:211-226 =====
+211:     private void onBuildSuccess(byte[] bencode)
+212:     {
+213:         Uri savePath = mutableParams.getSavePath();
+214:         if (savePath != null) {
+215:             try {
+216:                 fs.write(bencode, savePath);
+217: 
+218:             } catch (IOException | UnknownUriException e) {
+219:                 onBuildError(e);
+220: 
+221:                 return;
+222:             }
+223:         }
+224: 
+225:         state.postValue(new BuildState(BuildState.Status.FINISHED, null));
+226:     }
+
+===== ui/createtorrent/CreateTorrentViewModel.java:228-240 =====
+228:     private void onBuildError(Throwable e)
+229:     {
+230:         Uri savePath = mutableParams.getSavePath();
+231:         if (savePath != null) {
+232:             try {
+233:                 fs.deleteFile(savePath);
+234:             } catch (IOException | UnknownUriException eio) {
+235:                 /* Ignore */
+236:             }
+237:         }
+238: 
+239:         state.postValue(new BuildState(BuildState.Status.ERROR, e));
+240:     }
+
+===== ui/createtorrent/CreateTorrentViewModel.java:242-245 =====
+242:     private void makePercentProgress(TorrentBuilder.Progress progress)
+243:     {
+244:         buildProgress.postValue((int)(progress.piece * 100.0) / progress.numPieces);
+245:     }
+
+===== ui/createtorrent/CreateTorrentViewModel.java:247-250 =====
+247:     private void resetPercentProgress()
+248:     {
+249:         buildProgress.postValue(0);
+250:     }
+
+===== ui/createtorrent/CreateTorrentViewModel.java:252-262 =====
+252:     private String makeCreator()
+253:     {
+254:         Context context = getApplication();
+255:         String creator = context.getString(R.string.app_name);
+256:         String versionName = SystemFacadeHelper.getSystemFacade(context)
+257:                 .getAppVersionName();
+258:         if (versionName == null)
+259:             return creator;
+260: 
+261:         return creator + " " + versionName;
+262:     }
+
+===== ui/createtorrent/CreateTorrentViewModel.java:264-279 =====
+264:     private List<TorrentBuilder.Tracker> getAndValidateTrackers() throws InvalidTrackerException
+265:     {
+266:         List<TorrentBuilder.Tracker> validTrackers = new ArrayList<>();
+267:         int tier = 0;
+268:         for (String url : decodeUrls(mutableParams.getTrackerUrls())) {
+269:             try {
+270:                 url = normalizeAndValidateUrl(url);
+271: 
+272:             } catch (IllegalArgumentException e) {
+273:                 throw new InvalidTrackerException(url);
+274:             }
+275:             validTrackers.add(new TorrentBuilder.Tracker(url, tier++));
+276:         }
+277: 
+278:         return validTrackers;
+279:     }
+
+===== ui/createtorrent/CreateTorrentViewModel.java:281-295 =====
+281:     private List<String> getAndValidateWebSeeds() throws InvalidWebSeedException
+282:     {
+283:         List<String> validWebSeeds = new ArrayList<>();
+284:         for (String url : decodeUrls(mutableParams.getWebSeedUrls())) {
+285:             try {
+286:                 url = normalizeAndValidateUrl(url);
+287: 
+288:             } catch (IllegalArgumentException e) {
+289:                 throw new InvalidWebSeedException(url);
+290:             }
+291:             validWebSeeds.add(url);
+292:         }
+293: 
+294:         return validWebSeeds;
+295:     }
+
+===== ui/createtorrent/CreateTorrentViewModel.java:306-321 =====
+306:     private String normalizeAndValidateUrl(String url)
+307:     {
+308:         NormalizeUrl.Options options = new NormalizeUrl.Options();
+309:         options.decode = false;
+310:         try {
+311:             url = NormalizeUrl.normalize(url, options);
+312: 
+313:         } catch (NormalizeUrlException e) {
+314:             throw new IllegalArgumentException();
+315:         }
+316: 
+317:         if (!Utils.isValidTrackerUrl(url))
+318:             throw new IllegalArgumentException();
+319: 
+320:         return url;
+321:     }
+
+===== ui/createtorrent/CreateTorrentViewModel.java:333-335 =====
+333:     private int getPieceSizeByIndex(int index)
+334:     {
+335:         return engine.getPieceSizeList()[index] * 1024;
+
+===== ui/createtorrent/CreateTorrentViewModel.java:338-388 =====
+338:     private TorrentBuilder.TorrentVersion getTorrentVersionByIndex(int index) {
+339:         int version = engine.getTorrentVersionList()[index];
+340:         if (version == 0) {
+341:             return TorrentBuilder.TorrentVersion.HYBRID;
+342:         } else if (version == 1) {
+343:             return TorrentBuilder.TorrentVersion.V1_ONLY;
+344:         } else if (version == 2) {
+345:             return TorrentBuilder.TorrentVersion.V2_ONLY;
+346:         } else {
+347:             Log.e(TAG, "Unknown torrent version " + version);
+348:             return TorrentBuilder.TorrentVersion.HYBRID;
+349:         }
+350:     }
+351: 
+352:     public Completable downloadTorrent() throws UnknownUriException {
+353:         /* Use seed path parent; otherwise use save torrent file path */
+354:         Uri savePath;
+355:         Uri seedPath = mutableParams.getSeedPath().get();
+356:         if (seedPath != null) {
+357:             savePath = fs.getParentDirUri(seedPath);
+358:             if (savePath == null)
+359:                 savePath = mutableParams.getSavePath();
+360:         } else {
+361:             savePath = mutableParams.getSavePath();
+362:         }
+363:         Uri torrentFilePath = mutableParams.getSavePath();
+364:         if (savePath == null || torrentFilePath == null)
+365:             return Completable.complete();
+366: 
+367:         Uri path = savePath;
+368:         return Completable.create((emitter) -> {
+369:             if (emitter.isDisposed())
+370:                 return;
+371: 
+372:             Disposable d = engine.observeEngineRunning()
+373:                     .subscribeOn(Schedulers.io())
+374:                     .subscribe((isRunning) -> {
+375:                         if (isRunning) {
+376:                             engine.addTorrent(torrentFilePath, path);
+377:                             if (!emitter.isDisposed())
+378:                                 emitter.onComplete();
+379:                         }
+380:                     });
+381: 
+382:             emitter.setDisposable(d);
+383:         });
+384:     }
+385: 
+386:     public void finish()
+387:     {
+388:         disposables.clear();
+
+===== ui/createtorrent/CreateTorrentViewModel.java:391-404 =====
+391:     private Observable.OnPropertyChangedCallback dirPathCallback = new Observable.OnPropertyChangedCallback()
+392:     {
+393:         @Override
+394:         public void onPropertyChanged(Observable sender, int propertyId)
+395:         {
+396:             Uri seedPath = mutableParams.getSeedPath().get();
+397:             if (seedPath == null)
+398:                 return;
+399:             try {
+400:                 mutableParams.setSeedPathName(fs.getDirPath(seedPath));
+401:             } catch (UnknownUriException e) {
+402:                 Log.e(TAG, Log.getStackTraceString(e));
+403:             }
+404:         }
+
+===== ui/customviews/ColorView.java:43-81 =====
+43:     public ColorView(Context context, AttributeSet attrs) {
+44:         super(context, attrs);
+45: 
+46:         TypedArray a = context.getTheme().obtainStyledAttributes(
+47:                 attrs,
+48:                 R.styleable.ColorView,
+49:                 0, 0
+50:         );
+51: 
+52:         circlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+53:         try {
+54:             circlePaint.setColor(a.getColor(R.styleable.ColorView_color, Color.WHITE));
+55:         } finally {
+56:             a.recycle();
+57:         }
+58:         circlePaint.setStyle(Paint.Style.FILL);
+59: 
+60:         borderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+61:         a = context.getTheme().obtainStyledAttributes(
+62:                 attrs,
+63:                 new int[]{R.attr.colorControlNormal},
+64:                 0, 0
+65:         );
+66:         try {
+67:             borderPaint.setColor(a.getColor(0, Color.BLACK));
+68:         } finally {
+69:             a.recycle();
+70:         }
+71:         borderPaint.setStrokeWidth(BORDER_WIDTH);
+72:         borderPaint.setStyle(Paint.Style.STROKE);
+73:     }
+74: 
+75:     @Override
+76:     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+77:         this.w = w;
+78:         this.h = h;
+79: 
+80:         super.onSizeChanged(w, h, oldw, oldh);
+81:     }
+
+===== ui/customviews/ColorView.java:84-91 =====
+84:     protected void onDraw(Canvas canvas) {
+85:         super.onDraw(canvas);
+86: 
+87:         float centerX = (float) w / 2;
+88:         float centerY = (float) h / 2;
+89:         int width = getWidth() - (int) BORDER_WIDTH * 2;
+90: 
+91:         canvas.drawCircle(centerX, centerY, width / 2.0f, circlePaint);
+
+===== ui/customviews/ColorView.java:95-99 =====
+95:     public void setColor(int color) {
+96:         circlePaint.setColor(color);
+97: 
+98:         invalidate();
+99:         requestLayout();
+
+===== ui/customviews/ColorView.java:102-104 =====
+102:     public int getColor() {
+103:         return circlePaint.getColor();
+104:     }
+
+===== ui/customviews/EmptyRecyclerView.java:33-52 =====
+33:     final private AdapterDataObserver observer = new AdapterDataObserver()
+34:     {
+35:         @Override
+36:         public void onChanged()
+37:         {
+38:             checkEmpty();
+39:         }
+40: 
+41:         @Override
+42:         public void onItemRangeInserted(int positionStart, int itemCount)
+43:         {
+44:             checkEmpty();
+45:         }
+46: 
+47:         @Override
+48:         public void onItemRangeRemoved(int positionStart, int itemCount)
+49:         {
+50:             checkEmpty();
+51:         }
+52:     };
+
+===== ui/customviews/EmptyRecyclerView.java:59-61 =====
+59:     public EmptyRecyclerView(Context context, AttributeSet attrs)
+60:     {
+61:         super(context, attrs);
+
+===== ui/customviews/EmptyRecyclerView.java:64-66 =====
+64:     public EmptyRecyclerView(Context context, AttributeSet attrs, int defStyle)
+65:     {
+66:         super(context, attrs, defStyle);
+
+===== ui/customviews/EmptyRecyclerView.java:69-78 =====
+69:     void checkEmpty()
+70:     {
+71:         if (emptyView != null && getAdapter() != null) {
+72:             boolean isEmptyViewVisible = getAdapter().getItemCount() == 0;
+73: 
+74:             emptyView.setVisibility((isEmptyViewVisible ? VISIBLE : GONE));
+75:             setVisibility((isEmptyViewVisible ? GONE : VISIBLE));
+76:         }
+77:     }
+78: 
+
+===== ui/customviews/EmptyRecyclerView.java:80-92 =====
+80:     public void setAdapter(Adapter adapter)
+81:     {
+82:         var oldAdapter = getAdapter();
+83:         if (oldAdapter != null)
+84:             oldAdapter.unregisterAdapterDataObserver(observer);
+85: 
+86:         super.setAdapter(adapter);
+87: 
+88:         if (adapter != null)
+89:             adapter.registerAdapterDataObserver(observer);
+90: 
+91:         checkEmpty();
+92:     }
+
+===== ui/customviews/EmptyRecyclerView.java:94-97 =====
+94:     public void setEmptyView(View emptyView)
+95:     {
+96:         this.emptyView = emptyView;
+97:         checkEmpty();
+
+===== ui/customviews/ExpansionHeader.java:63-67 =====
+63:     public ExpansionHeader(@NonNull Context context, @Nullable AttributeSet attrs)
+64:     {
+65:         super(context, attrs);
+66: 
+67:         init(context, attrs);
+
+===== ui/customviews/ExpansionHeader.java:70-74 =====
+70:     public ExpansionHeader(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr)
+71:     {
+72:         super(context, attrs, defStyleAttr);
+73: 
+74:         init(context, attrs);
+
+===== ui/main/MainFragment.java:115-122 =====
+115:     public View onCreateView(@NonNull LayoutInflater inflater,
+116:                              @Nullable ViewGroup container,
+117:                              @Nullable Bundle savedInstanceState)
+118:     {
+119:         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_main, container, false);
+120: 
+121:         return binding.getRoot();
+122:     }
+
+===== ui/main/MainFragment.java:125-167 =====
+125:     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+126:         super.onViewCreated(view, savedInstanceState);
+127: 
+128:         if (activity == null)
+129:             activity = (AppCompatActivity)getActivity();
+130: 
+131:         ViewModelProvider provider = new ViewModelProvider(activity);
+132:         viewModel = provider.get(MainViewModel.class);
+133:         msgViewModel = provider.get(MsgMainViewModel.class);
+134:         dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+135: 
+136:         adapter = new TorrentListAdapter(this);
+137:         /*
+138:          * A RecyclerView by default creates another copy of the ViewHolder in order to
+139:          * fade the views into each other. This causes the problem because the old ViewHolder gets
+140:          * the payload but then the new one doesn't. So needs to explicitly tell it to reuse the old one.
+141:          */
+142:         DefaultItemAnimator animator = new DefaultItemAnimator() {
+143:             @Override
+144:             public boolean canReuseUpdatedViewHolder(@NonNull RecyclerView.ViewHolder viewHolder) {
+145:                 return true;
+146:             }
+147:         };
+148:         layoutManager = new LinearLayoutManager(activity);
+149:         binding.torrentList.setLayoutManager(layoutManager);
+150:         binding.torrentList.setItemAnimator(animator);
+151:         binding.torrentList.setEmptyView(binding.emptyViewTorrentList);
+152:         TypedArray a = activity.obtainStyledAttributes(new TypedValue().data, new int[]{R.attr.divider});
+153:         binding.torrentList.addItemDecoration(new RecyclerViewDividerDecoration(a.getDrawable(0)));
+154:         a.recycle();
+155:         binding.torrentList.setAdapter(adapter);
+156: 
+157:         selectionTracker = new SelectionTracker.Builder<>(
+158:                 SELECTION_TRACKER_ID,
+159:                 binding.torrentList,
+160:                 new TorrentListAdapter.KeyProvider(adapter),
+161:                 new TorrentListAdapter.ItemLookup(binding.torrentList),
+162:                 StorageStrategy.createParcelableStorage(TorrentListItem.class))
+163:                 .withSelectionPredicate(SelectionPredicates.createSelectAnything())
+164:                 .build();
+165: 
+166:         selectionTracker.addObserver(new SelectionTracker.SelectionObserver<TorrentListItem>() {
+167:             @Override
+
+===== ui/main/drawer/DrawerExpandableAdapter.java:74-81 =====
+74:     @NonNull
+75:     public GroupViewHolder onCreateGroupViewHolder(@NonNull ViewGroup parent, int viewType)
+76:     {
+77:         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+78:         View v = inflater.inflate(R.layout.drawer_group_header, parent, false);
+79: 
+80:         return new GroupViewHolder(v);
+81:     }
+
+===== ui/tag/TagsAdapter.java:46-56 =====
+46:     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+47:         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+48:         TagsListItemBinding binding = DataBindingUtil.inflate(
+49:                 inflater,
+50:                 R.layout.tags_list_item,
+51:                 parent,
+52:                 false
+53:         );
+54:         return new ViewHolder(binding);
+55:     }
+56: 
+
+===== ui/tag/TagsAdapter.java:97-106 =====
+97: 
+98:         void bind(
+99:                 @NonNull TagItem item,
+100:                 OnClickListener listener
+101:         ) {
+102:             binding.name.setText(item.info.name);
+103:             binding.color.setColor(item.info.color);
+104:             binding.getRoot().setOnClickListener((v) -> {
+105:                 if (listener != null) {
+106:                     listener.onTagClicked(item);
+
+===== Layout excerpts cited in the .md reasons =====
+===== drawer_group_header.xml:2-2 =====
+2: <org.proninyaroslav.libretorrent.ui.customviews.ExpansionHeader xmlns:android="http://schemas.android.com/apk/res/android"
+
+===== drawer_tags_list_item.xml:16-16 =====
+16:         <org.proninyaroslav.libretorrent.ui.customviews.ColorView
+
+===== fragment_feed.xml:10-16 =====
+10:         <org.proninyaroslav.libretorrent.ui.customviews.ThemedSwipeRefreshLayout
+11:             android:id="@+id/swipe_container"
+12:             android:layout_width="match_parent"
+13:             android:layout_height="match_parent"
+14:             app:layout_behavior="@string/appbar_scrolling_view_behavior">
+15: 
+16:             <org.proninyaroslav.libretorrent.ui.customviews.EmptyRecyclerView
+
+===== fragment_feed_items.xml:28-34 =====
+28:         <org.proninyaroslav.libretorrent.ui.customviews.ThemedSwipeRefreshLayout
+29:             android:id="@+id/swipe_container"
+30:             android:layout_width="match_parent"
+31:             android:layout_height="match_parent"
+32:             app:layout_behavior="@string/appbar_scrolling_view_behavior">
+33: 
+34:             <org.proninyaroslav.libretorrent.ui.customviews.EmptyRecyclerView
+
+===== fragment_main.xml:10-10 =====
+10:         <org.proninyaroslav.libretorrent.ui.customviews.EmptyRecyclerView
+
+===== tags_list_item.xml:14-14 =====
+14:         <org.proninyaroslav.libretorrent.ui.customviews.ColorView
+

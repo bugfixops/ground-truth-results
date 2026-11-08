@@ -1,0 +1,237 @@
+# Batch 71 printed evidence (fresh, C11 converter, 2026-11-01)
+# Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+# Cited files (basenames, for check_part check 8): FeedDownloaderWorker.java, FeedFetcherWorker.java, FeedSettingsFragment.java, LogViewModel.java, PowerReceiver.java, SaveLogWorker.java, Scheduler.java, SchedulingSettingsFragment.java, TorrentEngine.java
+
+=== core/model/TorrentEngine.java ===
+   999:         }
+  1000:         if (customBatteryControl) {
+* 1001:             appContext.registerReceiver(powerReceiver, PowerReceiver.getCustomFilter());
+  1002:             /* Custom receiver doesn't send sticky intent, reschedule manually */
+  1003:             rescheduleTorrents();
+---
+  1003:             rescheduleTorrents();
+  1004:         } else if (batteryControl || onlyCharging) {
+* 1005:             appContext.registerReceiver(powerReceiver, PowerReceiver.getFilter());
+  1006:         }
+  1007:     }
+---
+
+=== receiver/PowerReceiver.java ===
+    34: {
+    35:     @Override
+*   36:     public void onReceive(Context context, Intent intent)
+*   37:     {
+*   38:         String action = intent.getAction();
+*   39:         if (action == null)
+*   40:             return;
+*   41:         switch (action) {
+*   42:             case Intent.ACTION_BATTERY_LOW:
+*   43:             case Intent.ACTION_BATTERY_OKAY:
+*   44:             case Intent.ACTION_POWER_CONNECTED:
+*   45:             case Intent.ACTION_POWER_DISCONNECTED:
+*   46:             case Intent.ACTION_BATTERY_CHANGED:
+*   47:                 TorrentEngine engine = TorrentEngine.getInstance(context);
+*   48:                 engine.rescheduleTorrents();
+*   49:                 break;
+*   50:         }
+    51:     }
+    52: 
+---
+    51:     }
+    52: 
+*   53:     public static IntentFilter getFilter()
+*   54:     {
+*   55:         IntentFilter filter = new IntentFilter();
+*   56: 
+*   57:         filter.addAction(Intent.ACTION_POWER_CONNECTED);
+*   58:         filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
+*   59:         /* About BATTERY_LOW and BATTERY_OKAY see https://code.google.com/p/android/issues/detail?id=36712 */
+*   60:         filter.addAction(Intent.ACTION_BATTERY_LOW);
+*   61:         filter.addAction(Intent.ACTION_BATTERY_OKAY);
+*   62: 
+*   63:         return filter;
+*   64:     }
+    65: 
+    66:     public static IntentFilter getCustomFilter()
+---
+
+=== service/FeedDownloaderWorker.java ===
+    87: 
+    88:         if (ACTION_DOWNLOAD_TORRENT_LIST.equals(action))
+*   89:             return addTorrents(fetchTorrents(data.getStringArray(TAG_ITEM_ID_LIST)));
+    90: 
+    91:         return Result.failure();
+---
+    99: 
+   100:         for (FeedItem item : repo.getItemsById(ids)) {
+*  101:             AddTorrentParams params = fetchTorrent(item);
+   102:             if (params != null)
+   103:                 paramsList.add(params);
+---
+
+=== service/FeedFetcherWorker.java ===
+    81:         long keepDateBorderTime = (keepTime > 0 ? System.currentTimeMillis() - keepTime : 0);
+    82: 
+*   83:         deleteOldItems(keepDateBorderTime);
+    84: 
+    85:         Data data = getInputData();
+---
+    95:                         keepDateBorderTime, noAutoDownload);
+    96:             case ACTION_FETCH_CHANNEL_LIST:
+*   97:                 return fetchChannelsByUrl(data.getLongArray(TAG_CHANNEL_ID_LIST),
+*   98:                         keepDateBorderTime, noAutoDownload);
+    99:             case ACTION_FETCH_ALL_CHANNELS:
+   100:                 return fetchChannels(repo.getAllFeeds(),
+---
+   165:         List<FeedItem> items = parser.getItems();
+   166: 
+*  167:         filterItems(id, items, acceptMinDate);
+   168: 
+   169:         if (pref.feedRemoveDuplicates())
+---
+   167:         filterItems(id, items, acceptMinDate);
+   168: 
+*  169:         if (pref.feedRemoveDuplicates())
+*  170:             filterItemDuplicates(items);
+   171: 
+   172:         repo.addItems(items);
+---
+   181:         repo.updateFeed(channel);
+   182: 
+*  183:         if (!noAutoDownload && channel.autoDownload)
+*  184:             sendFetchedItems(channel, items);
+   185: 
+   186:         return Result.success();
+---
+   191:         List<String> existingItemsId = repo.getItemsIdByFeedId(id);
+   192:         /* Also filtering the items that we already have in db */
+*  193:         items.removeIf(item -> item != null && (item.pubDate > 0 && item.pubDate <= acceptMinDate || existingItemsId.contains(item.id)));
+   194:     }
+   195: 
+---
+   201: 
+   202:         List<String> existingTitles = repo.findItemsExistingTitles(titles);
+*  203:         items.removeIf(item -> item != null && existingTitles.contains(item.title));
+   204:     }
+   205: 
+---
+   217:                 continue;
+   218: 
+*  219:             if (isMatch(item, channel.filter, channel.isRegexFilter)) {
+   220:                 ids.add(item.id);
+   221:                 repo.markAsRead(item.id);
+---
+   230:                 .putStringArray(FeedDownloaderWorker.TAG_ITEM_ID_LIST, ids.toArray(new String[0]))
+   231:                 .build();
+*  232:         OneTimeWorkRequest work = new OneTimeWorkRequest.Builder(FeedDownloaderWorker.class)
+*  233:                 .setInputData(data)
+*  234:                 .build();
+*  235: 
+*  236:         WorkManager.getInstance(context).enqueue(work);
+   237:     }
+   238: 
+---
+
+=== service/SaveLogWorker.java ===
+    72:         if (filePath == null) {
+    73:             Log.e(TAG, "Cannot save log: file path is null");
+*   74:             showFailToast();
+    75: 
+    76:             return Result.failure();
+---
+    79:         boolean resume = data.getBoolean(TAG_RESUME_AFTER_SAVE, true);
+    80: 
+*   81:         return saveLog(Uri.parse(filePath), resume);
+    82:     }
+    83: 
+---
+    95:                 logger.write(fout, true);
+    96: 
+*   97:             showSuccessToast(fs.getFilePath(filePath));
+    98: 
+    99:         } catch (IOException | UnknownUriException e) {
+---
+   112:     private void showFailToast()
+   113:     {
+*  114:         handler.post(() -> Toast.makeText(appContext,
+*  115:                 R.string.journal_save_log_failed,
+*  116:                 Toast.LENGTH_SHORT)
+*  117:                 .show()
+*  118:         );
+   119:     }
+   120: 
+---
+   121:     private void showSuccessToast(String fileName)
+   122:     {
+*  123:         handler.post(() -> Toast.makeText(appContext,
+*  124:                 appContext.getString(R.string.journal_save_log_success, fileName),
+*  125:                 Toast.LENGTH_LONG)
+*  126:                 .show()
+*  127:         );
+   128:     }
+   129: }
+---
+
+=== service/Scheduler.java ===
+   114:                 .putString(FeedFetcherWorker.TAG_ACTION, FeedFetcherWorker.ACTION_FETCH_ALL_CHANNELS)
+   115:                 .build();
+*  116:         PeriodicWorkRequest work = new PeriodicWorkRequest.Builder(FeedFetcherWorker.class,
+*  117:                 interval,
+*  118:                 TimeUnit.MILLISECONDS)
+*  119:                 .setInputData(data)
+*  120:                 .setConstraints(getRefreshFeedsConstraints(appContext))
+*  121:                 .addTag(SCHEDULER_WORK_PERIODICAL_REFRESH_FEEDS)
+*  122:                 .build();
+*  123: 
+*  124:         WorkManager.getInstance(appContext).enqueueUniquePeriodicWork(SCHEDULER_WORK_PERIODICAL_REFRESH_FEEDS,
+*  125:                 ExistingPeriodicWorkPolicy.REPLACE, work);
+   126:     }
+   127: 
+---
+
+=== ui/log/LogViewModel.java ===
+   206:                 .build();
+   207: 
+*  208:         OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(SaveLogWorker.class)
+*  209:                 .setInputData(data)
+*  210:                 .build();
+*  211: 
+*  212:         WorkManager.getInstance(getApplication()).enqueue(request);
+   213:     }
+   214: 
+---
+
+=== ui/settings/sections/FeedSettingsFragment.java ===
+   132:             if ((boolean)newValue) {
+   133:                 long interval = pref.refreshFeedsInterval();
+*  134:                 Scheduler.runPeriodicalRefreshFeeds(context, interval);
+   135:             } else {
+   136:                 Scheduler.cancelPeriodicalRefreshFeeds(context);
+---
+   134:                 Scheduler.runPeriodicalRefreshFeeds(context, interval);
+   135:             } else {
+*  136:                 Scheduler.cancelPeriodicalRefreshFeeds(context);
+   137:             }
+   138: 
+---
+   140:             long interval = Long.parseLong((String)newValue);
+   141:             pref.refreshFeedsInterval(interval);
+*  142:             Scheduler.runPeriodicalRefreshFeeds(context, interval);
+   143: 
+   144:         } else if (preference.getKey().equals(getString(R.string.pref_key_feed_keep_items_time))) {
+---
+
+=== ui/settings/sections/SchedulingSettingsFragment.java ===
+   202:                 }
+   203:             } else {
+*  204:                 Scheduler.cancelStartAppAlarm(context);
+   205:             }
+   206:             Utils.enableBootReceiver(context, (boolean)newValue);
+---
+   215:                 }
+   216:             } else {
+*  217:                 Scheduler.cancelStopAppAlarm(context);
+   218:             }
+   219:             Utils.enableBootReceiver(getActivity(), (boolean)newValue);
+---
+

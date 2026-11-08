@@ -1,0 +1,344 @@
+===== core/utils/Utils.java =====
+720:     public static List<DrawerGroup> getNavigationDrawerItems(@NonNull Context context,
+721:                                                        @NonNull SharedPreferences localPref) {
+722:         Resources res = context.getResources();
+723: 
+724:         ArrayList<DrawerGroup> groups = new ArrayList<>();
+725: 
+726:         DrawerGroup status = new DrawerGroup(res.getInteger(R.integer.drawer_status_id),
+727:                 res.getString(R.string.drawer_status),
+728:                 localPref.getBoolean(res.getString(R.string.drawer_status_is_expanded), true));
+729:         status.selectItem(localPref.getLong(res.getString(R.string.drawer_status_selected_item),
+730:                 DrawerGroup.DEFAULT_SELECTED_ID));
+731: 
+732:         DrawerGroup sorting = new DrawerGroup(res.getInteger(R.integer.drawer_sorting_id),
+733:                 res.getString(R.string.drawer_sorting),
+734:                 localPref.getBoolean(res.getString(R.string.drawer_sorting_is_expanded), false));
+735:         final long DEFAULT_SORTING_ITEM = 1;
+736:         sorting.selectItem(localPref.getLong(res.getString(R.string.drawer_sorting_selected_item),
+737:                 DEFAULT_SORTING_ITEM));
+738: 
+739:         DrawerGroup dateAdded = new DrawerGroup(res.getInteger(R.integer.drawer_date_added_id),
+740:                 res.getString(R.string.drawer_date_added),
+741:                 localPref.getBoolean(res.getString(R.string.drawer_time_is_expanded), false));
+742:         dateAdded.selectItem(localPref.getLong(res.getString(R.string.drawer_time_selected_item),
+743:                 DrawerGroup.DEFAULT_SELECTED_ID));
+744: 
+745:         status.items.add(new DrawerGroupItem(res.getInteger(R.integer.drawer_status_all_id),
+746:                 R.drawable.ic_all_inclusive_grey600_24dp, res.getString(R.string.all)));
+747:         status.items.add(new DrawerGroupItem(res.getInteger(R.integer.drawer_status_downloading_id),
+748:                 R.drawable.ic_download_grey600_24dp, res.getString(R.string.drawer_status_downloading)));
+749:         status.items.add(new DrawerGroupItem(res.getInteger(R.integer.drawer_status_downloaded_id),
+750:                 R.drawable.ic_file_grey600_24dp, res.getString(R.string.drawer_status_downloaded)));
+751:         status.items.add(new DrawerGroupItem(res.getInteger(R.integer.drawer_status_downloading_metadata_id),
+752:                 R.drawable.ic_magnet_grey600_24dp, res.getString(R.string.drawer_status_downloading_metadata)));
+
+===== ui/main/MainActivity.java =====
+248:         List<DrawerGroup> groups = Utils.getNavigationDrawerItems(this,
+249:                 PreferenceManager.getDefaultSharedPreferences(this));
+250:         drawerAdapter = new DrawerExpandableAdapter(groups, drawerItemManager, this::onDrawerItemSelected);
+255:         drawerItemsList.setAdapter(wrappedDrawerAdapter);
+259:         drawerItemManager.attachRecyclerView(drawerItemsList);
+271:         tagsAdapter = new TagsAdapter(tagsClickListener);
+272:         tagsList.setAdapter(tagsAdapter);
+331:                                     if (item.isSame(tagsAdapter.getSelectedItem())) {
+334:                                         tagsAdapter.setSelectedItem(emptyItem);
+475:                                 Flowable.just(new EmptyTagItem()),
+476:                                 Flowable.just(new NoTagsItem()),
+477:                                 Flowable.fromIterable(list).map(TagItem::new)
+485:                     tagsAdapter.submitList(items);
+498:             tagsAdapter.setSelectedItem(new EmptyTagItem());
+501:             tagsAdapter.setSelectedItem(new NoTagsItem());
+509:                 tagsAdapter.setSelectedItem(new EmptyTagItem());
+519:                         tagsAdapter.setSelectedItem(item);
+591:                         Utils.getDrawerGroupStatusFilter(this, group.getSelectedItemId()), false);
+594:                 viewModel.setSort(Utils.getDrawerGroupItemSorting(this, group.getSelectedItemId()), false);
+596:                 viewModel.setDateAddedFilter(Utils.getDrawerGroupDateAddedFilter(this, group.getSelectedItemId()), false);
+604:         if (group.getDefaultExpandState())
+
+===== ui/main/drawer/DrawerExpandableAdapter.java =====
+75:     public GroupViewHolder onCreateGroupViewHolder(@NonNull ViewGroup parent, int viewType)
+76:     {
+77:         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+78:         View v = inflater.inflate(R.layout.drawer_group_header, parent, false);
+79: 
+80:         return new GroupViewHolder(v);
+81:     }
+85:     public ItemViewHolder onCreateChildViewHolder(@NonNull ViewGroup parent, int viewType)
+86:     {
+87:         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+88:         View v = inflater.inflate(R.layout.drawer_item, parent, false);
+89: 
+90:         return new ItemViewHolder(v);
+91:     }
+94:     public void onBindGroupViewHolder(@NonNull GroupViewHolder holder, int groupPosition,
+95:                                       int viewType)
+96:     {
+97:         DrawerGroup group = groups.get(groupPosition);
+98:         if (group == null)
+99:             return;
+100: 
+101:         holder.bind(group);
+102:     }
+105:     public void onBindChildViewHolder(@NonNull ItemViewHolder holder, int groupPosition,
+106:                                       int childPosition, int viewType)
+107:     {
+108:         DrawerGroup group = groups.get(groupPosition);
+109:         if (group == null)
+110:             return;
+111:         DrawerGroupItem item = group.items.get(childPosition);
+112:         if (item == null)
+113:             return;
+114: 
+115:         holder.bind(group, item);
+116:         holder.itemView.setOnClickListener((v) -> {
+117:             if (group.isItemSelected(item.id))
+118:                 return;
+119:             group.selectItem(item.id);
+120:             drawerItemManager.notifyChildrenOfGroupItemChanged(groupPosition);
+121:             if (listener != null)
+122:                 listener.onItemSelected(group, item);
+123:         });
+124:     }
+186:     public boolean onCheckCanExpandOrCollapseGroup(@NonNull GroupViewHolder holder, int groupPosition,
+187:                                                    int x, int y, boolean expand)
+188:     {
+189:         return holder.itemView.isEnabled() && holder.itemView.isClickable();
+190:     }
+196:         GroupViewHolder(View itemView)
+197:         {
+198:             super(itemView);
+199: 
+200:             groupHeader = (ExpansionHeader)itemView;
+201:         }
+203:         void bind(DrawerGroup group)
+204:         {
+205:             groupHeader.setText(group.name);
+206: 
+207:             ExpandableItemState expandState = getExpandState();
+208:             if (expandState.isUpdated())
+209:                 groupHeader.setExpanded(expandState.isExpanded(), expandState.hasExpandedStateChanged());
+210:         }
+218:         ItemViewHolder(View itemView)
+219:         {
+220:             super(itemView);
+221: 
+222:             icon = itemView.findViewById(R.id.icon);
+223:             name = itemView.findViewById(R.id.name);
+224:         }
+226:         void bind(DrawerGroup group, DrawerGroupItem item)
+227:         {
+228:             Context context = itemView.getContext();
+229: 
+230:             name.setText(item.name);
+231:             if (item.iconResId != -1)
+232:                 icon.setImageResource(item.iconResId);
+233: 
+234:             TypedArray a = context.obtainStyledAttributes(new TypedValue().data, new int[] {
+235:                     R.attr.selectableDrawer,
+236:                     R.attr.dialogRectRipple
+237:             });
+238:             int colorIdx = (group.isItemSelected(item.id) ? 0 : 1);
+239:             Drawable d = a.getDrawable(colorIdx);
+240:             if (d != null)
+241:                 Utils.setBackground(itemView, d);
+242:             a.recycle();
+243:         }
+
+===== ui/main/drawer/DrawerGroup.java =====
+39:     public DrawerGroup(long id, String name, boolean defaultExpandState)
+40:     {
+41:         this.id = id;
+42:         this.name = name;
+43:         this.defaultExpandState = defaultExpandState;
+44:     }
+46:     public void selectItem(long itemId)
+47:     {
+48:         selectedItemId = itemId;
+49:     }
+51:     public boolean isItemSelected(long itemId)
+52:     {
+53:         return itemId == selectedItemId;
+54:     }
+56:     public long getSelectedItemId()
+57:     {
+58:         return selectedItemId;
+59:     }
+65:     public boolean getDefaultExpandState()
+66:     {
+67:         return defaultExpandState;
+68:     }
+
+===== ui/main/drawer/DrawerGroupItem.java =====
+32:     public DrawerGroupItem(long id, int iconResId, String name)
+33:     {
+34:         this.id = id;
+35:         this.iconResId = iconResId;
+36:         this.name = name;
+37:     }
+
+===== ui/main/drawer/EmptyTagItem.java =====
+27:     public boolean isSame(AbstractTagItem o) {
+28:         return o instanceof EmptyTagItem;
+29:     }
+32:     public boolean equals(Object o) {
+33:         return this == o;
+34:     }
+
+===== ui/main/drawer/NoTagsItem.java =====
+24:     public boolean isSame(AbstractTagItem o) {
+25:         return o instanceof NoTagsItem;
+26:     }
+29:     public boolean equals(Object o) {
+30:         return this == o;
+31:     }
+
+===== ui/main/drawer/TagItem.java =====
+30:     public TagItem(@NonNull TagInfo info) {
+31:         this.info = info;
+32:     }
+35:     public boolean isSame(AbstractTagItem o) {
+36:         return o instanceof TagItem && info.id == ((TagItem) o).info.id;
+37:     }
+40:     public boolean equals(Object o) {
+41:         if (this == o) return true;
+42:         if (o == null || getClass() != o.getClass()) return false;
+43: 
+44:         TagItem tagItem = (TagItem) o;
+45: 
+46:         return info.equals(tagItem.info);
+47:     }
+
+===== ui/main/drawer/TagsAdapter.java =====
+52:     public TagsAdapter(@NonNull OnClickListener listener) {
+53:         super(diffCallback);
+54: 
+55:         this.listener = listener;
+56:     }
+60:     public AbstractViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+61:         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+62:         switch (viewType) {
+63:             case TYPE_EMPTY_ITEM: {
+64:                 DrawerEmptyTagsListItemBinding binding = DataBindingUtil.inflate(
+65:                         inflater,
+66:                         R.layout.drawer_empty_tags_list_item,
+67:                         parent,
+68:                         false
+69:                 );
+70:                 return new EmptyItemViewHolder(binding);
+71:             }
+72:             case TYPE_TAG_ITEM: {
+73:                 DrawerTagsListItemBinding binding = DataBindingUtil.inflate(
+74:                         inflater,
+75:                         R.layout.drawer_tags_list_item,
+76:                         parent,
+77:                         false
+78:                 );
+79:                 return new ItemViewHolder(binding);
+80:             }
+81:             case TYPE_NO_TAGS_ITEM: {
+82:                 DrawerNoTagsListItemBinding binding = DataBindingUtil.inflate(
+83:                         inflater,
+84:                         R.layout.drawer_no_tags_list_item,
+85:                         parent,
+86:                         false
+87:                 );
+88:                 return new NoTagsItemViewHolder(binding);
+89:             }
+90:         }
+91: 
+92:         throw new IllegalStateException("Unknown item type: " + viewType);
+93:     }
+96:     public void onBindViewHolder(@NonNull AbstractViewHolder holder, int position) {
+97:         AbstractTagItem item = getItem(position);
+98:         if (item != null) {
+99:             holder.bind(item, listener);
+100:         }
+101:     }
+104:     public int getItemViewType(int position) {
+105:         AbstractTagItem item = getItem(position);
+106:         if (item instanceof TagItem) {
+107:             return TYPE_TAG_ITEM;
+108:         } else if (item instanceof EmptyTagItem) {
+109:             return TYPE_EMPTY_ITEM;
+110:         } else if (item instanceof NoTagsItem) {
+111:             return TYPE_NO_TAGS_ITEM;
+112:         }
+113: 
+114:         throw new IllegalStateException("Unknown item: " + item);
+115:     }
+117:     public void setSelectedItem(@NonNull AbstractTagItem item) {
+118:         selectedItem = item;
+119:         int position = getCurrentList().indexOf(item);
+120:         if (position == -1) {
+121:             return;
+122:         }
+123:         notifyDataSetChanged();
+124:     }
+126:     public AbstractTagItem getSelectedItem() {
+127:         return selectedItem;
+128:     }
+130:     static final DiffUtil.ItemCallback<AbstractTagItem> diffCallback =
+131:             new DiffUtil.ItemCallback<AbstractTagItem>() {
+132:                 @Override
+133:                 public boolean areContentsTheSame(
+134:                         @NonNull AbstractTagItem oldItem,
+135:                         @NonNull AbstractTagItem newItem
+136:                 ) {
+137:                     return oldItem.equals(newItem);
+138:                 }
+139: 
+140:                 @Override
+141:                 public boolean areItemsTheSame(
+142:                         @NonNull AbstractTagItem oldItem,
+143:                         @NonNull AbstractTagItem newItem
+144:                 ) {
+145:                     return oldItem.isSame(newItem);
+146:                 }
+147:             };
+156:         public AbstractViewHolder(@NonNull View itemView) {
+157:             super(itemView);
+158:         }
+170:         public ItemViewHolder(@NonNull DrawerTagsListItemBinding binding) {
+171:             super(binding.getRoot());
+172: 
+173:             this.binding = binding;
+174:         }
+216:             int colorIdx = item.isSame(selectedItem) ? 0 : 1;
+229:         public EmptyItemViewHolder(@NonNull DrawerEmptyTagsListItemBinding binding) {
+230:             super(binding.getRoot());
+231: 
+232:             this.binding = binding;
+233:         }
+236:         void bind(
+237:                 @NonNull AbstractTagItem item,
+238:                 OnClickListener listener
+239:         ) {
+240:             if (item instanceof EmptyTagItem) {
+241:                 bind((EmptyTagItem) item, listener);
+242:             }
+243:         }
+247:                 OnClickListener listener
+248:         ) {
+249:             binding.getRoot().setOnClickListener((v) -> {
+250:                 setSelectedItem(item);
+251:                 if (listener != null) {
+252:                     listener.onTagSelected(item);
+253:                 }
+254:             });
+255: 
+256:             TypedArray a = itemView.getContext().obtainStyledAttributes(
+257:                     new TypedValue().data,
+258:                     new int[]{
+259:                             R.attr.selectableDrawer,
+260:                             R.attr.dialogRectRipple
+261:                     });
+262:             int colorIdx = item.isSame(selectedItem) ? 0 : 1;
+263:             Drawable d = a.getDrawable(colorIdx);
+264:             if (d != null) {
+265:                 itemView.setBackground(d);
+266:             }
+267:             a.recycle();
+268:         }
+275:         public NoTagsItemViewHolder(@NonNull DrawerNoTagsListItemBinding binding) {
+308:             int colorIdx = item.isSame(selectedItem) ? 0 : 1;

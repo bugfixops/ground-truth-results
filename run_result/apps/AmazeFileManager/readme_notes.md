@@ -1,0 +1,123 @@
+## What the re-audit changed (compared with the schema 1 graph)
+
+The schema 1 graph was a generated draft; the schema 2 graph was rebuilt from
+the AmazeFileManager sources (AmazeFileManager-#1837) with hand-written
+edges, each cited to printed lines or marked INFERRED where the source is
+generated code or was not read. Counts moved from 2509 REACHABLE / 472
+UNREACHABLE (after the B2+B3 check fixes) to 2512 / 469 at the end of B6.
+
+- B1: STRICT was already True; no change.
+- B2: citation paths reduced to the basename form the checker resolves
+  (the `asynchronous/services/` and `adapters/data/` components were
+  stripped from app citations); check 2 went 23 -> 0.
+- B3: the EDIT hook was implemented (it had been a no-op): 59 FIX_LINES
+  corrections, 3 INFERRED generated-class rewrites (GlideRequests,
+  GeneratedAppGlideModuleImpl, GeneratedRequestManagerFactory), and the
+  CLI.main -> SevenZFile.close edge rewritten to the INFERRED
+  try-with-resources implicit close (CLI.java:127 opens, :132 closes the
+  try block). Check 4 went 63 -> 0.
+- B4: check 8 went 4 -> 3 with one label flip. AES256SHA256Decoder$1.`<init>`
+  flipped to REACHABLE (decode() is REACHABLE via Coders.addDecoder at
+  Coders.java:57 registration and :79 dispatch, and unconditionally
+  instantiates the anonymous class at AES256SHA256Decoder.java:36). The
+  remaining 3 check-8 pairs are explained in scratch/check8_explained.md.
+- B6: 30 sampled routes were read step by step (error rate 25/30 = 0.833;
+  5 correct, 25 fixed, 0 wrong, 0 unclear in the final draw). Fixes
+  included the systematic manifest ENTRY citation shift for all 8 services
+  plus the receiver, deletion of 7 bogus ZipService$CompressAsyncTask.execute
+  cross-task edges (to PrepareCopyTask, DecryptService, EncryptService and
+  MainFragment$6) with valid AsyncTask edges added where the deletions
+  required them, deletion of the bogus SMB StreamServer -> CloudStreamSource
+  edge with the faithful CloudStreamServer sendResponse -> read edge added,
+  rewiring of the INFERRED CompressedExplorerFragment -> Decompressor edge
+  to the real onActionItemClicked call site (:329), deletion of 4 false
+  BasicActivity superclass edges (TextEditorActivity and
+  DatabaseViewerActivity extend ThemedActivity, not BasicActivity), and
+  two label flips from printed app source: GlideRequest.listener and
+  IconDataParcelable.setImageBroken, both UNREACHABLE -> REACHABLE.
+
+## How the checked paths were chosen
+
+A fixed 30-method sample was drawn from the reachable methods with the
+repository tool and a fixed seed (`python3 -I tools/verify_sample.py
+AmazeFileManager 30 20261025`), so the draw is reproducible and not
+cherry-picked. For each sampled method the best route was read step by
+step against the printed source (edge trigger, guard, and ENV / STATE gate
+on each hop), judged correct / fixed / wrong / unclear, and every wrong
+route was repaired and re-verified. Because the draw is route-sensitive,
+each fix batch redrew the sample; the final table covers only the final
+draw (30 of 2512 reachable methods, 226 distinct edges), which was stable
+across the last redraw, and all 30 final prints were confirmed to reach
+their targets. The sample, the prints, the table and the fix record are in
+scratch/sample_30.txt, scratch/route_print/, scratch/route_table.md and
+scratch/fix_log.md. Routes dropped by redraws were judged and fixed in
+their own draws; their fixes are in fix_log.md but they are not in the
+final table.
+
+Note on sample timing: the sample was drawn before the log step. The label rows written by the log step change which 30 methods the sampler picks on the final graph, so a fresh draw on the final graph would not necessarily pick the same 30 methods. The judged routes are still current: the final verification run reports 0 STALE warnings, so every judged route still matches the final graph.
+
+## What waits for a device (API 27)
+
+- **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 0 of 30 routes reached their target method; 0 of them ran the whole script and are now `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
+
+Device checks are deferred: they run in GitHub CI when the user starts
+`.github/workflows/device-replay.yml` by hand; no emulator run has been
+started in this run. Device preparation (D1 route list, D3 scripts, D7
+DEVICE rows) covers the 30 final-sample routes. The device run should
+confirm, in particular: the two Glide virtual dispatches flipped in B6
+(GlideRequest.listener via the GlideRequest receiver at
+RecyclerAdapter.java:899,:945, and IconDataParcelable.setImageBroken via
+the OnImageProcessed method references at RecyclerAdapter.java:596,599,609,
+724,733); the ENV-gated routes (another app opening a text file for the
+TextEditorActivity routes, manifest :129-144; another app opening a zip/rar
+for CompressedExplorerFragment.onDestroyView); and the paste-case routes
+(PasteHelper family, which need a pending copy/cut). Nothing in the label
+set depends on a device result: no label was set from tool coverage, and a
+not-reached device result must never flip a label (per the brief, it
+becomes `unclear`, never `wrong`).
+
+## Hazard candidates (from reading the code, not reproduced)
+
+These are open questions from the audit, not reproduced behaviour and not
+label changes:
+
+- The wider BasicActivity superclass cluster (e.g. BasicActivity ->
+  MainActivity.onCreate, BasicActivity -> PreferencesActivity.onCreate)
+  uses the same pattern as the 4 false edges deleted in B6, but MainActivity
+  extends PermissionsActivity (MainActivity.java:157) and PreferencesActivity
+  extends ThemedActivity (PreferencesActivity.java:58). That cluster needs
+  its own audit; it was not changed here because none of its edges is on a
+  sampled route.
+- GlideRequests.as and the five GlideOptions methods (GlideOptions.`<init>`,
+  .apply, .autoClone, .clone, .lock) are UNREACHABLE with no app-source
+  call sites on a full-tree grep, but they appear in tool-coverage
+  contradiction lists. The generated GlideRequests.java source is not in
+  the upload, so the asDrawable() -> as() delegation step could not be
+  printed; it was deliberately NOT added as an INFERRED edge.
+- SftpConnectDialog lambda numbering ($2 vs $6 for the removeConnection
+  callback that creates GetSshHostFingerprintTask at
+  SftpConnectDialog.java:178 and executes it at :199) stays OPEN pending
+  bytecode/class-file lambda order; the current $2 links are consistent
+  with the printed source but the assignment was not independently proven.
+- CompressedExplorerFragment.onDestroyView's route requires a zip/rar VIEW
+  intent from another app; the edge carries no env field, so a device
+  script for it must set up that intent explicitly.
+
+## Limits
+
+- No device run has been performed; all reachability here is from printed
+  source and framework lifecycle reasoning, not from execution.
+- Generated code (Glide, Dagger/Hilt) is not in the app source upload, so
+  edges through it are INFERRED (library/generated code) with the
+  mechanism stated, never SOURCE.
+- Lambda numbering follows the graph's bytecode-derived mapping and was not
+  re-derived; where a lambda body was printed it matched its edge.
+- Tool coverage (Monkey, APE, JaCoCo, sanity_check.csv) was never used to
+  set or flip a label; the 19 UNREACHABLE-but-ran contradictions in the
+  build report were each left to source evidence (one, GlideRequest.listener,
+  flipped on printed source; the rest held).
+- The 30-route sample covers 30 of 2512 reachable methods; route checks
+  judge each sampled method's best route, not every route to it.
+- Check 8 still lists 3 of 469 unreachable methods with a bytecode caller
+  outside the set; all three are explained in scratch/check8_explained.md
+  (B4) and are not label errors.

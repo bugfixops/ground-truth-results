@@ -1,0 +1,532 @@
+# Printed source for batch 55 part (b055).
+# Every SRC citation in parts/b055.py and every printed file:lines cell in parts/b055.md is covered below.
+# Line numbers are the clone source line numbers (final_java_only tree).
+
+===== core/model/TorrentEngine.java =====
+--- core/model/TorrentEngine.java:128-132 ---
+128:     private TorrentEngine(@NonNull Context appContext) {
+129:         this.appContext = appContext;
+130:         repo = RepositoryHelper.getTorrentRepository(appContext);
+131:         tagRepo = RepositoryHelper.getTagRepository(appContext);
+132:         fs = SystemFacadeHelper.getFileSystemFacade(appContext);
+--- core/model/TorrentEngine.java:128-138 ---
+128:     private TorrentEngine(@NonNull Context appContext) {
+129:         this.appContext = appContext;
+130:         repo = RepositoryHelper.getTorrentRepository(appContext);
+131:         tagRepo = RepositoryHelper.getTagRepository(appContext);
+132:         fs = SystemFacadeHelper.getFileSystemFacade(appContext);
+133:         pref = RepositoryHelper.getSettingsRepository(appContext);
+134:         notifier = TorrentNotifier.getInstance(appContext);
+135:         downloadsCompleted = new DownloadsCompletedListener(this);
+136:         session = new TorrentSessionImpl(repo,
+137:                 fs,
+138:                 SystemFacadeHelper.getSystemFacade(appContext));
+
+===== core/system/FileSystemFacadeImpl.java =====
+--- core/system/FileSystemFacadeImpl.java:60-64 ---
+60:     public FileDescriptorWrapper getFD(@NonNull Uri path) throws UnknownUriException
+61:     {
+62:         FsModule fsModule = fsResolver.resolveFsByUri(path);
+63: 
+64:         return fsModule.openFD(path);
+--- core/system/FileSystemFacadeImpl.java:110-115 ---
+110:     public boolean deleteFile(@NonNull Uri path) throws FileNotFoundException, UnknownUriException
+111:     {
+112:         FsModule fsModule = fsResolver.resolveFsByUri(path);
+113: 
+114:         return fsModule.delete(path);
+115:     }
+--- core/system/FileSystemFacadeImpl.java:122-129 ---
+122:     public Uri getFileUri(@NonNull Uri dir,
+123:                           @NonNull String fileName) throws UnknownUriException
+124:     {
+125:         FsModule fsModule = fsResolver.resolveFsByUri(dir);
+126: 
+127:         Uri path = null;
+128:         try {
+129:             path = fsModule.getFileUri(dir, fileName, false);
+--- core/system/FileSystemFacadeImpl.java:144-149 ---
+144:     public Uri getFileUri(@NonNull String relativePath,
+145:                           @NonNull Uri dir) throws UnknownUriException
+146:     {
+147:         FsModule fsModule = fsResolver.resolveFsByUri(dir);
+148: 
+149:         return fsModule.getFileUri(relativePath, dir);
+--- core/system/FileSystemFacadeImpl.java:153-158 ---
+153:     public boolean fileExists(@NonNull Uri filePath) throws UnknownUriException
+154:     {
+155:         FsModule fsModule = fsResolver.resolveFsByUri(filePath);
+156: 
+157:         return fsModule.fileExists(filePath);
+158:     }
+--- core/system/FileSystemFacadeImpl.java:254-259 ---
+254:     public String makeFileSystemPath(@NonNull Uri uri,
+255:                                      String relativePath) throws UnknownUriException
+256:     {
+257:         FsModule fsModule = fsResolver.resolveFsByUri(uri);
+258: 
+259:         return fsModule.makeFileSystemPath(uri, relativePath);
+--- core/system/FileSystemFacadeImpl.java:268-274 ---
+268:     public long getDirAvailableBytes(@NonNull Uri dir) throws UnknownUriException
+269:     {
+270:         long availableBytes = -1;
+271: 
+272:         FsModule fsModule = fsResolver.resolveFsByUri(dir);
+273:         try {
+274:             availableBytes = fsModule.getDirAvailableBytes(dir);
+--- core/system/FileSystemFacadeImpl.java:418-422 ---
+418:     public String getDirPath(@NonNull Uri dir) throws UnknownUriException
+419:     {
+420:         FsModule fsModule = fsResolver.resolveFsByUri(dir);
+421: 
+422:         return fsModule.getDirPath(dir);
+--- core/system/FileSystemFacadeImpl.java:430-434 ---
+430:     public String getFilePath(@NonNull Uri filePath) throws UnknownUriException
+431:     {
+432:         FsModule fsModule = fsResolver.resolveFsByUri(filePath);
+433: 
+434:         return fsModule.getFilePath(filePath);
+--- core/system/FileSystemFacadeImpl.java:438-442 ---
+438:     public Uri getParentDirUri(@NonNull Uri filePath) throws UnknownUriException
+439:     {
+440:         FsModule fsModule = fsResolver.resolveFsByUri(filePath);
+441: 
+442:         return fsModule.getParentDirUri(filePath);
+
+===== core/system/FsModuleResolverImpl.java =====
+--- core/system/FsModuleResolverImpl.java:35-39 ---
+35:     public FsModuleResolverImpl(@NonNull Context appContext) {
+36:         this.appContext = appContext;
+37:         this.safModule = new SafFsModule(appContext);
+38:         this.defaultModule = new DefaultFsModule(appContext);
+39:     }
+
+===== core/system/SafFileSystem.java =====
+--- core/system/SafFileSystem.java:72-82 ---
+72:     public static SafFileSystem getInstance(@NonNull Context appContext)
+73:     {
+74:         if (INSTANCE == null) {
+75:             synchronized (SafFileSystem.class) {
+76:                 if (INSTANCE == null)
+77:                     INSTANCE = new SafFileSystem(appContext);
+78:             }
+79:         }
+80: 
+81:         return INSTANCE;
+82:     }
+--- core/system/SafFileSystem.java:98-102 ---
+98:         public FakePath(@NonNull Uri safRoot, @NonNull String relativePath)
+99:         {
+100:             this.safRoot = safRoot;
+101:             this.relativePath = normalizeRelativePath(relativePath);
+102:         }
+--- core/system/SafFileSystem.java:104-110 ---
+104:         private String normalizeRelativePath(String path)
+105:         {
+106:             if (path.equals(File.separator) || !path.startsWith(File.separator))
+107:                 return path;
+108:             else
+109:                 return path.substring(1);
+110:         }
+--- core/system/SafFileSystem.java:132-138 ---
+132:         private String serialize()
+133:         {
+134:             /* Remove 'content://' scheme */
+135:             String safRootStr = safRoot.toString().substring(SCHEME.length());
+136: 
+137:             return SAF_ROOT_TAG_OPEN + safRootStr + SAF_ROOT_TAG_CLOSE + relativePath;
+138:         }
+--- core/system/SafFileSystem.java:140-145 ---
+140:         public String[] makeRelativePathNodes()
+141:         {
+142:             return (TextUtils.isEmpty(relativePath) ?
+143:                     new String[0] :
+144:                     relativePath.split(File.separator));
+145:         }
+--- core/system/SafFileSystem.java:147-150 ---
+147:         public Uri safRoot()
+148:         {
+149:             return safRoot;
+150:         }
+--- core/system/SafFileSystem.java:164-167 ---
+164:         public String toString()
+165:         {
+166:             return serialize();
+167:         }
+--- core/system/SafFileSystem.java:177-184 ---
+177:         public Stat(String name, boolean isDir,
+178:                     long length, long lastModified)
+179:         {
+180:             this.name = name;
+181:             this.isDir = isDir;
+182:             this.length = length;
+183:             this.lastModified = lastModified;
+184:         }
+--- core/system/SafFileSystem.java:191-198 ---
+191:     public boolean isSafPath(@NonNull Uri path)
+192:     {
+193:         String scheme = path.getScheme();
+194:         if (scheme == null)
+195:             throw new IllegalArgumentException("Scheme of " + path + " is null");
+196: 
+197:         return scheme.equals(ContentResolver.SCHEME_CONTENT);
+198:     }
+--- core/system/SafFileSystem.java:207-222 ---
+207:     public Uri getFileUri(@NonNull Uri safRoot, @NonNull String fileName, boolean create)
+208:     {
+209:         String cacheKey = safRoot.toString() + File.separator + fileName;
+210:         DocumentFile f = CACHE.get(cacheKey);
+211: 
+212:         if (f == null) {
+213:             DocumentFile tree = DocumentFile.fromTreeUri(appContext, safRoot);
+214:             if (tree == null)
+215:                 return null;
+216:             f = getFile(tree, fileName, create);
+217:             if (f != null)
+218:                 CACHE.put(cacheKey, f);
+219:         }
+220: 
+221:         return (f == null ? null : f.getUri());
+222:     }
+--- core/system/SafFileSystem.java:235-246 ---
+235:     public Uri getFileUri(@NonNull FakePath path, boolean create)
+236:     {
+237:         String cacheKey = path.toString();
+238:         DocumentFile f = CACHE.get(cacheKey);
+239:         if (f == null) {
+240:             f = getFile(path, create);
+241:             if (f != null)
+242:                 CACHE.put(cacheKey, f);
+243:         }
+244: 
+245:         return (f == null ? null : f.getUri());
+246:     }
+--- core/system/SafFileSystem.java:248-260 ---
+248:     private DocumentFile getFile(DocumentFile tree, String fileName, boolean create)
+249:     {
+250:         try {
+251:             DocumentFile f = tree.findFile(fileName);
+252:             if (f == null && create)
+253:                 f = tree.createFile("application/octet-stream", fileName);
+254: 
+255:             return (f != null && f.isFile() ? f : null);
+256: 
+257:         } catch (UnsupportedOperationException e) {
+258:             return null;
+259:         }
+260:     }
+--- core/system/SafFileSystem.java:262-289 ---
+262:     private DocumentFile getFile(FakePath path, boolean create)
+263:     {
+264:         DocumentFile currNode = DocumentFile.fromTreeUri(appContext, path.safRoot());
+265:         if (currNode == null)
+266:             return null;
+267: 
+268:         String[] nodes = path.makeRelativePathNodes();
+269:         for (int i = 0; i < nodes.length; i++) {
+270:             String nodeName = nodes[i];
+271: 
+272:             DocumentFile node;
+273:             if (i + 1 == nodes.length) {
+274:                 node = getFile(currNode, nodeName, create);
+275:                 /* Try to get directory */
+276:                 if (node == null)
+277:                     node = getDir(currNode, nodeName, create);
+278:             } else {
+279:                 node = getDir(currNode, nodeName, create);
+280:             }
+281: 
+282:             if (node == null)
+283:                 return null;
+284: 
+285:             currNode = node;
+286:         }
+287: 
+288:         return currNode;
+289:     }
+--- core/system/SafFileSystem.java:291-303 ---
+291:     private DocumentFile getDir(DocumentFile tree, String dirName, boolean create)
+292:     {
+293:         try {
+294:             DocumentFile f = tree.findFile(dirName);
+295:             if (f == null && create)
+296:                 f = tree.createDirectory(dirName);
+297: 
+298:             return (f != null && f.isDirectory() ? f : null);
+299: 
+300:         } catch (UnsupportedOperationException e) {
+301:             return null;
+302:         }
+303:     }
+--- core/system/SafFileSystem.java:369-373 ---
+369:     public Uri makeSafRootDir(@NonNull Uri dir)
+370:     {
+371:         return DocumentsContract.buildDocumentUriUsingTree(dir,
+372:                 DocumentsContract.getTreeDocumentId(dir));
+373:     }
+--- core/system/SafFileSystem.java:444-455 ---
+444:     public Stat statSafRoot(@NonNull Uri safRoot)
+445:     {
+446:         String cacheKey = safRoot.toString();
+447:         DocumentFile tree = CACHE.get(cacheKey);
+448:         if (tree == null) {
+449:             tree = DocumentFile.fromTreeUri(appContext, safRoot);
+450:             if (tree != null)
+451:                 CACHE.put(cacheKey, tree);
+452:         }
+453: 
+454:         return stat(tree);
+455:     }
+--- core/system/SafFileSystem.java:459-470 ---
+459:     public Stat stat(@NonNull Uri filePath)
+460:     {
+461:         String cacheKey = filePath.toString();
+462:         DocumentFile f = CACHE.get(cacheKey);
+463:         if (f == null) {
+464:             f = DocumentFile.fromSingleUri(appContext, filePath);
+465:             if (f != null)
+466:                 CACHE.put(cacheKey, f);
+467:         }
+468: 
+469:         return stat(f);
+470:     }
+--- core/system/SafFileSystem.java:487-493 ---
+487:     private Stat stat(DocumentFile f)
+488:     {
+489:         return (f == null ?
+490:                 null :
+491:                 new Stat(f.getName(), f.isDirectory(),
+492:                     f.length(), f.lastModified()));
+493:     }
+--- core/system/SafFileSystem.java:533-548 ---
+533:     public Uri getParentDirUri(@NonNull Uri filePath)
+534:     {
+535:         String cacheKey = filePath.toString();
+536:         DocumentFile f = CACHE.get(cacheKey);
+537:         if (f == null) {
+538:             f = DocumentFile.fromSingleUri(appContext, filePath);
+539:             if (f != null)
+540:                 CACHE.put(cacheKey, f);
+541:         }
+542:         if (f == null)
+543:             return null;
+544: 
+545:         DocumentFile parent = f.getParentFile();
+546: 
+547:         return (parent == null || !parent.isDirectory() ? null : parent.getUri());
+548:     }
+
+===== core/system/SafFsModule.java =====
+--- core/system/SafFsModule.java:40-43 ---
+40:     public SafFsModule(@NonNull Context appContext)
+41:     {
+42:         this.appContext = appContext;
+43:     }
+--- core/system/SafFsModule.java:55-60 ---
+55:     public String getDirPath(@NonNull Uri dir)
+56:     {
+57:         SafFileSystem.Stat stat = SafFileSystem.getInstance(appContext).statSafRoot(dir);
+58: 
+59:         return (stat == null || stat.name == null ? dir.getPath() : stat.name);
+60:     }
+--- core/system/SafFsModule.java:63-68 ---
+63:     public String getFilePath(@NonNull Uri filePath)
+64:     {
+65:         SafFileSystem.Stat stat = SafFileSystem.getInstance(appContext).stat(filePath);
+66: 
+67:         return (stat == null || stat.name == null ? filePath.getPath() : stat.name);
+68:     }
+--- core/system/SafFsModule.java:71-74 ---
+71:     public Uri getFileUri(@NonNull Uri dir, @NonNull String fileName, boolean create)
+72:     {
+73:         return SafFileSystem.getInstance(appContext).getFileUri(dir, fileName, create);
+74:     }
+--- core/system/SafFsModule.java:77-81 ---
+77:     public Uri getFileUri(@NonNull String relativePath, @NonNull Uri dir)
+78:     {
+79:         return SafFileSystem.getInstance(appContext)
+80:                 .getFileUri(new SafFileSystem.FakePath(dir, relativePath), false);
+81:     }
+--- core/system/SafFsModule.java:84-89 ---
+84:     public boolean delete(@NonNull Uri filePath) throws FileNotFoundException
+85:     {
+86:         SafFileSystem fs = SafFileSystem.getInstance(appContext);
+87: 
+88:         return fs.delete(filePath);
+89:     }
+--- core/system/SafFsModule.java:92-95 ---
+92:     public FileDescriptorWrapper openFD(@NonNull Uri path)
+93:     {
+94:         return new FileDescriptorWrapperImpl(appContext, path);
+95:     }
+--- core/system/SafFsModule.java:98-114 ---
+98:     public long getDirAvailableBytes(@NonNull Uri dir) throws IOException
+99:     {
+100:         long availableBytes = -1;
+101:         ContentResolver contentResolver = appContext.getContentResolver();
+102:         SafFileSystem fs = SafFileSystem.getInstance(appContext);
+103:         Uri dirPath = fs.makeSafRootDir(dir);
+104: 
+105:         try (ParcelFileDescriptor pfd = contentResolver.openFileDescriptor(dirPath, "r")) {
+106:             if (pfd == null)
+107:                 return availableBytes;
+108: 
+109:             availableBytes = getAvailableBytes(pfd.getFileDescriptor());
+110: 
+111:         }
+112: 
+113:         return availableBytes;
+114:     }
+--- core/system/SafFsModule.java:124-133 ---
+124:     private long getAvailableBytes(@NonNull FileDescriptor fd) throws IOException
+125:     {
+126:         try {
+127:             StructStatVfs stat = Os.fstatvfs(fd);
+128: 
+129:             return stat.f_bavail * stat.f_bsize;
+130:         } catch (Exception e) {
+131:             throw new IOException(e);
+132:         }
+133:     }
+--- core/system/SafFsModule.java:136-139 ---
+136:     public boolean fileExists(@NonNull Uri filePath)
+137:     {
+138:         return SafFileSystem.getInstance(appContext).exists(filePath);
+139:     }
+--- core/system/SafFsModule.java:151-155 ---
+151:     public String makeFileSystemPath(@NonNull Uri uri, String relativePath)
+152:     {
+153:         return new SafFileSystem.FakePath(uri, (relativePath == null ? "" : relativePath))
+154:                 .toString();
+155:     }
+--- core/system/SafFsModule.java:158-161 ---
+158:     public Uri getParentDirUri(@NonNull Uri filePath)
+159:     {
+160:         return SafFileSystem.getInstance(appContext).getParentDirUri(filePath);
+161:     }
+
+===== core/system/SystemFacadeHelper.java =====
+--- core/system/SystemFacadeHelper.java:31-37 ---
+31:     public synchronized static SystemFacade getSystemFacade(@NonNull Context appContext)
+32:     {
+33:         if (systemFacade == null)
+34:             systemFacade = new SystemFacadeImpl(appContext);
+35: 
+36:         return systemFacade;
+37:     }
+--- core/system/SystemFacadeHelper.java:39-46 ---
+39:     public synchronized static FileSystemFacade getFileSystemFacade(@NonNull Context appContext)
+40:     {
+41:         if (fileSystemFacade == null)
+42:             fileSystemFacade = new FileSystemFacadeImpl(appContext,
+43:                     new FsModuleResolverImpl(appContext));
+44: 
+45:         return fileSystemFacade;
+46:     }
+
+===== core/system/SystemFacadeImpl.java =====
+--- core/system/SystemFacadeImpl.java:38-41 ---
+38:     public SystemFacadeImpl(@NonNull Context appContext)
+39:     {
+40:         this.appContext = appContext;
+41:     }
+--- core/system/SystemFacadeImpl.java:44-49 ---
+44:     public NetworkInfo getActiveNetworkInfo()
+45:     {
+46:         ConnectivityManager cm = (ConnectivityManager)appContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+47: 
+48:         return cm.getActiveNetworkInfo();
+49:     }
+--- core/system/SystemFacadeImpl.java:53-61 ---
+53:     public NetworkCapabilities getNetworkCapabilities()
+54:     {
+55:         ConnectivityManager cm = (ConnectivityManager)appContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+56:         Network network = cm.getActiveNetwork();
+57:         if (network == null)
+58:             return null;
+59: 
+60:         return cm.getNetworkCapabilities(network);
+61:     }
+--- core/system/SystemFacadeImpl.java:64-69 ---
+64:     public boolean isActiveNetworkMetered()
+65:     {
+66:         ConnectivityManager cm = (ConnectivityManager)appContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+67: 
+68:         return ConnectivityManagerCompat.isActiveNetworkMetered(cm);
+69:     }
+--- core/system/SystemFacadeImpl.java:72-83 ---
+72:     public String getAppVersionName()
+73:     {
+74:         try {
+75:             PackageInfo info = appContext.getPackageManager().getPackageInfo(appContext.getPackageName(), 0);
+76: 
+77:             return info.versionName;
+78:         } catch (PackageManager.NameNotFoundException e) {
+79:             /* Ignore */
+80:         }
+81: 
+82:         return null;
+83:     }
+
+===== core/urlnormalizer/NormalizeUrl.java =====
+--- core/urlnormalizer/NormalizeUrl.java:36-40 ---
+36:     static {
+37:         DEFAULT_PORT_LIST.put("http", 80);
+38:         DEFAULT_PORT_LIST.put("https", 443);
+39:         DEFAULT_PORT_LIST.put("ftp", 21);
+40:     }
+--- core/urlnormalizer/NormalizeUrl.java:178-189 ---
+178:     public static String normalize(String url, Options options) throws NormalizeUrlException
+179:     {
+180:         String normalizedUrl;
+181:         try {
+182:             normalizedUrl = doNormalize(url, options);
+183: 
+184:         } catch (Exception e) {
+185:             throw new NormalizeUrlException("Cannot normalize URL", e);
+186:         }
+187: 
+188:         return normalizedUrl;
+189:     }
+--- core/urlnormalizer/NormalizeUrl.java:191-191 ---
+191:     private static String doNormalize(String url, Options options) throws MalformedURLException
+
+===== core/utils/Utils.java =====
+--- core/utils/Utils.java:157-162 ---
+157:     public static boolean checkConnectivity(@NonNull Context context) {
+158:         SystemFacade systemFacade = SystemFacadeHelper.getSystemFacade(context);
+159:         NetworkInfo netInfo = systemFacade.getActiveNetworkInfo();
+160: 
+161:         return netInfo != null && netInfo.isConnected() && isNetworkTypeAllowed(context);
+162:     }
+--- core/utils/Utils.java:174-174 ---
+174:         NetworkCapabilities caps = systemFacade.getNetworkCapabilities();
+--- core/utils/Utils.java:183-183 ---
+183:                 !systemFacade.isActiveNetworkMetered();
+--- core/utils/Utils.java:657-658 ---
+657:     public static boolean isSafPath(@NonNull Context appContext, @NonNull Uri path) {
+658:         return SafFileSystem.getInstance(appContext).isSafPath(path);
+
+===== ui/detailtorrent/DetailTorrentFragment.java =====
+--- ui/detailtorrent/DetailTorrentFragment.java:719-726 ---
+719:         NormalizeUrl.Options options = new NormalizeUrl.Options();
+720:         options.decode = false;
+721:         List<String> normalizedUrls = new ArrayList<>(urls.size());
+722:         for (String url : urls) {
+723:             if (TextUtils.isEmpty(url))
+724:                 continue;
+725:             try {
+726:                 normalizedUrls.add(NormalizeUrl.normalize(url, options));
+
+===== ui/main/MainActivity.java =====
+--- ui/main/MainActivity.java:776-785 ---
+776:     private void initAboutDialog() {
+777:         if (aboutDialog == null)
+778:             return;
+779: 
+780:         Dialog dialog = aboutDialog.getDialog();
+781:         if (dialog != null) {
+782:             TextView versionTextView = dialog.findViewById(R.id.about_version);
+783:             TextView descriptionTextView = dialog.findViewById(R.id.about_description);
+784:             String versionName = SystemFacadeHelper.getSystemFacade(getApplicationContext())
+785:                     .getAppVersionName();

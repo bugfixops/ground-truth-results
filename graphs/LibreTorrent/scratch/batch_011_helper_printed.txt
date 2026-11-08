@@ -1,0 +1,99 @@
+LibreTorrent batch 11 source and call-site print
+Plan file: /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+Source root: /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java
+
+Membership check command:
+`awk -F '\t' 'NR==1 || $1==11 {print}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv`
+The command output has the header and 9 rows. Batch 11 has 9 rows in the plan; no other methods were added.
+
+Exact plan rows in order:
+1 SettingsFragment.newInstance ()Lorg/proninyaroslav/libretorrent/ui/settings/SettingsFragment;
+2 SummaryPreference.<init>(Context) (Landroid/content/Context;)V
+3 SwitchBarPreference.<init>(Context) (Landroid/content/Context;)V
+4 TimePreference.<init>(Context) (Landroid/content/Context;)V
+5 AddTagButton.<init>(Context,AttributeSet) (Landroid/content/Context;Landroid/util/AttributeSet;)V
+6 AddTagButton.<init>(Context,AttributeSet,int) (Landroid/content/Context;Landroid/util/AttributeSet;I)V
+7 tag.TagItem.hashCode ()I
+8 tag.TagItem.toString ()Ljava/lang/String;
+9 TorrentTagsList.<init>(Context) (Landroid/content/Context;)V
+
+Source excerpts read (line numbers are source line numbers):
+
+`ui/settings/SettingsFragment.java:47,63-70`: the class declaration is line 47; `newInstance()` is lines 63-70 and constructs a `new SettingsFragment()`, sets empty Bundle args, and returns it. Exact whole-source search `rg -n -w 'SettingsFragment' <source-root>` output has only the class declaration, its TAG constant, and this method body; no call site.
+
+`ui/settings/customprefs/SummaryPreference.java:35-62`:
+35 public class SummaryPreference extends Preference
+39 public SummaryPreference(Context context)
+41     this(context, null);
+44 public SummaryPreference(Context context, AttributeSet attrs)
+47     this(context, attrs, R.attr.preferenceStyle);
+50 public SummaryPreference(Context context, AttributeSet attrs, int defStyleAttr)
+52     this(context, attrs, defStyleAttr, defStyleAttr);
+55 public SummaryPreference(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes)
+57     super(context, attrs, defStyleAttr, defStyleRes);
+Search `rg -n -F 'new SummaryPreference(' <source-root>` had no result. Preference XML contains the fully qualified element in `res/xml/pref_anonymous_mode.xml:8-9`.
+
+`ui/settings/customprefs/SwitchBarPreference.java:36-61`:
+36 public class SwitchBarPreference extends SwitchPreferenceCompat
+40 public SwitchBarPreference(Context context)
+42     this(context, null);
+45 public SwitchBarPreference(Context context, AttributeSet attrs)
+48     this(context, attrs, R.attr.preferenceStyle);
+51 public SwitchBarPreference(Context context, AttributeSet attrs, int defStyleAttr)
+53     this(context, attrs, defStyleAttr, defStyleAttr);
+56 public SwitchBarPreference(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes)
+58     super(context, attrs, defStyleAttr, defStyleRes);
+Search `rg -n -F 'new SwitchBarPreference(' <source-root>` had no result. Preference XML contains the fully qualified element in `res/xml/pref_anonymous_mode.xml:3-6`.
+
+`ui/settings/customprefs/TimePreference.java:20-58`:
+20 public class TimePreference extends DialogPreference
+32 public TimePreference(Context context)
+35     this(context, null);
+38 public TimePreference(Context context, AttributeSet attrs)
+42     this(context, attrs, R.attr.preferenceStyle);
+45 public TimePreference(Context context, AttributeSet attrs, int defStyleAttr)
+48     this(context, attrs, defStyleAttr, defStyleAttr);
+51 public TimePreference(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes)
+53     super(context, attrs, defStyleAttr, defStyleRes);
+Search `rg -n -F 'new TimePreference(' <source-root>` had no result. The fully qualified XML elements are `res/xml/pref_scheduling.xml:11-17` and `:26-32`.
+
+`ui/tag/AddTagButton.java:36-57`:
+36 public class AddTagButton extends Chip
+37 public AddTagButton(Context context)
+43 public AddTagButton(Context context, AttributeSet attrs)
+49 public AddTagButton(Context context, AttributeSet attrs, int defStyleAttr)
+Search results for `AddTagButton(` in source show these declarations and one `new AddTagButton(context)` at `ui/tag/TorrentTagsList.java:79`; no 2-argument or 3-argument app constructor call. `rg -n 'AddTagButton|TorrentTagsList' app/src/main/res/layout` shows only TorrentTagsList XML tags, no AddTagButton tag.
+
+`ui/tag/TagItem.java:26-60`:
+26 public class TagItem
+30 public TagItem(TagInfo info)
+34 public boolean isSame(TagItem o)
+38 @Override public boolean equals(Object o)
+48 @Override public int hashCode() { return info.hashCode(); }
+54 @Override public String toString()
+Exact search `rg -n 'TagItem|\.hashCode\(|\.toString\(' <source-root>/org/proninyaroslav/libretorrent/ui/tag` shows TagItem construction and DiffUtil callback references, but no calls to `TagItem.hashCode()` or `TagItem.toString()`. `TagsAdapter.java:65-81` defines DiffUtil `areItemsTheSame` using `isSame`, and `areContentsTheSame` using `equals`.
+
+`ui/tag/TorrentTagsList.java:18-38,78-87`:
+18 public class TorrentTagsList extends ChipGroup
+23 public TorrentTagsList(Context context)
+24     super(context);
+26     init(context);
+29 public TorrentTagsList(Context context, AttributeSet attrs)
+30     super(context, attrs);
+32     init(context);
+35 void init(Context context)
+36     this.addTagButton = buildAddTagButton(context);
+37     addView(addTagButton);
+78 private AddTagButton buildAddTagButton(Context context)
+79     AddTagButton button = new AddTagButton(context);
+Search `rg -n -F 'new TorrentTagsList(' <source-root>` has no Java construction call. XML declares TorrentTagsList at `res/layout/add_torrent_info.xml:138-141` and `res/layout/fragment_detail_torrent_info.xml:150-153`.
+
+Exact search outputs used for call sites:
+`rg -n -F 'SettingsFragment.newInstance(' <source-root>` — no result.
+`rg -n -F 'new SummaryPreference(' <source-root>` — no result.
+`rg -n -F 'new SwitchBarPreference(' <source-root>` — no result.
+`rg -n -F 'new TimePreference(' <source-root>` — no result.
+`rg -n -F 'new AddTagButton(' <source-root>` — one result, `TorrentTagsList.java:79`, with only the Context constructor.
+`rg -n -F 'new TorrentTagsList(' <source-root>` — no result.
+
+No method-list, graph, generator, or coverage files were used as reachability evidence.

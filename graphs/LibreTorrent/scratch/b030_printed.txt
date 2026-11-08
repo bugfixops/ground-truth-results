@@ -1,0 +1,702 @@
+# Batch 030 printed evidence (C04, fresh print 2026-11-01)
+# Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+# Each block prints the cited file lines with line numbers, exactly as cited in b030.py/.md.
+# Path citations only; bare-filename prose mentions in .md reasons resolve to these same lines.
+
+=== core/model/TorrentEngine.java (1659 lines) ===
+--- core/model/TorrentEngine.java:779-785 ---
+779:             return new TorrentInfo(
+780:                     torrent.id,
+781:                     torrent.name,
+782:                     torrent.dateAdded,
+783:                     torrent.error,
+784:                     tags
+785:             );
+--- core/model/TorrentEngine.java:779-787 ---
+779:             return new TorrentInfo(
+780:                     torrent.id,
+781:                     torrent.name,
+782:                     torrent.dateAdded,
+783:                     torrent.error,
+784:                     tags
+785:             );
+786:         } else {
+787:             return new TorrentInfo(
+--- core/model/TorrentEngine.java:787-806 ---
+787:             return new TorrentInfo(
+788:                     torrent.id,
+789:                     torrent.name,
+790:                     task.getStateCode(),
+791:                     task.getProgress(),
+792:                     task.getReceivedBytes(),
+793:                     task.getTotalSentBytes(),
+794:                     task.getTotalWanted(),
+795:                     task.getDownloadSpeed(),
+796:                     task.getUploadSpeed(),
+797:                     task.getETA(),
+798:                     torrent.dateAdded,
+799:                     task.getTotalPeers(),
+800:                     task.getConnectedPeers(),
+801:                     torrent.error,
+802:                     task.isSequentialDownload(),
+803:                     task.getFilePriorities(),
+804:                     tags,
+805:                     task.isFirstLastPiecePriority()
+806:             );
+
+=== core/model/TorrentInfoProvider.java (499 lines) ===
+--- core/model/TorrentInfoProvider.java:138-140 ---
+138:                 TorrentInfo newInfo = engine.makeInfoSync(id);
+139:                 TorrentInfo oldInfo = info.get();
+140:                 if (newInfo != null && !newInfo.equals(oldInfo)) {
+--- core/model/TorrentInfoProvider.java:363-366 ---
+363:                                 List<TrackerInfo> newInfoList = engine.makeTrackerInfoList(id);
+364:                                 List<TrackerInfo> oldInfoList = infoList.get();
+365:                                 if (oldInfoList == null || oldInfoList.size() != newInfoList.size() ||
+366:                                         !oldInfoList.containsAll(newInfoList)) {
+
+=== core/model/data/TorrentInfo.java (271 lines) ===
+--- core/model/data/TorrentInfo.java:61-76 ---
+61:     public TorrentInfo(
+62:             @NonNull String torrentId,
+63:             String name,
+64:             long dateAdded,
+65:             String error,
+66:             @NonNull List<TagInfo> tags
+67:     ) {
+68:         super(torrentId);
+69: 
+70:         this.torrentId = torrentId;
+71:         this.name = name;
+72:         this.stateCode = TorrentStateCode.STOPPED;
+73:         this.dateAdded = dateAdded;
+74:         this.error = error;
+75:         this.tags = tags;
+76:     }
+--- core/model/data/TorrentInfo.java:72 ---
+72:         this.stateCode = TorrentStateCode.STOPPED;
+--- core/model/data/TorrentInfo.java:78-118 ---
+78:     public TorrentInfo(
+79:             @NonNull String torrentId,
+80:             String name,
+81:             TorrentStateCode stateCode,
+82:             int progress,
+83:             long receivedBytes,
+84:             long uploadedBytes,
+85:             long totalBytes,
+86:             long downloadSpeed,
+87:             long uploadSpeed,
+88:             long ETA,
+89:             long dateAdded,
+90:             int totalPeers,
+91:             int peers,
+92:             String error,
+93:             boolean sequentialDownload,
+94:             Priority[] filePriorities,
+95:             @NonNull List<TagInfo> tags,
+96:             boolean firstLastPiecePriority
+97:     ) {
+98:         super(torrentId);
+99: 
+100:         this.torrentId = torrentId;
+101:         this.name = name;
+102:         this.stateCode = stateCode;
+103:         this.progress = progress;
+104:         this.receivedBytes = receivedBytes;
+105:         this.uploadedBytes = uploadedBytes;
+106:         this.totalBytes = totalBytes;
+107:         this.downloadSpeed = downloadSpeed;
+108:         this.uploadSpeed = uploadSpeed;
+109:         this.ETA = ETA;
+110:         this.dateAdded = dateAdded;
+111:         this.totalPeers = totalPeers;
+112:         this.peers = peers;
+113:         this.error = error;
+114:         this.sequentialDownload = sequentialDownload;
+115:         this.filePriorities = filePriorities;
+116:         this.tags = tags;
+117:         this.firstLastPiecePriority = firstLastPiecePriority;
+118:     }
+--- core/model/data/TorrentInfo.java:125 ---
+125:         stateCode = TorrentStateCode.fromValue(source.readInt());
+--- core/model/data/TorrentInfo.java:145-146 ---
+145:     public int describeContents() {
+146:         return 0;
+--- core/model/data/TorrentInfo.java:150-171 ---
+150:     public void writeToParcel(Parcel dest, int flags) {
+151:         super.writeToParcel(dest, flags);
+152: 
+153:         dest.writeString(torrentId);
+154:         dest.writeString(name);
+155:         dest.writeInt(stateCode.value());
+156:         dest.writeInt(progress);
+157:         dest.writeLong(receivedBytes);
+158:         dest.writeLong(uploadedBytes);
+159:         dest.writeLong(totalBytes);
+160:         dest.writeLong(downloadSpeed);
+161:         dest.writeLong(uploadSpeed);
+162:         dest.writeLong(ETA);
+163:         dest.writeLong(dateAdded);
+164:         dest.writeInt(totalPeers);
+165:         dest.writeInt(peers);
+166:         dest.writeString(error);
+167:         dest.writeByte((byte) (sequentialDownload ? 1 : 0));
+168:         dest.writeArray(filePriorities);
+169:         dest.writeTypedList(tags);
+170:         dest.writeByte((byte) (firstLastPiecePriority ? 1 : 0));
+171:     }
+--- core/model/data/TorrentInfo.java:155 ---
+155:         dest.writeInt(stateCode.value());
+--- core/model/data/TorrentInfo.java:173-183 ---
+173:     public static final Parcelable.Creator<TorrentInfo> CREATOR = new Parcelable.Creator<>() {
+174:                 @Override
+175:                 public TorrentInfo createFromParcel(Parcel source) {
+176:                     return new TorrentInfo(source);
+177:                 }
+178: 
+179:                 @Override
+180:                 public TorrentInfo[] newArray(int size) {
+181:                     return new TorrentInfo[size];
+182:                 }
+183:             };
+--- core/model/data/TorrentInfo.java:175-177 ---
+175:                 public TorrentInfo createFromParcel(Parcel source) {
+176:                     return new TorrentInfo(source);
+177:                 }
+--- core/model/data/TorrentInfo.java:180-182 ---
+180:                 public TorrentInfo[] newArray(int size) {
+181:                     return new TorrentInfo[size];
+182:                 }
+--- core/model/data/TorrentInfo.java:185-188 ---
+185:     @Override
+186:     public int compareTo(@NonNull Object another) {
+187:         return name.compareTo(((TorrentInfo) another).name);
+188:     }
+--- core/model/data/TorrentInfo.java:190-214 ---
+190:     @Override
+191:     public int hashCode() {
+192:         int prime = 31, result = 1;
+193: 
+194:         result = prime * result + torrentId.hashCode();
+195:         result = prime * result + ((name == null) ? 0 : name.hashCode());
+196:         result = prime * result + ((stateCode == null) ? 0 : stateCode.hashCode());
+197:         result = prime * result + progress;
+198:         result = prime * result + (int) (receivedBytes ^ (receivedBytes >>> 32));
+199:         result = prime * result + (int) (uploadedBytes ^ (uploadedBytes >>> 32));
+200:         result = prime * result + (int) (totalBytes ^ (totalBytes >>> 32));
+201:         result = prime * result + (int) (downloadSpeed ^ (downloadSpeed >>> 32));
+202:         result = prime * result + (int) (uploadSpeed ^ (uploadSpeed >>> 32));
+203:         result = prime * result + (int) (ETA ^ (ETA >>> 32));
+204:         result = prime * result + (int) (dateAdded ^ (dateAdded >>> 32));
+205:         result = prime * result + totalPeers;
+206:         result = prime * result + peers;
+207:         result = prime * result + ((error == null) ? 0 : error.hashCode());
+208:         result = prime * result + (sequentialDownload ? 1 : 0);
+209:         result = prime * result + Arrays.hashCode(filePriorities);
+210:         result = prime * result + tags.hashCode();
+211:         result = prime * result + (firstLastPiecePriority ? 1 : 0);
+212: 
+213:         return result;
+214:     }
+--- core/model/data/TorrentInfo.java:217-244 ---
+217:     public boolean equals(Object o) {
+218:         if (!(o instanceof TorrentInfo))
+219:             return false;
+220: 
+221:         if (o == this)
+222:             return true;
+223: 
+224:         TorrentInfo info = (TorrentInfo) o;
+225: 
+226:         return (torrentId.equals(info.torrentId) &&
+227:                 (name == null || name.equals(info.name)) &&
+228:                 (stateCode == null || stateCode.equals(info.stateCode)) &&
+229:                 progress == info.progress &&
+230:                 receivedBytes == info.receivedBytes &&
+231:                 uploadedBytes == info.uploadedBytes &&
+232:                 totalBytes == info.totalBytes &&
+233:                 downloadSpeed == info.downloadSpeed &&
+234:                 uploadSpeed == info.uploadSpeed &&
+235:                 ETA == info.ETA &&
+236:                 dateAdded == info.dateAdded &&
+237:                 totalPeers == info.totalPeers &&
+238:                 peers == info.peers &&
+239:                 (error == null || error.equals(info.error)) &&
+240:                 sequentialDownload == info.sequentialDownload &&
+241:                 Arrays.equals(filePriorities, info.filePriorities) &&
+242:                 firstLastPiecePriority == info.firstLastPiecePriority &&
+243:                 tags.equals(info.tags));
+244:     }
+--- core/model/data/TorrentInfo.java:246-269 ---
+246:     @NonNull
+247:     @Override
+248:     public String toString() {
+249:         return "TorrentInfo{" +
+250:                 "torrentId='" + torrentId + '\'' +
+251:                 ", name='" + name + '\'' +
+252:                 ", stateCode=" + stateCode +
+253:                 ", progress=" + progress +
+254:                 ", receivedBytes=" + receivedBytes +
+255:                 ", uploadedBytes=" + uploadedBytes +
+256:                 ", totalBytes=" + totalBytes +
+257:                 ", downloadSpeed=" + downloadSpeed +
+258:                 ", uploadSpeed=" + uploadSpeed +
+259:                 ", ETA=" + ETA +
+260:                 ", dateAdded=" + dateAdded +
+261:                 ", totalPeers=" + totalPeers +
+262:                 ", peers=" + peers +
+263:                 ", error='" + error + '\'' +
+264:                 ", sequentialDownload=" + sequentialDownload +
+265:                 ", filePriorities=" + Arrays.toString(filePriorities) +
+266:                 ", tags=" + tags +
+267:                 ", firstLastPiecePriority=" + firstLastPiecePriority +
+268:                 '}';
+269:     }
+
+=== core/model/data/TorrentStateCode.java (82 lines) ===
+--- core/model/data/TorrentStateCode.java:28-59 ---
+28:     UNKNOWN(-1),
+29:     ERROR(0),
+30:     /*
+31:      * In this state the torrent has finished downloading and
+32:      * is a pure seeder.
+33:      */
+34:     SEEDING(1),
+35:     /*
+36:      * The torrent is being downloaded. This is the state
+37:      * most torrents will be in most of the time. The progress
+38:      * meter will tell how much of the files that has been
+39:      * downloaded.
+40:      */
+41:     DOWNLOADING(2),
+42:     PAUSED(3),
+43:     STOPPED(4),
+44:     /*
+45:      * The torrent has not started its download yet, and is
+46:      * currently checking existing files.
+47:      */
+48:     CHECKING(5),
+49:     /*
+50:      * The torrent is trying to download metadata from peers.
+51:      * This assumes the metadata_transfer extension is in use.
+52:      */
+53:     DOWNLOADING_METADATA(6),
+54:     /*
+55:      * In this state the torrent has finished downloading but
+56:      * still doesn't have the entire torrent. i.e. some pieces
+57:      * are filtered and won't get downloaded.
+58:      */
+59:     FINISHED(7);
+--- core/model/data/TorrentStateCode.java:28-66 ---
+28:     UNKNOWN(-1),
+29:     ERROR(0),
+30:     /*
+31:      * In this state the torrent has finished downloading and
+32:      * is a pure seeder.
+33:      */
+34:     SEEDING(1),
+35:     /*
+36:      * The torrent is being downloaded. This is the state
+37:      * most torrents will be in most of the time. The progress
+38:      * meter will tell how much of the files that has been
+39:      * downloaded.
+40:      */
+41:     DOWNLOADING(2),
+42:     PAUSED(3),
+43:     STOPPED(4),
+44:     /*
+45:      * The torrent has not started its download yet, and is
+46:      * currently checking existing files.
+47:      */
+48:     CHECKING(5),
+49:     /*
+50:      * The torrent is trying to download metadata from peers.
+51:      * This assumes the metadata_transfer extension is in use.
+52:      */
+53:     DOWNLOADING_METADATA(6),
+54:     /*
+55:      * In this state the torrent has finished downloading but
+56:      * still doesn't have the entire torrent. i.e. some pieces
+57:      * are filtered and won't get downloaded.
+58:      */
+59:     FINISHED(7);
+60: 
+61:     private final int value;
+62: 
+63:     TorrentStateCode(int value)
+64:     {
+65:         this.value = value;
+66:     }
+--- core/model/data/TorrentStateCode.java:68-75 ---
+68:     public static TorrentStateCode fromValue(int value)
+69:     {
+70:         for (TorrentStateCode ev : TorrentStateCode.class.getEnumConstants())
+71:             if (ev.value() == value)
+72:                 return ev;
+73: 
+74:         return UNKNOWN;
+75:     }
+--- core/model/data/TorrentStateCode.java:77-80 ---
+77:     public int value()
+78:     {
+79:         return value;
+80:     }
+
+=== core/model/data/TrackerInfo.java (270 lines) ===
+--- core/model/data/TrackerInfo.java:61-64 ---
+61:         Result(int status, String message) {
+62:             this.status = status;
+63:             this.message = message;
+64:         }
+--- core/model/data/TrackerInfo.java:67-77 ---
+67:     public TrackerInfo(AnnounceEntry entry) {
+68:         super(entry.url());
+69: 
+70:         url = entry.url();
+71:         tier = entry.tier();
+72: 
+73:         List<AnnounceEndpoint> endpoints = entry.endpoints();
+74:         var result = getMessageAndStatus(entry, endpoints);
+75:         message = result.message;
+76:         status = result.status;
+77:     }
+--- core/model/data/TrackerInfo.java:74 ---
+74:         var result = getMessageAndStatus(entry, endpoints);
+--- core/model/data/TrackerInfo.java:79-86 ---
+79:     public TrackerInfo(String url, String message, int tier, int status) {
+80:         super(url);
+81: 
+82:         this.url = url;
+83:         this.message = message;
+84:         this.tier = tier;
+85:         this.status = status;
+86:     }
+--- core/model/data/TrackerInfo.java:88-145 ---
+88:     private Result getMessageAndStatus(AnnounceEntry entry, List<AnnounceEndpoint> endpoints) {
+89:         if (entry == null || endpoints.isEmpty()) {
+90:             return new Result(Status.UNKNOWN, "");
+91:         }
+92: 
+93:         var statusMap = new HashMap<Integer, Integer>();
+94:         String firstTrackerMessage = "";
+95:         String firstErrorMessage = "";
+96:         for (var e : endpoints) {
+97:             calcStatusCount(entry, e.infohashV1(), statusMap);
+98:             calcStatusCount(entry, e.infohashV2(), statusMap);
+99: 
+100:             if (TextUtils.isEmpty(firstTrackerMessage)) {
+101:                 var messageV1 = e.infohashV1().message();
+102:                 var messageV2 = e.infohashV2().message();
+103:                 if (!TextUtils.isEmpty(messageV1)) {
+104:                     firstTrackerMessage = messageV1;
+105:                 } else if (!TextUtils.isEmpty(messageV2)) {
+106:                     firstTrackerMessage = messageV2;
+107:                 }
+108:             }
+109:             if (TextUtils.isEmpty(firstErrorMessage)) {
+110:                 var errorV1 = e.infohashV1().swig().getLast_error();
+111:                 var errorV2 = e.infohashV2().swig().getLast_error();
+112:                 if (errorV1 != null && !TextUtils.isEmpty(errorV1.message())) {
+113:                     firstErrorMessage = errorV1.message();
+114:                 } else if (errorV2 != null && !TextUtils.isEmpty(errorV2.message())) {
+115:                     firstErrorMessage = errorV2.message();
+116:                 }
+117:             }
+118:         }
+119:         var numEndpoints = statusMap.values().stream().reduce(0, Integer::sum);
+120:         var numUpdating = statusMap.get(Status.UPDATING);
+121:         var numWorking = statusMap.get(Status.WORKING);
+122:         var numNotWorking = statusMap.get(Status.NOT_WORKING);
+123:         var numNotContacted = statusMap.get(Status.NOT_CONTACTED);
+124: 
+125:         if (numUpdating != null && numUpdating > 0) {
+126:             return new Result(Status.UPDATING, "");
+127:         } else if (numWorking != null && numWorking > 0) {
+128:             return new Result(Status.WORKING, firstTrackerMessage);
+129:         } else if (numNotWorking != null && numNotWorking.equals(numEndpoints)) {
+130:             return new Result(
+131:                     Status.NOT_WORKING,
+132:                     TextUtils.isEmpty(firstTrackerMessage)
+133:                             ? firstErrorMessage
+134:                             : firstTrackerMessage
+135:             );
+136:         } else if (numNotContacted != null && numNotContacted.equals(numEndpoints)) {
+137:             return new Result(Status.NOT_CONTACTED,
+138:                     TextUtils.isEmpty(firstTrackerMessage)
+139:                             ? firstErrorMessage
+140:                             : firstTrackerMessage
+141:             );
+142:         }
+143: 
+144:         return new Result(Status.UNKNOWN, "");
+145:     }
+--- core/model/data/TrackerInfo.java:90 ---
+90:             return new Result(Status.UNKNOWN, "");
+--- core/model/data/TrackerInfo.java:97-98 ---
+97:             calcStatusCount(entry, e.infohashV1(), statusMap);
+98:             calcStatusCount(entry, e.infohashV2(), statusMap);
+--- core/model/data/TrackerInfo.java:126 ---
+126:             return new Result(Status.UPDATING, "");
+--- core/model/data/TrackerInfo.java:128 ---
+128:             return new Result(Status.WORKING, firstTrackerMessage);
+--- core/model/data/TrackerInfo.java:130-133 ---
+130:             return new Result(
+131:                     Status.NOT_WORKING,
+132:                     TextUtils.isEmpty(firstTrackerMessage)
+133:                             ? firstErrorMessage
+--- core/model/data/TrackerInfo.java:137-140 ---
+137:             return new Result(Status.NOT_CONTACTED,
+138:                     TextUtils.isEmpty(firstTrackerMessage)
+139:                             ? firstErrorMessage
+140:                             : firstTrackerMessage
+--- core/model/data/TrackerInfo.java:144 ---
+144:         return new Result(Status.UNKNOWN, "");
+--- core/model/data/TrackerInfo.java:147-155 ---
+147:     private void calcStatusCount(
+148:             AnnounceEntry entry,
+149:             AnnounceInfohash infoHash,
+150:             Map<Integer, Integer> statusMap
+151:     ) {
+152:         var status = infoHashStatus(entry, infoHash);
+153:         var count = statusMap.getOrDefault(status, 0);
+154:         statusMap.put(status, count + 1);
+155:     }
+--- core/model/data/TrackerInfo.java:152 ---
+152:         var status = infoHashStatus(entry, infoHash);
+--- core/model/data/TrackerInfo.java:157-167 ---
+157:     private int infoHashStatus(AnnounceEntry entry, AnnounceInfohash infoHash) {
+158:         if (infoHash.updating()) {
+159:             return Status.UPDATING;
+160:         } else if (infoHash.fails() > 0) {
+161:             return Status.NOT_WORKING;
+162:         } else if (entry.isVerified()) {
+163:             return Status.WORKING;
+164:         } else {
+165:             return Status.NOT_CONTACTED;
+166:         }
+167:     }
+--- core/model/data/TrackerInfo.java:179-181 ---
+179:     public int describeContents() {
+180:         return 0;
+181:     }
+--- core/model/data/TrackerInfo.java:184-191 ---
+184:     public void writeToParcel(Parcel dest, int flags) {
+185:         super.writeToParcel(dest, flags);
+186: 
+187:         dest.writeString(url);
+188:         dest.writeString(message);
+189:         dest.writeInt(tier);
+190:         dest.writeInt(status);
+191:     }
+--- core/model/data/TrackerInfo.java:193-204 ---
+193:     public static final Parcelable.Creator<TrackerInfo> CREATOR =
+194:             new Parcelable.Creator<TrackerInfo>() {
+195:                 @Override
+196:                 public TrackerInfo createFromParcel(Parcel source) {
+197:                     return new TrackerInfo(source);
+198:                 }
+199: 
+200:                 @Override
+201:                 public TrackerInfo[] newArray(int size) {
+202:                     return new TrackerInfo[size];
+203:                 }
+204:             };
+--- core/model/data/TrackerInfo.java:196-198 ---
+196:                 public TrackerInfo createFromParcel(Parcel source) {
+197:                     return new TrackerInfo(source);
+198:                 }
+--- core/model/data/TrackerInfo.java:201-203 ---
+201:                 public TrackerInfo[] newArray(int size) {
+202:                     return new TrackerInfo[size];
+203:                 }
+--- core/model/data/TrackerInfo.java:208-209 ---
+208:     public int compareTo(@NonNull Object another) {
+209:         return url.compareTo(((TrackerInfo) another).url);
+--- core/model/data/TrackerInfo.java:213-222 ---
+213:     public int hashCode() {
+214:         int prime = 31, result = 1;
+215: 
+216:         result = prime * result + ((url == null) ? 0 : url.hashCode());
+217:         result = prime * result + ((message == null) ? 0 : message.hashCode());
+218:         result = prime * result + tier;
+219:         result = prime * result + status;
+220: 
+221:         return result;
+222:     }
+--- core/model/data/TrackerInfo.java:225-238 ---
+225:     public boolean equals(Object o) {
+226:         if (!(o instanceof TrackerInfo))
+227:             return false;
+228: 
+229:         if (o == this)
+230:             return true;
+231: 
+232:         TrackerInfo state = (TrackerInfo) o;
+233: 
+234:         return (url == null || url.equals(state.url)) &&
+235:                 (message == null || message.equals(state.message)) &&
+236:                 tier == state.tier &&
+237:                 status == state.status;
+238:     }
+--- core/model/data/TrackerInfo.java:240-268 ---
+240:     @NonNull
+241:     @Override
+242:     public String toString() {
+243:         String status;
+244: 
+245:         switch (this.status) {
+246:             case Status.NOT_CONTACTED:
+247:                 status = "NOT_CONTACTED";
+248:                 break;
+249:             case Status.WORKING:
+250:                 status = "WORKING";
+251:                 break;
+252:             case Status.UPDATING:
+253:                 status = "UPDATING";
+254:                 break;
+255:             case Status.NOT_WORKING:
+256:                 status = "NOT_WORKING";
+257:                 break;
+258:             default:
+259:                 status = "UNKNOWN";
+260:         }
+261: 
+262:         return "TrackerInfo{" +
+263:                 "url='" + url + '\'' +
+264:                 ", message='" + message + '\'' +
+265:                 ", tier=" + tier +
+266:                 ", status=" + status +
+267:                 '}';
+268:     }
+
+=== core/model/data/entity/FastResume.java (58 lines) ===
+--- core/model/data/entity/FastResume.java:52-56 ---
+52:     public FastResume(@NonNull String torrentId, @NonNull byte[] data)
+53:     {
+54:         this.torrentId = torrentId;
+55:         this.data = data;
+56:     }
+
+=== core/model/data/entity/FeedChannel.java (148 lines) ===
+--- core/model/data/entity/FeedChannel.java:52-64 ---
+52:     public FeedChannel(@NonNull String url, String name,
+53:                        long lastUpdate, boolean autoDownload,
+54:                        String filter, boolean isRegexFilter,
+55:                        String fetchError)
+56:     {
+57:         this.url = url;
+58:         this.name = name;
+59:         this.lastUpdate = lastUpdate;
+60:         this.autoDownload = autoDownload;
+61:         this.filter = filter;
+62:         this.isRegexFilter = isRegexFilter;
+63:         this.fetchError = fetchError;
+64:     }
+--- core/model/data/entity/FeedChannel.java:86-89 ---
+86:     public int describeContents()
+87:     {
+88:         return 0;
+89:     }
+--- core/model/data/entity/FeedChannel.java:104-118 ---
+104:     public static final Creator<FeedChannel> CREATOR =
+105:             new Creator<FeedChannel>()
+106:             {
+107:                 @Override
+108:                 public FeedChannel createFromParcel(Parcel source)
+109:                 {
+110:                     return new FeedChannel(source);
+111:                 }
+112: 
+113:                 @Override
+114:                 public FeedChannel[] newArray(int size)
+115:                 {
+116:                     return new FeedChannel[size];
+117:                 }
+118:             };
+--- core/model/data/entity/FeedChannel.java:108-111 ---
+108:                 public FeedChannel createFromParcel(Parcel source)
+109:                 {
+110:                     return new FeedChannel(source);
+111:                 }
+--- core/model/data/entity/FeedChannel.java:127-130 ---
+127:     public boolean equals(Object o)
+128:     {
+129:         return o instanceof FeedChannel && (o == this || id == ((FeedChannel)o).id);
+130:     }
+
+=== core/model/session/TorrentDownloadImpl.java (1712 lines) ===
+--- core/model/session/TorrentDownloadImpl.java:516-520 ---
+516:     private void serializeResumeData(SaveResumeDataAlert alert)
+517:     {
+518:         try {
+519:             byte_vector data = libtorrent.write_resume_data(alert.params().swig()).bencode();
+520:             repo.addFastResume(new FastResume(id, Vectors.byte_vector2bytes(data)));
+--- core/model/session/TorrentDownloadImpl.java:896-905 ---
+896:     public List<TrackerInfo> getTrackerInfoList()
+897:     {
+898:         if (operationNotAllowed())
+899:             return new ArrayList<>();
+900: 
+901:         List<AnnounceEntry> trackers = th.trackers();
+902:         ArrayList<TrackerInfo> states = new ArrayList<>();
+903: 
+904:         for (AnnounceEntry entry : trackers)
+905:             states.add(new TrackerInfo(entry));
+
+=== ui/addfeed/AddFeedViewModel.java (221 lines) ===
+--- ui/addfeed/AddFeedViewModel.java:173-179 ---
+173:         FeedChannel channel = new FeedChannel(url,
+174:                 mutableParams.getName(),
+175:                 0,
+176:                 mutableParams.isAutoDownload(),
+177:                 mutableParams.getFilter(),
+178:                 mutableParams.isRegexFilter(),
+179:                 null);
+
+=== ui/detailtorrent/pages/trackers/DetailTorrentTrackersFragment.java (407 lines) ===
+--- ui/detailtorrent/pages/trackers/DetailTorrentTrackersFragment.java:178-183 ---
+178:         selectionTracker = new SelectionTracker.Builder<>(
+179:                 SELECTION_TRACKER_ID,
+180:                 binding.trackerList,
+181:                 new TrackerListAdapter.KeyProvider(adapter),
+182:                 new TrackerListAdapter.ItemLookup(binding.trackerList),
+183:                 StorageStrategy.createParcelableStorage(TrackerItem.class))
+
+=== ui/detailtorrent/pages/trackers/TrackerItem.java (56 lines) ===
+--- ui/detailtorrent/pages/trackers/TrackerItem.java:26-30 ---
+26: public class TrackerItem extends TrackerInfo
+27: {
+28:     public TrackerItem(@NonNull TrackerInfo state)
+29:     {
+30:         super(state.url, state.message, state.tier, state.status);
+
+=== ui/detailtorrent/pages/trackers/TrackerListAdapter.java (300 lines) ===
+--- ui/detailtorrent/pages/trackers/TrackerListAdapter.java:92-95 ---
+92:     public void submitList(@Nullable List<TrackerItem> list)
+93:     {
+94:         if (list != null)
+95:             Collections.sort(list);
+
+=== ui/feeds/FeedChannelItem.java (81 lines) ===
+--- ui/feeds/FeedChannelItem.java:55-57 ---
+55:     public boolean equals(Object o)
+56:     {
+57:         return super.equals(o);
+
+=== ui/feeds/FeedFragment.java (520 lines) ===
+--- ui/feeds/FeedFragment.java:137-142 ---
+137:         selectionTracker = new SelectionTracker.Builder<>(
+138:                 SELECTION_TRACKER_ID,
+139:                 binding.feedList,
+140:                 new FeedChannelListAdapter.KeyProvider(adapter),
+141:                 new FeedChannelListAdapter.ItemLookup(binding.feedList),
+142:                 StorageStrategy.createParcelableStorage(FeedChannelItem.class))
+
+=== ui/main/MainFragment.java (638 lines) ===
+--- ui/main/MainFragment.java:157-162 ---
+157:         selectionTracker = new SelectionTracker.Builder<>(
+158:                 SELECTION_TRACKER_ID,
+159:                 binding.torrentList,
+160:                 new TorrentListAdapter.KeyProvider(adapter),
+161:                 new TorrentListAdapter.ItemLookup(binding.torrentList),
+162:                 StorageStrategy.createParcelableStorage(TorrentListItem.class))

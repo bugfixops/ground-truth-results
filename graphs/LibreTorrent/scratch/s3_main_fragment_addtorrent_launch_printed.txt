@@ -1,0 +1,102 @@
+   523	    private void addLinkDialog()
+   524	    {
+   525	        startActivity(new Intent(activity, AddLinkActivity.class));
+   526	    }
+   527	
+   528	    private void openTorrentFileDialog()
+   529	    {
+   530	        Intent i = new Intent(activity, FileManagerDialog.class);
+   531	
+   532	        FileManagerConfig config = new FileManagerConfig(null,
+   533	                getString(R.string.torrent_file_chooser_title),
+   534	                FileManagerConfig.FILE_CHOOSER_MODE);
+   535	        config.highlightFileTypes = Collections.singletonList("torrent");
+   536	
+   537	        i.putExtra(FileManagerDialog.TAG_CONFIG, config);
+   538	        torrentFileChoose.launch(i);
+   539	    }
+   541	    private void openFileErrorDialog()
+   542	    {
+   543	        if (!isAdded())
+   544	            return;
+   545	
+   546	        FragmentManager fm = getChildFragmentManager();
+   547	        if (fm.findFragmentByTag(TAG_OPEN_FILE_ERROR_DIALOG) == null) {
+   548	            BaseAlertDialog openFileErrorDialog = BaseAlertDialog.newInstance(
+   549	                    getString(R.string.error),
+   550	                    getString(R.string.error_open_torrent_file),
+   551	                    0,
+   552	                    getString(R.string.ok),
+   553	                    null,
+   554	                    null,
+   555	                    true);
+   556	
+   557	            openFileErrorDialog.show(fm, TAG_OPEN_FILE_ERROR_DIALOG);
+   558	        }
+   559	    }
+   561	    private void createTorrentDialog()
+   562	    {
+   563	        startActivity(new Intent(activity, CreateTorrentActivity.class));
+   564	    }
+   619	    final ActivityResultLauncher<Intent> torrentFileChoose = registerForActivityResult(
+   620	            new ActivityResultContracts.StartActivityForResult(),
+   621	            result -> {
+   622	                Intent data = result.getData();
+   623	                if (result.getResultCode() != Activity.RESULT_OK) {
+   624	                    return;
+   625	                }
+   626	
+   627	                if (data == null || data.getData() == null) {
+   628	                    openFileErrorDialog();
+   629	                    return;
+   630	                }
+   631	
+   632	                Intent i = new Intent(activity, AddTorrentActivity.class);
+   633	                i.putExtra(AddTorrentActivity.TAG_URI, data.getData());
+   634	                startActivity(i);
+   635	            }
+   636	    );
+   231	            android:name=".ui.createtorrent.CreateTorrentActivity"
+   232	            android:theme="@style/AppTheme.Translucent" />
+   233	
+   234	        <activity
+   235	            android:name=".ui.addlink.AddLinkActivity"
+   236	            android:theme="@style/AppTheme.Translucent" />
+   237	
+   238	        <activity
+   239	            android:name=".ui.log.LogActivity" />
+   240	
+   241	        <activity
+   242	            android:name=".ui.log.LogSettingsActivity" />
+   243	
+   244	        <activity
+   245	            android:name=".ui.addtag.AddTagActivity"
+   246	            android:theme="@style/AppTheme.Translucent" />
+   247	
+   248	        <activity
+   249	            android:name=".ui.tag.SelectTagActivity"
+   250	            android:theme="@style/AppTheme.Translucent" />
+   251	
+  2665	        ContextImpl appContext = createBaseContextForActivity(r);
+  2666	        Activity activity = null;
+  2667	        try {
+  2668	            java.lang.ClassLoader cl = appContext.getClassLoader();
+  2669	            activity = mInstrumentation.newActivity(
+  2670	                    cl, component.getClassName(), r.intent);
+  2671	            StrictMode.incrementExpectedActivityCount(activity.getClass());
+  2727	                activity.mCalled = false;
+  2728	                if (r.isPersistable()) {
+  2729	                    mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+  2730	                } else {
+  2731	                    mInstrumentation.callActivityOnCreate(activity, r.state);
+  2732	                }
+  1170	    public Activity newActivity(ClassLoader cl, String className,
+  1171	            Intent intent)
+  1172	            throws InstantiationException, IllegalAccessException,
+  1173	            ClassNotFoundException {
+  1174	        return (Activity)cl.loadClass(className).newInstance();
+  1175	    }
+  1212	    public void callActivityOnCreate(Activity activity, Bundle icicle) {
+  1213	        prePerformCreate(activity);
+  1214	        activity.performCreate(icicle);
+  1215	        postPerformCreate(activity);

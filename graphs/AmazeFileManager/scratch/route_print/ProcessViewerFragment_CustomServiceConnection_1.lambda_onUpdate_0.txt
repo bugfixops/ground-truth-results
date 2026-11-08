@@ -1,0 +1,93 @@
+METHOD: ProcessViewerFragment$CustomServiceConnection$1.lambda$onUpdate$0
+verdict: REACHABLE   steps_from_launch: 8
+route steps: 8 edges
+======================================================================
+
+STEP 1  edge E7836345a
+  S_ENTRY -> ExtractService.<init>
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC AndroidManifest.xml:165-169; FW-SRC core/java/android/app/ActivityThread.java (Service lifecycle callbacks dispatched by ActivityThread)
+  cite [SRC] AndroidManifest.xml:165-169
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/AndroidManifest.xml)
+      165:         <service
+      166:             android:name = ".asynchronous.services.ExtractService"
+      167:             android:label = "Extracting"
+      168:             >
+      169:         </service>
+
+STEP 2  edge E65d0ad48
+  ExtractService.<init> -> ExtractService.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC core/java/android/app/ActivityThread.java (Service lifecycle callbacks dispatched by ActivityThread); SRC ExtractService.java (need to read)
+  (no file:line citations in evidence)
+
+STEP 3  edge Ed845d59b
+  ExtractService.onCreate -> ExtractService.onStartCommand
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC core/java/android/app/ActivityThread.java (Service lifecycle callbacks dispatched by ActivityThread)
+  (no file:line citations in evidence)
+
+STEP 4  edge Ef0ba5cf2
+  ExtractService.onStartCommand -> ExtractService.lambda$onStartCommand$0
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ExtractService.java:142-143
+  cite [SRC] ExtractService.java:142-143
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/asynchronous/services/ExtractService.java)
+      142:         progressHandler.setProgressListener((speed) ->
+      143:             publishResults(speed, false, false));
+
+STEP 5  edge Ed8c5adf0
+  ExtractService.lambda$onStartCommand$0 -> AbstractProgressiveService.publishResults@ExtractService
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ExtractService.java:143 (bytecode)
+  cite [SRC] ExtractService.java:143
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/asynchronous/services/ExtractService.java)
+      143:             publishResults(speed, false, false));
+
+STEP 6  edge E02c0db97
+  AbstractProgressiveService.publishResults@ExtractService -> AbstractProgressiveService.addDatapoint@ExtractService
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC AbstractProgressiveService.java:161 (bytecode)
+  cite [SRC] AbstractProgressiveService.java:161
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/asynchronous/services/AbstractProgressiveService.java)
+      161:             addDatapoint(intent);
+
+STEP 7  edge Efb401063
+  AbstractProgressiveService.addDatapoint@ExtractService -> ProcessViewerFragment$CustomServiceConnection$1.onUpdate
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC AbstractProgressiveService.java:189 (bytecode)
+  cite [SRC] AbstractProgressiveService.java:189
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/asynchronous/services/AbstractProgressiveService.java)
+      189:             getProgressListener().onUpdate(datapoint);
+
+STEP 8  edge E5d4de743
+  ProcessViewerFragment$CustomServiceConnection$1.onUpdate -> ProcessViewerFragment$CustomServiceConnection$1.lambda$onUpdate$0
+  class: standard   kind: ASYNC
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ProcessViewerFragment.java:423
+  cite [SRC] ProcessViewerFragment.java:423
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/fragments/ProcessViewerFragment.java)
+      423:                     fragment.getActivity().runOnUiThread(() -> fragment.processResults(dataPackage, serviceType));

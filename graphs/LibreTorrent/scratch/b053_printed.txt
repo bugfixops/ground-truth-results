@@ -1,0 +1,241 @@
+# Printed source for batch 53 part (b053).
+# Every SRC citation in parts/b053.py and every printed file:lines cell in parts/b053.md is covered below.
+# Line numbers are the clone source line numbers (final_java_only tree).
+
+===== core/storage/AppDatabase.java =====
+--- core/storage/AppDatabase.java:61-61 ---
+61:     public abstract TorrentDao torrentDao();
+--- core/storage/AppDatabase.java:81-87 ---
+81:     private static AppDatabase buildDatabase(Context appContext)
+82:     {
+83:         return Room.databaseBuilder(appContext, AppDatabase.class, DATABASE_NAME)
+84:                 .addMigrations(DatabaseMigration.getMigrations(appContext))
+85:                 .build();
+86:     }
+87: }
+
+===== core/storage/TorrentRepositoryImpl.java =====
+--- core/storage/TorrentRepositoryImpl.java:56-58 ---
+56:     public void addTorrent(@NonNull Torrent torrent) {
+57:         db.torrentDao().add(torrent);
+58:     }
+--- core/storage/TorrentRepositoryImpl.java:61-63 ---
+61:     public void updateTorrent(@NonNull Torrent torrent) {
+62:         db.torrentDao().update(torrent);
+63:     }
+--- core/storage/TorrentRepositoryImpl.java:66-68 ---
+66:     public void deleteTorrent(@NonNull Torrent torrent) {
+67:         db.torrentDao().delete(torrent);
+68:     }
+--- core/storage/TorrentRepositoryImpl.java:71-73 ---
+71:     public Torrent getTorrentById(@NonNull String id) {
+72:         return db.torrentDao().getTorrentById(id);
+73:     }
+--- core/storage/TorrentRepositoryImpl.java:76-78 ---
+76:     public Single<Torrent> getTorrentByIdSingle(@NonNull String id) {
+77:         return db.torrentDao().getTorrentByIdSingle(id);
+78:     }
+--- core/storage/TorrentRepositoryImpl.java:81-83 ---
+81:     public Flowable<Torrent> observeTorrentById(@NonNull String id) {
+82:         return db.torrentDao().observeTorrentById(id);
+83:     }
+--- core/storage/TorrentRepositoryImpl.java:86-88 ---
+86:     public List<Torrent> getAllTorrents() {
+87:         return db.torrentDao().getAllTorrents();
+88:     }
+--- core/storage/TorrentRepositoryImpl.java:122-128 ---
+122:     public void replaceTags(@NonNull String torrentId, @NonNull List<TagInfo> tags) {
+123:         ArrayList<TorrentTagInfo> tagInfoList = new ArrayList<>();
+124:         for (TagInfo tag : tags) {
+125:             tagInfoList.add(new TorrentTagInfo(tag.id, torrentId));
+126:         }
+127:         db.torrentDao().replaceTags(torrentId, tagInfoList);
+128:     }
+--- core/storage/TorrentRepositoryImpl.java:131-133 ---
+131:     public void addTag(@NonNull String torrentId, @NonNull TagInfo tag) {
+132:         db.torrentDao().addTag(new TorrentTagInfo(tag.id, torrentId));
+133:     }
+--- core/storage/TorrentRepositoryImpl.java:136-138 ---
+136:     public void deleteTag(@NonNull String torrentId, @NonNull TagInfo tag) {
+137:         db.torrentDao().deleteTag(new TorrentTagInfo(tag.id, torrentId));
+138:     }
+
+===== core/storage/dao/TorrentDao.java =====
+--- core/storage/dao/TorrentDao.java:40-40 ---
+40:     public abstract void add(Torrent torrent);
+--- core/storage/dao/TorrentDao.java:43-43 ---
+43:     public abstract void update(Torrent torrent);
+--- core/storage/dao/TorrentDao.java:46-46 ---
+46:     public abstract void delete(Torrent torrent);
+--- core/storage/dao/TorrentDao.java:49-49 ---
+49:     public abstract List<Torrent> getAllTorrents();
+--- core/storage/dao/TorrentDao.java:52-52 ---
+52:     public abstract Torrent getTorrentById(String id);
+--- core/storage/dao/TorrentDao.java:55-55 ---
+55:     public abstract Single<Torrent> getTorrentByIdSingle(String id);
+--- core/storage/dao/TorrentDao.java:58-58 ---
+58:     public abstract Flowable<Torrent> observeTorrentById(String id);
+--- core/storage/dao/TorrentDao.java:61-61 ---
+61:     public abstract void addTags(List<TorrentTagInfo> infoList);
+--- core/storage/dao/TorrentDao.java:64-64 ---
+64:     public abstract void deleteTagsByTorrentId(String torrentId);
+--- core/storage/dao/TorrentDao.java:67-70 ---
+67:     public void replaceTags(String torrentId, List<TorrentTagInfo> infoList) {
+68:         deleteTagsByTorrentId(torrentId);
+69:         addTags(infoList);
+70:     }
+--- core/storage/dao/TorrentDao.java:73-73 ---
+73:     public abstract void addTag(TorrentTagInfo info);
+--- core/storage/dao/TorrentDao.java:76-76 ---
+76:     public abstract void deleteTag(TorrentTagInfo info);
+
+===== core/system/DefaultFsModule.java =====
+--- core/system/DefaultFsModule.java:47-50 ---
+47:     public String getDirPath(@NonNull Uri dir)
+48:     {
+49:         return dir.getPath();
+50:     }
+--- core/system/DefaultFsModule.java:53-56 ---
+53:     public String getFilePath(@NonNull Uri filePath)
+54:     {
+55:         return filePath.getPath();
+56:     }
+--- core/system/DefaultFsModule.java:59-66 ---
+59:     public Uri getFileUri(@NonNull Uri dir, @NonNull String fileName, boolean create) throws IOException
+60:     {
+61:         File f = new File(dir.getPath(), fileName);
+62:         if (create)
+63:             f.createNewFile();
+64: 
+65:         return (f.exists() ? Uri.fromFile(f) : null);
+66:     }
+--- core/system/DefaultFsModule.java:69-76 ---
+69:     public Uri getFileUri(@NonNull String relativePath, @NonNull Uri dir)
+70:     {
+71:         if (!relativePath.startsWith(File.separator))
+72:             relativePath = File.separator + relativePath;
+73:         File f = new File(dir.getPath() + relativePath);
+74: 
+75:         return (f.exists() ? Uri.fromFile(f) : null);
+76:     }
+--- core/system/DefaultFsModule.java:79-82 ---
+79:     public boolean delete(@NonNull Uri filePath)
+80:     {
+81:         return new File(filePath.getPath()).delete();
+82:     }
+--- core/system/DefaultFsModule.java:91-106 ---
+91:     public long getDirAvailableBytes(@NonNull Uri dir)
+92:     {
+93:         long availableBytes;
+94: 
+95:         try {
+96:             File file = new File(dir.getPath());
+97:             availableBytes = file.getUsableSpace();
+98: 
+99:         } catch (Exception e) {
+100:             /* This provides invalid space on some devices */
+101:             StatFs stat = new StatFs(dir.getPath());
+102:             availableBytes = stat.getAvailableBytes();
+103:         }
+104: 
+105:         return availableBytes;
+106:     }
+--- core/system/DefaultFsModule.java:109-112 ---
+109:     public boolean fileExists(@NonNull Uri filePath)
+110:     {
+111:         return new File(filePath.getPath()).exists();
+112:     }
+
+===== core/system/FileSystemFacadeImpl.java =====
+--- core/system/FileSystemFacadeImpl.java:110-115 ---
+110:     public boolean deleteFile(@NonNull Uri path) throws FileNotFoundException, UnknownUriException
+111:     {
+112:         FsModule fsModule = fsResolver.resolveFsByUri(path);
+113: 
+114:         return fsModule.delete(path);
+115:     }
+--- core/system/FileSystemFacadeImpl.java:144-150 ---
+144:     public Uri getFileUri(@NonNull String relativePath,
+145:                           @NonNull Uri dir) throws UnknownUriException
+146:     {
+147:         FsModule fsModule = fsResolver.resolveFsByUri(dir);
+148: 
+149:         return fsModule.getFileUri(relativePath, dir);
+150:     }
+--- core/system/FileSystemFacadeImpl.java:153-158 ---
+153:     public boolean fileExists(@NonNull Uri filePath) throws UnknownUriException
+154:     {
+155:         FsModule fsModule = fsResolver.resolveFsByUri(filePath);
+156: 
+157:         return fsModule.fileExists(filePath);
+158:     }
+--- core/system/FileSystemFacadeImpl.java:199-218 ---
+199:     public Uri createFile(@NonNull Uri dir,
+200:                           @NonNull String fileName,
+201:                           boolean replace) throws IOException, UnknownUriException
+202:     {
+203:         FsModule fsModule = fsResolver.resolveFsByUri(dir);
+204:         try {
+205:             Uri path = fsModule.getFileUri(dir, fileName, false);
+206:             if (path != null) {
+207:                 if (!replace)
+208:                     return path;
+209:                 else if (!fsModule.delete(path))
+210:                     return null;
+211:             }
+212: 
+213:             return fsModule.getFileUri(dir, fileName, true);
+214: 
+215:         } catch (SecurityException e) {
+216:             throw new IOException(e);
+217:         }
+218:     }
+--- core/system/FileSystemFacadeImpl.java:268-282 ---
+268:     public long getDirAvailableBytes(@NonNull Uri dir) throws UnknownUriException
+269:     {
+270:         long availableBytes = -1;
+271: 
+272:         FsModule fsModule = fsResolver.resolveFsByUri(dir);
+273:         try {
+274:             availableBytes = fsModule.getDirAvailableBytes(dir);
+275: 
+276:         } catch (IllegalArgumentException | IOException e) {
+277:             Log.e(TAG, Log.getStackTraceString(e));
+278:             return availableBytes;
+279:         }
+280: 
+281:         return availableBytes;
+282:     }
+--- core/system/FileSystemFacadeImpl.java:418-423 ---
+418:     public String getDirPath(@NonNull Uri dir) throws UnknownUriException
+419:     {
+420:         FsModule fsModule = fsResolver.resolveFsByUri(dir);
+421: 
+422:         return fsModule.getDirPath(dir);
+423:     }
+--- core/system/FileSystemFacadeImpl.java:430-435 ---
+430:     public String getFilePath(@NonNull Uri filePath) throws UnknownUriException
+431:     {
+432:         FsModule fsModule = fsResolver.resolveFsByUri(filePath);
+433: 
+434:         return fsModule.getFilePath(filePath);
+435:     }
+
+===== core/system/FsModuleResolverImpl.java =====
+--- core/system/FsModuleResolverImpl.java:35-39 ---
+35:     public FsModuleResolverImpl(@NonNull Context appContext) {
+36:         this.appContext = appContext;
+37:         this.safModule = new SafFsModule(appContext);
+38:         this.defaultModule = new DefaultFsModule(appContext);
+39:     }
+
+===== core/system/SystemFacadeHelper.java =====
+--- core/system/SystemFacadeHelper.java:39-46 ---
+39:     public synchronized static FileSystemFacade getFileSystemFacade(@NonNull Context appContext)
+40:     {
+41:         if (fileSystemFacade == null)
+42:             fileSystemFacade = new FileSystemFacadeImpl(appContext,
+43:                     new FsModuleResolverImpl(appContext));
+44: 
+45:         return fileSystemFacade;
+46:     }

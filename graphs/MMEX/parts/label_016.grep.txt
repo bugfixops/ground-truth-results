@@ -1,0 +1,51 @@
+# label_016 grep evidence (MMEX batch 016). Source root: final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java
+# The grep output backs the no-caller claims: BudgetAdapter.getAmountForSubCategory and the three BudgetAdapter_MembersInjector methods (create, <init>, injectMembers).
+# DaggerMmxComponent and BudgetAdapter_MembersInjector are generated code and are not in the source root, so their claims are INFERRED from the bytecode call graph.
+# The auto_calls.json lines are the JSON file's own line numbers. A grep with no output means no match (exit 1).
+
+== grep -rn "getAmountForSubCategory" <src/main/java>
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/budget/BudgetAdapter.java:214://            actual = getAmountForSubCategory(subCategoryId);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/budget/BudgetAdapter.java:260:    private double getAmountForSubCategory(int subCategoryId) {
+(exit 0)
+
+== grep -n '"dst": "BudgetAdapter.getAmountForSubCategory"' graphs/MMEX/auto_calls.json
+(exit 1)
+
+== grep -rn "BudgetAdapter_MembersInjector\|DaggerMmxComponent" <src/main/java>
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/MmexApplication.java:36:import com.money.manager.ex.core.ioc.DaggerMmxComponent;
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/MmexApplication.java:202:        iocComponent = DaggerMmxComponent.builder()
+(exit 0)
+
+== grep -n 'BudgetAdapter_MembersInjector' graphs/MMEX/auto_calls.json
+19177:   "dst": "BudgetAdapter_MembersInjector.injectDatabaseLazy",
+58030:   "src": "BudgetAdapter_MembersInjector.create",
+58031:   "dst": "BudgetAdapter_MembersInjector.<init>",
+58032:   "file": "BudgetAdapter_MembersInjector.java",
+58038:   "src": "BudgetAdapter_MembersInjector.injectMembers",
+58039:   "dst": "BudgetAdapter_MembersInjector.injectDatabaseLazy",
+58040:   "file": "BudgetAdapter_MembersInjector.java",
+76187:  "BudgetAdapter_MembersInjector.<init>": [
+76190:  "BudgetAdapter_MembersInjector.injectMembers": [
+94469:  "BudgetAdapter_MembersInjector": {
+94471:    "(Ljavax/inject/Provider;)V": "BudgetAdapter_MembersInjector.<init>"
+94474:    "(Ljavax/inject/Provider;)Ldagger/MembersInjector;": "BudgetAdapter_MembersInjector.create"
+94477:    "(Lcom/money/manager/ex/budget/BudgetAdapter;)V": "BudgetAdapter_MembersInjector.injectMembers"
+94480:    "(Lcom/money/manager/ex/budget/BudgetAdapter;Ldagger/Lazy;)V": "BudgetAdapter_MembersInjector.injectDatabaseLazy"
+(exit 0)
+
+== grep -n '"dst": "[^"]*MembersInjector.create"' graphs/MMEX/auto_calls.json   (no injector create is ever a callee)
+(exit 1)
+
+== grep -c '"src": "[^"]*MembersInjector.create"' graphs/MMEX/auto_calls.json   (count of injector create methods that appear as a caller)
+32
+(exit 0)
+
+== grep -n '"dst": "[^"]*\.injectMembers"' graphs/MMEX/auto_calls.json   (no injectMembers is ever a callee)
+(exit 1)
+
+== grep -n 'DaggerMmxComponent.injectBudgetAdapter' graphs/MMEX/auto_calls.json   (the static injection that the REACHABLE injectDatabaseLazy relies on)
+18649:   "dst": "DaggerMmxComponent.injectBudgetAdapter",
+19176:   "src": "DaggerMmxComponent.injectBudgetAdapter",
+66388:  "DaggerMmxComponent.injectBudgetAdapter": [
+83047:    "(Lcom/money/manager/ex/budget/BudgetAdapter;)Lcom/money/manager/ex/budget/BudgetAdapter;": "DaggerMmxComponent.injectBudgetAdapter"
+(exit 0)

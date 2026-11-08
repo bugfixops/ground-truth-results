@@ -1,0 +1,107 @@
+# batch 100 grep and sed output behind the REACHABLE decision for RecurringTransactionEditActivity$4.onClick (no UNREACHABLE entry in this batch)
+# produced with: grep -n / sed -n / python3 -I over the MMEX source root, graph files and fw_src
+
+=== section 1: existing page keys for the recurring edit form (none found)
+grep exit (1 = no match): 1
+
+=== section 2: the anonymous listener at line 390 and the next-day button (source)
+382:        mViewHolder.paymentPreviousDayButton.setOnClickListener(new View.OnClickListener() {
+390:        mViewHolder.paymentNextDayButton.setOnClickListener(new View.OnClickListener() {
+419:        mViewHolder.paymentDateTextView = findViewById(R.id.paymentDateTextView);
+422:        mViewHolder.paymentPreviousDayButton = findViewById(R.id.paymentPreviousDayButton);
+423:        mViewHolder.paymentNextDayButton = findViewById(R.id.paymentNextDayButton);
+134:        initializeViewHolder();
+136:        initializeControls();
+280:    private void initializeControls() {
+282:        initializePaymentDateSelector();
+346:    private void initializePaymentDateSelector() {
+
+=== section 3: the listener body (sed -n 390,396p)
+        mViewHolder.paymentNextDayButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Date dateTime = new MmxDate(getPaymentDate()).plusDays(1).toDate();
+                setPaymentDate(dateTime);
+            }
+        });
+
+=== section 4: the layout row (sed -n 100,145p, visibility and ids only)
+3:            <LinearLayout
+9:                    android:id="@+id/paymentPreviousDayButton"
+18:                    android:id="@+id/paymentDateTextView"
+28:                    android:id="@+id/paymentNextDayButton"
+42:            </LinearLayout>
+45:            <LinearLayout
+--- visibility attributes in the whole layout:
+265:                    android:visibility="gone" />
+291:                    android:visibility="gone" />
+366:                    android:visibility="gone">
+424:                    android:visibility="gone"
+457:                android:visibility="gone"
+
+=== section 5: the view holder fields and the null guard
+30:    public TextView paymentDateTextView;
+31:    public FontIconView paymentPreviousDayButton, paymentNextDayButton;
+        if (mViewHolder.paymentDateTextView == null) return;
+
+=== section 6: upstream route into the page (the activity is started from the list fragment and the drawer)
+    public void onFloatingActionButtonClicked() {
+        // create new recurring transaction.
+        startRecurringTransactionEditActivity(null, REQUEST_ADD_REPEATING_TRANSACTION);
+                startRecurringTransactionEditActivity(scheduledTransactionId, REQUEST_EDIT_REPEATING_TRANSACTION);
+        Intent intent = new Intent(getActivity(), RecurringTransactionEditActivity.class);
+        startActivityForResult(intent, purposeCode);
+            case R.id.menu_recurring_transaction:
+                showFragment(RecurringTransactionListFragment.class);
+                android:name=".recurring.transactions.RecurringTransactionEditActivity"
+                android:label="@string/new_edit_repeating_transaction" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.EDIT" />
+                <action android:name="android.intent.action.INSERT" />
+
+=== section 7: framework click dispatch (FW-SRC)
+    public void setOnClickListener(@Nullable OnClickListener l) {
+        if (!isClickable()) {
+            setClickable(true);
+        }
+        getListenerInfo().mOnClickListener = l;
+    public boolean performClick() {
+        final boolean result;
+        final ListenerInfo li = mListenerInfo;
+        if (li != null && li.mOnClickListener != null) {
+            playSoundEffect(SoundEffectConstants.CLICK);
+            li.mOnClickListener.onClick(this);
+            result = true;
+                case MotionEvent.ACTION_UP:
+                        if (!mHasPerformedLongPress && !mIgnoreNextUpEvent) {
+                            // This is a tap, so remove the longpress check
+                            removeLongPressCallback();
+
+                            // Only perform take click actions if we were in the pressed state
+                            if (!focusTaken) {
+                                // Use a Runnable and post this rather than calling
+                                // performClick directly. This lets other visual state
+                                // of the view update before click actions start.
+                                if (mPerformClick == null) {
+                                    mPerformClick = new PerformClick();
+                                }
+                                if (!post(mPerformClick)) {
+                                    performClick();
+                                }
+                            }
+                        }
+
+=== section 8: FAB route into the insert form (line numbers from grep -n)
+96:    protected void onCreate(Bundle savedInstanceState) {
+98:        setContentView(R.layout.activity_edit_recurring_transaction);
+63:    public void onViewCreated(View view, Bundle savedInstanceState) {
+64:        setupFloatingActionButton(view);
+244:                    onFloatingActionButtonClicked();
+94:    public void onActivityCreated(Bundle savedInstanceState) {
+112:        setFloatingActionButtonVisible(true);
+126:    public void onFloatingActionButtonClicked() {
+651:            case R.id.menu_recurring_transaction:
+1084:        menuItems.add(new DrawerMenuItem().withId(R.id.menu_recurring_transaction)
+384:            public void onClick(View view) {
+390:        mViewHolder.paymentNextDayButton.setOnClickListener(new View.OnClickListener() {
+392:            public void onClick(View view) {

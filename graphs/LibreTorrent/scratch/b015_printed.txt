@@ -1,0 +1,222 @@
+C01 trimmed printed evidence for batch 15 (2026-11-01).
+The helper dump graphs/LibreTorrent/scratch/b015_printed.txt is 995,859 B,
+above the 900 KB delivery limit, so this file prints, freshly in this session,
+exactly the line ranges cited by the delivered part's SRC citations, plus the
+serve-override lines cited in the batch-15 table (TorrentStreamServer.java:111-120,
+already among the SRC ranges). Full-file dumps are not repeated here; the ranges
+below are the complete evidence for every SRC citation in parts/b015.py.
+Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java
+
+$ file: com/ernieyu/feedparser/impl/MediaRssParser.java (98 lines)
+$ sed -n 37,37p com/ernieyu/feedparser/impl/MediaRssParser.java | nl -ba -v 37
+    37	        return new MediaRss(content, hash, peerLinks);
+$ sed -n 71,71p com/ernieyu/feedparser/impl/MediaRssParser.java | nl -ba -v 71
+    71	            mediaHash.setAlgorithm(algo);
+$ sed -n 88,88p com/ernieyu/feedparser/impl/MediaRssParser.java | nl -ba -v 88
+    88	            peerLinks.add(new PeerLink(href, type));
+
+$ file: com/ernieyu/feedparser/mediarss/Hash.java (81 lines)
+$ sed -n 67,71p com/ernieyu/feedparser/mediarss/Hash.java | nl -ba -v 67
+    67	    public int hashCode() {
+    68	        int result = value != null ? value.hashCode() : 0;
+    69	        result = 31 * result + (algorithm != null ? algorithm.hashCode() : 0);
+    70	        return result;
+    71	    }
+$ sed -n 75,80p com/ernieyu/feedparser/mediarss/Hash.java | nl -ba -v 75
+    75	    public String toString() {
+    76	        return "MediaRssHash{" +
+    77	            "value='" + value + '\'' +
+    78	            ", algorithm='" + algorithm + '\'' +
+    79	            '}';
+    80	    }
+
+$ file: com/ernieyu/feedparser/mediarss/MediaRss.java (50 lines)
+$ sed -n 44,49p com/ernieyu/feedparser/mediarss/MediaRss.java | nl -ba -v 44
+    44	    public String toString() {
+    45	        return "MediaRss{" +
+    46	            "content=" + content +
+    47	            ", hash=" + hash +
+    48	            '}';
+    49	    }
+
+$ file: com/ernieyu/feedparser/mediarss/PeerLink.java (69 lines)
+$ sed -n 43,52p com/ernieyu/feedparser/mediarss/PeerLink.java | nl -ba -v 43
+    43	    public boolean equals(Object o) {
+    44	        if (this == o) return true;
+    45	        if (o == null || getClass() != o.getClass()) return false;
+    46	
+    47	        PeerLink that = (PeerLink) o;
+    48	
+    49	        if (href != null ? !href.equals(that.href) : that.href != null)
+    50	            return false;
+    51	        return type != null ? type.equals(that.type) : that.type == null;
+    52	    }
+$ sed -n 55,59p com/ernieyu/feedparser/mediarss/PeerLink.java | nl -ba -v 55
+    55	    public int hashCode() {
+    56	        int result = href != null ? href.hashCode() : 0;
+    57	        result = 31 * result + (type != null ? type.hashCode() : 0);
+    58	        return result;
+    59	    }
+$ sed -n 63,68p com/ernieyu/feedparser/mediarss/PeerLink.java | nl -ba -v 63
+    63	    public String toString() {
+    64	        return "MediaRssPeerLink{" +
+    65	            "href='" + href + '\'' +
+    66	            ", type='" + type + '\'' +
+    67	            '}';
+    68	    }
+
+$ file: org/nanohttpd/NanoHTTPD.java (1851 lines)
+$ sed -n 164,165p org/nanohttpd/NanoHTTPD.java | nl -ba -v 164
+   164	            safeClose(this.inputStream);
+   165	            safeClose(this.acceptSocket);
+$ sed -n 197,203p org/nanohttpd/NanoHTTPD.java | nl -ba -v 197
+   197	        public static String getHTTPTime(int days) {
+   198	            Calendar calendar = Calendar.getInstance();
+   199	            SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
+   200	            dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+   201	            calendar.add(Calendar.DAY_OF_MONTH, days);
+   202	            return dateFormat.format(calendar.getTime());
+   203	        }
+$ sed -n 211,211p org/nanohttpd/NanoHTTPD.java | nl -ba -v 211
+   211	            this.e = getHTTPTime(numDays);
+$ sed -n 213,221p org/nanohttpd/NanoHTTPD.java | nl -ba -v 213
+   213	        public Cookie(String name, String value, String expires) {
+   214	            this.n = name;
+   215	            this.v = value;
+   216	            this.e = expires;
+   217	        }
+   218	        public String getHTTPHeader() {
+   219	            String fmt = "%s=%s; expires=%s";
+   220	            return String.format(fmt, this.n, this.v, this.e);
+   221	        }
+$ sed -n 252,254p org/nanohttpd/NanoHTTPD.java | nl -ba -v 252
+   252	        public void delete(String name) {
+   253	            set(name, "-delete-", -30);
+   254	        }
+$ sed -n 257,259p org/nanohttpd/NanoHTTPD.java | nl -ba -v 257
+   257	        public Iterator<String> iterator() {
+   258	            return this.cookies.keySet().iterator();
+   259	        }
+$ sed -n 267,269p org/nanohttpd/NanoHTTPD.java | nl -ba -v 267
+   267	        public String read(String name) {
+   268	            return this.cookies.get(name);
+   269	        }
+$ sed -n 283,285p org/nanohttpd/NanoHTTPD.java | nl -ba -v 283
+   283	        public void set(String name, String value, int expires) {
+   284	            this.queue.add(new Cookie(name, value, Cookie.getHTTPTime(expires)));
+   285	        }
+$ sed -n 294,297p org/nanohttpd/NanoHTTPD.java | nl -ba -v 294
+   294	        public void unloadQueue(Response response) {
+   295	            for (Cookie cookie : this.queue) {
+   296	                response.addHeader("Set-Cookie", cookie.getHTTPHeader());
+   297	            }
+$ sed -n 322,322p org/nanohttpd/NanoHTTPD.java | nl -ba -v 322
+   322	                clientHandler.close();
+$ sed -n 332,336p org/nanohttpd/NanoHTTPD.java | nl -ba -v 332
+   332	            Thread t = new Thread(clientHandler);
+   333	            t.setDaemon(true);
+   334	            t.setName("NanoHttpd Request Processor (#" + this.requestCount + ")");
+   335	            this.running.add(clientHandler);
+   336	            t.start();
+$ sed -n 514,514p org/nanohttpd/NanoHTTPD.java | nl -ba -v 514
+   514	                    uri = decodePercent(uri.substring(0, qmi));
+$ sed -n 516,516p org/nanohttpd/NanoHTTPD.java | nl -ba -v 516
+   516	                    uri = decodePercent(uri);
+$ sed -n 648,648p org/nanohttpd/NanoHTTPD.java | nl -ba -v 648
+   648	                    p.put(decodePercent(e.substring(0, sep)).trim(), decodePercent(e.substring(sep + 1)));
+$ sed -n 650,650p org/nanohttpd/NanoHTTPD.java | nl -ba -v 650
+   650	                    p.put(decodePercent(e).trim(), "");
+$ sed -n 713,713p org/nanohttpd/NanoHTTPD.java | nl -ba -v 713
+   713	                this.cookies = new CookieHandler(this.headers);
+$ sed -n 720,720p org/nanohttpd/NanoHTTPD.java | nl -ba -v 720
+   720	                r = serve(this);
+$ sed -n 727,727p org/nanohttpd/NanoHTTPD.java | nl -ba -v 727
+   727	                    this.cookies.unloadQueue(r);
+$ sed -n 729,729p org/nanohttpd/NanoHTTPD.java | nl -ba -v 729
+   729	                    r.setGzipEncoding(useGzipWhenAccepted(r) && acceptEncoding != null && acceptEncoding.contains("gzip"));
+$ sed -n 745,745p org/nanohttpd/NanoHTTPD.java | nl -ba -v 745
+   745	                Response resp = newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
+$ sed -n 749,749p org/nanohttpd/NanoHTTPD.java | nl -ba -v 749
+   749	                Response resp = newFixedLengthResponse(re.getStatus(), NanoHTTPD.MIME_PLAINTEXT, re.getMessage());
+$ sed -n 1347,1347p org/nanohttpd/NanoHTTPD.java | nl -ba -v 1347
+  1347	                    NanoHTTPD.this.asyncRunner.exec(createClientHandler(finalAccept, inputStream));
+$ sed -n 1560,1561p org/nanohttpd/NanoHTTPD.java | nl -ba -v 1560
+  1560	        setTempFileManagerFactory(new DefaultTempFileManagerFactory());
+  1561	        setAsyncRunner(new DefaultAsyncRunner());
+$ sed -n 1580,1580p org/nanohttpd/NanoHTTPD.java | nl -ba -v 1580
+  1580	        return new ClientHandler(inputStream, finalAccept);
+$ sed -n 1732,1746p org/nanohttpd/NanoHTTPD.java | nl -ba -v 1732
+  1732	    public Response serve(IHTTPSession session) {
+  1733	        Map<String, String> files = new HashMap<String, String>();
+  1734	        Method method = session.getMethod();
+  1735	        if (Method.PUT.equals(method) || Method.POST.equals(method)) {
+  1736	            try {
+  1737	                session.parseBody(files);
+  1738	            } catch (IOException ioe) {
+  1739	                return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
+  1740	            } catch (ResponseException re) {
+  1741	                return newFixedLengthResponse(re.getStatus(), NanoHTTPD.MIME_PLAINTEXT, re.getMessage());
+  1742	            }
+  1743	        }
+  1744	        Map<String, String> parms = session.getParms();
+  1745	        parms.put(NanoHTTPD.QUERY_STRING_PARAMETER, session.getQueryParameterString());
+  1746	        return serve(session.getUri(), method, session.getHeaders(), parms, files);
+$ sed -n 1767,1768p org/nanohttpd/NanoHTTPD.java | nl -ba -v 1767
+  1767	    public Response serve(String uri, Method method, Map<String, String> headers, Map<String, String> parms, Map<String, String> files) {
+  1768	        return newFixedLengthResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "Not Found");
+$ sed -n 1795,1795p org/nanohttpd/NanoHTTPD.java | nl -ba -v 1795
+  1795	        start(NanoHTTPD.SOCKET_READ_TIMEOUT);
+$ sed -n 1801,1801p org/nanohttpd/NanoHTTPD.java | nl -ba -v 1801
+  1801	        start(timeout, true);
+$ sed -n 1814,1814p org/nanohttpd/NanoHTTPD.java | nl -ba -v 1814
+  1814	        this.myServerSocket = this.getServerSocketFactory().create();
+$ sed -n 1816,1816p org/nanohttpd/NanoHTTPD.java | nl -ba -v 1816
+  1816	        ServerRunnable serverRunnable = createServerRunnable(timeout);
+$ sed -n 1839,1839p org/nanohttpd/NanoHTTPD.java | nl -ba -v 1839
+  1839	            safeClose(this.myServerSocket);
+
+$ file: org/proninyaroslav/libretorrent/core/FeedParser.java (267 lines)
+$ sed -n 194,194p org/proninyaroslav/libretorrent/core/FeedParser.java | nl -ba -v 194
+   194	        List<Content> contentList = media.getContent();
+$ sed -n 217,217p org/proninyaroslav/libretorrent/core/FeedParser.java | nl -ba -v 217
+   217	        Hash hash = media.getHash();
+$ sed -n 221,221p org/proninyaroslav/libretorrent/core/FeedParser.java | nl -ba -v 221
+   221	        String hashStr = hash.getValue();
+
+$ file: org/proninyaroslav/libretorrent/core/model/stream/TorrentStreamServer.java (284 lines)
+$ sed -n 67,69p org/proninyaroslav/libretorrent/core/model/stream/TorrentStreamServer.java | nl -ba -v 67
+    67	    public TorrentStreamServer(@NonNull String host, int port)
+    68	    {
+    69	        super(host, port);
+$ sed -n 72,78p org/proninyaroslav/libretorrent/core/model/stream/TorrentStreamServer.java | nl -ba -v 72
+    72	    public void start(@NonNull Context appContext) throws IOException
+    73	    {
+    74	        Log.i(TAG, "Start " + TAG);
+    75	
+    76	        engine = TorrentEngine.getInstance(appContext);
+    77	
+    78	        super.start();
+$ sed -n 81,84p org/proninyaroslav/libretorrent/core/model/stream/TorrentStreamServer.java | nl -ba -v 81
+    81	    @Override
+    82	    public void stop()
+    83	    {
+    84	        super.stop();
+$ sed -n 127,127p org/proninyaroslav/libretorrent/core/model/stream/TorrentStreamServer.java | nl -ba -v 127
+   127	            return newFixedLengthResponse(NOT_FOUND, "", "");
+$ sed -n 130,130p org/proninyaroslav/libretorrent/core/model/stream/TorrentStreamServer.java | nl -ba -v 130
+   130	            return newFixedLengthResponse(BAD_REQUEST, "", "");
+$ sed -n 134,134p org/proninyaroslav/libretorrent/core/model/stream/TorrentStreamServer.java | nl -ba -v 134
+   134	            return newFixedLengthResponse(BAD_REQUEST, "", "");
+$ sed -n 196,196p org/proninyaroslav/libretorrent/core/model/stream/TorrentStreamServer.java | nl -ba -v 196
+   196	                    res = newFixedLengthResponse(NOT_MODIFIED, MIME_OCTET_STREAM, "");
+$ sed -n 209,209p org/proninyaroslav/libretorrent/core/model/stream/TorrentStreamServer.java | nl -ba -v 209
+   209	                    res = newFixedLengthResponse(PARTIAL_CONTENT, MIME_OCTET_STREAM, is, newLen);
+$ sed -n 231,231p org/proninyaroslav/libretorrent/core/model/stream/TorrentStreamServer.java | nl -ba -v 231
+   231	                    res = newFixedLengthResponse(NOT_MODIFIED, MIME_OCTET_STREAM, "");
+$ sed -n 239,239p org/proninyaroslav/libretorrent/core/model/stream/TorrentStreamServer.java | nl -ba -v 239
+   239	                    res = newFixedLengthResponse(NOT_MODIFIED, MIME_OCTET_STREAM, "");
+$ sed -n 244,244p org/proninyaroslav/libretorrent/core/model/stream/TorrentStreamServer.java | nl -ba -v 244
+   244	                    res = newFixedLengthResponse(OK, MIME_OCTET_STREAM, is, stream.fileSize);
+$ sed -n 256,256p org/proninyaroslav/libretorrent/core/model/stream/TorrentStreamServer.java | nl -ba -v 256
+   256	            return newFixedLengthResponse(FORBIDDEN, NanoHTTPD.MIME_PLAINTEXT, "Forbidden");
+

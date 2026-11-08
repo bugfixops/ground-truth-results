@@ -1,0 +1,38 @@
+batch 113 (label_113) grep and auto_calls evidence. Source root: final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java (every file, text match, run with python3 -I os.walk).
+
+== 1. generated Dagger factories: no source reference (SOURCE root, all files)
+  AppSettings_Factory: 0 hits
+  newAppSettings: 0 hits
+  injectMembers: 0 hits
+  (the generated classes are not in the source root; they are emitted at build time)
+
+== 2. generated class files and reports exist (name only)
+  final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/settings/AppSettings_Factory.class
+  final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/settings/AppSettings_MembersInjector.class
+  final_java_only/MMEX/ape/report/com.money.manager.ex.settings/AppSettings_Factory.html
+  final_java_only/MMEX/ape/report/com.money.manager.ex.settings/AppSettings_MembersInjector.html
+  (monkey/ and combined/ report folders hold the same two HTML files)
+
+== 3. auto_calls.json records (exact src -> dst, file, line)
+  AppSettings_Factory.create -> AppSettings_Factory.<init>          AppSettings_Factory.java:35   (the only record into <init>)
+  AppSettings_Factory.get -> AppSettings_MembersInjector.injectSharedPreferences   AppSettings_Factory.java:28
+  AppSettings_Factory.get -> AppSettings.<init>                     AppSettings_Factory.java:27
+  AppSettings_Factory.newAppSettings -> AppSettings.<init>          AppSettings_Factory.java:39
+  incoming records into AppSettings_Factory.create, .get, .newAppSettings: none
+  AppSettings_MembersInjector.create -> AppSettings_MembersInjector.<init>   AppSettings_MembersInjector.java:23 (the only record into <init>)
+  AppSettings_MembersInjector.injectMembers -> AppSettings_MembersInjector.injectSharedPreferences   AppSettings_MembersInjector.java:28
+  incoming records into AppSettings_MembersInjector.create and .injectMembers: none
+
+== 4. the Dagger component builds AppSettings through the module, not the factory (auto_calls.json)
+  DaggerMmxComponent.initialize -> MmxModule_ProvideAppSettingsFactory.create   DaggerMmxComponent.java:189
+  MmxModule_ProvideAppSettingsFactory.create -> MmxModule_ProvideAppSettingsFactory.<init>   MmxModule_ProvideAppSettingsFactory.java:34
+  DaggerMmxComponent.injectAppSettings -> AppSettings_MembersInjector.injectSharedPreferences   DaggerMmxComponent.java:511 (the live route; REACHABLE through DaggerMmxComponent.inject(AppSettings) at DaggerMmxComponent.java:298, called from AppSettings.<init> at AppSettings.java:41)
+
+== 5. SOURCE UNREACHABLE candidates (source root grep and auto_calls incoming)
+  getInvestmentSettings: source hits 1 (AppSettings.java:87, the declaration). auto_calls incoming records: 0.
+  getIncomeExpensePeriod: source hits 2 (BehaviourSettings.java:61, the declaration; HomeFragment.java:252, a line that starts with //). auto_calls incoming records: 0.
+  HomeFragment.java:252: //                String period = new AppSettings(getContext()).getBehaviourSettings().getIncomeExpensePeriod(...   (commented out, not a call)
+
+== 6. live callers of the neighbouring getters (for contrast, not UNREACHABLE)
+  BehaviourSettings.getFilterInSelectors: 4 incoming (CategoryListFragment.onActivityCreated:117, PayeeListFragment.onActivityCreated:89, CurrencyRecyclerListFragment.onActivityCreated:118, CurrencyListFragment.onActivityCreated:131)
+  BehaviourSettingsActivity: source hits (BehaviourSettingsActivity.java:26 declaration; SettingsFragment.java:90 startActivity(new Intent(getActivity(), BehaviourSettingsActivity.class))). auto_calls incoming records: 0 (the start is an explicit intent, not a CALL record).

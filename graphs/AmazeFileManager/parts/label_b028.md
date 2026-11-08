@@ -1,0 +1,35 @@
+STATUS: RUNNING 23:09
+
+| Method | Label | Kind | Reason | Source Lines |
+|--------|-------|------|--------|--------------|
+| FileUtils$1.<init> | REACHABLE | | Constructor called from FileUtils.crossfade when creating AnimatorListenerAdapter for pathbar fade animation | SRC files/FileUtils.java:294 new AnimatorListenerAdapter() |
+| FileUtils$1.onAnimationEnd | REACHABLE | | Animation framework callback invoked when fade animation completes; listener registered via setListener call | SRC files/FileUtils.java:296 defines AnimatorListenerAdapter.onAnimationEnd |
+| FileUtils$2.<init> | REACHABLE | | Constructor called from FileUtils.crossfadeInverse when creating AnimatorListenerAdapter for buttons fade animation | SRC files/FileUtils.java:321 new AnimatorListenerAdapter() |
+| FileUtils$2.onAnimationEnd | REACHABLE | | Animation framework callback invoked when inverse fade animation completes; listener registered via setListener call | SRC files/FileUtils.java:323 defines AnimatorListenerAdapter.onAnimationEnd |
+| FileUtils$3.<init> | REACHABLE | | Constructor called from FileUtils.shareCloudFile at line 333 when creating AsyncTask to get cloud share link | SRC files/FileUtils.java:333 |
+| FileUtils$3.doInBackground | REACHABLE | | AsyncTask framework executes this on background thread after task.execute() called at FileUtils.java:346 | SRC files/FileUtils.java:336-340 defines AsyncTask.doInBackground |
+| FileUtils$3.onPostExecute | REACHABLE | | AsyncTask framework calls on UI thread after doInBackground completes | SRC files/FileUtils.java:343-348 defines AsyncTask.onPostExecute |
+| FileUtils$4.<init> | REACHABLE | | Constructor called from FileUtils.openFile at line 768 when creating CountDownTimer for studio easter egg | SRC files/FileUtils.java:768 |
+| FileUtils$4.onTick | REACHABLE | | CountDownTimer framework calls every second (1000ms interval specified at line 768) | SRC files/FileUtils.java:770-776 defines CountDownTimer.onTick |
+| FileUtils$4.onFinish | REACHABLE | | CountDownTimer framework calls when countdown reaches zero | SRC files/FileUtils.java:779-785 defines CountDownTimer.onFinish |
+| FileUtils$5.<init> | REACHABLE | | Constructor called from FileUtils.checkForPath at line 1027 when creating ErrorCallBack for Operations.mkdir | SRC files/FileUtils.java:1027 |
+| FileUtils$5.exists | REACHABLE | | Callback invoked by Operations.mkdir when file already exists | SRC filesystem/Operations.java:96,117,172 calls errorCallBack.exists(file); SRC files/FileUtils.java:1029-1031 defines empty override |
+| FileUtils$5.launchSAF(HybridFile) | REACHABLE | | Callback invoked by Operations.mkdir to launch SAF for SD card access (single-parameter overload) | SRC filesystem/Operations.java:165 calls errorCallBack.launchSAF(file); SRC files/FileUtils.java:1033-1035 defines empty override |
+| FileUtils$5.launchSAF(HybridFile,HybridFile) | UNREACHABLE | branch_never_taken | Two-parameter overload defined but not called by Operations.mkdir; only called by Operations.rename which is not passed this FileUtils$5 instance | SRC files/FileUtils.java:1037-1039 defines two-param override; SRC filesystem/Operations.java:1027 passes FileUtils$5 to mkdir not rename; SRC filesystem/Operations.java:165 mkdir calls single-param launchSAF; SRC filesystem/Operations.java:441 rename calls two-param but gets different callback instance |
+| FileUtils$5.done | REACHABLE | | Callback invoked by Operations.mkdir when operation completes | SRC filesystem/Operations.java:108,111,122,123,129,132,138,141,147,150,156,159,179 call errorCallBack.done; SRC files/FileUtils.java:1042-1044 defines empty override |
+| FileUtils$5.invalidName | REACHABLE | | Callback invoked by Operations.mkdir when filename is invalid | SRC filesystem/Operations.java:91 calls errorCallBack.invalidName(file); SRC files/FileUtils.java:1046-1048 defines empty override |
+| FingerprintHandler.<init> | REACHABLE | | Constructor called from GeneralDialogCreation.showDecryptFingerprintDialog (API 23+ guarded) | SRC ui/dialogs/GeneralDialogCreation.java:835; guard: utils/files/EncryptDecryptUtils.java:107 if(Build.VERSION.SDK_INT >= M) |
+| FingerprintHandler.authenticate | REACHABLE | | Called immediately after constructor at GeneralDialogCreation.java:836 to initiate fingerprint authentication | SRC utils/FingerprintHandler.java:38-46 defines method; SRC ui/dialogs/GeneralDialogCreation.java:836 calls it |
+| FingerprintHandler.onAuthenticationError | REACHABLE | | FingerprintManager framework callback when authentication encounters error; handler registered at FingerprintHandler.java:46 | SRC utils/FingerprintHandler.java:51-53 defines callback; SRC utils/FingerprintHandler.java:39,46 registers this as AuthenticationCallback |
+| FingerprintHandler.onAuthenticationHelp | REACHABLE | | FingerprintManager framework callback for help messages during authentication | SRC utils/FingerprintHandler.java:57-59 defines callback; SRC utils/FingerprintHandler.java:39,46 registers as callback |
+| FingerprintHandler.onAuthenticationFailed | REACHABLE | | FingerprintManager framework callback when fingerprint doesn't match | SRC utils/FingerprintHandler.java:63-66 defines callback; SRC utils/FingerprintHandler.java:39,46 registers as callback |
+| FingerprintHandler.onAuthenticationSucceeded | REACHABLE | | FingerprintManager framework callback when fingerprint matches successfully | SRC utils/FingerprintHandler.java:70-74 defines callback; SRC utils/FingerprintHandler.java:39,46 registers as callback |
+| Folder.<init> | REACHABLE | | Constructor called from SevenZFile.readHeaders when parsing 7z archive structure | SRC sevenz/SevenZFile.java:510,635 new Folder() |
+| Folder.getOrderedCoders | REACHABLE | | Called from SevenZFile.readStreamsInfo and buildDecodingStream to get coders in processing order | SRC sevenz/SevenZFile.java:431,1025 folder.getOrderedCoders() |
+| Folder.findBindPairForInStream | REACHABLE | | Called from SevenZFile.readHeaders to find bind pair for input stream during archive parsing | SRC sevenz/SevenZFile.java:695 folder.findBindPairForInStream(i) |
+| Folder.findBindPairForOutStream | REACHABLE | | Called from Folder.getOrderedCoders and Folder.getUnpackSize to traverse coder chain | SRC sevenz/Folder.java:59,88 findBindPairForOutStream(current) and findBindPairForOutStream(i) |
+| Folder.getUnpackSize | REACHABLE | | Called from SevenZFile.readStreamsInfo and buildDecodingStream to get total unpack size | SRC sevenz/SevenZFile.java:440,442,586,1038 folder.getUnpackSize() |
+| Folder.getUnpackSizeForCoder | REACHABLE | | Called from SevenZFile.readStreamsInfo and buildDecodingStream to get unpack size for specific coder | SRC sevenz/SevenZFile.java:436,1031 folder.getUnpackSizeForCoder(coder) |
+| Folder.toString | UNREACHABLE | no_trigger_in_app | Debugging/diagnostic method not called anywhere in codebase | SRC sevenz/Folder.java:100-106 defines toString(); grep of commons_compress_7z shows no calls to folder.toString() or string concatenation with Folder instances |
+
+STATUS: DONE 23:17

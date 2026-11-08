@@ -1,75 +1,214 @@
-# Money Manager Ex 2024.06.14: page-jump and method-call graph (generated)
+# MMEX 2024.06.14: method-level trigger graph (schema 2)
 
-A map of how every method of the open-source Android app **MMEX** (moneymanagerex/android-money-manager-ex@2024.06.14.1033, source commit `f6e8d005`, package `com.money.manager.ex`, APK sha256 `5bedb170…d9f18aeb`) can be triggered: from which page, by which user gesture or system event, through which framework callback or call. It is the build in `final_java_only/MMEX`.
-
-**How this one differs from Currency, hash-checker, openlauncher and Omni-Notes:** those graphs were written by hand from reading the source. This one was **generated** by `tools/gen_edges.py` from the bytecode, `AndroidManifest.xml` and `res/` XML, and then checked against the baseline coverage and reviewed (see "How much to trust it"). Every number below is recomputed from the files in this folder.
+How every method of **MMEX** is triggered, in the standard configuration: the instrumented debug build (`moneymanagerex/android-money-manager-ex@2024.06.14.1033`, commit `f6e8d005340b`, APK sha256 `5bedb170...`), an API 27 emulator, permissions and fixtures as in `final_java_only`. Labels follow `handoff/SCHEMA_V2.md`: REACHABLE or UNREACHABLE, ENV and STATE gates, edge classes (explicit, standard, non-standard), and how each label was confirmed.
 
 ## What is in this folder
 
 | File | What it is |
 |---|---|
-| `mmex_trigger_graph.json` | The graph: pages, methods, verdicts, edges. Every edge has an `evidence` label; an edge may carry `env` (needs something outside the app) and `needs_state` (needs an earlier action or setting). |
-| `methods.csv` | One row per method: verdict, steps from launch, the user taps on the best path, the path, number of incoming edges, note. Extra columns: `jvm_descriptor`, `monkey_hit`, `ape_hit` (1-hour API 27 baseline runs; empty = JaCoCo does not report the method), and for methods the baseline never ran `frontier_from`, `frontier_first_unrun`, `frontier_edge_kind`, `frontier_edge_evidence`, `steps_after_frontier` (where the chain from code that ran first enters code that never ran). |
-| `mmex_trigger_graph.html` | The same data in the viewer from the Currency example. Optional. |
-| `build_report.txt` | Output of the validation script (0 errors, 0 warnings, baseline cross-check, the list of reachable methods the baseline never ran). |
+| `mmex_trigger_graph.json` | pages, methods, `verdict`, `labels` (per-method fields), `edges` (with `edge_class`, `env_kinds`, `state_kinds`, stable ids), `paths` (verified paths only), `verification` (counts) |
+| `methods.csv` | one row per method: verdict, UNREACHABLE reason, ENV and STATE kinds and texts, edge classes on the best route, whether an explicit/standard-only route exists, how the label was confirmed, path status, the derived best route (`shortest_path`, `route_edge_ids`), and the full JVM class and descriptor (`jvm_class`, `jvm_descriptor`; the `method` key adds a package prefix only where simple class names clash) |
+| `../verification.csv` | the audit log: one row per label, edge or path that was checked, with result, how, and where (file:line) |
+| `sanity_check.csv` | tool coverage (Monkey / APE, API 27) next to the labels; a one-way check only, it never sets a label |
+| `mmex_trigger_graph.html`, `build_report.txt` | the viewer and the validation report |
 
 ## Numbers
 
-- **4270 methods** (the app's own code, aligned with what JaCoCo reports), **104 pages** (7 of them `S_NEW_<Class>` anchors: a class whose empty default constructor is not in the JaCoCo method universe is constructed through such a node), **10886 edges**: 3484 from the bytecode call extractor, 7402 added by the generator or by hand.
-- Edge kinds: ASYNC 99, CALL 7364, ENTERS 78, ENTRY 29, FRAMEWORK 1608, GUI 97, INTENT 113, LIFECYCLE 1253, RESULT 94, SYSTEM 151.
-- Verdicts: **663 reachable**, **3067 reachable after setup**, **540 dead**, 0 framework-only.
-- 579 edges are gated by an outside environment, 5009 need an earlier action or setting; 388 methods are reached only through an environment gate, 3067 only after setup. Average route length: 12.8 edges.
-- Evidence labels: 3470 `FW-MEMORY`, 98 `INFERRED`, 7318 `SRC`.
-- Largest dead groups (auto-classified, see limits): `CurrencyRecyclerListFragment` (17 of 26), `DashboardFragment` (16 of 16), `AccountSpinnerAdapter` (12 of 12), `Encryptor` (10 of 10), `CursorRecyclerViewAdapter` (10 of 10), `WebViewActivity` (9 of 9), `EditPriceDialog` (9 of 11), `MmxDate` (9 of 56), `InsecureSHA1PRNGKeyDerivator` (8 of 8), `SyncManager` (8 of 30), `ex.DataBinderMapperImpl` (7 of 7), `SearchViewFormatter` (7 of 13), `DividerItemDecoration` (7 of 7), `FilterDatePeriods` (5 of 5).
-
-## Comparison with the baseline coverage (APE and Monkey, 1 hour each, API 27)
-
-- 271 of the 4267 observable methods ran in at least one run (Monkey 261, APE 261, both 251). **0 dead or framework-only methods ran**, so the coverage contradicts no verdict.
-- **3996 methods were run by neither tool.** By the graph: 538 are dead; 388 are reachable only through an outside environment; 2892 need an earlier in-app action or setting; **178 are reachable with no modelled setup and no outside help, yet were never run** (the clearest target list for the paper). Classes holding most of them: `MmxOpenHelper` (18), `MmxContentProvider` (14), `RepositoryBase` (13), `FileStorageHelper` (10), `DatabaseManager` (8), `QueryCategorySubCategory` (8), `MmxDatabaseUtils` (8), `AttachmentRepository` (5), `MmexApplication` (4), `CalculatorActivity$$Icepick` (4), `DaggerMmxComponent` (4), `WhereStatementGenerator` (4), `MmxBaseFragmentActivity` (3), `MoneyBundler` (3).
-- **Where the baseline stopped (frontier).** For 3348 of the never-run reachable methods the graph gives the edge where the chain from methods that ran first enters code that never ran (`frontier_*` columns of `methods.csv`: `frontier_from` is the source of that edge, a method that ran or a screen entered from one; `frontier_first_unrun` is its target): 2707 CALL, 473 FRAMEWORK, 93 LIFECYCLE, 61 RESULT, 14 ASYNC. A `CALL` frontier is a branch inside code that ran and was not taken (a data, setting or error condition); a `FRAMEWORK`, `GUI`, `INTENT` or `SYSTEM` frontier is a callback, tap or start that no tool triggered. The ten frontier nodes that unlock the most never-run methods:
-  - `MainActivity.initHomeFragment` (1650 never-run methods behind it): reached from `MainActivity.onCreate` by a `CALL` edge (SRC MainActivity.java:238 (bytecode))
-  - `MainActivity.populateScheduledTransactions` (496 never-run methods behind it): reached from `MainActivity.onCreate` by a `CALL` edge (SRC MainActivity.java:244 (bytecode))
-  - `MainActivity.initializeDrawer` (391 never-run methods behind it): reached from `MainActivity.onCreate` by a `CALL` edge (SRC MainActivity.java:240 (bytecode))
-  - `MmxBaseFragmentActivity.onPermissionGranted` (291 never-run methods behind it): reached from `GeneralSettingsActivity.<init>` by a `FRAMEWORK` edge (FW-MEMORY the framework creates the component and calls its lifecycle callbacks)
-  - `MainActivity.initializeSync` (79 never-run methods behind it): reached from `MainActivity.onCreate` by a `CALL` edge (SRC MainActivity.java:242 (bytecode))
-  - `MainActivity.onResume` (60 never-run methods behind it): reached from `MainActivity.<init>` by a `LIFECYCLE` edge (FW-MEMORY the framework creates the component and calls its lifecycle callbacks)
-  - `MainActivity.onActivityResult` (35 never-run methods behind it): reached from `FileStorageHelper.showCreateFilePicker` by a `RESULT` edge (FW-MEMORY the system delivers the result of startActivityForResult / requestPermissions to the caller)
-  - `SyncPreferenceFragment.onActivityResult` (25 never-run methods behind it): reached from `FileStorageHelper.showCreateFilePicker` by a `RESULT` edge (FW-MEMORY the system delivers the result of startActivityForResult / requestPermissions to the caller)
-  - `MainActivity.onStart` (23 never-run methods behind it): reached from `MainActivity.<init>` by a `LIFECYCLE` edge (FW-MEMORY the framework creates the component and calls its lifecycle callbacks)
-  - `DbModule.provideOpenHelper` (21 never-run methods behind it): reached from `MmexApplication.onCreate` by a `FRAMEWORK` edge (FW-MEMORY Dagger / Hilt: the generated component and factories call @Provides methods and @Inject constructors when the graph is built)
-- Harness facts that matter for target selection: `merged.ec` omits the launch dump `00000.ec`, so first-launch code can show `monkey_hit = 0` although it ran; one dump per tool may be unreadable, and a process that dies between 30-second dumps loses its coverage, so "never hit" does not strictly prove "never ran".
+- **4270 methods**, **43 pages** (including pseudo pages), **8447 edges**. Verdicts: **3430 REACHABLE**, **840 UNREACHABLE**.
+- UNREACHABLE by reason: branch_never_taken 13, closed_by_api_level 9, framework_never_calls 77, no_trigger_in_app 741.
+- ENV gates (methods): hardware 9, network 31, other 11, other_app 47, system_event 28, time 6. STATE gates (methods): account 5, data 42, session 9, settings 94. Methods with no gate: 3215.
+- Edge classes: explicit 6971, non_standard 499, page 53, standard 924. Non-standard edges: 499 (AbstractAccountAuthenticator binder stub: onBind returns the IBinder from getIBinder, and the stub dispatches addAccount (the library and AccountManagerService are not in fw_src; INFERRED); Activity.runOnUiThread (fw_src core/java/android/app/Activity.java:6170-6176); AmplitudeKt.Amplitude (com.ampl).
+- 1378 reachable methods have a non-standard edge on their best route; 1039 have no explicit-or-standard-only route at all.
+- Labels confirmed by: INFERRED 2753, SOURCE 1517 (SOURCE: every edge of the best route cites a source line, in the app or in the Android 8.1 / library source; INFERRED: some edge rests on inference or on another app).
 
 ## How much to trust it
 
-- **Method.** `gen_edges.py` applies Android framework rules to the compiled classes: process entry (Application, launcher, exported components behind an `env` gate), lifecycle callbacks and one page `S_<Activity|Fragment>` per screen, UI and system callbacks of every constructed class with a framework ancestor, lambdas and method references (creator method -> body, the tap label is read from the source line), `startActivity(new Intent(ctx, X.class))` and custom intent actions, classes named in layout / xml / menu / navigation files and where they are inflated, activity and permission results, `Handler` messages, ButterKnife / EventBus / data binding / Dagger / Glide / Icepick / Parceler / ORMLite / Room glue, static initialisers, and template-method receiver variants (`Base.m@Sub`). Direct calls come from the bytecode (`extract_calls.py`, class-hierarchy analysis for virtual calls). Methods that nothing reaches are reported DEAD (`AUTO_DEAD`).
-- **Calibration on the five hand-written apps** (the generator run on the same inputs, compared with the hand-written verdicts; `tools/calibrate.py`): dead-versus-alive agreement 97.2% (Currency), 96.5% (Diary), 98.5% (hash-checker), 92.9% (openlauncher), 93.8% (Omni-Notes); exact verdict agreement 93.8% (Currency), 95.5% (Diary), 71.1% (hash-checker), 76.9% (openlauncher), 63.1% (Omni-Notes). The gap is almost entirely `needs_state`: a human reads "needs a note / a folder / a setting" out of the code, the generator only knows list rows. (openlauncher and Omni-Notes were used while the generator rules were developed; Currency, Diary and hash-checker were not.)
-- **Checks done on this app:** the validation script (0 errors, 0 warnings: every method has a route or a DEAD verdict, every page is reachable); the baseline cross-check above (0 contradictions after the generator rules were completed by reading the contradictions one by one); random shortest paths were read for shortcuts.
-- **Not checked on a device.** Framework rules are `FW-MEMORY` (recalled, not checked against AOSP source); guesses are `INFERRED`.
+Verification log (`verification.csv`), counts of what was checked and found:
 
-## Limits (read before using a verdict)
+| Checked | Rows | Correct | Errors found (fixed) | Unclear |
+|---|---:|---:|---:|---:|
+| labels | 870 | 860 | 8 | 2 |
+| edges (framework and other claims read against source) | 0 | 0 | 0 | 0 |
+| paths (stratified sample, read step by step) | 30 | 20 | 8 | 2 |
 
-- **`REACHABLE` means "no modelled setup", not "no setup".** Gates beyond list rows (data that must exist, settings, earlier actions, incoming intents, files on the device) are modelled only where listed in the review notes. Adapter row callbacks, row-based listeners and action modes carry `needs_state` = "the list shows at least one row".
-- A callback is reachable as soon as an instance of its class is constructed; the real trigger (a tap on one specific control) is shown in the `gui_steps` column only where the source line names the control. Menu and click handlers that switch on `R.id.x` give one labelled edge per case (`case R.id.x`), found by the nearest preceding case label (`INFERRED`).
-- `Handler.handleMessage`, EventBus subscribers and Dagger-provided objects are linked from every send / post / graph-build site (`INFERRED`), so their routes can be shorter than the real ones.
-- DEAD is automatic: nothing in the bytecode, manifest, XML or the modelled libraries reaches the method. Entries through reflection, JNI, other generated code or libraries that are not modelled would be missed (the baseline contradiction check found and fixed every such case that the 1-hour runs exercised).
-- Calls inside catch blocks, data-dependent branches and feature flags are ordinary calls unless the review notes say otherwise.
+Device replay on the emulator (API 27): 6 of 30 routes reached their target method; 6 of these ran the whole script and are `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; see `../device/results.csv`.
 
-## Review notes for this app
+Path status over all reachable methods: DEVICE_OK 3, SOURCE_OK 19, STALE 7, UNCHECKED 3401.
+The rows are the items that were individually checked, not a random sample of all labels; see the notes below for how they were chosen and what the unclear rows wait for.
 
-What was reviewed by hand (class level, from method names, the manifest, the source of the suspicious dead classes and the baseline hit counts per package):
+Edges whose evidence is not a source line (859 of 8447): E19395ce1 (S_ENTRY -> PayeeActivity.<clinit>); E76a7aa66 (SearchParametersFragment$1.onClick -> PayeeActivity.<clinit>); E6f579f87 (EditTransactionCommonFunctions$9.onClick -> PayeeActivity.<clinit>); E87a1872f (AboutActivity.onCreate -> AboutTabAdapter.getCount); Ee835bc9a (AboutActivity.onCreate -> AboutTabAdapter.getItem); Eb0b17b72 (S_ABOUT_ACTIVITY -> AboutTabAdapter.getItem); E388582e3 (AboutActivity.onCreate -> AboutTabAdapter.getPageTitle); E503e054a (AboutActivity.onCreate -> AboutActivity.onRestoreInstanceState); Ea0013de2 (AboutCreditsFragment.<init> -> AboutCreditsFragment.onCreateView); Eeff0a2bf (AboutCreditsFragment.onCreateView -> AboutCreditsFragment.onActivityCreated); Ecef22362 (AboutFragment.<init> -> AboutFragment.onCreateView); E9a349a2e (S_ABOUT_TAB -> AboutFragment$1.onClick) ...
 
-- **What the baseline reached.** Only 271 of 4,270 methods ran. The hits are the application and Dagger set-up (`MmexApplication`, `DaggerMmxComponent`, `MmxModule*`, `DbModule*`, `Core`), the tutorial (`TutorialActivity`, the five `Tutorial*Fragment` classes), `SelectDatabaseActivity`, `PasswordActivity`, `MmxFileUtils`, the general settings (`GeneralSettingsActivity`, `GeneralSettingsFragment`, `AppSettings`, `GeneralSettings`, `BehaviourSettings`) and a part of `MainActivity`. **No method of the packages `account`, `transactions`, `investment`, `reports`, `recurring`, `search`, `fragment`, `adapter`, `viewmodels`, `widget`, `about`, `notifications` or `passcode` ran, and `HomeFragment` was never created.** This is the open question about the MMEX baseline setup (coverage about 6%).
-- **Assumption built into the verdicts.** Because the data screens never ran, the generator gates the methods of those packages (when the baseline never ran them) behind `needs_state`: `A money database is open ...` for `account`, `home`, `currency`, `search`, `fragment`, `adapter`, `viewmodels`, `servicelayer`, `domainmodel`, `about`, `notifications`, `passcode`, and `... holds at least one account` for `transactions`, `investment`, `recurring`, `reports`, `budget`. This is an inference from the hit counts, not something verified on a device: if the app creates a default database on its own, these methods are plainly reachable, and `REACHABLE_AFTER_SETUP` would then mean "never reached by the baseline for a reason this graph does not know". Methods the baseline did run keep their ungated route.
-- **Environment gates:** the price / exchange-rate / sync stack (`Sync*`, `YahooCsvQuoteDownloaderRetrofit`, `YqlSecurityPriceUpdaterRetrofit`, `FixerService`, `MorningstarPriceUpdater*`, `NetworkUtils`, `StubSyncProvider`: network and external servers), the widgets (`AccountBillsWidget*`, `ButtonAddTransactionWidgetProvider`, `SummaryWidgetProvider`, `SingleAccountWidget*`) and `SmsReceiverTransactions`. `MmxContentProvider` operations carry `env` unless the app calls the same `ContentResolver` operation.
-- **Libraries linked by rules:** Dagger 2 (`DaggerMmxComponent`, `*_Factory`, `*_MembersInjector`, `@Provides`, `@Inject`), EventBus 3 (`@Subscribe` methods are linked from every `EventBus.post` that creates or receives the event class), ButterKnife (`*_ViewBinding`), Icepick (`*$$Icepick`), Parceler (`*$$Parcelable`), Retrofit interfaces, and data binding (`DataBinderMapperImpl`).
-- **Dead code** includes `DashboardFragment` (all 16 methods: nothing instantiates it), `AccountSpinnerAdapter` (only a commented-out use), `CurrencyRecyclerListFragment` (17 of 26: its host activity is never started), `Encryptor` and `InsecureSHA1PRNGKeyDerivator` (an unused legacy database-encryption helper), `CursorRecyclerViewAdapter`, `WebViewActivity`, `EditPriceDialog`, `DividerItemDecoration`, and the generated Dagger members injectors of those classes.
-- **Not gated but never run (the target list):** database infrastructure (`MmxOpenHelper`, `RepositoryBase`, `DatabaseManager`, `MmxDatabaseUtils`, `FileStorageHelper`: they run when a database is created or opened) and a few startup branches (`MmexApplication.createDbInstance`, `MmxBaseFragmentActivity.onPermissionGranted`).
+Sanity check against tool coverage (never used to set a label): 271 methods ran in the 1-hour Monkey / APE runs on API 27; **0** of them are labelled UNREACHABLE.
+
+# MMEX readme notes — B7 draft (from the final route table and the B7 run log)
+
+Final build (private rebuild of the current tree sources):
+4270 methods, 3430 REACHABLE / 840 UNREACHABLE, 8441 edges,
+errors 0, warnings 0; checks 2, 3, 4 at 0; check 8 at 19/840.
+Final route table: CORRECT 20 / FIXED 8 / WRONG 0 / UNCLEAR 2
+= 30 routes; error rate (fixed + wrong) / (correct + fixed
++ wrong) = 8/28 = 0.2857 (UNCLEAR excluded). Verification
+rows: 30 path + 870 label + 0 edge = 900, written only by
+`graphs/MMEX/make_verification.py` from the final sample and
+the final table. Sampled reachable methods get a label row
+carrying the path verdict (see `B7_RUN_LOG.md` section 8 for
+the reading rule).
+
+## What the re-audit changed (compared with the schema 1 graph)
+
+Re-audit of November 2026 (rounds of W2 to W7, see handoff/MUSE_REAUDIT_SUMMARY.md):
+
+- Baseline (W2, Muse): the setup checking account satisfies seven gate texts; the first-run tutorial is setup-only.
+- Shared helper (W4): showFragment_Internal is cloned for the Accounts drawer item, so the Portfolio event route no longer reaches the account list; with ESR_CREATION the account list's callbacks are library (MMEX-03).
+- Outside data (W6): the Yahoo and Fixer price servers, the backup document picker and database upgrades are env (MMEX-38).
+- Guards (W7, round 1): the payee chart, scheduled transactions and new stocks need data (MMEX-41, -49, -20).
+
+- Strict mode on, and the check backlogs cleared: citation
+  problems (43 at B2 start) to 0, bytecode-line problems (244
+  at B3 start) to 0, with the DEAD wording reworded (B5) and
+  every check-8 method's caller named and explained (19).
+- Visit-agnostic edges were partitioned where the route
+  checks proved them wrong: the drawer dispatcher split into
+  @GROUP variants; the activity-result chains into @CHECKING
+  and @RECURRING variants; the calculator result delivery
+  into four per-launcher variant chains (@NUM_SHARES,
+  @PURCHASE_PRICE, @COMMISSION, @CURRENT_PRICE), replacing
+  the single plain RESULT edge; the sync delivery into
+  @SYNC/@DOWNLOAD/@UPLOAD variants with the @MAIN partition
+  of `triggerSynchronization`; the loader-id chain into
+  @YEARS/@REPORT variants; and the scheduled-transactions
+  feeder guarded by `!showPrerequisite()`.
+- Edge ids changed wherever an edge's text changed (see
+  `B7_ID_MAP.md`: the B6 set of 10, plus 33 stage-to-final
+  retirements and the intermediate §9 mirror id retired by
+  Sync). No label flipped in the whole re-audit: REACHABLE
+  3430 / UNREACHABLE 840 at both the stage-B6 baseline and
+  the final build.
+- The final table was judged fresh on a redrawn sample after
+  the last fix; B6 verdicts were not carried over, and the B6
+  error rate (0.5357) is not carried forward either.
+
+## How the checked paths were chosen
+
+- After the last fix, the sample was redrawn with the brief
+  command `python3 -I tools/verify_sample.py MMEX 30 20261025`
+  (seed 20261025): 30 of 3430 reachable methods, 344 distinct
+  edges on their routes. Strata: NONSTD 4, INFERRED 4,
+  STATE 3, ENV 6, LONG 6, PLAIN 7.
+- Every route was printed step by step (30 prints in
+  `graphs/MMEX/scratch/route_print_final2/`) and every step
+  judged against its printed source lines, including if,
+  catch, and for conditions. The table covers only this
+  final draw; routes whose steps changed were re-read and
+  re-judged.
+- One path row per route in this final sample appears in
+  `verification.csv`; the label rows cover all 840
+  UNREACHABLE methods plus the 30 sampled reachable methods.
+- The sample above was drawn before the log step (the B7
+  writer run) wrote `verification.csv`. The label rows the
+  log step wrote change which 30 methods the sampler picks
+  on the final graph, so a fresh sampler run now draws a
+  different 30; the judged routes in this table are still
+  current — the writer's STALE check passed (every path
+  row's edges equal the method's current `route_edge_ids`,
+  0 STALE refusals) and the cdab515a status-check rebuild
+  ran with checks 2/4 at 0 and 0 STALE warnings.
+- Why `verification.csv` has 0 edge rows although the final
+  table has 14 FIXED steps: an edge row is emitted for
+  exactly one thing — a corrected graph edge listed in
+  `scratch/corrected_edges.tsv` (writer docstring and code;
+  B7 run-log section 5). The 14 FIXED steps are judging
+  corrections (guard/citation readings recorded on the
+  route's path row), not corrections to any graph edge's
+  text, and no audited MMEX source names a corrected edge
+  with an id and ref; the B6 construction changes (edges
+  added, suppressed, retargeted) are already represented
+  through the path rows' current `route_edge_ids`, and
+  re-listing them as edge rows would double-count
+  construction as route-check evidence. `corrected_edges.tsv`
+  is therefore explicitly empty (0 bytes), which is the
+  writer's required way to record zero edge rows — not a
+  missing input. Inventing edge rows from FIXED steps would
+  violate the no-invention rule; if a qualifying corrected
+  edge with audited evidence is later identified, the remedy
+  is to populate `corrected_edges.tsv` and re-run the writer,
+  never to hand-add a row to `verification.csv`.
+
+## What waits for a device (API 27)
+
+- Re-audit round 1: the device route files were updated to the renamed edge ids (a gate edit changes an edge id); the sampled routes whose best route changed wait for re-verification and a device run.
+
+- **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 6 of 30 routes reached their target method; 6 of them ran the whole script and are now `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
+
+- Everything device-side. This CSV carries SOURCE/INFERRED
+  rows only; no DEVICE row appears (DEVICE rows are a later,
+  separate change, when device results exist). No emulator
+  run was started in this phase, and none is claimed.
+- The two UNCLEAR routes need device-side confirmation most:
+  route 5 (Passcode.savePasscode, steps 21 and 27: androidx
+  fragment result dispatch routing is not in the framework
+  sources held) and route 19 (ExceptionHandler.getLogcat,
+  step 16: reached only inside a catch, with no printed
+  trigger for the throw on this prefix).
+- Routes whose steps rest on INFERRED framework or library
+  delivery (flagged as such in the table) were judged CORRECT
+  under the INFERRED-delivery standard, not by device
+  observation; a device run may still confirm or overturn
+  those steps.
+
+## Hazard candidates (from reading the code, not reproduced)
+
+- The @GROUP drawer prefix still inherits the auto
+  `showFragment(Class)` fan-out, so a group prefix can still
+  reach a child item (e.g. AccountListFragment.<init>);
+  fully partitioning that fan-out is a separate follow-up,
+  not part of this log.
+- Passcode's fragment result dispatch (route 5, steps 21 and
+  27): the androidx FragmentActivity dispatch that would
+  route an activity result to the requesting fragment is not
+  in the held framework sources, so the dispatch step is
+  UNCLEAR rather than verified.
+- ExceptionHandler.getLogcat (route 19, step 16): the method
+  is reached only inside the catch at
+  log/ExceptionHandler.java:119, and no printed trigger for
+  `Toast.makeText(...).show()` throwing on this prefix was
+  found (BadToken/finishing/destroyed searched, none;
+  mContext null-guarded, main-looper handler, non-null
+  string resource). Not WRONG, since a throw cannot be
+  proved impossible; not CORRECT, since no trigger is shown.
+
+## Limits
+
+- Coverage: 30 sampled routes out of 3430 reachable methods.
+  The error rate describes the sample only, with UNCLEAR
+  excluded by the brief's formula; it is not a whole-graph
+  error rate.
+- Label notes in `verification.csv` are cut at 300
+  characters with an explicit `…[truncated]` marker (215
+  rows); the full UNREACHABLE reason texts live in the built
+  trigger JSON, not in the CSV.
+- The writer mechanically cross-checks method + verdict
+  against the route table, not `ref`/`note`; the judgments
+  file was generated mechanically from the table to remove
+  the transcription step (see `B7_RUN_LOG.md` section 9).
+- The tree's committed `out/` is stale (8256 edges) and was
+  not used here; the authoritative build at F1 time is the
+  CI rebuild, against which these rows must still agree
+  (same sources, same numbers — the private rebuild already
+  reproduces them).
+- Open follow-ups, not blockers for this log: the Ecdf1af97
+  range correction in the Sync record (applying it would
+  change a drawn-route edge id, so it needs its own design
+  and audit); the @GROUP showFragment residual above.
 
 ## JSON shape (short)
 
 ```
-{ "title", "screens": {page: description}, "methods": [...], "verdict": {method: REACHABLE|REACHABLE_AFTER_SETUP|DEAD|FRAMEWORK_ONLY},
-  "dead": {method: reason}, "framework_only": {method: reason},
-  "edges": [ {id, src, dst, kind, trigger, gui[], guard, reads[], writes[], note, needs_state, evidence, env} ] }
+{ "schema": 2, "title", "screens": {page: description}, "methods": [...], "verdict": {method: REACHABLE|UNREACHABLE},
+  "labels": {method: {unreachable: {kind, text}, env: [{kinds, text}], state: [{kinds, text}], route_edge_classes, explicit_standard_route,
+                      confirmed_by, source_ref, path_status}},
+  "edges": [ {id, src, dst, kind, edge_class, via, trigger, gui[], guard, reads[], writes[], note, needs_state, state_kinds, env, env_kinds, evidence, class_basis} ],
+  "paths": [ {method, edges[], edge_classes, explicit_standard_only, env, state, verified_by, ref} ], "verification": {...} }
 ```
-`src`/`dst` are methods (`Class.method`, overloads as `Class.method(Type,Type)`, classes that share a simple name get a package prefix) or pages (`S_...`). A suffix `@CONTEXT` is the same method in a specific receiver class (`Base.m@Sub`) or context.
+
+`src`/`dst` are methods (`Class.method`, overloads as `Class.method(Type,Type)`) or pages (`S_...`). A suffix `@CONTEXT` is the same method or page in a specific context. Edge ids are a hash of the edge content, so they stay stable when other edges change.

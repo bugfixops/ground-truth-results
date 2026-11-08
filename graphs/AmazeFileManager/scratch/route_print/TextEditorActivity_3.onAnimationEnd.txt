@@ -1,0 +1,86 @@
+METHOD: TextEditorActivity$3.onAnimationEnd
+verdict: REACHABLE   steps_from_launch: 6
+route steps: 6 edges
+======================================================================
+
+STEP 1  edge Edd3316a5
+  S_ENTRY -> TextEditorActivity.<init>
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: outside package: another app opens a text file with Amaze TextEditorActivity via ACTION_VIEW
+  evidence: SRC AndroidManifest.xml:129-144; FW-SRC core/java/android/app/Activity.java (Activity lifecycle callbacks dispatched by ActivityThread)
+  cite [SRC] AndroidManifest.xml:129-144
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/AndroidManifest.xml)
+      129:         <activity
+      130:             android:label="@string/textreader"
+      131:             android:name=".activities.TextEditorActivity"
+      132:             android:theme="@style/appCompatLight">
+      133:             <intent-filter
+      134:                 tools:ignore="AppLinkUrlError"
+      135:                 android:label="Amaze Text Editor">
+      136:                 <action android:name="android.intent.action.VIEW"/>
+      137:                 <category android:name="android.intent.category.DEFAULT" />
+      138:                 <data android:mimeType="text/*" />
+      139:                 <data android:mimeType="application/javascript" />
+      140:                 <data android:mimeType="application/json" />
+      141:                 <data android:mimeType="application/xml" />
+      142:             </intent-filter>
+      143: 
+      144:         </activity>
+
+STEP 2  edge E02683734
+  TextEditorActivity.<init> -> TextEditorActivity.onCreate
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED framework lifecycle
+  (no file:line citations in evidence)
+
+STEP 3  edge E74bea51a
+  TextEditorActivity.onCreate -> TextEditorActivity.onOptionsItemSelected
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC activities/TextEditorActivity.java:357; INFERRED Activity framework calls onOptionsItemSelected (Android SDK source not read)
+  cite [SRC] activities/TextEditorActivity.java:357
+      357:     public boolean onOptionsItemSelected(MenuItem item) {
+
+STEP 4  edge E49f6aa22
+  TextEditorActivity.onOptionsItemSelected -> TextEditorActivity.hideSearchView
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC activities/TextEditorActivity.java:389 case R.id.find
+  cite [SRC] activities/TextEditorActivity.java:389
+      389:                 if (searchViewLayout.isShown()) hideSearchView();
+
+STEP 5  edge E63b4b663
+  TextEditorActivity.hideSearchView -> TextEditorActivity$3.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC activities/TextEditorActivity.java:518-526
+  cite [SRC] activities/TextEditorActivity.java:518-526
+      518:         animator.addListener(new AnimatorListenerAdapter() {
+      519:             @Override
+      520:             public void onAnimationEnd(Animator animation) {
+      521:                 searchViewLayout.setVisibility(View.GONE);
+      522:                 InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+      523:                 inputMethodManager.hideSoftInputFromWindow(searchEditText.getWindowToken(),
+      524:                         InputMethodManager.HIDE_IMPLICIT_ONLY);
+      525:             }
+      526:         });
+
+STEP 6  edge E52012ad4
+  TextEditorActivity$3.<init> -> TextEditorActivity$3.onAnimationEnd
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC android/animation/AnimatorListenerAdapter.java
+  (no file:line citations in evidence)

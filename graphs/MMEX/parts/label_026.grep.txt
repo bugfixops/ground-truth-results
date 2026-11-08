@@ -1,0 +1,131 @@
+# batch 026 grep evidence (label_026). Paths are relative to /Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app.
+
+## A. UNREACHABLE candidate BaseListFragment.setSearchHint (and its getter): every occurrence in app/src
+src/main/java/com/money/manager/ex/core/SearchViewFormatter.java:71:    public SearchViewFormatter setSearchHintColorResource(int searchHintColorResource) {
+src/main/java/com/money/manager/ex/core/SearchViewFormatter.java:76:    public SearchViewFormatter setSearchHintText(String searchHintText) {
+src/main/java/com/money/manager/ex/core/SearchViewFormatter.java:81:    public SearchViewFormatter setSearchHintTextResource(int searchHintText) {
+src/main/java/com/money/manager/ex/common/BaseExpandableListFragment.java:150:                //formatter.setSearchHintColorResource(R.color.hint_foreground_material_dark);
+src/main/java/com/money/manager/ex/common/BaseListFragment.java:139:            //formatter.setSearchHintColorResource(R.color.mmx_hint_foreground_material_dark);
+src/main/java/com/money/manager/ex/common/BaseListFragment.java:141:            formatter.setSearchHintText(getSearchHint());
+src/main/java/com/money/manager/ex/common/BaseListFragment.java:190:    public String getSearchHint() {
+src/main/java/com/money/manager/ex/common/BaseListFragment.java:194:    public void setSearchHint(@NonNull String mSearchHint) {
+
+## B. BaseRecyclerListFragment: every occurrence in the whole app folder (source, res, manifest)
+src/main/java/com/money/manager/ex/common/BaseRecyclerListFragment.java:23:public class BaseRecyclerListFragment {
+
+## C. BaseListFragment.onFloatingActionButtonClicked: every occurrence in app/src (base, overrides, and the call)
+src/main/java/com/money/manager/ex/investment/PortfolioFragment.java:125:    public void onFloatingActionButtonClicked() {
+src/main/java/com/money/manager/ex/investment/watchlist/WatchlistItemsFragment.java:344:    public void onFloatingActionButtonClicked() {
+src/main/java/com/money/manager/ex/common/BaseListFragment.java:216:    public void onFloatingActionButtonClicked() {
+src/main/java/com/money/manager/ex/common/BaseListFragment.java:244:                    onFloatingActionButtonClicked();
+src/main/java/com/money/manager/ex/common/AllDataListFragment.java:382:    public void onFloatingActionButtonClicked() {
+src/main/java/com/money/manager/ex/fragment/PayeeListFragment.java:431:    public void onFloatingActionButtonClicked() {
+src/main/java/com/money/manager/ex/account/AccountListFragment.java:250:    public void onFloatingActionButtonClicked() {
+src/main/java/com/money/manager/ex/currency/list/CurrencyListFragment.java:324:    public void onFloatingActionButtonClicked() {
+src/main/java/com/money/manager/ex/recurring/transactions/RecurringTransactionListFragment.java:126:    public void onFloatingActionButtonClicked() {
+src/main/java/com/money/manager/ex/currency/recycler/CurrencyRecyclerListFragment.java:318://    public void onFloatingActionButtonClicked() {
+src/main/java/com/money/manager/ex/budget/BudgetListFragment.java:219:    public void onFloatingActionButtonClicked() {
+
+## D. super.onFloatingActionButtonClicked in any subclass (override check before UNREACHABLE)
+
+## E. FAB visibility on the report pages: the FAB calls and visibility code in reports/
+(no matches in reports/)
+-- abs_list_fragment.xml lines 82-91 (FAB default visibility)
+82:    <com.melnykov.fab.FloatingActionButton
+83:        android:id="@+id/fab"
+84:        android:layout_width="wrap_content"
+85:        android:layout_height="wrap_content"
+86:        android:layout_gravity="bottom|end"
+87:        android:layout_margin="16dp"
+88:        android:src="@drawable/ic_action_add_dark"
+89:        android:visibility="gone"
+90:        fab:fab_colorNormal="@color/md_accent"
+91:        fab:fab_colorPressed="@color/md_primary_dark" />
+
+## F. onCreateView in reports/ (report fragments do not override it, so AbsListFragment inflates abs_list_fragment.xml)
+reports/IncomeVsExpensesChartFragment.java:140:    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+reports/PieChartFragment.java:145:    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
+## G. BaseListFragment subclasses and BaseReportFragment subclasses
+src/main/java/com/money/manager/ex/investment/PortfolioFragment.java:44:    extends BaseListFragment {
+src/main/java/com/money/manager/ex/investment/watchlist/WatchlistItemsFragment.java:78:    extends BaseListFragment
+src/main/java/com/money/manager/ex/fragment/PayeeListFragment.java:64:    extends BaseListFragment
+src/main/java/com/money/manager/ex/common/AllDataListFragment.java:85:    extends BaseListFragment
+src/main/java/com/money/manager/ex/account/AccountListFragment.java:54:    extends BaseListFragment
+src/main/java/com/money/manager/ex/recurring/transactions/RecurringTransactionListFragment.java:76:    extends BaseListFragment
+src/main/java/com/money/manager/ex/reports/CategoriesReportFragment.java:61:    extends BaseReportFragment {
+src/main/java/com/money/manager/ex/budget/BudgetDetailFragment.java:42:    extends BaseListFragment {
+src/main/java/com/money/manager/ex/budget/BudgetListFragment.java:52:    extends BaseListFragment
+src/main/java/com/money/manager/ex/reports/BaseReportFragment.java:51:    extends BaseListFragment
+src/main/java/com/money/manager/ex/currency/list/CurrencyListFragment.java:71:    extends BaseListFragment {
+src/main/java/com/money/manager/ex/reports/PayeeReportFragment.java:58:        extends BaseReportFragment {
+
+## H. super calls in subclasses for the methods in batch 026 (cut / no-cut checks)
+fragment/PayeeListFragment.java:82:        super.onActivityCreated(savedInstanceState);
+fragment/PayeeListFragment.java:125:        super.onCreateOptionsMenu(menu, inflater);
+fragment/PayeeListFragment.java:172:        return super.onOptionsItemSelected(item);
+account/AccountListFragment.java:65:        super.onActivityCreated(savedInstanceState);
+currency/list/CurrencyListFragment.java:112:        super.onStart();
+currency/list/CurrencyListFragment.java:126:        super.onActivityCreated(savedInstanceState);
+currency/list/CurrencyListFragment.java:162:        super.onCreateOptionsMenu(menu, inflater);
+currency/list/CurrencyListFragment.java:210:        return super.onOptionsItemSelected(item);
+budget/BudgetListFragment.java:86:        super.onActivityCreated(savedInstanceState);
+budget/BudgetListFragment.java:120:        super.onViewCreated(view, savedInstanceState);
+recurring/transactions/RecurringTransactionListFragment.java:95:        super.onActivityCreated(savedInstanceState);
+recurring/transactions/RecurringTransactionListFragment.java:135:        super.onCreateOptionsMenu(menu, inflater);
+recurring/transactions/RecurringTransactionListFragment.java:152:        return super.onOptionsItemSelected(item);
+common/AllDataListFragment.java:130:        super.onActivityCreated(savedInstanceState);
+common/AllDataListFragment.java:302:        super.onCreateOptionsMenu(menu, inflater);
+common/AllDataListFragment.java:373:        return super.onOptionsItemSelected(item);
+investment/PortfolioFragment.java:99:        super.onActivityCreated(savedInstanceState);
+investment/PortfolioFragment.java:131:        super.onSaveInstanceState(saveInstanceState);
+reports/BaseReportFragment.java:76:        super.onActivityCreated(savedInstanceState);
+reports/BaseReportFragment.java:102:        super.onCreateOptionsMenu(menu, inflater);
+reports/BaseReportFragment.java:204:                return super.onOptionsItemSelected(item);
+reports/BaseReportFragment.java:229:        super.onSaveInstanceState(outState);
+investment/watchlist/WatchlistItemsFragment.java:127:        super.onActivityCreated(savedInstanceState);
+investment/watchlist/WatchlistItemsFragment.java:350:        super.onSaveInstanceState(saveInstanceState);
+reports/CategoriesReportFragment.java:99:        super.onActivityCreated(savedInstanceState);
+reports/CategoriesReportFragment.java:104:        super.onCreateOptionsMenu(menu, inflater);
+reports/CategoriesReportFragment.java:181:        return super.onOptionsItemSelected(item);
+reports/CategoriesReportFragment.java:212:        return super.onQueryTextChange(newText);
+reports/PayeeReportFragment.java:95:        super.onActivityCreated(savedInstanceState);
+reports/PayeeReportFragment.java:125:        return super.onQueryTextChange(newText);
+reports/PayeeReportFragment.java:196:        super.onCreateOptionsMenu(menu, inflater);
+reports/PayeeReportFragment.java:213:        return super.onOptionsItemSelected(item);
+
+## I. setResult overrides (receivers that do not reach the base body through setResultAndFinish)
+fragment/PayeeListFragment.java:309:    protected void setResult() {
+currency/list/CurrencyListFragment.java:298:    protected void setResult() {
+account/AccountListFragment.java:221:    protected void setResult() {
+common/BaseListFragment.java:236:    protected void setResult() { }
+
+## J. library classes used by batch 026 rows: no definition in the source root (class files), imports only
+(no source definitions)
+19:import android.animation.LayoutTransition;
+29:import com.melnykov.fab.FloatingActionButton;
+39:import androidx.appcompat.widget.SearchView;
+
+## K. Calculator call sites (chain tails and getAmountFromResult)
+investment/PriceEditActivity.java:137:        Calculator.forActivity(this)
+investment/PriceEditActivity.java:139:            .roundToCurrency(false)
+investment/PriceEditActivity.java:140:            .show(RequestCodes.AMOUNT);
+investment/InvestmentTransactionEditActivity.java:125:        Money amount = Calculator.getAmountFromResult(data);
+investment/InvestmentTransactionEditActivity.java:215:        Calculator.forActivity(this)
+investment/InvestmentTransactionEditActivity.java:217:                .roundToCurrency(false)
+investment/InvestmentTransactionEditActivity.java:225:        Calculator.forActivity(this)
+investment/InvestmentTransactionEditActivity.java:226:                .roundToCurrency(false)
+investment/InvestmentTransactionEditActivity.java:234:        Calculator.forActivity(this)
+investment/InvestmentTransactionEditActivity.java:242:        Calculator.forActivity(this)
+search/SearchParametersFragment.java:405:        Calculator.forFragment(this).amount(amount).show(RequestCodes.AMOUNT_FROM);
+search/SearchParametersFragment.java:415:        Calculator.forFragment(this).amount(amount).show(RequestCodes.AMOUNT_TO);
+transactions/SplitCategoriesActivity.java:144:            Money amount = Calculator.getAmountFromResult(data);
+transactions/SplitCategoriesActivity.java:207:        Calculator.forActivity(this)
+transactions/EditTransactionCommonFunctions.java:427:                Calculator.forActivity(getActivity())
+transactions/EditTransactionCommonFunctions.java:430:                        .show(RequestCodes.AMOUNT);
+transactions/EditTransactionCommonFunctions.java:444:                Calculator.forActivity(getActivity())
+transactions/EditTransactionCommonFunctions.java:446:                        .show(RequestCodes.AMOUNT_TO);
+transactions/EditTransactionCommonFunctions.java:875:                onFinishedInputAmountDialog(R.id.textViewAmount, Calculator.getAmountFromResult(data));
+transactions/EditTransactionCommonFunctions.java:879:                onFinishedInputAmountDialog(R.id.textViewToAmount, Calculator.getAmountFromResult(data));
+account/AccountEditActivity.java:304:                Calculator.forActivity(AccountEditActivity.this)
+account/AccountEditActivity.java:307:                        .show(RequestCodes.AMOUNT);

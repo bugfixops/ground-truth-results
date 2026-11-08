@@ -1,0 +1,76 @@
+     1	/*
+     2	 * Copyright (C) 2018-2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.detailtorrent;
+    21	
+    22	import androidx.annotation.NonNull;
+    23	import androidx.fragment.app.Fragment;
+    24	import androidx.viewpager2.adapter.FragmentStateAdapter;
+    25	import androidx.viewpager2.widget.ViewPager2;
+    26	
+    27	import org.proninyaroslav.libretorrent.ui.detailtorrent.pages.DetailTorrentInfoFragment;
+    28	import org.proninyaroslav.libretorrent.ui.detailtorrent.pages.DetailTorrentStateFragment;
+    29	import org.proninyaroslav.libretorrent.ui.detailtorrent.pages.files.DetailTorrentFilesFragment;
+    30	import org.proninyaroslav.libretorrent.ui.detailtorrent.pages.peers.DetailTorrentPeersFragment;
+    31	import org.proninyaroslav.libretorrent.ui.detailtorrent.pages.pieces.DetailTorrentPiecesFragment;
+    32	import org.proninyaroslav.libretorrent.ui.detailtorrent.pages.trackers.DetailTorrentTrackersFragment;
+    33	
+    34	public class DetailPagerAdapter extends FragmentStateAdapter
+    35	{
+    36	    @ViewPager2.OffscreenPageLimit
+    37	    public static final int NUM_FRAGMENTS = 6;
+    38	
+    39	    public static final int INFO_FRAG_POS = 0;
+    40	    public static final int STATE_FRAG_POS = 1;
+    41	    public static final int FILES_FRAG_POS = 2;
+    42	    public static final int TRACKERS_FRAG_POS = 3;
+    43	    public static final int PEERS_FRAG_POS = 4;
+    44	    public static final int PIECES_FRAG_POS = 5;
+    45	
+    46	
+    47	    public DetailPagerAdapter(Fragment fragment) {
+    48	        super(fragment);
+    49	    }
+    50	
+    51	    @NonNull
+    52	    @Override
+    53	    public Fragment createFragment(int position) {
+    54	        switch (position) {
+    55	            case INFO_FRAG_POS:
+    56	                return DetailTorrentInfoFragment.newInstance();
+    57	            case STATE_FRAG_POS:
+    58	                return DetailTorrentStateFragment.newInstance();
+    59	            case FILES_FRAG_POS:
+    60	                return DetailTorrentFilesFragment.newInstance();
+    61	            case TRACKERS_FRAG_POS:
+    62	                return DetailTorrentTrackersFragment.newInstance();
+    63	            case PEERS_FRAG_POS:
+    64	                return DetailTorrentPeersFragment.newInstance();
+    65	            case PIECES_FRAG_POS:
+    66	                return DetailTorrentPiecesFragment.newInstance();
+    67	            default:
+    68	                return new Fragment();
+    69	        }
+    70	    }
+    71	
+    72	    @Override
+    73	    public int getItemCount() {
+    74	        return NUM_FRAGMENTS;
+    75	    }
+    76	}

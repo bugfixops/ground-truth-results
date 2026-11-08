@@ -1,0 +1,62 @@
+     1	/*
+     2	 * Copyright (C) 2016 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui;
+    21	
+    22	import android.app.Activity;
+    23	import android.content.ClipData;
+    24	import android.content.ClipboardManager;
+    25	import android.content.Intent;
+    26	import android.os.Bundle;
+    27	import android.widget.Toast;
+    28	
+    29	import org.proninyaroslav.libretorrent.R;
+    30	
+    31	/*
+    32	 * Adds "Copy" item in share dialog.
+    33	 */
+    34	
+    35	public class SendTextToClipboard extends Activity
+    36	{
+    37	    @Override
+    38	    public void onCreate(Bundle savedInstanceState)
+    39	    {
+    40	        super.onCreate(savedInstanceState);
+    41	
+    42	        Intent intent = getIntent();
+    43	
+    44	        if (intent.hasExtra(Intent.EXTRA_TEXT)) {
+    45	            ClipboardManager clipboard = (ClipboardManager) getSystemService(Activity.CLIPBOARD_SERVICE);
+    46	            ClipData clip;
+    47	
+    48	            CharSequence text = intent.getCharSequenceExtra(Intent.EXTRA_TEXT);
+    49	
+    50	            clip = ClipData.newPlainText(intent.getType(), text);
+    51	            clipboard.setPrimaryClip(clip);
+    52	
+    53	            Toast.makeText(getApplicationContext(),
+    54	                    R.string.text_copied_to_clipboard,
+    55	                    Toast.LENGTH_SHORT)
+    56	                    .show();
+    57	        }
+    58	
+    59	        finish();
+    60	        overridePendingTransition(0, 0);
+    61	    }
+    62	}

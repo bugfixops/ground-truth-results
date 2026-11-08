@@ -1,0 +1,18 @@
+ROUTE CHECK LOG (step 6), build g10 sample scratch/verify_sample_30_g10.txt
+Format: method | verdict | what was wrong | fix
+
+1. AudioRecorderFragment$2.<init> | route steps 1-5 (cold start) verified vs AnyMemo.java:115-141, 187, 234-263: OK.
+   Step 6 cold-start Recent (AnyMemo.java:240-241, 263): OK.
+   Steps 14-17 (StudyActivity -> CardEditor -> addNewAudio): not yet re-read in this window.
+   STATUS: partially checked, see group 11.
+
+2. CardEditor.onActivityResult (route 23 steps) | WRONG at steps 15-21.
+   Route goes DatabaseMerger.onClick -> S_FILEBROWSER -> FileBrowserActivity.fileClickAction -> ENTERS S_CARD_EDITOR.
+   FileBrowserActivity.fileClickAction (FileBrowserActivity.java:59-65) only setResult(RESULT_OK)+finish(); the result goes to the starter's own onActivityResult.
+   The shared fileClickAction fans out to S_CARD_EDITOR, S_DB_MERGER and S_SHARE_SCREEN (graph_def 840-842): a shared-node error.
+   Fix (group 11): delete the three fileClickAction ENTERS edges. Each starter already has its own RESULT edge (CardEditor.onOptionsItemSelected 2323, CardEditor.startAudioBrowser 2327, DatabaseMerger.onClick 2331/2334, ShareScreen.onClick C4_RESULTS).
+
+3. Same root cause, wrong ENV: the FileBrowserActivity edges use ENV_PICKER (system document picker, other_app).
+   FileBrowserActivity is an in-app activity (AndroidManifest / CardEditor.java:182-184, 292-294). Fix: ENV_FB_STORAGE (hardware) on the starter ENTERS and RESULT edges; no env on the two onActivityResult ENTERS that only write a field.
+
+4. DropboxApiHelper$4.call, CardPlayerActivity.onPostDisplayCard: route steps read; steps 1-5 OK; step 6-7 of CardPlayer route (RecentListFragment onBindViewHolder -> row click) to be checked against RecentListFragment.java:416-422 and the cited lines of the rest of the route.

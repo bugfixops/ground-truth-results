@@ -1,0 +1,155 @@
+     1	/*
+     2	 * Copyright (C) 2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui;
+    21	
+    22	import android.Manifest;
+    23	import android.content.Context;
+    24	import android.content.Intent;
+    25	import android.content.pm.PackageManager;
+    26	import android.net.Uri;
+    27	import android.os.Build;
+    28	import android.os.Environment;
+    29	import android.provider.Settings;
+    30	
+    31	import androidx.activity.ComponentActivity;
+    32	import androidx.activity.result.ActivityResultLauncher;
+    33	import androidx.activity.result.contract.ActivityResultContracts;
+    34	import androidx.annotation.NonNull;
+    35	import androidx.core.content.ContextCompat;
+    36	
+    37	import org.proninyaroslav.libretorrent.core.RepositoryHelper;
+    38	import org.proninyaroslav.libretorrent.core.settings.SettingsRepository;
+    39	import org.proninyaroslav.libretorrent.core.utils.Utils;
+    40	
+    41	import java.util.ArrayList;
+    42	
+    43	public class PermissionManager {
+    44	    private ActivityResultLauncher<Intent> manageExternalStoragePermission;
+    45	    private ActivityResultLauncher<String[]> permissions;
+    46	    private final Context appContext;
+    47	    private SettingsRepository pref;
+    48	    private boolean hasManageExternalStoragePermission;
+    49	
+    50	    public PermissionManager(
+    51	            @NonNull ComponentActivity activity,
+    52	            @NonNull Callback callback
+    53	    ) {
+    54	        appContext = activity.getApplicationContext();
+    55	        pref = RepositoryHelper.getSettingsRepository(appContext);
+    56	        // MANAGE_EXTERNAL_STORAGE is disabled for the Google Play version
+    57	        // so we need to check before requesting permission
+    58	        hasManageExternalStoragePermission = Utils.hasManageExternalStoragePermission(appContext);
+    59	
+    60	        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && hasManageExternalStoragePermission) {
+    61	            manageExternalStoragePermission = activity.registerForActivityResult(
+    62	                    new ActivityResultContracts.StartActivityForResult(),
+    63	                    result -> callback.onStorageResult(
+    64	                            checkStoragePermissions(),
+    65	                            pref.askManageAllFilesPermission()
+    66	                    )
+    67	            );
+    68	        }
+    69	
+    70	        permissions = activity.registerForActivityResult(
+    71	                new ActivityResultContracts.RequestMultiplePermissions(),
+    72	                result -> {
+    73	                    Boolean storageResult = result.get(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+    74	                    Boolean notificationsResult;
+    75	                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+    76	                        notificationsResult = result.get(Manifest.permission.POST_NOTIFICATIONS);
+    77	                    } else {
+    78	                        notificationsResult = true;
+    79	                    }
+    80	                    if (storageResult != null) {
+    81	                        callback.onStorageResult(
+    82	                                storageResult,
+    83	                                Utils.shouldRequestStoragePermission(activity)
+    84	                        );
+    85	                    }
+    86	                    if (notificationsResult != null) {
+    87	                        callback.onNotificationResult(
+    88	                                notificationsResult,
+    89	                                pref.askNotificationPermission()
+    90	                        );
+    91	                    }
+    92	                }
+    93	        );
+    94	    }
+    95	
+    96	    public void requestPermissions() {
+    97	        ArrayList<String> permissionsList = new ArrayList<>();
+    98	        if (!checkStoragePermissions()) {
+    99	            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && hasManageExternalStoragePermission) {
+   100	                if (pref.askManageAllFilesPermission()) {
+   101	                    var uri = Uri.fromParts("package", appContext.getPackageName(), null);
+   102	                    var i = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+   103	                            .setData(uri);
+   104	                    manageExternalStoragePermission.launch(i);
+   105	                }
+   106	            } else {
+   107	                permissionsList.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+   108	            }
+   109	        }
+   110	        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && pref.askNotificationPermission() && !checkNotificationsPermissions()) {
+   111	            permissionsList.add(Manifest.permission.POST_NOTIFICATIONS);
+   112	        }
+   113	        permissions.launch(permissionsList.toArray(new String[0]));
+   114	    }
+   115	
+   116	    public void setDoNotAskStorage(boolean doNotAsk) {
+   117	        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+   118	            pref.askManageAllFilesPermission(!doNotAsk);
+   119	        }
+   120	    }
+   121	
+   122	    public void setDoNotAskNotifications(boolean doNotAsk) {
+   123	        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+   124	            pref.askNotificationPermission(!doNotAsk);
+   125	        }
+   126	    }
+   127	
+   128	    public boolean checkStoragePermissions() {
+   129	        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && hasManageExternalStoragePermission) {
+   130	            return Environment.isExternalStorageManager();
+   131	        } else {
+   132	            return ContextCompat.checkSelfPermission(appContext,
+   133	                    Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+   134	        }
+   135	    }
+   136	
+   137	    public boolean checkNotificationsPermissions() {
+   138	        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+   139	            return ContextCompat.checkSelfPermission(appContext,
+   140	                    Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
+   141	        } else {
+   142	            return false;
+   143	        }
+   144	    }
+   145	
+   146	    public boolean checkPermissions() {
+   147	        return checkStoragePermissions() && checkNotificationsPermissions();
+   148	    }
+   149	
+   150	    public interface Callback {
+   151	        void onStorageResult(boolean isGranted, boolean shouldRequestStoragePermission);
+   152	
+   153	        void onNotificationResult(boolean isGranted, boolean shouldRequestNotificationPermission);
+   154	    }
+   155	}

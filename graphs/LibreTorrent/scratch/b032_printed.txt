@@ -1,0 +1,443 @@
+# Batch 032 printed evidence (C04, fresh print 2026-11-01)
+# Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+# Each block prints the cited file lines with line numbers, exactly as cited in b032.py/.md.
+# Path citations only; bare-filename prose mentions in .md reasons resolve to these same lines.
+
+=== core/model/TorrentEngine.java (1659 lines) ===
+--- core/model/TorrentEngine.java:461-464 ---
+461:     private void sendInfoToEmitter(SingleEmitter<TorrentMetaInfo> emitter, byte[] bencode) {
+462:         TorrentMetaInfo info;
+463:         try {
+464:             info = new TorrentMetaInfo(bencode);
+
+=== core/model/data/entity/Torrent.java (202 lines) ===
+--- core/model/data/entity/Torrent.java:142-155 ---
+142:     public void writeToParcel(Parcel dest, int flags)
+143:     {
+144:         dest.writeString(id);
+145:         dest.writeString(magnet);
+146:         dest.writeParcelable(downloadPath, flags);
+147:         dest.writeString(name);
+148:         dest.writeByte((byte)(downloadingMetadata ? 1 : 0));
+149:         dest.writeLong(dateAdded);
+150:         dest.writeString(error);
+151:         dest.writeByte((byte)(manuallyPaused ? 1 : 0));
+152:         dest.writeInt(visibility);
+153:         dest.writeByte((byte)(sequentialDownload ? 1 : 0));
+154:         dest.writeByte((byte)(firstLastPiecePriority ? 1 : 0));
+155:     }
+--- core/model/data/entity/Torrent.java:157-170 ---
+157:     public static final Creator<Torrent> CREATOR = new Creator<>()
+158:             {
+159:                 @Override
+160:                 public Torrent createFromParcel(Parcel source)
+161:                 {
+162:                     return new Torrent(source);
+163:                 }
+164: 
+165:                 @Override
+166:                 public Torrent[] newArray(int size)
+167:                 {
+168:                     return new Torrent[size];
+169:                 }
+170:             };
+--- core/model/data/entity/Torrent.java:160-163 ---
+160:                 public Torrent createFromParcel(Parcel source)
+161:                 {
+162:                     return new Torrent(source);
+163:                 }
+--- core/model/data/entity/Torrent.java:166-169 ---
+166:                 public Torrent[] newArray(int size)
+167:                 {
+168:                     return new Torrent[size];
+169:                 }
+
+=== core/model/data/entity/TorrentTagInfo.java (89 lines) ===
+--- core/model/data/entity/TorrentTagInfo.java:54-60 ---
+54:     public TorrentTagInfo(
+55:             long tagId,
+56:             @NonNull String torrentId
+57:     ) {
+58:         this.tagId = tagId;
+59:         this.torrentId = torrentId;
+60:     }
+--- core/model/data/entity/TorrentTagInfo.java:63-71 ---
+63:     public boolean equals(Object o) {
+64:         if (this == o) return true;
+65:         if (o == null || getClass() != o.getClass()) return false;
+66: 
+67:         TorrentTagInfo that = (TorrentTagInfo) o;
+68: 
+69:         if (tagId != that.tagId) return false;
+70:         return torrentId.equals(that.torrentId);
+71:     }
+--- core/model/data/entity/TorrentTagInfo.java:74-78 ---
+74:     public int hashCode() {
+75:         int result = (int) (tagId ^ (tagId >>> 32));
+76:         result = 31 * result + torrentId.hashCode();
+77:         return result;
+78:     }
+--- core/model/data/entity/TorrentTagInfo.java:82-87 ---
+82:     public String toString() {
+83:         return "TorrentTagInfo{" +
+84:                 "tagId='" + tagId + '\'' +
+85:                 ", torrentId='" + torrentId + '\'' +
+86:                 '}';
+87:     }
+
+=== core/model/data/metainfo/BencodeFileItem.java (127 lines) ===
+--- core/model/data/metainfo/BencodeFileItem.java:37-42 ---
+37:     public BencodeFileItem(String path, int index, long size)
+38:     {
+39:         this.path = path;
+40:         this.index = index;
+41:         this.size = size;
+42:     }
+--- core/model/data/metainfo/BencodeFileItem.java:44-49 ---
+44:     public BencodeFileItem(Parcel source)
+45:     {
+46:         path = source.readString();
+47:         index = source.readInt();
+48:         size = source.readLong();
+49:     }
+--- core/model/data/metainfo/BencodeFileItem.java:51-54 ---
+51:     public String getPath()
+52:     {
+53:         return path;
+54:     }
+--- core/model/data/metainfo/BencodeFileItem.java:56-59 ---
+56:     public void setPath(String path)
+57:     {
+58:         this.path = path;
+59:     }
+--- core/model/data/metainfo/BencodeFileItem.java:61-64 ---
+61:     public long getSize()
+62:     {
+63:         return size;
+64:     }
+--- core/model/data/metainfo/BencodeFileItem.java:66-69 ---
+66:     public void setSize(long size)
+67:     {
+68:         this.size = size;
+69:     }
+--- core/model/data/metainfo/BencodeFileItem.java:71-74 ---
+71:     public int getIndex()
+72:     {
+73:         return index;
+74:     }
+--- core/model/data/metainfo/BencodeFileItem.java:76-79 ---
+76:     public void setIndex(int index)
+77:     {
+78:         this.index = index;
+79:     }
+--- core/model/data/metainfo/BencodeFileItem.java:82-85 ---
+82:     public int describeContents()
+83:     {
+84:         return 0;
+85:     }
+--- core/model/data/metainfo/BencodeFileItem.java:88-93 ---
+88:     public void writeToParcel(Parcel dest, int flags)
+89:     {
+90:         dest.writeString(path);
+91:         dest.writeInt(index);
+92:         dest.writeLong(size);
+93:     }
+--- core/model/data/metainfo/BencodeFileItem.java:95-109 ---
+95:     public static final Parcelable.Creator<BencodeFileItem> CREATOR =
+96:             new Parcelable.Creator<BencodeFileItem>()
+97:             {
+98:                 @Override
+99:                 public BencodeFileItem createFromParcel(Parcel source)
+100:                 {
+101:                     return new BencodeFileItem(source);
+102:                 }
+103: 
+104:                 @Override
+105:                 public BencodeFileItem[] newArray(int size)
+106:                 {
+107:                     return new BencodeFileItem[size];
+108:                 }
+109:             };
+--- core/model/data/metainfo/BencodeFileItem.java:99-102 ---
+99:                 public BencodeFileItem createFromParcel(Parcel source)
+100:                 {
+101:                     return new BencodeFileItem(source);
+102:                 }
+--- core/model/data/metainfo/BencodeFileItem.java:105-108 ---
+105:                 public BencodeFileItem[] newArray(int size)
+106:                 {
+107:                     return new BencodeFileItem[size];
+108:                 }
+--- core/model/data/metainfo/BencodeFileItem.java:111-115 ---
+111:     @Override
+112:     public int compareTo(@NonNull BencodeFileItem anotner)
+113:     {
+114:         return path.compareTo(anotner.path);
+115:     }
+--- core/model/data/metainfo/BencodeFileItem.java:119-126 ---
+119:     public String toString()
+120:     {
+121:         return "BencodeFileItem{" +
+122:                 "path='" + path + '\'' +
+123:                 ", index=" + index +
+124:                 ", size=" + size +
+125:                 '}';
+126:     }
+
+=== core/model/data/metainfo/TorrentMetaInfo.java (211 lines) ===
+--- core/model/data/metainfo/TorrentMetaInfo.java:57-61 ---
+57:     public TorrentMetaInfo(@NonNull String torrentName, @NonNull String sha1hash)
+58:     {
+59:         this.torrentName = torrentName;
+60:         this.sha1Hash = sha1hash;
+61:     }
+--- core/model/data/metainfo/TorrentMetaInfo.java:63-71 ---
+63:     public TorrentMetaInfo(@NonNull byte[] data) throws DecodeException
+64:     {
+65:         try {
+66:             getMetaInfo(TorrentInfo.bdecode(data));
+67: 
+68:         } catch (Exception e) {
+69:             throw new DecodeException(e);
+70:         }
+71:     }
+--- core/model/data/metainfo/TorrentMetaInfo.java:66 ---
+66:             getMetaInfo(TorrentInfo.bdecode(data));
+--- core/model/data/metainfo/TorrentMetaInfo.java:73-81 ---
+73:     public TorrentMetaInfo(TorrentInfo info) throws DecodeException
+74:     {
+75:         try {
+76:             getMetaInfo(info);
+77: 
+78:         } catch (Exception e) {
+79:             throw new DecodeException(e);
+80:         }
+81:     }
+--- core/model/data/metainfo/TorrentMetaInfo.java:83-96 ---
+83:     public TorrentMetaInfo(FileInputStream is) throws DecodeException
+84:     {
+85:         FileChannel chan = null;
+86:         try {
+87:             chan = is.getChannel();
+88:             getMetaInfo(new TorrentInfo(chan
+89:                     .map(FileChannel.MapMode.READ_ONLY, 0, chan.size())));
+90: 
+91:         } catch (Exception e) {
+92:             throw new DecodeException(e);
+93:         } finally {
+94:             IOUtils.closeQuietly(chan);
+95:         }
+96:     }
+--- core/model/data/metainfo/TorrentMetaInfo.java:98-111 ---
+98:     private void getMetaInfo(TorrentInfo info)
+99:     {
+100:         torrentName = info.name();
+101:         sha1Hash = info.infoHash().toHex();
+102:         comment = info.comment();
+103:         createdBy = info.creator();
+104:         /* Correct convert UNIX time (time_t) */
+105:         creationDate = info.creationDate() * 1000L;
+106:         torrentSize = info.totalSize();
+107:         fileCount = info.numFiles();
+108:         fileList = Utils.getFileList(info.origFiles());
+109:         pieceLength = info.pieceLength();
+110:         numPieces = info.numPieces();
+111:     }
+--- core/model/data/metainfo/TorrentMetaInfo.java:113-127 ---
+113:     public TorrentMetaInfo (Parcel source)
+114:     {
+115:         torrentName = source.readString();
+116:         sha1Hash = source.readString();
+117:         comment = source.readString();
+118:         createdBy = source.readString();
+119:         torrentSize = source.readLong();
+120:         creationDate = source.readLong();
+121:         fileCount = source.readInt();
+122:         fileList = new ArrayList<>();
+123:         source.readTypedList(fileList, BencodeFileItem.CREATOR);
+124:         pieceLength = source.readInt();
+125:         numPieces = source.readInt();
+126:     }
+127: 
+--- core/model/data/metainfo/TorrentMetaInfo.java:129-132 ---
+129:     public int describeContents()
+130:     {
+131:         return 0;
+132:     }
+--- core/model/data/metainfo/TorrentMetaInfo.java:135-147 ---
+135:     public void writeToParcel(Parcel dest, int flags)
+136:     {
+137:         dest.writeString(torrentName);
+138:         dest.writeString(sha1Hash);
+139:         dest.writeString(comment);
+140:         dest.writeString(createdBy);
+141:         dest.writeLong(torrentSize);
+142:         dest.writeLong(creationDate);
+143:         dest.writeInt(fileCount);
+144:         dest.writeTypedList(fileList);
+145:         dest.writeInt(pieceLength);
+146:         dest.writeInt(numPieces);
+147:     }
+--- core/model/data/metainfo/TorrentMetaInfo.java:149-163 ---
+149:     public static final Parcelable.Creator<TorrentMetaInfo> CREATOR =
+150:             new Parcelable.Creator<TorrentMetaInfo>()
+151:             {
+152:                 @Override
+153:                 public TorrentMetaInfo createFromParcel(Parcel source)
+154:                 {
+155:                     return new TorrentMetaInfo(source);
+156:                 }
+157: 
+158:                 @Override
+159:                 public TorrentMetaInfo[] newArray(int size)
+160:                 {
+161:                     return new TorrentMetaInfo[size];
+162:                 }
+163:             };
+--- core/model/data/metainfo/TorrentMetaInfo.java:153-156 ---
+153:                 public TorrentMetaInfo createFromParcel(Parcel source)
+154:                 {
+155:                     return new TorrentMetaInfo(source);
+156:                 }
+--- core/model/data/metainfo/TorrentMetaInfo.java:159-162 ---
+159:                 public TorrentMetaInfo[] newArray(int size)
+160:                 {
+161:                     return new TorrentMetaInfo[size];
+162:                 }
+--- core/model/data/metainfo/TorrentMetaInfo.java:166-169 ---
+166:     public int hashCode()
+167:     {
+168:         return sha1Hash.hashCode();
+169:     }
+--- core/model/data/metainfo/TorrentMetaInfo.java:172-191 ---
+172:     public boolean equals(Object o)
+173:     {
+174:         if (!(o instanceof TorrentMetaInfo))
+175:             return false;
+176: 
+177:         if (o == this)
+178:             return true;
+179: 
+180:         TorrentMetaInfo info = (TorrentMetaInfo) o;
+181: 
+182:         return torrentName.equals(info.torrentName) &&
+183:                 sha1Hash.equals(info.sha1Hash) &&
+184:                 comment.equals(info.comment) &&
+185:                 createdBy.equals(info.createdBy) &&
+186:                 torrentSize == info.torrentSize &&
+187:                 creationDate == info.creationDate &&
+188:                 fileCount == info.fileCount &&
+189:                 pieceLength == info.pieceLength &&
+190:                 numPieces == info.numPieces;
+191:     }
+--- core/model/data/metainfo/TorrentMetaInfo.java:195-209 ---
+195:     public String toString()
+196:     {
+197:         return "TorrentMetaInfo{" +
+198:                 "torrentName='" + torrentName + '\'' +
+199:                 ", sha1Hash='" + sha1Hash + '\'' +
+200:                 ", comment='" + comment + '\'' +
+201:                 ", createdBy='" + createdBy + '\'' +
+202:                 ", torrentSize=" + torrentSize +
+203:                 ", creationDate=" + creationDate +
+204:                 ", fileCount=" + fileCount +
+205:                 ", pieceLength=" + pieceLength +
+206:                 ", numPieces=" + numPieces +
+207:                 ", fileList=" + fileList +
+208:                 '}';
+209:     }
+
+=== core/model/filetree/BencodeFileTree.java (133 lines) ===
+--- core/model/filetree/BencodeFileTree.java:40-44 ---
+40:     public BencodeFileTree(int index, String name, long size, int type, BencodeFileTree parent)
+41:     {
+42:         super(index, name, size, type, parent);
+43:     }
+44: 
+
+=== core/model/session/TorrentDownloadImpl.java (1712 lines) ===
+--- core/model/session/TorrentDownloadImpl.java:391-406 ---
+391:     private void handleMetadata(MetadataReceivedAlert alert)
+392:     {
+393:         Exception[] err = new Exception[1];
+394:         String newName = null;
+395:         Torrent torrent;
+396:         try {
+397:             torrent = repo.getTorrentById(id);
+398:             if (torrent == null)
+399:                 throw new NullPointerException(id + " doesn't exists");
+400:             TorrentHandle th = alert.handle();
+401:             TorrentInfo ti = th.torrentFile();
+402:             if (ti == null) {
+403:                 return;
+404:             }
+405: 
+406:             TorrentMetaInfo info = new TorrentMetaInfo(ti);
+
+=== core/model/session/TorrentSessionImpl.java (1721 lines) ===
+--- core/model/session/TorrentSessionImpl.java:299 ---
+299:                         TorrentMetaInfo info = new TorrentMetaInfo(is);
+
+=== core/storage/TorrentRepositoryImpl.java (173 lines) ===
+--- core/storage/TorrentRepositoryImpl.java:125 ---
+125:             tagInfoList.add(new TorrentTagInfo(tag.id, torrentId));
+--- core/storage/TorrentRepositoryImpl.java:132 ---
+132:         db.torrentDao().addTag(new TorrentTagInfo(tag.id, torrentId));
+--- core/storage/TorrentRepositoryImpl.java:137 ---
+137:         db.torrentDao().deleteTag(new TorrentTagInfo(tag.id, torrentId));
+
+=== core/utils/BencodeFileTreeUtils.java (128 lines) ===
+--- core/utils/BencodeFileTreeUtils.java:55 ---
+55:         Collections.sort(filesCopy);
+--- core/utils/BencodeFileTreeUtils.java:73-96 ---
+73:                     file.getPath().regionMatches(true, 0, prevPath, 0, prevPath.length())) {
+74:                 /*
+75:                  * If beginning paths are equal, remove previous path from the new path.
+76:                  * Example:
+77:                  * prev = dir1/dir2/
+78:                  * cur  = dir1/dir2/file1
+79:                  * new  = file1
+80:                  */
+81:                 path = file.getPath().substring(prevPath.length());
+82:             } else {
+83:                 /* If beginning paths are not equal, return to root */
+84:                 path = file.getPath();
+85:                 parentTree = root;
+86:             }
+87: 
+88:             String[] nodes = path.split(File.separator);
+89:             /*
+90:              * Remove last node (file) from previous path.
+91:              * Example:
+92:              * cur = dir1/dir2/file1
+93:              * new = dir1/dir2/
+94:              */
+95:             prevPath = file.getPath()
+96:                     .substring(0, file.getPath().length() - nodes[nodes.length - 1].length());
+--- core/utils/BencodeFileTreeUtils.java:102-103 ---
+102:                     BencodeFileTree leaf = makeObject(file.getIndex(), nodes[i],
+103:                                                     file.getSize(), parentTree,
+--- core/utils/BencodeFileTreeUtils.java:102-105 ---
+102:                     BencodeFileTree leaf = makeObject(file.getIndex(), nodes[i],
+103:                                                     file.getSize(), parentTree,
+104:                                                     i == (nodes.length - 1));
+105:                     leaves[file.getIndex()] = leaf;
+--- core/utils/BencodeFileTreeUtils.java:119-125 ---
+119:     private static BencodeFileTree makeObject(int index, String name,
+120:                                               long size, BencodeFileTree parent,
+121:                                               boolean isFile)
+122:     {
+123:         return (isFile ?
+124:                 new BencodeFileTree(index, name, size, FileNode.Type.FILE, parent) :
+125:                 new BencodeFileTree(name, 0L, FileNode.Type.DIR, parent));
+
+=== core/utils/Utils.java (927 lines) ===
+--- core/utils/Utils.java:142-145 ---
+142:     public static ArrayList<BencodeFileItem> getFileList(@NonNull FileStorage storage) {
+143:         ArrayList<BencodeFileItem> files = new ArrayList<>();
+144:         for (int i = 0; i < storage.numFiles(); i++) {
+145:             BencodeFileItem file = new BencodeFileItem(storage.filePath(i), i, storage.fileSize(i));
+
+=== ui/addtorrent/AddTorrentViewModel.java (575 lines) ===
+--- ui/addtorrent/AddTorrentViewModel.java:242 ---
+242:                             v.info.set(new TorrentMetaInfo(magnetInfo.getName(), magnetInfo.getSha1hash()));

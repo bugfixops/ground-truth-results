@@ -1,0 +1,109 @@
+label_084.grep.txt: grep and class-file evidence for batch 084 (graphs/MMEX/scratch/batches/batch_084.txt).
+Generated classes with UNREACHABLE rows: com/money/manager/ex/home/SelectDatabaseActivity_MembersInjector (create, <init>, injectMembers) and com/money/manager/ex/home/SelectDatabaseActivity_ViewBinding (unbind).
+App source classes with UNREACHABLE rows (no grep needed by the rules, shown anyway): com/money/manager/ex/home/events/MessageEvent and RequestOpenDatabaseEvent (<init>).
+Source root: final_java_only/MMEX/app/MMEX-#v2024.06.14 (paths below are relative to the repo root).
+Commands: grep (text search, read only), a read-only python3 -I parse of every .class file under app/build/intermediates/javac/debug/classes (constant pool and method table; parse errors 0), and python3 -I prints of graphs/MMEX/auto_calls.json records. javap was not used.
+
+== section 1: source text search over the app source root (src/main/java)
+grep -rn "SelectDatabaseActivity_MembersInjector\|SelectDatabaseActivity_ViewBinding\|injectMDatabasesLazy\|MessageEvent\|RequestOpenDatabaseEvent\|unbind" final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java:86:import com.money.manager.ex.home.events.RequestOpenDatabaseEvent;
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java:470:    public void onEvent(RequestOpenDatabaseEvent event) {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/events/RequestOpenDatabaseEvent.java:22:public class RequestOpenDatabaseEvent {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/events/MessageEvent.java:22:public class MessageEvent {
+(no other hit: no source reference to the injector, the binding, injectMDatabasesLazy, unbind, new MessageEvent or new RequestOpenDatabaseEvent)
+
+== section 2: the ButterKnife call site and the activity lifecycle (SelectDatabaseActivity.java)
+grep -n "onDestroy\|unbind" final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/SelectDatabaseActivity.java
+(no output, exit 1: the activity has no onDestroy and never keeps the Unbinder)
+SelectDatabaseActivity.java:60 (printed with sed -n 53,60p): ButterKnife.bind(this); the return value is not kept.
+
+== section 3: class-file search (grep -rl -a, binary-safe)
+grep -rl -a "SelectDatabaseActivity_MembersInjector\|SelectDatabaseActivity_ViewBinding\|MessageEvent\|RequestOpenDatabaseEvent" final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/home/SelectDatabaseActivity_ViewBinding$1.class
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/home/SelectDatabaseActivity_ViewBinding$2.class
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/home/MainActivity.class
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/home/SelectDatabaseActivity_MembersInjector.class
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/home/SelectDatabaseActivity_ViewBinding.class
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/home/events/MessageEvent.class
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/home/events/RequestOpenDatabaseEvent.class
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/core/ioc/DaggerMmxComponent.class
+(MainActivity.class names RequestOpenDatabaseEvent only in the onEvent descriptor; its constant pool has no constructor reference to it, see section 4)
+
+== section 4: python3 -I parse of the class files (read only)
+OWN METHOD TABLES (flags, name, descriptor):
+com/money/manager/ex/home/SelectDatabaseActivity_MembersInjector.class
+   method flags=0x1 <init> (Ljavax/inject/Provider;)V
+   method flags=0x9 create (Ljavax/inject/Provider;)Ldagger/MembersInjector;
+   method flags=0x1 injectMembers (Lcom/money/manager/ex/home/SelectDatabaseActivity;)V
+   method flags=0x9 injectMDatabasesLazy (Lcom/money/manager/ex/home/SelectDatabaseActivity;Ldagger/Lazy;)V
+   method flags=0x1041 injectMembers (Ljava/lang/Object;)V   (synthetic bridge; not in batch_084.txt)
+com/money/manager/ex/home/SelectDatabaseActivity_ViewBinding.class
+   method flags=0x1 <init> (Lcom/money/manager/ex/home/SelectDatabaseActivity;)V
+   method flags=0x1 <init> (Lcom/money/manager/ex/home/SelectDatabaseActivity;Landroid/view/View;)V
+   method flags=0x1 unbind ()V
+com/money/manager/ex/home/events/MessageEvent.class
+   method flags=0x1 <init> ()V
+com/money/manager/ex/home/events/RequestOpenDatabaseEvent.class
+   method flags=0x1 <init> ()V
+com/money/manager/ex/home/events/UsernameLoadedEvent.class
+   method flags=0x1 <init> ()V
+com/money/manager/ex/home/events/AccountsTotalLoadedEvent.class
+   method flags=0x1 <init> (Ljava/lang/String;)V
+com/money/manager/ex/home/events/RequestAccountFragmentEvent.class
+   method flags=0x1 <init> (I)V
+com/money/manager/ex/home/events/RequestPortfolioFragmentEvent.class
+   method flags=0x1 <init> (I)V
+com/money/manager/ex/home/events/RequestWatchlistFragmentEvent.class
+   method flags=0x1 <init> (I)V
+
+REFERENCES (Methodref, Fieldref or InterfaceMethodref) FROM OTHER CLASSES, by class file:
+com/money/manager/ex/core/ioc/DaggerMmxComponent.class
+     SelectDatabaseActivity_MembersInjector injectMDatabasesLazy (Lcom/money/manager/ex/home/SelectDatabaseActivity;Ldagger/Lazy;)V
+     (no reference to create, <init> or injectMembers of the injector)
+com/money/manager/ex/home/SelectDatabaseActivity_MembersInjector.class
+     SelectDatabaseActivity mDatabasesLazy Ldagger/Lazy;   (its own field)
+com/money/manager/ex/home/SelectDatabaseActivity_ViewBinding$1.class
+     SelectDatabaseActivity onCreateDatabaseClick ()V
+com/money/manager/ex/home/SelectDatabaseActivity_ViewBinding$2.class
+     SelectDatabaseActivity onOpenDatabaseClick ()V
+com/money/manager/ex/home/SelectDatabaseActivity_ViewBinding.class
+     SelectDatabaseActivity getWindow ()Landroid/view/Window;
+     SelectDatabaseActivity mToolbar Landroidx/appcompat/widget/Toolbar;
+     (no reference to the binding constructors or to unbind from any app class)
+com/money/manager/ex/home/HomeFragment$4.class
+     UsernameLoadedEvent <init> ()V
+com/money/manager/ex/home/HomeFragment$6.class
+     RequestAccountFragmentEvent <init> (I)V
+     RequestWatchlistFragmentEvent <init> (I)V
+com/money/manager/ex/home/HomeFragment.class
+     AccountsTotalLoadedEvent <init> (Ljava/lang/String;)V
+     RequestPortfolioFragmentEvent <init> (I)V
+com/money/manager/ex/home/MainActivity.class
+     AccountsTotalLoadedEvent amount Ljava/lang/String;
+     RequestAccountFragmentEvent accountId I
+     RequestPortfolioFragmentEvent accountId I
+     RequestWatchlistFragmentEvent accountId I
+     (no Methodref to MessageEvent.<init> or RequestOpenDatabaseEvent.<init>)
+MessageEvent.class and RequestOpenDatabaseEvent.class: no reference from any other class file.
+unbind: 0 Methodref or InterfaceMethodref named unbind in all app class files.
+
+== section 5: auto_calls.json records (python3 -I print; the records are bytecode-derived)
+{'src': 'SelectDatabaseActivity_MembersInjector.create', 'dst': 'SelectDatabaseActivity_MembersInjector.<init>', 'file': 'SelectDatabaseActivity_MembersInjector.java', 'line': 24, 'dispatch': 'exact'}
+{'src': 'SelectDatabaseActivity_MembersInjector.injectMembers', 'dst': 'SelectDatabaseActivity_MembersInjector.injectMDatabasesLazy', 'file': 'SelectDatabaseActivity_MembersInjector.java', 'line': 29, 'dispatch': 'exact'}
+{'src': 'DaggerMmxComponent.injectSelectDatabaseActivity', 'dst': 'SelectDatabaseActivity_MembersInjector.injectMDatabasesLazy', 'file': 'DaggerMmxComponent.java', 'line': 426, 'dispatch': 'exact'}
+{'src': 'DaggerMmxComponent.inject(SelectDatabaseActivity)', 'dst': 'DaggerMmxComponent.injectSelectDatabaseActivity', 'file': 'DaggerMmxComponent.java', 'line': 237, 'dispatch': 'exact'}
+{'src': 'SelectDatabaseActivity.onCreate', 'dst': 'DaggerMmxComponent.inject(SelectDatabaseActivity)', 'file': 'SelectDatabaseActivity.java', 'line': 58, 'dispatch': 'cha'}
+{'src': 'SelectDatabaseActivity_ViewBinding.<init>(SelectDatabaseActivity)', 'dst': 'SelectDatabaseActivity_ViewBinding.<init>(SelectDatabaseActivity,View)', 'file': 'SelectDatabaseActivity_ViewBinding.java', 'line': 24, 'dispatch': 'exact'}
+{'src': 'SelectDatabaseActivity_ViewBinding.<init>(SelectDatabaseActivity,View)', 'dst': 'SelectDatabaseActivity_ViewBinding$1.<init>', 'file': 'SelectDatabaseActivity_ViewBinding.java', 'line': 35, 'dispatch': 'exact'}
+{'src': 'SelectDatabaseActivity_ViewBinding.<init>(SelectDatabaseActivity,View)', 'dst': 'SelectDatabaseActivity_ViewBinding$2.<init>', 'file': 'SelectDatabaseActivity_ViewBinding.java', 'line': 43, 'dispatch': 'exact'}
+{'src': 'SelectDatabaseActivity_ViewBinding$1.doClick', 'dst': 'SelectDatabaseActivity.onCreateDatabaseClick', 'file': 'SelectDatabaseActivity_ViewBinding.java', 'line': 38, 'dispatch': 'exact'}
+{'src': 'SelectDatabaseActivity_ViewBinding$2.doClick', 'dst': 'SelectDatabaseActivity.onOpenDatabaseClick', 'file': 'SelectDatabaseActivity_ViewBinding.java', 'line': 46, 'dispatch': 'exact'}
+{'src': 'HomeFragment.onLoadFinished', 'dst': 'AccountsTotalLoadedEvent.<init>', 'file': 'HomeFragment.java', 'line': 297, 'dispatch': 'exact'}
+{'src': 'HomeFragment$4.onSuccess', 'dst': 'UsernameLoadedEvent.<init>', 'file': 'HomeFragment.java', 'line': 653, 'dispatch': 'exact'}
+{'src': 'HomeFragment$6.onChildClick', 'dst': 'RequestAccountFragmentEvent.<init>', 'file': 'HomeFragment.java', 'line': 702, 'dispatch': 'exact'}
+{'src': 'HomeFragment$6.onChildClick', 'dst': 'RequestWatchlistFragmentEvent.<init>', 'file': 'HomeFragment.java', 'line': 700, 'dispatch': 'exact'}
+{'src': 'HomeFragment.onContextItemSelected', 'dst': 'RequestPortfolioFragmentEvent.<init>', 'file': 'HomeFragment.java', 'line': 474, 'dispatch': 'exact'}
+(no record has as dst: SelectDatabaseActivity_MembersInjector.create, SelectDatabaseActivity_MembersInjector.injectMembers, SelectDatabaseActivity_ViewBinding.unbind, SelectDatabaseActivity_ViewBinding.<init>(SelectDatabaseActivity), MessageEvent.<init>, RequestOpenDatabaseEvent.<init>; the ButterKnife call is not in auto_calls.json and is written in label_084.py)
+
+== section 6: the ButterKnife reflection call and the library (not in the source root)
+SelectDatabaseActivity.java:58-60: inject(this) at 58, ButterKnife.bind(this) at 60. The generated binding and the ButterKnife library are not in the source root: their claims are INFERRED.

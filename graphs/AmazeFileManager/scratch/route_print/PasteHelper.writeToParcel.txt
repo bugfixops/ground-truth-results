@@ -1,0 +1,24 @@
+METHOD: PasteHelper.writeToParcel
+verdict: REACHABLE   steps_from_launch: 2
+route steps: 2 edges
+======================================================================
+
+STEP 1  edge E795acdbd
+  S_ENTRY -> MainActivity.onSaveInstanceState
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC Activity.java onSaveInstanceState lifecycle
+  (no file:line citations in evidence)
+
+STEP 2  edge E32e65cb4
+  MainActivity.onSaveInstanceState -> PasteHelper.writeToParcel
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: A copy or cut operation is pending (MainActivity holds a PasteHelper)
+  env: None
+  evidence: SRC activities/MainActivity.java:1077-1078 if(pasteHelper != null) outState.putParcelable(PASTEHELPER_BUNDLE, pasteHelper); INFERRED Bundle parcels the value on save
+  cite [SRC] activities/MainActivity.java:1077-1078
+     1077:         if(pasteHelper != null) {
+     1078:             outState.putParcelable(PASTEHELPER_BUNDLE, pasteHelper);

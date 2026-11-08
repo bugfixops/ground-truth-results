@@ -1,0 +1,88 @@
+# Batch 70 printed evidence (fresh, C11 converter, 2026-11-01)
+# Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+# Cited files (basenames, for check_part check 8): BootReceiver.java, ConnectionReceiver.java, DownloadableFilesAdapter.java, TagsAdapter.java, TorrentEngine.java, TorrentListAdapter.java, TrackerListAdapter.java
+
+=== core/model/TorrentEngine.java ===
+   106:     private CompositeDisposable disposables = new CompositeDisposable();
+   107:     private TorrentFileObserver fileObserver;
+*  108:     private PowerReceiver powerReceiver = new PowerReceiver();
+*  109:     private ConnectionReceiver connectionReceiver = new ConnectionReceiver();
+   110:     private FileSystemFacade fs;
+   111:     private DownloadsCompletedListener downloadsCompleted;
+---
+   999:         }
+  1000:         if (customBatteryControl) {
+* 1001:             appContext.registerReceiver(powerReceiver, PowerReceiver.getCustomFilter());
+  1002:             /* Custom receiver doesn't send sticky intent, reschedule manually */
+  1003:             rescheduleTorrents();
+---
+  1018:         }
+  1019:         if (unmeteredOnly || roaming)
+* 1020:             appContext.registerReceiver(connectionReceiver, ConnectionReceiver.getFilter());
+  1021:     }
+  1022: 
+---
+
+=== receiver/BootReceiver.java ===
+    42: 
+    43:         var action = intent.getAction();
+*   44:         if (isBootCompleted(action)) {
+    45:             initScheduling(context, pref);
+    46:             if (pref.autostart() && pref.keepAlive()) {
+---
+
+=== receiver/ConnectionReceiver.java ===
+    35: {
+    36:     @Override
+*   37:     public void onReceive(Context context, Intent intent)
+*   38:     {
+*   39:         String action = intent.getAction();
+*   40:         if (action != null && action.equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
+*   41:             TorrentEngine engine = TorrentEngine.getInstance(context);
+*   42:             engine.rescheduleTorrents();
+*   43:         }
+*   44:     }
+    45: 
+    46:     public static IntentFilter getFilter()
+---
+
+=== ui/addtorrent/DownloadableFilesAdapter.java ===
+    58:     {
+    59:         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+*   60:         ItemTorrentDownloadableFileBinding binding = DataBindingUtil.inflate(inflater,
+*   61:                 R.layout.item_torrent_downloadable_file,
+    62:                 parent,
+    63:                 false);
+---
+
+=== ui/detailtorrent/pages/trackers/TrackerListAdapter.java ===
+    71:     {
+    72:         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+*   73:         ItemTrackersListBinding binding = DataBindingUtil.inflate(inflater,
+*   74:                 R.layout.item_trackers_list,
+    75:                 parent,
+    76:                 false);
+---
+
+=== ui/main/TorrentListAdapter.java ===
+    77:     {
+    78:         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+*   79:         ItemTorrentListBinding binding = DataBindingUtil.inflate(inflater,
+*   80:                 R.layout.item_torrent_list,
+    81:                 parent,
+    82:                 false);
+---
+
+=== ui/tag/TagsAdapter.java ===
+    46:     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    47:         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+*   48:         TagsListItemBinding binding = DataBindingUtil.inflate(
+*   49:                 inflater,
+*   50:                 R.layout.tags_list_item,
+*   51:                 parent,
+*   52:                 false
+*   53:         );
+    54:         return new ViewHolder(binding);
+    55:     }
+---
+

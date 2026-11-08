@@ -1,0 +1,298 @@
+## AllDataListFragment.displayRunningBalances  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=- state=account;settings classes=explicit;non_standard;standard explicit_standard_route=no
+   1. E71c76102 ENTRY/standard*
+      S_ENTRY -> MainActivity.<init>
+      The MAIN / LAUNCHER activity is started from the launcher
+      evidence: SRC AndroidManifest.xml:136-143 (MAIN + LAUNCHER intent filter of com.money.manager.ex.home.MainActivity)
+        136                  android:name=".home.MainActivity"
+        137                  android:label="@string/application_name" android:exported="true">
+        138              <intent-filter>
+        139                  <action android:name="android.intent.action.MAIN" />
+        140  
+        141                  <category android:name="android.intent.category.LAUNCHER" />
+        142                  <!-- Samsung MultiWindow Function -->
+        143                  <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
+   2. E2e074fc1 LIFECYCLE/standard*
+      MainActivity.<init> -> MainActivity.onCreate
+      the framework calls onCreate after it creates the activity instance
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2722-2731 (callActivityOnCreate); FW-SRC core/java/android/app/Instrumentation.java:1212-1216; FW-SRC core/java/android/app/Activity.java:6993-7000 (performCreate calls onCreate); same route as graph_def.py AccountEditActivity.<init> -> onCreate
+       2722                  int theme = r.activityInfo.getThemeResource();
+       2723                  if (theme != 0) {
+       2724                      activity.setTheme(theme);
+       2725                  }
+       2726  
+       2727                  activity.mCalled = false;
+       2728                  if (r.isPersistable()) {
+       2729                      mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+       2730                  } else {
+       2731                      mInstrumentation.callActivityOnCreate(activity, r.state);
+       1212      public void callActivityOnCreate(Activity activity, Bundle icicle) {
+       1213          prePerformCreate(activity);
+       1214          activity.performCreate(icicle);
+       1215          postPerformCreate(activity);
+       1216      }
+       6993      final void performCreate(Bundle icicle, PersistableBundle persistentState) {
+       6994          mCanEnterPictureInPicture = true;
+       6995          restoreHasCurrentPermissionRequest(icicle);
+       6996          if (persistentState != null) {
+       6997              onCreate(icicle, persistentState);
+       6998          } else {
+       6999              onCreate(icicle);
+       7000          }
+   3. E5d5a9c2f CALL/explicit*
+      MainActivity.onCreate -> MainActivity.initHomeFragment
+      Direct call
+      evidence: SRC MainActivity.java:238 (bytecode)
+        238          initHomeFragment();
+   4. Eff22f7d2 ENTERS/page*
+      MainActivity.initHomeFragment -> S_HOME
+      the home screen is shown: initHomeFragment commits HomeFragment into the content container, or the navigation container in dual-panel mode
+      guard: no HomeFragment is in the manager yet (MainActivity.java:1312-1313)
+      evidence: SRC home/MainActivity.java:1308-1324; SRC home/HomeFragment.java:167-173 (onCreateView inflates home_fragment); the ENTERS edge is assigned to batch 080 by label_077.py:6
+       1308      private void initHomeFragment() {
+       1309          String tag = HomeFragment.class.getSimpleName();
+       1310  
+       1311          // See if the fragment is already there.
+       1312          Fragment existingFragment = getSupportFragmentManager().findFragmentByTag(tag);
+       1313          if (existingFragment != null) return;
+       1314  
+       1315          // Create new Home fragment.
+       1316          HomeFragment fragment = new HomeFragment();
+       1317  
+       1318          int containerId = isDualPanel() ? getNavigationId() : getContentId();
+       1319  
+       1320          getSupportFragmentManager().beginTransaction()
+       1321                  .replace(containerId, fragment, tag)
+      ...  (3 more lines)
+        167      @Override
+        168      public View onCreateView(LayoutInflater inflater, ViewGroup container,
+        169                               Bundle savedInstanceState) {
+        170          if (container == null) return null;
+        171  
+        172          // inflate layout
+        173          View view = inflater.inflate(R.layout.home_fragment, container, false);
+   5. E76c8c62d GUI/standard* [STATE: at least one account exists, so the account list shows rows (HomeFragment.java:793), and the row group is expanded (group expansion is saved in settings, HomeFragment.java:719 and 731)]
+      S_HOME -> HomeFragment$6.onChildClick
+      Tap an account row (a child row) in the account list, which is shown only when at least one account exists
+      evidence: SRC home/HomeFragment.java:686-706 (onChildClick, event post 704), 792-794, 877-878 (listViewAccountBills); INFERRED the expandable list calls the child-click listener on a row tap (Android library not read)
+        686          mExpandableListView.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
+        687              @Override
+        688              public boolean onChildClick(ExpandableListView parent, View v, int groupPosition,
+        689                                          int childPosition, long id) {
+        690                  QueryAccountBills selectedAccount = mAccountsByType.get(mAccountTypes.get(groupPosition))
+        691                          .get(childPosition);
+        692                  if (selectedAccount == null) return false;
+        693  
+        694                  int accountId = selectedAccount.getAccountId();
+        695                  String accountType = mAccountTypes.get(groupPosition);
+        696  
+        697                  Object event;
+        698  
+        699                  if (accountType.equalsIgnoreCase(AccountTypes.INVESTMENT.toString())) {
+      ...  (7 more lines)
+   6. Ee424c2e8 ASYNC/non_standard(EventBus (greenrobot) post at HomeFragment.java:704; subscriber registered in MmxBaseFragmentActivity.onStart)
+      HomeFragment$6.onChildClick -> MainActivity.onEvent(RequestAccountFragmentEvent)
+      tap a row of any other account: HomeFragment posts RequestAccountFragmentEvent on the EventBus
+      guard: the account type is not INVESTMENT (HomeFragment.java:699, 701-702)
+      evidence: SRC home/HomeFragment.java:686-706 (onChildClick; event chosen at 701-703; post at 704); SRC home/MainActivity.java:454-457; INFERRED EventBus delivery (library not read)
+        686          mExpandableListView.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
+        687              @Override
+        688              public boolean onChildClick(ExpandableListView parent, View v, int groupPosition,
+        689                                          int childPosition, long id) {
+        690                  QueryAccountBills selectedAccount = mAccountsByType.get(mAccountTypes.get(groupPosition))
+        691                          .get(childPosition);
+        692                  if (selectedAccount == null) return false;
+        693  
+        694                  int accountId = selectedAccount.getAccountId();
+        695                  String accountType = mAccountTypes.get(groupPosition);
+        696  
+        697                  Object event;
+        698  
+        699                  if (accountType.equalsIgnoreCase(AccountTypes.INVESTMENT.toString())) {
+      ...  (7 more lines)
+        454      @Subscribe
+        455      public void onEvent(RequestAccountFragmentEvent event) {
+        456          showAccountFragment(event.accountId);
+        457      }
+   7. Ebc409bd4 CALL/explicit*
+      MainActivity.onEvent(RequestAccountFragmentEvent) -> MainActivity.showAccountFragment
+      Direct call
+      evidence: SRC MainActivity.java:456 (bytecode)
+        456          showAccountFragment(event.accountId);
+   8. Ebb57ba7f CALL/explicit*
+      MainActivity.showAccountFragment -> AccountTransactionListFragment.newInstance
+      Direct call
+      evidence: SRC MainActivity.java:786 (bytecode)
+        786              fragment = AccountTransactionListFragment.newInstance(accountId);
+   9. E5e7583d5 CALL/explicit*
+      AccountTransactionListFragment.newInstance -> AccountTransactionListFragment.<init>
+      Direct call
+      evidence: SRC AccountTransactionListFragment.java:103 (bytecode)
+        103          AccountTransactionListFragment fragment = new AccountTransactionListFragment();
+  10. E6cd10559 LIFECYCLE/standard*
+      AccountTransactionListFragment.<init> -> AccountTransactionListFragment.onAttach
+      the FragmentManager attaches the fragment when the transaction that adds it commits (MainActivity.showFragment, MainActivity.java:768-773)
+      evidence: SRC account/AccountTransactionListFragment.java:102-103; SRC home/MainActivity.java:768-773; INFERRED androidx Fragment lifecycle (library source not read)
+        102      public static AccountTransactionListFragment newInstance(int accountId) {
+        103          AccountTransactionListFragment fragment = new AccountTransactionListFragment();
+        768      public void showFragment(Fragment fragment, String tag) {
+        769          try {
+        770              showFragment_Internal(fragment, tag);
+        771          } catch (Exception e) {
+        772              Timber.e(e, "showing fragment with tag");
+        773          }
+  11. E994a6b75 LIFECYCLE/standard*
+      AccountTransactionListFragment.onAttach -> AccountTransactionListFragment.onCreate
+      the framework calls onCreate after onAttach
+      evidence: SRC account/AccountTransactionListFragment.java:129-136; INFERRED androidx Fragment lifecycle (library source not read)
+        129      @Override
+        130      public void onAttach(Context context) {
+        131          super.onAttach(context);
+        132  
+        133      }
+        134  
+        135      @Override
+        136      public void onCreate(Bundle savedInstanceState) {
+  12. Edad2b982 LIFECYCLE/standard*
+      AccountTransactionListFragment.onCreate -> AccountTransactionListFragment.onCreateView
+      the framework calls onCreateView after onCreate
+      evidence: SRC account/AccountTransactionListFragment.java:136, 155; INFERRED androidx Fragment lifecycle (library source not read)
+        136      public void onCreate(Bundle savedInstanceState) {
+  13. E1dd987db ENTERS/page*
+      AccountTransactionListFragment.onCreateView -> S_ACCOUNT_TRANSACTIONS
+      the account transaction list is shown: the header is added and the transaction list fragment is placed in R.id.fragmentMain
+      evidence: SRC account/AccountTransactionListFragment.java:163, 170-174, 181; SRC account/AccountTransactionListFragment.java:850 (transaction.replace into R.id.fragmentMain)
+        163          View view = inflater.inflate(R.layout.fragment_account_transactions, container, false);
+        850          transaction.replace(R.id.fragmentMain, mAllDataListFragment, getFragmentName());
+  14. Ea773e4f7 GUI/standard*
+      S_ACCOUNT_TRANSACTIONS -> AccountTransactionListFragment.onOptionsItemSelected
+      tap an options menu item of the account transaction list: period, transaction status, filter, add transaction or export to CSV
+      evidence: SRC account/AccountTransactionListFragment.java:237-245 (menu resources inflated), 286-320 (item dispatch); INFERRED androidx FragmentManager dispatches onOptionsItemSelected to the fragment (library source not read)
+        237          inflater.inflate(R.menu.menu_period_picker_transactions, menu);
+        238  
+        239          // transaction Status picker
+        240          inflater.inflate(R.menu.menu_transaction_status_selector, menu);
+        241          initTransactionStatusMenu(menu);
+        242  
+        243          // filter
+        244          inflater.inflate(R.menu.menu_transaction_filters, menu);
+        245          initializeFilterMenu(menu);
+  15. E5b32226d CALL/explicit*
+      AccountTransactionListFragment.onOptionsItemSelected -> AccountTransactionListFragment.isStatusSelectionHandled
+      Direct call
+      evidence: SRC AccountTransactionListFragment.java:292 (bytecode)
+        292          result = isStatusSelectionHandled(item);
+  16. E8fff51bb CALL/explicit*
+      AccountTransactionListFragment.isStatusSelectionHandled -> AccountTransactionListFragment.loadTransactions
+      Direct call
+      evidence: SRC AccountTransactionListFragment.java:587 (bytecode)
+        587              loadTransactions();
+  17. Ec61a85d5 CALL/explicit*
+      AccountTransactionListFragment.loadTransactions -> AllDataListFragment.loadData(Bundle)@AccountTransactionListFragment
+      the account host loads its child AllData fragment: loadTransactions calls loadData(arguments) on mAllDataListFragment, the instance created in showTransactionsFragment
+      guard: mAllDataListFragment != null (AccountTransactionListFragment.java:328; set in showTransactionsFragment at :837)
+      evidence: SRC account/AccountTransactionListFragment.java:327-331 (guard 328, call 330), 834-850 (instance 837, setter 847, commit 850)
+        327      public void loadTransactions() {
+        328          if (mAllDataListFragment == null) return;
+        329  
+        330          Bundle arguments = prepareQuery();
+        331          mAllDataListFragment.loadData(arguments);
+  18. E389c8c33 FRAMEWORK/standard*
+      AllDataListFragment.loadData(Bundle)@AccountTransactionListFragment -> AllDataListFragment.onLoadFinished@AccountTransactionListFragment
+      the loader started by restartLoader (ID_LOADER_ALL_DATA_DETAIL) on the host child instance delivers its cursor to that instance onLoadFinished
+      evidence: SRC common/AllDataListFragment.java:521-533 (restartLoader at 532); SRC common/AllDataListFragment.java:262 (onLoadFinished); INFERRED androidx LoaderManager delivers results to the callbacks (library source not read)
+        521      public void loadData(Bundle arguments) {
+        522          // set the account id in the data adapter
+        523          AllDataAdapter adapter = getAllDataAdapter();
+        524          if (adapter != null) {
+        525              adapter.setAccountId(this.AccountId);
+        526              adapter.setBalances(null);
+        527          }
+        528  
+        529          // set the current arguments / account id
+        530          setLatestArguments(arguments);
+        531          // reload data with the latest arguments.
+        532          getLoaderManager().restartLoader(ID_LOADER_ALL_DATA_DETAIL, arguments, this);
+        533      }
+        262      public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+  19. Eb2d9679c CALL/explicit*
+      AllDataListFragment.onLoadFinished@AccountTransactionListFragment -> AccountTransactionListFragment.onLoadFinished
+      the child AllData fragment forwards the loader result to its parent callbacks (the account host) at line 264
+      guard: parent != null: parent is the account host, set by setSearResultFragmentLoaderCallbacks(this) in showTransactionsFragment (AccountTransactionListFragment.java:847)
+      evidence: SRC common/AllDataListFragment.java:262-265 (forward at 264), 482-484 (getter); SRC account/AccountTransactionListFragment.java:837-850 (setter at 847); interface call, not recorded in auto_calls.json
+        262      public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        263          LoaderManager.LoaderCallbacks<Cursor> parent = getSearchResultFragmentLoaderCallbacks();
+        264          if (parent != null) parent.onLoadFinished(loader, data);
+        265  
+        837          mAllDataListFragment = AllDataListFragment.newInstance(mAccountId);
+        838  
+        839          // append search arguments
+        840  //        mAllDataListFragment.setArguments(prepareQuery());
+        841          Bundle searchQuery = prepareQuery();
+        842          mAllDataListFragment.getArguments().putAll(searchQuery);
+        843  
+        844          if (header != null) mAllDataListFragment.setListHeader(header);
+        845          updateAllDataListFragmentShowBalance();
+        846          mAllDataListFragment.setAutoStarLoader(false);
+        847          mAllDataListFragment.setSearResultFragmentLoaderCallbacks(this);
+        848  
+        849          // add fragment
+        850          transaction.replace(R.id.fragmentMain, mAllDataListFragment, getFragmentName());
+  20. E681ef2c6 CALL/explicit*
+      AccountTransactionListFragment.onLoadFinished -> AccountTransactionListFragment.populateRunningBalance
+      the loader result for the detail loader populates the running balance
+      guard: loader id == AllDataListFragment.ID_LOADER_ALL_DATA_DETAIL (AccountTransactionListFragment.java:370-375)
+      evidence: SRC account/AccountTransactionListFragment.java:370-375 (loader-id check; populateRunningBalance call at 375)
+        370              case AllDataListFragment.ID_LOADER_ALL_DATA_DETAIL:
+        371                  // Notification received from AllDataListFragment.
+        372                  // Once the transactions are loaded, load the summary data.
+        373                  getLoaderManager().restartLoader(ID_LOADER_SUMMARY, null, this);
+        374                  // load/reset running balance
+        375                  populateRunningBalance();
+  21. E559fcfcd FRAMEWORK/standard*
+      AccountTransactionListFragment.populateRunningBalance -> CalculateRunningBalanceTask2.doInBackground
+      task.execute() starts the AsyncTask: the framework runs doInBackground on its background worker
+      evidence: SRC account/AccountTransactionListFragment.java:644 (task.execute()); FW-SRC core/java/android/os/AsyncTask.java:594-595 (execute calls executeOnExecutor with sDefaultExecutor), 632-651 (executeOnExecutor; exec.execute(mFuture) at 651), 330-333 (the worker calls doInBackground at 333), 403 (abstract doInBackground)
+        644          task.execute();
+        594      public final AsyncTask<Params, Progress, Result> execute(Params... params) {
+        595          return executeOnExecutor(sDefaultExecutor, params);
+  22. E0fa71f9a FRAMEWORK/standard*
+      CalculateRunningBalanceTask2.doInBackground -> CalculateRunningBalanceTask2.onPostExecute
+      the framework posts the result to the main thread, and finish calls onPostExecute when the task is not cancelled
+      evidence: FW-SRC core/java/android/os/AsyncTask.java:369-373 (postResult sends MESSAGE_POST_RESULT), 705-713 (handleMessage calls finish at 712), 691-696 (finish calls onPostExecute at 695); FW-SRC AsyncTask.java:429 (default onPostExecute); SRC account/CalculateRunningBalanceTask2.java:88-95 (doInBackground returns the result of runTask)
+        369      private Result postResult(Result result) {
+        370          @SuppressWarnings("unchecked")
+        371          Message message = getHandler().obtainMessage(MESSAGE_POST_RESULT,
+        372                  new AsyncTaskResult<Result>(this, result));
+        373          message.sendToTarget();
+        429      protected void onPostExecute(Result result) {
+         88      protected HashMap<Integer, Money> doInBackground(Void... params) {
+         89          try {
+         90              return runTask();
+         91          } catch (Exception ex) {
+         92              Timber.e(ex, "balancing amount");
+         93          }
+         94          return null;
+         95      }
+  23. Efa1f37dd ASYNC/non_standard(EventBus post at CalculateRunningBalanceTask2.java:99 to the subscriber registered in onStart (library source not read, INFERRED))
+      CalculateRunningBalanceTask2.onPostExecute -> AccountTransactionListFragment.onEvent
+      the balance task posts RunningBalanceCalculatedEvent on EventBus when it finishes; the registered fragment receives it in onEvent
+      guard: the fragment is registered: onStart has run and onStop has not (lines 201 and 221)
+      evidence: SRC account/CalculateRunningBalanceTask2.java:97-100 (post at 99); SRC account/AccountTransactionListFragment.java:409-413; INFERRED EventBus library source not read
+         97      @Override
+         98      protected void onPostExecute(HashMap<Integer, Money> result) {
+         99          EventBus.getDefault().post(new RunningBalanceCalculatedEvent(result));
+        100      }
+        409      @Subscribe
+        410      public void onEvent(RunningBalanceCalculatedEvent event) {
+        411          // Update the UI controls
+        412          mAllDataListFragment.displayRunningBalances(event.balances);
+        413      }
+  24. Ecac14a18 CALL/explicit*
+      AccountTransactionListFragment.onEvent -> AllDataListFragment.displayRunningBalances
+      the running-balance event shows the running balances on the child AllData fragment
+      guard: mAllDataListFragment != null (set at AccountTransactionListFragment.java:837; contrast the null-guarded use at :328)
+      evidence: SRC account/AccountTransactionListFragment.java:412 (displayRunningBalances call); SRC account/AccountTransactionListFragment.java:837 (mAllDataListFragment set)
+        412          mAllDataListFragment.displayRunningBalances(event.balances);
+        837          mAllDataListFragment = AllDataListFragment.newInstance(mAccountId);
+

@@ -1,0 +1,27 @@
+# Batch 107 printed evidence
+
+Plan extraction:
+```sh
+awk -F '\\t' '$1==107 {print $3 "\\t" $4}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+```
+Output: 40 exact rows; complete descriptors are in the report table.
+
+Bounded source scans:
+```sh
+rg -n 'onCreate|onCreatePreferences|bindOnPreferenceChangeListener|onPreferenceChange' .../ui/log/{LogSettingsActivity,LogSettingsFragment}.java
+rg -n 'class LogSourceFactory|create' .../ui/log/LogSourceFactory.java
+rg -n 'class LogViewModel|copyLogEntryToClipboard|getLogEntriesCount|getSaveLogFileName|initMutableParams|logPausedManually|logRecording|observeLog|onCleared|pauseLog|resumeLog|saveLog|startLogRecording|stopLogRecording|onPropertyChanged' .../ui/log/LogViewModel.java
+rg -n 'class SessionLogFilterDialog|initLayoutView|onResume|newInstance|onAttach|onBackPressed|onCreateDialog' .../ui/log/SessionLogFilterDialog.java
+```
+Key output read:
+```
+LogSettingsActivity.java:30 class; :37 onCreate
+LogSettingsFragment.java:36 class; :52 onCreate; :73 preference listener bind; :78 preference creation; :83 bind; :89 change callback
+LogSourceFactory.java:28 class; :39 create
+LogViewModel.java:50 class; :77 init mutable params; :80 init; :92 observe log
+:100 onCleared; :110 property callback; :140-158 pause/resume; :162-199 status and save name
+:199 saveLog; :215 copyLogEntryToClipboard
+SessionLogFilterDialog.java:40 class; :49 factory; :60 onAttach; :69 onResume; :90 dialog; :101 layout; :116 back callback
+```
+These signatures and local calls do not complete all app-entry, paging, or framework routes. All 40 remain OPEN.
+

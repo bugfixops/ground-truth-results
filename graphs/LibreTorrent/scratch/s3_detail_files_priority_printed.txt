@@ -1,0 +1,69 @@
+   440	
+   441	        disposables.add(Observable.fromIterable(selections)
+   442	                .map((selection -> selection.name))
+   443	                .toList()
+   444	                .subscribe((fileNames) -> {
+   445	                    Dialog dialog = priorityDialog.getDialog();
+   446	                    if (dialog == null)
+   447	                        return;
+   448	
+   449	                    FilePriority priority = viewModel.getFilesPriority(fileNames);
+   450	                    if (priority == null)
+   451	                        return;
+   452	
+   453	                    int resId = -1;
+   454	                    switch (priority.getType()) {
+   455	                        case IGNORE:
+   456	                            resId = R.id.dialog_priority_low;
+   457	                            break;
+   458	                        case HIGH:
+   459	                            resId = R.id.dialog_priority_high;
+   460	                            break;
+   461	                        case NORMAL:
+   462	                            resId = R.id.dialog_priority_normal;
+   463	                            break;
+   464	                    }
+   465	
+   466	                    if (resId == -1) {
+   467	                        RadioGroup group = dialog.findViewById(R.id.dialog_priorities_group);
+   468	                        group.clearCheck();
+   469	
+   470	                    } else {
+   471	                        RadioButton button = dialog.findViewById(resId);
+   472	                        button.setChecked(true);
+   473	                    }
+   474	                }));
+   475	    }
+   476	
+   477	    private void changePriority()
+   478	    {
+   479	        Dialog dialog = priorityDialog.getDialog();
+   480	        if (dialog == null)
+   481	            return;
+   482	
+   483	        RadioGroup group = dialog.findViewById(R.id.dialog_priorities_group);
+   484	        int radioButtonId = group.getCheckedRadioButtonId();
+   485	
+   486	        FilePriority.Type priorityType = null;
+   487	        if (radioButtonId == R.id.dialog_priority_low) {
+   488	            priorityType = FilePriority.Type.IGNORE;
+   489	        } else if (radioButtonId == R.id.dialog_priority_normal) {
+   490	            priorityType = FilePriority.Type.NORMAL;
+   491	        } else if (radioButtonId == R.id.dialog_priority_high) {
+   492	            priorityType = FilePriority.Type.HIGH;
+   493	        }
+   494	        if (priorityType != null) {
+   495	            FilePriority priority = new FilePriority(priorityType);
+   496	            MutableSelection<TorrentContentFileItem> selections = new MutableSelection<>();
+   497	            selectionTracker.copySelection(selections);
+   498	
+   499	            disposables.add(Observable.fromIterable(selections)
+   500	                    .map((selection -> selection.name))
+   501	                    .toList()
+   502	                    .subscribe((fileNames) -> viewModel.applyPriority(fileNames, priority)));
+   503	        }
+   504	
+   505	        if (actionMode != null)
+   506	            actionMode.finish();
+   507	    }
+   508	

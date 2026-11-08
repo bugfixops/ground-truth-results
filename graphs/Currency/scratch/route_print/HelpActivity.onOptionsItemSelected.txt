@@ -1,0 +1,97 @@
+## HelpActivity.onOptionsItemSelected  REACHABLE  confirmed_by=SOURCE path=SOURCE_OK
+   env=- state=- classes=explicit;standard explicit_standard_route=yes
+   1. E012ed474 ENTRY/standard*
+      S_ENTRY -> Main.<init>
+      Tap the Currency icon in the launcher (MAIN/LAUNCHER intent filter)
+      note: The other external entry is the home-screen widget (CurrencyWidgetConfigure / CurrencyWidgetProvider are exported)
+      evidence: SRC AndroidManifest.xml:19-24
+         19          android:name="Main"
+         20          android:exported="true"
+         21          android:windowSoftInputMode="stateHidden">
+         22        <intent-filter>
+         23          <action android:name="android.intent.action.MAIN" />
+         24          <category android:name="android.intent.category.LAUNCHER" />
+   2. Ee88066da LIFECYCLE/standard*
+      Main.<init> -> Main.onCreate
+      The system instantiates Main, then calls onCreate
+      evidence: SRC Main.java:242
+        242      public void onCreate(Bundle savedInstanceState)
+   3. Ef071a802 LIFECYCLE/standard*
+      Main.onCreate -> Main.onResume
+      onStart -> onResume
+      evidence: SRC Main.java:369
+        369      protected void onResume()
+   4. E4dd486ed ENTERS/page*
+      Main.onResume -> S_MAIN_DISPLAY
+      Main becomes visible
+      guard: mode == DISPLAY_MODE (no selection kept)
+      evidence: SRC Main.java:351-352
+        351          if (selectList.isEmpty())
+        352              mode = Main.DISPLAY_MODE;
+   5. E871f7284 GUI/standard*
+      S_MAIN_DISPLAY -> Main.lambda$onCreate$0
+      Tap the navigation icon at the left of the action bar
+      evidence: SRC Main.java:288-295
+        288          toolbar.setNavigationIcon(R.drawable.ic_menu_white_24dp);
+        289          toolbar.setNavigationOnClickListener((v) ->
+        290          {
+        291              PopupMenu popup = new PopupMenu(this, v);
+        292              popup.inflate(R.menu.navigation);
+        293              popup.setOnMenuItemClickListener(this);
+        294              popup.show();
+        295          });
+   6. Ed703ed01 ENTERS/page*
+      Main.lambda$onCreate$0 -> S_NAV_POPUP
+      popup.show(): PopupMenu with Settings / Help
+      evidence: SRC Main.java:291-294
+        291              PopupMenu popup = new PopupMenu(this, v);
+        292              popup.inflate(R.menu.navigation);
+        293              popup.setOnMenuItemClickListener(this);
+        294              popup.show();
+   7. E089dafed GUI/standard*
+      S_NAV_POPUP -> Main.onMenuItemClick
+      Tap an item in the popup
+      evidence: SRC res/menu/navigation.xml; Main.java:818
+      (res/menu/navigation.xml: no line numbers)
+   8. Ed89cea6b CALL/explicit*
+      Main.onMenuItemClick -> Main.onHelpClick
+      switch case R.id.action_help
+      evidence: SRC Main.java:825-826
+        825          case R.id.action_help:
+        826              return onHelpClick();
+   9. Ebaddd7d9 INTENT/standard*
+      Main.onHelpClick -> HelpActivity.<init>
+      startActivity(HelpActivity)
+      evidence: SRC Main.java:1122-1123
+       1122          Intent intent = new Intent(this, HelpActivity.class);
+       1123          startActivity(intent);
+  10. Ede1ffb06 LIFECYCLE/standard*
+      HelpActivity.<init> -> HelpActivity.onCreate
+      The system instantiates HelpActivity, then onCreate
+      evidence: SRC HelpActivity.java:49
+         49      public void onCreate(Bundle savedInstanceState)
+  11. Ee407b707 ENTERS/page*
+      HelpActivity.onCreate -> S_HELP
+      Help text shown with an Up arrow
+      evidence: SRC HelpActivity.java:86-99
+         86          setContentView(R.layout.help);
+         87  
+         88          TextView view = findViewById(R.id.help);
+         89          CharSequence text = read(this, R.raw.help);
+         90          if (view != null)
+         91          {
+         92              view.setMovementMethod(LinkMovementMethod.getInstance());
+         93              view.setText(Html.fromHtml(text.toString()));
+         94          }
+         95  
+         96          // Enable back navigation on action bar
+         97          ActionBar actionBar = getActionBar();
+         98          if (actionBar != null)
+         99              actionBar.setDisplayHomeAsUpEnabled(true);
+  12. E38662657 GUI/standard*
+      S_HELP -> HelpActivity.onOptionsItemSelected
+      Tap the Up arrow
+      evidence: SRC HelpActivity.java:99,104
+         99              actionBar.setDisplayHomeAsUpEnabled(true);
+        104      public boolean onOptionsItemSelected(MenuItem item)
+

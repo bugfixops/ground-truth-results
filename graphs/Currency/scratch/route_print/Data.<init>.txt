@@ -1,0 +1,31 @@
+## Data.<init>  REACHABLE  confirmed_by=SOURCE path=SOURCE_OK
+   env=- state=- classes=explicit;standard explicit_standard_route=yes
+   1. E012ed474 ENTRY/standard*
+      S_ENTRY -> Main.<init>
+      Tap the Currency icon in the launcher (MAIN/LAUNCHER intent filter)
+      note: The other external entry is the home-screen widget (CurrencyWidgetConfigure / CurrencyWidgetProvider are exported)
+      evidence: SRC AndroidManifest.xml:19-24
+         19          android:name="Main"
+         20          android:exported="true"
+         21          android:windowSoftInputMode="stateHidden">
+         22        <intent-filter>
+         23          <action android:name="android.intent.action.MAIN" />
+         24          <category android:name="android.intent.category.LAUNCHER" />
+   2. Ee88066da LIFECYCLE/standard*
+      Main.<init> -> Main.onCreate
+      The system instantiates Main, then calls onCreate
+      evidence: SRC Main.java:242
+        242      public void onCreate(Bundle savedInstanceState)
+   3. E2c242327 CALL/explicit*
+      Main.onCreate -> Data.getInstance
+      data = Data.getInstance(this): Main becomes the result listener
+      evidence: SRC Main.java:282
+        282          data = Data.getInstance(this);
+   4. E2f8ae154 CALL/explicit*
+      Data.getInstance -> Data.<init>
+      instance == null -> new Data()
+      guard: first call in this process
+      evidence: SRC Data.java:56-57
+         56          if (instance == null)
+         57              instance = new Data();
+

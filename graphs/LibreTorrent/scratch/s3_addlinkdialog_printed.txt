@@ -1,0 +1,316 @@
+     1	/*
+     2	 * Copyright (C) 2019 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.addlink;
+    21	
+    22	import android.app.Activity;
+    23	import android.app.Dialog;
+    24	import android.content.ClipData;
+    25	import android.content.ClipboardManager;
+    26	import android.content.Context;
+    27	import android.content.DialogInterface;
+    28	import android.content.Intent;
+    29	import android.net.Uri;
+    30	import android.os.Bundle;
+    31	import android.text.Editable;
+    32	import android.text.TextUtils;
+    33	import android.text.TextWatcher;
+    34	import android.view.KeyEvent;
+    35	import android.view.LayoutInflater;
+    36	import android.view.View;
+    37	import android.view.ViewTreeObserver;
+    38	import android.widget.Button;
+    39	
+    40	import androidx.annotation.NonNull;
+    41	import androidx.appcompat.app.AlertDialog;
+    42	import androidx.appcompat.app.AppCompatActivity;
+    43	import androidx.databinding.DataBindingUtil;
+    44	import androidx.fragment.app.DialogFragment;
+    45	import androidx.fragment.app.FragmentManager;
+    46	import androidx.lifecycle.ViewModelProvider;
+    47	
+    48	import org.proninyaroslav.libretorrent.R;
+    49	import org.proninyaroslav.libretorrent.core.exception.NormalizeUrlException;
+    50	import org.proninyaroslav.libretorrent.core.utils.Utils;
+    51	import org.proninyaroslav.libretorrent.databinding.DialogAddLinkBinding;
+    52	import org.proninyaroslav.libretorrent.ui.ClipboardDialog;
+    53	import org.proninyaroslav.libretorrent.ui.FragmentCallback;
+    54	import org.proninyaroslav.libretorrent.ui.addtorrent.AddTorrentActivity;
+    55	
+    56	import io.reactivex.disposables.CompositeDisposable;
+    57	import io.reactivex.disposables.Disposable;
+    58	
+    59	public class AddLinkDialog extends DialogFragment
+    60	{
+    61	    private static final String TAG = AddLinkDialog.class.getSimpleName();
+    62	
+    63	    private static final String TAG_CLIPBOARD_DIALOG = "clipboard_dialog";
+    64	
+    65	    private AlertDialog alert;
+    66	    private AppCompatActivity activity;
+    67	    private DialogAddLinkBinding binding;
+    68	    private AddLinkViewModel viewModel;
+    69	    private ClipboardDialog clipboardDialog;
+    70	    private ClipboardDialog.SharedViewModel clipboardViewModel;
+    71	    private CompositeDisposable disposables = new CompositeDisposable();
+    72	
+    73	    public static AddLinkDialog newInstance()
+    74	    {
+    75	        AddLinkDialog frag = new AddLinkDialog();
+    76	
+    77	        Bundle args = new Bundle();
+    78	        frag.setArguments(args);
+    79	
+    80	        return frag;
+    81	    }
+    82	
+    83	    @Override
+    84	    public void onAttach(@NonNull Context context)
+    85	    {
+    86	        super.onAttach(context);
+    87	
+    88	        if (context instanceof AppCompatActivity)
+    89	            activity = (AppCompatActivity)context;
+    90	    }
+    91	
+    92	    @Override
+    93	    public void onResume()
+    94	    {
+    95	        super.onResume();
+    96	
+    97	        /* Back button handle */
+    98	        getDialog().setOnKeyListener((DialogInterface dialog, int keyCode, KeyEvent event) -> {
+    99	            if (keyCode == KeyEvent.KEYCODE_BACK) {
+   100	                if (event.getAction() != KeyEvent.ACTION_DOWN) {
+   101	                    return true;
+   102	                } else {
+   103	                    onBackPressed();
+   104	                    return true;
+   105	                }
+   106	            } else {
+   107	                return false;
+   108	            }
+   109	        });
+   110	    }
+   111	
+   112	    @Override
+   113	    public void onStop()
+   114	    {
+   115	        super.onStop();
+   116	
+   117	        unsubscribeClipboardManager();
+   118	        disposables.clear();
+   119	    }
+   120	
+   121	    @Override
+   122	    public void onStart()
+   123	    {
+   124	        super.onStart();
+   125	
+   126	        subscribeClipboardManager();
+   127	        subscribeAlertDialog();
+   128	    }
+   129	
+   130	    private void subscribeAlertDialog()
+   131	    {
+   132	        Disposable d = clipboardViewModel.observeSelectedItem().subscribe((item) -> {
+   133	            if (TAG_CLIPBOARD_DIALOG.equals(item.dialogTag))
+   134	                handleUrlClipItem(item.str);
+   135	        });
+   136	        disposables.add(d);
+   137	    }
+   138	
+   139	    private void handleUrlClipItem(String item)
+   140	    {
+   141	        if (TextUtils.isEmpty(item))
+   142	            return;
+   143	
+   144	        viewModel.link.set(item);
+   145	        binding.link.postDelayed(this::addLink, 500);
+   146	    }
+   147	
+   148	    private void subscribeClipboardManager() {
+   149	        ClipboardManager clipboard = (ClipboardManager)activity.getSystemService(Activity.CLIPBOARD_SERVICE);
+   150	        clipboard.addPrimaryClipChangedListener(clipListener);
+   151	    }
+   152	
+   153	    private void unsubscribeClipboardManager() {
+   154	        ClipboardManager clipboard = (ClipboardManager)activity.getSystemService(Activity.CLIPBOARD_SERVICE);
+   155	        clipboard.removePrimaryClipChangedListener(clipListener);
+   156	    }
+   157	
+   158	    private ClipboardManager.OnPrimaryClipChangedListener clipListener = this::switchClipboardButton;
+   159	
+   160	    private final ViewTreeObserver.OnWindowFocusChangeListener onFocusChanged =
+   161	            (__) -> switchClipboardButton();
+   162	
+   163	    private void switchClipboardButton()
+   164	    {
+   165	        ClipData clip = Utils.getClipData(activity.getApplicationContext());
+   166	        viewModel.showClipboardButton.set(clip != null);
+   167	    }
+   168	
+   169	    @NonNull
+   170	    @Override
+   171	    public Dialog onCreateDialog(Bundle savedInstanceState)
+   172	    {
+   173	        if (activity == null)
+   174	            activity = (AppCompatActivity)getActivity();
+   175	
+   176	        ViewModelProvider provider = new ViewModelProvider(activity);
+   177	        viewModel = provider.get(AddLinkViewModel.class);
+   178	        clipboardViewModel = provider.get(ClipboardDialog.SharedViewModel.class);
+   179	
+   180	        FragmentManager fm = getChildFragmentManager();
+   181	        clipboardDialog = (ClipboardDialog)fm.findFragmentByTag(TAG_CLIPBOARD_DIALOG);
+   182	
+   183	        LayoutInflater i = LayoutInflater.from(activity);
+   184	        binding = DataBindingUtil.inflate(i, R.layout.dialog_add_link, null, false);
+   185	        binding.setViewModel(viewModel);
+   186	
+   187	        initLayoutView();
+   188	
+   189	        binding.getRoot().getViewTreeObserver().addOnWindowFocusChangeListener(onFocusChanged);
+   190	
+   191	        return alert;
+   192	    }
+   193	
+   194	    @Override
+   195	    public void onDestroyView()
+   196	    {
+   197	        binding.getRoot().getViewTreeObserver().removeOnWindowFocusChangeListener(onFocusChanged);
+   198	
+   199	        super.onDestroyView();
+   200	    }
+   201	
+   202	    private void initLayoutView()
+   203	    {
+   204	        /* Dismiss error label if user has changed the text */
+   205	        binding.link.addTextChangedListener(new TextWatcher()
+   206	        {
+   207	            @Override
+   208	            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+   209	
+   210	            @Override
+   211	            public void onTextChanged(CharSequence s, int start, int before, int count) { }
+   212	
+   213	            @Override
+   214	            public void afterTextChanged(Editable s)
+   215	            {
+   216	                binding.layoutLink.setErrorEnabled(false);
+   217	                binding.layoutLink.setError(null);
+   218	            }
+   219	        });
+   220	
+   221	        binding.clipboardButton.setOnClickListener((v) -> showClipboardDialog());
+   222	        switchClipboardButton();
+   223	        viewModel.initLinkFromClipboard();
+   224	
+   225	        initAlertDialog(binding.getRoot());
+   226	    }
+   227	
+   228	    private void initAlertDialog(View view)
+   229	    {
+   230	        AlertDialog.Builder builder = new AlertDialog.Builder(activity)
+   231	                .setTitle(R.string.dialog_add_link_title)
+   232	                .setPositiveButton(R.string.add, null)
+   233	                .setNegativeButton(R.string.cancel, null)
+   234	                .setView(view);
+   235	
+   236	        alert = builder.create();
+   237	        alert.setCanceledOnTouchOutside(false);
+   238	        alert.setOnShowListener((DialogInterface dialog) -> {
+   239	            Button addButton = alert.getButton(AlertDialog.BUTTON_POSITIVE);
+   240	            addButton.setOnClickListener((v) -> addLink());
+   241	
+   242	            Button cancelButton = alert.getButton(AlertDialog.BUTTON_NEGATIVE);
+   243	            cancelButton.setOnClickListener((v) ->
+   244	                    finish(new Intent(), FragmentCallback.ResultCode.CANCEL));
+   245	        });
+   246	    }
+   247	
+   248	    private void showClipboardDialog()
+   249	    {
+   250	        if (!isAdded())
+   251	            return;
+   252	
+   253	        FragmentManager fm = getChildFragmentManager();
+   254	        if (fm.findFragmentByTag(TAG_CLIPBOARD_DIALOG) == null) {
+   255	            clipboardDialog = ClipboardDialog.newInstance();
+   256	            clipboardDialog.show(fm, TAG_CLIPBOARD_DIALOG);
+   257	        }
+   258	    }
+   259	
+   260	    private void addLink()
+   261	    {
+   262	        if (!isAdded()) {
+   263	            return;
+   264	        }
+   265	
+   266	        String s = viewModel.link.get();
+   267	        if (TextUtils.isEmpty(s))
+   268	            return;
+   269	        if (!checkUrlField())
+   270	            return;
+   271	
+   272	        try {
+   273	            s = viewModel.normalizeUrl(s);
+   274	
+   275	        } catch (NormalizeUrlException e) {
+   276	            binding.layoutLink.setErrorEnabled(true);
+   277	            binding.layoutLink.setError(getString(R.string.invalid_url, e.getMessage()));
+   278	            binding.layoutLink.requestFocus();
+   279	
+   280	            return;
+   281	        }
+   282	
+   283	        Intent i = new Intent(activity, AddTorrentActivity.class);
+   284	        i.putExtra(AddTorrentActivity.TAG_URI, Uri.parse(s));
+   285	        startActivity(i);
+   286	
+   287	        finish(new Intent(), FragmentCallback.ResultCode.OK);
+   288	    }
+   289	
+   290	    private boolean checkUrlField()
+   291	    {
+   292	        if (TextUtils.isEmpty(binding.link.getText())) {
+   293	            binding.layoutLink.setErrorEnabled(true);
+   294	            binding.layoutLink.setError(getString(R.string.error_empty_link));
+   295	            binding.layoutLink.requestFocus();
+   296	
+   297	            return false;
+   298	        }
+   299	
+   300	        binding.layoutLink.setErrorEnabled(false);
+   301	        binding.layoutLink.setError(null);
+   302	
+   303	        return true;
+   304	    }
+   305	
+   306	    public void onBackPressed()
+   307	    {
+   308	        finish(new Intent(), FragmentCallback.ResultCode.BACK);
+   309	    }
+   310	
+   311	    private void finish(Intent intent, FragmentCallback.ResultCode code)
+   312	    {
+   313	        alert.dismiss();
+   314	        ((FragmentCallback)activity).onFragmentFinished(this, intent, code);
+   315	    }
+   316	}

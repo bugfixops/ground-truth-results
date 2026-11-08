@@ -1,0 +1,166 @@
+METHOD: StreamSource.read(byte[],int,int)
+verdict: REACHABLE   steps_from_launch: 14
+route steps: 14 edges
+======================================================================
+
+STEP 1  edge E61915364
+  S_ENTRY -> MainActivity.onOptionsItemSelected
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC Activity.java onOptionsItemSelected lifecycle
+  (no file:line citations in evidence)
+
+STEP 2  edge E987df97b
+  MainActivity.onOptionsItemSelected -> MainFragment.switchView
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainActivity.java:1023 (bytecode)
+  cite [SRC] MainActivity.java:1023
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/activities/MainActivity.java)
+     1023:                 ma.switchView();
+
+STEP 3  edge E3b805bab
+  MainFragment.switchView -> MainFragment.reloadListElements
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC fragments/MainFragment.java:393
+  cite [SRC] fragments/MainFragment.java:393
+      393:         reloadListElements(false, results, isPathLayoutGrid);
+
+STEP 4  edge E89466062
+  MainFragment.reloadListElements -> RecyclerAdapter.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainFragment.java:1107 (bytecode line was 1108)
+  cite [SRC] MainFragment.java:1107
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/fragments/MainFragment.java)
+     1107:                 adapter = new RecyclerAdapter(getMainActivity(), ma, utilsProvider, sharedPref,
+
+STEP 5  edge E1f8c26fa
+  RecyclerAdapter.<init> -> MainFragment.onListItemClicked
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC adapters/RecyclerAdapter.java:531,701 mainFrag.onListItemClicked in onBindViewHolder click listeners; RecyclerAdapter item click reaches MainFragment
+  cite [SRC] adapters/RecyclerAdapter.java:531, 701
+      531:                     mainFrag.onListItemClicked(isBackButton, vholder.getAdapterPosition(), rowItem,
+      701:                     mainFrag.onListItemClicked(isBackButton, vholder.getAdapterPosition(), rowItem,
+
+STEP 6  edge E1ecac196
+  MainFragment.onListItemClicked -> MainFragment.launchSMB
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC fragments/MainFragment.java:915
+  cite [SRC] fragments/MainFragment.java:915
+      915:                                 launchSMB(e.generateBaseFile(), getMainActivity());
+
+STEP 7  edge Ed6d2a245
+  MainFragment.launchSMB -> Streamer.getInstance
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainFragment.java:1657: final Streamer s = Streamer.getInstance(); SmbStreamer/Streamer.java:57
+  cite [SRC] MainFragment.java:1657
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/fragments/MainFragment.java)
+     1657:         final Streamer s = Streamer.getInstance();
+  cite [SRC] SmbStreamer/Streamer.java:57
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/utils/SmbStreamer/Streamer.java)
+       57:     public void stop() {
+
+STEP 8  edge Eac625648
+  Streamer.getInstance -> Streamer.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC SmbStreamer/Streamer.java:39: instance = new Streamer(PORT);
+  cite [SRC] SmbStreamer/Streamer.java:39
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/utils/SmbStreamer/Streamer.java)
+       39:                 instance = new Streamer(PORT);
+
+STEP 9  edge Ee5378215
+  Streamer.<init> -> StreamServer.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC Streamer.java:33: super(port, new File("."));
+  cite [SRC] Streamer.java:33
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/utils/SmbStreamer/Streamer.java)
+       33:         super(port, new File("."));
+
+STEP 10  edge Edf1fbb3e
+  StreamServer.<init> -> StreamServer$HTTPSession.<init>
+  class: standard   kind: ASYNC
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC SmbStreamer/StreamServer.java:180: new HTTPSession(accept);
+  cite [SRC] SmbStreamer/StreamServer.java:180
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/utils/SmbStreamer/StreamServer.java)
+      180:                     new HTTPSession(accept);
+
+STEP 11  edge Eec362f10
+  StreamServer$HTTPSession.<init> -> StreamServer$HTTPSession.run
+  class: standard   kind: ASYNC
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC SmbStreamer/StreamServer.java:229-231: Thread t = new Thread(this); t.start();
+  cite [SRC] SmbStreamer/StreamServer.java:229-231
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/utils/SmbStreamer/StreamServer.java)
+      229:             Thread t = new Thread(this);
+      230:             t.setDaemon(true);
+      231:             t.start();
+
+STEP 12  edge E591a4c1f
+  StreamServer$HTTPSession.run -> StreamServer$HTTPSession.handleResponse
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC SmbStreamer/StreamServer.java:237: handleResponse(socket);
+  cite [SRC] SmbStreamer/StreamServer.java:237
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/utils/SmbStreamer/StreamServer.java)
+      237:                 handleResponse(socket);
+
+STEP 13  edge Ed4277936
+  StreamServer$HTTPSession.handleResponse -> StreamServer$HTTPSession.sendResponse
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC SmbStreamer/StreamServer.java:332: sendResponse(socket, r.status, r.mimeType, r.header, r.data);
+  cite [SRC] SmbStreamer/StreamServer.java:332
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/utils/SmbStreamer/StreamServer.java)
+      332:                 // If the method is POST, there may be parameters
+
+STEP 14  edge E60e0a4e0
+  StreamServer$HTTPSession.sendResponse -> StreamSource.read(byte[],int,int)
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC SmbStreamer/StreamServer.java:672 while ((read = data.read(buff)) > 0); SmbStreamer/StreamSource.java:75-79 overrides read(byte[],int,int); INFERRED java.io.InputStream.read(byte[]) JDK source not read, documented to call read(b,0,b.length)
+  cite [SRC] SmbStreamer/StreamServer.java:672
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/utils/SmbStreamer/StreamServer.java)
+      672:                     while ((read = data.read(buff)) > 0) {
+  cite [SRC] SmbStreamer/StreamSource.java:75-79
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/utils/SmbStreamer/StreamSource.java)
+       75:     public int read(byte[] bytes, int start, int offs) throws IOException {
+       76:         int read =  input.read(bytes, start, offs);
+       77:         fp += read;
+       78:         return read;
+       79:     }

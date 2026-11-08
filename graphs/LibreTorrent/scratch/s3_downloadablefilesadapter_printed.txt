@@ -1,0 +1,155 @@
+     1	/*
+     2	 * Copyright (C) 2016, 2019 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.addtorrent;
+    21	
+    22	import android.content.Context;
+    23	import android.text.format.Formatter;
+    24	import android.view.LayoutInflater;
+    25	import android.view.View;
+    26	import android.view.ViewGroup;
+    27	
+    28	import androidx.annotation.NonNull;
+    29	import androidx.databinding.DataBindingUtil;
+    30	import androidx.recyclerview.widget.DiffUtil;
+    31	import androidx.recyclerview.widget.ListAdapter;
+    32	import androidx.recyclerview.widget.RecyclerView;
+    33	
+    34	import org.proninyaroslav.libretorrent.R;
+    35	import org.proninyaroslav.libretorrent.core.model.filetree.BencodeFileTree;
+    36	import org.proninyaroslav.libretorrent.databinding.ItemTorrentDownloadableFileBinding;
+    37	
+    38	/*
+    39	 * The adapter for directory or file chooser dialog.
+    40	 */
+    41	
+    42	public class DownloadableFilesAdapter extends ListAdapter<DownloadableFileItem, DownloadableFilesAdapter.ViewHolder>
+    43	{
+    44	    private static final String TAG = DownloadableFilesAdapter.class.getSimpleName();
+    45	
+    46	    private ClickListener clickListener;
+    47	
+    48	    public DownloadableFilesAdapter(ClickListener clickListener)
+    49	    {
+    50	        super(diffCallback);
+    51	
+    52	        this.clickListener = clickListener;
+    53	    }
+    54	
+    55	    @NonNull
+    56	    @Override
+    57	    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType)
+    58	    {
+    59	        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+    60	        ItemTorrentDownloadableFileBinding binding = DataBindingUtil.inflate(inflater,
+    61	                R.layout.item_torrent_downloadable_file,
+    62	                parent,
+    63	                false);
+    64	
+    65	        return new ViewHolder(binding);
+    66	    }
+    67	
+    68	    @Override
+    69	    public void onBindViewHolder(@NonNull ViewHolder holder, int position)
+    70	    {
+    71	        holder.bind(getItem(position), clickListener);
+    72	    }
+    73	
+    74	    public static final DiffUtil.ItemCallback<DownloadableFileItem> diffCallback = new DiffUtil.ItemCallback<DownloadableFileItem>()
+    75	    {
+    76	        @Override
+    77	        public boolean areContentsTheSame(@NonNull DownloadableFileItem oldItem,
+    78	                                          @NonNull DownloadableFileItem newItem)
+    79	        {
+    80	            return oldItem.equals(newItem);
+    81	        }
+    82	
+    83	        @Override
+    84	        public boolean areItemsTheSame(@NonNull DownloadableFileItem oldItem,
+    85	                                       @NonNull DownloadableFileItem newItem)
+    86	        {
+    87	            return oldItem.equals(newItem);
+    88	        }
+    89	    };
+    90	
+    91	    public static class ViewHolder extends RecyclerView.ViewHolder
+    92	    {
+    93	        private ItemTorrentDownloadableFileBinding binding;
+    94	
+    95	        public ViewHolder(ItemTorrentDownloadableFileBinding binding)
+    96	        {
+    97	            super(binding.getRoot());
+    98	
+    99	            this.binding = binding;
+   100	        }
+   101	
+   102	        void bind(DownloadableFileItem item, ClickListener listener)
+   103	        {
+   104	            Context context = itemView.getContext();
+   105	
+   106	            itemView.setOnClickListener((v) -> {
+   107	                if (item.isFile) {
+   108	                    /* Check file if it clicked */
+   109	                    binding.selected.performClick();
+   110	                }
+   111	                if (listener != null)
+   112	                    listener.onItemClicked(item);
+   113	            });
+   114	            binding.selected.setOnClickListener((View v) -> {
+   115	                if (listener != null)
+   116	                    listener.onItemCheckedChanged(item, binding.selected.isChecked());
+   117	            });
+   118	
+   119	            binding.name.setText(item.name);
+   120	
+   121	            boolean isParentDir = item.name.equals(BencodeFileTree.PARENT_DIR);
+   122	
+   123	            if (item.isFile) {
+   124	                binding.icon.setImageResource(R.drawable.ic_file_grey600_24dp);
+   125	                binding.icon.setContentDescription(context.getString(R.string.file));
+   126	
+   127	            } else {
+   128	                if (isParentDir) {
+   129	                    binding.icon.setImageResource(R.drawable.ic_arrow_up_bold_grey600_24dp);
+   130	                    binding.icon.setContentDescription(context.getString(R.string.parent_folder));
+   131	                } else {
+   132	                    binding.icon.setImageResource(R.drawable.ic_folder_grey600_24dp);
+   133	                    binding.icon.setContentDescription(context.getString(R.string.folder));
+   134	                }
+   135	            }
+   136	
+   137	            if (isParentDir) {
+   138	                binding.selected.setVisibility(View.GONE);
+   139	                binding.size.setVisibility(View.GONE);
+   140	            } else {
+   141	                binding.selected.setVisibility(View.VISIBLE);
+   142	                binding.selected.setChecked(item.selected);
+   143	                binding.size.setVisibility(View.VISIBLE);
+   144	                binding.size.setText(Formatter.formatFileSize(context, item.size));
+   145	            }
+   146	        }
+   147	    }
+   148	
+   149	    public interface ClickListener
+   150	    {
+   151	        void onItemClicked(@NonNull DownloadableFileItem item);
+   152	
+   153	        void onItemCheckedChanged(@NonNull DownloadableFileItem item, boolean selected);
+   154	    }
+   155	}

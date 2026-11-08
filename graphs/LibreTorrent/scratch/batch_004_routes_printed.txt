@@ -1,0 +1,95 @@
+Batch 4 supplementary caller-route investigation
+Source root: /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java
+
+Commands used (source-only):
+1. `rg -n 'new UriConverter|UriConverter\(|\.getName\([^)]*\)|\.lastModified\(|\.isStorageWritable\(|\.isValidFatFilename\(|SafFileSystem.*(delete|exists|mkdirs|openFD|stat)|\.openFD\(|\.stat\([^)]*,[^)]*\)|FakePath\.(deserialize|isFakePath)|\.relativePath\(' <source-root>/org/proninyaroslav/libretorrent`
+2. `rg -n 'SafFileSystem|DefaultFsModule|SafFsModule|FileSystemFacade|NormalizeUrl\.normalize|normalizeURL\(|getSerializeFileFormat\(|getSerializeMimeType\(|isDownloading\(' <source-root>`
+3. `rg -n 'UriConverter|TypeConverters' <source-root>`
+4. `nl -ba <file> | sed -n '<ranges>'` for all source excerpts below. These commands were run and outputs read. They contain no coverage/build/generator evidence.
+
+ENTRY/CALL CHAIN CANDIDATES
+`FsModuleResolverImpl.java:30-50`
+30 class FsModuleResolverImpl implements FsModuleResolver {
+32 private final SafFsModule safModule;
+33 private final DefaultFsModule defaultModule;
+35 public FsModuleResolverImpl(Context appContext) {
+37     this.safModule = new SafFsModule(appContext);
+38     this.defaultModule = new DefaultFsModule(appContext);
+42 public FsModule resolveFsByUri(Uri uri) {
+43     if (Utils.isSafPath(appContext, uri)) return safModule;
+45     else if (Utils.isFileSystemPath(uri)) return defaultModule;
+48     else throw new UnknownUriException(...);
+}
+
+`FileSystemFacadeImpl.java:59-65, 160-178, 328-335`
+59 public FileDescriptorWrapper getFD(Uri path)
+62     FsModule fsModule = fsResolver.resolveFsByUri(path);
+64     return fsModule.openFD(path);
+160 public long lastModified(Uri filePath)
+163     FsModule fsModule = fsResolver.resolveFsByUri(filePath);
+165     return fsModule.lastModified(filePath);
+173 public boolean isStorageWritable()
+175     String state = Environment.getExternalStorageState();
+177     return Environment.MEDIA_MOUNTED.equals(state);
+332 public boolean isValidFatFilename(String name)
+334     return name != null && name.equals(buildValidFatFilename(name));
+
+Exact `rg` observations:
+- `lastModified(` in app sources: interface/implementation declarations and the dispatch at `FileSystemFacadeImpl.java:165`; no app call into `FileSystemFacade.lastModified` or implementation method was found.
+- `isStorageWritable(`: interface/implementation declarations and one app call at `TorrentRepositoryImpl.java:164`.
+- That call is in `TorrentRepositoryImpl.makeTorrentDataDir` (source `TorrentRepositoryImpl.java:163-165`). Its only caller is `getTorrentDataDir` at line 150; exact `rg -F 'getTorrentDataDir('` output contains only its private declaration, so the chain has no source entry.
+- `isValidFatFilename(`: interface and implementation declarations only.
+- No invocation of `FsModule.getName(...)` / module `getName` dispatcher was found. Resolver returning a module does not call a method on it.
+
+`SafFsModule.java:45-52, 83-95, 135-160`
+45 public String getName(Uri filePath)
+48     SafFileSystem fs = SafFileSystem.getInstance(appContext);
+49     SafFileSystem.Stat stat = fs.stat(filePath);
+51     return (stat == null ? null : stat.name);
+84 public boolean delete(Uri filePath)
+88     return fs.delete(filePath);
+92 public FileDescriptorWrapper openFD(Uri path)
+94     return new FileDescriptorWrapperImpl(appContext, path);
+136 public boolean fileExists(Uri filePath)
+138     return SafFileSystem.getInstance(appContext).exists(filePath);
+142 public long lastModified(Uri filePath)
+144     SafFileSystem.Stat stat = SafFileSystem.getInstance(appContext).stat(filePath);
+148     return (stat == null ? -1 : stat.lastModified);
+151 public String makeFileSystemPath(Uri uri, String relativePath)
+153     return new SafFileSystem.FakePath(uri, ...).toString();
+158 public Uri getParentDirUri(Uri filePath)
+160     return SafFileSystem.getInstance(appContext).getParentDirUri(filePath);
+
+`SafFileSystem.java:314-323, 329-366, 382-422, 426-485, 504-530`
+314 public boolean delete(Uri filePath) ...
+316 public boolean delete(FakePath path) ...
+318     Uri filePath = getFileUri(path, false);
+322     return DocumentsContract.deleteDocument(...);
+330 public boolean exists(Uri filePath)
+344 public boolean exists(FakePath path)
+382 public int openFD(Uri dir, String fileName, String mode)
+390     return openFD(filePath, mode);
+394 public int openFD(FakePath path, String mode)
+401     return openFD(filePath, mode);
+404 public int openFD(Uri filePath, String mode)
+426 public Stat stat(Uri safRoot, String fileName)
+459 public Stat stat(Uri filePath)
+474 public Stat stat(FakePath path)
+505 public boolean mkdirs(FakePath path)
+
+Exact `rg` observations over the full Java source tree:
+- SafFsModule calls the one-argument `stat(Uri)`, `exists(Uri)`, and `delete(Uri)` overloads. It constructs FakePath for `getFileUri(FakePath,...)` and calls `toString`; it does not call the batch's `delete(FakePath)`, `exists(FakePath)`, `mkdirs(FakePath)`, `openFD` overloads, `stat(Uri,String)`, or `stat(FakePath)`.
+- `openFD(Uri,String)` is called only by the two overloads in SafFileSystem itself (`openFD(Uri,String,String)` and `openFD(FakePath,String)`). No app invocation of either outer overload was found.
+- `FakePath.deserialize`, `FakePath.isFakePath`, and `FakePath.relativePath` occur as declarations only. The implementation uses `makeRelativePathNodes`, not `relativePath`.
+- Search for `SafFileSystem` shows `getInstance` callers in SafFsModule and Utils, but none invokes the batch's listed overloads.
+
+`UriConverter.java:27-39`
+27 public class UriConverter
+29 @TypeConverter
+30 public static Uri toUri(String uriStr)
+32     return Uri.parse(uriStr);
+35 @TypeConverter
+36 public static String fromUri(Uri uri)
+38     return uri.toString();
+40 }
+Search result: `AppDatabase.java:53` has `@TypeConverters({UriConverter.class})`; no explicit constructor call exists in supplied app Java source. Since both converter methods are static and generated Room code was not inspected here, this is the only one of the 20 whose constructor use remains library/generated-code dependent. Do not infer a constructor route from the annotation alone.

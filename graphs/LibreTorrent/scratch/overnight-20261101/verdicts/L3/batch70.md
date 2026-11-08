@@ -1,0 +1,9 @@
+# L3 verdicts — batch 70 (Stream A Phase 3, Group L3: generated bindings)
+
+Old labels read from phase3/work/batch70-merge-ready.md (copies, read-only). No batch file was edited. confirmed_by for UNREACHABLE is INFERRED; OPEN rows use — (none remain OPEN in this file except as noted).
+
+| batch/row | method | old label | NEW label | confirmed_by | evidence (file:line or grep path) | revert condition |
+|---|---|---|---|---|---|---|
+| 70/8 | ItemTorrentListBindingImpl.hasPendingBindings | OPEN | REACHABLE | INFERRED | greps/L3/hasPendingBindings_appjava.txt (0 app-Java hits) + greps/L3/viewdatabinding_rebind_print.txt (ViewDataBinding.executePendingBindings queries hasPendingBindings() on this, rendered L686; rebind path mRebindRunnable->executePendingBindings rendered L348) | a printed generated Impl body showing executePendingBindings does NOT query this override (would require overturning the D17 print) |
+| 70/17 | ItemTrackersListBindingImpl.hasPendingBindings | OPEN | REACHABLE | INFERRED | greps/L3/hasPendingBindings_appjava.txt (0 app-Java hits) + greps/L3/viewdatabinding_rebind_print.txt (ViewDataBinding.executePendingBindings queries hasPendingBindings() on this, rendered L686; rebind path mRebindRunnable->executePendingBindings rendered L348) | a printed generated Impl body showing executePendingBindings does NOT query this override (would require overturning the D17 print) |
+| 70/26 | TagsListItemBindingImpl.hasPendingBindings | OPEN | REACHABLE | INFERRED | greps/L3/hasPendingBindings_appjava.txt (0 app-Java hits) + greps/L3/viewdatabinding_rebind_print.txt (ViewDataBinding.executePendingBindings queries hasPendingBindings() on this, rendered L686; rebind path mRebindRunnable->executePendingBindings rendered L348) | a printed generated Impl body showing executePendingBindings does NOT query this override (would require overturning the D17 print) |

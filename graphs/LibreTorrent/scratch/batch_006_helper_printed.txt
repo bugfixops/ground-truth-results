@@ -1,0 +1,77 @@
+LibreTorrent batch 6 source/call-site print
+Membership source: /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+Source root: /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java
+
+Commands run:
+1. `awk -F '\t' 'NR==1 || $1==6 {print}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv`
+2. `rg --files <source-root> | rg '/databinding/(DialogAddLinkBinding|DialogAddTagBinding|DialogCreateTorrentBinding|DialogErrorBinding|DialogGoToFolderBinding|DialogLogFilterBinding|DialogSelectTagBinding|DrawerEmptyTagsListItemBinding)\.java$'` — no output.
+3. `rg -n 'class (DialogAddLinkBinding|DialogAddTagBinding|DialogCreateTorrentBinding|DialogErrorBinding|DialogGoToFolderBinding|DialogLogFilterBinding|DialogSelectTagBinding|DrawerEmptyTagsListItemBinding)|abstract class (...)' <source-root>` — no output.
+4. `rg -n 'Dialog(AddLink|AddTag|CreateTorrent|Error|GoToFolder|LogFilter|SelectTag)Binding|DrawerEmptyTagsListItemBinding' <source-root>` — output listed below.
+5. Per exact plan row: `rg -n -F 'ClassName.method(' <source-root>` — for every one of the 40 target methods, no direct class.method invocation was found.
+6. `rg -n -C 4 'DataBindingUtil\.inflate' <the eight dialog/adapter sources>` — contexts printed below.
+
+Exact batch 6 plan rows (40; plan order):
+01 DialogAddLinkBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)
+02 DialogAddLinkBinding.inflate(LayoutInflater,Object)
+03 DialogAddTagBinding.bind(View)
+04 DialogAddTagBinding.bind(View,Object)
+05 DialogAddTagBinding.inflate(LayoutInflater)
+06 DialogAddTagBinding.inflate(LayoutInflater,ViewGroup,boolean)
+07 DialogAddTagBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)
+08 DialogAddTagBinding.inflate(LayoutInflater,Object)
+09 DialogCreateTorrentBinding.bind(View)
+10 DialogCreateTorrentBinding.bind(View,Object)
+11 DialogCreateTorrentBinding.inflate(LayoutInflater)
+12 DialogCreateTorrentBinding.inflate(LayoutInflater,ViewGroup,boolean)
+13 DialogCreateTorrentBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)
+14 DialogCreateTorrentBinding.inflate(LayoutInflater,Object)
+15 DialogErrorBinding.bind(View)
+16 DialogErrorBinding.bind(View,Object)
+17 DialogErrorBinding.inflate(LayoutInflater)
+18 DialogErrorBinding.inflate(LayoutInflater,ViewGroup,boolean)
+19 DialogErrorBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)
+20 DialogErrorBinding.inflate(LayoutInflater,Object)
+21 DialogGoToFolderBinding.bind(View)
+22 DialogGoToFolderBinding.bind(View,Object)
+23 DialogGoToFolderBinding.inflate(LayoutInflater)
+24 DialogGoToFolderBinding.inflate(LayoutInflater,ViewGroup,boolean)
+25 DialogGoToFolderBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)
+26 DialogGoToFolderBinding.inflate(LayoutInflater,Object)
+27 DialogLogFilterBinding.bind(View)
+28 DialogLogFilterBinding.bind(View,Object)
+29 DialogLogFilterBinding.inflate(LayoutInflater)
+30 DialogLogFilterBinding.inflate(LayoutInflater,ViewGroup,boolean)
+31 DialogLogFilterBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)
+32 DialogLogFilterBinding.inflate(LayoutInflater,Object)
+33 DialogSelectTagBinding.bind(View)
+34 DialogSelectTagBinding.bind(View,Object)
+35 DialogSelectTagBinding.inflate(LayoutInflater)
+36 DialogSelectTagBinding.inflate(LayoutInflater,ViewGroup,boolean)
+37 DialogSelectTagBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)
+38 DialogSelectTagBinding.inflate(LayoutInflater,Object)
+39 DrawerEmptyTagsListItemBinding.bind(View)
+40 DrawerEmptyTagsListItemBinding.bind(View,Object)
+
+Printed class references from app Java source (imports/fields and app API calls):
+ui/addlink/AddLinkDialog.java:51 imports DialogAddLinkBinding; :67 field declaration; :184 calls `DataBindingUtil.inflate(i, R.layout.dialog_add_link, null, false)`.
+ui/addtag/AddTagDialog.java:49 import; :64 field; :128 calls `DataBindingUtil.inflate(i, R.layout.dialog_add_tag, null, false)`.
+ui/createtorrent/CreateTorrentDialog.java:55 import; :82 field; :185 calls `DataBindingUtil.inflate(i, R.layout.dialog_create_torrent, null, false)`.
+ui/errorreport/ErrorReportDialog.java:28 import; :68 calls `DataBindingUtil.inflate(i, R.layout.dialog_error, null, false)`.
+ui/filemanager/GoToFolderDialog.java:43 import; :52 field; :99 calls `DataBindingUtil.inflate(i, R.layout.dialog_go_to_folder, null, false)`.
+ui/log/SessionLogFilterDialog.java:38 import; :46 field; :98 calls `DataBindingUtil.inflate(i, R.layout.dialog_log_filter, null, false)`.
+ui/tag/SelectTagDialog.java:42 import; :60 field; :128 calls `DataBindingUtil.inflate(i, R.layout.dialog_select_tag, null, false)`.
+ui/main/drawer/TagsAdapter.java:38 import; :64-70 calls `DataBindingUtil.inflate(inflater, R.layout.drawer_empty_tags_list_item, parent, false)` inside `case TYPE_EMPTY_ITEM`, then returns `new EmptyItemViewHolder(binding)`.
+
+Call-site contexts printed by `rg -n -C 4`:
+SessionLogFilterDialog.java:94-102: gets LogViewModel, creates inflater, invokes DataBindingUtil.inflate for dialog_log_filter, sets ViewModel, uses binding root.
+GoToFolderDialog.java:95-103: gets GoToFolderViewModel, creates inflater, invokes DataBindingUtil.inflate for dialog_go_to_folder, sets ViewModel, initializes layout.
+CreateTorrentDialog.java:181-189: accesses child FragmentManager and error report dialog, creates inflater, invokes DataBindingUtil.inflate for dialog_create_torrent, sets lifecycle owner and ViewModel.
+TagsAdapter.java:60-70: `onCreateViewHolder` switches on viewType; `TYPE_EMPTY_ITEM` branch uses DataBindingUtil.inflate for drawer_empty_tags_list_item and constructs its view holder.
+AddLinkDialog.java:180-188: creates inflater and invokes DataBindingUtil.inflate for dialog_add_link, sets ViewModel, initializes layout.
+SelectTagDialog.java:124-132: creates inflater, invokes DataBindingUtil.inflate for dialog_select_tag, creates TagsAdapter, initializes layout.
+ErrorReportDialog.java:64-72: reads error text, creates inflater, invokes DataBindingUtil.inflate for dialog_error, sets error detail, initializes layout.
+AddTagDialog.java:124-132: optional color initialization, creates inflater, invokes DataBindingUtil.inflate for dialog_add_tag, sets ViewModel, initializes layout.
+
+The following resource files exist and correspond to these generated binding class names via Data Binding layout naming: `app/src/main/res/layout/dialog_add_link.xml`, `dialog_add_tag.xml`, `dialog_create_torrent.xml`, `dialog_error.xml`, `dialog_go_to_folder.xml`, `dialog_log_filter.xml`, `dialog_select_tag.xml`, and `drawer_empty_tags_list_item.xml`.
+
+No generated binding Java source for these classes was present under the supplied source root. The exact app call sites call `DataBindingUtil.inflate`, not any of the 40 static generated `bind`/`inflate` overloads. Establishing whether DataBinding's generated mapper invokes one of these target methods requires generated/library code absent from this upload, so do not infer the route.

@@ -1,0 +1,63 @@
+# Aegis Authenticator 3.4.2 trigger graph
+# Generated part: tools/gen_edges.py derives entry points, lifecycle, callbacks, lambdas, intents, XML-instantiated classes
+# from the bytecode, AndroidManifest.xml and res/ XML (see its docstring). Direct app->app calls come from
+# tools/extract_calls.py. Everything below gen_edges.apply() is hand-written refinement for this app.
+# Rebuild: python3 -I tools/build_graph.py graphs/Aegis <prefix>
+
+TITLE = 'Aegis Authenticator 3.4.2 trigger graph'
+USE_AUTO = True
+PREFER_SETUP_OVER_ENV = True
+AUTO_DEAD = ('Generated graph: no route found. Nothing in the app calls it and no entry point (manifest component, lifecycle or '
+             'UI callback of a constructed class, lambda, XML reference, class literal, intent action) leads to it. '
+             'Probably unused code; entries through reflection, JNI or code generators are not modelled.')
+
+import sys
+sys.path.insert(0, TOOLS)
+import gen_edges
+
+NEED_ICON = 'An entry shows an icon that Glide loads (a custom icon or an icon pack; the entries of the baseline vault used the default letter icon)'
+NEED_LOCKED = 'The vault is protected by a password or biometrics and is locked (the baseline vault opened without the unlock screen)'
+NEED_OTHER_APP = 'A backup / export file of the other authenticator app is selected (the baseline fixtures contain no such file)'
+ENV_TILE = 'outside package: the user adds the Aegis quick-settings tile and taps it'
+ENV_INCOMING = ('outside package: another app opens an otpauth:// link (ACTION_VIEW) or shares text / QR images to Aegis (ACTION_SEND, SEND_MULTIPLE); '
+                'MainActivity.handleIncomingIntent switches on the incoming intent action')
+ENV_ROOT = ('outside package: the device is rooted (a root shell is obtained) and the other authenticator app is installed; '
+            'ImportEntriesActivity shows a root error and finishes otherwise (ImportEntriesActivity.java:149)')
+ENV_PICKER = ('outside package: a file or folder is chosen in the system document picker / another activity returns data '
+              '(the baseline runs used -p <app>, which refuses to start other packages, so the result callback only gets RESULT_CANCELED / no data)')
+NEED_BACKUPS = 'Settings > Backups > "Enable backups" is on (VaultManager.saveAndBackup only schedules a backup when isBackupsEnabled(); default off)'
+NEED_ENCRYPTED = 'The vault file is encrypted (a password / biometric slot exists), so the credentials are used to decrypt it'
+NEED_ENTRY = 'The vault holds at least one entry (otherwise a toast says there is nothing to export)'
+NEED_IMPORTED = 'An import finished and the imported entries are listed (the save button of ImportEntriesActivity)'
+ENV_BIO = 'outside package: the device has an enrolled fingerprint / face (the baseline emulators had none enrolled)'
+
+CFG = {
+    'GROUPS': [         # (regex on node name, 'needs'|'env'|'guard', text): gates every edge that enters the group from outside it
+        (r'^(Glide(Options|Request|Requests))', 'needs', NEED_ICON),
+        (r'^AuthActivity', 'needs', NEED_LOCKED),
+        (r'^(AegisImporter|AndOtpImporter|AuthenticatorPlusImporter|AuthyImporter|BattleNetImporter|BitwardenImporter|DuoImporter|EnteAuthImporter|'
+         r'FreeOtpImporter|FreeOtpPlusImporter|GoogleAuthImporter|GoogleAuthUriImporter|MicrosoftAuthImporter|ProtonAuthenticatorImporter|'
+         r'SteamImporter|StratumImporter|TotpAuthenticatorImporter|TwoFASImporter|WinAuthImporter)', 'needs', NEED_OTHER_APP),
+        (r'^(LaunchAppTileService|LaunchScannerTileService|QsTileRefreshReceiver)', 'env', ENV_TILE),
+        (r'^(BiometricSlot\w*|BiometricsHelper|BiometricSlotInitializer)', 'env', ENV_BIO),
+    ],
+    'EDGES': [          # (regex on source node, regex on target node, 'needs'|'env'|'guard', text): branch-specific gates read from the source at the frontier
+        (r'^MainActivity\.handleIncomingIntent$', r'^(MainActivity\.(startEditEntryActivityForNew|startDecodeQrCodeImages)|GoogleAuthInfo\.parseUri)', 'env', ENV_INCOMING),
+        (r'^ImportEntriesActivity\.lambda\$startImportApp\$5$', r'.', 'env', ENV_ROOT),
+        (r'^ImportExportPreferencesFragment\.startGoogleAuthenticatorStyleExport$', r'^TransferEntriesActivity\.', 'needs', NEED_ENTRY),
+        (r'^MainActivity\.onStart$', r'^MainActivity\.startAuthActivity', 'needs', NEED_LOCKED),
+        (r'^ImportEntriesActivity\.onCreate$', r'^ImportEntriesActivity\.lambda\$onCreate\$0$', 'needs', NEED_IMPORTED),
+        (r'^IconPacksManagerFragment\.lambda\$new\$0$', r'^IconPacksManagerFragment\.importIconPack', 'env', ENV_PICKER),
+        (r'^ImportExportPreferencesFragment\.lambda\$new\$[01]$', r'.', 'env', ENV_PICKER),
+        (r'^VaultManager\.saveAndBackup$', r'^VaultManager\.scheduleBackup$', 'needs', NEED_BACKUPS),
+        (r'^MainActivity\.<init>$', r'^MainActivity\.lambda\$new\$6$', 'needs', 'An entry was saved in EditEntryActivity (the add-entry launcher got RESULT_OK)'),
+        (r'^EntryListView\.onRefreshStart$', r'^UiRefresher\.start$', 'needs', NEED_ENTRY),
+        (r'^Vault\.(fromJson|toJson.*)$', r'^VaultEntry\.(fromJson|toJson)$', 'needs', NEED_ENTRY),
+        (r'^VaultRepository\.fromFile$', r'^VaultFile\.getContent\(VaultFileCredentials\)$', 'needs', NEED_ENCRYPTED),
+    ],
+    'STATIC_ADAPTERS': [],  # adapters whose rows exist without user data
+}
+
+gen_edges.apply(globals(), GDIR, 'Aegis', CFG)
+
+# ------------------------------------------------------------------ hand-written refinement

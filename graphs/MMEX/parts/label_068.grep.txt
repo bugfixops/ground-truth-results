@@ -1,0 +1,26 @@
+# label_068.grep.txt: evidence for batch 068. The searches were python3 -I os.walk line scans over APP/src/main (every file, not only .java; equivalent to grep -rn -F) with the literal patterns PaymentDateString and setPaymentDate(, plus scans of graphs/MMEX/auto_calls.json (calls list).
+# APP = final_java_only/MMEX/app/MMEX-#v2024.06.14/app   (SRC = APP/src/main/java)
+#
+## 1. PaymentDateString in APP/src/main (every file, including res/): one match
+domainmodel/RecurringTransaction.java:212: public String getPaymentDateString() {
+no other match: no caller in SRC, and no XML or data-binding reference in res/
+auto_calls.json: no record with dst RecurringTransaction.getPaymentDateString; the only record with this src is RecurringTransaction.getPaymentDateString -> EntityBase.getString (RecurringTransaction.java:213, exact)
+#
+## 2. setPaymentDate( in APP/src/main: 11 matches (3 definitions, including the activity method at line 632; 1 comment; 7 call lines)
+domainmodel/RecurringTransaction.java:216: public void setPaymentDate(String value) {      definition, String overload
+domainmodel/RecurringTransaction.java:220: public void setPaymentDate(Date value){         definition, Date overload
+recurring/transactions/RecurringTransactionEditActivity.java:362: setPaymentDate(selectedDate);      selectedDate is Date (line 361, dateUtils.from); activity method at 632
+recurring/transactions/RecurringTransactionEditActivity.java:386: setPaymentDate(dateTime);          dateTime is Date (line 385, toDate())
+recurring/transactions/RecurringTransactionEditActivity.java:394: setPaymentDate(dateTime);          dateTime is Date (line 393, toDate())
+recurring/transactions/RecurringTransactionEditActivity.java:404: tx.setPaymentDate(today);          today is Date (line 402, new MmxDate().toDate())
+recurring/transactions/RecurringTransactionEditActivity.java:500: //        mRecurringTransaction.setPaymentDate(dateTime);   commented out
+recurring/transactions/RecurringTransactionEditActivity.java:626: getRecurringTransaction().setPaymentDate(dateTime);   dateTime is Date (line 623, getPaymentDate())
+recurring/transactions/RecurringTransactionEditActivity.java:632: private void setPaymentDate(Date dateTime) {          activity method, Date parameter
+recurring/transactions/RecurringTransactionEditActivity.java:635: getRecurringTransaction().setPaymentDate(dateTime);   Date parameter (line 632)
+servicelayer/RecurringTransactionService.java:426: tx.setPaymentDate(newPaymentDate);          newPaymentDate is Date (line 419, tx.getPaymentDate())
+no call site passes a String. The auto_calls.json dst key RecurringTransaction.setPaymentDate(Date) has 4 callers (RecurringTransactionService.moveDatesForward, RecurringTransactionEditActivity.initializeModel, RecurringTransactionEditActivity.getPaymentDate, RecurringTransactionEditActivity.setPaymentDate); no record has dst RecurringTransaction.setPaymentDate(String).
+#
+## 3. generated RecurringTransaction$$Parcelable and bytecode call records
+auto_calls.json: 6 records whose src starts with RecurringTransaction$$Parcelable: $1.createFromParcel -> <clinit>, <init>, read (line 28); <clinit> -> $1.<init> (line 23); read -> RecurringTransaction.<init> (line 78); writeToParcel -> write (line 45).
+none of the 6 targets RecurringTransaction.setPaymentDate(String) or RecurringTransaction.getPaymentDateString.
+the generated class has no source file read in this batch; its records come from auto_calls.json only (6 records, re-checked with a python3 -I scan of the calls list).

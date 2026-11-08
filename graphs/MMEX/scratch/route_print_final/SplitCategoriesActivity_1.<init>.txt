@@ -1,0 +1,337 @@
+## SplitCategoriesActivity$1.<init>  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=- state=- classes=explicit;non_standard;standard explicit_standard_route=no
+   1. Eaf2975b8 ENTRY/standard*
+      S_ENTRY -> ButtonAddTransactionWidgetProvider.<init>
+      the framework creates the widget receiver by class name because the manifest declares it exported with the APPWIDGET_UPDATE intent-filter; the framework then calls onReceive on it
+      evidence: SRC AndroidManifest.xml:67-77 (receiver name 68, APPWIDGET_UPDATE 71); SRC widget/ButtonAddTransactionWidgetProvider.java:30 (class declaration, implicit constructor); FW-SRC core/java/android/app/ActivityThread.java:3141, 3166, 3187
+         67          <receiver
+         68                  android:name=".widget.ButtonAddTransactionWidgetProvider"
+         69                  android:label="@string/widget_add_transaction" android:exported="true">
+         70              <intent-filter>
+         71                  <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+         72              </intent-filter>
+         73  
+         74              <meta-data
+         75                  android:name="android.appwidget.provider"
+         76                  android:resource="@xml/widget_button_add_transaction" />
+         77          </receiver>
+         30  public class ButtonAddTransactionWidgetProvider extends AppWidgetProvider {
+       3141      private void handleReceiver(ReceiverData data) {
+   2. E4fa3f67a LIFECYCLE/standard*
+      ButtonAddTransactionWidgetProvider.<init> -> ButtonAddTransactionWidgetProvider.onUpdate
+      the framework calls onReceive on the receiver it has just created; AppWidgetProvider.onReceive calls this.onUpdate for ACTION_APPWIDGET_UPDATE
+      evidence: FW-SRC core/java/android/appwidget/AppWidgetProvider.java:66; FW-SRC services/appwidget/java/com/android/server/appwidget/AppWidgetServiceImpl.java:2283-2286 (setComponent 2286); SRC widget/ButtonAddTransactionWidgetProvider.java:31-32 (override)
+         66                      this.onUpdate(context, AppWidgetManager.getInstance(context), appWidgetIds);
+       2283      private void sendUpdateIntentLocked(Provider provider, int[] appWidgetIds) {
+       2284          Intent intent = new Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+       2285          intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds);
+       2286          intent.setComponent(provider.info.provider);
+         31  	@Override
+         32  	public void onUpdate(Context context, AppWidgetManager appWidgetManager,
+   3. E475b68ad INTENT/non_standard(PendingIntent.getActivity at ButtonAddTransactionWidgetProvider.java:41 (the launcher starts the activity on a widget tap))
+      ButtonAddTransactionWidgetProvider.onUpdate -> CheckingTransactionEditActivity.<init>
+      the add-transaction widget button starts the editor through a PendingIntent with ACTION_INSERT
+      guard: user taps the widget button (RemoteViews click)
+      evidence: SRC widget/ButtonAddTransactionWidgetProvider.java:32-45 (intent 38, ACTION_INSERT 39, PendingIntent 41, setOnClickPendingIntent 42, updateAppWidget 45)
+         32  	public void onUpdate(Context context, AppWidgetManager appWidgetManager,
+         33  			int[] appWidgetIds) {
+         34  
+         35  		for (int i = 0; i < appWidgetIds.length; ++i) {
+         36  			RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.widget_button_add_transaction);
+         37  			// register on click in icon launch application
+         38  			Intent intent = new Intent(context, CheckingTransactionEditActivity.class);
+         39  			intent.setAction(Intent.ACTION_INSERT);
+         40  			intent.putExtra(EditTransactionActivityConstants.KEY_TRANS_SOURCE, "ButtonAddTransactionWidgetProvider.java");
+         41  			PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+         42  			remoteViews.setOnClickPendingIntent(R.id.buttonNewOperation, pendingIntent);
+         43  
+         44  			// update widget
+         45  			appWidgetManager.updateAppWidget(appWidgetIds[i], remoteViews);
+   4. E157bdc5f LIFECYCLE/standard*
+      CheckingTransactionEditActivity.<init> -> CheckingTransactionEditActivity.onCreate
+      the framework calls onCreate after it creates the activity instance
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731 (callActivityOnCreate); FW-SRC core/java/android/app/Activity.java:6993-7000 (performCreate calls onCreate)
+       2729                      mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+       2730                  } else {
+       2731                      mInstrumentation.callActivityOnCreate(activity, r.state);
+       6993      final void performCreate(Bundle icicle, PersistableBundle persistentState) {
+       6994          mCanEnterPictureInPicture = true;
+       6995          restoreHasCurrentPermissionRequest(icicle);
+       6996          if (persistentState != null) {
+       6997              onCreate(icicle, persistentState);
+       6998          } else {
+       6999              onCreate(icicle);
+       7000          }
+   5. Ecd641bb4 CALL/explicit*
+      CheckingTransactionEditActivity.onCreate -> CheckingTransactionEditActivity.initializeInputControls
+      Direct call
+      evidence: SRC CheckingTransactionEditActivity.java:122 (bytecode)
+        122          initializeInputControls();
+   6. E3759dc47 CALL/explicit*
+      CheckingTransactionEditActivity.initializeInputControls -> EditTransactionCommonFunctions.initSplitCategories@CHECKING
+      the Checking editor initialises the split button: initializeInputControls calls mCommon.initSplitCategories (Checking-hosted helper instance)
+      evidence: SRC transactions/CheckingTransactionEditActivity.java:351-373 (initializeInputControls; initSplitCategories at 370); variant @CHECKING: Checking host only
+        351      private void initializeInputControls() {
+        352          // Transaction Type
+        353          mCommon.initTransactionTypeSelector();
+        354          // status
+        355          mCommon.initStatusSelector();
+        356  
+        357          // Transaction date
+        358          mCommon.initDateSelector();
+        359  
+        360          // account(s)
+        361          mCommon.initAccountSelectors();
+        362  
+        363          // Payee
+        364          mCommon.initPayeeControls();
+      ...  (9 more lines)
+   7. Ee44c0eab FRAMEWORK/standard*
+      EditTransactionCommonFunctions.initSplitCategories@CHECKING -> EditTransactionCommonFunctions$11.onClick@CHECKING
+      the split button calls onClick on a tap: View.performClick calls the OnClickListener (Checking-hosted split button)
+      evidence: SRC transactions/EditTransactionCommonFunctions.java:599-623 (splitButton.setOnClickListener at 599; onClick body within 599-623); FW-SRC core/java/android/view/View.java:6289-6294 (performClick calls the listener at 6294); INFERRED: the touch path to performClick is not read; variant @CHECKING
+        599          viewHolder.splitButton.setOnClickListener(new View.OnClickListener() {
+        600              @Override
+        601              public void onClick(View v) {
+        602                  boolean splitting = !isSplitSelected();
+        603  
+        604                  if (splitting) {
+        605                      showSplitCategoriesForm(mSplitCategoryEntityName);
+        606                  } else {
+        607                      // User wants to remove split.
+        608                      int splitCount = getSplitTransactions().size();
+        609                      switch (splitCount) {
+        610                          case 0:
+        611                              // just remove split
+        612                              setSplit(false);
+      ...  (11 more lines)
+       6289      public boolean performClick() {
+       6290          final boolean result;
+       6291          final ListenerInfo li = mListenerInfo;
+       6292          if (li != null && li.mOnClickListener != null) {
+       6293              playSoundEffect(SoundEffectConstants.CLICK);
+       6294              li.mOnClickListener.onClick(this);
+   8. Ee02d36ba CALL/explicit*
+      EditTransactionCommonFunctions$11.onClick@CHECKING -> EditTransactionCommonFunctions.showSplitCategoriesForm@CHECKING
+      the split button takes the splitting branch and opens the split categories form (Checking host)
+      guard: the split button takes the splitting branch (EditTransactionCommonFunctions.java:602-605); splitting = !isSplitSelected() at 602, if (splitting) at 604, showSplitCategoriesForm at 605
+      evidence: SRC transactions/EditTransactionCommonFunctions.java:602-605 (bytecode); variant @CHECKING: split-button entry ONLY; the category-field entry is the separate K edge below
+        602                  boolean splitting = !isSplitSelected();
+        603  
+        604                  if (splitting) {
+        605                      showSplitCategoriesForm(mSplitCategoryEntityName);
+   9. E95765797 INTENT/standard*
+      EditTransactionCommonFunctions.showSplitCategoriesForm@CHECKING -> SplitCategoriesActivity.<init>@CHECKING
+      startActivityForResult(new Intent(getContext(), SplitCategoriesActivity.class), RequestCodes.SPLIT_TX) with the split rows, currency and transaction type as extras (Checking host)
+      guard: the split button takes the splitting branch (EditTransactionCommonFunctions.java:602-605); the editor is the Checking editor (variant @CHECKING)
+      evidence: SRC transactions/EditTransactionCommonFunctions.java:1519-1528 (intent 1519; startActivityForResult 1528); FW-SRC core/java/android/app/Instrumentation.java:1170-1174; FW-SRC core/java/android/app/ActivityThread.java:2667-2671; variant @CHECKING
+       1519          Intent intent = new Intent(getContext(), SplitCategoriesActivity.class);
+       1520          intent.putExtra(SplitCategoriesActivity.KEY_DATASET_TYPE, datasetName);
+       1521          intent.putExtra(SplitCategoriesActivity.KEY_TRANSACTION_TYPE, transactionEntity.getTransactionType().getCode());
+       1522          intent.putExtra(SplitCategoriesActivity.KEY_SPLIT_TRANSACTION, Parcels.wrap(splitsToShow));
+       1523          intent.putExtra(SplitCategoriesActivity.KEY_SPLIT_TRANSACTION_DELETED, Parcels.wrap(mSplitTransactionsDeleted));
+       1524  
+       1525          Integer fromCurrencyId = getSourceCurrencyId();
+       1526          intent.putExtra(SplitCategoriesActivity.KEY_CURRENCY_ID, fromCurrencyId);
+       1527  
+       1528          getActivity().startActivityForResult(intent, RequestCodes.SPLIT_TX);
+       1170      public Activity newActivity(ClassLoader cl, String className,
+       1171              Intent intent)
+       1172              throws InstantiationException, IllegalAccessException,
+       1173              ClassNotFoundException {
+       1174          return (Activity)cl.loadClass(className).newInstance();
+       2667          try {
+       2668              java.lang.ClassLoader cl = appContext.getClassLoader();
+       2669              activity = mInstrumentation.newActivity(
+       2670                      cl, component.getClassName(), r.intent);
+       2671              StrictMode.incrementExpectedActivityCount(activity.getClass());
+  10. E17773f39 LIFECYCLE/standard*
+      SplitCategoriesActivity.<init>@CHECKING -> SplitCategoriesActivity.onCreate@CHECKING
+      the framework calls onCreate after it creates the activity instance (Checking-started split form)
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731 (callActivityOnCreate); FW-SRC core/java/android/app/Instrumentation.java:1212-1214 (callActivityOnCreate); FW-SRC core/java/android/app/Activity.java:6989-7000 (performCreate calls onCreate at 6997 and 6999); variant @CHECKING
+       2729                      mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+       2730                  } else {
+       2731                      mInstrumentation.callActivityOnCreate(activity, r.state);
+       1212      public void callActivityOnCreate(Activity activity, Bundle icicle) {
+       1213          prePerformCreate(activity);
+       1214          activity.performCreate(icicle);
+       6989      final void performCreate(Bundle icicle) {
+       6990          performCreate(icicle, null);
+       6991      }
+       6992  
+       6993      final void performCreate(Bundle icicle, PersistableBundle persistentState) {
+       6994          mCanEnterPictureInPicture = true;
+       6995          restoreHasCurrentPermissionRequest(icicle);
+       6996          if (persistentState != null) {
+       6997              onCreate(icicle, persistentState);
+       6998          } else {
+       6999              onCreate(icicle);
+       7000          }
+  11. E08346eb9 CALL/explicit*
+      SplitCategoriesActivity.onCreate@CHECKING -> SplitCategoriesActivity.initRecyclerView
+      Direct call
+      evidence: SRC SplitCategoriesActivity.java:105 (bytecode)
+        105          initRecyclerView();
+  12. E188a464f FRAMEWORK/standard*
+      SplitCategoriesActivity.initRecyclerView -> SplitCategoriesAdapter.onCreateViewHolder
+      after setAdapter the RecyclerView asks the adapter to create each row holder through onCreateViewHolder
+      evidence: SRC transactions/SplitCategoriesActivity.java:259 (mRecyclerView.setAdapter(mAdapter)); INFERRED: androidx RecyclerView dispatches onCreateViewHolder (library not in fw_src or the source root, label_134.grep.txt Q20, Q27)
+        259          mRecyclerView.setAdapter(mAdapter);
+  13. E07f0f6e5 CALL/explicit*
+      SplitCategoriesAdapter.onCreateViewHolder -> SplitCategoriesAdapter.initAmountControl
+      Direct call
+      evidence: SRC SplitCategoriesAdapter.java:79 (bytecode)
+         79          initAmountControl(viewHolder);
+  14. Ec69fa8c2 FRAMEWORK/standard*
+      SplitCategoriesAdapter.initAmountControl -> SplitCategoriesAdapter$1.onClick
+      a tap on the amount view calls onClick: View.performClick calls the OnClickListener
+      evidence: SRC transactions/SplitCategoriesAdapter.java:161 (viewHolder.txtAmount.setOnClickListener), 161-176 (onClick body); FW-SRC core/java/android/view/View.java:6289-6294 (performClick calls li.mOnClickListener.onClick(this) at 6294); INFERRED: the touch path to performClick is not read (label_134.grep.txt Q21, Q23)
+        161          viewHolder.txtAmount.setOnClickListener(new View.OnClickListener() {
+       6289      public boolean performClick() {
+       6290          final boolean result;
+       6291          final ListenerInfo li = mListenerInfo;
+       6292          if (li != null && li.mOnClickListener != null) {
+       6293              playSoundEffect(SoundEffectConstants.CLICK);
+       6294              li.mOnClickListener.onClick(this);
+  15. Ef33e8876 ASYNC/non_standard(EventBus (greenrobot): post(AmountEntryRequestedEvent) to the @Subscribe method (library dispatch, INFERRED))
+      SplitCategoriesAdapter$1.onClick -> SplitCategoriesActivity.onEvent(AmountEntryRequestedEvent)
+      the user taps the amount of a split row: the listener posts AmountEntryRequestedEvent and EventBus calls onEvent, which opens the calculator for that row
+      evidence: SRC transactions/SplitCategoriesAdapter.java:161 (txtAmount.setOnClickListener), 174 (EventBus.getDefault().post(new AmountEntryRequestedEvent(...))); SRC transactions/SplitCategoriesActivity.java:205-211 (subscriber); the adapter belongs to batch 134 and its listener is not labelled here; INFERRED: EventBus library dispatch not read
+        161          viewHolder.txtAmount.setOnClickListener(new View.OnClickListener() {
+        205      @Subscribe
+        206      public void onEvent(AmountEntryRequestedEvent event) {
+        207          Calculator.forActivity(this)
+        208                  .currency(mAdapter.currencyId)
+        209                  .amount(event.amount)
+        210                  .show(event.requestId + amountRequestOffset);
+        211      }
+  16. Eebcaa84a INTENT/standard*
+      SplitCategoriesActivity.onEvent(AmountEntryRequestedEvent) -> CalculatorActivity.<init>@SPLIT
+      an amount-entry request event opens the calculator: Calculator.show (line 210) starts CalculatorActivity (Split-launched calculator only)
+      guard: requestCode is event.requestId + amountRequestOffset (SplitCategoriesActivity.java:207-210; amountRequestOffset = 1000 at :79)
+      evidence: SRC transactions/SplitCategoriesActivity.java:205-211 (forActivity 207, currency 208, amount 209, show 210); SRC common/Calculator.java:70 (intent for CalculatorActivity.class), 77-83 (show: startActivityForResult at 79); FW-SRC core/java/android/app/ActivityThread.java:2669-2670 (mInstrumentation.newActivity); FW-SRC core/java/android/app/Instrumentation.java:1170-1174 (loadClass(className).newInstance() at 1174); variant @SPLIT: Split-launched calculator only; plain onEvent -> plain Calculator edge (graph_def.py:2238) is deleted
+        205      @Subscribe
+        206      public void onEvent(AmountEntryRequestedEvent event) {
+        207          Calculator.forActivity(this)
+        208                  .currency(mAdapter.currencyId)
+        209                  .amount(event.amount)
+        210                  .show(event.requestId + amountRequestOffset);
+        211      }
+         70          this.intent = new Intent(this.activity, CalculatorActivity.class);
+       2669              activity = mInstrumentation.newActivity(
+       2670                      cl, component.getClassName(), r.intent);
+       1170      public Activity newActivity(ClassLoader cl, String className,
+       1171              Intent intent)
+       1172              throws InstantiationException, IllegalAccessException,
+       1173              ClassNotFoundException {
+       1174          return (Activity)cl.loadClass(className).newInstance();
+  17. Ec14d436f LIFECYCLE/standard*
+      CalculatorActivity.<init>@SPLIT -> CalculatorActivity.onCreate@SPLIT
+      the framework calls onCreate right after the constructor (Split-launched calculator)
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731 (callActivityOnCreate after newActivity at 2669); FW-SRC core/java/android/app/Instrumentation.java:1212-1214 (callActivityOnCreate calls performCreate at 1214); FW-SRC core/java/android/app/Activity.java:6993-6999 (performCreate calls onCreate at 6999); variant @SPLIT
+       2729                      mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+       2730                  } else {
+       2731                      mInstrumentation.callActivityOnCreate(activity, r.state);
+       1212      public void callActivityOnCreate(Activity activity, Bundle icicle) {
+       1213          prePerformCreate(activity);
+       1214          activity.performCreate(icicle);
+       6993      final void performCreate(Bundle icicle, PersistableBundle persistentState) {
+       6994          mCanEnterPictureInPicture = true;
+       6995          restoreHasCurrentPermissionRequest(icicle);
+       6996          if (persistentState != null) {
+       6997              onCreate(icicle, persistentState);
+       6998          } else {
+       6999              onCreate(icicle);
+  18. Ec97f118b ENTERS/page
+      CalculatorActivity.onCreate@SPLIT -> S_CALCULATOR@SPLIT
+      onCreate sets the layout (line 115) and wires the keys through initializeControls (line 127): the calculator screen is shown (Split-launched calculator)
+      evidence: SRC common/CalculatorActivity.java:111-128 (setContentView at 115, ButterKnife.bind at 118, initializeControls at 127); variant @SPLIT
+        111      @Override
+        112      protected void onCreate(Bundle savedInstanceState) {
+        113          super.onCreate(savedInstanceState);
+        114  
+        115          setContentView(R.layout.activity_calculator);
+        116  
+        117          MmexApplication.getApp().iocComponent.inject(this);
+        118          ButterKnife.bind(this);
+        119  
+        120          setDisplayHomeAsUpEnabled(true);
+        121          getSupportActionBar().setTitle(R.string.enter_amount);
+        122  
+        123          if (savedInstanceState == null) {
+        124              extractArguments();
+      ...  (4 more lines)
+  19. E8d321a82 GUI/non_standard(ButterKnife @OnClick(R.id.buttonKeyEqual) at CalculatorActivity.java:247, bound by the generated CalculatorActivity_ViewBinding (INFERRED: the library and generated source are not in the source root))
+      S_CALCULATOR@SPLIT -> CalculatorActivity.onEqualsClicked@SPLIT
+      the equals key runs the @OnClick handler, which returns the entered amount (Split-launched calculator)
+      evidence: SRC common/CalculatorActivity.java:247-250 (@OnClick at 247, handler 248-250); SRC res/layout/activity_calculator.xml:162 (buttonKeyEqual); auto_calls.json record CalculatorActivity_ViewBinding$2.doClick -> onEqualsClicked (CalculatorActivity_ViewBinding.java:49) is the generated path (batch 028); INFERRED ButterKnife binding (library not read); variant @SPLIT
+        247      @OnClick(R.id.buttonKeyEqual)
+        248      public void onEqualsClicked() {
+        249          returnResult();
+        250      }
+        162                  android:id="@+id/buttonKeyEqual"
+  20. Eae208bbe CALL/explicit*
+      CalculatorActivity.onEqualsClicked@SPLIT -> CalculatorActivity.returnResult@SPLIT
+      the equals key returns the entered amount (Split-launched calculator)
+      evidence: SRC common/CalculatorActivity.java:249 (bytecode); variant @SPLIT
+        249          returnResult();
+  21. E2a5a7095 RESULT/standard*
+      CalculatorActivity.returnResult@SPLIT -> SplitCategoriesActivity.onActivityResult@AMOUNT
+      the calculator returns the amount and finishes: setResult(RESULT_OK, result), and the framework calls onActivityResult with the row request code plus the amount offset (Split-launched calculator only)
+      guard: requestCode >= amountRequestOffset (SplitCategoriesActivity.java:142) and resultCode is RESULT_OK with data non-null (SplitCategoriesActivity.java:129); the request code is the row request id plus 1000 (SplitCategoriesActivity.java:79, 207-210; Calculator.java:79 passes it to startActivityForResult)
+      evidence: SRC common/CalculatorActivity.java:435-445 (returnResult: setResult(RESULT_OK) at 443, finish at 444); SRC common/Calculator.java:79 (activity.startActivityForResult(intent, requestCode)); SRC transactions/SplitCategoriesActivity.java:79 (amountRequestOffset = 1000), 207-210 (Calculator show with event.requestId + amountRequestOffset); FW-SRC core/java/android/app/ActivityThread.java:4253-4265; FW-SRC core/java/android/app/Activity.java:7259-7266; variant @SPLIT -> @AMOUNT: Split-launched amount result only
+        435      private void returnResult() {
+        436          // this is called only to reset the warning colour in the top box, if any.
+        437          evalExpression();
+        438          showAmountInEntryField();
+        439  
+        440          // set result and return
+        441          Intent result = new Intent();
+        442          result.putExtra(RESULT_AMOUNT, mAmount.toString());
+        443          setResult(AppCompatActivity.RESULT_OK, result);
+        444          finish();
+        445      }
+         79              activity.startActivityForResult(intent, requestCode);
+         79      private final int amountRequestOffset = 1000; // used to offset the request number for Amounts.
+       4253      private void deliverResults(ActivityClientRecord r, List<ResultInfo> results) {
+       4254          final int N = results.size();
+       4255          for (int i=0; i<N; i++) {
+       4256              ResultInfo ri = results.get(i);
+       4257              try {
+       4258                  if (ri.mData != null) {
+       4259                      ri.mData.setExtrasClassLoader(r.activity.getClassLoader());
+       4260                      ri.mData.prepareToEnterProcess();
+       4261                  }
+       4262                  if (DEBUG_RESULTS) Slog.v(TAG,
+       4263                          "Delivering result to activity " + r + " : " + ri);
+       4264                  r.activity.dispatchActivityResult(ri.mResultWho,
+       4265                          ri.mRequestCode, ri.mResultCode, ri.mData);
+       7259      void dispatchActivityResult(String who, int requestCode,
+       7260          int resultCode, Intent data) {
+       7261          if (false) Log.v(
+       7262              TAG, "Dispatching result: who=" + who + ", reqCode=" + requestCode
+       7263              + ", resCode=" + resultCode + ", data=" + data);
+       7264          mFragments.noteStateNotSaved();
+       7265          if (who == null) {
+       7266              onActivityResult(requestCode, resultCode, data);
+  22. E01801377 CALL/explicit*
+      SplitCategoriesActivity.onActivityResult@AMOUNT -> SplitCategoriesActivity.onAmountEntered
+      the amount branch of onActivityResult enters the returned amount for the split row (Split-launched calculator result only)
+      guard: resultCode == RESULT_OK, data != null, requestCode >= amountRequestOffset (SplitCategoriesActivity.java:129, 142)
+      evidence: SRC transactions/SplitCategoriesActivity.java:129, 142-145 (RESULT_OK + data guard at 129; amount branch at 142; onAmountEntered at 145); variant @AMOUNT: amount-branch handler only; plain auto edge for this pair is partitioned (see sup in §3.4)
+        129          if ((resultCode != Activity.RESULT_OK) || (data == null)) return;
+  23. E4c09ea2d CALL/explicit*
+      SplitCategoriesActivity.onAmountEntered -> SplitCategoriesActivity.showInvalidAmountDialog
+      a negative returned amount opens the invalid amount dialog instead of updating the split row
+      guard: amount.toDouble() < 0 (SplitCategoriesActivity.java:277)
+      evidence: SRC transactions/SplitCategoriesActivity.java:276-279 (negative amount gate at 277; showInvalidAmountDialog at 278)
+        276      private void onAmountEntered(int requestId, Money amount) {
+        277          if (amount.toDouble() < 0) {
+        278              showInvalidAmountDialog();
+        279              return;
+  24. E0548d81e CALL/explicit*
+      SplitCategoriesActivity.showInvalidAmountDialog -> SplitCategoriesActivity$1.<init>
+      Direct call
+      evidence: SRC SplitCategoriesActivity.java:320 (bytecode)
+        320                  .setMessage(R.string.error_amount_must_be_positive)
+

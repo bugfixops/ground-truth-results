@@ -1,0 +1,237 @@
+## DropboxApiHelper.parseListFolderResponse  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=network;other_app state=session classes=explicit;non_standard;standard explicit_standard_route=no
+   1. Eddc920eb ENTRY/standard*
+      S_ENTRY -> AnyMemo.<init>
+      MAIN / LAUNCHER intent starts AnyMemo
+      evidence: SRC AndroidManifest.xml:23-46
+         23          <activity
+         24              android:name=".ui.AnyMemo"
+         25              android:label="@string/app_full_name"
+         26              android:theme="@style/AnyMemo.Theme.Dark.NoActionBar"
+         27              android:exported="true" >
+         28              <intent-filter>
+         29                  <action
+         30                      android:name="android.intent.action.MAIN" />
+         31                  <category
+         32                      android:name="android.intent.category.LAUNCHER" />
+         33              </intent-filter>
+         34              <intent-filter>
+         35                  <action android:name="android.intent.action.VIEW" />
+         36                  <category android:name="android.intent.category.DEFAULT" />
+      ...  (10 more lines)
+   2. Eda38ea0d LIFECYCLE/standard*
+      AnyMemo.<init> -> AnyMemo.onResume
+      Activity lifecycle / framework callback
+      evidence: FW-SRC core/java/android/app/Activity.java (Activity lifecycle callback dispatched by ActivityThread); SRC ui/AnyMemo.java:115-434
+      (core/java/android/app/Activity.java: no line numbers)
+        115      @Override
+        116      public void onCreate(Bundle savedInstanceState) {
+        117          activityComponents().inject(this);
+        118          super.onCreate(savedInstanceState);
+        119          disposables = new CompositeDisposable();
+        120  
+        121          binding = DataBindingUtil.setContentView(this, R.layout.main_tabs);
+        122  
+        123          // Request storage permission for API < 29
+        124          if (android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.Q) {
+        125              if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        126                      != PackageManager.PERMISSION_GRANTED) {
+        127                  ActivityCompat.requestPermissions(this,
+        128                          new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+      ...  (306 more lines)
+   3. E954353b1 ENTERS/page* [STATE: AnyMemo already finished loadUiComponents() once in this process]
+      AnyMemo.onResume -> S_MAIN_RECENT
+      isUiLoaded is already true (resumed, not a cold start): the last-selected tab is shown again
+      evidence: SRC ui/AnyMemo.java:145-162
+        145      @Override
+        146      public void onResume() {
+        147          super.onResume();
+        148          if (android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.Q) {
+        149              if (!isUiLoaded) {
+        150                  loadUiComponents();
+        151                  isUiLoaded = true;
+        152              }
+        153          } else {
+        154              if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        155                      == PackageManager.PERMISSION_GRANTED) {
+        156                  if (!isUiLoaded) {
+        157                      loadUiComponents();
+        158                      isUiLoaded = true;
+      ...  (4 more lines)
+   4. E6da90567 GUI/standard*
+      S_MAIN_RECENT -> AnyMemo$2.onNavigationItemSelected
+      Tap a bottom-navigation item (Recent / Open / Download / Misc)
+      evidence: INFERRED com.google.android.material (BottomNavigationView / NavigationView / FloatingActionButton / Snackbar) dispatches the listener registered on it, the same way a platform View dispatches a click (Material Components source not read); SRC ui/AnyMemo.java:234-261
+        234          binding.bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+        235              @Override
+        236              public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+        237  
+        238                  Fragment fragment = null;
+        239                  int itemId = menuItem.getItemId();
+        240                  if (itemId == R.id.recent_tab_menu) {
+        241                      fragment = new RecentListFragment();
+        242                  } else if (itemId == R.id.open_tab_menu) {
+        243                      fragment = new OpenTabFragment();
+        244                      Bundle args = new Bundle();
+        245                      args.putBoolean(FileBrowserFragment.EXTRA_SHOW_CREATE_DB_BUTTON, true);
+        246                      fragment.setArguments(args);
+        247                  } else if (itemId == R.id.download_tab_menu) {
+      ...  (14 more lines)
+   5. E0250abd0 ENTERS/page*
+      AnyMemo$2.onNavigationItemSelected -> S_MAIN_DOWNLOAD
+      itemId == download_tab_menu
+      evidence: SRC ui/AnyMemo.java:247-248,253-257
+        247                  } else if (itemId == R.id.download_tab_menu) {
+        248                      fragment = new DownloadTabFragment();
+        253                  if (fragment != null) {
+        254                      getSupportFragmentManager().beginTransaction()
+        255                              .replace(R.id.page_fragment_container, fragment)
+        256                              .commit();
+        257                  }
+   6. E4e72e573 LIFECYCLE/standard*
+      S_MAIN_DOWNLOAD -> DownloadTabFragment.onAttach
+      Fragment lifecycle callback
+      evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ui/DownloadTabFragment.java:46-50
+         46      @Override
+         47      public void onAttach(Activity activity) {
+         48          super.onAttach(activity);
+         49          mActivity = activity;
+         50      }
+   7. Ee5146d82 LIFECYCLE/standard*
+      DownloadTabFragment.onAttach -> DownloadTabFragment.onCreateView
+      Fragment lifecycle callback
+      evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ui/DownloadTabFragment.java:52-61
+         52      @Override
+         53      public View onCreateView(LayoutInflater inflater, ViewGroup container,
+         54              Bundle savedInstanceState) {
+         55          View v = inflater.inflate(R.layout.downloader_tab, container, false);
+         56          amButton = v.findViewById(R.id.source_anymemo);
+         57          dropboxButton = v.findViewById(R.id.source_dropbox);
+         58          amButton.setOnClickListener(this);
+         59          dropboxButton.setOnClickListener(this);
+         60          return v;
+         61      }
+   8. E1e204ebe FRAMEWORK/standard*
+      DownloadTabFragment.onCreateView -> DownloadTabFragment.onClick
+      tap a download-source button
+      evidence: INFERRED a tapped/long-pressed View dispatches to the listener registered with setOnClickListener / setOnLongClickListener / setOnItemClickListener / setOnItemLongClickListener / setOnTouchListener / setOnCheckedChangeListener / addTextChangedListener / setOnFocusChangeListener / setOnSeekBarChangeListener (androidx widgets wrap the platform View/AdapterView dispatch; androidx source not read); SRC ui/DownloadTabFragment.java:56-70
+         56          amButton = v.findViewById(R.id.source_anymemo);
+         57          dropboxButton = v.findViewById(R.id.source_dropbox);
+         58          amButton.setOnClickListener(this);
+         59          dropboxButton.setOnClickListener(this);
+         60          return v;
+         61      }
+         62      @Override
+         63      public void onClick(View v){
+         64          if (v == amButton){
+         65              startActivity(new Intent(mActivity, AnyMemoDownloaderActivity.class));
+         66          }
+         67          if (v == dropboxButton){
+         68          	startActivity(new Intent(mActivity, DropboxOauth2AccountActivity.class));
+         69          }
+      ...  (1 more lines)
+   9. E5487fe19 ENTRY/standard*
+      DownloadTabFragment.onClick -> AnyMemoDownloaderActivity.<init>
+      v == amButton: startActivity(AnyMemoDownloaderActivity)
+      evidence: SRC ui/DownloadTabFragment.java:64-66
+         64          if (v == amButton){
+         65              startActivity(new Intent(mActivity, AnyMemoDownloaderActivity.class));
+         66          }
+  10. Eb58ca0ea LIFECYCLE/standard*
+      AnyMemoDownloaderActivity.<init> -> AnyMemoDownloaderActivity.onCreate
+      Activity lifecycle callback
+      evidence: FW-SRC core/java/android/app/Activity.java (Activity lifecycle callback dispatched by ActivityThread); SRC downloader/anymemo/AnyMemoDownloaderActivity.java:9-13
+      (core/java/android/app/Activity.java: no line numbers)
+          9      @Override
+         10      public void onCreate(Bundle savedInstanceState) {
+         11          super.onCreate(savedInstanceState);
+         12          setContentView(R.layout.anymemo_downloader);
+         13      }
+  11. Eabeaf426 LIFECYCLE/standard*
+      AnyMemoDownloaderActivity.onCreate -> AnyMemoDownloaderFragment.onCreate
+      the layout statically includes the fragment (<fragment> tag)
+      evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC downloader/anymemo/AnyMemoDownloaderActivity.java:10-13; res/layout/anymemo_downloader.xml
+         10      public void onCreate(Bundle savedInstanceState) {
+         11          super.onCreate(savedInstanceState);
+         12          setContentView(R.layout.anymemo_downloader);
+         13      }
+  12. E7fb331ae ENTERS/page*
+      AnyMemoDownloaderFragment.onCreate -> S_DOWNLOAD_AM
+      the fragment (and its AbstractDownloaderFragment base) is created
+      evidence: SRC downloader/anymemo/AnyMemoDownloaderFragment.java:35-39
+         35      @Override
+         36      public void onCreate(@Nullable Bundle savedInstanceState) {
+         37          super.onCreate(savedInstanceState);
+         38          fragmentComponents().inject(this);
+         39      }
+  13. Ec891b674 LIFECYCLE/standard*
+      S_DOWNLOAD_AM -> AbstractDownloaderFragment.onViewCreated
+      Fragment lifecycle callback
+      evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC downloader/common/AbstractDownloaderFragment.java:127-174
+        127      @Override
+        128      public void onAttach(Context activity) {
+        129          super.onAttach(activity);
+        130          mActivity = (Activity) activity;
+        131      }
+        132  
+        133      @Override
+        134      public void onCreate(@Nullable Bundle savedInstanceState) {
+        135          super.onCreate(savedInstanceState);
+        136          fragmentComponents().inject(this);
+        137      }
+        138  
+        139      @Override
+        140      public View onCreateView(LayoutInflater inflater, ViewGroup container,
+      ...  (34 more lines)
+  14. E7a60a408 CALL/explicit*
+      AbstractDownloaderFragment.onViewCreated -> AbstractDownloaderFragment.refreshList
+      refreshList()
+      evidence: SRC downloader/common/AbstractDownloaderFragment.java:173
+        173          refreshList();
+  15. Ea4f58e4b ASYNC/standard*
+      AbstractDownloaderFragment.refreshList -> AbstractDownloaderFragment$1.call
+      new RetrieveTask().execute(Callable: initialRetrieve)
+      evidence: INFERRED android.os.AsyncTask.execute/executeOnExecutor runs doInBackground on a worker thread and onPreExecute/onPostExecute on the main thread (platform source not read for this exact flow; see FW-SRC citation added in step 6 for the base class); SRC downloader/common/AbstractDownloaderFragment.java:181-187
+      (citation: no line numbers)
+        181          RetrieveTask task = new RetrieveTask();
+        182          task.execute(new Callable<List<DownloadItem>>() {
+        183              @Override
+        184              public List<DownloadItem> call() throws Exception {
+        185                  return initialRetrieve();
+        186              }
+        187          });
+  16. E3e2ca3e2 CALL/explicit*
+      AbstractDownloaderFragment$1.call -> DropboxListFragment.initialRetrieve
+      Virtual/interface call that can dispatch to this implementation
+      evidence: SRC AbstractDownloaderFragment.java:185 (bytecode)
+        185                  return initialRetrieve();
+  17. E05bb69d8 CALL/explicit*
+      DropboxListFragment.initialRetrieve -> DropboxApiHelper.listFiles
+      Direct call
+      evidence: SRC DropboxListFragment.java:60 (bytecode)
+         60          dropboxApiHelper.listFiles(authToken, ANYMEMO_FOLDER).blockingForEach(new Consumer<List<DownloadItem>>() {
+  18. Ed3f92112 FRAMEWORK/non_standard(RxJava 2 (io.reactivex) calls the Rx callback (subscribe / onNext / call)) [ENV: outside package: a Dropbox account and network access (OAuth2 login in an external browser / Custom Tab, api.dropboxapi.com reachable)]
+      DropboxApiHelper.listFiles -> DropboxApiHelper$3.subscribe
+      the framework calls subscribe (ObservableOnSubscribe<List<DownloadItem>>) at downloader/dropbox/DropboxApiHelper.java:143
+      evidence: INFERRED RxJava 2 (io.reactivex) Observable/Single/Completable/Maybe delivers onNext/onSuccess/onComplete/onError/accept to the subscriber on the thread named by observeOn (library source not read); SRC downloader/dropbox/DropboxApiHelper.java:143-190
+        143          return Observable.create(new ObservableOnSubscribe<List<DownloadItem>>() {
+        144              @Override
+        145              public void subscribe(ObservableEmitter<List<DownloadItem>> emitter) throws Exception {
+        146                  RequestBody requestBody = RequestBody.create(JSON_TYPE, String.format(
+        147                          "{\"path\": \"/%1$s\",\"recursive\": false,\"include_media_info\": false,\"include_deleted\": false,\"include_has_explicit_shared_members\": false
+        148                          folderName));
+        149                  Request request = new Request.Builder()
+        150                          .url(LIST_FOLDER_ENDPOINT)
+        151                          .addHeader("Authorization", "Bearer " + token)
+        152                          .post(requestBody)
+        153                          .build();
+        154                  Response response = okHttpClient.newCall(request).execute();
+        155                  if (!response.isSuccessful()) {
+        156                      emitter.onError(new IOException(getResponseErrorString(request, response)));
+      ...  (34 more lines)
+  19. E77ecf53a CALL/explicit*
+      DropboxApiHelper$3.subscribe -> DropboxApiHelper.parseListFolderResponse
+      Direct call
+      evidence: SRC DropboxApiHelper.java:186 (bytecode)
+        186                      emitter.onNext(parseListFolderResponse(continueEntryArray));
+

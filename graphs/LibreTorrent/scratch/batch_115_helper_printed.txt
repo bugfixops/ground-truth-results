@@ -1,0 +1,24 @@
+# Batch 115 printed evidence
+
+Plan extraction:
+```sh
+awk -F '\\t' '$1==115 {print $3 "\\t" $4}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+```
+Output: 40 exact methods; full descriptors reproduced in the report table.
+
+Bounded source scan:
+```sh
+rg -n 'startActivity\(|class SettingsViewModel|class SummaryPreference|onBindViewHolder|setSummary|class SwitchBarPreference|onCheckedChanged|class TimePreference|formatTime|getDialogLayoutResource|getSummary|getTime|onGetDefaultValue|onSetInitialValue|setTime|class TimePreferenceDialogFragmentCompat|newInstance|onBindDialogView|onDialogClosed|AnonymousModeSettingsFragment|AppearanceSettingsFragment|bindOnPreferenceChangeListener|onPreferenceChange|initLegacyNotifySettings' .../ui/settings
+```
+Selected output read:
+```
+SettingsFragment.java:232 startActivity helper; :240 startActivity intent
+PreferenceActivity.java:98-116 categories select settings section fragments
+SettingsViewModel.java:25 class
+AnonymousModeSettingsFragment.java:32 class; :40 newInstance; :50 onCreate; :60 listener bind
+:65 preferences; :70 bind listener; :76 onPreferenceChange
+SchedulingSettingsFragment.java:169 preference listener; :179 TimePreferenceDialogFragmentCompat.newInstance
+AppearanceSettingsFragment.java: bindOnPreferenceChangeListener and ActivityResult launcher observed in source scan
+```
+The scanned setting/preference definitions do not establish complete framework dispatch and entry routes for all target methods; all 40 remain OPEN.
+

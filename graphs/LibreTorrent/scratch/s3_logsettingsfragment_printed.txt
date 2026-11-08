@@ -1,0 +1,101 @@
+     1	/*
+     2	 * Copyright (C) 2020-2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.log;
+    21	
+    22	import android.content.Context;
+    23	import android.os.Bundle;
+    24	import android.text.InputFilter;
+    25	import android.text.TextUtils;
+    26	
+    27	import androidx.preference.EditTextPreference;
+    28	import androidx.preference.Preference;
+    29	import androidx.preference.PreferenceFragmentCompat;
+    30	
+    31	import org.proninyaroslav.libretorrent.R;
+    32	import org.proninyaroslav.libretorrent.core.InputFilterRange;
+    33	import org.proninyaroslav.libretorrent.core.RepositoryHelper;
+    34	import org.proninyaroslav.libretorrent.core.settings.SettingsRepository;
+    35	
+    36	public class LogSettingsFragment extends PreferenceFragmentCompat
+    37	        implements Preference.OnPreferenceChangeListener
+    38	{
+    39	    private static final String TAG = LogSettingsFragment.class.getSimpleName();
+    40	
+    41	    private SettingsRepository pref;
+    42	
+    43	    public static LogSettingsFragment newInstance()
+    44	    {
+    45	        LogSettingsFragment fragment = new LogSettingsFragment();
+    46	        fragment.setArguments(new Bundle());
+    47	
+    48	        return fragment;
+    49	    }
+    50	
+    51	    @Override
+    52	    public void onCreate(Bundle savedInstanceState)
+    53	    {
+    54	        super.onCreate(savedInstanceState);
+    55	
+    56	        Context context = getActivity().getApplicationContext();
+    57	        pref = RepositoryHelper.getSettingsRepository(context);
+    58	
+    59	        InputFilter[] maxFilter = new InputFilter[] {
+    60	                new InputFilterRange.Builder()
+    61	                        .setMin(1)
+    62	                        .setMax(Integer.MAX_VALUE)
+    63	                        .build()
+    64	        };
+    65	
+    66	        String keyMaxLogSize= getString(R.string.pref_key_max_log_size);
+    67	        EditTextPreference maxLogSize  = findPreference(keyMaxLogSize);
+    68	        if (maxLogSize != null) {
+    69	            String value = Integer.toString(pref.maxLogSize());
+    70	            maxLogSize.setOnBindEditTextListener((editText) -> editText.setFilters(maxFilter));
+    71	            maxLogSize.setSummary(value);
+    72	            maxLogSize.setText(value);
+    73	            bindOnPreferenceChangeListener(maxLogSize);
+    74	        }
+    75	    }
+    76	
+    77	    @Override
+    78	    public void onCreatePreferences(Bundle savedInstanceState, String rootKey)
+    79	    {
+    80	        setPreferencesFromResource(R.xml.pref_log, rootKey);
+    81	    }
+    82	
+    83	    private void bindOnPreferenceChangeListener(Preference preference)
+    84	    {
+    85	        preference.setOnPreferenceChangeListener(this);
+    86	    }
+    87	
+    88	    @Override
+    89	    public boolean onPreferenceChange(Preference preference, Object newValue)
+    90	    {
+    91	        if (preference.getKey().equals(getString(R.string.pref_key_max_log_size))) {
+    92	            int value = 1;
+    93	            if (!TextUtils.isEmpty((String)newValue))
+    94	                value = Integer.parseInt((String)newValue);
+    95	            pref.maxLogSize(value);
+    96	            preference.setSummary(Integer.toString(value));
+    97	        }
+    98	
+    99	        return true;
+   100	    }
+   101	}

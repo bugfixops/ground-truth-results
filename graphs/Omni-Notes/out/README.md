@@ -7,7 +7,7 @@ How every method of **Omni-Notes** is triggered, in the standard configuration: 
 | File | What it is |
 |---|---|
 | `omni-notes_trigger_graph.json` | pages, methods, `verdict`, `labels` (per-method fields), `edges` (with `edge_class`, `env_kinds`, `state_kinds`, stable ids), `paths` (verified paths only), `verification` (counts) |
-| `methods.csv` | one row per method: verdict, UNREACHABLE reason, ENV and STATE kinds and texts, edge classes on the best route, whether an explicit/standard-only route exists, how the label was confirmed, path status, and the derived best route (`shortest_path`, `route_edge_ids`) |
+| `methods.csv` | one row per method: verdict, UNREACHABLE reason, ENV and STATE kinds and texts, edge classes on the best route, whether an explicit/standard-only route exists, how the label was confirmed, path status, the derived best route (`shortest_path`, `route_edge_ids`), and the full JVM class and descriptor (`jvm_class`, `jvm_descriptor`; the `method` key adds a package prefix only where simple class names clash) |
 | `../verification.csv` | the audit log: one row per label, edge or path that was checked, with result, how, and where (file:line) |
 | `sanity_check.csv` | tool coverage (Monkey / APE, API 27) next to the labels; a one-way check only, it never sets a label |
 | `omni-notes_trigger_graph.html`, `build_report.txt` | the viewer and the validation report |
@@ -31,7 +31,9 @@ Verification log (`verification.csv`), counts of what was checked and found:
 | edges (framework and other claims read against source) | 49 | 15 | 34 | 0 |
 | paths (stratified sample, read step by step) | 33 | 3 | 30 | 0 |
 
-Path status over all reachable methods: SOURCE_OK 31, UNCHECKED 1170, WRONG 1.
+Device replay on the emulator (API 27): 8 of 33 routes reached their target method; 8 of these ran the whole script and are `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; see `../device/results.csv`.
+
+Path status over all reachable methods: DEVICE_OK 8, SOURCE_OK 23, UNCHECKED 1170, WRONG 1.
 The rows are the items that were individually checked, not a random sample of all labels; see the notes below for how they were chosen and what the unclear rows wait for.
 
 Edges whose evidence is not a source line (356 of 3803): Ed965d44a (MainActivity.onCreate -> MainActivity_ViewBinding.<init>(MainActivity,View)); E7c78e9af (MainActivity.onCreate -> NavigationDrawerFragment.<init>); E449a3211 (NavigationDrawerFragment.<init> -> NavigationDrawerFragment.onCreate); E02a461c5 (NavigationDrawerFragment.<init> -> NavigationDrawerFragment.onCreateView); E0c960f14 (NavigationDrawerFragment.<init> -> NavigationDrawerFragment.onActivityCreated); E16eb2c51 (NavigationDrawerFragment.<init> -> NavigationDrawerFragment.onStart); E8c98d772 (ListFragment.<init> -> ListFragment.onCreate); Ef56e2127 (ListFragment.<init> -> ListFragment.onCreateView); E54b170af (ListFragment.<init> -> ListFragment.onActivityCreated); E995b7be1 (ListFragment.<init> -> ListFragment.onResume); E24faa205 (ListFragment.<init> -> ListFragment.onCreateOptionsMenu); E2b5eb400 (ListFragment.<init> -> ListFragment.onPrepareOptionsMenu) ...
@@ -54,7 +56,11 @@ Sanity check against tool coverage (never used to set a label): 848 methods ran 
 
 `tools/verify_sample.py Omni-Notes 30` draws 30 reachable methods, stratified by what their best route needs (non-standard edge, INFERRED label, STATE gate, ENV gate, long route, plain route), seed 20261025; the sample depends on the graph, so it was drawn again after the structural fixes and reached 273 distinct edges. `verification.csv` holds those 30 plus 3 methods read while sampling (`MediaStoreFactory.<init>`, `DynamicNavigationLookupTable.<init>`, `ListFragment.initNotesList`), 33 path rows in all: 3 correct, 29 fixed, 1 wrong. One sampled method, `DetailFragment.removeAttachment(Attachment)`, turned out UNREACHABLE while its route was read; its path row is kept and its label row is `fixed`. The first-graph routes were rebuilt from the original definitions to see which of them had the shortcut (all 26 non-plain ones had), so the rows tell what was wrong in the first graph; the routes logged are those of the final graph. Besides the paths, `verification.csv` has a label row for each of the 254 UNREACHABLE methods, one for each of the 32 sampled reachable methods whose route stays valid and for the two reachable methods that changed, and 49 edge rows (34 fixed, 15 correct: one per distinct framework citation read).
 
+Note on sample timing: the sample was drawn before the log step. The label rows written by the log step change which 30 methods the sampler picks on the final graph, so a fresh draw on the final graph would not necessarily pick the same 30 methods. The judged routes are still current: the final verification run reports 0 STALE warnings, so every judged route still matches the final graph.
+
 ## What waits for a device (API 27)
+
+- **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 8 of 33 routes reached their target method; 8 of them ran the whole script and are now `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
 
 Nothing here was confirmed on the emulator (confirmed_by DEVICE: 0). What a device check should settle:
 
@@ -85,6 +91,8 @@ Nothing here was confirmed on the emulator (confirmed_by DEVICE: 0). What a devi
 - androidx preference dialogs (language, colours, checked-items behaviour, max video size, snooze delay) are described in the tap text of the preference, not as pages. Runtime-permission dialogs are not pages: the permission is an ENV gate on the edge that needs it.
 - Rotation and process recreation are modelled only as lifecycle callbacks (`onSaveInstanceState`, `OmniNotes.onConfigurationChanged`); the saved-state restore of the editor and the list is not.
 - The standard configuration is the play flavor, debug build (`BuildConfig.BUILD_TYPE` "debug"), fresh install, API 27; the beta, alpha and foss sources are not part of it.
+- check 5 counts 11 lines (graph_def.py 1635, 1641, 1693, 1694, 1793, 1794, 1801, 1808, 2078, 2136, 2145). They are the schema-1 dictionaries DEAD and FRAMEWORK_ONLY, used only as temporary containers that are converted to UNREACHABLE entries and emptied at line 2145, plus their SUPPRESS uses and one comment line. No placeholder label exists.
+- check 8 shows 5 UNREACHABLE methods with a bytecode caller outside the set; each method's reason names and explains its caller: `DetailFragment$OnGeoUtilResultListenerImpl.onCoordinatesResolved` <- `GeocodeHelper.lambda$getCoordinatesFromAddress$1` (GeocodeHelper.java:168; the listener is never passed, only the DetailFragment itself); `DetailFragment.addShortcut` <- `DetailFragment.onOptionsItemSelected` (DetailFragment.java:1102; the menu item is never visible); `DetailFragment.removeAttachment(Attachment)` <- `DetailFragment.onAttachingFileErrorOccurred` (DetailFragment.java:1959; the branch is never taken); `SettingsActivity.replaceFragment` <- `SettingsActivity.onBackPressed` (SettingsActivity.java:80; backStack is never filled); `SystemHelper.closeCloseable` <- `GeocodeHelper.autocomplete` (GeocodeHelper.java:228; after the early return for an empty key). No graph change was needed.
 
 ## JSON shape (short)
 

@@ -1,0 +1,25 @@
+# Batch 85 printed evidence
+
+Plan membership:
+```sh
+awk -F '\\t' '$1==85 {print $3 "\\t" $4}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+```
+Output count: 40; full method/descriptor table is in helper report.
+
+Bounded source signature scan:
+```sh
+rg -n 'class CreateTorrentViewModel|getPieceSizeByIndex|getState|getTorrentVersionByIndex|downloadTorrent|makeBuilder|makeCreator|makePercentProgress|normalizeAndValidateUrl|onBuildError|onBuildSuccess|onCleared|resetPercentProgress|setPiecesSizeIndex|setTorrentVersionIndex|class ColorView|getColor|onDraw|onSizeChanged|setColor|class EmptyRecyclerView|checkEmpty|setAdapter|setEmptyView|onChanged|onItemRangeInserted|onItemRangeRemoved|class ExpansionHeader' .../ui/createtorrent/CreateTorrentViewModel.java .../ui/customviews/{ColorView,EmptyRecyclerView,ExpansionHeader}.java
+```
+Key output read:
+```
+CreateTorrentViewModel.java:55 class; :118 onCleared; :126 getState; :136-148 setters
+:157-177 builder/progress; :211 onBuildSuccess; :228 onBuildError
+:242-247 progress helpers; :252 makeCreator; :306 normalizeAndValidateUrl
+:333 getPieceSizeByIndex; :338 getTorrentVersionByIndex; :352 downloadTorrent
+ColorView.java:36 class; :76 onSizeChanged; :84 onDraw; :95 setColor; :102 getColor
+EmptyRecyclerView.java:29 class; :36 onChanged; :42 onItemRangeInserted; :48 onItemRangeRemoved
+:69 checkEmpty; :80 setAdapter; :94 setEmptyView
+ExpansionHeader.java:43 class
+```
+Source-local calls and callback overrides are partial evidence. A complete app-entry and framework dispatch route was not established for each method. All 40 remain OPEN.
+

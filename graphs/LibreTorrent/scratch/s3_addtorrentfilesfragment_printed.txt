@@ -1,0 +1,197 @@
+     1	/*
+     2	 * Copyright (C) 2016, 2018 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.addtorrent;
+    21	
+    22	import android.content.Context;
+    23	import android.os.Bundle;
+    24	import android.os.Parcelable;
+    25	import android.text.format.Formatter;
+    26	import android.view.LayoutInflater;
+    27	import android.view.View;
+    28	import android.view.ViewGroup;
+    29	
+    30	import androidx.annotation.NonNull;
+    31	import androidx.annotation.Nullable;
+    32	import androidx.appcompat.app.AppCompatActivity;
+    33	import androidx.databinding.DataBindingUtil;
+    34	import androidx.fragment.app.Fragment;
+    35	import androidx.lifecycle.ViewModelProvider;
+    36	import androidx.recyclerview.widget.LinearLayoutManager;
+    37	
+    38	import org.proninyaroslav.libretorrent.R;
+    39	import org.proninyaroslav.libretorrent.core.model.filetree.BencodeFileTree;
+    40	import org.proninyaroslav.libretorrent.databinding.FragmentAddTorrentFilesBinding;
+    41	
+    42	import io.reactivex.Flowable;
+    43	import io.reactivex.android.schedulers.AndroidSchedulers;
+    44	import io.reactivex.disposables.CompositeDisposable;
+    45	import io.reactivex.schedulers.Schedulers;
+    46	
+    47	/*
+    48	 * The fragment for list files of torrent. Part of AddTorrentFragment.
+    49	 */
+    50	
+    51	public class AddTorrentFilesFragment extends Fragment
+    52	        implements
+    53	        DownloadableFilesAdapter.ClickListener
+    54	{
+    55	    private static final String TAG = AddTorrentFilesFragment.class.getSimpleName();
+    56	
+    57	    private static final String TAG_LIST_FILES_STATE = "list_files_state";
+    58	
+    59	    private AppCompatActivity activity;
+    60	    private FragmentAddTorrentFilesBinding binding;
+    61	    private AddTorrentViewModel viewModel;
+    62	    private LinearLayoutManager layoutManager;
+    63	    private DownloadableFilesAdapter adapter;
+    64	    /* Save state scrolling */
+    65	    private Parcelable listFilesState;
+    66	    private CompositeDisposable disposable = new CompositeDisposable();
+    67	
+    68	    public static AddTorrentFilesFragment newInstance()
+    69	    {
+    70	        AddTorrentFilesFragment fragment = new AddTorrentFilesFragment();
+    71	
+    72	        Bundle args = new Bundle();
+    73	        fragment.setArguments(args);
+    74	
+    75	        return fragment;
+    76	    }
+    77	
+    78	    @Override
+    79	    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    80	    {
+    81	        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_add_torrent_files, container, false);
+    82	
+    83	        return binding.getRoot();
+    84	    }
+    85	
+    86	    @Override
+    87	    public void onAttach(@NonNull Context context)
+    88	    {
+    89	        super.onAttach(context);
+    90	
+    91	        if (context instanceof AppCompatActivity)
+    92	            activity = (AppCompatActivity)context;
+    93	    }
+    94	
+    95	    @Override
+    96	    public void onStop()
+    97	    {
+    98	        super.onStop();
+    99	
+   100	        disposable.clear();
+   101	    }
+   102	
+   103	    @Override
+   104	    public void onStart()
+   105	    {
+   106	        super.onStart();
+   107	
+   108	        subscribeAdapter();
+   109	    }
+   110	
+   111	    private void subscribeAdapter()
+   112	    {
+   113	        disposable.add(viewModel.children
+   114	                .subscribeOn(Schedulers.computation())
+   115	                .flatMapSingle((children) ->
+   116	                        Flowable.fromIterable(children)
+   117	                                .map(DownloadableFileItem::new)
+   118	                                .toList()
+   119	                )
+   120	                .observeOn(AndroidSchedulers.mainThread())
+   121	                .subscribe((children) -> {
+   122	                    adapter.submitList(children);
+   123	                    updateFileSize();
+   124	                }));
+   125	    }
+   126	
+   127	    @Override
+   128	    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+   129	        super.onViewCreated(view, savedInstanceState);
+   130	
+   131	        if (activity == null)
+   132	            activity = (AppCompatActivity) getActivity();
+   133	
+   134	        viewModel = new ViewModelProvider(activity).get(AddTorrentViewModel.class);
+   135	        binding.setViewModel(viewModel);
+   136	
+   137	        layoutManager = new LinearLayoutManager(activity);
+   138	        binding.fileList.setLayoutManager(layoutManager);
+   139	        adapter = new DownloadableFilesAdapter(this);
+   140	        binding.fileList.setAdapter(adapter);
+   141	    }
+   142	
+   143	    private void updateFileSize()
+   144	    {
+   145	        if (viewModel.fileTree == null)
+   146	            return;
+   147	
+   148	        binding.filesSize.setText(getString(R.string.files_size,
+   149	                Formatter.formatFileSize(activity.getApplicationContext(),
+   150	                        viewModel.fileTree.selectedFileSize()),
+   151	                Formatter.formatFileSize(activity.getApplicationContext(),
+   152	                        viewModel.fileTree.size())));
+   153	    }
+   154	
+   155	    @Override
+   156	    public void onSaveInstanceState(@NonNull Bundle outState)
+   157	    {
+   158	        listFilesState = layoutManager.onSaveInstanceState();
+   159	        outState.putParcelable(TAG_LIST_FILES_STATE, listFilesState);
+   160	
+   161	        super.onSaveInstanceState(outState);
+   162	    }
+   163	
+   164	    @Override
+   165	    public void onViewStateRestored(@Nullable Bundle savedInstanceState)
+   166	    {
+   167	        super.onViewStateRestored(savedInstanceState);
+   168	
+   169	        if (savedInstanceState != null)
+   170	            listFilesState = savedInstanceState.getParcelable(TAG_LIST_FILES_STATE);
+   171	    }
+   172	
+   173	    @Override
+   174	    public void onResume()
+   175	    {
+   176	        super.onResume();
+   177	
+   178	        if (listFilesState != null)
+   179	            layoutManager.onRestoreInstanceState(listFilesState);
+   180	    }
+   181	
+   182	    @Override
+   183	    public void onItemClicked(@NonNull DownloadableFileItem item)
+   184	    {
+   185	        if (item.name.equals(BencodeFileTree.PARENT_DIR))
+   186	            viewModel.upToParentDirectory();
+   187	        else if (!item.isFile)
+   188	            viewModel.chooseDirectory(item.name);
+   189	    }
+   190	
+   191	    @Override
+   192	    public void onItemCheckedChanged(@NonNull DownloadableFileItem item, boolean selected)
+   193	    {
+   194	        viewModel.selectFile(item.name, selected);
+   195	        updateFileSize();
+   196	    }
+   197	}

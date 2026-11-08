@@ -1,0 +1,171 @@
+METHOD: SyncPreferenceFragment.onEvent
+verdict: REACHABLE   steps_from_launch: 10
+route steps: 10 edges
+======================================================================
+
+STEP 1  edge E71c76102
+  S_ENTRY -> MainActivity.<init>
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC AndroidManifest.xml:136-143 (MAIN + LAUNCHER intent filter of com.money.manager.ex.home.MainActivity)
+  cite [SRC] AndroidManifest.xml:136-143
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/AndroidManifest.xml)
+      136:                 android:name=".home.MainActivity"
+      137:                 android:label="@string/application_name" android:exported="true">
+      138:             <intent-filter>
+      139:                 <action android:name="android.intent.action.MAIN" />
+      140: 
+      141:                 <category android:name="android.intent.category.LAUNCHER" />
+      142:                 <!-- Samsung MultiWindow Function -->
+      143:                 <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
+
+STEP 2  edge E2e074fc1
+  MainActivity.<init> -> MainActivity.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC core/java/android/app/ActivityThread.java:2722-2731 (callActivityOnCreate); FW-SRC core/java/android/app/Instrumentation.java:1212-1216; FW-SRC core/java/android/app/Activity.java:6993-7000 (performCreate calls onCreate); same route as graph_def.py AccountEditActivity.<init> -> onCreate
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2722-2731
+     2722:                 int theme = r.activityInfo.getThemeResource();
+     2723:                 if (theme != 0) {
+     2724:                     activity.setTheme(theme);
+     2725:                 }
+     2726: 
+     2727:                 activity.mCalled = false;
+     2728:                 if (r.isPersistable()) {
+     2729:                     mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+     2730:                 } else {
+     2731:                     mInstrumentation.callActivityOnCreate(activity, r.state);
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1212-1216
+     1212:     public void callActivityOnCreate(Activity activity, Bundle icicle) {
+     1213:         prePerformCreate(activity);
+     1214:         activity.performCreate(icicle);
+     1215:         postPerformCreate(activity);
+     1216:     }
+  cite [FW-SRC] core/java/android/app/Activity.java:6993-7000
+     6993:     final void performCreate(Bundle icicle, PersistableBundle persistentState) {
+     6994:         mCanEnterPictureInPicture = true;
+     6995:         restoreHasCurrentPermissionRequest(icicle);
+     6996:         if (persistentState != null) {
+     6997:             onCreate(icicle, persistentState);
+     6998:         } else {
+     6999:             onCreate(icicle);
+     7000:         }
+
+STEP 3  edge Efc29cb5c
+  MainActivity.onCreate -> MainActivity.initializeSync
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainActivity.java:242 (bytecode)
+  cite [SRC] MainActivity.java:242
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java)
+      242:         initializeSync();
+
+STEP 4  edge E09bcb83d
+  MainActivity.initializeSync -> SyncManager.triggerSynchronization
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainActivity.java:1224 (bytecode)
+  cite [SRC] MainActivity.java:1224
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java)
+     1224:             sync.triggerSynchronization();
+
+STEP 5  edge E900fb1cd
+  SyncManager.triggerSynchronization -> SyncManager.invokeSyncService
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC SyncManager.java:348 (bytecode)
+  cite [SRC] SyncManager.java:348
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncManager.java)
+      348:         invokeSyncService(SyncConstants.INTENT_ACTION_SYNC);
+
+STEP 6  edge E0e96bbf6
+  SyncManager.invokeSyncService -> SyncService.enqueueWork
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC SyncManager.java:217 (bytecode)
+  cite [SRC] SyncManager.java:217
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncManager.java)
+      217:         SyncService.enqueueWork(getContext(), syncServiceIntent);
+
+STEP 7  edge E29548d9f
+  SyncService.enqueueWork -> SyncService.onHandleWork
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC sync/SyncService.java:90 (onHandleWork), 151-153; INFERRED androidx JobIntentService (not read)
+  cite [SRC] sync/SyncService.java:90
+       90:     protected void onHandleWork(Intent intent) {
+
+STEP 8  edge E060e9c23
+  SyncService.onHandleWork -> SyncService.sendMessage
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC SyncService.java:132 (bytecode)
+  cite [SRC] SyncService.java:132
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncService.java)
+      132:                 sendMessage(outMessenger, SyncServiceMessage.UPLOAD_COMPLETE);
+
+STEP 9  edge E9ec99f56
+  SyncService.sendMessage -> SyncServiceMessageHandler.handleMessage
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC sync/SyncService.java:222-236 (msg.what at 226; outMessenger.send at 229); FW-SRC core/java/android/os/Handler.java:97-106 (dispatchMessage calls handleMessage at 106); INFERRED android.os.Messenger (not in fw_src; not read)
+  cite [SRC] sync/SyncService.java:222-236
+      222:     private boolean sendMessage(Messenger outMessenger, SyncServiceMessage message) {
+      223:         if (outMessenger == null) return true;
+      224: 
+      225:         Message msg = new Message();
+      226:         msg.what = message.code;
+      227: 
+      228:         try {
+      229:             outMessenger.send(msg);
+      230:         } catch (Exception e) {
+      231:             Timber.e(e, "sending message from the sync service");
+      232: 
+      233:             return false;
+      234:         }
+      235:         return true;
+      236:     }
+  cite [FW-SRC] core/java/android/os/Handler.java:97-106
+       97:     public void dispatchMessage(Message msg) {
+       98:         if (msg.callback != null) {
+       99:             handleCallback(msg);
+      100:         } else {
+      101:             if (mCallback != null) {
+      102:                 if (mCallback.handleMessage(msg)) {
+      103:                     return;
+      104:                 }
+      105:             }
+      106:             handleMessage(msg);
+
+STEP 10  edge E1982f6fc
+  SyncServiceMessageHandler.handleMessage -> SyncPreferenceFragment.onEvent
+  class: non_standard   kind: ASYNC
+  guard: None
+  needs_state: None
+  env: the cloud download that the Download preference starts (forceDownload) completes in the sync service; it needs the network and the cloud storage
+  evidence: SRC sync/SyncServiceMessageHandler.java:61 (handleMessage), 84-89 (post at 89); SRC sync/SyncPreferenceFragment.java:120-123; precedent label_032 DebugTree.log -> MmxBaseFragmentActivity.onEvent (ASYNC); the source handleMessage is batch 126 (not merged yet): this route is open until batch 126 merges (D4, D8)
+  cite [SRC] sync/SyncServiceMessageHandler.java:61
+       61:     public void handleMessage(Message msg) {
+  cite [SRC] sync/SyncPreferenceFragment.java:120-123
+      120:     @Subscribe
+      121:     public void onEvent(DbFileDownloadedEvent event) {
+      122:         // open the new database.
+      123:         getSyncManager().useDownloadedDatabase();

@@ -1,0 +1,291 @@
+## MainActivity.onIntroResult  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=- state=data classes=explicit;standard explicit_standard_route=yes
+   1. Eb9515d18 ENTRY/standard*
+      S_ENTRY -> AegisApplication.<init>
+      Any outside trigger starts the app process; the application class is created first, except in a backup or restore start, which uses the base Application class
+      guard: not a full backup or restore start (FW ActivityThread.java:5713-5715)
+      evidence: SRC AndroidManifest.xml:21-27 (android:name=".AegisApplication", backupAgent=".AegisBackupAgent")
+         21      <application
+         22          android:name=".AegisApplication"
+         23          android:allowBackup="true"
+         24          android:fullBackupOnly="true"
+         25          android:fullBackupContent="@xml/backup_rules_old"
+         26          android:dataExtractionRules="@xml/backup_rules"
+         27          android:backupAgent=".AegisBackupAgent"
+   2. E5b266140 LIFECYCLE/standard*
+      AegisApplication.<init> -> Hilt_AegisApplication.onCreate
+      Application.onCreate: the Hilt-generated superclass onCreate runs first (Hilt injection), then AegisApplicationBase.onCreate
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:5740 (the system calls Application.onCreate); INFERRED Hilt rewrites the superclass: AegisApplication extends Hilt_AegisApplication (generated file, not in the source tree; source AegisApplication.java:6 has no onCreate)
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+   3. E1ef992ce CALL/explicit
+      Hilt_AegisApplication.onCreate -> AegisApplicationBase.onCreate
+      Direct call
+      evidence: INFERRED generated code (Hilt_AegisApplication.java is not in the source tree; the call is in the build class, line 43)
+   4. E88ed9829 ENTERS/page*
+      AegisApplicationBase.onCreate -> S_PROCESS
+      the application is created: the process can start a component
+      evidence: SRC AegisApplicationBase.java:45-67; FW-SRC core/java/android/app/ActivityThread.java:5740 (the system calls Application.onCreate)
+         45      public void onCreate() {
+         46          super.onCreate();
+         47          _vaultManager = EarlyEntryPoints.get(this, EntryPoint.class).getVaultManager();
+         48  
+         49          VaultLockReceiver lockReceiver = new VaultLockReceiver();
+         50          IntentFilter intentFilter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
+         51          ContextCompat.registerReceiver(this, lockReceiver, intentFilter, ContextCompat.RECEIVER_NOT_EXPORTED);
+         52  
+         53          // lock the app if the user moves the application to the background
+         54          ProcessLifecycleOwner.get().getLifecycle().addObserver(new AppLifecycleObserver());
+         55  
+         56          // clear the cache directory on startup, to make sure no temporary vault export files remain
+         57          IOUtils.clearDirectory(getCacheDir(), false);
+         58  
+      ...  (9 more lines)
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+   5. E28ffc58c ENTRY/standard*
+      S_PROCESS -> MainActivity.<init>
+      Tap the Aegis icon in the launcher (MAIN / LAUNCHER)
+      evidence: SRC AndroidManifest.xml:44-51
+         44              android:name=".ui.MainActivity"
+         45              android:exported="true"
+         46              android:label="${title}">
+         47              <intent-filter>
+         48                  <action android:name="android.intent.action.MAIN" />
+         49  
+         50                  <category android:name="android.intent.category.LAUNCHER" />
+         51              </intent-filter>
+   6. Eb76444fd LIFECYCLE/standard*
+      MainActivity.<init> -> MainActivity.onCreate
+      Activity.onCreate after the constructor
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731,2741 (the system calls Activity.onCreate, then performStart); SRC ui/MainActivity.java:192-194
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+        192      @Override
+        193      protected void onCreate(Bundle savedInstanceState) {
+        194          super.onCreate(savedInstanceState);
+   7. E3a06baed LIFECYCLE/standard*
+      MainActivity.onCreate -> MainActivity.onStart
+      Activity.onStart after onCreate
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731,2741 (the system calls Activity.onCreate, then performStart); SRC ui/MainActivity.java:938-940
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+        938      @Override
+        939      protected void onStart() {
+        940          super.onStart();
+   8. E0602e719 CALL/explicit*
+      MainActivity.onStart -> MainActivity.startIntroActivity
+      no vault file exists (fresh install): the intro starts and onStart returns
+      guard: vault init needed: no vault file exists
+      evidence: SRC ui/MainActivity.java:942-948
+        942          if (_vaultManager.isVaultInitNeeded()) {
+        943              if (_prefs.isIntroDone()) {
+        944                  Toast.makeText(this, getString(R.string.vault_not_found), Toast.LENGTH_SHORT).show();
+        945              }
+        946              startIntroActivity();
+        947              return;
+        948          }
+   9. E4ce5043a INTENT/standard*
+      MainActivity.startIntroActivity -> IntroActivity.<init>
+      startActivityForResult(IntroActivity) through introResultLauncher
+      guard: intro not already running (_isDoingIntro false, MainActivity.java:604)
+      evidence: SRC ui/MainActivity.java:603-612; INFERRED androidx.activity.result: the launcher callback runs with the result (androidx source not cached)
+        603      private void startIntroActivity() {
+        604          if (!_isDoingIntro) {
+        605              Intent intro = new Intent(this, IntroActivity.class);
+        606              introResultLauncher.launch(intro);
+        607              _isDoingIntro = true;
+        608          }
+        609      }
+        610  
+        611      private void onScanResult(Intent data) {
+        612          List<VaultEntry> entries = (ArrayList<VaultEntry>) data.getSerializableExtra("entries");
+  10. E5e63fbe7 LIFECYCLE/standard*
+      IntroActivity.<init> -> IntroActivity.onCreate
+      Activity.onCreate of the intro
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731,2741 (the system calls Activity.onCreate, then performStart); SRC ui/IntroActivity.java:35-41
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+         35      protected void onCreate(Bundle savedInstanceState) {
+         36          super.onCreate(savedInstanceState);
+         37  
+         38          addSlide(WelcomeSlide.class);
+         39          addSlide(SecurityPickerSlide.class);
+         40          addSlide(SecuritySetupSlide.class);
+         41          addSlide(DoneSlide.class);
+  11. E93598a00 CALL/explicit*
+      IntroActivity.onCreate -> IntroBaseActivity.addSlide@IntroActivity
+      Direct call
+      evidence: SRC IntroActivity.java:38-41 (bytecode line was 41; addSlide(WelcomeSlide) is line 38)
+         38          addSlide(WelcomeSlide.class);
+         39          addSlide(SecurityPickerSlide.class);
+         40          addSlide(SecuritySetupSlide.class);
+         41          addSlide(DoneSlide.class);
+  12. E1440feb8 ENTERS/page*
+      IntroBaseActivity.addSlide@IntroActivity -> S_INTRO_WELCOME
+      the first slide (Welcome) is shown
+      guard: the added slide is the first one, the Welcome slide (IntroBaseActivity.java:183-186; IntroActivity.java:38)
+      evidence: SRC ui/intro/IntroBaseActivity.java:174-188; SRC ui/IntroActivity.java:38
+        174      public void addSlide(Class<? extends SlideFragment> type) {
+        175          if (_slides.contains(type)) {
+        176              throw new IllegalStateException(String.format("Only one slide of type %s may be added to the intro", type.getName()));
+        177          }
+        178  
+        179          _slides.add(type);
+        180          _slideIndicator.setSlideCount(_slides.size());
+        181  
+        182          // send 'slide changed' events for the first slide
+        183          if (_slides.size() == 1) {
+        184              Class<? extends SlideFragment> slide = _slides.get(0);
+        185              onBeforeSlideChanged(null, slide);
+        186              onAfterSlideChanged(null, slide);
+        187          }
+      ...  (1 more lines)
+         38          addSlide(WelcomeSlide.class);
+  13. E6830b6dc ENTERS/page*
+      S_INTRO_WELCOME -> S_INTRO_PICKER
+      Next on Welcome (Welcome did not import): the security picker is shown
+      guard: Welcome did not import a vault (the intro state "imported" is false; IntroActivity.java:57-62)
+      evidence: SRC ui/intro/IntroBaseActivity.java:80-93; SRC ui/IntroActivity.java:57-62
+         80      public void goToNextSlide() {
+         81          int pos = _pager.getCurrentItem();
+         82          if (pos != _slides.size() - 1) {
+         83              SlideFragment currentSlide = _currentSlide.get();
+         84              if (currentSlide.isFinished()) {
+         85                  currentSlide.onSaveIntroState(_state);
+         86                  setPagerPosition(pos, 1);
+         87              } else {
+         88                  currentSlide.onNotFinishedError();
+         89              }
+         90          } else {
+         91              onDonePressed();
+         92          }
+         93      }
+         57          if (oldSlide == WelcomeSlide.class
+         58                  && newSlide == SecurityPickerSlide.class
+         59                  && getState().getBoolean("imported")) {
+         60              skipToSlide(DoneSlide.class);
+         61              return true;
+         62          }
+  14. E32450899 ENTERS/page*
+      S_INTRO_PICKER -> S_INTRO_PICKER@NONE
+      the user taps the None radio button on the security picker
+      evidence: SRC res/layout/fragment_security_picker_slide.xml:41 (rb_none tapped); INFERRED the radio group checks the tapped button (android.widget.RadioGroup not read); SRC ui/intro/IntroBaseActivity.java:85 (Next saves cryptType, SecurityPickerSlide.java:72-88)
+         41                      android:id="@+id/rb_none"
+         85                  currentSlide.onSaveIntroState(_state);
+  15. E553f11f7 GUI/standard*
+      S_INTRO_PICKER@NONE -> IntroBaseActivity.lambda$onCreate$1@NONE
+      Tap Next on the security picker with None checked
+      evidence: FW-SRC core/java/android/view/View.java:6289-6296 (performClick calls the OnClickListener.onClick); SRC ui/intro/IntroBaseActivity.java:47
+      (core/java/android/view/View.java not found in the source tree)
+         47          _btnNext.setOnClickListener(v -> goToNextSlide());
+  16. E251ac3f4 CALL/explicit*
+      IntroBaseActivity.lambda$onCreate$1@NONE -> IntroBaseActivity.goToNextSlide@NONE
+      the Next button calls goToNextSlide
+      evidence: SRC ui/intro/IntroBaseActivity.java:47,80-93
+         47          _btnNext.setOnClickListener(v -> goToNextSlide());
+         80      public void goToNextSlide() {
+         81          int pos = _pager.getCurrentItem();
+         82          if (pos != _slides.size() - 1) {
+         83              SlideFragment currentSlide = _currentSlide.get();
+         84              if (currentSlide.isFinished()) {
+         85                  currentSlide.onSaveIntroState(_state);
+         86                  setPagerPosition(pos, 1);
+         87              } else {
+         88                  currentSlide.onNotFinishedError();
+         89              }
+         90          } else {
+         91              onDonePressed();
+         92          }
+         93      }
+  17. E7216511b CALL/explicit*
+      IntroBaseActivity.goToNextSlide@NONE -> IntroActivity.onBeforeSlideChanged@NONE
+      the pager moves on: setPagerPosition calls onBeforeSlideChanged, which IntroActivity overrides
+      guard: the current slide is finished and it is not the last slide (IntroBaseActivity.java:82-86)
+      evidence: SRC ui/intro/IntroBaseActivity.java:86,138,149-151; SRC ui/IntroActivity.java:45
+         86                  setPagerPosition(pos, 1);
+        138          if (!onBeforeSlideChanged(oldSlide, newSlide)) {
+        149      private void setPagerPosition(int pos, int delta) {
+        150          pos += delta;
+        151          setPagerPosition(pos);
+         45      protected boolean onBeforeSlideChanged(Class<? extends SlideFragment> oldSlide, @NonNull Class<? extends SlideFragment> newSlide) {
+  18. E8da5177a CALL/explicit* [STATE: The intro security picker chose none, so the setup slide is skipped (IntroActivity.java:50-55)]
+      IntroActivity.onBeforeSlideChanged@NONE -> IntroBaseActivity.skipToSlide
+      security "none" skips the setup slide
+      guard: the security picker chose none and the setup slide is next (IntroActivity.java:50-55)
+      evidence: SRC ui/IntroActivity.java:50-55
+         50          if (oldSlide == SecurityPickerSlide.class
+         51                  && newSlide == SecuritySetupSlide.class
+         52                  && getState().getInt("cryptType", CRYPT_TYPE_INVALID) == CRYPT_TYPE_NONE) {
+         53              skipToSlide(DoneSlide.class);
+         54              return true;
+         55          }
+  19. E3f8e1ae8 ENTERS/page*
+      IntroBaseActivity.skipToSlide -> S_INTRO_DONE
+      the Done slide is shown after the skip
+      guard: the skip is the imported-vault skip or the security-none skip
+      evidence: SRC ui/intro/IntroBaseActivity.java:104; SRC ui/IntroActivity.java:50-62
+        104      public void skipToSlide(Class<? extends SlideFragment> type) {
+         50          if (oldSlide == SecurityPickerSlide.class
+         51                  && newSlide == SecuritySetupSlide.class
+         52                  && getState().getInt("cryptType", CRYPT_TYPE_INVALID) == CRYPT_TYPE_NONE) {
+         53              skipToSlide(DoneSlide.class);
+         54              return true;
+         55          }
+         56  
+         57          if (oldSlide == WelcomeSlide.class
+         58                  && newSlide == SecurityPickerSlide.class
+         59                  && getState().getBoolean("imported")) {
+         60              skipToSlide(DoneSlide.class);
+         61              return true;
+         62          }
+  20. E0182bb68 GUI/standard*
+      S_INTRO_DONE -> IntroActivity.onDonePressed
+      Tap Next on the Done slide: goToNextSlide calls onDonePressed (the tap path is lambda -> goToNextSlide -> onDonePressed)
+      evidence: FW-SRC core/java/android/view/View.java:6289-6296 (performClick calls the OnClickListener.onClick); SRC ui/intro/IntroBaseActivity.java:47,80-93
+      (core/java/android/view/View.java not found in the source tree)
+         47          _btnNext.setOnClickListener(v -> goToNextSlide());
+         80      public void goToNextSlide() {
+         81          int pos = _pager.getCurrentItem();
+         82          if (pos != _slides.size() - 1) {
+         83              SlideFragment currentSlide = _currentSlide.get();
+         84              if (currentSlide.isFinished()) {
+         85                  currentSlide.onSaveIntroState(_state);
+         86                  setPagerPosition(pos, 1);
+         87              } else {
+         88                  currentSlide.onNotFinishedError();
+         89              }
+         90          } else {
+         91              onDonePressed();
+         92          }
+         93      }
+  21. E1dcf1457 RESULT/standard*
+      IntroActivity.onDonePressed -> MainActivity.lambda$new$1
+      setResult(RESULT_OK) and finish() return the result to the caller's launcher
+      guard: the vault was created (IntroActivity.java:100 VaultManager.initNew; that producer is a separate edge and is not shown on this route) or imported, with no error dialog (the error branches return at 104, 113 and 121); the none path needs creds null (IntroActivity.java:92-96)
+      evidence: SRC ui/IntroActivity.java:86-129; FW-SRC core/java/android/app/ActivityThread.java:4253-4265 (deliverResults passes each result to dispatchActivityResult of the starting activity); FW-SRC core/java/android/app/Activity.java:5526-5527 (finish); INFERRED androidx.activity.result: the launcher callback runs with the result (androidx source not cached)
+         86      protected void onDonePressed() {
+         87          Bundle state = getState();
+         88  
+         89          VaultFileCredentials creds = (VaultFileCredentials) state.getSerializable("creds");
+         90          if (!state.getBoolean("imported")) {
+         91              int cryptType = state.getInt("cryptType", CRYPT_TYPE_INVALID);
+         92              if (cryptType == CRYPT_TYPE_INVALID
+         93                      || (cryptType == CRYPT_TYPE_NONE && creds != null)
+         94                      || (cryptType == CRYPT_TYPE_PASS && (creds == null || !creds.getSlots().has(PasswordSlot.class)))
+         95                      || (cryptType == CRYPT_TYPE_BIOMETRIC && (creds == null || !creds.getSlots().has(PasswordSlot.class) || !creds.getSlots().has(BiometricSlot.class)))) 
+         96                  throw new RuntimeException(String.format("State of SecuritySetupSlide not properly propagated, cryptType: %d, creds: %s", cryptType, creds));
+         97              }
+         98  
+         99              try {
+      ...  (30 more lines)
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+      (core/java/android/app/Activity.java not found in the source tree)
+  22. E5f44da38 CALL/explicit*
+      MainActivity.lambda$new$1 -> MainActivity.onIntroResult
+      RESULT_OK from the intro: the list is loaded
+      guard: the intro returned RESULT_OK (MainActivity.java:145)
+      evidence: SRC ui/MainActivity.java:142-148
+        142      private final ActivityResultLauncher<Intent> introResultLauncher =
+        143              registerForActivityResult(new StartActivityForResult(), activityResult -> {
+        144                  _isDoingIntro = false;
+        145                  if (activityResult.getResultCode() == RESULT_OK) {
+        146                      onIntroResult();
+        147                  }
+        148              });
+

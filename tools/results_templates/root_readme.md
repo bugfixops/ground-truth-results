@@ -1,0 +1,118 @@
+# Ground-truth trigger graphs for 13 Android apps: results
+
+This branch holds the finished ground truth for 13 Java-only Android apps. All work is here: the trigger graphs, the audit logs, the automated checks, the route scripts, and the emulator run that replayed the routes.
+
+**Status on 2026-11-03: all 13 apps are complete.** In the official CI, every graph builds with 0 errors and 0 warnings, and the citation and bytecode checks report 0 problems. The emulator run on Android 8.1 (API 27) is done, and its results are written into every app's audit log.
+
+**Start here:** [`run_result/`](run_result/) is a tidy copy of every final result, with one folder per app and one for the emulator job. The rest of the branch is the full working record behind those results.
+
+---
+
+## What is done
+
+| Step | Status | Where |
+|---|---|---|
+| Trigger graph (schema 2) for every app | done, 13 of 13 | [`run_result/apps/<App>/graph/`](run_result/apps/), live copy in `graphs/<App>/out/` |
+| Audit against Yang's rules (labels, ENV and STATE gates, edge classes, routes, API 27) | done, 13 of 13, each app ticked by the user | [`handoff/PROGRESS_V2.md`](handoff/PROGRESS_V2.md) |
+| Audit log per app | {{LROWS}} label rows, {{EROWS}} edge rows, {{PROWS}} route rows | `run_result/apps/<App>/verification.csv` |
+| Eight automated checks, run by the official CI | 13 of 13 at 0 errors, 0 warnings (CI request `{{CI}}`) | `run_result/apps/<App>/ci/` |
+| Route scripts for the emulator | {{ROUTES}} routes: {{SCRIPTED}} scripted, {{UNSCR}} unscriptable (reason recorded) | `device/routes/<App>/`, list in `run_result/apps/<App>/routes.csv` |
+| Emulator run on GitHub Actions (API 27) | done 2026-11-03, run `{{RUN}}`: {{REACHED}} of {{ROUTES}} routes reached, {{DOK}} confirmed (DEVICE_OK) | [`run_result/emulator/`](run_result/emulator/) |
+| Emulator results written into the audit logs | done; a route that was not reached never changes a label | `verification.csv` rows with `confirmed_by=DEVICE` |
+
+## The numbers
+
+**{{M}} methods and {{E}} edges in 13 graphs: {{R}} methods REACHABLE, {{U}} UNREACHABLE.**
+
+{{TABLE_MAIN}}
+
+How to read the table:
+- **"Errors found"** counts items found wrong when they were checked by hand against the source code. Nearly all were corrected afterwards: {{LFIX}} labels, {{EFIX}} edges and {{PFIX}} routes were fixed.
+- **Items still wrong:** {{LWRONG}} labels and {{PWRONG}} routes. These are in AnkiDroid, Aegis and LibreTorrent, where the agreed stopping rule allowed no further fix rounds, plus 1 Omni-Notes route. Each is a row with `result=wrong` in that app's `verification.csv`, and the routes show path status WRONG in the graph.
+- **Rates:** each rate is errors found ÷ items checked. Each route is counted once.
+- **Emulator columns:** "reached" means the emulator's coverage data shows the route's target method actually ran. "DEVICE_OK" means it was reached **and** the whole route script ran to the end.
+- **What the label rates cover:** in Aegis, AmazeFileManager, AnkiDroid, LibreTorrent and MMEX, 94–97% of the label rows are UNREACHABLE methods. Only 25–30 reachable methods per app were audited, so these apps' label rates mostly measure the dead verdicts, not the state, env and GUI labels of reachable methods (see "Known problems" below).
+
+Route status over all reachable methods: {{PS}}. "UNCHECKED" means that method's route was not confirmed, either by hand or on the emulator. It does not mean the route is wrong.
+
+## Known problems: state, env and GUI labels in five apps
+
+**The state, env and GUI split of reachable methods in Aegis, AmazeFileManager, AnkiDroid, LibreTorrent and MMEX still has known errors.** The known errors are in the class split; the verdicts hold up (57 of 58 sampled dead methods agreed).
+
+A review on 3 November 2026 compared the labels of these five apps with an independent hand-labelled sample of 50 unreached methods per app: the classes agreed on only 59% of the 249 sampled methods, with too much gui and too little state. A re-audit started in November 2026.
+
+- **What round 1 of the re-audit changed:**
+  - routes start from the state after the first-run setup: gates the setup already satisfies are cleared, and intro or tutorial screens are used only for setup-only methods;
+  - launcher and in-app starts are used instead of exported or external entries where the app reaches the same code itself;
+  - virtual calls go only to types that some reachable method creates, plus hand fixes for calls that cannot happen;
+  - callbacks of objects that only a library, XML or reflection creates are library;
+  - data from other apps, servers and older app versions puts an env gate on the edge that consumes it.
+- **What round 2 changed:** conditions (guards) on the routes. A pre-screen flags the guarded steps on the routes of never-run methods; the steps used by the most never-run methods were judged from the source, about 90% of the flagged uses per app, and each judged condition is now a state or env gate (or a GUI step, or closed by the API level).
+- **What is still open:** the long tail of flagged steps (about 4,000, each used by few methods) is not yet judged, and the judgments are not yet checked by a second person. **Until the flagged guard steps are judged, the gui share is over-counted.**
+- **The 23 checked cases** from the review now all get the class the source supports, but they were fixed one by one, so they are not a measure of the overall error rate.
+- **Not yet measured:** the tuning-half agreement, the adjudication of disagreements, and the error rates of the reachable audit (drawn, not yet checked).
+- The held-out half of the sample is measured once by the reviewer.
+
+Since the review, `methods.csv` has a `jvm_class` column with each method's full JVM class name. The `method` key adds a package prefix only where simple class names clash, so match on `jvm_class` and `jvm_descriptor` when joining with other data.
+
+## How the graphs were built and checked
+
+1. **Graph.** Each app's graph is defined in `graphs/<App>/graph_def.py` and built by `tools/build_graph.py`; the format is described in [`handoff/SCHEMA_V2.md`](handoff/SCHEMA_V2.md).
+   - Every method gets a verdict: REACHABLE, or UNREACHABLE with a reason (`branch_never_taken`, `framework_never_calls`, `no_trigger_in_app`).
+   - Every edge carries an edge class (explicit, standard, non_standard, page) and evidence that cites a source line, from the app or from the Android 8.1 framework source in `fw_src/`.
+   - Every reachable method gets a best route from app launch, with its ENV and STATE gates.
+2. **Audit.** Labels, edges and a stratified sample of about 30 routes per app were checked by hand against the source. Each check is one row in `verification.csv`, with its result (correct, fixed, wrong, unclear), the source lines read, and a note.
+3. **Eight automated checks** (`handoff/ci/rebuild.sh`), run by the official CI on GitHub Actions whenever a rebuild is requested:
+
+   | Check | What it does |
+   |---|---|
+   | 1 | Build, with 0 errors and 0 warnings required |
+   | 2 | Every source citation resolves to a real file and line |
+   | 3 | Suspicious routes are flagged for reading by hand |
+   | 4 | Every bytecode-cited line really shows the callee |
+   | 5–7 | No legacy, memory-only or pending evidence is left |
+   | 8 | UNREACHABLE methods that still have a caller in the bytecode are listed for review |
+
+   AnyMemo's single check-3 flag was read by hand and is correct (see its `readme_notes.md`).
+4. **Tool coverage is never evidence for a label.** Coverage from automated testing tools appears only as a sanity check.
+
+## The emulator job
+
+Every route was replayed on a real Android 8.1 (API 27) emulator in GitHub Actions: one job per app, all 13 in parallel, about 31 minutes in total.
+- **Setup:** the Google APIs x86 image, and each app's instrumented debug build.
+- **How a route counts as reached:** after each route, JaCoCo coverage shows whether the route's target method ran.
+
+**Result:** {{REACHED}} of {{ROUTES}} routes reached ({{PCT}}%), and {{DOK}} of them ran the whole script (DEVICE_OK).
+- Highest: {{HIGH}}.
+- Lowest: {{LOW}}.
+- **Most misses come from first-start states**, not from the graphs. For example, AnkiDroid opens on its settings screen, Amaze crashes on start, and Markor shows an intro screen.
+- **A miss is recorded as "unclear", never "wrong"**, and it never changes a label.
+
+The full results, all {{NRUNS}} runs (7 attempts that led to the working run), {{NDRY}} dry runs and the per-route logs are in [`run_result/emulator/`](run_result/emulator/).
+
+## Limits
+
+- **Reach is one run.** {{PCT}}% of routes reached is a single run, and repeats vary by a route or two per app. A higher share would need app-specific setup (sample data, preset settings) for the apps with the lowest share.
+- **"Reached" is a weaker claim than "the drawn route was walked".** For {{PARTIAL}} routes the target method ran although the script stopped early (Currency route_05; Vanilla-Music routes 05, 23 and 25). Their emulator row says the method ran, but their route keeps its earlier status.
+- **Some code was never read.** Library code and other apps' code that were not available are marked INFERRED in the evidence, never SOURCE.
+- **The state, env and GUI split of reachable methods in Aegis, AmazeFileManager, AnkiDroid, LibreTorrent and MMEX still has known errors.** See "Known problems" above.
+
+## Where everything is
+
+| Folder | What it holds |
+|---|---|
+| [`run_result/`](run_result/) | **the final results** (frozen copy from commit `{{BASE}}`; see its README) |
+| `graphs/<App>/` | the live working folder per app: `graph_def.py`, `out/` (graph outputs), `verification.csv`, `make_verification.py` (writes the audit log), `readme_notes.md` (notes per app), `AGENT_NOTES.md` (work log), `scratch/` (working files and the latest CI output) |
+| `device/` | the emulator side: route lists and scripts (`routes/`), harness, runner (`run_app.sh`), collect and compare tools, all run results (`results/`) and dry runs (`dryrun/`) |
+| `.github/workflows/` | `rebuild-graphs.yml` (the official checks) and `device-replay.yml` (the emulator job) |
+| `tools/` | graph builder, README generator, the checks, sampling and helper tools (`*_backup.py` are earlier versions) |
+| `handoff/` | rules, schema, progress list, handovers, reports and run logs of the agents that did the work |
+| `final_java_only/` | source code and method lists of the 13 apps (no APKs) |
+| `fw_src/` | Android 8.1.0_r1 framework source used for citations |
+| `emulator_tests/`, `share_example/`, `tools_dev/`, `.agents/` | earlier test plans, the original output example, development tools and agent settings |
+
+Starting a run:
+- **Official checks:** push `handoff/REBUILD_REQUEST.txt` to the work branch.
+- **Emulator:** push `handoff/DEVICE_DRYRUN_REQUEST.txt` for a dry run, or `handoff/DEVICE_REPLAY_REQUEST.txt` for a real run.
+
+Both workflows react only to pushes on `work-2026-10-31`. This branch, `result`, is the published copy of it.

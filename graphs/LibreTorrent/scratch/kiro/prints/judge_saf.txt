@@ -1,0 +1,95 @@
+== core/system/FsModuleResolverImpl.java:38-50
+38:         this.defaultModule = new DefaultFsModule(appContext);
+39:     }
+41:     @Override
+42:     public FsModule resolveFsByUri(@NonNull Uri uri) throws UnknownUriException {
+43:         if (Utils.isSafPath(appContext, uri)) {
+44:             return safModule;
+45:         } else if (Utils.isFileSystemPath(uri)) {
+46:             return defaultModule;
+47:         } else {
+48:             throw new UnknownUriException("Cannot resolve file system for the given uri: " + uri);
+49:         }
+50:     }
+141:        mutableParams.getDirPath().addOnPropertyChangedCallback(dirPathCallback);
+146:        mutableParams.getDirPath().set(Uri.parse(path));
+179:        mutableParams.getDirPath().removeOnPropertyChangedCallback(dirPathCallback);
+351:            Uri dirPath = mutableParams.getDirPath().get();
+478:        Uri dirPath = mutableParams.getDirPath().get();
+final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentInfoFragment.java:160:                viewModel.mutableParams.getDirPath().set(data.getData());
+final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentMutableParams.java:37:    private ObservableField<Uri> dirPath = new ObservableField<>();
+final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentMutableParams.java:79:        return dirPath;
+final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentMutableParams.java:162:                ", dirPath=" + dirPath +
+final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentViewModel.java:179:        mutableParams.getDirPath().removeOnPropertyChangedCallback(dirPathCallback);
+final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentViewModel.java:348:    private Observable.OnPropertyChangedCallback dirPathCallback = new Observable.OnPropertyChangedCallback() {
+final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentViewModel.java:478:        Uri dirPath = mutableParams.getDirPath().get();
+final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentViewModel.java:479:        if (dirPath == null)
+final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentViewModel.java:516:                dirPath,
+== core/settings/SettingsRepositoryImpl.java:98-106
+98:         static final boolean showNatErrors = false;
+99:         static final boolean validateHttpsTrackers = SessionSettings.DEFAULT_VALIDATE_HTTPS_TRACKERS;
+101:         /* Storage settings */
+102:         static String saveTorrentsIn(@NonNull Context context) {
+103:             return "file://" + SystemFacadeHelper.getFileSystemFacade(context).getDefaultDownloadPath();
+104:         }
+106:         static final boolean moveAfterDownload = false;
+102:        static String saveTorrentsIn(@NonNull Context context) {
+708:    public String saveTorrentsIn() {
+710:                Default.saveTorrentsIn(appContext)));
+714:    public void saveTorrentsIn(String val) {
+657:    public static boolean isSafPath(@NonNull Context appContext, @NonNull Uri path) {
+658-        return SafFileSystem.getInstance(appContext).isSafPath(path);
+659-    }
+660-
+661-    public static int getRandomColor() {
+662-        return ((int) (Math.random() * 16777215)) | (0xFF << 24);
+663-    }
+649:    public static boolean isFileSystemPath(@NonNull Uri path) {
+650-        String scheme = path.getScheme();
+651-        if (scheme == null)
+652-            throw new IllegalArgumentException("Scheme of " + path.getPath() + " is null");
+653-
+191:    public boolean isSafPath(@NonNull Uri path)
+192-    {
+193-        String scheme = path.getScheme();
+194-        if (scheme == null)
+195-            throw new IllegalArgumentException("Scheme of " + path + " is null");
+
+        return scheme.equals(ContentResolver.SCHEME_FILE);
+    }
+
+    public boolean isSafPath(@NonNull Uri path)
+    {
+        String scheme = path.getScheme();
+        if (scheme == null)
+            throw new IllegalArgumentException("Scheme of " + path + " is null");
+
+        return scheme.equals(ContentResolver.SCHEME_CONTENT);
+    }
+
+    /*
+== ui/settings/sections/StorageSettingsFragment.java:225-240
+225:     }
+226: 
+227:     private void dirChooseDialog(Uri path)
+228:     {
+229:         String dirPath = null;
+230:         if (path != null && Utils.isFileSystemPath(path))
+231:             dirPath = path.getPath();
+232: 
+233:         Intent i = new Intent(getActivity(), FileManagerDialog.class);
+234:         FileManagerConfig config = new FileManagerConfig(dirPath,
+235:                 null,
+236:                 FileManagerConfig.DIR_CHOOSER_MODE);
+237:         i.putExtra(FileManagerDialog.TAG_CONFIG, config);
+238: 
+239:         downloadDirChoose.launch(i);
+240:     }
+280:             throw new SecurityException("Permission denied");
+281: 
+282:         return Uri.fromFile(dir);
+283:     }
+ui/settings/sections/StorageSettingsFragment.java:267:                    pref.saveTorrentsIn(path.toString());
+core/settings/SettingsRepositoryImpl.java:714:    public void saveTorrentsIn(String val) {
+core/settings/SettingsRepository.java:198:    String saveTorrentsIn();
+core/settings/SettingsRepository.java:200:    void saveTorrentsIn(String val);

@@ -1,0 +1,433 @@
+    98	public class MainActivity extends AppCompatActivity implements FragmentCallback {
+    99	    private static final String TAG = MainActivity.class.getSimpleName();
+   100	
+    71	public class AddTorrentActivity extends AppCompatActivity
+    72	{
+    73	    private static final String TAG = AddTorrentActivity.class.getSimpleName();
+    74	
+   169	    @Override
+   170	    protected void onStop()
+   171	    {
+   172	        super.onStop();
+   173	
+   174	        unsubscribeParamsChanged();
+   175	        disposable.clear();
+   176	    }
+   177	
+   178	    @Override
+   179	    public void onStart()
+   180	    {
+   181	        super.onStart();
+   182	
+   183	        subscribeAlertDialog();
+   184	        subscribeParamsChanged();
+   185	    }
+   186	
+   187	    private void subscribeAlertDialog()
+   188	    {
+   189	        Disposable d = dialogViewModel.observeEvents().subscribe(this::handleAlertDialogEvent);
+   190	        disposable.add(d);
+   191	    }
+   192	
+   193	    private void subscribeParamsChanged() {
+   194	        viewModel.mutableParams.addOnPropertyChangedCallback(onMutableParamsChanged);
+   195	    }
+   196	
+   197	    private void unsubscribeParamsChanged() {
+   198	        viewModel.mutableParams.removeOnPropertyChangedCallback(onMutableParamsChanged);
+   199	    }
+   237	    private void handleAlertDialogEvent(BaseAlertDialog.Event event) {
+   238	        if (event.dialogTag == null) {
+   239	            return;
+   240	        }
+   241	        if (event.dialogTag.equals(TAG_ERR_REPORT_DIALOG)) {
+   242	            switch (event.type) {
+   243	                case POSITIVE_BUTTON_CLICKED:
+   244	                    if (errReportDialog != null) {
+   245	                        Dialog dialog = errReportDialog.getDialog();
+   246	                        if (dialog != null) {
+   247	                            TextInputEditText editText = dialog.findViewById(R.id.comment);
+   248	                            Editable e = editText.getText();
+   249	                            String comment = (e == null ? null : e.toString());
+   250	
+   251	                            Utils.reportError(viewModel.errorReport, comment);
+   252	                            errReportDialog.dismiss();
+   253	                        }
+   254	                    }
+   255	                    finish();
+   256	                    break;
+   257	                case NEGATIVE_BUTTON_CLICKED:
+   258	                    if (errReportDialog != null) {
+   259	                        errReportDialog.dismiss();
+   260	                    }
+   261	                    finish();
+   262	                    break;
+   263	            }
+   264	        } else if (event.dialogTag.equals(TAG_PERM_DENIED_DIALOG)) {
+   265	            if (event.type != BaseAlertDialog.EventType.DIALOG_SHOWN) {
+   266	                permDeniedDialog.dismiss();
+   267	            }
+   268	            if (event.type == BaseAlertDialog.EventType.NEGATIVE_BUTTON_CLICKED) {
+   269	                permissionManager.requestPermissions();
+   270	            }
+   271	            if (event.type == BaseAlertDialog.EventType.POSITIVE_BUTTON_CLICKED) {
+   272	                permissionManager.setDoNotAskStorage(true);
+   273	            }
+   274	        }
+   277	    private void initLayout()
+   278	    {
+   279	        binding.toolbar.setTitle(R.string.add_torrent_title);
+   280	        setSupportActionBar(binding.toolbar);
+   281	        if (getSupportActionBar() != null)
+   282	            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+   283	        /* Disable elevation for portrait mode */
+   284	        if (!Utils.isTwoPane(this)) {
+   285	            binding.toolbar.setElevation(0);
+   286	        }
+   287	
+   288	        adapter = new AddTorrentPagerAdapter(this);
+   289	        binding.viewpager.setAdapter(adapter);
+   290	        binding.viewpager.setOffscreenPageLimit(AddTorrentPagerAdapter.NUM_FRAGMENTS);
+   291	        new TabLayoutMediator(binding.tabLayout, binding.viewpager,
+   292	                (tab, position) -> {
+   293	                    switch (position) {
+   294	                        case AddTorrentPagerAdapter.INFO_FRAG_POS:
+   295	                            tab.setText(R.string.torrent_info);
+   296	                            break;
+   297	                        case AddTorrentPagerAdapter.FILES_FRAG_POS:
+   298	                            tab.setText(R.string.torrent_files);
+   299	                            break;
+   300	                    }
+   301	                }
+   302	        ).attach();
+   303	    }
+   305	    private void observeDecodeState()
+   306	    {
+   307	        viewModel.getDecodeState().observe(this, (state) -> {
+   308	            switch (state.status) {
+   309	                case UNKNOWN:
+   310	                    Uri uri = getUri();
+   311	                    if (uri != null)
+   312	                        viewModel.startDecode(uri);
+   313	                    break;
+   314	                case DECODE_TORRENT_FILE:
+   315	                case FETCHING_HTTP:
+   316	                case FETCHING_MAGNET:
+   317	                    onStartDecode(state.status == AddTorrentViewModel.Status.DECODE_TORRENT_FILE);
+   318	                    break;
+   319	                case FETCHING_HTTP_COMPLETED:
+   320	                case DECODE_TORRENT_COMPLETED:
+   321	                case FETCHING_MAGNET_COMPLETED:
+   322	                case ERROR:
+   323	                    onStopDecode(state.error);
+   324	                    break;
+   325	            }
+   326	        });
+   327	    }
+   328	
+   329	    private void onStartDecode(boolean isTorrentFile)
+   330	    {
+   331	        binding.progress.setVisibility(View.VISIBLE);
+   332	        showAddButton = !isTorrentFile;
+   333	        invalidateOptionsMenu();
+   334	    }
+   335	
+   336	    private void onStopDecode(Throwable e)
+   337	    {
+   338	        binding.progress.setVisibility(View.GONE);
+   339	
+   340	        if (e != null) {
+   341	            handleDecodeException(e);
+   342	            return;
+   343	        }
+   344	
+   345	        viewModel.makeFileTree();
+   346	        showAddButton = true;
+   347	        invalidateOptionsMenu();
+   348	    }
+   362	    private void addTorrent()
+   363	    {
+   364	        String name = viewModel.mutableParams.getName();
+   365	        if (TextUtils.isEmpty(name)) {
+   366	            Snackbar.make(binding.coordinatorLayout,
+   367	                    R.string.error_empty_name,
+   368	                    Snackbar.LENGTH_LONG)
+   369	                    .show();
+   370	            return;
+   371	        }
+   372	
+   373	        try {
+   374	            if (viewModel.addTorrent())
+   375	                finish();
+   376	
+   377	        } catch (Exception e) {
+   378	            if (e instanceof TorrentAlreadyExistsException) {
+   379	                Toast.makeText(getApplication(),
+   380	                        R.string.torrent_exist,
+   381	                        Toast.LENGTH_SHORT)
+   382	                        .show();
+   383	                finish();
+   384	
+   385	            } else {
+   386	                handleAddException(e);
+   387	            }
+   388	        }
+   389	    }
+   390	
+   391	    private void handleAddException(Throwable e)
+   392	    {
+   393	        if (e instanceof NoFilesSelectedException) {
+   394	            Snackbar.make(binding.coordinatorLayout,
+   395	                    R.string.error_no_files_selected,
+   396	                    Snackbar.LENGTH_LONG)
+   397	                    .show();
+   398	            return;
+   399	        }
+   400	
+   401	        if (e instanceof FreeSpaceException) {
+   402	            Snackbar.make(binding.coordinatorLayout,
+   403	                    R.string.error_free_space,
+   404	                    Snackbar.LENGTH_LONG)
+   405	                    .show();
+   406	            return;
+   407	        }
+   408	
+   409	        Log.e(TAG, Log.getStackTraceString(e));
+   410	        if (e instanceof FileNotFoundException) {
+   411	            showAddErrorDialog(getApplication().getString(R.string.error_file_not_found_add_torrent), null);
+   412	        } else if (e instanceof IOException) {
+   413	            showAddErrorDialog(getApplication().getString(R.string.error_io_add_torrent), null);
+   414	        } else {
+   415	            showAddErrorDialog(getApplication().getString(R.string.error_add_torrent), e);
+   416	        }
+   417	    }
+   419	    private void showAddErrorDialog(String message, Throwable e)
+   420	    {
+   421	        FragmentManager fm = getSupportFragmentManager();
+   422	        if (e != null) {
+   423	            viewModel.errorReport = e;
+   424	            if (fm.findFragmentByTag(TAG_ERR_REPORT_DIALOG) == null) {
+   425	                errReportDialog = ErrorReportDialog.newInstance(
+   426	                        getString(R.string.error),
+   427	                        message,
+   428	                        Log.getStackTraceString(e)
+   429	                );
+   430	
+   431	                FragmentTransaction ft = fm.beginTransaction();
+   432	                ft.add(errReportDialog, TAG_ERR_REPORT_DIALOG);
+   433	                ft.commitAllowingStateLoss();
+   434	            }
+   435	        } else if (fm.findFragmentByTag(TAG_ADD_ERROR_DIALOG) == null) {
+   436	            BaseAlertDialog errDialog = BaseAlertDialog.newInstance(
+   437	                    getString(R.string.error),
+   438	                    message,
+   439	                    0,
+   440	                    getString(R.string.ok),
+   441	                    null,
+   442	                    null,
+   443	                    false
+   444	                );
+   445	
+   446	            FragmentTransaction ft = fm.beginTransaction();
+   447	            ft.add(errDialog, TAG_ADD_ERROR_DIALOG);
+   448	            ft.commitAllowingStateLoss();
+   449	        }
+   450	    }
+   452	    public void handleDecodeException(Throwable e)
+   453	    {
+   454	        if (e == null)
+   455	            return;
+   456	
+   457	        Log.e(TAG, Log.getStackTraceString(e));
+   458	        FragmentManager fm = getSupportFragmentManager();
+   459	
+   460	        if (e instanceof DecodeException) {
+   461	            if (fm.findFragmentByTag(TAG_DECODE_EXCEPT_DIALOG) == null) {
+   462	                BaseAlertDialog errDialog = BaseAlertDialog.newInstance(
+   463	                        getString(R.string.error),
+   464	                        getString(R.string.error_decode_torrent),
+   465	                        0,
+   466	                        getString(R.string.ok),
+   467	                        null,
+   468	                        null,
+   469	                        false);
+   470	
+   471	                FragmentTransaction ft = fm.beginTransaction();
+   472	                ft.add(errDialog, TAG_DECODE_EXCEPT_DIALOG);
+   473	                ft.commitAllowingStateLoss();
+   474	            }
+   475	
+   476	        } else if (e instanceof FetchLinkException) {
+   477	            if (fm.findFragmentByTag(TAG_FETCH_EXCEPT_DIALOG) == null) {
+   478	                BaseAlertDialog errDialog = BaseAlertDialog.newInstance(
+   479	                        getString(R.string.error),
+   480	                        getString(R.string.error_fetch_link),
+   481	                        0,
+   482	                        getString(R.string.ok),
+   483	                        null,
+   484	                        null,
+   485	                        false);
+   486	
+   487	                FragmentTransaction ft = fm.beginTransaction();
+   488	                ft.add(errDialog, TAG_FETCH_EXCEPT_DIALOG);
+   489	                ft.commitAllowingStateLoss();
+   490	            }
+   491	
+   492	        } else if (e instanceof IllegalArgumentException) {
+   493	            if (fm.findFragmentByTag(TAG_ILLEGAL_ARGUMENT_DIALOG) == null) {
+   494	                BaseAlertDialog errDialog = BaseAlertDialog.newInstance(
+   495	                        getString(R.string.error),
+   496	                        getString(R.string.error_invalid_link_or_path),
+   497	                        0,
+   498	                        getString(R.string.ok),
+   499	                        null,
+   500	                        null,
+   501	                        false);
+   502	
+   503	                FragmentTransaction ft = fm.beginTransaction();
+   504	                ft.add(errDialog, TAG_ILLEGAL_ARGUMENT_DIALOG);
+   505	                ft.commitAllowingStateLoss();
+   506	            }
+   507	
+   508	        } else if (e instanceof IOException) {
+   509	            viewModel.errorReport = e;
+   510	            if (fm.findFragmentByTag(TAG_ERR_REPORT_DIALOG) == null) {
+   511	                errReportDialog = ErrorReportDialog.newInstance(
+   512	                        getString(R.string.error),
+   513	                        getString(R.string.error_io_torrent),
+   514	                        Log.getStackTraceString(e));
+   515	
+   516	                FragmentTransaction ft = fm.beginTransaction();
+   517	                ft.add(errReportDialog, TAG_ERR_REPORT_DIALOG);
+   518	                ft.commitAllowingStateLoss();
+   519	            }
+   520	
+   521	        } else if (e instanceof OutOfMemoryError) {
+   522	            if (fm.findFragmentByTag(TAG_OUT_OF_MEMORY_DIALOG) == null) {
+   523	                BaseAlertDialog errDialog = BaseAlertDialog.newInstance(
+   524	                        getString(R.string.error),
+   525	                        getString(R.string.file_is_too_large_error),
+   539	    @Override
+   540	    public boolean onPrepareOptionsMenu(Menu menu)
+   541	    {
+   542	        getMenuInflater().inflate(R.menu.add_torrent, menu);
+   543	
+   544	        MenuItem add = menu.findItem(R.id.add_torrent_dialog_add_menu);
+   545	        if (add != null)
+   546	            add.setVisible(showAddButton);
+   547	
+   548	        return true;
+   549	    }
+   550	
+   551	    @Override
+   552	    public boolean onOptionsItemSelected(MenuItem item)
+   553	    {
+   554	        int itemId = item.getItemId();
+   555	        if (itemId == android.R.id.home) {
+   556	            finish();
+   557	        } else if (itemId == R.id.add_torrent_dialog_add_menu) {
+   558	            addTorrent();
+   559	        }
+   560	
+   561	        return true;
+   562	    }
+   563	
+   564	    @Override
+   565	    public void finish()
+   566	    {
+   567	        viewModel.finish();
+   568	
+   569	        super.finish();
+   570	    }
+   571	
+   572	    @Override
+   573	    public void onBackPressed()
+   574	    {
+   575	        finish();
+   576	    }
+  2975	    public boolean onKeyUp(int keyCode, KeyEvent event) {
+  2976	        if (getApplicationInfo().targetSdkVersion
+  2977	                >= Build.VERSION_CODES.ECLAIR) {
+  2978	            if (keyCode == KeyEvent.KEYCODE_BACK && event.isTracking()
+  2979	                    && !event.isCanceled()) {
+  2980	                onBackPressed();
+  2981	                return true;
+  2982	            }
+  2983	        }
+  3431	     * Default implementation of
+  3432	     * {@link android.view.Window.Callback#onMenuItemSelected}
+  3433	     * for activities.  This calls through to the new
+  3434	     * {@link #onOptionsItemSelected} method for the
+  3435	     * {@link android.view.Window#FEATURE_OPTIONS_PANEL}
+  3436	     * panel, so that subclasses of
+  3437	     * Activity don't need to deal with feature codes.
+  3438	     */
+  3439	    public boolean onMenuItemSelected(int featureId, MenuItem item) {
+  3440	        CharSequence titleCondensed = item.getTitleCondensed();
+  3441	
+  3442	        switch (featureId) {
+  3443	            case Window.FEATURE_OPTIONS_PANEL:
+  3444	                // Put event logging here so it gets called even if subclass
+  3445	                // doesn't call through to superclass's implmeentation of each
+  3446	                // of these methods below
+  3447	                if(titleCondensed != null) {
+  3448	                    EventLog.writeEvent(50000, 0, titleCondensed.toString());
+  3449	                }
+  3450	                if (onOptionsItemSelected(item)) {
+  3451	                    return true;
+  7130	
+  7131	        onPostResume();
+  7132	        if (!mCalled) {
+  7133	            throw new SuperNotCalledException(
+  7134	                "Activity " + mComponent.toShortString() +
+  7135	                " did not call through to super.onPostResume()");
+  7136	        }
+  7137	    }
+  7138	
+  7139	    final void performPause() {
+  7140	        mDoReportFullyDrawn = false;
+  7141	        mFragments.dispatchPause();
+  7142	        mCalled = false;
+  7143	        onPause();
+  7144	        mResumed = false;
+  7145	        if (!mCalled && getApplicationInfo().targetSdkVersion
+  7146	                >= android.os.Build.VERSION_CODES.GINGERBREAD) {
+  7147	            throw new SuperNotCalledException(
+  7148	                    "Activity " + mComponent.toShortString() +
+  7149	                    " did not call through to super.onPause()");
+  7150	        }
+  7151	        mResumed = false;
+  7152	    }
+  7153	
+  7154	    final void performUserLeaving() {
+  7155	        onUserInteraction();
+  7156	        onUserLeaveHint();
+  7157	    }
+  7158	
+  7159	    final void performStop(boolean preserveWindow) {
+  7160	        mDoReportFullyDrawn = false;
+  7161	        mFragments.doLoaderStop(mChangingConfigurations /*retain*/);
+  7162	
+  7163	        // Disallow entering picture-in-picture after the activity has been stopped
+  7164	        mCanEnterPictureInPicture = false;
+  7165	
+  7166	        if (!mStopped) {
+  7167	            if (mWindow != null) {
+  7168	                mWindow.closeAllPanels();
+  7169	            }
+  7170	
+  7171	            // If we're preserving the window, don't setStoppedState to true, since we
+  7172	            // need the window started immediately again. Stopping the window will
+  7173	            // destroys hardware resources and causes flicker.
+  7174	            if (!preserveWindow && mToken != null && mParent == null) {
+  7175	                WindowManagerGlobal.getInstance().setStoppedState(mToken, true);
+  7176	            }
+  7177	
+  7178	            mFragments.dispatchStop();
+  7179	
+  7180	            mCalled = false;
+  7181	            mInstrumentation.callActivityOnStop(this);
+  7182	            if (!mCalled) {
+  1374	    public void callActivityOnStop(Activity activity) {
+  1375	        activity.onStop();
+  1376	    }

@@ -1,0 +1,61 @@
+===== /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/MainActivity.java =====
+--- lines 136-138 ---
+  136     protected void onCreate(Bundle savedInstanceState) {
+  137         setTheme(Utils.getAppTheme(getApplicationContext()));
+  138         super.onCreate(savedInstanceState);
+--- lines 140-144 ---
+  140         if (getIntent().getAction() != null &&
+  141                 getIntent().getAction().equals(NotificationReceiver.NOTIFY_ACTION_SHUTDOWN_APP)) {
+  142             finish();
+  143             return;
+  144         }
+--- lines 177-182 ---
+  177         if (!permissionManager.checkPermissions() && permDeniedDialog == null) {
+  178             permissionManager.requestPermissions();
+  179         }
+  180         Utils.showManageAllFilesWarningDialog(getApplicationContext(), getSupportFragmentManager());
+  181 
+  182         setContentView(R.layout.activity_main);
+===== /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/utils/Utils.java =====
+--- lines 374-388 ---
+  374     public static int getAppTheme(@NonNull Context context) {
+  375         int theme = getThemePreference(context);
+  376 
+  377         if (theme == Integer.parseInt(context.getString(R.string.pref_theme_light_value)))
+  378             return R.style.AppTheme;
+  379         else if (theme == Integer.parseInt(context.getString(R.string.pref_theme_dark_value)))
+  380             return R.style.AppTheme_Dark;
+  381         else if (theme == Integer.parseInt(context.getString(R.string.pref_theme_black_value)))
+  382             return R.style.AppTheme_Black;
+  383 
+  384         return R.style.AppTheme;
+  385     }
+  386 
+  387     public static int getTranslucentAppTheme(@NonNull Context appContext) {
+  388         int theme = getThemePreference(appContext);
+--- lines 699-723 ---
+  699     public static void showManageAllFilesWarningDialog(
+  700             @NonNull Context appContext,
+  701             @NonNull FragmentManager fm
+  702     ) {
+  703         var pref = RepositoryHelper.getSettingsRepository(appContext);
+  704         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R
+  705                 || Utils.hasManageExternalStoragePermission(appContext)
+  706                 || !pref.showManageAllFilesWarningDialog()) {
+  707             return;
+  708         }
+  709 
+  710         if (fm.findFragmentByTag(TAG_MANAGE_ALL_FILES_WARNING_DIALOG) == null) {
+  711             pref.showManageAllFilesWarningDialog(false);
+  712 
+  713             var dialog = ManageAllFilesWarningDialog.newInstance();
+  714             var ft = fm.beginTransaction();
+  715             ft.add(dialog, TAG_MANAGE_ALL_FILES_WARNING_DIALOG);
+  716             ft.commitAllowingStateLoss();
+  717         }
+  718     }
+  719 
+  720     public static List<DrawerGroup> getNavigationDrawerItems(@NonNull Context context,
+  721                                                        @NonNull SharedPreferences localPref) {
+  722         Resources res = context.getResources();
+  723 

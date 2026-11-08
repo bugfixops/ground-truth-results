@@ -1,0 +1,223 @@
+## DropboxApiHelper.getResponseErrorString  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=network;other_app state=session classes=explicit;non_standard;standard explicit_standard_route=no
+   1. Eddc920eb ENTRY/standard*
+      S_ENTRY -> AnyMemo.<init>
+      MAIN / LAUNCHER intent starts AnyMemo
+      evidence: SRC AndroidManifest.xml:23-46
+         23          <activity
+         24              android:name=".ui.AnyMemo"
+         25              android:label="@string/app_full_name"
+         26              android:theme="@style/AnyMemo.Theme.Dark.NoActionBar"
+         27              android:exported="true" >
+         28              <intent-filter>
+         29                  <action
+         30                      android:name="android.intent.action.MAIN" />
+         31                  <category
+         32                      android:name="android.intent.category.LAUNCHER" />
+         33              </intent-filter>
+         34              <intent-filter>
+         35                  <action android:name="android.intent.action.VIEW" />
+         36                  <category android:name="android.intent.category.DEFAULT" />
+      ...  (10 more lines)
+   2. Eda38ea0d LIFECYCLE/standard*
+      AnyMemo.<init> -> AnyMemo.onResume
+      Activity lifecycle / framework callback
+      evidence: FW-SRC core/java/android/app/Activity.java (Activity lifecycle callback dispatched by ActivityThread); SRC ui/AnyMemo.java:115-434
+      (core/java/android/app/Activity.java: no line numbers)
+        115      @Override
+        116      public void onCreate(Bundle savedInstanceState) {
+        117          activityComponents().inject(this);
+        118          super.onCreate(savedInstanceState);
+        119          disposables = new CompositeDisposable();
+        120  
+        121          binding = DataBindingUtil.setContentView(this, R.layout.main_tabs);
+        122  
+        123          // Request storage permission for API < 29
+        124          if (android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.Q) {
+        125              if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        126                      != PackageManager.PERMISSION_GRANTED) {
+        127                  ActivityCompat.requestPermissions(this,
+        128                          new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+      ...  (306 more lines)
+   3. E954353b1 ENTERS/page* [STATE: AnyMemo already finished loadUiComponents() once in this process]
+      AnyMemo.onResume -> S_MAIN_RECENT
+      isUiLoaded is already true (resumed, not a cold start): the last-selected tab is shown again
+      evidence: SRC ui/AnyMemo.java:145-162
+        145      @Override
+        146      public void onResume() {
+        147          super.onResume();
+        148          if (android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.Q) {
+        149              if (!isUiLoaded) {
+        150                  loadUiComponents();
+        151                  isUiLoaded = true;
+        152              }
+        153          } else {
+        154              if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        155                      == PackageManager.PERMISSION_GRANTED) {
+        156                  if (!isUiLoaded) {
+        157                      loadUiComponents();
+        158                      isUiLoaded = true;
+      ...  (4 more lines)
+   4. E6da90567 GUI/standard*
+      S_MAIN_RECENT -> AnyMemo$2.onNavigationItemSelected
+      Tap a bottom-navigation item (Recent / Open / Download / Misc)
+      evidence: INFERRED com.google.android.material (BottomNavigationView / NavigationView / FloatingActionButton / Snackbar) dispatches the listener registered on it, the same way a platform View dispatches a click (Material Components source not read); SRC ui/AnyMemo.java:234-261
+        234          binding.bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+        235              @Override
+        236              public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+        237  
+        238                  Fragment fragment = null;
+        239                  int itemId = menuItem.getItemId();
+        240                  if (itemId == R.id.recent_tab_menu) {
+        241                      fragment = new RecentListFragment();
+        242                  } else if (itemId == R.id.open_tab_menu) {
+        243                      fragment = new OpenTabFragment();
+        244                      Bundle args = new Bundle();
+        245                      args.putBoolean(FileBrowserFragment.EXTRA_SHOW_CREATE_DB_BUTTON, true);
+        246                      fragment.setArguments(args);
+        247                  } else if (itemId == R.id.download_tab_menu) {
+      ...  (14 more lines)
+   5. Ecdeb17a6 ENTERS/page*
+      AnyMemo$2.onNavigationItemSelected -> S_MAIN_OPEN
+      itemId == open_tab_menu
+      evidence: SRC ui/AnyMemo.java:242-246,253-257
+        242                  } else if (itemId == R.id.open_tab_menu) {
+        243                      fragment = new OpenTabFragment();
+        244                      Bundle args = new Bundle();
+        245                      args.putBoolean(FileBrowserFragment.EXTRA_SHOW_CREATE_DB_BUTTON, true);
+        246                      fragment.setArguments(args);
+        253                  if (fragment != null) {
+        254                      getSupportFragmentManager().beginTransaction()
+        255                              .replace(R.id.page_fragment_container, fragment)
+        256                              .commit();
+        257                  }
+   6. Ecbf460a9 LIFECYCLE/standard*
+      S_MAIN_OPEN -> FileBrowserFragment.onCreateView
+      DialogFragment/Fragment lifecycle callback (OPEN/FBACTIVITY/UPLOADDROPBOX call it directly; EXPORT/CONVERTER reach it through their own onCreate -> super.onCreate(), an explicit call AUTO already covers)
+      evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ui/FileBrowserFragment.java:122-322
+        122      @Override
+        123      public void onAttach(Context activity) {
+        124          super.onAttach(activity);
+        125          mActivity = (Activity) activity;
+        126          settings = PreferenceManager.getDefaultSharedPreferences(mActivity);
+        127          editor = settings.edit();
+        128      }
+        129  
+        130      @Override
+        131      public void onCreate(Bundle bundle) {
+        132          super.onCreate(bundle);
+        133          fragmentComponents().inject(this);
+        134  
+        135          disposables = new CompositeDisposable();
+      ...  (187 more lines)
+   7. Ea049a182 FRAMEWORK/standard*
+      FileBrowserFragment.onCreateView -> FileBrowserFragment$FileBrowserAdapter$1.onClick
+      tap a row in the file list
+      evidence: INFERRED a tapped/long-pressed View dispatches to the listener registered with setOnClickListener / setOnLongClickListener / setOnItemClickListener / setOnItemLongClickListener / setOnTouchListener / setOnCheckedChangeListener / addTextChangedListener / setOnFocusChangeListener / setOnSeekBarChangeListener (androidx widgets wrap the platform View/AdapterView dispatch; androidx source not read); SRC ui/FileBrowserFragment.java:463-519
+        463      private static class FileBrowserAdapter extends RecyclerView.Adapter<FileBrowserAdapter.ViewHolder> {
+        464          private final FileBrowserFragment fragment;
+        465  
+        466          private final List<String> items = new ArrayList<String>();
+        467  
+        468          public FileBrowserAdapter(FileBrowserFragment fragment) {
+        469              this.fragment = fragment;
+        470          }
+        471  
+        472          @Override
+        473          public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        474              LayoutInflater li = (LayoutInflater)fragment.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        475              View v = li.inflate(R.layout.filebrowser_item, parent, false);
+        476              return new ViewHolder(v);
+      ...  (43 more lines)
+   8. E3b9a1891 CALL/explicit*
+      FileBrowserFragment$FileBrowserAdapter$1.onClick -> FileBrowserFragment.openFile@OPEN
+      fragment.openFile(selectedFileName)
+      evidence: SRC ui/FileBrowserFragment.java:514-519
+        514              holder.itemView.setOnClickListener(new View.OnClickListener() {
+        515                  @Override
+        516                  public void onClick(View v) {
+        517                      fragment.openFile(selectedFileName);
+        518                  }
+        519              });
+   9. Eee618748 CALL/explicit*
+      FileBrowserFragment.openFile@OPEN -> FileBrowserFragment.notifyFileClick
+      call made by openFile
+      evidence: SRC FileBrowserFragment.java:415 (bytecode)
+        415                              notifyFileClick(clickedFile);
+  10. Ec322fd0a CALL/explicit*
+      FileBrowserFragment.notifyFileClick -> UploadDropboxActivity.onFileBrowserFileClick
+      getActivity() instanceof OnFileClickListener (UploadDropboxActivity implements it directly)
+      evidence: SRC ui/FileBrowserFragment.java:434-440 (bytecode)
+        434      private void notifyFileClick(File clickedFile) {
+        435          if (getParentFragment() instanceof OnFileClickListener) {
+        436              ((OnFileClickListener) getParentFragment()).onFileBrowserFileClick(clickedFile);
+        437          } else if (getActivity() instanceof OnFileClickListener) {
+        438              ((OnFileClickListener) getActivity()).onFileBrowserFileClick(clickedFile);
+        439          }
+        440      }
+  11. E99a12f01 CALL/explicit*
+      UploadDropboxActivity.onFileBrowserFileClick -> UploadDropboxActivity.showUploadDialog
+      showUploadDialog(file)
+      evidence: SRC downloader/dropbox/UploadDropboxActivity.java:123-124
+        123      public void onFileBrowserFileClick(File file) {
+        124          showUploadDialog(file);
+  12. E28cfe9dc ENTERS/page*
+      UploadDropboxActivity.showUploadDialog -> S_DLG_DROPBOX_UPLOAD_CONFIRM
+      the confirm-upload dialog is shown
+      evidence: SRC downloader/dropbox/UploadDropboxActivity.java:77-87
+         77      private void showUploadDialog(final File file) {
+         78          new AlertDialog.Builder(this)
+         79              .setTitle(R.string.upload_text)
+         80              .setMessage(String.format(getString(R.string.dropbox_upload_text), file.getName()))
+         81              .setPositiveButton(R.string.ok_text,new DialogInterface.OnClickListener() {
+         82                  @Override
+         83                  public void onClick(DialogInterface arg0, int arg1) {
+         84                      uploadToDropbox(file);
+         85                      setResult(Activity.RESULT_OK);
+         86                  }
+         87               }).setNegativeButton(R.string.cancel_text, null).show();
+  13. E531cfd60 GUI/standard*
+      S_DLG_DROPBOX_UPLOAD_CONFIRM -> UploadDropboxActivity$1.onClick
+      Tap OK (upload)
+      evidence: INFERRED androidx.fragment.app.DialogFragment shows an android.app.Dialog and forwards its button/cancel/dismiss callbacks (androidx source not read); SRC downloader/dropbox/UploadDropboxActivity.java:81-86
+         81              .setPositiveButton(R.string.ok_text,new DialogInterface.OnClickListener() {
+         82                  @Override
+         83                  public void onClick(DialogInterface arg0, int arg1) {
+         84                      uploadToDropbox(file);
+         85                      setResult(Activity.RESULT_OK);
+         86                  }
+  14. E74680c6b CALL/explicit*
+      UploadDropboxActivity$1.onClick -> UploadDropboxActivity.uploadToDropbox
+      uploadToDropbox(file)
+      evidence: SRC downloader/dropbox/UploadDropboxActivity.java:84
+         84                      uploadToDropbox(file);
+  15. E47f9b753 CALL/explicit*
+      UploadDropboxActivity.uploadToDropbox -> DropboxApiHelper.uploadDropbox
+      Direct call
+      evidence: SRC UploadDropboxActivity.java:99 (bytecode)
+         99          disposables.add(dropboxApiHelper.uploadDropbox(authToken, file,
+  16. E7819756e FRAMEWORK/non_standard(RxJava 2 (io.reactivex) calls the Rx callback (subscribe / onNext / call)) [ENV: outside package: a Dropbox account and network access (OAuth2 login in an external browser / Custom Tab, api.dropboxapi.com reachable)]
+      DropboxApiHelper.uploadDropbox -> DropboxApiHelper$5.call
+      the framework calls call (Callable<Void>) at downloader/dropbox/DropboxApiHelper.java:233
+      evidence: INFERRED RxJava 2 (io.reactivex) Observable/Single/Completable/Maybe delivers onNext/onSuccess/onComplete/onError/accept to the subscriber on the thread named by observeOn (library source not read); SRC downloader/dropbox/DropboxApiHelper.java:233-255
+        233          return Completable.fromCallable(new Callable<Void>() {
+        234              @Override
+        235              public Void call() throws Exception {
+        236                  if (!fileToUpload.exists()) {
+        237                      throw new FileNotFoundException("Could not find file: " + fileToUpload.getAbsolutePath());
+        238                  }
+        239  
+        240                  RequestBody requestBody = RequestBody.create(OCTET_STREAM_TYPE, fileToUpload);
+        241                  Request request = new Request.Builder()
+        242                          .url(UPLOAD_ENDPOINT)
+        243                          .addHeader("Authorization", "Bearer " + token)
+        244                          .addHeader("Dropbox-API-Arg", String.format("{\"path\": \"%1$s\",\"mode\": \"add\",\"autorename\": true,\"mute\": false}",
+        245                                  uploadPath))
+        246                          .post(requestBody)
+      ...  (9 more lines)
+  17. Ea8503b28 CALL/explicit*
+      DropboxApiHelper$5.call -> DropboxApiHelper.getResponseErrorString
+      Direct call
+      evidence: SRC DropboxApiHelper.java:250 (bytecode)
+        250                      throw new IOException(getResponseErrorString(request, response));
+

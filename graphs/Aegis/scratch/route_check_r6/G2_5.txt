@@ -1,0 +1,296 @@
+## Dialogs.lambda$showPartialGoogleAuthImportWarningDialog$30  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=other_app state=file;session classes=explicit;non_standard;standard explicit_standard_route=no
+   1. Eb9515d18 ENTRY/standard*
+      S_ENTRY -> AegisApplication.<init>
+      Any outside trigger starts the app process; the application class is created first, except in a backup or restore start, which uses the base Application class
+      guard: not a full backup or restore start (FW ActivityThread.java:5713-5715)
+      evidence: SRC AndroidManifest.xml:21-27 (android:name=".AegisApplication", backupAgent=".AegisBackupAgent")
+         21      <application
+         22          android:name=".AegisApplication"
+         23          android:allowBackup="true"
+         24          android:fullBackupOnly="true"
+         25          android:fullBackupContent="@xml/backup_rules_old"
+         26          android:dataExtractionRules="@xml/backup_rules"
+         27          android:backupAgent=".AegisBackupAgent"
+   2. E5b266140 LIFECYCLE/standard*
+      AegisApplication.<init> -> Hilt_AegisApplication.onCreate
+      Application.onCreate: the Hilt-generated superclass onCreate runs first (Hilt injection), then AegisApplicationBase.onCreate
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:5740 (the system calls Application.onCreate); INFERRED Hilt rewrites the superclass: AegisApplication extends Hilt_AegisApplication (generated file, not in the source tree; source AegisApplication.java:6 has no onCreate)
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+   3. E1ef992ce CALL/explicit
+      Hilt_AegisApplication.onCreate -> AegisApplicationBase.onCreate
+      Direct call
+      evidence: INFERRED generated code (Hilt_AegisApplication.java is not in the source tree; the call is in the build class, line 43)
+   4. E88ed9829 ENTERS/page*
+      AegisApplicationBase.onCreate -> S_PROCESS
+      the application is created: the process can start a component
+      evidence: SRC AegisApplicationBase.java:45-67; FW-SRC core/java/android/app/ActivityThread.java:5740 (the system calls Application.onCreate)
+         45      public void onCreate() {
+         46          super.onCreate();
+         47          _vaultManager = EarlyEntryPoints.get(this, EntryPoint.class).getVaultManager();
+         48  
+         49          VaultLockReceiver lockReceiver = new VaultLockReceiver();
+         50          IntentFilter intentFilter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
+         51          ContextCompat.registerReceiver(this, lockReceiver, intentFilter, ContextCompat.RECEIVER_NOT_EXPORTED);
+         52  
+         53          // lock the app if the user moves the application to the background
+         54          ProcessLifecycleOwner.get().getLifecycle().addObserver(new AppLifecycleObserver());
+         55  
+         56          // clear the cache directory on startup, to make sure no temporary vault export files remain
+         57          IOUtils.clearDirectory(getCacheDir(), false);
+         58  
+      ...  (9 more lines)
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+   5. E28ffc58c ENTRY/standard*
+      S_PROCESS -> MainActivity.<init>
+      Tap the Aegis icon in the launcher (MAIN / LAUNCHER)
+      evidence: SRC AndroidManifest.xml:44-51
+         44              android:name=".ui.MainActivity"
+         45              android:exported="true"
+         46              android:label="${title}">
+         47              <intent-filter>
+         48                  <action android:name="android.intent.action.MAIN" />
+         49  
+         50                  <category android:name="android.intent.category.LAUNCHER" />
+         51              </intent-filter>
+   6. Eb76444fd LIFECYCLE/standard*
+      MainActivity.<init> -> MainActivity.onCreate
+      Activity.onCreate after the constructor
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731,2741 (the system calls Activity.onCreate, then performStart); SRC ui/MainActivity.java:192-194
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+        192      @Override
+        193      protected void onCreate(Bundle savedInstanceState) {
+        194          super.onCreate(savedInstanceState);
+   7. E3a06baed LIFECYCLE/standard*
+      MainActivity.onCreate -> MainActivity.onStart
+      Activity.onStart after onCreate
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731,2741 (the system calls Activity.onCreate, then performStart); SRC ui/MainActivity.java:938-940
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+        938      @Override
+        939      protected void onStart() {
+        940          super.onStart();
+   8. E20e76e09 CALL/explicit* [STATE: A plain-text vault file exists in the app data, saved by an earlier intro run that chose no security (cross-run state, no producer in this run; MainActivity.onStart reads it, MainActivity.java:951-973)]
+      MainActivity.onStart -> MainActivity.loadEntries
+      plain-text vault (intro chose no security): loaded in onStart
+      guard: the plain-text vault file is loaded earlier in this same onStart call (VaultManager.loadFrom, MainActivity.java:963-965) with no early return at 947, 960 or 971, isVaultLoaded() is true (MainActivity.java:976-977 not taken), and this instance has not loaded the list (else branch at 991-992; _loaded false at 978)
+      evidence: SRC ui/MainActivity.java:950-974,991-992
+        950          // If the vault is not loaded yet, try to load it now in case it's plain text
+        951          if (!_vaultManager.isVaultLoaded()) {
+        952              VaultFile vaultFile;
+        953              try {
+        954                  vaultFile = VaultRepository.readVaultFile(this);
+        955              } catch (VaultRepositoryException e) {
+        956                  e.printStackTrace();
+        957                  Dialogs.showErrorDialog(this, R.string.vault_load_error, e, (dialog, which) -> {
+        958                      finish();
+        959                  });
+        960                  return;
+        961              }
+        962  
+        963              if (!vaultFile.isEncrypted()) {
+      ...  (11 more lines)
+        991          } else {
+        992              loadEntries();
+   9. Ea76ae1a0 ENTERS/page*
+      MainActivity.loadEntries -> S_LIST
+      the list is shown (vault loaded, list loaded in this instance)
+      guard: list not yet loaded in this instance (_loaded false, MainActivity.java:1134) and the vault is loaded (getVault() throws when none is loaded, VaultManager.java:231-233): a producer of the loaded vault must come earlier on the route (the intro result, or an unlock)
+      evidence: SRC ui/MainActivity.java:1133-1144; SRC vault/VaultManager.java:231-233
+       1133      private void loadEntries() {
+       1134          if (!_loaded) {
+       1135              setGroups(_vaultManager.getVault().getUsedGroups());
+       1136              _entryListView.setUsageCounts(_prefs.getUsageCounts());
+       1137              _entryListView.setLastUsedTimestamps(_prefs.getLastUsedTimestamps());
+       1138              _entryListView.setEntries(_vaultManager.getVault().getEntries());
+       1139              if (!_isRecreated) {
+       1140                  _entryListView.runEntriesAnimation();
+       1141              }
+       1142              _loaded = true;
+       1143          }
+       1144      }
+        231      public VaultRepository getVault() {
+        232          if (!isVaultLoaded()) {
+        233              throw new IllegalStateException("Vault manager is not initialized");
+  10. E2e3490fc GUI/standard*
+      S_LIST -> FabMenuHelper.lambda$setupClickListeners$0
+      Tap the + floating button (opens the menu)
+      evidence: FW-SRC core/java/android/view/View.java:6289-6296 (performClick calls the OnClickListener.onClick); SRC helpers/FabMenuHelper.java:55
+      (core/java/android/view/View.java not found in the source tree)
+         55          _mainFab.setOnClickListener(v -> toggle());
+  11. Eebad02db CALL/explicit*
+      FabMenuHelper.lambda$setupClickListeners$0 -> FabMenuHelper.toggle
+      Direct call
+      evidence: SRC FabMenuHelper.java:55 (bytecode)
+         55          _mainFab.setOnClickListener(v -> toggle());
+  12. E554aee35 CALL/explicit*
+      FabMenuHelper.toggle -> FabMenuHelper.open
+      the closed floating menu is opened by toggle
+      guard: _isOpen is false: the else branch of toggle (FabMenuHelper.java:69-73)
+      evidence: SRC helpers/FabMenuHelper.java:68-74
+         68      public void toggle() {
+         69          if (_isOpen) {
+         70              close();
+         71          } else {
+         72              open();
+         73          }
+         74      }
+  13. E75d0fba5 FRAMEWORK/standard* [STATE: The floating action menu is open (FabMenuHelper.open ran; FabMenuHelper.java:76-102)]
+      FabMenuHelper.open -> FabMenuHelper.lambda$setupClickListeners$2
+      Tap a menu item (scan, scan image or enter) while the menu is open
+      evidence: FW-SRC core/java/android/view/View.java:6289-6296 (performClick calls the OnClickListener.onClick); SRC helpers/FabMenuHelper.java:59-64
+      (core/java/android/view/View.java not found in the source tree)
+         59              action.setOnClickListener(v -> {
+         60                  if (onClick != null) {
+         61                      onClick.run();
+         62                  }
+         63                  close();
+         64              });
+  14. E4fb13bc8 CALL/non_standard(java.lang.Runnable.run (the method reference this::startScanImageActivity, MainActivity.java:255))
+      FabMenuHelper.lambda$setupClickListeners$2 -> MainActivity.startScanImageActivity
+      the scan-image item runs its Runnable: startScanImageActivity
+      evidence: SRC helpers/FabMenuHelper.java:60-63; SRC ui/MainActivity.java:255
+         60                  if (onClick != null) {
+         61                      onClick.run();
+         62                  }
+         63                  close();
+        255          actions.put(fabMenuLayout.findViewById(R.id.fab_menu_item_scan_image), this::startScanImageActivity);
+  15. Ef0ebbe1d CALL/explicit*
+      MainActivity.startScanImageActivity -> VaultManager.fireIntentLauncher(Activity,Intent,ActivityResultLauncher)@QR_SCAN
+      the scan-image chooser is started through the launcher of the QR scan result
+      evidence: SRC ui/MainActivity.java:812-824
+        812      private void startScanImageActivity() {
+        813          Intent galleryIntent = new Intent(Intent.ACTION_PICK);
+        814          galleryIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        815          galleryIntent.setDataAndType(android.provider.MediaStore.Images.Media.INTERNAL_CONTENT_URI, "image/*");
+        816  
+        817          Intent fileIntent = new Intent(Intent.ACTION_GET_CONTENT);
+        818          fileIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        819          fileIntent.setType("image/*");
+        820  
+        821          Intent chooserIntent = Intent.createChooser(galleryIntent, getString(R.string.select_picture));
+        822          chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[] { fileIntent });
+        823          _vaultManager.fireIntentLauncher(this, chooserIntent, codeScanResultLauncher);
+        824      }
+  16. E6d7a279a RESULT/standard* [ENV: the user picks an image or a file in the chooser of another app (MainActivity.startScanImageActivity, MainActivity.java:812-824)]
+      VaultManager.fireIntentLauncher(Activity,Intent,ActivityResultLauncher)@QR_SCAN -> MainActivity.lambda$new$7
+      the picker of another app returns the chosen image or file to the launcher callback
+      evidence: SRC vault/VaultManager.java:243-252; SRC ui/MainActivity.java:185-190,812-824; FW-SRC core/java/android/app/ActivityThread.java:4253-4265 (deliverResults passes each result to dispatchActivityResult of the starting activity)
+        243      public void fireIntentLauncher(Activity activity, Intent intent, ActivityResultLauncher<Intent> resultLauncher) {
+        244          setBlockAutoLock(true);
+        245  
+        246          try {
+        247              resultLauncher.launch(intent);
+        248          } catch (ActivityNotFoundException e) {
+        249              e.printStackTrace();
+        250  
+        251              if (isDocsAction(intent.getAction())) {
+        252                  Dialogs.showErrorDialog(activity, R.string.documentsui_error, e);
+        185      private final ActivityResultLauncher<Intent> codeScanResultLauncher =
+        186              registerForActivityResult(new StartActivityForResult(), activityResult -> {
+        187                  if (activityResult.getResultCode() == RESULT_OK && activityResult.getData() != null) {
+        188                      onScanImageResult(activityResult.getData());
+        189                  }
+        190              });
+        812      private void startScanImageActivity() {
+        813          Intent galleryIntent = new Intent(Intent.ACTION_PICK);
+        814          galleryIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        815          galleryIntent.setDataAndType(android.provider.MediaStore.Images.Media.INTERNAL_CONTENT_URI, "image/*");
+        816  
+        817          Intent fileIntent = new Intent(Intent.ACTION_GET_CONTENT);
+        818          fileIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        819          fileIntent.setType("image/*");
+        820  
+        821          Intent chooserIntent = Intent.createChooser(galleryIntent, getString(R.string.select_picture));
+        822          chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[] { fileIntent });
+        823          _vaultManager.fireIntentLauncher(this, chooserIntent, codeScanResultLauncher);
+        824      }
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+  17. E909f3342 CALL/explicit*
+      MainActivity.lambda$new$7 -> MainActivity.onScanImageResult
+      Direct call
+      evidence: SRC MainActivity.java:188 (bytecode)
+        188                      onScanImageResult(activityResult.getData());
+  18. Eb1df464c CALL/explicit*
+      MainActivity.onScanImageResult -> MainActivity.startDecodeQrCodeImages
+      the picker returns one image: it is decoded
+      guard: intent.getData() is non-null (MainActivity.java:640-641; the method returns at 642)
+      evidence: SRC ui/MainActivity.java:640-642
+        640          if (intent.getData() != null) {
+        641              startDecodeQrCodeImages(Collections.singletonList(intent.getData()));
+        642              return;
+  19. E5f504038 ASYNC/standard*
+      MainActivity.startDecodeQrCodeImages -> QrDecodeTask.doInBackground
+      AsyncTask runs doInBackground on the worker thread (decode each image)
+      evidence: FW-SRC core/java/android/os/AsyncTask.java:594-595 (execute), 632-650 (executeOnExecutor), 326-339 (doInBackground at 333), 369-374 (postResult), 705-713 (handleMessage), 691-697 (finish calls onPostExecute at 695); SRC ui/tasks/ProgressDialogTask.java:69-74; SRC ui/MainActivity.java:669,726; SRC ui/tasks/QrDecodeTask.java:24
+      (core/java/android/os/AsyncTask.java not found in the source tree)
+         69      public final void execute(@Nullable Lifecycle lifecycle, Params... params) {
+         70          if (lifecycle != null) {
+         71              LifecycleObserver observer = new Observer(getDialog());
+         72              lifecycle.addObserver(observer);
+         73          }
+         74          execute(params);
+        669          QrDecodeTask task = new QrDecodeTask(this, (results) -> {
+        726          task.execute(getLifecycle(), uris);
+         24      protected List<Result> doInBackground(List<Uri>... params) {
+  20. Ee9441d1b ASYNC/standard*
+      QrDecodeTask.doInBackground -> QrDecodeTask.onPostExecute
+      the decode results are posted to the main thread
+      guard: the task was not cancelled (a cancelled task calls onCancelled instead, AsyncTask.java:691-697)
+      evidence: FW-SRC core/java/android/os/AsyncTask.java:594-595 (execute), 632-650 (executeOnExecutor), 326-339 (doInBackground at 333), 369-374 (postResult), 705-713 (handleMessage), 691-697 (finish calls onPostExecute at 695); SRC ui/tasks/QrDecodeTask.java:51-53
+      (core/java/android/os/AsyncTask.java not found in the source tree)
+         51      protected void onPostExecute(List<Result> results) {
+         52          super.onPostExecute(results);
+         53          _cb.onTaskFinished(results);
+  21. Ee5a5ce24 CALL/non_standard(QrDecodeTask.Callback.onTaskFinished (interface call; the lambda is passed at MainActivity.java:669))
+      QrDecodeTask.onPostExecute -> MainActivity.lambda$startDecodeQrCodeImages$18
+      _cb.onTaskFinished(results): the QR callback imports the entries or shows the errors
+      evidence: SRC ui/tasks/QrDecodeTask.java:53,56-58; SRC ui/MainActivity.java:669
+         53          _cb.onTaskFinished(results);
+         56      public interface Callback {
+         57          void onTaskFinished(List<Result> results);
+         58      }
+        669          QrDecodeTask task = new QrDecodeTask(this, (results) -> {
+  22. E01df91ec CALL/explicit*
+      MainActivity.lambda$startDecodeQrCodeImages$18 -> Dialogs.showPartialGoogleAuthImportWarningDialog
+      the scan had missing codes: the partial-import warning opens
+      guard: googleAuthExports is not empty, it is a single batch, and missingIndices is not empty (MainActivity.java:700-712)
+      evidence: SRC ui/MainActivity.java:700-712
+        700              if (!googleAuthExports.isEmpty()) {
+        701                  boolean isSingleBatch = GoogleAuthInfo.Export.isSingleBatch(googleAuthExports);
+        702                  if (!isSingleBatch && errors.size() > 0) {
+        703                      errors.add(getString(R.string.unrelated_google_auth_batches_error));
+        704                      Dialogs.showMultiErrorDialog(this, R.string.import_error_title, getString(R.string.no_tokens_can_be_imported), errors, null);
+        705                      return;
+        706                  } else if (!isSingleBatch) {
+        707                      Dialogs.showErrorDialog(this, R.string.import_google_auth_failure, getString(R.string.unrelated_google_auth_batches_error));
+        708                      return;
+        709                  } else {
+        710                      List<Integer> missingIndices = GoogleAuthInfo.Export.getMissingIndices(googleAuthExports);
+        711                      if (missingIndices.size() != 0) {
+        712                          Dialogs.showPartialGoogleAuthImportWarningDialog(this, missingIndices, entries.size(), errors, dialogDismissHandler);
+  23. Ebe1d9340 FRAMEWORK/standard*
+      Dialogs.showPartialGoogleAuthImportWarningDialog -> Dialogs.lambda$showPartialGoogleAuthImportWarningDialog$31
+      the warning dialog is shown: its OnShowListener sets the Show error details click listener
+      evidence: INFERRED androidx.appcompat AlertDialog: show() runs the OnShowListener (AppCompat source not read); SRC ui/dialogs/Dialogs.java:570-578
+        570          dialog.setOnShowListener(d -> {
+        571              Button btnNeutral = dialog.getButton(DialogInterface.BUTTON_NEUTRAL);
+        572              if (btnNeutral != null) {
+        573                  btnNeutral.setOnClickListener(b -> {
+        574                      errorDetails.setVisibility(View.VISIBLE);
+        575                      btnNeutral.setVisibility(View.GONE);
+        576                  });
+        577              }
+        578          });
+  24. Eec40a496 FRAMEWORK/standard*
+      Dialogs.lambda$showPartialGoogleAuthImportWarningDialog$31 -> Dialogs.lambda$showPartialGoogleAuthImportWarningDialog$30
+      Tap Show error details in the partial import warning (the error list appears)
+      guard: the scan had errors (the button exists only then, Dialogs.java:565-567)
+      evidence: FW-SRC core/java/android/view/View.java:6289-6296 (performClick calls the OnClickListener.onClick); SRC ui/dialogs/Dialogs.java:571-576
+      (core/java/android/view/View.java not found in the source tree)
+        571              Button btnNeutral = dialog.getButton(DialogInterface.BUTTON_NEUTRAL);
+        572              if (btnNeutral != null) {
+        573                  btnNeutral.setOnClickListener(b -> {
+        574                      errorDetails.setVisibility(View.VISIBLE);
+        575                      btnNeutral.setVisibility(View.GONE);
+        576                  });
+

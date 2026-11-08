@@ -1,0 +1,57 @@
+label_116 grep evidence (batch 116). Source root: final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java (paths below are relative to it).
+
+Section 1. grep -rn "InvestmentSettings\b" (import lines removed)
+com/money/manager/ex/settings/InvestmentSettings.java:39:public class InvestmentSettings
+com/money/manager/ex/settings/InvestmentSettings.java:42:    public InvestmentSettings(Context context) {
+com/money/manager/ex/settings/AppSettings.java:51:    private InvestmentSettings mInvestment;
+com/money/manager/ex/settings/AppSettings.java:87:    public InvestmentSettings getInvestmentSettings() {
+com/money/manager/ex/settings/AppSettings.java:89:            mInvestment = new InvestmentSettings(getContext());
+com/money/manager/ex/settings/InvestmentSettingsFragment.java:83:            InvestmentSettings settings = new InvestmentSettings(getActivity());
+com/money/manager/ex/settings/InvestmentSettingsFragment.java:107:        final InvestmentSettings settings = new InvestmentSettings(getActivity());
+com/money/manager/ex/settings/InvestmentSettingsFragment.java:133:        final InvestmentSettings settings = new InvestmentSettings(getContext());
+com/money/manager/ex/settings/InvestmentSettingsFragment.java:162:        final InvestmentSettings settings = new InvestmentSettings(getContext());
+com/money/manager/ex/investment/SecurityPriceUpdaterFactory.java:37:        InvestmentSettings settings = new InvestmentSettings(context);
+com/money/manager/ex/investment/watchlist/WatchlistFragment.java:380:        InvestmentSettings settings = new InvestmentSettings(getActivity());
+com/money/manager/ex/investment/watchlist/WatchlistFragment.java:392:                        InvestmentSettings settings = new InvestmentSettings(getActivity());
+com/money/manager/ex/currency/ExchangeRateUpdaterFactory.java:39:        InvestmentSettings settings = new InvestmentSettings(context);
+
+Section 2. grep -rn "getInvestmentSettings" (whole source root)
+com/money/manager/ex/settings/AppSettings.java:87:    public InvestmentSettings getInvestmentSettings() {
+(no caller in the source root: the method is declared and never invoked)
+
+Section 3. Methods called on the InvestmentSettings variables (grep -rn "settings\.[a-zA-Z]*(" in the four files that call InvestmentSettings methods)
+investment/watchlist/WatchlistFragment.java:381: settings.getQuoteProvider()
+investment/watchlist/WatchlistFragment.java:393: settings.setQuoteProvider(newProvider)
+investment/SecurityPriceUpdaterFactory.java:38: settings.getQuoteProvider()
+settings/InvestmentSettingsFragment.java:84: settings.setAssetAllocationDifferenceThreshold(event.amount)
+settings/InvestmentSettingsFragment.java:112: settings.getAssetAllocationDifferenceThreshold()
+settings/InvestmentSettingsFragment.java:134: settings.getQuoteProvider()
+settings/InvestmentSettingsFragment.java:144: settings.setQuoteProvider(provider)
+settings/InvestmentSettingsFragment.java:163: settings.getExchangeRateProvider()
+settings/InvestmentSettingsFragment.java:173: settings.setExchangeRateProvider(provider)
+currency/ExchangeRateUpdaterFactory.java:40: settings.getExchangeRateProvider()
+Result: every call is to a method declared in InvestmentSettings itself (lines 59-116). None is an inherited SettingsBase get, set, getBooleanSetting or getIntSetting.
+
+Section 4. grep -rn "getPreferences()" under settings/ (the InvestmentSettings-relevant lines)
+settings/InvestmentSettings.java:48:    protected SharedPreferences getPreferences() {   <- the declaration in the batch (lines 48-50)
+settings/SettingsBase.java:52:    protected abstract SharedPreferences getPreferences();
+settings/SettingsBase.java:72: return getPreferences().getString(key, defaultValue);   (inside get(String,String))
+settings/SettingsBase.java:84: getPreferences().edit()                                  (inside set(String,String))
+settings/SettingsBase.java:90: getPreferences().edit()                                  (inside set(Integer,String))
+settings/SettingsBase.java:98: return getPreferences().getBoolean(key, defaultValue);   (inside get(String,boolean))
+settings/SettingsBase.java:112: return getPreferences().getBoolean(settingKey, defaultValue); (inside getBooleanSetting(String,boolean))
+settings/SettingsBase.java:116: getPreferences().edit()                                  (inside set(String,boolean))
+settings/SettingsBase.java:129: return getPreferences().getInt(key, defaultValue);      (inside get(String,int))
+settings/SettingsBase.java:145: return getPreferences().getInt(settingKey, defaultValue); (inside getIntSetting)
+settings/SettingsBase.java:149: return getPreferences().edit()                          (inside set(String,int))
+Other getPreferences() declarations (GeneralSettings, LookAndFeelSettings, AppSettings, BehaviourSettings, BudgetSettings, SyncPreferences) belong to other classes and are not called from InvestmentSettings.
+The only call of getPreferences() inside InvestmentSettings.java: none (line 48 is the declaration).
+
+Section 5. auto_calls.json records (python3 -I query; no edits)
+Incoming records to InvestmentSettings.getPreferences: nine generic cha records from SettingsBase, dispatch "cha": SettingsBase.get(String,String) (SettingsBase.java:72), set(String,String) (84), set(Integer,String) (90), get(String,boolean) (98), getBooleanSetting(String,boolean) (112), set(String,boolean) (116), get(String,int) (129), getIntSetting (145), set(String,int) (149).
+Each has a receiver variant "...@InvestmentSettings" with dispatch "exact" (the variant node is the source; the same SettingsBase line numbers).
+Incoming records to the variant nodes: none from a non-variant caller. Every record whose dst is a "@InvestmentSettings" node has a "@InvestmentSettings" source (the variant chain is internal to SettingsBase). The chain roots (SettingsBase.get(Integer,String)@InvestmentSettings, get(Integer,boolean)@..., get(Integer,int)@..., getBooleanSetting(String)@..., set(Integer,boolean)@..., set(Integer,int)@..., and the variants of get, set, getBooleanSetting and getIntSetting) have no incoming record, so no app method reaches them (section 3).
+Outgoing records of InvestmentSettings.getPreferences: one, -> SettingsBase.getContext (InvestmentSettings.java:49, exact). It is cut by sup in label_116.py.
+Outgoing records of the other InvestmentSettings methods (for the rows): constructor -> SettingsBase.<init> (line 43); get/setAssetAllocationDifferenceThreshold, get/setQuoteProvider and get/setExchangeRateProvider -> InfoService and SettingsBase.getContext, QuoteProviders.<clinit>, ExchangeRateProviders.<clinit>. None of them is a getPreferences call.
+
+Section 6. Precedents read for the non-CALL edges (graph_def.py): PayeeActivity.<init> -> PayeeActivity.onCreate LIFECYCLE (line 140); PayeeActivity.onCreate -> S_PAYEE ENTERS (line 144); SettingsFragment$9.onPreferenceClick -> AboutActivity.<init> INTENT (line 159); CalculatorActivity.onCreate -> CalculatorActivity.onResume LIFECYCLE (line 2207).

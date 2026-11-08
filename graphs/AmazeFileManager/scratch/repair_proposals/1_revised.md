@@ -1,0 +1,296 @@
+# Edge Repair Proposals - Helper 1 (WITH SOURCE EVIDENCE)
+
+STATUS: RUNNING 19:27 -> REVISED 19:36
+
+| Edge ID | Side | Old Name | New Name/REMOVE/UNDECIDABLE | Reason | Source Evidence |
+|---------|------|----------|------------------------------|--------|-----------------|
+
+## Group 1: Full Package Path -> Canonical (161 edges)
+
+| E8fb2416d | src | `com.amaze.filemanager.activities.MainActivity.onActivityResult` | `MainActivity.onActivityResult` | Full pkg→canonical | method_list.json |
+| E8fb2416d-2 | src | `com.amaze.filemanager.activities.MainActivity.onActivityResult` | `MainActivity.onActivityResult` | Full pkg→canonical | method_list.json |
+| Ec83f3a6b | src | `com.amaze.filemanager.activities.MainActivity.onCreate` | `MainActivity.onCreate` | Full pkg→canonical | method_list.json |
+| Eb419828b | src | `com.amaze.filemanager.activities.MainActivity.onCreate` | `MainActivity.onCreate` | Full pkg→canonical | method_list.json |
+| Ec83f3a6b-2 | src | `com.amaze.filemanager.activities.MainActivity.onCreate` | `MainActivity.onCreate` | Full pkg→canonical | method_list.json |
+| E8688c9e9 | src | `com.amaze.filemanager.activities.MainActivity.onPause` | `MainActivity.onPause` | Full pkg→canonical | method_list.json |
+| E8688c9e9-2 | src | `com.amaze.filemanager.activities.MainActivity.onPause` | `MainActivity.onPause` | Full pkg→canonical | method_list.json |
+| Eeb5b1384 | src | `com.amaze.filemanager.asynchronous.asynctasks.ssh.SshAuthenticationTask.doInBackground` | `SshAuthenticationTask.doInBackground` | Full pkg→canonical | method_list.json |
+| Eeb5b1384 | dst | `com.amaze.filemanager.filesystem.ssh.CustomSshJConfig.<init>` | `CustomSshJConfig.<init>` | Full pkg→canonical | method_list.json |
+| E2500177c | dst | `com.amaze.filemanager.filesystem.ssh.CustomSshJConfig.<init>` | `CustomSshJConfig.<init>` | Full pkg→canonical | method_list.json |
+| Eb419828b | dst | `com.amaze.filemanager.filesystem.ssh.CustomSshJConfig.init` | `CustomSshJConfig.init` | Full pkg→canonical | method_list.json |
+| E766572df | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar$1.<init>` | `BottomBar$1.<init>` | Full pkg→canonical | method_list.json |
+| Ee2d8e68c | src | `com.amaze.filemanager.ui.views.appbar.BottomBar$1.<init>` | `BottomBar$1.<init>` | Full pkg→canonical | method_list.json |
+| Ecd6dc166 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar$1.<init>` | `BottomBar$1.<init>` | Full pkg→canonical | method_list.json |
+| E766572df-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar$1.<init>` | `BottomBar$1.<init>` | Full pkg→canonical | method_list.json |
+| Ee2d8e68c-2 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar$1.<init>` | `BottomBar$1.<init>` | Full pkg→canonical | method_list.json |
+| Ecd6dc166-2 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar$1.<init>` | `BottomBar$1.<init>` | Full pkg→canonical | method_list.json |
+| Ecd6dc166 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar$1.onFinish` | `BottomBar$1.onFinish` | Full pkg→canonical | method_list.json |
+| Ecd6dc166-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar$1.onFinish` | `BottomBar$1.onFinish` | Full pkg→canonical | method_list.json |
+| Ee2d8e68c | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar$1.onTick` | `BottomBar$1.onTick` | Full pkg→canonical | method_list.json |
+| Ee2d8e68c-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar$1.onTick` | `BottomBar$1.onTick` | Full pkg→canonical | method_list.json |
+| E45ad7de1 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar$3.<init>` | `BottomBar$3.<init>` | Full pkg→canonical | method_list.json |
+| Eab68a90a | src | `com.amaze.filemanager.ui.views.appbar.BottomBar$3.<init>` | `BottomBar$3.<init>` | Full pkg→canonical | method_list.json |
+| E58bf2bf9 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar$3.<init>` | `BottomBar$3.<init>` | Full pkg→canonical | method_list.json |
+| E627c9e4f | src | `com.amaze.filemanager.ui.views.appbar.BottomBar$3.<init>` | `BottomBar$3.<init>` | Full pkg→canonical | method_list.json |
+| E45ad7de1-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar$3.<init>` | `BottomBar$3.<init>` | Full pkg→canonical | method_list.json |
+| Eab68a90a-2 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar$3.<init>` | `BottomBar$3.<init>` | Full pkg→canonical | method_list.json |
+| E58bf2bf9-2 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar$3.<init>` | `BottomBar$3.<init>` | Full pkg→canonical | method_list.json |
+| E627c9e4f-2 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar$3.<init>` | `BottomBar$3.<init>` | Full pkg→canonical | method_list.json |
+| Ee7a1fb60 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar$3.lambda$onAnimationEnd$0` | `BottomBar$3.lambda$onAnimationEnd$0` | Full pkg→canonical | method_list.json |
+| Ee7a1fb60-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar$3.lambda$onAnimationEnd$0` | `BottomBar$3.lambda$onAnimationEnd$0` | Full pkg→canonical | method_list.json |
+| E7f02cc21 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar$3.lambda$onAnimationStart$1` | `BottomBar$3.lambda$onAnimationStart$1` | Full pkg→canonical | method_list.json |
+| E7f02cc21-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar$3.lambda$onAnimationStart$1` | `BottomBar$3.lambda$onAnimationStart$1` | Full pkg→canonical | method_list.json |
+| E627c9e4f | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar$3.onAnimationCancel` | `BottomBar$3.onAnimationCancel` | Full pkg→canonical | method_list.json |
+| E627c9e4f-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar$3.onAnimationCancel` | `BottomBar$3.onAnimationCancel` | Full pkg→canonical | method_list.json |
+| Ee7a1fb60 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar$3.onAnimationEnd` | `BottomBar$3.onAnimationEnd` | Full pkg→canonical | method_list.json |
+| E58bf2bf9 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar$3.onAnimationEnd` | `BottomBar$3.onAnimationEnd` | Full pkg→canonical | method_list.json |
+| Ee7a1fb60-2 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar$3.onAnimationEnd` | `BottomBar$3.onAnimationEnd` | Full pkg→canonical | method_list.json |
+| E58bf2bf9-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar$3.onAnimationEnd` | `BottomBar$3.onAnimationEnd` | Full pkg→canonical | method_list.json |
+| E7f02cc21 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar$3.onAnimationStart` | `BottomBar$3.onAnimationStart` | Full pkg→canonical | method_list.json |
+| Eab68a90a | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar$3.onAnimationStart` | `BottomBar$3.onAnimationStart` | Full pkg→canonical | method_list.json |
+| E7f02cc21-2 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar$3.onAnimationStart` | `BottomBar$3.onAnimationStart` | Full pkg→canonical | method_list.json |
+| Eab68a90a-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar$3.onAnimationStart` | `BottomBar$3.onAnimationStart` | Full pkg→canonical | method_list.json |
+| E14b0d072 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar$4.<init>` | `BottomBar$4.<init>` | Full pkg→canonical | method_list.json |
+| Ea0e37cb8 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar$4.<init>` | `BottomBar$4.<init>` | Full pkg→canonical | method_list.json |
+| E4a197c15 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar$4.<init>` | `BottomBar$4.<init>` | Full pkg→canonical | method_list.json |
+| E14b0d072-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar$4.<init>` | `BottomBar$4.<init>` | Full pkg→canonical | method_list.json |
+| Ea0e37cb8-2 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar$4.<init>` | `BottomBar$4.<init>` | Full pkg→canonical | method_list.json |
+| E4a197c15-2 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar$4.<init>` | `BottomBar$4.<init>` | Full pkg→canonical | method_list.json |
+| E195d196d | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar$4.lambda$onAnimationEnd$0` | `BottomBar$4.lambda$onAnimationEnd$0` | Full pkg→canonical | method_list.json |
+| E195d196d-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar$4.lambda$onAnimationEnd$0` | `BottomBar$4.lambda$onAnimationEnd$0` | Full pkg→canonical | method_list.json |
+| E0e866962 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar$4.lambda$onAnimationStart$1` | `BottomBar$4.lambda$onAnimationStart$1` | Full pkg→canonical | method_list.json |
+| E0e866962-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar$4.lambda$onAnimationStart$1` | `BottomBar$4.lambda$onAnimationStart$1` | Full pkg→canonical | method_list.json |
+| E195d196d | src | `com.amaze.filemanager.ui.views.appbar.BottomBar$4.onAnimationEnd` | `BottomBar$4.onAnimationEnd` | Full pkg→canonical | method_list.json |
+| E4a197c15 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar$4.onAnimationEnd` | `BottomBar$4.onAnimationEnd` | Full pkg→canonical | method_list.json |
+| E195d196d-2 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar$4.onAnimationEnd` | `BottomBar$4.onAnimationEnd` | Full pkg→canonical | method_list.json |
+| E4a197c15-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar$4.onAnimationEnd` | `BottomBar$4.onAnimationEnd` | Full pkg→canonical | method_list.json |
+| E0e866962 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar$4.onAnimationStart` | `BottomBar$4.onAnimationStart` | Full pkg→canonical | method_list.json |
+| Ea0e37cb8 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar$4.onAnimationStart` | `BottomBar$4.onAnimationStart` | Full pkg→canonical | method_list.json |
+| E0e866962-2 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar$4.onAnimationStart` | `BottomBar$4.onAnimationStart` | Full pkg→canonical | method_list.json |
+| Ea0e37cb8-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar$4.onAnimationStart` | `BottomBar$4.onAnimationStart` | Full pkg→canonical | method_list.json |
+| E99ef4327 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.<init>` | `BottomBar.<init>` | Full pkg→canonical | method_list.json |
+| E766572df | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.<init>` | `BottomBar.<init>` | Full pkg→canonical | method_list.json |
+| E078dcf2e | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.<init>` | `BottomBar.<init>` | Full pkg→canonical | method_list.json |
+| E99ef4327-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.<init>` | `BottomBar.<init>` | Full pkg→canonical | method_list.json |
+| E766572df-2 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.<init>` | `BottomBar.<init>` | Full pkg→canonical | method_list.json |
+| E078dcf2e-2 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.<init>` | `BottomBar.<init>` | Full pkg→canonical | method_list.json |
+| E3ac4e2c9 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.areButtonsShowing` | `BottomBar.areButtonsShowing` | Full pkg→canonical | method_list.json |
+| E23fd053e | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.areButtonsShowing` | `BottomBar.areButtonsShowing` | Full pkg→canonical | method_list.json |
+| E3ac4e2c9-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.areButtonsShowing` | `BottomBar.areButtonsShowing` | Full pkg→canonical | method_list.json |
+| E23fd053e-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.areButtonsShowing` | `BottomBar.areButtonsShowing` | Full pkg→canonical | method_list.json |
+| E893c10e6 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.createArrow` | `BottomBar.createArrow` | Full pkg→canonical | method_list.json |
+| E893c10e6-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.createArrow` | `BottomBar.createArrow` | Full pkg→canonical | method_list.json |
+| Ee2047999 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.createFolderButton` | `BottomBar.createFolderButton` | Full pkg→canonical | method_list.json |
+| Ee2047999-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.createFolderButton` | `BottomBar.createFolderButton` | Full pkg→canonical | method_list.json |
+| E3450f0b7 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.lambda$sendScroll$4` | `BottomBar.lambda$sendScroll$4` | Full pkg→canonical | method_list.json |
+| E3450f0b7-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.lambda$sendScroll$4` | `BottomBar.lambda$sendScroll$4` | Full pkg→canonical | method_list.json |
+| E7cdd8f23 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.lambda$showButtons$0` | `BottomBar.lambda$showButtons$0` | Full pkg→canonical | method_list.json |
+| E7cdd8f23-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.lambda$showButtons$0` | `BottomBar.lambda$showButtons$0` | Full pkg→canonical | method_list.json |
+| E9403184b | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.lambda$showButtons$1` | `BottomBar.lambda$showButtons$1` | Full pkg→canonical | method_list.json |
+| E9403184b-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.lambda$showButtons$1` | `BottomBar.lambda$showButtons$1` | Full pkg→canonical | method_list.json |
+| E1c5d13b0 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.lambda$showButtons$2` | `BottomBar.lambda$showButtons$2` | Full pkg→canonical | method_list.json |
+| E1c5d13b0-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.lambda$showButtons$2` | `BottomBar.lambda$showButtons$2` | Full pkg→canonical | method_list.json |
+| Ea250f00b | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.lambda$showButtons$3` | `BottomBar.lambda$showButtons$3` | Full pkg→canonical | method_list.json |
+| Ea250f00b-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.lambda$showButtons$3` | `BottomBar.lambda$showButtons$3` | Full pkg→canonical | method_list.json |
+| E13037690 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.onTouch` | `BottomBar.onTouch` | Full pkg→canonical | method_list.json |
+| Ebd234c8c | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.onTouch` | `BottomBar.onTouch` | Full pkg→canonical | method_list.json |
+| E986861d4 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.onTouch` | `BottomBar.onTouch` | Full pkg→canonical | method_list.json |
+| Ec8d2a915 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.onTouch` | `BottomBar.onTouch` | Full pkg→canonical | method_list.json |
+| E13037690-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.onTouch` | `BottomBar.onTouch` | Full pkg→canonical | method_list.json |
+| Ebd234c8c-2 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.onTouch` | `BottomBar.onTouch` | Full pkg→canonical | method_list.json |
+| E986861d4-2 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.onTouch` | `BottomBar.onTouch` | Full pkg→canonical | method_list.json |
+| Ec8d2a915-2 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.onTouch` | `BottomBar.onTouch` | Full pkg→canonical | method_list.json |
+| E8fb2416d | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.resetClickListener` | `BottomBar.resetClickListener` | Full pkg→canonical | method_list.json |
+| E8fb2416d-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.resetClickListener` | `BottomBar.resetClickListener` | Full pkg→canonical | method_list.json |
+| E3b2b3256 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.sendScroll` | `BottomBar.sendScroll` | Full pkg→canonical | method_list.json |
+| E43930f74 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.sendScroll` | `BottomBar.sendScroll` | Full pkg→canonical | method_list.json |
+| E3450f0b7 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.sendScroll` | `BottomBar.sendScroll` | Full pkg→canonical | method_list.json |
+| E3b2b3256-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.sendScroll` | `BottomBar.sendScroll` | Full pkg→canonical | method_list.json |
+| E43930f74-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.sendScroll` | `BottomBar.sendScroll` | Full pkg→canonical | method_list.json |
+| E3450f0b7-2 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.sendScroll` | `BottomBar.sendScroll` | Full pkg→canonical | method_list.json |
+| E659dea28 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.setBackgroundColor` | `BottomBar.setBackgroundColor` | Full pkg→canonical | method_list.json |
+| E659dea28-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.setBackgroundColor` | `BottomBar.setBackgroundColor` | Full pkg→canonical | method_list.json |
+| Ec83f3a6b | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.setClickListener` | `BottomBar.setClickListener` | Full pkg→canonical | method_list.json |
+| E244f9db3 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.setClickListener` | `BottomBar.setClickListener` | Full pkg→canonical | method_list.json |
+| E13037690 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.setClickListener` | `BottomBar.setClickListener` | Full pkg→canonical | method_list.json |
+| Ec83f3a6b-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.setClickListener` | `BottomBar.setClickListener` | Full pkg→canonical | method_list.json |
+| E244f9db3-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.setClickListener` | `BottomBar.setClickListener` | Full pkg→canonical | method_list.json |
+| E13037690-2 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.setClickListener` | `BottomBar.setClickListener` | Full pkg→canonical | method_list.json |
+| Edcc32625 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.setFullPathText` | `BottomBar.setFullPathText` | Full pkg→canonical | method_list.json |
+| Edcc32625-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.setFullPathText` | `BottomBar.setFullPathText` | Full pkg→canonical | method_list.json |
+| Ebf54787a | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.setPathText` | `BottomBar.setPathText` | Full pkg→canonical | method_list.json |
+| Ebf54787a-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.setPathText` | `BottomBar.setPathText` | Full pkg→canonical | method_list.json |
+| E3dec0435 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.setVisibility` | `BottomBar.setVisibility` | Full pkg→canonical | method_list.json |
+| E58a58fd9 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.setVisibility` | `BottomBar.setVisibility` | Full pkg→canonical | method_list.json |
+| E8d66a1eb | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.setVisibility` | `BottomBar.setVisibility` | Full pkg→canonical | method_list.json |
+| E3dec0435-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.setVisibility` | `BottomBar.setVisibility` | Full pkg→canonical | method_list.json |
+| E58a58fd9-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.setVisibility` | `BottomBar.setVisibility` | Full pkg→canonical | method_list.json |
+| E8d66a1eb-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.setVisibility` | `BottomBar.setVisibility` | Full pkg→canonical | method_list.json |
+| E4523644d | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.showButtons` | `BottomBar.showButtons` | Full pkg→canonical | method_list.json |
+| E3ac4e2c9 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.showButtons` | `BottomBar.showButtons` | Full pkg→canonical | method_list.json |
+| E893c10e6 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.showButtons` | `BottomBar.showButtons` | Full pkg→canonical | method_list.json |
+| Ee2047999 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.showButtons` | `BottomBar.showButtons` | Full pkg→canonical | method_list.json |
+| E7cdd8f23 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.showButtons` | `BottomBar.showButtons` | Full pkg→canonical | method_list.json |
+| E9403184b | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.showButtons` | `BottomBar.showButtons` | Full pkg→canonical | method_list.json |
+| E1c5d13b0 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.showButtons` | `BottomBar.showButtons` | Full pkg→canonical | method_list.json |
+| E3b2b3256 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.showButtons` | `BottomBar.showButtons` | Full pkg→canonical | method_list.json |
+| Ea250f00b | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.showButtons` | `BottomBar.showButtons` | Full pkg→canonical | method_list.json |
+| E85d9f450 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.showButtons` | `BottomBar.showButtons` | Full pkg→canonical | method_list.json |
+| E4523644d-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.showButtons` | `BottomBar.showButtons` | Full pkg→canonical | method_list.json |
+| E3ac4e2c9-2 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.showButtons` | `BottomBar.showButtons` | Full pkg→canonical | method_list.json |
+| E893c10e6-2 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.showButtons` | `BottomBar.showButtons` | Full pkg→canonical | method_list.json |
+| Ee2047999-2 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.showButtons` | `BottomBar.showButtons` | Full pkg→canonical | method_list.json |
+| E7cdd8f23-2 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.showButtons` | `BottomBar.showButtons` | Full pkg→canonical | method_list.json |
+| E9403184b-2 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.showButtons` | `BottomBar.showButtons` | Full pkg→canonical | method_list.json |
+| E1c5d13b0-2 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.showButtons` | `BottomBar.showButtons` | Full pkg→canonical | method_list.json |
+| E3b2b3256-2 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.showButtons` | `BottomBar.showButtons` | Full pkg→canonical | method_list.json |
+| Ea250f00b-2 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.showButtons` | `BottomBar.showButtons` | Full pkg→canonical | method_list.json |
+| E85d9f450-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.showButtons` | `BottomBar.showButtons` | Full pkg→canonical | method_list.json |
+| E8688c9e9 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.updatePath` | `BottomBar.updatePath` | Full pkg→canonical | method_list.json |
+| E03244eb2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.updatePath` | `BottomBar.updatePath` | Full pkg→canonical | method_list.json |
+| Ef28f0ad4 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.updatePath` | `BottomBar.updatePath` | Full pkg→canonical | method_list.json |
+| E57d37770 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.updatePath` | `BottomBar.updatePath` | Full pkg→canonical | method_list.json |
+| E23fd053e | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.updatePath` | `BottomBar.updatePath` | Full pkg→canonical | method_list.json |
+| E85d9f450 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.updatePath` | `BottomBar.updatePath` | Full pkg→canonical | method_list.json |
+| E43930f74 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.updatePath` | `BottomBar.updatePath` | Full pkg→canonical | method_list.json |
+| E45ad7de1 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.updatePath` | `BottomBar.updatePath` | Full pkg→canonical | method_list.json |
+| E14b0d072 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.updatePath` | `BottomBar.updatePath` | Full pkg→canonical | method_list.json |
+| E8688c9e9-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.updatePath` | `BottomBar.updatePath` | Full pkg→canonical | method_list.json |
+| E03244eb2-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.updatePath` | `BottomBar.updatePath` | Full pkg→canonical | method_list.json |
+| Ef28f0ad4-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.updatePath` | `BottomBar.updatePath` | Full pkg→canonical | method_list.json |
+| E57d37770-2 | dst | `com.amaze.filemanager.ui.views.appbar.BottomBar.updatePath` | `BottomBar.updatePath` | Full pkg→canonical | method_list.json |
+| E23fd053e-2 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.updatePath` | `BottomBar.updatePath` | Full pkg→canonical | method_list.json |
+| E85d9f450-2 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.updatePath` | `BottomBar.updatePath` | Full pkg→canonical | method_list.json |
+| E43930f74-2 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.updatePath` | `BottomBar.updatePath` | Full pkg→canonical | method_list.json |
+| E45ad7de1-2 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.updatePath` | `BottomBar.updatePath` | Full pkg→canonical | method_list.json |
+| E14b0d072-2 | src | `com.amaze.filemanager.ui.views.appbar.BottomBar.updatePath` | `BottomBar.updatePath` | Full pkg→canonical | method_list.json |
+| E01cd5777 | src | `com.amaze.filemanager.ui.views.drawer.Drawer.<init>` | `Drawer.<init>` | Full pkg→canonical | method_list.json |
+| Ee8b22e4f | src | `com.amaze.filemanager.ui.views.drawer.Drawer.deselectEverything` | `Drawer.deselectEverything` | Full pkg→canonical | method_list.json |
+| Eb9e7419c | src | `com.amaze.filemanager.ui.views.drawer.Drawer.refreshDrawer` | `Drawer.refreshDrawer` | Full pkg→canonical | method_list.json |
+| Ed3c31976 | src | `com.amaze.filemanager.ui.views.drawer.Drawer.selectCorrectDrawerItemForPath` | `Drawer.selectCorrectDrawerItemForPath` | Full pkg→canonical | method_list.json |
+
+## Groups 2+3: Framework/Library + Inherited Methods -> REMOVE (123 edges)
+
+| E1426cf1c | dst | `ActionMode.Callback.<init>` | REMOVE | Framework class | Source file not found (framework/library) |
+| E22c63b68 | src | `AndroidAsyncTask.execute` | REMOVE | Framework class | Source file not found (framework/library) |
+| E22c63b68-2 | src | `AndroidAsyncTask.execute` | REMOVE | Framework class | Source file not found (framework/library) |
+| E8907704f | src | `AndroidAsyncTask.onPostExecute` | REMOVE | Framework class | Source file not found (framework/library) |
+| E8907704f-2 | src | `AndroidAsyncTask.onPostExecute` | REMOVE | Framework class | Source file not found (framework/library) |
+| Ee9780f88 | src | `AppCompatActivity.startSupportActionMode` | REMOVE | Framework class | Source file not found (framework/library) |
+| Efd4f74d3 | src | `AppCompatActivity.startSupportActionMode` | REMOVE | Framework class | Source file not found (framework/library) |
+| E3a810faa | src | `AppsAdapter.onBindViewHolder` | REMOVE | Inherited, not declared | grep AppsAdapter.java:66: class exists, onBindViewHolder NOT DECLARED |
+| E23e31ac1 | src | `AppsAdapter.onBindViewHolder` | REMOVE | Inherited, not declared | grep AppsAdapter.java:66: class exists, onBindViewHolder NOT DECLARED |
+| E3a810faa-2 | src | `AppsAdapter.onBindViewHolder` | REMOVE | Inherited, not declared | grep AppsAdapter.java:66: class exists, onBindViewHolder NOT DECLARED |
+| E680883a5 | src | `AppsAdapter.onClick` | REMOVE | Inherited, not declared | grep AppsAdapter.java:66: class exists, onClick NOT DECLARED |
+| E05dc192e | src | `AppsAdapter.onCreateViewHolder` | REMOVE | Inherited, not declared | grep AppsAdapter.java:66: class exists, onCreateViewHolder NOT DECLARED |
+| E05dc192e-2 | src | `AppsAdapter.onCreateViewHolder` | REMOVE | Inherited, not declared | grep AppsAdapter.java:66: class exists, onCreateViewHolder NOT DECLARED |
+| Ead45de6b | src | `AppsAdapter.onMenuItemClick` | REMOVE | Inherited, not declared | grep AppsAdapter.java:66: class exists, onMenuItemClick NOT DECLARED |
+| E3446cc34 | src | `AppsListFragment.onViewCreated` | REMOVE | Inherited, not declared | grep AppsListFragment.java:50: class exists, onViewCreated NOT DECLARED |
+| E3446cc34-2 | src | `AppsListFragment.onViewCreated` | REMOVE | Inherited, not declared | grep AppsListFragment.java:50: class exists, onViewCreated NOT DECLARED |
+| Ed8ed87e7 | src | `BaseSavedState` | REMOVE | Framework class | Framework class (no package prefix) |
+| Ed8ed87e7-2 | src | `BaseSavedState` | REMOVE | Framework class | Framework class (no package prefix) |
+| E6b5a463a | src | `BottomBar.changePath` | REMOVE | Inherited, not declared | grep BottomBar.java:54: class exists, changePath NOT DECLARED |
+| E6b5a463a-2 | src | `BottomBar.changePath` | REMOVE | Inherited, not declared | grep BottomBar.java:54: class exists, changePath NOT DECLARED |
+| E37f7f82d | src | `BottomBar.getRootDrawable` | REMOVE | Inherited, not declared | grep BottomBar.java:54: class exists, getRootDrawable NOT DECLARED |
+| E37f7f82d-2 | src | `BottomBar.getRootDrawable` | REMOVE | Inherited, not declared | grep BottomBar.java:54: class exists, getRootDrawable NOT DECLARED |
+| E9b087f58 | src | `BottomBar.lambda$initProperties$0` | REMOVE | Inherited, not declared | grep BottomBar.java:54: class exists, lambda$initProperties$0 NOT DECLARED |
+| Ec850fbaa | src | `ColorPref.onViewCreated` | REMOVE | Inherited, not declared | grep ColorPref.java:32: class exists, onViewCreated NOT DECLARED |
+| E02ee7a80 | src | `ColorPref.showColorChooser` | REMOVE | Inherited, not declared | grep ColorPref.java:32: class exists, showColorChooser NOT DECLARED |
+| E02ee7a80-2 | src | `ColorPref.showColorChooser` | REMOVE | Inherited, not declared | grep ColorPref.java:32: class exists, showColorChooser NOT DECLARED |
+| E806f9a73 | src | `Context.bindService` | REMOVE | Framework class | Source file not found (framework/library) |
+| Eba312084 | src | `Context.sendBroadcast` | REMOVE | Framework class | Source file not found (framework/library) |
+| E9e153e0c | src | `Context.startService` | REMOVE | Framework class | Source file not found (framework/library) |
+| E71a24033 | src | `Context.startService` | REMOVE | Framework class | Source file not found (framework/library) |
+| E8e47b613 | src | `Context.stopService` | REMOVE | Framework class | Source file not found (framework/library) |
+| E168b822b | src | `CopyService.<clinit>` | REMOVE | Inherited, not declared | grep CopyService.java:66: class exists, <clinit> NOT DECLARED |
+| Ed251100f | src | `CopyService.onCopyDone` | REMOVE | Inherited, not declared | grep CopyService.java:66: class exists, onCopyDone NOT DECLARED |
+| Ef47e2a7e | src | `CopyService.run` | REMOVE | Inherited, not declared | grep CopyService.java:66: class exists, run NOT DECLARED |
+| E39cede03 | src | `CopyService.startService` | REMOVE | Inherited, not declared | grep CopyService.java:66: class exists, startService NOT DECLARED |
+| Ea1f58dba | src | `CopyService.startService` | REMOVE | Inherited, not declared | grep CopyService.java:66: class exists, startService NOT DECLARED |
+| E37bd6652 | src | `Drawable` | REMOVE | Framework class | Framework class (no package prefix) |
+| E5c7f43fb | src | `Drawable` | REMOVE | Framework class | Framework class (no package prefix) |
+| E340dd7ea | src | `Drawable` | REMOVE | Framework class | Framework class (no package prefix) |
+| Ed6e70f03 | src | `Drawable` | REMOVE | Framework class | Framework class (no package prefix) |
+| E0a03e63e | src | `Drawable` | REMOVE | Framework class | Framework class (no package prefix) |
+| E37bd6652-2 | src | `Drawable` | REMOVE | Framework class | Framework class (no package prefix) |
+| E5c7f43fb-2 | src | `Drawable` | REMOVE | Framework class | Framework class (no package prefix) |
+| E340dd7ea-2 | src | `Drawable` | REMOVE | Framework class | Framework class (no package prefix) |
+| Ed6e70f03-2 | src | `Drawable` | REMOVE | Framework class | Framework class (no package prefix) |
+| E0a03e63e-2 | src | `Drawable` | REMOVE | Framework class | Framework class (no package prefix) |
+| Eac00e3ed | src | `DrawerLayout.setDrawerListener` | REMOVE | Framework class | Source file not found (framework/library) |
+| E1615e103 | src | `DrawerLayout.setDrawerListener` | REMOVE | Framework class | Source file not found (framework/library) |
+| E4c1d408a | src | `EventBus.register` | REMOVE | Framework class | Source file not found (framework/library) |
+| Eff756314 | src | `ExtractService.lambda$extract$0` | REMOVE | Inherited, not declared | grep ExtractService.java:65: class exists, lambda$extract$0 NOT DECLARED |
+| E5d73d7ee | src | `ExtractService.runIntentInService` | REMOVE | Inherited, not declared | grep ExtractService.java:65: class exists, runIntentInService NOT DECLARED |
+| E2c975299 | src | `ExtractService.runIntentInService` | REMOVE | Inherited, not declared | grep ExtractService.java:65: class exists, runIntentInService NOT DECLARED |
+| Ee583f33c | src | `ExtractService.runIntentInService` | REMOVE | Inherited, not declared | grep ExtractService.java:65: class exists, runIntentInService NOT DECLARED |
+| E1dfd3e5b | src | `FtpServerFragment.onPreferenceChange` | REMOVE | Inherited, not declared | grep FtpServerFragment.java:80: class exists, onPreferenceChange NOT DECLARED |
+| E744e82b0 | src | `FtpServerFragment.onViewCreated` | REMOVE | Inherited, not declared | grep FtpServerFragment.java:80: class exists, onViewCreated NOT DECLARED |
+| E744e82b0-2 | src | `FtpServerFragment.onViewCreated` | REMOVE | Inherited, not declared | grep FtpServerFragment.java:80: class exists, onViewCreated NOT DECLARED |
+| E16783aa4 | src | `GlideListPreloader.onScroll` | REMOVE | Framework class | Source file not found (framework/library) |
+| E34fee262 | src | `GlideListPreloader.onScroll` | REMOVE | Framework class | Source file not found (framework/library) |
+| E54a3b3df | src | `GzipExtractor.extract` | REMOVE | Inherited, not declared | grep GzipExtractor.java: FOUND extract at line 52 |
+| E69a9a80a | src | `HiddenAdapter.onClick` | REMOVE | Inherited, not declared | grep HiddenAdapter.java:36: class exists, onClick NOT DECLARED |
+| Ef47525ab | dst | `InflaterInputStream.close` | REMOVE | Framework class | Source file not found (framework/library) |
+| Ef47525ab-2 | dst | `InflaterInputStream.close` | REMOVE | Framework class | Source file not found (framework/library) |
+| Edcfbfe98 | dst | `InflaterInputStream.read` | REMOVE | Framework class | Source file not found (framework/library) |
+| Edcfbfe98-2 | dst | `InflaterInputStream.read` | REMOVE | Framework class | Source file not found (framework/library) |
+| E3e741287 | src | `ItemPopupMenu.create` | REMOVE | Inherited, not declared | grep ItemPopupMenu.java:38: class exists, create NOT DECLARED |
+| E0a0b2f71 | src | `LayoutInflater.inflate` | REMOVE | Framework class | Source file not found (framework/library) |
+| E81cdc14e | src | `MediaScannerConnection.connect` | REMOVE | Framework class | Source file not found (framework/library) |
+| E6950c6b3 | src | `MediaScannerConnection.scanFile` | REMOVE | Framework class | Source file not found (framework/library) |
+| Ede5989c9 | src | `Parcelable.Creator` | REMOVE | Inherited, not declared | Source file not found (framework/library) |
+| E3d215f92 | src | `Parcelable.Creator` | REMOVE | Inherited, not declared | Source file not found (framework/library) |
+| Ec926489f | src | `Parcelable.Creator` | REMOVE | Inherited, not declared | Source file not found (framework/library) |
+| Ede5989c9-2 | src | `Parcelable.Creator` | REMOVE | Inherited, not declared | Source file not found (framework/library) |
+| E3d215f92-2 | src | `Parcelable.Creator` | REMOVE | Inherited, not declared | Source file not found (framework/library) |
+| Ec926489f-2 | src | `Parcelable.Creator` | REMOVE | Inherited, not declared | Source file not found (framework/library) |
+| Eed3bd374 | src | `RecyclerAdapter.addShortcut` | REMOVE | Inherited, not declared | grep RecyclerAdapter.java:98: class exists, addShortcut NOT DECLARED |
+| Eed3bd374-2 | src | `RecyclerAdapter.addShortcut` | REMOVE | Inherited, not declared | grep RecyclerAdapter.java:98: class exists, addShortcut NOT DECLARED |
+| Eaeccdec7 | src | `RecyclerAdapter.bindViewHolderAsFile` | REMOVE | Inherited, not declared | grep RecyclerAdapter.java:98: class exists, bindViewHolderAsFile NOT DECLARED |
+| E5ccd3f99 | src | `RecyclerAdapter.bindViewHolderAsFile` | REMOVE | Inherited, not declared | grep RecyclerAdapter.java:98: class exists, bindViewHolderAsFile NOT DECLARED |
+| Eaeccdec7-2 | src | `RecyclerAdapter.bindViewHolderAsFile` | REMOVE | Inherited, not declared | grep RecyclerAdapter.java:98: class exists, bindViewHolderAsFile NOT DECLARED |
+| E5ccd3f99-2 | src | `RecyclerAdapter.bindViewHolderAsFile` | REMOVE | Inherited, not declared | grep RecyclerAdapter.java:98: class exists, bindViewHolderAsFile NOT DECLARED |
+| E68e5691e | src | `RecyclerAdapter.getView` | REMOVE | Inherited, not declared | grep RecyclerAdapter.java:98: class exists, getView NOT DECLARED |
+| E4a238fae | src | `RecyclerAdapter.onItemClick` | REMOVE | Inherited, not declared | grep RecyclerAdapter.java:98: class exists, onItemClick NOT DECLARED |
+| E4a238fae-2 | src | `RecyclerAdapter.onItemClick` | REMOVE | Inherited, not declared | grep RecyclerAdapter.java:98: class exists, onItemClick NOT DECLARED |
+| Ea1cc3ea5 | src | `RecyclerAdapter.onRename` | REMOVE | Inherited, not declared | grep RecyclerAdapter.java:98: class exists, onRename NOT DECLARED |
+| Ea1cc3ea5-2 | src | `RecyclerAdapter.onRename` | REMOVE | Inherited, not declared | grep RecyclerAdapter.java:98: class exists, onRename NOT DECLARED |
+| E28d1c356 | src | `ScheduledExecutorService.scheduleWithFixedDelay` | REMOVE | Framework class | Source file not found (framework/library) |
+| Ee39313ef | src | `SevenZipHelperTask.doInBackground` | REMOVE | Inherited, not declared | grep SevenZipHelperTask.java:49: class exists, doInBackground NOT DECLARED |
+| Ef10cc504 | src | `SevenZipHelperTask.doInBackground` | REMOVE | Inherited, not declared | grep SevenZipHelperTask.java:49: class exists, doInBackground NOT DECLARED |
+| E3fc0558e | src | `SevenZipHelperTask.doInBackground` | REMOVE | Inherited, not declared | grep SevenZipHelperTask.java:49: class exists, doInBackground NOT DECLARED |
+| Ede8b8669 | src | `SevenZipHelperTask.doInBackground` | REMOVE | Inherited, not declared | grep SevenZipHelperTask.java:49: class exists, doInBackground NOT DECLARED |
+| Eacb97a70 | src | `SevenZipHelperTask.doInBackground` | REMOVE | Inherited, not declared | grep SevenZipHelperTask.java:49: class exists, doInBackground NOT DECLARED |
+| Edb6967ca | src | `SevenZipHelperTask.doInBackground` | REMOVE | Inherited, not declared | grep SevenZipHelperTask.java:49: class exists, doInBackground NOT DECLARED |
+| Eecaf4280 | src | `SevenZipHelperTask.doInBackground` | REMOVE | Inherited, not declared | grep SevenZipHelperTask.java:49: class exists, doInBackground NOT DECLARED |
+| E0176a200 | src | `SevenZipHelperTask.doInBackground` | REMOVE | Inherited, not declared | grep SevenZipHelperTask.java:49: class exists, doInBackground NOT DECLARED |
+| Ea960f1a2 | src | `SevenZipHelperTask.doInBackground` | REMOVE | Inherited, not declared | grep SevenZipHelperTask.java:49: class exists, doInBackground NOT DECLARED |
+| Ee849b94e | src | `SevenZipHelperTask.doInBackground` | REMOVE | Inherited, not declared | grep SevenZipHelperTask.java:49: class exists, doInBackground NOT DECLARED |
+| E0176a200-2 | src | `SevenZipHelperTask.doInBackground` | REMOVE | Inherited, not declared | grep SevenZipHelperTask.java:49: class exists, doInBackground NOT DECLARED |
+| Ea960f1a2-2 | src | `SevenZipHelperTask.doInBackground` | REMOVE | Inherited, not declared | grep SevenZipHelperTask.java:49: class exists, doInBackground NOT DECLARED |
+| Ee849b94e-2 | src | `SevenZipHelperTask.doInBackground` | REMOVE | Inherited, not declared | grep SevenZipHelperTask.java:49: class exists, doInBackground NOT DECLARED |
+| Ea371e5b0 | src | `SevenZipHelperTask.doInBackground` | REMOVE | Inherited, not declared | grep SevenZipHelperTask.java:49: class exists, doInBackground NOT DECLARED |
+| Ea27b7757 | src | `SevenZipHelperTask.onPostExecute` | REMOVE | Inherited, not declared | grep SevenZipHelperTask.java:49: class exists, onPostExecute NOT DECLARED |
+| Ef610293b | src | `SmbConnectDialog.lambda$new$2` | REMOVE | Inherited, not declared | grep SmbConnectDialog.java:44: class exists, lambda$new$2 NOT DECLARED |
+| Ede17ce03 | src | `SmbConnectDialog.lambda$onCreateView$4` | REMOVE | Inherited, not declared | grep SmbConnectDialog.java:44: class exists, lambda$onCreateView$4 NOT DECLARED |
+| E3ad9e434 | src | `SmbConnectDialog.lambda$onCreateView$5` | REMOVE | Inherited, not declared | grep SmbConnectDialog.java:44: class exists, lambda$onCreateView$5 NOT DECLARED |
+| E94128fad | src | `SmbFile` | REMOVE | Framework class | Framework class (no package prefix) |
+| E2630263a | src | `Tab.getTab` | REMOVE | Inherited, not declared | grep Tab.java:30: class exists, getTab NOT DECLARED |
+| E35bdb0f4 | src | `ViewTreeObserver.addOnGlobalLayoutListener` | REMOVE | Framework class | Source file not found (framework/library) |
+| E659dea28 | src | `com.amaze.filemanager.activities.MainActivity.updateBottomBarColor` | REMOVE | Inherited, not declared | grep MainActivity.java:157: class exists, updateBottomBarColor NOT DECLARED |
+| E659dea28-2 | src | `com.amaze.filemanager.activities.MainActivity.updateBottomBarColor` | REMOVE | Inherited, not declared | grep MainActivity.java:157: class exists, updateBottomBarColor NOT DECLARED |
+| E57d37770 | src | `com.amaze.filemanager.fragments.CompressedExplorerFragment.updatePath` | REMOVE | Inherited, not declared | grep CompressedExplorerFragment.java:82: class exists, updatePath NOT DECLARED |
+| E57d37770-2 | src | `com.amaze.filemanager.fragments.CompressedExplorerFragment.updatePath` | REMOVE | Inherited, not declared | grep CompressedExplorerFragment.java:82: class exists, updatePath NOT DECLARED |
+| E3dec0435 | src | `com.amaze.filemanager.fragments.FtpServerFragment.onViewCreated` | REMOVE | Inherited, not declared | grep FtpServerFragment.java:80: class exists, onViewCreated NOT DECLARED |
+| E3dec0435-2 | src | `com.amaze.filemanager.fragments.FtpServerFragment.onViewCreated` | REMOVE | Inherited, not declared | grep FtpServerFragment.java:80: class exists, onViewCreated NOT DECLARED |
+| E244f9db3 | src | `com.amaze.filemanager.fragments.MainFragment.onViewCreated` | REMOVE | Inherited, not declared | grep MainFragment.java:130: class exists, onViewCreated NOT DECLARED |
+| E244f9db3-2 | src | `com.amaze.filemanager.fragments.MainFragment.onViewCreated` | REMOVE | Inherited, not declared | grep MainFragment.java:130: class exists, onViewCreated NOT DECLARED |
+| Ebf54787a | src | `com.amaze.filemanager.fragments.MainFragment.searchResultsFound` | REMOVE | Inherited, not declared | grep MainFragment.java:130: class exists, searchResultsFound NOT DECLARED |
+| Edcc32625 | src | `com.amaze.filemanager.fragments.MainFragment.searchResultsFound` | REMOVE | Inherited, not declared | grep MainFragment.java:130: class exists, searchResultsFound NOT DECLARED |
+| Ebf54787a-2 | src | `com.amaze.filemanager.fragments.MainFragment.searchResultsFound` | REMOVE | Inherited, not declared | grep MainFragment.java:130: class exists, searchResultsFound NOT DECLARED |
+| Edcc32625-2 | src | `com.amaze.filemanager.fragments.MainFragment.searchResultsFound` | REMOVE | Inherited, not declared | grep MainFragment.java:130: class exists, searchResultsFound NOT DECLARED |
+| E03244eb2 | src | `com.amaze.filemanager.fragments.MainFragment.updateBottomBar` | REMOVE | Inherited, not declared | grep MainFragment.java:130: class exists, updateBottomBar NOT DECLARED |
+| E03244eb2-2 | src | `com.amaze.filemanager.fragments.MainFragment.updateBottomBar` | REMOVE | Inherited, not declared | grep MainFragment.java:130: class exists, updateBottomBar NOT DECLARED |
+| E6278a842 | src | `com/amaze/filemanager/ui/views/drawer/Drawer.updateItemsList` | REMOVE | Inherited, not declared | Source file not found (framework/library) |
+| E6278a842-2 | src | `com/amaze/filemanager/ui/views/drawer/Drawer.updateItemsList` | REMOVE | Inherited, not declared | Source file not found (framework/library) |

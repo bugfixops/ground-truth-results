@@ -1,0 +1,355 @@
+LibreTorrent batch 16 helper — printed commands and source evidence
+Source root: /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java
+Membership authority: /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+
+COMMAND: awk -F '\t' '$1==16 {print $3}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+OUTPUT:
+NanoHTTPD$CookieHandler.set(String,String,int)
+NanoHTTPD$CookieHandler.set(Cookie)
+NanoHTTPD$CookieHandler.unloadQueue
+NanoHTTPD$DefaultAsyncRunner.<init>
+NanoHTTPD$DefaultAsyncRunner.closeAll
+NanoHTTPD$DefaultAsyncRunner.closed
+NanoHTTPD$DefaultAsyncRunner.exec
+NanoHTTPD$DefaultServerSocketFactory.<init>
+NanoHTTPD$DefaultServerSocketFactory.create
+NanoHTTPD$DefaultTempFile.<init>
+NanoHTTPD$DefaultTempFile.delete
+NanoHTTPD$DefaultTempFile.getName
+NanoHTTPD$DefaultTempFileManager.<init>
+NanoHTTPD$DefaultTempFileManager.clear
+NanoHTTPD$DefaultTempFileManager.createTempFile
+NanoHTTPD$DefaultTempFileManagerFactory.<init>
+NanoHTTPD$DefaultTempFileManagerFactory.create
+NanoHTTPD$HTTPSession.<init>(NanoHTTPD,TempFileManager,InputStream,OutputStream,InetAddress)
+NanoHTTPD$HTTPSession.decodeHeader
+NanoHTTPD$HTTPSession.decodeMultipartFormData
+NanoHTTPD$HTTPSession.decodeParms
+NanoHTTPD$HTTPSession.execute
+NanoHTTPD$HTTPSession.findHeaderEnd
+NanoHTTPD$HTTPSession.getAttributeFromContentHeader
+NanoHTTPD$HTTPSession.getBodySize
+NanoHTTPD$HTTPSession.getBoundaryPositions
+NanoHTTPD$HTTPSession.getHeaders
+NanoHTTPD$HTTPSession.getMethod
+NanoHTTPD$HTTPSession.getParms
+NanoHTTPD$HTTPSession.getQueryParameterString
+NanoHTTPD$HTTPSession.getTmpBucket
+NanoHTTPD$HTTPSession.getUri
+NanoHTTPD$HTTPSession.parseBody
+NanoHTTPD$HTTPSession.saveTmpFile
+NanoHTTPD$HTTPSession.scipOverNewLine
+NanoHTTPD$Method.<clinit>
+NanoHTTPD$Method.lookup
+NanoHTTPD$Response.<init>
+NanoHTTPD$Response.addHeader
+NanoHTTPD$Response.close
+
+COMMAND: nl -ba /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java | sed -n '1055,1085p'
+OUTPUT:
+1055        boolean enableStreaming = pref.enableStreaming();
+1056        if (enableStreaming)
+1057            startStreamingServer();
+1063    private void startStreamingServer() {
+1064        stopStreamingServer();
+1066        String hostname = pref.streamingHostname();
+1067        int port = pref.streamingPort();
+1069        torrentStreamServer = new TorrentStreamServer(hostname, port);
+1070        try {
+1071            torrentStreamServer.start(appContext);
+1079    private void stopStreamingServer() {
+1080        if (torrentStreamServer != null)
+1081            torrentStreamServer.stop();
+
+COMMAND: nl -ba /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/stream/TorrentStreamServer.java | sed -n '67,87p;110,145p;150,166p;190,249p'
+OUTPUT:
+67    public TorrentStreamServer(@NonNull String host, int port) { super(host, port); }
+72    public void start(Context appContext) throws IOException { engine = TorrentEngine.getInstance(appContext); super.start(); }
+81    public void stop() { super.stop(); }
+110   public Response serve(IHTTPSession session) {
+113       String uri = session.getUri();
+117       Response res = handleTorrent(session);
+121       return res;
+124   public Response handleTorrent(IHTTPSession httpSession) {
+129       if (!httpSession.getUri().equals("/stream")) return ...;
+132       Map<String,String> params = httpSession.getParms();
+141       fileIndex = Integer.parseInt(...params.get("file"));
+142       stream = engine.getStream(torrentId, fileIndex);
+150       Map<String,String> header = httpSession.getHeaders();
+196-214 Fixed length response and addHeader calls for not-modified/partial content
+222-224 Range-not-satisfiable response and headers
+231-248 Not-modified/full-file responses and headers
+
+COMMAND: nl -ba /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/nanohttpd/NanoHTTPD.java | sed -n '165,195p;309,336p;391,415p;424,429p;494,542p;544,630p;637,654p;655,760p;761,798p;817,864p;865,960p;993,1010p;1015,1018p;1120,1146p;1325,1352p;1531,1562p;1690,1714p;1732,1747p;1813,1847p'
+OUTPUT (selected source lines; line numbers are from nl -ba):
+165-175 ClientHandler obtains socket output, factory-created temp manager, creates HTTPSession, loops session.execute.
+188-193 ClientHandler finally closes streams/socket and calls asyncRunner.closed(this).
+294-298 CookieHandler.unloadQueue iterates queued cookies and calls response.addHeader.
+309-336 DefaultAsyncRunner methods: closeAll closes running handlers; closed removes a handler; exec starts a daemon Thread.
+347-369 DefaultTempFile creates temp file, delete closes/deletes it, getName returns absolute path.
+380-415 DefaultTempFileManager constructor; clear deletes listed files and empties list; createTempFile constructs/registers DefaultTempFile; factory create constructs manager.
+424-429 DefaultServerSocketFactory.create returns a ServerSocket.
+484-490 HTTPSession constructor stores streams and remote address.
+494-542 decodeHeader reads method/URI, calls decodeParms on query text, and reads headers.
+544-630 decodeMultipartFormData uses boundary positions; calls scipOverNewLine and saveTmpFile for file parts.
+637-654 decodeParms parses query key/value tokens.
+655-760 execute reads header bytes, calls findHeaderEnd and decodeHeader, looks up method, constructs CookieHandler, dispatches serve(this), unloads cookies, sends response, safe-closes response and clears temp manager in finally.
+761-798 findHeaderEnd and getBoundaryPositions implementations.
+817-851 getters; app route calls getHeaders/getParms/getUri; getMethod/getQueryParameterString are used by base serve only; getTmpBucket creates temp file.
+856-960 getBodySize and parseBody; getBodySize feeds parseBody; multipart parses content headers and writes temp files.
+993-1010 Method enum and lookup.
+1015 Response implements Closeable.
+1120-1146 Response constructor stores response data/length, close closes data, addHeader stores a header.
+1325-1352 server Runnable binds socket, accepts clients, and invokes asyncRunner.exec.
+1531 default ServerSocketFactory field; 1557-1562 NanoHTTPD(String,int) installs DefaultTempFileManagerFactory and DefaultAsyncRunner.
+1690-1714 response factory constructs Response; app calls newFixedLengthResponse.
+1732-1747 base serve calls getMethod, conditionally calls parseBody, then getParms/getQueryParameterString/getUri/getHeaders.
+1813-1847 start calls ServerSocketFactory.create; stop calls asyncRunner.closeAll.
+
+COMMAND: rg -n '\.getCookies\(\)|\.set\([^\n]*Cookie|\.set\([^\n]*,[^\n]*,[^\n]*\)' /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java -g '*.java' | head -40
+OUTPUT:
+(no matching source call sites; rg exit status 1)
+
+COMMAND: rg -n 'parseBody\(|\.open\(\)|createTempFile\(|getTmpBucket\(|getBodySize\(|decodeMultipartFormData\(|getBoundaryPositions\(|getAttributeFromContentHeader\(|saveTmpFile\(|getQueryParameterString\(\)|\.getMethod\(\)' /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/nanohttpd /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/stream/TorrentStreamServer.java -g '*.java'
+OUTPUT:
+The NanoHTTPD occurrences show parseBody only called by base serve(IHTTPSession), with helper calls from parseBody. TorrentStreamServer has no super.serve(session) call; its serve directly calls handleTorrent, which reads getUri/getParms/getHeaders. Thus parseBody and its dependent temp-file/multipart methods lack an app-reachable route.
+
+Summary labels: 24 REACHABLE; 16 UNREACHABLE no_trigger_in_app; 0 OPEN. No coverage artifacts were consulted.
+
+VERBATIM SOURCE EXCERPTS (line-numbered command output)
+
+COMMAND: nl -ba /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java | sed -n '1055,1083p'
+OUTPUT:
+  1055        boolean enableStreaming = pref.enableStreaming();
+  1056        if (enableStreaming)
+  1057            startStreamingServer();
+  1058
+  1063    private void startStreamingServer() {
+  1064        stopStreamingServer();
+  1065
+  1066        String hostname = pref.streamingHostname();
+  1067        int port = pref.streamingPort();
+  1068
+  1069        torrentStreamServer = new TorrentStreamServer(hostname, port);
+  1070        try {
+  1071            torrentStreamServer.start(appContext);
+  1072
+  1079    private void stopStreamingServer() {
+  1080        if (torrentStreamServer != null)
+  1081            torrentStreamServer.stop();
+  1082        torrentStreamServer = null;
+
+COMMAND: nl -ba /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/stream/TorrentStreamServer.java | sed -n '67,85p;110,145p;150,166p;190,214p;242,249p'
+OUTPUT:
+    67    public TorrentStreamServer(@NonNull String host, int port)
+    68    {
+    69        super(host, port);
+    70    }
+    72    public void start(@NonNull Context appContext) throws IOException
+    73    {
+    76        engine = TorrentEngine.getInstance(appContext);
+    78        super.start();
+    81    @Override
+    82    public void stop()
+    84        super.stop();
+   110    @Override
+   111    public Response serve(IHTTPSession session)
+   112    {
+   113        String uri = session.getUri();
+   114        String extension = uri.substring(uri.lastIndexOf('.') + 1);
+   117        Response res = handleTorrent(session);
+   121        return res;
+   124    public Response handleTorrent(IHTTPSession httpSession)
+   129        if (!httpSession.getUri().equals("/stream"))
+   132        Map<String, String> params = httpSession.getParms();
+   133        if (params.size() < 2)
+   136        String torrentId = Objects.requireNonNull(params.get("torrent"));
+   141            fileIndex = Integer.parseInt(Objects.requireNonNull(params.get("file")));
+   142            stream = engine.getStream(torrentId, fileIndex);
+   150            Map<String, String> header = httpSession.getHeaders();
+   196                    res = newFixedLengthResponse(NOT_MODIFIED, MIME_OCTET_STREAM, "");
+   197                    res.addHeader("ETag", etag);
+   209                    res = newFixedLengthResponse(PARTIAL_CONTENT, MIME_OCTET_STREAM, is, newLen);
+   210                    res.addHeader("Accept-Ranges", "bytes");
+   211                    res.addHeader("Content-Length", "" + newLen);
+   212                    res.addHeader("Content-Range", "bytes " + startFrom + "-" + endAt + "/" + stream.fileSize);
+   213                    res.addHeader("ETag", etag);
+   214                    res.addHeader("Content-Disposition", "inline; filename=" + stream.id);
+   242                } else {
+   243                    TorrentInputStream is = engine.getTorrentInputStream(stream);
+   244                    res = newFixedLengthResponse(OK, MIME_OCTET_STREAM, is, stream.fileSize);
+   245                    res.addHeader("Accept-Ranges", "bytes");
+   246                    res.addHeader("Content-Length", "" + stream.fileSize);
+   247                    res.addHeader("ETag", etag);
+   248                    res.addHeader("Content-Disposition", "inline; filename=" + stream.id);
+
+COMMAND: nl -ba /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/nanohttpd/NanoHTTPD.java | sed -n '172,175p;188,193p;270,298p;319,336p;350,364p;383,415p;424,429p;484,490p;510,515p;637,654p;702,754p;781,790p;821,851p;856,877p;907,939p;944,960p;993,1010p;1120,1146p;1325,1352p;1531,1562p;1690,1714p;1732,1747p;1813,1847p'
+OUTPUT:
+  172                TempFileManager tempFileManager = NanoHTTPD.this.tempFileManagerFactory.create();
+  173                HTTPSession session = new HTTPSession(tempFileManager, this.inputStream, outputStream, this.acceptSocket.getInetAddress());
+  174                while (!this.acceptSocket.isClosed()) {
+  175                    session.execute();
+  188            } finally {
+  189                safeClose(outputStream);
+  190                safeClose(this.inputStream);
+  191                safeClose(this.acceptSocket);
+  192                NanoHTTPD.this.asyncRunner.closed(this);
+  193            }
+  270        public void set(Cookie cookie) {
+  271            this.queue.add(cookie);
+  272        }
+  283        public void set(String name, String value, int expires) {
+  284            this.queue.add(new Cookie(name, value, Cookie.getHTTPTime(expires)));
+  285        }
+  294        public void unloadQueue(Response response) {
+  295            for (Cookie cookie : this.queue) {
+  296                response.addHeader("Set-Cookie", cookie.getHTTPHeader());
+  297            }
+  298        }
+  319        public void closeAll() {
+  321            for (ClientHandler clientHandler : new ArrayList<ClientHandler>(this.running)) {
+  322                clientHandler.close();
+  323            }
+  326        public void closed(ClientHandler clientHandler) {
+  327            this.running.remove(clientHandler);
+  328        }
+  330        public void exec(ClientHandler clientHandler) {
+  331            ++this.requestCount;
+  332            Thread t = new Thread(clientHandler);
+  335            this.running.add(clientHandler);
+  336            t.start();
+  350        public DefaultTempFile(File tempdir) throws IOException {
+  351            this.file = File.createTempFile("NanoHTTPD-", "", tempdir);
+  352            this.fstream = new FileOutputStream(this.file);
+  355        public void delete() throws Exception {
+  356            safeClose(this.fstream);
+  357            if (!this.file.delete()) {
+  358                throw new Exception("could not delete temporary file");
+  359            }
+  362        public String getName() {
+  363            return this.file.getAbsolutePath();
+  364        }
+  383        public DefaultTempFileManager() {
+  384            this.tmpdir = new File(System.getProperty("java.io.tmpdir"));
+  388            this.tempFiles = new ArrayList<TempFile>();
+  391        public void clear() {
+  392            for (TempFile file : this.tempFiles) {
+  394                    file.delete();
+  399            this.tempFiles.clear();
+  402        public TempFile createTempFile(String filename_hint) throws Exception {
+  403            DefaultTempFile tempFile = new DefaultTempFile(this.tmpdir);
+  404            this.tempFiles.add(tempFile);
+  405            return tempFile;
+  411    private class DefaultTempFileManagerFactory implements TempFileManagerFactory {
+  413        public TempFileManager create() {
+  414            return new DefaultTempFileManager();
+  424    public static class DefaultServerSocketFactory implements ServerSocketFactory {
+  426        public ServerSocket create() throws IOException {
+  427            return new ServerSocket();
+  484        public HTTPSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress) {
+  485            this.tempFileManager = tempFileManager;
+  486            this.inputStream = new BufferedInputStream(inputStream, HTTPSession.BUFSIZE);
+  487            this.outputStream = outputStream;
+  488            this.remoteIp = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "127.0.0.1" : inetAddress.getHostAddress().toString();
+  489            this.headers = new HashMap<String, String>();
+  510                int qmi = uri.indexOf('?');
+  511                if (qmi >= 0) {
+  512                    decodeParms(uri.substring(qmi + 1), parms);
+  513                    uri = decodePercent(uri.substring(0, qmi));
+  514                } else {
+  515                    uri = decodePercent(uri);
+  637        private void decodeParms(String parms, Map<String, String> p) {
+  638            if (parms == null) {
+  639                this.queryParameterString = "";
+  640                return;
+  641            }
+  642            this.queryParameterString = parms;
+  644            while (st.hasMoreTokens()) {
+  645                String e = st.nextToken();
+  647                    p.put(decodePercent(e.substring(0, sep)).trim(), decodePercent(e.substring(sep + 1)));
+  649                    p.put(decodePercent(e).trim(), "");
+  702                decodeHeader(hin, pre, this.parms, this.headers);
+  708                this.method = Method.lookup(pre.get("method"));
+  713                this.cookies = new CookieHandler(this.headers);
+  723                    this.cookies.unloadQueue(r);
+  724                    r.setRequestMethod(this.method);
+  727                    r.send(this.outputStream);
+  750            } finally {
+  751                safeClose(r);
+  754                this.tempFileManager.clear();
+  761        private int findHeaderEnd(final byte[] buf, int rlen) {
+  762            int splitbyte = 0;
+  763            while (splitbyte + 1 < rlen) {
+  781        private int[] getBoundaryPositions(ByteBuffer b, byte[] boundary) {
+  821        public final Map<String, String> getHeaders() {
+  822            return this.headers;
+  829        public final Method getMethod() {
+  830            return this.method;
+  833        public final Map<String, String> getParms() {
+  834            return this.parms;
+  837        public String getQueryParameterString() {
+  838            return this.queryParameterString;
+  840        private RandomAccessFile getTmpBucket() {
+  842                TempFile tempFile = this.tempFileManager.createTempFile(null);
+  843                return new RandomAccessFile(tempFile.getName(), "rw");
+  849        public final String getUri() {
+  850            return this.uri;
+  856        public long getBodySize() {
+  865        public void parseBody(Map<String, String> files) throws IOException, ResponseException {
+  868                long size = getBodySize();
+  876                    randomAccessFile = getTmpBucket();
+  907                    if ("multipart/form-data".equalsIgnoreCase(contentType)) {
+  913                        decodeMultipartFormData(getAttributeFromContentHeader(contentTypeHeader, BOUNDARY_PATTERN, null), //
+  914                                getAttributeFromContentHeader(contentTypeHeader, CHARSET_PATTERN, "US-ASCII"), fbuf, this.parms, files);
+  929                } else if (Method.PUT.equals(this.method)) {
+  930                    files.put("content", saveTmpFile(fbuf, 0, fbuf.limit(), null));
+  936        private String getAttributeFromContentHeader(String contentTypeHeader, Pattern pattern, String defaultValue) {
+  944        private String saveTmpFile(ByteBuffer b, int offset, int len, String filename_hint) {
+  949                    TempFile tempFile = this.tempFileManager.createTempFile(filename_hint);
+  951                    fileOutputStream = new FileOutputStream(tempFile.getName());
+  993    public enum Method {
+ 1003        static Method lookup(String method) {
+ 1004            for (Method m : Method.values()) {
+ 1005                if (m.toString().equalsIgnoreCase(method)) {
+ 1009            return null;
+ 1010        }
+ 1015    public static class Response implements Closeable {
+ 1120        protected Response(IStatus status, String mimeType, InputStream data, long totalBytes) {
+ 1121            this.status = status;
+ 1125            if (data == null) {
+ 1126                this.data = new ByteArrayInputStream(new byte[0]);
+ 1132            this.chunkedTransfer = this.contentLength < 0;
+ 1135        @Override
+ 1136        public void close() throws IOException {
+ 1137            if (this.data != null) {
+ 1138                this.data.close();
+ 1144        public void addHeader(String name, String value) {
+ 1145            this.header.put(name, value);
+ 1325        private final int timeout;
+ 1328        private ServerRunnable(int timeout) {
+ 1332        public void run() {
+ 1342                    final Socket finalAccept = NanoHTTPD.this.myServerSocket.accept();
+ 1347                    NanoHTTPD.this.asyncRunner.exec(createClientHandler(finalAccept, inputStream));
+ 1351            } while (!NanoHTTPD.this.myServerSocket.isClosed());
+ 1531    private ServerSocketFactory serverSocketFactory = new DefaultServerSocketFactory();
+ 1557    public NanoHTTPD(String hostname, int port) {
+ 1560        setTempFileManagerFactory(new DefaultTempFileManagerFactory());
+ 1561        setAsyncRunner(new DefaultAsyncRunner());
+ 1696    public static Response newFixedLengthResponse(Response.IStatus status, String mimeType, InputStream data, long totalBytes) {
+ 1697        return new Response(status, mimeType, data, totalBytes);
+ 1702    public static Response newFixedLengthResponse(Response.IStatus status, String mimeType, String txt) {
+ 1704            return newFixedLengthResponse(status, mimeType, new ByteArrayInputStream(new byte[0]), 0);
+ 1713            return newFixedLengthResponse(status, mimeType, new ByteArrayInputStream(bytes), bytes.length);
+ 1732    public Response serve(IHTTPSession session) {
+ 1734        Method method = session.getMethod();
+ 1735        if (Method.PUT.equals(method) || Method.POST.equals(method)) {
+ 1737                session.parseBody(files);
+ 1744        Map<String, String> parms = session.getParms();
+ 1745        parms.put(NanoHTTPD.QUERY_STRING_PARAMETER, session.getQueryParameterString());
+ 1746        return serve(session.getUri(), method, session.getHeaders(), parms, files);
+ 1813    public void start(final int timeout, boolean daemon) throws IOException {
+ 1814        this.myServerSocket = this.getServerSocketFactory().create();
+ 1820        this.myThread.start();
+ 1837    public void stop() {
+ 1839            safeClose(this.myServerSocket);
+ 1840            this.asyncRunner.closeAll();

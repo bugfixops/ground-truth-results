@@ -1,0 +1,51 @@
+Batch 129 grep and auto_calls.json evidence (SRC_MAIN = final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main; CLASSES = final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes; run from /Users/darshan/Desktop/yang/work)
+
+== A1: grep -rln "CheckingTransactionEditActivity_MembersInjector" SRC_MAIN
+(no output, exit 1: the generated MembersInjector is not named anywhere in the app source)
+
+== A2: grep -rn "new EditTransactionActivityConstants\|EditTransactionActivityConstants()" SRC_MAIN
+(no output, exit 1: the constants class is never instantiated in the app source)
+
+== B1: grep -n -A3 "CheckingTransactionEditActivity_MembersInjector\|EditTransactionActivityConstants" graphs/MMEX/auto_calls.json (records and method index only)
+18696-18699: src DaggerMmxComponent.injectCheckingTransactionEditActivity, dst CheckingTransactionEditActivity_MembersInjector.injectDatabase, file DaggerMmxComponent.java, line 389, dispatch exact
+28396-28401: src CheckingTransactionEditActivity_MembersInjector.create, dst CheckingTransactionEditActivity_MembersInjector.<init>, file CheckingTransactionEditActivity_MembersInjector.java, line 22, dispatch exact
+28404-28409: src CheckingTransactionEditActivity_MembersInjector.injectMembers, dst CheckingTransactionEditActivity_MembersInjector.injectDatabase, file CheckingTransactionEditActivity_MembersInjector.java, line 27, dispatch exact
+68867-68872: externals of CheckingTransactionEditActivity_MembersInjector.<init> = [Object.<init>]; of injectMembers = [Provider.get]
+68909-68911: externals of EditTransactionActivityConstants.<init> = [Object.<init>] (its own calls; not a record with dst EditTransactionActivityConstants.<init>)
+86463-86476: method index of CheckingTransactionEditActivity_MembersInjector: <init>, create, injectMembers, injectDatabase
+86520-86522: method index of EditTransactionActivityConstants: <init>
+
+== B2: grep -n '"dst": "CheckingTransactionEditActivity_MembersInjector.create"\|"dst": "CheckingTransactionEditActivity_MembersInjector.injectMembers"\|"src": "EditTransactionActivityConstants' graphs/MMEX/auto_calls.json
+(no output, exit 1: no record calls create or injectMembers, and no record starts at EditTransactionActivityConstants)
+
+== B3: grep -n '"dst": "[^"]*injectMembers"' graphs/MMEX/auto_calls.json | grep -i checkingtransaction
+(no output, exit 1)
+
+== C1: CLASSES constant-pool parse (python3 -I, inline, no file written); 825 .class files parsed; every Fieldref, Methodref or InterfaceMethodref whose owner is CheckingTransactionEditActivity_MembersInjector or EditTransactionActivityConstants:
+com/money/manager/ex/core/ioc/DaggerMmxComponent.class | Methodref | CheckingTransactionEditActivity_MembersInjector.injectDatabase(Lcom/money/manager/ex/transactions/CheckingTransactionEditActivity;Lcom/squareup/sqlbrite3/BriteDatabase;)V
+com/money/manager/ex/transactions/CheckingTransactionEditActivity_MembersInjector.class | Methodref | CheckingTransactionEditActivity_MembersInjector.<init>(Ljavax/inject/Provider;)V
+com/money/manager/ex/transactions/CheckingTransactionEditActivity_MembersInjector.class | Methodref | CheckingTransactionEditActivity_MembersInjector.injectDatabase(Lcom/money/manager/ex/transactions/CheckingTransactionEditActivity;Lcom/squareup/sqlbrite3/BriteDatabase;)V
+com/money/manager/ex/transactions/CheckingTransactionEditActivity_MembersInjector.class | Methodref | CheckingTransactionEditActivity_MembersInjector.injectMembers(Lcom/money/manager/ex/transactions/CheckingTransactionEditActivity;)V
+Reading: no Methodref to CheckingTransactionEditActivity_MembersInjector.create exists in any class file; the only Methodref to <init> is inside CheckingTransactionEditActivity_MembersInjector.class (the create body); the only Methodref to injectMembers is inside the same class file; no class file has any Fieldref, Methodref or InterfaceMethodref to EditTransactionActivityConstants (its constants are literal, so javac inlines them).
+
+== E1: grep -n "class \|interface \|EditTransactionActivityConstants(" final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/EditTransactionActivityConstants.java
+23:public class EditTransactionActivityConstants {
+(only the class line: no explicit constructor, no interface)
+
+== E2: EditTransactionActivityConstants.java line count and last lines
+48 lines; sed -n 46,48p shows line 46 as a commented-out KEY_ACTION constant, line 47 as "public static final String KEY_TRANS_SOURCE = ..." and line 48 as "}"
+
+== E4: grep -n "static final" EditTransactionActivityConstants.java | grep -v '= "[^"]*";\s*$'
+24://    public static final String LOGCAT = CheckingTransactionEditActivity.class.getSimpleName();
+(the only line that does not end in a string literal is commented out, line 24)
+
+== E6: grep -n "static final" EditTransactionActivityConstants.java | grep -v "//" | wc -l
+20 (uncommented static final fields, all String literals)
+
+== F1: route records, auto_calls.json
+18415-18420: src DaggerMmxComponent.inject(CheckingTransactionEditActivity), dst DaggerMmxComponent.injectCheckingTransactionEditActivity, file DaggerMmxComponent.java, line 212, dispatch exact
+18416-18417 is the only record whose dst is DaggerMmxComponent.injectCheckingTransactionEditActivity (grep -n -B2 -A3 'injectCheckingTransactionEditActivity"')
+32789-32796: src CheckingTransactionEditActivity.onCreate, dst DaggerMmxComponent.inject(CheckingTransactionEditActivity), file CheckingTransactionEditActivity.java, line 97, dispatch cha
+
+== F2: grep -l "CheckingTransactionEditActivity.onCreate" graphs/MMEX/scratch/batches/*.txt
+graphs/MMEX/scratch/batches/batch_128.txt (onCreate is owned by batch 128, not merged in this batch)

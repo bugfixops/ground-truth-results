@@ -1,0 +1,564 @@
+# Batch 77 printed evidence (fresh, C12 converter, 2026-11-01)
+# Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+# Convention: each section lists clone lines in order; the first line shown is the range start.
+# Cited files (basenames, for check_part check 8): AddLinkDialog.java, AddLinkViewModel.java, AddTagActivity.java, AddTagDialog.java
+
+=== ui/addlink/AddLinkDialog.java:84-173 ===
+    public void onAttach(@NonNull Context context)
+    {
+        super.onAttach(context);
+
+        if (context instanceof AppCompatActivity)
+            activity = (AppCompatActivity)context;
+    }
+
+    @Override
+    public void onResume()
+    {
+        super.onResume();
+
+        /* Back button handle */
+        getDialog().setOnKeyListener((DialogInterface dialog, int keyCode, KeyEvent event) -> {
+            if (keyCode == KeyEvent.KEYCODE_BACK) {
+                if (event.getAction() != KeyEvent.ACTION_DOWN) {
+                    return true;
+                } else {
+                    onBackPressed();
+                    return true;
+                }
+            } else {
+                return false;
+            }
+        });
+    }
+
+    @Override
+    public void onStop()
+    {
+        super.onStop();
+
+        unsubscribeClipboardManager();
+        disposables.clear();
+    }
+
+    @Override
+    public void onStart()
+    {
+        super.onStart();
+
+        subscribeClipboardManager();
+        subscribeAlertDialog();
+    }
+
+    private void subscribeAlertDialog()
+    {
+        Disposable d = clipboardViewModel.observeSelectedItem().subscribe((item) -> {
+            if (TAG_CLIPBOARD_DIALOG.equals(item.dialogTag))
+                handleUrlClipItem(item.str);
+        });
+        disposables.add(d);
+    }
+
+    private void handleUrlClipItem(String item)
+    {
+        if (TextUtils.isEmpty(item))
+            return;
+
+        viewModel.link.set(item);
+        binding.link.postDelayed(this::addLink, 500);
+    }
+
+    private void subscribeClipboardManager() {
+        ClipboardManager clipboard = (ClipboardManager)activity.getSystemService(Activity.CLIPBOARD_SERVICE);
+        clipboard.addPrimaryClipChangedListener(clipListener);
+    }
+
+    private void unsubscribeClipboardManager() {
+        ClipboardManager clipboard = (ClipboardManager)activity.getSystemService(Activity.CLIPBOARD_SERVICE);
+        clipboard.removePrimaryClipChangedListener(clipListener);
+    }
+
+    private ClipboardManager.OnPrimaryClipChangedListener clipListener = this::switchClipboardButton;
+
+    private final ViewTreeObserver.OnWindowFocusChangeListener onFocusChanged =
+            (__) -> switchClipboardButton();
+
+    private void switchClipboardButton()
+    {
+        ClipData clip = Utils.getClipData(activity.getApplicationContext());
+        viewModel.showClipboardButton.set(clip != null);
+    }
+
+    @NonNull
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState)
+    {
+        if (activity == null)
+
+=== ui/addlink/AddLinkDialog.java:174-263 ===
+            activity = (AppCompatActivity)getActivity();
+
+        ViewModelProvider provider = new ViewModelProvider(activity);
+        viewModel = provider.get(AddLinkViewModel.class);
+        clipboardViewModel = provider.get(ClipboardDialog.SharedViewModel.class);
+
+        FragmentManager fm = getChildFragmentManager();
+        clipboardDialog = (ClipboardDialog)fm.findFragmentByTag(TAG_CLIPBOARD_DIALOG);
+
+        LayoutInflater i = LayoutInflater.from(activity);
+        binding = DataBindingUtil.inflate(i, R.layout.dialog_add_link, null, false);
+        binding.setViewModel(viewModel);
+
+        initLayoutView();
+
+        binding.getRoot().getViewTreeObserver().addOnWindowFocusChangeListener(onFocusChanged);
+
+        return alert;
+    }
+
+    @Override
+    public void onDestroyView()
+    {
+        binding.getRoot().getViewTreeObserver().removeOnWindowFocusChangeListener(onFocusChanged);
+
+        super.onDestroyView();
+    }
+
+    private void initLayoutView()
+    {
+        /* Dismiss error label if user has changed the text */
+        binding.link.addTextChangedListener(new TextWatcher()
+        {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) { }
+
+            @Override
+            public void afterTextChanged(Editable s)
+            {
+                binding.layoutLink.setErrorEnabled(false);
+                binding.layoutLink.setError(null);
+            }
+        });
+
+        binding.clipboardButton.setOnClickListener((v) -> showClipboardDialog());
+        switchClipboardButton();
+        viewModel.initLinkFromClipboard();
+
+        initAlertDialog(binding.getRoot());
+    }
+
+    private void initAlertDialog(View view)
+    {
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity)
+                .setTitle(R.string.dialog_add_link_title)
+                .setPositiveButton(R.string.add, null)
+                .setNegativeButton(R.string.cancel, null)
+                .setView(view);
+
+        alert = builder.create();
+        alert.setCanceledOnTouchOutside(false);
+        alert.setOnShowListener((DialogInterface dialog) -> {
+            Button addButton = alert.getButton(AlertDialog.BUTTON_POSITIVE);
+            addButton.setOnClickListener((v) -> addLink());
+
+            Button cancelButton = alert.getButton(AlertDialog.BUTTON_NEGATIVE);
+            cancelButton.setOnClickListener((v) ->
+                    finish(new Intent(), FragmentCallback.ResultCode.CANCEL));
+        });
+    }
+
+    private void showClipboardDialog()
+    {
+        if (!isAdded())
+            return;
+
+        FragmentManager fm = getChildFragmentManager();
+        if (fm.findFragmentByTag(TAG_CLIPBOARD_DIALOG) == null) {
+            clipboardDialog = ClipboardDialog.newInstance();
+            clipboardDialog.show(fm, TAG_CLIPBOARD_DIALOG);
+        }
+    }
+
+    private void addLink()
+    {
+        if (!isAdded()) {
+            return;
+
+=== ui/addlink/AddLinkDialog.java:264-318 ===
+        }
+
+        String s = viewModel.link.get();
+        if (TextUtils.isEmpty(s))
+            return;
+        if (!checkUrlField())
+            return;
+
+        try {
+            s = viewModel.normalizeUrl(s);
+
+        } catch (NormalizeUrlException e) {
+            binding.layoutLink.setErrorEnabled(true);
+            binding.layoutLink.setError(getString(R.string.invalid_url, e.getMessage()));
+            binding.layoutLink.requestFocus();
+
+            return;
+        }
+
+        Intent i = new Intent(activity, AddTorrentActivity.class);
+        i.putExtra(AddTorrentActivity.TAG_URI, Uri.parse(s));
+        startActivity(i);
+
+        finish(new Intent(), FragmentCallback.ResultCode.OK);
+    }
+
+    private boolean checkUrlField()
+    {
+        if (TextUtils.isEmpty(binding.link.getText())) {
+            binding.layoutLink.setErrorEnabled(true);
+            binding.layoutLink.setError(getString(R.string.error_empty_link));
+            binding.layoutLink.requestFocus();
+
+            return false;
+        }
+
+        binding.layoutLink.setErrorEnabled(false);
+        binding.layoutLink.setError(null);
+
+        return true;
+    }
+
+    public void onBackPressed()
+    {
+        finish(new Intent(), FragmentCallback.ResultCode.BACK);
+    }
+
+    private void finish(Intent intent, FragmentCallback.ResultCode code)
+    {
+        alert.dismiss();
+        ((FragmentCallback)activity).onFragmentFinished(this, intent, code);
+    }
+}
+
+=== ui/addlink/AddLinkViewModel.java (full file) ===
+/*
+ * Copyright (C) 2019 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.addlink;
+
+import android.app.Application;
+
+import androidx.annotation.NonNull;
+import androidx.databinding.ObservableBoolean;
+import androidx.databinding.ObservableField;
+import androidx.lifecycle.AndroidViewModel;
+
+import org.proninyaroslav.libretorrent.core.exception.NormalizeUrlException;
+import org.proninyaroslav.libretorrent.core.urlnormalizer.NormalizeUrl;
+import org.proninyaroslav.libretorrent.core.utils.Utils;
+
+import java.util.List;
+
+public class AddLinkViewModel extends AndroidViewModel
+{
+    public ObservableBoolean showClipboardButton = new ObservableBoolean();
+    public ObservableField<String> link = new ObservableField<>();
+
+    public AddLinkViewModel(@NonNull Application application)
+    {
+        super(application);
+    }
+
+    void initLinkFromClipboard()
+    {
+        List<CharSequence> clipboard = Utils.getClipboardText(getApplication());
+        if (clipboard.isEmpty())
+            return;
+
+        String firstItem = clipboard.get(0).toString();
+        String c = firstItem.toLowerCase();
+        if (c.startsWith(Utils.MAGNET_PREFIX) ||
+            c.startsWith(Utils.HTTP_PREFIX) ||
+            Utils.isHash(firstItem))
+        {
+            link.set(firstItem);
+        }
+    }
+
+    String normalizeUrl(@NonNull String link) throws NormalizeUrlException
+    {
+        if (Utils.isHash(link)) {
+            link = Utils.normalizeMagnetHash(link);
+
+        } else if (!link.toLowerCase().startsWith(Utils.MAGNET_PREFIX)) {
+            NormalizeUrl.Options options = new NormalizeUrl.Options();
+            options.decode = false;
+            link = NormalizeUrl.normalize(link, options);
+        }
+
+        return link;
+    }
+}
+
+=== ui/addtag/AddTagActivity.java (full file) ===
+/*
+ * Copyright (C) 2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui.addtag;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.ViewModelProvider;
+
+import android.content.Intent;
+import android.os.Bundle;
+
+import com.jaredrummler.android.colorpicker.ColorPickerDialogListener;
+
+import org.proninyaroslav.libretorrent.core.model.data.entity.TagInfo;
+import org.proninyaroslav.libretorrent.core.utils.Utils;
+import org.proninyaroslav.libretorrent.ui.FragmentCallback;
+
+public class AddTagActivity extends AppCompatActivity
+        implements FragmentCallback, ColorPickerDialogListener {
+    private static final String TAG_DIALOG = "dialog";
+
+    public static final String TAG_INIT_INFO = "init_info";
+
+    private AddTagDialog dialog;
+    private AddTagViewModel viewModel;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        setTheme(Utils.getTranslucentAppTheme(getApplicationContext()));
+        super.onCreate(savedInstanceState);
+
+        ViewModelProvider provider = new ViewModelProvider(this);
+        viewModel = provider.get(AddTagViewModel.class);
+
+        FragmentManager fm = getSupportFragmentManager();
+        dialog = (AddTagDialog) fm.findFragmentByTag(TAG_DIALOG);
+        if (dialog == null) {
+            TagInfo initInfo = getIntent().getParcelableExtra(TAG_INIT_INFO);
+            dialog = AddTagDialog.newInstance(initInfo);
+            dialog.show(fm, TAG_DIALOG);
+        }
+    }
+
+    @Override
+    public void onFragmentFinished(
+            @NonNull Fragment f,
+            Intent intent,
+            @NonNull ResultCode code
+    ) {
+        finish();
+    }
+
+    @Override
+    public void onBackPressed() {
+        dialog.onBackPressed();
+    }
+
+    @Override
+    public void onColorSelected(int dialogId, int color) {
+        viewModel.state.setColor(color);
+    }
+
+    @Override
+    public void onDialogDismissed(int dialogId) {
+    }
+}
+
+=== ui/addtag/AddTagDialog.java:55-104 ===
+
+public class AddTagDialog extends DialogFragment {
+    private static final String TAG = AddTagDialog.class.getSimpleName();
+
+    private static final String TAG_INIT_INFO = "init_info";
+
+    private AlertDialog alert;
+    private AppCompatActivity activity;
+    private AddTagViewModel viewModel;
+    private DialogAddTagBinding binding;
+    private final CompositeDisposable disposables = new CompositeDisposable();
+
+    public static AddTagDialog newInstance(@Nullable TagInfo initInfo) {
+        AddTagDialog frag = new AddTagDialog();
+
+        Bundle args = new Bundle();
+        args.putParcelable(TAG_INIT_INFO, initInfo);
+        frag.setArguments(args);
+
+        return frag;
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+
+        if (context instanceof AppCompatActivity) {
+            activity = (AppCompatActivity) context;
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        // Back button handle
+        getDialog().setOnKeyListener((dialog, keyCode, event) -> {
+            if (keyCode == KeyEvent.KEYCODE_BACK) {
+                if (event.getAction() == KeyEvent.ACTION_DOWN) {
+                    onBackPressed();
+                }
+                return true;
+            } else {
+                return false;
+            }
+        });
+    }
+
+    @Override
+    public void onStop() {
+
+=== ui/addtag/AddTagDialog.java:130-234 ===
+
+        initLayoutView();
+        initAlertDialog(binding.getRoot());
+
+        return alert;
+    }
+
+    private void initLayoutView() {
+        binding.name.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                binding.nameLayout.setErrorEnabled(false);
+                binding.nameLayout.setError(null);
+            }
+        });
+        binding.color.setOnClickListener((v) -> ColorPickerDialog.newBuilder()
+                .setColor(viewModel.state.getColor())
+                .show(activity)
+        );
+    }
+
+    private boolean checkName() {
+        if (TextUtils.isEmpty(viewModel.state.getName())) {
+            binding.nameLayout.setErrorEnabled(true);
+            binding.nameLayout.setError(getString(R.string.error_empty_name));
+            binding.nameLayout.requestFocus();
+            return false;
+        }
+
+        binding.nameLayout.setErrorEnabled(false);
+        binding.nameLayout.setError(null);
+        return true;
+    }
+
+    private void initAlertDialog(View view) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity)
+                .setTitle(viewModel.state.getExistsTagId() == null ?
+                        R.string.add_tag :
+                        R.string.edit_tag)
+                .setPositiveButton(viewModel.state.getExistsTagId() == null ?
+                        R.string.add :
+                        R.string.apply, null)
+                .setNegativeButton(R.string.cancel, null)
+                .setView(view);
+
+        alert = builder.create();
+        alert.setCanceledOnTouchOutside(false);
+        alert.setOnShowListener((DialogInterface dialog) -> {
+            Button addButton = alert.getButton(AlertDialog.BUTTON_POSITIVE);
+            addButton.setOnClickListener((v) -> addTag());
+
+            Button cancelButton = alert.getButton(AlertDialog.BUTTON_NEGATIVE);
+            cancelButton.setOnClickListener(
+                    (v) -> finish(new Intent(), FragmentCallback.ResultCode.CANCEL)
+            );
+        });
+    }
+
+    private void addTag() {
+        if (!checkName()) {
+            return;
+        }
+        disposables.add(viewModel.saveTag()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        () -> finish(new Intent(), FragmentCallback.ResultCode.OK),
+                        (e) -> {
+                            if (e instanceof AddTagViewModel.TagAlreadyExistsException) {
+                                Toast.makeText(
+                                        activity,
+                                        R.string.tag_already_exists,
+                                        Toast.LENGTH_SHORT
+                                ).show();
+                            } else {
+                                Log.e(TAG, Log.getStackTraceString(e));
+                                Toast.makeText(
+                                        activity,
+                                        R.string.add_tag_failed,
+                                        Toast.LENGTH_SHORT
+                                ).show();
+                            }
+                        }
+                )
+        );
+    }
+
+    public void onBackPressed() {
+        finish(new Intent(), FragmentCallback.ResultCode.BACK);
+    }
+
+    private void finish(Intent intent, FragmentCallback.ResultCode code) {
+        alert.dismiss();
+        ((FragmentCallback) activity).onFragmentFinished(this, intent, code);
+    }
+}

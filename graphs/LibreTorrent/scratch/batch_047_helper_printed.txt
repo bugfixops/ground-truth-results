@@ -1,0 +1,27 @@
+LibreTorrent batch 47 — command record and source evidence summary
+
+Plan command (sole membership source):
+`awk -F '\t' '$1==47 {print $3 "\t" $4}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv`
+
+Output: 40 ordered rows: six SettingsRepositoryImpl accessors, eleven SettingsRepositoryImpl.Default initialization/fallback methods, five BaseSorting/Direction methods, one TorrentSorting constructor, one SortingColumns initializer, one SortingColumns.fromValue, fourteen anonymous enum constructor/compare methods, and one TorrentSortingComparator constructor. The report table preserves each exact plan name in order.
+
+Printed/read source commands:
+`nl -ba "$SRC/core/settings/SettingsRepositoryImpl.java" | sed -n '35,130p;310,330p;765,815p'`
+`nl -ba "$SRC/core/sorting/BaseSorting.java" | sed -n '20,90p'`
+`nl -ba "$SRC/core/sorting/TorrentSorting.java" | sed -n '20,125p'`
+`nl -ba "$SRC/core/sorting/TorrentSortingComparator.java" | sed -n '20,55p'`
+`nl -ba "$SRC/core/utils/Utils.java" | sed -n '800,838p;890,925p'`
+
+`SRC` is `/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent`.
+
+Focused use search printed/read:
+`rg -n 'TorrentSorting|TorrentSortingComparator|BaseSorting|watchDir\\(|watchDirDeleteFile\\(|vibrationNotify\\(' "$SRC"`
+
+Evidence summary:
+- SettingsRepositoryImpl reads/writes vibration and watch-directory preferences at `316-326,773-809`; app callers include TorrentNotifier, AppearanceSettingsFragment, StorageSettingsFragment, TorrentEngine.
+- Default class and fallback methods are declared at `SettingsRepositoryImpl.java:41-124`; preference getters invoke the fallback values, including dirToWatch at `786-789` and encrypt modes in the source excerpts.
+- BaseSorting stores its column and direction, exposes getters/text conversion, and declares Direction at `BaseSorting.java:24-76`.
+- TorrentSorting defines seven compare implementations and fromValue at `TorrentSorting.java:26-116`; comparator dispatches to the selected enum comparison at `TorrentSortingComparator.java:26-45`.
+- Utils sorting factories create TorrentSorting and TorrentSortingComparator at `Utils.java:804-834,892-924`; this is local construction evidence, not a complete activity/notification route.
+
+No coverage data was accessed. No graph, notes, or out files were edited. Uncertain entry routes remain OPEN.

@@ -1,0 +1,608 @@
+# label_134 grep and query log (batch 134: 35 methods in SplitCategoriesAdapter with its $1-$4 listeners, SplitItemFactory, SplitItemTouchCallback, SplitItemViewHolder, SplitItemViewHolder_ViewBinding)
+# Each block: the command as run (cwd /Users/darshan/Desktop/yang/work), then its output. Q1 and Q2 run against graphs/MMEX/auto_calls.json.
+
+## Q1 incoming and outgoing auto_calls.json records for every batch method, the two UNREACHABLE candidates, and the dst matches for the generated and factory names
+$ python3 -I /private/tmp/claude-501/-Users-darshan-Desktop-yang-work/d66baf32-b9fc-49bb-a15e-5e0a027aaa0d/scratchpad/q134_auto.py
+batch methods 35 auto_calls records 7554
+== SplitCategoriesAdapter.<init> incoming 1
+   <- SplitCategoriesActivity.onCreate | SplitCategoriesActivity.java 85
+== SplitCategoriesAdapter.bindAmount incoming 1
+   <- SplitCategoriesAdapter.onBindViewHolder | SplitCategoriesAdapter.java 96
+== SplitCategoriesAdapter.bindCategory incoming 1
+   <- SplitCategoriesAdapter.onBindViewHolder | SplitCategoriesAdapter.java 94
+== SplitCategoriesAdapter.bindNotes incoming 1
+   <- SplitCategoriesAdapter.onBindViewHolder | SplitCategoriesAdapter.java 97
+== SplitCategoriesAdapter.bindTransactionTypeButton incoming 1
+   <- SplitCategoriesAdapter.onBindViewHolder | SplitCategoriesAdapter.java 95
+== SplitCategoriesAdapter.getContext incoming 3
+   <- SplitCategoriesAdapter.onBindViewHolder | SplitCategoriesAdapter.java 94
+   <- SplitCategoriesAdapter.bindAmount | SplitCategoriesAdapter.java 118
+   <- SplitCategoriesAdapter.bindTransactionTypeButton | SplitCategoriesAdapter.java 144
+== SplitCategoriesAdapter.getItemCount incoming 0
+== SplitCategoriesAdapter.initAmountControl incoming 1
+   <- SplitCategoriesAdapter.onCreateViewHolder | SplitCategoriesAdapter.java 79
+== SplitCategoriesAdapter.initCategorySelector incoming 1
+   <- SplitCategoriesAdapter.onCreateViewHolder | SplitCategoriesAdapter.java 80
+== SplitCategoriesAdapter.initNotesControls incoming 1
+   <- SplitCategoriesAdapter.onCreateViewHolder | SplitCategoriesAdapter.java 81
+== SplitCategoriesAdapter.initTransactionTypeButton incoming 1
+   <- SplitCategoriesAdapter.onCreateViewHolder | SplitCategoriesAdapter.java 82
+== SplitCategoriesAdapter.onBindViewHolder incoming 0
+== SplitCategoriesAdapter.onCreateViewHolder incoming 0
+== SplitCategoriesAdapter.onItemDismiss incoming 1
+   <- SplitItemTouchCallback.onSwiped | SplitItemTouchCallback.java 76
+== SplitCategoriesAdapter.onItemMove incoming 1
+   <- SplitItemTouchCallback.onMove | SplitItemTouchCallback.java 69
+== SplitCategoriesAdapter$1.<init> incoming 1
+   <- SplitCategoriesAdapter.initAmountControl | SplitCategoriesAdapter.java 161
+== SplitCategoriesAdapter$1.onClick incoming 0
+== SplitCategoriesAdapter$2.<init> incoming 1
+   <- SplitCategoriesAdapter.initCategorySelector | SplitCategoriesAdapter.java 180
+== SplitCategoriesAdapter$2.onClick incoming 0
+== SplitCategoriesAdapter$3.<init> incoming 1
+   <- SplitCategoriesAdapter.initTransactionTypeButton | SplitCategoriesAdapter.java 191
+== SplitCategoriesAdapter$3.onClick incoming 0
+== SplitCategoriesAdapter$4.<init> incoming 1
+   <- SplitCategoriesAdapter.initNotesControls | SplitCategoriesAdapter.java 210
+== SplitCategoriesAdapter$4.afterTextChanged incoming 0
+== SplitCategoriesAdapter$4.beforeTextChanged incoming 0
+== SplitCategoriesAdapter$4.onTextChanged incoming 0
+== SplitItemFactory.<init> incoming 0
+== SplitItemFactory.create incoming 2
+   <- EditTransactionCommonFunctions.createSplitFromTransaction | EditTransactionCommonFunctions.java 1339
+   <- SplitCategoriesActivity.addSplitTransaction | SplitCategoriesActivity.java 223
+== SplitItemTouchCallback.<init> incoming 1
+   <- SplitCategoriesActivity.initRecyclerView | SplitCategoriesActivity.java 271
+== SplitItemTouchCallback.getMovementFlags incoming 0
+== SplitItemTouchCallback.isItemViewSwipeEnabled incoming 0
+== SplitItemTouchCallback.onMove incoming 0
+== SplitItemTouchCallback.onSwiped incoming 0
+== SplitItemViewHolder.<init> incoming 1
+   <- SplitCategoriesAdapter.onCreateViewHolder | SplitCategoriesAdapter.java 77
+== SplitItemViewHolder_ViewBinding.<init> incoming 0
+== SplitItemViewHolder_ViewBinding.unbind incoming 0
+
+== outgoing auto records from SplitItemFactory.<init>: 0
+== outgoing auto records from SplitItemViewHolder_ViewBinding.unbind: 0
+== outgoing auto records from SplitItemViewHolder_ViewBinding.<init>: 0
+
+== dst containing SplitItemFactory: 2
+   EditTransactionCommonFunctions.createSplitFromTransaction -> SplitItemFactory.create | EditTransactionCommonFunctions.java 1339
+   SplitCategoriesActivity.addSplitTransaction -> SplitItemFactory.create | SplitCategoriesActivity.java 223
+== dst containing SplitItemViewHolder_ViewBinding: 0
+== dst containing SplitCategoriesAdapter.onBindViewHolder: 0
+== dst containing SplitCategoriesAdapter.onCreateViewHolder: 0
+== dst containing SplitCategoriesAdapter.getItemCount: 0
+
+## Q2 SplitCategoriesActivity route into the adapter and the touch callback (source lines 80-106, 254-274)
+$ awk 'NR>=80 && NR<=106' final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitCategoriesActivity.java; awk 'NR>=254 && NR<=274' final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitCategoriesActivity.java
+80: 
+81:     @Override
+82:     protected void onCreate(Bundle savedInstanceState) {
+83:         super.onCreate(savedInstanceState);
+84: 
+85:         mAdapter = new SplitCategoriesAdapter();
+86: 
+87:         handleIntent();
+88: 
+89:         // restore collections
+90:         if (savedInstanceState != null) {
+91:             mAdapter.splitTransactions = Parcels.unwrap(savedInstanceState.getParcelable(KEY_SPLIT_TRANSACTION));
+92:             mSplitDeleted = Parcels.unwrap(savedInstanceState.getParcelable(KEY_SPLIT_TRANSACTION_DELETED));
+93:         }
+94: 
+95:         // If this is a new split (no existing split categories), then create the first one.
+96:         if(mAdapter.splitTransactions == null || mAdapter.splitTransactions.isEmpty()) {
+97:             addSplitTransaction();
+98:         }
+99: 
+100:         setContentView(R.layout.activity_split_categories);
+101:         ButterKnife.bind(this);
+102: 
+103:         setDisplayHomeAsUpEnabled(true);
+104: 
+105:         initRecyclerView();
+106:     }
+254:     private void initRecyclerView() {
+255: //        mRecyclerView = (RecyclerView) findViewById(R.id.splitsRecyclerView);
+256:         if (mRecyclerView == null) return;
+257: 
+258:         // adapter
+259:         mRecyclerView.setAdapter(mAdapter);
+260: 
+261:         // layout manager - LinearLayoutManager
+262:         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+263: 
+264:         // item animator
+265:         // RecyclerView.ItemAnimator
+266: 
+267:         // optimizations
+268:         mRecyclerView.setHasFixedSize(true);
+269: 
+270:         // Support for swipe-to-dismiss
+271:         ItemTouchHelper.Callback swipeCallback = new SplitItemTouchCallback(mAdapter);
+272:         ItemTouchHelper touchHelper = new ItemTouchHelper(swipeCallback);
+273:         touchHelper.attachToRecyclerView(mRecyclerView);
+274:     }
+
+## Q3 field and layout id of the RecyclerView (mRecyclerView is ButterKnife-bound at SplitCategoriesActivity.java:78)
+$ grep -n 'mRecyclerView\|splitsRecyclerView' final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitCategoriesActivity.java; grep -n 'splitsRecyclerView' final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/../../../../res/layout/activity_split_categories.xml
+78:    @BindView(R.id.splitsRecyclerView) RecyclerView mRecyclerView;
+230:        if (mRecyclerView != null) {
+231://            mRecyclerView.smoothScrollToPosition(position);
+232:            mRecyclerView.scrollToPosition(position);
+255://        mRecyclerView = (RecyclerView) findViewById(R.id.splitsRecyclerView);
+256:        if (mRecyclerView == null) return;
+259:        mRecyclerView.setAdapter(mAdapter);
+262:        mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+268:        mRecyclerView.setHasFixedSize(true);
+273:        touchHelper.attachToRecyclerView(mRecyclerView);
+59:                    android:id="@+id/splitsRecyclerView"
+
+## Q4 manifest entry for SplitCategoriesActivity (the activity is started by intent, no intent-filter)
+$ grep -n -A1 'SplitCategoriesActivity' final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/AndroidManifest.xml
+299:            android:name=".transactions.SplitCategoriesActivity"
+300-            android:label="@string/split_transaction" />
+
+## Q5 the split form is started from EditTransactionCommonFunctions (startActivityForResult at 1528; split button 605; category 469)
+$ awk 'NR>=1511 && NR<=1528' EditTransactionCommonFunctions.java; awk 'NR>=599 && NR<=606' EditTransactionCommonFunctions.java; awk 'NR>=465 && NR<=470' EditTransactionCommonFunctions.java
+1511:     private void showSplitCategoriesForm(String datasetName) {
+1512:         // If there are no splits, use the current values for the initial split record.
+1513:         List<ISplitTransaction> splitsToShow = getSplitTransactions();
+1514:         if (getSplitTransactions().isEmpty()) {
+1515:             ISplitTransaction currentTransaction = createSplitFromTransaction();
+1516:             splitsToShow.add(currentTransaction);
+1517:         }
+1518: 
+1519:         Intent intent = new Intent(getContext(), SplitCategoriesActivity.class);
+1520:         intent.putExtra(SplitCategoriesActivity.KEY_DATASET_TYPE, datasetName);
+1521:         intent.putExtra(SplitCategoriesActivity.KEY_TRANSACTION_TYPE, transactionEntity.getTransactionType().getCode());
+1522:         intent.putExtra(SplitCategoriesActivity.KEY_SPLIT_TRANSACTION, Parcels.wrap(splitsToShow));
+1523:         intent.putExtra(SplitCategoriesActivity.KEY_SPLIT_TRANSACTION_DELETED, Parcels.wrap(mSplitTransactionsDeleted));
+1524: 
+1525:         Integer fromCurrencyId = getSourceCurrencyId();
+1526:         intent.putExtra(SplitCategoriesActivity.KEY_CURRENCY_ID, fromCurrencyId);
+1527: 
+1528:         getActivity().startActivityForResult(intent, RequestCodes.SPLIT_TX);
+599:         viewHolder.splitButton.setOnClickListener(new View.OnClickListener() {
+600:             @Override
+601:             public void onClick(View v) {
+602:                 boolean splitting = !isSplitSelected();
+603: 
+604:                 if (splitting) {
+605:                     showSplitCategoriesForm(mSplitCategoryEntityName);
+606:                 } else {
+465:                     intent.setAction(Intent.ACTION_PICK);
+466:                     getActivity().startActivityForResult(intent, RequestCodes.CATEGORY);
+467:                 } else {
+468:                     // select split categories.
+469:                     showSplitCategoriesForm(mSplitCategoryEntityName);
+470:                 }
+
+## Q6 SplitItemFactory source (no constructor declared; only the static create method)
+$ grep -n 'SplitItemFactory\|public\|static' final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitItemFactory.java
+30:public class SplitItemFactory {
+32:    public static ISplitTransaction create(String entityClassName, TransactionTypes parentTransactionType) {
+
+## Q7 every use of SplitItemFactory in the source root (callers of create)
+$ grep -rn 'SplitItemFactory' final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/EditTransactionCommonFunctions.java:1339:        ISplitTransaction entity = SplitItemFactory.create(this.mSplitCategoryEntityName, transactionEntity.getTransactionType());
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitItemFactory.java:30:public class SplitItemFactory {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitCategoriesActivity.java:223:        ISplitTransaction entity = SplitItemFactory.create(this.entityTypeName, mAdapter.transactionType);
+
+## Q8 construction of SplitItemFactory in the source root (expected none)
+$ grep -rn -e 'new SplitItemFactory' -e 'SplitItemFactory()' final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java; echo exit=$?
+exit=1
+
+## Q9 SplitItemFactory class file: javap -p lists the declared members (the default constructor appears only if the compiler generated one)
+$ javap -p -classpath final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes com.money.manager.ex.transactions.SplitItemFactory
+The operation couldn’t be completed. Unable to locate a Java Runtime.
+Please visit http://www.java.com for information on installing Java.
+
+
+## Q10 bytecode of every class file that mentions SplitItemFactory: constructor calls and new instructions (expected none)
+$ for f in $(grep -rl --include=*.class SplitItemFactory final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes); do javap -c -p $f | grep -n 'SplitItemFactory."<init>"\|new .*SplitItemFactory'; done
+-- class file: final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/transactions/SplitItemFactory.class
+The operation couldn’t be completed. Unable to locate a Java Runtime.
+Please visit http://www.java.com for information on installing Java.
+
+-- class file: final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/transactions/EditTransactionCommonFunctions.class
+The operation couldn’t be completed. Unable to locate a Java Runtime.
+Please visit http://www.java.com for information on installing Java.
+
+-- class file: final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/transactions/SplitCategoriesActivity.class
+The operation couldn’t be completed. Unable to locate a Java Runtime.
+Please visit http://www.java.com for information on installing Java.
+
+
+## Q11 SplitItemViewHolder_ViewBinding class file members (<init> and unbind exist; unbind has no caller in the app)
+$ javap -p -classpath final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes com.money.manager.ex.transactions.SplitItemViewHolder_ViewBinding
+The operation couldn’t be completed. Unable to locate a Java Runtime.
+Please visit http://www.java.com for information on installing Java.
+
+
+## Q12 ButterKnife.bind call in SplitItemViewHolder.<init> and the instruction after it (the returned Unbinder is discarded when followed by pop)
+$ javap -c -p -classpath final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes com.money.manager.ex.transactions.SplitItemViewHolder | grep -n -A2 'ButterKnife.bind'
+The operation couldn’t be completed. Unable to locate a Java Runtime.
+Please visit http://www.java.com for information on installing Java.
+
+
+## Q13 every class file that references the generated binding, and its bytecode references (expected: only the binding class itself)
+$ for f in $(grep -rl --include=*.class SplitItemViewHolder_ViewBinding final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes); do echo "-- $f"; javap -c -p $f | grep -n 'SplitItemViewHolder_ViewBinding'; done
+-- class file: final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/transactions/SplitItemViewHolder_ViewBinding.class
+The operation couldn’t be completed. Unable to locate a Java Runtime.
+Please visit http://www.java.com for information on installing Java.
+
+
+## Q14 generated binding in the method list (method_list.json, the batch's source of names)
+$ grep -o 'SplitItemViewHolder_ViewBinding[^"]*' graphs/MMEX/method_list.json | sort -u
+SplitItemViewHolder_ViewBinding
+SplitItemViewHolder_ViewBinding.<init>
+SplitItemViewHolder_ViewBinding.unbind
+
+## Q15 unbind or Unbinder in the source root (expected none)
+$ grep -rn -e 'unbind' -e 'Unbinder' final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java; echo exit=$?
+exit=1
+
+## Q16 ButterKnife.bind calls in the source root
+$ grep -rn 'ButterKnife.bind' final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitItemViewHolder.java:49:        ButterKnife.bind(this, itemView);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitCategoriesActivity.java:101:        ButterKnife.bind(this);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/EditTransactionViewHolder.java:45:        ButterKnife.bind(this, view);
+
+## Q17 ItemTouchHelper, drag APIs and attachToRecyclerView in the source root (no startDrag; no long-press drag setting)
+$ grep -rn -e ItemTouchHelper -e startDrag -e setLongPressDragEnabled -e isLongPressDragEnabled -e attachToRecyclerView final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitItemTouchCallback.java:21:import androidx.recyclerview.widget.ItemTouchHelper;
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitItemTouchCallback.java:27: * https://github.com/iPaulPro/Android-ItemTouchHelper-Demo/blob/master/app/src/main/java/co/paulburke/android/itemtouchhelperdemo/helper/SimpleItemTouchHelperCallback.java
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitItemTouchCallback.java:30:    extends ItemTouchHelper.Callback {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitItemTouchCallback.java:42://        final int dragFlags = ItemTouchHelper.UP | ItemTouchHelper.DOWN;
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitItemTouchCallback.java:45:        final int swipeFlags = ItemTouchHelper.START | ItemTouchHelper.END;
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitItemTouchCallback.java:56://    public boolean isLongPressDragEnabled() {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitCategoriesActivity.java:27:import androidx.recyclerview.widget.ItemTouchHelper;
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitCategoriesActivity.java:271:        ItemTouchHelper.Callback swipeCallback = new SplitItemTouchCallback(mAdapter);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitCategoriesActivity.java:272:        ItemTouchHelper touchHelper = new ItemTouchHelper(swipeCallback);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitCategoriesActivity.java:273:        touchHelper.attachToRecyclerView(mRecyclerView);
+
+## Q18 callers of the touch callbacks and adapter callbacks in the source root
+$ grep -rn -e onItemMove -e onMove -e onItemDismiss -e onSwiped -e getMovementFlags -e isItemViewSwipeEnabled final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitItemTouchCallback.java:39:    public int getMovementFlags(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitItemTouchCallback.java:51:    public boolean isItemViewSwipeEnabled() {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitItemTouchCallback.java:61:    public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitItemTouchCallback.java:69:        mAdapter.onItemMove(viewHolder.getAdapterPosition(), target.getAdapterPosition());
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitItemTouchCallback.java:74:    public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitItemTouchCallback.java:76:        mAdapter.onItemDismiss(viewHolder.getAdapterPosition());
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitItemTouchAdapter.java:27:    void onItemMove(int fromPosition, int toPosition);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitItemTouchAdapter.java:29:    void onItemDismiss(int position);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitCategoriesAdapter.java:237:    public void onItemMove(int fromPosition, int toPosition) {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitCategoriesAdapter.java:252:    public void onItemDismiss(int position) {
+
+## Q19 creation and setAdapter of the adapter, the view holder and the touch callback
+$ grep -rn -e 'new SplitCategoriesAdapter' -e 'new SplitItemViewHolder' -e 'new SplitItemTouchCallback' -e 'setAdapter' final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java:933:        drawerList.setAdapter(adapter);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/HomeFragment.java:814:        mExpandableListView.setAdapter(expandableAdapter);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/tutorial/TutorialActivity.java:63:        viewpager.setAdapter(pagerAdapter);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/core/AbsListFragment.java:257:            mList.setAdapter(adapter);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/widget/SingleAccountWidgetConfigureActivity.java:147:        accountsSpinner.setAdapter(accountAdapter);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/servicelayer/AccountService.java:282:        spinner.setAdapter(cursorAdapter);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/servicelayer/AccountService.java:313:        spinner.setAdapter(cursorAdapter);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/about/AboutActivity.java:45:        mViewPager.setAdapter(new AboutTabAdapter(getSupportFragmentManager(),
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/search/SearchParametersFragment.java:166:        spinAccount.setAdapter(adapterAccount);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/search/SearchParametersFragment.java:186:        spinCurrency.setAdapter(currencyAdapter);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/search/SearchParametersFragment.java:220:        spinStatus.setAdapter(adapterStatus);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/EditTransactionCommonFunctions.java:305:        viewHolder.spinAccount.setAdapter(accountAdapter);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/EditTransactionCommonFunctions.java:306:        viewHolder.spinAccountTo.setAdapter(accountAdapter);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/EditTransactionCommonFunctions.java:636:        viewHolder.spinStatus.setAdapter(adapterStatus);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/EditTransactionCommonFunctions.java:749:        viewHolder.recyclerAttachments.setAdapter(new AttachmentAdapter(attachmentList));
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitCategoriesActivity.java:85:        mAdapter = new SplitCategoriesAdapter();
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitCategoriesActivity.java:259:        mRecyclerView.setAdapter(mAdapter);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitCategoriesActivity.java:271:        ItemTouchHelper.Callback swipeCallback = new SplitItemTouchCallback(mAdapter);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitCategoriesAdapter.java:77:        SplitItemViewHolder viewHolder = new SplitItemViewHolder(view);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/ExpandableListFragment.java:164:            mList.setAdapter(adapter);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/CategoryListFragment.java:598:        spnCategory.setAdapter(adapterCategory);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/AllDataListFragment.java:171:        // Header and footer must be added before setAdapter().
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/AllDataListFragment.java:891:        builder.setAdapter(adapter, new DialogInterface.OnClickListener() {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/account/FilterDialogFragment.java:161://        timeFrame.setAdapter();
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/account/AccountEditActivity.java:299:        mViewHolder.spinSymbolInitialBalance.setAdapter(adapterSymbol);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/account/AccountEditActivity.java:317:        mViewHolder.accountTypeSpinner.setAdapter(adapterAccountType);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/account/AccountEditActivity.java:333:        mViewHolder.spinAccountStatus.setAdapter(adapterAccountStatus);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/currency/recycler/CurrencyRecyclerListFragment.java:363:        recyclerView.setAdapter(adapter);
+
+## Q20 androidx ItemTouchHelper and RecyclerView library source (not in fw_src or the source root; the library behaviour is INFERRED)
+$ find fw_src final_java_only -name 'ItemTouchHelper*' -o -name 'RecyclerView.java' 2>/dev/null | head; echo done
+final_java_only/Aegis/app/Aegis-#v3.4.2/app/build/intermediates/classes/debug/jacocoDebug/dirs/com/beemdevelopment/aegis/helpers/ItemTouchHelperAdapter.class
+final_java_only/Aegis/app/Aegis-#v3.4.2/app/build/intermediates/classes/debug/transformDebugClassesWithAsm/dirs/com/beemdevelopment/aegis/helpers/ItemTouchHelperAdapter.class
+final_java_only/Aegis/app/Aegis-#v3.4.2/app/src/main/java/com/beemdevelopment/aegis/helpers/ItemTouchHelperAdapter.java
+done
+
+## Q21 framework dispatch lines printed for the citations: View.performClick (fw_src/android-8.1.0_r1 View.java 6289-6297)
+$ awk 'NR>=6289 && NR<=6297' fw_src/android-8.1.0_r1/core/java/android/view/View.java
+6289:     public boolean performClick() {
+6290:         final boolean result;
+6291:         final ListenerInfo li = mListenerInfo;
+6292:         if (li != null && li.mOnClickListener != null) {
+6293:             playSoundEffect(SoundEffectConstants.CLICK);
+6294:             li.mOnClickListener.onClick(this);
+6295:             result = true;
+6296:         } else {
+6297:             result = false;
+
+## Q22 framework dispatch lines printed for the citations: TextView sendBeforeTextChanged, sendOnTextChanged, sendAfterTextChanged
+$ awk 'NR>=9309 && NR<=9316' TextView.java; awk 'NR>=9359 && NR<=9366' TextView.java; awk 'NR>=9375 && NR<=9382' TextView.java
+9309:     private void sendBeforeTextChanged(CharSequence text, int start, int before, int after) {
+9310:         if (mListeners != null) {
+9311:             final ArrayList<TextWatcher> list = mListeners;
+9312:             final int count = list.size();
+9313:             for (int i = 0; i < count; i++) {
+9314:                 list.get(i).beforeTextChanged(text, start, before, after);
+9315:             }
+9316:         }
+9359:     void sendOnTextChanged(CharSequence text, int start, int before, int after) {
+9360:         if (mListeners != null) {
+9361:             final ArrayList<TextWatcher> list = mListeners;
+9362:             final int count = list.size();
+9363:             for (int i = 0; i < count; i++) {
+9364:                 list.get(i).onTextChanged(text, start, before, after);
+9365:             }
+9366:         }
+9375:     void sendAfterTextChanged(Editable text) {
+9376:         if (mListeners != null) {
+9377:             final ArrayList<TextWatcher> list = mListeners;
+9378:             final int count = list.size();
+9379:             for (int i = 0; i < count; i++) {
+9380:                 list.get(i).afterTextChanged(text);
+9381:             }
+9382:         }
+
+## Q23 listener registrations and callback bodies in SplitCategoriesAdapter (printed lines 158-230, 237-259)
+$ awk 'NR>=158 && NR<=260' final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitCategoriesAdapter.java
+158:     private void initAmountControl(final SplitItemViewHolder viewHolder) {
+159:         if (viewHolder.txtAmount.hasOnClickListeners()) return;
+160: 
+161:         viewHolder.txtAmount.setOnClickListener(new View.OnClickListener() {
+162:             @Override
+163:             public void onClick(View v) {
+164: 
+165:                 Object tag = v.getTag();
+166:                 Money amount;
+167:                 if (tag == null) {
+168:                     amount = MoneyFactory.fromString("0");
+169:                 } else {
+170:                     amount = MoneyFactory.fromString(tag.toString());
+171:                 }
+172: 
+173:                 // Request the amount entry.
+174:                 EventBus.getDefault().post(new AmountEntryRequestedEvent(viewHolder.getAdapterPosition(), amount));
+175:             }
+176:         });
+177:     }
+178: 
+179:     private void initCategorySelector(final SplitItemViewHolder holder) {
+180:         holder.txtSelectCategory.setOnClickListener(new View.OnClickListener() {
+181: 
+182:             @Override
+183:             public void onClick(View v) {
+184:                 // request category selection
+185:                 EventBus.getDefault().post(new CategoryRequestedEvent(holder.getAdapterPosition()));
+186:             }
+187:         });
+188:     }
+189: 
+190:     private void initTransactionTypeButton(final SplitItemViewHolder viewHolder) {
+191:         viewHolder.transactionTypeButton.setOnClickListener(new View.OnClickListener() {
+192:             @Override
+193:             public void onClick(View v) {
+194:                 int position = viewHolder.getAdapterPosition();
+195:                 // change transaction type.
+196:                 ISplitTransaction split = splitTransactions.get(position);
+197:                 TransactionTypes newTransactionType;
+198:                 if (split.getTransactionType(transactionType) == TransactionTypes.Withdrawal) {
+199:                     newTransactionType = TransactionTypes.Deposit;
+200:                 } else {
+201:                     newTransactionType = TransactionTypes.Withdrawal;
+202:                 }
+203:                 split.setTransactionType(newTransactionType, transactionType);
+204:                 notifyItemChanged(position);
+205:             }
+206:         });
+207:     }
+208: 
+209:     public void initNotesControls(final SplitItemViewHolder viewHolder) {
+210:         viewHolder.txtNotesSplit.addTextChangedListener(new TextWatcher() {
+211:             @Override
+212:             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+213:                 // todo: empty method?
+214:             }
+215: 
+216:             @Override
+217:             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+218:                 // todo: empty method?
+219:             }
+220: 
+221:             @Override
+222:             public void afterTextChanged(Editable editable) {
+223:                 int position = viewHolder.getAdapterPosition();
+224:                 // change transaction type.
+225:                 ISplitTransaction split = splitTransactions.get(position);
+226:                 split.setNotes(editable.toString());
+227: //                notifyItemChanged(position);
+228:             }
+229:         });
+230:     }
+231: 
+232:     /**
+233:      * Swipe support
+234:      */
+235: 
+236:     @Override
+237:     public void onItemMove(int fromPosition, int toPosition) {
+238: //        if (fromPosition < toPosition) {
+239: //            for (int i = fromPosition; i < toPosition; i++) {
+240: //                Collections.swap(mItems, i, i + 1);
+241: //            }
+242: //        } else {
+243: //            for (int i = fromPosition; i > toPosition; i--) {
+244: //                Collections.swap(mItems, i, i - 1);
+245: //            }
+246: //        }
+247: //        notifyItemMoved(fromPosition, toPosition);
+248: //        return true;
+249:     }
+250: 
+251:     @Override
+252:     public void onItemDismiss(int position) {
+253:         // add the removed item to the collection
+254:         ISplitTransaction tx = splitTransactions.get(position);
+255:         EventBus.getDefault().post(new SplitItemRemovedEvent(tx));
+256: 
+257:         this.splitTransactions.remove(position);
+258:         notifyItemRemoved(position);
+259:     }
+260: }
+
+## Q24 SplitItemTouchCallback callbacks and their adapter calls (printed lines 38-77)
+$ awk 'NR>=38 && NR<=77' final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitItemTouchCallback.java
+38:     @Override
+39:     public int getMovementFlags(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
+40: //        return 0;
+41: 
+42: //        final int dragFlags = ItemTouchHelper.UP | ItemTouchHelper.DOWN;
+43:         final int dragFlags = 0;
+44: 
+45:         final int swipeFlags = ItemTouchHelper.START | ItemTouchHelper.END;
+46: 
+47:         return makeMovementFlags(dragFlags, swipeFlags);
+48:     }
+49: 
+50:     @Override
+51:     public boolean isItemViewSwipeEnabled() {
+52:         return true;
+53:     }
+54: 
+55: //    @Override
+56: //    public boolean isLongPressDragEnabled() {
+57: //        return true;
+58: //    }
+59: 
+60:     @Override
+61:     public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+62: //        return false;
+63: 
+64:         if (viewHolder.getItemViewType() != target.getItemViewType()) {
+65:             return false;
+66:         }
+67: 
+68:         // Notify the adapter of the move
+69:         mAdapter.onItemMove(viewHolder.getAdapterPosition(), target.getAdapterPosition());
+70:         return true;
+71:     }
+72: 
+73:     @Override
+74:     public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+75:         // Notify the adapter of the dismissal
+76:         mAdapter.onItemDismiss(viewHolder.getAdapterPosition());
+77:     }
+
+## Q25 SplitItemViewHolder constructor (printed lines 42-50)
+$ awk 'NR>=42 && NR<=50' final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitItemViewHolder.java
+42:     public SplitItemViewHolder(View itemView) {
+43:         super(itemView);
+44: 
+45: //        transactionTypeButton = (FontIconView) itemView.findViewById(R.id.transactionTypeButton);
+46: //        txtSelectCategory = (TextView) itemView.findViewById(R.id.textViewCategory);
+47: //        txtAmount = (TextView) itemView.findViewById(R.id.editTextTotAmount);
+48: 
+49:         ButterKnife.bind(this, itemView);
+50:     }
+
+## Q26 class-file check that replaces javap (javap cannot run here: Q9-Q13 above print "Unable to locate a Java Runtime"). Reads the .class files under the build classes dir with a constant-pool parser and decodes the Code attribute of SplitItemViewHolder.<init>
+$ python3 -I /private/tmp/claude-501/-Users-darshan-Desktop-yang-work/d66baf32-b9fc-49bb-a15e-5e0a027aaa0d/scratchpad/q134_cp.py
+class files under build classes dir: 825
+
+== E1 class files whose constant pool names SplitItemFactory, and their Methodref entries for it
+-- com/money/manager/ex/transactions/SplitItemFactory.class: Methodrefs on SplitItemFactory: none
+   declared methods: [('<init>', '()V'), ('create', '(Ljava/lang/String;Lcom/money/manager/ex/core/TransactionTypes;)Lcom/money/manager/ex/database/ISplitTransaction;')]
+-- com/money/manager/ex/transactions/EditTransactionCommonFunctions.class: Methodrefs on SplitItemFactory: [('com/money/manager/ex/transactions/SplitItemFactory', 'create', '(Ljava/lang/String;Lcom/money/manager/ex/core/TransactionTypes;)Lcom/money/manager/ex/database/ISplitTransaction;')]
+-- com/money/manager/ex/transactions/SplitCategoriesActivity.class: Methodrefs on SplitItemFactory: [('com/money/manager/ex/transactions/SplitItemFactory', 'create', '(Ljava/lang/String;Lcom/money/manager/ex/core/TransactionTypes;)Lcom/money/manager/ex/database/ISplitTransaction;')]
+
+== E2 class files whose constant pool names SplitItemViewHolder_ViewBinding
+-- com/money/manager/ex/transactions/SplitItemViewHolder_ViewBinding.class
+   Methodrefs on SplitItemViewHolder_ViewBinding: none
+   declared methods: [('<init>', '(Lcom/money/manager/ex/transactions/SplitItemViewHolder;Landroid/view/View;)V'), ('unbind', '()V')]
+
+== E3 Methodref on unbind of any class, in any class file (expected none)
+Methodref named unbind found: False
+
+== E4 SplitItemViewHolder.<init> bytecode (decoded from its Code attribute) and the instruction after ButterKnife.bind
+   0000: opcode 0x2a
+   0001: opcode 0x2b
+   0002: opcode 0xb7 androidx/recyclerview/widget/RecyclerView$ViewHolder.<init>(Landroid/view/View;)V
+   0005: opcode 0x2a
+   0006: opcode 0x2b
+   0007: opcode 0xb8 butterknife/ButterKnife.bind(Ljava/lang/Object;Landroid/view/View;)Lbutterknife/Unbinder;
+   0010: opcode 0x57
+   0011: opcode 0xb1
+   Methodref ButterKnife.bind in this class: [('butterknife/ButterKnife', 'bind', '(Ljava/lang/Object;Landroid/view/View;)Lbutterknife/Unbinder;')]
+
+== E5 SplitItemViewHolder_ViewBinding.<init> and unbind: methods declared and their Methodrefs into the holder class
+   method <init>(Lcom/money/manager/ex/transactions/SplitItemViewHolder;Landroid/view/View;)V
+   method unbind()V
+   Methodrefs in this class that name SplitItemViewHolder: []
+
+## Q27 repository search for an androidx ItemTouchHelper source file (outside graphs/, which holds other apps)
+$ find . -name "ItemTouchHelper*.java" -not -path "./graphs/*"
+./final_java_only/Aegis/app/Aegis-#v3.4.2/app/src/main/java/com/beemdevelopment/aegis/helpers/ItemTouchHelperAdapter.java
+(end of search)
+
+## Q28 edges in graph_def.py and parts/ whose destination is a SplitCategoriesActivity method (no INTENT or LIFECYCLE edge into onCreate or <init> yet)
+$ grep -n "'SplitCategoriesActivity" graphs/MMEX/graph_def.py graphs/MMEX/parts/*.py  (destinations only; source lines of the match shown)
+graphs/MMEX/graph_def.py:3773:    ('MmxBaseFragmentActivity$2.onClick', 'SplitCategoriesActivity.onActionDoneClick'),
+graphs/MMEX/parts/label_046.py:103:    ('MmxBaseFragmentActivity$2.onClick', 'SplitCategoriesActivity.onActionDoneClick'),
+
+## Q29 SplitCategoriesActivity.onFabClick (193) and addSplitTransaction (222-234), printed
+$ awk on final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/SplitCategoriesActivity.java lines 190-235
+190: 
+191:     @OnClick(R.id.fab)
+192:     protected void onFabClick() {
+193:         addSplitTransaction();
+194:     }
+195: 
+196:     /*
+197:         Events
+198:      */
+199: 
+200:     @Subscribe
+201:     public void onEvent(SplitItemRemovedEvent event) {
+202:         onRemoveItem(event.entity);
+203:     }
+204: 
+205:     @Subscribe
+206:     public void onEvent(AmountEntryRequestedEvent event) {
+207:         Calculator.forActivity(this)
+208:                 .currency(mAdapter.currencyId)
+209:                 .amount(event.amount)
+210:                 .show(event.requestId + amountRequestOffset);
+211:     }
+212: 
+213:     @Subscribe
+214:     public void onEvent(CategoryRequestedEvent event) {
+215:         showCategorySelector(event.requestId);
+216:     }
+217: 
+218:     /*
+219:         Private
+220:      */
+221: 
+222:     private void addSplitTransaction() {
+223:         ISplitTransaction entity = SplitItemFactory.create(this.entityTypeName, mAdapter.transactionType);
+224: 
+225:         mAdapter.splitTransactions.add(entity);
+226: 
+227:         int position = mAdapter.splitTransactions.size() - 1;
+228:         mAdapter.notifyItemInserted(position);
+229: 
+230:         if (mRecyclerView != null) {
+231: //            mRecyclerView.smoothScrollToPosition(position);
+232:             mRecyclerView.scrollToPosition(position);
+233:         }
+234:     }
+235: 

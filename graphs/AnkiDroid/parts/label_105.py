@@ -1,0 +1,23 @@
+# AnkiDroid batch 105 (LABEL helper): libanki importer package, 37 methods.
+# 10 UNREACHABLE entries (all no_trigger_in_app), 27 REACHABLE rows in graphs/AnkiDroid/parts/label_105.md.
+# No e() edges: the in-batch dispatch is covered by automatic CALL edges. Automatic bytecode CALL edges are not written here.
+
+UNREACHABLE['Anki2Importer._mediaData(String)'] = ('no_trigger_in_app', 'One-argument helper with no call site: a grep over src main and androidTest finds no call with one argument. Its body delegates to the two-argument form (line 598), so no in-app path reaches it.', 'SRC com/ichi2/libanki/importer/Anki2Importer.java:597-599, 619, 627', 'SOURCE')
+
+UNREACHABLE['Anki2Importer._srcMediaData'] = ('no_trigger_in_app', 'Protected body of a method that AnkiPackageImporter overrides. The two in-app call sites (Anki2Importer.java:591 and 652) dispatch on the AnkiPackageImporter receiver to AnkiPackageImporter._srcMediaData (AnkiPackageImporter.java:126-135). The base body runs only for a direct Anki2Importer receiver. No main code constructs Anki2Importer; the only direct receiver is in androidTest (ImportTest.java:62-97). Grep of src main and androidTest: call sites are 591 and 652 only. Conflict to report: automatic base-receiver CALL edges calls[6900] (_importStaticMedia, line 591) and calls[6927] (_mungeMedia, line 652) point at this body. They are suppression candidates for the orchestrator; no sup() is written here.', 'SRC com/ichi2/libanki/importer/Anki2Importer.java:618-620, 591, 652; SRC com/ichi2/libanki/importer/AnkiPackageImporter.java:126-135; ../../androidTest/java/com.ichi2.anki.tests/libanki/ImportTest.java:62-97', 'SOURCE')
+
+UNREACHABLE['Anki2Importer.getAdded'] = ('no_trigger_in_app', 'Test-only getter. Anki2Importer.java:768 says the methods below are only used for testing. No call in src main. The androidTest callers are ImportTest.java:203, 209, 218 and 302.', 'SRC com/ichi2/libanki/importer/Anki2Importer.java:768, 780-782; ../../androidTest/java/com.ichi2.anki.tests/libanki/ImportTest.java:203, 209, 218, 302', 'SOURCE')
+
+UNREACHABLE['Anki2Importer.getDupes'] = ('no_trigger_in_app', 'Test-only getter (see the comment at Anki2Importer.java:768). No call in src main. The androidTest callers are ImportTest.java:202, 208, 217 and 301.', 'SRC com/ichi2/libanki/importer/Anki2Importer.java:768, 775-777; ../../androidTest/java/com.ichi2.anki.tests/libanki/ImportTest.java:202, 208, 217, 301', 'SOURCE')
+
+UNREACHABLE['Anki2Importer.getUpdated'] = ('no_trigger_in_app', 'Test-only getter (see the comment at Anki2Importer.java:768). No call in src main. The androidTest callers are ImportTest.java:204, 210, 219 and 303.', 'SRC com/ichi2/libanki/importer/Anki2Importer.java:768, 785-787; ../../androidTest/java/com.ichi2.anki.tests/libanki/ImportTest.java:204, 210, 219, 303', 'SOURCE')
+
+UNREACHABLE['Anki2Importer.setDupeOnSchemaChange'] = ('no_trigger_in_app', 'Test-only setter (see the comment at Anki2Importer.java:768). No call in src main. The androidTest callers are ImportTest.java:147, 152, 158, 167, 181 and 186.', 'SRC com/ichi2/libanki/importer/Anki2Importer.java:768, 770-772; ../../androidTest/java/com.ichi2.anki.tests/libanki/ImportTest.java:147, 152, 158, 167, 181, 186', 'SOURCE')
+
+UNREACHABLE['Importer.ts'] = ('no_trigger_in_app', 'Protected helper that increments mTs, with no call site. A grep over src main and androidTest for ts() finds only the definition at Importer.java:69.', 'SRC com/ichi2/libanki/importer/Importer.java:69-72', 'SOURCE')
+
+UNREACHABLE['NoteImporter.<init>'] = ('no_trigger_in_app', 'Reached only from TextImporter.<init> (TextImporter.java:10-12). TextImporter is constructed only in androidTest (ImportTest.java:228 and 276). No main code constructs TextImporter or NoteImporter.', 'SRC com/ichi2/libanki/importer/NoteImporter.java:9-11; SRC com/ichi2/libanki/importer/TextImporter.java:10-12; ../../androidTest/java/com.ichi2.anki.tests/libanki/ImportTest.java:228, 276', 'SOURCE')
+
+UNREACHABLE['NoteImporter.run'] = ('no_trigger_in_app', 'Empty body. No call site anywhere. TextImporter.run (TextImporter.java:14-17) overrides it with an empty body and no super call, and NoteImporter is never constructed directly.', 'SRC com/ichi2/libanki/importer/NoteImporter.java:13-16; SRC com/ichi2/libanki/importer/TextImporter.java:14-17', 'SOURCE')
+
+UNREACHABLE['NoteImporter.getTotal'] = ('no_trigger_in_app', 'Getter for mTotal with no in-app caller. The only callers are androidTest ImportTest.java:234, 238, 249 and 255.', 'SRC com/ichi2/libanki/importer/NoteImporter.java:18-20; ../../androidTest/java/com.ichi2.anki.tests/libanki/ImportTest.java:234, 238, 249, 255', 'SOURCE')

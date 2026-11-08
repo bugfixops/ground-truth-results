@@ -1,0 +1,31 @@
+D17 rebind-path print — ViewDataBinding (upstream source of androidx.databinding.ViewDataBinding)
+URL: https://android.googlesource.com/platform/frameworks/data-binding/+/master/extensions/library/src/main/java/android/databinding/ViewDataBinding.java
+Blob (as rendered by the fetch): 70c79c41354afe54c2f30e52944c01f8341999b6; package android.databinding (upstream of androidx.databinding)
+Fetched 2026-11-01 via browser text fetch (not a live-browser visit). Version caveat: this is the
+master-branch upstream file, NOT a pinned androidx databinding-runtime release version. The
+executePendingBindings -> hasPendingBindings query below is the same shape as in the
+databinding-runtime 4.0.1 analysis and the API-23 copy; no version was found in which
+executePendingBindings does NOT query hasPendingBindings().
+
+Rebind path (rendered line numbers from the fetch):
+- mRebindRunnable.run() -> executePendingBindings(): "executePendingBindings();" (rendered L348)
+- mFrameCallback.doFrame() -> mRebindRunnable.run() (rendered L474-480)
+- ROOT_REATTACHED_LISTENER.onViewAttachedToWindow -> binding.mRebindRunnable.run() (rendered L282-288)
+- requestRebind() posts mFrameCallback via Choreographer (USE_CHOREOGRAPHER, SDK>=16) or
+  mRebindRunnable via Handler (rendered L894-920)
+- executePendingBindings() body (rendered L676-690):
+    public void executePendingBindings() {
+        if (mIsExecutingPendingBindings) { requestRebind(); return; }
+        if (! hasPendingBindings()) { return; }     <-- rendered L686: THE QUERY
+        mIsExecutingPendingBindings = true; ...
+        if (! mRebindHalted) { executeBindings(); ... }
+        mIsExecutingPendingBindings = false;
+    }
+- hasPendingBindings declared abstract (rendered L768): "public abstract boolean hasPendingBindings();"
+- handleFieldChange -> onFieldChange -> requestRebind (rendered L852-862) — separate path, not used here.
+
+Consequence for D17: executePendingBindings() calls hasPendingBindings() on `this`, i.e. on the
+binding instance, so the call dispatches polymorphically to the generated *BindingImpl override.
+Every created Impl reaches executePendingBindings via invalidateAll (ctor) -> requestRebind ->
+Choreographer frame callback -> mRebindRunnable -> executePendingBindings. Hence ALL OPEN
+hasPendingBindings rows flip together to REACHABLE INFERRED under D17.

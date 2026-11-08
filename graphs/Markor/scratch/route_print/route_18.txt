@@ -1,0 +1,69 @@
+method: GsPreferenceFragmentBase.tintPrefIconsRecursive
+route: route_18
+steps: 16
+verdict: fixed (path row)
+
+step 1: S_ENTRY -> ApplicationObject.<init>
+  edge: E211966cc kind=ENTRY env=None env_kinds=[] needs_state=None gui=['Tap the Markor launcher icon']
+  trigger: The process starts when the launcher icon is tapped (before any activity)
+  evidence: SRC AndroidManifest.xml:39-40
+step 2: ApplicationObject.<init> -> ApplicationObject.onCreate
+  edge: Ed6414d9f kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Application.onCreate
+  evidence: SRC ApplicationObject.java:16,39
+step 3: ApplicationObject.onCreate -> MainActivity.<init>
+  edge: E0254b914 kind=ENTRY env=None env_kinds=[] needs_state=None gui=['Tap the Markor launcher icon']
+  trigger: The MAIN / LAUNCHER intent starts MainActivity (after Application.onCreate on a cold start)
+  evidence: SRC AndroidManifest.xml:61-71; FW-SRC core/java/android/app/ActivityThread.java:5740 (callApplicationOnCreate runs before the first activity)
+step 4: MainActivity.<init> -> MainActivity.onCreate
+  edge: Ed25af8f4 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onCreate
+  evidence: SRC MainActivity.java:76; FW-SRC core/java/android/app/Activity.java:989 (onCreate), 1311 (onResume), 1331 (onPostResume), 3001-3010 (onBackPressed), 5679 (onActivityResult), 824 (mResultCode defaults to RESULT_CANCELED)
+step 5: MainActivity.onCreate -> MainActivity.onResume
+  edge: Eba46a594 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onStart and then Activity.onResume after onCreate returns (cold start)
+  evidence: SRC MainActivity.java:76,279; FW-SRC core/java/android/app/ActivityThread.java:2729 (callActivityOnCreate), 2741 (performStart), 2950 (performResume)
+step 6: MainActivity.onResume -> MainActivity.onPostResume
+  edge: E659e191c kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Activity.performResume calls onPostResume after onResume
+  evidence: SRC MainActivity.java:317; FW-SRC core/java/android/app/Activity.java:7098-7131 (onPostResume at 7131)
+step 7: MainActivity.onPostResume -> S_NOTEBOOK
+  edge: E0ecb8e4d kind=ENTERS env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The notebook tab is the first page the pager shows (position 0); it is the default startup tab, so it is the visible page after a cold start
+  evidence: SRC MainActivity.java:105-106; SRC AppSettings.java:781; SRC MainActivity.java:142-144; FW-SRC core/java/android/app/Activity.java:7098-7131; INFERRED androidx ViewPager2 calls the registered OnPageChangeCallback after the page changes (androidx source not read)
+step 8: S_NOTEBOOK -> MainActivity.onViewPagerPageSelected@MORE
+  edge: E70fd6983 kind=GUI env=None env_kinds=[] needs_state=None gui=['Tap the More tab in the bottom bar (the pager realizes the More page)']
+  trigger: Tap the More tab in the bottom bar (the pager realizes the More page)
+  evidence: SRC MainActivity.java:446, 519-520; INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read)
+step 9: MainActivity.onViewPagerPageSelected@MORE -> MoreFragment.onViewCreated
+  edge: E19ec7a6b kind=FRAMEWORK env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The realized more page is created by the pager; the FragmentManager creates its view
+  evidence: SRC MainActivity.java:446, 519-520; SRC MoreFragment.java:46; INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read)
+step 10: MoreFragment.onViewCreated -> MoreInfoFragment.newInstance
+  edge: Ec91b9182 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC MoreFragment.java:51 (bytecode)
+step 11: MoreInfoFragment.newInstance -> MoreInfoFragment.<init>
+  edge: E884e8fa9 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC MoreInfoFragment.java:33 (bytecode)
+step 12: MoreInfoFragment.<init> -> GsPreferenceFragmentBase.<init>
+  edge: Ecec8526f kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC MoreInfoFragment.java:29 (bytecode)
+step 13: GsPreferenceFragmentBase.<init> -> GsPreferenceFragmentBase.lambda$new$1
+  edge: E174da89e kind=FRAMEWORK env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Listener or callback registered by this method runs when its event fires (view event, dialog button, handler or fragment callback)
+  evidence: INFERRED listener registered at GsPreferenceFragmentBase.java:172 (bytecode line); the listener type is not read per lambda
+step 14: GsPreferenceFragmentBase.lambda$new$1 -> GsPreferenceFragmentBase.lambda$new$0
+  edge: Eb5446c49 kind=FRAMEWORK env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Listener or callback registered by this method runs when its event fires (view event, dialog button, handler or fragment callback)
+  evidence: INFERRED listener registered at GsPreferenceFragmentBase.java:177 (bytecode line); the listener type is not read per lambda
+step 15: GsPreferenceFragmentBase.lambda$new$0 -> GsPreferenceFragmentBase.tintAllPrefIcons@MoreInfoFragment
+  edge: Eeaffa884 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The base method runs with the receiver of a live subclass, so the call on that receiver is made (INFERRED lift of a receiver-variant call)
+  evidence: INFERRED GsPreferenceFragmentBase.lambda$new$0 is reached and MoreInfoFragment is a live class: the body of GsPreferenceFragmentBase.lambda$new$0 runs with MoreInfoFragment as receiver (call in GsPreferenceFragmentBase.lambda$new$0@MoreInfoFragment, file GsPreferenceFragmentBase.java line 177)
+step 16: GsPreferenceFragmentBase.tintAllPrefIcons@MoreInfoFragment -> GsPreferenceFragmentBase.tintPrefIconsRecursive@MoreInfoFragment
+  edge: E5fd53742 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC GsPreferenceFragmentBase.java:187 (bytecode)

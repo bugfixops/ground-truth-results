@@ -1,0 +1,26 @@
+# Batch 89 printed evidence
+
+Plan extraction:
+```sh
+awk -F '\\t' '$1==89 {print $3 "\\t" $4}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+```
+Result: 40 exact rows, reproduced in the report table.
+
+Bounded source scan:
+```sh
+rg -n 'class DetailTorrentViewModel|addTag|applyPriority|getFilePath|removeTag|startMakeFileTree|updateFiles|makeFileTree|makeMagnet|makeOpenFileIntent|observeAdvancedTorrentInfo|observeFreeSpaceError|observePeers|observePieces|observeTags|observeTorrent|observeTorrentInfo|observeTrackers|onCleared|pauseResumeTorrent|replaceTrackers|setSpeedLimit|setTorrentId|upToParentDirectory|updateChildren|updateCurDir|updateInfo' .../ui/detailtorrent/{DetailTorrentViewModel,MsgDetailTorrentViewModel}.java
+```
+Key printed output:
+```
+DetailTorrentViewModel.java:81 class; :118 onCleared; :126 setTorrentId
+:147-192 observe tags/free-space/torrent/peers/pieces/trackers and combined torrent info
+:199/:206/:218 updateInfo overloads; :203/:215 startMakeFileTree calls
+:226 upToParentDirectory; :253 update directory; :262 getFilePath
+:326 applyPriority; :333 updateChildren; :349 replaceTrackers; :357 pauseResumeTorrent
+:381 makeMagnet; :393 setSpeedLimit; :398 makeOpenFileIntent
+:522 startMakeFileTree; :523-526 async make tree then update directory
+:529 makeFileTree; :570 updateFiles; :599 updateChildren callback; :602-607 directory updates
+MsgDetailTorrentViewModel.java:27 class
+```
+These source-local calls are incomplete route evidence. No full route status is assigned; all 40 remain OPEN.
+

@@ -1,0 +1,73 @@
+     1	/*
+     2	 * Copyright (C) 2016, 2018, 2019 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.settings;
+    21	
+    22	import android.os.Bundle;
+    23	import android.view.MenuItem;
+    24	import android.widget.TextView;
+    25	
+    26	import androidx.appcompat.app.AppCompatActivity;
+    27	import androidx.appcompat.widget.Toolbar;
+    28	import androidx.lifecycle.ViewModelProvider;
+    29	
+    30	import org.proninyaroslav.libretorrent.R;
+    31	import org.proninyaroslav.libretorrent.core.utils.Utils;
+    32	
+    33	public class SettingsActivity extends AppCompatActivity
+    34	{
+    35	    private static final String TAG = SettingsActivity.class.getSimpleName();
+    36	
+    37	    private Toolbar toolbar;
+    38	    private TextView detailTitle;
+    39	    private SettingsViewModel viewModel;
+    40	
+    41	    @Override
+    42	    protected void onCreate(Bundle savedInstanceState)
+    43	    {
+    44	        setTheme(Utils.getSettingsTheme(getApplicationContext()));
+    45	        super.onCreate(savedInstanceState);
+    46	
+    47	        viewModel = new ViewModelProvider(this).get(SettingsViewModel.class);
+    48	
+    49	        setContentView(R.layout.activity_settings);
+    50	
+    51	        toolbar = findViewById(R.id.toolbar);
+    52	        toolbar.setTitle(getString(R.string.settings));
+    53	        setSupportActionBar(toolbar);
+    54	        if (getSupportActionBar() != null)
+    55	            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    56	
+    57	        detailTitle = findViewById(R.id.detail_title);
+    58	        viewModel.detailTitleChanged.observe(this, title -> {
+    59	            if (title != null && detailTitle != null)
+    60	                detailTitle.setText(title);
+    61	        });
+    62	    }
+    63	
+    64	    @Override
+    65	    public boolean onOptionsItemSelected(MenuItem item)
+    66	    {
+    67	        if (item.getItemId() == android.R.id.home) {
+    68	            finish();
+    69	        }
+    70	
+    71	        return true;
+    72	    }
+    73	}

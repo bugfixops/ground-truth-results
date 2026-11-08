@@ -1,0 +1,104 @@
+METHOD: AccountRepository.first
+verdict: REACHABLE   steps_from_launch: 7
+route steps: 7 edges
+======================================================================
+
+STEP 1  edge E2b98cbaa
+  S_ENTRY -> SingleAccountWidget.<init>
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC AndroidManifest.xml:114-124 (receiver name 115, APPWIDGET_UPDATE 118); SRC widget/SingleAccountWidget.java:48 (class declaration, implicit constructor); FW-SRC core/java/android/app/ActivityThread.java:3141, 3166, 3187
+  cite [SRC] AndroidManifest.xml:114-124
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/AndroidManifest.xml)
+      114:         <receiver
+      115:                 android:name=".widget.SingleAccountWidget"
+      116:                 android:label="@string/single_account" android:exported="true">
+      117:             <intent-filter>
+      118:                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+      119:             </intent-filter>
+      120: 
+      121:             <meta-data
+      122:                 android:name="android.appwidget.provider"
+      123:                 android:resource="@xml/widget_info_single_account" />
+      124:         </receiver>
+  cite [SRC] widget/SingleAccountWidget.java:48
+       48: public class SingleAccountWidget
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:3141, 3166, 3187
+     3141:     private void handleReceiver(ReceiverData data) {
+     3166:             receiver = (BroadcastReceiver)cl.loadClass(component).newInstance();
+     3187:             receiver.onReceive(context.getReceiverRestrictedContext(),
+
+STEP 2  edge E82052096
+  SingleAccountWidget.<init> -> SingleAccountWidget.onUpdate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC core/java/android/appwidget/AppWidgetProvider.java:66; FW-SRC services/appwidget/java/com/android/server/appwidget/AppWidgetServiceImpl.java:2283-2286 (setComponent 2286); SRC widget/SingleAccountWidget.java:69-70 (override)
+  cite [FW-SRC] core/java/android/appwidget/AppWidgetProvider.java:66
+       66:                     this.onUpdate(context, AppWidgetManager.getInstance(context), appWidgetIds);
+  cite [FW-SRC] services/appwidget/java/com/android/server/appwidget/AppWidgetServiceImpl.java:2283-2286
+     2283:     private void sendUpdateIntentLocked(Provider provider, int[] appWidgetIds) {
+     2284:         Intent intent = new Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+     2285:         intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds);
+     2286:         intent.setComponent(provider.info.provider);
+  cite [SRC] widget/SingleAccountWidget.java:69-70
+       69:     @Override
+       70:     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
+
+STEP 3  edge E9eb5ff4d
+  SingleAccountWidget.onUpdate -> SingleAccountWidget.updateAppWidget
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC SingleAccountWidget.java:74 (bytecode)
+  cite [SRC] SingleAccountWidget.java:74
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/widget/SingleAccountWidget.java)
+       74:             updateAppWidget(context, appWidgetManager, appWidgetIds[i]);
+
+STEP 4  edge E01dadb8d
+  SingleAccountWidget.updateAppWidget -> SingleAccountWidget.displayAccountInfo
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC SingleAccountWidget.java:176 (bytecode)
+  cite [SRC] SingleAccountWidget.java:176
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/widget/SingleAccountWidget.java)
+      176:             displayAccountInfo(context, defaultAccountString, views);
+
+STEP 5  edge Ebb29c7ff
+  SingleAccountWidget.displayAccountInfo -> SingleAccountWidget.loadAccount
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC SingleAccountWidget.java:195 (bytecode)
+  cite [SRC] SingleAccountWidget.java:195
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/widget/SingleAccountWidget.java)
+      195:         Account account = loadAccount(context, accountId);
+
+STEP 6  edge E64510675
+  SingleAccountWidget.loadAccount -> AccountRepository.load
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC SingleAccountWidget.java:250 (bytecode)
+  cite [SRC] SingleAccountWidget.java:250
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/widget/SingleAccountWidget.java)
+      250:         return repository.load(accountId);
+
+STEP 7  edge E77e56ae9
+  AccountRepository.load -> AccountRepository.first
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC AccountRepository.java:57 (bytecode)
+  cite [SRC] AccountRepository.java:57
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/datalayer/AccountRepository.java)
+       57:         return first(where.getWhere());

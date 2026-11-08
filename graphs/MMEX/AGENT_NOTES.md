@@ -1,10 +1,11 @@
 # MMEX: schema 2 convert (overnight convert run, started 2026-10-29 04:13 EDT)
 
 ## Current step
-- 2026-10-31: parts 001 to 147 are all merged (147 part tags in graphs/MMEX/graph_def.py; 147 files in parts/). Latest build p147 (scratch/build_p147.txt): methods 4270, pages 43, edges 8027, REACHABLE 3430, UNREACHABLE 840, UNRESOLVED 0, errors 0, warnings 0, exit 0.
-- No helpers are running. Parts 144 to 147 were written and merged by the orchestrator (C7 entries below).
-- The 0/0/0 build gate is met. Route checks (the route and state_kinds columns of out/methods.csv) are not started.
-- Judgement calls and items for review are in handoff/HANDOFF_V2.md, section '## Convert run decisions (MMEX overnight labelling, 2026-10-31)'.
+- 2026-11-02: finish run — B6, routes 8+18, showPrerequisite guard, section-9 getContext repair, Sync re-feed v2, and route-14 loader-id partition all landed on work-2026-10-31 (commits ae6313df, b559d1c8, 18e5080b, 81cab02f). Final tree build: 4270 methods, 3430 REACHABLE / 840 UNREACHABLE, 8441 edges, errors 0, warnings 0.
+- 2026-11-02: final redraw + fresh judging, independently audited (PASS): final table CORRECT 20 / FIXED 8 / WRONG 0 / UNCLEAR 2, error rate 8/28 = 0.2857. B7 logs pushed as B2 (commit 1132070e; writer v2, no-arg from repo root; verification.csv 900 rows: 30 path / 870 label / 0 edge).
+- 2026-11-02: device B3 pushed (commit cdab515a; see "## Device B3 (pushed 2026-11-02)" below) and the round readme note pushed (commit c3806a05). The device merge to 26 scripted / 4 unscriptable is complete LOCALLY (routes 06/10/12/14 converted; merged-layout drycheck 30/0 in both modes; writer reproduction byte-identical to branch verification.csv); it is Push-1 content in the one-app-at-a-time regime and is NOT on the branch yet. The route-14 push is NOT pending: it landed as 81cab02f, and the "push pending at append time" wording in the route-14 section below is historical (true at append time only).
+- Next: Push-1 assembly (device merge + this B3 section + ROUTES_NOTES.md + FIXED-steps recount resolution), then coordinator-dispatched CI rebuild request, CI SUMMARY gate, D9 dry-run gate, and the coordinator's [K] line. No real emulator run in this stream.
+- Decisions made by Muse for user/Yang review are in "## Decisions made by Muse (for the user and Yang to review)" at the end of this file.
 
 ## Facts checked
 - Source root: final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java (rules section 2 step 3).
@@ -423,3 +424,196 @@ Lock rule: helper 014 touched WORKING_LOCK at 05:02 as required; the orchestrato
 15:55, overnight labelling run: merged part 106 (build scratch/build_p106.txt: REACHABLE 2668, UNREACHABLE 588, UNRESOLVED 1014, errors 1015, warnings 5; check_part no problems). Batch 106 defines S_PAYEE_REPORT, and no other part or graph_def.py defines that key. Spot-check: PieChartFragment.java:77-84 (Collections.sort with the value comparator, unconditional in buildChart) and 87 (slice count gate). The compare callback's call is INFERRED (libcore not in fw_src). The $1.run dual-panel gate (env ENV_DUAL_PANEL) rests on the tablet layouts, as in 105. The base-name FRAMEWORK and LIFECYCLE sources in 106 are batch 103 methods, and they are now merged. Build still shows the 4 UNREACHABLE-with-incoming warnings and the REVIEW line (199 edges), and the only page error is S_BUDGET_DETAIL. Helpers 107, 108 and 109 are running; batch 110 launched at 15:55.
 
 16:13, overnight labelling run: merged parts 107 to 112 in order (builds scratch/build_p107.txt to build_p112.txt, out prefix mmex; after 112: methods 4270, REACHABLE 2784, UNREACHABLE 614, UNRESOLVED 872, errors 873, warnings 5). check_part.py: no problems for 107 to 112 (107 needed one fix first: its INTENT edge source is IncomeVsExpensesListFragment$4.onItemClick, the listener owned by batch 105, not IncomeVsExpensesListFragment.onItemClick). Spot-check batch 109 (S_SEARCH defined once, label_109.py:9; reused in 110): SearchParametersFragment.java:123 inject(this) -> DaggerMmxComponent.inject(SearchParametersFragment) (DaggerMmxComponent.java:270) -> injectSearchParametersFragment -> SearchParametersFragment_MembersInjector.injectDateTimeUtilsLazy (DaggerMmxComponent.java:474). Open: batch 109 marks injectMembers UNREACHABLE and sup-pairs it with injectDateTimeUtilsLazy, but the component calls injectDateTimeUtilsLazy directly; not resolved. Helper claims not verified: 107 ValuePieEntry.describeContents UNREACHABLE and the FragmentState parcel path and the CategoryListFragment.setResult RESULT edge; 111 InfoService_MembersInjector.injectRepository (generated code only), CategoryService.getCategorySubcategoryName (callers in unlabelled batches), the ACTION_INSERT intent path (exported activity in another batch); 112 RecurringTransactionService.load UNREACHABLE, QifGenerator.createFromAdapter through IQifGenerator (one implementer found), D14 framework-call cuts not applied.
+
+2026-11-02, routes 8+18 merge (verification PASS): plain InvestmentTransactionEditActivity.onActivityResult has ZERO incoming non-REGISTER edges after the R18 partition; its REACHABLE verdict comes entirely from the first_variant mapping to the four @X variant handlers. Deleting any variant chain without a replacement breaks the plain method's verdict (build error, UNRESOLVED). The four chains are one indivisible partition of the deleted plain RESULT edge (design N18-1); deletions and additions landed together in one build (design N18-2). The plain equals-preserving edge (03.py:463) must stay: removing it breaks every plain equals-key calculator route (AccountEdit, PriceEdit, Checking, Search).
+
+## Sync re-feed v2 (applied 2026-11-02, verification PASS; pushed separately from the three-designs push)
+
+Action partition A1-A14 + R-S9a (@MAIN -> @SYNC) + F1/F2 rewrites (session
+needs_state, heartbeat exclusion, forceDownload ENV removed from F1) + S1/S2
+auto suppressions. Build 4270/3430/840/8411/0/0 (+48 = -13+22+39), 0 flips,
+checks 2/3/4 = 0, §6 grep REGISTER + new F1/F2 only. Route 12 stays WRONG
+until the final redraw + re-judge. Full record: merger/scratch/fix_log.md
+(Sync re-feed v2 section). B7 stale ids: 13 retired (package §5 table;
+Eafb31232 retired again by Sync after §9 — landing order decides).
+Caveats: DbFileDownloadedEvent.<init> @OTHER-tail is fanout-representative
+only, never OTHER-delivery evidence; Ecdf1af97 range correction open as a
+follow-up (not applied — it would change a drawn-route edge id).
+
+## Route 14 loader-id partition (applied 2026-11-02, fix round, verification PASS; push pending at append time)
+
+Deleted plain onLoadFinished -> $1.run hand edge Ef9d523dd (01.py,
+tombstone) + six hand edges appended to 04.py (R14-1 Ebfbf7e82,
+R14-2 E6df1962a, R14-3 E428631c7, R14-4 Ed2e1013e, R14-5 E645f3932,
+R14-6 Ef27e0542), sealing the @REPORT chain behind startLoader@YEARS.
+Build 4270/3430/840/8441 (+30 = +6 hand +26 fan-out -1 deleted hand
+-1 suppressed plain auto E3a19df72), 0 flips, checks 2/3/4 = 0.
+$1.run 11 -> 14 steps, steps 1-8 byte-identical; exactly one route
+changes. Step 3 (:238, E5d5a9c2f) untouched — guard follow-up is
+separate (shared launch-prefix edge, also route 29 step 3; needs its
+own design + audit). B7 stale ids: Ef9d523dd -> Ef27e0542,
+E3a19df72 -> E428631c7 (functional successor; regenerate rows, never
+hand-swap). Full record: merger/scratch/fix_log.md (route-14
+section). No verdict claimed until the final redraw + re-judge.
+
+## Device B3 (pushed 2026-11-02, commit cdab515a)
+
+B3 package as pushed (43 files, 43/43 blob read-back; parent e9938693).
+This section was excluded from the B3 push by scope and is written in
+the MMEX turn as Push-1 content; it changes no graph, writer, or
+script fact.
+
+- ROUTES.csv (blob 4ed18b4c): 30 rows, 22 scripted / 8 unscriptable.
+  Unscriptable in B3: routes 06, 07, 08, 10, 11, 12, 14, 19. The
+  B3-stage reasons for the four later converted routes: route_06
+  needed a valid saved recurring transaction with a new split
+  category and an account to save against, with the form-entry tap
+  sequence ungrounded; route_10 needed the payee report query to
+  return at least one row, with the transaction-entry flow
+  ungrounded; route_12 needed a tablet layout (fragmentChart exists
+  only in layout-sw600dp-land and layout-sw720dp-port) plus
+  populated income/expense data, with the transaction seed
+  ungrounded; route_14 needed a database with a due recurring
+  transaction (QueryBillDeposits DAYSLEFT<=0) and a set passcode,
+  with no fixture or setup to create either, plus an ungrounded
+  notification-shade tap.
+- Scripts: 22 route scripts + 18 setups, from the final sample only.
+- Writer (blob 625e2e4e): branch writer v2 plus the DEVICE block
+  only; output without a results file is byte-identical to the
+  branch writer, and exactly 3 DEVICE rows are appended when a
+  synthetic results file is supplied.
+- run_app.sh (blob 25dab457): branch run_app.sh plus the
+  comment-only MMEX-B3-UIDRIVE amendment (see below).
+- verification.csv was NOT re-pushed in B3 (AnkiDroid D1 precedent:
+  the B2 csv already reproduces byte-identically from the writer).
+- Seeded-writer drift flag, RESOLVED: a re-auditor's mismatch came
+  from a stale 8256-edge tree out/methods.csv; on the fresh
+  8441-edge build the route_edge_ids match the tree
+  verification.csv exactly on all 7 flagged methods. The writer
+  contract is against a faithful build, never stale out/.
+
+Decisions recorded for B3 (both present in branch
+handoff/MUSE_DECISIONS.md at commit 0cd4446c, blob fa6d1e14,
+verified, never duplicated by this file):
+
+- MMEX-B3-UIDRIVE: UI-driving setups are ACCEPTED, with the
+  run_app.sh contract amendment (run_app.sh runs any setup_<route>.py
+  and only its exit code matters; the harness logs setups in the
+  separate setup log, never against a route edge; a setup runs
+  before the discard coverage dump so coverage stays clean). The
+  amendment records two limits: (a) the drycheck gap — drycheck
+  never executes setups, and MMEX setups back no gen: fixture, so
+  they are entirely dry-unvalidated; (b) the return-to-home rule —
+  launch is plain am start -W -n with no task-clearing flags, so
+  setup UI state leaks into route start (setup_03's CLEAR_TASK
+  relaunch + wait_for("RetryInv") is the recorded example). Silent
+  shipment under the old "generates files" wording is forbidden.
+  Rejection was rejected because the SQLCipher database cannot be
+  seeded by a plaintext file.
+- MMEX-B3-CAP: 22/8 = 26.7% accepted FOR THAT PASS ONLY under the
+  user's cap ruling, with follow-ups for the six in-pass routes
+  open; only routes 11 and 19 were genuinely unscriptable at that
+  time. This acceptance is superseded, not erased, by the 26/4
+  cap decision for the merged package (forwarded separately to the
+  coordinator; the merger never writes handoff/MUSE_DECISIONS.md).
+
+Merged 26/4 package (turn evidence, LOCAL ONLY until Push 1):
+
+- Routes 06, 10, 12, 14 converted to scripted with UI-driving
+  setups under MMEX-B3-UIDRIVE: account, transaction, and
+  recurring-bill entry; route_12 via wm size 1920x1200 +
+  density 240 for the tablet layout. Merged ROUTES.csv: 30 rows,
+  26 scripted / 4 unscriptable (07, 08, 11, 19) = 13.3%.
+  Cell-diff vs the B3 ROUTES.csv: ONLY setup + status cells on
+  06/10/12/14 change; methods, edges, and sources are identical
+  on all 30 rows. Route_26/29 merge diffs are doc-only (route
+  docstring setup descriptions rewritten to the setup scripts;
+  setup docstrings' route-number typo fixed, route_20 to
+  route_26 / route_29). No code change in either.
+- 1-in-3 script audit PASS (audit/fix2-1in3/AUDIT.md: all 10
+  sampled scripts, all five contract rulings ACCEPT, including
+  route_12 wm reset in finally, route_14 kill_app ending +
+  passcode, route_10 drawer collision, route_14 shade via
+  live-only adb, route_06 two fresh splits + "$0.00" anchoring).
+- Merged-layout drycheck 30/0 in both plain and --load-scripts
+  modes on the fresh 8441-edge graph (turn/drycheck-plain.log,
+  turn/drycheck-load.log). The earlier b3-sweep 27/3 was a
+  stale-graph-input artifact (8256-edge tree missing design-era
+  edges), not a script defect.
+- Writer no-args reproduction byte-identical to branch
+  verification.csv (blob 7adf3ebc; turn/writer-repro.log).
+- Cap: the 26/4 decision text was forwarded to the coordinator
+  as a DRAFT ("DRAFT until the package pushes at MMEX's turn")
+  and sits in DECISIONS in that form; the confirmed version is
+  forwarded with Push 1.
+
+Push note: the first B3 push attempt's session vanished with the
+branch verified unchanged, and the second attempt's session was
+SIGTERMed after about 30 minutes — but the commit had landed
+(14:16:17Z), confirmed by read-back; no duplicates were issued.
+The AGENT_NOTES B3 section and ROUTES_NOTES.md were not in that
+push by scope and ride Push 1 instead.
+
+## Decisions made by Muse (for the user and Yang to review)
+
+All decisions below are Muse's own, recorded for user/Yang review. None
+is attributed to Yang, and none is a user tick (the user ticks).
+
+- MMEX-B6-DispatchSplit: split shared dispatcher nodes (option (b)).
+  Options (a) accept-15-WRONG and (c) guard-only redraw were REJECTED.
+  Edge deletion is FORBIDDEN for BFS context errors.
+- MMEX-B6-INFERRED (auditor-consensus standard): verified endpoints +
+  standard dispatch + explicit INFERRED flag + nothing contradicting =
+  CORRECT/FIXED; UNCLEAR only for genuine app-side doubt; failed
+  precondition or proven absence = WRONG.
+- MMEX-B6-getContext: wrong-with-reason fallback ACCEPTED for route 29
+  in B6; the 32-edge repair was deferred to a follow-up (later applied
+  as the section-9 repair, audited and verified).
+- MMEX-Sync-v2-AUTHORIZED: Sync re-feed v2 implementation ONLY, never
+  v1 (coordinator authorization); the implementation itself was
+  independently audited before merging, and route 12 stayed WRONG
+  until the final redraw + re-judge.
+- Route-14 :238 scope: the :238 guard was NOT added in the fix round
+  (out of the audited step-11 design's scope; the edge is a shared
+  launch-prefix edge also traversed by route 29 step 3, so it needs
+  its own design + audit as a follow-up, never a silent expansion).
+  The final redraw re-judged step 3 in full: FIXED by the
+  implicit-guard judgment (gate :184-187 + zero returns :188-243),
+  not graph-fixed.
+- Final sample option (A): the redrawn 30 (not the B6 30) are the final
+  sample, per brief B6 step 6 ("the final table covers only the final
+  draw") + section 4 + D1. Dropped repaired routes are covered by
+  targeted re-judges (separate section, never table rows). The
+  5-WRONG (20:15 expectation) vs 0-WRONG (audited fresh judging)
+  difference was reported with evidence, not forced.
+- Writer v2 table-read + section-4 convention: judgments come from
+  route_table.md, not from a committed route_judgments.tsv (the user
+  order offered both; the TSV option was not taken because a
+  mechanically-generated verdict file checked against its source
+  table is circular). Path-row convention, audit-signed: confirmed_by
+  = SOURCE, ref = graphs/MMEX/scratch/route_table.md, note = heading
+  text after the route number, verbatim.
+- Corrected edges zero rows: no audited judging or fix-log source
+  names an MMEX edge for B7 edge-row emission, so corrected_edges.tsv
+  is empty by decision (the writer's explicit zero-row convention).
+  If an auditor later identifies a qualifying edge with audited
+  evidence, the remedy is to populate the TSV and re-run — never to
+  hand-add a row.
+- route_judgments.tsv held from the tree: writer v2 does not read it,
+  and the B7 run is reproducible from the table alone (the helper
+  copy is preserved as run evidence).
+- Payee partition: strong-sense all-paths Payee partition is NOT a
+  Search gate criterion — it is a drawer follow-up (design first,
+  audit the design, implement only if both pass), not blocking the
+  final redraw, B7, or D1/D3.
+- MainActivity.onEvent needs NO table amendment: it is not a judged
+  route, and a 31st route would change the audited 30-route sample
+  without a redraw + re-judge.
+
+## Current step
+- 2026-11-06 04:29 UTC: Kiro (takeover from Muse), re-audit W3 done for MMEX (no in-app start exists for any exported entry on a best route; no graph change); next W4 (RTA, MMEX-03).
+- 2026-11-06 04:41 UTC: Kiro, re-audit W4 done for MMEX (RTA on; MMEX-03 @ACCOUNTS clone); next W5 (ESR_CREATION).
+- 2026-11-06 04:46 UTC: Kiro, re-audit W5 done for MMEX (ESR_CREATION on; library_edges.csv); next W6 (outside data).
+- 2026-11-06 04:53 UTC: Kiro, re-audit W6 done for MMEX (outside_data.csv); next W7 (guards).
+- 2026-11-06 05:02 UTC: Kiro, re-audit W7 round 1 done for MMEX (pre-screen, checked-case guards; most flagged steps PENDING); next W8 (CI, re-verify routes, device runs).
+- 2026-11-06 06:40 UTC: Kiro stops after round 1. Open: W7 PENDING guard steps, W8 point 2 route re-verification (stale verification paths block the writers and the publish), W9 checks of audit_draw.csv, W0 and the measurement (no review/sample_tune/).

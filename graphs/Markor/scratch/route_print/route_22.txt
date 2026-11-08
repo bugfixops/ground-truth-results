@@ -1,0 +1,69 @@
+method: GsFileBrowserListAdapter.lambda$scrollToAndFlash$3
+route: route_22
+steps: 16
+verdict: fixed (path row)
+
+step 1: S_ENTRY -> ApplicationObject.<init>
+  edge: E211966cc kind=ENTRY env=None env_kinds=[] needs_state=None gui=['Tap the Markor launcher icon']
+  trigger: The process starts when the launcher icon is tapped (before any activity)
+  evidence: SRC AndroidManifest.xml:39-40
+step 2: ApplicationObject.<init> -> ApplicationObject.onCreate
+  edge: Ed6414d9f kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Application.onCreate
+  evidence: SRC ApplicationObject.java:16,39
+step 3: ApplicationObject.onCreate -> MainActivity.<init>
+  edge: E0254b914 kind=ENTRY env=None env_kinds=[] needs_state=None gui=['Tap the Markor launcher icon']
+  trigger: The MAIN / LAUNCHER intent starts MainActivity (after Application.onCreate on a cold start)
+  evidence: SRC AndroidManifest.xml:61-71; FW-SRC core/java/android/app/ActivityThread.java:5740 (callApplicationOnCreate runs before the first activity)
+step 4: MainActivity.<init> -> MainActivity.onCreate
+  edge: Ed25af8f4 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onCreate
+  evidence: SRC MainActivity.java:76; FW-SRC core/java/android/app/Activity.java:989 (onCreate), 1311 (onResume), 1331 (onPostResume), 3001-3010 (onBackPressed), 5679 (onActivityResult), 824 (mResultCode defaults to RESULT_CANCELED)
+step 5: MainActivity.onCreate -> MainActivity.onResume
+  edge: Eba46a594 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onStart and then Activity.onResume after onCreate returns (cold start)
+  evidence: SRC MainActivity.java:76,279; FW-SRC core/java/android/app/ActivityThread.java:2729 (callActivityOnCreate), 2741 (performStart), 2950 (performResume)
+step 6: MainActivity.onResume -> MainActivity.onPostResume
+  edge: E659e191c kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Activity.performResume calls onPostResume after onResume
+  evidence: SRC MainActivity.java:317; FW-SRC core/java/android/app/Activity.java:7098-7131 (onPostResume at 7131)
+step 7: MainActivity.onPostResume -> S_NOTEBOOK
+  edge: E0ecb8e4d kind=ENTERS env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The notebook tab is the first page the pager shows (position 0); it is the default startup tab, so it is the visible page after a cold start
+  evidence: SRC MainActivity.java:105-106; SRC AppSettings.java:781; SRC MainActivity.java:142-144; FW-SRC core/java/android/app/Activity.java:7098-7131; INFERRED androidx ViewPager2 calls the registered OnPageChangeCallback after the page changes (androidx source not read)
+step 8: S_NOTEBOOK -> GsFileBrowserListAdapter.onClick
+  edge: Eba14bdbd kind=GUI env=None env_kinds=[] needs_state=None gui=['Tap a file or folder in the notebook list (a folder opens; a file goes to the notebook listener)']
+  trigger: Tap a file or folder in the notebook list (a folder opens; a file goes to the notebook listener)
+  evidence: SRC GsFileBrowserListAdapter.java:271 (row click listener), 404-416 (folder load, file to the listener); SRC GsFileBrowserFragment.java:123-124; FW-SRC core/java/android/view/View.java:6289-6296 (performClick calls the OnClickListener), 6331-6376 (performLongClick calls the OnLongClickListener), 11768-11774 (the touch listener), 6143-6170 (setOnClickListener / setOnLongClickListener register them); core/java/android/widget/AdapterView.java:314-321 (performItemClick calls the OnItemClickListener)
+step 9: GsFileBrowserListAdapter.onClick -> GsFileBrowserListAdapter.loadFolder
+  edge: E289c960d kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC GsFileBrowserListAdapter.java:433 (bytecode)
+step 10: GsFileBrowserListAdapter.loadFolder -> GsFileBrowserListAdapter.lambda$loadFolder$5
+  edge: E2ac0e2b0 kind=FRAMEWORK env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Listener or callback registered by this method runs when its event fires (view event, dialog button, handler or fragment callback)
+  evidence: INFERRED listener registered at GsFileBrowserListAdapter.java:680 (bytecode line); the listener type is not read per lambda
+step 11: GsFileBrowserListAdapter.lambda$loadFolder$5 -> GsFileBrowserListAdapter._loadFolder
+  edge: Edc0d7fff kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC GsFileBrowserListAdapter.java:680 (bytecode)
+step 12: GsFileBrowserListAdapter._loadFolder -> GsFileBrowserListAdapter.postScrollToAndFlash
+  edge: Ef615fd2e kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC GsFileBrowserListAdapter.java:776 (bytecode)
+step 13: GsFileBrowserListAdapter.postScrollToAndFlash -> GsFileBrowserListAdapter.lambda$postScrollToAndFlash$2
+  edge: Ebf8e92d2 kind=FRAMEWORK env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Listener or callback registered by this method runs when its event fires (view event, dialog button, handler or fragment callback)
+  evidence: INFERRED listener registered at GsFileBrowserListAdapter.java:617 (bytecode line); the listener type is not read per lambda
+step 14: GsFileBrowserListAdapter.lambda$postScrollToAndFlash$2 -> GsFileBrowserListAdapter.scrollToAndFlash
+  edge: Eaff01465 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC GsFileBrowserListAdapter.java:617 (bytecode)
+step 15: GsFileBrowserListAdapter.scrollToAndFlash -> GsFileBrowserListAdapter.lambda$scrollToAndFlash$4
+  edge: Eb3db1677 kind=FRAMEWORK env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Listener or callback registered by this method runs when its event fires (view event, dialog button, handler or fragment callback)
+  evidence: INFERRED listener registered at GsFileBrowserListAdapter.java:630 (bytecode line); the listener type is not read per lambda
+step 16: GsFileBrowserListAdapter.lambda$scrollToAndFlash$4 -> GsFileBrowserListAdapter.lambda$scrollToAndFlash$3
+  edge: Ea6230386 kind=FRAMEWORK env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Listener or callback registered by this method runs when its event fires (view event, dialog button, handler or fragment callback)
+  evidence: INFERRED listener registered at GsFileBrowserListAdapter.java:631 (bytecode line); the listener type is not read per lambda

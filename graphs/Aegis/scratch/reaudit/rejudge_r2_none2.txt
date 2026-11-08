@@ -1,0 +1,41 @@
+# Review 2 fix 8 (Kiro), Aegis batch 2.
+E5b266140 ; NONE ; ; AndroidManifest.xml (application tag) ; process start: the framework runs the Hilt application's onCreate after constructing AegisApplication
+Eb76444fd ; NONE ; ; Activity.java performCreate ; framework: onCreate follows the construction of MainActivity at launch
+E3a06baed ; NONE ; ; Activity.java performStart ; framework: onStart follows onCreate of MainActivity when onCreate does not finish (MainActivity.java:140 area)
+E0158aff6 ; NONE ; ; Activity.java performCreate ; framework: onCreate follows the construction of AuthActivity, which MainActivity starts when the vault is locked
+E911809ef ; NONE ; ; Activity.java performResume ; framework: onResume follows onCreate of AuthActivity
+Ec2a7b2f4 ; NONE ; ; AuthActivity.java (decrypt button lambda) ; GUI: the Unlock button of the unlock screen starts the decrypt task; the baseline vault is password-encrypted
+E9ea40df8 ; NONE ; ; PasswordSlotDecryptTask.java ; framework: AsyncTask calls onPostExecute after doInBackground of the unlock task
+E6cacb7b9 ; NONE ; ; Dialogs.java showImportersDialog ; GUI: the importer list dialog's item click callback (the app importers list)
+E14c57c72 ; NONE ; ; Dialogs.java showImportersDialog ; GUI: the importer list dialog's positive callback
+E5ede43e8 ; NONE ; ; ImportExportPreferencesFragment.java:120 ; GUI: the importer chosen in the dialog starts the import without a file (:120)
+Ee6f442e7 ; NONE ; ; Activity.java performCreate ; framework: onCreate follows the construction of ImportEntriesActivity
+Ecf27001f ; ENV ; other_app ; ImportEntriesActivity.java:109-115 ; outside package: importing from an installed app starts the root shell task (the su command to read the app's data)
+E1de399e4 ; ENV ; other_app ; RootShellTask.java ; outside package: the root shell task (su) finishes and its result is delivered
+E3ed34d26 ; NONE ; ; Activity.java performCreate ; framework: onCreate follows the construction of AssignIconsActivity
+E72e1a8df ; NONE ; ; Activity.java performCreate ; framework: onCreate follows the construction of TransferEntriesActivity
+Ee228ce53 ; NONE ; ; Activity.java performCreate ; framework: onCreate follows the construction of EditEntryActivity
+E7335cc88 ; NONE ; ; ImportEntriesActivity.java (onCreate lambda) ; framework: the activity's result callback registered in onCreate runs
+Eccb88f57 ; NONE ; ; EntryAdapter.java (onClick listener) ; GUI: a tap on a baseline entry copies its code
+Ee848355c ; NONE ; ; AssignIconAdapter.java (onBindViewHolder lambda) ; GUI: a tap on an entry row of the Assign icons screen
+Ef4742d96 ; NONE ; ; Activity.java performCreate ; framework: onCreate follows the construction of GroupManagerActivity
+E6e3022fc ; NONE ; ; ImportExportPreferencesFragment.java:120 ; GUI: the importer chosen in the dialog starts the import without a file (:120)
+E9544c6df ; NONE ; ; Activity.java performCreate ; framework: onCreate follows the construction of ImportEntriesActivity (FreeOTP importer)
+E1f89ccd2 ; ENV ; other_app ; ImportEntriesActivity.java:109-115 ; outside package: importing FreeOTP's installed app data starts the root shell task (su)
+E8dd16901 ; ENV ; other_app ; RootShellTask.java ; outside package: the root shell task (su) for the FreeOTP import finishes
+E6d058719 ; NONE ; ; Dialogs.java showSetPasswordDialog ; GUI: the OK button of the Set password dialog starts the key derivation task
+E3b4a0919 ; NONE ; ; KeyDerivationTask.java ; framework: AsyncTask calls onPostExecute after the key derivation for the new password
+E8a523d20 ; NONE ; ; Dialogs.java showSetPasswordDialog ; GUI: the positive button of the Set password dialog fires its callback
+Edb870b18 ; ENV ; other_app ; Dialogs.java showImportersDialog ; outside package: an encrypted FreeOTP export file is imported (FreeOTP password flow); GUI: the importer list dialog's callback for the FreeOTP importer
+Ec021b060 ; ENV ; other_app ; FreeOtpImporter.java decrypt ; outside package: an encrypted FreeOTP export file is imported (FreeOTP password flow); GUI: the password typed in the FreeOTP password dialog starts the decryption
+E2c46096b ; ENV ; other_app ; Dialogs.java showTextInputDialog ; outside package: an encrypted FreeOTP export file is imported (FreeOTP password flow); GUI: the text input dialog (the FreeOTP password) positive callback
+Ed4d570e0 ; NONE ; ; EditEntryActivity.java:365-369 ; GUI: the entry editor's click listener lambda (icon or group field)
+Ee682d606 ; NONE ; ; ImportExportPreferencesFragment.java startExport ; GUI: the export dialog's callback lambda
+E847a2f41 ; NONE ; ; ImportExportPreferencesFragment.java startExport ; GUI: the export dialog's option callback lambda
+E3ebb20e5 ; NONE ; ; EditEntryActivity.java showGroupSelectionDialog ; GUI: the group selection dialog's item callback
+Ea80bb15d ; NONE ; ; EditEntryActivity.java saveAndFinish, MainActivity.java:177-181 ; GUI: saving a new entry finishes the editor with RESULT_OK, which MainActivity's launcher callback receives
+E2e3490fc ; NONE ; ; FabMenuHelper.java setupClickListeners ; GUI: a tap on a floating-button menu item of the entry list
+Ef2c4b2cc ; NONE ; ; Dialogs.java showErrorDialog ; GUI: the error dialog's OK button callback
+E56c5c8c1 ; NONE ; ; EditEntryActivity.java onCreate ; GUI: the entry editor's click listener lambda registered in onCreate
+E8896baa4 ; ENV ; other_app ; FreeOtpImporter.java decrypt ; outside package: an encrypted FreeOTP export file is imported (FreeOTP password flow); GUI: the FreeOTP password was entered, so the key derivation task starts
+E33c5f022 ; ENV ; other_app ; PBKDFTask.java ; outside package: an encrypted FreeOTP export file is imported (FreeOTP password flow); framework: AsyncTask calls onPostExecute after the key derivation for the FreeOTP password

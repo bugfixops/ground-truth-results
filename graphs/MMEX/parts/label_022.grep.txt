@@ -1,0 +1,86 @@
+# label_022 grep evidence (batch 022: AllDataMultiChoiceModeListener). Run from /Users/darshan/Desktop/yang/work, 05:27.
+
+## A. Every reference to the listener and its callbacks in the app source root (callers; no UNREACHABLE label rests on a missing caller)
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/AllDataMultiChoiceModeListener.java:27:public class AllDataMultiChoiceModeListener
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/AllDataMultiChoiceModeListener.java:30:    public void setListener(IAllDataMultiChoiceModeListenerCallbacks callbacks) {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/AllDataMultiChoiceModeListener.java:34:    private IAllDataMultiChoiceModeListenerCallbacks mCallbacks;
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/IAllDataMultiChoiceModeListenerCallbacks.java:22:public interface IAllDataMultiChoiceModeListenerCallbacks {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/AllDataListFragment.java:86:    implements LoaderManager.LoaderCallbacks<Cursor>, IAllDataMultiChoiceModeListenerCallbacks {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/AllDataListFragment.java:123:    private AllDataMultiChoiceModeListener mMultiChoiceModeListener;
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/AllDataListFragment.java:152:        mMultiChoiceModeListener = new AllDataMultiChoiceModeListener();
+
+## B. Callers of the fragment callback onTransactionStatusClicked (its only caller is the listener case at line 87)
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/AllDataMultiChoiceModeListener.java:87:                mCallbacks.onTransactionStatusClicked(status);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/AllDataListFragment.java:419:    public void onTransactionStatusClicked(String status) {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/IAllDataMultiChoiceModeListenerCallbacks.java:27:    void onTransactionStatusClicked(String status);
+
+## C. Action-bar menu inflated for the listener (AllDataListFragment.onMultiChoiceCreated)
+393:        getActivity().getMenuInflater().inflate(R.menu.menu_all_data_adapter, menu);
+ids in res/menu/menu_all_data_adapter.xml:
+23:        android:id="@+id/menu_duplicate_transactions"
+29:        android:id="@+id/menu_change_status"
+35:        android:id="@+id/menu_delete"
+41:        android:id="@+id/menu_select_all"
+status ids in that menu (expected none):
+(no match)
+
+## D. Where the status ids are used (the status change dialog and the account screen menu, not the action bar)
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/AllDataListFragment.java:873:        adapter.add(new DrawerMenuItem().withId(R.id.menu_follow_up)
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/AllDataListFragment.java:881:        adapter.add(new DrawerMenuItem().withId(R.id.menu_void)
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/AllDataListFragment.java:898:                    case R.id.menu_follow_up:
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/AllDataListFragment.java:900:                    case R.id.menu_void:
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/account/StatusFilter.java:102:                menuIds.add(R.id.menu_void);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/account/StatusFilter.java:105:                menuIds.add(R.id.menu_follow_up);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/account/AccountTransactionListFragment.java:561:            case R.id.menu_void:
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/account/AccountTransactionListFragment.java:564:            case R.id.menu_follow_up:
+
+## E. Library claim: the action-mode implementation (AppCompat or the framework ActionMode) is not in fw_src
+fw_src/android-8.1.0_r1/core/java/android/widget/AbsListView.java
+fw_src/android-8.1.0_r1/core/java/com/android/internal/policy/DecorView.java
+(end of implementation search: the two matches are Callback implementers, not ActionMode subclasses: AbsListView.java:6428 "interface MultiChoiceModeListener extends ActionMode.Callback" and DecorView.java "class ActionModeCallback2Wrapper extends ActionMode.Callback2" (line 2442). No class in fw_src extends ActionMode, so the ActionMode implementation is not in the source root and the ActionMode steps are INFERRED.)
+
+## F. Framework callback sites (fw_src, AbsListView)
+1070:                mMultiChoiceModeCallback.onItemCheckedStateChanged(mChoiceActionMode,
+1131:                    mMultiChoiceModeCallback.onItemCheckedStateChanged(mChoiceActionMode,
+5500:                        mMultiChoiceModeCallback.onItemCheckedStateChanged(mChoiceActionMode,
+5510:            mChoiceActionMode.invalidate();
+6425:     * {@link #onItemCheckedStateChanged(ActionMode, int, long, boolean)} events when the user
+6438:        public void onItemCheckedStateChanged(ActionMode mode,
+6454:        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+6455:            if (mWrapped.onCreateActionMode(mode, menu)) {
+6464:        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+6465:            return mWrapped.onPrepareActionMode(mode, menu);
+6469:        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+6470:            return mWrapped.onActionItemClicked(mode, item);
+6474:        public void onDestroyActionMode(ActionMode mode) {
+6475:            mWrapped.onDestroyActionMode(mode);
+6489:        public void onItemCheckedStateChanged(ActionMode mode,
+6491:            mWrapped.onItemCheckedStateChanged(mode, position, id, checked);
+6495:                mode.finish();
+
+## G. Auto-call records for the 7 methods (auto_calls.json, line of the dst field)
+36143:   "dst": "AllDataMultiChoiceModeListener.setListener",
+36151:   "dst": "AllDataMultiChoiceModeListener.<init>",
+36391:   "dst": "AllDataMultiChoiceModeListener.onDestroyActionMode",
+37202:   "src": "AllDataMultiChoiceModeListener.onDestroyActionMode",
+37204:   "file": "AllDataMultiChoiceModeListener.java",
+37210:   "src": "AllDataMultiChoiceModeListener.onCreateActionMode",
+37212:   "file": "AllDataMultiChoiceModeListener.java",
+37218:   "src": "AllDataMultiChoiceModeListener.onActionItemClicked",
+37220:   "file": "AllDataMultiChoiceModeListener.java",
+37226:   "src": "AllDataMultiChoiceModeListener.onActionItemClicked",
+37228:   "file": "AllDataMultiChoiceModeListener.java",
+37234:   "src": "AllDataMultiChoiceModeListener.onActionItemClicked",
+37236:   "file": "AllDataMultiChoiceModeListener.java",
+37242:   "src": "AllDataMultiChoiceModeListener.onActionItemClicked",
+37244:   "file": "AllDataMultiChoiceModeListener.java",
+37250:   "src": "AllDataMultiChoiceModeListener.onActionItemClicked",
+37252:   "file": "AllDataMultiChoiceModeListener.java",
+37258:   "src": "AllDataMultiChoiceModeListener.onItemCheckedStateChanged",
+37260:   "file": "AllDataMultiChoiceModeListener.java",
+70448:  "AllDataMultiChoiceModeListener.<init>": [
+
+## H. Host of the all-data list (AccountTransactionListFragment)
+174:        showTransactionsFragment(viewHolder.listHeader);
+834:    private void showTransactionsFragment(ViewGroup header) {
+837:        mAllDataListFragment = AllDataListFragment.newInstance(mAccountId);

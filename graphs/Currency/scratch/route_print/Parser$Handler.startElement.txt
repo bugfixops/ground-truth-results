@@ -1,0 +1,35 @@
+## Parser$Handler.startElement  REACHABLE  confirmed_by=SOURCE path=SOURCE_OK
+   env=- state=data classes=explicit;standard explicit_standard_route=yes
+   1. E012ed474 ENTRY/standard*
+      S_ENTRY -> Main.<init>
+      Tap the Currency icon in the launcher (MAIN/LAUNCHER intent filter)
+      note: The other external entry is the home-screen widget (CurrencyWidgetConfigure / CurrencyWidgetProvider are exported)
+      evidence: SRC AndroidManifest.xml:19-24
+         19          android:name="Main"
+         20          android:exported="true"
+         21          android:windowSoftInputMode="stateHidden">
+         22        <intent-filter>
+         23          <action android:name="android.intent.action.MAIN" />
+         24          <category android:name="android.intent.category.LAUNCHER" />
+   2. Ee88066da LIFECYCLE/standard*
+      Main.<init> -> Main.onCreate
+      The system instantiates Main, then calls onCreate
+      evidence: SRC Main.java:242
+        242      public void onCreate(Bundle savedInstanceState)
+   3. Ef071a802 LIFECYCLE/standard*
+      Main.onCreate -> Main.onResume
+      onStart -> onResume
+      evidence: SRC Main.java:369
+        369      protected void onResume()
+   4. E1f5a81d0 CALL/explicit* [STATE: no exchange rates saved yet: first launch after install or after clearing the data]
+      Main.onResume -> Parser.startParser(Context,int)
+      parser.startParser(this, R.raw.eurofxref_daily)
+      guard: Data.map == null and pref_map not saved yet (first launch after install / clear data)
+      evidence: SRC Main.java:497
+        497                  parser.startParser(this, R.raw.eurofxref_daily);
+   5. E19c2a4c6 FRAMEWORK/standard*
+      Parser.startParser(Context,int) -> Parser$Handler.startElement
+      Xml.parse SAX callback, once per XML element
+      evidence: SRC Parser.java:94
+         94              Xml.parse(stream, Xml.Encoding.UTF_8, handler);
+

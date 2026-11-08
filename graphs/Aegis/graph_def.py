@@ -87,12 +87,22 @@ ST_VAULT_UNREADABLE = ('The vault file exists but cannot be read (VaultRepositor
                        'an earlier run left it unreadable, and no step on any route writes it')
 ST_ICON_PACK_INSTALLED = ('An icon pack is already installed in the icons folder from an earlier run '
                           '(IconPackManager.java:33 rescans the folder at startup)')
+ENV_ICON_PACK = ('outside package: an icon pack is already installed in the icons folder (the app cannot create an icon pack: it only imports one '
+                 'from a file another app or the user supplies, ImportIconPackTask; IconPackManager.java:33 rescans the folder at startup)')
+ENV_VAULT_UNREADABLE = ('outside the app: the vault file exists but cannot be read (VaultRepository.readVaultFile throws, MainActivity.java:954-955); '
+                        'no in-app action corrupts it, so another app or a storage fault left it unreadable')
+ST_SEARCH_IN_GROUPS = ('SEARCH_IN_GROUPS is set in preferences and the app relaunched '
+                       '(the mask is read once at MainActivity.onCreate, MainActivity.java:234; '
+                       'set by BehaviorPreferencesFragment.java:57)')
+ST_SUBMITTED_QUERY_SAVED = ('A search query was submitted in this MainActivity instance and saved to the instance bundle '
+                          '(MainActivity.java:1040 sets _submittedSearchQuery; :419-420 saves it; :204-205 restores it)')
 ST_CLIPBOARD_DIALOG = ('The clipboard import dialog is open (startEditEntryActivity found a valid otpauth link on the clipboard; '
                        'MainActivity.java:476-491)')
 ST_DELETE_DIALOG = 'The delete-entries dialog is open (showDeleteEntriesDialog ran; MainActivity.java:1508-1516)'
 ST_SVG_PICK = 'The icon picker returned an SVG file and its import task was started (EditEntryActivity.java:148-158)'
 ST_SETTINGS_IMPORT = 'The Settings import picker returned a file and its import task was started (ImportExportPreferencesFragment.java:146-158)'
 ST_CAMERA_READY = 'The camera provider is ready and a lens exists: the camera switch icon is set (ScannerActivity.java:70, 79-88)'
+ST_BIOMETRICS_AVAILABLE = 'Biometrics are available on the device (BiometricsHelper.isAvailable returns true, helpers/BiometricsHelper.java:27-29); the biometrics row is enabled only then (SecurityPreferencesFragment.java:277)'
 ST_SECURITY_NONE = 'The intro security picker chose none, so the setup slide is skipped (IntroActivity.java:50-55)'
 ST_PAGE_UNFINISHED = 'The current intro slide is not finished (its isFinished returned false; IntroBaseActivity.java:84-88)'
 ST_ENCRYPTION_OFF = 'The vault is not encrypted: Vault.isEncryptionEnabled is false, so the Encryption switch opens the set-password dialog (SecurityPreferencesFragment.java:83)'
@@ -109,17 +119,18 @@ ENV_KINDS_OF = {
     ENV_CAMERA: ['permission'], ENV_CAMERA_GRANTED: ['permission'], ENV_QR_CODE: ['hardware'], ENV_CLIPBOARD: ['other_app'], ENV_PICK_IMAGE: ['other_app'], ENV_PICK_ICON: ['other_app'],
     ENV_AUTO_TIME_OFF: ['time'], ENV_CLOCK_FORWARD: ['time'],ENV_EXPORT_RESULT: ['other_app'], ENV_BACKUP_RESULT: ['other_app'],
     ENV_BIOMETRIC_FAIL: ['hardware'], ENV_AUTOFILL: ['other_app'],
-    ENV_PICKER_SETTINGS: ['other_app'], ENV_PANIC_SENDER: ['other_app'], ENV_INSTALLED_GA: ['other_app'], ENV_ROOT: ['other'],
+    ENV_PICKER_SETTINGS: ['other_app'], ENV_PANIC_SENDER: ['other_app'], ENV_INSTALLED_GA: ['other_app'], ENV_ROOT: ['other'], ENV_ICON_PACK: ['other_app'], ENV_VAULT_UNREADABLE: ['other'],
 }
 STATE_KINDS_OF = {
-    ST_VAULT_FILE: ['file'], ST_PLAIN_VAULT_FILE: ['file'], ST_ENCRYPTED_VAULT_FILE: ['file'], ST_REMINDER_DUE: ['settings'], ST_IMPORTED: ['data'], ST_NOT_IMPORTED: ['data'], ST_PASSWORD_SLOT: ['data'], ST_BIO_SLOT: ['data'],
+    ST_VAULT_FILE: ['file'], ST_PLAIN_VAULT_FILE: ['file'], ST_ENCRYPTED_VAULT_FILE: ['file'], ST_REMINDER_DUE: ['settings'], ST_IMPORTED: ['data'], ST_NOT_IMPORTED: ['data'], ST_PASSWORD_SLOT: ['data'], ST_BIO_SLOT: ['data'], ST_SEARCH_IN_GROUPS: ['settings'],
     ST_UNLOCKED: ['session'], ST_LIST_LOADED: ['session'], ST_ACTIVITY_OPEN: ['session'], ST_PANIC_ON: ['settings'],
     ST_FAB_OPEN: ['session'], ST_SEARCH_OPEN: ['session'], ST_ACTION_MODE: ['session'], ST_ASSIGN_DIALOG: ['session'],
-    ST_SAVE_CHIP: ['session'], ST_ERROR_CARD: ['settings'], ST_VAULT_UNREADABLE: ['file'], ST_ICON_PACK_INSTALLED: ['file'], ST_CLIPBOARD_DIALOG: ['session'], ST_DELETE_DIALOG: ['session'],
+    ST_SAVE_CHIP: ['session'], ST_ERROR_CARD: ['settings'], ST_CLIPBOARD_DIALOG: ['session'], ST_DELETE_DIALOG: ['session'],
     ST_SECURITY_NONE: ['data'], ST_PAGE_UNFINISHED: ['session'], ST_ENCRYPTION_OFF: ['data'],
     ST_VAULT_ENCRYPTED: ['data'], ST_ICONS_NOT_OPTIMIZED: ['data'], ST_ENTRY_CHANGED: ['session'],
-    ST_SHOW_NEXT_CODE: ['settings'], ST_HOLDERS_BOUND: ['session'], ST_SVG_PICK: ['session'], ST_SETTINGS_IMPORT: ['session'], ST_CAMERA_READY: ['session'],
+    ST_SHOW_NEXT_CODE: ['settings'], ST_HOLDERS_BOUND: ['session'], ST_SVG_PICK: ['session'], ST_SETTINGS_IMPORT: ['session'], ST_CAMERA_READY: ['session'], ST_BIOMETRICS_AVAILABLE: ['session'],
     ST_GOOGLE_EXPORTABLE: ['data'], ST_YANDEX_ENTRY: ['data'], ST_MOTP_ENTRY: ['data'], ST_HOTP_ENTRY: ['data'], ST_VAULT_ENTRIES: ['data'], ST_ENTRY_LIST_NONEMPTY: ['data'],
+    ST_SUBMITTED_QUERY_SAVED: ['session'],
 }
 
 # ------------------------------------------------------------------ framework evidence (FW-SRC lines were printed and read; INFERRED where the source was not read)
@@ -233,6 +244,9 @@ FIX_LINES = {
     ('WinAuthImporter$State.convert', 'UUIDMap.iterator', 'SRC WinAuthImporter.java:39 (bytecode)'): 'SRC WinAuthImporter.java:39 (for-each loop: the iterator() call is implicit)',
     ('Vault.toJson(EntryFilter)', 'UUIDMap.iterator', 'SRC Vault.java:38 (bytecode)'): 'SRC Vault.java:38 (for-each loop: the iterator() call is implicit)',
     ('SlotList.toJson', 'UUIDMap.iterator', 'SRC SlotList.java:16 (bytecode)'): 'SRC SlotList.java:16 (for-each loop: the iterator() call is implicit)',
+    # Row 23 variant: auto replication onto SlotList.toJson@RAW strips the for-each qualifier to bare (bytecode),
+    # which check 4 then flags (line 16 is a for-each, the iterator() call is implicit). Same correction as the base edge.
+    ('SlotList.toJson@RAW', 'UUIDMap.iterator', 'SRC SlotList.java:16 (bytecode)'): 'SRC SlotList.java:16 (for-each loop: the iterator() call is implicit)',
     ('SlotList.find', 'UUIDMap.iterator', 'SRC SlotList.java:40 (bytecode)'): 'SRC SlotList.java:40 (for-each loop: the iterator() call is implicit)',
     ('SlotList.findAll', 'UUIDMap.iterator', 'SRC SlotList.java:50 (bytecode)'): 'SRC SlotList.java:50 (for-each loop: the iterator() call is implicit)',
     ('SlotList.exportable', 'UUIDMap.iterator', 'SRC SlotList.java:90 (bytecode)'): 'SRC SlotList.java:90 (for-each loop: the iterator() call is implicit)',
@@ -390,7 +404,7 @@ sup(('MainActivity.onStart', 'MainActivity.startIntroActivity'), ('MainActivity.
 e('MainActivity.onStart', 'Dialogs.showErrorDialog(Context,int,Exception,OnClickListener)', 'CALL',
   'the vault file cannot be read: an error dialog is shown and onStart returns (the unlock screen is not started)',
   guard='reading the vault file throws VaultRepositoryException (MainActivity.java:954-955; the catch shows the dialog at 957 and returns at 960); reached only when isVaultInitNeeded() is false (MainActivity.java:942-947) and isVaultLoaded() is false (MainActivity.java:951)',
-  needs_state=ST_VAULT_UNREADABLE,
+  env=ENV_VAULT_UNREADABLE,
   evidence='SRC ui/MainActivity.java:946-960 (intro return at 946-947; readVaultFile catch at 954-960: showErrorDialog at 957, return at 960)')
 e('MainActivity.onStart', 'Dialogs.showErrorDialog(Context,int,Exception,OnClickListener)', 'CALL',
   'the plain-text vault file cannot be loaded: an error dialog is shown and onStart returns',
@@ -399,9 +413,6 @@ e('MainActivity.onStart', 'Dialogs.showErrorDialog(Context,int,Exception,OnClick
   evidence='SRC ui/MainActivity.java:963-971 (plain-text branch; loadFrom at 965; catch at 966-971)')
 e('MainActivity.onStart', 'MainActivity.startIntroActivity', 'CALL', 'no vault file exists (fresh install): the intro starts and onStart returns',
   guard='vault init needed: no vault file exists', evidence='SRC ui/MainActivity.java:942-948')
-e('MainActivity.onStart', 'MainActivity.startAuthActivity', 'CALL', 'an encrypted vault file exists and is not loaded: the unlock screen starts',
-  guard='a vault file exists and is encrypted (the plain-text branch at 951-973 did not load it)', needs_state=ST_ENCRYPTED_VAULT_FILE,
-  evidence='SRC ui/MainActivity.java:950-977')
 e('MainActivity.onStart', 'VaultManager.loadFrom(VaultFile)', 'CALL', 'the plain-text vault file is read and loaded in onStart',
   guard='the vault is not loaded yet and the vault file is not encrypted (MainActivity.java:951-973)', needs_state=ST_PLAIN_VAULT_FILE,
   evidence='SRC ui/MainActivity.java:951-965')
@@ -425,13 +436,6 @@ e('YandexInfo.validateSecret', 'YandexInfo.getNumberOfLeadingZeros', 'CALL',
   'the checksum loop runs; a secret from a QR code (16 bytes) returns before it',
   guard='the Yandex secret is the 26-byte checksummed form (SECRET_FULL_LENGTH; the 16-byte form returns at YandexInfo.java:116-118)',
   evidence='SRC otp/YandexInfo.java:110-118,156')
-e('MainActivity.onStart', 'MainActivity.loadEntries', 'CALL', 'plain-text vault (intro chose no security): loaded in onStart',
-  guard='the plain-text vault file is loaded earlier in this same onStart call (VaultManager.loadFrom, MainActivity.java:963-965) with no early return at 947, 960 or 971, isVaultLoaded() is true (MainActivity.java:976-977 not taken), and this instance has not loaded the list (else branch at 991-992; _loaded false at 978)',
-  needs_state=ST_PLAIN_VAULT_FILE,
-  evidence='SRC ui/MainActivity.java:950-974,991-992')
-e('MainActivity.onStart', 'MainActivity.loadEntries', 'CALL', 'vault unlocked in this process: the list is loaded in onStart',
-  guard='the vault is loaded and this instance has not loaded the list (the else branch at 991-996)', needs_state=ST_UNLOCKED,
-  evidence='SRC ui/MainActivity.java:991-996')
 # batch k (group B): the first-load and the later-start refresh calls, each with its state (loadEntries runs before the call, MainActivity.java:992)
 e('MainActivity.onStart', 'EntryListView.onRefreshStart', 'CALL', 'plain-text vault (intro chose no security): the list is loaded, then its codes are refreshed',
   guard='the plain-text vault file is loaded earlier in this onStart call (MainActivity.java:963-965) and this instance has not loaded the list: the else branch at 991-996 runs loadEntries (992) before onRefreshStart (996)',
@@ -456,12 +460,37 @@ e('SecurityPreferencesFragment.lambda$onCreatePreferences$4', 'Dialogs.showSecur
 e('VaultManager.disableEncryption', 'VaultManager.save', 'CALL', 'the vault is saved as plain text: the credentials were cleared first',
   guard='credentials cleared (VaultManager.java:120), so isEncryptionEnabled() is false and the header has no crypt parameters (VaultRepository.java:119-122, 348-354; VaultFile.java:102-105)',
   evidence='SRC vault/VaultManager.java:120-121; SRC vault/VaultRepository.java:119-122,348-354; SRC vault/VaultFile.java:102-105')
-e('VaultFile$Header.toJson', 'SlotList.toJson', 'CALL', 'the header writes the slots of an encrypted vault',
-  guard='_slots is not null: the header has slots only for an encrypted vault (VaultFile.java:161; setContent sets Header(null, null) at VaultFile.java:104)',
-  evidence='SRC vault/VaultFile.java:161,102-105')
 e('VaultFile$Header.toJson', 'CryptParameters.toJson', 'CALL', 'the header writes its crypt parameters, which exist only for an encrypted vault',
   guard='the header has crypt parameters: _params is not null (VaultFile.java:162)', needs_state=ST_VAULT_ENCRYPTED,
   evidence='SRC vault/VaultFile.java:162; SRC vault/VaultRepository.java:119-121')
+# --- Row 23 fix (audit PASS, fix-row23): @RAW variant chain, design sections 4.1-4.4.
+# 4.1: the base junction edge VaultFile$Header.toJson -> SlotList.toJson (Efb793e9d) is DELETED here
+# (it was the line above this block in the pre-fix file); it was the only base incoming edge to
+# SlotList.toJson, so deleting it kills the disable prefix's tail. The sibling CryptParameters edge above is untouched.
+# Expected delta vs post-F2 baseline 6366: +24 (6390) with both sups below, +25 without the defensive
+# Slot.toJson sup (audit C1). Fix-log corrections C2-C5: the @RAW route carries STATE kinds file + data
+# (not 1); Password/Biometric CHA routes are 17 steps (not 16); CryptParameters comparison is 2-vs-2
+# kinds decided on steps 27 < 29; import-alternative lines are AegisImporter.java:66-67, decrypt at 81-85, 89-101.
+e('AegisActivity.saveAndBackupVault@RAW', 'VaultManager.saveAndBackup@RAW', 'CALL', 'the repaired-slot save after unlock backs the vault up', guard='called from the unlock repaired-slot save (AuthActivity.java:301)', evidence='SRC ui/AegisActivity.java:141 (bytecode)')
+e('VaultManager.saveAndBackup@RAW', 'VaultManager.save@RAW', 'CALL', 'the repaired-slot save after unlock saves the vault', guard='called from the unlock repaired-slot save (AuthActivity.java:301)', evidence='SRC vault/VaultManager.java:140 (bytecode)')
+e('VaultManager.save@RAW', 'VaultRepository.save@RAW', 'CALL', 'the repaired-slot save after unlock saves the repository', guard='called from the unlock repaired-slot save (AuthActivity.java:301)', evidence='SRC vault/VaultManager.java:136 (bytecode)')
+e('VaultRepository.save@RAW', 'VaultFile.toBytes@RAW', 'CALL', 'the repaired-slot save after unlock serializes the vault file: credentials are non-null, so the encrypted branch ran', guard='isEncryptionEnabled() is true (VaultRepository.java:352-354,119-121): the credentials are the file header slots from AuthActivity.java:296, so setContent(obj, _creds) built Header(creds.getSlots(), params) (VaultFile.java:114)', evidence='SRC vault/VaultRepository.java:126 (bytecode)')
+e('VaultFile.toBytes@RAW', 'VaultFile.toJson@RAW', 'CALL', 'the repaired-slot save after unlock writes the vault JSON', guard='called from the unlock repaired-slot save (AuthActivity.java:301)', evidence='SRC vault/VaultFile.java:52 (bytecode)')
+e('VaultFile.toJson@RAW', 'VaultFile$Header.toJson@RAW', 'CALL', 'the repaired-slot save after unlock writes the vault header', guard='called from the unlock repaired-slot save (AuthActivity.java:301)', evidence='SRC vault/VaultFile.java:43 (bytecode)')
+e('VaultFile$Header.toJson@RAW', 'SlotList.toJson@RAW', 'CALL', 'the header writes the slots of the unlocked encrypted vault', guard='_slots is not null: the header was built by setContent(obj, _creds) with the file header slots (VaultFile.java:114), not by the plain setContent that sets Header(null, null) (VaultFile.java:104)', evidence='SRC vault/VaultFile.java:161,102-105,114')
+e('SlotList.toJson@RAW', 'Slot.toJson@RawSlot', 'CALL', 'the slot list of the unlocked encrypted vault is serialized: the iterated slot is the plain raw slot from the file header', guard='the iterated slot is a plain RawSlot deserialized from the file header slots array with type TYPE_RAW (Slot.java:131-133; AuthActivity.java:131 keeps that list as _slots)', evidence='SRC vault/slots/SlotList.java:17 (bytecode)')
+# 4.3: re-write the eight suppressed base edges by hand (same trigger/evidence as the auto edges, so ids are preserved).
+e('AuthActivity.finish', 'AegisActivity.saveAndBackupVault', 'CALL', 'Direct call', evidence='SRC AuthActivity.java:301 (bytecode)')
+e('AegisActivity.saveAndBackupVault', 'VaultManager.saveAndBackup', 'CALL', 'Direct call', evidence='SRC AegisActivity.java:141 (bytecode)')
+e('VaultManager.saveAndBackup', 'VaultManager.save', 'CALL', 'Direct call', evidence='SRC VaultManager.java:140 (bytecode)')
+e('VaultManager.save', 'VaultRepository.save', 'CALL', 'Direct call', evidence='SRC VaultManager.java:136 (bytecode)')
+e('VaultRepository.save', 'VaultFile.toBytes', 'CALL', 'Direct call', evidence='SRC VaultRepository.java:126 (bytecode)')
+e('VaultFile.toBytes', 'VaultFile.toJson', 'CALL', 'Direct call', evidence='SRC VaultFile.java:52 (bytecode)')
+e('VaultFile.toJson', 'VaultFile$Header.toJson', 'CALL', 'Direct call', evidence='SRC VaultFile.java:43 (bytecode)')
+e('SlotList.toJson', 'Slot.toJson', 'CALL', 'Direct call', evidence='SRC SlotList.java:17 (bytecode)')
+# 4.4: suppress two false auto CHA edges, base pairs only. Do NOT sup the BiometricSlot pairs (that would flip BiometricSlot.getType to UNREACHABLE).
+sup(('AuthActivity$PasswordDerivationListener.onTaskFinished', 'RawSlot.getType'))
+sup(('Slot.toJson', 'RawSlot.getType'))
 e('MainActivity.onStart', 'MainActivity.setGroups', 'CALL', 'the group chips are refreshed (list loaded earlier in this instance)',
   guard='the vault is loaded and this instance loaded the list before (the _loaded branch at 978-980)', needs_state=ST_LIST_LOADED,
   evidence='SRC ui/MainActivity.java:978-980')
@@ -655,21 +684,32 @@ e('AuthActivity.lambda$onCreate$0', 'AuthActivity.lambda$onCreate$2', 'CALL', 't
   evidence=FW_CLICK + '; SRC ui/AuthActivity.java:98-103')
 e('AuthActivity.lambda$onCreate$2', 'ProgressDialogTask.execute', 'CALL', 'the password decrypt task is started with the lifecycle and the params',
   evidence='SRC ui/AuthActivity.java:167-178; SRC ui/tasks/ProgressDialogTask.java:69-74')
-e('AuthActivity.lambda$onCreate$2', 'PasswordSlotDecryptTask.doInBackground', 'ASYNC', 'AsyncTask runs doInBackground on the worker thread (decrypt the password slot)',
+e('AuthActivity.lambda$onCreate$2', 'PasswordSlotDecryptTask.doInBackground@AUTH', 'ASYNC', 'AsyncTask runs doInBackground on the worker thread (decrypt the password slot)',
   evidence=FW_ASYNC + '; SRC ui/tasks/ProgressDialogTask.java:69-74; SRC ui/AuthActivity.java:175; SRC ui/tasks/PasswordSlotDecryptTask.java:27')
-e('SecurityPreferencesFragment.lambda$onCreatePreferences$7', 'PasswordSlotDecryptTask.doInBackground', 'ASYNC', 'AsyncTask runs doInBackground on the worker thread (decrypt the password slot to confirm the PIN)',
+e('SecurityPreferencesFragment.lambda$onCreatePreferences$7', 'PasswordSlotDecryptTask.doInBackground@SECURITY', 'ASYNC', 'AsyncTask runs doInBackground on the worker thread (decrypt the password slot to confirm the PIN)',
   guard='the typed PIN contains only digits (SecurityPreferencesFragment.java:158)',
   evidence=FW_ASYNC + '; SRC ui/tasks/ProgressDialogTask.java:69-74; SRC ui/fragments/preferences/SecurityPreferencesFragment.java:158-162; SRC ui/tasks/PasswordSlotDecryptTask.java:27')
-e('AegisImporter$EncryptedState.lambda$decrypt$1', 'PasswordSlotDecryptTask.doInBackground', 'ASYNC', 'AsyncTask runs doInBackground on the worker thread (decrypt the password slot of the Aegis backup)',
-  evidence=FW_ASYNC + '; SRC ui/tasks/ProgressDialogTask.java:69-74; SRC importers/AegisImporter.java:93,108; SRC ui/tasks/PasswordSlotDecryptTask.java:27')
-e('PasswordSlotDecryptTask.doInBackground', 'PasswordSlotDecryptTask.onPostExecute', 'ASYNC', 'the result is posted to the main thread',
-  guard='the task was not cancelled (a cancelled task calls onCancelled instead, AsyncTask.java:691-697)',
-  evidence=FW_ASYNC + '; SRC ui/tasks/PasswordSlotDecryptTask.java:27,87-90')
-e('PasswordSlotDecryptTask.onPostExecute', 'SecurityPreferencesFragment$PasswordConfirmationListener.onTaskFinished', 'CALL',
+# replaced by the $1@WELCOME / $1@IMPORT task edges in the Aegis chains above (single @AEGIS task deleted).
+# PasswordSlotDecryptTask split by builder (PasswordSlotDecryptTask.java:87-90 calls _cb.onTaskFinished, and
+# _cb is fixed by the constructor argument at the build site). The shared doInBackground->onPostExecute edge
+# and the shared callback edges are replaced by one variant chain per builder, so a task built by one caller
+# can never deliver to another caller's callback (that cross-delivery was route 06 step 28, and, through the
+# Aegis callback, route 16 step 30). The plain doInBackground/onPostExecute nodes keep their labels via
+# their variants; no other caller of doInBackground exists in the graph.
+for _tag, _cb in [
+    ('@AUTH', 'AuthActivity$PasswordDerivationListener.onTaskFinished'),
+    ('@SECURITY', 'SecurityPreferencesFragment$PasswordConfirmationListener.onTaskFinished'),
+    ('@AEGIS_WELCOME', 'AegisImporter$EncryptedState.lambda$decrypt$0@WELCOME'),
+    ('@AEGIS_IMPORT', 'AegisImporter$EncryptedState.lambda$decrypt$0@IMPORT'),
+]:
+    e('PasswordSlotDecryptTask.doInBackground' + _tag, 'PasswordSlotDecryptTask.onPostExecute' + _tag, 'ASYNC', 'the result is posted to the main thread',
+      guard='the task was not cancelled (a cancelled task calls onCancelled instead, AsyncTask.java:691-697)',
+      evidence=FW_ASYNC + '; SRC ui/tasks/PasswordSlotDecryptTask.java:27,87-90')
+e('PasswordSlotDecryptTask.onPostExecute@SECURITY', 'SecurityPreferencesFragment$PasswordConfirmationListener.onTaskFinished', 'CALL',
   'the settings PIN confirmation: the callback receives the decrypt result',
   guard='the task was built with PasswordConfirmationListener (SecurityPreferencesFragment.java:161)',
   evidence='SRC ui/tasks/PasswordSlotDecryptTask.java:87-90; SRC ui/fragments/preferences/SecurityPreferencesFragment.java:156-161,450')
-e('PasswordSlotDecryptTask.onPostExecute', 'AuthActivity$PasswordDerivationListener.onTaskFinished', 'CALL', '_cb.onTaskFinished(result)',
+e('PasswordSlotDecryptTask.onPostExecute@AUTH', 'AuthActivity$PasswordDerivationListener.onTaskFinished', 'CALL', '_cb.onTaskFinished(result)',
   guard='the task was built with PasswordDerivationListener (AuthActivity.java:173-174)',
   evidence='SRC ui/tasks/PasswordSlotDecryptTask.java:87-90; SRC ui/AuthActivity.java:343-364')
 e('AuthActivity$PasswordDerivationListener.onTaskFinished', 'AuthActivity.finish', 'CALL',
@@ -784,7 +824,7 @@ e('LaunchScannerTileService.onClick', 'MainActivity.doShortcutActions@SCAN', 'IN
   'the scanner tile starts MainActivity with extra action = scan; onCreate and onStart run on the way',
   guard='onStart reaches the shortcut actions: a plain-text vault file is loaded in onStart (MainActivity.java:963-965), vault init not needed (MainActivity.java:942), error returns at 960 and 971 not taken',
   needs_state=ST_PLAIN_VAULT_FILE,
-  evidence='SRC services/LaunchScannerTileService.java:29-44; SRC ui/MainActivity.java:938-948,957-971,837-841')
+  evidence='SRC LaunchScannerTileService.java:29-44; SRC ui/MainActivity.java:938-948,957-971,837-841')
 e('S_PROCESS', 'MainActivity.doShortcutActions@SCAN', 'ENTRY',
   'the launcher shortcut "new entry" starts MainActivity with extra action = scan; onCreate and onStart run on the way',
   env=ENV_SHORTCUT,
@@ -794,7 +834,7 @@ e('S_PROCESS', 'MainActivity.doShortcutActions@SCAN', 'ENTRY',
 e('MainActivity.doShortcutActions@SCAN', 'MainActivity.startScanActivity', 'CALL', 'the scan shortcut opens the camera scanner',
   guard='intent action is "scan" (put by the scanner tile or the dynamic shortcut) and the vault is loaded (MainActivity.java:840-846)', needs_state=ST_PLAIN_VAULT_FILE,
   note='a plain-text vault is loaded in onStart without the unlock screen (MainActivity.java:963-965); this state is still required here',
-  evidence='SRC ui/MainActivity.java:837-846; SRC services/LaunchScannerTileService.java:33')
+  evidence='SRC ui/MainActivity.java:837-846; SRC LaunchScannerTileService.java:33')
 e('MainActivity.startScanActivity', 'ScannerActivity.<init>', 'INTENT', 'the camera permission is already granted: the scanner opens through scanResultLauncher',
   env=ENV_CAMERA_GRANTED, evidence='SRC ui/MainActivity.java:803-810; SRC helpers/PermissionHelper.java:22-36; ' + FW_LAUNCHER)
 e('PermissionHelper.request', 'MainActivity.onRequestPermissionsResult', 'FRAMEWORK', 'the system permission dialog returns the grant result (CODE_PERM_CAMERA)',
@@ -996,6 +1036,12 @@ e('IconOptimizationTask.onPostExecute', 'MainActivity.onIconsOptimized', 'CALL',
 # On API 27 the save runs between onPause and onStop (the order changed in later Android versions), so the edge starts at onPause.
 e('MainActivity.onPause', 'MainActivity.onSaveInstanceState', 'SYSTEM',
   'API 27: the framework saves the instance state after onPause and before onStop', evidence=FW_SAVE + '; SRC ui/MainActivity.java:402-427')
+# R4 producer chain for @RESTORED: the framework saves the submitted query, then a configuration
+# change recreates the activity and the menu is created again from the saved bundle.
+e('MainActivity.onSaveInstanceState', 'MainActivity.onCreateOptionsMenu@RESTORED', 'SYSTEM', 'a configuration change recreates the activity: onCreate runs with the saved bundle and the menu is created again, restoring the submitted search',
+  guard='the saved bundle holds a submitted query (MainActivity.java:419-420 saves _submittedSearchQuery; :204-205 restores it) and no pending query (MainActivity.java:1066-1073 else-if branch)',
+  needs_state=ST_SUBMITTED_QUERY_SAVED,
+  evidence=FW_RECREATE + '; SRC ui/MainActivity.java:419-420,204-205,1066-1073')
 e('MainActivity.onStart', 'MainActivity.onRestoreInstanceState', 'LIFECYCLE', 'the framework restores the saved state after onStart',
   guard='a saved state exists (savedInstanceState is not null: after recreate() from onPreferencesResult, or a configuration change)',
   evidence=FW_RESTORE + '; SRC ui/MainActivity.java:1230-1231')
@@ -1022,16 +1068,25 @@ gui('Dialogs.showSetPasswordDialog', 'Dialogs.lambda$showSetPasswordDialog$5',
 gui('Dialogs.lambda$showSetPasswordDialog$4', 'Dialogs.lambda$showSetPasswordDialog$3', 'Tap OK in the set-password dialog (starts the key derivation)',
     guard='the two password fields are equal (OK is disabled until then, Dialogs.java:185; the click also returns early at 160-162)',
     evidence=FW_CLICK + '; SRC ui/dialogs/Dialogs.java:159-162')
-e('Dialogs.lambda$showSetPasswordDialog$3', 'KeyDerivationTask.doInBackground', 'ASYNC', 'AsyncTask runs doInBackground on the worker thread (derive the key from the password)',
+# Fix-design 01 (C3 routes 01): the KeyDerivationTask callback is fixed at task construction (Dialogs.java:166
+# builds the task with the showSetPasswordDialog lambda; SecuritySetupSlide.java:112 builds it with
+# PasswordDerivationListener). The plain onPostExecute node therefore cannot feed the Dialogs lambda: the
+# dialog's task gets its own variant chain, reached only from the dialog's OK tap, following the
+# ImportFileTask.doInBackground@SVG_PICK precedent. The plain chain (deriveKey -> doInBackground ->
+# onPostExecute -> PasswordDerivationListener) is unchanged.
+e('Dialogs.lambda$showSetPasswordDialog$3', 'KeyDerivationTask.doInBackground@SETPWD', 'ASYNC', 'AsyncTask runs doInBackground on the worker thread (derive the key from the password; this task was built by the set-password dialog)',
   evidence=FW_ASYNC + '; SRC ui/tasks/ProgressDialogTask.java:69-74; SRC ui/dialogs/Dialogs.java:166,178-179; SRC ui/tasks/KeyDerivationTask.java:21')
 e('SecuritySetupSlide.deriveKey', 'KeyDerivationTask.doInBackground', 'ASYNC', 'AsyncTask runs doInBackground on the worker thread (derive the key from the password of the new vault)',
   evidence=FW_ASYNC + '; SRC ui/tasks/ProgressDialogTask.java:69-74; SRC ui/slides/SecuritySetupSlide.java:112-113; SRC ui/tasks/KeyDerivationTask.java:21')
 e('KeyDerivationTask.doInBackground', 'KeyDerivationTask.onPostExecute', 'ASYNC', 'the derived key is posted to the main thread',
   guard='the task was not cancelled (a cancelled task calls onCancelled instead, AsyncTask.java:691-697)',
   evidence=FW_ASYNC + '; SRC ui/tasks/KeyDerivationTask.java:39-41')
-e('KeyDerivationTask.onPostExecute', 'Dialogs.lambda$showSetPasswordDialog$2', 'CALL',
+e('KeyDerivationTask.doInBackground@SETPWD', 'KeyDerivationTask.onPostExecute@SETPWD', 'ASYNC', 'the derived key is posted to the main thread (the set-password dialog task)',
+  guard='the task was not cancelled (a cancelled task calls onCancelled instead, AsyncTask.java:691-697)',
+  evidence=FW_ASYNC + '; SRC ui/tasks/KeyDerivationTask.java:39-41')
+e('KeyDerivationTask.onPostExecute@SETPWD', 'Dialogs.lambda$showSetPasswordDialog$2', 'CALL',
   '_cb.onTaskFinished(slot, key): the lambda makes the cipher and gives the slot to the listener', cls='non_standard',
-  guard='the task was built by Dialogs.showSetPasswordDialog (Dialogs.java:166)',
+  guard='the task was built by Dialogs.showSetPasswordDialog (Dialogs.java:166); only the @SETPWD variant reaches this lambda',
   via='KeyDerivationTask.Callback.onTaskFinished (interface call; the lambda is passed at Dialogs.java:166)',
   evidence='SRC ui/tasks/KeyDerivationTask.java:41,80-82; SRC ui/dialogs/Dialogs.java:166-177')
 e('KeyDerivationTask.onPostExecute', 'SecuritySetupSlide$PasswordDerivationListener.onTaskFinished', 'CALL',
@@ -1116,11 +1171,12 @@ e('ImportExportPreferencesFragment.lambda$onCreatePreferences$8', _IMP_APP, 'CAL
   evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:117-119')
 gui(_IMP_FILE, 'Dialogs.lambda$showImportersDialog$26', 'Pick an app in the importer list (its help text is shown)',
     evidence=FW_ITEM + '; SRC ui/dialogs/Dialogs.java:529-531')
-# The app dialog opens with Authy checked (DatabaseImporter.java:37), so OK on this path needs a row tap first
+# The app dialog (isDirect) opens with index 0 checked (Dialogs.java:519-522,528); index 0 of the direct-filtered
+# list is Authy (DatabaseImporter.java:99-102; Authy supportsDirect, :37), so OK on this path needs a row tap first
 _IMP_PICK_APP = 'Dialogs.lambda$showImportersDialog$26@APP'
 gui(_IMP_APP, _IMP_PICK_APP, 'Tap the Google Authenticator row in the importer list (its help text is shown)',
-    guard='the Google Authenticator row is tapped (the default checked row is Authy, DatabaseImporter.java:37)',
-    evidence=FW_ITEM + '; SRC ui/dialogs/Dialogs.java:523-531; SRC importers/DatabaseImporter.java:37,44')
+    guard='the Google Authenticator row is tapped (the default checked row is Authy: isDirect leaves i at 0, Dialogs.java:519-522,528; Authy is first among supportsDirect entries, DatabaseImporter.java:99-102,37)',
+    evidence=FW_ITEM + '; FW-SRC core/java/android/widget/AbsListView.java:1136-1150 (single-choice tap sets the checked row); SRC ui/dialogs/Dialogs.java:523-531; SRC importers/DatabaseImporter.java:37,44')
 e(_IMP_FILE, 'DatabaseImporter$Definition.getName', 'REGISTER', 'Creates the lambda / method reference (its body runs when invoked)',
   evidence='SRC Dialogs.java:517 (bytecode)')
 e(_IMP_APP, 'DatabaseImporter$Definition.getName', 'REGISTER', 'Creates the lambda / method reference (its body runs when invoked)',
@@ -1128,7 +1184,7 @@ e(_IMP_APP, 'DatabaseImporter$Definition.getName', 'REGISTER', 'Creates the lamb
 gui(_IMP_FILE, _IMP_OK_FILE, 'Tap OK in the importer dialog (gives the chosen importer to the listener)',
     evidence=FW_CLICK + '; INFERRED Material MaterialAlertDialogBuilder (Dialogs.java:533; the Material library source is not on disk); SRC ui/dialogs/Dialogs.java:533-538')
 gui(_IMP_PICK_APP, _IMP_OK_APP, 'Tap OK after the Google Authenticator row was tapped (gives the chosen importer to the listener)',
-    guard='a row was tapped first, so the chosen importer is not the default Authy row',
+    guard='the GA row was tapped first: in the single-choice list a tap sets the checked row (AbsListView.java:1136-1150), so OK reads the GA importer (Dialogs.java:537), not the default Authy row',
     evidence=FW_CLICK + '; INFERRED Material MaterialAlertDialogBuilder (Dialogs.java:533; the Material library source is not on disk); SRC ui/dialogs/Dialogs.java:533-538')
 
 # --- partial Google Auth import warning (Dialogs.java:542-581)
@@ -1216,15 +1272,765 @@ e('PreferencesActivity.onOptionsItemSelected', 'MainActivity.lambda$new$4', 'RES
 e('EditEntryActivity.saveAndFinish', 'MainActivity.lambda$new$5', 'RESULT',
   'setResult(RESULT_OK) and finish after an existing entry is saved: the edit launcher runs', guard='the page was opened for an existing entry (MainActivity.java:516-520)',
   evidence=FW_RESULT + '; SRC ui/EditEntryActivity.java:698-706; SRC ui/MainActivity.java:170-176')
-e('EditEntryActivity.saveAndFinish', 'MainActivity.lambda$new$6', 'RESULT',
+# Fix-design 02 (C3 route 02): saveAndFinish conflates its two callers. deleteAndFinish calls it with
+# delete=true (EditEntryActivity.java:695) and addAndFinish with delete=false (:680), but the shared node
+# fed both result launchers, so a delete could reach the add launcher (lambda$new$6) and hence
+# onAddEntryResult/onEntryAdded, which throw or return early for a removed entry (UUIDMap.java:124-130;
+# EntryListView.java:444-446). The add caller gets its own variant, following the @SETPWD/@SVG_PICK
+# pattern; the plain node keeps only the edit launcher, which is what a delete result reaches
+# (onEditEntryResult only refreshes the list). The delete path can therefore no longer reach
+# setTempHighlightEntry; the save path (onSave -> addAndFinish -> saveAndFinish@ADD -> lambda$new$6)
+# is the route to the target. The two hand edges below replace the auto rows on the save branch
+# with the branch guards (save item tapped; parse succeeds and no duplicate for a new entry).
+e('EditEntryActivity.onOptionsItemSelected', 'EditEntryActivity.onSave', 'CALL',
+  'the save toolbar item is tapped (not delete, which is hidden for a new entry, EditEntryActivity.java:658-659)',
+  guard='itemId == R.id.action_save (EditEntryActivity.java:539-540)',
+  evidence='SRC ui/EditEntryActivity.java:535-544,656-660')
+e('EditEntryActivity.onSave', 'EditEntryActivity.addAndFinish', 'CALL',
+  'the entry parses and, for a new entry, has no duplicate name and issuer, so the save finishes',
+  guard='parseEntry() succeeds (EditEntryActivity.java:852-856) and no existing entry has the same name and issuer (:859-864); otherwise onSaveError or the duplicate sheet runs instead',
+  evidence='SRC ui/EditEntryActivity.java:845-867')
+e('EditEntryActivity.addAndFinish', 'EditEntryActivity.saveAndFinish@ADD', 'CALL',
+  'addAndFinish saves the entry with delete=false (EditEntryActivity.java:680)',
+  evidence='SRC ui/EditEntryActivity.java:668-682')
+e('EditEntryActivity.saveAndFinish@ADD', 'MainActivity.lambda$new$5', 'RESULT',
+  'setResult(RESULT_OK) and finish after an existing entry is saved: the edit launcher runs', guard='the page was opened for an existing entry (MainActivity.java:516-520); the save came from addAndFinish (EditEntryActivity.java:680)',
+  evidence=FW_RESULT + '; SRC ui/EditEntryActivity.java:698-706; SRC ui/MainActivity.java:170-176')
+e('EditEntryActivity.saveAndFinish@ADD', 'MainActivity.lambda$new$6', 'RESULT',
   'setResult(RESULT_OK) and finish after a new entry is saved: the add launcher runs', guard='the vault backup succeeds (saveAndBackupVault() returned true, EditEntryActivity.java:703) and delete is false (saveAndFinish from addAndFinish, EditEntryActivity.java:680)',
   evidence=FW_RESULT + '; SRC ui/EditEntryActivity.java:698-706; SRC ui/MainActivity.java:178-184')
 
 # --- stage 2, group G1 corrections: guards on CALL edges whose auto rows had no guard (a hand edge on the same pair replaces the auto row)
-e('WelcomeSlide.lambda$startImportVault$2', 'AegisImporter$EncryptedState.decrypt(Context,DecryptListener)', 'CALL',
+# Aegis decrypt is split by DecryptListener: the Welcome import and the ImportEntries import use
+# different listeners, so a task built from one prefix can never deliver to the other's listener
+# (that mix was route 16 step 30 and the route 06 intro-prefix confusion). The Welcome slide reads
+# ONLY with AegisImporter (WelcomeSlide.java:66-67, 'new AegisImporter'), so the virtual edges from
+# WelcomeSlide$2 to every other importer's decrypt are false and are suppressed below.
+e('WelcomeSlide.lambda$startImportVault$2', 'AegisImporter$EncryptedState.decrypt(Context,DecryptListener)@WELCOME', 'CALL',
   'the picked vault file is encrypted: the importer asks for the password and decrypts it',
   cls='explicit', guard='file read without error (WelcomeSlide.java:60-63) and the file is encrypted (state.isEncrypted(), WelcomeSlide.java:68)',
   evidence='SRC ui/slides/WelcomeSlide.java:60-63,68-69; SRC importers/AegisImporter.java:66-90')
+# --- C3 sample fix 3: Aegis decrypt@IMPORT moved onto the @FILE variant (getKey route).
+# The dumped getKey route ran the @APP prefix (GA row tapped) into Aegis decrypt@IMPORT
+# through this hand edge's base src. That prefix cannot produce an Aegis state: Aegis
+# has supportsDirect false (DatabaseImporter.java:34) and its getAppPath throws
+# UnsupportedOperationException (AegisImporter.java:39-42), so the direct dialog never
+# offers it; and the GA state on that prefix is never encrypted, so decrypt is never
+# called at all. The genuine Aegis path is file-only (an encrypted vault file read
+# returns EncryptedState, AegisImporter.java:44-52). The edge therefore moves from the
+# base node to the @FILE variant fed by startImportFile (fix 2); the base node keeps
+# every other importer's dispatch but no longer reaches Aegis decrypt. The auto CHA
+# edge to Aegis decrypt stays suppressed by this hand edge's base pair, as before.
+e('ImportEntriesActivity.processImporterState@FILE', 'AegisImporter$EncryptedState.decrypt(Context,DecryptListener)@IMPORT', 'CALL',
+  'the picked file import is an encrypted Aegis vault: the importer asks for the password and decrypts it',
+  guard='the file import picked Aegis (supportsDirect false, DatabaseImporter.java:34; getAppPath throws, AegisImporter.java:39-42) and the picked vault file is encrypted (read returns EncryptedState, AegisImporter.java:44-52)',
+  evidence='SRC ui/ImportEntriesActivity.java:176-182; SRC importers/AegisImporter.java:44-52,85-90')
+
+# --- C3 sample fix 2: processImporterState dispatch split by import path (AndOtp route).
+# The dumped AndOtp route ran the @APP prefix (Google Authenticator row tapped in the
+# direct dialog) into AndOtpImporter decrypt through the shared virtual edge
+# processImporterState -> AndOtp decrypt (auto CHA, ImportEntriesActivity.java:179).
+# That prefix cannot produce an AndOtp state: andOTP has supportsDirect false
+# (DatabaseImporter.java:35) and its getAppPath throws UnsupportedOperationException
+# (AndOtpImporter.java:59-62), so the app-import path never yields it; and the GA state
+# built on that prefix is never encrypted (GoogleAuthImporter.State super(false),
+# GoogleAuthImporter.java:74-76), so processImporterState takes the decrypted branch and
+# never calls state.decrypt at all. The genuine AndOtp path is file-only: the @FILE
+# dialog pick, the file picker, AndOtpImporter.read returning EncryptedState when the
+# file is not JSON (AndOtpImporter.java:76-80). The dispatch is therefore split: the
+# file reader feeds a @FILE variant of processImporterState (and the base node, for all
+# other importers), the auto CHA edge to AndOtp decrypt is suppressed, and only the
+# @FILE variant reaches AndOtp decrypt. The @APP prefix keeps the base node and its
+# other importers' dispatch, but no longer reaches AndOtp decrypt.
+# --- file-pick v2 V8 (PRIVATE BUILD, not pushed): base-feed deletion (LAST, design section 5 step 2).
+# The file-to-base hand edge is DELETED (it was fix 2's pre-variant compromise: "the file
+# reader feeds ... the base node, for all other importers"). Once every non-default importer
+# has its own variant dispatch, the base feed is a pure leak. KEPT: startImportFile ->
+# processImporterState@FILE (Aegis-default and decrypted-only @FILE routes). After V8 the
+# base node is reachable only from lambda$startImportApp$5 (the @APP feed), and no decrypt
+# incoming count changes (all eight variant targets already land only via their variant E19s).
+e('ImportEntriesActivity.startImportFile', 'ImportEntriesActivity.processImporterState@FILE', 'CALL',
+  'the file just read is processed on the file-import path',
+  guard='the import page was opened with a file (startImport@FILE, ImportEntriesActivity.java:109,127)',
+  evidence='SRC ImportEntriesActivity.java:134 (bytecode)')
+sup(('ImportEntriesActivity.processImporterState', 'AndOtpImporter$EncryptedState.decrypt(Context,DecryptListener)'))
+
+# --- C3 sample fix 4: Stratum dispatch split (Stratum decrypt route).
+# The dumped Stratum route ran the @APP prefix (GA row tapped) into Stratum decrypt
+# through the shared virtual edge processImporterState -> Stratum decrypt (auto CHA,
+# :179). That prefix cannot produce a Stratum state: the GA state built on it is never
+# encrypted (GoogleAuthImporter.State super(false)), so processImporterState takes the
+# decrypted branch and never calls state.decrypt. Stratum is genuinely reachable BOTH
+# ways, unlike AndOtp/Aegis: it has supportsDirect true (DatabaseImporter.java:49)
+# and a real getAppPath (StratumImporter.java:65-66), so the direct dialog CAN offer
+# it — but only when its own row is tapped, not GA's. The fix therefore threads a
+# @STRATUM chain (Stratum row -> OK -> import-app listener -> import page -> app
+# import -> root-shell callback -> @STRATUM dispatch) alongside the @FILE variant,
+# and suppresses the shared auto CHA edge. The base node keeps every other importer's
+# dispatch. Note: the variant hand edge from lambda$startImportApp$5 suppresses the
+# auto lambda$5 -> processImporterState edge by its base pair, so the base edge is
+# re-written by hand below (same pattern as startImportFile in fix 2). The
+# app-version-warning lambdas are NOT threaded for @STRATUM (direct path only: the
+# supported-version case suffices for REACHABLE; a Stratum import through the warning
+# would need its own variants).
+e('ImportEntriesActivity.lambda$startImportApp$5', 'ImportEntriesActivity.processImporterState', 'CALL',
+  'Direct call', evidence='SRC ImportEntriesActivity.java:157 (bytecode)')
+sup(('ImportEntriesActivity.processImporterState', 'StratumImporter$EncryptedState.decrypt(Context,DecryptListener)'))
+# --- file-pick v2 V2 (PRIVATE BUILD, not pushed): Stratum @FILE_STRATUM variant chain (E1, E3-E16, 2x E19).
+# Template DESIGN.md 4.2/4.4 (audit PASS); E2/E17/E18 deleted by audit D1/D2 (auto expansion).
+# One pick chain, two dispatch guards (AUTHENTICATORPRO header -> Encrypted; AuthenticatorPro
+# legacy header -> Legacy). V2 combined private state: the old @FILE Encrypted hand edge
+# (E8360a30f) is DELETED, replaced by the variant Encrypted E19 below; the Legacy base-pair
+# sup below lands with the chain (the variant Legacy E19 hand edge already suppresses the
+# Legacy auto copies by the manual-edge base-pair rule — verified in the chain-first build,
+# where Legacy incoming was already [variant] only — so the sup is explicit, not load-bearing).
+# Encrypted incoming 1 (variant only); Legacy incoming 1 (variant only). Never pushed in an
+# intermediate state (R1: single final commit when full section 9 passes).
+sup(('ImportEntriesActivity.processImporterState', 'StratumImporter$LegacyEncryptedState.decrypt(Context,DecryptListener)'))
+gui('Dialogs.showImportersDialog@FILE', 'Dialogs.lambda$showImportersDialog$26@FILE_STRATUM', 'Tap the `Stratum` row in the importer list (its help text is shown)',
+  guard='the `Stratum` row is tapped (the dialog lists all importers when isDirect is false, DatabaseImporter.java:99-106; a tap sets the checked row in the single-choice list, FW-SRC AbsListView.java:1136-1150 and/or dialog_importers.xml choiceMode="singleChoice", Dialogs.java:529-531)',
+  evidence=FW_ITEM + '; SRC ui/dialogs/Dialogs.java:523-531; SRC importers/DatabaseImporter.java:99-106; FW-SRC core/java/android/widget/AbsListView.java:1136-1150')
+gui('Dialogs.lambda$showImportersDialog$26@FILE_STRATUM', 'Dialogs.lambda$showImportersDialog$27@FILE_STRATUM', 'Tap OK after the `Stratum` row was tapped (gives the chosen importer to the listener)',
+  guard='the `Stratum` row was tapped first: in the single-choice list a tap sets the checked row (FW-SRC AbsListView.java:1136-1150, dialog_importers.xml choiceMode="singleChoice"), so OK reads the `Stratum` importer (Dialogs.java:537), not the default Aegis row',
+  evidence=FW_CLICK + '; SRC ui/dialogs/Dialogs.java:533-538; FW-SRC core/java/android/widget/AbsListView.java:1136-1150')
+e('Dialogs.lambda$showImportersDialog$27@FILE_STRATUM', 'ImportExportPreferencesFragment.lambda$onCreatePreferences$5@FILE_STRATUM', 'CALL',
+  'the OK button gives the chosen `Stratum` importer to the import listener: the file picker opens',
+  guard='the dialog was opened by the Import preference (showImportersDialog with isDirect false, ImportExportPreferencesFragment.java:107) and the `Stratum` row was tapped',
+  evidence='SRC ui/dialogs/Dialogs.java:536-538; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:105-112')
+e('ImportExportPreferencesFragment.lambda$onCreatePreferences$5@FILE_STRATUM', 'VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_STRATUM', 'CALL',
+  'the file picker opens (ACTION_GET_CONTENT) through the import launcher, after the `Stratum` importer is chosen',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:105-112')
+e('VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_STRATUM', 'ImportExportPreferencesFragment.lambda$new$0@FILE_STRATUM', 'RESULT',
+  'the file picker returns a file: the import launcher runs onImportSelectResult',
+  guard='the picker returned RESULT_OK with a URI (ImportExportPreferencesFragment.java:146-148) and the launcher callback data is not null (ImportExportPreferencesFragment.java:73-79)',
+  evidence=FW_LAUNCHER + '; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:146-148; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:73-79')
+e('ImportExportPreferencesFragment.lambda$new$0@FILE_STRATUM', 'ImportExportPreferencesFragment.onImportSelectResult@FILE_STRATUM', 'CALL',
+  'the picker result carries data: onImportSelectResult runs',
+  guard='activityResult.getData() is not null (ImportExportPreferencesFragment.java:76)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:73-79')
+e('ImportExportPreferencesFragment.onImportSelectResult@FILE_STRATUM', 'ImportFileTask.doInBackground@FILE_STRATUM', 'ASYNC',
+  'AsyncTask runs doInBackground on the worker thread (read the picked file)',
+  evidence=FW_ASYNC + '; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:146,151-158; SRC ui/tasks/ImportFileTask.java:18')
+e('ImportFileTask.doInBackground@FILE_STRATUM', 'ImportFileTask.onPostExecute@FILE_STRATUM', 'ASYNC',
+  'the result is posted to the main thread (the `Stratum` file-import task)',
+  evidence=FW_ASYNC + '; SRC ui/tasks/ImportFileTask.java:53-56')
+e('ImportFileTask.onPostExecute@FILE_STRATUM', 'ImportExportPreferencesFragment.lambda$onImportSelectResult$11@FILE_STRATUM', 'CALL',
+  'the file is read: the callback opens the import page, or shows the read error',
+  guard='result.getError() is null (ImportExportPreferencesFragment.java:152-155)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:152-155')
+e('ImportExportPreferencesFragment.lambda$onImportSelectResult$11@FILE_STRATUM', 'ImportExportPreferencesFragment.startImportEntriesActivity@FILE_STRATUM', 'CALL',
+  'Direct call',
+  guard='`_importerDef` is the `Stratum` definition and the task result file (ImportExportPreferencesFragment.java:152-153) is passed to the import page',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:152-153; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:161-165')
+e('ImportExportPreferencesFragment.startImportEntriesActivity@FILE_STRATUM', 'ImportEntriesActivity.<init>@FILE_STRATUM', 'INTENT',
+  'the import page opens with the chosen `Stratum` importer and the file (file import)',
+  guard='the file argument is non-null (ImportExportPreferencesFragment.java:161-165)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:161-165')
+e('ImportEntriesActivity.<init>@FILE_STRATUM', 'ImportEntriesActivity.onCreate@FILE_STRATUM', 'LIFECYCLE',
+  'Activity.onCreate of the import page',
+  evidence=FW_CREATE + '; SRC ui/ImportEntriesActivity.java:62')
+e('ImportEntriesActivity.onCreate@FILE_STRATUM', 'ImportEntriesActivity.startImport@FILE_STRATUM', 'CALL',
+  'the import page starts the import from its intent extras',
+  guard='abortIfOrphan is false (ImportEntriesActivity.java:64-66) and the file extra is non-null (ImportEntriesActivity.java:104,109)',
+  evidence='SRC ui/ImportEntriesActivity.java:62-66,103-104')
+e('ImportEntriesActivity.startImport@FILE_STRATUM', 'ImportEntriesActivity.startImportFile@FILE_STRATUM', 'CALL',
+  'Direct call',
+  guard='a file was passed (ImportEntriesActivity.java:109,127)',
+  evidence='SRC ImportEntriesActivity.java:127 (bytecode); SRC ui/ImportEntriesActivity.java:109,127')
+e('ImportEntriesActivity.startImportFile@FILE_STRATUM', 'ImportEntriesActivity.processImporterState@FILE_STRATUM', 'CALL',
+  'the file just read is processed on the `Stratum` file-import path',
+  guard='the import page was opened with a file for the `Stratum` importer',
+  evidence='SRC ImportEntriesActivity.java:134 (bytecode); SRC ui/ImportEntriesActivity.java:131-134; SRC importers/DatabaseImporter.java:75-76')
+e('ImportEntriesActivity.processImporterState@FILE_STRATUM', 'StratumImporter$EncryptedState.decrypt(Context,DecryptListener)', 'CALL',
+  'the picked file import is an encrypted Stratum backup: the importer asks for the password and decrypts it',
+  guard='the file import picked Stratum and the file is not JSON, so readExternal falls to readEncrypted and the AUTHENTICATORPRO header yields EncryptedState (StratumImporter.java:80-105)',
+  evidence='SRC ui/ImportEntriesActivity.java:176-182; SRC importers/StratumImporter.java:80-105')
+e('ImportEntriesActivity.processImporterState@FILE_STRATUM', 'StratumImporter$LegacyEncryptedState.decrypt(Context,DecryptListener)', 'CALL',
+  'the picked file import is a legacy-header Stratum backup: the importer asks for the password and decrypts it',
+  guard='the file import picked Stratum and the file is not JSON, so readExternal falls to readEncrypted and the AuthenticatorPro (legacy) header yields LegacyEncryptedState (StratumImporter.java:80-105)',
+  evidence='SRC ui/ImportEntriesActivity.java:176-182; SRC importers/StratumImporter.java:80-105')
+# --- file-pick v2 V3 (PRIVATE BUILD, not pushed): TOTP Authenticator @FILE_TOTP variant chain (E1, E3-E16, E19).
+# Template DESIGN.md 4.2/4.4 (audit PASS); E2/E17/E18 deleted by audit D1/D2 (auto expansion).
+# V3 combined private state: the TOTP base-pair sup below lands with the chain (the variant E19
+# hand edge already suppressed all three TOTP auto copies in the chain-first build — incoming
+# was already [variant] only — so the sup is explicit, not load-bearing). TOTP incoming 1
+# (variant only). Never pushed in an intermediate state (R1).
+sup(('ImportEntriesActivity.processImporterState', 'TotpAuthenticatorImporter$EncryptedState.decrypt(Context,DecryptListener)'))
+gui('Dialogs.showImportersDialog@FILE', 'Dialogs.lambda$showImportersDialog$26@FILE_TOTP', 'Tap the `TOTP Authenticator` row in the importer list (its help text is shown)',
+  guard='the `TOTP Authenticator` row is tapped (the dialog lists all importers when isDirect is false, DatabaseImporter.java:99-106; a tap sets the checked row in the single-choice list, FW-SRC AbsListView.java:1136-1150 and/or dialog_importers.xml choiceMode="singleChoice", Dialogs.java:529-531)',
+  evidence=FW_ITEM + '; SRC ui/dialogs/Dialogs.java:523-531; SRC importers/DatabaseImporter.java:99-106; FW-SRC core/java/android/widget/AbsListView.java:1136-1150')
+gui('Dialogs.lambda$showImportersDialog$26@FILE_TOTP', 'Dialogs.lambda$showImportersDialog$27@FILE_TOTP', 'Tap OK after the `TOTP Authenticator` row was tapped (gives the chosen importer to the listener)',
+  guard='the `TOTP Authenticator` row was tapped first: in the single-choice list a tap sets the checked row (FW-SRC AbsListView.java:1136-1150, dialog_importers.xml choiceMode="singleChoice"), so OK reads the `TOTP Authenticator` importer (Dialogs.java:537), not the default Aegis row',
+  evidence=FW_CLICK + '; SRC ui/dialogs/Dialogs.java:533-538; FW-SRC core/java/android/widget/AbsListView.java:1136-1150')
+e('Dialogs.lambda$showImportersDialog$27@FILE_TOTP', 'ImportExportPreferencesFragment.lambda$onCreatePreferences$5@FILE_TOTP', 'CALL',
+  'the OK button gives the chosen `TOTP Authenticator` importer to the import listener: the file picker opens',
+  guard='the dialog was opened by the Import preference (showImportersDialog with isDirect false, ImportExportPreferencesFragment.java:107) and the `TOTP Authenticator` row was tapped',
+  evidence='SRC ui/dialogs/Dialogs.java:536-538; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:105-112')
+e('ImportExportPreferencesFragment.lambda$onCreatePreferences$5@FILE_TOTP', 'VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_TOTP', 'CALL',
+  'the file picker opens (ACTION_GET_CONTENT) through the import launcher, after the `TOTP Authenticator` importer is chosen',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:105-112')
+e('VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_TOTP', 'ImportExportPreferencesFragment.lambda$new$0@FILE_TOTP', 'RESULT',
+  'the file picker returns a file: the import launcher runs onImportSelectResult',
+  guard='the picker returned RESULT_OK with a URI (ImportExportPreferencesFragment.java:146-148) and the launcher callback data is not null (ImportExportPreferencesFragment.java:73-79)',
+  evidence=FW_LAUNCHER + '; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:146-148; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:73-79')
+e('ImportExportPreferencesFragment.lambda$new$0@FILE_TOTP', 'ImportExportPreferencesFragment.onImportSelectResult@FILE_TOTP', 'CALL',
+  'the picker result carries data: onImportSelectResult runs',
+  guard='activityResult.getData() is not null (ImportExportPreferencesFragment.java:76)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:73-79')
+e('ImportExportPreferencesFragment.onImportSelectResult@FILE_TOTP', 'ImportFileTask.doInBackground@FILE_TOTP', 'ASYNC',
+  'AsyncTask runs doInBackground on the worker thread (read the picked file)',
+  evidence=FW_ASYNC + '; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:146,151-158; SRC ui/tasks/ImportFileTask.java:18')
+e('ImportFileTask.doInBackground@FILE_TOTP', 'ImportFileTask.onPostExecute@FILE_TOTP', 'ASYNC',
+  'the result is posted to the main thread (the `TOTP Authenticator` file-import task)',
+  evidence=FW_ASYNC + '; SRC ui/tasks/ImportFileTask.java:53-56')
+e('ImportFileTask.onPostExecute@FILE_TOTP', 'ImportExportPreferencesFragment.lambda$onImportSelectResult$11@FILE_TOTP', 'CALL',
+  'the file is read: the callback opens the import page, or shows the read error',
+  guard='result.getError() is null (ImportExportPreferencesFragment.java:152-155)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:152-155')
+e('ImportExportPreferencesFragment.lambda$onImportSelectResult$11@FILE_TOTP', 'ImportExportPreferencesFragment.startImportEntriesActivity@FILE_TOTP', 'CALL',
+  'Direct call',
+  guard='`_importerDef` is the `TOTP Authenticator` definition and the task result file (ImportExportPreferencesFragment.java:152-153) is passed to the import page',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:152-153; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:161-165')
+e('ImportExportPreferencesFragment.startImportEntriesActivity@FILE_TOTP', 'ImportEntriesActivity.<init>@FILE_TOTP', 'INTENT',
+  'the import page opens with the chosen `TOTP Authenticator` importer and the file (file import)',
+  guard='the file argument is non-null (ImportExportPreferencesFragment.java:161-165)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:161-165')
+e('ImportEntriesActivity.<init>@FILE_TOTP', 'ImportEntriesActivity.onCreate@FILE_TOTP', 'LIFECYCLE',
+  'Activity.onCreate of the import page',
+  evidence=FW_CREATE + '; SRC ui/ImportEntriesActivity.java:62')
+e('ImportEntriesActivity.onCreate@FILE_TOTP', 'ImportEntriesActivity.startImport@FILE_TOTP', 'CALL',
+  'the import page starts the import from its intent extras',
+  guard='abortIfOrphan is false (ImportEntriesActivity.java:64-66) and the file extra is non-null (ImportEntriesActivity.java:104,109)',
+  evidence='SRC ui/ImportEntriesActivity.java:62-66,103-104')
+e('ImportEntriesActivity.startImport@FILE_TOTP', 'ImportEntriesActivity.startImportFile@FILE_TOTP', 'CALL',
+  'Direct call',
+  guard='a file was passed (ImportEntriesActivity.java:109,127)',
+  evidence='SRC ImportEntriesActivity.java:127 (bytecode); SRC ui/ImportEntriesActivity.java:109,127')
+e('ImportEntriesActivity.startImportFile@FILE_TOTP', 'ImportEntriesActivity.processImporterState@FILE_TOTP', 'CALL',
+  'the file just read is processed on the `TOTP Authenticator` file-import path',
+  guard='the import page was opened with a file for the `TOTP Authenticator` importer',
+  evidence='SRC ImportEntriesActivity.java:134 (bytecode); SRC ui/ImportEntriesActivity.java:131-134; SRC importers/DatabaseImporter.java:75-76')
+e('ImportEntriesActivity.processImporterState@FILE_TOTP', 'TotpAuthenticatorImporter$EncryptedState.decrypt(Context,DecryptListener)', 'CALL',
+  'the picked file import is an encrypted TOTP Authenticator backup: the importer asks for the password and decrypts it',
+  guard='the file import picked TOTP Authenticator and the file read is the external (isInternal false) branch, so read returns EncryptedState (TotpAuthenticatorImporter.java:70-95); the internal branch always yields DecryptedState and never reaches decrypt',
+  evidence='SRC ui/ImportEntriesActivity.java:176-182; SRC importers/TotpAuthenticatorImporter.java:70-95')
+# --- file-pick v2 V4 (PRIVATE BUILD, not pushed): FreeOTP @FILE_FREEOTP variant chain (E1, E3-E16, E19).
+# Template DESIGN.md 4.2/4.4 (audit PASS); E2/E17/E18 deleted by audit D1/D2 (auto expansion).
+# V4 combined private state: the FreeOTP base-pair sup below lands with the chain (the variant E19
+# hand edge already suppressed all three FreeOTP auto copies in the chain-first build — incoming
+# was already [variant] only — so the sup is explicit, not load-bearing). FreeOTP incoming 1
+# (variant only). Never pushed in an intermediate state (R1). R3: v2 item 1 for FreeOTP
+# evaluated here (file route through @FILE_FREEOTP); re-read after F2 as shortest-FILE-route.
+sup(('ImportEntriesActivity.processImporterState', 'FreeOtpImporter$EncryptedState.decrypt(Context,DecryptListener)'))
+gui('Dialogs.showImportersDialog@FILE', 'Dialogs.lambda$showImportersDialog$26@FILE_FREEOTP', 'Tap the `FreeOTP` row in the importer list (its help text is shown)',
+  guard='the `FreeOTP` row is tapped (the dialog lists all importers when isDirect is false, DatabaseImporter.java:99-106; a tap sets the checked row in the single-choice list, FW-SRC AbsListView.java:1136-1150 and/or dialog_importers.xml choiceMode="singleChoice", Dialogs.java:529-531)',
+  evidence=FW_ITEM + '; SRC ui/dialogs/Dialogs.java:523-531; SRC importers/DatabaseImporter.java:99-106; FW-SRC core/java/android/widget/AbsListView.java:1136-1150')
+gui('Dialogs.lambda$showImportersDialog$26@FILE_FREEOTP', 'Dialogs.lambda$showImportersDialog$27@FILE_FREEOTP', 'Tap OK after the `FreeOTP` row was tapped (gives the chosen importer to the listener)',
+  guard='the `FreeOTP` row was tapped first: in the single-choice list a tap sets the checked row (FW-SRC AbsListView.java:1136-1150, dialog_importers.xml choiceMode="singleChoice"), so OK reads the `FreeOTP` importer (Dialogs.java:537), not the default Aegis row',
+  evidence=FW_CLICK + '; SRC ui/dialogs/Dialogs.java:533-538; FW-SRC core/java/android/widget/AbsListView.java:1136-1150')
+e('Dialogs.lambda$showImportersDialog$27@FILE_FREEOTP', 'ImportExportPreferencesFragment.lambda$onCreatePreferences$5@FILE_FREEOTP', 'CALL',
+  'the OK button gives the chosen `FreeOTP` importer to the import listener: the file picker opens',
+  guard='the dialog was opened by the Import preference (showImportersDialog with isDirect false, ImportExportPreferencesFragment.java:107) and the `FreeOTP` row was tapped',
+  evidence='SRC ui/dialogs/Dialogs.java:536-538; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:105-112')
+e('ImportExportPreferencesFragment.lambda$onCreatePreferences$5@FILE_FREEOTP', 'VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_FREEOTP', 'CALL',
+  'the file picker opens (ACTION_GET_CONTENT) through the import launcher, after the `FreeOTP` importer is chosen',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:105-112')
+e('VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_FREEOTP', 'ImportExportPreferencesFragment.lambda$new$0@FILE_FREEOTP', 'RESULT',
+  'the file picker returns a file: the import launcher runs onImportSelectResult',
+  guard='the picker returned RESULT_OK with a URI (ImportExportPreferencesFragment.java:146-148) and the launcher callback data is not null (ImportExportPreferencesFragment.java:73-79)',
+  evidence=FW_LAUNCHER + '; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:146-148; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:73-79')
+e('ImportExportPreferencesFragment.lambda$new$0@FILE_FREEOTP', 'ImportExportPreferencesFragment.onImportSelectResult@FILE_FREEOTP', 'CALL',
+  'the picker result carries data: onImportSelectResult runs',
+  guard='activityResult.getData() is not null (ImportExportPreferencesFragment.java:76)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:73-79')
+e('ImportExportPreferencesFragment.onImportSelectResult@FILE_FREEOTP', 'ImportFileTask.doInBackground@FILE_FREEOTP', 'ASYNC',
+  'AsyncTask runs doInBackground on the worker thread (read the picked file)',
+  evidence=FW_ASYNC + '; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:146,151-158; SRC ui/tasks/ImportFileTask.java:18')
+e('ImportFileTask.doInBackground@FILE_FREEOTP', 'ImportFileTask.onPostExecute@FILE_FREEOTP', 'ASYNC',
+  'the result is posted to the main thread (the `FreeOTP` file-import task)',
+  evidence=FW_ASYNC + '; SRC ui/tasks/ImportFileTask.java:53-56')
+e('ImportFileTask.onPostExecute@FILE_FREEOTP', 'ImportExportPreferencesFragment.lambda$onImportSelectResult$11@FILE_FREEOTP', 'CALL',
+  'the file is read: the callback opens the import page, or shows the read error',
+  guard='result.getError() is null (ImportExportPreferencesFragment.java:152-155)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:152-155')
+e('ImportExportPreferencesFragment.lambda$onImportSelectResult$11@FILE_FREEOTP', 'ImportExportPreferencesFragment.startImportEntriesActivity@FILE_FREEOTP', 'CALL',
+  'Direct call',
+  guard='`_importerDef` is the `FreeOTP` definition and the task result file (ImportExportPreferencesFragment.java:152-153) is passed to the import page',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:152-153; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:161-165')
+e('ImportExportPreferencesFragment.startImportEntriesActivity@FILE_FREEOTP', 'ImportEntriesActivity.<init>@FILE_FREEOTP', 'INTENT',
+  'the import page opens with the chosen `FreeOTP` importer and the file (file import)',
+  guard='the file argument is non-null (ImportExportPreferencesFragment.java:161-165)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:161-165')
+e('ImportEntriesActivity.<init>@FILE_FREEOTP', 'ImportEntriesActivity.onCreate@FILE_FREEOTP', 'LIFECYCLE',
+  'Activity.onCreate of the import page',
+  evidence=FW_CREATE + '; SRC ui/ImportEntriesActivity.java:62')
+e('ImportEntriesActivity.onCreate@FILE_FREEOTP', 'ImportEntriesActivity.startImport@FILE_FREEOTP', 'CALL',
+  'the import page starts the import from its intent extras',
+  guard='abortIfOrphan is false (ImportEntriesActivity.java:64-66) and the file extra is non-null (ImportEntriesActivity.java:104,109)',
+  evidence='SRC ui/ImportEntriesActivity.java:62-66,103-104')
+e('ImportEntriesActivity.startImport@FILE_FREEOTP', 'ImportEntriesActivity.startImportFile@FILE_FREEOTP', 'CALL',
+  'Direct call',
+  guard='a file was passed (ImportEntriesActivity.java:109,127)',
+  evidence='SRC ImportEntriesActivity.java:127 (bytecode); SRC ui/ImportEntriesActivity.java:109,127')
+e('ImportEntriesActivity.startImportFile@FILE_FREEOTP', 'ImportEntriesActivity.processImporterState@FILE_FREEOTP', 'CALL',
+  'the file just read is processed on the `FreeOTP` file-import path',
+  guard='the import page was opened with a file for the `FreeOTP` importer',
+  evidence='SRC ImportEntriesActivity.java:134 (bytecode); SRC ui/ImportEntriesActivity.java:131-134; SRC importers/DatabaseImporter.java:75-76')
+e('ImportEntriesActivity.processImporterState@FILE_FREEOTP', 'FreeOtpImporter$EncryptedState.decrypt(Context,DecryptListener)', 'CALL',
+  'the picked file import is an encrypted FreeOTP backup: the importer asks for the password and decrypts it',
+  guard='the file import picked FreeOTP and the file has V2 magic, so read returns EncryptedState via readV2 (FreeOtpImporter.java:69-86,106-115); a V1 file yields DecryptedStateV1 and takes the decrypted branch instead',
+  evidence='SRC ui/ImportEntriesActivity.java:176-182; SRC importers/FreeOtpImporter.java:69-115')
+# --- file-pick v2 V5 (PRIVATE BUILD, not pushed): 2FAS @FILE_TWOFAS variant chain (E1, E3-E16, E19) + sup.
+# Template DESIGN.md 4.2/4.4 (audit PASS); E2/E17/E18 deleted by audit D1/D2 (auto expansion).
+# Combined single build per design section 5 step 1 (chain + sup together; the hand-E19
+# suppression mechanism is already proven at V2/V3/V4, so no separate chain-first build is
+# needed here — the combined gates below verify the outcome). Never pushed in an
+# intermediate state (R1).
+sup(('ImportEntriesActivity.processImporterState', 'TwoFASImporter$EncryptedState.decrypt(Context,DecryptListener)'))
+gui('Dialogs.showImportersDialog@FILE', 'Dialogs.lambda$showImportersDialog$26@FILE_TWOFAS', 'Tap the `2FAS` row in the importer list (its help text is shown)',
+  guard='the `2FAS` row is tapped (the dialog lists all importers when isDirect is false, DatabaseImporter.java:99-106; a tap sets the checked row in the single-choice list, FW-SRC AbsListView.java:1136-1150 and/or dialog_importers.xml choiceMode="singleChoice", Dialogs.java:529-531)',
+  evidence=FW_ITEM + '; SRC ui/dialogs/Dialogs.java:523-531; SRC importers/DatabaseImporter.java:99-106; FW-SRC core/java/android/widget/AbsListView.java:1136-1150')
+gui('Dialogs.lambda$showImportersDialog$26@FILE_TWOFAS', 'Dialogs.lambda$showImportersDialog$27@FILE_TWOFAS', 'Tap OK after the `2FAS` row was tapped (gives the chosen importer to the listener)',
+  guard='the `2FAS` row was tapped first: in the single-choice list a tap sets the checked row (FW-SRC AbsListView.java:1136-1150, dialog_importers.xml choiceMode="singleChoice"), so OK reads the `2FAS` importer (Dialogs.java:537), not the default Aegis row',
+  evidence=FW_CLICK + '; SRC ui/dialogs/Dialogs.java:533-538; FW-SRC core/java/android/widget/AbsListView.java:1136-1150')
+e('Dialogs.lambda$showImportersDialog$27@FILE_TWOFAS', 'ImportExportPreferencesFragment.lambda$onCreatePreferences$5@FILE_TWOFAS', 'CALL',
+  'the OK button gives the chosen `2FAS` importer to the import listener: the file picker opens',
+  guard='the dialog was opened by the Import preference (showImportersDialog with isDirect false, ImportExportPreferencesFragment.java:107) and the `2FAS` row was tapped',
+  evidence='SRC ui/dialogs/Dialogs.java:536-538; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:105-112')
+e('ImportExportPreferencesFragment.lambda$onCreatePreferences$5@FILE_TWOFAS', 'VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_TWOFAS', 'CALL',
+  'the file picker opens (ACTION_GET_CONTENT) through the import launcher, after the `2FAS` importer is chosen',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:105-112')
+e('VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_TWOFAS', 'ImportExportPreferencesFragment.lambda$new$0@FILE_TWOFAS', 'RESULT',
+  'the file picker returns a file: the import launcher runs onImportSelectResult',
+  guard='the picker returned RESULT_OK with a URI (ImportExportPreferencesFragment.java:146-148) and the launcher callback data is not null (ImportExportPreferencesFragment.java:73-79)',
+  evidence=FW_LAUNCHER + '; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:146-148; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:73-79')
+e('ImportExportPreferencesFragment.lambda$new$0@FILE_TWOFAS', 'ImportExportPreferencesFragment.onImportSelectResult@FILE_TWOFAS', 'CALL',
+  'the picker result carries data: onImportSelectResult runs',
+  guard='activityResult.getData() is not null (ImportExportPreferencesFragment.java:76)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:73-79')
+e('ImportExportPreferencesFragment.onImportSelectResult@FILE_TWOFAS', 'ImportFileTask.doInBackground@FILE_TWOFAS', 'ASYNC',
+  'AsyncTask runs doInBackground on the worker thread (read the picked file)',
+  evidence=FW_ASYNC + '; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:146,151-158; SRC ui/tasks/ImportFileTask.java:18')
+e('ImportFileTask.doInBackground@FILE_TWOFAS', 'ImportFileTask.onPostExecute@FILE_TWOFAS', 'ASYNC',
+  'the result is posted to the main thread (the `2FAS` file-import task)',
+  evidence=FW_ASYNC + '; SRC ui/tasks/ImportFileTask.java:53-56')
+e('ImportFileTask.onPostExecute@FILE_TWOFAS', 'ImportExportPreferencesFragment.lambda$onImportSelectResult$11@FILE_TWOFAS', 'CALL',
+  'the file is read: the callback opens the import page, or shows the read error',
+  guard='result.getError() is null (ImportExportPreferencesFragment.java:152-155)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:152-155')
+e('ImportExportPreferencesFragment.lambda$onImportSelectResult$11@FILE_TWOFAS', 'ImportExportPreferencesFragment.startImportEntriesActivity@FILE_TWOFAS', 'CALL',
+  'Direct call',
+  guard='`_importerDef` is the `2FAS` definition and the task result file (ImportExportPreferencesFragment.java:152-153) is passed to the import page',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:152-153; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:161-165')
+e('ImportExportPreferencesFragment.startImportEntriesActivity@FILE_TWOFAS', 'ImportEntriesActivity.<init>@FILE_TWOFAS', 'INTENT',
+  'the import page opens with the chosen `2FAS` importer and the file (file import)',
+  guard='the file argument is non-null (ImportExportPreferencesFragment.java:161-165)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:161-165')
+e('ImportEntriesActivity.<init>@FILE_TWOFAS', 'ImportEntriesActivity.onCreate@FILE_TWOFAS', 'LIFECYCLE',
+  'Activity.onCreate of the import page',
+  evidence=FW_CREATE + '; SRC ui/ImportEntriesActivity.java:62')
+e('ImportEntriesActivity.onCreate@FILE_TWOFAS', 'ImportEntriesActivity.startImport@FILE_TWOFAS', 'CALL',
+  'the import page starts the import from its intent extras',
+  guard='abortIfOrphan is false (ImportEntriesActivity.java:64-66) and the file extra is non-null (ImportEntriesActivity.java:104,109)',
+  evidence='SRC ui/ImportEntriesActivity.java:62-66,103-104')
+e('ImportEntriesActivity.startImport@FILE_TWOFAS', 'ImportEntriesActivity.startImportFile@FILE_TWOFAS', 'CALL',
+  'Direct call',
+  guard='a file was passed (ImportEntriesActivity.java:109,127)',
+  evidence='SRC ImportEntriesActivity.java:127 (bytecode); SRC ui/ImportEntriesActivity.java:109,127')
+e('ImportEntriesActivity.startImportFile@FILE_TWOFAS', 'ImportEntriesActivity.processImporterState@FILE_TWOFAS', 'CALL',
+  'the file just read is processed on the `2FAS` file-import path',
+  guard='the import page was opened with a file for the `2FAS` importer',
+  evidence='SRC ImportEntriesActivity.java:134 (bytecode); SRC ui/ImportEntriesActivity.java:131-134; SRC importers/DatabaseImporter.java:75-76')
+e('ImportEntriesActivity.processImporterState@FILE_TWOFAS', 'TwoFASImporter$EncryptedState.decrypt(Context,DecryptListener)', 'CALL',
+  'the picked file import is an encrypted 2FAS backup: the importer asks for the password and decrypts it',
+  guard='the file import picked 2FAS (supportsDirect false, DatabaseImporter.java:33; getAppPath throws, TwoFASImporter.java:55-57) and the file is valid JSON with schemaVersion ≤ 4 and `servicesEncrypted` split into ≥ 3 parts, so read returns EncryptedState (TwoFASImporter.java:60-84)',
+  evidence='SRC ui/ImportEntriesActivity.java:176-182; SRC importers/TwoFASImporter.java:60-84')
+# --- file-pick v2 V6 (PRIVATE BUILD, not pushed): Authenticator Plus @FILE_AUTHPLUS variant chain (E1, E3-E16, E19) + sup.
+# Template DESIGN.md 4.2/4.4 (audit PASS); E2/E17/E18 deleted by audit D1/D2 (auto expansion).
+# Combined single build per design section 5 step 1 (chain + sup together). Never pushed in an
+# intermediate state (R1).
+sup(('ImportEntriesActivity.processImporterState', 'AuthenticatorPlusImporter$EncryptedState.decrypt(Context,DecryptListener)'))
+gui('Dialogs.showImportersDialog@FILE', 'Dialogs.lambda$showImportersDialog$26@FILE_AUTHPLUS', 'Tap the `Authenticator Plus` row in the importer list (its help text is shown)',
+  guard='the `Authenticator Plus` row is tapped (the dialog lists all importers when isDirect is false, DatabaseImporter.java:99-106; a tap sets the checked row in the single-choice list, FW-SRC AbsListView.java:1136-1150 and/or dialog_importers.xml choiceMode="singleChoice", Dialogs.java:529-531)',
+  evidence=FW_ITEM + '; SRC ui/dialogs/Dialogs.java:523-531; SRC importers/DatabaseImporter.java:99-106; FW-SRC core/java/android/widget/AbsListView.java:1136-1150')
+gui('Dialogs.lambda$showImportersDialog$26@FILE_AUTHPLUS', 'Dialogs.lambda$showImportersDialog$27@FILE_AUTHPLUS', 'Tap OK after the `Authenticator Plus` row was tapped (gives the chosen importer to the listener)',
+  guard='the `Authenticator Plus` row was tapped first: in the single-choice list a tap sets the checked row (FW-SRC AbsListView.java:1136-1150, dialog_importers.xml choiceMode="singleChoice"), so OK reads the `Authenticator Plus` importer (Dialogs.java:537), not the default Aegis row',
+  evidence=FW_CLICK + '; SRC ui/dialogs/Dialogs.java:533-538; FW-SRC core/java/android/widget/AbsListView.java:1136-1150')
+e('Dialogs.lambda$showImportersDialog$27@FILE_AUTHPLUS', 'ImportExportPreferencesFragment.lambda$onCreatePreferences$5@FILE_AUTHPLUS', 'CALL',
+  'the OK button gives the chosen `Authenticator Plus` importer to the import listener: the file picker opens',
+  guard='the dialog was opened by the Import preference (showImportersDialog with isDirect false, ImportExportPreferencesFragment.java:107) and the `Authenticator Plus` row was tapped',
+  evidence='SRC ui/dialogs/Dialogs.java:536-538; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:105-112')
+e('ImportExportPreferencesFragment.lambda$onCreatePreferences$5@FILE_AUTHPLUS', 'VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_AUTHPLUS', 'CALL',
+  'the file picker opens (ACTION_GET_CONTENT) through the import launcher, after the `Authenticator Plus` importer is chosen',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:105-112')
+e('VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_AUTHPLUS', 'ImportExportPreferencesFragment.lambda$new$0@FILE_AUTHPLUS', 'RESULT',
+  'the file picker returns a file: the import launcher runs onImportSelectResult',
+  guard='the picker returned RESULT_OK with a URI (ImportExportPreferencesFragment.java:146-148) and the launcher callback data is not null (ImportExportPreferencesFragment.java:73-79)',
+  evidence=FW_LAUNCHER + '; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:146-148; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:73-79')
+e('ImportExportPreferencesFragment.lambda$new$0@FILE_AUTHPLUS', 'ImportExportPreferencesFragment.onImportSelectResult@FILE_AUTHPLUS', 'CALL',
+  'the picker result carries data: onImportSelectResult runs',
+  guard='activityResult.getData() is not null (ImportExportPreferencesFragment.java:76)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:73-79')
+e('ImportExportPreferencesFragment.onImportSelectResult@FILE_AUTHPLUS', 'ImportFileTask.doInBackground@FILE_AUTHPLUS', 'ASYNC',
+  'AsyncTask runs doInBackground on the worker thread (read the picked file)',
+  evidence=FW_ASYNC + '; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:146,151-158; SRC ui/tasks/ImportFileTask.java:18')
+e('ImportFileTask.doInBackground@FILE_AUTHPLUS', 'ImportFileTask.onPostExecute@FILE_AUTHPLUS', 'ASYNC',
+  'the result is posted to the main thread (the `Authenticator Plus` file-import task)',
+  evidence=FW_ASYNC + '; SRC ui/tasks/ImportFileTask.java:53-56')
+e('ImportFileTask.onPostExecute@FILE_AUTHPLUS', 'ImportExportPreferencesFragment.lambda$onImportSelectResult$11@FILE_AUTHPLUS', 'CALL',
+  'the file is read: the callback opens the import page, or shows the read error',
+  guard='result.getError() is null (ImportExportPreferencesFragment.java:152-155)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:152-155')
+e('ImportExportPreferencesFragment.lambda$onImportSelectResult$11@FILE_AUTHPLUS', 'ImportExportPreferencesFragment.startImportEntriesActivity@FILE_AUTHPLUS', 'CALL',
+  'Direct call',
+  guard='`_importerDef` is the `Authenticator Plus` definition and the task result file (ImportExportPreferencesFragment.java:152-153) is passed to the import page',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:152-153; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:161-165')
+e('ImportExportPreferencesFragment.startImportEntriesActivity@FILE_AUTHPLUS', 'ImportEntriesActivity.<init>@FILE_AUTHPLUS', 'INTENT',
+  'the import page opens with the chosen `Authenticator Plus` importer and the file (file import)',
+  guard='the file argument is non-null (ImportExportPreferencesFragment.java:161-165)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:161-165')
+e('ImportEntriesActivity.<init>@FILE_AUTHPLUS', 'ImportEntriesActivity.onCreate@FILE_AUTHPLUS', 'LIFECYCLE',
+  'Activity.onCreate of the import page',
+  evidence=FW_CREATE + '; SRC ui/ImportEntriesActivity.java:62')
+e('ImportEntriesActivity.onCreate@FILE_AUTHPLUS', 'ImportEntriesActivity.startImport@FILE_AUTHPLUS', 'CALL',
+  'the import page starts the import from its intent extras',
+  guard='abortIfOrphan is false (ImportEntriesActivity.java:64-66) and the file extra is non-null (ImportEntriesActivity.java:104,109)',
+  evidence='SRC ui/ImportEntriesActivity.java:62-66,103-104')
+e('ImportEntriesActivity.startImport@FILE_AUTHPLUS', 'ImportEntriesActivity.startImportFile@FILE_AUTHPLUS', 'CALL',
+  'Direct call',
+  guard='a file was passed (ImportEntriesActivity.java:109,127)',
+  evidence='SRC ImportEntriesActivity.java:127 (bytecode); SRC ui/ImportEntriesActivity.java:109,127')
+e('ImportEntriesActivity.startImportFile@FILE_AUTHPLUS', 'ImportEntriesActivity.processImporterState@FILE_AUTHPLUS', 'CALL',
+  'the file just read is processed on the `Authenticator Plus` file-import path',
+  guard='the import page was opened with a file for the `Authenticator Plus` importer',
+  evidence='SRC ImportEntriesActivity.java:134 (bytecode); SRC ui/ImportEntriesActivity.java:131-134; SRC importers/DatabaseImporter.java:75-76')
+e('ImportEntriesActivity.processImporterState@FILE_AUTHPLUS', 'AuthenticatorPlusImporter$EncryptedState.decrypt(Context,DecryptListener)', 'CALL',
+  'the picked file import is an encrypted Authenticator Plus backup: the importer asks for the password and decrypts it',
+  guard='the file import picked Authenticator Plus (supportsDirect false, DatabaseImporter.java:36; getAppPath throws, AuthenticatorPlusImporter.java:26-28) and read returns EncryptedState for any file (AuthenticatorPlusImporter.java:31-35)',
+  evidence='SRC ui/ImportEntriesActivity.java:176-182; SRC importers/AuthenticatorPlusImporter.java:31-35')
+# --- file-pick v2 V7 (PRIVATE BUILD, not pushed): Authy @FILE_AUTHY variant chain (E1, E3-E16, E19) + sup.
+# Template DESIGN.md 4.2/4.4 (audit PASS); E2/E17/E18 deleted by audit D1/D2 (auto expansion).
+# Combined single build per design section 5 step 1 (chain + sup together). After V7, all six
+# v2 sups have landed, so the transient auto cross-edges from variant dispatch nodes should
+# read ZERO (verified below). Never pushed in an intermediate state (R1).
+sup(('ImportEntriesActivity.processImporterState', 'AuthyImporter$EncryptedState.decrypt(Context,DecryptListener)'))
+gui('Dialogs.showImportersDialog@FILE', 'Dialogs.lambda$showImportersDialog$26@FILE_AUTHY', 'Tap the `Authy` row in the importer list (its help text is shown)',
+  guard='the `Authy` row is tapped (the dialog lists all importers when isDirect is false, DatabaseImporter.java:99-106; a tap sets the checked row in the single-choice list, FW-SRC AbsListView.java:1136-1150 and/or dialog_importers.xml choiceMode="singleChoice", Dialogs.java:529-531)',
+  evidence=FW_ITEM + '; SRC ui/dialogs/Dialogs.java:523-531; SRC importers/DatabaseImporter.java:99-106; FW-SRC core/java/android/widget/AbsListView.java:1136-1150')
+gui('Dialogs.lambda$showImportersDialog$26@FILE_AUTHY', 'Dialogs.lambda$showImportersDialog$27@FILE_AUTHY', 'Tap OK after the `Authy` row was tapped (gives the chosen importer to the listener)',
+  guard='the `Authy` row was tapped first: in the single-choice list a tap sets the checked row (FW-SRC AbsListView.java:1136-1150, dialog_importers.xml choiceMode="singleChoice"), so OK reads the `Authy` importer (Dialogs.java:537), not the default Aegis row',
+  evidence=FW_CLICK + '; SRC ui/dialogs/Dialogs.java:533-538; FW-SRC core/java/android/widget/AbsListView.java:1136-1150')
+e('Dialogs.lambda$showImportersDialog$27@FILE_AUTHY', 'ImportExportPreferencesFragment.lambda$onCreatePreferences$5@FILE_AUTHY', 'CALL',
+  'the OK button gives the chosen `Authy` importer to the import listener: the file picker opens',
+  guard='the dialog was opened by the Import preference (showImportersDialog with isDirect false, ImportExportPreferencesFragment.java:107) and the `Authy` row was tapped',
+  evidence='SRC ui/dialogs/Dialogs.java:536-538; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:105-112')
+e('ImportExportPreferencesFragment.lambda$onCreatePreferences$5@FILE_AUTHY', 'VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_AUTHY', 'CALL',
+  'the file picker opens (ACTION_GET_CONTENT) through the import launcher, after the `Authy` importer is chosen',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:105-112')
+e('VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_AUTHY', 'ImportExportPreferencesFragment.lambda$new$0@FILE_AUTHY', 'RESULT',
+  'the file picker returns a file: the import launcher runs onImportSelectResult',
+  guard='the picker returned RESULT_OK with a URI (ImportExportPreferencesFragment.java:146-148) and the launcher callback data is not null (ImportExportPreferencesFragment.java:73-79)',
+  evidence=FW_LAUNCHER + '; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:146-148; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:73-79')
+e('ImportExportPreferencesFragment.lambda$new$0@FILE_AUTHY', 'ImportExportPreferencesFragment.onImportSelectResult@FILE_AUTHY', 'CALL',
+  'the picker result carries data: onImportSelectResult runs',
+  guard='activityResult.getData() is not null (ImportExportPreferencesFragment.java:76)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:73-79')
+e('ImportExportPreferencesFragment.onImportSelectResult@FILE_AUTHY', 'ImportFileTask.doInBackground@FILE_AUTHY', 'ASYNC',
+  'AsyncTask runs doInBackground on the worker thread (read the picked file)',
+  evidence=FW_ASYNC + '; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:146,151-158; SRC ui/tasks/ImportFileTask.java:18')
+e('ImportFileTask.doInBackground@FILE_AUTHY', 'ImportFileTask.onPostExecute@FILE_AUTHY', 'ASYNC',
+  'the result is posted to the main thread (the `Authy` file-import task)',
+  evidence=FW_ASYNC + '; SRC ui/tasks/ImportFileTask.java:53-56')
+e('ImportFileTask.onPostExecute@FILE_AUTHY', 'ImportExportPreferencesFragment.lambda$onImportSelectResult$11@FILE_AUTHY', 'CALL',
+  'the file is read: the callback opens the import page, or shows the read error',
+  guard='result.getError() is null (ImportExportPreferencesFragment.java:152-155)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:152-155')
+e('ImportExportPreferencesFragment.lambda$onImportSelectResult$11@FILE_AUTHY', 'ImportExportPreferencesFragment.startImportEntriesActivity@FILE_AUTHY', 'CALL',
+  'Direct call',
+  guard='`_importerDef` is the `Authy` definition and the task result file (ImportExportPreferencesFragment.java:152-153) is passed to the import page',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:152-153; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:161-165')
+e('ImportExportPreferencesFragment.startImportEntriesActivity@FILE_AUTHY', 'ImportEntriesActivity.<init>@FILE_AUTHY', 'INTENT',
+  'the import page opens with the chosen `Authy` importer and the file (file import)',
+  guard='the file argument is non-null (ImportExportPreferencesFragment.java:161-165)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:161-165')
+e('ImportEntriesActivity.<init>@FILE_AUTHY', 'ImportEntriesActivity.onCreate@FILE_AUTHY', 'LIFECYCLE',
+  'Activity.onCreate of the import page',
+  evidence=FW_CREATE + '; SRC ui/ImportEntriesActivity.java:62')
+e('ImportEntriesActivity.onCreate@FILE_AUTHY', 'ImportEntriesActivity.startImport@FILE_AUTHY', 'CALL',
+  'the import page starts the import from its intent extras',
+  guard='abortIfOrphan is false (ImportEntriesActivity.java:64-66) and the file extra is non-null (ImportEntriesActivity.java:104,109)',
+  evidence='SRC ui/ImportEntriesActivity.java:62-66,103-104')
+e('ImportEntriesActivity.startImport@FILE_AUTHY', 'ImportEntriesActivity.startImportFile@FILE_AUTHY', 'CALL',
+  'Direct call',
+  guard='a file was passed (ImportEntriesActivity.java:109,127)',
+  evidence='SRC ImportEntriesActivity.java:127 (bytecode); SRC ui/ImportEntriesActivity.java:109,127')
+e('ImportEntriesActivity.startImportFile@FILE_AUTHY', 'ImportEntriesActivity.processImporterState@FILE_AUTHY', 'CALL',
+  'the file just read is processed on the `Authy` file-import path',
+  guard='the import page was opened with a file for the `Authy` importer',
+  evidence='SRC ImportEntriesActivity.java:134 (bytecode); SRC ui/ImportEntriesActivity.java:131-134; SRC importers/DatabaseImporter.java:75-76')
+e('ImportEntriesActivity.processImporterState@FILE_AUTHY', 'AuthyImporter$EncryptedState.decrypt(Context,DecryptListener)', 'CALL',
+  'the picked file import is an encrypted Authy backup: the importer asks for the password and decrypts it',
+  guard='the file import picked Authy, a `.key` entry is found in the preferences XML, and some entry in the file lacks both `decryptedSecret` and `secretSeed`, so read returns EncryptedState (AuthyImporter.java:101-135)',
+  evidence='SRC ui/ImportEntriesActivity.java:176-182; SRC importers/AuthyImporter.java:101-135')
+# --- FreeOtp stage 2 F2 (PRIVATE BUILD, not pushed): @FREEOTP app-import producer chain F1–F13 (LAST).
+# Design helper/freeotp-design/DESIGN.md section 4 stage 2 (audit PASS). Mirrors the @STRATUM
+# block node for node with @FREEOTP in place of @STRATUM. No app-version-warning lambdas
+# (FreeOtp never reaches them: default supported = true) and no onCreate@FREEOTP side
+# branches (not on the route; methods stay reachable via @APP/@FILE variants). Deliberately
+# unchanged: GA pick/OK edges, lambda$startImportApp$5 -> GoogleAuthImporter.readFromApp,
+# GA State label, processDecrypted branch. F2 gates (R4): FreeOtp decrypt 1 -> 2 (variant
+# file E19 + F13); no other decrypt's incoming count changes; stage-2 auto total 27
+# (pick 1, <init> 1, onCreate 6, startImport 8, startImportApp 1, onPostExecute 1,
+# lambda$5 4, processImporterState 5 — the design's section 6 processImporterState 10 is
+# corrected to 5 post-v2, since all six v2 decrypt pairs are suppressed and the @FREEOTP
+# dispatch node gets only the 5 non-decrypt auto outs); any deviation explained edge by
+# edge per design section 7 stop rule; any incoming edge to FreeOtp decrypt beyond
+# E19/F13 sends the design back to audit. Independent pre-merge audit required (design
+# section 7 item 5: auditor checks >= 1 in 3 new edges) before any push.
+gui('Dialogs.showImportersDialog@APP', 'Dialogs.lambda$showImportersDialog$26@FREEOTP', 'Tap the FreeOTP row in the importer list (its help text is shown)',
+  guard='the FreeOTP row is tapped (the default checked row on the direct dialog is Authy, `i` stays 0, Dialogs.java:519-522,528; FreeOTP is a `supportsDirect` entry, DatabaseImporter.java:42,99-102)',
+  evidence=FW_ITEM + '; SRC ui/dialogs/Dialogs.java:523-531; SRC importers/DatabaseImporter.java:42; FW-SRC core/java/android/widget/AbsListView.java:1136-1150')
+gui('Dialogs.lambda$showImportersDialog$26@FREEOTP', 'Dialogs.lambda$showImportersDialog$27@FREEOTP', 'Tap OK after the FreeOTP row was tapped (gives the chosen importer to the listener)',
+  guard='the FreeOTP row was tapped first, so OK reads the FreeOTP importer (Dialogs.java:537)',
+  evidence=FW_CLICK + '; SRC ui/dialogs/Dialogs.java:533-538')
+e('Dialogs.lambda$showImportersDialog$27@FREEOTP', 'ImportExportPreferencesFragment.lambda$onCreatePreferences$7@FREEOTP', 'CALL',
+  'the OK button gives the chosen importer to the import-app listener: the import page opens',
+  guard='the dialog was opened by Import from another app (isDirect true, ImportExportPreferencesFragment.java:119)',
+  evidence='SRC ui/dialogs/Dialogs.java:536-538; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:119-121')
+e('ImportExportPreferencesFragment.lambda$onCreatePreferences$7@FREEOTP', 'ImportExportPreferencesFragment.startImportEntriesActivity@FREEOTP', 'CALL',
+  'Direct call', evidence='SRC ImportExportPreferencesFragment.java:120 (bytecode)')
+e('ImportExportPreferencesFragment.startImportEntriesActivity@FREEOTP', 'ImportEntriesActivity.<init>@FREEOTP', 'INTENT',
+  'the import page opens with the chosen importer and no file (app import)',
+  guard='the file argument is null on the app import path (ImportExportPreferencesFragment.java:120)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:161-165; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:120')
+e('ImportEntriesActivity.<init>@FREEOTP', 'ImportEntriesActivity.onCreate@FREEOTP', 'LIFECYCLE',
+  'Activity.onCreate of the import page',
+  evidence=FW_CREATE + '; SRC ui/ImportEntriesActivity.java:62')
+e('ImportEntriesActivity.onCreate@FREEOTP', 'ImportEntriesActivity.startImport@FREEOTP', 'CALL',
+  'the import page starts the import from its intent extras',
+  guard='abortIfOrphan(savedInstanceState) is false (ImportEntriesActivity.java:64-66; AegisActivity.java:154-157) and the file extra is null (ImportEntriesActivity.java:104,109)',
+  evidence='SRC ui/ImportEntriesActivity.java:62-66,103-104; SRC ui/AegisActivity.java:154-157')
+e('ImportEntriesActivity.startImport@FREEOTP', 'ImportEntriesActivity.startImportApp@FREEOTP', 'CALL',
+  'no file was passed and the installed app version is supported: the entries are read from the app',
+  guard='no file was passed (ImportEntriesActivity.java:109) and isInstalledAppVersionSupported is true by default (DatabaseImporter.java:69-71; FreeOtpImporter does not override it, so no warning branch exists)',
+  evidence='SRC ui/ImportEntriesActivity.java:109-111; SRC importers/DatabaseImporter.java:69-71')
+e('ImportEntriesActivity.startImportApp@FREEOTP', 'RootShellTask.doInBackground@FREEOTP', 'ASYNC',
+  'AsyncTask runs doInBackground on the worker thread (open the root shell; started by AsyncTask.execute, not ProgressDialogTask.execute)',
+  evidence=FW_ASYNC + '; SRC ui/ImportEntriesActivity.java:173; SRC ui/tasks/RootShellTask.java:17-20')
+e('RootShellTask.doInBackground@FREEOTP', 'RootShellTask.onPostExecute@FREEOTP', 'ASYNC',
+  'the shell is posted to the main thread',
+  evidence=FW_ASYNC + '; SRC ui/tasks/RootShellTask.java:17,23-25')
+e('RootShellTask.onPostExecute@FREEOTP', 'ImportEntriesActivity.lambda$startImportApp$5@FREEOTP', 'CALL',
+  '_cb.onTaskFinished(shell): the callback reads the entries from the installed app, or closes the page when there is no root',
+  evidence='SRC ui/tasks/RootShellTask.java:25,28-30; SRC ui/ImportEntriesActivity.java:143-174')
+e('ImportEntriesActivity.lambda$startImportApp$5@FREEOTP', 'ImportEntriesActivity.processImporterState@FREEOTP', 'CALL',
+  'Direct call', evidence='SRC ImportEntriesActivity.java:157 (bytecode)')
+e('ImportEntriesActivity.processImporterState@FREEOTP', 'FreeOtpImporter$EncryptedState.decrypt(Context,DecryptListener)', 'CALL',
+  'the FreeOTP app import is a V2 backup: the importer asks for the password and decrypts it',
+  guard="the page's importer is FreeOTP (F1–F2 pick, DatabaseImporter.java:42); the root shell is present and root (ImportEntriesActivity.java:149-153, otherwise toast + finish before dispatch); the app state is a V2 EncryptedState (readFromApp → read(stream, true) → magic → readV2 → super(true): DatabaseImporter.java:79-87; FreeOtpImporter.java:69-78,106-110,130); and isEncrypted() is true so dispatch calls decrypt (ImportEntriesActivity.java:176-179)",
+  evidence='SRC ui/ImportEntriesActivity.java:176-182; SRC importers/FreeOtpImporter.java:69-78,106-110,130; SRC importers/DatabaseImporter.java:42')
+# CORRECTION 2026-11-01 (Stratum-correction step; refutes fix-4 edge, kept out of
+# the judged table): the processImporterState@STRATUM -> Stratum decrypt edge is
+# REMOVED. DatabaseImporter.readFromApp passes isInternal=true
+# (DatabaseImporter.java:79-87), so StratumImporter.read takes readInternal
+# (StratumImporter.java:70-72), which returns SqlState with super(false)
+# (StratumImporter.java:324-328); processImporterState then takes the decrypted
+# branch (ImportEntriesActivity.java:176-182) and EncryptedState.decrypt never
+# fires on ANY app-import prefix. The @STRATUM chain up to processImporterState
+# stays (genuine decrypted-branch path); the genuine Stratum decrypt path is
+# @FILE only (readExternal -> readEncrypted -> EncryptedState, :80-105).
+_IMP_PICK_STRATUM = 'Dialogs.lambda$showImportersDialog$26@STRATUM'
+_IMP_OK_STRATUM = 'Dialogs.lambda$showImportersDialog$27@STRATUM'
+gui('Dialogs.showImportersDialog@APP', _IMP_PICK_STRATUM, 'Tap the Stratum row in the importer list (its help text is shown)',
+    guard='the Stratum row is tapped (Stratum supportsDirect, DatabaseImporter.java:49; the direct dialog lists only supportsDirect importers, Dialogs.java:516)',
+    evidence=FW_ITEM + '; SRC ui/dialogs/Dialogs.java:523-531; SRC importers/DatabaseImporter.java:49')
+gui(_IMP_PICK_STRATUM, _IMP_OK_STRATUM, 'Tap OK after the Stratum row was tapped (gives the chosen importer to the listener)',
+    guard='the Stratum row was tapped first: in the single-choice list a tap sets the checked row, so OK reads the Stratum importer (Dialogs.java:537)',
+    evidence=FW_CLICK + '; INFERRED Material MaterialAlertDialogBuilder (Dialogs.java:533; the Material library source is not on disk); SRC ui/dialogs/Dialogs.java:533-538')
+e(_IMP_OK_STRATUM, 'ImportExportPreferencesFragment.lambda$onCreatePreferences$7@STRATUM', 'CALL',
+  'the OK button gives the chosen importer to the import-app listener: the import page opens',
+  guard='the dialog was opened by Import from another app (isDirect true, ImportExportPreferencesFragment.java:119)',
+  evidence='SRC ui/dialogs/Dialogs.java:536-538; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:119-121')
+e('ImportExportPreferencesFragment.lambda$onCreatePreferences$7@STRATUM', 'ImportExportPreferencesFragment.startImportEntriesActivity@STRATUM', 'CALL',
+  'Direct call', evidence='SRC ImportExportPreferencesFragment.java:120 (bytecode)')
+e('ImportExportPreferencesFragment.startImportEntriesActivity@STRATUM', 'ImportEntriesActivity.<init>@STRATUM', 'INTENT',
+  'the import page opens with the chosen importer and no file (app import)',
+  guard='the file argument is null on the app import path (ImportExportPreferencesFragment.java:120)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:161-165; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:120')
+e('ImportEntriesActivity.<init>@STRATUM', 'ImportEntriesActivity.onCreate@STRATUM', 'LIFECYCLE', 'Activity.onCreate of the import page',
+  evidence=FW_CREATE + '; SRC ui/ImportEntriesActivity.java:62')
+e('ImportEntriesActivity.onCreate@STRATUM', 'ImportEntriesActivity.startImport@STRATUM', 'CALL', 'the import page starts the import from its intent extras',
+  guard='abortIfOrphan(savedInstanceState) is false (ImportEntriesActivity.java:64-66; AegisActivity.java:154-157) and the file extra is null (ImportEntriesActivity.java:104,109)',
+  evidence='SRC ui/ImportEntriesActivity.java:62-66,103-104; SRC ui/AegisActivity.java:154-157')
+e('ImportEntriesActivity.startImport@STRATUM', 'ImportEntriesActivity.startImportApp@STRATUM', 'CALL',
+  'no file was passed and the installed app version is supported: the entries are read from the app',
+  guard='no file was passed (ImportEntriesActivity.java:109) and the installed app version is supported (isInstalledAppVersionSupported, ImportEntriesActivity.java:110)',
+  evidence='SRC ui/ImportEntriesActivity.java:109-111')
+# the root-shell async chain is variant-split too: feeding lambda$5@STRATUM from the
+# SHARED onPostExecute node would let the @APP (GA) prefix reach the @STRATUM dispatch
+# through the shared async nodes, so the @STRATUM chain uses its own async variants
+# (same pattern as ImportFileTask@SVG_PICK / @SETTINGS_IMPORT elsewhere in this file)
+e('ImportEntriesActivity.startImportApp@STRATUM', 'RootShellTask.doInBackground@STRATUM', 'ASYNC', 'AsyncTask runs doInBackground on the worker thread (open the root shell; started by AsyncTask.execute, not ProgressDialogTask.execute)',
+  evidence=FW_ASYNC + '; SRC ui/ImportEntriesActivity.java:173; SRC ui/tasks/RootShellTask.java:17-20')
+e('RootShellTask.doInBackground@STRATUM', 'RootShellTask.onPostExecute@STRATUM', 'ASYNC', 'the shell is posted to the main thread',
+  evidence=FW_ASYNC + '; SRC ui/tasks/RootShellTask.java:17,23-25')
+e('RootShellTask.onPostExecute@STRATUM', 'ImportEntriesActivity.lambda$startImportApp$5@STRATUM', 'CALL',
+  '_cb.onTaskFinished(shell): the callback reads the entries from the installed app, or closes the page when there is no root',
+  evidence='SRC ui/tasks/RootShellTask.java:25,28-30; SRC ui/ImportEntriesActivity.java:143-174')
+e('ImportEntriesActivity.lambda$startImportApp$5@STRATUM', 'ImportEntriesActivity.processImporterState@STRATUM', 'CALL',
+  'Direct call', evidence='SRC ImportEntriesActivity.java:157 (bytecode)')
+# --- file-pick v2 V1 (PRIVATE BUILD, not pushed): andOTP @FILE_ANDOTP variant chain (E1, E3-E16, E19).
+# Template DESIGN.md 4.2/4.4 (audit PASS); E2/E17/E18 deleted by audit D1/D2 (auto expansion).
+# V1 combined private state: the old @FILE hand edge (Efee7d0a4) is DELETED and replaced by the
+# variant E19 below, in the same private sequence (D3: chain and hand-move never separate).
+# AndOtp decrypt incoming is 1 (variant E19 only). Never pushed in an intermediate state
+# (R1: single final commit when full section 9 passes).
+gui('Dialogs.showImportersDialog@FILE', 'Dialogs.lambda$showImportersDialog$26@FILE_ANDOTP', 'Tap the `andOTP` row in the importer list (its help text is shown)',
+  guard='the `andOTP` row is tapped (the dialog lists all importers when isDirect is false, DatabaseImporter.java:99-106; a tap sets the checked row in the single-choice list, FW-SRC AbsListView.java:1136-1150 and/or dialog_importers.xml choiceMode="singleChoice", Dialogs.java:529-531)',
+  evidence=FW_ITEM + '; SRC ui/dialogs/Dialogs.java:523-531; SRC importers/DatabaseImporter.java:99-106; FW-SRC core/java/android/widget/AbsListView.java:1136-1150')
+gui('Dialogs.lambda$showImportersDialog$26@FILE_ANDOTP', 'Dialogs.lambda$showImportersDialog$27@FILE_ANDOTP', 'Tap OK after the `andOTP` row was tapped (gives the chosen importer to the listener)',
+  guard='the `andOTP` row was tapped first: in the single-choice list a tap sets the checked row (FW-SRC AbsListView.java:1136-1150, dialog_importers.xml choiceMode="singleChoice"), so OK reads the `andOTP` importer (Dialogs.java:537), not the default Aegis row',
+  evidence=FW_CLICK + '; SRC ui/dialogs/Dialogs.java:533-538; FW-SRC core/java/android/widget/AbsListView.java:1136-1150')
+e('Dialogs.lambda$showImportersDialog$27@FILE_ANDOTP', 'ImportExportPreferencesFragment.lambda$onCreatePreferences$5@FILE_ANDOTP', 'CALL',
+  'the OK button gives the chosen `andOTP` importer to the import listener: the file picker opens',
+  guard='the dialog was opened by the Import preference (showImportersDialog with isDirect false, ImportExportPreferencesFragment.java:107) and the `andOTP` row was tapped',
+  evidence='SRC ui/dialogs/Dialogs.java:536-538; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:105-112')
+e('ImportExportPreferencesFragment.lambda$onCreatePreferences$5@FILE_ANDOTP', 'VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_ANDOTP', 'CALL',
+  'the file picker opens (ACTION_GET_CONTENT) through the import launcher, after the `andOTP` importer is chosen',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:105-112')
+e('VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_ANDOTP', 'ImportExportPreferencesFragment.lambda$new$0@FILE_ANDOTP', 'RESULT',
+  'the file picker returns a file: the import launcher runs onImportSelectResult',
+  guard='the picker returned RESULT_OK with a URI (ImportExportPreferencesFragment.java:146-148) and the launcher callback data is not null (ImportExportPreferencesFragment.java:73-79)',
+  evidence=FW_LAUNCHER + '; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:146-148; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:73-79')
+e('ImportExportPreferencesFragment.lambda$new$0@FILE_ANDOTP', 'ImportExportPreferencesFragment.onImportSelectResult@FILE_ANDOTP', 'CALL',
+  'the picker result carries data: onImportSelectResult runs',
+  guard='activityResult.getData() is not null (ImportExportPreferencesFragment.java:76)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:73-79')
+e('ImportExportPreferencesFragment.onImportSelectResult@FILE_ANDOTP', 'ImportFileTask.doInBackground@FILE_ANDOTP', 'ASYNC',
+  'AsyncTask runs doInBackground on the worker thread (read the picked file)',
+  evidence=FW_ASYNC + '; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:146,151-158; SRC ui/tasks/ImportFileTask.java:18')
+e('ImportFileTask.doInBackground@FILE_ANDOTP', 'ImportFileTask.onPostExecute@FILE_ANDOTP', 'ASYNC',
+  'the result is posted to the main thread (the `andOTP` file-import task)',
+  evidence=FW_ASYNC + '; SRC ui/tasks/ImportFileTask.java:53-56')
+e('ImportFileTask.onPostExecute@FILE_ANDOTP', 'ImportExportPreferencesFragment.lambda$onImportSelectResult$11@FILE_ANDOTP', 'CALL',
+  'the file is read: the callback opens the import page, or shows the read error',
+  guard='result.getError() is null (ImportExportPreferencesFragment.java:152-155)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:152-155')
+e('ImportExportPreferencesFragment.lambda$onImportSelectResult$11@FILE_ANDOTP', 'ImportExportPreferencesFragment.startImportEntriesActivity@FILE_ANDOTP', 'CALL',
+  'Direct call',
+  guard='`_importerDef` is the `andOTP` definition and the task result file (ImportExportPreferencesFragment.java:152-153) is passed to the import page',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:152-153; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:161-165')
+e('ImportExportPreferencesFragment.startImportEntriesActivity@FILE_ANDOTP', 'ImportEntriesActivity.<init>@FILE_ANDOTP', 'INTENT',
+  'the import page opens with the chosen `andOTP` importer and the file (file import)',
+  guard='the file argument is non-null (ImportExportPreferencesFragment.java:161-165)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:161-165')
+e('ImportEntriesActivity.<init>@FILE_ANDOTP', 'ImportEntriesActivity.onCreate@FILE_ANDOTP', 'LIFECYCLE',
+  'Activity.onCreate of the import page',
+  evidence=FW_CREATE + '; SRC ui/ImportEntriesActivity.java:62')
+e('ImportEntriesActivity.onCreate@FILE_ANDOTP', 'ImportEntriesActivity.startImport@FILE_ANDOTP', 'CALL',
+  'the import page starts the import from its intent extras',
+  guard='abortIfOrphan is false (ImportEntriesActivity.java:64-66) and the file extra is non-null (ImportEntriesActivity.java:104,109)',
+  evidence='SRC ui/ImportEntriesActivity.java:62-66,103-104')
+e('ImportEntriesActivity.startImport@FILE_ANDOTP', 'ImportEntriesActivity.startImportFile@FILE_ANDOTP', 'CALL',
+  'Direct call',
+  guard='a file was passed (ImportEntriesActivity.java:109,127)',
+  evidence='SRC ImportEntriesActivity.java:127 (bytecode); SRC ui/ImportEntriesActivity.java:109,127')
+e('ImportEntriesActivity.startImportFile@FILE_ANDOTP', 'ImportEntriesActivity.processImporterState@FILE_ANDOTP', 'CALL',
+  'the file just read is processed on the `andOTP` file-import path',
+  guard='the import page was opened with a file for the `andOTP` importer',
+  evidence='SRC ImportEntriesActivity.java:134 (bytecode); SRC ui/ImportEntriesActivity.java:131-134; SRC importers/DatabaseImporter.java:75-76')
+e('ImportEntriesActivity.processImporterState@FILE_ANDOTP', 'AndOtpImporter$EncryptedState.decrypt(Context,DecryptListener)', 'CALL',
+  'the picked file import is an encrypted andOTP backup: the importer asks for the format and password and decrypts it',
+  guard='the file import picked andOTP (supportsDirect false, DatabaseImporter.java:35; getAppPath throws, AndOtpImporter.java:59-62) and the file is not JSON, so read returns EncryptedState (AndOtpImporter.java:76-80)',
+  evidence='SRC ui/ImportEntriesActivity.java:176-182; SRC importers/AndOtpImporter.java:66-80')
+sup(('WelcomeSlide.lambda$startImportVault$2', 'AndOtpImporter$EncryptedState.decrypt(Context,DecryptListener)'),
+    ('WelcomeSlide.lambda$startImportVault$2', 'AuthyImporter$EncryptedState.decrypt(Context,DecryptListener)'),
+    ('WelcomeSlide.lambda$startImportVault$2', 'AuthenticatorPlusImporter$EncryptedState.decrypt(Context,DecryptListener)'),
+    ('WelcomeSlide.lambda$startImportVault$2', 'FreeOtpImporter$EncryptedState.decrypt(Context,DecryptListener)'),
+    ('WelcomeSlide.lambda$startImportVault$2', 'StratumImporter$EncryptedState.decrypt(Context,DecryptListener)'),
+    ('WelcomeSlide.lambda$startImportVault$2', 'StratumImporter$LegacyEncryptedState.decrypt(Context,DecryptListener)'),
+    ('WelcomeSlide.lambda$startImportVault$2', 'TotpAuthenticatorImporter$EncryptedState.decrypt(Context,DecryptListener)'),
+    ('WelcomeSlide.lambda$startImportVault$2', 'TwoFASImporter$EncryptedState.decrypt(Context,DecryptListener)'))
+# Listener-split cleanup: after the Welcome->non-Aegis decrypt suppression, every
+# non-Aegis importer decrypt is called only by ImportEntries processImporterState,
+# whose listener is ImportEntries $2, never Welcome $1. The auto virtual edges from
+# those importers' callbacks to Welcome $1.onStateDecrypted are therefore false and
+# are suppressed (they would otherwise let an ImportEntries import reach the intro
+# completion path). The corresponding onError/onCanceled virtual edges are left:
+# they end in a dialog/cancel report and reach no target, and Aegis's own onError /
+# onCanceled edges are genuinely shared between the two prefixes.
+sup(('AndOtpImporter$EncryptedState.lambda$decrypt$0', 'WelcomeSlide$1.onStateDecrypted'),
+    ('AndOtpImporter$EncryptedState.decrypt(Context,char[],boolean,DecryptListener)', 'WelcomeSlide$1.onStateDecrypted'),
+    ('FreeOtpImporter$EncryptedState.lambda$decrypt$0', 'WelcomeSlide$1.onStateDecrypted'),
+    ('StratumImporter$EncryptedState.lambda$decrypt$0', 'WelcomeSlide$1.onStateDecrypted'),
+    ('StratumImporter$LegacyEncryptedState.lambda$decrypt$0', 'WelcomeSlide$1.onStateDecrypted'),
+    ('TotpAuthenticatorImporter$EncryptedState.lambda$decrypt$0', 'WelcomeSlide$1.onStateDecrypted'),
+    ('TotpAuthenticatorImporter$EncryptedState.decrypt(char[],DecryptListener)', 'WelcomeSlide$1.onStateDecrypted'),
+    ('AuthenticatorPlusImporter$EncryptedState.lambda$decrypt$0', 'WelcomeSlide$1.onStateDecrypted'),
+    ('TwoFASImporter$EncryptedState.lambda$decrypt$0', 'WelcomeSlide$1.onStateDecrypted'),
+    ('AuthyImporter$EncryptedState.lambda$decrypt$0', 'WelcomeSlide$1.onStateDecrypted'))
+# Aegis dialog+task chains by listener. The hand $0-variant edges below suppress the auto
+# virtual $0->listener edges (base-pair rule), so each $0 variant delivers only to its own listener.
+# variant password-dialog chain @WELCOME: only the dialog opened by AegisImporter$EncryptedState.decrypt(Context,DecryptListener)@WELCOME reaches AegisImporter$EncryptedState.lambda$decrypt$1@WELCOME.
+e('AegisImporter$EncryptedState.decrypt(Context,DecryptListener)@WELCOME', 'Dialogs.showPasswordInputDialog(Context,int,int,TextInputListener,OnCancelListener)@WELCOME', 'CALL', 'Direct call',
+  evidence='SRC importers/AegisImporter.java:90 (bytecode)')
+e('Dialogs.showPasswordInputDialog(Context,int,int,TextInputListener,OnCancelListener)@WELCOME', 'Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)@WELCOME', 'CALL', 'Direct call',
+  evidence='SRC ui/dialogs/Dialogs.java:271 (bytecode)')
+e('Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)@WELCOME', 'Dialogs.lambda$showTextInputDialog$8@WELCOME', 'FRAMEWORK',
+  'the input dialog is shown: its OnShowListener disables OK and sets the OK click listener', evidence=FW_DIALOG + '; SRC ui/dialogs/Dialogs.java:226-229')
+gui('Dialogs.lambda$showTextInputDialog$8@WELCOME', 'Dialogs.lambda$showTextInputDialog$6@WELCOME',
+    'Type in the input dialog (OK is enabled when the text is not empty)',
+    evidence='SRC ui/dialogs/Dialogs.java:201-205; INFERRED TextWatcher.afterTextChanged runs on each text change (androidx source not read)')
+gui('Dialogs.lambda$showTextInputDialog$6@WELCOME', 'Dialogs.lambda$showTextInputDialog$7@WELCOME', 'Tap OK in the password dialog (the typed text goes to the listener, then the dialog closes)',
+    guard='the text is not empty (OK is disabled until then, Dialogs.java:203)', evidence=FW_CLICK + '; SRC ui/dialogs/Dialogs.java:231-235')
+e('Dialogs.lambda$showTextInputDialog$7@WELCOME', 'AegisImporter$EncryptedState.lambda$decrypt$1@WELCOME', 'CALL',
+  'the typed password goes to the importer, which starts the key derivation or the decryption',
+  cls='non_standard', via='interface callback: Dialogs.TextInputListener.onTextInputResult (Dialogs.java:233); the listener is the lambda at importers/AegisImporter.java:90-108',
+  evidence='SRC ui/dialogs/Dialogs.java:231-241; SRC importers/AegisImporter.java:90-108')
+gui('Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)@WELCOME', 'AegisImporter$EncryptedState.lambda$decrypt$2',
+    'Cancel the password dialog (Back or a tap outside): the importer reports the cancel to the page',
+    evidence=('INFERRED androidx.appcompat AlertDialog: a cancel (Back or a tap outside) calls the OnCancelListener set with '
+             'setOnCancelListener (AppCompat source not read)') + '; SRC ui/dialogs/Dialogs.java:217-219; SRC importers/AegisImporter.java:109')
+e('AegisImporter$EncryptedState.lambda$decrypt$1@WELCOME', 'PasswordSlotDecryptTask.doInBackground@AEGIS_WELCOME', 'ASYNC', 'AsyncTask runs doInBackground on the worker thread (decrypt the password slot of the Aegis backup)',
+  evidence=FW_ASYNC + '; SRC ui/tasks/ProgressDialogTask.java:69-74; SRC importers/AegisImporter.java:93,108; SRC ui/tasks/PasswordSlotDecryptTask.java:27')
+e('PasswordSlotDecryptTask.onPostExecute@AEGIS_WELCOME', 'AegisImporter$EncryptedState.lambda$decrypt$0@WELCOME', 'CALL',
+  'the Aegis slot result goes back to the importer, which builds the vault credentials and decrypts',
+  cls='non_standard', via='interface callback: onTaskFinished (PasswordSlotDecryptTask.java:89); the callback is the lambda at AegisImporter.java:93-105',
+  evidence='SRC ui/tasks/PasswordSlotDecryptTask.java:87-90; SRC importers/AegisImporter.java:93-105')
+e('AegisImporter$EncryptedState.lambda$decrypt$0@WELCOME', 'WelcomeSlide$1.onStateDecrypted', 'CALL',
+  'the decrypted Aegis vault state goes to the page that started the import',
+  cls='non_standard', via='interface callback: DatabaseImporter.DecryptListener.onStateDecrypted (the listener is passed to decrypt at AegisImporter.java:93-105)',
+  evidence='SRC ui/slides/WelcomeSlide.java:69-94; SRC importers/AegisImporter.java:93-105')
+# variant password-dialog chain @IMPORT: only the dialog opened by AegisImporter$EncryptedState.decrypt(Context,DecryptListener)@IMPORT reaches AegisImporter$EncryptedState.lambda$decrypt$1@IMPORT.
+e('AegisImporter$EncryptedState.decrypt(Context,DecryptListener)@IMPORT', 'Dialogs.showPasswordInputDialog(Context,int,int,TextInputListener,OnCancelListener)@IMPORT', 'CALL', 'Direct call',
+  evidence='SRC importers/AegisImporter.java:90 (bytecode)')
+e('Dialogs.showPasswordInputDialog(Context,int,int,TextInputListener,OnCancelListener)@IMPORT', 'Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)@IMPORT', 'CALL', 'Direct call',
+  evidence='SRC ui/dialogs/Dialogs.java:271 (bytecode)')
+e('Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)@IMPORT', 'Dialogs.lambda$showTextInputDialog$8@IMPORT', 'FRAMEWORK',
+  'the input dialog is shown: its OnShowListener disables OK and sets the OK click listener', evidence=FW_DIALOG + '; SRC ui/dialogs/Dialogs.java:226-229')
+gui('Dialogs.lambda$showTextInputDialog$8@IMPORT', 'Dialogs.lambda$showTextInputDialog$6@IMPORT',
+    'Type in the input dialog (OK is enabled when the text is not empty)',
+    evidence='SRC ui/dialogs/Dialogs.java:201-205; INFERRED TextWatcher.afterTextChanged runs on each text change (androidx source not read)')
+gui('Dialogs.lambda$showTextInputDialog$6@IMPORT', 'Dialogs.lambda$showTextInputDialog$7@IMPORT', 'Tap OK in the password dialog (the typed text goes to the listener, then the dialog closes)',
+    guard='the text is not empty (OK is disabled until then, Dialogs.java:203)', evidence=FW_CLICK + '; SRC ui/dialogs/Dialogs.java:231-235')
+e('Dialogs.lambda$showTextInputDialog$7@IMPORT', 'AegisImporter$EncryptedState.lambda$decrypt$1@IMPORT', 'CALL',
+  'the typed password goes to the importer, which starts the key derivation or the decryption',
+  cls='non_standard', via='interface callback: Dialogs.TextInputListener.onTextInputResult (Dialogs.java:233); the listener is the lambda at importers/AegisImporter.java:90-108',
+  evidence='SRC ui/dialogs/Dialogs.java:231-241; SRC importers/AegisImporter.java:90-108')
+gui('Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)@IMPORT', 'AegisImporter$EncryptedState.lambda$decrypt$2',
+    'Cancel the password dialog (Back or a tap outside): the importer reports the cancel to the page',
+    evidence=('INFERRED androidx.appcompat AlertDialog: a cancel (Back or a tap outside) calls the OnCancelListener set with '
+             'setOnCancelListener (AppCompat source not read)') + '; SRC ui/dialogs/Dialogs.java:217-219; SRC importers/AegisImporter.java:109')
+e('AegisImporter$EncryptedState.lambda$decrypt$1@IMPORT', 'PasswordSlotDecryptTask.doInBackground@AEGIS_IMPORT', 'ASYNC', 'AsyncTask runs doInBackground on the worker thread (decrypt the password slot of the Aegis backup)',
+  evidence=FW_ASYNC + '; SRC ui/tasks/ProgressDialogTask.java:69-74; SRC importers/AegisImporter.java:93,108; SRC ui/tasks/PasswordSlotDecryptTask.java:27')
+e('PasswordSlotDecryptTask.onPostExecute@AEGIS_IMPORT', 'AegisImporter$EncryptedState.lambda$decrypt$0@IMPORT', 'CALL',
+  'the Aegis slot result goes back to the importer, which builds the vault credentials and decrypts',
+  cls='non_standard', via='interface callback: onTaskFinished (PasswordSlotDecryptTask.java:89); the callback is the lambda at AegisImporter.java:93-105',
+  evidence='SRC ui/tasks/PasswordSlotDecryptTask.java:87-90; SRC importers/AegisImporter.java:93-105')
+e('AegisImporter$EncryptedState.lambda$decrypt$0@IMPORT', 'ImportEntriesActivity$2.onStateDecrypted', 'CALL',
+  'the decrypted Aegis vault state goes to the page that started the import',
+  cls='non_standard', via='interface callback: DatabaseImporter.DecryptListener.onStateDecrypted (the listener is passed to decrypt at AegisImporter.java:93-105)',
+  evidence='SRC ui/ImportEntriesActivity.java:179-182; SRC importers/AegisImporter.java:93-105')
 e('EditEntryActivity.lambda$new$0', 'EditEntryActivity$CustomSvgIcon.<init>', 'CALL',
   'the picked SVG is read: the custom icon is built from the file',
   cls='explicit', guard='no read error (EditEntryActivity.java:151); the error branch at 154-156 shows a dialog instead',
@@ -1235,14 +2041,25 @@ e('MainActivity.lambda$new$6', 'MainActivity.onAddEntryResult', 'CALL',
   evidence='SRC ui/MainActivity.java:179-182')
 e('EntryAdapter.updatePeriodUniformity', 'EntryHolder.setShowProgress', 'CALL',
   'a TOTP row shows its progress bar when its period differs from the most frequent period',
-  cls='explicit', guard='period uniformity changed since the last update (the early return at EntryAdapter.java:578-580 is not taken); the holder is a TOTP entry (line 586) and its period differs from the most frequent period (line 587)',
+  cls='explicit', guard='period uniformity changed since the last update (the early return at EntryAdapter.java:578-580 is not taken); the holder is a TOTP entry (line 586) and its period differs from the most frequent period (line 587); at least one row is bound, so _holders is not empty (EntryAdapter.java:569,88-99)',
+  needs_state=ST_HOLDERS_BOUND,
   evidence='SRC ui/views/EntryAdapter.java:578-587')
+# Fix-design 03 (C3 route 03): updatePeriodUniformity loops over _holders (EntryAdapter.java:585-588),
+# which is empty until RecyclerView binds rows (onBindViewHolder adds at :569; the constructor sets an
+# empty list, :88-99). The old edge let a filter change on an unloaded adapter reach setShowProgress,
+# which never happens over an empty list. The edge now carries the bound-holders state, and the bind
+# producer (setData -> setShowProgress, nonUniform from onBindViewHolder :446) gets its guard in full,
+# so the target's best route runs through loaded entries and bound rows.
+e('EntryHolder.setData', 'EntryHolder.setShowProgress', 'CALL',
+  'a bound row shows its progress bar when its period is not uniform',
+  cls='explicit', guard='nonUniform is true: the bound entry is a TOTP-family entry whose period differs from the most frequent period (EntryAdapter.java:446); with a single TOTP-family entry that period is its own (:605-608), so at least two TOTP-family entries with different periods are needed',
+  evidence='SRC ui/views/EntryAdapter.java:446,605-608; SRC ui/views/EntryHolder.java:128,150')
 
 # stage 2 G2 (route checker): hand edges that replace the auto rows on the same pairs, each with its guard
 e('MainActivity.lambda$new$2', 'MainActivity.onScanResult', 'CALL', 'the scan result reaches the main screen: the launcher passes the intent on',
   guard='the result is RESULT_OK with data (MainActivity.java:152-154)', evidence='SRC ui/MainActivity.java:150-156')
 e('IconPacksManagerFragment.onViewCreated', 'IconPackAdapter.addIconPack', 'CALL', 'each icon pack already installed is added to the list',
-  guard='at least one icon pack is installed (IconPacksManagerFragment.java:103-105)', needs_state=ST_ICON_PACK_INSTALLED,
+  guard='at least one icon pack is installed (IconPacksManagerFragment.java:103-105)', env=ENV_ICON_PACK,
   evidence='SRC ui/fragments/preferences/IconPacksManagerFragment.java:103-105')
 e('IconPackManager.removeIconPack', 'IconPackException.<init>(Throwable)', 'CALL', 'the pack folder cannot be deleted: the removal fails with an IconPackException',
   guard='deleting the pack folder fails: the IOException from deleteDir (IconPackManager.java:56-58; deleteDir throws when File.delete returns false, IconPackManager.java:219-220)',
@@ -1308,7 +2125,9 @@ for _dst, _note in [
 ]:
     e('AegisModule.provideAppDatabase', _dst, 'FRAMEWORK', _note,
       evidence='INFERRED Room library (library source not read); generated AppDatabase_Impl (dataset, not source tree); SRC AegisModule.java:50-52')
-for _dst in ['createAllTables', 'dropAllTables', 'onCreate', 'onOpen', 'onPreMigrate', 'onPostMigrate', 'onValidateSchema']:
+# W7 r6-p10 DEAD steps E6bfc71e4 E5b611014 Eed188062: the database is version 1 with no migrations and no destructive fallback
+# (AppDatabase.java:12, AegisModule.java:51-53), so Room never migrates it or drops its tables
+for _dst in ['createAllTables', 'onCreate', 'onOpen', 'onValidateSchema']:
     e('AppDatabase_Impl.createOpenDelegate', 'AppDatabase_Impl$1.' + _dst, 'FRAMEWORK',
       'Room opens the database file on the first DAO call and calls this open-helper delegate callback (create, open, migrate or validate)',
       evidence='INFERRED Room library: RoomOpenHelper calls the delegate on open (library source not read); generated AppDatabase_Impl$1 (dataset, not source tree)')
@@ -1493,9 +2312,24 @@ e('EditEntryActivity.onCreate', 'EditEntryActivity.onCreateOptionsMenu', 'FRAMEW
 gui('EditEntryActivity.onCreateOptionsMenu', 'EditEntryActivity.onOptionsItemSelected',
     'Tap a toolbar item: save, delete, discard, or reset the usage count (a menu tap)',
     evidence=FW_MENU + '; SRC ui/EditEntryActivity.java:535-552')
-gui('EditEntryActivity.onOptionsItemSelected', 'EditEntryActivity.lambda$onOptionsItemSelected$18',
+# Fix-design 02b (C3 route 02, step 20): the delete tap was reachable from a new-entry page, on which
+# the delete item is hidden (EditEntryActivity.java:658-659). The edit page gets an @EDIT variant chain
+# reached only from the entryUUID-carrying launch (MainActivity.java:516-520, entryUUID extra; onCreate
+# sets _isNew only when entryUUID is null, :190-196), following the MainActivity.doShortcutActions@SCAN
+# precedent. The plain tap edge is removed, so the delete dialog is reachable only on an existing-entry
+# page; the plain menu chain (save, discard, reset) is unchanged.
+e('MainActivity.startEditEntryActivity(VaultEntry)', 'EditEntryActivity.<init>@EDIT', 'INTENT', 'the edit page opens for the selected entry (entryUUID)',
+  evidence='SRC ui/MainActivity.java:516-520')
+e('EditEntryActivity.<init>@EDIT', 'EditEntryActivity.onCreate@EDIT', 'LIFECYCLE', 'Activity.onCreate of the edit page for an existing entry',
+  evidence=FW_CREATE + '; SRC ui/EditEntryActivity.java:165')
+e('EditEntryActivity.onCreate@EDIT', 'EditEntryActivity.onCreateOptionsMenu@EDIT', 'FRAMEWORK', 'the toolbar menu is created after onCreate (existing entry: the delete item stays visible)',
+  evidence=FW_OPTIONS + '; SRC ui/EditEntryActivity.java:656-660')
+gui('EditEntryActivity.onCreateOptionsMenu@EDIT', 'EditEntryActivity.onOptionsItemSelected@EDIT',
+    'Tap a toolbar item on an existing-entry page: save, delete, discard, or reset the usage count (a menu tap)',
+    evidence=FW_MENU + '; SRC ui/EditEntryActivity.java:535-552')
+gui('EditEntryActivity.onOptionsItemSelected@EDIT', 'EditEntryActivity.lambda$onOptionsItemSelected$18',
     'Tap Yes in the delete dialog (the entry is deleted)',
-    guard='the page edits an existing entry: the delete item is hidden for a new entry (EditEntryActivity.java:658-659, onCreateOptionsMenu)',
+    guard='the page edits an existing entry: the delete item is hidden for a new entry (EditEntryActivity.java:658-659, onCreateOptionsMenu); only the @EDIT chain reaches this tap',
     evidence=FW_CLICK + '; SRC ui/EditEntryActivity.java:542-545; SRC ui/dialogs/Dialogs.java (showDeleteEntriesDialog)')
 gui('EditEntryActivity.onOptionsItemSelected', 'EditEntryActivity.lambda$onOptionsItemSelected$19',
     'Tap Yes in the reset usage count dialog (the usage count is reset)',
@@ -1579,7 +2413,7 @@ UNREACHABLE = {
 # This block must come AFTER the UNREACHABLE = {...} literal above (a later literal would discard these entries).
 # The group is read from the method universe (method_list.json) so that every method of the two classes is covered.
 import json as _json
-_UNIV_SHORT = [_r['short'] for _r in _json.load(open('/Users/darshan/Desktop/yang/work/graphs/Aegis/method_list.json'))]
+_UNIV_SHORT = [_r['short'] for _r in _json.load(open(GDIR + '/method_list.json'))]
 # The builder lets an UNREACHABLE entry override a path, so the five GlideOptions methods that have a path are kept out of the group:
 # <init> and apply come from the auto call row GlideRequests.setRequestOptions -> GlideOptions.apply/<init> (GlideRequests.java:176);
 # autoClone, clone and lock get their edges below (the coverage run executed them, see out/sanity_check.csv).
@@ -1785,6 +2619,64 @@ e('ImportExportPreferencesFragment.startImportEntriesActivity', 'ImportEntriesAc
 e('ImportEntriesActivity.<init>', 'ImportEntriesActivity.onCreate', 'LIFECYCLE', 'Activity.onCreate of the import page',
   evidence=FW_CREATE + '; SRC ui/ImportEntriesActivity.java:62')
 
+# import-page split by the file argument (ImportEntriesActivity.java:107-128). startImport calls
+# startImportFile only when the intent file extra is non-null (Settings file import, :153) and
+# startImportApp only when it is null (app import, :120). The shared startImport node let a route mix
+# the app prefix (file null) with the file suffix (file non-null) — route 16 after the dialog/task
+# splits. The page chain is therefore split @FILE/@APP from startImportEntriesActivity down to
+# startImport. Both callers of startImportEntriesActivity use variants, so the plain chain has no
+# incoming edge and cannot carry a mixed route. Variant onCreate nodes keep the page's other hand
+# edges (menu, scroll listener, save button) so those methods stay reachable through both variants.
+_SIE_APP = 'ImportExportPreferencesFragment.startImportEntriesActivity@APP'
+_SIE_FILE = 'ImportExportPreferencesFragment.startImportEntriesActivity@FILE'
+e('ImportExportPreferencesFragment.lambda$onCreatePreferences$7', _SIE_APP, 'CALL',
+  'Direct call', evidence='SRC ImportExportPreferencesFragment.java:120 (bytecode)')
+e('ImportExportPreferencesFragment.lambda$onImportSelectResult$11', _SIE_FILE, 'CALL',
+  'Direct call', evidence='SRC ImportExportPreferencesFragment.java:153 (bytecode)')
+e(_SIE_APP, 'ImportEntriesActivity.<init>@APP', 'INTENT',
+  'the import page opens with the chosen importer and no file (app import)',
+  guard='the file argument is null on the app import path (ImportExportPreferencesFragment.java:120)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:161-165; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:120')
+e(_SIE_FILE, 'ImportEntriesActivity.<init>@FILE', 'INTENT',
+  'the import page opens with the chosen importer and the file (file import)',
+  guard='the file argument is the ImportFileTask result on the file import path (ImportExportPreferencesFragment.java:153)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:161-165; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:153')
+for _tag in ('@APP', '@FILE'):
+    e('ImportEntriesActivity.<init>' + _tag, 'ImportEntriesActivity.onCreate' + _tag, 'LIFECYCLE', 'Activity.onCreate of the import page',
+      evidence=FW_CREATE + '; SRC ui/ImportEntriesActivity.java:62')
+    e('ImportEntriesActivity.onCreate' + _tag, 'ImportEntriesActivity.onCreateOptionsMenu', 'FRAMEWORK', 'the toolbar menu is created after onCreate',
+      evidence=FW_OPTIONS + '; SRC ui/ImportEntriesActivity.java:397-401')
+    e('ImportEntriesActivity.onCreate' + _tag, 'ImportEntriesActivity$1.onScrolled', 'FRAMEWORK',
+      'the list scrolls: the save button follows the scroll',
+      evidence='INFERRED androidx.recyclerview: RecyclerView calls each OnScrollListener.onScrolled while the list moves (source not read); SRC ui/ImportEntriesActivity.java:79-85')
+    gui('ImportEntriesActivity.onCreate' + _tag, 'ImportEntriesActivity.lambda$onCreate$0',
+        'Tap the save button: the wipe dialog opens if the wipe option is on and the vault has entries, otherwise the selected entries are saved',
+        evidence=FW_CLICK + '; SRC ui/ImportEntriesActivity.java:92-100')
+e('ImportEntriesActivity.onCreate@APP', 'ImportEntriesActivity.startImport@APP', 'CALL', 'the import page starts the import from its intent extras',
+  guard='abortIfOrphan(savedInstanceState) is false (ImportEntriesActivity.java:64-66; AegisActivity.java:154-157) and the file extra is null (ImportEntriesActivity.java:104,109)',
+  evidence='SRC ui/ImportEntriesActivity.java:62-66,103-104; SRC ui/AegisActivity.java:154-157')
+e('ImportEntriesActivity.onCreate@FILE', 'ImportEntriesActivity.startImport@FILE', 'CALL', 'the import page starts the import from its intent extras',
+  guard='abortIfOrphan(savedInstanceState) is false (ImportEntriesActivity.java:64-66; AegisActivity.java:154-157) and the file extra is non-null (ImportEntriesActivity.java:104,109)',
+  evidence='SRC ui/ImportEntriesActivity.java:62-66,103-104; SRC ui/AegisActivity.java:154-157')
+e('ImportEntriesActivity.startImport@APP', 'ImportEntriesActivity.startImportApp', 'CALL',
+  'no file was passed and the installed app version is supported: the entries are read from the app',
+  guard='no file was passed (ImportEntriesActivity.java:109) and the installed app version is supported (isInstalledAppVersionSupported, ImportEntriesActivity.java:110)',
+  evidence='SRC ui/ImportEntriesActivity.java:109-111')
+e('ImportEntriesActivity.startImport@FILE', 'ImportEntriesActivity.startImportFile', 'CALL',
+  'Direct call', evidence='SRC ImportEntriesActivity.java:127 (bytecode)')
+
+# the app-version warning lives on the @APP branch only (file is null, ImportEntriesActivity.java:110-123):
+# Yes reads from the installed app, No closes the page. The plain startImport node is dead after the
+# split, so these two gui edges are re-written on the variant, or lambda$startImport$1/$2 lose their route.
+gui('ImportEntriesActivity.startImport@APP', 'ImportEntriesActivity.lambda$startImport$1',
+    'Tap Yes in the app version warning: the entries are read from the installed app',
+    guard='the installed app version is not supported (ImportEntriesActivity.java:110-113); the warning opens only then',
+    evidence=FW_CLICK + '; SRC ui/ImportEntriesActivity.java:113-120')
+gui('ImportEntriesActivity.startImport@APP', 'ImportEntriesActivity.lambda$startImport$2',
+    'Tap No in the app version warning: the page closes',
+    guard='the installed app version is not supported (ImportEntriesActivity.java:110-113); the warning opens only then',
+    evidence=FW_CLICK + '; SRC ui/ImportEntriesActivity.java:121-123')
+
 # --- batch 9 (export): the Export row (lambda $9 calls startExport) and the Google Authenticator style export row ($10).
 # startExport opens a dialog; the dialog's lambdas get their own hand edges because auto_calls 'lambdas' rows make no edges.
 # Lambda map (javac numbers; line in ImportExportPreferencesFragment.java): $12 format dropdown item (:182), $20 OnShowListener (:209),
@@ -1835,8 +2727,46 @@ e(_B9_IE + 'onExportResult', _SEV_RESULT, 'CALL',
   evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:505-514')
 e(_SEV_RESULT, _B9_IE + 'lambda$onExportResult$26', 'CALL',
   'startExportVault runs the result callback for the chosen format',
-  guard='the encrypted Aegis format is chosen: requestCode == CODE_EXPORT (ImportExportPreferencesFragment.java:444) and vault.isEncryptionEnabled() (line 445)',
+  guard='the export result callback runs for the chosen format (onExportResult passes $26 to startExportVault, ImportExportPreferencesFragment.java:514)',
   evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:442-499,514')
+# --- route 06 format split: the export-result chain is split by format, so the
+# encrypted-format branch can never win on a plain vault. $1 (CODE_EXPORT) and $2
+# (CODE_EXPORT_PLAIN) are the launcher callbacks at :82/:86; the hand edges below
+# suppress the auto $1/$2 -> plain onExportResult edges (src-specific rule), so
+# the plain onExportResult stays only for the HTML/Google launchers ($3/$4). The
+# @ENC chain carries needs_state ST_VAULT_ENCRYPTED (the $22 finish callback exists
+# only in the CODE_EXPORT + isEncryptionEnabled branch, :444-446), so on a plain
+# vault it costs one more setup edge than the @PLAIN chain and the cheapest dumped
+# route is the fully consistent plain-format branch. No Share-path edge is added:
+# the Share callback $18 does not run ExportTask in the baseline graph, and this
+# split does not change that.
+e('ImportExportPreferencesFragment.lambda$new$1', 'ImportExportPreferencesFragment.onExportResult@ENC', 'CALL', 'Direct call',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:83 (bytecode)')
+e('ImportExportPreferencesFragment.lambda$new$2', 'ImportExportPreferencesFragment.onExportResult@PLAIN', 'CALL', 'Direct call',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:87 (bytecode)')
+e('ImportExportPreferencesFragment.onExportResult@ENC', 'ImportExportPreferencesFragment.startExportVault@ENC_RESULT', 'CALL',
+  'the export file was picked: onExportResult starts the export with the result callback',
+  guard='the result is RESULT_OK with a URI (onExportResult returns early otherwise, ImportExportPreferencesFragment.java:506-512)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:505-514')
+e('ImportExportPreferencesFragment.onExportResult@PLAIN', 'ImportExportPreferencesFragment.startExportVault@PLAIN_RESULT', 'CALL',
+  'the export file was picked: onExportResult starts the export with the result callback',
+  guard='the result is RESULT_OK with a URI (onExportResult returns early otherwise, ImportExportPreferencesFragment.java:506-512)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:505-514')
+e('ImportExportPreferencesFragment.startExportVault@ENC_RESULT', 'ImportExportPreferencesFragment.lambda$onExportResult$26@ENC', 'CALL',
+  'startExportVault runs the result callback for the encrypted format',
+  guard='the encrypted Aegis format is chosen: requestCode == CODE_EXPORT (ImportExportPreferencesFragment.java:444) and vault.isEncryptionEnabled() (line 445)',
+  needs_state=ST_VAULT_ENCRYPTED,
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:442-499,514')
+e('ImportExportPreferencesFragment.startExportVault@PLAIN_RESULT', 'ImportExportPreferencesFragment.lambda$onExportResult$26@PLAIN', 'CALL',
+  'startExportVault runs the result callback for the plain format',
+  guard='the plain Aegis format is chosen: requestCode == CODE_EXPORT_PLAIN (ImportExportPreferencesFragment.java:483-484)',
+  evidence='SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:442-499,514')
+e('ImportExportPreferencesFragment.lambda$onExportResult$26@ENC', 'ExportTask.doInBackground', 'ASYNC', 'the export runs on a background thread (the export task is started by the export callback)',
+  guard='temp file written with no VaultRepositoryException or IOException (the catch at ImportExportPreferencesFragment.java:521-524 returns, so the execute at line 535 is skipped)',
+  evidence=FW_ASYNC + '; SRC ui/tasks/ProgressDialogTask.java:69-74; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:535; SRC ui/tasks/ExportTask.java:24')
+e('ImportExportPreferencesFragment.lambda$onExportResult$26@PLAIN', 'ExportTask.doInBackground', 'ASYNC', 'the export runs on a background thread (the export task is started by the export callback)',
+  guard='temp file written with no VaultRepositoryException or IOException (the catch at ImportExportPreferencesFragment.java:521-524 returns, so the execute at line 535 is skipped)',
+  evidence=FW_ASYNC + '; SRC ui/tasks/ProgressDialogTask.java:69-74; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:535; SRC ui/tasks/ExportTask.java:24')
 
 # the two callbacks ($18 Share, $26 result) run the finish callback that startExportVault built for the chosen format
 _B9_FINISH = [
@@ -2043,7 +2973,8 @@ gui(_B11_BP + 'onCreatePreferences', _B11_BP + 'lambda$onCreatePreferences$9', '
     evidence=FW_PREF + '; SRC ui/fragments/preferences/BackupsPreferencesFragment.java:142-150')
 gui(_B11_BP + 'onCreatePreferences', _B11_BP + 'lambda$onCreatePreferences$10', 'Tap Backup trigger (pref_backups_trigger) to back up now',
     guard='the row is visible only when backups are on (BackupsPreferencesFragment.java:209); the backup runs only when backups are on (:154)',
-    evidence=FW_PREF + '; SRC ui/fragments/preferences/BackupsPreferencesFragment.java:153-159')
+    needs_state=ST_VAULT_ENCRYPTED,
+    evidence=FW_PREF + '; SRC ui/fragments/preferences/BackupsPreferencesFragment.java:153-159,197-199,209')
 
 # versioning row: opens the strategy dialog (its callback is $6)
 gui(_B11_BP + 'onCreatePreferences', _B11_BP + 'lambda$onCreatePreferences$7', 'Tap Versioning strategy (pref_versioning_strategy)',
@@ -2101,6 +3032,7 @@ e(_B12_SF + 'lambda$onCreatePreferences$4', 'Dialogs.showSetPasswordDialog', 'CA
   evidence='SRC ui/fragments/preferences/SecurityPreferencesFragment.java:83-84')
 gui(_B12_SF + 'onCreatePreferences', _B12_SF + 'lambda$onCreatePreferences$5', 'Turn Biometrics (pref_biometrics) on or off: on starts the biometric prompt, off removes the slot',
     guard='the row is enabled only when biometrics are available and at most one biometric slot exists (SecurityPreferencesFragment.java:277)',
+    needs_state=ST_BIOMETRICS_AVAILABLE,
     evidence=FW_PREF_CHANGE + '; SRC ui/fragments/preferences/SecurityPreferencesFragment.java:110-143')
 gui(_B12_SF + 'onCreatePreferences', _B12_SF + 'lambda$onCreatePreferences$6', 'Tap Password (pref_password) to change the master password',
     guard='the row is enabled only when encrypted and at most one password slot exists (SecurityPreferencesFragment.java:262,276)',
@@ -2147,11 +3079,35 @@ gui(_B12_TIDLG, _B12_DG + 'lambda$showTextInputDialog$8', 'The password dialog i
 gui(_B12_DG + 'lambda$showTextInputDialog$6', _B12_DG + 'lambda$showTextInputDialog$7', 'Tap OK in the password dialog (the typed text goes to the listener, then the dialog closes)',
     guard='OK is enabled only when the input is not empty (Dialogs.java:8-12,33-36)',
     evidence=FW_CLICK + '; SRC ui/dialogs/Dialogs.java:231-241')
-e(_B12_DG + 'lambda$showTextInputDialog$7', _B12_SF + 'lambda$onCreatePreferences$7', 'CALL',
+# pin-keyboard variant of the password dialog (SecurityPreferencesFragment.java:157-162). The shared
+# showTextInputDialog $7 is split by caller: only the dialog opened by the PIN keyboard reaches the
+# pin-keyboard listener. The AegisImporter dialog stays on the plain chain and reaches the Aegis lambda,
+# never this listener. The plain PWD5->TIDLG delegation is an auto edge, and the hand variant delegation
+# below suppresses it (base-pair rule), so the plain delegation is re-written by hand to keep the other
+# password dialogs (Aegis, Stratum, TwoFAS, FreeOTP) on the plain chain.
+_PWD5_SEC = 'Dialogs.showPasswordInputDialog(Context,int,int,TextInputListener,OnCancelListener)@SECURITY'
+_TIDLG_SEC = 'Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)@SECURITY'
+e(_B12_SF + 'lambda$onCreatePreferences$9', _PWD5_SEC, 'CALL',
+  'the PIN keyboard password dialog opens (Security dialog instance)',
+  guard='the dialog was opened by the PIN keyboard (SecurityPreferencesFragment.java:157-162)',
+  evidence='SRC ui/fragments/preferences/SecurityPreferencesFragment.java:157')
+e('Dialogs.showPasswordInputDialog(Context,int,int,TextInputListener,OnCancelListener)', 'Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)', 'CALL',
+  'Direct call', evidence='SRC Dialogs.java:271 (bytecode)')
+e(_PWD5_SEC, _TIDLG_SEC, 'CALL', 'Direct call', evidence='SRC Dialogs.java:271 (bytecode)')
+gui(_TIDLG_SEC, 'Dialogs.lambda$showTextInputDialog$8@SECURITY', 'The password dialog is shown: its show listener disables OK until the input is not empty',
+    evidence=FW_DIALOG + '; SRC ui/dialogs/Dialogs.java:226-231')
+gui('Dialogs.lambda$showTextInputDialog$8@SECURITY', 'Dialogs.lambda$showTextInputDialog$6@SECURITY',
+    'Type in the input dialog (OK is enabled when the text is not empty)',
+    evidence='SRC ui/dialogs/Dialogs.java:201-205; INFERRED TextWatcher.afterTextChanged runs on each text change (androidx source not read)')
+gui('Dialogs.lambda$showTextInputDialog$6@SECURITY', 'Dialogs.lambda$showTextInputDialog$7@SECURITY', 'Tap OK in the password dialog (the typed text goes to the listener, then the dialog closes)',
+    guard='OK is enabled only when the input is not empty (Dialogs.java:203)', evidence=FW_CLICK + '; SRC ui/dialogs/Dialogs.java:231-235')
+e('Dialogs.lambda$showTextInputDialog$7@SECURITY', _B12_SF + 'lambda$onCreatePreferences$7', 'CALL',
   'the typed password is passed to the pin-keyboard listener: the digits-only check runs, then the password is decrypted in a background task',
   cls='non_standard', via='interface callback: Dialogs.TextInputListener.onTextInputResult (Dialogs.java:233); the listener is the lambda at SecurityPreferencesFragment.java:157',
   guard='the dialog was opened by the PIN keyboard (SecurityPreferencesFragment.java:157-162)',
   evidence='SRC ui/dialogs/Dialogs.java:231-241; SRC ui/fragments/preferences/SecurityPreferencesFragment.java:157-162')
+gui(_TIDLG_SEC, _B12_SF + 'lambda$onCreatePreferences$8', 'Cancel the password dialog (Back or a tap outside): the dismiss listener unticks the pin keyboard',
+    evidence=FW_CANCEL + '; SRC ui/dialogs/Dialogs.java:24-26; SRC ui/fragments/preferences/SecurityPreferencesFragment.java:173-175')
 gui(_B12_TIDLG, _B12_SF + 'lambda$onCreatePreferences$8', 'Cancel the password dialog (Back or a tap outside): the dismiss listener unticks the pin keyboard',
     evidence=FW_CANCEL + '; SRC ui/dialogs/Dialogs.java:24-26; SRC ui/fragments/preferences/SecurityPreferencesFragment.java:173-175')
 
@@ -2259,7 +3215,7 @@ e('IconPackManager.importPack', 'IconPackExistsException.<init>', 'CALL', 'the p
 # G5 (stage 2): the pack load in rescanIconPacks carries its guard (this hand edge replaces the auto row for the pair)
 e('IconPackManager.rescanIconPacks', 'IconPack.fromBytes', 'CALL', 'each pack folder with a UUID name and a readable definition file is parsed at startup',
   guard='the icons dir lists files, the entry is a directory with a UUID name, its latest version dir is non-null, and the pack definition file opens (IconPackManager.java:136-158)',
-  needs_state=ST_ICON_PACK_INSTALLED,
+  env=ENV_ICON_PACK,
   evidence='SRC icons/IconPackManager.java:136-158 (bytecode line 158)')
 # stage 3 round 3, batch 1b (G5 route check): guards and states on auto CALL rows (a hand edge on the same pair replaces the auto row)
 e('IconPack.fromJson', 'IconPack$Icon.fromJson', 'CALL', 'each icon of the pack is parsed from its JSON entry',
@@ -2300,6 +3256,33 @@ e('EntryHolder.setShowProgress', 'EntryHolder.startRefreshLoop', 'CALL', 'a row 
 e('AuthyImporter$EncryptedState.lambda$decrypt$0', 'ImportEntriesActivity$2.onStateDecrypted', 'CALL', 'the password decrypts the Authy backup: the decrypted state is passed on',
   guard='decrypt(password) does not throw (AuthyImporter.java:209; the catch at 211-212 calls onError instead)',
   evidence='SRC importers/AuthyImporter.java:206-212')
+
+# Authy-caller variant of the password dialog (AuthyImporter.java:207-214). Only the dialog opened by
+# AuthyImporter.decrypt reaches the Authy lambda; the Security dialog reaches only the Security listener
+# via @SECURITY. Authy is the sole caller of the 4-argument showPasswordInputDialog overload, so its plain
+# delegation is re-written by hand here (same base-pair suppression as @SECURITY above).
+_PWD4_AUTHY = 'Dialogs.showPasswordInputDialog(Context,int,TextInputListener,OnCancelListener)@AUTHY'
+_TIDLG_AUTHY = 'Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)@AUTHY'
+e('AuthyImporter$EncryptedState.decrypt(Context,DecryptListener)', _PWD4_AUTHY, 'CALL',
+  'the Authy password dialog opens (Authy dialog instance)',
+  guard='the dialog was opened by AuthyImporter.decrypt (AuthyImporter.java:207-214)',
+  evidence='SRC importers/AuthyImporter.java:207')
+e('Dialogs.showPasswordInputDialog(Context,int,TextInputListener,OnCancelListener)', 'Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)', 'CALL',
+  'Direct call', evidence='SRC Dialogs.java:267 (bytecode)')
+e(_PWD4_AUTHY, _TIDLG_AUTHY, 'CALL', 'Direct call', evidence='SRC Dialogs.java:267 (bytecode)')
+gui(_TIDLG_AUTHY, 'Dialogs.lambda$showTextInputDialog$8@AUTHY', 'The password dialog is shown: its show listener disables OK until the input is not empty',
+    evidence=FW_DIALOG + '; SRC ui/dialogs/Dialogs.java:226-231')
+gui('Dialogs.lambda$showTextInputDialog$8@AUTHY', 'Dialogs.lambda$showTextInputDialog$6@AUTHY',
+    'Type in the input dialog (OK is enabled when the text is not empty)',
+    evidence='SRC ui/dialogs/Dialogs.java:201-205; INFERRED TextWatcher.afterTextChanged runs on each text change (androidx source not read)')
+gui('Dialogs.lambda$showTextInputDialog$6@AUTHY', 'Dialogs.lambda$showTextInputDialog$7@AUTHY', 'Tap OK in the password dialog (the typed text goes to the listener, then the dialog closes)',
+    guard='OK is enabled only when the input is not empty (Dialogs.java:203)', evidence=FW_CLICK + '; SRC ui/dialogs/Dialogs.java:231-235')
+e('Dialogs.lambda$showTextInputDialog$7@AUTHY', 'AuthyImporter$EncryptedState.lambda$decrypt$0', 'CALL',
+  'the typed password goes to the importer, which starts the key derivation or the decryption',
+  cls='non_standard', via='interface callback: Dialogs.TextInputListener.onTextInputResult (Dialogs.java:233); the listener is the lambda at importers/AuthyImporter.java:207-214',
+  evidence='SRC ui/dialogs/Dialogs.java:231-241; SRC importers/AuthyImporter.java:207-214')
+gui(_TIDLG_AUTHY, 'AuthyImporter$EncryptedState.lambda$decrypt$1', 'Cancel the password dialog (Back or a tap outside): the importer reports the cancel to the page',
+    evidence=FW_CANCEL + '; SRC ui/dialogs/Dialogs.java:217-219; SRC importers/AuthyImporter.java:214')
 e('IconPackExistsException.<init>', 'ImportIconPackTask.doInBackground', 'CALL',
   'the exception is caught in doInBackground and returned as the task result (Result(null, e))',
   guard='the exception thrown by importPack is caught (ImportIconPackTask.java:43-45) and returned as the result',
@@ -2311,7 +3294,7 @@ e('ImportIconPackTask.onPostExecute', 'IconPacksManagerFragment.lambda$importIco
   evidence='SRC ui/tasks/ImportIconPackTask.java:54-61; SRC ui/fragments/preferences/IconPacksManagerFragment.java:134-154')
 gui('IconPacksManagerFragment.lambda$importIconPack$5', 'IconPacksManagerFragment.lambda$importIconPack$4',
     'Tap Yes in the icon pack exists dialog (the old pack is removed, then the import runs again)',
-    guard='the import failed with IconPackExistsException (IconPacksManagerFragment.java:136-137)', needs_state=ST_ICON_PACK_INSTALLED,
+    guard='the import failed with IconPackExistsException (IconPacksManagerFragment.java:136-137)', env=ENV_ICON_PACK,
     evidence=FW_CLICK + '; SRC ui/fragments/preferences/IconPacksManagerFragment.java:137-147')
 
 # generated Hilt base and Dagger parts that no app code calls (one group per kind)
@@ -2452,8 +3435,25 @@ UNREACHABLE['GroupManagerActivity$1.onSwiped'] = ('framework_never_calls',
     'the helper calls onSwiped only for a swipe, and getMovementFlags allows only the UP and DOWN drag flags with no swipe flags, so no swipe starts',
     'ui/GroupManagerActivity.java:63-68,80-81', 'INFERRED')
 
-# the rename dialog: Dialogs.java OK lambda $7 gives the typed text to the listener (the lambda at GroupManagerActivity.java:115)
-e('Dialogs.lambda$showTextInputDialog$7', 'GroupManagerActivity.lambda$onEditGroup$0', 'CALL',
+# the rename dialog is split by caller (@GROUP): the plain Dialogs $7 never delivers to the rename
+# listener, so a rename dialog can no longer reach an importer password lambda (that mix was route 16's
+# cheapest false route after the Security/Authy splits). The hand variant delegation below suppresses
+# the auto plain TIDLG5->TIDLG8 delegation (base-pair rule), so the plain delegation is re-written by
+# hand to keep the other direct text-input dialogs on the plain chain.
+e('GroupManagerActivity.onEditGroup', 'Dialogs.showTextInputDialog(Context,int,int,TextInputListener,String)@GROUP', 'CALL', 'Direct call',
+  evidence='SRC ui/GroupManagerActivity.java:125 (bytecode)')
+e('Dialogs.showTextInputDialog(Context,int,int,TextInputListener,String)', 'Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)', 'CALL', 'Direct call',
+  evidence='SRC ui/dialogs/Dialogs.java:243 (bytecode)')
+e('Dialogs.showTextInputDialog(Context,int,int,TextInputListener,String)@GROUP', 'Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)@GROUP', 'CALL', 'Direct call',
+  evidence='SRC ui/dialogs/Dialogs.java:243 (bytecode)')
+e('Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)@GROUP', 'Dialogs.lambda$showTextInputDialog$8@GROUP', 'FRAMEWORK',
+  'the input dialog is shown: its OnShowListener disables OK and sets the OK click listener', evidence=FW_DIALOG + '; SRC ui/dialogs/Dialogs.java:226-229')
+gui('Dialogs.lambda$showTextInputDialog$8@GROUP', 'Dialogs.lambda$showTextInputDialog$6@GROUP',
+    'Type in the input dialog (OK is enabled when the text is not empty)',
+    evidence='SRC ui/dialogs/Dialogs.java:201-205; INFERRED TextWatcher.afterTextChanged runs on each text change (androidx source not read)')
+gui('Dialogs.lambda$showTextInputDialog$6@GROUP', 'Dialogs.lambda$showTextInputDialog$7@GROUP', 'Tap OK in the input dialog (gives the text to the listener)',
+    guard='the text is not empty (OK is disabled until then, Dialogs.java:203)', evidence=FW_CLICK + '; SRC ui/dialogs/Dialogs.java:231-235')
+e('Dialogs.lambda$showTextInputDialog$7@GROUP', 'GroupManagerActivity.lambda$onEditGroup$0', 'CALL',
   'the typed name is passed to the rename listener: the name is trimmed, the group is cloned and replaced in the list',
   cls='non_standard', via='interface callback: Dialogs.TextInputListener.onTextInputResult (Dialogs.java:233); the listener is the lambda at GroupManagerActivity.java:115',
   evidence='SRC ui/GroupManagerActivity.java:114-126; SRC ui/dialogs/Dialogs.java:231-241')
@@ -2688,7 +3688,8 @@ sup(('MainActivity.onStart', 'MainActivity.updateErrorCard'), ('EntryAdapter.set
     ('EntryAdapter$DiffCallback.areContentsTheSame', 'VaultEntry.equals'), ('VaultEntry.equivalates', 'TotpInfo.equals'),
     ('OtpInfo.equals', 'MotpInfo.getTypeId'))
 e('MainActivity.onStart', 'MainActivity.updateErrorCard', 'CALL', 'the error card is updated at the end of onStart',
-  guard='onStart did not return early (MainActivity.java:942-948, 960, 971)', evidence='SRC ui/MainActivity.java:942-1007')
+  guard='onStart did not return early (MainActivity.java:942-948, 960, 971)', needs_state=ST_VAULT_FILE,
+  evidence='SRC ui/MainActivity.java:942-1007')
 e('EntryAdapter.setErrorCardInfo', 'EntryAdapter.replaceEntryList', 'CALL', 'the error card info is set and the list is replaced',
   guard='the error card info differs from the one shown (EntryAdapter.java:153-155) and the new info is not null (with null on both sides Objects.equals is true and the list is kept): an errored built-in backup (Preferences.java:495-499), a needed and enabled backup reminder (pref_backups_reminder_needed, Preferences.java:542-543), or the plaintext-backup warning (pref_plaintext_backup_warning_needed, Preferences.java:550-552); MainActivity.java:1163-1193 picks the card',
   evidence='SRC ui/views/EntryAdapter.java:152-157; SRC ui/MainActivity.java:1163-1193')
@@ -2710,8 +3711,8 @@ e('EditEntryActivity.onCreate', 'MotpInfo.getTypeId', 'CALL', 'the edited entry 
   needs_state=ST_MOTP_ENTRY, evidence='SRC ui/EditEntryActivity.java:290-291; SRC otp/MotpInfo.java:47-50')
 
 # stream lambdas inside the adapter (the stream runs when its method runs)
-e('EntryAdapter.isEntryFiltered', 'EntryAdapter.lambda$isEntryFiltered$0', 'FRAMEWORK', 'the stream tests each search token against the entry fields',
-  guard='a search text is set (_searchFilter is not null, EntryAdapter.java:200)',
+e('EntryAdapter.isEntryFiltered@FILTERED', 'EntryAdapter.lambda$isEntryFiltered$0', 'FRAMEWORK', 'the stream tests each search token against the entry fields',
+  guard='a search text is set (_searchFilter is not null, EntryAdapter.java:200); reached only through the filter-set refresh chain (setSearchFilter -> refreshEntryList@FILTERED -> calculateShownEntries@FILTERED)',
   evidence='INFERRED java.util.stream: the terminal allMatch (EntryAdapter.java:205) runs the predicate lambda once per token (JDK source not read); SRC ui/views/EntryAdapter.java:204-210')
 e('EntryAdapter.doesAnyGroupMatchSearchFilter', 'EntryAdapter.lambda$doesAnyGroupMatchSearchFilter$1', 'FRAMEWORK',
   'the stream keeps the groups that the entry belongs to',
@@ -2722,14 +3723,39 @@ e('EntryAdapter.doesAnyGroupMatchSearchFilter', 'EntryAdapter.lambda$doesAnyGrou
   evidence=FW_STREAM + '; SRC ui/views/EntryAdapter.java:228-229')
 
 # G5 (stage 2): hand edges that carry the guards for the search-filter calls (each replaces the auto row for its pair)
-e('MainActivity.onCreateOptionsMenu', 'EntryListView.setSearchFilter', 'CALL', 'a submitted search is restored when the menu is created: the list is filtered by it',
-  guard='_pendingSearchQuery == null and _submittedSearchQuery != null (MainActivity.java:1066-1073)',
+# R4 variant (route 20 fix): the restore call lives ONLY on the recreated-menu variant, reached
+# solely through the save/restore producer chain below. The base onCreateOptionsMenu no longer
+# feeds setSearchFilter directly, so the router cannot take the producer-less restore shortcut.
+e('MainActivity.onCreateOptionsMenu@RESTORED', 'EntryListView.setSearchFilter', 'CALL', 'a submitted search is restored when the menu is created: the list is filtered by it',
+  guard='_pendingSearchQuery == null and _submittedSearchQuery != null (MainActivity.java:1066-1073); this menu instance is the recreated one',
+  needs_state=ST_SUBMITTED_QUERY_SAVED,
   evidence='SRC ui/MainActivity.java:1066-1073 (bytecode line 1073)')
-e('EntryAdapter.setSearchFilter', 'EntryAdapter.refreshEntryList', 'CALL', 'a changed search text refreshes the list',
-  guard='the new search text differs from the current _searchFilter (EntryAdapter.java:271)',
+# R4b variant (route 20 fix, part 2): the filter-set refresh chain lives ONLY on @FILTERED
+# variants. Base refresh (sort, group filter, hard refresh) and initial load (setEntries)
+# still call base calculateShownEntries -> base isEntryFiltered, which has NO lambda$0 edge:
+# with no filter set, isEntryFiltered returns before the token stream (EntryAdapter.java:200).
+# Only the setSearchFilter refresh reaches lambda$0, so the router cannot shortcut through load.
+e('EntryAdapter.setSearchFilter', 'EntryAdapter.refreshEntryList@FILTERED', 'CALL', 'a changed search text refreshes the list',
+  guard='the new search text differs from the current _searchFilter (EntryAdapter.java:271); this refresh runs with a search filter set',
   evidence='SRC ui/views/EntryAdapter.java:271-273 (bytecode line 273)')
+e('EntryAdapter.refreshEntryList@FILTERED', 'EntryAdapter.calculateShownEntries@FILTERED', 'CALL', 'the filtered list is recomputed from the current entries',
+  evidence='SRC ui/views/EntryAdapter.java:277-281')
+e('EntryAdapter.calculateShownEntries@FILTERED', 'EntryAdapter.isEntryFiltered@FILTERED', 'CALL', 'each entry is tested by the search filter and kept when it is not filtered out',
+  guard='the entries list has at least one entry: the for loop runs (EntryAdapter.java:301)', needs_state=ST_ENTRY_LIST_NONEMPTY,
+  evidence='SRC ui/views/EntryAdapter.java:280; SRC ui/views/EntryAdapter.java:299-302')
+# R4b follow-up (route 20 fix): hand edges replacing the auto rows for the refreshEntryList
+# -> EntryList.<init> pairs. The variant-duplicated auto row cited only :281 (the closing line
+# of the new EntryList( call), which does not show the callee; both pairs cite the full call
+# span :278-281 instead. Note the build's add_auto_edges suppresses an auto call when its
+# base pair has a hand edge, so the base pair needs its own hand edge too, or the true base
+# call would be unmodelled.
+e('EntryAdapter.refreshEntryList@FILTERED', 'EntryAdapter$EntryList.<init>(List,List,ErrorCardInfo)', 'CALL', 'Direct call',
+  evidence='SRC ui/views/EntryAdapter.java:278-281 (bytecode line 281)')
+e('EntryAdapter.refreshEntryList', 'EntryAdapter$EntryList.<init>(List,List,ErrorCardInfo)', 'CALL', 'Direct call',
+  evidence='SRC ui/views/EntryAdapter.java:278-281 (bytecode line 281)')
 e('EntryAdapter.lambda$isEntryFiltered$0', 'EntryAdapter.doesAnyGroupMatchSearchFilter', 'CALL', 'the search token is tested against the group names',
   guard='_searchBehaviorMask includes SEARCH_IN_GROUPS and the token did not match the issuer, name or note (EntryAdapter.java:206-209)',
+  needs_state=ST_SEARCH_IN_GROUPS,
   evidence='SRC ui/views/EntryAdapter.java:206-209 (bytecode line 209)')
 e('EntryAdapter.onBindViewHolder', 'EntryAdapter.lambda$onBindViewHolder$3', 'FRAMEWORK',
   'the stream counts the entries with the same issuer, so the account name is shown only when it is needed',
@@ -2898,21 +3924,145 @@ for _imp in [
       evidence='SRC importers/DatabaseImporter.java:33-51,90-98; SRC ui/ImportEntriesActivity.java:108')
 
 # (b) the password dialog (Dialogs.showTextInputDialog): its OK button (Dialogs $7) gives the typed text to the listener it was given (Dialogs.java:233). Each importer password lambda is one such listener.
-_PW_LISTENERS = [
-    ('AegisImporter$EncryptedState.lambda$decrypt$1', 'importers/AegisImporter.java:90-108'),
-    ('AndOtpImporter$EncryptedState.lambda$decrypt$1', 'importers/AndOtpImporter.java:191-196'),
-    ('FreeOtpImporter$EncryptedState.lambda$decrypt$1', 'importers/FreeOtpImporter.java:182-194'),
-    ('StratumImporter$EncryptedState.lambda$decrypt$1', 'importers/StratumImporter.java:168-180'),
-    ('StratumImporter$LegacyEncryptedState.lambda$decrypt$1', 'importers/StratumImporter.java:243-255'),
-    ('TotpAuthenticatorImporter$EncryptedState.lambda$decrypt$0', 'importers/TotpAuthenticatorImporter.java:159-160'),
-    ('AuthyImporter$EncryptedState.lambda$decrypt$0', 'importers/AuthyImporter.java:207-214'),
-    ('AuthenticatorPlusImporter$EncryptedState.lambda$decrypt$0', 'importers/AuthenticatorPlusImporter.java:67-74'),
-]
-for _lam, _at in _PW_LISTENERS:
-    e('Dialogs.lambda$showTextInputDialog$7', _lam, 'CALL',
-      'the typed password goes to the importer, which starts the key derivation or the decryption',
-      cls='non_standard', via='interface callback: Dialogs.TextInputListener.onTextInputResult (Dialogs.java:233); the listener is the lambda at ' + _at,
-      evidence='SRC ui/dialogs/Dialogs.java:231-241; SRC ' + _at)
+# (b) the password dialog is split by caller: the plain Dialogs $7 delivers to NO importer
+# any more. Each importer password lambda is reached only through its own dialog chain, so
+# a dialog opened by one caller can never deliver to another caller's lambda (the shared-$7
+# cross-delivery was route 16 steps 27 and 33, and route 06 step 25). Plain $7 keeps only
+# its getEditTextChars leaf. Plain cancel edges are kept: a cancel reports to the page and
+# never reaches any target, so it is not a source of false routes.
+# variant password-dialog chain @ANDOTP: only the dialog opened by AndOtpImporter$EncryptedState.lambda$decrypt$3 reaches AndOtpImporter$EncryptedState.lambda$decrypt$1.
+e('AndOtpImporter$EncryptedState.lambda$decrypt$3', 'Dialogs.showPasswordInputDialog(Context,TextInputListener,OnCancelListener)@ANDOTP', 'CALL', 'Direct call',
+  evidence='SRC importers/AndOtpImporter.java:191 (bytecode)')
+e('Dialogs.showPasswordInputDialog(Context,TextInputListener,OnCancelListener)@ANDOTP', 'Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)@ANDOTP', 'CALL', 'Direct call',
+  evidence='SRC ui/dialogs/Dialogs.java:259 (bytecode)')
+e('Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)@ANDOTP', 'Dialogs.lambda$showTextInputDialog$8@ANDOTP', 'FRAMEWORK',
+  'the input dialog is shown: its OnShowListener disables OK and sets the OK click listener', evidence=FW_DIALOG + '; SRC ui/dialogs/Dialogs.java:226-229')
+gui('Dialogs.lambda$showTextInputDialog$8@ANDOTP', 'Dialogs.lambda$showTextInputDialog$6@ANDOTP',
+    'Type in the input dialog (OK is enabled when the text is not empty)',
+    evidence='SRC ui/dialogs/Dialogs.java:201-205; INFERRED TextWatcher.afterTextChanged runs on each text change (androidx source not read)')
+gui('Dialogs.lambda$showTextInputDialog$6@ANDOTP', 'Dialogs.lambda$showTextInputDialog$7@ANDOTP', 'Tap OK in the password dialog (the typed text goes to the listener, then the dialog closes)',
+    guard='the text is not empty (OK is disabled until then, Dialogs.java:203)', evidence=FW_CLICK + '; SRC ui/dialogs/Dialogs.java:231-235')
+e('Dialogs.lambda$showTextInputDialog$7@ANDOTP', 'AndOtpImporter$EncryptedState.lambda$decrypt$1', 'CALL',
+  'the typed password goes to the importer, which starts the key derivation or the decryption',
+  cls='non_standard', via='interface callback: Dialogs.TextInputListener.onTextInputResult (Dialogs.java:233); the listener is the lambda at importers/AndOtpImporter.java:191-196',
+  evidence='SRC ui/dialogs/Dialogs.java:231-241; SRC importers/AndOtpImporter.java:191-196')
+gui('Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)@ANDOTP', 'AndOtpImporter$EncryptedState.lambda$decrypt$2',
+    'Cancel the password dialog (Back or a tap outside): the importer reports the cancel to the page',
+    evidence=FW_CANCEL + '; SRC ui/dialogs/Dialogs.java:217-219; SRC importers/AndOtpImporter.java:197')
+# variant password-dialog chain @FREEOTP: only the dialog opened by FreeOtpImporter$EncryptedState.lambda$decrypt$3 reaches FreeOtpImporter$EncryptedState.lambda$decrypt$1.
+e('FreeOtpImporter$EncryptedState.lambda$decrypt$3', 'Dialogs.showPasswordInputDialog(Context,int,int,TextInputListener,OnCancelListener)@FREEOTP', 'CALL', 'Direct call',
+  evidence='SRC importers/FreeOtpImporter.java:182 (bytecode)')
+e('Dialogs.showPasswordInputDialog(Context,int,int,TextInputListener,OnCancelListener)@FREEOTP', 'Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)@FREEOTP', 'CALL', 'Direct call',
+  evidence='SRC ui/dialogs/Dialogs.java:271 (bytecode)')
+e('Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)@FREEOTP', 'Dialogs.lambda$showTextInputDialog$8@FREEOTP', 'FRAMEWORK',
+  'the input dialog is shown: its OnShowListener disables OK and sets the OK click listener', evidence=FW_DIALOG + '; SRC ui/dialogs/Dialogs.java:226-229')
+gui('Dialogs.lambda$showTextInputDialog$8@FREEOTP', 'Dialogs.lambda$showTextInputDialog$6@FREEOTP',
+    'Type in the input dialog (OK is enabled when the text is not empty)',
+    evidence='SRC ui/dialogs/Dialogs.java:201-205; INFERRED TextWatcher.afterTextChanged runs on each text change (androidx source not read)')
+gui('Dialogs.lambda$showTextInputDialog$6@FREEOTP', 'Dialogs.lambda$showTextInputDialog$7@FREEOTP', 'Tap OK in the password dialog (the typed text goes to the listener, then the dialog closes)',
+    guard='the text is not empty (OK is disabled until then, Dialogs.java:203)', evidence=FW_CLICK + '; SRC ui/dialogs/Dialogs.java:231-235')
+e('Dialogs.lambda$showTextInputDialog$7@FREEOTP', 'FreeOtpImporter$EncryptedState.lambda$decrypt$1', 'CALL',
+  'the typed password goes to the importer, which starts the key derivation or the decryption',
+  cls='non_standard', via='interface callback: Dialogs.TextInputListener.onTextInputResult (Dialogs.java:233); the listener is the lambda at importers/FreeOtpImporter.java:182-194',
+  evidence='SRC ui/dialogs/Dialogs.java:231-241; SRC importers/FreeOtpImporter.java:182-194')
+gui('Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)@FREEOTP', 'FreeOtpImporter$EncryptedState.lambda$decrypt$2',
+    'Cancel the password dialog (Back or a tap outside): the importer reports the cancel to the page',
+    evidence=FW_CANCEL + '; SRC ui/dialogs/Dialogs.java:217-219; SRC importers/FreeOtpImporter.java:194')
+# variant password-dialog chain @STRATUM: only the dialog opened by StratumImporter$EncryptedState.decrypt(Context,DecryptListener) reaches StratumImporter$EncryptedState.lambda$decrypt$1.
+e('StratumImporter$EncryptedState.decrypt(Context,DecryptListener)', 'Dialogs.showPasswordInputDialog(Context,int,int,TextInputListener,OnCancelListener)@STRATUM', 'CALL', 'Direct call',
+  evidence='SRC importers/StratumImporter.java:168 (bytecode)')
+e('Dialogs.showPasswordInputDialog(Context,int,int,TextInputListener,OnCancelListener)@STRATUM', 'Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)@STRATUM', 'CALL', 'Direct call',
+  evidence='SRC ui/dialogs/Dialogs.java:271 (bytecode)')
+e('Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)@STRATUM', 'Dialogs.lambda$showTextInputDialog$8@STRATUM', 'FRAMEWORK',
+  'the input dialog is shown: its OnShowListener disables OK and sets the OK click listener', evidence=FW_DIALOG + '; SRC ui/dialogs/Dialogs.java:226-229')
+gui('Dialogs.lambda$showTextInputDialog$8@STRATUM', 'Dialogs.lambda$showTextInputDialog$6@STRATUM',
+    'Type in the input dialog (OK is enabled when the text is not empty)',
+    evidence='SRC ui/dialogs/Dialogs.java:201-205; INFERRED TextWatcher.afterTextChanged runs on each text change (androidx source not read)')
+gui('Dialogs.lambda$showTextInputDialog$6@STRATUM', 'Dialogs.lambda$showTextInputDialog$7@STRATUM', 'Tap OK in the password dialog (the typed text goes to the listener, then the dialog closes)',
+    guard='the text is not empty (OK is disabled until then, Dialogs.java:203)', evidence=FW_CLICK + '; SRC ui/dialogs/Dialogs.java:231-235')
+e('Dialogs.lambda$showTextInputDialog$7@STRATUM', 'StratumImporter$EncryptedState.lambda$decrypt$1', 'CALL',
+  'the typed password goes to the importer, which starts the key derivation or the decryption',
+  cls='non_standard', via='interface callback: Dialogs.TextInputListener.onTextInputResult (Dialogs.java:233); the listener is the lambda at importers/StratumImporter.java:168-180',
+  evidence='SRC ui/dialogs/Dialogs.java:231-241; SRC importers/StratumImporter.java:168-180')
+gui('Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)@STRATUM', 'StratumImporter$EncryptedState.lambda$decrypt$2',
+    'Cancel the password dialog (Back or a tap outside): the importer reports the cancel to the page',
+    evidence=FW_CANCEL + '; SRC ui/dialogs/Dialogs.java:217-219; SRC importers/StratumImporter.java:180')
+# variant password-dialog chain @LEGACY: only the dialog opened by StratumImporter$LegacyEncryptedState.decrypt(Context,DecryptListener) reaches StratumImporter$LegacyEncryptedState.lambda$decrypt$1.
+e('StratumImporter$LegacyEncryptedState.decrypt(Context,DecryptListener)', 'Dialogs.showPasswordInputDialog(Context,int,int,TextInputListener,OnCancelListener)@LEGACY', 'CALL', 'Direct call',
+  evidence='SRC importers/StratumImporter.java:243 (bytecode)')
+e('Dialogs.showPasswordInputDialog(Context,int,int,TextInputListener,OnCancelListener)@LEGACY', 'Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)@LEGACY', 'CALL', 'Direct call',
+  evidence='SRC ui/dialogs/Dialogs.java:271 (bytecode)')
+e('Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)@LEGACY', 'Dialogs.lambda$showTextInputDialog$8@LEGACY', 'FRAMEWORK',
+  'the input dialog is shown: its OnShowListener disables OK and sets the OK click listener', evidence=FW_DIALOG + '; SRC ui/dialogs/Dialogs.java:226-229')
+gui('Dialogs.lambda$showTextInputDialog$8@LEGACY', 'Dialogs.lambda$showTextInputDialog$6@LEGACY',
+    'Type in the input dialog (OK is enabled when the text is not empty)',
+    evidence='SRC ui/dialogs/Dialogs.java:201-205; INFERRED TextWatcher.afterTextChanged runs on each text change (androidx source not read)')
+gui('Dialogs.lambda$showTextInputDialog$6@LEGACY', 'Dialogs.lambda$showTextInputDialog$7@LEGACY', 'Tap OK in the password dialog (the typed text goes to the listener, then the dialog closes)',
+    guard='the text is not empty (OK is disabled until then, Dialogs.java:203)', evidence=FW_CLICK + '; SRC ui/dialogs/Dialogs.java:231-235')
+e('Dialogs.lambda$showTextInputDialog$7@LEGACY', 'StratumImporter$LegacyEncryptedState.lambda$decrypt$1', 'CALL',
+  'the typed password goes to the importer, which starts the key derivation or the decryption',
+  cls='non_standard', via='interface callback: Dialogs.TextInputListener.onTextInputResult (Dialogs.java:233); the listener is the lambda at importers/StratumImporter.java:243-255',
+  evidence='SRC ui/dialogs/Dialogs.java:231-241; SRC importers/StratumImporter.java:243-255')
+gui('Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)@LEGACY', 'StratumImporter$LegacyEncryptedState.lambda$decrypt$2',
+    'Cancel the password dialog (Back or a tap outside): the importer reports the cancel to the page',
+    evidence=FW_CANCEL + '; SRC ui/dialogs/Dialogs.java:217-219; SRC importers/StratumImporter.java:255')
+# variant password-dialog chain @TOTP: only the dialog opened by TotpAuthenticatorImporter$EncryptedState.lambda$decrypt$2 reaches TotpAuthenticatorImporter$EncryptedState.lambda$decrypt$0.
+e('TotpAuthenticatorImporter$EncryptedState.lambda$decrypt$2', 'Dialogs.showPasswordInputDialog(Context,TextInputListener,OnCancelListener)@TOTP', 'CALL', 'Direct call',
+  evidence='SRC importers/TotpAuthenticatorImporter.java:159 (bytecode)')
+e('Dialogs.showPasswordInputDialog(Context,TextInputListener,OnCancelListener)@TOTP', 'Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)@TOTP', 'CALL', 'Direct call',
+  evidence='SRC ui/dialogs/Dialogs.java:259 (bytecode)')
+e('Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)@TOTP', 'Dialogs.lambda$showTextInputDialog$8@TOTP', 'FRAMEWORK',
+  'the input dialog is shown: its OnShowListener disables OK and sets the OK click listener', evidence=FW_DIALOG + '; SRC ui/dialogs/Dialogs.java:226-229')
+gui('Dialogs.lambda$showTextInputDialog$8@TOTP', 'Dialogs.lambda$showTextInputDialog$6@TOTP',
+    'Type in the input dialog (OK is enabled when the text is not empty)',
+    evidence='SRC ui/dialogs/Dialogs.java:201-205; INFERRED TextWatcher.afterTextChanged runs on each text change (androidx source not read)')
+gui('Dialogs.lambda$showTextInputDialog$6@TOTP', 'Dialogs.lambda$showTextInputDialog$7@TOTP', 'Tap OK in the password dialog (the typed text goes to the listener, then the dialog closes)',
+    guard='the text is not empty (OK is disabled until then, Dialogs.java:203)', evidence=FW_CLICK + '; SRC ui/dialogs/Dialogs.java:231-235')
+e('Dialogs.lambda$showTextInputDialog$7@TOTP', 'TotpAuthenticatorImporter$EncryptedState.lambda$decrypt$0', 'CALL',
+  'the typed password goes to the importer, which starts the key derivation or the decryption',
+  cls='non_standard', via='interface callback: Dialogs.TextInputListener.onTextInputResult (Dialogs.java:233); the listener is the lambda at importers/TotpAuthenticatorImporter.java:159-160',
+  evidence='SRC ui/dialogs/Dialogs.java:231-241; SRC importers/TotpAuthenticatorImporter.java:159-160')
+gui('Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)@TOTP', 'TotpAuthenticatorImporter$EncryptedState.lambda$decrypt$1',
+    'Cancel the password dialog (Back or a tap outside): the importer reports the cancel to the page',
+    evidence=FW_CANCEL + '; SRC ui/dialogs/Dialogs.java:217-219; SRC importers/TotpAuthenticatorImporter.java:161')
+# variant password-dialog chain @AUTHPLUS: only the dialog opened by AuthenticatorPlusImporter$EncryptedState.decrypt(Context,DecryptListener) reaches AuthenticatorPlusImporter$EncryptedState.lambda$decrypt$0.
+e('AuthenticatorPlusImporter$EncryptedState.decrypt(Context,DecryptListener)', 'Dialogs.showPasswordInputDialog(Context,TextInputListener,OnCancelListener)@AUTHPLUS', 'CALL', 'Direct call',
+  evidence='SRC importers/AuthenticatorPlusImporter.java:67 (bytecode)')
+e('Dialogs.showPasswordInputDialog(Context,TextInputListener,OnCancelListener)@AUTHPLUS', 'Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)@AUTHPLUS', 'CALL', 'Direct call',
+  evidence='SRC ui/dialogs/Dialogs.java:259 (bytecode)')
+e('Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)@AUTHPLUS', 'Dialogs.lambda$showTextInputDialog$8@AUTHPLUS', 'FRAMEWORK',
+  'the input dialog is shown: its OnShowListener disables OK and sets the OK click listener', evidence=FW_DIALOG + '; SRC ui/dialogs/Dialogs.java:226-229')
+gui('Dialogs.lambda$showTextInputDialog$8@AUTHPLUS', 'Dialogs.lambda$showTextInputDialog$6@AUTHPLUS',
+    'Type in the input dialog (OK is enabled when the text is not empty)',
+    evidence='SRC ui/dialogs/Dialogs.java:201-205; INFERRED TextWatcher.afterTextChanged runs on each text change (androidx source not read)')
+gui('Dialogs.lambda$showTextInputDialog$6@AUTHPLUS', 'Dialogs.lambda$showTextInputDialog$7@AUTHPLUS', 'Tap OK in the password dialog (the typed text goes to the listener, then the dialog closes)',
+    guard='the text is not empty (OK is disabled until then, Dialogs.java:203)', evidence=FW_CLICK + '; SRC ui/dialogs/Dialogs.java:231-235')
+e('Dialogs.lambda$showTextInputDialog$7@AUTHPLUS', 'AuthenticatorPlusImporter$EncryptedState.lambda$decrypt$0', 'CALL',
+  'the typed password goes to the importer, which starts the key derivation or the decryption',
+  cls='non_standard', via='interface callback: Dialogs.TextInputListener.onTextInputResult (Dialogs.java:233); the listener is the lambda at importers/AuthenticatorPlusImporter.java:67-74',
+  evidence='SRC ui/dialogs/Dialogs.java:231-241; SRC importers/AuthenticatorPlusImporter.java:67-74')
+gui('Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)@AUTHPLUS', 'AuthenticatorPlusImporter$EncryptedState.lambda$decrypt$1',
+    'Cancel the password dialog (Back or a tap outside): the importer reports the cancel to the page',
+    evidence=FW_CANCEL + '; SRC ui/dialogs/Dialogs.java:217-219; SRC importers/AuthenticatorPlusImporter.java:74')
+# variant password-dialog chain @TWOFAS: only the dialog opened by TwoFASImporter$EncryptedState.decrypt(Context,DecryptListener) reaches TwoFASImporter$EncryptedState.lambda$decrypt$0.
+e('TwoFASImporter$EncryptedState.decrypt(Context,DecryptListener)', 'Dialogs.showPasswordInputDialog(Context,int,int,TextInputListener,OnCancelListener)@TWOFAS', 'CALL', 'Direct call',
+  evidence='SRC importers/TwoFASImporter.java:140 (bytecode)')
+e('Dialogs.showPasswordInputDialog(Context,int,int,TextInputListener,OnCancelListener)@TWOFAS', 'Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)@TWOFAS', 'CALL', 'Direct call',
+  evidence='SRC ui/dialogs/Dialogs.java:271 (bytecode)')
+e('Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)@TWOFAS', 'Dialogs.lambda$showTextInputDialog$8@TWOFAS', 'FRAMEWORK',
+  'the input dialog is shown: its OnShowListener disables OK and sets the OK click listener', evidence=FW_DIALOG + '; SRC ui/dialogs/Dialogs.java:226-229')
+gui('Dialogs.lambda$showTextInputDialog$8@TWOFAS', 'Dialogs.lambda$showTextInputDialog$6@TWOFAS',
+    'Type in the input dialog (OK is enabled when the text is not empty)',
+    evidence='SRC ui/dialogs/Dialogs.java:201-205; INFERRED TextWatcher.afterTextChanged runs on each text change (androidx source not read)')
+gui('Dialogs.lambda$showTextInputDialog$6@TWOFAS', 'Dialogs.lambda$showTextInputDialog$7@TWOFAS', 'Tap OK in the password dialog (the typed text goes to the listener, then the dialog closes)',
+    guard='the text is not empty (OK is disabled until then, Dialogs.java:203)', evidence=FW_CLICK + '; SRC ui/dialogs/Dialogs.java:231-235')
+e('Dialogs.lambda$showTextInputDialog$7@TWOFAS', 'TwoFASImporter$EncryptedState.lambda$decrypt$0', 'CALL',
+  'the typed password goes to the importer, which starts the key derivation or the decryption',
+  cls='non_standard', via='interface callback: Dialogs.TextInputListener.onTextInputResult (Dialogs.java:233); the listener is the lambda at importers/TwoFASImporter.java:140-146',
+  evidence='SRC ui/dialogs/Dialogs.java:231-241; SRC importers/TwoFASImporter.java:140-146')
+gui('Dialogs.showTextInputDialog(Context,int,int,int,TextInputListener,OnCancelListener,boolean,String)@TWOFAS', 'TwoFASImporter$EncryptedState.lambda$decrypt$1',
+    'Cancel the password dialog (Back or a tap outside): the importer reports the cancel to the page',
+    evidence=FW_CANCEL + '; SRC ui/dialogs/Dialogs.java:217-219; SRC importers/TwoFASImporter.java:147')
 
 # (c) the cancel listener is set on the password dialog builder (Dialogs.java:217-219): a cancel (Back or a tap outside) runs the importer cancel lambda, which reports the cancel to the page
 _CANCEL_LISTENERS = [
@@ -2944,19 +4094,16 @@ gui('FreeOtpImporter$EncryptedState.decrypt(Context,DecryptListener)', 'FreeOtpI
     evidence=FW_CLICK + '; SRC importers/FreeOtpImporter.java:180-182')
 
 # (e) the key-derivation and decrypt tasks hand their result to the callback the importer gave them (interface call in onPostExecute; PBKDFTask.java:60, Argon2Task.java:41, PasswordSlotDecryptTask.java:89; these onPostExecute methods have no early return)
-e('PasswordSlotDecryptTask.onPostExecute', 'AegisImporter$EncryptedState.lambda$decrypt$0', 'CALL',
-  'the Aegis slot result goes back to the importer, which builds the vault credentials and decrypts',
-  cls='non_standard', via='interface callback: onTaskFinished (PasswordSlotDecryptTask.java:89); the callback is the lambda at AegisImporter.java:93-105',
-  evidence='SRC ui/tasks/PasswordSlotDecryptTask.java:87-90; SRC importers/AegisImporter.java:93-105')
-e('PBKDFTask.onPostExecute', 'AndOtpImporter$EncryptedState.lambda$decrypt$0', 'CALL',
+# replaced by the onPostExecute@AEGIS_WELCOME / @AEGIS_IMPORT callback edges in the Aegis chains above.
+e('PBKDFTask.onPostExecute@ANDOTP', 'AndOtpImporter$EncryptedState.lambda$decrypt$0', 'CALL',
   'the derived key goes back to the andOTP importer, which decrypts the new format',
   cls='non_standard', via='interface callback: PBKDFTask.Callback.onTaskFinished (PBKDFTask.java:60); the callback is the lambda at AndOtpImporter.java:166-173',
   evidence='SRC ui/tasks/PBKDFTask.java:57-61; SRC importers/AndOtpImporter.java:166-173')
-e('PBKDFTask.onPostExecute', 'FreeOtpImporter$EncryptedState.lambda$decrypt$0', 'CALL',
+e('PBKDFTask.onPostExecute@FREEOTP', 'FreeOtpImporter$EncryptedState.lambda$decrypt$0', 'CALL',
   'the derived key goes back to the FreeOTP importer, which decrypts',
   cls='non_standard', via='interface callback: PBKDFTask.Callback.onTaskFinished (PBKDFTask.java:60); the callback is the lambda at FreeOtpImporter.java:184-191',
   evidence='SRC ui/tasks/PBKDFTask.java:57-61; SRC importers/FreeOtpImporter.java:184-191')
-e('PBKDFTask.onPostExecute', 'StratumImporter$LegacyEncryptedState.lambda$decrypt$0', 'CALL',
+e('PBKDFTask.onPostExecute@LEGACY', 'StratumImporter$LegacyEncryptedState.lambda$decrypt$0', 'CALL',
   'the derived key goes back to the legacy Stratum importer, which decrypts',
   cls='non_standard', via='interface callback: PBKDFTask.Callback.onTaskFinished (PBKDFTask.java:60); the callback is the lambda at StratumImporter.java:245-252',
   evidence='SRC ui/tasks/PBKDFTask.java:57-61; SRC importers/StratumImporter.java:245-252')
@@ -2966,15 +4113,20 @@ e('Argon2Task.onPostExecute', 'StratumImporter$EncryptedState.lambda$decrypt$0',
   evidence='SRC ui/tasks/Argon2Task.java:38-42; SRC importers/StratumImporter.java:170-177')
 
 # (f) PBKDF2 and Argon2 key derivation: each importer's decrypt starts its own task (ProgressDialogTask.execute is shared, so it is not a source of these edges)
-e('AndOtpImporter$EncryptedState.decrypt(Context,char[],boolean,DecryptListener)', 'PBKDFTask.doInBackground', 'ASYNC', 'AsyncTask runs doInBackground on the worker thread (PBKDF2 key derivation)',
+# PBKDF split by builder (same pattern as PasswordSlotDecryptTask): PBKDFTask.java:60 calls
+# _cb.onTaskFinished, and _cb is fixed by the constructor argument at the build site, so a key
+# derived for one importer can never deliver to another importer's lambda (that cross-delivery
+# would otherwise survive the dialog splits as a new false route to ImportEntries $2).
+e('AndOtpImporter$EncryptedState.decrypt(Context,char[],boolean,DecryptListener)', 'PBKDFTask.doInBackground@ANDOTP', 'ASYNC', 'AsyncTask runs doInBackground on the worker thread (PBKDF2 key derivation)',
   guard='the backup uses the new format, so the key is derived (AndOtpImporter.java:161-164)',
   evidence=FW_ASYNC + '; SRC ui/tasks/ProgressDialogTask.java:69-74; SRC importers/AndOtpImporter.java:161-175; SRC ui/tasks/PBKDFTask.java:29-35')
-e('FreeOtpImporter$EncryptedState.lambda$decrypt$1', 'PBKDFTask.doInBackground', 'ASYNC', 'AsyncTask runs doInBackground on the worker thread (PBKDF2 key derivation)',
+e('FreeOtpImporter$EncryptedState.lambda$decrypt$1', 'PBKDFTask.doInBackground@FREEOTP', 'ASYNC', 'AsyncTask runs doInBackground on the worker thread (PBKDF2 key derivation)',
   evidence=FW_ASYNC + '; SRC ui/tasks/ProgressDialogTask.java:69-74; SRC importers/FreeOtpImporter.java:184-193; SRC ui/tasks/PBKDFTask.java:29-35')
-e('StratumImporter$LegacyEncryptedState.lambda$decrypt$1', 'PBKDFTask.doInBackground', 'ASYNC', 'AsyncTask runs doInBackground on the worker thread (PBKDF2 key derivation)',
+e('StratumImporter$LegacyEncryptedState.lambda$decrypt$1', 'PBKDFTask.doInBackground@LEGACY', 'ASYNC', 'AsyncTask runs doInBackground on the worker thread (PBKDF2 key derivation)',
   evidence=FW_ASYNC + '; SRC ui/tasks/ProgressDialogTask.java:69-74; SRC importers/StratumImporter.java:245-254; SRC ui/tasks/PBKDFTask.java:29-35')
-e('PBKDFTask.doInBackground', 'PBKDFTask.onPostExecute', 'ASYNC', 'the derived key is posted to the main thread',
-  evidence=FW_ASYNC + '; SRC ui/tasks/PBKDFTask.java:29-35,57-61')
+for _tag in ['@ANDOTP', '@FREEOTP', '@LEGACY']:
+    e('PBKDFTask.doInBackground' + _tag, 'PBKDFTask.onPostExecute' + _tag, 'ASYNC', 'the derived key is posted to the main thread',
+      evidence=FW_ASYNC + '; SRC ui/tasks/PBKDFTask.java:29-35,57-61')
 e('StratumImporter$EncryptedState.lambda$decrypt$1', 'Argon2Task.doInBackground', 'ASYNC', 'AsyncTask runs doInBackground on the worker thread (Argon2 key derivation)',
   evidence=FW_ASYNC + '; SRC ui/tasks/ProgressDialogTask.java:69-74; SRC importers/StratumImporter.java:170-179; SRC ui/tasks/Argon2Task.java:21-27')
 e('Argon2Task.doInBackground', 'Argon2Task.onPostExecute', 'ASYNC', 'the derived key is posted to the main thread',
@@ -3060,10 +4212,7 @@ gui('ImportEntryHolder.<init>', 'ImportEntryHolder.lambda$new$0',
     evidence=FW_CLICK + '; SRC ui/views/ImportEntryHolder.java:26')
 
 # (g) the TwoFAS password dialog: the OK button (Dialogs $7, nested in the show listener $8 at Dialogs.java:226-235) gives the typed password to the TwoFAS listener (TwoFASImporter.java:140-146); the cancel listener set on the builder (Dialogs.java:217-219) runs the TwoFAS cancel lambda
-e('Dialogs.lambda$showTextInputDialog$7', 'TwoFASImporter$EncryptedState.lambda$decrypt$0', 'CALL',
-  'the typed password goes to TwoFAS, which derives the key and decrypts the entries',
-  cls='non_standard', via='interface callback: Dialogs.TextInputListener.onTextInputResult (Dialogs.java:233); the listener is the lambda at TwoFASImporter.java:140-146',
-  evidence='SRC ui/dialogs/Dialogs.java:231-235; SRC importers/TwoFASImporter.java:139-148')
+# TwoFAS plain $7 delivery deleted: the @TWOFAS chain above replaces it (see section (b)).
 gui(_B12_TIDLG, 'TwoFASImporter$EncryptedState.lambda$decrypt$1',
     'Cancel the password dialog (Back or a tap outside): TwoFAS reports the cancel to the page',
     evidence=FW_CANCEL + '; SRC ui/dialogs/Dialogs.java:217-219; SRC importers/TwoFASImporter.java:147')
@@ -3364,19 +4513,34 @@ e(_B25_SC + 'lambda$onQrCodeDetected$2', _B25_SC + 'unbindPreview', 'CALL',
 e(_B25_SC + 'lambda$onQrCodeDetected$2', 'GoogleAuthInfoException.isPhoneFactor', 'CALL',
   'the error text is picked: the phonefactor text when the link is a phonefactor link',
   guard=_B25_OPEN + '; ' + _B25_BAD, evidence='SRC ui/ScannerActivity.java:195; SRC otp/GoogleAuthInfoException.java:26-28')
-e(_B25_SC + 'lambda$onQrCodeDetected$2', 'Dialogs.showErrorDialog(Context,int,Exception,OnClickListener)', 'CALL',
+e(_B25_SC + 'lambda$onQrCodeDetected$2', 'Dialogs.showErrorDialog(Context,int,Exception,OnClickListener)@SCANNER_ERROR', 'CALL',
   'the error dialog opens with the exception text; its OK button restarts the camera',
   guard=_B25_OPEN + '; ' + _B25_BAD, evidence='SRC ui/ScannerActivity.java:194-196')
+# scanner-error variant of the error-dialog overload chain (Dialogs.java:367-376). The plain delegations are
+# auto edges, and a hand variant->variant delegation suppresses the plain auto edge (base-pair rule),
+# so the plain delegations are re-written by hand here to keep the other error dialogs intact.
+# Only the scanner error branch reaches the @SCANNER_ERROR chain; its OK relay goes only to the scanner lambda.
+e('Dialogs.showErrorDialog(Context,int,Exception,OnClickListener)', 'Dialogs.showErrorDialog(Context,int,CharSequence,OnClickListener)', 'CALL',
+  'Direct call', evidence='SRC Dialogs.java:368 (bytecode)')
+e('Dialogs.showErrorDialog(Context,int,CharSequence,OnClickListener)', 'Dialogs.showErrorDialog(Context,String,CharSequence,OnClickListener)', 'CALL',
+  'Direct call', evidence='SRC Dialogs.java:376 (bytecode)')
+e('Dialogs.showErrorDialog(Context,int,Exception,OnClickListener)@SCANNER_ERROR', 'Dialogs.showErrorDialog(Context,int,CharSequence,OnClickListener)@SCANNER_ERROR', 'CALL',
+  'Direct call', evidence='SRC Dialogs.java:368 (bytecode)')
+e('Dialogs.showErrorDialog(Context,int,CharSequence,OnClickListener)@SCANNER_ERROR', 'Dialogs.showErrorDialog(Context,String,CharSequence,OnClickListener)@SCANNER_ERROR', 'CALL',
+  'Direct call', evidence='SRC Dialogs.java:376 (bytecode)')
+gui('Dialogs.showErrorDialog(Context,String,CharSequence,OnClickListener)@SCANNER_ERROR', 'Dialogs.lambda$showErrorDialog$15@SCANNER_ERROR', 'Tap OK in the error dialog',
+  evidence=FW_CLICK + '; SRC ui/dialogs/Dialogs.java:391-395')
+e('Dialogs.lambda$showErrorDialog$15@SCANNER_ERROR', _B25_SC + 'lambda$onQrCodeDetected$1', 'CALL',
+  'Tap OK in the scanner error dialog: the preview restarts',
+  cls='non_standard', via='DialogInterface.OnClickListener.onClick (Dialogs.java:391-393; listener at ScannerActivity.java:196)',
+  needs_state=ST_CAMERA_READY,
+  evidence='SRC ui/dialogs/Dialogs.java:391-395; SRC ui/ScannerActivity.java:194-196')
 e('Dialogs.showErrorDialog(Context,int,Exception,OnClickListener)', 'GoogleAuthInfoException.getMessage', 'FRAMEWORK',
   'the error dialog builds its text with e.toString(), which calls the exception getMessage',
   guard=_B25_BAD, evidence=_FW_B25_TOSTRING + '; SRC ui/dialogs/Dialogs.java:368; SRC otp/GoogleAuthInfoException.java:31-40')
 # the fifth error dialog that passes a page listener (the scanner's): its OK button runs the listener, which binds the camera again
-e('Dialogs.lambda$showErrorDialog$15', _B25_SC + 'lambda$onQrCodeDetected$1', 'CALL',
-  'Tap OK in the error dialog: the camera starts again (the listener calls bindPreview)',
-  guard='the dialog was opened by the scanner error branch (ScannerActivity.onQrCodeDetected, GoogleAuthInfoException caught; ScannerActivity.java:189-196); the OK relay is shared by all error dialogs',
-  needs_state=ST_CAMERA_READY,
-  cls='non_standard', via='DialogInterface.OnClickListener.onClick (interface call; Dialogs.java:391-393; the listener is the lambda at ScannerActivity.java:196)',
-  evidence='SRC ui/dialogs/Dialogs.java:391-395; SRC ui/ScannerActivity.java:194-196')
+# deleted: the plain $15 relay never delivers to the Scanner lambda (that was
+# route 04 step 12). The @SCANNER_ERROR relay above replaces it.
 e(_B25_SC + 'lambda$onQrCodeDetected$1', _B25_SC + 'bindPreview', 'CALL', 'the camera is bound again after the error dialog',
   evidence='SRC ui/ScannerActivity.java:196')
 # the same OK relay serves the two error dialogs that MainActivity.onStart opens; each relay edge goes to the lambda that closes the app
@@ -3935,6 +5099,193 @@ e('IconAdapter.lambda$onBindViewHolder$2', 'EditEntryActivity$1.onCustomSelected
   guard='the tapped row is the custom entry (icon instanceof DummyIcon; ui/views/IconAdapter.java:174-175)',
   evidence='SRC ui/views/IconAdapter.java:168-175')
 sup(('IconAdapter.lambda$onBindViewHolder$2', 'AssignIconsActivity$1.onCustomSelected'))
+
+# --- C3 sample fix 1: icon picker split by installing activity (CustomSvgIcon route).
+# The dumped first-draw route reached EditEntryActivity$1.onCustomSelected from an
+# AssignIconsActivity prefix: the graph's single listener edge ignored which activity
+# installed the picker. In code the picker opens with showAddCustom=true only from
+# EditEntryActivity.startIconSelection (EditEntryActivity.java:594) and with
+# showAddCustom=false from AssignIconsActivity.onAssignIconEntryClick
+# (AssignIconsActivity.java:194); the DummyIcon custom row exists only when
+# showAddCustom is true (IconAdapter.java:63-64), and the adapter's listener is the
+# IconPickerDialog$1 forwarder created in create() (IconPickerDialog.java:53-66),
+# whose onCustomSelected dismisses and calls the installing activity's listener
+# (:62-64). The chain is therefore split @EDIT/@ASSIGN from create down to the
+# dispatch; the base chain is unfed after the split (both callers use variants),
+# so its edges stay as documentation only. The search-clear path calls
+# loadIcons(pack, false) unconditionally (IconAdapter.setQuery, IconAdapter.java:92-96),
+# so it goes to a @NOCUSTOM variant whose grid has no DummyIcon row and therefore no
+# onCustomSelected dispatch. onIconSelected dispatch is split in the block below
+# (after the onCustomSelected forwarder block): the @EDIT/@ASSIGN forwarder variants
+# carry the non-Dummy tap to the installing activity's listener, so selectIcon and
+# setNewIcon routes no longer share a dispatch.
+_PICK_EDIT = 'IconPickerDialog.create@EDIT'
+_PICK_ASSIGN = 'IconPickerDialog.create@ASSIGN'
+e('EditEntryActivity.startIconSelection', _PICK_EDIT, 'CALL',
+  'the edit page opens the icon picker (the custom row is offered)',
+  guard='the call passes showAddCustom true (EditEntryActivity.java:594)',
+  evidence='SRC ui/EditEntryActivity.java:594')
+e('AssignIconsActivity.onAssignIconEntryClick', _PICK_ASSIGN, 'CALL',
+  'the assign-icons page opens the icon picker (no custom row is offered)',
+  guard='the call passes showAddCustom false (AssignIconsActivity.java:194)',
+  evidence='SRC ui/AssignIconsActivity.java:194')
+e(_PICK_EDIT, 'IconAdapter.loadIcons@EDIT', 'CALL',
+  'the picker fills the grid from the first icon pack (the custom row is included)',
+  guard='showAddCustom is true on this picker (IconPickerDialog.java:127)',
+  evidence='SRC ui/dialogs/IconPickerDialog.java:127')
+e(_PICK_ASSIGN, 'IconAdapter.loadIcons@ASSIGN', 'CALL',
+  'the picker fills the grid from the first icon pack (no custom row)',
+  guard='showAddCustom is false on this picker (IconPickerDialog.java:127)',
+  evidence='SRC ui/dialogs/IconPickerDialog.java:127')
+gui(_PICK_EDIT, 'IconPickerDialog.lambda$create$2@EDIT', 'Tap the icon pack name button above the grid',
+    evidence=FW_CLICK + '; SRC ui/dialogs/IconPickerDialog.java:130-134')
+gui(_PICK_ASSIGN, 'IconPickerDialog.lambda$create$2@ASSIGN', 'Tap the icon pack name button above the grid',
+    evidence=FW_CLICK + '; SRC ui/dialogs/IconPickerDialog.java:130-134')
+gui('IconPickerDialog.lambda$create$2@EDIT', 'IconPickerDialog.lambda$create$1@EDIT', 'Tap an icon pack name in the popup menu',
+    evidence=_FW_B26_POPUP + '; SRC ui/dialogs/IconPickerDialog.java:135-147')
+gui('IconPickerDialog.lambda$create$2@ASSIGN', 'IconPickerDialog.lambda$create$1@ASSIGN', 'Tap an icon pack name in the popup menu',
+    evidence=_FW_B26_POPUP + '; SRC ui/dialogs/IconPickerDialog.java:135-147')
+e('IconPickerDialog.lambda$create$1@EDIT', 'IconAdapter.loadIcons@EDIT', 'CALL',
+  'the pack switch refills the grid (the custom row is kept)',
+  guard='the pack switch passes the same showAddCustom flag (IconPickerDialog.java:138)',
+  evidence='SRC ui/dialogs/IconPickerDialog.java:138')
+e('IconPickerDialog.lambda$create$1@ASSIGN', 'IconAdapter.loadIcons@ASSIGN', 'CALL',
+  'the pack switch refills the grid (still no custom row)',
+  guard='the pack switch passes the same showAddCustom flag (IconPickerDialog.java:138)',
+  evidence='SRC ui/dialogs/IconPickerDialog.java:138')
+# W7 r6-p11: the DummyIcon custom row is made only when showAddCustom is true (IconAdapter.java:63-64). This hand edge
+# replaces the bytecode edge loadIcons -> DummyIcon.<init>, which the build copied onto every variant, so the
+# @ASSIGN and @NOCUSTOM grids (showAddCustom false) no longer make the custom row.
+e('IconAdapter.loadIcons@EDIT', 'IconAdapter$DummyIcon.<init>', 'CALL',
+  'the edit page picker adds the custom row at the top of the suggested icons',
+  guard='showAddCustom is true (IconAdapter.java:63)',
+  evidence='SRC ui/views/IconAdapter.java:63-64')
+# the shared create machinery (focus, watcher, preloader, span lookup, grid inflation)
+# is replicated onto both variants so those methods stay reachable; the auto constructor
+# edges (create -> $1.<init>, $2.<init>, $1IconPreloadProvider.<init>) replicate on their own
+for _pk in (_PICK_EDIT, _PICK_ASSIGN):
+    gui(_pk, 'IconPickerDialog.lambda$create$0', 'Tap the icon search box (it takes focus and the sheet expands)',
+        evidence=_FW_B26_FOCUS + '; SRC ui/dialogs/IconPickerDialog.java:85-90')
+    gui(_pk, 'IconPickerDialog$2.beforeTextChanged', 'Type in the icon search box (the watcher runs before the text changes)',
+        evidence=_FW_B26_WATCH + '; SRC ui/dialogs/IconPickerDialog.java:91-96')
+    gui(_pk, 'IconPickerDialog$2.onTextChanged', 'Type in the icon search box (the watcher runs as the text changes)',
+        evidence=_FW_B26_WATCH + '; SRC ui/dialogs/IconPickerDialog.java:91,97-101')
+    gui(_pk, 'IconPickerDialog$2.afterTextChanged', 'Type in the icon search box (the watcher runs after the text changes)',
+        evidence=_FW_B26_WATCH + '; SRC ui/dialogs/IconPickerDialog.java:91,103-106')
+    gui(_pk, 'IconPickerDialog$1IconPreloadProvider.getPreloadItems',
+        'Scroll the icon grid (the preloader asks which icons are about to show, so their images load early)',
+        evidence=FW_SCROLL + '; INFERRED Glide RecyclerViewPreloader: onScrolled asks the model provider for the items '
+                 '(library source not read); SRC ui/dialogs/IconPickerDialog.java:67-74,109-111,126')
+    gui(_pk, 'IconPickerDialog$1IconPreloadProvider.getPreloadRequestBuilder',
+        'Scroll the icon grid: the preloader builds the request for each icon it was given',
+        guard='the icon was returned by getPreloadItems (IconPickerDialog.java:70-73)',
+        evidence='INFERRED Glide RecyclerViewPreloader: it builds a request for each item that getPreloadItems returned '
+                 '(library source not read); SRC ui/dialogs/IconPickerDialog.java:76-81')
+    e(_pk, 'IconPickerDialog$3.getSpanSize', 'FRAMEWORK', 'the grid layout asks for the span of each row when it lays out the picker',
+      evidence=_FW_B26_SPAN + '; SRC ui/dialogs/IconPickerDialog.java:114-123')
+    e(_pk, 'IconRecyclerView.<init>(Context,AttributeSet)', 'FRAMEWORK', 'inflating the picker layout creates the icon grid',
+      evidence=_FW_B26_INFLATE + '; SRC ui/dialogs/IconPickerDialog.java:43,112; SRC res/layout/dialog_icon_picker.xml:65')
+    e(_pk, 'IconRecyclerView.onMeasure', 'FRAMEWORK', 'the bottom sheet measures the icon grid when it lays out the picker',
+      evidence=_FW_B26_MEASURE + '; SRC ui/views/IconRecyclerView.java:49-56')
+# the grid rows: onBindViewHolder is split (it is the dispatch point); the other
+# loadIcons framework edges are replicated onto both variants to shared nodes
+for _pt in ('@EDIT', '@ASSIGN'):
+    e('IconAdapter.loadIcons' + _pt, 'IconAdapter.onCreateViewHolder', 'FRAMEWORK', 'the grid asks for a row view after the data changes',
+      evidence=FW_ROWS + '; SRC ui/views/IconAdapter.java:90,159-164')
+    e('IconAdapter.loadIcons' + _pt, 'IconAdapter.onBindViewHolder' + _pt, 'FRAMEWORK', 'the grid fills a row view after the data changes',
+      evidence=FW_ROWS + '; SRC ui/views/IconAdapter.java:90,166-168')
+    e('IconAdapter.loadIcons' + _pt, 'IconAdapter.getItemCount', 'FRAMEWORK', 'the grid asks how many rows there are after the data changes',
+      evidence=FW_ROWS + '; SRC ui/views/IconAdapter.java:90,201-203')
+    e('IconAdapter.loadIcons' + _pt, 'IconAdapter.getItemViewType', 'FRAMEWORK', 'the grid asks the view type of each row after the data changes',
+      evidence=FW_ROWS + '; SRC ui/views/IconAdapter.java:90,215-222')
+    e('IconAdapter.loadIcons' + _pt, 'IconAdapter.lambda$loadIcons$0', 'FRAMEWORK', 'Collections.sort compares two icons by their category',
+      evidence=_FW_B26_CMP + '; SRC ui/views/IconAdapter.java:48-53')
+    e('IconAdapter.loadIcons' + _pt, 'IconPack$Icon.getName', 'FRAMEWORK', 'Collections.sort compares two icons by their name when their categories are equal',
+      evidence=_FW_B26_CMP + '; SRC ui/views/IconAdapter.java:53')
+gui('IconAdapter.onBindViewHolder@EDIT', 'IconAdapter.lambda$onBindViewHolder$2@EDIT', 'Tap an icon in the grid',
+    guard='the row is an icon row (IconAdapter.java:168-169)',
+    evidence=FW_CLICK + '; SRC ui/views/IconAdapter.java:173-179')
+gui('IconAdapter.onBindViewHolder@ASSIGN', 'IconAdapter.lambda$onBindViewHolder$2@ASSIGN', 'Tap an icon in the grid',
+    guard='the row is an icon row (IconAdapter.java:168-169)',
+    evidence=FW_CLICK + '; SRC ui/views/IconAdapter.java:173-179')
+# the category-header tap is installer-independent (collapse/expand only), so the shared
+# lambda$3 is reached from both variants; without this replication it (and its
+# setIsCollapsed downstream) lose all paths and the build errors
+gui('IconAdapter.onBindViewHolder@EDIT', 'IconAdapter.lambda$onBindViewHolder$3', 'Tap a category header in the grid to collapse or expand it',
+    guard='the row is a category header (IconAdapter.java:180-181)',
+    evidence=FW_CLICK + '; SRC ui/views/IconAdapter.java:184-197')
+gui('IconAdapter.onBindViewHolder@ASSIGN', 'IconAdapter.lambda$onBindViewHolder$3', 'Tap a category header in the grid to collapse or expand it',
+    guard='the row is a category header (IconAdapter.java:180-181)',
+    evidence=FW_CLICK + '; SRC ui/views/IconAdapter.java:184-197')
+e('IconAdapter.lambda$onBindViewHolder$2@EDIT', 'EditEntryActivity$1.onCustomSelected', 'CALL',
+  'the custom icon row is tapped on the edit page: the custom icon page opens',
+  guard='the tapped row is the custom entry (icon instanceof DummyIcon, which exists only when showAddCustom is true; ui/views/IconAdapter.java:63-64,174-175)',
+  evidence='SRC ui/views/IconAdapter.java:168-175')
+e('IconAdapter.lambda$onBindViewHolder$2@ASSIGN', 'AssignIconsActivity$1.onCustomSelected', 'CALL',
+  'the custom icon row is tapped on the assign-icons page: nothing happens',
+  guard='the listener is AssignIconsActivity$1, whose onCustomSelected is empty (AssignIconsActivity.java:201); the chain dead-ends here',
+  evidence='SRC ui/views/IconAdapter.java:168-175; SRC ui/AssignIconsActivity.java:201')
+# the forwarder path is split the same way: the adapter's listener is always the
+# IconPickerDialog$1 instance created in create(), which forwards to the installing
+# activity's listener (IconPickerDialog.java:62-64); without this split the @ASSIGN
+# prefix would still reach EditEntryActivity$1 through the shared forwarder
+e('IconAdapter.lambda$onBindViewHolder$2@EDIT', 'IconPickerDialog$1.onCustomSelected@EDIT', 'CALL',
+  'the tapped row is the custom entry: the adapter calls its listener (the picker forwarder)',
+  guard='the tapped row is the custom entry (icon instanceof DummyIcon, which exists only when showAddCustom is true; ui/views/IconAdapter.java:63-64,174-175)',
+  evidence='SRC ui/views/IconAdapter.java:168-175')
+e('IconAdapter.lambda$onBindViewHolder$2@ASSIGN', 'IconPickerDialog$1.onCustomSelected@ASSIGN', 'CALL',
+  'the tapped row is the custom entry: the adapter calls its listener (the picker forwarder)',
+  guard='the tapped row is the custom entry (IconAdapter.java:174-175); on this picker no DummyIcon row exists (showAddCustom false, :63-64), so the tap cannot occur — the edge documents the listener binding',
+  evidence='SRC ui/views/IconAdapter.java:168-175')
+e('IconPickerDialog$1.onCustomSelected@EDIT', 'EditEntryActivity$1.onCustomSelected', 'CALL',
+  'the picker forwarder dismisses and calls the edit page listener: the custom icon page opens',
+  guard='the picker was opened by the edit page (IconPickerDialog.java:53-66)',
+  evidence='SRC ui/dialogs/IconPickerDialog.java:62-64; SRC ui/EditEntryActivity.java:601-602')
+e('IconPickerDialog$1.onCustomSelected@ASSIGN', 'AssignIconsActivity$1.onCustomSelected', 'CALL',
+  'the picker forwarder dismisses and calls the assign-icons listener: nothing happens',
+  guard='the picker was opened by the assign-icons page (IconPickerDialog.java:53-66); the listener body is empty (AssignIconsActivity.java:201)',
+  evidence='SRC ui/dialogs/IconPickerDialog.java:62-64; SRC ui/AssignIconsActivity.java:201')
+# onIconSelected dispatch is split the same way as onCustomSelected above (fix-1
+# pattern, applied to the non-Dummy tap): the adapter's listener is always the
+# IconPickerDialog$1 forwarder created in create(), which forwards to the installing
+# activity's listener (IconPickerDialog.java:55-57); without this split the @ASSIGN
+# prefix would still reach EditEntryActivity$1 through the shared forwarder, and the
+# direct @ASSIGN lambda edge would still reach it (judged selectIcon step 41).
+# The guards use the non-Dummy branch (IconAdapter.java:176-177), not the Dummy
+# branch (:174-175) the onCustomSelected edges use.
+e('IconAdapter.lambda$onBindViewHolder$2@EDIT', 'EditEntryActivity$1.onIconSelected', 'CALL',
+  'the tapped icon is passed to the edit page listener: the edit page keeps the icon',
+  guard='the row is a non-Dummy icon row (IconAdapter.java:176-177) and the picker was opened by the edit page (EditEntryActivity.java:594)',
+  evidence='SRC ui/views/IconAdapter.java:173-179; SRC ui/EditEntryActivity.java:594-597')
+e('IconAdapter.lambda$onBindViewHolder$2@ASSIGN', 'AssignIconsActivity$1.onIconSelected', 'CALL',
+  'the tapped icon is passed to the assign-icons listener: the imported entry keeps the icon',
+  guard='the row is a non-Dummy icon row (IconAdapter.java:176-177) and the picker was opened by the assign-icons page (AssignIconsActivity.java:194)',
+  evidence='SRC ui/views/IconAdapter.java:173-179; SRC ui/AssignIconsActivity.java:194-197')
+e('IconAdapter.lambda$onBindViewHolder$2@EDIT', 'IconPickerDialog$1.onIconSelected@EDIT', 'CALL',
+  'the tapped icon is passed to the adapter listener (the picker forwarder)',
+  guard='the row is a non-Dummy icon row (IconAdapter.java:176-177); the adapter listener is the IconPickerDialog$1 instance created in create() (IconPickerDialog.java:53-57)',
+  evidence='SRC ui/views/IconAdapter.java:173-179; SRC ui/dialogs/IconPickerDialog.java:53-57')
+e('IconAdapter.lambda$onBindViewHolder$2@ASSIGN', 'IconPickerDialog$1.onIconSelected@ASSIGN', 'CALL',
+  'the tapped icon is passed to the adapter listener (the picker forwarder)',
+  guard='the row is a non-Dummy icon row (IconAdapter.java:176-177); the adapter listener is the IconPickerDialog$1 instance created in create() (IconPickerDialog.java:53-57)',
+  evidence='SRC ui/views/IconAdapter.java:173-179; SRC ui/dialogs/IconPickerDialog.java:53-57')
+e('IconPickerDialog$1.onIconSelected@EDIT', 'EditEntryActivity$1.onIconSelected', 'CALL',
+  'the picker forwarder dismisses and calls the edit page listener: the edit page keeps the icon',
+  guard='the picker was opened by the edit page (IconPickerDialog.java:53-66); the forwarder calls the listener passed to create() (:57)',
+  evidence='SRC ui/dialogs/IconPickerDialog.java:53-57; SRC ui/EditEntryActivity.java:596-597')
+e('IconPickerDialog$1.onIconSelected@ASSIGN', 'AssignIconsActivity$1.onIconSelected', 'CALL',
+  'the picker forwarder dismisses and calls the assign-icons listener: the imported entry keeps the icon',
+  guard='the picker was opened by the assign-icons page (IconPickerDialog.java:53-66); the forwarder calls the listener passed to create() (:57)',
+  evidence='SRC ui/dialogs/IconPickerDialog.java:53-57; SRC ui/AssignIconsActivity.java:196-197')
+# the search-clear path: setQuery(null) reloads with showAddCustom false, so its grid
+# has no DummyIcon row and no onCustomSelected dispatch; the chain ends at the row fill
+sup(('IconAdapter.setQuery', 'IconAdapter.loadIcons'))
+e('IconAdapter.setQuery', 'IconAdapter.loadIcons@NOCUSTOM', 'CALL',
+  'clearing the search refills the grid without the custom row',
+  guard='a null query reloads with showAddCustom false (IconAdapter.java:92-96)',
+  evidence='SRC ui/views/IconAdapter.java:92-96')
+e('IconAdapter.loadIcons@NOCUSTOM', 'IconAdapter.onBindViewHolder@NOCUSTOM', 'FRAMEWORK', 'the grid fills a row view after the data changes',
+  evidence=FW_ROWS + '; SRC ui/views/IconAdapter.java:90,166-168')
 e('EditEntryActivity.lambda$new$1', 'EditEntryActivity.startEditingIcon', 'CALL',
   'the picked file is an image other than SVG: the icon editor opens with it',
   guard='the picked file is not an SVG (ui/EditEntryActivity.java:148-160; startEditingIcon at 160)',
@@ -4980,3 +6331,272 @@ for _d, _srcs in _B42_CALLERS.items():
     _k, _r, _ref, _st = UNREACHABLE[_d]
     _plural = len(_srcs) > 1
     UNREACHABLE[_d] = (_k, _r + ' Bytecode caller%s %s %s UNREACHABLE too (each has its own reason), so %s not drawn.' % ('s' if _plural else '', ', '.join(sorted(_srcs)), 'are' if _plural else 'is', 'these calls are' if _plural else 'this call is'), _ref, _st)
+
+# --- DESIGN_V2 section 1.2: @IMP chain (append-last, binding) + L3 feeder.
+# The @RAW tail itself is unchanged: 9 edges total from saveAndBackupVault@RAW
+# to RawSlot.getType, including Ea9adb818 as the SlotList-to-Slot dispatch edge.
+# I2 cites IntroActivity.java:57-62 for the imported skip branch (audit note 2).
+# No password-prefixed chain, node, or edge anywhere in this block. No bytecode token on
+# any new hand edge. Deletion of the line-470 feeder edge (above) + feeder L3 are one atomic change.
+e('IntroActivity.onBeforeSlideChanged@IMPORTED', 'IntroBaseActivity.skipToSlide@IMP', 'CALL', 'the Welcome slide imported a vault: the picker and setup are skipped',
+  guard='the Welcome slide imported a vault (IntroActivity.java:57-62)', needs_state=ST_IMPORTED,
+  evidence='SRC ui/IntroActivity.java:57-62')
+e('IntroBaseActivity.skipToSlide@IMP', 'S_INTRO_DONE@IMP', 'ENTERS', 'the Done slide is shown after the skip',
+  guard='the skip is the imported-vault skip (IntroActivity.java:57-62)',
+  evidence='SRC ui/intro/IntroBaseActivity.java:104; SRC ui/IntroActivity.java:57-62')
+gui('S_INTRO_DONE@IMP', 'IntroActivity.onDonePressed@IMP', 'Tap Next on the Done slide',
+    evidence=FW_CLICK + '; SRC ui/intro/IntroBaseActivity.java:47,80-93')
+e('IntroActivity.onDonePressed@IMP', 'IntroActivity.onDonePressed@SAVED@IMP', 'CALL', 'the imported vault is read and loaded, then onDonePressed goes on',
+  guard='the Welcome slide imported a vault (IntroActivity.java:57-62) and readVaultFile and loadFrom return without an error (IntroActivity.java:106-123)', needs_state=ST_IMPORTED,
+  evidence='SRC ui/IntroActivity.java:106-123')
+e('IntroActivity.onDonePressed@SAVED@IMP', 'MainActivity.lambda$new$1@IMP', 'RESULT', "setResult(RESULT_OK) and finish() return the result to the caller's launcher",
+  guard='the vault was loaded from the import, with no error dialog (the error branches return at 113 and 121)',
+  evidence='SRC ui/IntroActivity.java:125-129; ' + FW_RESULT + '; ' + FW_FINISH + '; ' + FW_LAUNCHER)
+e('MainActivity.lambda$new$1@IMP', 'MainActivity.onIntroResult@IMP', 'CALL', 'RESULT_OK from the intro: the list is loaded',
+  guard='the intro returned RESULT_OK (MainActivity.java:145)',
+  evidence='SRC ui/MainActivity.java:142-148')
+e('MainActivity.onIntroResult@IMP', 'MainActivity.loadEntries@IMP', 'CALL', 'the entries are loaded after the intro',
+  evidence='SRC ui/MainActivity.java:752-754')
+e('MainActivity.loadEntries@IMP', 'S_LIST@IMP', 'ENTERS', 'the list is shown (vault loaded, list loaded in this instance)',
+  guard='list not yet loaded in this instance (_loaded false, MainActivity.java:1134) and the vault is loaded (getVault() throws when none is loaded, VaultManager.java:231-233): a producer of the loaded vault must come earlier on the route (the intro result)',
+  evidence='SRC ui/MainActivity.java:1133-1144; SRC vault/VaultManager.java:231-233')
+gui('S_LIST@IMP', 'MainActivity.lambda$startAssignGroupsDialog$15@IMP', 'Tap OK in the assign-groups dialog (assigns the groups to the selected entries)',
+    needs_state=ST_ASSIGN_DIALOG, evidence=FW_CLICK + '; SRC ui/MainActivity.java:570-597')
+e('MainActivity.lambda$startAssignGroupsDialog$15@IMP', 'MainActivity.saveAndBackupVault@IMP', 'CALL', 'Direct call',
+  evidence='SRC ui/MainActivity.java:594')
+e('MainActivity.saveAndBackupVault@IMP', 'AegisActivity.saveAndBackupVault@RAW', 'CALL', 'the imported live vault is saved and backed up: the plain save calls the superclass save',
+  guard='this is a plain (unconditional) save from the imported live vault, not a repaired-slot save: the override calls super (MainActivity.java:1370-1371) and the superclass save backs the vault up (AegisActivity.java:139-141)',
+  evidence='SRC ui/MainActivity.java:1370-1371; SRC ui/AegisActivity.java:139-141')
+# --- DESIGN_V3_CORRECTED section 1.2: plain counterparts P1/P2 (append-last, binding).
+# P1/P2 DO use the (bytecode) token deliberately, to preserve the ids of the suppressed
+# plain auto edges Ed3fd969c and E30bbb737: short file form, no ui/ prefix, verbatim.
+# P1/P2 are plain-to-plain restorations only: neither feeds a @RAW node, and neither
+# adds a new base pair beyond L2/L3. P1 first, then P2.
+e('MainActivity.lambda$startAssignGroupsDialog$15', 'MainActivity.saveAndBackupVault', 'CALL', 'Direct call',
+  evidence='SRC MainActivity.java:594 (bytecode)')
+e('MainActivity.saveAndBackupVault', 'AegisActivity.saveAndBackupVault', 'CALL', 'Direct call',
+  evidence='SRC MainActivity.java:1371 (bytecode)')
+
+
+# ---- W2 REAUDIT (Kiro): baseline and setup-only screens (appended at the end,
+# so EDIT below wraps the EDIT defined above) ----
+# Baseline for Aegis (review/TASK_NOTE.md): the onboarding is passed and the
+# vault holds two entries; the setup vault is password-protected (unlocking is
+# typing the password, a GUI action: MUSE_REAUDIT_QUESTIONS.md Q3) and the two
+# entries are default TOTP entries (Q6). Baseline state never counts as state,
+# so the gates the baseline satisfies are cleared in EDIT below, with the
+# reason in the edge note. The four intro pages are only shown during the
+# first-run setup, so they go into SETUP_ONLY (their gate texts are kept).
+# Per-text decisions and source evidence: graphs/Aegis/scratch/reaudit/state_gates.csv.
+SETUP_ONLY = {'S_INTRO_WELCOME', 'S_INTRO_PICKER', 'S_INTRO_SETUP', 'S_INTRO_DONE'}
+
+_W2_CLEARED = {
+    'The intro security picker chose none, so the setup slide is skipped (IntroActivity.java:50-55)':
+        'baseline: the onboarding (first-run setup) is passed; the intro picker branch belongs to that setup, and the intro pages are in SETUP_ONLY (IntroActivity.java:50-55)',
+    'The Welcome slide did not import a vault in this intro run (intro state "imported" is false, IntroActivity.java:86-100)':
+        'baseline: the onboarding is passed with a new vault, not an imported one; the intro Done branch belongs to the setup, and the intro pages are in SETUP_ONLY (IntroActivity.java:86-100)',
+    'The vault is loaded in this process and has not been locked since':
+        'baseline: the setup vault exists; a normal start reads it and, when it is encrypted, opens AuthActivity, where unlocking is typing the password (a GUI action, Q3) (MainActivity.java:950-976)',
+    'This MainActivity instance has loaded the entry list (loadEntries ran)':
+        'baseline: once the vault is loaded, MainActivity.onStart calls loadEntries on the normal start, which sets the entries of the list (MainActivity.java:991-992; MainActivity.java:1133-1138)',
+    'A vault file exists in the app data (created by an earlier intro run; MainActivity.onStart reads it)':
+        'baseline: the onboarding created the vault file, which MainActivity.onStart reads (MainActivity.java:950-953)',
+    'The vault holds a TOTP or HOTP entry with SHA-1 and 6 digits, so the Google Authenticator export is not empty (ImportExportPreferencesFragment.java:352-363)':
+        'baseline: the vault holds two entries; a new entry defaults to TOTP with SHA1 and 6 digits (Q6), so the export list is not empty (ImportExportPreferencesFragment.java:352-360; VaultEntry.java:253-255; OtpInfo.java:14-15)',
+    'At least one entry row is bound, so EntryAdapter.onBindViewHolder has added an EntryHolder to _holders (EntryAdapter.java:569)':
+        'baseline: the vault holds two entries, so the list binds their rows when the main screen shows them (EntryAdapter.java:569; MainActivity.java:1137)',
+    'The vault holds at least one entry (the loop in Vault.toJson(EntryFilter) runs, Vault.java:9-12)':
+        'baseline: the setup vault holds two entries, so the loop in Vault.toJson runs (Vault.java:9-12)',
+    'The vault has a password slot (the intro chose the password security)':
+        'baseline: the setup vault is password-protected (Q3), so it has a password slot (AuthActivity.java:172-174 (unlock with the password slots); MUSE_REAUDIT_QUESTIONS.md Q3)',
+    'the entry list passed in is not empty: the for loop at EntryAdapter.java:301 runs once per entry':
+        'baseline: the setup vault holds two entries, so loadEntries passes a non-empty list (EntryAdapter.java:301; MainActivity.java:1137)',
+    'The vault is encrypted: VaultRepository.isEncryptionEnabled is true (the vault has credentials, VaultRepository.java:352-354), so a save writes crypt parameters (VaultRepository.java:119-121)':
+        'baseline: the setup vault is password-protected (Q3), so it has credentials and isEncryptionEnabled is true (VaultRepository.java:352-354)',
+    'An AegisActivity is open and registered as a lock listener (AegisActivity.java:77)':
+        'baseline: every AegisActivity registers itself as a lock listener in onCreate, so any open app screen satisfies it (AegisActivity.java:76-77)',
+}
+_W2_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _W2_ORIG_EDIT(x)
+    _t = x.get('needs_state')
+    if _t in _W2_CLEARED:
+        x['needs_state'] = None
+        x['state_kinds'] = []
+        x['note'] = ((x.get('note') + ' | ') if x.get('note') else '') + _W2_CLEARED[_t]
+
+
+# ---- W3 REAUDIT (Kiro): the unlock screen from the normal launcher start ----
+# Under the re-audit baseline the setup vault exists and is password-protected
+# (MUSE_REAUDIT_QUESTIONS.md Q3, Q6), so a normal start from the launcher
+# reads the encrypted vault file, leaves it unloaded and starts the unlock
+# screen (MainActivity.java:950-977). The pair is in the onStart sup() block
+# (line 396) and its hand edge was removed in the earlier vault round, when
+# the encrypted vault counted as cross-run state; it is baseline now, so the
+# edge comes back without a state gate. Without it the unlock routes started
+# from the screen-off broadcast (S_PROCESS -> VaultLockReceiver.onReceive,
+# system_event), an outside entry where an in-app start exists (W3).
+e('MainActivity.onStart', 'MainActivity.startAuthActivity', 'CALL',
+  'the encrypted setup vault is not loaded yet: the unlock screen is started',
+  guard='the vault exists (isVaultInitNeeded() false, MainActivity.java:942-947), the file reads without error (954-960), it is encrypted, so loadFrom is skipped (963-973), and isVaultLoaded() is false (976)',
+  note='baseline: the setup vault is password-protected (Q3), so a launcher start opens the unlock screen (W3)',
+  evidence='SRC ui/MainActivity.java:942-977')
+
+
+# ---- W4 REAUDIT (Kiro): rapid type analysis for bytecode cha edges (brief W1 T2) ----
+RTA = True
+# ---- W4 REAUDIT (Kiro): impossible calls RTA cannot see (Aegis-16) ----
+# DatabaseImporter.readFromApp runs only for the import-from-app path:
+# ImportEntriesActivity.startImport calls startImportApp when no file was
+# given (ImportEntriesActivity.java:107-112), and the only start without a file
+# is the pref_import_app dialog, which lists getImporters(true), the importers
+# that support direct import (ImportExportPreferencesFragment.java:117-123;
+# DatabaseImporter.java:99-101). The nine importers defined with
+# supportsDirect false (DatabaseImporter.java:33-36, 39, 41, 46, 47, 51) never
+# reach readFromApp, so its virtual calls getAppPath() (line 80) and
+# read(stream, true) (line 84) never dispatch to them; their getAppPath also
+# just throws UnsupportedOperationException. The bytecode cha edges are
+# suppressed (every class is created by DatabaseImporter.create, so RTA keeps
+# them); the getAppPath methods have no other caller and become UNREACHABLE.
+# Printed lines: graphs/Aegis/scratch/reaudit/w4_printed.txt.
+_W4_NOT_DIRECT = {
+    'TwoFASImporter': ('read', 55), 'AegisImporter': ('read', 40), 'AndOtpImporter': ('read(InputStream,boolean)', 61),
+    'AuthenticatorPlusImporter': ('read', 26), 'BitwardenImporter': ('read', 37), 'EnteAuthImporter': ('read', 18),
+    'GoogleAuthUriImporter': ('read', 22), 'ProtonAuthenticatorImporter': ('read', 31), 'WinAuthImporter': ('read', 16),
+}
+for _c, (_read, _line) in _W4_NOT_DIRECT.items():
+    # the base pair and the receiver variant readFromApp@<importer> from auto_calls.json (an orphan node: nothing calls it)
+    sup(('DatabaseImporter.readFromApp', _c + '.getAppPath'), ('DatabaseImporter.readFromApp', _c + '.' + _read),
+        ('DatabaseImporter.readFromApp@' + _c, _c + '.getAppPath'), ('DatabaseImporter.readFromApp@' + _c, _c + '.' + _read))
+    UNREACHABLE[_c + '.getAppPath'] = ('no_trigger_in_app',
+        'its only caller is the virtual call getAppPath() in DatabaseImporter.readFromApp (DatabaseImporter.java:80), '
+        'which runs only on the import-from-app path; that path lists only the importers that support direct import '
+        '(getImporters(true), DatabaseImporter.java:99-101; ImportExportPreferencesFragment.java:117-123), and %s is '
+        'defined with supportsDirect false (DatabaseImporter.java:33-51); the method itself only throws '
+        'UnsupportedOperationException (%s.java:%d-%d)' % (_c, _c, _line, _line + 2),
+        'importers/%s.java:%d' % (_c, _line), 'SOURCE')
+del _c, _read, _line
+
+
+# ---- W5 REAUDIT (Kiro): library inherits through reflective creation (brief W1 T3) ----
+ESR_CREATION = True
+
+
+# ---- W6 REAUDIT (Kiro): outside data the route consumes ----
+# Each entry puts an env gate on the edge that consumes data from outside the app; decisions and the
+# pattern sweep: graphs/Aegis/scratch/reaudit/outside_data.csv.
+_W6_ENV = {
+    ('Vault.fromJson', 'Vault.setGroupsMigrationFresh', 'CALL'):
+        ('other: data only an older app version writes: a vault entry in the old single-group format, which migrateOldGroup converts (Vault.java:76-80); this version writes the groups list (Vault.java:65-73)', ['other']),
+    ('VaultBackupManager.createBackup(File,BackupsVersioningStrategy,Uri,int)', 'VaultBackupManager.createBackup(File,Uri)', 'CALL'):
+        ('other_app: the backup file comes from the system document creator (ACTION_CREATE_DOCUMENT, BackupsPreferencesFragment.java:256); the single-backup strategy writes to that Uri (VaultBackupManager.java:75-76, 84-93)', ['other_app']),
+    ('VaultBackupManager.createBackup(File,BackupsVersioningStrategy,Uri,int)', 'VaultBackupManager.createBackup(File,Uri,int)', 'CALL'):
+        ('other_app: the backup folder comes from the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:264); the multiple-backups strategy writes into that tree Uri (VaultBackupManager.java:77-78, 110-135)', ['other_app']),
+    ('VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_STRATUM', 'ImportExportPreferencesFragment.lambda$new$0@FILE_STRATUM', 'RESULT'):
+        ('the system document picker of another app returns a file (ACTION_GET_CONTENT, ImportExportPreferencesFragment.java:110-112)', ['other_app']),
+    ('VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_TOTP', 'ImportExportPreferencesFragment.lambda$new$0@FILE_TOTP', 'RESULT'):
+        ('the system document picker of another app returns a file (ACTION_GET_CONTENT, ImportExportPreferencesFragment.java:110-112)', ['other_app']),
+    ('VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_FREEOTP', 'ImportExportPreferencesFragment.lambda$new$0@FILE_FREEOTP', 'RESULT'):
+        ('the system document picker of another app returns a file (ACTION_GET_CONTENT, ImportExportPreferencesFragment.java:110-112)', ['other_app']),
+    ('VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_TWOFAS', 'ImportExportPreferencesFragment.lambda$new$0@FILE_TWOFAS', 'RESULT'):
+        ('the system document picker of another app returns a file (ACTION_GET_CONTENT, ImportExportPreferencesFragment.java:110-112)', ['other_app']),
+    ('VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_AUTHPLUS', 'ImportExportPreferencesFragment.lambda$new$0@FILE_AUTHPLUS', 'RESULT'):
+        ('the system document picker of another app returns a file (ACTION_GET_CONTENT, ImportExportPreferencesFragment.java:110-112)', ['other_app']),
+    ('VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_AUTHY', 'ImportExportPreferencesFragment.lambda$new$0@FILE_AUTHY', 'RESULT'):
+        ('the system document picker of another app returns a file (ACTION_GET_CONTENT, ImportExportPreferencesFragment.java:110-112)', ['other_app']),
+    ('VaultManager.fireIntentLauncher(Fragment,Intent,ActivityResultLauncher)@FILE_ANDOTP', 'ImportExportPreferencesFragment.lambda$new$0@FILE_ANDOTP', 'RESULT'):
+        ('the system document picker of another app returns a file (ACTION_GET_CONTENT, ImportExportPreferencesFragment.java:110-112)', ['other_app']),
+}
+_W6_ORIG_EDIT = globals().get('EDIT')
+
+
+def EDIT(x):
+    if _W6_ORIG_EDIT:
+        _W6_ORIG_EDIT(x)
+    _g = _W6_ENV.get((x['src'], x['dst'], x['kind']))
+    if _g and not x.get('env'):
+        x['env'], x['env_kinds'] = _g[0], list(_g[1])
+
+
+# ---- W7 REAUDIT (Kiro), round 1: settings sub-pages are standard GUI navigation (Q7) ----
+# The checked cases Aegis-38 and Aegis-39 (KeyDerivationTask.onPostExecute and KeyDerivationTask$Result.<init>)
+# have source class gui: Settings > Security reaches them without any gate (review/TASK_NOTE.md item 2). Their
+# only route opens the Security page, which PreferencesActivity creates with
+# FragmentFactory.instantiate(getClassLoader(), pref.getFragment()) for the tapped header row
+# (PreferencesActivity.java:80-84; res/xml/preferences.xml:8-44). That is the androidx preference header
+# navigation the app calls itself, with the class fixed by the tapped row, so these seven edges are standard
+# (MUSE_REAUDIT_QUESTIONS.md Q7). Other reflection edges keep non_standard.
+_W7_ORIG_EDIT_Q7 = EDIT
+
+
+def EDIT(x):
+    _W7_ORIG_EDIT_Q7(x)
+    if (x['src'] == 'PreferencesActivity.onPreferenceStartFragment' and x['dst'].endswith('PreferencesFragment.<init>')
+            and x.get('edge_class') == 'non_standard'):
+        x['edge_class'] = 'standard'
+        x['via'] = None
+        x['note'] = ((x.get('note') + ' | ') if x.get('note') else '') + (
+            'W7/Q7: preference header navigation, standard (FragmentFactory.instantiate of the tapped row, PreferencesActivity.java:81)')
+
+
+# ---- W7 REAUDIT (Kiro), round 2: judged guard steps ----
+# Each STATE or ENV row of scratch/reaudit/w7_judged.csv (written with tools_dev/guard_judge.py from the printed
+# source, tools_dev/guard_print.py) puts its gate on every edge with the same src, dst and kind that has no gate of
+# that type yet (only edges whose trigger contains the row's match text, when it has one). NONE and DEAD rows change nothing here (DEAD rows get their UNREACHABLE entries by hand).
+import csv as _w7j_csv
+import os as _w7j_os
+_W7J = {}
+_w7j_path = _w7j_os.path.join(GDIR, 'scratch', 'reaudit', 'w7_judged.csv')
+if _w7j_os.path.exists(_w7j_path):
+    for _r in _w7j_csv.DictReader(open(_w7j_path, encoding='utf-8')):
+        if _r['decision'] in ('STATE', 'ENV'):
+            _W7J.setdefault((_r['src'], _r['dst'], _r['kind']), []).append(
+                (_r['decision'], _r['text'], [k for k in _r['kinds'].split('+') if k], _r.get('match') or ''))
+_W7J_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _W7J_ORIG_EDIT(x)
+    for _g in _W7J.get((x['src'], x['dst'], x['kind']), ()):
+        if _g[3] and _g[3] not in (x.get('trigger') or ''):
+            continue
+        if _g[0] == 'STATE' and not x.get('needs_state'):
+            x['needs_state'], x['state_kinds'] = _g[1], list(_g[2])
+        elif _g[0] == 'ENV' and not x.get('env'):
+            x['env'], x['env_kinds'] = _g[1], list(_g[2])
+# The import-from-app route needs a rooted device: RootShellTask's result reaches the importer only when the shell
+# opens as root (ImportEntriesActivity.java:149-153). The gate sat only on the Google Authenticator readFromApp edge;
+# it belongs on the edge into the lambda, for every importer variant (W7 round 2).
+_W7_ROOT_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _W7_ROOT_ORIG_EDIT(x)
+    if (x['kind'] == 'CALL' and x['src'].split('@')[0] == 'RootShellTask.onPostExecute'
+            and x['dst'].split('@')[0] == 'ImportEntriesActivity.lambda$startImportApp$5' and not x.get('env')):
+        x['env'] = ('the device grants Aegis root access, so the root shell opens and reports root '
+                    '(ImportEntriesActivity.java:149-153; RootShellTask.java:17-20)')
+        x['env_kinds'] = ['other']
+# W7 round 2: review/TASK_NOTE.md counts runtime-permission prompts as GUI actions. An env gate whose only kind is
+# permission is therefore removed (the prompt is a GUI step), so it no longer steers the best route; the old text
+# stays in the note. Gates that combine permission with another kind keep the other kind's gate.
+_W7_PERM_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _W7_PERM_ORIG_EDIT(x)
+    if x.get('env') and list(x.get('env_kinds') or globals().get('ENV_KINDS_OF', {}).get(x['env']) or ()) == ['permission']:
+        x['note'] = ((x.get('note') + ' | ') if x.get('note') else '') + 'W7: runtime-permission prompt, a GUI action (was env: %s)' % x['env']
+        x['env'], x['env_kinds'] = None, []
+# W7 r6-p08 DEAD step Ebca90d6c: TextDrawable.draw calls drawBorder only when borderThickness > 0 (TextDrawable.java:77-78);
+# borderThickness is set only by withBorder (:52,194-195), and no app code calls withBorder (grep of app/src/main/java).
+sup(('TextDrawable.draw', 'TextDrawable.drawBorder'))
+UNREACHABLE['TextDrawable.drawBorder'] = ('branch_never_taken', 'drawn only when borderThickness > 0 (TextDrawable.java:77-78), which only withBorder sets (:194-195); no app code calls withBorder, so the thickness stays 0', 'SRC com/amulyakhare/textdrawable/TextDrawable.java:52,77-78,169,194-195', 'SOURCE')
+for _m, _w in (('dropAllTables', 'Room drops the tables only for a destructive migration'), ('onPreMigrate', 'Room calls the migration hooks only when the stored version differs'), ('onPostMigrate', 'Room calls the migration hooks only when the stored version differs')):
+    UNREACHABLE['AppDatabase_Impl$1.' + _m] = ('closed_by_configuration', _w + '; the audit log database is version 1 with no migrations and no fallbackToDestructiveMigration (AppDatabase.java:12, AegisModule.java:51-53), so every install opens it at version 1', 'SRC com/beemdevelopment/aegis/AegisModule.java:51-53', 'SOURCE')
+
+# W7 r6-p13 DEAD steps (bytecode calls on a branch that never runs; the targets keep their other callers)
+sup(('GoogleAuthInfo$Export.getUri', 'GoogleAuthInfoException.<init>(Uri,String)'),  # default type branch: only TOTP/HOTP are exported (ImportExportPreferencesFragment.java:356-358)
+    ('EntryHolder.getOtp(int)', 'TotpInfo.getOtp()'))  # the else branch is for info that is not a TotpInfo (EntryHolder.java:325-328)

@@ -1,0 +1,41 @@
+label_110.grep.txt: grep and auto_calls evidence for batch 110 (graphs/MMEX/scratch/batches/batch_110.txt, 32 methods).
+UNREACHABLE rows: SearchParametersFragment_ViewBinding.unbind, SearchParametersViewHolder_ViewBinding.unbind (ButterKnife generated, INFERRED); AccountService.createAccount, AccountService.getAccountCurrencyCode (SOURCE).
+Source root: final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main (paths shown relative to the repo root). Tools: grep (read only), sed (read only) and python3 -I (read only, graphs/MMEX/auto_calls.json).
+
+section 1: Unbinder and unbind references in the Java source (ButterKnife.bind return value)
+$ grep -rn "Unbinder\|unbind" app/src/main/java
+(no output: no reference to Unbinder or unbind in the app source)
+$ grep -rn "ButterKnife.bind" app/src/main/java/com/money/manager/ex/search
+app/src/main/java/com/money/manager/ex/search/SearchParametersViewHolder.java:36:        ButterKnife.bind(this, view);
+app/src/main/java/com/money/manager/ex/search/SearchParametersFragment.java:139:        ButterKnife.bind(this, view);
+$ sed -n 139p SearchParametersFragment.java ; sed -n 36p SearchParametersViewHolder.java (the bind call stands alone: its return value is discarded)
+        ButterKnife.bind(this, view);
+        ButterKnife.bind(this, view);
+
+section 2: references to createAccount and getAccountCurrencyCode (java, res, manifest)
+$ grep -rn "createAccount\|getAccountCurrencyCode" app/src/main/java app/src/main/res app/src/main/AndroidManifest.xml
+app/src/main/java/com/money/manager/ex/servicelayer/AccountService.java:68:    public Account createAccount(String name, AccountTypes accountType, AccountStatuses status,
+app/src/main/java/com/money/manager/ex/servicelayer/AccountService.java:182:    public String getAccountCurrencyCode(int accountId) {
+$ grep -rln "createAccount\|getAccountCurrencyCode" app/src/test (test sources, not run in the app)
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/test/java/org/moneymanagerex/android/tests/AccountServiceTests.java
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/test/java/org/moneymanagerex/android/testhelpers/DataHelpers.java
+(the two test files are JUnit sources under app/src/test; they are not run by the app and are not app triggers. The app-side check is the empty result of the src/main grep above and the 0 incoming records in section 3.)
+
+section 3: auto_calls.json (python3 -I): calls with the four UNREACHABLE methods as destination (incoming) or source (outgoing)
+SearchParametersFragment_ViewBinding.unbind incoming: 0 outgoing: 0
+SearchParametersViewHolder_ViewBinding.unbind incoming: 0 outgoing: 0
+AccountService.createAccount incoming: 0 outgoing: 4
+   out (2570, 'AccountService.createAccount', 'AccountRepository.save', 'AccountService.java', 74)
+   out (2571, 'AccountService.createAccount', 'AccountRepository.<init>', 'AccountService.java', 73)
+   out (2572, 'AccountService.createAccount', 'ServiceBase.getContext', 'AccountService.java', 73)
+   out (2573, 'AccountService.createAccount', 'Account.create', 'AccountService.java', 70)
+AccountService.getAccountCurrencyCode incoming: 0 outgoing: 7
+   out (2596, 'AccountService.getAccountCurrencyCode', 'Currency.getCode', 'AccountService.java', 192)
+   out (2597, 'AccountService.getAccountCurrencyCode', 'CurrencyService.getCurrency(Integer)', 'AccountService.java', 192)
+   out (2598, 'AccountService.getAccountCurrencyCode', 'CurrencyService.<init>', 'AccountService.java', 191)
+   out (2599, 'AccountService.getAccountCurrencyCode', 'ServiceBase.getContext', 'AccountService.java', 191)
+   out (2600, 'AccountService.getAccountCurrencyCode', 'Account.getCurrencyId', 'AccountService.java', 189)
+   out (2601, 'AccountService.getAccountCurrencyCode', 'RepositoryBase.first', 'AccountService.java', 184)
+   out (2602, 'AccountService.getAccountCurrencyCode', 'AccountRepository.<init>', 'AccountService.java', 183)
+
+section 4: outgoing records of the two source methods are cut by sup pairs in label_110.py (D14); the unbind methods have no outgoing record.

@@ -1,0 +1,244 @@
+     1	/*
+     2	 * Copyright (C) 2016-2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.addtorrent;
+    21	
+    22	import android.app.Activity;
+    23	import android.content.Context;
+    24	import android.content.Intent;
+    25	import android.os.Bundle;
+    26	import android.text.Editable;
+    27	import android.text.TextUtils;
+    28	import android.text.TextWatcher;
+    29	import android.view.LayoutInflater;
+    30	import android.view.View;
+    31	import android.view.ViewGroup;
+    32	
+    33	import androidx.activity.result.ActivityResultLauncher;
+    34	import androidx.activity.result.contract.ActivityResultContracts;
+    35	import androidx.annotation.NonNull;
+    36	import androidx.annotation.Nullable;
+    37	import androidx.appcompat.app.AppCompatActivity;
+    38	import androidx.databinding.DataBindingUtil;
+    39	import androidx.fragment.app.Fragment;
+    40	import androidx.fragment.app.FragmentManager;
+    41	import androidx.lifecycle.ViewModelProvider;
+    42	
+    43	import org.apache.commons.lang3.ArrayUtils;
+    44	import org.proninyaroslav.libretorrent.R;
+    45	import org.proninyaroslav.libretorrent.core.exception.UnknownUriException;
+    46	import org.proninyaroslav.libretorrent.core.model.data.entity.TagInfo;
+    47	import org.proninyaroslav.libretorrent.core.system.FileSystemFacade;
+    48	import org.proninyaroslav.libretorrent.core.system.SystemFacadeHelper;
+    49	import org.proninyaroslav.libretorrent.databinding.FragmentAddTorrentInfoBinding;
+    50	import org.proninyaroslav.libretorrent.ui.BaseAlertDialog;
+    51	import org.proninyaroslav.libretorrent.ui.filemanager.FileManagerConfig;
+    52	import org.proninyaroslav.libretorrent.ui.filemanager.FileManagerDialog;
+    53	import org.proninyaroslav.libretorrent.ui.tag.SelectTagActivity;
+    54	import org.proninyaroslav.libretorrent.ui.tag.TorrentTagsList;
+    55	
+    56	import io.reactivex.Observable;
+    57	import io.reactivex.disposables.CompositeDisposable;
+    58	
+    59	/*
+    60	 * The fragment for displaying torrent metainformation,
+    61	 * taken from bencode. Part of AddTorrentFragment.
+    62	 */
+    63	
+    64	public class AddTorrentInfoFragment extends Fragment {
+    65	    private static final String TAG = AddTorrentInfoFragment.class.getSimpleName();
+    66	
+    67	    private static final String TAG_OPEN_DIR_ERROR_DIALOG = "open_dir_error_dialog";
+    68	
+    69	    private AppCompatActivity activity;
+    70	    private AddTorrentViewModel viewModel;
+    71	    private FragmentAddTorrentInfoBinding binding;
+    72	    private CompositeDisposable disposables = new CompositeDisposable();
+    73	
+    74	    public static AddTorrentInfoFragment newInstance() {
+    75	        AddTorrentInfoFragment fragment = new AddTorrentInfoFragment();
+    76	
+    77	        Bundle b = new Bundle();
+    78	        fragment.setArguments(b);
+    79	
+    80	        return fragment;
+    81	    }
+    82	
+    83	    @Override
+    84	    public void onAttach(@NonNull Context context) {
+    85	        super.onAttach(context);
+    86	
+    87	        if (context instanceof AppCompatActivity)
+    88	            activity = (AppCompatActivity) context;
+    89	    }
+    90	
+    91	    @Override
+    92	    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    93	        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_add_torrent_info, container, false);
+    94	
+    95	        return binding.getRoot();
+    96	    }
+    97	
+    98	    @Override
+    99	    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+   100	        super.onViewCreated(view, savedInstanceState);
+   101	
+   102	        viewModel = new ViewModelProvider(activity).get(AddTorrentViewModel.class);
+   103	        binding.setViewModel(viewModel);
+   104	
+   105	        binding.info.folderChooserButton.setOnClickListener((v) -> showChooseDirDialog());
+   106	        binding.info.name.addTextChangedListener(new TextWatcher() {
+   107	            @Override
+   108	            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+   109	            }
+   110	
+   111	            @Override
+   112	            public void onTextChanged(CharSequence s, int start, int before, int count) {
+   113	            }
+   114	
+   115	            @Override
+   116	            public void afterTextChanged(Editable s) {
+   117	                checkNameField(s);
+   118	            }
+   119	        });
+   120	        binding.info.tagsList.setListener(tagsListener);
+   121	    }
+   122	
+   123	    @Override
+   124	    public void onStart() {
+   125	        super.onStart();
+   126	
+   127	        subscribeTags();
+   128	    }
+   129	
+   130	    @Override
+   131	    public void onStop() {
+   132	        super.onStop();
+   133	
+   134	        disposables.clear();
+   135	    }
+   136	
+   137	    final ActivityResultLauncher<Intent> selectTag = registerForActivityResult(
+   138	            new ActivityResultContracts.StartActivityForResult(),
+   139	            (result) -> {
+   140	                Intent data = result.getData();
+   141	                if (result.getResultCode() == Activity.RESULT_OK && data != null) {
+   142	                    TagInfo tag = data.getParcelableExtra(SelectTagActivity.TAG_RESULT_SELECTED_TAG);
+   143	                    if (tag != null) {
+   144	                        viewModel.addTag(tag);
+   145	                    }
+   146	                }
+   147	            }
+   148	    );
+   149	
+   150	    final ActivityResultLauncher<Intent> chooseDir = registerForActivityResult(
+   151	            new ActivityResultContracts.StartActivityForResult(), (result) -> {
+   152	                if (result.getResultCode() != Activity.RESULT_OK) {
+   153	                    return;
+   154	                }
+   155	                Intent data = result.getData();
+   156	                if (data == null || data.getData() == null) {
+   157	                    showOpenDirErrorDialog();
+   158	                    return;
+   159	                }
+   160	                viewModel.mutableParams.getDirPath().set(data.getData());
+   161	            });
+   162	
+   163	    private final TorrentTagsList.Listener tagsListener = new TorrentTagsList.Listener() {
+   164	        @Override
+   165	        public void onAddTagClick() {
+   166	            disposables.add(Observable.fromIterable(viewModel.getCurrentTags())
+   167	                    .map((tag) -> tag.id)
+   168	                    .toList()
+   169	                    .subscribe((ids) -> {
+   170	                        Intent i = new Intent(activity, SelectTagActivity.class);
+   171	                        i.putExtra(
+   172	                                SelectTagActivity.TAG_EXCLUDE_TAGS_ID,
+   173	                                ArrayUtils.toPrimitive(ids.toArray(new Long[0]))
+   174	                        );
+   175	                        selectTag.launch(i);
+   176	                    })
+   177	            );
+   178	        }
+   179	
+   180	        @Override
+   181	        public void onTagRemoved(@NonNull TagInfo info) {
+   182	            viewModel.removeTag(info);
+   183	        }
+   184	    };
+   185	
+   186	    private void subscribeTags() {
+   187	        disposables.add(viewModel.observeTags()
+   188	                .subscribe(binding.info.tagsList::submit)
+   189	        );
+   190	    }
+   191	
+   192	    private void showChooseDirDialog() {
+   193	        Intent i = new Intent(activity, FileManagerDialog.class);
+   194	
+   195	        FileSystemFacade fs = SystemFacadeHelper.getFileSystemFacade(
+   196	                activity.getApplicationContext()
+   197	        );
+   198	        String path;
+   199	        try {
+   200	            path = fs.getDirPath(viewModel.mutableParams.getDirPath().get());
+   201	        } catch (UnknownUriException e) {
+   202	            path = null;
+   203	        }
+   204	
+   205	        FileManagerConfig config = new FileManagerConfig(
+   206	                path,
+   207	                getString(R.string.select_folder_to_save),
+   208	                FileManagerConfig.DIR_CHOOSER_MODE
+   209	        );
+   210	
+   211	        i.putExtra(FileManagerDialog.TAG_CONFIG, config);
+   212	        chooseDir.launch(i);
+   213	    }
+   214	
+   215	    private void showOpenDirErrorDialog() {
+   216	        if (!isAdded())
+   217	            return;
+   218	
+   219	        FragmentManager fm = getChildFragmentManager();
+   220	        if (fm.findFragmentByTag(TAG_OPEN_DIR_ERROR_DIALOG) == null) {
+   221	            BaseAlertDialog openDirErrorDialog = BaseAlertDialog.newInstance(
+   222	                    getString(R.string.error),
+   223	                    getString(R.string.unable_to_open_folder),
+   224	                    0,
+   225	                    getString(R.string.ok),
+   226	                    null,
+   227	                    null,
+   228	                    true);
+   229	
+   230	            openDirErrorDialog.show(fm, TAG_OPEN_DIR_ERROR_DIALOG);
+   231	        }
+   232	    }
+   233	
+   234	    private void checkNameField(Editable s) {
+   235	        if (TextUtils.isEmpty(s)) {
+   236	            binding.info.layoutName.setErrorEnabled(true);
+   237	            binding.info.layoutName.setError(getString(R.string.error_field_required));
+   238	            binding.info.layoutName.requestFocus();
+   239	        } else {
+   240	            binding.info.layoutName.setErrorEnabled(false);
+   241	            binding.info.layoutName.setError(null);
+   242	        }
+   243	    }
+   244	}

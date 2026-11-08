@@ -1,0 +1,282 @@
+METHOD: SmbSearchDialog$1.lambda$computerFound$0
+verdict: REACHABLE   steps_from_launch: 15
+route steps: 15 edges
+======================================================================
+
+STEP 1  edge E380fe171
+  S_ENTRY -> MainActivity.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC Activity.java onCreate lifecycle method
+  (no file:line citations in evidence)
+
+STEP 2  edge E98cdd8f4
+  MainActivity.onCreate -> MainActivity.initialiseFab
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC activities/MainActivity.java:325
+  cite [SRC] activities/MainActivity.java:325
+      325:         // setting window background color instead of each item, in order to reduce pixel overdraw
+
+STEP 3  edge E77bdc678
+  MainActivity.initialiseFab -> MainActivity$FabActionListener.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainActivity.java:1508 shows floatingActionButton.setOnActionSelectedListener(new FabActionListener(this)); 1935 shows FabActionListener(MainActivity mainActivity) constructor
+  cite [SRC] MainActivity.java:1508
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/activities/MainActivity.java)
+     1508:         floatingActionButton.setOnActionSelectedListener(new FabActionListener(this));
+
+STEP 4  edge E01239703
+  MainActivity$FabActionListener.<init> -> MainActivity$FabActionListener.onActionSelected
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainActivity.java:1940-1941 shows @Override public boolean onActionSelected(SpeedDialActionItem actionItem); GUI callback when FAB item selected
+  cite [SRC] MainActivity.java:1940-1941
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/activities/MainActivity.java)
+     1940:         @Override
+     1941:         public boolean onActionSelected(SpeedDialActionItem actionItem) {
+
+STEP 5  edge E57be7166
+  MainActivity$FabActionListener.onActionSelected -> CloudSheetFragment.<init>
+  class: explicit   kind: CALL
+  guard: actionItem.getId() == R.id.menu_new_cloud
+  needs_state: None
+  env: None
+  evidence: SRC activities/MainActivity.java:1952-1956
+  cite [SRC] activities/MainActivity.java:1952-1956
+     1952:                 case R.id.menu_new_cloud:
+     1953:                     BottomSheetDialogFragment fragment = new CloudSheetFragment();
+     1954:                     fragment.show(ma.getActivity().getSupportFragmentManager(),
+     1955:                             CloudSheetFragment.TAG_FRAGMENT);
+     1956:                     break;
+
+STEP 6  edge Ebefb95e4
+  CloudSheetFragment.<init> -> CloudSheetFragment.setupDialog
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC CloudSheetFragment.java:45-87
+  cite [SRC] CloudSheetFragment.java:45-87
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/fragments/CloudSheetFragment.java)
+       45:     public void setupDialog(Dialog dialog, int style) {
+       46:         super.setupDialog(dialog, style);
+       47: 
+       48:         rootView = getActivity().getLayoutInflater().inflate(R.layout.fragment_sheet_cloud, null);
+       49: 
+       50:         if (((MainActivity) getActivity()).getAppTheme().equals(AppTheme.DARK)) {
+       51:             rootView.setBackgroundColor(Utils.getColor(getContext(), R.color.holo_dark_background));
+       52:         } else if (((MainActivity) getActivity()).getAppTheme().equals(AppTheme.BLACK)) {
+       53:             rootView.setBackgroundColor(Utils.getColor(getContext(), android.R.color.black));
+       54:         } else {
+       55:             rootView.setBackgroundColor(Utils.getColor(getContext(), android.R.color.white));
+       56:         }
+       57: 
+       58:         mSmbLayout = rootView.findViewById(R.id.linear_layout_smb);
+       59:         mScpLayout = rootView.findViewById(R.id.linear_layout_scp);
+       60:         mBoxLayout = rootView.findViewById(R.id.linear_layout_box);
+       61:         mDropboxLayout = rootView.findViewById(R.id.linear_layout_dropbox);
+       62:         mGoogleDriveLayout = rootView.findViewById(R.id.linear_layout_google_drive);
+       63:         mOnedriveLayout = rootView.findViewById(R.id.linear_layout_onedrive);
+       64:         mGetCloudLayout = rootView.findViewById(R.id.linear_layout_get_cloud);
+       65: 
+       66:         if (isCloudProviderAvailable(getContext())) {
+       67: 
+       68:             mBoxLayout.setVisibility(View.VISIBLE);
+       69:             mDropboxLayout.setVisibility(View.VISIBLE);
+       70:             mGoogleDriveLayout.setVisibility(View.VISIBLE);
+       71:             mOnedriveLayout.setVisibility(View.VISIBLE);
+       72:             mGetCloudLayout.setVisibility(View.GONE);
+       73:         }
+       74: 
+       75:         mSmbLayout.setOnClickListener(this);
+       76:         mScpLayout.setOnClickListener(this);
+       77:         mBoxLayout.setOnClickListener(this);
+       78:         mDropboxLayout.setOnClickListener(this);
+       79:         mGoogleDriveLayout.setOnClickListener(this);
+       80:         mOnedriveLayout.setOnClickListener(this);
+       81:         mGetCloudLayout.setOnClickListener(this);
+       82: 
+       83:         dialog.setContentView(rootView);
+       84:     }
+       85: 
+       86:     /**
+       87:      * Determines whether cloud provider is installed or not
+
+STEP 7  edge E8e9507b8
+  CloudSheetFragment.setupDialog -> CloudSheetFragment.onClick
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC CloudSheetFragment.java:70-76
+  cite [SRC] CloudSheetFragment.java:70-76
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/fragments/CloudSheetFragment.java)
+       70:             mGoogleDriveLayout.setVisibility(View.VISIBLE);
+       71:             mOnedriveLayout.setVisibility(View.VISIBLE);
+       72:             mGetCloudLayout.setVisibility(View.GONE);
+       73:         }
+       74: 
+       75:         mSmbLayout.setOnClickListener(this);
+       76:         mScpLayout.setOnClickListener(this);
+
+STEP 8  edge E234e41e0
+  CloudSheetFragment.onClick -> SmbSearchDialog.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC fragments/CloudSheetFragment.java:108 SmbSearchDialog smbDialog=new SmbSearchDialog(); line 109 smbDialog.show(...)
+  cite [SRC] fragments/CloudSheetFragment.java:108
+      108:                 SmbSearchDialog smbDialog=new SmbSearchDialog();
+
+STEP 9  edge Ee9c6203f
+  SmbSearchDialog.<init> -> SmbSearchDialog.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED androidx DialogFragment.show triggers onCreate; SRC ui/dialogs/SmbSearchDialog.java:40-45 shows implementation
+  cite [SRC] ui/dialogs/SmbSearchDialog.java:40-45
+       40: 
+       41:     @Override
+       42:     public void onCreate(Bundle bundle) {
+       43:         super.onCreate(bundle);
+       44:         utilsProvider = ((BasicActivity) getActivity()).getUtilsProvider();
+       45: 
+
+STEP 10  edge E5e77cce3
+  SmbSearchDialog.onCreate -> SmbSearchDialog.onCreateDialog
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED androidx DialogFragment lifecycle calls onCreateDialog after onCreate; SRC ui/dialogs/SmbSearchDialog.java:53-99 shows implementation
+  cite [SRC] ui/dialogs/SmbSearchDialog.java:53-99
+       53:             subnetScanner.interrupt();
+       54:     }
+       55: 
+       56:     @Override
+       57:     public Dialog onCreateDialog(Bundle savedInstanceState) {
+       58:         MaterialDialog.Builder builder = new MaterialDialog.Builder(getActivity());
+       59:         builder.title(R.string.searching_devices);
+       60:         builder.negativeColor(accentColor);
+       61:         builder.negativeText(R.string.cancel);
+       62:         builder.onNegative((dialog, which) -> {
+       63:             if (subnetScanner != null)
+       64:                 subnetScanner.interrupt();
+       65:             dismiss();
+       66:         });
+       67:         builder.onPositive((dialog, which) -> {
+       68:             if (subnetScanner != null)
+       69:                 subnetScanner.interrupt();
+       70:             if (getActivity() != null && getActivity() instanceof MainActivity) {
+       71:                 dismiss();
+       72:                 MainActivity mainActivity = (MainActivity) getActivity();
+       73:                 mainActivity.showSMBDialog("", "", false);
+       74:             }
+       75:         });
+       76:         builder.positiveText(R.string.use_custom_ip);
+       77:         builder.positiveColor(accentColor);
+       78:         computers.add(new ComputerParcelable("-1", "-1"));
+       79:         listViewAdapter = new ListViewAdapter(getActivity(), computers);
+       80:         subnetScanner = new SubnetScanner(getActivity());
+       81:         subnetScanner.setObserver(new SubnetScanner.ScanObserver() {
+       82:             @Override
+       83:             public void computerFound(final ComputerParcelable computer) {
+       84:                 if (getActivity() != null)
+       85:                     getActivity().runOnUiThread(() -> {
+       86:                         if (!computers.contains(computer))
+       87:                             computers.add(computer);
+       88:                         listViewAdapter.notifyDataSetChanged();
+       89:                     });
+       90:             }
+       91: 
+       92:             @Override
+       93:             public void searchFinished() {
+       94:                 if (getActivity() != null) {
+       95:                     getActivity().runOnUiThread(() -> {
+       96:                         if (computers.size() == 1) {
+       97:                             dismiss();
+       98:                             Toast.makeText(getActivity(), getString(R.string.no_device_found), Toast.LENGTH_SHORT).show();
+       99:                             MainActivity mainActivity = (MainActivity) getActivity();
+
+STEP 11  edge E26eee992
+  SmbSearchDialog.onCreateDialog -> SubnetScanner.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/dialogs/SmbSearchDialog.java:80: subnetScanner = new SubnetScanner(getActivity())
+  cite [SRC] ui/dialogs/SmbSearchDialog.java:80
+       80:         subnetScanner = new SubnetScanner(getActivity());
+
+STEP 12  edge E49bf7876
+  SubnetScanner.<init> -> SubnetScanner.run
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/dialogs/SmbSearchDialog.java:109 subnetScanner.start(); SRC utils/SubnetScanner.java:84 public void run(); SubnetScanner extends Thread
+  cite [SRC] ui/dialogs/SmbSearchDialog.java:109
+      109:         subnetScanner.start();
+  cite [SRC] utils/SubnetScanner.java:84
+       84:     public void run() {
+
+STEP 13  edge E5b3c7bea
+  SubnetScanner.run -> SubnetScanner.onFound
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC utils/SubnetScanner.java:109
+  cite [SRC] utils/SubnetScanner.java:109
+      109:                                     onFound(computer);
+
+STEP 14  edge Eb5bca6b7
+  SubnetScanner.onFound -> SmbSearchDialog$1.computerFound
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC utils/SubnetScanner.java:173-177 onFound calls observer.computerFound; SRC ui/dialogs/SmbSearchDialog.java:82-90 overrides computerFound
+  cite [SRC] utils/SubnetScanner.java:173-177
+      173:     private void onFound(ComputerParcelable computer) {
+      174:         mResults.add(computer);
+      175:         synchronized (this.mLock) {
+      176:             if (this.observer != null) {
+      177:                 this.observer.computerFound(computer);
+  cite [SRC] ui/dialogs/SmbSearchDialog.java:82-90
+       82:             @Override
+       83:             public void computerFound(final ComputerParcelable computer) {
+       84:                 if (getActivity() != null)
+       85:                     getActivity().runOnUiThread(() -> {
+       86:                         if (!computers.contains(computer))
+       87:                             computers.add(computer);
+       88:                         listViewAdapter.notifyDataSetChanged();
+       89:                     });
+       90:             }
+
+STEP 15  edge Ef57ae321
+  SmbSearchDialog$1.computerFound -> SmbSearchDialog$1.lambda$computerFound$0
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/dialogs/SmbSearchDialog.java:84-89 getActivity().runOnUiThread(() -> {...})
+  cite [SRC] ui/dialogs/SmbSearchDialog.java:84-89
+       84:                 if (getActivity() != null)
+       85:                     getActivity().runOnUiThread(() -> {
+       86:                         if (!computers.contains(computer))
+       87:                             computers.add(computer);
+       88:                         listViewAdapter.notifyDataSetChanged();
+       89:                     });

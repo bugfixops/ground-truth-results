@@ -1,0 +1,348 @@
+label_096.grep.txt: grep and sed output behind each UNREACHABLE entry and each new route in batch 096 (33 methods in 7 classes: ExceptionHandler (15 incl. $1), FileLoggingTree, ScreenTree, SysLogTree, RecurringTransactionIntentService, RecurringTransactionReceiver, RecurringTransactionNotifications).
+Source root: final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main (paths below are relative to the repo root). grep and sed and awk only; nothing was compiled, run or downloaded.
+
+== section 1: constructions of ExceptionHandler (grep -rn over src/main/java)
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/core/FormatUtilities.java:110:            ExceptionHandler handler = new ExceptionHandler(this.context, this);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/recurring/transactions/RecurringTransactionListFragment.java:185:            ExceptionHandler handler = new ExceptionHandler(getActivity(), this);
+(only the two-argument constructor is called; ExceptionHandler(Context) has no caller)
+
+== section 2: every reference to ExceptionHandler outside its own file
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/core/FormatUtilities.java:28:import com.money.manager.ex.log.ExceptionHandler;
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/core/FormatUtilities.java:110:            ExceptionHandler handler = new ExceptionHandler(this.context, this);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/recurring/transactions/RecurringTransactionListFragment.java:55:import com.money.manager.ex.log.ExceptionHandler;
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/recurring/transactions/RecurringTransactionListFragment.java:185:            ExceptionHandler handler = new ExceptionHandler(getActivity(), this);
+
+== section 3: calls on the handler variables in the two call-site files
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/core/FormatUtilities.java:111:            handler.showMessage(context.getString(R.string.base_currency_not_set));
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/recurring/transactions/RecurringTransactionListFragment.java:186:            handler.showMessage("no context menu info");
+
+== section 4: uncaught-exception registration (grep -rn over src/main)
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/log/ExceptionHandler.java:40:    implements Thread.UncaughtExceptionHandler
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/log/ExceptionHandler.java:61://        this.originalHandler = Thread.getDefaultUncaughtExceptionHandler();
+(only the implements clause at ExceptionHandler.java:40 and a commented line at :61; nothing registers the handler)
+
+== section 5: ExceptionHandler method names used outside its file
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/about/AboutFragment.java:74:        version = core.getAppVersionName();
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/about/AboutFragment.java:75:        int build = core.getAppVersionCode();
+(the two hits are AboutFragment's core.getAppVersionName and core.getAppVersionCode: a different class)
+
+== section 6: ExceptionHandler source lines (sed/awk prints)
+39	public class ExceptionHandler
+40	    implements Thread.UncaughtExceptionHandler
+41	{
+47	    public ExceptionHandler(Context context) {
+48	        mContext = context;
+49	        mHost = context;
+50	    }
+58	    public ExceptionHandler(Context context, Object host) {
+59	        mContext = context;
+60	        mHost = host;
+61	//        this.originalHandler = Thread.getDefaultUncaughtExceptionHandler();
+62	    }
+68	    public Context getContext() {
+69	        return mContext;
+70	    }
+72	    public void e(Exception ex, String errorMessage) {
+73	        this.e((Throwable) ex, errorMessage);
+74	    }
+75	
+76	    public void e(Throwable t, String errorMessage) {
+77	        errorMessage = String.format("Error %s:\n%s", errorMessage, t.getLocalizedMessage());
+78	
+79	        String version = getAppVersion() + "." + getAppBuildNumber();
+80	        Log.e(getLogcat(), "version: " + version + ": " + errorMessage + ": " + t.getLocalizedMessage());
+81	        t.printStackTrace();
+82	        showMessage(errorMessage);
+83	
+84	        //Crashlytics.getInstance().crash();
+85	//        Crashlytics.logException(t);
+86	    }
+100	    public void showMessage(final String message) {
+101	        showMessage(message, Toast.LENGTH_SHORT);
+102	    }
+110	    public void showMessage(final String message, final int length) {
+111	        if (this.mContext == null) return;
+112	
+113	        Handler h = new Handler(Looper.getMainLooper());
+114	        h.post(new Runnable() {
+115	            public void run() {
+116	                try {
+117	                    Toast.makeText(mContext, message, length).show();
+118	                } catch (Exception e) {
+119	                    Log.e(getLogcat(), "Error showing toast: " + e.getMessage());
+120	                }
+121	            }
+122	        });
+123	    }
+125	    @Override
+126	    public void uncaughtException(Thread thread, Throwable throwable) {
+138	        String version = getAppVersionInformation();
+182	        sendEmail(errorReport.toString());
+193	    private void sendEmail(String text) {
+194	        Intent intent = new Intent (Intent.ACTION_SEND);
+195	        intent.setType("plain/text");
+208	    private String getAppVersionInformation() {
+209	        if (getContext() == null) return "";
+210	
+211	        String result = "";
+212	        try {
+213	            String version = getAppVersion();
+214	            result += "Version: " + version;
+215	            result += LINE_SEPARATOR;
+216	
+217	            String build = getAppBuildNumber();
+225	    private String getAppVersion() {
+226	        String version;
+227	        try {
+228	            version = getContext().getPackageManager().getPackageInfo(mContext.getPackageName(), 0).versionName;
+235	    private String getAppBuildNumber() {
+236	        try {
+237	            return Integer.toString(getContext().getPackageManager().getPackageInfo(getContext().getPackageName(), 0).versionCode);
+
+== section 7: FileLoggingTree (never constructed or planted)
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/log/FileLoggingTree.java
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/MmexApplication.java:135:            Timber.plant(new DebugTree());
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/MmexApplication.java:137:            //Timber.plant(new CrashReportingTree());
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/MmexApplication.java:138:            Timber.plant(new ScreenTree());
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/MmexApplication.java:139:            Timber.plant(new SysLogTree());
+133	        // Loggers
+134	        if (BuildConfig.DEBUG) {
+135	            Timber.plant(new DebugTree());
+136	        } else {
+137	            //Timber.plant(new CrashReportingTree());
+138	            Timber.plant(new ScreenTree());
+139	            Timber.plant(new SysLogTree());
+140	        }
+141	
+
+== section 8: FileLoggingTree source (sed prints)
+31	public class FileLoggingTree
+32	        extends Timber.DebugTree {
+33	
+34	    @Override
+35	    protected void log(int priority, String tag, String message, Throwable t) {
+46	        super.log(priority, tag, message, t);
+47	    }
+
+== section 9: ScreenTree and SysLogTree source
+12	public class ScreenTree
+13	        extends Timber.DebugTree {
+14	    @Override
+15	    protected void log(int priority, String tag, String message, Throwable t) {
+26	            if (EventBus.getDefault().hasSubscriberForEvent(ErrorRaisedEvent.class)) {
+27	                EventBus.getDefault().post(new ErrorRaisedEvent(uiMessage));
+10	public class SysLogTree
+11	        extends Timber.DebugTree {
+12	    @Override
+13	    protected void log(int priority, String tag, String message, Throwable t) {
+14	        Log.println(priority, tag, message);
+
+== section 10: RecurringTransactionNotifications source and Timber calls
+56:            Timber.e(ex, "showing notification about recurring transactions");
+127:            Timber.e(e, "showing notification for recurring transaction");
+45	    public RecurringTransactionNotifications(Context context) {
+46	        super();
+47	        mContext = context.getApplicationContext();
+48	    }
+49	
+50	    private final Context mContext;
+51	
+52	    public void notifyRepeatingTransaction() {
+53	        try {
+54	            notifyRepeatingTransaction_Internal();
+55	        } catch (Exception ex) {
+56	            Timber.e(ex, "showing notification about recurring transactions");
+57	        }
+58	    }
+76	            SyncNotificationModel model = getNotificationContent(cursor);
+77	            showNotification(model);
+82	    private void showNotification(SyncNotificationModel model) {
+83	        NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
+84	        inboxStyle.addLine(model.inboxLine);
+104	        try {
+105	            NotificationUtils.createNotificationChannel(getContext(), NotificationUtils.CHANNEL_ID_RECURRING);
+106	
+107	            Notification notification = new NotificationCompat.Builder(getContext(), NotificationUtils.CHANNEL_ID_RECURRING)
+126	        } catch (Exception e) {
+127	            Timber.e(e, "showing notification for recurring transaction");
+131	    @SuppressLint("Range")
+132	    private SyncNotificationModel getNotificationContent(Cursor cursor) {
+133	        SyncNotificationModel result = new SyncNotificationModel();
+134	
+135	        result.number = cursor.getCount();
+136	
+137	        CurrencyService currencyService = new CurrencyService(mContext);
+156	    private Context getContext() {
+157	        return mContext;
+158	    }
+
+== section 11: RecurringTransactionIntentService and RecurringTransactionReceiver source
+30	public class RecurringTransactionIntentService
+31		extends JobIntentService {
+32	
+33	    public static int JOB_ID = 1001;
+34	
+35	//	public RecurringTransactionIntentService() {
+36	//		super("com.money.manager.ex.notifications.RecurringTransactionIntentService");
+37	//	}
+38	
+39		@Override
+40		protected void onHandleWork(Intent intent) {
+41			// start repeating transaction
+42			RecurringTransactionNotifications notifications = new RecurringTransactionNotifications(getApplicationContext());
+43			notifications.notifyRepeatingTransaction();
+44		}
+45	
+46		public static void enqueueWork(Context context, Intent intent) {
+47		    enqueueWork(context, RecurringTransactionIntentService.class, JOB_ID, intent);
+48	    }
+27	public class RecurringTransactionReceiver
+28		extends BroadcastReceiver {
+29	
+30		@Override
+31		public void onReceive(Context context, Intent intent) {
+32	        // If the notifications are disabled in preferences, do not trigger the alarm.
+33	        boolean notify = PreferenceManager.getDefaultSharedPreferences(context)
+34	                .getBoolean(context.getString(PreferenceConstants.PREF_REPEATING_TRANSACTION_NOTIFICATIONS), true);
+35	        if (!notify) return;
+36	
+37			Intent myIntent = new Intent(context, RecurringTransactionIntentService.class);
+38	        RecurringTransactionIntentService.enqueueWork(context, myIntent);
+39	    }
+
+== section 12: routes into the receiver and the service (grep over src/main, excluding the owning files)
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/AndroidManifest.xml:113:        <receiver android:name=".notifications.RecurringTransactionReceiver" />
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/AndroidManifest.xml:399:            android:name=".notifications.RecurringTransactionIntentService"
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/core/RecurringTransactionBootReceiver.java:26:import com.money.manager.ex.notifications.RecurringTransactionReceiver;
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/core/RecurringTransactionBootReceiver.java:56:        Intent receiverIntent = new Intent(context, RecurringTransactionReceiver.class);
+
+== section 13: manifest entries
+108	        <receiver android:name=".core.RecurringTransactionBootReceiver" android:exported="true">
+109	            <intent-filter>
+110	                <action android:name="android.intent.action.BOOT_COMPLETED" />
+111	            </intent-filter>
+112	        </receiver>
+113	        <receiver android:name=".notifications.RecurringTransactionReceiver" />
+398	        <service
+399	            android:name=".notifications.RecurringTransactionIntentService"
+400	            android:permission="android.permission.BIND_JOB_SERVICE" />
+
+== section 14: BootReceiver alarm path (batch 038 file, read here for the route into RecurringTransactionReceiver)
+40	    public void onReceive(Context context, Intent intent) {
+41	        try {
+42	            // Start heartbeat for Recurring Transaction check.
+43	            setAlarm(context);
+44	        } catch (Exception e) {
+45	            Timber.e(e, "Setting the alarm for recurring transactions check");
+46	        }
+47	    }
+48	
+49	    private void setAlarm(Context context) {
+50	        BehaviourSettings settings = new BehaviourSettings(context);
+51	
+52	        boolean notify = settings.getNotificationRecurringTransaction();
+53	        if (!notify) return;
+54	
+55	        // compose intent
+56	        Intent receiverIntent = new Intent(context, RecurringTransactionReceiver.class);
+57	        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, receiverIntent, PendingIntent.FLAG_CANCEL_CURRENT|PendingIntent.FLAG_IMMUTABLE);
+58	
+59	        // take hour to start
+60	        String hour = settings.getNotificationTime();
+79	        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+80	        // cancel old pending intent
+81	        alarmManager.cancel(pendingIntent);
+82	        // start alarm manager
+83	        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),
+84	            AlarmManager.INTERVAL_DAY, pendingIntent);
+
+== section 15: framework dispatch used by the FRAMEWORK edges (FW-SRC Android 8.1.0 r1)
+97	    public void dispatchMessage(Message msg) {
+98	        if (msg.callback != null) {
+99	            handleCallback(msg);
+355	    public final boolean post(Runnable r)
+356	    {
+357	       return  sendMessageDelayed(getPostMessage(r), 0);
+789	    private static void handleCallback(Message message) {
+790	        message.callback.run();
+3185	            sCurrentBroadcastIntent.set(data.intent);
+3186	            receiver.setPendingResult(data);
+3187	            receiver.onReceive(context.getReceiverRestrictedContext(),
+3188	                    data.intent);
+
+== section 16: auto_calls.json records with a batch-096 class on either side (python3 -I, read only)
+CALL MmexApplication.onCreate -> SysLogTree.<init> MmexApplication.java:139 dispatch=exact
+CALL MmexApplication.onCreate -> ScreenTree.<init> MmexApplication.java:138 dispatch=exact
+CALL MainActivity.populateScheduledTransactions -> RecurringTransactionNotifications.notifyRepeatingTransaction MainActivity.java:1239 dispatch=exact
+CALL MainActivity.populateScheduledTransactions -> RecurringTransactionNotifications.<init> MainActivity.java:1238 dispatch=exact
+CALL FormatUtilities.getScaleForBaseCurrency -> ExceptionHandler.showMessage(String) FormatUtilities.java:111 dispatch=exact
+CALL FormatUtilities.getScaleForBaseCurrency -> ExceptionHandler.<init>(Context,Object) FormatUtilities.java:110 dispatch=exact
+CALL RecurringTransactionBootReceiver.onReceive -> RecurringTransactionBootReceiver.setAlarm RecurringTransactionBootReceiver.java:43 dispatch=exact
+CALL RecurringTransactionBootReceiver.setAlarm -> BehaviourSettings.getNotificationTime RecurringTransactionBootReceiver.java:60 dispatch=exact
+CALL RecurringTransactionBootReceiver.setAlarm -> BehaviourSettings.getNotificationRecurringTransaction RecurringTransactionBootReceiver.java:52 dispatch=exact
+CALL RecurringTransactionBootReceiver.setAlarm -> BehaviourSettings.<init> RecurringTransactionBootReceiver.java:50 dispatch=exact
+CALL ExceptionHandler$1.run -> ExceptionHandler.getLogcat ExceptionHandler.java:119 dispatch=exact
+CALL ScreenTree.log -> ErrorRaisedEvent.<init> ScreenTree.java:27 dispatch=exact
+CALL ExceptionHandler.e(Exception,String) -> ExceptionHandler.e(Throwable,String) ExceptionHandler.java:73 dispatch=exact
+CALL ExceptionHandler.e(Throwable,String) -> ExceptionHandler.showMessage(String) ExceptionHandler.java:82 dispatch=exact
+CALL ExceptionHandler.e(Throwable,String) -> ExceptionHandler.getLogcat ExceptionHandler.java:80 dispatch=exact
+CALL ExceptionHandler.e(Throwable,String) -> ExceptionHandler.getAppBuildNumber ExceptionHandler.java:79 dispatch=exact
+CALL ExceptionHandler.e(Throwable,String) -> ExceptionHandler.getAppVersion ExceptionHandler.java:79 dispatch=exact
+CALL ExceptionHandler.showMessage(String) -> ExceptionHandler.showMessage(String,int) ExceptionHandler.java:101 dispatch=exact
+CALL ExceptionHandler.showMessage(String,int) -> ExceptionHandler$1.<init> ExceptionHandler.java:114 dispatch=exact
+CALL ExceptionHandler.uncaughtException -> ExceptionHandler.sendEmail ExceptionHandler.java:182 dispatch=exact
+CALL ExceptionHandler.uncaughtException -> ExceptionHandler.getAppVersionInformation ExceptionHandler.java:138 dispatch=exact
+CALL ExceptionHandler.getAppVersionInformation -> ExceptionHandler.getAppBuildNumber ExceptionHandler.java:217 dispatch=exact
+CALL ExceptionHandler.getAppVersionInformation -> ExceptionHandler.getAppVersion ExceptionHandler.java:213 dispatch=exact
+CALL ExceptionHandler.getAppVersionInformation -> ExceptionHandler.getContext ExceptionHandler.java:209 dispatch=exact
+CALL ExceptionHandler.getAppVersion -> ExceptionHandler.getContext ExceptionHandler.java:228 dispatch=exact
+CALL ExceptionHandler.getAppBuildNumber -> ExceptionHandler.getContext ExceptionHandler.java:237 dispatch=exact
+CALL RecurringTransactionReceiver.onReceive -> RecurringTransactionIntentService.<clinit> RecurringTransactionReceiver.java:38 dispatch=exact
+CALL RecurringTransactionReceiver.onReceive -> PreferenceConstants.<clinit> RecurringTransactionReceiver.java:33 dispatch=exact
+CALL RecurringTransactionReceiver.onReceive -> RecurringTransactionIntentService.enqueueWork RecurringTransactionReceiver.java:38 dispatch=exact
+CALL RecurringTransactionIntentService.onHandleWork -> RecurringTransactionNotifications.notifyRepeatingTransaction RecurringTransactionIntentService.java:43 dispatch=exact
+CALL RecurringTransactionIntentService.onHandleWork -> RecurringTransactionNotifications.<init> RecurringTransactionIntentService.java:42 dispatch=exact
+CALL RecurringTransactionNotifications.notifyRepeatingTransaction -> RecurringTransactionNotifications.notifyRepeatingTransaction_Internal RecurringTransactionNotifications.java:54 dispatch=exact
+CALL RecurringTransactionNotifications.notifyRepeatingTransaction_Internal -> QueryBillDeposits.<clinit> RecurringTransactionNotifications.java:61 dispatch=exact
+CALL RecurringTransactionNotifications.notifyRepeatingTransaction_Internal -> RecurringTransactionNotifications.showNotification RecurringTransactionNotifications.java:77 dispatch=exact
+CALL RecurringTransactionNotifications.notifyRepeatingTransaction_Internal -> RecurringTransactionNotifications.getNotificationContent RecurringTransactionNotifications.java:76 dispatch=exact
+CALL RecurringTransactionNotifications.notifyRepeatingTransaction_Internal -> Dataset.getUri RecurringTransactionNotifications.java:68 dispatch=exact
+CALL RecurringTransactionNotifications.notifyRepeatingTransaction_Internal -> QueryBillDeposits.<init> RecurringTransactionNotifications.java:61 dispatch=exact
+CALL RecurringTransactionNotifications.showNotification -> RecurringTransactionNotifications.getContext RecurringTransactionNotifications.java:107 dispatch=exact
+CALL RecurringTransactionNotifications.showNotification -> NotificationUtils.createNotificationChannel RecurringTransactionNotifications.java:105 dispatch=exact
+CALL RecurringTransactionNotifications.getNotificationContent -> QueryBillDeposits.<clinit> RecurringTransactionNotifications.java:140 dispatch=exact
+CALL RecurringTransactionNotifications.getNotificationContent -> CurrencyService.getCurrencyFormatted RecurringTransactionNotifications.java:147 dispatch=exact
+CALL RecurringTransactionNotifications.getNotificationContent -> CurrencyService.<init> RecurringTransactionNotifications.java:137 dispatch=exact
+CALL RecurringTransactionNotifications.getNotificationContent -> SyncNotificationModel.<init> RecurringTransactionNotifications.java:133 dispatch=exact
+CALL RecurringTransactionListFragment.onContextItemSelected -> ExceptionHandler.showMessage(String) RecurringTransactionListFragment.java:186 dispatch=exact
+CALL RecurringTransactionListFragment.onContextItemSelected -> ExceptionHandler.<init>(Context,Object) RecurringTransactionListFragment.java:185 dispatch=exact
+FRAMEWORK RecurringTransactionBootReceiver.onReceive ['Timber.e']
+FRAMEWORK RecurringTransactionBootReceiver.setAlarm ['AlarmManager.cancel', 'AlarmManager.setRepeating', 'Calendar.add', 'Calendar.get', 'Calendar.getInstance', 'Calendar.getTimeInMillis', 'Calendar.set', 'Calendar.setTimeInMillis', 'Context.getSystemService', 'Integer.parseInt', 'Intent.<init>', 'PendingIntent.getBroadcast', 'String.substring', 'System.currentTimeMillis']
+FRAMEWORK ExceptionHandler$1.<init> ['Object.<init>']
+FRAMEWORK ExceptionHandler$1.run ['Exception.getMessage', 'Log.e', 'StringBuilder.<init>', 'StringBuilder.append', 'StringBuilder.toString', 'Toast.makeText', 'Toast.show']
+FRAMEWORK FileLoggingTree.<init> ['Timber$DebugTree.<init>']
+FRAMEWORK FileLoggingTree.log ['StringBuilder.<init>', 'StringBuilder.append', 'StringBuilder.toString', 'Throwable.getMessage', 'Timber$DebugTree.log']
+FRAMEWORK SysLogTree.<init> ['Timber$DebugTree.<init>']
+FRAMEWORK SysLogTree.log ['Log.println']
+FRAMEWORK ScreenTree.<init> ['Timber$DebugTree.<init>']
+FRAMEWORK ScreenTree.log ['EventBus.getDefault', 'EventBus.hasSubscriberForEvent', 'EventBus.post', 'String.split', 'StringBuilder.<init>', 'StringBuilder.append', 'StringBuilder.toString', 'Throwable.getMessage', 'Timber$DebugTree.log']
+FRAMEWORK ExceptionHandler.<init>(Context) ['Object.<init>']
+FRAMEWORK ExceptionHandler.<init>(Context,Object) ['Object.<init>']
+FRAMEWORK ExceptionHandler.e(Throwable,String) ['Log.e', 'String.format', 'StringBuilder.<init>', 'StringBuilder.append', 'StringBuilder.toString', 'Throwable.getLocalizedMessage', 'Throwable.printStackTrace']
+FRAMEWORK ExceptionHandler.getLogcat ['Class.getSimpleName', 'Object.getClass']
+FRAMEWORK ExceptionHandler.showMessage(String,int) ['Handler.<init>', 'Handler.post', 'Looper.getMainLooper']
+FRAMEWORK ExceptionHandler.uncaughtException ['PrintWriter.<init>', 'StringBuilder.<init>', 'StringBuilder.append', 'StringBuilder.toString', 'StringWriter.<init>', 'System.exit', 'Throwable.printStackTrace']
+FRAMEWORK ExceptionHandler.sendEmail ['Context.getString', 'Context.startActivity', 'Intent.<init>', 'Intent.createChooser', 'Intent.putExtra', 'Intent.setType']
+FRAMEWORK ExceptionHandler.getAppVersionInformation ['StringBuilder.<init>', 'StringBuilder.append', 'StringBuilder.toString']
+FRAMEWORK ExceptionHandler.getAppVersion ['Context.getPackageManager', 'Context.getPackageName', 'PackageManager.getPackageInfo']
+FRAMEWORK ExceptionHandler.getAppBuildNumber ['Context.getPackageManager', 'Context.getPackageName', 'Integer.toString', 'PackageManager.getPackageInfo']
+FRAMEWORK RecurringTransactionReceiver.<init> ['BroadcastReceiver.<init>']
+FRAMEWORK RecurringTransactionReceiver.onReceive ['Context.getString', 'Integer.intValue', 'Intent.<init>', 'PreferenceManager.getDefaultSharedPreferences', 'SharedPreferences.getBoolean']
+FRAMEWORK RecurringTransactionIntentService.<init> ['JobIntentService.<init>']
+FRAMEWORK RecurringTransactionIntentService.onHandleWork ['RecurringTransactionIntentService.getApplicationContext']
+FRAMEWORK RecurringTransactionIntentService.enqueueWork ['RecurringTransactionIntentService.enqueueWork']
+FRAMEWORK RecurringTransactionNotifications.<init> ['Context.getApplicationContext', 'Object.<init>']
+FRAMEWORK RecurringTransactionNotifications.notifyRepeatingTransaction ['Timber.e']
+FRAMEWORK RecurringTransactionNotifications.notifyRepeatingTransaction_Internal ['ContentResolver.query', 'Context.getContentResolver', 'Cursor.close', 'Cursor.getCount', 'StringBuilder.<init>', 'StringBuilder.append', 'StringBuilder.toString']
+FRAMEWORK RecurringTransactionNotifications.showNotification ['Context.getResources', 'Context.getString', 'Context.getSystemService', 'Intent.<init>', 'Intent.putExtra', 'NotificationCompat$Builder.<init>', 'NotificationCompat$Builder.build', 'NotificationCompat$Builder.setAutoCancel', 'NotificationCompat$Builder.setColor', 'NotificationCompat$Builder.setContentIntent', 'NotificationCompat$Builder.setContentText', 'NotificationCompat$Builder.setContentTitle', 'NotificationCompat$Builder.setDefaults', 'NotificationCompat$Builder.setNumber', 'NotificationCompat$Builder.setSmallIcon', 'NotificationCompat$Builder.setStyle', 'NotificationCompat$Builder.setSubText', 'NotificationCompat$Builder.setTicker', 'NotificationCompat$InboxStyle.<init>', 'NotificationCompat$InboxStyle.addLine', 'NotificationManager.cancel', 'NotificationManager.notify', 'PendingIntent.getActivity', 'Resources.getColor', 'Timber.e']
+FRAMEWORK RecurringTransactionNotifications.getNotificationContent ['Cursor.getColumnIndex', 'Cursor.getCount', 'Cursor.getDouble', 'Cursor.getInt', 'Cursor.getString', 'Cursor.moveToNext', 'Html.fromHtml', 'Integer.valueOf', 'MoneyFactory.fromDouble', 'Object.toString', 'StringBuilder.<init>', 'StringBuilder.append', 'StringBuilder.toString', 'TextUtils.isEmpty']

@@ -1,0 +1,96 @@
+METHOD: ProcessViewerFragment$CustomServiceConnection$1.<init>
+verdict: REACHABLE   steps_from_launch: 7
+route steps: 7 edges
+======================================================================
+
+STEP 1  edge E380fe171
+  S_ENTRY -> MainActivity.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC Activity.java onCreate lifecycle method
+  (no file:line citations in evidence)
+
+STEP 2  edge E804b4efa
+  MainActivity.onCreate -> ProcessViewerFragment.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainActivity.java:390: transaction.replace(R.id.content_frame, new ProcessViewerFragment(), KEY_INTENT_PROCESS_VIEWER);
+  cite [SRC] MainActivity.java:390
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/activities/MainActivity.java)
+      390:                         transaction.replace(R.id.content_frame, new ProcessViewerFragment(), KEY_INTENT_PROCESS_VIEWER);
+
+STEP 3  edge E3119bc2f
+  ProcessViewerFragment.<init> -> ProcessViewerFragment.onCreateView
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED FW-SRC
+  (no file:line citations in evidence)
+
+STEP 4  edge E1ade216d
+  ProcessViewerFragment.onCreateView -> ProcessViewerFragment.onActivityCreated
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED FW-SRC
+  (no file:line citations in evidence)
+
+STEP 5  edge Ef5ec4fc0
+  ProcessViewerFragment.onActivityCreated -> ProcessViewerFragment.onResume
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED FW-SRC
+  (no file:line citations in evidence)
+
+STEP 6  edge E5c30adbb
+  ProcessViewerFragment.onResume -> ProcessViewerFragment$CustomServiceConnection.onServiceConnected
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: bindService succeeds
+  evidence: INFERRED ProcessViewerFragment.java:159-171: onResume calls bindService 5 times with mCopyConnection, mExtractConnection, mCompressConnection, mEncryptConnection, mDecryptConnection; framework calls onServiceConnected when binding succeeds
+  cite [SRC] ProcessViewerFragment.java:159-171
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/fragments/ProcessViewerFragment.java)
+      159:         getActivity().bindService(intent, mCopyConnection, 0);
+      160: 
+      161:         Intent intent1 = new Intent(getActivity(), ExtractService.class);
+      162:         getActivity().bindService(intent1, mExtractConnection, 0);
+      163: 
+      164:         Intent intent2 = new Intent(getActivity(), ZipService.class);
+      165:         getActivity().bindService(intent2, mCompressConnection, 0);
+      166: 
+      167:         Intent intent3 = new Intent(getActivity(), EncryptService.class);
+      168:         getActivity().bindService(intent3, mEncryptConnection, 0);
+      169: 
+      170:         Intent intent4 = new Intent(getActivity(), DecryptService.class);
+      171:         getActivity().bindService(intent4, mDecryptConnection, 0);
+
+STEP 7  edge E91123cce
+  ProcessViewerFragment$CustomServiceConnection.onServiceConnected -> ProcessViewerFragment$CustomServiceConnection$1.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ProcessViewerFragment.java:413-424
+  cite [SRC] ProcessViewerFragment.java:413-424
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/fragments/ProcessViewerFragment.java)
+      413:             // animate the chart a little after initial values have been applied
+      414:             lineChart.animateXY(500, 500);
+      415: 
+      416:             specificService.setProgressListener(new AbstractProgressiveService.ProgressListener() {
+      417:                 @Override
+      418:                 public void onUpdate(final DatapointParcelable dataPackage) {
+      419:                     if (fragment.getActivity() == null) {
+      420:                         // callback called when we're not inside the app
+      421:                         return;
+      422:                     }
+      423:                     fragment.getActivity().runOnUiThread(() -> fragment.processResults(dataPackage, serviceType));
+      424:                 }

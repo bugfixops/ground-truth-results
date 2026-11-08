@@ -1,0 +1,226 @@
+## QuizActivity.getContentView  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=- state=data;session classes=explicit;standard explicit_standard_route=yes
+   1. Eddc920eb ENTRY/standard*
+      S_ENTRY -> AnyMemo.<init>
+      MAIN / LAUNCHER intent starts AnyMemo
+      evidence: SRC AndroidManifest.xml:23-46
+         23          <activity
+         24              android:name=".ui.AnyMemo"
+         25              android:label="@string/app_full_name"
+         26              android:theme="@style/AnyMemo.Theme.Dark.NoActionBar"
+         27              android:exported="true" >
+         28              <intent-filter>
+         29                  <action
+         30                      android:name="android.intent.action.MAIN" />
+         31                  <category
+         32                      android:name="android.intent.category.LAUNCHER" />
+         33              </intent-filter>
+         34              <intent-filter>
+         35                  <action android:name="android.intent.action.VIEW" />
+         36                  <category android:name="android.intent.category.DEFAULT" />
+      ...  (10 more lines)
+   2. Eda38ea0d LIFECYCLE/standard*
+      AnyMemo.<init> -> AnyMemo.onResume
+      Activity lifecycle / framework callback
+      evidence: FW-SRC core/java/android/app/Activity.java (Activity lifecycle callback dispatched by ActivityThread); SRC ui/AnyMemo.java:115-434
+      (core/java/android/app/Activity.java: no line numbers)
+        115      @Override
+        116      public void onCreate(Bundle savedInstanceState) {
+        117          activityComponents().inject(this);
+        118          super.onCreate(savedInstanceState);
+        119          disposables = new CompositeDisposable();
+        120  
+        121          binding = DataBindingUtil.setContentView(this, R.layout.main_tabs);
+        122  
+        123          // Request storage permission for API < 29
+        124          if (android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.Q) {
+        125              if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        126                      != PackageManager.PERMISSION_GRANTED) {
+        127                  ActivityCompat.requestPermissions(this,
+        128                          new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+      ...  (306 more lines)
+   3. E954353b1 ENTERS/page* [STATE: AnyMemo already finished loadUiComponents() once in this process]
+      AnyMemo.onResume -> S_MAIN_RECENT
+      isUiLoaded is already true (resumed, not a cold start): the last-selected tab is shown again
+      evidence: SRC ui/AnyMemo.java:145-162
+        145      @Override
+        146      public void onResume() {
+        147          super.onResume();
+        148          if (android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.Q) {
+        149              if (!isUiLoaded) {
+        150                  loadUiComponents();
+        151                  isUiLoaded = true;
+        152              }
+        153          } else {
+        154              if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        155                      == PackageManager.PERMISSION_GRANTED) {
+        156                  if (!isUiLoaded) {
+        157                      loadUiComponents();
+        158                      isUiLoaded = true;
+      ...  (4 more lines)
+   4. E6da90567 GUI/standard*
+      S_MAIN_RECENT -> AnyMemo$2.onNavigationItemSelected
+      Tap a bottom-navigation item (Recent / Open / Download / Misc)
+      evidence: INFERRED com.google.android.material (BottomNavigationView / NavigationView / FloatingActionButton / Snackbar) dispatches the listener registered on it, the same way a platform View dispatches a click (Material Components source not read); SRC ui/AnyMemo.java:234-261
+        234          binding.bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+        235              @Override
+        236              public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+        237  
+        238                  Fragment fragment = null;
+        239                  int itemId = menuItem.getItemId();
+        240                  if (itemId == R.id.recent_tab_menu) {
+        241                      fragment = new RecentListFragment();
+        242                  } else if (itemId == R.id.open_tab_menu) {
+        243                      fragment = new OpenTabFragment();
+        244                      Bundle args = new Bundle();
+        245                      args.putBoolean(FileBrowserFragment.EXTRA_SHOW_CREATE_DB_BUTTON, true);
+        246                      fragment.setArguments(args);
+        247                  } else if (itemId == R.id.download_tab_menu) {
+      ...  (14 more lines)
+   5. E4f26bf65 CALL/explicit*
+      AnyMemo$2.onNavigationItemSelected -> RecentListFragment.<init>
+      Direct call
+      evidence: SRC AnyMemo.java:241 (bytecode)
+        241                      fragment = new RecentListFragment();
+   6. Ea9c6da25 LIFECYCLE/standard*
+      RecentListFragment.<init> -> RecentListFragment.onCreateView
+      Fragment lifecycle callback
+      evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ui/RecentListFragment.java:127-226
+        127      @Override
+        128      public void onCreate(@Nullable Bundle savedInstanceState) {
+        129          super.onCreate(savedInstanceState);
+        130          fragmentComponents().inject(this);
+        131          disposables = new CompositeDisposable();
+        132      }
+        133  
+        134      @Override
+        135      public void onAttach(Context activity) {
+        136          super.onAttach(activity);
+        137          setHasOptionsMenu(true);
+        138          LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mClearSelectionReceiver,
+        139                  new IntentFilter(RecentListActionModeUtil.ACTION_DESELECT_ALL));
+        140          LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mRemoveSelectedReceiver,
+      ...  (86 more lines)
+   7. Ed5b3b07f FRAMEWORK/standard* [STATE: At least one entry exists in the recent-deck list (Recent tab is not empty)]
+      RecentListFragment.onCreateView -> RecentListFragment$RecentListAdapter$3.onClick
+      tap the "more" button on a recent-deck row
+      evidence: INFERRED a tapped/long-pressed View dispatches to the listener registered with setOnClickListener / setOnLongClickListener / setOnItemClickListener / setOnItemLongClickListener / setOnTouchListener / setOnCheckedChangeListener / addTextChangedListener / setOnFocusChangeListener / setOnSeekBarChangeListener (androidx widgets wrap the platform View/AdapterView dispatch; androidx source not read); SRC ui/RecentListFragment.java:442-452
+        442              holder.moreButton.setOnClickListener(new View.OnClickListener() {
+        443                  @Override
+        444                  public void onClick(View v) {
+        445                      String dbPath = currentItem.dbPath;
+        446                      DialogFragment df = new OpenActionsFragment();
+        447                      Bundle b = new Bundle();
+        448                      b.putString(OpenActionsFragment.EXTRA_DBPATH, dbPath);
+        449                      df.setArguments(b);
+        450                      df.show(((FragmentActivity) context).getSupportFragmentManager(), "OpenActions");
+        451                  }
+        452              });
+   8. E8c0f4635 ENTERS/page*
+      RecentListFragment$RecentListAdapter$3.onClick -> S_DLG_OPEN_ACTIONS
+      df.show(...)
+      evidence: SRC ui/RecentListFragment.java:450
+        450                      df.show(((FragmentActivity) context).getSupportFragmentManager(), "OpenActions");
+   9. Ef81b9220 GUI/standard*
+      S_DLG_OPEN_ACTIONS -> OpenActionsFragment$1.onClick
+      Tap "study" in the action sheet
+      evidence: INFERRED a tapped/long-pressed View dispatches to the listener registered with setOnClickListener / setOnLongClickListener / setOnItemClickListener / setOnItemLongClickListener / setOnTouchListener / setOnCheckedChangeListener / addTextChangedListener / setOnFocusChangeListener / setOnSeekBarChangeListener (androidx widgets wrap the platform View/AdapterView dispatch; androidx source not read); SRC ui/OpenActionsFragment.java:119-201
+        119      private View.OnClickListener buttonClickListener = new View.OnClickListener() {
+        120          public void onClick(View v) {
+        121              if (v == studyItem) {
+        122                  Intent myIntent = new Intent();
+        123                  myIntent.setClass(mActivity, StudyActivity.class);
+        124                  myIntent.putExtra(StudyActivity.EXTRA_DBPATH, dbPath);
+        125                  startActivity(myIntent);
+        126                  recentListUtil.addToRecentList(dbPath);
+        127              }
+        128  
+        129              if (v == editItem) {
+        130                  Intent myIntent = new Intent();
+        131                  myIntent.setClass(mActivity, PreviewEditActivity.class);
+        132                  myIntent.putExtra(PreviewEditActivity.EXTRA_DBPATH, dbPath);
+      ...  (69 more lines)
+  10. E3f930f99 ENTERS/page*
+      OpenActionsFragment$1.onClick -> S_DLG_QUIZ_LAUNCHER
+      v == quizItem
+      evidence: SRC ui/OpenActionsFragment.java:147-154
+        147              if (v == quizItem) {
+        148                  QuizLauncherDialogFragment df = new QuizLauncherDialogFragment();
+        149                  Bundle b = new Bundle();
+        150                  b.putString(CategoryEditorFragment.EXTRA_DBPATH, dbPath);
+        151                  df.setArguments(b);
+        152                  df.show(mActivity.getSupportFragmentManager(), "QuizLauncherDialog");
+        153                  recentListUtil.addToRecentList(dbPath);
+        154              }
+  11. E2966827d GUI/standard*
+      S_DLG_QUIZ_LAUNCHER -> QuizLauncherDialogFragment$2.onClick
+      Tap "Start quiz"
+      evidence: INFERRED a tapped/long-pressed View dispatches to the listener registered with setOnClickListener / setOnLongClickListener / setOnItemClickListener / setOnItemLongClickListener / setOnTouchListener / setOnCheckedChangeListener / addTextChangedListener / setOnFocusChangeListener / setOnSeekBarChangeListener (androidx widgets wrap the platform View/AdapterView dispatch; androidx source not read); SRC ui/QuizLauncherDialogFragment.java:148-150,231-268
+        148          startQuizButton = (Button) v.findViewById(R.id.start_quiz_button);
+        149  
+        150          startQuizButton.setOnClickListener(startQuizButtonOnClickListener);
+        231      private View.OnClickListener startQuizButtonOnClickListener = new View.OnClickListener() {
+        232          @Override
+        233          public void onClick(View v) {
+        234              if (quizByCategoryRadio.isChecked()) {
+        235                  Intent intent = new Intent(mActivity, QuizActivity.class);
+        236                  intent.putExtra(QuizActivity.EXTRA_DBPATH, dbPath);
+        237                  intent.putExtra(QuizActivity.EXTRA_CATEGORY_ID, categoryId);
+        238                  intent.putExtra(QuizActivity.EXTRA_SHUFFLE_CARDS, shuffleCheckbox.isChecked());
+        239                  startActivity(intent);
+        240              } else if(quizByRangeRadio.isChecked()) {
+        241              	Intent intent = new Intent(mActivity, QuizActivity.class);
+        242                  int startOrd = Integer.parseInt(quizRangeStartOrdinalEdit.getText().toString());
+        243                  int endOrd = Integer.parseInt(quizRangeEndOrdinalEdit.getText().toString());
+        244                  int size = endOrd - startOrd + 1;
+      ...  (24 more lines)
+  12. Eb3df63f7 ENTRY/standard*
+      QuizLauncherDialogFragment$2.onClick -> QuizActivity.<init>
+      startActivity(QuizActivity) for the chosen group/category/range
+      evidence: SRC ui/QuizLauncherDialogFragment.java:233-266
+        233          public void onClick(View v) {
+        234              if (quizByCategoryRadio.isChecked()) {
+        235                  Intent intent = new Intent(mActivity, QuizActivity.class);
+        236                  intent.putExtra(QuizActivity.EXTRA_DBPATH, dbPath);
+        237                  intent.putExtra(QuizActivity.EXTRA_CATEGORY_ID, categoryId);
+        238                  intent.putExtra(QuizActivity.EXTRA_SHUFFLE_CARDS, shuffleCheckbox.isChecked());
+        239                  startActivity(intent);
+        240              } else if(quizByRangeRadio.isChecked()) {
+        241              	Intent intent = new Intent(mActivity, QuizActivity.class);
+        242                  int startOrd = Integer.parseInt(quizRangeStartOrdinalEdit.getText().toString());
+        243                  int endOrd = Integer.parseInt(quizRangeEndOrdinalEdit.getText().toString());
+        244                  int size = endOrd - startOrd + 1;
+        245  
+        246                  amPrefUtil.putSavedInt(AMPrefKeys.QUIZ_START_ORDINAL_KEY, dbPath, rangeStartOrdinal);
+      ...  (20 more lines)
+  13. E8ca92427 LIFECYCLE/standard*
+      QuizActivity.<init> -> QuizActivity.onCreate
+      Activity lifecycle / framework callback
+      evidence: FW-SRC core/java/android/app/Activity.java (Activity lifecycle callback dispatched by ActivityThread); SRC ui/QuizActivity.java:86-164
+      (core/java/android/app/Activity.java: no line numbers)
+         86      @Override
+         87      public int getContentView() {
+         88          return R.layout.qa_card_layout_study;
+         89      }
+         90  
+         91      @Override
+         92      public void onPostInit() {
+         93          super.onPostInit();
+         94          setting = getSetting();
+         95          option = getOption();
+         96  
+         97          createQueue();
+         98  
+         99          // Keep track the initial total quiz size.
+      ...  (65 more lines)
+  14. E7bd1e692 CALL/explicit*
+      QuizActivity.onCreate -> QACardActivity.onCreate@QuizActivity
+      Direct call
+      evidence: SRC QuizActivity.java:121 (bytecode)
+        121          super.onCreate(savedInstanceState);
+  15. E6f8e5f8b CALL/explicit*
+      QACardActivity.onCreate@QuizActivity -> QuizActivity.getContentView
+      Direct call
+      evidence: SRC QACardActivity.java:140 (bytecode)
+        140          setContentView(getContentView());
+

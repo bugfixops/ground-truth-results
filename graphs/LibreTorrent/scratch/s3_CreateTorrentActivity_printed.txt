@@ -1,0 +1,140 @@
+     1	/*
+     2	 * Copyright (C) 2019-2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.createtorrent;
+    21	
+    22	import android.content.Intent;
+    23	import android.os.Bundle;
+    24	
+    25	import androidx.annotation.NonNull;
+    26	import androidx.annotation.Nullable;
+    27	import androidx.appcompat.app.AppCompatActivity;
+    28	import androidx.fragment.app.Fragment;
+    29	import androidx.fragment.app.FragmentManager;
+    30	import androidx.fragment.app.FragmentTransaction;
+    31	import androidx.lifecycle.ViewModelProvider;
+    32	
+    33	import org.proninyaroslav.libretorrent.core.utils.Utils;
+    34	import org.proninyaroslav.libretorrent.ui.BaseAlertDialog;
+    35	import org.proninyaroslav.libretorrent.ui.FragmentCallback;
+    36	import org.proninyaroslav.libretorrent.ui.PermissionDeniedDialog;
+    37	import org.proninyaroslav.libretorrent.ui.PermissionManager;
+    38	
+    39	import io.reactivex.disposables.CompositeDisposable;
+    40	import io.reactivex.disposables.Disposable;
+    41	
+    42	public class CreateTorrentActivity extends AppCompatActivity
+    43	    implements FragmentCallback
+    44	{
+    45	    private static final String TAG_CREATE_TORRENT_DIALOG = "create_torrent_dialog";
+    46	    private static final String TAG_PERM_DENIED_DIALOG = "perm_denied_dialog";
+    47	
+    48	    private CreateTorrentDialog createTorrentDialog;
+    49	    private PermissionDeniedDialog permDeniedDialog;
+    50	    private BaseAlertDialog.SharedViewModel dialogViewModel;
+    51	    private CompositeDisposable disposable = new CompositeDisposable();
+    52	    private PermissionManager permissionManager;
+    53	
+    54	    @Override
+    55	    public void onCreate(@Nullable Bundle savedInstanceState)
+    56	    {
+    57	        setTheme(Utils.getTranslucentAppTheme(getApplicationContext()));
+    58	        super.onCreate(savedInstanceState);
+    59	
+    60	        ViewModelProvider provider = new ViewModelProvider(this);
+    61	        dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+    62	
+    63	        FragmentManager fm = getSupportFragmentManager();
+    64	        permissionManager = new PermissionManager(this, new PermissionManager.Callback() {
+    65	            @Override
+    66	            public void onStorageResult(boolean isGranted, boolean shouldRequestStoragePermission) {
+    67	                if (!isGranted && shouldRequestStoragePermission) {
+    68	                    if (fm.findFragmentByTag(TAG_PERM_DENIED_DIALOG) == null) {
+    69	                        permDeniedDialog = PermissionDeniedDialog.newInstance();
+    70	                        FragmentTransaction ft = fm.beginTransaction();
+    71	                        ft.add(permDeniedDialog, TAG_PERM_DENIED_DIALOG);
+    72	                        ft.commitAllowingStateLoss();
+    73	                    }
+    74	                }
+    75	            }
+    76	
+    77	            @Override
+    78	            public void onNotificationResult(boolean isGranted, boolean shouldRequestNotificationPermission) {
+    79	                permissionManager.setDoNotAskNotifications(!isGranted);
+    80	            }
+    81	        });
+    82	
+    83	        createTorrentDialog = (CreateTorrentDialog)fm.findFragmentByTag(TAG_CREATE_TORRENT_DIALOG);
+    84	        if (createTorrentDialog == null) {
+    85	            createTorrentDialog = CreateTorrentDialog.newInstance();
+    86	            createTorrentDialog.show(fm, TAG_CREATE_TORRENT_DIALOG);
+    87	        }
+    88	
+    89	        if (!permissionManager.checkPermissions() && permDeniedDialog == null) {
+    90	            permissionManager.requestPermissions();
+    91	        }
+    92	        Utils.showManageAllFilesWarningDialog(getApplicationContext(), getSupportFragmentManager());
+    93	    }
+    94	
+    95	    @Override
+    96	    public void onStart() {
+    97	        super.onStart();
+    98	
+    99	        subscribeAlertDialog();
+   100	    }
+   101	
+   102	    @Override
+   103	    protected void onStop() {
+   104	        super.onStop();
+   105	
+   106	        disposable.clear();
+   107	    }
+   108	
+   109	    private void subscribeAlertDialog() {
+   110	        Disposable d = dialogViewModel.observeEvents().subscribe(event -> {
+   111	            if (event.dialogTag == null) {
+   112	                return;
+   113	            }
+   114	            if (event.dialogTag.equals(TAG_PERM_DENIED_DIALOG)) {
+   115	                if (event.type != BaseAlertDialog.EventType.DIALOG_SHOWN) {
+   116	                    permDeniedDialog.dismiss();
+   117	                }
+   118	                if (event.type == BaseAlertDialog.EventType.NEGATIVE_BUTTON_CLICKED) {
+   119	                    permissionManager.requestPermissions();
+   120	                }
+   121	                if (event.type == BaseAlertDialog.EventType.POSITIVE_BUTTON_CLICKED) {
+   122	                    permissionManager.setDoNotAskStorage(true);
+   123	                }
+   124	            }
+   125	        });
+   126	        disposable.add(d);
+   127	    }
+   128	
+   129	    @Override
+   130	    public void onFragmentFinished(@NonNull Fragment f, Intent intent, @NonNull ResultCode code)
+   131	    {
+   132	        finish();
+   133	    }
+   134	
+   135	    @Override
+   136	    public void onBackPressed()
+   137	    {
+   138	        createTorrentDialog.onBackPressed();
+   139	    }
+   140	}

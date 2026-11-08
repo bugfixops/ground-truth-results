@@ -1,0 +1,4 @@
+# L1 verdicts — batch 82 (hashCode/toString, D30 execution)
+Scope key: see batch3.md header (same greps/L1/ set).
+| batch/row | method | old label | NEW label | confirmed_by | evidence (file:line or grep path) | revert condition |
+| 82/13 | DownloadableFileItem.toString ()String | OPEN | UNREACHABLE | INFERRED | Def ui/addtorrent/DownloadableFileItem.java:79-85. Zero outside trigger in grep_all_calls.txt, grep_log_concat.txt, grep_getstring_formatargs.txt, grep_databinding_text.txt, grep_layout_types.txt; DownloadableFilesAdapter bind uses item.name/isFile fields only; fragment onItemClicked/onItemCheckedChanged use fields only. Its body super.toString() (:82) is a trigger for FileItem.toString (73/32), not for this row. Its UNREACHABLE status removes one host of 73/32 | Any printed trigger flips to REACHABLE |

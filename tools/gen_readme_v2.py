@@ -75,7 +75,7 @@ def main(argv):
     L.append('| File | What it is |')
     L.append('|---|---|')
     L.append('| `%s_trigger_graph.json` | pages, methods, `verdict`, `labels` (per-method fields), `edges` (with `edge_class`, `env_kinds`, `state_kinds`, stable ids), `paths` (verified paths only), `verification` (counts) |' % prefix)
-    L.append('| `methods.csv` | one row per method: verdict, UNREACHABLE reason, ENV and STATE kinds and texts, edge classes on the best route, whether an explicit/standard-only route exists, how the label was confirmed, path status, and the derived best route (`shortest_path`, `route_edge_ids`) |')
+    L.append('| `methods.csv` | one row per method: verdict, UNREACHABLE reason, ENV and STATE kinds and texts, edge classes on the best route, whether an explicit/standard-only route exists, how the label was confirmed, path status, the derived best route (`shortest_path`, `route_edge_ids`), and the full JVM class and descriptor (`jvm_class`, `jvm_descriptor`; the `method` key adds a package prefix only where simple class names clash) |')
     L.append('| `../verification.csv` | the audit log: one row per label, edge or path that was checked, with result, how, and where (file:line) |')
     L.append('| `sanity_check.csv` | tool coverage (Monkey / APE, API 27) next to the labels; a one-way check only, it never sets a label |')
     L.append('| `%s_trigger_graph.html`, `build_report.txt` | the viewer and the validation report |' % prefix)
@@ -88,7 +88,8 @@ def main(argv):
         ', '.join('%s %d' % kv for kv in sorted(env_k.items())) or 'none', ', '.join('%s %d' % kv for kv in sorted(state_k.items())) or 'none',
         sum(1 for r in reach if not r['env_kinds'] and not r['state_kinds'])))
     L.append('- Edge classes: %s. Non-standard edges: %d%s.' % (', '.join('%s %d' % kv for kv in sorted(cls.items())), len(nonstd),
-                                                              ' (' + '; '.join(sorted({x['via'] for x in nonstd if x['via']}))[:300] + ')' if nonstd else ''))
+                                                              ' (' + '; '.join(sorted({'; '.join(v) if isinstance(v, list) else v
+                                                                                        for v in (x['via'] for x in nonstd) if v}))[:300] + ')' if nonstd else ''))
     L.append('- %d reachable methods have a non-standard edge on their best route; %d have no explicit-or-standard-only route at all.' % (len(nonstd_route), len(no_es)))
     L.append('- Labels confirmed by: %s (SOURCE: every edge of the best route cites a source line, in the app or in the Android 8.1 / library source; INFERRED: some edge rests on inference or on another app).' % ', '.join('%s %d' % kv for kv in sorted(conf.items())))
     L.append('')
@@ -102,6 +103,12 @@ def main(argv):
         for t, name in (('label', 'labels'), ('edge', 'edges (framework and other claims read against source)'), ('path', 'paths (stratified sample, read step by step)')):
             v = ver[t]
             L.append('| %s | %d | %d | %d | %d |' % (name, v['checked'] + v['unclear'], v['correct'], v['errors_found'], v['unclear']))
+        dv = ver.get('device')
+        if dv:
+            L.append('')
+            L.append('Device replay on the emulator (API 27): %d of %d routes reached their target method; %d of these ran the '
+                     'whole script and are `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or '
+                     'unscriptable), never wrong; see `../device/results.csv`.' % (dv['reached'], dv['routes'], dv['reached_script_finished']))
         L.append('')
         L.append('Path status over all reachable methods: %s.' % ', '.join('%s %d' % kv for kv in sorted(pstat.items())))
         L.append('The rows are the items that were individually checked, not a random sample of all labels; see the notes below for how they were chosen and what the unclear rows wait for.')

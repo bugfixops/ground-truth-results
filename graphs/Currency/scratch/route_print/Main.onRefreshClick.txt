@@ -1,0 +1,43 @@
+## Main.onRefreshClick  REACHABLE  confirmed_by=SOURCE path=SOURCE_OK
+   env=- state=- classes=explicit;standard explicit_standard_route=yes
+   1. E012ed474 ENTRY/standard*
+      S_ENTRY -> Main.<init>
+      Tap the Currency icon in the launcher (MAIN/LAUNCHER intent filter)
+      note: The other external entry is the home-screen widget (CurrencyWidgetConfigure / CurrencyWidgetProvider are exported)
+      evidence: SRC AndroidManifest.xml:19-24
+         19          android:name="Main"
+         20          android:exported="true"
+         21          android:windowSoftInputMode="stateHidden">
+         22        <intent-filter>
+         23          <action android:name="android.intent.action.MAIN" />
+         24          <category android:name="android.intent.category.LAUNCHER" />
+   2. Ee88066da LIFECYCLE/standard*
+      Main.<init> -> Main.onCreate
+      The system instantiates Main, then calls onCreate
+      evidence: SRC Main.java:242
+        242      public void onCreate(Bundle savedInstanceState)
+   3. Ef071a802 LIFECYCLE/standard*
+      Main.onCreate -> Main.onResume
+      onStart -> onResume
+      evidence: SRC Main.java:369
+        369      protected void onResume()
+   4. E4dd486ed ENTERS/page*
+      Main.onResume -> S_MAIN_DISPLAY
+      Main becomes visible
+      guard: mode == DISPLAY_MODE (no selection kept)
+      evidence: SRC Main.java:351-352
+        351          if (selectList.isEmpty())
+        352              mode = Main.DISPLAY_MODE;
+   5. Efc50320e GUI/standard*
+      S_MAIN_DISPLAY -> Main.onOptionsItemSelected@DISPLAY
+      Tap a menu item in the action bar
+      guard: menu main.xml: action_add / action_refresh / action_update
+      evidence: SRC res/menu/main.xml; Main.java:770
+      (res/menu/main.xml: no line numbers)
+   6. Edfe4fcf5 CALL/explicit*
+      Main.onOptionsItemSelected@DISPLAY -> Main.onRefreshClick
+      switch case R.id.action_refresh
+      evidence: SRC Main.java:781-782
+        781          case R.id.action_refresh:
+        782              return onRefreshClick();
+

@@ -1,0 +1,84 @@
+     1	/*
+     2	 * Copyright (C) 2016, 2019 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * Licensed under the Apache License, Version 2.0 (the "License");
+     5	 * you may not use this file except in compliance with the License.
+     6	 * You may obtain a copy of the License at
+     7	 *
+     8	 *     http://www.apache.org/licenses/LICENSE-2.0
+     9	 *
+    10	 * Unless required by applicable law or agreed to in writing, software
+    11	 * distributed under the License is distributed on an "AS IS" BASIS,
+    12	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    13	 * See the License for the specific language governing permissions and
+    14	 * limitations under the License.
+    15	 */
+    16	
+    17	package org.proninyaroslav.libretorrent.ui.errorreport;
+    18	
+    19	import android.app.Dialog;
+    20	import android.os.Bundle;
+    21	import android.view.LayoutInflater;
+    22	import android.view.View;
+    23	
+    24	import androidx.annotation.NonNull;
+    25	import androidx.databinding.DataBindingUtil;
+    26	
+    27	import org.proninyaroslav.libretorrent.R;
+    28	import org.proninyaroslav.libretorrent.databinding.DialogErrorBinding;
+    29	import org.proninyaroslav.libretorrent.ui.BaseAlertDialog;
+    30	
+    31	public class ErrorReportDialog extends BaseAlertDialog
+    32	{
+    33	    private static final String TAG = ErrorReportDialog.class.getSimpleName();
+    34	
+    35	    protected static final String TAG_DETAIL_ERROR = "detail_error";
+    36	
+    37	    /* In the absence of any parameter need set 0 or null */
+    38	
+    39	    public static ErrorReportDialog newInstance(String title, String message,
+    40	                                                String detailError)
+    41	    {
+    42	        ErrorReportDialog frag = new ErrorReportDialog();
+    43	
+    44	        Bundle args = new Bundle();
+    45	        args.putString(TAG_TITLE, title);
+    46	        args.putString(TAG_MESSAGE, message);
+    47	        args.putString(TAG_DETAIL_ERROR, detailError);
+    48	
+    49	        frag.setArguments(args);
+    50	
+    51	        return frag;
+    52	    }
+    53	
+    54	    @NonNull
+    55	    @Override
+    56	    public Dialog onCreateDialog(Bundle savedInstanceState)
+    57	    {
+    58	        super.onCreateDialog(savedInstanceState);
+    59	
+    60	        Bundle args = getArguments();
+    61	        String title = args.getString(TAG_TITLE);
+    62	        String message = args.getString(TAG_MESSAGE);
+    63	        String positiveText = getString(R.string.report);
+    64	        String negativeText = getString(R.string.cancel);
+    65	        String detailError = args.getString(TAG_DETAIL_ERROR);
+    66	
+    67	        LayoutInflater i = LayoutInflater.from(getActivity());
+    68	        DialogErrorBinding binding = DataBindingUtil.inflate(i, R.layout.dialog_error, null, false);
+    69	        binding.setDetailError(detailError);
+    70	
+    71	        initLayoutView(binding);
+    72	
+    73	        return buildDialog(title, message, binding.getRoot(),
+    74	                positiveText, negativeText, null, false);
+    75	    }
+    76	
+    77	    private void initLayoutView(DialogErrorBinding binding)
+    78	    {
+    79	        binding.expansionHeader.setOnClickListener((View view) -> {
+    80	            binding.expandableLayout.toggle();
+    81	            binding.expansionHeader.toggleExpand();
+    82	        });
+    83	    }
+    84	}

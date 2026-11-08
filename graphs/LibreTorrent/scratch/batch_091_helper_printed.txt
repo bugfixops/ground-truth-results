@@ -1,0 +1,27 @@
+# Batch 91 printed evidence
+
+Plan:
+```sh
+awk -F '\\t' '$1==91 {print $3 "\\t" $4}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+```
+Result: 40 exact rows; full descriptors in the report table.
+
+Bounded source scans:
+```sh
+rg -n 'onStart|onStop|showChooseDirDialog|showEditNameDialog|showOpenDirErrorDialog|subscribeAlertDialog|subscribeTags|onAddTagClick|onTagRemoved|afterTextChanged|beforeTextChanged|onTextChanged' .../pages/DetailTorrentInfoFragment.java
+rg -n 'newInstance|onAttach|onCreateView|onViewCreated' .../pages/DetailTorrentStateFragment.java
+rg -n 'changePriority|handleOpenFileError|initPriorityDialog|onItemClicked|subscribeAdapter|subscribeAlertDialog|newInstance|onAttach|onCreateView|onDetach' .../pages/files/DetailTorrentFilesFragment.java
+```
+Key printed output read:
+```
+DetailTorrentInfoFragment.java:110-111 click listeners; :125 error dialog; :149 onAddTagClick; :169 onTagRemoved
+:177 subscribeTags; :185 showChooseDirDialog; :197 onStart; :200 subscriptions; :205 onStop
+:211 subscribeAlertDialog; :240 error dialog; :275 edit-name dialog; :311-319 TextWatcher methods
+DetailTorrentStateFragment.java:43 class; :51 newInstance; :62 onAttach; :71 onCreateView; :79 onViewCreated
+DetailTorrentFilesFragment.java:101 newInstance; :112 onCreateView; :120 onAttach; :129 onDetach
+:150 adapter/dialog subscriptions; :154 subscribeAdapter; :170 subscribeAlertDialog
+:333 onItemClicked; :345 error callback; :423 priority dialog; :436 initPriorityDialog
+:477 changePriority; :535 handleOpenFileError
+```
+The printed local calls do not show full host-fragment routing and all guards. All 40 remain OPEN.
+

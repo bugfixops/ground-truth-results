@@ -1,0 +1,870 @@
+$ A3 part converter prints for batch 21 (LibreTorrent 3.5.2)
+$ Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/LogEntry.java" | sed -n '103,113p'
+103:    public String toStringWithTimeStamp()
+104:    {
+105:        return getTimeStampAsString() + " " + toString();
+106:    }
+107:
+108:    @NonNull
+109:    @Override
+110:    public String toString()
+111:    {
+112:        return "[" + tag + "] " + msg;
+113:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java" | sed -n '57,92p'
+57:    public Logger(int maxStoredLogs)
+58:    {
+59:        if (maxStoredLogs <= 0)
+60:            throw new IllegalArgumentException("Maximum stored logs must be greater than 0");
+61:
+62:        this.maxStoredLogs = maxStoredLogs;
+63:    }
+64:
+65:    private FixedRingBuffer<LogEntry> lazyGetInputBuf()
+66:    {
+67:        if (inputBuf == null)
+68:            inputBuf = new FixedRingBuffer<>(calcInitBufCapacity(maxStoredLogs), maxStoredLogs);
+69:
+70:        if (pendingThread == null) {
+71:            pendingThread = new Thread(this::periodicSwapBuffers);
+72:            pendingThread.start();
+73:
+74:        } else if (!pendingThread.isAlive()) {
+75:            try {
+76:                pendingThread.start();
+77:
+78:            } catch (IllegalThreadStateException e) {
+79:                /* Already started, ignore */
+80:            }
+81:        }
+82:
+83:        return inputBuf;
+84:    }
+85:
+86:    private FixedRingBuffer<LogEntry> lazyGetOutputBuf()
+87:    {
+88:        if (outputBuf == null)
+89:            outputBuf = new FixedRingBuffer<>(calcInitBufCapacity(maxStoredLogs), maxStoredLogs);
+90:
+91:        return outputBuf;
+92:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java" | sed -n '94,111p'
+94:    private int calcInitBufCapacity(int capacity)
+95:    {
+96:        return (int) Math.floor(capacity / 2.0);
+97:    }
+98:
+99:    protected void send(@NonNull LogEntry entry)
+100:    {
+101:        logLock.lock();
+102:
+103:        try {
+104:            lazyGetInputBuf().add(entry);
+105:            if (numPendingLogs < maxStoredLogs)
+106:                numPendingLogs++;
+107:
+108:        } finally {
+109:            logLock.unlock();
+110:        }
+111:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java" | sed -n '113,137p'
+113:    private void periodicSwapBuffers()
+114:    {
+115:        while (!Thread.interrupted()) {
+116:            if (!paused) {
+117:                if (logLock.tryLock()) {
+118:                    try {
+119:                        if (Thread.interrupted())
+120:                            break;
+121:
+122:                        swapBuffers();
+123:
+124:                    } finally {
+125:                        logLock.unlock();
+126:                    }
+127:                }
+128:            }
+129:
+130:            try {
+131:                Thread.sleep(POLL_TIME_INTERVAL);
+132:
+133:            } catch (InterruptedException e) {
+134:                break;
+135:            }
+136:        }
+137:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java" | sed -n '139,166p'
+139:    private void swapBuffers()
+140:    {
+141:        if (numPendingLogs == 0)
+142:            return;
+143:
+144:        FixedRingBuffer<LogEntry> inputBuf = lazyGetInputBuf();
+145:        if (inputBuf.isEmpty())
+146:            return;
+147:        FixedRingBuffer<LogEntry> outputBuf = lazyGetOutputBuf();
+148:
+149:        ArrayList<LogEntry> newEntries = new ArrayList<>(numPendingLogs);
+150:        int size = inputBuf.size();
+151:        for (int i = size - numPendingLogs; i < size; i++) {
+152:            LogEntry entry = applyFilters(inputBuf.get(i));
+153:            if (entry != null) {
+154:                outputBuf.add(entry);
+155:                newEntries.add(entry);
+156:
+157:                /* Move old position back */
+158:                if (recording && recordStartIndex > 0)
+159:                    recordStartIndex--;
+160:            }
+161:        }
+162:        numPendingLogs = 0;
+163:
+164:        if (!newEntries.isEmpty())
+165:            submitDataSetChanged(new DataSetChange(DataSetChange.Reason.NEW_ENTRIES, newEntries));
+166:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java" | sed -n '168,200p'
+168:    private void submitDataSetChanged(DataSetChange change)
+169:    {
+170:        sender.submit(() -> dataSetChangedPublish.onNext(change));
+171:    }
+172:
+173:    /*
+174:     * Set the maximum number of stored log entries in memory
+175:     */
+176:
+177:    public void setMaxStoredLogs(int max)
+178:    {
+179:        logLock.lock();
+180:
+181:        try {
+182:            doClean();
+183:            maxStoredLogs = max;
+184:
+185:        } finally {
+186:            logLock.unlock();
+187:        }
+188:    }
+189:
+190:    public int getMaxStoredLogs()
+191:    {
+192:        logLock.lock();
+193:
+194:        try {
+195:            return maxStoredLogs;
+196:
+197:        } finally {
+198:            logLock.unlock();
+199:        }
+200:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java" | sed -n '202,262p'
+202:    public void addFilter(@NonNull NewFilter... filters)
+203:    {
+204:        logLock.lock();
+205:
+206:        try {
+207:            int addedFilters = 0;
+208:            for (NewFilter filter : filters) {
+209:                if (filter == null)
+210:                    continue;
+211:
+212:                this.filters.put(filter.name, filter.filter);
+213:                addedFilters++;
+214:            }
+215:            if (addedFilters > 0)
+216:                forceFilterBuf();
+217:
+218:        } finally {
+219:            logLock.unlock();
+220:        }
+221:    }
+222:
+223:    public void removeFilter(@NonNull String... filterNames)
+224:    {
+225:        logLock.lock();
+226:
+227:        try {
+228:            int removedFilters = 0;
+229:            for (String name : filterNames) {
+230:                if (name == null)
+231:                    continue;
+232:
+233:                if (filters.remove(name) != null)
+234:                    removedFilters++;
+235:            }
+236:            if (removedFilters > 0)
+237:                forceFilterBuf();
+238:
+239:        } finally {
+240:            logLock.unlock();
+241:        }
+242:    }
+243:
+244:    private void forceFilterBuf()
+245:    {
+246:        FixedRingBuffer<LogEntry> inputBuf = lazyGetInputBuf();
+247:        FixedRingBuffer<LogEntry> outputBuf = lazyGetOutputBuf();
+248:
+249:        outputBuf.clear();
+250:        for (LogEntry entry : inputBuf) {
+251:            entry = applyFilters(entry);
+252:            if (entry != null)
+253:                outputBuf.add(entry);
+254:        }
+255:
+256:        submitDataSetChanged(new DataSetChange(DataSetChange.Reason.FILTER));
+257:    }
+258:
+259:    public Observable<DataSetChange> observeDataSetChanged()
+260:    {
+261:        return dataSetChangedPublish;
+262:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java" | sed -n '271,298p'
+271:    public List<LogEntry> getEntries(int startPos, int maxSize)
+272:    {
+273:        logLock.lock();
+274:
+275:        try {
+276:            if (startPos < 0 || startPos >= maxStoredLogs)
+277:                throw new IllegalArgumentException("Invalid start position = " + startPos);
+278:            if (maxSize < 0)
+279:                throw new IllegalArgumentException("Size must be greater than 0");
+280:
+281:            FixedRingBuffer<LogEntry> outputBuf = lazyGetOutputBuf();
+282:            swapBuffers();
+283:
+284:            ArrayList<LogEntry> res = new ArrayList<>(maxSize);
+285:            int endPos = startPos + maxSize;
+286:            for (int i = startPos; i < endPos; i++) {
+287:                if (i >= outputBuf.size())
+288:                    continue;
+289:
+290:                res.add(outputBuf.get(i));
+291:            }
+292:
+293:            return res;
+294:
+295:        } finally {
+296:            logLock.unlock();
+297:        }
+298:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java" | sed -n '319,327p'
+319:    private LogEntry applyFilters(LogEntry entry)
+320:    {
+321:        for (LogFilter f : filters.values()) {
+322:            if (!f.apply(entry))
+323:                return null;
+324:        }
+325:
+326:        return entry;
+327:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java" | sed -n '329,355p'
+329:    public void startRecording()
+330:    {
+331:        logLock.lock();
+332:
+333:        try {
+334:            swapBuffers();
+335:
+336:            recording = true;
+337:            int size = lazyGetOutputBuf().size();
+338:            recordStartIndex = (size > 0 ? size - 1 : 0);
+339:
+340:        } finally {
+341:            logLock.unlock();
+342:        }
+343:    }
+344:
+345:    public boolean isRecording()
+346:    {
+347:        logLock.lock();
+348:
+349:        try {
+350:            return recording;
+351:
+352:        } finally {
+353:            logLock.unlock();
+354:        }
+355:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java" | sed -n '362,398p'
+362:    public int stopRecording()
+363:    {
+364:        return stopRecording(null, false);
+365:    }
+366:
+367:    public int stopRecording(@Nullable OutputStream os)
+368:    {
+369:        return stopRecording(os, false);
+370:    }
+371:
+372:    public int stopRecording(@Nullable OutputStream os, boolean timeStamp)
+373:    {
+374:        logLock.lock();
+375:
+376:        try {
+377:            int count = 0;
+378:
+379:            if (os != null) {
+380:                swapBuffers();
+381:
+382:                if (recordStartIndex < 0)
+383:                    return count;
+384:
+385:                FixedRingBuffer<LogEntry> outputBuf = lazyGetOutputBuf();
+386:
+387:                return write(outputBuf, os, recordStartIndex, outputBuf.size() - 1, timeStamp);
+388:            }
+389:
+390:            return count;
+391:
+392:        } finally {
+393:            recording = false;
+394:            recordStartIndex = -1;
+395:
+396:            logLock.unlock();
+397:        }
+398:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java" | sed -n '405,443p'
+405:    public int write(@NonNull OutputStream os)
+406:    {
+407:        return write(os, false);
+408:    }
+409:
+410:    public int write(@NonNull OutputStream os, boolean timeStamp)
+411:    {
+412:        logLock.lock();
+413:
+414:        try {
+415:            swapBuffers();
+416:            FixedRingBuffer<LogEntry> outputBuf = lazyGetOutputBuf();
+417:
+418:            return write(outputBuf, os, 0, outputBuf.size() - 1, timeStamp);
+419:
+420:        } finally {
+421:            logLock.unlock();
+422:        }
+423:    }
+424:
+425:    private int write(FixedRingBuffer<LogEntry> buf, OutputStream os,
+426:                      int startPos, int endPos, boolean timeStamp)
+427:    {
+428:        if (startPos < 0)
+429:            throw new IllegalArgumentException("startPos < 0");
+430:
+431:        int count = 0;
+432:
+433:        PrintStream printStream = new PrintStream(os, true);
+434:
+435:        for (int i = startPos; i <= endPos; i++) {
+436:            LogEntry entry = buf.get(i);
+437:            printStream.println(timeStamp ? entry.toStringWithTimeStamp() : entry.toString());
+438:            if (!printStream.checkError())
+439:                count++;
+440:        }
+441:
+442:        return count;
+443:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java" | sed -n '445,473p'
+445:    public int getNumEntries()
+446:    {
+447:        logLock.lock();
+448:
+449:        try {
+450:            FixedRingBuffer<LogEntry> outputBuf = lazyGetOutputBuf();
+451:            swapBuffers();
+452:
+453:            return outputBuf.size();
+454:
+455:        } finally {
+456:            logLock.unlock();
+457:        }
+458:    }
+459:
+460:    public void pause()
+461:    {
+462:        paused = true;
+463:    }
+464:
+465:    public void resume()
+466:    {
+467:        paused = false;
+468:    }
+469:
+470:    public boolean isPaused()
+471:    {
+472:        return paused;
+473:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java" | sed -n '475,499p'
+475:    public void clean()
+476:    {
+477:        logLock.lock();
+478:
+479:        try {
+480:            doClean();
+481:
+482:        } finally {
+483:            logLock.unlock();
+484:        }
+485:    }
+486:
+487:    private void doClean()
+488:    {
+489:        if (pendingThread != null)
+490:            pendingThread.interrupt();
+491:        pendingThread = null;
+492:        inputBuf = null;
+493:        outputBuf = null;
+494:        numPendingLogs = 0;
+495:        if (recording)
+496:            recordStartIndex = 0;
+497:
+498:        submitDataSetChanged(new DataSetChange(DataSetChange.Reason.NEW_ENTRIES));
+499:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java" | sed -n '506,536p'
+506:        public NewFilter(@NonNull String name, @NonNull LogFilter filter)
+507:        {
+508:            this.name = name;
+509:            this.filter = filter;
+510:        }
+511:    }
+512:
+513:    public static class DataSetChange
+514:    {
+515:        public enum Reason
+516:        {
+517:            NEW_ENTRIES,
+518:            CLEAN,
+519:            FILTER,
+520:        }
+521:
+522:        @Nullable
+523:        public final List<LogEntry> entries;
+524:        @NonNull
+525:        public final Reason reason;
+526:
+527:        DataSetChange(@NonNull Reason reason)
+528:        {
+529:            this(reason, null);
+530:        }
+531:
+532:        DataSetChange(@NonNull Reason reason, @Nullable List<LogEntry> entries)
+533:        {
+534:            this.entries = entries;
+535:            this.reason = reason;
+536:        }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/SessionLogger.java" | sed -n '79,81p'
+79:        {
+80:            this.filter = new NewFilter(name(), filter);
+81:        }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/SessionLogger.java" | sed -n '111,116p'
+111:    SessionLogger()
+112:    {
+113:        /* Default stub */
+114:        super(1);
+115:    }
+116:
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/SessionLogger.java" | sed -n '117,167p'
+117:    void send(Alert<?> alert)
+118:    {
+119:        long time = System.currentTimeMillis();
+120:        String msg;
+121:        LogEntry entry = null;
+122:        switch (alert.type()) {
+123:            case LOG:
+124:                entry = new LogEntry(nextLogEntryId++,
+125:                        SessionLogEntryType.SESSION_LOG.name(),
+126:                        ((LogAlert)alert).logMessage(),
+127:                        time);
+128:                break;
+129:            case DHT_LOG:
+130:                DhtLogAlert dhtLogAlert = (DhtLogAlert)alert;
+131:                msg = "[" + dhtLogAlert.module().name() + "] " + dhtLogAlert.logMessage();
+132:                entry = new LogEntry(nextLogEntryId++,
+133:                        SessionLogEntryType.DHT_LOG.name(),
+134:                        msg,
+135:                        time);
+136:                break;
+137:            case PEER_LOG:
+138:                PeerLogAlert peerLogAlert = (PeerLogAlert)alert;
+139:
+140:                msg = "[" + peerLogAlert.direction() + "] " +
+141:                        "[" + peerLogAlert.eventType() + "] " +
+142:                        peerLogAlert.logMessage();
+143:
+144:                entry = new LogEntry(nextLogEntryId++,
+145:                        SessionLogEntryType.PEER_LOG.name(),
+146:                        msg,
+147:                        time);
+148:                break;
+149:            case PORTMAP_LOG:
+150:                PortmapLogAlert portmapLogAlert = (PortmapLogAlert)alert;
+151:                msg = "[" + portmapLogAlert.mapType().name() + "] " + portmapLogAlert.logMessage();
+152:                entry = new LogEntry(nextLogEntryId++,
+153:                        SessionLogEntryType.PORTMAP_LOG.name(),
+154:                        msg,
+155:                        time);
+156:                break;
+157:            case TORRENT_LOG:
+158:                entry = new LogEntry(nextLogEntryId++,
+159:                        SessionLogEntryType.TORRENT_LOG.name(),
+160:                        ((TorrentLogAlert)alert).logMessage(),
+161:                        time);
+162:                break;
+163:        }
+164:
+165:        if (entry != null)
+166:            send(entry);
+167:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/SessionLogger.java" | sed -n '169,201p'
+169:    void applyFilterParams(SessionFilterParams params)
+170:    {
+171:        Logger.NewFilter[] addFilters = new Logger.NewFilter[5];
+172:        String[] removeFilters = new String[5];
+173:
+174:        if (params.filterSessionLog)
+175:            addFilters[0] = SessionLogger.SessionLogFilter.SESSION.filter();
+176:        else
+177:            removeFilters[0] = SessionLogger.SessionLogFilter.SESSION.name();
+178:
+179:        if (params.filterDhtLog)
+180:            addFilters[1] = SessionLogger.SessionLogFilter.DHT.filter();
+181:        else
+182:            removeFilters[1] = SessionLogger.SessionLogFilter.DHT.name();
+183:
+184:        if (params.filterPeerLog)
+185:            addFilters[2] = SessionLogger.SessionLogFilter.PEER.filter();
+186:        else
+187:            removeFilters[2] = SessionLogger.SessionLogFilter.PEER.name();
+188:
+189:        if (params.filterPortmapLog)
+190:            addFilters[3] = SessionLogger.SessionLogFilter.PORTMAP.filter();
+191:        else
+192:            removeFilters[3] = SessionLogger.SessionLogFilter.PORTMAP.name();
+193:
+194:        if (params.filterTorrentLog)
+195:            addFilters[4] = SessionLogger.SessionLogFilter.TORRENT.filter();
+196:        else
+197:            removeFilters[4] = SessionLogger.SessionLogFilter.TORRENT.name();
+198:
+199:        removeFilter(removeFilters);
+200:        addFilter(addFilters);
+201:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java" | sed -n '1015,1025p'
+1015:    private void enableSessionLogger(boolean enable)
+1016:    {
+1017:        if (enable) {
+1018:            sessionLogger.resume();
+1019:
+1020:        } else {
+1021:            sessionLogger.stopRecording();
+1022:            sessionLogger.pause();
+1023:            sessionLogger.clean();
+1024:        }
+1025:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java" | sed -n '1408,1413p'
+1408:    private void applyMaxStoredLogs(SessionSettings settings)
+1409:    {
+1410:        if (settings.maxLogSize == sessionLogger.getMaxStoredLogs())
+1411:            return;
+1412:
+1413:        sessionLogger.setMaxStoredLogs(settings.maxLogSize);
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/log/LogDataSource.java" | sed -n '38,44p'
+38:    LogDataSource(@NonNull Logger logger)
+39:    {
+40:        this.logger = logger;
+41:
+42:        disposable = logger.observeDataSetChanged()
+43:                .subscribe((__) -> invalidate());
+44:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/log/LogDataSource.java" | sed -n '54,90p'
+54:    @Override
+55:    public void loadInitial(@NonNull LoadInitialParams params,
+56:                            @NonNull LoadInitialCallback<LogEntry> callback)
+57:    {
+58:        boolean paused = false;
+59:        if (!logger.isPaused()) {
+60:            logger.pause();
+61:            paused = true;
+62:        }
+63:
+64:        try {
+65:            List<LogEntry> entries;
+66:            int numEntries = logger.getNumEntries();
+67:            int pos = params.requestedStartPosition;
+68:
+69:            if (params.requestedStartPosition < numEntries) {
+70:                entries = logger.getEntries(params.requestedStartPosition, params.requestedLoadSize);
+71:
+72:            } else if (params.requestedLoadSize <= numEntries) {
+73:                pos = numEntries - params.requestedLoadSize;
+74:                entries = logger.getEntries(pos, params.requestedLoadSize);
+75:
+76:            } else {
+77:                pos = 0;
+78:                entries = logger.getEntries(pos, numEntries);
+79:            }
+80:
+81:            if (entries.isEmpty())
+82:                callback.onResult(entries, 0);
+83:            else
+84:                callback.onResult(entries, pos);
+85:
+86:        } finally {
+87:            if (paused)
+88:                logger.resume();
+89:        }
+90:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/log/LogDataSource.java" | sed -n '92,117p'
+92:    @Override
+93:    public void loadRange(@NonNull LoadRangeParams params,
+94:                          @NonNull LoadRangeCallback<LogEntry> callback)
+95:    {
+96:        boolean paused = false;
+97:        if (!logger.isPaused()) {
+98:            logger.pause();
+99:            paused = true;
+100:        }
+101:
+102:        try {
+103:            List<LogEntry> entries;
+104:            int numEntries = logger.getNumEntries();
+105:
+106:            if (params.startPosition < numEntries)
+107:                entries = logger.getEntries(params.startPosition, params.loadSize);
+108:            else
+109:                entries = new ArrayList<>(0);
+110:
+111:            callback.onResult(entries);
+112:
+113:        } finally {
+114:            if (paused)
+115:                logger.resume();
+116:        }
+117:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/log/LogViewModel.java" | sed -n '65,83p'
+65:    public LogViewModel(@NonNull Application application)
+66:    {
+67:        super(application);
+68:
+69:        engine = TorrentEngine.getInstance(application);
+70:        pref = RepositoryHelper.getSettingsRepository(application);
+71:
+72:        Logger sessionLogger = engine.getSessionLogger();
+73:        logPaused = sessionLogger.isPaused();
+74:        recordingStopped = !sessionLogger.isRecording();
+75:        sourceFactory = new LogSourceFactory(sessionLogger);
+76:
+77:        initMutableParams();
+78:    }
+79:
+80:    private void initMutableParams()
+81:    {
+82:        mutableParams.setLogging(pref.logging());
+83:        mutableParams.setLogSessionFilter(pref.logSessionFilter());
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/log/LogViewModel.java" | sed -n '140,155p'
+140:    void pauseLog()
+141:    {
+142:        engine.getSessionLogger().pause();
+143:    }
+144:
+145:    void pauseLogManually()
+146:    {
+147:        pauseLog();
+148:        logPaused = true;
+149:    }
+150:
+151:    void resumeLog()
+152:    {
+153:        engine.getSessionLogger().resume();
+154:    }
+155:
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/log/LogViewModel.java" | sed -n '162,195p'
+162:    int getLogEntriesCount()
+163:    {
+164:        return engine.getSessionLogger().getNumEntries();
+165:    }
+166:
+167:    boolean logPausedManually()
+168:    {
+169:        return logPaused;
+170:    }
+171:
+172:    void startLogRecording()
+173:    {
+174:        recordingStopped = false;
+175:
+176:        engine.getSessionLogger().startRecording();
+177:    }
+178:
+179:    void stopLogRecording()
+180:    {
+181:        recordingStopped = true;
+182:
+183:        engine.getSessionLogger().stopRecording();
+184:    }
+185:
+186:    boolean logRecording()
+187:    {
+188:        return !recordingStopped && engine.getSessionLogger().isRecording();
+189:    }
+190:
+191:    String getSaveLogFileName()
+192:    {
+193:        String timeStamp = new SimpleDateFormat("MM-dd-yyyy_HH-mm-ss", Locale.getDefault())
+194:                .format(new Date());
+195:
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/service/SaveLogWorker.java" | sed -n '84,110p'
+84:    private Result saveLog(Uri filePath, boolean resume)
+85:    {
+86:        Logger logger = engine.getSessionLogger();
+87:        logger.pause();
+88:
+89:        try (FileDescriptorWrapper w = fs.getFD(filePath);
+90:             FileOutputStream fout = new FileOutputStream(w.open("rw"))) {
+91:
+92:            if (logger.isRecording())
+93:                logger.stopRecording(fout, true);
+94:            else
+95:                logger.write(fout, true);
+96:
+97:            showSuccessToast(fs.getFilePath(filePath));
+98:
+99:        } catch (IOException | UnknownUriException e) {
+100:            Log.e(TAG, "Cannot save log: " + Log.getStackTraceString(e));
+101:
+102:            return Result.failure();
+103:
+104:        } finally {
+105:            if (resume)
+106:                logger.resume();
+107:        }
+108:
+109:        return Result.success();
+110:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/AddTorrentParams.java" | sed -n '34,142p'
+34:public class AddTorrentParams implements Parcelable {
+35:    /* File path or magnet link */
+36:    @NonNull
+37:    public String source;
+38:    public boolean fromMagnet;
+39:    @NonNull
+40:    public String sha1hash;
+41:    @NonNull
+42:    public String name;
+43:    /* Optional field (e.g. if file information is available) */
+44:    public Priority[] filePriorities;
+45:    @NonNull
+46:    public Uri downloadPath;
+47:    public boolean sequentialDownload;
+48:    public boolean addPaused;
+49:    @NonNull
+50:    public List<TagInfo> tags;
+51:    public boolean firstLastPiecePriority;
+52:
+53:    public AddTorrentParams(
+54:            @NonNull String source,
+55:            boolean fromMagnet,
+56:            @NonNull String sha1hash,
+57:            @NonNull String name,
+58:            Priority[] filePriorities,
+59:            @NonNull Uri downloadPath,
+60:            boolean sequentialDownload,
+61:            boolean addPaused,
+62:            @NonNull List<TagInfo> tags,
+63:            boolean firstLastPiecePriority
+64:    ) {
+65:        this.source = source;
+66:        this.fromMagnet = fromMagnet;
+67:        this.sha1hash = sha1hash;
+68:        this.name = name;
+69:        this.filePriorities = filePriorities;
+70:        this.downloadPath = downloadPath;
+71:        this.sequentialDownload = sequentialDownload;
+72:        this.addPaused = addPaused;
+73:        this.tags = tags;
+74:        this.firstLastPiecePriority = firstLastPiecePriority;
+75:    }
+76:
+77:    public AddTorrentParams(Parcel source) {
+78:        this.source = source.readString();
+79:        fromMagnet = source.readByte() != 0;
+80:        sha1hash = source.readString();
+81:        name = source.readString();
+82:        filePriorities = (Priority[]) source.readArray(Priority.class.getClassLoader());
+83:        downloadPath = source.readParcelable(Uri.class.getClassLoader());
+84:        sequentialDownload = source.readByte() != 0;
+85:        addPaused = source.readByte() != 0;
+86:        tags = source.readArrayList(TagInfo.class.getClassLoader());
+87:        firstLastPiecePriority = source.readByte() != 0;
+88:    }
+89:
+90:    @Override
+91:    public int describeContents() {
+92:        return 0;
+93:    }
+94:
+95:    @Override
+96:    public void writeToParcel(Parcel dest, int flags) {
+97:        dest.writeString(source);
+98:        dest.writeByte((byte) (fromMagnet ? 1 : 0));
+99:        dest.writeString(sha1hash);
+100:        dest.writeString(name);
+101:        dest.writeArray(filePriorities);
+102:        dest.writeParcelable(downloadPath, flags);
+103:        dest.writeByte((byte) (sequentialDownload ? 1 : 0));
+104:        dest.writeByte((byte) (addPaused ? 1 : 0));
+105:        dest.writeTypedList(tags);
+106:        dest.writeByte((byte) (firstLastPiecePriority ? 1 : 0));
+107:    }
+108:
+109:    public static final Parcelable.Creator<AddTorrentParams> CREATOR = new Parcelable.Creator<>() {
+110:                @Override
+111:                public AddTorrentParams createFromParcel(Parcel source) {
+112:                    return new AddTorrentParams(source);
+113:                }
+114:
+115:                @Override
+116:                public AddTorrentParams[] newArray(int size) {
+117:                    return new AddTorrentParams[size];
+118:                }
+119:            };
+120:
+121:
+122:    @Override
+123:    public int hashCode() {
+124:        return sha1hash.hashCode();
+125:    }
+126:
+127:    @NonNull
+128:    @Override
+129:    public String toString() {
+130:        return "AddTorrentParams{" +
+131:                "source='" + source + '\'' +
+132:                ", fromMagnet=" + fromMagnet +
+133:                ", sha1hash='" + sha1hash + '\'' +
+134:                ", name='" + name + '\'' +
+135:                ", filePriorities=" + Arrays.toString(filePriorities) +
+136:                ", downloadPath=" + downloadPath +
+137:                ", sequentialDownload=" + sequentialDownload +
+138:                ", addPaused=" + addPaused +
+139:                ", tags=" + tags +
+140:                ", firstLastPiecePriority=" + firstLastPiecePriority +
+141:                '}';
+142:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentViewModel.java" | sed -n '505,520p'
+505:                for (int index : selectedFiles)
+506:                    priorities[index] = Priority.DEFAULT;
+507:            }
+508:        }
+509:
+510:        AddTorrentParams params = new AddTorrentParams(
+511:                source,
+512:                fromMagnet,
+513:                downloadInfo.sha1Hash,
+514:                name,
+515:                priorities,
+516:                dirPath,
+517:                mutableParams.isSequentialDownload(),
+518:                !mutableParams.isStartAfterAdd(),
+519:                tags,
+520:                mutableParams.isFirstLastPiecePriority()

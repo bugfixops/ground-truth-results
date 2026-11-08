@@ -1,0 +1,169 @@
+## OtpInfo.isAlgorithmValid  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=- state=file classes=explicit;standard explicit_standard_route=yes
+   1. Eb9515d18 ENTRY/standard*
+      S_ENTRY -> AegisApplication.<init>
+      Any outside trigger starts the app process; the application class is created first, except in a backup or restore start, which uses the base Application class
+      guard: not a full backup or restore start (FW ActivityThread.java:5713-5715)
+      evidence: SRC AndroidManifest.xml:21-27 (android:name=".AegisApplication", backupAgent=".AegisBackupAgent")
+         21      <application
+         22          android:name=".AegisApplication"
+         23          android:allowBackup="true"
+         24          android:fullBackupOnly="true"
+         25          android:fullBackupContent="@xml/backup_rules_old"
+         26          android:dataExtractionRules="@xml/backup_rules"
+         27          android:backupAgent=".AegisBackupAgent"
+   2. E5b266140 LIFECYCLE/standard*
+      AegisApplication.<init> -> Hilt_AegisApplication.onCreate
+      Application.onCreate: the Hilt-generated superclass onCreate runs first (Hilt injection), then AegisApplicationBase.onCreate
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:5740 (the system calls Application.onCreate); INFERRED Hilt rewrites the superclass: AegisApplication extends Hilt_AegisApplication (generated file, not in the source tree; source AegisApplication.java:6 has no onCreate)
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+   3. E1ef992ce CALL/explicit
+      Hilt_AegisApplication.onCreate -> AegisApplicationBase.onCreate
+      Direct call
+      evidence: INFERRED generated code (Hilt_AegisApplication.java is not in the source tree; the call is in the build class, line 43)
+   4. E88ed9829 ENTERS/page*
+      AegisApplicationBase.onCreate -> S_PROCESS
+      the application is created: the process can start a component
+      evidence: SRC AegisApplicationBase.java:45-67; FW-SRC core/java/android/app/ActivityThread.java:5740 (the system calls Application.onCreate)
+         45      public void onCreate() {
+         46          super.onCreate();
+         47          _vaultManager = EarlyEntryPoints.get(this, EntryPoint.class).getVaultManager();
+         48  
+         49          VaultLockReceiver lockReceiver = new VaultLockReceiver();
+         50          IntentFilter intentFilter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
+         51          ContextCompat.registerReceiver(this, lockReceiver, intentFilter, ContextCompat.RECEIVER_NOT_EXPORTED);
+         52  
+         53          // lock the app if the user moves the application to the background
+         54          ProcessLifecycleOwner.get().getLifecycle().addObserver(new AppLifecycleObserver());
+         55  
+         56          // clear the cache directory on startup, to make sure no temporary vault export files remain
+         57          IOUtils.clearDirectory(getCacheDir(), false);
+         58  
+      ...  (9 more lines)
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+   5. E28ffc58c ENTRY/standard*
+      S_PROCESS -> MainActivity.<init>
+      Tap the Aegis icon in the launcher (MAIN / LAUNCHER)
+      evidence: SRC AndroidManifest.xml:44-51
+         44              android:name=".ui.MainActivity"
+         45              android:exported="true"
+         46              android:label="${title}">
+         47              <intent-filter>
+         48                  <action android:name="android.intent.action.MAIN" />
+         49  
+         50                  <category android:name="android.intent.category.LAUNCHER" />
+         51              </intent-filter>
+   6. Eb76444fd LIFECYCLE/standard*
+      MainActivity.<init> -> MainActivity.onCreate
+      Activity.onCreate after the constructor
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731,2741 (the system calls Activity.onCreate, then performStart); SRC ui/MainActivity.java:192-194
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+        192      @Override
+        193      protected void onCreate(Bundle savedInstanceState) {
+        194          super.onCreate(savedInstanceState);
+   7. E3a06baed LIFECYCLE/standard*
+      MainActivity.onCreate -> MainActivity.onStart
+      Activity.onStart after onCreate
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731,2741 (the system calls Activity.onCreate, then performStart); SRC ui/MainActivity.java:938-940
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+        938      @Override
+        939      protected void onStart() {
+        940          super.onStart();
+   8. Ef4d44119 CALL/explicit* [STATE: A plain-text vault file exists in the app data, saved by an earlier intro run that chose no security (cross-run state, no producer in this run; MainActivity.onStart reads it, MainActivity.java:951-973)]
+      MainActivity.onStart -> VaultManager.loadFrom(VaultFile)
+      the plain-text vault file is read and loaded in onStart
+      guard: the vault is not loaded yet and the vault file is not encrypted (MainActivity.java:951-973)
+      evidence: SRC ui/MainActivity.java:951-965
+        951          if (!_vaultManager.isVaultLoaded()) {
+        952              VaultFile vaultFile;
+        953              try {
+        954                  vaultFile = VaultRepository.readVaultFile(this);
+        955              } catch (VaultRepositoryException e) {
+        956                  e.printStackTrace();
+        957                  Dialogs.showErrorDialog(this, R.string.vault_load_error, e, (dialog, which) -> {
+        958                      finish();
+        959                  });
+        960                  return;
+        961              }
+        962  
+        963              if (!vaultFile.isEncrypted()) {
+        964                  try {
+      ...  (1 more lines)
+   9. Ea2c4bf33 CALL/explicit*
+      VaultManager.loadFrom(VaultFile) -> VaultManager.loadFrom(VaultFile,VaultFileCredentials)
+      Direct call
+      evidence: SRC VaultManager.java:96 (bytecode)
+         96          return loadFrom(vaultFile, null);
+  10. E51f87b30 CALL/explicit*
+      VaultManager.loadFrom(VaultFile,VaultFileCredentials) -> VaultRepository.fromFile
+      the vault is read from its file
+      guard: the manager holds no vault yet (VaultManager.java:81-83 throws otherwise)
+      evidence: SRC vault/VaultManager.java:80-85
+         80      public VaultRepository loadFrom(@NonNull VaultFile vaultFile, @Nullable VaultFileCredentials creds) throws VaultRepositoryException {
+         81          if (isVaultLoaded()) {
+         82              throw new IllegalStateException("Vault manager is already initialized");
+         83          }
+         84  
+         85          _repo = VaultRepository.fromFile(_context, vaultFile, creds);
+  11. Ec427a608 CALL/explicit*
+      VaultRepository.fromFile -> Vault.fromJson
+      Direct call
+      guard: the file is not encrypted or creds is not null (VaultRepository.java:93-95 throws otherwise)
+      evidence: SRC vault/VaultRepository.java:92-106
+         92      public static VaultRepository fromFile(Context context, VaultFile file, VaultFileCredentials creds) throws VaultRepositoryException {
+         93          if (file.isEncrypted() && creds == null) {
+         94              throw new IllegalArgumentException("The VaultFile is encrypted but the given VaultFileCredentials is null");
+         95          }
+         96  
+         97          Vault vault;
+         98          try {
+         99              JSONObject obj;
+        100              if (!file.isEncrypted()) {
+        101                  obj = file.getContent();
+        102              } else {
+        103                  obj = file.getContent(creds);
+        104              }
+        105  
+      ...  (1 more lines)
+  12. E68d38260 CALL/explicit*
+      Vault.fromJson -> VaultEntry.fromJson
+      the entry is parsed from the vault JSON
+      guard: the vault version is supported (Vault.java:61-62 throws otherwise) and the entries array holds at least one entry (Vault.java:75-77)
+      evidence: SRC vault/Vault.java:59-63,75-77
+         59          try {
+         60              int ver = obj.getInt("version");
+         61              if (ver > VERSION) {
+         62                  throw new VaultException("Unsupported version");
+         63              }
+         75              JSONArray array = obj.getJSONArray("entries");
+         76              for (int i = 0; i < array.length(); i++) {
+         77                  VaultEntry entry = VaultEntry.fromJson(array.getJSONObject(i));
+  13. E891d0646 CALL/explicit*
+      VaultEntry.fromJson -> OtpInfo.fromJson
+      Direct call
+      evidence: SRC VaultEntry.java:87 (bytecode)
+         87              OtpInfo info = OtpInfo.fromJson(obj.getString("type"), obj.getJSONObject("info"));
+  14. E0e214f1e CALL/explicit*
+      OtpInfo.fromJson -> TotpInfo.<init>(byte[],String,int,int)
+      the vault entry has type TOTP and is built from its JSON
+      guard: the entry type is the TOTP id (OtpInfo.java:121, 122)
+      evidence: SRC otp/OtpInfo.java:121-123
+        121              switch (type) {
+        122                  case TotpInfo.ID:
+        123                      info = new TotpInfo(secret, algo, digits, obj.getInt("period"));
+  15. E127bdfc6 CALL/explicit*
+      TotpInfo.<init>(byte[],String,int,int) -> OtpInfo.<init>(byte[],String,int)
+      Direct call
+      evidence: SRC TotpInfo.java:24 (bytecode)
+         24          super(secret, algorithm, digits);
+  16. E7ae83abd CALL/explicit*
+      OtpInfo.<init>(byte[],String,int) -> OtpInfo.setAlgorithm
+      Direct call
+      evidence: SRC OtpInfo.java:27 (bytecode)
+         27          setAlgorithm(algorithm);
+  17. Eb6b4b4b1 CALL/explicit*
+      OtpInfo.setAlgorithm -> OtpInfo.isAlgorithmValid
+      Direct call
+      evidence: SRC OtpInfo.java:89 (bytecode)
+         89          if (!isAlgorithmValid(algorithm)) {
+

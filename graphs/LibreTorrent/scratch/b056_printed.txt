@@ -1,0 +1,598 @@
+# Printed source for batch 56 part (b056).
+# Every SRC citation in parts/b056.py and every printed file:lines cell in parts/b056.md is covered below.
+# Line numbers are the clone source line numbers (final_java_only tree).
+
+===== core/filter/TorrentFilterCollection.java =====
+--- core/filter/TorrentFilterCollection.java:47-53 ---
+47:     public static TorrentFilter dateAddedToday() {
+48:         return (state) -> {
+49:             long dateAdded = state.dateAdded;
+50:             long timeMillis = System.currentTimeMillis();
+51: 
+52:             return dateAdded >= DateUtils.startOfToday(timeMillis) &&
+53:                     dateAdded <= DateUtils.endOfToday(timeMillis);
+--- core/filter/TorrentFilterCollection.java:57-63 ---
+57:     public static TorrentFilter dateAddedYesterday() {
+58:         return (state) -> {
+59:             long dateAdded = state.dateAdded;
+60:             long timeMillis = System.currentTimeMillis();
+61: 
+62:             return dateAdded >= DateUtils.startOfYesterday(timeMillis) &&
+63:                     dateAdded <= DateUtils.endOfYesterday(timeMillis);
+--- core/filter/TorrentFilterCollection.java:67-73 ---
+67:     public static TorrentFilter dateAddedWeek() {
+68:         return (state) -> {
+69:             long dateAdded = state.dateAdded;
+70:             long timeMillis = System.currentTimeMillis();
+71: 
+72:             return dateAdded >= DateUtils.startOfWeek(timeMillis) &&
+73:                     dateAdded <= DateUtils.endOfWeek(timeMillis);
+--- core/filter/TorrentFilterCollection.java:79-83 ---
+79:             long dateAdded = state.dateAdded;
+80:             long timeMillis = System.currentTimeMillis();
+81: 
+82:             return dateAdded >= DateUtils.startOfMonth(timeMillis) &&
+83:                     dateAdded <= DateUtils.endOfMonth(timeMillis);
+--- core/filter/TorrentFilterCollection.java:87-93 ---
+87:     public static TorrentFilter dateAddedYear() {
+88:         return (state) -> {
+89:             long dateAdded = state.dateAdded;
+90:             long timeMillis = System.currentTimeMillis();
+91: 
+92:             return dateAdded >= DateUtils.startOfYear(timeMillis) &&
+93:                     dateAdded <= DateUtils.endOfYear(timeMillis);
+
+===== core/urlnormalizer/NormalizeUrl.java =====
+--- core/urlnormalizer/NormalizeUrl.java:42-42 ---
+42:     public static class Options
+--- core/urlnormalizer/NormalizeUrl.java:90-90 ---
+90:         public String[] removeDirectoryIndex = new String[]{};
+--- core/urlnormalizer/NormalizeUrl.java:100-100 ---
+100:         public boolean removeAuthentication = true;
+--- core/urlnormalizer/NormalizeUrl.java:178-189 ---
+178:     public static String normalize(String url, Options options) throws NormalizeUrlException
+179:     {
+180:         String normalizedUrl;
+181:         try {
+182:             normalizedUrl = doNormalize(url, options);
+183: 
+184:         } catch (Exception e) {
+185:             throw new NormalizeUrlException("Cannot normalize URL", e);
+186:         }
+187: 
+188:         return normalizedUrl;
+189:     }
+--- core/urlnormalizer/NormalizeUrl.java:197-197 ---
+197:             options = new Options();
+--- core/urlnormalizer/NormalizeUrl.java:216-217 ---
+216:         if (options.decode) {
+217:             queryStr = (urlObj.getQuery() == null ? null : PercentEncoder.decode(urlObj.getQuery()));
+--- core/urlnormalizer/NormalizeUrl.java:225-225 ---
+225:         query = parseQuery(queryStr);
+--- core/urlnormalizer/NormalizeUrl.java:232-234 ---
+232:         if (options.removeAuthentication) {
+233:             user = null;
+234:             password = null;
+--- core/urlnormalizer/NormalizeUrl.java:259-259 ---
+259:             path = PathResolver.resolve(path, path);
+--- core/urlnormalizer/NormalizeUrl.java:263-268 ---
+263:             if (options.removeDirectoryIndex.length > 0) {
+264:                 String[] pathComponents = path.split("/");
+265:                 if (pathComponents.length > 0) {
+266:                     String lastComponent = pathComponents[pathComponents.length - 1];
+267:                     if (isMatch(lastComponent, options.removeDirectoryIndex))
+268:                         path = '/' + join("/", Arrays.copyOfRange(pathComponents, 1, pathComponents.length - 1));
+--- core/urlnormalizer/NormalizeUrl.java:278-282 ---
+278:             if (options.removeQueryParameters.length > 0) {
+279:                 Iterator<String> it = query.keySet().iterator();
+280:                 while (it.hasNext()) {
+281:                     String key = it.next();
+282:                     if (isMatch(key, options.removeQueryParameters))
+--- core/urlnormalizer/NormalizeUrl.java:290-291 ---
+290:         url = urlToString(protocol, user, password, host,
+291:                 path, mapToQuery(query), hash);
+--- core/urlnormalizer/NormalizeUrl.java:304-315 ---
+304:     private static boolean isMatch(String s, String[] filterList)
+305:     {
+306:         for (String filter : filterList) {
+307:             if (filter == null)
+308:                 continue;
+309: 
+310:             if (s.matches(filter))
+311:                 return true;
+312:         }
+313: 
+314:         return false;
+315:     }
+--- core/urlnormalizer/NormalizeUrl.java:333-362 ---
+333:     private static Map<String, Collection<String>> parseQuery(String query)
+334:     {
+335:         HashMap<String, Collection<String>> queryPairs = new HashMap<>();
+336: 
+337:         if (query == null || query.isEmpty() || query.equals("?"))
+338:             return queryPairs;
+339: 
+340:         String[] pairs = query.split("&");
+341:         for (String pair : pairs) {
+342:             /* Ignore nested query string in the value of the pair, if one exists */
+343:             int equalPos = pair.indexOf('=');
+344:             if (equalPos <= 0)
+345:                 continue;
+346: 
+347:             String key = pair.substring(0, equalPos);
+348:             String value = pair.substring(equalPos + 1);
+349: 
+350:             if (!key.isEmpty()) {
+351:                 Collection<String> existing = queryPairs.get(key);
+352:                 if (existing == null)
+353:                     existing = new ArrayList<>();
+354: 
+355:                 if (!value.isEmpty())
+356:                     existing.add(value);
+357:                 queryPairs.put(key, existing);
+358:             }
+359:         }
+360: 
+361:         return queryPairs;
+362:     }
+--- core/urlnormalizer/NormalizeUrl.java:364-385 ---
+364:     private static String mapToQuery(Map<String, Collection<String>> query)
+365:     {
+366:         if (query.isEmpty())
+367:             return null;
+368: 
+369:         StringBuilder sb = new StringBuilder();
+370:         int i = 0;
+371:         for (Map.Entry<String, Collection<String>> parameter : query.entrySet()) {
+372:             for (String value : parameter.getValue()) {
+373:                 if (i > 0)
+374:                     sb.append("&");
+375:                 sb.append(parameter.getKey());
+376:                 if (value != null && !value.isEmpty()) {
+377:                     sb.append("=");
+378:                     sb.append(value);
+379:                 }
+380:                 i++;
+381:             }
+382:         }
+383: 
+384:         return sb.toString();
+385:     }
+--- core/urlnormalizer/NormalizeUrl.java:387-414 ---
+387:     private static String urlToString(String protocol, String user, String password,
+388:                                       String host, String path,
+389:                                       String query, String hash)
+390:     {
+391:         StringBuilder output = new StringBuilder();
+392: 
+393:         output.append(protocol).append(':');
+394: 
+395:         output.append("//");
+396:         if (user != null && !user.isEmpty())
+397:             output.append(makeUserInfo(user, password)).append('@');
+398: 
+399:         if (host != null)
+400:             output.append(host);
+401:         if (path != null && !path.isEmpty())
+402:             output.append(path);
+403:         else if (query != null && !query.isEmpty() || hash != null && !hash.isEmpty())
+404:             /* Separate by slash if has query or hash and path is empty */
+405:             output.append("/");
+406: 
+407:         if (query != null && !query.isEmpty())
+408:             output.append('?').append(query);
+409: 
+410:         if (hash != null && !hash.isEmpty())
+411:             output.append('#').append(hash);
+412: 
+413:         return output.toString();
+414:     }
+--- core/urlnormalizer/NormalizeUrl.java:396-397 ---
+396:         if (user != null && !user.isEmpty())
+397:             output.append(makeUserInfo(user, password)).append('@');
+
+===== core/urlnormalizer/PathResolver.java =====
+--- core/urlnormalizer/PathResolver.java:27-34 ---
+27:     public static String resolve(String base, String ref) {
+28:         String merged = merge(base, ref);
+29:         if (merged == null || merged.isEmpty()) {
+30:             return "";
+31:         }
+32:         String[] parts = merged.split("/", -1);
+33:         return resolve(parts);
+34:     }
+--- core/urlnormalizer/PathResolver.java:46-63 ---
+46:     private static String merge(String base, String ref) {
+47:         String merged;
+48: 
+49:         if (ref == null || ref.isEmpty()) {
+50:             merged = base;
+51:         } else if (ref.charAt(0) != '/' && base != null && !base.isEmpty()) {
+52:             int i = base.lastIndexOf("/");
+53:             merged = base.substring(0, i + 1) + ref;
+54:         } else {
+55:             merged = ref;
+56:         }
+57: 
+58:         if (merged == null || merged.isEmpty()) {
+59:             return "";
+60:         }
+61: 
+62:         return merged;
+63:     }
+--- core/urlnormalizer/PathResolver.java:72-108 ---
+72:     private static String resolve(String[] parts) {
+73:         if (parts.length == 0) {
+74:             return "";
+75:         }
+76: 
+77:         List<String> result = new ArrayList<>();
+78: 
+79:         for (String part : parts) {
+80:             switch (part) {
+81:                 case "":
+82:                 case ".":
+83:                     // Ignore
+84:                     break;
+85:                 case "..":
+86:                     if (result.size() > 0) {
+87:                         result.remove(result.size() - 1);
+88:                     }
+89:                     break;
+90:                 default:
+91:                     result.add(part);
+92:                     break;
+93:             }
+94:         }
+95: 
+96:         // Get last element, if it was '.' or '..' we need
+97:         // to end in a slash.
+98:         switch (parts[parts.length - 1]) {
+99:             case ".":
+100:             case "..":
+101:                 // Add an empty last string, it will be turned into
+102:                 // a slash when joined together.
+103:                 result.add("");
+104:                 break;
+105:         }
+106: 
+107:         return "/" + join("/", result);
+108:     }
+--- core/urlnormalizer/PathResolver.java:110-124 ---
+110:     private static String join(CharSequence delimiter, List<String> tokens)
+111:     {
+112:         int length = tokens.size();
+113:         if (length == 0)
+114:             return "";
+115: 
+116:         StringBuilder sb = new StringBuilder();
+117:         sb.append(tokens.get(0));
+118:         for (int i = 1; i < length; i++) {
+119:             sb.append(delimiter);
+120:             sb.append(tokens.get(i));
+121:         }
+122: 
+123:         return sb.toString();
+124:     }
+
+===== core/urlnormalizer/PercentEncoder.java =====
+--- core/urlnormalizer/PercentEncoder.java:33-35 ---
+33:     public static String decode(String str) throws MalformedURLException {
+34:         // The string might not need unescaping at all, check first.
+35:         if (!needsUnescaping(str)) {
+--- core/urlnormalizer/PercentEncoder.java:33-79 ---
+33:     public static String decode(String str) throws MalformedURLException {
+34:         // The string might not need unescaping at all, check first.
+35:         if (!needsUnescaping(str)) {
+36:             return str;
+37:         }
+38: 
+39:         char[] chars = str.toCharArray();
+40:         StringBuilder result = new StringBuilder();
+41:         int len = str.length();
+42:         int i = 0;
+43:         while (i < chars.length) {
+44:             char c = chars[i];
+45:             if (c != '%') {
+46:                 result.append(c);
+47:                 i++;
+48:             } else {
+49:                 if (i + 2 >= len) {
+50:                     throw new MalformedURLException("invalid escape sequence");
+51:                 }
+52:                 byte code;
+53:                 try {
+54:                     code = unhex(str.substring(i + 1, i + 3).toCharArray());
+55:                 } catch (InvalidHexException e) {
+56:                     throw new MalformedURLException(e.getMessage());
+57:                 }
+58:                 int readBytes = 0;
+59:                 for (short mask : utf8Masks) {
+60:                     if ((code & mask) == mask) {
+61:                         readBytes++;
+62:                     } else {
+63:                         break;
+64:                     }
+65:                 }
+66:                 byte[] buffer = new byte[readBytes];
+67:                 for (int j = 0; j < readBytes; j++) {
+68:                     if (str.charAt(i) != '%') {
+69:                         byte[] currentBuffer = new byte[j];
+70:                         System.arraycopy(buffer, 0, currentBuffer, 0, j);
+71:                         buffer = currentBuffer;
+72:                         break;
+73:                     }
+74:                     if (i + 3 > len) {
+75:                         buffer = "\uFFFD".getBytes();
+76:                         break;
+77:                     }
+78:                     try {
+79:                         buffer[j] = unhex(str.substring(i + 1, i + 3).toCharArray());
+--- core/urlnormalizer/PercentEncoder.java:96-111 ---
+96:     private static byte unhex(char[] hex) throws InvalidHexException {
+97:         int result = 0;
+98:         for (int i = 0; i < hex.length; i++) {
+99:             char c = hex[hex.length - i - 1];
+100:             int index = -1;
+101:             if ('0' <= c && c <= '9') {
+102:                 index = c - '0';
+103:             } else if ('a' <= c && c <= 'f') {
+104:                 index = c - 'a' + 10;
+105:             } else if ('A' <= c && c <= 'F') {
+106:                 index = c - 'A' + 10;
+107:             }
+108:             if (index < 0 || index >= 16) {
+109:                 throw new InvalidHexException("not a valid hex char: " + c);
+110:             }
+111:             result += index * pow(16, i);
+
+===== core/utils/BencodeFileTreeUtils.java =====
+--- core/utils/BencodeFileTreeUtils.java:46-46 ---
+46:     public static Pair<BencodeFileTree, BencodeFileTree[]> buildFileTree(List<BencodeFileItem> files)
+--- core/utils/BencodeFileTreeUtils.java:102-102 ---
+102:                     BencodeFileTree leaf = makeObject(file.getIndex(), nodes[i],
+--- core/utils/BencodeFileTreeUtils.java:119-126 ---
+119:     private static BencodeFileTree makeObject(int index, String name,
+120:                                               long size, BencodeFileTree parent,
+121:                                               boolean isFile)
+122:     {
+123:         return (isFile ?
+124:                 new BencodeFileTree(index, name, size, FileNode.Type.FILE, parent) :
+125:                 new BencodeFileTree(name, 0L, FileNode.Type.DIR, parent));
+126:     }
+
+===== core/utils/BindingAdapterUtils.java =====
+--- core/utils/BindingAdapterUtils.java:38-39 ---
+38:     @BindingAdapter(value = {"fileSize", "formatFileSize"}, requireAll = false)
+39:     public static void formatFileSize(@NonNull TextView view,
+--- core/utils/BindingAdapterUtils.java:50-51 ---
+50:     @BindingAdapter({"formatDate"})
+51:     public static void formatDate(@NonNull TextView view, long date)
+--- core/utils/BindingAdapterUtils.java:57-57 ---
+57:     public static String formatProgress(@NonNull Context context,
+--- core/utils/BindingAdapterUtils.java:68-71 ---
+68:     public static String formatETA(@NonNull Context context,
+69:                                    long ETA)
+70:     {
+71:         return (ETA <= 0 ? Utils.INFINITY_SYMBOL : DateUtils.formatElapsedTime(context, ETA));
+--- core/utils/BindingAdapterUtils.java:74-75 ---
+74:     @BindingAdapter(value = {"floatNum", "floatPrecision"}, requireAll = false)
+75:     public static void formatFloat(@NonNull TextView view, double floatNum, int floatPrecision)
+--- core/utils/BindingAdapterUtils.java:82-82 ---
+82:     public static String formatPieces(@NonNull Context context,
+--- core/utils/BindingAdapterUtils.java:93-93 ---
+93:     public static String formatSpeed(@NonNull Context context,
+--- core/utils/BindingAdapterUtils.java:102-102 ---
+102:     public static String formatPiecesInfo(@NonNull Context context,
+
+===== core/utils/DateUtils.java =====
+--- core/utils/DateUtils.java:33-41 ---
+33:     private static final int secondsInDay = 86400;
+34:     private static final int secondsInHour = 3600;
+35:     private static final int secondsInMinute = 60;
+36: 
+37:     private static String elapsedFormatSS;
+38:     private static String elapsedFormatMMSS;
+39:     private static String elapsedFormatHMMSS;
+40:     private static String elapsedFormatDHMM;
+41:     private static ReentrantLock lock = new ReentrantLock();
+--- core/utils/DateUtils.java:43-46 ---
+43:     public static String formatElapsedTime(Context context, long elapsedSeconds)
+44:     {
+45:         return formatElapsedTime(context, null, elapsedSeconds);
+46:     }
+--- core/utils/DateUtils.java:48-90 ---
+48:     public static String formatElapsedTime(Context context, StringBuilder recycle, long elapsedSeconds)
+49:     {
+50:         long days = 0;
+51:         long hours = 0;
+52:         long minutes = 0;
+53:         long seconds;
+54: 
+55:         if (elapsedSeconds >= secondsInDay) {
+56:             days = elapsedSeconds / secondsInDay;
+57:             elapsedSeconds -= days * secondsInDay;
+58:         }
+59: 
+60:         if (elapsedSeconds >= secondsInHour) {
+61:             hours = elapsedSeconds / secondsInHour;
+62:             elapsedSeconds -= hours * secondsInHour;
+63:         }
+64: 
+65:         if (elapsedSeconds >= secondsInMinute) {
+66:             minutes = elapsedSeconds / secondsInMinute;
+67:             elapsedSeconds -= minutes * secondsInMinute;
+68:         }
+69: 
+70:         seconds = elapsedSeconds;
+71: 
+72:         StringBuilder sb = recycle;
+73:         if (sb == null)
+74:             sb = new StringBuilder(8);
+75:         else
+76:             sb.setLength(0);
+77: 
+78:         Formatter f = new Formatter(sb, Locale.getDefault());
+79: 
+80:         initFormatStrings(context);
+81: 
+82:         if (days > 0)
+83:             return f.format(elapsedFormatDHMM, days, hours, minutes).toString();
+84:         else if (hours > 0)
+85:             return f.format(elapsedFormatHMMSS, hours, minutes, seconds).toString();
+86:         else if (minutes > 0)
+87:             return f.format(elapsedFormatMMSS, minutes, seconds).toString();
+88:         else
+89:             return f.format(elapsedFormatSS, seconds).toString();
+90:     }
+--- core/utils/DateUtils.java:92-104 ---
+92:     private static void initFormatStrings(Context context)
+93:     {
+94:         lock.lock();
+95: 
+96:         try {
+97:             elapsedFormatSS = context.getString(R.string.elapsed_time_format_ss);
+98:             elapsedFormatMMSS = context.getString(R.string.elapsed_time_format_mm_ss);
+99:             elapsedFormatHMMSS = context.getString(R.string.elapsed_time_format_h_mm_ss);
+100:             elapsedFormatDHMM =  context.getString(R.string.elapsed_time_format_d_h_mm);
+101:         } finally {
+102:             lock.unlock();
+103:         }
+104:     }
+--- core/utils/DateUtils.java:106-116 ---
+106:     public static long endOfToday(long timeMillis)
+107:     {
+108:         Calendar calendar = Calendar.getInstance();
+109:         calendar.setTimeInMillis(timeMillis);
+110:         calendar.set(Calendar.HOUR_OF_DAY, 23);
+111:         calendar.set(Calendar.MINUTE, 59);
+112:         calendar.set(Calendar.SECOND, 59);
+113:         calendar.set(Calendar.MILLISECOND, 999);
+114: 
+115:         return calendar.getTimeInMillis();
+116:     }
+--- core/utils/DateUtils.java:118-128 ---
+118:     public static long startOfToday(long timeMillis)
+119:     {
+120:         Calendar calendar = Calendar.getInstance();
+121:         calendar.setTimeInMillis(timeMillis);
+122:         calendar.set(Calendar.HOUR_OF_DAY, 0);
+123:         calendar.set(Calendar.MINUTE, 0);
+124:         calendar.set(Calendar.SECOND, 0);
+125:         calendar.set(Calendar.MILLISECOND, 0);
+126: 
+127:         return calendar.getTimeInMillis();
+128:     }
+--- core/utils/DateUtils.java:130-133 ---
+130:     public static long endOfYesterday(long timeMillis)
+131:     {
+132:         return endOfToday(timeMillis) - secondsInDay * 1000;
+133:     }
+--- core/utils/DateUtils.java:140-152 ---
+140:     public static long endOfWeek(long timeMillis)
+141:     {
+142:         Calendar calendar = Calendar.getInstance();
+143:         calendar.setTimeInMillis(timeMillis);
+144:         calendar.set(Calendar.HOUR_OF_DAY, 23);
+145:         calendar.set(Calendar.MINUTE, 59);
+146:         calendar.set(Calendar.SECOND, 59);
+147:         calendar.set(Calendar.MILLISECOND, 999);
+148:         calendar.set(Calendar.DAY_OF_WEEK, calendar.getFirstDayOfWeek());
+149:         calendar.add(Calendar.WEEK_OF_YEAR, 1);
+150: 
+151:         return calendar.getTimeInMillis();
+152:     }
+--- core/utils/DateUtils.java:154-165 ---
+154:     public static long startOfWeek(long timeMillis)
+155:     {
+156:         Calendar calendar = Calendar.getInstance();
+157:         calendar.setTimeInMillis(timeMillis);
+158:         calendar.set(Calendar.HOUR_OF_DAY, 24);
+159:         calendar.set(Calendar.MINUTE, 0);
+160:         calendar.set(Calendar.SECOND, 0);
+161:         calendar.set(Calendar.MILLISECOND, 0);
+162:         calendar.set(Calendar.DAY_OF_WEEK, calendar.getFirstDayOfWeek());
+163: 
+164:         return calendar.getTimeInMillis();
+165:     }
+--- core/utils/DateUtils.java:167-178 ---
+167:     public static long endOfMonth(long timeMillis)
+168:     {
+169:         Calendar calendar = Calendar.getInstance();
+170:         calendar.setTimeInMillis(timeMillis);
+171:         calendar.set(Calendar.HOUR_OF_DAY, 23);
+172:         calendar.set(Calendar.MINUTE, 59);
+173:         calendar.set(Calendar.SECOND, 59);
+174:         calendar.set(Calendar.MILLISECOND, 999);
+175:         calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
+176: 
+177:         return calendar.getTimeInMillis();
+178:     }
+--- core/utils/DateUtils.java:180-191 ---
+180:     public static long startOfMonth(long timeMillis)
+181:     {
+182:         Calendar calendar = Calendar.getInstance();
+183:         calendar.setTimeInMillis(timeMillis);
+184:         calendar.set(Calendar.HOUR_OF_DAY, 0);
+185:         calendar.set(Calendar.MINUTE, 0);
+186:         calendar.set(Calendar.SECOND, 0);
+187:         calendar.set(Calendar.MILLISECOND, 0);
+188:         calendar.set(Calendar.DAY_OF_MONTH, 1);
+189: 
+190:         return calendar.getTimeInMillis();
+191:     }
+--- core/utils/DateUtils.java:193-204 ---
+193:     public static long endOfYear(long timeMillis)
+194:     {
+195:         Calendar calendar = Calendar.getInstance();
+196:         calendar.setTimeInMillis(timeMillis);
+197:         calendar.set(Calendar.HOUR_OF_DAY, 23);
+198:         calendar.set(Calendar.MINUTE, 59);
+199:         calendar.set(Calendar.SECOND, 59);
+200:         calendar.set(Calendar.MILLISECOND, 999);
+201:         calendar.set(Calendar.DAY_OF_YEAR, calendar.getActualMaximum(Calendar.DAY_OF_YEAR));
+202: 
+203:         return calendar.getTimeInMillis();
+204:     }
+--- core/utils/DateUtils.java:206-217 ---
+206:     public static long startOfYear(long timeMillis)
+207:     {
+208:         Calendar calendar = Calendar.getInstance();
+209:         calendar.setTimeInMillis(timeMillis);
+210:         calendar.set(Calendar.HOUR_OF_DAY, 0);
+211:         calendar.set(Calendar.MINUTE, 0);
+212:         calendar.set(Calendar.SECOND, 0);
+213:         calendar.set(Calendar.MILLISECOND, 0);
+214:         calendar.set(Calendar.DAY_OF_YEAR, 1);
+215: 
+216:         return calendar.getTimeInMillis();
+217:     }
+
+===== ui/addtorrent/AddTorrentViewModel.java =====
+--- ui/addtorrent/AddTorrentViewModel.java:368-379 ---
+368:     public void makeFileTree() {
+369:         if (fileTree != null)
+370:             return;
+371: 
+372:         TorrentMetaInfo infoObj = info.get();
+373:         if (infoObj == null)
+374:             return;
+375:         List<BencodeFileItem> files = infoObj.fileList;
+376:         if (files.isEmpty())
+377:             return;
+378: 
+379:         Pair<BencodeFileTree, BencodeFileTree[]> res = BencodeFileTreeUtils.buildFileTree(files);
+
+===== ui/detailtorrent/DetailTorrentFragment.java =====
+--- ui/detailtorrent/DetailTorrentFragment.java:719-720 ---
+719:         NormalizeUrl.Options options = new NormalizeUrl.Options();
+720:         options.decode = false;
+--- ui/detailtorrent/DetailTorrentFragment.java:719-726 ---
+719:         NormalizeUrl.Options options = new NormalizeUrl.Options();
+720:         options.decode = false;
+721:         List<String> normalizedUrls = new ArrayList<>(urls.size());
+722:         for (String url : urls) {
+723:             if (TextUtils.isEmpty(url))
+724:                 continue;
+725:             try {
+726:                 normalizedUrls.add(NormalizeUrl.normalize(url, options));

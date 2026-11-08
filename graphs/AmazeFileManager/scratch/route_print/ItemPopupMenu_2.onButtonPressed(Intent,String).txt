@@ -1,0 +1,239 @@
+METHOD: ItemPopupMenu$2.onButtonPressed(Intent,String)
+verdict: REACHABLE   steps_from_launch: 12
+route steps: 12 edges
+======================================================================
+
+STEP 1  edge E61915364
+  S_ENTRY -> MainActivity.onOptionsItemSelected
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC Activity.java onOptionsItemSelected lifecycle
+  (no file:line citations in evidence)
+
+STEP 2  edge E987df97b
+  MainActivity.onOptionsItemSelected -> MainFragment.switchView
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainActivity.java:1023 (bytecode)
+  cite [SRC] MainActivity.java:1023
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/activities/MainActivity.java)
+     1023:                 ma.switchView();
+
+STEP 3  edge E3b805bab
+  MainFragment.switchView -> MainFragment.reloadListElements
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC fragments/MainFragment.java:393
+  cite [SRC] fragments/MainFragment.java:393
+      393:         reloadListElements(false, results, isPathLayoutGrid);
+
+STEP 4  edge E89466062
+  MainFragment.reloadListElements -> RecyclerAdapter.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainFragment.java:1107 (bytecode line was 1108)
+  cite [SRC] MainFragment.java:1107
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/fragments/MainFragment.java)
+     1107:                 adapter = new RecyclerAdapter(getMainActivity(), ma, utilsProvider, sharedPref,
+
+STEP 5  edge E199e866f
+  RecyclerAdapter.<init> -> RecyclerAdapter.onCreateViewHolder
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED RecyclerView calls adapter lifecycle methods (androidx source not read)
+  (no file:line citations in evidence)
+
+STEP 6  edge Ee1989850
+  RecyclerAdapter.onCreateViewHolder -> RecyclerAdapter.onBindViewHolder
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED RecyclerView calls adapter lifecycle methods (androidx source not read)
+  (no file:line citations in evidence)
+
+STEP 7  edge E76306566
+  RecyclerAdapter.onBindViewHolder -> RecyclerAdapter.showPopup
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC RecyclerAdapter.java:813 (bytecode)
+  cite [SRC] RecyclerAdapter.java:813
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/adapters/RecyclerAdapter.java)
+      813:                     showPopup(holder.about, rowItem);
+
+STEP 8  edge Ebc940def
+  RecyclerAdapter.showPopup -> ItemPopupMenu.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC RecyclerAdapter.java:950 new ItemPopupMenu(context, mainFrag.getMainActivity(), utilsProvider, mainFrag, rowItem, view, sharedPrefs)
+  cite [SRC] RecyclerAdapter.java:950
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/adapters/RecyclerAdapter.java)
+      950:             PopupMenu popupMenu = new ItemPopupMenu(context, mainFrag.getMainActivity(),
+
+STEP 9  edge E8c3004b6
+  ItemPopupMenu.<init> -> ItemPopupMenu.onMenuItemClick
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ItemPopupMenu.java:60 setOnMenuItemClickListener(this)
+  cite [SRC] ItemPopupMenu.java:60
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/ItemPopupMenu.java)
+       60:         setOnMenuItemClickListener(this);
+
+STEP 10  edge E2e277bd5
+  ItemPopupMenu.onMenuItemClick -> GeneralDialogCreation.showEncryptAuthenticateDialog
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ItemPopupMenu.java:168-170, GeneralDialogCreation.java:714-807
+  cite [SRC] ItemPopupMenu.java:168-170
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/ItemPopupMenu.java)
+      168:                                     GeneralDialogCreation.showEncryptAuthenticateDialog(context, encryptIntent,
+      169:                                             mainFragment.getMainActivity(), utilitiesProvider.getAppTheme(),
+      170:                                             encryptButtonCallbackInterfaceAuthenticate);
+  cite [SRC] GeneralDialogCreation.java:714-807
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/dialogs/GeneralDialogCreation.java)
+      714:     public static void showEncryptAuthenticateDialog(final Context c, final Intent intent,
+      715:                                                      final MainActivity main, AppTheme appTheme,
+      716:                                                      final EncryptDecryptUtils.EncryptButtonCallbackInterface
+      717:                                                              encryptButtonCallbackInterface) {
+      718: 
+      719:         int accentColor = main.getAccent();
+      720:         MaterialDialog.Builder builder = new MaterialDialog.Builder(c);
+      721:         builder.title(main.getString(R.string.crypt_encrypt));
+      722: 
+      723:         View rootView = View.inflate(c, R.layout.dialog_encrypt_authenticate, null);
+      724: 
+      725:         final TextInputEditText passwordEditText = rootView.findViewById(R.id.edit_text_dialog_encrypt_password);
+      726:         final TextInputEditText passwordConfirmEditText = rootView.findViewById(R.id.edit_text_dialog_encrypt_password_confirm);
+      727:         final TextInputEditText encryptSaveAsEditText = rootView.findViewById(R.id.edit_text_encrypt_save_as);
+      728: 
+      729:         WarnableTextInputLayout textInputLayoutPassword = rootView.findViewById(R.id.til_encrypt_password);
+      730:         WarnableTextInputLayout textInputLayoutPasswordConfirm = rootView.findViewById(R.id.til_encrypt_password_confirm);
+      731:         WarnableTextInputLayout textInputLayoutEncryptSaveAs = rootView.findViewById(R.id.til_encrypt_save_as);
+      732: 
+      733:         HybridFileParcelable intentParcelable = intent.getParcelableExtra(EncryptService.TAG_SOURCE);
+      734:         encryptSaveAsEditText.setText(intentParcelable.getName().concat(CryptUtil.CRYPT_EXTENSION));
+      735:         textInputLayoutEncryptSaveAs.setHint(intentParcelable.isDirectory() ?
+      736:                 c.getString(R.string.encrypt_folder_save_as) :
+      737:                 c.getString(R.string.encrypt_file_save_as));
+      738: 
+      739:         passwordEditText.post(() -> {
+      740:             InputMethodManager imm = (InputMethodManager) main.getSystemService(Context.INPUT_METHOD_SERVICE);
+      741:             imm.showSoftInput(passwordEditText, InputMethodManager.SHOW_IMPLICIT);
+      742:         });
+      743: 
+      744:         builder.customView(rootView, true)
+      745:                 .positiveText(c.getString(R.string.ok))
+      746:                 .negativeText(c.getString(R.string.cancel))
+      747:                 .theme(appTheme.getMaterialDialogTheme())
+      748:                 .positiveColor(accentColor)
+      749:                 .negativeColor(accentColor)
+      750:                 .autoDismiss(false)
+      751:                 .onNegative((dialog, which) -> dialog.cancel())
+      752:                 .onPositive((dialog, which) -> {
+      753: 
+      754:                     intent.putExtra(EncryptService.TAG_ENCRYPT_TARGET, encryptSaveAsEditText.getText().toString());
+      755: 
+      756:                     try {
+      757:                         encryptButtonCallbackInterface.onButtonPressed(intent, passwordEditText.getText().toString());
+      758:                     } catch (GeneralSecurityException | IOException e) {
+      759:                         e.printStackTrace();
+      760:                         Toast.makeText(c, c.getString(R.string.crypt_encryption_fail), Toast.LENGTH_LONG).show();
+      761:                     } finally {
+      762:                         dialog.dismiss();
+      763:                     }
+      764:                 });
+      765: 
+      766:         MaterialDialog dialog = builder.show();
+      767:         MDButton btnOK = dialog.getActionButton(DialogAction.POSITIVE);
+      768:         btnOK.setEnabled(false);
+      769: 
+      770:         TextWatcher textWatcher = new SimpleTextWatcher() {
+      771:             @Override
+      772:             public void onTextChanged(CharSequence s, int start, int before, int count) {
+      773:                 btnOK.setEnabled(encryptSaveAsEditText.getText().toString().length() > 0
+      774:                         && passwordEditText.getText().toString().length() > 0
+      775:                         && passwordConfirmEditText.getText().toString().length() > 0);
+      776:             }
+      777:         };
+      778: 
+      779:         passwordEditText.addTextChangedListener(textWatcher);
+      780:         passwordConfirmEditText.addTextChangedListener(textWatcher);
+      781:         encryptSaveAsEditText.addTextChangedListener(textWatcher);
+      782: 
+      783:         new WarnableTextInputValidator(c, passwordEditText, textInputLayoutPassword, btnOK, (text) -> {
+      784:             if (text.length() < 1) {
+      785:                 return new WarnableTextInputValidator.ReturnState(WarnableTextInputValidator.ReturnState.STATE_ERROR, R.string.field_empty);
+      786:             }
+      787:             return new WarnableTextInputValidator.ReturnState();
+      788:         });
+      789: 
+      790:         new WarnableTextInputValidator(c, passwordConfirmEditText, textInputLayoutPasswordConfirm, btnOK, (text) -> {
+      791:             if (!text.equals(passwordEditText.getText().toString())) {
+      792:                 return new WarnableTextInputValidator.ReturnState(WarnableTextInputValidator.ReturnState.STATE_ERROR, R.string.password_no_match);
+      793:             }
+      794:             return new WarnableTextInputValidator.ReturnState();
+      795:         });
+      796: 
+      797:         new WarnableTextInputValidator(c, encryptSaveAsEditText, textInputLayoutEncryptSaveAs, btnOK, (text) -> {
+      798:             if (text.length() < 1) {
+      799:                 return new WarnableTextInputValidator.ReturnState(WarnableTextInputValidator.ReturnState.STATE_ERROR, R.string.field_empty);
+      800:             }
+      801:             if (!text.endsWith(CryptUtil.CRYPT_EXTENSION)) {
+      802:                 return new WarnableTextInputValidator.ReturnState(WarnableTextInputValidator.ReturnState.STATE_ERROR, R.string.encrypt_file_must_end_with_aze);
+      803:             }
+      804:             return new WarnableTextInputValidator.ReturnState();
+      805:         });
+      806:     }
+      807: 
+
+STEP 11  edge E4bc6e8e1
+  GeneralDialogCreation.showEncryptAuthenticateDialog -> GeneralDialogCreation.lambda$showEncryptAuthenticateDialog$16
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC GeneralDialogCreation.java:752-764
+  cite [SRC] GeneralDialogCreation.java:752-764
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/dialogs/GeneralDialogCreation.java)
+      752:                 .onPositive((dialog, which) -> {
+      753: 
+      754:                     intent.putExtra(EncryptService.TAG_ENCRYPT_TARGET, encryptSaveAsEditText.getText().toString());
+      755: 
+      756:                     try {
+      757:                         encryptButtonCallbackInterface.onButtonPressed(intent, passwordEditText.getText().toString());
+      758:                     } catch (GeneralSecurityException | IOException e) {
+      759:                         e.printStackTrace();
+      760:                         Toast.makeText(c, c.getString(R.string.crypt_encryption_fail), Toast.LENGTH_LONG).show();
+      761:                     } finally {
+      762:                         dialog.dismiss();
+      763:                     }
+      764:                 });
+
+STEP 12  edge E15498a19
+  GeneralDialogCreation.lambda$showEncryptAuthenticateDialog$16 -> ItemPopupMenu$2.onButtonPressed(Intent,String)
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC GeneralDialogCreation.java:757 (bytecode)
+  cite [SRC] GeneralDialogCreation.java:757
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/dialogs/GeneralDialogCreation.java)
+      757:                         encryptButtonCallbackInterface.onButtonPressed(intent, passwordEditText.getText().toString());

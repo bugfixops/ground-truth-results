@@ -1,0 +1,72 @@
+     1	/*
+     2	 * Copyright (C) 2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.tag;
+    21	
+    22	import android.content.Intent;
+    23	import android.os.Bundle;
+    24	
+    25	import androidx.annotation.NonNull;
+    26	import androidx.appcompat.app.AppCompatActivity;
+    27	import androidx.fragment.app.Fragment;
+    28	import androidx.fragment.app.FragmentManager;
+    29	
+    30	import org.proninyaroslav.libretorrent.core.utils.Utils;
+    31	import org.proninyaroslav.libretorrent.ui.FragmentCallback;
+    32	
+    33	public class SelectTagActivity extends AppCompatActivity implements FragmentCallback {
+    34	    public static final String TAG_EXCLUDE_TAGS_ID = "exclude_tags_id";
+    35	    public static final String TAG_RESULT_SELECTED_TAG = "result_selected_tag";
+    36	
+    37	    private static final String TAG_DIALOG = "dialog";
+    38	
+    39	    private SelectTagDialog dialog;
+    40	
+    41	    @Override
+    42	    protected void onCreate(Bundle savedInstanceState) {
+    43	        setTheme(Utils.getTranslucentAppTheme(getApplicationContext()));
+    44	        super.onCreate(savedInstanceState);
+    45	
+    46	
+    47	        FragmentManager fm = getSupportFragmentManager();
+    48	        dialog = (SelectTagDialog) fm.findFragmentByTag(TAG_DIALOG);
+    49	        if (dialog == null) {
+    50	            long[] excludeTagsId = getIntent().getLongArrayExtra(TAG_EXCLUDE_TAGS_ID);
+    51	            dialog = SelectTagDialog.newInstance(excludeTagsId);
+    52	            dialog.show(fm, TAG_DIALOG);
+    53	        }
+    54	    }
+    55	
+    56	    @Override
+    57	    public void onFragmentFinished(
+    58	            @NonNull Fragment f,
+    59	            Intent intent,
+    60	            @NonNull ResultCode code
+    61	    ) {
+    62	        if (code == ResultCode.OK) {
+    63	            setResult(RESULT_OK, intent);
+    64	        }
+    65	        finish();
+    66	    }
+    67	
+    68	    @Override
+    69	    public void onBackPressed() {
+    70	        dialog.onBackPressed();
+    71	    }
+    72	}

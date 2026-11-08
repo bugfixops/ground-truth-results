@@ -1,0 +1,121 @@
+LibreTorrent batch 22 helper — printed commands and source evidence
+Source root: /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java
+Membership authority: /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+
+COMMAND: awk -F '\t' '$1==22 {printf "%2d %s\n", ++n, $3}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+OUTPUT:
+ 1 AddTorrentParams.writeToParcel
+ 2 AddTorrentParams$1.<init>
+ 3 AddTorrentParams$1.createFromParcel
+ 4 AddTorrentParams$1.newArray
+ 5 DownloadsCompletedListener.<init>
+ 6 DownloadsCompletedListener.lambda$listen$0
+ 7 DownloadsCompletedListener.lambda$listen$1
+ 8 DownloadsCompletedListener.lambda$listen$2
+ 9 DownloadsCompletedListener.listen
+10 DownloadsCompletedListener$1.<init>
+11 DownloadsCompletedListener$1.onTorrentFinished
+12 DownloadsCompletedListener$1.onTorrentRemoved
+13 DownloadsCompletedListener$1.onTorrentStateChanged
+14 SessionErrorFilter.<clinit>
+15 SessionErrorFilter.<init>
+16 SessionErrorFilter.skip
+17 TorrentEngine.<clinit>
+18 TorrentEngine.<init>
+19 TorrentEngine.addListener
+20 TorrentEngine.addTorrent(Uri)
+21 TorrentEngine.addTorrent(Uri,Uri)
+22 TorrentEngine.addTorrentCompletable(Uri)
+23 TorrentEngine.addTorrentCompletable(Uri,Uri)
+24 TorrentEngine.addTorrentSync(Uri,TorrentMetaInfo,Uri)
+25 TorrentEngine.addTorrentSync(AddTorrentParams,boolean)
+26 TorrentEngine.addTorrents
+27 TorrentEngine.addTrackers
+28 TorrentEngine.cancelFetchMagnet
+29 TorrentEngine.checkPauseTorrents
+30 TorrentEngine.cleanTemp
+31 TorrentEngine.createFetchMagnetSingle
+32 TorrentEngine.deleteTorrents
+33 TorrentEngine.deleteTrackers
+34 TorrentEngine.doStart
+35 TorrentEngine.doStop
+36 TorrentEngine.fetchMagnet
+37 TorrentEngine.forceAnnounceTorrents
+38 TorrentEngine.forceRecheckTorrents
+39 TorrentEngine.forceStop
+40 TorrentEngine.getBencode
+
+PRINTED SOURCE AND CALL-SITE EXCERPTS (selected line-numbered output read for this audit)
+
+COMMAND: nl -ba /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/AddTorrentParams.java | sed -n '34,119p'
+OUTPUT:
+34 public class AddTorrentParams implements Parcelable {
+53 public AddTorrentParams(...)
+77 public AddTorrentParams(Parcel source)
+90 @Override
+96 public void writeToParcel(Parcel dest, int flags)
+97-106 writes source, flags, hash, name, priorities, path, and tags
+109 public static final Parcelable.Creator<AddTorrentParams> CREATOR = new Parcelable.Creator<>() {
+111 public AddTorrentParams createFromParcel(Parcel source) { return new AddTorrentParams(source); }
+116 public AddTorrentParams[] newArray(int size) { return new AddTorrentParams[size]; }
+
+COMMAND: rg -n 'CREATOR|putParcelable|writeParcelable|AddTorrentParams' /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent -g '*.java'
+OUTPUT (relevant AddTorrentParams matches):
+`AddTorrentParams` is constructed at `AddTorrentViewModel.java:510` and `FeedDownloaderWorker.java:178`, then passed to `TorrentEngine.addTorrent(s)` and `TorrentSession.addTorrent`. The only `CREATOR` references are the class's own declaration and its two anonymous methods; no app Parcelable/Bundle/Intent call transports AddTorrentParams. Other unrelated Parcelable call sites belong to other types.
+
+COMMAND: nl -ba /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/DownloadsCompletedListener.java | sed -n '40,85p'
+OUTPUT:
+40 DownloadsCompletedListener(TorrentEngine engine)
+45 public Completable listen()
+47 return Completable.create((emitter) -> {
+50 Runnable eventHandler = () -> { ... emitter.onComplete(); };
+55 TorrentEngineListener listener = new TorrentEngineListener() {
+57 onTorrentStateChanged(...)
+66 onTorrentFinished(...)
+73 onTorrentRemoved(...)
+80 if (!emitter.isDisposed()) {
+81 engine.addListener(listener);
+82 emitter.setDisposable(Disposables.fromAction(() -> engine.removeListener(listener)));
+85 });
+
+COMMAND: nl -ba /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java | sed -n '113,141p;234,260p;282,313p;329,394p;401,424p;431,458p;481,486p;507,575p;927,936p;1023,1043p;1223,1230p;1384,1390p'
+OUTPUT:
+113 private SessionErrorFilter errorFilter = new SessionErrorFilter();
+117-125 getInstance lazily constructs the engine
+128-141 constructor initializes repositories, DownloadsCompletedListener, TorrentSession, settings, and listeners
+234-260 doStart subscribes to downloadsCompleted.listen and starts the session
+282-286 forceStop starts TorrentService with the shutdown action
+292-301 doStop clears subscriptions and calls cleanTemp
+307-313 addListener/removeListener forward to TorrentSession
+329-357 async addTorrent and addTorrents routes
+359-394 URI add routes and Completable parsing
+401-424 sync add and fetchMagnet route
+431-458 createFetchMagnetSingle listener/emitter flow
+481-486 cancelFetchMagnet forwards to session
+507-575 recheck, announce, delete, and tracker management methods
+927-936 getBencode reads from the active session task
+1023-1043 checkPauseTorrents checks settings and device/network predicates
+1223-1230 cleanTemp delegates to filesystem facade
+1384-1390 onSessionError calls errorFilter.skip
+
+COMMAND: rg -n 'onTorrentStateChanged\(|onTorrentFinished\(|onTorrentRemoved\(' /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model -g '*.java'
+OUTPUT:
+DownloadsCompletedListener declares the registered callbacks at `DownloadsCompletedListener.java:57,66,73`; TorrentDownloadImpl forwards state/finish events at `TorrentDownloadImpl.java:227,483`; TorrentSessionImpl forwards removal at `TorrentSessionImpl.java:389`; TorrentEngine exposes listener registration at `TorrentEngine.java:307-309`.
+
+COMMAND: rg -n 'addTorrentCompletable\(' /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java -g '*.java'
+OUTPUT:
+TorrentEngine.java:364 calls the two-argument overload; TorrentEngine.java:370-372 defines the one-argument overload; TorrentEngine.java:374 defines the two-argument overload; TorrentEngine.java:1149 calls the one-argument overload from watch-directory processing.
+
+CALLER OUTPUT FOR ENGINE METHODS:
+`TorrentService.java:131,161` calls doStart/doStop; `CreateTorrentViewModel.java:376` calls addTorrent(Uri,Uri); `FeedDownloaderWorker.java:211` calls addTorrents; `AddTorrentViewModel.java:230-243,529,572` calls fetchMagnet, addTorrentSync, and cancelFetchMagnet; `DetailTorrentViewModel.java:345-386` calls tracker operations, delete, recheck, announce, and getBencode; `MainViewModel.java:142-171` calls delete, recheck, announce, and forceStop; `SchedulerReceiver.java:96` also calls forceStop.
+
+COMMAND: nl -ba /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/SessionErrorFilter.java | sed -n '24,32p'
+OUTPUT:
+24 public class SessionErrorFilter {
+25 static final HashSet<String> filteredErrors = new HashSet<>();
+26 static {
+27     filteredErrors.add("Operation not supported on transport endpoint, code 95");
+30 boolean skip(String errorMsg) {
+31     return filteredErrors.contains(errorMsg);
+
+Summary labels: 37 REACHABLE; 3 UNREACHABLE no_trigger_in_app; 0 OPEN. No coverage artifacts were consulted.

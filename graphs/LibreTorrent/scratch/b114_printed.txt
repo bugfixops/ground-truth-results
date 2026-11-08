@@ -1,0 +1,428 @@
+===== ui/main/MainActivity.java =====
+743:             startActivity(new Intent(this, SettingsActivity.class));
+
+===== ui/main/drawer/TagsAdapter.java =====
+88:                 return new NoTagsItemViewHolder(binding);
+99:             holder.bind(item, listener);
+177:         void bind(
+178:                 @NonNull AbstractTagItem item,
+179:                 OnClickListener listener
+180:         ) {
+181:             if (item instanceof TagItem) {
+182:                 bind((TagItem) item, listener);
+183:             }
+184:         }
+186:         private void bind(
+187:                 @NonNull TagItem item,
+188:                 OnClickListener listener
+189:         ) {
+190:             binding.name.setText(item.info.name);
+191:             binding.color.setColor(item.info.color);
+192:             binding.getRoot().setOnClickListener((v) -> {
+193:                 setSelectedItem(item);
+194:                 if (listener != null) {
+195:                     listener.onTagSelected(item);
+196:                 }
+197:             });
+198:             binding.menu.setOnClickListener((v) -> {
+199:                 PopupMenu popup = new PopupMenu(v.getContext(), v);
+200:                 popup.inflate(R.menu.tag_item_popup);
+201:                 popup.setOnMenuItemClickListener((MenuItem menuItem) -> {
+202:                     if (listener != null) {
+203:                         listener.onTagMenuClicked(item, menuItem.getItemId());
+204:                     }
+205:                     return true;
+206:                 });
+207:                 popup.show();
+208:             });
+209: 
+210:             TypedArray a = itemView.getContext().obtainStyledAttributes(
+211:                     new TypedValue().data,
+212:                     new int[]{
+213:                             R.attr.selectableDrawer,
+214:                             R.attr.dialogRectRipple
+215:                     });
+216:             int colorIdx = item.isSame(selectedItem) ? 0 : 1;
+217:             Drawable d = a.getDrawable(colorIdx);
+218:             if (d != null) {
+219:                 itemView.setBackground(d);
+220:             }
+221:             a.recycle();
+222:         }
+275:         public NoTagsItemViewHolder(@NonNull DrawerNoTagsListItemBinding binding) {
+276:             super(binding.getRoot());
+277: 
+278:             this.binding = binding;
+279:         }
+282:         void bind(
+283:                 @NonNull AbstractTagItem item,
+284:                 OnClickListener listener
+285:         ) {
+286:             if (item instanceof NoTagsItem) {
+287:                 bind((NoTagsItem) item, listener);
+288:             }
+289:         }
+291:         private void bind(
+292:                 @NonNull NoTagsItem item,
+293:                 OnClickListener listener
+294:         ) {
+295:             binding.getRoot().setOnClickListener((v) -> {
+296:                 setSelectedItem(item);
+297:                 if (listener != null) {
+298:                     listener.onTagSelected(item);
+299:                 }
+300:             });
+301: 
+302:             TypedArray a = itemView.getContext().obtainStyledAttributes(
+303:                     new TypedValue().data,
+304:                     new int[]{
+305:                             R.attr.selectableDrawer,
+306:                             R.attr.dialogRectRipple
+307:                     });
+308:             int colorIdx = item.isSame(selectedItem) ? 0 : 1;
+309:             Drawable d = a.getDrawable(colorIdx);
+310:             if (d != null) {
+311:                 itemView.setBackground(d);
+312:             }
+313:             a.recycle();
+314:         }
+
+===== ui/settings/PreferenceActivity.java =====
+45:     private static final String TAG = PreferenceActivity.class.getSimpleName();
+47:     public static final String TAG_CONFIG = "config";
+52:     protected void onCreate(Bundle savedInstanceState)
+53:     {
+54:         setTheme(Utils.getSettingsTheme(getApplicationContext()));
+55:         super.onCreate(savedInstanceState);
+56: 
+57:         /* Prevent create activity in two pane mode (after resizing window) */
+58:         if (Utils.isLargeScreenDevice(this)) {
+59:             finish();
+60:             return;
+61:         }
+62: 
+63:         setContentView(R.layout.activity_preference);
+64: 
+65:         String fragment = null;
+66:         String title = null;
+67:         Intent intent = getIntent();
+68:         if (intent.hasExtra(TAG_CONFIG)) {
+69:             PreferenceActivityConfig config = intent.getParcelableExtra(TAG_CONFIG);
+70:             fragment = config.getFragment();
+71:             title = config.getTitle();
+72:         }
+73: 
+74:         toolbar = findViewById(R.id.toolbar);
+75:         if (title != null)
+76:             toolbar.setTitle(title);
+77:         setSupportActionBar(toolbar);
+78:         if (getSupportActionBar() != null)
+79:             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+80: 
+81:         if (fragment != null && savedInstanceState == null)
+82:             setFragment(getFragment(fragment));
+83:     }
+85:     public <F extends PreferenceFragmentCompat> void setFragment(F fragment)
+86:     {
+87:         if (fragment == null)
+88:             return;
+89: 
+90:         getSupportFragmentManager().beginTransaction()
+91:                 .replace(R.id.fragment_container, fragment).commit();
+92:     }
+94:     private <F extends PreferenceFragmentCompat> F getFragment(String fragment)
+95:     {
+96:         if (fragment != null) {
+97:             if (fragment.equals(AppearanceSettingsFragment.class.getSimpleName()))
+98:                 return (F)AppearanceSettingsFragment.newInstance();
+99:             else if (fragment.equals(BehaviorSettingsFragment.class.getSimpleName()))
+100:                 return (F)BehaviorSettingsFragment.newInstance();
+101:             else if (fragment.equals(StorageSettingsFragment.class.getSimpleName()))
+102:                 return (F)StorageSettingsFragment.newInstance();
+103:             else if (fragment.equals(LimitationsSettingsFragment.class.getSimpleName()))
+104:                 return (F)LimitationsSettingsFragment.newInstance();
+105:             else if (fragment.equals(NetworkSettingsFragment.class.getSimpleName()))
+106:                 return (F)NetworkSettingsFragment.newInstance();
+107:             else if (fragment.equals(ProxySettingsFragment.class.getSimpleName()))
+108:                 return (F)ProxySettingsFragment.newInstance();
+109:             else if (fragment.equals(AnonymousModeSettingsFragment.class.getSimpleName()))
+110:                 return (F) AnonymousModeSettingsFragment.newInstance();
+111:             else if (fragment.equals(SchedulingSettingsFragment.class.getSimpleName()))
+112:                 return (F)SchedulingSettingsFragment.newInstance();
+113:             else if (fragment.equals(FeedSettingsFragment.class.getSimpleName()))
+114:                 return (F)FeedSettingsFragment.newInstance();
+115:             else if (fragment.equals(StreamingSettingsFragment.class.getSimpleName()))
+116:                 return (F)StreamingSettingsFragment.newInstance();
+117:             else
+118:                 return null;
+119:         }
+120: 
+121:         return null;
+122:     }
+125:     public boolean onOptionsItemSelected(MenuItem item)
+126:     {
+127:         if (item.getItemId() == android.R.id.home)
+128:             finish();
+129: 
+130:         return true;
+131:     }
+
+===== ui/settings/PreferenceActivityConfig.java =====
+34:     public PreferenceActivityConfig(String fragment, String title)
+35:     {
+36:         this.fragment = fragment;
+37:         this.title = title;
+38:     }
+40:     public PreferenceActivityConfig(Parcel source)
+41:     {
+42:         fragment = source.readString();
+43:         title = source.readString();
+44:     }
+46:     public void setFragment(String fragment)
+47:     {
+48:         this.fragment = fragment;
+49:     }
+51:     public String getFragment()
+52:     {
+53:         return fragment;
+54:     }
+56:     public void setTitle(String title)
+57:     {
+58:         this.title = title;
+59:     }
+61:     public String getTitle()
+62:     {
+63:         return title;
+64:     }
+67:     public int describeContents()
+68:     {
+69:         return 0;
+70:     }
+73:     public void writeToParcel(Parcel dest, int flags)
+74:     {
+75:         dest.writeString(fragment);
+76:         dest.writeString(title);
+77:     }
+79:     public static final Parcelable.Creator<PreferenceActivityConfig> CREATOR =
+80:             new Parcelable.Creator<PreferenceActivityConfig>()
+81:             {
+82:                 @Override
+83:                 public PreferenceActivityConfig createFromParcel(Parcel source)
+84:                 {
+85:                     return new PreferenceActivityConfig(source);
+86:                 }
+87: 
+88:                 @Override
+89:                 public PreferenceActivityConfig[] newArray(int size)
+90:                 {
+91:                     return new PreferenceActivityConfig[size];
+92:                 }
+93:             };
+
+===== ui/settings/SettingsActivity.java =====
+35:     private static final String TAG = SettingsActivity.class.getSimpleName();
+42:     protected void onCreate(Bundle savedInstanceState)
+43:     {
+44:         setTheme(Utils.getSettingsTheme(getApplicationContext()));
+45:         super.onCreate(savedInstanceState);
+46: 
+47:         viewModel = new ViewModelProvider(this).get(SettingsViewModel.class);
+48: 
+49:         setContentView(R.layout.activity_settings);
+50: 
+51:         toolbar = findViewById(R.id.toolbar);
+52:         toolbar.setTitle(getString(R.string.settings));
+53:         setSupportActionBar(toolbar);
+54:         if (getSupportActionBar() != null)
+55:             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+56: 
+57:         detailTitle = findViewById(R.id.detail_title);
+58:         viewModel.detailTitleChanged.observe(this, title -> {
+59:             if (title != null && detailTitle != null)
+60:                 detailTitle.setText(title);
+61:         });
+62:     }
+65:     public boolean onOptionsItemSelected(MenuItem item)
+66:     {
+67:         if (item.getItemId() == android.R.id.home) {
+68:             finish();
+69:         }
+70: 
+71:         return true;
+72:     }
+
+===== ui/settings/SettingsFragment.java =====
+49:     private static final String TAG = SettingsFragment.class.getSimpleName();
+51:     private static final String AppearanceSettings = "AppearanceSettingsFragment";
+52:     private static final String BehaviorSettings = "BehaviorSettingsFragment";
+53:     private static final String NetworkSettings = "NetworkSettingsFragment";
+54:     private static final String StorageSettings = "StorageSettingsFragment";
+55:     private static final String LimitationsSettings = "LimitationsSettingsFragment";
+56:     private static final String SchedulingSettings = "SchedulingSettingsFragment";
+57:     private static final String FeedSettings = "FeedSettingsFragment";
+58:     private static final String StreamingSettings = "StreamingSettingsFragment";
+63:     public static SettingsFragment newInstance()
+64:     {
+65:         SettingsFragment fragment = new SettingsFragment();
+66: 
+67:         fragment.setArguments(new Bundle());
+68: 
+69:         return fragment;
+70:     }
+73:     public void onAttach(@NonNull Context context)
+74:     {
+75:         super.onAttach(context);
+76: 
+77:         if (context instanceof AppCompatActivity)
+78:             activity = (AppCompatActivity)context;
+79:     }
+82:     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+83:         super.onViewCreated(view, savedInstanceState);
+84: 
+85:         if (activity == null)
+86:             activity = (AppCompatActivity)getActivity();
+87: 
+88:         viewModel = new ViewModelProvider(activity).get(SettingsViewModel.class);
+89: 
+90:         if (Utils.isTwoPane(activity)) {
+91:             Fragment f = activity.getSupportFragmentManager()
+92:                     .findFragmentById(R.id.detail_fragment_container);
+93:             if (f == null)
+94:                 setFragment(AppearanceSettingsFragment.newInstance(),
+95:                         getString(R.string.pref_header_appearance));
+96:         }
+97: 
+98:         Preference appearance = findPreference(AppearanceSettingsFragment.class.getSimpleName());
+99:         if (appearance != null)
+100:             appearance.setOnPreferenceClickListener(prefClickListener);
+101: 
+102:         Preference behavior = findPreference(BehaviorSettingsFragment.class.getSimpleName());
+103:         if (behavior != null)
+104:             behavior.setOnPreferenceClickListener(prefClickListener);
+105: 
+106:         Preference storage = findPreference(StorageSettingsFragment.class.getSimpleName());
+107:         if (storage != null)
+108:             storage.setOnPreferenceClickListener(prefClickListener);
+109: 
+110:         Preference limitations = findPreference(LimitationsSettingsFragment.class.getSimpleName());
+111:         if (limitations != null)
+112:             limitations.setOnPreferenceClickListener(prefClickListener);
+113: 
+114:         Preference network = findPreference(NetworkSettingsFragment.class.getSimpleName());
+115:         if (network != null)
+116:             network.setOnPreferenceClickListener(prefClickListener);
+117: 
+118:         Preference scheduling = findPreference(SchedulingSettingsFragment.class.getSimpleName());
+119:         if (scheduling != null)
+120:             scheduling.setOnPreferenceClickListener(prefClickListener);
+121: 
+122:         Preference feed = findPreference(FeedSettingsFragment.class.getSimpleName());
+123:         if (feed != null)
+124:             feed.setOnPreferenceClickListener(prefClickListener);
+125: 
+126:         Preference streaming = findPreference(StreamingSettingsFragment.class.getSimpleName());
+127:         if (streaming != null)
+128:             streaming.setOnPreferenceClickListener(prefClickListener);
+129:     }
+131:     private Preference.OnPreferenceClickListener prefClickListener = (preference) -> {
+132:         openPreference(preference.getKey());
+133:         return true;
+134:     };
+136:     private void openPreference(String prefName)
+137:     {
+138:         switch (prefName) {
+139:             case AppearanceSettings:
+140:                 if (Utils.isLargeScreenDevice(activity)) {
+141:                     setFragment(AppearanceSettingsFragment.newInstance(),
+142:                             getString(R.string.pref_header_appearance));
+143:                 } else {
+144:                     startActivity(AppearanceSettingsFragment.class,
+145:                             getString(R.string.pref_header_appearance));
+146:                 }
+147:                 break;
+148:             case BehaviorSettings:
+149:                 if (Utils.isLargeScreenDevice(activity)) {
+150:                     setFragment(BehaviorSettingsFragment.newInstance(),
+151:                             getString(R.string.pref_header_behavior));
+152:                 } else {
+153:                     startActivity(BehaviorSettingsFragment.class,
+154:                             getString(R.string.pref_header_behavior));
+155:                 }
+156:                 break;
+157:             case NetworkSettings:
+158:                 if (Utils.isLargeScreenDevice(activity)) {
+159:                     setFragment(NetworkSettingsFragment.newInstance(),
+160:                             getString(R.string.pref_header_network));
+161:                 } else {
+162:                     startActivity(NetworkSettingsFragment.class,
+163:                             getString(R.string.pref_header_network));
+164:                 }
+165:                 break;
+166:             case StorageSettings:
+167:                 if (Utils.isLargeScreenDevice(activity)) {
+168:                     setFragment(StorageSettingsFragment.newInstance(),
+169:                             getString(R.string.pref_header_storage));
+170:                 } else {
+171:                     startActivity(StorageSettingsFragment.class,
+172:                             getString(R.string.pref_header_storage));
+173:                 }
+174:                 break;
+175:             case LimitationsSettings:
+176:                 if (Utils.isLargeScreenDevice(activity)) {
+177:                     setFragment(LimitationsSettingsFragment.newInstance(),
+178:                             getString(R.string.pref_header_limitations));
+179:                 } else {
+180:                     startActivity(LimitationsSettingsFragment.class,
+181:                             getString(R.string.pref_header_limitations));
+182:                 }
+183:                 break;
+184:             case SchedulingSettings:
+185:                 if (Utils.isLargeScreenDevice(activity)) {
+186:                     setFragment(SchedulingSettingsFragment.newInstance(),
+187:                             getString(R.string.pref_header_scheduling));
+188:                 } else {
+189:                     startActivity(SchedulingSettingsFragment.class,
+190:                             getString(R.string.pref_header_scheduling));
+191:                 }
+192:                 break;
+193:             case FeedSettings:
+194:                 if (Utils.isLargeScreenDevice(activity)) {
+195:                     setFragment(FeedSettingsFragment.newInstance(),
+196:                             getString(R.string.pref_header_feed));
+197:                 } else {
+198:                     startActivity(FeedSettingsFragment.class,
+199:                             getString(R.string.pref_header_feed));
+200:                 }
+201:                 break;
+202:             case StreamingSettings:
+203:                 if (Utils.isLargeScreenDevice(activity)) {
+204:                     setFragment(StreamingSettingsFragment.newInstance(),
+205:                             getString(R.string.pref_header_streaming));
+206:                 } else {
+207:                     startActivity(StreamingSettingsFragment.class,
+208:                             getString(R.string.pref_header_streaming));
+209:                 }
+210:                 break;
+211:         }
+212:     }
+215:     public void onCreatePreferences(Bundle savedInstanceState, String rootKey)
+216:     {
+217:         setPreferencesFromResource(R.xml.pref_headers, rootKey);
+218:     }
+220:     private <F extends PreferenceFragmentCompat> void setFragment(F fragment, String title)
+221:     {
+222:         viewModel.detailTitleChanged.setValue(title);
+223: 
+224:         if (Utils.isLargeScreenDevice(activity)) {
+225:             activity.getSupportFragmentManager().beginTransaction()
+226:                     .replace(R.id.detail_fragment_container, fragment)
+227:                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+228:                     .commit();
+229:         }
+230:     }
+234:         Intent i = new Intent(activity, PreferenceActivity.class);
+235:         PreferenceActivityConfig config = new PreferenceActivityConfig(
+236:                 fragment.getSimpleName(),
+237:                 title);
+239:         i.putExtra(PreferenceActivity.TAG_CONFIG, config);
+240:         startActivity(i);

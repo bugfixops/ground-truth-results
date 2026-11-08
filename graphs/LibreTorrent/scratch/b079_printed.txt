@@ -1,0 +1,464 @@
+# Batch 79 printed evidence (fresh, C12 converter, 2026-11-01)
+# Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+# Convention: each section lists clone lines in order; the first line shown is the range start.
+# Cited files (basenames, for check_part check 8): AddTorrentActivity.java, PermissionManager.java, AddTorrentFilesFragment.java, AddTorrentInfoFragment.java
+
+=== ui/addtorrent/AddTorrentActivity.java:100-233 ===
+        super.onCreate(savedInstanceState);
+
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_add_torrent);
+        ViewModelProvider provider = new ViewModelProvider(this);
+        viewModel = provider.get(AddTorrentViewModel.class);
+        permissionManager = new PermissionManager(this, new PermissionManager.Callback() {
+            @Override
+            public void onStorageResult(boolean isGranted, boolean shouldRequestStoragePermission) {
+                var fm = getSupportFragmentManager();
+                if (!isGranted && shouldRequestStoragePermission) {
+                    if (fm.findFragmentByTag(TAG_PERM_DENIED_DIALOG) == null) {
+                        permDeniedDialog = PermissionDeniedDialog.newInstance();
+                        FragmentTransaction ft = fm.beginTransaction();
+                        ft.add(permDeniedDialog, TAG_PERM_DENIED_DIALOG);
+                        ft.commitAllowingStateLoss();
+                    }
+                }
+            }
+
+            @Override
+            public void onNotificationResult(boolean isGranted, boolean shouldRequestNotificationPermission) {
+                permissionManager.setDoNotAskNotifications(!isGranted);
+                if (isGranted) {
+                    viewModel.restartForegroundNotification();
+                }
+            }
+        });
+
+        dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+        errReportDialog = (ErrorReportDialog)getSupportFragmentManager().findFragmentByTag(TAG_ERR_REPORT_DIALOG);
+        localPref = PreferenceManager.getDefaultSharedPreferences(this);
+        fillMutableParams();
+
+        if (!permissionManager.checkPermissions() && permDeniedDialog == null) {
+            permissionManager.requestPermissions();
+        }
+        Utils.showManageAllFilesWarningDialog(getApplicationContext(), getSupportFragmentManager());
+
+        initLayout();
+        observeDecodeState();
+    }
+
+    private void fillMutableParams() {
+        viewModel.mutableParams.setSequentialDownload(
+                localPref.getBoolean(
+                        getString(R.string.add_torrent_sequential_download),
+                        false
+                )
+        );
+        viewModel.mutableParams.setStartAfterAdd(
+                localPref.getBoolean(
+                        getString(R.string.add_torrent_start_after_add),
+                        true
+                )
+        );
+        viewModel.mutableParams.setIgnoreFreeSpace(
+                localPref.getBoolean(
+                        getString(R.string.add_torrent_ignore_free_space),
+                        false
+                )
+        );
+        viewModel.mutableParams.setFirstLastPiecePriority(
+                localPref.getBoolean(
+                        getString(R.string.add_torrent_download_first_last_pieces),
+                        false
+                )
+        );
+    }
+
+    @Override
+    protected void onStop()
+    {
+        super.onStop();
+
+        unsubscribeParamsChanged();
+        disposable.clear();
+    }
+
+    @Override
+    public void onStart()
+    {
+        super.onStart();
+
+        subscribeAlertDialog();
+        subscribeParamsChanged();
+    }
+
+    private void subscribeAlertDialog()
+    {
+        Disposable d = dialogViewModel.observeEvents().subscribe(this::handleAlertDialogEvent);
+        disposable.add(d);
+    }
+
+    private void subscribeParamsChanged() {
+        viewModel.mutableParams.addOnPropertyChangedCallback(onMutableParamsChanged);
+    }
+
+    private void unsubscribeParamsChanged() {
+        viewModel.mutableParams.removeOnPropertyChangedCallback(onMutableParamsChanged);
+    }
+
+    private final Observable.OnPropertyChangedCallback onMutableParamsChanged =
+            new Observable.OnPropertyChangedCallback() {
+        @Override
+        public void onPropertyChanged(Observable sender, int propertyId) {
+            if (propertyId == BR.sequentialDownload) {
+                localPref.edit()
+                        .putBoolean(
+                                getString(R.string.add_torrent_sequential_download),
+                                viewModel.mutableParams.isSequentialDownload()
+                        )
+                        .apply();
+            } else if (propertyId == BR.startAfterAdd) {
+                localPref.edit()
+                        .putBoolean(
+                                getString(R.string.add_torrent_start_after_add),
+                                viewModel.mutableParams.isStartAfterAdd()
+                        )
+                        .apply();
+            } else if (propertyId == BR.ignoreFreeSpace) {
+                localPref.edit()
+                        .putBoolean(
+                                getString(R.string.add_torrent_ignore_free_space),
+                                viewModel.mutableParams.isIgnoreFreeSpace()
+                        )
+                        .apply();
+            } else if (propertyId == BR.firstLastPiecePriority) {
+                localPref.edit()
+                        .putBoolean(
+                                getString(R.string.add_torrent_download_first_last_pieces),
+                                viewModel.mutableParams.isFirstLastPiecePriority()
+                        )
+                        .apply();
+            }
+        }
+    };
+
+=== ui/PermissionManager.java (full file) ===
+/*
+ * Copyright (C) 2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+ *
+ * This file is part of LibreTorrent.
+ *
+ * LibreTorrent is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LibreTorrent is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.proninyaroslav.libretorrent.ui;
+
+import android.Manifest;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Environment;
+import android.provider.Settings;
+
+import androidx.activity.ComponentActivity;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+
+import org.proninyaroslav.libretorrent.core.RepositoryHelper;
+import org.proninyaroslav.libretorrent.core.settings.SettingsRepository;
+import org.proninyaroslav.libretorrent.core.utils.Utils;
+
+import java.util.ArrayList;
+
+public class PermissionManager {
+    private ActivityResultLauncher<Intent> manageExternalStoragePermission;
+    private ActivityResultLauncher<String[]> permissions;
+    private final Context appContext;
+    private SettingsRepository pref;
+    private boolean hasManageExternalStoragePermission;
+
+    public PermissionManager(
+            @NonNull ComponentActivity activity,
+            @NonNull Callback callback
+    ) {
+        appContext = activity.getApplicationContext();
+        pref = RepositoryHelper.getSettingsRepository(appContext);
+        // MANAGE_EXTERNAL_STORAGE is disabled for the Google Play version
+        // so we need to check before requesting permission
+        hasManageExternalStoragePermission = Utils.hasManageExternalStoragePermission(appContext);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && hasManageExternalStoragePermission) {
+            manageExternalStoragePermission = activity.registerForActivityResult(
+                    new ActivityResultContracts.StartActivityForResult(),
+                    result -> callback.onStorageResult(
+                            checkStoragePermissions(),
+                            pref.askManageAllFilesPermission()
+                    )
+            );
+        }
+
+        permissions = activity.registerForActivityResult(
+                new ActivityResultContracts.RequestMultiplePermissions(),
+                result -> {
+                    Boolean storageResult = result.get(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                    Boolean notificationsResult;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        notificationsResult = result.get(Manifest.permission.POST_NOTIFICATIONS);
+                    } else {
+                        notificationsResult = true;
+                    }
+                    if (storageResult != null) {
+                        callback.onStorageResult(
+                                storageResult,
+                                Utils.shouldRequestStoragePermission(activity)
+                        );
+                    }
+                    if (notificationsResult != null) {
+                        callback.onNotificationResult(
+                                notificationsResult,
+                                pref.askNotificationPermission()
+                        );
+                    }
+                }
+        );
+    }
+
+    public void requestPermissions() {
+        ArrayList<String> permissionsList = new ArrayList<>();
+        if (!checkStoragePermissions()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && hasManageExternalStoragePermission) {
+                if (pref.askManageAllFilesPermission()) {
+                    var uri = Uri.fromParts("package", appContext.getPackageName(), null);
+                    var i = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+                            .setData(uri);
+                    manageExternalStoragePermission.launch(i);
+                }
+            } else {
+                permissionsList.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            }
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && pref.askNotificationPermission() && !checkNotificationsPermissions()) {
+            permissionsList.add(Manifest.permission.POST_NOTIFICATIONS);
+        }
+        permissions.launch(permissionsList.toArray(new String[0]));
+    }
+
+    public void setDoNotAskStorage(boolean doNotAsk) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            pref.askManageAllFilesPermission(!doNotAsk);
+        }
+    }
+
+    public void setDoNotAskNotifications(boolean doNotAsk) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            pref.askNotificationPermission(!doNotAsk);
+        }
+    }
+
+    public boolean checkStoragePermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && hasManageExternalStoragePermission) {
+            return Environment.isExternalStorageManager();
+        } else {
+            return ContextCompat.checkSelfPermission(appContext,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        }
+    }
+
+    public boolean checkNotificationsPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            return ContextCompat.checkSelfPermission(appContext,
+                    Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean checkPermissions() {
+        return checkStoragePermissions() && checkNotificationsPermissions();
+    }
+
+    public interface Callback {
+        void onStorageResult(boolean isGranted, boolean shouldRequestStoragePermission);
+
+        void onNotificationResult(boolean isGranted, boolean shouldRequestNotificationPermission);
+    }
+}
+
+=== ui/addtorrent/AddTorrentFilesFragment.java:50-180 ===
+
+public class AddTorrentFilesFragment extends Fragment
+        implements
+        DownloadableFilesAdapter.ClickListener
+{
+    private static final String TAG = AddTorrentFilesFragment.class.getSimpleName();
+
+    private static final String TAG_LIST_FILES_STATE = "list_files_state";
+
+    private AppCompatActivity activity;
+    private FragmentAddTorrentFilesBinding binding;
+    private AddTorrentViewModel viewModel;
+    private LinearLayoutManager layoutManager;
+    private DownloadableFilesAdapter adapter;
+    /* Save state scrolling */
+    private Parcelable listFilesState;
+    private CompositeDisposable disposable = new CompositeDisposable();
+
+    public static AddTorrentFilesFragment newInstance()
+    {
+        AddTorrentFilesFragment fragment = new AddTorrentFilesFragment();
+
+        Bundle args = new Bundle();
+        fragment.setArguments(args);
+
+        return fragment;
+    }
+
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    {
+        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_add_torrent_files, container, false);
+
+        return binding.getRoot();
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context)
+    {
+        super.onAttach(context);
+
+        if (context instanceof AppCompatActivity)
+            activity = (AppCompatActivity)context;
+    }
+
+    @Override
+    public void onStop()
+    {
+        super.onStop();
+
+        disposable.clear();
+    }
+
+    @Override
+    public void onStart()
+    {
+        super.onStart();
+
+        subscribeAdapter();
+    }
+
+    private void subscribeAdapter()
+    {
+        disposable.add(viewModel.children
+                .subscribeOn(Schedulers.computation())
+                .flatMapSingle((children) ->
+                        Flowable.fromIterable(children)
+                                .map(DownloadableFileItem::new)
+                                .toList()
+                )
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((children) -> {
+                    adapter.submitList(children);
+                    updateFileSize();
+                }));
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        if (activity == null)
+            activity = (AppCompatActivity) getActivity();
+
+        viewModel = new ViewModelProvider(activity).get(AddTorrentViewModel.class);
+        binding.setViewModel(viewModel);
+
+        layoutManager = new LinearLayoutManager(activity);
+        binding.fileList.setLayoutManager(layoutManager);
+        adapter = new DownloadableFilesAdapter(this);
+        binding.fileList.setAdapter(adapter);
+    }
+
+    private void updateFileSize()
+    {
+        if (viewModel.fileTree == null)
+            return;
+
+        binding.filesSize.setText(getString(R.string.files_size,
+                Formatter.formatFileSize(activity.getApplicationContext(),
+                        viewModel.fileTree.selectedFileSize()),
+                Formatter.formatFileSize(activity.getApplicationContext(),
+                        viewModel.fileTree.size())));
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState)
+    {
+        listFilesState = layoutManager.onSaveInstanceState();
+        outState.putParcelable(TAG_LIST_FILES_STATE, listFilesState);
+
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onViewStateRestored(@Nullable Bundle savedInstanceState)
+    {
+        super.onViewStateRestored(savedInstanceState);
+
+        if (savedInstanceState != null)
+            listFilesState = savedInstanceState.getParcelable(TAG_LIST_FILES_STATE);
+    }
+
+    @Override
+    public void onResume()
+    {
+        super.onResume();
+
+        if (listFilesState != null)
+            layoutManager.onRestoreInstanceState(listFilesState);
+    }
+
+=== ui/addtorrent/AddTorrentInfoFragment.java:60-89 ===
+ * The fragment for displaying torrent metainformation,
+ * taken from bencode. Part of AddTorrentFragment.
+ */
+
+public class AddTorrentInfoFragment extends Fragment {
+    private static final String TAG = AddTorrentInfoFragment.class.getSimpleName();
+
+    private static final String TAG_OPEN_DIR_ERROR_DIALOG = "open_dir_error_dialog";
+
+    private AppCompatActivity activity;
+    private AddTorrentViewModel viewModel;
+    private FragmentAddTorrentInfoBinding binding;
+    private CompositeDisposable disposables = new CompositeDisposable();
+
+    public static AddTorrentInfoFragment newInstance() {
+        AddTorrentInfoFragment fragment = new AddTorrentInfoFragment();
+
+        Bundle b = new Bundle();
+        fragment.setArguments(b);
+
+        return fragment;
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+
+        if (context instanceof AppCompatActivity)
+            activity = (AppCompatActivity) context;
+    }

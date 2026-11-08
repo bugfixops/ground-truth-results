@@ -1,0 +1,620 @@
+# Batch 029 printed evidence (C04, fresh print 2026-11-01)
+# Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+# Each block prints the cited file lines with line numbers, exactly as cited in b029.py/.md.
+# Path citations only; bare-filename prose mentions in .md reasons resolve to these same lines.
+
+=== core/model/TorrentInfoProvider.java (499 lines) ===
+--- core/model/TorrentInfoProvider.java:396-399 ---
+396:                                 List<PeerInfo> newInfoList = engine.makePeerInfoList(id);
+397:                                 List<PeerInfo> oldInfoList = infoList.get();
+398:                                 if (oldInfoList == null || oldInfoList.size() != newInfoList.size() ||
+399:                                         !oldInfoList.containsAll(newInfoList)) {
+--- core/model/TorrentInfoProvider.java:480-482 ---
+480:                 public void onSessionStats(@NonNull SessionStats newStats) {
+481:                     SessionStats oldStats = stats.get();
+482:                     if (!newStats.equals(oldStats)) {
+
+=== core/model/data/MagnetInfo.java (133 lines) ===
+--- core/model/data/MagnetInfo.java:70-77 ---
+70:     @Override
+71:     public void writeToParcel(Parcel dest, int flags)
+72:     {
+73:         dest.writeString(uri);
+74:         dest.writeString(sha1hash);
+75:         dest.writeString(name);
+76:         dest.writeList(filePriorities);
+77:     }
+--- core/model/data/MagnetInfo.java:79-93 ---
+79:     public static final Parcelable.Creator<MagnetInfo> CREATOR =
+80:             new Parcelable.Creator<MagnetInfo>()
+81:             {
+82:                 @Override
+83:                 public MagnetInfo createFromParcel(Parcel source)
+84:                 {
+85:                     return new MagnetInfo(source);
+86:                 }
+87: 
+88:                 @Override
+89:                 public MagnetInfo[] newArray(int size)
+90:                 {
+91:                     return new MagnetInfo[size];
+92:                 }
+93:             };
+--- core/model/data/MagnetInfo.java:82-86 ---
+82:                 @Override
+83:                 public MagnetInfo createFromParcel(Parcel source)
+84:                 {
+85:                     return new MagnetInfo(source);
+86:                 }
+--- core/model/data/MagnetInfo.java:88-92 ---
+88:                 @Override
+89:                 public MagnetInfo[] newArray(int size)
+90:                 {
+91:                     return new MagnetInfo[size];
+92:                 }
+--- core/model/data/MagnetInfo.java:95-98 ---
+95:     public String getUri()
+96:     {
+97:         return uri;
+98:     }
+--- core/model/data/MagnetInfo.java:115-119 ---
+115:     @Override
+116:     public int hashCode()
+117:     {
+118:         return sha1hash.hashCode();
+119:     }
+--- core/model/data/MagnetInfo.java:121-131 ---
+121:     @NonNull
+122:     @Override
+123:     public String toString()
+124:     {
+125:         return "MagnetInfo{" +
+126:                 "uri='" + uri + '\'' +
+127:                 ", sha1hash='" + sha1hash + '\'' +
+128:                 ", name='" + name + '\'' +
+129:                 ", filePriorities=" + filePriorities +
+130:                 '}';
+131:     }
+
+=== core/model/data/PeerInfo.java (249 lines) ===
+--- core/model/data/PeerInfo.java:56-70 ---
+56:     public PeerInfo(AdvancedPeerInfo peer, TorrentStatus torrentStatus)
+57:     {
+58:         super(peer.ip());
+59: 
+60:         ip = peer.ip();
+61:         client = peer.client();
+62:         totalDownload = peer.totalDownload();
+63:         totalUpload = peer.totalUpload();
+64:         relevance = calcRelevance(peer, torrentStatus);
+65:         connectionType = getConnectionType(peer);
+66:         port = peer.port();
+67:         progress = (int) (peer.progress() * 100);
+68:         downSpeed = peer.downSpeed();
+69:         upSpeed = peer.upSpeed();
+70:     }
+--- core/model/data/PeerInfo.java:64 ---
+64:         relevance = calcRelevance(peer, torrentStatus);
+--- core/model/data/PeerInfo.java:65 ---
+65:         connectionType = getConnectionType(peer);
+--- core/model/data/PeerInfo.java:72-91 ---
+72:     public PeerInfo(String ip, String client,
+73:                     long totalDownload, long totalUpload,
+74:                     double relevance, int connectionType,
+75:                     int port, int progress,
+76:                     int downSpeed, int upSpeed)
+77:     {
+78:         super(ip);
+79: 
+80:         this.ip = ip;
+81:         this.client = client;
+82:         this.totalDownload = totalDownload;
+83:         this.totalUpload = totalUpload;
+84:         this.relevance = relevance;
+85:         this.connectionType = connectionType;
+86:         this.port = port;
+87:         this.progress = progress;
+88:         this.downSpeed = downSpeed;
+89:         this.upSpeed = upSpeed;
+90:     }
+91: 
+--- core/model/data/PeerInfo.java:92-106 ---
+92:     public PeerInfo(Parcel source)
+93:     {
+94:         super(source);
+95: 
+96:         ip = source.readString();
+97:         client = source.readString();
+98:         totalDownload = source.readLong();
+99:         totalUpload = source.readLong();
+100:         relevance = source.readDouble();
+101:         connectionType = source.readInt();
+102:         port = source.readInt();
+103:         progress = source.readInt();
+104:         downSpeed = source.readInt();
+105:         upSpeed = source.readInt();
+106:     }
+--- core/model/data/PeerInfo.java:108-120 ---
+108:     private int getConnectionType(AdvancedPeerInfo peer)
+109:     {
+110:         if (peer.isUtp())
+111:             return ConnectionType.UTP;
+112: 
+113:         switch (peer.connectionType()) {
+114:             case WEB_SEED:
+115:             case HTTP_SEED:
+116:                 return ConnectionType.WEB;
+117:             default:
+118:                 return ConnectionType.BITTORRENT;
+119:         }
+120:     }
+--- core/model/data/PeerInfo.java:122-141 ---
+122:     private double calcRelevance(AdvancedPeerInfo peer, TorrentStatus torrentStatus)
+123:     {
+124:         double relevance = 0.0;
+125:         PieceIndexBitfield allPieces = torrentStatus.pieces();
+126:         PieceIndexBitfield peerPieces = peer.pieces();
+127: 
+128:         int remoteHaves = 0;
+129:         int localMissing = 0;
+130:         for (int i = 0; i < allPieces.size(); i++) {
+131:             if (!allPieces.getBit(i)) {
+132:                 ++localMissing;
+133:                 if (peerPieces.getBit(i))
+134:                     ++remoteHaves;
+135:             }
+136:         }
+137:         if (localMissing != 0)
+138:             relevance = (double) remoteHaves / (double) localMissing;
+139: 
+140:         return relevance;
+141:     }
+--- core/model/data/PeerInfo.java:143-147 ---
+143:     @Override
+144:     public int describeContents()
+145:     {
+146:         return 0;
+147:     }
+--- core/model/data/PeerInfo.java:149-164 ---
+149:     @Override
+150:     public void writeToParcel(Parcel dest, int flags)
+151:     {
+152:         super.writeToParcel(dest, flags);
+153: 
+154:         dest.writeString(ip);
+155:         dest.writeString(client);
+156:         dest.writeLong(totalDownload);
+157:         dest.writeLong(totalUpload);
+158:         dest.writeDouble(relevance);
+159:         dest.writeInt(connectionType);
+160:         dest.writeInt(port);
+161:         dest.writeInt(progress);
+162:         dest.writeInt(downSpeed);
+163:         dest.writeInt(upSpeed);
+164:     }
+--- core/model/data/PeerInfo.java:166-180 ---
+166:     public static final Parcelable.Creator<PeerInfo> CREATOR =
+167:             new Parcelable.Creator<PeerInfo>()
+168:             {
+169:                 @Override
+170:                 public PeerInfo createFromParcel(Parcel source)
+171:                 {
+172:                     return new PeerInfo(source);
+173:                 }
+174: 
+175:                 @Override
+176:                 public PeerInfo[] newArray(int size)
+177:                 {
+178:                     return new PeerInfo[size];
+179:                 }
+180:             };
+--- core/model/data/PeerInfo.java:170-173 ---
+170:                 public PeerInfo createFromParcel(Parcel source)
+171:                 {
+172:                     return new PeerInfo(source);
+173:                 }
+--- core/model/data/PeerInfo.java:176-179 ---
+176:                 public PeerInfo[] newArray(int size)
+177:                 {
+178:                     return new PeerInfo[size];
+179:                 }
+--- core/model/data/PeerInfo.java:183-185 ---
+183:     public int compareTo(@NonNull Object another)
+184:     {
+185:         return ip.compareTo(((PeerInfo)another).ip);
+--- core/model/data/PeerInfo.java:188-206 ---
+188:     @Override
+189:     public int hashCode()
+190:     {
+191:         int prime = 31, result = 1;
+192: 
+193:         result = prime * result + ((ip == null) ? 0 : ip.hashCode());
+194:         result = prime * result + ((client == null) ? 0 : client.hashCode());
+195:         result = prime * result + (int) (totalDownload ^ (totalDownload >>> 32));
+196:         result = prime * result + (int) (totalUpload ^ (totalUpload >>> 32));
+197:         long relevanceBits = Double.doubleToLongBits(relevance);
+198:         result = prime * result + (int) (relevanceBits ^ (relevanceBits >>> 32));
+199:         result = prime * result + connectionType;
+200:         result = prime * result + port;
+201:         result = prime * result + progress;
+202:         result = prime * result + downSpeed;
+203:         result = prime * result + upSpeed;
+204: 
+205:         return result;
+206:     }
+--- core/model/data/PeerInfo.java:209-229 ---
+209:     public boolean equals(Object o)
+210:     {
+211:         if (!(o instanceof PeerInfo))
+212:             return false;
+213: 
+214:         if (o == this)
+215:             return true;
+216: 
+217:         PeerInfo state = (PeerInfo) o;
+218: 
+219:         return (ip == null || ip.equals(state.ip)) &&
+220:                 (client == null || client.equals(state.client)) &&
+221:                 totalDownload == state.totalDownload &&
+222:                 totalUpload == state.totalUpload &&
+223:                 relevance == state.relevance &&
+224:                 connectionType == state.connectionType &&
+225:                 port == state.port &&
+226:                 progress == state.progress &&
+227:                 downSpeed == state.downSpeed &&
+228:                 upSpeed == state.upSpeed;
+229:     }
+--- core/model/data/PeerInfo.java:231-247 ---
+231:     @NonNull
+232:     @Override
+233:     public String toString()
+234:     {
+235:         return "PeerInfo{" +
+236:                 "ip='" + ip + '\'' +
+237:                 ", client='" + client + '\'' +
+238:                 ", totalDownload=" + totalDownload +
+239:                 ", totalUpload=" + totalUpload +
+240:                 ", relevance=" + relevance +
+241:                 ", connectionType='" + connectionType + '\'' +
+242:                 ", port=" + port +
+243:                 ", progress=" + progress +
+244:                 ", downSpeed=" + downSpeed +
+245:                 ", upSpeed=" + upSpeed +
+246:                 '}';
+247:     }
+
+=== core/model/data/Priority.java (80 lines) ===
+--- core/model/data/Priority.java:27-56 ---
+27:     IGNORE(0),
+28: 
+29:     LOW(1),
+30: 
+31:     /*
+32:      * higher than normal priority. Pieces are preferred over pieces with
+33:      * the same availability, but not over pieces with lower availability
+34:      */
+35:     TWO(2),
+36: 
+37:     /*
+38:      * pieces are as likely to be picked as partial pieces.
+39:      */
+40:     THREE(3),
+41: 
+42:     /*
+43:      * pieces are preferred over partial pieces, but not over pieces with
+44:      * lower availability
+45:      */
+46:     DEFAULT(4),
+47: 
+48:     FIVE(5),
+49: 
+50:     SIX(6),
+51: 
+52:     /*
+53:      * maximum priority, availability is disregarded, the piece is
+54:      * preferred over any other piece with lower priority
+55:      */
+56:     TOP_PRIORITY(7);
+--- core/model/data/Priority.java:27-61 ---
+27:     IGNORE(0),
+28: 
+29:     LOW(1),
+30: 
+31:     /*
+32:      * higher than normal priority. Pieces are preferred over pieces with
+33:      * the same availability, but not over pieces with lower availability
+34:      */
+35:     TWO(2),
+36: 
+37:     /*
+38:      * pieces are as likely to be picked as partial pieces.
+39:      */
+40:     THREE(3),
+41: 
+42:     /*
+43:      * pieces are preferred over partial pieces, but not over pieces with
+44:      * lower availability
+45:      */
+46:     DEFAULT(4),
+47: 
+48:     FIVE(5),
+49: 
+50:     SIX(6),
+51: 
+52:     /*
+53:      * maximum priority, availability is disregarded, the piece is
+54:      * preferred over any other piece with lower priority
+55:      */
+56:     TOP_PRIORITY(7);
+57: 
+58:     Priority(int val)
+59:     {
+60:         this.val = val;
+61:     }
+--- core/model/data/Priority.java:65-68 ---
+65:     public int value()
+66:     {
+67:         return val;
+68:     }
+--- core/model/data/Priority.java:70-78 ---
+70:     public static Priority fromValue(int value)
+71:     {
+72:         Priority[] enumValues = Priority.class.getEnumConstants();
+73:         for (Priority ev : enumValues) {
+74:             if (ev.value() == value)
+75:                 return ev;
+76:         }
+77:         throw new IllegalArgumentException("Invalid value");
+78:     }
+
+=== core/model/data/ReadPieceInfo.java (51 lines) ===
+--- core/model/data/ReadPieceInfo.java:31-37 ---
+31:     public ReadPieceInfo(int piece, int size, long bufferPtr, Exception err)
+32:     {
+33:         this.piece = piece;
+34:         this.size = size;
+35:         this.bufferPtr = bufferPtr;
+36:         this.err = err;
+37:     }
+--- core/model/data/ReadPieceInfo.java:39-49 ---
+39:     @NonNull
+40:     @Override
+41:     public String toString()
+42:     {
+43:         return "ReadPieceInfo{" +
+44:                 "piece=" + piece +
+45:                 ", size=" + size +
+46:                 ", bufferPtr=" + bufferPtr +
+47:                 ", err=" + err +
+48:                 '}';
+49:     }
+
+=== core/model/data/SessionStats.java (149 lines) ===
+--- core/model/data/SessionStats.java:36-46 ---
+36:     public SessionStats(long dhtNodes, long totalDownload,
+37:                         long totalUpload, long downloadSpeed,
+38:                         long uploadSpeed, int listenPort)
+39:     {
+40:         this.dhtNodes = dhtNodes;
+41:         this.totalDownload = totalDownload;
+42:         this.totalUpload = totalUpload;
+43:         this.downloadSpeed = downloadSpeed;
+44:         this.uploadSpeed = uploadSpeed;
+45:         this.listenPort = listenPort;
+46:     }
+--- core/model/data/SessionStats.java:48-58 ---
+48:     public SessionStats(Parcel source)
+49:     {
+50:         super(source);
+51: 
+52:         dhtNodes = source.readLong();
+53:         totalDownload = source.readLong();
+54:         totalUpload = source.readLong();
+55:         downloadSpeed = source.readLong();
+56:         uploadSpeed = source.readLong();
+57:         listenPort = source.readInt();
+58:     }
+--- core/model/data/SessionStats.java:60-64 ---
+60:     @Override
+61:     public int describeContents()
+62:     {
+63:         return 0;
+64:     }
+--- core/model/data/SessionStats.java:66-77 ---
+66:     @Override
+67:     public void writeToParcel(Parcel dest, int flags)
+68:     {
+69:         super.writeToParcel(dest, flags);
+70: 
+71:         dest.writeLong(dhtNodes);
+72:         dest.writeLong(totalDownload);
+73:         dest.writeLong(totalUpload);
+74:         dest.writeLong(downloadSpeed);
+75:         dest.writeLong(uploadSpeed);
+76:         dest.writeInt(listenPort);
+77:     }
+--- core/model/data/SessionStats.java:79-93 ---
+79:     public static final Parcelable.Creator<SessionStats> CREATOR =
+80:             new Parcelable.Creator<SessionStats>()
+81:             {
+82:                 @Override
+83:                 public SessionStats createFromParcel(Parcel source)
+84:                 {
+85:                     return new SessionStats(source);
+86:                 }
+87: 
+88:                 @Override
+89:                 public SessionStats[] newArray(int size)
+90:                 {
+91:                     return new SessionStats[size];
+92:                 }
+93:             };
+--- core/model/data/SessionStats.java:82-86 ---
+82:                 @Override
+83:                 public SessionStats createFromParcel(Parcel source)
+84:                 {
+85:                     return new SessionStats(source);
+86:                 }
+--- core/model/data/SessionStats.java:88-92 ---
+88:                 @Override
+89:                 public SessionStats[] newArray(int size)
+90:                 {
+91:                     return new SessionStats[size];
+92:                 }
+--- core/model/data/SessionStats.java:95-109 ---
+95:     @Override
+96:     public int hashCode()
+97:     {
+98:         int prime = 31, result = 1;
+99: 
+100:         result = prime * result + (int) (dhtNodes ^ (dhtNodes >>> 32));
+101:         result = prime * result + (int) (totalDownload ^ (totalDownload >>> 32));
+102:         result = prime * result + (int) (totalUpload ^ (totalUpload >>> 32));
+103:         result = prime * result + (int) (downloadSpeed ^ (downloadSpeed >>> 32));
+104:         result = prime * result + (int) (uploadSpeed ^ (uploadSpeed >>> 32));
+105:         result = prime * result + listenPort;
+106: 
+107:         return result;
+108:     }
+109: 
+--- core/model/data/SessionStats.java:110-114 ---
+110:     @Override
+111:     public int compareTo(@NonNull Object o)
+112:     {
+113:         return parcelId.compareTo(((SessionStats)o).parcelId);
+114:     }
+--- core/model/data/SessionStats.java:116-133 ---
+116:     @Override
+117:     public boolean equals(Object o)
+118:     {
+119:         if (!(o instanceof SessionStats))
+120:             return false;
+121: 
+122:         if (o == this)
+123:             return true;
+124: 
+125:         SessionStats stats = (SessionStats)o;
+126: 
+127:         return dhtNodes == stats.dhtNodes &&
+128:                 totalDownload == stats.totalDownload &&
+129:                 totalUpload == stats.totalUpload &&
+130:                 downloadSpeed == stats.downloadSpeed &&
+131:                 uploadSpeed == stats.uploadSpeed &&
+132:                 listenPort == stats.listenPort;
+133:     }
+--- core/model/data/SessionStats.java:135-147 ---
+135:     @NonNull
+136:     @Override
+137:     public String toString()
+138:     {
+139:         return "SessionStats{" +
+140:                 "dhtNodes=" + dhtNodes +
+141:                 ", totalDownload=" + totalDownload +
+142:                 ", totalUpload=" + totalUpload +
+143:                 ", downloadSpeed=" + downloadSpeed +
+144:                 ", uploadSpeed=" + uploadSpeed +
+145:                 ", listenPort=" + listenPort +
+146:                 '}';
+147:     }
+
+=== core/model/filetree/FilePriority.java (114 lines) ===
+--- core/model/filetree/FilePriority.java:48-51 ---
+48:     public Priority getPriority()
+49:     {
+50:         return Priority.fromValue(priority);
+51:     }
+
+=== core/model/session/PriorityConverter.java (112 lines) ===
+--- core/model/session/PriorityConverter.java:31-52 ---
+31:     static {
+32:         PRIOR_TO_LIB_PRIOR.put(Priority.IGNORE.value(), org.libtorrent4j.Priority.IGNORE);
+33:         PRIOR_TO_LIB_PRIOR.put(Priority.LOW.value(), org.libtorrent4j.Priority.LOW);
+34:         PRIOR_TO_LIB_PRIOR.put(Priority.TWO.value(), org.libtorrent4j.Priority.TWO);
+35:         PRIOR_TO_LIB_PRIOR.put(Priority.THREE.value(), org.libtorrent4j.Priority.THREE);
+36:         PRIOR_TO_LIB_PRIOR.put(Priority.DEFAULT.value(), org.libtorrent4j.Priority.DEFAULT);
+37:         PRIOR_TO_LIB_PRIOR.put(Priority.FIVE.value(), org.libtorrent4j.Priority.FIVE);
+38:         PRIOR_TO_LIB_PRIOR.put(Priority.SIX.value(), org.libtorrent4j.Priority.SIX);
+39:         PRIOR_TO_LIB_PRIOR.put(Priority.TOP_PRIORITY.value(), org.libtorrent4j.Priority.TOP_PRIORITY);
+40:     }
+41: 
+42:     private static final SparseArray<Priority> LIB_PRIOR_TO_PRIOR = new SparseArray<>();
+43:     static {
+44:         LIB_PRIOR_TO_PRIOR.put(org.libtorrent4j.Priority.IGNORE.swig(), Priority.IGNORE);
+45:         LIB_PRIOR_TO_PRIOR.put(org.libtorrent4j.Priority.LOW.swig(), Priority.LOW);
+46:         LIB_PRIOR_TO_PRIOR.put(org.libtorrent4j.Priority.TWO.swig(), Priority.TWO);
+47:         LIB_PRIOR_TO_PRIOR.put(org.libtorrent4j.Priority.THREE.swig(), Priority.THREE);
+48:         LIB_PRIOR_TO_PRIOR.put(org.libtorrent4j.Priority.DEFAULT.swig(), Priority.DEFAULT);
+49:         LIB_PRIOR_TO_PRIOR.put(org.libtorrent4j.Priority.FIVE.swig(), Priority.FIVE);
+50:         LIB_PRIOR_TO_PRIOR.put(org.libtorrent4j.Priority.SIX.swig(), Priority.SIX);
+51:         LIB_PRIOR_TO_PRIOR.put(org.libtorrent4j.Priority.TOP_PRIORITY.swig(), Priority.TOP_PRIORITY);
+52:     }
+--- core/model/session/PriorityConverter.java:94-101 ---
+94:     public static org.libtorrent4j.Priority convert(@NonNull Priority priority)
+95:     {
+96:         org.libtorrent4j.Priority converted = PRIOR_TO_LIB_PRIOR.get(priority.value());
+97:         if (converted == null)
+98:             converted = org.libtorrent4j.Priority.DEFAULT;
+99: 
+100:         return converted;
+101:     }
+
+=== core/model/session/TorrentDownloadImpl.java (1712 lines) ===
+--- core/model/session/TorrentDownloadImpl.java:442-450 ---
+442:     private void handleReadPiece(ReadPieceAlert alert)
+443:     {
+444:         Exception err = null;
+445:         if (alert.error().isError())
+446:             err = new Exception(alert.error().getMessage());
+447:         ReadPieceInfo info = new ReadPieceInfo(alert.piece(),
+448:                 alert.size(),
+449:                 alert.bufferPtr(),
+450:                 err);
+--- core/model/session/TorrentDownloadImpl.java:911-924 ---
+911:     public List<PeerInfo> getPeerInfoList()
+912:     {
+913:         if (operationNotAllowed())
+914:             return new ArrayList<>();
+915: 
+916:         ArrayList<PeerInfo> infoList = new ArrayList<>();
+917:         List<AdvancedPeerInfo> peers = advancedPeerInfo();
+918: 
+919:         TorrentStatus status = th.status();
+920:         if (status == null)
+921:             return infoList;
+922: 
+923:         for (AdvancedPeerInfo peer : peers) {
+924:             PeerInfo state = new PeerInfo(peer, status);
+
+=== core/model/session/TorrentSessionImpl.java (1721 lines) ===
+--- core/model/session/TorrentSessionImpl.java:1168-1179 ---
+1168:     private void handleStats()
+1169:     {
+1170:         if (operationNotAllowed())
+1171:             return;
+1172: 
+1173:         notifyListeners((listener) -> listener.onSessionStats(
+1174:                 new SessionStats(dhtNodes(),
+1175:                         getTotalDownload(),
+1176:                         getTotalUpload(),
+1177:                         getDownloadSpeed(),
+1178:                         getUploadSpeed(),
+1179:                         getListenPort()))
+--- core/model/session/TorrentSessionImpl.java:1173-1174 ---
+1173:         notifyListeners((listener) -> listener.onSessionStats(
+1174:                 new SessionStats(dhtNodes(),
+
+=== ui/detailtorrent/pages/peers/PeerItem.java (58 lines) ===
+--- ui/detailtorrent/pages/peers/PeerItem.java:26-31 ---
+26: public class PeerItem extends PeerInfo
+27: {
+28:     public PeerItem(@NonNull PeerInfo state)
+29:     {
+30:         super(state.ip, state.client, state.totalDownload,
+31:                 state.totalUpload, state.relevance, state.connectionType,
+
+=== ui/detailtorrent/pages/peers/PeerListAdapter.java (178 lines) ===
+--- ui/detailtorrent/pages/peers/PeerListAdapter.java:77-80 ---
+77:     public void submitList(@Nullable List<PeerItem> list)
+78:     {
+79:         if (list != null)
+80:             Collections.sort(list);

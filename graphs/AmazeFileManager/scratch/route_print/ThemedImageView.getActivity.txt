@@ -1,0 +1,132 @@
+METHOD: ThemedImageView.getActivity
+verdict: REACHABLE   steps_from_launch: 10
+route steps: 10 edges
+======================================================================
+
+STEP 1  edge Ebe9ec603
+  S_ENTRY -> PrefFrag.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC fragments/preference_fragments/PrefFrag.java:64: PrefFrag extends PreferenceFragment; line 76-147: onCreate; activities/PreferencesActivity.java:255: new PrefFrag() instantiated; framework calls onCreate
+  cite [SRC] fragments/preference_fragments/PrefFrag.java:64
+       64: public class PrefFrag extends PreferenceFragment implements Preference.OnPreferenceClickListener {
+  cite [SRC] activities/PreferencesActivity.java:255
+      255:                 loadPrefFragment(new PrefFrag(), R.string.setting);
+
+STEP 2  edge E4d630b84
+  PrefFrag.onCreate -> PrefFrag.onPreferenceClick
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC fragments/preference_fragments/PrefFrag.java:89: for (String PREFERENCE_KEY : PREFERENCE_KEYS) { findPreference(PREFERENCE_KEY).setOnPreferenceClickListener(this); } // PrefFrag implements OnPreferenceClickListener
+  cite [SRC] fragments/preference_fragments/PrefFrag.java:89
+       89:             findPreference(PREFERENCE_KEY).setOnPreferenceClickListener(this);
+
+STEP 3  edge E5028d221
+  PrefFrag.onPreferenceClick -> PreferencesActivity.selectItem
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC fragments/preference_fragments/PrefFrag.java:211-213
+  cite [SRC] fragments/preference_fragments/PrefFrag.java:211-213
+      211:             case PreferencesConstants.FRAGMENT_FOLDERS:
+      212:                 ((PreferencesActivity) getActivity())
+      213:                         .selectItem(PreferencesActivity.FOLDERS_PREFERENCE);
+
+STEP 4  edge Eecbda88f
+  PreferencesActivity.selectItem -> FoldersPref.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC PreferencesActivity.java:261 loadPrefFragment(new FoldersPref(), R.string.sidebar_folders_title)
+  cite [SRC] PreferencesActivity.java:261
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/activities/PreferencesActivity.java)
+      261:                 loadPrefFragment(new FoldersPref(), R.string.sidebar_folders_title);
+
+STEP 5  edge Ef8df1bc2
+  FoldersPref.onCreate -> PathSwitchPreference.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC FoldersPref.java:58-59 for (int i = 0; i < dataUtils.getBooks().size(); i++) { PathSwitchPreference p = new PathSwitchPreference(getActivity());
+  cite [SRC] FoldersPref.java:58-59
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/fragments/preference_fragments/FoldersPref.java)
+       58:         for (int i = 0; i < dataUtils.getBooks().size(); i++) {
+       59:             PathSwitchPreference p = new PathSwitchPreference(getActivity());
+
+STEP 6  edge E678e912e
+  PathSwitchPreference.<init> -> PathSwitchPreference.onCreateView
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC PathSwitchPreference.java:26-30 protected View onCreateView(ViewGroup parent) override
+  cite [SRC] PathSwitchPreference.java:26-30
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/preference/PathSwitchPreference.java)
+       26:     @Override
+       27:     protected View onCreateView(ViewGroup parent) {
+       28:         setWidgetLayoutResource(R.layout.namepathswitch_preference);
+       29:         return super.onCreateView(parent);
+       30:     }
+
+STEP 7  edge E5c3e8784
+  PathSwitchPreference.onCreateView -> ThemedImageButton.<init>(Context,AttributeSet)
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC PathSwitchPreference.java:28-29 setWidgetLayoutResource(R.layout.namepathswitch_preference); return super.onCreateView(parent); SRC res/layout/namepathswitch_preference.xml:10,19 <com.amaze.filemanager.ui.views.ThemedImageButton .../>
+  cite [SRC] PathSwitchPreference.java:28-29
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/preference/PathSwitchPreference.java)
+       28:         setWidgetLayoutResource(R.layout.namepathswitch_preference);
+       29:         return super.onCreateView(parent);
+  cite [SRC] res/layout/namepathswitch_preference.xml:10, 19
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/res/layout/namepathswitch_preference.xml)
+       10:     <com.amaze.filemanager.ui.views.ThemedImageButton
+       19: 
+
+STEP 8  edge E999ff49e
+  ThemedImageButton.<init>(Context,AttributeSet) -> ThemedImageView.<init>(Context,AttributeSet)
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ThemedImageButton.java:18-20 public ThemedImageButton(Context context, AttributeSet attrs) { super(context, attrs); }
+  cite [SRC] ThemedImageButton.java:18-20
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/ThemedImageButton.java)
+       18:     public ThemedImageButton(Context context, AttributeSet attrs) {
+       19:         super(context, attrs);
+       20:     }
+
+STEP 9  edge E8048d85b
+  ThemedImageView.<init>(Context,AttributeSet) -> ThemedImageView.<init>(Context,AttributeSet,int)
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ThemedImageView.java:25-27 public ThemedImageView(Context context, AttributeSet attrs) { this(context, attrs, 0); }
+  cite [SRC] ThemedImageView.java:25-27
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/ThemedImageView.java)
+       25:     public ThemedImageView(Context context, AttributeSet attrs) {
+       26:         this(context, attrs, 0);
+       27:     }
+
+STEP 10  edge E0bcc7226
+  ThemedImageView.<init>(Context,AttributeSet,int) -> ThemedImageView.getActivity
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ThemedImageView.java:29-32 ThemedImageView(Context context, AttributeSet attrs, int defStyleAttr) { super(...); BasicActivity a = (BasicActivity) getActivity();
+  cite [SRC] ThemedImageView.java:29-32
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/ui/views/ThemedImageView.java)
+       29:     public ThemedImageView(Context context, AttributeSet attrs, int defStyleAttr) {
+       30:         super(context, attrs, defStyleAttr);
+       31: 
+       32:         BasicActivity a = (BasicActivity) getActivity();

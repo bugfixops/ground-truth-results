@@ -1,0 +1,47 @@
+Source: fw_src/android-8.1.0_r1/core/java/android/os/Parcel.java @ work-2026-10-31 (SHA fae9d5310f8ed81c2813bcf56755e853c28eed74), 3229 lines
+
+2867:     public final Parcelable.Creator<?> readParcelableCreator(ClassLoader loader) {
+2868:         String name = readString();
+2869:         if (name == null) {
+2870:             return null;
+2871:         }
+2872:         Parcelable.Creator<?> creator;
+2873:         synchronized (mCreators) {
+2874:             HashMap<String,Parcelable.Creator<?>> map = mCreators.get(loader);
+2875:             if (map == null) {
+2876:                 map = new HashMap<>();
+2877:                 mCreators.put(loader, map);
+2878:             }
+2879:             creator = map.get(name);
+2880:             if (creator == null) {
+2881:                 try {
+2882:                     // If loader == null, explicitly emulate Class.forName(String) "caller
+2883:                     // classloader" behavior.
+2884:                     ClassLoader parcelableClassLoader =
+2885:                             (loader == null ? getClass().getClassLoader() : loader);
+2886:                     // Avoid initializing the Parcelable class until we know it implements
+2887:                     // Parcelable and has the necessary CREATOR field. http://b/1171613.
+2888:                     Class<?> parcelableClass = Class.forName(name, false /* initialize */,
+2889:                             parcelableClassLoader);
+2890:                     if (!Parcelable.class.isAssignableFrom(parcelableClass)) {
+2891:                         throw new BadParcelableException("Parcelable protocol requires that the "
+2892:                                 + "class implements Parcelable");
+2893:                     }
+2894:                     Field f = parcelableClass.getField("CREATOR");
+2895:                     if ((f.getModifiers() & Modifier.STATIC) == 0) {
+2896:                         throw new BadParcelableException("Parcelable protocol requires "
+2897:                                 + "the CREATOR object to be static on class " + name);
+2898:                     }
+2899:                     Class<?> creatorType = f.getType();
+2900:                     if (!Parcelable.Creator.class.isAssignableFrom(creatorType)) {
+2901:                         // Fail before calling Field.get(), not after, to avoid initializing
+2902:                         // parcelableClass unnecessarily.
+2903:                         throw new BadParcelableException("Parcelable protocol requires a "
+2904:                                 + "Parcelable.Creator object called "
+2905:                                 + "CREATOR on class " + name);
+2906:                     }
+2907:                     creator = (Parcelable.Creator<?>) f.get(null);
+2908:                 }
+2909:                 catch (IllegalAccessException e) {
+2910:                     Log.e(TAG, "Illegal access when unmarshalling: " + name, e);
+2911:                     throw new BadParcelableException(

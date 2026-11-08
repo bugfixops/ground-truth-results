@@ -1,15 +1,18 @@
 # LibreTorrent running notes
 
+## Current step
+- 2026-11-03 (Kiro, local branch `kiro-libretorrent`, not pushed): handover Steps 0-10 done; Step 11 (device scripts) and Step 12 (final checks) follow. Build: 4732 methods, REACHABLE 3967, UNREACHABLE 765, UNRESOLVED 0, errors 0, warnings 0; checks 2/3/4 at 0, check 8 named 33/33. Route table redone on the final graph: 29 routes, CORRECT 18 / WRONG 9 / UNCLEAR 2, rate 9/27. Report: `scratch/kiro/KIRO_REPORT.md`. The older "Current status" section below is history.
+
 ## Current status
 
-- Current step: prompt Step 7 checkpoint updated; batch 3 has 38 source-supported UNREACHABLE labels, one source-supported REACHABLE route, and one OPEN row. App is NOT DONE.
+- Current step (2026-10-31 17:20 EDT, Claude run): batches 10 and 11 are DONE_LABEL (batch 10: 39 UNREACHABLE, 1 REACHABLE `FeedItemsListItem.compareTo`; batch 11: 9 UNREACHABLE). Batch 12 is DONE_LABEL except one OPEN_NO_SOURCE row (29 REACHABLE, 10 UNREACHABLE). Labelled this run: batch 3 (39 UNREACHABLE), batch 4 (40 UNREACHABLE), batches 5–9 (200 generated binding statics), batches 10–12. LibreTorrent stays [C]; it is NOT DONE.
 - Last action (2026-10-30 10:35 EDT): fixed two unknown-node method names, rebuilt, and inspected the saved PriorityConverter route. It is REACHABLE through a hand-authored path with no bytecode-derived edges; the path has STATE `isRunning()` and inferred `java.lang.Thread` callback dispatch. Build output is `scratch/build_s3_batch3_priority_route_3.txt` (errors 0, warnings 230); route evidence is `scratch/s3_route_priority_final.txt`.
-- Next action: stop at Step 8. Batch 3's `TagInfo.hashCode` remains OPEN because no reachable source-backed caller of its hash path was established. Do not begin batch 4 under the current prompt boundary.
+- Next action: batch 13 onward in `handoff/LIBRETORRENT_BATCH_PLAN.tsv` order. `drawer.TagItem.equals` (batch 113) is UNREACHABLE unclassified in `out/methods.csv` and TODO_CANDIDATE_REACHABLE in the plan; it needs a route from `TagsAdapter` through DiffUtil (`ui/main/drawer/TagsAdapter.java:137`) and must not get `no_trigger_in_app`.
 - Session date: 2026-10-29 17:05 EDT.
-- Batch status: batches 1 and 2 each have 40 source-rechecked labels; batch 3 has 38 supported UNREACHABLE labels, 1 REACHABLE method, and 1 OPEN row; batch 4 has 39 supported UNREACHABLE labels and 1 OPEN row; batch 5–9 each have 40 OPEN rows; batch 10 has 3 supported UNREACHABLE labels and 37 OPEN rows; batch 11 has 6 supported UNREACHABLE labels and 3 OPEN rows; batch 12 has 9 supported UNREACHABLE labels and 31 OPEN rows; batch 13 has 40 OPEN rows; batch 14 has 8 supported UNREACHABLE labels and 32 OPEN rows; batch 15 has 5 supported UNREACHABLE labels and 35 OPEN rows; batch 16 has 16 supported UNREACHABLE labels and 24 OPEN rows; batch 17 has 7 supported UNREACHABLE labels and 33 OPEN rows; batch 18 has 2 supported UNREACHABLE labels and 38 OPEN rows; batch 19 has 7 supported UNREACHABLE labels and 33 OPEN rows; batch 20 has 1 supported UNREACHABLE label and 39 OPEN rows; batch 21 has 4 supported UNREACHABLE labels and 36 OPEN rows; batch 22 has 3 supported UNREACHABLE labels and 37 OPEN rows; batches 23–28 have 40 OPEN rows each; batch 29 has 3 supported UNREACHABLE labels and 37 OPEN rows; batches 30–31 have 40 OPEN rows each; batch 32 has 3 supported UNREACHABLE labels and 37 OPEN rows; batches 33–120 have 40 OPEN rows each except batch 120, which has 3. Plan rows reviewed: 4,732/4,732; 235 labeled and 4,497 OPEN.
+- Batch status: batches 1 and 2 each have 40 source-rechecked labels; batch 3 has 38 supported UNREACHABLE labels, 1 REACHABLE method, and 1 OPEN row; batch 4 has 39 supported UNREACHABLE labels and 1 OPEN row; batch 5–9 each have 40 OPEN rows; batch 10 is DONE_LABEL (39 UNREACHABLE, 1 REACHABLE); batch 11 is DONE_LABEL (9 UNREACHABLE); batch 12 is DONE_LABEL except one OPEN_NO_SOURCE row (29 REACHABLE, 9 UNREACHABLE kept, `FeedUtils.equalsOrNull` UNREACHABLE added); batch 13 has 40 OPEN rows; batch 14 has 8 supported UNREACHABLE labels and 32 OPEN rows; batch 15 has 5 supported UNREACHABLE labels and 35 OPEN rows; batch 16 has 16 supported UNREACHABLE labels and 24 OPEN rows; batch 17 has 7 supported UNREACHABLE labels and 33 OPEN rows; batch 18 has 2 supported UNREACHABLE labels and 38 OPEN rows; batch 19 has 7 supported UNREACHABLE labels and 33 OPEN rows; batch 20 has 1 supported UNREACHABLE label and 39 OPEN rows; batch 21 has 4 supported UNREACHABLE labels and 36 OPEN rows; batch 22 has 3 supported UNREACHABLE labels and 37 OPEN rows; batches 23–28 have 40 OPEN rows each; batch 29 has 3 supported UNREACHABLE labels and 37 OPEN rows; batches 30–31 have 40 OPEN rows each; batch 32 has 3 supported UNREACHABLE labels and 37 OPEN rows; batches 33–120 have 40 OPEN rows each except batch 120, which has 3. Plan rows reviewed: 4,732/4,732; 235 labeled and 4,497 OPEN.
 - Gate decisions: T1 row-backed callbacks use STATE `data`; remove the generic gate from four action-mode destroy edges. T2 notification activation is ENV `system_event`, scheduled delivery is ENV `time`; remove two cancellation edges. T3 exported activity entries are ENV `other_app`. T4 boot receiver is ENV `system_event`; remove two invalid direct-entry edges. Details and all 54 candidate IDs are in `scratch/gates.md` with printed source in `scratch/gates_printed.txt`.
-- Latest build (`scratch/build_s3_batch3_priority_route_3.txt`): 4,732 methods; 6,486 edges; REACHABLE 1,777; UNREACHABLE 2,955 (234 `no_trigger_in_app`, 2,721 `unclassified`); errors 0; warnings 230; 5,190/6,486 edges remain bytecode-derived; 476 edges cite no source line in the build's evidence summary. This remains an inventory build: `STRICT = False` and `USE_AUTO = True` are temporary. The build's coverage sanity-check section was not used as evidence.
-- Open items: batch 3 `TagInfo.hashCode`; batch 4's `UriConverter.<init>`; batches 5–9's 200 generated binding methods; batch 10's 37 OPEN rows; batch 11's three custom preference constructors; batch 12's 31 OPEN rows; batch 13's 40 OPEN rows; batch 14's 32 OPEN rows; batch 15's 35 OPEN rows; batch 16's 24 OPEN rows; batch 17's 33 OPEN rows; batch 18's 38 OPEN rows; batch 19's 33 OPEN rows; batch 20's 39 OPEN rows; batch 21's 36 OPEN rows; batch 22's 37 OPEN rows; batch 23's 40 OPEN rows; batch 24's 40 OPEN rows; batch 25's 40 OPEN rows; remaining unclassified methods, later batches and whole-app checks.
+- Latest build (`scratch/build_s6_batch12.txt`, 17:20 EDT): 4,732 methods; 6,378 edges; REACHABLE 1,983; UNREACHABLE 2,749; UNRESOLVED 0; errors 0; warnings 225; unclassified 2,273 (no_trigger_in_app 476). This remains an inventory build: `STRICT = False` and `USE_AUTO = True` are temporary. The build's coverage sanity-check section was not used as evidence.
+- Open items: `drawer.TagItem.equals` route (batch 113; see `## Blocked`); `databinding.DataBinderMapperImpl.<init>` (batch 12; see `## Blocked`); 2,273 unclassified methods; 4,284 TODO_CANDIDATE_REACHABLE plan rows (batch 13 onward); 80 DONE_RECHECK rows (rule F redo for generated classes); 225 warnings; whole-app checks.
 
 ## S1 — dataset, manifest, and entry points
 
@@ -130,8 +133,8 @@
 
 - Batch 1: 40 methods (`Enclosure`, `EzRssTorrentItem`, unused `FeedException`/utility constructors, and unused Atom/RSS accessors); 40 authored UNREACHABLE labels; cumulative 40/4,732 methods explicitly batch-reviewed.
 - Batch 2: 40 methods (remaining unused feed accessors, unused NanoHTTPD surface, four generated constructors); 40 authored UNREACHABLE labels; cumulative 80/4,732 methods explicitly batch-reviewed. Generated constructors are `INFERRED` because their Java source is absent from the upload.
-- Batch 3: 33 source-supported UNREACHABLE labels and 7 OPEN methods; details in `scratch/batch_003.md`.
-- Batch 4: exact 40 plan rows reviewed; 39 source-supported UNREACHABLE labels and 1 OPEN method; details and source printouts in `scratch/batch_004.md`, `scratch/batch_004_printed.txt`, `scratch/batch_004_exact_calls.txt`, and `scratch/batch_004_independent_routes.txt`.
+- Batch 3: 39 source-supported UNREACHABLE labels (`TagInfo.hashCode` SOURCE, after the implicit hash-trigger search in `scratch/batch_003_taginfo_hash_triggers.txt`) and 1 REACHABLE candidate (`PriorityConverter.convert(Priority)`, still needs a hand-written route); details in `scratch/batch_003.md`.
+- Batch 4: exact 40 plan rows reviewed; 39 source-supported UNREACHABLE labels and `UriConverter.<init>` labelled UNREACHABLE no_trigger_in_app as INFERRED (Room uses the static converters through generated code); details and source printouts in `scratch/batch_004.md`, `scratch/batch_004_printed.txt`, `scratch/batch_004_exact_calls.txt`, and `scratch/batch_004_independent_routes.txt`.
 - Batch 5: exact 40 plan rows reviewed; 40 OPEN generated binding methods; report and independent source printout in `scratch/batch_005.md` and `scratch/batch_005_independent_printed.txt`.
 - Batch 6: exact 40 plan rows reviewed; 40 OPEN generated binding methods; report and independent source printout in `scratch/batch_006.md` and `scratch/batch_006_independent_printed.txt`.
 - Batch 7: exact 40 plan rows reviewed; 40 OPEN generated binding methods; report and independent source printout in `scratch/batch_007.md` and `scratch/batch_007_independent_printed.txt`.
@@ -248,3 +251,490 @@
 - Batch 118: exact 40 plan rows reviewed; all 40 OPEN pending complete activity, fragment-host, preference, and platform callback routes; report and evidence in `scratch/batch_118.md`, `scratch/batch_118_helper.md`, and `scratch/batch_118_helper_printed.txt`. No graph changes, so no build was run.
 - Batch 119: exact 40 plan rows reviewed; all 40 OPEN pending complete host, AndroidX, and custom-view callback routes; report and evidence in `scratch/batch_119.md`, `scratch/batch_119_helper.md`, and `scratch/batch_119_helper_printed.txt`. No graph changes, so no build was run.
 - Batch 120: exact 3 plan rows reviewed; all 3 OPEN pending complete user and callback routes; report and evidence in `scratch/batch_120.md`, `scratch/batch_120_helper.md`, and `scratch/batch_120_helper_printed.txt`. No graph changes, so no build was run.
+
+- 2026-10-31 16:47 EDT (Claude convert run; LibreTorrent stays [C]): labelled `TagInfo.hashCode` SOURCE (`scratch/batch_003_hash_callers.txt`, `scratch/batch_003_taginfo_hash_triggers.txt`); `UriConverter.<init>` INFERRED; batches 5–9's 200 generated binding statics no_trigger_in_app INFERRED (`scratch/generated_class_grep_batch5_9.txt`); `drawer.TagItem.hashCode` SOURCE (batch 10; `scratch/batch_010_drawer_tagitem_evidence.txt`). SUPPRESS: the batch 3–9 block (107 pairs) and `drawer.TagItem.hashCode -> TagInfo.hashCode`. Build: `python3 -I tools/build_graph.py graphs/LibreTorrent libretorrent`, output `scratch/build_s4_batch10_drawer.txt`: methods 4732, edges 6378, REACHABLE 1777, UNREACHABLE 2955, no_trigger_in_app 437, unclassified 2518, errors 0, warnings 225.
+- Plan status sync (`scratch/sync_plan_status.py`, then the PriorityConverter fix): 289 rows DONE_LABEL, 80 DONE_RECHECK, 4324 TODO_CANDIDATE_REACHABLE, 39 TODO_UNCLASSIFIED (36 batch 10, 3 batch 11). The plan's `current_label` column is an older snapshot for some rows; the build's `out/methods.csv` is authoritative.
+- Sanity-check contradiction: the build lists `drawer.TagItem.equals` as UNREACHABLE unclassified although it runs. `DiffUtil` calls it through `ui/main/drawer/TagsAdapter.java:137`, so it cannot take `no_trigger_in_app`.
+- Not finished: 2,518 unclassified methods, 4,324 candidate-reachable rows needing hand-written routes or printed-source evidence, and the 80 DONE_RECHECK rows (rule F redo for generated classes). The batch 4 and batch 5–9 OPEN lines above are superseded by this entry.
+- 2026-10-31 17:04 EDT (C7 progress; build `scratch/build_s5_batch10_11.txt`): REACHABLE 1809, UNREACHABLE 2923, UNRESOLVED 0, errors 0, warnings 225. Merged: batches 10 and 11 (SUPPRESS 11 pairs for generated overloads; routes for `FeedItemsListItem.compareTo` and 32 later-batch methods). Not finished: 2,448 unclassified, 4,324 TODO_CANDIDATE_REACHABLE rows, 80 DONE_RECHECK rows.
+- 2026-10-31 17:20 EDT (C7 progress; build `scratch/build_s6_batch12.txt`): REACHABLE 1983, UNREACHABLE 2749, UNRESOLVED 0, errors 0, warnings 225. Labelled: batch 12 (29 REACHABLE routes; `FeedUtils.equalsOrNull` UNREACHABLE; 9 existing UNREACHABLE kept; `databinding.DataBinderMapperImpl.<init>` OPEN_NO_SOURCE). SUPPRESS: 4 pairs for the `BaseItem.equals` copies into `FeedUtils.equalsOrNull`. Not finished: 2,273 unclassified, 4,284 TODO_CANDIDATE_REACHABLE rows, 80 DONE_RECHECK rows, 1 OPEN_NO_SOURCE row, 225 warnings.
+- 2026-10-31 17:37 EDT (C7 progress; build `scratch/build_b014.txt`): REACHABLE 1983, UNREACHABLE 2749, UNRESOLVED 0, errors 0, warnings 223, edges 6364. Merged: batch 14 (`parts/b014.py`: 32 REACHABLE, 8 UNREACHABLE `no_trigger_in_app`, printed evidence `scratch/b014_printed.txt`). The old batch-14 S4 UNREACHABLE block was removed. SUPPRESS: 10 pairs. Route-step edges for `FeedParser.findDownloadUrl`, `watchMediaContent`, `watchMediaHash`, `watchGuid` are included; none duplicated an existing edge. Spot checks (printed, read-only): `BaseItem.java:36-60`, `Rss1Item.java:55-60`, `MediaRssParser.java:28-36`, `core/FeedParser.java:141-160` and `186-202`; app code keeps no `Item` objects (`FeedItem` copies fields). Dependency: `BaseItem.getUniqueId` must stay reachable only from `BaseItem.equals`/`hashCode`, which the BaseItem batch must keep consistent. Not finished: 2,273 unclassified, 4,284 TODO_CANDIDATE_REACHABLE rows, 80 DONE_RECHECK rows, 1 OPEN_NO_SOURCE row, 223 warnings. Batches 13, 15 and 16 are still being labelled.
+- 2026-10-31 17:45 EDT (C7 progress; build `scratch/build_b013.txt`): REACHABLE 1986, UNREACHABLE 2746, UNRESOLVED 0, errors 0, warnings 222, edges 6329. Merged: batch 13 (`parts/b013.py`: 36 REACHABLE; 4 UNREACHABLE `no_trigger_in_app` for `BaseItem.equals`, `BaseItem.hashCode`, `BaseItem.toString`, `BaseItem.getUniqueId`; printed evidence `scratch/b013_printed.txt`). SUPPRESS: 16 strings, which `add_auto_edges` applies to src or dst. Spot checks (printed, read-only): `service/FeedFetcherWorker.java:189-205, 253-257`, `impl/FeedHandler.java:94-100`, and a grep that found no `Item` concatenation or log call in `core/FeedParser.java`, the feed-parser package or `FeedFetcherWorker`. The batch-14 dependency on `BaseItem.getUniqueId` is met. Feed-parser warnings left: `Hash.hashCode`, `Hash.toString` (not in batches 13 or 14). Not finished: 2,266 unclassified, 80 DONE_RECHECK rows, 1 OPEN_NO_SOURCE row, 222 warnings.
+
+## Blocked
+
+None of these stops the run. Each row stays unlabelled until its question is answered.
+
+- `databinding.DataBinderMapperImpl.<init>` (batch 12, plan status OPEN_NO_SOURCE): the build labels it UNREACHABLE unclassified with 0 incoming edges. The upload has no `databinding/DataBinderMapperImpl.java`; `libretorrent.DataBinderMapperImpl` exists only in build output (1 incoming edge). Needs a source file, or a decision on whether it is generated code outside the upload.
+- `drawer.TagItem.equals` (batch 113, TODO_CANDIDATE_REACHABLE): the build labels it UNREACHABLE unclassified with 1 incoming edge, but `ui/main/drawer/TagsAdapter.java:137` passes it to `DiffUtil`, so it runs. It needs a route from the DiffUtil callback, not an UNREACHABLE label.
+
+## Stopped by the user (2026-10-31, about 18:10 EDT)
+- The user stopped the Claude run on LibreTorrent and handed the app to Muse. The run was stopped mid-batch: the session and the runner were ended, and handoff/STOP_CONVERT was written.
+- Last files written: scratch/b013 to scratch/b017 (printed output, build_b013.txt and build_b014.txt, parts/b016.md). Batch 18 was in progress: scratch/b018_generated_grep_tmp.txt is empty, and scratch/b018_generated_grep.txt holds the grep output, not yet checked.
+- Treat batches 13 to 18 as unverified. Re-check each batch's printed output and labels before you rely on them. Check whether parts/b016.md was merged into graph_def.py.
+- out/build_report.txt may be older than graph_def.py. Rebuild before you use any count from it.
+
+## A4 b000 (2026-11-01, continuation merger)
+- Merged parts/b000_trunks.py (audited: audit/a3-trunks/AUDIT.md — part file PASSES all edge/build-name/build-test/.md/printed/ENTRY checks; overall FAIL scoped ONLY to helper REPORT.md overlap list D1-D2, corrected per audit §6, no edge changed; .md nits N1/N2 applied to the pushed .md copy only).
+- graph_def.py: STRICT = True (line 8); AUTO_DEAD block deleted (was lines 45-47); FW-MEMORY rewrite lines deleted from _source_audit_edit (no edge evidence contained FW-MEMORY — verified by grep: 0 hits in graph_def evidence and 0 in all part files — so the hidden-claim set is empty); MERGED_PARTS = ['b000_trunks.py'].
+- Build scratch/build_b000.txt: methods 4732, edges 6345, REACHABLE 2121, UNREACHABLE 480, UNRESOLVED 2131, errors 2131 (all "method has no path and no UNREACHABLE entry", i.e. exactly the 2131 formerly AUTO_DEAD-labelled methods; no STRICT error, no other error kind), warnings 21 (down from 222; the 201 TO CLASSIFY warnings are gone with AUTO_DEAD). REACHABLE +135 vs baseline 1986, 0 flipped the other way. Dedupe note: b000 edges duplicating later batch parts are recorded per audit §6 corrected list (b017 merger-tree copy, b022, b023-fix, b024-fix, b025-fix, b015, b039, b040, b042); batch part files are NOT edited — duplicates survive as distinct hand-edge ids with no reachability effect (auditor §6), to be reconciled at each batch merge.
+
+## A4 b001 (2026-11-01, continuation merger)
+- Merged parts/b001.py (audited wave-1 fix-buildnames; harness re-run PASS exit 0, LOOSE .md notes only, params-less rows).
+- All 40 UNREACHABLE keys pre-existed in graph_def.py (single-quoted; part header's "reconcile duplicate keys" note applies): labels/kinds identical, part update overwrites entries with batch grades (all INFERRED; graph_def held several at SOURCE — grade-only change, disclosed to coordinator, part governs as audited).
+- Part SUPPRESS.update (line 182) removes 43 auto edges into these UNREACHABLE dsts (base-name entries, checked) — the real build effect of this merge.
+- Build scratch/build_b001.txt: methods 4732, edges 6302 (-43 vs b000), REACHABLE 2121, UNREACHABLE 480, UNRESOLVED 2131, errors 2131 (did not rise), warnings 21 (unchanged).
+
+## A4 b002 (2026-11-01, continuation merger)
+- Merged parts/b002.py (audited wave-1 fix-buildnames; harness re-run PASS exit 0 against the authoritative post-A1 staging-A1 batch2 file — the clone batch2 file is pre-A1 and FAILs on the 3 A1-flipped mapper rows 2/38-2/40, which the part correctly carries as UNREACHABLE; LOOSE .md notes only, params-less rows).
+- All 40 rows UNREACHABLE no_trigger_in_app INFERRED, 0 edges; part SUPPRESS.update (line 182) removes 21 auto edges into these UNREACHABLE dsts.
+- Build scratch/build_b002.txt: methods 4732, edges 6281 (-21 vs b001), REACHABLE 2121, UNREACHABLE 480, UNRESOLVED 2131, errors 2131 (did not rise), warnings 21 (unchanged).
+
+## A4 b003 (2026-11-01, continuation merger)
+- Merged parts/b003.py (audited wave-1 fix-buildnames; harness re-run PASS exit 0 against the authoritative clone batch3 file — batch 3 is not A1-affected; LOOSE .md notes only).
+- MUST-RESOLVE applied, NO escalation: the live-tree hand edge at :1109 (clone :1114, -5 line shift) TorrentSessionImpl.download -> PriorityConverter.convert(Priority) is qualified to 'PriorityConverter.convert(Priority)#2'. Printed evidence re-verified this session: download body TorrentSessionImpl.java:1574 calls convert(priority) where priority iterates app Priority[] and the result is .swig()d — the :94 app->lib overload (PriorityConverter.java:94-101); the bare build name resolves to the :103 lib->app overload (PriorityConverter.java:103-110), which the part's saved full-repo grep shows has zero single-arg callers. The part's row-31 key and SUPPRESS entry for the bare name correctly denote :103 and were NOT extended to #2. Dedupe against b034's #2 edge stands as a b034-merge item (exactly one copy must survive).
+- Build effect of the qualification (not a label flip — the part label for row 31 was already UNREACHABLE; the build was mis-honouring it through the wrong overload): :103 goes REACHABLE -> UNREACHABLE, :94 stays REACHABLE via its true callers; net R2120 (-1), U481 (+1). Part SUPPRESS.update lists 40 entries, removing 19 auto edges (21 dsts had no auto edge to remove); edges 6262 (-19 vs b002).
+- Build scratch/build_b003.txt: methods 4732, edges 6262, REACHABLE 2120, UNREACHABLE 481, UNRESOLVED 2131, errors 2131 (did not rise), warnings 21 (unchanged, identical WARN set to b002).
+
+## A4 b004 (2026-11-01, continuation merger)
+- Merged parts/b004.py (audited wave-1 fix-buildnames; harness re-run PASS exit 0 against the authoritative clone batch4 file — batch 4 not A1-affected; LOOSE .md notes only).
+- All 40 rows UNREACHABLE no_trigger_in_app INFERRED, 0 edges; part SUPPRESS.update lists 40 entries, removing 28 auto edges.
+- Build scratch/build_b004.txt: methods 4732, edges 6234 (-28 vs b003), REACHABLE 2120, UNREACHABLE 481, UNRESOLVED 2131, errors 2131 (did not rise), warnings 21 (unchanged).
+
+## A4 b005 (2026-11-01, continuation merger)
+- Merged parts/b005.py (audited wave-1 G1; harness re-run PASS exit 0 against the authoritative clone batch5 file — batch 5 not A1-affected; D29 rows 19/20/25/26 stay UNREACHABLE no_trigger_in_app INFERRED, untouched by this merge beyond the part overwrite).
+- All 40 rows UNREACHABLE no_trigger_in_app INFERRED, 0 edges; part SUPPRESS.update lists 40 entries, removing 0 auto edges (no auto edge into any b005 dst existed — consistent with the D29 auto_calls check of all 200 base *Binding statics).
+- Build scratch/build_b005.txt: methods 4732, edges 6234 (unchanged vs b004), REACHABLE 2120, UNREACHABLE 481, UNRESOLVED 2131, errors 2131 (did not rise), warnings 21 (unchanged).
+
+## A4 b006 (2026-11-01, continuation merger)
+- Merged parts/b006.py (audited wave-1 G2; harness re-run PASS exit 0 against the authoritative clone batch6 file — batch 6 not A1-affected; LOOSE .md notes only).
+- All 40 rows UNREACHABLE no_trigger_in_app INFERRED, 0 edges; part SUPPRESS.update lists 80 strings (40 names + @Impl copies, b013 pattern), removing 0 auto edges (no auto edge into any b006 dst existed).
+- Build scratch/build_b006.txt: methods 4732, edges 6234 (unchanged vs b005), REACHABLE 2120, UNREACHABLE 481, UNRESOLVED 2131, errors 2131 (did not rise), warnings 21 (unchanged).
+
+## A4 b007 (2026-11-01, continuation merger)
+- Merged parts/b007.py (audited wave-1 G2; harness re-run PASS exit 0 against the authoritative clone batch7 file — batch 7 not A1-affected; LOOSE .md notes only).
+- All 40 rows UNREACHABLE no_trigger_in_app INFERRED, 0 edges; part SUPPRESS.update lists 80 strings (40 names + @Impl copies), removing 0 auto edges.
+- Build scratch/build_b007.txt: methods 4732, edges 6234 (unchanged vs b006), REACHABLE 2120, UNREACHABLE 481, UNRESOLVED 2131, errors 2131 (did not rise), warnings 21 (unchanged).
+
+## A4 repair b001/b002 rewrite (2026-11-01, continuation merger; coordinator user order 18:41 EST)
+- Stronger-evidence restoration: 39 b001 + 36 b002 UNREACHABLE keys whose A1-base inline graph_def.py entries are SOURCE now carry SOURCE in the parts (inline citation leads the part evidence). Kinds/labels untouched. Not restored: b001 baseAdapters.BR.<init> and b002's 4 mapper rows (INFERRED in both).
+- Owed greps run + saved: 74 rows (b001 39, b002 35) in scratch/b001_greps/ + scratch/b002_greps/ + scratch/b001b002_greps_summary.md; every "Grep owed" sentence in .py/.md reasons now cites its grep file. 50 rows 0 hits; 24 rows flagged hits ALL adjudicated as false positives (other-class same-name methods or other overloads — full table in scratch/b001b002_rewrite.md). No label flipped.
+- CORRECTION (merger continuation, 2026-11-01): b002 row 10 NanoHTTPD.<init>(int) carried a residual 'Full grep still owed' sentence (wording differs from the exact phrase 'Grep owed', missed by the repair's check); full-repo grep run + saved in scratch/b002_greps/b002_row10_NanoHTTPD._init_int_.txt (0 new NanoHTTPD( sites; sole subclass TorrentStreamServer super(host, port) 2-arg only); sentence now cites its grep file; totals 73->74 greps, 49->50 zero-hit rows. No label/kind/grade change; rebuild byte-identical to scratch/build_repair_b001b002.txt.
+- Build scratch/build_repair_b001b002.txt: methods 4732, edges 6234, REACHABLE 2120, UNREACHABLE 481, UNRESOLVED 2131, errors 2131 (did not rise), warnings 21 (identical WARN set); SOURCE 539 (+75 vs b007).
+- Harness: only FAILs are the 39 + 36 ordered grade mismatches (part SOURCE vs merge-ready INFERRED) — expected under the stronger-evidence rule, not a defect.
+- Follow-up flagged to coordinator (NOT in this repair): b003–b007 merges also downgraded SOURCE entries (503 at b003, 464 at b007); restoring those awaits a coordinator order.
+
+## A4 restore b003/b004 SOURCE (2026-11-01, continuation merger; coordinator user order 18:41 EST)
+- Stronger-evidence restoration, second half: 39 b003 + 39 b004 UNREACHABLE keys whose A1-base inline graph_def.py entries are SOURCE now carry SOURCE in the parts (inline citation leads the part evidence). Kinds/labels untouched. Not restored: b003 bare PriorityConverter.convert(Priority) (no clone UNREACHABLE entry — it was REACHABLE in the clone via the bare edge; left exactly as the b003 merge left it, #2 qualification; dedupe against b034's #2 edge remains a b034-merge item) and b004 UriConverter.<init> (INFERRED in both). b005–b007: 0 candidates (keys already INFERRED in the clone).
+- b003 row 6 FileAlreadyExistsException.<init>(): owed sentence replaced in both .py and .md, citing scratch/b003_greps/b003_row06_FileAlreadyExistsException._init_.txt (0 new FileAlreadyExistsException( sites). No label flip (0 sites supports UNREACHABLE). The two row-6 sentences were the only owed sentences in b003–b007 parts; no TODO/FIXME anywhere. The b004.py:65 "Weakest pair" note (and its .md row) is an honest evidence note, left as-is.
+- Build scratch/build_restore_b003b004.txt: methods 4732, edges 6234 (unchanged), REACHABLE 2120, UNREACHABLE 481, UNRESOLVED 2131, errors 2131 (did not rise), warnings 21 (identical WARN set); SOURCE 617 (+78 vs repair's 539; arithmetic closes 617 → 578 → 542 → 503 → 464 → 464 → 539 → 617).
+- Check 2 (tools/check_citations.py) on the restoration build: 190 distinct, 130 problems — identical count AND identical problem set to the repair build (no-increase rule satisfied; no rewording needed).
+- Harness note: the b003/b004 part grades are now SOURCE vs merge-ready INFERRED — the same ordered grade-mismatch consequence as the b001/b002 repair, not a defect; merge-ready files NOT edited. graph_def.py unchanged, not pushed. b004.md unchanged (byte-identical to branch) and NOT included in this push (a no-op file; see the restore note).
+
+## A4 b008–b012 (2026-11-02, continuation merger; QUEUE first listing)
+- Merged parts/b008.py, b009.py, b010.py, b011.py, b012.py in one build, in QUEUE order (QUEUE.md: A1 PASS / PASS-WITH-SOURCE-EXCEPTION + R1 file-backed disk rebuilds, check-2 delta 0, greps 40/40, 40/40, 39/39, 9/9, 10/10 — all re-verified by the merger: part SHAs match QUEUE exactly, all grep files non-empty).
+- Harness re-run (pristine check_part.py, copies in /tmp): b008 PASS exit 0, b009 PASS exit 0; b010/b011/b012 exit 1 SOLELY on confirmed_by mismatches — 17/6/10 lines, every one part SOURCE vs merge-ready INFERRED. These are the QUEUE-listed SOURCE upgrades, re-verified genuine by R1 vs the disk baseline build; the merger EXPLICITLY ACCEPTS SOURCE at this merge and does NOT revert them (reverting repeats the 617→578→503 regression). No other FAIL lines; citation check 8 passed on all five.
+- Build scratch/build_b008_b009_b010_b011_b012.txt: methods 4732, edges 6224 (6234 −7 b011 SUPPRESS auto-edges −3 b012 net: 4 CALL removed + 1 FRAMEWORK added), REACHABLE 2123 (+3), UNREACHABLE 481, UNRESOLVED 2128 (−3 = parts' total: b012 3, others 0), errors 2128 (error-method set exactly equals the UNRESOLVED set — errors only from not-yet-merged methods), warnings 21 (identical WARN set to baseline).
+- Check 2 (tools/check_citations.py) on the merged build: 190 distinct, 130 problems — identical count AND identical problem set to the 3e751974 baseline (PROBLEM diff EMPTY, delta 0). No-increase rule satisfied with no rewording: the brief's org/ rewording is proven ineffective (checker matches the core/... substring inside org/... form), and rewording audited files would be unaudited churn; merged as audited.
+- Batch sources: clone merge-ready for batches 8–11; staging-A1 batch12-merge-ready.md for batch 12 (A1-affected). STOP after b012 per QUEUE: b015 FAIL unlisted, b016–b021 await A1b, b022–b027 await R2.
+
+## A5 check-4 EDIT-hook disambiguation (2026-11-02, merger; user order 2026-11-01 ~22:05 EST)
+- EDIT hook in graph_def.py (_source_audit_edit) now qualifies 46 bare bytecode citations that check_bytecode_lines.py resolved to the wrong file: drawer TagsAdapter/TagItem -> drawer/TagsAdapter.java / drawer/TagItem.java (27 edges), app FeedParser -> libretorrent/core/FeedParser.java (19 edges). Guarded on src/dst (drawer. in src/dst; src starts with FeedParser.), so the 6 tag.* bare edges, which resolve correctly bare, are left alone and keep their ids.
+- Analysis: work/LibreTorrent/check4/REPORT.md; independent audit: work/LibreTorrent/check4-audit/AUDIT.md (PASS on all 5 items: counts, 1-in-3+ line spot-checks, private rebuild reproduction, old->new id table, does-not-fix breakdown).
+- Build scratch/build_check4hook.txt: methods 4732, edges 6224, REACHABLE 2123, UNREACHABLE 481, UNRESOLVED 2128, errors 2128, warnings 21 — identical to the b012 build on every headline count; only the 46 edited edges changed ids.
+- Check-4 (tools/check_bytecode_lines.py, scratch/check4_check4hook.txt): crash GONE; 3214 checked, 938 skipped, 315 implicit, 335 listed (260 generated-file file-not-found + 52 FIX_LINES + 23 name-not-within-2). The 52 FIX_LINES corrections and the 23 unlisted-near lines are a separate later step, NOT applied here.
+- Check-2 (tools/check_citations.py) on this build: 205 distinct, 145 problems (+15 vs the 130 baseline, NOT +16: line 110 was already a baseline distinct key). The 15 new keys are FeedParser qualified-citation false alarms (18 edges, listed in check4/REPORT.md section 4 as KNOWN FALSE ALARMS); they are NOT new defects and NOT a reason to block merges. No tools/ fix made; the user may approve one later. Consequence: check-2 reads 145 while this hook is in place; A6 check-2 = 0 needs a tools fix approval or an accepted false-alarm exception at gate time.
+- Part-merge acceptance after this hook: check-2 problem-set diff must be EMPTY except new core/FeedParser.java keys from qualified FeedParser bytecode edges, which are recorded false alarms in the same class.
+
+## A4 b015-b019 (2026-11-02, merger; user order 2026-11-01 ~22:05 EST, basename ruling)
+- Merged reworked parts/b015.py, b016.py, b017.py, b018.py, b019.py in one build, in merger order (rework/head/ + audit PASS rework/head-audit/AUDIT.md, all 5 items; .md/printed from parts-staging, unchanged). Citation-form rework only (basename form, LT-2205-1); SOURCE upgrades preserved (5/16/7/2/7).
+- Build scratch/build_b015_b016_b017_b018_b019.txt: methods 4732, edges 6188, REACHABLE 2431, UNREACHABLE 493, UNRESOLVED 1808, errors 1808 (error set = UNRESOLVED set), warnings 1 — EXACT match to the auditor's cumulative per-step expectation after b019.
+- Check-2 on this build (uncapped problem-set computation): 199 distinct / 139 problems vs the post-hook baseline 205/145 — 0 ADDED, 6 REMOVED (core/FeedParser.java :97, :98, :134, :194, :217, :221 — b015/b018 part edges superseding qualified auto edges, as the auditor traced). Gate intent "no new problem" satisfied with beneficial removals only.
+
+## A4 b020-b021 (2026-11-02, merger; user order 2026-11-01 ~22:05 EST, basename ruling)
+- Merged reworked parts/b020.py, b021.py in one build, in merger order (rework/head/ + audit PASS rework/head-audit/AUDIT.md; .md/printed from parts-staging, unchanged). Citation-form rework only; SOURCE upgrades preserved (1/4).
+- Build scratch/build_b020_b021.txt: methods 4732, edges 6187, REACHABLE 2456, UNREACHABLE 493, UNRESOLVED 1783, errors 1783 (error set = UNRESOLVED set), warnings 0 — EXACT match to the auditor's cumulative final expectation after b021.
+- Check-2 on this build (uncapped problem-set computation): 199 distinct / 139 problems vs the post-hook baseline 205/145 — 0 ADDED, same 6 FeedParser removals as the b015-b019 build. Head range (b015-b021) now fully merged locally.
+
+## A4 b022-b027 (2026-11-02, merger; C03 basename form, QUEUE order)
+- Merged parts/b022.py-b027.py in merger order: b022-b026 in one build, b027 singly (per-step build verification). C03 basename-normalized parts from parts-staging; b023-b027 harness PASS vs clone merge-ready; b022 harness vs staging-A1 merge-ready (37R/3U/0O, part edges 35, UNREACHABLE 3, SUPPRESS 3) FAILS ONLY on the 3 documented C03 FLAG-1 SOURCE upgrades (AddTorrentParams.writeToParcel, AddTorrentParams$1.createFromParcel, AddTorrentParams$1.newArray: part SOURCE vs merge-ready INFERRED). The merger EXPLICITLY ACCEPTS SOURCE for these 3 (tree inline entries already SOURCE; reverting repeats the SOURCE regression; same standing as b010-b012 and LT-2205-4). No other FAIL lines; LOOSE .md notes documentation-level only.
+- Build scratch/build_b022_b023_b024_b025_b026.txt: methods 4732, edges 6268, REACHABLE 2607, UNREACHABLE 493, UNRESOLVED 1632, errors 1632 (error set = UNRESOLVED set), warnings 0. Check-2 (uncapped set + official tool): 199 distinct / 139 problems, EMPTY problem-set diff vs the b021 baseline.
+- Build scratch/build_b027.txt: methods 4732, edges 6284, REACHABLE 2633, UNREACHABLE 493, UNRESOLVED 1606, errors 1606 (error set = UNRESOLVED set), warnings 0. Check-2: 199 distinct / 139 problems, EMPTY diff vs baseline.
+- MERGED_PARTS now ends b027. Next in order: b028-b033 (r28 wave, basename rework, Q1 gate extension, Q2 SOURCE waiver for b029/b032).
+
+## A4 b028-b033 (2026-11-02, merger; r28 basename rework, Q1 gate extension, Q2 SOURCE waiver)
+- Merged reworked parts/b028.py-b033.py in one build, in merger order (rework/r28/ .py files; .md/printed from parts-staging, unchanged). Audit PASS rework/r28-audit/AUDIT.md (all 5 items; deviation note explained: helper pre-tested pre-hook, auditor post-hook — same explanation as LT-2205-9/10). Q1 gate extension YES (LT-2205-3); Q2 SOURCE waiver GRANTED (LT-2205-4): b029 MagnetInfo trio + b032 Torrent trio SOURCE upgrades explicitly ACCEPTED, grades NOT reverted (harness FAIL lines exactly those 6, waived, not defects). b034-b039 verified clean, unchanged (LT-2205-2, C05 confirmed).
+- Build scratch/build_b028_b029_b030_b031_b032_b033.txt: methods 4732, edges 6322, REACHABLE 2673, UNREACHABLE 576, UNRESOLVED 1483, errors 1483 (error set = UNRESOLVED set), warnings 8 — the 8 are exactly the auditor-predicted UNREACHABLE Parcel-ctor class (AdvancedTorrentInfo, MagnetInfo, PeerInfo, SessionStats, FeedItem, Torrent, BencodeFileItem, TorrentMetaInfo <init>(Parcel), each with an incoming edge from its own CREATOR createFromParcel edge). Recorded as explained, not silent; F1 warnings-0 will need a later SUPPRESS/disposition step for this class.
+- Check-2 (uncapped set + official tool): 198 distinct / 138 problems vs the b027 baseline 199/139 — 0 ADDED, exactly 1 REMOVED (core/FeedParser.java:109, the auditor-predicted E863c4541 auto edge superseded by b031's basename hand edge Ea22ea235). Gate intent "no new problem" satisfied with a beneficial removal only.
+- MERGED_PARTS now ends b033. Next in order: b034-b039 (already basename-clean, unchanged) then b040-b057 (r40 wave, audit-accepted on substance per LT-2205-10; b055+b056 pair-merge required).
+
+## A4 b034 (2026-11-02, merger continuation; C05 confirmed, LT-2205-2)
+- Merged parts/b034.py singly (parts-staging, unchanged). Harness re-run PASS this session (merge-ready 37R/3U/0O, part edges 37, UNREACHABLE 3, SUPPRESS 3; LOOSE .md notes none for b034). Citation-clean verified: exactly 1 core/ occurrence (the C05 header comment), 0 SRC tripping substrings.
+- #2-EDGE DEDUPE applied (merger direct edit, for coordinator/auditor review; reversible): the graph_def hand edge TorrentSessionImpl.download -> PriorityConverter.convert(Priority)#2 added at the b003 merge (guard 'priorities != null && ti.files().numFiles() == priorities.length && priority != null', evidence TorrentSessionImpl.java:1541-1575; PriorityConverter.java:94-101) was REMOVED, so the audited b034 part edge is now the sole copy (id E147e95ca, trigger 'Torrent download converts each app priority to a libtorrent priority', evidence TorrentSessionImpl.java:1574; PriorityConverter.java:94-101). Route to convert(Priority)#2 preserved; the hand edge's guard is dropped with it. Removed hand-edge text is preserved in the merger's pre-b034 graph_def backup (merger/graph_def_pre_b034.py) for exact restoration if the auditor prefers the guarded copy. The part file itself was NOT edited.
+- Build scratch/build_b034.txt: methods 4732, edges 6331, REACHABLE 2691 (+18), UNREACHABLE 579 (+3), UNRESOLVED 1462 (-21), errors 1462 (error set = UNRESOLVED set, verified against out/methods.csv), warnings 8 (identical set to b033: the Parcel-ctor class, explained above; F1 warnings-0 still needs a later SUPPRESS/disposition step for this class).
+- Check-2 (uncapped set + official tool): 196 distinct / 136 problems vs b033 198/138 — 0 ADDED, 2 REMOVED (core/model/session/TorrentSessionImpl.java 1541-1575 and core/model/session/PriorityConverter.java 94-101, both citations of the removed hand edge; the part edge cites PriorityConverter basename-only, so it does not re-trip). Gate intent "no new problem" satisfied with beneficial removals only.
+- MERGED_PARTS now ends b034. Next in order: b035-b039, then b040-b057 (r40 wave, audit-accepted on substance per LT-2205-10; b055+b056 pair-merge required).
+
+## A4 b035-b039 (2026-11-02, merger continuation; C05 confirmed, LT-2205-2)
+- Merged parts/b035.py-b039.py in one 5-part build, in merger order (parts-staging, unchanged). Harness re-run PASS this session for all five (b035 40R/43 edges, b036 40R/40, b037 40R/41, b038 40R/40, b039 33R/7U/33 edges/2 SUPPRESS; LOOSE .md notes documentation-level only).
+- Build scratch/build_b035_b036_b037_b038_b039.txt: methods 4732, edges 6358 (+27), REACHABLE 2729 (+38), UNREACHABLE 586 (+7), UNRESOLVED 1417 (-45), errors 1417 (error set = UNRESOLVED set, verified against out/methods.csv), warnings 8 (identical set to b034: the Parcel-ctor class, explained above).
+- Delta reconciliation: 200 batch rows (193 REACHABLE + 7 UNREACHABLE); 155 REACHABLE rows were already REACHABLE before this merge, so newly resolved = 38 + 7 = 45 = UNRESOLVED drop. No label flips.
+- Check-2 (uncapped set + official tool): 196 distinct / 136 problems, EMPTY diff vs b034. Gate intent "no new problem" satisfied.
+- MERGED_PARTS now ends b039. Next in order: b040-b057 (r40 wave, audit-accepted on substance per LT-2205-10; b055+b056 pair-merge required). Push note: b034 and b035-b039 stagings were both prepared while the push lock was held by an AnkiDroid push (taken 04:43Z); they push in order as soon as the lock frees.
+
+## A4 b040-b044 (2026-11-02, merger continuation; r40 basename rework, LT-2205-1/10)
+- Merged reworked parts/b040.py-b044.py in one 5-part build, in merger order (rework/r40/ .py files; .md/printed from parts-staging, unchanged). Harness re-run PASS this session for all five (b040 39R/1U/39 edges, b041 28R/12U/28/1 SUPPRESS, b042 36R/4U/36/3, b043 40R/24, b044 36R/4U/27/4); zero tripping citations re-verified in the reworked files. Audit note carried: r40 audit item 5 FAILs ONLY on the helper's stated absolute baseline (190/130, pre-hook); the operative post-hook baseline and the delta gate hold throughout (LT-2205-10), so no part-file rework was indicated.
+- Build scratch/build_b040_b041_b042_b043_b044.txt: methods 4732, edges 6366 (+8), REACHABLE 2886 (+157), UNREACHABLE 607 (+21), UNRESOLVED 1239 (-178), errors 1239 (error set = UNRESOLVED set, verified against out/methods.csv), warnings 10.
+- Delta reconciliation: 200 batch rows (179 REACHABLE + 21 UNREACHABLE); 22 REACHABLE rows were already REACHABLE before this merge, so newly resolved = 157 + 21 = 178 = UNRESOLVED drop. No label flips.
+- Warnings +2 EXPLAINED (r40-audit-predicted b044 +2): SettingsRepositoryImpl.ledIndicatorColorNotify(int) (edge E40d89c4e) and ledIndicatorNotify(boolean) (Ef1ba9f68), both UNREACHABLE closed_by_api_level, with incoming HAND edges from AppearanceSettingsFragment.onPreferenceChange (pre-existing inline graph_def edges, :2264/:2268; triggers 'Persist the legacy LED notification toggle/color'). SUPPRESS removes auto edges only, so these hand edges survive; the methods stay UNREACHABLE because the listener is bound only inside initLegacyNotifySettings, SDK<O-gated (:118-119), never firing at API 27. The other 8 warnings are the unchanged Parcel-ctor class. F1 warnings-0 will need a disposition step for both warning classes; nothing silently dropped here.
+- Check-2 (uncapped set + official tool): 196 distinct / 136 problems, EMPTY diff vs b039. Gate intent "no new problem" satisfied.
+- MERGED_PARTS now ends b044. Next in order: b045-b049, then b050-b054, then the b055+b056 pair, then b057.
+
+## A4 b045-b049 (2026-11-02, merger continuation; r40 basename rework, LT-2205-1/10)
+- Merged reworked parts/b045.py-b049.py in one 5-part build, in merger order (rework/r40/ .py files; .md/printed from parts-staging, unchanged). Harness re-run PASS this session for all five (b045 36R/4U/26 edges/3 SUPPRESS, b046 38R/2U/27/2, b047 36R/4U/34/2, b048 36R/4U/37/0, b049 40R/40/0); zero tripping citations re-verified in the reworked files.
+- Build scratch/build_b045_b046_b047_b048_b049.txt: methods 4732, edges 6389 (+23), REACHABLE 2924 (+38), UNREACHABLE 621 (+14), UNRESOLVED 1187 (-52), errors 1187 (error set = UNRESOLVED set, verified against out/methods.csv), warnings 13.
+- Delta reconciliation: 200 batch rows (186 REACHABLE + 14 UNREACHABLE); 148 REACHABLE rows were already REACHABLE before this merge, so newly resolved = 38 + 14 = 52 = UNRESOLVED drop. No label flips.
+- Warnings +3, SAME CLASS as b044's +2 (pre-existing inline hand edges into newly labelled closed_by_api_level methods): SettingsRepositoryImpl.notifySound(String) (E8d2d38c3, from AppearanceSettingsFragment.lambda$new$1), playSoundNotify(boolean) (Ee6e605f3) and vibrationNotify(boolean) (Ecbb38fd9), both from AppearanceSettingsFragment.onPreferenceChange. The other 10 warnings are unchanged (8 Parcel-ctor + 2 b044 LED). F1 warnings-0 disposition still owed for both warning classes; nothing silently dropped.
+- Check-2 (uncapped set + official tool): 196 distinct / 136 problems, EMPTY diff vs b044. Gate intent "no new problem" satisfied.
+- MERGED_PARTS now ends b049. Next in order: b050-b054, then the b055+b056 pair, then b057. Push note: the b040-b044 staging was prepared while the push lock was held by an MMEX push (taken 05:03:43Z); b040-b044 and b045-b049 push in order as soon as the lock frees.
+- Clarification on the b045-b049 warnings: the r40 audit predicted a b047 +2 including SettingsRepositoryImpl$Default.ledIndicatorColorNotify, but that warning does NOT appear in the cumulative build — consistent with the audit's own cumulative note (b055's SUPPRESS / cross-part verdict changes silence it). The b045-b049 group warning delta is therefore +3 (notifySound, playSoundNotify, vibrationNotify), not +4.
+
+## A4 b050-b054 (2026-11-02, merger continuation; r40 basename rework, LT-2205-1/10)
+- Merged reworked parts/b050.py-b054.py in one 5-part build, in merger order (rework/r40/ .py files; .md/printed from parts-staging, unchanged). Harness re-run PASS this session for all five (b050 40R/40 edges, b051 40R/40, b052 40R/40, b053 40R/41, b054 40R/47; all SUPPRESS 0); zero tripping citations re-verified in the reworked files.
+- Build scratch/build_b050_b051_b052_b053_b054.txt: methods 4732, edges 6451 (+62), REACHABLE 2985 (+61), UNREACHABLE 621 (unchanged), UNRESOLVED 1126 (-61), errors 1126 (error set = UNRESOLVED set, verified against out/methods.csv), warnings 13 (identical set to b049).
+- Delta reconciliation: 200 batch rows, all REACHABLE; 139 were already REACHABLE before this merge, so newly resolved = 61 = UNRESOLVED drop. No label flips.
+- Check-2 (uncapped set + official tool): 196 distinct / 136 problems, EMPTY diff vs b049. Gate intent "no new problem" satisfied.
+- MERGED_PARTS now ends b054. Next in order: the b055+b056 pair, then b057.
+
+## A4 b055+b056 PAIR (2026-11-02, merger continuation; r40 basename rework, LT-2205-1/10; pair rule enforced)
+- Merged reworked parts/b055.py + b056.py TOGETHER in one build, in merger order (rework/r40/ .py files; .md/printed from parts-staging, unchanged). b055 was NEVER merged alone: alone it drops NormalizeUrl.join, PercentEncoder.<clinit>/decode/needsUnescaping/unhex/pow to UNRESOLVED (auditor-verified). Harness re-run PASS this session for both (b055 40R/40 edges/3 SUPPRESS, b056 33R/7U/34/1).
+- Build scratch/build_b055_b056.txt: methods 4732, edges 6455 (+4), REACHABLE 2978 (-7), UNREACHABLE 628 (+7), UNRESOLVED 1126 (UNCHANGED — no transient UNRESOLVED state), errors 1126 (error set = UNRESOLVED set, verified against out/methods.csv), warnings 14.
+- Pair semantics verified exactly as the r40 audit defined them (LT-2205-10, P1 wording): the 6 flagged methods land UNREACHABLE, NOT REACHABLE (NormalizeUrl.join, PercentEncoder.<clinit>, decode, needsUnescaping, unhex, pow, plus NormalizeUrl.makeUserInfo as b056's 7th UNREACHABLE row). Reconciliation: 80 batch rows (73 REACHABLE + 7 UNREACHABLE); all 73 REACHABLE rows were already REACHABLE, and the 7 newly UNREACHABLE rows were REACHABLE before, so R -7 / U +7 / UNRES 0. No other label changes.
+- Warnings +1 EXACTLY as predicted: PercentEncoder.pow only (edge Ea6713c2e, unhex -> pow; neither endpoint is in any SUPPRESS set). b055's SUPPRESS entries remove the incoming edges behind the other 5 b056-alone warnings. The other 13 warnings are unchanged.
+- Check-2 (uncapped set + official tool): 196 distinct / 136 problems, EMPTY diff vs b054. Gate intent "no new problem" satisfied.
+- MERGED_PARTS now ends b056. Next in order: b057, then b058-b075 (r58 wave).
+
+## A4 b057 (2026-11-02, merger continuation; r40 basename rework, LT-2205-1/10)
+- Merged reworked parts/b057.py singly (rework/r40/ .py file; .md/printed from parts-staging, unchanged). Harness re-run PASS this session (39R/1U/57 edges/0 SUPPRESS); zero tripping citations re-verified in the reworked file. Note: b057's FeedParser citation is basename-only here (FeedParser.java:236-243); the check-4 qualified libretorrent/core/ form lives only in the EDIT hook, not in part files.
+- Build scratch/build_b057.txt: methods 4732, edges 6460 (+5), REACHABLE 2977 (-1), UNREACHABLE 629 (+1), UNRESOLVED 1126 (unchanged), errors 1126 (error set = UNRESOLVED set, verified against out/methods.csv), warnings 15.
+- Delta reconciliation: 40 batch rows (39 REACHABLE + 1 UNREACHABLE); all 39 REACHABLE rows were already REACHABLE, and the 1 UNREACHABLE row (Utils.buildExactAlarmPermissionRequest) was REACHABLE before, so R -1 / U +1 / UNRES 0. No other label changes.
+- Warnings +1 EXACTLY as predicted: Utils.buildExactAlarmPermissionRequest (edges E44507b2c, Eb906bc55). This warning is expected to stand until the b058/b074 SUPPRESS pairs land (G12 F4 / G11 C1 register items). The other 14 warnings are unchanged.
+- Check-2 (uncapped set + official tool): 196 distinct / 136 problems, EMPTY diff vs b056. Gate intent "no new problem" satisfied.
+- MERGED_PARTS now ends b057. The r40 wave (b040-b057) is now fully merged locally. Next in order: b058-b075 (r58 wave, audit pending at listing time — merger must confirm its audit before merging; includes FAIL-fix b070/b071/b074 and the b058/b074 SUPPRESS register items).
+
+## A4 b058-b062 (2026-11-02, merger continuation; r58 basename rework, LT-2205-1; r58 audit PASS confirmed before merging)
+- Merged reworked parts/b058.py-b062.py in one 5-part build, in merger order (rework/r58/ .py files; .md/printed from parts-staging, unchanged). r58 audit (rework/r58-audit/AUDIT.md) verified before merging: overall PASS, 5/5 items, 18/18 harness PASS; its item-5 baseline was the b012 snapshot, so this merge re-baselines against the live b057 tree (see check-2 below). Harness re-run PASS this session for all five on the merged tree copies (b058 37R/3U/34 edges/2 SUPPRESS after the merger edit below, b059 36R/4U/43/0, b060 32R/8U/37/0, b061 36R/4U/36/0, b062 35R/5U/35/0); zero tripping citations re-verified in the reworked files.
+- MERGER EDIT to b058.py only (register G12 F4 + G11 C1, recorded not silent; audited part otherwise unchanged): SUPPRESS.update(set()) replaced by the two API-gated callee strings 'Utils.buildExactAlarmPermissionRequest' and 'ManageAllFilesWarningDialog.newInstance', with a merger comment citing the guards. The SettingsRepositoryImpl.showManageAllFilesWarningDialog overloads (batch 46 rows 21-22) are already suppressed by merged part b046 and were NOT repeated. Proven effect (graph diff before/after the edit): exactly 4 auto edges removed (TorrentNotifier.makeExactAlarmPermissionNotify -> buildExactAlarmPermissionRequest E44507b2c; Utils.requestExactAlarmPermission -> buildExactAlarmPermissionRequest Eb906bc55; Utils.showManageAllFilesWarningDialog -> newInstance E3a5e6e1d; newInstance -> <init> E98fdf742), 0 added; the buildExactAlarmPermissionRequest warning is gone. The 2 verdict flips R -> UNRESOLVED are both batch-73 rows 39-40 (ManageAllFilesWarningDialog.newInstance, <init>), which were REACHABLE only through the API-gated auto chain dead at API 27 (sole caller Utils.java:713 behind the Utils.java:704-707 early return; buildExactAlarm caller Utils.java:673 guarded SDK_INT >= S, false at API 27); both land UNREACHABLE closed_by_api_level at the b073 merge, so the interim UNRESOLVED state self-heals inside this wave. No other label changes from the edit.
+- Build scratch/build_b058_b059_b060_b061_b062.txt (post-edit): methods 4732, edges 6507, REACHABLE 3060, UNREACHABLE 653, UNRESOLVED 1019, errors 1019 (error set = UNRESOLVED set), warnings 15. Pre-edit build was edges 6511 / R3062 / UNRES1017 / warnings 16; the -4 edges / -2 R / +2 UNRES / -1 warning are exactly the SUPPRESS edit above.
+- Delta reconciliation: 200 batch rows (176 REACHABLE + 24 UNREACHABLE); labels newly resolved 109 (85 R + 24 U) vs the pre-edit build, minus the 2 SUPPRESS flips above = net UNRESOLVED drop 107. No label flips.
+- Warnings 15, composition: 8 Parcel-ctor + 5 Settings hand-edge + PercentEncoder.pow + 1 REVIEW (95 library-hint edges, also present in the r58 audit's cumulative +5 set) — the buildExactAlarmPermissionRequest warning class is eliminated by the SUPPRESS edit. F1 warnings-0 disposition still owed for the remaining classes; nothing silently dropped.
+- Check-2 (uncapped set + official tool): 196 distinct / 136 problems, EMPTY diff vs b057 (full problem-key multiset compared with check2_after_b057.json). Gate intent "no new problem" satisfied. Note: the r58 audit's cumulative check-2 (205/145 atop b012) is NOT the operative baseline here; the live-tree baseline is 196/136 post-hook, and this group adds 0.
+- Carried, unchanged: batch-3 row 26 OPEN; 59/32 setVariable escalation (b059 row 32 kept REACHABLE as audited, edge kept for harness coverage, NOT claimed as a verified route — the .py header and .md row both carry the ESCALATED flag; label question stays with the coordinator); G12 C1 wording (b059-b062 .md rows already use setTextWatcher; .py evidence strings retain the audited setListeners wording, recorded not rewritten).
+- MERGED_PARTS now ends b062. Next in order: b063-b067, then b068-b072 (incl. FAIL-fix b070/b071), then b073-b075 (incl. b074 + G15:2060 at b075).
+
+## A4 b063-b067 (2026-11-02, merger continuation; r58 basename rework, LT-2205-1; r58 audit PASS)
+- Merged reworked parts/b063.py-b067.py in one 5-part build, in merger order (rework/r58/ .py files; .md/printed from parts-staging, unchanged). Harness re-run PASS this session for all five on the merged tree copies (b063 36R/4U/36/0, b064 31R/9U/31/0, b065 32R/8U/34/0, b066 32R/8U/32/1, b067 33R/7U/33/0); zero tripping citations re-verified in the reworked files. No merger edits to any part in this group; no register items fall in this range.
+- Build scratch/build_b063_b064_b065_b066_b067.txt: methods 4732, edges 6558 (+51), REACHABLE 3153 (+93), UNREACHABLE 689 (+36), UNRESOLVED 890 (-129), errors 890 (error set = UNRESOLVED set), warnings 15 (identical warning set to b062).
+- Delta reconciliation: 200 batch rows (164 REACHABLE + 36 UNREACHABLE); 71 REACHABLE rows were already REACHABLE before this merge, so newly resolved = 93 + 36 = 129 = UNRESOLVED drop. No label flips.
+- Check-2 (uncapped set + official tool): 196 distinct / 136 problems, EMPTY diff vs b057 (and vs b062). Gate intent "no new problem" satisfied.
+- MERGED_PARTS now ends b067. Next in order: b068-b072 (incl. FAIL-fix b070/b071), then b073-b075 (incl. b074 + G15:2060 at b075).
+
+## A4 b068-b072 (2026-11-02, merger continuation; r58 basename rework, LT-2205-1; r58 audit PASS)
+- Merged reworked parts/b068.py-b072.py in one 5-part build, in merger order (rework/r58/ .py files; .md/printed from parts-staging, unchanged). Harness re-run PASS this session for all five on the merged tree copies (b068 31R/9U/31/0, b069 32R/8U/32/0, b070 32R/8U/27/0, b071 40R/0U/31/0, b072 39R/1U/33/0); zero tripping citations re-verified in the reworked files. No merger edits to any part in this group. This group carries the FAIL-fix parts b070/b071: the 6 audit-FAIL edge ids (b070 E8cdde130, Ee9681d80, E2b46ecd2, Ef9b72631; b071 E92044e27, E3d3e83f6) are absent from the current check-2 problem owners, as the r58 audit required.
+- Build scratch/build_b068_b069_b070_b071_b072.txt: methods 4732, edges 6626 (+68), REACHABLE 3220 (+67), UNREACHABLE 715 (+26), UNRESOLVED 797 (-93), errors 797 (error set = UNRESOLVED set), warnings 15 (identical warning set to b067).
+- Delta reconciliation: 200 batch rows (174 REACHABLE + 26 UNREACHABLE); 107 REACHABLE rows were already REACHABLE before this merge, so newly resolved = 67 + 26 = 93 = UNRESOLVED drop. No label flips.
+- Check-2 (uncapped set + official tool): 196 distinct / 136 problems, EMPTY diff vs b057 (and vs b067). Gate intent "no new problem" satisfied.
+- MERGED_PARTS now ends b072. Next in order: b073-b075 (incl. b074 FAIL-fix + G15:2060 hand-edge removal at b075).
+
+## A4 b073-b075 (2026-11-02, merger continuation; r58 basename rework, LT-2205-1; r58 audit PASS; r58 wave COMPLETE)
+- Merged reworked parts/b073.py-b075.py in one 3-part build, in merger order (rework/r58/ .py files; .md/printed from parts-staging, unchanged). Harness re-run PASS this session for all three on the merged tree copies (b073 33R/7U/25/0 against the staging-A1 batch73 file, b074 38R/2U/18/0, b075 40R/0U/31/0, both against clone batch files); zero tripping citations re-verified in the reworked files. This group carries the FAIL-fix part b074: all 7 audit-FAIL edge ids (Eea2d6cff, E1b02c369, E181d71d8, Ec8b4093c, E4726c71c, E899b0ded, Ef13dedad) are absent from the current check-2 problem owners, as the r58 audit required. With b070/b071 (previous group) all 13 r58 FAIL ids are now cleared.
+- Pre-G15 build scratch/build_b073_b074_b075_preG15.txt: methods 4732, edges 6649 (+23), REACHABLE 3276 (+56), UNREACHABLE 724 (+9), UNRESOLVED 732 (-65), errors 732, warnings 17. Delta reconciliation: 120 batch rows (111 REACHABLE + 9 UNREACHABLE); 55 REACHABLE rows were already REACHABLE, so newly resolved = 56 + 9 = 65 = UNRESOLVED drop. No label flips. The b058 SUPPRESS edit's interim UNRESOLVED pair is resolved here: ManageAllFilesWarningDialog.newInstance and <init> are UNREACHABLE closed_by_api_level (batch 73 rows 39-40), with NO warnings for either (b058 SUPPRESS holds).
+- Warnings +2 vs b072, both predicted register items, both recorded not suppressed: FileItem.toString (edges E7302e94e, Ea94d2a26) and PermissionManager.lambda$new$0 (edge Eacdbd1c4, requestPermissions launch gated SDK_INT >= R, false at API 27). G8 dedupe check performed at this merge: ZERO overlap between b074 hand-edge dsts and b042 SUPPRESS callees (askManageAllFilesPermission(), askManageAllFilesPermission(boolean), askNotificationPermission(boolean)); b074 SUPPRESS therefore stays empty as audited — no duplicate suppression was added. F1 warnings-0 disposition still owed for all warning classes; nothing silently dropped.
+- G15:2060 APPLIED at this merge (merger edit to graph_def.py, not to any part): deleted the hand edge AddFeedDialog.onCreateDialog -> AddFeedDialog.initAlertDialog (was graph_def:2114-2115, edge E111a4f1c), verified against printed source before deleting — onCreateDialog (AddFeedDialog.java:180-209) calls initLayoutView() at :205 and never calls initAlertDialog directly; initLayoutView (:220-255) calls initAlertDialog(binding.getRoot()) at :255. Post-deletion build scratch/build_b073_b074_b075.txt: methods 4732, edges 6648 (-1 exactly), REACHABLE 3276, UNREACHABLE 724, UNRESOLVED 732, errors 732, warnings 17 (identical warning set); AddFeedDialog.initAlertDialog stays REACHABLE via onCreateDialog -> initLayoutView -> initAlertDialog (b075 edge). The pre-deletion build file is kept in tree scratch as build_b073_b074_b075_preG15.txt (not staged).
+- Check-2 (uncapped set + official tool, post-deletion build): 196 distinct / 136 problems, EMPTY diff vs b057 (and vs b072). Gate intent "no new problem" satisfied.
+- MERGED_PARTS now ends b075. The r58 wave (b058-b075) is now fully merged locally. Next in order: b076-b120 (waves beyond r58; rework/audit state to be surveyed before merging — see coordinator's STREAM D task), plus the D1 SOURCE restorations and D2 decision record.
+
+## A4 D1 correction (2026-11-02, merger; d1/AUDIT.md PASS, exactly 9 evidence edits, nothing else)
+
+- Applied the 9 audited evidence edits (drop only the leading INFERRED segment, citations verbatim): b000_trunks Ec72f4cc9, b035 Ed80aaae6, b022 Eb144a7e0, b034 E30c4eeda, b038 Eed6349a5, b042 Edfc1724d + E3d4a3ec6, b050 Eff073834, b054 Eb79f83d5.
+- Build scratch/build_d1.txt: methods 4732, edges 6648 (unchanged), REACHABLE 3276, UNREACHABLE 724, UNRESOLVED 732 (all unchanged — 0 verdict changes), errors 732, warnings 17 (both unchanged). Evidence INFERRED 1387 -> 1378 (-9), SRC 5249 -> 5258 (+9).
+- Confirmed_by (methods.csv diff vs a revert-rebuild baseline, INFERRED 4125 / SOURCE 607): exactly the 7 predicted flips INFERRED -> SOURCE (SessionErrorFilter.<clinit>, SessionLogger.<clinit>, TorrentSessionImpl.<clinit>, SessionSettings$EncryptMode.<init>, SessionSettings$ProxyType.<init>, TorrentRepositoryImpl.<clinit>, FileSystemFacadeImpl.<clinit>); the 12 predicted stays remain INFERRED with named blocking edges (d1/AUDIT.md section 4); plus 16 additional INFERRED -> SOURCE flips on UNCHANGED method-name shortest paths (only edge ids differ, as evidence edits change ids), all verdicts unchanged — FileSystemFacadeImpl.isStorageReadable, SessionSettings.getRandomRangePort, TorrentRepositoryImpl.getSessionFile, TorrentSessionImpl.applyProxy/convertEncryptMode/convertProxyType/defaultSettingsPack/dhtBootstrapNodes/getAllowedEncryptLevel/getIface/loadSettings/setRandomPort/settingsToSettingsPack/start, Utils.getAppVersionNumber/getVersionComponents. These are the mechanical path-derived consequence of the 9 audited edits, not label changes, and are reported here rather than hidden. D1 as ordered is not fully satisfiable without manufacturing evidence: the 12 stays are honest, not fudged.
+- Check-2 (scratch/check2_d1.txt): 196 distinct / 136 problems, EMPTY diff vs b075. D1 build reproduced byte-identically (methods.csv + graph JSON) on rebuild.
+- This commit also carries the D2 decision append below (23 REACHABLE -> UNREACHABLE flips accepted as labelled); the D2 text is forwarded to the coordinator for the handoff/MUSE_DECISIONS.md append (the merger never writes that file).
+
+## D2 decision — 23 REACHABLE→UNREACHABLE flips accepted as labelled (b075 tree; API level 27)
+
+No verdict is changed by this decision; it records why each flip is genuine
+rather than a merge artefact. All 23 were REACHABLE before their part merged
+(via auto edges and, for the Settings group, via pre-existing hand edges that
+now surface as warnings until their SUPPRESS pairs land) and are UNREACHABLE in
+the b075 tree (methods 4732, edges 6648, R3276/U724/UNRES732). Full 23-row
+table (part, printed guard line, API 27 reasoning) is in
+work/LibreTorrent/d2/D2_DECISION_DRAFT.md, forwarded to the coordinator for
+the handoff/MUSE_DECISIONS.md append (the merger never writes that file).
+
+### The 16th Settings method — gap closed, not guessed
+
+The previous "exactly 15" count covered only direct SettingsRepositoryImpl.*
+methods. The 16th is the nested-class method
+SettingsRepositoryImpl$Default.ledIndicatorColorNotify (b047), flipping with
+batch-44 row 17 (getter ledIndicatorColorNotify() :342-344 fallback argument;
+getter itself closed via AppearanceSettingsFragment.java:180 gated :118-119
+and TorrentNotifier.java:290 after early return :276). Settings group is
+exactly 16: sound 4, vibration 2, LED 5, ManageAllFiles 4, notification
+permission 1.
+
+### Settings group — closed_by_api_level (16)
+
+- b042 x3: askManageAllFilesPermission() (PermissionManager :60-67, :99-104,
+  R-gated, false at 27); askManageAllFilesPermission(boolean) (:117 R-gated);
+  askNotificationPermission(boolean) (:123 TIRAMISU-gated, 33 false at 27).
+- b044 x4: ledIndicatorColorNotify() (AppearanceSettingsFragment.java:180 in
+  initLegacyNotifySettings, SDK < O gate :118-119; TorrentNotifier.java:290 in
+  applyLegacyNotifySettings, early return :276 at SDK >= O — both sites dead
+  at 27); ledIndicatorColorNotify(int) (:250 branch, listener bound only in
+  initLegacyNotifySettings :181); ledIndicatorNotify() (:173 + :289, same
+  gates); ledIndicatorNotify(boolean) (:244 branch, listener bound :174).
+- b045 x4: notifySound() (:139, :151 + TorrentNotifier :282); notifySound(String)
+  (:213 ringtone-picker handler, picker launched only from listener :144-168
+  in initLegacyNotifySettings); playSoundNotify() (:133 + :281);
+  playSoundNotify(boolean) (:241 branch, listener bound :134).
+- b046 x2: showManageAllFilesWarningDialog() (Utils.java:706, third disjunct
+  of early-return :704-707; at 27 SDK_INT < R is TRUE so || short-circuits
+  and :706 is never evaluated); showManageAllFilesWarningDialog(boolean)
+  (:711, after the early return always taken at 27).
+- b047 x3: vibrationNotify() (:187 + TorrentNotifier :286, same gates);
+  vibrationNotify(boolean) (:247 branch, listener bound :188);
+  SettingsRepositoryImpl$Default.ledIndicatorColorNotify (see 16th above).
+Spot-verified in printed source: AppearanceSettingsFragment.java:118-119
+SDK < O gate and TorrentNotifier.java:276 SDK >= O early return.
+
+### Branch-never-taken group (7, b055+b056 pair build)
+
+- NormalizeUrl.join: only call site doNormalize :268, inside
+  if (options.removeDirectoryIndex.length > 0) :263; default empty
+  (NormalizeUrl.java:90); saved 252-file grep finds zero assignments.
+- NormalizeUrl.makeUserInfo: only call site urlToString :397, guarded
+  user != null && !user.isEmpty() :396; doNormalize :232-234 nulls
+  user/password whenever removeAuthentication is true, default true (:100).
+- PercentEncoder.<clinit>: inherited from decode (first active use behind
+  if (options.decode) :216; all 3 normalize callers set decode=false).
+- PercentEncoder.decode: only call site doNormalize :217, inside
+  if (options.decode) :216; callers DetailTorrentFragment :720,
+  CreateTorrentViewModel :309, AddLinkViewModel :68, all decode=false.
+- PercentEncoder.needsUnescaping: only call site decode :35 (decode never runs).
+- PercentEncoder.pow: only call site unhex :111 (unhex runs only from decode).
+- PercentEncoder.unhex: only call sites decode :54 and :79 (decode never runs).
+
+### Standing items carried, unchanged
+
+Batch-3 row 26 stays OPEN. 59/32 setVariable stays flagged (b059 row 32 kept
+REACHABLE as audited, edge kept for harness coverage, NOT claimed as a
+verified route). Check-4 FeedParser re-tripped lines remain known false
+alarms with no tools/ fix. F1 warnings-0 disposition still owed for all
+warning classes.
+
+## r76 b076-b080 (2026-11-02, merger; r76 citation-form rework, group-1 audit PASS + merge-time re-verification PASS)
+- Merged reworked parts/b076.py-b080.py in one 5-part build, in merger order (rework/r76/ .py files; .md/printed from parts-staging, unchanged). Verifier READY + independent auditor AUDIT-PASS for all five (audit in merger/scratch-tmp/verify-b076-b080/AUDIT.md).
+- Build scratch/build_b076_b077_b078_b079_b080.txt: methods 4732, edges 6681 (+33), REACHABLE 3322 (+46), UNREACHABLE 724 (+0), UNRESOLVED 686 (-46), errors 686 (-46, must-not-rise satisfied), warnings 17 (identical set, verified by sorted diff vs baseline). Delta reconciliation: 200 batch rows, all REACHABLE; 46 were previously UNRESOLVED and resolved, 154 already REACHABLE; no label flips (U unchanged, R gain = UNRES loss exactly).
+- MERGED_PARTS now ends b080. Next in order: b081 (audit PASS, queued), then b082 (HELD — disposition pending).
+- Merged reworked part/b081.py in a 1-part build (rework/r76/ .py; .md/printed from parts-staging, unchanged). Verifier READY + independent auditor AUDIT-PASS (audit in merger/scratch-tmp/verify-b081/AUDIT.md). Build scratch/build_b081.txt: methods 4732, edges 6688 (+7), REACHABLE 3330 (+8), UNREACHABLE 725 (+1), UNRESOLVED 677 (-9), errors 677 (-9, must-not-rise satisfied), warnings 17 (identical set). Delta reconciliation: 40 batch rows (39 REACHABLE + 1 UNREACHABLE); 9 newly resolved (8 R + 1 U), 31 already REACHABLE; no label flips (R and U both gained from UNRES only).
+- MERGED_PARTS now ends b081. Next in order: b082 (HELD — disposition pending; nothing beyond b081 merges until it is dispositioned).
+
+## r76 b082 (2026-11-02, merger; DISPOSITION — staging-A1 per-row labels authoritative, same precedent as b103/b114)
+- Disposition (merger's own, for user review): b082 merges against the staging-A1 batch82 file. The clone file's 4 OPEN rows (10, 12, 14, 16) are the stale copy; its 10-line FAIL is expected-not-applicable, not a part defect (r76 auditor confirms the FAIL predates the rework: byte-identical logs from the untouched staging source). The staging-A1 per-row labels already read UNREACHABLE for all six rows (10, 12, 13, 14, 16, 17); the independent A3 audit PASSED b082 against staging-A1 (R=34/U=6/O=0, SUPPRESS recomputed, zero REACHABLE-to-UNREACHABLE pairs). Merge-time check_part.py re-run by the merger against staging-A1: exit 0, RESULT PASS (R=34/U=6/O=0, edges 18, UNREACHABLE 6, SUPPRESS 6). No label changes by this merge: part/.md/staging-A1 rows already agree UNREACHABLE on all six rows. Recorded, not resolved: staging-A1 header/counts text still says 6 OPEN while its rows say 6 UNREACHABLE (checker and A3 audit key on rows); no saved grep meeting the strict generated-code-inclusive full-repo test exists (A1-parcel-c covers src/main Java + res XML, 633 files); policy (xii) adoption remains undecided; batch-73 row-32 text/label tension unchanged.
+- Build scratch/build_b082.txt: methods 4732, edges 6691 (+3), REACHABLE 3334 (+4), UNREACHABLE 731 (+6), UNRESOLVED 667 (-10), errors 667 (-10, must-not-rise satisfied), warnings 17 (same 17 lines; one line's edge list shrank: FileItem.toString incoming ['E7302e94e','Ea94d2a26'] to ['Ea94d2a26'] because E7302e94e, the DownloadableFileItem.toString to FileItem.toString super-call edge, was pruned by b082's SUPPRESS on DownloadableFileItem.toString — verified: zero outgoing edges remain in the graph from toString, createFromParcel, or writeToParcel, the b082 SUPPRESS bases; this is the designed SUPPRESS effect, same mechanism as the b058 precedent). Delta reconciliation: 40 batch rows (34 REACHABLE + 6 UNREACHABLE); 10 newly resolved (4 R + 6 U), 30 already REACHABLE; no label flips.
+- MERGED_PARTS now ends b082. Next in order: b083-b087 (audit PASS, queued).
+
+## r76 b083-b087 (2026-11-02, merger; r76 citation-form rework, group-1 audit PASS + merge-time re-verification PASS)
+- Merged reworked parts/b083.py-b087.py in one 5-part build, in merger order (rework/r76/ .py files; .md/printed from parts-staging, unchanged). Verifier READY + independent auditor AUDIT-PASS for all five (audit in merger/scratch-tmp/verify-b083-b087/AUDIT.md).
+- Build scratch/build_b083_b084_b085_b086_b087.txt: methods 4732, edges 6822 (+131), REACHABLE 3384 (+50), UNREACHABLE 739 (+8), UNRESOLVED 609 (-58), errors 609 (-58, must-not-rise satisfied), warnings 17 (identical set to the b082 build). Delta reconciliation: 200 batch rows (192 REACHABLE + 8 UNREACHABLE); 58 newly resolved (50 R + 8 U), 142 already REACHABLE; no label flips.
+- MERGED_PARTS now ends b087. Next in order: b088-b092 (audit PASS, queued).
+
+## r76 b088-b092 (2026-11-02, merger; r76 citation-form rework, group-2 audit PASS + merge-time re-verification PASS)
+- Merged reworked parts/b088.py-b092.py in one 5-part build, in merger order (rework/r76/ .py files; .md/printed from parts-staging, unchanged). Verifier READY + independent auditor AUDIT-PASS for all five (audit in merger/scratch-tmp/verify-b088-b092/AUDIT.md).
+- Build scratch/build_b088_b089_b090_b091_b092.txt: methods 4732, edges 6936 (+114), REACHABLE 3465 (+81), UNREACHABLE 743 (+4), UNRESOLVED 524 (-85), errors 524 (-85, must-not-rise satisfied), warnings 17 (identical set to the b083 build, verified by sorted diff). Delta reconciliation: 200 batch rows (196 REACHABLE + 4 UNREACHABLE); 85 newly resolved (81 R + 4 U), 115 already REACHABLE; no label flips.
+- MERGED_PARTS now ends b092. Next in order: b093-b097 (audit PASS, queued).
+
+## r76 b093-b097 (2026-11-02, merger; r76 citation-form rework, group-2 audit PASS + merge-time re-verification PASS)
+- Merged reworked parts/b093.py-b097.py in one 5-part build, in merger order (rework/r76/ .py files; .md/printed from parts-staging, unchanged). Verifier READY + independent auditor AUDIT-PASS for all five (audit in merger/scratch-tmp/verify-b093-b097/AUDIT.md).
+- Build scratch/build_b093_b094_b095_b096_b097.txt: methods 4732, edges 6970 (+34), REACHABLE 3566 (+101), UNREACHABLE 748 (+5), UNRESOLVED 418 (-106), errors 418 (-106, must-not-rise satisfied), warnings 17 (identical set to the b088 build, verified by sorted diff). Delta reconciliation: 200 batch rows (195 REACHABLE + 5 UNREACHABLE); 106 newly resolved (101 R + 5 U), 94 already REACHABLE; no label flips.
+- G19 SUPPRESS union verified after the build from the merged part files (SUPPRESS lives in part files, applied by the loader at build time): b093 set(), b094 {PeerListAdapter.getItemKey, PeerListAdapter.getItemPosition}, b095 set(), b096 {FeedItemsAdapter.getItemKey}, b097 {FeedItemsAdapter.getItemPosition} — union exactly the 4 expected strings, no more, no fewer.
+- MERGED_PARTS now ends b097. Next in order: b098-b102 (audit PASS, queued).
+
+## r76 b098-b102 (2026-11-02, merger; r76 citation-form rework, group-2 audit PASS + merge-time re-verification PASS)
+- Merged reworked parts/b098.py-b102.py in one 5-part build, in merger order (rework/r76/ .py files; .md/printed from parts-staging, unchanged). Verifier READY + independent auditor AUDIT-PASS for all five (audit in merger/scratch-tmp/verify-b098-b102/AUDIT.md).
+- Build scratch/build_b098_b099_b100_b101_b102.txt: methods 4732, edges 7063 (+93), REACHABLE 3695 (+129), UNREACHABLE 750 (+2), UNRESOLVED 287 (-131), errors 287 (-131, must-not-rise satisfied), warnings 17 (identical set to the b093 build, verified by sorted diff). Delta reconciliation: 200 batch rows (198 REACHABLE + 2 UNREACHABLE); 131 newly resolved (129 R + 2 U), 69 already REACHABLE; no label flips.
+- G20 C3 carried, no merge-time action: staging b102.md rows 13 (FileManagerConfig.setFileName) and 17 (FileManagerConfig$1.newArray) kind cells verified no_trigger_in_app before this build, matching merge-ready batch102.
+- MERGED_PARTS now ends b102. Next in order: b103-b107 (audit PASS, queued; b103 against staging-A1 only).
+
+## r76 b103-b107 (2026-11-02, merger; r76 citation-form rework, group-2 audit PASS + merge-time re-verification PASS)
+- Merged reworked parts/b103.py-b107.py in one 5-part build, in merger order (rework/r76/ .py files; .md/printed from parts-staging, unchanged). Verifier READY + independent auditor AUDIT-PASS for all five (audit in merger/scratch-tmp/verify-b103-b107/AUDIT.md). b103 verified against the staging-A1 batch file only (staging-A1 = merger/tree batch103, 26,893 B, PASS 35/5/0); the clone batch103 copy (4 OPEN rows, exit 1) is the stale copy, expected-not-applicable.
+- Build scratch/build_b103_b104_b105_b106_b107.txt: methods 4732, edges 7169 (+106), REACHABLE 3765 (+70), UNREACHABLE 756 (+6), UNRESOLVED 211 (-76), errors 211 (-76, must-not-rise satisfied), warnings 17 (identical set to the b098 build, verified by sorted diff). Delta reconciliation: 200 batch rows (194 REACHABLE + 6 UNREACHABLE); 76 newly resolved (70 R + 6 U), 124 already REACHABLE; no label flips. MERGED_PARTS verified to end b107.
+- MERGED_PARTS now ends b107. Next in order: b108-b112 (audit PASS, queued; G22 C4 action deferred to b109 per the recorded sequencing decision).
+
+## r76 b108-b112 (2026-11-02, merger; r76 citation-form rework, group-3 audit PASS + merge-time re-verification PASS; G22 C4 executed at b109 within this build)
+- Merged reworked parts/b108.py-b112.py in one 5-part build, in merger order (rework/r76/ .py files; .md/printed from parts-staging, unchanged). Verifier READY + independent auditor AUDIT-PASS for all five (audit in merger/scratch-tmp/verify-b108-b112/AUDIT.md; auditor recomputed all three G22 C4 sub-claims).
+- Pre-correction build scratch/build_b108_b109_b110_b111_b112.txt (overwritten by the post-correction rebuild; counts recorded here): methods 4732, edges 7244 (+75), REACHABLE 3804 (+39), UNREACHABLE 756 (+0), UNRESOLVED 172 (-39), errors 172 (-39, must-not-rise satisfied), warnings 17 (identical set). Delta reconciliation: 200 batch rows, all REACHABLE; 39 newly resolved, 161 already REACHABLE; no label flips.
+- G22 C4 executed (merger edit, reversible; pre-edit graph_def.py preserved as merger/graph_def_pre_g22c4.py): stale authored edge drawer.TagsAdapter$ItemViewHolder.lambda$bind$2 -> MainActivity$3.onTagMenuClicked (built id Ed3cbaa3d, verified by id + src + dst + evidence in the post-b112 build JSON before deletion) REMOVED from graph_def.py (was lines 1978-1979). Merge-time basis, independently re-derived from auto_calls.json (not javap): lambda$bind$1 calls onTagMenuClicked (TagsAdapter.java:203, cha) while lambda$bind$2 calls only PopupMenu methods + View.getContext — $2 builds/shows the popup menu, it never calls onTagMenuClicked; the $1->$2 REGISTER/FRAMEWORK chain (graph_def.py:1974-1977) is untouched. Post-correction rebuild (same build filename): methods 4732, edges 7243 (-1, exactly the deleted edge), REACHABLE 3804, UNREACHABLE 756, UNRESOLVED 172, errors 172, warnings 17 (identical set, sorted-diff verified); Ed3cbaa3d 0 occurrences in the fresh graph JSON, correct b109 authored $1 edge E1f650ef8 present. Correction: the verifier's auto $1 edge Edfeacb40 does NOT reproduce in the post-b112 build JSON (0 occurrences anywhere in the tree) — the b109 authored $1 edge stands as the $1->onTagMenuClicked edge, with no auto duplicate alongside; this does not affect the correction.
+- MERGED_PARTS now ends b112. Next in order: b113-b117 (audit PASS, queued; b114 against staging-A1 only; G9 deletions at b115/b116).
+
+## r76 b113-b117 (2026-11-02, merger; r76 citation-form rework, group-3 audit PASS + merge-time re-verification PASS; G9 executed at b115/b116 within this build)
+- Merged reworked parts/b113.py-b117.py in one 5-part build, in merger order (rework/r76/ .py files; .md/printed from parts-staging, unchanged). Verifier READY + independent auditor AUDIT-PASS for all five (audit in merger/scratch-tmp/verify-b113-b117/AUDIT.md). b114 verified against the staging-A1 batch file only (tree batch114 byte-identical to staging-A1, 28,103 B); the clone batch114 FAIL is the stale copy, expected-not-applicable.
+- Pre-G9 build scratch/build_b113_b114_b115_b116_b117.txt (overwritten by the post-G9 rebuild; counts recorded here): methods 4732, edges 7281 (+38), REACHABLE 3866 (+62), UNREACHABLE 764 (+8), UNRESOLVED 102 (-70), errors 102 (-70, must-not-rise satisfied), warnings 20 (17 standing + 3 NEW). Delta reconciliation: 200 batch rows (192 REACHABLE + 8 UNREACHABLE); 70 newly resolved (62 R + 8 U), 130 already REACHABLE; no label flips. The 3 new warnings are audited b115/b116 content, NOT defects: AppearanceSettingsFragment.initLegacyNotifySettings (E9d220da3, onCreate edge, b116 row 3), lambda$initLegacyNotifySettings$0 (E9f932f66), lambda$new$1 (E17cd04e4) — the API-27-gated legacy notify chain (b115 rows 38/40, closed_by_api_level per D2); the edges are real source calls into methods closed at API 27, same class as the standing Parcel-ctor warnings. They stay for the F1 warnings disposition; they are not G9 deletions.
+- G9 executed (merger edit, reversible; pre-edit graph_def.py preserved as merger/graph_def_pre_g9.py): the 5 named hand edges DELETED from graph_def.py after verifying each built id + src + dst + evidence in the post-b117 build JSON (brief's 8-char Ef1ba9f6 confirmed as truncation of Ef1ba9f68): Ee6e605f3 onPreferenceChange -> playSoundNotify (lines 2259-2260), Ef1ba9f68 onPreferenceChange -> ledIndicatorNotify (2261-2262), Ecbb38fd9 onPreferenceChange -> vibrationNotify (2263-2264), E40d89c4e onPreferenceChange -> ledIndicatorColorNotify (2265-2266), E8d2d38c3 lambda$new$1 -> notifySound (2287-2288). Post-G9 rebuild (same build filename): methods 4732, edges 7277 (7281 - 5 hand edges + 1 surfaced auto edge, see below), REACHABLE 3866, UNREACHABLE 764, UNRESOLVED 102, errors 102, warnings 16; all 5 G9 ids 0 occurrences in the fresh graph JSON. NOT fully warning-clearing for notifySound: deleting the hand edge unsurfaced the deduped AUTO edge E673d2ce0 (lambda$new$1 -> notifySound, basis default, evidence SRC AppearanceSettingsFragment.java:213 (bytecode) — the same real call the hand edge cited), so notifySound still warns via the auto edge. Tool behavior now observed in both directions: authored edges dedupe same-(src,dst,kind) auto edges (b109 authored $1 replaced auto Edfeacb40; G9 hand deletion surfaced auto E673d2ce0). The auto edge is NOT deleted or suppressed here — G9 specified 5 edges, and the auto edge needs its own F1-warnings-disposition decision (keep-and-explain as a dead call into an API-27-gated UNREACHABLE method, or suppress).
+- MERGED_PARTS now ends b117. Next in order: b118-b120 (audit PASS, queued) — the final r76 group.
+
+## r76 b118-b120 (2026-11-02, merger; r76 citation-form rework, group-3 audit PASS + merge-time re-verification PASS) — D3 COMPLETE
+- Merged reworked parts/b118.py-b120.py in one 3-part build, in merger order (rework/r76/ .py files; .md/printed from parts-staging, unchanged). Verifier READY + independent auditor AUDIT-PASS for all three (audit in merger/scratch-tmp/verify-b118-b120/AUDIT.md). b120 carries 0 edges (its 3 rows already covered by existing graph_def edges).
+- Build scratch/build_b118_b119_b120.txt: methods 4732, edges 7293 (+16), REACHABLE 3882 (+16), UNREACHABLE 764 (+0), UNRESOLVED 86 (-16), errors 86 (-16, must-not-rise satisfied), warnings 16 (identical set to the post-G9 b113 build, verified by sorted diff; notifySound still warns via surfaced auto edge E673d2ce0). Delta reconciliation: 83 batch rows, all REACHABLE; 16 newly resolved, 67 already REACHABLE; no label flips. MERGED_PARTS verified to end b120.
+- D3 COMPLETE: all 45 r76 parts b076-b120 merged in 11 staged batches (b076-b080, b081, b082, b083-b087 pre-existing; b088-b092, b093-b097, b098-b102, b103-b107, b108-b112, b113-b117, b118-b120 new this turn). Final tree state: 4732 methods, 7293 edges, REACHABLE 3882, UNREACHABLE 764, UNRESOLVED 86, errors 86, warnings 16. MERGED_PARTS now ends b120. Next: D5 re-baseline on this post-D3 tree, then D7 labels gate.
+
+## D5 check-4 fix (2026-11-02, rebase lead; regenerated FIX_LINES + E02ee8cda correction, independent rebase audit in d5d6/rebase/scratch/audit/AUDIT_D5_REBASE.md)
+- Re-based onto the post-D3 branch base (commit 72d4a0e5): branch graphs/LibreTorrent/graph_def.py fetched with ref, blob a3caba3a, byte-identical to the local post-D3 tree graph_def.py; baseline rebuild reproduces the snapshot graph JSON exactly (md5 0d42332a, build_report byte-identical, methods.csv identical).
+- Applied 25 citation-only edits via a new EDIT-hook section (_CHECK4_FIX_D5 + _d5_fix_edit chaining _source_audit_edit, appended at the end of graph_def.py): 24 regenerated FIX_LINES (22 single-line + 2 constructor range forms: FeedDownloaderWorker 178-186, TorrentSessionImpl lambda$handleStats$7 1174-1179) + the audited E02ee8cda correction (CreateTorrentDialog.handleFinish -> handleBuildError, :392 -> :395; line 392 .subscribeOn(Schedulers.io()), line 395 this::handleBuildError, same chain; other occurrences 308/348/398).
+- Post-fix build: methods 4732, edges 7293, REACHABLE 3882, UNREACHABLE 764, UNRESOLVED 86, errors 86, warnings 16 (identical set). JSON diff vs baseline: exactly 25 edges changed, each differing ONLY in evidence (plus its content-hash id); 7268 unedited-edge ids kept; all non-edge sections identical except one derived label field (InputFilterRange$Builder.<init> source_ref :66 -> :67, following its corrected best-route edge); methods.csv differs in exactly one row (same method: source_ref + route_edge_ids last id Ec257736a -> Ee62a3a80). No verdict, kind, or confirmed_by change; no edge added or removed.
+- Check-4 --all: bad 166 -> 141 (checked 1697 -> 1673, skipped 583, implicit 56); partition file-not-found 134 + name-not-within-2 7; removed bad lines exactly the 25 applied old ids, added 0; E02ee8cda passes on :395. 142 is the FIX_LINES-only figure; the E02ee8cda correction makes it 141.
+- Check-8: 33 of 764, byte-identical to baseline (re-derived on the snapshot scan).
+- Untouched pending-ruling items: Class A 134 file-not-found (108 data-binding incl. 2 variant forms + 26 Room, composition identical to baseline); Class B 7 close-edge ids present with byte-identical citations; notifySound auto edge E673d2ce0 present with byte-identical evidence (SRC AppearanceSettingsFragment.java:213 (bytecode)). No suppression, deletion, invented citation, silent drop, or explained-class recording. This package claims NO F1 bar met: check-4 bad 141, warnings 16, check-8 33, errors 86.
+- Next: D7 labels gate.
+
+## Logs step
+
+Logs step (2026-11-02, docs-only helper; push pending): base
+a9e8b93d / graph_def 564da867 / 4732 methods / 7293 edges /
+R3882 / U764 / UNRES86. Logs-step package: writer +
+verification.csv + eight checks + C4 docs (readme_notes.md,
+LESSONS.md, ROUTES_NOTES.md, this AGENT_NOTES delta). B6 final
+table: 27 routes (STATE pool empty, not 30), 407 steps, 294
+distinct edges, CORRECT 19 / WRONG 8 / UNCLEAR 0 / BLOCKED 0,
+rate 8/27 ≈ 0.2963, FIXED 0.
+
+Logs step complete pending push; next: coordinator-dispatched
+push, then device D1/D3/D7, then CI rebuild → SUMMARY gate →
+dry-run request → D9. No device run started; no F1 claim. B6 did
+NOT fix WRONG routes in place (FIXED = 0): the 8 WRONG routes stay
+WRONG with their decisive-step reasons; fix directions in the B6
+report are NOT applied here.
+
+Note on placement: the branch file has no "## Current step"
+section (its only "Current step" text is a bullet at line 5 inside
+"## Current status"); that bullet is left untouched. The former
+block-2 content is carried in this section, not as a replacement
+of any existing section.
+
+## Decisions
+
+Decisions (Muse's own, for user/Yang review — NEVER attributed to
+Yang), 2026-11-02 logs step:
+- Caveat-2 ruling (i) adopted: TorrentDownloadImpl.havePiece is CORRECT under ruling (i) — the caveat attaches ONLY to drawn route steps, and its shutdown-first premise chain
+  (SchedulerReceiver/TorrentService/Utils setup methods, all in
+  unresolved_86.txt) was verified directly from source, not from
+  the graph, so it is setup history, not a drawn step.
+  Contingency, NOT adopted: if the gate adopts rule (ii) (caveat
+  attaches to any method the verdict depends on), route 2 becomes
+  BLOCKED with no verdict, counts become CORRECT 18 / WRONG 8 /
+  BLOCKED 1, rate 8/26 ≈ 0.3077. Both the adopted ruling and the
+  exact alternative disposition are carried.
+- The 59/32 edge Ea751b47d appears in ZERO sampled routes and is
+  never claimed as a verified route. All 407 drawn steps have 0
+  src/dst touches of unresolved_86.txt.
+- The STATE stratum pool is empty (0 STATE-gated methods in all 4732 rows), which is why the sample is 27, not 30 — do NOT pad it to 30.
+- No label changes in this step: labels stay R3882/U764/UNRES86
+  unless a separate audited T1 execution (NOT this task) changes
+  them.
+- T1 + R1–R8 still owed: technical blocker T1 (86 UNRESOLVED)
+  and user-owed rulings R1 D4 FeedParser, R2 D5 Class A route,
+  R3 D5 Class B handling, R4 notifySound option, R5 b034 dedupe,
+  R6 batch-3 row 26 OPEN flag, R7 59/32 label question, R8
+  check-2 131 disposition. None closed by this logs step.
+## Step 2 item 4(b): AppearanceSettingsFragment REACHABLE -> UNREACHABLE flips (2026-11-02, item-4 lead; for user review)
+
+The 3 methods are exactly the UNREACHABLE methods of AppearanceSettingsFragment in the
+branch build (4732 methods / 7293 edges / R3882 / U764 / UNRES86, errors 86, warnings 16;
+base graph_def blob 564da867, AGENT_NOTES 3a30a903, verification.csv 663a59a8):
+
+- AppearanceSettingsFragment.initLegacyNotifySettings — UNREACHABLE / INFERRED,
+  ref SRC ui/settings/sections/AppearanceSettingsFragment.java:118-119.
+- AppearanceSettingsFragment.lambda$initLegacyNotifySettings$0 — UNREACHABLE / INFERRED,
+  ref SRC ui/settings/sections/AppearanceSettingsFragment.java:144-167.
+- AppearanceSettingsFragment.lambda$new$1 — UNREACHABLE / INFERRED,
+  ref SRC ui/settings/sections/AppearanceSettingsFragment.java:200-217.
+
+WHEN / WHERE THEY FLIPPED: the UNREACHABLE entries first appear in part b115
+(rows 38/40: initLegacyNotifySettings, lambda$initLegacyNotifySettings$0, lambda$new$1,
+all kind closed_by_api_level), merged in the b113-b117 batch, commit 74c0bc18.
+No earlier part (b001-b114) and no inline graph_def UNREACHABLE entry names any of
+the three (first part appearance verified: b115.py + b116.py only; the graph_def.py
+hits for these names are hand EDGES, not entries). The b113-b117 post-G9 build
+records them as the 3 NEW warnings (incoming edges E9d220da3 onCreate edge,
+E9f932f66, E17cd04e4). Mechanism: the build's verdict ladder gives UNREACHABLE
+entries precedence over paths, so an entry flips a method with existing incoming
+edges from REACHABLE to UNREACHABLE; the edges stay, which is why the three warn
+today (UNREACHABLE with incoming edges).
+
+REASON (evidence-cited, per method): the whole legacy-notify chain is gated off
+at API 27 (the build target) by the SDK check in onCreate.
+- initLegacyNotifySettings: its only caller is onCreate under
+  `if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)` (AppearanceSettingsFragment.java:118-119);
+  at API 27 the guard is false, so the body (:128-190) never runs. Part b115 row 38
+  reason, verbatim in substance: "Only caller is onCreate under if (SDK_INT < O)
+  (:118-119); at API 27 the guard is false, so the body (:128-190) never runs.
+  Call-site-gated, not body-early-return." Confirmed_by INFERRED (entry carries no
+  confirmed_by element); ref SRC :118-119.
+- lambda$initLegacyNotifySettings$0: the notify-sound click-listener lambda is
+  registered only inside initLegacyNotifySettings (AppearanceSettingsFragment.java:144-167);
+  same API-27 gate as row 38. Part b115 row 39 reason, in substance.
+- lambda$new$1: the ringtone-picker result lambda (AppearanceSettingsFragment.java:200-217);
+  its only trigger is ringtonePicker.launch(intent) at :164, inside
+  initLegacyNotifySettings, gated off at API 27. Part b115 row 40 reason, in substance.
+
+BEFORE-STATE DISCLOSURE (not papered over): the b113-b117 batch note records its
+200 rows as "70 newly resolved (62 R + 8 U), 130 already REACHABLE; no label flips",
+which taken literally puts the 3 Appearance rows (among the 8 U) as previously
+UNRESOLVED, not REACHABLE. Against that, AppearanceSettingsFragment.onCreate is
+REACHABLE in the current build and is not a b113-b117 row (its verdict was settled
+earlier; only a passing comment in b018 names it), and the onCreate -> initLegacyNotifySettings
+CALL edge (graph_def.py line 2247) plus the auto edge give the chain a path
+structure consistent with REACHABLE before the b115 entries landed. No pre-b113
+methods.csv survives in the work tree to settle this definitively, so the
+before-state is recorded as NOT DEFINITIVELY ESTABLISHED from available records:
+the flip point (b115 entries, b113-b117 merge, 74c0bc18) and the API-27-gate reason
+are established; whether the three were REACHABLE or UNRESOLVED immediately before
+that merge is not. The user framed them as REACHABLE -> UNREACHABLE flips; the
+batch note's "no label flips" accounting is the conflicting record, disclosed here
+for the gate rather than silently resolved. Nothing in this section changes any
+label, edge, or verdict: it records reasons only.
+
+Related, NOT part of the three: the five SettingsRepositoryImpl legacy-notify
+methods (ledIndicatorNotify, ledIndicatorColorNotify, notifySound, playSoundNotify,
+vibrationNotify) are a different class (methods CALLED FROM AppearanceSettingsFragment,
+not methods OF it); their warnings disposition (R4 notifySound (a)/(b)) remains owed
+and is untouched here.
+
+## Decisions made by Muse (for the user and Yang to review)
+
+- Kiro (2026-11-03): Step 1 case C. Part b121 reaches 85 of the 86 UNRESOLVED methods by adding the missing delivery edge next to an existing REGISTER edge (Path A); `TorrentInputStream.toUnsignedByte` is UNREACHABLE no_trigger_in_app (D2); `DialogSelectTagBindingImpl.hasPendingBindings` is REACHABLE through the existing INFERRED edge E99f87464 (D3). Evidence: `parts/b121.md`, `scratch/b121_printed.txt`.
+- Kiro (2026-11-03): 17 hand-written select-tag edges cited lines from another version of SelectTagDialog.java (6 past its 195-line end); corrected by `_K4_CITE_FIX` (graph_def.py) from printed lines.
+- Kiro (2026-11-03): `AddTorrentInfoFragment.showOpenDirErrorDialog` left REACHABLE through edge Ef80b5c5d (guard data == null), mirroring `DetailTorrentInfoFragment.showOpenDirErrorDialog`; printed lines suggest the guard never holds while the public Download dir exists. Reviewer to decide whether both become branch_never_taken.
+- Kiro (2026-11-03): Step 6 cleared the 16 graph warnings without label changes: 12 automatic edges suppressed (`parts/k01_warnings.py`) and 5 hand edges dropped (`_K6_HAND_DROPS`), each starting at an UNREACHABLE method or behind an SDK guard false on API 27 (`scratch/kiro/prints/step6_warnings.txt`).
+- Kiro (2026-11-03): route 5 (`SafFileSystem$FakePath.serialize`) judged WRONG at step 13 although first-draw row 5 (same first 13 steps, method not in the final sample) was judged CORRECT; the printed save-path writers show the dir is always file:// (`scratch/kiro/prints/judge_saf.txt`).
+- Kiro (2026-11-03): routes 9 and 10 (select-tag row) judged UNCLEAR: they need a tag no earlier step creates (Aegis precedent for STATE data). The torrent-row premise of their shared prefix was accepted as in first-draw rows 1 and 16.
+- Kiro (2026-11-03): no helper agents ran. Host memory stayed critical and the requested helper model `claude-haiku-5-5` was refused by the runtime (InvalidModelError); I did not switch helpers to another model.
+
+## Kiro log (2026-11-03)
+
+- 3003df16: start commit; baseline matched the handover start numbers.
+- a04a8b05: tools/check_citations.py line 20 (Step 2; 12 other apps 0 problems, distinct counts as expected).
+- fa6abe75: K1 citation form (Step 3). c9384b65: K2 data-binding class (Step 5). 7997c893: K3 close() citations (Step 4).
+- 2a294908: part b121 + K4 (Step 1). fd4a16b0: warnings to 0 (Step 6). 58a3600a: check-8 callers (Step 7); labels gate passed.
+- 558a9939: route check on the final graph (Step 9).
+- Step 10 (writer, verification.csv, readme_notes.md, LESSONS.md, this file): see KIRO_REPORT.md for its commit.
+
+## Current step
+- 2026-11-06 04:24 UTC: Kiro (takeover from Muse), re-audit W3 done for LibreTorrent (launcher gates removed, 5 in-app INTENT edges, row-bind state; exported-entry routes 3918 -> 9); next W4 (RTA).
+- 2026-11-06 04:41 UTC: Kiro, re-audit W4 done for LibreTorrent (RTA on); next W5 (ESR_CREATION).
+- 2026-11-06 04:46 UTC: Kiro, re-audit W5 done for LibreTorrent (ESR_CREATION on; library_edges.csv); next W6 (outside data).
+- 2026-11-06 04:53 UTC: Kiro, re-audit W6 done for LibreTorrent (outside_data.csv); next W7 (guards).
+- 2026-11-06 05:02 UTC: Kiro, re-audit W7 round 1 done for LibreTorrent (pre-screen, checked-case guards; most flagged steps PENDING); next W8 (CI, re-verify routes, device runs).
+- 2026-11-06 06:40 UTC: Kiro stops after round 1. Open: W7 PENDING guard steps, W8 point 2 route re-verification (stale verification paths block the writers and the publish), W9 checks of audit_draw.csv, W0 and the measurement (no review/sample_tune/).

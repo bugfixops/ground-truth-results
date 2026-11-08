@@ -1,0 +1,53 @@
+method: DocumentShareIntoFragment$ShareIntoImportOptionsFragment.lambda$hasLinks$1
+route: route_15
+steps: 12
+verdict: fixed (path row)
+
+step 1: S_ENTRY -> ApplicationObject.<init>
+  edge: E211966cc kind=ENTRY env=None env_kinds=[] needs_state=None gui=['Tap the Markor launcher icon']
+  trigger: The process starts when the launcher icon is tapped (before any activity)
+  evidence: SRC AndroidManifest.xml:39-40
+step 2: ApplicationObject.<init> -> ApplicationObject.onCreate
+  edge: Ed6414d9f kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Application.onCreate
+  evidence: SRC ApplicationObject.java:16,39
+step 3: ApplicationObject.onCreate -> DocumentActivity.<init>@SEND
+  edge: Ef7fef146 kind=ENTRY env=outside package: another app sends the intent (a file manager or share sheet opens a file with Markor) env_kinds=['other_app'] needs_state=None gui=['Share or open a file from another app and choose Markor']
+  trigger: Another app sends a text or a file to Markor (share sheet, Open with, Edit with); on a cold start Application.onCreate runs first
+  evidence: SRC AndroidManifest.xml:187-225
+step 4: DocumentActivity.<init>@SEND -> DocumentActivity.onCreate@SEND
+  edge: Ed80ab76d kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onCreate
+  evidence: SRC DocumentActivity.java:135; FW-SRC core/java/android/app/Activity.java:989 (onCreate), 1311 (onResume), 1331 (onPostResume), 3001-3010 (onBackPressed), 5679 (onActivityResult), 824 (mResultCode defaults to RESULT_CANCELED)
+step 5: DocumentActivity.onCreate@SEND -> DocumentActivity.handleLaunchingIntent@SEND
+  edge: E082a98b1 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: onCreate hands the other-app intent to handleLaunchingIntent (the @SEND chain)
+  evidence: SRC DocumentActivity.java:149 (bytecode)
+step 6: DocumentActivity.handleLaunchingIntent@SEND -> DocumentActivity.showShareInto
+  edge: E73fb7cb9 kind=CALL env=outside package: another app sends the intent (a file manager or share sheet opens a file with Markor) env_kinds=['other_app'] needs_state=None gui=[]
+  trigger: The intent action is ACTION_SEND, ACTION_SEND_MULTIPLE or PROCESS_TEXT: another app sent the text or file (the app's own file launch has no action)
+  evidence: SRC DocumentActivity.java:168-178 (action branch), 177 (bytecode)
+step 7: DocumentActivity.showShareInto -> DocumentShareIntoFragment.onViewCreated
+  edge: Ed4b1b345 kind=FRAMEWORK env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The FragmentManager creates the share-into view
+  evidence: SRC DocumentActivity.java:304-307; SRC DocumentShareIntoFragment.java:90; INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read)
+step 8: DocumentShareIntoFragment.onViewCreated -> DocumentShareIntoFragment$ShareIntoImportOptionsFragment.<init>
+  edge: Ec1d50c8b kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC DocumentShareIntoFragment.java:97 (bytecode)
+step 9: DocumentShareIntoFragment$ShareIntoImportOptionsFragment.<init> -> GsPreferenceFragmentBase.onCreatePreferences@DocumentShareIntoFragment$ShareIntoImportOptionsFragment
+  edge: Ef4c784b7 kind=FRAMEWORK env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The import options fragment creates its screen: PreferenceFragmentCompat calls onCreatePreferences on this receiver (library source not read)
+  evidence: INFERRED PreferenceFragmentCompat calls onCreatePreferences on the fragment (library source not read); SRC GsPreferenceFragmentBase.java:153-160; SRC DocumentShareIntoFragment.java:97
+step 10: GsPreferenceFragmentBase.onCreatePreferences@DocumentShareIntoFragment$ShareIntoImportOptionsFragment -> DocumentShareIntoFragment$ShareIntoImportOptionsFragment.afterOnCreate
+  edge: E8a4e3755 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC GsPreferenceFragmentBase.java:169 (bytecode)
+step 11: DocumentShareIntoFragment$ShareIntoImportOptionsFragment.afterOnCreate -> DocumentShareIntoFragment$ShareIntoImportOptionsFragment.hasLinks
+  edge: E7756ddc7 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC DocumentShareIntoFragment.java:224 (bytecode)
+step 12: DocumentShareIntoFragment$ShareIntoImportOptionsFragment.hasLinks -> DocumentShareIntoFragment$ShareIntoImportOptionsFragment.lambda$hasLinks$1
+  edge: Eac7de4e9 kind=FRAMEWORK env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Listener or callback registered by this method runs when its event fires (view event, dialog button, handler or fragment callback)
+  evidence: INFERRED listener registered at DocumentShareIntoFragment.java:361 (bytecode line); the listener type is not read per lambda

@@ -1,0 +1,425 @@
+Converter C09 delivery (2026-11-01): base = audited A3 printed evidence helper a3-g12 scratch b058_printed.txt.
+Labels, kinds and rows are unchanged from the audited base. The G12 -c key-dispatch
+excerpts below are NOT relied on (auditor finding: they repeat ctor-body lines and do
+not demonstrate dispatch): each excerpt's cache note + invoke lines have been replaced
+by one converter note line under the unchanged section header; the -p signature blocks
+and printed source lines are the relied evidence.
+
+Batch 58 printed evidence. App source root:
+final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+Generated databinding classes: javap -c -p output from work-emulator/classes/LibreTorrent/0/
+is printed under a .java-named header for that class; it is bytecode, not source.
+
+=== core/HttpConnection.java:103 ===
+103:                             listener.onMovedPermanently(url.toString());
+
+=== core/HttpConnection.java:107 ===
+107:                             listener.onResponseHandle(conn, responseCode, conn.getResponseMessage());
+
+=== core/HttpConnection.java:113 ===
+113:                     listener.onIOException(e);
+
+=== core/HttpConnection.java:123 ===
+123:             listener.onTooManyRedirects();
+
+=== core/HttpConnection.java:55-63 ===
+55:         void onConnectionCreated(HttpURLConnection conn);
+56: 
+57:         void onResponseHandle(HttpURLConnection conn, int code, String message);
+58: 
+59:         void onMovedPermanently(String newUrl);
+60: 
+61:         void onIOException(IOException e);
+62: 
+63:         void onTooManyRedirects();
+
+=== core/HttpConnection.java:87-91 ===
+87:                 conn.setReadTimeout(DEFAULT_TIMEOUT);
+88: 
+89:                 if (conn instanceof HttpsURLConnection)
+90:                     ((HttpsURLConnection)conn).setSSLSocketFactory(sslContext.getSocketFactory());
+91: 
+
+=== core/HttpConnection.java:93 ===
+93:                     listener.onConnectionCreated(conn);
+
+=== core/model/TorrentEngine.java:1033-1035 ===
+1033:             stop = Utils.isRoaming(appContext);
+1034:         if (unmeteredOnly)
+1035:             stop = Utils.isMetered(appContext);
+
+=== core/model/stream/TorrentStream.java:38-45 ===
+38:     public int pieceLength;
+39: 
+40:     public TorrentStream(String torrentId, int selectedFileIndex, int firstFilePiece,
+41:                          int lastFilePiece, int pieceLength, long fileOffset,
+42:                          long fileSize, int lastFilePieceSize)
+43:     {
+44:         this.id = Utils.makeSha1Hash(torrentId + selectedFileIndex);
+45:         this.torrentId = torrentId;
+
+=== core/system/FsModuleResolverImpl.java:43 ===
+43:         if (Utils.isSafPath(appContext, uri)) {
+
+=== core/utils/Utils.java:152-155 ===
+152:     public static void setBackground(@NonNull View v,
+153:                                      @NonNull Drawable d) {
+154:         v.setBackground(d);
+155:     }
+
+=== core/utils/Utils.java:157-161 ===
+157:     public static boolean checkConnectivity(@NonNull Context context) {
+158:         SystemFacade systemFacade = SystemFacadeHelper.getSystemFacade(context);
+159:         NetworkInfo netInfo = systemFacade.getActiveNetworkInfo();
+160: 
+161:         return netInfo != null && netInfo.isConnected() && isNetworkTypeAllowed(context);
+
+=== core/utils/Utils.java:164-195 ===
+164:     public static boolean isNetworkTypeAllowed(@NonNull Context context) {
+165:         SystemFacade systemFacade = SystemFacadeHelper.getSystemFacade(context);
+166: 
+167:         SettingsRepository pref = RepositoryHelper.getSettingsRepository(context);
+168:         boolean enableRoaming = pref.enableRoaming();
+169:         boolean unmeteredOnly = pref.unmeteredConnectionsOnly();
+170: 
+171:         boolean noUnmeteredOnly;
+172:         boolean noRoaming;
+173: 
+174:         NetworkCapabilities caps = systemFacade.getNetworkCapabilities();
+175:         /*
+176:          * Use ConnectivityManager#isActiveNetworkMetered() instead of NetworkCapabilities#NET_CAPABILITY_NOT_METERED,
+177:          * since Android detection VPN as metered, including on Android 9, oddly enough.
+178:          * I think this is due to what VPN services doesn't use setUnderlyingNetworks() method.
+179:          *
+180:          * See for details: https://developer.android.com/about/versions/pie/android-9.0-changes-all#network-capabilities-vpn
+181:          */
+182:         boolean unmetered = caps != null && caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED) ||
+183:                 !systemFacade.isActiveNetworkMetered();
+184:         noUnmeteredOnly = !unmeteredOnly || unmetered;
+185: 
+186:         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+187:             noRoaming = !enableRoaming || caps != null && caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_ROAMING);
+188:         } else {
+189:             NetworkInfo netInfo = systemFacade.getActiveNetworkInfo();
+190:             noRoaming = netInfo != null && !(enableRoaming && netInfo.isRoaming());
+191:         }
+192: 
+193:         return noUnmeteredOnly && noRoaming;
+194:     }
+195: 
+
+=== core/utils/Utils.java:196-202 ===
+196:     public static boolean isMetered(@NonNull Context context) {
+197:         SystemFacade systemFacade = SystemFacadeHelper.getSystemFacade(context);
+198: 
+199:         NetworkCapabilities caps = systemFacade.getNetworkCapabilities();
+200:         return caps != null && !caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED) ||
+201:                 systemFacade.isActiveNetworkMetered();
+202:     }
+
+=== core/utils/Utils.java:204-213 ===
+204:     public static boolean isRoaming(@NonNull Context context) {
+205:         SystemFacade systemFacade = SystemFacadeHelper.getSystemFacade(context);
+206: 
+207:         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+208:             NetworkCapabilities caps = systemFacade.getNetworkCapabilities();
+209:             return caps != null && !caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_ROAMING);
+210:         } else {
+211:             NetworkInfo netInfo = systemFacade.getActiveNetworkInfo();
+212:             return netInfo != null && netInfo.isRoaming();
+213:         }
+
+=== core/utils/Utils.java:233-234 ===
+233:     public static String normalizeMagnetHash(@NonNull String hash) {
+234:         return INFOHASH_PREFIX + hash;
+
+=== core/utils/Utils.java:241-242 ===
+241:     public static boolean isTwoPane(@NonNull Context context) {
+242:         return context.getResources().getBoolean(R.bool.isTwoPane);
+
+=== core/utils/Utils.java:261-268 ===
+261:     public static boolean isValidTrackerUrl(@NonNull String url) {
+262:         if (TextUtils.isEmpty(url))
+263:             return false;
+264: 
+265:         Pattern pattern = Pattern.compile(TRACKER_URL_PATTERN);
+266:         Matcher matcher = pattern.matcher(url.trim());
+267: 
+268:         return matcher.matches();
+
+=== core/utils/Utils.java:319-325 ===
+319:     public static void reportError(@NonNull Throwable error,
+320:                                    String comment) {
+321:         if (comment != null)
+322:             ACRA.getErrorReporter().putCustomData(ReportField.USER_COMMENT.toString(), comment);
+323: 
+324:         ACRA.getErrorReporter().handleSilentException(error);
+325:     }
+
+=== core/utils/Utils.java:413-417 ===
+413:     public static boolean shouldRequestStoragePermission(@NonNull Activity activity) {
+414:         return ActivityCompat.shouldShowRequestPermissionRationale(
+415:                 activity,
+416:                 Manifest.permission.WRITE_EXTERNAL_STORAGE
+417:         );
+
+=== core/utils/Utils.java:477 ===
+477:         connection.setListener(new HttpConnection.Listener() {
+
+=== core/utils/Utils.java:477-530 ===
+477:         connection.setListener(new HttpConnection.Listener() {
+478:             @Override
+479:             public void onConnectionCreated(HttpURLConnection conn) {
+480:                 /* Nothing */
+481:             }
+482: 
+483:             @Override
+484:             public void onResponseHandle(HttpURLConnection conn, int code, String message) {
+485:                 if (code == HttpURLConnection.HTTP_OK) {
+486:                     try(InputStream is = conn.getInputStream()) {
+487:                         response[0] = IOUtils.toByteArray(is);
+488: 
+489:                     } catch (IOException e) {
+490:                         errorArray.add(e);
+491:                     }
+492:                 } else {
+493:                     errorArray.add(new FetchLinkException("Failed to fetch link, response code: " + code));
+494:                 }
+495:             }
+496: 
+497:             @Override
+498:             public void onMovedPermanently(String newUrl) {
+499:                 /* Nothing */
+500:             }
+501: 
+502:             @Override
+503:             public void onIOException(IOException e) {
+504:                 errorArray.add(e);
+505:             }
+506: 
+507:             @Override
+508:             public void onTooManyRedirects() {
+509:                 errorArray.add(new FetchLinkException("Too many redirects"));
+510:             }
+511:         });
+512:         connection.run();
+513: 
+514:         if (!errorArray.isEmpty()) {
+515:             StringBuilder s = new StringBuilder();
+516:             for (Throwable e : errorArray) {
+517:                 String msg = e.getMessage();
+518:                 if (msg != null)
+519:                     s.append(msg.concat("\n"));
+520:             }
+521: 
+522:             throw new FetchLinkException(s.toString());
+523:         }
+524: 
+525:         return response[0];
+526:     }
+527: 
+528:     /*
+529:      * Without additional information (e.g -DEBUG)
+530:      */
+
+=== core/utils/Utils.java:567-583 ===
+567:     public static String makeSha1Hash(@NonNull String s) {
+568:         MessageDigest messageDigest;
+569:         try {
+570:             messageDigest = MessageDigest.getInstance("SHA1");
+571:         } catch (NoSuchAlgorithmException e) {
+572:             return null;
+573:         }
+574:         messageDigest.update(s.getBytes(StandardCharsets.UTF_8));
+575:         StringBuilder sha1 = new StringBuilder();
+576:         for (byte b : messageDigest.digest()) {
+577:             if ((0xff & b) < 0x10)
+578:                 sha1.append("0");
+579:             sha1.append(Integer.toHexString(0xff & b));
+580:         }
+581: 
+582:         return sha1.toString();
+583:     }
+
+=== core/utils/Utils.java:585-593 ===
+585:     public static SSLContext getSSLContext() throws GeneralSecurityException {
+586:         TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+587:         tmf.init((KeyStore) null);
+588: 
+589:         TrustManager[] trustManagers = tmf.getTrustManagers();
+590:         final X509TrustManager origTrustManager = (X509TrustManager) trustManagers[0];
+591: 
+592:         TrustManager[] wrappedTrustManagers = new TrustManager[]{
+593:                 new X509TrustManager() {
+
+=== core/utils/Utils.java:585-611 ===
+585:     public static SSLContext getSSLContext() throws GeneralSecurityException {
+586:         TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+587:         tmf.init((KeyStore) null);
+588: 
+589:         TrustManager[] trustManagers = tmf.getTrustManagers();
+590:         final X509TrustManager origTrustManager = (X509TrustManager) trustManagers[0];
+591: 
+592:         TrustManager[] wrappedTrustManagers = new TrustManager[]{
+593:                 new X509TrustManager() {
+594:                     public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+595:                         return origTrustManager.getAcceptedIssuers();
+596:                     }
+597: 
+598:                     public void checkClientTrusted(X509Certificate[] certs, String authType) throws CertificateException {
+599:                         origTrustManager.checkClientTrusted(certs, authType);
+600:                     }
+601: 
+602:                     public void checkServerTrusted(X509Certificate[] certs, String authType) throws CertificateException {
+603:                         origTrustManager.checkServerTrusted(certs, authType);
+604:                     }
+605:                 }
+606:         };
+607:         SSLContext sslContext = SSLContext.getInstance("TLS");
+608:         sslContext.init(null, wrappedTrustManagers, null);
+609: 
+610:         return sslContext;
+611:     }
+
+=== core/utils/Utils.java:613-616 ===
+613:     public static void showActionModeStatusBar(@NonNull Activity activity, boolean mode) {
+614:         int attr = (mode ? R.attr.actionModeBackground : R.attr.statusBarColor);
+615:         activity.getWindow().setStatusBarColor(getAttributeColor(activity, attr));
+616:     }
+
+=== core/utils/Utils.java:657-658 ===
+657:     public static boolean isSafPath(@NonNull Context appContext, @NonNull Uri path) {
+658:         return SafFileSystem.getInstance(appContext).isSafPath(path);
+
+=== core/utils/Utils.java:671-675 ===
+671:     public static void requestExactAlarmPermission(@NonNull Context context) {
+672:         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+673:             context.startActivity(buildExactAlarmPermissionRequest(context));
+674:         }
+675:     }
+
+=== ui/PermissionManager.java:83 ===
+83:                                 Utils.shouldRequestStoragePermission(activity)
+
+=== ui/addlink/AddLinkViewModel.java:64 ===
+64:             link = Utils.normalizeMagnetHash(link);
+
+=== ui/addtorrent/AddTorrentActivity.java:251 ===
+251:                             Utils.reportError(viewModel.errorReport, comment);
+
+=== ui/addtorrent/AddTorrentActivity.java:284 ===
+284:         if (!Utils.isTwoPane(this)) {
+
+=== ui/createtorrent/CreateTorrentViewModel.java:317 ===
+317:         if (!Utils.isValidTrackerUrl(url))
+
+=== ui/customviews/SwitchBar.java:62 ===
+62:             Utils.setBackground(this, background);
+
+=== ui/filemanager/FileManagerDialog.java:120,143 ===
+120:     public void onCreate(Bundle savedInstanceState) {
+143:         binding.setViewModel(viewModel);
+
+=== ui/main/MainFragment.java:469 ===
+469:             Utils.showActionModeStatusBar(activity, true);
+
+=== ui/settings/sections/SchedulingSettingsFragment.java:137 ===
+137:                         Utils.requestExactAlarmPermission(getContext());
+
+=== databinding/ActivityAddTorrentBindingImpl.java (javap -c -p output; generated source absent from final_java_only) ===
+--- javap -p signatures ---
+Compiled from "ActivityAddTorrentBindingImpl.java"
+public class org.proninyaroslav.libretorrent.databinding.ActivityAddTorrentBindingImpl extends org.proninyaroslav.libretorrent.databinding.ActivityAddTorrentBinding {
+  private static final androidx.databinding.ViewDataBinding$IncludedLayouts sIncludes;
+  private static final android.util.SparseIntArray sViewsWithIds;
+  private long mDirtyFlags;
+  public org.proninyaroslav.libretorrent.databinding.ActivityAddTorrentBindingImpl(androidx.databinding.DataBindingComponent, android.view.View);
+  private org.proninyaroslav.libretorrent.databinding.ActivityAddTorrentBindingImpl(androidx.databinding.DataBindingComponent, android.view.View, java.lang.Object[]);
+  public void invalidateAll();
+  public boolean hasPendingBindings();
+  public boolean setVariable(int, java.lang.Object);
+  protected boolean onFieldChange(int, java.lang.Object, int);
+  protected void executeBindings();
+  static {};
+}
+
+--- javap section: 2-arg <init> -> 3-arg <init> ---
+[converter C09 note: -c excerpt NOT relied on -- auditor finding: excerpts repeat ctor-body lines and do not demonstrate dispatch; the -p signature block above is the relied evidence]
+
+--- javap section: 3-arg <init> -> ActivityAddTorrentBinding <init> ---
+[converter C09 note: -c excerpt NOT relied on -- auditor finding: excerpts repeat ctor-body lines and do not demonstrate dispatch; the -p signature block above is the relied evidence]
+
+--- javap section: 3-arg <init> -> invalidateAll ---
+[converter C09 note: -c excerpt NOT relied on -- auditor finding: excerpts repeat ctor-body lines and do not demonstrate dispatch; the -p signature block above is the relied evidence]
+
+--- javap section: invalidateAll -> requestRebind ---
+[converter C09 note: -c excerpt NOT relied on -- auditor finding: excerpts repeat ctor-body lines and do not demonstrate dispatch; the -p signature block above is the relied evidence]
+
+--- javap section: onFieldChange (no registration) ---
+[converter C09 note: -c excerpt NOT relied on -- auditor finding: excerpts repeat ctor-body lines and do not demonstrate dispatch; the -p signature block above is the relied evidence]
+
+=== databinding/ActivityFilemanagerDialogBindingImpl.java (javap -c -p output; generated source absent from final_java_only) ===
+--- javap -p signatures ---
+Compiled from "ActivityFilemanagerDialogBindingImpl.java"
+public class org.proninyaroslav.libretorrent.databinding.ActivityFilemanagerDialogBindingImpl extends org.proninyaroslav.libretorrent.databinding.ActivityFilemanagerDialogBinding {
+  private static final androidx.databinding.ViewDataBinding$IncludedLayouts sIncludes;
+  private static final android.util.SparseIntArray sViewsWithIds;
+  private final android.widget.FrameLayout mboundView3;
+  private long mDirtyFlags;
+  public org.proninyaroslav.libretorrent.databinding.ActivityFilemanagerDialogBindingImpl(androidx.databinding.DataBindingComponent, android.view.View);
+  private org.proninyaroslav.libretorrent.databinding.ActivityFilemanagerDialogBindingImpl(androidx.databinding.DataBindingComponent, android.view.View, java.lang.Object[]);
+  public void invalidateAll();
+  public boolean hasPendingBindings();
+  public boolean setVariable(int, java.lang.Object);
+  public void setViewModel(org.proninyaroslav.libretorrent.ui.filemanager.FileManagerViewModel);
+  protected boolean onFieldChange(int, java.lang.Object, int);
+  protected void executeBindings();
+  static {};
+}
+
+--- javap section: 2-arg <init> -> 3-arg <init> ---
+[converter C09 note: -c excerpt NOT relied on -- auditor finding: excerpts repeat ctor-body lines and do not demonstrate dispatch; the -p signature block above is the relied evidence]
+
+--- javap section: 3-arg <init> -> ActivityFilemanagerDialogBinding <init> ---
+[converter C09 note: -c excerpt NOT relied on -- auditor finding: excerpts repeat ctor-body lines and do not demonstrate dispatch; the -p signature block above is the relied evidence]
+
+=== libretorrent/DataBinderMapperImpl.java (javap -c -p output; generated source absent from final_java_only) ===
+--- javap -p signatures ---
+
+
+--- javap section: getDataBinder -> ActivityAddTorrentBindingImpl 2-arg <init> ---
+[converter C09 note: -c excerpt NOT relied on -- auditor finding: excerpts repeat ctor-body lines and do not demonstrate dispatch; the -p signature block above is the relied evidence]
+
+--- javap section: getDataBinder -> ActivityFilemanagerDialogBindingImpl 2-arg <init> ---
+[converter C09 note: -c excerpt NOT relied on -- auditor finding: excerpts repeat ctor-body lines and do not demonstrate dispatch; the -p signature block above is the relied evidence]
+
+=== auto_calls.json excerpt (helper query: pairs whose src/dst bases match this part's edges) ===
+libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int) -> ActivityAddTorrentBindingImpl.<clinit>  (DataBinderMapperImpl.java:188, dispatch=exact)
+libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int) -> ActivityFilemanagerDialogBindingImpl.<clinit>  (DataBinderMapperImpl.java:194, dispatch=exact)
+libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int) -> ActivityFilemanagerDialogBindingImpl.<init>(DataBindingComponent,View)  (DataBinderMapperImpl.java:194, dispatch=exact)
+libretorrent.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int) -> ActivityAddTorrentBindingImpl.<init>(DataBindingComponent,View)  (DataBinderMapperImpl.java:188, dispatch=exact)
+PermissionManager.lambda$new$1 -> Utils.shouldRequestStoragePermission  (PermissionManager.java:83, dispatch=exact)
+SchedulingSettingsFragment.lambda$subscribeAlertDialog$0 -> Utils.requestExactAlarmPermission  (SchedulingSettingsFragment.java:137, dispatch=exact)
+AddTorrentActivity.handleAlertDialogEvent -> Utils.reportError  (AddTorrentActivity.java:251, dispatch=exact)
+AddTorrentActivity.initLayout -> Utils.isTwoPane  (AddTorrentActivity.java:284, dispatch=exact)
+SwitchBar.init -> Utils.setBackground  (SwitchBar.java:62, dispatch=exact)
+AddLinkViewModel.normalizeUrl -> Utils.normalizeMagnetHash  (AddLinkViewModel.java:64, dispatch=exact)
+MainFragment$3.onCreateActionMode -> Utils.showActionModeStatusBar  (MainFragment.java:469, dispatch=exact)
+CreateTorrentViewModel.normalizeAndValidateUrl -> Utils.isValidTrackerUrl  (CreateTorrentViewModel.java:317, dispatch=exact)
+HttpConnection.run -> Utils$1.onTooManyRedirects  (HttpConnection.java:123, dispatch=cha)
+HttpConnection.run -> Utils$1.onIOException  (HttpConnection.java:113, dispatch=cha)
+HttpConnection.run -> Utils$1.onResponseHandle  (HttpConnection.java:107, dispatch=cha)
+HttpConnection.run -> Utils$1.onMovedPermanently  (HttpConnection.java:103, dispatch=cha)
+HttpConnection.run -> Utils$1.onConnectionCreated  (HttpConnection.java:93, dispatch=cha)
+Utils.checkConnectivity -> Utils.isNetworkTypeAllowed  (Utils.java:161, dispatch=exact)
+Utils.fetchHttpUrl -> Utils$1.<init>  (Utils.java:477, dispatch=exact)
+Utils.getSSLContext -> Utils$2.<init>  (Utils.java:592, dispatch=exact)
+FsModuleResolverImpl.resolveFsByUri -> Utils.isSafPath  (FsModuleResolverImpl.java:43, dispatch=exact)
+TorrentEngine.checkPauseTorrents -> Utils.isMetered  (TorrentEngine.java:1035, dispatch=exact)
+TorrentEngine.checkPauseTorrents -> Utils.isRoaming  (TorrentEngine.java:1033, dispatch=exact)
+TorrentStream.<init>(String,int,int,int,int,long,long,int) -> Utils.makeSha1Hash  (TorrentStream.java:44, dispatch=exact)
+ActivityFilemanagerDialogBindingImpl.<init>(DataBindingComponent,View) -> ActivityFilemanagerDialogBindingImpl.<init>(DataBindingComponent,View,Object[])  (ActivityFilemanagerDialogBindingImpl.java:34, dispatch=exact)
+ActivityFilemanagerDialogBindingImpl.<init>(DataBindingComponent,View,Object[]) -> ActivityFilemanagerDialogBinding.<init>  (ActivityFilemanagerDialogBindingImpl.java:37, dispatch=exact)
+ActivityAddTorrentBindingImpl.<init>(DataBindingComponent,View) -> ActivityAddTorrentBindingImpl.<init>(DataBindingComponent,View,Object[])  (ActivityAddTorrentBindingImpl.java:30, dispatch=exact)
+ActivityAddTorrentBindingImpl.<init>(DataBindingComponent,View,Object[]) -> ActivityAddTorrentBindingImpl.invalidateAll  (ActivityAddTorrentBindingImpl.java:44, dispatch=exact)
+ActivityAddTorrentBindingImpl.<init>(DataBindingComponent,View,Object[]) -> ActivityAddTorrentBinding.<init>  (ActivityAddTorrentBindingImpl.java:33, dispatch=exact)

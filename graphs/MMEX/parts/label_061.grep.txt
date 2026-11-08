@@ -1,0 +1,35 @@
+# label_061 grep evidence. Run from /Users/darshan/Desktop/yang/work. SRC = final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex ; CLASSES = final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes
+# Written for the two UNREACHABLE labels in label_061.py: AccountTransaction.<init>(ContentValues) and AccountTransaction.getFollowUpId.
+# The 2 Parcelable methods are REACHABLE and need no grep. The 36 REACHABLE source methods are covered by auto_calls.json records (no grep needed).
+
+### 1. grep -rn "new AccountTransaction\s*(" SRC
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/domainmodel/AccountTransaction.java:57:        AccountTransaction tx = new AccountTransaction();
+
+### 2. grep -rn "AccountTransaction(" SRC | grep -v "public AccountTransaction\|create("
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/domainmodel/AccountTransaction.java:57:        AccountTransaction tx = new AccountTransaction();
+
+### 3. grep -rn "FollowUp" SRC
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/domainmodel/AccountTransaction.java:75:        setFollowUpId(Constants.NOT_SET);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/domainmodel/AccountTransaction.java:179:    public Integer getFollowUpId() {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/domainmodel/AccountTransaction.java:183:    public void setFollowUpId(Integer value) {
+
+### 4. grep -rn "getConstructor\|getDeclaredConstructor\|ContentValues.class" SRC
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/domainmodel/StockHistory.java:51:        contentValues = in.readParcelable(ContentValues.class.getClassLoader());
+(no reflective constructor lookup for AccountTransaction; the StockHistory line is a classloader lookup, not a constructor)
+
+### 5. grep -n "newInstance" SRC/datalayer/RepositoryBase.java
+109:                    entity = resultType.newInstance();
+134:                T entity = resultType.newInstance();
+(the no-argument constructor is what Class.newInstance calls; the (ContentValues) constructor is not reachable this way)
+
+### 6. grep -rl -a "getFollowUpId" CLASSES
+com/money/manager/ex/domainmodel/AccountTransaction.class
+(the only build class that names getFollowUpId; the generated wrapper does not)
+
+### 7. grep -rl -a "(Landroid/content/ContentValues;)V" CLASSES | xargs grep -l -a "domainmodel/AccountTransaction"
+com/money/manager/ex/domainmodel/AccountTransaction.class
+(no other build class both names AccountTransaction and holds the (Landroid/content/ContentValues;)V descriptor)
+
+### 8. grep -a -c on AccountTransaction$$Parcelable.class (generated wrapper)
+getFollowUpId: 0
+(Landroid/content/ContentValues;)V: 0

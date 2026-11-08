@@ -1,0 +1,116 @@
+METHOD: GenericCopyUtil.doCopy
+verdict: REACHABLE   steps_from_launch: 10
+route steps: 10 edges
+======================================================================
+
+STEP 1  edge E6b899d64
+  S_ENTRY -> CopyService.<init>
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC AndroidManifest.xml:175-179; FW-SRC core/java/android/app/ActivityThread.java (Service lifecycle callbacks dispatched by ActivityThread)
+  cite [SRC] AndroidManifest.xml:175-179
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/AndroidManifest.xml)
+      175:         <service
+      176:             android:name = ".asynchronous.services.CopyService"
+      177:             android:label = "Copying"
+      178:             >
+      179:         </service>
+
+STEP 2  edge E2ed8719f
+  CopyService.<init> -> CopyService.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC core/java/android/app/ActivityThread.java (Service lifecycle callbacks dispatched by ActivityThread); SRC CopyService.java:100
+  cite [SRC] CopyService.java:100
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/asynchronous/services/CopyService.java)
+      100:         registerReceiver(receiver3, new IntentFilter(TAG_BROADCAST_COPY_CANCEL));
+
+STEP 3  edge Ea2e572e2
+  CopyService.onCreate -> CopyService.onStartCommand
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC core/java/android/app/ActivityThread.java (Service lifecycle callbacks dispatched by ActivityThread)
+  (no file:line citations in evidence)
+
+STEP 4  edge E4f746fc4
+  CopyService.onStartCommand -> CopyService$DoInBackground.doInBackground
+  class: standard   kind: ASYNC
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC CopyService.java:160 new DoInBackground(...).execute(b), AsyncTask framework invokes doInBackground
+  cite [SRC] CopyService.java:160
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/asynchronous/services/CopyService.java)
+      160:         new DoInBackground(isRootExplorer).execute(b);
+
+STEP 5  edge E230f7324
+  CopyService$DoInBackground.doInBackground -> CopyService$DoInBackground$Copy.execute
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC CopyService.java:254 copy.execute(sourceFiles, targetPath, move, openMode)
+  cite [SRC] CopyService.java:254
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/asynchronous/services/CopyService.java)
+      254:             copy.execute(sourceFiles, targetPath, move, openMode);
+
+STEP 6  edge E95c06f94
+  CopyService$DoInBackground$Copy.execute -> CopyService$DoInBackground$Copy.copyFiles
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC CopyService.java:381 copyFiles((f1), hFile, progressHandler)
+  cite [SRC] CopyService.java:381
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/asynchronous/services/CopyService.java)
+      381:                                 copyFiles((f1), hFile, progressHandler);
+
+STEP 7  edge E6d73bd7e
+  CopyService$DoInBackground$Copy.copyFiles -> GenericCopyUtil.copy
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC CopyService.java:477 (bytecode)
+  cite [SRC] CopyService.java:477
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/asynchronous/services/CopyService.java)
+      477:                     copyUtil.copy(sourceFile, targetFile);
+
+STEP 8  edge E91d5fb40
+  GenericCopyUtil.copy -> GenericCopyUtil.startCopy
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC GenericCopyUtil.java:330 (bytecode)
+  cite [SRC] GenericCopyUtil.java:330
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/utils/files/GenericCopyUtil.java)
+      330:         startCopy(false);
+
+STEP 9  edge E09fea7ad
+  GenericCopyUtil.startCopy -> GenericCopyUtil.copyFile(FileChannel,FileChannel)
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC GenericCopyUtil.java:285 (bytecode)
+  cite [SRC] GenericCopyUtil.java:285
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/utils/files/GenericCopyUtil.java)
+      285:                 else if (outChannel!=null)  copyFile(inChannel, outChannel);
+
+STEP 10  edge E79c94d18
+  GenericCopyUtil.copyFile(FileChannel,FileChannel) -> GenericCopyUtil.doCopy
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC GenericCopyUtil.java:359 (bytecode)
+  cite [SRC] GenericCopyUtil.java:359
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/utils/files/GenericCopyUtil.java)
+      359:         doCopy(inChannel, outChannel);

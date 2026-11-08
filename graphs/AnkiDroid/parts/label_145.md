@@ -1,0 +1,62 @@
+STATUS: RUNNING 13:59
+
+Batch 145 (LABEL helper): AbstractFlashcardViewer$19 (1), LanguagesListerGlosbe (3), Meaning (3), ModelEditorContextMenu (3), NotificationService (3), Phrase (3), Previewer (3), Response (3), Sched (2), SlidingTabLayout$InternalViewPagerListener (3), Statistics$ChartFragment (4), VideoPlayer (4), libanki.Utils (4). 40 methods. Row source: graphs/AnkiDroid/scratch/batches_ai.tsv, part 145. Source root: final_java_only/AnkiDroid/app/AnkiDroid-#4200/AnkiDroid/src/main/java/com/ichi2. Every citation below was printed with sed in this run, or was printed earlier in the same session (the Gson POJO and TranslationActivity ranges).
+
+Overlap (required check 1): all 40 are already labelled REACHABLE in other parts (label_021, 036, 037, 039, 044, 049, 062, 063, 075, 097, 098, 102). The label is copied and not changed here. Kind is copied from the overlap row, except where the overlap source label was "-" (Previewer.executeCommand, initLayout, onCollectionLoaded; Sched.reschedCards, setContext). For those the kind is the route kind.
+
+Route gaps (10 of the 40 are UNRESOLVED in out/methods.csv): fixed by five edges in graphs/AnkiDroid/parts/label_145.py.
+- AbstractFlashcardViewer$19.run: only incoming is REGISTER. FRAMEWORK edge from AbstractFlashcardViewer.displayCardQuestion, gated by STATE_SETTINGS (AbstractFlashcardViewer.java:1947).
+- Previewer.onCollectionLoaded: only incoming is AnkiActivity.onLoadFinished@Previewer, which has no incoming edge. ASYNC edge from Previewer.onCreate. Previewer.initLayout then follows from the auto CALL edge.
+- VideoPlayer.onConfigurationChanged and surfaceCreated/surfaceChanged/surfaceDestroyed: their source S_VIDEOPLAYER has no incoming edge. ENTERS edge from VideoPlayer.onCreate.
+- NotificationService.<init>, onCreate, onStartCommand: the upstream WidgetStatus$UpdateDeckStatusAsyncTask.onPostExecute has no incoming edge. The two WidgetStatus AsyncTask edges (WidgetStatus.update -> doInBackground, doInBackground -> onPostExecute) are written in parts/label_146.py, which holds the destination methods, not here.
+
+UNREACHABLE (required check 3): none. No incoming-edge grep was needed for an UNREACHABLE entry.
+Storage (required check 4): none of the batch classes overrides getSharedPreferences. NotificationService.onStartCommand uses AnkiDroidApp.getSharedPrefs (AnkiDroidApp.java:219-221, the default store).
+Citation correction: parts/label_037.md and out/methods.csv cite Statistics.java 698-711 for ChartFragment. Those lines belong to OverviewStatisticsFragment. The correct ChartFragment ranges are used below.
+
+| method | label | kind | reason | printed file:lines |
+|---|---|---|---|---|
+| AbstractFlashcardViewer$19.run | REACHABLE | FRAMEWORK | Answer-timer Runnable (mShowAnswerTask). Route written in label_145.py: FRAMEWORK from AbstractFlashcardViewer.displayCardQuestion, gated by mPrefUseTimer and mWaitAnswerSecond > 0 (1947-1949). Overlap label_021. | com/ichi2/anki/AbstractFlashcardViewer.java:1873-1881, 1947-1949 |
+| LanguagesListerGlosbe.<clinit> | REACHABLE | CALL | Static initializer of locale_map (static field at 54), run at first use from TranslationActivity (new LanguagesListerGlosbe at 123). Overlap label_063. | com/ichi2/anki/multimediacard/language/LanguagesListerGlosbe.java:54; com/ichi2/anki/multimediacard/activity/TranslationActivity.java:123 |
+| LanguagesListerGlosbe.<init> | REACHABLE | CALL | Constructor called by TranslationActivity at 123. Overlap label_063. | LanguagesListerGlosbe.java:36-45; TranslationActivity.java:123 |
+| LanguagesListerGlosbe.requestToResponseLangCode | REACHABLE | CALL | Maps the response language code, called from TranslationActivity at 317. Overlap label_063. | LanguagesListerGlosbe.java:55-65; TranslationActivity.java:317 |
+| Meaning.<init> | REACHABLE | non_standard | Default constructor of a Gson POJO. Gson creates it reflectively when TranslationActivity parses the response (263-264). Reflective step INFERRED (Gson not in dataset). Overlap label_062 (kind copied as non_standard). | com/ichi2/anki/multimediacard/glosbe/json/Meaning.java:25 (no explicit constructor); TranslationActivity.java:263-264 |
+| Meaning.getLanguage | REACHABLE | CALL | Getter on the parsed translation, used when TranslationActivity builds the picker. Overlap label_062. | Meaning.java:30-32; TranslationActivity.java:329-345 |
+| Meaning.getText | REACHABLE | CALL | Getter, same caller chain as getLanguage. Overlap label_062. | Meaning.java:40-42; TranslationActivity.java:329-345 |
+| ModelEditorContextMenu.<init> | REACHABLE | CALL | Default constructor, called from newInstance when the dialog is created. Overlap label_044. | com/ichi2/anki/dialogs/ModelEditorContextMenu.java:10 (no explicit constructor), 20-28 |
+| ModelEditorContextMenu.newInstance | REACHABLE | CALL | Factory that takes the label and the list callback, then builds the fragment. Overlap label_044. | ModelEditorContextMenu.java:20-28 |
+| ModelEditorContextMenu.onCreateDialog | REACHABLE | LIFECYCLE | DialogFragment callback that builds the dialog (super.onCreate at 32). Overlap label_044. | ModelEditorContextMenu.java:31-44 |
+| NotificationService.<init> | REACHABLE | INTENT | Service started by WidgetStatus$UpdateDeckStatusAsyncTask.onPostExecute under sNotificationEnabled (WidgetStatus.java:56, 111-114). INTENT edge is in part 080 (label_080.py:17). Its upstream chain is the ASYNC and FRAMEWORK edges in label_145.py. | com/ichi2/anki/services/NotificationService.java:37 (class, default constructor); com/ichi2/widget/WidgetStatus.java:56, 111-114 |
+| NotificationService.onCreate | REACHABLE | LIFECYCLE | Service.onCreate override (47-50). Reached from <init> through the framework lifecycle (FW-SRC Service.java:343). Overlap label_049. | NotificationService.java:47-50 |
+| NotificationService.onStartCommand | REACHABLE | FRAMEWORK | Called after onCreate. Reads the preferences with AnkiDroidApp.getSharedPrefs (58, default store) and builds the notification (54-93). Overlap label_049. | NotificationService.java:54-93, 58; AnkiDroidApp.java:219-221 |
+| Phrase.<init> | REACHABLE | non_standard | Default constructor of a Gson POJO, created reflectively (INFERRED, as Meaning.<init>). Overlap label_062 (kind copied). | com/ichi2/anki/multimediacard/glosbe/json/Phrase.java:25 (no explicit constructor); TranslationActivity.java:263-264 |
+| Phrase.getLanguage | REACHABLE | CALL | Getter on the parsed phrase. Overlap label_062. | Phrase.java:30-32 |
+| Phrase.getText | REACHABLE | CALL | Getter on the parsed phrase. Overlap label_062. | Phrase.java:40-42 |
+| Previewer.executeCommand | REACHABLE | GUI | Empty override, reached from S_PREVIEWER through the long-press workaround (label_036.py:157, GUI edge already present). Kind from route (source "-"). | com/ichi2/anki/Previewer.java:85-86 |
+| Previewer.initLayout | REACHABLE | CALL | Called by AbstractFlashcardViewer.onCollectionLoaded@Previewer at line 888 (auto CALL, reached after the ASYNC edge in label_145.py). Kind from route (source "-"). | com/ichi2/anki/Previewer.java:61-64; AbstractFlashcardViewer.java:888 |
+| Previewer.onCollectionLoaded | REACHABLE | ASYNC | Loader delivery of the collection. Route written in label_145.py: ASYNC Previewer.onCreate -> Previewer.onCollectionLoaded. The old incoming (AnkiActivity.onLoadFinished@Previewer) has no incoming edge. Kind from route (source "-"). | com/ichi2/anki/Previewer.java:32-39, 46-51; AnkiActivity.java:283-291 |
+| Response.<init> | REACHABLE | non_standard | Default constructor of a Gson POJO, created reflectively (INFERRED). Overlap label_062 (kind copied). | com/ichi2/anki/multimediacard/glosbe/json/Response.java:28 (no explicit constructor); TranslationActivity.java:263-264 |
+| Response.getResult | REACHABLE | CALL | Getter, called by TranslationActivity at 271. Overlap label_062. | Response.java:66-68; TranslationActivity.java:271 |
+| Response.getTuc | REACHABLE | CALL | Getter, called by TranslationActivity at 311. Overlap label_062. | Response.java:76-78; TranslationActivity.java:311 |
+| Sched.reschedCards | REACHABLE | CALL | Reschedules cards at a random interval, called from NoteEditor.onRescheduleCard at 975. Kind from route (source "-"). | com/ichi2/libanki/Sched.java:2169-2172; com/ichi2/anki/NoteEditor.java:973-977 |
+| Sched.setContext | REACHABLE | CALL | Stores the activity as a weak reference, called from Reviewer.onCollectionLoaded at 115. Kind from route (source "-"). | com/ichi2/libanki/Sched.java:2487-2489; com/ichi2/anki/Reviewer.java:113-117 |
+| Sched.unburyCardsForDeck(long) | REACHABLE | CALL | Selects the deck, unburies its cards and restores the selection. Overlap label_098. | Sched.java:2326-2331 |
+| SlidingTabLayout$InternalViewPagerListener.onPageScrollStateChanged | REACHABLE | FRAMEWORK | ViewPager.OnPageChangeListener callback. The GUI page edges come from S_CARDTEMPLATEEDITOR and S_STATISTICS (label_075). Overlap label_075. | com/ichi2/ui/SlidingTabLayout.java:282-288 |
+| SlidingTabLayout$InternalViewPagerListener.onPageScrolled | REACHABLE | FRAMEWORK | ViewPager callback, same source as above. Overlap label_075. | SlidingTabLayout.java:261-280 |
+| SlidingTabLayout$InternalViewPagerListener.onPageSelected | REACHABLE | FRAMEWORK | ViewPager callback, same source as above. Overlap label_075. | SlidingTabLayout.java:291-300 |
+| Statistics$ChartFragment.<init> | REACHABLE | CALL | Constructor (416-418), called by Statistics at 374. Overlap label_037. | com/ichi2/anki/Statistics.java:374, 405, 416-418 |
+| Statistics$ChartFragment.onCreate | REACHABLE | LIFECYCLE | Override that calls super.onCreate (557-558). Overlap label_037. | Statistics.java:557-558 |
+| Statistics$ChartFragment.onCreateView | REACHABLE | LIFECYCLE | Fragment view creation: sets the options menu and reads the section argument (421-425). Overlap label_037. | Statistics.java:421-425 |
+| Statistics$ChartFragment.onDestroy | REACHABLE | FRAMEWORK | Cancels mCreateChartTask (571-575). Overlap label_037 (its citation 698-711 is wrong, see above). | Statistics.java:571-575 |
+| VideoPlayer.onConfigurationChanged | REACHABLE | SYSTEM | Configuration-change callback. Route is SYSTEM from S_VIDEOPLAYER (label_039.py:1). The page was not reached before, so the ENTERS edge from VideoPlayer.onCreate in label_145.py is needed. Overlap label_039. | com/ichi2/anki/VideoPlayer.java:73-77 |
+| VideoPlayer.surfaceChanged | REACHABLE | FRAMEWORK | Empty override (62-65), SurfaceHolder callback registered at line 45. Route from S_VIDEOPLAYER (label_039.py:19); fixed by the ENTERS edge in label_145.py. Overlap label_039. | VideoPlayer.java:45, 62-65 |
+| VideoPlayer.surfaceCreated | REACHABLE | FRAMEWORK | Surface created: calls Sound.playSound with the completion listener (49-59). SurfaceHolder dispatch INFERRED (SurfaceView not in fw_src). Overlap label_039. | VideoPlayer.java:45, 49-59 |
+| VideoPlayer.surfaceDestroyed | REACHABLE | FRAMEWORK | Stops the sounds (69) and finishes the activity (70). Overlap label_039. | VideoPlayer.java:45, 68-71 |
+| libanki.Utils.getBaseUrl | REACHABLE | CALL | Builds the media base URL from the media dir (789-798). Called by AbstractFlashcardViewer.onCollectionLoaded@Previewer at 882 (auto CALL). Overlap label_102. | com/ichi2/libanki/Utils.java:789-798; AbstractFlashcardViewer.java:882 |
+| libanki.Utils.isIntentAvailable(Context,String) | REACHABLE | CALL | One-argument overload that delegates with a null component (772-774). Overlap label_102. | Utils.java:772-774 |
+| libanki.Utils.isIntentAvailable(Context,String,ComponentName) | REACHABLE | CALL | Queries the package manager for an activity that matches the intent (777-783). Called from Lookup.java:56-70 when dictionaries are set up. Overlap label_102. | Utils.java:777-783; com/ichi2/anki/Lookup.java:56-70 |
+| libanki.Utils.unescape | REACHABLE | CALL | Html.fromHtml(...).toString() (1015-1017), used in the TranslationActivity text path. Overlap label_102. | Utils.java:1015-1017; TranslationActivity.java:329-345 |
+
+Least certain (for the report): the Handler dispatch for $19.run (INFERRED); the loader callback for Previewer.onCollectionLoaded (androidx Loader, INFERRED);  the Gson reflective constructors for Meaning, Phrase and Response (INFERRED, kinds copied as non_standard); the variant nodes displayCardQuestion@Reviewer and @Previewer have no timer route to $19.run.
+
+STATUS: DONE 13:59

@@ -1,0 +1,320 @@
+## CardPlayerActivity.onPostDisplayCard  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=- state=session classes=explicit;standard explicit_standard_route=yes
+   1. Eddc920eb ENTRY/standard*
+      S_ENTRY -> AnyMemo.<init>
+      MAIN / LAUNCHER intent starts AnyMemo
+      evidence: SRC AndroidManifest.xml:23-46
+         23          <activity
+         24              android:name=".ui.AnyMemo"
+         25              android:label="@string/app_full_name"
+         26              android:theme="@style/AnyMemo.Theme.Dark.NoActionBar"
+         27              android:exported="true" >
+         28              <intent-filter>
+         29                  <action
+         30                      android:name="android.intent.action.MAIN" />
+         31                  <category
+         32                      android:name="android.intent.category.LAUNCHER" />
+         33              </intent-filter>
+         34              <intent-filter>
+         35                  <action android:name="android.intent.action.VIEW" />
+         36                  <category android:name="android.intent.category.DEFAULT" />
+      ...  (10 more lines)
+   2. Eda38ea0d LIFECYCLE/standard*
+      AnyMemo.<init> -> AnyMemo.onResume
+      Activity lifecycle / framework callback
+      evidence: FW-SRC core/java/android/app/Activity.java (Activity lifecycle callback dispatched by ActivityThread); SRC ui/AnyMemo.java:115-434
+      (core/java/android/app/Activity.java: no line numbers)
+        115      @Override
+        116      public void onCreate(Bundle savedInstanceState) {
+        117          activityComponents().inject(this);
+        118          super.onCreate(savedInstanceState);
+        119          disposables = new CompositeDisposable();
+        120  
+        121          binding = DataBindingUtil.setContentView(this, R.layout.main_tabs);
+        122  
+        123          // Request storage permission for API < 29
+        124          if (android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.Q) {
+        125              if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        126                      != PackageManager.PERMISSION_GRANTED) {
+        127                  ActivityCompat.requestPermissions(this,
+        128                          new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+      ...  (306 more lines)
+   3. E954353b1 ENTERS/page* [STATE: AnyMemo already finished loadUiComponents() once in this process]
+      AnyMemo.onResume -> S_MAIN_RECENT
+      isUiLoaded is already true (resumed, not a cold start): the last-selected tab is shown again
+      evidence: SRC ui/AnyMemo.java:145-162
+        145      @Override
+        146      public void onResume() {
+        147          super.onResume();
+        148          if (android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.Q) {
+        149              if (!isUiLoaded) {
+        150                  loadUiComponents();
+        151                  isUiLoaded = true;
+        152              }
+        153          } else {
+        154              if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        155                      == PackageManager.PERMISSION_GRANTED) {
+        156                  if (!isUiLoaded) {
+        157                      loadUiComponents();
+        158                      isUiLoaded = true;
+      ...  (4 more lines)
+   4. E6da90567 GUI/standard*
+      S_MAIN_RECENT -> AnyMemo$2.onNavigationItemSelected
+      Tap a bottom-navigation item (Recent / Open / Download / Misc)
+      evidence: INFERRED com.google.android.material (BottomNavigationView / NavigationView / FloatingActionButton / Snackbar) dispatches the listener registered on it, the same way a platform View dispatches a click (Material Components source not read); SRC ui/AnyMemo.java:234-261
+        234          binding.bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+        235              @Override
+        236              public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+        237  
+        238                  Fragment fragment = null;
+        239                  int itemId = menuItem.getItemId();
+        240                  if (itemId == R.id.recent_tab_menu) {
+        241                      fragment = new RecentListFragment();
+        242                  } else if (itemId == R.id.open_tab_menu) {
+        243                      fragment = new OpenTabFragment();
+        244                      Bundle args = new Bundle();
+        245                      args.putBoolean(FileBrowserFragment.EXTRA_SHOW_CREATE_DB_BUTTON, true);
+        246                      fragment.setArguments(args);
+        247                  } else if (itemId == R.id.download_tab_menu) {
+      ...  (14 more lines)
+   5. E62feacfc ENTERS/page*
+      AnyMemo$2.onNavigationItemSelected -> S_MAIN_MISC
+      itemId == misc_tab_menu
+      evidence: SRC ui/AnyMemo.java:249-250,253-257
+        249                  } else if (itemId == R.id.misc_tab_menu) {
+        250                      fragment = new MiscTabFragment();
+        253                  if (fragment != null) {
+        254                      getSupportFragmentManager().beginTransaction()
+        255                              .replace(R.id.page_fragment_container, fragment)
+        256                              .commit();
+        257                  }
+   6. E0f318405 LIFECYCLE/standard*
+      S_MAIN_MISC -> MiscTabFragment.onCreateView
+      Fragment lifecycle callback
+      evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ui/MiscTabFragment.java:128-222,400-406
+        128      @Override
+        129      public void onAttach(Activity activity) {
+        130          super.onAttach(activity);
+        131          mActivity = activity;
+        132      }
+        133  
+        134      @Override
+        135      public void onSaveInstanceState(Bundle outState) {
+        136          super.onSaveInstanceState(outState);
+        137          if (pendingImportConverterClass != null) {
+        138              outState.putSerializable("pendingImportConverterClass", pendingImportConverterClass);
+        139          }
+        140      }
+        141  
+      ...  (81 more lines)
+        400      @Override
+        401      public void onDestroy() {
+        402          super.onDestroy();
+        403          if (disposables != null) {
+        404              disposables.dispose();
+        405          }
+        406      }
+   7. E3ae14c6f FRAMEWORK/standard*
+      MiscTabFragment.onCreateView -> MiscTabFragment.onClick
+      tap any Misc-tab button (every button shares one OnClickListener, dispatched by v == field)
+      evidence: INFERRED a tapped/long-pressed View dispatches to the listener registered with setOnClickListener / setOnLongClickListener / setOnItemClickListener / setOnItemLongClickListener / setOnTouchListener / setOnCheckedChangeListener / addTextChangedListener / setOnFocusChangeListener / setOnSeekBarChangeListener (androidx widgets wrap the platform View/AdapterView dispatch; androidx source not read); SRC ui/MiscTabFragment.java:156-221,224-398
+        156          View v = inflater.inflate(R.layout.misc_tab, container, false);
+        157          optionButton = v.findViewById(R.id.misc_options);
+        158          optionButton.setOnClickListener(this);
+        159          importButton = v.findViewById(R.id.misc_import);
+        160          importButton.setOnClickListener(this);
+        161          exportButton = v.findViewById(R.id.misc_export);
+        162          exportButton.setOnClickListener(this);
+        163          importItems = v.findViewById(R.id.import_items);
+        164          exportItems = v.findViewById(R.id.export_items);
+        165          importAnyMemoButton = v.findViewById(R.id.import_anymemo_db);
+        166          importAnyMemoButton.setOnClickListener(this);
+        167          exportAnyMemoButton = v.findViewById(R.id.export_anymemo_db);
+        168          exportAnyMemoButton.setOnClickListener(this);
+        169          importAnyMemoFolderButton = v.findViewById(R.id.import_anymemo_folder);
+      ...  (52 more lines)
+        224      @Override
+        225      public void onClick(View v){
+        226          if(v == optionButton){
+        227              startActivity(new Intent(mActivity, OptionScreen.class));
+        228          }
+        229          /* Toggle visibility for import and export buttons */
+        230          if(v == importButton){
+        231              if(importItems.getVisibility() == View.GONE){
+        232                  importItems.setVisibility(View.VISIBLE);
+        233              }
+        234              else{
+        235                  importItems.setVisibility(View.GONE);
+        236              }
+        237          }
+      ...  (161 more lines)
+   8. E980e9e1b ENTRY/standard*
+      MiscTabFragment.onClick -> SettingsScreen.<init>
+      v == defaultSettingsButton: startActivity(SettingsScreen) for the empty/default db
+      guard: v == defaultSettingsButton (MiscTabFragment.java:339)
+      evidence: SRC ui/MiscTabFragment.java:339-344
+        339          if (v == defaultSettingsButton) {
+        340              Intent intent = new Intent(mActivity, SettingsScreen.class);
+        341  
+        342              String emptyDbPath = mActivity.getApplicationContext().getFilesDir().getAbsolutePath() + "/" + AMEnv.EMPTY_DB_NAME;
+        343              intent.putExtra(SettingsScreen.EXTRA_DBPATH, emptyDbPath);
+        344              startActivity(intent);
+   9. E277830cb LIFECYCLE/standard*
+      SettingsScreen.<init> -> SettingsScreen.onBackPressed
+      Activity lifecycle / framework callback
+      evidence: FW-SRC core/java/android/app/Activity.java (Activity lifecycle callback dispatched by ActivityThread); SRC ui/SettingsScreen.java:124-222
+      (core/java/android/app/Activity.java: no line numbers)
+        124      @Override
+        125      public void onCreate(Bundle bundle) {
+        126          activityComponents().inject(this);
+        127          super.onCreate(bundle);
+        128          Bundle extras = getIntent().getExtras();
+        129          if (extras != null) {
+        130              dbPath = extras.getString(EXTRA_DBPATH);
+        131          }
+        132          dbOpenHelper = AnyMemoDBOpenHelperManager.getHelper(SettingsScreen.this, dbPath);
+        133  
+        134          assert dbPath != null : "dbPath shouldn't be null";
+        135          settingsChanged = false;
+        136  
+        137          multipleLoaderManager.registerLoaderCallbacks(1, new SettingLoaderCallbacks(), false);
+      ...  (85 more lines)
+  10. Ea6b0e8a2 ENTERS/page*
+      SettingsScreen.onBackPressed -> S_PREVIEW_EDIT
+      settingsChanged is false: setResult(RESULT_CANCELED); finish()
+      evidence: SRC ui/SettingsScreen.java:216-221
+        216          } else {
+        217              Intent resultIntent = new Intent();
+        218              setResult(Activity.RESULT_CANCELED, resultIntent);
+        219              finish();
+        220  
+        221          }
+  11. Ea4753c40 FRAMEWORK/standard*
+      S_PREVIEW_EDIT -> PreviewEditActivity.onOptionsItemSelected
+      tap a Preview/Edit toolbar/overflow menu item
+      evidence: INFERRED the platform options-menu machinery calls onCreateOptionsMenu / onPrepareOptionsMenu / onOptionsItemSelected (AppCompat source not read); SRC ui/PreviewEditActivity.java:257-423
+        257      public boolean onOptionsItemSelected(MenuItem item) {
+        258          int itemId = item.getItemId();
+        259          if (itemId == R.id.menuspeakquestion) {
+        260              if (getCurrentCard() != null) {
+        261                  return speakQuestion();
+        262              }
+        263              return true;
+        264          } else if (itemId == R.id.menuspeakanswer) {
+        265              if (getCurrentCard() != null) {
+        266                  return speakAnswer();
+        267              }
+        268              return true;
+        269          } else if (itemId == R.id.editmenu_settings_id) {
+        270              Intent myIntent = new Intent(this, SettingsScreen.class);
+      ...  (153 more lines)
+  12. E6ae5fc6b ENTERS/page*
+      PreviewEditActivity.onOptionsItemSelected -> S_CARD_PLAYER
+      menu_card_player
+      guard: getCurrentCard() != null
+      evidence: SRC ui/PreviewEditActivity.java:307-316
+        307          } else if (itemId == R.id.menu_card_player) {
+        308              if (getCurrentCard()!= null){
+        309                  Intent intent = new Intent(this, CardPlayerActivity.class);
+        310                  intent.putExtra(CardPlayerActivity.EXTRA_DBPATH, dbPath);
+        311                  if (getCurrentCard() != null) {
+        312                      intent.putExtra(CardPlayerActivity.EXTRA_START_CARD_ID, getCurrentCard().getId());
+        313                  }
+        314                  startActivityForResult(intent, ACTIVITY_CARD_PLAYER);
+        315              }
+        316              return true;
+  13. Ee46c98e0 LIFECYCLE/standard*
+      S_CARD_PLAYER -> CardPlayerFragment.onCreate
+      Fragment lifecycle callback
+      evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ui/CardPlayerFragment.java:68-72
+         68      public void onCreate(Bundle bundle) {
+         69          super.onCreate(bundle);
+         70          fragmentComponents().inject(this);
+         71          setHasOptionsMenu(true);
+         72      }
+  14. Efa6198db LIFECYCLE/standard*
+      CardPlayerFragment.onCreate -> CardPlayerFragment.onDestroyView
+      Fragment lifecycle / framework callback
+      evidence: INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read); SRC ui/CardPlayerFragment.java:78-146
+         78      @Override
+         79      public void onResume() {
+         80          super.onResume();
+         81          IntentFilter filter = new IntentFilter();
+         82          filter.addAction(CardPlayerService.ACTION_GO_TO_CARD);
+         83          filter.addAction(CardPlayerService.ACTION_PLAYING_STOPPED);
+         84          ContextCompat.registerReceiver(getActivity(), serviceEventListener, filter, ContextCompat.RECEIVER_NOT_EXPORTED);
+         85      }
+         86  
+         87      @Override
+         88      public void onPause() {
+         89          super.onPause();
+         90          getActivity().unregisterReceiver(serviceEventListener);
+         91      }
+      ...  (55 more lines)
+  15. Ed5cbb59f CALL/explicit*
+      CardPlayerFragment.onDestroyView -> CardPlayerService.stopPlaying
+      stopPlaying() (make sure playback stops if the fragment is killed)
+      evidence: SRC ui/CardPlayerFragment.java:125-130,201-207
+        125      public void onDestroyView() {
+        126          super.onDestroyView();
+        127  
+        128          // Make sure stop playing if the fragment is killed.
+        129          stopPlaying();
+        130      }
+        201      private void stopPlaying() {
+        202          playButton.setSelected(false);
+        203          CardPlayerActivity activity = (CardPlayerActivity) getActivity();
+        204          if (activity != null && activity.getCardPlayerService() != null) {
+        205              activity.getCardPlayerService().stopPlaying();
+        206          }
+        207      }
+  16. Ef4e9db44 CALL/explicit*
+      CardPlayerService.stopPlaying -> CardPlayerState$1.transition
+      Virtual/interface call that can dispatch to this implementation
+      evidence: SRC CardPlayerService.java:160 (bytecode)
+        160          cardPlayerContext.getState().transition(cardPlayerContext, CardPlayerMessage.STOP_PLAYING);
+  17. E759be6b5 CALL/explicit*
+      CardPlayerState$1.transition -> CardPlayerService$1.onPlayCard
+      Virtual/interface call that can dispatch to this implementation
+      evidence: SRC CardPlayerState.java:60 (bytecode)
+         60                  context.getEventHandler().onPlayCard(context.getCurrentCard());
+  18. E95db7dc7 FRAMEWORK/standard*
+      CardPlayerService$1.onPlayCard -> CardPlayerFragment$2.onReceive
+      sendBroadcast(ACTION_GO_TO_CARD) (same-package, not exported)
+      evidence: FW-SRC core/java/android/app/ActivityThread.java (a registered BroadcastReceiver is dispatched on its process by ActivityThread/LoadedApk.ReceiverDispatcher when a matching broadcast arrives); SRC service/CardPlayerService.java:229-235; ui/CardPlayerFragment.java:220-241
+      (core/java/android/app/ActivityThread.java: no line numbers)
+        229          public void onPlayCard(Card card) {
+        230              Intent intent = new Intent();
+        231              intent.setAction(ACTION_GO_TO_CARD);
+        232              intent.putExtra(EXTRA_CURRENT_CARD_ID, card.getId());
+        233              intent.setPackage(getPackageName());
+        234              sendBroadcast(intent);
+        235          }
+  19. E8b24ca8b CALL/explicit*
+      CardPlayerFragment$2.onReceive -> CardPlayerActivity.gotoCardId
+      the activity is foreground and the card id changed
+      guard: activity.isActivityForeground()
+      evidence: SRC ui/CardPlayerFragment.java:238-239
+        238                  if (activity.isActivityForeground() && currentCardId != activity.getCurrentCard().getId()) {
+        239                      activity.gotoCardId(currentCardId);
+  20. E0b8a412e CALL/explicit*
+      CardPlayerActivity.gotoCardId -> CardPlayerActivity.gotoCard
+      Direct call
+      evidence: SRC CardPlayerActivity.java:190 (bytecode)
+        190          gotoCard(card);
+  21. E43c9d046 CALL/explicit*
+      CardPlayerActivity.gotoCard -> CardPlayerActivity.updateCardFrontSide
+      Direct call
+      evidence: SRC CardPlayerActivity.java:175 (bytecode)
+        175          updateCardFrontSide();
+  22. E8849813b CALL/explicit*
+      CardPlayerActivity.updateCardFrontSide -> QACardActivity.displayCard@CardPlayerActivity
+      Direct call
+      evidence: SRC CardPlayerActivity.java:205 (bytecode)
+        205                  displayCard(true);
+  23. E6da0dac9 CALL/explicit*
+      QACardActivity.displayCard@CardPlayerActivity -> CardPlayerActivity.onPostDisplayCard
+      Direct call
+      evidence: SRC QACardActivity.java:416 (bytecode)
+        416          onPostDisplayCard();
+

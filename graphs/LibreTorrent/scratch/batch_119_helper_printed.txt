@@ -1,0 +1,27 @@
+# Batch 119 printed evidence
+
+Plan extraction:
+```sh
+awk -F '\\t' '$1==119 {print $3 "\\t" $4}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+```
+Result: 40 exact plan members; descriptors are in the helper table.
+
+Bounded source scans:
+```sh
+rg -n 'class SelectTagDialog|newInstance|onAttach|onCreateDialog|onResume|onStart|onStop|initAlertDialog|initLayoutView|subscribeTags|onTagClicked|finish' .../ui/tag/SelectTagDialog.java
+rg -n 'class SelectTagViewModel|filterExcludeTags|observeTags|setExcludeTagsId' .../ui/tag/SelectTagViewModel.java
+rg -n 'class TagItem|equals|isSame|class TagsAdapter|onBindViewHolder|onCreateViewHolder|areContentsTheSame|areItemsTheSame|ViewHolder|bind' .../ui/tag/{TagItem,TagsAdapter}.java
+rg -n 'class TorrentTagsList|buildAddTagButton|buildChip|init' .../ui/tag/TorrentTagsList.java
+```
+Key output read:
+```
+SelectTagDialog.java:51 class; :63 newInstance; :74 onAttach; :83 onResume; :100 onStart; :103 subscribeTags
+:107 onStop; :115 onCreateDialog; :132-144 setup; :165 subscribeTags; :179 onTagClicked
+:183 finish OK; :188 back; :191 finish callback
+SelectTagViewModel.java:37 class; :47 setExcludeTagsId; :58 filterExcludeTags; :62 observeTags
+TagsAdapter.java:34 class; :46 holder create; :58 bind; :68/:76 diff callbacks; :88 ViewHolder; :98 bind
+TagItem.java:26 class; :34 isSame; :39 equals
+TorrentTagsList.java:18 class; :26/:32 constructors call init; :35 init; :54 buildChip; :78 add-tag button
+```
+These are partial local relationships and do not verify host fragment invocation or library/framework callback dispatch. All 40 remain OPEN.
+

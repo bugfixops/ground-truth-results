@@ -1,0 +1,21 @@
+W2 acceptance script validation run (coordinator: re-run after the W2 build;
+the post-W2 run must print "violations: 0" and "W2 ACCEPTANCE: PASS").
+
+Command: python3 -I graphs/AnkiDroid/scratch/reaudit/check_w2_acceptance.py graphs/AnkiDroid/out
+Run against the PRE-W2 outputs (current build, before the graph_def append):
+
+methods: 4186 verdicts: {'REACHABLE': 3275, 'UNREACHABLE': 911}
+setup-only methods (exempt): 0
+violations: 2460
+  VIOLATION: ('ViewAnimation.fade', 'E518f89ef', 'data: the deck has cards to study (new, learning or due)')
+  ... (remaining violations elided; the 2460 total equals the cleared-text
+  edge occurrences on REACHABLE best routes before W2:
+  cards-to-study 1601 + collection-file 509 + deck-exists 302
+  + note-exists 10 + field-type-TEXT 38 = 2460)
+
+This pre-W2 FAIL is expected: it proves the script detects exactly the
+occurrences the W2 EDIT clearing removes. The post-W2 build could not be
+run in the W2 agent's sandbox (see the agent report: shell-level copies of
+the repo are zero-byte and Python file writes are nullified there), so the
+PASS run is left to the coordinator after applying
+w2_graph_def_append.py.txt to graphs/AnkiDroid/graph_def.py and rebuilding.

@@ -1,0 +1,157 @@
+## ApkSignaturePin.getSignatures  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=other_app state=settings classes=explicit;non_standard;standard explicit_standard_route=no
+   1. Eb9515d18 ENTRY/standard*
+      S_ENTRY -> AegisApplication.<init>
+      Any outside trigger starts the app process; the application class is created first, except in a backup or restore start, which uses the base Application class
+      guard: not a full backup or restore start (FW ActivityThread.java:5713-5715)
+      evidence: SRC AndroidManifest.xml:21-27 (android:name=".AegisApplication", backupAgent=".AegisBackupAgent")
+         21      <application
+         22          android:name=".AegisApplication"
+         23          android:allowBackup="true"
+         24          android:fullBackupOnly="true"
+         25          android:fullBackupContent="@xml/backup_rules_old"
+         26          android:dataExtractionRules="@xml/backup_rules"
+         27          android:backupAgent=".AegisBackupAgent"
+   2. E5b266140 LIFECYCLE/standard*
+      AegisApplication.<init> -> Hilt_AegisApplication.onCreate
+      Application.onCreate: the Hilt-generated superclass onCreate runs first (Hilt injection), then AegisApplicationBase.onCreate
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:5740 (the system calls Application.onCreate); INFERRED Hilt rewrites the superclass: AegisApplication extends Hilt_AegisApplication (generated file, not in the source tree; source AegisApplication.java:6 has no onCreate)
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+   3. E1ef992ce CALL/explicit
+      Hilt_AegisApplication.onCreate -> AegisApplicationBase.onCreate
+      Direct call
+      evidence: INFERRED generated code (Hilt_AegisApplication.java is not in the source tree; the call is in the build class, line 43)
+   4. E88ed9829 ENTERS/page*
+      AegisApplicationBase.onCreate -> S_PROCESS
+      the application is created: the process can start a component
+      evidence: SRC AegisApplicationBase.java:45-67; FW-SRC core/java/android/app/ActivityThread.java:5740 (the system calls Application.onCreate)
+         45      public void onCreate() {
+         46          super.onCreate();
+         47          _vaultManager = EarlyEntryPoints.get(this, EntryPoint.class).getVaultManager();
+         48  
+         49          VaultLockReceiver lockReceiver = new VaultLockReceiver();
+         50          IntentFilter intentFilter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
+         51          ContextCompat.registerReceiver(this, lockReceiver, intentFilter, ContextCompat.RECEIVER_NOT_EXPORTED);
+         52  
+         53          // lock the app if the user moves the application to the background
+         54          ProcessLifecycleOwner.get().getLifecycle().addObserver(new AppLifecycleObserver());
+         55  
+         56          // clear the cache directory on startup, to make sure no temporary vault export files remain
+         57          IOUtils.clearDirectory(getCacheDir(), false);
+         58  
+      ...  (9 more lines)
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+   5. E598bf619 ENTRY/non_standard(intent resolved by action name: the system matches the panic app action info.guardianproject.panic.action.TRIGGER to the manifest intent-filter (AndroidManifest.xml:91-101)) [ENV: the Guardian Project panic app sends info.guardianproject.panic.action.TRIGGER (the manifest intent filter matches it, AndroidManifest.xml:91-101; PanicResponderActivity.java:19-22)]
+      S_PROCESS -> PanicResponderActivity.<init>
+      the panic app starts PanicResponderActivity
+      evidence: SRC AndroidManifest.xml:91-101; SRC ui/PanicResponderActivity.java:19-22
+         91          <activity
+         92              android:name=".ui.PanicResponderActivity"
+         93              android:exported="true"
+         94              android:launchMode="singleInstance"
+         95              android:noHistory="true"
+         96              android:theme="@android:style/Theme.NoDisplay">
+         97              <intent-filter>
+         98                  <action android:name="info.guardianproject.panic.action.TRIGGER" />
+         99                  <category android:name="android.intent.category.DEFAULT" />
+        100              </intent-filter>
+        101          </activity>
+         19      protected void onCreate(Bundle savedInstanceState) {
+         20          super.onCreate(savedInstanceState);
+         21  
+         22          if (!_prefs.isPanicTriggerEnabled()) {
+   6. E2d62949a LIFECYCLE/standard*
+      PanicResponderActivity.<init> -> PanicResponderActivity.onCreate
+      Activity.onCreate of the panic responder; its super.onCreate runs AegisActivity.onCreate first, which sets _prefs (AegisActivity.java:63)
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731,2741 (the system calls Activity.onCreate, then performStart); SRC ui/PanicResponderActivity.java:19-20; SRC ui/AegisActivity.java:61-67
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+         19      protected void onCreate(Bundle savedInstanceState) {
+         20          super.onCreate(savedInstanceState);
+         61      protected void onCreate(Bundle savedInstanceState) {
+         62          // set the theme and locale before creating the activity
+         63          _prefs = EarlyEntryPoints.get(getApplicationContext(), PrefEntryPoint.class).getPreferences();
+         64          _themeHelper = new ThemeHelper(this, _prefs);
+         65          onSetTheme();
+         66          setLocale(_prefs.getLocale());
+         67          super.onCreate(savedInstanceState);
+   7. E59d710ae CALL/explicit* [STATE: The panic trigger preference is on (pref_panic_trigger, default off; Preferences.java:107-108)]
+      PanicResponderActivity.onCreate -> TrustedIntents.getIntentFromTrustedSender
+      the panic trigger is on and this is not a test build: the sender is checked
+      guard: the panic trigger is enabled (PanicResponderActivity.java:22-26 finish and return otherwise) and the test build check is false (PanicResponderActivity.java:29; the else branch at 35-36 uses getIntent())
+      evidence: SRC ui/PanicResponderActivity.java:22-34
+         22          if (!_prefs.isPanicTriggerEnabled()) {
+         23              Toast.makeText(this, R.string.panic_trigger_ignore_toast, Toast.LENGTH_SHORT).show();
+         24              finish();
+         25              return;
+         26          }
+         27  
+         28          Intent intent;
+         29          if (!BuildConfig.TEST.get()) {
+         30              TrustedIntents trustedIntents = TrustedIntents.get(this);
+         31              trustedIntents.addTrustedSigner(GuardianProjectRSA4096.class);
+         32              trustedIntents.addTrustedSigner(GuardianProjectFDroidRSA2048.class);
+         33  
+         34              intent = trustedIntents.getIntentFromTrustedSender(this);
+   8. E4c5cd131 CALL/explicit*
+      TrustedIntents.getIntentFromTrustedSender -> TrustedIntents.isPackageNameTrusted
+      the calling package name is known
+      guard: the calling package name is not empty (TrustedIntents.java:106-109); getCallingPackageName returns a package only when this activity was started with startActivityForResult (getCallingActivity, TrustedIntents.java:131-142; the warning at 120-124 says a singleInstance or singleTask activity cannot get the calling activity; without a request code the calling activity is null, FW-SRC core/java/android/app/Activity.java:5384-5399)
+      evidence: SRC info/guardianproject/trustedintents/TrustedIntents.java:104-110,120-124,131-142; FW-SRC core/java/android/app/Activity.java:5384-5399
+        104      public Intent getIntentFromTrustedSender(Activity activity) {
+        105          Intent intent = activity.getIntent();
+        106          String packageName = getCallingPackageName(activity);
+        107          if (TextUtils.isEmpty(packageName)) {
+        108              return null;
+        109          }
+        110          if (isPackageNameTrusted(packageName)) {
+        120       * <strong>WARNING</strong>: If the {@code Activity} has
+        121       * {@code android:launchMode="singleInstance"} or {@code "singleTask"}, then
+        122       * this method will not disconnect because it is not possible to get the
+        123       * calling {@code Activity}, as set by
+        124       * {@link Activity#startActivityForResult(Intent, int)}
+        131      public static String getCallingPackageName(Activity activity) {
+        132          // getCallingPackage() was unstable until android-18, use this
+        133          ComponentName componentName = activity.getCallingActivity();
+        134          if (componentName == null)
+        135              return null;
+        136          String packageName = componentName.getPackageName();
+        137          if (TextUtils.isEmpty(packageName)) {
+        138              Log.e(activity.getClass().getSimpleName(),
+        139                      "Received Intent without sender! The Intent must be sent using startActivityForResult() and received without launchMode singleTask or singleInstance!"
+        140          }
+        141          return packageName;
+        142      }
+      (core/java/android/app/Activity.java not found in the source tree)
+   9. E3192ea22 CALL/explicit*
+      TrustedIntents.isPackageNameTrusted -> TrustedIntents.checkTrustedSigner(String)
+      Direct call
+      evidence: SRC TrustedIntents.java:86 (bytecode)
+         86              checkTrustedSigner(packageName);
+  10. E548d37eb CALL/explicit*
+      TrustedIntents.checkTrustedSigner(String) -> TrustedIntents.checkTrustedSigner(Signature[])
+      the package info is returned
+      guard: pm.getPackageInfo returns the package (TrustedIntents.java:216)
+      evidence: SRC info/guardianproject/trustedintents/TrustedIntents.java:214-217
+        214      public void checkTrustedSigner(String packageName)
+        215              throws NameNotFoundException, CertificateException {
+        216          PackageInfo packageInfo = pm.getPackageInfo(packageName, PackageManager.GET_SIGNATURES);
+        217          checkTrustedSigner(packageInfo.signatures);
+  11. E28b753fb CALL/explicit*
+      TrustedIntents.checkTrustedSigner(Signature[]) -> ApkSignaturePin.getSignatures
+      the signatures are compared with each trusted pin
+      guard: the signatures pass the checks (TrustedIntents.java:227-231) and a pin is in the list (234); the pins are added earlier in the same onCreate (PanicResponderActivity.java:31-32)
+      evidence: SRC info/guardianproject/trustedintents/TrustedIntents.java:225-235; SRC ui/PanicResponderActivity.java:31-32
+        225      public void checkTrustedSigner(Signature[] signatures)
+        226              throws NameNotFoundException, CertificateException {
+        227          if (signatures == null || signatures.length == 0)
+        228              throw new CertificateException("signatures cannot be null or empty!");
+        229          for (int i = 0; i < signatures.length; i++)
+        230              if (signatures[i] == null || signatures[i].toByteArray().length == 0)
+        231                  throw new CertificateException("Certificates cannot be null or empty!");
+        232  
+        233          // check whether the APK signer is trusted for all apps
+        234          for (ApkSignaturePin pin : pinList)
+        235              if (areSignaturesEqual(signatures, pin.getSignatures()))
+         31              trustedIntents.addTrustedSigner(GuardianProjectRSA4096.class);
+         32              trustedIntents.addTrustedSigner(GuardianProjectFDroidRSA2048.class);
+

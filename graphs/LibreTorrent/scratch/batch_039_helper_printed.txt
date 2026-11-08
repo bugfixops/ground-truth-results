@@ -1,0 +1,26 @@
+LibreTorrent batch 39 — command record and source evidence summary
+
+Plan command (sole membership source):
+`awk -F '\t' '$1==39 {print $3 "\t" $4}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv`
+
+Output is exactly 40 TorrentSessionImpl method/signature rows in order; the report table preserves that order and all listed names.
+
+Definition and focused call-site commands printed/read:
+`rg -n 'enableIpFilter|enableSessionLogger|extractTrackers|extractUrlSeeds|fetchMagnet|getAlertMask|getAllowedEncryptLevel|getDhtNodes|getDownloadSpeed|getDownloadSpeedLimit|getIface|getListenPort|getLoadedMagnet|getLogger|getPieceSizeList|getSettings|getTask|getTorrentVersionList|getTotalDownload|getTotalUpload|getUploadSpeed|handleMetadataReceived|handleSaveMetadata|handleStats|handleStoppingTasks|isDHTEnabled|isPeXEnabled|isRunning|isTorrentAlreadyRunning|applySessionLoggerFilters|checkError|deleteTorrent|onAfterStart|stopTasks' "$SRC/core/model/session/TorrentSessionImpl.java"`
+`rg -n 'session\\.(enableIpFilter|enableSessionLogger|fetchMagnet|getDhtNodes|getDownloadSpeed|getDownloadSpeedLimit|getIface|getListenPort|getLoadedMagnet|getLogger|getPieceSizeList|getSettings|getTask|getTorrentVersionList|getTotalDownload|getTotalUpload|getUploadSpeed|getUploadSpeedLimit|isDHTEnabled|isPeXEnabled|isRunning|isTorrentAlreadyRunning|requestStop)' "$SRC/core/model/TorrentEngine.java" "$SRC"`
+
+`SRC` is `/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent`.
+
+Printed/read source excerpts:
+`nl -ba "$SRC/core/model/session/TorrentSessionImpl.java" | sed -n '150,245p;427,470p;580,655p;660,735p;718,755p;840,880p;900,1010p;1015,1040p;1080,1185p;1295,1375p;1380,1435p;1468,1495p'`
+
+Evidence notes:
+- Construction initializes SessionLogger at `TorrentSessionImpl.java:162-175`; getters and settings at `178-237`.
+- Magnet fetch overloads at `427-470`; metadata helpers `extractTrackers`/`extractUrlSeeds` at `581-663` and are called at `581-585`.
+- Session statistic getters at `665-715`; `handleStats` builds SessionStats at `1168-1181`.
+- `enableIpFilter` starts a thread and reports completion at `718-741`; engine call sites found at `TorrentEngine.java:1050,1558-1566`.
+- Stop flow: `requestStop` invokes stopTasks at `911-918`; stopTasks creates complete/error callbacks at `920-935`; `handleStoppingTasks` at `937-948`.
+- `onAfterStart` calls alert-mask/logger helpers at `991-1008`; alert dispatch calls metadata/stats/save/error handlers at `1092-1104`; settings conversion and logger filtering appear at `1301-1375,1385-1428`.
+- TorrentEngine delegates to session from many hand-written methods, including `253,299,304,419,449,490-958`; routes from those engine methods to application entries were not fully audited here.
+
+No coverage artifacts were opened. No graph, AGENT_NOTES, or out files were edited. Local calls do not alone establish complete entry routes, so all uncertain rows remain OPEN.

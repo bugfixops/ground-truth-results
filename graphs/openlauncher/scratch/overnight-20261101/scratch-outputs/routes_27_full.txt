@@ -1,0 +1,2584 @@
+## HideAppsFragment$2$1.onClick  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=- state=- classes=explicit;non_standard;standard explicit_standard_route=no
+   1. E3a1527b1 ENTRY/standard*
+      S_ENTRY -> Init.<init>
+      Tap the OpenLauncher icon in another launcher (MAIN + LAUNCHER filter), or adb monkey / am start
+      evidence: SRC AndroidManifest.xml:28-36; FW-SRC core/java/android/app/ActivityThread.java:2644-2660, 2685-2741, 2833-2863 (performLaunchActivity instantiates the activity, attaches it and calls callActivityOnCreate, then performStart; handleLaunchActivity then calls handleResumeActivity) and core/java/android/app/Activity.java:7014-7019, 7098-7107 (performStart and performResume call onStart and onResume)
+      (core/java/android/app/ActivityThread.java:2644-2660, 2685-2741, 2833-2863: no line numbers)
+   2. E996c92b8 LIFECYCLE/standard*
+      Init.<init> -> Init.onCreate
+      The system instantiates Init, then calls onCreate
+      evidence: SRC activity/Init.java:16-18; FW-SRC core/java/android/app/ActivityThread.java:2644-2660, 2685-2741, 2833-2863 (performLaunchActivity instantiates the activity, attaches it and calls callActivityOnCreate, then performStart; handleLaunchActivity then calls handleResumeActivity) and core/java/android/app/Activity.java:7014-7019, 7098-7107 (performStart and performResume call onStart and onResume)
+         16      @Override
+         17      protected void onCreate(Bundle savedInstanceState) {
+         18          super.onCreate(savedInstanceState);
+      (core/java/android/app/ActivityThread.java:2644-2660, 2685-2741, 2833-2863: no line numbers)
+   3. E5aa97973 ENTERS/page*
+      Init.onCreate -> S_INTRO
+      First start: the three onboarding pages are set up
+      guard: getBoolean("firstStart", true) is true (the default on a fresh install)
+      evidence: SRC activity/Init.java:20-51; INFERRED the OnboarderActivity library shows the pages and calls onSkipButtonPressed / onFinishButtonPressed when the buttons are tapped (library source not read)
+         20          if (!getSharedPreferences("quickSettings", MODE_PRIVATE).getBoolean("firstStart", true)) {
+         21              RockIt();
+         22              return;
+         23          }
+         24  
+         25          List<OnboarderPage> onBoarderPages = new ArrayList<>();
+         26  
+         27          // Create your first page
+         28          OnboarderPage onBoarderPage1 = new OnboarderPage(getString(R.string.intro1_title), getString(R.string.intro1_text), R.drawable.ic_launcher_intro);
+         29          OnboarderPage onBoarderPage2 = new OnboarderPage(getString(R.string.intro2_title), getString(R.string.intro2_text), R.drawable.screenshot_1);
+         30          OnboarderPage onBoarderPage3 = new OnboarderPage(getString(R.string.intro3_title), getString(R.string.intro3_text), R.drawable.screenshot_2);
+         31  
+         32          // You can define title and description colors (by default white)
+         33          onBoarderPage1.setTitleColor(R.color.colorAccent);
+      ...  (18 more lines)
+   4. E8b7dd43a GUI/non_standard(OnboarderActivity library calls the abstract button callbacks)
+      S_INTRO -> Init.onSkipButtonPressed
+      Tap Skip
+      evidence: SRC activity/Init.java:54-60; INFERRED the OnboarderActivity library shows the pages and calls onSkipButtonPressed / onFinishButtonPressed when the buttons are tapped (library source not read)
+         54      @Override
+         55      public void onSkipButtonPressed() {
+         56          // skips onboarder to the last page
+         57          // super.onSkipButtonPressed();
+         58          // defines the skip button behavior
+         59          RockIt();
+         60      }
+   5. E23660de0 CALL/explicit*
+      Init.onSkipButtonPressed -> Init.RockIt
+      Direct call
+      evidence: SRC Init.java:59 (bytecode)
+         59          RockIt();
+   6. E1701006d INTENT/standard*
+      Init.RockIt -> Home.<init>
+      startActivity(new Intent(Init.this, Home.class)) then finish()
+      evidence: SRC activity/Init.java:62-70; FW-SRC core/java/android/app/ActivityThread.java:2644-2660, 2685-2741, 2833-2863 (performLaunchActivity instantiates the activity, attaches it and calls callActivityOnCreate, then performStart; handleLaunchActivity then calls handleResumeActivity) and core/java/android/app/Activity.java:7014-7019, 7098-7107 (performStart and performResume call onStart and onResume)
+         62      private void RockIt() {
+         63          getSharedPreferences("quickSettings", MODE_PRIVATE).edit().putBoolean("firstStart", false).apply();
+         64  
+         65          Intent intent = new Intent(Init.this, Home.class);
+         66          intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+         67          startActivity(intent);
+         68  
+         69          finish();
+         70      }
+      (core/java/android/app/ActivityThread.java:2644-2660, 2685-2741, 2833-2863: no line numbers)
+   7. Ecded7dff LIFECYCLE/standard*
+      Home.<init> -> Home.onCreate
+      The system instantiates Home, then calls onCreate
+      evidence: SRC activity/Home.java:180-182; FW-SRC core/java/android/app/ActivityThread.java:2644-2660, 2685-2741, 2833-2863 (performLaunchActivity instantiates the activity, attaches it and calls callActivityOnCreate, then performStart; handleLaunchActivity then calls handleResumeActivity) and core/java/android/app/Activity.java:7014-7019, 7098-7107 (performStart and performResume call onStart and onResume)
+        180      @Override
+        181      protected void onCreate(Bundle savedInstanceState) {
+        182          super.onCreate(savedInstanceState);
+      (core/java/android/app/ActivityThread.java:2644-2660, 2685-2741, 2833-2863: no line numbers)
+   8. E06eb37f4 LIFECYCLE/standard*
+      Home.onCreate -> Home.onStart
+      onStart after onCreate
+      evidence: SRC activity/Home.java:723-728; FW-SRC core/java/android/app/ActivityThread.java:2644-2660, 2685-2741, 2833-2863 (performLaunchActivity instantiates the activity, attaches it and calls callActivityOnCreate, then performStart; handleLaunchActivity then calls handleResumeActivity) and core/java/android/app/Activity.java:7014-7019, 7098-7107 (performStart and performResume call onStart and onResume)
+        723      @Override
+        724      protected void onStart() {
+        725          if (appWidgetHost != null)
+        726              appWidgetHost.startListening();
+        727          super.onStart();
+        728      }
+      (core/java/android/app/ActivityThread.java:2644-2660, 2685-2741, 2833-2863: no line numbers)
+   9. E823bd16a LIFECYCLE/standard*
+      Home.onStart -> Home.onResume
+      onResume after onStart (first resume of this instance: the splash or the desktop is built only later)
+      evidence: SRC activity/Home.java:743-749; FW-SRC core/java/android/app/ActivityThread.java:2644-2660, 2685-2741, 2833-2863 (performLaunchActivity instantiates the activity, attaches it and calls callActivityOnCreate, then performStart; handleLaunchActivity then calls handleResumeActivity) and core/java/android/app/Activity.java:7014-7019, 7098-7107 (performStart and performResume call onStart and onResume)
+        743      @Override
+        744      protected void onResume() {
+        745          if (appWidgetHost != null)
+        746              appWidgetHost.startListening();
+        747          handleLauncherPause();
+        748          super.onResume();
+        749      }
+      (core/java/android/app/ActivityThread.java:2644-2660, 2685-2741, 2833-2863: no line numbers)
+  10. E0117cced CALL/explicit*
+      Home.onResume -> Home.handleLauncherPause@DESKTOP
+      handleLauncherPause() at the first resume: desktop is not in edit mode and the drawer is not visible
+      evidence: SRC activity/Home.java:747, 751-760
+      (activity/Home.java:747, 751-760: no line numbers)
+  11. E9629945d CALL/explicit*
+      Home.handleLauncherPause@DESKTOP -> GroupPopupView.dismissPopup
+      groupPopup.dismissPopup()
+      guard: groupPopup != null
+      evidence: SRC activity/Home.java:762-764
+        762          if (groupPopup != null) {
+        763              groupPopup.dismissPopup();
+        764          }
+  12. E506c5f2f ENTERS/page*
+      GroupPopupView.dismissPopup -> S_HOME_DESKTOP
+      the popup is hidden
+      evidence: SRC widget/GroupPopupView.java:87-94
+         87      public void dismissPopup() {
+         88          isShowing = false;
+         89          removeAllViews();
+         90          if (dismissListener != null)
+         91              dismissListener.onDismiss();
+         92          cellContainer.removeAllViews();
+         93          setVisibility(View.INVISIBLE);
+         94      }
+  13. E2b9b86b1 GUI/non_standard(DrawerLayout library calls the DrawerListener)
+      S_HOME_DESKTOP -> Home.onDrawerStateChanged
+      Swipe in from the left screen edge: the DrawerLayout starts to move and settles open
+      guard: generalSettings.minBarEnable is true (the default; the drawer is locked closed otherwise)
+      evidence: SRC activity/Home.java:235, 544, 857-878; res/layout/activity_home.xml:5-32; INFERRED the support DrawerLayout calls the registered DrawerListener while it moves (support library source not read)
+      (activity/Home.java:235, 544, 857-878: no line numbers)
+  14. Ecb7f915c ENTERS/page*
+      Home.onDrawerStateChanged -> S_HOME_MINIBAR
+      STATE_IDLE with the left drawer open: the overlay layout is shown and the minibar is open
+      guard: newState == STATE_IDLE and drawerLayout.isDrawerOpen(Gravity.LEFT)
+      evidence: SRC activity/Home.java:870-875
+        870              case DrawerLayout.STATE_IDLE:
+        871                  if (drawerLayout.isDrawerOpen(Gravity.LEFT)) {
+        872                      shortcutLayout.setVisibility(View.VISIBLE);
+        873                      shortcutLayout.setAlpha(0);
+        874                      shortcutLayout.animate().setDuration(180L).alpha(1).setInterpolator(new AccelerateDecelerateInterpolator());
+        875                  }
+  15. Ee8ace45b GUI/standard*
+      S_HOME_MINIBAR -> Home$11.onItemClick@LauncherSettings
+      Tap the minibar row "Launcher settings" (launcher gear icon)
+      guard: the row is enabled in the minibar arrangement (all eight are, by default)
+      evidence: SRC activity/Home.java:591-607; util/LauncherAction.java:29-39; viewutil/IconListAdapter.java:39-56; FW-SRC core/java/android/widget/ListView.java:575 and core/java/android/widget/AbsListView.java:2365 (setAdapter reads getCount, the list asks the adapter for getView) and core/java/android/widget/AbsListView.java:3108-3127, core/java/android/widget/AdapterView.java:314-321 (a tap calls adapter.getItemId and then the OnItemClickListener)
+        591          minBar.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        592              @Override
+        593              public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+        594                  LauncherAction.Action action = LauncherAction.Action.valueOf(labels.get(i));
+        595                  LauncherAction.RunAction(action, Home.this);
+        596                  if (action == LauncherAction.Action.EditMinBar || action == LauncherAction.Action.LauncherSettings || action == LauncherAction.Action.DeviceSettings) {
+        597  //                    (new Handler()).postDelayed(new Runnable() {
+        598  //                        @Override
+        599  //                        public void run() {
+        600  //                            drawerLayout.closeDrawers();
+        601  //                        }
+        602  //                    }, 500);
+        603                  } else {
+        604                      drawerLayout.closeDrawers();
+      ...  (3 more lines)
+      (core/java/android/widget/ListView.java not found in the source tree)
+  16. Ebf800b8a CALL/explicit*
+      Home$11.onItemClick@LauncherSettings -> LauncherAction.RunAction@LauncherSettings
+      LauncherAction.RunAction(action, Home.this)
+      evidence: SRC activity/Home.java:594-595
+        594                  LauncherAction.Action action = LauncherAction.Action.valueOf(labels.get(i));
+        595                  LauncherAction.RunAction(action, Home.this);
+  17. Ebd0c7205 LIFECYCLE/standard*
+      LauncherAction.RunAction@LauncherSettings -> SettingsActivity.onCreate
+      the system creates SettingsActivity, then calls onCreate
+      evidence: SRC activity/SettingsActivity.java:28-29; FW-SRC core/java/android/app/ActivityThread.java:2644-2660, 2685-2741, 2833-2863 (performLaunchActivity instantiates the activity, attaches it and calls callActivityOnCreate, then performStart; handleLaunchActivity then calls handleResumeActivity) and core/java/android/app/Activity.java:7014-7019, 7098-7107 (performStart and performResume call onStart and onResume)
+         28      @Override
+         29      public void onCreate(Bundle savedInstanceState) {
+      (core/java/android/app/ActivityThread.java:2644-2660, 2685-2741, 2833-2863: no line numbers)
+  18. Ee3b2c4ce ENTERS/non_standard(MaterialPrefFragment library (vendored, compiled into this build) builds the button list from the layout XML)
+      SettingsActivity.onCreate -> S_SETTINGS_ROOT
+      MaterialPrefFragment.newInstance(...) with the 7 category buttons is added to the layout (getSupportFragmentManager().add)
+      evidence: SRC activity/SettingsActivity.java:33-51; SRC activity/SettingsActivity.java:41-51; INFERRED the support FragmentManager drives the fragment lifecycle callbacks (support library source not read)
+         33          setContentView(R.layout.activity_settings);
+         34          setSupportActionBar((Toolbar) findViewById(R.id.tb));
+         35          getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+         36          getSupportActionBar().setDisplayShowHomeEnabled(true);
+         37          setTitle(R.string.settings);
+         38  
+         39          //SettingsFragment settings = new SettingsFragment();
+         40  
+         41          MaterialPrefFragment settings = MaterialPrefFragment.newInstance(new MaterialPrefFragment.Builder(this, Color.DKGRAY, ContextCompat.getColor(this, R.color.Light_T
+         42                  .add(new MaterialPrefFragment.ButtonPref("desktopSettings", getResources().getDrawable(R.drawable.ic_desktop_windows_black_24dp), getString(R.string.setti
+         43                  .add(new MaterialPrefFragment.ButtonPref("dockSettings", getResources().getDrawable(R.drawable.ic_dock_black_24dp), getString(R.string.settings_group_dock
+         44                  .add(new MaterialPrefFragment.ButtonPref("drawerSettings", getResources().getDrawable(R.drawable.ic_apps_black_24dp), getString(R.string.settings_group_dr
+         45                  .add(new MaterialPrefFragment.ButtonPref("inputSettings", getResources().getDrawable(R.drawable.ic_gesture_black_24dp), getString(R.string.settings_group_
+         46                  .add(new MaterialPrefFragment.ButtonPref("colorsSettings", getResources().getDrawable(R.drawable.ic_color_lens_black_24dp), getString(R.string.settings_gr
+      ...  (5 more lines)
+         41          MaterialPrefFragment settings = MaterialPrefFragment.newInstance(new MaterialPrefFragment.Builder(this, Color.DKGRAY, ContextCompat.getColor(this, R.color.Light_T
+         42                  .add(new MaterialPrefFragment.ButtonPref("desktopSettings", getResources().getDrawable(R.drawable.ic_desktop_windows_black_24dp), getString(R.string.setti
+         43                  .add(new MaterialPrefFragment.ButtonPref("dockSettings", getResources().getDrawable(R.drawable.ic_dock_black_24dp), getString(R.string.settings_group_dock
+         44                  .add(new MaterialPrefFragment.ButtonPref("drawerSettings", getResources().getDrawable(R.drawable.ic_apps_black_24dp), getString(R.string.settings_group_dr
+         45                  .add(new MaterialPrefFragment.ButtonPref("inputSettings", getResources().getDrawable(R.drawable.ic_gesture_black_24dp), getString(R.string.settings_group_
+         46                  .add(new MaterialPrefFragment.ButtonPref("colorsSettings", getResources().getDrawable(R.drawable.ic_color_lens_black_24dp), getString(R.string.settings_gr
+         47                  .add(new MaterialPrefFragment.ButtonPref("iconsSettings", getResources().getDrawable(R.drawable.ic_android_black_24dp), getString(R.string.settings_group_
+         48                  .add(new MaterialPrefFragment.ButtonPref("otherSettings", getResources().getDrawable(R.drawable.ic_more_horiz_black_24dp), getString(R.string.settings_gro
+         49                  .setOnPrefClickedListener(this));
+         50  
+         51          getSupportFragmentManager().beginTransaction().add(R.id.ll, settings).commit();
+  19. Ea89dcc77 GUI/non_standard(MaterialPrefFragment library (vendored) calls the OnPrefClickedListener when a ButtonPref is tapped)
+      S_SETTINGS_ROOT -> SettingsActivity.onPrefClicked@iconsSettings
+      Tap "Icons" on the Settings root screen
+      guard: id == 'iconsSettings'
+      evidence: SRC activity/SettingsActivity.java:41-49, 302-324; SRC libs/materialpreffragment/src/main/java/com/bennyv5/materialpreffragment/MaterialPrefFragment.java:360-373 (ButtonPref.onCreateView sets the click listener to the fragment itself) and libs/materialpreffragment/src/main/java/com/bennyv5/materialpreffragment/MaterialPrefFragment.java:113-119 (onClick reads the pref id tag and calls the registered OnPrefClickedListener)
+      (activity/SettingsActivity.java:41-49, 302-324: no line numbers)
+        360          @Override
+        361          public View onCreateView(Context c, MaterialPrefFragment fragment, SharedPreferences sharedPrefs) {
+        362              Button b = new Button(c);
+        363              setStyle(b, fragment);
+        364  
+        365              b.setTag(fragment.TAG_ID, id);
+        366              if (icon != null) {
+        367                  b.setCompoundDrawablePadding(Tool.dp2px(20, c));
+        368                  b.setCompoundDrawablesWithIntrinsicBounds(icon, null, null, null);
+        369              }
+        370              b.setOnClickListener(fragment);
+        371              b.setText(warpText(summary, title, fragment));
+        372              return warpCardView(b, fragment);
+        373          }
+  20. Efe1f8684 CALL/explicit*
+      SettingsActivity.onPrefClicked@iconsSettings -> SettingsActivity.onSettingsSelected@5
+      onSettingsSelected(5)
+      guard: id == 'iconsSettings'
+      evidence: SRC activity/SettingsActivity.java:304-324
+        304              case "desktopSettings":
+        305                  onSettingsSelected(0);
+        306                  break;
+        307              case "dockSettings":
+        308                  onSettingsSelected(1);
+        309                  break;
+        310              case "drawerSettings":
+        311                  onSettingsSelected(2);
+        312                  break;
+        313              case "inputSettings":
+        314                  onSettingsSelected(3);
+        315                  break;
+        316              case "colorsSettings":
+        317                  onSettingsSelected(4);
+      ...  (7 more lines)
+  21. E18fdb83b ENTERS/page*
+      SettingsActivity.onSettingsSelected@5 -> S_SETTINGS_ICONS
+      the Icons sub-screen fragment replaces the root list (fragment transaction, added to the back stack)
+      guard: settingsCategory == 5
+      evidence: SRC activity/SettingsActivity.java:54-138
+         54      public void onSettingsSelected(int settingsCategory) {
+         55          LauncherSettings.GeneralSettings generalSettings = LauncherSettings.getInstance(this).generalSettings;
+         56          MaterialPrefFragment fragment;
+         57          switch (settingsCategory) {
+         58              default:
+         59                  fragment = MaterialPrefFragment.newInstance(new MaterialPrefFragment.Builder(this, Color.DKGRAY, ContextCompat.getColor(this, R.color.Light_TextColor), Co
+         60                          .add(new MaterialPrefFragment.ButtonPref("editMiniBar", getString(R.string.settings_desktopMinibar), getString(R.string.settings_desktopMinibar_su
+         61                          .add(new MaterialPrefFragment.ButtonPref("desktopMode", (getString(R.string.settings_desktopStyle)), (getString(R.string.settings_desktopStyle_sum
+         62                          // FIXME: 11/25/2016 This will have problem (in allAppsMode) as the apps will be cut off when scale down
+         63                          .add(new MaterialPrefFragment.NUMPref("gridSizeDesktop", (getString(R.string.settings_desktopSize)), (getString(R.string.settings_desktopSize_summ
+         64                                  new MaterialPrefFragment.NUMPref.NUMPrefItem("hGridSizeDesktop", (getString(R.string.settings_column)), generalSettings.desktopGridX, 4, 1
+         65                                  new MaterialPrefFragment.NUMPref.NUMPrefItem("vGridSizeDesktop", (getString(R.string.settings_row)), generalSettings.desktopGridY, 4, 10)
+         66                          ))
+         67                          .add(new MaterialPrefFragment.TBPref("desktopSearchBar", (getString(R.string.settings_desktopSearch)), (getString(R.string.settings_desktopSearch_
+      ...  (71 more lines)
+  22. Ee59edc19 GUI/non_standard(MaterialPrefFragment library calls the OnPrefClickedListener)
+      S_SETTINGS_ICONS -> SettingsActivity.onPrefClicked@iconHide
+      Tap "Hide apps" on Settings > Icons
+      guard: id == 'iconHide'
+      evidence: SRC activity/SettingsActivity.java:124, 363-367; SRC libs/materialpreffragment/src/main/java/com/bennyv5/materialpreffragment/MaterialPrefFragment.java:360-373 (ButtonPref.onCreateView sets the click listener to the fragment itself) and libs/materialpreffragment/src/main/java/com/bennyv5/materialpreffragment/MaterialPrefFragment.java:113-119 (onClick reads the pref id tag and calls the registered OnPrefClickedListener)
+      (activity/SettingsActivity.java:124, 363-367: no line numbers)
+        360          @Override
+        361          public View onCreateView(Context c, MaterialPrefFragment fragment, SharedPreferences sharedPrefs) {
+        362              Button b = new Button(c);
+        363              setStyle(b, fragment);
+        364  
+        365              b.setTag(fragment.TAG_ID, id);
+        366              if (icon != null) {
+        367                  b.setCompoundDrawablePadding(Tool.dp2px(20, c));
+        368                  b.setCompoundDrawablesWithIntrinsicBounds(icon, null, null, null);
+        369              }
+        370              b.setOnClickListener(fragment);
+        371              b.setText(warpText(summary, title, fragment));
+        372              return warpCardView(b, fragment);
+        373          }
+  23. Eded61e33 INTENT/standard*
+      SettingsActivity.onPrefClicked@iconHide -> HideAppsActivity.<init>
+      startActivity(new Intent(SettingsActivity.this, HideAppsActivity.class))
+      guard: id == 'iconHide'
+      evidence: SRC activity/SettingsActivity.java:364-366; FW-SRC core/java/android/app/ActivityThread.java:2644-2660, 2685-2741, 2833-2863 (performLaunchActivity instantiates the activity, attaches it and calls callActivityOnCreate, then performStart; handleLaunchActivity then calls handleResumeActivity) and core/java/android/app/Activity.java:7014-7019, 7098-7107 (performStart and performResume call onStart and onResume)
+        364                  Intent intent = new Intent(SettingsActivity.this, HideAppsActivity.class);
+        365                  intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        366                  startActivity(intent);
+      (core/java/android/app/ActivityThread.java:2644-2660, 2685-2741, 2833-2863: no line numbers)
+  24. Ec92493a5 LIFECYCLE/standard*
+      HideAppsActivity.<init> -> HideAppsActivity.onCreate
+      the system creates HideAppsActivity, then calls onCreate
+      evidence: SRC activity/HideAppsActivity.java:24-26; FW-SRC core/java/android/app/ActivityThread.java:2644-2660, 2685-2741, 2833-2863 (performLaunchActivity instantiates the activity, attaches it and calls callActivityOnCreate, then performStart; handleLaunchActivity then calls handleResumeActivity) and core/java/android/app/Activity.java:7014-7019, 7098-7107 (performStart and performResume call onStart and onResume)
+         24      @Override
+         25      protected void onCreate(Bundle savedInstanceState) {
+         26          super.onCreate(savedInstanceState);
+      (core/java/android/app/ActivityThread.java:2644-2660, 2685-2741, 2833-2863: no line numbers)
+  25. E62b23f08 CALL/explicit*
+      HideAppsActivity.onCreate -> HideAppsActivity.setupViewPager
+      setupViewPager(viewPager)
+      evidence: SRC activity/HideAppsActivity.java:33-34
+         33          ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);
+         34          setupViewPager(viewPager);
+  26. Eb290a250 FRAMEWORK/non_standard(support FragmentPagerAdapter)
+      HideAppsActivity.setupViewPager -> HideAppsActivity$ViewPagerAdapter.getItem
+      the first layout populates page 0: getItem(0) returns the HideAppsFragment
+      evidence: SRC activity/HideAppsActivity.java:53, 74-77; INFERRED the support FragmentPagerAdapter calls getCount, getItem and getPageTitle when the ViewPager first lays out, and the FragmentManager then drives the lifecycle of the fragment it returns (support library source not read)
+      (activity/HideAppsActivity.java:53, 74-77: no line numbers)
+  27. Efd58a4a1 FRAMEWORK/non_standard(support FragmentManager drives the fragment lifecycle)
+      HideAppsActivity$ViewPagerAdapter.getItem -> HideAppsFragment.onCreateView
+      the FragmentManager attaches the returned fragment and calls onCreateView
+      evidence: INFERRED the support FragmentManager drives the fragment lifecycle callbacks (support library source not read)
+  28. E58a182d9 ASYNC/standard*
+      HideAppsFragment.onCreateView -> HideAppsFragment$AsyncWorkerList.onPreExecute
+      taskList.execute(): onPreExecute runs on the calling thread
+      guard: taskList.getStatus() == PENDING (first time)
+      evidence: SRC fragment/HideAppsFragment.java:66-69; FW-SRC core/java/android/os/AsyncTask.java:632-650 (execute and executeOnExecutor call onPreExecute on the calling thread before the worker starts)
+         66          if (taskList.getStatus() == AsyncTask.Status.PENDING) {
+         67              // My AsyncTask has not started yet
+         68              taskList.execute();
+         69          }
+      (core/java/android/os/AsyncTask.java not found in the source tree)
+  29. Eb1b71e50 ASYNC/standard*
+      HideAppsFragment$AsyncWorkerList.onPreExecute -> HideAppsFragment$AsyncWorkerList.doInBackground
+      the worker thread runs next
+      evidence: SRC fragment/HideAppsFragment.java:84-105; FW-SRC core/java/android/os/AsyncTask.java:219-224, 237-262, 594-596, 632-650, 326-334, 369-374, 285, 705-713, 691-697 (execute uses the serial executor, which hands each task to THREAD_POOL_EXECUTOR and the worker calls doInBackground; postResult sends the result to a main-looper handler whose handleMessage calls finish, which calls onPostExecute)
+         84          @Override
+         85          protected void onPreExecute() {
+         86              List<String> hiddenList = LauncherSettings.getInstance(getContext()).generalSettings.hiddenList;
+         87              if (hiddenList != null)
+         88                  list_activities.addAll(hiddenList);
+         89              else
+         90                  LauncherSettings.getInstance(getContext()).generalSettings.hiddenList = new ArrayList<>();
+         91  
+         92              super.onPreExecute();
+         93          }
+         94  
+         95          @Override
+         96          protected String doInBackground(String... arg0) {
+         97              try {
+      ...  (8 more lines)
+      (core/java/android/os/AsyncTask.java:219-224, 237-262, 594-596, 632-650, 326-334, 369-374, 285, 705-713, 691-697: no line numbers)
+  30. E33aba427 ASYNC/standard*
+      HideAppsFragment$AsyncWorkerList.doInBackground -> HideAppsFragment$AsyncWorkerList.onPostExecute
+      the worker is done: onPostExecute runs on the main thread
+      evidence: SRC fragment/HideAppsFragment.java:107-114; FW-SRC core/java/android/os/AsyncTask.java:219-224, 237-262, 594-596, 632-650, 326-334, 369-374, 285, 705-713, 691-697 (execute uses the serial executor, which hands each task to THREAD_POOL_EXECUTOR and the worker calls doInBackground; postResult sends the result to a main-looper handler whose handleMessage calls finish, which calls onPostExecute)
+        107          @Override
+        108          protected void onPostExecute(String result) {
+        109              populateView();
+        110              //Switch from loading screen to the main view
+        111              switcherLoad.showNext();
+        112  
+        113              super.onPostExecute(result);
+        114          }
+      (core/java/android/os/AsyncTask.java:219-224, 237-262, 594-596, 632-650, 326-334, 369-374, 285, 705-713, 691-697: no line numbers)
+  31. Ebb9bb2c5 ENTERS/page*
+      HideAppsFragment$AsyncWorkerList.onPostExecute -> S_HIDEAPPS_LIST
+      switcherLoad.showNext(): the checkable app list is shown
+      evidence: SRC fragment/HideAppsFragment.java:109-113
+        109              populateView();
+        110              //Switch from loading screen to the main view
+        111              switcherLoad.showNext();
+        112  
+        113              super.onPostExecute(result);
+  32. Ea7611753 GUI/standard*
+      S_HIDEAPPS_LIST -> HideAppsFragment$1.onClick
+      Tap the floating confirm button
+      evidence: SRC fragment/HideAppsFragment.java:58-64; FW-SRC core/java/android/view/View.java:12972-12990, 13029-13044, 24767-24771 (a tap on a clickable view posts PerformClick, which calls performClick) and 23212-23225, 24725-24739 (a press held for the long-press timeout calls performLongClick); core/java/android/view/View.java:6289-6300, 6368-6375, 11764-11779 (performClick and performLongClick call the OnClickListener / OnLongClickListener set with setOn...Listener; dispatchTouchEvent calls the OnTouchListener first)
+         58          FloatingActionButton fab = (FloatingActionButton) rootView.findViewById(R.id.fab_rq);
+         59          fab.setOnClickListener(new View.OnClickListener() {
+         60              @Override
+         61              public void onClick(View view) {
+         62                  confirmSelection();
+         63              }
+         64          });
+      (core/java/android/view/View.java:12972-12990, 13029-13044, 24767-24771: no line numbers)
+  33. E26fc9fa1 CALL/explicit*
+      HideAppsFragment$1.onClick -> HideAppsFragment.confirmSelection
+      confirmSelection()
+      evidence: SRC fragment/HideAppsFragment.java:62
+         62                  confirmSelection();
+  34. Ea93709a8 CALL/explicit*
+      HideAppsFragment.confirmSelection -> HideAppsFragment$2.<init>
+      new Thread() {...}.start()
+      evidence: SRC fragment/HideAppsFragment.java:124-154
+        124          Thread actionSend_Thread = new Thread() {
+        125  
+        126              @Override
+        127              public void run() {
+        128                  int selected = 0;
+        129  
+        130                  LauncherSettings.getInstance(getContext()).generalSettings.hiddenList.clear();
+        131  
+        132                  // Get all selected apps
+        133                  for (int i = 0; i < list_activities_final.size(); i++) {
+        134                      if ((list_activities_final.get(i)).isSelected()) {
+        135                          LauncherSettings.getInstance(getContext()).generalSettings.hiddenList.add((list_activities_final.get(i)).getCode());
+        136                          selected++;
+        137                      }
+      ...  (17 more lines)
+  35. Eb6632480 FRAMEWORK/non_standard(java.lang.Thread)
+      HideAppsFragment$2.<init> -> HideAppsFragment$2.run
+      Thread.start() calls run() on a new thread
+      evidence: SRC fragment/HideAppsFragment.java:155-158; INFERRED java.lang.Thread.start() calls run() (libcore source not read)
+        155          if (!actionSend_Thread.isAlive()) {
+        156              //Prevents the thread to be executed twice (or more) times.
+        157              actionSend_Thread.start();
+        158          }
+  36. E7400de03 ENTERS/page*
+      HideAppsFragment$2.run -> S_HIDEAPPS_SNACKBAR
+      no app is selected: the snackbar "select at least one app" with OK is shown
+      guard: selected == 0
+      evidence: SRC fragment/HideAppsFragment.java:139-148
+        139                  if (selected == 0) {//When there's no app selected show a toast and return.
+        140                      Snackbar snackbar = Snackbar
+        141                              .make(grid, R.string.request_toast, Snackbar.LENGTH_INDEFINITE)
+        142                              .setAction(getString(R.string.ok), new View.OnClickListener() {
+        143                                  @Override
+        144                                  public void onClick(View view) {
+        145                                      getActivity().finish();
+        146                                  }
+        147                              });
+        148                      snackbar.show();
+  37. E8596a759 GUI/non_standard(Snackbar (support library) calls the action OnClickListener)
+      S_HIDEAPPS_SNACKBAR -> HideAppsFragment$2$1.onClick
+      Tap "OK" on the snackbar
+      evidence: SRC fragment/HideAppsFragment.java:142-147; FW-SRC core/java/android/view/View.java:12972-12990, 13029-13044, 24767-24771 (a tap on a clickable view posts PerformClick, which calls performClick) and 23212-23225, 24725-24739 (a press held for the long-press timeout calls performLongClick); core/java/android/view/View.java:6289-6300, 6368-6375, 11764-11779 (performClick and performLongClick call the OnClickListener / OnLongClickListener set with setOn...Listener; dispatchTouchEvent calls the OnTouchListener first)
+        142                              .setAction(getString(R.string.ok), new View.OnClickListener() {
+        143                                  @Override
+        144                                  public void onClick(View view) {
+        145                                      getActivity().finish();
+        146                                  }
+        147                              });
+      (core/java/android/view/View.java:12972-12990, 13029-13044, 24767-24771: no line numbers)
+
+## AppItemView.setTargetedWidth  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=- state=settings classes=explicit;non_standard;standard explicit_standard_route=no
+   1. E3a1527b1 S_ENTRY -> Init.<init>  (printed above)
+   2. E996c92b8 Init.<init> -> Init.onCreate  (printed above)
+   3. E5aa97973 Init.onCreate -> S_INTRO  (printed above)
+   4. E8b7dd43a S_INTRO -> Init.onSkipButtonPressed  (printed above)
+   5. E23660de0 Init.onSkipButtonPressed -> Init.RockIt  (printed above)
+   6. E1701006d Init.RockIt -> Home.<init>  (printed above)
+   7. Ecded7dff Home.<init> -> Home.onCreate  (printed above)
+   8. E6c305cd5 ASYNC/standard*
+      Home.onCreate -> Home$2.doInBackground
+      new AsyncTask().execute(): LauncherSettings.readSettings runs on a worker thread
+      guard: LauncherSettings.init is false
+      evidence: SRC activity/Home.java:205-228; FW-SRC core/java/android/os/AsyncTask.java:219-224, 237-262, 594-596, 632-650, 326-334, 369-374, 285, 705-713, 691-697 (execute uses the serial executor, which hands each task to THREAD_POOL_EXECUTOR and the worker calls doInBackground; postResult sends the result to a main-looper handler whose handleMessage calls finish, which calls onPostExecute)
+        205          } else {
+        206              loadingIcon.setLoading(true);
+        207              new AsyncTask<Void, Void, Boolean>() {
+        208                  @Override
+        209                  protected Boolean doInBackground(Void... voids) {
+        210                      return LauncherSettings.getInstance(Home.this).readSettings();
+        211                  }
+        212  
+        213                  @Override
+        214                  protected void onPostExecute(Boolean result) {
+        215                      loadingIcon.setLoading(false);
+        216                      loadingSplash.animate().alpha(0).withEndAction(new Runnable() {
+        217                          @Override
+        218                          public void run() {
+      ...  (10 more lines)
+      (core/java/android/os/AsyncTask.java:219-224, 237-262, 594-596, 632-650, 326-334, 369-374, 285, 705-713, 691-697: no line numbers)
+   9. E460ef627 ASYNC/standard*
+      Home$2.doInBackground -> Home$2.onPostExecute
+      the settings are read: onPostExecute runs on the main thread
+      evidence: SRC activity/Home.java:213-227; FW-SRC core/java/android/os/AsyncTask.java:219-224, 237-262, 594-596, 632-650, 326-334, 369-374, 285, 705-713, 691-697 (execute uses the serial executor, which hands each task to THREAD_POOL_EXECUTOR and the worker calls doInBackground; postResult sends the result to a main-looper handler whose handleMessage calls finish, which calls onPostExecute)
+        213                  @Override
+        214                  protected void onPostExecute(Boolean result) {
+        215                      loadingIcon.setLoading(false);
+        216                      loadingSplash.animate().alpha(0).withEndAction(new Runnable() {
+        217                          @Override
+        218                          public void run() {
+        219                              myScreen.removeView(loadingSplash);
+        220                          }
+        221                      });
+        222                      init();
+        223                      if (!result) {
+        224                          if (Home.launcher != null)
+        225                              Tool.DialogHelper.alert(Home.launcher, "Some settings can't be read", "Developer's mistake, hope you understand! Some of the settings will be 
+        226                      }
+      ...  (1 more lines)
+      (core/java/android/os/AsyncTask.java:219-224, 237-262, 594-596, 632-650, 326-334, 369-374, 285, 705-713, 691-697: no line numbers)
+  10. E5f090eaa CALL/explicit*
+      Home$2.onPostExecute -> Home.init
+      Direct call (through Home.access$200)
+      evidence: SRC Home.java:222 (bytecode)
+        222                      init();
+  11. E9e80a447 CALL/explicit*
+      Home.init -> Home.initViews
+      Direct call
+      evidence: SRC Home.java:241 (bytecode)
+        241          initViews();
+  12. E305d3071 CALL/explicit*
+      Home.initViews -> AppDrawerController.init
+      Direct call
+      evidence: SRC Home.java:306 (bytecode)
+        306          appDrawerController.init();
+  13. E12016a69 FRAMEWORK/non_standard(LayoutInflater builds the view class named in the XML layout by reflection) [STATE: Settings > Drawer > Drawer style is Vertical and Home was recreated (the style is read by AppDrawerController.init at Home start)]
+      AppDrawerController.init -> AppDrawer_Vertical.<init>(Context,AttributeSet)
+      inflates view_griddrawer.xml (vertical style)
+      guard: drawerMode == Vertical
+      evidence: SRC widget/AppDrawerController.java:172-190; res/layout/view_griddrawer.xml:2-12; FW-SRC core/java/android/view/LayoutInflater.java:615-617, 645-648 (createView looks up the (Context, AttributeSet) constructor of the view class named in the XML and calls newInstance)
+        172      public void init() {
+        173          if (isInEditMode())
+        174              return;
+        175          LayoutInflater layoutInflater = LayoutInflater.from(getContext());
+        176          drawerMode = LauncherSettings.getInstance(getContext()).generalSettings.drawerMode;
+        177          switch (drawerMode) {
+        178              case Paged:
+        179                  drawerViewPaged = (AppDrawer_Paged) layoutInflater.inflate(R.layout.view_pageddrawer, this, false);
+        180                  addView(drawerViewPaged);
+        181                  View indicator = layoutInflater.inflate(R.layout.view_drawerindicator, this, false);
+        182                  addView(indicator);
+        183                  break;
+        184              case Vertical:
+        185                  drawerViewGrid = (AppDrawer_Vertical) layoutInflater.inflate(R.layout.view_griddrawer, this, false);
+      ...  (5 more lines)
+      (core/java/android/view/LayoutInflater.java:615-617, 645-648: no line numbers)
+  14. Eeab16992 FRAMEWORK/standard*
+      AppDrawer_Vertical.<init>(Context,AttributeSet) -> AppDrawer_Vertical$1.onGlobalLayout
+      the first layout pass calls the OnGlobalLayoutListener registered in preInit()
+      evidence: SRC widget/AppDrawer_Vertical.java:63-80; FW-SRC core/java/android/view/ViewRootImpl.java:2248-2251 (performTraversals calls dispatchOnGlobalLayout of the tree observer, which calls the registered OnGlobalLayoutListener)
+         63      public void preInit() {
+         64          getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+         65              @Override
+         66              public void onGlobalLayout() {
+         67                  getViewTreeObserver().removeOnGlobalLayoutListener(this);
+         68  
+         69                  rl = (RelativeLayout) LayoutInflater.from(getContext()).inflate(R.layout.view_griddrawerinner, AppDrawer_Vertical.this, false);
+         70                  recyclerView = (RecyclerView) rl.findViewById(R.id.vDrawerRV);
+         71                  layoutManager = new GridLayoutManager(getContext(), LauncherSettings.getInstance(getContext()).generalSettings.drawerGridX);
+         72  
+         73                  itemWidth = (getWidth() - recyclerView.getPaddingRight() - recyclerView.getPaddingRight()) / layoutManager.getSpanCount();
+         74                  init();
+         75  
+         76                  if (!LauncherSettings.getInstance(getContext()).generalSettings.drawerShowIndicator)
+      ...  (4 more lines)
+      (core/java/android/view/ViewRootImpl.java not found in the source tree)
+  15. E7a33c6e8 CALL/explicit*
+      AppDrawer_Vertical$1.onGlobalLayout -> AppDrawer_Vertical.init
+      Direct call (through AppDrawer_Vertical.access$300)
+      evidence: SRC AppDrawer_Vertical.java:74 (bytecode)
+         74                  init();
+  16. E0b59202a FRAMEWORK/non_standard(FastAdapter library calls the item methods)
+      AppDrawer_Vertical.init -> AppDrawer_Vertical$AppItem.getFactory
+      the RecyclerView shows the rows: FastAdapter asks the item (getFactory)
+      evidence: SRC widget/AppDrawer_Vertical.java:167-217; INFERRED FastAdapter and RecyclerView ask the item for getType, getLayoutRes, getFactory and call bindView when a row is shown (library source not read)
+        167      public class AppItem extends AbstractItem<AppItem, AppItem.ViewHolder> {
+        168          public AppManager.App app;
+        169  
+        170          public AppItem(AppManager.App app) {
+        171              this.app = app;
+        172          }
+        173  
+        174          @Override
+        175          public int getType() {
+        176              return 0;
+        177          }
+        178  
+        179          @Override
+        180          public int getLayoutRes() {
+      ...  (37 more lines)
+  17. Eef712211 FRAMEWORK/non_standard(FastAdapter library calls the ViewHolderFactory)
+      AppDrawer_Vertical$AppItem.getFactory -> AppDrawer_Vertical$AppItem$ItemFactory.create
+      FastAdapter calls factory.create(view) for a new row
+      evidence: SRC widget/AppDrawer_Vertical.java:184-189; INFERRED FastAdapter and RecyclerView ask the item for getType, getLayoutRes, getFactory and call bindView when a row is shown (library source not read)
+        184          private final ViewHolderFactory<? extends AppItem.ViewHolder> FACTORY = new AppItem.ItemFactory();
+        185  
+        186          class ItemFactory implements ViewHolderFactory<AppItem.ViewHolder> {
+        187              public AppItem.ViewHolder create(View v) {
+        188                  return new AppItem.ViewHolder(v);
+        189              }
+  18. Eca084228 CALL/explicit*
+      AppDrawer_Vertical$AppItem$ItemFactory.create -> AppDrawer_Vertical$AppItem$ViewHolder.<init>
+      new ViewHolder(v)
+      evidence: SRC widget/AppDrawer_Vertical.java:187-188, 219-227
+      (widget/AppDrawer_Vertical.java:187-188, 219-227: no line numbers)
+  19. E56601e87 CALL/explicit*
+      AppDrawer_Vertical$AppItem$ViewHolder.<init> -> AppItemView.setTargetedWidth
+      appItemView.setTargetedWidth(itemWidth)
+      evidence: SRC widget/AppDrawer_Vertical.java:225
+        225                  appItemView.setTargetedWidth(itemWidth);
+
+## AppDrawerController.scrollToStart  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=- state=- classes=explicit;non_standard;standard explicit_standard_route=no
+   1. E3a1527b1 S_ENTRY -> Init.<init>  (printed above)
+   2. E996c92b8 Init.<init> -> Init.onCreate  (printed above)
+   3. E5aa97973 Init.onCreate -> S_INTRO  (printed above)
+   4. E8b7dd43a S_INTRO -> Init.onSkipButtonPressed  (printed above)
+   5. E23660de0 Init.onSkipButtonPressed -> Init.RockIt  (printed above)
+   6. E1701006d Init.RockIt -> Home.<init>  (printed above)
+   7. Ecded7dff Home.<init> -> Home.onCreate  (printed above)
+   8. E06eb37f4 Home.onCreate -> Home.onStart  (printed above)
+   9. E823bd16a Home.onStart -> Home.onResume  (printed above)
+  10. E0117cced Home.onResume -> Home.handleLauncherPause@DESKTOP  (printed above)
+  11. E9629945d Home.handleLauncherPause@DESKTOP -> GroupPopupView.dismissPopup  (printed above)
+  12. E506c5f2f GroupPopupView.dismissPopup -> S_HOME_DESKTOP  (printed above)
+  13. Ea422d5c6 GUI/standard*
+      S_HOME_DESKTOP -> Desktop$DesktopAdapter$3.onTouch
+      Touch the desktop page (the page touch listener remembers where the touch started)
+      evidence: SRC widget/Desktop.java:473-497; FW-SRC core/java/android/view/ViewGroup.java:2495-2520 (dispatchTouchEvent asks onInterceptTouchEvent on a down) and core/java/android/view/View.java:11764-11779 (dispatchTouchEvent calls the OnTouchListener, then onTouchEvent)
+        473              layout.setOnTouchListener(new OnTouchListener() {
+        474                  @Override
+        475                  public boolean onTouch(View view, MotionEvent ev) {
+        476                      currentEvent = ev;
+        477  
+        478                      if (ev.getAction() == MotionEvent.ACTION_DOWN) {
+        479                          startPosX = ev.getX();
+        480                          startPosY = ev.getY();
+        481                      }
+        482  
+        483                      if (ev.getAction() == MotionEvent.ACTION_UP) {
+        484                          float minDist = 150f;
+        485                          Tool.print((int) ev.getX(), (int) ev.getY());
+        486                          if (startPosY - ev.getY() > minDist) {
+      ...  (11 more lines)
+      (core/java/android/view/ViewGroup.java not found in the source tree)
+  14. E4547b4f3 CALL/explicit*
+      Desktop$DesktopAdapter$3.onTouch -> Home.openAppDrawer(View,int,int)
+      Direct call
+      evidence: SRC Desktop.java:491 (bytecode)
+        491                                  Home.launcher.openAppDrawer(Desktop.this, p.x, p.y - Tool.getNavBarHeight(getContext()) / 2);
+  15. Ebd6b113a ENTERS/page*
+      Home.openAppDrawer(View,int,int) -> S_HOME_DRAWER_PAGED
+      The circular reveal shows the paged drawer (the default style)
+      guard: drawerMode == Paged
+      evidence: SRC activity/Home.java:779-805; widget/AppDrawerController.java:63-113, 172-183
+        779      public void openAppDrawer(View view, int x, int y) {
+        780          if (!(x > 0 && y > 0)) {
+        781              int[] pos = new int[2];
+        782              view.getLocationInWindow(pos);
+        783              cx = pos[0];
+        784              cy = pos[1];
+        785  
+        786              cx += view.getWidth() / 2;
+        787              cy += view.getHeight() / 2;
+        788              if (view instanceof AppItemView) {
+        789                  AppItemView appItemView = (AppItemView) view;
+        790                  if (!appItemView.isNoLabel()) {
+        791                      cy -= Tool.dp2px(14, this) / 2;
+        792                  }
+      ...  (13 more lines)
+  16. E0a3a55aa SYSTEM/standard*
+      S_HOME_DRAWER_PAGED -> Home.onBackPressed@DRAWER
+      Press Back
+      evidence: SRC activity/Home.java:737-741; FW-SRC core/java/android/app/Activity.java:2886-2894, 2975-2985 (the Back key calls onBackPressed) and 3001-3010 (the platform onBackPressed pops the fragment back stack or finishes the activity)
+        737      @Override
+        738      public void onBackPressed() {
+        739          drawerLayout.closeDrawers();
+        740          handleLauncherPause();
+        741      }
+      (core/java/android/app/Activity.java:2886-2894, 2975-2985: no line numbers)
+  17. E7732f135 CALL/explicit*
+      Home.onBackPressed@DRAWER -> Home.handleLauncherPause@DRAWER
+      handleLauncherPause()
+      evidence: SRC activity/Home.java:738-741
+        738      public void onBackPressed() {
+        739          drawerLayout.closeDrawers();
+        740          handleLauncherPause();
+        741      }
+  18. E53edad65 CALL/explicit*
+      Home.handleLauncherPause@DRAWER -> Home.closeAppDrawer
+      the drawer view is visible: closeAppDrawer()
+      guard: !desktop.inEditMode && appDrawerController.getDrawer() != null and its visibility is VISIBLE
+      evidence: SRC activity/Home.java:752-755
+        752          if (desktop != null)
+        753              if (!desktop.inEditMode) {
+        754                  if (appDrawerController.getDrawer() != null && appDrawerController.getDrawer().getVisibility() == View.VISIBLE)
+        755                      closeAppDrawer();
+  19. E6a4724e2 CALL/explicit*
+      Home.closeAppDrawer -> AppDrawerController.close
+      Direct call
+      evidence: SRC Home.java:809 (bytecode)
+        809          appDrawerController.close(cx, cy, rad, finalRadius);
+  20. Ecfe22197 ASYNC/standard*
+      AppDrawerController.close -> AppDrawerController$3.run
+      paged style: the page fades out, then the end action starts the reveal animator
+      guard: appDrawerAnimator != null and not running, and drawerMode == Paged
+      evidence: SRC widget/AppDrawerController.java:115-158; FW-SRC core/java/android/view/ViewPropertyAnimator.java:841-847, 889-894, 1112-1130 (withEndAction stores the Runnable, startAnimation attaches it to the animator, the animator listener runs it in onAnimationEnd)
+        115      public void close(int cx, int cy, int startRadius, int finalRadius) {
+        116          if (appDrawerAnimator == null || appDrawerAnimator.isRunning())
+        117              return;
+        118  
+        119          appDrawerAnimator = io.codetail.animation.ViewAnimationUtils.createCircularReveal(getChildAt(0), cx, cy, finalRadius, startRadius);
+        120          appDrawerAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
+        121          appDrawerAnimator.setDuration(drawerAnimationTime);
+        122          appDrawerAnimator.addListener(new Animator.AnimatorListener() {
+        123              @Override
+        124              public void onAnimationStart(Animator p1) {
+        125                  closeCallBack.onStart();
+        126  
+        127                  ObjectAnimator animator = ObjectAnimator
+        128                          .ofPropertyValuesHolder(getBackground(),
+      ...  (30 more lines)
+      (core/java/android/view/ViewPropertyAnimator.java:841-847, 889-894, 1112-1130: no line numbers)
+  21. E1114aadb FRAMEWORK/non_standard(CircularReveal library animator calls the AnimatorListener)
+      AppDrawerController$3.run -> AppDrawerController$2.onAnimationEnd
+      appDrawerAnimator.start(): the hide animator calls its listener
+      evidence: SRC widget/AppDrawerController.java:122-168; INFERRED the animator created by the CircularReveal library calls its AnimatorListener while it runs (library source not read)
+        122          appDrawerAnimator.addListener(new Animator.AnimatorListener() {
+        123              @Override
+        124              public void onAnimationStart(Animator p1) {
+        125                  closeCallBack.onStart();
+        126  
+        127                  ObjectAnimator animator = ObjectAnimator
+        128                          .ofPropertyValuesHolder(getBackground(),
+        129                                  PropertyValuesHolder.ofInt("alpha", 255, 0));
+        130                  animator.setDuration(200);
+        131                  animator.start();
+        132              }
+        133  
+        134              @Override
+        135              public void onAnimationEnd(Animator p1) {
+      ...  (33 more lines)
+  22. E34537d4a CALL/explicit*
+      AppDrawerController$2.onAnimationEnd -> Home$6.onEnd
+      Virtual/interface call that can dispatch to this implementation
+      evidence: SRC AppDrawerController.java:136 (bytecode)
+        136                  closeCallBack.onEnd();
+  23. E9c94ad31 CALL/explicit*
+      Home$6.onEnd -> AppDrawerController.scrollToStart
+      Direct call
+      evidence: SRC Home.java:383 (bytecode)
+        383                      appDrawerController.scrollToStart();
+
+## WidgetView.<init>(Context)  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=- state=data classes=explicit;non_standard;standard explicit_standard_route=yes
+   1. E3a1527b1 S_ENTRY -> Init.<init>  (printed above)
+   2. E996c92b8 Init.<init> -> Init.onCreate  (printed above)
+   3. E5aa97973 Init.onCreate -> S_INTRO  (printed above)
+   4. E8b7dd43a S_INTRO -> Init.onSkipButtonPressed  (printed above)
+   5. E23660de0 Init.onSkipButtonPressed -> Init.RockIt  (printed above)
+   6. E1701006d Init.RockIt -> Home.<init>  (printed above)
+   7. Ecded7dff Home.<init> -> Home.onCreate  (printed above)
+   8. E6c305cd5 Home.onCreate -> Home$2.doInBackground  (printed above)
+   9. E460ef627 Home$2.doInBackground -> Home$2.onPostExecute  (printed above)
+  10. E5f090eaa Home$2.onPostExecute -> Home.init  (printed above)
+  11. Ea61923a1 CALL/explicit*
+      Home.init -> AppManager.init
+      Direct call
+      evidence: SRC Home.java:287 (bytecode)
+        287          AppManager.getInstance(this).init();
+  12. Eee7273ff CALL/explicit*
+      AppManager.init -> AppManager.getAllApps
+      Direct call
+      evidence: SRC AppManager.java:86 (bytecode)
+         86          getAllApps();
+  13. E2edd3534 ASYNC/standard*
+      AppManager.getAllApps -> AppManager$AsyncGetApps.doInBackground
+      the worker thread lists the launcher activities, applies the hidden list and an icon pack
+      evidence: SRC util/AppManager.java:101-107, 174-217; FW-SRC core/java/android/os/AsyncTask.java:219-224, 237-262, 594-596, 632-650, 326-334, 369-374, 285, 705-713, 691-697 (execute uses the serial executor, which hands each task to THREAD_POOL_EXECUTOR and the worker calls doInBackground; postResult sends the result to a main-looper handler whose handleMessage calls finish, which calls onPostExecute)
+      (util/AppManager.java:101-107, 174-217: no line numbers)
+      (core/java/android/os/AsyncTask.java:219-224, 237-262, 594-596, 632-650, 326-334, 369-374, 285, 705-713, 691-697: no line numbers)
+  14. Ef215f199 ASYNC/standard*
+      AppManager$AsyncGetApps.doInBackground -> AppManager$AsyncGetApps.onPostExecute
+      the list is ready: onPostExecute runs on the main thread and tells the listeners
+      evidence: SRC util/AppManager.java:219-251; FW-SRC core/java/android/os/AsyncTask.java:219-224, 237-262, 594-596, 632-650, 326-334, 369-374, 285, 705-713, 691-697 (execute uses the serial executor, which hands each task to THREAD_POOL_EXECUTOR and the worker calls doInBackground; postResult sends the result to a main-looper handler whose handleMessage calls finish, which calls onPostExecute)
+        219          @Override
+        220          protected void onPostExecute(Object result) {
+        221              for (AppUpdatedListener listener : updateListeners) {
+        222                  listener.onAppUpdated(apps);
+        223              }
+        224  
+        225              if (tempApps.size() > apps.size()) {
+        226                  App temp = null;
+        227                  for (int i = 0; i < tempApps.size(); i++) {
+        228                      if (!apps.contains(tempApps.get(i))) {
+        229                          temp = tempApps.get(i);
+        230                          break;
+        231                      }
+        232                  }
+      ...  (19 more lines)
+      (core/java/android/os/AsyncTask.java:219-224, 237-262, 594-596, 632-650, 326-334, 369-374, 285, 705-713, 691-697: no line numbers)
+  15. E9754a764 CALL/explicit*
+      AppManager$AsyncGetApps.onPostExecute -> Home$4.onAppDeleted
+      Virtual/interface call that can dispatch to this implementation
+      evidence: SRC AppManager.java:234 (bytecode)
+        234                      listener.onAppDeleted(temp);
+  16. Ec80c126c CALL/explicit*
+      Home$4.onAppDeleted -> Desktop.initDesktopItem
+      Direct call
+      evidence: SRC Home.java:282 (bytecode)
+        282                  desktop.initDesktopItem(Home.this);
+  17. Eddbe378e CALL/explicit* [STATE: Desktop or dock items were saved by an earlier run and the data files desktopData.json / dockData.json are read at the start of the process]
+      Desktop.initDesktopItem -> ItemViewFactory.getItemView@WIDGET
+      the desktop builds a saved WIDGET item
+      guard: desktopData holds an item of this type with x < desktopGridX and y < desktopGridY
+      evidence: SRC widget/Desktop.java:88-102
+         88      public void initDesktopItem(Home home) {
+         89          this.home = home;
+         90          int column = LauncherSettings.getInstance(getContext()).generalSettings.desktopGridX;
+         91          int row = LauncherSettings.getInstance(getContext()).generalSettings.desktopGridY;
+         92          for (int i = 0; i < LauncherSettings.getInstance(getContext()).desktopData.size(); i++) {
+         93              if (pages.size() <= i) break;
+         94              pages.get(i).removeAllViews();
+         95              List<Item> items = LauncherSettings.getInstance(getContext()).desktopData.get(i);
+         96              for (int j = 0; j < items.size(); j++) {
+         97                  Desktop.Item item = items.get(j);
+         98                  if (item.x < column && item.y < row)
+         99                      addItemToPagePosition(item, i);
+        100              }
+        101          }
+      ...  (1 more lines)
+  18. Eba47afc5 FRAMEWORK/standard*
+      ItemViewFactory.getItemView@WIDGET -> WidgetHost.onCreateView
+      Home.appWidgetHost.createView(context, id, info) calls the overridden onCreateView
+      guard: item.type == WIDGET
+      evidence: SRC viewutil/ItemViewFactory.java:82-85; FW-SRC core/java/android/appwidget/AppWidgetHost.java:373-393, 399-402 (createView calls onCreateView, which the app overrides, then fills the view with the widget RemoteViews)
+         82              case WIDGET:
+         83                  AppWidgetProviderInfo appWidgetInfo = Home.appWidgetManager.getAppWidgetInfo(item.widgetID);
+         84                  final WidgetView widgetView = (WidgetView) Home.appWidgetHost.createView(context, item.widgetID, appWidgetInfo);
+         85                  widgetView.setAppWidget(item.widgetID, appWidgetInfo);
+      (core/java/android/appwidget/AppWidgetHost.java:373-393, 399-402: no line numbers)
+  19. Ebae97443 CALL/explicit*
+      WidgetHost.onCreateView -> WidgetView.<init>(Context)
+      new WidgetView(context)
+      evidence: SRC viewutil/WidgetHost.java:16-19
+         16      @Override
+         17      protected AppWidgetHostView onCreateView(Context context, int appWidgetId, AppWidgetProviderInfo appWidget) {
+         18          return new WidgetView(context);
+         19      }
+
+## CellContainer.findFreeSpace()  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=- state=- classes=explicit;non_standard;standard explicit_standard_route=yes
+   1. E3a1527b1 S_ENTRY -> Init.<init>  (printed above)
+   2. E996c92b8 Init.<init> -> Init.onCreate  (printed above)
+   3. E5aa97973 Init.onCreate -> S_INTRO  (printed above)
+   4. E8b7dd43a S_INTRO -> Init.onSkipButtonPressed  (printed above)
+   5. E23660de0 Init.onSkipButtonPressed -> Init.RockIt  (printed above)
+   6. E1701006d Init.RockIt -> Home.<init>  (printed above)
+   7. Ecded7dff Home.<init> -> Home.onCreate  (printed above)
+   8. E06eb37f4 Home.onCreate -> Home.onStart  (printed above)
+   9. E823bd16a Home.onStart -> Home.onResume  (printed above)
+  10. E0117cced Home.onResume -> Home.handleLauncherPause@DESKTOP  (printed above)
+  11. E9629945d Home.handleLauncherPause@DESKTOP -> GroupPopupView.dismissPopup  (printed above)
+  12. E506c5f2f GroupPopupView.dismissPopup -> S_HOME_DESKTOP  (printed above)
+  13. E539087ed GUI/standard*
+      S_HOME_DESKTOP -> Desktop$DesktopAdapter$5.onLongClick
+      Long-press an empty area of the desktop page
+      evidence: SRC widget/Desktop.java:520-537; FW-SRC core/java/android/view/View.java:12972-12990, 13029-13044, 24767-24771 (a tap on a clickable view posts PerformClick, which calls performClick) and 23212-23225, 24725-24739 (a press held for the long-press timeout calls performLongClick); core/java/android/view/View.java:6289-6300, 6368-6375, 11764-11779 (performClick and performLongClick call the OnClickListener / OnLongClickListener set with setOn...Listener; dispatchTouchEvent calls the OnTouchListener first)
+        520              layout.setOnLongClickListener(new OnLongClickListener() {
+        521                  @Override
+        522                  public boolean onLongClick(View view) {
+        523                      scaleFactor = 0.85f;
+        524                      for (CellContainer v : desktop.pages) {
+        525                          v.setPivotY(v.getHeight() / 2 - Tool.dp2px(50, desktop.getContext()));
+        526                          v.setPivotX(v.getWidth() / 2);
+        527  
+        528                          v.blockTouch = true;
+        529                          v.animateBackgroundShow();
+        530                          v.animate().scaleX(scaleFactor).scaleY(scaleFactor).setInterpolator(new AccelerateDecelerateInterpolator());
+        531                      }
+        532                      desktop.inEditMode = true;
+        533                      if (desktop.desktopEditListener != null)
+      ...  (4 more lines)
+      (core/java/android/view/View.java:12972-12990, 13029-13044, 24767-24771: no line numbers)
+  14. E93cf49d5 ENTERS/page*
+      Desktop$DesktopAdapter$5.onLongClick -> S_HOME_EDIT
+      The pages scale down, the edit panel appears and page touches are blocked
+      evidence: SRC widget/Desktop.java:522-535
+        522                  public boolean onLongClick(View view) {
+        523                      scaleFactor = 0.85f;
+        524                      for (CellContainer v : desktop.pages) {
+        525                          v.setPivotY(v.getHeight() / 2 - Tool.dp2px(50, desktop.getContext()));
+        526                          v.setPivotX(v.getWidth() / 2);
+        527  
+        528                          v.blockTouch = true;
+        529                          v.animateBackgroundShow();
+        530                          v.animate().scaleX(scaleFactor).scaleY(scaleFactor).setInterpolator(new AccelerateDecelerateInterpolator());
+        531                      }
+        532                      desktop.inEditMode = true;
+        533                      if (desktop.desktopEditListener != null)
+        534                          desktop.desktopEditListener.onDesktopEdit();
+        535                      return true;
+  15. Ebff6f424 GUI/non_standard(ButterKnife: the generated DebouncingOnClickListener calls doClick)
+      S_HOME_EDIT -> Home$$ViewBinder$4.doClick
+      Tap "Action" in the edit panel
+      evidence: SRC activity/Home.java:470; res/layout/view_desktop_edit_option.xml:11-59; INFERRED ButterKnife.bind loads the generated <Class>$$ViewBinder by name and calls its bind, which registers the click listeners and reads the views (ButterKnife source not read; the generated class is in the APK); FW-SRC core/java/android/view/View.java:12972-12990, 13029-13044, 24767-24771 (a tap on a clickable view posts PerformClick, which calls performClick) and 23212-23225, 24725-24739 (a press held for the long-press timeout calls performLongClick); core/java/android/view/View.java:6289-6300, 6368-6375, 11764-11779 (performClick and performLongClick call the OnClickListener / OnLongClickListener set with setOn...Listener; dispatchTouchEvent calls the OnTouchListener first)
+        470      @OnClick({R.id.removepage, R.id.setashomepage, R.id.addwidgetbtn, R.id.addLauncherAction, R.id.openSettings})
+      (core/java/android/view/View.java:12972-12990, 13029-13044, 24767-24771: no line numbers)
+  16. E3a13d9d6 CALL/explicit
+      Home$$ViewBinder$4.doClick -> Home.onViewClicked@ACTION
+      doClick calls target.onViewClicked(view)
+      evidence: INFERRED generated ButterKnife class (no source file in the dataset; the class file shows this call); SRC activity/Home.java:470-488
+        470      @OnClick({R.id.removepage, R.id.setashomepage, R.id.addwidgetbtn, R.id.addLauncherAction, R.id.openSettings})
+        471      public void onViewClicked(View view) {
+        472          switch (view.getId()) {
+        473              case R.id.removepage:
+        474                  desktop.removeCurrentPage();
+        475                  break;
+        476              case R.id.setashomepage:
+        477                  LauncherSettings.getInstance(Home.this).generalSettings.desktopHomePage = desktop.getCurrentItem();
+        478                  break;
+        479              case R.id.addwidgetbtn:
+        480                  pickWidget(view);
+        481                  break;
+        482              case R.id.addLauncherAction:
+        483                  addLauncherAction(view);
+      ...  (5 more lines)
+  17. E07d7afc7 CALL/explicit*
+      Home.onViewClicked@ACTION -> Home.addLauncherAction
+      addLauncherAction(view)
+      evidence: SRC activity/Home.java:482-484
+        482              case R.id.addLauncherAction:
+        483                  addLauncherAction(view);
+        484                  break;
+  18. E5e9eb634 ENTERS/page*
+      Home.addLauncherAction -> S_ACTION_MENU
+      PopupMenu.show(): the menu with the single item "AppDrawer"
+      evidence: SRC activity/Home.java:491-501; res/menu/launcher_action.xml:3-5; INFERRED the support PopupMenu calls the OnMenuItemClickListener when an item is tapped (support library source not read)
+        491      private void addLauncherAction(View view) {
+        492          PopupMenu pm = new PopupMenu(this, view);
+        493          pm.inflate(R.menu.launcher_action);
+        494          pm.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+        495              @Override
+        496              public boolean onMenuItemClick(MenuItem item) {
+        497                  return onOptionsItemSelected(item);
+        498              }
+        499          });
+        500          pm.show();
+        501      }
+  19. E4f315aed GUI/standard
+      S_ACTION_MENU -> Home$9.onMenuItemClick
+      Tap "AppDrawer" in the popup menu
+      evidence: SRC activity/Home.java:494-499; INFERRED the support PopupMenu calls the OnMenuItemClickListener when an item is tapped (support library source not read)
+        494          pm.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+        495              @Override
+        496              public boolean onMenuItemClick(MenuItem item) {
+        497                  return onOptionsItemSelected(item);
+        498              }
+        499          });
+  20. Ee23d816a CALL/explicit*
+      Home$9.onMenuItemClick -> Home.onOptionsItemSelected
+      Direct call
+      evidence: SRC Home.java:497 (bytecode)
+        497                  return onOptionsItemSelected(item);
+  21. Ee333d331 CALL/explicit*
+      Home.onOptionsItemSelected -> CellContainer.findFreeSpace()
+      Direct call
+      evidence: SRC Home.java:507 (bytecode)
+        507                  Point pos = desktop.getCurrentPage().findFreeSpace();
+
+## MiniPopupView$ClearRamViewHolder$$ViewBinder$InnerUnbinder.<init>  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=- state=- classes=explicit;non_standard;standard explicit_standard_route=no
+   1. E3a1527b1 S_ENTRY -> Init.<init>  (printed above)
+   2. E996c92b8 Init.<init> -> Init.onCreate  (printed above)
+   3. E5aa97973 Init.onCreate -> S_INTRO  (printed above)
+   4. E8b7dd43a S_INTRO -> Init.onSkipButtonPressed  (printed above)
+   5. E23660de0 Init.onSkipButtonPressed -> Init.RockIt  (printed above)
+   6. E1701006d Init.RockIt -> Home.<init>  (printed above)
+   7. Ecded7dff Home.<init> -> Home.onCreate  (printed above)
+   8. E93498ba6 FRAMEWORK/non_standard(LayoutInflater builds the view class named in the XML layout by reflection)
+      Home.onCreate -> SwipeListView.<init>(Context,AttributeSet)
+      setContentView inflates the layout, which names <SwipeListView>
+      evidence: SRC res/layout/activity_home.xml:21-30; activity/Home.java:194-195; FW-SRC core/java/android/view/LayoutInflater.java:615-617, 645-648 (createView looks up the (Context, AttributeSet) constructor of the view class named in the XML and calls newInstance)
+      (core/java/android/view/LayoutInflater.java:615-617, 645-648: no line numbers)
+   9. Ec297a09e CALL/explicit*
+      SwipeListView.<init>(Context,AttributeSet) -> SwipeListView.init
+      Direct call
+      evidence: SRC SwipeListView.java:33 (bytecode)
+         33          init();
+  10. E9cea3247 FRAMEWORK/standard*
+      SwipeListView.init -> SwipeListView$1.onFling
+      the GestureDetector calls onFling when a touch ends with enough velocity
+      guard: Math.abs(dx) > dis && Math.abs(dy) < vDis; the touch is processed by dispatchTouchEvent
+      evidence: SRC widget/SwipeListView.java:42-74; FW-SRC core/java/android/view/GestureDetector.java:640-657 (the detector calls the listener onFling when a touch ends with enough velocity)
+         42      private void init() {
+         43          if (isInEditMode()) return;
+         44  
+         45          final float dis = Tool.dp2px(10, getContext());
+         46          final float vDis = Tool.dp2px(30, getContext());
+         47          mGestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener() {
+         48              public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+         49                  if (e1 == null) return true;
+         50                  int dx = (int) (e2.getX() - e1.getX());
+         51                  int dy = (int) (e2.getY() - e1.getY());
+         52                  if (Math.abs(dx) > dis && Math.abs(dy) < vDis) {
+         53                      if (velocityX > 0) {
+         54                          try {
+         55                              int pos = pointToPosition((int) e1.getX(), (int) e1.getY());
+      ...  (19 more lines)
+      (core/java/android/view/GestureDetector.java not found in the source tree)
+  11. E9a03d612 CALL/explicit*
+      SwipeListView$1.onFling -> Home$10.onSwipe@CLEARRAM
+      onSwipeRight.onSwipe(pos, x, y) for the row: the donut icon (Clear RAM)
+      guard: velocityX > 0, |dx| > 10 dp, |dy| < 30 dp, pointToPosition != -1 and onSwipeRight != null
+      evidence: SRC widget/SwipeListView.java:47-66
+         47          mGestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener() {
+         48              public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+         49                  if (e1 == null) return true;
+         50                  int dx = (int) (e2.getX() - e1.getX());
+         51                  int dy = (int) (e2.getY() - e1.getY());
+         52                  if (Math.abs(dx) > dis && Math.abs(dy) < vDis) {
+         53                      if (velocityX > 0) {
+         54                          try {
+         55                              int pos = pointToPosition((int) e1.getX(), (int) e1.getY());
+         56                              if (pos != -1 && onSwipeRight != null)
+         57                                  onSwipeRight.onSwipe(pos, e1.getX(), e1.getY());
+         58                          } catch (Exception ignored) {
+         59  
+         60                          }
+      ...  (6 more lines)
+  12. E33c72cbe CALL/explicit*
+      Home$10.onSwipe@CLEARRAM -> MiniPopupView.showActionWindow@CLEARRAM
+      miniPopup.showActionWindow(Action.valueOf(label), x, y)
+      evidence: SRC activity/Home.java:585-590
+        585          minBar.setOnSwipeRight(new SwipeListView.OnSwipeRight() {
+        586              @Override
+        587              public void onSwipe(int pos, float x, float y) {
+        588                  miniPopup.showActionWindow(LauncherAction.Action.valueOf(labels.get(pos)), x, y + (shortcutLayout.getHeight() - minBar.getHeight()) / 2 - Tool.getNavBarHe
+        589              }
+        590          });
+  13. E5b7c3492 CALL/explicit*
+      MiniPopupView.showActionWindow@CLEARRAM -> MiniPopupView$ClearRamViewHolder.<init>
+      new ClearRamViewHolder(window)
+      guard: action == ClearRam
+      evidence: SRC widget/MiniPopupView.java:57-60
+         57              case ClearRam:
+         58                  window = LayoutInflater.from(getContext()).inflate(R.layout.window_clearam, this, false);
+         59                  ClearRamViewHolder clearRamViewHolder = new ClearRamViewHolder(window);
+         60                  clearRamViewHolder.availableRam.setText(clearRamViewHolder.availableRam.getText() + Tool.getFreeRAM(getContext()));
+  14. E13b0a69a FRAMEWORK/non_standard(ButterKnife: the generated binder is loaded by name)
+      MiniPopupView$ClearRamViewHolder.<init> -> MiniPopupView$ClearRamViewHolder$$ViewBinder.bind
+      ButterKnife.bind(this, view) calls bind
+      evidence: SRC widget/MiniPopupView.java:163-172; INFERRED ButterKnife.bind loads the generated <Class>$$ViewBinder by name and calls its bind, which registers the click listeners and reads the views (ButterKnife source not read; the generated class is in the APK)
+        163      static class ClearRamViewHolder {
+        164          @BindView(R.id.available_ram)
+        165          TextView availableRam;
+        166          @BindView(R.id.available_storage)
+        167          TextView availableStorage;
+        168  
+        169          ClearRamViewHolder(View view) {
+        170              ButterKnife.bind(this, view);
+        171          }
+        172      }
+  15. Eb65c5e5a CALL/explicit
+      MiniPopupView$ClearRamViewHolder$$ViewBinder.bind -> MiniPopupView$ClearRamViewHolder$$ViewBinder.createUnbinder
+      bind creates the unbinder
+      evidence: INFERRED generated ButterKnife class (no source file in the dataset; the class file shows this call)
+  16. E494d6177 CALL/explicit
+      MiniPopupView$ClearRamViewHolder$$ViewBinder.createUnbinder -> MiniPopupView$ClearRamViewHolder$$ViewBinder$InnerUnbinder.<init>
+      createUnbinder builds the InnerUnbinder
+      evidence: INFERRED generated ButterKnife class (no source file in the dataset; the class file shows this call)
+
+## Tool.checkForUnusedIconAndDelete  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=- state=- classes=explicit;non_standard;standard explicit_standard_route=no
+   1. E3a1527b1 S_ENTRY -> Init.<init>  (printed above)
+   2. E996c92b8 Init.<init> -> Init.onCreate  (printed above)
+   3. E5aa97973 Init.onCreate -> S_INTRO  (printed above)
+   4. E8b7dd43a S_INTRO -> Init.onSkipButtonPressed  (printed above)
+   5. E23660de0 Init.onSkipButtonPressed -> Init.RockIt  (printed above)
+   6. E1701006d Init.RockIt -> Home.<init>  (printed above)
+   7. Ecded7dff Home.<init> -> Home.onCreate  (printed above)
+   8. E06eb37f4 Home.onCreate -> Home.onStart  (printed above)
+   9. E823bd16a Home.onStart -> Home.onResume  (printed above)
+  10. E0117cced Home.onResume -> Home.handleLauncherPause@DESKTOP  (printed above)
+  11. E9629945d Home.handleLauncherPause@DESKTOP -> GroupPopupView.dismissPopup  (printed above)
+  12. E506c5f2f GroupPopupView.dismissPopup -> S_HOME_DESKTOP  (printed above)
+  13. E2b9b86b1 S_HOME_DESKTOP -> Home.onDrawerStateChanged  (printed above)
+  14. Ecb7f915c Home.onDrawerStateChanged -> S_HOME_MINIBAR  (printed above)
+  15. Ee8ace45b S_HOME_MINIBAR -> Home$11.onItemClick@LauncherSettings  (printed above)
+  16. Ebf800b8a Home$11.onItemClick@LauncherSettings -> LauncherAction.RunAction@LauncherSettings  (printed above)
+  17. Ebd0c7205 LauncherAction.RunAction@LauncherSettings -> SettingsActivity.onCreate  (printed above)
+  18. Ee3b2c4ce SettingsActivity.onCreate -> S_SETTINGS_ROOT  (printed above)
+  19. Edb554be5 GUI/non_standard(MaterialPrefFragment library (vendored) calls the OnPrefClickedListener when a ButtonPref is tapped)
+      S_SETTINGS_ROOT -> SettingsActivity.onPrefClicked@desktopSettings
+      Tap "Desktop" on the Settings root screen
+      guard: id == 'desktopSettings'
+      evidence: SRC activity/SettingsActivity.java:41-49, 302-324; SRC libs/materialpreffragment/src/main/java/com/bennyv5/materialpreffragment/MaterialPrefFragment.java:360-373 (ButtonPref.onCreateView sets the click listener to the fragment itself) and libs/materialpreffragment/src/main/java/com/bennyv5/materialpreffragment/MaterialPrefFragment.java:113-119 (onClick reads the pref id tag and calls the registered OnPrefClickedListener)
+      (activity/SettingsActivity.java:41-49, 302-324: no line numbers)
+        360          @Override
+        361          public View onCreateView(Context c, MaterialPrefFragment fragment, SharedPreferences sharedPrefs) {
+        362              Button b = new Button(c);
+        363              setStyle(b, fragment);
+        364  
+        365              b.setTag(fragment.TAG_ID, id);
+        366              if (icon != null) {
+        367                  b.setCompoundDrawablePadding(Tool.dp2px(20, c));
+        368                  b.setCompoundDrawablesWithIntrinsicBounds(icon, null, null, null);
+        369              }
+        370              b.setOnClickListener(fragment);
+        371              b.setText(warpText(summary, title, fragment));
+        372              return warpCardView(b, fragment);
+        373          }
+  20. Ee140035c CALL/explicit*
+      SettingsActivity.onPrefClicked@desktopSettings -> SettingsActivity.onSettingsSelected@0
+      onSettingsSelected(0)
+      guard: id == 'desktopSettings'
+      evidence: SRC activity/SettingsActivity.java:304-324
+        304              case "desktopSettings":
+        305                  onSettingsSelected(0);
+        306                  break;
+        307              case "dockSettings":
+        308                  onSettingsSelected(1);
+        309                  break;
+        310              case "drawerSettings":
+        311                  onSettingsSelected(2);
+        312                  break;
+        313              case "inputSettings":
+        314                  onSettingsSelected(3);
+        315                  break;
+        316              case "colorsSettings":
+        317                  onSettingsSelected(4);
+      ...  (7 more lines)
+  21. E7bba8962 ENTERS/page*
+      SettingsActivity.onSettingsSelected@0 -> S_SETTINGS_DESKTOP
+      the Desktop sub-screen fragment replaces the root list (fragment transaction, added to the back stack)
+      guard: settingsCategory == 0
+      evidence: SRC activity/SettingsActivity.java:54-138
+         54      public void onSettingsSelected(int settingsCategory) {
+         55          LauncherSettings.GeneralSettings generalSettings = LauncherSettings.getInstance(this).generalSettings;
+         56          MaterialPrefFragment fragment;
+         57          switch (settingsCategory) {
+         58              default:
+         59                  fragment = MaterialPrefFragment.newInstance(new MaterialPrefFragment.Builder(this, Color.DKGRAY, ContextCompat.getColor(this, R.color.Light_TextColor), Co
+         60                          .add(new MaterialPrefFragment.ButtonPref("editMiniBar", getString(R.string.settings_desktopMinibar), getString(R.string.settings_desktopMinibar_su
+         61                          .add(new MaterialPrefFragment.ButtonPref("desktopMode", (getString(R.string.settings_desktopStyle)), (getString(R.string.settings_desktopStyle_sum
+         62                          // FIXME: 11/25/2016 This will have problem (in allAppsMode) as the apps will be cut off when scale down
+         63                          .add(new MaterialPrefFragment.NUMPref("gridSizeDesktop", (getString(R.string.settings_desktopSize)), (getString(R.string.settings_desktopSize_summ
+         64                                  new MaterialPrefFragment.NUMPref.NUMPrefItem("hGridSizeDesktop", (getString(R.string.settings_column)), generalSettings.desktopGridX, 4, 1
+         65                                  new MaterialPrefFragment.NUMPref.NUMPrefItem("vGridSizeDesktop", (getString(R.string.settings_row)), generalSettings.desktopGridY, 4, 10)
+         66                          ))
+         67                          .add(new MaterialPrefFragment.TBPref("desktopSearchBar", (getString(R.string.settings_desktopSearch)), (getString(R.string.settings_desktopSearch_
+      ...  (71 more lines)
+  22. Ee7603858 GUI/non_standard(MaterialPrefFragment library calls the OnPrefClickedListener)
+      S_SETTINGS_DESKTOP -> SettingsActivity.onPrefClicked@desktopMode
+      Tap "Desktop style" on Settings > Desktop
+      guard: id == 'desktopMode'
+      evidence: SRC activity/SettingsActivity.java:61-62, 341-344; SRC libs/materialpreffragment/src/main/java/com/bennyv5/materialpreffragment/MaterialPrefFragment.java:360-373 (ButtonPref.onCreateView sets the click listener to the fragment itself) and libs/materialpreffragment/src/main/java/com/bennyv5/materialpreffragment/MaterialPrefFragment.java:113-119 (onClick reads the pref id tag and calls the registered OnPrefClickedListener)
+      (activity/SettingsActivity.java:61-62, 341-344: no line numbers)
+        360          @Override
+        361          public View onCreateView(Context c, MaterialPrefFragment fragment, SharedPreferences sharedPrefs) {
+        362              Button b = new Button(c);
+        363              setStyle(b, fragment);
+        364  
+        365              b.setTag(fragment.TAG_ID, id);
+        366              if (icon != null) {
+        367                  b.setCompoundDrawablePadding(Tool.dp2px(20, c));
+        368                  b.setCompoundDrawablesWithIntrinsicBounds(icon, null, null, null);
+        369              }
+        370              b.setOnClickListener(fragment);
+        371              b.setText(warpText(summary, title, fragment));
+        372              return warpCardView(b, fragment);
+        373          }
+  23. Ea8d50c1a CALL/explicit*
+      SettingsActivity.onPrefClicked@desktopMode -> DialogUtils.desktopStylePicker
+      DialogUtils.desktopStylePicker(this)
+      guard: id == 'desktopMode'
+      evidence: SRC activity/SettingsActivity.java:341-344
+        341              case "desktopMode":
+        342                  DialogUtils.desktopStylePicker(this);
+        343                  prepareRestart();
+        344                  break;
+  24. Ec36a57c1 ENTERS/page*
+      DialogUtils.desktopStylePicker -> S_DLG_DESKTOP_STYLE
+      b.show(): single-choice list Normal / Show all apps
+      evidence: SRC util/DialogUtils.java:19-30; INFERRED MaterialDialogs builds the dialog and calls the registered callbacks when the user acts (library source not read)
+         19      public static void desktopStylePicker(final Context context) {
+         20          MaterialDialog.Builder builder = new MaterialDialog.Builder(context);
+         21          builder.title(context.getString(R.string.settings_desktopStyle))
+         22                  .items(R.array.desktopStyleEntries)
+         23                  .itemsCallbackSingleChoice(LauncherSettings.getInstance(context).generalSettings.desktopHomePage, new MaterialDialog.ListCallbackSingleChoice() {
+         24                      @Override
+         25                      public boolean onSelection(MaterialDialog dialog, View itemView, int position, CharSequence text) {
+         26                          LauncherSettings.getInstance(context).switchDesktopMode(position);
+         27                          return true;
+         28                      }
+         29                  }).show();
+         30      }
+  25. Ecb1e09d0 GUI/non_standard(MaterialDialogs library calls the ListCallbackSingleChoice)
+      S_DLG_DESKTOP_STYLE -> DialogUtils$1.onSelection
+      Tap "Normal" or "Show all apps"
+      evidence: SRC util/DialogUtils.java:23-28; INFERRED MaterialDialogs builds the dialog and calls the registered callbacks when the user acts (library source not read)
+         23                  .itemsCallbackSingleChoice(LauncherSettings.getInstance(context).generalSettings.desktopHomePage, new MaterialDialog.ListCallbackSingleChoice() {
+         24                      @Override
+         25                      public boolean onSelection(MaterialDialog dialog, View itemView, int position, CharSequence text) {
+         26                          LauncherSettings.getInstance(context).switchDesktopMode(position);
+         27                          return true;
+         28                      }
+  26. Ef5aaed4b CALL/explicit*
+      DialogUtils$1.onSelection -> LauncherSettings.switchDesktopMode
+      LauncherSettings.getInstance(context).switchDesktopMode(position)
+      evidence: SRC util/DialogUtils.java:26
+         26                          LauncherSettings.getInstance(context).switchDesktopMode(position);
+  27. E5e2263e9 CALL/explicit*
+      LauncherSettings.switchDesktopMode -> Tool.checkForUnusedIconAndDelete
+      icon files not referenced by any item are deleted from the cache
+      evidence: SRC util/LauncherSettings.java:202
+        202          Tool.checkForUnusedIconAndDelete(context, iconCacheIDs);
+
+## LauncherSettings.setPinchGesture  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=- state=- classes=explicit;non_standard;standard explicit_standard_route=no
+   1. E3a1527b1 S_ENTRY -> Init.<init>  (printed above)
+   2. E996c92b8 Init.<init> -> Init.onCreate  (printed above)
+   3. E5aa97973 Init.onCreate -> S_INTRO  (printed above)
+   4. E8b7dd43a S_INTRO -> Init.onSkipButtonPressed  (printed above)
+   5. E23660de0 Init.onSkipButtonPressed -> Init.RockIt  (printed above)
+   6. E1701006d Init.RockIt -> Home.<init>  (printed above)
+   7. Ecded7dff Home.<init> -> Home.onCreate  (printed above)
+   8. E06eb37f4 Home.onCreate -> Home.onStart  (printed above)
+   9. E823bd16a Home.onStart -> Home.onResume  (printed above)
+  10. E0117cced Home.onResume -> Home.handleLauncherPause@DESKTOP  (printed above)
+  11. E9629945d Home.handleLauncherPause@DESKTOP -> GroupPopupView.dismissPopup  (printed above)
+  12. E506c5f2f GroupPopupView.dismissPopup -> S_HOME_DESKTOP  (printed above)
+  13. E2b9b86b1 S_HOME_DESKTOP -> Home.onDrawerStateChanged  (printed above)
+  14. Ecb7f915c Home.onDrawerStateChanged -> S_HOME_MINIBAR  (printed above)
+  15. Ee8ace45b S_HOME_MINIBAR -> Home$11.onItemClick@LauncherSettings  (printed above)
+  16. Ebf800b8a Home$11.onItemClick@LauncherSettings -> LauncherAction.RunAction@LauncherSettings  (printed above)
+  17. Ebd0c7205 LauncherAction.RunAction@LauncherSettings -> SettingsActivity.onCreate  (printed above)
+  18. Ee3b2c4ce SettingsActivity.onCreate -> S_SETTINGS_ROOT  (printed above)
+  19. Ead6d057a GUI/non_standard(MaterialPrefFragment library (vendored) calls the OnPrefClickedListener when a ButtonPref is tapped)
+      S_SETTINGS_ROOT -> SettingsActivity.onPrefClicked@inputSettings
+      Tap "Gestures" on the Settings root screen
+      guard: id == 'inputSettings'
+      evidence: SRC activity/SettingsActivity.java:41-49, 302-324; SRC libs/materialpreffragment/src/main/java/com/bennyv5/materialpreffragment/MaterialPrefFragment.java:360-373 (ButtonPref.onCreateView sets the click listener to the fragment itself) and libs/materialpreffragment/src/main/java/com/bennyv5/materialpreffragment/MaterialPrefFragment.java:113-119 (onClick reads the pref id tag and calls the registered OnPrefClickedListener)
+      (activity/SettingsActivity.java:41-49, 302-324: no line numbers)
+        360          @Override
+        361          public View onCreateView(Context c, MaterialPrefFragment fragment, SharedPreferences sharedPrefs) {
+        362              Button b = new Button(c);
+        363              setStyle(b, fragment);
+        364  
+        365              b.setTag(fragment.TAG_ID, id);
+        366              if (icon != null) {
+        367                  b.setCompoundDrawablePadding(Tool.dp2px(20, c));
+        368                  b.setCompoundDrawablesWithIntrinsicBounds(icon, null, null, null);
+        369              }
+        370              b.setOnClickListener(fragment);
+        371              b.setText(warpText(summary, title, fragment));
+        372              return warpCardView(b, fragment);
+        373          }
+  20. E0450ddb1 CALL/explicit*
+      SettingsActivity.onPrefClicked@inputSettings -> SettingsActivity.onSettingsSelected@3
+      onSettingsSelected(3)
+      guard: id == 'inputSettings'
+      evidence: SRC activity/SettingsActivity.java:304-324
+        304              case "desktopSettings":
+        305                  onSettingsSelected(0);
+        306                  break;
+        307              case "dockSettings":
+        308                  onSettingsSelected(1);
+        309                  break;
+        310              case "drawerSettings":
+        311                  onSettingsSelected(2);
+        312                  break;
+        313              case "inputSettings":
+        314                  onSettingsSelected(3);
+        315                  break;
+        316              case "colorsSettings":
+        317                  onSettingsSelected(4);
+      ...  (7 more lines)
+  21. Ea16d87c5 ENTERS/page*
+      SettingsActivity.onSettingsSelected@3 -> S_SETTINGS_INPUT
+      the Gestures sub-screen fragment replaces the root list (fragment transaction, added to the back stack)
+      guard: settingsCategory == 3
+      evidence: SRC activity/SettingsActivity.java:54-138
+         54      public void onSettingsSelected(int settingsCategory) {
+         55          LauncherSettings.GeneralSettings generalSettings = LauncherSettings.getInstance(this).generalSettings;
+         56          MaterialPrefFragment fragment;
+         57          switch (settingsCategory) {
+         58              default:
+         59                  fragment = MaterialPrefFragment.newInstance(new MaterialPrefFragment.Builder(this, Color.DKGRAY, ContextCompat.getColor(this, R.color.Light_TextColor), Co
+         60                          .add(new MaterialPrefFragment.ButtonPref("editMiniBar", getString(R.string.settings_desktopMinibar), getString(R.string.settings_desktopMinibar_su
+         61                          .add(new MaterialPrefFragment.ButtonPref("desktopMode", (getString(R.string.settings_desktopStyle)), (getString(R.string.settings_desktopStyle_sum
+         62                          // FIXME: 11/25/2016 This will have problem (in allAppsMode) as the apps will be cut off when scale down
+         63                          .add(new MaterialPrefFragment.NUMPref("gridSizeDesktop", (getString(R.string.settings_desktopSize)), (getString(R.string.settings_desktopSize_summ
+         64                                  new MaterialPrefFragment.NUMPref.NUMPrefItem("hGridSizeDesktop", (getString(R.string.settings_column)), generalSettings.desktopGridX, 4, 1
+         65                                  new MaterialPrefFragment.NUMPref.NUMPrefItem("vGridSizeDesktop", (getString(R.string.settings_row)), generalSettings.desktopGridY, 4, 10)
+         66                          ))
+         67                          .add(new MaterialPrefFragment.TBPref("desktopSearchBar", (getString(R.string.settings_desktopSearch)), (getString(R.string.settings_desktopSearch_
+      ...  (71 more lines)
+  22. E575e0070 GUI/non_standard(MaterialPrefFragment library calls the OnPrefClickedListener)
+      S_SETTINGS_INPUT -> SettingsActivity.onPrefClicked@pinch
+      Tap "Pinch" on Settings > Gestures
+      guard: id == 'pinch'
+      evidence: SRC activity/SettingsActivity.java:103, 351-352; SRC libs/materialpreffragment/src/main/java/com/bennyv5/materialpreffragment/MaterialPrefFragment.java:360-373 (ButtonPref.onCreateView sets the click listener to the fragment itself) and libs/materialpreffragment/src/main/java/com/bennyv5/materialpreffragment/MaterialPrefFragment.java:113-119 (onClick reads the pref id tag and calls the registered OnPrefClickedListener)
+      (activity/SettingsActivity.java:103, 351-352: no line numbers)
+        360          @Override
+        361          public View onCreateView(Context c, MaterialPrefFragment fragment, SharedPreferences sharedPrefs) {
+        362              Button b = new Button(c);
+        363              setStyle(b, fragment);
+        364  
+        365              b.setTag(fragment.TAG_ID, id);
+        366              if (icon != null) {
+        367                  b.setCompoundDrawablePadding(Tool.dp2px(20, c));
+        368                  b.setCompoundDrawablesWithIntrinsicBounds(icon, null, null, null);
+        369              }
+        370              b.setOnClickListener(fragment);
+        371              b.setText(warpText(summary, title, fragment));
+        372              return warpCardView(b, fragment);
+        373          }
+  23. E78f38f17 CALL/explicit*
+      SettingsActivity.onPrefClicked@pinch -> DialogUtils.startPinchPicker
+      DialogUtils.startPinchPicker(this)
+      guard: id == 'pinch'
+      evidence: SRC activity/SettingsActivity.java:351-352
+        351              case "pinch":
+        352                  DialogUtils.startPinchPicker(this);
+  24. E4da1ee5e ENTERS/page*
+      DialogUtils.startPinchPicker -> S_DLG_GESTURE@pinch
+      b.show(): single-choice list of gesture actions (None, Minibar, Wallpaper, Lock, Clear RAM, Device settings, Launcher settings, Volume, App drawer)
+      evidence: SRC util/DialogUtils.java:79-90; res/values/arrays.xml:13-23; INFERRED MaterialDialogs builds the dialog and calls the registered callbacks when the user acts (library source not read)
+         79      public static void startPinchPicker(final Context context) {
+         80          MaterialDialog.Builder builder = new MaterialDialog.Builder(context);
+         81          builder.title(context.getString(R.string.settings_pinch_title))
+         82                  .items(R.array.gestureEntries)
+         83                  .itemsCallbackSingleChoice(LauncherSettings.getInstance(context).generalSettings.pinch, new MaterialDialog.ListCallbackSingleChoice() {
+         84                      @Override
+         85                      public boolean onSelection(MaterialDialog dialog, View itemView, int position, CharSequence text) {
+         86                          LauncherSettings.getInstance(context).setPinchGesture(position);
+         87                          return true;
+         88                      }
+         89                  }).show();
+         90      }
+  25. E534685e5 GUI/non_standard(MaterialDialogs library calls the ListCallbackSingleChoice)
+      S_DLG_GESTURE@pinch -> DialogUtils$5.onSelection
+      Tap a gesture action
+      evidence: SRC util/DialogUtils.java:79-90; INFERRED MaterialDialogs builds the dialog and calls the registered callbacks when the user acts (library source not read)
+         79      public static void startPinchPicker(final Context context) {
+         80          MaterialDialog.Builder builder = new MaterialDialog.Builder(context);
+         81          builder.title(context.getString(R.string.settings_pinch_title))
+         82                  .items(R.array.gestureEntries)
+         83                  .itemsCallbackSingleChoice(LauncherSettings.getInstance(context).generalSettings.pinch, new MaterialDialog.ListCallbackSingleChoice() {
+         84                      @Override
+         85                      public boolean onSelection(MaterialDialog dialog, View itemView, int position, CharSequence text) {
+         86                          LauncherSettings.getInstance(context).setPinchGesture(position);
+         87                          return true;
+         88                      }
+         89                  }).show();
+         90      }
+  26. E4cf8bbb3 CALL/explicit*
+      DialogUtils$5.onSelection -> LauncherSettings.setPinchGesture
+      LauncherSettings.getInstance(context).setPinchGesture(position)
+      evidence: SRC util/DialogUtils.java:79-90
+         79      public static void startPinchPicker(final Context context) {
+         80          MaterialDialog.Builder builder = new MaterialDialog.Builder(context);
+         81          builder.title(context.getString(R.string.settings_pinch_title))
+         82                  .items(R.array.gestureEntries)
+         83                  .itemsCallbackSingleChoice(LauncherSettings.getInstance(context).generalSettings.pinch, new MaterialDialog.ListCallbackSingleChoice() {
+         84                      @Override
+         85                      public boolean onSelection(MaterialDialog dialog, View itemView, int position, CharSequence text) {
+         86                          LauncherSettings.getInstance(context).setPinchGesture(position);
+         87                          return true;
+         88                      }
+         89                  }).show();
+         90      }
+
+## Tool.clampInt  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=- state=data classes=explicit;non_standard;standard explicit_standard_route=yes
+   1. E3a1527b1 S_ENTRY -> Init.<init>  (printed above)
+   2. E996c92b8 Init.<init> -> Init.onCreate  (printed above)
+   3. E5aa97973 Init.onCreate -> S_INTRO  (printed above)
+   4. E8b7dd43a S_INTRO -> Init.onSkipButtonPressed  (printed above)
+   5. E23660de0 Init.onSkipButtonPressed -> Init.RockIt  (printed above)
+   6. E1701006d Init.RockIt -> Home.<init>  (printed above)
+   7. Ecded7dff Home.<init> -> Home.onCreate  (printed above)
+   8. E06eb37f4 Home.onCreate -> Home.onStart  (printed above)
+   9. E823bd16a Home.onStart -> Home.onResume  (printed above)
+  10. E0117cced Home.onResume -> Home.handleLauncherPause@DESKTOP  (printed above)
+  11. E9629945d Home.handleLauncherPause@DESKTOP -> GroupPopupView.dismissPopup  (printed above)
+  12. E506c5f2f GroupPopupView.dismissPopup -> S_HOME_DESKTOP  (printed above)
+  13. Ea422d5c6 S_HOME_DESKTOP -> Desktop$DesktopAdapter$3.onTouch  (printed above)
+  14. E4547b4f3 Desktop$DesktopAdapter$3.onTouch -> Home.openAppDrawer(View,int,int)  (printed above)
+  15. Ebd6b113a Home.openAppDrawer(View,int,int) -> S_HOME_DRAWER_PAGED  (printed above)
+  16. E438efe0b GUI/standard*
+      S_HOME_DRAWER_PAGED -> AppItemView$Builder$3.onLongClick@APP_DRAWER
+      Long-press an app in the paged drawer
+      evidence: SRC widget/AppItemView.java:319-340; FW-SRC core/java/android/view/View.java:12972-12990, 13029-13044, 24767-24771 (a tap on a clickable view posts PerformClick, which calls performClick) and 23212-23225, 24725-24739 (a press held for the long-press timeout calls performLongClick); core/java/android/view/View.java:6289-6300, 6368-6375, 11764-11779 (performClick and performLongClick call the OnClickListener / OnLongClickListener set with setOn...Listener; dispatchTouchEvent calls the OnTouchListener first)
+        319          public Builder withOnLongPressDrag(final Desktop.Item item, final DragAction.Action action, @Nullable final LongPressCallBack eventAction) {
+        320              view.setOnLongClickListener(new OnLongClickListener() {
+        321                  @Override
+        322                  public boolean onLongClick(View v) {
+        323                      if (eventAction != null) {
+        324                          if (!eventAction.readyForDrag(v)) return false;
+        325                      }
+        326  
+        327                      if (view.vibrateWhenLongPress)
+        328                          v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+        329                      Intent i = new Intent();
+        330                      i.putExtra("mDragData", item);
+        331                      ClipData data = ClipData.newIntent("mDragIntent", i);
+        332                      v.startDrag(data, new GoodDragShadowBuilder(v), new DragAction(action), 0);
+      ...  (8 more lines)
+      (core/java/android/view/View.java:12972-12990, 13029-13044, 24767-24771: no line numbers)
+  17. Ec18431c5 ENTERS/page*
+      AppItemView$Builder$3.onLongClick@APP_DRAWER -> S_HOME_DRAG@APP_DRAWER
+      view.startDrag(...): the drag of this icon starts
+      guard: readyForDrag returned true
+      evidence: SRC widget/AppItemView.java:329-332; FW-SRC core/java/android/view/View.java:22844-22847, 22899-22966 (startDrag calls startDragAndDrop, which asks the shadow builder for its metrics and draws it, prepares the drag and calls performDrag on the window session), services/core/java/com/android/server/wm/Session.java:316-375 and services/core/java/com/android/server/wm/DragState.java:249-300, 359-380, 448-482, 493-540 (the window manager sends DRAG_STARTED, DRAG_LOCATION, DROP and DRAG_ENDED to the windows) and services/core/java/com/android/server/wm/WindowManagerService.java:802-851 (touch moves and the up event of the drag channel call notifyMoveLw / notifyDropLw / endDragLw), core/java/android/view/ViewRootImpl.java:3943-3948, 5892-5960, 6044-6074 (the window handles the event, ENTERED and EXITED are made by setDragFocus), core/java/android/view/ViewGroup.java:1576-1700 and core/java/android/view/View.java:23109-23130 (ViewGroup passes the event down, View calls its OnDragListener, else onDragEvent)
+        329                      Intent i = new Intent();
+        330                      i.putExtra("mDragData", item);
+        331                      ClipData data = ClipData.newIntent("mDragIntent", i);
+        332                      v.startDrag(data, new GoodDragShadowBuilder(v), new DragAction(action), 0);
+      (core/java/android/view/View.java:22844-22847, 22899-22966: no line numbers)
+  18. E01e4a9fe GUI/standard*
+      S_HOME_DRAG@APP_DRAWER -> ItemViewFactory.getItemView@APP
+      Drop the item on a free cell of the desktop page (Desktop.onDrag, ACTION_DROP, addItemToPosition)
+      guard: a free cell exists at the drop point
+      evidence: SRC widget/Desktop.java:186-225, 292-314; FW-SRC core/java/android/view/View.java:22844-22847, 22899-22966 (startDrag calls startDragAndDrop, which asks the shadow builder for its metrics and draws it, prepares the drag and calls performDrag on the window session), services/core/java/com/android/server/wm/Session.java:316-375 and services/core/java/com/android/server/wm/DragState.java:249-300, 359-380, 448-482, 493-540 (the window manager sends DRAG_STARTED, DRAG_LOCATION, DROP and DRAG_ENDED to the windows) and services/core/java/com/android/server/wm/WindowManagerService.java:802-851 (touch moves and the up event of the drag channel call notifyMoveLw / notifyDropLw / endDragLw), core/java/android/view/ViewRootImpl.java:3943-3948, 5892-5960, 6044-6074 (the window handles the event, ENTERED and EXITED are made by setDragFocus), core/java/android/view/ViewGroup.java:1576-1700 and core/java/android/view/View.java:23109-23130 (ViewGroup passes the event down, View calls its OnDragListener, else onDragEvent)
+      (widget/Desktop.java:186-225, 292-314: no line numbers)
+      (core/java/android/view/View.java:22844-22847, 22899-22966: no line numbers)
+  19. E35454574 FRAMEWORK/standard*
+      ItemViewFactory.getItemView@APP -> AppItemView.onMeasure
+      the measure/layout/draw pass of every AppItemView shown on the desktop, dock or drawer
+      evidence: SRC widget/AppItemView.java:170-177; FW-SRC core/java/android/view/View.java:22034-22050, 22071, 19644-19659, 19192, 19308 (measure, layout and draw call the onMeasure, onLayout and onDraw of the view)
+        170      @Override
+        171      protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        172          float mWidth = iconSize;
+        173          float mHeight = iconSize + (noLabel ? 0 : labelHeight);
+        174          if (targetedWidth != 0)
+        175              mWidth = targetedWidth;
+        176          setMeasuredDimension((int) Math.ceil(mWidth), (int) Math.ceil((int) mHeight) + Tool.dp2px(2, getContext()) + targetedHeightPadding * 2);
+        177      }
+      (core/java/android/view/View.java:22034-22050, 22071, 19644-19659, 19192, 19308: no line numbers)
+  20. E1773c56e FRAMEWORK/standard*
+      AppItemView.onMeasure -> AppItemView.onLayout
+      the layout pass follows measure
+      evidence: SRC widget/AppItemView.java:199-202; FW-SRC core/java/android/view/View.java:22034-22050, 22071, 19644-19659, 19192, 19308 (measure, layout and draw call the onMeasure, onLayout and onDraw of the view)
+        199      @Override
+        200      protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+        201          super.onLayout(changed, left, top, right, bottom);
+        202      }
+      (core/java/android/view/View.java:22034-22050, 22071, 19644-19659, 19192, 19308: no line numbers)
+  21. Eae170a6f FRAMEWORK/standard*
+      AppItemView.onLayout -> AppItemView.onDraw
+      the draw pass follows layout
+      evidence: SRC widget/AppItemView.java:204-243; FW-SRC core/java/android/view/View.java:22034-22050, 22071, 19644-19659, 19192, 19308 (measure, layout and draw call the onMeasure, onLayout and onDraw of the view)
+        204      @Override
+        205      protected void onDraw(Canvas canvas) {
+        206          super.onDraw(canvas);
+        207  
+        208          if (label != null && !noLabel) {
+        209              textPaint.getTextBounds(label, 0, label.length(), mTextBound);
+        210          }
+        211  
+        212          //The height should be the same as they have the same text size.
+        213          float mHeight = iconSize + (noLabel ? 0 : labelHeight);
+        214          heightPadding = (getHeight() - mHeight) / 2f;
+        215  
+        216          if (label != null && !noLabel) {
+        217              float eachTextSize = mTextBound.width() / label.length();
+      ...  (26 more lines)
+      (core/java/android/view/View.java:22034-22050, 22071, 19644-19659, 19192, 19308: no line numbers)
+  22. Ed7e82317 CALL/explicit* [STATE: A folder exists on the desktop or in the dock (drop one app icon on another one)]
+      AppItemView.onDraw -> GroupIconDrawable.draw
+      icon.draw(canvas): a group icon paints itself (a static image icon does not override draw)
+      guard: the item is a folder (icon is a GroupIconDrawable)
+      evidence: SRC widget/AppItemView.java:230-241; viewutil/GroupIconDrawable.java:77-112
+        230          if (icon != null) {
+        231              canvas.save();
+        232              canvas.translate((getWidth() - iconSize + iconPadding * 2) / 2, heightPadding + iconPadding);
+        233              if (roundBg) {
+        234                  canvas.drawCircle((iconSize - iconPadding * 2) / 2, (iconSize - iconPadding * 2) / 2, (iconSize - iconPadding * 2) / 2, bgPaint);
+        235                  canvas.translate((iconSize - iconSizeSmall - iconPadding * 2) / 2, (iconSize - iconSizeSmall - iconPadding * 2) / 2);
+        236                  icon.setBounds(0, 0, (int) iconSizeSmall, (int) iconSizeSmall);
+        237              } else {
+        238                  icon.setBounds(0, 0, (int) iconSize - (int) (iconPadding * 2), (int) iconSize - (int) (iconPadding * 2));
+        239              }
+        240              icon.draw(canvas);
+        241              canvas.restore();
+  23. E4e73e729 CALL/explicit*
+      GroupIconDrawable.draw -> Tool.clampInt
+      the pop animation eases the alpha toward 0/255 each frame
+      evidence: SRC viewutil/GroupIconDrawable.java:105-110
+        105          if (needAnimate) {
+        106              paint2.setAlpha(Tool.clampInt(paint2.getAlpha() - 25, 0, 255));
+        107              invalidateSelf();
+        108          } else if (paint2.getAlpha() != 255) {
+        109              paint2.setAlpha(Tool.clampInt(paint2.getAlpha() + 25, 0, 255));
+        110              invalidateSelf();
+
+## GroupPopupView$6$1.hereIsTheText  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=- state=data classes=explicit;non_standard;standard explicit_standard_route=no
+   1. E3a1527b1 S_ENTRY -> Init.<init>  (printed above)
+   2. E996c92b8 Init.<init> -> Init.onCreate  (printed above)
+   3. E5aa97973 Init.onCreate -> S_INTRO  (printed above)
+   4. E8b7dd43a S_INTRO -> Init.onSkipButtonPressed  (printed above)
+   5. E23660de0 Init.onSkipButtonPressed -> Init.RockIt  (printed above)
+   6. E1701006d Init.RockIt -> Home.<init>  (printed above)
+   7. Ecded7dff Home.<init> -> Home.onCreate  (printed above)
+   8. E06eb37f4 Home.onCreate -> Home.onStart  (printed above)
+   9. E823bd16a Home.onStart -> Home.onResume  (printed above)
+  10. E0117cced Home.onResume -> Home.handleLauncherPause@DESKTOP  (printed above)
+  11. E9629945d Home.handleLauncherPause@DESKTOP -> GroupPopupView.dismissPopup  (printed above)
+  12. E506c5f2f GroupPopupView.dismissPopup -> S_HOME_DESKTOP  (printed above)
+  13. E43dc7c02 GUI/standard* [STATE: A folder exists on the desktop or in the dock (drop one app icon on another one)]
+      S_HOME_DESKTOP -> ItemViewFactory$12.onClick
+      Tap a folder icon
+      evidence: SRC viewutil/ItemViewFactory.java:224-231; FW-SRC core/java/android/view/View.java:12972-12990, 13029-13044, 24767-24771 (a tap on a clickable view posts PerformClick, which calls performClick) and 23212-23225, 24725-24739 (a press held for the long-press timeout calls performLongClick); core/java/android/view/View.java:6289-6300, 6368-6375, 11764-11779 (performClick and performLongClick call the OnClickListener / OnLongClickListener set with setOn...Listener; dispatchTouchEvent calls the OnTouchListener first)
+        224                  view.setOnClickListener(new View.OnClickListener() {
+        225                      @Override
+        226                      public void onClick(View v) {
+        227                          if (Home.launcher != null && Home.launcher.groupPopup.showWindowV(item, v, callBack)) {
+        228                              ((GroupIconDrawable) ((AppItemView) v).getIcon()).popUp();
+        229                          }
+        230                      }
+        231                  });
+      (core/java/android/view/View.java:12972-12990, 13029-13044, 24767-24771: no line numbers)
+  14. E31210536 CALL/explicit*
+      ItemViewFactory$12.onClick -> GroupPopupView.showWindowV
+      Direct call
+      evidence: SRC ItemViewFactory.java:227 (bytecode)
+        227                          if (Home.launcher != null && Home.launcher.groupPopup.showWindowV(item, v, callBack)) {
+  15. Ea594e538 ENTERS/page*
+      GroupPopupView.showWindowV -> S_HOME_GROUP_POPUP
+      the folder card is added with the apps of the folder and its title
+      guard: getVisibility() != VISIBLE (a popup is not showing yet; otherwise showWindowV returns false)
+      evidence: SRC widget/GroupPopupView.java:96-258
+         96      public boolean showWindowV(final Desktop.Item item, final View itemView, final DesktopCallBack callBack) {
+         97          if (getVisibility() == View.VISIBLE) return false;
+         98  
+         99          isShowing = true;
+        100  
+        101          setVisibility(View.VISIBLE);
+        102          popupParent.setVisibility(View.VISIBLE);
+        103          final Context c = itemView.getContext();
+        104  
+        105          int[] cellSize = GroupPopupView.GroupDef.getCellSize(item.actions.length);
+        106          cellContainer.setGridSize(cellSize[0], cellSize[1]);
+        107  
+        108          int iconSize = Tool.dp2px(LauncherSettings.getInstance(c).generalSettings.iconSize, c);
+        109          int textHeight = Tool.dp2px(22, c);
+      ...  (149 more lines)
+  16. E162f036c GUI/standard*
+      S_HOME_GROUP_POPUP -> GroupPopupView$6.onClick
+      Tap the folder title
+      evidence: SRC widget/GroupPopupView.java:187-202; FW-SRC core/java/android/view/View.java:12972-12990, 13029-13044, 24767-24771 (a tap on a clickable view posts PerformClick, which calls performClick) and 23212-23225, 24725-24739 (a press held for the long-press timeout calls performLongClick); core/java/android/view/View.java:6289-6300, 6368-6375, 11764-11779 (performClick and performLongClick call the OnClickListener / OnLongClickListener set with setOn...Listener; dispatchTouchEvent calls the OnTouchListener first)
+        187          title.setOnClickListener(new OnClickListener() {
+        188              @Override
+        189              public void onClick(View view) {
+        190                  Tool.DialogHelper.promptInputText(resources.getString(R.string.toast_rename), item.name, getContext(), new Tool.DialogHelper.OnTextResultListener() {
+        191                      @Override
+        192                      public void hereIsTheText(String str) {
+        193                          if (str.isEmpty()) return;
+        194                          callBack.removeItemFromSettings(item);
+        195                          item.name = str;
+        196                          callBack.addItemToSettings(item);
+        197  
+        198                          title.setText(str);
+        199                      }
+        200                  }).show();
+      ...  (2 more lines)
+      (core/java/android/view/View.java:12972-12990, 13029-13044, 24767-24771: no line numbers)
+  17. E49bf5c2b ENTERS/page*
+      GroupPopupView$6.onClick -> S_DLG_RENAME_GROUP
+      Tool.DialogHelper.promptInputText(...).show(): the rename dialog
+      evidence: SRC widget/GroupPopupView.java:187-202; util/Tool.java:463-475; INFERRED MaterialDialogs builds the dialog and calls the registered callbacks when the user acts (library source not read)
+        187          title.setOnClickListener(new OnClickListener() {
+        188              @Override
+        189              public void onClick(View view) {
+        190                  Tool.DialogHelper.promptInputText(resources.getString(R.string.toast_rename), item.name, getContext(), new Tool.DialogHelper.OnTextResultListener() {
+        191                      @Override
+        192                      public void hereIsTheText(String str) {
+        193                          if (str.isEmpty()) return;
+        194                          callBack.removeItemFromSettings(item);
+        195                          item.name = str;
+        196                          callBack.addItemToSettings(item);
+        197  
+        198                          title.setText(str);
+        199                      }
+        200                  }).show();
+      ...  (2 more lines)
+  18. E0cc2720b GUI/non_standard(MaterialDialogs library calls the InputCallback)
+      S_DLG_RENAME_GROUP -> Tool$DialogHelper$1.onInput
+      Type a new name and tap "OK"
+      evidence: SRC util/Tool.java:466-471; INFERRED MaterialDialogs builds the dialog and calls the registered callbacks when the user acts (library source not read)
+        466              b.input(null, defaultText, new MaterialDialog.InputCallback() {
+        467                  @Override
+        468                  public void onInput(@NonNull MaterialDialog dialog, CharSequence input) {
+        469                      listener.hereIsTheText(input.toString());
+        470                  }
+        471              });
+  19. Ef5b731f2 CALL/explicit*
+      Tool$DialogHelper$1.onInput -> GroupPopupView$6$1.hereIsTheText
+      Virtual/interface call that can dispatch to this implementation
+      evidence: SRC Tool.java:469 (bytecode)
+        469                      listener.hereIsTheText(input.toString());
+
+## GroupIconDrawable.init  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=- state=data classes=explicit;non_standard;standard explicit_standard_route=yes
+   1. E3a1527b1 S_ENTRY -> Init.<init>  (printed above)
+   2. E996c92b8 Init.<init> -> Init.onCreate  (printed above)
+   3. E5aa97973 Init.onCreate -> S_INTRO  (printed above)
+   4. E8b7dd43a S_INTRO -> Init.onSkipButtonPressed  (printed above)
+   5. E23660de0 Init.onSkipButtonPressed -> Init.RockIt  (printed above)
+   6. E1701006d Init.RockIt -> Home.<init>  (printed above)
+   7. Ecded7dff Home.<init> -> Home.onCreate  (printed above)
+   8. E06eb37f4 Home.onCreate -> Home.onStart  (printed above)
+   9. E823bd16a Home.onStart -> Home.onResume  (printed above)
+  10. E0117cced Home.onResume -> Home.handleLauncherPause@DESKTOP  (printed above)
+  11. E9629945d Home.handleLauncherPause@DESKTOP -> GroupPopupView.dismissPopup  (printed above)
+  12. E506c5f2f GroupPopupView.dismissPopup -> S_HOME_DESKTOP  (printed above)
+  13. Eb5f23ab3 GUI/standard* [STATE: A folder exists on the desktop or in the dock (drop one app icon on another one)]
+      S_HOME_DESKTOP -> AppItemView$Builder$3.onLongClick@GROUP
+      Long-press a folder icon
+      evidence: SRC widget/AppItemView.java:319-340; FW-SRC core/java/android/view/View.java:12972-12990, 13029-13044, 24767-24771 (a tap on a clickable view posts PerformClick, which calls performClick) and 23212-23225, 24725-24739 (a press held for the long-press timeout calls performLongClick); core/java/android/view/View.java:6289-6300, 6368-6375, 11764-11779 (performClick and performLongClick call the OnClickListener / OnLongClickListener set with setOn...Listener; dispatchTouchEvent calls the OnTouchListener first)
+        319          public Builder withOnLongPressDrag(final Desktop.Item item, final DragAction.Action action, @Nullable final LongPressCallBack eventAction) {
+        320              view.setOnLongClickListener(new OnLongClickListener() {
+        321                  @Override
+        322                  public boolean onLongClick(View v) {
+        323                      if (eventAction != null) {
+        324                          if (!eventAction.readyForDrag(v)) return false;
+        325                      }
+        326  
+        327                      if (view.vibrateWhenLongPress)
+        328                          v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+        329                      Intent i = new Intent();
+        330                      i.putExtra("mDragData", item);
+        331                      ClipData data = ClipData.newIntent("mDragIntent", i);
+        332                      v.startDrag(data, new GoodDragShadowBuilder(v), new DragAction(action), 0);
+      ...  (8 more lines)
+      (core/java/android/view/View.java:12972-12990, 13029-13044, 24767-24771: no line numbers)
+  14. E40672a7d ENTERS/page*
+      AppItemView$Builder$3.onLongClick@GROUP -> S_HOME_DRAG@GROUP
+      view.startDrag(...): the drag of this icon starts
+      guard: readyForDrag returned true
+      evidence: SRC widget/AppItemView.java:329-332; FW-SRC core/java/android/view/View.java:22844-22847, 22899-22966 (startDrag calls startDragAndDrop, which asks the shadow builder for its metrics and draws it, prepares the drag and calls performDrag on the window session), services/core/java/com/android/server/wm/Session.java:316-375 and services/core/java/com/android/server/wm/DragState.java:249-300, 359-380, 448-482, 493-540 (the window manager sends DRAG_STARTED, DRAG_LOCATION, DROP and DRAG_ENDED to the windows) and services/core/java/com/android/server/wm/WindowManagerService.java:802-851 (touch moves and the up event of the drag channel call notifyMoveLw / notifyDropLw / endDragLw), core/java/android/view/ViewRootImpl.java:3943-3948, 5892-5960, 6044-6074 (the window handles the event, ENTERED and EXITED are made by setDragFocus), core/java/android/view/ViewGroup.java:1576-1700 and core/java/android/view/View.java:23109-23130 (ViewGroup passes the event down, View calls its OnDragListener, else onDragEvent)
+        329                      Intent i = new Intent();
+        330                      i.putExtra("mDragData", item);
+        331                      ClipData data = ClipData.newIntent("mDragIntent", i);
+        332                      v.startDrag(data, new GoodDragShadowBuilder(v), new DragAction(action), 0);
+      (core/java/android/view/View.java:22844-22847, 22899-22966: no line numbers)
+  15. E495b2f2e GUI/standard*
+      S_HOME_DRAG@GROUP -> ItemViewFactory.getItemView@GROUP
+      Drop the item on a free cell of the desktop page (Desktop.onDrag, ACTION_DROP, addItemToPosition)
+      guard: a free cell exists at the drop point
+      evidence: SRC widget/Desktop.java:186-225, 292-314; FW-SRC core/java/android/view/View.java:22844-22847, 22899-22966 (startDrag calls startDragAndDrop, which asks the shadow builder for its metrics and draws it, prepares the drag and calls performDrag on the window session), services/core/java/com/android/server/wm/Session.java:316-375 and services/core/java/com/android/server/wm/DragState.java:249-300, 359-380, 448-482, 493-540 (the window manager sends DRAG_STARTED, DRAG_LOCATION, DROP and DRAG_ENDED to the windows) and services/core/java/com/android/server/wm/WindowManagerService.java:802-851 (touch moves and the up event of the drag channel call notifyMoveLw / notifyDropLw / endDragLw), core/java/android/view/ViewRootImpl.java:3943-3948, 5892-5960, 6044-6074 (the window handles the event, ENTERED and EXITED are made by setDragFocus), core/java/android/view/ViewGroup.java:1576-1700 and core/java/android/view/View.java:23109-23130 (ViewGroup passes the event down, View calls its OnDragListener, else onDragEvent)
+      (widget/Desktop.java:186-225, 292-314: no line numbers)
+      (core/java/android/view/View.java:22844-22847, 22899-22966: no line numbers)
+  16. E1bc0da58 CALL/explicit*
+      ItemViewFactory.getItemView@GROUP -> ItemViewFactory.getGroupIconDrawable
+      the GROUP branch of the switch on item.type builds the view
+      guard: item.type == GROUP
+      evidence: SRC viewutil/ItemViewFactory.java:200-233
+        200              case GROUP:
+        201                  view = new AppItemView.Builder(context)
+        202                          .withOnLongPressDrag(item, DragAction.Action.ACTION_GROUP, new AppItemView.Builder.LongPressCallBack() {
+        203                              @Override
+        204                              public boolean readyForDrag(View view) {
+        205                                  return true;
+        206                              }
+        207  
+        208                              @Override
+        209                              public void afterDrag(View view) {
+        210                                  callBack.setLastItem(item, view);
+        211                              }
+        212                          })
+        213                          .setLabelVisibility((flags & NO_LABEL) != NO_LABEL)
+      ...  (20 more lines)
+  17. E853298a5 CALL/explicit*
+      ItemViewFactory.getGroupIconDrawable -> GroupIconDrawable.<init>
+      Direct call
+      evidence: SRC ItemViewFactory.java:289 (bytecode)
+        289          return new GroupIconDrawable(icons, iconSize);
+  18. Ed2cb52b1 CALL/explicit*
+      GroupIconDrawable.<init> -> GroupIconDrawable.init
+      Direct call
+      evidence: SRC GroupIconDrawable.java:36 (bytecode)
+         36          init(icons, size);
+
+## DialogUtils.copy  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=permission state=- classes=explicit;non_standard;standard explicit_standard_route=no
+   1. E3a1527b1 S_ENTRY -> Init.<init>  (printed above)
+   2. E996c92b8 Init.<init> -> Init.onCreate  (printed above)
+   3. E5aa97973 Init.onCreate -> S_INTRO  (printed above)
+   4. E8b7dd43a S_INTRO -> Init.onSkipButtonPressed  (printed above)
+   5. E23660de0 Init.onSkipButtonPressed -> Init.RockIt  (printed above)
+   6. E1701006d Init.RockIt -> Home.<init>  (printed above)
+   7. Ecded7dff Home.<init> -> Home.onCreate  (printed above)
+   8. E06eb37f4 Home.onCreate -> Home.onStart  (printed above)
+   9. E823bd16a Home.onStart -> Home.onResume  (printed above)
+  10. E0117cced Home.onResume -> Home.handleLauncherPause@DESKTOP  (printed above)
+  11. E9629945d Home.handleLauncherPause@DESKTOP -> GroupPopupView.dismissPopup  (printed above)
+  12. E506c5f2f GroupPopupView.dismissPopup -> S_HOME_DESKTOP  (printed above)
+  13. E2b9b86b1 S_HOME_DESKTOP -> Home.onDrawerStateChanged  (printed above)
+  14. Ecb7f915c Home.onDrawerStateChanged -> S_HOME_MINIBAR  (printed above)
+  15. Ee8ace45b S_HOME_MINIBAR -> Home$11.onItemClick@LauncherSettings  (printed above)
+  16. Ebf800b8a Home$11.onItemClick@LauncherSettings -> LauncherAction.RunAction@LauncherSettings  (printed above)
+  17. Ebd0c7205 LauncherAction.RunAction@LauncherSettings -> SettingsActivity.onCreate  (printed above)
+  18. Ee3b2c4ce SettingsActivity.onCreate -> S_SETTINGS_ROOT  (printed above)
+  19. E124be037 GUI/non_standard(MaterialPrefFragment library (vendored) calls the OnPrefClickedListener when a ButtonPref is tapped)
+      S_SETTINGS_ROOT -> SettingsActivity.onPrefClicked@otherSettings
+      Tap "Other" on the Settings root screen
+      guard: id == 'otherSettings'
+      evidence: SRC activity/SettingsActivity.java:41-49, 302-324; SRC libs/materialpreffragment/src/main/java/com/bennyv5/materialpreffragment/MaterialPrefFragment.java:360-373 (ButtonPref.onCreateView sets the click listener to the fragment itself) and libs/materialpreffragment/src/main/java/com/bennyv5/materialpreffragment/MaterialPrefFragment.java:113-119 (onClick reads the pref id tag and calls the registered OnPrefClickedListener)
+      (activity/SettingsActivity.java:41-49, 302-324: no line numbers)
+        360          @Override
+        361          public View onCreateView(Context c, MaterialPrefFragment fragment, SharedPreferences sharedPrefs) {
+        362              Button b = new Button(c);
+        363              setStyle(b, fragment);
+        364  
+        365              b.setTag(fragment.TAG_ID, id);
+        366              if (icon != null) {
+        367                  b.setCompoundDrawablePadding(Tool.dp2px(20, c));
+        368                  b.setCompoundDrawablesWithIntrinsicBounds(icon, null, null, null);
+        369              }
+        370              b.setOnClickListener(fragment);
+        371              b.setText(warpText(summary, title, fragment));
+        372              return warpCardView(b, fragment);
+        373          }
+  20. E34ce7f90 CALL/explicit*
+      SettingsActivity.onPrefClicked@otherSettings -> SettingsActivity.onSettingsSelected@6
+      onSettingsSelected(6)
+      guard: id == 'otherSettings'
+      evidence: SRC activity/SettingsActivity.java:304-324
+        304              case "desktopSettings":
+        305                  onSettingsSelected(0);
+        306                  break;
+        307              case "dockSettings":
+        308                  onSettingsSelected(1);
+        309                  break;
+        310              case "drawerSettings":
+        311                  onSettingsSelected(2);
+        312                  break;
+        313              case "inputSettings":
+        314                  onSettingsSelected(3);
+        315                  break;
+        316              case "colorsSettings":
+        317                  onSettingsSelected(4);
+      ...  (7 more lines)
+  21. Ebcca7447 ENTERS/page*
+      SettingsActivity.onSettingsSelected@6 -> S_SETTINGS_OTHER
+      the Other sub-screen fragment replaces the root list (fragment transaction, added to the back stack)
+      guard: settingsCategory == 6
+      evidence: SRC activity/SettingsActivity.java:54-138
+         54      public void onSettingsSelected(int settingsCategory) {
+         55          LauncherSettings.GeneralSettings generalSettings = LauncherSettings.getInstance(this).generalSettings;
+         56          MaterialPrefFragment fragment;
+         57          switch (settingsCategory) {
+         58              default:
+         59                  fragment = MaterialPrefFragment.newInstance(new MaterialPrefFragment.Builder(this, Color.DKGRAY, ContextCompat.getColor(this, R.color.Light_TextColor), Co
+         60                          .add(new MaterialPrefFragment.ButtonPref("editMiniBar", getString(R.string.settings_desktopMinibar), getString(R.string.settings_desktopMinibar_su
+         61                          .add(new MaterialPrefFragment.ButtonPref("desktopMode", (getString(R.string.settings_desktopStyle)), (getString(R.string.settings_desktopStyle_sum
+         62                          // FIXME: 11/25/2016 This will have problem (in allAppsMode) as the apps will be cut off when scale down
+         63                          .add(new MaterialPrefFragment.NUMPref("gridSizeDesktop", (getString(R.string.settings_desktopSize)), (getString(R.string.settings_desktopSize_summ
+         64                                  new MaterialPrefFragment.NUMPref.NUMPrefItem("hGridSizeDesktop", (getString(R.string.settings_column)), generalSettings.desktopGridX, 4, 1
+         65                                  new MaterialPrefFragment.NUMPref.NUMPrefItem("vGridSizeDesktop", (getString(R.string.settings_row)), generalSettings.desktopGridY, 4, 10)
+         66                          ))
+         67                          .add(new MaterialPrefFragment.TBPref("desktopSearchBar", (getString(R.string.settings_desktopSearch)), (getString(R.string.settings_desktopSearch_
+      ...  (71 more lines)
+  22. Ece9811c2 GUI/non_standard(MaterialPrefFragment library calls the OnPrefClickedListener)
+      S_SETTINGS_OTHER -> SettingsActivity.onPrefClicked@backup
+      Tap "Backup / Restore" on Settings > Other
+      guard: id == 'backup'
+      evidence: SRC activity/SettingsActivity.java:130, 368-374; SRC libs/materialpreffragment/src/main/java/com/bennyv5/materialpreffragment/MaterialPrefFragment.java:360-373 (ButtonPref.onCreateView sets the click listener to the fragment itself) and libs/materialpreffragment/src/main/java/com/bennyv5/materialpreffragment/MaterialPrefFragment.java:113-119 (onClick reads the pref id tag and calls the registered OnPrefClickedListener)
+      (activity/SettingsActivity.java:130, 368-374: no line numbers)
+        360          @Override
+        361          public View onCreateView(Context c, MaterialPrefFragment fragment, SharedPreferences sharedPrefs) {
+        362              Button b = new Button(c);
+        363              setStyle(b, fragment);
+        364  
+        365              b.setTag(fragment.TAG_ID, id);
+        366              if (icon != null) {
+        367                  b.setCompoundDrawablePadding(Tool.dp2px(20, c));
+        368                  b.setCompoundDrawablesWithIntrinsicBounds(icon, null, null, null);
+        369              }
+        370              b.setOnClickListener(fragment);
+        371              b.setText(warpText(summary, title, fragment));
+        372              return warpCardView(b, fragment);
+        373          }
+  23. Ea59dd993 CALL/explicit* [ENV: permission: READ_EXTERNAL_STORAGE is granted to the app (runtime permission, targetSdk 25; granted with adb install -g, pm grant or the system dialog)]
+      SettingsActivity.onPrefClicked@backup -> DialogUtils.backupDialog
+      checkSelfPermission(READ_EXTERNAL_STORAGE) is granted: DialogUtils.backupDialog(this)
+      guard: id == 'backup' and the permission is already granted
+      evidence: SRC activity/SettingsActivity.java:369-370
+        369                  if (ActivityCompat.checkSelfPermission(SettingsActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+        370                      DialogUtils.backupDialog(this);
+  24. Ec465c6b0 ENTERS/page*
+      DialogUtils.backupDialog -> S_DLG_BACKUP
+      b.show(): the list "Backup" / "Restore" with a Cancel button
+      evidence: SRC util/DialogUtils.java:131-184; INFERRED MaterialDialogs builds the dialog and calls the registered callbacks when the user acts (library source not read)
+        131      public static void backupDialog(final Context context) {
+        132          final CharSequence[] options = {
+        133                  context.getResources().getString(R.string.settings_backup_titleBackup),
+        134                  context.getResources().getString(R.string.settings_backup_titleRestore)};
+        135  
+        136          MaterialDialog.Builder builder = new MaterialDialog.Builder(context);
+        137          builder.title(R.string.settings_backup)
+        138                  .positiveText(R.string.cancel)
+        139                  .items(options)
+        140                  .itemsCallback(new MaterialDialog.ListCallback() {
+        141                      @Override
+        142                      public void onSelection(MaterialDialog dialog, View itemView, int item, CharSequence text) {
+        143                          PackageManager m = context.getPackageManager();
+        144                          String s = context.getPackageName();
+      ...  (40 more lines)
+  25. E79f0a638 GUI/non_standard(MaterialDialogs library calls the ListCallback)
+      S_DLG_BACKUP -> DialogUtils$9.onSelection
+      Tap "Backup" or "Restore"
+      evidence: SRC util/DialogUtils.java:140-182; INFERRED MaterialDialogs builds the dialog and calls the registered callbacks when the user acts (library source not read)
+        140                  .itemsCallback(new MaterialDialog.ListCallback() {
+        141                      @Override
+        142                      public void onSelection(MaterialDialog dialog, View itemView, int item, CharSequence text) {
+        143                          PackageManager m = context.getPackageManager();
+        144                          String s = context.getPackageName();
+        145  
+        146                          if (options[item].equals(context.getResources().getString(R.string.settings_backup_titleBackup))) {
+        147                              File directory = new File(Environment.getExternalStorageDirectory() + "/OpenLauncher/");
+        148                              if (!directory.exists()) {
+        149                                  // noinspection ResultOfMethodCallIgnored
+        150                                  directory.mkdirs();
+        151                              }
+        152  
+        153                              try {
+      ...  (29 more lines)
+  26. Ee7b75cf2 CALL/explicit*
+      DialogUtils$9.onSelection -> DialogUtils.copy
+      copy(context, src, dst) for each of the three data files
+      guard: the package info lookup (and, for the second/third call, the earlier copy calls) do not throw (catch (Exception) around each branch)
+      evidence: SRC util/DialogUtils.java:153-158, 169-173
+      (util/DialogUtils.java:153-158, 169-173: no line numbers)
+
+## Desktop$Item.newWidgetItem  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=other_app state=- classes=explicit;non_standard;standard explicit_standard_route=no
+   1. E3a1527b1 S_ENTRY -> Init.<init>  (printed above)
+   2. E996c92b8 Init.<init> -> Init.onCreate  (printed above)
+   3. E5aa97973 Init.onCreate -> S_INTRO  (printed above)
+   4. E8b7dd43a S_INTRO -> Init.onSkipButtonPressed  (printed above)
+   5. E23660de0 Init.onSkipButtonPressed -> Init.RockIt  (printed above)
+   6. E1701006d Init.RockIt -> Home.<init>  (printed above)
+   7. Ecded7dff Home.<init> -> Home.onCreate  (printed above)
+   8. E06eb37f4 Home.onCreate -> Home.onStart  (printed above)
+   9. E823bd16a Home.onStart -> Home.onResume  (printed above)
+  10. E0117cced Home.onResume -> Home.handleLauncherPause@DESKTOP  (printed above)
+  11. E9629945d Home.handleLauncherPause@DESKTOP -> GroupPopupView.dismissPopup  (printed above)
+  12. E506c5f2f GroupPopupView.dismissPopup -> S_HOME_DESKTOP  (printed above)
+  13. E539087ed S_HOME_DESKTOP -> Desktop$DesktopAdapter$5.onLongClick  (printed above)
+  14. E93cf49d5 Desktop$DesktopAdapter$5.onLongClick -> S_HOME_EDIT  (printed above)
+  15. Eecccd47f GUI/non_standard(ButterKnife: the generated DebouncingOnClickListener calls doClick)
+      S_HOME_EDIT -> Home$$ViewBinder$3.doClick
+      Tap "Widget" in the edit panel
+      evidence: SRC activity/Home.java:470; res/layout/view_desktop_edit_option.xml:11-59; INFERRED ButterKnife.bind loads the generated <Class>$$ViewBinder by name and calls its bind, which registers the click listeners and reads the views (ButterKnife source not read; the generated class is in the APK); FW-SRC core/java/android/view/View.java:12972-12990, 13029-13044, 24767-24771 (a tap on a clickable view posts PerformClick, which calls performClick) and 23212-23225, 24725-24739 (a press held for the long-press timeout calls performLongClick); core/java/android/view/View.java:6289-6300, 6368-6375, 11764-11779 (performClick and performLongClick call the OnClickListener / OnLongClickListener set with setOn...Listener; dispatchTouchEvent calls the OnTouchListener first)
+        470      @OnClick({R.id.removepage, R.id.setashomepage, R.id.addwidgetbtn, R.id.addLauncherAction, R.id.openSettings})
+      (core/java/android/view/View.java:12972-12990, 13029-13044, 24767-24771: no line numbers)
+  16. E787bdcd0 CALL/explicit
+      Home$$ViewBinder$3.doClick -> Home.onViewClicked@WIDGET
+      doClick calls target.onViewClicked(view)
+      evidence: INFERRED generated ButterKnife class (no source file in the dataset; the class file shows this call); SRC activity/Home.java:470-488
+        470      @OnClick({R.id.removepage, R.id.setashomepage, R.id.addwidgetbtn, R.id.addLauncherAction, R.id.openSettings})
+        471      public void onViewClicked(View view) {
+        472          switch (view.getId()) {
+        473              case R.id.removepage:
+        474                  desktop.removeCurrentPage();
+        475                  break;
+        476              case R.id.setashomepage:
+        477                  LauncherSettings.getInstance(Home.this).generalSettings.desktopHomePage = desktop.getCurrentItem();
+        478                  break;
+        479              case R.id.addwidgetbtn:
+        480                  pickWidget(view);
+        481                  break;
+        482              case R.id.addLauncherAction:
+        483                  addLauncherAction(view);
+      ...  (5 more lines)
+  17. Ece70817c CALL/explicit*
+      Home.onViewClicked@WIDGET -> Home.pickWidget
+      pickWidget(view)
+      evidence: SRC activity/Home.java:479-481
+        479              case R.id.addwidgetbtn:
+        480                  pickWidget(view);
+        481                  break;
+  18. E21658687 ENTERS/page*
+      Home.pickWidget -> S_EXT_WIDGET_PICKER
+      startActivityForResult(ACTION_APPWIDGET_PICK): the system widget picker opens
+      evidence: SRC activity/Home.java:647-652
+        647      public void pickWidget(View view) {
+        648          int appWidgetId = appWidgetHost.allocateAppWidgetId();
+        649          Intent pickIntent = new Intent(AppWidgetManager.ACTION_APPWIDGET_PICK);
+        650          pickIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+        651          startActivityForResult(pickIntent, REQUEST_PICK_APPWIDGET);
+        652      }
+  19. E41f775b6 RESULT/standard* [ENV: outside package: the widget chosen in the picker declares a configure activity (android:configure in its provider info) and that activity returns a result]
+      S_EXT_WIDGET_PICKER -> Home.onActivityResult@CONFIGURED
+      the configure screen of the widget finishes with RESULT_OK
+      guard: resultCode == RESULT_OK and requestCode == REQUEST_CREATE_APPWIDGET
+      evidence: SRC activity/Home.java:706-713; FW-SRC core/java/android/app/Activity.java:824, 5489-5508 (an activity that finishes without setResult reports RESULT_CANCELED with no data) and core/java/android/app/ActivityThread.java:4253-4265, core/java/android/app/Activity.java:7259-7266 (the result is delivered to the starting activity through dispatchActivityResult, which calls onActivityResult); INFERRED the configure activity of the widget (another package, not read) returns RESULT_OK, or RESULT_CANCELED with the widget id, when the user leaves it
+        706      @Override
+        707      protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        708          if (resultCode == RESULT_OK) {
+        709              if (requestCode == REQUEST_PICK_APPWIDGET) {
+        710                  configureWidget(data);
+        711              } else if (requestCode == REQUEST_CREATE_APPWIDGET) {
+        712                  createWidget(data);
+        713              }
+      (core/java/android/app/Activity.java:824, 5489-5508: no line numbers)
+  20. E79df4ba0 CALL/explicit*
+      Home.onActivityResult@CONFIGURED -> Home.createWidget
+      createWidget(data)
+      guard: requestCode == REQUEST_CREATE_APPWIDGET
+      evidence: SRC activity/Home.java:711-712
+        711              } else if (requestCode == REQUEST_CREATE_APPWIDGET) {
+        712                  createWidget(data);
+  21. E567cf400 CALL/explicit*
+      Home.createWidget -> Desktop$Item.newWidgetItem
+      Direct call
+      evidence: SRC Home.java:671 (bytecode)
+        671          Desktop.Item item = Desktop.Item.newWidgetItem(appWidgetId);
+
+## AutoFinishActivity.onCreate  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=other_app state=- classes=explicit;non_standard;standard explicit_standard_route=no
+   1. E8828e57a ENTRY/non_standard(content resolver: the provider is found by its authority, nothing in the app calls it) [ENV: outside package: another app, the system or adb sends the broadcast / intent / content call]
+      S_ENTRY -> FiveSecsDelayContentProvider.delete
+      Another app or `adb shell content` calls delete on the exported provider (authority com.benny.openlauncher.util.FiveSecsDelayContentProvider)
+      evidence: SRC util/FiveSecsDelayContentProvider.java:48-63; AndroidManifest.xml:56-61; FW-SRC core/java/android/content/ContentProvider.java:209-246, 256-268, 333-345, 513-525 (the Transport that serves a remote call checks the permission, records the calling package and calls query / insert / delete of the provider) and 743-749 (getCallingPackage returns the recorded package); INFERRED the content resolver of the caller routes the call to the exported provider by authority
+         48      @Override
+         49      public int delete(@NonNull Uri uri,
+         50                        String selection,
+         51                        String[] selectionArgs) {
+         52          Tool.print("dfshgjsdfdfrghid");
+         53          checkCallingPackage();
+         54          if (PATH_RESET_5SEC_DELAY.equals(uri.getLastPathSegment())) {
+         55              /**
+         56               * This assumes you have a transparent activity that will just call finish() during its onCreate method
+         57               * Activity in this case also provides a static method for starting itself
+         58               */
+         59              AutoFinishActivity.start(getContext());
+         60              return 1;
+         61          }
+      ...  (2 more lines)
+      (core/java/android/content/ContentProvider.java:209-246, 256-268, 333-345, 513-525: no line numbers)
+   2. E34f22e81 CALL/explicit* [ENV: outside package: the calling package is org.kustom.wallpaper or org.kustom.widget (FiveSecsDelayContentProvider.checkCallingPackage), any other caller gets a SecurityException]
+      FiveSecsDelayContentProvider.delete -> AutoFinishActivity.start
+      the last path segment is "reset5secs": start the invisible activity
+      guard: checkCallingPackage() did not throw (the caller is org.kustom.wallpaper or org.kustom.widget) and uri.getLastPathSegment() equals "reset5secs"
+      evidence: SRC util/FiveSecsDelayContentProvider.java:48-63, 79-87
+      (util/FiveSecsDelayContentProvider.java:48-63, 79-87: no line numbers)
+   3. E7ba1d7df INTENT/standard*
+      AutoFinishActivity.start -> AutoFinishActivity.<init>
+      c.startActivity(new Intent(c, AutoFinishActivity.class)) with the provider context (application context)
+      guard: startActivity(Intent) passes null options, so the NEW_TASK check of ContextImpl does not throw on API 27
+      evidence: SRC activity/AutoFinishActivity.java:15-17; FW-SRC core/java/android/app/ContextImpl.java:853-856, 865-877 (startActivity(Intent) calls startActivity(intent, null); the missing-NEW_TASK exception needs non-null options)
+         15      public static void start(Context c) {
+         16          c.startActivity(new Intent(c, AutoFinishActivity.class));
+         17      }
+      (core/java/android/app/ContextImpl.java:853-856, 865-877: no line numbers)
+   4. E05c99568 LIFECYCLE/standard*
+      AutoFinishActivity.<init> -> AutoFinishActivity.onCreate
+      the system creates the activity and calls onCreate, which calls finish()
+      evidence: SRC activity/AutoFinishActivity.java:9-13; FW-SRC core/java/android/app/ActivityThread.java:2644-2660, 2685-2741, 2833-2863 (performLaunchActivity instantiates the activity, attaches it and calls callActivityOnCreate, then performStart; handleLaunchActivity then calls handleResumeActivity) and core/java/android/app/Activity.java:7014-7019, 7098-7107 (performStart and performResume call onStart and onResume)
+          9      @Override
+         10      protected void onCreate(Bundle savedInstanceState) {
+         11          finish();
+         12          super.onCreate(savedInstanceState);
+         13      }
+      (core/java/android/app/ActivityThread.java:2644-2660, 2685-2741, 2833-2863: no line numbers)
+
+## Tool.saveIconAndReturnID  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=other_app state=- classes=explicit;non_standard;standard explicit_standard_route=yes
+   1. E3a1527b1 S_ENTRY -> Init.<init>  (printed above)
+   2. E996c92b8 Init.<init> -> Init.onCreate  (printed above)
+   3. E5aa97973 Init.onCreate -> S_INTRO  (printed above)
+   4. E8b7dd43a S_INTRO -> Init.onSkipButtonPressed  (printed above)
+   5. E23660de0 Init.onSkipButtonPressed -> Init.RockIt  (printed above)
+   6. E1701006d Init.RockIt -> Home.<init>  (printed above)
+   7. Ecded7dff Home.<init> -> Home.onCreate  (printed above)
+   8. E06eb37f4 Home.onCreate -> Home.onStart  (printed above)
+   9. E823bd16a Home.onStart -> Home.onResume  (printed above)
+  10. E0117cced Home.onResume -> Home.handleLauncherPause@DESKTOP  (printed above)
+  11. E9629945d Home.handleLauncherPause@DESKTOP -> GroupPopupView.dismissPopup  (printed above)
+  12. E506c5f2f GroupPopupView.dismissPopup -> S_HOME_DESKTOP  (printed above)
+  13. E39f55ef0 SYSTEM/standard* [ENV: outside package: another app sends the broadcast com.android.launcher.action.INSTALL_SHORTCUT (a legacy "add to home screen")]
+      S_HOME_DESKTOP -> ShortcutReceiver.onReceive
+      An app sends the legacy INSTALL_SHORTCUT broadcast
+      evidence: SRC activity/Home.java:176-177, 639-643; util/ShortcutReceiver.java:23-65; FW-SRC core/java/android/app/ContextImpl.java:1412-1435 (registerReceiver hands the receiver to a ReceiverDispatcher and the activity manager) and core/java/android/app/LoadedApk.java:1389-1402, 1300-1313 (a delivered broadcast is posted to the main thread, where receiver.onReceive runs); INFERRED the activity manager sends a matching broadcast to the registered receiver (ActivityManagerService not read for this)
+      (activity/Home.java:176-177, 639-643: no line numbers)
+      (core/java/android/app/ContextImpl.java not found in the source tree)
+  14. E3d08f3e9 CALL/explicit*
+      ShortcutReceiver.onReceive -> Desktop$Item.newShortcutItem(Context,String,Intent,Bitmap)
+      Direct call
+      evidence: SRC ShortcutReceiver.java:46 (bytecode)
+         46          Desktop.Item item = Desktop.Item.newShortcutItem(context, name, newIntent, Tool.drawableToBitmap(shortcutIconDrawable));
+  15. Eaf05406d CALL/explicit*
+      Desktop$Item.newShortcutItem(Context,String,Intent,Bitmap) -> Tool.saveIconAndReturnID
+      Direct call
+      evidence: SRC Desktop.java:725 (bytecode)
+        725              String iconID = Tool.saveIconAndReturnID(context, icon);
+
+## Home.configureWidget  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=other_app state=- classes=explicit;non_standard;standard explicit_standard_route=no
+   1. E3a1527b1 S_ENTRY -> Init.<init>  (printed above)
+   2. E996c92b8 Init.<init> -> Init.onCreate  (printed above)
+   3. E5aa97973 Init.onCreate -> S_INTRO  (printed above)
+   4. E8b7dd43a S_INTRO -> Init.onSkipButtonPressed  (printed above)
+   5. E23660de0 Init.onSkipButtonPressed -> Init.RockIt  (printed above)
+   6. E1701006d Init.RockIt -> Home.<init>  (printed above)
+   7. Ecded7dff Home.<init> -> Home.onCreate  (printed above)
+   8. E06eb37f4 Home.onCreate -> Home.onStart  (printed above)
+   9. E823bd16a Home.onStart -> Home.onResume  (printed above)
+  10. E0117cced Home.onResume -> Home.handleLauncherPause@DESKTOP  (printed above)
+  11. E9629945d Home.handleLauncherPause@DESKTOP -> GroupPopupView.dismissPopup  (printed above)
+  12. E506c5f2f GroupPopupView.dismissPopup -> S_HOME_DESKTOP  (printed above)
+  13. E539087ed S_HOME_DESKTOP -> Desktop$DesktopAdapter$5.onLongClick  (printed above)
+  14. E93cf49d5 Desktop$DesktopAdapter$5.onLongClick -> S_HOME_EDIT  (printed above)
+  15. Eecccd47f S_HOME_EDIT -> Home$$ViewBinder$3.doClick  (printed above)
+  16. E787bdcd0 Home$$ViewBinder$3.doClick -> Home.onViewClicked@WIDGET  (printed above)
+  17. Ece70817c Home.onViewClicked@WIDGET -> Home.pickWidget  (printed above)
+  18. E21658687 Home.pickWidget -> S_EXT_WIDGET_PICKER  (printed above)
+  19. E306c7943 RESULT/standard* [ENV: outside package: the system widget picker or the widget configure activity of the chosen widget returns a result]
+      S_EXT_WIDGET_PICKER -> Home.onActivityResult@PICKED
+      the user chose a widget: the picker finishes with RESULT_OK and the widget id
+      guard: resultCode == RESULT_OK and requestCode == REQUEST_PICK_APPWIDGET
+      evidence: SRC activity/Home.java:706-713; FW-SRC core/java/android/app/Activity.java:824, 5489-5508 (an activity that finishes without setResult reports RESULT_CANCELED with no data) and core/java/android/app/ActivityThread.java:4253-4265, core/java/android/app/Activity.java:7259-7266 (the result is delivered to the starting activity through dispatchActivityResult, which calls onActivityResult); INFERRED the system widget picker (another package, not read) returns RESULT_OK with EXTRA_APPWIDGET_ID when the user chooses a widget
+        706      @Override
+        707      protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        708          if (resultCode == RESULT_OK) {
+        709              if (requestCode == REQUEST_PICK_APPWIDGET) {
+        710                  configureWidget(data);
+        711              } else if (requestCode == REQUEST_CREATE_APPWIDGET) {
+        712                  createWidget(data);
+        713              }
+      (core/java/android/app/Activity.java:824, 5489-5508: no line numbers)
+  20. Ed455aea5 CALL/explicit*
+      Home.onActivityResult@PICKED -> Home.configureWidget
+      configureWidget(data)
+      guard: requestCode == REQUEST_PICK_APPWIDGET
+      evidence: SRC activity/Home.java:709-710
+        709              if (requestCode == REQUEST_PICK_APPWIDGET) {
+        710                  configureWidget(data);
+
+## DeviceAdminReceiver.onReceive  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=other_app state=- classes=non_standard;standard explicit_standard_route=no
+   1. E15938fe2 ENTRY/non_standard(manifest receiver started by the system broadcast ACTION_DEVICE_ADMIN_ENABLED (resolved by action name)) [ENV: outside package: the user activated OpenLauncher as a device administrator in the system settings (DEVICE_ADMIN_ENABLED broadcast; the receiver is protected by BIND_DEVICE_ADMIN)]
+      S_ENTRY -> DeviceAdminReceiver.<init>
+      The user activates OpenLauncher as device admin: the system sends DEVICE_ADMIN_ENABLED to the manifest receiver
+      evidence: SRC AndroidManifest.xml:84-94; FW-SRC core/java/android/app/ActivityThread.java:3141-3188 (handleReceiver loads the receiver class named in the manifest, creates it and calls onReceive); INFERRED the activity manager sends the broadcast to the manifest receiver of the explicit component (ActivityManagerService not read for this)
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+   2. E52bc2f77 LIFECYCLE/standard*
+      DeviceAdminReceiver.<init> -> DeviceAdminReceiver.onReceive
+      BroadcastReceiver.onReceive (empty body)
+      evidence: SRC util/DeviceAdminReceiver.java:7-12; FW-SRC core/java/android/app/ActivityThread.java:3141-3188 (handleReceiver loads the receiver class named in the manifest, creates it and calls onReceive); INFERRED the activity manager sends the broadcast to the manifest receiver of the explicit component (ActivityManagerService not read for this)
+          7  public class DeviceAdminReceiver extends BroadcastReceiver {
+          8      @Override
+          9      public void onReceive(Context context, Intent intent) {
+         10  
+         11      }
+         12  }
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+
+## Desktop$Item.toIntent  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=- state=- classes=explicit;non_standard;standard explicit_standard_route=yes
+   1. E3a1527b1 S_ENTRY -> Init.<init>  (printed above)
+   2. E996c92b8 Init.<init> -> Init.onCreate  (printed above)
+   3. E5aa97973 Init.onCreate -> S_INTRO  (printed above)
+   4. E8b7dd43a S_INTRO -> Init.onSkipButtonPressed  (printed above)
+   5. E23660de0 Init.onSkipButtonPressed -> Init.RockIt  (printed above)
+   6. E1701006d Init.RockIt -> Home.<init>  (printed above)
+   7. Ecded7dff Home.<init> -> Home.onCreate  (printed above)
+   8. E6c305cd5 Home.onCreate -> Home$2.doInBackground  (printed above)
+   9. E460ef627 Home$2.doInBackground -> Home$2.onPostExecute  (printed above)
+  10. E5f090eaa Home$2.onPostExecute -> Home.init  (printed above)
+  11. E7f91bef8 CALL/explicit*
+      Home.init -> Home.initSettings
+      Direct call
+      evidence: SRC Home.java:289 (bytecode)
+        289          initSettings();
+  12. Ee4fe3bad CALL/explicit*
+      Home.initSettings -> AppDrawerController.reloadDrawerCardTheme
+      Direct call
+      evidence: SRC Home.java:532 (bytecode)
+        532          appDrawerController.reloadDrawerCardTheme();
+  13. E738e28fe CALL/explicit*
+      AppDrawerController.reloadDrawerCardTheme -> AppDrawer_Paged.resetAdapter
+      Direct call
+      evidence: SRC AppDrawerController.java:210 (bytecode)
+        210                  drawerViewPaged.resetAdapter();
+  14. E2aa80503 CALL/explicit*
+      AppDrawer_Paged.resetAdapter -> AppDrawer_Paged$Adapter.<init>
+      Direct call
+      evidence: SRC AppDrawer_Paged.java:123 (bytecode)
+        123          setAdapter(new Adapter());
+  15. E02311481 CALL/explicit*
+      AppDrawer_Paged$Adapter.<init> -> AppDrawer_Paged$Adapter.getItemView
+      Direct call
+      evidence: SRC AppDrawer_Paged.java:172 (bytecode)
+        172                          View view = getItemView(i, x, y);
+  16. Ee2225032 CALL/explicit*
+      AppDrawer_Paged$Adapter.getItemView -> AppItemView$Builder.withOnLongPressDrag(App,Action,LongPressCallBack)
+      Direct call
+      evidence: SRC AppDrawer_Paged.java:142 (bytecode)
+        142                      .withOnLongPressDrag(app, DragAction.Action.ACTION_APP_DRAWER, new AppItemView.Builder.LongPressCallBack() {
+  17. Eda1a05dc CALL/explicit*
+      AppItemView$Builder.withOnLongPressDrag(App,Action,LongPressCallBack) -> Desktop$Item.newAppItem
+      Direct call
+      evidence: SRC AppItemView.java:315 (bytecode)
+        315              withOnLongPressDrag(Desktop.Item.newAppItem(app), action, eventAction);
+  18. Ecf3c9ee7 CALL/explicit*
+      Desktop$Item.newAppItem -> Desktop$Item.toIntent
+      Direct call
+      evidence: SRC Desktop.java:706 (bytecode)
+        706              item.actions = new Intent[]{toIntent(app)};
+
+## Desktop$DesktopAdapter.getItemFromCoordinate  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=- state=- classes=explicit;non_standard;standard explicit_standard_route=yes
+   1. E3a1527b1 S_ENTRY -> Init.<init>  (printed above)
+   2. E996c92b8 Init.<init> -> Init.onCreate  (printed above)
+   3. E5aa97973 Init.onCreate -> S_INTRO  (printed above)
+   4. E8b7dd43a S_INTRO -> Init.onSkipButtonPressed  (printed above)
+   5. E23660de0 Init.onSkipButtonPressed -> Init.RockIt  (printed above)
+   6. E1701006d Init.RockIt -> Home.<init>  (printed above)
+   7. Ecded7dff Home.<init> -> Home.onCreate  (printed above)
+   8. E06eb37f4 Home.onCreate -> Home.onStart  (printed above)
+   9. E823bd16a Home.onStart -> Home.onResume  (printed above)
+  10. E0117cced Home.onResume -> Home.handleLauncherPause@DESKTOP  (printed above)
+  11. E9629945d Home.handleLauncherPause@DESKTOP -> GroupPopupView.dismissPopup  (printed above)
+  12. E506c5f2f GroupPopupView.dismissPopup -> S_HOME_DESKTOP  (printed above)
+  13. E0f6246f9 GUI/standard*
+      S_HOME_DESKTOP -> AppItemView$Builder$3.onLongClick@LAUNCHER
+      Long-press the round "All Apps" button
+      evidence: SRC widget/AppItemView.java:319-340; FW-SRC core/java/android/view/View.java:12972-12990, 13029-13044, 24767-24771 (a tap on a clickable view posts PerformClick, which calls performClick) and 23212-23225, 24725-24739 (a press held for the long-press timeout calls performLongClick); core/java/android/view/View.java:6289-6300, 6368-6375, 11764-11779 (performClick and performLongClick call the OnClickListener / OnLongClickListener set with setOn...Listener; dispatchTouchEvent calls the OnTouchListener first)
+        319          public Builder withOnLongPressDrag(final Desktop.Item item, final DragAction.Action action, @Nullable final LongPressCallBack eventAction) {
+        320              view.setOnLongClickListener(new OnLongClickListener() {
+        321                  @Override
+        322                  public boolean onLongClick(View v) {
+        323                      if (eventAction != null) {
+        324                          if (!eventAction.readyForDrag(v)) return false;
+        325                      }
+        326  
+        327                      if (view.vibrateWhenLongPress)
+        328                          v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+        329                      Intent i = new Intent();
+        330                      i.putExtra("mDragData", item);
+        331                      ClipData data = ClipData.newIntent("mDragIntent", i);
+        332                      v.startDrag(data, new GoodDragShadowBuilder(v), new DragAction(action), 0);
+      ...  (8 more lines)
+      (core/java/android/view/View.java:12972-12990, 13029-13044, 24767-24771: no line numbers)
+  14. E16774099 ENTERS/page*
+      AppItemView$Builder$3.onLongClick@LAUNCHER -> S_HOME_DRAG@LAUNCHER
+      view.startDrag(...): the drag of this icon starts
+      guard: readyForDrag returned true
+      evidence: SRC widget/AppItemView.java:329-332; FW-SRC core/java/android/view/View.java:22844-22847, 22899-22966 (startDrag calls startDragAndDrop, which asks the shadow builder for its metrics and draws it, prepares the drag and calls performDrag on the window session), services/core/java/com/android/server/wm/Session.java:316-375 and services/core/java/com/android/server/wm/DragState.java:249-300, 359-380, 448-482, 493-540 (the window manager sends DRAG_STARTED, DRAG_LOCATION, DROP and DRAG_ENDED to the windows) and services/core/java/com/android/server/wm/WindowManagerService.java:802-851 (touch moves and the up event of the drag channel call notifyMoveLw / notifyDropLw / endDragLw), core/java/android/view/ViewRootImpl.java:3943-3948, 5892-5960, 6044-6074 (the window handles the event, ENTERED and EXITED are made by setDragFocus), core/java/android/view/ViewGroup.java:1576-1700 and core/java/android/view/View.java:23109-23130 (ViewGroup passes the event down, View calls its OnDragListener, else onDragEvent)
+        329                      Intent i = new Intent();
+        330                      i.putExtra("mDragData", item);
+        331                      ClipData data = ClipData.newIntent("mDragIntent", i);
+        332                      v.startDrag(data, new GoodDragShadowBuilder(v), new DragAction(action), 0);
+      (core/java/android/view/View.java:22844-22847, 22899-22966: no line numbers)
+  15. E21693917 GUI/standard*
+      S_HOME_DRAG@LAUNCHER -> Desktop.onDrag
+      Drag the item over the desktop or drop it there (DRAG_LOCATION / DROP)
+      evidence: SRC widget/Desktop.java:160-231; FW-SRC core/java/android/view/View.java:22844-22847, 22899-22966 (startDrag calls startDragAndDrop, which asks the shadow builder for its metrics and draws it, prepares the drag and calls performDrag on the window session), services/core/java/com/android/server/wm/Session.java:316-375 and services/core/java/com/android/server/wm/DragState.java:249-300, 359-380, 448-482, 493-540 (the window manager sends DRAG_STARTED, DRAG_LOCATION, DROP and DRAG_ENDED to the windows) and services/core/java/com/android/server/wm/WindowManagerService.java:802-851 (touch moves and the up event of the drag channel call notifyMoveLw / notifyDropLw / endDragLw), core/java/android/view/ViewRootImpl.java:3943-3948, 5892-5960, 6044-6074 (the window handles the event, ENTERED and EXITED are made by setDragFocus), core/java/android/view/ViewGroup.java:1576-1700 and core/java/android/view/View.java:23109-23130 (ViewGroup passes the event down, View calls its OnDragListener, else onDragEvent)
+        160      public boolean onDrag(View p1, DragEvent p2) {
+        161          switch (p2.getAction()) {
+        162              case DragEvent.ACTION_DRAG_STARTED:
+        163                  Tool.print("ACTION_DRAG_STARTED");
+        164                  switch (((DragAction) p2.getLocalState()).action) {
+        165                      case ACTION_APP:
+        166                      case ACTION_GROUP:
+        167                      case ACTION_APP_DRAWER:
+        168                      case ACTION_WIDGET:
+        169                      case ACTION_SHORTCUT:
+        170                      case ACTION_LAUNCHER:
+        171                          return true;
+        172                  }
+        173                  return true;
+      ...  (58 more lines)
+      (core/java/android/view/View.java:22844-22847, 22899-22966: no line numbers)
+  16. E59b3b06d CALL/explicit*
+      Desktop.onDrag -> CellContainer.peekItemAndSwap
+      Direct call
+      evidence: SRC Desktop.java:183 (bytecode)
+        183                  getCurrentPage().peekItemAndSwap(p2);
+  17. E7daec898 CALL/explicit*
+      CellContainer.peekItemAndSwap -> CellContainer.onItemRearrange
+      Direct call
+      evidence: SRC CellContainer.java:131 (bytecode)
+        131          onItemRearrange(new Point(targetParams.x, targetParams.y), targetPoint);
+  18. E40a52c15 CALL/explicit*
+      CellContainer.onItemRearrange -> Desktop$DesktopAdapter$2.onItemRearrange
+      Virtual/interface call that can dispatch to this implementation
+      evidence: SRC CellContainer.java:140 (bytecode)
+        140              onItemRearrangeListener.onItemRearrange(from, to);
+  19. Eb8539a54 CALL/explicit*
+      Desktop$DesktopAdapter$2.onItemRearrange -> Desktop$DesktopAdapter.getItemFromCoordinate
+      Direct call (through Desktop$DesktopAdapter.access$100)
+      evidence: SRC Desktop.java:466 (bytecode)
+        466                      Item itemFromCoordinate = getItemFromCoordinate(from);
+
+## MinibarEditActivity$Item$ViewHolder.<init>  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=- state=- classes=explicit;non_standard;standard explicit_standard_route=no
+   1. E3a1527b1 S_ENTRY -> Init.<init>  (printed above)
+   2. E996c92b8 Init.<init> -> Init.onCreate  (printed above)
+   3. E5aa97973 Init.onCreate -> S_INTRO  (printed above)
+   4. E8b7dd43a S_INTRO -> Init.onSkipButtonPressed  (printed above)
+   5. E23660de0 Init.onSkipButtonPressed -> Init.RockIt  (printed above)
+   6. E1701006d Init.RockIt -> Home.<init>  (printed above)
+   7. Ecded7dff Home.<init> -> Home.onCreate  (printed above)
+   8. E06eb37f4 Home.onCreate -> Home.onStart  (printed above)
+   9. E823bd16a Home.onStart -> Home.onResume  (printed above)
+  10. E0117cced Home.onResume -> Home.handleLauncherPause@DESKTOP  (printed above)
+  11. E9629945d Home.handleLauncherPause@DESKTOP -> GroupPopupView.dismissPopup  (printed above)
+  12. E506c5f2f GroupPopupView.dismissPopup -> S_HOME_DESKTOP  (printed above)
+  13. E2b9b86b1 S_HOME_DESKTOP -> Home.onDrawerStateChanged  (printed above)
+  14. Ecb7f915c Home.onDrawerStateChanged -> S_HOME_MINIBAR  (printed above)
+  15. E738b5300 GUI/standard*
+      S_HOME_MINIBAR -> Home$11.onItemClick@EditMinBar
+      Tap the minibar row "Change the layout of the minibar" (pencil icon)
+      guard: the row is enabled in the minibar arrangement (all eight are, by default)
+      evidence: SRC activity/Home.java:591-607; util/LauncherAction.java:29-39; viewutil/IconListAdapter.java:39-56; FW-SRC core/java/android/widget/ListView.java:575 and core/java/android/widget/AbsListView.java:2365 (setAdapter reads getCount, the list asks the adapter for getView) and core/java/android/widget/AbsListView.java:3108-3127, core/java/android/widget/AdapterView.java:314-321 (a tap calls adapter.getItemId and then the OnItemClickListener)
+        591          minBar.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        592              @Override
+        593              public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+        594                  LauncherAction.Action action = LauncherAction.Action.valueOf(labels.get(i));
+        595                  LauncherAction.RunAction(action, Home.this);
+        596                  if (action == LauncherAction.Action.EditMinBar || action == LauncherAction.Action.LauncherSettings || action == LauncherAction.Action.DeviceSettings) {
+        597  //                    (new Handler()).postDelayed(new Runnable() {
+        598  //                        @Override
+        599  //                        public void run() {
+        600  //                            drawerLayout.closeDrawers();
+        601  //                        }
+        602  //                    }, 500);
+        603                  } else {
+        604                      drawerLayout.closeDrawers();
+      ...  (3 more lines)
+      (core/java/android/widget/ListView.java not found in the source tree)
+  16. E2cb91242 CALL/explicit*
+      Home$11.onItemClick@EditMinBar -> LauncherAction.RunAction@EditMinBar
+      LauncherAction.RunAction(action, Home.this)
+      evidence: SRC activity/Home.java:594-595
+        594                  LauncherAction.Action action = LauncherAction.Action.valueOf(labels.get(i));
+        595                  LauncherAction.RunAction(action, Home.this);
+  17. E965027f2 LIFECYCLE/standard*
+      LauncherAction.RunAction@EditMinBar -> MinibarEditActivity.onCreate
+      the system creates MinibarEditActivity, then calls onCreate
+      evidence: SRC activity/MinibarEditActivity.java:36-37; FW-SRC core/java/android/app/ActivityThread.java:2644-2660, 2685-2741, 2833-2863 (performLaunchActivity instantiates the activity, attaches it and calls callActivityOnCreate, then performStart; handleLaunchActivity then calls handleResumeActivity) and core/java/android/app/Activity.java:7014-7019, 7098-7107 (performStart and performResume call onStart and onResume)
+         36  public class MinibarEditActivity extends AppCompatActivity implements ItemTouchCallback {
+         37      @BindView(R.id.tb)
+      (core/java/android/app/ActivityThread.java:2644-2660, 2685-2741, 2833-2863: no line numbers)
+  18. Ea04b419a FRAMEWORK/non_standard(FastAdapter library calls the item methods)
+      MinibarEditActivity.onCreate -> MinibarEditActivity$Item.getType
+      rv.setAdapter(adapter): FastAdapter shows the 8 rows
+      evidence: SRC activity/MinibarEditActivity.java:57-65, 131-168; INFERRED FastAdapter and RecyclerView ask the item for getType, getLayoutRes, getFactory and call bindView when a row is shown (library source not read)
+      (activity/MinibarEditActivity.java:57-65, 131-168: no line numbers)
+  19. E8b4ede1f FRAMEWORK/non_standard(FastAdapter library calls the item methods)
+      MinibarEditActivity$Item.getType -> MinibarEditActivity$Item.getFactory
+      FastAdapter asks the item for getFactory
+      evidence: SRC activity/MinibarEditActivity.java:131-168; INFERRED FastAdapter and RecyclerView ask the item for getType, getLayoutRes, getFactory and call bindView when a row is shown (library source not read)
+        131          @Override
+        132          public int getType() {
+        133              return 0;
+        134          }
+        135  
+        136          @Override
+        137          public int getLayoutRes() {
+        138              return R.layout.item_minbaredit;
+        139          }
+        140  
+        141          private static final ViewHolderFactory<? extends ViewHolder> FACTORY = new ItemFactory();
+        142  
+        143          static class ItemFactory implements ViewHolderFactory<ViewHolder> {
+        144              public ViewHolder create(View v) {
+      ...  (24 more lines)
+  20. Ed0d4c000 FRAMEWORK/non_standard(FastAdapter library calls the ViewHolderFactory)
+      MinibarEditActivity$Item.getFactory -> MinibarEditActivity$Item$ItemFactory.create
+      FastAdapter calls factory.create(view) for a new row
+      evidence: SRC activity/MinibarEditActivity.java:143-147; INFERRED FastAdapter and RecyclerView ask the item for getType, getLayoutRes, getFactory and call bindView when a row is shown (library source not read)
+        143          static class ItemFactory implements ViewHolderFactory<ViewHolder> {
+        144              public ViewHolder create(View v) {
+        145                  return new ViewHolder(v);
+        146              }
+        147          }
+  21. E5ba6f68e CALL/explicit*
+      MinibarEditActivity$Item$ItemFactory.create -> MinibarEditActivity$Item$ViewHolder.<init>
+      new ViewHolder(v)
+      evidence: SRC activity/MinibarEditActivity.java:144-146, 176-182
+      (activity/MinibarEditActivity.java:144-146, 176-182: no line numbers)
+
+## DialogUtils$2.onSelection  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=- state=- classes=explicit;non_standard;standard explicit_standard_route=no
+   1. E3a1527b1 S_ENTRY -> Init.<init>  (printed above)
+   2. E996c92b8 Init.<init> -> Init.onCreate  (printed above)
+   3. E5aa97973 Init.onCreate -> S_INTRO  (printed above)
+   4. E8b7dd43a S_INTRO -> Init.onSkipButtonPressed  (printed above)
+   5. E23660de0 Init.onSkipButtonPressed -> Init.RockIt  (printed above)
+   6. E1701006d Init.RockIt -> Home.<init>  (printed above)
+   7. Ecded7dff Home.<init> -> Home.onCreate  (printed above)
+   8. E06eb37f4 Home.onCreate -> Home.onStart  (printed above)
+   9. E823bd16a Home.onStart -> Home.onResume  (printed above)
+  10. E0117cced Home.onResume -> Home.handleLauncherPause@DESKTOP  (printed above)
+  11. E9629945d Home.handleLauncherPause@DESKTOP -> GroupPopupView.dismissPopup  (printed above)
+  12. E506c5f2f GroupPopupView.dismissPopup -> S_HOME_DESKTOP  (printed above)
+  13. E2b9b86b1 S_HOME_DESKTOP -> Home.onDrawerStateChanged  (printed above)
+  14. Ecb7f915c Home.onDrawerStateChanged -> S_HOME_MINIBAR  (printed above)
+  15. Ee8ace45b S_HOME_MINIBAR -> Home$11.onItemClick@LauncherSettings  (printed above)
+  16. Ebf800b8a Home$11.onItemClick@LauncherSettings -> LauncherAction.RunAction@LauncherSettings  (printed above)
+  17. Ebd0c7205 LauncherAction.RunAction@LauncherSettings -> SettingsActivity.onCreate  (printed above)
+  18. Ee3b2c4ce SettingsActivity.onCreate -> S_SETTINGS_ROOT  (printed above)
+  19. E7ef50d09 GUI/non_standard(MaterialPrefFragment library (vendored) calls the OnPrefClickedListener when a ButtonPref is tapped)
+      S_SETTINGS_ROOT -> SettingsActivity.onPrefClicked@drawerSettings
+      Tap "Drawer" on the Settings root screen
+      guard: id == 'drawerSettings'
+      evidence: SRC activity/SettingsActivity.java:41-49, 302-324; SRC libs/materialpreffragment/src/main/java/com/bennyv5/materialpreffragment/MaterialPrefFragment.java:360-373 (ButtonPref.onCreateView sets the click listener to the fragment itself) and libs/materialpreffragment/src/main/java/com/bennyv5/materialpreffragment/MaterialPrefFragment.java:113-119 (onClick reads the pref id tag and calls the registered OnPrefClickedListener)
+      (activity/SettingsActivity.java:41-49, 302-324: no line numbers)
+        360          @Override
+        361          public View onCreateView(Context c, MaterialPrefFragment fragment, SharedPreferences sharedPrefs) {
+        362              Button b = new Button(c);
+        363              setStyle(b, fragment);
+        364  
+        365              b.setTag(fragment.TAG_ID, id);
+        366              if (icon != null) {
+        367                  b.setCompoundDrawablePadding(Tool.dp2px(20, c));
+        368                  b.setCompoundDrawablesWithIntrinsicBounds(icon, null, null, null);
+        369              }
+        370              b.setOnClickListener(fragment);
+        371              b.setText(warpText(summary, title, fragment));
+        372              return warpCardView(b, fragment);
+        373          }
+  20. E4a1f474b CALL/explicit*
+      SettingsActivity.onPrefClicked@drawerSettings -> SettingsActivity.onSettingsSelected@2
+      onSettingsSelected(2)
+      guard: id == 'drawerSettings'
+      evidence: SRC activity/SettingsActivity.java:304-324
+        304              case "desktopSettings":
+        305                  onSettingsSelected(0);
+        306                  break;
+        307              case "dockSettings":
+        308                  onSettingsSelected(1);
+        309                  break;
+        310              case "drawerSettings":
+        311                  onSettingsSelected(2);
+        312                  break;
+        313              case "inputSettings":
+        314                  onSettingsSelected(3);
+        315                  break;
+        316              case "colorsSettings":
+        317                  onSettingsSelected(4);
+      ...  (7 more lines)
+  21. E2e80d75b ENTERS/page*
+      SettingsActivity.onSettingsSelected@2 -> S_SETTINGS_DRAWER
+      the Drawer sub-screen fragment replaces the root list (fragment transaction, added to the back stack)
+      guard: settingsCategory == 2
+      evidence: SRC activity/SettingsActivity.java:54-138
+         54      public void onSettingsSelected(int settingsCategory) {
+         55          LauncherSettings.GeneralSettings generalSettings = LauncherSettings.getInstance(this).generalSettings;
+         56          MaterialPrefFragment fragment;
+         57          switch (settingsCategory) {
+         58              default:
+         59                  fragment = MaterialPrefFragment.newInstance(new MaterialPrefFragment.Builder(this, Color.DKGRAY, ContextCompat.getColor(this, R.color.Light_TextColor), Co
+         60                          .add(new MaterialPrefFragment.ButtonPref("editMiniBar", getString(R.string.settings_desktopMinibar), getString(R.string.settings_desktopMinibar_su
+         61                          .add(new MaterialPrefFragment.ButtonPref("desktopMode", (getString(R.string.settings_desktopStyle)), (getString(R.string.settings_desktopStyle_sum
+         62                          // FIXME: 11/25/2016 This will have problem (in allAppsMode) as the apps will be cut off when scale down
+         63                          .add(new MaterialPrefFragment.NUMPref("gridSizeDesktop", (getString(R.string.settings_desktopSize)), (getString(R.string.settings_desktopSize_summ
+         64                                  new MaterialPrefFragment.NUMPref.NUMPrefItem("hGridSizeDesktop", (getString(R.string.settings_column)), generalSettings.desktopGridX, 4, 1
+         65                                  new MaterialPrefFragment.NUMPref.NUMPrefItem("vGridSizeDesktop", (getString(R.string.settings_row)), generalSettings.desktopGridY, 4, 10)
+         66                          ))
+         67                          .add(new MaterialPrefFragment.TBPref("desktopSearchBar", (getString(R.string.settings_desktopSearch)), (getString(R.string.settings_desktopSearch_
+      ...  (71 more lines)
+  22. Ef5eeab0d GUI/non_standard(MaterialPrefFragment library calls the OnPrefClickedListener)
+      S_SETTINGS_DRAWER -> SettingsActivity.onPrefClicked@drawerStyle
+      Tap "Drawer style" on Settings > Drawer
+      guard: id == 'drawerStyle'
+      evidence: SRC activity/SettingsActivity.java:85, 337-340; SRC libs/materialpreffragment/src/main/java/com/bennyv5/materialpreffragment/MaterialPrefFragment.java:360-373 (ButtonPref.onCreateView sets the click listener to the fragment itself) and libs/materialpreffragment/src/main/java/com/bennyv5/materialpreffragment/MaterialPrefFragment.java:113-119 (onClick reads the pref id tag and calls the registered OnPrefClickedListener)
+      (activity/SettingsActivity.java:85, 337-340: no line numbers)
+        360          @Override
+        361          public View onCreateView(Context c, MaterialPrefFragment fragment, SharedPreferences sharedPrefs) {
+        362              Button b = new Button(c);
+        363              setStyle(b, fragment);
+        364  
+        365              b.setTag(fragment.TAG_ID, id);
+        366              if (icon != null) {
+        367                  b.setCompoundDrawablePadding(Tool.dp2px(20, c));
+        368                  b.setCompoundDrawablesWithIntrinsicBounds(icon, null, null, null);
+        369              }
+        370              b.setOnClickListener(fragment);
+        371              b.setText(warpText(summary, title, fragment));
+        372              return warpCardView(b, fragment);
+        373          }
+  23. E0b40304d CALL/explicit*
+      SettingsActivity.onPrefClicked@drawerStyle -> DialogUtils.appDrawerStylePicker
+      DialogUtils.appDrawerStylePicker(this)
+      guard: id == 'drawerStyle'
+      evidence: SRC activity/SettingsActivity.java:337-340
+        337              case "drawerStyle":
+        338                  DialogUtils.appDrawerStylePicker(this);
+        339                  prepareRestart();
+        340                  break;
+  24. E4df174f1 ENTERS/page*
+      DialogUtils.appDrawerStylePicker -> S_DLG_DRAWER_STYLE
+      b.show(): single-choice list Paged / Vertical
+      evidence: SRC util/DialogUtils.java:32-50; INFERRED MaterialDialogs builds the dialog and calls the registered callbacks when the user acts (library source not read)
+         32      public static void appDrawerStylePicker(final Context context) {
+         33          final String[] items = new String[AppDrawerController.DrawerMode.values().length];
+         34          int enabled = 0;
+         35          for (int i = 0; i < AppDrawerController.DrawerMode.values().length; i++) {
+         36              items[i] = AppDrawerController.DrawerMode.values()[i].name();
+         37              if (LauncherSettings.getInstance(context).generalSettings.drawerMode == AppDrawerController.DrawerMode.values()[i]) {
+         38                  enabled = i;
+         39              }
+         40          }
+         41          MaterialDialog.Builder builder = new MaterialDialog.Builder(context);
+         42          builder.title(context.getString(R.string.settings_drawerStyle))
+         43                  .items(context.getString(R.string.settings_drawer_style_paged), context.getString(R.string.settings_drawer_style_vertical))
+         44                  .itemsCallbackSingleChoice(enabled, new MaterialDialog.ListCallbackSingleChoice() {
+         45                      @Override
+      ...  (5 more lines)
+  25. Ea728a24e GUI/non_standard(MaterialDialogs library calls the ListCallbackSingleChoice)
+      S_DLG_DRAWER_STYLE -> DialogUtils$2.onSelection
+      Tap "Paged" or "Vertical"
+      evidence: SRC util/DialogUtils.java:45-49; INFERRED MaterialDialogs builds the dialog and calls the registered callbacks when the user acts (library source not read)
+         45                      @Override
+         46                      public boolean onSelection(MaterialDialog dialog, View itemView, int position, CharSequence text) {
+         47                          LauncherSettings.getInstance(context).generalSettings.drawerMode = AppDrawerController.DrawerMode.valueOf(items[position]);
+         48                          return true;
+         49                      }
+
+## GestureAnalyser.<init>(int,int,int)  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=- state=- classes=explicit;non_standard;standard explicit_standard_route=yes
+   1. E3a1527b1 S_ENTRY -> Init.<init>  (printed above)
+   2. E996c92b8 Init.<init> -> Init.onCreate  (printed above)
+   3. E5aa97973 Init.onCreate -> S_INTRO  (printed above)
+   4. E8b7dd43a S_INTRO -> Init.onSkipButtonPressed  (printed above)
+   5. E23660de0 Init.onSkipButtonPressed -> Init.RockIt  (printed above)
+   6. E1701006d Init.RockIt -> Home.<init>  (printed above)
+   7. Ecded7dff Home.<init> -> Home.onCreate  (printed above)
+   8. E6c305cd5 Home.onCreate -> Home$2.doInBackground  (printed above)
+   9. E460ef627 Home$2.doInBackground -> Home$2.onPostExecute  (printed above)
+  10. E5f090eaa Home$2.onPostExecute -> Home.init  (printed above)
+  11. E9e80a447 Home.init -> Home.initViews  (printed above)
+  12. Ecc441e90 CALL/explicit*
+      Home.initViews -> Desktop.init
+      Direct call
+      evidence: SRC Home.java:313 (bytecode)
+        313          desktop.init(this);
+  13. E70364911 CALL/explicit*
+      Desktop.init -> Desktop$DesktopAdapter.<init>
+      Direct call
+      evidence: SRC Desktop.java:82 (bytecode)
+         82          setAdapter(new DesktopAdapter(this));
+  14. E8aa7a78a CALL/explicit*
+      Desktop$DesktopAdapter.<init> -> Desktop$DesktopAdapter.getItemLayout
+      Direct call
+      evidence: SRC Desktop.java:346 (bytecode)
+        346                  desktop.pages.add(getItemLayout());
+  15. Eb8482982 CALL/explicit*
+      Desktop$DesktopAdapter.getItemLayout -> SimpleFingerGestures.<init>()
+      Direct call
+      evidence: SRC Desktop.java:460 (bytecode)
+        460              SimpleFingerGestures mySfg = new SimpleFingerGestures();
+  16. E00091e44 CALL/explicit*
+      SimpleFingerGestures.<init>() -> GestureAnalyser.<init>()
+      Direct call
+      evidence: SRC SimpleFingerGestures.java:44 (bytecode)
+         44          ga = new GestureAnalyser();
+  17. E0e46ed29 CALL/explicit*
+      GestureAnalyser.<init>() -> GestureAnalyser.<init>(int,int,int)
+      Direct call
+      evidence: SRC GestureAnalyser.java:74 (bytecode)
+         74          this(3, 500, 100);
+
+## IconLabelItem$ViewHolder.<init>  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=- state=- classes=explicit;non_standard;standard explicit_standard_route=no
+   1. E3a1527b1 S_ENTRY -> Init.<init>  (printed above)
+   2. E996c92b8 Init.<init> -> Init.onCreate  (printed above)
+   3. E5aa97973 Init.onCreate -> S_INTRO  (printed above)
+   4. E8b7dd43a S_INTRO -> Init.onSkipButtonPressed  (printed above)
+   5. E23660de0 Init.onSkipButtonPressed -> Init.RockIt  (printed above)
+   6. E1701006d Init.RockIt -> Home.<init>  (printed above)
+   7. Ecded7dff Home.<init> -> Home.onCreate  (printed above)
+   8. E06eb37f4 Home.onCreate -> Home.onStart  (printed above)
+   9. E823bd16a Home.onStart -> Home.onResume  (printed above)
+  10. E0117cced Home.onResume -> Home.handleLauncherPause@DESKTOP  (printed above)
+  11. E9629945d Home.handleLauncherPause@DESKTOP -> GroupPopupView.dismissPopup  (printed above)
+  12. E506c5f2f GroupPopupView.dismissPopup -> S_HOME_DESKTOP  (printed above)
+  13. E2b9b86b1 S_HOME_DESKTOP -> Home.onDrawerStateChanged  (printed above)
+  14. Ecb7f915c Home.onDrawerStateChanged -> S_HOME_MINIBAR  (printed above)
+  15. Ee8ace45b S_HOME_MINIBAR -> Home$11.onItemClick@LauncherSettings  (printed above)
+  16. Ebf800b8a Home$11.onItemClick@LauncherSettings -> LauncherAction.RunAction@LauncherSettings  (printed above)
+  17. Ebd0c7205 LauncherAction.RunAction@LauncherSettings -> SettingsActivity.onCreate  (printed above)
+  18. Ee3b2c4ce SettingsActivity.onCreate -> S_SETTINGS_ROOT  (printed above)
+  19. Ea89dcc77 S_SETTINGS_ROOT -> SettingsActivity.onPrefClicked@iconsSettings  (printed above)
+  20. Efe1f8684 SettingsActivity.onPrefClicked@iconsSettings -> SettingsActivity.onSettingsSelected@5  (printed above)
+  21. E18fdb83b SettingsActivity.onSettingsSelected@5 -> S_SETTINGS_ICONS  (printed above)
+  22. E63702a49 GUI/non_standard(MaterialPrefFragment library calls the OnPrefClickedListener)
+      S_SETTINGS_ICONS -> SettingsActivity.onPrefClicked@iconPack
+      Tap "Icon pack" on Settings > Icons
+      guard: id == 'iconPack'
+      evidence: SRC activity/SettingsActivity.java:123, 334-336; SRC libs/materialpreffragment/src/main/java/com/bennyv5/materialpreffragment/MaterialPrefFragment.java:360-373 (ButtonPref.onCreateView sets the click listener to the fragment itself) and libs/materialpreffragment/src/main/java/com/bennyv5/materialpreffragment/MaterialPrefFragment.java:113-119 (onClick reads the pref id tag and calls the registered OnPrefClickedListener)
+      (activity/SettingsActivity.java:123, 334-336: no line numbers)
+        360          @Override
+        361          public View onCreateView(Context c, MaterialPrefFragment fragment, SharedPreferences sharedPrefs) {
+        362              Button b = new Button(c);
+        363              setStyle(b, fragment);
+        364  
+        365              b.setTag(fragment.TAG_ID, id);
+        366              if (icon != null) {
+        367                  b.setCompoundDrawablePadding(Tool.dp2px(20, c));
+        368                  b.setCompoundDrawablesWithIntrinsicBounds(icon, null, null, null);
+        369              }
+        370              b.setOnClickListener(fragment);
+        371              b.setText(warpText(summary, title, fragment));
+        372              return warpCardView(b, fragment);
+        373          }
+  23. E44f52e32 CALL/explicit*
+      SettingsActivity.onPrefClicked@iconPack -> AppManager.startPickIconPackIntent
+      AppManager.getInstance(this).startPickIconPackIntent(this)
+      guard: id == 'iconPack'
+      evidence: SRC activity/SettingsActivity.java:334-336
+        334              case "iconPack":
+        335                  AppManager.getInstance(this).startPickIconPackIntent(this);
+        336                  break;
+  24. E70090d31 FRAMEWORK/non_standard(FastAdapter library calls the item methods)
+      AppManager.startPickIconPackIntent -> IconLabelItem.getType
+      fastItemAdapter.add(...) then d.show(): FastAdapter shows the rows
+      evidence: SRC util/AppManager.java:114-152; INFERRED FastAdapter and RecyclerView ask the item for getType, getLayoutRes, getFactory and call bindView when a row is shown (library source not read)
+        114          FastItemAdapter<IconLabelItem> fastItemAdapter = new FastItemAdapter<>();
+        115  
+        116          final List<ResolveInfo> resolveInfos = packageManager.queryIntentActivities(intent, 0);
+        117          Collections.sort(resolveInfos, new ResolveInfo.DisplayNameComparator(packageManager));
+        118          final MaterialDialog d = new MaterialDialog.Builder(activity)
+        119                  .adapter(fastItemAdapter, null)
+        120                  .title((activity.getString(R.string.settings_iconPack_title)))
+        121                  .build();
+        122  
+        123          fastItemAdapter.add(new IconLabelItem(activity.getResources().getDrawable(R.drawable.ic_launcher), "Default", new View.OnClickListener() {
+        124              @Override
+        125              public void onClick(View v) {
+        126                  recreateAfterGettingApps = true;
+        127                  LauncherSettings.getInstance(context).generalSettings.iconPackName = "";
+      ...  (25 more lines)
+  25. E48270fbd FRAMEWORK/non_standard(FastAdapter library calls the item methods)
+      IconLabelItem.getType -> IconLabelItem.getFactory
+      FastAdapter asks the item for getFactory
+      evidence: SRC viewutil/IconLabelItem.java:34-58; INFERRED FastAdapter and RecyclerView ask the item for getType, getLayoutRes, getFactory and call bindView when a row is shown (library source not read)
+         34      @Override
+         35      public int getLayoutRes() {
+         36          return R.layout.item_iconlabel;
+         37      }
+         38  
+         39      private static final ViewHolderFactory<? extends IconLabelItem.ViewHolder> FACTORY = new ItemFactory();
+         40  
+         41      static class ItemFactory implements ViewHolderFactory<IconLabelItem.ViewHolder> {
+         42          public IconLabelItem.ViewHolder create(View v) {
+         43              return new IconLabelItem.ViewHolder(v);
+         44          }
+         45      }
+         46  
+         47      @Override
+      ...  (11 more lines)
+  26. E8d0dd10f FRAMEWORK/non_standard(FastAdapter library calls the ViewHolderFactory)
+      IconLabelItem.getFactory -> IconLabelItem$ItemFactory.create
+      FastAdapter calls factory.create(view) for a new row
+      evidence: SRC viewutil/IconLabelItem.java:41-45; INFERRED FastAdapter and RecyclerView ask the item for getType, getLayoutRes, getFactory and call bindView when a row is shown (library source not read)
+         41      static class ItemFactory implements ViewHolderFactory<IconLabelItem.ViewHolder> {
+         42          public IconLabelItem.ViewHolder create(View v) {
+         43              return new IconLabelItem.ViewHolder(v);
+         44          }
+         45      }
+  27. E07333387 CALL/explicit*
+      IconLabelItem$ItemFactory.create -> IconLabelItem$ViewHolder.<init>
+      new ViewHolder(v)
+      evidence: SRC viewutil/IconLabelItem.java:43, 60-66
+      (viewutil/IconLabelItem.java:43, 60-66: no line numbers)
+
+## FiveSecsDelayContentProvider.onCreate  REACHABLE  confirmed_by=SOURCE path=UNCHECKED
+   env=- state=- classes=standard explicit_standard_route=yes
+   1. Edb156ef1 ENTRY/standard*
+      S_ENTRY -> FiveSecsDelayContentProvider.<init>
+      The process installs the providers of its manifest when it starts, before any component
+      evidence: SRC AndroidManifest.xml:56-61; FW-SRC core/java/android/app/ActivityThread.java:5792-5812, 6225-6239 (the process installs the providers of its manifest: installProvider loads the class, creates it and calls attachInfo) and core/java/android/content/ContentProvider.java:1891-1918 (attachInfo calls onCreate)
+      (core/java/android/app/ActivityThread.java:5792-5812, 6225-6239: no line numbers)
+   2. Ea9707b85 LIFECYCLE/standard*
+      FiveSecsDelayContentProvider.<init> -> FiveSecsDelayContentProvider.onCreate
+      ContentProvider.attachInfo calls onCreate
+      evidence: SRC util/FiveSecsDelayContentProvider.java:19-22; FW-SRC core/java/android/app/ActivityThread.java:5792-5812, 6225-6239 (the process installs the providers of its manifest: installProvider loads the class, creates it and calls attachInfo) and core/java/android/content/ContentProvider.java:1891-1918 (attachInfo calls onCreate)
+         19      @Override
+         20      public boolean onCreate() {
+         21          return true;
+         22      }
+      (core/java/android/app/ActivityThread.java:5792-5812, 6225-6239: no line numbers)
+
+## FiveSecsDelayContentProvider.<init>  REACHABLE  confirmed_by=SOURCE path=UNCHECKED
+   env=- state=- classes=standard explicit_standard_route=yes
+   1. Edb156ef1 S_ENTRY -> FiveSecsDelayContentProvider.<init>  (printed above)
+
+## Init.onCreate  REACHABLE  confirmed_by=SOURCE path=UNCHECKED
+   env=- state=- classes=standard explicit_standard_route=yes
+   1. E3a1527b1 S_ENTRY -> Init.<init>  (printed above)
+   2. E996c92b8 Init.<init> -> Init.onCreate  (printed above)
+
+## Init.<init>  REACHABLE  confirmed_by=SOURCE path=UNCHECKED
+   env=- state=- classes=standard explicit_standard_route=yes
+   1. E3a1527b1 S_ENTRY -> Init.<init>  (printed above)
+

@@ -1,0 +1,4 @@
+# L1 verdicts — batch 20 (hashCode/toString, D30 execution)
+Scope key: see batch3.md header (same greps/L1/ set). Row 40 (LogEntry.toString) is already REACHABLE and out of scope.
+| batch/row | method | old label | NEW label | confirmed_by | evidence (file:line or grep path) | revert condition |
+| 20/39 | LogEntry.hashCode | OPEN | UNREACHABLE | INFERRED | Def core/logger/LogEntry.java:93-101 (tag/msg String hashes inside body only). Zero external .hashCode() on LogEntry in grep_all_calls.txt; zero hash collection of LogEntry in grep_hash_collections.txt (Logger holds ArrayList<LogEntry>, :149/:284, not a hash collection); Logger/LogViewModel/TorrentEngine use LogEntry only via toString()/toStringWithTimeStamp() (already-REACHABLE rows, not hashCode triggers). No plausible unprinted dispatcher | Any printed trigger (receiver-typed call, hash collection, library hash dispatch) flips to REACHABLE |

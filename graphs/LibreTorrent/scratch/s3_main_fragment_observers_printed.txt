@@ -1,0 +1,102 @@
+   232	    @Override
+   233	    public void onStart()
+   234	    {
+   235	        super.onStart();
+   236	
+   237	        subscribeAdapter();
+   238	        subscribeAlertDialog();
+   239	        subscribeForceSortAndFilter();
+   240	        subscribeTorrentsDeleted();
+   241	        subscribeMsgViewModel();
+   242	    }
+   302	    private void subscribeAlertDialog()
+   303	    {
+   304	        Disposable d = dialogViewModel.observeEvents()
+   305	                .subscribe((event) -> {
+   306	                    if (event.dialogTag == null)
+   307	                        return;
+   308	
+   309	                    switch (event.type) {
+   310	                        case POSITIVE_BUTTON_CLICKED:
+   311	                            if (event.dialogTag.equals(TAG_DELETE_TORRENTS_DIALOG) && deleteTorrentsDialog != null) {
+   312	                                deleteTorrents();
+   313	                                deleteTorrentsDialog.dismiss();
+   314	                            }
+   315	                            break;
+   316	                        case NEGATIVE_BUTTON_CLICKED:
+   317	                            if (event.dialogTag.equals(TAG_DELETE_TORRENTS_DIALOG) && deleteTorrentsDialog != null)
+   318	                                deleteTorrentsDialog.dismiss();
+   319	                            break;
+   320	                    }
+   321	                });
+   322	        disposables.add(d);
+   323	    }
+   324	
+   325	    private void subscribeForceSortAndFilter()
+   326	    {
+   327	        disposables.add(viewModel.observeForceSortAndFilter()
+   328	                .filter((force) -> force)
+   329	                .observeOn(Schedulers.io())
+   330	                .subscribe((force) -> disposables.add(getAllTorrentsSingle())));
+   331	    }
+   332	
+   333	    private Disposable getAllTorrentsSingle()
+   334	    {
+   335	        return viewModel.getAllTorrentsInfoSingle()
+   336	                .subscribeOn(Schedulers.io())
+   337	                .flatMap((infoList) ->
+   338	                        Observable.fromIterable(infoList)
+   339	                                .filter(viewModel.getFilter())
+   340	                                .map(TorrentListItem::new)
+   341	                                .sorted(viewModel.getSorting())
+   342	                                .toList()
+   343	                )
+   344	                .observeOn(AndroidSchedulers.mainThread())
+   345	                .subscribe(adapter::submitList,
+   346	                        (Throwable t) -> Log.e(TAG, "Getting torrent info list error: " +
+   347	                                Log.getStackTraceString(t)));
+   348	    }
+   349	
+   350	    private void subscribeTorrentsDeleted()
+   351	    {
+   352	        disposables.add(viewModel.observeTorrentsDeleted()
+   353	                .subscribeOn(Schedulers.io())
+   354	                .filter((id) -> {
+   355	                    TorrentListItem item = adapter.getOpenedItem();
+   356	                    if (item == null)
+   357	                        return false;
+   358	
+   359	                    return id.equals(item.torrentId);
+   360	                })
+   361	                .observeOn(AndroidSchedulers.mainThread())
+   362	                .subscribe((__) -> {
+   363	                    if (Utils.isTwoPane(activity))
+   364	                        adapter.markAsOpen(null);
+   365	                }));
+   366	    }
+   367	
+   368	    private void subscribeMsgViewModel()
+   369	    {
+   370	        disposables.add(msgViewModel.observeTorrentDetailsClosed()
+   371	                .observeOn(AndroidSchedulers.mainThread())
+   372	                .subscribe((__) -> {
+   373	                    if (Utils.isTwoPane(activity))
+   374	                        adapter.markAsOpen(null);
+   375	                }));
+   376	    }
+   122	    public void markAsOpen(TorrentListItem item)
+   123	    {
+   124	        TorrentListItem prevItem = currOpenTorrent.getAndSet(item);
+   125	
+   126	        if (onBind)
+   127	            return;
+   128	
+   129	        int position = getItemPosition(prevItem);
+   130	        if (position >= 0)
+   131	            notifyItemChanged(position);
+   132	
+   133	        if (item != null) {
+   134	            position = getItemPosition(item);
+   135	            if (position >= 0)
+   136	                notifyItemChanged(position);
+   137	        }

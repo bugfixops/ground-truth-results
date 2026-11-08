@@ -7,7 +7,7 @@ How every method of **openlauncher** is triggered, in the standard configuration
 | File | What it is |
 |---|---|
 | `openlauncher_trigger_graph.json` | pages, methods, `verdict`, `labels` (per-method fields), `edges` (with `edge_class`, `env_kinds`, `state_kinds`, stable ids), `paths` (verified paths only), `verification` (counts) |
-| `methods.csv` | one row per method: verdict, UNREACHABLE reason, ENV and STATE kinds and texts, edge classes on the best route, whether an explicit/standard-only route exists, how the label was confirmed, path status, and the derived best route (`shortest_path`, `route_edge_ids`) |
+| `methods.csv` | one row per method: verdict, UNREACHABLE reason, ENV and STATE kinds and texts, edge classes on the best route, whether an explicit/standard-only route exists, how the label was confirmed, path status, the derived best route (`shortest_path`, `route_edge_ids`), and the full JVM class and descriptor (`jvm_class`, `jvm_descriptor`; the `method` key adds a package prefix only where simple class names clash) |
 | `../verification.csv` | the audit log: one row per label, edge or path that was checked, with result, how, and where (file:line) |
 | `sanity_check.csv` | tool coverage (Monkey / APE, API 27) next to the labels; a one-way check only, it never sets a label |
 | `openlauncher_trigger_graph.html`, `build_report.txt` | the viewer and the validation report |
@@ -31,7 +31,9 @@ Verification log (`verification.csv`), counts of what was checked and found:
 | edges (framework and other claims read against source) | 37 | 34 | 3 | 0 |
 | paths (stratified sample, read step by step) | 27 | 26 | 1 | 0 |
 
-Path status over all reachable methods: SOURCE_OK 27, UNCHECKED 701.
+Device replay on the emulator (API 27): 5 of 27 routes reached their target method; 5 of these ran the whole script and are `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; see `../device/results.csv`.
+
+Path status over all reachable methods: DEVICE_OK 5, SOURCE_OK 22, UNCHECKED 701.
 The rows are the items that were individually checked, not a random sample of all labels; see the notes below for how they were chosen and what the unclear rows wait for.
 
 Edges whose evidence is not a source line (182 of 1515): E5443509f (Home.<init> -> Home.<clinit>); E5245b855 (S_ENTRY -> FiveSecsDelayContentProvider.query); Ee0bafc0f (S_ENTRY -> FiveSecsDelayContentProvider.insert); E8d693829 (S_ENTRY -> FiveSecsDelayContentProvider.update); E4d2b8aaa (S_ENTRY -> FiveSecsDelayContentProvider.getType); E8828e57a (S_ENTRY -> FiveSecsDelayContentProvider.delete); E15938fe2 (S_ENTRY -> DeviceAdminReceiver.<init>); E52bc2f77 (DeviceAdminReceiver.<init> -> DeviceAdminReceiver.onReceive); E1d6f1e01 (S_ENTRY -> ShortcutReceiver.onReceive); E5aa97973 (Init.onCreate -> S_INTRO); E8b7dd43a (S_INTRO -> Init.onSkipButtonPressed); E0fe9628f (S_INTRO -> Init.onFinishButtonPressed) ...
@@ -52,6 +54,8 @@ Sanity check against tool coverage (never used to set a label): 520 methods ran 
 
 ## What waits for a device (API 27)
 
+- **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 5 of 27 routes reached their target method; 5 of them ran the whole script and are now `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
+
 Nothing here is `confirmed_by DEVICE` (0 of 900). What an emulator replay should settle: that the system widget picker and a widget's own configure activity really return `RESULT_OK`/`RESULT_CANCELED` the way `Home.onActivityResult` assumes; that `org.kustom.wallpaper` / `org.kustom.widget` (or a stand-in package with the same name) can actually reach `FiveSecsDelayContentProvider.delete` from outside the app; that the legacy `com.android.launcher.action.INSTALL_SHORTCUT` broadcast is still delivered on API 27 (it predates the modern pinned-shortcut API); that dragging an icon out of the app drawer onto the desktop behaves as `DragState`/`WindowManagerService` suggest (ENTERED/EXITED/DROP ordering); that activating/deactivating OpenLauncher as a device administrator in Settings actually fires `DeviceAdminReceiver`; and that a real low-memory condition calls `onLowMemory` the way `ActivityThread.handleLowMemory` claims. No method is closed by the API level: nothing here is gated on an `SDK_INT` check that fails on 27.
 
 ## Hazard candidates (from reading the code, not reproduced)
@@ -69,6 +73,7 @@ Nothing here is `confirmed_by DEVICE` (0 of 900). What an emulator replay should
 - **Bytecode-derived edges (637 of 1515) carry no guard by default**; guards were added by hand only where a sampled route, or an obviously conditional call site noticed while writing the UNREACHABLE dict, needed one. A route not in the sample could in principle still hide an un-added guard.
 - The three vendored libraries (`smoothviewpager`, `materialpreffragment`, `launcheranim`) are cited as `SRC` (their source is in the dataset and was read), not `INFERRED`, matching the existing convention for other apps' vendored copies.
 - The standard configuration is `flavorDefault`, debug build (DATASET.txt provenance and `app/build/intermediates/javac/flavorDefaultDebug` agree); there is only one flavor in this project, so no cross-flavor ambiguity.
+- **check 7 counts 1 line (graph_def.py:942), which is AsyncTask code text, not a placeholder.** Line 942 is the `HideAppsFragment.onCreateView -> HideAppsFragment$AsyncWorkerList.onPreExecute` edge, whose guard is `taskList.getStatus() == PENDING (first time)` - the `AsyncTask.Status.PENDING` check from `HideAppsFragment.java:66-69`. The word PENDING there is the framework status constant in a real guard, not a pending-work page id, so it is left as written.
 
 ## JSON shape (short)
 

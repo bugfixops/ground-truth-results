@@ -1,0 +1,1118 @@
+[
+  {
+    "type": "path",
+    "item": "HistoryItem.<init>()",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "HistoryPresenterImpl.java:35-41",
+    "edges": "E372472a8 E3101d0cd Edeb6bd90 E56501d6f E9e141121 E3755babd E9574aba4 E3ac2e1c9 E59c1e403 E79b435a7 E6c2f63a0 E7a1243ec E773e4c35 E1c5e958c Eaed75b00 Eb0aab7d5 E0a09ed58 E6dc05866 E1523e6d2 E3ef2bf11",
+    "note": "steps 1-10 launcher -> calculator read (MainActivity.java:50-53,93-103, BaseActivity.java:17-19); History icon always shown (menu_main.xml, MainActivity.java:126-138); load() runs while !historyPortion.isLoaded() (35-41); STATE: a hash saved to history (default on). ORMLite reflection and the fragment lifecycle are INFERRED."
+  },
+  {
+    "type": "path",
+    "item": "DatabaseHelperModule.databaseHelper",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "HashCalculatorFragment.java:156",
+    "edges": "E372472a8 E3101d0cd Edeb6bd90 E56501d6f E9e141121 E3755babd Ecae25701",
+    "note": "App.appComponent.inject(this) in onAttach; the generated component calls the module, nothing in app code calls databaseHelper (non-standard, Dagger). Steps that run through the androidx FragmentManager / RecyclerView rest on INFERRED claims (androidx source not read)."
+  },
+  {
+    "type": "path",
+    "item": "LangHelperModule.langHelper",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "MainActivity.java:51",
+    "edges": "E372472a8 E3101d0cd E21623326",
+    "note": "App.appComponent.inject(this) in onCreate; the generated component calls the module (non-standard, Dagger)."
+  },
+  {
+    "type": "path",
+    "item": "ThemeHelperModule.themeHelper",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "MainActivity.java:51",
+    "edges": "E372472a8 E3101d0cd E2211fe22",
+    "note": "same injection as LangHelperModule.langHelper."
+  },
+  {
+    "type": "path",
+    "item": "Blake2B.littleEndianToInt",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "Blake2B.java:91-107,152,171",
+    "edges": "E372472a8 E3101d0cd Edeb6bd90 E56501d6f E9e141121 E3755babd E9574aba4 E3ac2e1c9 E59c1e403 E79b435a7 Ee69c0c42 E2728220f Ed083e7f5 Edcdc6e80 E9c8d2dc9 Ec7ee0bb2 E8bfb57b4 Ecb5a72cb E590080eb Ef8616cc0 E05e0bcb7 E64f91a49 Efc4c965d E3918c21f E1c1f54d8 E90973e55 E78eefda0 E74445007 E907e4915 E6fef809b Ef23378ee E1402c60d",
+    "note": "ERROR FOUND: the derived route reached compress through update(byte) -> compress, which only runs when a 128-byte block is already full (Blake2B.java:91-107), so it needs input longer than one block; getValue -> doFinal -> compress always runs (169-173, 146-152). Fixed: the two update -> compress edges now carry the STATE \"input longer than one block\" and the route goes through getValue / doFinal. Other steps read: HashCalculatorFragment.java:166-189,215-247; HashCalculatorTask.java:70-76; JdkHashCalculator.java:46-47,109-110. Steps that run through the androidx FragmentManager / RecyclerView rest on INFERRED claims (androidx source not read)."
+  },
+  {
+    "type": "path",
+    "item": "FNV1a.update256(byte[],int,int)",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "FNV1a.java:95-118",
+    "edges": "E372472a8 E3101d0cd Edeb6bd90 E56501d6f E9e141121 E3755babd E9574aba4 E3ac2e1c9 E59c1e403 E79b435a7 Ee69c0c42 Ed943ca35 E8c979876 Eff786918 E12829a50 Ef6dc9320 Eb99504ff E1e4be207 Ef5562ab9 Ec8413c27 E0dbeffc7 E915e31df E84eade87 E00a75033 Ed6d6a6fb E65a8dee6 E633a9408 Eb80710c7 E46ce41c2 E3eab88cf Eff811d30",
+    "note": "ERROR FOUND (two): (1) the derived route started with the plain launcher entry but needs data that only a start by another app carries (MainActivity.create reads the intent, MainActivity.java:72-93; HashCalculatorFragment reads its arguments, 501-504, 539-545). Fixed: the start by another app is its own context (@XURI, @XTEXT, @XFILE) from the entry edge down to onViewCreated; the best route is now consistent. (2) FNV1a.update -> update256 runs only for type FNV_1A_256 (FNV1a.java:95-118): the edge now carries that STATE (choose the 256-bit type). The route now goes through the file picker (HashCalculatorFragment.java:171-173,191-201,584-612,316-323). Steps that run through the androidx FragmentManager / RecyclerView rest on INFERRED claims (androidx source not read)."
+  },
+  {
+    "type": "path",
+    "item": "WebFragment.getMenuResId",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "BaseFragment.java:69",
+    "edges": "E372472a8 E3101d0cd Edeb6bd90 E56501d6f E9e141121 E3755babd E9574aba4 E3ac2e1c9 E59c1e403 E79b435a7 E98e98419 E30bb0ca3 E58fc7a37 E0848626c Eed97dffc E329fd909 Eb87d737f E07bec56b E33bc58cc Ec8dd5d3f Ea6ffa5e2 E0f814afb E4b722c5e E9c05dfdc E48baef20 E85c92c29 E429186ad E645d374b",
+    "note": "Settings icon (MainActivity.java:129-131), privacy row (SettingsFragment.java:182-191), link row opens WebFragment (WebLinksListAdapter.java:55-61), setHasOptionsMenu(true) (BaseFragment.java:98), onCreateOptionsMenu inflates getMenuResId (67-69). Steps that run through the androidx FragmentManager / RecyclerView rest on INFERRED claims (androidx source not read)."
+  },
+  {
+    "type": "path",
+    "item": "JdkHashCalculator.inputStreamsFormFolder",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "JdkHashCalculator.java:87",
+    "edges": "E372472a8 E3101d0cd Edeb6bd90 E56501d6f E9e141121 E3755babd E9574aba4 E3ac2e1c9 E59c1e403 E79b435a7 Ee69c0c42 E2c58a33d E4b06b3e0 Ed95ead38 E93d7aec9 E14efb922 E799c45d6 E1f654e2a E4d8290b8 E5c1d025b Ed4256db3 E7a8b44b5 E87941bc5 E248aefe7 E2dfb21aa E6cdff816 Ed3b616aa Eb0b91e7b",
+    "note": "Folder row -> ACTION_OPEN_DOCUMENT_TREE (HashCalculatorFragment.java:174-175,203-212) -> picker (ENV other_app) -> FOLDER_SELECT with RESULT_OK (600-604) -> validateSelectedFolder (325-332) -> generateHash else branch (235-243) -> HashCalculatorTask.java:70-76 -> JdkHashCalculator.java:87. Steps that run through the androidx FragmentManager / RecyclerView rest on INFERRED claims (androidx source not read)."
+  },
+  {
+    "type": "path",
+    "item": "HistoryFragment.refreshHistory",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "HistoryPresenterImpl.java:43-47",
+    "edges": "E372472a8 E3101d0cd Edeb6bd90 E56501d6f E9e141121 E3755babd E9574aba4 E3ac2e1c9 E59c1e403 E79b435a7 E6c2f63a0 E7a1243ec E773e4c35 E1c5e958c Eaed75b00 Eb0aab7d5 E0a09ed58 E6dc05866 E05ed2414 E2060174b E14d43b8a E4a52e049 Eef21d111 Ea16c95cd Ef6d9ada5 E0864fd57 E8fda859d E13cfe3ed",
+    "note": "History list -> trash icon -> confirm dialog -> OK -> clearHistory -> refreshHistory (HistoryFragment.java:89-105, HistoryPresenterImpl.java:43-47); STATE: history rows. Steps that run through the androidx FragmentManager / RecyclerView rest on INFERRED claims (androidx source not read)."
+  },
+  {
+    "type": "path",
+    "item": "OrmLiteLocalDataStorage.getDatabaseFileName",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "SettingsPresenterImpl.java:44-50",
+    "edges": "E372472a8 E3101d0cd Edeb6bd90 E56501d6f E9e141121 E3755babd E9574aba4 E3ac2e1c9 E59c1e403 E79b435a7 E98e98419 E30bb0ca3 E58fc7a37 E0848626c Eed97dffc E329fd909 Eb87d737f Edcfc9c0b E86345c53 E55287499 E3ce12de4 Eeef8c2a2 E8654d3ef Ecb285e36 Ef5b3d546",
+    "note": "isHistoryItemsListIsEmpty() is misnamed: it returns countOf() > 0 (OrmLiteLocalDataStorage.java:107-109), so the DONE branch (SettingsPresenterImpl.java:44-50) runs when history has rows, as the edge guard says; onActivityResult needs data, FILE_CREATE and RESULT_OK (SettingsFragment.java:119-124); exportDatabase calls getDatabaseFileName (LocalDataExporter.java:26). Steps that run through the androidx FragmentManager / RecyclerView rest on INFERRED claims (androidx source not read)."
+  },
+  {
+    "type": "path",
+    "item": "HashCalculatorFragment.writeHashToFile",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "HashCalculatorFragment.java:266-267,593-599",
+    "edges": "E372472a8 E3101d0cd Edeb6bd90 E56501d6f E9e141121 E3755babd E9574aba4 E3ac2e1c9 E59c1e403 E79b435a7 Ee69c0c42 E2728220f Ed083e7f5 Edcdc6e80 E9c8d2dc9 Ec7ee0bb2 E8bfb57b4 Ecb5a72cb E590080eb Ef8616cc0 Ef4c4488a Ea2bfc47e Ea4b92c06 E3d6c7981 E79275963 E6fdfc92b Ed190d0ac Eb39f4a0e",
+    "note": "Text source, Actions -> Export .txt: needs a source and a generated hash (266), then ACTION_CREATE_DOCUMENT (273-286), result FILE_CREATE calls writeHashToFile (593-599); STATE: a hash was generated; ENV: the document picker. Steps that run through the androidx FragmentManager / RecyclerView rest on INFERRED claims (androidx source not read)."
+  },
+  {
+    "type": "path",
+    "item": "MainActivity.getConfiguredBundleWithDataUri",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "MainActivity.java:82-88",
+    "edges": "E3706e5f1 Ebbb4dd85 E362db005 Ef8a9b253 Ea2fd772c",
+    "note": "ERROR FOUND: the derived route started with the plain launcher entry but needs data that only a start by another app carries (MainActivity.create reads the intent, MainActivity.java:72-93; HashCalculatorFragment reads its arguments, 501-504, 539-545). Fixed: the start by another app is its own context (@XURI, @XTEXT, @XFILE) from the entry edge down to onViewCreated; the best route is now consistent."
+  },
+  {
+    "type": "path",
+    "item": "Clipboard.clear",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "Clipboard.java:27-39",
+    "edges": "E372472a8 E3101d0cd Edeb6bd90 E56501d6f E9e141121 E3755babd E9574aba4 E3ac2e1c9 E59c1e403 E79b435a7 E261a2c9b Ecb90c658 Ebf668e28 E3d93fc17",
+    "note": "copy icon is visible only for a non-empty field (HashCalculatorFragment.java:519-526), copyHashFromEditText copies a non-empty hash (531-537), Clipboard.copy posts clear after 60 s (Clipboard.java:31); ENV time. Steps that run through the androidx FragmentManager / RecyclerView rest on INFERRED claims (androidx source not read)."
+  },
+  {
+    "type": "path",
+    "item": "Blake2B.update(byte[],int,int)",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "Blake2B.java:109-131",
+    "edges": "E372472a8 E3101d0cd Edeb6bd90 E56501d6f E9e141121 E3755babd E9574aba4 E3ac2e1c9 E59c1e403 E79b435a7 Ee69c0c42 Ed943ca35 E8c979876 Eff786918 E12829a50 Ef6dc9320 Eb99504ff E1e4be207 Ef5562ab9 Ec8413c27 E0dbeffc7 E915e31df E84eade87 E00a75033 Ed6d6a6fb E65a8dee6 E633a9408 Eb80710c7 Ed7d0e9b9 E7be8a23b",
+    "note": "ERROR FOUND: the derived route started with the plain launcher entry but needs data that only a start by another app carries (MainActivity.create reads the intent, MainActivity.java:72-93; HashCalculatorFragment reads its arguments, 501-504, 539-545). Fixed: the start by another app is its own context (@XURI, @XTEXT, @XFILE) from the entry edge down to onViewCreated; the best route is now consistent. Also the update -> compress edges of Blake2B were missing the \"more than one block\" guard (Blake2B.java:91-131), now a STATE."
+  },
+  {
+    "type": "path",
+    "item": "SettingsFragment.copyFile",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "SettingsFragment.java:126-137",
+    "edges": "E372472a8 E3101d0cd Edeb6bd90 E56501d6f E9e141121 E3755babd E9574aba4 E3ac2e1c9 E59c1e403 E79b435a7 E98e98419 E30bb0ca3 E58fc7a37 E0848626c Eed97dffc E329fd909 Eb87d737f Edcfc9c0b E86345c53 E55287499 E3ce12de4 Eeef8c2a2 E8654d3ef E8dd93771",
+    "note": "export needs history rows and the picker result (SettingsFragment.java:119-124); copyUserDataToUserFolder calls copyFile when uri and descriptor are not null (126-137). Steps that run through the androidx FragmentManager / RecyclerView rest on INFERRED claims (androidx source not read)."
+  },
+  {
+    "type": "path",
+    "item": "HashCalculatorTask.<init>(Context,HashType,Uri,Uri,HashCalculatorTaskTarget)",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "HashCalculatorFragment.java:227-234",
+    "edges": "E372472a8 E3101d0cd Edeb6bd90 E56501d6f E9e141121 E3755babd E9574aba4 E3ac2e1c9 E59c1e403 E79b435a7 Ee69c0c42 Ed943ca35 E8c979876 Eff786918 E12829a50 Ef6dc9320 Eb99504ff E1e4be207 Ef5562ab9 Ec8413c27 E0dbeffc7 E915e31df E84eade87 E00a75033 Ed6d6a6fb Edd386c8e",
+    "note": "ERROR FOUND: the derived route started with the plain launcher entry but needs data that only a start by another app carries (MainActivity.create reads the intent, MainActivity.java:72-93; HashCalculatorFragment reads its arguments, 501-504, 539-545). Fixed: the start by another app is its own context (@XURI, @XTEXT, @XFILE) from the entry edge down to onViewCreated; the best route is now consistent."
+  },
+  {
+    "type": "path",
+    "item": "HashCalculatorFragment.folderNameFromUri",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "HashCalculatorFragment.java:330,350-352",
+    "edges": "E372472a8 E3101d0cd Edeb6bd90 E56501d6f E9e141121 E3755babd E9574aba4 E3ac2e1c9 E59c1e403 E79b435a7 Ee69c0c42 E2c58a33d E4b06b3e0 Ed95ead38 E93d7aec9 E14efb922 E799c45d6 E1f654e2a E4d8290b8 E3d90ec2f",
+    "note": "folder route as for JdkHashCalculator.inputStreamsFormFolder, then validateSelectedFolder calls folderNameFromUri (330). Steps that run through the androidx FragmentManager / RecyclerView rest on INFERRED claims (androidx source not read)."
+  },
+  {
+    "type": "path",
+    "item": "FeedbackFragment.sendEmail",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "FeedbackFragment.java:68-77,101-113",
+    "edges": "E372472a8 E3101d0cd Edeb6bd90 E56501d6f E9e141121 E3755babd E9574aba4 E3ac2e1c9 E59c1e403 E79b435a7 E98e98419 E30bb0ca3 E58fc7a37 E0848626c Eed97dffc E329fd909 Eb87d737f Ea2d6404c E2829c319 E1f2a23a4 E0294f4af E54b04060 E2a4171f8 E9197f285 E97f40c0a Ebe2c70c8 Eb6930484 E76dc181f",
+    "note": "Settings -> Feedback row -> type a message (fragment_feedback.xml) -> Send with a non-empty message (FeedbackFragment.java:68-77) -> sendFeedback -> sendEmail (FeedbackPresenterImpl.java:45). Steps that run through the androidx FragmentManager / RecyclerView rest on INFERRED claims (androidx source not read)."
+  },
+  {
+    "type": "path",
+    "item": "SharedPreferencesSettings.saveTheme",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "SharedPreferencesSettings.java:128-147; ThemeConfigImpl.java:30",
+    "edges": "E372472a8 E3101d0cd Edeb6bd90 E56501d6f E9e141121 E3755babd E9574aba4 E3ac2e1c9 E59c1e403 E79b435a7 E98e98419 E30bb0ca3 E58fc7a37 E0848626c Eed97dffc E329fd909 Eb87d737f E1db6de16 Ecad76f66 E72b166f1 E24b40c53 E8269f4a6 Ea0ac28a2 Edcd0fa85 Ebb7bdd23 Eeb86f308 Edfdf2f07",
+    "note": "ERROR FOUND: the derived route used getTheme -> validateAppTheme -> saveTheme, which runs only for a stored theme that is neither LIGHT nor DARK (SharedPreferencesSettings.java:128-135) while the app only ever stores those two (142-147): that needs a pre-seeded preferences file. Fixed: the edge is removed; the route goes through the theme picker (ThemesListAdapter.java:48-54,62-78, ThemeConfigImpl.java:30). Steps that run through the androidx FragmentManager / RecyclerView rest on INFERRED claims (androidx source not read)."
+  },
+  {
+    "type": "path",
+    "item": "AppSnackbar.lambda$show$0",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "AppSnackbar.java:62-71",
+    "edges": "E372472a8 E3101d0cd Edeb6bd90 E56501d6f E9e141121 E3755babd E9574aba4 E3ac2e1c9 E59c1e403 E79b435a7 Ef56672b6 Ef7f7e606 Ef7b0cfbc E222f5cf5 E0f3fef6d E33503f59 E937eadef Ed873a5de E8cb7fbf2",
+    "note": "Actions -> Generate with no source -> generateHash else branch shows the hint (HashCalculatorFragment.java:244-246) -> AppSnackbar without a custom action sets the OK listener (AppSnackbar.java:62-71). Steps that run through the androidx FragmentManager / RecyclerView rest on INFERRED claims (androidx source not read)."
+  },
+  {
+    "type": "path",
+    "item": "HashType.getTitle",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "BaseListHolder.java:45",
+    "edges": "E372472a8 E3101d0cd Edeb6bd90 E56501d6f E9e141121 E3755babd E9574aba4 E3ac2e1c9 E59c1e403 E79b435a7 E49d11e37 E2cf07fb4 E0a846b9c E08f63b8b Ef31a04cb Ef08d35e5 Eb3a2a547 Eff21e547",
+    "note": "hash-type sheet (HashCalculatorFragment.java:473, 260-262) -> RecyclerView binds the rows -> BaseListHolder.bind calls getTitle (BaseListHolder.java:45). Steps that run through the androidx FragmentManager / RecyclerView rest on INFERRED claims (androidx source not read)."
+  },
+  {
+    "type": "path",
+    "item": "Language.getPrimaryIconResId",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "BaseListHolder.java:48",
+    "edges": "E372472a8 E3101d0cd Edeb6bd90 E56501d6f E9e141121 E3755babd E9574aba4 E3ac2e1c9 E59c1e403 E79b435a7 E98e98419 E30bb0ca3 E58fc7a37 E0848626c Eed97dffc E329fd909 Eb87d737f E336266fc E9b38055b E4f82c39c Ed43133ac E19e1a777 E3f50838e Ee8d2d2bd",
+    "note": "Settings -> Language row opens the sheet (SettingsFragment.java:158-166); RecyclerView binds rows; BaseListHolder.bind line 48. Steps that run through the androidx FragmentManager / RecyclerView rest on INFERRED claims (androidx source not read)."
+  },
+  {
+    "type": "path",
+    "item": "Action.getAdditionalIconResId",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "BaseListHolder.java:56",
+    "edges": "E372472a8 E3101d0cd Edeb6bd90 E56501d6f E9e141121 E3755babd E9574aba4 E3ac2e1c9 E59c1e403 E79b435a7 E9f3e3d7b Eb36900a4 E762718bd E4cb47141 E69e5b24a E633c76e6 E6474ddfb",
+    "note": "From button opens the source sheet (HashCalculatorFragment.java:476-479); RecyclerView binds rows; BaseListHolder.bind line 56. Steps that run through the androidx FragmentManager / RecyclerView rest on INFERRED claims (androidx source not read)."
+  },
+  {
+    "type": "path",
+    "item": "SharedPreferencesSettings.saveStringPreference",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "App.java:152-167",
+    "edges": "E34de2c31 E7aab529b E05dade98 Eef3f66b5 E5c325194 E7b74b251",
+    "note": "ERROR FOUND (guard missing): App.setLocale -> setLanguage runs only while key_language is not stored, i.e. on the first launch after install (App.java:154). That holds in the standard configuration (fresh install); the guard text is now on the edge."
+  },
+  {
+    "type": "path",
+    "item": "App.getShortcut",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "App.java:76-93,137-150",
+    "edges": "E34de2c31 E7aab529b Ecff74424 E2f51b4e7 E97f48490",
+    "note": "ERROR FOUND (guards missing): createShortcuts runs only on the first launch (App.java:76) and only with SDK_INT >= 26 (84-86), both true on a fresh install on API 27; the guards are now on the edges."
+  },
+  {
+    "type": "path",
+    "item": "SharedPreferencesSettings.getStringPreference",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "SharedPreferencesSettings.java:117",
+    "edges": "E34de2c31 E7aab529b Eba28b1bc E6b01433c E8a7036af",
+    "note": "App.onCreate calls getSelectedTheme unconditionally (App.java:68); getSelectedTheme -> getTheme -> getStringPreference (103, 117)."
+  },
+  {
+    "type": "path",
+    "item": "SharedPreferencesSettings.getLanguage",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "BaseActivity.java:17; LanguageConfigImpl.java:51,57",
+    "edges": "E372472a8 E3101d0cd Edeb6bd90 E80d964fd E12c893cb E48ab11f3",
+    "note": "BaseActivity.onCreate calls applyLanguage first (BaseActivity.java:17) -> currentLanguage -> getLanguage (LanguageConfigImpl.java:51,57)."
+  },
+  {
+    "type": "path",
+    "item": "SharedPreferencesSettings.containsPreference",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "App.java:152-154",
+    "edges": "E34de2c31 E7aab529b E05dade98 Ea8fdd297 E433eabe1",
+    "note": "App.onCreate calls setLocale (80), which calls languageIsInitialized -> containsPreference (SharedPreferencesSettings.java:52-55)."
+  },
+  {
+    "type": "path",
+    "item": "SharedPreferencesSettings$SharedPreferencesSettingsKeyExtractor.<init>",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "App.java:58-59",
+    "edges": "E34de2c31 E7aab529b Ec9cfde17 E75342ab8",
+    "note": "App.onCreate builds an anonymous subclass of the abstract class (App.java:58-65; SharedPreferencesSettings.java:246)."
+  },
+  {
+    "type": "path",
+    "item": "SharedPreferencesSettings.getBooleanPreference",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "App.java:76; SharedPreferencesSettings.java:159",
+    "edges": "E34de2c31 E7aab529b E30c477d4 E8135e8c2",
+    "note": "App.onCreate calls isShortcutsIsCreated unconditionally (App.java:76), which calls getBooleanPreference (159)."
+  },
+  {
+    "type": "path",
+    "item": "LogUtils.e",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "HashCalculatorFragment.java:196-199; SharedPreferencesSettings.java:44-49",
+    "edges": "E372472a8 E3101d0cd Edeb6bd90 E56501d6f E9e141121 E3755babd E9574aba4 E3ac2e1c9 E59c1e403 E79b435a7 Ee69c0c42 Ed943ca35 E8c979876 Eff786918 E12829a50 E76223917",
+    "note": "ERROR FOUND: the derived route reached LogUtils.e through getLastHashType, whose catch needs a stored last_type_value that is not an enum name; the app stores HashType.toString() only (HashCalculatorFragment.java:432, SharedPreferencesSettings.java:30-35), so that needs a pre-seeded preference. Fixed: edge removed; the route now ends in openSystemFileManager catching ActivityNotFoundException (HashCalculatorFragment.java:191-200), ENV: no app handles ACTION_OPEN_DOCUMENT."
+  },
+  {
+    "type": "path",
+    "item": "AppTextWatcher.<init>",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "HashCalculatorFragment.java:457-468,516",
+    "edges": "E372472a8 E3101d0cd Edeb6bd90 E56501d6f E9e141121 E3755babd E9574aba4 E3ac2e1c9 Ebfdc600d Ea7a75dfd Ee5897aea",
+    "note": "ERROR FOUND: a hand-written edge HashCalculatorFragment.<init> -> HashCalculatorFragment$1.<init> was wrong: the field initialiser at line 111 builds a lambda (lambda$new$1), and $1 is the TextWatcher built in watcherForInputField (516, called from onViewCreated at 457-468). Fixed: the edge is removed; the route goes onViewCreated -> watcherForInputField -> $1.<init> -> AppTextWatcher.<init>. Steps that run through the androidx FragmentManager / RecyclerView rest on INFERRED claims (androidx source not read)."
+  },
+  {
+    "type": "path",
+    "item": "ThemeConfigImpl.setCurrentTheme",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "ThemesListAdapter.java:62-81",
+    "edges": "E372472a8 E3101d0cd Edeb6bd90 E56501d6f E9e141121 E3755babd E9574aba4 E3ac2e1c9 E59c1e403 E79b435a7 E98e98419 E30bb0ca3 E58fc7a37 E0848626c Eed97dffc E329fd909 Eb87d737f E1db6de16 Ecad76f66 E72b166f1 E24b40c53 E8269f4a6 Ea0ac28a2 Edcd0fa85 Ebb7bdd23 Eeb86f308",
+    "note": "Settings -> Theme row -> a theme other than the current -> dialog -> OK -> configureNewTheme -> setCurrentTheme (ThemesListAdapter.java:48-54,62-81). Steps that run through the androidx FragmentManager / RecyclerView rest on INFERRED claims (androidx source not read)."
+  },
+  {
+    "type": "path",
+    "item": "HashCalculatorFragment.selectFileFromSystemFileManager",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "HashCalculatorFragment.java:584-592,609-612",
+    "edges": "E372472a8 E3101d0cd Edeb6bd90 E56501d6f E9e141121 E3755babd E9574aba4 E3ac2e1c9 E59c1e403 E79b435a7 Ee69c0c42 Ed943ca35 E8c979876 Eff786918 E12829a50 Ef6dc9320 Eb99504ff E1e4be207",
+    "note": "File row -> ACTION_OPEN_DOCUMENT (191-201) -> picker (ENV other_app) -> FILE_SELECT with RESULT_OK (588-591). Steps that run through the androidx FragmentManager / RecyclerView rest on INFERRED claims (androidx source not read)."
+  },
+  {
+    "type": "path",
+    "item": "DatabaseHelperModule.<init>",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "App.java:71",
+    "edges": "E34de2c31 E7aab529b E4a4779ed",
+    "note": "ERROR FOUND: the route was right but the edge App.onCreate -> DatabaseHelperModule.<init> was classed non-standard (Dagger) although it is a plain new in App.onCreate (App.java:71, explicit), and its cited line was one too early (javac attributes a new inside a chained call to the previous line). Fixed: explicit, line corrected; only the injector calls to the modules stay non-standard."
+  },
+  {
+    "type": "path",
+    "item": "SettingsHelperModule.<init>",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "App.java:72",
+    "edges": "E34de2c31 E7aab529b E13bfb3f1",
+    "note": "ERROR FOUND: the route was right but the edge App.onCreate -> SettingsHelperModule.<init> was classed non-standard (Dagger) although it is a plain new in App.onCreate (App.java:72, explicit), and its cited line was one too early (javac attributes a new inside a chained call to the previous line). Fixed: explicit, line corrected; only the injector calls to the modules stay non-standard."
+  },
+  {
+    "type": "path",
+    "item": "ThemeHelperModule.<init>",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "App.java:74",
+    "edges": "E34de2c31 E7aab529b Efe9214b4",
+    "note": "ERROR FOUND: the route was right but the edge App.onCreate -> ThemeHelperModule.<init> was classed non-standard (Dagger) although it is a plain new in App.onCreate (App.java:74, explicit), and its cited line was one too early (javac attributes a new inside a chained call to the previous line). Fixed: explicit, line corrected; only the injector calls to the modules stay non-standard."
+  },
+  {
+    "type": "label",
+    "item": "HashConstants.<init>",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "HashConstants.java:3",
+    "edges": "",
+    "note": "call sites grepped once more in the app sources (main, thirdPartyStores, googlePlay), res/ XML and the manifest (no reflection, no android:onClick): no new HashConstants( anywhere; static-only class, no trigger in app confirmed"
+  },
+  {
+    "type": "label",
+    "item": "JdkHashUtils.<init>",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "JdkHashUtils.java:9",
+    "edges": "",
+    "note": "call sites grepped once more in the app sources (main, thirdPartyStores, googlePlay), res/ XML and the manifest (no reflection, no android:onClick): no new JdkHashUtils( anywhere; static-only class, no trigger in app confirmed"
+  },
+  {
+    "type": "label",
+    "item": "LocalDataExporter.<init>",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "LocalDataExporter.java:14",
+    "edges": "",
+    "note": "call sites grepped once more in the app sources (main, thirdPartyStores, googlePlay), res/ XML and the manifest (no reflection, no android:onClick): no new LocalDataExporter( anywhere; static-only class, no trigger in app confirmed"
+  },
+  {
+    "type": "label",
+    "item": "AppUtils.<init>",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "AppUtils.java:12",
+    "edges": "",
+    "note": "call sites grepped once more in the app sources (main, thirdPartyStores, googlePlay), res/ XML and the manifest (no reflection, no android:onClick): no new AppUtils( anywhere; static-only class, no trigger in app confirmed"
+  },
+  {
+    "type": "label",
+    "item": "LogUtils.<init>",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "LogUtils.java:7",
+    "edges": "",
+    "note": "call sites grepped once more in the app sources (main, thirdPartyStores, googlePlay), res/ XML and the manifest (no reflection, no android:onClick): no new LogUtils( anywhere; static-only class, no trigger in app confirmed"
+  },
+  {
+    "type": "label",
+    "item": "UIUtils.<init>",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "UIUtils.java:10",
+    "edges": "",
+    "note": "call sites grepped once more in the app sources (main, thirdPartyStores, googlePlay), res/ XML and the manifest (no reflection, no android:onClick): no new UIUtils( anywhere; static-only class, no trigger in app confirmed"
+  },
+  {
+    "type": "label",
+    "item": "WebUtils.<init>",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "WebUtils.java:18",
+    "edges": "",
+    "note": "call sites grepped once more in the app sources (main, thirdPartyStores, googlePlay), res/ XML and the manifest (no reflection, no android:onClick): no new WebUtils( anywhere; static-only class, no trigger in app confirmed"
+  },
+  {
+    "type": "label",
+    "item": "OrmLiteConfigUtil.<init>",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "OrmLiteConfigUtil.java:5",
+    "edges": "",
+    "note": "call sites grepped once more in the app sources (main, thirdPartyStores, googlePlay), res/ XML and the manifest (no reflection, no android:onClick): only the class declaration mentions OrmLiteConfigUtil (build-time ORMLite config generator): no trigger in app confirmed"
+  },
+  {
+    "type": "label",
+    "item": "OrmLiteConfigUtil.main",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "OrmLiteConfigUtil.java:7",
+    "edges": "",
+    "note": "call sites grepped once more in the app sources (main, thirdPartyStores, googlePlay), res/ XML and the manifest (no reflection, no android:onClick): command-line main of the build-time generator, never called"
+  },
+  {
+    "type": "label",
+    "item": "OrmLiteLocalDataStorage.onUpgrade",
+    "result": "correct",
+    "confirmed_by": "INFERRED",
+    "ref": "OrmLiteLocalDataStorage.java:56",
+    "edges": "",
+    "note": "call sites grepped once more in the app sources (main, thirdPartyStores, googlePlay), res/ XML and the manifest (no reflection, no android:onClick): only the definition (OrmLiteLocalDataStorage.java:56, empty body); DATABASE_VERSION is 1 (31-33), so no older database exists; that SQLiteOpenHelper calls onUpgrade only for a lower stored version is INFERRED (android.database.sqlite source not read)"
+  },
+  {
+    "type": "label",
+    "item": "OrmLiteLocalDataStorage.releaseHelper",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "OrmLiteLocalDataStorage.java:61",
+    "edges": "",
+    "note": "call sites grepped once more in the app sources (main, thirdPartyStores, googlePlay), res/ XML and the manifest (no reflection, no android:onClick): only caller is App.onTerminate (App.java:178), which never runs in a normal app process"
+  },
+  {
+    "type": "label",
+    "item": "App.onTerminate",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "App.java:176",
+    "edges": "",
+    "note": "call sites grepped once more in the app sources (main, thirdPartyStores, googlePlay), res/ XML and the manifest (no reflection, no android:onClick): no explicit caller; framework side read in Android 8.1: only the EXIT_APPLICATION message calls it (ActivityThread.java:1659-1664) and AMS sends it for a process with no real pid or system_server itself (ActivityManagerService.java:6919-6936, 23336-23340)"
+  },
+  {
+    "type": "label",
+    "item": "DbEntity.getId",
+    "result": "correct",
+    "confirmed_by": "INFERRED",
+    "ref": "DbEntity.java:10",
+    "edges": "",
+    "note": "call sites grepped once more in the app sources (main, thirdPartyStores, googlePlay), res/ XML and the manifest (no reflection, no android:onClick): no getId() call; the field has @DatabaseField(generatedId = true) without useGetSet (DbEntity.java:7-16); that ORMLite uses the field by reflection is INFERRED (ORMLite source not read)"
+  },
+  {
+    "type": "label",
+    "item": "DbEntity.setId",
+    "result": "correct",
+    "confirmed_by": "INFERRED",
+    "ref": "DbEntity.java:14",
+    "edges": "",
+    "note": "call sites grepped once more in the app sources (main, thirdPartyStores, googlePlay), res/ XML and the manifest (no reflection, no android:onClick): no setId( call; same ORMLite reasoning as getId (INFERRED)"
+  },
+  {
+    "type": "label",
+    "item": "HistoryItem.equals",
+    "result": "correct",
+    "confirmed_by": "INFERRED",
+    "ref": "HistoryItem.java:83",
+    "edges": "",
+    "note": "call sites grepped once more in the app sources (main, thirdPartyStores, googlePlay), res/ XML and the manifest (no reflection, no android:onClick): no equals / contains / indexOf on HistoryItem objects (they are only held in Lists); that ORMLite does not compare row objects without an object cache is INFERRED"
+  },
+  {
+    "type": "label",
+    "item": "HistoryItem.hashCode",
+    "result": "correct",
+    "confirmed_by": "INFERRED",
+    "ref": "HistoryItem.java:99",
+    "edges": "",
+    "note": "call sites grepped once more in the app sources (main, thirdPartyStores, googlePlay), res/ XML and the manifest (no reflection, no android:onClick): no HashMap / HashSet of HistoryItem; ORMLite part INFERRED as for equals"
+  },
+  {
+    "type": "label",
+    "item": "AppTextWatcher.onTextChanged",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "AppTextWatcher.java:16",
+    "edges": "",
+    "note": "call sites grepped once more in the app sources (main, thirdPartyStores, googlePlay), res/ XML and the manifest (no reflection, no android:onClick): AppTextWatcher has one subclass instantiation, the anonymous class at HashCalculatorFragment.java:516, which overrides onTextChanged (518-527); the base method is empty (AppTextWatcher.java:14-18)"
+  },
+  {
+    "type": "label",
+    "item": "BaseFragment.setAllowBackAction",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "BaseFragment.java:53",
+    "edges": "",
+    "note": "call sites grepped once more in the app sources (main, thirdPartyStores, googlePlay), res/ XML and the manifest (no reflection, no android:onClick): the four BaseFragment subclasses (HashCalculatorFragment 665, HistoryFragment 155, FeedbackFragment 136, WebFragment 58) all override it; the base returns false (BaseFragment.java:103-105)"
+  },
+  {
+    "type": "label",
+    "item": "BaseFragment.getBackActionIconResId",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "BaseFragment.java:58",
+    "edges": "",
+    "note": "call sites grepped once more in the app sources (main, thirdPartyStores, googlePlay), res/ XML and the manifest (no reflection, no android:onClick): called only when setAllowBackAction() is true (BaseFragment.java:53-60); the three fragments that return true override it (WebFragment 63, FeedbackFragment 141, HistoryFragment 160) and HashCalculatorFragment returns false"
+  },
+  {
+    "type": "label",
+    "item": "SettingsFragment.lambda$initRate$7",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "SettingsFragment.java:247-257",
+    "edges": "",
+    "note": "call sites grepped once more in the app sources (main, thirdPartyStores, googlePlay), res/ XML and the manifest (no reflection, no android:onClick): registered only when BuildConfig.FLAVOR equals \"googlePlay\" (SettingsFragment.java:247-257); the dataset APK is the thirdPartyStores flavor (DATASET.txt provenance, BuildConfig.class FLAVOR in build/intermediates/javac/thirdPartyStoresDebug)"
+  },
+  {
+    "type": "label",
+    "item": "SharedPreferencesSettings.setRefreshSelectedFileStatus",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "HashCalculatorFragment.java:573-582",
+    "edges": "",
+    "note": "was REACHABLE (after setup) in the first graph; call sites grepped once more in the app sources (main, thirdPartyStores, googlePlay), res/ XML and the manifest (no reflection, no android:onClick): the only caller is HashCalculatorFragment.java:580 inside if (settings.refreshSelectedFile()) and the only value ever written is false, so the branch is open only with a pre-seeded preferences file: closed_by_configuration"
+  },
+  {
+    "type": "label",
+    "item": "SharedPreferencesSettings.getThemeAnalogue",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "SharedPreferencesSettings.java:116-139",
+    "edges": "",
+    "note": "was REACHABLE (after setup) in the first graph; call sites grepped once more in the app sources (main, thirdPartyStores, googlePlay), res/ XML and the manifest (no reflection, no android:onClick): the only caller is the else branch of getTheme (SharedPreferencesSettings.java:117-125) for a stored theme that is neither LIGHT nor DARK, and the app only stores those two (142-147): closed_by_configuration"
+  },
+  {
+    "type": "label",
+    "item": "HistoryItem.<init>()",
+    "result": "correct",
+    "confirmed_by": "INFERRED",
+    "ref": "HistoryPresenterImpl.java:35-41",
+    "edges": "",
+    "note": "REACHABLE confirmed: the route to it was read step by step (path row); ENV / STATE gates on it read: env=- state=data"
+  },
+  {
+    "type": "label",
+    "item": "DatabaseHelperModule.databaseHelper",
+    "result": "correct",
+    "confirmed_by": "INFERRED",
+    "ref": "HashCalculatorFragment.java:156",
+    "edges": "",
+    "note": "REACHABLE confirmed: the route to it was read step by step (path row); ENV / STATE gates on it read: env=- state=-"
+  },
+  {
+    "type": "label",
+    "item": "LangHelperModule.langHelper",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "MainActivity.java:51",
+    "edges": "",
+    "note": "REACHABLE confirmed: the route to it was read step by step (path row); ENV / STATE gates on it read: env=- state=-"
+  },
+  {
+    "type": "label",
+    "item": "ThemeHelperModule.themeHelper",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "MainActivity.java:51",
+    "edges": "",
+    "note": "REACHABLE confirmed: the route to it was read step by step (path row); ENV / STATE gates on it read: env=- state=-"
+  },
+  {
+    "type": "label",
+    "item": "Blake2B.littleEndianToInt",
+    "result": "correct",
+    "confirmed_by": "INFERRED",
+    "ref": "Blake2B.java:91-107,152,171",
+    "edges": "",
+    "note": "REACHABLE confirmed: the route to it was read step by step (path row); ENV / STATE gates on it read: env=- state=settings"
+  },
+  {
+    "type": "label",
+    "item": "FNV1a.update256(byte[],int,int)",
+    "result": "correct",
+    "confirmed_by": "INFERRED",
+    "ref": "FNV1a.java:95-118",
+    "edges": "",
+    "note": "REACHABLE confirmed: the route to it was read step by step (path row); ENV / STATE gates on it read: env=other_app state=settings"
+  },
+  {
+    "type": "label",
+    "item": "WebFragment.getMenuResId",
+    "result": "correct",
+    "confirmed_by": "INFERRED",
+    "ref": "BaseFragment.java:69",
+    "edges": "",
+    "note": "REACHABLE confirmed: the route to it was read step by step (path row); ENV / STATE gates on it read: env=- state=-"
+  },
+  {
+    "type": "label",
+    "item": "JdkHashCalculator.inputStreamsFormFolder",
+    "result": "correct",
+    "confirmed_by": "INFERRED",
+    "ref": "JdkHashCalculator.java:87",
+    "edges": "",
+    "note": "REACHABLE confirmed: the route to it was read step by step (path row); ENV / STATE gates on it read: env=other_app state=-"
+  },
+  {
+    "type": "label",
+    "item": "HistoryFragment.refreshHistory",
+    "result": "correct",
+    "confirmed_by": "INFERRED",
+    "ref": "HistoryPresenterImpl.java:43-47",
+    "edges": "",
+    "note": "REACHABLE confirmed: the route to it was read step by step (path row); ENV / STATE gates on it read: env=- state=data"
+  },
+  {
+    "type": "label",
+    "item": "OrmLiteLocalDataStorage.getDatabaseFileName",
+    "result": "correct",
+    "confirmed_by": "INFERRED",
+    "ref": "SettingsPresenterImpl.java:44-50",
+    "edges": "",
+    "note": "REACHABLE confirmed: the route to it was read step by step (path row); ENV / STATE gates on it read: env=other_app state=data"
+  },
+  {
+    "type": "label",
+    "item": "HashCalculatorFragment.writeHashToFile",
+    "result": "correct",
+    "confirmed_by": "INFERRED",
+    "ref": "HashCalculatorFragment.java:266-267,593-599",
+    "edges": "",
+    "note": "REACHABLE confirmed: the route to it was read step by step (path row); ENV / STATE gates on it read: env=other_app state=session"
+  },
+  {
+    "type": "label",
+    "item": "MainActivity.getConfiguredBundleWithDataUri",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "MainActivity.java:82-88",
+    "edges": "",
+    "note": "REACHABLE confirmed: the route to it was read step by step (path row); ENV / STATE gates on it read: env=other_app state=-"
+  },
+  {
+    "type": "label",
+    "item": "Clipboard.clear",
+    "result": "correct",
+    "confirmed_by": "INFERRED",
+    "ref": "Clipboard.java:27-39",
+    "edges": "",
+    "note": "REACHABLE confirmed: the route to it was read step by step (path row); ENV / STATE gates on it read: env=time state=session"
+  },
+  {
+    "type": "label",
+    "item": "Blake2B.update(byte[],int,int)",
+    "result": "correct",
+    "confirmed_by": "INFERRED",
+    "ref": "Blake2B.java:109-131",
+    "edges": "",
+    "note": "REACHABLE confirmed: the route to it was read step by step (path row); ENV / STATE gates on it read: env=other_app state=settings"
+  },
+  {
+    "type": "label",
+    "item": "SettingsFragment.copyFile",
+    "result": "correct",
+    "confirmed_by": "INFERRED",
+    "ref": "SettingsFragment.java:126-137",
+    "edges": "",
+    "note": "REACHABLE confirmed: the route to it was read step by step (path row); ENV / STATE gates on it read: env=other_app state=data"
+  },
+  {
+    "type": "label",
+    "item": "HashCalculatorTask.<init>(Context,HashType,Uri,Uri,HashCalculatorTaskTarget)",
+    "result": "correct",
+    "confirmed_by": "INFERRED",
+    "ref": "HashCalculatorFragment.java:227-234",
+    "edges": "",
+    "note": "REACHABLE confirmed: the route to it was read step by step (path row); ENV / STATE gates on it read: env=other_app state=-"
+  },
+  {
+    "type": "label",
+    "item": "HashCalculatorFragment.folderNameFromUri",
+    "result": "correct",
+    "confirmed_by": "INFERRED",
+    "ref": "HashCalculatorFragment.java:330,350-352",
+    "edges": "",
+    "note": "REACHABLE confirmed: the route to it was read step by step (path row); ENV / STATE gates on it read: env=other_app state=-"
+  },
+  {
+    "type": "label",
+    "item": "FeedbackFragment.sendEmail",
+    "result": "correct",
+    "confirmed_by": "INFERRED",
+    "ref": "FeedbackFragment.java:68-77,101-113",
+    "edges": "",
+    "note": "REACHABLE confirmed: the route to it was read step by step (path row); ENV / STATE gates on it read: env=- state=-"
+  },
+  {
+    "type": "label",
+    "item": "SharedPreferencesSettings.saveTheme",
+    "result": "correct",
+    "confirmed_by": "INFERRED",
+    "ref": "SharedPreferencesSettings.java:128-147",
+    "edges": "",
+    "note": "REACHABLE confirmed: the route to it was read step by step (path row); ENV / STATE gates on it read: env=- state=-"
+  },
+  {
+    "type": "label",
+    "item": "AppSnackbar.lambda$show$0",
+    "result": "correct",
+    "confirmed_by": "INFERRED",
+    "ref": "AppSnackbar.java:62-71",
+    "edges": "",
+    "note": "REACHABLE confirmed: the route to it was read step by step (path row); ENV / STATE gates on it read: env=- state=-"
+  },
+  {
+    "type": "label",
+    "item": "HashType.getTitle",
+    "result": "correct",
+    "confirmed_by": "INFERRED",
+    "ref": "BaseListHolder.java:45",
+    "edges": "",
+    "note": "REACHABLE confirmed: the route to it was read step by step (path row); ENV / STATE gates on it read: env=- state=-"
+  },
+  {
+    "type": "label",
+    "item": "Language.getPrimaryIconResId",
+    "result": "correct",
+    "confirmed_by": "INFERRED",
+    "ref": "BaseListHolder.java:48",
+    "edges": "",
+    "note": "REACHABLE confirmed: the route to it was read step by step (path row); ENV / STATE gates on it read: env=- state=-"
+  },
+  {
+    "type": "label",
+    "item": "Action.getAdditionalIconResId",
+    "result": "correct",
+    "confirmed_by": "INFERRED",
+    "ref": "BaseListHolder.java:56",
+    "edges": "",
+    "note": "REACHABLE confirmed: the route to it was read step by step (path row); ENV / STATE gates on it read: env=- state=-"
+  },
+  {
+    "type": "label",
+    "item": "SharedPreferencesSettings.saveStringPreference",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "App.java:152-167",
+    "edges": "",
+    "note": "REACHABLE confirmed: the route to it was read step by step (path row); ENV / STATE gates on it read: env=- state=-"
+  },
+  {
+    "type": "label",
+    "item": "App.getShortcut",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "App.java:76-93,137-150",
+    "edges": "",
+    "note": "REACHABLE confirmed: the route to it was read step by step (path row); ENV / STATE gates on it read: env=- state=-"
+  },
+  {
+    "type": "label",
+    "item": "SharedPreferencesSettings.getStringPreference",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "SharedPreferencesSettings.java:117",
+    "edges": "",
+    "note": "REACHABLE confirmed: the route to it was read step by step (path row); ENV / STATE gates on it read: env=- state=-"
+  },
+  {
+    "type": "label",
+    "item": "SharedPreferencesSettings.getLanguage",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "BaseActivity.java:17",
+    "edges": "",
+    "note": "REACHABLE confirmed: the route to it was read step by step (path row); ENV / STATE gates on it read: env=- state=-"
+  },
+  {
+    "type": "label",
+    "item": "SharedPreferencesSettings.containsPreference",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "App.java:152-154",
+    "edges": "",
+    "note": "REACHABLE confirmed: the route to it was read step by step (path row); ENV / STATE gates on it read: env=- state=-"
+  },
+  {
+    "type": "label",
+    "item": "SharedPreferencesSettings$SharedPreferencesSettingsKeyExtractor.<init>",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "App.java:58-59",
+    "edges": "",
+    "note": "REACHABLE confirmed: the route to it was read step by step (path row); ENV / STATE gates on it read: env=- state=-"
+  },
+  {
+    "type": "label",
+    "item": "SharedPreferencesSettings.getBooleanPreference",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "App.java:76",
+    "edges": "",
+    "note": "REACHABLE confirmed: the route to it was read step by step (path row); ENV / STATE gates on it read: env=- state=-"
+  },
+  {
+    "type": "edge",
+    "item": "Efe9214b4",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "App.java:74",
+    "edges": "",
+    "note": "ERROR FOUND: the line table of the bytecode put the call on line 73; the call App.onCreate -> ThemeHelperModule.<init> is on 74 (javac gives a new inside a chained call, or the last line of a multi-line expression, the line before / after)"
+  },
+  {
+    "type": "edge",
+    "item": "Eaac0cf5c",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "App.java:74",
+    "edges": "",
+    "note": "ERROR FOUND: the line table of the bytecode put the call on line 73; the call App.onCreate -> ThemeConfigImpl.<init> is on 74 (javac gives a new inside a chained call, or the last line of a multi-line expression, the line before / after)"
+  },
+  {
+    "type": "edge",
+    "item": "E29ec7516",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "App.java:73",
+    "edges": "",
+    "note": "ERROR FOUND: the line table of the bytecode put the call on line 72; the call App.onCreate -> LangHelperModule.<init> is on 73 (javac gives a new inside a chained call, or the last line of a multi-line expression, the line before / after)"
+  },
+  {
+    "type": "edge",
+    "item": "E13bfb3f1",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "App.java:72",
+    "edges": "",
+    "note": "ERROR FOUND: the line table of the bytecode put the call on line 71; the call App.onCreate -> SettingsHelperModule.<init> is on 72 (javac gives a new inside a chained call, or the last line of a multi-line expression, the line before / after)"
+  },
+  {
+    "type": "edge",
+    "item": "E4a4779ed",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "App.java:71",
+    "edges": "",
+    "note": "ERROR FOUND: the line table of the bytecode put the call on line 70; the call App.onCreate -> DatabaseHelperModule.<init> is on 71 (javac gives a new inside a chained call, or the last line of a multi-line expression, the line before / after)"
+  },
+  {
+    "type": "edge",
+    "item": "Eb430475e",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "App.java:57",
+    "edges": "",
+    "note": "ERROR FOUND: the line table of the bytecode put the call on line 58; the call App.onCreate -> SharedPreferencesSettings.<init> is on 57 (javac gives a new inside a chained call, or the last line of a multi-line expression, the line before / after)"
+  },
+  {
+    "type": "edge",
+    "item": "E30837eb8",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "LanguagesBottomSheet.java:37-40",
+    "edges": "",
+    "note": "ERROR FOUND: the line table of the bytecode put the call on line 40; the call LanguagesBottomSheet.getItemsAdapter -> LanguagesListAdapter.<init> is on 37-40 (javac gives a new inside a chained call, or the last line of a multi-line expression, the line before / after)"
+  },
+  {
+    "type": "edge",
+    "item": "Edb630d05",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "LanguagesListAdapter.java:56-69",
+    "edges": "",
+    "note": "ERROR FOUND: the line table of the bytecode put the call on line 69; the call LanguagesListAdapter$LanguagesListHolder.callItemClick -> AppAlertDialog.<init> is on 56-69 (javac gives a new inside a chained call, or the last line of a multi-line expression, the line before / after)"
+  },
+  {
+    "type": "edge",
+    "item": "E687438dc",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "ThemesListAdapter.java:63-76",
+    "edges": "",
+    "note": "ERROR FOUND: the line table of the bytecode put the call on line 76; the call ThemesListAdapter$ThemesListHolder.showThemeApplyDialog -> AppAlertDialog.<init> is on 63-76 (javac gives a new inside a chained call, or the last line of a multi-line expression, the line before / after)"
+  },
+  {
+    "type": "edge",
+    "item": "Ecdf1e925",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "ThemesBottomSheet.java:37",
+    "edges": "",
+    "note": "ERROR FOUND: the line table of the bytecode put the call on line 38; the call ThemesBottomSheet.getItemsAdapter -> ThemesListAdapter.<init> is on 37 (javac gives a new inside a chained call, or the last line of a multi-line expression, the line before / after)"
+  },
+  {
+    "type": "edge",
+    "item": "E57a19f2b",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "HistoryItemsAdapter.java:32",
+    "edges": "",
+    "note": "ERROR FOUND: the line table of the bytecode put the call on line 33; the call HistoryItemsAdapter.onCreateViewHolder -> HistoryItemHolder.<init> is on 32 (javac gives a new inside a chained call, or the last line of a multi-line expression, the line before / after)"
+  },
+  {
+    "type": "edge",
+    "item": "E6ba8b6f4",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "GenerateToBottomSheet.java:40-44",
+    "edges": "",
+    "note": "ERROR FOUND: the line table of the bytecode put the call on line 44; the call GenerateToBottomSheet.getItemsAdapter -> HashesListAdapter.<init> is on 40-44 (javac gives a new inside a chained call, or the last line of a multi-line expression, the line before / after)"
+  },
+  {
+    "type": "edge",
+    "item": "E4f4ea3af",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "ActionsBottomSheet.java:24-28",
+    "edges": "",
+    "note": "ERROR FOUND: the line table of the bytecode put the call on line 28; the call ActionsBottomSheet.getItemsAdapter -> ActionsListAdapter.<init> is on 24-28 (javac gives a new inside a chained call, or the last line of a multi-line expression, the line before / after)"
+  },
+  {
+    "type": "edge",
+    "item": "E2a7d0383",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "ActionsBottomSheet.java:24-28",
+    "edges": "",
+    "note": "ERROR FOUND: the line table of the bytecode put the call on line 28; the call ActionsBottomSheet.getItemsAdapter@ActionSelectActionsBottomSheet -> ActionsListAdapter.<init> is on 24-28 (javac gives a new inside a chained call, or the last line of a multi-line expression, the line before / after)"
+  },
+  {
+    "type": "edge",
+    "item": "E983e3de0",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "ActionsBottomSheet.java:24-28",
+    "edges": "",
+    "note": "ERROR FOUND: the line table of the bytecode put the call on line 28; the call ActionsBottomSheet.getItemsAdapter@SourceSelectActionsBottomSheet -> ActionsListAdapter.<init> is on 24-28 (javac gives a new inside a chained call, or the last line of a multi-line expression, the line before / after)"
+  },
+  {
+    "type": "edge",
+    "item": "Ecaed39fa",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "Blake2B.java:91-107",
+    "edges": "",
+    "note": "guard missing: compress only when the 128-byte buffer is full; now a STATE"
+  },
+  {
+    "type": "edge",
+    "item": "E3cf75a19",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "Blake2B.java:109-131",
+    "edges": "",
+    "note": "guard missing: compress only when more input than one block arrives; now a STATE"
+  },
+  {
+    "type": "edge",
+    "item": "Eff811d30",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "FNV1a.java:95-118",
+    "edges": "",
+    "note": "guard missing: only for type FNV_1A_256; now a STATE (the other sizes the same)"
+  },
+  {
+    "type": "edge",
+    "item": "Eef3f66b5",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "App.java:152-167",
+    "edges": "",
+    "note": "guard missing: first launch after install (key_language not stored)"
+  },
+  {
+    "type": "edge",
+    "item": "Ecff74424",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "App.java:76-79",
+    "edges": "",
+    "note": "guard missing: first launch after install"
+  },
+  {
+    "type": "edge",
+    "item": "E2f51b4e7",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "App.java:84-93",
+    "edges": "",
+    "note": "guard missing: SDK_INT >= 26 (true on API 27) and a ShortcutManager"
+  },
+  {
+    "type": "edge",
+    "item": "E3706e5f1",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "MainActivity.java:72-93",
+    "edges": "",
+    "note": "the VIEW / SEND start was an extra entry into the plain startup chain, which carries no URI; it now starts its own context @XURI (likewise @XTEXT, @XFILE for the two launcher shortcuts)"
+  },
+  {
+    "type": "edge",
+    "item": "E34c17e14",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "AndroidManifest.xml:19-24",
+    "edges": "",
+    "note": "text corrected: the trigger said the portrait lock means no activity recreate, but the lock only stops rotation; MainActivity has no android:configChanges, so a locale / font change relaunches it too"
+  },
+  {
+    "type": "edge",
+    "item": "E7d084493",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "AndroidManifest.xml:19-24",
+    "edges": "",
+    "note": "text corrected: the trigger said the portrait lock means no activity recreate, but the lock only stops rotation; MainActivity has no android:configChanges, so a locale / font change relaunches it too"
+  },
+  {
+    "type": "edge",
+    "item": "E27437ece",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "AndroidManifest.xml:19-24",
+    "edges": "",
+    "note": "text corrected: the trigger said the portrait lock means no activity recreate, but the lock only stops rotation; MainActivity has no android:configChanges, so a locale / font change relaunches it too"
+  },
+  {
+    "type": "edge",
+    "item": "Ef41cf3b4",
+    "result": "fixed",
+    "confirmed_by": "SOURCE",
+    "ref": "AndroidManifest.xml:19-24",
+    "edges": "",
+    "note": "text corrected: the trigger said the portrait lock means no activity recreate, but the lock only stops rotation; MainActivity has no android:configChanges, so a locale / font change relaunches it too"
+  },
+  {
+    "type": "edge",
+    "item": "E7a9f210f",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "core/java/android/app/ActivityThread.java:3812-3826, 3878, 3893-3901",
+    "edges": "",
+    "note": "lines printed from the Android 8.1.0_r1 source and read: core/java/android/app/ActivityThread.java:3812-3826, 3878, 3893-3901 and core/java/android/app/Activity.java:7139-7143"
+  },
+  {
+    "type": "edge",
+    "item": "Eb4004a6b",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "core/java/android/app/ActivityThread.java:3534-3540, 3553-3556, 3608-3621",
+    "edges": "",
+    "note": "lines printed from the Android 8.1.0_r1 source and read: core/java/android/app/ActivityThread.java:3534-3540, 3553-3556, 3608-3621 and core/java/android/app/Activity.java:7098-7107"
+  },
+  {
+    "type": "edge",
+    "item": "E0e01bdff",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "core/java/android/widget/TextView.java:5206-5208, 5257-5260, 5290-5297, 5300-5304, 5397-5403, 9309-9316, 9359-9366, 9375-9382",
+    "edges": "",
+    "note": "lines printed from the Android 8.1.0_r1 source and read: core/java/android/widget/TextView.java:5206-5208, 5257-5260, 5290-5297, 5300-5304, 5397-5403, 9309-9316, 9359-9366, 9375-9382"
+  },
+  {
+    "type": "edge",
+    "item": "E1c1f54d8",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "core/java/android/os/AsyncTask.java:219-224, 237-262, 594-596, 632-650, 326-334",
+    "edges": "",
+    "note": "lines printed from the Android 8.1.0_r1 source and read: core/java/android/os/AsyncTask.java:219-224, 237-262, 594-596, 632-650, 326-334"
+  },
+  {
+    "type": "edge",
+    "item": "E68437992",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "core/java/android/os/AsyncTask.java:369-374, 285, 705-713, 691-697",
+    "edges": "",
+    "note": "lines printed from the Android 8.1.0_r1 source and read: core/java/android/os/AsyncTask.java:369-374, 285, 705-713, 691-697"
+  },
+  {
+    "type": "edge",
+    "item": "E6d764bb4",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "core/java/android/app/Dialog.java:330-333, 392-397, 1294-1300",
+    "edges": "",
+    "note": "lines printed from the Android 8.1.0_r1 source and read: core/java/android/app/Dialog.java:330-333, 392-397, 1294-1300"
+  },
+  {
+    "type": "edge",
+    "item": "Efb23f1fa",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "core/java/android/app/Dialog.java:288-304, 401-406",
+    "edges": "",
+    "note": "lines printed from the Android 8.1.0_r1 source and read: core/java/android/app/Dialog.java:288-304, 401-406"
+  },
+  {
+    "type": "edge",
+    "item": "E379fb9c4",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "core/java/android/app/Activity.java:824, 5489-5497",
+    "edges": "",
+    "note": "lines printed from the Android 8.1.0_r1 source and read: core/java/android/app/Activity.java:824, 5489-5497"
+  },
+  {
+    "type": "edge",
+    "item": "E5e2e71dc",
+    "result": "correct",
+    "confirmed_by": "SOURCE",
+    "ref": "core/java/android/app/Dialog.java:110, 352-358, 650-654, 1231-1237",
+    "edges": "",
+    "note": "lines printed from the Android 8.1.0_r1 source and read: core/java/android/app/Dialog.java:110, 352-358, 650-654, 1231-1237"
+  }
+]

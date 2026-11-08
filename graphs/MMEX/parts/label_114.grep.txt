@@ -1,0 +1,19 @@
+label_114 grep evidence (batch 114: BehaviourSettingsFragment, BudgetSettings, BudgetSettingsActivity, BudgetSettingsFragment, DatabaseSettings, DatabaseSettingsActivity)
+
+## Section A: setShowSimpleView (the only UNREACHABLE label in this batch)
+Command: grep -rn 'setShowSimpleView\|getShowSimpleView' <source root>/app/src/main
+Source root: final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main
+Output:
+  java/com/money/manager/ex/settings/BudgetSettings.java:41:    public Boolean getShowSimpleView() {
+  java/com/money/manager/ex/settings/BudgetSettings.java:45:    public void setShowSimpleView(boolean value) {
+  java/com/money/manager/ex/budget/BudgetAdapter.java:76:        mLayout = (settings.getBudgetSettings().getShowSimpleView())
+  java/com/money/manager/ex/budget/BudgetDetailFragment.java:99:        int layout = (settings.getBudgetSettings().getShowSimpleView()) ? R.layout.item_budget_simple_header : R.layout.item_budget_header;
+Reading: setShowSimpleView occurs only at its declaration (line 45). No call site in the source root.
+
+Auto records (graphs/MMEX/auto_calls.json, scanned with python3 -I for any src or dst containing setShowSimpleView): none.
+Auto records with src BudgetSettings.setShowSimpleView: one, -> SettingsBase.set(Integer,boolean)@BudgetSettings at BudgetSettings.java:46 (cut by sup in label_114.py).
+
+## Section B: the Settings route (INTENT and lifecycle sources)
+SettingsFragment.onCreate auto records (file SettingsFragment.java): SettingsFragment$3.<init> at line 87, $5.<init> at 113, $7.<init> at 139.
+Start sites: SettingsFragment.java:90 (BehaviourSettingsActivity), :116 (BudgetSettingsActivity), :142 (DatabaseSettingsActivity).
+No auto record targets any *SettingsActivity.<init> (an Intent class literal is not a call), so the INTENT edges are written in label_114.py.

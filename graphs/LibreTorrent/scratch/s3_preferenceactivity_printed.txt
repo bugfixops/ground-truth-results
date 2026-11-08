@@ -1,0 +1,132 @@
+     1	/*
+     2	 * Copyright (C) 2016-2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.settings;
+    21	
+    22	import android.content.Intent;
+    23	import android.os.Bundle;
+    24	import android.view.MenuItem;
+    25	
+    26	import androidx.appcompat.app.AppCompatActivity;
+    27	import androidx.appcompat.widget.Toolbar;
+    28	import androidx.preference.PreferenceFragmentCompat;
+    29	
+    30	import org.proninyaroslav.libretorrent.R;
+    31	import org.proninyaroslav.libretorrent.core.utils.Utils;
+    32	import org.proninyaroslav.libretorrent.ui.settings.sections.AnonymousModeSettingsFragment;
+    33	import org.proninyaroslav.libretorrent.ui.settings.sections.AppearanceSettingsFragment;
+    34	import org.proninyaroslav.libretorrent.ui.settings.sections.BehaviorSettingsFragment;
+    35	import org.proninyaroslav.libretorrent.ui.settings.sections.FeedSettingsFragment;
+    36	import org.proninyaroslav.libretorrent.ui.settings.sections.LimitationsSettingsFragment;
+    37	import org.proninyaroslav.libretorrent.ui.settings.sections.NetworkSettingsFragment;
+    38	import org.proninyaroslav.libretorrent.ui.settings.sections.ProxySettingsFragment;
+    39	import org.proninyaroslav.libretorrent.ui.settings.sections.SchedulingSettingsFragment;
+    40	import org.proninyaroslav.libretorrent.ui.settings.sections.StorageSettingsFragment;
+    41	import org.proninyaroslav.libretorrent.ui.settings.sections.StreamingSettingsFragment;
+    42	
+    43	public class PreferenceActivity extends AppCompatActivity
+    44	{
+    45	    private static final String TAG = PreferenceActivity.class.getSimpleName();
+    46	
+    47	    public static final String TAG_CONFIG = "config";
+    48	
+    49	    private Toolbar toolbar;
+    50	
+    51	    @Override
+    52	    protected void onCreate(Bundle savedInstanceState)
+    53	    {
+    54	        setTheme(Utils.getSettingsTheme(getApplicationContext()));
+    55	        super.onCreate(savedInstanceState);
+    56	
+    57	        /* Prevent create activity in two pane mode (after resizing window) */
+    58	        if (Utils.isLargeScreenDevice(this)) {
+    59	            finish();
+    60	            return;
+    61	        }
+    62	
+    63	        setContentView(R.layout.activity_preference);
+    64	
+    65	        String fragment = null;
+    66	        String title = null;
+    67	        Intent intent = getIntent();
+    68	        if (intent.hasExtra(TAG_CONFIG)) {
+    69	            PreferenceActivityConfig config = intent.getParcelableExtra(TAG_CONFIG);
+    70	            fragment = config.getFragment();
+    71	            title = config.getTitle();
+    72	        }
+    73	
+    74	        toolbar = findViewById(R.id.toolbar);
+    75	        if (title != null)
+    76	            toolbar.setTitle(title);
+    77	        setSupportActionBar(toolbar);
+    78	        if (getSupportActionBar() != null)
+    79	            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    80	
+    81	        if (fragment != null && savedInstanceState == null)
+    82	            setFragment(getFragment(fragment));
+    83	    }
+    84	
+    85	    public <F extends PreferenceFragmentCompat> void setFragment(F fragment)
+    86	    {
+    87	        if (fragment == null)
+    88	            return;
+    89	
+    90	        getSupportFragmentManager().beginTransaction()
+    91	                .replace(R.id.fragment_container, fragment).commit();
+    92	    }
+    93	
+    94	    private <F extends PreferenceFragmentCompat> F getFragment(String fragment)
+    95	    {
+    96	        if (fragment != null) {
+    97	            if (fragment.equals(AppearanceSettingsFragment.class.getSimpleName()))
+    98	                return (F)AppearanceSettingsFragment.newInstance();
+    99	            else if (fragment.equals(BehaviorSettingsFragment.class.getSimpleName()))
+   100	                return (F)BehaviorSettingsFragment.newInstance();
+   101	            else if (fragment.equals(StorageSettingsFragment.class.getSimpleName()))
+   102	                return (F)StorageSettingsFragment.newInstance();
+   103	            else if (fragment.equals(LimitationsSettingsFragment.class.getSimpleName()))
+   104	                return (F)LimitationsSettingsFragment.newInstance();
+   105	            else if (fragment.equals(NetworkSettingsFragment.class.getSimpleName()))
+   106	                return (F)NetworkSettingsFragment.newInstance();
+   107	            else if (fragment.equals(ProxySettingsFragment.class.getSimpleName()))
+   108	                return (F)ProxySettingsFragment.newInstance();
+   109	            else if (fragment.equals(AnonymousModeSettingsFragment.class.getSimpleName()))
+   110	                return (F) AnonymousModeSettingsFragment.newInstance();
+   111	            else if (fragment.equals(SchedulingSettingsFragment.class.getSimpleName()))
+   112	                return (F)SchedulingSettingsFragment.newInstance();
+   113	            else if (fragment.equals(FeedSettingsFragment.class.getSimpleName()))
+   114	                return (F)FeedSettingsFragment.newInstance();
+   115	            else if (fragment.equals(StreamingSettingsFragment.class.getSimpleName()))
+   116	                return (F)StreamingSettingsFragment.newInstance();
+   117	            else
+   118	                return null;
+   119	        }
+   120	
+   121	        return null;
+   122	    }
+   123	
+   124	    @Override
+   125	    public boolean onOptionsItemSelected(MenuItem item)
+   126	    {
+   127	        if (item.getItemId() == android.R.id.home)
+   128	            finish();
+   129	
+   130	        return true;
+   131	    }
+   132	}

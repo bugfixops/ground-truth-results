@@ -1,0 +1,929 @@
+# openlauncher 0.3.1 (#67, tingsu/openlauncher@instrument-version-0.3.1, flavorDefault debug) trigger graph definition.
+# Schema 2 (see handoff/SCHEMA_V2.md). Built by reading app source and hand-written edges;
+# framework claims are FW-MEMORY (recalled) or FW-SRC (AOSP android-8.1.0_r1 file:line) where checked.
+# Executed by tools/build_graph.py.
+
+TITLE = 'openlauncher 0.3.1 trigger graph'
+USE_AUTO = True
+STRICT = True
+
+UNREACHABLE = {
+    'DatabaseHelper.<init>': ('no_trigger_in_app',
+        'DatabaseHelper is never instantiated: all three `new DatabaseHelper(context)` calls are commented out '
+        '(LauncherSettings.java:49,80,237); its methods only call each other', 'LauncherSettings.java:49', 'SOURCE'),
+    'MinibarEditFragment.<init>': ('no_trigger_in_app',
+        'MinibarEditFragment is never referenced; MinibarEditActivity replaced it (no `new MinibarEditFragment`, no manifest or XML reference)',
+        'SettingsActivity.java:39', 'SOURCE'),
+    'SettingsFragment.<init>': ('no_trigger_in_app',
+        'SettingsFragment is @Deprecated; its only use is commented out at SettingsActivity.java:39 (no instantiation, no XML reference)',
+        'SettingsActivity.java:39', 'SOURCE'),
+    'QuickCenterItem.<init>': ('no_trigger_in_app',
+        'QuickCenterItem and its note/search-header items are never constructed; only ContactItem is used (by the call-log observer)',
+        'QuickCenterItem.java', 'SOURCE'),
+    'Home.onSearch': ('no_trigger_in_app',
+        'The search bar was removed (comment in source); no caller, no android:onClick in any layout, no reflection',
+        'activity/Home.java', 'SOURCE'),
+    'Home.onVoiceSearch': ('no_trigger_in_app',
+        'The search bar was removed; no caller, no android:onClick in any layout, no reflection',
+        'activity/Home.java', 'SOURCE'),
+    'Tool.openPhoto': ('no_trigger_in_app',
+        'No caller in app sources, bytecode call scan, any layout/menu/manifest XML, or reflection',
+        'util/Tool.java', 'SOURCE'),
+    'Tool.setHomeTheme': ('no_trigger_in_app',
+        'No caller in app sources, bytecode call scan, any layout/menu/manifest XML, or reflection',
+        'util/Tool.java', 'SOURCE'),
+    'Home$CallLogObserver.<init>': ('closed_by_configuration',
+        'Quick contacts need READ_CALL_LOG: it is commented out of AndroidManifest.xml (checkSelfPermission is always DENIED), '
+        'and the permission-result branch needs callLogObserver != null, which only the granted branch sets',
+        'AndroidManifest.xml', 'SOURCE'),
+    'HideAppsActivity$ViewPagerAdapter.getPageTitle': ('framework_never_calls',
+        'Only a PagerTitleStrip/TabLayout calls getPageTitle; the hide-apps layout has neither, so it is never called',
+        'res/layout/activity_hide_apps.xml', 'SOURCE'),
+    'IconListAdapter.getItem': ('framework_never_calls',
+        'BaseAdapter contract method: the minibar ListView reads rows with getView/getItemId and its click handler uses its own label list, '
+        'so nothing calls getItem', 'adapter/IconListAdapter.java', 'SOURCE'),
+    'AppDrawer_Paged$Adapter.getItemPosition': ('framework_never_calls',
+        'ViewPager calls it only after notifyDataSetChanged(); the paged drawer never notifies, it always installs a new Adapter',
+        'widget/AppDrawer_Paged.java:121-124', 'SOURCE'),
+    'Desktop$Item$1.newArray': ('framework_never_calls',
+        'Parcelable.Creator.newArray is called only when an Item[] is read from a Parcel; the app only writes and reads single Items',
+        'widget/Desktop.java', 'SOURCE'),
+}
+
+# Classify environment and state gates by kind
+ENV_PICKER_txt = ('outside package: the system widget picker / widget configure screen must return a widget id; '
+                   'the baseline runs used -p <app>, which refuses to start other packages, so no result data ever came back')
+ENV_SYSTEM_txt = ('outside package: a system screen (app info, uninstall dialog, system settings, wallpaper chooser, device-admin settings, volume panel) '
+                   'must be operated; the baseline harness cannot leave the app package')
+ENV_EXT_txt = 'outside package: another app or the system sends the broadcast / intent / content call'
+ENV_HOME_txt = 'OpenLauncher must be the default home app (HOME key, boot or system restart of the home screen)'
+ENV_ICONPACK_txt = 'an icon-pack app (category com.anddoes.launcher.THEME) is installed'
+ENV_KUSTOM_txt = 'the caller package is org.kustom.wallpaper or org.kustom.widget (checkCallingPackage), otherwise SecurityException'
+ENV_ADMIN_txt = 'the device-admin permission for OpenLauncher is not enabled (lockNow throws), so the system device-admin screen opens'
+ENV_LANDSCAPE_txt = 'the device configuration reports landscape: Home is locked to portrait (manifest), so this needs a landscape-default device or a window resize'
+ENV_CORRUPT_txt = 'LauncherSettings.readSettings() returned false (caught exception): a settings or data file in the app files directory is unreadable'
+
+ENV_KINDS_OF = {
+    ENV_PICKER_txt: ['other_app'],
+    ENV_SYSTEM_txt: ['other_app'],
+    ENV_EXT_txt: ['other_app'],
+    ENV_HOME_txt: ['other_app'],
+    ENV_ICONPACK_txt: ['other_app'],
+    ENV_KUSTOM_txt: ['other_app'],
+    ENV_ADMIN_txt: ['other_app'],
+    ENV_LANDSCAPE_txt: ['hardware'],
+    ENV_CORRUPT_txt: ['env:data_file'],
+}
+
+STATE_KINDS_OF = {
+    'An icon pack was picked in Settings > Icons > Icon pack (iconPackName is not empty)': ['settings'],
+    'An app was removed or hidden so the reloaded app list is shorter than before': ['session'],
+    'Items were saved by an earlier run (OpenLauncher was started before and its dock/desktop data files are read back)': ['data'],
+    'A widget item exists on the desktop': ['data'],
+    'An item is dragged over a desktop page': ['session'],
+    'At least one item was placed on the desktop (an app, folder or shortcut)': ['data'],
+    'Settings > Gestures > "Swipe up to open the app drawer" is on (default off)': ['settings'],
+    'Settings > Drawer > Drawer style is set to Vertical and the launcher was recreated (Back out of Settings)': ['settings'],
+    'Settings > Gestures > "Swipe up to open the app drawer" is on (default off) and "drawer search bar" is on': ['settings'],
+    'A saved app item whose app was uninstalled or hidden (ItemViewFactory.getItemView returns null)': ['data'],
+    'The desktop has two or more pages (hold a dragged item at a screen edge to add one): removeCurrentPage returns early with a single page': ['data'],
+}
+
+ENV_PICKER = ENV_PICKER_txt
+ENV_SYSTEM = ENV_SYSTEM_txt
+ENV_EXT = ENV_EXT_txt
+ENV_HOME = ENV_HOME_txt
+ENV_ICONPACK = ENV_ICONPACK_txt
+ENV_KUSTOM = ENV_KUSTOM_txt
+ENV_ADMIN = ENV_ADMIN_txt
+ENV_LANDSCAPE = ENV_LANDSCAPE_txt
+ENV_CORRUPT = ENV_CORRUPT_txt
+
+NEED_SWIPE = 'Settings > Gestures > "Swipe up to open the app drawer" is on (default off)'
+NEED_ITEM = 'At least one item was placed on the desktop (an app, folder or shortcut)'
+NEED_VERTICAL = 'Settings > Drawer > Drawer style is set to Vertical and the launcher was recreated (Back out of Settings)'
+NEED_NOTFIRST = 'OpenLauncher was started before in this install (preference quickSettings.firstStart is already false)'
+NEED_LOADED = 'LauncherSettings were already loaded in this process (a second Home creation, e.g. after recreate())'
+NEED_MINIBAR = None   # the minibar is on by default (GeneralSettings.minBarEnable = true); it is only a guard
+
+# ------------------------------------------------------------------ pages
+DRAG_TYPES = ('APP', 'APP_DRAWER', 'GROUP', 'SHORTCUT', 'WIDGET', 'LAUNCHER')
+SCREENS = {
+    'S_ENTRY': 'Outside the app: another launcher, the HOME key, boot, other apps, the system or adb',
+    'S_EXIT': 'Process killed by System.exit (Restore backup) or Home finished',
+    'S_HOME_PAUSED': 'Home is stopped: another app, a system screen or Settings is on top',
+    'S_SETTINGS_PAUSED': 'SettingsActivity is stopped (another activity or Home on top)',
+    'S_INTRO': '3-page onboarding of Init (Skip / Finish) on the first start',
+    'S_HOME_LOADING': 'Home splash while LauncherSettings.readSettings runs (first creation per process)',
+    'S_HOME_DESKTOP': 'Home, normal mode: desktop page, dock with the All Apps button, clock text',
+    'S_HOME_EDIT': 'Home, desktop edit mode: pages scaled down, edit panel (Remove page, Set home page, Widget, Action, Settings); page touches are blocked',
+    'S_HOME_DRAWER_PAGED': 'App drawer, paged style (default): pages of app icons with a page indicator',
+    'S_HOME_DRAWER_VERTICAL': 'App drawer, vertical style: scrolling grid with a drag scroll bar and a search field',
+    'S_HOME_GROUP_POPUP': 'Folder popup over the desktop: the apps of a folder and its title',
+    'S_HOME_MINIBAR': 'Minibar (left drawer) open: rows EditMinBar, Wallpaper, Lock, ClearRam, Device settings, Launcher settings, Volume, App drawer',
+    'S_MINIBAR_POPUP': 'Minibar popup window; variant CLEARRAM shows free RAM and storage, VOLUME shows the four volume sliders; the next tap closes it',
+    'S_ACTION_MENU': 'PopupMenu over the edit panel Action button (one item: AppDrawer)',
+    'S_DLG_WALLPAPER': 'Dialog "Wallpaper": Set wallpaper / Blur',
+    'S_DLG_RENAME_GROUP': 'Dialog to rename a folder (text input, OK / Cancel)',
+    'S_DLG_SETTINGS_ERROR': 'Alert "Some settings can\'t be read" after a corrupt settings file',
+    'S_HOME_DRAG': 'A long-press drag of an item is in progress (variant = what is dragged); the drag bar and edge zones appear',
+    'S_EXT_WIDGET_PICKER': 'System widget picker / widget configure screen (another package)',
+    'S_EXT_APP': 'Another app launched from an icon, folder item, shortcut or search',
+    'S_EXT_SYSTEM': 'A system screen: app info, uninstall dialog, system settings, wallpaper chooser, device-admin settings, volume panel',
+    'S_CRASH': 'CustomActivityOnCrash error screen in the :error_activity process',
+    'S_SETTINGS_ROOT': 'SettingsActivity root: 7 category buttons and an Info menu item',
+    'S_SETTINGS_DESKTOP': 'Settings > Desktop: minibar, desktop style, desktop size, search bar, fullscreen, indicator, labels',
+    'S_SETTINGS_DOCK': 'Settings > Dock: dock size, dock labels',
+    'S_SETTINGS_DRAWER': 'Settings > Drawer: drawer style, size, card, search bar, icon, remember page, indicator',
+    'S_SETTINGS_INPUT': 'Settings > Gestures: swipe switch and six gesture buttons',
+    'S_SETTINGS_COLORS': 'Settings > Colors: five color buttons',
+    'S_SETTINGS_ICONS': 'Settings > Icons: icon size, icon pack, hide apps',
+    'S_SETTINGS_OTHER': 'Settings > Other: Backup / Restore, Restart',
+    'S_DLG_DESKTOP_STYLE': 'Single-choice dialog Normal / Show all apps',
+    'S_DLG_DRAWER_STYLE': 'Single-choice dialog Paged / Vertical',
+    'S_DLG_NUMPREF': 'Number seek-bar dialog (grid size / icon size)',
+    'S_DLG_GESTURE': 'Single-choice dialog for one gesture action (variant = which gesture)',
+    'S_DLG_COLOR': 'Color chooser dialog',
+    'S_DLG_ICONPACK': 'List dialog: Default and the installed icon packs',
+    'S_DLG_BACKUP': 'Dialog: Backup / Restore / Cancel',
+    'S_PERMISSION': 'System runtime-permission dialog for READ_EXTERNAL_STORAGE',
+    'S_ABOUT': 'About screen (version, GitHub, libraries, rate, team cards)',
+    'S_HIDEAPPS_LOADING': 'Hide apps: progress while the app list loads',
+    'S_HIDEAPPS_LIST': 'Hide apps: checkable list of all apps and a confirm button',
+    'S_HIDEAPPS_SNACKBAR': 'Hide apps: snackbar "select at least one app" with OK',
+    'S_MINIBAR_EDIT': 'Minibar editor: on/off switch and a draggable, checkable list of the rows',
+}
+
+# ------------------------------------------------------------------ helpers
+_e = e
+HAND_DST = set()
+
+
+def e(src, dst, kind, trigger, *a, **k):          # noqa: F811  (records hand-written destinations)
+    HAND_DST.add(dst.split('@')[0])
+    return _e(src, dst, kind, trigger, *a, **k)
+
+
+FW_LC = 'FW-MEMORY Android runs the activity/fragment lifecycle'
+FW_ASYNC = 'FW-MEMORY AsyncTask.execute -> onPreExecute (main), doInBackground (worker), onPostExecute (main)'
+FW_POST = 'FW-MEMORY Handler/View.postDelayed or ViewPropertyAnimator.withEndAction runs the Runnable on the main thread'
+FW_INFLATE = 'FW-MEMORY LayoutInflater instantiates custom views with the (Context, AttributeSet) constructor'
+FW_DRAG = 'FW-MEMORY View.startDrag dispatches DragEvents (STARTED, ENTERED, LOCATION, DROP, EXITED, ENDED) to the views with drag listeners'
+FW_VIEW = 'FW-MEMORY the view system calls onMeasure / onLayout / onDraw'
+FW_BK = 'FW-MEMORY ButterKnife.bind reflectively loads the generated <Class>$$ViewBinder'
+
+HOME_PAGES = ['S_HOME_DESKTOP', 'S_HOME_EDIT', 'S_HOME_DRAWER_PAGED', 'S_HOME_DRAWER_VERTICAL', 'S_HOME_GROUP_POPUP', 'S_HOME_MINIBAR']
+DESKTOP_PAGES = ['S_HOME_DESKTOP', 'S_HOME_EDIT']
+
+# ------------------------------------------------------------------ entry points
+e('S_ENTRY', 'Init.<init>', 'ENTRY', 'Tap the OpenLauncher icon in another launcher (MAIN + LAUNCHER filter), or monkey -p / am start',
+  gui=['Home screen of another launcher: tap the OpenLauncher icon'], evidence='SRC AndroidManifest.xml:28-36')
+e('S_ENTRY', 'Home.<init>', 'ENTRY', 'HOME key, boot or system restart of the home screen (MAIN + HOME + DEFAULT filter)',
+  gui=['Press the HOME key'], env=ENV_HOME, evidence='SRC AndroidManifest.xml:48-53')
+e('S_ENTRY', 'FiveSecsDelayContentProvider.<init>', 'ENTRY', 'Providers are created when the process starts, before any component', evidence='FW-MEMORY ActivityThread.installContentProviders; SRC AndroidManifest.xml:56-61')
+e('FiveSecsDelayContentProvider.<init>', 'FiveSecsDelayContentProvider.onCreate', 'LIFECYCLE', 'ContentProvider.onCreate after construction', evidence='FW-MEMORY ContentProvider attachInfo')
+for m, line in (('query', 26), ('insert', 43), ('update', 66), ('getType', 36), ('delete', 49)):
+    e('S_ENTRY', 'FiveSecsDelayContentProvider.' + m, 'ENTRY', 'Another app or `adb shell content` calls the exported provider (authority com.benny.openlauncher.util.FiveSecsDelayContentProvider)',
+      gui=['In another app / adb: content %s on the authority' % m], env=ENV_EXT, evidence='SRC util/FiveSecsDelayContentProvider.java:%d' % line)
+e('FiveSecsDelayContentProvider.delete', 'AutoFinishActivity.start', 'CALL', 'path ends in reset5secs and the caller is a Kustom package: start the invisible activity', env=ENV_KUSTOM,
+  guard='uri.getLastPathSegment() == "reset5secs"', evidence='SRC util/FiveSecsDelayContentProvider.java:49-62')
+e('AutoFinishActivity.start', 'AutoFinishActivity.<init>', 'INTENT', 'startActivity(new Intent(c, AutoFinishActivity.class))', env=ENV_KUSTOM, evidence='SRC activity/AutoFinishActivity.java:15-17')
+e('AutoFinishActivity.<init>', 'AutoFinishActivity.onCreate', 'LIFECYCLE', 'finish() immediately', env=ENV_KUSTOM, evidence='SRC activity/AutoFinishActivity.java:10-13')
+e('S_ENTRY', 'DeviceAdminReceiver.<init>', 'ENTRY', 'The user enables OpenLauncher as a device admin: the system sends DEVICE_ADMIN_ENABLED',
+  gui=['System settings > Device admin apps > activate OpenLauncher'], env=ENV_SYSTEM, evidence='SRC AndroidManifest.xml:84-93')
+e('DeviceAdminReceiver.<init>', 'DeviceAdminReceiver.onReceive', 'LIFECYCLE', 'BroadcastReceiver.onReceive (empty body)', env=ENV_SYSTEM, evidence='SRC util/DeviceAdminReceiver.java:9-11')
+e('S_ENTRY', 'ShortcutReceiver.onReceive', 'ENTRY', 'An explicit broadcast reaches the exported manifest receiver (no intent filter)', env=ENV_EXT, evidence='SRC AndroidManifest.xml:95-98')
+
+# ------------------------------------------------------------------ Init (onboarding)
+e('Init.<init>', 'Init.onCreate', 'LIFECYCLE', 'The system instantiates Init, then onCreate', evidence='SRC activity/Init.java:17')
+e('Init.onCreate', 'S_INTRO', 'ENTERS', 'First start: three onboarding pages', guard='quickSettings.firstStart is true (default)', evidence='SRC activity/Init.java:20-51')
+e('Init.onCreate', 'Init.RockIt', 'CALL', 'Not the first start: forward to Home at once, no UI', guard='quickSettings.firstStart is false', needs_state=NEED_NOTFIRST,
+  evidence='SRC activity/Init.java:20-23')
+e('S_INTRO', 'Init.onSkipButtonPressed', 'GUI', 'Tap Skip (library OnboarderActivity button)', gui=['Tap "Skip"'], evidence='SRC activity/Init.java:55-60; FW-MEMORY library calls it from OnClickListener')
+e('S_INTRO', 'Init.onFinishButtonPressed', 'GUI', 'Tap Finish on the last page', gui=['Swipe to the last page and tap "Finish"'], evidence='SRC activity/Init.java:73-76; FW-MEMORY library')
+e('Init.RockIt', 'Home.<init>', 'INTENT', 'startActivity(new Intent(Init.this, Home.class)) then finish()', evidence='SRC activity/Init.java:62-70')
+e('Home.<init>', 'Home.<clinit>', 'CALL', 'Class initialisation on first instantiation (the intent filters)', evidence='INFERRED SRC activity/Home.java:164-178')
+
+# ------------------------------------------------------------------ Home creation
+e('Home.<init>', 'Home.onCreate', 'LIFECYCLE', 'The system instantiates Home, then onCreate', evidence='SRC activity/Home.java:181')
+e('Home.onCreate', 'Home.onStart', 'LIFECYCLE', 'onStart after onCreate', evidence=FW_LC)
+e('Home.onStart', 'Home.onResume', 'LIFECYCLE', 'onResume after onStart', evidence=FW_LC)
+e('Home.onCreate', 'Home$$ViewBinder.<init>', 'FRAMEWORK', 'ButterKnife.bind(this) loads the generated Home$$ViewBinder', evidence=FW_BK + '; SRC activity/Home.java:197')
+e('Home.onCreate', 'Home$$ViewBinder.bind', 'FRAMEWORK', 'ButterKnife.bind(this) calls bind(finder, target, source)', evidence=FW_BK + '; SRC activity/Home.java:197')
+for cls, line in (('Desktop', 76), ('Dock', 40), ('AppDrawerController', 172), ('DragOptionView', 78), ('GroupPopupView', 50)):
+    e('Home.onCreate', cls + '.<init>(Context,AttributeSet)', 'FRAMEWORK', 'setContentView inflates view_home.xml, which contains <%s>' % cls, evidence=FW_INFLATE + '; SRC res/layout/view_home.xml')
+e('Home.onCreate', 'MiniPopupView.<init>(Context,AttributeSet)', 'FRAMEWORK', 'activity_home.xml contains <MiniPopupView>', evidence=FW_INFLATE + '; SRC res/layout/activity_home.xml')
+e('Home.onCreate', 'SwipeListView.<init>(Context,AttributeSet)', 'FRAMEWORK', 'activity_home.xml contains <SwipeListView> (the minibar list)', evidence=FW_INFLATE + '; SRC res/layout/activity_home.xml')
+e('Home.onCreate', 'PagerIndicator.<init>(Context,AttributeSet)', 'FRAMEWORK', 'view_home.xml contains the desktop <PagerIndicator>', evidence=FW_INFLATE + '; SRC res/layout/view_home.xml')
+e('Home.onCreate', 'S_HOME_LOADING', 'ENTERS', 'First Home creation in this process: loading splash', guard='!LauncherSettings.init', evidence='SRC activity/Home.java:202-210')
+e('Home.onCreate', 'Home$2.doInBackground', 'ASYNC', 'new AsyncTask().execute(): LauncherSettings.readSettings on a worker thread', guard='!LauncherSettings.init', evidence=FW_ASYNC + '; SRC activity/Home.java:205-228')
+e('Home$2.doInBackground', 'Home$2.onPostExecute', 'ASYNC', 'Settings read: onPostExecute on the main thread', evidence=FW_ASYNC)
+e('Home$2.onPostExecute', 'Home$2$1.run', 'ASYNC', 'loadingSplash.animate().alpha(0).withEndAction(...) removes the splash', evidence=FW_POST + '; SRC activity/Home.java:216-221')
+e('Home$2.onPostExecute', 'S_HOME_DESKTOP', 'ENTERS', 'Settings loaded, desktop shown', evidence='SRC activity/Home.java:214-227')
+e('Home$2.onPostExecute', 'S_DLG_SETTINGS_ERROR', 'ENTERS', 'The settings file could not be parsed: alert', guard='readSettings returned false', env='a corrupt generalSettings.json / desktopData.json / dockData.json exists',
+  evidence='SRC activity/Home.java:223-226')
+e('Home.onCreate', 'Home.init', 'CALL', 'Settings already loaded in this process: no splash', guard='LauncherSettings.init', needs_state=NEED_LOADED, evidence='SRC activity/Home.java:202-204')
+e('Home.onCreate', 'S_HOME_DESKTOP', 'ENTERS', 'Settings already loaded: desktop shown', guard='LauncherSettings.init', needs_state=NEED_LOADED, evidence='SRC activity/Home.java:202-204')
+
+# ------------------------------------------------------------------ Home lifecycle and system events
+for p in HOME_PAGES + ['S_HOME_DRAG@' + t for t in DRAG_TYPES]:
+    e(p, 'S_HOME_PAUSED', 'ENTERS', 'Another app or a system screen comes on top, or the screen turns off', gui=['Press Home / recents / open an app'], evidence='INFERRED')
+e('S_HOME_PAUSED', 'Home.onResume', 'SYSTEM', 'Home returns to the foreground (HOME key if default home, recents, Back from the app on top)', gui=['Return to OpenLauncher'], evidence=FW_LC)
+e('Home.onResume', 'S_HOME_DESKTOP', 'ENTERS', 'handleLauncherPause(): leaves edit mode, closes the drawer, goes to the home page', evidence='SRC activity/Home.java:744-765')
+for p in HOME_PAGES:
+    e(p, 'Home.onStop', 'SYSTEM', 'Home goes to the background (onStop writes the settings)', gui=['Press Home / recents'], evidence='SRC activity/Home.java:731-735')
+e('S_HOME_DESKTOP', 'Home.onLowMemory', 'SYSTEM', 'The system reports low memory', gui=['(system under memory pressure)'], env=ENV_EXT, evidence='FW-MEMORY ComponentCallbacks2; SRC activity/Home.java:700-704')
+e('S_HOME_DESKTOP', 'Home.onDestroy', 'SYSTEM', 'Home is destroyed (recreate() after a restart-needing setting, or the system reclaims it)', needs_state='A setting that needs a restart was changed, or Settings > Other > Restart',
+  evidence='SRC activity/Home.java:687-697')
+e('Home.onDestroy', 'Home.<init>', 'SYSTEM', 'recreate(): a new Home instance is created', needs_state='A setting that needs a restart was changed', evidence='FW-MEMORY Activity.recreate')
+e('S_HOME_DESKTOP', 'Home.onActivityResult', 'RESULT', 'A system screen returned without data (Back from the widget picker, configure screen)', gui=['Press Back in the system screen'], evidence='SRC activity/Home.java:707-721')
+e('Home.onCreate', 'Home.onRequestPermissionsResult', 'SYSTEM', 'initQuickCenter() asks for READ_CALL_LOG; the answer arrives here (denied because the permission is not declared)', evidence='SRC activity/Home.java:617-624,628-637; FW-MEMORY')
+# receivers registered in Home.init
+e('S_HOME_DESKTOP', 'Home$1.onReceive', 'SYSTEM', 'ACTION_TIME_TICK every minute (the receiver is registered for TIME_TICK, TIMEZONE_CHANGED, TIME_CHANGED)', gui=['Wait up to a minute'],
+  evidence='SRC activity/Home.java:153-168,641; FW-MEMORY TIME_TICK is sent every minute')
+e('S_HOME_DESKTOP', 'AppUpdateReceiver.onReceive', 'SYSTEM', 'Another app is installed, removed or changed (PACKAGE_ADDED / REMOVED / CHANGED)', gui=['Install or uninstall an app'], env=ENV_EXT,
+  evidence='SRC activity/Home.java:170-174,640; util/AppUpdateReceiver.java:9-11')
+e('S_HOME_DESKTOP', 'ShortcutReceiver.onReceive', 'SYSTEM', 'A launcher INSTALL_SHORTCUT broadcast (an app adds a shortcut)', gui=['In another app: "add to home screen"'], env=ENV_EXT,
+  evidence='SRC activity/Home.java:176-177,642; util/ShortcutReceiver.java:24-65')
+e('S_HOME_DESKTOP', 'S_CRASH', 'SYSTEM', 'An uncaught exception shows the CustomActivityOnCrash screen', env='an uncaught exception occurs (see hazard candidates)', evidence='SRC activity/Home.java:184-187')
+
+# ------------------------------------------------------------------ AppManager: app list loading
+e('AppManager.getAllApps', 'AppManager$AsyncGetApps.onPreExecute', 'FRAMEWORK', 'new AsyncGetApps().execute(): onPreExecute on the main thread', evidence=FW_ASYNC + '; SRC util/AppManager.java:101-107')
+e('AppManager.getAllApps', 'AppManager$AsyncGetApps.doInBackground', 'ASYNC', 'worker thread lists launcher activities, filters hidden apps, applies an icon pack', evidence=FW_ASYNC)
+e('AppManager$AsyncGetApps.doInBackground', 'AppManager$AsyncGetApps.onPostExecute', 'ASYNC', 'onPostExecute on the main thread notifies the listeners', evidence=FW_ASYNC)
+e('AppManager.getAllApps', 'AppManager$AsyncGetApps.onCancelled', 'FRAMEWORK', 'task.cancel(false) while a load is still running', needs_state='A second app-list reload starts while the first is running (install/uninstall events in quick succession)',
+  evidence='SRC util/AppManager.java:104-107; FW-MEMORY AsyncTask.cancel -> onCancelled')
+e('AppManager$AsyncGetApps.doInBackground', 'AppManager$AsyncGetApps$1.compare', 'CALL', 'Collections.sort(activitiesInfo, comparator) calls compare', guard='two or more launcher activities', evidence='SRC util/AppManager.java:182-186; FW-MEMORY')
+e('AppManager$AsyncGetApps.doInBackground', 'IconPackHelper.themePacs', 'CALL', 'an icon pack is selected and installed', env=ENV_ICONPACK, guard='iconPackName not empty and installed', evidence='SRC util/AppManager.java:212-215')
+e('AppManager$AsyncGetApps.onPostExecute', 'Home.onDestroy', 'SYSTEM', 'recreateAfterGettingApps: Home.recreate()', needs_state='An icon pack was picked or apps were hidden (recreateAfterGettingApps)', evidence='SRC util/AppManager.java:244-249')
+
+
+# ================================================================== desktop, edit mode, items
+GESTURE_SITES = ('Desktop$DesktopAdapter$1.onSwipeUp', 'Desktop$DesktopAdapter$1.onSwipeDown', 'Desktop$DesktopAdapter$1.onPinch',
+                 'Desktop$DesktopAdapter$1.onUnpinch', 'Desktop$DesktopAdapter$1.onDoubleTap', 'Desktop$DesktopAdapter$4.onClick')
+RA = ('EDIT_MINBAR', 'WALLPAPER', 'LOCK', 'CLEARRAM', 'DEVICE_SETTINGS', 'LAUNCHER_SETTINGS', 'VOLUME', 'OPEN_DRAWER')
+RA_LABEL = dict(EDIT_MINBAR='EditMinBar', WALLPAPER='Wallpaper', LOCK='Lock screen', CLEARRAM='Clear RAM', DEVICE_SETTINGS='Device settings',
+                LAUNCHER_SETTINGS='Launcher settings', VOLUME='Volume', OPEN_DRAWER='Open app drawer')
+for p in DESKTOP_PAGES:
+    e(p, 'CellContainer.onInterceptTouchEvent', 'GUI', 'Touch the desktop page', gui=['Touch the desktop'], evidence='SRC widget/CellContainer.java:164-168')
+    e(p, 'CellContainer.onTouchEvent', 'GUI', 'Touch the desktop page (blocked in edit mode except a quick tap)', gui=['Touch the desktop'], evidence='SRC widget/CellContainer.java:143-161')
+    e(p, 'Desktop$DesktopAdapter$3.onTouch', 'GUI', 'Touch listener of the page: remembers where the touch started; an upward swipe over 150 px opens the drawer when "swipe" is on',
+      gui=['Swipe up on the desktop'], evidence='SRC widget/Desktop.java:473-496')
+    e(p, 'Desktop$DesktopAdapter$4.onClick', 'GUI', 'Tap an empty area of the desktop page (leaves edit mode; runs the single-click gesture if configured)', gui=['Tap an empty area of the desktop'],
+      evidence='SRC widget/Desktop.java:498-519')
+    e(p, 'Desktop.onPageScrolled', 'GUI', 'Swipe horizontally to change the desktop page', gui=['Swipe left/right on the desktop'], evidence='SRC widget/Desktop.java:317-322')
+    e(p, 'PagerIndicator.onPageScrolled', 'GUI', 'Page scroll updates the indicator', gui=['Swipe left/right on the desktop'], evidence='SRC widget/PagerIndicator.java')
+    e(p, 'PagerIndicator.onPageSelected', 'GUI', 'A new page is selected', gui=['Swipe left/right on the desktop'], evidence='SRC widget/PagerIndicator.java')
+    e(p, 'PagerIndicator.onPageScrollStateChanged', 'GUI', 'Scroll state changes', gui=['Swipe left/right on the desktop'], evidence='SRC widget/PagerIndicator.java')
+    e(p, 'Desktop$DesktopAdapter.instantiateItem', 'FRAMEWORK', 'ViewPager creates the page views', evidence='FW-MEMORY PagerAdapter via setAdapter / notifyDataSetChanged')
+    e(p, 'Desktop$DesktopAdapter.isViewFromObject', 'FRAMEWORK', 'ViewPager checks view/object identity', evidence='FW-MEMORY PagerAdapter')
+    e(p, 'Desktop$DesktopAdapter.destroyItem', 'FRAMEWORK', 'ViewPager destroys off-screen page views', needs_state='A second desktop page exists and the pager moved away from a page (or a page was removed)',
+      evidence='FW-MEMORY PagerAdapter')
+    e(p, 'CellContainer.onLayout', 'FRAMEWORK', 'layout pass', evidence=FW_VIEW)
+    e(p, 'CellContainer.onDraw', 'FRAMEWORK', 'draw pass', evidence=FW_VIEW)
+    e(p, 'PagerIndicator.onDraw', 'FRAMEWORK', 'draw pass', evidence=FW_VIEW)
+    e(p, 'PagerIndicator.onLayout', 'FRAMEWORK', 'layout pass', evidence=FW_VIEW)
+e('S_HOME_DESKTOP', 'Desktop$DesktopAdapter$5.onLongClick', 'GUI', 'Long-press an empty area of the desktop page: enters edit mode', gui=['Long-press an empty area of the desktop'], evidence='SRC widget/Desktop.java:520-537')
+e('Desktop$DesktopAdapter$5.onLongClick', 'S_HOME_EDIT', 'ENTERS', 'Pages scale down, the edit panel appears, page touches are blocked', evidence='SRC widget/Desktop.java:522-535')
+e('S_HOME_EDIT', 'S_HOME_DESKTOP', 'ENTERS', 'Tap a page (or Back / HOME): edit mode ends', gui=['Tap an empty area of the page'], evidence='SRC widget/Desktop.java:498-519; activity/Home.java:758-760')
+e('Home.onDesktopEdit', 'Home$7.run', 'ASYNC', 'desktopEditOptionPanel.postDelayed(..., 100): hide dock, set the search bar', evidence=FW_POST + '; SRC activity/Home.java:425-435')
+e('Home.onFinishDesktopEdit', 'Home$8.run', 'ASYNC', 'desktopEditOptionPanel.postDelayed(..., 100): show dock, hide the panel', evidence=FW_POST + '; SRC activity/Home.java:446-458')
+for ix, (lab, var) in enumerate((('Remove page', 'REMOVE_PAGE'), ('Set as home page', 'SET_HOME'), ('Widget', 'WIDGET'), ('Action', 'ACTION'), ('Settings', 'SETTINGS')), 1):
+    e('S_HOME_EDIT', 'Home$$ViewBinder$%d.doClick' % ix, 'GUI', 'Tap "%s" in the edit panel' % lab, gui=['Tap "%s" in the edit panel' % lab], evidence='INFERRED ButterKnife creates one click listener per id in annotation order; SRC activity/Home.java:470')
+    e('Home$$ViewBinder$%d.doClick' % ix, 'Home.onViewClicked@' + var, 'CALL', 'target.onViewClicked(view)', evidence='FW-MEMORY ButterKnife DebouncingOnClickListener; SRC activity/Home.java:470-488')
+    e('S_HOME_EDIT', 'Tool$1.onTouch', 'GUI', 'Touch an edit-panel button (colour mask animation)', gui=['Press an edit-panel button'], evidence='SRC activity/Home.java:396-402; util/Tool.java:359-376')
+e('Home.onViewClicked@REMOVE_PAGE', 'Desktop.removeCurrentPage', 'CALL', 'desktop.removeCurrentPage()', evidence='SRC activity/Home.java:473-475')
+e('Home.onViewClicked@SET_HOME', 'LauncherSettings.getInstance', 'CALL', 'desktopHomePage = desktop.getCurrentItem()', evidence='SRC activity/Home.java:476-478')
+e('Home.onViewClicked@WIDGET', 'Home.pickWidget', 'CALL', 'pickWidget(view)', evidence='SRC activity/Home.java:479-481')
+e('Home.onViewClicked@ACTION', 'Home.addLauncherAction', 'CALL', 'addLauncherAction(view)', evidence='SRC activity/Home.java:482-484')
+e('Home.onViewClicked@SETTINGS', 'LauncherAction.RunAction@LAUNCHER_SETTINGS', 'CALL', 'LauncherAction.RunAction(LauncherSettings, this)', evidence='SRC activity/Home.java:485-487')
+e('Home.addLauncherAction', 'S_ACTION_MENU', 'ENTERS', 'PopupMenu with the single item "AppDrawer"', evidence='SRC activity/Home.java:491-501')
+e('S_ACTION_MENU', 'Home$9.onMenuItemClick', 'GUI', 'Tap "AppDrawer"', gui=['Tap "AppDrawer"'], evidence='SRC activity/Home.java:494-499; res/menu/launcher_action.xml')
+e('Home$9.onMenuItemClick', 'S_HOME_EDIT', 'ENTERS', 'An "All apps" button is added to the free spot of the current page', evidence='SRC activity/Home.java:504-512')
+e('Home.handleLauncherPause@EDIT', 'Desktop$DesktopAdapter$4.onClick', 'CALL', 'desktop.pages.get(currentItem).performClick() ends edit mode', evidence='SRC activity/Home.java:758-760; FW-MEMORY View.performClick')
+e('Home.handleLauncherPause@DRAWER', 'Home.closeAppDrawer', 'CALL', 'closeAppDrawer()', guard='the drawer is visible and the desktop is not in edit mode', evidence='SRC activity/Home.java:753-755')
+e('Home.handleLauncherPause@DESKTOP', 'LauncherSettings.getInstance', 'CALL', 'desktop.setCurrentItem(desktopHomePage)', guard='no folder open', evidence='SRC activity/Home.java:756-757')
+for v in ('EDIT', 'DRAWER', 'DESKTOP'):
+    e('Home.handleLauncherPause@' + v, 'GroupPopupView.dismissPopup', 'CALL', 'groupPopup.dismissPopup()', evidence='SRC activity/Home.java:762-764')
+e('Home.onResume', 'Home.handleLauncherPause@DESKTOP', 'CALL', 'handleLauncherPause() when Home resumes', evidence='SRC activity/Home.java:747')
+e('Home.onResume', 'Home.handleLauncherPause@DRAWER', 'CALL', 'Home resumes while the drawer is open (HOME key pressed)', env=ENV_HOME, evidence='SRC activity/Home.java:747,753-755')
+e('Home.onResume', 'Home.handleLauncherPause@EDIT', 'CALL', 'Home resumes while in edit mode (HOME key pressed)', env=ENV_HOME, evidence='SRC activity/Home.java:747,758-760')
+# Back, per page
+# gestures: each configured gesture runs one of eight launcher actions
+for site in GESTURE_SITES:
+    for v in RA:
+        e(site, 'LauncherAction.RunAction@' + v, 'CALL', 'Gesture configured as "%s"' % RA_LABEL[v], needs_state=NEED_GESTURE,
+          evidence='SRC widget/Desktop.java:395-441,501-503')
+e('Desktop$DesktopAdapter$3.onTouch', 'Home.openAppDrawer(View,int,int)', 'CALL', 'upward swipe: openAppDrawer(desktop, x, y)', guard='swipe preference on and the swipe is longer than 150 px', needs_state=NEED_SWIPE,
+  gui=['Swipe up on the desktop (after turning "swipe" on)'], evidence='SRC widget/Desktop.java:486-493')
+e('Dock.detectSwipe', 'Home.openAppDrawer(View,int,int)', 'CALL', 'upward swipe on the dock opens the drawer', guard='swipe preference on', needs_state=NEED_SWIPE,
+  gui=['Swipe up on the dock (after turning "swipe" on)'], evidence='SRC widget/Dock.java:78-94')
+e('S_HOME_DESKTOP', 'Dock.dispatchTouchEvent', 'GUI', 'Touch the dock', gui=['Touch the dock'], evidence='SRC widget/Dock.java:60-71')
+e('S_HOME_DESKTOP', 'Dock.onTouchEvent', 'GUI', 'Touch the dock', gui=['Touch the dock'], evidence='SRC widget/Dock.java:73-76')
+
+BACK = {'DESKTOP': ('S_HOME_DESKTOP', 'S_HOME_MINIBAR', 'S_HOME_GROUP_POPUP'), 'EDIT': ('S_HOME_EDIT',), 'DRAWER': ('S_HOME_DRAWER_PAGED', 'S_HOME_DRAWER_VERTICAL')}
+for v, pages in BACK.items():
+    for p in pages:
+        e(p, 'Home.onBackPressed@' + v, 'SYSTEM', 'Back: closes the minibar, then handleLauncherPause() (closes the drawer / ends edit mode / goes to the home page)', gui=['Press Back'],
+          evidence='SRC activity/Home.java:738-741')
+    e('Home.onBackPressed@' + v, 'Home.handleLauncherPause@' + v, 'CALL', 'handleLauncherPause()', evidence='SRC activity/Home.java:740')
+    e('Home.onBackPressed@' + v, 'S_HOME_DESKTOP', 'ENTERS', 'Back returns to the desktop', evidence='SRC activity/Home.java:738-765')
+
+# ================================================================== app icons: tap, long-press, drag and drop
+e('S_HOME_DESKTOP', 'AppItemView$Builder$1.onClick', 'GUI', 'Tap the round "All Apps" button in the dock', gui=['Tap the "All Apps" button in the dock'], evidence='SRC widget/AppItemView.java:285-293; activity/Home.java:260-277')
+e('S_HOME_DESKTOP', 'AppItemView$Builder$2.onClick', 'GUI', 'Tap an app icon on the desktop or dock', gui=['Tap an app icon on the desktop'], needs_state=NEED_ITEM, evidence='SRC widget/AppItemView.java:299-312')
+for p in ('S_HOME_DRAWER_PAGED', 'S_HOME_DRAWER_VERTICAL'):
+    e(p, 'AppItemView$Builder$2.onClick', 'GUI', 'Tap an app icon in the drawer', gui=['Tap an app in the drawer'], evidence='SRC widget/AppDrawer_Paged.java:137-141; widget/AppDrawer_Vertical.java:198-203')
+e('AppItemView$Builder$2.onClick', 'AppItemView$Builder$2$1.run', 'ASYNC', 'Tool.createScaleInScaleOutAnim runs the end action about 160 ms later', evidence=FW_POST + '; SRC util/Tool.java:490-502')
+e('AppItemView$Builder$4.onClick', 'AppItemView$Builder$4$1.run', 'ASYNC', 'Tool.createScaleInScaleOutAnim runs the end action about 160 ms later', evidence=FW_POST + '; SRC util/Tool.java:490-502')
+e('Tool.createScaleInScaleOutAnim', 'Tool$3.run', 'ASYNC', 'new Handler().postDelayed(runnable, 80)', evidence=FW_POST + '; SRC util/Tool.java:492-500')
+e('Tool$3.run', 'Tool$3$1.run', 'ASYNC', 'inner postDelayed(runnable, 80)', evidence=FW_POST + '; SRC util/Tool.java:495-499')
+e('S_HOME_DESKTOP', 'AppItemView$Builder$4.onClick', 'GUI', 'Tap a shortcut icon', gui=['Tap a shortcut icon on the desktop'], needs_state='A shortcut was added to the desktop (INSTALL_SHORTCUT broadcast)', env=ENV_EXT,
+  evidence='SRC widget/AppItemView.java:367-383')
+e('AppItemView$Builder$2$1.run', 'Tool.startApp@OTHER', 'CALL', 'Tool.startApp(context, app): another app starts', evidence='SRC widget/AppItemView.java:303-308')
+e('AppItemView$Builder$2$1.run', 'Tool.startApp@OLSETTINGS', 'CALL', 'The tapped app is OpenLauncher itself ("OLSettings")', evidence='SRC widget/AppItemView.java:303-308; util/Tool.java:337-339')
+e('Tool.startApp@OTHER', 'S_EXT_APP', 'ENTERS', 'startActivity(ACTION_MAIN, class of the app)', evidence='SRC util/Tool.java:340-345')
+e('Tool.startApp@OTHER', 'Tool.toast(Context,int)', 'CALL', 'the app was uninstalled: toast "app uninstalled"', env='the app was uninstalled after the list was built', evidence='SRC util/Tool.java:345-347')
+e('Tool.startApp@OLSETTINGS', 'LauncherAction.RunAction@LAUNCHER_SETTINGS', 'CALL', 'LauncherAction.RunAction(LauncherSettings, c)', evidence='SRC util/Tool.java:337-339')
+e('AppItemView$Builder$4$1.run', 'S_EXT_APP', 'ENTERS', 'startActivity(shortcut intent)', env=ENV_EXT, evidence='SRC widget/AppItemView.java:373-377')
+e('AppItemView$Builder$1.onClick', 'Home.openAppDrawer(View)', 'CALL', 'Home.launcher.openAppDrawer(view)', evidence='SRC widget/AppItemView.java:289-291')
+e('S_HOME_DESKTOP', 'Tool$2.onTouch', 'GUI', 'Touch an item: remembers the touch position', gui=['Touch an app icon'], needs_state=NEED_ITEM, evidence='SRC util/Tool.java:389-399')
+for p in ('S_HOME_DRAWER_PAGED', 'S_HOME_DRAWER_VERTICAL', 'S_HOME_GROUP_POPUP'):
+    e(p, 'Tool$2.onTouch', 'GUI', 'Touch an app icon: remembers the touch position', gui=['Touch an app icon'], evidence='SRC util/Tool.java:389-399')
+e('S_HOME_DESKTOP', 'AppItemView.onMeasure', 'FRAMEWORK', 'measure pass of the icon views', evidence=FW_VIEW)
+e('S_HOME_DESKTOP', 'AppItemView.onLayout', 'FRAMEWORK', 'layout pass of the icon views', evidence=FW_VIEW)
+e('S_HOME_DESKTOP', 'AppItemView.refreshDrawableState', 'FRAMEWORK', 'drawable state refresh on press (the dock always holds the All Apps button, an AppItemView)', evidence='FW-MEMORY View.drawableStateChanged')
+e('S_HOME_DESKTOP', 'AppItemView.onDraw', 'FRAMEWORK', 'draw pass of the icon views', evidence=FW_VIEW)
+for p in ('S_HOME_DRAWER_PAGED', 'S_HOME_DRAWER_VERTICAL', 'S_HOME_GROUP_POPUP'):
+    e(p, 'AppItemView.onMeasure', 'FRAMEWORK', 'measure pass of the icon views', evidence=FW_VIEW)
+    e(p, 'AppItemView.onLayout', 'FRAMEWORK', 'layout pass of the icon views', evidence=FW_VIEW)
+    e(p, 'AppItemView.onDraw', 'FRAMEWORK', 'draw pass of the icon views', evidence=FW_VIEW)
+
+# long-press starts a drag; the dragged item type decides which page follows
+LP = {   # variant: (source page, readyForDrag/afterDrag implementor, gui, need)
+    'APP': ('S_HOME_DESKTOP', 'ItemViewFactory$2', 'Long-press an app icon on the desktop or dock', NEED_ITEM),
+    'LAUNCHER': ('S_HOME_DESKTOP', 'ItemViewFactory$1', 'Long-press the "All Apps" button', None),
+    'SHORTCUT': ('S_HOME_DESKTOP', 'ItemViewFactory$10', 'Long-press a shortcut icon', 'A shortcut was added to the desktop (INSTALL_SHORTCUT broadcast)'),
+    'GROUP': ('S_HOME_DESKTOP', 'ItemViewFactory$11', 'Long-press a folder icon', 'A folder exists on the desktop (drop one app on another)'),
+    'APP_DRAWER': ('S_HOME_DRAWER_PAGED', 'AppDrawer_Paged$Adapter$1', 'Long-press an app in the paged drawer', None),
+    'APP_DRAWER_V': ('S_HOME_DRAWER_VERTICAL', 'AppDrawer_Vertical$AppItem$1', 'Long-press an app in the vertical drawer', None),
+    'APP_FROM_FOLDER': ('S_HOME_DESKTOP', 'GroupPopupView$8', 'Long-press the single app left from a folder that shrank to one app', 'A folder shrank to one app'),
+}
+DRAG_OF = {'APP': 'APP', 'LAUNCHER': 'LAUNCHER', 'SHORTCUT': 'SHORTCUT', 'GROUP': 'GROUP', 'APP_DRAWER': 'APP_DRAWER', 'APP_DRAWER_V': 'APP_DRAWER', 'APP_FROM_FOLDER': 'APP'}
+for v, (page, impl_cls, gui, need) in LP.items():
+    n = 'AppItemView$Builder$3.onLongClick@' + v
+    e(page, n, 'GUI', gui, gui=[gui], needs_state=need, evidence='SRC widget/AppItemView.java:319-340')
+    e(n, impl_cls + '.readyForDrag', 'CALL', 'eventAction.readyForDrag(view)', evidence='SRC widget/AppItemView.java:323-325')
+    e(n, impl_cls + '.afterDrag', 'CALL', 'eventAction.afterDrag(view) (desktop items remember the item for a revert; drawer apps close the drawer)', evidence='SRC widget/AppItemView.java:333-335')
+    e(n, 'S_HOME_DRAG@' + DRAG_OF[v], 'ENTERS', 'view.startDrag(...): a drag starts', evidence='SRC widget/AppItemView.java:329-332')
+    e(n, 'Desktop$Item.writeToParcel', 'FRAMEWORK', 'the drag data (ClipData with the item Parcelable) is marshalled when the drag starts', evidence='FW-MEMORY View.startDrag sends the ClipData to the window manager')
+    e(n, 'Desktop$Item.describeContents', 'FRAMEWORK', 'Parcel/Bundle scanning of the ClipData intent', evidence='FW-MEMORY Intent.hasFileDescriptors / Parcel.writeParcelable')
+# drag events reach the drop targets
+DROP = {   # drag type -> targets that accept it
+    'APP': ('desktop', 'dock', 'delete', 'info', 'remove', 'left', 'right'),
+    'APP_DRAWER': ('desktop', 'dock', 'delete', 'info', 'left', 'right'),
+    'GROUP': ('desktop', 'dock', 'remove', 'left', 'right'),
+    'SHORTCUT': ('desktop', 'dock', 'remove', 'left', 'right'),
+    'WIDGET': ('desktop', 'remove', 'left', 'right'),
+    'LAUNCHER': ('desktop', 'dock', 'remove', 'left', 'right'),
+}
+TARGET = {'desktop': ('Desktop.onDrag', 'Drop the item on a desktop page'), 'dock': ('Dock.onDrag', 'Drop the item on the dock'),
+          'delete': ('DragOptionView$1.onDrag', 'Drop on "Uninstall" in the top bar'), 'info': ('DragOptionView$2.onDrag', 'Drop on "App info" in the top bar'),
+          'remove': ('DragOptionView$3.onDrag', 'Drop on "Remove" in the top bar'), 'left': ('DragNavigationControl$3.onDrag', 'Hold the item at the left screen edge'),
+          'right': ('DragNavigationControl$4.onDrag', 'Hold the item at the right screen edge')}
+for t, targets in DROP.items():
+    p = 'S_HOME_DRAG@' + t
+    e(p, 'DragOptionView.dispatchDragEvent', 'FRAMEWORK', 'DRAG_STARTED / ENDED are dispatched to the drag bar', evidence=FW_DRAG)
+    e(p, 'DragOptionView.onDragEvent', 'FRAMEWORK', 'the drag bar shows the icons that fit the dragged type (DRAG_STARTED) and hides them (DRAG_ENDED)', evidence=FW_DRAG + '; SRC widget/DragOptionView.java:221-310')
+    for k in targets:
+        node, text = TARGET[k]
+        e(p, node, 'GUI', text, gui=[text], evidence='SRC ' + {'desktop': 'widget/Desktop.java:160-231', 'dock': 'widget/Dock.java:96-146', 'delete': 'widget/DragOptionView.java:86-108',
+                                                                 'info': 'widget/DragOptionView.java:110-141', 'remove': 'widget/DragOptionView.java:143-170',
+                                                                 'left': 'viewutil/DragNavigationControl.java:37-77', 'right': 'viewutil/DragNavigationControl.java:78-117'}[k])
+e('DragOptionView.onDragEvent', 'S_HOME_DESKTOP', 'ENTERS', 'DRAG_ENDED: the drag is over (dropped, or released over nothing and reverted)', evidence='SRC widget/DragOptionView.java:287-307')
+e('DragOptionView.onDragEvent', 'DragOptionView$4.run', 'ASYNC', 'the drag bar slides in after the hidden view faded out (withEndAction)', evidence=FW_POST + '; SRC widget/DragOptionView.java:210-218')
+e('DragOptionView.onDragEvent', 'DragOptionView$5.run', 'ASYNC', 'at DRAG_ENDED the bar slides out (withEndAction)', evidence=FW_POST + '; SRC widget/DragOptionView.java:293-303')
+e('DragOptionView$1.onDrag', 'S_EXT_SYSTEM', 'ENTERS', 'ACTION_DROP: startActivity(ACTION_DELETE package:...) opens the system uninstall dialog', guard='ACTION_DROP', env=ENV_SYSTEM, evidence='SRC widget/DragOptionView.java:181-195')
+e('DragOptionView$2.onDrag', 'S_EXT_SYSTEM', 'ENTERS', 'ACTION_DROP: startActivity(APPLICATION_DETAILS_SETTINGS) opens the system app info', guard='ACTION_DROP', env=ENV_SYSTEM, evidence='SRC widget/DragOptionView.java:124-135')
+e('DragNavigationControl$3.onDrag', 'DragNavigationControl$2.run', 'ASYNC', 'ACTION_DRAG_ENTERED: l.post(left); the runnable repeats every second', guard='ACTION_DRAG_ENTERED', evidence=FW_POST + '; SRC viewutil/DragNavigationControl.java:55-60')
+e('DragNavigationControl$4.onDrag', 'DragNavigationControl$1.run', 'ASYNC', 'ACTION_DRAG_ENTERED: l.post(right); the runnable repeats every second', guard='ACTION_DRAG_ENTERED', evidence=FW_POST + '; SRC viewutil/DragNavigationControl.java:96-101')
+e('Desktop.onDrag', 'S_HOME_DESKTOP', 'ENTERS', 'The item is placed (or reverted if there is no space)', guard='ACTION_DROP', evidence='SRC widget/Desktop.java:186-225')
+e('Desktop.onDrag', 'Desktop$Item.<init>(Parcel)', 'FRAMEWORK', 'intent.getParcelableExtra("mDragData") unmarshals the dragged item', evidence='FW-MEMORY Bundle.getParcelable; SRC widget/Desktop.java:188-190')
+e('Desktop.onDrag', 'Desktop$Item$1.createFromParcel', 'FRAMEWORK', 'Parcelable.Creator builds the item', evidence='FW-MEMORY Parcel.readParcelable; SRC widget/Desktop.java:604-614')
+e('Dock.onDrag', 'Desktop$Item.<init>(Parcel)', 'FRAMEWORK', 'intent.getParcelableExtra("mDragData")', evidence='SRC widget/Dock.java:114-118')
+e('Desktop.onDrag', 'Desktop.handleOnDropOver', 'CALL', 'the drop position is occupied: try to make a folder', needs_state='At least two items on the same page (drop one onto the other)', evidence='SRC widget/Desktop.java:206-211')
+e('Dock.onDrag', 'Desktop.handleOnDropOver', 'CALL', 'the drop position is occupied: try to make a folder', needs_state='At least two items in the dock (drop one onto the other)', evidence='SRC widget/Dock.java:123-128')
+
+
+# ================================================================== app drawer
+e('Home.openAppDrawer(View,int,int)', 'S_HOME_DRAWER_PAGED', 'ENTERS', 'The circular reveal shows the paged drawer (default style)', evidence='SRC activity/Home.java:779-805; widget/AppDrawerController.java:63-112')
+e('Home.openAppDrawer(View,int,int)', 'S_HOME_DRAWER_VERTICAL', 'ENTERS', 'The circular reveal shows the vertical drawer', needs_state=NEED_VERTICAL, evidence='SRC widget/AppDrawerController.java:80-94,172-190')
+e('AppDrawerController.init', 'AppDrawer_Paged.<init>(Context,AttributeSet)', 'FRAMEWORK', 'inflates view_pageddrawer.xml (paged style)', guard='drawerMode == Paged', evidence=FW_INFLATE + '; SRC widget/AppDrawerController.java:178-183')
+e('AppDrawerController.init', 'PagerIndicator.<init>(Context,AttributeSet)', 'FRAMEWORK', 'inflates view_drawerindicator.xml (paged style)', guard='drawerMode == Paged', evidence=FW_INFLATE + '; SRC widget/AppDrawerController.java:181-182')
+e('AppDrawerController.init', 'AppDrawer_Vertical.<init>(Context,AttributeSet)', 'FRAMEWORK', 'inflates view_griddrawer.xml (vertical style)', guard='drawerMode == Vertical', needs_state=NEED_VERTICAL,
+  evidence=FW_INFLATE + '; SRC widget/AppDrawerController.java:184-189')
+e('AppDrawerController.init', 'SearchBar.<init>(Context,AttributeSet)', 'FRAMEWORK', 'inflates view_searchbar_app.xml (vertical style with the drawer search bar on)', guard='drawerSearchBar && Vertical', needs_state=NEED_VERTICAL + ' and "drawer search bar" is on (default on)',
+  evidence=FW_INFLATE + '; SRC widget/AppDrawerController.java:191-203')
+e('AppDrawerController.init', 'SearchBar.init', 'CALL', 'SearchBar constructor calls init()', needs_state=NEED_VERTICAL, evidence='SRC widget/SearchBar.java:22-26')
+e('AppDrawerController.open', 'AppDrawerController$1.onAnimationStart', 'FRAMEWORK', 'the reveal animator starts', evidence='FW-MEMORY Animator.start -> AnimatorListener; SRC widget/AppDrawerController.java:69-98')
+e('AppDrawerController.open', 'AppDrawerController$1.onAnimationEnd', 'FRAMEWORK', 'the reveal animator ends', evidence='FW-MEMORY AnimatorListener; SRC widget/AppDrawerController.java:99-102')
+e('AppDrawerController.close', 'AppDrawerController$2.onAnimationStart', 'FRAMEWORK', 'the hide animator starts', evidence='FW-MEMORY AnimatorListener; SRC widget/AppDrawerController.java:122-134')
+e('AppDrawerController.close', 'AppDrawerController$2.onAnimationEnd', 'FRAMEWORK', 'the hide animator ends', evidence='FW-MEMORY AnimatorListener; SRC widget/AppDrawerController.java:135-138')
+e('AppDrawerController.close', 'AppDrawerController$3.run', 'ASYNC', 'paged style: the page fades out, then the animator starts (withEndAction)', guard='drawerMode == Paged', evidence=FW_POST + '; SRC widget/AppDrawerController.java:149-158')
+e('AppDrawerController.close', 'AppDrawerController$4.run', 'ASYNC', 'vertical style: the list fades out, then the animator starts (withEndAction)', guard='drawerMode == Vertical', needs_state=NEED_VERTICAL,
+  evidence=FW_POST + '; SRC widget/AppDrawerController.java:160-168')
+e('Home.closeAppDrawer', 'AppDrawerController.close', 'CALL', 'appDrawerController.close(cx, cy, rad, finalRadius)', evidence='SRC activity/Home.java:807-810')
+for v in ('DRAWER',):
+    e('Home.handleLauncherPause@' + v, 'S_HOME_DESKTOP', 'ENTERS', 'The drawer closes; the desktop is shown', evidence='SRC activity/Home.java:754-755')
+for p in ('S_HOME_DRAWER_PAGED', 'S_HOME_DRAWER_VERTICAL'):
+    e(p, 'Home$6.onStart', 'FRAMEWORK', 'close callback when the hide animation starts', needs_state='The drawer is being closed', evidence='SRC activity/Home.java:352-380')
+e('S_HOME_DRAWER_PAGED', 'AppDrawer_Paged.onConfigurationChanged', 'SYSTEM', 'A device configuration change reaches the view (orientation, keyboard, screen size; Home handles these itself)', gui=['Change the device configuration (rotate / attach a keyboard)'], env=ENV_EXT,
+  evidence='SRC widget/AppDrawer_Paged.java:47-64; AndroidManifest.xml:44')
+e('S_HOME_DRAWER_VERTICAL', 'AppDrawer_Vertical.onConfigurationChanged', 'SYSTEM', 'A device configuration change reaches the view', gui=['Change the device configuration (rotate / attach a keyboard)'], env=ENV_EXT,
+  evidence='SRC widget/AppDrawer_Vertical.java:83-95')
+e('AppDrawer_Paged.<init>(Context,AttributeSet)', 'AppDrawer_Paged$Adapter.instantiateItem', 'FRAMEWORK', 'ViewPager asks the adapter for the current pages', evidence='FW-MEMORY PagerAdapter; SRC widget/AppDrawer_Paged.java:208-213')
+e('AppDrawer_Paged.<init>(Context,AttributeSet)', 'AppDrawer_Paged$Adapter.isViewFromObject', 'FRAMEWORK', 'ViewPager identity check', evidence='FW-MEMORY PagerAdapter; SRC widget/AppDrawer_Paged.java:188-192')
+e('S_HOME_DRAWER_PAGED', 'AppDrawer_Paged$Adapter.destroyItem', 'FRAMEWORK', 'ViewPager removes a page that scrolled out of the offscreen range', needs_state='The drawer has 3 or more pages and was scrolled', evidence='FW-MEMORY PagerAdapter; SRC widget/AppDrawer_Paged.java:194-197')
+for p in ('S_HOME_DRAWER_PAGED',):
+    for cb in ('PagerIndicator.onPageScrolled', 'PagerIndicator.onPageSelected', 'PagerIndicator.onPageScrollStateChanged'):
+        e(p, cb, 'GUI', 'Swipe the drawer pages', gui=['Swipe the drawer left/right'], evidence='SRC widget/PagerIndicator.java')
+    e(p, 'PagerIndicator.onDraw', 'FRAMEWORK', 'draw pass', evidence=FW_VIEW)
+    e(p, 'PagerIndicator.onLayout', 'FRAMEWORK', 'layout pass', evidence=FW_VIEW)
+# vertical drawer: global-layout listener builds the grid; FastAdapter calls back into the item
+e('AppDrawer_Vertical.<init>(Context,AttributeSet)', 'AppDrawer_Vertical$1.onGlobalLayout', 'FRAMEWORK', 'first layout pass fires the global-layout listener registered in preInit()', evidence='FW-MEMORY ViewTreeObserver; SRC widget/AppDrawer_Vertical.java:63-80')
+for cb, what in (('getType', 'FastAdapter asks the item type'), ('getLayoutRes', 'FastAdapter asks the layout'), ('getFactory', 'FastAdapter asks for the ViewHolder factory'), ('bindView', 'RecyclerView binds the item')):
+    e('AppDrawer_Vertical$1.onGlobalLayout', 'AppDrawer_Vertical$AppItem.' + cb, 'FRAMEWORK', what, evidence='FW-MEMORY FastAdapter / RecyclerView; SRC widget/AppDrawer_Vertical.java:167-217')
+e('AppDrawer_Vertical$1.onGlobalLayout', 'AppDrawer_Vertical$AppItem$ItemFactory.create', 'FRAMEWORK', 'FastAdapter creates the ViewHolder', evidence='FW-MEMORY FastAdapter; SRC widget/AppDrawer_Vertical.java:186-191')
+e('AppDrawer_Vertical$1.onGlobalLayout', 'AppDrawer_Vertical$GridAppDrawerAdapter.getCharacterForElement', 'FRAMEWORK', 'the drag scroll bar asks for the first letter of an element', needs_state='The drag scroll bar of the vertical drawer is touched', evidence='FW-MEMORY DragScrollBar / INameableAdapter; SRC widget/AppDrawer_Vertical.java:160-165')
+e('S_HOME_DRAWER_VERTICAL', 'AppDrawer_Vertical$GridAppDrawerAdapter.getCharacterForElement', 'GUI', 'Drag the scroll bar', gui=['Drag the scroll bar at the right edge'], needs_state=NEED_VERTICAL, evidence='SRC widget/AppDrawer_Vertical.java:160-165')
+e('S_HOME_DRAWER_VERTICAL', 'SearchBar.onClick', 'GUI', 'Tap the search field: it takes focus and the keyboard opens', gui=['Tap the search field'], needs_state=NEED_VERTICAL + ' and "drawer search bar" is on', evidence='SRC widget/SearchBar.java:57-64')
+e('S_HOME_DRAWER_VERTICAL', 'SearchBar.onKeyPreIme', 'GUI', 'Press Back while the keyboard is open: clears the field', gui=['Press Back with the keyboard open'], needs_state=NEED_VERTICAL + ' and "drawer search bar" is on', evidence='SRC widget/SearchBar.java:45-55')
+e('S_HOME_DRAWER_VERTICAL', 'SearchBar.onEditorAction', 'GUI', 'Press the keyboard action key', gui=['Press the keyboard action key'], needs_state=NEED_VERTICAL + ' and "drawer search bar" is on', evidence='SRC widget/SearchBar.java:40-43')
+e('S_HOME_DRAWER_VERTICAL', 'SearchBar.onDragEvent', 'GUI', 'A drag event reaches the search field', gui=['(a drag passes over the search field)'], needs_state=NEED_VERTICAL + ' and "drawer search bar" is on', evidence='SRC widget/SearchBar.java:34-38')
+for cb in ('beforeTextChanged', 'onTextChanged', 'afterTextChanged'):
+    e('S_HOME_DRAWER_VERTICAL', 'AppDrawerController.' + cb, 'GUI', 'Type in the drawer search field', gui=['Type in the search field'], needs_state=NEED_VERTICAL + ' and "drawer search bar" is on',
+      evidence='SRC widget/AppDrawerController.java:247-266')
+e('AppDrawerController.onTextChanged', 'AppDrawer_Vertical$GridAppDrawerAdapter$1.filter', 'FRAMEWORK', 'FastAdapter filter predicate runs for every item', evidence='FW-MEMORY FastAdapter.filter; SRC widget/AppDrawer_Vertical.java:151-157')
+
+# ================================================================== folder popup
+e('S_HOME_DESKTOP', 'ItemViewFactory$12.onClick', 'GUI', 'Tap a folder icon', gui=['Tap a folder icon'], needs_state='A folder exists on the desktop (drop one app on another)', evidence='SRC viewutil/ItemViewFactory.java:224-231')
+e('ItemViewFactory$12.onClick', 'S_HOME_GROUP_POPUP', 'ENTERS', 'groupPopup.showWindowV(...)', evidence='SRC widget/GroupPopupView.java:96-258')
+e('GroupPopupView.<init>(Context,AttributeSet)', 'GroupPopupView.onLayout', 'FRAMEWORK', 'layout pass', evidence=FW_VIEW)
+e('GroupPopupView.init', 'GroupPopupView$1.run', 'ASYNC', 'postDelayed(..., 2000): set title and background colours', evidence=FW_POST + '; SRC widget/GroupPopupView.java:59-66')
+e('S_HOME_GROUP_POPUP', 'GroupPopupView$2.onClick', 'GUI', 'Tap outside the popup card', gui=['Tap outside the folder card'], evidence='SRC widget/GroupPopupView.java:67-76')
+e('GroupPopupView$2.onClick', 'S_HOME_DESKTOP', 'ENTERS', 'The popup closes', evidence='SRC widget/GroupPopupView.java:69-74')
+e('S_HOME_GROUP_POPUP', 'GroupPopupView$3.onLongClick', 'GUI', 'Long-press an app in the folder: drags it out', gui=['Long-press an app in the folder'], evidence='SRC widget/GroupPopupView.java:128-147')
+e('GroupPopupView$3.onLongClick', 'S_HOME_DRAG@APP', 'ENTERS', 'itemView.startDrag(ACTION_APP): the app leaves the folder and is dragged', evidence='SRC widget/GroupPopupView.java:134-146')
+e('GroupPopupView$3.onLongClick', 'S_HOME_DRAG@SHORTCUT', 'ENTERS', 'itemView.startDrag(ACTION_SHORTCUT) for a shortcut in the folder', needs_state='A shortcut is in the folder', env=ENV_EXT, evidence='SRC widget/GroupPopupView.java:141-144')
+for site in ('GroupPopupView$3.onLongClick',):
+    e(site, 'Desktop$Item.writeToParcel', 'FRAMEWORK', 'drag data marshalled', evidence='FW-MEMORY View.startDrag')
+e('S_HOME_GROUP_POPUP', 'GroupPopupView$4.onClick', 'GUI', 'Tap an app in the folder', gui=['Tap an app in the folder'], evidence='SRC widget/GroupPopupView.java:169-181')
+e('S_HOME_GROUP_POPUP', 'GroupPopupView$5.onClick', 'GUI', 'Tap a shortcut in the folder', gui=['Tap a shortcut in the folder'], needs_state='A shortcut is in the folder', env=ENV_EXT, evidence='SRC widget/GroupPopupView.java:154-166')
+e('GroupPopupView$4.onClick', 'GroupPopupView$4$1.run', 'ASYNC', 'Tool.createScaleInScaleOutAnim runs the end action later', evidence=FW_POST + '; SRC util/Tool.java:490-502')
+e('GroupPopupView$5.onClick', 'GroupPopupView$5$1.run', 'ASYNC', 'Tool.createScaleInScaleOutAnim runs the end action later', evidence=FW_POST + '; SRC util/Tool.java:490-502')
+e('GroupPopupView$4$1.run', 'Tool.startApp@OTHER', 'CALL', 'Tool.startApp(c, app)', evidence='SRC widget/GroupPopupView.java:174-179')
+e('GroupPopupView$4$1.run', 'Tool.startApp@OLSETTINGS', 'CALL', 'Tool.startApp(c, app) for OpenLauncher itself', evidence='SRC widget/GroupPopupView.java:174-179; util/Tool.java:337-339')
+e('GroupPopupView$5$1.run', 'S_EXT_APP', 'ENTERS', 'view.getContext().startActivity(act): the shortcut opens', env=ENV_EXT, evidence='SRC widget/GroupPopupView.java:154-166')
+e('S_HOME_GROUP_POPUP', 'GroupPopupView$6.onClick', 'GUI', 'Tap the folder title', gui=['Tap the folder title'], evidence='SRC widget/GroupPopupView.java:187-201')
+e('GroupPopupView$6.onClick', 'S_DLG_RENAME_GROUP', 'ENTERS', 'Tool.DialogHelper.promptInputText(...).show()', evidence='SRC widget/GroupPopupView.java:190-201; util/Tool.java:463-475')
+e('S_DLG_RENAME_GROUP', 'Tool$DialogHelper$1.onInput', 'GUI', 'Type a name and tap OK', gui=['Type a new name and tap "OK"'], evidence='SRC util/Tool.java:466-471')
+e('Tool$DialogHelper$1.onInput', 'S_HOME_GROUP_POPUP', 'ENTERS', 'The folder is renamed; the popup stays', evidence='SRC widget/GroupPopupView.java:192-199')
+e('GroupPopupView.dismissPopup', 'GroupPopupView$7.onDismiss', 'CALL', 'dismissListener.onDismiss()', evidence='SRC widget/GroupPopupView.java:87-93,204-212')
+e('GroupPopupView.dismissPopup', 'S_HOME_DESKTOP', 'ENTERS', 'the popup is hidden', evidence='SRC widget/GroupPopupView.java:87-93')
+e('GroupPopupView.showWindowV', 'GroupPopupView$GroupDef.<clinit>', 'CALL', 'class initialisation on first use', evidence='INFERRED SRC widget/GroupPopupView.java:292-310')
+e('GroupPopupView.showWindowV', 'GroupPopupView$GroupDef.getCellSize', 'CALL', 'GroupDef.getCellSize(item.actions.length)', evidence='SRC widget/GroupPopupView.java:105')
+
+
+# ================================================================== minibar
+e('S_HOME_DESKTOP', 'Home.onDrawerStateChanged', 'GUI', 'Swipe from the left screen edge: the DrawerLayout starts dragging and settles open', gui=['Swipe in from the left screen edge'], guard='minBarEnable (default on)',
+  evidence='SRC activity/Home.java:544,858-878')
+for cb in ('onDrawerSlide', 'onDrawerOpened'):
+    e('Home.onDrawerStateChanged', 'Home.' + cb, 'FRAMEWORK', 'DrawerLayout calls the listener while it opens', evidence='FW-MEMORY DrawerLayout.DrawerListener; SRC activity/Home.java:846-855')
+e('Home.onDrawerStateChanged', 'S_HOME_MINIBAR', 'ENTERS', 'STATE_IDLE with the left drawer open: the minibar and its overlay are shown', guard='drawerLayout.isDrawerOpen(Gravity.LEFT)', evidence='SRC activity/Home.java:870-875')
+e('S_HOME_MINIBAR', 'Home.onDrawerClosed', 'FRAMEWORK', 'DrawerLayout reports it closed (swipe it away or Back)', gui=['Swipe the minibar back to the left'], evidence='FW-MEMORY DrawerLayout.DrawerListener; SRC activity/Home.java:853-855')
+e('S_HOME_MINIBAR', 'S_HOME_DESKTOP', 'ENTERS', 'The minibar closes (swipe away, or after tapping a row that closes it)', gui=['Swipe the minibar back to the left'], evidence='SRC activity/Home.java:603-605')
+e('Home.onDrawerStateChanged', 'Home$12.run', 'ASYNC', 'the overlay fades out (withEndAction) when the drawer starts moving', guard='shortcutLayout alpha == 1', needs_state='The minibar was open before (its overlay is visible)',
+  evidence=FW_POST + '; SRC activity/Home.java:860-869')
+e('S_HOME_MINIBAR', 'SwipeListView.dispatchTouchEvent', 'GUI', 'Touch the minibar list', gui=['Touch the minibar list'], evidence='SRC widget/SwipeListView.java:70-74')
+for cb in ('getCount', 'getItemId', 'getView'):
+    e('Home.initMinBar', 'IconListAdapter.' + cb, 'FRAMEWORK', 'minBar.setAdapter(...): the ListView reads the rows', evidence='FW-MEMORY ListView / BaseAdapter; SRC activity/Home.java:584; viewutil/IconListAdapter.java')
+ROWV = {'EDIT_MINBAR': 'EditMinBar', 'WALLPAPER': 'Wallpaper', 'LOCK': 'Lock screen', 'CLEARRAM': 'Clear RAM', 'DEVICE_SETTINGS': 'Device settings',
+        'LAUNCHER_SETTINGS': 'Launcher settings', 'VOLUME': 'Volume', 'OPEN_DRAWER': 'App drawer'}
+for v, lab in ROWV.items():
+    e('S_HOME_MINIBAR', 'Home$11.onItemClick@' + v, 'GUI', 'Tap the "%s" row' % lab, gui=['Tap the "%s" row in the minibar' % lab], needs_state=NEED_MINIBAR, evidence='SRC activity/Home.java:591-606')
+    e('Home$11.onItemClick@' + v, 'LauncherAction.RunAction@' + v, 'CALL', 'LauncherAction.RunAction(action, Home.this)', evidence='SRC activity/Home.java:594-595')
+for v in ROWV:
+    if v not in ('EDIT_MINBAR', 'LAUNCHER_SETTINGS', 'DEVICE_SETTINGS'):
+        e('Home$11.onItemClick@' + v, 'S_HOME_DESKTOP', 'ENTERS', 'drawerLayout.closeDrawers(): the minibar closes after this action', evidence='SRC activity/Home.java:603-605')
+# fling to the right on a row shows a popup window
+for v, pg in (('CLEARRAM', 'S_MINIBAR_POPUP@CLEARRAM'), ('VOLUME', 'S_MINIBAR_POPUP@VOLUME'), ('OTHER', None)):
+    n = 'Home$10.onSwipe@' + v
+    lab = {'CLEARRAM': 'Clear RAM', 'VOLUME': 'Volume', 'OTHER': 'any other row'}[v]
+    e('SwipeListView$1.onFling', n, 'CALL', 'onSwipeRight.onSwipe(pos, x, y) for the %s row' % lab, gui=['Fling right on the "%s" row' % lab] if v != 'OTHER' else ['Fling right on another row'], needs_state=NEED_MINIBAR,
+      evidence='SRC widget/SwipeListView.java:47-66')
+    e(n, 'MiniPopupView.showActionWindow@' + v, 'CALL', 'miniPopup.showActionWindow(action, x, y)', evidence='SRC activity/Home.java:585-590')
+    if pg:
+        e('MiniPopupView.showActionWindow@' + v, pg, 'ENTERS', 'the popup window is displayed', evidence='SRC widget/MiniPopupView.java:52-121')
+e('S_HOME_MINIBAR', 'SwipeListView$1.onFling', 'GUI', 'Fling horizontally on a minibar row', gui=['Fling right on a minibar row'], needs_state=NEED_MINIBAR, evidence='SRC widget/SwipeListView.java:47-66')
+e('MiniPopupView.showActionWindow@CLEARRAM', 'MiniPopupView$ClearRamViewHolder.<init>', 'CALL', 'new ClearRamViewHolder(window)', evidence='SRC widget/MiniPopupView.java:57-60')
+e('MiniPopupView.showActionWindow@CLEARRAM', 'Tool.getFreeRAM', 'CALL', 'free RAM text', evidence='SRC widget/MiniPopupView.java:60')
+e('MiniPopupView.showActionWindow@CLEARRAM', 'Tool.getFreeMemory', 'CALL', 'free storage text', evidence='SRC widget/MiniPopupView.java:61')
+e('MiniPopupView.showActionWindow@VOLUME', 'MiniPopupView$VolumeDialogViewHolder.<init>', 'CALL', 'new VolumeDialogViewHolder(window)', evidence='SRC widget/MiniPopupView.java:74')
+e('MiniPopupView.showActionWindow@VOLUME', 'MiniPopupView$VolumeDialogViewHolder.getSoundChangeListener', 'CALL', 'listeners for the four sliders', evidence='SRC widget/MiniPopupView.java:85-88')
+e('MiniPopupView$ClearRamViewHolder.<init>', 'MiniPopupView$ClearRamViewHolder$$ViewBinder.<init>', 'FRAMEWORK', 'ButterKnife.bind(this, view)', evidence=FW_BK + '; SRC widget/MiniPopupView.java:169-171')
+e('MiniPopupView$ClearRamViewHolder.<init>', 'MiniPopupView$ClearRamViewHolder$$ViewBinder.bind', 'FRAMEWORK', 'ButterKnife.bind(this, view)', evidence=FW_BK)
+e('MiniPopupView$VolumeDialogViewHolder.<init>', 'MiniPopupView$VolumeDialogViewHolder$$ViewBinder.<init>', 'FRAMEWORK', 'ButterKnife.bind(this, view)', evidence=FW_BK + '; SRC widget/MiniPopupView.java:134-136')
+e('MiniPopupView$VolumeDialogViewHolder.<init>', 'MiniPopupView$VolumeDialogViewHolder$$ViewBinder.bind', 'FRAMEWORK', 'ButterKnife.bind(this, view)', evidence=FW_BK)
+for pg in ('S_MINIBAR_POPUP@CLEARRAM', 'S_MINIBAR_POPUP@VOLUME'):
+    e(pg, 'MiniPopupView.onTouchEvent', 'GUI', 'Tap anywhere: the popup closes', gui=['Tap anywhere'], evidence='SRC widget/MiniPopupView.java:40-49')
+    e(pg, 'S_HOME_MINIBAR', 'ENTERS', 'The popup closes', gui=['Tap anywhere'], evidence='SRC widget/MiniPopupView.java:40-49')
+    e(pg, 'MiniPopupView$1.onGlobalLayout', 'FRAMEWORK', 'the popup view is laid out; the listener positions it', evidence='FW-MEMORY ViewTreeObserver; SRC widget/MiniPopupView.java:104-118')
+for cb in ('onProgressChanged', 'onStartTrackingTouch', 'onStopTrackingTouch'):
+    e('S_MINIBAR_POPUP@VOLUME', 'MiniPopupView$VolumeDialogViewHolder$1.' + cb, 'GUI', 'Drag a volume slider', gui=['Drag a volume slider'], evidence='SRC widget/MiniPopupView.java:138-159')
+e('S_HOME_MINIBAR', 'MiniPopupView.onTouchEvent', 'GUI', 'A touch reaches the popup layer', gui=['Tap the overlay over the minibar'], evidence='SRC widget/MiniPopupView.java:40-49')
+
+# ================================================================== LauncherAction.RunAction: one variant per action
+e('LauncherAction.RunAction@EDIT_MINBAR', 'MinibarEditActivity.<init>', 'INTENT', 'startActivity(new Intent(context, MinibarEditActivity.class))', evidence='SRC util/LauncherAction.java:43-46')
+e('LauncherAction.RunAction@WALLPAPER', 'LauncherAction$1.<init>', 'CALL', 'new ListCallback for the wallpaper dialog', evidence='SRC util/LauncherAction.java:53')
+e('LauncherAction.RunAction@WALLPAPER', 'S_DLG_WALLPAPER', 'ENTERS', 'b.show(): the wallpaper dialog', evidence='SRC util/LauncherAction.java:47-71')
+e('S_DLG_WALLPAPER', 'LauncherAction$1.onSelection', 'GUI', 'Tap "Set wallpaper" or "Blur"', gui=['Tap "Set wallpaper" or "Blur"'], evidence='SRC util/LauncherAction.java:53-70')
+e('LauncherAction$1.onSelection', 'S_EXT_SYSTEM', 'ENTERS', 'position 0: the system wallpaper chooser', guard='position == 0', env=ENV_SYSTEM, evidence='SRC util/LauncherAction.java:57-60')
+e('LauncherAction$1.onSelection', 'Tool.toast(Context,String)', 'CALL', 'Blur failed: toast', guard='position == 1 and the blur throws', env='the wallpaper cannot be read or blurred', evidence='SRC util/LauncherAction.java:61-66')
+e('LauncherAction$1.onSelection', 'Tool.drawableToBitmap', 'CALL', 'position 1: blur the current wallpaper', guard='position == 1', evidence='SRC util/LauncherAction.java:63')
+e('LauncherAction.RunAction@LOCK', 'S_EXT_SYSTEM', 'ENTERS', 'lockNow() throws without device admin: toast and the device-admin settings screen', env=ENV_ADMIN, evidence='SRC util/LauncherAction.java:73-82')
+e('LauncherAction.RunAction@LOCK', 'Tool.toast(Context,String)', 'CALL', 'toast "please enable device admin"', env=ENV_ADMIN, evidence='SRC util/LauncherAction.java:77')
+e('LauncherAction.RunAction@CLEARRAM', 'LauncherAction$2.<init>', 'CALL', 'new AsyncTask()', guard='!clearingRam', evidence='SRC util/LauncherAction.java:90')
+e('LauncherAction.RunAction@CLEARRAM', 'LauncherAction$2.onPreExecute', 'FRAMEWORK', 'execute(): onPreExecute on the main thread', guard='!clearingRam', evidence=FW_ASYNC + '; SRC util/LauncherAction.java:90-121')
+e('LauncherAction.RunAction@CLEARRAM', 'LauncherAction$2.doInBackground', 'ASYNC', 'kills background processes on a worker thread', guard='!clearingRam', evidence=FW_ASYNC)
+e('LauncherAction$2.doInBackground', 'LauncherAction$2.onPostExecute', 'ASYNC', 'toast with the freed memory on the main thread', evidence=FW_ASYNC)
+e('LauncherAction$2.onPostExecute', 'Tool.toast(Context,String)', 'CALL', 'toast with the result', evidence='SRC util/LauncherAction.java:110-120')
+e('LauncherAction.RunAction@DEVICE_SETTINGS', 'S_EXT_SYSTEM', 'ENTERS', 'startActivity(Settings.ACTION_SETTINGS)', env=ENV_SYSTEM, evidence='SRC util/LauncherAction.java:123-125')
+e('LauncherAction.RunAction@LAUNCHER_SETTINGS', 'SettingsActivity.<init>', 'INTENT', 'startActivity(new Intent(context, SettingsActivity.class))', evidence='SRC util/LauncherAction.java:126-128')
+e('LauncherAction.RunAction@VOLUME', 'S_EXT_SYSTEM', 'ENTERS', 'AudioManager.setStreamVolume(..., FLAG_SHOW_UI) shows the system volume panel', env=ENV_SYSTEM, evidence='SRC util/LauncherAction.java:129-132')
+e('LauncherAction.RunAction@OPEN_DRAWER', 'Home.openAppDrawer()', 'CALL', 'Home.launcher.openAppDrawer()', evidence='SRC util/LauncherAction.java:133-135')
+e('Home.openAppDrawer()', 'Home.openAppDrawer(View,int,int)', 'CALL', 'openAppDrawer(desktop, -1, -1)', evidence='SRC activity/Home.java:771-773')
+e('Home.openAppDrawer(View)', 'Home.openAppDrawer(View,int,int)', 'CALL', 'openAppDrawer(view, -1, -1)', evidence='SRC activity/Home.java:775-777')
+
+# ================================================================== widgets
+e('Home.pickWidget', 'S_EXT_WIDGET_PICKER', 'ENTERS', 'startActivityForResult(ACTION_APPWIDGET_PICK)', evidence='SRC activity/Home.java:647-652')
+e('S_EXT_WIDGET_PICKER', 'Home.onActivityResult@CANCEL', 'RESULT', 'Back in the picker: RESULT_CANCELED, no data (or the id to delete)', gui=['Press Back in the widget picker'], evidence='SRC activity/Home.java:714-720; FW-MEMORY')
+e('S_EXT_WIDGET_PICKER', 'Home.onActivityResult@PICKED', 'RESULT', 'The user picks a widget: RESULT_OK with the widget id', gui=['Pick a widget in the system picker'], env=ENV_PICKER, evidence='SRC activity/Home.java:707-713')
+e('S_EXT_WIDGET_PICKER', 'Home.onActivityResult@CONFIGURED', 'RESULT', 'The widget configure screen returns RESULT_OK', gui=['Finish the widget configuration'], env=ENV_PICKER, needs_state='The picked widget has a configure activity',
+  evidence='SRC activity/Home.java:711-713')
+e('Home.onActivityResult@PICKED', 'Home.configureWidget', 'CALL', 'configureWidget(data)', env=ENV_PICKER, evidence='SRC activity/Home.java:709-710')
+e('Home.onActivityResult@CONFIGURED', 'Home.createWidget', 'CALL', 'createWidget(data)', env=ENV_PICKER, evidence='SRC activity/Home.java:711-712')
+e('Home.onActivityResult@CANCEL', 'S_HOME_EDIT', 'ENTERS', 'back on the edit-mode desktop', evidence='SRC activity/Home.java:714-720')
+e('Home.createWidget', 'S_HOME_EDIT', 'ENTERS', 'the widget is on the desktop page', env=ENV_PICKER, evidence='SRC activity/Home.java:668-682')
+e('ItemViewFactory.getItemView@WIDGET', 'WidgetHost.onCreateView', 'FRAMEWORK', 'appWidgetHost.createView(...) calls onCreateView', env=ENV_PICKER, needs_state='A widget item exists on the desktop', evidence='FW-MEMORY AppWidgetHost.createView -> onCreateView; SRC viewutil/ItemViewFactory.java:82-85')
+e('WidgetHost.onCreateView', 'WidgetView.<init>(Context,int,int)', 'CALL', 'new WidgetView(context, animationIn, animationOut)', env=ENV_PICKER, evidence='SRC viewutil/WidgetHost.java:13-17')
+e('ItemViewFactory.getItemView@WIDGET', 'ItemViewFactory$3.run', 'ASYNC', 'widgetView.post(updateWidgetOption)', env=ENV_PICKER, needs_state='A widget item exists on the desktop', evidence=FW_POST + '; SRC viewutil/ItemViewFactory.java:87-93')
+e('ItemViewFactory.getItemView@WIDGET', 'ItemViewFactory$4.run', 'ASYNC', 'postDelayed(action, 2000): the resize handles shrink away', env=ENV_PICKER, needs_state='A widget item exists on the desktop', evidence=FW_POST + '; SRC viewutil/ItemViewFactory.java:111-120')
+for n, lab in ((6, 'taller'), (7, 'wider'), (8, 'shorter'), (9, 'narrower')):
+    e('S_HOME_DESKTOP', 'ItemViewFactory$%d.onClick' % n, 'GUI', 'Tap the resize handle to make the widget %s' % lab, gui=['Tap the widget resize handle (visible for 2 s after the widget appears)'], env=ENV_PICKER,
+      needs_state='A widget item exists on the desktop', evidence='SRC viewutil/ItemViewFactory.java:136-175')
+    e('ItemViewFactory$%d.onClick' % n, 'ItemViewFactory$4.run', 'ASYNC', 'postDelayed(action, 2000)', env=ENV_PICKER, evidence=FW_POST + '; SRC viewutil/ItemViewFactory.java:143')
+e('S_HOME_DESKTOP', 'ItemViewFactory$5.onLongClick', 'GUI', 'Long-press a widget (WidgetView calls it after 500 ms of movement)', gui=['Hold and move a widget'], env=ENV_PICKER, needs_state='A widget item exists on the desktop',
+  evidence='SRC viewutil/ItemViewFactory.java:122-133; widget/WidgetView.java:34-50')
+e('ItemViewFactory$5.onLongClick', 'S_HOME_DRAG@WIDGET', 'ENTERS', 'view.startDrag(ACTION_WIDGET)', env=ENV_PICKER, evidence='SRC viewutil/ItemViewFactory.java:126-131')
+e('ItemViewFactory$5.onLongClick', 'Desktop$Item.writeToParcel', 'FRAMEWORK', 'drag data marshalled', env=ENV_PICKER, evidence='FW-MEMORY View.startDrag')
+e('S_HOME_DESKTOP', 'WidgetView.onInterceptTouchEvent', 'GUI', 'Touch a widget', gui=['Touch a widget'], env=ENV_PICKER, needs_state='A widget item exists on the desktop', evidence='SRC widget/WidgetView.java:33-50')
+
+
+# ================================================================== SettingsActivity
+CATS = [('desktopSettings', 0, 'S_SETTINGS_DESKTOP', 'Desktop'), ('dockSettings', 1, 'S_SETTINGS_DOCK', 'Dock'), ('drawerSettings', 2, 'S_SETTINGS_DRAWER', 'Drawer'),
+        ('inputSettings', 3, 'S_SETTINGS_INPUT', 'Gestures'), ('colorsSettings', 4, 'S_SETTINGS_COLORS', 'Colors'), ('iconsSettings', 5, 'S_SETTINGS_ICONS', 'Icons'),
+        ('otherSettings', 6, 'S_SETTINGS_OTHER', 'Other')]
+CAT_PAGES = [c[2] for c in CATS]
+e('SettingsActivity.<init>', 'SettingsActivity.onCreate', 'LIFECYCLE', 'The system instantiates SettingsActivity, then onCreate', evidence='SRC activity/SettingsActivity.java:29')
+e('SettingsActivity.onCreate', 'S_SETTINGS_ROOT', 'ENTERS', 'Root list of categories', evidence='SRC activity/SettingsActivity.java:41-51')
+e('SettingsActivity.onCreate', 'SettingsActivity.onCreateOptionsMenu', 'FRAMEWORK', 'The toolbar menu (Info) is created', evidence='FW-MEMORY Activity.onCreatePanelMenu; SRC activity/SettingsActivity.java:141-144')
+for pid, n, page, lab in CATS:
+    e('S_SETTINGS_ROOT', 'SettingsActivity.onPrefClicked@' + pid, 'GUI', 'Tap the "%s" category' % lab, gui=['Tap "%s"' % lab], evidence='SRC activity/SettingsActivity.java:41-49,302-324')
+    e('SettingsActivity.onPrefClicked@' + pid, 'SettingsActivity.onSettingsSelected@%d' % n, 'CALL', 'onSettingsSelected(%d)' % n, evidence='SRC activity/SettingsActivity.java:302-324')
+    e('SettingsActivity.onSettingsSelected@%d' % n, page, 'ENTERS', 'The %s category fragment replaces the root' % lab.lower(), evidence='SRC activity/SettingsActivity.java:54-137')
+    e(page, 'SettingsActivity.onBackPressed', 'SYSTEM', 'Back / Up pops the category fragment', gui=['Press Back'], evidence='SRC activity/SettingsActivity.java:378-382')
+    e(page, 'S_SETTINGS_ROOT', 'ENTERS', 'Back returns to the category list', gui=['Press Back'], evidence='SRC activity/SettingsActivity.java:378-382')
+    e(page, 'SettingsActivity.onOptionsItemSelected@HOME', 'GUI', 'Tap the Up arrow', gui=['Tap the Up arrow (top-left)'], evidence='SRC activity/SettingsActivity.java:147-158')
+    e(page, 'S_SETTINGS_PAUSED', 'ENTERS', 'Another activity or Home comes on top', gui=['Press Home'], evidence='INFERRED')
+e('S_SETTINGS_ROOT', 'SettingsActivity.onOptionsItemSelected@INFO', 'GUI', 'Tap "Info" in the toolbar menu', gui=['Tap "Info" (top-right)'], evidence='SRC activity/SettingsActivity.java:147-153; res/menu/settings_options.xml')
+e('S_SETTINGS_ROOT', 'SettingsActivity.onOptionsItemSelected@HOME', 'GUI', 'Tap the Up arrow', gui=['Tap the Up arrow (top-left)'], evidence='SRC activity/SettingsActivity.java:154-156')
+e('S_SETTINGS_ROOT', 'SettingsActivity.onBackPressed', 'SYSTEM', 'Back at the root finishes Settings', gui=['Press Back'], evidence='SRC activity/SettingsActivity.java:378-382')
+e('S_SETTINGS_ROOT', 'SettingsActivity.onDestroy', 'SYSTEM', 'Settings is finished: Home is recreated if a setting needs a restart', gui=['Press Back at the root'], evidence='SRC activity/SettingsActivity.java:295-299')
+e('SettingsActivity.onDestroy', 'Home.onDestroy', 'SYSTEM', 'requireLauncherRestart: Home.launcher.recreate()', needs_state='A setting that needs a restart was changed', evidence='SRC activity/SettingsActivity.java:296-298')
+e('SettingsActivity.onDestroy', 'S_HOME_DESKTOP', 'ENTERS', 'Home is in front again', evidence='SRC activity/SettingsActivity.java:295-299')
+e('SettingsActivity.onOptionsItemSelected@INFO', 'AboutActivity.<init>', 'INTENT', 'startActivity(new Intent(this, AboutActivity.class))', evidence='SRC activity/SettingsActivity.java:149-153')
+e('SettingsActivity.onOptionsItemSelected@HOME', 'SettingsActivity.onBackPressed', 'CALL', 'onBackPressed()', evidence='SRC activity/SettingsActivity.java:154-156')
+e('S_SETTINGS_PAUSED', 'S_SETTINGS_ROOT', 'ENTERS', 'Settings comes back to the front', gui=['Return to Settings'], evidence='INFERRED')
+# preference buttons inside the categories
+PREF = [   # (pref id, page, dialog helper or None, page entered, gui)
+    ('editMiniBar', 'S_SETTINGS_DESKTOP', None, None, 'Tap "Minibar"'),
+    ('desktopMode', 'S_SETTINGS_DESKTOP', 'DialogUtils.desktopStylePicker', 'S_DLG_DESKTOP_STYLE', 'Tap "Desktop style"'),
+    ('drawerStyle', 'S_SETTINGS_DRAWER', 'DialogUtils.appDrawerStylePicker', 'S_DLG_DRAWER_STYLE', 'Tap "Drawer style"'),
+    ('singleClick', 'S_SETTINGS_INPUT', 'DialogUtils.startSingleClickPicker', 'S_DLG_GESTURE@single_click', 'Tap "Single click"'),
+    ('doubleClick', 'S_SETTINGS_INPUT', 'DialogUtils.startDoubleClickPicker', 'S_DLG_GESTURE@double_click', 'Tap "Double click"'),
+    ('pinch', 'S_SETTINGS_INPUT', 'DialogUtils.startPinchPicker', 'S_DLG_GESTURE@pinch', 'Tap "Pinch"'),
+    ('unPinch', 'S_SETTINGS_INPUT', 'DialogUtils.startUnpinchPicker', 'S_DLG_GESTURE@unpinch', 'Tap "Unpinch"'),
+    ('swipeDown', 'S_SETTINGS_INPUT', 'DialogUtils.startSwipeDownPicker', 'S_DLG_GESTURE@swipe_down', 'Tap "Swipe down"'),
+    ('swipeUp', 'S_SETTINGS_INPUT', 'DialogUtils.startSwipeUpPicker', 'S_DLG_GESTURE@swipe_up', 'Tap "Swipe up"'),
+]
+for pid, page, helper, ent, gui in PREF:
+    n = 'SettingsActivity.onPrefClicked@' + pid
+    e(page, n, 'GUI', gui, gui=[gui], evidence='SRC activity/SettingsActivity.java:302-362')
+    if helper:
+        e(n, helper, 'CALL', helper.split('.')[1] + '(this)', evidence='SRC activity/SettingsActivity.java:337-362')
+        e(helper, ent, 'ENTERS', 'the dialog is shown', evidence='SRC util/DialogUtils.java:19-130')
+for v, hn in (('single_click', 1), ('double_click', 2), ('pinch', 3), ('unpinch', 4), ('swipe_down', 5), ('swipe_up', 6)):
+    dn = 'DialogUtils$%d.onSelection' % (hn + 2)
+    e('S_DLG_GESTURE@' + v, dn, 'GUI', 'Pick the action for the %s gesture' % v.replace('_', ' '), gui=['Pick an action'], evidence='SRC util/DialogUtils.java:53-129')
+    e('S_DLG_GESTURE@' + v, 'S_SETTINGS_INPUT', 'ENTERS', 'The dialog closes', gui=['Pick an action'], evidence='SRC util/DialogUtils.java:53-129')
+e('S_DLG_DESKTOP_STYLE', 'DialogUtils$1.onSelection', 'GUI', 'Pick Normal / Show all apps', gui=['Pick a style'], evidence='SRC util/DialogUtils.java:19-30')
+e('S_DLG_DESKTOP_STYLE', 'S_SETTINGS_DESKTOP', 'ENTERS', 'The dialog closes', gui=['Pick a style'], evidence='SRC util/DialogUtils.java:19-30')
+e('S_DLG_DRAWER_STYLE', 'DialogUtils$2.onSelection', 'GUI', 'Pick Paged / Vertical', gui=['Pick a style'], evidence='SRC util/DialogUtils.java:32-51')
+e('S_DLG_DRAWER_STYLE', 'S_SETTINGS_DRAWER', 'ENTERS', 'The dialog closes', gui=['Pick a style'], evidence='SRC util/DialogUtils.java:32-51')
+e('SettingsActivity.onPrefClicked@editMiniBar', 'LauncherAction.RunAction@EDIT_MINBAR', 'CALL', 'LauncherAction.RunAction(EditMinBar, this)', evidence='SRC activity/SettingsActivity.java:331-333')
+e('S_SETTINGS_ICONS', 'SettingsActivity.onPrefClicked@iconPack', 'GUI', 'Tap "Icon pack"', gui=['Tap "Icon pack"'], evidence='SRC activity/SettingsActivity.java:334-336')
+e('SettingsActivity.onPrefClicked@iconPack', 'AppManager.startPickIconPackIntent', 'CALL', 'AppManager.getInstance(this).startPickIconPackIntent(this)', evidence='SRC activity/SettingsActivity.java:335')
+e('AppManager.startPickIconPackIntent', 'S_DLG_ICONPACK', 'ENTERS', 'd.show(): list of Default and installed icon packs', evidence='SRC util/AppManager.java:110-153')
+e('S_DLG_ICONPACK', 'AppManager$1.onClick', 'GUI', 'Tap "Default"', gui=['Tap "Default"'], evidence='SRC util/AppManager.java:123-131')
+e('S_DLG_ICONPACK', 'AppManager$2.onClick', 'GUI', 'Tap an installed icon pack', gui=['Tap an icon pack'], env=ENV_ICONPACK, evidence='SRC util/AppManager.java:133-149')
+e('AppManager$1.onClick', 'AppManager.getAllApps', 'CALL', 'recreateAfterGettingApps = true; getAllApps()', evidence='SRC util/AppManager.java:125-130')
+e('AppManager$1.onClick', 'S_SETTINGS_ICONS', 'ENTERS', 'The dialog closes; Home is recreated after the reload', evidence='SRC util/AppManager.java:129')
+e('AppManager$2.onClick', 'AppManager.getAllApps', 'CALL', 'storage permission granted: use the pack', env=ENV_ICONPACK, needs_state='READ_EXTERNAL_STORAGE is granted (adb install -g / pm grant)', evidence='SRC util/AppManager.java:138-143')
+e('AppManager$2.onClick', 'S_PERMISSION', 'ENTERS', 'storage permission missing: toast and permission request', env=ENV_ICONPACK, evidence='SRC util/AppManager.java:143-146')
+for cb in ('getType', 'getLayoutRes', 'getFactory', 'bindView'):
+    e('AppManager.startPickIconPackIntent', 'IconLabelItem.' + cb, 'FRAMEWORK', 'the dialog RecyclerView reads and binds the rows', evidence='FW-MEMORY FastAdapter / RecyclerView; SRC viewutil/IconLabelItem.java')
+e('AppManager.startPickIconPackIntent', 'IconLabelItem$ItemFactory.create', 'FRAMEWORK', 'FastAdapter creates the ViewHolder', evidence='FW-MEMORY FastAdapter; SRC viewutil/IconLabelItem.java')
+e('AppManager.startPickIconPackIntent', 'IconLabelItem.<clinit>', 'CALL', 'class initialisation on first use', evidence='INFERRED SRC viewutil/IconLabelItem.java')
+e('S_PERMISSION', 'Home.onRequestPermissionsResult', 'RESULT', 'The user answers the permission dialog', gui=['Answer the permission dialog'], env=ENV_SYSTEM, evidence='SRC util/AppManager.java:145; activity/Home.java:628-637')
+e('S_SETTINGS_ICONS', 'SettingsActivity.onPrefClicked@iconHide', 'GUI', 'Tap "Hide apps"', gui=['Tap "Hide apps"'], evidence='SRC activity/SettingsActivity.java:363-367')
+e('SettingsActivity.onPrefClicked@iconHide', 'HideAppsActivity.<init>', 'INTENT', 'startActivity(new Intent(this, HideAppsActivity.class))', evidence='SRC activity/SettingsActivity.java:364-366')
+e('S_SETTINGS_OTHER', 'SettingsActivity.onPrefClicked@backup', 'GUI', 'Tap "Backup / Restore"', gui=['Tap "Backup / Restore"'], evidence='SRC activity/SettingsActivity.java:368-374')
+e('SettingsActivity.onPrefClicked@backup', 'DialogUtils.backupDialog', 'CALL', 'storage permission granted: DialogUtils.backupDialog(this)', needs_state='READ_EXTERNAL_STORAGE is granted (adb install -g / pm grant)', evidence='SRC activity/SettingsActivity.java:369-370')
+e('SettingsActivity.onPrefClicked@backup', 'S_PERMISSION', 'ENTERS', 'storage permission missing: ActivityCompat.requestPermissions(Home.launcher, ...)', guard='permission not granted', evidence='SRC activity/SettingsActivity.java:371-373')
+e('DialogUtils.backupDialog', 'S_DLG_BACKUP', 'ENTERS', 'builder.show()', evidence='SRC util/DialogUtils.java:131-183')
+e('S_DLG_BACKUP', 'DialogUtils$9.onSelection', 'GUI', 'Tap "Backup" or "Restore"', gui=['Tap "Backup" or "Restore"'], evidence='SRC util/DialogUtils.java:140-182')
+e('DialogUtils$9.onSelection', 'S_EXIT', 'ENTERS', 'Restore: System.exit(1)', guard='"Restore" chosen', evidence='SRC util/DialogUtils.java:164-180')
+e('S_DLG_BACKUP', 'S_SETTINGS_OTHER', 'ENTERS', 'Backup finishes with a toast; the dialog closes', gui=['Tap "Backup" or "Cancel"'], evidence='SRC util/DialogUtils.java:146-163')
+e('S_SETTINGS_OTHER', 'SettingsActivity.onPrefClicked@restart', 'GUI', 'Tap "Restart"', gui=['Tap "Restart"'], evidence='SRC activity/SettingsActivity.java:325-330')
+e('SettingsActivity.onPrefClicked@restart', 'Home.onDestroy', 'SYSTEM', 'Home.launcher.recreate() then Settings finishes', evidence='SRC activity/SettingsActivity.java:326-329')
+e('SettingsActivity.onPrefClicked@restart', 'S_HOME_DESKTOP', 'ENTERS', 'Settings finishes; the recreated Home is shown', evidence='SRC activity/SettingsActivity.java:326-329')
+# number, color and switch preferences are handled inside the library and report through onPrefChanged
+for page in ('S_SETTINGS_DESKTOP', 'S_SETTINGS_DOCK', 'S_SETTINGS_DRAWER', 'S_SETTINGS_INPUT', 'S_SETTINGS_ICONS', 'S_SETTINGS_COLORS'):
+    e(page, 'SettingsActivity.onPrefChanged', 'GUI', 'Toggle a switch on this page', gui=['Toggle a switch'], evidence='SRC activity/SettingsActivity.java:162-288')
+for page in ('S_SETTINGS_DESKTOP', 'S_SETTINGS_DOCK', 'S_SETTINGS_DRAWER', 'S_SETTINGS_ICONS'):
+    e(page, 'S_DLG_NUMPREF', 'ENTERS', 'Tap a size row: the number seek-bar dialog opens', gui=['Tap a size row'], evidence='FW-MEMORY MaterialPrefFragment.NUMPref (library); SRC activity/SettingsActivity.java:63-66,86-89,122')
+e('S_DLG_NUMPREF', 'SettingsActivity.onPrefChanged', 'GUI', 'Set a value and confirm', gui=['Move the slider and confirm'], evidence='SRC activity/SettingsActivity.java:193-228')
+e('S_SETTINGS_COLORS', 'S_DLG_COLOR', 'ENTERS', 'Tap a colour row: the colour chooser opens', gui=['Tap a colour row'], evidence='FW-MEMORY MaterialPrefFragment.ColorPref (library); SRC activity/SettingsActivity.java:110-119')
+e('S_DLG_COLOR', 'SettingsActivity.onPrefChanged', 'GUI', 'Pick a colour', gui=['Pick a colour'], evidence='SRC activity/SettingsActivity.java:229-279')
+e('S_DLG_COLOR', 'S_SETTINGS_COLORS', 'ENTERS', 'The chooser closes', gui=['Pick a colour'], evidence='INFERRED')
+
+# ================================================================== AboutActivity, HideApps, MinibarEdit
+e('AboutActivity.<init>', 'S_ABOUT', 'ENTERS', 'About screen', evidence='SRC activity/AboutActivity.java')
+e('AboutActivity.<init>', 'AboutActivity.getMaterialAboutList', 'LIFECYCLE', 'the library onCreate asks for the card list', evidence='FW-MEMORY MaterialAboutActivity.onCreate; SRC activity/AboutActivity.java:19-77')
+e('AboutActivity.<init>', 'AboutActivity.getActivityTitle', 'LIFECYCLE', 'the library asks for the title', evidence='FW-MEMORY MaterialAboutActivity; SRC activity/AboutActivity.java:86-89')
+e('S_ABOUT', 'AboutActivity.onOptionsItemSelected', 'GUI', 'Tap the Up arrow', gui=['Tap the Up arrow (top-left)'], evidence='SRC activity/AboutActivity.java:80-85')
+e('S_ABOUT', 'S_SETTINGS_ROOT', 'ENTERS', 'Back / Up returns to Settings', gui=['Press Back'], evidence='INFERRED')
+e('HideAppsActivity.<init>', 'HideAppsActivity.onCreate', 'LIFECYCLE', 'The system instantiates HideAppsActivity, then onCreate', evidence='SRC activity/HideAppsActivity.java:25')
+e('HideAppsActivity.onCreate', 'S_HIDEAPPS_LOADING', 'ENTERS', 'The fragment starts loading the app list', evidence='SRC activity/HideAppsActivity.java:25-41')
+e('HideAppsActivity.onCreate', 'HideAppsFragment.<clinit>', 'CALL', 'class initialisation on first use', evidence='INFERRED')
+for cb in ('getCount', 'getItem'):
+    e('HideAppsActivity.onCreate', 'HideAppsActivity$ViewPagerAdapter.' + cb, 'FRAMEWORK', 'viewPager.setAdapter(...): the pager reads the single page', evidence='FW-MEMORY FragmentPagerAdapter; SRC activity/HideAppsActivity.java:50-54,75-93')
+e('HideAppsActivity.onCreate', 'HideAppsFragment.onCreateView', 'LIFECYCLE', 'the fragment is created and its view built', evidence='FW-MEMORY FragmentPagerAdapter; SRC fragment/HideAppsFragment.java:54')
+e('HideAppsFragment.onCreateView', 'HideAppsFragment$AsyncWorkerList.onPreExecute', 'FRAMEWORK', 'taskList.execute(): onPreExecute on the main thread', evidence=FW_ASYNC + '; SRC fragment/HideAppsFragment.java:66-75')
+e('HideAppsFragment.onCreateView', 'HideAppsFragment$AsyncWorkerList.doInBackground', 'ASYNC', 'prepareData() on a worker thread', evidence=FW_ASYNC)
+e('HideAppsFragment$AsyncWorkerList.doInBackground', 'HideAppsFragment$AsyncWorkerList.onPostExecute', 'ASYNC', 'populateView() on the main thread', evidence=FW_ASYNC)
+e('HideAppsFragment$AsyncWorkerList.onPostExecute', 'S_HIDEAPPS_LIST', 'ENTERS', 'The list is shown', evidence='SRC fragment/HideAppsFragment.java:108-114')
+e('HideAppsFragment.populateView', 'HideAppsFragment$AppAdapter.getView', 'FRAMEWORK', 'grid.setAdapter(...): the ListView builds the rows', evidence='FW-MEMORY ListView / ArrayAdapter; SRC fragment/HideAppsFragment.java:183-185,218-256')
+e('S_HIDEAPPS_LIST', 'HideAppsFragment$3.onItemClick', 'GUI', 'Tap an app row: toggles its checkbox', gui=['Tap an app row'], evidence='SRC fragment/HideAppsFragment.java:186-207')
+e('S_HIDEAPPS_LIST', 'HideAppsFragment$1.onClick', 'GUI', 'Tap the confirm button', gui=['Tap the confirm button (bottom-right)'], evidence='SRC fragment/HideAppsFragment.java:58-64')
+e('HideAppsFragment.confirmSelection', 'HideAppsFragment$2.run', 'ASYNC', 'a worker thread writes the hidden list', evidence='SRC fragment/HideAppsFragment.java:124-158')
+e('HideAppsFragment$2.run', 'S_HIDEAPPS_SNACKBAR', 'ENTERS', 'nothing selected: snackbar "select at least one app"', guard='selected == 0', evidence='SRC fragment/HideAppsFragment.java:139-149')
+e('S_HIDEAPPS_SNACKBAR', 'HideAppsFragment$2$1.onClick', 'GUI', 'Tap OK on the snackbar', gui=['Tap "OK" on the snackbar'], evidence='SRC fragment/HideAppsFragment.java:142-147')
+e('HideAppsFragment$2.run', 'S_SETTINGS_ICONS', 'ENTERS', 'at least one app selected: the activity finishes', guard='selected > 0', evidence='SRC fragment/HideAppsFragment.java:151')
+e('HideAppsFragment$2$1.onClick', 'S_SETTINGS_ICONS', 'ENTERS', 'the activity finishes', evidence='SRC fragment/HideAppsFragment.java:145')
+e('S_HIDEAPPS_LIST', 'HideAppsActivity.onOptionsItemSelected', 'GUI', 'Tap the Up arrow', gui=['Tap the Up arrow (top-left)'], evidence='SRC activity/HideAppsActivity.java:57-64')
+e('S_HIDEAPPS_LIST', 'HideAppsActivity.onDestroy', 'SYSTEM', 'The screen closes (Up / Back / confirm): the app list reloads and Home is recreated', gui=['Press Back'], evidence='SRC activity/HideAppsActivity.java:44-48')
+e('S_HIDEAPPS_LIST', 'HideAppsFragment.onSaveInstanceState', 'SYSTEM', 'Rotation or Home saves the fragment state', gui=['Rotate the screen or press Home'], evidence='SRC fragment/HideAppsFragment.java:118-121')
+e('HideAppsActivity.onDestroy', 'AppManager.init', 'CALL', 'recreateAfterGettingApps = true; init()', evidence='SRC activity/HideAppsActivity.java:44-48')
+e('HideAppsActivity.onDestroy', 'S_SETTINGS_ICONS', 'ENTERS', 'back on the icon settings', evidence='INFERRED')
+e('LauncherAction.RunAction@EDIT_MINBAR', 'S_MINIBAR_EDIT', 'ENTERS', 'the minibar editor opens', evidence='SRC util/LauncherAction.java:43-46')
+e('MinibarEditActivity.<init>', 'MinibarEditActivity.onCreate', 'LIFECYCLE', 'The system instantiates MinibarEditActivity, then onCreate', evidence='SRC activity/MinibarEditActivity.java:46')
+e('MinibarEditActivity.onCreate', 'MinibarEditActivity$$ViewBinder.<init>', 'FRAMEWORK', 'ButterKnife.bind(this)', evidence=FW_BK + '; SRC activity/MinibarEditActivity.java:51')
+e('MinibarEditActivity.onCreate', 'MinibarEditActivity$$ViewBinder.bind', 'FRAMEWORK', 'ButterKnife.bind(this)', evidence=FW_BK)
+for cb in ('getType', 'getLayoutRes', 'getFactory', 'bindView'):
+    e('MinibarEditActivity.onCreate', 'MinibarEditActivity$Item.' + cb, 'FRAMEWORK', 'adapter.add(...) / rv.setAdapter: FastAdapter and RecyclerView read the rows', evidence='FW-MEMORY FastAdapter / RecyclerView; SRC activity/MinibarEditActivity.java:65-72,132-168')
+e('MinibarEditActivity.onCreate', 'MinibarEditActivity$Item$ItemFactory.create', 'FRAMEWORK', 'FastAdapter creates the ViewHolder', evidence='FW-MEMORY FastAdapter; SRC activity/MinibarEditActivity.java:143-147')
+e('MinibarEditActivity.onCreate', 'MinibarEditActivity$Item.<clinit>', 'CALL', 'class initialisation on first use (static factory)', evidence='INFERRED SRC activity/MinibarEditActivity.java:141')
+e('SettingsActivity.onPrefClicked@editMiniBar', 'MinibarEditActivity.<init>', 'INTENT', 'via RunAction(EditMinBar)', evidence='SRC util/LauncherAction.java:43-46')
+e('S_MINIBAR_EDIT', 'MinibarEditActivity$1.onCheckedChanged', 'GUI', 'Toggle the minibar on/off switch', gui=['Toggle the on/off switch at the top'], evidence='SRC activity/MinibarEditActivity.java:78-89')
+e('S_MINIBAR_EDIT', 'MinibarEditActivity$Item$1.onCheckedChanged', 'GUI', 'Toggle a row checkbox', gui=['Toggle a row checkbox'], evidence='SRC activity/MinibarEditActivity.java:160-166')
+e('S_MINIBAR_EDIT', 'MinibarEditActivity.itemTouchOnMove', 'GUI', 'Long-press and drag a row to reorder', gui=['Long-press and drag a row'], evidence='SRC activity/MinibarEditActivity.java:112-117')
+e('S_MINIBAR_EDIT', 'MinibarEditActivity.onPause', 'SYSTEM', 'Leaving the editor writes the row order', gui=['Press Back / Up'], evidence='SRC activity/MinibarEditActivity.java:93-103')
+e('MinibarEditActivity.onPause', 'MinibarEditActivity.onStop', 'LIFECYCLE', 'onStop after onPause', evidence='FW-MEMORY')
+e('MinibarEditActivity.onStop', 'S_HOME_DESKTOP', 'ENTERS', 'Back in Home or Settings (the minibar is rebuilt)', evidence='INFERRED')
+
+
+# ================================================================== class initialisers, collections calling equals, Gson, drawables, call log
+GS = 'LauncherSettings$GeneralSettings.<init>'
+e(GS, 'Desktop$DesktopMode.<clinit>', 'CALL', 'class initialisation on first use (desktopMode = Normal)', evidence='INFERRED SRC util/LauncherSettings.java:277')
+e(GS, 'AppDrawerController$DrawerMode.<clinit>', 'CALL', 'class initialisation on first use (drawerMode = Paged)', evidence='INFERRED SRC util/LauncherSettings.java:299')
+e(GS, 'LauncherAction$Theme.<clinit>', 'CALL', 'class initialisation on first use (theme = Light)', evidence='INFERRED SRC util/LauncherSettings.java:320')
+e('Home$3.onAppUpdated', 'Desktop$Item.<clinit>', 'CALL', 'class initialisation on first use (Desktop.Item.newAppDrawerBtn)', guard='first launch', evidence='INFERRED SRC activity/Home.java:267; widget/Desktop.java:603-616')
+e('Home$3.onAppUpdated', 'Desktop$Item$Type.<clinit>', 'CALL', 'class initialisation on first use (Type.ACTION)', guard='first launch', evidence='INFERRED SRC widget/Desktop.java:735,850-856')
+e('ItemViewFactory.getItemView@APP', 'DragAction$Action.<clinit>', 'CALL', 'class initialisation on first use (DragAction.Action.ACTION_APP)', evidence='INFERRED SRC viewutil/ItemViewFactory.java:66')
+e('Home.initMinBar', 'LauncherAction.<clinit>', 'CALL', 'class initialisation on first use (LauncherAction.actionItems)', evidence='INFERRED SRC activity/Home.java:558,574')
+e('LauncherAction.<clinit>', 'LauncherAction$Action.<clinit>', 'CALL', 'the static array refers to the Action constants', evidence='SRC util/LauncherAction.java:29-39')
+e('Home.initViews', 'DragNavigationControl.<clinit>', 'CALL', 'class initialisation on first use (static leftok / rightok)', evidence='INFERRED SRC activity/Home.java:302; viewutil/DragNavigationControl.java:12')
+e('CellContainer.getPeekDirectionFromCoordinate', 'CellContainer$PeekDirection.<clinit>', 'CALL', 'class initialisation on first use', needs_state='An item is dragged over a desktop page', evidence='INFERRED SRC widget/CellContainer.java')
+# equals() is called by the JDK collections
+e('AppManager$AsyncGetApps.onPostExecute', 'AppManager$AppUpdatedListener.equals', 'FRAMEWORK', 'updateListeners.remove(listener) uses equals (Home$3 removes itself after the first app load)', evidence='FW-MEMORY ArrayList.remove(Object); SRC util/AppManager.java:239-242; activity/Home.java:276')
+e('AppManager$AsyncGetApps.onPostExecute', 'AppManager$App.equals', 'FRAMEWORK', 'apps.contains(tempApps.get(i)) uses equals', guard='tempApps.size() > apps.size()', needs_state='An app was removed or hidden so the new list is shorter',
+  evidence='FW-MEMORY ArrayList.contains; SRC util/AppManager.java:225-231')
+e('Desktop.removeItemFromSettings', 'Desktop$Item.equals', 'FRAMEWORK', 'List.remove(item) compares with equals', needs_state=NEED_ITEM, evidence='FW-MEMORY ArrayList.remove(Object); SRC widget/Desktop.java:325-327')
+e('Dock.removeItemFromSettings', 'Desktop$Item.equals', 'FRAMEWORK', 'List.remove(item) compares with equals (the dock always holds the All Apps button)', evidence='FW-MEMORY ArrayList.remove(Object); SRC widget/Dock.java:223-225')
+# saved data is read with Gson through the no-argument constructor
+for site in ('LauncherSettings.readDesktopData', 'LauncherSettings.readDockData'):
+    e(site, 'Desktop$SimpleItem.<init>()', 'FRAMEWORK', 'gson.fromJson(reader, SimpleItem.class) builds each saved item by reflection', needs_state='A previous run saved desktop/dock data and the process was restarted (data files exist)',
+      evidence='FW-MEMORY Gson ConstructorConstructor; SRC util/LauncherSettings.java:65,99')
+# drag shadow, group icon drawable, layout of the drag bar
+for v in LP:
+    for cb in ('onProvideShadowMetrics', 'onDrawShadow'):
+        e('AppItemView$Builder$3.onLongClick@' + v, 'GoodDragShadowBuilder.' + cb, 'FRAMEWORK', 'the system asks the shadow builder for the drag shadow', evidence='FW-MEMORY View.startDrag -> DragShadowBuilder; SRC viewutil/GoodDragShadowBuilder.java')
+e('AppItemView.onDraw', 'GroupIconDrawable.draw', 'FRAMEWORK', 'icon.draw(canvas) draws the folder icon', needs_state='A folder exists on the desktop (drop one app on another)', evidence='SRC widget/AppItemView.java:240; viewutil/GroupIconDrawable.java')
+e('S_HOME_DESKTOP', 'DragOptionView.onLayout', 'FRAMEWORK', 'layout pass of the drag bar', evidence=FW_VIEW)
+e('Home$6.onStart', 'Home$6$1.run', 'ASYNC', 'appSearchBar.animate()...withEndAction(...) restores the search bar', guard='appSearchBar != null', needs_state=NEED_VERTICAL + ' and "drawer search bar" is on', evidence=FW_POST + '; SRC activity/Home.java:366-377')
+e('AppDrawer_Vertical$1.onGlobalLayout', 'AppItemView.<init>(Context,AttributeSet)', 'FRAMEWORK', 'the RecyclerView inflates item_app.xml (an <AppItemView>) for each visible row', needs_state=NEED_VERTICAL, evidence=FW_INFLATE + '; SRC res/layout/item_app.xml')
+# ================================================================== verdicts
+def _by(*prefixes):
+    return [m for m in METHODS if any(m.startswith(p) for p in prefixes)]
+
+
+def _dead(names, reason):
+    for n in names:
+        DEAD[n] = reason
+
+
+_dead(_by('DatabaseHelper.'), 'DatabaseHelper is never instantiated: all three `new DatabaseHelper(context)` calls are commented out (LauncherSettings.java:49,80,237); its methods only call each other')
+_dead(_by('MinibarEditFragment'), 'MinibarEditFragment (and its ViewBinder, adapter items) is never referenced; MinibarEditActivity replaced it (no `new MinibarEditFragment`, no manifest or XML reference)')
+_dead(_by('SettingsFragment'), 'SettingsFragment is @Deprecated; its only use is commented out at SettingsActivity.java:39 (no instantiation, no XML reference)')
+_dead(_by('QuickCenterItem$NoteItem', 'QuickCenterItem$NoteContent', 'QuickCenterItem$SearchHeader') + ['QuickCenterItem.<init>'],
+      'The note and search-header items of QuickCenterItem are never constructed; only ContactItem is used (by the call-log observer)')
+_CL = _by('Home$CallLogObserver', 'QuickCenterItem$ContactItem', 'QuickCenterItem$ContactContent', 'RoundDrawable.') + ['Tool.fetchThumbnail', 'Tool.fetchThumbnailId']
+_dead([m for m in _CL if m not in FRAMEWORK_ONLY], 'Quick contacts need READ_CALL_LOG: it is commented out of AndroidManifest.xml (checkSelfPermission is always DENIED), and the permission-result branch needs callLogObserver != null, which only the granted branch sets; the observer, ContactItem and RoundDrawable can never run in this build')
+for n in ['Home.onSearch', 'Home.onVoiceSearch']:
+    DEAD[n] = 'The search bar was removed (see the comment above the method); no caller, no android:onClick in any layout, no reflection'
+for n in ['Tool.openPhoto', 'Tool.setHomeTheme', 'Tool.wrapColorTag', 'Tool.getContactIDFromNumber', 'Desktop$Item.fromGroupItem', 'LauncherAction$Theme.names',
+          'GestureAnalyser.getOngoingGesture', 'SimpleFingerGestures.getConsumeTouchEvents', 'SimpleFingerGestures.setConsumeTouchEvents', 'SimpleFingerGestures.setDebug',
+          'SimpleFingerGestures.<init>(int,int,int)', 'PagerIndicator.setColor', 'PagerIndicator.setFillPaint', 'PagerIndicator.setOutlinePaint']:
+    DEAD[n] = 'No caller in the app sources, the bytecode call scan, any layout/menu/manifest XML, or reflection (the only string dispatch is getIdentifier("action_bar"))'
+for n in ['AppItemView.getBgColor', 'AppItemView.getHeightPadding', 'AppItemView.getIconPadding', 'AppItemView.getIconSizeSmall', 'AppItemView.isRoundBg']:
+    DEAD[n] = 'Getter with no caller (the fields are read directly inside AppItemView)'
+for n in ['AppDrawerController.<init>(Context)', 'AppDrawerController.<init>(Context,AttributeSet,int)', 'AppDrawer_Paged.<init>(Context)', 'AppDrawer_Vertical.<init>(Context)',
+          'AppDrawer_Vertical.<init>(Context,AttributeSet,int)', 'Desktop.<init>(Context)', 'Dock.<init>(Context)', 'GroupPopupView.<init>(Context)', 'DragOptionView.<init>(Context)',
+          'MiniPopupView.<init>(Context)', 'MiniPopupView.<init>(Context,AttributeSet,int)', 'PagerIndicator.<init>(Context)', 'SearchBar.<init>(Context)', 'SwipeListView.<init>(Context)',
+          'SwipeListView.<init>(Context,AttributeSet,int)', 'CellContainer$LayoutParams.<init>(int,int)', 'CellContainer$LayoutParams.<init>(int,int,int,int)',
+          'CellContainer.cellPositionToLayoutPrams(int,int,int,int)', 'CellContainer.positionToLayoutPrams(Point,int,int)']:
+    DEAD[n] = 'Constructor/overload that nothing calls: layouts inflate the (Context, AttributeSet) form and no code uses `new X(context)` or this overload'
+for n in ['DialogUtils.<init>', 'ItemViewFactory.<init>', 'Tool.<init>', 'Tool$DialogHelper.<init>', 'IconPackHelper.<init>', 'LauncherAction.<init>', 'DragNavigationControl.<init>',
+          'GroupPopupView$GroupDef.<init>', 'LauncherAction$ActionItem.<init>']:
+    if n in METHODS and n != 'LauncherAction$ActionItem.<init>':
+        DEAD[n] = 'Implicit constructor of a static-only helper class; no `new` anywhere'
+for n in _by('Home$$ViewBinder$InnerUnbinder.unbind', 'MiniPopupView$ClearRamViewHolder$$ViewBinder$InnerUnbinder.unbind', 'MiniPopupView$VolumeDialogViewHolder$$ViewBinder$InnerUnbinder.unbind',
+             'MinibarEditActivity$$ViewBinder$InnerUnbinder.unbind'):
+    DEAD[n] = 'ButterKnife Unbinder.unbind(): the Unbinder returned by bind() is never stored or called'
+for n in ['AppDrawerController$1.onAnimationCancel', 'AppDrawerController$1.onAnimationRepeat', 'AppDrawerController$2.onAnimationCancel', 'AppDrawerController$2.onAnimationRepeat',
+          'GroupIconDrawable.getOpacity', 'GroupIconDrawable.setAlpha', 'GroupIconDrawable.setColorFilter', ]:
+    FRAMEWORK_ONLY[n] = 'Framework/library callback implementation that no known path triggers (empty animator callbacks are never cancelled or repeated; Drawable alpha/filter/opacity are not used by the draw path)'
+NOTES['Home.onViewClicked'] = 'ButterKnife numbers the five click listeners in annotation order; the mapping button -> branch is INFERRED'
+NOTES['LauncherAction.RunAction'] = 'Each minibar row, gesture and button reaches exactly one branch; the branches are modelled as @VARIANTS per action'
+NOTES['Home.initQuickCenter'] = 'READ_CALL_LOG is commented out of AndroidManifest.xml, so checkSelfPermission is always DENIED here and the observer is never created'
+NOTES['Home.onRequestPermissionsResult'] = 'The call-log branch needs callLogObserver != null, which only the granted branch of initQuickCenter sets, so it never runs'
+
+SUPPRESS = {
+    ('AppDrawerController$1.onAnimationEnd', 'Home$6.onEnd'), ('AppDrawerController.open', 'Home$6.onStart'),
+    ('AppDrawerController$2.onAnimationEnd', 'Home$5.onEnd'), ('AppDrawerController$2.onAnimationStart', 'Home$5.onStart'),
+    'AppItemView$Builder$3.onLongClick', 'LauncherAction.RunAction', 'Home.onBackPressed', 'Home.handleLauncherPause',
+}
+
+# methods only reachable from dead code are dead too: stop their auto edges
+SUPPRESS |= set(DEAD)
+SUPPRESS |= {(c['src'], c['dst']) for c in AUTO['calls'] if c['dst'] in set(_CL)}
+
+# ================================================================== desktop gestures: one entry per gesture
+SFG = 'in/championswimmer/sfg/lib/SimpleFingerGestures.java:107-160'
+for v, cb, text in [('SWIPE_UP', 'onSwipeUp', 'Swipe up on the desktop'), ('SWIPE_DOWN', 'onSwipeDown', 'Swipe down on the desktop'),
+                    ('SWIPE_LEFT', 'onSwipeLeft', 'Swipe left on the desktop (a gesture, not a page change)'), ('SWIPE_RIGHT', 'onSwipeRight', 'Swipe right on the desktop (a gesture, not a page change)'),
+                    ('PINCH', 'onPinch', 'Pinch the desktop with two fingers'), ('UNPINCH', 'onUnpinch', 'Spread two fingers on the desktop'), ('DOUBLE_TAP', 'onDoubleTap', 'Double-tap the desktop')]:
+    e('S_HOME_DESKTOP', 'SimpleFingerGestures.doCallBack@' + v, 'GUI', text, gui=[text], guard='finger released after a tracked gesture', evidence='SRC ' + SFG)
+    e('SimpleFingerGestures.doCallBack@' + v, 'Desktop$DesktopAdapter$1.' + cb, 'CALL', 'the gesture library calls the listener for this gesture', evidence='SRC ' + SFG)
+    SUPPRESS.add(('SimpleFingerGestures.doCallBack', 'Desktop$DesktopAdapter$1.' + cb))
+
+
+# ================================================================== conditions on calls that the bytecode scan cannot see
+NEED_ICONPACK = 'An icon pack was picked in Settings > Icons > Icon pack (iconPackName is not empty)'
+NEED_SHRINK = 'An app was removed or hidden so the reloaded app list is shorter than before'
+NEED_SAVED = 'Items were saved by an earlier run (OpenLauncher was started before and its dock/desktop data files are read back)'
+NEED_WIDGET = 'A widget item exists on the desktop'
+ENV_LANDSCAPE = 'the device configuration reports landscape: Home is locked to portrait (manifest), so this needs a landscape-default device or a window resize'
+ENV_CORRUPT = 'LauncherSettings.readSettings() returned false (caught exception): a settings or data file in the app files directory is unreadable'
+DOIB, OPE = 'AppManager$AsyncGetApps.doInBackground', 'AppManager$AsyncGetApps.onPostExecute'
+for dst in ('Tool.isPackageInstalled', 'Tool.dp2px(int,Context)'):
+    e(DOIB, dst, 'CALL', 'an icon pack name is saved: check it is installed and size the icons', env=ENV_ICONPACK, needs_state=NEED_ICONPACK, guard='!iconPackName.isEmpty()', evidence='SRC util/AppManager.java:212-214')
+    SUPPRESS.add((DOIB, dst))
+e(OPE, 'Home$4.onAppDeleted', 'CALL', 'the deleted-app listeners are told which app disappeared', guard='tempApps.size() > apps.size()', needs_state=NEED_SHRINK, evidence='SRC util/AppManager.java:225-236')
+e(OPE, 'AppDrawer_Vertical$2.onAppUpdated', 'CALL', 'the vertical drawer listener (registered only by the vertical drawer) gets the new app list', needs_state=NEED_VERTICAL, evidence='SRC util/AppManager.java:221-223; widget/AppDrawer_Vertical.java:133')
+SUPPRESS |= {(OPE, 'Home$4.onAppDeleted'), (OPE, 'AppDrawer_Vertical$2.onAppUpdated')}
+e('Home$2.onPostExecute', 'Tool$DialogHelper.alert', 'CALL', 'readSettings() failed: "Some settings can\'t be read" dialog', guard='!result', env=ENV_CORRUPT, evidence='SRC activity/Home.java:222-227')
+SUPPRESS.add(('Home$2.onPostExecute', 'Tool$DialogHelper.alert'))
+for src, ev in (('Desktop$DesktopAdapter$3.onTouch', 'SRC widget/Desktop.java:486-493'), ('Dock.detectSwipe', 'SRC widget/Dock.java:85-90')):
+    for dst in ('Tool.convertPoint', 'Tool.getNavBarHeight'):
+        e(src, dst, 'CALL', 'swipe-up branch (only when "swipe up to open the app drawer" is on)', guard='generalSettings.swipe', needs_state=NEED_SWIPE, evidence=ev)
+        SUPPRESS.add((src, dst))
+for src, dst, ev in (('LauncherSettings.readDockData', 'Desktop$Item.<init>(SimpleItem)', 'SRC util/LauncherSettings.java:62-68'), ('LauncherSettings.readDesktopData', 'Desktop$Item.<init>(SimpleItem)', 'SRC util/LauncherSettings.java:96-102')):
+    e(src, dst, 'CALL', 'one Item is built for each saved SimpleItem', guard='the saved list is not empty', needs_state=NEED_SAVED, evidence=ev)
+    SUPPRESS.add((src, dst))
+for c in AUTO['calls']:
+    if c['dst'].endswith('.setLandscapeValue') and c['src'].split('.')[0] in ('AppDrawer_Paged', 'AppDrawer_Vertical') and (c['src'], c['dst']) not in SUPPRESS:
+        e(c['src'], c['dst'], 'CALL', 'landscape branch', guard='orientation == LANDSCAPE', env=ENV_LANDSCAPE, evidence='SRC widget/%s:%d (bytecode)' % (c['file'], c['line']))
+        SUPPRESS.add((c['src'], c['dst']))
+
+# ================================================================== ItemViewFactory.getItemView builds a different view per item type: one variant per type
+IVF = 'ItemViewFactory.getItemView'
+_B = 'AppItemView$Builder.'
+TYPES_OF = {}
+for d in (_B + '<init>(Context)', _B + 'getView', _B + 'setTextColor', _B + 'setLabelVisibility', _B + 'withOnLongPressDrag(Item,Action,LongPressCallBack)', _B + 'vibrateWhenLongPress', _B + 'withOnTouchGetPosition'):
+    TYPES_OF[d] = ('LAUNCHER', 'APP', 'SHORTCUT', 'GROUP')
+TYPES_OF.update({_B + 'setLauncherAction': ('LAUNCHER',), 'ItemViewFactory$1.<init>': ('LAUNCHER',),
+                 'AppManager.getInstance': ('APP',), 'AppManager.findApp': ('APP',), _B + 'setAppItem': ('APP',), _B + 'withOnClickLaunchApp': ('APP',), 'ItemViewFactory$2.<init>': ('APP',),
+                 _B + 'setShortcutItem': ('SHORTCUT',), 'ItemViewFactory$10.<init>': ('SHORTCUT',),
+                 'ItemViewFactory$11.<init>': ('GROUP',), 'ItemViewFactory$12.<init>': ('GROUP',), 'ItemViewFactory.getGroupIconDrawable': ('GROUP',), 'AppItemView.setIcon': ('GROUP',), 'AppItemView.setLabel': ('GROUP',),
+                 'WidgetView.setOnLongClickListener': ('WIDGET',)})
+for n in range(3, 10):
+    TYPES_OF['ItemViewFactory$%d.<init>' % n] = ('WIDGET',)
+_RNG = {'LAUNCHER': '43-55', 'APP': '56-81', 'WIDGET': '82-178', 'SHORTCUT': '179-199', 'GROUP': '200-233'}
+_seen = set()
+for c in AUTO['calls']:
+    if c['src'] != IVF or c['dst'] not in TYPES_OF or (c['dst'] in _seen):
+        continue
+    _seen.add(c['dst'])
+    for t in TYPES_OF[c['dst']]:
+        kw = dict(env=ENV_PICKER, needs_state=NEED_WIDGET) if t == 'WIDGET' else {}
+        e(IVF + '@' + t, c['dst'], 'CALL', 'the %s branch of the item-type switch' % t, guard='item.type == ' + {'LAUNCHER': 'ACTION'}.get(t, t), evidence='SRC viewutil/ItemViewFactory.java:' + _RNG[t], **kw)
+    SUPPRESS.add((IVF, c['dst']))
+# who creates a view of which type
+_IT = {'APP': 'APP', 'APP_DRAWER': 'APP', 'LAUNCHER': 'LAUNCHER', 'SHORTCUT': 'SHORTCUT', 'GROUP': 'GROUP', 'WIDGET': 'WIDGET'}
+for dt, vt in _IT.items():
+    for k in ('desktop', 'dock'):
+        if k not in DROP[dt]:
+            continue
+        text = TARGET[k][1]
+        kw = dict(env=ENV_PICKER, needs_state=NEED_WIDGET) if vt == 'WIDGET' else {}
+        e('S_HOME_DRAG@' + dt, IVF + '@' + vt, 'GUI', text, gui=[text], guard='a free cell exists', evidence='SRC ' + ('widget/Desktop.java:186-225' if k == 'desktop' else 'widget/Dock.java:96-146'), **kw)
+e('Dock.initDockItem', IVF + '@LAUNCHER', 'CALL', 'the dock restores its saved items; the All Apps button is always there (added on the first launch)', evidence='SRC widget/Dock.java:50-58; activity/Home.java:262-270')
+for t in ('APP', 'SHORTCUT', 'GROUP'):
+    e('Dock.initDockItem', IVF + '@' + t, 'CALL', 'the dock restores a saved %s item' % t.lower(), needs_state=NEED_SAVED, evidence='SRC widget/Dock.java:50-58')
+for t in ('APP', 'SHORTCUT', 'GROUP', 'LAUNCHER', 'WIDGET'):
+    kw = dict(env=ENV_PICKER, needs_state=NEED_WIDGET + ' (saved by an earlier run)') if t == 'WIDGET' else dict(needs_state=NEED_SAVED)
+    e('Desktop.initDesktopItem', IVF + '@' + t, 'CALL', 'the desktop restores a saved %s item' % t.lower(), evidence='SRC widget/Desktop.java (initDesktopItem)', **kw)
+e('ShortcutReceiver.onReceive', IVF + '@SHORTCUT', 'CALL', 'the new shortcut is placed on the desktop', env=ENV_EXT, evidence='SRC util/ShortcutReceiver.java:56-64')
+e('Home.createWidget', IVF + '@WIDGET', 'CALL', 'the new widget is placed on the desktop', env=ENV_PICKER, evidence='SRC activity/Home.java:668-682')
+e('Home.onOptionsItemSelected', IVF + '@LAUNCHER', 'CALL', '"AppDrawer" in the Action menu adds an All Apps button to the desktop', evidence='SRC activity/Home.java:506-509')
+# dropping an app on another icon makes a folder
+e('S_HOME_DRAG@APP', 'Desktop.handleOnDropOver@MERGE', 'GUI', 'Drop the app on another app icon on the desktop (makes a folder)', gui=['Drop the item on another app icon'], needs_state=NEED_ITEM, evidence='SRC widget/Desktop.java:543-569')
+e('S_HOME_DRAG@APP_DRAWER', 'Desktop.handleOnDropOver@MERGE', 'GUI', 'Drop the app on another app icon on the desktop (makes a folder)', gui=['Drop the item on another app icon'], needs_state=NEED_ITEM, evidence='SRC widget/Desktop.java:543-569')
+e('S_HOME_DRAG@SHORTCUT', 'Desktop.handleOnDropOver@MERGE', 'GUI', 'Drop the shortcut on another app icon on the desktop (makes a folder)', gui=['Drop the item on another app icon'], needs_state=NEED_ITEM, evidence='SRC widget/Desktop.java:543-569')
+for c in AUTO['calls']:
+    if c['src'] == 'Desktop.handleOnDropOver':
+        e('Desktop.handleOnDropOver@MERGE', c['dst'], 'CALL', 'the merge branch (drop item is an app or shortcut; target has room)', guard='dropItem is APP/SHORTCUT and the target has fewer than maxItem actions', evidence='SRC widget/Desktop.java:%d (bytecode)' % c['line'])
+        SUPPRESS.add(('Desktop.handleOnDropOver', c['dst']))
+e('Desktop.handleOnDropOver@MERGE', IVF + '@GROUP', 'CALL', 'addItemToPagePosition builds the folder view', evidence='SRC widget/Desktop.java:560')
+
+for n in ('addPageLeft', 'addPageRight', 'removePage'):
+    e('Desktop$DesktopAdapter.' + n, 'Desktop$DesktopAdapter.getItemPosition', 'FRAMEWORK', 'notifyDataSetChanged(): the ViewPager asks for every page position', evidence='FW-MEMORY ViewPager.dataSetChanged; SRC widget/Desktop.java:349-365')
+FRAMEWORK_ONLY['HideAppsActivity$ViewPagerAdapter.getPageTitle'] = 'Only a PagerTitleStrip/TabLayout calls getPageTitle; the hide-apps layout has neither, so it is never called'
+FRAMEWORK_ONLY['IconListAdapter.getItem'] = 'BaseAdapter contract method: the minibar ListView reads rows with getView/getItemId and its click handler uses its own label list, so nothing calls getItem'
+FRAMEWORK_ONLY['AppDrawer_Paged$Adapter.getItemPosition'] = 'ViewPager calls it only after notifyDataSetChanged(); the paged drawer never notifies, it always installs a new Adapter'
+
+FRAMEWORK_ONLY['Desktop$Item$1.newArray'] = 'Parcelable.Creator.newArray is called only when an Item[] is read from a Parcel; the app only writes and reads single Items'
+e('AppDrawer_Paged.resetAdapter', 'AppDrawer_Paged$Adapter.destroyItem', 'FRAMEWORK', 'setAdapter(null) destroys the old adapter\'s pages', guard='the old adapter had pages', evidence='FW-MEMORY ViewPager.setAdapter; SRC widget/AppDrawer_Paged.java:121-124')
+# the container that holds the dragged item (dock or desktop) decides which setLastItem runs
+_AFTER = [('ItemViewFactory$1', 'The All Apps button was placed on a desktop page (dropped there, or Action menu > AppDrawer)'), ('ItemViewFactory$2', None), ('ItemViewFactory$10', None), ('ItemViewFactory$11', None),
+          ('GroupPopupView$8', None)]
+for N, desk_need in _AFTER:
+    for cont, need in (('Dock', None), ('Desktop', desk_need)):
+        e(N + '.afterDrag', cont + '.setLastItem', 'CALL', 'callBack.setLastItem(item, view): the item is held by the %s' % cont.lower(), needs_state=need, evidence='SRC viewutil/ItemViewFactory.java (afterDrag)' if N.startswith('Item') else 'SRC widget/GroupPopupView.java (afterDrag)')
+        SUPPRESS.add((N + '.afterDrag', cont + '.setLastItem'))
+
+# calls that sit in a failure branch
+NEED_GONE_APP = 'A saved app item whose app was uninstalled or hidden (ItemViewFactory.getItemView returns null)'
+for src, ev in (('Dock.addItemToPagePosition', 'SRC widget/Dock.java:189-193'), ('Desktop.addItemToPagePosition', 'SRC widget/Desktop.java:280-286')):
+    e(src, 'Desktop$Item.invalidate', 'CALL', 'no view could be built for the item: it is marked invalid', guard='itemView == null', needs_state=NEED_GONE_APP, evidence=ev)
+    SUPPRESS.add((src, 'Desktop$Item.invalidate'))
+e('DragOptionView$2.onDrag', 'Tool.toast(Context,int)', 'CALL', 'startActivity(APPLICATION_DETAILS_SETTINGS) threw: "app uninstalled" toast', guard='catch (Exception)', env='outside package: the system app-info screen cannot be opened for this package (exception)', evidence='SRC widget/DragOptionView.java:131-136')
+SUPPRESS.add(('DragOptionView$2.onDrag', 'Tool.toast(Context,int)'))
+
+NEED_TWO_PAGES = 'The desktop has two or more pages (hold a dragged item at a screen edge to add one): removeCurrentPage returns early with a single page'
+for c in AUTO['calls']:
+    if c['src'] == 'Desktop.removeCurrentPage' and c['dst'] in ('Desktop$DesktopAdapter.removePage', 'CellContainer.animateBackgroundShow'):
+        e(c['src'], c['dst'], 'CALL', 'the page is removed', guard='pageCount != 1', needs_state=NEED_TWO_PAGES, evidence='SRC widget/Desktop.java:%d (bytecode)' % c['line'])
+        SUPPRESS.add((c['src'], c['dst']))

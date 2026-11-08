@@ -1,0 +1,26 @@
+# Batch 99 printed evidence
+
+Plan extraction:
+```sh
+awk -F '\\t' '$1==99 {print $3 "\\t" $4}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+```
+Result: 40 exact rows; full method descriptors are printed in the helper table.
+
+Bounded source scans:
+```sh
+rg -n 'onCreateOptionsMenu|onFragmentFinished|onOptionsItemSelected|onStart|onStop|restoreFeedsBackup|restoreFeedsBackupErrorDialog|restoreFeedsChooseDialog|sendErrorReport|showBlankFragment|showFeedItems|subscribeAlertDialog|subscribeMsgViewModel' .../ui/feeds/FeedActivity.java
+rg -n 'FeedChannelItem|compareTo|equalsContent|equals|hashCode|FeedChannelListAdapter|getItemKey|getItemPosition|getOpenedItem|markAsOpen|onBindViewHolder|onCreateViewHolder|setSelectionTracker|submitList|ItemDetails|ItemLookup|KeyProvider' .../ui/feeds/{FeedChannelItem,FeedChannelListAdapter}.java
+```
+Key output read:
+```
+FeedActivity.java:111 showBlankFragment; :122 onStart; :126-127 subscriptions; :131 onStop
+:172 message subscribe; :176 showFeedItems; :191 showBlankFragment; :203 showFeedItems
+:239 menu creation; :248 menu item; :278 restore dialog; :289 activity result launch
+:306 restore error; :334 report; :359 restoreFeedsBackup; :389 launcher; :406 fragment callback
+FeedChannelItem.java:28 class; :40 hash; :46 compare; :55 equals; :60 equalsContent
+FeedChannelListAdapter.java:55 class; :72 selection tracker; :79 holder creation; :91 bind
+:110 submitList; :119 key; :128 position; :133 markAsOpen; :151 opened item
+:159/:166 diff callbacks; :183 ViewHolder; :274 KeyProvider; :299 ItemDetails; :324 ItemLookup
+```
+This evidence is source-local and does not complete all route analysis; external selection dispatch remains unverified. All 40 stay OPEN.
+

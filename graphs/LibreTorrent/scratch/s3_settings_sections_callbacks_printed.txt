@@ -1,0 +1,710 @@
+===== /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/settings/sections/AppearanceSettingsFragment.java =====
+--- lines 57-75 ---
+   57     public static AppearanceSettingsFragment newInstance()
+   58     {
+   59         AppearanceSettingsFragment fragment = new AppearanceSettingsFragment();
+   60         fragment.setArguments(new Bundle());
+   61 
+   62         return fragment;
+   63     }
+   64 
+   65     @Override
+   66     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState)
+   67     {
+   68         super.onViewCreated(view, savedInstanceState);
+   69 
+   70         coordinatorLayout = view.findViewById(R.id.coordinator_layout);
+   71     }
+   72 
+   73     @Override
+   74     public void onCreate(Bundle savedInstanceState)
+   75     {
+--- lines 74-110 ---
+   76         super.onCreate(savedInstanceState);
+   77 
+   78         pref = RepositoryHelper.getSettingsRepository(getActivity().getApplicationContext());
+   79 
+   80         String keyTheme = getString(R.string.pref_key_theme);
+   81         ListPreference theme = findPreference(keyTheme);
+   82         if (theme != null) {
+   83             int type = pref.theme();
+   84             theme.setValueIndex(type);
+   85             bindOnPreferenceChangeListener(theme);
+   86         }
+   87 
+   88         String keyTorrentFinishNotify = getString(R.string.pref_key_torrent_finish_notify);
+   89         SwitchPreferenceCompat torrentFinishNotify = findPreference(keyTorrentFinishNotify);
+   90         if (torrentFinishNotify != null) {
+   91             torrentFinishNotify.setChecked(pref.torrentFinishNotify());
+   92             bindOnPreferenceChangeListener(torrentFinishNotify);
+   93         }
+   94 
+   95         String keyForegroundNotifyStatusFilter = getString(R.string.pref_key_foreground_notify_status_filter);
+   96         ListPreference foregroundNotifyStatusFilter = findPreference(keyForegroundNotifyStatusFilter);
+   97         if (foregroundNotifyStatusFilter != null) {
+   98             int type = Integer.parseInt(pref.foregroundNotifyStatusFilter());
+   99             foregroundNotifyStatusFilter.setValueIndex(type);
+  100             bindOnPreferenceChangeListener(foregroundNotifyStatusFilter);
+  101         }
+  102 
+  103         String keyForegroundNotifySorting = getString(R.string.pref_key_foreground_notify_sorting);
+  104         ListPreference foregroundNotifySorting = findPreference(keyForegroundNotifySorting);
+  105         if (foregroundNotifySorting != null) {
+  106             int type = Integer.parseInt(pref.foregroundNotifySorting());
+  107             foregroundNotifySorting.setValueIndex(type);
+  108             bindOnPreferenceChangeListener(foregroundNotifySorting);
+  109         }
+  110 
+--- lines 188-230 ---
+  188             bindOnPreferenceChangeListener(vibration);
+  189         }
+  190     }
+  191 
+  192     @Override
+  193     public void onCreatePreferences(Bundle savedInstanceState, String rootKey)
+  194     {
+  195         setPreferencesFromResource(R.xml.pref_appearance, rootKey);
+  196     }
+  197 
+  198     final ActivityResultLauncher<Intent> ringtonePicker = registerForActivityResult(
+  199             new ActivityResultContracts.StartActivityForResult(),
+  200             result -> {
+  201                 Intent data = result.getData();
+  202                 if (result.getResultCode() == Activity.RESULT_OK && data != null) {
+  203                     Uri ringtone = data.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI);
+  204                     if (ringtone != null) {
+  205                         String keyNotifySound = getString(R.string.pref_key_notify_sound);
+  206                         Preference notifySound = findPreference(keyNotifySound);
+  207                         if (notifySound != null) {
+  208                             Context context = getActivity().getApplicationContext();
+  209                             notifySound.setSummary(
+  210                                     RingtoneManager.getRingtone(context, ringtone).getTitle(context)
+  211                             );
+  212                         }
+  213                         pref.notifySound(ringtone.toString());
+  214                     }
+  215                 }
+  216             }
+  217     );
+  218 
+  219     private void bindOnPreferenceChangeListener(Preference preference)
+  220     {
+  221         preference.setOnPreferenceChangeListener(this);
+  222     }
+  223 
+  224     @Override
+  225     public boolean onPreferenceChange(Preference preference, Object newValue)
+  226     {
+  227         if (preference.getKey().equals(getString(R.string.pref_key_theme))) {
+  228             int type = Integer.parseInt((String)newValue);
+  229             pref.theme(type);
+  230 
+--- lines 224-263 ---
+  231             Snackbar.make(coordinatorLayout,
+  232                     R.string.theme_settings_apply_after_reboot,
+  233                     Snackbar.LENGTH_LONG)
+  234                     .setAction(R.string.apply, (v) -> restartMainActivity())
+  235                     .show();
+  236 
+  237         } else if (preference.getKey().equals(getString(R.string.pref_key_torrent_finish_notify))) {
+  238             pref.torrentFinishNotify((boolean)newValue);
+  239 
+  240         } else if (preference.getKey().equals(getString(R.string.pref_key_play_sound_notify))) {
+  241             pref.playSoundNotify((boolean)newValue);
+  242 
+  243         } else if (preference.getKey().equals(getString(R.string.pref_key_led_indicator_notify))) {
+  244             pref.ledIndicatorNotify((boolean)newValue);
+  245 
+  246         } else if (preference.getKey().equals(getString(R.string.pref_key_vibration_notify))) {
+  247             pref.vibrationNotify((boolean)newValue);
+  248 
+  249         } else if (preference.getKey().equals(getString(R.string.pref_key_led_indicator_color_notify))) {
+  250             pref.ledIndicatorColorNotify((int)newValue);
+  251 
+  252         } else if (preference.getKey().equals(getString(R.string.pref_key_foreground_notify_status_filter))) {
+  253             pref.foregroundNotifyStatusFilter((String)newValue);
+  254 
+  255         } else if (preference.getKey().equals(getString(R.string.pref_key_foreground_notify_sorting))) {
+  256             pref.foregroundNotifySorting((String)newValue);
+  257 
+  258         }  else if (preference.getKey().equals(getString(R.string.pref_key_foreground_notify_combined_pause_button))) {
+  259             pref.foregroundNotifyCombinedPauseButton((boolean)newValue);
+  260         }
+  261 
+  262         return true;
+  263     }
+===== /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/settings/sections/BehaviorSettingsFragment.java =====
+--- lines 53-64 ---
+   53     public static BehaviorSettingsFragment newInstance()
+   54     {
+   55         BehaviorSettingsFragment fragment = new BehaviorSettingsFragment();
+   56         fragment.setArguments(new Bundle());
+   57 
+   58         return fragment;
+   59     }
+   60 
+   61     @SuppressLint("StringFormatMatches")
+   62     @Override
+   63     public void onCreate(Bundle savedInstanceState)
+   64     {
+--- lines 63-80 ---
+   65         super.onCreate(savedInstanceState);
+   66 
+   67         dialogViewModel = new ViewModelProvider(getActivity()).get(BaseAlertDialog.SharedViewModel.class);
+   68 
+   69         pref = RepositoryHelper.getSettingsRepository(getActivity().getApplicationContext());
+   70 
+   71         String keyAutostart = getString(R.string.pref_key_autostart);
+   72         SwitchPreferenceCompat autostart = findPreference(keyAutostart);
+   73         if (autostart != null) {
+   74             autostart.setChecked(pref.autostart());
+   75             bindOnPreferenceChangeListener(autostart);
+   76         }
+   77 
+   78         String keyKeepAlive = getString(R.string.pref_key_keep_alive);
+   79         SwitchPreferenceCompat keepAlive = findPreference(keyKeepAlive);
+   80         if (keepAlive != null) {
+--- lines 155-200 ---
+  155             bindOnPreferenceChangeListener(defaultTrackersList);
+  156         }
+  157     }
+  158 
+  159     @Override
+  160     public void onStop()
+  161     {
+  162         super.onStop();
+  163 
+  164         disposables.clear();
+  165     }
+  166 
+  167     @Override
+  168     public void onStart()
+  169     {
+  170         super.onStart();
+  171 
+  172         subscribeAlertDialog();
+  173     }
+  174 
+  175     private void subscribeAlertDialog()
+  176     {
+  177         Disposable d = dialogViewModel.observeEvents()
+  178                 .subscribe((event) -> {
+  179                     if (event.dialogTag == null || !event.dialogTag.equals(TAG_CUSTOM_BATTERY_DIALOG))
+  180                         return;
+  181                     if (event.type == BaseAlertDialog.EventType.NEGATIVE_BUTTON_CLICKED)
+  182                         disableCustomBatteryControl();
+  183                 });
+  184         disposables.add(d);
+  185     }
+  186 
+  187     @Override
+  188     public void onCreatePreferences(Bundle savedInstanceState, String rootKey)
+  189     {
+  190         setPreferencesFromResource(R.xml.pref_behavior, rootKey);
+  191     }
+  192 
+  193     private void bindOnPreferenceChangeListener(Preference preference)
+  194     {
+  195         preference.setOnPreferenceChangeListener(this);
+  196     }
+  197 
+  198     @Override
+  199     public boolean onPreferenceChange(final Preference preference, Object newValue)
+  200     {
+--- lines 198-244 ---
+  201         if (preference.getKey().equals(getString(R.string.pref_key_autostart))) {
+  202             Utils.enableBootReceiver(getActivity(), (boolean)newValue);
+  203             pref.autostart((boolean)newValue);
+  204 
+  205         } else if (preference.getKey().equals(getString(R.string.pref_key_download_and_upload_only_when_charging))) {
+  206             pref.onlyCharging((boolean)newValue);
+  207 
+  208             if(!((SwitchPreferenceCompat) preference).isChecked())
+  209                 disableBatteryControl();
+  210 
+  211         } else if (preference.getKey().equals(getString(R.string.pref_key_battery_control))) {
+  212             pref.batteryControl((boolean)newValue);
+  213 
+  214             if(((SwitchPreferenceCompat) preference).isChecked())
+  215                 disableCustomBatteryControl();
+  216 
+  217         } else if (preference.getKey().equals(getString(R.string.pref_key_custom_battery_control))) {
+  218             pref.customBatteryControl((boolean)newValue);
+  219 
+  220             if (!((SwitchPreferenceCompat) preference).isChecked())
+  221                 showCustomBatteryDialog();
+  222         } else if (preference.getKey().equals(getString(R.string.pref_key_unmetered_connections_only))) {
+  223             pref.unmeteredConnectionsOnly((boolean)newValue);
+  224 
+  225         } else if (preference.getKey().equals(getString(R.string.pref_key_enable_roaming))) {
+  226             pref.enableRoaming((boolean)newValue);
+  227 
+  228         } else if (preference.getKey().equals(getString(R.string.pref_key_keep_alive))) {
+  229             pref.keepAlive((boolean)newValue);
+  230 
+  231         } else if (preference.getKey().equals(getString(R.string.pref_key_shutdown_downloads_complete))) {
+  232             pref.shutdownDownloadsComplete((boolean)newValue);
+  233 
+  234         } else if (preference.getKey().equals(getString(R.string.pref_key_cpu_do_not_sleep))) {
+  235             pref.cpuDoNotSleep((boolean)newValue);
+  236 
+  237         } else if (preference.getKey().equals(getString(R.string.pref_key_custom_battery_control_value))) {
+  238             pref.customBatteryControlValue((int)newValue);
+  239 
+  240         }  else if (preference.getKey().equals(getString(R.string.pref_key_default_trackers_list))) {
+  241             pref.defaultTrackersList((String)newValue);
+  242         }
+  243 
+  244         return true;
+===== /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/settings/sections/NetworkSettingsFragment.java =====
+--- lines 77-109 ---
+   77     public static NetworkSettingsFragment newInstance() {
+   78         NetworkSettingsFragment fragment = new NetworkSettingsFragment();
+   79 
+   80         fragment.setArguments(new Bundle());
+   81 
+   82         return fragment;
+   83     }
+   84 
+   85     @Override
+   86     public void onAttach(@NonNull Context context) {
+   87         super.onAttach(context);
+   88 
+   89         if (context instanceof AppCompatActivity)
+   90             activity = (AppCompatActivity) context;
+   91     }
+   92 
+   93     @Override
+   94     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+   95         super.onViewCreated(view, savedInstanceState);
+   96 
+   97         if (activity == null)
+   98             activity = (AppCompatActivity) getActivity();
+   99 
+  100         viewModel = new ViewModelProvider(activity).get(SettingsViewModel.class);
+  101     }
+  102 
+  103     @Override
+  104     public void onCreate(Bundle savedInstanceState) {
+  105         super.onCreate(savedInstanceState);
+  106 
+  107         Context context = getActivity().getApplicationContext();
+  108         pref = RepositoryHelper.getSettingsRepository(context);
+  109         fs = SystemFacadeHelper.getFileSystemFacade(context);
+--- lines 85-110 ---
+  110 
+--- lines 270-310 ---
+  270 
+  271         String keyValidateHttpsTrackers = getString(R.string.pref_key_validate_https_trackers);
+  272         SwitchPreferenceCompat validateHttpsTrackers = findPreference(keyValidateHttpsTrackers);
+  273         if (validateHttpsTrackers != null) {
+  274             validateHttpsTrackers.setChecked(pref.validateHttpsTrackers());
+  275             bindOnPreferenceChangeListener(validateHttpsTrackers);
+  276         }
+  277     }
+  278 
+  279     @Override
+  280     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
+  281         setPreferencesFromResource(R.xml.pref_network, rootKey);
+  282     }
+  283 
+  284     private void fileChooseDialog() {
+  285         Intent i = new Intent(getActivity(), FileManagerDialog.class);
+  286         FileManagerConfig config = new FileManagerConfig(
+  287                 null,
+  288                 null,
+  289                 FileManagerConfig.FILE_CHOOSER_MODE);
+  290         List<String> fileTypes = new ArrayList<>();
+  291         fileTypes.add("dat");
+  292         fileTypes.add("p2p");
+  293         config.highlightFileTypes = fileTypes;
+  294 
+  295         i.putExtra(FileManagerDialog.TAG_CONFIG, config);
+  296         fileChoose.launch(i);
+  297     }
+  298 
+  299     private void bindOnPreferenceChangeListener(Preference preference) {
+  300         preference.setOnPreferenceChangeListener(this);
+  301     }
+  302 
+  303     @Override
+  304     public boolean onPreferenceChange(Preference preference, Object newValue) {
+  305         if (preference.getKey().equals(getString(R.string.pref_key_port_range_first))) {
+  306             int value = SessionSettings.DEFAULT_PORT_RANGE_FIRST;
+  307             if (!TextUtils.isEmpty((String) newValue))
+  308                 value = Integer.parseInt((String) newValue);
+  309             pref.portRangeFirst(value);
+  310             preference.setSummary(Integer.toString(value));
+--- lines 304-310 ---
+===== /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/settings/sections/StorageSettingsFragment.java =====
+--- lines 64-85 ---
+   64     public static StorageSettingsFragment newInstance()
+   65     {
+   66         StorageSettingsFragment fragment = new StorageSettingsFragment();
+   67         fragment.setArguments(new Bundle());
+   68 
+   69         return fragment;
+   70     }
+   71 
+   72     @Override
+   73     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState)
+   74     {
+   75         super.onViewCreated(view, savedInstanceState);
+   76 
+   77         coordinatorLayout = view.findViewById(R.id.coordinator_layout);
+   78     }
+   79 
+   80     @Override
+   81     public void onCreate(Bundle savedInstanceState)
+   82     {
+   83         super.onCreate(savedInstanceState);
+   84 
+   85         if (savedInstanceState != null)
+--- lines 73-85 ---
+--- lines 205-230 ---
+  205         }
+  206     }
+  207 
+  208     @Override
+  209     public void onSaveInstanceState(@NonNull Bundle outState)
+  210     {
+  211         super.onSaveInstanceState(outState);
+  212 
+  213         outState.putString(TAG_DIR_CHOOSER_BIND_PREF, dirChooserBindPref);
+  214     }
+  215 
+  216     @Override
+  217     public void onCreatePreferences(Bundle savedInstanceState, String rootKey)
+  218     {
+  219         setPreferencesFromResource(R.xml.pref_storage, rootKey);
+  220     }
+  221 
+  222     private void bindOnPreferenceChangeListener(Preference preference)
+  223     {
+  224         preference.setOnPreferenceChangeListener(this);
+  225     }
+  226 
+  227     private void dirChooseDialog(Uri path)
+  228     {
+  229         String dirPath = null;
+  230         if (path != null && Utils.isFileSystemPath(path))
+--- lines 217-285 ---
+  231             dirPath = path.getPath();
+  232 
+  233         Intent i = new Intent(getActivity(), FileManagerDialog.class);
+  234         FileManagerConfig config = new FileManagerConfig(dirPath,
+  235                 null,
+  236                 FileManagerConfig.DIR_CHOOSER_MODE);
+  237         i.putExtra(FileManagerDialog.TAG_CONFIG, config);
+  238 
+  239         downloadDirChoose.launch(i);
+  240     }
+  241     final ActivityResultLauncher<Intent> downloadDirChoose = registerForActivityResult(
+  242             new ActivityResultContracts.StartActivityForResult(),
+  243             result -> {
+  244                 Intent data = result.getData();
+  245                 if (result.getResultCode() != Activity.RESULT_OK) {
+  246                    return;
+  247                 }
+  248                 if (data.getData() == null || dirChooserBindPref == null)
+  249                     return;
+  250 
+  251                 Uri path = data.getData();
+  252 
+  253                 Preference p = findPreference(dirChooserBindPref);
+  254                 if (p == null)
+  255                     return;
+  256 
+  257                 if (dirChooserBindPref.equals(getString(R.string.pref_key_dir_to_watch))) {
+  258                     pref.dirToWatch(path.toString());
+  259 
+  260                 } else if (dirChooserBindPref.equals(getString(R.string.pref_key_move_after_download_in))) {
+  261                     pref.moveAfterDownloadIn(path.toString());
+  262 
+  263                 } else if (dirChooserBindPref.equals(getString(R.string.pref_key_save_torrent_files_in))) {
+  264                     pref.saveTorrentFilesIn(path.toString());
+  265 
+  266                 } else if (dirChooserBindPref.equals(getString(R.string.pref_key_save_torrents_in))) {
+  267                     pref.saveTorrentsIn(path.toString());
+  268                 }
+  269 
+  270                 try {
+  271                     p.setSummary(fs.getDirPath(path));
+  272                 } catch (UnknownUriException e) {
+  273                     Log.e(TAG, Log.getStackTraceString(e));
+  274                 }
+  275             }
+  276     );
+  277 
+  278     @Override
+  279     public boolean onPreferenceChange(Preference preference, Object newValue) {
+  280         if (preference.getKey().equals(getString(R.string.pref_key_watch_dir))) {
+  281             pref.watchDir((boolean) newValue);
+  282         } else if (preference.getKey().equals(getString(R.string.pref_key_move_after_download))) {
+  283             pref.moveAfterDownload((boolean) newValue);
+  284         } else if (preference.getKey().equals(getString(R.string.pref_key_save_torrent_files))) {
+  285             pref.saveTorrentFiles((boolean) newValue);
+===== /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/settings/sections/LimitationsSettingsFragment.java =====
+--- lines 44-60 ---
+   44     public static LimitationsSettingsFragment newInstance()
+   45     {
+   46         LimitationsSettingsFragment fragment = new LimitationsSettingsFragment();
+   47         fragment.setArguments(new Bundle());
+   48 
+   49         return fragment;
+   50     }
+   51 
+   52     @Override
+   53     public void onCreate(Bundle savedInstanceState)
+   54     {
+   55         super.onCreate(savedInstanceState);
+   56 
+   57         pref = RepositoryHelper.getSettingsRepository(getActivity().getApplicationContext());
+   58 
+   59         InputFilter[] speedFilter = new InputFilter[] { InputFilterRange.UNSIGNED_INT };
+   60         InputFilter[] queueingFilter = new InputFilter[] {
+--- lines 53-60 ---
+--- lines 160-190 ---
+  160             String value = Integer.toString(pref.maxUploadsPerTorrent());
+  161             maxUploadsPerTorrent.setOnBindEditTextListener((editText) -> editText.setFilters(queueingFilter));
+  162             maxUploadsPerTorrent.setSummary(value);
+  163             maxUploadsPerTorrent.setText(value);
+  164             bindOnPreferenceChangeListener(maxUploadsPerTorrent);
+  165         }
+  166     }
+  167 
+  168     @Override
+  169     public void onCreatePreferences(Bundle savedInstanceState, String rootKey)
+  170     {
+  171         setPreferencesFromResource(R.xml.pref_limitations, rootKey);
+  172     }
+  173 
+  174     private void bindOnPreferenceChangeListener(Preference preference)
+  175     {
+  176         preference.setOnPreferenceChangeListener(this);
+  177     }
+  178 
+  179     @Override
+  180     public boolean onPreferenceChange(Preference preference, Object newValue)
+  181     {
+  182         if (preference.getKey().equals(getString(R.string.pref_key_max_connections))) {
+  183             int value = parseMaxConnectionValue(newValue);
+  184             pref.maxConnections(value);
+  185             preference.setSummary(Integer.toString(value));
+  186 
+  187         } else if (preference.getKey().equals(getString(R.string.pref_key_max_connections_per_torrent))) {
+  188             int value = parseMaxConnectionValue(newValue);
+  189             pref.maxConnectionsPerTorrent(value);
+  190             preference.setSummary(Integer.toString(value));
+===== /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/settings/sections/SchedulingSettingsFragment.java =====
+--- lines 53-68 ---
+   53     public static SchedulingSettingsFragment newInstance()
+   54     {
+   55         SchedulingSettingsFragment fragment = new SchedulingSettingsFragment();
+   56         fragment.setArguments(new Bundle());
+   57 
+   58         return fragment;
+   59     }
+   60 
+   61     @Override
+   62     public void onCreate(Bundle savedInstanceState)
+   63     {
+   64         super.onCreate(savedInstanceState);
+   65 
+   66         pref = RepositoryHelper.getSettingsRepository(getActivity().getApplicationContext());
+   67         dialogViewModel = new ViewModelProvider(getActivity()).get(BaseAlertDialog.SharedViewModel.class);
+   68 
+--- lines 62-130 ---
+   69         String keyEnableStart = getString(R.string.pref_key_enable_scheduling_start);
+   70         SwitchPreferenceCompat enableStart = findPreference(keyEnableStart);
+   71         if (enableStart != null) {
+   72             enableStart.setChecked(pref.enableSchedulingStart());
+   73             bindOnPreferenceChangeListener(enableStart);
+   74         }
+   75 
+   76         String keyEnableStop = getString(R.string.pref_key_enable_scheduling_shutdown);
+   77         SwitchPreferenceCompat enableStop = findPreference(keyEnableStop);
+   78         if (enableStop != null) {
+   79             enableStop.setChecked(pref.enableSchedulingShutdown());
+   80             bindOnPreferenceChangeListener(enableStop);
+   81         }
+   82 
+   83         String keyStartTime = getString(R.string.pref_key_scheduling_start_time);
+   84         TimePreference startTime = findPreference(keyStartTime);
+   85         if (startTime != null) {
+   86             startTime.setTime(pref.schedulingStartTime());
+   87             bindOnPreferenceChangeListener(startTime);
+   88         }
+   89 
+   90         String keyStopTime = getString(R.string.pref_key_scheduling_shutdown_time);
+   91         TimePreference stopTime = findPreference(keyStopTime);
+   92         if (stopTime != null) {
+   93             stopTime.setTime(pref.schedulingShutdownTime());
+   94             bindOnPreferenceChangeListener(stopTime);
+   95         }
+   96 
+   97         String keyRunOnlyOnce = getString(R.string.pref_key_scheduling_run_only_once);
+   98         CheckBoxPreference runOnlyOnce = findPreference(keyRunOnlyOnce);
+   99         if (runOnlyOnce != null) {
+  100             runOnlyOnce.setChecked(pref.schedulingRunOnlyOnce());
+  101             bindOnPreferenceChangeListener(runOnlyOnce);
+  102         }
+  103 
+  104         String keySwitchWiFi = getString(R.string.pref_key_scheduling_switch_wifi);
+  105         CheckBoxPreference switchWiFi = findPreference(keySwitchWiFi);
+  106         if (switchWiFi != null) {
+  107             switchWiFi.setChecked(pref.schedulingSwitchWiFi());
+  108             bindOnPreferenceChangeListener(switchWiFi);
+  109         }
+  110     }
+  111 
+  112 
+  113     @Override
+  114     public void onStop()
+  115     {
+  116         super.onStop();
+  117 
+  118         disposables.clear();
+  119     }
+  120 
+  121     @Override
+  122     public void onStart()
+  123     {
+  124         super.onStart();
+  125 
+  126         subscribeAlertDialog();
+  127     }
+  128 
+  129     private void subscribeAlertDialog()
+  130     {
+--- lines 164-200 ---
+  164     public void onCreatePreferences(Bundle savedInstanceState, String rootKey)
+  165     {
+  166         setPreferencesFromResource(R.xml.pref_scheduling, rootKey);
+  167     }
+  168 
+  169     private void bindOnPreferenceChangeListener(Preference preference)
+  170     {
+  171         preference.setOnPreferenceChangeListener(this);
+  172     }
+  173 
+  174     @Override
+  175     public void onDisplayPreferenceDialog(Preference preference)
+  176     {
+  177         DialogFragment dialogFragment = null;
+  178         if (preference instanceof TimePreference) {
+  179             dialogFragment = TimePreferenceDialogFragmentCompat.newInstance(preference.getKey());
+  180         }
+  181         if (dialogFragment != null && isAdded()) {
+  182             dialogFragment.setTargetFragment(this, 0);
+  183             dialogFragment.show(this.getParentFragmentManager(), "android.support.v7.preference" +
+  184                     ".PreferenceFragment.DIALOG");
+  185         } else {
+  186             super.onDisplayPreferenceDialog(preference);
+  187         }
+  188     }
+  189 
+  190     @Override
+  191     public boolean onPreferenceChange(Preference preference, Object newValue)
+  192     {
+  193         Context context = getActivity().getApplicationContext();
+  194 
+  195         if (preference.getKey().equals(getString(R.string.pref_key_enable_scheduling_start))) {
+  196             pref.enableSchedulingStart((boolean)newValue);
+  197 
+  198             if ((boolean)newValue) {
+  199                 int time = pref.schedulingStartTime();
+  200                 if (!Scheduler.setStartAppAlarm(context, time)) {
+===== /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/settings/sections/FeedSettingsFragment.java =====
+--- lines 42-57 ---
+   42     public static FeedSettingsFragment newInstance()
+   43     {
+   44         FeedSettingsFragment fragment = new FeedSettingsFragment();
+   45         fragment.setArguments(new Bundle());
+   46 
+   47         return fragment;
+   48     }
+   49 
+   50     @Override
+   51     public void onCreate(Bundle savedInstanceState)
+   52     {
+   53         super.onCreate(savedInstanceState);
+   54 
+   55         pref = RepositoryHelper.getSettingsRepository(getActivity().getApplicationContext());
+   56 
+   57         String keyAutoRefresh = getString(R.string.pref_key_feed_auto_refresh);
+--- lines 51-61 ---
+   58         SwitchPreferenceCompat autoRefresh = findPreference(keyAutoRefresh);
+   59         if (autoRefresh != null) {
+   60             autoRefresh.setChecked(pref.autoRefreshFeeds());
+   61             bindOnPreferenceChangeListener(autoRefresh);
+--- lines 109-132 ---
+  109             bindOnPreferenceChangeListener(removeDuplicates);
+  110         }
+  111     }
+  112 
+  113     @Override
+  114     public void onCreatePreferences(Bundle savedInstanceState, String rootKey)
+  115     {
+  116         setPreferencesFromResource(R.xml.pref_feed, rootKey);
+  117     }
+  118 
+  119     private void bindOnPreferenceChangeListener(Preference preference)
+  120     {
+  121         preference.setOnPreferenceChangeListener(this);
+  122     }
+  123 
+  124     @Override
+  125     public boolean onPreferenceChange(Preference preference, Object newValue)
+  126     {
+  127         Context context = getActivity().getApplicationContext();
+  128 
+  129         if (preference.getKey().equals(getString(R.string.pref_key_feed_auto_refresh))) {
+  130             pref.autoRefreshFeeds((boolean)newValue);
+  131 
+  132             if ((boolean)newValue) {
+===== /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/settings/sections/StreamingSettingsFragment.java =====
+--- lines 43-57 ---
+   43     public static StreamingSettingsFragment newInstance()
+   44     {
+   45         StreamingSettingsFragment fragment = new StreamingSettingsFragment();
+   46         fragment.setArguments(new Bundle());
+   47 
+   48         return fragment;
+   49     }
+   50 
+   51     @Override
+   52     public void onCreate(Bundle savedInstanceState)
+   53     {
+   54         super.onCreate(savedInstanceState);
+   55 
+   56         pref = RepositoryHelper.getSettingsRepository(getActivity().getApplicationContext());
+   57 
+--- lines 52-60 ---
+   58         String keyEnable = getString(R.string.pref_key_streaming_enable);
+   59         SwitchPreferenceCompat enable = findPreference(keyEnable);
+   60         if (enable != null) {
+--- lines 83-105 ---
+   83             bindOnPreferenceChangeListener(port);
+   84         }
+   85     }
+   86 
+   87     @Override
+   88     public void onCreatePreferences(Bundle savedInstanceState, String rootKey)
+   89     {
+   90         setPreferencesFromResource(R.xml.pref_streaming, rootKey);
+   91     }
+   92 
+   93     private void bindOnPreferenceChangeListener(Preference preference)
+   94     {
+   95         preference.setOnPreferenceChangeListener(this);
+   96     }
+   97 
+   98     @Override
+   99     public boolean onPreferenceChange(Preference preference, Object newValue)
+  100     {
+  101         if (preference.getKey().equals(getString(R.string.pref_key_streaming_hostname))) {
+  102             pref.streamingHostname((String)newValue);
+  103             preference.setSummary((String)newValue);
+  104 
+  105         } else if (preference.getKey().equals(getString(R.string.pref_key_streaming_port))) {

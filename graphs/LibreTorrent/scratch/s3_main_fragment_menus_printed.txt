@@ -1,0 +1,422 @@
+   202	        Intent i = activity.getIntent();
+   203	        if (i != null && MainActivity.ACTION_ADD_TORRENT_SHORTCUT.equals(i.getAction())) {
+   204	            /* Prevents re-reading action after device configuration changes */
+   205	            i.setAction(null);
+   206	            showAddTorrentMenu();
+   207	        }
+   208	    }
+   209	
+   210	    private void showAddTorrentMenu()
+   211	    {
+   212	        /* Show add torrent menu after window is displayed */
+   213	        View v = activity.getWindow().findViewById(android.R.id.content);
+   214	        if (v == null)
+   215	            return;
+   216	        v.post(() -> {
+   217	            registerForContextMenu(v);
+   218	            activity.openContextMenu(v);
+   219	            unregisterForContextMenu(v);
+   220	        });
+   221	    }
+   392	    @Override
+   393	    public void onCreateContextMenu(@NonNull ContextMenu menu, @NonNull View v,
+   394	                                    ContextMenu.ContextMenuInfo menuInfo)
+   395	    {
+   396	        super.onCreateContextMenu(menu, v, menuInfo);
+   397	
+   398	        activity.getMenuInflater().inflate(R.menu.main_context, menu);
+   399	    }
+   400	
+   401	    @Override
+   402	    public boolean onContextItemSelected(@NonNull MenuItem item)
+   403	    {
+   404	        int itemId = item.getItemId();
+   405	        if (itemId == R.id.add_link_menu) {
+   406	            addLinkDialog();
+   407	        } else if (itemId == R.id.open_file_menu) {
+   408	            openTorrentFileDialog();
+   409	        }
+   410	
+   411	        return true;
+   412	    }
+   413	
+   414	    private void initFabSpeedDial()
+   415	    {
+   416	        binding.fabButton.setOnActionSelectedListener((item) -> {
+   417	            int id = item.getId();
+   418	            if (id == R.id.main_fab_add_link) {
+   419	                addLinkDialog();
+   420	            } else if (id == R.id.main_fab_open_file) {
+   421	                openTorrentFileDialog();
+   422	            } else if (id == R.id.main_fab_create_torrent) {
+   423	                createTorrentDialog();
+   424	            } else {
+   425	                return false;
+   426	            }
+   427	
+   428	            binding.fabButton.close();
+   429	
+   430	            return true;
+   431	        });
+   457	    private final ActionMode.Callback actionModeCallback = new ActionMode.Callback()
+   458	    {
+   459	        @Override
+   460	        public boolean onPrepareActionMode(ActionMode mode, Menu menu)
+   461	        {
+   462	            return false;
+   463	        }
+   464	
+   465	        @Override
+   466	        public boolean onCreateActionMode(ActionMode mode, Menu menu)
+   467	        {
+   468	            mode.getMenuInflater().inflate(R.menu.main_action_mode, menu);
+   469	            Utils.showActionModeStatusBar(activity, true);
+   470	
+   471	            return true;
+   472	        }
+   473	
+   474	        @Override
+   475	        public boolean onActionItemClicked(ActionMode mode, MenuItem item)
+   476	        {
+   477	            int itemId = item.getItemId();
+   478	            if (itemId == R.id.delete_torrent_menu) {
+   479	                deleteTorrentsDialog();
+   480	            } else if (itemId == R.id.select_all_torrent_menu) {
+   481	                selectAllTorrents();
+   482	            } else if (itemId == R.id.force_recheck_torrent_menu) {
+   483	                forceRecheckTorrents();
+   484	                mode.finish();
+   485	            } else if (itemId == R.id.force_announce_torrent_menu) {
+   486	                forceAnnounceTorrents();
+   487	                mode.finish();
+   488	            }
+   489	
+   490	            return true;
+   491	        }
+   492	
+   493	        @Override
+   494	        public void onDestroyActionMode(ActionMode mode)
+   495	        {
+   496	            selectionTracker.clearSelection();
+   497	            Utils.showActionModeStatusBar(activity, false);
+   498	        }
+   499	    };
+   500	
+   501	    private void deleteTorrentsDialog()
+   502	    {
+   503	        if (!isAdded())
+   504	            return;
+   505	
+   506	        FragmentManager fm = getChildFragmentManager();
+   507	        if (fm.findFragmentByTag(TAG_DELETE_TORRENTS_DIALOG) == null) {
+   508	            deleteTorrentsDialog = BaseAlertDialog.newInstance(
+   509	                    getString(R.string.deleting),
+   510	                    (selectionTracker.getSelection().size() > 1 ?
+   511	                            getString(R.string.delete_selected_torrents) :
+   512	                            getString(R.string.delete_selected_torrent)),
+   513	                    R.layout.dialog_delete_torrent,
+   514	                    getString(R.string.ok),
+   515	                    getString(R.string.cancel),
+   516	                    null,
+   517	                    false);
+   518	
+   519	            deleteTorrentsDialog.show(fm, TAG_DELETE_TORRENTS_DIALOG);
+   520	        }
+   521	    }
+   522	
+   523	    private void addLinkDialog()
+   524	    {
+   525	        startActivity(new Intent(activity, AddLinkActivity.class));
+   526	    }
+   527	
+   528	    private void openTorrentFileDialog()
+   529	    {
+   530	        Intent i = new Intent(activity, FileManagerDialog.class);
+   531	
+   532	        FileManagerConfig config = new FileManagerConfig(null,
+   533	                getString(R.string.torrent_file_chooser_title),
+   534	                FileManagerConfig.FILE_CHOOSER_MODE);
+   535	        config.highlightFileTypes = Collections.singletonList("torrent");
+   536	
+   537	        i.putExtra(FileManagerDialog.TAG_CONFIG, config);
+   538	        torrentFileChoose.launch(i);
+   539	    }
+   540	
+   541	    private void openFileErrorDialog()
+   542	    {
+   543	        if (!isAdded())
+   544	            return;
+   545	
+   546	        FragmentManager fm = getChildFragmentManager();
+   547	        if (fm.findFragmentByTag(TAG_OPEN_FILE_ERROR_DIALOG) == null) {
+   548	            BaseAlertDialog openFileErrorDialog = BaseAlertDialog.newInstance(
+   549	                    getString(R.string.error),
+   550	                    getString(R.string.error_open_torrent_file),
+   551	                    0,
+   552	                    getString(R.string.ok),
+   553	                    null,
+   554	                    null,
+   555	                    true);
+   556	
+   557	            openFileErrorDialog.show(fm, TAG_OPEN_FILE_ERROR_DIALOG);
+   558	        }
+   559	    }
+   560	
+   561	    private void createTorrentDialog()
+   562	    {
+   563	        startActivity(new Intent(activity, CreateTorrentActivity.class));
+   564	    }
+   565	
+   566	    private void deleteTorrents()
+   567	    {
+   568	        Dialog dialog = deleteTorrentsDialog.getDialog();
+   569	        if (dialog == null)
+   570	            return;
+   571	
+   572	        CheckBox withFilesCheckBox = dialog.findViewById(R.id.delete_with_downloaded_files);
+   573	        boolean withFiles = withFilesCheckBox.isChecked();
+   574	
+   575	        MutableSelection<TorrentListItem> selections = new MutableSelection<>();
+   576	        selectionTracker.copySelection(selections);
+   577	
+   578	        disposables.add(Observable.fromIterable(selections)
+   579	                .map((selection -> selection.torrentId))
+   580	                .toList()
+   581	                .subscribe((ids) -> viewModel.deleteTorrents(ids, withFiles)));
+   582	
+   583	        if (actionMode != null)
+   584	            actionMode.finish();
+   585	    }
+   586	
+   587	    @SuppressLint("RestrictedApi")
+   588	    private void selectAllTorrents()
+   589	    {
+   590	        int n = adapter.getItemCount();
+   591	        if (n > 0) {
+   592	            selectionTracker.startRange(0);
+   593	            selectionTracker.extendRange(adapter.getItemCount() - 1);
+   594	        }
+   595	    }
+   596	
+   597	    private void forceRecheckTorrents()
+   598	    {
+   599	        MutableSelection<TorrentListItem> selections = new MutableSelection<>();
+   600	        selectionTracker.copySelection(selections);
+   601	
+   602	        disposables.add(Observable.fromIterable(selections)
+   603	                .map((selection -> selection.torrentId))
+   604	                .toList()
+   605	                .subscribe((ids) -> viewModel.forceRecheckTorrents(ids)));
+   606	    }
+   607	
+   608	    private void forceAnnounceTorrents()
+   609	    {
+   610	        MutableSelection<TorrentListItem> selections = new MutableSelection<>();
+   611	        selectionTracker.copySelection(selections);
+   612	
+   613	        disposables.add(Observable.fromIterable(selections)
+   614	                .map((selection -> selection.torrentId))
+   615	                .toList()
+   616	                .subscribe((ids) -> viewModel.forceAnnounceTorrents(ids)));
+   617	    }
+   618	
+   157	        selectionTracker = new SelectionTracker.Builder<>(
+   158	                SELECTION_TRACKER_ID,
+   159	                binding.torrentList,
+   160	                new TorrentListAdapter.KeyProvider(adapter),
+   161	                new TorrentListAdapter.ItemLookup(binding.torrentList),
+   162	                StorageStrategy.createParcelableStorage(TorrentListItem.class))
+   163	                .withSelectionPredicate(SelectionPredicates.createSelectAnything())
+   164	                .build();
+   165	
+   166	        selectionTracker.addObserver(new SelectionTracker.SelectionObserver<TorrentListItem>() {
+   167	            @Override
+   168	            public void onSelectionChanged()
+   169	            {
+   170	                super.onSelectionChanged();
+   171	
+   172	                if (selectionTracker.hasSelection() && actionMode == null) {
+   173	                    actionMode = activity.startSupportActionMode(actionModeCallback);
+   174	                    setActionModeTitle(selectionTracker.getSelection().size());
+   175	
+   176	                } else if (!selectionTracker.hasSelection()) {
+   177	                    if (actionMode != null)
+   178	                        actionMode.finish();
+   179	                    actionMode = null;
+   180	
+   181	                } else {
+   182	                    setActionModeTitle(selectionTracker.getSelection().size());
+   183	                }
+   184	            }
+   185	
+   186	            @Override
+   187	            public void onSelectionRestored()
+   188	            {
+   189	                super.onSelectionRestored();
+   190	
+   191	                actionMode = activity.startSupportActionMode(actionModeCallback);
+   192	                setActionModeTitle(selectionTracker.getSelection().size());
+   193	            }
+   194	        });
+   457	    private final ActionMode.Callback actionModeCallback = new ActionMode.Callback()
+   458	    {
+   459	        @Override
+   460	        public boolean onPrepareActionMode(ActionMode mode, Menu menu)
+   461	        {
+   462	            return false;
+   463	        }
+   464	
+   465	        @Override
+   466	        public boolean onCreateActionMode(ActionMode mode, Menu menu)
+   467	        {
+   468	            mode.getMenuInflater().inflate(R.menu.main_action_mode, menu);
+   469	            Utils.showActionModeStatusBar(activity, true);
+   470	
+   471	            return true;
+   472	        }
+   473	
+   474	        @Override
+   475	        public boolean onActionItemClicked(ActionMode mode, MenuItem item)
+   476	        {
+   477	            int itemId = item.getItemId();
+   478	            if (itemId == R.id.delete_torrent_menu) {
+   479	                deleteTorrentsDialog();
+   480	            } else if (itemId == R.id.select_all_torrent_menu) {
+   481	                selectAllTorrents();
+   482	            } else if (itemId == R.id.force_recheck_torrent_menu) {
+   483	                forceRecheckTorrents();
+   484	                mode.finish();
+   485	            } else if (itemId == R.id.force_announce_torrent_menu) {
+   486	                forceAnnounceTorrents();
+   487	                mode.finish();
+   488	            }
+   489	
+   490	            return true;
+   491	        }
+   492	
+   493	        @Override
+   494	        public void onDestroyActionMode(ActionMode mode)
+   495	        {
+   496	            selectionTracker.clearSelection();
+   497	            Utils.showActionModeStatusBar(activity, false);
+   498	        }
+   499	    };
+   500	
+   501	    private void deleteTorrentsDialog()
+   502	    {
+   503	        if (!isAdded())
+   504	            return;
+   505	
+   506	        FragmentManager fm = getChildFragmentManager();
+   507	        if (fm.findFragmentByTag(TAG_DELETE_TORRENTS_DIALOG) == null) {
+   508	            deleteTorrentsDialog = BaseAlertDialog.newInstance(
+   509	                    getString(R.string.deleting),
+   510	                    (selectionTracker.getSelection().size() > 1 ?
+   511	                            getString(R.string.delete_selected_torrents) :
+   512	                            getString(R.string.delete_selected_torrent)),
+   513	                    R.layout.dialog_delete_torrent,
+   514	                    getString(R.string.ok),
+   515	                    getString(R.string.cancel),
+   516	                    null,
+   517	                    false);
+   518	
+   519	            deleteTorrentsDialog.show(fm, TAG_DELETE_TORRENTS_DIALOG);
+   520	        }
+   521	    }
+   522	
+   523	    private void addLinkDialog()
+   524	    {
+   525	        startActivity(new Intent(activity, AddLinkActivity.class));
+   526	    }
+   527	
+   528	    private void openTorrentFileDialog()
+   529	    {
+   530	        Intent i = new Intent(activity, FileManagerDialog.class);
+   531	
+   532	        FileManagerConfig config = new FileManagerConfig(null,
+   533	                getString(R.string.torrent_file_chooser_title),
+   534	                FileManagerConfig.FILE_CHOOSER_MODE);
+   535	        config.highlightFileTypes = Collections.singletonList("torrent");
+   536	
+   537	        i.putExtra(FileManagerDialog.TAG_CONFIG, config);
+   538	        torrentFileChoose.launch(i);
+   539	    }
+   540	
+   541	    private void openFileErrorDialog()
+   542	    {
+   543	        if (!isAdded())
+   544	            return;
+   545	
+   546	        FragmentManager fm = getChildFragmentManager();
+   547	        if (fm.findFragmentByTag(TAG_OPEN_FILE_ERROR_DIALOG) == null) {
+   548	            BaseAlertDialog openFileErrorDialog = BaseAlertDialog.newInstance(
+   549	                    getString(R.string.error),
+   550	                    getString(R.string.error_open_torrent_file),
+   551	                    0,
+   552	                    getString(R.string.ok),
+   553	                    null,
+   554	                    null,
+   555	                    true);
+   556	
+   557	            openFileErrorDialog.show(fm, TAG_OPEN_FILE_ERROR_DIALOG);
+   558	        }
+   559	    }
+   560	
+   561	    private void createTorrentDialog()
+   562	    {
+   563	        startActivity(new Intent(activity, CreateTorrentActivity.class));
+   564	    }
+   565	
+   566	    private void deleteTorrents()
+   567	    {
+   568	        Dialog dialog = deleteTorrentsDialog.getDialog();
+   569	        if (dialog == null)
+   570	            return;
+   571	
+   572	        CheckBox withFilesCheckBox = dialog.findViewById(R.id.delete_with_downloaded_files);
+   573	        boolean withFiles = withFilesCheckBox.isChecked();
+   574	
+   575	        MutableSelection<TorrentListItem> selections = new MutableSelection<>();
+   576	        selectionTracker.copySelection(selections);
+   577	
+   578	        disposables.add(Observable.fromIterable(selections)
+   579	                .map((selection -> selection.torrentId))
+   580	                .toList()
+   581	                .subscribe((ids) -> viewModel.deleteTorrents(ids, withFiles)));
+   582	
+   583	        if (actionMode != null)
+   584	            actionMode.finish();
+   585	    }
+   586	
+   587	    @SuppressLint("RestrictedApi")
+   588	    private void selectAllTorrents()
+   589	    {
+   590	        int n = adapter.getItemCount();
+   591	        if (n > 0) {
+   592	            selectionTracker.startRange(0);
+   593	            selectionTracker.extendRange(adapter.getItemCount() - 1);
+   594	        }
+   595	    }
+   596	
+   597	    private void forceRecheckTorrents()
+   598	    {
+   599	        MutableSelection<TorrentListItem> selections = new MutableSelection<>();
+   600	        selectionTracker.copySelection(selections);
+   601	
+   602	        disposables.add(Observable.fromIterable(selections)
+   603	                .map((selection -> selection.torrentId))
+   604	                .toList()
+   605	                .subscribe((ids) -> viewModel.forceRecheckTorrents(ids)));
+   606	    }
+   607	
+   608	    private void forceAnnounceTorrents()
+   609	    {
+   610	        MutableSelection<TorrentListItem> selections = new MutableSelection<>();
+   611	        selectionTracker.copySelection(selections);
+   612	
+   613	        disposables.add(Observable.fromIterable(selections)
+   614	                .map((selection -> selection.torrentId))
+   615	                .toList()
+   616	                .subscribe((ids) -> viewModel.forceAnnounceTorrents(ids)));
+   617	    }
+   618	

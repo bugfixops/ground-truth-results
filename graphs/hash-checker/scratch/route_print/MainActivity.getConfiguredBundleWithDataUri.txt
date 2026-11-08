@@ -1,0 +1,103 @@
+METHOD: MainActivity.getConfiguredBundleWithDataUri
+verdict: REACHABLE   steps_from_launch: 5
+route steps: 5 edges
+======================================================================
+
+STEP 1  edge E3706e5f1
+  S_ENTRY -> MainActivity.<init>@XURI
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: outside package: another app (launcher shortcut, share/VIEW intent, adb) starts Hash Checker
+  evidence: SRC AndroidManifest.xml:35-54; MainActivity.java:72-88
+  cite [SRC] AndroidManifest.xml:35-54
+    (resolved to final_java_only/hash-checker/app/hash-checker-#v3.7.3/app/src/main/AndroidManifest.xml)
+       35:             <intent-filter>
+       36:                 <action android:name="android.intent.action.VIEW" />
+       37: 
+       38:                 <category android:name="android.intent.category.DEFAULT" />
+       39:                 <category android:name="android.intent.category.BROWSABLE" />
+       40: 
+       41:                 <data android:scheme="content" />
+       42:                 <data android:host="*" />
+       43:                 <data android:mimeType="*/*" />
+       44:             </intent-filter>
+       45: 
+       46:             <intent-filter>
+       47:                 <action android:name="android.intent.action.SEND" />
+       48:                 <category android:name="android.intent.category.LAUNCHER" />
+       49: 
+       50:                 <data android:mimeType="application/*" />
+       51:                 <data android:mimeType="audio/*" />
+       52:                 <data android:mimeType="video/*" />
+       53:                 <data android:mimeType="image/*" />
+       54:             </intent-filter>
+  cite [SRC] MainActivity.java:72-88
+    (resolved to final_java_only/hash-checker/app/hash-checker-#v3.7.3/app/src/thirdPartyStores/java/com/smlnskgmail/jaman/hashchecker/MainActivity.java)
+       72:         if (intent != null) {
+       73:             scheme = intent.getScheme();
+       74:             clipData = intent.getClipData();
+       75:         }
+       76:         Uri externalFileUri = null;
+       77:         if (clipData != null) {
+       78:             externalFileUri = clipData.getItemAt(0).getUri();
+       79:         }
+       80: 
+       81:         HashCalculatorFragment mainFragment = new HashCalculatorFragment();
+       82:         if (scheme != null
+       83:                 && (scheme.equals(ContentResolver.SCHEME_CONTENT) || scheme.equals(ContentResolver.SCHEME_FILE))) {
+       84:             mainFragment.setArguments(getConfiguredBundleWithDataUri(intent.getData()));
+       85:             settings.setGenerateFromShareIntentMode(true);
+       86:         } else if (externalFileUri != null) {
+       87:             mainFragment.setArguments(getConfiguredBundleWithDataUri(externalFileUri));
+       88:             settings.setGenerateFromShareIntentMode(true);
+
+STEP 2  edge Ebbb4dd85
+  MainActivity.<init>@XURI -> MainActivity.onCreate@XURI
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainActivity.java:50
+  cite [SRC] MainActivity.java:50
+    (resolved to final_java_only/hash-checker/app/hash-checker-#v3.7.3/app/src/thirdPartyStores/java/com/smlnskgmail/jaman/hashchecker/MainActivity.java)
+       50:     protected void onCreate(@Nullable Bundle savedInstanceState) {
+
+STEP 3  edge E362db005
+  MainActivity.onCreate@XURI -> BaseActivity.onCreate@MainActivity_XURI
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainActivity.java:52 (bytecode)
+  cite [SRC] MainActivity.java:52
+    (resolved to final_java_only/hash-checker/app/hash-checker-#v3.7.3/app/src/thirdPartyStores/java/com/smlnskgmail/jaman/hashchecker/MainActivity.java)
+       52:         super.onCreate(savedInstanceState);
+
+STEP 4  edge Ef8a9b253
+  BaseActivity.onCreate@MainActivity_XURI -> MainActivity.create@XURI
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC BaseActivity.java:19 (bytecode)
+  cite [SRC] BaseActivity.java:19
+    (resolved to final_java_only/hash-checker/app/hash-checker-#v3.7.3/app/src/main/java/com/smlnskgmail/jaman/hashchecker/ui/BaseActivity.java)
+       19:         create();
+
+STEP 5  edge Ea2fd772c
+  MainActivity.create@XURI -> MainActivity.getConfiguredBundleWithDataUri
+  class: explicit   kind: CALL
+  guard: intent scheme is content/file, or ClipData present
+  needs_state: None
+  env: None
+  evidence: SRC MainActivity.java:82-88
+  cite [SRC] MainActivity.java:82-88
+    (resolved to final_java_only/hash-checker/app/hash-checker-#v3.7.3/app/src/thirdPartyStores/java/com/smlnskgmail/jaman/hashchecker/MainActivity.java)
+       82:         if (scheme != null
+       83:                 && (scheme.equals(ContentResolver.SCHEME_CONTENT) || scheme.equals(ContentResolver.SCHEME_FILE))) {
+       84:             mainFragment.setArguments(getConfiguredBundleWithDataUri(intent.getData()));
+       85:             settings.setGenerateFromShareIntentMode(true);
+       86:         } else if (externalFileUri != null) {
+       87:             mainFragment.setArguments(getConfiguredBundleWithDataUri(externalFileUri));
+       88:             settings.setGenerateFromShareIntentMode(true);

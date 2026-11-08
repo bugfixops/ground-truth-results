@@ -1,0 +1,56 @@
+METHOD: SharedPreferencesSettings.containsPreference
+verdict: REACHABLE   steps_from_launch: 5
+route steps: 5 edges
+======================================================================
+
+STEP 1  edge E34de2c31
+  S_ENTRY -> App.<init>
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC AndroidManifest.xml:9
+  cite [SRC] AndroidManifest.xml:9
+    (resolved to final_java_only/hash-checker/app/hash-checker-#v3.7.3/app/src/main/AndroidManifest.xml)
+        9:         android:name=".App"
+
+STEP 2  edge E7aab529b
+  App.<init> -> App.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC App.java:53
+  cite [SRC] App.java:53
+       53:     public void onCreate() {
+
+STEP 3  edge E05dade98
+  App.onCreate -> App.setLocale
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC App.java:80 (bytecode)
+  cite [SRC] App.java:80
+       80:         setLocale();
+
+STEP 4  edge Ea8fdd297
+  App.setLocale -> SharedPreferencesSettings.languageIsInitialized
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC App.java:154 (bytecode)
+  cite [SRC] App.java:154
+      154:         if (!settings.languageIsInitialized()) {
+
+STEP 5  edge E433eabe1
+  SharedPreferencesSettings.languageIsInitialized -> SharedPreferencesSettings.containsPreference
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC SharedPreferencesSettings.java:54 (bytecode)
+  cite [SRC] SharedPreferencesSettings.java:54
+    (resolved to final_java_only/hash-checker/app/hash-checker-#v3.7.3/app/src/main/java/com/smlnskgmail/jaman/hashchecker/components/settings/impl/SharedPreferencesSettings.java)
+       54:         return containsPreference(keyExtractor.extractById(R.string.key_language));

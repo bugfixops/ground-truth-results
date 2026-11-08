@@ -1,0 +1,291 @@
+=== GREP-FLIP RE-CHECK FINAL, 2026-11-01, Stream A Phase 1 (batches 3/31/39/40/41/42) ===
+Java roots and counts:
+ ruleF-src (org.proninyaroslav): 252
+ missing29 feedparser: 28
+ nanohttpd: 1 (b394142 branch copy, SHA bdb2ab67...)
+ test: 7 ; androidTest: 13
+ MAIN-JAVA TOTAL (ruleF+feedparser+nanohttpd): 281 (target 281)
+XML roots: res layout+xml: 87 files
+XML GAP (disclosed): menu (16), xml-v26, debug xml/xml-v25, release xml — not fetched; connector 429 hard stop, see header of this task's report.
+Build: not run. C1: not run.
+
+--- G1: PriorityConverter (batch 3 row 31) ---
+/home/hatch/workspace/ruleF-src/core/model/session/PriorityConverter.java:28:class PriorityConverter
+/home/hatch/workspace/ruleF-src/core/model/session/TorrentDownloadImpl.java:731:        org.libtorrent4j.Priority[] p = PriorityConverter.convert(priorities);
+/home/hatch/workspace/ruleF-src/core/model/session/TorrentDownloadImpl.java:1139:            var piecePriority = PriorityConverter.convert(newPriority);
+/home/hatch/workspace/ruleF-src/core/model/session/TorrentDownloadImpl.java:1646:        return PriorityConverter.convert(th.filePriorities());
+/home/hatch/workspace/ruleF-src/core/model/session/TorrentSessionImpl.java:437:        List<Priority> priorities = Arrays.asList(PriorityConverter.convert(resParams.filePriorities()));
+/home/hatch/workspace/ruleF-src/core/model/session/TorrentSessionImpl.java:451:                Arrays.asList(PriorityConverter.convert(p.filePriorities())));
+/home/hatch/workspace/ruleF-src/core/model/session/TorrentSessionImpl.java:1574:                    v.add(PriorityConverter.convert(priority).swig());
+
+--- G2: batch39 session getters ---
+/home/hatch/workspace/ruleF-src/core/model/session/TorrentSession.java:92:    long getDhtNodes();
+/home/hatch/workspace/ruleF-src/core/model/session/TorrentSession.java:112:    boolean isDHTEnabled();
+/home/hatch/workspace/ruleF-src/core/model/session/TorrentSession.java:114:    boolean isPeXEnabled();
+/home/hatch/workspace/ruleF-src/core/model/session/TorrentSessionImpl.java:712:    public long getDhtNodes()
+/home/hatch/workspace/ruleF-src/core/model/session/TorrentSessionImpl.java:847:    public boolean isDHTEnabled()
+/home/hatch/workspace/ruleF-src/core/model/session/TorrentSessionImpl.java:855:    public boolean isPeXEnabled()
+
+--- G3: batch39 speed limits, session vs per-task ---
+/home/hatch/workspace/ruleF-src/ui/detailtorrent/DetailTorrentFragment.java:753:        int uploadSpeedLimit = viewModel.getUploadSpeedLimit();
+/home/hatch/workspace/ruleF-src/ui/detailtorrent/DetailTorrentFragment.java:754:        int downloadSpeedLimit = viewModel.getDownloadSpeedLimit();
+/home/hatch/workspace/ruleF-src/ui/detailtorrent/DetailTorrentViewModel.java:373:    public int getUploadSpeedLimit() {
+/home/hatch/workspace/ruleF-src/ui/detailtorrent/DetailTorrentViewModel.java:374:        return engine.getUploadSpeedLimit(torrentId);
+/home/hatch/workspace/ruleF-src/ui/detailtorrent/DetailTorrentViewModel.java:377:    public int getDownloadSpeedLimit() {
+/home/hatch/workspace/ruleF-src/ui/detailtorrent/DetailTorrentViewModel.java:378:        return engine.getDownloadSpeedLimit(torrentId);
+/home/hatch/workspace/ruleF-src/core/model/TorrentEngine.java:883:    public int getUploadSpeedLimit(@NonNull String id) {
+/home/hatch/workspace/ruleF-src/core/model/TorrentEngine.java:891:        return task.getUploadSpeedLimit();
+/home/hatch/workspace/ruleF-src/core/model/TorrentEngine.java:894:    public int getDownloadSpeedLimit(@NonNull String id) {
+/home/hatch/workspace/ruleF-src/core/model/TorrentEngine.java:902:        return task.getDownloadSpeedLimit();
+/home/hatch/workspace/ruleF-src/core/model/session/TorrentDownload.java:144:    int getDownloadSpeedLimit();
+/home/hatch/workspace/ruleF-src/core/model/session/TorrentDownload.java:148:    int getUploadSpeedLimit();
+/home/hatch/workspace/ruleF-src/core/model/session/TorrentDownloadImpl.java:1318:    public int getDownloadSpeedLimit()
+/home/hatch/workspace/ruleF-src/core/model/session/TorrentDownloadImpl.java:1334:    public int getUploadSpeedLimit()
+/home/hatch/workspace/ruleF-src/core/model/session/TorrentSession.java:86:    int getDownloadSpeedLimit();
+/home/hatch/workspace/ruleF-src/core/model/session/TorrentSession.java:88:    int getUploadSpeedLimit();
+/home/hatch/workspace/ruleF-src/core/model/session/TorrentSessionImpl.java:690:    public int getDownloadSpeedLimit()
+/home/hatch/workspace/ruleF-src/core/model/session/TorrentSessionImpl.java:698:    public int getUploadSpeedLimit()
+
+--- G4: batch40 row 3 mergeTrackersAndSeeds ---
+/home/hatch/workspace/ruleF-src/core/model/session/TorrentSessionImpl.java:556:                mergeTrackersAndSeeds(id, params, bencode);
+/home/hatch/workspace/ruleF-src/core/model/session/TorrentSessionImpl.java:570:    private void mergeTrackersAndSeeds(String id, AddTorrentParams params, byte[] bencode) throws IOException {
+
+--- G5: TorrentInputStream consumers + markSupported ---
+/home/hatch/workspace/ruleF-src/core/model/TorrentEngine.java:54:import org.proninyaroslav.libretorrent.core.model.stream.TorrentInputStream;
+/home/hatch/workspace/ruleF-src/core/model/TorrentEngine.java:758:    public TorrentInputStream getTorrentInputStream(@NonNull TorrentStream stream) {
+/home/hatch/workspace/ruleF-src/core/model/TorrentEngine.java:759:        return new TorrentInputStream(session, stream);
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:51:public class TorrentInputStream extends InputStream
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:97:    public TorrentInputStream(@NonNull TorrentSession session, @NonNull TorrentStream stream)
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:405:    public boolean markSupported()
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentStreamServer.java:206:                    TorrentInputStream is = engine.getTorrentInputStream(stream);
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentStreamServer.java:243:                    TorrentInputStream is = engine.getTorrentInputStream(stream);
+
+--- G6: NanoHTTPD stream reads/marks (sole extra-tree consumer) ---
+37:import java.io.BufferedInputStream;
+468:        private final BufferedInputStream inputStream;
+481:            this.inputStream = new BufferedInputStream(inputStream, HTTPSession.BUFSIZE);
+486:            this.inputStream = new BufferedInputStream(inputStream, HTTPSession.BUFSIZE);
+667:                this.inputStream.mark(HTTPSession.BUFSIZE);
+669:                    read = this.inputStream.read(buf, 0, HTTPSession.BUFSIZE);
+687:                    read = this.inputStream.read(buf, this.rlen, HTTPSession.BUFSIZE - this.rlen);
+882:                    this.rlen = this.inputStream.read(buf, 0, (int) Math.min(size, REQUEST_BUFFER_LEN));
+1267:                int read = this.data.read(buff, 0, (int) bytesToRead);
+1392:     * Maximum time to wait on Socket.getInputStream().read() (in milliseconds)
+
+--- G7: TorrentStream — every use ---
+/home/hatch/workspace/ruleF-src/ui/detailtorrent/DetailTorrentViewModel.java:53:import org.proninyaroslav.libretorrent.core.model.stream.TorrentStreamServer;
+/home/hatch/workspace/ruleF-src/ui/detailtorrent/DetailTorrentViewModel.java:342:        return TorrentStreamServer.makeStreamUrl(hostname, port, torrentId, fileIndex);
+/home/hatch/workspace/ruleF-src/core/model/TorrentEngine.java:55:import org.proninyaroslav.libretorrent.core.model.stream.TorrentStream;
+/home/hatch/workspace/ruleF-src/core/model/TorrentEngine.java:56:import org.proninyaroslav.libretorrent.core.model.stream.TorrentStreamServer;
+/home/hatch/workspace/ruleF-src/core/model/TorrentEngine.java:101:    private TorrentStreamServer torrentStreamServer;
+/home/hatch/workspace/ruleF-src/core/model/TorrentEngine.java:747:    public TorrentStream getStream(@NonNull String id, int fileIndex) {
+/home/hatch/workspace/ruleF-src/core/model/TorrentEngine.java:758:    public TorrentInputStream getTorrentInputStream(@NonNull TorrentStream stream) {
+/home/hatch/workspace/ruleF-src/core/model/TorrentEngine.java:1069:        torrentStreamServer = new TorrentStreamServer(hostname, port);
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:56:    private TorrentStream stream;
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:97:    public TorrentInputStream(@NonNull TorrentSession session, @NonNull TorrentStream stream)
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentStream.java:29:public class TorrentStream implements Parcelable
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentStream.java:40:    public TorrentStream(String torrentId, int selectedFileIndex, int firstFilePiece,
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentStream.java:55:    public TorrentStream(Parcel source)
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentStream.java:93:    public static final Parcelable.Creator<TorrentStream> CREATOR =
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentStream.java:94:            new Parcelable.Creator<TorrentStream>()
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentStream.java:97:                public TorrentStream createFromParcel(Parcel source)
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentStream.java:99:                    return new TorrentStream(source);
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentStream.java:103:                public TorrentStream[] newArray(int size)
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentStream.java:105:                    return new TorrentStream[size];
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentStream.java:118:        return o instanceof TorrentStream && (o == this || id.equals(((TorrentStream)o).id));
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentStream.java:125:        return "TorrentStream{" +
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentStreamServer.java:51:public class TorrentStreamServer extends NanoHTTPD
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentStreamServer.java:53:    private static final String TAG = TorrentStreamServer.class.getSimpleName();
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentStreamServer.java:67:    public TorrentStreamServer(@NonNull String host, int port)
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentStreamServer.java:139:        TorrentStream stream;
+/home/hatch/workspace/ruleF-src/core/model/session/TorrentDownload.java:32:import org.proninyaroslav.libretorrent.core.model.stream.TorrentStream;
+/home/hatch/workspace/ruleF-src/core/model/session/TorrentDownload.java:182:    void setInterestedPieces(@NonNull TorrentStream stream, int startPiece, int numPieces);
+/home/hatch/workspace/ruleF-src/core/model/session/TorrentDownload.java:184:    TorrentStream getStream(int fileIndex);
+/home/hatch/workspace/ruleF-src/core/model/session/TorrentDownloadImpl.java:75:import org.proninyaroslav.libretorrent.core.model.stream.TorrentStream;
+/home/hatch/workspace/ruleF-src/core/model/session/TorrentDownloadImpl.java:1574:    public void setInterestedPieces(@NonNull TorrentStream stream, int startPiece, int numPieces)
+/home/hatch/workspace/ruleF-src/core/model/session/TorrentDownloadImpl.java:1607:    public TorrentStream getStream(int fileIndex)
+/home/hatch/workspace/ruleF-src/core/model/session/TorrentDownloadImpl.java:1621:        return new TorrentStream(id, fileIndex,
+
+--- G8: parcel sites for any Parcelable ---
+/home/hatch/workspace/ruleF-src/ui/FileItem.java:62:    public void writeToParcel(Parcel dest, int flags)
+/home/hatch/workspace/ruleF-src/ui/FileItem.java:74:                public FileItem createFromParcel(Parcel source)
+/home/hatch/workspace/ruleF-src/ui/settings/PreferenceActivity.java:69:            PreferenceActivityConfig config = intent.getParcelableExtra(TAG_CONFIG);
+/home/hatch/workspace/ruleF-src/ui/settings/PreferenceActivityConfig.java:73:    public void writeToParcel(Parcel dest, int flags)
+/home/hatch/workspace/ruleF-src/ui/settings/PreferenceActivityConfig.java:83:                public PreferenceActivityConfig createFromParcel(Parcel source)
+/home/hatch/workspace/ruleF-src/ui/settings/sections/AppearanceSettingsFragment.java:203:                    Uri ringtone = data.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI);
+/home/hatch/workspace/ruleF-src/ui/main/MainFragment.java:267:            torrentListState = savedInstanceState.getParcelable(TAG_TORRENT_LIST_STATE);
+/home/hatch/workspace/ruleF-src/ui/main/MainFragment.java:274:        outState.putParcelable(TAG_TORRENT_LIST_STATE, torrentListState);
+/home/hatch/workspace/ruleF-src/ui/filemanager/FileManagerConfig.java:81:    public void writeToParcel(Parcel dest, int flags)
+/home/hatch/workspace/ruleF-src/ui/filemanager/FileManagerConfig.java:96:                public FileManagerConfig createFromParcel(Parcel source)
+/home/hatch/workspace/ruleF-src/ui/filemanager/FileManagerDialog.java:137:                intent.getParcelableExtra(TAG_CONFIG),
+/home/hatch/workspace/ruleF-src/ui/filemanager/FileManagerDialog.java:407:        outState.putParcelable(TAG_LIST_FILES_STATE, filesListState);
+/home/hatch/workspace/ruleF-src/ui/filemanager/FileManagerDialog.java:418:        filesListState = savedInstanceState.getParcelable(TAG_LIST_FILES_STATE);
+/home/hatch/workspace/ruleF-src/ui/filemanager/FileManagerDialog.java:669:        Uri uri = intent.getParcelableExtra(TAG_URI);
+/home/hatch/workspace/ruleF-src/ui/feeds/FeedFragment.java:237:            feedListState = savedInstanceState.getParcelable(TAG_FEED_LIST_STATE);
+/home/hatch/workspace/ruleF-src/ui/feeds/FeedFragment.java:244:        outState.putParcelable(TAG_FEED_LIST_STATE, feedListState);
+/home/hatch/workspace/ruleF-src/ui/feeditems/FeedItemsFragment.java:188:        outState.putParcelable(TAG_ITEMS_LIST_STATE, itemsListState);
+/home/hatch/workspace/ruleF-src/ui/feeditems/FeedItemsFragment.java:199:            itemsListState = savedInstanceState.getParcelable(TAG_ITEMS_LIST_STATE);
+/home/hatch/workspace/ruleF-src/ui/detailtorrent/pages/DetailTorrentInfoFragment.java:137:                    TagInfo tag = data.getParcelableExtra(SelectTagActivity.TAG_RESULT_SELECTED_TAG);
+/home/hatch/workspace/ruleF-src/ui/detailtorrent/pages/trackers/DetailTorrentTrackersFragment.java:234:        outState.putParcelable(TAG_LIST_TRACKER_STATE, listTrackerState);
+/home/hatch/workspace/ruleF-src/ui/detailtorrent/pages/trackers/DetailTorrentTrackersFragment.java:246:            listTrackerState = savedInstanceState.getParcelable(TAG_LIST_TRACKER_STATE);
+/home/hatch/workspace/ruleF-src/ui/detailtorrent/pages/peers/DetailTorrentPeersFragment.java:149:        outState.putParcelable(TAG_LIST_TRACKER_STATE, listPeerState);
+/home/hatch/workspace/ruleF-src/ui/detailtorrent/pages/peers/DetailTorrentPeersFragment.java:160:            listPeerState = savedInstanceState.getParcelable(TAG_LIST_TRACKER_STATE);
+/home/hatch/workspace/ruleF-src/ui/detailtorrent/pages/files/DetailTorrentFilesFragment.java:308:        outState.putParcelable(TAG_LIST_FILES_STATE, listFilesState);
+/home/hatch/workspace/ruleF-src/ui/detailtorrent/pages/files/DetailTorrentFilesFragment.java:320:            listFilesState = savedInstanceState.getParcelable(TAG_LIST_FILES_STATE);
+/home/hatch/workspace/ruleF-src/ui/detailtorrent/pages/files/TorrentContentFileItem.java:63:    public void writeToParcel(Parcel dest, int flags)
+/home/hatch/workspace/ruleF-src/ui/detailtorrent/pages/files/TorrentContentFileItem.java:65:        super.writeToParcel(dest, flags);
+/home/hatch/workspace/ruleF-src/ui/detailtorrent/pages/files/TorrentContentFileItem.java:76:                public TorrentContentFileItem createFromParcel(Parcel source)
+/home/hatch/workspace/ruleF-src/ui/customviews/ExpansionHeader.java:168:        outState.putParcelable(TAG_SUPER, super.onSaveInstanceState());
+/home/hatch/workspace/ruleF-src/ui/customviews/ExpansionHeader.java:181:            super.onRestoreInstanceState(savedInstanceState.getParcelable(TAG_SUPER));
+/home/hatch/workspace/ruleF-src/ui/addtorrent/AddTorrentActivity.java:359:            return i.getParcelableExtra(TAG_URI);
+/home/hatch/workspace/ruleF-src/ui/addtorrent/AddTorrentFilesFragment.java:159:        outState.putParcelable(TAG_LIST_FILES_STATE, listFilesState);
+/home/hatch/workspace/ruleF-src/ui/addtorrent/AddTorrentFilesFragment.java:170:            listFilesState = savedInstanceState.getParcelable(TAG_LIST_FILES_STATE);
+/home/hatch/workspace/ruleF-src/ui/addtorrent/AddTorrentInfoFragment.java:142:                    TagInfo tag = data.getParcelableExtra(SelectTagActivity.TAG_RESULT_SELECTED_TAG);
+/home/hatch/workspace/ruleF-src/ui/addtorrent/DownloadableFileItem.java:54:    public void writeToParcel(Parcel dest, int flags)
+/home/hatch/workspace/ruleF-src/ui/addtorrent/DownloadableFileItem.java:56:        super.writeToParcel(dest, flags);
+/home/hatch/workspace/ruleF-src/ui/addtorrent/DownloadableFileItem.java:65:                public DownloadableFileItem createFromParcel(Parcel source)
+/home/hatch/workspace/ruleF-src/ui/addtag/AddTagActivity.java:57:            TagInfo initInfo = getIntent().getParcelableExtra(TAG_INIT_INFO);
+/home/hatch/workspace/ruleF-src/ui/addtag/AddTagDialog.java:71:        args.putParcelable(TAG_INIT_INFO, initInfo);
+/home/hatch/workspace/ruleF-src/ui/addtag/AddTagDialog.java:119:        TagInfo initInfo = getArguments().getParcelable(TAG_INIT_INFO);
+/home/hatch/workspace/ruleF-src/ui/addtag/AddTagDialog.java:122:            getArguments().putParcelable(TAG_INIT_INFO, null);
+/home/hatch/workspace/ruleF-src/ui/addfeed/AddFeedDialog.java:83:        args.putParcelable(TAG_URI, uri);
+/home/hatch/workspace/ruleF-src/ui/addfeed/AddFeedDialog.java:195:        Uri uri = getArguments().getParcelable(TAG_URI);
+/home/hatch/workspace/ruleF-src/ui/addfeed/AddFeedDialog.java:198:        getArguments().putParcelable(TAG_URI, null);
+/home/hatch/workspace/ruleF-src/core/model/AddTorrentParams.java:96:    public void writeToParcel(Parcel dest, int flags) {
+/home/hatch/workspace/ruleF-src/core/model/AddTorrentParams.java:111:                public AddTorrentParams createFromParcel(Parcel source) {
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentStream.java:80:    public void writeToParcel(Parcel dest, int flags)
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentStream.java:97:                public TorrentStream createFromParcel(Parcel source)
+/home/hatch/workspace/ruleF-src/core/model/data/AbstractInfoParcel.java:52:    public void writeToParcel(Parcel dest, int flags)
+/home/hatch/workspace/ruleF-src/core/model/data/AdvancedTorrentInfo.java:101:    public void writeToParcel(Parcel dest, int flags)
+/home/hatch/workspace/ruleF-src/core/model/data/AdvancedTorrentInfo.java:103:        super.writeToParcel(dest, flags);
+/home/hatch/workspace/ruleF-src/core/model/data/AdvancedTorrentInfo.java:123:                public AdvancedTorrentInfo createFromParcel(Parcel source)
+/home/hatch/workspace/ruleF-src/core/model/data/MagnetInfo.java:71:    public void writeToParcel(Parcel dest, int flags)
+/home/hatch/workspace/ruleF-src/core/model/data/MagnetInfo.java:83:                public MagnetInfo createFromParcel(Parcel source)
+/home/hatch/workspace/ruleF-src/core/model/data/PeerInfo.java:150:    public void writeToParcel(Parcel dest, int flags)
+/home/hatch/workspace/ruleF-src/core/model/data/PeerInfo.java:152:        super.writeToParcel(dest, flags);
+/home/hatch/workspace/ruleF-src/core/model/data/PeerInfo.java:170:                public PeerInfo createFromParcel(Parcel source)
+/home/hatch/workspace/ruleF-src/core/model/data/SessionStats.java:67:    public void writeToParcel(Parcel dest, int flags)
+/home/hatch/workspace/ruleF-src/core/model/data/SessionStats.java:69:        super.writeToParcel(dest, flags);
+/home/hatch/workspace/ruleF-src/core/model/data/SessionStats.java:83:                public SessionStats createFromParcel(Parcel source)
+/home/hatch/workspace/ruleF-src/core/model/data/TorrentInfo.java:150:    public void writeToParcel(Parcel dest, int flags) {
+/home/hatch/workspace/ruleF-src/core/model/data/TorrentInfo.java:151:        super.writeToParcel(dest, flags);
+/home/hatch/workspace/ruleF-src/core/model/data/TorrentInfo.java:175:                public TorrentInfo createFromParcel(Parcel source) {
+/home/hatch/workspace/ruleF-src/core/model/data/TrackerInfo.java:184:    public void writeToParcel(Parcel dest, int flags) {
+/home/hatch/workspace/ruleF-src/core/model/data/TrackerInfo.java:185:        super.writeToParcel(dest, flags);
+/home/hatch/workspace/ruleF-src/core/model/data/TrackerInfo.java:196:                public TrackerInfo createFromParcel(Parcel source) {
+/home/hatch/workspace/ruleF-src/core/model/data/metainfo/BencodeFileItem.java:88:    public void writeToParcel(Parcel dest, int flags)
+/home/hatch/workspace/ruleF-src/core/model/data/metainfo/BencodeFileItem.java:99:                public BencodeFileItem createFromParcel(Parcel source)
+/home/hatch/workspace/ruleF-src/core/model/data/metainfo/TorrentMetaInfo.java:135:    public void writeToParcel(Parcel dest, int flags)
+/home/hatch/workspace/ruleF-src/core/model/data/metainfo/TorrentMetaInfo.java:153:                public TorrentMetaInfo createFromParcel(Parcel source)
+/home/hatch/workspace/ruleF-src/core/model/data/entity/FeedChannel.java:92:    public void writeToParcel(Parcel dest, int flags)
+/home/hatch/workspace/ruleF-src/core/model/data/entity/FeedChannel.java:108:                public FeedChannel createFromParcel(Parcel source)
+/home/hatch/workspace/ruleF-src/core/model/data/entity/FeedItem.java:102:    public void writeToParcel(Parcel dest, int flags)
+/home/hatch/workspace/ruleF-src/core/model/data/entity/FeedItem.java:118:                public FeedItem createFromParcel(Parcel source)
+/home/hatch/workspace/ruleF-src/core/model/data/entity/TagInfo.java:63:    public void writeToParcel(Parcel dest, int flags) {
+/home/hatch/workspace/ruleF-src/core/model/data/entity/TagInfo.java:71:        public TagInfo createFromParcel(Parcel source) {
+/home/hatch/workspace/ruleF-src/core/model/data/entity/Torrent.java:142:    public void writeToParcel(Parcel dest, int flags)
+/home/hatch/workspace/ruleF-src/core/model/data/entity/Torrent.java:160:                public Torrent createFromParcel(Parcel source)
+
+--- G9: stream equals/hashCode/toString candidates ---
+(no hits)
+
+--- G10: Piece — every use ---
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:67:        private Piece[] piecesForReading;
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:71:    private static class Piece
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:79:        Piece(int index)
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:93:            return o instanceof Piece && (o == this || index == ((Piece)o).index);
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:180:    private void readFromCache(Piece piece, byte[] b)
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:220:            readSession.piecesForReading = new Piece[1];
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:224:            Piece piece = new Piece(p);
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:291:            readSession.piecesForReading = new Piece[numPieces];
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:303:                Piece piece = new Piece(p);
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:441:        Piece piece = null;
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:442:        for (Piece p : readSession.piecesForReading) {
+
+--- G11: ask* permission methods + setDoNotAsk callers ---
+/home/hatch/workspace/ruleF-src/ui/PermissionManager.java:65:                            pref.askManageAllFilesPermission()
+/home/hatch/workspace/ruleF-src/ui/PermissionManager.java:89:                                pref.askNotificationPermission()
+/home/hatch/workspace/ruleF-src/ui/PermissionManager.java:100:                if (pref.askManageAllFilesPermission()) {
+/home/hatch/workspace/ruleF-src/ui/PermissionManager.java:110:        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && pref.askNotificationPermission() && !checkNotificationsPermissions()) {
+/home/hatch/workspace/ruleF-src/ui/PermissionManager.java:116:    public void setDoNotAskStorage(boolean doNotAsk) {
+/home/hatch/workspace/ruleF-src/ui/PermissionManager.java:118:            pref.askManageAllFilesPermission(!doNotAsk);
+/home/hatch/workspace/ruleF-src/ui/PermissionManager.java:122:    public void setDoNotAskNotifications(boolean doNotAsk) {
+/home/hatch/workspace/ruleF-src/ui/PermissionManager.java:124:            pref.askNotificationPermission(!doNotAsk);
+/home/hatch/workspace/ruleF-src/ui/main/MainActivity.java:168:                permissionManager.setDoNotAskNotifications(!isGranted);
+/home/hatch/workspace/ruleF-src/ui/main/MainActivity.java:430:                            permissionManager.setDoNotAskStorage(true);
+/home/hatch/workspace/ruleF-src/ui/createtorrent/CreateTorrentActivity.java:79:                permissionManager.setDoNotAskNotifications(!isGranted);
+/home/hatch/workspace/ruleF-src/ui/createtorrent/CreateTorrentActivity.java:122:                    permissionManager.setDoNotAskStorage(true);
+/home/hatch/workspace/ruleF-src/ui/addtorrent/AddTorrentActivity.java:121:                permissionManager.setDoNotAskNotifications(!isGranted);
+/home/hatch/workspace/ruleF-src/ui/addtorrent/AddTorrentActivity.java:272:                permissionManager.setDoNotAskStorage(true);
+/home/hatch/workspace/ruleF-src/core/settings/SettingsRepository.java:418:    boolean askManageAllFilesPermission();
+/home/hatch/workspace/ruleF-src/core/settings/SettingsRepository.java:420:    void askManageAllFilesPermission(boolean val);
+/home/hatch/workspace/ruleF-src/core/settings/SettingsRepository.java:426:    boolean askNotificationPermission();
+/home/hatch/workspace/ruleF-src/core/settings/SettingsRepository.java:428:    void askNotificationPermission(boolean val);
+/home/hatch/workspace/ruleF-src/core/settings/SettingsRepositoryImpl.java:175:        static final boolean askManageAllFilesPermission = true;
+/home/hatch/workspace/ruleF-src/core/settings/SettingsRepositoryImpl.java:177:        static final boolean askNotificationPermission = true;
+/home/hatch/workspace/ruleF-src/core/settings/SettingsRepositoryImpl.java:1397:    public boolean askManageAllFilesPermission() {
+/home/hatch/workspace/ruleF-src/core/settings/SettingsRepositoryImpl.java:1399:                Default.askManageAllFilesPermission);
+/home/hatch/workspace/ruleF-src/core/settings/SettingsRepositoryImpl.java:1403:    public void askManageAllFilesPermission(boolean val) {
+/home/hatch/workspace/ruleF-src/core/settings/SettingsRepositoryImpl.java:1425:    public boolean askNotificationPermission() {
+/home/hatch/workspace/ruleF-src/core/settings/SettingsRepositoryImpl.java:1427:                Default.askNotificationPermission);
+/home/hatch/workspace/ruleF-src/core/settings/SettingsRepositoryImpl.java:1431:    public void askNotificationPermission(boolean val) {
+
+--- G12: XML — all re-check symbols in res layout+xml (87) ---
+/home/hatch/workspace/b394142-openclose-src/res/layout_add_torrent_info.xml:123:                android:checked="@={viewModel.mutableParams.firstLastPiecePriority}" />
+/home/hatch/workspace/b394142-openclose-src/res/layout_fragment_detail_torrent_info.xml:135:                    android:checked="@={viewModel.mutableParams.firstLastPiecePriority}" />
+/home/hatch/workspace/b394142-openclose-src/res/layout_fragment_detail_torrent_pieces.xml:47:                    android:text="@{BindingAdapterUtils.formatPiecesInfo(context, viewModel.info.advancedInfo.downloadedPieces, viewModel.info.metaInfo.numPieces, viewModel.info.metaInfo.pieceLength)}"
+/home/hatch/workspace/b394142-openclose-src/res/layout_fragment_detail_torrent_pieces.xml:58:                android:visibility="@{viewModel.info.metaInfo.numPieces == 0 ? View.VISIBLE : View.GONE}" />
+/home/hatch/workspace/b394142-openclose-src/res/layout_fragment_detail_torrent_pieces.xml:65:                android:visibility="@{viewModel.info.metaInfo.numPieces == 0 ? View.GONE : View.VISIBLE}">
+/home/hatch/workspace/b394142-openclose-src/res/layout_fragment_detail_torrent_pieces.xml:73:                <org.proninyaroslav.libretorrent.ui.detailtorrent.pages.pieces.PiecesView
+/home/hatch/workspace/b394142-openclose-src/res/layout_fragment_detail_torrent_state.xml:278:                        android:text="@{BindingAdapterUtils.formatPieces(context, viewModel.info.advancedInfo.downloadedPieces, viewModel.info.metaInfo.numPieces, viewModel.info.metaInfo.pieceLength)}"
+
+--- G13: XML onClick / binding expressions in res layout+xml ---
+/home/hatch/workspace/b394142-openclose-src/res/layout_add_torrent_info.xml:269:            android:visibility="@{TextUtils.isEmpty(viewModel.info.comment) ? View.GONE : View.VISIBLE}">
+/home/hatch/workspace/b394142-openclose-src/res/layout_add_torrent_info.xml:295:            android:visibility="@{TextUtils.isEmpty(viewModel.info.createdBy) ? View.GONE : View.VISIBLE}">
+/home/hatch/workspace/b394142-openclose-src/res/layout_fragment_detail_torrent_info.xml:302:                android:visibility="@{TextUtils.isEmpty(viewModel.info.metaInfo.comment) ? View.GONE : View.VISIBLE}">
+/home/hatch/workspace/b394142-openclose-src/res/layout_fragment_detail_torrent_info.xml:328:                android:visibility="@{TextUtils.isEmpty(viewModel.info.metaInfo.createdBy) ? View.GONE : View.VISIBLE}">
+
+--- G14: feedparser imports of app classes (must be zero) ---
+(no hits)
+
+--- G15: TorrentStreamServer/TorrentInputStream stream-field uses ---
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentStreamServer.java:153:            String etag = stream.id;
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentStreamServer.java:185:                startFrom >= 0 && startFrom < stream.fileSize) {
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentStreamServer.java:201:                        endAt = stream.fileSize - 1;
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentStreamServer.java:212:                    res.addHeader("Content-Range", "bytes " + startFrom + "-" + endAt + "/" + stream.fileSize);
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentStreamServer.java:214:                    res.addHeader("Content-Disposition", "inline; filename=" + stream.id);
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentStreamServer.java:217:                if (headerIfRangeMissingOrMatching && range != null && startFrom >= stream.fileSize) {
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentStreamServer.java:223:                    res.addHeader("Content-Range", "bytes */" + stream.fileSize);
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentStreamServer.java:244:                    res = newFixedLengthResponse(OK, MIME_OCTET_STREAM, is, stream.fileSize);
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentStreamServer.java:246:                    res.addHeader("Content-Length", "" + stream.fileSize);
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentStreamServer.java:248:                    res.addHeader("Content-Disposition", "inline; filename=" + stream.id);
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:101:        TorrentDownload task = session.getTask(stream.torrentId);
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:103:            throw new NullPointerException("task " + stream.torrentId + " is null");
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:105:        int firstPieceSize = (stream.firstFilePiece == stream.lastFilePiece ?
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:106:                              stream.lastFilePieceSize :
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:107:                              stream.pieceLength);
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:108:        long firstPieceEnd = (long)stream.firstFilePiece * stream.pieceLength + firstPieceSize;
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:110:        if (stream.fileOffset > firstPieceEnd)
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:113:        filePos = firstPieceSize - (firstPieceEnd - stream.fileOffset);
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:115:        eof = filePos + stream.fileSize;
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:118:        task.setInterestedPieces(stream, stream.firstFilePiece, 1);
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:171:        int pieceLocalIndex = piece - stream.firstFilePiece;
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:172:        int pieceSize = (piece == stream.lastFilePiece ?
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:173:                         stream.lastFilePieceSize :
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:174:                         stream.pieceLength);
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:175:        long pieceEnd = (long)pieceLocalIndex * stream.pieceLength + pieceSize;
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:204:            TorrentDownload task = session.getTask(stream.torrentId);
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:206:                throw new IOException("task " + stream.torrentId + " is null");
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:215:            int p = stream.bytesToPieceIndex(filePos + 1);
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:270:            TorrentDownload task = session.getTask(stream.torrentId);
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:272:                throw new IOException("Task " + stream.torrentId + " is null");
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:284:            int firstPiece = stream.bytesToPieceIndex(filePos + 1);
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:285:            int lastPiece = stream.bytesToPieceIndex(filePos + len);
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:298:                if (p == stream.lastFilePiece)
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:299:                    pieceSize = stream.lastFilePieceSize;
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:301:                    pieceSize = stream.pieceLength;
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:392:                TorrentDownload task = session.getTask(stream.torrentId);
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:394:                    task.setInterestedPieces(stream, stream.bytesToPieceIndex(filePos + 1), 1);
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:415:            if (!stream.torrentId.equals(id))
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:424:            if (!stream.torrentId.equals(id))
+/home/hatch/workspace/ruleF-src/core/model/stream/TorrentInputStream.java:451:                    TorrentDownload task = session.getTask(stream.torrentId);

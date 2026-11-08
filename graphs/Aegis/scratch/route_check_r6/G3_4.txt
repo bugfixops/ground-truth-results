@@ -1,0 +1,202 @@
+## AuthActivity.lambda$onCreate$3  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=hardware;time state=data;file classes=explicit;standard explicit_standard_route=yes
+   1. Eb9515d18 ENTRY/standard*
+      S_ENTRY -> AegisApplication.<init>
+      Any outside trigger starts the app process; the application class is created first, except in a backup or restore start, which uses the base Application class
+      guard: not a full backup or restore start (FW ActivityThread.java:5713-5715)
+      evidence: SRC AndroidManifest.xml:21-27 (android:name=".AegisApplication", backupAgent=".AegisBackupAgent")
+         21      <application
+         22          android:name=".AegisApplication"
+         23          android:allowBackup="true"
+         24          android:fullBackupOnly="true"
+         25          android:fullBackupContent="@xml/backup_rules_old"
+         26          android:dataExtractionRules="@xml/backup_rules"
+         27          android:backupAgent=".AegisBackupAgent"
+   2. E5b266140 LIFECYCLE/standard*
+      AegisApplication.<init> -> Hilt_AegisApplication.onCreate
+      Application.onCreate: the Hilt-generated superclass onCreate runs first (Hilt injection), then AegisApplicationBase.onCreate
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:5740 (the system calls Application.onCreate); INFERRED Hilt rewrites the superclass: AegisApplication extends Hilt_AegisApplication (generated file, not in the source tree; source AegisApplication.java:6 has no onCreate)
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+   3. E1ef992ce CALL/explicit
+      Hilt_AegisApplication.onCreate -> AegisApplicationBase.onCreate
+      Direct call
+      evidence: INFERRED generated code (Hilt_AegisApplication.java is not in the source tree; the call is in the build class, line 43)
+   4. E88ed9829 ENTERS/page*
+      AegisApplicationBase.onCreate -> S_PROCESS
+      the application is created: the process can start a component
+      evidence: SRC AegisApplicationBase.java:45-67; FW-SRC core/java/android/app/ActivityThread.java:5740 (the system calls Application.onCreate)
+         45      public void onCreate() {
+         46          super.onCreate();
+         47          _vaultManager = EarlyEntryPoints.get(this, EntryPoint.class).getVaultManager();
+         48  
+         49          VaultLockReceiver lockReceiver = new VaultLockReceiver();
+         50          IntentFilter intentFilter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
+         51          ContextCompat.registerReceiver(this, lockReceiver, intentFilter, ContextCompat.RECEIVER_NOT_EXPORTED);
+         52  
+         53          // lock the app if the user moves the application to the background
+         54          ProcessLifecycleOwner.get().getLifecycle().addObserver(new AppLifecycleObserver());
+         55  
+         56          // clear the cache directory on startup, to make sure no temporary vault export files remain
+         57          IOUtils.clearDirectory(getCacheDir(), false);
+         58  
+      ...  (9 more lines)
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+   5. E28ffc58c ENTRY/standard*
+      S_PROCESS -> MainActivity.<init>
+      Tap the Aegis icon in the launcher (MAIN / LAUNCHER)
+      evidence: SRC AndroidManifest.xml:44-51
+         44              android:name=".ui.MainActivity"
+         45              android:exported="true"
+         46              android:label="${title}">
+         47              <intent-filter>
+         48                  <action android:name="android.intent.action.MAIN" />
+         49  
+         50                  <category android:name="android.intent.category.LAUNCHER" />
+         51              </intent-filter>
+   6. Eb76444fd LIFECYCLE/standard*
+      MainActivity.<init> -> MainActivity.onCreate
+      Activity.onCreate after the constructor
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731,2741 (the system calls Activity.onCreate, then performStart); SRC ui/MainActivity.java:192-194
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+        192      @Override
+        193      protected void onCreate(Bundle savedInstanceState) {
+        194          super.onCreate(savedInstanceState);
+   7. E3a06baed LIFECYCLE/standard*
+      MainActivity.onCreate -> MainActivity.onStart
+      Activity.onStart after onCreate
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731,2741 (the system calls Activity.onCreate, then performStart); SRC ui/MainActivity.java:938-940
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+        938      @Override
+        939      protected void onStart() {
+        940          super.onStart();
+   8. E57db524e CALL/explicit* [STATE: An encrypted vault file exists in the app data, saved by an earlier intro run that chose a password or biometrics (cross-run state, no producer in this run; MainActivity.onStart reads it, MainActivity.java:950-977)]
+      MainActivity.onStart -> MainActivity.startAuthActivity
+      an encrypted vault file exists and is not loaded: the unlock screen starts
+      guard: a vault file exists and is encrypted (the plain-text branch at 951-973 did not load it)
+      evidence: SRC ui/MainActivity.java:950-977
+        950          // If the vault is not loaded yet, try to load it now in case it's plain text
+        951          if (!_vaultManager.isVaultLoaded()) {
+        952              VaultFile vaultFile;
+        953              try {
+        954                  vaultFile = VaultRepository.readVaultFile(this);
+        955              } catch (VaultRepositoryException e) {
+        956                  e.printStackTrace();
+        957                  Dialogs.showErrorDialog(this, R.string.vault_load_error, e, (dialog, which) -> {
+        958                      finish();
+        959                  });
+        960                  return;
+        961              }
+        962  
+        963              if (!vaultFile.isEncrypted()) {
+      ...  (14 more lines)
+   9. E06202b0e INTENT/standard*
+      MainActivity.startAuthActivity -> AuthActivity.<init>
+      startActivityForResult(AuthActivity) through authResultLauncher
+      guard: no unlock screen is already running (!_isAuthenticating, MainActivity.java:1147)
+      evidence: SRC ui/MainActivity.java:1146-1153; INFERRED androidx.activity.result: the launcher callback runs with the result (androidx source not cached)
+       1146      private void startAuthActivity(boolean inhibitBioPrompt) {
+       1147          if (!_isAuthenticating) {
+       1148              Intent intent = new Intent(this, AuthActivity.class);
+       1149              intent.putExtra("inhibitBioPrompt", inhibitBioPrompt);
+       1150              authResultLauncher.launch(intent);
+       1151              _isAuthenticating = true;
+       1152          }
+       1153      }
+  10. E0158aff6 LIFECYCLE/standard*
+      AuthActivity.<init> -> AuthActivity.onCreate
+      Activity.onCreate of the unlock screen
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731,2741 (the system calls Activity.onCreate, then performStart); SRC ui/AuthActivity.java:73-195
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+         73      protected void onCreate(Bundle savedInstanceState) {
+         74          super.onCreate(savedInstanceState);
+         75          setContentView(R.layout.activity_auth);
+         76  
+         77          TextInputLayout layoutStandard = findViewById(R.id.layout_standard);
+         78          TextInputLayout layoutNoAutofill = findViewById(R.id.layout_no_autofill);
+         79          EditText editStandard = findViewById(R.id.text_password);
+         80          EditText editNoAutofill = findViewById(R.id.text_password_no_autofill);
+         81  
+         82          if (_prefs.isPinKeyboardEnabled()) {
+         83              layoutStandard.setVisibility(View.GONE);
+         84              layoutNoAutofill.setVisibility(View.VISIBLE);
+         85              _textPassword = editNoAutofill;
+         86          } else {
+      ...  (109 more lines)
+  11. E911809ef LIFECYCLE/standard*
+      AuthActivity.onCreate -> AuthActivity.onResume
+      Activity.onResume (focus, biometric prompt when allowed)
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2741 (performStart runs onStart between onCreate and onResume; neither ui/AuthActivity.java nor ui/AegisActivity.java defines onStart, grep no match, so the skipped step runs no app code); FW-SRC core/java/android/app/ActivityThread.java:3556 (performResumeActivity calls performResume) and 3621 (handleResumeActivity calls performResumeActivity); SRC ui/AuthActivity.java:210-224
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+        210      @Override
+        211      public void onResume() {
+        212          super.onResume();
+        213  
+        214          boolean remindPassword = _prefs.isPasswordReminderNeeded();
+        215          if (_bioKey == null || remindPassword) {
+        216              focusPasswordField();
+        217          }
+        218  
+        219          if (_bioKey != null && _bioPrompt == null && !_inhibitBioPrompt && !remindPassword) {
+        220              _bioPrompt = showBiometricPrompt();
+        221          }
+        222  
+        223          _inhibitBioPrompt = false;
+      ...  (1 more lines)
+  12. E87843ac5 ENTERS/page*
+      AuthActivity.onResume -> S_AUTH
+      the unlock screen is in front
+      evidence: SRC ui/AuthActivity.java:73-224
+         73      protected void onCreate(Bundle savedInstanceState) {
+         74          super.onCreate(savedInstanceState);
+         75          setContentView(R.layout.activity_auth);
+         76  
+         77          TextInputLayout layoutStandard = findViewById(R.id.layout_standard);
+         78          TextInputLayout layoutNoAutofill = findViewById(R.id.layout_no_autofill);
+         79          EditText editStandard = findViewById(R.id.text_password);
+         80          EditText editNoAutofill = findViewById(R.id.text_password_no_autofill);
+         81  
+         82          if (_prefs.isPinKeyboardEnabled()) {
+         83              layoutStandard.setVisibility(View.GONE);
+         84              layoutNoAutofill.setVisibility(View.VISIBLE);
+         85              _textPassword = editNoAutofill;
+         86          } else {
+      ...  (138 more lines)
+  13. E26725a4d GUI/standard* [ENV: a fingerprint or face is enrolled and accepted by the sensor (BiometricPrompt, AuthActivity.java:270-293); the unlock screen shows the button only when the vault has a biometric slot (AuthActivity.java:132-150)] [STATE: The intro of this run chose biometrics and created the biometric slot: SecuritySetupSlide starts BiometricSlotInitializer, which creates the BiometricSlot (SecuritySetupSlide.java:101; BiometricSlotInitializer.java:61)]
+      S_AUTH -> AuthActivity.lambda$onCreate$4
+      Tap the biometric button (fingerprint or face)
+      guard: readVaultFile does not throw (AuthActivity.java:121-128); the button is visible: BiometricSlot present, BiometricsHelper.isAvailable true, keystore key found and not null (AuthActivity.java:132-150)
+      evidence: FW-SRC core/java/android/view/View.java:6289-6296 (performClick calls the OnClickListener.onClick); SRC ui/AuthActivity.java:180-194; INFERRED androidx.biometric.BiometricPrompt calls the AuthenticationCallback methods (androidx source not cached)
+      (core/java/android/view/View.java not found in the source tree)
+        180          biometricsButton.setOnClickListener(v -> {
+        181              if (_prefs.isPasswordReminderNeeded()) {
+        182                  Dialogs.showSecureDialog(new MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_Aegis_AlertDialog_Warning)
+        183                          .setTitle(getString(R.string.password_reminder_dialog_title))
+        184                          .setMessage(getString(R.string.password_reminder_dialog_message))
+        185                          .setCancelable(false)
+        186                          .setIconAttribute(android.R.attr.alertDialogIcon)
+        187                          .setPositiveButton(android.R.string.ok, (dialog1, which) -> {
+        188                              showBiometricPrompt();
+        189                          })
+        190                          .create());
+        191              } else {
+        192                  showBiometricPrompt();
+        193              }
+      ...  (1 more lines)
+  14. Ec640bc11 FRAMEWORK/standard* [ENV: the device clock is moved forward by at least 14 days after the first run, so the password reminder is due (Preferences.java:64-65 sets the timestamp on the first construction; 118-123 default frequency BIWEEKLY; PassReminderFreq.java:20-21,34 is 14 days; Preferences.java:138-145 duration check)]
+      AuthActivity.lambda$onCreate$4 -> AuthActivity.lambda$onCreate$3
+      the password reminder dialog is shown from the biometric button: tap OK
+      guard: readVaultFile does not throw (AuthActivity.java:121-128) and a password reminder is due (the dialog replaces the prompt, AuthActivity.java:181-190)
+      evidence: FW-SRC core/java/android/view/View.java:6289-6296 (performClick calls the OnClickListener.onClick); SRC ui/AuthActivity.java:181-190
+      (core/java/android/view/View.java not found in the source tree)
+        181              if (_prefs.isPasswordReminderNeeded()) {
+        182                  Dialogs.showSecureDialog(new MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_Aegis_AlertDialog_Warning)
+        183                          .setTitle(getString(R.string.password_reminder_dialog_title))
+        184                          .setMessage(getString(R.string.password_reminder_dialog_message))
+        185                          .setCancelable(false)
+        186                          .setIconAttribute(android.R.attr.alertDialogIcon)
+        187                          .setPositiveButton(android.R.string.ok, (dialog1, which) -> {
+        188                              showBiometricPrompt();
+        189                          })
+        190                          .create());
+

@@ -1,0 +1,43 @@
+openlauncher route judgments — re-verification 2026-11-01 (Stream D leaf, local mirror)
+Sample: python3 -I tools/verify_sample.py openlauncher 30 20261025 -> 27 of 728 reachable, 194 distinct edges (seed 20261025).
+Every step of all 27 routes printed to scratch/routes_27_full.txt (2441 lines, via graphs/openlauncher/show_route_fixed.py --dedupe)
+and read against the printed source lines. Route edge ids in the current build are identical to the branch verification.csv
+path rows (0 mismatches), so the prior session's step-by-step judgments carry over unchanged; the DialogUtils fix
+was additionally re-checked independently against DialogUtils.java:146-182 (copy inside try at :153-158/:169-173;
+System.exit(1) at :179 outside the Restore try/catch, always runs for Restore; Backup never exits).
+Method verdicts (correct/fixed/wrong/unclear):
+1  HideAppsFragment$2$1.onClick correct (37 steps)
+2  AppItemView.setTargetedWidth correct (19 steps)
+3  AppDrawerController.scrollToStart correct (23 steps)
+4  WidgetView.<init>(Context) correct (19 steps)
+5  CellContainer.findFreeSpace() correct (21 steps)
+6  MiniPopupView$ClearRamViewHolder$$ViewBinder$InnerUnbinder.<init> correct (16 steps)
+7  Tool.checkForUnusedIconAndDelete correct (27 steps)
+8  LauncherSettings.setPinchGesture correct (26 steps)
+9  Tool.clampInt correct (23 steps)
+10 GroupPopupView$6$1.hereIsTheText correct (19 steps)
+11 GroupIconDrawable.init correct (18 steps)
+12 DialogUtils.copy fixed (26 steps; fix already in current graph_def: no ENV_STORAGE_FAIL on the copy edge, guards "item is Backup"/"item is Restore")
+13 Desktop$Item.newWidgetItem correct (21 steps)
+14 AutoFinishActivity.onCreate correct (4 steps)
+15 Tool.saveIconAndReturnID correct (15 steps)
+16 Home.configureWidget correct (20 steps)
+17 DeviceAdminReceiver.onReceive correct (2 steps)
+18 Desktop$Item.toIntent correct (18 steps)
+19 Desktop$DesktopAdapter.getItemFromCoordinate correct (19 steps)
+20 MinibarEditActivity$Item$ViewHolder.<init> correct (21 steps)
+21 DialogUtils$2.onSelection correct (25 steps)
+22 GestureAnalyser.<init>(int,int,int) correct (17 steps)
+23 IconLabelItem$ViewHolder.<init> correct (27 steps)
+24 FiveSecsDelayContentProvider.onCreate correct (2 steps)
+25 FiveSecsDelayContentProvider.<init> correct (1 step)
+26 Init.onCreate correct (2 steps)
+27 Init.<init> correct (1 step)
+Totals: correct 26, fixed 1, wrong 0, unclear 0.
+Error rate = (fixed + wrong) / (correct + fixed + wrong) = 1/27 = 0.037.
+Final sample redrawn after rebuild: identical 27 methods (scratch/sample_30_final.txt == scratch/sample_30.txt).
+Caveats: FW-SRC snippet lines are not printed by show_route_fixed (it looks in final_java_only, not fw_src);
+framework citations were checked separately with check_citations.py (62/64 resolvable locally; see scratch/check_citations.txt)
+and spot-checked (ActivityThread performLaunchActivity :2644, AsyncTask onPreExecute :648, handleReceiver :3141).
+Multi-range citations written "N, M-K" print "(no line numbers)" in show_route output — the known show_route regex
+limitation, not a route error; the underlying evidence strings are intact in the graph JSON.

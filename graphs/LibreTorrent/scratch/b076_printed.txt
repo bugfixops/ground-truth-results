@@ -1,0 +1,603 @@
+# Batch 76 printed evidence (fresh, C12 converter, 2026-11-01)
+# Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+# Convention: each section lists clone lines in order; the first line shown is the range start.
+# Cited files (basenames, for check_part check 8): AddFeedViewModel.java, AddFeedMutableParams.java, AddFeedDialog.java, AddLinkActivity.java, AddLinkDialog.java, dialog_add_feed_channel.xml
+
+=== ui/addfeed/AddFeedViewModel.java:54-133 ===
+    public enum Mode
+    {
+        ADD, EDIT
+    }
+
+    public AddFeedViewModel(@NonNull Application application)
+    {
+        super(application);
+
+        repo = RepositoryHelper.getFeedRepository(application);
+        mode = Mode.ADD;
+    }
+
+    @Override
+    protected void onCleared()
+    {
+        super.onCleared();
+
+        disposables.clear();
+    }
+
+    public Mode getMode()
+    {
+        return mode;
+    }
+
+    public void initAddMode(@NonNull Uri uri)
+    {
+        mode = Mode.ADD;
+        /* TODO: files support */
+        mutableParams.setUrl(uri.toString());
+    }
+
+    public void initAddModeFromClipboard()
+    {
+        List<CharSequence> clipboard = Utils.getClipboardText(getApplication());
+        if (clipboard.isEmpty())
+            return;
+
+        String firstItem = clipboard.get(0).toString();
+        String c = firstItem.toLowerCase();
+        if (c.startsWith(Utils.HTTP_PREFIX))
+            initAddMode(Uri.parse(firstItem));
+    }
+
+    public void initEditMode(long feedId)
+    {
+        mode = Mode.EDIT;
+        mutableParams.setFeedId(feedId);
+        fetchParams();
+    }
+
+    public boolean addChannel()
+    {
+        long id = applyParams(true);
+        refreshChannel(id);
+
+        return id != -1;
+    }
+
+    public boolean updateChannel()
+    {
+        long id = applyParams(false);
+        refreshChannel(id);
+
+        return id != -1;
+    }
+
+    public boolean deleteChannel()
+    {
+        long feedId = mutableParams.getFeedId();
+        if (feedId == -1)
+            return false;
+
+        /* Sync wait deleting */
+        try {
+            Thread t = new Thread(() -> {
+                FeedChannel channel = repo.getFeedById(feedId);
+                if (channel != null)
+                    repo.deleteFeed(channel);
+
+=== ui/addfeed/AddFeedViewModel.java:134-219 ===
+            });
+            t.start();
+            t.join();
+
+        } catch (InterruptedException e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private void fetchParams()
+    {
+        long feedId = mutableParams.getFeedId();
+        if (feedId == -1)
+            return;
+
+        disposables.add(repo.getFeedByIdSingle(feedId)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .filter(Objects::nonNull)
+                .subscribe((channel) -> {
+                    mutableParams.setUrl(channel.url);
+                    mutableParams.setName(channel.name);
+                    mutableParams.setAutoDownload(channel.autoDownload);
+                    mutableParams.setFilter(channel.filter);
+                    mutableParams.setRegexFilter(channel.isRegexFilter);
+                }));
+    }
+
+    private long applyParams(boolean newChannel)
+    {
+        long feedId = mutableParams.getFeedId();
+        if (!newChannel && feedId == -1)
+            return -1;
+        String url = mutableParams.getUrl();
+        if (TextUtils.isEmpty(url))
+            return -1;
+
+        FeedChannel channel = new FeedChannel(url,
+                mutableParams.getName(),
+                0,
+                mutableParams.isAutoDownload(),
+                mutableParams.getFilter(),
+                mutableParams.isRegexFilter(),
+                null);
+        if (!newChannel)
+            channel.id = feedId;
+
+        /* TODO: maybe rewrite to WorkManager */
+        /* Sync wait inserting/updating */
+        long[] retId = new long[]{-1};
+        try {
+            Thread t = new Thread(() -> {
+                if (newChannel)
+                    retId[0] = repo.addFeed(channel);
+                else if (repo.updateFeed(channel) == 1)
+                    retId[0] = feedId;
+            });
+            t.start();
+            t.join();
+
+        } catch (InterruptedException e) {
+            return retId[0];
+        }
+
+        return retId[0];
+    }
+
+    private void refreshChannel(long feedId)
+    {
+        if (feedId == -1)
+            return;
+
+        Data data = new Data.Builder()
+                .putString(FeedFetcherWorker.TAG_ACTION, FeedFetcherWorker.ACTION_FETCH_CHANNEL)
+                .putLong(FeedFetcherWorker.TAG_CHANNEL_ID, feedId)
+                .putBoolean(FeedFetcherWorker.TAG_NO_AUTO_DOWNLOAD, mutableParams.isNotDownloadImmediately())
+                .build();
+
+        OneTimeWorkRequest work = new OneTimeWorkRequest.Builder(FeedFetcherWorker.class)
+                .setInputData(data)
+                .build();
+
+        WorkManager.getInstance(getApplication()).enqueue(work);
+    }
+
+=== ui/addfeed/AddFeedMutableParams.java:42-117 ===
+    public void setFeedId(long feedId)
+    {
+        this.feedId = feedId;
+    }
+
+    @Bindable
+    public String getUrl()
+    {
+        return url;
+    }
+
+    public void setUrl(String url)
+    {
+        this.url = url;
+        notifyPropertyChanged(BR.url);
+    }
+
+    @Bindable
+    public String getName()
+    {
+        return name;
+    }
+
+    public void setName(String name)
+    {
+        this.name = name;
+        notifyPropertyChanged(BR.name);
+    }
+
+    @Bindable
+    public boolean isAutoDownload()
+    {
+        return autoDownload;
+    }
+
+    public void setAutoDownload(boolean autoDownload)
+    {
+        this.autoDownload = autoDownload;
+        notifyPropertyChanged(BR.autoDownload);
+    }
+
+    @Bindable
+    public boolean isNotDownloadImmediately()
+    {
+        return notDownloadImmediately;
+    }
+
+    public void setNotDownloadImmediately(boolean notDownloadImmediately)
+    {
+        this.notDownloadImmediately = notDownloadImmediately;
+        notifyPropertyChanged(BR.notDownloadImmediately);
+    }
+
+    @Bindable
+    public String getFilter()
+    {
+        return filter;
+    }
+
+    public void setFilter(String filter)
+    {
+        this.filter = filter;
+        notifyPropertyChanged(BR.filter);
+    }
+
+    @Bindable
+    public boolean isRegexFilter()
+    {
+        return regexFilter;
+    }
+
+    public void setRegexFilter(boolean regexFilter)
+    {
+        this.regexFilter = regexFilter;
+        notifyPropertyChanged(BR.regexFilter);
+    }
+
+=== ui/addfeed/AddFeedDialog.java:180-219 ===
+    public Dialog onCreateDialog(Bundle savedInstanceState)
+    {
+        if (activity == null)
+            activity = (AppCompatActivity)getActivity();
+
+        ViewModelProvider provider = new ViewModelProvider(activity);
+        viewModel = provider.get(AddFeedViewModel.class);
+        dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+        clipboardViewModel = provider.get(ClipboardDialog.SharedViewModel.class);
+
+        FragmentManager fm = getChildFragmentManager();
+        deleteFeedDialog = (BaseAlertDialog)fm.findFragmentByTag(TAG_DELETE_FEED_DIALOG);
+        clipboardDialog = (ClipboardDialog)fm.findFragmentByTag(TAG_CLIPBOARD_DIALOG);
+
+        long feedId = getArguments().getLong(TAG_FEED_ID, -1);
+        Uri uri = getArguments().getParcelable(TAG_URI);
+        /* Clean */
+        getArguments().putLong(TAG_FEED_ID, -1);
+        getArguments().putParcelable(TAG_URI, null);
+        initParams(uri, feedId);
+
+        LayoutInflater i = LayoutInflater.from(activity);
+        binding = DataBindingUtil.inflate(i, R.layout.dialog_add_feed_channel, null, false);
+        binding.setViewModel(viewModel);
+
+        initLayoutView();
+
+        binding.getRoot().getViewTreeObserver().addOnWindowFocusChangeListener(onFocusChanged);
+
+        return alert;
+    }
+
+    @Override
+    public void onDestroyView()
+    {
+        binding.getRoot().getViewTreeObserver().removeOnWindowFocusChangeListener(onFocusChanged);
+
+        super.onDestroyView();
+    }
+
+=== ui/addfeed/AddFeedDialog.java:260-289 ===
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity)
+                .setNegativeButton(R.string.cancel, null)
+                .setView(view);
+
+        if (viewModel.getMode() == AddFeedViewModel.Mode.EDIT) {
+            builder.setTitle(R.string.edit_feed_channel);
+            builder.setPositiveButton(R.string.edit, null);
+            builder.setNeutralButton(R.string.delete, null);
+        } else {
+            builder.setTitle(R.string.add_feed_channel);
+            builder.setPositiveButton(R.string.add, null);
+        }
+
+        alert = builder.create();
+        alert.setCanceledOnTouchOutside(false);
+        alert.setOnShowListener((DialogInterface dialog) -> {
+            if (viewModel.getMode() == AddFeedViewModel.Mode.EDIT) {
+                Button editButton = alert.getButton(AlertDialog.BUTTON_POSITIVE);
+                Button deleteButton = alert.getButton(AlertDialog.BUTTON_NEUTRAL);
+                editButton.setOnClickListener((v) -> updateChannel());
+                deleteButton.setOnClickListener((v) -> deleteFeedDialog());
+            } else {
+                Button addButton = alert.getButton(AlertDialog.BUTTON_POSITIVE);
+                addButton.setOnClickListener((v) -> addChannel());
+            }
+            Button cancelButton = alert.getButton(AlertDialog.BUTTON_NEGATIVE);
+            cancelButton.setOnClickListener((v) ->
+                    finish(new Intent(), FragmentCallback.ResultCode.CANCEL));
+        });
+    }
+
+=== ui/addfeed/AddFeedDialog.java:375-414 ===
+
+        return true;
+    }
+
+    private void addChannel()
+    {
+        if (!checkUrlField(binding.url.getText()))
+            return;
+
+        if (!viewModel.addChannel()) {
+            Toast.makeText(activity,
+                    R.string.error_cannot_add_channel,
+                    Toast.LENGTH_SHORT)
+                    .show();
+            return;
+        }
+
+        finish(new Intent(), FragmentCallback.ResultCode.OK);
+    }
+
+    private void updateChannel()
+    {
+        if (!checkUrlField(binding.url.getText()))
+            return;
+
+        if (!viewModel.updateChannel()) {
+            Toast.makeText(activity,
+                    R.string.error_cannot_edit_channel,
+                    Toast.LENGTH_SHORT)
+                    .show();
+            return;
+        }
+
+        finish(new Intent(), FragmentCallback.ResultCode.OK);
+    }
+
+    private void deleteChannel()
+    {
+        if (!viewModel.deleteChannel()) {
+            Toast.makeText(activity,
+
+=== ui/addlink/AddLinkActivity.java (full file) ===
+package org.proninyaroslav.libretorrent.ui.addlink;
+
+import android.content.Intent;
+import android.os.Bundle;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+
+import org.proninyaroslav.libretorrent.core.utils.Utils;
+import org.proninyaroslav.libretorrent.ui.FragmentCallback;
+
+public class AddLinkActivity extends AppCompatActivity
+        implements FragmentCallback
+{
+    private static final String TAG_ADD_LINK_DIALOG = "add_link_dialog";
+
+    private AddLinkDialog addLinkDialog;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState)
+    {
+        setTheme(Utils.getTranslucentAppTheme(getApplicationContext()));
+        super.onCreate(savedInstanceState);
+
+        FragmentManager fm = getSupportFragmentManager();
+        addLinkDialog = (AddLinkDialog)fm.findFragmentByTag(TAG_ADD_LINK_DIALOG);
+        if (addLinkDialog == null) {
+            addLinkDialog = AddLinkDialog.newInstance();
+            addLinkDialog.show(fm, TAG_ADD_LINK_DIALOG);
+        }
+    }
+
+    @Override
+    public void onFragmentFinished(@NonNull Fragment f, Intent intent, @NonNull ResultCode code)
+    {
+        finish();
+    }
+
+    @Override
+    public void onBackPressed()
+    {
+        addLinkDialog.onBackPressed();
+    }
+}
+
+=== ui/addlink/AddLinkDialog.java:59-83 ===
+public class AddLinkDialog extends DialogFragment
+{
+    private static final String TAG = AddLinkDialog.class.getSimpleName();
+
+    private static final String TAG_CLIPBOARD_DIALOG = "clipboard_dialog";
+
+    private AlertDialog alert;
+    private AppCompatActivity activity;
+    private DialogAddLinkBinding binding;
+    private AddLinkViewModel viewModel;
+    private ClipboardDialog clipboardDialog;
+    private ClipboardDialog.SharedViewModel clipboardViewModel;
+    private CompositeDisposable disposables = new CompositeDisposable();
+
+    public static AddLinkDialog newInstance()
+    {
+        AddLinkDialog frag = new AddLinkDialog();
+
+        Bundle args = new Bundle();
+        frag.setArguments(args);
+
+        return frag;
+    }
+
+    @Override
+
+=== src/main/res/layout/dialog_add_feed_channel.xml (full file) ===
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <import type="android.view.View" />
+        <import type="org.proninyaroslav.libretorrent.ui.addfeed.AddFeedViewModel" />
+        <variable
+            name="viewModel"
+            type="org.proninyaroslav.libretorrent.ui.addfeed.AddFeedViewModel" />
+    </data>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="@dimen/dialog_padding"
+        android:scrollbars="vertical"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:minWidth="@dimen/min_width_dialog"
+            android:orientation="vertical">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/layout_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:hint="@string/feed_name">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@={viewModel.mutableParams.name}" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/layout_url"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_toStartOf="@id/clipboard_button"
+                    android:hint="@string/link">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/url"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="text|textNoSuggestions"
+                        android:text="@={viewModel.mutableParams.url}"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <ImageButton
+                    android:id="@+id/clipboard_button"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:scaleType="fitCenter"
+                    android:layout_marginTop="12dp"
+                    android:padding="8dp"
+                    android:background="?attr/transparentRoundRipple"
+                    android:contentDescription="@string/clipboard"
+                    android:src="@drawable/ic_content_copy_grey600_48dp"
+                    android:visibility="@{viewModel.showClipboardButton ? View.VISIBLE : View.GONE}"
+                    android:layout_marginStart="8dp"
+                    android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+
+            <CheckBox
+                android:id="@+id/auto_download"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:text="@string/feed_auto_download"
+                android:checked="@={viewModel.mutableParams.autoDownload}"/>
+
+            <CheckBox
+                android:id="@+id/do_not_download_immediately"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:enabled="@{viewModel.mutableParams.autoDownload}"
+                android:visibility="@{viewModel.mode == AddFeedViewModel.Mode.ADD ? View.VISIBLE : View.GONE}"
+                android:text="@string/feed_do_not_download_immediately"
+                android:checked="@={viewModel.mutableParams.notDownloadImmediately}" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/layout_filter"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:enabled="@{viewModel.mutableParams.autoDownload}"
+                app:endIconMode="custom"
+                app:endIconDrawable="@drawable/ic_help_grey600_24dp"
+                android:hint="@string/filter">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/filter"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textMultiLine|textNoSuggestions"
+                    android:text="@={viewModel.mutableParams.filter}" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <net.cachapa.expandablelayout.ExpandableLayout
+                android:id="@+id/expandable_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:el_duration="5"
+                app:el_parallax="0"
+                app:el_expanded="false">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="16dp"
+                    android:layout_marginRight="16dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="16dp"
+                        android:paddingBottom="8dp"
+                        android:text="@string/feed_filter_prompt_one_per_line"
+                        android:textAppearance="@style/TextAppearance.MaterialComponents.Body2" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingBottom="16dp"
+                        android:text="@string/feed_filter_prompt"
+                        android:textAppearance="@style/TextAppearance.MaterialComponents.Body2" />
+
+                    <View
+                        android:id="@+id/divider"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="?attr/divider" />
+                </LinearLayout>
+            </net.cachapa.expandablelayout.ExpandableLayout>
+
+            <CheckBox
+                android:id="@+id/use_regex"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:enabled="@{viewModel.mutableParams.autoDownload}"
+                android:text="@string/feed_use_regex"
+                android:checked="@={viewModel.mutableParams.regexFilter}"/>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</layout>

@@ -1,0 +1,162 @@
+METHOD: MainFragment.onDetach
+verdict: REACHABLE   steps_from_launch: 13
+route steps: 13 edges
+======================================================================
+
+STEP 1  edge E380fe171
+  S_ENTRY -> MainActivity.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC Activity.java onCreate lifecycle method
+  (no file:line citations in evidence)
+
+STEP 2  edge E45d73a86
+  MainActivity.onCreate -> MainActivity.goToMain
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainActivity.java:414,416,420 goToMain calls in async callback
+  cite [SRC] MainActivity.java:414, 416, 420
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/activities/MainActivity.java)
+      414:                                 goToMain(path);
+      416:                                 goToMain(null);
+      420:                             goToMain(null);
+
+STEP 3  edge E7708bb4d
+  MainActivity.goToMain -> TabFragment.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC activities/MainActivity.java:784
+  cite [SRC] activities/MainActivity.java:784
+      784:         TabFragment tabFragment = new TabFragment();
+
+STEP 4  edge E858ed758
+  TabFragment.<init> -> TabFragment.onCreateView
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED Fragment.onCreate; Fragment.onCreateView; INFERRED framework dispatch through TabFragment.onCreate (not an app method)
+  (no file:line citations in evidence)
+
+STEP 5  edge Ef643161a
+  TabFragment.onCreateView -> MainFragment.<init>
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC fragments/TabFragment.java:113-141 (onCreateView calls addNewTab/addTab); SRC fragments/TabFragment.java:351 (addTab creates MainFragment); INFERRED androidx.fragment.app.FragmentManager drives fragment lifecycle callbacks (androidx source not read)
+  cite [SRC] fragments/TabFragment.java:113-141
+      113:                     addNewTab(1, mainActivity.getDrawer().getFirstPath());
+      114:                 } else {
+      115:                     if (mainActivity.getDrawer().getSecondPath() != null) {
+      116:                         addNewTab(1, mainActivity.getDrawer().getSecondPath());
+      117:                     } else {
+      118:                         sharedPrefs.edit().putBoolean(PreferencesConstants.PREFERENCE_ROOTMODE, true).apply();
+      119:                         addNewTab(1,  "/");
+      120:                     }
+      121:                 }
+      122: 
+      123:                 if (mainActivity.getDrawer().getSecondPath() != null) {
+      124:                     addNewTab(2, mainActivity.getDrawer().getSecondPath());
+      125:                 } else {
+      126:                     addNewTab(2, mainActivity.getDrawer().getFirstPath());
+      127:                 }
+      128:             } else {
+      129:                 if (path != null && path.length() != 0) {
+      130:                     if (lastOpenTab == 0) {
+      131:                         addTab(tab1, path);
+      132:                         addTab(tab2, "");
+      133:                     }
+      134: 
+      135:                     if (lastOpenTab == 1) {
+      136:                         addTab(tab1, "");
+      137:                         addTab(tab2, path);
+      138:                     }
+      139:                 } else {
+      140:                     addTab(tab1, "");
+      141:                     addTab(tab2, "");
+  cite [SRC] fragments/TabFragment.java:351
+      351:         Fragment main = new MainFragment();
+
+STEP 6  edge E3f533b40
+  MainFragment.<init> -> MainFragment.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED androidx.fragment.app.FragmentManager drives fragment lifecycle callbacks (androidx source not read)
+  (no file:line citations in evidence)
+
+STEP 7  edge Ebd761bbf
+  MainFragment.onCreate -> MainFragment.onCreateView
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED androidx.fragment.app.FragmentManager drives fragment lifecycle callbacks (androidx source not read)
+  (no file:line citations in evidence)
+
+STEP 8  edge E9adbdc5d
+  MainFragment.onCreateView -> MainFragment.onActivityCreated
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED androidx.fragment.app.FragmentManager drives fragment lifecycle callbacks (androidx source not read)
+  (no file:line citations in evidence)
+
+STEP 9  edge E411e6c12
+  MainFragment.onActivityCreated -> MainFragment.onResume
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC fragments/MainFragment.java:1419
+  cite [SRC] fragments/MainFragment.java:1419
+     1419:     public void onResume() {
+
+STEP 10  edge E6b1dbdd0
+  MainFragment.onResume -> MainFragment.onPause
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC fragments/MainFragment.java:1433
+  cite [SRC] fragments/MainFragment.java:1433
+     1433:     public void onPause() {
+
+STEP 11  edge E59c319e1
+  MainFragment.onPause -> MainFragment.onStop
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC fragments/MainFragment.java:1446
+  cite [SRC] fragments/MainFragment.java:1446
+     1446:     public void onStop() {
+
+STEP 12  edge Eac844b0a
+  MainFragment.onStop -> MainFragment.onDestroy
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC fragments/MainFragment.java:1544
+  cite [SRC] fragments/MainFragment.java:1544
+     1544:     public void onDestroy() {
+
+STEP 13  edge E93059c3a
+  MainFragment.onDestroy -> MainFragment.onDetach
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC fragments/MainFragment.java:1698
+  cite [SRC] fragments/MainFragment.java:1698
+     1698:     public void onDetach() {

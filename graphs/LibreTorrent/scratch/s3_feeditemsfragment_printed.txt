@@ -1,0 +1,329 @@
+     1	/*
+     2	 * Copyright (C) 2018 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.feeditems;
+    21	
+    22	import android.content.Context;
+    23	import android.content.Intent;
+    24	import android.content.res.TypedArray;
+    25	import android.net.Uri;
+    26	import android.os.Bundle;
+    27	import android.os.Parcelable;
+    28	import android.text.TextUtils;
+    29	import android.util.Log;
+    30	import android.util.TypedValue;
+    31	import android.view.LayoutInflater;
+    32	import android.view.Menu;
+    33	import android.view.MenuInflater;
+    34	import android.view.MenuItem;
+    35	import android.view.View;
+    36	import android.view.ViewGroup;
+    37	
+    38	import androidx.annotation.NonNull;
+    39	import androidx.annotation.Nullable;
+    40	import androidx.appcompat.app.AppCompatActivity;
+    41	import androidx.core.content.ContextCompat;
+    42	import androidx.databinding.DataBindingUtil;
+    43	import androidx.fragment.app.Fragment;
+    44	import androidx.lifecycle.ViewModelProvider;
+    45	import androidx.recyclerview.widget.LinearLayoutManager;
+    46	
+    47	import com.google.android.material.snackbar.Snackbar;
+    48	
+    49	import org.proninyaroslav.libretorrent.R;
+    50	import org.proninyaroslav.libretorrent.core.utils.Utils;
+    51	import org.proninyaroslav.libretorrent.databinding.FragmentFeedItemsBinding;
+    52	import org.proninyaroslav.libretorrent.ui.FragmentCallback;
+    53	import org.proninyaroslav.libretorrent.ui.addtorrent.AddTorrentActivity;
+    54	import org.proninyaroslav.libretorrent.ui.customviews.RecyclerViewDividerDecoration;
+    55	
+    56	import io.reactivex.Flowable;
+    57	import io.reactivex.Observable;
+    58	import io.reactivex.android.schedulers.AndroidSchedulers;
+    59	import io.reactivex.disposables.CompositeDisposable;
+    60	import io.reactivex.disposables.Disposable;
+    61	import io.reactivex.schedulers.Schedulers;
+    62	
+    63	public class FeedItemsFragment extends Fragment
+    64	    implements FeedItemsAdapter.ClickListener
+    65	{
+    66	    private static final String TAG = FeedItemsFragment.class.getSimpleName();
+    67	
+    68	    private static final String TAG_ITEMS_LIST_STATE = "items_list_state";
+    69	
+    70	    private AppCompatActivity activity;
+    71	    private FragmentFeedItemsBinding binding;
+    72	    private FeedItemsViewModel viewModel;
+    73	    private FeedItemsAdapter adapter;
+    74	    private LinearLayoutManager layoutManager;
+    75	    /* Save state scrolling */
+    76	    private Parcelable itemsListState;
+    77	    private long feedId;
+    78	    private CompositeDisposable disposables = new CompositeDisposable();
+    79	
+    80	    public static FeedItemsFragment newInstance(long feedId)
+    81	    {
+    82	        FeedItemsFragment fragment = new FeedItemsFragment();
+    83	        fragment.setFeedId(feedId);
+    84	        fragment.setArguments(new Bundle());
+    85	
+    86	        return fragment;
+    87	    }
+    88	
+    89	    public long getFeedId()
+    90	    {
+    91	        return feedId;
+    92	    }
+    93	
+    94	    public void setFeedId(long feedId)
+    95	    {
+    96	        this.feedId = feedId;
+    97	    }
+    98	
+    99	    @Override
+   100	    public void onAttach(@NonNull Context context)
+   101	    {
+   102	        super.onAttach(context);
+   103	
+   104	        if (context instanceof AppCompatActivity)
+   105	            activity = (AppCompatActivity)context;
+   106	    }
+   107	
+   108	    @Override
+   109	    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+   110	    {
+   111	        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_feed_items, container, false);
+   112	
+   113	        return binding.getRoot();
+   114	    }
+   115	
+   116	    @Override
+   117	    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+   118	        super.onViewCreated(view, savedInstanceState);
+   119	
+   120	        if (activity == null)
+   121	            activity = (AppCompatActivity)getActivity();
+   122	
+   123	        viewModel = new ViewModelProvider(activity).get(FeedItemsViewModel.class);
+   124	
+   125	        /* Remove previous data if fragment changed */
+   126	        if (Utils.isTwoPane(activity))
+   127	            viewModel.clearData();
+   128	        viewModel.setFeedId(feedId);
+   129	
+   130	        if (Utils.isTwoPane(activity)) {
+   131	            binding.toolbar.inflateMenu(R.menu.feed_items);
+   132	            binding.toolbar.setNavigationIcon(ContextCompat.getDrawable(activity.getApplicationContext(),
+   133	                    R.drawable.ic_arrow_back_white_24dp));
+   134	            binding.toolbar.setOnMenuItemClickListener(this::onOptionsItemSelected);
+   135	
+   136	        } else {
+   137	            binding.toolbar.setTitle(R.string.details);
+   138	            activity.setSupportActionBar(binding.toolbar);
+   139	            setHasOptionsMenu(true);
+   140	            if (activity.getSupportActionBar() != null)
+   141	                activity.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+   142	        }
+   143	        binding.toolbar.setNavigationOnClickListener((v) -> onBackPressed());
+   144	
+   145	        layoutManager = new LinearLayoutManager(activity);
+   146	        binding.feedItemsList.setLayoutManager(layoutManager);
+   147	        TypedArray a = activity.obtainStyledAttributes(new TypedValue().data, new int[]{ R.attr.divider });
+   148	        binding.feedItemsList.addItemDecoration(new RecyclerViewDividerDecoration(a.getDrawable(0)));
+   149	        a.recycle();
+   150	        binding.feedItemsList.setEmptyView(binding.emptyViewFeedItems);
+   151	
+   152	        adapter = new FeedItemsAdapter(this);
+   153	        binding.feedItemsList.setAdapter(adapter);
+   154	
+   155	        binding.swipeContainer.setOnRefreshListener(() -> viewModel.refreshChannel());
+   156	    }
+   157	
+   158	    @Override
+   159	    public void onStart()
+   160	    {
+   161	        super.onStart();
+   162	
+   163	        subscribeAdapter();
+   164	        subscribeRefreshStatus();
+   165	    }
+   166	
+   167	    @Override
+   168	    public void onStop()
+   169	    {
+   170	        super.onStop();
+   171	
+   172	        disposables.clear();
+   173	    }
+   174	
+   175	    @Override
+   176	    public void onResume()
+   177	    {
+   178	        super.onResume();
+   179	
+   180	        if (itemsListState != null)
+   181	            layoutManager.onRestoreInstanceState(itemsListState);
+   182	    }
+   183	
+   184	    @Override
+   185	    public void onSaveInstanceState(@NonNull Bundle outState)
+   186	    {
+   187	        itemsListState = layoutManager.onSaveInstanceState();
+   188	        outState.putParcelable(TAG_ITEMS_LIST_STATE, itemsListState);
+   189	
+   190	        super.onSaveInstanceState(outState);
+   191	    }
+   192	
+   193	    @Override
+   194	    public void onViewStateRestored(Bundle savedInstanceState)
+   195	    {
+   196	        super.onViewStateRestored(savedInstanceState);
+   197	
+   198	        if (savedInstanceState != null)
+   199	            itemsListState = savedInstanceState.getParcelable(TAG_ITEMS_LIST_STATE);
+   200	    }
+   201	
+   202	    private void subscribeAdapter()
+   203	    {
+   204	        getAllFeedItemsSingle();
+   205	        disposables.add(observeFeedItems());
+   206	    }
+   207	
+   208	    private Disposable observeFeedItems()
+   209	    {
+   210	        return viewModel.observeItemsByFeedId()
+   211	                .subscribeOn(Schedulers.io())
+   212	                .flatMapSingle((itemList) ->
+   213	                        Flowable.fromIterable(itemList)
+   214	                                .map(FeedItemsListItem::new)
+   215	                                .toList()
+   216	                )
+   217	                .observeOn(AndroidSchedulers.mainThread())
+   218	                .subscribe(adapter::submitList,
+   219	                        (Throwable t) -> Log.e(TAG, "Getting item list error: " +
+   220	                                Log.getStackTraceString(t)));
+   221	    }
+   222	
+   223	    private void getAllFeedItemsSingle()
+   224	    {
+   225	        disposables.add(viewModel.getItemsByFeedIdSingle()
+   226	                .subscribeOn(Schedulers.io())
+   227	                .flatMap((itemList) ->
+   228	                        Observable.fromIterable(itemList)
+   229	                                .map(FeedItemsListItem::new)
+   230	                                .toList()
+   231	                )
+   232	                .observeOn(AndroidSchedulers.mainThread())
+   233	                .subscribe(adapter::submitList,
+   234	                        (Throwable t) -> Log.e(TAG, "Getting item list error: " +
+   235	                                Log.getStackTraceString(t))));
+   236	    }
+   237	
+   238	    private void subscribeRefreshStatus()
+   239	    {
+   240	        disposables.add(viewModel.observeRefreshStatus()
+   241	                .observeOn(AndroidSchedulers.mainThread())
+   242	                .subscribe(binding.swipeContainer::setRefreshing));
+   243	    }
+   244	
+   245	    @Override
+   246	    public void onItemClicked(@NonNull FeedItemsListItem item)
+   247	    {
+   248	        openDownloadUrl(item);
+   249	    }
+   250	
+   251	    @Override
+   252	    public void onItemMenuClicked(int menuId, @NonNull FeedItemsListItem item)
+   253	    {
+   254	        if (menuId == R.id.open_article_menu) {
+   255	            openArticle(item);
+   256	        } else if (menuId == R.id.mark_as_read_menu) {
+   257	            viewModel.markAsRead(item.id);
+   258	        } else if (menuId == R.id.mark_as_unread_menu) {
+   259	            viewModel.markAsUnread(item.id);
+   260	        }
+   261	    }
+   262	
+   263	    private void openArticle(FeedItemsListItem item)
+   264	    {
+   265	        if (TextUtils.isEmpty(item.articleUrl)) {
+   266	            Snackbar.make(binding.coordinatorLayout,
+   267	                    R.string.feed_item_url_not_found,
+   268	                    Snackbar.LENGTH_SHORT)
+   269	                    .show();
+   270	            return;
+   271	        }
+   272	
+   273	        viewModel.markAsRead(item.id);
+   274	
+   275	        Intent i = new Intent(Intent.ACTION_VIEW);
+   276	        i.setData(Uri.parse(item.articleUrl));
+   277	        startActivity(i);
+   278	    }
+   279	
+   280	    private void openDownloadUrl(FeedItemsListItem item)
+   281	    {
+   282	        if (TextUtils.isEmpty(item.downloadUrl)) {
+   283	            Snackbar.make(binding.coordinatorLayout,
+   284	                    R.string.feed_item_url_not_found,
+   285	                    Snackbar.LENGTH_SHORT)
+   286	                    .show();
+   287	            return;
+   288	        }
+   289	
+   290	        viewModel.markAsRead(item.id);
+   291	
+   292	        Intent i = new Intent(activity, AddTorrentActivity.class);
+   293	        i.putExtra(AddTorrentActivity.TAG_URI, Uri.parse(item.downloadUrl));
+   294	        startActivity(i);
+   295	    }
+   296	
+   297	    @Override
+   298	    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater)
+   299	    {
+   300	        super.onCreateOptionsMenu(menu, inflater);
+   301	
+   302	        inflater.inflate(R.menu.feed_items, menu);
+   303	    }
+   304	
+   305	    @Override
+   306	    public boolean onOptionsItemSelected(@NonNull MenuItem menuItem)
+   307	    {
+   308	        int itemId = menuItem.getItemId();
+   309	        if (itemId == android.R.id.home) {
+   310	            onBackPressed();
+   311	        } else if (itemId == R.id.refresh_feed_channel_menu) {
+   312	            viewModel.refreshChannel();
+   313	        } else if (itemId == R.id.mark_as_read_menu) {
+   314	            viewModel.markAllAsRead();
+   315	        }
+   316	
+   317	        return true;
+   318	    }
+   319	
+   320	    public void onBackPressed()
+   321	    {
+   322	        finish(new Intent(), FragmentCallback.ResultCode.BACK);
+   323	    }
+   324	
+   325	    private void finish(Intent intent, FragmentCallback.ResultCode code)
+   326	    {
+   327	        ((FragmentCallback)activity).onFragmentFinished(this, intent, code);
+   328	    }
+   329	}

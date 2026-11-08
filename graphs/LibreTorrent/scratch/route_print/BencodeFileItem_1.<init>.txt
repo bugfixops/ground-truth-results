@@ -1,0 +1,360 @@
+METHOD: BencodeFileItem$1.<init>
+verdict: REACHABLE   steps_from_launch: 12
+route steps: 12 edges
+======================================================================
+
+STEP 1  edge Ec711e542
+  S_ENTRY -> AddTorrentActivity.onCreate
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: android:exported="true"
+  evidence: SRC AndroidManifest.xml:62-92; FW-SRC core/java/android/app/ActivityThread.java:2727-2732; core/java/android/app/Instrumentation.java:1212-1215
+  cite [SRC] AndroidManifest.xml:62-92
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/AndroidManifest.xml)
+       62:         <activity
+       63:             android:exported="true"
+       64:             android:name=".ui.addtorrent.AddTorrentActivity">
+       65:             <intent-filter>
+       66:                 <action android:name="android.intent.action.SEND" />
+       67:                 <category android:name="android.intent.category.DEFAULT" />
+       68:             </intent-filter>
+       69:             <intent-filter>
+       70:                 <action android:name="android.intent.action.VIEW" />
+       71:                 <category android:name="android.intent.category.DEFAULT" />
+       72:                 <category android:name="android.intent.category.BROWSABLE" />
+       73:                 <data android:host="*" android:mimeType="application/x-bittorrent" android:scheme="file" />
+       74:             </intent-filter>
+       75:             <intent-filter>
+       76:                 <action android:name="android.intent.action.VIEW" />
+       77:                 <category android:name="android.intent.category.DEFAULT" />
+       78:                 <category android:name="android.intent.category.BROWSABLE" />
+       79:                 <data android:host="*" android:pathPattern=".*\\.torrent" android:scheme="file" />
+       80:             </intent-filter>
+       81:             <intent-filter>
+       82:                 <action android:name="android.intent.action.VIEW" />
+       83:                 <category android:name="android.intent.category.DEFAULT" />
+       84:                 <category android:name="android.intent.category.BROWSABLE" />
+       85:                 <data android:host="*" android:mimeType="application/x-bittorrent" android:scheme="content" />
+       86:             </intent-filter>
+       87:             <intent-filter>
+       88:                 <action android:name="android.intent.action.VIEW" />
+       89:                 <category android:name="android.intent.category.DEFAULT" />
+       90:                 <category android:name="android.intent.category.BROWSABLE" />
+       91:                 <data android:host="*" android:pathPattern=".*\\.torrent" android:scheme="content" />
+       92:             </intent-filter>
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2727-2732
+     2727:                 activity.mCalled = false;
+     2728:                 if (r.isPersistable()) {
+     2729:                     mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+     2730:                 } else {
+     2731:                     mInstrumentation.callActivityOnCreate(activity, r.state);
+     2732:                 }
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1212-1215
+     1212:     public void callActivityOnCreate(Activity activity, Bundle icicle) {
+     1213:         prePerformCreate(activity);
+     1214:         activity.performCreate(icicle);
+     1215:         postPerformCreate(activity);
+
+STEP 2  edge E36130a0c
+  AddTorrentActivity.onCreate -> AddTorrentActivity.observeDecodeState
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/addtorrent/AddTorrentActivity.java:138-140; ui/addtorrent/AddTorrentActivity.java:305-327
+  cite [SRC] ui/addtorrent/AddTorrentActivity.java:138-140
+      138:         initLayout();
+      139:         observeDecodeState();
+      140:     }
+  cite [SRC] ui/addtorrent/AddTorrentActivity.java:305-327
+      305:     private void observeDecodeState()
+      306:     {
+      307:         viewModel.getDecodeState().observe(this, (state) -> {
+      308:             switch (state.status) {
+      309:                 case UNKNOWN:
+      310:                     Uri uri = getUri();
+      311:                     if (uri != null)
+      312:                         viewModel.startDecode(uri);
+      313:                     break;
+      314:                 case DECODE_TORRENT_FILE:
+      315:                 case FETCHING_HTTP:
+      316:                 case FETCHING_MAGNET:
+      317:                     onStartDecode(state.status == AddTorrentViewModel.Status.DECODE_TORRENT_FILE);
+      318:                     break;
+      319:                 case FETCHING_HTTP_COMPLETED:
+      320:                 case DECODE_TORRENT_COMPLETED:
+      321:                 case FETCHING_MAGNET_COMPLETED:
+      322:                 case ERROR:
+      323:                     onStopDecode(state.error);
+      324:                     break;
+      325:             }
+      326:         });
+      327:     }
+
+STEP 3  edge E6b49e349
+  AddTorrentActivity.observeDecodeState -> AddTorrentActivity.lambda$observeDecodeState$1
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX LiveData observer dispatch; SRC ui/addtorrent/AddTorrentActivity.java:305-327
+  cite [SRC] ui/addtorrent/AddTorrentActivity.java:305-327
+      305:     private void observeDecodeState()
+      306:     {
+      307:         viewModel.getDecodeState().observe(this, (state) -> {
+      308:             switch (state.status) {
+      309:                 case UNKNOWN:
+      310:                     Uri uri = getUri();
+      311:                     if (uri != null)
+      312:                         viewModel.startDecode(uri);
+      313:                     break;
+      314:                 case DECODE_TORRENT_FILE:
+      315:                 case FETCHING_HTTP:
+      316:                 case FETCHING_MAGNET:
+      317:                     onStartDecode(state.status == AddTorrentViewModel.Status.DECODE_TORRENT_FILE);
+      318:                     break;
+      319:                 case FETCHING_HTTP_COMPLETED:
+      320:                 case DECODE_TORRENT_COMPLETED:
+      321:                 case FETCHING_MAGNET_COMPLETED:
+      322:                 case ERROR:
+      323:                     onStopDecode(state.error);
+      324:                     break;
+      325:             }
+      326:         });
+      327:     }
+
+STEP 4  edge Ea8c90d35
+  AddTorrentActivity.lambda$observeDecodeState$1 -> AddTorrentViewModel.startDecode
+  class: explicit   kind: CALL
+  guard: state.status == UNKNOWN && uri != null
+  needs_state: None
+  env: None
+  evidence: SRC ui/addtorrent/AddTorrentActivity.java:307-313; ui/addtorrent/AddTorrentViewModel.java:182-216
+  cite [SRC] ui/addtorrent/AddTorrentActivity.java:307-313
+      307:         viewModel.getDecodeState().observe(this, (state) -> {
+      308:             switch (state.status) {
+      309:                 case UNKNOWN:
+      310:                     Uri uri = getUri();
+      311:                     if (uri != null)
+      312:                         viewModel.startDecode(uri);
+      313:                     break;
+  cite [SRC] ui/addtorrent/AddTorrentViewModel.java:182-216
+      182:     public void startDecode(@NonNull Uri uri) {
+      183:         if (observeEngineRunning != null && observeEngineRunning.isDisposed())
+      184:             return;
+      185: 
+      186:         observeEngineRunning = engine.observeEngineRunning()
+      187:                 .subscribeOn(Schedulers.io())
+      188:                 .subscribe((isRunning) -> {
+      189:                     if (isRunning) {
+      190:                         startDecodeTask(uri);
+      191:                         if (observeEngineRunning != null)
+      192:                             observeEngineRunning.dispose();
+      193:                     }
+      194:                 });
+      195:     }
+      196: 
+      197:     public void startDecodeTask(Uri uri) {
+      198:         decodeTask = new TorrentDecodeTask(this);
+      199:         decodeTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, uri);
+      200:     }
+      201: 
+      202:     private static class TorrentDecodeTask extends AsyncTask<Uri, Void, Throwable> {
+      203:         private final WeakReference<AddTorrentViewModel> viewModel;
+      204: 
+      205:         private TorrentDecodeTask(AddTorrentViewModel viewModel) {
+      206:             super();
+      207: 
+      208:             this.viewModel = new WeakReference<>(viewModel);
+      209:         }
+      210: 
+      211:         @Override
+      212:         protected void onPreExecute() {
+      213:             /* Nothing */
+      214:         }
+      215: 
+      216:         @Override
+
+STEP 5  edge Ee016a3b0
+  AddTorrentViewModel.startDecode -> AddTorrentViewModel.startDecodeTask
+  class: non_standard   kind: CALL
+  guard: isRunning is true
+  needs_state: None
+  env: None
+  evidence: INFERRED RxJava subscribe dispatch; SRC ui/addtorrent/AddTorrentViewModel.java:182-194; ui/addtorrent/AddTorrentViewModel.java:197-199
+  cite [SRC] ui/addtorrent/AddTorrentViewModel.java:182-194
+      182:     public void startDecode(@NonNull Uri uri) {
+      183:         if (observeEngineRunning != null && observeEngineRunning.isDisposed())
+      184:             return;
+      185: 
+      186:         observeEngineRunning = engine.observeEngineRunning()
+      187:                 .subscribeOn(Schedulers.io())
+      188:                 .subscribe((isRunning) -> {
+      189:                     if (isRunning) {
+      190:                         startDecodeTask(uri);
+      191:                         if (observeEngineRunning != null)
+      192:                             observeEngineRunning.dispose();
+      193:                     }
+      194:                 });
+  cite [SRC] ui/addtorrent/AddTorrentViewModel.java:197-199
+      197:     public void startDecodeTask(Uri uri) {
+      198:         decodeTask = new TorrentDecodeTask(this);
+      199:         decodeTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, uri);
+
+STEP 6  edge Ed1b3c492
+  AddTorrentViewModel.startDecodeTask -> AddTorrentViewModel$TorrentDecodeTask.doInBackground
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED Android AsyncTask dispatch; SRC ui/addtorrent/AddTorrentViewModel.java:197-199; ui/addtorrent/AddTorrentViewModel.java:217-220
+  cite [SRC] ui/addtorrent/AddTorrentViewModel.java:197-199
+      197:     public void startDecodeTask(Uri uri) {
+      198:         decodeTask = new TorrentDecodeTask(this);
+      199:         decodeTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, uri);
+  cite [SRC] ui/addtorrent/AddTorrentViewModel.java:217-220
+      217:         protected Throwable doInBackground(Uri... params) {
+      218:             AddTorrentViewModel v = viewModel.get();
+      219:             if (v == null || isCancelled())
+      220:                 return null;
+
+STEP 7  edge E3bd884f5
+  AddTorrentViewModel$TorrentDecodeTask.doInBackground -> AddTorrentViewModel$TorrentDecodeTask.readTorrentFile
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/addtorrent/AddTorrentViewModel.java:272; SRC ui/addtorrent/AddTorrentViewModel.java:281-298
+  cite [SRC] ui/addtorrent/AddTorrentViewModel.java:272
+      272:                     readTorrentFile(Uri.parse(tmpSource));
+  cite [SRC] ui/addtorrent/AddTorrentViewModel.java:281-298
+      281:         private void readTorrentFile(Uri uri) throws IOException, DecodeException {
+      282:             AddTorrentViewModel v = viewModel.get();
+      283:             if (v == null || isCancelled())
+      284:                 return;
+      285: 
+      286:             ContentResolver contentResolver = v.getApplication().getContentResolver();
+      287:             try (ParcelFileDescriptor outPfd = contentResolver.openFileDescriptor(uri, "r")) {
+      288:                 if (outPfd == null) {
+      289:                     throw new IOException("ParcelFileDescriptor is null");
+      290:                 }
+      291:                 FileDescriptor outFd = outPfd.getFileDescriptor();
+      292:                 try (FileInputStream is = new FileInputStream(outFd)) {
+      293:                     v.info.set(new TorrentMetaInfo(is));
+      294:                 }
+      295:             } catch (FileNotFoundException e) {
+      296:                 throw new FileNotFoundException(uri.toString() + ": " + e.getMessage());
+      297:             }
+      298:         }
+
+STEP 8  edge Ec8c63103
+  AddTorrentViewModel$TorrentDecodeTask.readTorrentFile -> TorrentMetaInfo.<init>(FileInputStream)
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC AddTorrentViewModel.java:293 (bytecode)
+  cite [SRC] AddTorrentViewModel.java:293
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentViewModel.java)
+      293:                     v.info.set(new TorrentMetaInfo(is));
+
+STEP 9  edge E67c04092
+  TorrentMetaInfo.<init>(FileInputStream) -> TorrentMetaInfo.getMetaInfo
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TorrentMetaInfo.java:88 (bytecode)
+  cite [SRC] TorrentMetaInfo.java:88
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/data/metainfo/TorrentMetaInfo.java)
+       88:             getMetaInfo(new TorrentInfo(chan
+
+STEP 10  edge Ef5f368bb
+  TorrentMetaInfo.getMetaInfo -> Utils.getFileList
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TorrentMetaInfo.java:98-108; SRC Utils.java:142-151
+  cite [SRC] TorrentMetaInfo.java:98-108
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/data/metainfo/TorrentMetaInfo.java)
+       98:     private void getMetaInfo(TorrentInfo info)
+       99:     {
+      100:         torrentName = info.name();
+      101:         sha1Hash = info.infoHash().toHex();
+      102:         comment = info.comment();
+      103:         createdBy = info.creator();
+      104:         /* Correct convert UNIX time (time_t) */
+      105:         creationDate = info.creationDate() * 1000L;
+      106:         torrentSize = info.totalSize();
+      107:         fileCount = info.numFiles();
+      108:         fileList = Utils.getFileList(info.origFiles());
+  cite [SRC] Utils.java:142-151
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/utils/Utils.java)
+      142:     public static ArrayList<BencodeFileItem> getFileList(@NonNull FileStorage storage) {
+      143:         ArrayList<BencodeFileItem> files = new ArrayList<>();
+      144:         for (int i = 0; i < storage.numFiles(); i++) {
+      145:             BencodeFileItem file = new BencodeFileItem(storage.filePath(i), i, storage.fileSize(i));
+      146:             files.add(file);
+      147:         }
+      148: 
+      149:         return files;
+      150:     }
+      151: 
+
+STEP 11  edge E4ab5599c
+  Utils.getFileList -> BencodeFileItem.<clinit>
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED JVM class initialization; SRC Utils.java:142-145; BencodeFileItem.java:95-109
+  cite [SRC] Utils.java:142-145
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/utils/Utils.java)
+      142:     public static ArrayList<BencodeFileItem> getFileList(@NonNull FileStorage storage) {
+      143:         ArrayList<BencodeFileItem> files = new ArrayList<>();
+      144:         for (int i = 0; i < storage.numFiles(); i++) {
+      145:             BencodeFileItem file = new BencodeFileItem(storage.filePath(i), i, storage.fileSize(i));
+  cite [SRC] BencodeFileItem.java:95-109
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/data/metainfo/BencodeFileItem.java)
+       95:     public static final Parcelable.Creator<BencodeFileItem> CREATOR =
+       96:             new Parcelable.Creator<BencodeFileItem>()
+       97:             {
+       98:                 @Override
+       99:                 public BencodeFileItem createFromParcel(Parcel source)
+      100:                 {
+      101:                     return new BencodeFileItem(source);
+      102:                 }
+      103: 
+      104:                 @Override
+      105:                 public BencodeFileItem[] newArray(int size)
+      106:                 {
+      107:                     return new BencodeFileItem[size];
+      108:                 }
+      109:             };
+
+STEP 12  edge E86f9aa2b
+  BencodeFileItem.<clinit> -> BencodeFileItem$1.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC BencodeFileItem.java:95-109
+  cite [SRC] BencodeFileItem.java:95-109
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/data/metainfo/BencodeFileItem.java)
+       95:     public static final Parcelable.Creator<BencodeFileItem> CREATOR =
+       96:             new Parcelable.Creator<BencodeFileItem>()
+       97:             {
+       98:                 @Override
+       99:                 public BencodeFileItem createFromParcel(Parcel source)
+      100:                 {
+      101:                     return new BencodeFileItem(source);
+      102:                 }
+      103: 
+      104:                 @Override
+      105:                 public BencodeFileItem[] newArray(int size)
+      106:                 {
+      107:                     return new BencodeFileItem[size];
+      108:                 }
+      109:             };

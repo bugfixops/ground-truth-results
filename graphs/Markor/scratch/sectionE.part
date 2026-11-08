@@ -1,0 +1,90 @@
+_TEXT = _json.load(open(_os.path.join(GDIR, 'scratch', 'textcount.json')))   # identifier -> count in app .java/.kt/.xml (scratch/textcount.py)
+_DECL_N = _collections.Counter(_m['name'] for _m in _ML)
+_UNIV = {_m['class'] for _m in _ML}
+_CB_TRIG = 'Framework or library calls this method on the object created here (listener, adapter, view, dialog, task or fragment hook)'
+_MENU_TRIG = 'App code calls this Menu or MenuItem method through the interface on the placeholder created here'
+
+
+def _has_text_ref(name):
+    return _TEXT.get(name, 0) - _DECL_N.get(name, 0) > 0
+
+
+def _base(n):
+    return n.split('@')[0]
+
+
+def _reach():
+    # the same search the builder runs: from S_ENTRY over every edge except REGISTER (hand edges and bytecode calls)
+    adj = _collections.defaultdict(set)
+    for s_, d_, k_ in _EDGE_LOG:
+        if k_ != 'REGISTER':
+            adj[_base(s_)].add(_base(d_))
+    for c_ in AUTO['calls']:
+        adj[_base(c_['src'])].add(_base(c_['dst']))
+    seen, st = {'S_ENTRY'}, ['S_ENTRY']
+    while st:
+        x = st.pop()
+        for y in adj.get(x, ()):
+            if y not in seen:
+                seen.add(y)
+                st.append(y)
+    return seen
+
+
+_SUBS = _collections.defaultdict(set)
+for _k in _HIER:
+    for _a in _ancestors(_k):
+        _SUBS[_a].add(_k)
+
+
+def _creators_of(cls, name, desc):
+    # bytecode creators (X.<init> calls) of the class and of its subclasses that do not override this method
+    out = set()
+    for k in [cls] + sorted(_SUBS.get(cls, ())):
+        if k != cls:
+            blocked = any(p != cls and cls in _ancestors(p) and (p, name, desc) in _FLAGS for p in {k} | _ancestors(k))
+            if blocked:
+                continue
+        out |= _CREATORS.get(k.split('/')[-1], set())
+    return out
+
+
+_CAND = []
+for _m in _ML:
+    _name, _cls, _fl = _m['name'], _m['class'], _m.get('flags', [])
+    if _name in ('<init>', '<clinit>') or _name.startswith('lambda$') or 'static' in _fl or 'private' in _fl:
+        continue
+    _menu = _cls in _MENU_CLASSES
+    if _menu:
+        if not _has_text_ref(_name):
+            continue
+    else:
+        if _name not in _CB_NAMES:
+            continue
+        _anc = _ancestors(_cls)
+        _ext = any(a not in _HIER and a != 'java/lang/Object' for a in _anc)
+        _ovr = any(a in _UNIV and (a, _name, _m['desc']) in _FLAGS for a in _anc)
+        if not (_ext or _ovr):
+            continue
+    _crs = _creators_of(_cls, _name, _m['desc'])
+    if _crs:
+        _CAND.append((_m['short'], sorted(_crs), _menu, _name))
+
+# fixpoint: wire each candidate from every creator that the search already reaches; repeat until nothing new is wired
+for _pass in range(60):
+    _R = _reach()
+    _added = 0
+    for _node, _crs, _menu, _name in _CAND:
+        if _node in _R:
+            continue
+        for _x in _crs:
+            if _base(_x) not in _R or _x == _node or (_x, _node, 'FRAMEWORK') in _HAND:
+                continue
+            e(_x, _node, 'FRAMEWORK', _MENU_TRIG if _menu else _CB_TRIG,
+              evidence=('INFERRED method has no bytecode caller; object of this class created at %s (bytecode); '
+                        'app text uses the name %s (Menu placeholder)' % (_x, _name)) if _menu else
+                       ('INFERRED method has no bytecode caller; object of this class created at %s (bytecode); '
+                        'callback name %s' % (_x, _name)))
+            _added += 1
+    if not _added:
+        break

@@ -1,0 +1,44 @@
+## SingleAccountWidgetConfigureActivity.saveTitlePref  REACHABLE  confirmed_by=SOURCE path=UNCHECKED
+   env=other_app state=- classes=explicit;standard explicit_standard_route=yes
+   1. E882eaf1e ENTRY/standard* [ENV: outside package: another app sends an APPWIDGET_CONFIGURE intent to SingleAccountWidgetConfigureActivity (exported=true)]
+      S_ENTRY -> SingleAccountWidgetConfigureActivity.<init>
+      another app sends an APPWIDGET_CONFIGURE intent to the exported SingleAccountWidgetConfigureActivity
+      evidence: SRC AndroidManifest.xml:327-329 (exported=true; APPWIDGET_CONFIGURE intent-filter); SRC widget/SingleAccountWidgetConfigureActivity.java:50; FW-SRC core/java/android/app/ActivityThread.java:2665-2672
+        327          <activity android:name=".widget.SingleAccountWidgetConfigureActivity" android:exported="true">
+        328              <intent-filter>
+        329                  <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+         50      public SingleAccountWidgetConfigureActivity() {
+       2665          ContextImpl appContext = createBaseContextForActivity(r);
+       2666          Activity activity = null;
+       2667          try {
+       2668              java.lang.ClassLoader cl = appContext.getClassLoader();
+       2669              activity = mInstrumentation.newActivity(
+       2670                      cl, component.getClassName(), r.intent);
+       2671              StrictMode.incrementExpectedActivityCount(activity.getClass());
+       2672              r.intent.setExtrasClassLoader(cl);
+   2. E13aab3f4 LIFECYCLE/standard*
+      SingleAccountWidgetConfigureActivity.<init> -> SingleAccountWidgetConfigureActivity.onCreate
+      the framework calls onCreate right after the constructor
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2724-2731; SRC widget/SingleAccountWidgetConfigureActivity.java:54-55 (onCreate override)
+       2724                      activity.setTheme(theme);
+       2725                  }
+       2726  
+       2727                  activity.mCalled = false;
+       2728                  if (r.isPersistable()) {
+       2729                      mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+       2730                  } else {
+       2731                      mInstrumentation.callActivityOnCreate(activity, r.state);
+         54      @Override
+         55      public void onCreate(Bundle icicle) {
+   3. E1e63003e FRAMEWORK/standard*
+      SingleAccountWidgetConfigureActivity.onCreate -> SingleAccountWidgetConfigureActivity$1.onClick
+      onCreate sets the field listener on add_button (line 65); View.performClick calls it when the button is tapped
+      evidence: SRC widget/SingleAccountWidgetConfigureActivity.java:65 (setOnClickListener(mOnClickListener)), 86-87 (field and onClick); FW-SRC core/java/android/view/View.java:6294 (performClick)
+         65          findViewById(R.id.add_button).setOnClickListener(mOnClickListener);
+       6294              li.mOnClickListener.onClick(this);
+   4. Ea6a92c49 CALL/explicit*
+      SingleAccountWidgetConfigureActivity$1.onClick -> SingleAccountWidgetConfigureActivity.saveTitlePref
+      Direct call
+      evidence: SRC SingleAccountWidgetConfigureActivity.java:92 (bytecode)
+         92              saveTitlePref(context, mAppWidgetId, widgetText);
+

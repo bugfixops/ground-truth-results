@@ -1,0 +1,183 @@
+label_087.grep.txt: grep and class-file evidence for batch 087 (graphs/MMEX/scratch/batches/batch_087.txt, 40 methods).
+Generated classes with UNREACHABLE rows: com/money/manager/ex/investment/InvestmentTransactionEditActivity_MembersInjector (<init>, create, injectMembers) and com/money/manager/ex/investment/InvestmentTransactionEditActivity_ViewBinding (unbind).
+App source class with UNREACHABLE rows (no grep needed by the rules, shown anyway): com/money/manager/ex/investment/PortfolioActivity (<clinit>, <init>, onCreate).
+Source root: final_java_only/MMEX/app/MMEX-#v2024.06.14 (paths below are relative to the repo root).
+Commands: grep (text search, read only), a read-only python3 -I parse of every .class file under app/build/intermediates/javac/debug/classes (constant pool and method table), and python3 -I prints of graphs/MMEX/auto_calls.json records. javap was not used.
+
+== section 1: source text search over the app source root (src/main/java)
+grep -rn over src/main/java for InvestmentTransactionEditActivity_MembersInjector, InvestmentTransactionEditActivity_ViewBinding, injectDateTimeUtilsLazy, unbind:
+(no output: no source reference to the injector, the binding, injectDateTimeUtilsLazy or unbind)
+grep -rn over src/main for PortfolioActivity (all source, manifest and layouts):
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/AndroidManifest.xml:352:            android:name=".investment.PortfolioActivity"
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/res/layout/activity_portfolio.xml:24:    tools:context="com.money.manager.ex.investment.PortfolioActivity">
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/investment/PortfolioActivity.java:27:public class PortfolioActivity
+
+== section 2: the activity lifecycle and the Unbinder (InvestmentTransactionEditActivity.java)
+(no output, exit 1: the activity has no onDestroy and never keeps the Unbinder)
+ButterKnife.bind(this) at line 91 (sed -n 89,92p):
+
+        MmexApplication.getApp().iocComponent.inject(this);
+        ButterKnife.bind(this);
+
+
+== section 3: class-file search (grep -rl -a, binary-safe)
+grep -rl -a for the two generated names:
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/investment/InvestmentTransactionEditActivity_ViewBinding.class
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/investment/InvestmentTransactionEditActivity_MembersInjector.class
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/investment/InvestmentTransactionEditActivity_ViewBinding$4.class
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/investment/InvestmentTransactionEditActivity_ViewBinding$2.class
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/investment/InvestmentTransactionEditActivity_ViewBinding$3.class
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/investment/InvestmentTransactionEditActivity_ViewBinding$1.class
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/core/ioc/DaggerMmxComponent.class
+grep -rl -a for PortfolioActivity:
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/investment/PortfolioActivity.class
+
+== section 4: manifest entries (sed -n 350,354p and 332,335p of AndroidManifest.xml)
+            android:label="@string/enter_password" />
+        <activity
+            android:name=".investment.PortfolioActivity"
+            android:label="@string/portfolio" />
+        <activity
+--
+        <activity
+            android:name=".investment.InvestmentTransactionEditActivity"
+            android:label="@string/investment" />
+        <activity
+
+== section 5: class-file parse (python3 -I, read only): method tables of the batch classes and every reference to them from another class
+class files parsed: 825
+-- method tables (name, descriptor, access flags hex) of batch 087 classes:
+InvestmentTransactionEditActivity_MembersInjector [('<init>', '(Ljavax/inject/Provider;)V', '0x1'), ('create', '(Ljavax/inject/Provider;)Ldagger/MembersInjector;', '0x9'), ('injectMembers', '(Lcom/money/manager/ex/investment/InvestmentTransactionEditActivity;)V', '0x1'), ('injectDateTimeUtilsLazy', '(Lcom/money/manager/ex/investment/InvestmentTransactionEditActivity;Ldagger/Lazy;)V', '0x9'), ('injectMembers', '(Ljava/lang/Object;)V', '0x1041')]
+InvestmentTransactionEditActivity_ViewBinding$1 [('<init>', '(Lcom/money/manager/ex/investment/InvestmentTransactionEditActivity_ViewBinding;Lcom/money/manager/ex/investment/InvestmentTransactionEditActivity;)V', '0x0'), ('doClick', '(Landroid/view/View;)V', '0x1')]
+InvestmentTransactionEditActivity_ViewBinding$2 [('<init>', '(Lcom/money/manager/ex/investment/InvestmentTransactionEditActivity_ViewBinding;Lcom/money/manager/ex/investment/InvestmentTransactionEditActivity;)V', '0x0'), ('doClick', '(Landroid/view/View;)V', '0x1')]
+InvestmentTransactionEditActivity_ViewBinding$3 [('<init>', '(Lcom/money/manager/ex/investment/InvestmentTransactionEditActivity_ViewBinding;Lcom/money/manager/ex/investment/InvestmentTransactionEditActivity;)V', '0x0'), ('doClick', '(Landroid/view/View;)V', '0x1')]
+InvestmentTransactionEditActivity_ViewBinding$4 [('<init>', '(Lcom/money/manager/ex/investment/InvestmentTransactionEditActivity_ViewBinding;Lcom/money/manager/ex/investment/InvestmentTransactionEditActivity;)V', '0x0'), ('doClick', '(Landroid/view/View;)V', '0x1')]
+InvestmentTransactionEditActivity_ViewBinding [('<init>', '(Lcom/money/manager/ex/investment/InvestmentTransactionEditActivity;)V', '0x1'), ('<init>', '(Lcom/money/manager/ex/investment/InvestmentTransactionEditActivity;Landroid/view/View;)V', '0x1'), ('unbind', '()V', '0x1')]
+InvestmentTransactionViewHolder [('<init>', '(Landroid/view/View;)V', '0x1')]
+PortfolioActivity [('<init>', '()V', '0x1'), ('onCreate', '(Landroid/os/Bundle;)V', '0x4'), ('<clinit>', '()V', '0x8')]
+PortfolioCursorAdapter [('<init>', '(Landroid/content/Context;Landroid/database/Cursor;)V', '0x1'), ('newView', '(Landroid/content/Context;Landroid/database/Cursor;Landroid/view/ViewGroup;)Landroid/view/View;', '0x1'), ('bindView', '(Landroid/view/View;Landroid/content/Context;Landroid/database/Cursor;)V', '0x1')]
+PortfolioFragment$1 [('<init>', '(Lcom/money/manager/ex/investment/PortfolioFragment;)V', '0x0'), ('onItemClick', '(Landroid/widget/AdapterView;Landroid/view/View;IJ)V', '0x1')]
+PortfolioFragment$2 [('<init>', '(Lcom/money/manager/ex/investment/PortfolioFragment;)V', '0x0'), ('onCreateLoader', '(ILandroid/os/Bundle;)Landroidx/loader/content/Loader;', '0x1'), ('onLoadFinished', '(Landroidx/loader/content/Loader;Landroid/database/Cursor;)V', '0x1'), ('onLoaderReset', '(Landroidx/loader/content/Loader;)V', '0x1'), ('onLoadFinished', '(Landroidx/loader/content/Loader;Ljava/lang/Object;)V', '0x1041')]
+PortfolioFragment [('newInstance', '(Ljava/lang/Integer;)Lcom/money/manager/ex/investment/PortfolioFragment;', '0x9'), ('<init>', '()V', '0x1'), ('getSubTitle', '()Ljava/lang/String;', '0x1'), ('onCreate', '(Landroid/os/Bundle;)V', '0x1'), ('onCreateView', '(Landroid/view/LayoutInflater;Landroid/view/ViewGroup;Landroid/os/Bundle;)Landroid/view/View;', '0x1'), ('onActivityCreated', '(Landroid/os/Bundle;)V', '0x1'), ('onFloatingActionButtonClicked', '()V', '0x1'), ('onSaveInstanceState', '(Landroid/os/Bundle;)V', '0x1'), ('initializeList', '()V', '0x2'), ('initializeLoader', '()V', '0x2'), ('openEditInvestmentActivity', '(Ljava/lang/Integer;)V', '0x2'), ('access$000', '(Lcom/money/manager/ex/investment/PortfolioFragment;Ljava/lang/Integer;)V', '0x1008')]
+PortfolioItemDataViewHolder [('<init>', '()V', '0x1')]
+-- references to batch 087 member names from any other class:
+DaggerMmxComponent -> ('com/money/manager/ex/investment/InvestmentTransactionEditActivity_MembersInjector', 'injectDateTimeUtilsLazy', '(Lcom/money/manager/ex/investment/InvestmentTransactionEditActivity;Ldagger/Lazy;)V')
+MainActivity -> ('com/money/manager/ex/investment/PortfolioFragment', 'newInstance', '(Ljava/lang/Integer;)Lcom/money/manager/ex/investment/PortfolioFragment;')
+InvestmentTransactionEditActivity$1 -> ('com/money/manager/ex/investment/InvestmentTransactionViewHolder', 'accountSpinner', 'Landroid/widget/Spinner;')
+InvestmentTransactionEditActivity$2 -> ('com/money/manager/ex/investment/InvestmentTransactionViewHolder', 'dateView', 'Lcom/money/manager/ex/view/RobotoTextView;')
+InvestmentTransactionEditActivity -> ('com/money/manager/ex/investment/InvestmentTransactionViewHolder', '<init>', '(Landroid/view/View;)V')
+InvestmentTransactionEditActivity -> ('com/money/manager/ex/investment/InvestmentTransactionViewHolder', 'accountSpinner', 'Landroid/widget/Spinner;')
+InvestmentTransactionEditActivity -> ('com/money/manager/ex/investment/InvestmentTransactionViewHolder', 'dateView', 'Lcom/money/manager/ex/view/RobotoTextView;')
+InvestmentTransactionEditActivity -> ('com/money/manager/ex/investment/InvestmentTransactionViewHolder', 'nextDayButton', 'Lcom/shamanland/fonticon/FontIconView;')
+InvestmentTransactionEditActivity -> ('com/money/manager/ex/investment/InvestmentTransactionViewHolder', 'notesEdit', 'Lcom/money/manager/ex/view/RobotoEditText;')
+InvestmentTransactionEditActivity -> ('com/money/manager/ex/investment/InvestmentTransactionViewHolder', 'numSharesView', 'Lcom/money/manager/ex/view/RobotoTextView;')
+InvestmentTransactionEditActivity -> ('com/money/manager/ex/investment/InvestmentTransactionViewHolder', 'previousDayButton', 'Lcom/shamanland/fonticon/FontIconView;')
+InvestmentTransactionEditActivity -> ('com/money/manager/ex/investment/InvestmentTransactionViewHolder', 'stockNameEdit', 'Lcom/money/manager/ex/view/RobotoEditText;')
+InvestmentTransactionEditActivity -> ('com/money/manager/ex/investment/InvestmentTransactionViewHolder', 'symbolEdit', 'Lcom/money/manager/ex/view/RobotoEditText;')
+
+== section 6: auto_calls.json records (python3 -I, read only): CALL records whose src or dst is a batch 087 class
+MainActivity.onEvent(RequestPortfolioFragmentEvent) -> MainActivity.showPortfolioFragment | MainActivity.java 466 exact []
+MainActivity.showPortfolioFragment -> MainActivity.showFragment(Fragment,String) | MainActivity.java 797 exact []
+MainActivity.showPortfolioFragment -> PortfolioFragment.newInstance | MainActivity.java 795 exact []
+HomeFragment.onContextItemSelected -> RequestPortfolioFragmentEvent.<init> | HomeFragment.java 474 exact []
+HomeFragment.onContextItemSelected -> HomeFragment.startBalanceAccount | HomeFragment.java 471 exact []
+HomeFragment.onContextItemSelected -> QueryAccountBills.getAccountId | HomeFragment.java 457 exact []
+HomeFragment.onContextItemSelected -> HomeFragment.getSelectedAccount | HomeFragment.java 454 exact []
+InvestmentTransactionEditActivity.initializeForm -> InvestmentTransactionViewHolder.<init> | InvestmentTransactionEditActivity.java 291 exact []
+InvestmentTransactionEditActivity_ViewBinding.<init>(InvestmentTransactionEditActivity) -> InvestmentTransactionEditActivity_ViewBinding.<init>(InvestmentTransactionEditActivity,View) | InvestmentTransactionEditActivity_ViewBinding.java 27 exact []
+InvestmentTransactionEditActivity_ViewBinding.<init>(InvestmentTransactionEditActivity,View) -> InvestmentTransactionEditActivity_ViewBinding$4.<init> | InvestmentTransactionEditActivity_ViewBinding.java 62 exact []
+InvestmentTransactionEditActivity_ViewBinding.<init>(InvestmentTransactionEditActivity,View) -> InvestmentTransactionEditActivity_ViewBinding$3.<init> | InvestmentTransactionEditActivity_ViewBinding.java 54 exact []
+InvestmentTransactionEditActivity_ViewBinding.<init>(InvestmentTransactionEditActivity,View) -> InvestmentTransactionEditActivity_ViewBinding$2.<init> | InvestmentTransactionEditActivity_ViewBinding.java 46 exact []
+InvestmentTransactionEditActivity_ViewBinding.<init>(InvestmentTransactionEditActivity,View) -> InvestmentTransactionEditActivity_ViewBinding$1.<init> | InvestmentTransactionEditActivity_ViewBinding.java 38 exact []
+PortfolioFragment.newInstance -> PortfolioFragment.<init> | PortfolioFragment.java 57 exact []
+PortfolioFragment.<init> -> BaseListFragment.<init> | PortfolioFragment.java 64 exact []
+PortfolioFragment.onActivityCreated -> BaseListFragment.attachFloatingActionButtonToListView | PortfolioFragment.java 121 exact []
+PortfolioFragment.onActivityCreated -> BaseListFragment.setFloatingActionButtonVisible | PortfolioFragment.java 120 exact []
+PortfolioFragment.onActivityCreated -> PortfolioFragment.initializeLoader | PortfolioFragment.java 111 exact []
+PortfolioFragment.onActivityCreated -> AbsListFragment.setListAdapter | PortfolioFragment.java 109 exact []
+PortfolioFragment.onActivityCreated -> PortfolioFragment.initializeList | PortfolioFragment.java 107 exact []
+PortfolioFragment.onActivityCreated -> PortfolioCursorAdapter.<init> | PortfolioFragment.java 105 exact []
+PortfolioFragment.onActivityCreated -> AbsListFragment.setListShown(boolean) | PortfolioFragment.java 102 exact []
+PortfolioFragment.onActivityCreated -> AbsListFragment.setEmptyText | PortfolioFragment.java 101 exact []
+PortfolioFragment.onActivityCreated -> BaseListFragment.onActivityCreated@PortfolioFragment | PortfolioFragment.java 99 exact []
+PortfolioFragment.onFloatingActionButtonClicked -> PortfolioFragment.openEditInvestmentActivity | PortfolioFragment.java 126 exact []
+PortfolioFragment.onSaveInstanceState -> BaseListFragment.onSaveInstanceState | PortfolioFragment.java 131 exact []
+PortfolioFragment.initializeList -> PortfolioFragment$1.<init> | PortfolioFragment.java 140 exact []
+PortfolioFragment.initializeList -> AbsListFragment.getListView | PortfolioFragment.java 140 exact []
+PortfolioFragment.initializeLoader -> PortfolioFragment$2.<init> | PortfolioFragment.java 158 exact []
+InvestmentTransactionEditActivity_MembersInjector.create -> InvestmentTransactionEditActivity_MembersInjector.<init> | InvestmentTransactionEditActivity_MembersInjector.java 25 exact []
+InvestmentTransactionEditActivity_MembersInjector.injectMembers -> InvestmentTransactionEditActivity_MembersInjector.injectDateTimeUtilsLazy | InvestmentTransactionEditActivity_MembersInjector.java 30 exact []
+InvestmentTransactionEditActivity_ViewBinding$2.doClick -> InvestmentTransactionEditActivity.onPurchasePriceClick | InvestmentTransactionEditActivity_ViewBinding.java 49 exact []
+InvestmentTransactionEditActivity_ViewBinding$4.doClick -> InvestmentTransactionEditActivity.onCurrentPriceClick | InvestmentTransactionEditActivity_ViewBinding.java 65 exact []
+PortfolioFragment$1.onItemClick -> PortfolioFragment.openEditInvestmentActivity | PortfolioFragment.java 149 exact ['PortfolioFragment.access$000']
+PortfolioFragment$1.onItemClick -> Stock.getId | PortfolioFragment.java 149 exact []
+PortfolioFragment$1.onItemClick -> Stock.from | PortfolioFragment.java 148 exact []
+PortfolioFragment$1.onItemClick -> AbsListFragment.getListAdapter | PortfolioFragment.java 147 exact []
+PortfolioFragment$1.onItemClick -> AbsListFragment.getListView | PortfolioFragment.java 144 exact []
+InvestmentTransactionEditActivity_ViewBinding$3.doClick -> InvestmentTransactionEditActivity.onCommissionClick | InvestmentTransactionEditActivity_ViewBinding.java 57 exact []
+PortfolioCursorAdapter.newView -> PortfolioItemDataViewHolder.<init> | PortfolioCursorAdapter.java 57 exact []
+InvestmentTransactionEditActivity_ViewBinding$1.doClick -> InvestmentTransactionEditActivity.onNumSharesClick | InvestmentTransactionEditActivity_ViewBinding.java 41 exact []
+PortfolioActivity.<init> -> MmxBaseFragmentActivity.<init> | PortfolioActivity.java 27 exact []
+PortfolioActivity.onCreate -> PortfolioFragment.newInstance | PortfolioActivity.java 49 exact []
+PortfolioActivity.onCreate -> MmxBaseFragmentActivity.setDisplayHomeAsUpEnabled | PortfolioActivity.java 38 exact []
+PortfolioActivity.onCreate -> MmxBaseFragmentActivity.setContentView | PortfolioActivity.java 35 exact []
+PortfolioActivity.onCreate -> MmxBaseFragmentActivity.onCreate | PortfolioActivity.java 33 exact []
+PortfolioFragment$2.onCreateLoader -> MmxCursorLoader.<init>(Context,Uri,Select) | PortfolioFragment.java 170 exact []
+PortfolioFragment$2.onCreateLoader -> Dataset.getUri | PortfolioFragment.java 170 exact []
+PortfolioFragment$2.onCreateLoader -> Select.orderBy | PortfolioFragment.java 167 exact []
+PortfolioFragment$2.onCreateLoader -> Select.where(String) | PortfolioFragment.java 166 exact []
+PortfolioFragment$2.onCreateLoader -> Select.<init>(String[]) | PortfolioFragment.java 165 exact []
+PortfolioFragment$2.onCreateLoader -> StockRepository.getAllColumns | PortfolioFragment.java 165 exact []
+PortfolioFragment$2.onCreateLoader -> StockRepository.<init> | PortfolioFragment.java 164 exact []
+PortfolioFragment$2.onCreateLoader -> AbsListFragment.setListShown(boolean) | PortfolioFragment.java 162 exact []
+PortfolioFragment$2.onLoadFinished -> AbsListFragment.setListShownNoAnimation | PortfolioFragment.java 185 exact []
+PortfolioFragment$2.onLoadFinished -> BaseListFragment.getFloatingActionButton | PortfolioFragment.java 182 exact []
+PortfolioFragment$2.onLoadFinished -> AbsListFragment.setListShown(boolean) | PortfolioFragment.java 179 exact []
+PortfolioFragment$2.onLoadFinished -> AbsListFragment.getListAdapter | PortfolioFragment.java 175 exact []
+PortfolioFragment$2.onLoaderReset -> AbsListFragment.getListAdapter | PortfolioFragment.java 193 exact []
+DaggerMmxComponent.injectInvestmentTransactionEditActivity -> MmxDateTimeUtils_Factory.<clinit> | DaggerMmxComponent.java 397 exact []
+DaggerMmxComponent.injectInvestmentTransactionEditActivity -> InvestmentTransactionEditActivity_MembersInjector.injectDateTimeUtilsLazy | DaggerMmxComponent.java 396 exact []
+DaggerMmxComponent.injectInvestmentTransactionEditActivity -> MmxDateTimeUtils_Factory.create | DaggerMmxComponent.java 397 exact []
+BaseListFragment$2.onClick -> WatchlistItemsFragment.onFloatingActionButtonClicked | BaseListFragment.java 244 cha []
+BaseListFragment$2.onClick -> AccountListFragment.onFloatingActionButtonClicked | BaseListFragment.java 244 cha []
+BaseListFragment$2.onClick -> PortfolioFragment.onFloatingActionButtonClicked | BaseListFragment.java 244 cha []
+BaseListFragment$2.onClick -> BudgetListFragment.onFloatingActionButtonClicked | BaseListFragment.java 244 cha []
+BaseListFragment$2.onClick -> AllDataListFragment.onFloatingActionButtonClicked | BaseListFragment.java 244 cha []
+BaseListFragment$2.onClick -> RecurringTransactionListFragment.onFloatingActionButtonClicked | BaseListFragment.java 244 cha []
+BaseListFragment$2.onClick -> PayeeListFragment.onFloatingActionButtonClicked | BaseListFragment.java 244 cha []
+BaseListFragment$2.onClick -> CurrencyListFragment.onFloatingActionButtonClicked | BaseListFragment.java 244 cha []
+BaseListFragment$2.onClick -> BaseListFragment.onFloatingActionButtonClicked | BaseListFragment.java 244 exact []
+BaseListFragment.onActivityCreated -> WatchlistItemsFragment.getSubTitle | BaseListFragment.java 83 cha []
+BaseListFragment.onActivityCreated -> PayeeReportFragment.getSubTitle | BaseListFragment.java 83 cha []
+BaseListFragment.onActivityCreated -> AccountListFragment.getSubTitle | BaseListFragment.java 83 cha []
+BaseListFragment.onActivityCreated -> PortfolioFragment.getSubTitle | BaseListFragment.java 83 cha []
+BaseListFragment.onActivityCreated -> BudgetListFragment.getSubTitle | BaseListFragment.java 83 cha []
+BaseListFragment.onActivityCreated -> AllDataListFragment.getSubTitle | BaseListFragment.java 83 cha []
+BaseListFragment.onActivityCreated -> RecurringTransactionListFragment.getSubTitle | BaseListFragment.java 83 cha []
+BaseListFragment.onActivityCreated -> BudgetDetailFragment.getSubTitle | BaseListFragment.java 83 cha []
+BaseListFragment.onActivityCreated -> PayeeListFragment.getSubTitle | BaseListFragment.java 83 cha []
+BaseListFragment.onActivityCreated -> CategoriesReportFragment.getSubTitle | BaseListFragment.java 83 cha []
+BaseListFragment.onActivityCreated -> CurrencyListFragment.getSubTitle | BaseListFragment.java 83 cha []
+BaseListFragment.onActivityCreated -> AbsListFragment.getListView | BaseListFragment.java 75 exact []
+BaseListFragment.onActivityCreated@AccountListFragment -> AccountListFragment.getSubTitle | BaseListFragment.java 83 exact []
+BaseListFragment.onActivityCreated@AccountListFragment -> AbsListFragment.getListView | BaseListFragment.java 75 exact []
+BaseListFragment.onActivityCreated@BudgetDetailFragment -> BudgetDetailFragment.getSubTitle | BaseListFragment.java 83 exact []
+BaseListFragment.onActivityCreated@BudgetDetailFragment -> AbsListFragment.getListView | BaseListFragment.java 75 exact []
+BaseListFragment.onActivityCreated@BudgetListFragment -> BudgetListFragment.getSubTitle | BaseListFragment.java 83 exact []
+BaseListFragment.onActivityCreated@BudgetListFragment -> AbsListFragment.getListView | BaseListFragment.java 75 exact []
+BaseListFragment.onActivityCreated@AllDataListFragment -> AllDataListFragment.getSubTitle | BaseListFragment.java 83 exact []
+BaseListFragment.onActivityCreated@AllDataListFragment -> AbsListFragment.getListView | BaseListFragment.java 75 exact []
+BaseListFragment.onActivityCreated@CurrencyListFragment -> CurrencyListFragment.getSubTitle | BaseListFragment.java 83 exact []
+BaseListFragment.onActivityCreated@CurrencyListFragment -> AbsListFragment.getListView | BaseListFragment.java 75 exact []
+BaseListFragment.onActivityCreated@PayeeListFragment -> PayeeListFragment.getSubTitle | BaseListFragment.java 83 exact []
+BaseListFragment.onActivityCreated@PayeeListFragment -> AbsListFragment.getListView | BaseListFragment.java 75 exact []
+BaseListFragment.onActivityCreated@PortfolioFragment -> PortfolioFragment.getSubTitle | BaseListFragment.java 83 exact []
+BaseListFragment.onActivityCreated@PortfolioFragment -> AbsListFragment.getListView | BaseListFragment.java 75 exact []
+BaseListFragment.onActivityCreated@WatchlistItemsFragment -> WatchlistItemsFragment.getSubTitle | BaseListFragment.java 83 exact []
+BaseListFragment.onActivityCreated@WatchlistItemsFragment -> AbsListFragment.getListView | BaseListFragment.java 75 exact []
+BaseListFragment.onActivityCreated@RecurringTransactionListFragment -> RecurringTransactionListFragment.getSubTitle | BaseListFragment.java 83 exact []
+BaseListFragment.onActivityCreated@RecurringTransactionListFragment -> AbsListFragment.getListView | BaseListFragment.java 75 exact []
+BaseListFragment.onActivityCreated@CategoriesReportFragment -> CategoriesReportFragment.getSubTitle | BaseListFragment.java 83 exact []
+BaseListFragment.onActivityCreated@CategoriesReportFragment -> AbsListFragment.getListView | BaseListFragment.java 75 exact []
+BaseListFragment.onActivityCreated@PayeeReportFragment -> PayeeReportFragment.getSubTitle | BaseListFragment.java 83 exact []
+BaseListFragment.onActivityCreated@PayeeReportFragment -> AbsListFragment.getListView | BaseListFragment.java 75 exact []

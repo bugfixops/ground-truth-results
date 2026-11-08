@@ -1,0 +1,47 @@
+     1	package org.proninyaroslav.libretorrent.ui.addlink;
+     2	
+     3	import android.content.Intent;
+     4	import android.os.Bundle;
+     5	
+     6	import androidx.annotation.NonNull;
+     7	import androidx.annotation.Nullable;
+     8	import androidx.appcompat.app.AppCompatActivity;
+     9	import androidx.fragment.app.Fragment;
+    10	import androidx.fragment.app.FragmentManager;
+    11	
+    12	import org.proninyaroslav.libretorrent.core.utils.Utils;
+    13	import org.proninyaroslav.libretorrent.ui.FragmentCallback;
+    14	
+    15	public class AddLinkActivity extends AppCompatActivity
+    16	        implements FragmentCallback
+    17	{
+    18	    private static final String TAG_ADD_LINK_DIALOG = "add_link_dialog";
+    19	
+    20	    private AddLinkDialog addLinkDialog;
+    21	
+    22	    @Override
+    23	    public void onCreate(@Nullable Bundle savedInstanceState)
+    24	    {
+    25	        setTheme(Utils.getTranslucentAppTheme(getApplicationContext()));
+    26	        super.onCreate(savedInstanceState);
+    27	
+    28	        FragmentManager fm = getSupportFragmentManager();
+    29	        addLinkDialog = (AddLinkDialog)fm.findFragmentByTag(TAG_ADD_LINK_DIALOG);
+    30	        if (addLinkDialog == null) {
+    31	            addLinkDialog = AddLinkDialog.newInstance();
+    32	            addLinkDialog.show(fm, TAG_ADD_LINK_DIALOG);
+    33	        }
+    34	    }
+    35	
+    36	    @Override
+    37	    public void onFragmentFinished(@NonNull Fragment f, Intent intent, @NonNull ResultCode code)
+    38	    {
+    39	        finish();
+    40	    }
+    41	
+    42	    @Override
+    43	    public void onBackPressed()
+    44	    {
+    45	        addLinkDialog.onBackPressed();
+    46	    }
+    47	}

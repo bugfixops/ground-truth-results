@@ -1,0 +1,110 @@
+## DatabaseManager.getContext  REACHABLE  confirmed_by=SOURCE path=UNCHECKED
+   env=- state=- classes=explicit;standard explicit_standard_route=yes
+   1. E71c76102 ENTRY/standard*
+      S_ENTRY -> MainActivity.<init>
+      The MAIN / LAUNCHER activity is started from the launcher
+      evidence: SRC AndroidManifest.xml:136-143 (MAIN + LAUNCHER intent filter of com.money.manager.ex.home.MainActivity)
+        136                  android:name=".home.MainActivity"
+        137                  android:label="@string/application_name" android:exported="true">
+        138              <intent-filter>
+        139                  <action android:name="android.intent.action.MAIN" />
+        140  
+        141                  <category android:name="android.intent.category.LAUNCHER" />
+        142                  <!-- Samsung MultiWindow Function -->
+        143                  <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
+   2. E2e074fc1 LIFECYCLE/standard*
+      MainActivity.<init> -> MainActivity.onCreate
+      the framework calls onCreate after it creates the activity instance
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2722-2731 (callActivityOnCreate); FW-SRC core/java/android/app/Instrumentation.java:1212-1216; FW-SRC core/java/android/app/Activity.java:6993-7000 (performCreate calls onCreate); same route as graph_def.py AccountEditActivity.<init> -> onCreate
+       2722                  int theme = r.activityInfo.getThemeResource();
+       2723                  if (theme != 0) {
+       2724                      activity.setTheme(theme);
+       2725                  }
+       2726  
+       2727                  activity.mCalled = false;
+       2728                  if (r.isPersistable()) {
+       2729                      mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+       2730                  } else {
+       2731                      mInstrumentation.callActivityOnCreate(activity, r.state);
+       1212      public void callActivityOnCreate(Activity activity, Bundle icicle) {
+       1213          prePerformCreate(activity);
+       1214          activity.performCreate(icicle);
+       1215          postPerformCreate(activity);
+       1216      }
+       6993      final void performCreate(Bundle icicle, PersistableBundle persistentState) {
+       6994          mCanEnterPictureInPicture = true;
+       6995          restoreHasCurrentPermissionRequest(icicle);
+       6996          if (persistentState != null) {
+       6997              onCreate(icicle, persistentState);
+       6998          } else {
+       6999              onCreate(icicle);
+       7000          }
+   3. E73c83312 CALL/explicit*
+      MainActivity.onCreate -> MainActivity.showCurrentDatabasePath
+      onCreate shows the current database path after the prerequisite check passes
+      guard: !showPrerequisite() (home/MainActivity.java:184-187; definition :1478-1499)
+      evidence: SRC home/MainActivity.java:184-187 (prerequisite gate; finish + return if true), 223 (showCurrentDatabasePath call); SRC home/MainActivity.java:1478-1499 (showPrerequisite definition)
+        184          if (showPrerequisite()) {
+        185              finish();
+        186              return;
+        187          }
+       1478      private boolean showPrerequisite() {
+       1479          // show tutorial on the first run
+       1480          if (isTutorialNeeded()) {
+       1481              showTutorial();
+       1482              return true;
+       1483          }
+       1484  
+       1485          // show database chooser if no valid database
+       1486          if (!isDatabaseAvailable()) {
+       1487              showSelectDatabaseActivity();
+       1488              return true;
+       1489          }
+       1490  
+       1491          // todo: show webview changelog?
+      ...  (8 more lines)
+   4. Edff47499 CALL/explicit*
+      MainActivity.showCurrentDatabasePath -> DatabaseManager.getDatabasePath
+      Direct call
+      evidence: SRC MainActivity.java:1426 (bytecode)
+       1426          String currentPath = new DatabaseManager(context).getDatabasePath();
+   5. E2e040e89 CALL/explicit*
+      DatabaseManager.getDatabasePath -> DatabaseManager.getDefaultDatabasePath
+      getDatabasePath falls through to the default path when no stored database is usable
+      guard: stored database path is empty OR its file does not exist (core/database/DatabaseManager.java:44-49 early return; fall-through call :54)
+      evidence: SRC core/database/DatabaseManager.java:44-54 (early return when stored path non-empty and file exists :44-49; fall-through call :54)
+         44          if (!TextUtils.isEmpty(databasePath)) {
+         45              // Use the db path stored in the preferences.
+         46              File databaseFile = new File(databasePath);
+         47              if (databaseFile.getAbsoluteFile().exists())  {
+         48                  return databaseFile.getPath();
+         49              }
+         50          }
+         51  
+         52          // otherwise try other paths or create the default database.
+         53  
+         54          String defaultPath = getDefaultDatabasePath();
+   6. E2ed88e21 CALL/explicit*
+      DatabaseManager.getDefaultDatabasePath -> DatabaseManager.getDefaultDatabaseDirectory
+      Direct call
+      evidence: SRC DatabaseManager.java:75 (bytecode)
+         75          return getDefaultDatabaseDirectory()
+   7. E68cc20fc CALL/explicit*
+      DatabaseManager.getDefaultDatabaseDirectory -> DatabaseManager.getPackageDirectory
+      getDefaultDatabaseDirectory falls back to the package directory when no external storage directory is available
+      guard: getDbExternalStorageDirectory() == null AND getExternalFilesDirectory() == null (core/database/DatabaseManager.java:90-94; call :97)
+      evidence: SRC core/database/DatabaseManager.java:90-97 (external lookups :90-94; getPackageDirectory call :97)
+         90          defaultFolder = getDbExternalStorageDirectory();
+         91          if (defaultFolder != null) return defaultFolder.getAbsolutePath();
+         92  
+         93          defaultFolder = getExternalFilesDirectory();
+         94          if (defaultFolder != null) return defaultFolder.getAbsolutePath();
+         95  
+         96          // Then use files dir.
+         97          defaultFolder = getPackageDirectory();
+   8. E27eef14a CALL/explicit*
+      DatabaseManager.getPackageDirectory -> DatabaseManager.getContext
+      Direct call
+      evidence: SRC DatabaseManager.java:163 (bytecode)
+        163          File packageLocation = getContext().getFilesDir().getParentFile();
+

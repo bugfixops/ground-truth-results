@@ -1,0 +1,85 @@
+method: SyntaxHighlighterBase.isFixupOverlap
+route: route_02
+steps: 20
+verdict: fixed (path row)
+
+step 1: S_ENTRY -> ApplicationObject.<init>
+  edge: E211966cc kind=ENTRY env=None env_kinds=[] needs_state=None gui=['Tap the Markor launcher icon']
+  trigger: The process starts when the launcher icon is tapped (before any activity)
+  evidence: SRC AndroidManifest.xml:39-40
+step 2: ApplicationObject.<init> -> ApplicationObject.onCreate
+  edge: Ed6414d9f kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Application.onCreate
+  evidence: SRC ApplicationObject.java:16,39
+step 3: ApplicationObject.onCreate -> MainActivity.<init>
+  edge: E0254b914 kind=ENTRY env=None env_kinds=[] needs_state=None gui=['Tap the Markor launcher icon']
+  trigger: The MAIN / LAUNCHER intent starts MainActivity (after Application.onCreate on a cold start)
+  evidence: SRC AndroidManifest.xml:61-71; FW-SRC core/java/android/app/ActivityThread.java:5740 (callApplicationOnCreate runs before the first activity)
+step 4: MainActivity.<init> -> MainActivity.onCreate
+  edge: Ed25af8f4 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onCreate
+  evidence: SRC MainActivity.java:76; FW-SRC core/java/android/app/Activity.java:989 (onCreate), 1311 (onResume), 1331 (onPostResume), 3001-3010 (onBackPressed), 5679 (onActivityResult), 824 (mResultCode defaults to RESULT_CANCELED)
+step 5: MainActivity.onCreate -> MainActivity.onResume
+  edge: Eba46a594 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onStart and then Activity.onResume after onCreate returns (cold start)
+  evidence: SRC MainActivity.java:76,279; FW-SRC core/java/android/app/ActivityThread.java:2729 (callActivityOnCreate), 2741 (performStart), 2950 (performResume)
+step 6: MainActivity.onResume -> MainActivity.onPostResume
+  edge: E659e191c kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Activity.performResume calls onPostResume after onResume
+  evidence: SRC MainActivity.java:317; FW-SRC core/java/android/app/Activity.java:7098-7131 (onPostResume at 7131)
+step 7: MainActivity.onPostResume -> S_NOTEBOOK
+  edge: E0ecb8e4d kind=ENTERS env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The notebook tab is the first page the pager shows (position 0); it is the default startup tab, so it is the visible page after a cold start
+  evidence: SRC MainActivity.java:105-106; SRC AppSettings.java:781; SRC MainActivity.java:142-144; FW-SRC core/java/android/app/Activity.java:7098-7131; INFERRED androidx ViewPager2 calls the registered OnPageChangeCallback after the page changes (androidx source not read)
+step 8: S_NOTEBOOK -> GsFileBrowserListAdapter.onClick
+  edge: Eba14bdbd kind=GUI env=None env_kinds=[] needs_state=None gui=['Tap a file or folder in the notebook list (a folder opens; a file goes to the notebook listener)']
+  trigger: Tap a file or folder in the notebook list (a folder opens; a file goes to the notebook listener)
+  evidence: SRC GsFileBrowserListAdapter.java:271 (row click listener), 404-416 (folder load, file to the listener); SRC GsFileBrowserFragment.java:123-124; FW-SRC core/java/android/view/View.java:6289-6296 (performClick calls the OnClickListener), 6331-6376 (performLongClick calls the OnLongClickListener), 11768-11774 (the touch listener), 6143-6170 (setOnClickListener / setOnLongClickListener register them); core/java/android/widget/AdapterView.java:314-321 (performItemClick calls the OnItemClickListener)
+step 9: GsFileBrowserListAdapter.onClick -> MainActivity$2.onFsViewerSelected
+  edge: E08a94a9d kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Virtual/interface call that can dispatch to this implementation
+  evidence: SRC GsFileBrowserListAdapter.java:426 (the single-file row tap calls the same listener on this line); SRC GsFileBrowserListAdapter.java:440 (bytecode)
+step 10: MainActivity$2.onFsViewerSelected -> DocumentActivity.launch(Activity,File,Boolean,Integer)
+  edge: E1e3370f7 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC MainActivity.java:490 (bytecode)
+step 11: DocumentActivity.launch(Activity,File,Boolean,Integer) -> DocumentActivity.launch(Activity,File,Boolean,Integer,boolean)
+  edge: E2052a409 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC DocumentActivity.java:61 (bytecode)
+step 12: DocumentActivity.launch(Activity,File,Boolean,Integer,boolean) -> DocumentActivity.<init>
+  edge: E69c12a89 kind=INTENT env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The app starts DocumentActivity with an explicit intent (startActivity)
+  evidence: SRC DocumentActivity.java:116
+step 13: DocumentActivity.<init> -> DocumentActivity.onCreate
+  edge: E61ca7c61 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onCreate
+  evidence: SRC DocumentActivity.java:135; FW-SRC core/java/android/app/Activity.java:989 (onCreate), 1311 (onResume), 1331 (onPostResume), 3001-3010 (onBackPressed), 5679 (onActivityResult), 824 (mResultCode defaults to RESULT_CANCELED)
+step 14: DocumentActivity.onCreate -> DocumentActivity.handleLaunchingIntent
+  edge: Eba99443f kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: onCreate hands the launching intent to handleLaunchingIntent (the in-app launch; the bytecode call is replaced by this edge)
+  evidence: SRC DocumentActivity.java:149 (bytecode)
+step 15: DocumentActivity.handleLaunchingIntent -> DocumentActivity.onResume@EDIT
+  edge: E4e39442d kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The editor of the file is committed (no visible fragment); the activity then resumes and shows it
+  evidence: SRC DocumentActivity.java:229 (showFragment), 149 and 155 (callers); FW-SRC core/java/android/app/Activity.java:7098-7131; INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read)
+step 16: DocumentActivity.onResume@EDIT -> S_DOCUMENT
+  edge: Ec8eaff3b kind=ENTERS env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The editor or viewer of the file is shown once the activity resumes
+  evidence: SRC DocumentActivity.java:229, 310-313; FW-SRC core/java/android/app/Activity.java:7128-7129; INFERRED androidx.fragment.app.FragmentManager drives the fragment lifecycle callbacks (androidx source not read)
+step 17: S_DOCUMENT -> HighlightingEditor$1.onTextChanged
+  edge: E091c9edb kind=GUI env=None env_kinds=[] needs_state=None gui=['Type or delete text in a document (the highlighter re-highlights the open document in its own format)']
+  trigger: Type or delete text in a document (the highlighter re-highlights the open document in its own format)
+  evidence: SRC HighlightingEditor.java:94-103 (TextWatcher.onTextChanged calls _hl.fixup)
+step 18: HighlightingEditor$1.onTextChanged -> SyntaxHighlighterBase.fixup(int,int,int)
+  edge: E08c63a40 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC HighlightingEditor.java:100 (bytecode)
+step 19: SyntaxHighlighterBase.fixup(int,int,int) -> SyntaxHighlighterBase.fixup(int,int)
+  edge: E3f2685be kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC SyntaxHighlighterBase.java:285 (bytecode)
+step 20: SyntaxHighlighterBase.fixup(int,int) -> SyntaxHighlighterBase.isFixupOverlap
+  edge: Ea060a0d6 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC SyntaxHighlighterBase.java:300 (bytecode)

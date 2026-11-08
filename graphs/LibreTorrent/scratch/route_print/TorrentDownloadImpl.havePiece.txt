@@ -1,0 +1,759 @@
+METHOD: TorrentDownloadImpl.havePiece
+verdict: REACHABLE   steps_from_launch: 21
+route steps: 21 edges
+======================================================================
+
+STEP 1  edge E2f8f0c2f
+  S_ENTRY -> NotificationReceiver.onReceive
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: PendingIntent.getBroadcast(
+  evidence: SRC AndroidManifest.xml:256-263; service/TorrentService.java:497-524; receiver/NotificationReceiver.java:41-81
+  cite [SRC] AndroidManifest.xml:256-263
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/AndroidManifest.xml)
+      256:         <receiver
+      257:             android:name=".receiver.NotificationReceiver"
+      258:             android:exported="false">
+      259:             <intent-filter>
+      260:                 <action android:name="org.proninyaroslav.libretorrent.receivers.NotificationReceiver.NOTIFY_ACTION_SHUTDOWN_APP" />
+      261:                 <action android:name="org.proninyaroslav.libretorrent.receivers.NotificationReceiver.NOTIFY_ACTION_ADD_TORRENT" />
+      262:             </intent-filter>
+      263:         </receiver>
+  cite [SRC] service/TorrentService.java:497-524
+      497:     private void initPendingIntents() {
+      498:         Intent shutdownIntent = new Intent(getApplicationContext(), NotificationReceiver.class);
+      499:         shutdownIntent.setAction(NotificationReceiver.NOTIFY_ACTION_SHUTDOWN_APP);
+      500:         shutdownPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0,
+      501:                 shutdownIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+      502:         );
+      503: 
+      504:         Intent pauseButtonIntent = new Intent(getApplicationContext(), NotificationReceiver.class);
+      505:         pauseButtonIntent.setAction(NotificationReceiver.NOTIFY_ACTION_PAUSE_ALL);
+      506:         pauseButtonPendingIntent = PendingIntent.getBroadcast(
+      507:                 getApplicationContext(), 0, pauseButtonIntent,
+      508:                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+      509:         );
+      510: 
+      511:         Intent resumeButtonIntent = new Intent(getApplicationContext(), NotificationReceiver.class);
+      512:         resumeButtonIntent.setAction(NotificationReceiver.NOTIFY_ACTION_RESUME_ALL);
+      513:         resumeButtonPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0,
+      514:                 resumeButtonIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+      515:         );
+      516: 
+      517:         Intent pauseResumeButtonIntent = new Intent(getApplicationContext(), NotificationReceiver.class);
+      518:         pauseResumeButtonIntent.setAction(NotificationReceiver.NOTIFY_ACTION_PAUSE_RESUME_ALL);
+      519:         pauseResumePendingIntent = PendingIntent.getBroadcast(
+      520:                 getApplicationContext(), 0, pauseResumeButtonIntent,
+      521:                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+      522:         );
+      523: 
+      524:     }
+  cite [SRC] receiver/NotificationReceiver.java:41-81
+       41:     @Override
+       42:     public void onReceive(Context context, Intent intent)
+       43:     {
+       44:         String action = intent.getAction();
+       45:         if (action == null)
+       46:             return;
+       47:         Intent mainIntent, serviceIntent;
+       48:         switch (action) {
+       49:             /* Send action to the already running service */
+       50:             case NOTIFY_ACTION_SHUTDOWN_APP:
+       51:                 mainIntent = new Intent(context.getApplicationContext(), MainActivity.class);
+       52:                 mainIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+       53:                 mainIntent.setAction(NOTIFY_ACTION_SHUTDOWN_APP);
+       54:                 context.startActivity(mainIntent);
+       55: 
+       56:                 serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+       57:                 serviceIntent.setAction(NOTIFY_ACTION_SHUTDOWN_APP);
+       58:                 context.startService(serviceIntent);
+       59:                 break;
+       60:             case NOTIFY_ACTION_ADD_TORRENT:
+       61:                 mainIntent = new Intent(context.getApplicationContext(), MainActivity.class);
+       62:                 mainIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+       63:                 mainIntent.setAction(NOTIFY_ACTION_ADD_TORRENT);
+       64:                 context.startActivity(mainIntent);
+       65:                 break;
+       66:             case NOTIFY_ACTION_PAUSE_ALL:
+       67:                 serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+       68:                 serviceIntent.setAction(NOTIFY_ACTION_PAUSE_ALL);
+       69:                 context.startService(serviceIntent);
+       70:                 break;
+       71:             case NOTIFY_ACTION_RESUME_ALL:
+       72:                 serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+       73:                 serviceIntent.setAction(NOTIFY_ACTION_RESUME_ALL);
+       74:                 context.startService(serviceIntent);
+       75:                 break;
+       76:             case NOTIFY_ACTION_PAUSE_RESUME_ALL:
+       77:                 serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+       78:                 serviceIntent.setAction(NOTIFY_ACTION_PAUSE_RESUME_ALL);
+       79:                 context.startService(serviceIntent);
+       80:                 break;
+       81:         }
+
+STEP 2  edge Ef82a6423
+  NotificationReceiver.onReceive -> TorrentService.onStartCommand
+  class: standard   kind: INTENT
+  guard: action is one of NOTIFY_ACTION_SHUTDOWN_APP, NOTIFY_ACTION_PAUSE_ALL, NOTIFY_ACTION_RESUME_ALL, NOTIFY_ACTION_PAUSE_RESUME_ALL
+  needs_state: None
+  env: None
+  evidence: SRC receiver/NotificationReceiver.java:50-58,66-80; service/TorrentService.java:175-232; FW-SRC core/java/android/app/ActivityThread.java:3464-3475
+  cite [SRC] receiver/NotificationReceiver.java:50-58, 66-80
+       50:             case NOTIFY_ACTION_SHUTDOWN_APP:
+       51:                 mainIntent = new Intent(context.getApplicationContext(), MainActivity.class);
+       52:                 mainIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+       53:                 mainIntent.setAction(NOTIFY_ACTION_SHUTDOWN_APP);
+       54:                 context.startActivity(mainIntent);
+       55: 
+       56:                 serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+       57:                 serviceIntent.setAction(NOTIFY_ACTION_SHUTDOWN_APP);
+       58:                 context.startService(serviceIntent);
+       66:             case NOTIFY_ACTION_PAUSE_ALL:
+       67:                 serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+       68:                 serviceIntent.setAction(NOTIFY_ACTION_PAUSE_ALL);
+       69:                 context.startService(serviceIntent);
+       70:                 break;
+       71:             case NOTIFY_ACTION_RESUME_ALL:
+       72:                 serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+       73:                 serviceIntent.setAction(NOTIFY_ACTION_RESUME_ALL);
+       74:                 context.startService(serviceIntent);
+       75:                 break;
+       76:             case NOTIFY_ACTION_PAUSE_RESUME_ALL:
+       77:                 serviceIntent = new Intent(context.getApplicationContext(), TorrentService.class);
+       78:                 serviceIntent.setAction(NOTIFY_ACTION_PAUSE_RESUME_ALL);
+       79:                 context.startService(serviceIntent);
+       80:                 break;
+  cite [SRC] service/TorrentService.java:175-232
+      175:     @Override
+      176:     public int onStartCommand(Intent intent, int flags, int startId)
+      177:     {
+      178:         String action = null;
+      179:         if (intent != null)
+      180:             action = intent.getAction();
+      181: 
+      182:         /* Handle shutdown actions before init service */
+      183:         if (action != null) {
+      184:             int ret = handleShutdownActions(action);
+      185:             if (ret >= 0)
+      186:                 return ret;
+      187:         }
+      188: 
+      189:         /* The first start */
+      190:         if (isAlreadyRunning.compareAndSet(false, true))
+      191:             init();
+      192: 
+      193:         if (action != null)
+      194:             handleActions(action);
+      195: 
+      196:         return START_STICKY;
+      197:     }
+      198: 
+      199:     private int handleShutdownActions(String action)
+      200:     {
+      201:         switch (action) {
+      202:             case NotificationReceiver.NOTIFY_ACTION_SHUTDOWN_APP:
+      203:             case ACTION_SHUTDOWN:
+      204:                 shutdown();
+      205:                 return START_NOT_STICKY;
+      206:             case ACTION_RESTART_FOREGROUND_NOTIFICATION:
+      207:                 makeForegroundNotify();
+      208:                 return START_STICKY;
+      209:         }
+      210: 
+      211:         return -1;
+      212:     }
+      213: 
+      214:     private void handleActions(String action)
+      215:     {
+      216:         switch (action) {
+      217:             case NotificationReceiver.NOTIFY_ACTION_PAUSE_ALL:
+      218:                 engine.pauseAll();
+      219:                 break;
+      220:             case NotificationReceiver.NOTIFY_ACTION_RESUME_ALL:
+      221:                 engine.resumeAll();
+      222:                 break;
+      223:             case NotificationReceiver.NOTIFY_ACTION_PAUSE_RESUME_ALL:
+      224:                 boolean paused = combinedPauseButtonState.getValue();
+      225:                 if (paused) {
+      226:                     engine.resumeAll();
+      227:                 } else {
+      228:                     engine.pauseAll();
+      229:                 }
+      230:                 combinedPauseButtonState.onNext(!paused);
+      231:                 break;
+      232:         }
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:3464-3475
+     3464:     private void handleServiceArgs(ServiceArgsData data) {
+     3465:         Service s = mServices.get(data.token);
+     3466:         if (s != null) {
+     3467:             try {
+     3468:                 if (data.args != null) {
+     3469:                     data.args.setExtrasClassLoader(s.getClassLoader());
+     3470:                     data.args.prepareToEnterProcess();
+     3471:                 }
+     3472:                 int res;
+     3473:                 if (!data.taskRemoved) {
+     3474:                     res = s.onStartCommand(data.args, data.flags, data.startId);
+     3475:                 } else {
+
+STEP 3  edge Eec7bf268
+  TorrentService.onStartCommand -> TorrentService.init
+  class: explicit   kind: CALL
+  guard: isAlreadyRunning.compareAndSet(false, true)
+  needs_state: None
+  env: None
+  evidence: SRC service/TorrentService.java:189-192
+  cite [SRC] service/TorrentService.java:189-192
+      189:         /* The first start */
+      190:         if (isAlreadyRunning.compareAndSet(false, true))
+      191:             init();
+      192: 
+
+STEP 4  edge E8b3b5478
+  TorrentService.init -> TorrentEngine.doStart
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC service/TorrentService.java:131; TorrentEngine.java:234-260
+  cite [SRC] service/TorrentService.java:131
+      131:         engine.doStart();
+  cite [SRC] TorrentEngine.java:234-260
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java)
+      234:     public void doStart() {
+      235:         if (isRunning())
+      236:             return;
+      237: 
+      238:         switchConnectionReceiver();
+      239:         switchPowerReceiver();
+      240:         disposables.add(pref.observeSettingsChanged()
+      241:                 .subscribe(this::handleSettingsChanged));
+      242: 
+      243:         disposables.add(downloadsCompleted.listen()
+      244:                 .subscribe(
+      245:                         this::handleAutoStop,
+      246:                         (err) -> {
+      247:                             Log.e(TAG, "Auto stop error: " +
+      248:                                     Log.getStackTraceString(err));
+      249:                             handleAutoStop();
+      250:                         }
+      251:                 ));
+      252: 
+      253:         disposables.add(session.getLogger().observeDataSetChanged()
+      254:                 .subscribe((change) -> {
+      255:                     if (change.reason == Logger.DataSetChange.Reason.NEW_ENTRIES && change.entries != null)
+      256:                         printSessionLog(change.entries);
+      257:                 }));
+      258: 
+      259:         session.start();
+      260:     }
+
+STEP 5  edge Eaf8a73d4
+  TorrentEngine.doStart -> TorrentEngine.handleSettingsChanged
+  class: non_standard   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED Rx dispatch; SRC TorrentEngine.java:240-242; TorrentEngine.java:1456-1458
+  cite [SRC] TorrentEngine.java:240-242
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java)
+      240:         disposables.add(pref.observeSettingsChanged()
+      241:                 .subscribe(this::handleSettingsChanged));
+      242: 
+  cite [SRC] TorrentEngine.java:1456-1458
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java)
+     1456:     private void handleSettingsChanged(String key) {
+     1457:         boolean reschedule = false;
+     1458: 
+
+STEP 6  edge E20a4da55
+  TorrentEngine.handleSettingsChanged -> TorrentEngine.startStreamingServer
+  class: explicit   kind: CALL
+  guard: key is pref_key_streaming_enable and pref.enableStreaming()
+  needs_state: None
+  env: None
+  evidence: SRC TorrentEngine.java:1592-1594
+  cite [SRC] TorrentEngine.java:1592-1594
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java)
+     1592:         } else if (key.equals(appContext.getString(R.string.pref_key_streaming_enable))) {
+     1593:             if (pref.enableStreaming())
+     1594:                 startStreamingServer();
+
+STEP 7  edge E395b8bdf
+  TorrentEngine.startStreamingServer -> TorrentStreamServer.start
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TorrentEngine.java:1071; TorrentStreamServer.java:72-78
+  cite [SRC] TorrentEngine.java:1071
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java)
+     1071:             torrentStreamServer.start(appContext);
+  cite [SRC] TorrentStreamServer.java:72-78
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/stream/TorrentStreamServer.java)
+       72:     public void start(@NonNull Context appContext) throws IOException
+       73:     {
+       74:         Log.i(TAG, "Start " + TAG);
+       75: 
+       76:         engine = TorrentEngine.getInstance(appContext);
+       77: 
+       78:         super.start();
+
+STEP 8  edge E6f074be0
+  TorrentStreamServer.start -> NanoHTTPD.start()
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TorrentStreamServer.java:78; org/nanohttpd/NanoHTTPD.java:1794-1795
+  cite [SRC] TorrentStreamServer.java:78
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/stream/TorrentStreamServer.java)
+       78:         super.start();
+  cite [SRC] org/nanohttpd/NanoHTTPD.java:1794-1795
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/nanohttpd/NanoHTTPD.java)
+     1794:     public void start() throws IOException {
+     1795:         start(NanoHTTPD.SOCKET_READ_TIMEOUT);
+
+STEP 9  edge Eeba3be32
+  NanoHTTPD.start() -> NanoHTTPD.start(int)
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC org/nanohttpd/NanoHTTPD.java:1795; org/nanohttpd/NanoHTTPD.java:1800-1801
+  cite [SRC] org/nanohttpd/NanoHTTPD.java:1795
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/nanohttpd/NanoHTTPD.java)
+     1795:         start(NanoHTTPD.SOCKET_READ_TIMEOUT);
+  cite [SRC] org/nanohttpd/NanoHTTPD.java:1800-1801
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/nanohttpd/NanoHTTPD.java)
+     1800:     public void start(final int timeout) throws IOException {
+     1801:         start(timeout, true);
+
+STEP 10  edge E7fade0ae
+  NanoHTTPD.start(int) -> NanoHTTPD.start(int,boolean)
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC org/nanohttpd/NanoHTTPD.java:1801; org/nanohttpd/NanoHTTPD.java:1813-1820
+  cite [SRC] org/nanohttpd/NanoHTTPD.java:1801
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/nanohttpd/NanoHTTPD.java)
+     1801:         start(timeout, true);
+  cite [SRC] org/nanohttpd/NanoHTTPD.java:1813-1820
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/nanohttpd/NanoHTTPD.java)
+     1813:     public void start(final int timeout, boolean daemon) throws IOException {
+     1814:         this.myServerSocket = this.getServerSocketFactory().create();
+     1815:         this.myServerSocket.setReuseAddress(true);
+     1816:         ServerRunnable serverRunnable = createServerRunnable(timeout);
+     1817:         this.myThread = new Thread(serverRunnable);
+     1818:         this.myThread.setDaemon(daemon);
+     1819:         this.myThread.setName("NanoHttpd Main Listener");
+     1820:         this.myThread.start();
+
+STEP 11  edge E56d27024
+  NanoHTTPD.start(int,boolean) -> NanoHTTPD$ServerRunnable.run
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED Thread dispatch; SRC org/nanohttpd/NanoHTTPD.java:1817-1820; org/nanohttpd/NanoHTTPD.java:1332-1356
+  cite [SRC] org/nanohttpd/NanoHTTPD.java:1817-1820
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/nanohttpd/NanoHTTPD.java)
+     1817:         this.myThread = new Thread(serverRunnable);
+     1818:         this.myThread.setDaemon(daemon);
+     1819:         this.myThread.setName("NanoHttpd Main Listener");
+     1820:         this.myThread.start();
+  cite [SRC] org/nanohttpd/NanoHTTPD.java:1332-1356
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/nanohttpd/NanoHTTPD.java)
+     1332:         public void run() {
+     1333:             try {
+     1334:                 myServerSocket.bind(hostname != null ? new InetSocketAddress(hostname, myPort) : new InetSocketAddress(myPort));
+     1335:                 hasBinded = true;
+     1336:             } catch (IOException e) {
+     1337:                 this.bindException = e;
+     1338:                 return;
+     1339:             }
+     1340:             do {
+     1341:                 try {
+     1342:                     final Socket finalAccept = NanoHTTPD.this.myServerSocket.accept();
+     1343:                     if (this.timeout > 0) {
+     1344:                         finalAccept.setSoTimeout(this.timeout);
+     1345:                     }
+     1346:                     final InputStream inputStream = finalAccept.getInputStream();
+     1347:                     NanoHTTPD.this.asyncRunner.exec(createClientHandler(finalAccept, inputStream));
+     1348:                 } catch (IOException e) {
+     1349:                     NanoHTTPD.LOG.log(Level.FINE, "Communication with the client broken", e);
+     1350:                 }
+     1351:             } while (!NanoHTTPD.this.myServerSocket.isClosed());
+     1352:         }
+     1353:     }
+     1354:     /**
+     1355:      * A temp file.
+     1356:      * <p/>
+
+STEP 12  edge E5cb4fa08
+  NanoHTTPD$ServerRunnable.run -> NanoHTTPD$DefaultAsyncRunner.exec
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC org/nanohttpd/NanoHTTPD.java:1347; org/nanohttpd/NanoHTTPD.java:330-336
+  cite [SRC] org/nanohttpd/NanoHTTPD.java:1347
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/nanohttpd/NanoHTTPD.java)
+     1347:                     NanoHTTPD.this.asyncRunner.exec(createClientHandler(finalAccept, inputStream));
+  cite [SRC] org/nanohttpd/NanoHTTPD.java:330-336
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/nanohttpd/NanoHTTPD.java)
+      330:         public void exec(ClientHandler clientHandler) {
+      331:             ++this.requestCount;
+      332:             Thread t = new Thread(clientHandler);
+      333:             t.setDaemon(true);
+      334:             t.setName("NanoHttpd Request Processor (#" + this.requestCount + ")");
+      335:             this.running.add(clientHandler);
+      336:             t.start();
+
+STEP 13  edge E12aa1d2e
+  NanoHTTPD$DefaultAsyncRunner.exec -> NanoHTTPD$ClientHandler.run
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED Thread dispatch; SRC org/nanohttpd/NanoHTTPD.java:332-336; org/nanohttpd/NanoHTTPD.java:168-195
+  cite [SRC] org/nanohttpd/NanoHTTPD.java:332-336
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/nanohttpd/NanoHTTPD.java)
+      332:             Thread t = new Thread(clientHandler);
+      333:             t.setDaemon(true);
+      334:             t.setName("NanoHttpd Request Processor (#" + this.requestCount + ")");
+      335:             this.running.add(clientHandler);
+      336:             t.start();
+  cite [SRC] org/nanohttpd/NanoHTTPD.java:168-195
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/nanohttpd/NanoHTTPD.java)
+      168:         public void run() {
+      169:             OutputStream outputStream = null;
+      170:             try {
+      171:                 outputStream = this.acceptSocket.getOutputStream();
+      172:                 TempFileManager tempFileManager = NanoHTTPD.this.tempFileManagerFactory.create();
+      173:                 HTTPSession session = new HTTPSession(tempFileManager, this.inputStream, outputStream, this.acceptSocket.getInetAddress());
+      174:                 while (!this.acceptSocket.isClosed()) {
+      175:                     session.execute();
+      176:                 }
+      177:             } catch (Exception e) {
+      178:                 // When the socket is closed by the client,
+      179:                 // we throw our own SocketException
+      180:                 // to break the "keep alive" loop above. If
+      181:                 // the exception was anything other
+      182:                 // than the expected SocketException OR a
+      183:                 // SocketTimeoutException, print the
+      184:                 // stacktrace
+      185:                 if (!(e instanceof SocketException && "NanoHttpd Shutdown".equals(e.getMessage())) && !(e instanceof SocketTimeoutException)) {
+      186:                     NanoHTTPD.LOG.log(Level.FINE, "Communication with the client broken", e);
+      187:                 }
+      188:             } finally {
+      189:                 safeClose(outputStream);
+      190:                 safeClose(this.inputStream);
+      191:                 safeClose(this.acceptSocket);
+      192:                 NanoHTTPD.this.asyncRunner.closed(this);
+      193:             }
+      194:         }
+      195:     }
+
+STEP 14  edge E8c84c516
+  NanoHTTPD$ClientHandler.run -> NanoHTTPD$HTTPSession.execute
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC org/nanohttpd/NanoHTTPD.java:175; org/nanohttpd/NanoHTTPD.java:655-760
+  cite [SRC] org/nanohttpd/NanoHTTPD.java:175
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/nanohttpd/NanoHTTPD.java)
+      175:                     session.execute();
+  cite [SRC] org/nanohttpd/NanoHTTPD.java:655-760
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/nanohttpd/NanoHTTPD.java)
+      655:         public void execute() throws IOException {
+      656:             Response r = null;
+      657:             try {
+      658:                 // Read the first 8192 bytes.
+      659:                 // The full header should fit in here.
+      660:                 // Apache's default header limit is 8KB.
+      661:                 // Do NOT assume that a single read will get the entire header
+      662:                 // at once!
+      663:                 byte[] buf = new byte[HTTPSession.BUFSIZE];
+      664:                 this.splitbyte = 0;
+      665:                 this.rlen = 0;
+      666:                 int read = -1;
+      667:                 this.inputStream.mark(HTTPSession.BUFSIZE);
+      668:                 try {
+      669:                     read = this.inputStream.read(buf, 0, HTTPSession.BUFSIZE);
+      670:                 } catch (Exception e) {
+      671:                     safeClose(this.inputStream);
+      672:                     safeClose(this.outputStream);
+      673:                     throw new SocketException("NanoHttpd Shutdown");
+      674:                 }
+      675:                 if (read == -1) {
+      676:                     // socket was been closed
+      677:                     safeClose(this.inputStream);
+      678:                     safeClose(this.outputStream);
+      679:                     throw new SocketException("NanoHttpd Shutdown");
+      680:                 }
+      681:                 while (read > 0) {
+      682:                     this.rlen += read;
+      683:                     this.splitbyte = findHeaderEnd(buf, this.rlen);
+      684:                     if (this.splitbyte > 0) {
+      685:                         break;
+      686:                     }
+      687:                     read = this.inputStream.read(buf, this.rlen, HTTPSession.BUFSIZE - this.rlen);
+      688:                 }
+      689:                 if (this.splitbyte < this.rlen) {
+      690:                     this.inputStream.reset();
+      691:                     this.inputStream.skip(this.splitbyte);
+      692:                 }
+      693:                 this.parms = new HashMap<String, String>();
+      694:                 if (null == this.headers) {
+      695:                     this.headers = new HashMap<String, String>();
+      696:                 } else {
+      697:                     this.headers.clear();
+      698:                 }
+      699:                 // Create a BufferedReader for parsing the header.
+      700:                 BufferedReader hin = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(buf, 0, this.rlen)));
+      701:                 // Decode the header into parms and header java properties
+      702:                 Map<String, String> pre = new HashMap<String, String>();
+      703:                 decodeHeader(hin, pre, this.parms, this.headers);
+      704:                 if (null != this.remoteIp) {
+      705:                     this.headers.put("remote-addr", this.remoteIp);
+      706:                     this.headers.put("http-client-ip", this.remoteIp);
+      707:                 }
+      708:                 this.method = Method.lookup(pre.get("method"));
+      709:                 if (this.method == null) {
+      710:                     throw new ResponseException(Response.Status.BAD_REQUEST, "BAD REQUEST: Syntax error.");
+      711:                 }
+      712:                 this.uri = pre.get("uri");
+      713:                 this.cookies = new CookieHandler(this.headers);
+      714:                 String connection = this.headers.get("connection");
+      715:                 boolean keepAlive = protocolVersion.equals("HTTP/1.1") && (connection == null || !connection.matches("(?i).*close.*"));
+      716:                 // Ok, now do the serve()
+      717:                 // TODO: long body_size = getBodySize();
+      718:                 // TODO: long pos_before_serve = this.inputStream.totalRead()
+      719:                 // (requires implementaion for totalRead())
+      720:                 r = serve(this);
+      721:                 // TODO: this.inputStream.skip(body_size -
+      722:                 // (this.inputStream.totalRead() - pos_before_serve))
+      723:                 if (r == null) {
+      724:                     throw new ResponseException(Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: Serve() returned a null response.");
+      725:                 } else {
+      726:                     String acceptEncoding = this.headers.get("accept-encoding");
+      727:                     this.cookies.unloadQueue(r);
+      728:                     r.setRequestMethod(this.method);
+      729:                     r.setGzipEncoding(useGzipWhenAccepted(r) && acceptEncoding != null && acceptEncoding.contains("gzip"));
+      730:                     r.setKeepAlive(keepAlive);
+      731:                     r.send(this.outputStream);
+      732:                 }
+      733:                 if (!keepAlive || "close".equalsIgnoreCase(r.getHeader("connection"))) {
+      734:                     throw new SocketException("NanoHttpd Shutdown");
+      735:                 }
+      736:             } catch (SocketException e) {
+      737:                 // throw it out to close socket object (finalAccept)
+      738:                 throw e;
+      739:             } catch (SocketTimeoutException ste) {
+      740:                 // treat socket timeouts the same way we treat socket exceptions
+      741:                 // i.e. close the stream & finalAccept object by throwing the
+      742:                 // exception up the call stack.
+      743:                 throw ste;
+      744:             } catch (IOException ioe) {
+      745:                 Response resp = newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
+      746:                 resp.send(this.outputStream);
+      747:                 safeClose(this.outputStream);
+      748:             } catch (ResponseException re) {
+      749:                 Response resp = newFixedLengthResponse(re.getStatus(), NanoHTTPD.MIME_PLAINTEXT, re.getMessage());
+      750:                 resp.send(this.outputStream);
+      751:                 safeClose(this.outputStream);
+      752:             } finally {
+      753:                 safeClose(r);
+      754:                 this.tempFileManager.clear();
+      755:             }
+      756:         }
+      757:         /**
+      758:          * Find byte index separating header from body. It must be the last byte
+      759:          * of the first two sequential new lines.
+      760:          */
+
+STEP 15  edge Ee3a86c79
+  NanoHTTPD$HTTPSession.execute -> NanoHTTPD$Response.send
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC org/nanohttpd/NanoHTTPD.java:731,746,750; org/nanohttpd/NanoHTTPD.java:1183-1229
+  cite [SRC] org/nanohttpd/NanoHTTPD.java:731, 746, 750
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/nanohttpd/NanoHTTPD.java)
+      731:                     r.send(this.outputStream);
+      746:                 resp.send(this.outputStream);
+      750:                 resp.send(this.outputStream);
+  cite [SRC] org/nanohttpd/NanoHTTPD.java:1183-1229
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/nanohttpd/NanoHTTPD.java)
+     1183:         protected void send(OutputStream outputStream) {
+     1184:             String mime = this.mimeType;
+     1185:             SimpleDateFormat gmtFrmt = new SimpleDateFormat("E, d MMM yyyy HH:mm:ss 'GMT'", Locale.US);
+     1186:             gmtFrmt.setTimeZone(TimeZone.getTimeZone("GMT"));
+     1187:             try {
+     1188:                 if (this.status == null) {
+     1189:                     throw new Error("sendResponse(): Status can't be null.");
+     1190:                 }
+     1191:                 PrintWriter pw = new PrintWriter(new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8")), false);
+     1192:                 pw.print("HTTP/1.1 " + this.status.getDescription() + " \r\n");
+     1193:                 if (mime != null) {
+     1194:                     pw.print("Content-Type: " + mime + "\r\n");
+     1195:                 }
+     1196:                 if (this.header == null || this.header.get("Date") == null) {
+     1197:                     pw.print("Date: " + gmtFrmt.format(new Date()) + "\r\n");
+     1198:                 }
+     1199:                 if (this.header != null) {
+     1200:                     for (String key : this.header.keySet()) {
+     1201:                         String value = this.header.get(key);
+     1202:                         pw.print(key + ": " + value + "\r\n");
+     1203:                     }
+     1204:                 }
+     1205:                 if (!headerAlreadySent(header, "connection")) {
+     1206:                     pw.print("Connection: " + (this.keepAlive ? "keep-alive" : "close") + "\r\n");
+     1207:                 }
+     1208:                 if (headerAlreadySent(this.header, "content-length")) {
+     1209:                     encodeAsGzip = false;
+     1210:                 }
+     1211:                 if (encodeAsGzip) {
+     1212:                     pw.print("Content-Encoding: gzip\r\n");
+     1213:                     setChunkedTransfer(true);
+     1214:                 }
+     1215:                 long pending = this.data != null ? this.contentLength : 0;
+     1216:                 if (this.requestMethod != Method.HEAD && this.chunkedTransfer) {
+     1217:                     pw.print("Transfer-Encoding: chunked\r\n");
+     1218:                 } else if (!encodeAsGzip) {
+     1219:                     pending = sendContentLengthHeaderIfNotAlreadyPresent(pw, this.header, pending);
+     1220:                 }
+     1221:                 pw.print("\r\n");
+     1222:                 pw.flush();
+     1223:                 sendBodyWithCorrectTransferAndEncoding(outputStream, pending);
+     1224:                 outputStream.flush();
+     1225:                 safeClose(this.data);
+     1226:             } catch (IOException ioe) {
+     1227:                 NanoHTTPD.LOG.log(Level.SEVERE, "Could not send response to the client", ioe);
+     1228:             }
+     1229:         }
+
+STEP 16  edge Eecf22fa1
+  NanoHTTPD$Response.send -> NanoHTTPD$Response.sendBodyWithCorrectTransferAndEncoding
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC org/nanohttpd/NanoHTTPD.java:1223; org/nanohttpd/NanoHTTPD.java:1230-1237
+  cite [SRC] org/nanohttpd/NanoHTTPD.java:1223
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/nanohttpd/NanoHTTPD.java)
+     1223:                 sendBodyWithCorrectTransferAndEncoding(outputStream, pending);
+  cite [SRC] org/nanohttpd/NanoHTTPD.java:1230-1237
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/nanohttpd/NanoHTTPD.java)
+     1230:         private void sendBodyWithCorrectTransferAndEncoding(OutputStream outputStream, long pending) throws IOException {
+     1231:             if (this.requestMethod != Method.HEAD && this.chunkedTransfer) {
+     1232:                 ChunkedOutputStream chunkedOutputStream = new ChunkedOutputStream(outputStream);
+     1233:                 sendBodyWithCorrectEncoding(chunkedOutputStream, -1);
+     1234:                 chunkedOutputStream.finish();
+     1235:             } else {
+     1236:                 sendBodyWithCorrectEncoding(outputStream, pending);
+     1237:             }
+
+STEP 17  edge Ee32efa15
+  NanoHTTPD$Response.sendBodyWithCorrectTransferAndEncoding -> NanoHTTPD$Response.sendBodyWithCorrectEncoding
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC org/nanohttpd/NanoHTTPD.java:1233,1236; org/nanohttpd/NanoHTTPD.java:1239-1247
+  cite [SRC] org/nanohttpd/NanoHTTPD.java:1233, 1236
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/nanohttpd/NanoHTTPD.java)
+     1233:                 sendBodyWithCorrectEncoding(chunkedOutputStream, -1);
+     1236:                 sendBodyWithCorrectEncoding(outputStream, pending);
+  cite [SRC] org/nanohttpd/NanoHTTPD.java:1239-1247
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/nanohttpd/NanoHTTPD.java)
+     1239:         private void sendBodyWithCorrectEncoding(OutputStream outputStream, long pending) throws IOException {
+     1240:             if (encodeAsGzip) {
+     1241:                 GZIPOutputStream gzipOutputStream = new GZIPOutputStream(outputStream);
+     1242:                 sendBody(gzipOutputStream, -1);
+     1243:                 gzipOutputStream.finish();
+     1244:             } else {
+     1245:                 sendBody(outputStream, pending);
+     1246:             }
+     1247:         }
+
+STEP 18  edge E157dc271
+  NanoHTTPD$Response.sendBodyWithCorrectEncoding -> NanoHTTPD$Response.sendBody
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC org/nanohttpd/NanoHTTPD.java:1242,1245; org/nanohttpd/NanoHTTPD.java:1261-1275
+  cite [SRC] org/nanohttpd/NanoHTTPD.java:1242, 1245
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/nanohttpd/NanoHTTPD.java)
+     1242:                 sendBody(gzipOutputStream, -1);
+     1245:                 sendBody(outputStream, pending);
+  cite [SRC] org/nanohttpd/NanoHTTPD.java:1261-1275
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/nanohttpd/NanoHTTPD.java)
+     1261:         private void sendBody(OutputStream outputStream, long pending) throws IOException {
+     1262:             long BUFFER_SIZE = 16 * 1024;
+     1263:             byte[] buff = new byte[(int) BUFFER_SIZE];
+     1264:             boolean sendEverything = pending == -1;
+     1265:             while (pending > 0 || sendEverything) {
+     1266:                 long bytesToRead = sendEverything ? BUFFER_SIZE : Math.min(pending, BUFFER_SIZE);
+     1267:                 int read = this.data.read(buff, 0, (int) bytesToRead);
+     1268:                 if (read <= 0) {
+     1269:                     break;
+     1270:                 }
+     1271:                 outputStream.write(buff, 0, read);
+     1272:                 if (!sendEverything) {
+     1273:                     pending -= read;
+     1274:                 }
+     1275:             }
+
+STEP 19  edge Ecfc17832
+  NanoHTTPD$Response.sendBody -> TorrentInputStream.read(byte[],int,int)
+  class: non_standard   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC org/nanohttpd/NanoHTTPD.java:1267; SRC TorrentInputStream.java:257
+  cite [SRC] org/nanohttpd/NanoHTTPD.java:1267
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/nanohttpd/NanoHTTPD.java)
+     1267:                 int read = this.data.read(buff, 0, (int) bytesToRead);
+  cite [SRC] TorrentInputStream.java:257
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/stream/TorrentInputStream.java)
+      257:     public int read(@NonNull byte[] b, int off, int len) throws IOException
+
+STEP 20  edge E32cd6d24
+  TorrentInputStream.read(byte[],int,int) -> TorrentInputStream.waitForPiece
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TorrentInputStream.java:335; SRC TorrentInputStream.java:135
+  cite [SRC] TorrentInputStream.java:335
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/stream/TorrentInputStream.java)
+      335:                 if (!waitForPiece(task, p))
+  cite [SRC] TorrentInputStream.java:135
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/stream/TorrentInputStream.java)
+      135:     private synchronized boolean waitForPiece(TorrentDownload task, int pieceIndex)
+
+STEP 21  edge Edcd8c07f
+  TorrentInputStream.waitForPiece -> TorrentDownloadImpl.havePiece
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TorrentInputStream.java:139; SRC TorrentDownloadImpl.java:1545-1550
+  cite [SRC] TorrentInputStream.java:139
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/stream/TorrentInputStream.java)
+      139:                 if (task.havePiece(pieceIndex))
+  cite [SRC] TorrentDownloadImpl.java:1545-1550
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java)
+     1545:         long fileSize = fs.fileSize(fileIndex);
+     1546:         long fileOffset = fs.fileOffset(fileIndex);
+     1547: 
+     1548:         return new Pair<>((int)(fileOffset / ti.pieceLength()),
+     1549:                           (int)((fileOffset + fileSize - 1) / ti.pieceLength()));
+     1550:     }

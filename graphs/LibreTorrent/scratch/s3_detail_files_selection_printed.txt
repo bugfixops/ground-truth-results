@@ -1,0 +1,185 @@
+   249	        selectionTracker.addObserver(new SelectionTracker.SelectionObserver<TorrentContentFileItem>() {
+   250	            @Override
+   251	            public void onSelectionChanged()
+   252	            {
+   253	                super.onSelectionChanged();
+   254	
+   255	                if (selectionTracker.hasSelection() && actionMode == null) {
+   256	                    actionMode = activity.startSupportActionMode(actionModeCallback);
+   257	                    setActionModeTitle(selectionTracker.getSelection().size());
+   258	
+   259	                } else if (!selectionTracker.hasSelection()) {
+   260	                    if (actionMode != null)
+   261	                        actionMode.finish();
+   262	                    actionMode = null;
+   263	
+   264	                } else {
+   265	                    setActionModeTitle(selectionTracker.getSelection().size());
+   266	
+   267	                    /* Show/hide menu items after change selected files */
+   268	                    int size = selectionTracker.getSelection().size();
+   269	                    if (size == 1 || size == 2)
+   270	                        actionMode.invalidate();
+   271	                }
+   272	            }
+   273	
+   274	            @Override
+   275	            public void onSelectionRestored()
+   276	            {
+   277	                super.onSelectionRestored();
+   278	
+   279	                actionMode = activity.startSupportActionMode(actionModeCallback);
+   280	                setActionModeTitle(selectionTracker.getSelection().size());
+   281	            }
+   282	        });
+   283	
+   284	        if (savedInstanceState != null)
+   285	            selectionTracker.onRestoreInstanceState(savedInstanceState);
+   286	        adapter.setSelectionTracker(selectionTracker);
+   287	
+   288	        FragmentManager fm = getChildFragmentManager();
+   289	        priorityDialog = (BaseAlertDialog)fm.findFragmentByTag(TAG_PRIORITY_DIALOG);
+   290	    }
+   291	
+   363	    private final ActionMode.Callback actionModeCallback = new ActionMode.Callback()
+   364	    {
+   365	        @Override
+   366	        public boolean onPrepareActionMode(ActionMode mode, Menu menu)
+   367	        {
+   368	            MenuItem shareStreamUrl = menu.findItem(R.id.share_stream_url_menu);
+   369	            shareStreamUrl.setVisible(false);
+   370	
+   371	            Selection<TorrentContentFileItem> selection = selectionTracker.getSelection();
+   372	            if (selection.size() != 1)
+   373	                return true;
+   374	            Iterator<TorrentContentFileItem> it = selection.iterator();
+   375	            if (it.hasNext() && !viewModel.isFile(it.next().name))
+   376	                return true;
+   377	
+   378	            shareStreamUrl.setVisible(true);
+   379	
+   380	            return true;
+   381	        }
+   382	
+   383	        @Override
+   384	        public boolean onCreateActionMode(ActionMode mode, Menu menu)
+   385	        {
+   386	            mode.getMenuInflater().inflate(R.menu.detail_torrent_files_action_mode, menu);
+   387	            Utils.showActionModeStatusBar(activity, true);
+   388	            msgViewModel.fragmentInActionMode(true);
+   389	
+   390	            return true;
+   391	        }
+   392	
+   393	        @Override
+   394	        public boolean onActionItemClicked(ActionMode mode, MenuItem item)
+   395	        {
+   396	            int itemId = item.getItemId();
+   397	            if (itemId == R.id.change_priority_menu) {
+   398	                showPriorityDialog();
+   399	            } else if (itemId == R.id.share_stream_url_menu) {
+   400	                shareStreamUrl();
+   401	                mode.finish();
+   402	            }
+   403	
+   404	            return true;
+   405	        }
+   406	
+   407	        @Override
+   408	        public void onDestroyActionMode(ActionMode mode)
+   409	        {
+   410	            selectionTracker.clearSelection();
+   411	            msgViewModel.fragmentInActionMode(false);
+   412	            Utils.showActionModeStatusBar(activity, false);
+   413	        }
+   414	    };
+   415	
+   416	    private void showPriorityDialog()
+   417	    {
+   418	        if (!isAdded())
+   419	            return;
+   420	
+   421	        FragmentManager fm  = getChildFragmentManager();
+   422	        if (fm.findFragmentByTag(TAG_PRIORITY_DIALOG) == null) {
+   423	            priorityDialog = BaseAlertDialog.newInstance(
+   424	                    getString(R.string.dialog_change_priority_title),
+   425	                    null,
+   426	                    R.layout.dialog_change_priority,
+   427	                    getString(R.string.ok),
+   428	                    getString(R.string.cancel),
+   429	                    null,
+   430	                    false);
+   431	
+   432	            priorityDialog.show(fm, TAG_PRIORITY_DIALOG);
+   433	        }
+   434	    }
+   435	
+   436	    private void initPriorityDialog()
+   437	    {
+   438	        MutableSelection<TorrentContentFileItem> selections = new MutableSelection<>();
+   439	        selectionTracker.copySelection(selections);
+   440	
+   441	        disposables.add(Observable.fromIterable(selections)
+   442	                .map((selection -> selection.name))
+   443	                .toList()
+   444	                .subscribe((fileNames) -> {
+   445	                    Dialog dialog = priorityDialog.getDialog();
+   446	                    if (dialog == null)
+   447	                        return;
+   448	
+   449	                    FilePriority priority = viewModel.getFilesPriority(fileNames);
+   450	                    if (priority == null)
+   451	                        return;
+   452	
+   453	                    int resId = -1;
+   454	                    switch (priority.getType()) {
+   455	                        case IGNORE:
+   477	    private void changePriority()
+   478	    {
+   479	        Dialog dialog = priorityDialog.getDialog();
+   480	        if (dialog == null)
+   481	            return;
+   482	
+   483	        RadioGroup group = dialog.findViewById(R.id.dialog_priorities_group);
+   484	        int radioButtonId = group.getCheckedRadioButtonId();
+   485	
+   486	        FilePriority.Type priorityType = null;
+   487	        if (radioButtonId == R.id.dialog_priority_low) {
+   488	            priorityType = FilePriority.Type.IGNORE;
+   489	        } else if (radioButtonId == R.id.dialog_priority_normal) {
+   490	            priorityType = FilePriority.Type.NORMAL;
+   491	        } else if (radioButtonId == R.id.dialog_priority_high) {
+   492	            priorityType = FilePriority.Type.HIGH;
+   493	        }
+   494	        if (priorityType != null) {
+   495	            FilePriority priority = new FilePriority(priorityType);
+   496	            MutableSelection<TorrentContentFileItem> selections = new MutableSelection<>();
+   497	            selectionTracker.copySelection(selections);
+   498	
+   499	            disposables.add(Observable.fromIterable(selections)
+   500	                    .map((selection -> selection.name))
+   501	                    .toList()
+   502	                    .subscribe((fileNames) -> viewModel.applyPriority(fileNames, priority)));
+   503	        }
+   504	
+   505	        if (actionMode != null)
+   506	            actionMode.finish();
+   507	    }
+   508	
+   509	    private void shareStreamUrl()
+   510	    {
+   511	        MutableSelection<TorrentContentFileItem> selections = new MutableSelection<>();
+   512	        selectionTracker.copySelection(selections);
+   513	
+   514	        Iterator<TorrentContentFileItem> it = selections.iterator();
+   515	        if (!it.hasNext())
+   516	            return;
+   517	        int fileIndex = it.next().index;
+   518	
+   519	        Intent sharingIntent = new Intent(Intent.ACTION_SEND);
+   520	        sharingIntent.setType("text/plain");
+   521	        sharingIntent.putExtra(Intent.EXTRA_SUBJECT, "url");
+   522	        sharingIntent.putExtra(Intent.EXTRA_TEXT, viewModel.getStreamUrl(fileIndex));
+   523	
+   524	        startActivity(Intent.createChooser(sharingIntent, getString(R.string.share_via)));
+   525	    }

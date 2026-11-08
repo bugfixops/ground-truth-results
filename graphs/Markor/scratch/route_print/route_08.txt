@@ -1,0 +1,73 @@
+method: FileSearchEngine.isEncryptedFile
+route: route_08
+steps: 17
+verdict: fixed (path row)
+
+step 1: S_ENTRY -> ApplicationObject.<init>
+  edge: E211966cc kind=ENTRY env=None env_kinds=[] needs_state=None gui=['Tap the Markor launcher icon']
+  trigger: The process starts when the launcher icon is tapped (before any activity)
+  evidence: SRC AndroidManifest.xml:39-40
+step 2: ApplicationObject.<init> -> ApplicationObject.onCreate
+  edge: Ed6414d9f kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Application.onCreate
+  evidence: SRC ApplicationObject.java:16,39
+step 3: ApplicationObject.onCreate -> MainActivity.<init>
+  edge: E0254b914 kind=ENTRY env=None env_kinds=[] needs_state=None gui=['Tap the Markor launcher icon']
+  trigger: The MAIN / LAUNCHER intent starts MainActivity (after Application.onCreate on a cold start)
+  evidence: SRC AndroidManifest.xml:61-71; FW-SRC core/java/android/app/ActivityThread.java:5740 (callApplicationOnCreate runs before the first activity)
+step 4: MainActivity.<init> -> MainActivity.onCreate
+  edge: Ed25af8f4 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onCreate
+  evidence: SRC MainActivity.java:76; FW-SRC core/java/android/app/Activity.java:989 (onCreate), 1311 (onResume), 1331 (onPostResume), 3001-3010 (onBackPressed), 5679 (onActivityResult), 824 (mResultCode defaults to RESULT_CANCELED)
+step 5: MainActivity.onCreate -> MainActivity.onResume
+  edge: Eba46a594 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onStart and then Activity.onResume after onCreate returns (cold start)
+  evidence: SRC MainActivity.java:76,279; FW-SRC core/java/android/app/ActivityThread.java:2729 (callActivityOnCreate), 2741 (performStart), 2950 (performResume)
+step 6: MainActivity.onResume -> MainActivity.onPostResume
+  edge: E659e191c kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Activity.performResume calls onPostResume after onResume
+  evidence: SRC MainActivity.java:317; FW-SRC core/java/android/app/Activity.java:7098-7131 (onPostResume at 7131)
+step 7: MainActivity.onPostResume -> S_NOTEBOOK
+  edge: E0ecb8e4d kind=ENTERS env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The notebook tab is the first page the pager shows (position 0); it is the default startup tab, so it is the visible page after a cold start
+  evidence: SRC MainActivity.java:105-106; SRC AppSettings.java:781; SRC MainActivity.java:142-144; FW-SRC core/java/android/app/Activity.java:7098-7131; INFERRED androidx ViewPager2 calls the registered OnPageChangeCallback after the page changes (androidx source not read)
+step 8: S_NOTEBOOK -> GsActivityBase.onToolbarClick
+  edge: E14b03637 kind=GUI env=None env_kinds=[] needs_state=None gui=['Tap the toolbar title of the notebook (the listener is set in GsActivityBase.onResume when the toolbar exists)']
+  trigger: Tap the toolbar title of the notebook (the listener is set in GsActivityBase.onResume when the toolbar exists)
+  evidence: SRC GsActivityBase.java:94-98 (listener, toolbar != null), 116-124 (onToolbarClick hands the tap to the visible resumed page)
+step 9: GsActivityBase.onToolbarClick -> GsFileBrowserFragment.onToolbarClicked
+  edge: E004e31e3 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Virtual/interface call that can dispatch to this implementation
+  evidence: SRC GsActivityBase.java:120 (bytecode)
+step 10: GsFileBrowserFragment.onToolbarClicked -> GsFileBrowserFragment.executeFilterNotebookAction
+  edge: E99c21962 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC GsFileBrowserFragment.java:176 (bytecode)
+step 11: GsFileBrowserFragment.executeFilterNotebookAction -> MarkorDialogFactory.showNotebookFilterDialog
+  edge: E3a03f744 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC GsFileBrowserFragment.java:506 (bytecode)
+step 12: MarkorDialogFactory.showNotebookFilterDialog -> FileSearchEngine.queueFileSearch
+  edge: E227c6b68 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC MarkorDialogFactory.java:1084 (bytecode)
+step 13: FileSearchEngine.queueFileSearch -> FileSearchEngine$QueueSearchFilesTask.doInBackground
+  edge: E85d08c32 kind=FRAMEWORK env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Framework or library calls this method on the object created here (listener, adapter, view, dialog, task or fragment hook)
+  evidence: INFERRED method has no bytecode caller; object of this class created at FileSearchEngine.queueFileSearch (bytecode); callback name doInBackground
+step 14: FileSearchEngine$QueueSearchFilesTask.doInBackground -> FileSearchEngine$QueueSearchFilesTask.handleDirectory
+  edge: Ebcf2d1c2 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC FileSearchEngine.java:204 (bytecode)
+step 15: FileSearchEngine$QueueSearchFilesTask.handleDirectory -> FileSearchEngine$QueueSearchFilesTask.getContentMatches
+  edge: E4a1130e5 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC FileSearchEngine.java:244 (bytecode)
+step 16: FileSearchEngine$QueueSearchFilesTask.getContentMatches -> FileSearchEngine$QueueSearchFilesTask.getInputStream
+  edge: Ec457d96e kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC FileSearchEngine.java:359 (bytecode)
+step 17: FileSearchEngine$QueueSearchFilesTask.getInputStream -> FileSearchEngine.isEncryptedFile
+  edge: E99669d9a kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call (through FileSearchEngine.access$100)
+  evidence: SRC FileSearchEngine.java:404 (bytecode)

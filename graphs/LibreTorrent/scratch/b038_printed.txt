@@ -1,0 +1,292 @@
+Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ (plus org/nanohttpd/ under the same java root)
+
+### core/model/TorrentEngine.java:136-140 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java)
+136:         session = new TorrentSessionImpl(repo,
+137:                 fs,
+138:                 SystemFacadeHelper.getSystemFacade(appContext));
+139:         session.setSettings(pref.readSessionSettings(), false);
+140:         session.addListener(engineListener);
+
+### core/model/TorrentEngine.java:412-412 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java)
+412:         return session.addTorrent(params, removeFile);
+
+### core/model/TorrentEngine.java:539-539 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java)
+539:                     session.deleteTorrent(id, withFiles);
+
+### core/model/TorrentEngine.java:677-677 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java)
+677:                         task.setTorrentName(name);
+
+### core/model/TorrentEngine.java:703-703 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java)
+703:                         task.setSequentialDownload(sequential);
+
+### core/model/TorrentEngine.java:924-924 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java)
+924:         task.setUploadSpeedLimit(limit);
+
+### core/model/TorrentEngine.java:1560-1560 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java)
+1560:                 session.disableIpFilter();
+
+### core/model/session/TorrentDownloadImpl.java:165-166 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java)
+165:         listener = new InnerListener();
+166:         sessionManager.addListener(listener);
+
+### core/model/session/TorrentDownloadImpl.java:208-211 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java)
+208:         public int[] types()
+209:         {
+210:             return INNER_LISTENER_TYPES;
+211:         }
+
+### core/model/session/TorrentDownloadImpl.java:214-281 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java)
+214:         public void alert(Alert<?> alert)
+215:         {
+216:             if (!(alert instanceof TorrentAlert<?>))
+217:                 return;
+218: 
+219:             if (!((TorrentAlert<?>) alert).handle().swig().eq(th.swig()))
+220:                 return;
+221: 
+222:             AlertType type = alert.type();
+223:             switch (type) {
+224:                 case STATE_CHANGED:
+225:                     StateChangedAlert a = ((StateChangedAlert)alert);
+226:                     notifyListeners((listener) ->
+227:                             listener.onTorrentStateChanged(id,
+228:                                     stateToStateCode(a.getPrevState()),
+229:                                     stateToStateCode(a.getState())));
+230:                     break;
+231:                 case TORRENT_FINISHED:
+232:                     handleTorrentFinished();
+233:                     break;
+234:                 case TORRENT_REMOVED:
+235:                     torrentRemoved();
+236:                     break;
+237:                 case TORRENT_PAUSED:
+238:                     notifyListeners((listener) ->
+239:                             listener.onTorrentPaused(id));
+240:                     break;
+241:                 case TORRENT_RESUMED:
+242:                     resetTorrentError();
+243: 
+244:                     notifyListeners((listener) ->
+245:                             listener.onTorrentResumed(id));
+246:                     break;
+247:                 case SAVE_RESUME_DATA:
+248:                     serializeResumeData((SaveResumeDataAlert)alert);
+249:                     break;
+250:                 case STORAGE_MOVED:
+251:                     onStorageMoved(true);
+252:                     break;
+253:                 case STORAGE_MOVED_FAILED:
+254:                     onStorageMoved(false);
+255:                     break;
+256:                 case PIECE_FINISHED:
+257:                     saveResumeData(false);
+258:                     int piece = ((PieceFinishedAlert)alert).pieceIndex();
+259:                     notifyListeners((listener) ->
+260:                             listener.onPieceFinished(id, piece));
+261:                     break;
+262:                 case METADATA_RECEIVED:
+263:                     handleMetadata((MetadataReceivedAlert)alert);
+264:                     // If first/last piece priority was specified when adding this torrent,
+265:                     // we should apply it now that we have metadata.
+266:                     if (hasFirstLastPiecePriority) {
+267:                         applyFirstLastPiecePriority(true);
+268:                     }
+269:                     saveResumeData(true);
+270:                     break;
+271:                 case READ_PIECE:
+272:                     handleReadPiece((ReadPieceAlert)alert);
+273:                     break;
+274:                 case TORRENT_CHECKED:
+275:                     handleTorrentChecked();
+276:                     break;
+277:                 default:
+278:                     checkError(alert);
+279:                     break;
+280:             }
+281:         }
+
+### core/model/session/TorrentDownloadImpl.java:456-456 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java)
+456:     private void torrentRemoved()
+
+### core/model/session/TorrentDownloadImpl.java:1065-1065 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java)
+1065:     public void setSequentialDownload(boolean sequential)
+
+### core/model/session/TorrentDownloadImpl.java:1156-1156 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java)
+1156:     public void setTorrentName(@NonNull String name)
+
+### core/model/session/TorrentDownloadImpl.java:1324-1324 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java)
+1324:     public void setUploadSpeedLimit(int limit)
+
+### core/model/session/TorrentDownloadImpl.java:1369-1369 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java)
+1369:        return stateToStateCode(status.state());
+
+### core/model/session/TorrentDownloadImpl.java:1372-1372 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java)
+1372:     private TorrentStateCode stateToStateCode(TorrentStatus.State state)
+
+### core/model/session/TorrentDownloadImpl.java:1445-1445 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java)
+1445:     public void setMaxUploads(int uploads)
+
+### core/model/session/TorrentDownloadImpl.java:1659-1659 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java)
+1659:         AlertListener listener = new AlertListener() {
+
+### core/model/session/TorrentDownloadImpl.java:1661-1663 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java)
+1661:             public int[] types() {
+1662:                 return new int[] { AlertType.SAVE_RESUME_DATA.swig() };
+1663:             }
+
+### core/model/session/TorrentDownloadImpl.java:1666-1688 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java)
+1666:             public void alert(Alert<?> alert) {
+1667:                 torrent_handle alertTh = ((TorrentAlert<?>) alert).swig().getHandle();
+1668:                 if (alertTh == null || !alertTh.is_valid() || alertTh.info_hash().ne(th.swig().info_hash())) {
+1669:                     return;
+1670:                 }
+1671:                 AlertType type = alert.type();
+1672:                 if (type.equals(AlertType.SAVE_RESUME_DATA)) {
+1673:                     try {
+1674:                         byte_vector bytes = libtorrent.write_torrent_file_buf_ex(
+1675:                                 ((SaveResumeDataAlert) alert).params().swig()
+1676:                         );
+1677:                         data.set(Vectors.byte_vector2bytes(bytes));
+1678:                     } catch (Throwable e) {
+1679:                         Log.e(TAG, "Error building torrent data", e);
+1680:                     } finally {
+1681:                         signal.countDown();
+1682:                     }
+1683:                 }
+1684:                 if (type.equals(AlertType.SAVE_RESUME_DATA_FAILED)) {
+1685:                     Log.e(TAG, "Error saving resume data");
+1686:                     signal.countDown();
+1687:                 }
+1688:             }
+
+### core/model/session/TorrentDownloadImpl.java:1692-1692 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java)
+1692:             sessionManager.addListener(listener);
+
+### core/model/session/TorrentSessionImpl.java:162-162 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+162:     public TorrentSessionImpl(@NonNull TorrentRepository repo,
+
+### core/model/session/TorrentSessionImpl.java:185-185 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+185:     public void addListener(TorrentEngineListener listener)
+
+### core/model/session/TorrentSessionImpl.java:213-213 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+213:             applySettings(settings, keepPort);
+
+### core/model/session/TorrentSessionImpl.java:251-251 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+251:     public Torrent addTorrent(
+
+### core/model/session/TorrentSessionImpl.java:310-310 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+310:             download(torrent.id, params, bencode);
+
+### core/model/session/TorrentSessionImpl.java:328-328 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+328:     private void download(String id, AddTorrentParams params, byte[] bencode) throws IOException, UnknownUriException
+
+### core/model/session/TorrentSessionImpl.java:333-333 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+333:         cancelFetchMagnet(id);
+
+### core/model/session/TorrentSessionImpl.java:344-344 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+344:             download(params.source, saveDir, params.addPaused, params.sequentialDownload);
+
+### core/model/session/TorrentSessionImpl.java:353-353 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+353:             download(bencode,
+
+### core/model/session/TorrentSessionImpl.java:377-377 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+377:     public void deleteTorrent(@NonNull String id, boolean withFiles)
+
+### core/model/session/TorrentSessionImpl.java:526-526 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+526:     public void cancelFetchMagnet(@NonNull String infoHash)
+
+### core/model/session/TorrentSessionImpl.java:744-744 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+744:     public void disableIpFilter()
+
+### core/model/session/TorrentSessionImpl.java:881-881 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+881:         sp.set_str(settings_pack.string_types.dht_bootstrap_nodes.swigValue(), dhtBootstrapNodes());
+
+### core/model/session/TorrentSessionImpl.java:944-944 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+944:     private void checkStop()
+
+### core/model/session/TorrentSessionImpl.java:966-966 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+966:     public long dhtNodes()
+
+### core/model/session/TorrentSessionImpl.java:986-987 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+986:         addListener(torrentTaskListener);
+987:         addListener(innerListener);
+
+### core/model/session/TorrentSessionImpl.java:1089-1089 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+1089:                     checkStop();
+
+### core/model/session/TorrentSessionImpl.java:1101-1101 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+1101:                     checkError(alert);
+
+### core/model/session/TorrentSessionImpl.java:1109-1109 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+1109:     private void checkError(Alert<?> alert)
+
+### core/model/session/TorrentSessionImpl.java:1174-1174 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+1174:                 new SessionStats(dhtNodes(),
+
+### core/model/session/TorrentSessionImpl.java:1183-1183 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+1183:     private static String dhtBootstrapNodes()
+
+### core/model/session/TorrentSessionImpl.java:1224-1224 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+1224:             return new SessionParams(defaultSettingsPack());
+
+### core/model/session/TorrentSessionImpl.java:1242-1242 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+1242:     private SettingsPack defaultSettingsPack()
+
+### core/model/session/TorrentSessionImpl.java:1268-1269 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+1268:         var encryptModeOutcoming = convertEncryptMode(settings.encryptModeOutcoming);
+1269:         var encryptModeIncoming = convertEncryptMode(settings.encryptModeIncoming);
+
+### core/model/session/TorrentSessionImpl.java:1281-1281 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+1281:         applyProxy(settings, sp);
+
+### core/model/session/TorrentSessionImpl.java:1284-1284 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+1284:     private void applyProxy(SessionSettings settings, SettingsPack sp)
+
+### core/model/session/TorrentSessionImpl.java:1286-1286 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+1286:         int proxyType = convertProxyType(settings.proxyType, settings.proxyRequiresAuth);
+
+### core/model/session/TorrentSessionImpl.java:1318-1318 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+1318:     private int convertEncryptMode(SessionSettings.EncryptMode mode)
+
+### core/model/session/TorrentSessionImpl.java:1342-1342 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+1342:     private int convertProxyType(SessionSettings.ProxyType mode, boolean authRequired)
+
+### core/model/session/TorrentSessionImpl.java:1379-1379 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+1379:     private void applySettingsPack(SettingsPack sp)
+
+### core/model/session/TorrentSessionImpl.java:1385-1385 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+1385:     private void applySettings(SessionSettings settings, boolean keepPort)
+
+### core/model/session/TorrentSessionImpl.java:1387-1388 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+1387:         applyMaxStoredLogs(settings);
+1388:         applySessionLoggerFilters(settings);
+
+### core/model/session/TorrentSessionImpl.java:1398-1398 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+1398:             applySettingsPack(sp);
+
+### core/model/session/TorrentSessionImpl.java:1408-1408 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+1408:     private void applyMaxStoredLogs(SessionSettings settings)
+
+### core/model/session/TorrentSessionImpl.java:1416-1416 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+1416:     private void applySessionLoggerFilters(SessionSettings settings)
+
+### core/model/session/TorrentSessionImpl.java:1435-1435 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+1435:         task.setMaxUploads(settings.uploadsLimitPerTorrent);
+
+### core/model/session/TorrentSessionImpl.java:1533-1533 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+1533:     private void download(byte[] bencode, File saveDir,
+
+### core/model/session/TorrentSessionImpl.java:1537-1537 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+1537:         download((bencode == null ? null : new TorrentInfo(bencode)),
+
+### core/model/session/TorrentSessionImpl.java:1541-1541 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+1541:     private void download(TorrentInfo ti, File saveDir,
+
+### core/model/session/TorrentSessionImpl.java:1609-1609 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+1609:         addDefaultTrackers(p);
+
+### core/model/session/TorrentSessionImpl.java:1615-1615 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+1615:     public void download(
+
+### core/model/session/TorrentSessionImpl.java:1664-1664 (from /home/hatch/workspace/finish/clone/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java)
+1664:     private void addDefaultTrackers(add_torrent_params p) {

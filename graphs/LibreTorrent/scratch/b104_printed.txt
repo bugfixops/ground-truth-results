@@ -1,0 +1,576 @@
+# Batch 104 printed evidence (fresh, C17 converter, 2026-11-01)
+# Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+# Cited files (basenames, for check_part check 8): FileManagerDialog.java, FileManagerSpinnerAdapter.java, FileManagerViewModel.java, FileManagerViewModelFactory.java, GoToFolderDialog.java
+# Lines marked * are cited lines; unmarked lines are one line of context.
+
+=== ui/filemanager/FileManagerDialog.java ===
+    134:         String startDir = pref.getString(getString(R.string.pref_key_filemanager_last_dir), fs.getDefaultDownloadPath());
+*   135:         FileManagerViewModelFactory factory = new FileManagerViewModelFactory(
+*   136:                 this.getApplication(),
+*   137:                 intent.getParcelableExtra(TAG_CONFIG),
+*   138:                 startDir
+*   139:         );
+*   140:         viewModel = new ViewModelProvider(this, factory).get(FileManagerViewModel.class);
+    141: 
+    200: 
+*   201:         List<FileManagerSpinnerAdapter.StorageSpinnerItem> spinnerItems = viewModel.getStorageList();
+    202:         if (savedInstanceState != null) {
+    208:         storageAdapter = new FileManagerSpinnerAdapter(this);
+*   209:         storageAdapter.setTitle(viewModel.curDir.get());
+*   210:         storageAdapter.addItems(spinnerItems);
+*   211:         binding.storageSpinner.setAdapter(storageAdapter);
+    212:         binding.storageSpinner.setTag(spinnerPos);
+    222:                 try {
+*   223:                     var path = storageAdapter.getItem(i);
+*   224:                     if (viewModel.isDirectoryExists(path)) {
+*   225:                         viewModel.jumpToDirectory(path);
+    226:                     } else {
+*   227:                         viewModel.jumpToDirectory(viewModel.startDir);
+    228:                     }
+    314:                 public void onPropertyChanged(Observable sender, int propertyId) {
+*   315:                     storageAdapter.setTitle(viewModel.curDir.get());
+    316:                 }
+    330: 
+*   331:                         if (!viewModel.createDirectory(name)) {
+    332:                             showCreateFolderErrDialog();
+    334:                             try {
+*   335:                                 viewModel.openDirectory(name);
+    336: 
+    432:             try {
+*   433:                 viewModel.upToParentDirectory();
+    434: 
+    442:             try {
+*   443:                 viewModel.openDirectory(item.getName());
+    444: 
+    460:         binding.swipeContainer.setRefreshing(true);
+*   461:         viewModel.refreshCurDirectory();
+    462:     }
+    526:             try {
+*   527:                 viewModel.jumpToDirectory(path);
+    528: 
+    551:         if (goToFolderDialog == null) {
+*   552:             goToFolderDialog = GoToFolderDialog.newInstance();
+    553:             goToFolderDialog.show(fm, TAG_ERROR_OPEN_DIR_DIALOG);
+    559:         try {
+*   560:             i.setData(viewModel.getCurDirectoryUri());
+    561: 
+    575:         String fileName = (editable == null ? null : editable.toString());
+*   576:         if (!replace && viewModel.fileExists(fileName)) {
+    577:             showReplaceFileDialog();
+    582:         try {
+*   583:             i.setData(viewModel.createFile(fileName));
+    584: 
+    595:         try {
+*   596:             i.setData(viewModel.getFileUri(fileName));
+    597: 
+    639: 
+*   640:         List<FileManagerSpinnerAdapter.StorageSpinnerItem> spinnerItems = viewModel.getStorageList();
+    641:         spinnerPos = getSpinnerPos(spinnerItems);
+    643: 
+*   644:         storageAdapter.clear();
+*   645:         storageAdapter.addItems(spinnerItems);
+*   646:         storageAdapter.setTitle(viewModel.curDir.get());
+    647:         storageAdapter.notifyDataSetChanged();
+    648: 
+*   649:         viewModel.refreshCurDirectory();
+    650:     }
+    654:             String curDir = viewModel.curDir.get();
+*   655:             if (curDir != null && curDir.startsWith(spinnerItems.get(i).getStoragePath())) {
+    656:                 return i;
+
+=== ui/filemanager/FileManagerSpinnerAdapter.java ===
+     56: 
+*    57:         public StorageSpinnerItem(String name, String storagePath, long size)
+*    58:         {
+*    59:             this.name = name;
+*    60:             this.storagePath = storagePath;
+*    61:             this.size = size;
+*    62:         }
+     63: 
+     74:         public String getStoragePath()
+*    75:         {
+*    76:             return storagePath;
+*    77:         }
+     78: 
+     99: 
+*   100:     public void clear()
+*   101:     {
+*   102:         items.clear();
+*   103:     }
+    104: 
+    109: 
+*   110:     public void addItems(List<StorageSpinnerItem> items)
+*   111:     {
+*   112:         this.items.addAll(items);
+*   113:     }
+    114: 
+    115:     @Override
+*   116:     public int getCount()
+*   117:     {
+*   118:         return items.size();
+*   119:     }
+    120: 
+    121:     @Override
+*   122:     public String getItem(int position)
+*   123:     {
+*   124:         return items.get(position).getStoragePath();
+*   125:     }
+    126: 
+    127:     @Override
+*   128:     public long getItemId(int position)
+*   129:     {
+*   130:         return position;
+*   131:     }
+    132: 
+    133:     @Override
+*   134:     public View getDropDownView(int position, View view, ViewGroup parent)
+*   135:     {
+*   136:         if (view == null || !view.getTag().toString().equals(DROPDOWN)) {
+*   137:             LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+*   138:             view = inflater.inflate(R.layout.filemanager_storage_spinner_item_dropdown, parent, false);
+*   139:             view.setTag(DROPDOWN);
+*   140:         }
+*   141: 
+*   142:         String nameAndSizeTemplate = context.getString(R.string.storage_name_and_size);
+*   143:         TextView nameAndSize = view.findViewById(R.id.storage_name_and_size);
+*   144:         TextView path = view.findViewById(R.id.storage_path);
+*   145: 
+*   146:         StorageSpinnerItem item = getStorageItem(position);
+*   147:         if (item != null) {
+*   148:             nameAndSize.setText(String.format(nameAndSizeTemplate, item.name,
+*   149:                                 Formatter.formatFileSize(context, item.size)));
+*   150:             path.setText(item.getStoragePath());
+*   151:         }
+*   152: 
+*   153:         return view;
+*   154:     }
+    155: 
+    156:     @Override
+*   157:     public View getView(int position, View view, ViewGroup parent)
+*   158:     {
+*   159:         if (view == null || !view.getTag().toString().equals(NON_DROPDOWN)) {
+*   160:             LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+*   161:             view = inflater.inflate(R.layout.filemanager_storage_spinner_item, parent, false);
+*   162:             view.setTag(NON_DROPDOWN);
+*   163:         }
+*   164: 
+*   165:         TextView title = view.findViewById(R.id.storage_title);
+*   166:         title.setText(getTitle());
+*   167: 
+*   168:         return view;
+*   169:     }
+    170: 
+    171:     @Nullable
+*   172:     public StorageSpinnerItem getStorageItem(int position)
+*   173:     {
+*   174:         return (position >= 0 && position < items.size()) ? items.get(position) : null;
+*   175:     }
+    176: 
+*   177:     public String getTitle()
+*   178:     {
+*   179:         return (curPath != null ? curPath : "");
+*   180:     }
+    181: 
+*   182:     public void setTitle(String curPath)
+*   183:     {
+*   184:         this.curPath = curPath;
+*   185:         notifyDataSetChanged();
+*   186:     }
+    187: }
+
+=== ui/filemanager/FileManagerViewModel.java ===
+     50: {
+*    51:     private static final String TAG = FileManagerViewModel.class.getSimpleName();
+     52: 
+     60: 
+*    61:     public FileManagerViewModel(
+*    62:             @NonNull Application application,
+*    63:             FileManagerConfig config,
+*    64:             String startDir
+*    65:     ){
+*    66:         super(application);
+*    67: 
+*    68:         this.config = config;
+*    69:         this.fs = SystemFacadeHelper.getFileSystemFacade(application);
+*    70:         this.startDir = startDir;
+*    71: 
+*    72:         String path = config.path;
+*    73:         if (!TextUtils.isEmpty(path) && startDir == null) {
+*    74:             startDir = path;
+*    75:         }
+*    76:         if (startDir == null) {
+*    77:             startDir = fs.getDefaultDownloadPath();
+*    78:         }
+*    79:         File dir = new File(startDir);
+*    80:         boolean canAccess = checkPermissions(dir, config);
+*    81:         if (!(dir.exists() && canAccess)) {
+*    82:             startDir = fs.getDefaultDownloadPath();
+*    83:         }
+*    84: 
+*    85:         try {
+*    86:             if (startDir != null) {
+*    87:                 startDir = new File(startDir).getCanonicalPath();
+*    88:             }
+*    89:             updateCurDir(startDir);
+*    90: 
+*    91:         } catch (IOException e) {
+*    92:             Log.e(TAG, Log.getStackTraceString(e));
+*    93:         }
+*    94:     }
+     95: 
+*    96:     public void refreshCurDirectory()
+*    97:     {
+*    98:         childNodes.onNext(getChildItems());
+*    99:     }
+    100: 
+*   101:     private void updateCurDir(String newPath)
+*   102:     {
+*   103:         if (newPath == null)
+*   104:             return;
+*   105:         curDir.set(newPath);
+*   106:         childNodes.onNext(getChildItems());
+*   107:     }
+    108: 
+    112: 
+*   113:     private List<FileManagerNode> getChildItems()
+*   114:     {
+*   115:         var items = new ArrayList<FileManagerNode>();
+*   116:         var dir = curDir.get();
+*   117:         if (dir == null)
+*   118:             return items;
+*   119: 
+*   120:         try {
+*   121:             var dirFile = new File(dir);
+*   122:             if (!(dirFile.exists() && dirFile.isDirectory()))
+*   123:                 return items;
+*   124: 
+*   125:             /* Adding parent dir for navigation */
+*   126:             if (!dirFile.getPath().equals(FileManagerNode.ROOT_DIR))
+*   127:                 items.add(0, new FileManagerNode(FileManagerNode.PARENT_DIR, FileNode.Type.DIR, true));
+*   128: 
+*   129:             var files = dirFile.listFiles();
+*   130:             if (files == null)
+*   131:                 return items;
+*   132:             for (var file : filterDirectories(files)) {
+*   133:                 if (file.isDirectory())
+*   134:                     items.add(new FileManagerNode(file.getName(), FileNode.Type.DIR, true));
+*   135:                 else
+*   136:                     items.add(new FileManagerNode(file.getName(), FileManagerNode.Type.FILE,
+*   137:                             config.showMode == FileManagerConfig.FILE_CHOOSER_MODE));
+*   138:             }
+*   139: 
+*   140:         } catch (Exception e) {
+*   141:             /* Ignore */
+*   142:         }
+*   143: 
+*   144:         return items;
+*   145:     }
+    146: 
+*   147:     List<File> filterDirectories(File[] files) {
+*   148:         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R
+*   149:                 || config.showMode == FileManagerConfig.FILE_CHOOSER_MODE) {
+*   150:             return Arrays.asList(files);
+*   151:         }
+*   152: 
+*   153:         var filtered = new ArrayList<File>();
+*   154:         for (var file : files) {
+*   155:             if (file.isFile() || file.canWrite()) {
+*   156:                 filtered.add(file);
+*   157:             }
+*   158:         }
+*   159: 
+*   160:         return filtered;
+*   161:     }
+    162: 
+*   163:     public boolean createDirectory(String name)
+*   164:     {
+*   165:         if (TextUtils.isEmpty(name))
+*   166:             return false;
+*   167: 
+*   168:         File newDir = new File(curDir.get(), name);
+*   169: 
+*   170:         return !newDir.exists() && newDir.mkdir();
+*   171:     }
+    172: 
+*   173:     public void openDirectory(String name) throws IOException, SecurityException
+*   174:     {
+*   175:         File dir = new File(curDir.get(), name);
+*   176:         String path = dir.getCanonicalPath();
+*   177: 
+*   178:         if (!(dir.exists() && dir.isDirectory()))
+*   179:             path = startDir;
+*   180:         else if (!checkPermissions(dir, config))
+*   181:             throw new SecurityException("Permission denied");
+*   182: 
+*   183:         updateCurDir(path);
+*   184:     }
+    185: 
+*   186:     public void jumpToDirectory(String path) throws SecurityException
+*   187:     {
+*   188:         File dir = new File(path);
+*   189: 
+*   190:         if (!checkPermissions(dir, config)) {
+*   191:             throw new SecurityException("Permission denied");
+*   192:         }
+*   193: 
+*   194:         updateCurDir(path);
+*   195:     }
+    196: 
+*   197:     public boolean isDirectoryExists(String path) {
+*   198:         var dir = new File(path);
+*   199:         return dir.exists() && dir.isDirectory();
+*   200:     }
+    201: 
+    205: 
+*   206:     public void upToParentDirectory() throws SecurityException
+*   207:     {
+*   208:         String path = curDir.get();
+*   209:         if (path == null)
+*   210:             return;
+*   211:         File dir = new File(path);
+*   212:         File parentDir = dir.getParentFile();
+*   213:         if (parentDir != null && !checkPermissions(parentDir, config))
+*   214:             throw new SecurityException("Permission denied");
+*   215: 
+*   216:         updateCurDir(dir.getParent());
+*   217:     }
+    218: 
+*   219:     public boolean fileExists(String fileName)
+*   220:     {
+*   221:         if (fileName == null)
+*   222:             return false;
+*   223: 
+*   224:         fileName = appendExtension(fileName);
+*   225: 
+*   226:         return new File(curDir.get(), fileName).exists();
+*   227:     }
+    228: 
+*   229:     private String appendExtension(String fileName)
+*   230:     {
+*   231:         MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
+*   232:         String extension = fs.getExtension(fileName);
+*   233: 
+*   234:         if (TextUtils.isEmpty(extension)) {
+*   235:             extension = mimeTypeMap.getExtensionFromMimeType(config.mimeType);
+*   236:         } else {
+*   237:             String mimeType = mimeTypeMap.getMimeTypeFromExtension(extension);
+*   238:             if (mimeType == null || !mimeType.equals(config.mimeType))
+*   239:                 extension = mimeTypeMap.getExtensionFromMimeType(config.mimeType);
+*   240:         }
+*   241: 
+*   242:         if (extension != null && !fileName.endsWith(extension))
+*   243:             fileName += fs.getExtensionSeparator() + extension;
+*   244: 
+*   245:         return fileName;
+*   246:     }
+    247: 
+*   248:     public Uri createFile(String fileName) throws SecurityException
+*   249:     {
+*   250:         if (TextUtils.isEmpty(fileName))
+*   251:             fileName = config.fileName;
+*   252: 
+*   253:         fileName = appendExtension(fs.buildValidFatFilename(fileName));
+*   254: 
+*   255:         File f = new File(curDir.get(), fileName);
+*   256:         File parent = f.getParentFile();
+*   257:         if (parent != null && !checkPermissions(parent, config))
+*   258:             throw new SecurityException("Permission denied");
+*   259:         try {
+*   260:             if (f.exists() && !f.delete())
+*   261:                 return null;
+*   262:             if (!f.createNewFile())
+*   263:                 return null;
+*   264: 
+*   265:         } catch (IOException e) {
+*   266:             return null;
+*   267:         }
+*   268: 
+*   269:         return Uri.fromFile(f);
+*   270:     }
+    271: 
+*   272:     public Uri getCurDirectoryUri() throws SecurityException
+*   273:     {
+*   274:         String path = curDir.get();
+*   275:         if (path == null)
+*   276:             return null;
+*   277: 
+*   278:         File dir = new File(path);
+*   279:         if (!checkPermissions(dir, config))
+*   280:             throw new SecurityException("Permission denied");
+*   281: 
+*   282:         return Uri.fromFile(dir);
+*   283:     }
+    284: 
+*   285:     public Uri getFileUri(String fileName) throws SecurityException
+*   286:     {
+*   287:         String path = curDir.get();
+*   288:         if (path == null)
+*   289:             return null;
+*   290: 
+*   291:         File f = new File(path, fileName);
+*   292:         if (!checkPermissions(f, config))
+*   293:             throw new SecurityException("Permission denied");
+*   294: 
+*   295:         return Uri.fromFile(f);
+*   296:     }
+    297: 
+*   298:     private List<Uri> getExtSdCardPaths() {
+*   299:         List<Uri> uriList = new ArrayList<>();
+*   300:         File[] externals = ContextCompat.getExternalFilesDirs(getApplication(), "external");
+*   301:         File external = getApplication().getExternalFilesDir("external");
+*   302:         for (File file : externals) {
+*   303:             if (file != null && !file.equals(external)) {
+*   304:                 String absolutePath = file.getAbsolutePath();
+*   305:                 String path = getBaseSdCardPath(absolutePath);
+*   306:                 if (path == null || !checkPermissions(new File(path), config)) {
+*   307:                     path = getSdCardDataPath(absolutePath);
+*   308:                     if (path == null || !checkPermissions(new File(path), config)) {
+*   309:                         Log.w(TAG, "Ext sd card path wrong: " + absolutePath);
+*   310:                         continue;
+*   311:                     }
+*   312:                 }
+*   313:                 uriList.add(Uri.parse("file://" + path));
+*   314:             }
+*   315:         }
+*   316: 
+*   317:         return uriList;
+*   318:     }
+    319: 
+*   320:     private String getBaseSdCardPath(String absolutePath) {
+*   321:         int index = absolutePath.lastIndexOf("/Android/data");
+*   322:         if (index >= 0) {
+*   323:             return tryGetCanonicalPath(absolutePath.substring(0, index));
+*   324:         } else {
+*   325:             return null;
+*   326:         }
+*   327:     }
+    328: 
+*   329:     private String getSdCardDataPath(String absolutePath) {
+*   330:         int index = absolutePath.lastIndexOf("/external");
+*   331:         if (index >= 0) {
+*   332:             return tryGetCanonicalPath(absolutePath.substring(0, index));
+*   333:         } else {
+*   334:             return null;
+*   335:         }
+*   336:     }
+    337: 
+*   338:     private String tryGetCanonicalPath(String absolutePath) {
+*   339:         try {
+*   340:             return new File(absolutePath).getCanonicalPath();
+*   341:         } catch (IOException e) {
+*   342:             // Keep non-canonical path.
+*   343:             return absolutePath;
+*   344:         }
+*   345:     }
+    346: 
+*   347:     private boolean checkPermissions(File file, FileManagerConfig config) {
+*   348:         switch (config.showMode) {
+*   349:             case FileManagerConfig.FILE_CHOOSER_MODE:
+*   350:                 return file.canRead();
+*   351:             case FileManagerConfig.DIR_CHOOSER_MODE:
+*   352:                 return file.canRead() && file.canWrite();
+*   353:             case FileManagerConfig.SAVE_FILE_MODE:
+*   354:                 return file.canWrite();
+*   355:         }
+*   356: 
+*   357:         throw new IllegalArgumentException("Unknown mode: " + config.showMode);
+*   358:     }
+    359: 
+*   360:     public List<FileManagerSpinnerAdapter.StorageSpinnerItem> getStorageList()
+*   361:     {
+*   362:         ArrayList<FileManagerSpinnerAdapter.StorageSpinnerItem> items = new ArrayList<>();
+*   363:         List<Uri> storageList = getExtSdCardPaths();
+*   364: 
+*   365:         Uri primaryStorage = Uri.fromFile(Environment.getExternalStorageDirectory());
+*   366:         try {
+*   367:             items.add(new FileManagerSpinnerAdapter.StorageSpinnerItem(
+*   368:                     getApplication().getString(R.string.internal_storage_name),
+*   369:                     fs.getDirPath(primaryStorage),
+*   370:                     fs.getDirAvailableBytes(primaryStorage))
+*   371:             );
+*   372:         } catch (UnknownUriException e) {
+*   373:             Log.e(TAG, Log.getStackTraceString(e));
+*   374:         }
+*   375: 
+*   376:         if (!storageList.isEmpty()) {
+*   377:             for (int i = 0; i < storageList.size(); i++) {
+*   378:                 String template = getApplication().getString(R.string.external_storage_name);
+*   379:                 try {
+*   380:                     items.add(new FileManagerSpinnerAdapter.StorageSpinnerItem(
+*   381:                             String.format(template, i + 1),
+*   382:                             storageList.get(i).getPath(),
+*   383:                             fs.getDirAvailableBytes(storageList.get(i)))
+*   384:                     );
+*   385:                 } catch (UnknownUriException e) {
+*   386:                     Log.e(TAG, Log.getStackTraceString(e));
+*   387:                 }
+*   388:             }
+*   389:         }
+*   390: 
+*   391:         return items;
+*   392:     }
+    393: }
+
+=== ui/filemanager/FileManagerViewModelFactory.java ===
+     33: 
+*    34:     public FileManagerViewModelFactory(@NonNull Application application,
+*    35:                                        FileManagerConfig config,
+*    36:                                        String startDir)
+*    37:     {
+*    38:         this.application = application;
+*    39:         this.config = config;
+*    40:         this.startDir = startDir;
+*    41:     }
+     42: 
+     44:     @Override
+*    45:     public <T extends ViewModel> T create(@NonNull Class<T> modelClass)
+*    46:     {
+*    47:         if (modelClass.isAssignableFrom(FileManagerViewModel.class))
+*    48:             return (T)new FileManagerViewModel(application, config, startDir);
+*    49: 
+*    50:         throw new IllegalArgumentException("Unknown ViewModel class");
+*    51:     }
+     52: }
+
+=== ui/filemanager/GoToFolderDialog.java ===
+     47:     @SuppressWarnings("unused")
+*    48:     private static final String TAG = GoToFolderDialog.class.getSimpleName();
+     49: 
+     54: 
+*    55:     public static GoToFolderDialog newInstance() {
+*    56:         GoToFolderDialog frag = new GoToFolderDialog();
+*    57: 
+*    58:         Bundle args = new Bundle();
+*    59:         frag.setArguments(args);
+*    60: 
+*    61:         return frag;
+*    62:     }
+     63: 
+    138:             Button addButton = alert.getButton(AlertDialog.BUTTON_POSITIVE);
+*   139:             addButton.setOnClickListener((v) -> goToDir());
+    140: 
+    141:             Button cancelButton = alert.getButton(AlertDialog.BUTTON_NEGATIVE);
+*   142:             cancelButton.setOnClickListener((v) ->
+*   143:                     finish(new Intent(), FragmentCallback.ResultCode.CANCEL));
+    144:         });
+    146: 
+*   147:     private void goToDir() {
+*   148:         if (!isAdded()) {
+*   149:             return;
+*   150:         }
+*   151: 
+*   152:         Intent i = new Intent();
+*   153:         i.putExtra(FileManagerDialog.TAG_URI, Uri.parse(viewModel.path.get()));
+*   154: 
+*   155:         finish(i, FragmentCallback.ResultCode.OK);
+*   156:     }
+    157: 
+    158:     public void onBackPressed() {
+*   159:         finish(new Intent(), FragmentCallback.ResultCode.BACK);
+    160:     }
+    161: 
+*   162:     private void finish(Intent intent, FragmentCallback.ResultCode code) {
+*   163:         alert.dismiss();
+*   164:         ((FragmentCallback) activity).onFragmentFinished(this, intent, code);
+*   165:     }
+    166: }

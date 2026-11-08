@@ -1,0 +1,174 @@
+# label_126 grep evidence (run from /Users/darshan/Desktop/yang/work). Source root: final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java
+# Section A: the UNREACHABLE source methods have no live caller. B: message codes sent to the handler. C: generated Dagger classes (auto_calls records and constant-pool scan of every class file in the build root). D: routes for the REACHABLE rows (auto records, manifest, framework lines).
+
+## A. UNREACHABLE source methods (no live caller)
+$ grep -rn "sendStartEvent\|sendStopEvent\|showNotificationUploading\|showNotificationUploadComplete" <source root>
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncService.java:95://        sendStartEvent();
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncService.java:108://            sendStopEvent();
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncService.java:116://            sendStopEvent();
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncService.java:155:    private void showNotificationUploadComplete(boolean result, File localFile) {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncService.java:186://            sendStopEvent();
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncService.java:198: //           sendStopEvent();
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncService.java:238:    private void sendStartEvent() {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncService.java:245:    private void sendStopEvent() {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncService.java:251:    private void showNotificationUploading() {
+$ grep -n "getDatabases()\|storeRecentDb" <SyncServiceMessageHandler.java>
+85://                storeRecentDb(remoteFile);
+131:    private RecentDatabasesProvider getDatabases() {
+145://    private void storeRecentDb(String remoteFile) {
+148://        DatabaseMetadata entry = getDatabases().get(localPath);
+153://        getDatabases().add(entry);
+$ grep -c "\"dst\": \"<name>\"" <auto_calls.json> (0 = no record has the name as its dst)
+SyncService.sendStartEvent: 0
+SyncService.sendStopEvent: 0
+SyncService.showNotificationUploading: 0
+SyncService.showNotificationUploadComplete: 0
+SyncServiceMessageHandler.getDatabases: 0
+
+## B. Message codes: every use of SyncServiceMessage constants and every write to Message.what
+$ grep -rn "SyncServiceMessage\.[A-Z]" <source root>
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncService.java:107:            sendMessage(outMessenger, SyncServiceMessage.NOT_ON_WIFI);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncService.java:128:                sendMessage(outMessenger, SyncServiceMessage.DOWNLOAD_COMPLETE);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncService.java:132:                sendMessage(outMessenger, SyncServiceMessage.UPLOAD_COMPLETE);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncService.java:185:            sendMessage(outMessenger, SyncServiceMessage.FILE_NOT_CHANGED);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncService.java:197:            sendMessage(outMessenger, SyncServiceMessage.CONFLICT);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncService.java:210:            sendMessage(outMessenger, SyncServiceMessage.DOWNLOAD_COMPLETE);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncService.java:217:            sendMessage(outMessenger, SyncServiceMessage.UPLOAD_COMPLETE);
+$ grep -rn "\.what\b" <source root>
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncService.java:226:        msg.what = message.code;
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncServiceMessageHandler.java:62:        SyncServiceMessage message = SyncServiceMessage.parse(msg.what);
+
+## C. Generated Dagger classes
+$ grep -n -E -A4 "\"src\": \"SyncService(MessageHandler)?_MembersInjector\." auto_calls.json (outgoing records; create and injectMembers have no caller record)
+42834:   "src": "SyncService_MembersInjector.create",
+42835-   "dst": "SyncService_MembersInjector.<init>",
+42837-   "line": 21,
+--
+42842:   "src": "SyncService_MembersInjector.injectMembers",
+42843-   "dst": "SyncService_MembersInjector.injectRecentDatabasesProvider",
+42845-   "line": 26,
+--
+42944:   "src": "SyncServiceMessageHandler_MembersInjector.create",
+42945-   "dst": "SyncServiceMessageHandler_MembersInjector.<init>",
+42947-   "line": 25,
+--
+42952:   "src": "SyncServiceMessageHandler_MembersInjector.injectMembers",
+42953-   "dst": "SyncServiceMessageHandler_MembersInjector.injectMDatabases",
+42955-   "line": 30,
+SyncService_MembersInjector.create dst count: 0
+SyncService_MembersInjector.injectMembers dst count: 0
+SyncService_MembersInjector.<init> dst count: 1
+SyncServiceMessageHandler_MembersInjector.create dst count: 0
+SyncServiceMessageHandler_MembersInjector.injectMembers dst count: 0
+SyncServiceMessageHandler_MembersInjector.<init> dst count: 1
+$ python3 -I constant-pool scan over all .class files under the build classes root (Methodref or Fieldref naming create, injectMembers or <init> of a *SyncService*_MembersInjector class)
+class files scanned: 825 (the first pass printed 820; the re-scan appended at the end of this file covers all 825 with 0 parse failures)
+   core/ioc/DaggerMmxComponent.class -> com/money/manager/ex/sync/SyncServiceMessageHandler_MembersInjector injectMDatabases (Lcom/money/manager/ex/sync/SyncServiceMessageHandler;Ldagger/Lazy;)V
+   core/ioc/DaggerMmxComponent.class -> com/money/manager/ex/sync/SyncService_MembersInjector injectRecentDatabasesProvider (Lcom/money/manager/ex/sync/SyncService;Lcom/money/manager/ex/home/RecentDatabasesProvider;)V
+   sync/SyncServiceMessageHandler_MembersInjector.class -> com/money/manager/ex/sync/SyncServiceMessageHandler_MembersInjector <init> (Ljavax/inject/Provider;)V
+   sync/SyncServiceMessageHandler_MembersInjector.class -> com/money/manager/ex/sync/SyncServiceMessageHandler_MembersInjector injectMDatabases (Lcom/money/manager/ex/sync/SyncServiceMessageHandler;Ldagger/Lazy;)V
+   sync/SyncServiceMessageHandler_MembersInjector.class -> com/money/manager/ex/sync/SyncServiceMessageHandler_MembersInjector injectMembers (Lcom/money/manager/ex/sync/SyncServiceMessageHandler;)V
+   sync/SyncServiceMessageHandler_MembersInjector.class -> com/money/manager/ex/sync/SyncServiceMessageHandler_MembersInjector mDatabasesProvider Ljavax/inject/Provider;
+   sync/SyncService_MembersInjector.class -> com/money/manager/ex/sync/SyncService_MembersInjector <init> (Ljavax/inject/Provider;)V
+   sync/SyncService_MembersInjector.class -> com/money/manager/ex/sync/SyncService_MembersInjector injectMembers (Lcom/money/manager/ex/sync/SyncService;)V
+   sync/SyncService_MembersInjector.class -> com/money/manager/ex/sync/SyncService_MembersInjector injectRecentDatabasesProvider (Lcom/money/manager/ex/sync/SyncService;Lcom/money/manager/ex/home/RecentDatabasesProvider;)V
+   sync/SyncService_MembersInjector.class -> com/money/manager/ex/sync/SyncService_MembersInjector recentDatabasesProvider Ljavax/inject/Provider;
+
+## D. Routes for the REACHABLE rows
+$ grep -n -B1 -A3 "\"dst\": \"<name>\"" auto_calls.json (selected dst names used as route steps)
+41222- "src": "SyncManager.invokeSyncService",	41223: "dst": "SyncService.enqueueWork",	41225- "line": 217,	41226- "dispatch": "exact",
+41246- "src": "SyncManager.invokeSyncService",	41247: "dst": "SyncServiceMessageHandler.<init>",	41249- "line": 212,	41250- "dispatch": "exact",
+41824- "src": "SyncService.onHandleWork",	41825: "dst": "SyncService.sendMessage",	41827- "line": 132,	41828- "dispatch": "exact",
+41912- "src": "SyncService.triggerSync",	41913: "dst": "SyncService.sendMessage",	41915- "line": 217,	41916- "dispatch": "exact",
+41816- "src": "SyncService.onHandleWork",	41817: "dst": "SyncService.triggerSync",	41819- "line": 135,	41820- "dispatch": "exact",
+41936- "src": "SyncService.triggerSync",	41937: "dst": "SyncService.showNotificationForConflict",	41939- "line": 203,	41940- "dispatch": "exact",
+41808- "src": "SyncService.onHandleWork",	41809: "dst": "SyncServiceMessage.<clinit>",	41811- "line": 107,	41812- "dispatch": "exact",
+41896- "src": "SyncService.triggerSync",	41897: "dst": "SyncServiceMessage.<clinit>",	41899- "line": 185,	41900- "dispatch": "exact",
+42256- "src": "SyncServiceMessageHandler.handleMessage",	42257: "dst": "SyncServiceMessage.<clinit>",	42259- "line": 65,	42260- "dispatch": "exact",
+42322- "src": "SyncServiceMessageHandler.handleMessage",	42323: "dst": "SyncServiceMessage.parse",	42325- "line": 62,	42326- "dispatch": "exact",
+42290- "src": "SyncServiceMessageHandler.handleMessage",	42291: "dst": "SyncServiceMessageHandler.closeDialog",	42293- "line": 112,	42294- "dispatch": "exact",
+42282- "src": "SyncServiceMessageHandler.handleMessage",	42283: "dst": "SyncServiceMessageHandler.getContext",	42285- "line": 113,	42286- "dispatch": "exact",
+42152- "src": "SyncSchedulerBroadcastReceiver.onReceive",	42153: "dst": "SyncSchedulerBroadcastReceiver.startHeartbeat",	42155- "line": 67,	42156- "dispatch": "exact",
+42160- "src": "SyncSchedulerBroadcastReceiver.onReceive",	42161: "dst": "SyncSchedulerBroadcastReceiver.getAlarmManager",	42163- "line": 57,	42164- "dispatch": "exact",
+19168- "src": "DaggerMmxComponent.injectSyncService",	19169: "dst": "SyncService_MembersInjector.injectRecentDatabasesProvider",	19171- "line": 597,	19172- "dispatch": "exact",
+42842- "src": "SyncService_MembersInjector.injectMembers",	42843: "dst": "SyncService_MembersInjector.injectRecentDatabasesProvider",	42845- "line": 26,	42846- "dispatch": "exact",
+19080- "src": "DaggerMmxComponent.injectSyncServiceMessageHandler",	19081: "dst": "SyncServiceMessageHandler_MembersInjector.injectMDatabases",	19083- "line": 554,	19084- "dispatch": "exact",
+42952- "src": "SyncServiceMessageHandler_MembersInjector.injectMembers",	42953: "dst": "SyncServiceMessageHandler_MembersInjector.injectMDatabases",	42955- "line": 30,	42956- "dispatch": "exact",
+41792- "src": "SyncService.onCreate",	41793: "dst": "DaggerMmxComponent.inject(SyncService)",	41795- "line": 86,	41796- "dispatch": "cha",
+42240- "src": "SyncServiceMessageHandler.<init>",	42241: "dst": "DaggerMmxComponent.inject(SyncServiceMessageHandler)",	42243- "line": 50,	42244- "dispatch": "cha",
+18640- "src": "DaggerMmxComponent.inject(SyncService)",	18641: "dst": "DaggerMmxComponent.injectSyncService",	18643- "line": 358,	18644- "dispatch": "exact",
+18584- "src": "DaggerMmxComponent.inject(SyncServiceMessageHandler)",	18585: "dst": "DaggerMmxComponent.injectSyncServiceMessageHandler",	18587- "line": 323,	18588- "dispatch": "exact",
+
+$ sed -n (manifest sync receivers and service)
+AndroidManifest.xml:100:         <receiver android:name=".sync.SyncSchedulerBroadcastReceiver" android:exported="true">
+AndroidManifest.xml:101:             <intent-filter>
+AndroidManifest.xml:102:                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+AndroidManifest.xml:103:                 <action android:name="${applicationId}.intent.action.START_SYNC_SERVICE" />
+AndroidManifest.xml:104:                 <action android:name="${applicationId}.intent.action.STOP_SYNC_SERVICE" />
+AndroidManifest.xml:105:             </intent-filter>
+AndroidManifest.xml:106:         </receiver>
+AndroidManifest.xml:444:         <service
+AndroidManifest.xml:445:             android:name=".sync.SyncService"
+AndroidManifest.xml:446:             android:exported="false"
+AndroidManifest.xml:447:             android:permission="android.permission.BIND_JOB_SERVICE">
+AndroidManifest.xml:448:             <intent-filter>
+AndroidManifest.xml:449:                 <action android:name="${applicationId}.sync.action.SYNC" />
+AndroidManifest.xml:450:                 <action android:name="${applicationId}.sync.action.DOWNLOAD" />
+AndroidManifest.xml:451:                 <action android:name="${applicationId}.sync.action.UPLOAD" />
+AndroidManifest.xml:452:             </intent-filter>
+AndroidManifest.xml:453:         </service>
+35:        applicationId "com.money.manager.ex"
+39:        // $applicationId
+65://            applicationIdSuffix ".debug"
+
+$ grep -n framework lines (ActivityThread, Service, Handler)
+3141:    private void handleReceiver(ReceiverData data) {
+3166:            receiver = (BroadcastReceiver)cl.loadClass(component).newInstance();
+3187:            receiver.onReceive(context.getReceiverRestrictedContext(),
+3256:                    agent = (BackupAgent) cl.loadClass(classname).newInstance();
+3311:    private void handleCreateService(CreateServiceData data) {
+3321:            service = (Service) cl.loadClass(data.info.name).newInstance();
+3339:            service.onCreate();
+3499:    private void handleStopService(IBinder token) {
+3504:                s.onDestroy();
+5676:                    cl.loadClass(data.instrumentationName.getClassName()).newInstance();
+6228:                    loadClass(info.name).newInstance();
+343:    public void onCreate() {
+515:    public void onDestroy() {
+91:    public void handleMessage(Message msg) {
+97:    public void dispatchMessage(Message msg) {
+102:                if (mCallback.handleMessage(msg)) {
+106:            handleMessage(msg);
+
+$ date (status time)
+18:05
+$ grep -n -F -B1 -A3 "\"dst\": \"SyncService$1.<init>\"" auto_calls.json and the same for $2 (fixed string; the anonymous HashMap classes that the first pass missed)
+41960-   "src": "SyncService.triggerSync",
+41961:   "dst": "SyncService$1.<init>",
+41962-   "file": "SyncService.java",
+41963-   "line": 187,
+41964-   "dispatch": "exact",
+41944-   "src": "SyncService.triggerSync",
+41945:   "dst": "SyncService$2.<init>",
+41946-   "file": "SyncService.java",
+41947-   "line": 199,
+41948-   "dispatch": "exact",
+
+## E. Re-checks run after the first pass (they confirm sections A to C)
+$ grep -rn -F -e STARTING_DOWNLOAD -e STARTING_UPLOAD -e SyncServiceMessage.ERROR <source root>
+SyncServiceMessage.java:28 STARTING_DOWNLOAD(0x000C); SyncServiceMessage.java:29 STARTING_UPLOAD(0x000D) (declarations)
+SyncServiceMessageHandler.java:77 case STARTING_DOWNLOAD:; SyncServiceMessageHandler.java:92 case STARTING_UPLOAD: (switch labels only)
+$ grep -n -F -e 'case ERROR' -e 'ERROR:' <sync package>
+SyncServiceMessageHandler.java:111 case ERROR: (switch label only)
+result: no code in the app sends STARTING_DOWNLOAD, STARTING_UPLOAD or ERROR (section B lists every qualified use)
+$ grep -n -F -B1 '"dst": "SyncServiceMessage.<init>"' auto_calls.json
+42224-   "src": "SyncServiceMessage.<clinit>",
+42225:   "dst": "SyncServiceMessage.<init>",   (line 33)
+$ grep -n -F -B1 '"dst": "SyncServiceMessageHandler.showProgressDialog"' auto_calls.json
+42314-   "src": "SyncServiceMessageHandler.handleMessage",
+42315:   "dst": "SyncServiceMessageHandler.showProgressDialog",   (file SyncServiceMessageHandler.java, line 79)
+
+## F. Constant-pool re-scan (python3 -I, inline script, read-only; all 825 .class files under the classes root, 0 parse failures)
+Question: which class files hold a Methodref, Fieldref or InterfaceMethodref naming create, injectMembers or <init> of a *MembersInjector owner, and is each one internal (owner = the file's own class) or external?
+result: 64 internal references. Each generated MembersInjector refers to its own <init> from create (the create -> <init> record) and to its own injectMembers (INFERRED: the compiler bridge for MembersInjector<T>.injectMembers, which calls the typed method). In this batch: SyncService_MembersInjector <init> and injectMembers; SyncServiceMessageHandler_MembersInjector <init> and injectMembers. The other two in the build (SyncPreferenceFragment_MembersInjector, SyncManager_MembersInjector) have the same pattern and belong to other batches.
+result: 0 external references. No class file outside a MembersInjector references its create, injectMembers or <init>, and no class calls the dagger MembersInjector interface's injectMembers.

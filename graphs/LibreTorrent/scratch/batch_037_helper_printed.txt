@@ -1,0 +1,24 @@
+LibreTorrent batch 37 — command record and evidence summary
+
+Plan command (sole membership source):
+`awk -F '\t' '$1==37 {print $3 "\t" $4}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv`
+
+Output: exactly 40 rows, all TorrentDownloadImpl methods; the ordered method names and descriptors are in the report table.
+
+Source excerpts printed and read:
+`nl -ba "$SRC/core/model/session/TorrentDownloadImpl.java" | sed -n '182,340p;391,490p;492,690p;717,743p;872,890p;993,1028p;1150,1178p;1240,1275p;1300,1340p;1388,1428p;1428,1458p;1550,1615p'`
+
+`SRC` is `/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent`.
+
+Focused use search printed:
+`rg -n 'isPaused\\(|isSeeding\\(|isSequentialDownload\\(|requestStop\\(|setInterestedPieces\\(|readPiece\\(|pauseManually\\(|resumeManually\\(|makeMagnet\\(' "$SRC/core/model" "$SRC/ui"`
+
+Important saved source evidence:
+- `TorrentDownloadImpl.java:205-281` registers `InnerListener.alert` behavior in constructor at 148-180; the alert dispatch switches to storage, metadata, read-piece, finish, and error handlers.
+- Error callback source is at 302-336; metadata callback notifications at 391-440; read-piece callback at 442-454; removal and finished notifications at 456-485.
+- Resume saving and alert serialization are at 492-528; requestStop creates state and error callbacks at 537-573; pause/resume APIs and internal helpers are at 593-673.
+- Magnet, listener dispatch, tracker announce, pieces, priority, and stream piece methods are at 872-890, 993-1021, 716-742, and 1559-1604.
+- State-query methods are at 1392-1425; interested-piece calls from TorrentInputStream were found at lines 118, 217, 288, and 394, and readPiece calls at 242 and 338.
+- Engine bridges printed: `TorrentEngine.java:577-585,802,927-946`; direct DetailTorrentViewModel magnet bridge at 381-382; TorrentSessionImpl pause/resume callers at 564,566,790,803 and stop call at 911.
+
+The local call contexts show candidate edges, but this audit did not trace complete routes from app entry points for all target methods. They remain OPEN. No coverage artifacts were read; no graph, AGENT_NOTES, or out files were edited.

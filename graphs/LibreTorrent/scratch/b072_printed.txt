@@ -1,0 +1,220 @@
+# Batch 72 printed evidence (fresh, C11 converter, 2026-11-01)
+# Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+# Cited files (basenames, for check_part check 8): BaseAlertDialog.java, MainFragment.java, TorrentService.java, Utils.java
+
+=== core/utils/Utils.java ===
+   424:      */
+   425: 
+*  426:     public static void startServiceBackground(@NonNull Context context, @NonNull Intent i) {
+*  427:         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+*  428:             // Postpone the service start until the main thread is free to avoid ANR
+*  429:             new Handler(Looper.getMainLooper())
+*  430:                     .post(() -> context.startForegroundService(i));
+*  431:         } else {
+*  432:             context.startService(i);
+*  433:         }
+*  434:     }
+   435: 
+   436:     public static void enableBootReceiver(@NonNull Context context, boolean enable) {
+---
+
+=== service/TorrentService.java ===
+    66: public class TorrentService extends Service
+    67: {
+*   68:     private static final String TAG = TorrentService.class.getSimpleName();
+*   69: 
+*   70:     private static final int SERVICE_STARTED_NOTIFICATION_ID = -1;
+*   71:     private static final int FOREGROUND_NOTIFY_UPDATE_DELAY = 1000; /* ms */
+*   72:     public static final String ACTION_SHUTDOWN = "org.proninyaroslav.libretorrent.services.TorrentService.ACTION_SHUTDOWN";
+*   73:     public static final String ACTION_RESTART_FOREGROUND_NOTIFICATION = "org.proninyaroslav.libretorrent.services.TorrentService.ACTION_RESTART_FOREGROUND_NOTIFICATION";
+*   74: 
+*   75:     private AtomicBoolean isAlreadyRunning = new AtomicBoolean();
+*   76:     /* For the pause action button of foreground notify */
+    77:     private NotificationCompat.Builder foregroundNotify;
+    78:     private Disposable foregroundDisposable;
+---
+    98:     @Nullable
+    99:     @Override
+*  100:     public IBinder onBind(Intent intent)
+*  101:     {
+*  102:         return null;
+*  103:     }
+   104: 
+   105:     @Override
+---
+   119: 
+   120:         makeForegroundNotify();
+*  121:         subscribeCombinedPauseButtonState();
+*  122:         setFilterAndSorting();
+*  123:         subscribeForceSortAndFilter();
+   124: 
+   125:         disposables.add(pref.observeSettingsChanged()
+---
+   123:         subscribeForceSortAndFilter();
+   124: 
+*  125:         disposables.add(pref.observeSettingsChanged()
+*  126:                 .subscribe(this::handleSettingsChanged));
+   127: 
+   128:         Utils.enableBootReceiverIfNeeded(getApplicationContext());
+---
+   127: 
+   128:         Utils.enableBootReceiverIfNeeded(getApplicationContext());
+*  129:         setKeepCpuAwake(pref.cpuDoNotSleep());
+   130: 
+   131:         engine.doStart();
+---
+   130: 
+   131:         engine.doStart();
+*  132:         engine.addListener(engineListener);
+   133: 
+   134:         startUpdateForegroundNotify();
+---
+   132:         engine.addListener(engineListener);
+   133: 
+*  134:         startUpdateForegroundNotify();
+   135:     }
+   136: 
+---
+   150:     private void shutdown()
+   151:     {
+*  152:         disposables.add(Completable.fromRunnable(this::stopEngine)
+   153:                 .subscribeOn(Schedulers.computation())
+   154:                 .subscribe());
+---
+   158:     {
+   159:         shuttingDown.set(true);
+*  160:         forceClearForeground();
+   161:         engine.doStop();
+   162:     }
+---
+   170:         isAlreadyRunning.set(false);
+   171:         stopForeground(true);
+*  172:         stopSelf();
+   173:     }
+   174: 
+---
+   202:             case NotificationReceiver.NOTIFY_ACTION_SHUTDOWN_APP:
+   203:             case ACTION_SHUTDOWN:
+*  204:                 shutdown();
+   205:                 return START_NOT_STICKY;
+   206:             case ACTION_RESTART_FOREGROUND_NOTIFICATION:
+---
+   253:     }
+   254: 
+*  255:     private final TorrentEngineListener engineListener = new TorrentEngineListener() {
+   256:         @Override
+   257:         public void onSessionStopped()
+---
+   258:         {
+   259:             Log.i(TAG, "Session stopped");
+*  260:             stopService();
+   261:         }
+   262:     };
+---
+   271:             forceSortAndFilter.onNext(true);
+   272:         } else if (key.equals(getString(R.string.pref_key_foreground_notify_combined_pause_button))) {
+*  273:             updateForegroundNotifyActions(pref.foregroundNotifyCombinedPauseButton());
+   274:         }
+   275:     }
+---
+   282:         foregroundDisposable = stateProvider.observeInfoList()
+   283:                 .subscribeOn(Schedulers.io())
+*  284:                 .flatMapSingle((infoList) ->
+*  285:                         Flowable.fromIterable(infoList)
+*  286:                                 .filter(itemsFilter)
+*  287:                                 .sorted(itemsSorting)
+*  288:                                 .toList()
+*  289:                 )
+   290:                 .observeOn(AndroidSchedulers.mainThread())
+   291:                 .delay(FOREGROUND_NOTIFY_UPDATE_DELAY, TimeUnit.MILLISECONDS)
+---
+   290:                 .observeOn(AndroidSchedulers.mainThread())
+   291:                 .delay(FOREGROUND_NOTIFY_UPDATE_DELAY, TimeUnit.MILLISECONDS)
+*  292:                 .subscribe(this::updateForegroundNotify,
+*  293:                         (Throwable t) -> Log.e(TAG, "Getting torrents info error: "
+*  294:                                 + Log.getStackTraceString(t))
+*  295:                 );
+   296:     }
+   297: 
+---
+   299:         return stateProvider.getInfoListSingle()
+   300:                 .subscribeOn(Schedulers.io())
+*  301:                 .flatMap((infoList) ->
+*  302:                         Observable.fromIterable(infoList)
+*  303:                                 .filter(itemsFilter)
+*  304:                                 .sorted(itemsSorting)
+*  305:                                 .toList()
+*  306:                 )
+   307:                 .observeOn(AndroidSchedulers.mainThread())
+   308:                 .subscribe(this::updateForegroundNotify,
+---
+   306:                 )
+   307:                 .observeOn(AndroidSchedulers.mainThread())
+*  308:                 .subscribe(this::updateForegroundNotify,
+*  309:                         (Throwable t) -> Log.e(TAG, "Getting torrents info error: "
+*  310:                                 + Log.getStackTraceString(t))
+*  311:                 );
+   312:     }
+   313: 
+---
+   314:     private void subscribeForceSortAndFilter() {
+   315:         disposables.add(forceSortAndFilter
+*  316:                 .filter((force) -> force)
+   317:                 .observeOn(Schedulers.io())
+   318:                 .subscribe((force) -> disposables.add(getInfoListSingle())));
+---
+   316:                 .filter((force) -> force)
+   317:                 .observeOn(Schedulers.io())
+*  318:                 .subscribe((force) -> disposables.add(getInfoListSingle())));
+   319:     }
+   320: 
+---
+   322:         disposables.add(combinedPauseButtonState
+   323:                 .observeOn(AndroidSchedulers.mainThread())
+*  324:                 .subscribe((paused) -> updateForegroundNotifyActions(
+*  325:                         pref.foregroundNotifyCombinedPauseButton()
+*  326:                 )));
+   327:     }
+   328: 
+---
+   329:     private void forceClearForeground()
+   330:     {
+*  331:         disposables.add(Completable.fromRunnable(() -> updateForegroundNotify(Collections.emptyList()))
+   332:                 .subscribeOn(AndroidSchedulers.mainThread())
+   333:                 .subscribe());
+---
+   359:                 .setWhen(System.currentTimeMillis());
+   360: 
+*  361:         setForegroundNotifyActions(pref.foregroundNotifyCombinedPauseButton());
+   362:         foregroundNotify.setCategory(Notification.CATEGORY_SERVICE);
+   363: 
+---
+   375:         if (shuttingDown.get()) {
+   376:             shutdownPendingIntent.cancel();
+*  377:             stopUpdateForegroundNotify();
+   378: 
+   379:             shutDownNotifyShow.set(true);
+---
+   390:                 foregroundNotify.setStyle(null);
+   391:             else
+*  392:                 foregroundNotify.setStyle(makeDetailNotifyInboxStyle(stateList));
+   393:         }
+   394:         /* Disallow killing the service process by system */
+---
+
+=== ui/BaseAlertDialog.java ===
+    96:                                               String neutralText, boolean autoDismiss)
+    97:     {
+*   98:         BaseAlertDialog frag = new BaseAlertDialog();
+    99: 
+   100:         Bundle args = new Bundle();
+---
+
+=== ui/main/MainFragment.java ===
+   506:         FragmentManager fm = getChildFragmentManager();
+   507:         if (fm.findFragmentByTag(TAG_DELETE_TORRENTS_DIALOG) == null) {
+*  508:             deleteTorrentsDialog = BaseAlertDialog.newInstance(
+   509:                     getString(R.string.deleting),
+   510:                     (selectionTracker.getSelection().size() > 1 ?
+---
+

@@ -1,0 +1,173 @@
+METHOD: FileSystemFacadeImpl.<init>
+verdict: REACHABLE   steps_from_launch: 7
+route steps: 7 edges
+======================================================================
+
+STEP 1  edge Ec86728f9
+  S_ENTRY -> MainApplication.onCreate
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC AndroidManifest.xml:31-32; FW-SRC core/java/android/app/ActivityThread.java:5709-5742; core/java/android/app/Instrumentation.java:1118-1119
+  cite [SRC] AndroidManifest.xml:31-32
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/AndroidManifest.xml)
+       31:     <application
+       32:         android:name="MainApplication"
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:5709-5742
+     5709:         Application app;
+     5710:         final StrictMode.ThreadPolicy savedPolicy = StrictMode.allowThreadDiskWrites();
+     5711:         final StrictMode.ThreadPolicy writesAllowedPolicy = StrictMode.getThreadPolicy();
+     5712:         try {
+     5713:             // If the app is being launched for full backup or restore, bring it up in
+     5714:             // a restricted environment with the base application class.
+     5715:             app = data.info.makeApplication(data.restrictedBackupMode, null);
+     5716:             mInitialApplication = app;
+     5717: 
+     5718:             // don't bring up providers in restricted mode; they may depend on the
+     5719:             // app's custom Application class
+     5720:             if (!data.restrictedBackupMode) {
+     5721:                 if (!ArrayUtils.isEmpty(data.providers)) {
+     5722:                     installContentProviders(app, data.providers);
+     5723:                     // For process that contains content providers, we want to
+     5724:                     // ensure that the JIT is enabled "at some point".
+     5725:                     mH.sendEmptyMessageDelayed(H.ENABLE_JIT, 10*1000);
+     5726:                 }
+     5727:             }
+     5728: 
+     5729:             // Do this after providers, since instrumentation tests generally start their
+     5730:             // test thread at this point, and we don't want that racing.
+     5731:             try {
+     5732:                 mInstrumentation.onCreate(data.instrumentationArgs);
+     5733:             }
+     5734:             catch (Exception e) {
+     5735:                 throw new RuntimeException(
+     5736:                     "Exception thrown in onCreate() of "
+     5737:                     + data.instrumentationName + ": " + e.toString(), e);
+     5738:             }
+     5739:             try {
+     5740:                 mInstrumentation.callApplicationOnCreate(app);
+     5741:             } catch (Exception e) {
+     5742:                 if (!mInstrumentation.onException(app, e)) {
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1118-1119
+     1118:     public void callApplicationOnCreate(Application app) {
+     1119:         app.onCreate();
+
+STEP 2  edge Ef65a9920
+  MainApplication.onCreate -> TorrentNotifier.getInstance
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC MainApplication.java:70; ui/TorrentNotifier.java:65-72
+  cite [SRC] MainApplication.java:70
+       70:         TorrentNotifier.getInstance(this).makeNotifyChans();
+  cite [SRC] ui/TorrentNotifier.java:65-72
+       65:     public static TorrentNotifier getInstance(@NonNull Context appContext) {
+       66:         if (INSTANCE == null) {
+       67:             synchronized (TorrentNotifier.class) {
+       68:                 if (INSTANCE == null)
+       69:                     INSTANCE = new TorrentNotifier(appContext);
+       70:             }
+       71:         }
+       72:         return INSTANCE;
+
+STEP 3  edge E70fa2193
+  TorrentNotifier.getInstance -> TorrentNotifier.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/TorrentNotifier.java:65-73; SRC ui/TorrentNotifier.java:75-79
+  cite [SRC] ui/TorrentNotifier.java:65-73
+       65:     public static TorrentNotifier getInstance(@NonNull Context appContext) {
+       66:         if (INSTANCE == null) {
+       67:             synchronized (TorrentNotifier.class) {
+       68:                 if (INSTANCE == null)
+       69:                     INSTANCE = new TorrentNotifier(appContext);
+       70:             }
+       71:         }
+       72:         return INSTANCE;
+       73:     }
+  cite [SRC] ui/TorrentNotifier.java:75-79
+       75:     private TorrentNotifier(Context appContext) {
+       76:         this.appContext = appContext;
+       77:         notifyManager = (NotificationManager) appContext.getSystemService(NOTIFICATION_SERVICE);
+       78:         pref = RepositoryHelper.getSettingsRepository(appContext);
+       79:     }
+
+STEP 4  edge E0f4a3275
+  TorrentNotifier.<init> -> RepositoryHelper.getSettingsRepository
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TorrentNotifier.java:78 (bytecode)
+  cite [SRC] TorrentNotifier.java:78
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/TorrentNotifier.java)
+       78:         pref = RepositoryHelper.getSettingsRepository(appContext);
+
+STEP 5  edge E3a0720fe
+  RepositoryHelper.getSettingsRepository -> SettingsRepositoryImpl.<init>
+  class: explicit   kind: CALL
+  guard: settingsRepo == null
+  needs_state: None
+  env: None
+  evidence: SRC RepositoryHelper.java:61-67; SettingsRepositoryImpl.java:184-192
+  cite [SRC] RepositoryHelper.java:61-67
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/RepositoryHelper.java)
+       61:     public synchronized static SettingsRepository getSettingsRepository(@NonNull Context appContext)
+       62:     {
+       63:         if (settingsRepo == null)
+       64:             settingsRepo = new SettingsRepositoryImpl(appContext);
+       65: 
+       66:         return settingsRepo;
+       67:     }
+  cite [SRC] SettingsRepositoryImpl.java:184-192
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/settings/SettingsRepositoryImpl.java)
+      184:     public SettingsRepositoryImpl(@NonNull Context appContext) {
+      185:         this.appContext = appContext;
+      186:         fs = SystemFacadeHelper.getFileSystemFacade(appContext);
+      187:         pref = PreferenceManager.getDefaultSharedPreferences(appContext);
+      188:     }
+      189: 
+      190:     /*
+      191:      * Returns Flowable with key
+      192:      */
+
+STEP 6  edge E554d7916
+  SettingsRepositoryImpl.<init> -> SystemFacadeHelper.getFileSystemFacade
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC SettingsRepositoryImpl.java:186 (bytecode)
+  cite [SRC] SettingsRepositoryImpl.java:186
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/settings/SettingsRepositoryImpl.java)
+      186:         fs = SystemFacadeHelper.getFileSystemFacade(appContext);
+
+STEP 7  edge E67690991
+  SystemFacadeHelper.getFileSystemFacade -> FileSystemFacadeImpl.<init>
+  class: explicit   kind: CALL
+  guard: fileSystemFacade == null
+  needs_state: None
+  env: None
+  evidence: SRC SystemFacadeHelper.java:39-45; FileSystemFacadeImpl.java:52-58
+  cite [SRC] SystemFacadeHelper.java:39-45
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/system/SystemFacadeHelper.java)
+       39:     public synchronized static FileSystemFacade getFileSystemFacade(@NonNull Context appContext)
+       40:     {
+       41:         if (fileSystemFacade == null)
+       42:             fileSystemFacade = new FileSystemFacadeImpl(appContext,
+       43:                     new FsModuleResolverImpl(appContext));
+       44: 
+       45:         return fileSystemFacade;
+  cite [SRC] FileSystemFacadeImpl.java:52-58
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/system/FileSystemFacadeImpl.java)
+       52:     public FileSystemFacadeImpl(@NonNull Context appContext,
+       53:                                 @NonNull FsModuleResolver fsResolver)
+       54:     {
+       55:         this.appContext = appContext;
+       56:         this.fsResolver = fsResolver;
+       57:     }
+       58: 

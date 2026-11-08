@@ -1,0 +1,76 @@
+=== BootReceiver manifest filters ===
+   265	        <receiver
+   266	            android:name=".receiver.BootReceiver"
+   267	            android:exported="true">
+   268	            <intent-filter>
+   269	                <action android:name="android.intent.action.BOOT_COMPLETED" />
+   270	                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+   271	                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
+   272	                <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
+   273	            </intent-filter>
+   274	        </receiver>
+=== BootReceiver methods ===
+    37	public class BootReceiver extends BroadcastReceiver {
+    38	    @Override
+    39	    public void onReceive(Context context, Intent intent) {
+    40	        var appContext = context.getApplicationContext();
+    41	        var pref = RepositoryHelper.getSettingsRepository(appContext);
+    42	
+    43	        var action = intent.getAction();
+    44	        if (isBootCompleted(action)) {
+    45	            initScheduling(context, pref);
+    46	            if (pref.autostart() && pref.keepAlive()) {
+    47	                TorrentEngine.getInstance(appContext).start();
+    48	            }
+    49	        } else if (AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED.equals(action)) {
+    50	            initScheduling(context, pref);
+    51	        }
+    52	    }
+    53	
+    54	    private boolean isBootCompleted(String action) {
+    55	        return Intent.ACTION_BOOT_COMPLETED.equals(action) ||
+    56	                "android.intent.action.QUICKBOOT_POWERON".equals(action) ||
+    57	                "com.htc.intent.action.QUICKBOOT_POWERON".equals(action);
+    58	    }
+=== AOSP receiver instantiation and dispatch ===
+  3141	    private void handleReceiver(ReceiverData data) {
+  3142	        // If we are getting ready to gc after going to the background, well
+  3143	        // we are back active so skip it.
+  3144	        unscheduleGcIdler();
+  3145	
+  3146	        String component = data.intent.getComponent().getClassName();
+  3147	
+  3148	        LoadedApk packageInfo = getPackageInfoNoCheck(
+  3149	                data.info.applicationInfo, data.compatInfo);
+  3150	
+  3151	        IActivityManager mgr = ActivityManager.getService();
+  3152	
+  3153	        Application app;
+  3154	        BroadcastReceiver receiver;
+  3155	        ContextImpl context;
+  3156	        try {
+  3157	            app = packageInfo.makeApplication(false, mInstrumentation);
+  3158	            context = (ContextImpl) app.getBaseContext();
+  3159	            if (data.info.splitName != null) {
+  3160	                context = (ContextImpl) context.createContextForSplit(data.info.splitName);
+  3161	            }
+  3162	            java.lang.ClassLoader cl = context.getClassLoader();
+  3163	            data.intent.setExtrasClassLoader(cl);
+  3164	            data.intent.prepareToEnterProcess();
+  3165	            data.setExtrasClassLoader(cl);
+  3166	            receiver = (BroadcastReceiver)cl.loadClass(component).newInstance();
+  3167	        } catch (Exception e) {
+  3176	        try {
+  3177	            if (localLOGV) Slog.v(
+  3178	                TAG, "Performing receive of " + data.intent
+  3179	                + ": app=" + app
+  3180	                + ", appName=" + app.getPackageName()
+  3181	                + ", pkg=" + packageInfo.getPackageName()
+  3182	                + ", comp=" + data.intent.getComponent().toShortString()
+  3183	                + ", dir=" + packageInfo.getAppDir());
+  3184	
+  3185	            sCurrentBroadcastIntent.set(data.intent);
+  3186	            receiver.setPendingResult(data);
+  3187	            receiver.onReceive(context.getReceiverRestrictedContext(),
+  3188	                    data.intent);
+  3189	        } catch (Exception e) {

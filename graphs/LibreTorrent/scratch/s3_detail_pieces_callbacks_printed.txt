@@ -1,0 +1,91 @@
+    80	
+    81	        if (context instanceof AppCompatActivity)
+    82	            activity = (AppCompatActivity)context;
+    83	    }
+    84	
+    85	    @Override
+    86	    public void onStop()
+    87	    {
+    88	        super.onStop();
+    89	
+    90	        disposables.clear();
+    91	    }
+    92	
+    93	    @Override
+    94	    public void onStart()
+    95	    {
+    96	        super.onStart();
+    97	
+    98	        subscribeAdapter();
+    99	    }
+   100	
+   101	    @Override
+   102	    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+   103	        super.onViewCreated(view, savedInstanceState);
+   104	
+   105	        if (activity == null)
+   106	            activity = (AppCompatActivity) getActivity();
+   107	
+   108	        viewModel = new ViewModelProvider(activity).get(DetailTorrentViewModel.class);
+   109	        binding.setViewModel(viewModel);
+   110	    }
+   111	
+   112	    @Override
+   113	    public void onSaveInstanceState(@NonNull Bundle outState)
+   114	    {
+   115	        super.onSaveInstanceState(outState);
+   116	
+   117	        if (scrollPosition != null) {
+   118	            scrollPosition[0] = binding.pieceMapScrollView.getScrollX();
+   119	            scrollPosition[1] = binding.pieceMapScrollView.getScrollY();
+   120	            outState.putIntArray(TAG_SCROLL_POSITION, scrollPosition);
+   121	        }
+   122	    }
+   123	
+   124	    @Override
+   125	    public void onViewStateRestored(@Nullable Bundle savedInstanceState)
+   126	    {
+   127	        super.onViewStateRestored(savedInstanceState);
+   128	
+   129	        if (savedInstanceState != null) {
+   130	            scrollPosition = savedInstanceState.getIntArray(TAG_SCROLL_POSITION);
+   131	            if (scrollPosition != null && scrollPosition.length == 2)
+   132	                binding.pieceMapScrollView.scrollTo(scrollPosition[0], scrollPosition[1]);
+   133	        }
+   134	    }
+   135	
+   136	    private void subscribeAdapter()
+   137	    {
+   138	        disposables.add(viewModel.observePieces()
+   139	                .subscribeOn(Schedulers.io())
+   140	                .observeOn(AndroidSchedulers.mainThread())
+   141	                .subscribe((pieces) -> binding.pieceMap.setPieces(pieces)));
+   142	    }
+   143	}
+  1610	     */
+  1611	    @CallSuper
+  1612	    public void onViewStateRestored(Bundle savedInstanceState) {
+  1613	        mCalled = true;
+  1614	    }
+  1615	
+  1616	    /**
+  1662	     * its owning activity actually needs to save its state.
+  1663	     *
+  1664	     * @param outState Bundle in which to place your saved state.
+  1665	     */
+  1666	    public void onSaveInstanceState(Bundle outState) {
+  1667	    }
+  1668	
+  1669	    /**
+  1670	     * Called when the Fragment's activity changes from fullscreen mode to multi-window mode and
+  1671	     * visa-versa. This is generally tied to {@link Activity#onMultiWindowModeChanged} of the
+  1672	     * containing Activity. This method provides the same configuration that will be sent in the
+  2716	    void performStop() {
+  2717	        if (mChildFragmentManager != null) {
+  2718	            mChildFragmentManager.dispatchStop();
+  2719	        }
+  2720	        mState = STOPPED;
+  2721	        mCalled = false;
+  2722	        onStop();
+  2723	        if (!mCalled) {
+  2724	            throw new SuperNotCalledException("Fragment " + this

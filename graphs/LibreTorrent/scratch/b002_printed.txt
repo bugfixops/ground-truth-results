@@ -1,0 +1,381 @@
+$ Batch 2 printed source (from the local clone tree).
+$ Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java
+$ NOTE: merge-ready batch1/batch2 cite the app parser as CoreFeedParser.java; its repo path is core/FeedParser.java, printed below.
+$ Every range below is cited by at least one row of batch2-merge-ready.md; every .py evidence ref traces here.
+$ sed -n '42,44p' com/ernieyu/feedparser/impl/Rss2Feed.java
+    42	    public FeedType getType() {
+    43	        return FeedType.RSS_2_0;
+    44	    }
+$ sed -n '54,65p' com/ernieyu/feedparser/impl/Rss2Feed.java
+    54	    public String getLink() {
+    55	        Element channel = getElement(CHANNEL);
+    56	        if (channel == null) {
+    57	            return null;
+    58	        }
+    59	        for (Element element : channel.getElementList(LINK)) {
+    60	            if (!element.getContent().isEmpty()) {
+    61	                return element.getContent();
+    62	            }
+    63	        }
+    64	        return null;
+    65	    }
+$ sed -n '89,97p' com/ernieyu/feedparser/impl/Rss2Feed.java
+    89	    public Date getPubDate() {
+    90	        Element channel = getElement(CHANNEL);
+    91	        if (channel == null) {
+    92	            return null;
+    93	        }
+    94	        Element pubDate = channel.getElement(PUB_DATE);
+    95	        if (pubDate == null) pubDate = channel.getElement(LAST_BUILD_DATE);
+    96	        return (pubDate != null) ? FeedUtils.convertRss2Date(pubDate.getContent()) : null;
+    97	    }
+$ sed -n '35,37p' com/ernieyu/feedparser/impl/Rss2Item.java
+    35	    public FeedType getType() {
+    36	        return FeedType.RSS_2_0;
+    37	    }
+$ sed -n '63,66p' com/ernieyu/feedparser/impl/Rss2Item.java
+    63	    public String getAuthor() {
+    64	        Element author = getElement(AUTHOR);
+    65	        return (author != null) ? author.getContent() : null;
+    66	    }
+$ sed -n '81,91p' com/ernieyu/feedparser/impl/Rss2Item.java
+    81	    public List<String> getCategories() {
+    82	        List<Element> elementList = getElementList(CATEGORY);
+    83	        
+    84	        // Create list of category terms.
+    85	        List<String> categories = new ArrayList<String>();
+    86	        for (Element element : elementList) {
+    87	            categories.add(element.getContent());
+    88	        }
+    89	        
+    90	        return categories;
+    91	    }
+$ sed -n '38,40p' com/ernieyu/feedparser/mediarss/MediaRss.java
+    38	    public List<PeerLink> getPeerLinks() {
+    39	        return peerLinks;
+    40	    }
+$ sed -n '27,29p' com/ernieyu/feedparser/mediarss/PeerLink.java
+    27	    public String getHref() {
+    28	        return href;
+    29	    }
+$ sed -n '38,40p' com/ernieyu/feedparser/mediarss/PeerLink.java
+    38	    public String getType() {
+    39	        return type;
+    40	    }
+$ sed -n '172,173p' org/nanohttpd/NanoHTTPD.java
+   172	                TempFileManager tempFileManager = NanoHTTPD.this.tempFileManagerFactory.create();
+   173	                HTTPSession session = new HTTPSession(tempFileManager, this.inputStream, outputStream, this.acceptSocket.getInetAddress());
+$ sed -n '205,210p' org/nanohttpd/NanoHTTPD.java
+   205	        public Cookie(String name, String value) {
+   206	            this(name, value, 30);
+   207	        }
+   208	        public Cookie(String name, String value, int numDays) {
+   209	            this.n = name;
+   210	            this.v = value;
+$ sed -n '213,213p' org/nanohttpd/NanoHTTPD.java
+   213	        public Cookie(String name, String value, String expires) {
+$ sed -n '284,284p' org/nanohttpd/NanoHTTPD.java
+   284	            this.queue.add(new Cookie(name, value, Cookie.getHTTPTime(expires)));
+$ sed -n '315,317p' org/nanohttpd/NanoHTTPD.java
+   315	        public List<ClientHandler> getRunning() {
+   316	            return running;
+   317	        }
+$ sed -n '366,368p' org/nanohttpd/NanoHTTPD.java
+   366	        public OutputStream open() throws Exception {
+   367	            return this.fstream;
+   368	        }
+$ sed -n '436,436p' org/nanohttpd/NanoHTTPD.java
+   436	        public SecureServerSocketFactory(SSLServerSocketFactory sslServerSocketFactory, String[] sslProtocols) {
+$ sed -n '479,483p' org/nanohttpd/NanoHTTPD.java
+   479	        public HTTPSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
+   480	            this.tempFileManager = tempFileManager;
+   481	            this.inputStream = new BufferedInputStream(inputStream, HTTPSession.BUFSIZE);
+   482	            this.outputStream = outputStream;
+   483	        }
+$ sed -n '513,513p' org/nanohttpd/NanoHTTPD.java
+   513	                    decodeParms(uri.substring(qmi + 1), parms);
+$ sed -n '637,637p' org/nanohttpd/NanoHTTPD.java
+   637	        private void decodeParms(String parms, Map<String, String> p) {
+$ sed -n '745,745p' org/nanohttpd/NanoHTTPD.java
+   745	                Response resp = newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
+$ sed -n '749,749p' org/nanohttpd/NanoHTTPD.java
+   749	                Response resp = newFixedLengthResponse(re.getStatus(), NanoHTTPD.MIME_PLAINTEXT, re.getMessage());
+$ sed -n '817,819p' org/nanohttpd/NanoHTTPD.java
+   817	        public CookieHandler getCookies() {
+   818	            return this.cookies;
+   819	        }
+$ sed -n '825,827p' org/nanohttpd/NanoHTTPD.java
+   825	        public final InputStream getInputStream() {
+   826	            return this.inputStream;
+   827	        }
+$ sed -n '843,843p' org/nanohttpd/NanoHTTPD.java
+   843	                return new RandomAccessFile(tempFile.getName(), "rw");
+$ sed -n '921,921p' org/nanohttpd/NanoHTTPD.java
+   921	                            decodeParms(postLine, this.parms);
+$ sed -n '951,951p' org/nanohttpd/NanoHTTPD.java
+   951	                    fileOutputStream = new FileOutputStream(tempFile.getName());
+$ sed -n '955,955p' org/nanohttpd/NanoHTTPD.java
+   955	                    path = tempFile.getName();
+$ sed -n '1334,1334p' org/nanohttpd/NanoHTTPD.java
+  1334	                myServerSocket.bind(hostname != null ? new InetSocketAddress(hostname, myPort) : new InetSocketAddress(myPort));
+$ sed -n '1347,1347p' org/nanohttpd/NanoHTTPD.java
+  1347	                    NanoHTTPD.this.asyncRunner.exec(createClientHandler(finalAccept, inputStream));
+$ sed -n '1418,1427p' org/nanohttpd/NanoHTTPD.java
+  1418	    public static Map<String, String> mimeTypes() {
+  1419	        if (MIME_TYPES == null) {
+  1420	            MIME_TYPES = new HashMap<String, String>();
+  1421	            loadMimeTypes(MIME_TYPES, "META-INF/nanohttpd/default-mimetypes.properties");
+  1422	            loadMimeTypes(MIME_TYPES, "META-INF/nanohttpd/mimetypes.properties");
+  1423	            if (MIME_TYPES.isEmpty()) {
+  1424	                LOG.log(Level.WARNING, "no mime types found in the classpath! please provide mimetypes.properties");
+  1425	            }
+  1426	        }
+  1427	        return MIME_TYPES;
+$ sed -n '1429,1429p' org/nanohttpd/NanoHTTPD.java
+  1429	    private static void loadMimeTypes(Map<String, String> result, String resourceName) {
+$ sed -n '1455,1455p' org/nanohttpd/NanoHTTPD.java
+  1455	    public static SSLServerSocketFactory makeSSLSocketFactory(KeyStore loadedKeyStore, KeyManager[] keyManagers) throws IOException {
+$ sed -n '1473,1478p' org/nanohttpd/NanoHTTPD.java
+  1473	    public static SSLServerSocketFactory makeSSLSocketFactory(KeyStore loadedKeyStore, KeyManagerFactory loadedKeyFactory) throws IOException {
+  1474	        try {
+  1475	            return makeSSLSocketFactory(loadedKeyStore, loadedKeyFactory.getKeyManagers());
+  1476	        } catch (Exception e) {
+  1477	            throw new IOException(e.getMessage());
+  1478	        }
+$ sed -n '1484,1492p' org/nanohttpd/NanoHTTPD.java
+  1484	    public static SSLServerSocketFactory makeSSLSocketFactory(String keyAndTrustStoreClasspathPath, char[] passphrase) throws IOException {
+  1485	        try {
+  1486	            KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+  1487	            InputStream keystoreStream = NanoHTTPD.class.getResourceAsStream(keyAndTrustStoreClasspathPath);
+  1488	            keystore.load(keystoreStream, passphrase);
+  1489	            KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+  1490	            keyManagerFactory.init(keystore, passphrase);
+  1491	            return makeSSLSocketFactory(keystore, keyManagerFactory);
+  1492	        } catch (Exception e) {
+$ sed -n '1503,1511p' org/nanohttpd/NanoHTTPD.java
+  1503	    public static String getMimeTypeForFile(String uri) {
+  1504	        int dot = uri.lastIndexOf('.');
+  1505	        String mime = null;
+  1506	        if (dot >= 0) {
+  1507	            mime = mimeTypes().get(uri.substring(dot + 1).toLowerCase());
+  1508	        }
+  1509	        return mime == null ? "application/octet-stream" : mime;
+  1510	    }
+  1511	    private static final void safeClose(Object closeable) {
+$ sed -n '1544,1546p' org/nanohttpd/NanoHTTPD.java
+  1544	    public NanoHTTPD(int port) {
+  1545	        this(null, port);
+  1546	    }
+$ sed -n '1557,1562p' org/nanohttpd/NanoHTTPD.java
+  1557	    public NanoHTTPD(String hostname, int port) {
+  1558	        this.hostname = hostname;
+  1559	        this.myPort = port;
+  1560	        setTempFileManagerFactory(new DefaultTempFileManagerFactory());
+  1561	        setAsyncRunner(new DefaultAsyncRunner());
+  1562	    }
+$ sed -n '1566,1568p' org/nanohttpd/NanoHTTPD.java
+  1566	    public synchronized void closeAllConnections() {
+  1567	        stop();
+  1568	    }
+$ sed -n '1604,1606p' org/nanohttpd/NanoHTTPD.java
+  1604	    protected static Map<String, List<String>> decodeParameters(Map<String, String> parms) {
+  1605	        return decodeParameters(parms.get(NanoHTTPD.QUERY_STRING_PARAMETER));
+  1606	    }
+$ sed -n '1619,1619p' org/nanohttpd/NanoHTTPD.java
+  1619	    protected static Map<String, List<String>> decodeParameters(String queryString) {
+$ sed -n '1663,1668p' org/nanohttpd/NanoHTTPD.java
+  1663	    public final int getListeningPort() {
+  1664	        return this.myServerSocket == null ? -1 : this.myServerSocket.getLocalPort();
+  1665	    }
+  1666	    public final boolean isAlive() {
+  1667	        return wasStarted() && !this.myServerSocket.isClosed() && this.myThread.isAlive();
+  1668	    }
+$ sed -n '1672,1680p' org/nanohttpd/NanoHTTPD.java
+  1672	    public void setServerSocketFactory(ServerSocketFactory serverSocketFactory) {
+  1673	        this.serverSocketFactory = serverSocketFactory;
+  1674	    }
+  1675	    public String getHostname() {
+  1676	        return hostname;
+  1677	    }
+  1678	    public TempFileManagerFactory getTempFileManagerFactory() {
+  1679	        return tempFileManagerFactory;
+  1680	    }
+$ sed -n '1684,1686p' org/nanohttpd/NanoHTTPD.java
+  1684	    public void makeSecure(SSLServerSocketFactory sslServerSocketFactory, String[] sslProtocols) {
+  1685	        this.serverSocketFactory = new SecureServerSocketFactory(sslServerSocketFactory, sslProtocols);
+  1686	    }
+$ sed -n '1690,1692p' org/nanohttpd/NanoHTTPD.java
+  1690	    public static Response newChunkedResponse(Response.IStatus status, String mimeType, InputStream data) {
+  1691	        return new Response(status, mimeType, data, -1);
+  1692	    }
+$ sed -n '1719,1721p' org/nanohttpd/NanoHTTPD.java
+  1719	    public static Response newFixedLengthResponse(String msg) {
+  1720	        return newFixedLengthResponse(Response.Status.OK, NanoHTTPD.MIME_HTML, msg);
+  1721	    }
+$ sed -n '1739,1739p' org/nanohttpd/NanoHTTPD.java
+  1739	                return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
+$ sed -n '1741,1741p' org/nanohttpd/NanoHTTPD.java
+  1741	                return newFixedLengthResponse(re.getStatus(), NanoHTTPD.MIME_PLAINTEXT, re.getMessage());
+$ sed -n '1768,1768p' org/nanohttpd/NanoHTTPD.java
+  1768	        return newFixedLengthResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "Not Found");
+$ sed -n '1814,1814p' org/nanohttpd/NanoHTTPD.java
+  1814	        this.myServerSocket = this.getServerSocketFactory().create();
+$ sed -n '1840,1840p' org/nanohttpd/NanoHTTPD.java
+  1840	            this.asyncRunner.closeAll();
+$ sed -n '1848,1850p' org/nanohttpd/NanoHTTPD.java
+  1848	    public final boolean wasStarted() {
+  1849	        return this.myServerSocket != null && this.myThread != null;
+  1850	    }
+$ sed -n '104,104p' org/proninyaroslav/libretorrent/core/FeedParser.java
+   104	            Date pubDate = item.getPubDate();
+$ sed -n '175,175p' org/proninyaroslav/libretorrent/core/FeedParser.java
+   175	            String type = enclosure.getType();
+$ sed -n '194,194p' org/proninyaroslav/libretorrent/core/FeedParser.java
+   194	        List<Content> contentList = media.getContent();
+$ sed -n '202,202p' org/proninyaroslav/libretorrent/core/FeedParser.java
+   202	            String type = content.getType();
+$ sed -n '217,217p' org/proninyaroslav/libretorrent/core/FeedParser.java
+   217	        Hash hash = media.getHash();
+$ sed -n '69,69p' org/proninyaroslav/libretorrent/core/model/stream/TorrentStreamServer.java
+    69	        super(host, port);
+$ sed -n '84,84p' org/proninyaroslav/libretorrent/core/model/stream/TorrentStreamServer.java
+    84	        super.stop();
+$ sed -n '113,113p' org/proninyaroslav/libretorrent/core/model/stream/TorrentStreamServer.java
+   113	        String uri = session.getUri();
+$ sed -n '127,256p' org/proninyaroslav/libretorrent/core/model/stream/TorrentStreamServer.java
+   127	            return newFixedLengthResponse(NOT_FOUND, "", "");
+   128	
+   129	        if (!httpSession.getUri().equals("/stream"))
+   130	            return newFixedLengthResponse(BAD_REQUEST, "", "");
+   131	
+   132	        Map<String, String> params = httpSession.getParms();
+   133	        if (params.size() < 2)
+   134	            return newFixedLengthResponse(BAD_REQUEST, "", "");
+   135	
+   136	        String torrentId = Objects.requireNonNull(params.get("torrent"));
+   137	
+   138	        int fileIndex;
+   139	        TorrentStream stream;
+   140	        try {
+   141	            fileIndex = Integer.parseInt(Objects.requireNonNull(params.get("file")));
+   142	            stream = engine.getStream(torrentId, fileIndex);
+   143	            if (stream == null)
+   144	                return newFixedLengthResponse(NOT_FOUND, "", "");
+   145	
+   146	        } catch (Exception e) {
+   147	            return newFixedLengthResponse(NOT_FOUND, "", "");
+   148	        }
+   149	
+   150	        Map<String, String> header = httpSession.getHeaders();
+   151	        try {
+   152	            Response res;
+   153	            String etag = stream.id;
+   154	            long startFrom = 0;
+   155	            long endAt = -1;
+   156	            String range = header.get("range");
+   157	
+   158	            if (range != null) {
+   159	                if (range.startsWith("bytes=")) {
+   160	                    range = range.substring("bytes=".length());
+   161	                    int minus = range.indexOf('-');
+   162	                    try {
+   163	                        if (minus > 0) {
+   164	                            startFrom = Long.parseLong(range.substring(0, minus));
+   165	                            endAt = Long.parseLong(range.substring(minus + 1));
+   166	                        }
+   167	                    } catch (NumberFormatException ignored) {
+   168	
+   169	                    }
+   170	                }
+   171	            }
+   172	
+   173	            /*
+   174	             * Get if-range header. If present, it must match etag or else we
+   175	             * should ignore the range request
+   176	             */
+   177	            String ifRange = header.get("if-range");
+   178	            boolean headerIfRangeMissingOrMatching = (ifRange == null || etag.equals(ifRange));
+   179	
+   180	            String ifNoneMatch = header.get("if-none-match");
+   181	            boolean headerIfNoneMatchPresentAndMatching = ifNoneMatch != null &&
+   182	                    ("*".equals(ifNoneMatch) || ifNoneMatch.equals(etag));
+   183	
+   184	            if (headerIfRangeMissingOrMatching && range != null &&
+   185	                startFrom >= 0 && startFrom < stream.fileSize) {
+   186	                /*
+   187	                 * Range request that matches current etag
+   188	                 * and the startFrom of the range is satisfiable
+   189	                 */
+   190	                if (headerIfNoneMatchPresentAndMatching) {
+   191	                    /*
+   192	                     * Range request that matches current etag
+   193	                     * and the startFrom of the range is satisfiable
+   194	                     * would return range from file respond with not-modified
+   195	                     */
+   196	                    res = newFixedLengthResponse(NOT_MODIFIED, MIME_OCTET_STREAM, "");
+   197	                    res.addHeader("ETag", etag);
+   198	
+   199	                } else {
+   200	                    if (endAt < 0)
+   201	                        endAt = stream.fileSize - 1;
+   202	                    long newLen = endAt - startFrom + 1;
+   203	                    if (newLen < 0)
+   204	                        newLen = 0;
+   205	
+   206	                    TorrentInputStream is = engine.getTorrentInputStream(stream);
+   207	                    is.skip(startFrom);
+   208	
+   209	                    res = newFixedLengthResponse(PARTIAL_CONTENT, MIME_OCTET_STREAM, is, newLen);
+   210	                    res.addHeader("Accept-Ranges", "bytes");
+   211	                    res.addHeader("Content-Length", "" + newLen);
+   212	                    res.addHeader("Content-Range", "bytes " + startFrom + "-" + endAt + "/" + stream.fileSize);
+   213	                    res.addHeader("ETag", etag);
+   214	                    res.addHeader("Content-Disposition", "inline; filename=" + stream.id);
+   215	                }
+   216	            } else {
+   217	                if (headerIfRangeMissingOrMatching && range != null && startFrom >= stream.fileSize) {
+   218	                    /*
+   219	                     * Return the size of the file
+   220	                     * 4xx responses are not trumped by if-none-match
+   221	                     */
+   222	                    res = newFixedLengthResponse(RANGE_NOT_SATISFIABLE, NanoHTTPD.MIME_PLAINTEXT, "");
+   223	                    res.addHeader("Content-Range", "bytes */" + stream.fileSize);
+   224	                    res.addHeader("ETag", etag);
+   225	
+   226	                } else if (range == null && headerIfNoneMatchPresentAndMatching) {
+   227	                    /*
+   228	                     * Full-file-fetch request would return entire file
+   229	                     * respond with not-modified
+   230	                     */
+   231	                    res = newFixedLengthResponse(NOT_MODIFIED, MIME_OCTET_STREAM, "");
+   232	                    res.addHeader("ETag", etag);
+   233	
+   234	                } else if (!headerIfRangeMissingOrMatching && headerIfNoneMatchPresentAndMatching) {
+   235	                    /*
+   236	                     * Range request that doesn't match current etag
+   237	                     * would return entire (different) file respond with not-modified
+   238	                     */
+   239	                    res = newFixedLengthResponse(NOT_MODIFIED, MIME_OCTET_STREAM, "");
+   240	                    res.addHeader("ETag", etag);
+   241	
+   242	                } else {
+   243	                    TorrentInputStream is = engine.getTorrentInputStream(stream);
+   244	                    res = newFixedLengthResponse(OK, MIME_OCTET_STREAM, is, stream.fileSize);
+   245	                    res.addHeader("Accept-Ranges", "bytes");
+   246	                    res.addHeader("Content-Length", "" + stream.fileSize);
+   247	                    res.addHeader("ETag", etag);
+   248	                    res.addHeader("Content-Disposition", "inline; filename=" + stream.id);
+   249	                }
+   250	            }
+   251	
+   252	            return res;
+   253	        } catch (Throwable e) {
+   254	            Log.e(TAG, Log.getStackTraceString(e));
+   255	
+   256	            return newFixedLengthResponse(FORBIDDEN, NanoHTTPD.MIME_PLAINTEXT, "Forbidden");
+$ grep -rn --include='*.java' 'new BR\(' <srcroot>/org
+(no hits)
+(hits: 0; new BR()
+$ grep -rn --include='*.java' 'DataBinderMapperImpl|InnerBrLookup|InnerLayoutIdLookup|DataBindingTriggerClass' <srcroot>/org
+(no hits)
+(hits: 0; generated mapper / trigger class names)

@@ -1,0 +1,280 @@
+## Budget.setName  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=- state=- classes=explicit;standard explicit_standard_route=yes
+   1. E71c76102 ENTRY/standard*
+      S_ENTRY -> MainActivity.<init>
+      The MAIN / LAUNCHER activity is started from the launcher
+      evidence: SRC AndroidManifest.xml:136-143 (MAIN + LAUNCHER intent filter of com.money.manager.ex.home.MainActivity)
+        136                  android:name=".home.MainActivity"
+        137                  android:label="@string/application_name" android:exported="true">
+        138              <intent-filter>
+        139                  <action android:name="android.intent.action.MAIN" />
+        140  
+        141                  <category android:name="android.intent.category.LAUNCHER" />
+        142                  <!-- Samsung MultiWindow Function -->
+        143                  <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
+   2. E2e074fc1 LIFECYCLE/standard*
+      MainActivity.<init> -> MainActivity.onCreate
+      the framework calls onCreate after it creates the activity instance
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2722-2731 (callActivityOnCreate); FW-SRC core/java/android/app/Instrumentation.java:1212-1216; FW-SRC core/java/android/app/Activity.java:6993-7000 (performCreate calls onCreate); same route as graph_def.py AccountEditActivity.<init> -> onCreate
+       2722                  int theme = r.activityInfo.getThemeResource();
+       2723                  if (theme != 0) {
+       2724                      activity.setTheme(theme);
+       2725                  }
+       2726  
+       2727                  activity.mCalled = false;
+       2728                  if (r.isPersistable()) {
+       2729                      mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+       2730                  } else {
+       2731                      mInstrumentation.callActivityOnCreate(activity, r.state);
+       1212      public void callActivityOnCreate(Activity activity, Bundle icicle) {
+       1213          prePerformCreate(activity);
+       1214          activity.performCreate(icicle);
+       1215          postPerformCreate(activity);
+       1216      }
+       6993      final void performCreate(Bundle icicle, PersistableBundle persistentState) {
+       6994          mCanEnterPictureInPicture = true;
+       6995          restoreHasCurrentPermissionRequest(icicle);
+       6996          if (persistentState != null) {
+       6997              onCreate(icicle, persistentState);
+       6998          } else {
+       6999              onCreate(icicle);
+       7000          }
+   3. E5d5a9c2f CALL/explicit*
+      MainActivity.onCreate -> MainActivity.initHomeFragment
+      Direct call
+      evidence: SRC MainActivity.java:238 (bytecode)
+        238          initHomeFragment();
+   4. Eff22f7d2 ENTERS/page*
+      MainActivity.initHomeFragment -> S_HOME
+      the home screen is shown: initHomeFragment commits HomeFragment into the content container, or the navigation container in dual-panel mode
+      guard: no HomeFragment is in the manager yet (MainActivity.java:1312-1313)
+      evidence: SRC home/MainActivity.java:1308-1324; SRC home/HomeFragment.java:167-173 (onCreateView inflates home_fragment); the ENTERS edge is assigned to batch 080 by label_077.py:6
+       1308      private void initHomeFragment() {
+       1309          String tag = HomeFragment.class.getSimpleName();
+       1310  
+       1311          // See if the fragment is already there.
+       1312          Fragment existingFragment = getSupportFragmentManager().findFragmentByTag(tag);
+       1313          if (existingFragment != null) return;
+       1314  
+       1315          // Create new Home fragment.
+       1316          HomeFragment fragment = new HomeFragment();
+       1317  
+       1318          int containerId = isDualPanel() ? getNavigationId() : getContentId();
+       1319  
+       1320          getSupportFragmentManager().beginTransaction()
+       1321                  .replace(containerId, fragment, tag)
+      ...  (3 more lines)
+        167      @Override
+        168      public View onCreateView(LayoutInflater inflater, ViewGroup container,
+        169                               Bundle savedInstanceState) {
+        170          if (container == null) return null;
+        171  
+        172          // inflate layout
+        173          View view = inflater.inflate(R.layout.home_fragment, container, false);
+   5. Ed2488d54 GUI/standard*
+      S_HOME -> MainActivity$3.onGroupClick
+      Open the drawer (Up button or Menu key), then tap a top-level drawer item that has no sub-items (for example Recurring transactions or Budgets)
+      guard: the tapped group has null children (MainActivity.java:941-942); mDrawer is non-null (MainActivity.java:939)
+      evidence: SRC home/MainActivity.java:936-963 (group-click chain; onGroupClick at 938 returns false when children is not null); INFERRED ExpandableListView group click dispatch (library not read)
+        936          drawerList.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
+        937              @Override
+        938              public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
+        939                  if (mDrawer == null) return false;
+        940                  // if the group has child items, do not e.
+        941                  ArrayList<String> children = (ArrayList<String>) childItems.get(groupPosition);
+        942                  if (children != null) return false;
+        943  
+        944                  // Highlight the selected item, update the title, and close the drawer
+        945                  drawerList.setItemChecked(groupPosition, true);
+        946  
+        947                  // You should reset item counter
+        948                  mDrawer.closeDrawer(mDrawerLayout);
+        949                  // check item selected
+      ...  (14 more lines)
+   6. E025b8cae FRAMEWORK/standard*
+      MainActivity$3.onGroupClick -> MainActivity$3$1.run
+      the tap posts the drawer item Runnable with a 200 ms delay; the framework runs run() when the delay ends, and run() calls onDrawerMenuAndOptionMenuSelected (auto CALL at line 957)
+      evidence: SRC home/MainActivity.java:948-962 (postDelayed 953, run 955, call 957); FW-SRC core/java/android/os/Handler.java:427-429 (postDelayed calls sendMessageDelayed), 596, 97-99 (dispatchMessage calls handleCallback), 789-790 (handleCallback runs message.callback.run())
+        948                  mDrawer.closeDrawer(mDrawerLayout);
+        949                  // check item selected
+        950                  final DrawerMenuItem item = (DrawerMenuItem) drawerList.getExpandableListAdapter()
+        951                          .getGroup(groupPosition);
+        952                  if (item != null) {
+        953                      new Handler().postDelayed(new Runnable() {
+        954                          @Override
+        955                          public void run() {
+        956                              // execute operation
+        957                              onDrawerMenuAndOptionMenuSelected(item);
+        958                          }
+        959                      }, 200);
+        960                  }
+        961                  return true;
+      ...  (1 more lines)
+        427      public final boolean postDelayed(Runnable r, long delayMillis)
+        428      {
+        429          return sendMessageDelayed(getPostMessage(r), delayMillis);
+   7. E02874fba CALL/explicit*
+      MainActivity$3$1.run -> MainActivity.onDrawerMenuAndOptionMenuSelected@GROUP
+      the group-click Runnable run() calls onDrawerMenuAndOptionMenuSelected(item) with the tapped group item; this hand edge feeds only the @GROUP variant
+      evidence: SRC home/MainActivity.java:953-957 (postDelayed Runnable created at 953, run() at 955, dispatcher call at 957); SRC home/MainActivity.java:950-951 (item is the tapped group row, getGroup(groupPosition))
+        953                      new Handler().postDelayed(new Runnable() {
+        954                          @Override
+        955                          public void run() {
+        956                              // execute operation
+        957                              onDrawerMenuAndOptionMenuSelected(item);
+        950                  final DrawerMenuItem item = (DrawerMenuItem) drawerList.getExpandableListAdapter()
+        951                          .getGroup(groupPosition);
+   8. Eb67eeff0 INTENT/standard*
+      MainActivity.onDrawerMenuAndOptionMenuSelected@GROUP -> BudgetsActivity.<init>
+      case R.id.menu_budgets: startActivity(new Intent(this, BudgetsActivity.class)) — group tap only: Budgets is a group with null children, so only the group-click chain can supply menu_budgets
+      guard: the tapped group has null children (MainActivity.java:889-890) and its item id is R.id.menu_budgets (MainActivity.java:1090-1093); item id is non-null (MainActivity.java:607)
+      evidence: SRC home/MainActivity.java:654-657 (case); SRC home/MainActivity.java:936-963 (group-click chain: null-children check 941-942, group item 950-951, postDelayed Runnable 953, dispatcher call 957); SRC home/MainActivity.java:889-890 (Budgets null children); SRC home/MainActivity.java:1090-1093 (drawer item menu_budgets); SRC AndroidManifest.xml:324-326 (no intent filter)
+        654              case R.id.menu_budgets:
+        655                  intent = new Intent(this, BudgetsActivity.class);
+        656                  startActivity(intent);
+        657                  break;
+        936          drawerList.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
+        937              @Override
+        938              public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
+        939                  if (mDrawer == null) return false;
+        940                  // if the group has child items, do not e.
+        941                  ArrayList<String> children = (ArrayList<String>) childItems.get(groupPosition);
+        942                  if (children != null) return false;
+        943  
+        944                  // Highlight the selected item, update the title, and close the drawer
+        945                  drawerList.setItemChecked(groupPosition, true);
+        946  
+        947                  // You should reset item counter
+        948                  mDrawer.closeDrawer(mDrawerLayout);
+        949                  // check item selected
+      ...  (14 more lines)
+        889          // Budgets
+        890          childItems.add(null);
+       1090          menuItems.add(new DrawerMenuItem().withId(R.id.menu_budgets)
+       1091                  .withText(getString(R.string.budgets))
+       1092                  .withIconDrawable(uiHelper.getIcon(MMXIconFont.Icon.mmx_law)
+       1093                          .color(iconColor)));
+        324          <activity
+        325              android:name=".budget.BudgetsActivity"
+        326              android:label="@string/budgets" />
+   9. E47458fa6 LIFECYCLE/standard*
+      BudgetsActivity.<init> -> BudgetsActivity.onCreate
+      the framework calls onCreate right after the constructor
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2724-2731; SRC budget/BudgetsActivity.java:41-53
+       2724                      activity.setTheme(theme);
+       2725                  }
+       2726  
+       2727                  activity.mCalled = false;
+       2728                  if (r.isPersistable()) {
+       2729                      mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+       2730                  } else {
+       2731                      mInstrumentation.callActivityOnCreate(activity, r.state);
+         41      protected void onCreate(Bundle savedInstanceState) {
+         42          super.onCreate(savedInstanceState);
+         43  
+         44          // layout
+         45          setContentView(R.layout.activity_budgets);
+         46  
+         47          setSupportActionBar(getToolbar());
+         48          showStandardToolbarActions(getToolbar());
+         49          // enable returning back from toolbar.
+         50          setDisplayHomeAsUpEnabled(true);
+         51  
+         52          createFragments();
+         53      }
+  10. E5088b239 ENTERS/page*
+      BudgetsActivity.onCreate -> S_BUDGETS
+      the budget list is shown: the layout is set and createFragments adds BudgetListFragment to R.id.fragmentMain
+      evidence: SRC budget/BudgetsActivity.java:45, 52, 106-130 (fragment transaction at 120-122)
+         45          setContentView(R.layout.activity_budgets);
+  11. E9f753e92 GUI/standard*
+      S_BUDGETS -> BudgetListFragment.onContextItemSelected
+      Tap Edit or Delete in the menu of a budget row
+      evidence: SRC budget/BudgetListFragment.java:176-177 (Edit and Delete items), 181-203; FW-SRC core/java/android/app/Activity.java:3466-3473 (FEATURE_CONTEXT_MENU: onContextItemSelected, then mFragments.dispatchContextItemSelected); INFERRED androidx FragmentManager dispatches the item to the fragment (library not read)
+        176          menuHelper.addEditToContextMenu();
+        177          menuHelper.addDeleteToContextMenu();
+       3466              case Window.FEATURE_CONTEXT_MENU:
+       3467                  if(titleCondensed != null) {
+       3468                      EventLog.writeEvent(50000, 1, titleCondensed.toString());
+       3469                  }
+       3470                  if (onContextItemSelected(item)) {
+       3471                      return true;
+       3472                  }
+       3473                  return mFragments.dispatchContextItemSelected(item);
+  12. E4bb25bc0 CALL/explicit*
+      BudgetListFragment.onContextItemSelected -> BudgetListFragment.editBudget
+      Direct call
+      evidence: SRC BudgetListFragment.java:190 (bytecode)
+        190                  editBudget(budgetId);
+  13. Ee51971ce INTENT/standard*
+      BudgetListFragment.editBudget -> BudgetEditActivity.<init>
+      editBudget starts BudgetEditActivity with ACTION_EDIT and the budget id (KEY_BUDGET_ID) through startActivityForResult
+      guard: the context-menu item is EDIT (switch case at line 189)
+      evidence: SRC budget/BudgetListFragment.java:186-190 (switch on the menu id; editBudget at 190), 238-244 (intent 239-241; startActivityForResult 243); SRC AndroidManifest.xml:357
+        186          ContextMenuIds menuId = ContextMenuIds.get(id);
+        187  
+        188          switch (menuId) {
+        189              case EDIT:
+        190                  editBudget(budgetId);
+        357          <activity android:name=".budget.BudgetEditActivity" />
+  14. E1b1746f6 LIFECYCLE/standard*
+      BudgetEditActivity.<init> -> BudgetEditActivity.onCreate
+      the framework calls onCreate right after the constructor
+      evidence: FW-SRC core/java/android/app/Instrumentation.java:1143 (newActivity), 1212-1215 (callActivityOnCreate); FW-SRC core/java/android/app/ActivityThread.java:2669, 2729-2731; SRC budget/BudgetEditActivity.java:43-44, 52-54
+       1143      public Activity newActivity(Class<?> clazz, Context context,
+       2669              activity = mInstrumentation.newActivity(
+         43  public class BudgetEditActivity
+         44      extends MmxBaseFragmentActivity {
+  15. E8a2deab5 ENTERS/page*
+      BudgetEditActivity.onCreate -> S_BUDGET_EDIT
+      the budget edit form is shown: onCreate sets the layout (line 55) and binds the model to the fields (lines 61-62)
+      evidence: SRC budget/BudgetEditActivity.java:55, 61-62; SRC res/layout/activity_budget_edit.xml:65 (toolbar), 134 (budgetNameTextView), 173 (budgetYearTextView), 213 (budgetMonthTextView)
+         55          setContentView(R.layout.activity_budget_edit);
+         65                  android:id="@+id/toolbar"
+  16. Ee1668e27 GUI/standard*
+      S_BUDGET_EDIT -> BudgetEditActivity.onOptionsItemSelected
+      tap the save icon in the toolbar (it runs onActionDoneClick, which saves the budget) or the Up arrow (the home item, logged and passed to the base class)
+      guard: the save icon exists: onCreateOptionsMenu adds it (line 80)
+      evidence: SRC budget/BudgetEditActivity.java:76-83 (save icon via MenuHelper at 79-80), 86-96 (home at 88-91; save at 92-93); SRC MenuHelper.java:37 (save = 2), 87-94 (addSaveToolbarIcon; menu.add at 88); FW-SRC core/java/android/app/Activity.java:3439-3450 (onMenuItemSelected); INFERRED AppCompat dispatches the item to onOptionsItemSelected (library not read)
+         76      public boolean onCreateOptionsMenu(Menu menu) {
+         77          super.onCreateOptionsMenu(menu);
+         78  
+         79          MenuHelper menuHelper = new MenuHelper(this, menu);
+         80          menuHelper.addSaveToolbarIcon();
+         81  
+         82          return true;
+         83      }
+         37      public static final int save = 2;
+       3439      public boolean onMenuItemSelected(int featureId, MenuItem item) {
+       3440          CharSequence titleCondensed = item.getTitleCondensed();
+       3441  
+       3442          switch (featureId) {
+       3443              case Window.FEATURE_OPTIONS_PANEL:
+       3444                  // Put event logging here so it gets called even if subclass
+       3445                  // doesn't call through to superclass's implmeentation of each
+       3446                  // of these methods below
+       3447                  if(titleCondensed != null) {
+       3448                      EventLog.writeEvent(50000, 0, titleCondensed.toString());
+       3449                  }
+       3450                  if (onOptionsItemSelected(item)) {
+  17. E4bf216bc CALL/explicit*
+      BudgetEditActivity.onOptionsItemSelected -> BudgetEditActivity.onActionDoneClick
+      Direct call
+      evidence: SRC BudgetEditActivity.java:93 (bytecode)
+         93                  return onActionDoneClick();
+  18. E430a188e CALL/explicit*
+      BudgetEditActivity.onActionDoneClick -> BudgetEditActivity.save
+      Direct call
+      evidence: SRC BudgetEditActivity.java:66 (bytecode)
+         66          if (save()) {
+  19. Ed089100f CALL/explicit*
+      BudgetEditActivity.save -> BudgetViewModel.saveTo
+      Direct call
+      evidence: SRC BudgetEditActivity.java:201 (bytecode)
+        201          mModel.saveTo(budget);
+  20. E54dd31fc CALL/explicit*
+      BudgetViewModel.saveTo -> Budget.setName
+      Direct call
+      evidence: SRC BudgetViewModel.java:98 (bytecode)
+         98          budget.setName(this.name);
+

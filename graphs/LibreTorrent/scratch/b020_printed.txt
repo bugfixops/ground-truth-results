@@ -1,0 +1,723 @@
+$ A3 part converter prints for batch 20 (LibreTorrent 3.5.2)
+$ Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/exception/FetchLinkException.java" | sed -n '24,38p'
+24: */
+25:
+26:public class FetchLinkException extends Exception
+27:{
+28:    public FetchLinkException() { }
+29:
+30:    public FetchLinkException(String message)
+31:    {
+32:        super(message);
+33:    }
+34:
+35:    public FetchLinkException(Exception e)
+36:    {
+37:        super(e);
+38:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/exception/FreeSpaceException.java" | sed -n '24,38p'
+24: */
+25:
+26:public class FreeSpaceException extends Exception
+27:{
+28:    public FreeSpaceException() { }
+29:
+30:    public FreeSpaceException(String message)
+31:    {
+32:        super(message);
+33:    }
+34:
+35:    public FreeSpaceException(Exception e)
+36:    {
+37:        super(e.getMessage());
+38:        super.setStackTrace(e.getStackTrace());
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/exception/IPFilterException.java" | sed -n '22,33p'
+22:public class IPFilterException extends Exception
+23:{
+24:    public IPFilterException() { }
+25:
+26:    public IPFilterException(String message)
+27:    {
+28:        super(message);
+29:    }
+30:
+31:    public IPFilterException(Exception e)
+32:    {
+33:        super(e);
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/exception/NoFilesSelectedException.java" | sed -n '22,28p'
+22:public class NoFilesSelectedException extends Exception
+23:{
+24:    public NoFilesSelectedException() {}
+25:
+26:    public NoFilesSelectedException(String message)
+27:    {
+28:        super(message);
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/exception/NormalizeUrlException.java" | sed -n '19,29p'
+19:public class NormalizeUrlException extends Exception
+20:{
+21:    public NormalizeUrlException(String message, Exception e)
+22:    {
+23:        super(message);
+24:        initCause(e);
+25:    }
+26:
+27:    public NormalizeUrlException(String message)
+28:    {
+29:        super(message);
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/exception/TorrentAlreadyExistsException.java" | sed -n '22,28p'
+22:public class TorrentAlreadyExistsException extends Exception
+23:{
+24:    public TorrentAlreadyExistsException() { }
+25:
+26:    public TorrentAlreadyExistsException(String message)
+27:    {
+28:        super(message);
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/exception/UnknownUriException.java" | sed -n '21,25p'
+21:
+22:public class UnknownUriException extends Exception {
+23:    public UnknownUriException(String message) {
+24:        super(message);
+25:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/utils/Utils.java" | sed -n '462,475p'
+462:    public static byte[] fetchHttpUrl(@NonNull Context context,
+463:                                      @NonNull String url) throws FetchLinkException {
+464:        byte[][] response = new byte[1][];
+465:
+466:        if (!Utils.checkConnectivity(context))
+467:            throw new FetchLinkException("No network connection");
+468:
+469:        final ArrayList<Throwable> errorArray = new ArrayList<>(1);
+470:        HttpConnection connection;
+471:        try {
+472:            connection = new HttpConnection(url);
+473:        } catch (Exception e) {
+474:            throw new FetchLinkException(e);
+475:        }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/utils/Utils.java" | sed -n '490,495p'
+490:                        errorArray.add(e);
+491:                    }
+492:                } else {
+493:                    errorArray.add(new FetchLinkException("Failed to fetch link, response code: " + code));
+494:                }
+495:            }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/utils/Utils.java" | sed -n '505,525p'
+505:            }
+506:
+507:            @Override
+508:            public void onTooManyRedirects() {
+509:                errorArray.add(new FetchLinkException("Too many redirects"));
+510:            }
+511:        });
+512:        connection.run();
+513:
+514:        if (!errorArray.isEmpty()) {
+515:            StringBuilder s = new StringBuilder();
+516:            for (Throwable e : errorArray) {
+517:                String msg = e.getMessage();
+518:                if (msg != null)
+519:                    s.append(msg.concat("\n"));
+520:            }
+521:
+522:            throw new FetchLinkException(s.toString());
+523:        }
+524:
+525:        return response[0];
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/utils/Utils.java" | sed -n '837,870p'
+837:    public static TorrentFilter getDrawerGroupStatusFilter(@NonNull Context context,
+838:                                                           long itemId) {
+839:        Resources res = context.getResources();
+840:        if (itemId == res.getInteger(R.integer.drawer_status_all_id))
+841:            return TorrentFilterCollection.all();
+842:        else if (itemId == res.getInteger(R.integer.drawer_status_downloading_id))
+843:            return TorrentFilterCollection.statusDownloading();
+844:        else if (itemId == res.getInteger(R.integer.drawer_status_downloaded_id))
+845:            return TorrentFilterCollection.statusDownloaded();
+846:        else if (itemId == res.getInteger(R.integer.drawer_status_downloading_metadata_id))
+847:            return TorrentFilterCollection.statusDownloadingMetadata();
+848:        else if (itemId == res.getInteger(R.integer.drawer_status_error))
+849:            return TorrentFilterCollection.statusError();
+850:        else
+851:            return TorrentFilterCollection.all();
+852:    }
+853:
+854:    public static TorrentFilter getDrawerGroupDateAddedFilter(@NonNull Context context,
+855:                                                              long itemId) {
+856:        Resources res = context.getResources();
+857:        if (itemId == res.getInteger(R.integer.drawer_date_added_all_id))
+858:            return TorrentFilterCollection.all();
+859:        else if (itemId == res.getInteger(R.integer.drawer_date_added_today_id))
+860:            return TorrentFilterCollection.dateAddedToday();
+861:        else if (itemId == res.getInteger(R.integer.drawer_date_added_yesterday_id))
+862:            return TorrentFilterCollection.dateAddedYesterday();
+863:        else if (itemId == res.getInteger(R.integer.drawer_date_added_week_id))
+864:            return TorrentFilterCollection.dateAddedWeek();
+865:        else if (itemId == res.getInteger(R.integer.drawer_date_added_month_id))
+866:            return TorrentFilterCollection.dateAddedMonth();
+867:        else if (itemId == res.getInteger(R.integer.drawer_date_added_year_id))
+868:            return TorrentFilterCollection.dateAddedYear();
+869:        else
+870:            return TorrentFilterCollection.all();
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/utils/Utils.java" | sed -n '873,888p'
+873:    public static TorrentFilter getForegroundNotifyFilter(
+874:            @NonNull Context context,
+875:            @NonNull SettingsRepository pref
+876:    ) {
+877:        String val = pref.foregroundNotifyStatusFilter();
+878:        if (val.equals(context.getString(R.string.pref_foreground_notify_status_all_value))) {
+879:            return TorrentFilterCollection.all();
+880:        } else if (val.equals(context.getString(R.string.pref_foreground_notify_status_downloading_value))) {
+881:            return TorrentFilterCollection.statusDownloading();
+882:        } else if (val.equals(context.getString(R.string.pref_foreground_notify_status_downloaded_value))) {
+883:            return TorrentFilterCollection.statusDownloaded();
+884:        } else if (val.equals(context.getString(R.string.pref_foreground_notify_status_downloading_metadata_value))) {
+885:            return TorrentFilterCollection.statusDownloadingMetadata();
+886:        } else if (val.equals(context.getString(R.string.pref_foreground_notify_status_error_value))) {
+887:            return TorrentFilterCollection.statusError();
+888:        }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java" | sed -n '1195,1205p'
+1195:                false,
+1196:                new ArrayList<>(),
+1197:                false
+1198:        );
+1199:
+1200:        if (fs.getDirAvailableBytes(downloadPath) < info.torrentSize) {
+1201:            throw new FreeSpaceException();
+1202:        }
+1203:
+1204:        return addTorrentSync(params, false);
+1205:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentViewModel.java" | sed -n '466,500p'
+466:    public boolean addTorrent() throws Exception {
+467:        TorrentMetaInfo downloadInfo = info.get();
+468:        if (downloadInfo == null)
+469:            return false;
+470:
+471:        boolean fromMagnet = mutableParams.isFromMagnet();
+472:        DecodeState state = decodeState.getValue();
+473:
+474:        String source = mutableParams.getSource();
+475:        if (source == null)
+476:            return false;
+477:
+478:        Uri dirPath = mutableParams.getDirPath().get();
+479:        if (dirPath == null)
+480:            return false;
+481:
+482:        String name = mutableParams.getName();
+483:        if (TextUtils.isEmpty(name))
+484:            return false;
+485:
+486:        boolean ignoreFreeSpace = mutableParams.isIgnoreFreeSpace();
+487:        Set<Integer> selectedFiles = getSelectedFileIndexes();
+488:        if (!ignoreFreeSpace && state != null &&
+489:                (state.status == Status.DECODE_TORRENT_COMPLETED ||
+490:                        state.status == Status.FETCHING_MAGNET_COMPLETED ||
+491:                        state.status == Status.FETCHING_HTTP_COMPLETED)) {
+492:            if (selectedFiles.isEmpty())
+493:                throw new NoFilesSelectedException();
+494:
+495:            if (!checkFreeSpace())
+496:                throw new FreeSpaceException();
+497:        }
+498:
+499:        Priority[] priorities = new Priority[downloadInfo.fileCount];
+500:        if (downloadInfo.fileCount != 0) {
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java" | sed -n '391,420p'
+391:    private void handleMetadata(MetadataReceivedAlert alert)
+392:    {
+393:        Exception[] err = new Exception[1];
+394:        String newName = null;
+395:        Torrent torrent;
+396:        try {
+397:            torrent = repo.getTorrentById(id);
+398:            if (torrent == null)
+399:                throw new NullPointerException(id + " doesn't exists");
+400:            TorrentHandle th = alert.handle();
+401:            TorrentInfo ti = th.torrentFile();
+402:            if (ti == null) {
+403:                return;
+404:            }
+405:
+406:            TorrentMetaInfo info = new TorrentMetaInfo(ti);
+407:
+408:            /* Skip if default name is changed */
+409:            String name = this.name.get();
+410:            if (info.sha1Hash.equals(name) || TextUtils.isEmpty(name)) {
+411:                this.name.set(info.torrentName);
+412:                newName = info.torrentName;
+413:            }
+414:
+415:            long availableBytes = fs.getDirAvailableBytes(torrent.downloadPath);
+416:            if (availableBytes < info.torrentSize)
+417:                throw new FreeSpaceException("Not enough free space");
+418:
+419:        } catch (Exception e) {
+420:            err[0] = e;
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentSessionImpl.java" | sed -n '275,285p'
+275:            removeLoadedMagnet(params.sha1hash);
+276:            if (bencode == null)
+277:                torrent.setMagnetUri(params.source);
+278:        }
+279:
+280:        if (repo.getTorrentById(torrent.id) != null) {
+281:            mergeTorrent(torrent.id, params, bencode);
+282:            throw new TorrentAlreadyExistsException();
+283:        }
+284:
+285:        repo.addTorrent(torrent);
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/IPFilterImpl.java" | sed -n '39,60p'
+39:    public void addRange(@NonNull String first, @NonNull String last) throws IPFilterException
+40:    {
+41:        error_code ec = new error_code();
+42:        address firstAddr = address.from_string(first, ec);
+43:        if (ec.value() > 0)
+44:            throw new IPFilterException("Invalid first IP in range: " + first);
+45:        ec.clear();
+46:
+47:        address lastAddr;
+48:        if (first.equals(last)) {
+49:            lastAddr = firstAddr;
+50:
+51:        } else {
+52:            lastAddr = address.from_string(last, ec);
+53:            if (ec.value() > 0)
+54:                throw new IPFilterException("Invalid last IP in range: " + last);
+55:
+56:            if (firstAddr.is_v4() != lastAddr.is_v4() ||
+57:                firstAddr.is_v6() != lastAddr.is_v6())
+58:                throw new IPFilterException("IP range is malformed. One IP is IPv6 and the other is IPv4!");
+59:        }
+60:
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/urlnormalizer/NormalizeUrl.java" | sed -n '178,187p'
+178:    public static String normalize(String url, Options options) throws NormalizeUrlException
+179:    {
+180:        String normalizedUrl;
+181:        try {
+182:            normalizedUrl = doNormalize(url, options);
+183:
+184:        } catch (Exception e) {
+185:            throw new NormalizeUrlException("Cannot normalize URL", e);
+186:        }
+187:
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/system/FsModuleResolverImpl.java" | sed -n '42,48p'
+42:    public FsModule resolveFsByUri(@NonNull Uri uri) throws UnknownUriException {
+43:        if (Utils.isSafPath(appContext, uri)) {
+44:            return safModule;
+45:        } else if (Utils.isFileSystemPath(uri)) {
+46:            return defaultModule;
+47:        } else {
+48:            throw new UnknownUriException("Cannot resolve file system for the given uri: " + uri);
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/filter/TorrentFilterCollection.java" | sed -n '26,103p'
+26:public class TorrentFilterCollection {
+27:    public static TorrentFilter all() {
+28:        return (state) -> true;
+29:    }
+30:
+31:    public static TorrentFilter statusDownloading() {
+32:        return (state) -> state.stateCode == TorrentStateCode.DOWNLOADING;
+33:    }
+34:
+35:    public static TorrentFilter statusDownloaded() {
+36:        return (state) -> state.stateCode == TorrentStateCode.SEEDING || state.receivedBytes == state.totalBytes;
+37:    }
+38:
+39:    public static TorrentFilter statusDownloadingMetadata() {
+40:        return (state) -> state.stateCode == TorrentStateCode.DOWNLOADING_METADATA;
+41:    }
+42:
+43:    public static TorrentFilter statusError() {
+44:        return (state) -> state.error != null;
+45:    }
+46:
+47:    public static TorrentFilter dateAddedToday() {
+48:        return (state) -> {
+49:            long dateAdded = state.dateAdded;
+50:            long timeMillis = System.currentTimeMillis();
+51:
+52:            return dateAdded >= DateUtils.startOfToday(timeMillis) &&
+53:                    dateAdded <= DateUtils.endOfToday(timeMillis);
+54:        };
+55:    }
+56:
+57:    public static TorrentFilter dateAddedYesterday() {
+58:        return (state) -> {
+59:            long dateAdded = state.dateAdded;
+60:            long timeMillis = System.currentTimeMillis();
+61:
+62:            return dateAdded >= DateUtils.startOfYesterday(timeMillis) &&
+63:                    dateAdded <= DateUtils.endOfYesterday(timeMillis);
+64:        };
+65:    }
+66:
+67:    public static TorrentFilter dateAddedWeek() {
+68:        return (state) -> {
+69:            long dateAdded = state.dateAdded;
+70:            long timeMillis = System.currentTimeMillis();
+71:
+72:            return dateAdded >= DateUtils.startOfWeek(timeMillis) &&
+73:                    dateAdded <= DateUtils.endOfWeek(timeMillis);
+74:        };
+75:    }
+76:
+77:    public static TorrentFilter dateAddedMonth() {
+78:        return (state) -> {
+79:            long dateAdded = state.dateAdded;
+80:            long timeMillis = System.currentTimeMillis();
+81:
+82:            return dateAdded >= DateUtils.startOfMonth(timeMillis) &&
+83:                    dateAdded <= DateUtils.endOfMonth(timeMillis);
+84:        };
+85:    }
+86:
+87:    public static TorrentFilter dateAddedYear() {
+88:        return (state) -> {
+89:            long dateAdded = state.dateAdded;
+90:            long timeMillis = System.currentTimeMillis();
+91:
+92:            return dateAdded >= DateUtils.startOfYear(timeMillis) &&
+93:                    dateAdded <= DateUtils.endOfYear(timeMillis);
+94:        };
+95:    }
+96:
+97:    public static TorrentFilter tag(TagInfo tag) {
+98:        return (state) -> tag == null || state.tags.contains(tag);
+99:    }
+100:
+101:    public static TorrentFilter noTags() {
+102:        return (state) -> state.tags.isEmpty();
+103:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/MainViewModel.java" | sed -n '48,56p'
+48:public class MainViewModel extends AndroidViewModel {
+49:    private TorrentInfoProvider stateProvider;
+50:    private TorrentEngine engine;
+51:    private TorrentSortingComparator sorting = new TorrentSortingComparator(
+52:            new TorrentSorting(TorrentSorting.SortingColumns.none, TorrentSorting.Direction.ASC));
+53:    private TorrentFilter statusFilter = TorrentFilterCollection.all();
+54:    private TorrentFilter dateAddedFilter = TorrentFilterCollection.all();
+55:    private TorrentFilter tagFilter = TorrentFilterCollection.all();
+56:    private PublishSubject<Boolean> forceSortAndFilter = PublishSubject.create();
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/MainViewModel.java" | sed -n '142,152p'
+142:    public void deleteTorrents(@NonNull List<String> ids, boolean withFiles) {
+143:        engine.deleteTorrents(ids, withFiles);
+144:    }
+145:
+146:    public void forceRecheckTorrents(@NonNull List<String> ids) {
+147:        engine.forceRecheckTorrents(ids);
+148:    }
+149:
+150:    public void forceAnnounceTorrents(@NonNull List<String> ids) {
+151:        engine.forceAnnounceTorrents(ids);
+152:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/MainActivity.java" | sed -n '297,310p'
+297:        public void onTagSelected(@NonNull AbstractTagItem item) {
+298:            if (item instanceof TagItem) {
+299:                viewModel.setTagFilter(
+300:                        TorrentFilterCollection.tag(((TagItem) item).info),
+301:                        true
+302:                );
+303:            } else if (item instanceof EmptyTagItem) {
+304:                viewModel.setTagFilter(TorrentFilterCollection.all(), true);
+305:            } else if (item instanceof NoTagsItem) {
+306:                viewModel.setTagFilter(TorrentFilterCollection.noTags(), true);
+307:            }
+308:
+309:            saveSelectedTag(item);
+310:
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/MainActivity.java" | sed -n '316,340p'
+316:        public void onTagMenuClicked(@NonNull AbstractTagItem abstractItem, int menuId) {
+317:            if (!(abstractItem instanceof TagItem)) {
+318:                return;
+319:            }
+320:            TagItem item = ((TagItem) abstractItem);
+321:            if (menuId == R.id.edit_tag_menu) {
+322:                Intent i = new Intent(MainActivity.this, AddTagActivity.class);
+323:                i.putExtra(AddTagActivity.TAG_INIT_INFO, item.info);
+324:                startActivity(i);
+325:            } else if (menuId == R.id.delete_tag_menu) {
+326:                disposables.add(viewModel.deleteTag(item.info)
+327:                        .subscribeOn(Schedulers.io())
+328:                        .observeOn(AndroidSchedulers.mainThread())
+329:                        .subscribe(
+330:                                () -> {
+331:                                    if (item.isSame(tagsAdapter.getSelectedItem())) {
+332:                                        EmptyTagItem emptyItem = new EmptyTagItem();
+333:                                        saveSelectedTag(emptyItem);
+334:                                        tagsAdapter.setSelectedItem(emptyItem);
+335:                                        viewModel.setTagFilter(TorrentFilterCollection.all(), true);
+336:                                    }
+337:                                },
+338:                                (e) -> {
+339:                                    Log.e(TAG, Log.getStackTraceString(e));
+340:                                    Snackbar.make(
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/main/MainActivity.java" | sed -n '490,525p'
+490:    private void setInitSelection(List<AbstractTagItem> items) {
+491:        String selectedTagIdStr = PreferenceManager
+492:                .getDefaultSharedPreferences(this)
+493:                .getString(
+494:                        getString(R.string.drawer_tags_selected_item),
+495:                        getString(R.string.tag_empty_item)
+496:                );
+497:        if (selectedTagIdStr.equals(getString(R.string.tag_empty_item))) {
+498:            tagsAdapter.setSelectedItem(new EmptyTagItem());
+499:            viewModel.setTagFilter(TorrentFilterCollection.all(), true);
+500:        } else if (selectedTagIdStr.equals(getString(R.string.tag_no_tags_item))) {
+501:            tagsAdapter.setSelectedItem(new NoTagsItem());
+502:            viewModel.setTagFilter(TorrentFilterCollection.noTags(), true);
+503:        } else {
+504:            long selectedTagId;
+505:            try {
+506:                selectedTagId = Long.parseLong(selectedTagIdStr);
+507:            } catch (NumberFormatException e) {
+508:                Log.e(TAG, "Unable to parse tag id: " + Log.getStackTraceString(e));
+509:                tagsAdapter.setSelectedItem(new EmptyTagItem());
+510:                viewModel.setTagFilter(TorrentFilterCollection.all(), true);
+511:                return;
+512:            }
+513:            disposables.add(Observable.fromIterable(items)
+514:                    .subscribeOn(Schedulers.computation())
+515:                    .filter((item) -> item instanceof TagItem &&
+516:                            ((TagItem) item).info.id == selectedTagId)
+517:                    .observeOn(AndroidSchedulers.mainThread())
+518:                    .subscribe((item) -> {
+519:                        tagsAdapter.setSelectedItem(item);
+520:                        viewModel.setTagFilter(
+521:                                TorrentFilterCollection.tag(((TagItem) item).info),
+522:                                true
+523:                        );
+524:                    })
+525:            );
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/log/LogAdapter.java" | sed -n '40,115p'
+40:    {
+41:        super(diffCallback);
+42:
+43:        this.listener = listener;
+44:    }
+45:
+46:    @NonNull
+47:    @Override
+48:    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType)
+49:    {
+50:        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+51:        ItemLogListBinding binding = DataBindingUtil.inflate(inflater,
+52:                R.layout.item_log_list,
+53:                parent,
+54:                false);
+55:
+56:        return new ViewHolder(binding);
+57:    }
+58:
+59:    @Override
+60:    public void onBindViewHolder(@NonNull ViewHolder holder, int position)
+61:    {
+62:        LogEntry entry = getItem(position);
+63:        if (entry != null)
+64:            holder.bind(entry, listener);
+65:    }
+66:
+67:    private static final DiffUtil.ItemCallback<LogEntry> diffCallback = new DiffUtil.ItemCallback<LogEntry>()
+68:    {
+69:        @Override
+70:        public boolean areContentsTheSame(@NonNull LogEntry oldItem,
+71:                                          @NonNull LogEntry newItem)
+72:        {
+73:            return oldItem.equals(newItem);
+74:        }
+75:
+76:        @Override
+77:        public boolean areItemsTheSame(@NonNull LogEntry oldItem,
+78:                                       @NonNull LogEntry newItem)
+79:        {
+80:            return oldItem.getId() == newItem.getId();
+81:        }
+82:    };
+83:
+84:    public interface ClickListener
+85:    {
+86:        void onItemClicked(@NonNull LogEntry entry);
+87:    }
+88:
+89:    public static class ViewHolder extends RecyclerView.ViewHolder
+90:    {
+91:        private ItemLogListBinding binding;
+92:
+93:        ViewHolder(ItemLogListBinding binding)
+94:        {
+95:            super(binding.getRoot());
+96:
+97:            this.binding = binding;
+98:        }
+99:
+100:        void bind(@NonNull LogEntry entry, ClickListener listener)
+101:        {
+102:            itemView.setOnClickListener((v) -> {
+103:                if (listener != null)
+104:                    listener.onItemClicked(entry);
+105:            });
+106:
+107:            binding.tag.setText(entry.getTag());
+108:            binding.msg.setText(entry.getMsg());
+109:            binding.timeStamp.setText(entry.getTimeStampAsString());
+110:        }
+111:    }
+112:}
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/SessionLogger.java" | sed -n '117,167p'
+117:    void send(Alert<?> alert)
+118:    {
+119:        long time = System.currentTimeMillis();
+120:        String msg;
+121:        LogEntry entry = null;
+122:        switch (alert.type()) {
+123:            case LOG:
+124:                entry = new LogEntry(nextLogEntryId++,
+125:                        SessionLogEntryType.SESSION_LOG.name(),
+126:                        ((LogAlert)alert).logMessage(),
+127:                        time);
+128:                break;
+129:            case DHT_LOG:
+130:                DhtLogAlert dhtLogAlert = (DhtLogAlert)alert;
+131:                msg = "[" + dhtLogAlert.module().name() + "] " + dhtLogAlert.logMessage();
+132:                entry = new LogEntry(nextLogEntryId++,
+133:                        SessionLogEntryType.DHT_LOG.name(),
+134:                        msg,
+135:                        time);
+136:                break;
+137:            case PEER_LOG:
+138:                PeerLogAlert peerLogAlert = (PeerLogAlert)alert;
+139:
+140:                msg = "[" + peerLogAlert.direction() + "] " +
+141:                        "[" + peerLogAlert.eventType() + "] " +
+142:                        peerLogAlert.logMessage();
+143:
+144:                entry = new LogEntry(nextLogEntryId++,
+145:                        SessionLogEntryType.PEER_LOG.name(),
+146:                        msg,
+147:                        time);
+148:                break;
+149:            case PORTMAP_LOG:
+150:                PortmapLogAlert portmapLogAlert = (PortmapLogAlert)alert;
+151:                msg = "[" + portmapLogAlert.mapType().name() + "] " + portmapLogAlert.logMessage();
+152:                entry = new LogEntry(nextLogEntryId++,
+153:                        SessionLogEntryType.PORTMAP_LOG.name(),
+154:                        msg,
+155:                        time);
+156:                break;
+157:            case TORRENT_LOG:
+158:                entry = new LogEntry(nextLogEntryId++,
+159:                        SessionLogEntryType.TORRENT_LOG.name(),
+160:                        ((TorrentLogAlert)alert).logMessage(),
+161:                        time);
+162:                break;
+163:        }
+164:
+165:        if (entry != null)
+166:            send(entry);
+167:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/LogEntry.java" | sed -n '39,113p'
+39:    public LogEntry(int id, @NonNull String tag,@NonNull String msg, long timeStamp)
+40:    {
+41:        this.id = id;
+42:        this.tag = tag;
+43:        this.msg = msg;
+44:        this.timeStamp = timeStamp;
+45:        this.timeStampFormatter = new SimpleDateFormat(defaultTimeStampFormatter,
+46:                Locale.getDefault());
+47:    }
+48:
+49:    public int getId()
+50:    {
+51:        return id;
+52:    }
+53:
+54:    @NonNull
+55:    public String getTag()
+56:    {
+57:        return tag;
+58:    }
+59:
+60:    @NonNull
+61:    public String getMsg()
+62:    {
+63:        return msg;
+64:    }
+65:
+66:    public long getTimeStamp()
+67:    {
+68:        return timeStamp;
+69:    }
+70:
+71:    public String getTimeStampAsString()
+72:    {
+73:        return timeStampFormatter.format(this.timeStamp);
+74:    }
+75:
+76:    @Override
+77:    public boolean equals(Object o)
+78:    {
+79:        if (this == o)
+80:            return true;
+81:        if (o == null || getClass() != o.getClass())
+82:            return false;
+83:
+84:        LogEntry entry = (LogEntry)o;
+85:
+86:        return id == entry.id &&
+87:                timeStamp == entry.timeStamp &&
+88:                tag.equals(entry.tag) &&
+89:                msg.equals(entry.msg);
+90:    }
+91:
+92:    @Override
+93:    public int hashCode()
+94:    {
+95:        int result = id;
+96:        result = 31 * result + tag.hashCode();
+97:        result = 31 * result + msg.hashCode();
+98:        result = 31 * result + (int) (timeStamp ^ (timeStamp >>> 32));
+99:
+100:        return result;
+101:    }
+102:
+103:    public String toStringWithTimeStamp()
+104:    {
+105:        return getTimeStampAsString() + " " + toString();
+106:    }
+107:
+108:    @NonNull
+109:    @Override
+110:    public String toString()
+111:    {
+112:        return "[" + tag + "] " + msg;
+113:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/logger/Logger.java" | sed -n '425,443p'
+425:    private int write(FixedRingBuffer<LogEntry> buf, OutputStream os,
+426:                      int startPos, int endPos, boolean timeStamp)
+427:    {
+428:        if (startPos < 0)
+429:            throw new IllegalArgumentException("startPos < 0");
+430:
+431:        int count = 0;
+432:
+433:        PrintStream printStream = new PrintStream(os, true);
+434:
+435:        for (int i = startPos; i <= endPos; i++) {
+436:            LogEntry entry = buf.get(i);
+437:            printStream.println(timeStamp ? entry.toStringWithTimeStamp() : entry.toString());
+438:            if (!printStream.checkError())
+439:                count++;
+440:        }
+441:
+442:        return count;
+443:    }
+$ grep -n '' "final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/log/LogViewModel.java" | sed -n '215,225p'
+215:    boolean copyLogEntryToClipboard(@NonNull LogEntry entry)
+216:    {
+217:        ClipboardManager clipboard = (ClipboardManager)getApplication().getSystemService(Activity.CLIPBOARD_SERVICE);
+218:        if (clipboard == null)
+219:            return false;
+220:
+221:        ClipData clip;
+222:        clip = ClipData.newPlainText("Log entry", entry.toString());
+223:        clipboard.setPrimaryClip(clip);
+224:
+225:        return true;

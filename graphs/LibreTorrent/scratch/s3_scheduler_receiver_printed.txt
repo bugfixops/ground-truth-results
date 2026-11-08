@@ -1,0 +1,207 @@
+=== BootReceiver scheduling dispatch ===
+    39	    public void onReceive(Context context, Intent intent) {
+    40	        var appContext = context.getApplicationContext();
+    41	        var pref = RepositoryHelper.getSettingsRepository(appContext);
+    42	
+    43	        var action = intent.getAction();
+    44	        if (isBootCompleted(action)) {
+    45	            initScheduling(context, pref);
+    46	            if (pref.autostart() && pref.keepAlive()) {
+    47	                TorrentEngine.getInstance(appContext).start();
+    48	            }
+    49	        } else if (AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED.equals(action)) {
+    50	            initScheduling(context, pref);
+    51	        }
+    52	    }
+    53	
+    54	    private boolean isBootCompleted(String action) {
+    55	        return Intent.ACTION_BOOT_COMPLETED.equals(action) ||
+    56	                "android.intent.action.QUICKBOOT_POWERON".equals(action) ||
+    57	                "com.htc.intent.action.QUICKBOOT_POWERON".equals(action);
+    58	    }
+    59	
+    60	    private void initScheduling(Context appContext, SettingsRepository pref) {
+    61	        var notifier = TorrentNotifier.getInstance(appContext);
+    62	
+    63	        if (pref.enableSchedulingStart()) {
+    64	            if (!Scheduler.setStartAppAlarm(appContext, pref.schedulingStartTime())) {
+    65	                notifier.makeExactAlarmPermissionNotify();
+    66	            }
+    67	        }
+    68	        if (pref.enableSchedulingShutdown()) {
+    69	            if (!Scheduler.setStopAppAlarm(appContext, pref.schedulingShutdownTime())) {
+    70	                notifier.makeExactAlarmPermissionNotify();
+    71	            }
+    72	        }
+    73	    }
+=== Scheduler alarms and PendingIntent ===
+    43	public class Scheduler {
+    44	    public static final String SCHEDULER_WORK_START_APP = "scheduler_work_start_app";
+    45	    public static final String SCHEDULER_WORK_STOP_APP = "scheduler_work_stop_app";
+    46	    public static final String SCHEDULER_WORK_PERIODICAL_REFRESH_FEEDS = "scheduler_work_periodical_refresh_feeds";
+    47	
+    48	    /*
+    49	     * Time in minutes after 00:00
+    50	     */
+    51	
+    52	    public static boolean setStartAppAlarm(@NonNull Context appContext, int time) {
+    53	        return setStartStopAppAlarm(appContext, SCHEDULER_WORK_START_APP, time);
+    54	    }
+    55	
+    56	    public static boolean setStopAppAlarm(@NonNull Context appContext, int time) {
+    57	        return setStartStopAppAlarm(appContext, SCHEDULER_WORK_STOP_APP, time);
+    58	    }
+    59	
+    60	    public static void cancelStartAppAlarm(@NonNull Context appContext) {
+    61	        Intent intent = new Intent(appContext, SchedulerReceiver.class);
+    62	        PendingIntent pi = PendingIntent.getBroadcast(
+    63	                appContext, SCHEDULER_WORK_START_APP.hashCode(), intent,
+    64	                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+    65	        );
+    66	        AlarmManager am = (AlarmManager) appContext.getSystemService(Context.ALARM_SERVICE);
+    67	        am.cancel(pi);
+    68	    }
+    69	
+    70	    public static void cancelStopAppAlarm(@NonNull Context appContext) {
+    71	        Intent intent = new Intent(appContext, SchedulerReceiver.class);
+    72	        PendingIntent pi = PendingIntent.getBroadcast(
+    73	                appContext, SCHEDULER_WORK_STOP_APP.hashCode(), intent,
+    74	                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+    75	        );
+    76	        AlarmManager am = (AlarmManager) appContext.getSystemService(Context.ALARM_SERVICE);
+    77	        am.cancel(pi);
+    78	    }
+    79	
+    80	    private static boolean setStartStopAppAlarm(@NonNull Context appContext,
+    81	                                                @NonNull String workTag, int time) {
+    82	        Calendar calendar = Calendar.getInstance();
+    83	        long timeInMillis = System.currentTimeMillis();
+    84	
+    85	        calendar.setTimeInMillis(timeInMillis);
+    86	        calendar.set(Calendar.HOUR_OF_DAY, time / 60);
+    87	        calendar.set(Calendar.MINUTE, time % 60);
+    88	        calendar.set(Calendar.SECOND, 0);
+    89	        calendar.set(Calendar.MILLISECOND, 0);
+    90	        if (calendar.getTimeInMillis() < timeInMillis + 2000L)
+    91	            calendar.add(Calendar.DAY_OF_MONTH, 1);
+    92	
+    93	        Intent intent = new Intent(appContext, SchedulerReceiver.class);
+    94	        intent.setAction(workTag);
+    95	        PendingIntent pi = PendingIntent.getBroadcast(
+    96	                appContext, workTag.hashCode(), intent,
+    97	                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+    98	        );
+    99	        AlarmManager am = (AlarmManager) appContext.getSystemService(Context.ALARM_SERVICE);
+   100	
+   101	        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !am.canScheduleExactAlarms()) {
+   102	            return false;
+   103	        }
+   104	        am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pi);
+   105	        return true;
+   106	    }
+=== SchedulerReceiver action and settings guards ===
+    41	public class SchedulerReceiver extends BroadcastReceiver
+    42	{
+    43	    @Override
+    44	    public void onReceive(Context context, Intent intent)
+    45	    {
+    46	        if (intent.getAction() == null)
+    47	            return;
+    48	
+    49	        var appContext = context.getApplicationContext();
+    50	        var pref = RepositoryHelper.getSettingsRepository(appContext);
+    51	        var notifier = TorrentNotifier.getInstance(appContext);
+    52	
+    53	        switch (intent.getAction()) {
+    54	            case SCHEDULER_WORK_START_APP: {
+    55	                onStartApp(appContext, pref, notifier);
+    56	                break;
+    57	            }
+    58	            case SCHEDULER_WORK_STOP_APP: {
+    59	                onStopApp(appContext, pref, notifier);
+    60	                break;
+    61	            }
+    62	        }
+    63	    }
+    64	
+    65	    private void onStartApp(Context appContext, SettingsRepository pref, TorrentNotifier notifier)
+    66	    {
+    67	        if (!pref.enableSchedulingStart())
+    68	            return;
+    69	
+    70	        boolean oneshot = pref.schedulingRunOnlyOnce();
+    71	        if (oneshot) {
+    72	            pref.enableSchedulingStart(false);
+    73	        } else if (!Scheduler.setStartAppAlarm(appContext, pref.schedulingStartTime())) {
+    74	            notifier.makeExactAlarmPermissionNotify();
+    75	        }
+    76	        if (pref.schedulingSwitchWiFi())
+    77	            ((WifiManager)appContext.getApplicationContext()
+    78	                    .getSystemService(Context.WIFI_SERVICE)).setWifiEnabled(true);
+    79	
+    80	        TorrentEngine.getInstance(appContext).start();
+    81	        Utils.enableBootReceiverIfNeeded(appContext);
+    82	    }
+    83	
+    84	    private void onStopApp(Context appContext, SettingsRepository pref, TorrentNotifier notifier)
+    85	    {
+    86	        if (!pref.enableSchedulingShutdown())
+    87	            return;
+    88	
+    89	        boolean oneshot = pref.schedulingRunOnlyOnce();
+    90	        if (oneshot) {
+    91	            pref.enableSchedulingShutdown(false);
+    92	        } else if (!Scheduler.setStartAppAlarm(appContext, pref.schedulingShutdownTime())) {
+    93	            notifier.makeExactAlarmPermissionNotify();
+    94	        }
+    95	
+    96	        TorrentEngine.getInstance(appContext).forceStop();
+    97	
+    98	        if (pref.schedulingSwitchWiFi())
+    99	            ((WifiManager)appContext.getApplicationContext()
+   100	                    .getSystemService(Context.WIFI_SERVICE)).setWifiEnabled(false);
+   101	
+   102	        Utils.enableBootReceiverIfNeeded(appContext);
+   103	    }
+   104	}
+=== AOSP receiver delivery ===
+  3141	    private void handleReceiver(ReceiverData data) {
+  3142	        // If we are getting ready to gc after going to the background, well
+  3143	        // we are back active so skip it.
+  3144	        unscheduleGcIdler();
+  3145	
+  3146	        String component = data.intent.getComponent().getClassName();
+  3147	
+  3148	        LoadedApk packageInfo = getPackageInfoNoCheck(
+  3149	                data.info.applicationInfo, data.compatInfo);
+  3150	
+  3151	        IActivityManager mgr = ActivityManager.getService();
+  3152	
+  3153	        Application app;
+  3154	        BroadcastReceiver receiver;
+  3155	        ContextImpl context;
+  3156	        try {
+  3157	            app = packageInfo.makeApplication(false, mInstrumentation);
+  3158	            context = (ContextImpl) app.getBaseContext();
+  3159	            if (data.info.splitName != null) {
+  3160	                context = (ContextImpl) context.createContextForSplit(data.info.splitName);
+  3161	            }
+  3162	            java.lang.ClassLoader cl = context.getClassLoader();
+  3163	            data.intent.setExtrasClassLoader(cl);
+  3164	            data.intent.prepareToEnterProcess();
+  3165	            data.setExtrasClassLoader(cl);
+  3166	            receiver = (BroadcastReceiver)cl.loadClass(component).newInstance();
+  3167	        } catch (Exception e) {
+  3176	        try {
+  3177	            if (localLOGV) Slog.v(
+  3178	                TAG, "Performing receive of " + data.intent
+  3179	                + ": app=" + app
+  3180	                + ", appName=" + app.getPackageName()
+  3181	                + ", pkg=" + packageInfo.getPackageName()
+  3182	                + ", comp=" + data.intent.getComponent().toShortString()
+  3183	                + ", dir=" + packageInfo.getAppDir());
+  3184	
+  3185	            sCurrentBroadcastIntent.set(data.intent);
+  3186	            receiver.setPendingResult(data);
+  3187	            receiver.onReceive(context.getReceiverRestrictedContext(),
+  3188	                    data.intent);

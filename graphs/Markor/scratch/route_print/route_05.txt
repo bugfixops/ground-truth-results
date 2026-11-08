@@ -1,0 +1,65 @@
+method: StoragePermissionActivity.processPermissionState
+route: route_05
+steps: 15
+verdict: fixed (path row)
+
+step 1: S_ENTRY -> ApplicationObject.<init>
+  edge: E211966cc kind=ENTRY env=None env_kinds=[] needs_state=None gui=['Tap the Markor launcher icon']
+  trigger: The process starts when the launcher icon is tapped (before any activity)
+  evidence: SRC AndroidManifest.xml:39-40
+step 2: ApplicationObject.<init> -> ApplicationObject.onCreate
+  edge: Ed6414d9f kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Application.onCreate
+  evidence: SRC ApplicationObject.java:16,39
+step 3: ApplicationObject.onCreate -> MainActivity.<init>
+  edge: E0254b914 kind=ENTRY env=None env_kinds=[] needs_state=None gui=['Tap the Markor launcher icon']
+  trigger: The MAIN / LAUNCHER intent starts MainActivity (after Application.onCreate on a cold start)
+  evidence: SRC AndroidManifest.xml:61-71; FW-SRC core/java/android/app/ActivityThread.java:5740 (callApplicationOnCreate runs before the first activity)
+step 4: MainActivity.<init> -> MainActivity.onCreate
+  edge: Ed25af8f4 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onCreate
+  evidence: SRC MainActivity.java:76; FW-SRC core/java/android/app/Activity.java:989 (onCreate), 1311 (onResume), 1331 (onPostResume), 3001-3010 (onBackPressed), 5679 (onActivityResult), 824 (mResultCode defaults to RESULT_CANCELED)
+step 5: MainActivity.onCreate -> MainActivity.onResume
+  edge: Eba46a594 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onStart and then Activity.onResume after onCreate returns (cold start)
+  evidence: SRC MainActivity.java:76,279; FW-SRC core/java/android/app/ActivityThread.java:2729 (callActivityOnCreate), 2741 (performStart), 2950 (performResume)
+step 6: MainActivity.onResume -> StoragePermissionActivity.requestPermissions
+  edge: E9c895554 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC MainActivity.java:282 (bytecode)
+step 7: StoragePermissionActivity.requestPermissions -> StoragePermissionActivity.<init>
+  edge: E3e6b548b kind=INTENT env=the runtime storage permission is not granted yet (the standard configuration grants it only where a route needs it) env_kinds=['permission'] needs_state=None gui=[]
+  trigger: The storage permission is missing: the caller starts StoragePermissionActivity and finishes
+  evidence: SRC StoragePermissionActivity.java:18-22
+step 8: StoragePermissionActivity.<init> -> MarkorBaseActivity.onCreate@PERM
+  edge: Eddc4a6bc kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onCreate (the class has no own onCreate)
+  evidence: SRC StoragePermissionActivity.java:14; FW-SRC core/java/android/app/Activity.java:989 (onCreate), 1311 (onResume), 1331 (onPostResume), 3001-3010 (onBackPressed), 5679 (onActivityResult), 824 (mResultCode defaults to RESULT_CANCELED)
+step 9: MarkorBaseActivity.onCreate@PERM -> GsActivityBase.onResume@PERM
+  edge: E932536b2 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onStart and then onResume after onCreate (the class has no own onResume)
+  evidence: FW-SRC core/java/android/app/ActivityThread.java:2729, 2741, 2950; SRC MarkorBaseActivity.java:21
+step 10: GsActivityBase.onResume@PERM -> GsActivityBase.onPostResume@PERM
+  edge: E1ee65d00 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Activity.performResume calls onPostResume after onResume
+  evidence: FW-SRC core/java/android/app/Activity.java:7098-7131; SRC GsActivityBase.java:101-108
+step 11: GsActivityBase.onPostResume@PERM -> StoragePermissionActivity.onActivityFirstTimeVisible
+  edge: E02e1ab26 kind=FRAMEWORK env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The base onPostResume posts onActivityFirstTimeVisible; the override in this class runs on a cold start
+  evidence: FW-SRC core/java/android/os/Handler.java:355-358 (post), 427-430 (postDelayed), 97-107 (dispatchMessage runs the message callback), 789-791 (handleCallback calls message.callback.run()): the Runnable runs on the handler thread; SRC GsActivityBase.java:101-108; SRC StoragePermissionActivity.java:27-30
+step 12: StoragePermissionActivity.onActivityFirstTimeVisible -> StoragePermissionActivity.askForPermissions
+  edge: E38d9bf48 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC StoragePermissionActivity.java:29 (bytecode)
+step 13: StoragePermissionActivity.askForPermissions -> StoragePermissionActivity.lambda$askForPermissions$1
+  edge: E2ff3aaf6 kind=FRAMEWORK env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Listener or callback registered by this method runs when its event fires (view event, dialog button, handler or fragment callback)
+  evidence: INFERRED listener registered at StoragePermissionActivity.java:35 (bytecode line); the listener type is not read per lambda
+step 14: StoragePermissionActivity.lambda$askForPermissions$1 -> StoragePermissionActivity.onRequestPermissionsResult
+  edge: Ee55fac81 kind=FRAMEWORK env=the system permission dialog is answered (Allow or Deny) env_kinds=['permission'] needs_state=None gui=[]
+  trigger: The system permission dialog answers; the framework calls onRequestPermissionsResult
+  evidence: SRC GsContextUtils.java:2400 (ActivityCompat.requestPermissions, API 27 branch); SRC StoragePermissionActivity.java:64; INFERRED ActivityCompat calls the activity callback (androidx source not read)
+step 15: StoragePermissionActivity.onRequestPermissionsResult -> StoragePermissionActivity.processPermissionState
+  edge: Ec7d30384 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC StoragePermissionActivity.java:66 (bytecode)

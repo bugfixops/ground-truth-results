@@ -1,0 +1,28 @@
+# Batch 101 printed evidence
+
+Plan extraction:
+```sh
+awk -F '\\t' '$1==101 {print $3 "\\t" $4}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+```
+Result: 40 exact members, shown with descriptors in the report table.
+
+Bounded source scans:
+```sh
+rg -n 'subscribeAlertDialog|subscribeMsgViewModel|subscribeRefreshStatus|canReuseUpdatedViewHolder|onSelectionChanged|onSelectionRestored|onActionItemClicked|onCreateActionMode|onDestroyActionMode|onPrepareActionMode' .../ui/feeds/FeedFragment.java
+rg -n 'class FeedViewModel|copyFeedUrlToClipboard|deleteFeeds|getAllFeedsSingle|markAsReadFeeds|observeRefreshStatus|observeWorkResult|observerAllFeeds|onCleared|refreshAllFeeds|refreshFeeds|restoreFeedsSync|runFetchWorker|saveFeedsSync|MsgFeedViewModel' .../ui/feeds/{FeedViewModel,MsgFeedViewModel}.java
+rg -n 'class FileManagerAdapter|onBindViewHolder|ViewHolder|ClickListener' .../ui/filemanager/FileManagerAdapter.java
+```
+Key output read:
+```
+FeedFragment.java:124 holder reuse; :148 selection changed; :172 selection restored
+:209-211 subscriptions; :286 message subscription; :310 alert subscription; :333 refresh status
+:356-405 action-mode methods
+FeedViewModel.java:53 class; :68 onCleared; :75 getAllFeedsSingle; :80 observe feeds
+:85 delete; :92 clipboard; :105/:118 refresh; :130 refresh status
+:135/:140 persistence; :147 mark read; :153 worker enqueue; :163 observe work result
+MsgFeedViewModel.java:29 class; :35/:40 feed opened; :45/:50 closed; :60 deleted observer
+FileManagerAdapter.java:50 class; :64 constructor; :74 create holder; :82 bind
+:113 ViewHolder; :126 bind; :130 item click
+```
+No full app-entry/WorkManager/AndroidX dispatch routes were verified for all targets. All 40 remain OPEN.
+

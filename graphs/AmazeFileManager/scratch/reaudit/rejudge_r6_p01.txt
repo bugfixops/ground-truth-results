@@ -1,0 +1,40 @@
+Edb3f8d20 ; ENV ; other ; utils/RootUtils.java:184-186 ; outside the app: a rooted device with root explorer on: RootUtils.delete mounts the file system back read-only after a root delete that had remounted it (RootUtils.java:184-186)
+Eef23ff9a ; ENV ; other_app ; filesystem/compressed/ArchivePasswordCache.java:67 ; outside package: the password cache is created on its first use, which only the password-protected archive steps make (ArchivePasswordCache.java:67; ZipExtractor.java:59 asks it only after a zip opened); Amaze cannot create password-protected archives (REAUDIT-R3-FILE)
+E249ac21f ; NONE ; ; asynchronous/services/ExtractService.java:297-298 ; GUI: extracting chosen entries from the archive viewer passes them to extractFiles (ExtractService.java:297-298); the archive is the state of the step that starts ExtractService
+E35afe784 ; ENV ; other_app ; filesystem/compressed/sevenz/SevenZFile.java:442 ; outside package: a real 7z archive is read: the encoded header's unpack size comes from a parsed folder (SevenZFile.java:442) (REAUDIT-R4-ARCHIVE)
+E403fe64c ; ENV ; other_app ; filesystem/compressed/sevenz/SevenZFile.java:487-488 ; outside package: a real 7z archive is read: the pack CRCs of a parsed header (SevenZFile.java:487-488) (REAUDIT-R4-ARCHIVE)
+E2a51900c ; NONE ; ; fragments/CompressedExplorerFragment.java:430 ; unconditional: getPath asks whether the archive viewer is at its root on every call (CompressedExplorerFragment.java:430); the open archive is the state of the steps that open the viewer
+E34dc809a ; NONE ; ; utils/files/FileUtils.java:362-364 ; GUI: sharing several selected files compares their MIME types (FileUtils.java:362-364); the files are the state of the share step
+E0fa65135 ; NONE ; ; filesystem/Operations.java:162-172 ; GUI: New folder with the name of an existing baseline folder reports exists (Operations.java:172)
+E337f9d96 ; NONE ; ; filesystem/Operations.java:90-91 ; GUI: New folder with an invalid typed name reports it (Operations.java:90-91); a typed form is GUI (Q-R3-1)
+Eb6195689 ; NONE ; ; activities/TextEditorActivity.java:191-192 ; unconditional: the text editor wraps the URI it was opened with (TextEditorActivity.java:191-192); the text file is the state of the step that opens the editor
+E92926545 ; NONE ; ; utils/files/EditableFileAbstraction.java:66-68 ; unconditional for a file:// URI: the editor sanitises the path (EditableFileAbstraction.java:66-68)
+E10310421 ; NONE ; ; utils/files/FileUtils.java:479-480 ; GUI: Open with (forcechooser) on a DocumentFile row goes to openWith (FileUtils.java:479-480)
+E42b230ae ; STATE ; data ; filesystem/HybridFile.java:582-606 ; a USB OTG location is open: folderSize uses otgFolderSize only in OTG mode (HybridFile.java:582, 606); same gate as the other OTG rows (AmazeFileManager-27)
+E3cc03d7e ; NONE ; ; activities/PreferencesActivity.java:115-122 ; GUI: the Up button of the settings toolbar (PreferencesActivity.java:115-122)
+E10c3e05b ; STATE ; settings ; activities/PreferencesActivity.java:111-112 ; a setting that needs a restart was changed on a settings sub-page: Back restarts the app only when restartActivity was set (PreferencesActivity.java:111-112), which the colour and theme preferences do (ColorPref.java:183)
+E6575722a ; NONE ; ; fragments/preference_fragments/PrefFrag.java:293-296 ; unconditional: the settings list restores its scroll state when its view is created (PrefFrag.java:293-296)
+E46237543 ; NONE ; ; fragments/preference_fragments/PrefFrag.java:305-308 ; GUI: leaving the settings list saves its scroll state (PrefFrag.java:305-308)
+Eb6c74618 ; NONE ; ; fragments/preference_fragments/ColorPref.java:183 ; GUI: the neutral button of the colour dialog marks that a restart is needed (ColorPref.java:183)
+E91600e26 ; NONE ; ; activities/TextEditorActivity.java:234-243 ; GUI: leaving the text editor with typed unsaved changes asks to save, and Save writes them (TextEditorActivity.java:234-243); a typed form is GUI (Q-R3-1)
+E60733792 ; NONE ; ; activities/TextEditorActivity.java:234-248 ; GUI: the same unsaved-changes dialog's discard button closes the editor (TextEditorActivity.java:234-248)
+Ea4caaf12 ; STATE ; file ; activities/TextEditorActivity.java:300-308 ; the text file lies in the app's cache folder (a file opened from an archive or a decrypted .aze copy): the read-only snackbar and its dismiss action appear only then (TextEditorActivity.java:300-308)
+E52012ad4 ; NONE ; ; activities/TextEditorActivity.java:518 ; framework: the animator calls onAnimationEnd of the search bar animation the editor starts (TextEditorActivity.java:518)
+E8d2f9354 ; NONE ; ; activities/superclasses/PermissionsActivity.java:37-38 ; GUI: the user answers the install-apps permission screen that the APK install step opened (PermissionsActivity.java:37-38)
+E086b3292 ; STATE ; settings ; activities/superclasses/PermissionsActivity.java:86-89 ; the storage permission was denied once before: the rationale dialog appears only when shouldShowRequestPermissionRationale is true (PermissionsActivity.java:86-89), which needs an earlier denial in the app
+E78a3216c ; NONE ; ; adapters/AppsAdapter.java:145 ; GUI: a tap on an installed app's row (AppsAdapter.java:145)
+E3384a607 ; NONE ; ; adapters/AppsAdapter.java:168-170 ; GUI: a menu item of an installed app's popup (AppsAdapter.java:168-170)
+Efdfbe978 ; NONE ; ; adapters/AppsAdapter.java:203-204 ; GUI: the confirmation of an installed app's popup action (AppsAdapter.java:203-204)
+E87e5c20e ; NONE ; ; adapters/AppsAdapter.java:168 ; GUI: the about button of an installed app's row opens its popup (AppsAdapter.java:168)
+E7e7f4606 ; NONE ; ; fragments/AppsListFragment.java:169 ; baseline: the app list loader delivers the installed apps (AppsListFragment.java:169)
+E623cc8fd ; NONE ; ; fragments/CompressedExplorerFragment.java:449-450 ; unconditional on the first draw of the archive viewer: createViews builds the adapter (CompressedExplorerFragment.java:449-450); the archive is the state of the steps that open the viewer
+E1d792a28 ; NONE ; ; adapters/CompressedExplorerAdapter.java:190 ; unconditional on the first rows: they animate until scrolling stops it (CompressedExplorerAdapter.java:190)
+E9645cc0b ; NONE ; ; fragments/CompressedExplorerFragment.java:453-454 ; GUI: opening a folder inside the archive viewer refreshes the existing adapter (CompressedExplorerFragment.java:453-454)
+Eeeee363f ; NONE ; ; fragments/CompressedExplorerFragment.java:450 ; framework: RecyclerView asks the item count after createViews sets the adapter (CompressedExplorerFragment.java:450)
+E61740c9f ; NONE ; ; adapters/CompressedExplorerAdapter.java:65,159 ; framework: the adapter has stable ids (CompressedExplorerAdapter.java:65), so RecyclerView asks getItemId for each row (:159)
+E70f1222c ; NONE ; ; adapters/CompressedExplorerAdapter.java:242 ; GUI: a tap on a row's icon in the archive viewer (CompressedExplorerAdapter.java:242)
+Efc0f7c93 ; NONE ; ; adapters/CompressedExplorerAdapter.java:321-324 ; framework: RecyclerView calls onFailedToRecycleView for a row still animating when it scrolls out (CompressedExplorerAdapter.java:321-324); scrolling during the first-row animation reaches it
+E5fca5e20 ; NONE ; ; adapters/CompressedExplorerAdapter.java:305 ; framework: RecyclerView attaches each row view of the archive viewer to the window
+Ecb158aab ; NONE ; ; adapters/CompressedExplorerAdapter.java:304 ; framework: RecyclerView detaches row views of the archive viewer when they scroll out or the viewer closes
+E5ec26962 ; NONE ; ; adapters/CompressedExplorerAdapter.java:237-238 ; GUI: a long press on a row (not the back row) of the archive viewer checks it (CompressedExplorerAdapter.java:237-238)
+Ea7dfb2ae ; STATE ; session ; fragments/CompressedExplorerFragment.java:307-311 ; rows are selected in the archive viewer (its action mode is open): Select all toggles them (CompressedExplorerFragment.java:307-311); a selection is STATE session (Q-R3-1)

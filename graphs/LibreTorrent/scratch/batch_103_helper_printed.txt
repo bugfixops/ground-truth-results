@@ -1,0 +1,26 @@
+# Batch 103 printed evidence
+
+Plan extraction:
+```sh
+awk -F '\\t' '$1==103 {print $3 "\\t" $4}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+```
+Result: 40 exact rows; table includes full methods/descriptors.
+
+Bounded source scans:
+```sh
+rg -n 'openHomeDirectory|permissionDeniedToast|refreshDir|registerMediaReceiver|reloadSpinner|returnDirectoryUri|returnFileUri|saveCurDirectoryPath|showCreateFolderErrDialog|showInputNameDialog|showReplaceFileDialog|showSendErrorDialog|subscribeAdapter|subscribeAlertDialog|unregisterMediaReceiver|afterTextChanged|beforeTextChanged|onTextChanged|onItemSelected|onNothingSelected|onPropertyChanged|class MediaReceiver|onReceive' .../ui/filemanager/FileManagerDialog.java
+rg -n 'class FileManagerNode|compareTo|equals|getName|getType|isDirectory|isEnabled|setEnabled|setName|setType|toString|class FileManagerSpinnerAdapter|addItem' .../ui/filemanager/{FileManagerNode,FileManagerSpinnerAdapter}.java
+```
+Key output read:
+```
+FileManagerDialog.java:172 input FAB; :178-186 TextWatcher; :199 refresh; :216 spinner callback; :231 permission toast
+:240 receiver register; :262 unregister; :276-277 subscriptions; :281-302 receiver/subscription setup
+:314 property observer; :332-341 errors; :370 send error; :382 permission toast; :389 create-folder error
+:436-455 URI return and saved path; :459 refresh; :464 save path; :504-518 navigation; :557-606 URI/replace
+:636 reloadSpinner; :679 receiver class; :687-689 onReceive reloads spinner
+FileManagerNode.java:30 class; :47/:53 name; :59/:65 type; :70/:75 enabled; :80 directory
+:86 compare; :92 equals; :109 toString
+FileManagerSpinnerAdapter.java:40 class; :105 addItem; :110 addItems
+```
+These local code paths do not complete app-entry and dynamic receiver dispatch proof for all targets. All 40 remain OPEN.
+

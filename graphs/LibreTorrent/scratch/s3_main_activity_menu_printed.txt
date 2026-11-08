@@ -1,0 +1,95 @@
+   214	        toolbar.setTitle(R.string.app_name);
+   215	        toolbar.inflateMenu(R.menu.main);
+   216	        setSupportActionBar(toolbar);
+   217	
+   218	        if (drawerLayout != null) {
+   219	            toggle = new ActionBarDrawerToggle(this,
+   220	                    drawerLayout,
+   221	                    toolbar,
+   222	                    R.string.open_navigation_drawer,
+   223	                    R.string.close_navigation_drawer);
+   224	            drawerLayout.addDrawerListener(toggle);
+   225	        }
+   226	        initDrawer();
+   227	        viewModel.resetSearch();
+   228	    }
+   697	    @Override
+   698	    public boolean onCreateOptionsMenu(Menu menu) {
+   699	        toolbar.inflateMenu(R.menu.main);
+   700	        searchView = (SearchView) toolbar.getMenu().findItem(R.id.search).getActionView();
+   701	        initSearch();
+   702	        toolbar.setOnMenuItemClickListener(this::onOptionsItemSelected);
+   703	
+   704	        return true;
+   705	    }
+   706	
+   707	    private void initSearch() {
+   708	        searchView.setMaxWidth(Integer.MAX_VALUE);
+   709	        searchView.setOnCloseListener(() -> {
+   710	            viewModel.resetSearch();
+   711	
+   712	            return false;
+   713	        });
+   714	        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+   715	            @Override
+   716	            public boolean onQueryTextSubmit(String query) {
+   717	                viewModel.setSearchQuery(query);
+   718	                /* Submit the search will hide the keyboard */
+   719	                searchView.clearFocus();
+   720	
+   721	                return true;
+   722	            }
+   723	
+   724	            @Override
+   725	            public boolean onQueryTextChange(String newText) {
+   726	                viewModel.setSearchQuery(newText);
+   727	
+   728	                return true;
+   729	            }
+   730	        });
+   731	        searchView.setQueryHint(getString(R.string.search));
+   732	        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+   733	        /* Assumes current activity is the searchable activity */
+   734	        searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+   735	    }
+   736	
+   737	    @Override
+   738	    public boolean onOptionsItemSelected(MenuItem item) {
+   739	        int itemId = item.getItemId();
+   740	        if (itemId == R.id.feed_menu) {
+   741	            startActivity(new Intent(this, FeedActivity.class));
+   742	        } else if (itemId == R.id.settings_menu) {
+   743	            startActivity(new Intent(this, SettingsActivity.class));
+   744	        } else if (itemId == R.id.about_menu) {
+   745	            showAboutDialog();
+   746	        } else if (itemId == R.id.shutdown_app_menu) {
+   747	            closeOptionsMenu();
+   748	            viewModel.stopEngine();
+   749	            finish();
+   750	        } else if (itemId == R.id.pause_all_menu) {
+   751	            viewModel.pauseAll();
+   752	        } else if (itemId == R.id.resume_all_menu) {
+   753	            viewModel.resumeAll();
+   754	        } else if (itemId == R.id.log_menu) {
+   755	            showLog();
+   756	        }
+   757	
+   758	        return true;
+   761	    private void showAboutDialog() {
+   762	        FragmentManager fm = getSupportFragmentManager();
+   763	        if (fm.findFragmentByTag(TAG_ABOUT_DIALOG) == null) {
+   764	            aboutDialog = BaseAlertDialog.newInstance(
+   765	                    getString(R.string.about_title),
+   766	                    null,
+   767	                    R.layout.dialog_about,
+   768	                    getString(R.string.ok),
+   769	                    getString(R.string.about_changelog),
+   770	                    null,
+   771	                    true);
+   772	            aboutDialog.show(fm, TAG_ABOUT_DIALOG);
+   773	        }
+   774	    }
+   801	    private void showLog() {
+   802	        startActivity(new Intent(this, LogActivity.class));
+   803	    }
+   804	

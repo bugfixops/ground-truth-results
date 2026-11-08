@@ -1,0 +1,77 @@
+## WidgetRemoteViewsFactory.getViewAt  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=other_app;system_event state=- classes=explicit;standard explicit_standard_route=yes
+   1. E9c3009ae ENTRY/standard* [ENV: outside package: the user adds the AnyMemo widget to the launcher home screen, or its update alarm/broadcast fires]
+      S_ENTRY -> AnyMemoWidgetProvider.<init>
+      the user adds the AnyMemo widget to the home screen, or its periodic APPWIDGET_UPDATE fires
+      evidence: SRC AndroidManifest.xml:153-163; INFERRED AppWidgetHost/AppWidgetService delivers APPWIDGET_UPDATE to the exported AppWidgetProvider receiver, and RemoteViewsService.onGetViewFactory / RemoteViewsFactory callbacks are driven by the widget host process (platform source not read for this exact flow)
+        153          <receiver
+        154              android:name=".widget.AnyMemoWidgetProvider"
+        155              android:exported="true" >
+        156              <intent-filter>
+        157                  <action
+        158                      android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+        159              </intent-filter>
+        160              <meta-data
+        161                      android:name="android.appwidget.provider"
+        162                      android:resource="@xml/widget_info" />
+        163          </receiver>
+   2. E5dc13175 LIFECYCLE/standard* [ENV: outside package: the user adds the AnyMemo widget to the launcher home screen, or its update alarm/broadcast fires]
+      AnyMemoWidgetProvider.<init> -> AnyMemoWidgetProvider.onUpdate
+      a widget instance needs an update (placed, or the periodic updatePeriodMillis fires)
+      evidence: INFERRED AppWidgetHost/AppWidgetService delivers APPWIDGET_UPDATE to the exported AppWidgetProvider receiver, and RemoteViewsService.onGetViewFactory / RemoteViewsFactory callbacks are driven by the widget host process (platform source not read for this exact flow); SRC widget/AnyMemoWidgetProvider.java:60-79
+         60      @Override
+         61      @TargetApi(11)
+         62      public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds){
+         63  
+         64          // update each of the app widgets with the remote adapter
+         65          for (int i = 0; i < appWidgetIds.length; ++i) {
+         66              Intent intent = new Intent(context, UpdateWidgetService.class);
+         67              intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetIds[i]);
+         68              intent.setData(Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME)));
+         69              RemoteViews rv = new RemoteViews(context.getPackageName(), R.layout.widget);
+         70  
+         71              Intent widgetIntent = new Intent(context, StudyActivity.class);
+         72              PendingIntent pendingIntent = PendingIntent.getActivity(context,WIDGET_REQUEST_ID + i,widgetIntent,getWidgetPendingIntentFlags(PendingIntent.FLAG_CANCEL_CURRE
+         73              rv.setPendingIntentTemplate(R.id.widget_list, pendingIntent);
+      ...  (6 more lines)
+   3. E0c9f709c ENTRY/standard* [ENV: outside package: the user adds the AnyMemo widget to the launcher home screen, or its update alarm/broadcast fires]
+      AnyMemoWidgetProvider.onUpdate -> UpdateWidgetService.onGetViewFactory
+      rv.setRemoteAdapter(...) binds the RemoteViewsService
+      evidence: INFERRED AppWidgetHost/AppWidgetService delivers APPWIDGET_UPDATE to the exported AppWidgetProvider receiver, and RemoteViewsService.onGetViewFactory / RemoteViewsFactory callbacks are driven by the widget host process (platform source not read for this exact flow); SRC widget/AnyMemoWidgetProvider.java:66,74; widget/UpdateWidgetService.java:9-13
+         66              Intent intent = new Intent(context, UpdateWidgetService.class);
+         74              rv.setRemoteAdapter(appWidgetIds[i], R.id.widget_list, intent);
+   4. E36085cd4 LIFECYCLE/standard*
+      UpdateWidgetService.onGetViewFactory -> WidgetRemoteViewsFactory.onCreate
+      the factory is constructed and onCreate() called
+      evidence: INFERRED AppWidgetHost/AppWidgetService delivers APPWIDGET_UPDATE to the exported AppWidgetProvider receiver, and RemoteViewsService.onGetViewFactory / RemoteViewsFactory callbacks are driven by the widget host process (platform source not read for this exact flow); SRC widget/UpdateWidgetService.java:11-13; widget/WidgetRemoteViewsFactory.java:33-41
+         11      public RemoteViewsFactory onGetViewFactory(Intent intent) {
+         12          return new WidgetRemoteViewsFactory(this.getApplicationContext(), intent);
+         13      }
+   5. Ece220fdf LIFECYCLE/standard* [ENV: outside package: the user adds the AnyMemo widget to the launcher home screen, or its update alarm/broadcast fires]
+      WidgetRemoteViewsFactory.onCreate -> WidgetRemoteViewsFactory.onDataSetChanged
+      the widget host loads the data before the first getViewAt
+      evidence: INFERRED AppWidgetHost/AppWidgetService delivers APPWIDGET_UPDATE to the exported AppWidgetProvider receiver, and RemoteViewsService.onGetViewFactory / RemoteViewsFactory callbacks are driven by the widget host process (platform source not read for this exact flow); SRC widget/WidgetRemoteViewsFactory.java:40,46-48
+         40      public void onCreate() {
+         46      public void onDataSetChanged() {
+         47          allPath = recentListUtil.getAllRecentDBPath();
+         48      }
+   6. E9207360d CALL/explicit* [ENV: outside package: the user adds the AnyMemo widget to the launcher home screen, or its update alarm/broadcast fires]
+      WidgetRemoteViewsFactory.onDataSetChanged -> WidgetRemoteViewsFactory.getViewAt
+      the widget host asks for each visible row
+      evidence: INFERRED AppWidgetHost/AppWidgetService delivers APPWIDGET_UPDATE to the exported AppWidgetProvider receiver, and RemoteViewsService.onGetViewFactory / RemoteViewsFactory callbacks are driven by the widget host process (platform source not read for this exact flow); SRC widget/WidgetRemoteViewsFactory.java:74-94
+         74      public RemoteViews getViewAt(int position) {
+         75          RemoteViews rv = new RemoteViews(mContext.getPackageName(), R.layout.widget_item);
+         76          if (position < allPath.length) {
+         77              AnyMemoDBOpenHelper helper = AnyMemoDBOpenHelperManager.getHelper(mContext, allPath[position]);
+         78              CardDao dao = helper.getCardDao();
+         79              String dbName = FilenameUtils.getName(allPath[position]);
+         80              long totalCount = dao.getTotalCount(null);
+         81              long revCount = dao.getScheduledCardCount(null);
+         82              long newCount = dao.getNewCardCount(null);
+         83  
+         84              String detail = mContext.getString(R.string.stat_total) + totalCount + " "
+         85                  + mContext.getString(R.string.stat_new) + newCount + " "
+         86                  + mContext.getString(R.string.stat_scheduled) + revCount;
+         87              rv.setTextViewText(R.id.widget_db_name, dbName);
+      ...  (7 more lines)
+

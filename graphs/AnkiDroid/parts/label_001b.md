@@ -1,0 +1,7 @@
+STATUS: RUNNING 21:59
+| item | label | kind | reason | source |
+|---|---|---|---|---|
+| IntentHandler.onCreate -> DeckPicker.<init> (INTENT) | EDGE | INTENT | Launcher (ACTION_MAIN with CATEGORY_LAUNCHER) reaches the else branch at lines 132-138, which calls startActivityIfNeeded(reloadIntent, 0). reloadIntent is new Intent(this, DeckPicker.class) (line 43). Start site 1 of 3. No outside intent is needed, so env is None. Written in label_001b.py. | SRC com/ichi2/anki/IntentHandler.java:43; SRC com/ichi2/anki/IntentHandler.java:132-138 |
+| IntentHandler.onCreate -> DeckPicker.<init> (INTENT) | EDGE | INTENT | VIEW of an .apkg from another app: ACTION_VIEW branch (line 46) with successful true, then startActivity(reloadIntent) at line 108 and finishWithFade at line 109. Start site 2 of 3. Depends on an outside intent, so env is ENV_OTHER_APP_INTENT. Written in label_001b.py. | SRC com/ichi2/anki/IntentHandler.java:43; SRC com/ichi2/anki/IntentHandler.java:46; SRC com/ichi2/anki/IntentHandler.java:105-109 |
+| IntentHandler.onCreate -> DeckPicker.<init> (INTENT) | EDGE | INTENT | DO_SYNC from another app: the DO_SYNC branch (line 126) calls sendDoSyncMsg (line 127), then startActivity(reloadIntent) at line 130. Start site 3 of 3. Depends on an outside intent, so env is ENV_OTHER_APP_INTENT. Written in label_001b.py. | SRC com/ichi2/anki/IntentHandler.java:126-130; SRC com/ichi2/anki/IntentHandler.java:172-177 |
+STATUS: DONE 21:59

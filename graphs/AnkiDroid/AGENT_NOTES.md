@@ -10,6 +10,9 @@ Started: 2026-10-27 (overnight convert run, handoff/RESUME_PROMPT_CONVERT.md).
 - Old schema-1 draft moved to graphs/AnkiDroid/generated_draft_graph_def.py.txt (never built, inventory only).
 
 ## Current step
+- 2026-11-06 04:30 UTC: Kiro (takeover from Muse), re-audit W3 done for AnkiDroid (no in-app start for any env-gated exported entry; no graph change); next W4 (RTA). Earlier status below.
+Status as of 2026-11-02 (Stream A, user order 2026-11-02 ~09:32 EST). Graph after the A1 fixes: methods 4186, pages 49, edges 9608, REACHABLE 3275, UNREACHABLE 911, errors 0, warnings 0. Final-draw route table (seed 20261025, 30 routes, 325 distinct edges): CORRECT 20, WRONG 10, UNCLEAR 0, rate 0.3333; verification.csv regenerated from the final draw (path 30, label 941, edge 232), writer runs with no arguments and reproduces it byte-identically over 2 runs; checks 2 = 274 distinct / 0 problems, 4 = 7033 checked / 0 bad lines, 3 = 0 flagged. Device: ROUTES.csv 30 rows, 28 scripted / 2 unscriptable (routes 02 AnkiWeb account, 26) = 6.7%; drycheck 30 PASS / 0 FAIL in both plain and --load-scripts modes (layout with branch-current harness files); route_info.py find_manifest prefers the LAUNCHER manifest (AnkiDroid/src/main, not api/src/main). Next: fix round on the 10 WRONG routes (a variant fix for each, or a recorded reason a variant cannot express it), then rebuild, redraw, re-judge every changed route, rerun the writer, and update ROUTES.csv and scripts for changed routes. Open, not in the gate: routes 15/17 live-D9 .apkg provisioning; route 25 backup-item tap and backup .apkg (same class); CI SUMMARY + D9 dry-run remain coordinator gates; 5 stale branch files await deletion via the deletion-capable path once the coordinator confirms the run-log listing has landed (route_26.py, route_26b.py, ROUTE_UNSCRIPTABLE_02.md, ROUTE_UNSCRIPTABLE_15.md, ROUTE_UNSCRIPTABLE_25.md).
+Superseded 2026-11-02 — previous Current step:
 Status as of 2026-10-30 16:20 EDT (overnight labelling run, labelling only). Labelled: build 205 (scratch/build_205.txt), methods 4186, edges 9178, REACHABLE 3275, UNREACHABLE 911, UNRESOLVED 0, errors 0, warnings 0. Build 204 had the same verdict counts. Parts 134 to 150 merged as builds 189 to 204. Route checks not started (out of scope for this run).
 Checks on 2026-10-30: all 747 sup pairs in graph_def.py match a bytecode CALL record in auto_calls.json (23 use the receiver-variant form "src@receiver"). Reasons for sup are recorded per block (the "# ---- suppressed" and "# ---- sup for part NNN" headers) and in the build log rows, not per pair.
 Open, not in the gate: the build 205 sanity check (never used to set a label) reports 1 contradiction: Card.toString (libanki) is UNREACHABLE (no_trigger_in_app) but ran in a tool run. Read on 2026-10-30: AdvancedStatistics.java:1499 concatenates its own inner class Card (declared at AdvancedStatistics.java:399), not libanki Card. Grep of the source root for "+ card", "valueOf(card)" and "%s, card" found no other implicit conversion, so the origin of the tool hit is not known. Label kept; settle it in the route-check phase. Build 205 also prints 180 "ENV-GATED BUT RAN" lines: sanity output only, not counted as warnings.
@@ -284,7 +287,7 @@ An edge is written by the part that contains its source method; if the source is
 - __pycache__ folders from py_compile under graphs/AnkiDroid/ and parts/ are not deleted (no-delete rule). Ask the user before cleanup (HANDOFF_V2).
 - The DeckPicker$18 registration condition is MG112 (text only, batch 017). It is not a gate constant until the constants are added before STRICT.
 
-## Open decisions for the user
+## Decisions made by Muse (for the user and Yang to review)
 - Build type: the standard configuration is the debug APK in DATASET.txt, so the release branch (AnkiDroidApp.java:164-171, ProductionCrashReportingTree) is UNREACHABLE closed_by_configuration. Revisit only if the ground truth is the release build (HANDOFF_V2 "Convert run decisions", 2026-10-27 21:50).
 - DeckPicker$8 onClick: closed only on API 27 and up. minSdk is 10 (build.gradle line 12), so the fallback branch runs on API 10 to 13. The standard configuration (API 27) is used. Revisit only if the ground truth is an API 10-13 device (HANDOFF_V2, 2026-10-27 22:15 EDT entry).
 
@@ -296,3 +299,185 @@ An edge is written by the part that contains its source method; if the source is
 - 2026-10-29, after batch 133 (build 183): AnkiDroid is blocked, not DONE. Build 183: methods 4186, edges 9116, REACHABLE 2606, UNREACHABLE 908, UNRESOLVED 672, errors 694, warnings 0. The verdict depends only on graph routes and UNREACHABLE entries (tools/build_graph.py), so the 672 UNRESOLVED methods in 212 classes (counted from out/methods.csv) need source-verified graph edges, or source-verified UNREACHABLE entries, before the app can finish. Causes: the 22 zero-caller roots and the Reviewer chain in "## Current step" (missing LIFECYCLE edge into AbstractFlashcardViewer.onCreate@Reviewer; S_REVIEWER has no incoming edge); the ChartView chain (ChartView.addFragment and onDraw UNRESOLVED; ChartView.<init>(Context) UNREACHABLE); and the batch 125 GraphicsWrap and PieChart callers. Labels cannot reduce the count. The connector pass has not been done in this run. Stopped per handoff/KIRO_CONVERT_APPS.md line 87; MMEX was not started. Resume: add connector parts after 133, rebuild, and work through the UNRESOLVED rows in out/methods.csv. Batches 134-139 and the Hooks.runFilter to AdvancedStatistics.runFilter pair (suspect automatic CALL, not suppressed) are still open.
 - 2026-10-30, labelling run (build 184, graphs/AnkiDroid/scratch/build_184.txt): no graph change. Methods 4186, edges 9116, REACHABLE 2606, UNREACHABLE 908, UNRESOLVED 672, errors 694, warnings 0, the same as build 183. Blocked: the 672 UNRESOLVED methods need source-verified graph edges, which this run does not add. The run moved on. PROGRESS_V2.md line 17 set to [B].
 - 2026-10-30, overnight labelling run (labelling only): labelled. Parts 134-150 merged as builds 189-204. Build 204 (graphs/AnkiDroid/scratch/build_204.txt): REACHABLE 3275, UNREACHABLE 911, UNRESOLVED 0, errors 0, warnings 0. Open, not in the gate: Card.toString is UNREACHABLE (no_trigger_in_app) but APE executed it (coverage_baseline.json). Decisions are in handoff/HANDOFF_V2.md "## Convert run decisions (AnkiDroid overnight labelling, 2026-10-30)". Route checks not started.
+
+## Finish run 2026-11-01 — B2 check-2 citations (auditor PASS, audit/B2/AUDIT.md)
+- Applied the 3 exact word-form citation replacements from helper/b2-citations/EDITS.md.
+- graph_def.py: NotificationService.java:47 -> (line 47); :46-54 -> (lines 46-54); graph_def_mod/01.py: :37 -> (line 37).
+- New edge ids E6d79dde5, E3c7d7dc4, E10b85314; old ids E50d68ebc, E16231eaa, Ed8355a39 gone; total edges still 9178.
+- Local build: methods 4186, REACHABLE 3275, UNREACHABLE 911, unclassified 0, errors 0, warnings 0.
+- check_citations.py: 273 distinct, 0 problems (was 276/3). Root cause: tools/check_citations.py:20 ROOT_STYLE
+  is an unanchored regex matching the services/...java:<digits> substring inside the full-path SRC citation;
+  the citation-side word-form fix is the only in-rules resolution (tools/ read-only, untouched).
+
+## Finish run 2026-11-01 — B3 check-4 bytecode lines (auditor PASS, audit/B3/AUDIT.md)
+- Appended ONE combined EDIT after the module-loader block in graph_def.py (single EDIT definition):
+  23 TaskData/ChartBuilder/DisplayPair entries (helper b3-taskdata, incl. DeckPicker.deleteDeck 2017->2067)
+  + 25 Utils-pin/MockNoteFactory-INFERRED entries (helper b3-utils-mock). Dicts verbatim from EDITS.md.
+- Verified in the rebuilt trigger JSON: 48/48 new evidence strings present, 0 old remnants.
+- Local build: methods 4186, edges 9178, REACHABLE 3275, UNREACHABLE 911, errors 0, warnings 0.
+- check_bytecode_lines.py AnkiDroid --all: 6904 checked, 1001 skipped, 211 implicit,
+  0 where the cited line does not show the callee. Disclosed caveat: the 23 B3-a edges drop out of the
+  checker's checked set because their (bytecode line was N) form doesn't match its pattern; verification
+  rests on printed lines + auditor re-prints + merger spot-prints. check_citations still 273/0.
+- MockNoteFactory wording (auditor-confirmed): source under multimediacard/test/ is pruned from the checker
+  source index; NOT the brief's literal "no source in the upload" (the file exists, 2600 bytes, cited lines
+  printed and correct).
+
+## Finish run 2026-11-01 — B4 check-8 explanations (auditor PASS with binding correction, audit/B4/AUDIT.md)
+- Paint-sync helper's "8 NEW entries" are NOT new: all 8 axis-paint pairs already exist in graph_def_mod/01.py
+  multi-pair sup() blocks (XAxisBarGraph :3699/:3700, XAxisHistoGram :3711/:3712, YAxisBarGraph :3796/:3800,
+  YAxisHistoGram :3795/:3799). VERIFY-ONLY; nothing added.
+- Applied the 1 ReliefLegend reason reword at graph_def_mod/01.py:3488-3490: getLegend() has no caller and
+  ReliefDrawer itself is never constructed, so the creation site never runs (ReliefDrawer.java:473-474 shows
+  getLegend() DOES create a ReliefLegend; labels and the 3 SUPPRESS entries stand).
+- Wrote graphs/AnkiDroid/scratch/check8_explained.md: all 169 scan lines, 205 method-section pairs,
+  partition 106 sibling-only / 52 remainder-only / 11 mixed; every entry caller-named with helper section.
+- scan_unreachable.py --callers still 169 of 911. Local build: methods 4186, edges 9178, 3275/911, errors 0,
+  warnings 0; check_citations 273/0; check_bytecode_lines --all 0 not-show; greps 5/6/7 all 0.
+- 0 routes, 0 label changes from B4.
+
+## Finish run 2026-11-02 — B6 route-check fixes (audits F1-F5 all PASS)
+
+- F1 (routes 01-06, audit b6fix-r01-06/AUDIT.md PASS): NO graph edit.
+  Helper trigger JSON SHA-identical to the merger-tree baseline; 0 edges
+  added/removed/changed; methods.csv byte-identical. Route table uses
+  C01-C06, never BFS. C02 steps 13-15 carry the auditor-verified ids
+  E3a5b3438, E51823c2c, E0c0d5268.
+- F2 (routes 07-12, audit b6fix-r07-12/AUDIT.md PASS): 115 lines appended
+  to graph_def.py (B6_GUARD / B6_EVIDENCE / B6_STATE_* / B6_NEEDS_STATE,
+  wrapper around the B3 EDIT, saved and called first). Build: 4186/9178,
+  3275/911, 0/0; rebuilt JSON SHA-identical to the helper build; 23 edges
+  changed, 0 added/removed. Route 08 rename $15 -> $16 HELD (bytecode:
+  $15 = CHECK_DATABASE, $16 = CHECK_MEDIA); route 08 UNCLEAR (step 11
+  INFERRED, support-v4 source absent); route 12 WRONG with no graph edit
+  (rebuilt reviewer-flow route in the table).
+- F3 (routes 13-18, audit b6fix-r13-18/AUDIT.md FAIL narrow + rework
+  audit b6fix-r13-18-rework/AUDIT.md PASS): literal edits (ENV_BEOLINGUS,
+  ENV_PREFS_PATH, STATE_FIELD_TEXT constants; 10 main-body edge edits) +
+  B6FIX_EVIDENCE/GUARD folded into the single combined EDIT (helper's
+  B3+B6FIX def EDIT kept verbatim, F2 wrapper chained after it) + 2
+  insertions in graph_def_mod/01.py (needs_state STATE_FIELD_TEXT,
+  guard 'source text non-empty'). Build: 4186/9178, 3275/911, 0/0;
+  exactly 19 edges changed vs the F2 build, 0 added/removed;
+  needs_state 140 -> 141, methods with STATE 367 -> 405. Route-17 step-6
+  applied by edge+line ONLY (887 block, evidence line 890, new id
+  Ec31ec494); the RESULT edge (evidence line 973/980) is byte-identical.
+  The EDITS.md uniqueness sentence was amended at merge time to record
+  the two-occurrence exception (re-audit section 8 item 2, superseding
+  the coordinator's earlier no-amendment note). Audit C1 confirmed:
+  route 13 step 15 guard is exactly !editModelMode (NoteEditor.java:
+  1116-1121). BackgroundPost Ecba7dfd7 stays ENV_NETWORK (second cycle
+  not expanded into explicit steps).
+- F4 (routes 19-24, audit b6fix-r19-24/AUDIT.md PASS): route-21 variant
+  split (2 page defs, 4 GUI moves, 2 ENTERS E81c3cc95/E6b094d43, generic
+  page kept for types 2,3,4,6,7,8) + route-24 guard hand edges (5).
+  Build: 4186/9180, pages 45, 3275/911, 0/0; auto 8146 -> 8141;
+  ENTERS 56 -> 58; generic GUI ids gone; new ENTERS present.
+  Route 20 NO-split honoured (table uses UPDATE_FACT + mUpdateCardHandler,
+  never RenderBrowserQA -> AFV$9); route 21 table uses the hkey-empty
+  prefix, never the BFS route (BFS ignores guard text).
+- F5 (routes 25-30, audit b6fix-r25-30/AUDIT.md PASS): main-body retargets
+  (FULLSYNC / NOTEEDITOR_CHANGETYPE / MODELFIELDEDITOR_RENAME pages,
+  3 new SCREENS) + trailing B6 block (15 hand edges) + 3 edits in
+  graph_def_mod/01.py (DialogHandler retarget, CollectionLoader guard +
+  citation drop, BackupManager no-space guard). Build: 4186/9183, pages
+  48, 3275/911, 0/0; auto 8129; ENTERS 59; new ENTERS E30f7c51d present;
+  superseded ids Eeded0833, Ef2c97ad2, E27363954, E5798aa47, E9d88d57c
+  absent. Builder duplicate note: F4 and F5 hand edges coexist for the
+  two overlapping pairs (exceededCursorSizeLimit, getCol -> Storage),
+  both guards true for the same call sites; no label/route effect.
+- Labels: 0 flips in all of B6 (3275/911 throughout).
+- Redraw: verify_sample.py AnkiDroid 30 20261025 on the post-B6 graph
+  gives a DIFFERENT sample (297 distinct edges; 5 methods swap in/out
+  — see scratch/route_table.md "REDRAW NOTE"). Per the merger's assigned
+  task, the route table covers the FIRST-draw 30 routes; the 5
+  redraw-only methods are unjudged and flagged for a coordinator ruling.
+- Final BFS routes re-printed from the post-B6 graph into
+  scratch/route_print/ (30 files); first-draw prints backed up in
+  merger/route_print_firstdraw/ (work dir, not pushed).
+- Route table: scratch/route_table.md — WRONG 18, FIXED 9, UNCLEAR 2,
+  CORRECT 1; first-draw error rate 27/28 = 0.9643.
+
+## Finish run 2026-11-02 — B7 verification log (writer modelled on AnyMemo)
+
+- make_verification.py (new; AnkiDroid had no writer before): path rows
+  use the BUILT route (methods.csv route_edge_ids) with the audited
+  route-table verdict; WRONG-route notes point at the corrected
+  derivation in scratch/route_table.md (the built route is wrong for
+  those routes, so the table — not the BFS route — is the judged route).
+  Path confirmed_by is SOURCE only when every built-route edge is
+  source-evidenced, else INFERRED (same rule as the label rows). Label
+  rows: 911 UNREACHABLE (graph labels) + 30 sampled REACHABLE. Edge
+  rows: 7 B6 variant-page edges (ids re-derived from the final graph
+  by pair, asserted unique) + one row per distinct FW-SRC citation
+  with line numbers. Rows: path 30 (WRONG 18, FIXED 9, UNCLEAR 2,
+  CORRECT 1), label 941, edge 231. The writer raises (STOPs) on any
+  mismatch: missing method, non-REACHABLE path item, ref not on the
+  route evidence, empty note, non-unique variant pair, missing edge.
+- Determinism: two runs byte-identical (cmp passed); verification.csv
+  479,626 B, 1203 lines (header + 1202 rows), header exactly
+  type,item,result,confirmed_by,ref,edges,note.
+- Checks on the final graph (saved in merger/checks_final/): check 2
+  273 distinct, 0 problems; check 3 0 routes flagged; check 4 6901
+  checked, 0 where the cited line does not show the callee (6901 vs
+  B3's 6904: 3 auto bytecode edges replaced by B6 hand edges); check 8
+  scan --callers 169 of 911 have a bytecode caller outside the set
+  (all 169 explained in scratch/check8_explained.md, B4); greps:
+  DEAD/FRAMEWORK_ONLY 0, FW-MEMORY 0, PENDING 0; STRICT = True.
+- readme_notes.md (five headings in order) + LESSONS.md (8 bullets)
+  written. The redraw/sample divergence is recorded in both
+  route_table.md and readme_notes.md as a coordinator ruling item.
+
+## Finish run 2026-11-02 — D1/D3 device preparation (audit + re-audit PASS)
+
+- D1: device/routes/AnkiDroid/ROUTES.csv — 30 rows (first-draw sample,
+  seed 20261025), Currency 10-column header, routes in order 01-30.
+  Status: 27 scripted, 3 unscriptable = 10.0%, exactly at (not over)
+  the 10% cap; no over-cap acceptance is triggered by the arithmetic.
+  If the cap is read as strictly below 10%, the coordinator must rule
+  (audit note); the cap alone must not block F1 per the user's ruling.
+- D3: 28 scripts under device/routes/AnkiDroid/ (27 scripted routes
+  + route_26b.py, the second script for route 26's rename-flow
+  route B; route A is route_26.py and the CSV row). Scripts follow
+  the corrected routes for WRONG routes (never BFS where the audit
+  says BFS misleads), the final BFS route for FIXED/CORRECT routes.
+  Unscriptable reason files: ROUTE_UNSCRIPTABLE_02.md (real AnkiWeb
+  account + real HTTPS sync; the user's account/credential exception),
+  ROUTE_UNSCRIPTABLE_15.md (external host app via exported
+  CardContentProvider; harness has no provider-call action),
+  ROUTE_UNSCRIPTABLE_25.md (no-space dialog; no UI action produces
+  it, threshold unverified, revival path recorded).
+- Audit: device-draft/AUDIT.md FAIL narrowly on 5 r.comment calls
+  missing the required edge argument (D1-D5, routes 19/20/22/28);
+  fixed by attaching the auditor-specified following edges; narrow
+  re-audit device-draft/REAUDIT.md PASS (AST 0 bare comment calls,
+  4 fixed scripts exit 0 under branch-harness --dry-run, CSVs
+  re-parsed 30 rows, permissions normalised to the qualified form).
+  Full-audit rulings (a)-(f) all RULED-ACCEPTED, including route 21
+  menu-sync entry (not onResume), route 10 trigger substitution,
+  routes 06/08 scripted despite INFERRED steps. Dry-run status: all
+  28 scripts exit 0 under harness --dry-run (24 in the full audit +
+  4 in the re-audit); no emulator/adb/device was started. The full
+  device/drycheck.py run and D9 remain coordinator gates.
+- D7: make_verification.py carries the DEVICE-row block (pattern
+  copied from AnyMemo's D7 writer): if
+  graphs/AnkiDroid/device/results.csv exists (written by the CI
+  device run, not by this run), one DEVICE-confirmed path row per
+  results row is appended after all existing rows; otherwise the
+  output is the B7 file exactly. Verified: two runs with the D7
+  block and no results file are byte-identical to the pushed B7
+  verification.csv, so verification.csv is NOT re-pushed here.
+  DEVICE rows never feed back into labels, edges, or route checks.
+- Gaps carried (flagged in the drafts and confirmed by audit, not
+  resolved silently): selectors needing a live uiautomator dump
+  (drawer "Navigate up", "More options", route_10 FIXTURE_CARD_TEXT,
+  route_11 FIXTURE_DYN_DECK, route_14 Advanced-screen navigation);
+  fixtures (tablet config for 05/11, route_08 integrity-check
+  assumption, route_12 video fixture, route_20 StudyOptions entry
+  variant, route_27 focused-deck mechanism, route_01 language
+  spinners, glosbe.com/Beolingus reachability unchecked here).
+- 2026-11-06 04:41 UTC: Kiro, re-audit W4 done for AnkiDroid (RTA on); next W5 (ESR_CREATION).
+- 2026-11-06 04:46 UTC: Kiro, re-audit W5 done for AnkiDroid (ESR_CREATION on; library_edges.csv); next W6 (outside data).
+- 2026-11-06 04:53 UTC: Kiro, re-audit W6 done for AnkiDroid (outside_data.csv); next W7 (guards).
+- 2026-11-06 05:02 UTC: Kiro, re-audit W7 round 1 done for AnkiDroid (pre-screen, checked-case guards; most flagged steps PENDING); next W8 (CI, re-verify routes, device runs).
+- 2026-11-06 06:40 UTC: Kiro stops after round 1. Open: W7 PENDING guard steps, W8 point 2 route re-verification (stale verification paths block the writers and the publish), W9 checks of audit_draw.csv, W0 and the measurement (no review/sample_tune/).

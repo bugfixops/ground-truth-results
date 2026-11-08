@@ -1,0 +1,26 @@
+# Batch 79 printed evidence
+
+Plan command:
+```sh
+awk -F '\\t' '$1==79 {print $3 "\\t" $4}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+```
+Result: 40 exact rows; all members/descriptors are in the report table.
+
+Bounded source definition scan:
+```sh
+rg -n 'onCreate|onStart|onStop|observeDecodeState|onStartDecode|onStopDecode|subscribeAlertDialog|subscribeParamsChanged|onPropertyChanged|newInstance|onCreateView|onViewCreated|subscribeAdapter|onItemClicked|onItemCheckedChanged|updateFileSize|checkNameField' .../ui/addtorrent/{AddTorrentActivity,AddTorrentFilesFragment,AddTorrentInfoFragment}.java
+```
+Printed output read:
+```
+AddTorrentActivity.java:97 onCreate; :139 observeDecodeState; :170 onStop; :179 onStart
+:183 observer registration; :193/:197 parameter observers; :204 onPropertyChanged
+:305 observeDecodeState; :317 onStartDecode; :323 onStopDecode
+:329 onStartDecode; :336 onStopDecode; :540/:552 menu handlers
+AddTorrentFilesFragment.java:68 newInstance; :79 onCreateView; :104 onStart; :108 subscribeAdapter
+:111 subscribeAdapter; :123 updateFileSize; :128 onViewCreated; :143 updateFileSize
+:183 onItemClicked; :192 onItemCheckedChanged
+AddTorrentInfoFragment.java:74 newInstance; :92 onCreateView; :99 onViewCreated; :117 checkNameField
+:124 onStart; :131 onStop; :234 checkNameField
+```
+The scan shows likely local call chains but not row-by-row full entry-route verification or all guards. All 40 remain OPEN.
+

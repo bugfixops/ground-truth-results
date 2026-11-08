@@ -1,0 +1,116 @@
+# label_125 grep evidence (run from /Users/darshan/Desktop/yang/work). Source root: final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java
+# Build classes: final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes
+# Section A: onActivityResult and the only fragment-started request (UNREACHABLE: onActivityResult, handleFileSelection, and their chain).
+# Section B: callers of the private chain (handleFileSelection, checkIfLocalFileExistsAndDownload, getDatabases, saveDatabaseMetadata) and the anonymous RxJava listeners.
+# Section C: Dagger-generated SyncPreferenceFragment_MembersInjector (create, <init>, injectMembers; INFERRED per D5/D12).
+# Section D: auto_calls.json records used for the D14 cuts (src and dst match).
+# Section E: caller counts of the cut targets outside this batch (each keeps a live caller after the cut).
+
+## A. onActivityResult and the fragment's own startActivityForResult
+
+$ grep -rn "startActivityForResult\|void onActivityResult" <source root>/com/money/manager/ex/sync
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferenceFragment.java:94:    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferenceFragment.java:202://                startActivityForResult(intent, REQUEST_REMOTE_FILE);
+
+Result: the only startActivityForResult in the sync package that sends REQUEST_REMOTE_FILE is commented out. The settings-package onActivityResult overrides belong to other fragments (SettingsFragment, SecuritySettingsFragment, PerDatabaseFragment, DatabaseSettingsFragment) and do not dispatch to this fragment.
+
+## B. The private chain and its callers
+
+$ grep -rn "REQUEST_REMOTE_FILE\|handleFileSelection\|CloudFilePickerActivity" <source root>
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferenceFragment.java:63:    public static final int REQUEST_REMOTE_FILE = 1;
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferenceFragment.java:97:        if (requestCode == REQUEST_REMOTE_FILE) {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferenceFragment.java:98:            handleFileSelection(resultCode, data);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferenceFragment.java:130:    private void handleFileSelection(int resultCode, Intent data) {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferenceFragment.java:201://                Intent intent = new Intent(getActivity(), CloudFilePickerActivity.class);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferenceFragment.java:202://                startActivityForResult(intent, REQUEST_REMOTE_FILE);
+
+Result: handleFileSelection has one caller in the source root, onActivityResult (line 98). That caller has no live caller (section A). CloudFilePickerActivity appears only in the commented lines 201.
+
+$ grep -rn "checkIfLocalFileExistsAndDownload\|getDatabases()" <source root>   (matches in other classes are their own private getDatabases, e.g. MainActivity.java:1042, SyncManager.java:412, SyncServiceMessageHandler.java:131; not this fragment's)
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferenceFragment.java:159:                        checkIfLocalFileExistsAndDownload();
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferenceFragment.java:172:    private RecentDatabasesProvider getDatabases() {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferenceFragment.java:279:    private void checkIfLocalFileExistsAndDownload() {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferenceFragment.java:280:        String local = getDatabases().getCurrent().localPath;
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferenceFragment.java:338:        getDatabases().add(db);
+
+Result: checkIfLocalFileExistsAndDownload is called only at line 159, inside the Action1 listener of handleFileSelection ($1.call). getDatabases in this fragment has two callers, lines 280 and 338, and both are in unreachable methods.
+
+$ grep -rn "saveDatabaseMetadata" <source root>
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferenceFragment.java:140:        // saveDatabaseMetadata(remoteFile);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/sync/SyncPreferenceFragment.java:326:    private void saveDatabaseMetadata(String remoteFile) {
+
+Result: the only mention that could call saveDatabaseMetadata is the commented line 140. No live caller.
+
+## C. Dagger-generated SyncPreferenceFragment_MembersInjector (INFERRED: generated code, D5/D12)
+
+$ grep -rl -a "SyncPreferenceFragment_MembersInjector" <build classes>
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/core/ioc/DaggerMmxComponent.class
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/build/intermediates/javac/debug/classes/com/money/manager/ex/sync/SyncPreferenceFragment_MembersInjector.class
+
+Constant pool of DaggerMmxComponent.class (python3 -I, constant-pool parse; Methodref entries whose class is the injector):
+Methodref com/money/manager/ex/sync/SyncPreferenceFragment_MembersInjector injectMDatabases (Lcom/money/manager/ex/sync/SyncPreferenceFragment;Ldagger/Lazy;)V
+constant-pool class refs to the injector class: 1
+
+Constant-pool UTF8 names in SyncPreferenceFragment_MembersInjector.class (grep -a -o): <init> 1, create 1, injectMDatabases 1, injectMembers 1 (each name appears once, as its own definition; no other class in the build names create or injectMembers for this injector).
+
+Result: DaggerMmxComponent reaches the injector only through the static injectMDatabases (DaggerMmxComponent.java:481, batch 044). Nothing in the component calls create, <init> or injectMembers. create and <init> therefore have no caller; injectMembers has no caller. Source-side: the injector has no source file, and the only app reference to the injector class is the generated one.
+
+Generated-class caller records (auto_calls.json): create -> <init> (MembersInjector.java:25); injectMembers -> injectMDatabases (MembersInjector.java:30). Bridge injectMembers(Object) is generated in the same class (line 10) and is not in this batch's list.
+
+## D. auto_calls.json records for the D14 cuts (src and dst match; python3 -I query over graphs/MMEX/auto_calls.json)
+
+SyncPreferenceFragment$9.call -> SyncPreferenceFragment.forceDownload SyncPreferenceFragment.java 298
+SyncPreferenceFragment.onActivityResult -> SyncPreferenceFragment.handleFileSelection SyncPreferenceFragment.java 98
+SyncPreferenceFragment.handleFileSelection -> SyncPreferenceFragment$1.<init> SyncPreferenceFragment.java 148
+SyncPreferenceFragment.handleFileSelection -> SyncPreferenceFragment$2.<init> SyncPreferenceFragment.java 146
+SyncPreferenceFragment.handleFileSelection -> UIHelper.binaryDialog(int,int,int,int) SyncPreferenceFragment.java 146
+SyncPreferenceFragment.handleFileSelection -> UIHelper.<init> SyncPreferenceFragment.java 146
+SyncPreferenceFragment.handleFileSelection -> SyncManager.startSyncServiceHeartbeat SyncPreferenceFragment.java 143
+SyncPreferenceFragment.handleFileSelection -> SyncPreferenceFragment.getSyncManager SyncPreferenceFragment.java 143
+SyncPreferenceFragment.checkIfLocalFileExistsAndDownload -> SyncPreferenceFragment.forceDownload SyncPreferenceFragment.java 303
+SyncPreferenceFragment.checkIfLocalFileExistsAndDownload -> SyncPreferenceFragment$9.<init> SyncPreferenceFragment.java 287
+SyncPreferenceFragment.checkIfLocalFileExistsAndDownload -> SyncPreferenceFragment$10.<init> SyncPreferenceFragment.java 286
+SyncPreferenceFragment.checkIfLocalFileExistsAndDownload -> UIHelper.binaryDialog(int,int) SyncPreferenceFragment.java 286
+SyncPreferenceFragment.checkIfLocalFileExistsAndDownload -> UIHelper.<init> SyncPreferenceFragment.java 286
+SyncPreferenceFragment.checkIfLocalFileExistsAndDownload -> RecentDatabasesProvider.getCurrent SyncPreferenceFragment.java 280
+SyncPreferenceFragment.checkIfLocalFileExistsAndDownload -> SyncPreferenceFragment.getDatabases SyncPreferenceFragment.java 280
+SyncPreferenceFragment.saveDatabaseMetadata -> RecentDatabasesProvider.add(DatabaseMetadata) SyncPreferenceFragment.java 338
+SyncPreferenceFragment.saveDatabaseMetadata -> SyncPreferenceFragment.getDatabases SyncPreferenceFragment.java 338
+SyncPreferenceFragment.saveDatabaseMetadata -> DatabaseMetadataFactory.getInstance(String,String) SyncPreferenceFragment.java 336
+SyncPreferenceFragment.saveDatabaseMetadata -> SettingsBase.set(Integer,String)@AppSettings SyncPreferenceFragment.java 334
+SyncPreferenceFragment.saveDatabaseMetadata -> AppSettings.<init> SyncPreferenceFragment.java 334
+SyncPreferenceFragment.saveDatabaseMetadata -> DatabaseManager.getDefaultDatabaseDirectory SyncPreferenceFragment.java 330
+SyncPreferenceFragment.saveDatabaseMetadata -> DatabaseManager.<init> SyncPreferenceFragment.java 329
+SyncPreferenceFragment$1.call -> SyncPreferenceFragment.checkIfLocalFileExistsAndDownload SyncPreferenceFragment.java 159
+SyncPreferenceFragment_MembersInjector.create -> SyncPreferenceFragment_MembersInjector.<init> SyncPreferenceFragment_MembersInjector.java 25
+SyncPreferenceFragment_MembersInjector.injectMembers -> SyncPreferenceFragment_MembersInjector.injectMDatabases SyncPreferenceFragment_MembersInjector.java 30
+
+Callers of the UNREACHABLE targets (dst match):
+SyncPreferenceFragment.getDatabases <- checkIfLocalFileExistsAndDownload (280), saveDatabaseMetadata (338)
+SyncPreferenceFragment.handleFileSelection <- onActivityResult (98)
+SyncPreferenceFragment.saveDatabaseMetadata <- none
+SyncPreferenceFragment.checkIfLocalFileExistsAndDownload <- $1.call (159)
+SyncPreferenceFragment$1.<init> <- handleFileSelection (148)
+SyncPreferenceFragment$2.<init> <- handleFileSelection (146)
+SyncPreferenceFragment$9.<init> <- checkIfLocalFileExistsAndDownload (287)
+SyncPreferenceFragment$10.<init> <- checkIfLocalFileExistsAndDownload (286)
+SyncPreferenceFragment_MembersInjector.<init> <- create (25)
+SyncPreferenceFragment_MembersInjector.create <- none
+SyncPreferenceFragment_MembersInjector.injectMembers <- none
+SyncPreferenceFragment$1.call <- none (the Action1 is created in handleFileSelection; its call runs from the RxJava chain)
+
+## E. Caller counts of cut targets (targets owned by other batches keep a live caller after the cut)
+
+1 UIHelper.binaryDialog(int,int)                     (checkIfLocal, cut here; batch 040 labels it UNREACHABLE: its only caller is this fragment)
+2 UIHelper.binaryDialog(int,int,int,int)             (binaryDialog(int,int) UIHelper.java:86, batch 040 cut; handleFileSelection, cut here)
+98 UIHelper.<init>
+4 SyncManager.startSyncServiceHeartbeat              (3 other callers after the cut)
+8 SyncPreferenceFragment.getSyncManager              (other live callers remain)
+9 RecentDatabasesProvider.getCurrent                 (8 other callers after the cut)
+4 RecentDatabasesProvider.add(DatabaseMetadata)      (3 other callers after the cut)
+2 DatabaseMetadataFactory.getInstance(String,String) (1 other caller after the cut)
+49 AppSettings.<init>
+6 DatabaseManager.getDefaultDatabaseDirectory
+13 DatabaseManager.<init>
+3 SyncPreferenceFragment.forceDownload               ($6.onPreferenceClick, line 236, stays live)
+2 SyncPreferenceFragment_MembersInjector.injectMDatabases (DaggerMmxComponent.injectSyncPreferenceFragment stays live; injectMembers cut)

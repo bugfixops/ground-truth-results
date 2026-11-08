@@ -1,0 +1,145 @@
+## EntryAdapter.lambda$doesAnyGroupMatchSearchFilter$1  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=- state=data classes=explicit;standard explicit_standard_route=yes
+   1. Eb9515d18 ENTRY/standard*
+      S_ENTRY -> AegisApplication.<init>
+      Any outside trigger starts the app process; the application class is created first, except in a backup or restore start, which uses the base Application class
+      guard: not a full backup or restore start (FW ActivityThread.java:5713-5715)
+      evidence: SRC AndroidManifest.xml:21-27 (android:name=".AegisApplication", backupAgent=".AegisBackupAgent")
+         21      <application
+         22          android:name=".AegisApplication"
+         23          android:allowBackup="true"
+         24          android:fullBackupOnly="true"
+         25          android:fullBackupContent="@xml/backup_rules_old"
+         26          android:dataExtractionRules="@xml/backup_rules"
+         27          android:backupAgent=".AegisBackupAgent"
+   2. E5b266140 LIFECYCLE/standard*
+      AegisApplication.<init> -> Hilt_AegisApplication.onCreate
+      Application.onCreate: the Hilt-generated superclass onCreate runs first (Hilt injection), then AegisApplicationBase.onCreate
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:5740 (the system calls Application.onCreate); INFERRED Hilt rewrites the superclass: AegisApplication extends Hilt_AegisApplication (generated file, not in the source tree; source AegisApplication.java:6 has no onCreate)
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+   3. E1ef992ce CALL/explicit
+      Hilt_AegisApplication.onCreate -> AegisApplicationBase.onCreate
+      Direct call
+      evidence: INFERRED generated code (Hilt_AegisApplication.java is not in the source tree; the call is in the build class, line 43)
+   4. E88ed9829 ENTERS/page*
+      AegisApplicationBase.onCreate -> S_PROCESS
+      the application is created: the process can start a component
+      evidence: SRC AegisApplicationBase.java:45-67; FW-SRC core/java/android/app/ActivityThread.java:5740 (the system calls Application.onCreate)
+         45      public void onCreate() {
+         46          super.onCreate();
+         47          _vaultManager = EarlyEntryPoints.get(this, EntryPoint.class).getVaultManager();
+         48  
+         49          VaultLockReceiver lockReceiver = new VaultLockReceiver();
+         50          IntentFilter intentFilter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
+         51          ContextCompat.registerReceiver(this, lockReceiver, intentFilter, ContextCompat.RECEIVER_NOT_EXPORTED);
+         52  
+         53          // lock the app if the user moves the application to the background
+         54          ProcessLifecycleOwner.get().getLifecycle().addObserver(new AppLifecycleObserver());
+         55  
+         56          // clear the cache directory on startup, to make sure no temporary vault export files remain
+         57          IOUtils.clearDirectory(getCacheDir(), false);
+         58  
+      ...  (9 more lines)
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+   5. E28ffc58c ENTRY/standard*
+      S_PROCESS -> MainActivity.<init>
+      Tap the Aegis icon in the launcher (MAIN / LAUNCHER)
+      evidence: SRC AndroidManifest.xml:44-51
+         44              android:name=".ui.MainActivity"
+         45              android:exported="true"
+         46              android:label="${title}">
+         47              <intent-filter>
+         48                  <action android:name="android.intent.action.MAIN" />
+         49  
+         50                  <category android:name="android.intent.category.LAUNCHER" />
+         51              </intent-filter>
+   6. Eb76444fd LIFECYCLE/standard*
+      MainActivity.<init> -> MainActivity.onCreate
+      Activity.onCreate after the constructor
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731,2741 (the system calls Activity.onCreate, then performStart); SRC ui/MainActivity.java:192-194
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+        192      @Override
+        193      protected void onCreate(Bundle savedInstanceState) {
+        194          super.onCreate(savedInstanceState);
+   7. E8e6d6f10 FRAMEWORK/standard*
+      MainActivity.onCreate -> MainActivity.onCreateOptionsMenu
+      the toolbar menu is created after onCreate (menu inflated, search view and lock icon set up)
+      evidence: INFERRED androidx.appcompat: onCreateOptionsMenu runs after onCreate, onOptionsItemSelected on a menu tap (source not read); SRC ui/MainActivity.java:1011-1016
+       1011      public boolean onCreateOptionsMenu(Menu menu) {
+       1012          _menu = menu;
+       1013          getMenuInflater().inflate(R.menu.menu_main, menu);
+       1014  
+       1015          updateLockIcon();
+       1016          updateSortCategoryMenu();
+   8. Ed60e6cbd CALL/explicit*
+      MainActivity.onCreateOptionsMenu -> EntryListView.setSearchFilter
+      a submitted search is restored when the menu is created: the list is filtered by it
+      guard: _pendingSearchQuery == null and _submittedSearchQuery != null (MainActivity.java:1066-1073)
+      evidence: SRC ui/MainActivity.java:1066-1073 (bytecode line 1073)
+       1066          if (_pendingSearchQuery != null) {
+       1067              _searchView.setIconified(false);
+       1068              _searchView.setQuery(_pendingSearchQuery, false);
+       1069              _searchViewBackPressHandler.setEnabled(true);
+       1070          } else if (_submittedSearchQuery != null) {
+       1071              setTitle(getString(R.string.search));
+       1072              getSupportActionBar().setSubtitle(_submittedSearchQuery);
+       1073              _entryListView.setSearchFilter(_submittedSearchQuery);
+   9. Ececfe4d5 CALL/explicit*
+      EntryListView.setSearchFilter -> EntryAdapter.setSearchFilter
+      Direct call
+      evidence: SRC EntryListView.java:280 (bytecode)
+        280          _adapter.setSearchFilter(search);
+  10. Ef330c979 CALL/explicit*
+      EntryAdapter.setSearchFilter -> EntryAdapter.refreshEntryList
+      a changed search text refreshes the list
+      guard: the new search text differs from the current _searchFilter (EntryAdapter.java:271)
+      evidence: SRC ui/views/EntryAdapter.java:271-273 (bytecode line 273)
+        271          if (!Objects.equals(_searchFilter, newSearchFilter)) {
+        272              _searchFilter = newSearchFilter;
+        273              refreshEntryList();
+  11. Ed33e097b CALL/explicit*
+      EntryAdapter.refreshEntryList -> EntryAdapter.calculateShownEntries
+      Direct call
+      evidence: SRC EntryAdapter.java:280 (bytecode)
+        280                  calculateShownEntries(_entryList.getEntries()),
+  12. E21f79a09 CALL/explicit* [STATE: the entry list passed in is not empty: the for loop at EntryAdapter.java:301 runs once per entry]
+      EntryAdapter.calculateShownEntries -> EntryAdapter.isEntryFiltered
+      each entry is tested by the search filter and kept when it is not filtered out
+      guard: the entries list has at least one entry: the for loop runs (EntryAdapter.java:301)
+      evidence: SRC ui/views/EntryAdapter.java:280; SRC ui/views/EntryAdapter.java:299-302
+        280                  calculateShownEntries(_entryList.getEntries()),
+        299      private List<VaultEntry> calculateShownEntries(List<VaultEntry> entries) {
+        300          List<VaultEntry> res = new ArrayList<>();
+        301          for (VaultEntry entry : entries) {
+        302              if (!isEntryFiltered(entry)) {
+  13. E9b4d2bef FRAMEWORK/standard*
+      EntryAdapter.isEntryFiltered -> EntryAdapter.lambda$isEntryFiltered$0
+      the stream tests each search token against the entry fields
+      guard: a search text is set (_searchFilter is not null, EntryAdapter.java:200)
+      evidence: INFERRED java.util.stream: the terminal allMatch (EntryAdapter.java:205) runs the predicate lambda once per token (JDK source not read); SRC ui/views/EntryAdapter.java:204-210
+        204              return !Arrays.stream(tokens)
+        205                      .allMatch(token ->
+        206                              ((_searchBehaviorMask & Preferences.SEARCH_IN_ISSUER) != 0 && issuer.contains(token)) ||
+        207                                      ((_searchBehaviorMask & Preferences.SEARCH_IN_NAME) != 0 && name.contains(token)) ||
+        208                                      ((_searchBehaviorMask & Preferences.SEARCH_IN_NOTE) != 0 && note.contains(token)) ||
+        209                                      ((_searchBehaviorMask & Preferences.SEARCH_IN_GROUPS) != 0 && doesAnyGroupMatchSearchFilter(groups, token))
+        210                      );
+  14. E399cebc2 CALL/explicit*
+      EntryAdapter.lambda$isEntryFiltered$0 -> EntryAdapter.doesAnyGroupMatchSearchFilter
+      the search token is tested against the group names
+      guard: _searchBehaviorMask includes SEARCH_IN_GROUPS and the token did not match the issuer, name or note (EntryAdapter.java:206-209)
+      evidence: SRC ui/views/EntryAdapter.java:206-209 (bytecode line 209)
+        206                              ((_searchBehaviorMask & Preferences.SEARCH_IN_ISSUER) != 0 && issuer.contains(token)) ||
+        207                                      ((_searchBehaviorMask & Preferences.SEARCH_IN_NAME) != 0 && name.contains(token)) ||
+        208                                      ((_searchBehaviorMask & Preferences.SEARCH_IN_NOTE) != 0 && note.contains(token)) ||
+        209                                      ((_searchBehaviorMask & Preferences.SEARCH_IN_GROUPS) != 0 && doesAnyGroupMatchSearchFilter(groups, token))
+  15. E4bf8b9e0 FRAMEWORK/standard*
+      EntryAdapter.doesAnyGroupMatchSearchFilter -> EntryAdapter.lambda$doesAnyGroupMatchSearchFilter$1
+      the stream keeps the groups that the entry belongs to
+      note: the group-name test is in lambda$doesAnyGroupMatchSearchFilter$2 (EntryAdapter.java:229), which this route does not reach
+      evidence: INFERRED java.util.stream: the terminal anyMatch (EntryAdapter.java:229) pulls elements through filter and map (JDK source not read); SRC ui/views/EntryAdapter.java:226-229
+        226          return _groups.stream()
+        227                  .filter(group -> entryGroupUUIDs.contains(group.getUUID()))
+        228                  .map(VaultGroup::getName)
+        229                  .anyMatch(groupName -> groupName.toLowerCase().contains(searchFilter.toLowerCase()));
+

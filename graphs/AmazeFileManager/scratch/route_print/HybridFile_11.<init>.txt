@@ -1,0 +1,77 @@
+METHOD: HybridFile$11.<init>
+verdict: REACHABLE   steps_from_launch: 7
+route steps: 7 edges
+======================================================================
+
+STEP 1  edge E13267468
+  S_ENTRY -> EncryptService.<init>
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC AndroidManifest.xml:181-183; FW-SRC core/java/android/app/ActivityThread.java (Service lifecycle callbacks dispatched by ActivityThread)
+  cite [SRC] AndroidManifest.xml:181-183
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/AndroidManifest.xml)
+      181:         <service android:name=".asynchronous.services.EncryptService"
+      182:             android:label="@string/crypt_encrypting"
+      183:             />
+
+STEP 2  edge E84fa3666
+  EncryptService.<init> -> EncryptService.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC core/java/android/app/ActivityThread.java (Service lifecycle callbacks dispatched by ActivityThread)
+  (no file:line citations in evidence)
+
+STEP 3  edge E766a13d0
+  EncryptService.onCreate -> EncryptService.onStartCommand
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC core/java/android/app/ActivityThread.java (Service lifecycle callbacks dispatched by ActivityThread)
+  (no file:line citations in evidence)
+
+STEP 4  edge Ece10abda
+  EncryptService.onStartCommand -> CryptUtil.<init>(Context,HybridFileParcelable,ProgressHandler,ArrayList,String)
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC EncryptService.java:191
+  cite [SRC] EncryptService.java:191
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/asynchronous/services/EncryptService.java)
+      191:                     new CryptUtil(context, baseFile, progressHandler, failedOps, targetFilename);
+
+STEP 5  edge Ec1142890
+  CryptUtil.<init>(Context,HybridFileParcelable,ProgressHandler,ArrayList,String) -> CryptUtil.encrypt
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC CryptUtil.java:125
+  cite [SRC] CryptUtil.java:125
+    (resolved to final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/utils/files/CryptUtil.java)
+      125:         encrypt(context, sourceFile, hFile, targetFilename);
+
+STEP 6  edge E70854c04
+  CryptUtil.encrypt -> HybridFile.getOutputStream
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC utils/files/CryptUtil.java:247 BufferedOutputStream outputStream = new BufferedOutputStream(targetFile.getOutputStream(context), ...)
+  cite [SRC] utils/files/CryptUtil.java:247
+      247:             BufferedOutputStream outputStream = new BufferedOutputStream(targetFile.getOutputStream(context),
+
+STEP 7  edge E5887a330
+  HybridFile.getOutputStream -> HybridFile$11.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC filesystem/HybridFile.java:1021 return SshClientUtils.execute(new SshClientTemplate(path, false) {
+  cite [SRC] filesystem/HybridFile.java:1021
+     1021:                 return SshClientUtils.execute(new SshClientTemplate(path, false) {

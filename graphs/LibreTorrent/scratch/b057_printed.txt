@@ -1,0 +1,1179 @@
+# Printed source for batch 57 part (b057).
+# Every SRC citation in parts/b057.py and every printed file:lines cell in parts/b057.md is covered below.
+# Line numbers are the clone source line numbers (final_java_only tree).
+
+===== core/FeedParser.java =====
+--- core/FeedParser.java:236-243 ---
+236:     private String watchTorrentInfoHash(Item item)
+237:     {
+238:         EzRssTorrentItem torrentItem = item.getEzRssTorrentItem();
+239:         if (torrentItem == null)
+240:             return null;
+241: 
+242:         String infoHash = torrentItem.getInfoHash();
+243:         if (infoHash != null && Utils.isHash(infoHash))
+
+===== core/HttpConnection.java =====
+--- core/HttpConnection.java:66-69 ---
+66:     public HttpConnection(String url) throws MalformedURLException, GeneralSecurityException
+67:     {
+68:         this.url = new URL(url);
+69:         this.sslContext = Utils.getSSLContext();
+
+===== core/filter/TorrentFilterCollection.java =====
+--- core/filter/TorrentFilterCollection.java:57-63 ---
+57:     public static TorrentFilter dateAddedYesterday() {
+58:         return (state) -> {
+59:             long dateAdded = state.dateAdded;
+60:             long timeMillis = System.currentTimeMillis();
+61: 
+62:             return dateAdded >= DateUtils.startOfYesterday(timeMillis) &&
+63:                     dateAdded <= DateUtils.endOfYesterday(timeMillis);
+
+===== core/model/TorrentEngine.java =====
+--- core/model/TorrentEngine.java:1023-1041 ---
+1023:     private boolean checkPauseTorrents() {
+1024:         boolean batteryControl = pref.batteryControl();
+1025:         boolean customBatteryControl = pref.customBatteryControl();
+1026:         int customBatteryControlValue = pref.customBatteryControlValue();
+1027:         boolean onlyCharging = pref.onlyCharging();
+1028:         boolean unmeteredOnly = pref.unmeteredConnectionsOnly();
+1029:         boolean roaming = pref.enableRoaming();
+1030: 
+1031:         boolean stop = false;
+1032:         if (roaming)
+1033:             stop = Utils.isRoaming(appContext);
+1034:         if (unmeteredOnly)
+1035:             stop = Utils.isMetered(appContext);
+1036:         if (onlyCharging)
+1037:             stop |= !Utils.isBatteryCharging(appContext);
+1038:         if (customBatteryControl)
+1039:             stop |= Utils.isBatteryBelowThreshold(appContext, customBatteryControlValue);
+1040:         else if (batteryControl)
+1041:             stop |= Utils.isBatteryLow(appContext);
+--- core/model/TorrentEngine.java:1116-1119 ---
+1116:     private void startWatchDir() {
+1117:         String dir = pref.dirToWatch();
+1118:         Uri uri = Uri.parse(dir);
+1119:         if (!Utils.isFileSystemPath(uri))
+
+===== core/model/data/metainfo/TorrentMetaInfo.java =====
+--- core/model/data/metainfo/TorrentMetaInfo.java:98-108 ---
+98:     private void getMetaInfo(TorrentInfo info)
+99:     {
+100:         torrentName = info.name();
+101:         sha1Hash = info.infoHash().toHex();
+102:         comment = info.comment();
+103:         createdBy = info.creator();
+104:         /* Correct convert UNIX time (time_t) */
+105:         creationDate = info.creationDate() * 1000L;
+106:         torrentSize = info.totalSize();
+107:         fileCount = info.numFiles();
+108:         fileList = Utils.getFileList(info.origFiles());
+
+===== core/model/session/TorrentSessionImpl.java =====
+--- core/model/session/TorrentSessionImpl.java:862-889 ---
+862:     public void start()
+863:     {
+864:         if (isRunning())
+865:             return;
+866: 
+867:         SessionParams params = loadSettings();
+868:         SettingsPack settingsPack = params.getSettings();
+869:         settings_pack sp = settingsPack.swig();
+870: 
+871:         if (settings.posixDiskIo) {
+872:             // Internally set the session to use a simple posix disk I/O back-end, used
+873:             // for systems that don't have a 64-bit virtual address space or don't support
+874:             // memory mapped files. This option only to use in particular situations, like
+875:             // Android devices with faulty drivers.
+876:             params.setPosixDiskIO();
+877:         } else {
+878:             params.setDefaultDiskIO();
+879:         }
+880: 
+881:         sp.set_str(settings_pack.string_types.dht_bootstrap_nodes.swigValue(), dhtBootstrapNodes());
+882:         sp.set_bool(settings_pack.bool_types.enable_ip_notifier.swigValue(), false);
+883:         sp.set_int(settings_pack.int_types.alert_queue_size.swigValue(), 5000);
+884:         sp.set_bool(settings_pack.bool_types.announce_to_all_trackers.swigValue(), true);
+885:         sp.set_bool(settings_pack.bool_types.announce_to_all_tiers.swigValue(), true);
+886: 
+887:         String versionName = system.getAppVersionName();
+888:         if (versionName != null) {
+889:             int[] version = Utils.getVersionComponents(versionName);
+--- core/model/session/TorrentSessionImpl.java:862-895 ---
+862:     public void start()
+863:     {
+864:         if (isRunning())
+865:             return;
+866: 
+867:         SessionParams params = loadSettings();
+868:         SettingsPack settingsPack = params.getSettings();
+869:         settings_pack sp = settingsPack.swig();
+870: 
+871:         if (settings.posixDiskIo) {
+872:             // Internally set the session to use a simple posix disk I/O back-end, used
+873:             // for systems that don't have a 64-bit virtual address space or don't support
+874:             // memory mapped files. This option only to use in particular situations, like
+875:             // Android devices with faulty drivers.
+876:             params.setPosixDiskIO();
+877:         } else {
+878:             params.setDefaultDiskIO();
+879:         }
+880: 
+881:         sp.set_str(settings_pack.string_types.dht_bootstrap_nodes.swigValue(), dhtBootstrapNodes());
+882:         sp.set_bool(settings_pack.bool_types.enable_ip_notifier.swigValue(), false);
+883:         sp.set_int(settings_pack.int_types.alert_queue_size.swigValue(), 5000);
+884:         sp.set_bool(settings_pack.bool_types.announce_to_all_trackers.swigValue(), true);
+885:         sp.set_bool(settings_pack.bool_types.announce_to_all_tiers.swigValue(), true);
+886: 
+887:         String versionName = system.getAppVersionName();
+888:         if (versionName != null) {
+889:             int[] version = Utils.getVersionComponents(versionName);
+890: 
+891:             String fingerprint = libtorrent.generate_fingerprint(PEER_FINGERPRINT,
+892:                     version[0], version[1], version[2], 0);
+893:             sp.set_str(settings_pack.string_types.peer_fingerprint.swigValue(), fingerprint);
+894: 
+895:             String userAgent = String.format(USER_AGENT, Utils.getAppVersionNumber(versionName));
+--- core/model/session/TorrentSessionImpl.java:889-889 ---
+889:             int[] version = Utils.getVersionComponents(versionName);
+--- core/model/session/TorrentSessionImpl.java:895-895 ---
+895:             String userAgent = String.format(USER_AGENT, Utils.getAppVersionNumber(versionName));
+
+===== core/utils/DateUtils.java =====
+--- core/utils/DateUtils.java:135-138 ---
+135:     public static long startOfYesterday(long timeMillis)
+136:     {
+137:         return startOfToday(timeMillis) - secondsInDay * 1000;
+138:     }
+
+===== core/utils/TorrentContentFileTreeUtils.java =====
+--- core/utils/TorrentContentFileTreeUtils.java:46-46 ---
+46:     public static Pair<TorrentContentFileTree, TorrentContentFileTree[]> buildFileTree(List<BencodeFileItem> files)
+--- core/utils/TorrentContentFileTreeUtils.java:101-101 ---
+101:                     TorrentContentFileTree leaf = makeObject(file.getIndex(), nodes[i],
+--- core/utils/TorrentContentFileTreeUtils.java:119-126 ---
+119:     private static TorrentContentFileTree makeObject(int index, String name,
+120:                                               long size, TorrentContentFileTree parent,
+121:                                               boolean isFile)
+122:     {
+123:         return (isFile ?
+124:                 new TorrentContentFileTree(index, name, size, FileNode.Type.FILE, parent) :
+125:                 new TorrentContentFileTree(name, 0L, FileNode.Type.DIR, parent));
+126:     }
+
+===== core/utils/Utils.java =====
+--- core/utils/Utils.java:105-128 ---
+105: public class Utils {
+106:     private static final String TAG = Utils.class.getSimpleName();
+107: 
+108:     private static final String TAG_MANAGE_ALL_FILES_WARNING_DIALOG = "manage_all_files_warning_dialog";
+109: 
+110:     public static final String INFINITY_SYMBOL = "\u221e";
+111:     public static final String MAGNET_PREFIX = "magnet";
+112:     public static final String HTTP_PREFIX = "http";
+113:     public static final String HTTPS_PREFIX = "https";
+114:     public static final String UDP_PREFIX = "udp";
+115:     public static final String INFOHASH_PREFIX = "magnet:?xt=urn:btih:";
+116:     public static final String FILE_PREFIX = "file";
+117:     public static final String CONTENT_PREFIX = "content";
+118:     public static final String TRACKER_URL_PATTERN =
+119:             "^(https?|udp)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]";
+120:     public static final String HASH_PATTERN = "\\b[0-9a-fA-F]{5,40}\\b";
+121:     public static final String MIME_TORRENT = "application/x-bittorrent";
+122:     public static final String MIME_TEXT_PLAIN = "text/plain";
+123:     public static final String NEWLINE_PATTERN = "\\r\\n|\\r|\\n";
+124: 
+125:     /*
+126:      * Colorize the progress bar in the accent color (for pre-Lollipop).
+127:      */
+128: 
+--- core/utils/Utils.java:129-136 ---
+129:     public static void colorizeProgressBar(@NonNull Context context,
+130:                                            @NonNull ProgressBar progress) {
+131:         progress.getProgressDrawable().setColorFilter(new PorterDuffColorFilter(
+132:                 getAttributeColor(context, R.attr.colorSecondary),
+133:                 PorterDuff.Mode.SRC_IN)
+134:         );
+135:     }
+136: 
+--- core/utils/Utils.java:142-151 ---
+142:     public static ArrayList<BencodeFileItem> getFileList(@NonNull FileStorage storage) {
+143:         ArrayList<BencodeFileItem> files = new ArrayList<>();
+144:         for (int i = 0; i < storage.numFiles(); i++) {
+145:             BencodeFileItem file = new BencodeFileItem(storage.filePath(i), i, storage.fileSize(i));
+146:             files.add(file);
+147:         }
+148: 
+149:         return files;
+150:     }
+151: 
+--- core/utils/Utils.java:157-162 ---
+157:     public static boolean checkConnectivity(@NonNull Context context) {
+158:         SystemFacade systemFacade = SystemFacadeHelper.getSystemFacade(context);
+159:         NetworkInfo netInfo = systemFacade.getActiveNetworkInfo();
+160: 
+161:         return netInfo != null && netInfo.isConnected() && isNetworkTypeAllowed(context);
+162:     }
+--- core/utils/Utils.java:251-254 ---
+251:     public static boolean isLargeScreenDevice(@NonNull Context context) {
+252:         return context.getResources().getBoolean(R.bool.isLargeScreenDevice);
+253:     }
+254: 
+--- core/utils/Utils.java:271-279 ---
+271:     public static boolean isHash(@NonNull String hash) {
+272:         if (TextUtils.isEmpty(hash))
+273:             return false;
+274: 
+275:         Pattern pattern = Pattern.compile(HASH_PATTERN);
+276:         Matcher matcher = pattern.matcher(hash.trim());
+277: 
+278:         return matcher.matches();
+279:     }
+--- core/utils/Utils.java:285-287 ---
+285:     public static String getLineSeparator() {
+286:         return System.lineSeparator();
+287:     }
+--- core/utils/Utils.java:290-301 ---
+290:     public static ClipData getClipData(@NonNull Context context) {
+291:         ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Activity.CLIPBOARD_SERVICE);
+292:         if (!clipboard.hasPrimaryClip())
+293:             return null;
+294: 
+295:         ClipData clip = clipboard.getPrimaryClip();
+296:         if (clip == null || clip.getItemCount() == 0)
+297:             return null;
+298: 
+299:         return clip;
+300:     }
+301: 
+--- core/utils/Utils.java:302-317 ---
+302:     public static List<CharSequence> getClipboardText(@NonNull Context context) {
+303:         ArrayList<CharSequence> clipboardText = new ArrayList<>();
+304: 
+305:         ClipData clip = Utils.getClipData(context);
+306:         if (clip == null)
+307:             return clipboardText;
+308: 
+309:         for (int i = 0; i < clip.getItemCount(); i++) {
+310:             CharSequence item = clip.getItemAt(i).getText();
+311:             if (item == null)
+312:                 continue;
+313:             clipboardText.add(item);
+314:         }
+315: 
+316:         return clipboardText;
+317:     }
+--- core/utils/Utils.java:327-331 ---
+327:     public static int dpToPx(@NonNull Context context, float dp) {
+328:         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+329:                 dp,
+330:                 context.getResources().getDisplayMetrics());
+331:     }
+--- core/utils/Utils.java:333-336 ---
+333:     public static int getDefaultBatteryLowLevel() {
+334:         return Resources.getSystem().getInteger(
+335:                 Resources.getSystem().getIdentifier("config_lowBatteryWarningLevel", "integer", "android"));
+336:     }
+--- core/utils/Utils.java:338-350 ---
+338:     public static float getBatteryLevel(@NonNull Context context) {
+339:         Intent batteryIntent = context.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+340:         if (batteryIntent == null)
+341:             return 50.0f;
+342:         int level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+343:         int scale = batteryIntent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+344: 
+345:         /* Error checking that probably isn't needed but I added just in case */
+346:         if (level == -1 || scale == -1)
+347:             return 50.0f;
+348: 
+349:         return ((float) level / (float) scale) * 100.0f;
+350:     }
+--- core/utils/Utils.java:352-360 ---
+352:     public static boolean isBatteryCharging(@NonNull Context context) {
+353:         Intent batteryIntent = context.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+354:         if (batteryIntent == null)
+355:             return false;
+356:         int status = batteryIntent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
+357: 
+358:         return status == BatteryManager.BATTERY_STATUS_CHARGING ||
+359:                 status == BatteryManager.BATTERY_STATUS_FULL;
+360:     }
+--- core/utils/Utils.java:362-364 ---
+362:     public static boolean isBatteryLow(@NonNull Context context) {
+363:         return Utils.getBatteryLevel(context) <= Utils.getDefaultBatteryLowLevel();
+364:     }
+--- core/utils/Utils.java:362-368 ---
+362:     public static boolean isBatteryLow(@NonNull Context context) {
+363:         return Utils.getBatteryLevel(context) <= Utils.getDefaultBatteryLowLevel();
+364:     }
+365: 
+366:     public static boolean isBatteryBelowThreshold(@NonNull Context context, int threshold) {
+367:         return Utils.getBatteryLevel(context) <= threshold;
+368:     }
+--- core/utils/Utils.java:366-368 ---
+366:     public static boolean isBatteryBelowThreshold(@NonNull Context context, int threshold) {
+367:         return Utils.getBatteryLevel(context) <= threshold;
+368:     }
+--- core/utils/Utils.java:370-372 ---
+370:     public static int getThemePreference(@NonNull Context context) {
+371:         return RepositoryHelper.getSettingsRepository(context).theme();
+372:     }
+--- core/utils/Utils.java:374-385 ---
+374:     public static int getAppTheme(@NonNull Context context) {
+375:         int theme = getThemePreference(context);
+376: 
+377:         if (theme == Integer.parseInt(context.getString(R.string.pref_theme_light_value)))
+378:             return R.style.AppTheme;
+379:         else if (theme == Integer.parseInt(context.getString(R.string.pref_theme_dark_value)))
+380:             return R.style.AppTheme_Dark;
+381:         else if (theme == Integer.parseInt(context.getString(R.string.pref_theme_black_value)))
+382:             return R.style.AppTheme_Black;
+383: 
+384:         return R.style.AppTheme;
+385:     }
+--- core/utils/Utils.java:387-398 ---
+387:     public static int getTranslucentAppTheme(@NonNull Context appContext) {
+388:         int theme = getThemePreference(appContext);
+389: 
+390:         if (theme == Integer.parseInt(appContext.getString(R.string.pref_theme_light_value)))
+391:             return R.style.AppTheme_Translucent;
+392:         else if (theme == Integer.parseInt(appContext.getString(R.string.pref_theme_dark_value)))
+393:             return R.style.AppTheme_Translucent_Dark;
+394:         else if (theme == Integer.parseInt(appContext.getString(R.string.pref_theme_black_value)))
+395:             return R.style.AppTheme_Translucent_Black;
+396: 
+397:         return R.style.AppTheme_Translucent;
+398:     }
+--- core/utils/Utils.java:400-411 ---
+400:     public static int getSettingsTheme(@NonNull Context context) {
+401:         int theme = getThemePreference(context);
+402: 
+403:         if (theme == Integer.parseInt(context.getString(R.string.pref_theme_light_value)))
+404:             return R.style.AppTheme_Settings;
+405:         else if (theme == Integer.parseInt(context.getString(R.string.pref_theme_dark_value)))
+406:             return R.style.AppTheme_Settings_Dark;
+407:         else if (theme == Integer.parseInt(context.getString(R.string.pref_theme_black_value)))
+408:             return R.style.AppTheme_Settings_Black;
+409: 
+410:         return R.style.AppTheme_Settings;
+411:     }
+--- core/utils/Utils.java:436-447 ---
+436:     public static void enableBootReceiver(@NonNull Context context, boolean enable) {
+437:         SettingsRepository pref = RepositoryHelper.getSettingsRepository(context);
+438:         boolean schedulingStart = pref.enableSchedulingStart();
+439:         boolean schedulingStop = pref.enableSchedulingShutdown();
+440:         boolean autostart = pref.autostart();
+441:         int flag = (!(enable || schedulingStart || schedulingStop || autostart) ?
+442:                 PackageManager.COMPONENT_ENABLED_STATE_DISABLED :
+443:                 PackageManager.COMPONENT_ENABLED_STATE_ENABLED);
+444:         ComponentName bootReceiver = new ComponentName(context, BootReceiver.class);
+445:         context.getPackageManager()
+446:                 .setComponentEnabledSetting(bootReceiver, flag, PackageManager.DONT_KILL_APP);
+447:     }
+--- core/utils/Utils.java:449-460 ---
+449:     public static void enableBootReceiverIfNeeded(@NonNull Context context) {
+450:         SettingsRepository pref = RepositoryHelper.getSettingsRepository(context);
+451:         boolean schedulingStart = pref.enableSchedulingStart();
+452:         boolean schedulingStop = pref.enableSchedulingShutdown();
+453:         boolean autostart = pref.autostart();
+454:         int flag = (!(schedulingStart || schedulingStop || autostart) ?
+455:                 PackageManager.COMPONENT_ENABLED_STATE_DISABLED :
+456:                 PackageManager.COMPONENT_ENABLED_STATE_ENABLED);
+457:         ComponentName bootReceiver = new ComponentName(context, BootReceiver.class);
+458:         context.getPackageManager()
+459:                 .setComponentEnabledSetting(bootReceiver, flag, PackageManager.DONT_KILL_APP);
+460:     }
+--- core/utils/Utils.java:462-475 ---
+462:     public static byte[] fetchHttpUrl(@NonNull Context context,
+463:                                       @NonNull String url) throws FetchLinkException {
+464:         byte[][] response = new byte[1][];
+465: 
+466:         if (!Utils.checkConnectivity(context))
+467:             throw new FetchLinkException("No network connection");
+468: 
+469:         final ArrayList<Throwable> errorArray = new ArrayList<>(1);
+470:         HttpConnection connection;
+471:         try {
+472:             connection = new HttpConnection(url);
+473:         } catch (Exception e) {
+474:             throw new FetchLinkException(e);
+475:         }
+--- core/utils/Utils.java:532-541 ---
+532:     public static String getAppVersionNumber(@NonNull String versionName) {
+533:         int index = versionName.indexOf("-");
+534:         if (index >= 0)
+535:             versionName = versionName.substring(0, index);
+536: 
+537:         return versionName;
+538:     }
+539: 
+540:     /*
+541:      * Return version components in these format: [major, minor, revision]
+--- core/utils/Utils.java:544-565 ---
+544:     public static int[] getVersionComponents(@NonNull String versionName) {
+545:         int[] version = new int[3];
+546: 
+547:         /* Discard additional information */
+548:         versionName = getAppVersionNumber(versionName);
+549: 
+550:         String[] components = versionName.split("\\.");
+551:         if (components.length < 2)
+552:             return version;
+553: 
+554:         try {
+555:             version[0] = Integer.parseInt(components[0]);
+556:             version[1] = Integer.parseInt(components[1]);
+557:             if (components.length >= 3)
+558:                 version[2] = Integer.parseInt(components[2]);
+559: 
+560:         } catch (NumberFormatException e) {
+561:             /* Ignore */
+562:         }
+563: 
+564:         return version;
+565:     }
+--- core/utils/Utils.java:585-612 ---
+585:     public static SSLContext getSSLContext() throws GeneralSecurityException {
+586:         TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+587:         tmf.init((KeyStore) null);
+588: 
+589:         TrustManager[] trustManagers = tmf.getTrustManagers();
+590:         final X509TrustManager origTrustManager = (X509TrustManager) trustManagers[0];
+591: 
+592:         TrustManager[] wrappedTrustManagers = new TrustManager[]{
+593:                 new X509TrustManager() {
+594:                     public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+595:                         return origTrustManager.getAcceptedIssuers();
+596:                     }
+597: 
+598:                     public void checkClientTrusted(X509Certificate[] certs, String authType) throws CertificateException {
+599:                         origTrustManager.checkClientTrusted(certs, authType);
+600:                     }
+601: 
+602:                     public void checkServerTrusted(X509Certificate[] certs, String authType) throws CertificateException {
+603:                         origTrustManager.checkServerTrusted(certs, authType);
+604:                     }
+605:                 }
+606:         };
+607:         SSLContext sslContext = SSLContext.getInstance("TLS");
+608:         sslContext.init(null, wrappedTrustManagers, null);
+609: 
+610:         return sslContext;
+611:     }
+612: 
+--- core/utils/Utils.java:618-635 ---
+618:     public static int getAttributeColor(@NonNull Context context, int attributeId) {
+619:         TypedValue typedValue = new TypedValue();
+620:         context.getTheme().resolveAttribute(attributeId, typedValue, true);
+621:         int colorRes = typedValue.resourceId;
+622:         int color = -1;
+623:         try {
+624:             color = context.getResources().getColor(colorRes, null);
+625: 
+626:         } catch (Resources.NotFoundException e) {
+627:             return color;
+628:         }
+629: 
+630:         return color;
+631:     }
+632: 
+633:     /*
+634:      * Return path to the current torrent download directory.
+635:      * If the directory doesn't exist, the function creates it automatically
+--- core/utils/Utils.java:638-647 ---
+638:     public static Uri getTorrentDownloadPath(@NonNull Context appContext) {
+639:         SettingsRepository pref = RepositoryHelper.getSettingsRepository(appContext);
+640:         String path = pref.saveTorrentsIn();
+641: 
+642:         FileSystemFacade fs = SystemFacadeHelper.getFileSystemFacade(appContext);
+643: 
+644:         path = (TextUtils.isEmpty(path) ? fs.getDefaultDownloadPath() : path);
+645: 
+646:         return (path == null ? null : Uri.parse(fs.normalizeFileSystemPath(path)));
+647:     }
+--- core/utils/Utils.java:649-655 ---
+649:     public static boolean isFileSystemPath(@NonNull Uri path) {
+650:         String scheme = path.getScheme();
+651:         if (scheme == null)
+652:             throw new IllegalArgumentException("Scheme of " + path.getPath() + " is null");
+653: 
+654:         return scheme.equals(ContentResolver.SCHEME_FILE);
+655:     }
+--- core/utils/Utils.java:661-663 ---
+661:     public static int getRandomColor() {
+662:         return ((int) (Math.random() * 16777215)) | (0xFF << 24);
+663:     }
+--- core/utils/Utils.java:665-675 ---
+665:     @RequiresApi(api = Build.VERSION_CODES.S)
+666:     public static Intent buildExactAlarmPermissionRequest(@NonNull Context context) {
+667:         var uri = Uri.fromParts("package", context.getPackageName(), null);
+668:         return new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).setData(uri);
+669:     }
+670: 
+671:     public static void requestExactAlarmPermission(@NonNull Context context) {
+672:         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+673:             context.startActivity(buildExactAlarmPermissionRequest(context));
+674:         }
+675:     }
+--- core/utils/Utils.java:677-697 ---
+677:     public static boolean hasManageExternalStoragePermission(@NonNull Context appContext) {
+678:         try {
+679:             var info = appContext.getPackageManager().getPackageInfo(
+680:                     appContext.getPackageName(),
+681:                     PackageManager.GET_PERMISSIONS
+682:             );
+683:             if (info.requestedPermissions == null) {
+684:                 return false;
+685:             }
+686:             for (var p : info.requestedPermissions) {
+687:                 if ("android.permission.MANAGE_EXTERNAL_STORAGE".equals(p)) {
+688:                     return true;
+689:                 }
+690:             }
+691:         } catch (PackageManager.NameNotFoundException e) {
+692:             Log.e(TAG, "Unable to get permissions", e);
+693:             return false;
+694:         }
+695: 
+696:         return false;
+697:     }
+--- core/utils/Utils.java:720-802 ---
+720:     public static List<DrawerGroup> getNavigationDrawerItems(@NonNull Context context,
+721:                                                        @NonNull SharedPreferences localPref) {
+722:         Resources res = context.getResources();
+723: 
+724:         ArrayList<DrawerGroup> groups = new ArrayList<>();
+725: 
+726:         DrawerGroup status = new DrawerGroup(res.getInteger(R.integer.drawer_status_id),
+727:                 res.getString(R.string.drawer_status),
+728:                 localPref.getBoolean(res.getString(R.string.drawer_status_is_expanded), true));
+729:         status.selectItem(localPref.getLong(res.getString(R.string.drawer_status_selected_item),
+730:                 DrawerGroup.DEFAULT_SELECTED_ID));
+731: 
+732:         DrawerGroup sorting = new DrawerGroup(res.getInteger(R.integer.drawer_sorting_id),
+733:                 res.getString(R.string.drawer_sorting),
+734:                 localPref.getBoolean(res.getString(R.string.drawer_sorting_is_expanded), false));
+735:         final long DEFAULT_SORTING_ITEM = 1;
+736:         sorting.selectItem(localPref.getLong(res.getString(R.string.drawer_sorting_selected_item),
+737:                 DEFAULT_SORTING_ITEM));
+738: 
+739:         DrawerGroup dateAdded = new DrawerGroup(res.getInteger(R.integer.drawer_date_added_id),
+740:                 res.getString(R.string.drawer_date_added),
+741:                 localPref.getBoolean(res.getString(R.string.drawer_time_is_expanded), false));
+742:         dateAdded.selectItem(localPref.getLong(res.getString(R.string.drawer_time_selected_item),
+743:                 DrawerGroup.DEFAULT_SELECTED_ID));
+744: 
+745:         status.items.add(new DrawerGroupItem(res.getInteger(R.integer.drawer_status_all_id),
+746:                 R.drawable.ic_all_inclusive_grey600_24dp, res.getString(R.string.all)));
+747:         status.items.add(new DrawerGroupItem(res.getInteger(R.integer.drawer_status_downloading_id),
+748:                 R.drawable.ic_download_grey600_24dp, res.getString(R.string.drawer_status_downloading)));
+749:         status.items.add(new DrawerGroupItem(res.getInteger(R.integer.drawer_status_downloaded_id),
+750:                 R.drawable.ic_file_grey600_24dp, res.getString(R.string.drawer_status_downloaded)));
+751:         status.items.add(new DrawerGroupItem(res.getInteger(R.integer.drawer_status_downloading_metadata_id),
+752:                 R.drawable.ic_magnet_grey600_24dp, res.getString(R.string.drawer_status_downloading_metadata)));
+753:         status.items.add(new DrawerGroupItem(res.getInteger(R.integer.drawer_status_error),
+754:                 R.drawable.ic_error_grey600_24dp, res.getString(R.string.drawer_status_error)));
+755: 
+756: 
+757:         sorting.items.add(new DrawerGroupItem(res.getInteger(R.integer.drawer_sorting_date_added_asc_id),
+758:                 R.drawable.ic_sort_ascending_grey600_24dp, res.getString(R.string.drawer_sorting_date_added)));
+759:         sorting.items.add(new DrawerGroupItem(res.getInteger(R.integer.drawer_sorting_date_added_desc_id),
+760:                 R.drawable.ic_sort_descending_grey600_24dp, res.getString(R.string.drawer_sorting_date_added)));
+761:         sorting.items.add(new DrawerGroupItem(res.getInteger(R.integer.drawer_sorting_name_asc_id),
+762:                 R.drawable.ic_sort_ascending_grey600_24dp, res.getString(R.string.drawer_sorting_name)));
+763:         sorting.items.add(new DrawerGroupItem(res.getInteger(R.integer.drawer_sorting_name_desc_id),
+764:                 R.drawable.ic_sort_descending_grey600_24dp, res.getString(R.string.drawer_sorting_name)));
+765:         sorting.items.add(new DrawerGroupItem(res.getInteger(R.integer.drawer_sorting_size_asc_id),
+766:                 R.drawable.ic_sort_ascending_grey600_24dp, res.getString(R.string.drawer_sorting_size)));
+767:         sorting.items.add(new DrawerGroupItem(res.getInteger(R.integer.drawer_sorting_size_desc_id),
+768:                 R.drawable.ic_sort_descending_grey600_24dp, res.getString(R.string.drawer_sorting_size)));
+769:         sorting.items.add(new DrawerGroupItem(res.getInteger(R.integer.drawer_sorting_progress_asc_id),
+770:                 R.drawable.ic_sort_ascending_grey600_24dp, res.getString(R.string.drawer_sorting_progress)));
+771:         sorting.items.add(new DrawerGroupItem(res.getInteger(R.integer.drawer_sorting_progress_desc_id),
+772:                 R.drawable.ic_sort_descending_grey600_24dp, res.getString(R.string.drawer_sorting_progress)));
+773:         sorting.items.add(new DrawerGroupItem(res.getInteger(R.integer.drawer_sorting_ETA_asc_id),
+774:                 R.drawable.ic_sort_ascending_grey600_24dp, res.getString(R.string.drawer_sorting_ETA)));
+775:         sorting.items.add(new DrawerGroupItem(res.getInteger(R.integer.drawer_sorting_ETA_desc_id),
+776:                 R.drawable.ic_sort_descending_grey600_24dp, res.getString(R.string.drawer_sorting_ETA)));
+777:         sorting.items.add(new DrawerGroupItem(res.getInteger(R.integer.drawer_sorting_peers_asc_id),
+778:                 R.drawable.ic_sort_ascending_grey600_24dp, res.getString(R.string.drawer_sorting_peers)));
+779:         sorting.items.add(new DrawerGroupItem(res.getInteger(R.integer.drawer_sorting_peers_desc_id),
+780:                 R.drawable.ic_sort_descending_grey600_24dp, res.getString(R.string.drawer_sorting_peers)));
+781:         sorting.items.add(new DrawerGroupItem(res.getInteger(R.integer.drawer_sorting_no_sorting_id),
+782:                 R.drawable.ic_sort_off_grey600_24dp, res.getString(R.string.drawer_sorting_no_sorting)));
+783: 
+784:         dateAdded.items.add(new DrawerGroupItem(res.getInteger(R.integer.drawer_date_added_all_id),
+785:                 R.drawable.ic_all_inclusive_grey600_24dp, res.getString(R.string.all)));
+786:         dateAdded.items.add(new DrawerGroupItem(res.getInteger(R.integer.drawer_date_added_today_id),
+787:                 R.drawable.ic_calendar_today_grey600_24dp, res.getString(R.string.drawer_date_added_today)));
+788:         dateAdded.items.add(new DrawerGroupItem(res.getInteger(R.integer.drawer_date_added_yesterday_id),
+789:                 R.drawable.ic_calendar_yesterday_grey600_24dp, res.getString(R.string.drawer_date_added_yesterday)));
+790:         dateAdded.items.add(new DrawerGroupItem(res.getInteger(R.integer.drawer_date_added_week_id),
+791:                 R.drawable.ic_calendar_week_grey600_24dp, res.getString(R.string.drawer_date_added_week)));
+792:         dateAdded.items.add(new DrawerGroupItem(res.getInteger(R.integer.drawer_date_added_month_id),
+793:                 R.drawable.ic_calendar_month_grey600_24dp, res.getString(R.string.drawer_date_added_month)));
+794:         dateAdded.items.add(new DrawerGroupItem(res.getInteger(R.integer.drawer_date_added_year_id),
+795:                 R.drawable.ic_calendar_year_grey600_24dp, res.getString(R.string.drawer_date_added_year)));
+796: 
+797:         groups.add(status);
+798:         groups.add(sorting);
+799:         groups.add(dateAdded);
+800: 
+801:         return groups;
+802:     }
+--- core/utils/Utils.java:804-835 ---
+804:     public static TorrentSortingComparator getDrawerGroupItemSorting(@NonNull Context context,
+805:                                                                      long itemId) {
+806:         Resources res = context.getResources();
+807:         if (itemId == res.getInteger(R.integer.drawer_sorting_no_sorting_id))
+808:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.none, TorrentSorting.Direction.ASC));
+809:         else if (itemId == res.getInteger(R.integer.drawer_sorting_name_asc_id))
+810:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.name, TorrentSorting.Direction.ASC));
+811:         else if (itemId == res.getInteger(R.integer.drawer_sorting_name_desc_id))
+812:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.name, TorrentSorting.Direction.DESC));
+813:         else if (itemId == res.getInteger(R.integer.drawer_sorting_size_asc_id))
+814:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.size, TorrentSorting.Direction.ASC));
+815:         else if (itemId == res.getInteger(R.integer.drawer_sorting_size_desc_id))
+816:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.size, TorrentSorting.Direction.DESC));
+817:         else if (itemId == res.getInteger(R.integer.drawer_sorting_date_added_asc_id))
+818:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.dateAdded, TorrentSorting.Direction.ASC));
+819:         else if (itemId == res.getInteger(R.integer.drawer_sorting_date_added_desc_id))
+820:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.dateAdded, TorrentSorting.Direction.DESC));
+821:         else if (itemId == res.getInteger(R.integer.drawer_sorting_progress_asc_id))
+822:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.progress, TorrentSorting.Direction.ASC));
+823:         else if (itemId == res.getInteger(R.integer.drawer_sorting_progress_desc_id))
+824:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.progress, TorrentSorting.Direction.DESC));
+825:         else if (itemId == res.getInteger(R.integer.drawer_sorting_ETA_asc_id))
+826:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.ETA, TorrentSorting.Direction.ASC));
+827:         else if (itemId == res.getInteger(R.integer.drawer_sorting_ETA_desc_id))
+828:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.ETA, TorrentSorting.Direction.DESC));
+829:         else if (itemId == res.getInteger(R.integer.drawer_sorting_peers_asc_id))
+830:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.peers, TorrentSorting.Direction.ASC));
+831:         else if (itemId == res.getInteger(R.integer.drawer_sorting_peers_desc_id))
+832:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.peers, TorrentSorting.Direction.DESC));
+833:         else
+834:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.none, TorrentSorting.Direction.ASC));
+835:     }
+--- core/utils/Utils.java:837-852 ---
+837:     public static TorrentFilter getDrawerGroupStatusFilter(@NonNull Context context,
+838:                                                            long itemId) {
+839:         Resources res = context.getResources();
+840:         if (itemId == res.getInteger(R.integer.drawer_status_all_id))
+841:             return TorrentFilterCollection.all();
+842:         else if (itemId == res.getInteger(R.integer.drawer_status_downloading_id))
+843:             return TorrentFilterCollection.statusDownloading();
+844:         else if (itemId == res.getInteger(R.integer.drawer_status_downloaded_id))
+845:             return TorrentFilterCollection.statusDownloaded();
+846:         else if (itemId == res.getInteger(R.integer.drawer_status_downloading_metadata_id))
+847:             return TorrentFilterCollection.statusDownloadingMetadata();
+848:         else if (itemId == res.getInteger(R.integer.drawer_status_error))
+849:             return TorrentFilterCollection.statusError();
+850:         else
+851:             return TorrentFilterCollection.all();
+852:     }
+--- core/utils/Utils.java:854-871 ---
+854:     public static TorrentFilter getDrawerGroupDateAddedFilter(@NonNull Context context,
+855:                                                               long itemId) {
+856:         Resources res = context.getResources();
+857:         if (itemId == res.getInteger(R.integer.drawer_date_added_all_id))
+858:             return TorrentFilterCollection.all();
+859:         else if (itemId == res.getInteger(R.integer.drawer_date_added_today_id))
+860:             return TorrentFilterCollection.dateAddedToday();
+861:         else if (itemId == res.getInteger(R.integer.drawer_date_added_yesterday_id))
+862:             return TorrentFilterCollection.dateAddedYesterday();
+863:         else if (itemId == res.getInteger(R.integer.drawer_date_added_week_id))
+864:             return TorrentFilterCollection.dateAddedWeek();
+865:         else if (itemId == res.getInteger(R.integer.drawer_date_added_month_id))
+866:             return TorrentFilterCollection.dateAddedMonth();
+867:         else if (itemId == res.getInteger(R.integer.drawer_date_added_year_id))
+868:             return TorrentFilterCollection.dateAddedYear();
+869:         else
+870:             return TorrentFilterCollection.all();
+871:     }
+--- core/utils/Utils.java:873-891 ---
+873:     public static TorrentFilter getForegroundNotifyFilter(
+874:             @NonNull Context context,
+875:             @NonNull SettingsRepository pref
+876:     ) {
+877:         String val = pref.foregroundNotifyStatusFilter();
+878:         if (val.equals(context.getString(R.string.pref_foreground_notify_status_all_value))) {
+879:             return TorrentFilterCollection.all();
+880:         } else if (val.equals(context.getString(R.string.pref_foreground_notify_status_downloading_value))) {
+881:             return TorrentFilterCollection.statusDownloading();
+882:         } else if (val.equals(context.getString(R.string.pref_foreground_notify_status_downloaded_value))) {
+883:             return TorrentFilterCollection.statusDownloaded();
+884:         } else if (val.equals(context.getString(R.string.pref_foreground_notify_status_downloading_metadata_value))) {
+885:             return TorrentFilterCollection.statusDownloadingMetadata();
+886:         } else if (val.equals(context.getString(R.string.pref_foreground_notify_status_error_value))) {
+887:             return TorrentFilterCollection.statusError();
+888:         }
+889:         throw new IllegalStateException("Unknown filter type: " + val);
+890:     }
+891: 
+--- core/utils/Utils.java:892-926 ---
+892:     public static TorrentSortingComparator getForegroundNotifySorting(
+893:             @NonNull Context context,
+894:             @NonNull SettingsRepository pref
+895:     ) {
+896:         String val = pref.foregroundNotifySorting();
+897:         if (val.equals(context.getString(R.string.pref_foreground_notify_sorting_name_asc_value))) {
+898:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.name, TorrentSorting.Direction.ASC));
+899:         } else if (val.equals(context.getString(R.string.pref_foreground_notify_sorting_name_desc_value))) {
+900:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.name, TorrentSorting.Direction.DESC));
+901:         } else if (val.equals(context.getString(R.string.pref_foreground_notify_sorting_date_added_asc_value))) {
+902:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.dateAdded, TorrentSorting.Direction.ASC));
+903:         } else if (val.equals(context.getString(R.string.pref_foreground_notify_sorting_date_added_desc_value))) {
+904:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.dateAdded, TorrentSorting.Direction.DESC));
+905:         } else if (val.equals(context.getString(R.string.pref_foreground_notify_sorting_size_asc_value))) {
+906:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.size, TorrentSorting.Direction.ASC));
+907:         } else if (val.equals(context.getString(R.string.pref_foreground_notify_sorting_size_desc_value))) {
+908:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.size, TorrentSorting.Direction.DESC));
+909:         } else if (val.equals(context.getString(R.string.pref_foreground_notify_sorting_progress_asc_value))) {
+910:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.progress, TorrentSorting.Direction.ASC));
+911:         } else if (val.equals(context.getString(R.string.pref_foreground_notify_sorting_progress_desc_value))) {
+912:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.progress, TorrentSorting.Direction.DESC));
+913:         } else if (val.equals(context.getString(R.string.pref_foreground_notify_sorting_eta_asc_value))) {
+914:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.ETA, TorrentSorting.Direction.ASC));
+915:         } else if (val.equals(context.getString(R.string.pref_foreground_notify_sorting_eta_desc_value))) {
+916:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.ETA, TorrentSorting.Direction.DESC));
+917:         } else if (val.equals(context.getString(R.string.pref_foreground_notify_sorting_peers_asc_value))) {
+918:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.peers, TorrentSorting.Direction.ASC));
+919:         } else if (val.equals(context.getString(R.string.pref_foreground_notify_sorting_peers_desc_value))) {
+920:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.peers, TorrentSorting.Direction.DESC));
+921:         } else if (val.equals(context.getString(R.string.pref_foreground_notify_sorting_no_sorting_value))) {
+922:             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.none, TorrentSorting.Direction.ASC));
+923:         }
+924:         throw new IllegalStateException("Unknown sorting type: " + val);
+925:     }
+926: }
+
+===== service/FeedDownloaderWorker.java =====
+--- service/FeedDownloaderWorker.java:109-114 ---
+109:     private AddTorrentParams fetchTorrent(FeedItem item)
+110:     {
+111:         if (item == null)
+112:             return null;
+113: 
+114:         Uri downloadPath = Utils.getTorrentDownloadPath(getApplicationContext());
+--- service/FeedDownloaderWorker.java:109-140 ---
+109:     private AddTorrentParams fetchTorrent(FeedItem item)
+110:     {
+111:         if (item == null)
+112:             return null;
+113: 
+114:         Uri downloadPath = Utils.getTorrentDownloadPath(getApplicationContext());
+115:         if (downloadPath == null)
+116:             return null;
+117:         String name;
+118:         Priority[] priorities = null;
+119:         boolean isMagnet = false;
+120:         String source, sha1hash;
+121: 
+122:         if (item.downloadUrl.startsWith(Utils.MAGNET_PREFIX)) {
+123:             MagnetInfo info;
+124:             try {
+125:                 info = engine.parseMagnet(item.downloadUrl);
+126: 
+127:             } catch (IllegalArgumentException e) {
+128:                 Log.e(TAG, e.getMessage());
+129:                 return null;
+130:             }
+131:             sha1hash = info.getSha1hash();
+132:             name = info.getName();
+133:             isMagnet = true;
+134:             source = item.downloadUrl;
+135: 
+136:         } else {
+137:             byte[] response;
+138:             TorrentMetaInfo info;
+139:             try {
+140:                 response = Utils.fetchHttpUrl(getApplicationContext(), item.downloadUrl);
+
+===== service/TorrentService.java =====
+--- service/TorrentService.java:116-128 ---
+116:     private void init()
+117:     {
+118:         Log.i(TAG, "Start " + TAG);
+119: 
+120:         makeForegroundNotify();
+121:         subscribeCombinedPauseButtonState();
+122:         setFilterAndSorting();
+123:         subscribeForceSortAndFilter();
+124: 
+125:         disposables.add(pref.observeSettingsChanged()
+126:                 .subscribe(this::handleSettingsChanged));
+127: 
+128:         Utils.enableBootReceiverIfNeeded(getApplicationContext());
+--- service/TorrentService.java:136-138 ---
+136: 
+137:     private void setFilterAndSorting() {
+138:         itemsFilter = Utils.getForegroundNotifyFilter(this, pref);
+--- service/TorrentService.java:136-139 ---
+136: 
+137:     private void setFilterAndSorting() {
+138:         itemsFilter = Utils.getForegroundNotifyFilter(this, pref);
+139:         itemsSorting = Utils.getForegroundNotifySorting(this, pref);
+
+===== ui/ClipboardDialog.java =====
+--- ui/ClipboardDialog.java:94-105 ---
+94:     public Dialog onCreateDialog(Bundle savedInstanceState)
+95:     {
+96:         if (activity == null)
+97:             activity = (AppCompatActivity)getActivity();
+98: 
+99:         viewModel = new ViewModelProvider(getActivity()).get(SharedViewModel.class);
+100: 
+101:         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(activity)
+102:                 .setTitle(R.string.clipboard)
+103:                 .setNegativeButton(R.string.cancel, (dialog, which) -> dialog.dismiss());
+104: 
+105:         List<CharSequence> clipboardText = Utils.getClipboardText(activity.getApplicationContext());
+
+===== ui/PermissionManager.java =====
+--- ui/PermissionManager.java:50-58 ---
+50:     public PermissionManager(
+51:             @NonNull ComponentActivity activity,
+52:             @NonNull Callback callback
+53:     ) {
+54:         appContext = activity.getApplicationContext();
+55:         pref = RepositoryHelper.getSettingsRepository(appContext);
+56:         // MANAGE_EXTERNAL_STORAGE is disabled for the Google Play version
+57:         // so we need to check before requesting permission
+58:         hasManageExternalStoragePermission = Utils.hasManageExternalStoragePermission(appContext);
+
+===== ui/TorrentNotifier.java =====
+--- ui/TorrentNotifier.java:244-251 ---
+244:     public void makeExactAlarmPermissionNotify() {
+245:         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+246:             return;
+247:         }
+248:         var requestPendingIntent = PendingIntent.getActivity(
+249:                 appContext,
+250:                 EXACT_ALARM_PERMISSION_NOTIFICATION_ID,
+251:                 Utils.buildExactAlarmPermissionRequest(appContext),
+
+===== ui/addfeed/AddFeedActivity.java =====
+--- ui/addfeed/AddFeedActivity.java:47-49 ---
+47:     public void onCreate(@Nullable Bundle savedInstanceState)
+48:     {
+49:         setTheme(Utils.getTranslucentAppTheme(getApplicationContext()));
+
+===== ui/addfeed/AddFeedViewModel.java =====
+--- ui/addfeed/AddFeedViewModel.java:87-89 ---
+87:     public void initAddModeFromClipboard()
+88:     {
+89:         List<CharSequence> clipboard = Utils.getClipboardText(getApplication());
+
+===== ui/addlink/AddLinkActivity.java =====
+--- ui/addlink/AddLinkActivity.java:23-25 ---
+23:     public void onCreate(@Nullable Bundle savedInstanceState)
+24:     {
+25:         setTheme(Utils.getTranslucentAppTheme(getApplicationContext()));
+
+===== ui/addlink/AddLinkDialog.java =====
+--- ui/addlink/AddLinkDialog.java:163-167 ---
+163:     private void switchClipboardButton()
+164:     {
+165:         ClipData clip = Utils.getClipData(activity.getApplicationContext());
+166:         viewModel.showClipboardButton.set(clip != null);
+167:     }
+
+===== ui/addlink/AddLinkViewModel.java =====
+--- ui/addlink/AddLinkViewModel.java:45-47 ---
+45:     void initLinkFromClipboard()
+46:     {
+47:         List<CharSequence> clipboard = Utils.getClipboardText(getApplication());
+--- ui/addlink/AddLinkViewModel.java:45-55 ---
+45:     void initLinkFromClipboard()
+46:     {
+47:         List<CharSequence> clipboard = Utils.getClipboardText(getApplication());
+48:         if (clipboard.isEmpty())
+49:             return;
+50: 
+51:         String firstItem = clipboard.get(0).toString();
+52:         String c = firstItem.toLowerCase();
+53:         if (c.startsWith(Utils.MAGNET_PREFIX) ||
+54:             c.startsWith(Utils.HTTP_PREFIX) ||
+55:             Utils.isHash(firstItem))
+--- ui/addlink/AddLinkViewModel.java:60-63 ---
+60: 
+61:     String normalizeUrl(@NonNull String link) throws NormalizeUrlException
+62:     {
+63:         if (Utils.isHash(link)) {
+
+===== ui/addtag/AddTagActivity.java =====
+--- ui/addtag/AddTagActivity.java:47-48 ---
+47:     protected void onCreate(Bundle savedInstanceState) {
+48:         setTheme(Utils.getTranslucentAppTheme(getApplicationContext()));
+
+===== ui/addtag/AddTagViewModel.java =====
+--- ui/addtag/AddTagViewModel.java:51-52 ---
+51:     public void setRandomColor() {
+52:         state.setColor(Utils.getRandomColor());
+
+===== ui/addtorrent/AddTorrentViewModel.java =====
+--- ui/addtorrent/AddTorrentViewModel.java:217-254 ---
+217:         protected Throwable doInBackground(Uri... params) {
+218:             AddTorrentViewModel v = viewModel.get();
+219:             if (v == null || isCancelled())
+220:                 return null;
+221: 
+222:             Uri uri = params[0];
+223:             try {
+224:                 switch (uri.getScheme()) {
+225:                     case Utils.FILE_PREFIX:
+226:                     case Utils.CONTENT_PREFIX:
+227:                         v.mutableParams.setSource(uri.toString());
+228:                         v.decodeState.postValue(
+229:                                 new DecodeState(AddTorrentViewModel.Status.DECODE_TORRENT_FILE));
+230:                         break;
+231:                     case Utils.MAGNET_PREFIX:
+232:                         v.mutableParams.setSource(uri.toString());
+233:                         v.decodeState.postValue(
+234:                                 new DecodeState(AddTorrentViewModel.Status.FETCHING_MAGNET));
+235:                         v.mutableParams.setFromMagnet(true);
+236: 
+237:                         Pair<MagnetInfo, Single<TorrentMetaInfo>> res = v.engine.fetchMagnet(uri.toString());
+238:                         if (res == null)
+239:                             break;
+240:                         MagnetInfo magnetInfo = res.first;
+241:                         if (magnetInfo != null && !isCancelled()) {
+242:                             v.info.set(new TorrentMetaInfo(magnetInfo.getName(), magnetInfo.getSha1hash()));
+243:                             v.observeFetchedMetadata(res.second);
+244: 
+245:                             if (magnetInfo.getFilePriorities() != null)
+246:                                 v.magnetPriorities = new ArrayList<>(magnetInfo.getFilePriorities());
+247:                         }
+248:                         break;
+249:                     case Utils.HTTP_PREFIX:
+250:                     case Utils.HTTPS_PREFIX:
+251:                         v.decodeState.postValue(new DecodeState(AddTorrentViewModel.Status.FETCHING_HTTP));
+252: 
+253:                         File httpTmp = v.fs.makeTempFile(".torrent");
+254:                         byte[] response = Utils.fetchHttpUrl(v.getApplication(), uri.toString());
+
+===== ui/createtorrent/CreateTorrentActivity.java =====
+--- ui/createtorrent/CreateTorrentActivity.java:55-64 ---
+55:     public void onCreate(@Nullable Bundle savedInstanceState)
+56:     {
+57:         setTheme(Utils.getTranslucentAppTheme(getApplicationContext()));
+58:         super.onCreate(savedInstanceState);
+59: 
+60:         ViewModelProvider provider = new ViewModelProvider(this);
+61:         dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+62: 
+63:         FragmentManager fm = getSupportFragmentManager();
+64:         permissionManager = new PermissionManager(this, new PermissionManager.Callback() {
+
+===== ui/detailtorrent/DetailTorrentFragment.java =====
+--- ui/detailtorrent/DetailTorrentFragment.java:278-283 ---
+278:     private void subscribeMsgViewModel()
+279:     {
+280:         disposables.add(msgViewModel.observeFragmentInActionMode()
+281:                 .observeOn(AndroidSchedulers.mainThread())
+282:                 .subscribe((inActionMode) -> setTabLayoutColor(
+283:                         Utils.getAttributeColor(
+--- ui/detailtorrent/DetailTorrentFragment.java:689-704 ---
+689:     private void addTrackers(boolean replace)
+690:     {
+691:         Dialog dialog = addTrackersDialog.getDialog();
+692:         if (dialog == null)
+693:             return;
+694: 
+695:         TextInputEditText field = dialog.findViewById(R.id.multiline_text_input_dialog);
+696:         TextInputLayout fieldLayout = dialog.findViewById(R.id.layout_multiline_text_input_dialog);
+697: 
+698:         Editable editable = field.getText();
+699:         if (editable == null)
+700:             return;
+701: 
+702:         String text = editable.toString();
+703: 
+704:         List<String> urls = Observable.fromArray(text.split(Utils.getLineSeparator()))
+
+===== ui/detailtorrent/DetailTorrentViewModel.java =====
+--- ui/detailtorrent/DetailTorrentViewModel.java:529-551 ---
+529:     private void makeFileTree() {
+530:         try {
+531:             syncBuildFileTree.lock();
+532: 
+533:             if (fileTree != null)
+534:                 return;
+535: 
+536:             TorrentMetaInfo metaInfo = info.getMetaInfo();
+537:             if (metaInfo == null)
+538:                 return;
+539:             List<BencodeFileItem> files = metaInfo.fileList;
+540:             if (files.isEmpty())
+541:                 return;
+542:             Torrent torrent = info.getTorrent();
+543:             TorrentInfo ti = info.getTorrentInfo();
+544:             if (torrent == null || ti == null || ti.filePriorities.length != metaInfo.fileCount)
+545:                 return;
+546: 
+547:             ArrayList<FilePriority> priorities = new ArrayList<>();
+548:             for (Priority p : ti.filePriorities)
+549:                 priorities.add(new FilePriority(p));
+550: 
+551:             Pair<TorrentContentFileTree, TorrentContentFileTree[]> res = TorrentContentFileTreeUtils.buildFileTree(files);
+
+===== ui/detailtorrent/pages/pieces/PiecesView.java =====
+--- ui/detailtorrent/pages/pieces/PiecesView.java:71-74 ---
+71:     void create(Context context, AttributeSet attrs)
+72:     {
+73:         cellSize = Utils.dpToPx(getContext(), CELL_SIZE_DP);
+74:         borderSize = Utils.dpToPx(getContext(), BORDER_SIZE_DP);
+
+===== ui/detailtorrent/pages/trackers/DetailTorrentTrackersFragment.java =====
+--- ui/detailtorrent/pages/trackers/DetailTorrentTrackersFragment.java:374-391 ---
+374:     private void shareUrl()
+375:     {
+376:         MutableSelection<TrackerItem> selections = new MutableSelection<>();
+377:         selectionTracker.copySelection(selections);
+378: 
+379:         disposables.add(Observable.fromIterable(selections)
+380:                 .map((selection -> selection.url))
+381:                 .toList()
+382:                 .subscribe((urls) -> {
+383:                     Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
+384:                     sharingIntent.setType("text/plain");
+385:                     sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "url");
+386: 
+387:                     if (urls.size() == 1)
+388:                         sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, urls.get(0));
+389:                     else
+390:                         sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT,
+391:                                 TextUtils.join(Utils.getLineSeparator(), urls));
+
+===== ui/filemanager/FileManagerAdapter.java =====
+--- ui/filemanager/FileManagerAdapter.java:126-139 ---
+126:         void bind(FileManagerNode item, List<String> highlightFileTypes, ClickListener listener)
+127:         {
+128:             Context context = itemView.getContext();
+129: 
+130:             itemView.setOnClickListener((v) -> {
+131:                 if (listener != null)
+132:                     listener.onItemClicked(item);
+133:             });
+134: 
+135:             itemView.setEnabled(item.isEnabled());
+136:             FileSystemFacade fs = SystemFacadeHelper.getFileSystemFacade(context);
+137:             if (item.isEnabled()) {
+138:                 if (highlightFileTypes != null && highlightFileTypes.contains(fs.getExtension(item.getName()))) {
+139:                     fileName.setTextColor(Utils.getAttributeColor(context, R.attr.colorSecondary));
+
+===== ui/log/LogSettingsActivity.java =====
+--- ui/log/LogSettingsActivity.java:37-39 ---
+37:     protected void onCreate(Bundle savedInstanceState)
+38:     {
+39:         setTheme(Utils.getSettingsTheme(getApplicationContext()));
+
+===== ui/main/MainActivity.java =====
+--- ui/main/MainActivity.java:136-137 ---
+136:     protected void onCreate(Bundle savedInstanceState) {
+137:         setTheme(Utils.getAppTheme(getApplicationContext()));
+--- ui/main/MainActivity.java:230-250 ---
+230:     private void initDrawer() {
+231:         drawerItemManager = new RecyclerViewExpandableItemManager(null);
+232:         drawerItemManager.setDefaultGroupsExpandedState(false);
+233:         drawerItemManager.setOnGroupCollapseListener((groupPosition, fromUser, payload) -> {
+234:             if (fromUser)
+235:                 saveGroupExpandState(groupPosition, false);
+236:         });
+237:         drawerItemManager.setOnGroupExpandListener((groupPosition, fromUser, payload) -> {
+238:             if (fromUser)
+239:                 saveGroupExpandState(groupPosition, true);
+240:         });
+241:         GeneralItemAnimator animator = new RefactoredDefaultItemAnimator();
+242:         /*
+243:          * Change animations are enabled by default since support-v7-recyclerview v22.
+244:          * Need to disable them when using animation indicator.
+245:          */
+246:         animator.setSupportsChangeAnimations(false);
+247: 
+248:         List<DrawerGroup> groups = Utils.getNavigationDrawerItems(this,
+249:                 PreferenceManager.getDefaultSharedPreferences(this));
+250:         drawerAdapter = new DrawerExpandableAdapter(groups, drawerItemManager, this::onDrawerItemSelected);
+--- ui/main/MainActivity.java:582-596 ---
+582:     private void onDrawerGroupsCreated() {
+583:         for (int pos = 0; pos < drawerAdapter.getGroupCount(); pos++) {
+584:             DrawerGroup group = drawerAdapter.getGroup(pos);
+585:             if (group == null)
+586:                 return;
+587: 
+588:             Resources res = getResources();
+589:             if (group.id == res.getInteger(R.integer.drawer_status_id)) {
+590:                 viewModel.setStatusFilter(
+591:                         Utils.getDrawerGroupStatusFilter(this, group.getSelectedItemId()), false);
+592: 
+593:             } else if (group.id == res.getInteger(R.integer.drawer_sorting_id)) {
+594:                 viewModel.setSort(Utils.getDrawerGroupItemSorting(this, group.getSelectedItemId()), false);
+595:             } else if (group.id == res.getInteger(R.integer.drawer_date_added_id)) {
+596:                 viewModel.setDateAddedFilter(Utils.getDrawerGroupDateAddedFilter(this, group.getSelectedItemId()), false);
+--- ui/main/MainActivity.java:610-623 ---
+610:     private void onDrawerItemSelected(DrawerGroup group, DrawerGroupItem item) {
+611:         Resources res = getResources();
+612:         String prefKey = null;
+613:         if (group.id == res.getInteger(R.integer.drawer_status_id)) {
+614:             prefKey = getString(R.string.drawer_status_selected_item);
+615:             viewModel.setStatusFilter(Utils.getDrawerGroupStatusFilter(this, item.id), true);
+616: 
+617:         } else if (group.id == res.getInteger(R.integer.drawer_sorting_id)) {
+618:             prefKey = getString(R.string.drawer_sorting_selected_item);
+619:             viewModel.setSort(Utils.getDrawerGroupItemSorting(this, item.id), true);
+620: 
+621:         } else if (group.id == res.getInteger(R.integer.drawer_date_added_id)) {
+622:             prefKey = getString(R.string.drawer_time_selected_item);
+623:             viewModel.setDateAddedFilter(Utils.getDrawerGroupDateAddedFilter(this, item.id), true);
+--- ui/main/MainActivity.java:640-642 ---
+640:     private void cleanGarbageFragments() {
+641:         /* Clean detail and blank fragments after rotate for tablets */
+642:         if (Utils.isLargeScreenDevice(this)) {
+
+===== ui/main/TorrentListAdapter.java =====
+--- ui/main/TorrentListAdapter.java:161-166 ---
+161:         ViewHolder(ItemTorrentListBinding binding)
+162:         {
+163:             super(binding.getRoot());
+164: 
+165:             this.binding = binding;
+166:             Utils.colorizeProgressBar(itemView.getContext(), binding.progress);
+
+===== ui/settings/SettingsActivity.java =====
+--- ui/settings/SettingsActivity.java:42-44 ---
+42:     protected void onCreate(Bundle savedInstanceState)
+43:     {
+44:         setTheme(Utils.getSettingsTheme(getApplicationContext()));
+
+===== ui/settings/sections/BehaviorSettingsFragment.java =====
+--- ui/settings/sections/BehaviorSettingsFragment.java:199-202 ---
+199:     public boolean onPreferenceChange(final Preference preference, Object newValue)
+200:     {
+201:         if (preference.getKey().equals(getString(R.string.pref_key_autostart))) {
+202:             Utils.enableBootReceiver(getActivity(), (boolean)newValue);
+
+===== ui/settings/sections/SchedulingSettingsFragment.java =====
+--- ui/settings/sections/SchedulingSettingsFragment.java:191-206 ---
+191:     public boolean onPreferenceChange(Preference preference, Object newValue)
+192:     {
+193:         Context context = getActivity().getApplicationContext();
+194: 
+195:         if (preference.getKey().equals(getString(R.string.pref_key_enable_scheduling_start))) {
+196:             pref.enableSchedulingStart((boolean)newValue);
+197: 
+198:             if ((boolean)newValue) {
+199:                 int time = pref.schedulingStartTime();
+200:                 if (!Scheduler.setStartAppAlarm(context, time)) {
+201:                     showExactAlarmPermissionDialog();
+202:                 }
+203:             } else {
+204:                 Scheduler.cancelStartAppAlarm(context);
+205:             }
+206:             Utils.enableBootReceiver(context, (boolean)newValue);
+
+===== ui/tag/SelectTagActivity.java =====
+--- ui/tag/SelectTagActivity.java:42-43 ---
+42:     protected void onCreate(Bundle savedInstanceState) {
+43:         setTheme(Utils.getTranslucentAppTheme(getApplicationContext()));

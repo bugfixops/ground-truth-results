@@ -1,0 +1,67 @@
+     1	/*
+     2	 * Copyright (C) 2018 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.feeditems;
+    21	
+    22	import android.content.Intent;
+    23	import android.os.Bundle;
+    24	
+    25	import androidx.annotation.NonNull;
+    26	import androidx.annotation.Nullable;
+    27	import androidx.appcompat.app.AppCompatActivity;
+    28	import androidx.fragment.app.Fragment;
+    29	
+    30	import org.proninyaroslav.libretorrent.R;
+    31	import org.proninyaroslav.libretorrent.core.utils.Utils;
+    32	import org.proninyaroslav.libretorrent.ui.FragmentCallback;
+    33	
+    34	public class FeedItemsActivity extends AppCompatActivity
+    35	        implements FragmentCallback
+    36	{
+    37	    private static final String TAG = FeedItemsActivity.class.getSimpleName();
+    38	
+    39	    public static final String TAG_FEED_ID = "feed_id";
+    40	
+    41	    @Override
+    42	    protected void onCreate(@Nullable Bundle savedInstanceState)
+    43	    {
+    44	        setTheme(Utils.getAppTheme(getApplicationContext()));
+    45	        super.onCreate(savedInstanceState);
+    46	
+    47	        if (Utils.isTwoPane(this)) {
+    48	            finish();
+    49	            return;
+    50	        }
+    51	
+    52	        setContentView(R.layout.activity_feed_items);
+    53	
+    54	        FeedItemsFragment feedItemsFragment = (FeedItemsFragment)getSupportFragmentManager()
+    55	                .findFragmentById(R.id.feed_items_fragmentContainer);
+    56	
+    57	        if (feedItemsFragment != null)
+    58	            feedItemsFragment.setFeedId(getIntent().getLongExtra(TAG_FEED_ID, -1));
+    59	    }
+    60	
+    61	    @Override
+    62	    public void onFragmentFinished(@NonNull Fragment f, Intent intent,
+    63	                                   @NonNull FragmentCallback.ResultCode code)
+    64	    {
+    65	        finish();
+    66	    }
+    67	}

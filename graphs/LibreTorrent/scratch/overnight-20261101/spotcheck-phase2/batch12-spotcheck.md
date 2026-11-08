@@ -1,0 +1,27 @@
+# LibreTorrent batch 12 — Phase 2 spot-check (UNVERIFIED proposal, labels only)
+
+- Work file checked: `~/workspace/overnight/stream-A/work/batch12-merge-ready.md` (40 rows, 29 REACHABLE / 10 UNREACHABLE proposed / 1 OPEN).
+- Spot-check date: 2026-11-01. No merge-ready file was edited, no label was changed by this check, no push was made, no build/sampler/C1 was run (not this task).
+- Evidence base: already-fetched local files only — `~/workspace/overnight/stream-A/corpus/java/` (281-file Java tree) and `~/workspace/b1-src/` (independent earlier connector fetch set, used to cross-check ranges). No GitHub connector fetch was needed; no 429 was hit.
+- Verdict rule: PASS requires the label AND the cited definition/caller lines to identify the right method and caller. A range running past the closing brace onto a blank line or the class-close brace is a nit, not a FAIL. A range that starts on the wrong line, ends mid-method, or names the wrong caller line is a FAIL (label may still stand; the correction is then citation-only).
+
+## Rows checked (8 of 40)
+
+Sample rows 1, 6, 11, 16, 21, 26, 31, 36 (row 1 is also the must-include row). Phase 1c changed no label in this batch (D8/D1 only: row 1 stays OPEN, cosmetic confirmed_by normalisation), so there are no additional Phase 1 changed rows.
+
+## Per-row verdicts
+
+- Row 1 — databinding.DataBinderMapperImpl.\<init\> — OPEN — **PASS**. No `DataBinderMapperImpl` file exists anywhere in the corpus and the corpus-wide grep for `DataBinderMapperImpl` returns zero hits; no generated source is printed. OPEN is correct: absence alone cannot flip this row, and it is a different fully-qualified class from batch 17's `libretorrent.DataBinderMapperImpl`, so no conclusion transfers either way. Resolves only with printed generated source or a printed dispatch citation under convention (x), as the file states.
+- Row 6 — Enclosure.hashCode — UNREACHABLE — **FAIL, citation only; label stands, no label change by this check**. Label re-derived: Enclosures are held in `ArrayList` (AtomItem.java:100, Rss1Item.java:89, Rss2Item.java:95) and read via `getUrl()`/`getType()`; no hash-based collection use and no `hashCode()` caller on an `Enclosure` in the corpus. The citation is wrong: the file cites def `Enclosure.java:70-73`, but the method spans :70-75 (def :70, body :71-73, `return result` :74, close :75), confirmed in both the corpus copy and `~/workspace/b1-src/Enclosure.java`. Proposed correction: cite `Enclosure.java:70-75`.
+- Row 11 — EzRssTorrentItem.hashCode — UNREACHABLE — **FAIL, citation only; label stands, no label change by this check**. Label re-derived: downstream code reads only `getInfoHash()` (core FeedParser.java:238 path); no hash collection use and no `hashCode()` caller on an `EzRssTorrentItem` in the corpus. The citation is wrong: the file cites def :116-120, but the method spans :116-125 (def :116, body :117-123, `return result` :124, close :125), confirmed in both the corpus copy and `~/workspace/b1-src/EzRssTorrentItem.java`. Proposed correction: cite `EzRssTorrentItem.java:116-125`.
+- Row 16 — FeedType.\<clinit\> — REACHABLE INFERRED — **PASS**. Enum references verified: `FeedHandler.java:64` (RSS_1_0), `:71` (RSS_2_0), `:78` (ATOM_1_0), and `AtomItem.java:35-36` (`getType()` returning `FeedType.ATOM_1_0`). INFERRED is correct: the initialiser itself has no printed call site (JVM class initialisation).
+- Row 21 — FeedUtils.equalsOrNull — UNREACHABLE (derivative) — **PASS**. Def `FeedUtils.java:112` verified. Corpus-wide grep finds exactly one caller: `BaseItem.java:58` inside `BaseItem.equals`, which is itself proposed UNREACHABLE in batch 13 with no printed trigger. The file's conditional framing is correct: this label stands only while batch 13's `BaseItem.equals`/`hashCode` stay UNREACHABLE; if a grep triggers `BaseItem.equals`, this row must be re-judged (not auto-flipped).
+- Row 26 — XMLInputStream.isAlphaNumeric — REACHABLE SOURCE — **PASS**. Def `XMLInputStream.java:157` verified (private). Call `readAmpersand` at :100 (`isAlphaNumeric(ch)` in the loop condition) verified; `readAmpersand` itself is reached via the SAX read path registered at `DefaultFeedParser.java:37`.
+- Row 31 — XMLInputStream.read(byte[],int,int) — REACHABLE INFERRED — **FAIL, citation only; label stands, no label change by this check**. The route is correct: def is the `FilterInputStream.read` override, it calls internal `read(length)` at :137 and `given` at :142, and it is reached only via SAX/JDK dispatch on the stream registered at `DefaultFeedParser.java:37` (hence INFERRED). The cited def range is wrong: the file cites :135-142, but the method spans :135-144 (`return n > 0 ? n : -1` :143, close :144), confirmed in both the corpus copy and `~/workspace/b111213-src/XMLInputStream.java`. Proposed correction: cite `XMLInputStream.java:135-144`.
+- Row 36 — AtomFeed.getTitle — REACHABLE SOURCE — **PASS**. Def `AtomFeed.java:44` verified. Call sites verified: core `FeedParser.java:86` (`feed.getTitle()`) and `FeedFetcherWorker.java:176` (`parser.getTitle()`).
+
+## Totals
+
+- Checked: 8. **PASS: 5. FAIL: 3** (rows 6, 11, 31 — all citation-only).
+- No label was found wrong. No proposed label correction. Three citation corrections proposed (row 6: 70-73 → 70-75; row 11: 116-120 → 116-125; row 31: 135-142 → 135-144).
+- The file's still-owed saved full-repo grep for the UNREACHABLE-proposed rows remains owed before merge; this check covered the Java corpus only.

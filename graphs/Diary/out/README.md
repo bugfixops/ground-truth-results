@@ -7,7 +7,7 @@ How every method of **Diary** is triggered, in the standard configuration: the i
 | File | What it is |
 |---|---|
 | `diary_trigger_graph.json` | pages, methods, `verdict`, `labels` (per-method fields), `edges` (with `edge_class`, `env_kinds`, `state_kinds`, stable ids), `paths` (verified paths only), `verification` (counts) |
-| `methods.csv` | one row per method: verdict, UNREACHABLE reason, ENV and STATE kinds and texts, edge classes on the best route, whether an explicit/standard-only route exists, how the label was confirmed, path status, and the derived best route (`shortest_path`, `route_edge_ids`) |
+| `methods.csv` | one row per method: verdict, UNREACHABLE reason, ENV and STATE kinds and texts, edge classes on the best route, whether an explicit/standard-only route exists, how the label was confirmed, path status, the derived best route (`shortest_path`, `route_edge_ids`), and the full JVM class and descriptor (`jvm_class`, `jvm_descriptor`; the `method` key adds a package prefix only where simple class names clash) |
 | `../verification.csv` | the audit log: one row per label, edge or path that was checked, with result, how, and where (file:line) |
 | `sanity_check.csv` | tool coverage (Monkey / APE, API 27) next to the labels; a one-way check only, it never sets a label |
 | `diary_trigger_graph.html`, `build_report.txt` | the viewer and the validation report |
@@ -31,7 +31,9 @@ Verification log (`verification.csv`), counts of what was checked and found:
 | edges (framework and other claims read against source) | 47 | 37 | 0 | 10 |
 | paths (stratified sample, read step by step) | 30 | 18 | 7 | 5 |
 
-Path status over all reachable methods: SOURCE_OK 25, UNCHECKED 240.
+Device replay on the emulator (API 27): 16 of 30 routes reached their target method; 16 of these ran the whole script and are `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; see `../device/results.csv`.
+
+Path status over all reachable methods: DEVICE_OK 16, SOURCE_OK 11, UNCHECKED 238.
 The rows are the items that were individually checked, not a random sample of all labels; see the notes below for how they were chosen and what the unclear rows wait for.
 
 Edges whose evidence is not a source line (52 of 1435): E41cf8b5e (S_EXIT -> S_ENTRY); Eff02ee30 (Diary.onBackPressed@BROWSE -> Diary$1.onPageFinished); Ecc51ba5c (Diary.listYears -> Diary.lambda$listYears$1); Ee8021a1a (Diary.listMonths -> Diary.lambda$listMonths$2); Ed3097966 (Diary.listDays -> Diary.lambda$listDays$3); Ea16ba1a8 (Diary.sortFiles -> Diary.lambda$sortFiles$0); Ebfa0014d (Diary.loadMarkdown(CharSequence) -> Diary$1.onPageFinished); E03c29845 (S_DIARY_VIEW -> Diary$1.shouldOverrideUrlLoading); E30d249c1 (S_DIARY_VIEW_CHANGED -> Diary$1.shouldOverrideUrlLoading); Ed2f9b82e (S_DIARY_BROWSE -> Diary$1.shouldOverrideUrlLoading); Eb6f2a0d2 (S_DIARY_SEARCH@VIEW -> Diary$1.shouldOverrideUrlLoading); E5d9f47db (Diary.lambda$setListeners$6 -> Diary.onActionModeStarted) ...
@@ -46,7 +48,7 @@ Sanity check against tool coverage (never used to set a label): 187 methods ran 
 ## How the checked paths were chosen
 `tools/verify_sample.py Diary 30` (seed 20261025) picks methods by stratum (a non-standard edge on the route, an inferred label, a STATE gate, an ENV gate, a long route, the rest) and takes first the method that adds the most unseen edges. The strata depend on the labels, so the sample moved while the gates were corrected; the 30 paths in the log are the sample of the final graph. Every route was read step by step against the printed source lines, including guards and ENV / STATE gates (app lines from `final_java_only`, framework and library lines from `.plan/fw_src`). Result of the 30: 18 correct, 7 wrong and fixed, 5 unclear. The unclear paths contain a step that rests on code that was not read: the picker app, or `java.io` / `java.util` library code. The labels of all UNREACHABLE methods and of the 30 sampled methods are logged, and the edge rows cover the framework claims that were read against the AOSP and library sources and the ones that stay unclear.
 ## What waits for a device (API 27)
-- **Replaying the sampled paths.** No path is DEVICE_OK: 25 are SOURCE_OK (read in the source), 240 are UNCHECKED.
+- **Replaying the sampled paths.** Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86): 16 of the 30 routes reached their target method and ran the whole script, so they are now `DEVICE_OK`; the other 14 are unclear (not reached or script stopped), never wrong, and the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. Path status over the reachable methods: 16 DEVICE_OK, 11 SOURCE_OK (read in the source), 238 UNCHECKED.
 - **Other apps.** The share sheet, the picker and the document creator, the print service, an app that sends SEND / VIEW / geo: intents or opens a file with the Editor, and the launcher that places, resizes and removes the widget (ENV other_app): their source was not read.
 - **WebView.** What the Chromium engine does (`onPageFinished`, `shouldOverrideUrlLoading` for a tapped link, loading `content://` images, the text-selection action mode) is native code outside the Java sources.
 - **Environment.** A 24-hour locale with a calendar account (the event methods, ENV other and other_app), runtime permissions that are not granted yet (ENV permission), a rotation (ENV hardware) and an I/O error when a file is written are conditions of the device that a replay has to create.
@@ -71,6 +73,8 @@ Sanity check against tool coverage (never used to set a label): 187 methods ran 
 - `tools/show_route.py` stops with a ValueError on an evidence citation written as `File.java:570, 1696-1709` (comma and space), which many edges use. The sampled routes were printed from the JSON and `methods.csv` instead, with the cited lines read from the source tree.
 - Hazard 11: the ActivityStarter lines (ActivityStarter.java:1496-1520, 1036-1050, 1754-1760, 1565-1580) show an existing task being reused for a NEW_TASK start; the affinity match in `findTaskLocked` and Diary coming to the front are still inferred.
 - Routes that start in another app (share, picker, geo: link, external Editor start, widget) need a tester that can leave the package; the self-share routes assume Diary is listed in its own share sheet, the widget routes assume a stock launcher.
+- check 5 counts 5 lines (graph_def.py 199, 228, 1608, 1624, 1629). They are the schema-1 dictionaries DEAD and FRAMEWORK_ONLY, used only as temporary containers that are converted to UNREACHABLE entries and emptied at line 1629. No placeholder label exists.
+- Diary has no auto_calls.json, so check 8 does not apply.
 
 ## JSON shape (short)
 

@@ -1,0 +1,71 @@
+# Batch 55 printed evidence
+
+Membership command:
+```sh
+awk -F '\\t' '$1==55 {print $3 "\\t" $4}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+```
+Output count: 40. The exact method/descriptor rows are reproduced in `batch_055_helper.md`.
+
+Source commands actually printed/read:
+```sh
+nl -ba .../core/system/SafFsModule.java | sed -n '35,155p'
+nl -ba .../core/system/SystemFacadeHelper.java
+nl -ba .../core/urlnormalizer/NormalizeUrl.java | sed -n '20,90p'
+rg -n 'SafFileSystem|...method signatures...' .../SafFileSystem.java
+```
+
+Relevant printed source:
+```java
+// SafFsModule.java:36-43
+class SafFsModule implements FsModule {
+    public SafFsModule(@NonNull Context appContext) {
+        this.appContext = appContext;
+    }
+}
+// SafFsModule.java:70-80
+public Uri getFileUri(Uri dir, String fileName, boolean create) {
+    return SafFileSystem.getInstance(appContext).getFileUri(dir, fileName, create);
+}
+public Uri getFileUri(String relativePath, Uri dir) {
+    return SafFileSystem.getInstance(appContext)
+        .getFileUri(new SafFileSystem.FakePath(dir, relativePath), false);
+}
+// SafFsModule.java:83-89
+public boolean delete(Uri filePath) {
+    SafFileSystem fs = SafFileSystem.getInstance(appContext);
+    return fs.delete(filePath);
+}
+// SafFsModule.java:97-114
+public long getDirAvailableBytes(Uri dir) throws IOException {
+    long availableBytes = -1;
+    ContentResolver contentResolver = appContext.getContentResolver();
+    SafFileSystem fs = SafFileSystem.getInstance(appContext);
+    Uri dirPath = fs.makeSafRootDir(dir);
+    try (ParcelFileDescriptor pfd = contentResolver.openFileDescriptor(dirPath, "r")) {
+        if (pfd == null) return availableBytes;
+        availableBytes = getAvailableBytes(pfd.getFileDescriptor());
+    }
+    return availableBytes;
+}
+// SafFsModule.java:135-138
+public boolean fileExists(Uri filePath) {
+    return SafFileSystem.getInstance(appContext).exists(filePath);
+}
+```
+
+```java
+// SystemFacadeHelper.java:31-46
+public synchronized static SystemFacade getSystemFacade(Context appContext) {
+    if (systemFacade == null) systemFacade = new SystemFacadeImpl(appContext);
+    return systemFacade;
+}
+public synchronized static FileSystemFacade getFileSystemFacade(Context appContext) {
+    if (fileSystemFacade == null)
+        fileSystemFacade = new FileSystemFacadeImpl(appContext,
+                new FsModuleResolverImpl(appContext));
+    return fileSystemFacade;
+}
+```
+
+The SafFileSystem signature scan showed relevant operations and line locations: `getInstance` (about line 59), `FakePath` helpers (lines 90-167), `getFileUri` (207, 235), `getFile` helpers (248-309), `makeSafRootDir` (369), `stat` overloads (426-487), and `getParentDirUri` (533). The full entry route through provider selection and app callers was not traced. Accordingly the table retains OPEN for every member.
+

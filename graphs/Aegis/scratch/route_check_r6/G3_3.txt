@@ -1,0 +1,213 @@
+## ScannerActivity.unbindPreview  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=permission state=session classes=explicit;standard explicit_standard_route=yes
+   1. Eb9515d18 ENTRY/standard*
+      S_ENTRY -> AegisApplication.<init>
+      Any outside trigger starts the app process; the application class is created first, except in a backup or restore start, which uses the base Application class
+      guard: not a full backup or restore start (FW ActivityThread.java:5713-5715)
+      evidence: SRC AndroidManifest.xml:21-27 (android:name=".AegisApplication", backupAgent=".AegisBackupAgent")
+         21      <application
+         22          android:name=".AegisApplication"
+         23          android:allowBackup="true"
+         24          android:fullBackupOnly="true"
+         25          android:fullBackupContent="@xml/backup_rules_old"
+         26          android:dataExtractionRules="@xml/backup_rules"
+         27          android:backupAgent=".AegisBackupAgent"
+   2. E5b266140 LIFECYCLE/standard*
+      AegisApplication.<init> -> Hilt_AegisApplication.onCreate
+      Application.onCreate: the Hilt-generated superclass onCreate runs first (Hilt injection), then AegisApplicationBase.onCreate
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:5740 (the system calls Application.onCreate); INFERRED Hilt rewrites the superclass: AegisApplication extends Hilt_AegisApplication (generated file, not in the source tree; source AegisApplication.java:6 has no onCreate)
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+   3. E1ef992ce CALL/explicit
+      Hilt_AegisApplication.onCreate -> AegisApplicationBase.onCreate
+      Direct call
+      evidence: INFERRED generated code (Hilt_AegisApplication.java is not in the source tree; the call is in the build class, line 43)
+   4. E88ed9829 ENTERS/page*
+      AegisApplicationBase.onCreate -> S_PROCESS
+      the application is created: the process can start a component
+      evidence: SRC AegisApplicationBase.java:45-67; FW-SRC core/java/android/app/ActivityThread.java:5740 (the system calls Application.onCreate)
+         45      public void onCreate() {
+         46          super.onCreate();
+         47          _vaultManager = EarlyEntryPoints.get(this, EntryPoint.class).getVaultManager();
+         48  
+         49          VaultLockReceiver lockReceiver = new VaultLockReceiver();
+         50          IntentFilter intentFilter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
+         51          ContextCompat.registerReceiver(this, lockReceiver, intentFilter, ContextCompat.RECEIVER_NOT_EXPORTED);
+         52  
+         53          // lock the app if the user moves the application to the background
+         54          ProcessLifecycleOwner.get().getLifecycle().addObserver(new AppLifecycleObserver());
+         55  
+         56          // clear the cache directory on startup, to make sure no temporary vault export files remain
+         57          IOUtils.clearDirectory(getCacheDir(), false);
+         58  
+      ...  (9 more lines)
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+   5. E28ffc58c ENTRY/standard*
+      S_PROCESS -> MainActivity.<init>
+      Tap the Aegis icon in the launcher (MAIN / LAUNCHER)
+      evidence: SRC AndroidManifest.xml:44-51
+         44              android:name=".ui.MainActivity"
+         45              android:exported="true"
+         46              android:label="${title}">
+         47              <intent-filter>
+         48                  <action android:name="android.intent.action.MAIN" />
+         49  
+         50                  <category android:name="android.intent.category.LAUNCHER" />
+         51              </intent-filter>
+   6. Eb76444fd LIFECYCLE/standard*
+      MainActivity.<init> -> MainActivity.onCreate
+      Activity.onCreate after the constructor
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731,2741 (the system calls Activity.onCreate, then performStart); SRC ui/MainActivity.java:192-194
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+        192      @Override
+        193      protected void onCreate(Bundle savedInstanceState) {
+        194          super.onCreate(savedInstanceState);
+   7. E3a06baed LIFECYCLE/standard*
+      MainActivity.onCreate -> MainActivity.onStart
+      Activity.onStart after onCreate
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731,2741 (the system calls Activity.onCreate, then performStart); SRC ui/MainActivity.java:938-940
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+        938      @Override
+        939      protected void onStart() {
+        940          super.onStart();
+   8. E1ff98fce CALL/explicit*
+      MainActivity.onStart -> MainActivity.doShortcutActions
+      the shortcut actions run at the end of onStart
+      guard: vault init not needed: isVaultInitNeeded() is false (MainActivity.java:942), so the return at 947 (inside the vault-init branch, 942-948) is not taken; the error returns at 960 and 971 are not taken (the call is at 1006)
+      evidence: SRC ui/MainActivity.java:942-948,957-960,966-971,1006
+        942          if (_vaultManager.isVaultInitNeeded()) {
+        943              if (_prefs.isIntroDone()) {
+        944                  Toast.makeText(this, getString(R.string.vault_not_found), Toast.LENGTH_SHORT).show();
+        945              }
+        946              startIntroActivity();
+        947              return;
+        948          }
+        957                  Dialogs.showErrorDialog(this, R.string.vault_load_error, e, (dialog, which) -> {
+        958                      finish();
+        959                  });
+        960                  return;
+        966                  } catch (VaultRepositoryException e) {
+        967                      e.printStackTrace();
+        968                      Dialogs.showErrorDialog(this, R.string.vault_load_error, e, (dialog, which) -> {
+        969                          finish();
+        970                      });
+        971                      return;
+       1006          doShortcutActions();
+   9. E01ce0942 CALL/explicit* [STATE: The vault is loaded in this process and has not been locked since]
+      MainActivity.doShortcutActions -> MainActivity.startScanActivity
+      the scan shortcut opens the camera scanner
+      guard: intent action is "scan" and the vault is loaded (MainActivity.java:840-846)
+      note: a plain-text vault is loaded in onStart without the unlock screen (MainActivity.java:963-965); this state is still required here
+      evidence: SRC ui/MainActivity.java:837-846
+        837      private void doShortcutActions() {
+        838          Intent intent = getIntent();
+        839          String action = intent.getStringExtra("action");
+        840          if (action == null || !_vaultManager.isVaultLoaded()) {
+        841              return;
+        842          }
+        843  
+        844          switch (action) {
+        845              case "scan":
+        846                  startScanActivity();
+  10. E4c53d66d INTENT/standard* [ENV: the camera permission was already granted: PermissionHelper.request returns true and the scanner opens (PermissionHelper.java:22-36; MainActivity.java:804-809)]
+      MainActivity.startScanActivity -> ScannerActivity.<init>
+      the camera permission is already granted: the scanner opens through scanResultLauncher
+      evidence: SRC ui/MainActivity.java:803-810; SRC helpers/PermissionHelper.java:22-36; INFERRED androidx.activity.result: the launcher callback runs with the result (androidx source not cached)
+        803      private void startScanActivity() {
+        804          if (!PermissionHelper.request(this, CODE_PERM_CAMERA, Manifest.permission.CAMERA)) {
+        805              return;
+        806          }
+        807  
+        808          Intent scannerActivity = new Intent(getApplicationContext(), ScannerActivity.class);
+        809          scanResultLauncher.launch(scannerActivity);
+        810      }
+         22      public static boolean request(Activity activity, int requestCode, String... perms) {
+         23          List<String> deniedPerms = new ArrayList<>();
+         24          for (String permission : perms) {
+         25              if (!granted(activity, permission)) {
+         26                  deniedPerms.add(permission);
+         27              }
+         28          }
+         29  
+         30          int size = deniedPerms.size();
+         31          if (size > 0) {
+         32              String[] array = new String[size];
+         33              ActivityCompat.requestPermissions(activity, deniedPerms.toArray(array), requestCode);
+         34          }
+         35          return size == 0;
+      ...  (1 more lines)
+  11. Edd5d8048 LIFECYCLE/standard*
+      ScannerActivity.<init> -> ScannerActivity.onCreate
+      Activity.onCreate of the scanner
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731,2741 (the system calls Activity.onCreate, then performStart); SRC ui/ScannerActivity.java:53
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+         53      public void onCreate(Bundle savedInstanceState) {
+  12. Eea6435c6 FRAMEWORK/standard*
+      ScannerActivity.onCreate -> ScannerActivity.lambda$onCreate$0
+      the camera provider is ready: the future listener runs on the main thread (on failure it throws at ScannerActivity.java:74 and sets no lens)
+      guard: onCreate did not abort (ScannerActivity.java:55-57; AegisActivity.java:154-157)
+      evidence: INFERRED Guava ListenableFuture.addListener: the listener runs on the given executor (the main executor here) when the ProcessCameraProvider future completes (framework and CameraX source not read); SRC ui/ScannerActivity.java:67-68,74,88
+         67          _cameraProviderFuture = ProcessCameraProvider.getInstance(this);
+         68          _cameraProviderFuture.addListener(() -> {
+         74                  throw new RuntimeException(e);
+         88          }, ContextCompat.getMainExecutor(this));
+  13. E314fd012 ENTERS/page*
+      ScannerActivity.lambda$onCreate$0 -> S_SCANNER@CAMERA_READY
+      the camera provider is ready and a lens exists: the camera switch icon can be tapped
+      guard: onCreate did not abort (ScannerActivity.java:55-57) and a lens exists (ScannerActivity.java:79-83 finish the page otherwise)
+      evidence: SRC ui/ScannerActivity.java:70,77-87
+         70                  _cameraProvider = _cameraProviderFuture.get();
+         77              addCamera(CameraSelector.LENS_FACING_BACK);
+         78              addCamera(CameraSelector.LENS_FACING_FRONT);
+         79              if (_lenses.size() == 0) {
+         80                  Toast.makeText(this, getString(R.string.no_cameras_available), Toast.LENGTH_LONG).show();
+         81                  finish();
+         82                  return;
+         83              }
+         84              _currentLens = _lenses.get(0);
+         85              updateCameraIcon();
+         86  
+         87              bindPreview(_cameraProvider);
+  14. Ef5aafb40 GUI/standard* [STATE: The camera provider is ready and a lens exists: the camera switch icon is set (ScannerActivity.java:70, 79-88)]
+      S_SCANNER@CAMERA_READY -> ScannerActivity.onOptionsItemSelected
+      Tap the camera switch icon in the scanner toolbar: the other lens is used
+      guard: the camera provider is set (ScannerActivity.java:108-110 return early until then) and the icon is shown (two lenses, ScannerActivity.java:137-148)
+      evidence: INFERRED androidx.appcompat: a tap on a toolbar menu item calls onOptionsItemSelected (source not read); SRC ui/ScannerActivity.java:107-118,134-150
+        107      public boolean onOptionsItemSelected(MenuItem item) {
+        108          if (_cameraProvider == null) {
+        109              return false;
+        110          }
+        111  
+        112          if (item.getItemId() == R.id.action_camera) {
+        113              unbindPreview(_cameraProvider);
+        114              _currentLens = _currentLens == CameraSelector.LENS_FACING_BACK ? CameraSelector.LENS_FACING_FRONT : CameraSelector.LENS_FACING_BACK;
+        115              bindPreview(_cameraProvider);
+        116              updateCameraIcon();
+        117              return true;
+        118          }
+        134      private void updateCameraIcon() {
+        135          if (_menu != null) {
+        136              MenuItem item = _menu.findItem(R.id.action_camera);
+        137              boolean dual = _lenses.size() > 1;
+        138              if (dual) {
+        139                  switch (_currentLens) {
+        140                      case CameraSelector.LENS_FACING_BACK:
+        141                          item.setIcon(R.drawable.ic_outline_camera_front_24);
+        142                          break;
+        143                      case CameraSelector.LENS_FACING_FRONT:
+        144                          item.setIcon(R.drawable.ic_outline_camera_rear_24);
+        145                          break;
+        146                  }
+        147              }
+      ...  (3 more lines)
+  15. Eb5012061 CALL/explicit*
+      ScannerActivity.onOptionsItemSelected -> ScannerActivity.unbindPreview
+      the camera switch: the current preview is unbound
+      guard: the camera provider is set (ScannerActivity.java:108-110 return early otherwise) and the tapped item is the camera switch (ScannerActivity.java:112)
+      evidence: SRC ui/ScannerActivity.java:108-113
+        108          if (_cameraProvider == null) {
+        109              return false;
+        110          }
+        111  
+        112          if (item.getItemId() == R.id.action_camera) {
+        113              unbindPreview(_cameraProvider);
+

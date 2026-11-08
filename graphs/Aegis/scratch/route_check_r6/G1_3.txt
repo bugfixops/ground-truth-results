@@ -1,0 +1,294 @@
+## EntryAdapter.setTempHighlightEntry  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=- state=file;session classes=explicit;non_standard;standard explicit_standard_route=yes
+   1. Eb9515d18 ENTRY/standard*
+      S_ENTRY -> AegisApplication.<init>
+      Any outside trigger starts the app process; the application class is created first, except in a backup or restore start, which uses the base Application class
+      guard: not a full backup or restore start (FW ActivityThread.java:5713-5715)
+      evidence: SRC AndroidManifest.xml:21-27 (android:name=".AegisApplication", backupAgent=".AegisBackupAgent")
+         21      <application
+         22          android:name=".AegisApplication"
+         23          android:allowBackup="true"
+         24          android:fullBackupOnly="true"
+         25          android:fullBackupContent="@xml/backup_rules_old"
+         26          android:dataExtractionRules="@xml/backup_rules"
+         27          android:backupAgent=".AegisBackupAgent"
+   2. E5b266140 LIFECYCLE/standard*
+      AegisApplication.<init> -> Hilt_AegisApplication.onCreate
+      Application.onCreate: the Hilt-generated superclass onCreate runs first (Hilt injection), then AegisApplicationBase.onCreate
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:5740 (the system calls Application.onCreate); INFERRED Hilt rewrites the superclass: AegisApplication extends Hilt_AegisApplication (generated file, not in the source tree; source AegisApplication.java:6 has no onCreate)
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+   3. E1ef992ce CALL/explicit
+      Hilt_AegisApplication.onCreate -> AegisApplicationBase.onCreate
+      Direct call
+      evidence: INFERRED generated code (Hilt_AegisApplication.java is not in the source tree; the call is in the build class, line 43)
+   4. E88ed9829 ENTERS/page*
+      AegisApplicationBase.onCreate -> S_PROCESS
+      the application is created: the process can start a component
+      evidence: SRC AegisApplicationBase.java:45-67; FW-SRC core/java/android/app/ActivityThread.java:5740 (the system calls Application.onCreate)
+         45      public void onCreate() {
+         46          super.onCreate();
+         47          _vaultManager = EarlyEntryPoints.get(this, EntryPoint.class).getVaultManager();
+         48  
+         49          VaultLockReceiver lockReceiver = new VaultLockReceiver();
+         50          IntentFilter intentFilter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
+         51          ContextCompat.registerReceiver(this, lockReceiver, intentFilter, ContextCompat.RECEIVER_NOT_EXPORTED);
+         52  
+         53          // lock the app if the user moves the application to the background
+         54          ProcessLifecycleOwner.get().getLifecycle().addObserver(new AppLifecycleObserver());
+         55  
+         56          // clear the cache directory on startup, to make sure no temporary vault export files remain
+         57          IOUtils.clearDirectory(getCacheDir(), false);
+         58  
+      ...  (9 more lines)
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+   5. E28ffc58c ENTRY/standard*
+      S_PROCESS -> MainActivity.<init>
+      Tap the Aegis icon in the launcher (MAIN / LAUNCHER)
+      evidence: SRC AndroidManifest.xml:44-51
+         44              android:name=".ui.MainActivity"
+         45              android:exported="true"
+         46              android:label="${title}">
+         47              <intent-filter>
+         48                  <action android:name="android.intent.action.MAIN" />
+         49  
+         50                  <category android:name="android.intent.category.LAUNCHER" />
+         51              </intent-filter>
+   6. Eb76444fd LIFECYCLE/standard*
+      MainActivity.<init> -> MainActivity.onCreate
+      Activity.onCreate after the constructor
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731,2741 (the system calls Activity.onCreate, then performStart); SRC ui/MainActivity.java:192-194
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+        192      @Override
+        193      protected void onCreate(Bundle savedInstanceState) {
+        194          super.onCreate(savedInstanceState);
+   7. E3a06baed LIFECYCLE/standard*
+      MainActivity.onCreate -> MainActivity.onStart
+      Activity.onStart after onCreate
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731,2741 (the system calls Activity.onCreate, then performStart); SRC ui/MainActivity.java:938-940
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+        938      @Override
+        939      protected void onStart() {
+        940          super.onStart();
+   8. E20e76e09 CALL/explicit* [STATE: A plain-text vault file exists in the app data, saved by an earlier intro run that chose no security (cross-run state, no producer in this run; MainActivity.onStart reads it, MainActivity.java:951-973)]
+      MainActivity.onStart -> MainActivity.loadEntries
+      plain-text vault (intro chose no security): loaded in onStart
+      guard: the plain-text vault file is loaded earlier in this same onStart call (VaultManager.loadFrom, MainActivity.java:963-965) with no early return at 947, 960 or 971, isVaultLoaded() is true (MainActivity.java:976-977 not taken), and this instance has not loaded the list (else branch at 991-992; _loaded false at 978)
+      evidence: SRC ui/MainActivity.java:950-974,991-992
+        950          // If the vault is not loaded yet, try to load it now in case it's plain text
+        951          if (!_vaultManager.isVaultLoaded()) {
+        952              VaultFile vaultFile;
+        953              try {
+        954                  vaultFile = VaultRepository.readVaultFile(this);
+        955              } catch (VaultRepositoryException e) {
+        956                  e.printStackTrace();
+        957                  Dialogs.showErrorDialog(this, R.string.vault_load_error, e, (dialog, which) -> {
+        958                      finish();
+        959                  });
+        960                  return;
+        961              }
+        962  
+        963              if (!vaultFile.isEncrypted()) {
+      ...  (11 more lines)
+        991          } else {
+        992              loadEntries();
+   9. Ea76ae1a0 ENTERS/page*
+      MainActivity.loadEntries -> S_LIST
+      the list is shown (vault loaded, list loaded in this instance)
+      guard: list not yet loaded in this instance (_loaded false, MainActivity.java:1134) and the vault is loaded (getVault() throws when none is loaded, VaultManager.java:231-233): a producer of the loaded vault must come earlier on the route (the intro result, or an unlock)
+      evidence: SRC ui/MainActivity.java:1133-1144; SRC vault/VaultManager.java:231-233
+       1133      private void loadEntries() {
+       1134          if (!_loaded) {
+       1135              setGroups(_vaultManager.getVault().getUsedGroups());
+       1136              _entryListView.setUsageCounts(_prefs.getUsageCounts());
+       1137              _entryListView.setLastUsedTimestamps(_prefs.getLastUsedTimestamps());
+       1138              _entryListView.setEntries(_vaultManager.getVault().getEntries());
+       1139              if (!_isRecreated) {
+       1140                  _entryListView.runEntriesAnimation();
+       1141              }
+       1142              _loaded = true;
+       1143          }
+       1144      }
+        231      public VaultRepository getVault() {
+        232          if (!isVaultLoaded()) {
+        233              throw new IllegalStateException("Vault manager is not initialized");
+  10. E2e3490fc GUI/standard*
+      S_LIST -> FabMenuHelper.lambda$setupClickListeners$0
+      Tap the + floating button (opens the menu)
+      evidence: FW-SRC core/java/android/view/View.java:6289-6296 (performClick calls the OnClickListener.onClick); SRC helpers/FabMenuHelper.java:55
+      (core/java/android/view/View.java not found in the source tree)
+         55          _mainFab.setOnClickListener(v -> toggle());
+  11. Eebad02db CALL/explicit*
+      FabMenuHelper.lambda$setupClickListeners$0 -> FabMenuHelper.toggle
+      Direct call
+      evidence: SRC FabMenuHelper.java:55 (bytecode)
+         55          _mainFab.setOnClickListener(v -> toggle());
+  12. E554aee35 CALL/explicit*
+      FabMenuHelper.toggle -> FabMenuHelper.open
+      the closed floating menu is opened by toggle
+      guard: _isOpen is false: the else branch of toggle (FabMenuHelper.java:69-73)
+      evidence: SRC helpers/FabMenuHelper.java:68-74
+         68      public void toggle() {
+         69          if (_isOpen) {
+         70              close();
+         71          } else {
+         72              open();
+         73          }
+         74      }
+  13. E75d0fba5 FRAMEWORK/standard* [STATE: The floating action menu is open (FabMenuHelper.open ran; FabMenuHelper.java:76-102)]
+      FabMenuHelper.open -> FabMenuHelper.lambda$setupClickListeners$2
+      Tap a menu item (scan, scan image or enter) while the menu is open
+      evidence: FW-SRC core/java/android/view/View.java:6289-6296 (performClick calls the OnClickListener.onClick); SRC helpers/FabMenuHelper.java:59-64
+      (core/java/android/view/View.java not found in the source tree)
+         59              action.setOnClickListener(v -> {
+         60                  if (onClick != null) {
+         61                      onClick.run();
+         62                  }
+         63                  close();
+         64              });
+  14. E0979a03c CALL/non_standard(java.lang.Runnable.run (the method reference this::startEditEntryActivity, MainActivity.java:256))
+      FabMenuHelper.lambda$setupClickListeners$2 -> MainActivity.startEditEntryActivity()
+      the enter item runs its Runnable: startEditEntryActivity
+      evidence: SRC helpers/FabMenuHelper.java:60-63; SRC ui/MainActivity.java:256
+         60                  if (onClick != null) {
+         61                      onClick.run();
+         62                  }
+         63                  close();
+        256          actions.put(fabMenuLayout.findViewById(R.id.fab_menu_item_enter), this::startEditEntryActivity);
+  15. Ec66f5e2c CALL/explicit*
+      MainActivity.startEditEntryActivity() -> MainActivity.startEditEntryActivityForManual
+      no usable clipboard URI: the manual entry page opens
+      guard: the clipboard holds no text (readText returns null, MainActivity.java:476) or the text is not an otpauth URI (parseUri throws GoogleAuthInfoException, caught at 494-496)
+      evidence: SRC ui/MainActivity.java:475-476,494-499
+        475          String clip = ClipboardUtils.readText(this);
+        476          if (clip != null) {
+        494              } catch (GoogleAuthInfoException e) {
+        495                  Log.i("EntryActivity", "Clipboard did not contain a valid otpauth URI", e);
+        496              }
+        497          }
+        498  
+        499          startEditEntryActivityForManual();
+  16. E6597c1f8 INTENT/standard*
+      MainActivity.startEditEntryActivityForManual -> EditEntryActivity.<init>
+      the add-entry page opens for a manual entry (isManual true)
+      evidence: SRC ui/MainActivity.java:509-514; INFERRED androidx.activity.result: the launcher callback runs with the result (androidx source not cached)
+        509      private void startEditEntryActivityForManual() {
+        510          Intent intent = new Intent(this, EditEntryActivity.class);
+        511          intent.putExtra("newEntry", VaultEntry.getDefault());
+        512          intent.putExtra("isManual", true);
+        513          addEntryResultLauncher.launch(intent);
+        514      }
+  17. Ee228ce53 LIFECYCLE/standard*
+      EditEntryActivity.<init> -> EditEntryActivity.onCreate
+      Activity.onCreate of the add or edit page
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731,2741 (the system calls Activity.onCreate, then performStart); SRC ui/EditEntryActivity.java:165
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+        165      protected void onCreate(Bundle savedInstanceState) {
+  18. Ef6ab7dd8 FRAMEWORK/standard*
+      EditEntryActivity.onCreate -> EditEntryActivity.onCreateOptionsMenu
+      the toolbar menu is created after onCreate
+      evidence: INFERRED androidx.appcompat: onCreateOptionsMenu runs after onCreate, onOptionsItemSelected on a menu tap (source not read); SRC ui/EditEntryActivity.java:656-660
+        656      public boolean onCreateOptionsMenu(Menu menu) {
+        657          getMenuInflater().inflate(R.menu.menu_edit, menu);
+        658          if (_isNew) {
+        659              menu.findItem(R.id.action_delete).setVisible(false);
+        660          }
+  19. E69bb265a FRAMEWORK/standard*
+      EditEntryActivity.onCreateOptionsMenu -> EditEntryActivity.onOptionsItemSelected
+      Tap a toolbar item: save, delete, discard, or reset the usage count (a menu tap)
+      evidence: INFERRED androidx.appcompat: a tap on a toolbar menu item calls onOptionsItemSelected (source not read); SRC ui/EditEntryActivity.java:535-552
+        535      public boolean onOptionsItemSelected(MenuItem item) {
+        536          int itemId = item.getItemId();
+        537          if (itemId == android.R.id.home) {
+        538              discardAndFinish();
+        539          } else if (itemId == R.id.action_save) {
+        540              onSave();
+        541          } else if (itemId == R.id.action_delete) {
+        542              Dialogs.showDeleteEntriesDialog(this, Collections.singletonList(_origEntry), (dialog, which) -> {
+        543                  deleteAndFinish(_origEntry);
+        544              });
+        545          } else if (itemId == R.id.action_edit_icon) {
+        546              startIconSelection();
+        547          } else if (itemId == R.id.action_reset_usage_count) {
+        548              Dialogs.showSecureDialog(new MaterialAlertDialogBuilder(this)
+      ...  (4 more lines)
+  20. E21603312 FRAMEWORK/standard*
+      EditEntryActivity.onOptionsItemSelected -> EditEntryActivity.lambda$onOptionsItemSelected$18
+      Tap Yes in the delete dialog (the entry is deleted)
+      guard: the page edits an existing entry: the delete item is hidden for a new entry (EditEntryActivity.java:658-659, onCreateOptionsMenu)
+      evidence: FW-SRC core/java/android/view/View.java:6289-6296 (performClick calls the OnClickListener.onClick); SRC ui/EditEntryActivity.java:542-545; SRC ui/dialogs/Dialogs.java (showDeleteEntriesDialog)
+      (core/java/android/view/View.java not found in the source tree)
+        542              Dialogs.showDeleteEntriesDialog(this, Collections.singletonList(_origEntry), (dialog, which) -> {
+        543                  deleteAndFinish(_origEntry);
+        544              });
+        545          } else if (itemId == R.id.action_edit_icon) {
+      (ui/dialogs/Dialogs.java: no line numbers)
+  21. E94c17e0d CALL/explicit*
+      EditEntryActivity.lambda$onOptionsItemSelected$18 -> EditEntryActivity.deleteAndFinish
+      Direct call
+      evidence: SRC EditEntryActivity.java:543 (bytecode)
+        543                  deleteAndFinish(_origEntry);
+  22. E92b148c8 CALL/explicit*
+      EditEntryActivity.deleteAndFinish -> EditEntryActivity.saveAndFinish
+      Direct call
+      evidence: SRC EditEntryActivity.java:695 (bytecode)
+        695          saveAndFinish(entry, true);
+  23. E58ce4492 RESULT/standard*
+      EditEntryActivity.saveAndFinish -> MainActivity.lambda$new$6
+      setResult(RESULT_OK) and finish after a new entry is saved: the add launcher runs
+      guard: the vault backup succeeds (saveAndBackupVault() returned true, EditEntryActivity.java:703) and delete is false (saveAndFinish from addAndFinish, EditEntryActivity.java:680)
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:4253-4265 (deliverResults passes each result to dispatchActivityResult of the starting activity); SRC ui/EditEntryActivity.java:698-706; SRC ui/MainActivity.java:178-184
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+        698      private void saveAndFinish(VaultEntry entry, boolean delete) {
+        699          Intent intent = new Intent();
+        700          intent.putExtra("entryUUID", entry.getUUID());
+        701          intent.putExtra("delete", delete);
+        702  
+        703          if (saveAndBackupVault()) {
+        704              setResult(RESULT_OK, intent);
+        705              finish();
+        706          }
+        178              registerForActivityResult(new StartActivityForResult(), activityResult -> {
+        179                  if (activityResult.getResultCode() != RESULT_OK || activityResult.getData() == null) {
+        180                      return;
+        181                  }
+        182                  onAddEntryResult(activityResult.getData());
+        183              });
+        184  
+  24. E16eb2dbc CALL/explicit
+      MainActivity.lambda$new$6 -> MainActivity.onAddEntryResult
+      the add-entry result is handled: the new entry is added to the list
+      guard: result RESULT_OK with data (MainActivity.java:179-180)
+      evidence: SRC ui/MainActivity.java:179-182
+        179                  if (activityResult.getResultCode() != RESULT_OK || activityResult.getData() == null) {
+        180                      return;
+        181                  }
+        182                  onAddEntryResult(activityResult.getData());
+  25. E3d6ab8a1 CALL/explicit*
+      MainActivity.onAddEntryResult -> EntryListView.onEntryAdded
+      the new entry is shown in the list at once
+      guard: the list is loaded: _loaded is true (MainActivity.java:619)
+      evidence: SRC ui/MainActivity.java:618-623
+        618      private void onAddEntryResult(Intent data) {
+        619          if (_loaded) {
+        620              UUID entryUUID = (UUID) data.getSerializableExtra("entryUUID");
+        621              VaultEntry entry = _vaultManager.getVault().getEntryByUUID(entryUUID);
+        622              _entryListView.setEntries(_vaultManager.getVault().getEntries());
+        623              _entryListView.onEntryAdded(entry);
+  26. E59ee7c4c CALL/explicit*
+      EntryListView.onEntryAdded -> EntryListView.tempHighlightEntry
+      the entry is on screen: the highlight starts at once
+      guard: valid position (EntryListView.java:444-446) and no scroll needed (the scroll test at 449-450 is false, so the else at 490 runs)
+      evidence: SRC ui/views/EntryListView.java:444-446,449-450,490-491
+        444          if (position < 0) {
+        445              return;
+        446          }
+        449          if ((_recyclerView.canScrollVertically(1) && position > layoutManager.findLastCompletelyVisibleItemPosition())
+        450                  || (_recyclerView.canScrollVertically(-1) && position < layoutManager.findFirstCompletelyVisibleItemPosition())) {
+        490          } else {
+        491              tempHighlightEntry(entry);
+  27. Eb404a7df CALL/explicit*
+      EntryListView.tempHighlightEntry -> EntryAdapter.setTempHighlightEntry
+      Direct call
+      evidence: SRC EntryListView.java:496 (bytecode)
+        496          _adapter.setTempHighlightEntry(true);
+

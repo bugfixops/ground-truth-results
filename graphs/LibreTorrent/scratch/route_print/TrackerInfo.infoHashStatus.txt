@@ -1,0 +1,1247 @@
+METHOD: TrackerInfo.infoHashStatus
+verdict: REACHABLE   steps_from_launch: 31
+route steps: 31 edges
+======================================================================
+
+STEP 1  edge Ef4711e98
+  S_ENTRY -> MainActivity.onCreate
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: android:exported="true"
+  evidence: SRC AndroidManifest.xml:43-59; FW-SRC core/java/android/app/ActivityThread.java:2727-2732; core/java/android/app/Instrumentation.java:1212-1215
+  cite [SRC] AndroidManifest.xml:43-59
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/AndroidManifest.xml)
+       43:         <activity android:name=".ui.main.MainActivity"
+       44:             android:theme="@style/AppTheme.Launcher"
+       45:             android:exported="true">
+       46:             <meta-data
+       47:                 android:name="android.app.shortcuts"
+       48:                 android:resource="@xml/shortcuts" />
+       49:             <meta-data android:name="android.app.searchable"
+       50:                 android:resource="@xml/searchable"/>
+       51: 
+       52:             <intent-filter>
+       53:                 <action android:name="android.intent.action.MAIN" />
+       54:                 <category android:name="android.intent.category.LAUNCHER" />
+       55:                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+       56:             </intent-filter>
+       57:             <intent-filter>
+       58:                 <action android:name="android.intent.action.SEARCH" />
+       59:             </intent-filter>
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2727-2732
+     2727:                 activity.mCalled = false;
+     2728:                 if (r.isPersistable()) {
+     2729:                     mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+     2730:                 } else {
+     2731:                     mInstrumentation.callActivityOnCreate(activity, r.state);
+     2732:                 }
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1212-1215
+     1212:     public void callActivityOnCreate(Activity activity, Bundle icicle) {
+     1213:         prePerformCreate(activity);
+     1214:         activity.performCreate(icicle);
+     1215:         postPerformCreate(activity);
+
+STEP 2  edge Ed8e7f5f9
+  MainActivity.onCreate -> MainFragment.<init>
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX FragmentContainerView class inflation; SRC ui/main/MainActivity.java:182-185; res/values/layouts.xml:1-4; res/values-large-land-notouch/layouts.xml:1-4; res/layout/activity_main_drawer.xml:22-28; res/layout/activity_main_two_pane.xml:26-32; ui/main/MainFragment.java:85-87
+  cite [SRC] ui/main/MainActivity.java:182-185
+      182:         setContentView(R.layout.activity_main);
+      183: 
+      184:         mainFragment = (MainFragment) getSupportFragmentManager()
+      185:                 .findFragmentById(R.id.main_fragmentContainer);
+  cite [SRC] res/values/layouts.xml:1-4
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/res/values/layouts.xml)
+        1: <?xml version="1.0" encoding="utf-8"?>
+        2: <resources>
+        3:     <item name="activity_main" type="layout">@layout/activity_main_drawer</item>
+        4:     <item name="activity_feed" type="layout">@layout/activity_feed_portrait</item>
+  cite [SRC] res/values-large-land-notouch/layouts.xml:1-4
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/res/values-large-land-notouch/layouts.xml)
+        1: <?xml version="1.0" encoding="utf-8"?>
+        2: <resources>
+        3:     <item name="activity_main" type="layout">@layout/activity_main_two_pane</item>
+        4:     <item name="activity_feed" type="layout">@layout/activity_feed_two_pane</item>
+  cite [SRC] res/layout/activity_main_drawer.xml:22-28
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/res/layout/activity_main_drawer.xml)
+       22:             <androidx.fragment.app.FragmentContainerView
+       23:                 class="org.proninyaroslav.libretorrent.ui.main.MainFragment"
+       24:                 android:id="@+id/main_fragmentContainer"
+       25:                 android:layout_width="match_parent"
+       26:                 android:layout_height="match_parent"
+       27:                 android:layout_below="@id/toolbar" />
+       28:         </RelativeLayout>
+  cite [SRC] res/layout/activity_main_two_pane.xml:26-32
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/res/layout/activity_main_two_pane.xml)
+       26:             <androidx.fragment.app.FragmentContainerView
+       27:                 class="org.proninyaroslav.libretorrent.ui.main.MainFragment"
+       28:                 android:id="@+id/main_fragmentContainer"
+       29:                 android:layout_width="match_parent"
+       30:                 android:layout_height="match_parent"
+       31:                 android:layout_below="@id/toolbar" />
+       32:         </RelativeLayout>
+  cite [SRC] ui/main/MainFragment.java:85-87
+       85: public class MainFragment extends Fragment
+       86:         implements TorrentListAdapter.ClickListener
+       87: {
+
+STEP 3  edge Ee453d286
+  MainFragment.<init> -> MainFragment.onAttach
+  class: non_standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX FragmentManager lifecycle dispatch; SRC ui/main/MainFragment.java:85-87,223-230
+  cite [SRC] ui/main/MainFragment.java:85-87, 223-230
+       85: public class MainFragment extends Fragment
+       86:         implements TorrentListAdapter.ClickListener
+       87: {
+      223:     @Override
+      224:     public void onAttach(@NonNull Context context)
+      225:     {
+      226:         super.onAttach(context);
+      227: 
+      228:         if (context instanceof AppCompatActivity)
+      229:             activity = (AppCompatActivity)context;
+      230:     }
+
+STEP 4  edge E28c54333
+  MainFragment.onAttach -> MainFragment.onCreateView
+  class: non_standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX FragmentManager lifecycle dispatch; SRC ui/main/MainFragment.java:223-230,113-122
+  cite [SRC] ui/main/MainFragment.java:223-230, 113-122
+      223:     @Override
+      224:     public void onAttach(@NonNull Context context)
+      225:     {
+      226:         super.onAttach(context);
+      227: 
+      228:         if (context instanceof AppCompatActivity)
+      229:             activity = (AppCompatActivity)context;
+      230:     }
+      113:     @Nullable
+      114:     @Override
+      115:     public View onCreateView(@NonNull LayoutInflater inflater,
+      116:                              @Nullable ViewGroup container,
+      117:                              @Nullable Bundle savedInstanceState)
+      118:     {
+      119:         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_main, container, false);
+      120: 
+      121:         return binding.getRoot();
+      122:     }
+
+STEP 5  edge E2e46bfdf
+  MainFragment.onCreateView -> MainFragment.onViewCreated
+  class: non_standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX FragmentManager lifecycle dispatch; SRC ui/main/MainFragment.java:115-127
+  cite [SRC] ui/main/MainFragment.java:115-127
+      115:     public View onCreateView(@NonNull LayoutInflater inflater,
+      116:                              @Nullable ViewGroup container,
+      117:                              @Nullable Bundle savedInstanceState)
+      118:     {
+      119:         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_main, container, false);
+      120: 
+      121:         return binding.getRoot();
+      122:     }
+      123: 
+      124:     @Override
+      125:     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+      126:         super.onViewCreated(view, savedInstanceState);
+      127: 
+
+STEP 6  edge E3b5adb16
+  MainFragment.onViewCreated -> TorrentListAdapter.onBindViewHolder
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX RecyclerView invokes adapter binding; SRC ui/main/MainFragment.java:136-155; ui/main/TorrentListAdapter.java:74-104
+  cite [SRC] ui/main/MainFragment.java:136-155
+      136:         adapter = new TorrentListAdapter(this);
+      137:         /*
+      138:          * A RecyclerView by default creates another copy of the ViewHolder in order to
+      139:          * fade the views into each other. This causes the problem because the old ViewHolder gets
+      140:          * the payload but then the new one doesn't. So needs to explicitly tell it to reuse the old one.
+      141:          */
+      142:         DefaultItemAnimator animator = new DefaultItemAnimator() {
+      143:             @Override
+      144:             public boolean canReuseUpdatedViewHolder(@NonNull RecyclerView.ViewHolder viewHolder) {
+      145:                 return true;
+      146:             }
+      147:         };
+      148:         layoutManager = new LinearLayoutManager(activity);
+      149:         binding.torrentList.setLayoutManager(layoutManager);
+      150:         binding.torrentList.setItemAnimator(animator);
+      151:         binding.torrentList.setEmptyView(binding.emptyViewTorrentList);
+      152:         TypedArray a = activity.obtainStyledAttributes(new TypedValue().data, new int[]{R.attr.divider});
+      153:         binding.torrentList.addItemDecoration(new RecyclerViewDividerDecoration(a.getDrawable(0)));
+      154:         a.recycle();
+      155:         binding.torrentList.setAdapter(adapter);
+  cite [SRC] ui/main/TorrentListAdapter.java:74-104
+       74:     @NonNull
+       75:     @Override
+       76:     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType)
+       77:     {
+       78:         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+       79:         ItemTorrentListBinding binding = DataBindingUtil.inflate(inflater,
+       80:                 R.layout.item_torrent_list,
+       81:                 parent,
+       82:                 false);
+       83: 
+       84:         return new ViewHolder(binding);
+       85:     }
+       86: 
+       87:     @Override
+       88:     public void onBindViewHolder(@NonNull ViewHolder holder, int position)
+       89:     {
+       90:         onBind = true;
+       91: 
+       92:         TorrentListItem item = getItem(position);
+       93: 
+       94:         if (selectionTracker != null)
+       95:             holder.setSelected(selectionTracker.isSelected(item));
+       96: 
+       97:         boolean isOpened = false;
+       98:         TorrentListItem currTorrent = currOpenTorrent.get();
+       99:         if (currTorrent != null)
+      100:             isOpened = item.torrentId.equals(currTorrent.torrentId);
+      101: 
+      102:         holder.bind(item, isOpened, listener);
+      103: 
+      104:         onBind = false;
+
+STEP 7  edge E9d948322
+  TorrentListAdapter.onBindViewHolder -> TorrentListAdapter$ViewHolder.bind
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/main/TorrentListAdapter.java:88-104,171-202
+  cite [SRC] ui/main/TorrentListAdapter.java:88-104, 171-202
+       88:     public void onBindViewHolder(@NonNull ViewHolder holder, int position)
+       89:     {
+       90:         onBind = true;
+       91: 
+       92:         TorrentListItem item = getItem(position);
+       93: 
+       94:         if (selectionTracker != null)
+       95:             holder.setSelected(selectionTracker.isSelected(item));
+       96: 
+       97:         boolean isOpened = false;
+       98:         TorrentListItem currTorrent = currOpenTorrent.get();
+       99:         if (currTorrent != null)
+      100:             isOpened = item.torrentId.equals(currTorrent.torrentId);
+      101: 
+      102:         holder.bind(item, isOpened, listener);
+      103: 
+      104:         onBind = false;
+      171:         void bind(TorrentListItem item, boolean isOpened, ClickListener listener)
+      172:         {
+      173:             Context context = itemView.getContext();
+      174:             selectionKey = item;
+      175: 
+      176:             TypedArray a = context.obtainStyledAttributes(new TypedValue().data, new int[] {
+      177:                     R.attr.selectableColor,
+      178:                     R.attr.defaultRectRipple
+      179:             });
+      180:             Drawable d;
+      181:             if (isSelected)
+      182:                 d = a.getDrawable(0);
+      183:             else
+      184:                 d = a.getDrawable(1);
+      185:             if (d != null)
+      186:                 Utils.setBackground(itemView, d);
+      187:             a.recycle();
+      188: 
+      189:             itemView.setOnClickListener((v) -> {
+      190:                 /* Skip selecting and deselecting */
+      191:                 if (isSelected)
+      192:                     return;
+      193: 
+      194:                 if (listener != null)
+      195:                     listener.onItemClicked(item);
+      196:             });
+      197: 
+      198:             setPauseButtonState(item.stateCode == TorrentStateCode.PAUSED);
+      199:             binding.pause.setOnClickListener((v) -> {
+      200:                 if (listener != null)
+      201:                     listener.onItemPauseClicked(item);
+      202:             });
+
+STEP 8  edge Ef521ec44
+  TorrentListAdapter$ViewHolder.bind -> TorrentListAdapter$ViewHolder.lambda$bind$0
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/main/TorrentListAdapter.java:189-196; FW-SRC core/java/android/view/View.java:6289-6305
+  cite [SRC] ui/main/TorrentListAdapter.java:189-196
+      189:             itemView.setOnClickListener((v) -> {
+      190:                 /* Skip selecting and deselecting */
+      191:                 if (isSelected)
+      192:                     return;
+      193: 
+      194:                 if (listener != null)
+      195:                     listener.onItemClicked(item);
+      196:             });
+  cite [FW-SRC] core/java/android/view/View.java:6289-6305
+     6289:     public boolean performClick() {
+     6290:         final boolean result;
+     6291:         final ListenerInfo li = mListenerInfo;
+     6292:         if (li != null && li.mOnClickListener != null) {
+     6293:             playSoundEffect(SoundEffectConstants.CLICK);
+     6294:             li.mOnClickListener.onClick(this);
+     6295:             result = true;
+     6296:         } else {
+     6297:             result = false;
+     6298:         }
+     6299: 
+     6300:         sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_CLICKED);
+     6301: 
+     6302:         notifyEnterOrExitForAutoFillIfNeeded(true);
+     6303: 
+     6304:         return result;
+     6305:     }
+
+STEP 9  edge Efe87970e
+  TorrentListAdapter$ViewHolder.lambda$bind$0 -> MainFragment.onItemClicked
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/main/TorrentListAdapter.java:189-196; ui/main/MainFragment.java:378-384
+  cite [SRC] ui/main/TorrentListAdapter.java:189-196
+      189:             itemView.setOnClickListener((v) -> {
+      190:                 /* Skip selecting and deselecting */
+      191:                 if (isSelected)
+      192:                     return;
+      193: 
+      194:                 if (listener != null)
+      195:                     listener.onItemClicked(item);
+      196:             });
+  cite [SRC] ui/main/MainFragment.java:378-384
+      378:     @Override
+      379:     public void onItemClicked(@NonNull TorrentListItem item)
+      380:     {
+      381:         if (Utils.isTwoPane(activity))
+      382:             adapter.markAsOpen(item);
+      383:         msgViewModel.torrentDetailsOpened(item.torrentId);
+      384:     }
+
+STEP 10  edge Ee6073c26
+  MainFragment.onItemClicked -> MsgMainViewModel.torrentDetailsOpened
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/main/MainFragment.java:378-384
+  cite [SRC] ui/main/MainFragment.java:378-384
+      378:     @Override
+      379:     public void onItemClicked(@NonNull TorrentListItem item)
+      380:     {
+      381:         if (Utils.isTwoPane(activity))
+      382:             adapter.markAsOpen(item);
+      383:         msgViewModel.torrentDetailsOpened(item.torrentId);
+      384:     }
+
+STEP 11  edge E9fb4a1ea
+  MsgMainViewModel.torrentDetailsOpened -> MainActivity.showDetailTorrent
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED RxJava PublishSubject observer delivery; SRC ui/main/MsgMainViewModel.java:30-40; ui/main/MainActivity.java:437-440; ui/main/MainFragment.java:378-384
+  cite [SRC] ui/main/MsgMainViewModel.java:30-40
+       30:     private PublishSubject<String> torrentDetailsOpenedEvents = PublishSubject.create();
+       31:     private PublishSubject<Boolean> torrentDetailsClosedEvents = PublishSubject.create();
+       32: 
+       33:     public void torrentDetailsOpened(@NonNull String id)
+       34:     {
+       35:         torrentDetailsOpenedEvents.onNext(id);
+       36:     }
+       37: 
+       38:     public Observable<String> observeTorrentDetailsOpened()
+       39:     {
+       40:         return torrentDetailsOpenedEvents;
+  cite [SRC] ui/main/MainActivity.java:437-440
+      437:     private void subscribeMsgViewModel() {
+      438:         disposables.add(msgViewModel.observeTorrentDetailsOpened()
+      439:                 .observeOn(AndroidSchedulers.mainThread())
+      440:                 .subscribe(this::showDetailTorrent));
+  cite [SRC] ui/main/MainFragment.java:378-384
+      378:     @Override
+      379:     public void onItemClicked(@NonNull TorrentListItem item)
+      380:     {
+      381:         if (Utils.isTwoPane(activity))
+      382:             adapter.markAsOpen(item);
+      383:         msgViewModel.torrentDetailsOpened(item.torrentId);
+      384:     }
+
+STEP 12  edge E883c34be
+  MainActivity.showDetailTorrent -> DetailTorrentActivity.onCreate
+  class: standard   kind: INTENT
+  guard: !Utils.isTwoPane(this)
+  needs_state: None
+  env: None
+  evidence: SRC ui/main/MainActivity.java:669-673; AndroidManifest.xml:139; FW-SRC core/java/android/app/ActivityThread.java:2727-2732; core/java/android/app/Instrumentation.java:1212-1215
+  cite [SRC] ui/main/MainActivity.java:669-673
+      669:         } else {
+      670:             Intent i = new Intent(this, DetailTorrentActivity.class);
+      671:             i.putExtra(DetailTorrentActivity.TAG_TORRENT_ID, id);
+      672:             startActivity(i);
+      673:         }
+  cite [SRC] AndroidManifest.xml:139
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/AndroidManifest.xml)
+      139:         <activity android:name=".ui.detailtorrent.DetailTorrentActivity" />
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2727-2732
+     2727:                 activity.mCalled = false;
+     2728:                 if (r.isPersistable()) {
+     2729:                     mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+     2730:                 } else {
+     2731:                     mInstrumentation.callActivityOnCreate(activity, r.state);
+     2732:                 }
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1212-1215
+     1212:     public void callActivityOnCreate(Activity activity, Bundle icicle) {
+     1213:         prePerformCreate(activity);
+     1214:         activity.performCreate(icicle);
+     1215:         postPerformCreate(activity);
+
+STEP 13  edge E87241f3c
+  DetailTorrentActivity.onCreate -> DetailTorrentFragment.onAttach
+  class: non_standard   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED framework dispatch; SRC ui/detailtorrent/DetailTorrentActivity.java:53-78; SRC ui/detailtorrent/DetailTorrentFragment.java:139-145
+  cite [SRC] ui/detailtorrent/DetailTorrentActivity.java:53-78
+       53:     protected void onCreate(@Nullable Bundle savedInstanceState)
+       54:     {
+       55:         setTheme(Utils.getAppTheme(getApplicationContext()));
+       56:         super.onCreate(savedInstanceState);
+       57: 
+       58:         if (Utils.isTwoPane(this)) {
+       59:             finish();
+       60:             return;
+       61:         }
+       62: 
+       63:         setContentView(R.layout.activity_detail_torrent);
+       64: 
+       65:         infoProvider = TorrentInfoProvider.getInstance(getApplicationContext());
+       66: 
+       67:         detailTorrentFragment = (DetailTorrentFragment)getSupportFragmentManager()
+       68:                 .findFragmentById(R.id.detail_torrent_fragmentContainer);
+       69: 
+       70:         if (detailTorrentFragment != null)
+       71:             detailTorrentFragment.setTorrentId(getIntent().getStringExtra(TAG_TORRENT_ID));
+       72: 
+       73:         if (ACTION_OPEN_FILES.equals(getIntent().getAction())) {
+       74:             getIntent().setAction(null);
+       75:             detailTorrentFragment.showFiles();
+       76:         }
+       77:     }
+       78: 
+  cite [SRC] ui/detailtorrent/DetailTorrentFragment.java:139-145
+      139:     public void onAttach(@NonNull Context context)
+      140:     {
+      141:         super.onAttach(context);
+      142: 
+      143:         if (context instanceof AppCompatActivity)
+      144:             activity = (AppCompatActivity)context;
+      145:     }
+
+STEP 14  edge E2c864273
+  DetailTorrentFragment.onAttach -> DetailTorrentFragment.onCreateView
+  class: non_standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX Fragment lifecycle dispatch; SRC ui/detailtorrent/DetailTorrentFragment.java:147-153
+  cite [SRC] ui/detailtorrent/DetailTorrentFragment.java:147-153
+      147:     @Override
+      148:     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+      149:     {
+      150:         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_detail_torrent, container, false);
+      151: 
+      152:         return binding.getRoot();
+      153:     }
+
+STEP 15  edge Efd617da3
+  DetailTorrentFragment.onCreateView -> DetailTorrentFragment.onViewCreated
+  class: non_standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX FragmentManager lifecycle dispatch; SRC ui/detailtorrent/DetailTorrentFragment.java:155-221
+  cite [SRC] ui/detailtorrent/DetailTorrentFragment.java:155-221
+      155:     @Override
+      156:     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+      157:         super.onViewCreated(view, savedInstanceState);
+      158: 
+      159:         if (activity == null)
+      160:             activity = (AppCompatActivity)getActivity();
+      161: 
+      162:         ViewModelProvider provider = new ViewModelProvider(activity);
+      163:         viewModel = provider.get(DetailTorrentViewModel.class);
+      164:         /* Remove previous data if fragment changed */
+      165:         if (Utils.isTwoPane(activity))
+      166:             viewModel.clearData();
+      167:         viewModel.setTorrentId(torrentId);
+      168:         msgViewModel = provider.get(MsgDetailTorrentViewModel.class);
+      169: 
+      170:         if (Utils.isTwoPane(activity)) {
+      171:             binding.appbar.toolbar.inflateMenu(R.menu.detail_torrent);
+      172:             binding.appbar.toolbar.setNavigationIcon(ContextCompat.getDrawable(activity.getApplicationContext(),
+      173:                     R.drawable.ic_arrow_back_white_24dp));
+      174:             binding.appbar.toolbar.setOnMenuItemClickListener(this::onOptionsItemSelected);
+      175: 
+      176:         } else {
+      177:             binding.appbar.toolbar.setTitle(R.string.details);
+      178:             activity.setSupportActionBar(binding.appbar.toolbar);
+      179:             setHasOptionsMenu(true);
+      180:             if (activity.getSupportActionBar() != null)
+      181:                 activity.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+      182:         }
+      183:         binding.appbar.toolbar.setNavigationOnClickListener((v) -> onBackPressed());
+      184: 
+      185:         adapter = new DetailPagerAdapter(this);
+      186:         binding.fragmentViewpager.setAdapter(adapter);
+      187:         binding.fragmentViewpager.registerOnPageChangeCallback(viewPagerListener);
+      188:         new TabLayoutMediator(binding.appbar.tabLayout, binding.fragmentViewpager,
+      189:                 (tab, position) -> {
+      190:                     switch (position) {
+      191:                         case DetailPagerAdapter.INFO_FRAG_POS:
+      192:                             tab.setText(R.string.torrent_info);
+      193:                             break;
+      194:                         case DetailPagerAdapter.STATE_FRAG_POS:
+      195:                             tab.setText(R.string.torrent_state);
+      196:                             break;
+      197:                         case DetailPagerAdapter.FILES_FRAG_POS:
+      198:                             tab.setText(R.string.torrent_files);
+      199:                             break;
+      200:                         case DetailPagerAdapter.TRACKERS_FRAG_POS:
+      201:                             tab.setText(R.string.torrent_trackers);
+      202:                             break;
+      203:                         case DetailPagerAdapter.PEERS_FRAG_POS:
+      204:                             tab.setText(R.string.torrent_peers);
+      205:                             break;
+      206:                         case DetailPagerAdapter.PIECES_FRAG_POS:
+      207:                             tab.setText(R.string.torrent_pieces);
+      208:                             break;
+      209:                     }
+      210:                 }
+      211:         ).attach();
+      212:         binding.fragmentViewpager.setCurrentItem(currentFragPos);
+      213: 
+      214:         FragmentManager fm = getChildFragmentManager();
+      215:         deleteTorrentDialog = (BaseAlertDialog)fm.findFragmentByTag(TAG_DELETE_TORRENT_DIALOG);
+      216:         errReportDialog = (ErrorReportDialog)fm.findFragmentByTag(TAG_ERR_REPORT_DIALOG);
+      217:         addTrackersDialog = (BaseAlertDialog)fm.findFragmentByTag(TAG_ADD_TRACKERS_DIALOG);
+      218:         speedLimitDialog = (BaseAlertDialog)fm.findFragmentByTag(TAG_SPEED_LIMIT_DIALOG);
+      219: 
+      220:         dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+      221:     }
+
+STEP 16  edge E00bf2e7e
+  DetailTorrentFragment.onViewCreated -> DetailPagerAdapter.createFragment
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX ViewPager2 dispatch; SRC ui/detailtorrent/DetailTorrentFragment.java:185-212; ui/detailtorrent/DetailPagerAdapter.java:48-73
+  cite [SRC] ui/detailtorrent/DetailTorrentFragment.java:185-212
+      185:         adapter = new DetailPagerAdapter(this);
+      186:         binding.fragmentViewpager.setAdapter(adapter);
+      187:         binding.fragmentViewpager.registerOnPageChangeCallback(viewPagerListener);
+      188:         new TabLayoutMediator(binding.appbar.tabLayout, binding.fragmentViewpager,
+      189:                 (tab, position) -> {
+      190:                     switch (position) {
+      191:                         case DetailPagerAdapter.INFO_FRAG_POS:
+      192:                             tab.setText(R.string.torrent_info);
+      193:                             break;
+      194:                         case DetailPagerAdapter.STATE_FRAG_POS:
+      195:                             tab.setText(R.string.torrent_state);
+      196:                             break;
+      197:                         case DetailPagerAdapter.FILES_FRAG_POS:
+      198:                             tab.setText(R.string.torrent_files);
+      199:                             break;
+      200:                         case DetailPagerAdapter.TRACKERS_FRAG_POS:
+      201:                             tab.setText(R.string.torrent_trackers);
+      202:                             break;
+      203:                         case DetailPagerAdapter.PEERS_FRAG_POS:
+      204:                             tab.setText(R.string.torrent_peers);
+      205:                             break;
+      206:                         case DetailPagerAdapter.PIECES_FRAG_POS:
+      207:                             tab.setText(R.string.torrent_pieces);
+      208:                             break;
+      209:                     }
+      210:                 }
+      211:         ).attach();
+      212:         binding.fragmentViewpager.setCurrentItem(currentFragPos);
+  cite [SRC] ui/detailtorrent/DetailPagerAdapter.java:48-73
+       48:         super(fragment);
+       49:     }
+       50: 
+       51:     @NonNull
+       52:     @Override
+       53:     public Fragment createFragment(int position) {
+       54:         switch (position) {
+       55:             case INFO_FRAG_POS:
+       56:                 return DetailTorrentInfoFragment.newInstance();
+       57:             case STATE_FRAG_POS:
+       58:                 return DetailTorrentStateFragment.newInstance();
+       59:             case FILES_FRAG_POS:
+       60:                 return DetailTorrentFilesFragment.newInstance();
+       61:             case TRACKERS_FRAG_POS:
+       62:                 return DetailTorrentTrackersFragment.newInstance();
+       63:             case PEERS_FRAG_POS:
+       64:                 return DetailTorrentPeersFragment.newInstance();
+       65:             case PIECES_FRAG_POS:
+       66:                 return DetailTorrentPiecesFragment.newInstance();
+       67:             default:
+       68:                 return new Fragment();
+       69:         }
+       70:     }
+       71: 
+       72:     @Override
+       73:     public int getItemCount() {
+
+STEP 17  edge E6abd9512
+  DetailPagerAdapter.createFragment -> DetailTorrentTrackersFragment.newInstance
+  class: explicit   kind: CALL
+  guard: position == TRACKERS_FRAG_POS
+  needs_state: None
+  env: None
+  evidence: SRC ui/detailtorrent/DetailPagerAdapter.java:60-63
+  cite [SRC] ui/detailtorrent/DetailPagerAdapter.java:60-63
+       60:                 return DetailTorrentFilesFragment.newInstance();
+       61:             case TRACKERS_FRAG_POS:
+       62:                 return DetailTorrentTrackersFragment.newInstance();
+       63:             case PEERS_FRAG_POS:
+
+STEP 18  edge E0be6f1c1
+  DetailTorrentTrackersFragment.newInstance -> DetailTorrentTrackersFragment.onAttach
+  class: non_standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX Fragment lifecycle dispatch; SRC ui/detailtorrent/pages/trackers/DetailTorrentTrackersFragment.java:93-120
+  cite [SRC] ui/detailtorrent/pages/trackers/DetailTorrentTrackersFragment.java:93-120
+       93:     public static DetailTorrentTrackersFragment newInstance()
+       94:     {
+       95:         DetailTorrentTrackersFragment fragment = new DetailTorrentTrackersFragment();
+       96: 
+       97:         fragment.setArguments(new Bundle());
+       98: 
+       99:         return fragment;
+      100:     }
+      101: 
+      102:     @Override
+      103:     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+      104:     {
+      105:         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_detail_torrent_tracker_list, container, false);
+      106: 
+      107:         return binding.getRoot();
+      108:     }
+      109: 
+      110:     @Override
+      111:     public void onAttach(@NonNull Context context)
+      112:     {
+      113:         super.onAttach(context);
+      114: 
+      115:         if (context instanceof AppCompatActivity)
+      116:             activity = (AppCompatActivity)context;
+      117:     }
+      118: 
+      119:     @Override
+      120:     public void onDetach()
+
+STEP 19  edge Ec5467a2a
+  DetailTorrentTrackersFragment.onAttach -> DetailTorrentTrackersFragment.onCreateView
+  class: non_standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX Fragment lifecycle dispatch; SRC ui/detailtorrent/pages/trackers/DetailTorrentTrackersFragment.java:103-135
+  cite [SRC] ui/detailtorrent/pages/trackers/DetailTorrentTrackersFragment.java:103-135
+      103:     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+      104:     {
+      105:         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_detail_torrent_tracker_list, container, false);
+      106: 
+      107:         return binding.getRoot();
+      108:     }
+      109: 
+      110:     @Override
+      111:     public void onAttach(@NonNull Context context)
+      112:     {
+      113:         super.onAttach(context);
+      114: 
+      115:         if (context instanceof AppCompatActivity)
+      116:             activity = (AppCompatActivity)context;
+      117:     }
+      118: 
+      119:     @Override
+      120:     public void onDetach()
+      121:     {
+      122:         super.onDetach();
+      123: 
+      124:         if (actionMode != null)
+      125:             actionMode.finish();
+      126:     }
+      127: 
+      128:     @Override
+      129:     public void onStop()
+      130:     {
+      131:         super.onStop();
+      132: 
+      133:         disposables.clear();
+      134:     }
+      135: 
+
+STEP 20  edge E034a512c
+  DetailTorrentTrackersFragment.onCreateView -> DetailTorrentTrackersFragment.onViewCreated
+  class: non_standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX Fragment lifecycle dispatch; SRC ui/detailtorrent/pages/trackers/DetailTorrentTrackersFragment.java:146-242
+  cite [SRC] ui/detailtorrent/pages/trackers/DetailTorrentTrackersFragment.java:146-242
+      146:     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+      147:         super.onViewCreated(view, savedInstanceState);
+      148: 
+      149:         if (activity == null)
+      150:             activity = (AppCompatActivity) getActivity();
+      151: 
+      152:         ViewModelProvider provider = new ViewModelProvider(activity);
+      153:         viewModel = provider.get(DetailTorrentViewModel.class);
+      154:         msgViewModel = provider.get(MsgDetailTorrentViewModel.class);
+      155:         dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+      156: 
+      157:         layoutManager = new LinearLayoutManager(activity);
+      158:         binding.trackerList.setLayoutManager(layoutManager);
+      159:         binding.trackerList.setEmptyView(binding.emptyViewTrackerList);
+      160:         adapter = new TrackerListAdapter();
+      161:         /*
+      162:          * A RecyclerView by default creates another copy of the ViewHolder in order to
+      163:          * fade the views into each other. This causes the problem because the old ViewHolder gets
+      164:          * the payload but then the new one doesn't. So needs to explicitly tell it to reuse the old one.
+      165:          */
+      166:         DefaultItemAnimator animator = new DefaultItemAnimator() {
+      167:             @Override
+      168:             public boolean canReuseUpdatedViewHolder(@NonNull RecyclerView.ViewHolder viewHolder) {
+      169:                 return true;
+      170:             }
+      171:         };
+      172:         binding.trackerList.setItemAnimator(animator);
+      173:         TypedArray a = activity.obtainStyledAttributes(new TypedValue().data, new int[]{R.attr.divider});
+      174:         binding.trackerList.addItemDecoration(new RecyclerViewDividerDecoration(a.getDrawable(0)));
+      175:         a.recycle();
+      176:         binding.trackerList.setAdapter(adapter);
+      177: 
+      178:         selectionTracker = new SelectionTracker.Builder<>(
+      179:                 SELECTION_TRACKER_ID,
+      180:                 binding.trackerList,
+      181:                 new TrackerListAdapter.KeyProvider(adapter),
+      182:                 new TrackerListAdapter.ItemLookup(binding.trackerList),
+      183:                 StorageStrategy.createParcelableStorage(TrackerItem.class))
+      184:                 .withSelectionPredicate(SelectionPredicates.createSelectAnything())
+      185:                 .build();
+      186: 
+      187:         selectionTracker.addObserver(new SelectionTracker.SelectionObserver<TrackerItem>() {
+      188:             @Override
+      189:             public void onSelectionChanged()
+      190:             {
+      191:                 super.onSelectionChanged();
+      192: 
+      193:                 if (selectionTracker.hasSelection() && actionMode == null) {
+      194:                     actionMode = activity.startSupportActionMode(actionModeCallback);
+      195:                     setActionModeTitle(selectionTracker.getSelection().size());
+      196: 
+      197:                 } else if (!selectionTracker.hasSelection()) {
+      198:                     if (actionMode != null)
+      199:                         actionMode.finish();
+      200:                     actionMode = null;
+      201: 
+      202:                 } else {
+      203:                     setActionModeTitle(selectionTracker.getSelection().size());
+      204: 
+      205:                     /* Show/hide menu items after change selected files */
+      206:                     int size = selectionTracker.getSelection().size();
+      207:                     if (size == 1 || size == 2)
+      208:                         actionMode.invalidate();
+      209:                 }
+      210:             }
+      211: 
+      212:             @Override
+      213:             public void onSelectionRestored()
+      214:             {
+      215:                 super.onSelectionRestored();
+      216: 
+      217:                 actionMode = activity.startSupportActionMode(actionModeCallback);
+      218:                 setActionModeTitle(selectionTracker.getSelection().size());
+      219:             }
+      220:         });
+      221: 
+      222:         if (savedInstanceState != null)
+      223:             selectionTracker.onRestoreInstanceState(savedInstanceState);
+      224:         adapter.setSelectionTracker(selectionTracker);
+      225: 
+      226:         FragmentManager fm = getChildFragmentManager();
+      227:         deleteTrackersDialog = (BaseAlertDialog)fm.findFragmentByTag(TAG_DELETE_TRACKERS_DIALOG);
+      228:     }
+      229: 
+      230:     @Override
+      231:     public void onSaveInstanceState(@NonNull Bundle outState)
+      232:     {
+      233:         listTrackerState = layoutManager.onSaveInstanceState();
+      234:         outState.putParcelable(TAG_LIST_TRACKER_STATE, listTrackerState);
+      235:         selectionTracker.onSaveInstanceState(outState);
+      236: 
+      237:         super.onSaveInstanceState(outState);
+      238:     }
+      239: 
+      240:     @Override
+      241:     public void onViewStateRestored(Bundle savedInstanceState)
+      242:     {
+
+STEP 21  edge Eedf7a1c8
+  DetailTorrentTrackersFragment.onViewCreated -> DetailTorrentTrackersFragment.onStart
+  class: non_standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX Fragment lifecycle dispatch; SRC ui/detailtorrent/pages/trackers/DetailTorrentTrackersFragment.java:137-144,146-242
+  cite [SRC] ui/detailtorrent/pages/trackers/DetailTorrentTrackersFragment.java:137-144, 146-242
+      137:     public void onStart()
+      138:     {
+      139:         super.onStart();
+      140: 
+      141:         subscribeAdapter();
+      142:         subscribeAlertDialog();
+      143:     }
+      144: 
+      146:     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+      147:         super.onViewCreated(view, savedInstanceState);
+      148: 
+      149:         if (activity == null)
+      150:             activity = (AppCompatActivity) getActivity();
+      151: 
+      152:         ViewModelProvider provider = new ViewModelProvider(activity);
+      153:         viewModel = provider.get(DetailTorrentViewModel.class);
+      154:         msgViewModel = provider.get(MsgDetailTorrentViewModel.class);
+      155:         dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+      156: 
+      157:         layoutManager = new LinearLayoutManager(activity);
+      158:         binding.trackerList.setLayoutManager(layoutManager);
+      159:         binding.trackerList.setEmptyView(binding.emptyViewTrackerList);
+      160:         adapter = new TrackerListAdapter();
+      161:         /*
+      162:          * A RecyclerView by default creates another copy of the ViewHolder in order to
+      163:          * fade the views into each other. This causes the problem because the old ViewHolder gets
+      164:          * the payload but then the new one doesn't. So needs to explicitly tell it to reuse the old one.
+      165:          */
+      166:         DefaultItemAnimator animator = new DefaultItemAnimator() {
+      167:             @Override
+      168:             public boolean canReuseUpdatedViewHolder(@NonNull RecyclerView.ViewHolder viewHolder) {
+      169:                 return true;
+      170:             }
+      171:         };
+      172:         binding.trackerList.setItemAnimator(animator);
+      173:         TypedArray a = activity.obtainStyledAttributes(new TypedValue().data, new int[]{R.attr.divider});
+      174:         binding.trackerList.addItemDecoration(new RecyclerViewDividerDecoration(a.getDrawable(0)));
+      175:         a.recycle();
+      176:         binding.trackerList.setAdapter(adapter);
+      177: 
+      178:         selectionTracker = new SelectionTracker.Builder<>(
+      179:                 SELECTION_TRACKER_ID,
+      180:                 binding.trackerList,
+      181:                 new TrackerListAdapter.KeyProvider(adapter),
+      182:                 new TrackerListAdapter.ItemLookup(binding.trackerList),
+      183:                 StorageStrategy.createParcelableStorage(TrackerItem.class))
+      184:                 .withSelectionPredicate(SelectionPredicates.createSelectAnything())
+      185:                 .build();
+      186: 
+      187:         selectionTracker.addObserver(new SelectionTracker.SelectionObserver<TrackerItem>() {
+      188:             @Override
+      189:             public void onSelectionChanged()
+      190:             {
+      191:                 super.onSelectionChanged();
+      192: 
+      193:                 if (selectionTracker.hasSelection() && actionMode == null) {
+      194:                     actionMode = activity.startSupportActionMode(actionModeCallback);
+      195:                     setActionModeTitle(selectionTracker.getSelection().size());
+      196: 
+      197:                 } else if (!selectionTracker.hasSelection()) {
+      198:                     if (actionMode != null)
+      199:                         actionMode.finish();
+      200:                     actionMode = null;
+      201: 
+      202:                 } else {
+      203:                     setActionModeTitle(selectionTracker.getSelection().size());
+      204: 
+      205:                     /* Show/hide menu items after change selected files */
+      206:                     int size = selectionTracker.getSelection().size();
+      207:                     if (size == 1 || size == 2)
+      208:                         actionMode.invalidate();
+      209:                 }
+      210:             }
+      211: 
+      212:             @Override
+      213:             public void onSelectionRestored()
+      214:             {
+      215:                 super.onSelectionRestored();
+      216: 
+      217:                 actionMode = activity.startSupportActionMode(actionModeCallback);
+      218:                 setActionModeTitle(selectionTracker.getSelection().size());
+      219:             }
+      220:         });
+      221: 
+      222:         if (savedInstanceState != null)
+      223:             selectionTracker.onRestoreInstanceState(savedInstanceState);
+      224:         adapter.setSelectionTracker(selectionTracker);
+      225: 
+      226:         FragmentManager fm = getChildFragmentManager();
+      227:         deleteTrackersDialog = (BaseAlertDialog)fm.findFragmentByTag(TAG_DELETE_TRACKERS_DIALOG);
+      228:     }
+      229: 
+      230:     @Override
+      231:     public void onSaveInstanceState(@NonNull Bundle outState)
+      232:     {
+      233:         listTrackerState = layoutManager.onSaveInstanceState();
+      234:         outState.putParcelable(TAG_LIST_TRACKER_STATE, listTrackerState);
+      235:         selectionTracker.onSaveInstanceState(outState);
+      236: 
+      237:         super.onSaveInstanceState(outState);
+      238:     }
+      239: 
+      240:     @Override
+      241:     public void onViewStateRestored(Bundle savedInstanceState)
+      242:     {
+
+STEP 22  edge E5755bc7b
+  DetailTorrentTrackersFragment.onStart -> DetailTorrentTrackersFragment.subscribeAdapter
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/detailtorrent/pages/trackers/DetailTorrentTrackersFragment.java:137-144
+  cite [SRC] ui/detailtorrent/pages/trackers/DetailTorrentTrackersFragment.java:137-144
+      137:     public void onStart()
+      138:     {
+      139:         super.onStart();
+      140: 
+      141:         subscribeAdapter();
+      142:         subscribeAlertDialog();
+      143:     }
+      144: 
+
+STEP 23  edge E746908c7
+  DetailTorrentTrackersFragment.subscribeAdapter -> DetailTorrentViewModel.observeTrackers
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/detailtorrent/pages/trackers/DetailTorrentTrackersFragment.java:260; SRC ui/detailtorrent/DetailTorrentViewModel.java:179-180
+  cite [SRC] ui/detailtorrent/pages/trackers/DetailTorrentTrackersFragment.java:260
+      260:         disposables.add(viewModel.observeTrackers()
+  cite [SRC] ui/detailtorrent/DetailTorrentViewModel.java:179-180
+      179:     public Flowable<List<TrackerInfo>> observeTrackers() {
+      180:         return infoProvider.observeTrackersInfo(torrentId);
+
+STEP 24  edge E182eab76
+  DetailTorrentViewModel.observeTrackers -> TorrentInfoProvider.observeTrackersInfo
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/detailtorrent/DetailTorrentViewModel.java:179-180; SRC TorrentInfoProvider.java:110-111
+  cite [SRC] ui/detailtorrent/DetailTorrentViewModel.java:179-180
+      179:     public Flowable<List<TrackerInfo>> observeTrackers() {
+      180:         return infoProvider.observeTrackersInfo(torrentId);
+  cite [SRC] TorrentInfoProvider.java:110-111
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentInfoProvider.java)
+      110:     public Flowable<List<TrackerInfo>> observeTrackersInfo(@NonNull String id) {
+      111:         return makeTrackersInfoFlowable(id);
+
+STEP 25  edge Eb35f6d14
+  TorrentInfoProvider.observeTrackersInfo -> TorrentInfoProvider.makeTrackersInfoFlowable
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TorrentInfoProvider.java:110-111; SRC TorrentInfoProvider.java:357-388
+  cite [SRC] TorrentInfoProvider.java:110-111
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentInfoProvider.java)
+      110:     public Flowable<List<TrackerInfo>> observeTrackersInfo(@NonNull String id) {
+      111:         return makeTrackersInfoFlowable(id);
+  cite [SRC] TorrentInfoProvider.java:357-388
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentInfoProvider.java)
+      357:     private Flowable<List<TrackerInfo>> makeTrackersInfoFlowable(String id) {
+      358:         return Flowable.create((emitter) -> {
+      359:             final AtomicReference<List<TrackerInfo>> infoList = new AtomicReference<>();
+      360: 
+      361:             Disposable d = Observable.interval(GET_INFO_SYNC_TIME, TimeUnit.MILLISECONDS)
+      362:                     .subscribe((__) -> {
+      363:                                 List<TrackerInfo> newInfoList = engine.makeTrackerInfoList(id);
+      364:                                 List<TrackerInfo> oldInfoList = infoList.get();
+      365:                                 if (oldInfoList == null || oldInfoList.size() != newInfoList.size() ||
+      366:                                         !oldInfoList.containsAll(newInfoList)) {
+      367:                                     infoList.set(newInfoList);
+      368:                                     if (!emitter.isCancelled())
+      369:                                         emitter.onNext(newInfoList);
+      370:                                 }
+      371:                             },
+      372:                             (Throwable t) -> Log.e(TAG, "Getting trackers info for torrent " + id + " error: " +
+      373:                                     Log.getStackTraceString(t)));
+      374: 
+      375:             if (!emitter.isCancelled()) {
+      376:                 Thread t = new Thread(() -> {
+      377:                     infoList.set(engine.makeTrackerInfoList(id));
+      378:                     if (!emitter.isCancelled()) {
+      379:                         /* Emit once to avoid missing any data and also easy chaining */
+      380:                         emitter.onNext(infoList.get());
+      381:                         emitter.setDisposable(d);
+      382:                     }
+      383:                 });
+      384:                 t.start();
+      385:             }
+      386: 
+      387:         }, BackpressureStrategy.LATEST);
+      388:     }
+
+STEP 26  edge E2d83b1c6
+  TorrentInfoProvider.makeTrackersInfoFlowable -> TorrentEngine.makeTrackerInfoList
+  class: non_standard   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED Rx dispatch; SRC TorrentInfoProvider.java:361-388; SRC TorrentEngine.java:861-870
+  cite [SRC] TorrentInfoProvider.java:361-388
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentInfoProvider.java)
+      361:             Disposable d = Observable.interval(GET_INFO_SYNC_TIME, TimeUnit.MILLISECONDS)
+      362:                     .subscribe((__) -> {
+      363:                                 List<TrackerInfo> newInfoList = engine.makeTrackerInfoList(id);
+      364:                                 List<TrackerInfo> oldInfoList = infoList.get();
+      365:                                 if (oldInfoList == null || oldInfoList.size() != newInfoList.size() ||
+      366:                                         !oldInfoList.containsAll(newInfoList)) {
+      367:                                     infoList.set(newInfoList);
+      368:                                     if (!emitter.isCancelled())
+      369:                                         emitter.onNext(newInfoList);
+      370:                                 }
+      371:                             },
+      372:                             (Throwable t) -> Log.e(TAG, "Getting trackers info for torrent " + id + " error: " +
+      373:                                     Log.getStackTraceString(t)));
+      374: 
+      375:             if (!emitter.isCancelled()) {
+      376:                 Thread t = new Thread(() -> {
+      377:                     infoList.set(engine.makeTrackerInfoList(id));
+      378:                     if (!emitter.isCancelled()) {
+      379:                         /* Emit once to avoid missing any data and also easy chaining */
+      380:                         emitter.onNext(infoList.get());
+      381:                         emitter.setDisposable(d);
+      382:                     }
+      383:                 });
+      384:                 t.start();
+      385:             }
+      386: 
+      387:         }, BackpressureStrategy.LATEST);
+      388:     }
+  cite [SRC] TorrentEngine.java:861-870
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java)
+      861:     public List<TrackerInfo> makeTrackerInfoList(@NonNull String id) {
+      862:         if (!isRunning())
+      863:             return new ArrayList<>();
+      864: 
+      865:         TorrentDownload task = session.getTask(id);
+      866:         if (task == null)
+      867:             return new ArrayList<>();
+      868: 
+      869:         return task.getTrackerInfoList();
+      870:     }
+
+STEP 27  edge Eefb37f80
+  TorrentEngine.makeTrackerInfoList -> TorrentDownloadImpl.getTrackerInfoList
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TorrentEngine.java:869; SRC TorrentDownloadImpl.java:896-910
+  cite [SRC] TorrentEngine.java:869
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java)
+      869:         return task.getTrackerInfoList();
+  cite [SRC] TorrentDownloadImpl.java:896-910
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java)
+      896:     public List<TrackerInfo> getTrackerInfoList()
+      897:     {
+      898:         if (operationNotAllowed())
+      899:             return new ArrayList<>();
+      900: 
+      901:         List<AnnounceEntry> trackers = th.trackers();
+      902:         ArrayList<TrackerInfo> states = new ArrayList<>();
+      903: 
+      904:         for (AnnounceEntry entry : trackers)
+      905:             states.add(new TrackerInfo(entry));
+      906: 
+      907:         return states;
+      908:     }
+      909: 
+      910:     @Override
+
+STEP 28  edge E08cde78e
+  TorrentDownloadImpl.getTrackerInfoList -> TrackerInfo.<init>(AnnounceEntry)
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TorrentDownloadImpl.java:896-905; TrackerInfo.java:67-77
+  cite [SRC] TorrentDownloadImpl.java:896-905
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/session/TorrentDownloadImpl.java)
+      896:     public List<TrackerInfo> getTrackerInfoList()
+      897:     {
+      898:         if (operationNotAllowed())
+      899:             return new ArrayList<>();
+      900: 
+      901:         List<AnnounceEntry> trackers = th.trackers();
+      902:         ArrayList<TrackerInfo> states = new ArrayList<>();
+      903: 
+      904:         for (AnnounceEntry entry : trackers)
+      905:             states.add(new TrackerInfo(entry));
+  cite [SRC] TrackerInfo.java:67-77
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/data/TrackerInfo.java)
+       67:     public TrackerInfo(AnnounceEntry entry) {
+       68:         super(entry.url());
+       69: 
+       70:         url = entry.url();
+       71:         tier = entry.tier();
+       72: 
+       73:         List<AnnounceEndpoint> endpoints = entry.endpoints();
+       74:         var result = getMessageAndStatus(entry, endpoints);
+       75:         message = result.message;
+       76:         status = result.status;
+       77:     }
+
+STEP 29  edge E4188dd19
+  TrackerInfo.<init>(AnnounceEntry) -> TrackerInfo.getMessageAndStatus
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TrackerInfo.java:74; TrackerInfo.java:88-145
+  cite [SRC] TrackerInfo.java:74
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/data/TrackerInfo.java)
+       74:         var result = getMessageAndStatus(entry, endpoints);
+  cite [SRC] TrackerInfo.java:88-145
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/data/TrackerInfo.java)
+       88:     private Result getMessageAndStatus(AnnounceEntry entry, List<AnnounceEndpoint> endpoints) {
+       89:         if (entry == null || endpoints.isEmpty()) {
+       90:             return new Result(Status.UNKNOWN, "");
+       91:         }
+       92: 
+       93:         var statusMap = new HashMap<Integer, Integer>();
+       94:         String firstTrackerMessage = "";
+       95:         String firstErrorMessage = "";
+       96:         for (var e : endpoints) {
+       97:             calcStatusCount(entry, e.infohashV1(), statusMap);
+       98:             calcStatusCount(entry, e.infohashV2(), statusMap);
+       99: 
+      100:             if (TextUtils.isEmpty(firstTrackerMessage)) {
+      101:                 var messageV1 = e.infohashV1().message();
+      102:                 var messageV2 = e.infohashV2().message();
+      103:                 if (!TextUtils.isEmpty(messageV1)) {
+      104:                     firstTrackerMessage = messageV1;
+      105:                 } else if (!TextUtils.isEmpty(messageV2)) {
+      106:                     firstTrackerMessage = messageV2;
+      107:                 }
+      108:             }
+      109:             if (TextUtils.isEmpty(firstErrorMessage)) {
+      110:                 var errorV1 = e.infohashV1().swig().getLast_error();
+      111:                 var errorV2 = e.infohashV2().swig().getLast_error();
+      112:                 if (errorV1 != null && !TextUtils.isEmpty(errorV1.message())) {
+      113:                     firstErrorMessage = errorV1.message();
+      114:                 } else if (errorV2 != null && !TextUtils.isEmpty(errorV2.message())) {
+      115:                     firstErrorMessage = errorV2.message();
+      116:                 }
+      117:             }
+      118:         }
+      119:         var numEndpoints = statusMap.values().stream().reduce(0, Integer::sum);
+      120:         var numUpdating = statusMap.get(Status.UPDATING);
+      121:         var numWorking = statusMap.get(Status.WORKING);
+      122:         var numNotWorking = statusMap.get(Status.NOT_WORKING);
+      123:         var numNotContacted = statusMap.get(Status.NOT_CONTACTED);
+      124: 
+      125:         if (numUpdating != null && numUpdating > 0) {
+      126:             return new Result(Status.UPDATING, "");
+      127:         } else if (numWorking != null && numWorking > 0) {
+      128:             return new Result(Status.WORKING, firstTrackerMessage);
+      129:         } else if (numNotWorking != null && numNotWorking.equals(numEndpoints)) {
+      130:             return new Result(
+      131:                     Status.NOT_WORKING,
+      132:                     TextUtils.isEmpty(firstTrackerMessage)
+      133:                             ? firstErrorMessage
+      134:                             : firstTrackerMessage
+      135:             );
+      136:         } else if (numNotContacted != null && numNotContacted.equals(numEndpoints)) {
+      137:             return new Result(Status.NOT_CONTACTED,
+      138:                     TextUtils.isEmpty(firstTrackerMessage)
+      139:                             ? firstErrorMessage
+      140:                             : firstTrackerMessage
+      141:             );
+      142:         }
+      143: 
+      144:         return new Result(Status.UNKNOWN, "");
+      145:     }
+
+STEP 30  edge Eb9d6385b
+  TrackerInfo.getMessageAndStatus -> TrackerInfo.calcStatusCount
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TrackerInfo.java:97-98; TrackerInfo.java:147-155
+  cite [SRC] TrackerInfo.java:97-98
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/data/TrackerInfo.java)
+       97:             calcStatusCount(entry, e.infohashV1(), statusMap);
+       98:             calcStatusCount(entry, e.infohashV2(), statusMap);
+  cite [SRC] TrackerInfo.java:147-155
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/data/TrackerInfo.java)
+      147:     private void calcStatusCount(
+      148:             AnnounceEntry entry,
+      149:             AnnounceInfohash infoHash,
+      150:             Map<Integer, Integer> statusMap
+      151:     ) {
+      152:         var status = infoHashStatus(entry, infoHash);
+      153:         var count = statusMap.getOrDefault(status, 0);
+      154:         statusMap.put(status, count + 1);
+      155:     }
+
+STEP 31  edge Ea78385d3
+  TrackerInfo.calcStatusCount -> TrackerInfo.infoHashStatus
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TrackerInfo.java:152; TrackerInfo.java:157-167
+  cite [SRC] TrackerInfo.java:152
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/data/TrackerInfo.java)
+      152:         var status = infoHashStatus(entry, infoHash);
+  cite [SRC] TrackerInfo.java:157-167
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/model/data/TrackerInfo.java)
+      157:     private int infoHashStatus(AnnounceEntry entry, AnnounceInfohash infoHash) {
+      158:         if (infoHash.updating()) {
+      159:             return Status.UPDATING;
+      160:         } else if (infoHash.fails() > 0) {
+      161:             return Status.NOT_WORKING;
+      162:         } else if (entry.isVerified()) {
+      163:             return Status.WORKING;
+      164:         } else {
+      165:             return Status.NOT_CONTACTED;
+      166:         }
+      167:     }

@@ -1,0 +1,146 @@
+# Review 2 fix 8 (Kiro), MMEX batch 1: one step per line, its own reason and file:line.
+E71c76102 ; NONE ; ; AndroidManifest.xml:136-143 ; launcher start: MainActivity has the MAIN/LAUNCHER filter (:136-143), so the launcher creates it
+E2e074fc1 ; NONE ; ; Activity.java performCreate ; framework: onCreate is called right after the activity is created; MainActivity's launch carries no condition
+E5d5a9c2f ; NONE ; ; MainActivity.java:236-238 ; unconditional: onCreate calls initHomeFragment after the injection (:238)
+Ee3db4cab ; NONE ; ; MainActivity.java:240 ; unconditional: onCreate calls initializeDrawer (:240)
+Efc29cb5c ; NONE ; ; MainActivity.java:242 ; unconditional: onCreate calls initializeSync (:242)
+E00ecbc65 ; NONE ; ; MainActivity.java:244 ; unconditional: onCreate calls populateScheduledTransactions (:244); what it does with due transactions is gated on its own edges
+Ee50ca995 ; NONE ; ; MainActivity.java:1301 ; unconditional: initializeDrawer calls createExpandableDrawer (:1301)
+Eda32c006 ; NONE ; ; MainActivity.java:184 ; baseline: a database exists, so showPrerequisite returns false and the call is the condition itself (:184)
+Ee0c1d96c ; NONE ; ; MainActivity.java:184-190 ; baseline: showPrerequisite is false (a database exists), so onCreate goes on to handleIntent
+Ee128b245 ; NONE ; ; MainActivity.java:184-190 ; baseline: showPrerequisite is false, so onCreate goes on to migrateRecentDatabases (:190)
+E08566324 ; NONE ; ; MainActivity.java:184-226 ; baseline: showPrerequisite is false, so onCreate creates the InfoService (:226)
+E1975beaa ; NONE ; ; MainActivity.java:184-233 ; baseline: a fresh install has no stored UID (:228), so setInfoValue stores one (:233)
+E0afa172d ; NONE ; ; MainActivity.java:1519-1523 ; baseline: the recent-databases map holds the current database with an empty remote path (:1519-1520), so getCurrent is read (:1523)
+E3fe0a101 ; NONE ; ; generated DaggerMmxComponent ; generated Dagger code: inject calls injectInfoService (kept as it is, open question)
+E412316d6 ; NONE ; ; generated DaggerMmxComponent ; generated Dagger code: injectInfoService calls getInfoRepositorySql (kept as it is, open question)
+E4e5784ab ; NONE ; ; Activity.java performCreate ; framework: onCreate follows the construction of SearchActivity; the activity start (INTENT edge) carries the conditions
+E157bdc5f ; NONE ; ; Activity.java performCreate ; framework: onCreate follows the construction of CheckingTransactionEditActivity
+E01105aae ; NONE ; ; Activity.java performCreate ; framework: onCreate follows the construction of CurrencyListActivity
+E8d5ee44f ; NONE ; ; Activity.java performCreate ; framework: onCreate follows the construction of AccountEditActivity
+E47458fa6 ; NONE ; ; Activity.java performCreate ; framework: onCreate follows the construction of BudgetsActivity
+E3811dbae ; NONE ; ; Activity.java performCreate ; framework: onCreate follows the construction of CategoryListActivity
+E6c07b78f ; NONE ; ; Activity.java performCreate ; framework: onCreate follows the construction of RecurringTransactionEditActivity
+E9a2c920e ; NONE ; ; Activity.java performCreate ; framework: onCreate follows the construction of InvestmentTransactionEditActivity
+E17773f39 ; NONE ; ; Activity.java performCreate ; framework: onCreate follows the construction of SplitCategoriesActivity
+Ecd641bb4 ; NONE ; ; CheckingTransactionEditActivity.java:122 ; unconditional: onCreate calls initializeInputControls (:122)
+E0d3e4d51 ; NONE ; ; CheckingTransactionEditActivity.java:115 ; unconditional: onCreate calls handleIntent (:115)
+E2b043b9f ; NONE ; ; CheckingTransactionEditActivity.java:125 ; unconditional: onCreate calls onTransactionTypeChanged (:125)
+Ea9279459 ; NONE ; ; AccountEditActivity.java:143 ; unconditional: onCreate calls initializeControls (:143)
+E9eaccfb8 ; ENV ; other ; AccountEditActivity.java:102-103 ; the activity is recreated with a saved state (rotation or process death, savedInstanceState not null, :102-103)
+Ed2488d54 ; NONE ; ; MainActivity.java:936-941 ; GUI: a tap on a top-level drawer item (a group with no children, :941-942); the drawer is built in initializeDrawer
+E025b8cae ; NONE ; ; MainActivity.java:948-953 ; GUI: the group tap posts the delayed Runnable after closing the drawer (:948-953)
+E02874fba ; NONE ; ; MainActivity.java:953-957 ; GUI: the delayed Runnable of the group tap runs (postDelayed, :953)
+E3d93887f ; NONE ; ; MainActivity.java:952-957 ; GUI: the group item is not null (:952), as the tapped drawer group is
+E25d552ed ; NONE ; ; MainActivity.java:965-974 ; GUI: a tap on a child row of the drawer (the drawer has child rows, such as Accounts under Entities)
+E7a1586a1 ; NONE ; ; MainActivity.java:973-975 ; GUI: the child tap's selected item is not null (:973-974), as the tapped drawer row is
+Ebbb78d0f ; NONE ; ; HomeFragment.java:686-706 ; GUI: a tap on an account row; the baseline has one checking account, so the row exists (HomeFragment.java:793)
+Ec1f72a40 ; NONE ; ; HomeFragment.java:360-364 ; GUI: the home screen's options menu (search item)
+Eb0beae6e ; NONE ; ; HomeFragment.java:364-366 ; GUI: the Search menu item (menu_search, :364)
+E1644b6d5 ; NONE ; ; HomeFragment.java:450-455 ; GUI: the context menu of the baseline account row (getSelectedAccount finds it, :454)
+Ed8b90fd3 ; NONE ; ; HomeFragment.java:409-412 ; GUI: a long press on the baseline account row opens its context menu
+Ed53fefe5 ; NONE ; ; HomeFragment.java:470-471 ; GUI: the Balance account item of the baseline account's context menu (:470-471)
+Ef93f69de ; NONE ; ; HomeFragment.java:173 ; GUI: the Income vs expenses card of the home screen (home_fragment layout)
+E0ef3fa39 ; NONE ; ; HomeFragment.java:803-804 ; baseline: the accounts cursor is not null (:803) because the baseline account exists
+Ec35ca2a7 ; NONE ; ; MainActivity.java:664-665 ; GUI: the Settings drawer item (case menu_settings, :664)
+E80914813 ; NONE ; ; MainActivity.java:641-642 ; GUI: the Currencies drawer item (case menu_currency, :641)
+Eb67eeff0 ; NONE ; ; MainActivity.java:654-655 ; GUI: the Budgets drawer item (case menu_budgets, :654)
+Eb35a6f3f ; NONE ; ; MainActivity.java:651-652 ; GUI: the Recurring transactions drawer item (case menu_recurring_transaction, :651)
+E30b9c1bd ; NONE ; ; MainActivity.java:651-652 ; GUI: the Recurring transactions drawer item (showFragment of the list, :652)
+Ed7710de2 ; NONE ; ; MainActivity.java:633-634 ; GUI: the Accounts drawer item (case menu_account, :633)
+E64d9379e ; NONE ; ; MainActivity.java:688-689 ; GUI: the About drawer item (case menu_about, :688)
+Ed218404b ; NONE ; ; MainActivity.java:800-806 ; the call is under fragment == null (:803), true on the first show of the Watchlist fragment; the Investment-account row that leads here is gated on its own edge
+Ebb57ba7f ; NONE ; ; MainActivity.java:782-788 ; the call is under fragment == null (:785), true on the first show of the account's transaction fragment
+Ef737da54 ; NONE ; ; MainActivity.java:790-796 ; the call is under fragment == null on the first show of the Portfolio fragment (:795); the Investment-account row that leads here is gated on its own edge
+Eda7c2af3 ; NONE ; ; BudgetsActivity.java:132-137 ; the call is under fragment == null (:136), true on the first open of a budget's detail
+E9c8f2d07 ; NONE ; ; BudgetsActivity.java:115-117 ; the call is under fragment == null (:115), true when Budgets opens
+Edfc500a3 ; NONE ; ; BudgetsActivity.java:115-117 ; framework: the fragment manager adds the budget list fragment created at :117 and calls onCreate
+Eab5e2ab6 ; NONE ; ; BudgetsActivity.java:115-117 ; framework: the fragment manager calls onCreateView of the budget list fragment created at :117
+Ea773e4f7 ; NONE ; ; AccountTransactionListFragment.java:237 ; GUI: the period picker menu of the baseline account's transaction list (menu_period_picker_transactions, :237)
+E773f46d8 ; NONE ; ; SearchActivity.java:97 ; GUI: the Search screen's menu (menu_search, :97)
+E1e3f7907 ; NONE ; ; CategoriesReportFragment.java:161-164 ; GUI: the Categories report's options menu (:161)
+E21a6a1bf ; NONE ; ; CategoriesReportFragment.java:164 ; GUI: the Categories report's chart item (:164)
+E5efb49af ; NONE ; ; CategoriesReportFragment.java:167-179 ; GUI: a date-range item of the Categories report's menu (itemId >= 0 branch, :167-179) reloads the report
+E2e5b016c ; NONE ; ; CurrencyListFragment.java:231-245 ; GUI: the context menu of a currency row (the default currency list has rows)
+Ebfaf58d3 ; NONE ; ; CurrencyListFragment.java:183-189 ; GUI: the Currencies screen's options menu
+E199d4680 ; NONE ; ; CurrencyListFragment.java:189 ; GUI: the Import all currencies menu item (:189)
+E3f3c015b ; NONE ; ; CurrencyListFragment.java:193 ; GUI: the Update exchange rates menu item (:193)
+Ed4c33d4b ; NONE ; ; CurrencyListFragment.java:245 ; GUI: the Edit item of a currency row's context menu (:245)
+Ee5949ccf ; NONE ; ; CurrencyListFragment.java:278 ; GUI: the Delete item of a currency row's context menu (:278)
+Ece5d748d ; NONE ; ; CurrencyListFragment.java:266 ; GUI: the Update exchange rate item of a currency row's context menu (:266); the server call after it carries the network gate
+E89f74b11 ; NONE ; ; AbsListFragment.java:40-47 ; GUI: a tap on a row of the Currencies list (the default currency list has rows)
+E532271c1 ; NONE ; ; CurrencyListFragment.java:332-339 ; GUI: a currency is picked (the list was opened in pick mode, so the action is not EDIT, :335-339), from the account or currency editor
+E1a38481d ; NONE ; ; EditTransactionCommonFunctions.java:987-988 ; GUI: the transaction type spinner is set to Transfer (isTransfer, :987)
+E369c21af ; STATE ; data ; EditTransactionCommonFunctions.java:1448-1452 ; a transaction with split categories is changed to a transfer (hasSplitCategories, :1448), which asks for confirmation; the baseline has none
+E4a0a4f9f ; NONE ; ; AmountInputDialog.java:239-245 ; GUI: the amount dialog opens with an empty expression (:239), so it shows the entry field (:245)
+Ea54de14f ; NONE ; ; AmountInputDialog.java:450-471 ; GUI: the amount dialog formats the entered amount (:471)
+Ed903fce2 ; NONE ; ; CheckingTransactionEditActivity.java:693 ; unconditional: saveData calls saveSplitCategories after its validation (:671, :693); the Save tap is the GUI step
+E2cd40d6a ; STATE ; data ; CheckingTransactionEditActivity.java:733-734 ; a transaction with split categories has a split deleted in the editor (deletedSplits not empty, :733); the baseline has none
+Ef5195d4d ; NONE ; ; EditTransactionCommonFunctions.java:1514-1515 ; GUI: the split form opens for a transaction with no splits yet (getSplitTransactions().isEmpty(), :1514)
+E3d72d7c5 ; STATE ; data ; CheckingTransactionEditActivity.java:482-491 ; an existing transaction is opened for editing (transactionId set, :482-491); the baseline account has no transaction
+Ee668063e ; ENV ; system_event ; CheckingTransactionEditActivity.java:546-607 ; system event: the transaction editor is started by the SMS receiver for a received SMS (the else branch for the SMS receiver, :546), with an empty payee name (:603)
+E19daa2e1 ; ENV ; system_event ; CheckingTransactionEditActivity.java:546-567 ; system event: the transaction editor is started by the SMS receiver for a received SMS (the else branch, :546); the amounts are converted between the two account currencies (:565-567)
+Efe3179e5 ; ENV ; other_app ; CheckingTransactionEditActivity.java:280-283 ; outside package: another app starts the editor with ACTION_INSERT and a data URI (data not null, :280-281), which parseData reads (:283)
+E6f87f4ef ; ENV ; other_app ; CheckingTransactionEditActivity.java:347-348 ; outside package: the other app's intent asks for silent mode (parameters.isSilentMode, :348), so the transaction is saved without the editor
+E5b32226d ; NONE ; ; AccountTransactionListFragment.java:289-292 ; GUI: a menu item that is neither a date period (:289-290) nor handled earlier reaches the status check (:292)
+E8fff51bb ; NONE ; ; AccountTransactionListFragment.java:576-587 ; GUI: a transaction status item of the menu is chosen (result true, :576), which reloads the list (:587)
+E43508b78 ; NONE ; ; AccountTransactionListFragment.java:295 ; GUI: a menu item that is not a status item reaches the filter check (:295)
+E681ef2c6 ; NONE ; ; AccountTransactionListFragment.java:355-375 ; the account's transaction list loader delivers its detail result (loader id ID_LOADER_ALL_DATA_DETAIL, :370) for the baseline account
+E65ada362 ; NONE ; ; AccountTransactionListFragment.java:159-174 ; GUI: the account's transaction fragment is created with a container (:160), so it shows the transactions fragment (:174)
+Ed901658a ; NONE ; ; AllDataListFragment.java:368-370 ; GUI: the Export to QIF menu item (menu_qif_export, :368)
+Ecb39320c ; STATE ; data ; AllDataMultiChoiceModeListener.java:63-70 ; transaction rows are selected in the list (the action mode's change status item, :70); the baseline account has no transaction
+E2fcdf0e8 ; STATE ; data ; AllDataMultiChoiceModeListener.java:63-78 ; transaction rows are selected in the list (the action mode's delete item, :78); the baseline account has no transaction
+E5d699b80 ; NONE ; ; IncomeVsExpensesListFragment.java:234-245 ; GUI: the Income vs expenses screen's options menu (:234)
+Ed98e6e63 ; NONE ; ; IncomeVsExpensesListFragment.java:241-242 ; GUI: the chart item of the Income vs expenses menu (menu_chart, :241-242)
+Ec9904d45 ; STATE ; data ; IncomeVsExpensesListFragment.java:363-370 ; a month row of the Income vs expenses list is tapped; the list has month rows only for months with transactions, and the baseline account has none
+Ebf31321a ; NONE ; ; CategoriesReportFragment.java:334-343 ; GUI: the pie chart fragment is visible after the chart item (:343)
+E6945d5ac ; NONE ; ; WatchlistFragment.java:254-261 ; GUI: the Watchlist screen's options menu (:254)
+E898ab8fc ; NONE ; ; WatchlistFragment.java:256-261 ; GUI: the Export prices menu item (:261)
+Ef6f5abfd ; NONE ; ; WatchlistFragment.java:146-161 ; the Watchlist view is created with a container (:147), so the items fragment is made (:161)
+E693ea7bd ; STATE ; data ; WatchlistItemsFragment.java:479-490 ; a security row of the watchlist is deleted: the OK button of the delete dialog (:479-488); the baseline watchlist has none
+E76563d81 ; STATE ; data ; WatchlistItemsFragment.java:216-242 ; the context menu of a security row has the Edit price item (case EditPrice, :240); the baseline watchlist has no security
+E436eb662 ; NONE ; ; PriceEditActivity.java:101-109 ; GUI: the Price edit screen's save icon (:101-109); the screen is reached through the security row, which is gated on its own edge
+E3abf4934 ; NONE ; ; PriceEditActivity.java:113-120 ; GUI: the save item (:113-120) calls save
+E20deebc3 ; NONE ; ; MorningstarPriceUpdater.java:86-93 ; unconditional: downloadPrices starts the parallel download (:93) for the symbols it got; the server answer is gated on the edges that consume it
+Ed47fdd96 ; NONE ; ; MorningstarPriceUpdater.java:185 ; unconditional: processInParallel schedules each symbol's call on the io scheduler (:185)
+E188a464f ; NONE ; ; SplitCategoriesActivity.java:254-259 ; the Split categories screen sets its adapter (:259); a row view is created when the user adds a split row (GUI)
+E83d0cf7c ; NONE ; ; SplitCategoriesActivity.java:254-259 ; the Split categories screen binds the rows the user added (adapter set at :259)
+Edd98083e ; NONE ; ; CategoryListFragment.java:175 ; GUI: the context menu of a default category row (the default categories exist, :175)
+E04a2625e ; NONE ; ; CategoryListFragment.java:205-211 ; GUI: the Edit item of a category row's context menu (:211)
+E72bda0fb ; NONE ; ; CategoryListFragment.java:213-217 ; GUI: the Delete item of a category row's context menu (:217)
+E828d9bd9 ; NONE ; ; CategoryListFragment.java:290-291 ; the category loader (ID_LOADER_CATEGORYSUB, :290) delivers the default categories, so the adapter is set (:291)
+E46f73d0f ; NONE ; ; CategoryListFragment.java:290-291 ; the category loader delivers the default categories, so getAdapter builds the list adapter (:291)
+E2db4c454 ; STATE ; data ; PayeeListFragment.java:212-214 ; a payee exists: the Edit item of a payee row's context menu (:213-214); the baseline has none
+E90c965a3 ; NONE ; ; SearchParametersFragment.java:189 ; GUI: the Select payee field of the Search screen (:189)
+Ecfa29bad ; NONE ; ; SearchParametersFragment.java:189 ; GUI: the Select payee field opens the payee list (:189)
+Ea51a0d09 ; NONE ; ; SearchActivity.java:142 ; the search fragment is created on first use (mSearchParametersFragment == null)
+E54f6979c ; NONE ; ; SearchActivity.java:73-79 ; GUI: the Search screen shows the results fragment (visible, :78) and reloads it on resume
+E58d6abbd ; STATE ; data ; SearchActivity.java:152-162 ; a report row (payee or category) was tapped and the Search screen got search parameters in its intent (:156-162); the baseline account has no transactions to report
+Eb8e666d8 ; NONE ; ; AccountListFragment.java:114 ; GUI: the context menu of the baseline account row in the Accounts list
+Eb6a8f0db ; NONE ; ; RecurringTransactionEditActivity.java:166-175 ; GUI: the recurring editor's menu (home or save, :168-171)
+E1118ea65 ; NONE ; ; RecurringTransactionEditActivity.java:167-171 ; GUI: the recurring editor's save item (:171)
+Eddb47239 ; NONE ; ; RecurringTransactionEditActivity.java:208 ; GUI: the Save tap calls saveData (:208)
+E0dc556d7 ; NONE ; ; RecurringTransactionListFragment.java:147 ; GUI: the recurring list's options menu (calendar icon)
+E8e32a4ab ; NONE ; ; CheckingTransactionEditActivity.java:150-153 ; GUI: the transaction editor's menu (:150)
+E51fdae64 ; NONE ; ; CheckingTransactionEditActivity.java:151-153 ; GUI: the up arrow of the transaction editor (:153)
+Efb89c1d6 ; NONE ; ; InvestmentTransactionEditActivity.java:169 ; GUI: the investment transaction editor's save icon (the screen is reached through a stock row, gated on its own edge)
+E0e8ff0d1 ; NONE ; ; AccountEditActivity.java:37 ; GUI: the account editor's save icon (MenuHelper.save = 2)
+E7e7d4b06 ; NONE ; ; AccountEditActivity.java:188-189 ; GUI: the save icon (id == MenuHelper.save, :188) calls onActionDoneClick
+Eae055324 ; NONE ; ; AccountEditActivity.java:220 ; GUI: the save tap calls saveAccount (:220)
+Ee1668e27 ; NONE ; ; BudgetEditActivity.java:76-87 ; GUI: the budget editor's save icon, added by onCreateOptionsMenu (:76)
+E4bf216bc ; NONE ; ; BudgetEditActivity.java:87-93 ; GUI: the save item (:93) calls onActionDoneClick
+E8b60c207 ; NONE ; ; BudgetEditActivity.java:113 ; GUI: the OK button of the year picker dialog (:113)
+Ee747b439 ; NONE ; ; BudgetEditActivity.java:180-185 ; unconditional: initializeModel builds the view model from the loaded or new budget (:185)
+E12be7874 ; NONE ; ; CurrencyEditActivity.java:70 ; GUI: the Save tap calls save (:70)
+E9eb5ff4d ; ENV ; other_app ; SingleAccountWidget.java:73-74 ; outside package: the launcher's AppWidget host sends the widget ids (the loop over appWidgetIds, :73-74)
+Ef46663fc ; ENV ; other_app ; AccountBillsWidgetProvider.java:52 ; outside package: the launcher's AppWidget host updates the Account bills widget, which formats its amounts (:52)
+E8707ce77 ; NONE ; ; CurrencyService.java:297-298 ; baseline: the account has a currency id (currencyId != null, :297)
+Eacc0493a ; NONE ; ; CurrencyService.java:306-308 ; baseline: the else branch of the currency lookup builds the formatter (:308)
+E8d81e0fd ; NONE ; ; SettingsFragment.java:55-63, SettingsActivity.java:61-63 ; GUI: the Per-database settings preference (perDbPreference, :55) starts SettingsActivity with that fragment extra (:63)
+Ebacaa73d ; NONE ; ; SettingsActivity.java:56-68 ; GUI: Settings opened without the per-database extra shows SettingsFragment (:67-68)
+E2c2c9e25 ; NONE ; ; SettingsFragment.java:140 ; GUI: the Database settings preference click
+E2a1c6fc4 ; NONE ; ; SettingsFragment.java:124 ; GUI: the Security (passcode) preference click
+E9bfa6695 ; NONE ; ; SettingsFragment.java:100 ; GUI: the Investment settings preference click
+E1f261187 ; NONE ; ; SettingsFragment.java:74 ; GUI: the Look and feel preference click
+E1205df75 ; NONE ; ; SettingsFragment.java:87 ; GUI: the Behaviour preference click
+E38752023 ; NONE ; ; AboutTabAdapter.java:50-52 ; GUI: the About screen opens on its first tab (case 0, :51)

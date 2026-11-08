@@ -1,0 +1,83 @@
+label_119 grep and auto_calls evidence (batch 119, 30 methods)
+ROOT = final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java
+Result: 30 REACHABLE, 0 UNREACHABLE, 0 INCOMPLETE. No UNREACHABLE claim is made, so no caller-absence grep is needed. The sections below are the lookups behind the REACHABLE routes.
+
+=== 1. auto_calls.json: records whose src or dst names the three classes
+Query: python3 -I, json key "calls", filter on "PerDatabaseFragment", "SecuritySettingsActivity", "PreferenceConstants" (src or dst). Lines that matter for this batch:
+SettingsActivity.showFragment -> PerDatabaseFragment.<init>  SettingsActivity.java 63 exact
+PerDatabaseFragment.onCreatePreferences -> PerDatabaseFragment.initializeControls  PerDatabaseFragment.java 73 exact
+PerDatabaseFragment.onActivityResult -> PerDatabaseFragment.showCurrencyChangeNotification  PerDatabaseFragment.java 90 exact
+PerDatabaseFragment.onActivityResult -> PerDatabaseFragment.showCurrentDefaultCurrency  PerDatabaseFragment.java 87 exact
+PerDatabaseFragment.initializeControls -> PerDatabaseFragment.initDefaultAccount  PerDatabaseFragment.java 222 exact
+PerDatabaseFragment.initializeControls -> PerDatabaseFragment.initBaseCurrency  PerDatabaseFragment.java 140 exact
+PerDatabaseFragment.initializeControls -> PerDatabaseFragment.getDateFormatFromMask  PerDatabaseFragment.java 121 exact
+PerDatabaseFragment.initializeControls -> PerDatabaseFragment$1.<init> 103; $2.<init> 125; $3.<init> 151; $4.<init> 203 (all exact)
+PerDatabaseFragment.initBaseCurrency -> PerDatabaseFragment$5.<init>  PerDatabaseFragment.java 238 exact
+PerDatabaseFragment.initBaseCurrency -> PerDatabaseFragment.showCurrentDefaultCurrency  PerDatabaseFragment.java 233 exact
+PerDatabaseFragment.initDefaultAccount -> PerDatabaseFragment$6.<init>  PerDatabaseFragment.java 297 exact
+PerDatabaseFragment.showCurrencyChangeNotification -> PerDatabaseFragment$7.<init> 331; $8.<init> 330 (exact)
+PerDatabaseFragment$1.onPreferenceChange -> MmexApplication.setUserName(String,boolean)  PerDatabaseFragment.java 106 exact
+PerDatabaseFragment$2.onPreferenceChange -> PerDatabaseFragment.getDateFormatFromMask  PerDatabaseFragment.java 130 exact ['PerDatabaseFragment.access$000']
+PerDatabaseFragment$2.onPreferenceChange -> InfoService.setInfoValue  PerDatabaseFragment.java 129 exact
+PerDatabaseFragment$3.onPreferenceChange -> InfoService.setInfoValue  PerDatabaseFragment.java 166 exact
+PerDatabaseFragment$3.onPreferenceChange -> UIHelper.showToast(int)  PerDatabaseFragment.java 158 exact
+PerDatabaseFragment$4.onPreferenceChange -> InfoService.setInfoValue  PerDatabaseFragment.java 210 exact
+PerDatabaseFragment$6.onPreferenceChange -> AccountRepository.loadName  PerDatabaseFragment.java 303 exact
+PerDatabaseFragment$6.onPreferenceChange -> GeneralSettings.setDefaultAccountId  PerDatabaseFragment.java 307 exact
+SettingsFragment.onCreate -> SettingsFragment$6.<init>  SettingsFragment.java 126 exact
+SettingsFragment.onCreate -> SettingsFragment$1.<init>  SettingsFragment.java 59 exact
+SecuritySettingsActivity.<init> -> BaseSettingsFragmentActivity.<init>  SecuritySettingsActivity.java 22 exact
+SecuritySettingsActivity.onCreate -> BaseSettingsFragmentActivity.onCreate  SecuritySettingsActivity.java 27 exact
+SecuritySettingsActivity.onCreate -> BaseSettingsFragmentActivity.setSettingFragment  SecuritySettingsActivity.java 28 exact
+SecuritySettingsActivity.onCreate -> SecuritySettingsFragment.<init>  SecuritySettingsActivity.java 28 exact
+MmexApplication.onCreate -> PreferenceConstants.<clinit>  MmexApplication.java 126 exact
+SmsReceiverTransactions.onReceive -> PreferenceConstants.<init>  SmsReceiverTransactions.java 103 exact
+SmsReceiverTransactions.onReceive -> PreferenceConstants.<clinit>  SmsReceiverTransactions.java 103 exact
+Other PreferenceConstants.<clinit> callers (auto, exact): DatabaseSettingsFragment.onCreate, SettingsFragment.onCreate, SecuritySettingsFragment.onCreate, BehaviourSettingsFragment.initializeNotificationTime, MainActivity.showCurrentDatabasePath, HomeFragment.getSettingsKeyFromGroupPosition, and others.
+Incoming records for the batch's methods (dst names):
+  PerDatabaseFragment.onCreate, PerDatabaseFragment.onCreatePreferences, PerDatabaseFragment.onActivityResult: none (framework callbacks; onCreatePreferences is called by the framework, not by app code).
+  PerDatabaseFragment$1..$8 onPreferenceChange / onPreferenceClick / onClick: none (framework listener callbacks; the GUI edges are written in label_119.py).
+  SecuritySettingsActivity.<init>: none (the activity is started by an explicit Intent with a class literal, so no bytecode CALL record exists; the INTENT edge is written in label_119.py).
+  PreferenceConstants.<init> and <clinit>: the CALL records listed above (auto, already in the build; no CALL edge written, D7).
+
+=== 2. Source-root callers of the three classes
+Command: grep -rn -E 'PerDatabaseFragment|SecuritySettingsActivity|SecuritySettingsFragment' ROOT
+ROOT/com/money/manager/ex/settings/SecuritySettingsFragment.java:37:public class SecuritySettingsFragment
+ROOT/com/money/manager/ex/settings/PerDatabaseFragment.java:54:public class PerDatabaseFragment
+ROOT/com/money/manager/ex/settings/PerDatabaseFragment.java:59:    public PerDatabaseFragment() {
+ROOT/com/money/manager/ex/settings/SettingsFragment.java:63:                    intent.putExtra(SettingsActivity.EXTRA_FRAGMENT, PerDatabaseFragment.class.getSimpleName());
+ROOT/com/money/manager/ex/settings/SecuritySettingsActivity.java:22:public class SecuritySettingsActivity
+ROOT/com/money/manager/ex/settings/SecuritySettingsActivity.java:28:        setSettingFragment(new SecuritySettingsFragment());
+ROOT/com/money/manager/ex/settings/SettingsActivity.java:62:        if (fragmentName != null && fragmentName.equals(PerDatabaseFragment.class.getSimpleName())) {
+ROOT/com/money/manager/ex/settings/SettingsActivity.java:63:            fragment = new PerDatabaseFragment();
+ROOT/com/money/manager/ex/settings/SettingsFragment.java:129:                    startActivity(new Intent(getActivity(), SecuritySettingsActivity.class));
+(SecuritySettingsFragment.java:37 is only its own class declaration, so it has no caller in the source root beyond SecuritySettingsActivity.java:28.)
+Command: grep -rn -E 'new PreferenceConstants|PreferenceConstants\(' ROOT
+ROOT/com/money/manager/ex/notifications/SmsReceiverTransactions.java:103:        final PreferenceConstants prf_const = new PreferenceConstants();
+
+=== 3. Manifest
+Command: grep -rn -E 'SecuritySettingsActivity|PerDatabase' AndroidManifest.xml
+AndroidManifest.xml:263: android:name=".settings.SecuritySettingsActivity"
+Command: grep -rn -E 'SmsReceiverTransactions' AndroidManifest.xml
+AndroidManifest.xml:126: <receiver android:name=".notifications.SmsReceiverTransactions"
+(Printed with sed, lines 124-134: the receiver has intent-filter android.provider.Telephony.SMS_RECEIVED, exported="true".)
+
+=== 4. Screen keys (existing SCREENS keys must not be redefined; D9)
+Command: grep -n -E "'S_[A-Z_]*(SETTING|PREF|SECURITY|PASSCODE|CURRENC)[A-Z_]*'" graph_def.py parts/*.py
+Relevant hits: S_PASSCODE (label_003, graph_def.py:288), S_CURRENCY_EDIT (graph_def.py:2618), S_CURRENCY_LIST (graph_def.py:4491), S_BEHAVIOUR_SETTINGS (graph_def.py:10129, 10241), S_BUDGET_SETTINGS (graph_def.py:10242), S_DATABASE_SETTINGS (graph_def.py:10243).
+No key S_SETTINGS*, S_PER*, S_SECURITY* exists, so S_PER_DATABASE_SETTINGS and S_SECURITY_SETTINGS are new (D9). The settings list (SettingsFragment) has no key either.
+
+=== 5. Existing edges into or out of the batch's methods (duplicate check)
+Command: grep -n -E "SettingsActivity\.onCreate|SettingsActivity\.<init>|PerDatabaseFragment|SecuritySettingsActivity\.|PreferenceConstants\.<init>" graph_def.py parts/*.py
+Hits are batch-114/115 edges (DatabaseSettingsActivity, BudgetSettingsActivity), the BehaviourSettingsActivity and GeneralSettingsActivity edges, comments, and label_037 text ("Ints.tryParse (PerDatabaseFragment.java:191 ...)"). No edge names PerDatabaseFragment$N, SecuritySettingsActivity.<init>, or SettingsFragment$6 as a source. So no duplicate is written.
+Command: grep -n -m 3 "'RESULT'" graph_def.py (precedent) ->
+  graph_def.py:626 e('CurrencyListFragment.setResult', 'AccountEditActivity.onActivityResult', 'RESULT', ...)  (same source method as the new RESULT edge)
+Command: grep -n -E "SmsReceiverTransactions" graph_def.py (route check)
+  graph_def.py:8553 e('S_ENTRY', 'SmsReceiverTransactions.<clinit>', 'ENTRY', ...); label_097 writes S_ENTRY to <init> and LIFECYCLE <init> -> onReceive with the bank SMS state gate (D19).
+Command: grep -n -m 3 -E "SmsReceiverTransactions\.onReceive|MmexApplication\.onCreate" graph_def.py (route check)
+  graph_def.py:78 e('MmexApplication.<init>', 'MmexApplication.onCreate', 'LIFECYCLE', ...); graph_def.py:82 MmexApplication.onCreate -> lambda REGISTER.
+Command: grep -n -E '^ *\}\);|^ *\}\)' PerDatabaseFragment.java (listener closing lines) -> 110, 135, 175, 219, 311, 336, 344. Used for the $1, $2, $3, $4, $6, $7, $8 ranges (the $5 range 238-248 is from the sed print).
+
+=== 6. CurrencyListFragment.setResult (RESULT source)
+Command: grep -n -E 'setResult|INTENT_RESULT_CURRENCYID|ACTION_PICK|isPick|getAction' currency/list/CurrencyListFragment.java
+  92, 98 (mAction), 298 protected void setResult(), 300 ACTION_PICK branch, 309 putExtra(INTENT_RESULT_CURRENCYID), 314 getActivity().setResult(RESULT_OK, result), 320 setResult(RESULT_CANCELED), 339 setResultAndFinish (in onListItemClick for the pick case).

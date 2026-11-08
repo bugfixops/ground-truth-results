@@ -1,0 +1,71 @@
+# LibreTorrent exported-component / service route audit — commands and saved line evidence
+# Source root: /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent
+# Framework root: /Users/darshan/Desktop/yang/work/fw_src/android-8.1.0_r1
+
+COMMAND: nl -ba app/src/main/AndroidManifest.xml | sed -n '45,295p'
+OUTPUT (source path app/src/main/AndroidManifest.xml):
+ 52-60 MainActivity filters MAIN/LAUNCHER, LEANBACK_LAUNCHER, SEARCH; exported=true is at 45.
+ 62-135 AddTorrentActivity exported=true; SEND/DEFAULT, VIEW/DEFAULT/BROWSABLE torrent file/content/http/https/magnet filters.
+ 141-153 SendTextToClipboard exported=true; SEND/DEFAULT/ALTERNATIVE, text/*; Theme.NoDisplay.
+ 155-162 SettingsActivity exported=true; APPLICATION_PREFERENCES/DEFAULT.
+ 178-228 AddFeedActivity exported=true; SEND and VIEW HTTP/HTTPS XML/RSS/Atom filters.
+ 252-254 TorrentService; foregroundServiceType=dataSync, no exported attribute and no intent-filter.
+ 256-263 NotificationReceiver exported=false; actions NOTIFY_ACTION_SHUTDOWN_APP and NOTIFY_ACTION_ADD_TORRENT.
+ 265-274 BootReceiver exported=true; BOOT_COMPLETED, QUICKBOOT_POWERON, com.htc.intent.action.QUICKBOOT_POWERON, ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED.
+ 276-277 SchedulerReceiver declaration; no exported attribute and no intent-filter.
+ 279-287 androidx.core.content.FileProvider; authority ${applicationId}.provider, exported=false, grantUriPermissions=true, metadata @xml/provider_paths.
+ 288-293 JacocoInstrument.SMSInstrumentedReceiver exported=true, action edu.gatech.m3.emma.COLLECT_COVERAGE. Classification only; its source/coverage behavior was not inspected.
+
+COMMAND: nl -ba app/src/main/java/org/proninyaroslav/libretorrent/ui/addtorrent/AddTorrentActivity.java | sed -n '96,140p;169,205p;305,360p'
+OUTPUT:
+ 96-100 onCreate lifecycle callback and superclass call.
+ 102-104 binding and ViewModel setup.
+ 131 fillMutableParams(); 133-135 permission check/request; 138 initLayout(); 139 observeDecodeState().
+ 169-185 onStop unregisters params observer / clears disposables; onStart subscribes dialog and params.
+ 187-199 subscribeAlertDialog -> dialogViewModel.observeEvents().subscribe(...); subscribeParamsChanged registers Observable.OnPropertyChangedCallback.
+ 305-325 observeDecodeState registers LiveData observer; UNKNOWN status reads getUri and calls viewModel.startDecode(uri); states dispatch onStartDecode/onStopDecode.
+ 350-360 getUri reads Intent data first, then EXTRA_TEXT, then TAG_URI.
+
+COMMAND: nl -ba app/src/main/java/org/proninyaroslav/libretorrent/ui/SendTextToClipboard.java | sed -n '35,62p'; nl -ba app/src/main/java/org/proninyaroslav/libretorrent/ui/settings/SettingsActivity.java | sed -n '33,73p'; nl -ba app/src/main/java/org/proninyaroslav/libretorrent/ui/addfeed/AddFeedActivity.java | sed -n '36,94p'
+OUTPUT:
+SendTextToClipboard.java 35-61: onCreate reads getIntent(); only when hasExtra(EXTRA_TEXT) copies CharSequence to clipboard and shows toast; always finish()/overridePendingTransition.
+SettingsActivity.java 33-62: onCreate initializes settings view, then registers detailTitleChanged observer; 64-73 handles home menu selection by finish.
+AddFeedActivity.java 46-68: onCreate restores/creates AddFeedDialog; ACTION_EDIT_FEED branch reads feed_id, else calls getUriFromIntent; shows dialog. 70-81 reads intent data or EXTRA_TEXT. 83-93 finish/back callbacks.
+
+COMMAND: nl -ba app/src/main/java/org/proninyaroslav/libretorrent/service/TorrentService.java | sed -n '98,135p;142,232p;342,365p;497,524p'
+OUTPUT:
+98-114 onBind returns null; onCreate gets repositories/engine/provider, calls initPendingIntents and makeForegroundNotify.
+116-135 init sets notifications/subscriptions, enables boot receiver, starts engine, registers engineListener, starts notification updater.
+142-173 onDestroy and stop paths; stopService unregisters engineListener, stops foreground and calls stopSelf.
+175-197 onStartCommand reads action; handles shutdown action early; calls init only on first start; then handleActions; returns START_STICKY.
+199-212 handleShutdownActions: NOTIFY_ACTION_SHUTDOWN_APP or ACTION_SHUTDOWN invokes shutdown/returns START_NOT_STICKY; ACTION_RESTART_FOREGROUND_NOTIFICATION rebuilds notification.
+214-232 handleActions: pause/resume/pause-resume branches act on engine.
+342-365 makes a MainActivity ACTION_MAIN/LAUNCHER activity PendingIntent and uses it as notification content intent.
+497-524 creates explicit NotificationReceiver PendingIntents for shutdown/pause/resume/pause-resume actions.
+
+COMMAND: nl -ba app/src/main/java/org/proninyaroslav/libretorrent/receiver/BootReceiver.java | sed -n '37,73p'; nl -ba app/src/main/java/org/proninyaroslav/libretorrent/receiver/NotificationReceiver.java | sed -n '33,82p'; nl -ba app/src/main/java/org/proninyaroslav/libretorrent/receiver/SchedulerReceiver.java | sed -n '41,104p'
+OUTPUT:
+BootReceiver.java 37-52 onReceive obtains settings; boot/quickboot calls initScheduling and starts engine only when pref.autostart() && pref.keepAlive(); exact-alarm-permission action calls initScheduling.
+BootReceiver.java 54-58 isBootCompleted compares ACTION_BOOT_COMPLETED and the two quickboot literals. 60-73 schedules start/stop alarms only when the matching settings are enabled.
+NotificationReceiver.java 33-39 action constants. 41-82 onReceive null-action returns; shutdown action starts MainActivity then TorrentService; add-torrent starts MainActivity; pause/resume actions start TorrentService with matching action.
+SchedulerReceiver.java 41-63 onReceive returns on null action, dispatches SCHEDULER_WORK_START_APP/STOP_APP to private methods.
+SchedulerReceiver.java 65-82 start branch returns unless enableSchedulingStart; one-shot clears setting, recurring reschedules; optional Wi-Fi on; engine.start and enableBootReceiver.
+SchedulerReceiver.java 84-103 stop branch returns unless enableSchedulingShutdown; one-shot clears setting, recurring reschedules; engine.forceStop; optional Wi-Fi off; enableBootReceiver.
+
+COMMAND: nl -ba app/src/main/java/org/proninyaroslav/libretorrent/service/Scheduler.java | sed -n '43,105p'; nl -ba app/src/main/java/org/proninyaroslav/libretorrent/core/model/TorrentEngine.java | sed -n '148,159p;275,286p'; nl -ba app/src/main/java/org/proninyaroslav/libretorrent/core/utils/Utils.java | sed -n '426,434p'
+OUTPUT:
+Scheduler.java 43-46 defines start/stop action strings. 52-58 delegates start/stop scheduling. 93-105 makes explicit SchedulerReceiver PendingIntent with workTag action; returns false on API S+ exact-alarm permission failure, otherwise calls setExactAndAllowWhileIdle.
+TorrentEngine.java 148-159 start/restart construct explicit TorrentService intents and call Utils.startServiceBackground; 282-286 forceStop constructs explicit shutdown intent and calls same helper.
+Utils.java 426-434 posts startForegroundService on API O+ or calls startService on earlier API.
+
+COMMAND: nl -ba app/src/main/java/org/proninyaroslav/libretorrent/ui/detailtorrent/DetailTorrentViewModel.java | sed -n '274,285p'; nl -ba app/src/main/res/xml/provider_paths.xml; nl -ba core/java/android/app/ActivityThread.java | sed -n '2644,2660p;2727,2736p;3164,3189p;3311,3345p;3464,3478p'; nl -ba core/java/android/app/Activity.java | sed -n '6993,7024p'
+OUTPUT:
+DetailTorrentViewModel.java 274-285: if resolved path is filesystem, calls androidx.core.content.FileProvider.getUriForFile(..., packageName+".provider", File), then returns URI.
+provider_paths.xml 1-4 declares root-path name="root" path=".".
+FW-SRC core/java/android/app/ActivityThread.java:2644-2660 instantiates resolved activity component; 2727-2732 calls Instrumentation.callActivityOnCreate.
+FW-SRC core/java/android/app/ActivityThread.java:3164-3188 instantiates receiver and calls receiver.onReceive.
+FW-SRC core/java/android/app/ActivityThread.java:3311-3345 creates Service and invokes service.onCreate.
+FW-SRC core/java/android/app/ActivityThread.java:3464-3478 invokes service.onStartCommand for non-task-removed start.
+FW-SRC core/java/android/app/Activity.java:6993-7000 invokes Activity.onCreate; 7009-7012 invokes onNewIntent; 7014-7024 invokes start lifecycle callback.
+
+NOTE: AndroidX FileProvider implementation is outside the supplied Java app source; any internal URI-to-provider dispatch is INFERRED and not claimed as a SOURCE-confirmed app edge. JaCoCo receiver was classified from manifest only; coverage artifacts/data were not opened or used.

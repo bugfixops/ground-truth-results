@@ -1,0 +1,44 @@
+# label_017 grep evidence (MMEX batch 017). Source root: final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main (java files are under its java/ folder).
+# Backs the no-caller claims for BudgetEditActivity_ViewBinding.unbind and BudgetEditViewHolder_ViewBinding.unbind, and the no-caller check for the two ButterKnife constructor CALL edges.
+# auto_calls.json sections (grep -noE of the top-level keys): calls 2-60795, lambdas 60796-60887, framework_calls 60888-76432, receiver_variants 76433-76572, impl 76573 to the end.
+
+== 1. grep -rnE "unbind|Unbinder" <src/main/java>
+(no matches)
+
+== 2. grep -rln "_ViewBinding" <src/main>
+(no matches)
+
+== 3. grep -nE "onDestroy|unbind|ButterKnife.bind" BudgetEditActivity.java BudgetEditViewHolder.java
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/budget/BudgetEditViewHolder.java:34:        ButterKnife.bind(this, activity);
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/budget/BudgetEditActivity.java:57:        ButterKnife.bind(this);
+
+== 4. grep -n "\"dst\": .*unbind" auto_calls.json (any call record whose destination is an unbind method)
+(no matches)
+
+== 5. grep -n "unbind" in the calls section only (lines 2-60795)
+(no matches)
+
+== 6. grep -nE "BudgetEdit[A-Za-z_$0-9]*\.unbind|\"unbind\"" auto_calls.json (where the unbind names occur; 76109-76124 are framework_calls keys, 94287-94320 are impl entries)
+76109:  "BudgetEditViewHolder_ViewBinding.unbind": [
+76124:  "BudgetEditActivity_ViewBinding.unbind": [
+94287:    "()V": "BudgetEditViewHolder_ViewBinding.unbind"
+94320:    "()V": "BudgetEditActivity_ViewBinding.unbind"
+
+== 7. grep -n "\"src\": \"BudgetEditViewHolder.<init>\"" and the ButterKnife constructor destinations (CALL edges written as non_standard)
+(no matches: no auto CALL from BudgetEditViewHolder.<init>)
+(no matches: no auto CALL to BudgetEditViewHolder_ViewBinding.<init>)
+(no matches: no auto CALL to BudgetEditActivity_ViewBinding.<init>(BudgetEditActivity))
+
+== 8. grep -rn "BudgetEditActivity" <src/main> (manifest, layout, callers)
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/AndroidManifest.xml:357:        <activity android:name=".budget.BudgetEditActivity" />
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/res/layout/activity_budget_edit.xml:97:            tools:context="com.money.manager.ex.budget.BudgetEditActivity"
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/budget/BudgetListFragment.java:239:        Intent intent = new Intent(getActivity(), BudgetEditActivity.class);
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/budget/BudgetListFragment.java:240:        intent.putExtra(BudgetEditActivity.KEY_BUDGET_ID, budgetId);
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/budget/BudgetListFragment.java:247:        Intent intent = new Intent(getActivity(), BudgetEditActivity.class);
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/budget/BudgetEditActivity.java:43:public class BudgetEditActivity
+
+== 9. grep -rn "editBudget(\|createBudget(" <src/main/java/com/money/manager/ex/budget>
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/budget/BudgetListFragment.java:190:                editBudget(budgetId);
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/budget/BudgetListFragment.java:220:        createBudget();
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/budget/BudgetListFragment.java:238:    private void editBudget(int budgetId) {
+/Users/darshan/Desktop/yang/work/final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/budget/BudgetListFragment.java:246:    private void createBudget() {

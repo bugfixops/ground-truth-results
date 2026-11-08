@@ -1,0 +1,206 @@
+# label_094.grep.txt: grep, sed and auto_calls output behind graphs/MMEX/parts/label_094.md (batch 094, 34 methods, all REACHABLE).
+# No UNREACHABLE decision is made, so these sections back the REACHABLE caller claims and the edge evidence.
+
+## A. source callers of WatchlistItemsFragment and WatchlistViewHolder outside the batch file (grep -rn)
+investment/watchlist/WatchlistViewHolder.java:26:public class WatchlistViewHolder {
+investment/watchlist/WatchlistViewHolder.java:27://    public WatchlistViewHolder(View view) {
+investment/watchlist/WatchlistFragment.java:104:    private WatchlistItemsFragment mDataFragment;
+investment/watchlist/WatchlistFragment.java:112:    private WatchlistViewHolder viewHolder;
+investment/watchlist/WatchlistFragment.java:154:        this.viewHolder = new WatchlistViewHolder();
+investment/watchlist/WatchlistFragment.java:161:        mDataFragment = WatchlistItemsFragment.newInstance();
+investment/watchlist/WatchlistFragment.java:164:        arguments.putInt(WatchlistItemsFragment.KEY_ACCOUNT_ID, getAccountId());
+
+## B. helper callers in the parent classes (grep -n)
+60:    public abstract String getSubTitle();
+64:        setupFloatingActionButton(view);
+83:        String subTitle = getSubTitle();
+216:    public void onFloatingActionButtonClicked() {
+238:    public void setupFloatingActionButton(View view) {
+241:            mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
+244:                    onFloatingActionButtonClicked();
+93:    public static WatchlistFragment newInstance(int accountId) {
+154:        this.viewHolder = new WatchlistViewHolder();
+161:        mDataFragment = WatchlistItemsFragment.newInstance();
+167:        mDataFragment.setListHeader(this.viewHolder.mListHeader);
+168:        mDataFragment.setAutoStarLoader(false);
+204:        reloadData();
+287:        reloadData();
+292:        onPriceDownloaded(event.symbol, event.price, event.date);
+308:    public void reloadData() {
+310:            mDataFragment.reloadData();
+330:    private void onPriceDownloaded(String symbol, Money price, Date date) {
+340:        StockHistoryRepository historyRepo = mDataFragment.getStockHistoryRepository();
+408:                mDataFragment.reloadData();
+681:        mDataFragment.reloadData();
+
+## C. auto_calls.json records whose dst is a batch method (python3 -I; key calls)
+WatchlistItemsFragment.onActivityCreated -> WatchlistItemsFragment$1.<init> | WatchlistItemsFragment.java : 140 | exact
+WatchlistItemsFragment.showDeleteConfirmationDialog -> WatchlistItemsFragment$2.<init> | WatchlistItemsFragment.java : 479 | exact
+WatchlistItemsFragment.showDeleteConfirmationDialog -> WatchlistItemsFragment$3.<init> | WatchlistItemsFragment.java : 478 | exact
+WatchlistItemsFragment.newInstance -> WatchlistItemsFragment.<init> | WatchlistItemsFragment.java : 89 | exact
+WatchlistItemsFragment.onLoadFinished -> WatchlistItemsFragment.displayHeaderData | WatchlistItemsFragment.java : 339 | exact
+WatchlistItemsFragment.displayHeaderData -> WatchlistItemsFragment.getAccount | WatchlistItemsFragment.java : 439 | exact
+WatchlistItemsFragment.onContextItemSelected -> WatchlistItemsFragment.getAccount | WatchlistItemsFragment.java : 249 | exact
+WatchlistFragment.onPriceDownloaded -> WatchlistItemsFragment.getStockHistoryRepository | WatchlistFragment.java : 340 | exact
+BaseListFragment.onActivityCreated -> WatchlistItemsFragment.getSubTitle | BaseListFragment.java : 83 | cha
+BaseListFragment.onActivityCreated@WatchlistItemsFragment -> WatchlistItemsFragment.getSubTitle | BaseListFragment.java : 83 | exact
+WatchlistItemsFragment.onContextItemSelected -> WatchlistItemsFragment.hasHeaderRow | WatchlistItemsFragment.java : 224 | exact
+WatchlistItemsFragment.onCreateContextMenu -> WatchlistItemsFragment.hasHeaderRow | WatchlistItemsFragment.java : 198 | exact
+WatchlistItemsFragment.onActivityCreated -> WatchlistItemsFragment.isAutoStarLoader | WatchlistItemsFragment.java : 168 | exact
+WatchlistFragment.onCreateView -> WatchlistItemsFragment.newInstance | WatchlistFragment.java : 161 | exact
+BaseListFragment$2.onClick -> WatchlistItemsFragment.onFloatingActionButtonClicked | BaseListFragment.java : 244 | cha
+WatchlistItemsFragment.onFloatingActionButtonClicked -> WatchlistItemsFragment.openEditInvestmentActivity | WatchlistItemsFragment.java : 345 | exact
+WatchlistItemsFragment.reloadData -> WatchlistItemsFragment.prepareArgsForChildFragment | WatchlistItemsFragment.java : 390 | exact
+WatchlistFragment$2.run -> WatchlistItemsFragment.reloadData | WatchlistFragment.java : 408 | exact
+WatchlistFragment.reloadData -> WatchlistItemsFragment.reloadData | WatchlistFragment.java : 310 | exact
+WatchlistFragment.switchAccount -> WatchlistItemsFragment.reloadData | WatchlistFragment.java : 681 | exact
+WatchlistItemsFragment$3.onClick -> WatchlistItemsFragment.reloadData | WatchlistItemsFragment.java : 488 | exact
+WatchlistItemsFragment.onActivityCreated -> WatchlistItemsFragment.reloadData | WatchlistItemsFragment.java : 169 | exact
+WatchlistItemsFragment.onActivityResult -> WatchlistItemsFragment.reloadData | WatchlistItemsFragment.java : 183 | exact
+WatchlistFragment.onCreateView -> WatchlistItemsFragment.setAutoStarLoader | WatchlistFragment.java : 168 | exact
+WatchlistFragment.onCreateView -> WatchlistItemsFragment.setListHeader | WatchlistFragment.java : 167 | exact
+WatchlistItemsFragment.onContextItemSelected -> WatchlistItemsFragment.showDeleteConfirmationDialog | WatchlistItemsFragment.java : 267 | exact
+WatchlistFragment.onCreateView -> WatchlistViewHolder.<init> | WatchlistFragment.java : 154 | exact
+count 27
+
+## D. auto_calls.json records whose src is a listener of the batch ($1, $2, $3); used for the $2/$3 mapping
+WatchlistItemsFragment$1.onItemClick -> AbsListFragment.getListAdapter | WatchlistItemsFragment.java : 146 | exact
+WatchlistItemsFragment$1.onItemClick -> AbsListFragment.getListView | WatchlistItemsFragment.java : 144 | exact
+WatchlistItemsFragment$3.onClick -> WatchlistItemsFragment.reloadData | WatchlistItemsFragment.java : 488 | exact
+WatchlistItemsFragment$3.onClick -> UIHelper.showToast(int) | WatchlistItemsFragment.java : 484 | exact
+WatchlistItemsFragment$3.onClick -> UIHelper.<init> | WatchlistItemsFragment.java : 484 | exact
+WatchlistItemsFragment$3.onClick -> StockRepository.delete | WatchlistItemsFragment.java : 483 | exact
+WatchlistItemsFragment$3.onClick -> StockRepository.<init> | WatchlistItemsFragment.java : 482 | exact
+count 7
+
+## E. merged graph_def.py lines that name a batch method (grep -n)
+3131:  'Implicit constructor of the Icepick bundler for the @State field mPrice of EditPriceDialog (EditPriceDialog.java:83). Its only caller is the generated static initialiser EditPriceDialog$$Icepi
+3132:  'SRC investment/EditPriceDialog.java:83, 89, 103-105, 171-174; SRC investment/watchlist/WatchlistItemsFragment.java:255; SRC core/bundlers/PriceDownloadedEventBundler.java:33; label_041.grep.tx
+3616:  'No live caller. No app code instantiates EditPriceDialog. The only reference to its constructor outside the class, WatchlistItemsFragment.java:255, is commented out, and PriceEditActivity.java
+3617:  'SRC investment/EditPriceDialog.java:69,89-91; investment/watchlist/WatchlistItemsFragment.java:246-252,255 (255 commented); investment/PriceEditActivity.java:198-204; label_043.grep.txt sectio
+3737:# BaseListFragment has 10 direct subclasses (grep, label_026.grep.txt section G): PortfolioFragment, WatchlistItemsFragment, AllDataListFragment, PayeeListFragment, AccountListFragment, CurrencyL
+3753:  'AccountListFragment.onActivityCreated calls setHasOptionsMenu(true) (line 71) and does not override onCreateOptionsMenu, so the framework builds the menu with the inherited body (search item, 
+3786:    ('BaseListFragment$2.onClick', 'WatchlistItemsFragment.onFloatingActionButtonClicked'),
+3798:  'public method with an empty body (lines 216-217). Its only caller is the click listener BaseListFragment$2.onClick (line 244). The eight subclasses that show the FAB (PayeeListFragment, Accoun
+4824:    'no call site has a StockHistoryRepository receiver: every getAllColumns() call in app src is on another class (PortfolioFragment.java:165 StockRepository, WatchlistItemsFragment.java:305 mSt
+4832:    'the only caller is EditPriceDialog$2.onClick (auto CALL, EditPriceDialog.java:134); EditPriceDialog is never constructed in app src: the only construction is commented out (WatchlistItemsFra
+7184:  'Constructor of the DialogFragment. The app source never constructs EditPriceDialog: the only construction (WatchlistItemsFragment.java:255) is commented out, its show call (WatchlistItemsFragm
+7185:  'SRC investment/EditPriceDialog.java:89-99; SRC investment/watchlist/WatchlistItemsFragment.java:255-263; SRC core/ioc/MmxComponent.java:90; label_085.grep.txt sections 1, 2',
+7386:e('WatchlistItemsFragment.openEditInvestmentActivity', 'InvestmentTransactionEditActivity.<init>', 'INTENT',
+7388:  evidence='SRC investment/watchlist/WatchlistItemsFragment.java:465-470 (Intent at 466; setAction at 468; startActivity at 469); SRC investment/watchlist/WatchlistItemsFragment.java:343-346 (onF
+7622:#   - 13 e() edges: 1 INTENT into PriceEditActivity.<init> (from WatchlistItemsFragment.onContextItemSelected, no auto record: the Intent is built from a class literal); 1 LIFECYCLE <init> -> onC
+7631:e('WatchlistItemsFragment.onContextItemSelected', 'PriceEditActivity.<init>', 'INTENT',
+7633:  evidence='SRC investment/watchlist/WatchlistItemsFragment.java:240-253 (EditPrice case; getPriceEditIntent at 245; startActivityForResult at 253); SRC core/IntentFactory.java:80-83 (new Intent(
+
+## F. parent label rows used for the routes (grep -n)
+30:| BaseListFragment$2.onClick | REACHABLE | - | Calls onFloatingActionButtonClicked() (line 244). Routes: GUI from S_PAYEE, S_ACCOUNT_LIST and S_BUDGETS (tap the + button); the receiver-variant edge
+12:| BaseListFragment.onFloatingActionButtonClicked | UNREACHABLE | no_trigger_in_app | Empty public body (lines 216-217
+22:| PriceEditActivity.onOptionsItemSelected | REACHABLE | GUI | Route: S_PRICE_EDIT > tap the save icon (MenuHelper.save case, line 118) > save() (120) > setResult(RESULT_OK) (121) > finish() (122) >
+22:| WatchlistFragment.onCreateView | REACHABLE | LIFECYCLE | The framework calls onCreateView after onCreate (LIFECYCLE edge). ENTERS edge to S_WATCHLIST: the watchlist screen is shown here. | Watchl
+28:| WatchlistFragment.onPriceDownloaded | REACHABLE | ASYNC | Auto CALL from onEvent(PriceDownloadedEvent) (line 292). Route: the price download posts PriceDownloadedEvent (see the onEvent(PriceDownl
+
+## G. framework lines (fw_src; grep -n and sed -n)
+3470:                if (onContextItemSelected(item)) {
+3823:            return mParent.onContextItemSelected(item);
+            case Window.FEATURE_CONTEXT_MENU:
+                if(titleCondensed != null) {
+                    EventLog.writeEvent(50000, 1, titleCondensed.toString());
+                }
+                if (onContextItemSelected(item)) {
+    public void openContextMenu(View view) {
+        view.showContextMenu();
+    }
+    void dispatchActivityResult(String who, int requestCode,
+        int resultCode, Intent data) {
+        if (false) Log.v(
+            TAG, "Dispatching result: who=" + who + ", reqCode=" + requestCode
+            + ", resCode=" + resultCode + ", data=" + data);
+        mFragments.noteStateNotSaved();
+        if (who == null) {
+            onActivityResult(requestCode, resultCode, data);
+        } else if (who.startsWith(REQUEST_PERMISSIONS_WHO_PREFIX)) {
+            who = who.substring(REQUEST_PERMISSIONS_WHO_PREFIX.length());
+            if (TextUtils.isEmpty(who)) {
+                dispatchRequestPermissionsResult(requestCode, data);
+            } else {
+                Fragment frag = mFragments.findFragmentByWho(who);
+                if (frag != null) {
+                    dispatchRequestPermissionsResultToFragment(requestCode, data, frag);
+                }
+            }
+        } else if (who.startsWith("@android:view:")) {
+            ArrayList<ViewRootImpl> views = WindowManagerGlobal.getInstance().getRootViews(
+                    getActivityToken());
+            for (ViewRootImpl viewRoot : views) {
+                if (viewRoot.getView() != null
+                        && viewRoot.getView().dispatchActivityResult(
+                                who, requestCode, resultCode, data)) {
+                    return;
+    public boolean showContextMenu() {
+        return getParent().showContextMenuForChild(this);
+    public void createContextMenu(ContextMenu menu) {
+        ContextMenuInfo menuInfo = getContextMenuInfo();
+
+        // Sets the current menu info so all items added to menu will have
+        // my extra info set.
+        ((MenuBuilder)menu).setCurrentMenuInfo(menuInfo);
+
+        onCreateContextMenu(menu);
+        ListenerInfo li = mListenerInfo;
+        if (li != null && li.mOnCreateContextMenuListener != null) {
+            li.mOnCreateContextMenuListener.onCreateContextMenu(menu, this, menuInfo);
+    public boolean showContextMenuForChild(View originalView) {
+        if (isShowingContextMenuWithCoords()) {
+            // We're being called for compatibility. Return false and let the version
+            // with coordinates recurse up.
+            return false;
+        }
+        return mParent != null && mParent.showContextMenuForChild(originalView);
+    private final View.OnClickListener mButtonHandler = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            final Message m;
+            if (v == mButtonPositive && mButtonPositiveMessage != null) {
+                m = Message.obtain(mButtonPositiveMessage);
+            } else if (v == mButtonNegative && mButtonNegativeMessage != null) {
+                m = Message.obtain(mButtonNegativeMessage);
+            } else if (v == mButtonNeutral && mButtonNeutralMessage != null) {
+                m = Message.obtain(mButtonNeutralMessage);
+            } else {
+                m = null;
+            }
+
+            if (m != null) {
+                m.sendToTarget();
+    private static final class ButtonHandler extends Handler {
+        // Button clicks have Message.what as the BUTTON{1,2,3} constant
+        private static final int MSG_DISMISS_DIALOG = 1;
+
+        private WeakReference<DialogInterface> mDialog;
+
+        public ButtonHandler(DialogInterface dialog) {
+            mDialog = new WeakReference<>(dialog);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+
+                case DialogInterface.BUTTON_POSITIVE:
+                case DialogInterface.BUTTON_NEGATIVE:
+                case DialogInterface.BUTTON_NEUTRAL:
+                    ((DialogInterface.OnClickListener) msg.obj).onClick(mDialog.get(), msg.what);
+        if (mOnItemClickListener != null) {
+            playSoundEffect(SoundEffectConstants.CLICK);
+            mOnItemClickListener.onItemClick(this, view, position, id);
+            // Next have the activity save its current state and managed dialogs...
+            if (!r.activity.mFinished && saveState) {
+                if (r.state == null) {
+                    callCallActivityOnSaveInstanceState(r);
+                }
+            }
+
+            if (!keepShown) {
+                try {
+                    // Now we are idle.
+                    r.activity.performStop(false /*preserveWindow*/);

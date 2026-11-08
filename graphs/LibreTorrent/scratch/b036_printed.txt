@@ -1,0 +1,546 @@
+===== core/model/TorrentEngine.java (1659 lines total) =====
+--- core/model/TorrentEngine.java:494 ---
+494:                         if (task.isPaused())
+--- core/model/TorrentEngine.java:551 ---
+551:         Set<String> trackers = task.getTrackersUrl();
+--- core/model/TorrentEngine.java:631 ---
+631:             info = task.getTorrentMetaInfo();
+--- core/model/TorrentEngine.java:731 ---
+731:         return task.isFirstLastPiecePriority();
+--- core/model/TorrentEngine.java:755 ---
+755:         return task.getStream(fileIndex);
+--- core/model/TorrentEngine.java:790-794 ---
+790:                     task.getStateCode(),
+791:                     task.getProgress(),
+792:                     task.getReceivedBytes(),
+793:                     task.getTotalSentBytes(),
+794:                     task.getTotalWanted(),
+--- core/model/TorrentEngine.java:796-797 ---
+796:                     task.getUploadSpeed(),
+797:                     task.getETA(),
+--- core/model/TorrentEngine.java:799 ---
+799:                     task.getTotalPeers(),
+--- core/model/TorrentEngine.java:803 ---
+803:                     task.getFilePriorities(),
+--- core/model/TorrentEngine.java:844 ---
+844:         int[] piecesAvail = task.getPiecesAvailability();
+--- core/model/TorrentEngine.java:848-849 ---
+848:                 task.getFilesReceivedBytes(),
+849:                 task.getTotalSeeds(),
+--- core/model/TorrentEngine.java:851-852 ---
+851:                 task.getNumDownloadedPieces(),
+852:                 task.getShareRatio(),
+--- core/model/TorrentEngine.java:854 ---
+854:                 task.getSeedingTime(),
+--- core/model/TorrentEngine.java:856 ---
+856:                 task.getFilesAvailability(piecesAvail),
+--- core/model/TorrentEngine.java:858 ---
+858:                 task.getTotalLeechers());
+--- core/model/TorrentEngine.java:869 ---
+869:         return task.getTrackerInfoList();
+--- core/model/TorrentEngine.java:880 ---
+880:         return task.getPeerInfoList();
+--- core/model/TorrentEngine.java:891 ---
+891:         return task.getUploadSpeedLimit();
+
+===== core/model/session/TorrentDownloadImpl.java (1711 lines total) =====
+--- core/model/session/TorrentDownloadImpl.java:164 ---
+164:         partsFile = getPartsFile();
+--- core/model/session/TorrentDownloadImpl.java:200-203 ---
+200:     private boolean hasMetadata() {
+201:         var ti = th.torrentFile();
+202:         return !operationNotAllowed() && ti != null && ti.numFiles() > 0;
+203:     }
+--- core/model/session/TorrentDownloadImpl.java:232 ---
+232:                     handleTorrentFinished();
+--- core/model/session/TorrentDownloadImpl.java:263 ---
+263:                     handleMetadata((MetadataReceivedAlert)alert);
+--- core/model/session/TorrentDownloadImpl.java:272 ---
+272:                     handleReadPiece((ReadPieceAlert)alert);
+--- core/model/session/TorrentDownloadImpl.java:275 ---
+275:                     handleTorrentChecked();
+--- core/model/session/TorrentDownloadImpl.java:304 ---
+304:         Pair<String, Boolean> res = getErrorMsg(alert);
+--- core/model/session/TorrentDownloadImpl.java:338-440 ---
+338:     private Pair<String, Boolean> getErrorMsg(Alert<?> alert)
+339:     {
+340:         String errorMsg = null;
+341:         boolean isNonCritical = false;
+342:         switch (alert.type()) {
+343:             case TORRENT_ERROR: {
+344:                 TorrentErrorAlert errorAlert = (TorrentErrorAlert)alert;
+345:                 ErrorCode error = errorAlert.error();
+346:                 if (error.isError()) {
+347:                     StringBuilder sb = new StringBuilder();
+348:                     String filename = errorAlert.filename().substring(
+349:                             errorAlert.filename().lastIndexOf("/") + 1);
+350:                     if (errorAlert.filename() != null)
+351:                         sb.append("[").append(filename).append("] ");
+352:                     sb.append(SessionErrors.getErrorMsg(error));
+353:                     errorMsg = sb.toString();
+354: 
+355:                     isNonCritical = SessionErrors.isNonCritical(error);
+356:                 }
+357:                 break;
+358:             } case METADATA_FAILED: {
+359:                 MetadataFailedAlert metadataFailedAlert = (MetadataFailedAlert)alert;
+360:                 ErrorCode error = metadataFailedAlert.getError();
+361:                 if (error.isError())
+362:                     errorMsg = SessionErrors.getErrorMsg(error);
+363:                 break;
+364:             } case FILE_ERROR: {
+365:                 FileErrorAlert fileErrorAlert = (FileErrorAlert)alert;
+366:                 ErrorCode error = fileErrorAlert.error();
+367:                 String filename = fileErrorAlert.filename().substring(
+368:                         fileErrorAlert.filename().lastIndexOf("/") + 1);
+369:                 if (error.isError()) {
+370:                     errorMsg = "[" + fileErrorAlert.operation() + "][" + filename + "] " +
+371:                             SessionErrors.getErrorMsg(error);
+372:                     isNonCritical = SessionErrors.isNonCritical(error);
+373:                 }
+374:                 break;
+375:             } case FASTRESUME_REJECTED: {
+376:                 FastresumeRejectedAlert resumeRejectedAlert = (FastresumeRejectedAlert)alert;
+377:                 ErrorCode error = resumeRejectedAlert.error();
+378:                 if (error.isError()) {
+379:                     if (error.getValue() == libtorrent_errors.mismatching_file_size.swigValue())
+380:                         errorMsg = "file sizes mismatch";
+381:                     else
+382:                         errorMsg = "fast resume data was rejected, reason: " + SessionErrors.getErrorMsg(error);
+383:                 }
+384:                 break;
+385:             }
+386:         }
+387: 
+388:         return Pair.create(errorMsg, isNonCritical);
+389:     }
+390: 
+391:     private void handleMetadata(MetadataReceivedAlert alert)
+392:     {
+393:         Exception[] err = new Exception[1];
+394:         String newName = null;
+395:         Torrent torrent;
+396:         try {
+397:             torrent = repo.getTorrentById(id);
+398:             if (torrent == null)
+399:                 throw new NullPointerException(id + " doesn't exists");
+400:             TorrentHandle th = alert.handle();
+401:             TorrentInfo ti = th.torrentFile();
+402:             if (ti == null) {
+403:                 return;
+404:             }
+405: 
+406:             TorrentMetaInfo info = new TorrentMetaInfo(ti);
+407: 
+408:             /* Skip if default name is changed */
+409:             String name = this.name.get();
+410:             if (info.sha1Hash.equals(name) || TextUtils.isEmpty(name)) {
+411:                 this.name.set(info.torrentName);
+412:                 newName = info.torrentName;
+413:             }
+414: 
+415:             long availableBytes = fs.getDirAvailableBytes(torrent.downloadPath);
+416:             if (availableBytes < info.torrentSize)
+417:                 throw new FreeSpaceException("Not enough free space");
+418: 
+419:         } catch (Exception e) {
+420:             err[0] = e;
+421:             pause();
+422:             notifyListeners((listener) ->
+423:                     listener.onTorrentError(id, e));
+424: 
+425:         } finally {
+426:             torrent = repo.getTorrentById(id);
+427:             if (torrent != null) {
+428:                 torrent.setMagnetUri(null);
+429:                 if (newName != null)
+430:                     torrent.name = newName;
+431:                 if (err[0] != null)
+432:                     torrent.error = err[0].toString();
+433: 
+434:                 repo.updateTorrent(torrent);
+435:             }
+436:         }
+437: 
+438:         notifyListeners((listener) ->
+439:                 listener.onTorrentMetadataLoaded(id, err[0]));
+440:     }
+--- core/model/session/TorrentDownloadImpl.java:442-455 ---
+442:     private void handleReadPiece(ReadPieceAlert alert)
+443:     {
+444:         Exception err = null;
+445:         if (alert.error().isError())
+446:             err = new Exception(alert.error().getMessage());
+447:         ReadPieceInfo info = new ReadPieceInfo(alert.piece(),
+448:                 alert.size(),
+449:                 alert.bufferPtr(),
+450:                 err);
+451: 
+452:         notifyListeners((listener) ->
+453:                 listener.onReadPiece(id, info));
+454:     }
+455: 
+--- core/model/session/TorrentDownloadImpl.java:472-476 ---
+472:     private void handleTorrentChecked()
+473:     {
+474:         if (resumeDataRejected && !hasMissingFiles)
+475:             saveResumeData(true);
+476:     }
+--- core/model/session/TorrentDownloadImpl.java:478-486 ---
+478:     private void handleTorrentFinished()
+479:     {
+480:         hasMissingFiles = false;
+481: 
+482:         notifyListeners((listener) ->
+483:                 listener.onTorrentFinished(id));
+484:         saveResumeData(true);
+485:     }
+486: 
+--- core/model/session/TorrentDownloadImpl.java:696 ---
+696:     public int getProgress()
+--- core/model/session/TorrentDownloadImpl.java:759 ---
+759:         return operationNotAllowed() || isFinished() || isPaused() || isSeeding() ?
+--- core/model/session/TorrentDownloadImpl.java:765-767 ---
+765:     public long getUploadSpeed()
+766:     {
+767:         return operationNotAllowed() || isFinished() && !isSeeding() || isPaused() ?
+--- core/model/session/TorrentDownloadImpl.java:795 ---
+795:     public long getSeedingTime()
+--- core/model/session/TorrentDownloadImpl.java:801 ---
+801:     public long getReceivedBytes()
+--- core/model/session/TorrentDownloadImpl.java:807 ---
+807:     public long getTotalSentBytes()
+--- core/model/session/TorrentDownloadImpl.java:836 ---
+836:     public int getTotalPeers()
+--- core/model/session/TorrentDownloadImpl.java:848 ---
+848:     public int getTotalSeeds()
+--- core/model/session/TorrentDownloadImpl.java:860 ---
+860:     public int getTotalLeechers()
+--- core/model/session/TorrentDownloadImpl.java:881-927 ---
+881:     public Set<String> getTrackersUrl()
+882:     {
+883:         if (operationNotAllowed())
+884:             return new HashSet<>();
+885: 
+886:         List<AnnounceEntry> trackers = th.trackers();
+887:         Set<String> urls = new HashSet<>(trackers.size());
+888: 
+889:         for (AnnounceEntry entry : trackers)
+890:             urls.add(entry.url());
+891: 
+892:         return urls;
+893:     }
+894: 
+895:     @Override
+896:     public List<TrackerInfo> getTrackerInfoList()
+897:     {
+898:         if (operationNotAllowed())
+899:             return new ArrayList<>();
+900: 
+901:         List<AnnounceEntry> trackers = th.trackers();
+902:         ArrayList<TrackerInfo> states = new ArrayList<>();
+903: 
+904:         for (AnnounceEntry entry : trackers)
+905:             states.add(new TrackerInfo(entry));
+906: 
+907:         return states;
+908:     }
+909: 
+910:     @Override
+911:     public List<PeerInfo> getPeerInfoList()
+912:     {
+913:         if (operationNotAllowed())
+914:             return new ArrayList<>();
+915: 
+916:         ArrayList<PeerInfo> infoList = new ArrayList<>();
+917:         List<AdvancedPeerInfo> peers = advancedPeerInfo();
+918: 
+919:         TorrentStatus status = th.status();
+920:         if (status == null)
+921:             return infoList;
+922: 
+923:         for (AdvancedPeerInfo peer : peers) {
+924:             PeerInfo state = new PeerInfo(peer, status);
+925:             infoList.add(state);
+926:         }
+927: 
+--- core/model/session/TorrentDownloadImpl.java:955 ---
+955:     public long getTotalWanted()
+--- core/model/session/TorrentDownloadImpl.java:1015 ---
+1015:             String indices = getFileIndicesBep53(th.filePriorities());
+--- core/model/session/TorrentDownloadImpl.java:1024-1050 ---
+1024:     public static String getFileIndicesBep53(org.libtorrent4j.Priority[] priorities)
+1025:     {
+1026:         ArrayList<String> buf = new ArrayList<>();
+1027:         int startIndex = -1;
+1028:         int endIndex = -1;
+1029: 
+1030:         String indicesStr;
+1031:         for (int i = 0; i < priorities.length; i++) {
+1032:             if (priorities[i].swig() == org.libtorrent4j.Priority.IGNORE.swig()) {
+1033:                 if ((indicesStr = indicesToStr(startIndex, endIndex)) != null)
+1034:                     buf.add(indicesStr);
+1035:                 startIndex = -1;
+1036: 
+1037:             } else {
+1038:                 endIndex = i;
+1039:                 if (startIndex == -1)
+1040:                     startIndex = endIndex;
+1041:             }
+1042:         }
+1043:         if ((indicesStr = indicesToStr(startIndex, endIndex)) != null)
+1044:             buf.add(indicesStr);
+1045: 
+1046:         return TextUtils.join(",", buf);
+1047:     }
+1048: 
+1049:     /*
+1050:      * Returns files indices whose priorities are higher than IGNORE.
+--- core/model/session/TorrentDownloadImpl.java:1054-1070 ---
+1054:     private static String indicesToStr(int startIndex, int endIndex)
+1055:     {
+1056:         if (startIndex == -1 || endIndex == -1)
+1057:             return null;
+1058: 
+1059:         return (startIndex == endIndex ?
+1060:                 Integer.toString(endIndex) :
+1061:                 String.format(Locale.ENGLISH, "%d-%d", startIndex, endIndex));
+1062:     }
+1063: 
+1064:     @Override
+1065:     public void setSequentialDownload(boolean sequential)
+1066:     {
+1067:         if (operationNotAllowed())
+1068:             return;
+1069: 
+1070:         if (sequential)
+--- core/model/session/TorrentDownloadImpl.java:1105-1107 ---
+1105:     public boolean isFirstLastPiecePriority() {
+1106:         return hasFirstLastPiecePriority;
+1107:     }
+--- core/model/session/TorrentDownloadImpl.java:1140 ---
+1140:             var filePieces = getFilePieces(ti, index);
+--- core/model/session/TorrentDownloadImpl.java:1167-1205 ---
+1167:     public long getETA()
+1168:     {
+1169:         if (operationNotAllowed())
+1170:             return MAX_ETA;
+1171:         if (getStateCode() != TorrentStateCode.DOWNLOADING)
+1172:             return MAX_ETA;
+1173: 
+1174:         TorrentStatus status = th.status();
+1175:         long left = status.totalWanted() - status.totalWantedDone();
+1176:         long rate = status.downloadPayloadRate();
+1177:         if (left <= 0)
+1178:             return 0;
+1179:         if (rate <= 0)
+1180:             return MAX_ETA;
+1181: 
+1182:         return Math.min(left / rate, MAX_ETA);
+1183:     }
+1184: 
+1185:     @Override
+1186:     public TorrentMetaInfo getTorrentMetaInfo() throws DecodeException
+1187:     {
+1188:         if (operationNotAllowed())
+1189:             return null;
+1190: 
+1191:         TorrentInfo ti = th.torrentFile();
+1192:         TorrentMetaInfo info;
+1193:         if (ti != null) {
+1194:             info = new TorrentMetaInfo(ti);
+1195:         } else {
+1196:             String hash = getInfoHash();
+1197:             String name = getTorrentName();
+1198:             if (hash == null || name == null)
+1199:                 return null;
+1200:             info = new TorrentMetaInfo(name, hash);
+1201:         }
+1202: 
+1203:         return info;
+1204:     }
+1205: 
+--- core/model/session/TorrentDownloadImpl.java:1207-1211 ---
+1207:     public String getTorrentName()
+1208:     {
+1209:         Torrent torrent = repo.getTorrentById(id);
+1210: 
+1211:         return (torrent == null ? null : torrent.name);
+--- core/model/session/TorrentDownloadImpl.java:1238-1246 ---
+1238:     public long[] getFilesReceivedBytes()
+1239:     {
+1240:         if (operationNotAllowed())
+1241:             return null;
+1242: 
+1243:         return th.fileProgress(torrent_handle.piece_granularity);
+1244:     }
+1245: 
+1246:     @Override
+--- core/model/session/TorrentDownloadImpl.java:1256-1260 ---
+1256:     public int getNumDownloadedPieces()
+1257:     {
+1258:         return operationNotAllowed() ? 0 : th.status().numPieces();
+1259:     }
+1260: 
+--- core/model/session/TorrentDownloadImpl.java:1262 ---
+1262:     public double getShareRatio()
+--- core/model/session/TorrentDownloadImpl.java:1284-1300 ---
+1284:     public Uri getPartsFile()
+1285:     {
+1286:         if (!hasMetadata()) {
+1287:             return null;
+1288:         }
+1289: 
+1290:         TorrentInfo ti = th.torrentFile();
+1291:         if (ti == null)
+1292:             return null;
+1293: 
+1294:         Torrent torrent = repo.getTorrentById(id);
+1295:         if (torrent == null)
+1296:             return null;
+1297: 
+1298:         try {
+1299:             return fs.getFileUri(torrent.downloadPath, "." + ti.infoHash() + ".parts");
+1300:         } catch (Exception e) {
+--- core/model/session/TorrentDownloadImpl.java:1334 ---
+1334:     public int getUploadSpeedLimit()
+--- core/model/session/TorrentDownloadImpl.java:1340-1344 ---
+1340:     public String getInfoHash()
+1341:     {
+1342:         return operationNotAllowed() ? null : th.infoHash().toString();
+1343:     }
+1344: 
+--- core/model/session/TorrentDownloadImpl.java:1346-1370 ---
+1346:     public TorrentStateCode getStateCode()
+1347:     {
+1348:         if (!sessionManager.isRunning())
+1349:             return TorrentStateCode.STOPPED;
+1350: 
+1351:         if (isPaused())
+1352:             return TorrentStateCode.PAUSED;
+1353: 
+1354:         if (!th.isValid())
+1355:             return TorrentStateCode.ERROR;
+1356: 
+1357:         TorrentStatus status = th.status();
+1358:         boolean isPaused = isPaused(status);
+1359: 
+1360:         if (isPaused && status.isFinished())
+1361:             return TorrentStateCode.FINISHED;
+1362: 
+1363:         if (isPaused && !status.isFinished())
+1364:             return TorrentStateCode.PAUSED;
+1365: 
+1366:         if (!isPaused && status.isFinished())
+1367:             return TorrentStateCode.SEEDING;
+1368: 
+1369:        return stateToStateCode(status.state());
+1370:     }
+--- core/model/session/TorrentDownloadImpl.java:1392-1396 ---
+1392:     public boolean isPaused()
+1393:     {
+1394:         return !operationNotAllowed() && (isPaused(th.status(true)) ||
+1395:                 sessionManager.isPaused() || !sessionManager.isRunning());
+1396:     }
+--- core/model/session/TorrentDownloadImpl.java:1410-1412 ---
+1410:     public boolean isFinished()
+1411:     {
+1412:         return !operationNotAllowed() && th.status().isFinished();
+--- core/model/session/TorrentDownloadImpl.java:1481-1500 ---
+1481:     public double[] getFilesAvailability(int[] piecesAvailability)
+1482:     {
+1483:         if (!hasMetadata()) {
+1484:             return new double[0];
+1485:         }
+1486: 
+1487:         TorrentInfo ti = th.torrentFile();
+1488:         if (ti == null)
+1489:             return new double[0];
+1490:         int numFiles = ti.numFiles();
+1491:         if (numFiles < 0)
+1492:             return new double[0];
+1493: 
+1494:         double[] filesAvail = new double[numFiles];
+1495:         if (piecesAvailability == null || piecesAvailability.length == 0) {
+1496:             Arrays.fill(filesAvail, -1);
+1497: 
+1498:             return filesAvail;
+1499:         }
+1500:         for (int i = 0; i < numFiles; i++) {
+--- core/model/session/TorrentDownloadImpl.java:1516-1535 ---
+1516:     public int[] getPiecesAvailability()
+1517:     {
+1518:         if (operationNotAllowed())
+1519:             return new int[0];
+1520: 
+1521:         PieceIndexBitfield pieces = th.status(TorrentHandle.QUERY_PIECES).pieces();
+1522:         List<AdvancedPeerInfo> peers = advancedPeerInfo();
+1523:         int[] avail = new int[pieces.size()];
+1524:         for (int i = 0; i < pieces.size(); i++)
+1525:             avail[i] = (pieces.getBit(i) ? 1 : 0);
+1526: 
+1527:         for (AdvancedPeerInfo peer : peers) {
+1528:             PieceIndexBitfield peerPieces = peer.pieces();
+1529:             for (int i = 0; i < pieces.size(); i++)
+1530:                 if (peerPieces.getBit(i))
+1531:                     ++avail[i];
+1532:         }
+1533: 
+1534:         return avail;
+1535:     }
+--- core/model/session/TorrentDownloadImpl.java:1537-1550 ---
+1537:     private Pair<Integer, Integer> getFilePieces(TorrentInfo ti, int fileIndex)
+1538:     {
+1539:         if (operationNotAllowed())
+1540:             return null;
+1541: 
+1542:         if (fileIndex < 0 || fileIndex >= ti.numFiles())
+1543:             return null;
+1544:         FileStorage fs = ti.files();
+1545:         long fileSize = fs.fileSize(fileIndex);
+1546:         long fileOffset = fs.fileOffset(fileIndex);
+1547: 
+1548:         return new Pair<>((int)(fileOffset / ti.pieceLength()),
+1549:                           (int)((fileOffset + fileSize - 1) / ti.pieceLength()));
+1550:     }
+--- core/model/session/TorrentDownloadImpl.java:1607-1625 ---
+1607:     public TorrentStream getStream(int fileIndex)
+1608:     {
+1609:         if (!hasMetadata()) {
+1610:             return null;
+1611:         }
+1612: 
+1613:         TorrentInfo ti = th.torrentFile();
+1614:         if (ti == null)
+1615:             return null;
+1616:         FileStorage fs = ti.files();
+1617:         Pair<Integer, Integer> filePieces = getFilePieces(ti, fileIndex);
+1618:         if (filePieces == null)
+1619:             throw new IllegalArgumentException("Incorrect file index");
+1620: 
+1621:         return new TorrentStream(id, fileIndex,
+1622:                                  filePieces.first, filePieces.second, ti.pieceLength(),
+1623:                                  fs.fileOffset(fileIndex), fs.fileSize(fileIndex),
+1624:                                  ti.pieceSize(filePieces.second));
+1625: 
+--- core/model/session/TorrentDownloadImpl.java:1641-1647 ---
+1641:     public Priority[] getFilePriorities()
+1642:     {
+1643:         if (operationNotAllowed())
+1644:             return new Priority[0];
+1645: 
+1646:         return PriorityConverter.convert(th.filePriorities());
+1647:     }
+--- core/model/session/TorrentDownloadImpl.java:1707-1710 ---
+1707:     public boolean hasMissingFiles()
+1708:     {
+1709:         return hasMissingFiles;
+1710:     }
+
+===== core/model/session/TorrentSessionImpl.java (1720 lines total) =====
+--- core/model/session/TorrentSessionImpl.java:953 ---
+953:             if (task == null || task.hasMissingFiles())
+
+===== core/model/stream/TorrentInputStream.java (471 lines total) =====
+--- core/model/stream/TorrentInputStream.java:139 ---
+139:                 if (task.havePiece(pieceIndex))

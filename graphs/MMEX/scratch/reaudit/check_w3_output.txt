@@ -1,0 +1,40 @@
+== W3 check (after W2; W3 changes nothing in the MMEX graph) ==
+MMEX: env-gated ENTRY edges: 19
+MMEX: REACHABLE methods whose best route uses an env gate from an exported or external entry: 46 of 3430
+     21  E4e00df4e  S_ENTRY -> SmsReceiverTransactions.<init>  | system_event,other_app | outside package: the system delivers an SMS (SMS_RECEIVED) to the receiver, or another app sends an 
+      6  E882eaf1e  S_ENTRY -> SingleAccountWidgetConfigureActivity.<init>  | other_app | outside package: another app sends an APPWIDGET_CONFIGURE intent to SingleAccountWidgetConfigureActi
+      5  E5fc12eb9  S_ENTRY -> AuthenticatorService.<init>  | other_app | outside package: the system Settings app adds an account of type example.com (res/xml/authenticator.
+      4  E27c67293  S_ENTRY -> SyncAdapterService.<init>  | other_app | outside package: another app binds to SyncAdapterService by the android.content.SyncAdapter action (
+      3  Efbc3baf2  S_ENTRY -> HelpActivity.<init>  | other_app | outside package: another app sends an intent with the custom action WEB_VIEW_URL or WEB_VIEW_RAW_FIL
+      2  E30518c42  S_ENTRY -> AccountListActivity.<init>  | other_app | outside package: another app sends an ACTION_PICK or ACTION_EDIT intent to AccountListActivity (expo
+      2  E3f865c2d  S_ENTRY -> MoneyManagerBackupAgentHelper.<init>  | system_event | the system backup manager runs a backup or restore for this package (AndroidManifest.xml:56 allowBac
+      1  E3a5d0822  S_ENTRY -> AccountListActivity.<clinit>  | other_app | outside package: another app sends an ACTION_PICK or ACTION_EDIT intent to AccountListActivity (expo
+      1  E1a371a42  S_ENTRY -> SmsReceiverTransactions.<clinit>  | system_event,other_app | outside package: the system delivers an SMS (SMS_RECEIVED) to the receiver, or another app sends an 
+      1  Efa5a4284  S_ENTRY -> SyncAdapterService.<clinit>  | other_app | outside package: another app binds to SyncAdapterService by the android.content.SyncAdapter action (
+verdicts: {'UNREACHABLE': 840, 'REACHABLE': 3430}
+MMEX methods with env on best route: 80
+   21 E4e00df4e ENTRY S_ENTRY -> SmsReceiverTransactions.<init> | outside package: the system delivers an SMS (SMS_RECEIVED) to the rece | ['RecurringTransaction.getDateString', 'SmsReceiverTransactions.<init>']
+    6 E18c42e54 CALL RecurringTransactionNotifications.notifyRepeatingTransaction -> ScreenTree.log | an exception is thrown while the recurring transaction notification is | ['PasscodeActivity.onEvent', 'MmxBaseFragmentActivity.onEvent']
+    6 E8368c44e FRAMEWORK RecurringTransactionBootReceiver.setAlarm -> RecurringTransactionReceiver.<init> | the daily alarm fires at the notification time (the hour set in the se | ['RecurringTransactionIntentService.<clinit>', 'RecurringTransactionIntentServ
+    6 E882eaf1e ENTRY S_ENTRY -> SingleAccountWidgetConfigureActivity.<init> | outside package: another app sends an APPWIDGET_CONFIGURE intent to Si | ['SingleAccountWidgetConfigureActivity.<init>', 'SingleAccountWidgetConfigureActivity.loadTitlePref']
+    5 E5fc12eb9 ENTRY S_ENTRY -> AuthenticatorService.<init> | outside package: the system Settings app adds an account of type examp | ['Authenticator.<init>', 'Authenticator.addAccount']
+    4 E42e24bf1 ASYNC YqlSecurityPriceUpdaterRetrofit.onContentDownloaded -> CurrencyListFragment.onEvent(PriceDownloadedEvent) | a YQL price download finishes while the currency list is started (regi | ['CurrencyRepository.saveExchangeRate', 'CurrencyService.
+    4 E27c67293 ENTRY S_ENTRY -> SyncAdapterService.<init> | outside package: another app binds to SyncAdapterService by the androi | ['SyncAdapter.<init>(Context,boolean)', 'SyncAdapterService.<init>']
+    3 Efbc3baf2 ENTRY S_ENTRY -> HelpActivity.<init> | outside package: another app sends an intent with the custom action WE | ['HelpActivity.<init>', 'HelpActivity.onCreate']
+    3 E0d135dde INTENT RecurringTransactionNotifications.showNotification -> RecurringTransactionListActivity.<init> | the user taps the recurring transaction notification (the activity is  | ['RecurringTransactionListActivity.<init>', 'RecurringTransactionLis
+    2 E30518c42 ENTRY S_ENTRY -> AccountListActivity.<init> | outside package: another app sends an ACTION_PICK or ACTION_EDIT inten | ['AccountListActivity.<init>', 'AccountListActivity.onCreate']
+    2 E3f865c2d ENTRY S_ENTRY -> MoneyManagerBackupAgentHelper.<init> | the system backup manager runs a backup or restore for this package (A | ['MoneyManagerBackupAgentHelper.<init>', 'MoneyManagerBackupAgentHelper.onCreate']
+    2 E05398bf7 FRAMEWORK YqlSecurityPriceUpdaterRetrofit.downloadPrices -> YqlSecurityPriceUpdaterRetrofit$1.onFailure | the price request fails before a response (no connection, timeout or s | ['YqlSecurityPriceUpdaterRetrofit$1.onFailure', 'DebugTree.log']
+    1 E503e054a LIFECYCLE AboutActivity.onCreate -> AboutActivity.onRestoreInstanceState | screen rotation: a configuration change the About activity does not ha | ['AboutActivity.onRestoreInstanceState']
+    1 E3a5d0822 ENTRY S_ENTRY -> AccountListActivity.<clinit> | outside package: another app sends an ACTION_PICK or ACTION_EDIT inten | ['AccountListActivity.<clinit>']
+errors: 0
+warnings: 10
+
+== every exported or external entry on a best route is kept with its env gate (reason; source searched for an in-app start) ==
+- SmsReceiverTransactions (E4e00df4e, E1a371a42): SMS_RECEIVED comes from the system only; the app sends no such broadcast.
+- SingleAccountWidgetConfigureActivity (E882eaf1e): APPWIDGET_CONFIGURE comes from the launcher's widget host; no in-app start (the class is only named in SingleAccountWidget.java:46, 83, 198).
+- AuthenticatorService (E5fc12eb9) and SyncAdapterService (E27c67293, Efa5a4284): bound by the system account and sync managers only.
+- HelpActivity (Efbc3baf2): MainActivity.java:685-686 starts it for R.id.menu_help, but menu_help exists only in res/menu/menu_main.xml and res/menu-v14/menu_main.xml, which no code inflates (grep for R.menu.menu_main: none; the drawer has no menu_help item), 
+- AccountListActivity (E30518c42, E3a5d0822): no in-app Intent names the class (grep); EditTransactionCommonFunctions.java:869-871 handles a RequestCodes.ACCOUNT result, but nothing starts a request with that code.
+- MoneyManagerBackupAgentHelper (E3f865c2d): run by the system backup manager only.
+- The other env gates on best routes (notification taps, alarms, price downloads, rotation) are not entries: W6/W7.

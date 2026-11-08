@@ -1,0 +1,176 @@
+     1	/*
+     2	 * Copyright (C) 2016, 2019 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.filemanager;
+    21	
+    22	import android.content.Context;
+    23	import android.content.res.TypedArray;
+    24	import android.util.TypedValue;
+    25	import android.view.LayoutInflater;
+    26	import android.view.View;
+    27	import android.view.ViewGroup;
+    28	import android.widget.ImageView;
+    29	import android.widget.TextView;
+    30	
+    31	import androidx.annotation.NonNull;
+    32	import androidx.annotation.Nullable;
+    33	import androidx.recyclerview.widget.DiffUtil;
+    34	import androidx.recyclerview.widget.ListAdapter;
+    35	import androidx.recyclerview.widget.RecyclerView;
+    36	
+    37	import org.proninyaroslav.libretorrent.R;
+    38	import org.proninyaroslav.libretorrent.core.system.FileSystemFacade;
+    39	import org.proninyaroslav.libretorrent.core.system.SystemFacadeHelper;
+    40	import org.proninyaroslav.libretorrent.core.utils.Utils;
+    41	
+    42	import java.util.Collections;
+    43	import java.util.Comparator;
+    44	import java.util.List;
+    45	
+    46	/*
+    47	 * The adapter for directory or file chooser dialog.
+    48	 */
+    49	
+    50	public class FileManagerAdapter extends ListAdapter<FileManagerNode, FileManagerAdapter.ViewHolder>
+    51	{
+    52	    private static final String TAG = FileManagerAdapter.class.getSimpleName();
+    53	
+    54	    private ViewHolder.ClickListener clickListener;
+    55	    private List<String> highlightFileTypes;
+    56	
+    57	    private static final Comparator<FileManagerNode> directoryFirstCmp = (n1, n2) -> {
+    58	        int byName = n1.compareTo(n2);
+    59	        int directoryFirst = Boolean.compare(n2.isDirectory(), n1.isDirectory());
+    60	
+    61	        return (directoryFirst == 0 ? byName : directoryFirst);
+    62	    };
+    63	
+    64	    public FileManagerAdapter(List<String> highlightFileTypes, ViewHolder.ClickListener clickListener)
+    65	    {
+    66	        super(diffCallback);
+    67	
+    68	        this.clickListener = clickListener;
+    69	        this.highlightFileTypes = highlightFileTypes;
+    70	    }
+    71	
+    72	    @NonNull
+    73	    @Override
+    74	    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType)
+    75	    {
+    76	        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_filemanager, parent, false);
+    77	
+    78	        return new ViewHolder(v);
+    79	    }
+    80	
+    81	    @Override
+    82	    public void onBindViewHolder(@NonNull ViewHolder holder, int position)
+    83	    {
+    84	        holder.bind(getItem(position), highlightFileTypes, clickListener);
+    85	    }
+    86	
+    87	    @Override
+    88	    public void submitList(@Nullable List<FileManagerNode> list)
+    89	    {
+    90	        if (list != null)
+    91	            list.sort(directoryFirstCmp);
+    92	
+    93	        super.submitList(list);
+    94	    }
+    95	
+    96	    public static final DiffUtil.ItemCallback<FileManagerNode> diffCallback = new DiffUtil.ItemCallback<FileManagerNode>()
+    97	    {
+    98	        @Override
+    99	        public boolean areContentsTheSame(@NonNull FileManagerNode oldItem,
+   100	                                          @NonNull FileManagerNode newItem)
+   101	        {
+   102	            return oldItem.equals(newItem);
+   103	        }
+   104	
+   105	        @Override
+   106	        public boolean areItemsTheSame(@NonNull FileManagerNode oldItem,
+   107	                                       @NonNull FileManagerNode newItem)
+   108	        {
+   109	            return oldItem.equals(newItem);
+   110	        }
+   111	    };
+   112	
+   113	    public static class ViewHolder extends RecyclerView.ViewHolder
+   114	    {
+   115	        private TextView fileName;
+   116	        private ImageView fileIcon;
+   117	
+   118	        public ViewHolder(View itemView)
+   119	        {
+   120	            super(itemView);
+   121	
+   122	            fileName = itemView.findViewById(R.id.file_name);
+   123	            fileIcon = itemView.findViewById(R.id.file_icon);
+   124	        }
+   125	
+   126	        void bind(FileManagerNode item, List<String> highlightFileTypes, ClickListener listener)
+   127	        {
+   128	            Context context = itemView.getContext();
+   129	
+   130	            itemView.setOnClickListener((v) -> {
+   131	                if (listener != null)
+   132	                    listener.onItemClicked(item);
+   133	            });
+   134	
+   135	            itemView.setEnabled(item.isEnabled());
+   136	            FileSystemFacade fs = SystemFacadeHelper.getFileSystemFacade(context);
+   137	            if (item.isEnabled()) {
+   138	                if (highlightFileTypes != null && highlightFileTypes.contains(fs.getExtension(item.getName()))) {
+   139	                    fileName.setTextColor(Utils.getAttributeColor(context, R.attr.colorSecondary));
+   140	                } else {
+   141	                    TypedArray a = context.obtainStyledAttributes(new TypedValue().data,
+   142	                            new int[]{ android.R.attr.textColorPrimary });
+   143	                    fileName.setTextColor(a.getColor(0, 0));
+   144	                    a.recycle();
+   145	                }
+   146	
+   147	            } else {
+   148	                TypedArray a = context.obtainStyledAttributes(new TypedValue().data,
+   149	                        new int[]{ android.R.attr.textColorSecondary });
+   150	                fileName.setTextColor(a.getColor(0, 0));
+   151	                a.recycle();
+   152	            }
+   153	
+   154	            fileName.setText(item.getName());
+   155	
+   156	            if (item.isDirectory()) {
+   157	                if (item.getName().equals(FileManagerNode.PARENT_DIR)) {
+   158	                    fileIcon.setImageResource(R.drawable.ic_arrow_up_bold_grey600_24dp);
+   159	                    fileIcon.setContentDescription(context.getString(R.string.parent_folder));
+   160	                } else {
+   161	                    fileIcon.setImageResource(R.drawable.ic_folder_grey600_24dp);
+   162	                    fileIcon.setContentDescription(context.getString(R.string.folder));
+   163	                }
+   164	
+   165	            } else {
+   166	                fileIcon.setImageResource(R.drawable.ic_file_grey600_24dp);
+   167	                fileIcon.setContentDescription(context.getString(R.string.file));
+   168	            }
+   169	        }
+   170	
+   171	        public interface ClickListener
+   172	        {
+   173	            void onItemClicked(FileManagerNode item);
+   174	        }
+   175	    }
+   176	}

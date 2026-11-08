@@ -1,0 +1,331 @@
+===== /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/ui/settings/sections/LimitationsSettingsFragment.java =====
+--- lines 53-166 ---
+   53     public void onCreate(Bundle savedInstanceState)
+   54     {
+   55         super.onCreate(savedInstanceState);
+   56 
+   57         pref = RepositoryHelper.getSettingsRepository(getActivity().getApplicationContext());
+   58 
+   59         InputFilter[] speedFilter = new InputFilter[] { InputFilterRange.UNSIGNED_INT };
+   60         InputFilter[] queueingFilter = new InputFilter[] {
+   61                 new InputFilterRange.Builder()
+   62                         .setMin(-1)
+   63                         .setMax(Integer.MAX_VALUE)
+   64                         .build()
+   65         };
+   66         InputFilter[] maxFilter = new InputFilter[] {
+   67                 new InputFilterRange.Builder()
+   68                         .setMax(Integer.MAX_VALUE)
+   69                         .build()
+   70         };
+   71 
+   72         String keyMaxDownloadSpeedLimit = getString(R.string.pref_key_max_download_speed);
+   73         EditTextPreference maxDownloadSpeedLimit = findPreference(keyMaxDownloadSpeedLimit);
+   74         if (maxDownloadSpeedLimit != null) {
+   75             maxDownloadSpeedLimit.setDialogMessage(R.string.speed_limit_dialog);
+   76             String value = Integer.toString(pref.maxDownloadSpeedLimit() / 1024);
+   77             maxDownloadSpeedLimit.setOnBindEditTextListener((editText) -> editText.setFilters(speedFilter));
+   78             maxDownloadSpeedLimit.setSummary(value);
+   79             maxDownloadSpeedLimit.setText(value);
+   80             bindOnPreferenceChangeListener(maxDownloadSpeedLimit);
+   81         }
+   82 
+   83         String keyMaxUploadSpeedLimit = getString(R.string.pref_key_max_upload_speed);
+   84         EditTextPreference maxUploadSpeedLimit = findPreference(keyMaxUploadSpeedLimit);
+   85         if (maxUploadSpeedLimit != null) {
+   86             maxUploadSpeedLimit.setDialogMessage(R.string.speed_limit_dialog);
+   87             String value = Integer.toString(pref.maxUploadSpeedLimit() / 1024);
+   88             maxUploadSpeedLimit.setOnBindEditTextListener((editText) -> editText.setFilters(speedFilter));
+   89             maxUploadSpeedLimit.setSummary(value);
+   90             maxUploadSpeedLimit.setText(value);
+   91             bindOnPreferenceChangeListener(maxUploadSpeedLimit);
+   92         }
+   93 
+   94         String keyMaxConnections = getString(R.string.pref_key_max_connections);
+   95         EditTextPreference maxConnections = findPreference(keyMaxConnections);
+   96         if (maxConnections != null) {
+   97             maxConnections.setDialogMessage(R.string.pref_max_connections_summary);
+   98             String value = Integer.toString(pref.maxConnections());
+   99             maxConnections.setOnBindEditTextListener((editText) -> editText.setFilters(maxFilter));
+  100             maxConnections.setSummary(value);
+  101             maxConnections.setText(value);
+  102             bindOnPreferenceChangeListener(maxConnections);
+  103         }
+  104 
+  105         String keyAutoManage = getString(R.string.pref_key_auto_manage);
+  106         SwitchPreferenceCompat autoManage = findPreference(keyAutoManage);
+  107         if (autoManage != null) {
+  108             autoManage.setChecked(pref.autoManage());
+  109             bindOnPreferenceChangeListener(autoManage);
+  110         }
+  111 
+  112         String keyMaxActiveUploads = getString(R.string.pref_key_max_active_uploads);
+  113         EditTextPreference maxActiveUploads  = findPreference(keyMaxActiveUploads);
+  114         if (maxActiveUploads != null) {
+  115             maxActiveUploads.setDialogMessage(R.string.pref_max_active_uploads_downloads_dialog_msg);
+  116             String value = Integer.toString(pref.maxActiveUploads());
+  117             maxActiveUploads.setOnBindEditTextListener((editText) -> editText.setFilters(queueingFilter));
+  118             maxActiveUploads.setSummary(value);
+  119             maxActiveUploads.setText(value);
+  120             bindOnPreferenceChangeListener(maxActiveUploads);
+  121         }
+  122 
+  123         String keyMaxActiveDownloads = getString(R.string.pref_key_max_active_downloads);
+  124         EditTextPreference maxActiveDownloads  = findPreference(keyMaxActiveDownloads);
+  125         if (maxActiveDownloads != null) {
+  126             maxActiveDownloads.setDialogMessage(R.string.pref_max_active_uploads_downloads_dialog_msg);
+  127             String value = Integer.toString(pref.maxActiveDownloads());
+  128             maxActiveDownloads.setOnBindEditTextListener((editText) -> editText.setFilters(queueingFilter));
+  129             maxActiveDownloads.setSummary(value);
+  130             maxActiveDownloads.setText(value);
+  131             bindOnPreferenceChangeListener(maxActiveDownloads);
+  132         }
+  133 
+  134         String keyMaxActiveTorrents = getString(R.string.pref_key_max_active_torrents);
+  135         EditTextPreference maxActiveTorrents  = findPreference(keyMaxActiveTorrents);
+  136         if (maxActiveTorrents != null) {
+  137             maxActiveTorrents.setDialogMessage(R.string.pref_max_active_uploads_downloads_dialog_msg);
+  138             String value = Integer.toString(pref.maxActiveTorrents());
+  139             maxActiveTorrents.setOnBindEditTextListener((editText) -> editText.setFilters(queueingFilter));
+  140             maxActiveTorrents.setSummary(value);
+  141             maxActiveTorrents.setText(value);
+  142             bindOnPreferenceChangeListener(maxActiveTorrents);
+  143         }
+  144 
+  145         String keyMaxConnectionsPerTorrent = getString(R.string.pref_key_max_connections_per_torrent);
+  146         EditTextPreference maxConnectionsPerTorrent = findPreference(keyMaxConnectionsPerTorrent);
+  147         if (maxConnectionsPerTorrent != null) {
+  148             maxConnectionsPerTorrent.setDialogMessage(R.string.pref_max_connections_per_torrent_summary);
+  149             String value = Integer.toString(pref.maxConnectionsPerTorrent());
+  150             maxConnectionsPerTorrent.setOnBindEditTextListener((editText) -> editText.setFilters(maxFilter));
+  151             maxConnectionsPerTorrent.setSummary(value);
+  152             maxConnectionsPerTorrent.setText(value);
+  153             bindOnPreferenceChangeListener(maxConnectionsPerTorrent);
+  154         }
+  155 
+  156         String keyMaxUploadsPerTorrent = getString(R.string.pref_key_max_uploads_per_torrent);
+  157         EditTextPreference maxUploadsPerTorrent = findPreference(keyMaxUploadsPerTorrent);
+  158         if (maxUploadsPerTorrent != null) {
+  159             maxUploadsPerTorrent.setDialogMessage(R.string.pref_max_active_uploads_downloads_dialog_msg);
+  160             String value = Integer.toString(pref.maxUploadsPerTorrent());
+  161             maxUploadsPerTorrent.setOnBindEditTextListener((editText) -> editText.setFilters(queueingFilter));
+  162             maxUploadsPerTorrent.setSummary(value);
+  163             maxUploadsPerTorrent.setText(value);
+  164             bindOnPreferenceChangeListener(maxUploadsPerTorrent);
+  165         }
+  166     }
+--- lines 168-255 ---
+  168     @Override
+  169     public void onCreatePreferences(Bundle savedInstanceState, String rootKey)
+  170     {
+  171         setPreferencesFromResource(R.xml.pref_limitations, rootKey);
+  172     }
+  173 
+  174     private void bindOnPreferenceChangeListener(Preference preference)
+  175     {
+  176         preference.setOnPreferenceChangeListener(this);
+  177     }
+  178 
+  179     @Override
+  180     public boolean onPreferenceChange(Preference preference, Object newValue)
+  181     {
+  182         if (preference.getKey().equals(getString(R.string.pref_key_max_connections))) {
+  183             int value = parseMaxConnectionValue(newValue);
+  184             pref.maxConnections(value);
+  185             preference.setSummary(Integer.toString(value));
+  186 
+  187         } else if (preference.getKey().equals(getString(R.string.pref_key_max_connections_per_torrent))) {
+  188             int value = parseMaxConnectionValue(newValue);
+  189             pref.maxConnectionsPerTorrent(value);
+  190             preference.setSummary(Integer.toString(value));
+  191 
+  192         } else if (preference.getKey().equals(getString(R.string.pref_key_max_upload_speed))) {
+  193             int value = 0;
+  194             int summary = 0;
+  195             if (!TextUtils.isEmpty((String)newValue)) {
+  196                 summary = Integer.parseInt((String)newValue);
+  197                 value = summary * 1024;
+  198             }
+  199             pref.maxUploadSpeedLimit(value);
+  200             preference.setSummary(Integer.toString(summary));
+  201 
+  202         } else if (preference.getKey().equals(getString(R.string.pref_key_max_download_speed))) {
+  203             int value = 0;
+  204             int summary = 0;
+  205             if (!TextUtils.isEmpty((String)newValue)) {
+  206                 summary = Integer.parseInt((String)newValue);
+  207                 value = summary * 1024;
+  208             }
+  209             pref.maxDownloadSpeedLimit(value);
+  210             preference.setSummary(Integer.toString(summary));
+  211 
+  212         } else if (preference.getKey().equals(getString(R.string.pref_key_max_active_downloads))) {
+  213             int value = 1;
+  214             if (!TextUtils.isEmpty((String)newValue))
+  215                 value = Integer.parseInt((String)newValue);
+  216             pref.maxActiveDownloads(value);
+  217             preference.setSummary(Integer.toString(value));
+  218 
+  219         } else if (preference.getKey().equals(getString(R.string.pref_key_max_active_uploads))) {
+  220             int value = 1;
+  221             if (!TextUtils.isEmpty((String)newValue))
+  222                 value = Integer.parseInt((String)newValue);
+  223             pref.maxActiveUploads(value);
+  224             preference.setSummary(Integer.toString(value));
+  225 
+  226         } else if (preference.getKey().equals(getString(R.string.pref_key_max_active_torrents))) {
+  227             int value = 1;
+  228             if (!TextUtils.isEmpty((String)newValue))
+  229                 value = Integer.parseInt((String)newValue);
+  230             pref.maxActiveTorrents(value);
+  231             preference.setSummary(Integer.toString(value));
+  232 
+  233         } else if (preference.getKey().equals(getString(R.string.pref_key_max_uploads_per_torrent))) {
+  234             int value = 1;
+  235             if (!TextUtils.isEmpty((String)newValue))
+  236                 value = Integer.parseInt((String)newValue);
+  237             pref.maxUploadsPerTorrent(value);
+  238             preference.setSummary(Integer.toString(value));
+  239 
+  240         } else if (preference.getKey().equals(getString(R.string.pref_key_auto_manage))) {
+  241             pref.autoManage((boolean)newValue);
+  242         }
+  243 
+  244         return true;
+  245     }
+  246 
+  247     private int parseMaxConnectionValue(Object newValue)
+  248     {
+  249         int value = SessionSettings.MIN_CONNECTIONS_LIMIT;
+  250         if (!TextUtils.isEmpty((String) newValue))
+  251             value = Integer.parseInt((String) newValue);
+  252         if (value < SessionSettings.MIN_CONNECTIONS_LIMIT)
+  253             value = SessionSettings.MIN_CONNECTIONS_LIMIT;
+  254 
+  255         return value;
+===== /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/RepositoryHelper.java =====
+--- lines 61-67 ---
+   61     public synchronized static SettingsRepository getSettingsRepository(@NonNull Context appContext)
+   62     {
+   63         if (settingsRepo == null)
+   64             settingsRepo = new SettingsRepositoryImpl(appContext);
+   65 
+   66         return settingsRepo;
+   67     }
+===== /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/settings/SettingsRepositoryImpl.java =====
+--- lines 831-933 ---
+  831     public void maxDownloadSpeedLimit(int val) {
+  832         pref.edit()
+  833                 .putInt(appContext.getString(R.string.pref_key_max_download_speed), val)
+  834                 .apply();
+  835     }
+  836 
+  837     @Override
+  838     public int maxUploadSpeedLimit() {
+  839         return pref.getInt(appContext.getString(R.string.pref_key_max_upload_speed),
+  840                 Default.maxUploadSpeedLimit);
+  841     }
+  842 
+  843     @Override
+  844     public void maxUploadSpeedLimit(int val) {
+  845         pref.edit()
+  846                 .putInt(appContext.getString(R.string.pref_key_max_upload_speed), val)
+  847                 .apply();
+  848     }
+  849 
+  850     @Override
+  851     public int maxConnections() {
+  852         return pref.getInt(appContext.getString(R.string.pref_key_max_connections),
+  853                 Default.maxConnections);
+  854     }
+  855 
+  856     @Override
+  857     public void maxConnections(int val) {
+  858         pref.edit()
+  859                 .putInt(appContext.getString(R.string.pref_key_max_connections), val)
+  860                 .apply();
+  861     }
+  862 
+  863     @Override
+  864     public int maxConnectionsPerTorrent() {
+  865         return pref.getInt(appContext.getString(R.string.pref_key_max_connections_per_torrent),
+  866                 Default.maxConnectionsPerTorrent);
+  867     }
+  868 
+  869     @Override
+  870     public void maxConnectionsPerTorrent(int val) {
+  871         pref.edit()
+  872                 .putInt(appContext.getString(R.string.pref_key_max_connections_per_torrent), val)
+  873                 .apply();
+  874     }
+  875 
+  876     @Override
+  877     public int maxUploadsPerTorrent() {
+  878         return pref.getInt(appContext.getString(R.string.pref_key_max_uploads_per_torrent),
+  879                 Default.maxUploadsPerTorrent);
+  880     }
+  881 
+  882     @Override
+  883     public void maxUploadsPerTorrent(int val) {
+  884         pref.edit()
+  885                 .putInt(appContext.getString(R.string.pref_key_max_uploads_per_torrent), val)
+  886                 .apply();
+  887     }
+  888 
+  889     @Override
+  890     public int maxActiveUploads() {
+  891         return pref.getInt(appContext.getString(R.string.pref_key_max_active_uploads),
+  892                 Default.maxActiveUploads);
+  893     }
+  894 
+  895     @Override
+  896     public void maxActiveUploads(int val) {
+  897         pref.edit()
+  898                 .putInt(appContext.getString(R.string.pref_key_max_active_uploads), val)
+  899                 .apply();
+  900     }
+  901 
+  902     @Override
+  903     public int maxActiveDownloads() {
+  904         return pref.getInt(appContext.getString(R.string.pref_key_max_active_downloads),
+  905                 Default.maxActiveDownloads);
+  906     }
+  907 
+  908     @Override
+  909     public void maxActiveDownloads(int val) {
+  910         pref.edit()
+  911                 .putInt(appContext.getString(R.string.pref_key_max_active_downloads), val)
+  912                 .apply();
+  913     }
+  914 
+  915     @Override
+  916     public int maxActiveTorrents() {
+  917         return pref.getInt(appContext.getString(R.string.pref_key_max_active_torrents),
+  918                 Default.maxActiveTorrents);
+  919     }
+  920 
+  921     @Override
+  922     public void maxActiveTorrents(int val) {
+  923         pref.edit()
+  924                 .putInt(appContext.getString(R.string.pref_key_max_active_torrents), val)
+  925                 .apply();
+  926     }
+  927 
+  928     @Override
+  929     public boolean anonymousMode() {
+  930         return pref.getBoolean(appContext.getString(R.string.pref_key_anonymous_mode),
+  931                 Default.anonymousMode);
+  932     }
+  933 
+--- lines 987-997 ---
+  987     public void autoManage(boolean val) {
+  988         pref.edit()
+  989                 .putBoolean(appContext.getString(R.string.pref_key_auto_manage), val)
+  990                 .apply();
+  991     }
+  992 
+  993     @Override
+  994     public int proxyType() {
+  995         return pref.getInt(appContext.getString(R.string.pref_key_proxy_type),
+  996                 Default.proxyType);
+  997     }

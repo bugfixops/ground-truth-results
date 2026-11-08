@@ -1,0 +1,243 @@
+# ---- section L part 2, pass 2, chunk 3 (2026-10-26) ----
+# ORMLite DAO links, Dagger providers and injected-field edges, the data-binding path, no-caller roots,
+# the Oauth1 island. Hand part from scratch/gen_hand4.py; Dagger field edges from scratch/gen_dagger.py.
+C3_ORM = ('INFERRED ORMLite (DaoManager, called by OrmLiteSqliteOpenHelper.getDao) creates the DAO class named by '
+          '@DatabaseTable(daoClass=...) through one of its constructors; the overload is not known, so both are kept, '
+          'and the ORMLite source is not read')
+C3_CLINIT = ('INFERRED the JVM initialises a class before its first constructor call (class-initialiser rule; '
+             'the JVM specification is not read in this build)')
+C3_DATABIND = ('INFERRED the androidx DataBindingUtil and its DataBinderMapper (library source not read) bind the '
+               'layout through the generated mapper, which selects the Binding class by layout id')
+C3_PROVIDER = ('INFERRED javax.inject.Provider.get() is an interface call made by Dagger-generated code, which is not '
+               'in the build output; the bytecode extractor does not follow it, so the target is the object the provider builds')
+C3_LIB_PENDING = ('INFERRED the androidx ViewDataBinding pending-bindings pass (library source not read) runs '
+                  'executeBindings and hasPendingBindings after the generated invalidateAll marks the binding dirty')
+
+e('AnyMemoDBOpenHelper.getCardDao', 'CardDaoImpl.<init>(ConnectionSource,DatabaseTableConfig)', 'FRAMEWORK', 'the first getCardDao() call asks ORMLite for the Card DAO, which creates it',
+  evidence=C3_ORM + '; SRC common/AnyMemoDBOpenHelper.java:174 (getDao(Card.class))', cls='non_standard', via='ORMLite DaoManager (reflection)')
+e('AnyMemoDBOpenHelper.getCardDao', 'CardDaoImpl.<init>(ConnectionSource,Class)', 'FRAMEWORK', 'the first getCardDao() call asks ORMLite for the Card DAO, which creates it',
+  evidence=C3_ORM + '; SRC common/AnyMemoDBOpenHelper.java:174 (getDao(Card.class))', cls='non_standard', via='ORMLite DaoManager (reflection)')
+e('CardDaoImpl.<init>(ConnectionSource,DatabaseTableConfig)', 'CardDaoImpl.<clinit>', 'LIFECYCLE', 'the JVM initialises CardDaoImpl before its constructor runs',
+  evidence=C3_CLINIT + '; SRC dao/CardDaoImpl.java')
+e('CardDaoImpl.<init>(ConnectionSource,Class)', 'CardDaoImpl.<clinit>', 'LIFECYCLE', 'the JVM initialises CardDaoImpl before its constructor runs',
+  evidence=C3_CLINIT + '; SRC dao/CardDaoImpl.java')
+e('AnyMemoDBOpenHelper.getCategoryDao', 'CategoryDaoImpl.<init>(ConnectionSource,DatabaseTableConfig)', 'FRAMEWORK', 'the first getCategoryDao() call asks ORMLite for the Category DAO, which creates it',
+  evidence=C3_ORM + '; SRC common/AnyMemoDBOpenHelper.java:219 (getDao(Category.class))', cls='non_standard', via='ORMLite DaoManager (reflection)')
+e('AnyMemoDBOpenHelper.getCategoryDao', 'CategoryDaoImpl.<init>(ConnectionSource,Class)', 'FRAMEWORK', 'the first getCategoryDao() call asks ORMLite for the Category DAO, which creates it',
+  evidence=C3_ORM + '; SRC common/AnyMemoDBOpenHelper.java:219 (getDao(Category.class))', cls='non_standard', via='ORMLite DaoManager (reflection)')
+e('CategoryDaoImpl.<init>(ConnectionSource,DatabaseTableConfig)', 'CategoryDaoImpl.<clinit>', 'LIFECYCLE', 'the JVM initialises CategoryDaoImpl before its constructor runs',
+  evidence=C3_CLINIT + '; SRC dao/CategoryDaoImpl.java')
+e('CategoryDaoImpl.<init>(ConnectionSource,Class)', 'CategoryDaoImpl.<clinit>', 'LIFECYCLE', 'the JVM initialises CategoryDaoImpl before its constructor runs',
+  evidence=C3_CLINIT + '; SRC dao/CategoryDaoImpl.java')
+e('AnyMemoDBOpenHelper.getSettingDao', 'SettingDaoImpl.<init>(ConnectionSource,DatabaseTableConfig)', 'FRAMEWORK', 'the first getSettingDao() call asks ORMLite for the Setting DAO, which creates it',
+  evidence=C3_ORM + '; SRC common/AnyMemoDBOpenHelper.java:197 (getDao(Setting.class))', cls='non_standard', via='ORMLite DaoManager (reflection)')
+e('AnyMemoDBOpenHelper.getSettingDao', 'SettingDaoImpl.<init>(ConnectionSource,Class)', 'FRAMEWORK', 'the first getSettingDao() call asks ORMLite for the Setting DAO, which creates it',
+  evidence=C3_ORM + '; SRC common/AnyMemoDBOpenHelper.java:197 (getDao(Setting.class))', cls='non_standard', via='ORMLite DaoManager (reflection)')
+e('AnyMemoDBOpenHelper.getLearningDataDao', 'LearningDataDaoImpl.<init>(ConnectionSource,DatabaseTableConfig)', 'FRAMEWORK', 'the first getLearningDataDao() call asks ORMLite for the LearningData DAO, which creates it',
+  evidence=C3_ORM + '; SRC common/AnyMemoDBOpenHelper.java:230 (getDao(LearningData.class))', cls='non_standard', via='ORMLite DaoManager (reflection)')
+e('AnyMemoDBOpenHelper.getLearningDataDao', 'LearningDataDaoImpl.<init>(ConnectionSource,Class)', 'FRAMEWORK', 'the first getLearningDataDao() call asks ORMLite for the LearningData DAO, which creates it',
+  evidence=C3_ORM + '; SRC common/AnyMemoDBOpenHelper.java:230 (getDao(LearningData.class))', cls='non_standard', via='ORMLite DaoManager (reflection)')
+e('AbstractHelperDaoImpl.<init>(ConnectionSource,DatabaseTableConfig)', 'AbstractHelperDaoImpl.<clinit>', 'LIFECYCLE', 'the JVM initialises the superclass before a DAO constructor runs the superclass constructor',
+  evidence=C3_CLINIT + '; SRC dao/AbstractHelperDaoImpl.java')
+e('AbstractHelperDaoImpl.<init>(ConnectionSource,Class)', 'AbstractHelperDaoImpl.<clinit>', 'LIFECYCLE', 'the JVM initialises the superclass before a DAO constructor runs the superclass constructor',
+  evidence=C3_CLINIT + '; SRC dao/AbstractHelperDaoImpl.java')
+UNREACHABLE['AnyMemoDBOpenHelper.getDeckDao'] = ('no_trigger_in_app', 'no code calls getDeckDao() (the declaration at common/AnyMemoDBOpenHelper.java:183 is the only mention), so no code asks ORMLite for the Deck DAO',
+    'SRC common/AnyMemoDBOpenHelper.java:183', 'SOURCE')
+UNREACHABLE['AnyMemoDBOpenHelper.getFilterDao'] = ('no_trigger_in_app', 'no code calls getFilterDao() (the declaration at common/AnyMemoDBOpenHelper.java:205 is the only mention), so no code asks ORMLite for the Filter DAO',
+    'SRC common/AnyMemoDBOpenHelper.java:205', 'SOURCE')
+UNREACHABLE['DeckDaoImpl.<init>(ConnectionSource,Class)'] = ('no_trigger_in_app', 'the DAO is created only when ORMLite is asked for it by getDeckDao(), which no code calls (see AnyMemoDBOpenHelper.java)',
+    'SRC dao/DeckDaoImpl.java:12', 'SOURCE')
+UNREACHABLE['DeckDaoImpl.<init>(ConnectionSource,DatabaseTableConfig)'] = ('no_trigger_in_app', 'the DAO is created only when ORMLite is asked for it by getDeckDao(), which no code calls (see AnyMemoDBOpenHelper.java)',
+    'SRC dao/DeckDaoImpl.java:12', 'SOURCE')
+UNREACHABLE['FilterDaoImpl.<init>(ConnectionSource,Class)'] = ('no_trigger_in_app', 'the DAO is created only when ORMLite is asked for it by getFilterDao(), which no code calls (see AnyMemoDBOpenHelper.java)',
+    'SRC dao/FilterDaoImpl.java:15', 'SOURCE')
+UNREACHABLE['FilterDaoImpl.<init>(ConnectionSource,DatabaseTableConfig)'] = ('no_trigger_in_app', 'the DAO is created only when ORMLite is asked for it by getFilterDao(), which no code calls (see AnyMemoDBOpenHelper.java)',
+    'SRC dao/FilterDaoImpl.java:15', 'SOURCE')
+UNREACHABLE['StatDaoImpl.<init>(ConnectionSource,Class)'] = ('no_trigger_in_app', 'no getStatDao() exists and no code calls getDao(Stat.class) or TableUtils for Stat (grep); ORMLite would create the DAO only when asked for it',
+    'SRC dao/StatDaoImpl.java:12', 'SOURCE')
+UNREACHABLE['StatDaoImpl.<init>(ConnectionSource,DatabaseTableConfig)'] = ('no_trigger_in_app', 'no getStatDao() exists and no code calls getDao(Stat.class) or TableUtils for Stat (grep); ORMLite would create the DAO only when asked for it',
+    'SRC dao/StatDaoImpl.java:12', 'SOURCE')
+UNREACHABLE['DaggerAppComponents.<init>'] = ('no_trigger_in_app', 'the generated Dagger root class is used only through its static builder; its constructor is never invoked (bytecode: no invoke site; the generated source is not in the build output)',
+    'SRC modules/AppComponents.java:15', 'INFERRED')
+UNREACHABLE['ActivityModules.<init>'] = ('no_trigger_in_app', 'every @Provides method of ActivityModules is static (first one at ActivityModules.java:25), so Dagger creates no module instance (bytecode: no invoke site)',
+    'SRC modules/ActivityModules.java:25', 'INFERRED')
+UNREACHABLE['AppModules.<init>'] = ('no_trigger_in_app', 'every @Provides method of AppModules is static (from AppModules.java:51) and the @Binds methods are abstract, so Dagger creates no module instance (bytecode: no invoke site)',
+    'SRC modules/AppModules.java:51', 'INFERRED')
+UNREACHABLE['AppModules.provideExecutorService'] = ('no_trigger_in_app', 'no @Inject field or call asks for an ExecutorService in the app (grep); AnyMemoExecutor creates its own executor (utils/AnyMemoExecutor.java:34)',
+    'SRC modules/AppModules.java:51', 'SOURCE')
+UNREACHABLE['AppModules_ProvideExecutorServiceFactory$InstanceHolder.<clinit>'] = ('no_trigger_in_app', 'the holder of provideExecutorService is initialised only when provideExecutorService is called, and no code path calls it (see AppModules.provideExecutorService)',
+    'SRC modules/AppModules.java:51', 'INFERRED')
+UNREACHABLE['AppModules_ProvideExecutorServiceFactory$InstanceHolder.<init>'] = ('no_trigger_in_app', 'javac default constructor of the Dagger holder of provideExecutorService (a class with one static INSTANCE field); nothing creates the holder (bytecode: no invoke site)',
+    'SRC modules/AppModules.java:51', 'INFERRED')
+UNREACHABLE['AppModules_ProvidesCSVExporterFactory$InstanceHolder.<init>'] = ('no_trigger_in_app', 'javac default constructor of the Dagger holder of providesCSVExporter (a class with one static INSTANCE field); nothing creates the holder (bytecode: no invoke site)',
+    'SRC modules/AppModules.java:71', 'INFERRED')
+UNREACHABLE['AppModules_ProvidesMnemosyneXMLExporterFactory$InstanceHolder.<init>'] = ('no_trigger_in_app', 'javac default constructor of the Dagger holder of providesMnemosyneXMLExporter (a class with one static INSTANCE field); nothing creates the holder (bytecode: no invoke site)',
+    'SRC modules/AppModules.java:103', 'INFERRED')
+UNREACHABLE['AppModules_ProvidesOkHttpClientFactory$InstanceHolder.<init>'] = ('no_trigger_in_app', 'javac default constructor of the Dagger holder of providesOkHttpClient (a class with one static INSTANCE field); nothing creates the holder (bytecode: no invoke site)',
+    'SRC modules/AppModules.java:63', 'INFERRED')
+UNREACHABLE['AppModules_ProvidesQATxtExporterFactory$InstanceHolder.<init>'] = ('no_trigger_in_app', 'javac default constructor of the Dagger holder of providesQATxtExporter (a class with one static INSTANCE field); nothing creates the holder (bytecode: no invoke site)',
+    'SRC modules/AppModules.java:119', 'INFERRED')
+UNREACHABLE['AppModules_ProvidesSupermemo2008XMLImporterFactory$InstanceHolder.<init>'] = ('no_trigger_in_app', 'javac default constructor of the Dagger holder of providesSupermemo2008XMLImporter (a class with one static INSTANCE field); nothing creates the holder (bytecode: no invoke site)',
+    'SRC modules/AppModules.java:135', 'INFERRED')
+UNREACHABLE['AppModules_ProvidesTabTxtExporterFactory$InstanceHolder.<init>'] = ('no_trigger_in_app', 'javac default constructor of the Dagger holder of providesTabTxtExporter (a class with one static INSTANCE field); nothing creates the holder (bytecode: no invoke site)',
+    'SRC modules/AppModules.java:151', 'INFERRED')
+UNREACHABLE['AppModules_ProvidesZipExporterFactory$InstanceHolder.<init>'] = ('no_trigger_in_app', 'javac default constructor of the Dagger holder of providesZipExporter (a class with one static INSTANCE field); nothing creates the holder (bytecode: no invoke site)',
+    'SRC modules/AppModules.java:167', 'INFERRED')
+UNREACHABLE['AppModules_ProvidesZipImporterFactory$InstanceHolder.<init>'] = ('no_trigger_in_app', 'javac default constructor of the Dagger holder of providesZipImporter (a class with one static INSTANCE field); nothing creates the holder (bytecode: no invoke site)',
+    'SRC modules/AppModules.java:175', 'INFERRED')
+e('AMApplication.activityComponents', 'DaggerAppComponents$AppComponentsImpl$1.get', 'FRAMEWORK', 'the ActivityComponents builder is obtained from the Dagger provider when a builder is needed',
+  evidence=C3_PROVIDER + '; SRC common/AMApplication.java:81 (activityComponentsBuilder.get())', cls='non_standard', via='Dagger provider (javax.inject.Provider.get)')
+e('DaggerAppComponents$ActivityComponentsImpl.fragmentsComponentsBuilder', 'DaggerAppComponents$ActivityComponentsImpl$1.get', 'FRAMEWORK', 'the component returns its fragment builder through the Dagger provider',
+  evidence=C3_PROVIDER + '; generated class, no source line in the build output', cls='non_standard', via='Dagger provider (javax.inject.Provider.get)')
+UNREACHABLE['DaggerAppComponents$ActivityComponentsImpl.inject(CardEditor)'] = ('no_trigger_in_app', 'CardEditor.onCreate never calls the component injector (no inject call in ui/CardEditor.java), so the member injector for CardEditor has no caller',
+    'SRC ui/CardEditor.java:102', 'SOURCE')
+e('CardEditor.<init>', 'CardEditor.<clinit>', 'LIFECYCLE', 'the JVM initialises CardEditor before its first constructor runs',
+  evidence=C3_CLINIT + '; SRC ui/CardEditor.java:65 (class declaration)')
+UNREACHABLE['DaggerAppComponents$AppComponentsImpl.inject(LearnQueueManagerLoader)'] = ('no_trigger_in_app', 'no code calls this component injector (no call site of inject with this loader; grep). The loader is created by the LoaderManager; the component declares the injector at modules/AppComponents.java:20',
+    'SRC ui/StudyActivity.java:450', 'SOURCE')
+UNREACHABLE['DaggerAppComponents$AppComponentsImpl.inject(QuizQueueManagerLoader)'] = ('no_trigger_in_app', 'no code calls this component injector (no call site of inject with this loader; grep). The loader is created by the LoaderManager; the component declares the injector at modules/AppComponents.java:22',
+    'SRC ui/QuizActivity.java:229', 'SOURCE')
+UNREACHABLE['OauthAccessCodeRetrievalFragment$RequestTokenTask$1.<init>'] = ('no_trigger_in_app', 'Oauth1 island: OauthAccessCodeRetrievalFragment has no entry in AndroidManifest.xml and no other code starts it (OauthAccessCodeRetrievalFragment is referenced only from OauthAccountActivity, which nothing starts)',
+    'SRC downloader/oauth/OauthAccessCodeRetrievalFragment.java:43', 'SOURCE')
+UNREACHABLE['OauthAccessCodeRetrievalFragment$RequestTokenTask$1.onTouch'] = ('no_trigger_in_app', 'Oauth1 island: OauthAccessCodeRetrievalFragment has no entry in AndroidManifest.xml and no other code starts it (OauthAccessCodeRetrievalFragment is referenced only from OauthAccountActivity, which nothing starts)',
+    'SRC downloader/oauth/OauthAccessCodeRetrievalFragment.java:43', 'SOURCE')
+UNREACHABLE['OauthAccessCodeRetrievalFragment$RequestTokenTask$2.<init>'] = ('no_trigger_in_app', 'Oauth1 island: OauthAccessCodeRetrievalFragment has no entry in AndroidManifest.xml and no other code starts it (OauthAccessCodeRetrievalFragment is referenced only from OauthAccountActivity, which nothing starts)',
+    'SRC downloader/oauth/OauthAccessCodeRetrievalFragment.java:43', 'SOURCE')
+UNREACHABLE['OauthAccessCodeRetrievalFragment$RequestTokenTask$2.onPageFinished'] = ('no_trigger_in_app', 'Oauth1 island: OauthAccessCodeRetrievalFragment has no entry in AndroidManifest.xml and no other code starts it (OauthAccessCodeRetrievalFragment is referenced only from OauthAccountActivity, which nothing starts)',
+    'SRC downloader/oauth/OauthAccessCodeRetrievalFragment.java:43', 'SOURCE')
+UNREACHABLE['OauthAccessCodeRetrievalFragment$RequestTokenTask.<init>'] = ('no_trigger_in_app', 'Oauth1 island: OauthAccessCodeRetrievalFragment has no entry in AndroidManifest.xml and no other code starts it (OauthAccessCodeRetrievalFragment is referenced only from OauthAccountActivity, which nothing starts)',
+    'SRC downloader/oauth/OauthAccessCodeRetrievalFragment.java:43', 'SOURCE')
+UNREACHABLE['OauthAccessCodeRetrievalFragment$RequestTokenTask.doInBackground'] = ('no_trigger_in_app', 'Oauth1 island: OauthAccessCodeRetrievalFragment has no entry in AndroidManifest.xml and no other code starts it (OauthAccessCodeRetrievalFragment is referenced only from OauthAccountActivity, which nothing starts)',
+    'SRC downloader/oauth/OauthAccessCodeRetrievalFragment.java:43', 'SOURCE')
+UNREACHABLE['OauthAccessCodeRetrievalFragment$RequestTokenTask.onPostExecute'] = ('no_trigger_in_app', 'Oauth1 island: OauthAccessCodeRetrievalFragment has no entry in AndroidManifest.xml and no other code starts it (OauthAccessCodeRetrievalFragment is referenced only from OauthAccountActivity, which nothing starts)',
+    'SRC downloader/oauth/OauthAccessCodeRetrievalFragment.java:43', 'SOURCE')
+UNREACHABLE['OauthAccessCodeRetrievalFragment$RequestTokenTask.onPreExecute'] = ('no_trigger_in_app', 'Oauth1 island: OauthAccessCodeRetrievalFragment has no entry in AndroidManifest.xml and no other code starts it (OauthAccessCodeRetrievalFragment is referenced only from OauthAccountActivity, which nothing starts)',
+    'SRC downloader/oauth/OauthAccessCodeRetrievalFragment.java:43', 'SOURCE')
+UNREACHABLE['OauthAccessCodeRetrievalFragment.<init>'] = ('no_trigger_in_app', 'Oauth1 island: OauthAccessCodeRetrievalFragment has no entry in AndroidManifest.xml and no other code starts it (OauthAccessCodeRetrievalFragment is referenced only from OauthAccountActivity, which nothing starts)',
+    'SRC downloader/oauth/OauthAccessCodeRetrievalFragment.java:43', 'SOURCE')
+UNREACHABLE['OauthAccessCodeRetrievalFragment.getAuthCodeReceiveListener'] = ('no_trigger_in_app', 'Oauth1 island: OauthAccessCodeRetrievalFragment has no entry in AndroidManifest.xml and no other code starts it (OauthAccessCodeRetrievalFragment is referenced only from OauthAccountActivity, which nothing starts)',
+    'SRC downloader/oauth/OauthAccessCodeRetrievalFragment.java:43', 'SOURCE')
+UNREACHABLE['OauthAccessCodeRetrievalFragment.onAttach'] = ('no_trigger_in_app', 'Oauth1 island: OauthAccessCodeRetrievalFragment has no entry in AndroidManifest.xml and no other code starts it (OauthAccessCodeRetrievalFragment is referenced only from OauthAccountActivity, which nothing starts)',
+    'SRC downloader/oauth/OauthAccessCodeRetrievalFragment.java:43', 'SOURCE')
+UNREACHABLE['OauthAccessCodeRetrievalFragment.onCancel'] = ('no_trigger_in_app', 'Oauth1 island: OauthAccessCodeRetrievalFragment has no entry in AndroidManifest.xml and no other code starts it (OauthAccessCodeRetrievalFragment is referenced only from OauthAccountActivity, which nothing starts)',
+    'SRC downloader/oauth/OauthAccessCodeRetrievalFragment.java:43', 'SOURCE')
+UNREACHABLE['OauthAccessCodeRetrievalFragment.onCreate'] = ('no_trigger_in_app', 'Oauth1 island: OauthAccessCodeRetrievalFragment has no entry in AndroidManifest.xml and no other code starts it (OauthAccessCodeRetrievalFragment is referenced only from OauthAccountActivity, which nothing starts)',
+    'SRC downloader/oauth/OauthAccessCodeRetrievalFragment.java:43', 'SOURCE')
+UNREACHABLE['OauthAccessCodeRetrievalFragment.onCreateView'] = ('no_trigger_in_app', 'Oauth1 island: OauthAccessCodeRetrievalFragment has no entry in AndroidManifest.xml and no other code starts it (OauthAccessCodeRetrievalFragment is referenced only from OauthAccountActivity, which nothing starts)',
+    'SRC downloader/oauth/OauthAccessCodeRetrievalFragment.java:43', 'SOURCE')
+UNREACHABLE['OauthAccessCodeRetrievalFragment.setAuthCodeReceiveListener'] = ('no_trigger_in_app', 'Oauth1 island: OauthAccessCodeRetrievalFragment has no entry in AndroidManifest.xml and no other code starts it (OauthAccessCodeRetrievalFragment is referenced only from OauthAccountActivity, which nothing starts)',
+    'SRC downloader/oauth/OauthAccessCodeRetrievalFragment.java:43', 'SOURCE')
+UNREACHABLE['OauthAccountActivity$1.<init>'] = ('no_trigger_in_app', 'Oauth1 island: OauthAccountActivity has no entry in AndroidManifest.xml and no other code starts it (OauthAccessCodeRetrievalFragment is referenced only from OauthAccountActivity, which nothing starts)',
+    'SRC downloader/oauth/OauthAccountActivity.java:41', 'SOURCE')
+UNREACHABLE['OauthAccountActivity$1.onAuthCodeError'] = ('no_trigger_in_app', 'Oauth1 island: OauthAccountActivity has no entry in AndroidManifest.xml and no other code starts it (OauthAccessCodeRetrievalFragment is referenced only from OauthAccountActivity, which nothing starts)',
+    'SRC downloader/oauth/OauthAccountActivity.java:41', 'SOURCE')
+UNREACHABLE['OauthAccountActivity$1.onAuthCodeReceived'] = ('no_trigger_in_app', 'Oauth1 island: OauthAccountActivity has no entry in AndroidManifest.xml and no other code starts it (OauthAccessCodeRetrievalFragment is referenced only from OauthAccountActivity, which nothing starts)',
+    'SRC downloader/oauth/OauthAccountActivity.java:41', 'SOURCE')
+UNREACHABLE['OauthAccountActivity$1.onCancelled'] = ('no_trigger_in_app', 'Oauth1 island: OauthAccountActivity has no entry in AndroidManifest.xml and no other code starts it (OauthAccessCodeRetrievalFragment is referenced only from OauthAccountActivity, which nothing starts)',
+    'SRC downloader/oauth/OauthAccountActivity.java:41', 'SOURCE')
+UNREACHABLE['OauthAccountActivity$2.<init>'] = ('no_trigger_in_app', 'Oauth1 island: OauthAccountActivity has no entry in AndroidManifest.xml and no other code starts it (OauthAccessCodeRetrievalFragment is referenced only from OauthAccountActivity, which nothing starts)',
+    'SRC downloader/oauth/OauthAccountActivity.java:41', 'SOURCE')
+UNREACHABLE['OauthAccountActivity$2.onClick'] = ('no_trigger_in_app', 'Oauth1 island: OauthAccountActivity has no entry in AndroidManifest.xml and no other code starts it (OauthAccessCodeRetrievalFragment is referenced only from OauthAccountActivity, which nothing starts)',
+    'SRC downloader/oauth/OauthAccountActivity.java:41', 'SOURCE')
+UNREACHABLE['OauthAccountActivity$GetAccessTokenTask.<init>'] = ('no_trigger_in_app', 'Oauth1 island: OauthAccountActivity has no entry in AndroidManifest.xml and no other code starts it (OauthAccessCodeRetrievalFragment is referenced only from OauthAccountActivity, which nothing starts)',
+    'SRC downloader/oauth/OauthAccountActivity.java:41', 'SOURCE')
+UNREACHABLE['OauthAccountActivity$GetAccessTokenTask.doInBackground'] = ('no_trigger_in_app', 'Oauth1 island: OauthAccountActivity has no entry in AndroidManifest.xml and no other code starts it (OauthAccessCodeRetrievalFragment is referenced only from OauthAccountActivity, which nothing starts)',
+    'SRC downloader/oauth/OauthAccountActivity.java:41', 'SOURCE')
+UNREACHABLE['OauthAccountActivity$GetAccessTokenTask.onPostExecute'] = ('no_trigger_in_app', 'Oauth1 island: OauthAccountActivity has no entry in AndroidManifest.xml and no other code starts it (OauthAccessCodeRetrievalFragment is referenced only from OauthAccountActivity, which nothing starts)',
+    'SRC downloader/oauth/OauthAccountActivity.java:41', 'SOURCE')
+UNREACHABLE['OauthAccountActivity$GetAccessTokenTask.onPreExecute'] = ('no_trigger_in_app', 'Oauth1 island: OauthAccountActivity has no entry in AndroidManifest.xml and no other code starts it (OauthAccessCodeRetrievalFragment is referenced only from OauthAccountActivity, which nothing starts)',
+    'SRC downloader/oauth/OauthAccountActivity.java:41', 'SOURCE')
+UNREACHABLE['OauthAccountActivity$ValidateAccessTokenAndRunCallbackTask.<init>'] = ('no_trigger_in_app', 'Oauth1 island: OauthAccountActivity has no entry in AndroidManifest.xml and no other code starts it (OauthAccessCodeRetrievalFragment is referenced only from OauthAccountActivity, which nothing starts)',
+    'SRC downloader/oauth/OauthAccountActivity.java:41', 'SOURCE')
+UNREACHABLE['OauthAccountActivity$ValidateAccessTokenAndRunCallbackTask.doInBackground'] = ('no_trigger_in_app', 'Oauth1 island: OauthAccountActivity has no entry in AndroidManifest.xml and no other code starts it (OauthAccessCodeRetrievalFragment is referenced only from OauthAccountActivity, which nothing starts)',
+    'SRC downloader/oauth/OauthAccountActivity.java:41', 'SOURCE')
+UNREACHABLE['OauthAccountActivity$ValidateAccessTokenAndRunCallbackTask.onPostExecute'] = ('no_trigger_in_app', 'Oauth1 island: OauthAccountActivity has no entry in AndroidManifest.xml and no other code starts it (OauthAccessCodeRetrievalFragment is referenced only from OauthAccountActivity, which nothing starts)',
+    'SRC downloader/oauth/OauthAccountActivity.java:41', 'SOURCE')
+UNREACHABLE['OauthAccountActivity$ValidateAccessTokenAndRunCallbackTask.onPreExecute'] = ('no_trigger_in_app', 'Oauth1 island: OauthAccountActivity has no entry in AndroidManifest.xml and no other code starts it (OauthAccessCodeRetrievalFragment is referenced only from OauthAccountActivity, which nothing starts)',
+    'SRC downloader/oauth/OauthAccountActivity.java:41', 'SOURCE')
+UNREACHABLE['OauthAccountActivity.<init>'] = ('no_trigger_in_app', 'Oauth1 island: OauthAccountActivity has no entry in AndroidManifest.xml and no other code starts it (OauthAccessCodeRetrievalFragment is referenced only from OauthAccountActivity, which nothing starts)',
+    'SRC downloader/oauth/OauthAccountActivity.java:41', 'SOURCE')
+UNREACHABLE['OauthAccountActivity.invalidateSavedToken'] = ('no_trigger_in_app', 'Oauth1 island: OauthAccountActivity has no entry in AndroidManifest.xml and no other code starts it (OauthAccessCodeRetrievalFragment is referenced only from OauthAccountActivity, which nothing starts)',
+    'SRC downloader/oauth/OauthAccountActivity.java:41', 'SOURCE')
+UNREACHABLE['OauthAccountActivity.onCreate'] = ('no_trigger_in_app', 'Oauth1 island: OauthAccountActivity has no entry in AndroidManifest.xml and no other code starts it (OauthAccessCodeRetrievalFragment is referenced only from OauthAccountActivity, which nothing starts)',
+    'SRC downloader/oauth/OauthAccountActivity.java:41', 'SOURCE')
+UNREACHABLE['OauthAccountActivity.showAuthErrorDialog'] = ('no_trigger_in_app', 'Oauth1 island: OauthAccountActivity has no entry in AndroidManifest.xml and no other code starts it (OauthAccessCodeRetrievalFragment is referenced only from OauthAccountActivity, which nothing starts)',
+    'SRC downloader/oauth/OauthAccountActivity.java:41', 'SOURCE')
+UNREACHABLE['OauthAccountActivity.showGetTokenDialog'] = ('no_trigger_in_app', 'Oauth1 island: OauthAccountActivity has no entry in AndroidManifest.xml and no other code starts it (OauthAccessCodeRetrievalFragment is referenced only from OauthAccountActivity, which nothing starts)',
+    'SRC downloader/oauth/OauthAccountActivity.java:41', 'SOURCE')
+UNREACHABLE['AnyMemoDBOpenHelperManager.<init>'] = ('no_trigger_in_app', 'every use of AnyMemoDBOpenHelperManager is a static call; the app never creates an instance (grep: no "new AnyMemoDBOpenHelperManager")',
+    'SRC common/AnyMemoDBOpenHelperManager.java:20', 'SOURCE')
+e('AnyMemo.onCreate', 'databinding.DataBinderMapperImpl.<init>', 'FRAMEWORK', 'setContentView with the data-binding layout main_tabs asks the library for the generated mapper',
+  evidence=C3_DATABIND + '; SRC ui/AnyMemo.java:121 (R.layout.main_tabs); SRC res/layout/main_tabs.xml:3 (layout root)', cls='non_standard', via='androidx DataBindingUtil loads the generated mapper by name')
+e('AnyMemo.onCreate', 'fantastischmemo.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'FRAMEWORK', 'the library asks the generated mapper for the Binding class of R.layout.main_tabs',
+  evidence=C3_DATABIND + '; SRC ui/AnyMemo.java:121 (R.layout.main_tabs); SRC res/layout/main_tabs.xml:3 (layout root)', cls='non_standard', via='androidx DataBindingUtil -> generated getDataBinder')
+e('AnyMemo.onCreate', 'MainTabsBindingImpl.<init>(DataBindingComponent,View)', 'FRAMEWORK', 'the layout main_tabs is bound to its generated Binding class (the switch in getDataBinder selects this class for this layout id)',
+  evidence=C3_DATABIND + '; SRC ui/AnyMemo.java:121 (R.layout.main_tabs); SRC res/layout/main_tabs.xml:3 (layout root)', cls='non_standard', via='androidx DataBindingUtil -> generated getDataBinder')
+sup(('fantastischmemo.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'MainTabsBindingImpl.<init>(DataBindingComponent,View)'))
+sup(('fantastischmemo.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'MainTabsBindingImpl.<clinit>'))
+e('MainTabsBindingImpl.<init>(DataBindingComponent,View)', 'MainTabsBindingImpl.<clinit>', 'LIFECYCLE', 'the JVM initialises MainTabsBindingImpl when its first instance is created',
+  evidence=C3_CLINIT + '; SRC res/layout/main_tabs.xml:3 (generated Binding class of the layout)')
+e('MainTabsBindingImpl.invalidateAll', 'MainTabsBindingImpl.executeBindings', 'FRAMEWORK', 'invalidateAll marks the binding dirty; the library runs executeBindings in its pending pass',
+  evidence=C3_LIB_PENDING + '; the generated constructor calls invalidateAll (bytecode edge of MainTabsBindingImpl.<init>)', cls='non_standard', via='androidx ViewDataBinding pending-bindings pass')
+e('MainTabsBindingImpl.invalidateAll', 'MainTabsBindingImpl.hasPendingBindings', 'FRAMEWORK', 'the library checks hasPendingBindings in the same pending pass',
+  evidence=C3_LIB_PENDING + '; the generated constructor calls invalidateAll (bytecode edge of MainTabsBindingImpl.<init>)', cls='non_standard', via='androidx ViewDataBinding pending-bindings pass')
+UNREACHABLE['MainTabsBindingImpl.setVariable'] = ('no_trigger_in_app', 'the app never calls setVariable on this binding (grep: no call); res/layout/main_tabs.xml declares no <variable>',
+    'SRC res/layout/main_tabs.xml:3', 'SOURCE')
+UNREACHABLE['MainTabsBindingImpl.onFieldChange'] = ('framework_never_calls', 'the library calls onFieldChange only when an observable field or a <variable> changes; res/layout/main_tabs.xml declares no <variable> (library source not read)',
+    'SRC res/layout/main_tabs.xml:3', 'INFERRED')
+e('DropboxListActivity.onCreate', 'databinding.DataBinderMapperImpl.<init>', 'FRAMEWORK', 'setContentView with the data-binding layout dropbox_list_activity asks the library for the generated mapper',
+  evidence=C3_DATABIND + '; SRC downloader/dropbox/DropboxListActivity.java:38 (R.layout.dropbox_list_activity); SRC res/layout/dropbox_list_activity.xml:3 (layout root)', cls='non_standard', via='androidx DataBindingUtil loads the generated mapper by name')
+e('DropboxListActivity.onCreate', 'fantastischmemo.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'FRAMEWORK', 'the library asks the generated mapper for the Binding class of R.layout.dropbox_list_activity',
+  evidence=C3_DATABIND + '; SRC downloader/dropbox/DropboxListActivity.java:38 (R.layout.dropbox_list_activity); SRC res/layout/dropbox_list_activity.xml:3 (layout root)', cls='non_standard', via='androidx DataBindingUtil -> generated getDataBinder')
+e('DropboxListActivity.onCreate', 'DropboxListActivityBindingImpl.<init>(DataBindingComponent,View)', 'FRAMEWORK', 'the layout dropbox_list_activity is bound to its generated Binding class (the switch in getDataBinder selects this class for this layout id)',
+  evidence=C3_DATABIND + '; SRC downloader/dropbox/DropboxListActivity.java:38 (R.layout.dropbox_list_activity); SRC res/layout/dropbox_list_activity.xml:3 (layout root)', cls='non_standard', via='androidx DataBindingUtil -> generated getDataBinder')
+sup(('fantastischmemo.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'DropboxListActivityBindingImpl.<init>(DataBindingComponent,View)'))
+sup(('fantastischmemo.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'DropboxListActivityBindingImpl.<clinit>'))
+e('DropboxListActivityBindingImpl.<init>(DataBindingComponent,View)', 'DropboxListActivityBindingImpl.<clinit>', 'LIFECYCLE', 'the JVM initialises DropboxListActivityBindingImpl when its first instance is created',
+  evidence=C3_CLINIT + '; SRC res/layout/dropbox_list_activity.xml:3 (generated Binding class of the layout)')
+e('DropboxListActivityBindingImpl.invalidateAll', 'DropboxListActivityBindingImpl.executeBindings', 'FRAMEWORK', 'invalidateAll marks the binding dirty; the library runs executeBindings in its pending pass',
+  evidence=C3_LIB_PENDING + '; the generated constructor calls invalidateAll (bytecode edge of DropboxListActivityBindingImpl.<init>)', cls='non_standard', via='androidx ViewDataBinding pending-bindings pass')
+e('DropboxListActivityBindingImpl.invalidateAll', 'DropboxListActivityBindingImpl.hasPendingBindings', 'FRAMEWORK', 'the library checks hasPendingBindings in the same pending pass',
+  evidence=C3_LIB_PENDING + '; the generated constructor calls invalidateAll (bytecode edge of DropboxListActivityBindingImpl.<init>)', cls='non_standard', via='androidx ViewDataBinding pending-bindings pass')
+UNREACHABLE['DropboxListActivityBindingImpl.setVariable'] = ('no_trigger_in_app', 'the app never calls setVariable on this binding (grep: no call); res/layout/dropbox_list_activity.xml declares no <variable>',
+    'SRC res/layout/dropbox_list_activity.xml:3', 'SOURCE')
+UNREACHABLE['DropboxListActivityBindingImpl.onFieldChange'] = ('framework_never_calls', 'the library calls onFieldChange only when an observable field or a <variable> changes; res/layout/dropbox_list_activity.xml declares no <variable> (library source not read)',
+    'SRC res/layout/dropbox_list_activity.xml:3', 'INFERRED')
+e('UploadDropboxActivity.onCreate', 'databinding.DataBinderMapperImpl.<init>', 'FRAMEWORK', 'setContentView with the data-binding layout upload_dropbox_screen asks the library for the generated mapper',
+  evidence=C3_DATABIND + '; SRC downloader/dropbox/UploadDropboxActivity.java:47 (R.layout.upload_dropbox_screen); SRC res/layout/upload_dropbox_screen.xml:3 (layout root)', cls='non_standard', via='androidx DataBindingUtil loads the generated mapper by name')
+e('UploadDropboxActivity.onCreate', 'fantastischmemo.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'FRAMEWORK', 'the library asks the generated mapper for the Binding class of R.layout.upload_dropbox_screen',
+  evidence=C3_DATABIND + '; SRC downloader/dropbox/UploadDropboxActivity.java:47 (R.layout.upload_dropbox_screen); SRC res/layout/upload_dropbox_screen.xml:3 (layout root)', cls='non_standard', via='androidx DataBindingUtil -> generated getDataBinder')
+e('UploadDropboxActivity.onCreate', 'UploadDropboxScreenBindingImpl.<init>(DataBindingComponent,View)', 'FRAMEWORK', 'the layout upload_dropbox_screen is bound to its generated Binding class (the switch in getDataBinder selects this class for this layout id)',
+  evidence=C3_DATABIND + '; SRC downloader/dropbox/UploadDropboxActivity.java:47 (R.layout.upload_dropbox_screen); SRC res/layout/upload_dropbox_screen.xml:3 (layout root)', cls='non_standard', via='androidx DataBindingUtil -> generated getDataBinder')
+sup(('fantastischmemo.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'UploadDropboxScreenBindingImpl.<init>(DataBindingComponent,View)'))
+sup(('fantastischmemo.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View,int)', 'UploadDropboxScreenBindingImpl.<clinit>'))
+e('UploadDropboxScreenBindingImpl.<init>(DataBindingComponent,View)', 'UploadDropboxScreenBindingImpl.<clinit>', 'LIFECYCLE', 'the JVM initialises UploadDropboxScreenBindingImpl when its first instance is created',
+  evidence=C3_CLINIT + '; SRC res/layout/upload_dropbox_screen.xml:3 (generated Binding class of the layout)')
+e('UploadDropboxScreenBindingImpl.invalidateAll', 'UploadDropboxScreenBindingImpl.executeBindings', 'FRAMEWORK', 'invalidateAll marks the binding dirty; the library runs executeBindings in its pending pass',
+  evidence=C3_LIB_PENDING + '; the generated constructor calls invalidateAll (bytecode edge of UploadDropboxScreenBindingImpl.<init>)', cls='non_standard', via='androidx ViewDataBinding pending-bindings pass')
+e('UploadDropboxScreenBindingImpl.invalidateAll', 'UploadDropboxScreenBindingImpl.hasPendingBindings', 'FRAMEWORK', 'the library checks hasPendingBindings in the same pending pass',
+  evidence=C3_LIB_PENDING + '; the generated constructor calls invalidateAll (bytecode edge of UploadDropboxScreenBindingImpl.<init>)', cls='non_standard', via='androidx ViewDataBinding pending-bindings pass')
+UNREACHABLE['UploadDropboxScreenBindingImpl.setVariable'] = ('no_trigger_in_app', 'the app never calls setVariable on this binding (grep: no call); res/layout/upload_dropbox_screen.xml declares no <variable>',
+    'SRC res/layout/upload_dropbox_screen.xml:3', 'SOURCE')
+UNREACHABLE['UploadDropboxScreenBindingImpl.onFieldChange'] = ('framework_never_calls', 'the library calls onFieldChange only when an observable field or a <variable> changes; res/layout/upload_dropbox_screen.xml declares no <variable> (library source not read)',
+    'SRC res/layout/upload_dropbox_screen.xml:3', 'INFERRED')
+UNREACHABLE['fantastischmemo.DataBinderMapperImpl.getDataBinder(DataBindingComponent,View[],int)'] = ('framework_never_calls', 'the library calls the View[] variant only to bind the children of a <merge> root; the three layouts have a single <layout> root and no <merge> or <include> (res/layout/*.xml, grep)',
+    'SRC res/layout/main_tabs.xml:3', 'INFERRED')
+UNREACHABLE['fantastischmemo.DataBinderMapperImpl.collectDependencies'] = ('framework_never_calls', 'the library calls collectDependencies only to load the mappers of other modules; AnyMemo has no feature modules (library source not read)',
+    'SRC res/layout/main_tabs.xml:3', 'INFERRED')
+UNREACHABLE['fantastischmemo.DataBinderMapperImpl.convertBrIdToString'] = ('framework_never_calls', 'the library calls convertBrIdToString only to name a <variable> in an error message; the layouts declare no <variable> (library source not read)',
+    'SRC res/layout/main_tabs.xml:3', 'INFERRED')
+UNREACHABLE['fantastischmemo.DataBinderMapperImpl.getLayoutId'] = ('framework_never_calls', 'the library calls getLayoutId only while it binds the children of an <include> or <merge> layout (library source not read); the three layouts have neither (res/layout/*.xml)',
+    'SRC res/layout/main_tabs.xml:3', 'INFERRED')
+UNREACHABLE['fantastischmemo.DataBinderMapperImpl$InnerBrLookup.<clinit>'] = ('framework_never_calls', 'the static lookup table of BrLookup is initialised only by convertBrIdToString or getLayoutId, which no caller reaches (library source not read)',
+    'SRC res/layout/main_tabs.xml:3', 'INFERRED')
+UNREACHABLE['fantastischmemo.DataBinderMapperImpl$InnerBrLookup.<init>'] = ('no_trigger_in_app', 'javac default constructor of a static lookup holder; nothing creates it (bytecode: no invoke site)',
+    'SRC res/layout/main_tabs.xml:3', 'INFERRED')
+UNREACHABLE['fantastischmemo.DataBinderMapperImpl$InnerLayoutIdLookup.<clinit>'] = ('framework_never_calls', 'the static lookup table of LayoutIdLookup is initialised only by convertBrIdToString or getLayoutId, which no caller reaches (library source not read)',
+    'SRC res/layout/main_tabs.xml:3', 'INFERRED')
+UNREACHABLE['fantastischmemo.DataBinderMapperImpl$InnerLayoutIdLookup.<init>'] = ('no_trigger_in_app', 'javac default constructor of a static lookup holder; nothing creates it (bytecode: no invoke site)',
+    'SRC res/layout/main_tabs.xml:3', 'INFERRED')
+UNREACHABLE['baseAdapters.BR.<init>'] = ('no_trigger_in_app', 'the BR constants class is generated from the layout variables; nothing creates it (bytecode: no invoke site) and the three layouts declare no <variable>',
+    'SRC res/layout/main_tabs.xml:3', 'INFERRED')
+UNREACHABLE['fantastischmemo.BR.<init>'] = ('no_trigger_in_app', 'the BR constants class is generated from the layout variables; nothing creates it (bytecode: no invoke site) and the three layouts declare no <variable>',
+    'SRC res/layout/main_tabs.xml:3', 'INFERRED')

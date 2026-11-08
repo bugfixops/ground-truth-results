@@ -1,0 +1,160 @@
+## FolderImportExportUtil$1.<init>  REACHABLE  confirmed_by=SOURCE path=UNCHECKED
+   env=- state=- classes=explicit;standard explicit_standard_route=yes
+   1. Eddc920eb ENTRY/standard*
+      S_ENTRY -> AnyMemo.<init>
+      MAIN / LAUNCHER intent starts AnyMemo
+      evidence: SRC AndroidManifest.xml:23-46
+         23          <activity
+         24              android:name=".ui.AnyMemo"
+         25              android:label="@string/app_full_name"
+         26              android:theme="@style/AnyMemo.Theme.Dark.NoActionBar"
+         27              android:exported="true" >
+         28              <intent-filter>
+         29                  <action
+         30                      android:name="android.intent.action.MAIN" />
+         31                  <category
+         32                      android:name="android.intent.category.LAUNCHER" />
+         33              </intent-filter>
+         34              <intent-filter>
+         35                  <action android:name="android.intent.action.VIEW" />
+         36                  <category android:name="android.intent.category.DEFAULT" />
+      ...  (10 more lines)
+   2. Ea0fceb29 LIFECYCLE/standard*
+      AnyMemo.<init> -> AnyMemo.onActivityResult
+      Activity lifecycle / framework callback
+      evidence: FW-SRC core/java/android/app/Activity.java (Activity lifecycle callback dispatched by ActivityThread); SRC ui/AnyMemo.java:115-434
+      (core/java/android/app/Activity.java: no line numbers)
+        115      @Override
+        116      public void onCreate(Bundle savedInstanceState) {
+        117          activityComponents().inject(this);
+        118          super.onCreate(savedInstanceState);
+        119          disposables = new CompositeDisposable();
+        120  
+        121          binding = DataBindingUtil.setContentView(this, R.layout.main_tabs);
+        122  
+        123          // Request storage permission for API < 29
+        124          if (android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.Q) {
+        125              if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        126                      != PackageManager.PERMISSION_GRANTED) {
+        127                  ActivityCompat.requestPermissions(this,
+        128                          new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+      ...  (306 more lines)
+   3. E6815d3ca CALL/explicit*
+      AnyMemo.onActivityResult -> FolderImportExportUtil.importFolder
+      Direct call
+      evidence: SRC AnyMemo.java:430 (bytecode)
+        430                      folderImportExportUtil.importFolder(this, treeUri, disposables);
+   4. E72971490 CALL/explicit*
+      FolderImportExportUtil.importFolder -> FolderImportExportUtil$1.<init>
+      Direct call
+      evidence: SRC FolderImportExportUtil.java:65 (bytecode)
+         65          .observeOn(AndroidSchedulers.mainThread())
+
+## BaseActivity$1.<init>  REACHABLE  confirmed_by=SOURCE path=UNCHECKED
+   env=- state=- classes=explicit;standard explicit_standard_route=yes
+   1. Eddc920eb S_ENTRY -> AnyMemo.<init>  (printed above)
+   2. Ee33f0797 LIFECYCLE/standard*
+      AnyMemo.<init> -> AnyMemo.onCreate
+      Activity lifecycle / framework callback
+      evidence: FW-SRC core/java/android/app/Activity.java (Activity lifecycle callback dispatched by ActivityThread); SRC ui/AnyMemo.java:115-434
+      (core/java/android/app/Activity.java: no line numbers)
+        115      @Override
+        116      public void onCreate(Bundle savedInstanceState) {
+        117          activityComponents().inject(this);
+        118          super.onCreate(savedInstanceState);
+        119          disposables = new CompositeDisposable();
+        120  
+        121          binding = DataBindingUtil.setContentView(this, R.layout.main_tabs);
+        122  
+        123          // Request storage permission for API < 29
+        124          if (android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.Q) {
+        125              if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        126                      != PackageManager.PERMISSION_GRANTED) {
+        127                  ActivityCompat.requestPermissions(this,
+        128                          new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+      ...  (306 more lines)
+   3. E44e2260f CALL/explicit*
+      AnyMemo.onCreate -> BaseActivity.onCreate
+      Direct call
+      evidence: SRC AnyMemo.java:118 (bytecode)
+        118          super.onCreate(savedInstanceState);
+   4. E53adb124 CALL/explicit*
+      BaseActivity.onCreate -> BaseActivity.enableImmersiveMode
+      Direct call
+      evidence: SRC BaseActivity.java:37 (bytecode)
+         37              enableImmersiveMode();
+   5. Ed2a36e06 CALL/explicit*
+      BaseActivity.enableImmersiveMode -> BaseActivity$1.<init>
+      Direct call
+      evidence: SRC BaseActivity.java:159 (bytecode)
+        159          getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
+
+## DaggerAppComponents$ActivityComponentsBuilder.activity  REACHABLE  confirmed_by=SOURCE path=UNCHECKED
+   env=- state=- classes=explicit;standard explicit_standard_route=yes
+   1. Eddc920eb S_ENTRY -> AnyMemo.<init>  (printed above)
+   2. Ee33f0797 AnyMemo.<init> -> AnyMemo.onCreate  (printed above)
+   3. E39ee9f7c CALL/explicit*
+      AnyMemo.onCreate -> BaseActivity.activityComponents
+      Direct call
+      evidence: SRC AnyMemo.java:117 (bytecode)
+        117          activityComponents().inject(this);
+   4. Eed42306b CALL/explicit*
+      BaseActivity.activityComponents -> AMApplication.activityComponents
+      Direct call
+      evidence: SRC BaseActivity.java:79 (bytecode)
+         79              activityComponents = ((AMApplication) getApplication()).activityComponents(this);
+   5. Ebcd9e20d CALL/explicit
+      AMApplication.activityComponents -> DaggerAppComponents$ActivityComponentsBuilder.activity
+      Virtual/interface call that can dispatch to this implementation (through DaggerAppComponents$ActivityComponentsBuilder.activity)
+      evidence: SRC AMApplication.java:82 (bytecode)
+         82                  .activity(activity)
+
+## NotificationUtil.cancelNotification  REACHABLE  confirmed_by=SOURCE path=UNCHECKED
+   env=- state=- classes=explicit;standard explicit_standard_route=yes
+   1. Eddc920eb S_ENTRY -> AnyMemo.<init>  (printed above)
+   2. E335f85f7 LIFECYCLE/standard*
+      AnyMemo.<init> -> AnyMemo.onDestroy
+      Activity lifecycle / framework callback
+      evidence: FW-SRC core/java/android/app/Activity.java (Activity lifecycle callback dispatched by ActivityThread); SRC ui/AnyMemo.java:115-434
+      (core/java/android/app/Activity.java: no line numbers)
+        115      @Override
+        116      public void onCreate(Bundle savedInstanceState) {
+        117          activityComponents().inject(this);
+        118          super.onCreate(savedInstanceState);
+        119          disposables = new CompositeDisposable();
+        120  
+        121          binding = DataBindingUtil.setContentView(this, R.layout.main_tabs);
+        122  
+        123          // Request storage permission for API < 29
+        124          if (android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.Q) {
+        125              if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        126                      != PackageManager.PERMISSION_GRANTED) {
+        127                  ActivityCompat.requestPermissions(this,
+        128                          new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+      ...  (306 more lines)
+   3. E2a372b19 CALL/explicit*
+      AnyMemo.onDestroy -> NotificationUtil.cancelNotification
+      Direct call
+      evidence: SRC AnyMemo.java:406 (bytecode)
+        406          notificationUtil.cancelNotification();
+
+## MultipleLoaderManager.destroy  REACHABLE  confirmed_by=SOURCE path=UNCHECKED
+   env=- state=- classes=explicit;standard explicit_standard_route=yes
+   1. Eddc920eb S_ENTRY -> AnyMemo.<init>  (printed above)
+   2. E335f85f7 AnyMemo.<init> -> AnyMemo.onDestroy  (printed above)
+   3. E306e1923 CALL/explicit*
+      AnyMemo.onDestroy -> MultipleLoaderManager.destroy
+      Direct call
+      evidence: SRC AnyMemo.java:409 (bytecode)
+        409              multipleLoaderManager.destroy();
+
+## RecentListActionModeUtil.unregisterForActivity  REACHABLE  confirmed_by=SOURCE path=UNCHECKED
+   env=- state=- classes=explicit;standard explicit_standard_route=yes
+   1. Eddc920eb S_ENTRY -> AnyMemo.<init>  (printed above)
+   2. E335f85f7 AnyMemo.<init> -> AnyMemo.onDestroy  (printed above)
+   3. Ef6f111e6 CALL/explicit*
+      AnyMemo.onDestroy -> RecentListActionModeUtil.unregisterForActivity
+      Direct call
+      evidence: SRC AnyMemo.java:400 (bytecode)
+        400          recentListActionModeUtil.unregisterForActivity();
+

@@ -1,0 +1,355 @@
+METHOD: TransactionStatuses.<init>
+verdict: REACHABLE   steps_from_launch: 14
+route steps: 14 edges
+======================================================================
+
+STEP 1  edge Eaf2975b8
+  S_ENTRY -> ButtonAddTransactionWidgetProvider.<init>
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC AndroidManifest.xml:67-77 (receiver name 68, APPWIDGET_UPDATE 71); SRC widget/ButtonAddTransactionWidgetProvider.java:30 (class declaration, implicit constructor); FW-SRC core/java/android/app/ActivityThread.java:3141, 3166, 3187
+  cite [SRC] AndroidManifest.xml:67-77
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/AndroidManifest.xml)
+       67:         <receiver
+       68:                 android:name=".widget.ButtonAddTransactionWidgetProvider"
+       69:                 android:label="@string/widget_add_transaction" android:exported="true">
+       70:             <intent-filter>
+       71:                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+       72:             </intent-filter>
+       73: 
+       74:             <meta-data
+       75:                 android:name="android.appwidget.provider"
+       76:                 android:resource="@xml/widget_button_add_transaction" />
+       77:         </receiver>
+  cite [SRC] widget/ButtonAddTransactionWidgetProvider.java:30
+       30: public class ButtonAddTransactionWidgetProvider extends AppWidgetProvider {
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:3141, 3166, 3187
+     3141:     private void handleReceiver(ReceiverData data) {
+     3166:             receiver = (BroadcastReceiver)cl.loadClass(component).newInstance();
+     3187:             receiver.onReceive(context.getReceiverRestrictedContext(),
+
+STEP 2  edge E4fa3f67a
+  ButtonAddTransactionWidgetProvider.<init> -> ButtonAddTransactionWidgetProvider.onUpdate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC core/java/android/appwidget/AppWidgetProvider.java:66; FW-SRC services/appwidget/java/com/android/server/appwidget/AppWidgetServiceImpl.java:2283-2286 (setComponent 2286); SRC widget/ButtonAddTransactionWidgetProvider.java:31-32 (override)
+  cite [FW-SRC] core/java/android/appwidget/AppWidgetProvider.java:66
+       66:                     this.onUpdate(context, AppWidgetManager.getInstance(context), appWidgetIds);
+  cite [FW-SRC] services/appwidget/java/com/android/server/appwidget/AppWidgetServiceImpl.java:2283-2286
+     2283:     private void sendUpdateIntentLocked(Provider provider, int[] appWidgetIds) {
+     2284:         Intent intent = new Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+     2285:         intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds);
+     2286:         intent.setComponent(provider.info.provider);
+  cite [SRC] widget/ButtonAddTransactionWidgetProvider.java:31-32
+       31: 	@Override
+       32: 	public void onUpdate(Context context, AppWidgetManager appWidgetManager,
+
+STEP 3  edge E37b8fad5
+  ButtonAddTransactionWidgetProvider.onUpdate -> CheckingTransactionEditActivity.<init>
+  class: non_standard   kind: INTENT
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC widget/ButtonAddTransactionWidgetProvider.java:32-41 (intent 38, ACTION_INSERT 39, PendingIntent 41)
+  cite [SRC] widget/ButtonAddTransactionWidgetProvider.java:32-41
+       32: 	public void onUpdate(Context context, AppWidgetManager appWidgetManager,
+       33: 			int[] appWidgetIds) {
+       34: 		
+       35: 		for (int i = 0; i < appWidgetIds.length; ++i) {
+       36: 			RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.widget_button_add_transaction);
+       37: 			// register on click in icon launch application
+       38: 			Intent intent = new Intent(context, CheckingTransactionEditActivity.class);
+       39: 			intent.setAction(Intent.ACTION_INSERT);
+       40: 			intent.putExtra(EditTransactionActivityConstants.KEY_TRANS_SOURCE, "ButtonAddTransactionWidgetProvider.java");
+       41: 			PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+
+STEP 4  edge E157bdc5f
+  CheckingTransactionEditActivity.<init> -> CheckingTransactionEditActivity.onCreate
+  class: standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: FW-SRC core/java/android/app/ActivityThread.java:2729-2731 (callActivityOnCreate); FW-SRC core/java/android/app/Activity.java:6993-7000 (performCreate calls onCreate)
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2729-2731
+     2729:                     mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+     2730:                 } else {
+     2731:                     mInstrumentation.callActivityOnCreate(activity, r.state);
+  cite [FW-SRC] core/java/android/app/Activity.java:6993-7000
+     6993:     final void performCreate(Bundle icicle, PersistableBundle persistentState) {
+     6994:         mCanEnterPictureInPicture = true;
+     6995:         restoreHasCurrentPermissionRequest(icicle);
+     6996:         if (persistentState != null) {
+     6997:             onCreate(icicle, persistentState);
+     6998:         } else {
+     6999:             onCreate(icicle);
+     7000:         }
+
+STEP 5  edge E3bd292f0
+  CheckingTransactionEditActivity.onCreate -> S_CHECKING_TRANSACTION_EDIT
+  class: page   kind: ENTERS
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC transactions/CheckingTransactionEditActivity.java:95 (setContentView)
+  cite [SRC] transactions/CheckingTransactionEditActivity.java:95
+       95:         setContentView(R.layout.activity_edit_checking_account_transaction);
+
+STEP 6  edge E8e32a4ab
+  S_CHECKING_TRANSACTION_EDIT -> CheckingTransactionEditActivity.onOptionsItemSelected
+  class: standard   kind: GUI
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC transactions/CheckingTransactionEditActivity.java:150-159 (home 153; save 155); SRC MenuHelper.java:37, 88; FW-SRC core/java/android/app/Activity.java:3450 (onOptionsItemSelected dispatch); INFERRED: the AppCompat toolbar path is not read
+  cite [SRC] transactions/CheckingTransactionEditActivity.java:150-159
+      150:     public boolean onOptionsItemSelected(MenuItem item) {
+      151:         switch (item.getItemId()) {
+      152:             case android.R.id.home:
+      153:                 return onActionCancelClick();
+      154:             case MenuHelper.save:
+      155:                 return onActionDoneClick();
+      156:             default:
+      157:                 return super.onOptionsItemSelected(item);
+      158:         }
+      159:     }
+  cite [SRC] MenuHelper.java:37, 88
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/core/MenuHelper.java)
+       37:     public static final int save = 2;
+       88:         MenuItem item = menu.add(Menu.NONE, save, Menu.NONE, R.string.save);
+  cite [FW-SRC] core/java/android/app/Activity.java:3450
+     3450:                 if (onOptionsItemSelected(item)) {
+
+STEP 7  edge E49e398a6
+  CheckingTransactionEditActivity.onOptionsItemSelected -> CheckingTransactionEditActivity.onActionDoneClick
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC CheckingTransactionEditActivity.java:155 (bytecode)
+  cite [SRC] CheckingTransactionEditActivity.java:155
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/transactions/CheckingTransactionEditActivity.java)
+      155:                 return onActionDoneClick();
+
+STEP 8  edge E99cd6390
+  CheckingTransactionEditActivity.onActionDoneClick -> RecurringTransactionListFragment.onActivityResult
+  class: standard   kind: RESULT
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC transactions/CheckingTransactionEditActivity.java:194-197 (setResult at 196); SRC recurring/transactions/RecurringTransactionListFragment.java:427-438 (startActivityForResult at 437); INFERRED androidx FragmentActivity dispatches the result to the fragment (library not read)
+  cite [SRC] transactions/CheckingTransactionEditActivity.java:194-197
+      194:     public boolean onActionDoneClick() {
+      195:         if (saveData()) {
+      196:             setResult(RESULT_OK);
+      197:             finish();
+  cite [SRC] recurring/transactions/RecurringTransactionListFragment.java:427-438
+      427:     private void showCreateTransactionActivity(int scheduledTransactionId) {
+      428:         RecurringTransactionRepository repo = new RecurringTransactionRepository(getActivity());
+      429:         RecurringTransaction tx = repo.load(scheduledTransactionId);
+      430:         if (tx == null) return;
+      431: 
+      432:         Intent intent = new Intent(getActivity(), CheckingTransactionEditActivity.class);
+      433:         intent.setAction(Intent.ACTION_INSERT);
+      434:         intent.putExtra(EditTransactionActivityConstants.KEY_BDID_ID, scheduledTransactionId);
+      435:         intent.putExtra(EditTransactionActivityConstants.KEY_TRANS_SOURCE, "RecurringTransactionListFragment.java");
+      436:         // start for insert new transaction
+      437:         startActivityForResult(intent, REQUEST_ADD_TRANSACTION);
+      438:     }
+
+STEP 9  edge E192886f6
+  RecurringTransactionListFragment.onActivityResult -> RecurringTransactionListFragment.onCreateLoader
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC recurring/transactions/RecurringTransactionListFragment.java:277-292; INFERRED androidx LoaderManager.restartLoader calls the callbacks (library not read)
+  cite [SRC] recurring/transactions/RecurringTransactionListFragment.java:277-292
+      277:     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+      278:         super.onActivityResult(requestCode, resultCode, data);
+      279: 
+      280:         if (resultCode == RecurringTransactionListActivity.RESULT_OK) {
+      281: //                switch (requestCode) {
+      282: //                    case REQUEST_ADD_REPEATING_TRANSACTION:
+      283: //                        break;
+      284: //                    case REQUEST_ADD_TRANSACTION:
+      285: //                        break;
+      286: //                    case REQUEST_EDIT_REPEATING_TRANSACTION:
+      287: //                        break;
+      288: //                }
+      289:             // Always reload the activity?
+      290:             getLoaderManager().restartLoader(ID_LOADER_REPEATING, null, this);
+      291:         }
+      292:     }
+
+STEP 10  edge E49998d1b
+  RecurringTransactionListFragment.onCreateLoader -> RecurringTransactionListFragment.onLoadFinished
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC recurring/transactions/RecurringTransactionListFragment.java:218-232, 246-262; INFERRED androidx Loader delivers its result to the callbacks (library not read)
+  cite [SRC] recurring/transactions/RecurringTransactionListFragment.java:218-232, 246-262
+      218:     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+      219:         if (id == ID_LOADER_REPEATING) {
+      220:             String select = null;
+      221:             if (!TextUtils.isEmpty(mCurFilter)) {
+      222:                 select = Account.ACCOUNTNAME + " LIKE '" + mCurFilter + "%'";
+      223:             }
+      224:             Select query = new Select(mBillDeposits.getAllColumns())
+      225:                     .where(select)
+      226:                     .orderBy(QueryBillDeposits.NEXTOCCURRENCEDATE);
+      227: 
+      228:             return new MmxCursorLoader(getActivity(), mBillDeposits.getUri(), query);
+      229:         }
+      230: 
+      231:         return null;
+      232:     }
+      246:     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+      247:         if (loader.getId() == ID_LOADER_REPEATING) {
+      248:             if (data == null) return;
+      249: 
+      250:             AllDataAdapter adapter = new AllDataAdapter(getActivity(), data,
+      251:                     AllDataAdapter.TypeCursor.RECURRINGTRANSACTION);
+      252:             setListAdapter(adapter);
+      253: 
+      254:             if (isResumed()) {
+      255:                 setListShown(true);
+      256:                 if (data.getCount() <= 0 && getFloatingActionButton() != null)
+      257:                     getFloatingActionButton().show(true);
+      258:             } else {
+      259:                 setListShownNoAnimation(true);
+      260:             }
+      261:         }
+      262:     }
+
+STEP 11  edge E37f90d46
+  RecurringTransactionListFragment.onLoadFinished -> AllDataAdapter.bindView
+  class: standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC recurring/transactions/RecurringTransactionListFragment.java:250-252; SRC AbsListFragment.java:253-257; FW-SRC core/java/android/widget/ListView.java:552-558, 570, 578-579, 603; FW-SRC core/java/android/widget/AbsListView.java:2151-2164, 2335-2368; FW-SRC core/java/android/widget/CursorAdapter.java:276-289 (getView calls bindView at 289); androidx CursorAdapter INFERRED as above
+  cite [SRC] recurring/transactions/RecurringTransactionListFragment.java:250-252
+      250:             AllDataAdapter adapter = new AllDataAdapter(getActivity(), data,
+      251:                     AllDataAdapter.TypeCursor.RECURRINGTRANSACTION);
+      252:             setListAdapter(adapter);
+  cite [SRC] AbsListFragment.java:253-257
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/core/AbsListFragment.java)
+      253:     public void setListAdapter(ListAdapter adapter) {
+      254:         boolean hadAdapter = mAdapter != null;
+      255:         mAdapter = adapter;
+      256:         if (mList != null) {
+      257:             mList.setAdapter(adapter);
+  cite [FW-SRC] core/java/android/widget/ListView.java:552-558, 570, 578-579, 603
+      552:     public void setAdapter(ListAdapter adapter) {
+      553:         if (mAdapter != null && mDataSetObserver != null) {
+      554:             mAdapter.unregisterDataSetObserver(mDataSetObserver);
+      555:         }
+      556: 
+      557:         resetList();
+      558:         mRecycler.clear();
+      570:         super.setAdapter(adapter);
+      578:             mDataSetObserver = new AdapterDataSetObserver();
+      579:             mAdapter.registerDataSetObserver(mDataSetObserver);
+      603:         requestLayout();
+  cite [FW-SRC] core/java/android/widget/AbsListView.java:2151-2164, 2335-2368
+     2151:     protected void onLayout(boolean changed, int l, int t, int r, int b) {
+     2152:         super.onLayout(changed, l, t, r, b);
+     2153: 
+     2154:         mInLayout = true;
+     2155: 
+     2156:         final int childCount = getChildCount();
+     2157:         if (changed) {
+     2158:             for (int i = 0; i < childCount; i++) {
+     2159:                 getChildAt(i).forceLayout();
+     2160:             }
+     2161:             mRecycler.markChildrenDirty();
+     2162:         }
+     2163: 
+     2164:         layoutChildren();
+     2335:     View obtainView(int position, boolean[] outMetadata) {
+     2336:         Trace.traceBegin(Trace.TRACE_TAG_VIEW, "obtainView");
+     2337: 
+     2338:         outMetadata[0] = false;
+     2339: 
+     2340:         // Check whether we have a transient state view. Attempt to re-bind the
+     2341:         // data and discard the view if we fail.
+     2342:         final View transientView = mRecycler.getTransientStateView(position);
+     2343:         if (transientView != null) {
+     2344:             final LayoutParams params = (LayoutParams) transientView.getLayoutParams();
+     2345: 
+     2346:             // If the view type hasn't changed, attempt to re-bind the data.
+     2347:             if (params.viewType == mAdapter.getItemViewType(position)) {
+     2348:                 final View updatedView = mAdapter.getView(position, transientView, this);
+     2349: 
+     2350:                 // If we failed to re-bind the data, scrap the obtained view.
+     2351:                 if (updatedView != transientView) {
+     2352:                     setItemViewLayoutParams(updatedView, position);
+     2353:                     mRecycler.addScrapView(updatedView, position);
+     2354:                 }
+     2355:             }
+     2356: 
+     2357:             outMetadata[0] = true;
+     2358: 
+     2359:             // Finish the temporary detach started in addScrapView().
+     2360:             transientView.dispatchFinishTemporaryDetach();
+     2361:             return transientView;
+     2362:         }
+     2363: 
+     2364:         final View scrapView = mRecycler.getScrapView(position);
+     2365:         final View child = mAdapter.getView(position, scrapView, this);
+     2366:         if (scrapView != null) {
+     2367:             if (child != scrapView) {
+     2368:                 // Failed to re-bind the data, return scrap to the heap.
+  cite [FW-SRC] core/java/android/widget/CursorAdapter.java:276-289
+      276:     public View getView(int position, View convertView, ViewGroup parent) {
+      277:         if (!mDataValid) {
+      278:             throw new IllegalStateException("this should only be called when the cursor is valid");
+      279:         }
+      280:         if (!mCursor.moveToPosition(position)) {
+      281:             throw new IllegalStateException("couldn't move cursor to position " + position);
+      282:         }
+      283:         View v;
+      284:         if (convertView == null) {
+      285:             v = newView(mContext, mCursor, parent);
+      286:         } else {
+      287:             v = convertView;
+      288:         }
+      289:         bindView(v, mContext, mCursor);
+
+STEP 12  edge Ebdcb3450
+  AllDataAdapter.bindView -> TransactionStatus.getBackgroundColorFromStatus
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC AllDataAdapter.java:141 (bytecode)
+  cite [SRC] AllDataAdapter.java:141
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/adapter/AllDataAdapter.java)
+      141:         int colorBackground = TransactionStatus.getBackgroundColorFromStatus(mContext, status);
+
+STEP 13  edge Ecf014838
+  TransactionStatus.getBackgroundColorFromStatus -> TransactionStatuses.<clinit>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TransactionStatus.java:94 (bytecode)
+  cite [SRC] TransactionStatus.java:94
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/database/TransactionStatus.java)
+       94:         switch (txStatus) {
+
+STEP 14  edge E824c0c76
+  TransactionStatuses.<clinit> -> TransactionStatuses.<init>
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC TransactionStatuses.java:27 (bytecode)
+  cite [SRC] TransactionStatuses.java:27
+    (resolved to final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/core/TransactionStatuses.java)
+       27:     DUPLICATE("D");

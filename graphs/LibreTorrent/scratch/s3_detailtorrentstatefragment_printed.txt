@@ -1,0 +1,88 @@
+     1	/*
+     2	 * Copyright (C) 2016, 2017, 2019 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.detailtorrent.pages;
+    21	
+    22	import android.content.Context;
+    23	import android.os.Bundle;
+    24	import android.view.LayoutInflater;
+    25	import android.view.View;
+    26	import android.view.ViewGroup;
+    27	
+    28	import androidx.annotation.NonNull;
+    29	import androidx.annotation.Nullable;
+    30	import androidx.appcompat.app.AppCompatActivity;
+    31	import androidx.databinding.DataBindingUtil;
+    32	import androidx.fragment.app.Fragment;
+    33	import androidx.lifecycle.ViewModelProvider;
+    34	
+    35	import org.proninyaroslav.libretorrent.R;
+    36	import org.proninyaroslav.libretorrent.databinding.FragmentDetailTorrentStateBinding;
+    37	import org.proninyaroslav.libretorrent.ui.detailtorrent.DetailTorrentViewModel;
+    38	
+    39	/*
+    40	 * The fragment for displaying torrent state. Part of DetailTorrentFragment.
+    41	 */
+    42	
+    43	public class DetailTorrentStateFragment extends Fragment
+    44	{
+    45	    private static final String TAG = DetailTorrentStateFragment.class.getSimpleName();
+    46	
+    47	    private AppCompatActivity activity;
+    48	    private DetailTorrentViewModel viewModel;
+    49	    private FragmentDetailTorrentStateBinding binding;
+    50	
+    51	    public static DetailTorrentStateFragment newInstance()
+    52	    {
+    53	        DetailTorrentStateFragment fragment = new DetailTorrentStateFragment();
+    54	
+    55	        Bundle b = new Bundle();
+    56	        fragment.setArguments(b);
+    57	
+    58	        return fragment;
+    59	    }
+    60	
+    61	    @Override
+    62	    public void onAttach(@NonNull Context context)
+    63	    {
+    64	        super.onAttach(context);
+    65	
+    66	        if (context instanceof AppCompatActivity)
+    67	            activity = (AppCompatActivity)context;
+    68	    }
+    69	
+    70	    @Override
+    71	    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    72	    {
+    73	        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_detail_torrent_state, container, false);
+    74	
+    75	        return binding.getRoot();
+    76	    }
+    77	
+    78	    @Override
+    79	    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+    80	        super.onViewCreated(view, savedInstanceState);
+    81	
+    82	        if (activity == null)
+    83	            activity = (AppCompatActivity)getActivity();
+    84	
+    85	        viewModel = new ViewModelProvider(activity).get(DetailTorrentViewModel.class);
+    86	        binding.setViewModel(viewModel);
+    87	    }
+    88	}

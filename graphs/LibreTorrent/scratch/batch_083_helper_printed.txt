@@ -1,0 +1,25 @@
+# Batch 83 printed evidence
+
+Plan extraction:
+```sh
+awk -F '\\t' '$1==83 {print $3 "\\t" $4}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+```
+Output: 40 exact rows; full descriptors in helper table.
+
+Bounded source search:
+```sh
+rg -n 'newInstance|onCreateDialog|onAttach|onResume|onStart|onStop|buildTorrent|choosePathToSaveDialog|createFileErrorDialog|emptyFolderErrorDialog|handleBuildError|handleFinish|initAlertDialog|initLayoutView|ActivityResult|CreateTorrentDialog' .../ui/createtorrent/{CreateTorrentDialog,CreateTorrentActivity}.java
+```
+Selected output read:
+```
+CreateTorrentActivity.java:83 finds dialog; :85 creates CreateTorrentDialog.newInstance()
+:96 onStart; :99 subscribes alert events; :103 onStop
+CreateTorrentDialog.java:87 newInstance; :96 onAttach; :105 onResume; :125 onStop; :133 onStart
+:140 subscribeAlertDialog; :172 onCreateDialog; :189 initLayoutView; :194 initLayoutView
+:280 initAlertDialog; :305 handleFinish; :308 handleBuildError; :312 finish(CANCEL)
+:348 handleBuildError; :380 handleFinish; :394-401 finish/build completion paths
+:500-546 ActivityResult launchers and callbacks; :546 buildTorrent call
+:555-557 finish and viewModel.finish
+```
+Local call chains are visible, but full route and conditional analysis was not completed for every target. All 40 remain OPEN.
+

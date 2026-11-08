@@ -1,0 +1,1361 @@
+===== ui/tag/SelectTagDialog.java =====
+     1	/*
+     2	 * Copyright (C) 2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.tag;
+    21	
+    22	import android.app.Dialog;
+    23	import android.content.Context;
+    24	import android.content.DialogInterface;
+    25	import android.content.Intent;
+    26	import android.os.Bundle;
+    27	import android.view.KeyEvent;
+    28	import android.view.LayoutInflater;
+    29	import android.view.View;
+    30	import android.widget.Button;
+    31	
+    32	import androidx.annotation.NonNull;
+    33	import androidx.annotation.Nullable;
+    34	import androidx.appcompat.app.AlertDialog;
+    35	import androidx.appcompat.app.AppCompatActivity;
+    36	import androidx.databinding.DataBindingUtil;
+    37	import androidx.fragment.app.DialogFragment;
+    38	import androidx.lifecycle.ViewModelProvider;
+    39	import androidx.recyclerview.widget.LinearLayoutManager;
+    40	
+    41	import org.proninyaroslav.libretorrent.R;
+    42	import org.proninyaroslav.libretorrent.databinding.DialogSelectTagBinding;
+    43	import org.proninyaroslav.libretorrent.ui.FragmentCallback;
+    44	import org.proninyaroslav.libretorrent.ui.addtag.AddTagActivity;
+    45	
+    46	import io.reactivex.Flowable;
+    47	import io.reactivex.android.schedulers.AndroidSchedulers;
+    48	import io.reactivex.disposables.CompositeDisposable;
+    49	import io.reactivex.schedulers.Schedulers;
+    50	
+    51	public class SelectTagDialog extends DialogFragment implements TagsAdapter.OnClickListener {
+    52	    private static final String TAG = SelectTagDialog.class.getSimpleName();
+    53	
+    54	    private static final String TAG_EXCLUDE_TAGS_ID = "exclude_tags_id";
+    55	
+    56	    private AlertDialog alert;
+    57	    private AppCompatActivity activity;
+    58	    private SelectTagViewModel viewModel;
+    59	    private TagsAdapter adapter;
+    60	    private DialogSelectTagBinding binding;
+    61	    private final CompositeDisposable disposables = new CompositeDisposable();
+    62	
+    63	    public static SelectTagDialog newInstance(@Nullable long[] excludeTagsId) {
+    64	        SelectTagDialog frag = new SelectTagDialog();
+    65	
+    66	        Bundle args = new Bundle();
+    67	        args.putLongArray(TAG_EXCLUDE_TAGS_ID, excludeTagsId);
+    68	        frag.setArguments(args);
+    69	
+    70	        return frag;
+    71	    }
+    72	
+    73	    @Override
+    74	    public void onAttach(@NonNull Context context) {
+    75	        super.onAttach(context);
+    76	
+    77	        if (context instanceof AppCompatActivity) {
+    78	            activity = (AppCompatActivity) context;
+    79	        }
+    80	    }
+    81	
+    82	    @Override
+    83	    public void onResume() {
+    84	        super.onResume();
+    85	
+    86	        // Back button handle
+    87	        getDialog().setOnKeyListener((dialog, keyCode, event) -> {
+    88	            if (keyCode == KeyEvent.KEYCODE_BACK) {
+    89	                if (event.getAction() == KeyEvent.ACTION_DOWN) {
+    90	                    onBackPressed();
+    91	                }
+    92	                return true;
+    93	            } else {
+    94	                return false;
+    95	            }
+    96	        });
+    97	    }
+    98	
+    99	    @Override
+   100	    public void onStart() {
+   101	        super.onStart();
+   102	
+   103	        subscribeTags();
+   104	    }
+   105	
+   106	    @Override
+   107	    public void onStop() {
+   108	        super.onStop();
+   109	
+   110	        disposables.clear();
+   111	    }
+   112	
+   113	    @NonNull
+   114	    @Override
+   115	    public Dialog onCreateDialog(Bundle savedInstanceState) {
+   116	        if (activity == null) {
+   117	            activity = (AppCompatActivity) getActivity();
+   118	        }
+   119	
+   120	        ViewModelProvider provider = new ViewModelProvider(activity);
+   121	        viewModel = provider.get(SelectTagViewModel.class);
+   122	        if (getArguments() != null) {
+   123	            viewModel.setExcludeTagsId(getArguments()
+   124	                    .getLongArray(TAG_EXCLUDE_TAGS_ID));
+   125	        }
+   126	
+   127	        LayoutInflater i = LayoutInflater.from(activity);
+   128	        binding = DataBindingUtil.inflate(i, R.layout.dialog_select_tag, null, false);
+   129	
+   130	        adapter = new TagsAdapter(this);
+   131	
+   132	        initLayoutView();
+   133	        initAlertDialog(binding.getRoot());
+   134	
+   135	        return alert;
+   136	    }
+   137	
+   138	    private void initLayoutView() {
+   139	        binding.tagsList.setEmptyView(binding.emptyListView);
+   140	        binding.tagsList.setLayoutManager(new LinearLayoutManager(activity));
+   141	        binding.tagsList.setAdapter(adapter);
+   142	    }
+   143	
+   144	    private void initAlertDialog(View view) {
+   145	        AlertDialog.Builder builder = new AlertDialog.Builder(activity)
+   146	                .setTitle(R.string.select_tag)
+   147	                .setPositiveButton(R.string.new_tag, null)
+   148	                .setNegativeButton(R.string.cancel, null)
+   149	                .setView(view);
+   150	
+   151	        alert = builder.create();
+   152	        alert.setCanceledOnTouchOutside(false);
+   153	        alert.setOnShowListener((DialogInterface dialog) -> {
+   154	            Button newTagButton = alert.getButton(AlertDialog.BUTTON_POSITIVE);
+   155	            Button cancelButton = alert.getButton(AlertDialog.BUTTON_NEGATIVE);
+   156	            newTagButton.setOnClickListener(
+   157	                    (v) -> startActivity(new Intent(activity, AddTagActivity.class))
+   158	            );
+   159	            cancelButton.setOnClickListener(
+   160	                    (v) -> finish(new Intent(), FragmentCallback.ResultCode.CANCEL)
+   161	            );
+   162	        });
+   163	    }
+   164	
+   165	    private void subscribeTags() {
+   166	        disposables.add(viewModel.observeTags()
+   167	                .subscribeOn(Schedulers.io())
+   168	                .observeOn(AndroidSchedulers.mainThread())
+   169	                .flatMapSingle((list) -> Flowable.fromIterable(list)
+   170	                                .filter(viewModel::filterExcludeTags)
+   171	                                .map(TagItem::new)
+   172	                                .toList()
+   173	                        )
+   174	                        .subscribe(adapter::submitList)
+   175	                );
+   176	    }
+   177	
+   178	    @Override
+   179	    public void onTagClicked(@NonNull TagItem item) {
+   180	        Intent i = new Intent();
+   181	        i.putExtra(SelectTagActivity.TAG_RESULT_SELECTED_TAG, item.info);
+   182	
+   183	        finish(i, FragmentCallback.ResultCode.OK);
+   184	    }
+   185	
+   186	    public void onBackPressed() {
+   187	
+   188	        finish(new Intent(), FragmentCallback.ResultCode.BACK);
+   189	    }
+   190	
+   191	    private void finish(Intent intent, FragmentCallback.ResultCode code) {
+   192	        alert.dismiss();
+   193	        ((FragmentCallback) activity).onFragmentFinished(this, intent, code);
+   194	    }
+   195	}
+
+===== ui/tag/SelectTagViewModel.java =====
+     1	/*
+     2	 * Copyright (C) 2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.tag;
+    21	
+    22	import android.app.Application;
+    23	
+    24	import androidx.annotation.NonNull;
+    25	import androidx.lifecycle.AndroidViewModel;
+    26	
+    27	import org.proninyaroslav.libretorrent.core.RepositoryHelper;
+    28	import org.proninyaroslav.libretorrent.core.model.data.entity.TagInfo;
+    29	import org.proninyaroslav.libretorrent.core.storage.TagRepository;
+    30	
+    31	import java.util.HashSet;
+    32	import java.util.List;
+    33	import java.util.Set;
+    34	
+    35	import io.reactivex.Flowable;
+    36	
+    37	public class SelectTagViewModel extends AndroidViewModel {
+    38	    private TagRepository tagRepo;
+    39	    private Set<Long> excludeTagsId;
+    40	
+    41	    public SelectTagViewModel(@NonNull Application application) {
+    42	        super(application);
+    43	
+    44	        tagRepo = RepositoryHelper.getTagRepository(application);
+    45	    }
+    46	
+    47	    public void setExcludeTagsId(long[] tagsId) {
+    48	        if (tagsId == null) {
+    49	            excludeTagsId = null;
+    50	        } else {
+    51	            excludeTagsId = new HashSet<>();
+    52	            for (long tagId : tagsId) {
+    53	                excludeTagsId.add(tagId);
+    54	            }
+    55	        }
+    56	    }
+    57	
+    58	    public boolean filterExcludeTags(@NonNull TagInfo info) {
+    59	        return excludeTagsId == null || !excludeTagsId.contains(info.id);
+    60	    }
+    61	
+    62	    Flowable<List<TagInfo>> observeTags() {
+    63	        return tagRepo.observeAll();
+    64	    }
+    65	}
+
+===== ui/tag/TagItem.java =====
+     1	/*
+     2	 * Copyright (C) 2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.tag;
+    21	
+    22	import androidx.annotation.NonNull;
+    23	
+    24	import org.proninyaroslav.libretorrent.core.model.data.entity.TagInfo;
+    25	
+    26	public class TagItem {
+    27	    @NonNull
+    28	    public final TagInfo info;
+    29	
+    30	    public TagItem(@NonNull TagInfo info) {
+    31	        this.info = info;
+    32	    }
+    33	
+    34	    public boolean isSame(TagItem o) {
+    35	        return info.id == o.info.id;
+    36	    }
+    37	
+    38	    @Override
+    39	    public boolean equals(Object o) {
+    40	        if (this == o) return true;
+    41	        if (o == null || getClass() != o.getClass()) return false;
+    42	
+    43	        TagItem tagItem = (TagItem) o;
+    44	
+    45	        return info.equals(tagItem.info);
+    46	    }
+    47	
+    48	    @Override
+    49	    public int hashCode() {
+    50	        return info.hashCode();
+    51	    }
+    52	
+    53	    @NonNull
+    54	    @Override
+    55	    public String toString() {
+    56	        return "TagItem{" +
+    57	                "info=" + info +
+    58	                '}';
+    59	    }
+    60	}
+
+===== ui/tag/TagsAdapter.java =====
+     1	/*
+     2	 * Copyright (C) 2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.tag;
+    21	
+    22	import android.view.LayoutInflater;
+    23	import android.view.ViewGroup;
+    24	
+    25	import androidx.annotation.NonNull;
+    26	import androidx.databinding.DataBindingUtil;
+    27	import androidx.recyclerview.widget.DiffUtil;
+    28	import androidx.recyclerview.widget.ListAdapter;
+    29	import androidx.recyclerview.widget.RecyclerView;
+    30	
+    31	import org.proninyaroslav.libretorrent.R;
+    32	import org.proninyaroslav.libretorrent.databinding.TagsListItemBinding;
+    33	
+    34	public class TagsAdapter extends ListAdapter<TagItem, TagsAdapter.ViewHolder> {
+    35	    @NonNull
+    36	    private final OnClickListener listener;
+    37	
+    38	    public TagsAdapter(@NonNull OnClickListener listener) {
+    39	        super(diffCallback);
+    40	
+    41	        this.listener = listener;
+    42	    }
+    43	
+    44	    @NonNull
+    45	    @Override
+    46	    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    47	        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+    48	        TagsListItemBinding binding = DataBindingUtil.inflate(
+    49	                inflater,
+    50	                R.layout.tags_list_item,
+    51	                parent,
+    52	                false
+    53	        );
+    54	        return new ViewHolder(binding);
+    55	    }
+    56	
+    57	    @Override
+    58	    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+    59	        TagItem item = getItem(position);
+    60	        if (item != null) {
+    61	            holder.bind(item, listener);
+    62	        }
+    63	    }
+    64	
+    65	    static final DiffUtil.ItemCallback<TagItem> diffCallback =
+    66	            new DiffUtil.ItemCallback<TagItem>() {
+    67	                @Override
+    68	                public boolean areContentsTheSame(
+    69	                        @NonNull TagItem oldItem,
+    70	                        @NonNull TagItem newItem
+    71	                ) {
+    72	                    return oldItem.equals(newItem);
+    73	                }
+    74	
+    75	                @Override
+    76	                public boolean areItemsTheSame(
+    77	                        @NonNull TagItem oldItem,
+    78	                        @NonNull TagItem newItem
+    79	                ) {
+    80	                    return oldItem.isSame(newItem);
+    81	                }
+    82	            };
+    83	
+    84	    public interface OnClickListener {
+    85	        void onTagClicked(@NonNull TagItem item);
+    86	    }
+    87	
+    88	    static class ViewHolder extends RecyclerView.ViewHolder {
+    89	        @NonNull
+    90	        private final TagsListItemBinding binding;
+    91	
+    92	        public ViewHolder(@NonNull TagsListItemBinding binding) {
+    93	            super(binding.getRoot());
+    94	
+    95	            this.binding = binding;
+    96	        }
+    97	
+    98	        void bind(
+    99	                @NonNull TagItem item,
+   100	                OnClickListener listener
+   101	        ) {
+   102	            binding.name.setText(item.info.name);
+   103	            binding.color.setColor(item.info.color);
+   104	            binding.getRoot().setOnClickListener((v) -> {
+   105	                if (listener != null) {
+   106	                    listener.onTagClicked(item);
+   107	                }
+   108	            });
+   109	        }
+   110	    }
+   111	}
+
+===== ui/tag/TorrentTagsList.java =====
+     1	package org.proninyaroslav.libretorrent.ui.tag;
+     2	
+     3	import android.content.Context;
+     4	import android.content.res.ColorStateList;
+     5	import android.util.AttributeSet;
+     6	import android.util.TypedValue;
+     7	
+     8	import androidx.annotation.NonNull;
+     9	
+    10	import com.google.android.material.chip.Chip;
+    11	import com.google.android.material.chip.ChipGroup;
+    12	
+    13	import org.proninyaroslav.libretorrent.R;
+    14	import org.proninyaroslav.libretorrent.core.model.data.entity.TagInfo;
+    15	
+    16	import java.util.List;
+    17	
+    18	public class TorrentTagsList extends ChipGroup {
+    19	    private Listener listener;
+    20	    private List<TagInfo> tags;
+    21	    private AddTagButton addTagButton;
+    22	
+    23	    public TorrentTagsList(Context context) {
+    24	        super(context);
+    25	
+    26	        init(context);
+    27	    }
+    28	
+    29	    public TorrentTagsList(Context context, AttributeSet attrs) {
+    30	        super(context, attrs);
+    31	
+    32	        init(context);
+    33	    }
+    34	
+    35	    void init(Context context) {
+    36	        this.addTagButton = buildAddTagButton(context);
+    37	        addView(addTagButton);
+    38	    }
+    39	
+    40	    public void setListener(Listener listener) {
+    41	        this.listener = listener;
+    42	    }
+    43	
+    44	    public void submit(@NonNull List<TagInfo> tags) {
+    45	        removeAllViews();
+    46	        this.tags = tags;
+    47	
+    48	        for (TagInfo tag : tags) {
+    49	            addView(buildChip(getContext(), tag));
+    50	        }
+    51	        addView(addTagButton);
+    52	    }
+    53	
+    54	    private Chip buildChip(Context context, TagInfo info) {
+    55	        Chip chip = new Chip(context);
+    56	        chip.setText(info.name);
+    57	        chip.setChipIconSize(TypedValue.applyDimension(
+    58	                TypedValue.COMPLEX_UNIT_DIP,
+    59	                18,
+    60	                getResources().getDisplayMetrics()
+    61	        ));
+    62	        chip.setChipIconResource(R.drawable.torrent_tag_color_background);
+    63	        chip.setChipIconTint(new ColorStateList(
+    64	                new int[][]{new int[]{}},
+    65	                new int[]{info.color})
+    66	        );
+    67	        chip.setCloseIconVisible(true);
+    68	        chip.setClickable(false);
+    69	        chip.setOnCloseIconClickListener((v) -> {
+    70	            if (listener != null) {
+    71	                listener.onTagRemoved(info);
+    72	            }
+    73	        });
+    74	
+    75	        return chip;
+    76	    }
+    77	
+    78	    private AddTagButton buildAddTagButton(Context context) {
+    79	        AddTagButton button = new AddTagButton(context);
+    80	        button.setOnClickListener((v) -> {
+    81	            if (listener != null) {
+    82	                listener.onAddTagClick();
+    83	            }
+    84	        });
+    85	
+    86	        return button;
+    87	    }
+    88	
+    89	    public interface Listener {
+    90	        void onAddTagClick();
+    91	
+    92	        void onTagRemoved(@NonNull TagInfo info);
+    93	    }
+    94	}
+
+===== ui/tag/SelectTagActivity.java =====
+     1	/*
+     2	 * Copyright (C) 2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.tag;
+    21	
+    22	import android.content.Intent;
+    23	import android.os.Bundle;
+    24	
+    25	import androidx.annotation.NonNull;
+    26	import androidx.appcompat.app.AppCompatActivity;
+    27	import androidx.fragment.app.Fragment;
+    28	import androidx.fragment.app.FragmentManager;
+    29	
+    30	import org.proninyaroslav.libretorrent.core.utils.Utils;
+    31	import org.proninyaroslav.libretorrent.ui.FragmentCallback;
+    32	
+    33	public class SelectTagActivity extends AppCompatActivity implements FragmentCallback {
+    34	    public static final String TAG_EXCLUDE_TAGS_ID = "exclude_tags_id";
+    35	    public static final String TAG_RESULT_SELECTED_TAG = "result_selected_tag";
+    36	
+    37	    private static final String TAG_DIALOG = "dialog";
+    38	
+    39	    private SelectTagDialog dialog;
+    40	
+    41	    @Override
+    42	    protected void onCreate(Bundle savedInstanceState) {
+    43	        setTheme(Utils.getTranslucentAppTheme(getApplicationContext()));
+    44	        super.onCreate(savedInstanceState);
+    45	
+    46	
+    47	        FragmentManager fm = getSupportFragmentManager();
+    48	        dialog = (SelectTagDialog) fm.findFragmentByTag(TAG_DIALOG);
+    49	        if (dialog == null) {
+    50	            long[] excludeTagsId = getIntent().getLongArrayExtra(TAG_EXCLUDE_TAGS_ID);
+    51	            dialog = SelectTagDialog.newInstance(excludeTagsId);
+    52	            dialog.show(fm, TAG_DIALOG);
+    53	        }
+    54	    }
+    55	
+    56	    @Override
+    57	    public void onFragmentFinished(
+    58	            @NonNull Fragment f,
+    59	            Intent intent,
+    60	            @NonNull ResultCode code
+    61	    ) {
+    62	        if (code == ResultCode.OK) {
+    63	            setResult(RESULT_OK, intent);
+    64	        }
+    65	        finish();
+    66	    }
+    67	
+    68	    @Override
+    69	    public void onBackPressed() {
+    70	        dialog.onBackPressed();
+    71	    }
+    72	}
+
+===== ui/detailtorrent/pages/DetailTorrentInfoFragment.java =====
+     1	/*
+     2	 * Copyright (C) 2016-2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.detailtorrent.pages;
+    21	
+    22	import android.app.Activity;
+    23	import android.app.Dialog;
+    24	import android.content.Context;
+    25	import android.content.Intent;
+    26	import android.os.Bundle;
+    27	import android.text.Editable;
+    28	import android.text.TextUtils;
+    29	import android.text.TextWatcher;
+    30	import android.view.LayoutInflater;
+    31	import android.view.View;
+    32	import android.view.ViewGroup;
+    33	
+    34	import androidx.activity.result.ActivityResultLauncher;
+    35	import androidx.activity.result.contract.ActivityResultContracts;
+    36	import androidx.annotation.NonNull;
+    37	import androidx.appcompat.app.AppCompatActivity;
+    38	import androidx.databinding.DataBindingUtil;
+    39	import androidx.fragment.app.Fragment;
+    40	import androidx.fragment.app.FragmentManager;
+    41	import androidx.lifecycle.ViewModelProvider;
+    42	
+    43	import com.google.android.material.textfield.TextInputEditText;
+    44	import com.google.android.material.textfield.TextInputLayout;
+    45	
+    46	import org.apache.commons.lang3.ArrayUtils;
+    47	import org.proninyaroslav.libretorrent.R;
+    48	import org.proninyaroslav.libretorrent.core.model.data.entity.TagInfo;
+    49	import org.proninyaroslav.libretorrent.databinding.FragmentDetailTorrentInfoBinding;
+    50	import org.proninyaroslav.libretorrent.ui.BaseAlertDialog;
+    51	import org.proninyaroslav.libretorrent.ui.detailtorrent.DetailTorrentViewModel;
+    52	import org.proninyaroslav.libretorrent.ui.filemanager.FileManagerConfig;
+    53	import org.proninyaroslav.libretorrent.ui.filemanager.FileManagerDialog;
+    54	import org.proninyaroslav.libretorrent.ui.tag.SelectTagActivity;
+    55	import org.proninyaroslav.libretorrent.ui.tag.TorrentTagsList;
+    56	
+    57	import io.reactivex.Observable;
+    58	import io.reactivex.android.schedulers.AndroidSchedulers;
+    59	import io.reactivex.disposables.CompositeDisposable;
+    60	import io.reactivex.disposables.Disposable;
+    61	import io.reactivex.schedulers.Schedulers;
+    62	
+    63	/*
+    64	 * The fragment for displaying torrent metainformation,
+    65	 * taken from bencode. Part of DetailTorrentFragment.
+    66	 */
+    67	
+    68	public class DetailTorrentInfoFragment extends Fragment {
+    69	    private static final String TAG = DetailTorrentInfoFragment.class.getSimpleName();
+    70	
+    71	    private static final String TAG_OPEN_DIR_ERROR_DIALOG = "open_dir_error_dialog";
+    72	    private static final String TAG_EDIT_NAME_DIALOG = "edit_name_dialog";
+    73	
+    74	    private AppCompatActivity activity;
+    75	    private DetailTorrentViewModel viewModel;
+    76	    private FragmentDetailTorrentInfoBinding binding;
+    77	    private BaseAlertDialog editNameDialog;
+    78	    private BaseAlertDialog.SharedViewModel dialogViewModel;
+    79	    private CompositeDisposable disposables = new CompositeDisposable();
+    80	
+    81	    public static DetailTorrentInfoFragment newInstance() {
+    82	        DetailTorrentInfoFragment fragment = new DetailTorrentInfoFragment();
+    83	
+    84	        Bundle args = new Bundle();
+    85	        fragment.setArguments(args);
+    86	
+    87	        return fragment;
+    88	    }
+    89	
+    90	    @Override
+    91	    public void onAttach(@NonNull Context context) {
+    92	        super.onAttach(context);
+    93	
+    94	        if (context instanceof AppCompatActivity)
+    95	            activity = (AppCompatActivity) context;
+    96	    }
+    97	
+    98	    @Override
+    99	    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+   100	        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_detail_torrent_info, container, false);
+   101	
+   102	        ViewModelProvider provider = new ViewModelProvider(activity);
+   103	        viewModel = provider.get(DetailTorrentViewModel.class);
+   104	        dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+   105	        binding.setViewModel(viewModel);
+   106	
+   107	        FragmentManager fm = getChildFragmentManager();
+   108	        editNameDialog = (BaseAlertDialog) fm.findFragmentByTag(TAG_EDIT_NAME_DIALOG);
+   109	
+   110	        binding.folderChooserButton.setOnClickListener((v) -> showChooseDirDialog());
+   111	        binding.editNameButton.setOnClickListener((v) -> showEditNameDialog());
+   112	        binding.tagsList.setListener(tagsListener);
+   113	
+   114	        return binding.getRoot();
+   115	    }
+   116	
+   117	    final ActivityResultLauncher<Intent> chooseDir = registerForActivityResult(
+   118	            new ActivityResultContracts.StartActivityForResult(),
+   119	            (result) -> {
+   120	                if (result.getResultCode() != Activity.RESULT_OK)
+   121	                    return;
+   122	
+   123	                Intent data = result.getData();
+   124	                if (data == null || data.getData() == null) {
+   125	                    showOpenDirErrorDialog();
+   126	                    return;
+   127	                }
+   128	
+   129	                viewModel.mutableParams.setDirPath(data.getData());
+   130	            });
+   131	
+   132	    final ActivityResultLauncher<Intent> selectTag = registerForActivityResult(
+   133	            new ActivityResultContracts.StartActivityForResult(),
+   134	            (result) -> {
+   135	                Intent data = result.getData();
+   136	                if (result.getResultCode() == Activity.RESULT_OK && data != null) {
+   137	                    TagInfo tag = data.getParcelableExtra(SelectTagActivity.TAG_RESULT_SELECTED_TAG);
+   138	                    if (tag != null) {
+   139	                        disposables.add(viewModel.addTag(tag)
+   140	                                .subscribeOn(Schedulers.io())
+   141	                                .subscribe()
+   142	                        );
+   143	                    }
+   144	                }
+   145	            });
+   146	
+   147	    private final TorrentTagsList.Listener tagsListener = new TorrentTagsList.Listener() {
+   148	        @Override
+   149	        public void onAddTagClick() {
+   150	            disposables.add(viewModel.getTags()
+   151	                    .subscribeOn(Schedulers.io())
+   152	                    .flatMap((tags) -> Observable.fromIterable(tags)
+   153	                            .map((tag) -> tag.id)
+   154	                            .toList()
+   155	                    )
+   156	                    .observeOn(AndroidSchedulers.mainThread())
+   157	                    .subscribe((ids) -> {
+   158	                        Intent i = new Intent(activity, SelectTagActivity.class);
+   159	                        i.putExtra(
+   160	                                SelectTagActivity.TAG_EXCLUDE_TAGS_ID,
+   161	                                ArrayUtils.toPrimitive(ids.toArray(new Long[0]))
+   162	                        );
+   163	                        selectTag.launch(i);
+   164	                    })
+   165	            );
+   166	        }
+   167	
+   168	        @Override
+   169	        public void onTagRemoved(@NonNull TagInfo info) {
+   170	            disposables.add(viewModel.removeTag(info)
+   171	                    .subscribeOn(Schedulers.io())
+   172	                    .subscribe()
+   173	            );
+   174	        }
+   175	    };
+   176	
+   177	    private void subscribeTags() {
+   178	        disposables.add(viewModel.observeTags()
+   179	                .subscribeOn(Schedulers.io())
+   180	                .observeOn(AndroidSchedulers.mainThread())
+   181	                .subscribe(binding.tagsList::submit)
+   182	        );
+   183	    }
+   184	
+   185	    private void showChooseDirDialog() {
+   186	        Intent i = new Intent(activity, FileManagerDialog.class);
+   187	
+   188	        FileManagerConfig config = new FileManagerConfig(null,
+   189	                getString(R.string.select_folder_to_save),
+   190	                FileManagerConfig.DIR_CHOOSER_MODE);
+   191	
+   192	        i.putExtra(FileManagerDialog.TAG_CONFIG, config);
+   193	        chooseDir.launch(i);
+   194	    }
+   195	
+   196	    @Override
+   197	    public void onStart() {
+   198	        super.onStart();
+   199	
+   200	        subscribeAlertDialog();
+   201	        subscribeTags();
+   202	    }
+   203	
+   204	    @Override
+   205	    public void onStop() {
+   206	        super.onStop();
+   207	
+   208	        disposables.clear();
+   209	    }
+   210	
+   211	    private void subscribeAlertDialog() {
+   212	        Disposable d = dialogViewModel.observeEvents()
+   213	                .subscribe((event) -> {
+   214	                    if (event.dialogTag == null || !event.dialogTag.equals(TAG_EDIT_NAME_DIALOG) || editNameDialog == null)
+   215	                        return;
+   216	                    switch (event.type) {
+   217	                        case DIALOG_SHOWN:
+   218	                            initEditNameDialog();
+   219	                            break;
+   220	                        case POSITIVE_BUTTON_CLICKED:
+   221	                            Dialog dialog = editNameDialog.getDialog();
+   222	                            if (dialog != null) {
+   223	                                TextInputEditText editText = dialog.findViewById(R.id.text_input_dialog);
+   224	                                TextInputLayout layoutEditText = dialog.findViewById(R.id.layout_text_input_dialog);
+   225	                                Editable e = editText.getText();
+   226	                                if (checkNameField(e, layoutEditText)) {
+   227	                                    viewModel.mutableParams.setName(e.toString());
+   228	                                    editNameDialog.dismiss();
+   229	                                }
+   230	                            }
+   231	                            break;
+   232	                        case NEGATIVE_BUTTON_CLICKED:
+   233	                            editNameDialog.dismiss();
+   234	                            break;
+   235	                    }
+   236	                });
+   237	        disposables.add(d);
+   238	    }
+   239	
+   240	    private void showOpenDirErrorDialog() {
+   241	        if (!isAdded())
+   242	            return;
+   243	
+   244	        FragmentManager fm = getChildFragmentManager();
+   245	        if (fm.findFragmentByTag(TAG_OPEN_DIR_ERROR_DIALOG) == null) {
+   246	            BaseAlertDialog openDirErrorDialog = BaseAlertDialog.newInstance(
+   247	                    getString(R.string.error),
+   248	                    getString(R.string.unable_to_open_folder),
+   249	                    0,
+   250	                    getString(R.string.ok),
+   251	                    null,
+   252	                    null,
+   253	                    true);
+   254	
+   255	            openDirErrorDialog.show(fm, TAG_OPEN_DIR_ERROR_DIALOG);
+   256	        }
+   257	    }
+   258	
+   259	    private boolean checkNameField(Editable s, TextInputLayout layoutEditText) {
+   260	        if (TextUtils.isEmpty(s)) {
+   261	            layoutEditText.setErrorEnabled(true);
+   262	            layoutEditText.setError(getString(R.string.error_field_required));
+   263	            layoutEditText.requestFocus();
+   264	
+   265	            return false;
+   266	
+   267	        } else {
+   268	            layoutEditText.setErrorEnabled(false);
+   269	            layoutEditText.setError(null);
+   270	
+   271	            return true;
+   272	        }
+   273	    }
+   274	
+   275	    private void showEditNameDialog() {
+   276	        if (!isAdded())
+   277	            return;
+   278	
+   279	        FragmentManager fm = getChildFragmentManager();
+   280	        if (fm.findFragmentByTag(TAG_EDIT_NAME_DIALOG) == null) {
+   281	            editNameDialog = BaseAlertDialog.newInstance(
+   282	                    getString(R.string.edit_torrent_name),
+   283	                    null,
+   284	                    R.layout.dialog_text_input,
+   285	                    getString(R.string.ok),
+   286	                    getString(R.string.cancel),
+   287	                    null,
+   288	                    false);
+   289	
+   290	            editNameDialog.show(fm, TAG_EDIT_NAME_DIALOG);
+   291	        }
+   292	    }
+   293	
+   294	    private void initEditNameDialog() {
+   295	        Dialog dialog = editNameDialog.getDialog();
+   296	        if (dialog == null)
+   297	            return;
+   298	
+   299	        TextInputEditText editText = dialog.findViewById(R.id.text_input_dialog);
+   300	        TextInputLayout layoutEditText = dialog.findViewById(R.id.layout_text_input_dialog);
+   301	
+   302	        if (!TextUtils.isEmpty(editText.getText()))
+   303	            return;
+   304	
+   305	        String name = viewModel.mutableParams.getName();
+   306	        if (name != null)
+   307	            editText.setText(name);
+   308	
+   309	        editText.addTextChangedListener(new TextWatcher() {
+   310	            @Override
+   311	            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+   312	            }
+   313	
+   314	            @Override
+   315	            public void onTextChanged(CharSequence s, int start, int before, int count) {
+   316	            }
+   317	
+   318	            @Override
+   319	            public void afterTextChanged(Editable s) {
+   320	                checkNameField(s, layoutEditText);
+   321	            }
+   322	        });
+   323	    }
+   324	}
+
+===== ui/detailtorrent/DetailPagerAdapter.java =====
+     1	/*
+     2	 * Copyright (C) 2018-2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.detailtorrent;
+    21	
+    22	import androidx.annotation.NonNull;
+    23	import androidx.fragment.app.Fragment;
+    24	import androidx.viewpager2.adapter.FragmentStateAdapter;
+    25	import androidx.viewpager2.widget.ViewPager2;
+    26	
+    27	import org.proninyaroslav.libretorrent.ui.detailtorrent.pages.DetailTorrentInfoFragment;
+    28	import org.proninyaroslav.libretorrent.ui.detailtorrent.pages.DetailTorrentStateFragment;
+    29	import org.proninyaroslav.libretorrent.ui.detailtorrent.pages.files.DetailTorrentFilesFragment;
+    30	import org.proninyaroslav.libretorrent.ui.detailtorrent.pages.peers.DetailTorrentPeersFragment;
+    31	import org.proninyaroslav.libretorrent.ui.detailtorrent.pages.pieces.DetailTorrentPiecesFragment;
+    32	import org.proninyaroslav.libretorrent.ui.detailtorrent.pages.trackers.DetailTorrentTrackersFragment;
+    33	
+    34	public class DetailPagerAdapter extends FragmentStateAdapter
+    35	{
+    36	    @ViewPager2.OffscreenPageLimit
+    37	    public static final int NUM_FRAGMENTS = 6;
+    38	
+    39	    public static final int INFO_FRAG_POS = 0;
+    40	    public static final int STATE_FRAG_POS = 1;
+    41	    public static final int FILES_FRAG_POS = 2;
+    42	    public static final int TRACKERS_FRAG_POS = 3;
+    43	    public static final int PEERS_FRAG_POS = 4;
+    44	    public static final int PIECES_FRAG_POS = 5;
+    45	
+    46	
+    47	    public DetailPagerAdapter(Fragment fragment) {
+    48	        super(fragment);
+    49	    }
+    50	
+    51	    @NonNull
+    52	    @Override
+    53	    public Fragment createFragment(int position) {
+    54	        switch (position) {
+    55	            case INFO_FRAG_POS:
+    56	                return DetailTorrentInfoFragment.newInstance();
+    57	            case STATE_FRAG_POS:
+    58	                return DetailTorrentStateFragment.newInstance();
+    59	            case FILES_FRAG_POS:
+    60	                return DetailTorrentFilesFragment.newInstance();
+    61	            case TRACKERS_FRAG_POS:
+    62	                return DetailTorrentTrackersFragment.newInstance();
+    63	            case PEERS_FRAG_POS:
+    64	                return DetailTorrentPeersFragment.newInstance();
+    65	            case PIECES_FRAG_POS:
+    66	                return DetailTorrentPiecesFragment.newInstance();
+    67	            default:
+    68	                return new Fragment();
+    69	        }
+    70	    }
+    71	
+    72	    @Override
+    73	    public int getItemCount() {
+    74	        return NUM_FRAGMENTS;
+    75	    }
+    76	}
+
+===== res/layout/fragment_detail_torrent_info.xml =====
+     1	<?xml version="1.0" encoding="utf-8"?>
+     2	<layout xmlns:android="http://schemas.android.com/apk/res/android"
+     3	    xmlns:app="http://schemas.android.com/apk/res-auto">
+     4	
+     5	    <data>
+     6	        <import type="android.view.View" />
+     7	        <import type="android.text.TextUtils" />
+     8	        <variable
+     9	            name="viewModel"
+    10	            type="org.proninyaroslav.libretorrent.ui.detailtorrent.DetailTorrentViewModel" />
+    11	    </data>
+    12	
+    13	    <androidx.core.widget.NestedScrollView
+    14	        android:layout_width="match_parent"
+    15	        android:layout_height="match_parent"
+    16	        android:background="?attr/background"
+    17	        android:paddingBottom="@{@dimen/fab_size + @dimen/fab_margin}"
+    18	        android:clipToPadding="false"
+    19	        android:scrollbarStyle="outsideOverlay"> <!-- Need for padding -->
+    20	
+    21	        <LinearLayout
+    22	            android:orientation="vertical"
+    23	            android:layout_width="match_parent"
+    24	            android:layout_height="match_parent"
+    25	            android:showDividers="middle"
+    26	            android:divider="?attr/divider"
+    27	            android:focusableInTouchMode="true">
+    28	
+    29	            <RelativeLayout
+    30	                android:layout_width="match_parent"
+    31	                android:layout_height="wrap_content"
+    32	                android:paddingEnd="16dp">
+    33	
+    34	                <LinearLayout
+    35	                    android:layout_width="match_parent"
+    36	                    android:layout_height="wrap_content"
+    37	                    android:orientation="vertical"
+    38	                    android:paddingTop="16dp"
+    39	                    android:paddingBottom="16dp"
+    40	                    android:layout_marginEnd="48dp"
+    41	                    android:layout_alignParentStart="true"
+    42	                    android:paddingStart="16dp">
+    43	
+    44	                    <TextView
+    45	                        android:layout_width="match_parent"
+    46	                        android:layout_height="wrap_content"
+    47	                        android:text="@string/torrent_name"
+    48	                        style="@style/TitleText" />
+    49	
+    50	                    <TextView
+    51	                        android:id="@+id/name"
+    52	                        android:layout_width="match_parent"
+    53	                        android:layout_height="wrap_content"
+    54	                        android:text="@{viewModel.mutableParams.name}"
+    55	                        android:textIsSelectable="true"
+    56	                        style="@style/TextAppearance.MaterialComponents.Body1" />
+    57	                </LinearLayout>
+    58	
+    59	                <ImageButton
+    60	                    android:id="@+id/edit_name_button"
+    61	                    android:layout_width="wrap_content"
+    62	                    android:layout_height="wrap_content"
+    63	                    android:padding="5dp"
+    64	                    android:layout_centerVertical="true"
+    65	                    android:background="?attr/transparentRoundRipple"
+    66	                    android:contentDescription="@string/edit_torrent_name"
+    67	                    app:srcCompat="@drawable/ic_mode_edit_white_24dp"
+    68	                    android:layout_alignParentEnd="true"
+    69	                    app:tint="@color/gray_dark" />
+    70	            </RelativeLayout>
+    71	
+    72	            <RelativeLayout
+    73	                android:layout_width="match_parent"
+    74	                android:layout_height="wrap_content"
+    75	                android:paddingEnd="16dp">
+    76	
+    77	                <LinearLayout
+    78	                    android:layout_width="match_parent"
+    79	                    android:layout_height="wrap_content"
+    80	                    android:orientation="vertical"
+    81	                    android:paddingTop="16dp"
+    82	                    android:paddingBottom="16dp"
+    83	                    android:layout_marginEnd="48dp"
+    84	                    android:layout_alignParentStart="true"
+    85	                    android:paddingStart="16dp">
+    86	
+    87	                    <TextView
+    88	                        android:layout_width="match_parent"
+    89	                        android:layout_height="wrap_content"
+    90	                        android:text="@string/upload_torrent_into"
+    91	                        style="@style/TitleText" />
+    92	
+    93	                    <TextView
+    94	                        android:id="@+id/save_path"
+    95	                        android:layout_width="match_parent"
+    96	                        android:layout_height="wrap_content"
+    97	                        android:text="@{viewModel.info.dirName}"
+    98	                        style="@style/TextAppearance.MaterialComponents.Body1"/>
+    99	                </LinearLayout>
+   100	
+   101	                <ImageButton
+   102	                    android:id="@+id/folder_chooser_button"
+   103	                    android:layout_width="wrap_content"
+   104	                    android:layout_height="wrap_content"
+   105	                    android:padding="5dp"
+   106	                    android:layout_centerVertical="true"
+   107	                    android:background="?attr/transparentRoundRipple"
+   108	                    android:contentDescription="@string/dir_chooser_title"
+   109	                    app:srcCompat="@drawable/ic_folder_grey600_24dp"
+   110	                    android:layout_alignParentEnd="true" />
+   111	            </RelativeLayout>
+   112	
+   113	            <com.google.android.material.internal.FlowLayout
+   114	                android:layout_width="match_parent"
+   115	                android:layout_height="wrap_content"
+   116	                app:itemSpacing="8dp"
+   117	                android:padding="16dp">
+   118	
+   119	                <CheckBox
+   120	                    android:id="@+id/sequential_download"
+   121	                    android:layout_height="wrap_content"
+   122	                    android:layout_width="wrap_content"
+   123	                    android:layout_gravity="center_vertical"
+   124	                    android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
+   125	                    android:text="@string/sequential_download"
+   126	                    android:checked="@={viewModel.mutableParams.sequentialDownload}" />
+   127	
+   128	                <CheckBox
+   129	                    android:id="@+id/download_first_last_pieces"
+   130	                    android:layout_width="wrap_content"
+   131	                    android:layout_height="wrap_content"
+   132	                    android:layout_gravity="center_vertical"
+   133	                    android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
+   134	                    android:text="@string/download_first_last_pieces"
+   135	                    android:checked="@={viewModel.mutableParams.firstLastPiecePriority}" />
+   136	            </com.google.android.material.internal.FlowLayout>
+   137	
+   138	            <LinearLayout
+   139	                android:layout_width="match_parent"
+   140	                android:layout_height="wrap_content"
+   141	                android:orientation="vertical"
+   142	                android:padding="16dp">
+   143	
+   144	                <TextView
+   145	                    android:layout_width="match_parent"
+   146	                    android:layout_height="wrap_content"
+   147	                    android:text="@string/tags"
+   148	                    style="@style/TitleText" />
+   149	
+   150	                <org.proninyaroslav.libretorrent.ui.tag.TorrentTagsList
+   151	                    android:id="@+id/tags_list"
+   152	                    android:layout_width="match_parent"
+   153	                    android:layout_height="wrap_content" />
+   154	            </LinearLayout>
+   155	
+   156	            <LinearLayout
+   157	                android:id="@+id/layout_torrent_size_and_count"
+   158	                android:layout_width="match_parent"
+   159	                android:layout_height="wrap_content"
+   160	                android:orientation="horizontal"
+   161	                android:showDividers="middle"
+   162	                android:divider="?attr/divider"
+   163	                android:baselineAligned="false">
+   164	
+   165	                <LinearLayout
+   166	                    android:layout_width="match_parent"
+   167	                    android:layout_height="match_parent"
+   168	                    android:layout_weight="1"
+   169	                    android:orientation="vertical"
+   170	                    android:padding="16dp">
+   171	
+   172	                    <TextView
+   173	                        android:layout_width="match_parent"
+   174	                        android:layout_height="wrap_content"
+   175	                        android:text="@string/torrent_size"
+   176	                        style="@style/TitleText" />
+   177	
+   178	                    <LinearLayout
+   179	                        android:layout_width="match_parent"
+   180	                        android:layout_height="match_parent"
+   181	                        android:orientation="vertical">
+   182	
+   183	                        <TextView
+   184	                            android:id="@+id/size"
+   185	                            android:layout_width="match_parent"
+   186	                            android:layout_height="wrap_content"
+   187	                            android:layout_marginBottom="8dp"
+   188	                            android:layout_gravity="center_vertical"
+   189	                            app:fileSize="@{viewModel.info.torrentInfo.totalBytes}"
+   190	                            style="@style/TextAppearance.MaterialComponents.Body1" />
+   191	
+   192	                        <TextView
+   193	                            android:id="@+id/free_space"
+   194	                            android:layout_width="match_parent"
+   195	                            android:layout_height="wrap_content"
+   196	                            android:layout_gravity="center_vertical"
+   197	                            android:textAppearance="@style/TextCaption"
+   198	                            app:fileSize="@{viewModel.info.storageFreeSpace}"
+   199	                            app:formatFileSize="@{@string/free_space}" />
+   200	                    </LinearLayout>
+   201	                </LinearLayout>
+   202	
+   203	                <LinearLayout
+   204	                    android:layout_width="match_parent"
+   205	                    android:layout_height="match_parent"
+   206	                    android:layout_weight="1"
+   207	                    android:orientation="vertical"
+   208	                    android:padding="16dp">
+   209	
+   210	                    <TextView
+   211	                        android:layout_width="match_parent"
+   212	                        android:layout_height="wrap_content"
+   213	                        android:text="@string/torrent_file_count"
+   214	                        style="@style/TitleText" />
+   215	
+   216	                    <LinearLayout
+   217	                        android:layout_width="match_parent"
+   218	                        android:layout_height="match_parent">
+   219	
+   220	                        <TextView
+   221	                            android:id="@+id/file_count"
+   222	                            android:layout_width="match_parent"
+   223	                            android:layout_height="wrap_content"
+   224	                            android:layout_gravity="center_vertical"
+   225	                            android:text="@{Integer.toString(viewModel.info.torrentInfo.filePriorities.length)}"
+   226	                            style="@style/TextAppearance.MaterialComponents.Body1" />
+   227	                    </LinearLayout>
+   228	
+   229	                </LinearLayout>
+   230	            </LinearLayout>
+   231	
+   232	            <LinearLayout
+   233	                android:layout_width="match_parent"
+   234	                android:layout_height="wrap_content"
+   235	                android:orientation="vertical"
+   236	                android:padding="16dp">
+   237	
+   238	                <TextView
+   239	                    android:layout_width="match_parent"
+   240	                    android:layout_height="wrap_content"
+   241	                    android:text="@string/torrent_hash_sum"
+   242	                    style="@style/TitleText" />
+   243	
+   244	                <TextView
+   245	                    android:id="@+id/hash_sum"
+   246	                    android:layout_width="match_parent"
+   247	                    android:layout_height="wrap_content"
+   248	                    android:text="@{viewModel.info.torrent.id}"
+   249	                    android:textIsSelectable="true"
+   250	                    style="@style/TextAppearance.MaterialComponents.Body1" />
+   251	            </LinearLayout>
+   252	
+   253	            <LinearLayout
+   254	                android:id="@+id/layout_torrent_added"
+   255	                android:layout_width="match_parent"
+   256	                android:layout_height="wrap_content"
+   257	                android:orientation="vertical"
+   258	                android:padding="16dp">
+   259	
+   260	                <TextView
+   261	                    android:layout_width="match_parent"
+   262	                    android:layout_height="wrap_content"
+   263	                    android:text="@string/torrent_added_date"
+   264	                    style="@style/TitleText" />
+   265	
+   266	                <TextView
+   267	                    android:id="@+id/date_added"
+   268	                    android:layout_width="match_parent"
+   269	                    android:layout_height="wrap_content"
+   270	                    app:formatDate="@{viewModel.info.torrent.dateAdded}"
+   271	                    style="@style/TextAppearance.MaterialComponents.Body1" />
+   272	            </LinearLayout>
+   273	
+   274	            <LinearLayout
+   275	                android:id="@+id/layout_create_date"
+   276	                android:layout_width="match_parent"
+   277	                android:layout_height="wrap_content"
+   278	                android:orientation="vertical"
+   279	                android:padding="16dp"
+   280	                android:visibility="@{viewModel.info.metaInfo.creationDate == 0 ? View.GONE : View.VISIBLE}">
+   281	
+   282	                <TextView
+   283	                    android:layout_width="match_parent"
+   284	                    android:layout_height="wrap_content"
+   285	                    android:text="@string/torrent_create_date"
+   286	                    style="@style/TitleText" />
+   287	
+   288	                <TextView
+   289	                    android:id="@+id/create_date"
+   290	                    android:layout_width="match_parent"
+   291	                    android:layout_height="wrap_content"
+   292	                    app:formatDate="@{viewModel.info.metaInfo.creationDate}"
+   293	                    style="@style/TextAppearance.MaterialComponents.Body1" />
+   294	            </LinearLayout>
+   295	
+   296	            <LinearLayout
+   297	                android:id="@+id/layout_torrent_comment"
+   298	                android:layout_width="match_parent"
+   299	                android:layout_height="wrap_content"
+   300	                android:orientation="vertical"
+   301	                android:padding="16dp"
+   302	                android:visibility="@{TextUtils.isEmpty(viewModel.info.metaInfo.comment) ? View.GONE : View.VISIBLE}">
+   303	
+   304	                <TextView
+   305	                    android:id="@+id/header_comment"
+   306	                    android:layout_width="match_parent"
+   307	                    android:layout_height="wrap_content"
+   308	                    android:text="@string/torrent_comment"
+   309	                    style="@style/TitleText" />
+   310	
+   311	                <TextView
+   312	                    android:id="@+id/comment"
+   313	                    android:layout_width="match_parent"
+   314	                    android:layout_height="wrap_content"
+   315	                    android:autoLink="all"
+   316	                    android:linksClickable="true"
+   317	                    android:textIsSelectable="true"
+   318	                    android:text="@{viewModel.info.metaInfo.comment}"
+   319	                    style="@style/TextAppearance.MaterialComponents.Body1" />
+   320	            </LinearLayout>
+   321	
+   322	            <LinearLayout
+   323	                android:id="@+id/layout_torrent_created_in_program"
+   324	                android:layout_width="match_parent"
+   325	                android:layout_height="wrap_content"
+   326	                android:orientation="vertical"
+   327	                android:padding="16dp"
+   328	                android:visibility="@{TextUtils.isEmpty(viewModel.info.metaInfo.createdBy) ? View.GONE : View.VISIBLE}">
+   329	
+   330	                <TextView
+   331	                    android:id="@+id/header_torrent_created_in_program"
+   332	                    android:layout_width="match_parent"
+   333	                    android:layout_height="wrap_content"
+   334	                    android:text="@string/torrent_created_in_program"
+   335	                    style="@style/TitleText" />
+   336	
+   337	                <TextView
+   338	                    android:id="@+id/torrent_created_in_program"
+   339	                    android:layout_width="match_parent"
+   340	                    android:layout_height="wrap_content"
+   341	                    android:textIsSelectable="true"
+   342	                    android:text="@{viewModel.info.metaInfo.createdBy}"
+   343	                    style="@style/TextAppearance.MaterialComponents.Body1" />
+   344	            </LinearLayout>
+   345	        </LinearLayout>
+   346	    </androidx.core.widget.NestedScrollView>
+   347	</layout>

@@ -1,0 +1,561 @@
+     1	/*
+     2	 * Copyright (C) 2019-2021 Yaroslav Pronin <proninyaroslav@mail.ru>
+     3	 *
+     4	 * This file is part of LibreTorrent.
+     5	 *
+     6	 * LibreTorrent is free software: you can redistribute it and/or modify
+     7	 * it under the terms of the GNU General Public License as published by
+     8	 * the Free Software Foundation, either version 3 of the License, or
+     9	 * (at your option) any later version.
+    10	 *
+    11	 * LibreTorrent is distributed in the hope that it will be useful,
+    12	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    13	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    14	 * GNU General Public License for more details.
+    15	 *
+    16	 * You should have received a copy of the GNU General Public License
+    17	 * along with LibreTorrent.  If not, see <http://www.gnu.org/licenses/>.
+    18	 */
+    19	
+    20	package org.proninyaroslav.libretorrent.ui.createtorrent;
+    21	
+    22	import android.app.Activity;
+    23	import android.app.Dialog;
+    24	import android.content.Context;
+    25	import android.content.DialogInterface;
+    26	import android.content.Intent;
+    27	import android.net.Uri;
+    28	import android.os.Bundle;
+    29	import android.text.Editable;
+    30	import android.text.TextUtils;
+    31	import android.text.TextWatcher;
+    32	import android.util.Log;
+    33	import android.view.KeyEvent;
+    34	import android.view.LayoutInflater;
+    35	import android.view.View;
+    36	import android.widget.AdapterView;
+    37	import android.widget.Button;
+    38	import android.widget.Toast;
+    39	
+    40	import androidx.activity.result.ActivityResultLauncher;
+    41	import androidx.activity.result.contract.ActivityResultContracts;
+    42	import androidx.annotation.NonNull;
+    43	import androidx.appcompat.app.AlertDialog;
+    44	import androidx.appcompat.app.AppCompatActivity;
+    45	import androidx.databinding.DataBindingUtil;
+    46	import androidx.fragment.app.DialogFragment;
+    47	import androidx.fragment.app.FragmentManager;
+    48	import androidx.lifecycle.ViewModelProvider;
+    49	
+    50	import com.google.android.material.textfield.TextInputEditText;
+    51	
+    52	import org.proninyaroslav.libretorrent.R;
+    53	import org.proninyaroslav.libretorrent.core.exception.UnknownUriException;
+    54	import org.proninyaroslav.libretorrent.core.utils.Utils;
+    55	import org.proninyaroslav.libretorrent.databinding.DialogCreateTorrentBinding;
+    56	import org.proninyaroslav.libretorrent.ui.BaseAlertDialog;
+    57	import org.proninyaroslav.libretorrent.ui.FragmentCallback;
+    58	import org.proninyaroslav.libretorrent.ui.errorreport.ErrorReportDialog;
+    59	import org.proninyaroslav.libretorrent.ui.filemanager.FileManagerConfig;
+    60	import org.proninyaroslav.libretorrent.ui.filemanager.FileManagerDialog;
+    61	
+    62	import java.io.FileNotFoundException;
+    63	import java.io.IOException;
+    64	
+    65	import io.reactivex.disposables.CompositeDisposable;
+    66	import io.reactivex.disposables.Disposable;
+    67	import io.reactivex.schedulers.Schedulers;
+    68	
+    69	public class CreateTorrentDialog extends DialogFragment
+    70	{
+    71	    private static final String TAG = CreateTorrentDialog.class.getSimpleName();
+    72	
+    73	    private static final String TAG_OPEN_PATH_ERROR_DIALOG = "open_path_error_dialog";
+    74	    private static final String TAG_CREATE_FILE_ERROR_DIALOG = "create_file_error_dialog";
+    75	    private static final String TAG_FILE_OR_FOLDER_NOT_FOUND_ERROR_DIALOG = "file_or_folder_not_found_error_fialog";
+    76	    private static final String TAG_ERROR_FOLDER_IS_EMPTY = "error_folder_is_empty";
+    77	    private static final String TAG_ERROR_REPORT_DIALOG = "error_report_dialog";
+    78	
+    79	    private AlertDialog alert;
+    80	    private AppCompatActivity activity;
+    81	    private CreateTorrentViewModel viewModel;
+    82	    private DialogCreateTorrentBinding binding;
+    83	    private CompositeDisposable disposables = new CompositeDisposable();
+    84	    private BaseAlertDialog.SharedViewModel dialogViewModel;
+    85	    private ErrorReportDialog errReportDialog;
+    86	
+    87	    public static CreateTorrentDialog newInstance()
+    88	    {
+    89	        CreateTorrentDialog frag = new CreateTorrentDialog();
+    90	        frag.setArguments(new Bundle());
+    91	
+    92	        return frag;
+    93	    }
+    94	
+    95	    @Override
+    96	    public void onAttach(@NonNull Context context)
+    97	    {
+    98	        super.onAttach(context);
+    99	
+   100	        if (context instanceof AppCompatActivity)
+   101	            activity = (AppCompatActivity)context;
+   102	    }
+   103	
+   104	    @Override
+   105	    public void onResume()
+   106	    {
+   107	        super.onResume();
+   108	
+   109	        /* Back button handle */
+   110	        getDialog().setOnKeyListener((DialogInterface dialog, int keyCode, KeyEvent event) -> {
+   111	            if (keyCode == KeyEvent.KEYCODE_BACK) {
+   112	                if (event.getAction() != KeyEvent.ACTION_DOWN) {
+   113	                    return true;
+   114	                } else {
+   115	                    onBackPressed();
+   116	                    return true;
+   117	                }
+   118	            } else {
+   119	                return false;
+   120	            }
+   121	        });
+   122	    }
+   123	
+   124	    @Override
+   125	    public void onStop()
+   126	    {
+   127	        super.onStop();
+   128	
+   129	        disposables.clear();
+   130	    }
+   131	
+   132	    @Override
+   133	    public void onStart()
+   134	    {
+   135	        super.onStart();
+   136	
+   137	        subscribeAlertDialog();
+   138	    }
+   139	
+   140	    private void subscribeAlertDialog()
+   141	    {
+   142	        Disposable d = dialogViewModel.observeEvents()
+   143	                .subscribe((event) -> {
+   144	                    if (event.dialogTag == null)
+   145	                        return;
+   146	
+   147	                    switch (event.type) {
+   148	                        case POSITIVE_BUTTON_CLICKED:
+   149	                            if (event.dialogTag.equals(TAG_ERROR_REPORT_DIALOG) && errReportDialog != null) {
+   150	                                Dialog dialog = errReportDialog.getDialog();
+   151	                                if (dialog != null) {
+   152	                                    TextInputEditText editText = dialog.findViewById(R.id.comment);
+   153	                                    Editable e = editText.getText();
+   154	                                    String comment = (e == null ? null : e.toString());
+   155	
+   156	                                    Utils.reportError(viewModel.errorReport, comment);
+   157	                                    errReportDialog.dismiss();
+   158	                                }
+   159	                            }
+   160	                            break;
+   161	                        case NEGATIVE_BUTTON_CLICKED:
+   162	                            if (event.dialogTag.equals(TAG_ERROR_REPORT_DIALOG) && errReportDialog != null)
+   163	                                errReportDialog.dismiss();
+   164	                            break;
+   165	                    }
+   166	                });
+   167	        disposables.add(d);
+   168	    }
+   169	
+   170	    @NonNull
+   171	    @Override
+   172	    public Dialog onCreateDialog(Bundle savedInstanceState)
+   173	    {
+   174	        if (activity == null)
+   175	            activity = (AppCompatActivity)getActivity();
+   176	
+   177	        ViewModelProvider provider = new ViewModelProvider(activity);
+   178	        viewModel = provider.get(CreateTorrentViewModel.class);
+   179	        dialogViewModel = provider.get(BaseAlertDialog.SharedViewModel.class);
+   180	
+   181	        FragmentManager fm = getChildFragmentManager();
+   182	        errReportDialog = (ErrorReportDialog)fm.findFragmentByTag(TAG_ERROR_REPORT_DIALOG);
+   183	
+   184	        LayoutInflater i = LayoutInflater.from(activity);
+   185	        binding = DataBindingUtil.inflate(i, R.layout.dialog_create_torrent, null, false);
+   186	        binding.setLifecycleOwner(this);
+   187	        binding.setViewModel(viewModel);
+   188	
+   189	        initLayoutView();
+   190	
+   191	        return alert;
+   192	    }
+   193	
+   194	    private void initLayoutView()
+   195	    {
+   196	        /* Dismiss error label if user has changed the text */
+   197	        binding.trackerUrls.addTextChangedListener(new TextWatcher() {
+   198	            @Override
+   199	            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+   200	
+   201	            @Override
+   202	            public void onTextChanged(CharSequence s, int start, int before, int count) { }
+   203	
+   204	            @Override
+   205	            public void afterTextChanged(Editable s)
+   206	            {
+   207	                binding.layoutTrackerUrls.setErrorEnabled(false);
+   208	                binding.layoutTrackerUrls.setError(null);
+   209	            }
+   210	        });
+   211	
+   212	        binding.webSeedUrls.addTextChangedListener(new TextWatcher() {
+   213	            @Override
+   214	            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+   215	
+   216	            @Override
+   217	            public void onTextChanged(CharSequence s, int start, int before, int count) { }
+   218	
+   219	            @Override
+   220	            public void afterTextChanged(Editable s)
+   221	            {
+   222	                binding.layoutWebSeedUrls.setErrorEnabled(false);
+   223	                binding.layoutWebSeedUrls.setError(null);
+   224	            }
+   225	        });
+   226	
+   227	        binding.piecesSize.setSelection(viewModel.mutableParams.getPieceSizeIndex());
+   228	        binding.piecesSize.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
+   229	        {
+   230	            @Override
+   231	            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l)
+   232	            {
+   233	                viewModel.setPiecesSizeIndex(binding.piecesSize.getSelectedItemPosition());
+   234	            }
+   235	            @Override
+   236	            public void onNothingSelected(AdapterView<?> adapterView)
+   237	            {
+   238	                /* Nothing */
+   239	            }
+   240	        });
+   241	
+   242	        binding.torrentVersion.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
+   243	        {
+   244	            @Override
+   245	            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l)
+   246	            {
+   247	                viewModel.setTorrentVersionIndex(binding.torrentVersion.getSelectedItemPosition());
+   248	            }
+   249	
+   250	            @Override
+   251	            public void onNothingSelected(AdapterView<?> adapterView)
+   252	            {
+   253	                /*  Nothing  */
+   254	            }
+   255	        });
+   256	
+   257	        binding.fileChooserButton.setOnClickListener((v) -> {
+   258	            Intent i = new Intent(activity, FileManagerDialog.class);
+   259	            FileManagerConfig config = new FileManagerConfig(
+   260	                    null,
+   261	                    null,
+   262	                    FileManagerConfig.FILE_CHOOSER_MODE);
+   263	            i.putExtra(FileManagerDialog.TAG_CONFIG, config);
+   264	            chooseFile.launch(i);
+   265	        });
+   266	
+   267	        binding.folderChooserButton.setOnClickListener((v) -> {
+   268	            Intent i = new Intent(activity, FileManagerDialog.class);
+   269	            FileManagerConfig config = new FileManagerConfig(
+   270	                    null,
+   271	                    null,
+   272	                    FileManagerConfig.DIR_CHOOSER_MODE);
+   273	            i.putExtra(FileManagerDialog.TAG_CONFIG, config);
+   274	            chooseDir.launch(i);
+   275	        });
+   276	
+   277	        initAlertDialog(binding.getRoot());
+   278	    }
+   279	
+   280	    private void initAlertDialog(View view)
+   281	    {
+   282	        alert = new AlertDialog.Builder(activity)
+   283	                .setTitle(R.string.create_torrent)
+   284	                .setNegativeButton(R.string.cancel, null)
+   285	                .setPositiveButton(R.string.add, null)
+   286	                .setView(view)
+   287	                .create();
+   288	
+   289	
+   290	        alert.setCanceledOnTouchOutside(false);
+   291	        alert.setOnShowListener((DialogInterface dialog) -> {
+   292	            Button cancelButton = alert.getButton(AlertDialog.BUTTON_NEGATIVE);
+   293	            Button addButton = alert.getButton(AlertDialog.BUTTON_POSITIVE);
+   294	
+   295	            viewModel.getState().observe(this, (state) -> {
+   296	                if (state.status == CreateTorrentViewModel.BuildState.Status.BUILDING) {
+   297	                    alert.setTitle(R.string.creating_torrent_progress);
+   298	                    addButton.setVisibility(View.GONE);
+   299	                } else {
+   300	                    alert.setTitle(R.string.create_torrent);
+   301	                    addButton.setVisibility(View.VISIBLE);
+   302	                }
+   303	
+   304	                if (state.status == CreateTorrentViewModel.BuildState.Status.FINISHED)
+   305	                    handleFinish();
+   306	
+   307	                else if (state.status == CreateTorrentViewModel.BuildState.Status.ERROR)
+   308	                    handleBuildError(state.err);
+   309	            });
+   310	
+   311	            cancelButton.setOnClickListener((v) ->
+   312	                    finish(new Intent(), FragmentCallback.ResultCode.CANCEL));
+   313	            addButton.setOnClickListener((v) -> {
+   314	                if(TextUtils.isEmpty(viewModel.mutableParams.getSeedPathName()) || "null".equals(viewModel.mutableParams.getSeedPathName())) {
+   315	                    binding.layoutFileOrDirPath.setErrorEnabled(true);
+   316	                    binding.layoutFileOrDirPath.setError(getText(R.string.error_please_select_file_or_folder_for_seeding_first));
+   317	                }
+   318	                else{
+   319	                    choosePathToSaveDialog();
+   320	                }
+   321	            });
+   322	        });
+   323	    }
+   324	
+   325	    private void choosePathToSaveDialog()
+   326	    {
+   327	        Intent i = new Intent(activity, FileManagerDialog.class);
+   328	        FileManagerConfig config = new FileManagerConfig(
+   329	                null,
+   330	                getString(R.string.select_folder_to_save),
+   331	                FileManagerConfig.SAVE_FILE_MODE);
+   332	        config.mimeType = Utils.MIME_TORRENT;
+   333	
+   334	        i.putExtra(FileManagerDialog.TAG_CONFIG, config);
+   335	        choosePathToSave.launch(i);
+   336	    }
+   337	
+   338	    private void buildTorrent()
+   339	    {
+   340	        binding.layoutTrackerUrls.setErrorEnabled(false);
+   341	        binding.layoutTrackerUrls.setError(null);
+   342	        binding.layoutWebSeedUrls.setErrorEnabled(false);
+   343	        binding.layoutWebSeedUrls.setError(null);
+   344	
+   345	        viewModel.buildTorrent();
+   346	    }
+   347	
+   348	    private void handleBuildError(Throwable err)
+   349	    {
+   350	        if (err == null)
+   351	            return;
+   352	
+   353	        Log.e(TAG, Log.getStackTraceString(err));
+   354	
+   355	        if (err instanceof CreateTorrentViewModel.InvalidTrackerException) {
+   356	            binding.layoutTrackerUrls.setErrorEnabled(true);
+   357	            binding.layoutTrackerUrls.setError(getString(R.string.invalid_url,
+   358	                    ((CreateTorrentViewModel.InvalidTrackerException)err).url));
+   359	            binding.layoutTrackerUrls.requestFocus();
+   360	
+   361	        } else if (err instanceof CreateTorrentViewModel.InvalidWebSeedException) {
+   362	            binding.layoutWebSeedUrls.setErrorEnabled(true);
+   363	            binding.layoutWebSeedUrls.setError(getString(R.string.invalid_url,
+   364	                    ((CreateTorrentViewModel.InvalidWebSeedException)err).url));
+   365	            binding.layoutWebSeedUrls.requestFocus();
+   366	
+   367	        } else if (err instanceof FileNotFoundException) {
+   368	            fileOrFolderNotFoundDialog((FileNotFoundException)err);
+   369	
+   370	        } else if (err instanceof IOException) {
+   371	            if (err.getMessage().contains("content total size can't be 0"))
+   372	                emptyFolderErrorDialog();
+   373	            else
+   374	                errorReportDialog(err);
+   375	        } else {
+   376	            errorReportDialog(err);
+   377	        }
+   378	    }
+   379	
+   380	    private void handleFinish()
+   381	    {
+   382	        Uri savePath = viewModel.mutableParams.getSavePath();
+   383	        if (savePath != null) {
+   384	            Toast.makeText(activity.getApplicationContext(),
+   385	                    getString(R.string.torrent_saved_to, savePath.getPath()),
+   386	                    Toast.LENGTH_SHORT)
+   387	                    .show();
+   388	        }
+   389	        if (viewModel.mutableParams.isStartSeeding()) {
+   390	            try {
+   391	                disposables.add(viewModel.downloadTorrent()
+   392	                        .subscribeOn(Schedulers.io())
+   393	                        .subscribe(
+   394	                                () -> finish(new Intent(), FragmentCallback.ResultCode.OK),
+   395	                                this::handleBuildError)
+   396	                );
+   397	            } catch (UnknownUriException e) {
+   398	                handleBuildError(e);
+   399	            }
+   400	        } else {
+   401	            finish(new Intent(), FragmentCallback.ResultCode.OK);
+   402	        }
+   403	    }
+   404	
+   405	    private void openPathErrorDialog(boolean isFile)
+   406	    {
+   407	        if (!isAdded())
+   408	            return;
+   409	
+   410	        FragmentManager fm = getChildFragmentManager();
+   411	        if (fm.findFragmentByTag(TAG_ERROR_FOLDER_IS_EMPTY) == null) {
+   412	            BaseAlertDialog errDialog = BaseAlertDialog.newInstance(
+   413	                    getString(R.string.error),
+   414	                    getString(isFile ? R.string.unable_to_open_file : R.string.unable_to_open_folder),
+   415	                    0,
+   416	                    getString(R.string.ok),
+   417	                    null,
+   418	                    null,
+   419	                    true);
+   420	
+   421	            errDialog.show(fm, TAG_ERROR_FOLDER_IS_EMPTY);
+   422	        }
+   423	    }
+   424	
+   425	    private void fileOrFolderNotFoundDialog(FileNotFoundException e)
+   426	    {
+   427	        if (!isAdded())
+   428	            return;
+   429	
+   430	        FragmentManager fm = getChildFragmentManager();
+   431	        if (fm != null && fm.findFragmentByTag(TAG_FILE_OR_FOLDER_NOT_FOUND_ERROR_DIALOG) == null) {
+   432	            BaseAlertDialog errDialog = BaseAlertDialog.newInstance(
+   433	                    getString(R.string.error),
+   434	                    e.getMessage(),
+   435	                    0,
+   436	                    getString(R.string.ok),
+   437	                    null,
+   438	                    null,
+   439	                    true);
+   440	
+   441	            errDialog.show(fm, TAG_FILE_OR_FOLDER_NOT_FOUND_ERROR_DIALOG);
+   442	        }
+   443	    }
+   444	
+   445	    private void emptyFolderErrorDialog()
+   446	    {
+   447	        if (!isAdded())
+   448	            return;
+   449	
+   450	        FragmentManager fm = getChildFragmentManager();
+   451	        if (fm != null && fm.findFragmentByTag(TAG_OPEN_PATH_ERROR_DIALOG) == null) {
+   452	            BaseAlertDialog errDialog = BaseAlertDialog.newInstance(
+   453	                    getString(R.string.error),
+   454	                    getString(R.string.folder_is_empty),
+   455	                    0,
+   456	                    getString(R.string.ok),
+   457	                    null,
+   458	                    null,
+   459	                    true);
+   460	
+   461	            errDialog.show(fm, TAG_OPEN_PATH_ERROR_DIALOG);
+   462	        }
+   463	    }
+   464	
+   465	    private void errorReportDialog(Throwable e)
+   466	    {
+   467	        viewModel.errorReport = e;
+   468	
+   469	        FragmentManager fm = getChildFragmentManager();
+   470	        if (fm != null && fm.findFragmentByTag(TAG_ERROR_REPORT_DIALOG) == null) {
+   471	            errReportDialog = ErrorReportDialog.newInstance(
+   472	                    getString(R.string.error),
+   473	                    getString(R.string.error_create_torrent) + ": " + e.getMessage(),
+   474	                    Log.getStackTraceString(e));
+   475	
+   476	            errReportDialog.show(fm, TAG_ERROR_REPORT_DIALOG);
+   477	        }
+   478	    }
+   479	
+   480	    private void createFileErrorDialog()
+   481	    {
+   482	        if (!isAdded())
+   483	            return;
+   484	
+   485	        FragmentManager fm = getChildFragmentManager();
+   486	        if (fm != null && fm.findFragmentByTag(TAG_CREATE_FILE_ERROR_DIALOG) == null) {
+   487	            BaseAlertDialog createFileErrorDialog = BaseAlertDialog.newInstance(
+   488	                    getString(R.string.error),
+   489	                    getString(R.string.unable_to_create_file),
+   490	                    0,
+   491	                    getString(R.string.ok),
+   492	                    null,
+   493	                    null,
+   494	                    true);
+   495	
+   496	            createFileErrorDialog.show(fm, TAG_CREATE_FILE_ERROR_DIALOG);
+   497	        }
+   498	    }
+   499	
+   500	    final ActivityResultLauncher<Intent> chooseDir = registerForActivityResult(
+   501	            new ActivityResultContracts.StartActivityForResult(),
+   502	            result -> {
+   503	                Intent data = result.getData();
+   504	                if (result.getResultCode() != Activity.RESULT_OK)
+   505	                    return;
+   506	                if (data == null || data.getData() == null) {
+   507	                    openPathErrorDialog(false);
+   508	                    return;
+   509	                }
+   510	                binding.layoutFileOrDirPath.setErrorEnabled(false);
+   511	                binding.layoutFileOrDirPath.setError(null);
+   512	
+   513	                viewModel.mutableParams.getSeedPath().set(data.getData());
+   514	            }
+   515	    );
+   516	
+   517	    final ActivityResultLauncher<Intent> chooseFile = registerForActivityResult(
+   518	            new ActivityResultContracts.StartActivityForResult(),
+   519	            result -> {
+   520	                Intent data = result.getData();
+   521	                if (result.getResultCode() != Activity.RESULT_OK)
+   522	                    return;
+   523	                if (data == null || data.getData() == null) {
+   524	                    openPathErrorDialog(true);
+   525	                    return;
+   526	                }
+   527	                binding.layoutFileOrDirPath.setErrorEnabled(false);
+   528	                binding.layoutFileOrDirPath.setError(null);
+   529	
+   530	                viewModel.mutableParams.getSeedPath().set(data.getData());
+   531	            }
+   532	    );
+   533	
+   534	    final ActivityResultLauncher<Intent> choosePathToSave = registerForActivityResult(
+   535	            new ActivityResultContracts.StartActivityForResult(),
+   536	            result -> {
+   537	                Intent data = result.getData();
+   538	                if (result.getResultCode() != Activity.RESULT_OK)
+   539	                    return;
+   540	                if (data == null || data.getData() == null) {
+   541	                    createFileErrorDialog();
+   542	                    return;
+   543	                }
+   544	
+   545	                viewModel.mutableParams.setSavePath(data.getData());
+   546	                buildTorrent();
+   547	            }
+   548	    );
+   549	
+   550	    public void onBackPressed()
+   551	    {
+   552	        finish(new Intent(), FragmentCallback.ResultCode.BACK);
+   553	    }
+   554	
+   555	    private void finish(Intent intent, FragmentCallback.ResultCode code)
+   556	    {
+   557	        viewModel.finish();
+   558	        alert.dismiss();
+   559	        ((FragmentCallback)activity).onFragmentFinished(this, intent, code);
+   560	    }
+   561	}

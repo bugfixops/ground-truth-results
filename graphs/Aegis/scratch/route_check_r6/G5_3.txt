@@ -1,0 +1,85 @@
+## IconPack$Icon.<init>  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=- state=file classes=explicit;non_standard;standard explicit_standard_route=yes
+   1. Eb9515d18 ENTRY/standard*
+      S_ENTRY -> AegisApplication.<init>
+      Any outside trigger starts the app process; the application class is created first, except in a backup or restore start, which uses the base Application class
+      guard: not a full backup or restore start (FW ActivityThread.java:5713-5715)
+      evidence: SRC AndroidManifest.xml:21-27 (android:name=".AegisApplication", backupAgent=".AegisBackupAgent")
+         21      <application
+         22          android:name=".AegisApplication"
+         23          android:allowBackup="true"
+         24          android:fullBackupOnly="true"
+         25          android:fullBackupContent="@xml/backup_rules_old"
+         26          android:dataExtractionRules="@xml/backup_rules"
+         27          android:backupAgent=".AegisBackupAgent"
+   2. E5b266140 LIFECYCLE/standard*
+      AegisApplication.<init> -> Hilt_AegisApplication.onCreate
+      Application.onCreate: the Hilt-generated superclass onCreate runs first (Hilt injection), then AegisApplicationBase.onCreate
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:5740 (the system calls Application.onCreate); INFERRED Hilt rewrites the superclass: AegisApplication extends Hilt_AegisApplication (generated file, not in the source tree; source AegisApplication.java:6 has no onCreate)
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+   3. E1ef992ce CALL/explicit
+      Hilt_AegisApplication.onCreate -> AegisApplicationBase.onCreate
+      Direct call
+      evidence: INFERRED generated code (Hilt_AegisApplication.java is not in the source tree; the call is in the build class, line 43)
+   4. Ef539c17b CALL/explicit
+      AegisApplicationBase.onCreate -> DaggerAegisApplication_HiltComponents_SingletonC$SingletonCImpl.getVaultManager
+      Virtual/interface call that can dispatch to this implementation
+      evidence: SRC AegisApplicationBase.java:47 (bytecode)
+         47          _vaultManager = EarlyEntryPoints.get(this, EntryPoint.class).getVaultManager();
+   5. Ebdc15ea3 FRAMEWORK/non_standard(Dagger / Hilt dependency injection: the library makes the link to the generated component)
+      DaggerAegisApplication_HiltComponents_SingletonC$SingletonCImpl.getVaultManager -> DaggerAegisApplication_HiltComponents_SingletonC$SingletonCImpl$SwitchingProvider.get
+      the generated getter asks the switching provider for the VaultManager, which builds it through the module provide method
+      evidence: INFERRED Dagger generated code calls javax.inject.Provider.get (generated file, not in the source tree); auto_calls.json framework_calls row for getVaultManager
+   6. E29463d22 CALL/explicit
+      DaggerAegisApplication_HiltComponents_SingletonC$SingletonCImpl$SwitchingProvider.get -> AegisModule.provideIconPackManager
+      Direct call (through AegisModule_ProvideIconPackManagerFactory.provideIconPackManager)
+      evidence: INFERRED generated code (DaggerAegisApplication_HiltComponents_SingletonC.java is not in the source tree; the call is in the build class, line 636)
+   7. E375694d7 CALL/explicit*
+      AegisModule.provideIconPackManager -> IconPackManager.<init>
+      Direct call
+      evidence: SRC AegisModule.java:27 (bytecode)
+         27          return new IconPackManager(context);
+   8. E75a5e491 CALL/explicit*
+      IconPackManager.<init> -> IconPackManager.rescanIconPacks
+      Direct call
+      evidence: SRC IconPackManager.java:33 (bytecode)
+         33          rescanIconPacks();
+   9. Ebac005d0 CALL/explicit* [STATE: An icon pack is already installed in the icons folder from an earlier run (IconPackManager.java:33 rescans the folder at startup)]
+      IconPackManager.rescanIconPacks -> IconPack.fromBytes
+      each pack folder with a UUID name and a readable definition file is parsed at startup
+      guard: the icons dir lists files, the entry is a directory with a UUID name, its latest version dir is non-null, and the pack definition file opens (IconPackManager.java:136-158)
+      evidence: SRC icons/IconPackManager.java:136-158 (bytecode line 158)
+        136          if (dirs == null) {
+        137              return;
+        138          }
+        139  
+        140          for (File dir : dirs) {
+        141              if (!dir.isDirectory()) {
+        142                   continue;
+        143              }
+        144  
+        145              UUID uuid;
+        146              try {
+        147                  uuid = UUID.fromString(dir.getName());
+        148              } catch (IllegalArgumentException e) {
+        149                  e.printStackTrace();
+      ...  (9 more lines)
+  10. Eecb7add2 CALL/explicit*
+      IconPack.fromBytes -> IconPack.fromJson
+      Direct call
+      evidence: SRC IconPack.java:130 (bytecode)
+        130          return IconPack.fromJson(obj);
+  11. Eaf319356 CALL/explicit*
+      IconPack.fromJson -> IconPack$Icon.fromJson
+      each icon of the pack is parsed from its JSON entry
+      guard: the icons array has at least one entry: the for loop runs (IconPack.java:120)
+      evidence: SRC icons/IconPack.java:117,120-121
+        117          JSONArray array = obj.getJSONArray("icons");
+        120          for (int i = 0; i < array.length(); i++) {
+        121              Icon icon = Icon.fromJson(array.getJSONObject(i));
+  12. Ecc690490 CALL/explicit*
+      IconPack$Icon.fromJson -> IconPack$Icon.<init>
+      Direct call
+      evidence: SRC IconPack.java:208 (bytecode)
+        208              return new Icon(filename, name, category, issuers);
+

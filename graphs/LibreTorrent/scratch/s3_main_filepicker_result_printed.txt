@@ -1,0 +1,42 @@
+   528	    private void openTorrentFileDialog()
+   529	    {
+   530	        Intent i = new Intent(activity, FileManagerDialog.class);
+   531	
+   532	        FileManagerConfig config = new FileManagerConfig(null,
+   533	                getString(R.string.torrent_file_chooser_title),
+   534	                FileManagerConfig.FILE_CHOOSER_MODE);
+   535	        config.highlightFileTypes = Collections.singletonList("torrent");
+   536	
+   537	        i.putExtra(FileManagerDialog.TAG_CONFIG, config);
+   538	        torrentFileChoose.launch(i);
+   539	    }
+   619	    final ActivityResultLauncher<Intent> torrentFileChoose = registerForActivityResult(
+   620	            new ActivityResultContracts.StartActivityForResult(),
+   621	            result -> {
+   622	                Intent data = result.getData();
+   623	                if (result.getResultCode() != Activity.RESULT_OK) {
+   624	                    return;
+   625	                }
+   626	
+   627	                if (data == null || data.getData() == null) {
+   628	                    openFileErrorDialog();
+   629	                    return;
+   630	                }
+   631	
+   632	                Intent i = new Intent(activity, AddTorrentActivity.class);
+   633	                i.putExtra(AddTorrentActivity.TAG_URI, data.getData());
+   634	                startActivity(i);
+   635	            }
+   636	    );
+   593	    private void returnFileUri(String fileName) {
+   594	        Intent i = new Intent();
+   595	        try {
+   596	            i.setData(viewModel.getFileUri(fileName));
+   597	
+   598	        } catch (SecurityException e) {
+   599	            permissionDeniedToast();
+   600	            return;
+   601	        }
+   602	        setResult(RESULT_OK, i);
+   603	        finish();
+   604	    }

@@ -1,0 +1,40 @@
+# label_063.grep.txt: evidence for batch 063. The searches were python3 -I line and byte scans with the same patterns as grep -rn -F.
+# APP = final_java_only/MMEX/app/MMEX-#v2024.06.14/app   (SRC = APP/src/main/java)
+#
+## 1. generated Parceler classes: byte scan of APP/build for the string Budget$$Parcelable
+class files scanned under APP/build: 825
+intermediates/javac/debug/classes/com/money/manager/ex/domainmodel/Budget$$Parcelable.class: 5 matches
+intermediates/javac/debug/classes/com/money/manager/ex/domainmodel/Budget$$Parcelable$1.class: 7 matches
+no other class file under APP/build contains the name
+#
+## 2. text scan of APP excluding build for Budget$$ (extensions .java .kt .xml .gradle .txt .pro)
+text files scanned: 769
+matches: 0
+#
+## 3. Parcels.wrap / Parcels.unwrap call sites in SRC (regex Parcels\s*\.\s*(wrap|unwrap))
+43 call lines in 14 files. Argument types: Account, SearchParameters, price events, transaction entities, split transactions,
+transaction and account filters, categories and recurring transactions. None of the 43 lines names Budget or a budget value.
+#
+## 4. @Parcel classes in SRC (regex ^\s*@Parcel\b)
+14 files: PriceDownloadedEvent, DateRange, SplitRecurringCategory, Category, Budget, EntityBase, Account, SplitCategory,
+RecurringTransaction, Stock, AccountTransaction, SearchParameters, TransactionFilter, StatusFilter.
+Lines mentioning Budget in these files: Budget.java:23 (comment), Budget.java:27 (class Budget), Budget.java:33 (constructor).
+No other @Parcel class mentions Budget.
+#
+## 5. constructor, reflection and setter call sites in SRC (python3 -I line scan)
+pattern getConstructor: 0 hits; getDeclaredConstructor: 0 hits; Class.forName: 1 hit (JacocoInstrumentation.java:55, a jacoco agent load, not Parceler)
+pattern Attachment\( :
+  domainmodel/Attachment.java:35: public Attachment() {
+  domainmodel/Attachment.java:39: public Attachment(ContentValues contentValues) {
+  datalayer/AttachmentRepository.java:83: Attachment attachment = new Attachment();
+pattern getRefId|setRefId|setRefType|setFilename :
+  domainmodel/Attachment.java:55: public void setFilename(String value) {
+  domainmodel/Attachment.java:59: public Integer getRefId() {
+  domainmodel/Attachment.java:63: public void setRefId(Integer value) {
+  domainmodel/Attachment.java:71: public void setRefType(String value) {
+  (no other line in SRC names these four methods)
+setId: the only Attachment definition is Attachment.java:47; the other setId call sites are on Account, Category, Budget, Payee, RecurringTransaction,
+  AccountTransaction, split and transaction classes, none on an Attachment.
+pattern new BudgetEntry\( : datalayer/BudgetEntryRepository.java:101: BudgetEntry budgetEntry = new BudgetEntry();
+pattern new Budget\( : budget/BudgetEditActivity.java:176: budget = new Budget();   and   budget/BudgetEditActivity.java:199: Budget budget = new Budget();
+pattern newInstance\( : used by RepositoryBase.java:109, 134 and SqlRepositoryBase.java:84 for resultType.newInstance() (no-arg only); not a Parceler route.

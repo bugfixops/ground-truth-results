@@ -1,0 +1,26 @@
+LibreTorrent batch 33 — command record and source evidence
+
+Plan command (sole membership source):
+`awk -F '\t' '$1==33 {print $3 "\t" $4}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv`
+
+It returned exactly 40 rows, in order: 8 BencodeFileTree members, 1 FileNode$Type member, 10 FilePriority members, and 21 FileTree members. The report table contains the exact ordered names and signatures.
+
+Printed/read source commands:
+`rg -n 'class |enum |public |protected |private ' "$SRC/core/model/filetree/BencodeFileTree.java"`
+`rg -n 'class |enum |public |protected |private ' "$SRC/core/model/filetree/FileNode.java"`
+`rg -n 'class |enum |public |protected |private ' "$SRC/core/model/filetree/FilePriority.java"`
+`rg -n 'class |enum |public |protected |private ' "$SRC/core/model/filetree/FileTree.java"`
+
+`SRC` is `/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent`.
+
+The signatures output places BencodeFileTree methods at lines 35-133, FileNode.Type static members at 30-35, FilePriority methods at 34-113, and FileTree methods/constructors at 38-211. These definitions were read. Relevant direct caller search:
+`rg -n 'BencodeFileTree|FilePriority|FileTree\\.' "$SRC/core" "$SRC/ui/addtorrent" "$SRC/ui/detailtorrent"`
+
+Printed caller excerpts found:
+- `BencodeFileTreeUtils.java:46-50,102-125` creates the root and descendant nodes from file entries.
+- `AddTorrentViewModel.java:411-437` creates parent directory nodes and navigates the tree.
+- `DetailTorrentViewModel.java:294-327,420,547-550` reads file priorities and constructs FilePriority values.
+- `DetailTorrentFilesFragment.java:354,486-495` constructs FilePriority from selected UI values.
+- `TorrentContentFilesAdapter.java:234` reads priority type.
+
+The searches establish local calls and definitions but do not establish complete hand-written routes from an app entry for every row; these remain OPEN. No coverage data was accessed. No graph, AGENT_NOTES, or out files were edited.

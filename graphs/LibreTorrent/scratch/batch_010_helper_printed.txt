@@ -1,0 +1,83 @@
+LibreTorrent batch 10 helper source printout
+Membership source: handoff/LIBRETORRENT_BATCH_PLAN.tsv only.
+
+Membership command:
+awk -F '\\t' '$1==10 {print $3}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+
+Output (40 methods):
+ItemTorrentDownloadableFileBinding.inflate(LayoutInflater)
+ItemTorrentDownloadableFileBinding.inflate(LayoutInflater,ViewGroup,boolean)
+ItemTorrentDownloadableFileBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)
+ItemTorrentDownloadableFileBinding.inflate(LayoutInflater,Object)
+ItemTorrentListBinding.bind(View)
+ItemTorrentListBinding.bind(View,Object)
+ItemTorrentListBinding.inflate(LayoutInflater)
+ItemTorrentListBinding.inflate(LayoutInflater,ViewGroup,boolean)
+ItemTorrentListBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)
+ItemTorrentListBinding.inflate(LayoutInflater,Object)
+ItemTrackersListBinding.bind(View)
+ItemTrackersListBinding.bind(View,Object)
+ItemTrackersListBinding.inflate(LayoutInflater)
+ItemTrackersListBinding.inflate(LayoutInflater,ViewGroup,boolean)
+ItemTrackersListBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)
+ItemTrackersListBinding.inflate(LayoutInflater,Object)
+TagsListItemBinding.bind(View)
+TagsListItemBinding.bind(View,Object)
+TagsListItemBinding.inflate(LayoutInflater)
+TagsListItemBinding.inflate(LayoutInflater,ViewGroup,boolean)
+TagsListItemBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)
+TagsListItemBinding.inflate(LayoutInflater,Object)
+Scheduler.<init>
+EmptyRecyclerView.<init>(Context)
+ExpansionHeader.<init>(Context)
+FixHintTextInputEditText.<init>(Context)
+RecyclerViewDividerDecoration.<init>(Context,int)
+SwitchBar.<init>(Context)
+ThemedSpeedDialView.<init>(Context)
+PeerItem.hashCode
+FeedItemsListItem.compareTo
+FeedItemsListItem.hashCode
+FileManagerSpinnerAdapter$StorageSpinnerItem.getName
+FileManagerSpinnerAdapter$StorageSpinnerItem.getSize
+FileManagerSpinnerAdapter$StorageSpinnerItem.setName
+FileManagerSpinnerAdapter$StorageSpinnerItem.setSize
+FileManagerSpinnerAdapter$StorageSpinnerItem.setStoragePath
+LogSettingsFragment.newInstance
+drawer.TagItem.hashCode
+drawer.TagItem.toString
+
+Generated class declaration grep, exact rule F command:
+grep -R -n -E 'class (ItemTorrentDownloadableFileBinding|ItemTorrentListBinding|ItemTrackersListBinding|TagsListItemBinding)' '/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java' || true
+Output: (no matches)
+
+Generated binding app-call-site output (matching method/return type and layout):
+DownloadableFilesAdapter.java:60-65: DataBindingUtil.inflate(inflater, R.layout.item_torrent_downloadable_file, parent, false) returns ItemTorrentDownloadableFileBinding.
+TorrentListAdapter.java:79-84: DataBindingUtil.inflate(inflater, R.layout.item_torrent_list, parent, false) returns ItemTorrentListBinding.
+TrackerListAdapter.java:73-78: DataBindingUtil.inflate(inflater, R.layout.item_trackers_list, parent, false) returns ItemTrackersListBinding.
+TagsAdapter.java:48-54: DataBindingUtil.inflate(inflater, R.layout.tags_list_item, parent, false) returns TagsListItemBinding.
+These calls do not name any batch-listed generated overload; generated mapper/dispatch implementation is absent from the listed source root.
+
+Printed method definitions (numbered source excerpts):
+Scheduler.java:43-53: class Scheduler declares constants and static setStartAppAlarm; no constructor declaration appears.
+EmptyRecyclerView.java:54-67: Context constructor delegates to super(context); two other overloads take Context,AttributeSet[,defStyle].
+ExpansionHeader.java:56-76: one-argument constructor calls super(context) and init(context,null); separate XML-shaped overloads take Context,AttributeSet[,defStyleAttr].
+FixHintTextInputEditText.java:33-49: one-argument constructor calls super(context); separate overloads take Context,AttributeSet[,defStyleAttr].
+RecyclerViewDividerDecoration.java:35-47: constructor (Drawable) stores drawable; batch constructor (Context,int) loads a drawable with ContextCompat.
+SwitchBar.java:35-56: one-argument constructor calls super(ContextThemeWrapper); separate XML-shaped overloads take Context,AttributeSet[,defStyleAttr].
+ThemedSpeedDialView.java:33-51: one-argument constructor calls super(context); separate overloads take Context,AttributeSet[,defStyleAttr].
+PeerItem.java:26-42: hashCode returns ip.hashCode().
+FeedItemsListItem.java:26-48: hashCode returns id.hashCode(); compareTo returns Long.compare(o.pubDate,pubDate).
+FileManagerSpinnerAdapter.java:51-93: StorageSpinnerItem declares name/storagePath/size fields and get/set methods; getters return fields and setters assign fields.
+LogSettingsFragment.java:36-49: newInstance constructs a fragment, sets empty arguments, and returns it.
+ui/main/drawer/TagItem.java:26-61: hashCode returns info.hashCode(); toString returns a string containing info.
+
+Caller probe command:
+rg -n --glob '*.java' 'new Scheduler|new RecyclerViewDividerDecoration\\(|LogSettingsFragment\\.newInstance|new (EmptyRecyclerView|ExpansionHeader|FixHintTextInputEditText|SwitchBar|ThemedSpeedDialView)' '/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent' || true
+
+Relevant output: no `new Scheduler`, `LogSettingsFragment.newInstance`, or one-argument custom-view construction was found. The `new RecyclerViewDividerDecoration(...)` output contains only Drawable overload calls at FeedFragment.java:133, LogActivity.java:109, MainFragment.java:153, DetailTorrentPeersFragment.java:140, DetailTorrentTrackersFragment.java:174, FeedItemsFragment.java:148; no Context,int call.
+
+Custom-view XML grep:
+rg -n 'EmptyRecyclerView|ExpansionHeader|FixHintTextInputEditText|SwitchBar|ThemedSpeedDialView' '/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/res/layout'
+Output: EmptyRecyclerView appears in activity_log.xml:40, fragment_detail_torrent_peer_list.xml:9, fragment_feed.xml:16, fragment_feed_items.xml:34, fragment_main.xml:10, dialog_select_tag.xml:9, fragment_detail_torrent_tracker_list.xml:9. ExpansionHeader appears in dialog_error.xml:17, main_drawer_content.xml:27, drawer_group_header.xml:2. FixHintTextInputEditText appears in dialog_create_torrent.xml:143,172,200,271. SwitchBar appears in activity_log.xml:28 and preference_switchbar.xml:6. ThemedSpeedDialView appears in fragment_main.xml:33. The XML class refs do not identify the one-argument constructor; those classes also declare separate AttributeSet overloads in the printed source.
+
+No coverage data was opened or used.

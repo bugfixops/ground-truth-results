@@ -1,0 +1,24 @@
+# Batch 97 printed evidence
+
+Plan extraction:
+```sh
+awk -F '\\t' '$1==97 {print $3 "\\t" $4}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+```
+Output: 40 exact members; all descriptors in report table.
+
+Bounded source scan:
+```sh
+rg -n 'class FeedItemsAdapter|getItemPosition|onBindViewHolder|onCreateViewHolder|submitList|areContentsTheSame|areItemsTheSame|ViewHolder|bind|class FeedItemsFragment|finish|getAllFeedItemsSingle|getFeedId|observeFeedItems|newInstance|onAttach|onBackPressed|onCreateOptionsMenu|onCreateView|onItemClicked|onItemMenuClicked|onOptionsItemSelected|onResume|onSaveInstanceState|onStart|onStop|onViewCreated|onViewStateRestored|openArticle|openDownloadUrl' .../ui/feeditems/{FeedItemsAdapter,FeedItemsFragment}.java
+```
+Output read:
+```
+FeedItemsAdapter.java:48 class; :64 create holder; :76 bind holder; :82 submitList; :100 key lookup
+:108/:115 diff callbacks; :129 ViewHolder; :140 bind; :158 menu listener; :166 item click
+FeedItemsFragment.java:63 class; :80 newInstance; :89 getFeedId; :100 attach; :109 create view
+:117 view created; :134 menu listener; :143 back listener; :159 start; :168 stop
+:204/:205 initial and observed data load; :208 observe; :218 submitList callback
+:223 initial list query; :233 submitList; :246 item click; :252 menu click
+:263 openArticle; :280 openDownloadUrl; :298 menu creation; :306 menu select; :320 back; :325 finish
+```
+This is partial source-local evidence and not a full entry-to-method route audit for all rows. All 40 remain OPEN.
+

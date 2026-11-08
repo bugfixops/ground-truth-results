@@ -1,0 +1,221 @@
+# label_021 grep evidence (run from /Users/darshan/Desktop/yang/work); SRC = final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex, FW = fw_src/android-8.1.0_r1/core/java
+
+## A. callers and implementers of onTransactionStatusClicked and the multi-choice listener
+$ grep -rn "onTransactionStatusClicked" SRC/../java
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/AllDataMultiChoiceModeListener.java:87:                mCallbacks.onTransactionStatusClicked(status);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/AllDataListFragment.java:419:    public void onTransactionStatusClicked(String status) {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/IAllDataMultiChoiceModeListenerCallbacks.java:27:    void onTransactionStatusClicked(String status);
+
+$ grep -rn "IAllDataMultiChoiceModeListenerCallbacks\|new AllDataMultiChoiceModeListener" SRC/../java
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/IAllDataMultiChoiceModeListenerCallbacks.java:22:public interface IAllDataMultiChoiceModeListenerCallbacks {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/AllDataMultiChoiceModeListener.java:30:    public void setListener(IAllDataMultiChoiceModeListenerCallbacks callbacks) {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/AllDataMultiChoiceModeListener.java:34:    private IAllDataMultiChoiceModeListenerCallbacks mCallbacks;
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/AllDataListFragment.java:86:    implements LoaderManager.LoaderCallbacks<Cursor>, IAllDataMultiChoiceModeListenerCallbacks {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/AllDataListFragment.java:152:        mMultiChoiceModeListener = new AllDataMultiChoiceModeListener();
+
+## B. the action-mode menu: menu_all_data_adapter.xml item ids; status ids elsewhere
+$ grep -n "android:id" res/menu/menu_all_data_adapter.xml
+23:        android:id="@+id/menu_duplicate_transactions"
+29:        android:id="@+id/menu_change_status"
+35:        android:id="@+id/menu_delete"
+41:        android:id="@+id/menu_select_all"
+
+$ grep -rn "menu_none\|menu_reconciled\|menu_void\|menu_follow_up\|menu_duplicate" res/menu
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/res/menu/contextmenu_accountfragment.xml:29:        android:id="@+id/menu_reconciled"
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/res/menu/contextmenu_accountfragment.xml:33:        android:id="@+id/menu_none"
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/res/menu/contextmenu_accountfragment.xml:37:        android:id="@+id/menu_follow_up"
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/res/menu/contextmenu_accountfragment.xml:41:        android:id="@+id/menu_duplicate"
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/res/menu/contextmenu_accountfragment.xml:45:        android:id="@+id/menu_void"
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/res/menu/menu_transaction_status_selector.xml:30:                    android:id="@+id/menu_none"
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/res/menu/menu_transaction_status_selector.xml:34:                    android:id="@+id/menu_reconciled"
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/res/menu/menu_transaction_status_selector.xml:38:                    android:id="@+id/menu_void"
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/res/menu/menu_transaction_status_selector.xml:42:                    android:id="@+id/menu_follow_up"
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/res/menu/menu_transaction_status_selector.xml:46:                    android:id="@+id/menu_duplicate"
+
+$ grep -rn "R.menu.menu_all_data_adapter\|R.menu.menu_transaction_status_selector" java
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/AllDataListFragment.java:393:        getActivity().getMenuInflater().inflate(R.menu.menu_all_data_adapter, menu);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/account/AccountTransactionListFragment.java:240:        inflater.inflate(R.menu.menu_transaction_status_selector, menu);
+
+## C. the case labels of onActionItemClicked
+$ grep -n "case R.id\|onTransactionStatusClicked\|onActionItemClicked" AllDataMultiChoiceModeListener.java
+60:    public boolean onActionItemClicked(ActionMode mode, android.view.MenuItem item) {
+64:            case R.id.menu_select_all:
+69:            case R.id.menu_change_status:
+73:            case R.id.menu_duplicate_transactions:
+77:            case R.id.menu_delete:
+81:            case R.id.menu_none:
+82:            case R.id.menu_reconciled:
+83:            case R.id.menu_follow_up:
+84:            case R.id.menu_duplicate:
+85:            case R.id.menu_void:
+87:                mCallbacks.onTransactionStatusClicked(status);
+
+## D. callers of the other methods of this batch (direct source calls; auto_calls edges are in section F)
+$ grep -rn "setAutoStarLoader\|setListHeader\|setSearResultFragmentLoaderCallbacks\|setShownBalance\|showTotalsFooter\|updateAllDataListFragmentShowBalance" java
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/account/AccountTransactionListFragment.java:844:        if (header != null) mAllDataListFragment.setListHeader(header);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/account/AccountTransactionListFragment.java:845:        updateAllDataListFragmentShowBalance();
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/account/AccountTransactionListFragment.java:846:        mAllDataListFragment.setAutoStarLoader(false);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/account/AccountTransactionListFragment.java:847:        mAllDataListFragment.setSearResultFragmentLoaderCallbacks(this);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/account/AccountTransactionListFragment.java:885:        updateAllDataListFragmentShowBalance();
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/account/AccountTransactionListFragment.java:899:    private void updateAllDataListFragmentShowBalance() {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/account/AccountTransactionListFragment.java:904:        mAllDataListFragment.setShownBalance(PreferenceManager.getDefaultSharedPreferences(getActivity())
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/search/SearchActivity.java:185:        searchResultsFragment.showTotalsFooter();
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/AllDataListFragment.java:489:    public void setSearResultFragmentLoaderCallbacks(LoaderManager.LoaderCallbacks<Cursor> searResultFragmentLoaderCallbacks) {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/AllDataListFragment.java:503:    public void setAutoStarLoader(boolean mAutoStarLoader) {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/AllDataListFragment.java:546:    public void setListHeader(View mHeaderList) {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/AllDataListFragment.java:560:    public void setShownBalance(boolean mShownBalance) {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/AllDataListFragment.java:571:    public void showTotalsFooter() {
+
+## E. SearchActivity launch sites and manifest entry
+$ grep -rn "SearchActivity.class" java
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/HomeFragment.java:365:            startActivity(new Intent(getActivity(), SearchActivity.class));
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/core/IntentFactory.java:55:        Intent intent = new Intent(context, SearchActivity.class);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/home/MainActivity.java:659:                startActivity(new Intent(MainActivity.this, SearchActivity.class));
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/AllDataListFragment.java:313:                    .equals(SearchActivity.class.getSimpleName()));
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/AllDataListFragment.java:318:        if (activity.getClass().getSimpleName().equals(SearchActivity.class.getSimpleName())) {
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/fragment/PayeeListFragment.java:459://        Intent intent = new Intent(getActivity(), SearchActivity.class);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/common/CategoryListFragment.java:734:        Intent intent = new Intent(getActivity(), SearchActivity.class);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/CategoriesReportFragment.java:380:        Intent intent = new Intent(getActivity(), SearchActivity.class);
+final_java_only/MMEX/app/MMEX-#v2024.06.14/app/src/main/java/com/money/manager/ex/reports/PayeeReportFragment.java:318:        Intent intent = new Intent(getActivity(), SearchActivity.class);
+$ grep -n SearchActivity AndroidManifest.xml
+296:            android:name=".search.SearchActivity"
+297-            android:label="@string/search" />
+
+## F. framework lines (fw_src android-8.1.0_r1)
+$ grep -n setPositiveButton|setNegativeButton|setAdapter AlertDialog.java
+611:        public Builder setPositiveButton(@StringRes int textId, final OnClickListener listener) {
+624:        public Builder setPositiveButton(CharSequence text, final OnClickListener listener) {
+637:        public Builder setNegativeButton(@StringRes int textId, final OnClickListener listener) {
+650:        public Builder setNegativeButton(CharSequence text, final OnClickListener listener) {
+764:        public Builder setAdapter(final ListAdapter adapter, final OnClickListener listener) {
+$ sed -n 611,613p;637,650p;764,768p AlertDialog.java
+     1	        public Builder setPositiveButton(@StringRes int textId, final OnClickListener listener) {
+     2	            P.mPositiveButtonText = P.mContext.getText(textId);
+     3	            P.mPositiveButtonListener = listener;
+     4	        public Builder setNegativeButton(@StringRes int textId, final OnClickListener listener) {
+     5	            P.mNegativeButtonText = P.mContext.getText(textId);
+     6	            P.mNegativeButtonListener = listener;
+     7	            return this;
+     8	        }
+     9	
+    10	        /**
+    11	         * Set a listener to be invoked when the negative button of the dialog is pressed.
+    12	         * @param text The text to display in the negative button
+    13	         * @param listener The {@link DialogInterface.OnClickListener} to use.
+    14	         *
+    15	         * @return This Builder object to allow for chaining of calls to set methods
+    16	         */
+    17	        public Builder setNegativeButton(CharSequence text, final OnClickListener listener) {
+    18	        public Builder setAdapter(final ListAdapter adapter, final OnClickListener listener) {
+    19	            P.mAdapter = adapter;
+    20	            P.mOnClickListener = listener;
+    21	            return this;
+    22	        }
+$ grep -n AlertController.java lines 163-166, 344-348, 1138-1142
+163:                case DialogInterface.BUTTON_POSITIVE:
+164:                case DialogInterface.BUTTON_NEGATIVE:
+165:                case DialogInterface.BUTTON_NEUTRAL:
+166:                    ((DialogInterface.OnClickListener) msg.obj).onClick(mDialog.get(), msg.what);
+344:    public void setButton(int whichButton, CharSequence text,
+345:            DialogInterface.OnClickListener listener, Message msg) {
+346:
+347:        if (msg == null && listener != null) {
+348:            msg = mHandler.obtainMessage(whichButton, listener);
+1138:            if (mOnClickListener != null) {
+1139:                listView.setOnItemClickListener(new OnItemClickListener() {
+1140:                    @Override
+1141:                    public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
+1142:                        mOnClickListener.onClick(dialog.mDialogInterface, position);
+$ grep -n performItemClick / dispatchItemClick AdapterView.java AbsListView.java
+fw_src/android-8.1.0_r1/core/java/android/widget/AdapterView.java:318:            mOnItemClickListener.onItemClick(this, view, position, id);
+fw_src/android-8.1.0_r1/core/java/android/widget/AbsListView.java:1108:        boolean dispatchItemClick = true;
+fw_src/android-8.1.0_r1/core/java/android/widget/AbsListView.java:1133:                    dispatchItemClick = false;
+fw_src/android-8.1.0_r1/core/java/android/widget/AbsListView.java:1157:        if (dispatchItemClick) {
+fw_src/android-8.1.0_r1/core/java/android/widget/AbsListView.java:1158:            handled |= super.performItemClick(view, position, id);
+
+## G. auto_calls.json edges touching this batch (python3 query, run from the work directory)
+$ python3 query of graphs/MMEX/auto_calls.json: records whose src or dst is one of the keys
+SearchActivity.onCreate -> SearchActivity.handleSearchRequest file SearchActivity.java line 69 dispatch exact via []
+SearchActivity.onOptionsItemSelected -> MmxBaseFragmentActivity.onOptionsItemSelected file SearchActivity.java line 118 dispatch exact via []
+SearchActivity.onOptionsItemSelected -> SearchActivity.performSearch file SearchActivity.java line 114 dispatch exact via []
+SearchActivity.handleSearchRequest -> SearchActivity.performSearch file SearchActivity.java line 162 dispatch exact via []
+SearchActivity.handleSearchRequest -> SearchParametersFragment.setSearchParameters file SearchActivity.java line 161 dispatch exact via []
+SearchActivity.handleSearchRequest -> SearchActivity.getSearchFragment file SearchActivity.java line 161 dispatch exact via []
+SearchActivity.performSearch -> SearchActivity.showSearchResultsFragment file SearchActivity.java line 169 dispatch exact via []
+SearchActivity.performSearch -> SearchParametersFragment.getWhereStatement file SearchActivity.java line 168 dispatch exact via []
+SearchActivity.performSearch -> SearchActivity.getSearchFragment file SearchActivity.java line 167 dispatch exact via []
+SearchActivity.showSearchResultsFragment -> AllDataListFragment.showTotalsFooter file SearchActivity.java line 185 dispatch exact via []
+SearchActivity.showSearchResultsFragment -> AllDataListFragment.newInstance(int,boolean) file SearchActivity.java line 183 dispatch exact via []
+AllDataListFragment.onActivityCreated -> AllDataAdapter$TypeCursor.<clinit> file AllDataListFragment.java line 146 dispatch exact via []
+AllDataListFragment.onActivityCreated -> AllDataListFragment.loadData() file AllDataListFragment.java line 200 dispatch exact via []
+AllDataListFragment.onActivityCreated -> AllDataListFragment.isAutoStarLoader file AllDataListFragment.java line 199 dispatch exact via []
+AllDataListFragment.onActivityCreated -> BaseListFragment.attachFloatingActionButtonToListView file AllDataListFragment.java line 195 dispatch exact via []
+AllDataListFragment.onActivityCreated -> BaseListFragment.setFloatingActionButtonVisible file AllDataListFragment.java line 194 dispatch exact via []
+AllDataListFragment.onActivityCreated -> AbsListFragment.setListShown(boolean) file AllDataListFragment.java line 189 dispatch exact via []
+AllDataListFragment.onActivityCreated -> AbsListFragment.getListView file AllDataListFragment.java line 186 dispatch exact via []
+AllDataListFragment.onActivityCreated -> AbsListFragment.setListAdapter file AllDataListFragment.java line 183 dispatch exact via []
+AllDataListFragment.onActivityCreated -> AllDataListFragment.renderFooter file AllDataListFragment.java line 179 dispatch exact via []
+AllDataListFragment.onActivityCreated -> AbsListFragment.getListAdapter file AllDataListFragment.java line 174 dispatch exact via []
+AllDataListFragment.onActivityCreated -> AllDataListFragment$1.<init> file AllDataListFragment.java line 158 dispatch exact via []
+AllDataListFragment.onActivityCreated -> AllDataMultiChoiceModeListener.setListener file AllDataListFragment.java line 153 dispatch exact via []
+AllDataListFragment.onActivityCreated -> AllDataMultiChoiceModeListener.<init> file AllDataListFragment.java line 152 dispatch exact via []
+AllDataListFragment.onActivityCreated -> AllDataAdapter.setShowBalanceAmount file AllDataListFragment.java line 149 dispatch exact via []
+AllDataListFragment.onActivityCreated -> AllDataListFragment.isShownBalance file AllDataListFragment.java line 149 dispatch exact via []
+AllDataListFragment.onActivityCreated -> AllDataAdapter.setShowAccountName file AllDataListFragment.java line 148 dispatch exact via []
+AllDataListFragment.onActivityCreated -> AllDataListFragment.isShownHeader file AllDataListFragment.java line 148 dispatch exact via []
+AllDataListFragment.onActivityCreated -> AllDataAdapter.setAccountId file AllDataListFragment.java line 147 dispatch exact via []
+AllDataListFragment.onActivityCreated -> AllDataAdapter.<init> file AllDataListFragment.java line 146 dispatch exact via []
+AllDataListFragment.onActivityCreated -> AllDataListFragment.setShownHeader file AllDataListFragment.java line 142 dispatch exact via []
+AllDataListFragment.onActivityCreated -> AbsListFragment.setEmptyText file AllDataListFragment.java line 132 dispatch exact via []
+AllDataListFragment.onActivityCreated -> BaseListFragment.onActivityCreated@AllDataListFragment file AllDataListFragment.java line 130 dispatch exact via []
+AllDataListFragment.onDeleteClicked -> AllDataListFragment.showDialogDeleteCheckingAccount file AllDataListFragment.java line 409 dispatch exact via []
+AllDataListFragment.onDeleteClicked -> AllDataListFragment.getTransactionIds file AllDataListFragment.java line 407 dispatch exact via []
+AllDataListFragment.onChangeTransactionStatusClicked -> AllDataListFragment.changeTransactionStatus file AllDataListFragment.java line 415 dispatch exact via []
+AllDataListFragment.onChangeTransactionStatusClicked -> AllDataListFragment.getTransactionIds file AllDataListFragment.java line 414 dispatch exact via []
+AllDataListFragment.onTransactionStatusClicked -> AllDataListFragment.loadData() file AllDataListFragment.java line 424 dispatch exact via []
+AllDataListFragment.onTransactionStatusClicked -> AllDataAdapter.clearPositionChecked file AllDataListFragment.java line 423 dispatch exact via []
+AllDataListFragment.onTransactionStatusClicked -> AbsListFragment.getListAdapter file AllDataListFragment.java line 423 dispatch exact via []
+AllDataListFragment.onTransactionStatusClicked -> AllDataListFragment.setStatusCheckingAccount file AllDataListFragment.java line 422 dispatch exact via []
+AllDataListFragment.onTransactionStatusClicked -> AllDataListFragment.convertArrayListToArray file AllDataListFragment.java line 422 dispatch exact via []
+AllDataListFragment.onTransactionStatusClicked -> AllDataListFragment.getTransactionIds file AllDataListFragment.java line 420 dispatch exact via []
+AllDataListFragment.onSelectAllRecordsClicked -> AllDataListFragment.selectAllRecords file AllDataListFragment.java line 430 dispatch exact via []
+AllDataListFragment.onDuplicateTransactionsClicked -> AllDataListFragment.showDuplicateTransactionView file AllDataListFragment.java line 436 dispatch exact via []
+AllDataListFragment.onDuplicateTransactionsClicked -> AllDataListFragment.getTransactionIds file AllDataListFragment.java line 435 dispatch exact via []
+AllDataListFragment.setStatusCheckingAccount -> SyncManager.<clinit> file AllDataListFragment.java line 667 dispatch exact via []
+AllDataListFragment.setStatusCheckingAccount -> SyncManager.dataChanged file AllDataListFragment.java line 696 dispatch exact via []
+AllDataListFragment.setStatusCheckingAccount -> SyncManager.enableAutoUpload file AllDataListFragment.java line 695 dispatch exact via []
+AllDataListFragment.setStatusCheckingAccount -> Dataset.getUri file AllDataListFragment.java line 680 dispatch exact via []
+AllDataListFragment.setStatusCheckingAccount -> AccountTransactionRepository.<init> file AllDataListFragment.java line 677 dispatch exact via []
+AllDataListFragment.setStatusCheckingAccount -> SyncManager.disableAutoUpload file AllDataListFragment.java line 669 dispatch exact via []
+AllDataListFragment.setStatusCheckingAccount -> SyncManager.<init> file AllDataListFragment.java line 667 dispatch exact via []
+AllDataListFragment.showDialogDeleteCheckingAccount -> AllDataListFragment$2.<init> file AllDataListFragment.java line 713 dispatch exact via []
+AllDataListFragment.showDialogDeleteCheckingAccount -> AllDataListFragment$3.<init> file AllDataListFragment.java line 711 dispatch exact via []
+AllDataListFragment.showDialogDeleteCheckingAccount -> UIHelper.getIcon file AllDataListFragment.java line 710 dispatch exact via []
+AllDataListFragment.showDialogDeleteCheckingAccount -> UIHelper.<init> file AllDataListFragment.java line 706 dispatch exact via []
+AllDataListFragment.changeTransactionStatus -> AllDataListFragment$4.<init> file AllDataListFragment.java line 891 dispatch exact via []
+AllDataListFragment.changeTransactionStatus -> DrawerMenuItem.withShortcut file AllDataListFragment.java line 884 dispatch exact via []
+AllDataListFragment.changeTransactionStatus -> DrawerMenuItem.withIcon file AllDataListFragment.java line 883 dispatch exact via []
+AllDataListFragment.changeTransactionStatus -> DrawerMenuItem.withText file AllDataListFragment.java line 882 dispatch exact via []
+AllDataListFragment.changeTransactionStatus -> DrawerMenuItem.withId file AllDataListFragment.java line 881 dispatch exact via []
+AllDataListFragment.changeTransactionStatus -> DrawerMenuItem.<init> file AllDataListFragment.java line 881 dispatch exact via []
+AllDataListFragment.changeTransactionStatus -> UIHelper.isUsingDarkTheme file AllDataListFragment.java line 862 dispatch exact via []
+AllDataListFragment.changeTransactionStatus -> UIHelper.<init> file AllDataListFragment.java line 862 dispatch exact via []
+AllDataListFragment.changeTransactionStatus -> DrawerMenuItemAdapter.<init> file AllDataListFragment.java line 860 dispatch exact via []
+AllDataListFragment$4.onClick -> AllDataListFragment.setStatusCheckingAccount file AllDataListFragment.java line 902 dispatch exact via ['AllDataListFragment.access$300']
+AllDataMultiChoiceModeListener.onActionItemClicked -> AllDataListFragment.onTransactionStatusClicked file AllDataMultiChoiceModeListener.java line 87 dispatch cha via []
+AllDataMultiChoiceModeListener.onActionItemClicked -> AllDataListFragment.onDeleteClicked file AllDataMultiChoiceModeListener.java line 78 dispatch cha via []
+AllDataMultiChoiceModeListener.onActionItemClicked -> AllDataListFragment.onDuplicateTransactionsClicked file AllDataMultiChoiceModeListener.java line 74 dispatch cha via []
+AllDataMultiChoiceModeListener.onActionItemClicked -> AllDataListFragment.onChangeTransactionStatusClicked file AllDataMultiChoiceModeListener.java line 70 dispatch cha via []
+AllDataMultiChoiceModeListener.onActionItemClicked -> AllDataListFragment.onSelectAllRecordsClicked file AllDataMultiChoiceModeListener.java line 65 dispatch cha via []
+AccountTransactionListFragment.onCreateView -> AccountTransactionListFragment.setImageViewFavorite file AccountTransactionListFragment.java line 178 dispatch exact via []
+AccountTransactionListFragment.onCreateView -> AccountTransactionListFragment.showTransactionsFragment file AccountTransactionListFragment.java line 174 dispatch exact via []
+AccountTransactionListFragment.onCreateView -> AccountTransactionListFragment.initializeListHeader file AccountTransactionListFragment.java line 171 dispatch exact via []
+AccountTransactionListFragment.onCreateView -> AccountTransactionsListViewHolder.<init> file AccountTransactionListFragment.java line 170 dispatch exact via []
+AccountTransactionListFragment.onCreateView -> AccountTransactionListFragment.reloadAccountInfo file AccountTransactionListFragment.java line 167 dispatch exact via []
+AccountTransactionListFragment.showTransactionsFragment -> AccountTransactionListFragment.getFragmentName file AccountTransactionListFragment.java line 850 dispatch exact via []
+AccountTransactionListFragment.showTransactionsFragment -> AllDataListFragment.setSearResultFragmentLoaderCallbacks file AccountTransactionListFragment.java line 847 dispatch exact via []
+AccountTransactionListFragment.showTransactionsFragment -> AllDataListFragment.setAutoStarLoader file AccountTransactionListFragment.java line 846 dispatch exact via []
+AccountTransactionListFragment.showTransactionsFragment -> AccountTransactionListFragment.updateAllDataListFragmentShowBalance file AccountTransactionListFragment.java line 845 dispatch exact via []
+AccountTransactionListFragment.showTransactionsFragment -> AllDataListFragment.setListHeader file AccountTransactionListFragment.java line 844 dispatch exact via []
+AccountTransactionListFragment.showTransactionsFragment -> AccountTransactionListFragment.prepareQuery file AccountTransactionListFragment.java line 841 dispatch exact via []
+AccountTransactionListFragment.showTransactionsFragment -> AllDataListFragment.newInstance(int) file AccountTransactionListFragment.java line 837 dispatch exact via []

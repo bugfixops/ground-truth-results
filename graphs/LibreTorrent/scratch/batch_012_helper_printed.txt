@@ -1,0 +1,193 @@
+LibreTorrent batch 12 helper source printout
+Membership source: handoff/LIBRETORRENT_BATCH_PLAN.tsv only.
+
+Membership command:
+awk -F '\\t' '$1==12 {print $3}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+
+Output (40 methods, in plan order):
+databinding.DataBinderMapperImpl.<init>
+Enclosure.<init>
+Enclosure.equals
+Enclosure.getType
+Enclosure.getUrl
+Enclosure.hashCode
+Enclosure.toString
+EzRssTorrentItem.<init>
+EzRssTorrentItem.equals
+EzRssTorrentItem.getInfoHash
+EzRssTorrentItem.hashCode
+EzRssTorrentItem.toString
+FeedException.<init>(String)
+FeedException.<init>(Throwable)
+FeedParserFactory.newParser
+FeedType.<clinit>
+FeedUtils.<clinit>
+FeedUtils.convertAtomDate
+FeedUtils.convertRss1Date
+FeedUtils.convertRss2Date
+FeedUtils.equalsOrNull
+XML.<clinit>
+XML.hash
+XMLInputStream.<init>
+XMLInputStream.given
+XMLInputStream.isAlphaNumeric
+XMLInputStream.isWhiteSpace
+XMLInputStream.length
+XMLInputStream.read()
+XMLInputStream.read(int)
+XMLInputStream.read(byte[],int,int)
+XMLInputStream.readAmpersand
+XMLInputStream.readIntoPushBack
+AtomFeed.<init>
+AtomFeed.getItemList
+AtomFeed.getTitle
+AtomFeed.toString
+AtomItem.<init>
+AtomItem.getDescription
+AtomItem.getEnclosures
+
+Generated-class evidence (rule F), exact grep command:
+grep -R -n -E 'class DataBinderMapperImpl' '/Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java' || true
+Output: (no matches)
+
+Relevant app and parser route excerpts (numbered lines, printed with `nl -ba`):
+FeedFetcherWorker.java:150-160:
+150            FeedChannel channel = repo.getFeedById(id);
+151            if (channel == null)
+152                return Result.failure();
+154            FeedParser parser;
+155            try {
+156                parser = new FeedParser(getApplicationContext(), channel);
+158            } catch (Exception e) {
+159                channel.fetchError = e.getMessage();
+160                repo.updateFeed(channel);
+
+core/FeedParser.java:62-82:
+62     public FeedParser(@NonNull Context context, @NonNull FeedChannel feedChannel) throws Exception
+64         this.feedChannel = feedChannel;
+66         try {
+67             byte[] response = Utils.fetchHttpUrl(context, feedChannel.url);
+68             if (response == null)
+69                 return;
+70             bsStream = new ByteArrayInputStream(response);
+71             feed = FeedParserFactory.newParser().parse(bsStream);
+73         } finally {
+74             if (bsStream != null) {
+75                 try {
+76                     bsStream.close();
+77                 } catch (Exception e) { /* Ignore */ }
+80         }
+82     }
+
+core/FeedParser.java:89-115, 168-180, 236-246:
+95         for (Item item : feed.getItemList()) {
+104            Date pubDate = item.getPubDate();
+109            FeedItem feedItem = new FeedItem(feedChannel.id, downloadUrl,
+110                    articleUrl, item.getTitle(), pubDateTime);
+168    private String watchEnclosure(Item item)
+170        for (Enclosure enclosure : item.getEnclosures()) {
+174            String url = enclosure.getUrl();
+175            String type = enclosure.getType();
+176            if (isMagnetOrTorrent(url) || (type != null && type.equals(Utils.MIME_TORRENT)))
+178        }
+180        return null;
+236    private String watchTorrentInfoHash(Item item)
+238        EzRssTorrentItem torrentItem = item.getEzRssTorrentItem();
+239        if (torrentItem == null)
+240            return null;
+242        String infoHash = torrentItem.getInfoHash();
+244            return Utils.normalizeMagnetHash(infoHash);
+
+FeedParserFactory.java:16-26:
+16 public class FeedParserFactory {
+23     public static FeedParser newParser() {
+25         return new DefaultFeedParser();
+26     }
+
+DefaultFeedParser.java:19-47:
+22     public Feed parse(InputStream inStream) throws FeedException {
+25         SAXParserFactory factory = SAXParserFactory.newInstance();
+26         SAXParser parser = factory.newSAXParser();
+34         FeedHandler handler = new FeedHandler();
+37         parser.parse(new XMLInputStream(inStream), handler);
+38         Feed feed = handler.getFeed();
+39         if (feed == null)
+40             throw new FeedException("Invalid RSS/Atom feed");
+44     } catch (Exception ex) {
+45         throw new FeedException(ex);
+47 }
+
+FeedHandler.java:60-101:
+60 if (RDF.equalsIgnoreCase(localName)) { Rss1Feed newFeed = new Rss1Feed(uri, RDF, attributes); ... type = FeedType.RSS_1_0; }
+67 else if (RSS.equalsIgnoreCase(localName)) { Rss2Feed newFeed = new Rss2Feed(uri, RSS, attributes); ... type = FeedType.RSS_2_0; }
+74 else if (FEED.equalsIgnoreCase(localName)) { AtomFeed newFeed = new AtomFeed(uri, FEED, attributes); ... type = FeedType.ATOM_1_0; }
+81 else if (ITEM.equalsIgnoreCase(localName)) { switch (type) { ... new Rss1Item(...) / new Rss2Item(...); }
+94 else if (ENTRY.equalsIgnoreCase(localName)) { newElement = new AtomItem(uri, localName, attributes); }
+
+Enclosure.java printed definitions: constructor `14-18`; getUrl `28-30`; getType `40-42`; equals `56-67`; hashCode `69-75`; toString `77-84`.
+EzRssTorrentItem.java printed definitions: constructor `28-39`; getInfoHash `61-63`; equals `97-113`; hashCode `115-125`; toString `127-139`.
+FeedException.java printed definitions: String constructor `11-13`; Throwable constructor `15-17`.
+FeedType.java printed definition: enum constants `6-8`.
+FeedUtils.java printed definitions: static DateFormat fields `12-19`; convertAtomDate `28-72`; convertRss1Date `81-85`; convertRss2Date `94-103`; equalsOrNull `112-118`.
+XML.java printed definitions: hash `7-15`; SPECIALS static field and initializer begins `17-23` (map entries continue through `...` in source).
+XMLInputStream.java printed definitions: constructor `27-29`; length `31-40`; internal read(int) `42-64`; readIntoPushBack `68-92`; readAmpersand `95-119`; given `121-125`; read() `127-132`; read(byte[],int,int) `134-144`; isWhiteSpace `146-155`; isAlphaNumeric `157-161`.
+AtomFeed.java printed definitions: constructor `34-36`; getTitle `43-47`; getPubDate `74-78`; getItemList `93-107`; toString `109-113`.
+AtomItem.java printed definitions: constructor `30-32`; getDescription `56-61`; getPubDate `79-83`; getEnclosures `98-120`; new Enclosure creation `109-116`.
+
+Caller searches performed within this app's listed Java source root:
+rg -n --glob '*.java' 'Enclosure.*(equals|hashCode|toString)|EzRssTorrentItem.*(equals|hashCode|toString)|\.length\(\)' SOURCE_ROOT
+rg -n --glob '*.java' 'FeedUtils\\.equalsOrNull|XMLInputStream.*length|\.toString\(\)' SOURCE_ROOT
+Interpretation: parser source explicitly uses the Enclosure getters and EzRssTorrentItem.getInfoHash; no direct app/parser caller was found for the equality/hash/string methods, XMLInputStream.length, or AtomItem.getDescription / AtomFeed.toString. XMLInputStream read overloads are passed to SAXParser.parse, but its dispatch to a specific overload is framework/library code not included in this source tree.
+
+Additional exact numbered source output for item routing:
+core/FeedParser.java:140-151:
+   141    private String findDownloadUrl(Item item)
+   147        String enclosureUrl = watchEnclosure(item);
+   148        if (enclosureUrl != null)
+   149            return enclosureUrl;
+   151        String infoHash = watchTorrentInfoHash(item);
+
+Rss1Item.java:75-80:
+    75    @Override
+    76    public Date getPubDate() {
+    77        // Use Dublin Core element.
+    78        Element pubDate = getElement(DATE);
+    79        return (pubDate != null) ? FeedUtils.convertRss1Date(pubDate.getContent()) : null;
+    80    }
+
+Rss2Item.java:74-78, 118-121:
+    74    @Override
+    75    public Date getPubDate() {
+    76        Element pubDate = getElement(PUB_DATE);
+    77        return (pubDate != null) ? FeedUtils.convertRss2Date(pubDate.getContent()) : null;
+    78    }
+   118    @Override
+   119    public EzRssTorrentItem getEzRssTorrentItem() {
+   120        return new EzRss01Parser(this).parse();
+   121    }
+
+EzRss01Parser.java:22-37:
+    22    public EzRss01Parser(Rss2Item item) {
+    23        this.item = item;
+    24    }
+    26    public EzRssTorrentItem parse() {
+    27        String fileName = parseFileName();
+    28        String magnetUri = parseMagnetUri();
+    29        String infoHash = parseInfoHash();
+    30        long contentLength = parseContentLength();
+    31        int seeds = parseSeeds();
+    32        int peers = parsePeers();
+    33        boolean verified = parseVerified();
+    35        return new EzRssTorrentItem(fileName, magnetUri, infoHash,
+    36            contentLength, seeds, peers, verified);
+    37    }
+
+BaseItem.java:52-61:
+    52    @Override
+    53    public boolean equals(Object obj) {
+    55        if (obj instanceof BaseItem) {
+    56            String id1 = getUniqueId();
+    57            String id2 = ((BaseItem) obj).getUniqueId();
+    58            return FeedUtils.equalsOrNull(id1, id2);
+    59        }
+    61        return false;

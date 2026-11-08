@@ -1,0 +1,109 @@
+LibreTorrent batch 9 source and call-site print
+Membership source: /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+Source root: /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java
+
+Commands run:
+1. `awk -F '\t' 'NR==1 || $1==9 {print}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv` — printed 40 rows after header.
+2. For each batch row: `rg -n -F 'ClassName.method(' <source-root>` — no direct app call was found for any of the 40 listed binding methods.
+3. `rg --files <source-root> | rg '/databinding/(FragmentFeedItemsBinding|FragmentMainBinding|ItemFeedChannelListBinding|ItemFeedItemsListBinding|ItemLogListBinding|ItemPeersListBinding|ItemTorrentContentFileBinding|ItemTorrentDownloadableFileBinding)\.java$'` — no output.
+4. `rg -n 'class (FragmentFeedItemsBinding|FragmentMainBinding|ItemFeedChannelListBinding|ItemFeedItemsListBinding|ItemLogListBinding|ItemPeersListBinding|ItemTorrentContentFileBinding|ItemTorrentDownloadableFileBinding)|abstract class (...)' <source-root>` — no output.
+5. `rg -n 'FragmentFeedItemsBinding|FragmentMainBinding|ItemFeedChannelListBinding|ItemFeedItemsListBinding|ItemLogListBinding|ItemPeersListBinding|ItemTorrentContentFileBinding|ItemTorrentDownloadableFileBinding' <source-root>` — app references summarized below.
+6. `rg -n -C 4 'DataBindingUtil\.inflate' <the fragment/adapter source files>` — contexts printed below.
+
+Output of the per-row direct-call scan (Python iterated the 40 exact plan rows and ran the command in item 2 for each):
+01 FragmentFeedItemsBinding.inflate(LayoutInflater,ViewGroup,boolean,Object): NO DIRECT INVOCATION
+02 FragmentFeedItemsBinding.inflate(LayoutInflater,Object): NO DIRECT INVOCATION
+03 FragmentMainBinding.bind(View): NO DIRECT INVOCATION
+04 FragmentMainBinding.bind(View,Object): NO DIRECT INVOCATION
+05 FragmentMainBinding.inflate(LayoutInflater): NO DIRECT INVOCATION
+06 FragmentMainBinding.inflate(LayoutInflater,ViewGroup,boolean): NO DIRECT INVOCATION
+07 FragmentMainBinding.inflate(LayoutInflater,ViewGroup,boolean,Object): NO DIRECT INVOCATION
+08 FragmentMainBinding.inflate(LayoutInflater,Object): NO DIRECT INVOCATION
+09 ItemFeedChannelListBinding.bind(View): NO DIRECT INVOCATION
+10 ItemFeedChannelListBinding.bind(View,Object): NO DIRECT INVOCATION
+11 ItemFeedChannelListBinding.inflate(LayoutInflater): NO DIRECT INVOCATION
+12 ItemFeedChannelListBinding.inflate(LayoutInflater,ViewGroup,boolean): NO DIRECT INVOCATION
+13 ItemFeedChannelListBinding.inflate(LayoutInflater,ViewGroup,boolean,Object): NO DIRECT INVOCATION
+14 ItemFeedChannelListBinding.inflate(LayoutInflater,Object): NO DIRECT INVOCATION
+15 ItemFeedItemsListBinding.bind(View): NO DIRECT INVOCATION
+16 ItemFeedItemsListBinding.bind(View,Object): NO DIRECT INVOCATION
+17 ItemFeedItemsListBinding.inflate(LayoutInflater): NO DIRECT INVOCATION
+18 ItemFeedItemsListBinding.inflate(LayoutInflater,ViewGroup,boolean): NO DIRECT INVOCATION
+19 ItemFeedItemsListBinding.inflate(LayoutInflater,ViewGroup,boolean,Object): NO DIRECT INVOCATION
+20 ItemFeedItemsListBinding.inflate(LayoutInflater,Object): NO DIRECT INVOCATION
+21 ItemLogListBinding.bind(View): NO DIRECT INVOCATION
+22 ItemLogListBinding.bind(View,Object): NO DIRECT INVOCATION
+23 ItemLogListBinding.inflate(LayoutInflater): NO DIRECT INVOCATION
+24 ItemLogListBinding.inflate(LayoutInflater,ViewGroup,boolean): NO DIRECT INVOCATION
+25 ItemLogListBinding.inflate(LayoutInflater,ViewGroup,boolean,Object): NO DIRECT INVOCATION
+26 ItemLogListBinding.inflate(LayoutInflater,Object): NO DIRECT INVOCATION
+27 ItemPeersListBinding.bind(View): NO DIRECT INVOCATION
+28 ItemPeersListBinding.bind(View,Object): NO DIRECT INVOCATION
+29 ItemPeersListBinding.inflate(LayoutInflater): NO DIRECT INVOCATION
+30 ItemPeersListBinding.inflate(LayoutInflater,ViewGroup,boolean): NO DIRECT INVOCATION
+31 ItemPeersListBinding.inflate(LayoutInflater,ViewGroup,boolean,Object): NO DIRECT INVOCATION
+32 ItemPeersListBinding.inflate(LayoutInflater,Object): NO DIRECT INVOCATION
+33 ItemTorrentContentFileBinding.bind(View): NO DIRECT INVOCATION
+34 ItemTorrentContentFileBinding.bind(View,Object): NO DIRECT INVOCATION
+35 ItemTorrentContentFileBinding.inflate(LayoutInflater): NO DIRECT INVOCATION
+36 ItemTorrentContentFileBinding.inflate(LayoutInflater,ViewGroup,boolean): NO DIRECT INVOCATION
+37 ItemTorrentContentFileBinding.inflate(LayoutInflater,ViewGroup,boolean,Object): NO DIRECT INVOCATION
+38 ItemTorrentContentFileBinding.inflate(LayoutInflater,Object): NO DIRECT INVOCATION
+39 ItemTorrentDownloadableFileBinding.bind(View): NO DIRECT INVOCATION
+40 ItemTorrentDownloadableFileBinding.bind(View,Object): NO DIRECT INVOCATION
+
+Exact plan batch 9 rows (40; membership order):
+01 FragmentFeedItemsBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)
+02 FragmentFeedItemsBinding.inflate(LayoutInflater,Object)
+03 FragmentMainBinding.bind(View)
+04 FragmentMainBinding.bind(View,Object)
+05 FragmentMainBinding.inflate(LayoutInflater)
+06 FragmentMainBinding.inflate(LayoutInflater,ViewGroup,boolean)
+07 FragmentMainBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)
+08 FragmentMainBinding.inflate(LayoutInflater,Object)
+09 ItemFeedChannelListBinding.bind(View)
+10 ItemFeedChannelListBinding.bind(View,Object)
+11 ItemFeedChannelListBinding.inflate(LayoutInflater)
+12 ItemFeedChannelListBinding.inflate(LayoutInflater,ViewGroup,boolean)
+13 ItemFeedChannelListBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)
+14 ItemFeedChannelListBinding.inflate(LayoutInflater,Object)
+15 ItemFeedItemsListBinding.bind(View)
+16 ItemFeedItemsListBinding.bind(View,Object)
+17 ItemFeedItemsListBinding.inflate(LayoutInflater)
+18 ItemFeedItemsListBinding.inflate(LayoutInflater,ViewGroup,boolean)
+19 ItemFeedItemsListBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)
+20 ItemFeedItemsListBinding.inflate(LayoutInflater,Object)
+21 ItemLogListBinding.bind(View)
+22 ItemLogListBinding.bind(View,Object)
+23 ItemLogListBinding.inflate(LayoutInflater)
+24 ItemLogListBinding.inflate(LayoutInflater,ViewGroup,boolean)
+25 ItemLogListBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)
+26 ItemLogListBinding.inflate(LayoutInflater,Object)
+27 ItemPeersListBinding.bind(View)
+28 ItemPeersListBinding.bind(View,Object)
+29 ItemPeersListBinding.inflate(LayoutInflater)
+30 ItemPeersListBinding.inflate(LayoutInflater,ViewGroup,boolean)
+31 ItemPeersListBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)
+32 ItemPeersListBinding.inflate(LayoutInflater,Object)
+33 ItemTorrentContentFileBinding.bind(View)
+34 ItemTorrentContentFileBinding.bind(View,Object)
+35 ItemTorrentContentFileBinding.inflate(LayoutInflater)
+36 ItemTorrentContentFileBinding.inflate(LayoutInflater,ViewGroup,boolean)
+37 ItemTorrentContentFileBinding.inflate(LayoutInflater,ViewGroup,boolean,Object)
+38 ItemTorrentContentFileBinding.inflate(LayoutInflater,Object)
+39 ItemTorrentDownloadableFileBinding.bind(View)
+40 ItemTorrentDownloadableFileBinding.bind(View,Object)
+
+App-source references and route candidates:
+`FeedItemsFragment.java:51,71,111-113` imports/holds `FragmentFeedItemsBinding`; `onCreateView` calls `DataBindingUtil.inflate(inflater, R.layout.fragment_feed_items, container, false)` and returns `binding.getRoot()`.
+`MainFragment.java:63,102,115-122` imports/holds `FragmentMainBinding`; `onCreateView` calls `DataBindingUtil.inflate(inflater, R.layout.fragment_main, container, false)` and returns `binding.getRoot()`.
+`FeedChannelListAdapter.java:45,79-85,186-191` uses `DataBindingUtil.inflate(... R.layout.item_feed_channel_list, parent, false)` in `onCreateViewHolder` and passes the returned binding to a ViewHolder.
+`FeedItemsAdapter.java:39,64-70,131-133` uses `DataBindingUtil.inflate(... R.layout.item_feed_items_list, parent, false)` in `onCreateViewHolder`.
+`LogAdapter.java:33,48-54,91-93` uses `DataBindingUtil.inflate(... R.layout.item_log_list, parent, false)` in `onCreateViewHolder`.
+`PeerListAdapter.java:37,59-65,124-126` uses `DataBindingUtil.inflate(... R.layout.item_peers_list, parent, false)` in `onCreateViewHolder`.
+`TorrentContentFilesAdapter.java:46,73-79,134-139` uses `DataBindingUtil.inflate(... R.layout.item_torrent_content_file, parent, false)` in `onCreateViewHolder`.
+`DownloadableFilesAdapter.java:36,57-64,93-95` uses `DataBindingUtil.inflate(... R.layout.item_torrent_downloadable_file, parent, false)` in `onCreateViewHolder`.
+
+For each of those classes, exact direct invocation search for `ClassName.bind(` or `ClassName.inflate(` had no results. App Java source uses the class as an import/type and calls DataBindingUtil instead. No generated binding Java source was found in the supplied `src/main/java` tree. The generated mapper/implementation or AndroidX DataBinding internals that might link DataBindingUtil to a generated method are absent, so the app call sites do not prove routes to the 40 particular overloads.
+
+Corresponding resource XML files exist under app/src/main/res/layout: `fragment_feed_items.xml`, `fragment_main.xml`, `item_feed_channel_list.xml`, `item_feed_items_list.xml`, `item_log_list.xml`, `item_peers_list.xml`, `item_torrent_content_file.xml`, `item_torrent_downloadable_file.xml`.

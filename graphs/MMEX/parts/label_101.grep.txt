@@ -1,0 +1,95 @@
+label_101.grep.txt: grep and record output behind the UNREACHABLE decisions and the REACHABLE routes of batch 101 (graphs/MMEX/scratch/batches/batch_101.txt, 9 methods). Generated-class evidence is INFERRED (rule 3, D5).
+
+== section 1: source text search over src/main/java for the generated injector names (call sites)
+(no output: no call site in the app source for RecurringTransactionEditActivity_MembersInjector, create or injectMembers)
+
+== section 2: class-file search (grep -rl -a) for the injector name in the javac output
+classes/com/money/manager/ex/core/ioc/DaggerMmxComponent.class
+classes/com/money/manager/ex/recurring/transactions/RecurringTransactionEditActivity_MembersInjector.class
+grep -a -c injectMembers DaggerMmxComponent.class:
+0
+
+== section 3: auto_calls.json records (python3 -I print) for the injector and the component
+DaggerMmxComponent.inject(RecurringTransactionEditActivity) -> DaggerMmxComponent.injectRecurringTransactionEditActivity | DaggerMmxComponent.java 232 exact
+DaggerMmxComponent.injectRecurringTransactionEditActivity -> RecurringTransactionEditActivity_MembersInjector.injectDateUtils | DaggerMmxComponent.java 419 exact
+DaggerMmxComponent.injectRecurringTransactionEditActivity -> MmxDateTimeUtils.<init>() | DaggerMmxComponent.java 419 exact
+DaggerMmxComponent.injectRecurringTransactionEditActivity -> RecurringTransactionEditActivity_MembersInjector.injectDatabase | DaggerMmxComponent.java 418 exact
+DaggerMmxComponent.injectRecurringTransactionEditActivity -> DaggerMmxComponent.getBriteDatabase | DaggerMmxComponent.java 418 exact
+SplitItemFactory.create -> SplitRecurringCategory.create | SplitItemFactory.java 37 exact
+RecurringTransactionEditActivity_MembersInjector.create -> RecurringTransactionEditActivity_MembersInjector.<init> | RecurringTransactionEditActivity_MembersInjector.java 27 exact
+RecurringTransactionEditActivity_MembersInjector.injectMembers -> RecurringTransactionEditActivity_MembersInjector.injectDateUtils | RecurringTransactionEditActivity_MembersInjector.java 34 exact
+RecurringTransactionEditActivity_MembersInjector.injectMembers -> RecurringTransactionEditActivity_MembersInjector.injectDatabase | RecurringTransactionEditActivity_MembersInjector.java 33 exact
+RecurringTransactionEditActivity.onCreate -> DaggerMmxComponent.inject(RecurringTransactionEditActivity) | RecurringTransactionEditActivity.java 100 cha
+
+== section 4: notification and list-activity records (python3 -I print)
+RecurringTransactionNotifications.notifyRepeatingTransaction_Internal -> QueryBillDeposits.<clinit> | RecurringTransactionNotifications.java 61 exact
+RecurringTransactionNotifications.notifyRepeatingTransaction_Internal -> RecurringTransactionNotifications.showNotification | RecurringTransactionNotifications.java 77 exact
+RecurringTransactionNotifications.notifyRepeatingTransaction_Internal -> RecurringTransactionNotifications.getNotificationContent | RecurringTransactionNotifications.java 76 exact
+RecurringTransactionNotifications.notifyRepeatingTransaction_Internal -> Dataset.getUri | RecurringTransactionNotifications.java 68 exact
+RecurringTransactionNotifications.notifyRepeatingTransaction_Internal -> QueryBillDeposits.<init> | RecurringTransactionNotifications.java 61 exact
+RecurringTransactionNotifications.showNotification -> RecurringTransactionNotifications.getContext | RecurringTransactionNotifications.java 107 exact
+RecurringTransactionNotifications.showNotification -> NotificationUtils.createNotificationChannel | RecurringTransactionNotifications.java 105 exact
+RecurringTransactionListActivity.<init> -> MmxBaseFragmentActivity.<init> | RecurringTransactionListActivity.java 33 exact
+RecurringTransactionListActivity.onCreate -> RecurringTransactionListFragment.<init> | RecurringTransactionListActivity.java 64 exact
+RecurringTransactionListActivity.onCreate -> Passcode.hasPasscode | RecurringTransactionListActivity.java 50 exact
+RecurringTransactionListActivity.onCreate -> Passcode.<init> | RecurringTransactionListActivity.java 49 exact
+RecurringTransactionListActivity.onCreate -> MmxBaseFragmentActivity.setContentView | RecurringTransactionListActivity.java 45 exact
+RecurringTransactionListActivity.onCreate -> MmxBaseFragmentActivity.onCreate | RecurringTransactionListActivity.java 44 exact
+RecurringTransactionListActivity.onActivityResult -> Passcode.getPasscode | RecurringTransactionListActivity.java 83 exact
+RecurringTransactionListActivity.onActivityResult -> Passcode.<init> | RecurringTransactionListActivity.java 82 exact
+
+== section 5: source text search for the list activity (start sites)
+com/money/manager/ex/notifications/RecurringTransactionNotifications.java:33:import com.money.manager.ex.recurring.transactions.RecurringTransactionListActivity;
+com/money/manager/ex/notifications/RecurringTransactionNotifications.java:90:        Intent intent = new Intent(getContext(), RecurringTransactionListActivity.class);
+com/money/manager/ex/notifications/RecurringTransactionNotifications.java:92:        intent.putExtra(RecurringTransactionListActivity.INTENT_EXTRA_LAUNCH_NOTIFICATION, true);
+com/money/manager/ex/recurring/transactions/RecurringTransactionListActivity.java:33:public class RecurringTransactionListActivity
+com/money/manager/ex/recurring/transactions/RecurringTransactionListActivity.java:36:    public static final String INTENT_EXTRA_LAUNCH_NOTIFICATION = "RecurringTransactionListActivity:LaunchNotification";
+com/money/manager/ex/recurring/transactions/RecurringTransactionListActivity.java:38:    private static final String FRAGMENTTAG = RecurringTransactionListActivity.class.getSimpleName() + "_Fragment";
+com/money/manager/ex/recurring/transactions/RecurringTransactionListFragment.java:280:        if (resultCode == RecurringTransactionListActivity.RESULT_OK) {
+
+== section 6: source text search for the edit activity start sites
+com/money/manager/ex/notifications/RecurringTransactionNotifications.java:100://        Intent enterIntent = new Intent(getContext(), RecurringTransactionEditActivity.class);
+com/money/manager/ex/recurring/transactions/RecurringTransactionListFragment.java:449:        Intent intent = new Intent(getActivity(), RecurringTransactionEditActivity.class);
+
+== section 7: framework lines (printed with sed -n)
+-- Instrumentation.java:1143-1148
+    public Activity newActivity(Class<?> clazz, Context context, 
+            IBinder token, Application application, Intent intent, ActivityInfo info, 
+            CharSequence title, Activity parent, String id,
+            Object lastNonConfigurationInstance) throws InstantiationException, 
+            IllegalAccessException {
+        Activity activity = (Activity)clazz.newInstance();
+-- Instrumentation.java:1212-1215
+    public void callActivityOnCreate(Activity activity, Bundle icicle) {
+        prePerformCreate(activity);
+        activity.performCreate(icicle);
+        postPerformCreate(activity);
+-- Activity.java:7259-7266
+    void dispatchActivityResult(String who, int requestCode,
+        int resultCode, Intent data) {
+        if (false) Log.v(
+            TAG, "Dispatching result: who=" + who + ", reqCode=" + requestCode
+            + ", resCode=" + resultCode + ", data=" + data);
+        mFragments.noteStateNotSaved();
+        if (who == null) {
+            onActivityResult(requestCode, resultCode, data);
+-- ActivityThread.java:4253-4265
+    private void deliverResults(ActivityClientRecord r, List<ResultInfo> results) {
+        final int N = results.size();
+        for (int i=0; i<N; i++) {
+            ResultInfo ri = results.get(i);
+            try {
+                if (ri.mData != null) {
+                    ri.mData.setExtrasClassLoader(r.activity.getClassLoader());
+                    ri.mData.prepareToEnterProcess();
+                }
+                if (DEBUG_RESULTS) Slog.v(TAG,
+                        "Delivering result to activity " + r + " : " + ri);
+                r.activity.dispatchActivityResult(ri.mResultWho,
+                        ri.mRequestCode, ri.mResultCode, ri.mData);
+-- ActivityThread.java:4312
+            deliverResults(r, res.results);
+-- mEmbeddedID assignments in Activity.java
+6960:        mEmbeddedID = id;
+-- PendingIntent source present in fw_src:
+(not in fw_src)

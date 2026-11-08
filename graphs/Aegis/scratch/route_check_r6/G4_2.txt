@@ -1,0 +1,79 @@
+## DaggerAegisApplication_HiltComponents_SingletonC$SingletonCImpl.injectVaultLockReceiver2  REACHABLE  confirmed_by=INFERRED path=UNCHECKED
+   env=system_event state=- classes=explicit;standard explicit_standard_route=yes
+   1. Eb9515d18 ENTRY/standard*
+      S_ENTRY -> AegisApplication.<init>
+      Any outside trigger starts the app process; the application class is created first, except in a backup or restore start, which uses the base Application class
+      guard: not a full backup or restore start (FW ActivityThread.java:5713-5715)
+      evidence: SRC AndroidManifest.xml:21-27 (android:name=".AegisApplication", backupAgent=".AegisBackupAgent")
+         21      <application
+         22          android:name=".AegisApplication"
+         23          android:allowBackup="true"
+         24          android:fullBackupOnly="true"
+         25          android:fullBackupContent="@xml/backup_rules_old"
+         26          android:dataExtractionRules="@xml/backup_rules"
+         27          android:backupAgent=".AegisBackupAgent"
+   2. E5b266140 LIFECYCLE/standard*
+      AegisApplication.<init> -> Hilt_AegisApplication.onCreate
+      Application.onCreate: the Hilt-generated superclass onCreate runs first (Hilt injection), then AegisApplicationBase.onCreate
+      evidence: FW-SRC core/java/android/app/ActivityThread.java:5740 (the system calls Application.onCreate); INFERRED Hilt rewrites the superclass: AegisApplication extends Hilt_AegisApplication (generated file, not in the source tree; source AegisApplication.java:6 has no onCreate)
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+   3. E1ef992ce CALL/explicit
+      Hilt_AegisApplication.onCreate -> AegisApplicationBase.onCreate
+      Direct call
+      evidence: INFERRED generated code (Hilt_AegisApplication.java is not in the source tree; the call is in the build class, line 43)
+   4. E88ed9829 ENTERS/page*
+      AegisApplicationBase.onCreate -> S_PROCESS
+      the application is created: the process can start a component
+      evidence: SRC AegisApplicationBase.java:45-67; FW-SRC core/java/android/app/ActivityThread.java:5740 (the system calls Application.onCreate)
+         45      public void onCreate() {
+         46          super.onCreate();
+         47          _vaultManager = EarlyEntryPoints.get(this, EntryPoint.class).getVaultManager();
+         48  
+         49          VaultLockReceiver lockReceiver = new VaultLockReceiver();
+         50          IntentFilter intentFilter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
+         51          ContextCompat.registerReceiver(this, lockReceiver, intentFilter, ContextCompat.RECEIVER_NOT_EXPORTED);
+         52  
+         53          // lock the app if the user moves the application to the background
+         54          ProcessLifecycleOwner.get().getLifecycle().addObserver(new AppLifecycleObserver());
+         55  
+         56          // clear the cache directory on startup, to make sure no temporary vault export files remain
+         57          IOUtils.clearDirectory(getCacheDir(), false);
+         58  
+      ...  (9 more lines)
+      (core/java/android/app/ActivityThread.java not found in the source tree)
+   5. E313f4f87 SYSTEM/standard* [ENV: the screen is switched off (ACTION_SCREEN_OFF, AegisApplicationBase.java:49-51)]
+      S_PROCESS -> VaultLockReceiver.onReceive
+      the screen turns off (the runtime receiver gets ACTION_SCREEN_OFF)
+      evidence: INFERRED android.content.BroadcastReceiver: the system calls onReceive for a manifest or registered receiver (source not read); SRC AegisApplicationBase.java:49-51; SRC receivers/VaultLockReceiver.java:24-34
+         49          VaultLockReceiver lockReceiver = new VaultLockReceiver();
+         50          IntentFilter intentFilter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
+         51          ContextCompat.registerReceiver(this, lockReceiver, intentFilter, ContextCompat.RECEIVER_NOT_EXPORTED);
+         24      public void onReceive(Context context, Intent intent) {
+         25          if (intent.getAction() == null
+         26                  || (!intent.getAction().equals(ACTION_LOCK_VAULT)
+         27                  && !intent.getAction().equals(Intent.ACTION_SCREEN_OFF))) {
+         28              return;
+         29          }
+         30  
+         31          if (_vaultManager.isAutoLockEnabled(Preferences.AUTO_LOCK_ON_DEVICE_LOCK)) {
+         32              _vaultManager.lock(false);
+         33          }
+         34      }
+   6. E47521e87 CALL/explicit
+      VaultLockReceiver.onReceive -> Hilt_VaultLockReceiver.onReceive
+      Direct call
+      evidence: SRC VaultLockReceiver.java:None (bytecode)
+      (VaultLockReceiver.java:None: no line numbers)
+   7. Ef238aaad CALL/explicit
+      Hilt_VaultLockReceiver.onReceive -> Hilt_VaultLockReceiver.inject
+      Direct call
+      evidence: INFERRED generated code (Hilt_VaultLockReceiver.java is not in the source tree; the call is in the build class, line 27)
+   8. E4e6415e1 CALL/explicit
+      Hilt_VaultLockReceiver.inject -> DaggerAegisApplication_HiltComponents_SingletonC$SingletonCImpl.injectVaultLockReceiver
+      Virtual/interface call that can dispatch to this implementation
+      evidence: INFERRED generated code (Hilt_VaultLockReceiver.java is not in the source tree; the call is in the build class, line 34)
+   9. E421cdc72 CALL/explicit
+      DaggerAegisApplication_HiltComponents_SingletonC$SingletonCImpl.injectVaultLockReceiver -> DaggerAegisApplication_HiltComponents_SingletonC$SingletonCImpl.injectVaultLockReceiver2
+      Direct call
+      evidence: INFERRED generated code (DaggerAegisApplication_HiltComponents_SingletonC.java is not in the source tree; the call is in the build class, line 583)
+

@@ -1,0 +1,39 @@
+# batch 10: drawer.TagItem.hashCode (ui/main/drawer/TagItem.java:50-51)
+# command: sed -n '50,51p' ui/main/drawer/TagItem.java
+    public int hashCode() {
+        return info.hashCode();
+# command: sed -n '130,146p' ui/main/drawer/TagsAdapter.java
+    static final DiffUtil.ItemCallback<AbstractTagItem> diffCallback =
+            new DiffUtil.ItemCallback<AbstractTagItem>() {
+                @Override
+                public boolean areContentsTheSame(
+                        @NonNull AbstractTagItem oldItem,
+                        @NonNull AbstractTagItem newItem
+                ) {
+                    return oldItem.equals(newItem);
+                }
+
+                @Override
+                public boolean areItemsTheSame(
+                        @NonNull AbstractTagItem oldItem,
+                        @NonNull AbstractTagItem newItem
+                ) {
+                    return oldItem.isSame(newItem);
+                }
+# command: sed -n '474,485p' ui/main/MainActivity.java
+                        Flowable.concat(
+                                Flowable.just(new EmptyTagItem()),
+                                Flowable.just(new NoTagsItem()),
+                                Flowable.fromIterable(list).map(TagItem::new)
+                        ).toList()
+                )
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((items) -> {
+                    if (tagsAdapter.getItemCount() == 0) {
+                        setInitSelection(items);
+                    }
+                    tagsAdapter.submitList(items);
+# command: grep -rn -E 'hashCode|HashSet|HashMap|toSet|distinct|Set<|Map<' ui/main/drawer and ui/main/MainActivity.java
+ui/main/drawer/TagItem.java:50:    public int hashCode() {
+ui/main/drawer/TagItem.java:51:        return info.hashCode();
+# exit=0

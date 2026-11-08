@@ -1,0 +1,46 @@
+# Markor 2.16.1 trigger graph
+# Generated part: tools/gen_edges.py derives entry points, lifecycle, callbacks, lambdas, intents, XML-instantiated classes
+# from the bytecode, AndroidManifest.xml and res/ XML (see its docstring). Direct app->app calls come from
+# tools/extract_calls.py. Everything below gen_edges.apply() is hand-written refinement for this app.
+# Rebuild: python3 -I tools/build_graph.py graphs/Markor <prefix>
+
+TITLE = 'Markor 2.16.1 trigger graph'
+USE_AUTO = True
+PREFER_SETUP_OVER_ENV = True
+AUTO_DEAD = ('Generated graph: no route found. Nothing in the app calls it and no entry point (manifest component, lifecycle or '
+             'UI callback of a constructed class, lambda, XML reference, class literal, intent action) leads to it. '
+             'Probably unused code; entries through reflection, JNI or code generators are not modelled.')
+
+import sys
+sys.path.insert(0, TOOLS)
+import gen_edges
+
+ENV_SEND = 'outside package: another app shares text or a file to Markor (ACTION_SEND / SEND_MULTIPLE)'
+ENV_PERM = ('outside package: the all-files / storage permission is not granted (the baseline emulators had runtime permissions pre-granted), '
+            'so the permission screen never shows')
+ENV_WIDGET = 'outside package: the user adds a Markor widget or launcher shortcut on the home screen (the system then starts the provider / activity)'
+
+ENV_PROCESS_TEXT = ('outside package: another app sends selected text through the PROCESS_TEXT / SEND / VIEW intent '
+                    '(DocumentActivity.handleLaunchingIntent switches on the launch intent action)')
+
+CFG = {
+    'GROUPS': [         # (regex on node name, 'needs'|'env'|'guard', text): gates every edge that enters the group from outside it
+        (r'^DocumentShareIntoFragment', 'env', ENV_SEND),
+        (r'^(StoragePermissionActivity|GsPermissionChecker)', 'env', ENV_PERM),
+        (r'^(TodoWidget\w*|WrFilesWidget\w*|WrMarkorWidgetProvider|WrWidgetConfigure|OpenFromShortcutOrWidgetActivity)', 'env', ENV_WIDGET),
+        (r'^(JavaPasswordbasedCryption|PasswordStore)', 'needs', 'An encrypted (.jenc) note is opened, or encryption is chosen in the New file dialog'),
+        (r'^(CsvTextConverter|CsvSyntaxHighlighter|CsvConfig)', 'needs', 'A .csv document is open (table.csv is among the Download fixtures, so this is a path step: open it from the file browser)'),
+        (r'^Wikitext\w*', 'needs', 'A Wikitext document is open (a .txt file with a Wikitext header)'),
+        (r'^TodoTxt\w*', 'needs', 'A todo.txt document is open'),
+        (r'^(Asciidoc\w*|WrAsciidoc\w*)', 'needs', 'An AsciiDoc document (.adoc / .asciidoc) is open'),
+        (r'^FlexmarkKatexExtension', 'needs', 'The open Markdown document contains KaTeX math ($...$ or $$...$$)'),
+    ],
+    'EDGES': [          # (regex on source node, regex on target node, 'needs'|'env'|'guard', text): branch-specific gates read from the source at the frontier
+        (r'^DocumentActivity\.handleLaunchingIntent$', r'^DocumentActivity\.showShareInto$', 'env', ENV_PROCESS_TEXT),
+    ],
+    'STATIC_ADAPTERS': [],  # adapters whose rows exist without user data
+}
+
+gen_edges.apply(globals(), GDIR, 'Markor', CFG)
+
+# ------------------------------------------------------------------ hand-written refinement

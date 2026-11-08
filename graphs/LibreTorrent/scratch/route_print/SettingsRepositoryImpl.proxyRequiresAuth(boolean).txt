@@ -1,0 +1,386 @@
+METHOD: SettingsRepositoryImpl.proxyRequiresAuth(boolean)
+verdict: REACHABLE   steps_from_launch: 13
+route steps: 13 edges
+======================================================================
+
+STEP 1  edge Ecf635b68
+  S_ENTRY -> SettingsActivity.onCreate
+  class: standard   kind: ENTRY
+  guard: None
+  needs_state: None
+  env: android:exported="true"
+  evidence: SRC AndroidManifest.xml:155-161; FW-SRC core/java/android/app/ActivityThread.java:2727-2732; core/java/android/app/Instrumentation.java:1212-1215
+  cite [SRC] AndroidManifest.xml:155-161
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/AndroidManifest.xml)
+      155:         <activity android:name=".ui.settings.SettingsActivity"
+      156:             android:label="@string/settings"
+      157:             android:exported="true">
+      158:             <intent-filter>
+      159:                 <action android:name="android.intent.action.APPLICATION_PREFERENCES" />
+      160:                 <category android:name="android.intent.category.DEFAULT" />
+      161:             </intent-filter>
+  cite [FW-SRC] core/java/android/app/ActivityThread.java:2727-2732
+     2727:                 activity.mCalled = false;
+     2728:                 if (r.isPersistable()) {
+     2729:                     mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+     2730:                 } else {
+     2731:                     mInstrumentation.callActivityOnCreate(activity, r.state);
+     2732:                 }
+  cite [FW-SRC] core/java/android/app/Instrumentation.java:1212-1215
+     1212:     public void callActivityOnCreate(Activity activity, Bundle icicle) {
+     1213:         prePerformCreate(activity);
+     1214:         activity.performCreate(icicle);
+     1215:         postPerformCreate(activity);
+
+STEP 2  edge E9e34b73e
+  SettingsActivity.onCreate -> SettingsFragment.<init>
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX FragmentContainerView inflation; SRC ui/settings/SettingsActivity.java:45-60; res/layout/activity_settings_portrait.xml:8-14; res/layout/activity_settings_two_pane.xml:19-25
+  cite [SRC] ui/settings/SettingsActivity.java:45-60
+       45:         super.onCreate(savedInstanceState);
+       46: 
+       47:         viewModel = new ViewModelProvider(this).get(SettingsViewModel.class);
+       48: 
+       49:         setContentView(R.layout.activity_settings);
+       50: 
+       51:         toolbar = findViewById(R.id.toolbar);
+       52:         toolbar.setTitle(getString(R.string.settings));
+       53:         setSupportActionBar(toolbar);
+       54:         if (getSupportActionBar() != null)
+       55:             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+       56: 
+       57:         detailTitle = findViewById(R.id.detail_title);
+       58:         viewModel.detailTitleChanged.observe(this, title -> {
+       59:             if (title != null && detailTitle != null)
+       60:                 detailTitle.setText(title);
+  cite [SRC] res/layout/activity_settings_portrait.xml:8-14
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/res/layout/activity_settings_portrait.xml)
+        8:     <include
+        9:         layout="@layout/toolbar" />
+       10: 
+       11:     <androidx.fragment.app.FragmentContainerView
+       12:         class="org.proninyaroslav.libretorrent.ui.settings.SettingsFragment"
+       13:         android:id="@+id/settings_fragmentContainer"
+       14:         android:layout_width="match_parent"
+  cite [SRC] res/layout/activity_settings_two_pane.xml:19-25
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/res/layout/activity_settings_two_pane.xml)
+       19: 
+       20:         <androidx.fragment.app.FragmentContainerView
+       21:             class="org.proninyaroslav.libretorrent.ui.settings.SettingsFragment"
+       22:             android:id="@+id/settings_fragmentContainer"
+       23:             android:layout_width="0dp"
+       24:             android:layout_height="match_parent"
+       25:             android:layout_weight="1" />
+
+STEP 3  edge E11a5270c
+  SettingsFragment.<init> -> SettingsFragment.onAttach
+  class: non_standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX Fragment lifecycle dispatch; SRC ui/settings/SettingsFragment.java:71-80
+  cite [SRC] ui/settings/SettingsFragment.java:71-80
+       71: 
+       72:     @Override
+       73:     public void onAttach(@NonNull Context context)
+       74:     {
+       75:         super.onAttach(context);
+       76: 
+       77:         if (context instanceof AppCompatActivity)
+       78:             activity = (AppCompatActivity)context;
+       79:     }
+       80: 
+
+STEP 4  edge E4e7bd86a
+  SettingsFragment.onAttach -> SettingsFragment.onCreatePreferences
+  class: non_standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX PreferenceFragmentCompat callback dispatch; SRC ui/settings/SettingsFragment.java:215-218
+  cite [SRC] ui/settings/SettingsFragment.java:215-218
+      215:     public void onCreatePreferences(Bundle savedInstanceState, String rootKey)
+      216:     {
+      217:         setPreferencesFromResource(R.xml.pref_headers, rootKey);
+      218:     }
+
+STEP 5  edge Ef302e4d4
+  SettingsFragment.onCreatePreferences -> SettingsFragment.onViewCreated
+  class: non_standard   kind: LIFECYCLE
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX Fragment lifecycle dispatch; SRC ui/settings/SettingsFragment.java:82-131,215-218
+  cite [SRC] ui/settings/SettingsFragment.java:82-131, 215-218
+       82:     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+       83:         super.onViewCreated(view, savedInstanceState);
+       84: 
+       85:         if (activity == null)
+       86:             activity = (AppCompatActivity)getActivity();
+       87: 
+       88:         viewModel = new ViewModelProvider(activity).get(SettingsViewModel.class);
+       89: 
+       90:         if (Utils.isTwoPane(activity)) {
+       91:             Fragment f = activity.getSupportFragmentManager()
+       92:                     .findFragmentById(R.id.detail_fragment_container);
+       93:             if (f == null)
+       94:                 setFragment(AppearanceSettingsFragment.newInstance(),
+       95:                         getString(R.string.pref_header_appearance));
+       96:         }
+       97: 
+       98:         Preference appearance = findPreference(AppearanceSettingsFragment.class.getSimpleName());
+       99:         if (appearance != null)
+      100:             appearance.setOnPreferenceClickListener(prefClickListener);
+      101: 
+      102:         Preference behavior = findPreference(BehaviorSettingsFragment.class.getSimpleName());
+      103:         if (behavior != null)
+      104:             behavior.setOnPreferenceClickListener(prefClickListener);
+      105: 
+      106:         Preference storage = findPreference(StorageSettingsFragment.class.getSimpleName());
+      107:         if (storage != null)
+      108:             storage.setOnPreferenceClickListener(prefClickListener);
+      109: 
+      110:         Preference limitations = findPreference(LimitationsSettingsFragment.class.getSimpleName());
+      111:         if (limitations != null)
+      112:             limitations.setOnPreferenceClickListener(prefClickListener);
+      113: 
+      114:         Preference network = findPreference(NetworkSettingsFragment.class.getSimpleName());
+      115:         if (network != null)
+      116:             network.setOnPreferenceClickListener(prefClickListener);
+      117: 
+      118:         Preference scheduling = findPreference(SchedulingSettingsFragment.class.getSimpleName());
+      119:         if (scheduling != null)
+      120:             scheduling.setOnPreferenceClickListener(prefClickListener);
+      121: 
+      122:         Preference feed = findPreference(FeedSettingsFragment.class.getSimpleName());
+      123:         if (feed != null)
+      124:             feed.setOnPreferenceClickListener(prefClickListener);
+      125: 
+      126:         Preference streaming = findPreference(StreamingSettingsFragment.class.getSimpleName());
+      127:         if (streaming != null)
+      128:             streaming.setOnPreferenceClickListener(prefClickListener);
+      129:     }
+      130: 
+      131:     private Preference.OnPreferenceClickListener prefClickListener = (preference) -> {
+      215:     public void onCreatePreferences(Bundle savedInstanceState, String rootKey)
+      216:     {
+      217:         setPreferencesFromResource(R.xml.pref_headers, rootKey);
+      218:     }
+
+STEP 6  edge Edbeb8795
+  SettingsFragment.onViewCreated -> SettingsFragment.setFragment
+  class: explicit   kind: CALL
+  guard: Utils.isTwoPane(activity) && f == null
+  needs_state: None
+  env: None
+  evidence: SRC ui/settings/SettingsFragment.java:90-96,220-230
+  cite [SRC] ui/settings/SettingsFragment.java:90-96, 220-230
+       90:         if (Utils.isTwoPane(activity)) {
+       91:             Fragment f = activity.getSupportFragmentManager()
+       92:                     .findFragmentById(R.id.detail_fragment_container);
+       93:             if (f == null)
+       94:                 setFragment(AppearanceSettingsFragment.newInstance(),
+       95:                         getString(R.string.pref_header_appearance));
+       96:         }
+      220:     private <F extends PreferenceFragmentCompat> void setFragment(F fragment, String title)
+      221:     {
+      222:         viewModel.detailTitleChanged.setValue(title);
+      223: 
+      224:         if (Utils.isLargeScreenDevice(activity)) {
+      225:             activity.getSupportFragmentManager().beginTransaction()
+      226:                     .replace(R.id.detail_fragment_container, fragment)
+      227:                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+      228:                     .commit();
+      229:         }
+      230:     }
+
+STEP 7  edge Ee988584f
+  SettingsFragment.setFragment -> NetworkSettingsFragment.onCreate
+  class: non_standard   kind: LIFECYCLE
+  guard: Utils.isLargeScreenDevice(activity)
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX FragmentManager lifecycle dispatch; SRC ui/settings/SettingsFragment.java:220-230; ui/settings/sections/NetworkSettingsFragment.java:104-109
+  cite [SRC] ui/settings/SettingsFragment.java:220-230
+      220:     private <F extends PreferenceFragmentCompat> void setFragment(F fragment, String title)
+      221:     {
+      222:         viewModel.detailTitleChanged.setValue(title);
+      223: 
+      224:         if (Utils.isLargeScreenDevice(activity)) {
+      225:             activity.getSupportFragmentManager().beginTransaction()
+      226:                     .replace(R.id.detail_fragment_container, fragment)
+      227:                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+      228:                     .commit();
+      229:         }
+      230:     }
+  cite [SRC] ui/settings/sections/NetworkSettingsFragment.java:104-109
+      104:     public void onCreate(Bundle savedInstanceState) {
+      105:         super.onCreate(savedInstanceState);
+      106: 
+      107:         Context context = getActivity().getApplicationContext();
+      108:         pref = RepositoryHelper.getSettingsRepository(context);
+      109:         fs = SystemFacadeHelper.getFileSystemFacade(context);
+
+STEP 8  edge Ed33fb717
+  NetworkSettingsFragment.onCreate -> NetworkSettingsFragment.lambda$onCreate$3
+  class: non_standard   kind: FRAMEWORK
+  guard: proxy != null
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX Preference callback dispatch; SRC ui/settings/sections/NetworkSettingsFragment.java:227-240
+  cite [SRC] ui/settings/sections/NetworkSettingsFragment.java:227-240
+      227:         Preference proxy = findPreference(getString(R.string.pref_key_proxy_settings));
+      228:         if (proxy != null) {
+      229:             proxy.setOnPreferenceClickListener((preference) -> {
+      230:                 if (Utils.isLargeScreenDevice(activity)) {
+      231:                     setFragment(ProxySettingsFragment.newInstance(),
+      232:                             getString(R.string.pref_proxy_settings_title));
+      233:                 } else {
+      234:                     startActivity(ProxySettingsFragment.class,
+      235:                             getString(R.string.pref_proxy_settings_title));
+      236:                 }
+      237: 
+      238:                 return true;
+      239:             });
+      240:         }
+
+STEP 9  edge E5a07d32d
+  NetworkSettingsFragment.lambda$onCreate$3 -> NetworkSettingsFragment.setFragment
+  class: explicit   kind: CALL
+  guard: Utils.isLargeScreenDevice(activity)
+  needs_state: None
+  env: None
+  evidence: SRC ui/settings/sections/NetworkSettingsFragment.java:229-236,361-369
+  cite [SRC] ui/settings/sections/NetworkSettingsFragment.java:229-236, 361-369
+      229:             proxy.setOnPreferenceClickListener((preference) -> {
+      230:                 if (Utils.isLargeScreenDevice(activity)) {
+      231:                     setFragment(ProxySettingsFragment.newInstance(),
+      232:                             getString(R.string.pref_proxy_settings_title));
+      233:                 } else {
+      234:                     startActivity(ProxySettingsFragment.class,
+      235:                             getString(R.string.pref_proxy_settings_title));
+      236:                 }
+      361:     private <F extends PreferenceFragmentCompat> void setFragment(F fragment, String title) {
+      362:         if (Utils.isLargeScreenDevice(getActivity().getApplicationContext())) {
+      363:             viewModel.detailTitleChanged.setValue(title);
+      364:             getActivity().getSupportFragmentManager().beginTransaction()
+      365:                     .replace(R.id.detail_fragment_container, fragment)
+      366:                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+      367:                     .commit();
+      368:         }
+      369:     }
+
+STEP 10  edge Ee823bb84
+  NetworkSettingsFragment.setFragment -> ProxySettingsFragment.onCreate
+  class: non_standard   kind: LIFECYCLE
+  guard: Utils.isLargeScreenDevice(getActivity().getApplicationContext())
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX FragmentManager lifecycle dispatch; SRC ui/settings/sections/NetworkSettingsFragment.java:361-369; ui/settings/sections/ProxySettingsFragment.java:95-101
+  cite [SRC] ui/settings/sections/NetworkSettingsFragment.java:361-369
+      361:     private <F extends PreferenceFragmentCompat> void setFragment(F fragment, String title) {
+      362:         if (Utils.isLargeScreenDevice(getActivity().getApplicationContext())) {
+      363:             viewModel.detailTitleChanged.setValue(title);
+      364:             getActivity().getSupportFragmentManager().beginTransaction()
+      365:                     .replace(R.id.detail_fragment_container, fragment)
+      366:                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+      367:                     .commit();
+      368:         }
+      369:     }
+  cite [SRC] ui/settings/sections/ProxySettingsFragment.java:95-101
+       95:     public void onCreate(Bundle savedInstanceState)
+       96:     {
+       97:         super.onCreate(savedInstanceState);
+       98: 
+       99:         pref = RepositoryHelper.getSettingsRepository(getActivity().getApplicationContext());
+      100: 
+      101:         boolean enableAdvancedSettings;
+
+STEP 11  edge Ef63a320e
+  ProxySettingsFragment.onCreate -> ProxySettingsFragment.bindOnPreferenceChangeListener
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/settings/sections/ProxySettingsFragment.java:109,118,131,139,147,157,167; SRC ui/settings/sections/ProxySettingsFragment.java:177-179
+  cite [SRC] ui/settings/sections/ProxySettingsFragment.java:109, 118, 131, 139, 147, 157, 167
+      109:             bindOnPreferenceChangeListener(proxyType);
+      118:                 bindOnPreferenceChangeListener(address);
+      131:                 bindOnPreferenceChangeListener(port);
+      139:                 bindOnPreferenceChangeListener(proxyPeersToo);
+      147:                 bindOnPreferenceChangeListener(requiresAuth);
+      157:             bindOnPreferenceChangeListener(login);
+      167:             bindOnPreferenceChangeListener(password);
+  cite [SRC] ui/settings/sections/ProxySettingsFragment.java:177-179
+      177:     private void bindOnPreferenceChangeListener(Preference preference)
+      178:     {
+      179:         preference.setOnPreferenceChangeListener(this);
+
+STEP 12  edge Ee698483f
+  ProxySettingsFragment.bindOnPreferenceChangeListener -> ProxySettingsFragment.onPreferenceChange
+  class: non_standard   kind: FRAMEWORK
+  guard: None
+  needs_state: None
+  env: None
+  evidence: INFERRED AndroidX Preference change dispatch; SRC ui/settings/sections/ProxySettingsFragment.java:177-179; SRC ui/settings/sections/ProxySettingsFragment.java:206-245
+  cite [SRC] ui/settings/sections/ProxySettingsFragment.java:177-179
+      177:     private void bindOnPreferenceChangeListener(Preference preference)
+      178:     {
+      179:         preference.setOnPreferenceChangeListener(this);
+  cite [SRC] ui/settings/sections/ProxySettingsFragment.java:206-245
+      206:     public boolean onPreferenceChange(Preference preference, Object newValue)
+      207:     {
+      208:         if (preference.getKey().equals(getString(R.string.pref_key_proxy_type))) {
+      209:             int type = Integer.parseInt((String)newValue);
+      210:             pref.proxyType(type);
+      211: 
+      212:             boolean enableAdvancedSettings = type != Integer.parseInt(getString(R.string.pref_proxy_type_none_value));
+      213:             enableOrDisablePreferences(enableAdvancedSettings);
+      214: 
+      215:         } else if (preference.getKey().equals(getString(R.string.pref_key_proxy_port))) {
+      216:             if (!TextUtils.isEmpty((String)newValue)) {
+      217:                 int value = Integer.parseInt((String) newValue);
+      218:                 pref.proxyPort(value);
+      219:                 preference.setSummary(Integer.toString(value));
+      220:             }
+      221: 
+      222:         } else if (preference.getKey().equals(getString(R.string.pref_key_proxy_address))) {
+      223:             pref.proxyAddress((String)newValue);
+      224:             preference.setSummary((String)newValue);
+      225: 
+      226:         } else if (preference.getKey().equals(getString(R.string.pref_key_proxy_login))) {
+      227:             pref.proxyLogin((String)newValue);
+      228:             preference.setSummary((String)newValue);
+      229: 
+      230:         } else if (preference.getKey().equals(getString(R.string.pref_key_proxy_password))) {
+      231:            pref.proxyPassword((String)newValue);
+      232:             ((EditTextPreference)preference).setOnBindEditTextListener((editText) -> preference.setSummary(editText
+      233:                     .getTransformationMethod()
+      234:                     .getTransformation((String)newValue, editText).toString()));
+      235: 
+      236:         } else if (preference.getKey().equals(getString(R.string.pref_key_proxy_peers_too))) {
+      237:             pref.proxyPeersToo((boolean)newValue);
+      238: 
+      239:         } else if (preference.getKey().equals(getString(R.string.pref_key_proxy_requires_auth))) {
+      240:             pref.proxyRequiresAuth((boolean)newValue);
+      241:         }
+      242: 
+      243:         proxyChanged = true;
+      244: 
+      245:         return true;
+
+STEP 13  edge Efc2a6dff
+  ProxySettingsFragment.onPreferenceChange -> SettingsRepositoryImpl.proxyRequiresAuth(boolean)
+  class: explicit   kind: CALL
+  guard: None
+  needs_state: None
+  env: None
+  evidence: SRC ui/settings/sections/ProxySettingsFragment.java:240; SRC SettingsRepositoryImpl.java:1052
+  cite [SRC] ui/settings/sections/ProxySettingsFragment.java:240
+      240:             pref.proxyRequiresAuth((boolean)newValue);
+  cite [SRC] SettingsRepositoryImpl.java:1052
+    (resolved to final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/core/settings/SettingsRepositoryImpl.java)
+     1052:     public void proxyRequiresAuth(boolean val) {

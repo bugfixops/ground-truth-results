@@ -1,0 +1,286 @@
+# Batch 94 printed evidence (fresh, C15 converter, 2026-11-01)
+# Source root: final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java/org/proninyaroslav/libretorrent/
+# Cited files (basenames, for check_part check 8): DetailTorrentPeersFragment.java, DetailTorrentPiecesFragment.java, DetailTorrentTrackersFragment.java, PeerItem.java, PeerListAdapter.java, PiecesView.java
+
+=== ui/detailtorrent/pages/peers/DetailTorrentPeersFragment.java ===
+   124:         binding.peerList.setLayoutManager(layoutManager);
+   125:         binding.peerList.setEmptyView(binding.emptyViewPeerList);
+*  126:         adapter = new PeerListAdapter(this);
+   127:         /*
+   128:          * A RecyclerView by default creates another copy of the ViewHolder in order to
+---
+   130:          * the payload but then the new one doesn't. So needs to explicitly tell it to reuse the old one.
+   131:          */
+*  132:         DefaultItemAnimator animator = new DefaultItemAnimator() {
+*  133:             @Override
+*  134:             public boolean canReuseUpdatedViewHolder(@NonNull RecyclerView.ViewHolder viewHolder) {
+*  135:                 return true;
+*  136:             }
+*  137:         };
+*  138:         binding.peerList.setItemAnimator(animator);
+   139:         TypedArray a = activity.obtainStyledAttributes(new TypedValue().data, new int[]{R.attr.divider});
+   140:         binding.peerList.addItemDecoration(new RecyclerViewDividerDecoration(a.getDrawable(0)));
+---
+   140:         binding.peerList.addItemDecoration(new RecyclerViewDividerDecoration(a.getDrawable(0)));
+   141:         a.recycle();
+*  142:         binding.peerList.setAdapter(adapter);
+   143:     }
+   144: 
+---
+
+=== ui/detailtorrent/pages/peers/PeerItem.java ===
+    39:     }
+    40: 
+*   41:     public boolean equalsContent(Object o)
+*   42:     {
+*   43:         return super.equals(o);
+*   44:     }
+*   45: 
+    46:     @Override
+    47:     public boolean equals(Object o)
+---
+    45: 
+    46:     @Override
+*   47:     public boolean equals(Object o)
+*   48:     {
+*   49:         if (!(o instanceof PeerItem))
+*   50:             return false;
+*   51: 
+*   52:         if (o == this)
+*   53:             return true;
+*   54: 
+    55:         return ip.equals(((PeerItem)o).ip);
+    56:     }
+---
+
+=== ui/detailtorrent/pages/peers/PeerListAdapter.java ===
+    43: public class PeerListAdapter extends ListAdapter<PeerItem, PeerListAdapter.ViewHolder>
+    44:         implements Selectable<PeerItem>
+*   45: {
+    46:     private static final String TAG = PeerListAdapter.class.getSimpleName();
+    47: 
+---
+    48:     private ClickListener listener;
+    49: 
+*   50:     public PeerListAdapter(ClickListener listener)
+*   51:     {
+*   52:         super(diffCallback);
+*   53: 
+*   54:         this.listener = listener;
+*   55:     }
+    56: 
+    57:     @NonNull
+---
+    57:     @NonNull
+    58:     @Override
+*   59:     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType)
+*   60:     {
+*   61:         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+*   62:         ItemPeersListBinding binding = DataBindingUtil.inflate(inflater,
+*   63:                 R.layout.item_peers_list,
+*   64:                 parent,
+*   65:                 false);
+*   66: 
+*   67:         return new ViewHolder(binding);
+*   68:     }
+    69: 
+    70:     @Override
+---
+    75: 
+    76:     @Override
+*   77:     public void submitList(@Nullable List<PeerItem> list)
+*   78:     {
+*   79:         if (list != null)
+*   80:             Collections.sort(list);
+*   81: 
+*   82:         super.submitList(list);
+*   83:     }
+    84: 
+    85:     @Override
+---
+    98:     }
+    99: 
+*  100:     private static final DiffUtil.ItemCallback<PeerItem> diffCallback = new DiffUtil.ItemCallback<PeerItem>()
+*  101:     {
+*  102:         @Override
+*  103:         public boolean areContentsTheSame(@NonNull PeerItem oldItem,
+*  104:                                           @NonNull PeerItem newItem)
+*  105:         {
+*  106:             return oldItem.equalsContent(newItem);
+*  107:         }
+*  108: 
+*  109:         @Override
+*  110:         public boolean areItemsTheSame(@NonNull PeerItem oldItem,
+*  111:                                        @NonNull PeerItem newItem)
+*  112:         {
+*  113:             return oldItem.equals(newItem);
+*  114:         }
+*  115:     };
+*  116: 
+   117:     public interface ClickListener
+   118:     {
+---
+   124:         private ItemPeersListBinding binding;
+   125: 
+*  126:         public ViewHolder(ItemPeersListBinding binding)
+*  127:         {
+*  128:             super(binding.getRoot());
+*  129: 
+*  130:             this.binding = binding;
+*  131:             Utils.colorizeProgressBar(itemView.getContext(), binding.progress);
+*  132:         }
+   133: 
+   134:         void bind(PeerItem item, ClickListener listener)
+---
+
+=== ui/detailtorrent/pages/pieces/DetailTorrentPiecesFragment.java ===
+    45:  */
+    46: 
+*   47: public class DetailTorrentPiecesFragment extends Fragment
+*   48: {
+*   49:     private static final String TAG = DetailTorrentPiecesFragment.class.getSimpleName();
+*   50: 
+*   51:     private static final String TAG_SCROLL_POSITION = "scroll_position";
+*   52: 
+    53:     private AppCompatActivity activity;
+    54:     private FragmentDetailTorrentPiecesBinding binding;
+---
+    57:     private int[] scrollPosition = new int[]{0, 0};
+    58: 
+*   59:     public static DetailTorrentPiecesFragment newInstance()
+*   60:     {
+*   61:         DetailTorrentPiecesFragment fragment = new DetailTorrentPiecesFragment();
+*   62: 
+*   63:         fragment.setArguments(new Bundle());
+*   64: 
+*   65:         return fragment;
+*   66:     }
+    67: 
+    68:     @Override
+---
+    69:     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    70:     {
+*   71:         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_detail_torrent_pieces, container, false);
+    72: 
+    73:         return binding.getRoot();
+---
+
+=== ui/detailtorrent/pages/pieces/PiecesView.java ===
+    55:     Paint complete = new Paint();
+    56: 
+*   57:     public PiecesView(@NonNull Context context, AttributeSet attrs)
+*   58:     {
+*   59:         super(context, attrs);
+*   60: 
+*   61:         create(context, attrs);
+*   62:     }
+    63: 
+    64:     public PiecesView(@NonNull Context context, AttributeSet attrs, int defStyleAttr)
+---
+    69:     }
+    70: 
+*   71:     void create(Context context, AttributeSet attrs)
+*   72:     {
+*   73:         cellSize = Utils.dpToPx(getContext(), CELL_SIZE_DP);
+*   74:         borderSize = Utils.dpToPx(getContext(), BORDER_SIZE_DP);
+*   75:         stepSize = cellSize + borderSize;
+*   76: 
+*   77:         if (attrs != null) {
+*   78:             TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.PiecesView);
+*   79:             int color = a.getColor(R.styleable.PiecesView_pieces_cellColor, 0);
+*   80:             empty.setColor(color);
+*   81:             a.recycle();
+*   82:         }
+*   83: 
+*   84:         TypedArray a = context.obtainStyledAttributes(new TypedValue().data, new int[] { R.attr.colorSecondary });
+*   85:         complete.setColor(a.getColor(0, 0));
+*   86:         a.recycle();
+*   87:     }
+*   88: 
+*   89:     public void setPieces(boolean[] pieces)
+*   90:     {
+*   91:         if (pieces == null || Arrays.equals(this.pieces, pieces))
+*   92:             return;
+*   93: 
+*   94:         int prevLength = (this.pieces != null ? this.pieces.length : 0);
+*   95:         cells = pieces.length;
+*   96:         this.pieces = pieces;
+*   97:         if (prevLength == pieces.length)
+*   98:             invalidate();
+*   99:         else
+   100:             requestLayout();
+   101:     }
+---
+   102: 
+   103:     @Override
+*  104:     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec)
+*  105:     {
+*  106:         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+*  107: 
+*  108:         int width = MeasureSpec.getSize(widthMeasureSpec) - getPaddingLeft() - getPaddingRight();
+*  109:         cols = width / stepSize;
+*  110:         /* We don't limit rows in the smaller side, thereby preventing cuts display cells */
+*  111:         rows = (int)Math.ceil((float)cells / (float)cols);
+*  112:         margin = (width - cols * stepSize) / 2;
+*  113:         int height = rows * stepSize;
+*  114: 
+*  115:         setMeasuredDimension(width, Math.max(width, height));
+*  116:     }
+*  117: 
+   118:     @Override
+   119:     protected void onDraw(Canvas canvas)
+---
+   117: 
+   118:     @Override
+*  119:     protected void onDraw(Canvas canvas)
+*  120:     {
+*  121:         super.onDraw(canvas);
+*  122: 
+*  123:         if (pieces == null)
+*  124:             return;
+*  125: 
+*  126:         int position = 0;
+*  127:         for (int r = 0; r < rows; r++) {
+*  128:             for (int c = 0; c < cols && position < pieces.length; c++) {
+*  129:                 Paint paint = (pieces[position] ? complete : empty);
+*  130:                 int left = c * stepSize + borderSize + margin;
+*  131:                 int right = left + stepSize - borderSize * 2;
+*  132:                 int top = r * stepSize + borderSize;
+*  133:                 int bottom = top + stepSize - borderSize * 2;
+*  134: 
+*  135:                 canvas.drawRect(left + borderSize, top + borderSize,
+*  136:                         right + borderSize, bottom + borderSize, paint);
+*  137:                 ++position;
+*  138:             }
+*  139:         }
+*  140:     }
+*  141: }
+---
+
+=== ui/detailtorrent/pages/trackers/DetailTorrentTrackersFragment.java ===
+    69:  */
+    70: 
+*   71: public class DetailTorrentTrackersFragment extends Fragment
+*   72: {
+*   73:     private static final String TAG = DetailTorrentTrackersFragment.class.getSimpleName();
+*   74: 
+*   75:     private static final String SELECTION_TRACKER_ID = "selection_tracker_0";
+*   76:     private static final String TAG_LIST_TRACKER_STATE = "list_tracker_state";
+*   77:     private static final String TAG_DELETE_TRACKERS_DIALOG = "delete_trackers_dialog";
+    78: 
+    79:     private AppCompatActivity activity;
+---
+    91:     private BaseAlertDialog.SharedViewModel dialogViewModel;
+    92: 
+*   93:     public static DetailTorrentTrackersFragment newInstance()
+*   94:     {
+*   95:         DetailTorrentTrackersFragment fragment = new DetailTorrentTrackersFragment();
+*   96: 
+*   97:         fragment.setArguments(new Bundle());
+*   98: 
+*   99:         return fragment;
+*  100:     }
+   101: 
+   102:     @Override
+---
+

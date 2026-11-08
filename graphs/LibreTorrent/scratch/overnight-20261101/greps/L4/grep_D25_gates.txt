@@ -1,0 +1,16 @@
+118:        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
+276:        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+    public static void showManageAllFilesWarningDialog(
+            @NonNull Context appContext,
+            @NonNull FragmentManager fm
+    ) {
+        var pref = RepositoryHelper.getSettingsRepository(appContext);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R
+                || Utils.hasManageExternalStoragePermission(appContext)
+                || !pref.showManageAllFilesWarningDialog()) {
+            return;
+        }
+
+        if (fm.findFragmentByTag(TAG_MANAGE_ALL_FILES_WARNING_DIALOG) == null) {
+            pref.showManageAllFilesWarningDialog(false);
+

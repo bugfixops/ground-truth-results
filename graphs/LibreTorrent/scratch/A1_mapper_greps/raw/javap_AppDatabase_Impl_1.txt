@@ -1,0 +1,1085 @@
+Compiled from "AppDatabase_Impl.java"
+class org.proninyaroslav.libretorrent.core.storage.AppDatabase_Impl$1 extends androidx.room.RoomOpenHelper$Delegate {
+  final org.proninyaroslav.libretorrent.core.storage.AppDatabase_Impl this$0;
+
+  org.proninyaroslav.libretorrent.core.storage.AppDatabase_Impl$1(org.proninyaroslav.libretorrent.core.storage.AppDatabase_Impl, int);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: putfield      #1                  // Field this$0:Lorg/proninyaroslav/libretorrent/core/storage/AppDatabase_Impl;
+       5: aload_0
+       6: iload_2
+       7: invokespecial #7                  // Method androidx/room/RoomOpenHelper$Delegate."<init>":(I)V
+      10: return
+
+  public void createAllTables(androidx.sqlite.db.SupportSQLiteDatabase);
+    Code:
+       0: aload_1
+       1: ldc           #13                 // String CREATE TABLE IF NOT EXISTS `Torrent` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `downloadPath` TEXT NOT NULL, `dateAdded` INTEGER NOT NULL, `error` TEXT, `manuallyPaused` INTEGER NOT NULL, `sequentialDownload` INTEGER NOT NULL, `magnet` TEXT, `downloadingMetadata` INTEGER NOT NULL, `visibility` INTEGER NOT NULL, `firstLastPiecePriority` INTEGER NOT NULL, PRIMARY KEY(`id`))
+       3: invokeinterface #15,  2           // InterfaceMethod androidx/sqlite/db/SupportSQLiteDatabase.execSQL:(Ljava/lang/String;)V
+       8: aload_1
+       9: ldc           #21                 // String CREATE TABLE IF NOT EXISTS `FastResume` (`torrentId` TEXT NOT NULL, `data` BLOB NOT NULL, PRIMARY KEY(`torrentId`), FOREIGN KEY(`torrentId`) REFERENCES `Torrent`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )
+      11: invokeinterface #15,  2           // InterfaceMethod androidx/sqlite/db/SupportSQLiteDatabase.execSQL:(Ljava/lang/String;)V
+      16: aload_1
+      17: ldc           #23                 // String CREATE INDEX IF NOT EXISTS `index_FastResume_torrentId` ON `FastResume` (`torrentId`)
+      19: invokeinterface #15,  2           // InterfaceMethod androidx/sqlite/db/SupportSQLiteDatabase.execSQL:(Ljava/lang/String;)V
+      24: aload_1
+      25: ldc           #25                 // String CREATE TABLE IF NOT EXISTS `FeedChannel` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `url` TEXT NOT NULL, `name` TEXT, `lastUpdate` INTEGER NOT NULL, `autoDownload` INTEGER NOT NULL, `filter` TEXT, `isRegexFilter` INTEGER NOT NULL, `fetchError` TEXT)
+      27: invokeinterface #15,  2           // InterfaceMethod androidx/sqlite/db/SupportSQLiteDatabase.execSQL:(Ljava/lang/String;)V
+      32: aload_1
+      33: ldc           #27                 // String CREATE TABLE IF NOT EXISTS `FeedItem` (`id` TEXT NOT NULL, `title` TEXT NOT NULL, `feedId` INTEGER NOT NULL, `downloadUrl` TEXT, `articleUrl` TEXT, `pubDate` INTEGER NOT NULL, `fetchDate` INTEGER NOT NULL, `read` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`feedId`) REFERENCES `FeedChannel`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )
+      35: invokeinterface #15,  2           // InterfaceMethod androidx/sqlite/db/SupportSQLiteDatabase.execSQL:(Ljava/lang/String;)V
+      40: aload_1
+      41: ldc           #29                 // String CREATE INDEX IF NOT EXISTS `index_FeedItem_feedId` ON `FeedItem` (`feedId`)
+      43: invokeinterface #15,  2           // InterfaceMethod androidx/sqlite/db/SupportSQLiteDatabase.execSQL:(Ljava/lang/String;)V
+      48: aload_1
+      49: ldc           #31                 // String CREATE TABLE IF NOT EXISTS `TagInfo` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `color` INTEGER NOT NULL)
+      51: invokeinterface #15,  2           // InterfaceMethod androidx/sqlite/db/SupportSQLiteDatabase.execSQL:(Ljava/lang/String;)V
+      56: aload_1
+      57: ldc           #33                 // String CREATE TABLE IF NOT EXISTS `TorrentTagInfo` (`tagId` INTEGER NOT NULL, `torrentId` TEXT NOT NULL, PRIMARY KEY(`tagId`, `torrentId`), FOREIGN KEY(`tagId`) REFERENCES `TagInfo`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`torrentId`) REFERENCES `Torrent`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )
+      59: invokeinterface #15,  2           // InterfaceMethod androidx/sqlite/db/SupportSQLiteDatabase.execSQL:(Ljava/lang/String;)V
+      64: aload_1
+      65: ldc           #35                 // String CREATE INDEX IF NOT EXISTS `index_TorrentTagInfo_tagId` ON `TorrentTagInfo` (`tagId`)
+      67: invokeinterface #15,  2           // InterfaceMethod androidx/sqlite/db/SupportSQLiteDatabase.execSQL:(Ljava/lang/String;)V
+      72: aload_1
+      73: ldc           #37                 // String CREATE INDEX IF NOT EXISTS `index_TorrentTagInfo_torrentId` ON `TorrentTagInfo` (`torrentId`)
+      75: invokeinterface #15,  2           // InterfaceMethod androidx/sqlite/db/SupportSQLiteDatabase.execSQL:(Ljava/lang/String;)V
+      80: aload_1
+      81: ldc           #39                 // String CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)
+      83: invokeinterface #15,  2           // InterfaceMethod androidx/sqlite/db/SupportSQLiteDatabase.execSQL:(Ljava/lang/String;)V
+      88: aload_1
+      89: ldc           #41                 // String INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \'5e7ddc46b48d983c51da89793079c7fd\')
+      91: invokeinterface #15,  2           // InterfaceMethod androidx/sqlite/db/SupportSQLiteDatabase.execSQL:(Ljava/lang/String;)V
+      96: return
+
+  public void dropAllTables(androidx.sqlite.db.SupportSQLiteDatabase);
+    Code:
+       0: aload_1
+       1: ldc           #43                 // String DROP TABLE IF EXISTS `Torrent`
+       3: invokeinterface #15,  2           // InterfaceMethod androidx/sqlite/db/SupportSQLiteDatabase.execSQL:(Ljava/lang/String;)V
+       8: aload_1
+       9: ldc           #45                 // String DROP TABLE IF EXISTS `FastResume`
+      11: invokeinterface #15,  2           // InterfaceMethod androidx/sqlite/db/SupportSQLiteDatabase.execSQL:(Ljava/lang/String;)V
+      16: aload_1
+      17: ldc           #47                 // String DROP TABLE IF EXISTS `FeedChannel`
+      19: invokeinterface #15,  2           // InterfaceMethod androidx/sqlite/db/SupportSQLiteDatabase.execSQL:(Ljava/lang/String;)V
+      24: aload_1
+      25: ldc           #49                 // String DROP TABLE IF EXISTS `FeedItem`
+      27: invokeinterface #15,  2           // InterfaceMethod androidx/sqlite/db/SupportSQLiteDatabase.execSQL:(Ljava/lang/String;)V
+      32: aload_1
+      33: ldc           #51                 // String DROP TABLE IF EXISTS `TagInfo`
+      35: invokeinterface #15,  2           // InterfaceMethod androidx/sqlite/db/SupportSQLiteDatabase.execSQL:(Ljava/lang/String;)V
+      40: aload_1
+      41: ldc           #53                 // String DROP TABLE IF EXISTS `TorrentTagInfo`
+      43: invokeinterface #15,  2           // InterfaceMethod androidx/sqlite/db/SupportSQLiteDatabase.execSQL:(Ljava/lang/String;)V
+      48: aload_0
+      49: getfield      #1                  // Field this$0:Lorg/proninyaroslav/libretorrent/core/storage/AppDatabase_Impl;
+      52: invokestatic  #55                 // Method org/proninyaroslav/libretorrent/core/storage/AppDatabase_Impl.access$000:(Lorg/proninyaroslav/libretorrent/core/storage/AppDatabase_Impl;)Ljava/util/List;
+      55: astore_2
+      56: aload_2
+      57: ifnull        96
+      60: aload_2
+      61: invokeinterface #61,  1           // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+      66: astore_3
+      67: aload_3
+      68: invokeinterface #67,  1           // InterfaceMethod java/util/Iterator.hasNext:()Z
+      73: ifeq          96
+      76: aload_3
+      77: invokeinterface #73,  1           // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      82: checkcast     #77                 // class androidx/room/RoomDatabase$Callback
+      85: astore        4
+      87: aload         4
+      89: aload_1
+      90: invokevirtual #79                 // Method androidx/room/RoomDatabase$Callback.onDestructiveMigration:(Landroidx/sqlite/db/SupportSQLiteDatabase;)V
+      93: goto          67
+      96: return
+
+  public void onCreate(androidx.sqlite.db.SupportSQLiteDatabase);
+    Code:
+       0: aload_0
+       1: getfield      #1                  // Field this$0:Lorg/proninyaroslav/libretorrent/core/storage/AppDatabase_Impl;
+       4: invokestatic  #83                 // Method org/proninyaroslav/libretorrent/core/storage/AppDatabase_Impl.access$100:(Lorg/proninyaroslav/libretorrent/core/storage/AppDatabase_Impl;)Ljava/util/List;
+       7: astore_2
+       8: aload_2
+       9: ifnull        48
+      12: aload_2
+      13: invokeinterface #61,  1           // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+      18: astore_3
+      19: aload_3
+      20: invokeinterface #67,  1           // InterfaceMethod java/util/Iterator.hasNext:()Z
+      25: ifeq          48
+      28: aload_3
+      29: invokeinterface #73,  1           // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      34: checkcast     #77                 // class androidx/room/RoomDatabase$Callback
+      37: astore        4
+      39: aload         4
+      41: aload_1
+      42: invokevirtual #86                 // Method androidx/room/RoomDatabase$Callback.onCreate:(Landroidx/sqlite/db/SupportSQLiteDatabase;)V
+      45: goto          19
+      48: return
+
+  public void onOpen(androidx.sqlite.db.SupportSQLiteDatabase);
+    Code:
+       0: aload_0
+       1: getfield      #1                  // Field this$0:Lorg/proninyaroslav/libretorrent/core/storage/AppDatabase_Impl;
+       4: aload_1
+       5: invokestatic  #89                 // Method org/proninyaroslav/libretorrent/core/storage/AppDatabase_Impl.access$202:(Lorg/proninyaroslav/libretorrent/core/storage/AppDatabase_Impl;Landroidx/sqlite/db/SupportSQLiteDatabase;)Landroidx/sqlite/db/SupportSQLiteDatabase;
+       8: pop
+       9: aload_1
+      10: ldc           #93                 // String PRAGMA foreign_keys = ON
+      12: invokeinterface #15,  2           // InterfaceMethod androidx/sqlite/db/SupportSQLiteDatabase.execSQL:(Ljava/lang/String;)V
+      17: aload_0
+      18: getfield      #1                  // Field this$0:Lorg/proninyaroslav/libretorrent/core/storage/AppDatabase_Impl;
+      21: aload_1
+      22: invokestatic  #95                 // Method org/proninyaroslav/libretorrent/core/storage/AppDatabase_Impl.access$300:(Lorg/proninyaroslav/libretorrent/core/storage/AppDatabase_Impl;Landroidx/sqlite/db/SupportSQLiteDatabase;)V
+      25: aload_0
+      26: getfield      #1                  // Field this$0:Lorg/proninyaroslav/libretorrent/core/storage/AppDatabase_Impl;
+      29: invokestatic  #99                 // Method org/proninyaroslav/libretorrent/core/storage/AppDatabase_Impl.access$400:(Lorg/proninyaroslav/libretorrent/core/storage/AppDatabase_Impl;)Ljava/util/List;
+      32: astore_2
+      33: aload_2
+      34: ifnull        73
+      37: aload_2
+      38: invokeinterface #61,  1           // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+      43: astore_3
+      44: aload_3
+      45: invokeinterface #67,  1           // InterfaceMethod java/util/Iterator.hasNext:()Z
+      50: ifeq          73
+      53: aload_3
+      54: invokeinterface #73,  1           // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      59: checkcast     #77                 // class androidx/room/RoomDatabase$Callback
+      62: astore        4
+      64: aload         4
+      66: aload_1
+      67: invokevirtual #102                // Method androidx/room/RoomDatabase$Callback.onOpen:(Landroidx/sqlite/db/SupportSQLiteDatabase;)V
+      70: goto          44
+      73: return
+
+  public void onPreMigrate(androidx.sqlite.db.SupportSQLiteDatabase);
+    Code:
+       0: aload_1
+       1: invokestatic  #105                // Method androidx/room/util/DBUtil.dropFtsSyncTriggers:(Landroidx/sqlite/db/SupportSQLiteDatabase;)V
+       4: return
+
+  public void onPostMigrate(androidx.sqlite.db.SupportSQLiteDatabase);
+    Code:
+       0: return
+
+  public androidx.room.RoomOpenHelper$ValidationResult onValidateSchema(androidx.sqlite.db.SupportSQLiteDatabase);
+    Code:
+       0: new           #110                // class java/util/HashMap
+       3: dup
+       4: bipush        11
+       6: invokespecial #112                // Method java/util/HashMap."<init>":(I)V
+       9: astore_2
+      10: aload_2
+      11: ldc           #113                // String id
+      13: new           #115                // class androidx/room/util/TableInfo$Column
+      16: dup
+      17: ldc           #113                // String id
+      19: ldc           #117                // String TEXT
+      21: iconst_1
+      22: iconst_1
+      23: aconst_null
+      24: iconst_1
+      25: invokespecial #121                // Method androidx/room/util/TableInfo$Column."<init>":(Ljava/lang/String;Ljava/lang/String;ZILjava/lang/String;I)V
+      28: invokevirtual #124                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+      31: pop
+      32: aload_2
+      33: ldc           #128                // String name
+      35: new           #115                // class androidx/room/util/TableInfo$Column
+      38: dup
+      39: ldc           #128                // String name
+      41: ldc           #117                // String TEXT
+      43: iconst_1
+      44: iconst_0
+      45: aconst_null
+      46: iconst_1
+      47: invokespecial #121                // Method androidx/room/util/TableInfo$Column."<init>":(Ljava/lang/String;Ljava/lang/String;ZILjava/lang/String;I)V
+      50: invokevirtual #124                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+      53: pop
+      54: aload_2
+      55: ldc           #130                // String downloadPath
+      57: new           #115                // class androidx/room/util/TableInfo$Column
+      60: dup
+      61: ldc           #130                // String downloadPath
+      63: ldc           #117                // String TEXT
+      65: iconst_1
+      66: iconst_0
+      67: aconst_null
+      68: iconst_1
+      69: invokespecial #121                // Method androidx/room/util/TableInfo$Column."<init>":(Ljava/lang/String;Ljava/lang/String;ZILjava/lang/String;I)V
+      72: invokevirtual #124                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+      75: pop
+      76: aload_2
+      77: ldc           #132                // String dateAdded
+      79: new           #115                // class androidx/room/util/TableInfo$Column
+      82: dup
+      83: ldc           #132                // String dateAdded
+      85: ldc           #134                // String INTEGER
+      87: iconst_1
+      88: iconst_0
+      89: aconst_null
+      90: iconst_1
+      91: invokespecial #121                // Method androidx/room/util/TableInfo$Column."<init>":(Ljava/lang/String;Ljava/lang/String;ZILjava/lang/String;I)V
+      94: invokevirtual #124                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+      97: pop
+      98: aload_2
+      99: ldc           #136                // String error
+     101: new           #115                // class androidx/room/util/TableInfo$Column
+     104: dup
+     105: ldc           #136                // String error
+     107: ldc           #117                // String TEXT
+     109: iconst_0
+     110: iconst_0
+     111: aconst_null
+     112: iconst_1
+     113: invokespecial #121                // Method androidx/room/util/TableInfo$Column."<init>":(Ljava/lang/String;Ljava/lang/String;ZILjava/lang/String;I)V
+     116: invokevirtual #124                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     119: pop
+     120: aload_2
+     121: ldc           #138                // String manuallyPaused
+     123: new           #115                // class androidx/room/util/TableInfo$Column
+     126: dup
+     127: ldc           #138                // String manuallyPaused
+     129: ldc           #134                // String INTEGER
+     131: iconst_1
+     132: iconst_0
+     133: aconst_null
+     134: iconst_1
+     135: invokespecial #121                // Method androidx/room/util/TableInfo$Column."<init>":(Ljava/lang/String;Ljava/lang/String;ZILjava/lang/String;I)V
+     138: invokevirtual #124                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     141: pop
+     142: aload_2
+     143: ldc           #140                // String sequentialDownload
+     145: new           #115                // class androidx/room/util/TableInfo$Column
+     148: dup
+     149: ldc           #140                // String sequentialDownload
+     151: ldc           #134                // String INTEGER
+     153: iconst_1
+     154: iconst_0
+     155: aconst_null
+     156: iconst_1
+     157: invokespecial #121                // Method androidx/room/util/TableInfo$Column."<init>":(Ljava/lang/String;Ljava/lang/String;ZILjava/lang/String;I)V
+     160: invokevirtual #124                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     163: pop
+     164: aload_2
+     165: ldc           #142                // String magnet
+     167: new           #115                // class androidx/room/util/TableInfo$Column
+     170: dup
+     171: ldc           #142                // String magnet
+     173: ldc           #117                // String TEXT
+     175: iconst_0
+     176: iconst_0
+     177: aconst_null
+     178: iconst_1
+     179: invokespecial #121                // Method androidx/room/util/TableInfo$Column."<init>":(Ljava/lang/String;Ljava/lang/String;ZILjava/lang/String;I)V
+     182: invokevirtual #124                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     185: pop
+     186: aload_2
+     187: ldc           #144                // String downloadingMetadata
+     189: new           #115                // class androidx/room/util/TableInfo$Column
+     192: dup
+     193: ldc           #144                // String downloadingMetadata
+     195: ldc           #134                // String INTEGER
+     197: iconst_1
+     198: iconst_0
+     199: aconst_null
+     200: iconst_1
+     201: invokespecial #121                // Method androidx/room/util/TableInfo$Column."<init>":(Ljava/lang/String;Ljava/lang/String;ZILjava/lang/String;I)V
+     204: invokevirtual #124                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     207: pop
+     208: aload_2
+     209: ldc           #146                // String visibility
+     211: new           #115                // class androidx/room/util/TableInfo$Column
+     214: dup
+     215: ldc           #146                // String visibility
+     217: ldc           #134                // String INTEGER
+     219: iconst_1
+     220: iconst_0
+     221: aconst_null
+     222: iconst_1
+     223: invokespecial #121                // Method androidx/room/util/TableInfo$Column."<init>":(Ljava/lang/String;Ljava/lang/String;ZILjava/lang/String;I)V
+     226: invokevirtual #124                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     229: pop
+     230: aload_2
+     231: ldc           #148                // String firstLastPiecePriority
+     233: new           #115                // class androidx/room/util/TableInfo$Column
+     236: dup
+     237: ldc           #148                // String firstLastPiecePriority
+     239: ldc           #134                // String INTEGER
+     241: iconst_1
+     242: iconst_0
+     243: aconst_null
+     244: iconst_1
+     245: invokespecial #121                // Method androidx/room/util/TableInfo$Column."<init>":(Ljava/lang/String;Ljava/lang/String;ZILjava/lang/String;I)V
+     248: invokevirtual #124                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     251: pop
+     252: new           #150                // class java/util/HashSet
+     255: dup
+     256: iconst_0
+     257: invokespecial #152                // Method java/util/HashSet."<init>":(I)V
+     260: astore_3
+     261: new           #150                // class java/util/HashSet
+     264: dup
+     265: iconst_0
+     266: invokespecial #152                // Method java/util/HashSet."<init>":(I)V
+     269: astore        4
+     271: new           #119                // class androidx/room/util/TableInfo
+     274: dup
+     275: ldc           #153                // String Torrent
+     277: aload_2
+     278: aload_3
+     279: aload         4
+     281: invokespecial #155                // Method androidx/room/util/TableInfo."<init>":(Ljava/lang/String;Ljava/util/Map;Ljava/util/Set;Ljava/util/Set;)V
+     284: astore        5
+     286: aload_1
+     287: ldc           #153                // String Torrent
+     289: invokestatic  #158                // Method androidx/room/util/TableInfo.read:(Landroidx/sqlite/db/SupportSQLiteDatabase;Ljava/lang/String;)Landroidx/room/util/TableInfo;
+     292: astore        6
+     294: aload         5
+     296: aload         6
+     298: invokevirtual #162                // Method androidx/room/util/TableInfo.equals:(Ljava/lang/Object;)Z
+     301: ifne          343
+     304: new           #166                // class androidx/room/RoomOpenHelper$ValidationResult
+     307: dup
+     308: iconst_0
+     309: new           #168                // class java/lang/StringBuilder
+     312: dup
+     313: invokespecial #170                // Method java/lang/StringBuilder."<init>":()V
+     316: ldc           #173                // String Torrent(org.proninyaroslav.libretorrent.core.model.data.entity.Torrent).\n Expected:\n
+     318: invokevirtual #175                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     321: aload         5
+     323: invokevirtual #179                // Method java/lang/StringBuilder.append:(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+     326: ldc           #182                // String \n Found:\n
+     328: invokevirtual #175                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     331: aload         6
+     333: invokevirtual #179                // Method java/lang/StringBuilder.append:(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+     336: invokevirtual #184                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+     339: invokespecial #188                // Method androidx/room/RoomOpenHelper$ValidationResult."<init>":(ZLjava/lang/String;)V
+     342: areturn
+     343: new           #110                // class java/util/HashMap
+     346: dup
+     347: iconst_2
+     348: invokespecial #112                // Method java/util/HashMap."<init>":(I)V
+     351: astore        7
+     353: aload         7
+     355: ldc           #191                // String torrentId
+     357: new           #115                // class androidx/room/util/TableInfo$Column
+     360: dup
+     361: ldc           #191                // String torrentId
+     363: ldc           #117                // String TEXT
+     365: iconst_1
+     366: iconst_1
+     367: aconst_null
+     368: iconst_1
+     369: invokespecial #121                // Method androidx/room/util/TableInfo$Column."<init>":(Ljava/lang/String;Ljava/lang/String;ZILjava/lang/String;I)V
+     372: invokevirtual #124                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     375: pop
+     376: aload         7
+     378: ldc           #193                // String data
+     380: new           #115                // class androidx/room/util/TableInfo$Column
+     383: dup
+     384: ldc           #193                // String data
+     386: ldc           #195                // String BLOB
+     388: iconst_1
+     389: iconst_0
+     390: aconst_null
+     391: iconst_1
+     392: invokespecial #121                // Method androidx/room/util/TableInfo$Column."<init>":(Ljava/lang/String;Ljava/lang/String;ZILjava/lang/String;I)V
+     395: invokevirtual #124                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     398: pop
+     399: new           #150                // class java/util/HashSet
+     402: dup
+     403: iconst_1
+     404: invokespecial #152                // Method java/util/HashSet."<init>":(I)V
+     407: astore        8
+     409: aload         8
+     411: new           #197                // class androidx/room/util/TableInfo$ForeignKey
+     414: dup
+     415: ldc           #153                // String Torrent
+     417: ldc           #199                // String CASCADE
+     419: ldc           #201                // String NO ACTION
+     421: iconst_1
+     422: anewarray     #203                // class java/lang/String
+     425: dup
+     426: iconst_0
+     427: ldc           #191                // String torrentId
+     429: aastore
+     430: invokestatic  #205                // Method java/util/Arrays.asList:([Ljava/lang/Object;)Ljava/util/List;
+     433: iconst_1
+     434: anewarray     #203                // class java/lang/String
+     437: dup
+     438: iconst_0
+     439: ldc           #113                // String id
+     441: aastore
+     442: invokestatic  #205                // Method java/util/Arrays.asList:([Ljava/lang/Object;)Ljava/util/List;
+     445: invokespecial #211                // Method androidx/room/util/TableInfo$ForeignKey."<init>":(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;)V
+     448: invokevirtual #214                // Method java/util/HashSet.add:(Ljava/lang/Object;)Z
+     451: pop
+     452: new           #150                // class java/util/HashSet
+     455: dup
+     456: iconst_1
+     457: invokespecial #152                // Method java/util/HashSet."<init>":(I)V
+     460: astore        9
+     462: aload         9
+     464: new           #217                // class androidx/room/util/TableInfo$Index
+     467: dup
+     468: ldc           #219                // String index_FastResume_torrentId
+     470: iconst_0
+     471: iconst_1
+     472: anewarray     #203                // class java/lang/String
+     475: dup
+     476: iconst_0
+     477: ldc           #191                // String torrentId
+     479: aastore
+     480: invokestatic  #205                // Method java/util/Arrays.asList:([Ljava/lang/Object;)Ljava/util/List;
+     483: iconst_1
+     484: anewarray     #203                // class java/lang/String
+     487: dup
+     488: iconst_0
+     489: ldc           #221                // String ASC
+     491: aastore
+     492: invokestatic  #205                // Method java/util/Arrays.asList:([Ljava/lang/Object;)Ljava/util/List;
+     495: invokespecial #223                // Method androidx/room/util/TableInfo$Index."<init>":(Ljava/lang/String;ZLjava/util/List;Ljava/util/List;)V
+     498: invokevirtual #214                // Method java/util/HashSet.add:(Ljava/lang/Object;)Z
+     501: pop
+     502: new           #119                // class androidx/room/util/TableInfo
+     505: dup
+     506: ldc           #226                // String FastResume
+     508: aload         7
+     510: aload         8
+     512: aload         9
+     514: invokespecial #155                // Method androidx/room/util/TableInfo."<init>":(Ljava/lang/String;Ljava/util/Map;Ljava/util/Set;Ljava/util/Set;)V
+     517: astore        10
+     519: aload_1
+     520: ldc           #226                // String FastResume
+     522: invokestatic  #158                // Method androidx/room/util/TableInfo.read:(Landroidx/sqlite/db/SupportSQLiteDatabase;Ljava/lang/String;)Landroidx/room/util/TableInfo;
+     525: astore        11
+     527: aload         10
+     529: aload         11
+     531: invokevirtual #162                // Method androidx/room/util/TableInfo.equals:(Ljava/lang/Object;)Z
+     534: ifne          576
+     537: new           #166                // class androidx/room/RoomOpenHelper$ValidationResult
+     540: dup
+     541: iconst_0
+     542: new           #168                // class java/lang/StringBuilder
+     545: dup
+     546: invokespecial #170                // Method java/lang/StringBuilder."<init>":()V
+     549: ldc           #228                // String FastResume(org.proninyaroslav.libretorrent.core.model.data.entity.FastResume).\n Expected:\n
+     551: invokevirtual #175                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     554: aload         10
+     556: invokevirtual #179                // Method java/lang/StringBuilder.append:(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+     559: ldc           #182                // String \n Found:\n
+     561: invokevirtual #175                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     564: aload         11
+     566: invokevirtual #179                // Method java/lang/StringBuilder.append:(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+     569: invokevirtual #184                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+     572: invokespecial #188                // Method androidx/room/RoomOpenHelper$ValidationResult."<init>":(ZLjava/lang/String;)V
+     575: areturn
+     576: new           #110                // class java/util/HashMap
+     579: dup
+     580: bipush        8
+     582: invokespecial #112                // Method java/util/HashMap."<init>":(I)V
+     585: astore        12
+     587: aload         12
+     589: ldc           #113                // String id
+     591: new           #115                // class androidx/room/util/TableInfo$Column
+     594: dup
+     595: ldc           #113                // String id
+     597: ldc           #134                // String INTEGER
+     599: iconst_1
+     600: iconst_1
+     601: aconst_null
+     602: iconst_1
+     603: invokespecial #121                // Method androidx/room/util/TableInfo$Column."<init>":(Ljava/lang/String;Ljava/lang/String;ZILjava/lang/String;I)V
+     606: invokevirtual #124                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     609: pop
+     610: aload         12
+     612: ldc           #230                // String url
+     614: new           #115                // class androidx/room/util/TableInfo$Column
+     617: dup
+     618: ldc           #230                // String url
+     620: ldc           #117                // String TEXT
+     622: iconst_1
+     623: iconst_0
+     624: aconst_null
+     625: iconst_1
+     626: invokespecial #121                // Method androidx/room/util/TableInfo$Column."<init>":(Ljava/lang/String;Ljava/lang/String;ZILjava/lang/String;I)V
+     629: invokevirtual #124                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     632: pop
+     633: aload         12
+     635: ldc           #128                // String name
+     637: new           #115                // class androidx/room/util/TableInfo$Column
+     640: dup
+     641: ldc           #128                // String name
+     643: ldc           #117                // String TEXT
+     645: iconst_0
+     646: iconst_0
+     647: aconst_null
+     648: iconst_1
+     649: invokespecial #121                // Method androidx/room/util/TableInfo$Column."<init>":(Ljava/lang/String;Ljava/lang/String;ZILjava/lang/String;I)V
+     652: invokevirtual #124                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     655: pop
+     656: aload         12
+     658: ldc           #232                // String lastUpdate
+     660: new           #115                // class androidx/room/util/TableInfo$Column
+     663: dup
+     664: ldc           #232                // String lastUpdate
+     666: ldc           #134                // String INTEGER
+     668: iconst_1
+     669: iconst_0
+     670: aconst_null
+     671: iconst_1
+     672: invokespecial #121                // Method androidx/room/util/TableInfo$Column."<init>":(Ljava/lang/String;Ljava/lang/String;ZILjava/lang/String;I)V
+     675: invokevirtual #124                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     678: pop
+     679: aload         12
+     681: ldc           #234                // String autoDownload
+     683: new           #115                // class androidx/room/util/TableInfo$Column
+     686: dup
+     687: ldc           #234                // String autoDownload
+     689: ldc           #134                // String INTEGER
+     691: iconst_1
+     692: iconst_0
+     693: aconst_null
+     694: iconst_1
+     695: invokespecial #121                // Method androidx/room/util/TableInfo$Column."<init>":(Ljava/lang/String;Ljava/lang/String;ZILjava/lang/String;I)V
+     698: invokevirtual #124                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     701: pop
+     702: aload         12
+     704: ldc           #236                // String filter
+     706: new           #115                // class androidx/room/util/TableInfo$Column
+     709: dup
+     710: ldc           #236                // String filter
+     712: ldc           #117                // String TEXT
+     714: iconst_0
+     715: iconst_0
+     716: aconst_null
+     717: iconst_1
+     718: invokespecial #121                // Method androidx/room/util/TableInfo$Column."<init>":(Ljava/lang/String;Ljava/lang/String;ZILjava/lang/String;I)V
+     721: invokevirtual #124                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     724: pop
+     725: aload         12
+     727: ldc           #238                // String isRegexFilter
+     729: new           #115                // class androidx/room/util/TableInfo$Column
+     732: dup
+     733: ldc           #238                // String isRegexFilter
+     735: ldc           #134                // String INTEGER
+     737: iconst_1
+     738: iconst_0
+     739: aconst_null
+     740: iconst_1
+     741: invokespecial #121                // Method androidx/room/util/TableInfo$Column."<init>":(Ljava/lang/String;Ljava/lang/String;ZILjava/lang/String;I)V
+     744: invokevirtual #124                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     747: pop
+     748: aload         12
+     750: ldc           #240                // String fetchError
+     752: new           #115                // class androidx/room/util/TableInfo$Column
+     755: dup
+     756: ldc           #240                // String fetchError
+     758: ldc           #117                // String TEXT
+     760: iconst_0
+     761: iconst_0
+     762: aconst_null
+     763: iconst_1
+     764: invokespecial #121                // Method androidx/room/util/TableInfo$Column."<init>":(Ljava/lang/String;Ljava/lang/String;ZILjava/lang/String;I)V
+     767: invokevirtual #124                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     770: pop
+     771: new           #150                // class java/util/HashSet
+     774: dup
+     775: iconst_0
+     776: invokespecial #152                // Method java/util/HashSet."<init>":(I)V
+     779: astore        13
+     781: new           #150                // class java/util/HashSet
+     784: dup
+     785: iconst_0
+     786: invokespecial #152                // Method java/util/HashSet."<init>":(I)V
+     789: astore        14
+     791: new           #119                // class androidx/room/util/TableInfo
+     794: dup
+     795: ldc           #242                // String FeedChannel
+     797: aload         12
+     799: aload         13
+     801: aload         14
+     803: invokespecial #155                // Method androidx/room/util/TableInfo."<init>":(Ljava/lang/String;Ljava/util/Map;Ljava/util/Set;Ljava/util/Set;)V
+     806: astore        15
+     808: aload_1
+     809: ldc           #242                // String FeedChannel
+     811: invokestatic  #158                // Method androidx/room/util/TableInfo.read:(Landroidx/sqlite/db/SupportSQLiteDatabase;Ljava/lang/String;)Landroidx/room/util/TableInfo;
+     814: astore        16
+     816: aload         15
+     818: aload         16
+     820: invokevirtual #162                // Method androidx/room/util/TableInfo.equals:(Ljava/lang/Object;)Z
+     823: ifne          865
+     826: new           #166                // class androidx/room/RoomOpenHelper$ValidationResult
+     829: dup
+     830: iconst_0
+     831: new           #168                // class java/lang/StringBuilder
+     834: dup
+     835: invokespecial #170                // Method java/lang/StringBuilder."<init>":()V
+     838: ldc           #244                // String FeedChannel(org.proninyaroslav.libretorrent.core.model.data.entity.FeedChannel).\n Expected:\n
+     840: invokevirtual #175                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     843: aload         15
+     845: invokevirtual #179                // Method java/lang/StringBuilder.append:(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+     848: ldc           #182                // String \n Found:\n
+     850: invokevirtual #175                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     853: aload         16
+     855: invokevirtual #179                // Method java/lang/StringBuilder.append:(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+     858: invokevirtual #184                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+     861: invokespecial #188                // Method androidx/room/RoomOpenHelper$ValidationResult."<init>":(ZLjava/lang/String;)V
+     864: areturn
+     865: new           #110                // class java/util/HashMap
+     868: dup
+     869: bipush        8
+     871: invokespecial #112                // Method java/util/HashMap."<init>":(I)V
+     874: astore        17
+     876: aload         17
+     878: ldc           #113                // String id
+     880: new           #115                // class androidx/room/util/TableInfo$Column
+     883: dup
+     884: ldc           #113                // String id
+     886: ldc           #117                // String TEXT
+     888: iconst_1
+     889: iconst_1
+     890: aconst_null
+     891: iconst_1
+     892: invokespecial #121                // Method androidx/room/util/TableInfo$Column."<init>":(Ljava/lang/String;Ljava/lang/String;ZILjava/lang/String;I)V
+     895: invokevirtual #124                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     898: pop
+     899: aload         17
+     901: ldc           #246                // String title
+     903: new           #115                // class androidx/room/util/TableInfo$Column
+     906: dup
+     907: ldc           #246                // String title
+     909: ldc           #117                // String TEXT
+     911: iconst_1
+     912: iconst_0
+     913: aconst_null
+     914: iconst_1
+     915: invokespecial #121                // Method androidx/room/util/TableInfo$Column."<init>":(Ljava/lang/String;Ljava/lang/String;ZILjava/lang/String;I)V
+     918: invokevirtual #124                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     921: pop
+     922: aload         17
+     924: ldc           #248                // String feedId
+     926: new           #115                // class androidx/room/util/TableInfo$Column
+     929: dup
+     930: ldc           #248                // String feedId
+     932: ldc           #134                // String INTEGER
+     934: iconst_1
+     935: iconst_0
+     936: aconst_null
+     937: iconst_1
+     938: invokespecial #121                // Method androidx/room/util/TableInfo$Column."<init>":(Ljava/lang/String;Ljava/lang/String;ZILjava/lang/String;I)V
+     941: invokevirtual #124                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     944: pop
+     945: aload         17
+     947: ldc           #250                // String downloadUrl
+     949: new           #115                // class androidx/room/util/TableInfo$Column
+     952: dup
+     953: ldc           #250                // String downloadUrl
+     955: ldc           #117                // String TEXT
+     957: iconst_0
+     958: iconst_0
+     959: aconst_null
+     960: iconst_1
+     961: invokespecial #121                // Method androidx/room/util/TableInfo$Column."<init>":(Ljava/lang/String;Ljava/lang/String;ZILjava/lang/String;I)V
+     964: invokevirtual #124                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     967: pop
+     968: aload         17
+     970: ldc           #252                // String articleUrl
+     972: new           #115                // class androidx/room/util/TableInfo$Column
+     975: dup
+     976: ldc           #252                // String articleUrl
+     978: ldc           #117                // String TEXT
+     980: iconst_0
+     981: iconst_0
+     982: aconst_null
+     983: iconst_1
+     984: invokespecial #121                // Method androidx/room/util/TableInfo$Column."<init>":(Ljava/lang/String;Ljava/lang/String;ZILjava/lang/String;I)V
+     987: invokevirtual #124                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     990: pop
+     991: aload         17
+     993: ldc           #254                // String pubDate
+     995: new           #115                // class androidx/room/util/TableInfo$Column
+     998: dup
+     999: ldc           #254                // String pubDate
+    1001: ldc           #134                // String INTEGER
+    1003: iconst_1
+    1004: iconst_0
+    1005: aconst_null
+    1006: iconst_1
+    1007: invokespecial #121                // Method androidx/room/util/TableInfo$Column."<init>":(Ljava/lang/String;Ljava/lang/String;ZILjava/lang/String;I)V
+    1010: invokevirtual #124                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+    1013: pop
+    1014: aload         17
+    1016: ldc_w         #256                // String fetchDate
+    1019: new           #115                // class androidx/room/util/TableInfo$Column
+    1022: dup
+    1023: ldc_w         #256                // String fetchDate
+    1026: ldc           #134                // String INTEGER
+    1028: iconst_1
+    1029: iconst_0
+    1030: aconst_null
+    1031: iconst_1
+    1032: invokespecial #121                // Method androidx/room/util/TableInfo$Column."<init>":(Ljava/lang/String;Ljava/lang/String;ZILjava/lang/String;I)V
+    1035: invokevirtual #124                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+    1038: pop
+    1039: aload         17
+    1041: ldc_w         #258                // String read
+    1044: new           #115                // class androidx/room/util/TableInfo$Column
+    1047: dup
+    1048: ldc_w         #258                // String read
+    1051: ldc           #134                // String INTEGER
+    1053: iconst_1
+    1054: iconst_0
+    1055: aconst_null
+    1056: iconst_1
+    1057: invokespecial #121                // Method androidx/room/util/TableInfo$Column."<init>":(Ljava/lang/String;Ljava/lang/String;ZILjava/lang/String;I)V
+    1060: invokevirtual #124                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+    1063: pop
+    1064: new           #150                // class java/util/HashSet
+    1067: dup
+    1068: iconst_1
+    1069: invokespecial #152                // Method java/util/HashSet."<init>":(I)V
+    1072: astore        18
+    1074: aload         18
+    1076: new           #197                // class androidx/room/util/TableInfo$ForeignKey
+    1079: dup
+    1080: ldc           #242                // String FeedChannel
+    1082: ldc           #199                // String CASCADE
+    1084: ldc           #201                // String NO ACTION
+    1086: iconst_1
+    1087: anewarray     #203                // class java/lang/String
+    1090: dup
+    1091: iconst_0
+    1092: ldc           #248                // String feedId
+    1094: aastore
+    1095: invokestatic  #205                // Method java/util/Arrays.asList:([Ljava/lang/Object;)Ljava/util/List;
+    1098: iconst_1
+    1099: anewarray     #203                // class java/lang/String
+    1102: dup
+    1103: iconst_0
+    1104: ldc           #113                // String id
+    1106: aastore
+    1107: invokestatic  #205                // Method java/util/Arrays.asList:([Ljava/lang/Object;)Ljava/util/List;
+    1110: invokespecial #211                // Method androidx/room/util/TableInfo$ForeignKey."<init>":(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;)V
+    1113: invokevirtual #214                // Method java/util/HashSet.add:(Ljava/lang/Object;)Z
+    1116: pop
+    1117: new           #150                // class java/util/HashSet
+    1120: dup
+    1121: iconst_1
+    1122: invokespecial #152                // Method java/util/HashSet."<init>":(I)V
+    1125: astore        19
+    1127: aload         19
+    1129: new           #217                // class androidx/room/util/TableInfo$Index
+    1132: dup
+    1133: ldc_w         #259                // String index_FeedItem_feedId
+    1136: iconst_0
+    1137: iconst_1
+    1138: anewarray     #203                // class java/lang/String
+    1141: dup
+    1142: iconst_0
+    1143: ldc           #248                // String feedId
+    1145: aastore
+    1146: invokestatic  #205                // Method java/util/Arrays.asList:([Ljava/lang/Object;)Ljava/util/List;
+    1149: iconst_1
+    1150: anewarray     #203                // class java/lang/String
+    1153: dup
+    1154: iconst_0
+    1155: ldc           #221                // String ASC
+    1157: aastore
+    1158: invokestatic  #205                // Method java/util/Arrays.asList:([Ljava/lang/Object;)Ljava/util/List;
+    1161: invokespecial #223                // Method androidx/room/util/TableInfo$Index."<init>":(Ljava/lang/String;ZLjava/util/List;Ljava/util/List;)V
+    1164: invokevirtual #214                // Method java/util/HashSet.add:(Ljava/lang/Object;)Z
+    1167: pop
+    1168: new           #119                // class androidx/room/util/TableInfo
+    1171: dup
+    1172: ldc_w         #261                // String FeedItem
+    1175: aload         17
+    1177: aload         18
+    1179: aload         19
+    1181: invokespecial #155                // Method androidx/room/util/TableInfo."<init>":(Ljava/lang/String;Ljava/util/Map;Ljava/util/Set;Ljava/util/Set;)V
+    1184: astore        20
+    1186: aload_1
+    1187: ldc_w         #261                // String FeedItem
+    1190: invokestatic  #158                // Method androidx/room/util/TableInfo.read:(Landroidx/sqlite/db/SupportSQLiteDatabase;Ljava/lang/String;)Landroidx/room/util/TableInfo;
+    1193: astore        21
+    1195: aload         20
+    1197: aload         21
+    1199: invokevirtual #162                // Method androidx/room/util/TableInfo.equals:(Ljava/lang/Object;)Z
+    1202: ifne          1245
+    1205: new           #166                // class androidx/room/RoomOpenHelper$ValidationResult
+    1208: dup
+    1209: iconst_0
+    1210: new           #168                // class java/lang/StringBuilder
+    1213: dup
+    1214: invokespecial #170                // Method java/lang/StringBuilder."<init>":()V
+    1217: ldc_w         #263                // String FeedItem(org.proninyaroslav.libretorrent.core.model.data.entity.FeedItem).\n Expected:\n
+    1220: invokevirtual #175                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    1223: aload         20
+    1225: invokevirtual #179                // Method java/lang/StringBuilder.append:(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+    1228: ldc           #182                // String \n Found:\n
+    1230: invokevirtual #175                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    1233: aload         21
+    1235: invokevirtual #179                // Method java/lang/StringBuilder.append:(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+    1238: invokevirtual #184                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+    1241: invokespecial #188                // Method androidx/room/RoomOpenHelper$ValidationResult."<init>":(ZLjava/lang/String;)V
+    1244: areturn
+    1245: new           #110                // class java/util/HashMap
+    1248: dup
+    1249: iconst_3
+    1250: invokespecial #112                // Method java/util/HashMap."<init>":(I)V
+    1253: astore        22
+    1255: aload         22
+    1257: ldc           #113                // String id
+    1259: new           #115                // class androidx/room/util/TableInfo$Column
+    1262: dup
+    1263: ldc           #113                // String id
+    1265: ldc           #134                // String INTEGER
+    1267: iconst_1
+    1268: iconst_1
+    1269: aconst_null
+    1270: iconst_1
+    1271: invokespecial #121                // Method androidx/room/util/TableInfo$Column."<init>":(Ljava/lang/String;Ljava/lang/String;ZILjava/lang/String;I)V
+    1274: invokevirtual #124                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+    1277: pop
+    1278: aload         22
+    1280: ldc           #128                // String name
+    1282: new           #115                // class androidx/room/util/TableInfo$Column
+    1285: dup
+    1286: ldc           #128                // String name
+    1288: ldc           #117                // String TEXT
+    1290: iconst_1
+    1291: iconst_0
+    1292: aconst_null
+    1293: iconst_1
+    1294: invokespecial #121                // Method androidx/room/util/TableInfo$Column."<init>":(Ljava/lang/String;Ljava/lang/String;ZILjava/lang/String;I)V
+    1297: invokevirtual #124                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+    1300: pop
+    1301: aload         22
+    1303: ldc_w         #265                // String color
+    1306: new           #115                // class androidx/room/util/TableInfo$Column
+    1309: dup
+    1310: ldc_w         #265                // String color
+    1313: ldc           #134                // String INTEGER
+    1315: iconst_1
+    1316: iconst_0
+    1317: aconst_null
+    1318: iconst_1
+    1319: invokespecial #121                // Method androidx/room/util/TableInfo$Column."<init>":(Ljava/lang/String;Ljava/lang/String;ZILjava/lang/String;I)V
+    1322: invokevirtual #124                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+    1325: pop
+    1326: new           #150                // class java/util/HashSet
+    1329: dup
+    1330: iconst_0
+    1331: invokespecial #152                // Method java/util/HashSet."<init>":(I)V
+    1334: astore        23
+    1336: new           #150                // class java/util/HashSet
+    1339: dup
+    1340: iconst_0
+    1341: invokespecial #152                // Method java/util/HashSet."<init>":(I)V
+    1344: astore        24
+    1346: new           #119                // class androidx/room/util/TableInfo
+    1349: dup
+    1350: ldc_w         #267                // String TagInfo
+    1353: aload         22
+    1355: aload         23
+    1357: aload         24
+    1359: invokespecial #155                // Method androidx/room/util/TableInfo."<init>":(Ljava/lang/String;Ljava/util/Map;Ljava/util/Set;Ljava/util/Set;)V
+    1362: astore        25
+    1364: aload_1
+    1365: ldc_w         #267                // String TagInfo
+    1368: invokestatic  #158                // Method androidx/room/util/TableInfo.read:(Landroidx/sqlite/db/SupportSQLiteDatabase;Ljava/lang/String;)Landroidx/room/util/TableInfo;
+    1371: astore        26
+    1373: aload         25
+    1375: aload         26
+    1377: invokevirtual #162                // Method androidx/room/util/TableInfo.equals:(Ljava/lang/Object;)Z
+    1380: ifne          1423
+    1383: new           #166                // class androidx/room/RoomOpenHelper$ValidationResult
+    1386: dup
+    1387: iconst_0
+    1388: new           #168                // class java/lang/StringBuilder
+    1391: dup
+    1392: invokespecial #170                // Method java/lang/StringBuilder."<init>":()V
+    1395: ldc_w         #269                // String TagInfo(org.proninyaroslav.libretorrent.core.model.data.entity.TagInfo).\n Expected:\n
+    1398: invokevirtual #175                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    1401: aload         25
+    1403: invokevirtual #179                // Method java/lang/StringBuilder.append:(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+    1406: ldc           #182                // String \n Found:\n
+    1408: invokevirtual #175                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    1411: aload         26
+    1413: invokevirtual #179                // Method java/lang/StringBuilder.append:(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+    1416: invokevirtual #184                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+    1419: invokespecial #188                // Method androidx/room/RoomOpenHelper$ValidationResult."<init>":(ZLjava/lang/String;)V
+    1422: areturn
+    1423: new           #110                // class java/util/HashMap
+    1426: dup
+    1427: iconst_2
+    1428: invokespecial #112                // Method java/util/HashMap."<init>":(I)V
+    1431: astore        27
+    1433: aload         27
+    1435: ldc_w         #271                // String tagId
+    1438: new           #115                // class androidx/room/util/TableInfo$Column
+    1441: dup
+    1442: ldc_w         #271                // String tagId
+    1445: ldc           #134                // String INTEGER
+    1447: iconst_1
+    1448: iconst_1
+    1449: aconst_null
+    1450: iconst_1
+    1451: invokespecial #121                // Method androidx/room/util/TableInfo$Column."<init>":(Ljava/lang/String;Ljava/lang/String;ZILjava/lang/String;I)V
+    1454: invokevirtual #124                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+    1457: pop
+    1458: aload         27
+    1460: ldc           #191                // String torrentId
+    1462: new           #115                // class androidx/room/util/TableInfo$Column
+    1465: dup
+    1466: ldc           #191                // String torrentId
+    1468: ldc           #117                // String TEXT
+    1470: iconst_1
+    1471: iconst_2
+    1472: aconst_null
+    1473: iconst_1
+    1474: invokespecial #121                // Method androidx/room/util/TableInfo$Column."<init>":(Ljava/lang/String;Ljava/lang/String;ZILjava/lang/String;I)V
+    1477: invokevirtual #124                // Method java/util/HashMap.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+    1480: pop
+    1481: new           #150                // class java/util/HashSet
+    1484: dup
+    1485: iconst_2
+    1486: invokespecial #152                // Method java/util/HashSet."<init>":(I)V
+    1489: astore        28
+    1491: aload         28
+    1493: new           #197                // class androidx/room/util/TableInfo$ForeignKey
+    1496: dup
+    1497: ldc_w         #267                // String TagInfo
+    1500: ldc           #199                // String CASCADE
+    1502: ldc           #201                // String NO ACTION
+    1504: iconst_1
+    1505: anewarray     #203                // class java/lang/String
+    1508: dup
+    1509: iconst_0
+    1510: ldc_w         #271                // String tagId
+    1513: aastore
+    1514: invokestatic  #205                // Method java/util/Arrays.asList:([Ljava/lang/Object;)Ljava/util/List;
+    1517: iconst_1
+    1518: anewarray     #203                // class java/lang/String
+    1521: dup
+    1522: iconst_0
+    1523: ldc           #113                // String id
+    1525: aastore
+    1526: invokestatic  #205                // Method java/util/Arrays.asList:([Ljava/lang/Object;)Ljava/util/List;
+    1529: invokespecial #211                // Method androidx/room/util/TableInfo$ForeignKey."<init>":(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;)V
+    1532: invokevirtual #214                // Method java/util/HashSet.add:(Ljava/lang/Object;)Z
+    1535: pop
+    1536: aload         28
+    1538: new           #197                // class androidx/room/util/TableInfo$ForeignKey
+    1541: dup
+    1542: ldc           #153                // String Torrent
+    1544: ldc           #199                // String CASCADE
+    1546: ldc           #201                // String NO ACTION
+    1548: iconst_1
+    1549: anewarray     #203                // class java/lang/String
+    1552: dup
+    1553: iconst_0
+    1554: ldc           #191                // String torrentId
+    1556: aastore
+    1557: invokestatic  #205                // Method java/util/Arrays.asList:([Ljava/lang/Object;)Ljava/util/List;
+    1560: iconst_1
+    1561: anewarray     #203                // class java/lang/String
+    1564: dup
+    1565: iconst_0
+    1566: ldc           #113                // String id
+    1568: aastore
+    1569: invokestatic  #205                // Method java/util/Arrays.asList:([Ljava/lang/Object;)Ljava/util/List;
+    1572: invokespecial #211                // Method androidx/room/util/TableInfo$ForeignKey."<init>":(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;)V
+    1575: invokevirtual #214                // Method java/util/HashSet.add:(Ljava/lang/Object;)Z
+    1578: pop
+    1579: new           #150                // class java/util/HashSet
+    1582: dup
+    1583: iconst_2
+    1584: invokespecial #152                // Method java/util/HashSet."<init>":(I)V
+    1587: astore        29
+    1589: aload         29
+    1591: new           #217                // class androidx/room/util/TableInfo$Index
+    1594: dup
+    1595: ldc_w         #273                // String index_TorrentTagInfo_tagId
+    1598: iconst_0
+    1599: iconst_1
+    1600: anewarray     #203                // class java/lang/String
+    1603: dup
+    1604: iconst_0
+    1605: ldc_w         #271                // String tagId
+    1608: aastore
+    1609: invokestatic  #205                // Method java/util/Arrays.asList:([Ljava/lang/Object;)Ljava/util/List;
+    1612: iconst_1
+    1613: anewarray     #203                // class java/lang/String
+    1616: dup
+    1617: iconst_0
+    1618: ldc           #221                // String ASC
+    1620: aastore
+    1621: invokestatic  #205                // Method java/util/Arrays.asList:([Ljava/lang/Object;)Ljava/util/List;
+    1624: invokespecial #223                // Method androidx/room/util/TableInfo$Index."<init>":(Ljava/lang/String;ZLjava/util/List;Ljava/util/List;)V
+    1627: invokevirtual #214                // Method java/util/HashSet.add:(Ljava/lang/Object;)Z
+    1630: pop
+    1631: aload         29
+    1633: new           #217                // class androidx/room/util/TableInfo$Index
+    1636: dup
+    1637: ldc_w         #275                // String index_TorrentTagInfo_torrentId
+    1640: iconst_0
+    1641: iconst_1
+    1642: anewarray     #203                // class java/lang/String
+    1645: dup
+    1646: iconst_0
+    1647: ldc           #191                // String torrentId
+    1649: aastore
+    1650: invokestatic  #205                // Method java/util/Arrays.asList:([Ljava/lang/Object;)Ljava/util/List;
+    1653: iconst_1
+    1654: anewarray     #203                // class java/lang/String
+    1657: dup
+    1658: iconst_0
+    1659: ldc           #221                // String ASC
+    1661: aastore
+    1662: invokestatic  #205                // Method java/util/Arrays.asList:([Ljava/lang/Object;)Ljava/util/List;
+    1665: invokespecial #223                // Method androidx/room/util/TableInfo$Index."<init>":(Ljava/lang/String;ZLjava/util/List;Ljava/util/List;)V
+    1668: invokevirtual #214                // Method java/util/HashSet.add:(Ljava/lang/Object;)Z
+    1671: pop
+    1672: new           #119                // class androidx/room/util/TableInfo
+    1675: dup
+    1676: ldc_w         #277                // String TorrentTagInfo
+    1679: aload         27
+    1681: aload         28
+    1683: aload         29
+    1685: invokespecial #155                // Method androidx/room/util/TableInfo."<init>":(Ljava/lang/String;Ljava/util/Map;Ljava/util/Set;Ljava/util/Set;)V
+    1688: astore        30
+    1690: aload_1
+    1691: ldc_w         #277                // String TorrentTagInfo
+    1694: invokestatic  #158                // Method androidx/room/util/TableInfo.read:(Landroidx/sqlite/db/SupportSQLiteDatabase;Ljava/lang/String;)Landroidx/room/util/TableInfo;
+    1697: astore        31
+    1699: aload         30
+    1701: aload         31
+    1703: invokevirtual #162                // Method androidx/room/util/TableInfo.equals:(Ljava/lang/Object;)Z
+    1706: ifne          1749
+    1709: new           #166                // class androidx/room/RoomOpenHelper$ValidationResult
+    1712: dup
+    1713: iconst_0
+    1714: new           #168                // class java/lang/StringBuilder
+    1717: dup
+    1718: invokespecial #170                // Method java/lang/StringBuilder."<init>":()V
+    1721: ldc_w         #279                // String TorrentTagInfo(org.proninyaroslav.libretorrent.core.model.data.entity.TorrentTagInfo).\n Expected:\n
+    1724: invokevirtual #175                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    1727: aload         30
+    1729: invokevirtual #179                // Method java/lang/StringBuilder.append:(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+    1732: ldc           #182                // String \n Found:\n
+    1734: invokevirtual #175                // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    1737: aload         31
+    1739: invokevirtual #179                // Method java/lang/StringBuilder.append:(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+    1742: invokevirtual #184                // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+    1745: invokespecial #188                // Method androidx/room/RoomOpenHelper$ValidationResult."<init>":(ZLjava/lang/String;)V
+    1748: areturn
+    1749: new           #166                // class androidx/room/RoomOpenHelper$ValidationResult
+    1752: dup
+    1753: iconst_1
+    1754: aconst_null
+    1755: invokespecial #188                // Method androidx/room/RoomOpenHelper$ValidationResult."<init>":(ZLjava/lang/String;)V
+    1758: areturn
+}

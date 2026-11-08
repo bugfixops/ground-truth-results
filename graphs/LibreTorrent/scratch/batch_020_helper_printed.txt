@@ -1,0 +1,111 @@
+LibreTorrent batch 20 helper — printed commands and source evidence
+Source root: /Users/darshan/Desktop/yang/work/final_java_only/LibreTorrent/app/LibreTorrent-#3.5.2/app/src/main/java
+Membership authority: /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+
+COMMAND: awk -F '\t' '$1==20 {printf "%2d %s\n", ++n, $3}' /Users/darshan/Desktop/yang/work/handoff/LIBRETORRENT_BATCH_PLAN.tsv
+OUTPUT:
+ 1 FetchLinkException.<init>(String)
+ 2 FreeSpaceException.<init>()
+ 3 FreeSpaceException.<init>(String)
+ 4 IPFilterException.<init>(String)
+ 5 NoFilesSelectedException.<init>()
+ 6 NormalizeUrlException.<init>(String,Exception)
+ 7 TorrentAlreadyExistsException.<init>()
+ 8 UnknownUriException.<init>
+ 9 TorrentFilterCollection.all
+10 TorrentFilterCollection.dateAddedMonth
+11 TorrentFilterCollection.dateAddedToday
+12 TorrentFilterCollection.dateAddedWeek
+13 TorrentFilterCollection.dateAddedYear
+14 TorrentFilterCollection.dateAddedYesterday
+15 TorrentFilterCollection.lambda$all$0
+16 TorrentFilterCollection.lambda$dateAddedMonth$8
+17 TorrentFilterCollection.lambda$dateAddedToday$5
+18 TorrentFilterCollection.lambda$dateAddedWeek$7
+19 TorrentFilterCollection.lambda$dateAddedYear$9
+20 TorrentFilterCollection.lambda$dateAddedYesterday$6
+21 TorrentFilterCollection.lambda$noTags$11
+22 TorrentFilterCollection.lambda$statusDownloaded$2
+23 TorrentFilterCollection.lambda$statusDownloading$1
+24 TorrentFilterCollection.lambda$statusDownloadingMetadata$3
+25 TorrentFilterCollection.lambda$statusError$4
+26 TorrentFilterCollection.lambda$tag$10
+27 TorrentFilterCollection.noTags
+28 TorrentFilterCollection.statusDownloaded
+29 TorrentFilterCollection.statusDownloading
+30 TorrentFilterCollection.statusDownloadingMetadata
+31 TorrentFilterCollection.statusError
+32 TorrentFilterCollection.tag
+33 LogEntry.<init>
+34 LogEntry.equals
+35 LogEntry.getId
+36 LogEntry.getMsg
+37 LogEntry.getTag
+38 LogEntry.getTimeStampAsString
+39 LogEntry.hashCode
+40 LogEntry.toString
+
+COMMAND: nl -ba <source-file> | sed -n '<cited ranges>' (files are under the source root above)
+PRINTED SOURCE EXCERPTS (selected line-numbered output; only cited lines shown):
+
+TorrentFilterCollection.java
+26 public class TorrentFilterCollection {
+27     public static TorrentFilter all() {
+28         return (state) -> true;
+31     public static TorrentFilter statusDownloading() {
+32         return (state) -> state.stateCode == TorrentStateCode.DOWNLOADING;
+35     public static TorrentFilter statusDownloaded() {
+36         return (state) -> state.stateCode == TorrentStateCode.SEEDING || state.receivedBytes == state.totalBytes;
+39     public static TorrentFilter statusDownloadingMetadata() {
+40         return (state) -> state.stateCode == TorrentStateCode.DOWNLOADING_METADATA;
+43     public static TorrentFilter statusError() {
+44         return (state) -> state.error != null;
+47     public static TorrentFilter dateAddedToday() {
+48         return (state) -> {
+52             return dateAdded >= DateUtils.startOfToday(timeMillis) && dateAdded <= DateUtils.endOfToday(timeMillis);
+57     public static TorrentFilter dateAddedYesterday() {
+58         return (state) -> {
+62             return dateAdded >= DateUtils.startOfYesterday(timeMillis) && dateAdded <= DateUtils.endOfYesterday(timeMillis);
+67     public static TorrentFilter dateAddedWeek() {
+68         return (state) -> {
+72             return dateAdded >= DateUtils.startOfWeek(timeMillis) && dateAdded <= DateUtils.endOfWeek(timeMillis);
+77     public static TorrentFilter dateAddedMonth() {
+78         return (state) -> {
+82             return dateAdded >= DateUtils.startOfMonth(timeMillis) && dateAdded <= DateUtils.endOfMonth(timeMillis);
+87     public static TorrentFilter dateAddedYear() {
+88         return (state) -> {
+92             return dateAdded >= DateUtils.startOfYear(timeMillis) && dateAdded <= DateUtils.endOfYear(timeMillis);
+97     public static TorrentFilter tag(TagInfo tag) {
+98         return (state) -> tag == null || state.tags.contains(tag);
+101    public static TorrentFilter noTags() {
+102        return (state) -> state.tags.isEmpty();
+
+MainActivity.java and Utils.java
+`Utils.getDrawerGroupStatusFilter` returns status factories for drawer item IDs (`Utils.java:837-851`); date drawer IDs map to all/today/yesterday/week/month/year (`Utils.java:854-870`).
+`MainActivity` passes selected drawer filters to MainViewModel (`MainActivity.java:591-596,615-623`) and selects tag/no-tags factories in its tags listener (`MainActivity.java:295-307,513-523`).
+`MainViewModel` initializes its three filter fields to `all`, combines them in `getFilter`, and MainFragment passes that filter to list filtering (`MainViewModel.java:53-55,118-122`; `MainFragment.java:291,339`).
+
+Exception constructor source/callsites
+`FetchLinkException(String)` stores the message (`FetchLinkException.java:30-33`); Utils creates it for unavailable connectivity and failed HTTP responses (`Utils.java:466-468,492-494`).
+`FreeSpaceException()` and `(String)` constructors (`FreeSpaceException.java:28-33`); callsites at `AddTorrentViewModel.java:493-496`, `TorrentEngine.java:1200-1204`, `TorrentDownloadImpl.java:415-423`.
+`IPFilterException(String)` constructor (`IPFilterException.java:26-29`); IPFilterImpl creates it on invalid range endpoints or mixed address families (`IPFilterImpl.java:39-62`); TorrentSessionImpl reaches IPFilterParser from its async IP-filter path (`TorrentSessionImpl.java:726-740`), whose parser calls `filter.addRange` (`IPFilterParser.java:162-169,240-246`).
+`NoFilesSelectedException()` constructor (`NoFilesSelectedException.java:22-25`); AddTorrentViewModel throws it (`AddTorrentViewModel.java:486-497`).
+`NormalizeUrlException(String,Exception)` (`NormalizeUrlException.java:21-25`); NormalizeUrl throws it while wrapping a normalization failure (`NormalizeUrl.java:178-188`); callers include create-torrent/add-link/detail-torrent source paths.
+`TorrentAlreadyExistsException()` (`TorrentAlreadyExistsException.java:22-25`); TorrentSessionImpl throws it after finding the same torrent ID (`TorrentSessionImpl.java:280-285`).
+`UnknownUriException(String)` (`UnknownUriException.java:22-25`); FsModuleResolverImpl throws it for unsupported URIs (`FsModuleResolverImpl.java:42-49`).
+
+LogEntry/Logger excerpts
+`SessionLogger.send` constructs entries for alert types (`SessionLogger.java:117-162`).
+`LogAdapter` DiffUtil uses `equals` and `getId`; row binding uses `getTag`, `getMsg`, and `getTimeStampAsString` (`LogAdapter.java:67-81,100-110`).
+LogEntry source: constructor/getters at `LogEntry.java:39-74`; equals at `76-90`; hashCode at `92-101`; timestamp string and toString at `103-113`.
+Logger export writer prints `entry.toStringWithTimeStamp()` or `entry.toString()` (`Logger.java:425-442`); SaveLogWorker invokes `logger.write(fout,true)` (`SaveLogWorker.java:95`).
+
+COMMAND: rg -n 'LogEntry|\.hashCode\(\)' <source-root> -g '*.java'
+OUTPUT:
+LogEntry references show constructor use from SessionLogger and UI adapter callbacks. LogAdapter calls equals/getId/getTag/getMsg/getTimeStampAsString. No LogEntry hash-based collection or explicit LogEntry.hashCode invocation is present; the only hashCode occurrences are the override and String field hashCode calls inside it.
+
+COMMAND: rg -n 'throw new (FetchLinkException|FreeSpaceException|IPFilterException|NoFilesSelectedException|NormalizeUrlException|TorrentAlreadyExistsException|UnknownUriException)' <source-root> -g '*.java'
+OUTPUT:
+Callsites printed above show every exception type in this batch is instantiated by app code on active feed-fetch, add-torrent, URL-normalization, IP-filter, or filesystem paths.
+
+Summary labels: 39 REACHABLE; 1 UNREACHABLE no_trigger_in_app; 0 OPEN. No coverage artifacts were consulted.

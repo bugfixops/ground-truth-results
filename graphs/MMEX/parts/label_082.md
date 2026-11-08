@@ -1,0 +1,18 @@
+STATUS: RUNNING 15:32
+
+| method | label | kind | reason | printed file:lines |
+|---|---|---|---|---|
+| MainActivity$4.onChildClick | REACHABLE | GUI | the user opens the navigation drawer from the home screen, expands a group with child rows and taps a child row (for example Accounts in the group whose children are built at lines 862-868). The listener is installed by createExpandableDrawer (setOnChildClickListener, line 965; batch 080). Guard: mDrawer is not null (line 968); the drawer exists because initializeDrawer finds drawerLayout (lines 1291-1294; main_activity.xml:19) and the drawer list is inside it (main_activity.xml:46; merge_drawer.xml:72-76). The home screen is shown first (onCreate line 238), then initializeDrawer (line 240), so the route runs S_HOME to onChildClick (GUI edge written here, page S_HOME from label_077.py). The group expansion (onGroupClick returns false for groups with children, lines 941-942) and the dispatch of a child-row tap to the listener are INFERRED (ExpandableListView is not in fw_src) | home/MainActivity.java:862-868, 965-968, 1289-1301, 238-240, 941-942; res/layout/main_activity.xml:18-21, 46; res/layout/merge_drawer.xml:72-76 |
+| MainActivity$4$1.<init> | REACHABLE | CALL | auto CALL from MainActivity$4.onChildClick at line 975, inside the if on selectedItem (line 974). No edge written here (D7). The route is the one of onChildClick above | home/MainActivity.java:974-975 |
+| MainActivity$4$1.run | REACHABLE | FRAMEWORK | the anonymous Runnable is posted with new Handler().postDelayed (lines 975-980, delay 200 ms). The framework runs run() when the delay ends (FRAMEWORK edge from onChildClick written here; the same pattern as label_041.py). run() calls onDrawerMenuAndOptionMenuSelected (line 978; auto CALL). Guard: selectedItem is not null (line 974) | home/MainActivity.java:973-980; FW-SRC core/java/android/os/Handler.java:427-429, 596, 97-99, 789-790 |
+
+Counts: REACHABLE 3, UNREACHABLE 0, INCOMPLETE 0 (kinds: GUI 1, CALL 1, FRAMEWORK 1).
+Files: graphs/MMEX/parts/label_082.py (2 edges: 1 GUI, 1 FRAMEWORK; 0 UNREACHABLE entries; 0 sup pairs; no new SCREENS key, S_HOME is reused from label_077.py). No grep file: no library or generated class is UNREACHABLE.
+Open points:
+1. The navigation drawer also opens over the other MainActivity fragments (account list, portfolio, watchlist and the others that showFragment shows, batches 081 and 008). Those screens have no page key for the drawer, so this part writes the drawer route from S_HOME only (the first screen MainActivity shows, line 238). The route is complete without them; no key was invented.
+2. Sibling method MainActivity$3.onGroupClick (batch 081, group taps) follows the same drawer question. label_075.py:9 says no gui() edge is written for group taps because S_HOME did not exist then; batch 081 should use S_HOME the same way as this part. Not waited for.
+3. The route depends on batch 080 (not merged, D8): MainActivity.onCreate (ENTRY), initHomeFragment (the ENTERS edge into S_HOME, MainActivity.java:238), the auto CALL onCreate -> initializeDrawer (line 240), and the auto CALL initializeDrawer -> createExpandableDrawer (line 1301). Until batch 080 merges, S_HOME shows as page not reachable and onChildClick shows the interim error (D8).
+4. The auto CALL MainActivity$4.onChildClick -> MainActivity.<clinit> (MainActivity.java:968, dispatch exact) is in auto_calls.json and is not written here. Its target belongs to batch 080.
+5. The open-drawer gesture (androidx DrawerLayout and MyActionBarDrawerToggle, MainActivity.java:1296-1297) is androidx, not read: INFERRED.
+
+STATUS: DONE 15:33

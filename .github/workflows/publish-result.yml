@@ -1,0 +1,67 @@
+name: Publish result
+
+# Regenerates run_result/ and the READMEs from the current work branch and publishes the same commit on branch
+# `result` (fast-forward only, never forced). Start it by pushing handoff/PUBLISH_REQUEST.txt to work-2026-10-31
+# (line 1 a comment, line 2 "# request <UTC time> <purpose>"; an optional line "run_of_record <run id>" publishes a
+# newer emulator run), or by hand: Actions -> Publish result -> Run workflow.
+#
+# It refuses to publish when:
+#   - an app outside the re-audit changed against base 46682745 (tools_dev/check_unchanged_apps.py);
+#   - any app's CI summary is not at 0 errors and 0 warnings, or the summaries name different request commits;
+#   - tools_dev/check_terms.py flags a generated README (publishing rule of the 2026-11-03 review);
+#   - `result` has commits that the work branch does not have (no force-push).
+on:
+  push:
+    branches: [work-2026-10-31]
+    paths: [handoff/PUBLISH_REQUEST.txt]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-result
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: work-2026-10-31
+          fetch-depth: 0
+
+      - name: Apps outside the re-audit unchanged
+        run: python3 -I tools_dev/check_unchanged_apps.py
+
+      - name: Regenerate run_result and the READMEs
+        run: |
+          run=$(grep -E '^run_of_record ' handoff/PUBLISH_REQUEST.txt | awk '{print $2}' | tail -1 || true)
+          if [ -n "$run" ]; then export RUN_OF_RECORD="$run"; echo "run of record: $run"; fi
+          python3 -I tools/pack_results.py .
+
+      - name: Commit, push to work-2026-10-31, fast-forward result
+        run: |
+          git config user.name bugfixops
+          git config user.email bugfixops@users.noreply.github.com
+          src=$(git rev-parse --short=8 HEAD)
+          git add -A run_result README.md
+          if git diff --cached --quiet; then
+            echo "run_result and README already current"
+          else
+            git commit -q -m "[publish] run_result and README regenerated from $src"
+            ok=0
+            for i in 1 2 3 4 5; do
+              if git pull -q --rebase origin work-2026-10-31 && git push -q origin HEAD:work-2026-10-31; then ok=1; break; fi
+              sleep 15
+            done
+            [ "$ok" = 1 ] || { echo "could not push to work-2026-10-31"; exit 1; }
+          fi
+          git fetch -q origin result
+          if ! git merge-base --is-ancestor origin/result HEAD; then
+            echo "result has commits that work-2026-10-31 does not have: not publishing (no force-push)"; exit 1
+          fi
+          git push -q origin HEAD:result
+          echo "published $(git rev-parse --short=8 HEAD) to result"

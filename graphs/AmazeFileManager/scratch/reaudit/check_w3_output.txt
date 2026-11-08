@@ -1,0 +1,19 @@
+== before W3 (after W2; outputs equal the committed CI outputs) ==
+AmazeFileManager: REACHABLE methods whose best route uses an env gate from an exported or external entry: 57 of 2512 (TextEditorActivity 50, FtpTileService 5, FtpReceiver 2)
+AmazeFileManager methods with env on best route: 64
+
+== after W3 ==
+AmazeFileManager: env-gated ENTRY edges: 15
+AmazeFileManager: REACHABLE methods whose best route uses an env gate from an exported or external entry: 5 of 2512
+      5  Ede568b60  S_ENTRY -> FtpTileService.<init>  | other_app | outside package: the user taps the FTP quick-settings tile
+verdicts: {'REACHABLE': 2512, 'UNREACHABLE': 469}
+AmazeFileManager methods with env on best route: 12
+    5 E5c30adbb FRAMEWORK ProcessViewerFragment.onResume -> ProcessViewerFragment$CustomServiceConnection.onServiceConnected | bindService succeeds | ['CopyService.setProgressListener', 'ZipService.setProgressListener']
+    5 Ede568b60 ENTRY S_ENTRY -> FtpTileService.<init> | outside package: the user taps the FTP quick-settings tile | ['FtpTileService.<init>', 'FtpTileService.lambda$onClick$0']
+    2 E6a0c67c7 FRAMEWORK MainActivity$1.onPostExecute -> PasteHelper$1.createFromParcel | the system recreates MainActivity with its saved state after a configu | ['PasteHelper.<init>(Parcel)', 'PasteHelper$1.createFromParcel']
+errors: 0
+warnings: 5
+
+== remaining exported or external entries, each kept with its env gate (reason) ==
+- FtpTileService (Ede568b60, 5 methods): started only by the system UI when the user taps the quick-settings tile; no in-app start.
+- The other env gates on best routes (bindService in ProcessViewerFragment, the saved-state restore of MainActivity) are not entries: W6/W7.

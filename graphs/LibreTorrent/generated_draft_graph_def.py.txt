@@ -1,0 +1,58 @@
+# LibreTorrent 3.5.2 trigger graph
+# Generated part: tools/gen_edges.py derives entry points, lifecycle, callbacks, lambdas, intents, XML-instantiated classes
+# from the bytecode, AndroidManifest.xml and res/ XML (see its docstring). Direct app->app calls come from
+# tools/extract_calls.py. Everything below gen_edges.apply() is hand-written refinement for this app.
+# Rebuild: python3 -I tools/build_graph.py graphs/LibreTorrent <prefix>
+
+TITLE = 'LibreTorrent 3.5.2 trigger graph'
+USE_AUTO = True
+PREFER_SETUP_OVER_ENV = True
+AUTO_DEAD = ('Generated graph: no route found. Nothing in the app calls it and no entry point (manifest component, lifecycle or '
+             'UI callback of a constructed class, lambda, XML reference, class literal, intent action) leads to it. '
+             'Probably unused code; entries through reflection, JNI or code generators are not modelled.')
+
+import sys
+sys.path.insert(0, TOOLS)
+import gen_edges
+
+NEED_TORRENT = ('A torrent is in the list (a magnet link or .torrent file was added); the baseline fixtures hold no .torrent file and the '
+                'baseline never opened a torrent detail screen (no DetailTorrent* method ran)')
+ENV_CRASH = 'outside package: the app crashes (the uncaught-exception handler set in MainApplication.onCreate starts the error report screen)'
+NEED_MAGNET = 'A magnet link is given to the Add torrent screen (AddTorrentViewModel decodes it and fetches its metadata from the swarm)'
+NEED_IPFILTER = 'Settings > Network > IP filtering is on and a filter file is chosen (default off; TorrentEngine.handleOnSessionStarted)'
+NEED_AUTODL = 'A feed channel with auto-download enabled exists (FeedFetcherWorker.fetchChannel: channel.autoDownload)'
+NEED_DECODED = 'A .torrent file or magnet link was given to the Add torrent screen and decoded without error (AddTorrentActivity.onStopDecode)'
+ENV_PICKER = ('outside package: a file or folder is chosen in the system document picker (the baseline runs used -p <app>, which refuses to start '
+              'other packages, so the result callback only gets RESULT_CANCELED / no data)')
+ENV_FEED = 'outside package: an RSS / Atom feed URL is reachable over the network (feed fetch and download workers)'
+ENV_SYS = 'outside package: the device reboots, a power / battery broadcast arrives or the scheduler alarm fires'
+
+CFG = {
+    'GROUPS': [         # (regex on node name or 'class:' + regex on the class path, 'needs'|'env'|'guard', text); gates every edge into a method of the group that the baseline never ran
+        (r'^(\w*DetailTorrent\w*|TorrentDownloadImpl|TorrentInputStream|TorrentContentFileTree|TorrentDetailsInfo|TrackerInfo|BencodeFileItem|FileTree|'
+         r'AdvancedTorrentInfo|AdvancedPeerInfo|PeerInfo|PieceInfo|TorrentInfoProvider|TorrentStream\w*|NanoHTTPD\w*)', 'needs', NEED_TORRENT),
+        (r'^(AddTorrentFilesFragment|TorrentMetaInfo)', 'needs', NEED_DECODED),
+        (r'^(EzRss01Parser|MediaRssParser|DefaultFeedParser|FeedHandler|FeedFetcherWorker|FeedDownloaderWorker|FeedParser\w*|XMLInputStream|XML)\b', 'env', ENV_FEED),
+        (r'^(BootReceiver|SchedulerReceiver|PowerReceiver)', 'env', ENV_SYS),
+    ],
+    'EDGES': [          # (regex on source node, regex on target node, 'needs'|'env'|'guard', text): branch-specific gates read from the source at the frontier
+        (r'.', r'^MainActivity\.showDetailTorrent$', 'needs', NEED_TORRENT),
+        (r'^TorrentSessionImpl\$InnerListener\.alert$', r'^TorrentSessionImpl\.newTask$', 'needs', NEED_TORRENT),
+        (r'^TorrentEngine\.makeInfoListSync$', r'^TorrentEngine\.makeInfo$', 'needs', NEED_TORRENT),
+        (r'^CreateTorrentDialog\.lambda\$new\$11$', r'^CreateTorrentDialog\.buildTorrent$', 'env', ENV_PICKER),
+        (r'^AddTorrentActivity\.onStopDecode$', r'^AddTorrentViewModel\.makeFileTree$', 'needs', NEED_DECODED),
+        (r'^MainApplication\.(onCreate|lambda\$onCreate\$\d+)$', r'^ErrorReportActivity\.', 'env', ENV_CRASH),
+        (r'^TorrentSessionImpl\.restoreTorrents$', r'^TorrentSessionImpl\$LoadTorrentTask\.', 'needs', NEED_TORRENT),
+        (r'^TorrentEngine\.handleOnSessionStarted$', r'^TorrentSessionImpl\.enableIpFilter$', 'needs', NEED_IPFILTER),
+        (r'^AddTorrentViewModel\$TorrentDecodeTask\.doInBackground$', r'^TorrentEngine\.fetchMagnet$', 'needs', NEED_MAGNET),
+        (r'^FeedFetcherWorker\.fetchChannel$', r'^FeedFetcherWorker\.sendFetchedItems$', 'needs', NEED_AUTODL),
+        (r'^TorrentSessionImpl\$InnerListener\.alert$', r'^TorrentSessionImpl\$InnerListener\.lambda\$alert\$0$', 'needs', NEED_TORRENT),
+        (r'^LogActivity\.lambda\$new\$4$', r'^LogViewModel\.saveLog$', 'env', ENV_PICKER),
+        (r'^MainFragment\.lambda\$getAllTorrentsSingle\$6$', r'^TorrentListItem\.', 'needs', NEED_TORRENT),
+    ],
+    'STATIC_ADAPTERS': [],  # adapters whose rows exist without user data
+}
+
+gen_edges.apply(globals(), GDIR, 'LibreTorrent', CFG)
+
+# ------------------------------------------------------------------ hand-written refinement

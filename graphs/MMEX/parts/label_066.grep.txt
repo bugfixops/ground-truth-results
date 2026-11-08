@@ -1,0 +1,58 @@
+# label_066.grep.txt: evidence for batch 066 (EntityBase 16 methods, EntityBase$$Parcelable 7, EntityBase$$Parcelable$1 3, Info 6).
+# APP = final_java_only/MMEX/app/MMEX-#v2024.06.14/app   (SRC = APP/src/main/java)   FW-SRC = fw_src/android-8.1.0_r1 (core/java/android/os)
+# The searches were python3 -I byte and line scans with the same patterns as grep -rn -F (scans written to the session scratchpad).
+#
+## 1. generated Parceler classes: byte scan of APP/build for the string EntityBase$$Parcelable
+class files scanned under APP/build: 825
+intermediates/javac/debug/classes/com/money/manager/ex/domainmodel/EntityBase$$Parcelable.class: 5 matches
+intermediates/javac/debug/classes/com/money/manager/ex/domainmodel/EntityBase$$Parcelable$1.class: 7 matches
+no other class file under APP/build contains the name
+EntityBase.class present (build/intermediates/javac/debug/classes/com/money/manager/ex/domainmodel/EntityBase.class); the generated wrapper is not in SRC (INFERRED: parceler generates it from the @Parcel annotation at EntityBase.java:38)
+#
+## 2. text scan of APP excluding build for EntityBase$$ (extensions .java .kt .xml .gradle .txt .pro)
+text files scanned: 769
+matches: 0
+# source scan of SRC (408 .java and .kt files) for app-level calls to the Parcelable callbacks: .describeContents( 0, .getParcel( 0, .newArray( 0,
+# .createFromParcel( 0, .writeToParcel( 0. Only CREATOR field declarations match CREATOR (DefinedDateRange.java:56, CategorySub.java:44, ValuePieEntry.java:95; StatusFilter.java:52 is commented out)
+#
+## 3. Parcels.wrap and Parcels.unwrap sites in SRC: 43 lines (23 wrap, 20 unwrap)
+# wrap sites and the declared type of the wrapped value (every one is a @Parcel class, or an interface whose implementers are @Parcel):
+#   Account: WatchlistFragment.java:280 (mAccount, Account at line 107); FilterDialogFragment.java:74 (account parameter of newInstance, line 68); AccountEditActivity.java:204 (mAccount, Account at line 79)
+#   TransactionFilter: FilterDialogFragment.java:73 (filter parameter of newInstance, line 68)
+#   PriceDownloadedEvent: PriceDownloadedEventBundler.java:37 (put(String, PriceDownloadedEvent event, Bundle), line 36)
+#   SearchParameters: IntentFactory.java:56 (getSearchIntent(..., SearchParameters parameters), line 54); SearchParametersFragment.java:286, 340 (SearchParameters at lines 238, 323); CategoryListFragment.java:735 (SearchParameters parameters, line 221); CategoriesReportFragment.java:381 (SearchParameters parameters, line 288); PayeeReportFragment.java:319 (SearchParameters parameters, line 287)
+#   ITransactionEntity (implemented by AccountTransaction and RecurringTransaction, both "extends EntityBase implements ITransactionEntity" and both @Parcel): CheckingTransactionEditActivity.java:167; RecurringTransactionEditActivity.java:181 (mCommon.transactionEntity, declared ITransactionEntity at EditTransactionCommonFunctions.java:116)
+#   List<ISplitTransaction> / ArrayList<ISplitTransaction> (implemented by SplitCategory and SplitRecurringCategory, both "extends EntityBase" and both @Parcel): CheckingTransactionEditActivity.java:175, 177; EditTransactionCommonFunctions.java:1522, 1523 (splitsToShow, line 1513); SplitCategoriesActivity.java:172, 173, 184, 187; RecurringTransactionEditActivity.java:191, 192
+# unwrap sites (20) read the same types back (WatchlistFragment.java:121, 144; PriceDownloadedEventBundler.java:43; SearchParametersFragment.java:323; SearchActivity.java:157; CheckingTransactionEditActivity.java:649, 655, 657; EditTransactionCommonFunctions.java:890, 895; SplitCategoriesActivity.java:91, 92, 247, 251; FilterDialogFragment.java:86, 87; AccountEditActivity.java:587; RecurringTransactionEditActivity.java:549, 555, 556)
+# result: no wrapped runtime class is EntityBase itself. The wrapped objects are AccountTransaction, RecurringTransaction, SplitCategory, SplitRecurringCategory, Account, SearchParameters, TransactionFilter, PriceDownloadedEvent (INFERRED: the runtime class decides which $$Parcelable wrapper parceler loads; parceler library source not read)
+#
+## 4. @Parcel annotated files in SRC (14)
+account/StatusFilter.java, account/TransactionFilter.java, core/DateRange.java, domainmodel/Account.java, domainmodel/AccountTransaction.java, domainmodel/Budget.java, domainmodel/Category.java, domainmodel/EntityBase.java (line 38), domainmodel/RecurringTransaction.java, domainmodel/SplitCategory.java, domainmodel/SplitRecurringCategory.java, domainmodel/Stock.java, investment/events/PriceDownloadedEvent.java, search/SearchParameters.java
+#
+## 5. new EntityBase( in SRC: 0 matches. EntityBase-typed field declarations in SRC (regex over field-like declarations, incl. List/ArrayList/Set/Map of EntityBase): 0 matches
+#
+## 6. ContentValues constructors of the subclasses that call EntityBase.<init>(ContentValues)
+ctor declarations: AccountTransaction.java:78, Attachment.java:39, Category.java:39, Payee.java:37 (each takes ContentValues contentValues)
+non-empty constructor calls new AccountTransaction( / new Attachment( / new Category( / new Payee( in SRC: 0
+the other constructor calls are no-arg: Core.java:151 (new Payee()), PayeeService.java:56, 94, AccountTransaction.java:57, CategoryListFragment.java:399 (new Category()), PayeeListFragment.java:206, AttachmentRepository.java:83 (new Attachment()), PayeeReportFragment.java:302
+RepositoryBase.java:109, 134 build entities with resultType.newInstance() (no-arg constructor only; precedent label_063.grep.txt section 5)
+#
+## 7. auto_calls.json records touching the generated family (6 records, all with caller or callee in EntityBase$$Parcelable)
+EntityBase$$Parcelable$1.createFromParcel -> EntityBase$$Parcelable.<clinit>   (generated line 28)
+EntityBase$$Parcelable$1.createFromParcel -> EntityBase$$Parcelable.<init>     (generated line 28)
+EntityBase$$Parcelable$1.createFromParcel -> EntityBase$$Parcelable.read       (generated line 28)
+EntityBase$$Parcelable.writeToParcel -> EntityBase$$Parcelable.write           (generated line 45)
+EntityBase$$Parcelable.read -> EntityBase.<init>()                             (generated line 78)
+EntityBase$$Parcelable.<clinit> -> EntityBase$$Parcelable$1.<init>             (generated line 23)
+no auto_calls.json record has getParcel, describeContents, newArray, writeToParcel or read as dst except the records listed above (read has the createFromParcel record; writeToParcel has none)
+auto_calls.json records into EntityBase.<init>(ContentValues): Attachment.<init>(ContentValues) (Attachment.java:40), AccountTransaction.<init>(ContentValues) (AccountTransaction.java:79), Category.<init>(ContentValues) (Category.java:40), Payee.<init>(ContentValues) (Payee.java:38); no record has EntityBase.<init>(ContentValues) as src
+#
+## 8. framework paths used by the framework-kind labels (FW-SRC)
+Parcel.writeParcelable: lines 1785-1791 (writeParcelableCreator at 1790, p.writeToParcel(this, flags) at 1791)
+Parcel.readParcelable: lines 2841-2851 (creator.createFromParcel(this) at 2851)
+Bundle.hasFileDescriptors: lines 316-371 (describeContents() called at 329, 338, 349, 362)
+Bundle.describeContents: lines 1215-1217 (hasFileDescriptors() at 1217)
+#
+## 9. source lines of the EntityBase and Info methods (SRC)
+EntityBase.java: 38 @Parcel, 39 class declaration, 45 protected EntityBase(), 49 protected EntityBase(ContentValues), 61 getContentValues, 90 getDate(String), 100 setDate(String, Date), 121 getDouble, 125 setDouble
+Info.java: 37 public int getId() (returns getInt(INFOID) per the batch read)

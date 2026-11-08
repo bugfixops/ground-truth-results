@@ -1,0 +1,28 @@
+// Rename output release bundle
+tasks.whenTaskAdded { task ->
+    def releaseFlavorNameGooglePlay = 'googlePlayRelease'
+    def releaseFlavorBundleSuffixGooglePlay = 'googlePlay-release'
+    def releaseFlavorNameThirdPartyStores = 'thirdPartyStoresRelease'
+    def releaseFlavorBundleSuffixThirdPartyStores = 'thirdPartyStores-release'
+    if (task.name.startsWith('bundle')) {
+        def flavor = null
+        def suffix = null
+        def taskName = task.name.substring('bundle'.length()).uncapitalize()
+        if (taskName == releaseFlavorNameGooglePlay) {
+            flavor = releaseFlavorNameGooglePlay
+            suffix = releaseFlavorBundleSuffixGooglePlay
+        } else if (taskName == releaseFlavorNameThirdPartyStores) {
+            flavor = releaseFlavorNameThirdPartyStores
+            suffix = releaseFlavorBundleSuffixThirdPartyStores
+        }
+        if (flavor != null) {
+            task.doLast {
+                def defaultBundleName = "build/outputs/bundle/$flavor/app-${suffix}.aab"
+                def outputBundleName = "build/outputs/bundle/$flavor/hash-checker_release.aab"
+                ant.rename src: defaultBundleName,
+                        dest: outputBundleName,
+                        replace: true
+            }
+        }
+    }
+}

@@ -1,0 +1,77 @@
+method: SyntaxHighlighterBase$SpanGroup.compareTo
+route: route_21
+steps: 18
+verdict: correct (path row)
+
+step 1: S_ENTRY -> ApplicationObject.<init>
+  edge: E211966cc kind=ENTRY env=None env_kinds=[] needs_state=None gui=['Tap the Markor launcher icon']
+  trigger: The process starts when the launcher icon is tapped (before any activity)
+  evidence: SRC AndroidManifest.xml:39-40
+step 2: ApplicationObject.<init> -> ApplicationObject.onCreate
+  edge: Ed6414d9f kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Application.onCreate
+  evidence: SRC ApplicationObject.java:16,39
+step 3: ApplicationObject.onCreate -> MainActivity.<init>
+  edge: E0254b914 kind=ENTRY env=None env_kinds=[] needs_state=None gui=['Tap the Markor launcher icon']
+  trigger: The MAIN / LAUNCHER intent starts MainActivity (after Application.onCreate on a cold start)
+  evidence: SRC AndroidManifest.xml:61-71; FW-SRC core/java/android/app/ActivityThread.java:5740 (callApplicationOnCreate runs before the first activity)
+step 4: MainActivity.<init> -> MainActivity.onCreate
+  edge: Ed25af8f4 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onCreate
+  evidence: SRC MainActivity.java:76; FW-SRC core/java/android/app/Activity.java:989 (onCreate), 1311 (onResume), 1331 (onPostResume), 3001-3010 (onBackPressed), 5679 (onActivityResult), 824 (mResultCode defaults to RESULT_CANCELED)
+step 5: MainActivity.onCreate -> MainActivity.onResume
+  edge: Eba46a594 kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The system calls Activity.onStart and then Activity.onResume after onCreate returns (cold start)
+  evidence: SRC MainActivity.java:76,279; FW-SRC core/java/android/app/ActivityThread.java:2729 (callActivityOnCreate), 2741 (performStart), 2950 (performResume)
+step 6: MainActivity.onResume -> MainActivity.onPostResume
+  edge: E659e191c kind=LIFECYCLE env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Activity.performResume calls onPostResume after onResume
+  evidence: SRC MainActivity.java:317; FW-SRC core/java/android/app/Activity.java:7098-7131 (onPostResume at 7131)
+step 7: MainActivity.onPostResume -> S_NOTEBOOK
+  edge: E0ecb8e4d kind=ENTERS env=None env_kinds=[] needs_state=None gui=[]
+  trigger: The notebook tab is the first page the pager shows (position 0); it is the default startup tab, so it is the visible page after a cold start
+  evidence: SRC MainActivity.java:105-106; SRC AppSettings.java:781; SRC MainActivity.java:142-144; FW-SRC core/java/android/app/Activity.java:7098-7131; INFERRED androidx ViewPager2 calls the registered OnPageChangeCallback after the page changes (androidx source not read)
+step 8: S_NOTEBOOK -> MainActivity.lambda$onCreate$0
+  edge: E54b4aedd kind=GUI env=None env_kinds=[] needs_state=None gui=['Tap a bottom navigation tab']
+  trigger: Tap a bottom navigation tab
+  evidence: SRC MainActivity.java:109-114; INFERRED the BottomNavigationView calls the listener on a tap (material library source not read)
+step 9: MainActivity.lambda$onCreate$0 -> S_TODO
+  edge: E80c409ce kind=ENTERS env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Tab Todo is shown (the listener selects its position)
+  evidence: SRC MainActivity.java:109-114; INFERRED androidx ViewPager2 calls the registered OnPageChangeCallback after the page changes (androidx source not read)
+step 10: S_TODO -> DocumentEditAndViewFragment.onOptionsItemSelected
+  edge: Ea2691dfc kind=GUI env=None env_kinds=[] needs_state=None gui=['Tap an item of the editor menu (todo or quick note)']
+  trigger: Tap an item of the editor menu (todo or quick note)
+  evidence: SRC DocumentEditAndViewFragment.java:421; INFERRED AppCompat calls onCreateOptionsMenu when the toolbar menu is built (androidx source not read)
+step 11: DocumentEditAndViewFragment.onOptionsItemSelected -> ActionButtonBase.onSearch
+  edge: E3ecdfe9d kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC DocumentEditAndViewFragment.java:542 (bytecode)
+step 12: ActionButtonBase.onSearch -> TextSearchFragment.show
+  edge: Ea408130e kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC ActionButtonBase.java:119 (bytecode)
+step 13: TextSearchFragment.show -> TextSearchFragment.find2
+  edge: E37b1f97b kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC TextSearchFragment.java:359 (bytecode)
+step 14: TextSearchFragment.find2 -> TextSearchHandler.find
+  edge: Eb2ebd8bf kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC TextSearchFragment.java:323 (bytecode)
+step 15: TextSearchHandler.find -> TextSearchHandler.loadMatches
+  edge: E6c43423f kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC TextSearchHandler.java:90 (bytecode)
+step 16: TextSearchHandler.loadMatches -> Match.<init>
+  edge: E6e6ed335 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC TextSearchHandler.java:105 (bytecode)
+step 17: Match.<init> -> SyntaxHighlighterBase.createBackgroundHighlight
+  edge: E0fecccb6 kind=CALL env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Direct call
+  evidence: SRC Match.java:18 (bytecode)
+step 18: SyntaxHighlighterBase.createBackgroundHighlight -> SyntaxHighlighterBase$SpanGroup.compareTo
+  edge: Eae742bba kind=FRAMEWORK env=None env_kinds=[] needs_state=None gui=[]
+  trigger: Framework or library calls this method on the object created here (listener, adapter, view, dialog, task or fragment hook)
+  evidence: INFERRED method has no bytecode caller; object of this class created at SyntaxHighlighterBase.createBackgroundHighlight (bytecode); callback name compareTo
