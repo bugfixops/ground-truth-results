@@ -113,6 +113,7 @@
   change).
 
 ### 10. Core.resolveColorAttribute — STATE, 18 steps — CORRECT
+- Re-checked 2026-11-08 (Kiro, self-checked only, second: pending reviewer): W7 r6-p14 re-check: step 18 is the same call (PayeeReportAdapter.bindView -> resolveColorAttribute, PayeeReportAdapter.java:75) under a new edge id (E297859cc to E1829534a), which now carries the state that a payee with transactions exists; the same 18 steps.
 - Steps 1-18 CORRECT. Child-click prefix verified (Payee is the first
   entry of childReports, MainActivity.java:898) + Payee-specific
   variant chain (PayeesReportActivity -> PayeeReportFragment ->

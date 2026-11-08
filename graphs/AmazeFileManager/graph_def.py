@@ -101,6 +101,8 @@ _R6_LISTENER_CUT = [
     # W7 r6-p14 DEAD steps: INFERRED "implied" hand edges; onStartCommand sets the listener (ExtractService.java:142) and reads neither
     ('ExtractService.onStartCommand', 'ExtractService.getDataPackages'),
     ('ExtractService.onStartCommand', 'ExtractService.getProgressListener'),
+    # W7 r6-p15 DEAD step: the MediaStore workaround runs only on API 19 (SDK_INT == KITKAT, FileUtil.java:118-122)
+    ('FileUtil.getDocumentFile', 'MediaStoreHack.getUriFromFile'),
 ]
 _R2_CUT.update(_R6_LISTENER_CUT)
 # r6-p12: onTerminate is never called on a device; AppConfig.getInstance does not call getScreenWidthInPx (the real call is Drawer.java:243 -> getScreenWidthInDp)
