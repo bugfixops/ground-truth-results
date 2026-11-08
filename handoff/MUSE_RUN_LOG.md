@@ -1417,3 +1417,4 @@ User rulings in the hour (recorded in DECISIONS): Path A authorized ~17:06 EST; 
 - 2026-11-08 UTC | W7 PENDING r6 batch AnkiDroid p16 | 40 steps (rejudge_r6_p16.txt) | fresh build errors 0, 23 of 23 | PENDING 324/0/144/0/684
 - 2026-11-08 UTC | W7 PENDING r6 batch Aegis p15 | 40 steps (rejudge_r6_p15.txt); AnkiDroid verification.csv re-written after r6-p16 (the Sound$3.onPrepared framework edge got its media state, new id E7a90ecf0; BasicAudioFieldController.onActivityResult label row added) | fresh build errors 0, 23 of 23 | PENDING 284/0/144/0/684
 - 2026-11-08 UTC | W7 PENDING r6 batch MMEX p16 | 40 steps (rejudge_r6_p16.txt) | fresh build errors 0, 23 of 23 | PENDING 284/0/144/0/644
+- 2026-11-08 UTC | W7 PENDING r6 batch AnkiDroid p17 | 40 steps (rejudge_r6_p17.txt); first push straight to main after the reviewer merged PR #1 (506fe8b3); the mungeQA kana/kanji auto copies suppressed | fresh build errors 0, 23 of 23 | PENDING 284/0/104/0/644

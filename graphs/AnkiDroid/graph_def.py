@@ -8037,3 +8037,7 @@ sup(('Reviewer.onCreateOptionsMenu', 'AbstractFlashcardViewer.clipboardHasText')
 # startActivityForResult), so MultimediaEditFieldActivity never gets a result while it is the controller
 sup(('MultimediaEditFieldActivity.onActivityResult', 'BasicAudioFieldController.onActivityResult'))
 UNREACHABLE['BasicAudioFieldController.onActivityResult'] = ('framework_never_calls', 'MultimediaEditFieldActivity passes a result to the current field controller (MultimediaEditFieldActivity.java:314-315); the audio field controller starts no activity (no startActivityForResult in BasicAudioFieldController.java or AudioView.java), so no result arrives while it is the controller', 'SRC com/ichi2/anki/multimediacard/fields/BasicAudioFieldController.java:98-99', 'SOURCE')
+# W7 r6-p17 DEAD steps Edea7194f, Eb61c3089: the mungeQA hook list holds only the LaTeX, Hebrew fix and chess filters
+# (LaTeX.java:115; HebrewFixFilter.java:32; ChessFilter.java:65); the kana and kanji filters are installed under fmod_kana and
+# fmod_kanji (FuriganaFilters.java:35-36), so the mungeQA run (Hooks.java:138-150) never calls them. Only the variant's auto copy is dropped.
+sup(('Hooks.runFilter@mungeQA', 'FuriganaFilters$Kana.runFilter'), ('Hooks.runFilter@mungeQA', 'FuriganaFilters$Kanji.runFilter'))
