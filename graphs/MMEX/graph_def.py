@@ -6544,3 +6544,6 @@ UNREACHABLE['InfoService.updateRaw(SupportSQLiteDatabase,int,String,Integer)'] =
     'branch_never_taken', 'its only caller is the update branch of MmxOpenHelper.initBaseCurrency (MmxOpenHelper.java:300-302), which runs '
     'only when a BASECURRENCYID row exists; initBaseCurrency runs from onCreate right after tables_v1.sql, which has no such row',
     'SRC database/MmxOpenHelper.java:98-99,256-302; SRC res/raw/tables_v1.sql', 'SOURCE')
+# W7 r6-p30 DEAD step E5a1dd2c0: CurrencyListActivity.onCreate checks mPreviousOrientation on a fragment it has just made
+# (CurrencyListActivity.java:50-56), and the field starts at NOT_SET (CurrencyListFragment.java:76), so the branch never runs.
+sup(('CurrencyListActivity.onCreate', 'ActivityUtils.forceCurrentOrientation'))

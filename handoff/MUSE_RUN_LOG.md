@@ -1442,3 +1442,4 @@ User rulings in the hour (recorded in DECISIONS): Path A authorized ~17:06 EST; 
 - 2026-11-08 UTC | W7 PENDING r6 batch MMEX p27 | 40 steps (rejudge_r6_p27.txt) | fresh build errors 0, 23 of 23 | PENDING 0/0/0/0/204
 - 2026-11-08 UTC | W7 PENDING r6 batch MMEX p28 | 40 steps (rejudge_r6_p28.txt) | fresh build errors 0, 23 of 23 | PENDING 0/0/0/0/164
 - 2026-11-08 UTC | W7 PENDING r6 batch MMEX p29 | 40 steps (rejudge_r6_p29.txt) | fresh build errors 0, 23 of 23 | PENDING 0/0/0/0/124
+- 2026-11-08 UTC | W7 PENDING r6 batch MMEX p30 | 40 steps (rejudge_r6_p30.txt); CurrencyListActivity orientation branch copy suppressed; MMEX sample route SyncPreferences.getUploadImmediately re-checked after r6-p28 (same 8 steps, last edge E4201a5ab now carries the sync env, CORRECT); route_table and verification.csv updated | fresh build errors 0, 23 of 23 | PENDING 0/0/0/0/84
