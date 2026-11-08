@@ -1441,3 +1441,4 @@ User rulings in the hour (recorded in DECISIONS): Path A authorized ~17:06 EST; 
 - 2026-11-08 UTC | W7 PENDING r6 batch MMEX p26 | 40 steps (rejudge_r6_p26.txt); initBaseCurrency update branch cut; InfoService.updateRaw(int overload) UNREACHABLE branch_never_taken | fresh build errors 0, 23 of 23 | PENDING 0/0/0/0/244
 - 2026-11-08 UTC | W7 PENDING r6 batch MMEX p27 | 40 steps (rejudge_r6_p27.txt) | fresh build errors 0, 23 of 23 | PENDING 0/0/0/0/204
 - 2026-11-08 UTC | W7 PENDING r6 batch MMEX p28 | 40 steps (rejudge_r6_p28.txt) | fresh build errors 0, 23 of 23 | PENDING 0/0/0/0/164
+- 2026-11-08 UTC | W7 PENDING r6 batch MMEX p29 | 40 steps (rejudge_r6_p29.txt) | fresh build errors 0, 23 of 23 | PENDING 0/0/0/0/124
