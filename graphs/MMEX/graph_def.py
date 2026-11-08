@@ -6530,3 +6530,7 @@ for _m in ('setCategoryId', 'setPayeeId', 'getPayeeId'):
     sup(('CheckingTransactionEditActivity.lambda$handleIntent$1', 'RecurringTransaction.' + _m))
 sup(('CheckingTransactionEditActivity.onCreate', 'RecurringTransaction.getTransactionType'),
     ('CheckingTransactionEditActivity.onCreate@FRAG', 'RecurringTransaction.getTransactionType'))
+# W7 r6-p21 DEAD step Eec0a63c9: duplicateTransaction (ACTION_PASTE, after loadTransaction) resets the ids of the splits that
+# loadTransaction read through SplitCategoriesRepository (CheckingTransactionEditActivity.java:397-399), which are SplitCategory
+# objects, so the call never dispatches to SplitRecurringCategory.
+sup(('CheckingTransactionEditActivity.duplicateTransaction', 'SplitRecurringCategory.setId'))

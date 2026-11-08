@@ -1429,3 +1429,4 @@ User rulings in the hour (recorded in DECISIONS): Path A authorized ~17:06 EST; 
 - 2026-11-08 UTC | W7 PENDING r6 batch AnkiDroid p20 | 25 steps (rejudge_r6_p20.txt); the last PENDING of the app | fresh build errors 0, 23 of 23 | PENDING 165/0/0/0/524
 - 2026-11-08 UTC | W7 PENDING r6 batch MMEX p20 | 40 steps (rejudge_r6_p20.txt); AnkiDroid sample route AnkiActivity.openUrl re-checked after r6-p20 (now the drawer Help item, 6 steps, CORRECT); route_table, make_verification and verification.csv updated | fresh build errors 0, 23 of 23 | PENDING 165/0/0/0/484
 - 2026-11-08 UTC | W7 PENDING r6 batch Aegis p19 | 40 steps (rejudge_r6_p19.txt) | fresh build errors 0, 23 of 23 | PENDING 125/0/0/0/484
+- 2026-11-08 UTC | W7 PENDING r6 batch Aegis p20 | 40 steps (rejudge_r6_p20.txt) | fresh build errors 0, 23 of 23 | PENDING 85/0/0/0/484
