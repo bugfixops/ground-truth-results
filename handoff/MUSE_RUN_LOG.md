@@ -1410,3 +1410,4 @@ User rulings in the hour (recorded in DECISIONS): Path A authorized ~17:06 EST; 
 - 2026-11-08 UTC | W7 PENDING r6 batch MMEX p14 | 40 steps (rejudge_r6_p14.txt) | fresh build errors 0, 23 of 23 | PENDING 364/28/224/32/724
 - 2026-11-08 UTC | W7 PENDING r6 batch AmazeFileManager p15 | 28 steps (rejudge_r6_p15.txt); 28 steps, the last PENDING of the app; KitKat MediaStore call cut; MMEX sample route Core.resolveColorAttribute re-checked after r6-p14 (same call, new edge id, CORRECT) | fresh build errors 0, 23 of 23 | PENDING 364/0/224/32/724
 - 2026-11-08 UTC | W7 PENDING r6 batch AnkiDroid p15 | 40 steps (rejudge_r6_p15.txt) | fresh build errors 0, 23 of 23 | PENDING 364/0/184/32/724
+- 2026-11-08 UTC | W7 PENDING r6 batch LibreTorrent p15 | 32 steps (rejudge_r6_p15.txt); the last PENDING of the app; the exact alarm dialog edge dropped and the method UNREACHABLE (closed_by_api_level) | fresh build errors 0, 23 of 23 | PENDING 364/0/184/0/684

@@ -63,6 +63,9 @@ _K6_HAND_DROPS = {
     # W7 r6-p10 DEAD step E17fa9639: the exact alarm dialog is shown only when an alarm cannot be set, which needs SDK_INT >= S
     # (Scheduler.java:101-103); on API 27 its positive-button event never arrives (SchedulingSettingsFragment.java:133-137)
     ('SchedulingSettingsFragment.lambda$subscribeAlertDialog$0', 'Utils.requestExactAlarmPermission', 'CALL'),
+    # W7 r6-p15 DEAD step E464ec8bb: all four calls of the dialog follow a failed alarm (SchedulingSettingsFragment.java:200-230),
+    # and Scheduler fails only when SDK_INT >= S without the exact alarm permission (Scheduler.java:101-103)
+    ('SchedulingSettingsFragment.onPreferenceChange', 'SchedulingSettingsFragment.showExactAlarmPermissionDialog', 'CALL'),
 }
 _append_edge = e
 
@@ -4430,3 +4433,8 @@ def EDIT(x):
         _m = _r7_re.search(r'AddTorrentViewModel\.java:(\d+)', x.get('evidence') or '')
         if _m and 471 <= int(_m.group(1)) <= 544:
             x['needs_state'], x['state_kinds'] = _R7_DECODED, ['file']
+UNREACHABLE['SchedulingSettingsFragment.showExactAlarmPermissionDialog'] = (
+    'closed_by_api_level', 'called only after Scheduler.setStartAppAlarm or setStopAppAlarm returns false (SchedulingSettingsFragment.java:200-230), '
+    'which happens only when SDK_INT >= S and exact alarms are not allowed (Scheduler.java:101-103); the standard config is API 27',
+    'SRC ui/settings/sections/SchedulingSettingsFragment.java:195-231; service/Scheduler.java:101-104', 'SOURCE')
+SUPPRESS.add(('SchedulingSettingsFragment.onPreferenceChange', 'SchedulingSettingsFragment.showExactAlarmPermissionDialog'))  # r6-p15 auto copy
