@@ -1423,3 +1423,4 @@ User rulings in the hour (recorded in DECISIONS): Path A authorized ~17:06 EST; 
 - 2026-11-08 UTC | W7 PENDING r6 batch AnkiDroid p18 | 40 steps (rejudge_r6_p18.txt); the mungeQA hint, furigana and base Hook auto copies suppressed (E467abd28 re-judged DEAD) | fresh build errors 0, 23 of 23 | PENDING 245/0/65/0/604
 - 2026-11-08 UTC | W7 PENDING r6 batch MMEX p18 | 40 steps (rejudge_r6_p18.txt); AnkiDroid verification.csv re-written after r6-p18 (the leech toast ASYNC edge got its leech state, new id) | fresh build errors 0, 23 of 23 | PENDING 245/0/65/0/564
 - 2026-11-08 UTC | W7 PENDING r6 batch Aegis p17 | 40 steps (rejudge_r6_p17.txt) | fresh build errors 0, 23 of 23 | PENDING 205/0/65/0/564
+- 2026-11-08 UTC | W7 PENDING r6 batch AnkiDroid p19 | 40 steps (rejudge_r6_p19.txt) | fresh build errors 0, 23 of 23 | PENDING 205/0/25/0/564
