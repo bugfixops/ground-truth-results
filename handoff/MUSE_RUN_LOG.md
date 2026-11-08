@@ -1414,3 +1414,4 @@ User rulings in the hour (recorded in DECISIONS): Path A authorized ~17:06 EST; 
 - 2026-11-08 UTC | W7 PENDING r6 batch MMEX p15 | 40 steps (rejudge_r6_p15.txt); LibreTorrent r6-p15 (495e8853) goes up with this push | fresh build errors 0, 23 of 23 | PENDING 364/0/184/0/684
 - 2026-11-08 UTC | W7 PENDING r6 batch Aegis p14 | 40 steps (rejudge_r6_p14.txt) | fresh build errors 0, 23 of 23 | PENDING 324/0/184/0/684
 - 2026-11-08 UTC | Aegis verification.csv re-written after r6-p14 (the framework edge row of Eda52d29b, whose edge got the password reminder env); tools/build_graph.py: a SUPPRESS pair whose source is a hand-written context variant (name@ctx) now drops only that variant's auto copy (no SUPPRESS entry used it before, so no graph changes) | fresh build errors 0, 23 of 23
+- 2026-11-08 UTC | W7 PENDING r6 batch AnkiDroid p16 | 40 steps (rejudge_r6_p16.txt) | fresh build errors 0, 23 of 23 | PENDING 324/0/144/0/684
