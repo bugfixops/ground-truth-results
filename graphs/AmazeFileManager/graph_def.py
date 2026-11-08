@@ -94,6 +94,10 @@ _R6_LISTENER_CUT = [
     # review 7 item 2: the build is fdroidDebug (class_files.json), so src/fdroid/.../AboutActivity.java is the source
     ('AboutActivity.onCreate', 'AboutActivity.lambda$onCreate$0'),
     ('AboutActivity.onCreate', 'AboutActivity.lambda$onCreate$1'),
+    # W7 r6-p13 DEAD steps: invented hand edges (the source makes no such call); the targets keep their real callers
+    ('FileUtils$5.<init>', 'FileUtils$5.exists'),  # the callback object's constructor calls nothing; Operations.mkdir's tasks call exists
+    ('FileUtils.checkForPath', 'FileUtils.canGoBack'),  # checkForPath (FileUtils.java:1022-1043) never calls it; MainFragment.goBack does (MainFragment.java:1302)
+    ('FileUtils.canGoBack', 'FileUtils.readableFileSizeFloat'),  # canGoBack calls nothing of the kind; ProcessViewerFragment does (:201-202, 380)
 ]
 _R2_CUT.update(_R6_LISTENER_CUT)
 # r6-p12: onTerminate is never called on a device; AppConfig.getInstance does not call getScreenWidthInPx (the real call is Drawer.java:243 -> getScreenWidthInDp)
