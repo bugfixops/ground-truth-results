@@ -6547,3 +6547,9 @@ UNREACHABLE['InfoService.updateRaw(SupportSQLiteDatabase,int,String,Integer)'] =
 # W7 r6-p30 DEAD step E5a1dd2c0: CurrencyListActivity.onCreate checks mPreviousOrientation on a fragment it has just made
 # (CurrencyListActivity.java:50-56), and the field starts at NOT_SET (CurrencyListFragment.java:76), so the branch never runs.
 sup(('CurrencyListActivity.onCreate', 'ActivityUtils.forceCurrentOrientation'))
+# W7 r6-p31/p32 DEAD steps: RepositoryBase.first(Class,...) makes the class it is given (RepositoryBase.java:100-111), and the app
+# passes only Account, AccountTransaction, Attachment, Budget, BudgetEntry, Category, Payee and Stock (grep of first(X.class);
+# CurrencyRepository and StockHistoryRepository read their rows through their own queries). The CHA copies into the other
+# loadFromCursor overrides never run.
+for _c in ('AccountTransactionDisplay', 'IncomeVsExpenseReportEntity', 'SplitCategory', 'SplitRecurringCategory', 'StockHistory', 'Currency'):
+    sup(('RepositoryBase.first', _c + '.loadFromCursor'))

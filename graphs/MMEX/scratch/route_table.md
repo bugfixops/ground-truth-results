@@ -277,6 +277,7 @@
   "billsdeposits_v1" registered at MmxContentProvider.java:115).
 
 ### 28. SyncPreferences.getUploadImmediately — PLAIN, 8 steps — CORRECT
+- Re-checked 2026-11-08 after W7 r6-p28 (Kiro, self-checked only, second: pending reviewer): the same 8 steps; only the last edge (dataChanged -> getUploadImmediately) now carries the env gate of a sync set up with a cloud provider app's remote file (SyncManager.java:131-145), which gives it the new id E4201a5ab. The route and its verdict are unchanged; the method's class becomes other_app.
 - Steps 1-8 CORRECT. Joint condition recorded explicitly: only a
   stored EMPTY (non-null) UID satisfies steps 3+4 — step 3 (uid
   null-or-empty triggers setInfoValue) + step 4 (exists =
