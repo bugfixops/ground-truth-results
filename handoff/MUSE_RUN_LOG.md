@@ -1412,3 +1412,4 @@ User rulings in the hour (recorded in DECISIONS): Path A authorized ~17:06 EST; 
 - 2026-11-08 UTC | W7 PENDING r6 batch AnkiDroid p15 | 40 steps (rejudge_r6_p15.txt) | fresh build errors 0, 23 of 23 | PENDING 364/0/184/32/724
 - 2026-11-08 UTC | W7 PENDING r6 batch LibreTorrent p15 | 32 steps (rejudge_r6_p15.txt); the last PENDING of the app; the exact alarm dialog edge dropped and the method UNREACHABLE (closed_by_api_level) | fresh build errors 0, 23 of 23 | PENDING 364/0/184/0/684
 - 2026-11-08 UTC | W7 PENDING r6 batch MMEX p15 | 40 steps (rejudge_r6_p15.txt); LibreTorrent r6-p15 (495e8853) goes up with this push | fresh build errors 0, 23 of 23 | PENDING 364/0/184/0/684
+- 2026-11-08 UTC | W7 PENDING r6 batch Aegis p14 | 40 steps (rejudge_r6_p14.txt) | fresh build errors 0, 23 of 23 | PENDING 324/0/184/0/684
