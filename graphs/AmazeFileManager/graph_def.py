@@ -98,6 +98,9 @@ _R6_LISTENER_CUT = [
     ('FileUtils$5.<init>', 'FileUtils$5.exists'),  # the callback object's constructor calls nothing; Operations.mkdir's tasks call exists
     ('FileUtils.checkForPath', 'FileUtils.canGoBack'),  # checkForPath (FileUtils.java:1022-1043) never calls it; MainFragment.goBack does (MainFragment.java:1302)
     ('FileUtils.canGoBack', 'FileUtils.readableFileSizeFloat'),  # canGoBack calls nothing of the kind; ProcessViewerFragment does (:201-202, 380)
+    # W7 r6-p14 DEAD steps: INFERRED "implied" hand edges; onStartCommand sets the listener (ExtractService.java:142) and reads neither
+    ('ExtractService.onStartCommand', 'ExtractService.getDataPackages'),
+    ('ExtractService.onStartCommand', 'ExtractService.getProgressListener'),
 ]
 _R2_CUT.update(_R6_LISTENER_CUT)
 # r6-p12: onTerminate is never called on a device; AppConfig.getInstance does not call getScreenWidthInPx (the real call is Drawer.java:243 -> getScreenWidthInDp)
@@ -10723,3 +10726,4 @@ _r2_orig_e('AboutActivity.onCreate', 'AboutActivity.lambda$onCreate$0', 'FRAMEWO
 _r2_orig_e('AboutActivity.onCreate', 'AboutActivity.lambda$onCreate$1', 'FRAMEWORK',
            'the app bar of the About page is laid out or scrolled, and AppBarLayout dispatches its offset to the listener',
            evidence='SRC fdroid activities/AboutActivity.java:100-102 (addOnOffsetChangedListener); INFERRED Material Components AppBarLayout.Behavior.onLayoutChild and setHeaderTopBottomOffset dispatch offset updates (library source not read)')
+sup(('FileUtil.deleteFile', 'MediaStoreHack.<clinit>'))  # W7 r6-p14: the KitKat workaround (SDK_INT == KITKAT, FileUtil.java:387-392); the standard config is API 27
