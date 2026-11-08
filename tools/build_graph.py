@@ -248,6 +248,8 @@ def add_auto_edges(gdir, edges, e, suppress):
         if c['via']:
             trig += ' (through ' + ', '.join(c['via']) + ')'
         for s in [c['src']] + sorted(variants.get(c['src'], ())):
+            if s != c['src'] and (s, c['dst']) in suppress:
+                continue  # a SUPPRESS pair naming a hand-written context variant drops only that variant's copy (W7 r6-p17)
             before = len(edges)
             e(s, c['dst'], 'CALL', trig, evidence='SRC %s:%s (bytecode)' % (c['file'], c['line']), auto=True)
             for x in edges[before:]:
