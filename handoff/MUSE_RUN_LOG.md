@@ -1407,3 +1407,4 @@ User rulings in the hour (recorded in DECISIONS): Path A authorized ~17:06 EST; 
 - 2026-11-08 UTC | W7 PENDING r6 batch AmazeFileManager p14 | 40 steps (rejudge_r6_p14.txt); 2 invented ExtractService hand edges cut, KitKat MediaStoreHack call suppressed; sample route HybridFile$11.<init> re-checked (same call, new edge id, correct) | fresh build errors 0, 23 of 23 | PENDING 364/28/264/72/764
 - 2026-11-08 UTC | W7 PENDING r6 batch AnkiDroid p14 | 40 steps (rejudge_r6_p14.txt); AmazeFileManager verification.csv re-written with the HybridFile$11.<init> re-check note | fresh build errors 0, 23 of 23 | PENDING 364/28/224/72/764
 - 2026-11-08 UTC | W7 PENDING r6 batch LibreTorrent p14 | 40 steps (rejudge_r6_p14.txt) | fresh build errors 0, 23 of 23 | PENDING 364/28/224/32/764
+- 2026-11-08 UTC | W7 PENDING r6 batch MMEX p14 | 40 steps (rejudge_r6_p14.txt) | fresh build errors 0, 23 of 23 | PENDING 364/28/224/32/724
