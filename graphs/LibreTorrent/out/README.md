@@ -33,7 +33,7 @@ Verification log (`verification.csv`), counts of what was checked and found:
 
 Device replay on the emulator (API 27): 7 of 29 routes reached their target method; 7 of these ran the whole script and are `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; see `../device/results.csv`.
 
-Path status over all reachable methods: DEVICE_OK 2, SOURCE_OK 7, UNCHECKED 3945, WRONG 9.
+Path status over all reachable methods: DEVICE_OK 7, SOURCE_OK 7, UNCHECKED 3940, WRONG 9.
 The rows are the items that were individually checked, not a random sample of all labels; see the notes below for how they were chosen and what the unclear rows wait for.
 
 Edges whose evidence is not a source line (2182 of 7299): E6f0891c5 (S_ENTRY -> MainApplication.<clinit>); E8228a4c6 (S_ENTRY -> MainActivity.<clinit>); E0f555379 (S_ENTRY -> AddTorrentActivity.<clinit>); E6c221f79 (S_ENTRY -> SettingsActivity.<clinit>); E70444373 (MainActivity.initDrawer -> DrawerExpandableAdapter.onBindChildViewHolder); E79785310 (MainActivity.initDrawer -> MainActivity.lambda$initDrawer$0); Eea644f43 (MainActivity.initDrawer -> MainActivity.lambda$initDrawer$0); Ecebe3a05 (MainActivity.initDrawer -> MainActivity.lambda$initDrawer$1); Ed0bb2c8b (MainActivity.initDrawer -> MainActivity.lambda$initDrawer$1); Ec7ef9327 (MainActivity$3.onTagMenuClicked -> MainActivity$3.lambda$onTagMenuClicked$0); E83e4ed2d (MainActivity$3.onTagMenuClicked -> MainActivity$3.lambda$onTagMenuClicked$0); E34551cd4 (MainActivity$3.onTagMenuClicked -> MainActivity$3.lambda$onTagMenuClicked$1) ...

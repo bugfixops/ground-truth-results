@@ -31,7 +31,8 @@ Verification log (`verification.csv`), counts of what was checked and found:
 | edges (framework and other claims read against source) | 26 | 26 | 0 | 0 |
 | paths (stratified sample, read step by step) | 25 | 12 | 8 | 5 |
 
-Device replay on the emulator (API 27): 1 of 25 routes reached their target method; 1 of these ran the whole script and are `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; see `../device/results.csv`.
+Device replay on the emulator (API 27): 0 of 24 routes reached their target method; 0 of these ran the whole script and are `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; see `../device/results.csv`.
+1 further replayed route(s) reached their target in run 42560435293-1 but are not counted above: the graph's best route changed after that run, so the DEVICE row was dropped (device row rule, `tools_dev/device_rows.py`); the method keeps its static label. The run total stays in `../device/results.csv`.
 
 Path status over all reachable methods: SOURCE_OK 2, UNCHECKED 2519, WRONG 1.
 The rows are the items that were individually checked, not a random sample of all labels; see the notes below for how they were chosen and what the unclear rows wait for.
