@@ -435,6 +435,11 @@ assert len({r[1] for r in label_rows}) == len(label_rows), ('duplicate label ite
 assert not ({r[1] for r in label_rows} & unresolved), ('label row for UNRESOLVED method')
 for _row in sorted(label_rows, key=lambda r: r[1]):
     out.append(_row)
+# W9 reachable audit (Kiro, 2026-11-08): one label row per drawn method from scratch/reaudit/audit_result.csv
+# (note "reachable audit, class <X>"); a method that already has a label row keeps it.
+_w9 = {}
+exec(open('tools_dev/w9_audit_rows.py', encoding='utf-8').read(), _w9)
+out.extend(_w9['audit_rows'](GDIR, [r[1] for r in out[1:] if r[0] == 'label']))
 
 for i in sorted(edge_rows):
     _res, _cb, _ref, _note = edge_rows[i]

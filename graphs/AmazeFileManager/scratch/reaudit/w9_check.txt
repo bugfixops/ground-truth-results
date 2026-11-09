@@ -1,0 +1,62 @@
+# W9 reachable audit, AmazeFileManager: per-row check notes (Kiro). Draw: audit_draw.csv (seed 20261106, build 8d46166a).
+# Columns: class order method ; check A (route and gates) ; check B (source read) ; decision
+env 1 GeneralDialogCreation.lambda$showCloudDialog$9 ; A OneDrive account of the cloud plugin ; B Drawer.java:633-634 ; correct
+env 2 SevenZMethod.<clinit> ; A real 7z archive ; B SevenZFile.java:321-325; the app writes only zip (REAUDIT-R4-ARCHIVE) ; correct
+env 3 LoadFilesListTask.lambda$doInBackground$2 ; A cloud folder ; B LoadFilesListTask.java:183-185 ; correct
+env 4 CloudStreamSource.moveTo ; A cloud plugin + a client connects to the stream server ; B CloudStreamServer.java:216-217 ; correct
+env 5 SevenZFile.readFilesInfo ; A real 7z ; B SevenZFile.java:321-352 ; correct
+env 6 Drawer$2.onResponse ; A header image picked in another app ; B Drawer.java:152,498-505 ; correct
+env 7 MainActivity.lambda$initFabToSave$2 ; A ACTION_SEND from another app ; correct
+env 8 RootUtils.changePermissions ; A rooted device ; correct
+env 9 SevenZFile.readFolder ; A real 7z ; correct
+env 10 CloudHandler.getAllEntries ; A cloud plugin ; correct
+env 11 LzmaExtractor.extractEntry ; A real lzma archive ; B LzmaExtractor.java:57 ; correct
+env 12 SevenZArchiveEntry.setAccessDate(long) ; A real 7z ; correct
+env 13 HybridFile$7.execute ; A SFTP server ; correct
+env 14 SshClientUtils.extractRemotePathFrom ; A SFTP server ; correct
+env 15 LZMA2Decoder.numberOptionOrDefault ; A real 7z with LZMA2 ; correct
+state 1 GenericCopyUtil.copyFile(FileChannel,FileChannel) ; A paste pending ; B a file must exist to copy (made in the app) ; correct
+state 2 CompressedExplorerFragment.refresh ; A archive viewer with a zip made by Compress ; correct
+state 3 TextEditorActivity$1.run ; A text file made with New file ; correct
+state 4 SearchAsyncTask.lambda$searchRegExMatch$3 ; A regex settings on ; B SearchAsyncTask.java:67-74 ; correct
+state 5 TextEditorActivity.hideSearchView ; A text file ; correct
+state 6 CryptHandler.updateEntry ; A cut pending ; correct
+state 7 SshConnectionPool$AsyncRemoveConnection.onPostExecute ; A needs_state "saved SSH host key" ; B the host key is saved only after GetSshHostFingerprintTask reached the server (SftpConnectDialog.java:168-180, authenticateAndSaveSetup) ; fix: env network on Eaa386f86
+state 8 ProgressHandler.<init>() ; A archive made by Compress ; correct
+state 9 XzExtractor.extractWithFilter ; A archive file, extractor chosen by the name ; correct (REAUDIT-R4-ARCHIVE name level)
+state 10 CompressedObjectParcelable.<init>() ; A name-level tar.lzma ; correct
+state 11 MainFragment$7.lambda$run$0 ; A E243b2a18 TextEditorActivity$1.run -> MainFragment$7.lambda$run$0 ; B the lambda is in MainFragment.launchSMB's thread (MainFragment.java:1658-1671), not in the text editor timer (TextEditorActivity.java:430-440) ; fix: the edge starts at MainFragment$7.run (SMB stream, network)
+state 12 CompressedExplorerFragment$2.onServiceConnected ; A archive file ; correct
+state 13 CopyService.getTitle ; A paste pending ; correct
+state 14 HybridFile.<init>(OpenMode,String,String,boolean) ; A paste pending ; correct
+state 15 ProgressHandler.addWrittenLength ; A paste pending ; correct
+library 1 PreferencesActivity.selectItem ; A PreferencesActivity.<init> only by the env ENTRY Eb5ca8ba3 ; B the drawer Settings item starts it (Drawer.java:435-439); its hand edge was dropped by the R2 INFERRED filter ; fix: INTENT Drawer.lambda$refreshDrawer$3 -> PreferencesActivity.<init>
+library 2 CloudIconModelLoader.<init> ; A Glide module built by Glide ; correct
+library 3 ColorPickerDialog.showDialog ; A preference inflated from XML ; correct
+library 4 GlideApplication.<init> ; A AppConfig.<init> -> GlideApplication.<init> non_standard ; B AppConfig extends GlideApplication (AppConfig.java:48): a super constructor call; CLASSIFY matches "GlideApp" inside "GlideApplication" ; fix: CLASSIFY matches the GlideApp and GlideRequests classes only
+library 5 PreferencesActivity.onSaveInstanceState ; as library 1 ; fix: as library 1
+library 6 FtpNotification.updateNotification ; A EventBus ; correct
+library 7 ApkImageModelLoaderFactory.<init> ; A Glide ; correct
+library 8 FastScroller.getHeightMinusPadding ; A XML inflation ; correct
+library 9 GlideRequest.<init>(Glide,RequestManager,Class,Context) ; A Glide ; correct
+library 10 AmazeFileManagerModule.registerComponents ; A Glide ; correct
+library 11 PreferencesActivity.invalidateToolbarColor ; as library 1 ; fix: as library 1
+library 12 ApkImageModelLoader.handles ; A Glide ; correct
+library 13 FastScroller.getRelativeTouchPosition ; A XML inflation ; correct
+library 14 FastScroller.setRecyclerViewPosition ; A XML inflation ; correct
+library 15 WarnableTextInputLayout.removeError ; A XML inflation ; correct
+gui 1 ShareAdapter.<init> ; A apps list share ; correct
+gui 2 SearchView$2.onAnimationEnd ; A Back with the search view shown (MainActivity.java:709-712) ; B GUI only; Aegis models an open search box as session state (ST_SEARCH_OPEN), Amaze does not ; unclear (Q-R7-3)
+gui 3 HybridFile.generateMode ; correct
+gui 4 FileUtils.isStorage ; correct
+gui 5 GenerateHashesTask.<init> ; correct
+gui 6 ColorPref.loadSection0 ; correct
+gui 7 CustomFileObserver$1.run ; A a file change in the shown folder (GUI New file) ; correct
+gui 8 AboutActivity.lambda$onCreate$1 ; correct
+gui 9 AppConfig.runInParallel ; correct
+gui 10 MainActivity.onSaveInstanceState ; correct
+gui 11 BookSorter.<init> ; correct
+gui 12 PrefFrag.lambda$onPreferenceClick$1 ; correct
+gui 13 CustomSshJConfig.<init> ; A the config is built before any connection (GetSshHostFingerprintTask.doInBackground) ; correct
+gui 14 BottomBar.setVisibility ; correct
+gui 15 MainActivity.showSmokeScreen ; correct

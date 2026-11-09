@@ -128,7 +128,7 @@ W8_RECHECK = {
     'Finder.findNotes': ('correct', 'New steps 4-7: deck list, the + button and Add note open the note editor. The rest as before.'),
     'Template$1.compare': ('correct', 'New steps 4-12: deck list, a deck with cards opens the Reviewer, the collection loads and the first card is fetched (ANSWER_CARD task) and rendered (Card._getQA -> Collection._renderQA); the template state is on the route.'),
     'HttpFetcher.downloadFileToSdCardMethod': ('correct', 'New steps 4-7 and 13: deck list, Add note opens the note editor; the say button of a text field (BasicTextFieldController$2). The network env is on the route.'),
-    'Sound.notifyConfigurationChanged': ('correct', 'Re-checked twice. New steps 5-12: a deck with cards opens the Reviewer, its options menu replays the card audio (Reviewer.onOptionsItemSelected -> playSounds -> Sound.playSound), and a video file plays in the video player (state: a card with a video, Sound.java:276-290); the configuration-change env is on the route. The first re-check route (note editor result returning to the reviewer, wrong) is no longer the best route after the PENDING batch 1 link gate.'),
+    'Sound.notifyConfigurationChanged': ('correct', 'Re-checked twice. New steps 5-12: a deck with cards opens the Reviewer, its options menu replays the card audio (Reviewer.onOptionsItemSelected -> playSounds -> Sound.playSound), and a video file plays in the video player (state: a card with a video, Sound.java:276-290); the configuration-change env is on the route. The first re-check route (note editor result returning to the reviewer, wrong) is no longer the best route after the PENDING batch 1 link gate. Re-check 2026-11-08 (W9 reachable audit, state 3): the same 19 steps; step 14 (Sound.playSound -> playVideo) is the same call under a new edge id and its gate is now env other_app instead of STATE data, because the app records only audio 3gp (AudioView.java:423) and has no video field, so the video file comes from outside (Sound.java:276-290).'),
     'Anki2Importer._mediaPick': ('correct', 'New steps 4, 7, 9, 14: deck list; Add in the import dialog (state: an .apkg in the AnkiDroid folder); the import task; _mungeMedia for notes with media. The rest as before. Re-checked twice: W7 r6-p05 left the same 16 steps; step 15 (_mungeMedia -> compareMedia) is the same call under a new edge id (Edc863911 to Ef6aca2bf) and now carries the state that the collection already holds a media file of the same name (Anki2Importer.java:665-668).'),
     'Models.rem': ('correct', 'New steps 4 and 7: deck list; a long press on a note type opens its context menu. The rest as before.'),
     'Models$TransformFieldDelete.<init>': ('correct', 'New steps 4, 7, 10, 11: deck list; note type tap -> field editor -> field row tap. The rest as before.'),
@@ -206,7 +206,8 @@ EDGE_NOTES[edge_by_pair('ModelFieldEditor$5.onPositive', 'S_DLG_CONFIRMATION_MOD
 EDGE_NOTES[edge_by_pair('S_DLG_CONFIRMATION_MODELFIELDEDITOR_RENAME', 'ModelFieldEditor$5$1.confirm')] = (
     'B6 route 26 split: rename confirm moved to the rename variant page (old direct edge Eeded0833 gone).')
 EDGE_NOTES[edge_by_pair('S_DLG_CONFIRMATION_NOTEEDITOR_CHANGETYPE', 'NoteEditor$6.confirm')] = (
-    'B6 route 28 split: $6.confirm moved to the NoteEditor variant page (old edge Ef2c97ad2 gone).')
+    'B6 route 28 split: $6.confirm moved to the NoteEditor variant page (old edge Ef2c97ad2 gone). W9 (2026-11-08): the edge '
+    'now carries the network env of the dialog creation step (the ConfirmModSchemaException catch, NoteEditor.java:751).')
 
 # ---- build and validate the rows ----
 out = [['type', 'item', 'result', 'confirmed_by', 'ref', 'edges', 'note']]
@@ -232,6 +233,11 @@ for m in sample:
                 route_ref(m).split(';')[0], '',
                 'REACHABLE confirmed: the route was read step by step (see the path row and route_table.md); gates read: env=%s state=%s'
                 % (r['env_kinds'] or '-', r['state_kinds'] or '-')])
+# W9 reachable audit (Kiro, 2026-11-08): one label row per drawn method from scratch/reaudit/audit_result.csv
+# (note "reachable audit, class <X>"); a method that already has a label row keeps it.
+_w9 = {}
+exec(open('tools_dev/w9_audit_rows.py', encoding='utf-8').read(), _w9)
+out.extend(_w9['audit_rows']('graphs/AnkiDroid', [r[1] for r in out[1:] if r[0] == 'label']))
 
 seen = set()
 

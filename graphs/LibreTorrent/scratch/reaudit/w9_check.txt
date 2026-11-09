@@ -1,0 +1,62 @@
+# W9 reachable audit, LibreTorrent: per-row check notes (Kiro). Draw: audit_draw.csv (seed 20261106, build 8d46166a).
+# Columns: class order method ; check A (route and gates) ; check B (source read) ; decision
+env 1 Rss2Item.getEzRssTorrentItem ; A feed server answers ; correct
+env 2 TorrentEngine$5.lambda$onTorrentFinished$3 ; A peers finish the torrent ; correct
+env 3 NanoHTTPD$DefaultTempFileManagerFactory.create ; A a player connects to the stream server ; correct
+env 4 FeedHandler.characters ; A feed server ; correct
+env 5 Rss2Item.getEnclosures ; A feed server ; correct
+env 6 Rss1Item.<init> ; A an RSS 1.0 feed from a server ; correct
+env 7 AppDatabase_Impl$1.onPostMigrate ; A a database from an older version ; correct
+env 8 SchedulerReceiver.onReceive ; A the alarm time (text "calendar.getTimeInMillis()" is thin, kind time is right) ; correct
+env 9 NanoHTTPD.decodePercent ; A stream client ; correct
+env 10 FeedFetcherWorker.lambda$filterItems$0 ; A feed server ; correct
+env 11 FeedItemsFragment.onItemMenuClicked ; A feed items come from a fetch ; correct
+env 12 DetailTorrentAppbarBindingSw600dpLandImpl.invalidateAll ; A sw600dp-land screen ; correct
+env 13 FeedItemsViewModel.clearData ; A two-pane screen ; correct
+env 14 Utils.getTorrentDownloadPath ; A auto-download of fetched items ; correct
+env 15 FeedUtils.convertRss2Date ; A RSS 2.0 feed ; correct
+state 1 TorrentContentFileTreeUtils.buildFileTree ; A a torrent in the session ; correct
+state 2 TrackerListAdapter.<clinit> ; A torrent detail ; correct
+state 3 Logger.write(FixedRingBuffer,OutputStream,int,int,boolean) ; A session logging on and a recording ; correct
+state 4 DetailTorrentFilesFragment.onItemClicked ; A torrent ; correct
+state 5 SafFileSystem$FakePath.safRoot ; A torrent with a file ; correct
+state 6 ItemTorrentContentFileBindingImpl.invalidateAll ; A torrent ; correct
+state 7 DetailTorrentViewModel.observeTorrentInfoPair ; A torrent ; correct
+state 8 DetailTorrentViewModel$1.lambda$onPropertyChanged$0 ; A torrent ; correct
+state 9 TorrentInfoProvider.observeAdvancedInfo ; A torrent ; correct
+state 10 DetailTorrentInfoFragment.<init> ; A torrent ; correct
+state 11 SelectTagDialog.lambda$initAlertDialog$1 ; A a tag list row ; correct
+state 12 DetailTorrentViewModel.getDirChildren ; A torrent ; correct
+state 13 TorrentDownloadImpl.setAutoManaged ; A torrent ; correct
+state 14 DetailPagerAdapter.getItemCount ; A torrent ; correct
+state 15 PowerReceiver.onReceive ; A a battery setting on; ACTION_BATTERY_CHANGED is sticky, so registering delivers it ; correct
+library 1 FeedItemsViewModel.observeItemsByFeedId ; A ViewModelProvider reflection ; correct
+library 2 SwitchBarPreference.<init>(Context,AttributeSet,int,int) ; A preference XML inflation ; correct
+library 3 AddFeedMutableParams.isNotDownloadImmediately ; A ViewModelProvider ; correct
+library 4 TorrentFilterCollection.lambda$dateAddedWeek$7 ; A the filter runs inside the Rx chain of MainViewModel (MainViewModel.java:119-122), a ViewModel ; correct
+library 5 FileManagerDialog.reloadSpinner ; A only route: E2471aae1 registerMediaReceiver -> MediaReceiver.onReceive (non_standard "System broadcast dispatch") ; B FileManagerDialog.java:281-286,679-689: the receiver gets ACTION_MEDIA_MOUNTED / UNMOUNTED, a system event; the framework delivers it to a registered receiver (standard) ; fix: standard + env system_event
+library 6 DrawerExpandableAdapter.getChildCount ; A advrecyclerview item manager calls the adapter ; B a third-party RecyclerView wrapper calls an adapter the app registered (MainActivity.initDrawer); RecyclerView itself is standard in the other apps ; unclear (Q-R7-4)
+library 7 LogViewModel.resumeLog ; A ViewModelProvider ; correct
+library 8 FeedFragment.onStart ; A fragment from the layout ; correct
+library 9 AddTorrentViewModel$DecodeState.<init>(Status) ; A ViewModelProvider ; correct
+library 10 FeedDao_Impl$5.<init> ; A Room ; correct
+library 11 DialogAddFeedChannelBindingImpl$2.<init> ; A data binding ; correct
+library 12 FeedRepositoryImpl.getAllFeeds ; A WorkManager worker ; correct
+library 13 FragmentAddTorrentInfoBindingSw600dpLandImpl.invalidateAll ; A data binding ; correct
+library 14 ActivityAddTorrentBinding.<init> ; A data binding ; correct
+library 15 NetworkSettingsFragment.lambda$new$5 ; A settings fragment from FragmentContainerView ; correct
+gui 1 LogActivity.lambda$onCreate$0 ; correct
+gui 2 LogActivity.pauseResumeLog ; correct
+gui 3 MainActivity.onStart ; correct
+gui 4 NormalizeUrl.isMatch ; correct
+gui 5 SafFileSystem.<clinit> ; B (printed) Utils.isSafPath calls SafFileSystem.getInstance for every URI resolve (Utils.java:657-658) ; correct
+gui 6 RepositoryHelper.getTagRepository ; correct
+gui 7 DrawerGroup.selectItem ; correct
+gui 8 TorrentFilterCollection.statusError ; correct
+gui 9 FileSystemFacadeImpl.makeFileSystemPath(Uri) ; A create torrent with the in-app file chooser ; correct
+gui 10 MainActivity.lambda$initDrawer$3 ; correct
+gui 11 FileManagerAdapter.<init> ; correct
+gui 12 SettingsRepositoryImpl.enableUtp() ; correct
+gui 13 FileSystemFacadeImpl.trimFilename ; correct
+gui 14 AddTagDialog.<init> ; correct
+gui 15 Utils.getDrawerGroupDateAddedFilter ; correct

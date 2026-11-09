@@ -6656,3 +6656,124 @@ sup(('AuthActivity$PasswordDerivationListener.onTaskFinished', 'BiometricSlot.ge
 e('SlotList.toJson@RAW', 'Slot.toJson@BiometricSlot', 'CALL', 'the slot list of the unlocked vault is serialized: a biometric slot (set up earlier on a device with biometrics) is written',
   guard='the file header holds a biometric slot (type TYPE_BIOMETRIC, Slot.java:131-147), which exists only after biometric unlock was turned on',
   env=ENV_BIOMETRIC, evidence='SRC vault/slots/SlotList.java:17 (bytecode); SRC vault/slots/Slot.java:107,131-147')
+
+# ================================================================== W9 reachable audit (Kiro, 2026-11-08; rows in scratch/reaudit/w9_check.txt)
+# (1) Edge class of app-code interface calls. R-CLASS (MUSE_DECISIONS.md): non_standard is a link that a library or
+# reflection makes while nothing in the app calls or registers the target. On the edges below app code calls an
+# interface method on a listener, callback or lambda that app code passed in (KeyDerivationTask.Callback at
+# Dialogs.java:166; Dialogs.TextInputListener at Dialogs.java:233; DialogInterface.OnClickListener called by
+# Dialogs.java:391-393; DatabaseImporter.DecryptListener at AegisImporter.java:93-105; the export callbacks at
+# ImportExportPreferencesFragment.java:310,520; the Runnable method references at MainActivity.java:254-256), so they
+# are explicit, the class R3-1a already gave the same kind of edge (QrCodeAnalyzer.Listener, ExportTask.Callback).
+# The four UiRefresher edges are a Handler post that runs the app's Runnable (UiRefresher.java:31,39): standard.
+# Kept non_standard: the Glide, Dagger Provider.get and libsu edges (library code makes the call).
+_W9_EXPLICIT = {
+    ('AegisImporter$EncryptedState.lambda$decrypt$0@IMPORT', 'ImportEntriesActivity$2.onStateDecrypted'),
+    ('AegisImporter$EncryptedState.lambda$decrypt$0@WELCOME', 'WelcomeSlide$1.onStateDecrypted'),
+    ('Argon2Task.onPostExecute', 'StratumImporter$EncryptedState.lambda$decrypt$0'),
+    ('BiometricSlotInitializer.onAuthenticationSucceeded', 'SecurityPreferencesFragment$RegisterBiometricsListener.onInitializeSlot'),
+    ('Dialogs.lambda$showBackupVersionsPickerDialog$14', 'BackupsPreferencesFragment.lambda$onCreatePreferences$11'),
+    ('Dialogs.lambda$showBackupsVersioningStrategy$34', 'BackupsPreferencesFragment.lambda$onCreatePreferences$3'),
+    ('Dialogs.lambda$showBackupsVersioningStrategy$34', 'BackupsPreferencesFragment.lambda$onCreatePreferences$6'),
+    ('Dialogs.lambda$showCheckboxDialog$10', 'BackupsPreferencesFragment.saveAndDisableBackupReminder'),
+    ('Dialogs.lambda$showCheckboxDialog$9', 'BackupsPreferencesFragment.saveAndDisableBackupReminder'),
+    ('Dialogs.lambda$showErrorDialog$15', 'AuthActivity.lambda$onCreate$1'),
+    ('Dialogs.lambda$showErrorDialog$15', 'ImportEntriesActivity$2.lambda$onError$0'),
+    ('Dialogs.lambda$showErrorDialog$15', 'ImportEntriesActivity.lambda$processDecryptedImporterState$7'),
+    ('Dialogs.lambda$showErrorDialog$15', 'ImportEntriesActivity.lambda$processImporterState$6'),
+    ('Dialogs.lambda$showErrorDialog$15', 'ImportEntriesActivity.lambda$startImportApp$4'),
+    ('Dialogs.lambda$showErrorDialog$15', 'ImportEntriesActivity.lambda$startImportFile$3'),
+    ('Dialogs.lambda$showErrorDialog$15', 'MainActivity.lambda$onStart$21'),
+    ('Dialogs.lambda$showErrorDialog$15', 'MainActivity.lambda$onStart$22'),
+    ('Dialogs.lambda$showErrorDialog$15@SCANNER_ERROR', 'ScannerActivity.lambda$onQrCodeDetected$1'),
+    ('Dialogs.lambda$showTapToRevealTimeoutPickerDialog$13', 'SecurityPreferencesFragment.lambda$onCreatePreferences$1'),
+    ('Dialogs.lambda$showTextInputDialog$7@ANDOTP', 'AndOtpImporter$EncryptedState.lambda$decrypt$1'),
+    ('Dialogs.lambda$showTextInputDialog$7@AUTHPLUS', 'AuthenticatorPlusImporter$EncryptedState.lambda$decrypt$0'),
+    ('Dialogs.lambda$showTextInputDialog$7@AUTHY', 'AuthyImporter$EncryptedState.lambda$decrypt$0'),
+    ('Dialogs.lambda$showTextInputDialog$7@FREEOTP', 'FreeOtpImporter$EncryptedState.lambda$decrypt$1'),
+    ('Dialogs.lambda$showTextInputDialog$7@GROUP', 'GroupManagerActivity.lambda$onEditGroup$0'),
+    ('Dialogs.lambda$showTextInputDialog$7@IMPORT', 'AegisImporter$EncryptedState.lambda$decrypt$1@IMPORT'),
+    ('Dialogs.lambda$showTextInputDialog$7@LEGACY', 'StratumImporter$LegacyEncryptedState.lambda$decrypt$1'),
+    ('Dialogs.lambda$showTextInputDialog$7@SECURITY', 'SecurityPreferencesFragment.lambda$onCreatePreferences$7'),
+    ('Dialogs.lambda$showTextInputDialog$7@STRATUM', 'StratumImporter$EncryptedState.lambda$decrypt$1'),
+    ('Dialogs.lambda$showTextInputDialog$7@TOTP', 'TotpAuthenticatorImporter$EncryptedState.lambda$decrypt$0'),
+    ('Dialogs.lambda$showTextInputDialog$7@TWOFAS', 'TwoFASImporter$EncryptedState.lambda$decrypt$0'),
+    ('Dialogs.lambda$showTextInputDialog$7@WELCOME', 'AegisImporter$EncryptedState.lambda$decrypt$1@WELCOME'),
+    ('Dialogs.lambda$showTimeSyncWarningDialog$24', 'MainActivity.lambda$checkTimeSyncSetting$19'),
+    ('FabMenuHelper.lambda$setupClickListeners$2', 'MainActivity.startEditEntryActivity()'),
+    ('FabMenuHelper.lambda$setupClickListeners$2', 'MainActivity.startScanActivity'),
+    ('FabMenuHelper.lambda$setupClickListeners$2', 'MainActivity.startScanImageActivity'),
+    ('IconOptimizationTask.onPostExecute', 'ImportEntriesActivity.lambda$processDecryptedImporterState$9'),
+    ('IconOptimizationTask.onPostExecute', 'MainActivity.onIconsOptimized'),
+    ('ImportExportPreferencesFragment.getVaultEntryFilter', 'ImportExportPreferencesFragment.lambda$getVaultEntryFilter$21'),
+    ('ImportExportPreferencesFragment.lambda$onExportResult$26', 'ImportExportPreferencesFragment$1.lambda$onSlotResult$0'),
+    ('ImportExportPreferencesFragment.lambda$onExportResult$26', 'ImportExportPreferencesFragment.lambda$startExportVault$22'),
+    ('ImportExportPreferencesFragment.lambda$onExportResult$26', 'ImportExportPreferencesFragment.lambda$startExportVault$23'),
+    ('ImportExportPreferencesFragment.lambda$onExportResult$26', 'ImportExportPreferencesFragment.lambda$startExportVault$24'),
+    ('ImportExportPreferencesFragment.lambda$onExportResult$26', 'ImportExportPreferencesFragment.lambda$startExportVault$25'),
+    ('ImportExportPreferencesFragment.lambda$startExport$14', 'ImportExportPreferencesFragment.lambda$startExport$13'),
+    ('ImportExportPreferencesFragment.lambda$startExport$15', 'ImportExportPreferencesFragment.lambda$startExport$13'),
+    ('ImportExportPreferencesFragment.lambda$startExport$16', 'ImportExportPreferencesFragment.lambda$startExport$13'),
+    ('ImportExportPreferencesFragment.lambda$startExport$18', 'ImportExportPreferencesFragment$1.lambda$onSlotResult$0'),
+    ('ImportExportPreferencesFragment.lambda$startExport$18', 'ImportExportPreferencesFragment.lambda$startExportVault$22'),
+    ('ImportExportPreferencesFragment.lambda$startExport$18', 'ImportExportPreferencesFragment.lambda$startExportVault$23'),
+    ('ImportExportPreferencesFragment.lambda$startExport$18', 'ImportExportPreferencesFragment.lambda$startExportVault$24'),
+    ('ImportExportPreferencesFragment.lambda$startExport$18', 'ImportExportPreferencesFragment.lambda$startExportVault$25'),
+    ('KeyDerivationTask.onPostExecute', 'SecuritySetupSlide$PasswordDerivationListener.onTaskFinished'),
+    ('KeyDerivationTask.onPostExecute@SETPWD', 'Dialogs.lambda$showSetPasswordDialog$2'),
+    ('PBKDFTask.onPostExecute@ANDOTP', 'AndOtpImporter$EncryptedState.lambda$decrypt$0'),
+    ('PBKDFTask.onPostExecute@FREEOTP', 'FreeOtpImporter$EncryptedState.lambda$decrypt$0'),
+    ('PBKDFTask.onPostExecute@LEGACY', 'StratumImporter$LegacyEncryptedState.lambda$decrypt$0'),
+    ('PasswordSlotDecryptTask.onPostExecute@AEGIS_IMPORT', 'AegisImporter$EncryptedState.lambda$decrypt$0@IMPORT'),
+    ('PasswordSlotDecryptTask.onPostExecute@AEGIS_WELCOME', 'AegisImporter$EncryptedState.lambda$decrypt$0@WELCOME'),
+    ('QrDecodeTask.onPostExecute', 'MainActivity.lambda$startDecodeQrCodeImages$18'),
+    ('TransferEntriesActivity.lambda$onCreate$2', 'GoogleAuthInfo.getUri'),
+    ('VaultRepository.editEntry', 'MainActivity$ActionModeCallbacks.lambda$onActionItemClicked$0'),
+}
+_W9_STANDARD = {
+    ('EntryHolder.startRefreshLoop', 'EntryHolder$1.onExpiring'),
+    ('EntryHolder.startRefreshLoop', 'EntryHolder$1.onRefresh'),
+    ('EntryListView.onRefreshStart', 'EntryListView$3.onExpiring'),
+    ('EntryListView.onRefreshStart', 'EntryListView$3.onRefresh'),
+}
+# (2) Enum constants are made by the enum's static initializer; the enum constructor has no method_list row, so
+# without this the creation test of ESR_CREATION never passes for an enum (W9 library 10, PassReminderFreq).
+ESR_CLINIT_CREATES = {
+    'com/beemdevelopment/aegis/PassReminderFreq': 'SRC PassReminderFreq.java:7 (enum)',
+    'com/beemdevelopment/aegis/SortCategory': 'SRC SortCategory.java:12 (enum)',
+    'com/beemdevelopment/aegis/ViewMode': 'SRC ViewMode.java:5 (enum)',
+    'com/beemdevelopment/aegis/GroupPlaceholderType': 'SRC GroupPlaceholderType.java:3 (enum)',
+    'com/beemdevelopment/aegis/icons/IconType': 'SRC icons/IconType.java:7 (enum)',
+}
+# (3) W9 env 5: each importer state gets the listener of the page that started it: the intro passes WelcomeSlide$1
+# (WelcomeSlide.java:66-69, the @WELCOME chain), the import page passes ImportEntriesActivity$2 (ImportEntriesActivity.java:179,
+# the @IMPORT chain). The bytecode CHA copies that cross the two are cut.
+sup(('AegisImporter$EncryptedState.lambda$decrypt$0@IMPORT', 'WelcomeSlide$1.onError'),
+    ('AegisImporter$EncryptedState.lambda$decrypt$0@WELCOME', 'ImportEntriesActivity$2.onError'))
+_W9_ORIG_EDIT = EDIT
+
+
+# (4) W9 library 15: the two onStart error dialogs open only when the vault file in the app data cannot be read
+# (readVaultFile throws, MainActivity.java:954-959) or a plain-text vault fails to load (:963-972). No app step
+# writes such a file (ST_VAULT_UNREADABLE note), so the damaged file comes from outside the app: env other, on the
+# direct dialog edge and on the shared OK relay into each lambda.
+_W9_VAULT_ERR = {
+    'MainActivity.lambda$onStart$21': ('outside the app: the vault file in the app data is damaged, so reading it throws '
+                                       'VaultRepositoryException and onStart shows the vault-load error (MainActivity.java:954-959); '
+                                       'no app step writes such a file'),
+    'MainActivity.lambda$onStart$22': ('outside the app: the plain-text vault file in the app data is damaged, so loading it throws '
+                                       'VaultRepositoryException and onStart shows the error (MainActivity.java:963-972); '
+                                       'no app step writes such a file'),
+}
+
+
+def EDIT(x):
+    _W9_ORIG_EDIT(x)
+    if (x['dst'] in _W9_VAULT_ERR and x['src'] in ('MainActivity.onStart', 'Dialogs.lambda$showErrorDialog$15')
+            and not x.get('env')):
+        x['env'], x['env_kinds'] = _W9_VAULT_ERR[x['dst']], ['other']
+    if x.get('edge_class') == 'non_standard':
+        if (x['src'], x['dst']) in _W9_EXPLICIT:
+            x['edge_class'], x['via'] = 'explicit', None
+        elif (x['src'], x['dst']) in _W9_STANDARD:
+            x['edge_class'], x['via'] = 'standard', None

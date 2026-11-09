@@ -176,3 +176,10 @@ only and are not counted here.
 - New WRONG rows (validateBrackets, Collection.getServer) are pre-existing
   print fictions surfaced by the redraw, not regressions from the merge:
   neither method's route was touched by any fragment.
+
+## Re-check 2026-11-08 (W9 reachable audit)
+- Row 13 Sound.notifyConfigurationChanged: the same 19 steps; step 14 (Sound.playSound -> playVideo) has a new edge id
+  and env other_app instead of STATE data (the app records only audio 3gp, AudioView.java:423, and has no video field;
+  Sound.java:276-290). Path row stays correct (note in make_verification.py W8_RECHECK).
+- Models$TransformFieldDelete.<init>: unchanged after the W9 rebuild (the same 21 steps and edge ids); an
+  intermediate W9 build had opened a false route through the shared listener, which the @DELETEMODEL variant cuts.

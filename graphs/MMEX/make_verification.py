@@ -312,6 +312,12 @@ def main():
                 die('bad corrected edge row: %r' % line)
             out_rows.append({'type': 'edge', 'item': eid, 'result': result, 'confirmed_by': cb,
                              'ref': ref, 'edges': '', 'note': note})
+    # W9 reachable audit (Kiro, 2026-11-08): one label row per drawn method from scratch/reaudit/audit_result.csv
+    # (note "reachable audit, class <X>"); a method that already has a label row keeps it.
+    _w9 = {}
+    exec(open(os.path.join(REPO_ROOT, 'tools_dev', 'w9_audit_rows.py'), encoding='utf-8').read(), _w9)
+    for _r in _w9['audit_rows'](GDIR, [r['item'] for r in out_rows if r['type'] == 'label']):
+        out_rows.append(dict(zip(['type', 'item', 'result', 'confirmed_by', 'ref', 'edges', 'note'], _r)))
     # W6 (merger decision): sort all rows by (type, item) before writing.
     # The old order (sample order, then unreachable labels, then edges in
     # file order) was deterministic but not sorted; the brief section 4

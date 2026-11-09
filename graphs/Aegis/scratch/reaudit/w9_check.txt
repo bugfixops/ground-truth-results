@@ -1,0 +1,63 @@
+# W9 reachable audit, Aegis: per-row check notes (Kiro). Draw: audit_draw.csv (seed 20261106, build 8d46166a).
+# Columns: class order method ; check A (route and gates, audit_print.py / audit_lib_init.py) ; check B (source read) ; decision
+# Decision: correct | fix:<what> (the row becomes fixed after the rebuild shows the new class) | unclear
+env 1 AuditLogRepository.addAndroidBackupCreatedEvent ; A system full backup ENTRY E95950f92 ; B AegisBackupAgent.java:43-71 ; correct
+env 2 DatabaseImporter$Result.addEntry ; A root import (other) ; B importers are reached only from a file picker or the root app import (ImportEntriesActivity.java:149-153) ; correct
+env 3 NoAutofillEditText.getAutofillType ; A autofill service ; B View.java:7512-7535 autofill structure only with a service set ; correct
+env 4 Preferences.setBackupsLocation ; A document tree picker ; B BackupsPreferencesFragment.java picker result ; correct
+env 5 WelcomeSlide$1.onError ; A route uses E5bd171a8 (@IMPORT -> WelcomeSlide$1.onError) ; B WelcomeSlide$1 is passed only at WelcomeSlide.java:69; the @IMPORT state gets ImportEntriesActivity$2 (ImportEntriesActivity.java:179) ; class env correct; fix route: cut E5bd171a8 and Ef1e2ac76 (cross-listener CHA)
+env 6 StratumImporter$EncryptedState.decrypt(SecretKey) ; A picker ; B ImportExportPreferencesFragment.java:110-112 ; correct
+env 7 IconPickerDialog$1IconPreloadProvider.<init> ; A icon pack installed (outside package) ; B IconPackManager needs a pack file from outside ; correct
+env 8 DaggerAegisApplication_HiltComponents_SingletonC$SingletonCImpl.injectVaultLockReceiver2 ; A ACTION_SCREEN_OFF ; B AegisApplicationBase.java:49-51 ; correct
+env 9 VaultEntryIcon.hashCode ; A entry icon from pack or picker ; B GlideHelper.java:40-41; baseline entries have no icon ; correct
+env 10 ScannerActivity.unbindPreview ; A camera ; B ScannerActivity.java:67 ; correct
+env 11 ImportIconPackTask$Result.<init> ; A picker ; B IconPacksManagerFragment.java:173-174 ; correct
+env 12 PreferenceParser.parse ; A root ; B BattleNetImporter reads another app's data with root ; correct
+env 13 TwoFASImporter$EncryptedState.<init> ; A picker ; B TwoFASImporter.java:75-84 ; correct
+env 14 IntroBaseActivity.lambda$onCreate$0 ; A no vault file (cleared data) ; B MainActivity.java:942-948 ; correct
+env 15 MainActivity.lambda$updateErrorCard$27 ; A backup error ; B MainActivity.java:1165-1171 (getErroredBackupResult) ; correct
+state 1 EditEntryActivity.hasUnsavedChanges ; A ST_ACTION_MODE ; B edit page opens from the action mode or the open FAB menu (both session) ; correct
+state 2 MainActivity.lambda$startAssignGroupsDialog$14 ; A ST_ASSIGN_DIALOG ; B MainActivity.java:533-601 ; correct
+state 3 YandexInfo.validateSecret ; A ST_YANDEX_ENTRY ; B OtpInfo.java:131-133, baseline entries are TOTP ; correct
+state 4 EntryListView.setSearchFilter ; A ST_SEARCH_OPEN ; B MainActivity.java:1021-1024 ; correct
+state 5 EditEntryActivity.lambda$showDuplicateBottomSheet$21 ; A ST_ACTION_MODE ; B as state 1 ; correct
+state 6 GroupAdapter.replaceGroup ; A a group exists ; B GroupManagerActivity.java:117-120; baseline has no group ; correct
+state 7 ErrorCardInfo.getListener ; A error card ; B MainActivity.java:1163-1197 (backup reminder after a vault change) ; correct
+state 8 EntryAdapter.lambda$isEntryFiltered$0 ; A ST_SEARCH_OPEN ; B EntryAdapter.java:301 ; correct
+state 9 EditEntryActivity$CustomSvgIcon.getFile ; A ST_ACTION_MODE ; B as state 1 ; correct
+state 10 EditEntryActivity$IconBackPressHandler.handleOnBackPressed ; A ST_ACTION_MODE ; B as state 1 ; correct
+state 11 EditEntryActivity.onCreate ; A ST_ACTION_MODE ; B as state 1 ; correct
+state 12 Preferences.setIsPlaintextBackupWarningDisabled ; A ST_ERROR_CARD ; B (printed) the flag is set in startExportVault (ImportExportPreferencesFragment.java:492-500), which the Share path runs before the chooser opens (:308-326), so GUI plus a setting ; correct
+state 13 MainActivity.onSaveGroupFilter ; A ST_SAVE_CHIP ; B MainActivity.java:335,373-377 ; correct
+state 14 AuditLogRepository.addEntrySharedEvent ; A ST_ACTION_MODE ; B MainActivity.java:1500 ; correct
+state 15 EditEntryActivity.lambda$onCreate$2 ; A ST_ACTION_MODE ; B as state 1 ; correct
+library 1 SlotList.lambda$findRegularPasswordSlots$0 ; A E35c023ef Stream.filter (JDK) ; B SlotList.java findRegularPasswordSlots uses a stream ; correct under the JDK-stream convention (Q-R7-2)
+library 2 EntryAdapter.getItemCount ; A EntryAdapter.<init> only under EntryListView, a fragment inflated from XML (E3e74e870, activity_main.xml:54-56) ; B rubric: a class inflated from XML ; correct
+library 3 DaggerAegisApplication_HiltComponents_SingletonC$ActivityRetainedCBuilder.savedStateHandleHolder ; A Hilt ; B generated DI ; correct
+library 4 SecurityPreferencesFragment$SetBackupPasswordListener.onSlotResult ; A only non-standard edge Ef2197771 KeyDerivationTask.Callback ; B app interface, app code calls it (KeyDerivationTask onPostExecute; Dialogs.java:166) = explicit (R-CLASS; R3-1a precedent) ; fix: relabel
+library 5 VaultManager.<init> ; A Hilt provider ; B AegisModule.provideVaultManager via Dagger ; correct
+library 6 AuditLogDao_Impl.__EventType_stringToEnum ; A AuditLogDao_Impl made by Hilt/Room ; B generated ; correct
+library 7 EntryAdapter.setCodeGroupSize ; A as library 2 ; correct
+library 8 AuditLogDao_Impl.getAll ; A as library 6 ; correct
+library 9 EntryAdapter.removeSelectedEntry ; A E8f174b4f has no gate ; B EntryAdapter.java:469,503-506: only when _selectedEntries is not empty (the selection action mode) ; fix: needs_state ST_ACTION_MODE
+library 10 PassReminderFreq.getDurationMillis ; A class has no <init> row (enum constructor not in the method list) ; B enum constants are made by <clinit> ; fix: ESR enum creation by <clinit>
+library 11 BackupsPreferencesFragment.lambda$onCreatePreferences$3 ; A Ea00e13cc interface callback ; B app interface Dialogs.BackupsVersioningStrategyListener (Dialogs.java:612-614) ; fix: relabel
+library 12 VaultFileCredentials.<init>() ; A Ef2197771 + E33a2b5b6 no gate ; B EnableEncryptionListener is made only at SecurityPreferencesFragment.java:84 when encryption is off ; fix: relabel + needs_state ST_ENCRYPTION_OFF on E33a2b5b6
+library 13 MasterKey.generate ; A as library 12 ; fix: as library 12
+library 14 EntryListView$2.getSpanSize ; A as library 2 ; correct
+library 15 MainActivity.lambda$onStart$21 ; A Ef62aa8e4 DialogInterface.OnClickListener called by app code (Dialogs.java:391-393) ; B MainActivity.java:954-959: the dialog opens only when readVaultFile throws on a damaged vault file, which no app step writes ; fix: relabel, and env other on the dialog edges (a damaged vault file from outside the app)
+gui 1 PreferencesActivity.showFragment ; A onCreate ; correct
+gui 2 AboutActivity.lambda$onCreate$10 ; correct
+gui 3 MainActivity.onScroll ; correct
+gui 4 FabMenuHelper.lambda$close$6 ; A toggle -> close, no gate ; B FabMenuHelper.java:68-74,104-109: close returns unless _isOpen (the menu is open) ; fix: needs_state ST_FAB_OPEN
+gui 5 GoogleAuthProtos$MigrationPayload.setBatchSize ; A Google export of baseline TOTP entries ; correct
+gui 6 HOTP.getHash ; correct
+gui 7 FabScrollHelper$2.onAnimationEnd ; correct
+gui 8 PasswordSlotDecryptTask.decrypt ; A unlock of the baseline password vault ; correct
+gui 9 HotpInfo.equals ; A equivalates -> HotpInfo.equals no gate ; B HotpInfo.java:80 override; baseline entries are TOTP (TotpInfo extends OtpInfo, TotpInfo.java:12) ; fix: needs_state ST_HOTP_ENTRY
+gui 10 SortCategory.fromInteger ; static ; correct
+gui 11 KeyDerivationTask.doInBackground ; A set-password dialog of the encrypted baseline ; correct
+gui 12 ProgressDialogTask.onPostExecute ; correct
+gui 13 GoogleAuthProtos$MigrationPayload$OtpParameters$Builder.setIssuer ; correct
+gui 14 AegisActivity.onDestroy ; correct
+gui 15 AuditLogAdapter.getItemCount ; A the unlock writes an audit row ; correct

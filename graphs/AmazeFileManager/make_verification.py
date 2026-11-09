@@ -134,7 +134,7 @@ p8('SmbSearchDialog$1.lambda$computerFound$0', 'correct', 'SubnetScanner.java:10
 p8('SshAuthenticationTask$1.getPublic', 'wrong', 'SshConnectionPool.java:213',
    'New steps 1-20: the + button and cloud sheet open the SFTP dialog (CloudSheetFragment.java:111-119); Create looks up the stored host key (SftpConnectDialog.java:171-176); with a saved connection to the typed host (state) the old connection is removed (:176-180) and authenticateAndSaveSetup runs; the task connects first (SshAuthenticationTask.java:124, env network) and, for a key login, builds the KeyProvider (:129-131, state) whose getPublic is called. Re-check 2026-11-07: steps 13-14 now go through the host-fingerprint callback lambda$null$4 (SftpConnectDialog.java:181-194; network) instead of the changed-host-key prompt, which now carries its own network env (:183-193); step 20 carries the key-login network env (SshAuthenticationTask.java:129-145). Re-check 2 (2026-11-07, W7 r6-p10): the host-fingerprint callback now carries the network env itself, so the best route is the drawer Recent files list (closed drawer, Drawer.java:224-225) -> listRecent -> HybridFile.exists() -> SshClientUtils.execute -> SshConnectionPool.create -> the auth task. Wrong as drawn: listRecent turns each history path into a java.io.File (LoadFilesListTask.java:394, RootHelper.java:136-142), which folds ssh:// to ssh:/, so generateMode never sets SFTP (HybridFile.java:92-95) and exists() never takes its SFTP branch (:1077); HybridFile.exists() is one node for every caller (Q-R6-2). The class does not change (a saved SFTP connection, network).')
 p8('SshConnectionPool$AsyncRemoveConnection.onPostExecute', 'correct', 'SftpConnectDialog.java:176',
-   'New steps 1-8: the + button and cloud sheet open the SFTP dialog; on Create the stored host key of the typed host is looked up (SftpConnectDialog.java:171-176), so with a saved connection to that host (state) the old connection is removed. The rest as before.')
+   'New steps 1-8: the + button and cloud sheet open the SFTP dialog; on Create the stored host key of the typed host is looked up (SftpConnectDialog.java:171-176), so with a saved connection to that host (state) the old connection is removed. The rest as before. Re-check 2026-11-08 (W9 reachable audit, state 7): step 12 is the same call under a new edge id (Eaa386f86 to E34ff4c36); its gate is now env network instead of the saved-key STATE, because the host key is stored only after GetSshHostFingerprintTask reached the server (SftpConnectDialog.java:168-180). The same 15 steps.')
 p8('StreamNotFoundException.<init>(Throwable)', 'correct', 'WriteFileAbstraction.java:69',
    'Same new prefix as ImmutableEntry.getValue; then the editor Save item -> saveFile -> WriteFileAbstraction as before. Re-check 2 (2026-11-07, PENDING batch 1): same new prefix as ImmutableEntry.getValue (Open with from the row popup, state: a text file). Re-check (W7 r6-p05): the route is now 7 steps: another app opens a text file in TextEditorActivity with ACTION_VIEW (env other_app, the manifest view filter), Save in its menu runs WriteFileAbstraction, and for the content uri a RuntimeException from the provider becomes StreamNotFoundException (WriteFileAbstraction.java:62-69, env other_app). One real execution; correct.')
 p8('StreamSource.getCurrentPosition', 'correct', 'MainFragment.java:930',
@@ -220,6 +220,11 @@ for m in sample:
     out.append(['label', m, P[m][0], cb, P[m][1].split(';')[0], '',
                 'REACHABLE confirmed: the route was read step by step (see the path row); gates read: env=%s state=%s'
                 % (r['env_kinds'] or '-', r['state_kinds'] or '-')])
+# W9 reachable audit (Kiro, 2026-11-08): one label row per drawn method from scratch/reaudit/audit_result.csv
+# (note "reachable audit, class <X>"); a method that already has a label row keeps it.
+_w9 = {}
+exec(open('tools_dev/w9_audit_rows.py', encoding='utf-8').read(), _w9)
+out.extend(_w9['audit_rows']('graphs/%s' % APP, [r[1] for r in out[1:] if r[0] == 'label']))
 
 # edge rows: the B6 added/rewired edges, then the framework (FW-SRC) claims that were read.
 seen = set()

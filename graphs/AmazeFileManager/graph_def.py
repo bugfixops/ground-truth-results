@@ -4268,7 +4268,9 @@ UNREACHABLE = {
 def CLASSIFY(x):
     """Return edge class override for library/reflection edges"""
     # Glide generated code
-    if 'GlideApp' in x['dst'] or 'GlideRequests' in x['dst']:
+    # W9 library 4: match the generated classes GlideApp and GlideRequests only; the substring test also caught
+    # GlideApplication, the app's own Application superclass (AppConfig extends GlideApplication, AppConfig.java:48).
+    if x['dst'].split('.')[0] in ('GlideApp', 'GlideRequests'):
         return ('non_standard', 'Glide generated code')
     # Volley
     if 'volley' in x['dst']:
@@ -9017,8 +9019,9 @@ e('MainFragment.onSearchCompleted', 'MainFragment$6.<init>', 'CALL', 'onSearchCo
 # MainFragment$7 - Thread created in launchSMB
 e('MainFragment.launchSMB', 'MainFragment$7.<init>', 'CALL', 'launchSMB creates Thread at line 1658',
   evidence='SRC MainFragment.java:1658')
-e('TextEditorActivity$1.run', 'MainFragment$7.lambda$run$0', 'ASYNC', 'run method calls runOnUiThread with lambda at line 1671',
-  evidence='SRC MainFragment.java:1671')
+# W9 state 11: the edge TextEditorActivity$1.run -> MainFragment$7.lambda$run$0 was removed. The lambda is posted by
+# MainFragment$7.run, the launchSMB thread (MainFragment.java:1658-1671), not by the text editor's TimerTask
+# (TextEditorActivity.java:430-440); the real step MainFragment$7.run -> lambda$run$0 is kept.
 
 # MapEntry - data holder created in SearchTextTask
 e('SearchTextTask.doInBackground', 'MapEntry.<init>', 'CALL', 'SearchTextTask creates MapEntry instances at line 67',
@@ -10729,3 +10732,12 @@ _r2_orig_e('AboutActivity.onCreate', 'AboutActivity.lambda$onCreate$1', 'FRAMEWO
            'the app bar of the About page is laid out or scrolled, and AppBarLayout dispatches its offset to the listener',
            evidence='SRC fdroid activities/AboutActivity.java:100-102 (addOnOffsetChangedListener); INFERRED Material Components AppBarLayout.Behavior.onLayoutChild and setHeaderTopBottomOffset dispatch offset updates (library source not read)')
 sup(('FileUtil.deleteFile', 'MediaStoreHack.<clinit>'))  # W7 r6-p14: the KitKat workaround (SDK_INT == KITKAT, FileUtil.java:387-392); the standard config is API 27
+
+# W9 library 1, 5, 11 (2026-11-08): the drawer's Settings item starts PreferencesActivity with an explicit intent
+# (Drawer.java:435-439, the MenuMetadata lambda lambda$refreshDrawer$3 created at Drawer.java:435). The old hand edge
+# Drawer.<init> -> PreferencesActivity.<init> (INFERRED, line 3944) was dropped by the R2 filter, so the only creation
+# left was the exported ENTRY with an env gate, and every PreferencesActivity method was labelled library.
+_r2_orig_e('Drawer.lambda$refreshDrawer$3', 'PreferencesActivity.<init>', 'INTENT',
+           'tap Settings in the drawer: the app starts PreferencesActivity and finishes the main screen',
+           cls='standard',
+           evidence='SRC com/amaze/filemanager/ui/views/drawer/Drawer.java:435-439 (new Intent(mainActivity, PreferencesActivity.class); startActivity; finish)')

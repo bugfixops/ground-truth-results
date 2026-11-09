@@ -125,16 +125,19 @@ e('EditTransactionCommonFunctions.initAttachmentControls', 'AttachmentAdapter.ge
   cls='non_standard', via='androidx RecyclerView after setAdapter at EditTransactionCommonFunctions.java:749',
   evidence='SRC transactions/EditTransactionCommonFunctions.java:729-750 (setAdapter 749, setLayoutManager 750); SRC transactions/AttachmentAdapter.java:59-61; INFERRED: RecyclerView source not read')
 
+# W9 state 9 (Kiro, 2026-11-08): the attachment gate was STATE data; no screen of the Android app adds an attachment
+# (the only Attachment objects come from AttachmentRepository.loadAttachmentsFor, AttachmentRepository.java:83), so the
+# rows come from a desktop database file: ENV other_app, as for E4e937842 (Q-R6-5).
 e('EditTransactionCommonFunctions.initAttachmentControls', 'AttachmentAdapter.onCreateViewHolder', 'FRAMEWORK',
   'RecyclerView creates a row holder for each visible attachment row',
   cls='non_standard', via='androidx RecyclerView after setAdapter at EditTransactionCommonFunctions.java:749',
-  needs_state=state_text('the transaction has at least one attachment (the list is non-empty)', ('data',)),
+  env=env_text('outside package: the transaction has an attachment row, which only a database file made by the desktop app holds (the app reads ATTACHMENT rows, CheckingTransactionEditActivity.java:402-404, and no screen adds one), opened through Open database', ('other_app',)),
   evidence='SRC transactions/EditTransactionCommonFunctions.java:729-750; SRC transactions/AttachmentAdapter.java:46-49; INFERRED: RecyclerView source not read')
 
 e('EditTransactionCommonFunctions.initAttachmentControls', 'AttachmentAdapter.onBindViewHolder', 'FRAMEWORK',
   'RecyclerView binds each visible attachment row to its attachment',
   cls='non_standard', via='androidx RecyclerView after setAdapter at EditTransactionCommonFunctions.java:749',
-  needs_state=state_text('the transaction has at least one attachment (the list is non-empty)', ('data',)),
+  env=env_text('outside package: the transaction has an attachment row, which only a database file made by the desktop app holds (the app reads ATTACHMENT rows, CheckingTransactionEditActivity.java:402-404, and no screen adds one), opened through Open database', ('other_app',)),
   evidence='SRC transactions/EditTransactionCommonFunctions.java:729-750; SRC transactions/AttachmentAdapter.java:52-56; INFERRED: RecyclerView source not read')
 
 # ---- default payee: the executor and the UI-thread refresh in handleIntent

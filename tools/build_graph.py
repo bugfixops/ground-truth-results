@@ -24,6 +24,8 @@ graph_def.py is executed with these names predefined:
   ESR_CREATION = False  True: explicit_standard_route also requires a reachable <init> of the method's class
                         under the same restriction, so callbacks of objects that only reflection or a library
                         creates count as library (see esr_route)
+  ESR_CLINIT_CREATES = {}  {method_list class: evidence}: with ESR_CREATION on, a reachable <clinit> of a listed
+                        class counts as its creation (enum constants, whose constructor has no method_list row)
   HTML = True           write the viewer page if the template exists
   PREFER_SETUP_OVER_ENV = False   # True: a method that needs in-app state but no environment gate is preferred
                                   # over a route that needs the environment
@@ -415,7 +417,8 @@ def main(argv):
           'USE_AUTO': False, 'SUPPRESS': set(), 'AUTO': auto_data, 'impl': impl, 'METHODS': list(methods),
           'GDIR': os.path.abspath(gdir), 'TOOLS': os.path.dirname(os.path.abspath(__file__)),
           'AUTO_DEAD': None, 'COVERAGE': None, 'CLASSIFY': None, 'EDIT': None, 'ENV_KINDS_OF': {}, 'STATE_KINDS_OF': {},
-          'SETUP_ONLY': set(), 'STRICT': False, 'HTML': True, 'FRAMEWORK_NODES': {}, 'RTA': False, 'ESR_CREATION': False}
+          'SETUP_ONLY': set(), 'STRICT': False, 'HTML': True, 'FRAMEWORK_NODES': {}, 'RTA': False, 'ESR_CREATION': False,
+          'ESR_CLINIT_CREATES': {}}
     src_path = os.path.join(gdir, 'graph_def.py')
     exec(compile(open(src_path, encoding='utf-8').read(), src_path, 'exec'), ns)
     screens, dead, fwo, notes = ns['SCREENS'], ns['DEAD'], ns['FRAMEWORK_ONLY'], ns['NOTES']
@@ -552,6 +555,13 @@ def main(argv):
         inits = collections.defaultdict(set)   # class -> base names of its <init> variants (method_list.json rows)
         for r, mn in zip(rows, methods):
             if r['name'] == '<init>':
+                inits[r['class']].add(mn)
+        # ESR_CLINIT_CREATES (W9; empty by default, so nothing changes unless an app lists a class): classes whose
+        # instances are made only by their own static initializer (enum constants; the enum constructor has no
+        # method_list row). For a listed class a reachable <clinit> counts as the creation.
+        esr_clinit = set(ns.get('ESR_CLINIT_CREATES') or ())
+        for r, mn in zip(rows, methods):
+            if r['name'] == '<clinit>' and r['class'] in esr_clinit:
                 inits[r['class']].add(mn)
         for key, pv in (('f_env', prev_expl), ('f_noenv', prev_esr_noenv), ('u_env', prev_expl_all), ('u_noenv', prev_esr_noenv_all)):
             reached = {base(n) for n in pv}

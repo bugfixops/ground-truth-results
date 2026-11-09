@@ -296,6 +296,11 @@ for m in sample:
                        % (r['env_kinds'] or '-', r['state_kinds'] or '-')])
 for _row in sorted(label_rows, key=lambda r: r[1]):
     out.append(_row)
+# W9 reachable audit (Kiro, 2026-11-08): one label row per drawn method from scratch/reaudit/audit_result.csv
+# (note "reachable audit, class <X>"); a method that already has a label row keeps it.
+_w9 = {}
+exec(open('tools_dev/w9_audit_rows.py', encoding='utf-8').read(), _w9)
+out.extend(_w9['audit_rows'](GDIR, [r[1] for r in out[1:] if r[0] == 'label']))
 
 # Edge rows, globally sorted by item. Citation keying uses the FULL
 # FW-SRC segment (no '(' truncation: truncation previously swallowed

@@ -1,0 +1,62 @@
+# W9 reachable audit, AnkiDroid: per-row check notes (Kiro). Draw: audit_draw.csv (seed 20261106, build 8d46166a).
+# Columns: class order method ; check A (route and gates) ; check B (source read) ; decision
+env 1 NoteInfo.getKey ; A exported provider called by another app ; correct
+env 2 Phrase.<init> ; A translation server (network) ; correct
+env 3 Syncer.prepareToChunk ; A AnkiWeb sync ; correct
+env 4 AddContentApi$CompatV2.insertNotes ; A provider ; correct
+env 5 CardContentProvider.update ; A provider ; correct
+env 6 Syncer.publishProgress ; A sync ; correct
+env 7 Syncer.getSyncMsg ; A sync ; correct
+env 8 DeckPicker$17$1$1.onPositive ; A sync + account ; correct
+env 9 Media.needScan ; A upload sync ; correct
+env 10 HttpSyncer.finish ; A upload sync ; correct
+env 11 Lookup$1.<init> ; A dictionary app ; correct
+env 12 HttpSyncer.stream2String(InputStream,int) ; A login answer ; correct
+env 13 DeckPicker$17$1$1.<init> ; A sync + account ; correct
+env 14 Syncer.chunk ; A sync ; correct
+env 15 RemoteServer.chunk ; A sync ; correct
+state 1 Sched.unburyCards ; A W7 STATE "cards were buried on an earlier day" (E3d59bc07) ; B Sched.java:1843,1855-1857: unburyCards runs when lastUnburied (0 by default) is below today's day number since the collection was made, whatever is buried; a fresh collection has mToday 0, so it needs a day to pass ; fix: ENV time
+state 2 DeckOptions$DeckPreferenceHack$Editor.putInt ; A STATE_SETTINGS on the GUI edge itself ; B DeckOptions.java:324-327: the OK of a number dialog writes the value; no earlier setting is needed ; fix: drop needs_state (also putBoolean)
+state 3 AbstractFlashcardViewer.playVideo ; A W7 STATE data "a card with a video" (Ef6c02372) ; B Sound.java:276-290 needs a video file with a frame; the app records audio-only 3gp (AudioView.java:423) and has no video field (multimediacard/fields), so the file comes from outside ; fix: ENV other_app
+state 4 StatsMetaInfo.setmMcount ; A advanced statistics on ; correct
+state 5 AdvancedStatistics$Review.<init>(AdvancedStatistics,Deck,SimulationResult,EaseClassifier,Stack,List) ; A advanced statistics on ; correct
+state 6 Sched.unburyCardsForDeck() ; A buried cards (bury in the reviewer) ; correct
+state 7 DeckPicker$19.onClick ; A daily limit reached by studying ; correct
+state 8 StudyOptionsFragment$3$1.<init> ; A a deck with 1000 new cards (added in the app) ; correct
+state 9 Template.clozeText ; A a Cloze note added ; correct
+state 10 Whiteboard.touchMove ; A whiteboard on ; correct
+state 11 Importer.<init> ; A an .apkg in the AnkiDroid folder (export writes one) ; correct
+state 12 DeckAdapter.setDeckExpander ; A a subdeck ; correct
+state 13 AbstractFlashcardViewer$19.run ; A STATE_SETTINGS ; B (printed) AbstractFlashcardViewer.java:1947-1949: only with the automatic answer timer on (mPrefUseTimer, off by default) ; correct
+state 14 DiffEngine.diff_charsToLines ; A type-in note type ; correct
+state 15 StatsMetaInfo.isDataAvailable ; A advanced statistics on ; correct
+library 1 NumberRangePreference.setValue ; A preference inflated from XML ; correct
+library 2 FabBehavior.onDependentViewChanged ; A layout_behavior ; correct
+library 3 ModelFieldEditor$7.cancel ; A no non-standard edge; $7.<init> only on the env route E8cb710a8 ; B ModelFieldEditor.java:458-478: the dialog is made in the ConfirmModSchemaException catch (a collection synced with AnkiWeb); the cancel is reached by the CHA dispatch from ConfirmationDialog$1.onNegative without that gate ; fix: the dispatch inherits the creation gate (env)
+library 4 FieldEditText.<init>(Context,AttributeSet) ; A XML inflation ; correct
+library 5 NoteEditor$6.confirm ; A as library 3 (NoteEditor.java:751) ; fix: as library 3
+library 6 CustomDialogPreference.onClick ; A XML ; correct
+library 7 ChartView.onSizeChanged ; A XML ; correct
+library 8 ModelBrowser$8.confirm ; A as library 3 (ModelBrowser.java:468, the catch branch) ; fix: as library 3
+library 9 ModelFieldEditor$2$1.cancel ; A as library 3 ; fix: as library 3
+library 10 NumberRangePreference.getValue ; A XML ; correct
+library 11 StepsPreference.updateSettings ; A XML ; correct
+library 12 FabBehavior.<init>(Context,AttributeSet) ; A layout_behavior ; correct
+library 13 DialogHandler$1.confirm ; A as library 3 (DialogHandler.java:90) ; fix: as library 3
+library 14 StepsPreference.onDialogClosed ; A XML ; correct
+library 15 ModelBrowser$8.cancel ; A as library 8 ; fix: as library 3
+gui 1 ConfirmationDialog$1.onPositive ; A route through sortByField (only in the schema catch, ModelFieldEditor.java:458-478) ; B (printed) the delete note-type dialog ModelBrowser$7 needs no sync (ModelBrowser.java:447-466) ; correct (route fix: gate sortByField -> S_DLG_CONFIRMATION)
+gui 2 Sched.eta(int[],boolean) ; correct
+gui 3 Template.<init> ; correct
+gui 4 libanki.Utils.getCustomFonts ; B (printed) called for every reviewer start (Utils.java:857-869) ; correct
+gui 5 ModelBrowser.updateSubtitleText ; correct
+gui 6 BasicTextFieldController.createUI ; correct
+gui 7 Finder._findAdded ; A "added:" typed in the browser search ; correct
+gui 8 DeckPicker.onResume ; correct
+gui 9 CustomStudyDialog.getDefaultValue ; correct
+gui 10 AudioView$PlayPauseButton.update ; A record and stop (permission prompt is GUI) ; correct
+gui 11 PlotSheet.getFrameThickness ; correct
+gui 12 AbstractFlashcardViewer$2.<init> ; correct
+gui 13 Sched._fillLrn ; correct
+gui 14 CardTemplateEditor$TemplatePagerAdapter.getItem ; correct
+gui 15 libanki.Utils.splitFilename ; A route getCustomFonts -> splitFilename (E3821a504) without a gate ; B Utils.java:863-876: splitFilename runs once per file in the AnkiDroid fonts folder, which only an outside copy fills (as E34813c5d) ; fix: ENV other_app on that edge; the class then follows the next route (Media.writeData, Media.java:238)

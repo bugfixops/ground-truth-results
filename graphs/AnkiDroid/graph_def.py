@@ -4035,7 +4035,7 @@ e('S_DECKOPTIONS', 'DeckOptions.onPreferenceTreeClick', 'GUI',
 e('S_DECKOPTIONS', 'DeckOptions$DeckPreferenceHack.edit', 'GUI',
   'a preference value changes on the deck options screen',
   env=None,
-  needs_state=STATE_SETTINGS,
+  # W9 state 2: no needs_state. The GUI change is the action that writes the value; no earlier setting is needed.
   gui=['a preference value changes on the deck options screen'],
   evidence='SRC com/ichi2/anki/DeckOptions.java:421-423; FW-SRC core/java/android/preference/PreferenceManager.java:674-687; FW-SRC core/java/android/preference/Preference.java:1878-1896',
   note='The persist path calls PreferenceManager.getEditor, which calls getSharedPreferences().edit() (PreferenceManager.java:686), which is this method. The automatic CALL to Editor.<init> (DeckOptions.java:422) is not repeated.')
@@ -4043,7 +4043,7 @@ e('S_DECKOPTIONS', 'DeckOptions$DeckPreferenceHack.edit', 'GUI',
 e('S_DECKOPTIONS', 'DeckOptions$DeckPreferenceHack$Editor.putBoolean', 'GUI',
   'tap a checkbox on the deck options screen (newBury, revBury, showAnswerTimer, autoPlayAudio, replayQuestion)',
   env=None,
-  needs_state=STATE_SETTINGS,
+  # W9 state 2: no needs_state (the tap writes the value, DeckOptions.java:310-313).
   gui=['tap a checkbox on the deck options screen (newBury, revBury, showAnswerTimer, autoPlayAudio, replayQuestion)'],
   evidence='SRC com/ichi2/anki/DeckOptions.java:310-313; FW-SRC core/java/android/preference/TwoStatePreference.java:60-66, 75-82; FW-SRC core/java/android/preference/Preference.java:1878-1896',
   note='TwoStatePreference.onClick calls setChecked (60-66), which calls persistBoolean (75-82, 81), which calls putBoolean (Preference.java:1893).')
@@ -4051,7 +4051,7 @@ e('S_DECKOPTIONS', 'DeckOptions$DeckPreferenceHack$Editor.putBoolean', 'GUI',
 e('S_DECKOPTIONS', 'DeckOptions$DeckPreferenceHack$Editor.putInt', 'GUI',
   'tap OK on a number dialog on the deck options screen (NumberRangePreference keys)',
   env=None,
-  needs_state=STATE_SETTINGS,
+  # W9 state 2: no needs_state (the OK writes the value, DeckOptions.java:324-327).
   gui=['tap OK on a number dialog on the deck options screen (NumberRangePreference keys)'],
   evidence='SRC com/ichi2/anki/DeckOptions.java:324-327; SRC com/ichi2/preferences/NumberRangePreference.java:81-83; FW-SRC core/java/android/preference/EditTextPreference.java:90-96, 142-150; FW-SRC core/java/android/preference/Preference.java:1716-1734',
   note='EditTextPreference.onDialogClosed (142-150) calls setText (90-96), which calls persistString (94). NumberRangePreference.persistString (81-83) turns the value into persistInt, which calls putInt (Preference.java:1731).')
@@ -8046,3 +8046,58 @@ sup(('Hooks.runFilter@mungeQA', 'FuriganaFilters$Kana.runFilter'), ('Hooks.runFi
 # mungeQA filters override runFilter (LaTeX.java:108; HebrewFixFilter.java:26; ChessFilter.java:61), so the base Hook.runFilter never runs there.
 sup(('Hooks.runFilter@mungeQA', 'HintFilter$Hint.runFilter'), ('Hooks.runFilter@mungeQA', 'FuriganaFilters$Furigana.runFilter'),
     ('Hooks.runFilter@mungeQA', 'Hook.runFilter'))
+
+# W9 reachable audit (Kiro, 2026-11-08; rows in scratch/reaudit/w9_check.txt), library 3, 5, 8, 9, 13, 15.
+# Each anonymous ConfirmationDialog subclass is made at one site, and most sites are the ConfirmModSchemaException catch
+# of a schema change (a collection synced with AnkiWeb: ModelFieldEditor.java:458-478, NoteEditor.java:751,
+# ModelBrowser.java:467-468, DialogHandler.java:90). The W7 rows put that gate on the creation step. The dialog's
+# buttons call confirm/cancel through ConfirmationDialog$1 (one shared listener class), so the bytecode dispatch reached
+# every subclass's confirm and cancel with no gate. The dispatch into a subclass now carries the gate of its creation
+# step, taken from the same W7 row (ENV or STATE, its text and kinds).
+_W9_CREATE_GATE = {}
+import csv as _w9_csv
+if _w7j_os.path.exists(_w7j_path):
+    for _r in _w9_csv.DictReader(open(_w7j_path, encoding='utf-8')):
+        if _r['decision'] in ('ENV', 'STATE') and _r['dst'].endswith('.<init>') and '$' in _r['dst']:
+            _W9_CREATE_GATE.setdefault(_r['dst'][:-len('.<init>')], (_r['decision'], _r['text'], [k for k in _r['kinds'].split('+') if k]))
+_W9_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _W9_ORIG_EDIT(x)
+    # the dispatch from the shared listener, and the GUI edges of the confirmation pages (the B6 page split wires
+    # S_DLG_CONFIRMATION* -> X.confirm / X.cancel directly), both reach a subclass only through its creation
+    if (x['src'].startswith(('ConfirmationDialog$1.', 'S_DLG_CONFIRMATION'))
+            and x['dst'].rsplit('.', 1)[-1] in ('confirm', 'cancel')):
+        _g = _W9_CREATE_GATE.get(x['dst'].rsplit('.', 1)[0])
+        if _g and _g[0] == 'ENV' and not x.get('env'):
+            x['env'], x['env_kinds'] = _g[1], list(_g[2])
+            x['note'] = ((x.get('note') + ' | ') if x.get('note') else '') + 'W9: the gate of the dialog creation step'
+        elif _g and _g[0] == 'STATE' and not x.get('needs_state'):
+            x['needs_state'], x['state_kinds'] = _g[1], list(_g[2])
+            x['note'] = ((x.get('note') + ' | ') if x.get('note') else '') + 'W9: the gate of the dialog creation step'
+# W9 gui 1: the B6 page split left the shared listener ConfirmationDialog$1 reachable only from the generic
+# S_DLG_CONFIRMATION page, which only the schema-catch sortByField enters. Every ConfirmationDialog OK and Cancel runs
+# through it (ConfirmationDialog.java:40-50, the MaterialDialog onPositive and onNegative callbacks), so the
+# delete-note-type page, whose first dialog needs no sync (ModelBrowser.java:447-466), reaches it too. The edges end
+# on @DELETEMODEL variants with no outgoing edge: the page already wires its own confirm and cancel (ModelBrowser$7,
+# $8), and the shared listener's CHA dispatch to every other subclass must not start from this page.
+e('S_DLG_CONFIRMATION_MODELBROWSER_DELETEMODEL', 'ConfirmationDialog$1.onPositive@DELETEMODEL', 'GUI',
+  'tap OK in the delete note type confirmation dialog',
+  gui=['tap OK in the delete note type confirmation dialog'],
+  evidence='SRC com/ichi2/anki/dialogs/ConfirmationDialog.java:40-44; SRC com/ichi2/anki/ModelBrowser.java:447-466')
+e('S_DLG_CONFIRMATION_MODELBROWSER_DELETEMODEL', 'ConfirmationDialog$1.onNegative@DELETEMODEL', 'GUI',
+  'tap Cancel in the delete note type confirmation dialog',
+  gui=['tap Cancel in the delete note type confirmation dialog'],
+  evidence='SRC com/ichi2/anki/dialogs/ConfirmationDialog.java:45-50; SRC com/ichi2/anki/ModelBrowser.java:447-466')
+# The build copies the bytecode CHA rows of ConfirmationDialog$1.onPositive / onNegative onto every variant of the
+# caller, so the @DELETEMODEL variants got a dispatch to every subclass. On the delete-note-type page the dialog is
+# ModelBrowser$7 or $8 (ModelBrowser.java:451, 468); the other copies are cut.
+import json as _w9_json
+_w9_auto = _w9_json.load(open(_w7j_os.path.join(GDIR, 'auto_calls.json'), encoding='utf-8'))
+for _w9_r in _w9_auto['calls']:
+    _w9_s, _w9_d = _w9_r['src'], _w9_r['dst']
+    if _w9_s in ('ConfirmationDialog$1.onPositive', 'ConfirmationDialog$1.onNegative') \
+            and _w9_d.rsplit('.', 1)[0] not in ('ModelBrowser$7', 'ModelBrowser$8'):
+        sup((_w9_s + '@DELETEMODEL', _w9_d))
+del _w9_auto, _w9_r, _w9_s, _w9_d

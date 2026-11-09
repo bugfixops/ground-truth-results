@@ -21,7 +21,7 @@ path,ReadFileTask$ReturnedValues.<init>(int),fixed,SOURCE,FileUtils.java:420,E61
 path,ShareAdapter$ViewHolder.lambda$render$0,fixed,SOURCE,AppsAdapter.java:170,Ef3576ae6 Ec93a3d5b Edd7ffae0 E5f0bd603 E44015116 E995dff1e Ee4436fb7 E6fd8d564 Ea16ad820 E6f5e3da5 Ea76a1112 E029349f9,"Round verdict: fixed (citations + summary edge evidence). Drawer apps item -> AppsListFragment -> AppsAdapter menu share (:170, :181-185) -> shareFiles -> ShareTask onPostExecute (:121) -> ShareAdapter (:50) -> onBindViewHolder -> lambda$render$0."
 path,SmbSearchDialog$1.lambda$computerFound$0,fixed,SOURCE,SubnetScanner.java:109,E380fe171 E98cdd8f4 E77bdc678 E01239703 E57be7166 Ebefb95e4 E8e9507b8 E234e41e0 Ee9c6203f E5e77cce3 E26eee992 E49bf7876 E6aafbbbd Eb5bca6b7 E38b08043,W8 re-verified 2026-11-06 (first verification: fixed). Only step 13 changed: SubnetScanner.run calls onFound for a host that answered (SubnetScanner.java:91-109; env network).
 path,SshAuthenticationTask$1.getPublic,fixed,SOURCE,SshConnectionPool.java:213,E5346b2ef Ed41d350b E9d0ab6e6 E726aa731 E6be23934 Eefeec8b5 E8bc4bb72 Ed4036ed5 Ea86b41dc Ea09956cb Ea0512c00 E654a6440 E6202e994 E8d447e22 E4d2c5dfc E7f65d2ff,"W8 re-verified 2026-11-06 (first verification: fixed). New steps 1-20: the + button and cloud sheet open the SFTP dialog (CloudSheetFragment.java:111-119); Create looks up the stored host key (SftpConnectDialog.java:171-176); with a saved connection to the typed host (state) the old connection is removed (:176-180) and authenticateAndSaveSetup runs; the task connects first (SshAuthenticationTask.java:124, env network) and, for a key login, builds the KeyProvider (:129-131, state) whose getPublic is called. Re-check 2026-11-07: steps 13-14 now go through the host-fingerprint callback lambda$null$4 (SftpConnectDialog.java:181-194; network) instead of the changed-host-key prompt, which now carries its own network env (:183-193); step 20 carries the key-login network env (SshAuthenticationTask.java:129-145). Re-check 2 (2026-11-07, W7 r6-p10): the host-fingerprint callback now carries the network env itself, so the best route is the drawer Recent files list (closed drawer, Drawer.java:224-225) -> listRecent -> HybridFile.exists() -> SshClientUtils.execute -> SshConnectionPool.create -> the auth task. Wrong as drawn: listRecent turns each history path into a java.io.File (LoadFilesListTask.java:394, RootHelper.java:136-142), which folds ssh:// to ssh:/, so generateMode never sets SFTP (HybridFile.java:92-95) and exists() never takes its SFTP branch (:1077); HybridFile.exists() is one node for every caller (Q-R6-2). The class does not change (a saved SFTP connection, network)."
-path,SshConnectionPool$AsyncRemoveConnection.onPostExecute,fixed,SOURCE,SftpConnectDialog.java:176,E380fe171 E98cdd8f4 E77bdc678 E01239703 E57be7166 Ebefb95e4 E8e9507b8 Ea12be5f9 E747b933b Ed024bdda Edf9fdb80 Eaa386f86 Ef1b214fb Ef65bce02 E6c12ada4,"W8 re-verified 2026-11-06 (first verification: fixed). New steps 1-8: the + button and cloud sheet open the SFTP dialog; on Create the stored host key of the typed host is looked up (SftpConnectDialog.java:171-176), so with a saved connection to that host (state) the old connection is removed. The rest as before."
+path,SshConnectionPool$AsyncRemoveConnection.onPostExecute,fixed,SOURCE,SftpConnectDialog.java:176,E380fe171 E98cdd8f4 E77bdc678 E01239703 E57be7166 Ebefb95e4 E8e9507b8 Ea12be5f9 E747b933b Ed024bdda Edf9fdb80 E34ff4c36 Ef1b214fb Ef65bce02 E6c12ada4,"W8 re-verified 2026-11-06 (first verification: fixed). New steps 1-8: the + button and cloud sheet open the SFTP dialog; on Create the stored host key of the typed host is looked up (SftpConnectDialog.java:171-176), so with a saved connection to that host (state) the old connection is removed. The rest as before. Re-check 2026-11-08 (W9 reachable audit, state 7): step 12 is the same call under a new edge id (Eaa386f86 to E34ff4c36); its gate is now env network instead of the saved-key STATE, because the host key is stored only after GetSshHostFingerprintTask reached the server (SftpConnectDialog.java:168-180). The same 15 steps."
 path,StreamNotFoundException.<init>(Throwable),fixed,SOURCE,WriteFileAbstraction.java:69,Edd3316a5 E02683734 E74bea51a E01ac1173 Eb0b536de E27e0b09c Eb0ddb003,"W8 re-verified 2026-11-06 (first verification: fixed). Same new prefix as ImmutableEntry.getValue; then the editor Save item -> saveFile -> WriteFileAbstraction as before. Re-check 2 (2026-11-07, PENDING batch 1): same new prefix as ImmutableEntry.getValue (Open with from the row popup, state: a text file). Re-check (W7 r6-p05): the route is now 7 steps: another app opens a text file in TextEditorActivity with ACTION_VIEW (env other_app, the manifest view filter), Save in its menu runs WriteFileAbstraction, and for the content uri a RuntimeException from the provider becomes StreamNotFoundException (WriteFileAbstraction.java:62-69, env other_app). One real execution; correct."
 path,StreamSource.getCurrentPosition,fixed,SOURCE,MainFragment.java:930,E380fe171 E45d73a86 E7708bb4d E858ed758 Ef643161a E04514efe E0efd1a91 E2bae6b5f Ea3d46d6b E00ebb35e Eb3e8d874 E6d9f4118 Ebf580047 Ef26433e0 E318018b6 E9973302d E8dfb6cc8,W8 re-verified 2026-11-06 (first verification: fixed). New steps 1-6: the view-switch menu item and a row tap (kind caveats) on a cloud file (MainFragment.java:925-930; env: the cloud plugin app) -> CloudUtil.launchCloud -> CloudStreamer; step 10 the client connection (env network).
 path,"StreamSource.read(byte[],int,int)",correct,SOURCE,MainFragment.java:915,E61915364 E987df97b E3b805bab E89466062 E1f8c26fa Ee2038d23 Ed6d2a245 Ef5505ff5 Ee5378215 E25cf69e4 Eec362f10 E591a4c1f E011f6035 E60e0a4e0,"W8 re-verified 2026-11-06 (first verification: correct). Steps 6, 8, 13 changed: a row tap on an SMB file (MainFragment.java:914-915, env: an SMB server) -> launchSMB -> Streamer.getInstance -> Streamer.<init> (Streamer.java:39) -> StreamServer; the client connection (StreamServer.java:179-180, env) and handleResponse -> sendResponse (StreamServer.java:332), which reads the StreamSource. The sendError -> sendResponse edge is cut (graph_def.py): sendError passes null data (StreamServer.java:631)."
@@ -561,7 +561,7 @@ label,GlideRequests.load(Integer),fixed,INFERRED,RecyclerAdapter.java:738,,REACH
 label,StreamSource.getCurrentPosition,fixed,INFERRED,MainFragment.java:930,,REACHABLE confirmed: the route was read step by step (see the path row); gates read: env=network;other_app state=-
 label,"StreamSource.read(byte[],int,int)",correct,INFERRED,MainFragment.java:915,,REACHABLE confirmed: the route was read step by step (see the path row); gates read: env=network;other_app state=-
 label,SshAuthenticationTask$1.getPublic,fixed,INFERRED,SshConnectionPool.java:213,,REACHABLE confirmed: the route was read step by step (see the path row); gates read: env=network state=data
-label,SshConnectionPool$AsyncRemoveConnection.onPostExecute,fixed,INFERRED,SftpConnectDialog.java:176,,REACHABLE confirmed: the route was read step by step (see the path row); gates read: env=- state=data
+label,SshConnectionPool$AsyncRemoveConnection.onPostExecute,fixed,INFERRED,SftpConnectDialog.java:176,,REACHABLE confirmed: the route was read step by step (see the path row); gates read: env=network state=-
 label,PasteHelper.<init>(Parcel),fixed,INFERRED,MainActivity.java:425,,REACHABLE confirmed: the route was read step by step (see the path row); gates read: env=system_event state=session
 label,PasteHelper.writeToParcel,correct,INFERRED,MainActivity.java:1077-1078,,REACHABLE confirmed: the route was read step by step (see the path row); gates read: env=- state=session
 label,PasteHelper$1.createFromParcel,fixed,INFERRED,MainActivity.java:425,,REACHABLE confirmed: the route was read step by step (see the path row); gates read: env=system_event state=session
@@ -584,6 +584,65 @@ label,FileUtils.lambda$scanFile$1,fixed,INFERRED,MainFragment.java:705,,REACHABL
 label,ProcessViewerFragment$CustomServiceConnection$1.lambda$onUpdate$0,fixed,SOURCE,AndroidManifest.xml:165,,REACHABLE confirmed: the route was read step by step (see the path row); gates read: env=- state=data;file;session
 label,HybridFile$11.<init>,fixed,SOURCE,HybridFile.java:1021,,REACHABLE confirmed: the route was read step by step (see the path row); gates read: env=network state=-
 label,UtilsHandler.getSshAuthPrivateKeyColumn,wrong,SOURCE,UtilsHandler.java:427,,REACHABLE confirmed: the route was read step by step (see the path row); gates read: env=- state=data
+label,GeneralDialogCreation.lambda$showCloudDialog$9,correct,SOURCE,Drawer.java:633-634,,"reachable audit, class env: correct"
+label,SevenZMethod.<clinit>,correct,SOURCE,SevenZFile.java:321-325,,"reachable audit, class env: correct"
+label,LoadFilesListTask.lambda$doInBackground$2,correct,SOURCE,LoadFilesListTask.java:183-185,,"reachable audit, class env: correct"
+label,CloudStreamSource.moveTo,correct,INFERRED,CloudStreamServer.java:216-217,,"reachable audit, class env: correct"
+label,SevenZFile.readFilesInfo,correct,SOURCE,SevenZFile.java:321-352,,"reachable audit, class env: correct"
+label,Drawer$2.onResponse,correct,SOURCE,"Drawer.java:152,498-505",,"reachable audit, class env: correct"
+label,MainActivity.lambda$initFabToSave$2,correct,SOURCE,activities/MainActivity.java:555-560,,"reachable audit, class env: correct"
+label,RootUtils.changePermissions,correct,SOURCE,GeneralDialogCreation.java:1166,,"reachable audit, class env: correct"
+label,SevenZFile.readFolder,correct,SOURCE,SevenZFile.java:517,,"reachable audit, class env: correct"
+label,CloudHandler.getAllEntries,correct,SOURCE,MainActivity.java:1863,,"reachable audit, class env: correct"
+label,LzmaExtractor.extractEntry,correct,SOURCE,LzmaExtractor.java:57,,"reachable audit, class env: correct"
+label,SevenZArchiveEntry.setAccessDate(long),correct,SOURCE,SevenZFile.java:822,,"reachable audit, class env: correct"
+label,HybridFile$7.execute,correct,INFERRED,SshClientUtils.java:134,,"reachable audit, class env: correct"
+label,SshClientUtils.extractRemotePathFrom,correct,SOURCE,SshClientUtils.java:245,,"reachable audit, class env: correct"
+label,LZMA2Decoder.numberOptionOrDefault,correct,SOURCE,LZMA2Decoder.java:71,,"reachable audit, class env: correct"
+label,"GenericCopyUtil.copyFile(FileChannel,FileChannel)",correct,SOURCE,GenericCopyUtil.java:285,,"reachable audit, class state: correct"
+label,CompressedExplorerFragment.refresh,correct,SOURCE,fragments/CompressedExplorerFragment.java:145,,"reachable audit, class state: correct"
+label,TextEditorActivity$1.run,correct,INFERRED,java/util/Timer.java,,"reachable audit, class state: correct"
+label,SearchAsyncTask.lambda$searchRegExMatch$3,correct,INFERRED,SearchAsyncTask.java:67-74,,"reachable audit, class state: correct"
+label,TextEditorActivity.hideSearchView,correct,INFERRED,activities/TextEditorActivity.java:389,,"reachable audit, class state: correct"
+label,CryptHandler.updateEntry,correct,INFERRED,MoveFiles.java:194,,"reachable audit, class state: correct"
+label,ProgressHandler.<init>(),correct,SOURCE,ExtractService.java:78,,"reachable audit, class state: correct"
+label,XzExtractor.extractWithFilter,correct,SOURCE,Extractor.java:73,,"reachable audit, class state: correct (REAUDIT-R4-ARCHIVE name level) (class was right; route fixed)"
+label,CompressedObjectParcelable.<init>(),correct,INFERRED,CompressedHelperTask.java:52,,"reachable audit, class state: correct"
+label,MainFragment$7.lambda$run$0,fixed,SOURCE,MainFragment.java:1658-1671,,"reachable audit, class state: fix: the edge starts at MainFragment$7.run (SMB stream, network); class now env"
+label,CompressedExplorerFragment$2.onServiceConnected,correct,SOURCE,fragments/CompressedExplorerFragment.java:385-387,,"reachable audit, class state: correct"
+label,CopyService.getTitle,correct,SOURCE,AbstractProgressiveService.java:99,,"reachable audit, class state: correct"
+label,"HybridFile.<init>(OpenMode,String,String,boolean)",correct,SOURCE,CopyService.java:399,,"reachable audit, class state: correct"
+label,ProgressHandler.addWrittenLength,correct,INFERRED,CopyService.java:100,,"reachable audit, class state: correct"
+label,PreferencesActivity.selectItem,fixed,SOURCE,Drawer.java:435-439,,"reachable audit, class library: fix: INTENT Drawer.lambda$refreshDrawer$3 -> PreferencesActivity.<init>; class now gui"
+label,CloudIconModelLoader.<init>,correct,INFERRED,CloudIconModelFactory.java:23-26,,"reachable audit, class library: correct"
+label,ColorPickerDialog.showDialog,correct,INFERRED,ColorPickerDialog.java:200,,"reachable audit, class library: correct"
+label,GlideApplication.<init>,fixed,SOURCE,AppConfig.java:48,,"reachable audit, class library: fix: CLASSIFY matches the GlideApp and GlideRequests classes only; class now gui"
+label,PreferencesActivity.onSaveInstanceState,fixed,INFERRED,core/java/android/app/Activity.java,,"reachable audit, class library: fix: as library 1; class now gui"
+label,FtpNotification.updateNotification,correct,INFERRED,FtpServerFragment.java:355,,"reachable audit, class library: correct"
+label,ApkImageModelLoaderFactory.<init>,correct,INFERRED,AmazeFileManagerModule.java:21,,"reachable audit, class library: correct"
+label,FastScroller.getHeightMinusPadding,correct,SOURCE,FastScroller.java:97,,"reachable audit, class library: correct"
+label,"GlideRequest.<init>(Glide,RequestManager,Class,Context)",correct,INFERRED,AppsAdapterPreloadModel.java:28,,"reachable audit, class library: correct"
+label,AmazeFileManagerModule.registerComponents,correct,INFERRED,AmazeFileManagerModule.java:20-23,,"reachable audit, class library: correct"
+label,PreferencesActivity.invalidateToolbarColor,fixed,INFERRED,PreferencesActivity.java:87,,"reachable audit, class library: fix: as library 1; class now gui"
+label,ApkImageModelLoader.handles,correct,INFERRED,ApkImageModelLoaderFactory.java:25,,"reachable audit, class library: correct"
+label,FastScroller.getRelativeTouchPosition,correct,INFERRED,ui/views/FastScroller.java:105,,"reachable audit, class library: correct"
+label,FastScroller.setRecyclerViewPosition,correct,INFERRED,ui/views/FastScroller.java:108,,"reachable audit, class library: correct"
+label,WarnableTextInputLayout.removeError,correct,SOURCE,WarnableTextInputValidator.java:69,,"reachable audit, class library: correct"
+label,ShareAdapter.<init>,correct,INFERRED,utils/share/ShareTask.java:121,,"reachable audit, class gui: correct"
+label,SearchView$2.onAnimationEnd,unclear,SOURCE,MainActivity.java:709-712,,"reachable audit, class gui: unclear (Q-R7-3)"
+label,HybridFile.generateMode,correct,SOURCE,MainActivity.java:742,,"reachable audit, class gui: correct"
+label,FileUtils.isStorage,correct,SOURCE,BottomBar.java:216,,"reachable audit, class gui: correct"
+label,GenerateHashesTask.<init>,correct,SOURCE,GeneralDialogCreation.java:461,,"reachable audit, class gui: correct"
+label,ColorPref.loadSection0,correct,INFERRED,ColorPref.java:56-62,,"reachable audit, class gui: correct"
+label,CustomFileObserver$1.run,correct,SOURCE,java/util/Timer.java,,"reachable audit, class gui: correct"
+label,AboutActivity.lambda$onCreate$1,correct,INFERRED,fdroid,,"reachable audit, class gui: correct"
+label,AppConfig.runInParallel,correct,SOURCE,MainActivity.java:365,,"reachable audit, class gui: correct"
+label,MainActivity.onSaveInstanceState,correct,SOURCE,Activity.java,,"reachable audit, class gui: correct"
+label,BookSorter.<init>,correct,SOURCE,Drawer.java:356,,"reachable audit, class gui: correct"
+label,PrefFrag.lambda$onPreferenceClick$1,correct,SOURCE,fragments/preference_fragments/PrefFrag.java:176:,,"reachable audit, class gui: correct"
+label,CustomSshJConfig.<init>,correct,INFERRED,GetSshHostFingerprintTask.java:84,,"reachable audit, class gui: correct"
+label,BottomBar.setVisibility,correct,INFERRED,AppsListFragment.java:84,,"reachable audit, class gui: correct"
+label,MainActivity.showSmokeScreen,correct,SOURCE,MainActivity.java:1670,,"reachable audit, class gui: correct"
 edge,E70ffa8bb,fixed,SOURCE,PrepareCopyTask.java:143-162,,B6 batch v2: AsyncTask framework calls onPostExecute after doInBackground; replaces the deleted bogus ZipService -> PrepareCopyTask edge.
 edge,E244337ba,fixed,SOURCE,ProcessViewerFragment.java:165,,B6 batch v2: framework calls ZipService.onBind when ProcessViewerFragment binds the compress service; replaces the invalid refresh -> onBind edge.
 edge,E60868e74,fixed,SOURCE,MainActivity.java:1029-1030,,B6 batch v2: repair for the regression where onPreExecute lost its only incoming edge when the bogus ZipService edge was deleted; the MainActivity paste case executes the task.

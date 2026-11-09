@@ -5299,7 +5299,8 @@ e('SftpConnectDialog.lambda$onCreateDialog$9', 'SshConnectionPool.getInstance', 
 e('SftpConnectDialog.lambda$onCreateDialog$9', 'SshConnectionPool.removeConnection', 'CALL',
   'Lambda removes existing connection before updating',
   guard='!isEmpty(sshHostKey)',
-  needs_state=NEED_SAVED_SSH_KEY,
+  # W9 state 7: the saved host key needs an earlier connection to the server (SftpConnectDialog.java:168-180); the
+  # gate is the W7 ENV row for this step (rejudge_w9.txt), so the old STATE is dropped here.
   evidence='SRC SftpConnectDialog.java:176 shows SshConnectionPool.getInstance().removeConnection(..., () -> { ... })')
 
 e('SftpConnectDialog.lambda$onCreateDialog$9', 'SftpConnectDialog.lambda$null$2', 'CALL',
