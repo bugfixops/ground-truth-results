@@ -191,6 +191,7 @@
   25, CurrencyService_Factory -> CurrencyRepositorySql_Factory).
 
 ### 19. ExceptionHandler.getLogcat — LONG, 18 steps — UNCLEAR (re-verified 2026-11-06; first verification: UNCLEAR)
+- Re-checked 2026-11-09 after W7 r6-p24 (Kiro, self-checked only, second: pending reviewer): the same 18 steps; only the last edge (ExceptionHandler$1.run -> getLogcat, inside the catch at log/ExceptionHandler.java:114-119) now carries the env gate other ("the system refuses to show the toast, so the error is logged"), which gives it the new id E32146321 (was E581b1646). The route and its verdict (UNCLEAR) are unchanged; the method's class gains env other.
 - Re-verified 2026-11-06 (Kiro, self-checked only, second: pending reviewer): W7 r6-p02 re-check (the base-currency step E58e0996c got the env gate other_app, so the route moved): steps 1-4 as before; steps 5-13 open Recurring transactions from the drawer (MainActivity.java:936-963, 651-652, 734-770, 1446-1466); step 14 a context menu item of a recurring row (state: a recurring transaction); step 15 needs item.getMenuInfo() == null (RecurringTransactionListFragment.java:181-186), which a row's own context menu does not give (UNCLEAR: only a context menu of another view delivered to this fragment); steps 16-17 CORRECT; step 18 is still reached only inside the catch at log/ExceptionHandler.java:118-119 (UNCLEAR, as before).
 - Steps 1-4 CORRECT; step 5 FIXED (only the Balance tap continues,
   HomeFragment.java:470-471, null-account early return :454-455);

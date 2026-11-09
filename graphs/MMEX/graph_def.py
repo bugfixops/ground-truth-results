@@ -29,6 +29,34 @@ def sup(*pairs):
         SUPPRESS.add(p)
 
 
+# W7 review of f06dcbb2, items 2-3: hand edges dropped by (src, dst).
+# Item 2 (Q-R6-4): ScreenTree and SysLogTree are planted only in the BuildConfig.DEBUG else branch (MmexApplication.java:134-140);
+# the dataset APK is the instrumented debug build, so they are UNREACHABLE closed_by_configuration (as AnkiDroid's
+# ProductionCrashReportingTree) and every hand edge into or out of them is dropped.
+# Item 3 (Q-R6-3): the checking editor's split list only holds SplitCategory objects (loadTransaction reads SplitCategoriesRepository,
+# CheckingTransactionEditActivity.java:397-399; createSplitCategoriesFromRecurringTransaction copies into new SplitCategory
+# objects, :232-249; the split form makes items of the editor's own entity name), so it never writes or unwraps a
+# SplitRecurringCategory parcel.
+_R7_HAND_DROPS = {
+    ('CheckingTransactionEditActivity.restoreInstanceState', 'SplitRecurringCategory$$Parcelable$1.createFromParcel'),
+    ('CheckingTransactionEditActivity.restoreInstanceState', 'SplitRecurringCategory$$Parcelable.getParcel'),
+    ('CheckingTransactionEditActivity.onSaveInstanceState', 'SplitRecurringCategory$$Parcelable.writeToParcel'),
+}
+_R7_RELEASE_TREES = ('ScreenTree.', 'SysLogTree.')
+_r7_append_edge = e
+
+
+def _r7_filter_edge(src, dst, *args, **kwargs):
+    if (src, dst) in _R7_HAND_DROPS:
+        return
+    if src.split('@')[0].startswith(_R7_RELEASE_TREES) or dst.split('@')[0].startswith(_R7_RELEASE_TREES):
+        return
+    return _r7_append_edge(src, dst, *args, **kwargs)
+
+
+e = _r7_filter_edge
+
+
 # D22: classes for default edges whose text names a library (REVIEW list)
 _DI = 'Dagger 2: generated component DaggerMmxComponent (generated class, INFERRED)'
 _BIND = 'ButterKnife @OnClick: generated binding class %s (INFERRED)'
@@ -6537,13 +6565,14 @@ sup(('CheckingTransactionEditActivity.duplicateTransaction', 'SplitRecurringCate
 # W7 r6-p25 DEAD step E33a348fe: the Categories report's category branch runs only for a menu item with a negative id
 # (CategoriesReportFragment.java:167), and no menu in the app adds one (resource ids, MenuHelper ids from 2, ContextMenuIds 1-9).
 sup(('CategoriesReportFragment.onOptionsItemSelected', 'BaseReportFragment.getWhereClause'))
-# W7 r6-p26 DEAD step E4e937842: initBaseCurrency runs only from onCreate right after tables_v1.sql (MmxOpenHelper.java:98-99),
-# and that script inserts only the DATAVERSION info row, so no BASECURRENCYID row exists and the update branch (:300-302) never runs.
-sup(('MmxOpenHelper.initBaseCurrency', 'InfoService.updateRaw(SupportSQLiteDatabase,int,String,Integer)'))
-UNREACHABLE['InfoService.updateRaw(SupportSQLiteDatabase,int,String,Integer)'] = (
-    'branch_never_taken', 'its only caller is the update branch of MmxOpenHelper.initBaseCurrency (MmxOpenHelper.java:300-302), which runs '
-    'only when a BASECURRENCYID row exists; initBaseCurrency runs from onCreate right after tables_v1.sql, which has no such row',
-    'SRC database/MmxOpenHelper.java:98-99,256-302; SRC res/raw/tables_v1.sql', 'SOURCE')
+# W7 r6-p26 step E4e937842, re-judged after the review of f06dcbb2 (item 4, Q-R6-5): initBaseCurrency runs from every onCreate
+# (MmxOpenHelper.java:98-99). A new database made in the app has no BASECURRENCYID row (tables_v1.sql inserts only DATAVERSION),
+# but a database file made by the desktop app and opened through Open database can reach onCreate (user_version 0; executeRawSql
+# swallows the errors of each create statement, MmxOpenHelper.java:169-189) with a base currency row already there, so the update
+# branch (:300-302) runs. The edge carries that outside-file gate instead of being cut.
+e('MmxOpenHelper.initBaseCurrency', 'InfoService.updateRaw(SupportSQLiteDatabase,int,String,Integer)', 'CALL', 'Direct call',
+  env=env_text('a database file made by the desktop app, with a base currency row, opened through Open database', ('other_app',)),
+  evidence='SRC database/MmxOpenHelper.java:302 (bytecode)')
 # W7 r6-p30 DEAD step E5a1dd2c0: CurrencyListActivity.onCreate checks mPreviousOrientation on a fragment it has just made
 # (CurrencyListActivity.java:50-56), and the field starts at NOT_SET (CurrencyListFragment.java:76), so the branch never runs.
 sup(('CurrencyListActivity.onCreate', 'ActivityUtils.forceCurrentOrientation'))
@@ -6553,3 +6582,11 @@ sup(('CurrencyListActivity.onCreate', 'ActivityUtils.forceCurrentOrientation'))
 # loadFromCursor overrides never run.
 for _c in ('AccountTransactionDisplay', 'IncomeVsExpenseReportEntity', 'SplitCategory', 'SplitRecurringCategory', 'StockHistory', 'Currency'):
     sup(('RepositoryBase.first', _c + '.loadFromCursor'))
+# W7 review of f06dcbb2, item 2 (Q-R6-4 answered): the release-only loggers, labelled as AnkiDroid's ProductionCrashReportingTree.
+# Their hand edges are dropped by _r7_filter_edge near the top; the auto copies are suppressed here.
+sup(('MmexApplication.onCreate', 'ScreenTree.<init>'), ('MmexApplication.onCreate', 'SysLogTree.<init>'), 'ScreenTree.log', 'SysLogTree.log')
+for _m in ('ScreenTree.<init>', 'ScreenTree.log', 'SysLogTree.<init>', 'SysLogTree.log'):
+    UNREACHABLE[_m] = (
+        'closed_by_configuration', 'the tree is planted only in the else branch of BuildConfig.DEBUG (MmexApplication.java:134-140); '
+        'the dataset APK is the instrumented debug build (DATASET.txt), so BuildConfig.DEBUG is true and the else branch never runs',
+        'SRC MmexApplication.java:134-140', 'SOURCE')

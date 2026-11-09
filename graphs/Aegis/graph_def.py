@@ -6645,8 +6645,9 @@ sup(('AndOtpImporter$EncryptedState.lambda$decrypt$2', 'WelcomeSlide$1.onCancele
     ('AuthenticatorPlusImporter$EncryptedState.lambda$decrypt$1', 'WelcomeSlide$1.onCanceled'),
     ('AuthenticatorPlusImporter$EncryptedState.lambda$decrypt$0', 'WelcomeSlide$1.onError'))
 
-# W7 r6-p22 DEAD step Ebd533b05: the password decrypt task gets only the vault's regular password slots
-# (findRegularPasswordSlots, AuthActivity.java:167-174), so the result's slot is always a PasswordSlot and the getType call
+# W7 r6-p22 DEAD step Ebd533b05: the password decrypt task gets only the vault's PasswordSlot objects
+# (_slots.findAll(PasswordSlot.class), AuthActivity.java:172; findAll keeps exact class matches only, SlotList.java:47-55),
+# so the result's slot is always a PasswordSlot and the getType call
 # at AuthActivity.java:352 never dispatches to BiometricSlot.
 sup(('AuthActivity$PasswordDerivationListener.onTaskFinished', 'BiometricSlot.getType'))
 # W7 r6-p22: with the password-task dispatch cut, BiometricSlot.getType keeps its real caller: Slot.toJson calls getType()
