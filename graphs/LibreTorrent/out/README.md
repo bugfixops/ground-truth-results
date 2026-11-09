@@ -16,7 +16,7 @@ How every method of **LibreTorrent** is triggered, in the standard configuration
 
 - **4732 methods**, **1 pages** (including pseudo pages), **7299 edges**. Verdicts: **3963 REACHABLE**, **769 UNREACHABLE**.
 - UNREACHABLE by reason: branch_never_taken 14, closed_by_api_level 26, closed_by_configuration 1, framework_never_calls 13, no_trigger_in_app 715.
-- ENV gates (methods): hardware 27, network 289, other 42, other_app 106, system_event 10, time 4. STATE gates (methods): data 914, file 86, session 7, settings 59. Methods with no gate: 2607.
+- ENV gates (methods): hardware 33, network 289, other 42, other_app 134, system_event 10, time 4. STATE gates (methods): data 1026, file 86, session 7, settings 65. Methods with no gate: 2480.
 - Edge classes: explicit 4709, non_standard 1885, standard 705. Non-standard edges: 1885 (ACRA report-dialog dispatch; ActionMode creation dispatch; ActionMode dispatch; ActionMode dispatch (action mode started here); ActionMode menu-item dispatch; ActionMode prepare dispatch; ActionMode teardown dispatch; Activity back-press dispatch; AlertDialog onShow dispatch; Android AsyncTask THREA).
 - 3550 reachable methods have a non-standard edge on their best route; 3358 have no explicit-or-standard-only route at all.
 - Labels confirmed by: INFERRED 4210, SOURCE 522 (SOURCE: every edge of the best route cites a source line, in the app or in the Android 8.1 / library source; INFERRED: some edge rests on inference or on another app).
@@ -27,7 +27,7 @@ Verification log (`verification.csv`), counts of what was checked and found:
 
 | Checked | Rows | Correct | Errors found (fixed) | Unclear |
 |---|---:|---:|---:|---:|
-| labels | 858 | 847 | 10 | 1 |
+| labels | 858 | 842 | 15 | 1 |
 | edges (framework and other claims read against source) | 78 | 53 | 25 | 0 |
 | paths (stratified sample, read step by step) | 29 | 20 | 9 | 0 |
 

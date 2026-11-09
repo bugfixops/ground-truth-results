@@ -16,9 +16,9 @@ How every method of **Aegis** is triggered, in the standard configuration: the i
 
 - **2995 methods**, **12 pages** (including pseudo pages), **6362 edges**. Verdicts: **2522 REACHABLE**, **473 UNREACHABLE**.
 - UNREACHABLE by reason: branch_never_taken 3, closed_by_api_level 1, closed_by_configuration 3, framework_never_calls 31, no_trigger_in_app 435.
-- ENV gates (methods): hardware 71, other 244, other_app 542, system_event 18, time 7. STATE gates (methods): data 163, file 16, session 261, settings 91. Methods with no gate: 1329.
+- ENV gates (methods): hardware 71, other 244, other_app 544, system_event 18, time 7. STATE gates (methods): data 164, file 16, session 259, settings 91. Methods with no gate: 1328.
 - Edge classes: explicit 5216, non_standard 98, page 22, standard 1026. Non-standard edges: 98 (Dagger / Hilt dependency injection: the library makes the link to the generated component; JDK library: HashSet.removeAll (AbstractSet.removeAll) reaches equals through its contains branch (JDK source not on disk); intent resolved by action name: the system matches the panic app action info.guardian).
-- 277 reachable methods have a non-standard edge on their best route; 524 have no explicit-or-standard-only route at all.
+- 277 reachable methods have a non-standard edge on their best route; 523 have no explicit-or-standard-only route at all.
 - Labels confirmed by: INFERRED 2695, SOURCE 300 (SOURCE: every edge of the best route cites a source line, in the app or in the Android 8.1 / library source; INFERRED: some edge rests on inference or on another app).
 
 ## How much to trust it
@@ -27,7 +27,7 @@ Verification log (`verification.csv`), counts of what was checked and found:
 
 | Checked | Rows | Correct | Errors found (fixed) | Unclear |
 |---|---:|---:|---:|---:|
-| labels | 557 | 542 | 10 | 5 |
+| labels | 557 | 539 | 13 | 5 |
 | edges (framework and other claims read against source) | 26 | 26 | 0 | 0 |
 | paths (stratified sample, read step by step) | 25 | 12 | 8 | 5 |
 
