@@ -14,12 +14,12 @@ How every method of **AnkiDroid** is triggered, in the standard configuration: t
 
 ## Numbers
 
-- **4186 methods**, **56 pages** (including pseudo pages), **9816 edges**. Verdicts: **3275 REACHABLE**, **911 UNREACHABLE**.
-- UNREACHABLE by reason: branch_never_taken 48, closed_by_api_level 44, closed_by_configuration 22, framework_never_calls 48, no_trigger_in_app 749.
-- ENV gates (methods): hardware 4, network 72, other 14, other_app 93, permission 364, system_event 19. STATE gates (methods): account 14, data 13, file 34, session 13, settings 60. Methods with no gate: 2708.
-- Edge classes: explicit 8599, non_standard 31, page 82, standard 1104. Non-standard edges: 31 (Apache HttpClient 4.x DefaultHttpClient.execute (library source not read); Apache HttpClient 4.x DefaultHttpClient.execute, DefaultClientConnectionOperator (library source not read); Apache HttpClient 4.x DefaultHttpClient.execute, LayeredSocketFactory (library source not read); Apache HttpClient 4.).
-- 33 reachable methods have a non-standard edge on their best route; 83 have no explicit-or-standard-only route at all.
-- Labels confirmed by: INFERRED 241, SOURCE 3945 (SOURCE: every edge of the best route cites a source line, in the app or in the Android 8.1 / library source; INFERRED: some edge rests on inference or on another app).
+- **4186 methods**, **56 pages** (including pseudo pages), **9815 edges**. Verdicts: **3274 REACHABLE**, **912 UNREACHABLE**.
+- UNREACHABLE by reason: branch_never_taken 48, closed_by_api_level 44, closed_by_configuration 22, framework_never_calls 49, no_trigger_in_app 749.
+- ENV gates (methods): hardware 19, network 243, other 23, other_app 145, permission 86, system_event 21, time 1. STATE gates (methods): account 16, data 106, file 105, session 3, settings 217. Methods with no gate: 2440.
+- Edge classes: explicit 8596, non_standard 31, page 82, standard 1106. Non-standard edges: 31 (Apache HttpClient 4.x DefaultHttpClient.execute (library source not read); Apache HttpClient 4.x DefaultHttpClient.execute, DefaultClientConnectionOperator (library source not read); Apache HttpClient 4.x DefaultHttpClient.execute, LayeredSocketFactory (library source not read); Apache HttpClient 4.).
+- 35 reachable methods have a non-standard edge on their best route; 81 have no explicit-or-standard-only route at all.
+- Labels confirmed by: INFERRED 242, SOURCE 3944 (SOURCE: every edge of the best route cites a source line, in the app or in the Android 8.1 / library source; INFERRED: some edge rests on inference or on another app).
 
 ## How much to trust it
 
@@ -27,16 +27,16 @@ Verification log (`verification.csv`), counts of what was checked and found:
 
 | Checked | Rows | Correct | Errors found (fixed) | Unclear |
 |---|---:|---:|---:|---:|
-| labels | 941 | 938 | 3 | 0 |
-| edges (framework and other claims read against source) | 206 | 206 | 0 | 0 |
-| paths (stratified sample, read step by step) | 30 | 27 | 3 | 0 |
+| labels | 1001 | 986 | 15 | 0 |
+| edges (framework and other claims read against source) | 232 | 232 | 0 | 0 |
+| paths (stratified sample, read step by step) | 30 | 25 | 5 | 0 |
 
 Device replay on the emulator (API 27): 0 of 30 routes reached their target method; 0 of these ran the whole script and are `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; see `../device/results.csv`.
 
-Path status over all reachable methods: SOURCE_OK 6, STALE 20, UNCHECKED 3246, WRONG 3.
+Path status over all reachable methods: SOURCE_OK 19, UNCHECKED 3250, WRONG 5.
 The rows are the items that were individually checked, not a random sample of all labels; see the notes below for how they were chosen and what the unclear rows wait for.
 
-Edges whose evidence is not a source line (75 of 9816): E9509db65 (S_ENTRY -> AnkiDroidApp.onCreate); E1af92d11 (S_ENTRY -> CardContentProvider.onCreate); Ea208d220 (AnkiDroidApp.<init> -> AnkiDroidApp.onCreate); E1672b7a2 (StudyOptionsFragment.<init> -> StudyOptionsFragment.onAttach); Ee3b9f7fe (StudyOptionsFragment.onAttach -> StudyOptionsFragment.onCreateView); E1210f896 (StudyOptionsFragment.onCreateView -> StudyOptionsFragment.onResume); Ee7300d2c (CardBrowserContextMenu.<init> -> CardBrowserContextMenu.onCreateDialog); Ee2ff47c1 (CardBrowserMySearchesDialog.<init> -> CardBrowserMySearchesDialog.onCreateDialog); Ef6c16a28 (CardBrowserOrderDialog.<init> -> CardBrowserOrderDialog.onCreateDialog); Ef71a2817 (ConfirmationDialog.<init> -> ConfirmationDialog.onCreateDialog); E90f59cc0 (CustomStudyDialog.<init> -> CustomStudyDialog.onCreateDialog); Ebcff9edf (DatabaseErrorDialog.<init> -> DatabaseErrorDialog.onCreateDialog) ...
+Edges whose evidence is not a source line (75 of 9815): E9509db65 (S_ENTRY -> AnkiDroidApp.onCreate); E1af92d11 (S_ENTRY -> CardContentProvider.onCreate); Ea208d220 (AnkiDroidApp.<init> -> AnkiDroidApp.onCreate); E1672b7a2 (StudyOptionsFragment.<init> -> StudyOptionsFragment.onAttach); Ee3b9f7fe (StudyOptionsFragment.onAttach -> StudyOptionsFragment.onCreateView); E1210f896 (StudyOptionsFragment.onCreateView -> StudyOptionsFragment.onResume); Ee7300d2c (CardBrowserContextMenu.<init> -> CardBrowserContextMenu.onCreateDialog); Ee2ff47c1 (CardBrowserMySearchesDialog.<init> -> CardBrowserMySearchesDialog.onCreateDialog); Ef6c16a28 (CardBrowserOrderDialog.<init> -> CardBrowserOrderDialog.onCreateDialog); Ef71a2817 (ConfirmationDialog.<init> -> ConfirmationDialog.onCreateDialog); E90f59cc0 (CustomStudyDialog.<init> -> CustomStudyDialog.onCreateDialog); Ebcff9edf (DatabaseErrorDialog.<init> -> DatabaseErrorDialog.onCreateDialog) ...
 
 Sanity check against tool coverage (never used to set a label): 2011 methods ran in the 1-hour Monkey / APE runs on API 27; **1** of them are labelled UNREACHABLE.
 

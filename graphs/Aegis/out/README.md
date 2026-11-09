@@ -14,12 +14,12 @@ How every method of **Aegis** is triggered, in the standard configuration: the i
 
 ## Numbers
 
-- **2995 methods**, **12 pages** (including pseudo pages), **6395 edges**. Verdicts: **2528 REACHABLE**, **467 UNREACHABLE**.
-- UNREACHABLE by reason: branch_never_taken 1, framework_never_calls 31, no_trigger_in_app 435.
-- ENV gates (methods): hardware 42, other 2, other_app 213, permission 25, system_event 18, time 5. STATE gates (methods): data 21, file 23, session 222, settings 27. Methods with no gate: 2037.
-- Edge classes: explicit 5184, non_standard 163, page 22, standard 1026. Non-standard edges: 163 (Dagger / Hilt dependency injection: the library makes the link to the generated component; DialogInterface.OnClickListener.onClick (Dialogs.java:391-393; listener at ScannerActivity.java:196); DialogInterface.OnClickListener.onClick (interface call; Dialogs.java:391-393; the listener is the lambda a).
-- 473 reachable methods have a non-standard edge on their best route; 674 have no explicit-or-standard-only route at all.
-- Labels confirmed by: INFERRED 2710, SOURCE 285 (SOURCE: every edge of the best route cites a source line, in the app or in the Android 8.1 / library source; INFERRED: some edge rests on inference or on another app).
+- **2995 methods**, **12 pages** (including pseudo pages), **6362 edges**. Verdicts: **2522 REACHABLE**, **473 UNREACHABLE**.
+- UNREACHABLE by reason: branch_never_taken 3, closed_by_api_level 1, closed_by_configuration 3, framework_never_calls 31, no_trigger_in_app 435.
+- ENV gates (methods): hardware 71, other 244, other_app 542, system_event 18, time 7. STATE gates (methods): data 163, file 16, session 261, settings 91. Methods with no gate: 1329.
+- Edge classes: explicit 5216, non_standard 98, page 22, standard 1026. Non-standard edges: 98 (Dagger / Hilt dependency injection: the library makes the link to the generated component; JDK library: HashSet.removeAll (AbstractSet.removeAll) reaches equals through its contains branch (JDK source not on disk); intent resolved by action name: the system matches the panic app action info.guardian).
+- 277 reachable methods have a non-standard edge on their best route; 524 have no explicit-or-standard-only route at all.
+- Labels confirmed by: INFERRED 2695, SOURCE 300 (SOURCE: every edge of the best route cites a source line, in the app or in the Android 8.1 / library source; INFERRED: some edge rests on inference or on another app).
 
 ## How much to trust it
 
@@ -27,16 +27,16 @@ Verification log (`verification.csv`), counts of what was checked and found:
 
 | Checked | Rows | Correct | Errors found (fixed) | Unclear |
 |---|---:|---:|---:|---:|
-| labels | 483 | 471 | 1 | 11 |
+| labels | 557 | 542 | 10 | 5 |
 | edges (framework and other claims read against source) | 26 | 26 | 0 | 0 |
-| paths (stratified sample, read step by step) | 25 | 13 | 1 | 11 |
+| paths (stratified sample, read step by step) | 25 | 12 | 8 | 5 |
 
 Device replay on the emulator (API 27): 1 of 25 routes reached their target method; 1 of these ran the whole script and are `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; see `../device/results.csv`.
 
-Path status over all reachable methods: SOURCE_OK 2, STALE 10, UNCHECKED 2515, WRONG 1.
+Path status over all reachable methods: SOURCE_OK 2, UNCHECKED 2519, WRONG 1.
 The rows are the items that were individually checked, not a random sample of all labels; see the notes below for how they were chosen and what the unclear rows wait for.
 
-Edges whose evidence is not a source line (897 of 6395): E5b266140 (AegisApplication.<init> -> Hilt_AegisApplication.onCreate); Ed430de74 (Hilt_AegisApplication.generatedComponent -> Hilt_AegisApplication$1.get); E1e4b62ae (AegisActivity.onCreate -> Hilt_AegisActivity$1.onContextAvailable); Ed3b2fc19 (Hilt_AegisActivity.generatedComponent -> DaggerAegisApplication_HiltComponents_SingletonC$SingletonCImpl.retainedComponentBuilder); E1c3ead1c (Hilt_AegisActivity.generatedComponent -> DaggerAegisApplication_HiltComponents_SingletonC$ActivityRetainedCBuilder.build); E9eaaba0b (Hilt_AegisActivity.generatedComponent -> DaggerAegisApplication_HiltComponents_SingletonC$ActivityRetainedCImpl.activityComponentBuilder); E9e40d82d (Hilt_AegisActivity.generatedComponent -> DaggerAegisApplication_HiltComponents_SingletonC$ActivityCBuilder.activity); E3c923e18 (Hilt_AegisActivity.generatedComponent -> DaggerAegisApplication_HiltComponents_SingletonC$ActivityCBuilder.build); E983da919 (AegisApplicationBase.onCreate -> AegisApplicationBase$AppLifecycleObserver.onStateChanged); E313f4f87 (S_PROCESS -> VaultLockReceiver.onReceive); Ed3c98a2a (S_PROCESS -> QsTileRefreshReceiver.onReceive); E436827e4 (MainActivity.onStart -> AegisActivity.onResume) ...
+Edges whose evidence is not a source line (893 of 6362): E5b266140 (AegisApplication.<init> -> Hilt_AegisApplication.onCreate); Ed430de74 (Hilt_AegisApplication.generatedComponent -> Hilt_AegisApplication$1.get); E1e4b62ae (AegisActivity.onCreate -> Hilt_AegisActivity$1.onContextAvailable); Ed3b2fc19 (Hilt_AegisActivity.generatedComponent -> DaggerAegisApplication_HiltComponents_SingletonC$SingletonCImpl.retainedComponentBuilder); E1c3ead1c (Hilt_AegisActivity.generatedComponent -> DaggerAegisApplication_HiltComponents_SingletonC$ActivityRetainedCBuilder.build); E9eaaba0b (Hilt_AegisActivity.generatedComponent -> DaggerAegisApplication_HiltComponents_SingletonC$ActivityRetainedCImpl.activityComponentBuilder); E9e40d82d (Hilt_AegisActivity.generatedComponent -> DaggerAegisApplication_HiltComponents_SingletonC$ActivityCBuilder.activity); E3c923e18 (Hilt_AegisActivity.generatedComponent -> DaggerAegisApplication_HiltComponents_SingletonC$ActivityCBuilder.build); E983da919 (AegisApplicationBase.onCreate -> AegisApplicationBase$AppLifecycleObserver.onStateChanged); E313f4f87 (S_PROCESS -> VaultLockReceiver.onReceive); Ed3c98a2a (S_PROCESS -> QsTileRefreshReceiver.onReceive); E436827e4 (MainActivity.onStart -> AegisActivity.onResume) ...
 
 Sanity check against tool coverage (never used to set a label): 751 methods ran in the 1-hour Monkey / APE runs on API 27; **0** of them are labelled UNREACHABLE.
 
