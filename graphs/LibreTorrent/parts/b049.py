@@ -64,7 +64,9 @@ e('FeedRepositoryImpl.deserializeFeeds', 'FeedRepositoryImpl$1.<init>', 'CALL', 
 # TagRepositoryImpl construction and methods.
 e('RepositoryHelper.getTagRepository', 'TagRepositoryImpl.<init>', 'CALL', 'Tag repository getter constructs the implementation', cls='explicit', evidence='SRC RepositoryHelper.java:69-72; SRC TagRepositoryImpl.java:34-36')
 e('MainViewModel.deleteTag', 'TagRepositoryImpl.delete', 'CALL', 'Main screen tag delete removes the tag', cls='explicit', evidence='SRC ui/main/MainViewModel.java:187; SRC TagRepositoryImpl.java:49-51')
-e('AddTagViewModel.setRandomColor', 'TagRepositoryImpl.getByName', 'CALL', 'Tag colour assignment looks the tag up by name', cls='explicit', evidence='SRC ui/addtag/AddTagViewModel.java:65; SRC TagRepositoryImpl.java:54-56')
+# Review of 6d94e9c4 item 2: AddTagViewModel.setRandomColor -> TagRepositoryImpl.getByName removed. Line 65 is in the
+# Completable.fromCallable lambda of saveTag (AddTagViewModel.java:55-75, read); the bytecode edge
+# AddTagViewModel.lambda$saveTag$0 -> TagRepositoryImpl.getByName is the real step.
 e('TorrentEngine.makeInfoSync', 'TagRepositoryImpl.getByTorrentId', 'CALL', 'Torrent info build reads the torrent tags', cls='explicit', evidence='SRC TorrentEngine.java:771; SRC TagRepositoryImpl.java:74-76')
 
 # No UNREACHABLE rows in this batch; nothing to list here.

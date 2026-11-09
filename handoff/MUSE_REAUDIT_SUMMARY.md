@@ -1,4 +1,6 @@
-# Re-audit of five apps: summary (Kiro, round 1)
+# Re-audit of five apps: summary (Kiro)
+
+**Read "Final state" at the end first.** Every section before it is labelled "Round 1 state (historical)": it records the state at that time and is not updated (for example its "Routes re-verified: none yet" and "Reachable audit: drawn, not checked" are no longer true).
 
 Kiro took over from Muse at `e0866b9c` (W1 done; W2 done for LibreTorrent, AnkiDroid and MMEX). Kiro worked alone: no helpers could start (host memory critical, spawn gate paused), so every decision below is self-checked only, and every check the brief gives to a second agent is marked "second: pending reviewer". The session ran on its default model, not `claude-haiku-5-5` (the session cannot switch models).
 
@@ -6,7 +8,7 @@ Round 1 covers W2 to W7. CI of round 1: `9371563e` (built `018a3e43`): all 13 ap
 
 The tuning half of the sample (`review/sample_tune/`) never arrived on the branch, so W0, the round measurement (W8 point 5) and the agreement numbers could not be run.
 
-## Class shares over never-run methods
+## Round 1 state (historical): class shares over never-run methods
 
 Classes follow `review/TASK_NOTE.md`; "before" is the CI output at `e0866b9c`, "after" is CI `9371563e` (`tools_dev/reaudit_shares.py e0866b9c`).
 
@@ -21,7 +23,7 @@ Classes follow `review/TASK_NOTE.md`; "before" is the CI output at `e0866b9c`, "
 
 Read with care: W2 removed the setup and baseline gates (Aegis's intro gates sat on about 1,500 best routes, AnkiDroid's sample-deck gates on about 1,600), and W7's guard work is mostly still open (4,814 flagged steps PENDING). Until those guards are judged, gui is over-counted: the review's "too much gui" finding is not yet fixed by this round.
 
-### After the reviewer's round-1 fixes and W7 round 2 (local builds, not yet CI)
+### Round 1 state (historical): after the reviewer's round-1 fixes and W7 round 2 (local builds, not yet CI)
 
 The try rule now counts every guard of a step line (242 rows back to PENDING), the LibreTorrent AndroidX vias are standard, and the flagged steps were judged in impact order (number of never-run targets using a step) until about 90% of the flagged target-uses per app were judged. A tool bug was found and fixed on the way: `guard_judge.py` had cut 43 judged STATE/ENV gate texts at a ';' and kept them off the graph; they are applied now (REAUDIT-W7-JUDGEFIX).
 
@@ -36,7 +38,7 @@ The try rule now counts every guard of a step line (242 rows back to PENDING), t
 
 The PENDING rows that remained (3,961) were the long tail: each is used by few never-run targets (mostly 1 to 3). The gui share is still over-counted, and the size of the over-count is not known yet: re-reading the 20 changed AmazeFileManager sample routes (W8) and the reviewer's round-2 fixes moved its state share from 7.1% to 27.4% (local builds), far more than the share of flagged target-uses that was still PENDING.
 
-### After the reviewer's round-2 check (local builds, not yet CI)
+### Round 1 state (historical): after the reviewer's round-2 check (local builds, not yet CI)
 
 "Covered by a gate earlier on the route" is no longer a NONE reason (REAUDIT-R2-NONE): the rows that said so and left gui/library targets on their routes were re-judged one step per line. AmazeFileManager drops 154 INFERRED "framework calls ... after construction" edges (REAUDIT-R2-INFERRED). The pre-screen now follows one helper-call level and was re-run on the current build; the steps it found on the current best routes were added (Aegis 105, AmazeFileManager 199, AnkiDroid 154, LibreTorrent 85, MMEX 137), so the judged share of flagged target-uses fell again (Aegis 95.3%, AmazeFileManager 77.0%, AnkiDroid 83.6%, LibreTorrent 86.6%, MMEX 87.0%).
 
@@ -53,7 +55,7 @@ NONE rows were also rewritten one step per line with their own reason and file:l
 
 All judgments are self-checked only (second: pending reviewer). Two AmazeFileManager steps that run only on API 19 or 23 are DEAD, and the 9 methods behind them are UNREACHABLE closed_by_api_level.
 
-## Aegis
+## Round 1 state (historical): Aegis
 
 - CI `9371563e`: methods 2,995; REACHABLE 2,528; UNREACHABLE 467 (no_trigger_in_app 435, framework_never_calls 31, branch_never_taken 1).
 - W2: baseline = onboarding passed, password vault (Q3) with two default TOTP entries (Q6); 12 gate texts cleared, 23 kept, the four intro pages SETUP_ONLY (37 setup-only methods).
@@ -65,7 +67,7 @@ All judgments are self-checked only (second: pending reviewer). Two AmazeFileMan
 - Checked cases: 5 of 5 match their source class.
 - Routes re-verified: none yet (11 path warnings). Device: dry run 2 `42168202056-1` 25 PASS / 0 FAIL; real run `42168580707-1` reached 1 of 25 (DEVICE rows wait for route re-verification). Reachable audit: 60 drawn, not checked.
 
-## AmazeFileManager
+## Round 1 state (historical): AmazeFileManager
 
 - CI `9371563e`: methods 2,981; REACHABLE 2,507; UNREACHABLE 474 (no_trigger_in_app 427, framework_never_calls 38, closed_by_api_level 9).
 - W2: no first-run screen; both state texts kept.
@@ -76,7 +78,7 @@ All judgments are self-checked only (second: pending reviewer). Two AmazeFileMan
 - W7 round 1: 982 rows; 7 STATE, 1 ENV, 87 NONE, 887 PENDING (AmazeFileManager-01, -27, -46).
 - Checked cases: 6 of 6 match. Routes re-verified: none yet (9 path warnings). Device: dry run 2 30 / 0; real run `42168580707-1` reached 0 of 30 (DEVICE rows wait for route re-verification). Reachable audit: 60 drawn, not checked.
 
-## AnkiDroid
+## Round 1 state (historical): AnkiDroid
 
 - CI `9371563e`: methods 4,186; REACHABLE 3,275; UNREACHABLE 911 (no_trigger_in_app 749, branch_never_taken 48, framework_never_calls 48, closed_by_api_level 44, closed_by_configuration 22).
 - W2 (Muse): 5 gate texts cleared (sample deck). W3: no change (no in-app start for the provider, AddContentApi, widget or SD-card receiver). W4: RTA dropped 0.
@@ -85,7 +87,7 @@ All judgments are self-checked only (second: pending reviewer). Two AmazeFileMan
 - W7 round 1: 940 rows; 8 STATE, 119 NONE, 813 PENDING; database-error dialogs need a broken collection (AnkiDroid-07); S_PREFERENCES gets its page entry from Preferences.onCreate.
 - Checked cases: 2 of 2 match. Routes re-verified: none yet (46 path warnings). Device: dry run 2 30 / 0; real run `42168580707-1` reached 0 of 30 (DEVICE rows wait for route re-verification). Reachable audit: 60 drawn, not checked.
 
-## LibreTorrent
+## Round 1 state (historical): LibreTorrent
 
 - CI `9371563e`: methods 4,732; REACHABLE 3,967; UNREACHABLE 765 (no_trigger_in_app 715, closed_by_api_level 24, framework_never_calls 13, branch_never_taken 12, closed_by_configuration 1).
 - W2 (Muse): no first-run screen.
@@ -94,7 +96,7 @@ All judgments are self-checked only (second: pending reviewer). Two AmazeFileMan
 - W7 round 1: 794 rows; 3 STATE, 42 NONE, 749 PENDING (LibreTorrent-16, -19).
 - Checked cases: 4 of 4 match. Routes re-verified: none yet (24 path warnings). Device: dry run 2 29 / 0; real run `42168580707-1` reached 6 of 29 (DEVICE rows wait for route re-verification). Reachable audit: 60 drawn, not checked.
 
-## MMEX
+## Round 1 state (historical): MMEX
 
 - CI `9371563e`: methods 4,270; REACHABLE 3,430; UNREACHABLE 840 (no_trigger_in_app 741, framework_never_calls 77, branch_never_taken 13, closed_by_api_level 9).
 - W2 (Muse): 7 gate texts cleared; tutorial SETUP_ONLY. W3: no change (no in-app start for any exported entry on a best route).
@@ -103,15 +105,15 @@ All judgments are self-checked only (second: pending reviewer). Two AmazeFileMan
 - W7 round 1: 1,499 rows; 3 STATE, 66 NONE, 1,430 PENDING (MMEX-41, -49, -20).
 - Checked cases: 6 of 6 match. Routes re-verified: none yet (10 path warnings). Device: dry run 2 30 / 0; real run `42168580707-1` reached 7 of 30 (DEVICE rows wait for route re-verification). Reachable audit: 60 drawn, not checked.
 
-## Rounds
+## Round 1 state (historical): rounds
 
 One round. A second round would need the W7 guard judging and the measurement first; the gates that wait (G4 verified only against Appendix B; G5, G6, G7 waiting for re-verification, the reachable-audit checks and the rounds folder) are listed in the run log and the final message.
 
-## Markor (Q4)
+## Round 1 state (historical): Markor (Q4)
 
 Markor is not touched. In its CI output (`9371563e`), 10 of its 2,450 REACHABLE best routes pass its intro (the page S_INTRO or an Intro class on the shortest path).
 
-## Rounds 4-5 (review 3 and review 4 fixes)
+## Round 1 state (historical): rounds 4-5 (review 3 and review 4 fixes)
 
 All numbers below come from a fresh `bash handoff/ci/rebuild.sh Aegis AmazeFileManager AnkiDroid LibreTorrent MMEX`, run before every count (REAUDIT-R4-REBUILD: the committed `graphs/*/out/` is the CI copy and was stale; the round-4 shares and warnings in the earlier version of this section were read from that stale copy for MMEX and AnkiDroid and were wrong).
 
@@ -134,12 +136,12 @@ CI `fd266ef6` (built at `1e76293a`): all 13 apps at 0 errors; the eight other ap
 
 - **Step 2 (W7 guards):** PENDING 0 in all five apps (`graphs/<App>/scratch/reaudit/w7_judged.csv`, `rejudge_*.txt`).
 - **Step 3 (W8 routes):** on the `8d46166a` build, `tools_dev/route_diff.py` showed 0 of 144 sampled routes changed. The W9 fixes then changed two sampled routes; both were re-checked: AmazeFileManager SshConnectionPool$AsyncRemoveConnection.onPostExecute keeps the same 15 steps, and AnkiDroid Sound.notifyConfigurationChanged keeps the same 19 steps. Each moved its step gate from state to env.
-- **Step 4 (W9 reachable audit):** 300 drawn methods (15 per class and app, seed 20261106, drawn and pushed before any check). Result: 270 correct, 28 fixed, 0 wrong, 2 unclear; error rate (fixed+wrong)/(correct+fixed+wrong) 0.094.
+- **Step 4 (W9 reachable audit):** 300 drawn methods (15 per class and app, seed 20261106, drawn and pushed before any check). Result: 269 correct, 29 fixed, 0 wrong, 2 unclear; error rate (fixed+wrong)/(correct+fixed+wrong) 0.097. (First count at bde40318: 270/28; the review of 6d94e9c4 triage then found AmazeFileManager env row 15, LZMA2Decoder.numberOptionOrDefault, dead: its route used a wrong edge.)
 
 | App | env | state | library | gui |
 |---|---|---|---|---|
 | Aegis | 15/0/0 | 15/0/0 | 8/7/0 | 13/2/0 |
-| AmazeFileManager | 15/0/0 | 13/2/0 | 11/4/0 | 14/0/1 |
+| AmazeFileManager | 14/1/0 | 13/2/0 | 11/4/0 | 14/0/1 |
 | AnkiDroid | 15/0/0 | 12/3/0 | 9/6/0 | 14/1/0 |
 | LibreTorrent | 15/0/0 | 15/0/0 | 13/1/1 | 15/0/0 |
 | MMEX | 15/0/0 | 14/1/0 | 15/0/0 | 14/1/0 |
@@ -160,3 +162,9 @@ Class shares over never-run methods, "before" `e0866b9c`, "after" CI `fd266ef6` 
 | weighted | 27.6 / 1.4 / 18.1 / 21.0 / 8.6 / 23.3 (before: 27.3 / 1.1 / 20.4 / 20.4 / 2.9 / 27.8) |
 
 Not done: W0 and the round measurement (the tuning half `review/sample_tune/` never arrived), publishing (no PUBLISH_REQUEST, as instructed), and every second-person check (second: pending reviewer).
+
+### After the review of 6d94e9c4 (2026-11-09)
+
+- **Wrong cited-line edges.** CALL edges whose cited line lies inside another method (`kiro_scripts/cited_line_in_caller.py`, sorted by `tools_dev/cited_triage.py`; lists and decisions in `graphs/<App>/scratch/reaudit/cited_line_triage.txt`). AmazeFileManager: 219 hits; 103 pairs cut (the reviewer's four edges and a fifth beside them, every pair the helper matched to a real edge from the method that holds the line, and 26 more after reading the source), 2 of them re-pointed, 6 methods UNREACHABLE (MainActivity.getPaste, ScreenUtils.convertDbToPx, four 7z write-side helpers); the rest are real calls with an off citation. LibreTorrent: 13 hits; 4 cut, 1 citation corrected. Aegis 4 and MMEX 20 hits, AnkiDroid 0: all real calls. `tools_dev/route_diff.py`: 0 of 144 sampled routes changed.
+- **Q-R7-6** (an open dialog as GUI or state) added with the default used; nothing relabelled on it.
+- The 9 device-replay warnings wait for the user's decision (a third small real run, or dropping those 9 DEVICE rows).

@@ -14,7 +14,7 @@ env 11 LzmaExtractor.extractEntry ; A real lzma archive ; B LzmaExtractor.java:5
 env 12 SevenZArchiveEntry.setAccessDate(long) ; A real 7z ; correct
 env 13 HybridFile$7.execute ; A SFTP server ; correct
 env 14 SshClientUtils.extractRemotePathFrom ; A SFTP server ; correct
-env 15 LZMA2Decoder.numberOptionOrDefault ; A real 7z with LZMA2 ; correct
+env 15 LZMA2Decoder.numberOptionOrDefault ; A real 7z with LZMA2 (first check: correct) ; B found wrong by the review-of-6d94e9c4 triage: the route used Coders.findByMethod -> LZMA2Decoder.getOptionsAsProperties, which findByMethod does not call; the method is called only from getDictSize and getOptions on the 7z write side (LZMA2Decoder.java:68-73,90-99), which never runs ; fix: the wrong edge cut, UNREACHABLE no_trigger_in_app
 state 1 GenericCopyUtil.copyFile(FileChannel,FileChannel) ; A paste pending ; B a file must exist to copy (made in the app) ; correct
 state 2 CompressedExplorerFragment.refresh ; A archive viewer with a zip made by Compress ; correct
 state 3 TextEditorActivity$1.run ; A text file made with New file ; correct

@@ -743,5 +743,6 @@ and is untouched here.
 ## Re-audit (Kiro, Nov 2026)
 - Step 2 (W7 guards): PENDING 0 (self-checked, second: pending reviewer). Step 3: route_diff 0 of 29 sampled routes changed on the 8d46166a build.
 - Step 4 (W9 reachable audit): 60 drawn rows (scratch/reaudit/w9_check.txt, audit_result.csv). env, state and gui 15/15 correct; library 13 correct, 1 fixed (the media-mount receiver is standard with env system_event, parts/b103.py), 1 unclear (advrecyclerview, Q-R7-4). Many framework dispatches are still written non_standard (Q-R7-5); in the drawn rows the class held because each route also has a real library step.
+- Review of 6d94e9c4 (2026-11-09): 13 cited-line hits (scratch/reaudit/cited_line_triage.txt); 4 wrong hand edges removed (parts/b049.py, b050.py, b054.py), 1 citation corrected (parts/b037.py). route_diff 0 of 29.
 - Step 5: the last real run 42560435293-1 reached 7 of 29 routes (17 scripts ok, 12 unscriptable); DEVICE rows correct 7, unclear 22.
 - Step 6: CI fd266ef6, errors 0; 5 warnings, all device-replayed routes that are no longer the best route (TrackerInfo.infoHashStatus, SelectTagDialog.onTagClicked, tag.TagsAdapter$ViewHolder.lambda$bind$0, TorrentDownloadImpl.pieces, SaveLogWorker.lambda$showSuccessToast$1); no real run is left.

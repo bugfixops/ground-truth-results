@@ -75,6 +75,121 @@ _R2_CUT.update({('MainActivity.onCreate', 'HybridFileParcelable.describeContents
 _R2_CUT.update({('TabFragment.<init>', 'ColorCircleDrawable.<init>'), ('ColorPickerDialog$SavedState$1.<init>', 'ColorPickerDialog$SavedState$1.newArray')})
 _R2_CUT.update({('ColorCircleDrawable.<init>', 'ColorCircleDrawable.' + _m) for _m in ('draw', 'getOpacity', 'onBoundsChange', 'setAlpha', 'setColorFilter')})
 _R2_CUT.add(('SmbSearchDialog.onCreateDialog', 'SmbSearchDialog$ListViewAdapter.getItemId'))  # r6-p11: no stable ids
+# Review of 6d94e9c4 item 2 (2026-11-09): hand CALL edges whose cited line lies in another method
+# (kiro_scripts/cited_line_in_caller.py; sorted by tools_dev/cited_triage.py, list in scratch/reaudit/cited_line_triage.txt).
+# For each pair below the src method's body does not make the call, and the method that holds the cited line already has
+# its own edge to the target (the bytecode edge or a hand edge from that method, a lambda of it or the inner class that
+# runs it), or the target is a field initializer that runs in <init>, or (getPaste) nothing calls it. The hand copies are
+# cut here; a call that the bytecode does show for a cut pair comes back as an auto edge (auto edges ignore _R2_CUT).
+_R2_CUT.update({
+    ('AppConfig.getInstance', 'ScreenUtils.convertDbToPx'),
+    ('BottomBar.showButtons', 'BottomBar$3.<init>'),
+    ('BottomBar.showButtons', 'BottomBar$4.<init>'),
+    ('BottomBar.showButtons', 'BottomBar$5.<init>'),
+    ('BottomBar.showButtons', 'BottomBar$6.<init>'),
+    ('BottomBar.showButtons', 'BottomBar.areButtonsShowing'),
+    ('BottomBar.updatePath', 'FileUtils.crossfadeInverse'),
+    ('BottomBar.updatePath', 'FileUtils.getFolderNamesInPath'),
+    ('BottomBar.updatePath', 'FileUtils.getPathsInPath'),
+    ('BottomBar.updatePath', 'FileUtils.isStorage'),
+    ('Coders.findByMethod', 'LZMA2Decoder.getOptionsAsProperties'),
+    ('ColorPref.onBackPressed', 'PreferencesActivity.getRestartActivity'),
+    ('CompressedExplorerFragment.onCreateView', 'CompressedHelper.getCompressorInstance'),
+    ('CompressedHelper.getExtension', 'CompressedHelper.is7zip'),
+    ('CompressedHelper.getExtension', 'CompressedHelper.isBzippedTar'),
+    ('CompressedHelper.getExtension', 'CompressedHelper.isGzippedTar'),
+    ('CompressedHelper.getExtension', 'CompressedHelper.isLzippedTar'),
+    ('CompressedHelper.getExtension', 'CompressedHelper.isRar'),
+    ('CompressedHelper.getExtension', 'CompressedHelper.isTar'),
+    ('CompressedHelper.getExtension', 'CompressedHelper.isXzippedTar'),
+    ('CompressedHelper.getExtension', 'CompressedHelper.isZip'),
+    ('CopyService.onStartCommand', 'CryptHandler.<init>'),
+    ('CopyService.onStartCommand', 'DeleteTask.<init>(Context)'),
+    ('CopyService.onStartCommand', 'FileUtils.getTotalBytes'),
+    ('DatabaseViewerActivity.onCreate', 'HybridFileParcelable.getPath'),
+    ('DatabaseViewerActivity.onOptionsItemSelected', 'DbViewerFragment.<init>'),
+    ('DecryptService.onStartCommand', 'CryptUtil.<init>(Context,HybridFileParcelable,String,ProgressHandler,ArrayList)'),
+    ('DecryptService.onStartCommand', 'HybridFile.length(Context)'),
+    ('Drawer.onDrawerClosed', 'Drawer.resetPendingPath'),
+    ('EncryptService.onCreate', 'EncryptService$1.<init>'),
+    ('EncryptService.onStartCommand', 'CryptUtil.<init>(Context,HybridFileParcelable,ProgressHandler,ArrayList,String)'),
+    ('ExtractService.onCreate', 'ExtractService$1.<init>'),
+    ('ExtractService.onStartCommand', 'CompressedHelper.getExtractorInstance'),
+    ('ExtractService.onStartCommand', 'CompressedHelper.getFileName'),
+    ('FtpNotification.startNotification', 'FtpService.getLocalInetAddress'),
+    ('FtpService.onStartCommand', 'CryptUtil.decryptPassword'),
+    ('GeneralDialogCreation.showPropertiesDialogWithoutPermissions', 'CountItemsOrAndSizeTask.<init>'),
+    ('GeneralDialogCreation.showPropertiesDialogWithoutPermissions', 'GenerateHashesTask.<init>'),
+    ('HybridFileParcelable.getName', 'HybridFileParcelable.isHidden'),
+    ('Indicator.onMeasure', 'Indicator.getRequiredWidth'),
+    ('LoadFilesListTask.doInBackground', 'CloudUtil.getCloudFiles'),
+    ('LoadFilesListTask.onPostExecute', 'AppConfig.toast(Context,String)'),
+    ('MainActivity.delete', 'CloudHandler.clear'),
+    ('MainActivity.delete', 'CloudHandler.findEntry'),
+    ('MainActivity.initialiseViews', 'MainActivity.hideSmokeScreen'),
+    ('MainActivity.initialiseViews', 'MainActivity.showSmokeScreen'),
+    ('MainActivity.onActivityResult', 'BottomBar.resetClickListener'),
+    ('MainActivity.onActivityResult', 'FileUtil.getExtSdCardPathsForActivity'),
+    ('MainActivity.onActivityResult', 'MainActivityHelper.checkFolder'),
+    ('MainActivity.onActivityResult', 'MainActivityHelper.showFailedOperationDialog'),
+    ('MainActivity.onCreate', 'BottomBar.setClickListener'),
+    ('MainActivity.onCreate', 'Drawer.getFirstPath'),
+    ('MainActivity.onCreate', 'Drawer.getPhoneStorageCount'),
+    ('MainActivity.onCreate', 'MainActivity.getPaste'),
+    ('MainActivity.onCreate', 'MainActivity.setPaste'),
+    ('MainActivity.onCreate', 'MainFragment.updateTabWithDb'),
+    ('MainActivity.onOptionsItemSelected', 'MainActivity.delete'),
+    ('MainActivity.onOptionsItemSelected', 'MainActivity.modify'),
+    ('MainActivity.onPause', 'BottomBar.updatePath'),
+    ('MainActivity.onPostCreate', 'CloudHandler.getAllEntries'),
+    ('MainActivityHelper.mkDir', 'FileUtil.isOnExtSdCard'),
+    ('MainActivityHelper.mkDir', 'FileUtil.isValidFilename'),
+    ('MainActivityHelper.mkDir', 'FileUtil.isWritable'),
+    ('MainActivityHelper.mkDir', 'FileUtil.isWritableNormalOrSaf'),
+    ('MainFragment.addSearchResult', 'MainFragment$6.<init>'),
+    ('MainFragment.loadlist', 'HybridFile.getParent(Context)'),
+    ('MainFragment.loadlist', 'MainFragment$2.<init>'),
+    ('MainFragment.onCreateView', 'MainFragment$1.<init>'),
+    ('MainFragment.onListItemClicked', 'MainActivity.setPagingEnabled'),
+    ('MainFragment.onListItemClicked', 'MediaStoreHack.getUriFromFile'),
+    ('MainFragment.onResume', 'MainFragment$4.<init>'),
+    ('MainFragment.updateList', 'CustomFileObserver.<init>'),
+    ('MainFragment.updateList', 'CustomFileObserver.startWatching'),
+    ('MainFragment.updateList', 'CustomFileObserver.stopWatching'),
+    ('MainFragment.updateTabWithDb', 'BottomBar.updatePath'),
+    ('MoveFiles.doInBackground', 'CryptHandler.<init>'),
+    ('MoveFiles.doInBackground', 'CryptHandler.findEntry'),
+    ('MoveFiles.doInBackground', 'CryptHandler.updateEntry'),
+    ('PrefFrag.onCreateView', 'PreferencesActivity.restoreListViewState'),
+    ('PreferencesActivity.onCreate', 'PreferenceUtils.getStatusColor(String)'),
+    ('PrepareCopyTask.doInBackground', 'PrepareCopyTask.startService'),
+    ('PrepareCopyTask.onPostExecute', 'Utils.setTint'),
+    ('PrepareCopyTask.startService', 'MoveFiles.<init>'),
+    ('RecyclerAdapter.onBindViewHolder', 'AnimUtils.marqueeAfterDelay'),
+    ('SearchWorkerFragment.onAttach', 'SearchAsyncTask.<init>'),
+    ('SevenZFile.buildDecodingStream', 'BoundedFileChannelInputStream.<init>'),
+    ('SevenZFile.buildDecodingStream', 'Coders.addDecoder'),
+    ('SevenZFile.buildDecodingStream', 'DeltaDecoder.getOptionsFromCoder(Coder,InputStream)'),
+    ('SevenZFile.buildDecodingStream', 'Folder.getOrderedCoders'),
+    ('SevenZFile.buildDecodingStream', 'Folder.getUnpackSize'),
+    ('SevenZFile.buildDecodingStream', 'Folder.getUnpackSizeForCoder'),
+    ('SevenZFile.readHeaders', 'Coder.<init>'),
+    ('SevenZFile.readHeaders', 'Folder.findBindPairForInStream'),
+    ('SevenZFile.readStreamsInfo', 'Coders.addDecoder'),
+    ('SevenZFile.readStreamsInfo', 'Folder.getOrderedCoders'),
+    ('SevenZFile.readStreamsInfo', 'Folder.getUnpackSizeForCoder'),
+    ('SevenZOutputFile.writeFilesInfo', 'Coders.findByMethod'),
+    ('ShareAdapter.getItemId', 'ShareAdapter.getItemCount'),
+    ('TarExtractor.extractWithFilter', 'Extractor.fixEntryName'),
+    ('TextEditorActivity.load', 'FileUtils.openunknown(File,Context,boolean,boolean)'),
+    ('TextEditorActivity.saveFile', 'HybridFileParcelable.getPath'),
+    ('ZipService.onStartCommand', 'FileUtils.getTotalBytes'),
+    ('ZipService.onStartCommand', 'FileUtils.hybridListToFileArrayList'),
+    # steps between the 7z write-side helpers that became UNREACHABLE with the cut above (UNREACHABLE entries at the end)
+    ('LZMA2Decoder.getOptionsAsProperties', 'LZMA2Decoder.getDictSize'),
+    ('LZMA2Decoder.getDictSize', 'LZMA2Decoder.numberOptionOrDefault'),
+    ('LZMA2Decoder.getOptions', 'LZMA2Decoder.numberOptionOrDefault'),
+})
 # review 6 fix 3: listener registrations modelled as a CALL from the registering lifecycle method (re-added as
 # FRAMEWORK edges that carry the user action, or cut, in the review 6 block at the end of the file)
 _R6_LISTENER_CUT = [
@@ -1337,9 +1452,9 @@ e('ReadFileTask.doInBackground', 'ReadFileTask.onPostExecute', 'FRAMEWORK',
   evidence='INFERRED source not read')
 
 # SearchAsyncTask
-e('SearchWorkerFragment.onAttach', 'SearchAsyncTask.<init>', 'CALL',
-  'SearchWorkerFragment instantiates SearchAsyncTask',
-  evidence='SRC SearchWorkerFragment.java:58')
+# Review of 6d94e9c4 item 1: the hand edge SearchWorkerFragment.onAttach -> SearchAsyncTask.<init> was removed. Line 58 is in
+# onCreate (SearchWorkerFragment.java:47-61, read); onAttach (:38-43) only keeps the callbacks. The bytecode edge
+# SearchWorkerFragment.onCreate -> SearchAsyncTask.<init> is the real step.
 e('SearchAsyncTask.<init>', 'SearchAsyncTask.doInBackground', 'FRAMEWORK',
   'AsyncTask framework calls doInBackground',
   evidence='INFERRED source not read')
@@ -2166,17 +2281,10 @@ UNREACHABLE.update(UNREACHABLE_B006)
 # BottomBar entry point from AppBar
 
 # BottomBar public API calls from MainActivity
-e('MainActivity.onCreate', 
-  'BottomBar.setClickListener', 'CALL', 'MainActivity onCreate calls setClickListener',
-  evidence='SRC final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/activities/MainActivity.java:854')
-
-e('MainActivity.onActivityResult',
-  'BottomBar.resetClickListener', 'CALL', 'MainActivity onActivityResult resets listeners',
-  evidence='SRC final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/activities/MainActivity.java:892')
-
-e('MainActivity.onPause',
-  'BottomBar.updatePath', 'CALL', 'MainActivity onPause updates bottom bar path',
-  evidence='SRC final_java_only/AmazeFileManager/app/AmazeFileManager-#1837/app/src/main/java/com/amaze/filemanager/activities/MainActivity.java:850')
+# Review of 6d94e9c4 item 1 (2026-11-09): three hand edges removed. Their cited lines 850 (updatePath), 854
+# (setClickListener) and 892 (resetClickListener) are all inside MainActivity.onPrepareOptionsMenu (MainActivity.java:834-892,
+# read), not in onPause, onCreate or onActivityResult. The real steps are the bytecode edges
+# onPrepareOptionsMenu -> BottomBar.updatePath / setClickListener / resetClickListener.
 
 
 # BottomBar calls from MainFragment
@@ -2573,9 +2681,9 @@ e('DatapointParcelable.<clinit>', 'DatapointParcelable$1.<init>', 'CALL',
 
 # DbViewerFragment methods
 # DbViewerFragment is instantiated in DatabaseViewerActivity
-e('DatabaseViewerActivity.onOptionsItemSelected', 'DbViewerFragment.<init>', 'CALL',
-  'DatabaseViewerActivity listener creates DbViewerFragment for each table',
-  evidence='SRC DatabaseViewerActivity.java:135 new DbViewerFragment()')
+# Review of 6d94e9c4 item 1: the hand edge DatabaseViewerActivity.onOptionsItemSelected -> DbViewerFragment.<init> was removed.
+# Line 135 is in the list-row click lambda that onCreate sets (DatabaseViewerActivity.java:133-142, read), not in the menu.
+# The real steps are onCreate -> lambda$onCreate$0 (the row tap) and the bytecode edge lambda$onCreate$0 -> DbViewerFragment.<init>.
 
 e('DbViewerFragment.<init>', 'DbViewerFragment.onCreateView', 'LIFECYCLE',
   'Fragment lifecycle calls onCreateView after instantiation',
@@ -10741,3 +10849,52 @@ _r2_orig_e('Drawer.lambda$refreshDrawer$3', 'PreferencesActivity.<init>', 'INTEN
            'tap Settings in the drawer: the app starts PreferencesActivity and finishes the main screen',
            cls='standard',
            evidence='SRC com/amaze/filemanager/ui/views/drawer/Drawer.java:435-439 (new Intent(mainActivity, PreferencesActivity.class); startActivity; finish)')
+
+# Review of 6d94e9c4 item 2 (2026-11-09), re-pointed steps of two cut pairs:
+# PreferencesActivity.onCreate calls invalidateNavBar (PreferencesActivity.java:88), which calls getStatusColor at :216 (read).
+_r2_orig_e('PreferencesActivity.invalidateNavBar', 'PreferenceUtils.getStatusColor(String)', 'CALL',
+           'the navigation bar colour is set from the status colour of the primary colour',
+           evidence='SRC com/amaze/filemanager/activities/PreferencesActivity.java:200-216')
+# ShareTask.onPostExecute gives the ShareAdapter to the MaterialDialog list (ShareTask.java:121-127, read); the dialog's list
+# asks the adapter for its row count. ShareAdapter.getItemId does not call getItemCount (ShareAdapter.java:82-90, read).
+_r2_orig_e('ShareTask.onPostExecute', 'ShareAdapter.getItemCount', 'FRAMEWORK',
+           'the share dialog shows the adapter and its list asks for the number of rows',
+           evidence='SRC com/amaze/filemanager/utils/share/ShareTask.java:121-127; INFERRED MaterialDialog binds the adapter to its RecyclerView, which calls getItemCount (library source not read)')
+# MainActivity.getPaste has no caller: the only line in the app source that names it is its declaration (MainActivity.java:1558,
+# grep of app/src/main/java); its hand edge from onCreate was cut above.
+UNREACHABLE['MainActivity.getPaste'] = ('no_trigger_in_app',
+    'no code calls getPaste: the declaration (MainActivity.java:1558) is the only line in the app source that names it',
+    'SRC com/amaze/filemanager/activities/MainActivity.java:1558', 'SOURCE')
+# With the wrong copies cut, five methods kept only callers that never run (source read, grep of the whole app tree):
+# - ScreenUtils.convertDbToPx: the only call is in Drawer.setNavViewDimension (Drawer.java:245), whose only call site is commented
+#   out (Drawer.java:160-163), so setNavViewDimension is UNREACHABLE.
+# - the 7z write-side option helpers: LZMA2Decoder.getOptionsAsProperties is called only at SevenZOutputFile.java:453
+#   (writeSingleCodec; SevenZOutputFile is never created, the app reads 7z only); LZMA2Decoder.getDictSize only from it (:55);
+#   LZMA2Decoder.numberOptionOrDefault only from getDictSize (:72) and getOptions (:94), the encode-side options; and
+#   CoderBase.numberOptionOrDefault only from encode methods and option helpers (Coders.java:152, 259; DeltaDecoder.java:41, 52;
+#   LZMADecoder.java:89-94; LZMA2Decoder.java:99), all UNREACHABLE. The removed edge Coders.findByMethod ->
+#   LZMA2Decoder.getOptionsAsProperties had made them look reachable on the read side.
+for _w9m, _w9r, _w9ref in (
+        ('ScreenUtils.convertDbToPx', 'the only caller, Drawer.setNavViewDimension, is never called (its call site at Drawer.java:160-163 is commented out)',
+         'SRC com/amaze/filemanager/ui/views/drawer/Drawer.java:160-163,242-245'),
+        ('LZMA2Decoder.getOptionsAsProperties', 'called only by SevenZOutputFile.writeSingleCodec (SevenZOutputFile.java:453); the app never creates a SevenZOutputFile',
+         'SRC com/amaze/filemanager/filesystem/compressed/sevenz/SevenZOutputFile.java:453'),
+        ('LZMA2Decoder.getDictSize', 'called only by LZMA2Decoder.getOptionsAsProperties (LZMA2Decoder.java:55), which only the 7z writer calls',
+         'SRC com/amaze/filemanager/filesystem/compressed/sevenz/LZMA2Decoder.java:54-55,68-73'),
+        ('LZMA2Decoder.numberOptionOrDefault', 'called only by getDictSize (:72) and getOptions (:94), both on the 7z write side, which never runs',
+         'SRC com/amaze/filemanager/filesystem/compressed/sevenz/LZMA2Decoder.java:68-73,90-99'),
+        ('CoderBase.numberOptionOrDefault', 'called only from encode methods and option helpers of the 7z writer (Coders.java:152, 259; DeltaDecoder.java:41, 52; LZMADecoder.java:89-94; LZMA2Decoder.java:99), all UNREACHABLE',
+         'SRC com/amaze/filemanager/filesystem/compressed/sevenz/CoderBase.java:82')):
+    UNREACHABLE[_w9m] = ('no_trigger_in_app', _w9r, _w9ref, 'SOURCE')
+# Their bytecode callers are UNREACHABLE too (the 7z encode side, SevenZOutputFile, Drawer.setNavViewDimension); the auto copies are cut.
+sup(('Drawer.setNavViewDimension', 'ScreenUtils.convertDbToPx'),
+    ('SevenZOutputFile.writeSingleCodec', 'LZMA2Decoder.getOptionsAsProperties'),
+    ('Coders$BZIP2Decoder.encode', 'CoderBase.numberOptionOrDefault'),
+    ('Coders$DeflateDecoder.encode', 'CoderBase.numberOptionOrDefault'),
+    ('LZMADecoder.numberOptionOrDefault', 'CoderBase.numberOptionOrDefault'),
+    ('LZMA2Decoder.numberOptionOrDefault', 'CoderBase.numberOptionOrDefault'),
+    ('DeltaDecoder.encode', 'CoderBase.numberOptionOrDefault'),
+    ('DeltaDecoder.getOptionsAsProperties', 'CoderBase.numberOptionOrDefault'),
+    ('LZMA2Decoder.getOptionsAsProperties', 'LZMA2Decoder.getDictSize'),
+    ('LZMA2Decoder.getDictSize', 'LZMA2Decoder.numberOptionOrDefault'),
+    ('LZMA2Decoder.getOptions', 'LZMA2Decoder.numberOptionOrDefault'))

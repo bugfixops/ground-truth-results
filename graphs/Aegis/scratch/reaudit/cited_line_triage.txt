@@ -1,0 +1,9 @@
+Aegis: 4 hits; {'READ': 3, 'BODY': 1}
+BODY   35 E491da3e0 EntryAdapter.refresh -> EntryHolder.refresh | EntryAdapter.java:569 in onBindViewHolder | hand | SRC ui/views/EntryAdapter.java:233-239; SRC ui/views/EntryAdapter.java:569 || 
+READ    5 Ea7abcc1b SqlImporterHelper.read(Class,File,String) -> StratumImporter$SqlEntry.<init> | StratumImporter.java:75 in readInternal | hand | SRC importers/SqlImporterHelper.java:99-107; SRC importers/GoogleAuthImporter.java:55,66; SRC importers/MicrosoftAuthImp || 
+READ    3 E8fc100b2 SqlImporterHelper.read(Class,File,String) -> GoogleAuthImporter$Entry.<init> | StratumImporter.java:75 in readInternal | hand | SRC importers/SqlImporterHelper.java:99-107; SRC importers/GoogleAuthImporter.java:55,66; SRC importers/MicrosoftAuthImp || 
+READ    1 Ef7bebdea SqlImporterHelper.read(Class,File,String) -> MicrosoftAuthImporter$Entry.<init> | StratumImporter.java:75 in readInternal | hand | SRC importers/SqlImporterHelper.java:99-107; SRC importers/GoogleAuthImporter.java:55,66; SRC importers/MicrosoftAuthImp || 
+
+# Decisions (Kiro, 2026-11-09, review of 6d94e9c4 item 2; source read): all 4 kept. E491da3e0 cites EntryAdapter.java:233-239
+# (refresh loops over _holders) before :569 (where the holder is added). The three SqlImporterHelper.read rows cite
+# SqlImporterHelper.java:99-107 (the reflective newInstance) before the importers that pass the class (StratumImporter.java:75).

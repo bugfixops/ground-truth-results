@@ -1,0 +1,20 @@
+LibreTorrent: 13 hits; {'BODY': 6, 'READ': 3, 'REAL': 4}
+BODY    9 Ed8f75258 NormalizeUrl.normalize(String,Options) -> NormalizeUrl.doNormalize | NormalizeUrl.java:191 in doNormalize | hand | SRC NormalizeUrl.java:178-189; SRC NormalizeUrl.java:191 || 
+BODY    4 Ebd8f1f4c FeedChannelListAdapter.onBindViewHolder -> FeedChannelListAdapter$ViewHolder.bind | FeedChannelListAdapter.java:198 in bind | hand | SRC ui/feeds/FeedChannelListAdapter.java:91-104; SRC ui/feeds/FeedChannelListAdapter.java:198 || 
+BODY    1 E1b1a871b TorrentSessionImpl.settingsToSettingsPack -> TorrentSessionImpl.convertEncryptMode | TorrentSessionImpl.java:1318 in convertEncryptMode | hand | SRC TorrentSessionImpl.java:1268-1269; SRC TorrentSessionImpl.java:1318 || 
+BODY    1 Ee69d4121 TorrentSessionImpl.restoreTorrents -> TorrentSessionImpl$LoadTorrentTask.putMagnet | TorrentSessionImpl.java:1494 in putMagnet | hand | SRC TorrentSessionImpl.java:414-419; SRC TorrentSessionImpl.java:1494 || 
+BODY    0 E6bfd33a0 TorrentDownloadImpl.havePiece -> TorrentDownloadImpl.operationNotAllowed | TorrentDownloadImpl.java:1547 in getFilePieces | hand | SRC TorrentDownloadImpl.java:1547; SRC TorrentDownloadImpl.java:195-198 || E4067a29f TorrentDownloadImpl.getFilePieces
+BODY    0 E8493d2f3 TorrentSessionImpl.onBeforeStart -> TorrentSessionImpl.addListener | TorrentSessionImpl.java:185 in addListener | hand | SRC TorrentSessionImpl.java:986-987; SRC TorrentSessionImpl.java:185 || 
+READ   22 Ed404c00b TorrentEngine.addTorrentSync(AddTorrentParams,boolean) -> TorrentSessionImpl.addTorrent | TorrentEngine.java:412 in try | hand | SRC TorrentEngine.java:412; SRC TorrentSessionImpl.java:251 || 
+READ    0 Ec20d755f DetailTorrentStateFragment.newInstance -> DetailTorrentStateFragment.<clinit> | DetailTorrentStateFragment.java:45 in ? | hand | INFERRED JVM dispatch; SRC ui/detailtorrent/pages/DetailTorrentStateFragment.java:51-60; SRC ui/detailtorrent/pages/Deta || 
+READ    0 Ec04df306 TorrentEngine.addTorrentSync(AddTorrentParams,boolean) -> TorrentEngine.isRunning | TorrentEngine.java:409 in try | auto | SRC TorrentEngine.java:409 (bytecode) || 
+REAL    3 E174b18be AddTagViewModel.setRandomColor -> TagRepositoryImpl.insert | AddTagViewModel.java:69 in saveTag | hand | SRC ui/addtag/AddTagViewModel.java:69; SRC TagRepositoryImpl.java:39-41 || E82d15b1d AddTagViewModel.lambda$saveTag$0
+REAL    2 Eb7ac9390 AddTagViewModel.setRandomColor -> TagRepositoryImpl.getByName | AddTagViewModel.java:65 in saveTag | hand | SRC ui/addtag/AddTagViewModel.java:65; SRC TagRepositoryImpl.java:54-56 || Ecf3664fd AddTagViewModel.lambda$saveTag$0
+REAL    0 Eaf3243fd AddTagViewModel.setRandomColor -> TagRepositoryImpl.update | AddTagViewModel.java:71 in saveTag | hand | SRC ui/addtag/AddTagViewModel.java:71; SRC TagRepositoryImpl.java:44-46 || E61423054 AddTagViewModel.lambda$saveTag$0
+REAL    0 Ecee4a957 TorrentEngine.startWatchDir -> FileSystemFacadeImpl.deleteFile | TorrentEngine.java:1154 in onEvent | hand | SRC TorrentEngine.java:1154; SRC FileSystemFacadeImpl.java:110-115 || E935d8958 TorrentEngine$4.lambda$onEvent$0
+
+# Decisions (Kiro, 2026-11-09, review of 6d94e9c4 item 2; source read): 4 cut (AddTagViewModel.setRandomColor -> TagRepositoryImpl
+# getByName/insert/update: the calls are in saveTag's fromCallable lambda; TorrentEngine.startWatchDir -> deleteFile: the call is
+# in TorrentEngine$4.lambda$onEvent$0; each has its bytecode edge), 1 citation corrected (havePiece -> operationNotAllowed is at
+# TorrentDownloadImpl.java:1553-1555, not :1547), 8 kept (the cite is the callee definition, a try block the heuristic misreads
+# in addTorrentSync, or the JVM class init of DetailTorrentStateFragment).

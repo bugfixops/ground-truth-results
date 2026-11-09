@@ -35,3 +35,4 @@
 - A CLASSIFY rule that matches a class name as a substring can catch app classes (GlideApp matched GlideApplication); match the class part of the node name exactly.
 - When a filter drops INFERRED hand edges, check that each dropped creation edge has a real replacement: PreferencesActivity was left with only its env entry, so all its methods became library.
 - Data that only an earlier network session can write (a saved SSH host key) is env network, not state.
+- A hand CALL edge must cite a line inside its own src method. Run kiro_scripts/cited_line_in_caller.py after a batch of hand edges: the summary-style edges (an outer method "calling" what its helper, inner class or field initializer calls) can be the only route to a method, and cutting them can leave dead methods that looked reachable.

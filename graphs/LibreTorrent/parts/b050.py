@@ -25,10 +25,10 @@
 
 # TagRepositoryImpl tail from printed callers.
 e('DetailTorrentViewModel.getTags', 'TagRepositoryImpl.getByTorrentIdAsync', 'CALL', 'Detail tags load reads tags asynchronously', cls='explicit', evidence='SRC ui/detailtorrent/DetailTorrentViewModel.java:144; SRC TagRepositoryImpl.java:69-70')
-e('AddTagViewModel.setRandomColor', 'TagRepositoryImpl.insert', 'CALL', 'Tag colour assignment inserts the tag', cls='explicit', evidence='SRC ui/addtag/AddTagViewModel.java:69; SRC TagRepositoryImpl.java:39-41')
+# Review of 6d94e9c4 item 2: setRandomColor -> TagRepositoryImpl.insert and -> update removed: lines 69 and 71 are in the
+# saveTag lambda (AddTagViewModel.java:63-74, read); the bytecode edges from AddTagViewModel.lambda$saveTag$0 are the real steps.
 e('MainViewModel.observeTags', 'TagRepositoryImpl.observeAll', 'CALL', 'Main screen observes all tags', cls='explicit', evidence='SRC ui/main/MainViewModel.java:183; SRC TagRepositoryImpl.java:59-61')
 e('DetailTorrentViewModel.observeTags', 'TagRepositoryImpl.observeByTorrentId', 'CALL', 'Detail screen observes one torrent tags', cls='explicit', evidence='SRC ui/detailtorrent/DetailTorrentViewModel.java:148; SRC TagRepositoryImpl.java:64-66')
-e('AddTagViewModel.setRandomColor', 'TagRepositoryImpl.update', 'CALL', 'Tag colour assignment updates the tag', cls='explicit', evidence='SRC ui/addtag/AddTagViewModel.java:71; SRC TagRepositoryImpl.java:44-46')
 
 # TorrentRepositoryImpl construction and class init.
 e('RepositoryHelper.getTorrentRepository', 'TorrentRepositoryImpl.<clinit>', 'FRAMEWORK', 'First torrent-repository construction initialises the class', cls='non_standard', via='JVM class initialization on first active use of TorrentRepositoryImpl', evidence='SRC RepositoryHelper.java:43-47; SRC TorrentRepositoryImpl.java:41')

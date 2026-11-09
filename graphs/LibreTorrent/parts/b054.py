@@ -28,7 +28,9 @@ e('SystemFacadeHelper.getFileSystemFacade', 'FileSystemFacadeImpl.<init>', 'CALL
 e('FileManagerViewModel.createFile', 'FileSystemFacadeImpl.buildValidFatFilename', 'CALL', 'File-manager file creation validates the file name through the facade', cls='explicit', evidence='SRC ui/filemanager/FileManagerViewModel.java:248-253; SRC FileSystemFacadeImpl.java:343-363')
 e('TorrentEngine.cleanTemp', 'FileSystemFacadeImpl.cleanTempDir', 'CALL', 'Engine temp cleanup clears the facade temp directory', cls='explicit', evidence='SRC TorrentEngine.java:1223-1225; SRC FileSystemFacadeImpl.java:296-303')
 e('TorrentEngine.saveTorrentFile', 'FileSystemFacadeImpl.createFile', 'CALL', 'Engine torrent-file save creates the destination file through the facade', cls='explicit', evidence='SRC TorrentEngine.java:973-987; SRC FileSystemFacadeImpl.java:199-218')
-e('TorrentEngine.startWatchDir', 'FileSystemFacadeImpl.deleteFile', 'CALL', 'Engine watch-dir delete removes the watched file through the facade', cls='explicit', evidence='SRC TorrentEngine.java:1154; SRC FileSystemFacadeImpl.java:110-115')
+# Review of 6d94e9c4 item 2: TorrentEngine.startWatchDir -> FileSystemFacadeImpl.deleteFile removed. Line 1154 is in the
+# subscribe lambda of the watch-dir FileObserver's onEvent (TorrentEngine.java:1139-1160, read); the bytecode edge
+# TorrentEngine$4.lambda$onEvent$0 -> FileSystemFacadeImpl.deleteFile is the real step.
 e('IPFilterParser.parseFile', 'FileSystemFacadeImpl.fileExists', 'CALL', 'IP filter parsing checks the filter file through the facade', cls='explicit', evidence='SRC IPFilterParser.java:59-63; SRC FileSystemFacadeImpl.java:153-158')
 e('Utils.getTorrentDownloadPath', 'FileSystemFacadeImpl.getDefaultDownloadPath', 'CALL', 'Download-path lookup falls back to the facade default path', cls='explicit', evidence='SRC Utils.java:638-647; SRC FileSystemFacadeImpl.java:80-90')
 e('TorrentEngine.addTorrentSync(Uri,TorrentMetaInfo,Uri)', 'FileSystemFacadeImpl.getDirAvailableBytes', 'CALL', 'Engine torrent add checks the download directory space through the facade', cls='explicit', evidence='SRC TorrentEngine.java:1200; SRC FileSystemFacadeImpl.java:268-282')
