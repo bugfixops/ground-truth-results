@@ -14,11 +14,11 @@ How every method of **LibreTorrent** is triggered, in the standard configuration
 
 ## Numbers
 
-- **4732 methods**, **1 pages** (including pseudo pages), **7303 edges**. Verdicts: **3963 REACHABLE**, **769 UNREACHABLE**.
+- **4732 methods**, **1 pages** (including pseudo pages), **7299 edges**. Verdicts: **3963 REACHABLE**, **769 UNREACHABLE**.
 - UNREACHABLE by reason: branch_never_taken 14, closed_by_api_level 26, closed_by_configuration 1, framework_never_calls 13, no_trigger_in_app 715.
 - ENV gates (methods): hardware 27, network 289, other 42, other_app 106, system_event 10, time 4. STATE gates (methods): data 914, file 86, session 7, settings 59. Methods with no gate: 2607.
-- Edge classes: explicit 4713, non_standard 1885, standard 705. Non-standard edges: 1885 (ACRA report-dialog dispatch; ActionMode creation dispatch; ActionMode dispatch; ActionMode dispatch (action mode started here); ActionMode menu-item dispatch; ActionMode prepare dispatch; ActionMode teardown dispatch; Activity back-press dispatch; AlertDialog onShow dispatch; Android AsyncTask THREA).
-- 3548 reachable methods have a non-standard edge on their best route; 3355 have no explicit-or-standard-only route at all.
+- Edge classes: explicit 4709, non_standard 1885, standard 705. Non-standard edges: 1885 (ACRA report-dialog dispatch; ActionMode creation dispatch; ActionMode dispatch; ActionMode dispatch (action mode started here); ActionMode menu-item dispatch; ActionMode prepare dispatch; ActionMode teardown dispatch; Activity back-press dispatch; AlertDialog onShow dispatch; Android AsyncTask THREA).
+- 3550 reachable methods have a non-standard edge on their best route; 3358 have no explicit-or-standard-only route at all.
 - Labels confirmed by: INFERRED 4210, SOURCE 522 (SOURCE: every edge of the best route cites a source line, in the app or in the Android 8.1 / library source; INFERRED: some edge rests on inference or on another app).
 
 ## How much to trust it
@@ -36,7 +36,7 @@ Device replay on the emulator (API 27): 7 of 29 routes reached their target meth
 Path status over all reachable methods: DEVICE_OK 2, SOURCE_OK 7, UNCHECKED 3945, WRONG 9.
 The rows are the items that were individually checked, not a random sample of all labels; see the notes below for how they were chosen and what the unclear rows wait for.
 
-Edges whose evidence is not a source line (2182 of 7303): E6f0891c5 (S_ENTRY -> MainApplication.<clinit>); E8228a4c6 (S_ENTRY -> MainActivity.<clinit>); E0f555379 (S_ENTRY -> AddTorrentActivity.<clinit>); E6c221f79 (S_ENTRY -> SettingsActivity.<clinit>); E70444373 (MainActivity.initDrawer -> DrawerExpandableAdapter.onBindChildViewHolder); E79785310 (MainActivity.initDrawer -> MainActivity.lambda$initDrawer$0); Eea644f43 (MainActivity.initDrawer -> MainActivity.lambda$initDrawer$0); Ecebe3a05 (MainActivity.initDrawer -> MainActivity.lambda$initDrawer$1); Ed0bb2c8b (MainActivity.initDrawer -> MainActivity.lambda$initDrawer$1); Ec7ef9327 (MainActivity$3.onTagMenuClicked -> MainActivity$3.lambda$onTagMenuClicked$0); E83e4ed2d (MainActivity$3.onTagMenuClicked -> MainActivity$3.lambda$onTagMenuClicked$0); E34551cd4 (MainActivity$3.onTagMenuClicked -> MainActivity$3.lambda$onTagMenuClicked$1) ...
+Edges whose evidence is not a source line (2182 of 7299): E6f0891c5 (S_ENTRY -> MainApplication.<clinit>); E8228a4c6 (S_ENTRY -> MainActivity.<clinit>); E0f555379 (S_ENTRY -> AddTorrentActivity.<clinit>); E6c221f79 (S_ENTRY -> SettingsActivity.<clinit>); E70444373 (MainActivity.initDrawer -> DrawerExpandableAdapter.onBindChildViewHolder); E79785310 (MainActivity.initDrawer -> MainActivity.lambda$initDrawer$0); Eea644f43 (MainActivity.initDrawer -> MainActivity.lambda$initDrawer$0); Ecebe3a05 (MainActivity.initDrawer -> MainActivity.lambda$initDrawer$1); Ed0bb2c8b (MainActivity.initDrawer -> MainActivity.lambda$initDrawer$1); Ec7ef9327 (MainActivity$3.onTagMenuClicked -> MainActivity$3.lambda$onTagMenuClicked$0); E83e4ed2d (MainActivity$3.onTagMenuClicked -> MainActivity$3.lambda$onTagMenuClicked$0); E34551cd4 (MainActivity$3.onTagMenuClicked -> MainActivity$3.lambda$onTagMenuClicked$1) ...
 
 Sanity check against tool coverage (never used to set a label): 2080 methods ran in the 1-hour Monkey / APE runs on API 27; **2** of them are labelled UNREACHABLE.
 
@@ -106,7 +106,7 @@ Changes made on top of the first-draw graph (`a9e8b93d`: R3882 / U764 / UNRES86)
 
 ## What waits for a device (API 27)
 
-- Re-audit round 1: the device route files were updated to the renamed edge ids (a gate edit changes an edge id); the sampled routes whose best route changed wait for re-verification and a device run.
+- **Re-audit, last real run 42560435293-1 (2026-11-09, API 27).** The sampled routes were re-verified first (Step 3), and the dry run had 0 FAIL. 7 of 29 routes reached their target (17 scripts ran to the end, 12 are unscriptable); the others are unclear, never wrong. Five device routes are no longer the best route (TrackerInfo.infoHashStatus, SelectTagDialog.onTagClicked, tag.TagsAdapter$ViewHolder.lambda$bind$0, TorrentDownloadImpl.pieces, SaveLogWorker.lambda$showSuccessToast$1) and could not be replayed again (the re-audit allows two real runs). What is listed below still waits for a device.
 
 - **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 7 of 29 routes reached their target method; 7 of them ran the whole script and are now `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
 
