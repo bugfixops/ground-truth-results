@@ -32,3 +32,6 @@
 - A gate edit changes the edge id (the id hashes the gate texts), so device route files and verification paths that name edge ids go stale; map old to new ids by src, dst and kind before a dry run.
 - Check anonymous-class numbers with javap: javac numbers them in source order, and one skipped number shifts every later class.
 
+- A CLASSIFY rule that matches a class name as a substring can catch app classes (GlideApp matched GlideApplication); match the class part of the node name exactly.
+- When a filter drops INFERRED hand edges, check that each dropped creation edge has a real replacement: PreferencesActivity was left with only its env entry, so all its methods became library.
+- Data that only an earlier network session can write (a saved SSH host key) is env network, not state.

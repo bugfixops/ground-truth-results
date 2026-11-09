@@ -142,7 +142,7 @@ Re-audit of November 2026 (rounds of W2 to W7, see handoff/MUSE_REAUDIT_SUMMARY.
 
 ## What waits for a device (API 27)
 
-- Re-audit round 1: the device route files were updated to the renamed edge ids (a gate edit changes an edge id); the sampled routes whose best route changed wait for re-verification and a device run.
+- **Re-audit, last real run 42560435293-1 (2026-11-09, API 27).** The sampled routes were re-verified first (Step 3), and the dry run had 0 FAIL. 1 of 25 routes reached its target (6 scripts ran to the end, 16 stopped, 3 are unscriptable); the others are unclear, never wrong. The device route of Salsa20Engine.salsaCore is no longer the best route and could not be replayed again (the re-audit allows two real runs). What is listed below still waits for a device.
 
 - **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 1 of 25 routes reached their target method; 1 of them ran the whole script and are now `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
 

@@ -14,3 +14,6 @@
 - A gate edit changes the edge id (the id hashes the gate texts), so device route files and verification paths that name edge ids go stale; map old to new ids by src, dst and kind before a dry run.
 - Check anonymous-class numbers with javap: javac numbers them in source order, and one skipped number shifts every later class.
 
+- An app-code call to a listener, callback or lambda that app code passed in is explicit, even through an interface; non_standard needs a library or reflection to make the link. Labelling such calls non_standard turned gui and state methods into library (W9: 7 of 15 library rows).
+- Enum constants are made by the enum's <clinit>; the enum constructor has no method_list row, so ESR_CREATION needs ESR_CLINIT_CREATES for each enum, or every enum instance method is library.
+- A gate that sits only on the creation of a listener does not reach a callback the CHA dispatch reaches from a shared caller: put the gate on the dispatch edge too (selection mode, encryption off, HOTP entry).

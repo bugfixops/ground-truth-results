@@ -48,9 +48,14 @@ A review on 3 November 2026 compared the labels of these five apps with an indep
   - callbacks of objects that only a library, XML or reflection creates are library;
   - data from other apps, servers and older app versions puts an env gate on the edge that consumes it.
 - **What round 2 changed:** conditions (guards) on the routes. A pre-screen flags the guarded steps on the routes of never-run methods; the steps used by the most never-run methods were judged from the source, about 90% of the flagged uses per app, and each judged condition is now a state or env gate (or a GUI step, or closed by the API level).
-- **What is still open:** the long tail of flagged steps (about 4,000, each used by few methods) is not yet judged, and the judgments are not yet checked by a second person. **Until the flagged guard steps are judged, the gui share is over-counted.**
+- **What the rest of the re-audit changed:** every flagged guard step on the routes is now judged (none left open), and a reachable audit drew 15 reachable methods per class and app (300 in all) and checked their class against the source. 28 of the 300 labels were wrong and were corrected in the graphs, 2 stay unclear, 0 are left wrong: env 0 of 75 wrong, state 6 of 75, library 18 of 75, gui 4 of 75 (a 9.4% error rate before the fixes). Most library errors were app-code calls to listeners written as library links (Aegis) and objects whose creation needs a sync, a file or a setting (AnkiDroid, AmazeFileManager).
+- **What is still open:**
+  - The guard judgments and the reachable audit were checked by one person only; the second, independent check is pending.
+  - LibreTorrent still marks many framework dispatches (fragment lifecycle, clicks, dialog callbacks) as library links. In the audited rows the class still held, because each route also has a real library step, but some library labels there may be gui or state.
+  - Two classing choices are not settled: whether an open search box or menu is session state (Aegis says yes, AmazeFileManager no), and whether JDK stream callbacks are library links.
+  - On the emulator, 14 of the 144 sampled routes reached their target in the last real run (Aegis 1, AmazeFileManager 0, AnkiDroid 0, LibreTorrent 7, MMEX 6); the rest are unclear, not wrong. Nine device routes are no longer the best route and were not replayed again.
 - **The 23 checked cases** from the review now all get the class the source supports, but they were fixed one by one, so they are not a measure of the overall error rate.
-- **Not yet measured:** the tuning-half agreement, the adjudication of disagreements, and the error rates of the reachable audit (drawn, not yet checked).
+- **Not yet measured:** the tuning-half agreement and the adjudication of disagreements (the tuning half of the sample was not available).
 - The held-out half of the sample is measured once by the reviewer.
 
 Since the review, `methods.csv` has a `jvm_class` column with each method's full JVM class name. The `method` key adds a package prefix only where simple class names clash, so match on `jvm_class` and `jvm_descriptor` when joining with other data.

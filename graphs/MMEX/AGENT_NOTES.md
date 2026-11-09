@@ -617,3 +617,10 @@ is attributed to Yang, and none is a user tick (the user ticks).
 - 2026-11-06 04:53 UTC: Kiro, re-audit W6 done for MMEX (outside_data.csv); next W7 (guards).
 - 2026-11-06 05:02 UTC: Kiro, re-audit W7 round 1 done for MMEX (pre-screen, checked-case guards; most flagged steps PENDING); next W8 (CI, re-verify routes, device runs).
 - 2026-11-06 06:40 UTC: Kiro stops after round 1. Open: W7 PENDING guard steps, W8 point 2 route re-verification (stale verification paths block the writers and the publish), W9 checks of audit_draw.csv, W0 and the measurement (no review/sample_tune/).
+- 2026-11-09 05:30 UTC: Kiro, re-audit finished: Step 2 PENDING 0, Step 3 routes re-verified, W9 audit (state 1 fixed, gui 1 fixed), the last real device run 42560435293-1 (6 of 30 reached), CI fd266ef6 (errors 0; 3 warnings, all device-replayed routes that are no longer the best route). Open: the second, independent W9 checker (Q-R7-1); W0 and the measurement. See "Re-audit (Kiro, Nov 2026)" at the end.
+
+## Re-audit (Kiro, Nov 2026)
+- Step 2 (W7 guards): PENDING 0 (self-checked, second: pending reviewer). Step 3: route_diff 0 of 30 sampled routes changed on the 8d46166a build.
+- Step 4 (W9 reachable audit): 60 drawn rows (scratch/reaudit/w9_check.txt, audit_result.csv, rejudge_w9.txt). env 15/15 correct, state 14 correct and 1 fixed, library 15/15 correct, gui 14 correct and 1 fixed. Fixes: attachments come only from a desktop database (env other_app, graph_def_mod/02.py, as Q-R6-5); createDatabase and selectDatabase run only for the document-picker results (E24974359, E0effd1e9).
+- Step 5: the last real run 42560435293-1 reached 6 of 30 routes (12 scripts ok, 14 failed, 4 unscriptable); DEVICE rows correct 6, unclear 24.
+- Step 6: CI fd266ef6, errors 0; 3 warnings, all device-replayed routes that are no longer the best route (DefinedDateRange$1.<init>, NumericHelper.getNumberOfDecimals, AppSettings.getPreferences); no real run is left.

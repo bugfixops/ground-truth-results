@@ -738,3 +738,10 @@ and is untouched here.
 - 2026-11-06 04:53 UTC: Kiro, re-audit W6 done for LibreTorrent (outside_data.csv); next W7 (guards).
 - 2026-11-06 05:02 UTC: Kiro, re-audit W7 round 1 done for LibreTorrent (pre-screen, checked-case guards; most flagged steps PENDING); next W8 (CI, re-verify routes, device runs).
 - 2026-11-06 06:40 UTC: Kiro stops after round 1. Open: W7 PENDING guard steps, W8 point 2 route re-verification (stale verification paths block the writers and the publish), W9 checks of audit_draw.csv, W0 and the measurement (no review/sample_tune/).
+- 2026-11-09 05:30 UTC: Kiro, re-audit finished: Step 2 PENDING 0, Step 3 routes re-verified, W9 audit (library 1 fixed, 1 unclear), the last real device run 42560435293-1 (7 of 29 reached), CI fd266ef6 (errors 0; 5 warnings, all device-replayed routes that are no longer the best route). Open: the second, independent W9 checker (Q-R7-1), Q-R7-4, Q-R7-5; W0 and the measurement. See "Re-audit (Kiro, Nov 2026)" at the end.
+
+## Re-audit (Kiro, Nov 2026)
+- Step 2 (W7 guards): PENDING 0 (self-checked, second: pending reviewer). Step 3: route_diff 0 of 29 sampled routes changed on the 8d46166a build.
+- Step 4 (W9 reachable audit): 60 drawn rows (scratch/reaudit/w9_check.txt, audit_result.csv). env, state and gui 15/15 correct; library 13 correct, 1 fixed (the media-mount receiver is standard with env system_event, parts/b103.py), 1 unclear (advrecyclerview, Q-R7-4). Many framework dispatches are still written non_standard (Q-R7-5); in the drawn rows the class held because each route also has a real library step.
+- Step 5: the last real run 42560435293-1 reached 7 of 29 routes (17 scripts ok, 12 unscriptable); DEVICE rows correct 7, unclear 22.
+- Step 6: CI fd266ef6, errors 0; 5 warnings, all device-replayed routes that are no longer the best route (TrackerInfo.infoHashStatus, SelectTagDialog.onTagClicked, tag.TagsAdapter$ViewHolder.lambda$bind$0, TorrentDownloadImpl.pieces, SaveLogWorker.lambda$showSuccessToast$1); no real run is left.

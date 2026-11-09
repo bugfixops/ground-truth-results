@@ -933,3 +933,11 @@ Totals: 25 ERROR steps over 12 routes (detailedmulti 25 and 26 not counted). Ten
 - 2026-11-06 04:53 UTC: Kiro, re-audit W6 done for Aegis (outside_data.csv); next W7 (guards).
 - 2026-11-06 05:02 UTC: Kiro, re-audit W7 round 1 done for Aegis (pre-screen, checked-case guards; most flagged steps PENDING); next W8 (CI, re-verify routes, device runs).
 - 2026-11-06 06:40 UTC: Kiro stops after round 1. Open: W7 PENDING guard steps, W8 point 2 route re-verification (stale verification paths block the writers and the publish), W9 checks of audit_draw.csv, W0 and the measurement (no review/sample_tune/).
+- 2026-11-09 05:30 UTC: Kiro, re-audit finished: Step 2 PENDING 0, Step 3 routes re-verified, W9 audit (15 rows per class; library 7 fixed, gui 2 fixed), the last real device run 42560435293-1 (1 of 25 reached), CI fd266ef6 (errors 0; only warning: the device-replayed Salsa20Engine.salsaCore route is no longer the best route). Open: the second, independent W9 checker (Q-R7-1); W0 and the measurement (no review/sample_tune/). See "Re-audit (Kiro, Nov 2026)" at the end.
+
+## Re-audit (Kiro, Nov 2026)
+- Step 2 (W7 guards): PENDING 0; judgments in scratch/reaudit/w7_judged.csv and rejudge_r6_*.txt (self-checked, second: pending reviewer).
+- Step 3 (W8 routes): route_diff 0 of 25 sampled routes changed on the 8d46166a build.
+- Step 4 (W9 reachable audit): 60 drawn rows (scratch/reaudit/w9_check.txt, audit_result.csv, rejudge_w9.txt). env 15/15 correct, state 15/15, library 8 correct and 7 fixed, gui 13 correct and 2 fixed. Fixes: 61 app-code interface calls relabelled explicit and 4 UiRefresher posts standard (R-CLASS, R3-1a precedent); ESR_CLINIT_CREATES for the five enums; STATE gates on E8f174b4f (selection), E33a2b5b6 (encryption off), E50c49023 (FAB open), E81f59872 (HOTP entry); env other on the two onStart vault-error dialogs; the cross-listener CHA copies of AegisImporter@IMPORT/@WELCOME cut.
+- Step 5: the last real run 42560435293-1 reached 1 of 25 routes (6 scripts ok, 16 failed, 3 unscriptable); DEVICE rows correct 1, unclear 24.
+- Step 6: CI fd266ef6, errors 0; one warning: the device-replayed route of Salsa20Engine.salsaCore is no longer the best route (no real run left).

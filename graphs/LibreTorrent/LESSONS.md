@@ -13,3 +13,5 @@
 - A gate edit changes the edge id (the id hashes the gate texts), so device route files and verification paths that name edge ids go stale; map old to new ids by src, dst and kind before a dry run.
 - Check anonymous-class numbers with javap: javac numbers them in source order, and one skipped number shifts every later class.
 
+- A system broadcast delivered to a receiver the app registered is a standard edge with an env system_event gate, not non_standard.
+- Framework dispatch (fragment lifecycle, View clicks, dialog callbacks) is standard; the library class of a route should come from a real library step (FragmentContainerView or ViewModelProvider reflection, data binding, Room, WorkManager, Rx).

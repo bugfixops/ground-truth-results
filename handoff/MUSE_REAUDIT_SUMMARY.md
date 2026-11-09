@@ -127,3 +127,36 @@ All numbers below come from a fresh `bash handoff/ci/rebuild.sh Aegis AmazeFileM
 Build: errors 0; warnings 11 / 0 / 55 / 24 / 3 (the stale-path warnings of Aegis, AnkiDroid, LibreTorrent W8 and the MMEX device re-run). `check_cases.py` 23 of 23; `check_unchanged_apps.py` ALL UNCHANGED. AmazeFileManager verification.csv: 25 fixed and 5 correct path rows (first verdict kept).
 
 Review 4 changes: archive content steps are ENV other_app on every route (REAUDIT-R4-ARCHIVE); AmazeFileManager edges that started at a shared helper (AppConfig.runInBackground / runInParallel and their AppConfig$1 dispatch, SshClientUtils.execute and its $2 wrapper, Operations.mkdir) now start at the caller that passes the lambda, template or callback; the TBD-evidence edges have real lines or are cut; Aegis E27acc957 is NONE (normal cold start); AnkiDroid whiteboard clear/undo steps are STATE settings; LibreTorrent sort-column comparators are STATE session. Self-checked only; second: pending reviewer.
+
+## Final state (Kiro, 2026-11-09; CI fd266ef6)
+
+CI `fd266ef6` (built at `1e76293a`): all 13 apps at 0 errors; the eight other apps at 0 warnings and ALL UNCHANGED; AmazeFileManager and AnkiDroid at 0 warnings; Aegis 1, LibreTorrent 5 and MMEX 3 warnings, all of them device-replayed routes that are no longer the best route (no real run is left to replay them). The 23 checked cases match ("23 of 23").
+
+- **Step 2 (W7 guards):** PENDING 0 in all five apps (`graphs/<App>/scratch/reaudit/w7_judged.csv`, `rejudge_*.txt`).
+- **Step 3 (W8 routes):** on the `8d46166a` build, `tools_dev/route_diff.py` showed 0 of 144 sampled routes changed. The W9 fixes then changed two sampled routes; both were re-checked: AmazeFileManager SshConnectionPool$AsyncRemoveConnection.onPostExecute keeps the same 15 steps, and AnkiDroid Sound.notifyConfigurationChanged keeps the same 19 steps. Each moved its step gate from state to env.
+- **Step 4 (W9 reachable audit):** 300 drawn methods (15 per class and app, seed 20261106, drawn and pushed before any check). Result: 270 correct, 28 fixed, 0 wrong, 2 unclear; error rate (fixed+wrong)/(correct+fixed+wrong) 0.094.
+
+| App | env | state | library | gui |
+|---|---|---|---|---|
+| Aegis | 15/0/0 | 15/0/0 | 8/7/0 | 13/2/0 |
+| AmazeFileManager | 15/0/0 | 13/2/0 | 11/4/0 | 14/0/1 |
+| AnkiDroid | 15/0/0 | 12/3/0 | 9/6/0 | 14/1/0 |
+| LibreTorrent | 15/0/0 | 15/0/0 | 13/1/1 | 15/0/0 |
+| MMEX | 15/0/0 | 14/1/0 | 15/0/0 | 14/1/0 |
+
+(correct / fixed / unclear; no row is wrong). Label rows are written through each `make_verification.py` (`tools_dev/w9_audit_rows.py`; 297 rows, 3 drawn methods already had a path-sample label row). One checker did two passes; the second, independent check is open (Q-R7-1). Open choices: Q-R7-2 to Q-R7-5.
+
+- **Step 5 (device):** dry run `42559057193-1` with 0 FAIL in all five apps, then the last real run `42560435293-1` (2 of 2): 14 of 144 routes reached (Aegis 1/25, AmazeFileManager 0/30, AnkiDroid 0/30, LibreTorrent 7/29, MMEX 6/30); DEVICE rows correct when reached, otherwise unclear, never wrong.
+
+Class shares over never-run methods, "before" `e0866b9c`, "after" CI `fd266ef6` (`tools_dev/reaudit_shares.py e0866b9c`):
+
+| App | dead / config / env / state / library / gui (%) |
+|---|---|
+| Aegis | 20.9 / 0.2 / 32.9 / 15.6 / 4.9 / 25.5 |
+| AmazeFileManager | 25.3 / 2.1 / 26.0 / 20.2 / 2.7 / 23.8 |
+| AnkiDroid | 38.9 / 3.0 / 19.6 / 16.8 / 0.5 / 21.2 |
+| LibreTorrent | 27.9 / 1.0 / 14.6 / 34.3 / 19.9 / 2.3 |
+| MMEX | 20.8 / 0.3 / 6.0 / 15.8 / 12.2 / 45.0 |
+| weighted | 27.6 / 1.4 / 18.1 / 21.0 / 8.6 / 23.3 (before: 27.3 / 1.1 / 20.4 / 20.4 / 2.9 / 27.8) |
+
+Not done: W0 and the round measurement (the tuning half `review/sample_tune/` never arrived), publishing (no PUBLISH_REQUEST, as instructed), and every second-person check (second: pending reviewer).

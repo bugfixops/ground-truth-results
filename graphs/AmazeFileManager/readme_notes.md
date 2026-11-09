@@ -66,7 +66,7 @@ Note on sample timing: the sample was drawn before the log step. The label rows 
 
 ## What waits for a device (API 27)
 
-- Re-audit round 1: the device route files were updated to the renamed edge ids (a gate edit changes an edge id); the sampled routes whose best route changed wait for re-verification and a device run.
+- **Re-audit, last real run 42560435293-1 (2026-11-09, API 27).** The sampled routes were re-verified first (Step 3), and the dry run had 0 FAIL. 0 of 30 routes reached their target (3 scripts ran to the end, 23 stopped, 4 are unscriptable); every route is unclear, never wrong. What is listed below still waits for a device.
 
 - **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 0 of 30 routes reached their target method; 0 of them ran the whole script and are now `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
 

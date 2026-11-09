@@ -64,7 +64,7 @@ Changes made on top of the first-draw graph (`a9e8b93d`: R3882 / U764 / UNRES86)
 
 ## What waits for a device (API 27)
 
-- Re-audit round 1: the device route files were updated to the renamed edge ids (a gate edit changes an edge id); the sampled routes whose best route changed wait for re-verification and a device run.
+- **Re-audit, last real run 42560435293-1 (2026-11-09, API 27).** The sampled routes were re-verified first (Step 3), and the dry run had 0 FAIL. 7 of 29 routes reached their target (17 scripts ran to the end, 12 are unscriptable); the others are unclear, never wrong. Five device routes are no longer the best route (TrackerInfo.infoHashStatus, SelectTagDialog.onTagClicked, tag.TagsAdapter$ViewHolder.lambda$bind$0, TorrentDownloadImpl.pieces, SaveLogWorker.lambda$showSuccessToast$1) and could not be replayed again (the re-audit allows two real runs). What is listed below still waits for a device.
 
 - **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 7 of 29 routes reached their target method; 7 of them ran the whole script and are now `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
 

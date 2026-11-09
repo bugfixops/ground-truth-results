@@ -44,3 +44,7 @@
 - A gate edit changes the edge id (the id hashes the gate texts), so device route files and verification paths that name edge ids go stale; map old to new ids by src, dst and kind before a dry run.
 - Check anonymous-class numbers with javap: javac numbers them in source order, and one skipped number shifts every later class.
 
+- Callbacks of an object made only in a catch branch (the ConfirmModSchemaException dialogs) need the creation gate on every edge that reaches them, including shared-listener dispatch and page GUI edges.
+- The build copies bytecode CHA rows onto every variant of the caller; a new @VARIANT node needs sup() lines for the copies it must not have.
+- The GUI action that writes a setting needs no settings state; state is for a setting an earlier action left behind.
+- A condition on the day number since the collection was made is time (env), not stored data.

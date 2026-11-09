@@ -481,3 +481,10 @@ An edge is written by the part that contains its source method; if the source is
 - 2026-11-06 04:53 UTC: Kiro, re-audit W6 done for AnkiDroid (outside_data.csv); next W7 (guards).
 - 2026-11-06 05:02 UTC: Kiro, re-audit W7 round 1 done for AnkiDroid (pre-screen, checked-case guards; most flagged steps PENDING); next W8 (CI, re-verify routes, device runs).
 - 2026-11-06 06:40 UTC: Kiro stops after round 1. Open: W7 PENDING guard steps, W8 point 2 route re-verification (stale verification paths block the writers and the publish), W9 checks of audit_draw.csv, W0 and the measurement (no review/sample_tune/).
+- 2026-11-09 05:30 UTC: Kiro, re-audit finished: Step 2 PENDING 0, Step 3 routes re-verified, W9 audit (state 3 fixed, library 6 fixed, gui 1 fixed), the last real device run 42560435293-1 (0 of 30 reached), CI fd266ef6 (errors 0, warnings 0). Open: the second, independent W9 checker (Q-R7-1); W0 and the measurement. See "Re-audit (Kiro, Nov 2026)" at the end.
+
+## Re-audit (Kiro, Nov 2026)
+- Step 2 (W7 guards): PENDING 0 (self-checked, second: pending reviewer). Step 3: route_diff 0 of 30 sampled routes changed on the 8d46166a build.
+- Step 4 (W9 reachable audit): 60 drawn rows (scratch/reaudit/w9_check.txt, audit_result.csv, rejudge_w9.txt). env 15/15 correct, state 12 correct and 3 fixed, library 9 correct and 6 fixed, gui 14 correct and 1 fixed. Fixes: unburyCards is env time (E3d59bc07); a video file is env other_app (Ef6c02372); the deck-options writes need no state; the fonts-folder loop is env other_app (E3821a504); the ConfirmationDialog subclasses made in a schema catch pass their creation gate to the shared listener dispatch and to the confirmation-page GUI edges; sortByField's page entry is env network; the delete-note-type page reaches ConfirmationDialog$1 through @DELETEMODEL variants (their CHA copies cut). Path rows Sound.notifyConfigurationChanged and Models$TransformFieldDelete.<init> re-checked (same steps).
+- Step 5: the last real run 42560435293-1 reached 0 of 30 routes (6 scripts ok, 20 failed, 4 unscriptable); DEVICE rows all unclear.
+- Step 6: CI fd266ef6, errors 0, warnings 0.
