@@ -14,12 +14,12 @@ How every method of **Aegis** is triggered, in the standard configuration: the i
 
 ## Numbers
 
-- **2995 methods**, **12 pages** (including pseudo pages), **6430 edges**. Verdicts: **2537 REACHABLE**, **458 UNREACHABLE**.
-- UNREACHABLE by reason: branch_never_taken 1, framework_never_calls 31, no_trigger_in_app 426.
-- ENV gates (methods): hardware 22, other 1, other_app 139, permission 25, system_event 18, time 5. STATE gates (methods): data 1737, file 232, session 730, settings 27. Methods with no gate: 380.
-- Edge classes: explicit 5219, non_standard 169, page 22, standard 1020. Non-standard edges: 169 (Dagger / Hilt dependency injection: the library makes the link to the generated component; DialogInterface.OnClickListener.onClick (Dialogs.java:391-393; listener at ScannerActivity.java:196); DialogInterface.OnClickListener.onClick (interface call; Dialogs.java:391-393; the listener is the lambda a).
-- 1460 reachable methods have a non-standard edge on their best route; 890 have no explicit-or-standard-only route at all.
-- Labels confirmed by: INFERRED 2719, SOURCE 276 (SOURCE: every edge of the best route cites a source line, in the app or in the Android 8.1 / library source; INFERRED: some edge rests on inference or on another app).
+- **2995 methods**, **12 pages** (including pseudo pages), **6362 edges**. Verdicts: **2522 REACHABLE**, **473 UNREACHABLE**.
+- UNREACHABLE by reason: branch_never_taken 3, closed_by_api_level 1, closed_by_configuration 3, framework_never_calls 31, no_trigger_in_app 435.
+- ENV gates (methods): hardware 71, other 244, other_app 544, system_event 18, time 7. STATE gates (methods): data 164, file 16, session 259, settings 91. Methods with no gate: 1328.
+- Edge classes: explicit 5216, non_standard 98, page 22, standard 1026. Non-standard edges: 98 (Dagger / Hilt dependency injection: the library makes the link to the generated component; JDK library: HashSet.removeAll (AbstractSet.removeAll) reaches equals through its contains branch (JDK source not on disk); intent resolved by action name: the system matches the panic app action info.guardian).
+- 277 reachable methods have a non-standard edge on their best route; 523 have no explicit-or-standard-only route at all.
+- Labels confirmed by: INFERRED 2695, SOURCE 300 (SOURCE: every edge of the best route cites a source line, in the app or in the Android 8.1 / library source; INFERRED: some edge rests on inference or on another app).
 
 ## How much to trust it
 
@@ -27,16 +27,17 @@ Verification log (`verification.csv`), counts of what was checked and found:
 
 | Checked | Rows | Correct | Errors found (fixed) | Unclear |
 |---|---:|---:|---:|---:|
-| labels | 483 | 471 | 1 | 11 |
+| labels | 557 | 539 | 13 | 5 |
 | edges (framework and other claims read against source) | 26 | 26 | 0 | 0 |
-| paths (stratified sample, read step by step) | 25 | 13 | 1 | 11 |
+| paths (stratified sample, read step by step) | 25 | 12 | 8 | 5 |
 
-Device replay on the emulator (API 27): 1 of 25 routes reached their target method; 1 of these ran the whole script and are `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; see `../device/results.csv`.
+Device replay on the emulator (API 27): 0 of 24 routes reached their target method; 0 of these ran the whole script and are `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; see `../device/results.csv`.
+1 further replayed route(s) reached their target in run 42560435293-1 but are not counted above: the graph's best route changed after that run, so the DEVICE row was dropped (device row rule, `tools_dev/device_rows.py`); the method keeps its static label. The run total stays in `../device/results.csv`.
 
-Path status over all reachable methods: DEVICE_OK 1, SOURCE_OK 2, UNCHECKED 2533, WRONG 1.
+Path status over all reachable methods: SOURCE_OK 2, UNCHECKED 2519, WRONG 1.
 The rows are the items that were individually checked, not a random sample of all labels; see the notes below for how they were chosen and what the unclear rows wait for.
 
-Edges whose evidence is not a source line (897 of 6430): E5b266140 (AegisApplication.<init> -> Hilt_AegisApplication.onCreate); Ed430de74 (Hilt_AegisApplication.generatedComponent -> Hilt_AegisApplication$1.get); E1e4b62ae (AegisActivity.onCreate -> Hilt_AegisActivity$1.onContextAvailable); Ed3b2fc19 (Hilt_AegisActivity.generatedComponent -> DaggerAegisApplication_HiltComponents_SingletonC$SingletonCImpl.retainedComponentBuilder); E1c3ead1c (Hilt_AegisActivity.generatedComponent -> DaggerAegisApplication_HiltComponents_SingletonC$ActivityRetainedCBuilder.build); E9eaaba0b (Hilt_AegisActivity.generatedComponent -> DaggerAegisApplication_HiltComponents_SingletonC$ActivityRetainedCImpl.activityComponentBuilder); E9e40d82d (Hilt_AegisActivity.generatedComponent -> DaggerAegisApplication_HiltComponents_SingletonC$ActivityCBuilder.activity); E3c923e18 (Hilt_AegisActivity.generatedComponent -> DaggerAegisApplication_HiltComponents_SingletonC$ActivityCBuilder.build); E983da919 (AegisApplicationBase.onCreate -> AegisApplicationBase$AppLifecycleObserver.onStateChanged); E313f4f87 (S_PROCESS -> VaultLockReceiver.onReceive); Ed3c98a2a (S_PROCESS -> QsTileRefreshReceiver.onReceive); E436827e4 (MainActivity.onStart -> AegisActivity.onResume) ...
+Edges whose evidence is not a source line (893 of 6362): E5b266140 (AegisApplication.<init> -> Hilt_AegisApplication.onCreate); Ed430de74 (Hilt_AegisApplication.generatedComponent -> Hilt_AegisApplication$1.get); E1e4b62ae (AegisActivity.onCreate -> Hilt_AegisActivity$1.onContextAvailable); Ed3b2fc19 (Hilt_AegisActivity.generatedComponent -> DaggerAegisApplication_HiltComponents_SingletonC$SingletonCImpl.retainedComponentBuilder); E1c3ead1c (Hilt_AegisActivity.generatedComponent -> DaggerAegisApplication_HiltComponents_SingletonC$ActivityRetainedCBuilder.build); E9eaaba0b (Hilt_AegisActivity.generatedComponent -> DaggerAegisApplication_HiltComponents_SingletonC$ActivityRetainedCImpl.activityComponentBuilder); E9e40d82d (Hilt_AegisActivity.generatedComponent -> DaggerAegisApplication_HiltComponents_SingletonC$ActivityCBuilder.activity); E3c923e18 (Hilt_AegisActivity.generatedComponent -> DaggerAegisApplication_HiltComponents_SingletonC$ActivityCBuilder.build); E983da919 (AegisApplicationBase.onCreate -> AegisApplicationBase$AppLifecycleObserver.onStateChanged); E313f4f87 (S_PROCESS -> VaultLockReceiver.onReceive); Ed3c98a2a (S_PROCESS -> QsTileRefreshReceiver.onReceive); E436827e4 (MainActivity.onStart -> AegisActivity.onResume) ...
 
 Sanity check against tool coverage (never used to set a label): 751 methods ran in the 1-hour Monkey / APE runs on API 27; **0** of them are labelled UNREACHABLE.
 
@@ -50,6 +51,14 @@ at the final commit is pending (coordinator gate); no CI count
 is claimed here.
 
 ## What the re-audit changed (compared with the schema 1 graph)
+
+Re-audit of November 2026 (rounds of W2 to W7, see handoff/MUSE_REAUDIT_SUMMARY.md):
+
+- Baseline (W2): the onboarding is passed and a password-protected vault holds two default TOTP entries; 12 gate texts the baseline satisfies are cleared, and the four intro pages are setup-only.
+- Launcher start (W3): MainActivity.onStart opens the unlock screen again (MainActivity.java:942-977), so unlock routes no longer start from the screen-off broadcast (env on best routes 1,613 to 218).
+- Impossible calls (W4): DatabaseImporter.readFromApp never dispatches to the nine importers without direct import; their getAppPath methods are UNREACHABLE (Aegis-16).
+- Library class (W5): ESR_CREATION is on; settings sub-pages opened by header rows count as standard navigation (Q7).
+- Outside data (W6): the old single-group vault format and the document-picker backup targets are env (Aegis-46, Aegis-47); picker results of the import variants are env.
 
 - The schema 1 graph was converted to schema 2 and then re-audited
   batch by batch (batches 14-42 in AGENT_NOTES, followed by the
@@ -175,6 +184,8 @@ is claimed here.
   above, not on a re-run.)
 
 ## What waits for a device (API 27)
+
+- **Re-audit, last real run 42560435293-1 (2026-11-09, API 27).** The sampled routes were re-verified first (Step 3), and the dry run had 0 FAIL. 1 of 25 routes reached its target (6 scripts ran to the end, 16 stopped, 3 are unscriptable); the others are unclear, never wrong. The device route of Salsa20Engine.salsaCore is no longer the best route and could not be replayed again (the re-audit allows two real runs). What is listed below still waits for a device.
 
 - **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 1 of 25 routes reached their target method; 1 of them ran the whole script and are now `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
 

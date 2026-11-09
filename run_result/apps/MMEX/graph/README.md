@@ -14,12 +14,12 @@ How every method of **MMEX** is triggered, in the standard configuration: the in
 
 ## Numbers
 
-- **4270 methods**, **43 pages** (including pseudo pages), **8441 edges**. Verdicts: **3430 REACHABLE**, **840 UNREACHABLE**.
-- UNREACHABLE by reason: branch_never_taken 13, closed_by_api_level 9, framework_never_calls 77, no_trigger_in_app 741.
-- ENV gates (methods): hardware 9, network 4, other 11, other_app 44, system_event 28, time 6. STATE gates (methods): account 386, data 42, session 9, settings 481. Methods with no gate: 2860.
-- Edge classes: explicit 6965, non_standard 497, page 53, standard 926. Non-standard edges: 497 (AbstractAccountAuthenticator binder stub: onBind returns the IBinder from getIBinder, and the stub dispatches addAccount (the library and AccountManagerService are not in fw_src; INFERRED); Activity.runOnUiThread (fw_src core/java/android/app/Activity.java:6170-6176); AmplitudeKt.Amplitude (com.ampl).
-- 1396 reachable methods have a non-standard edge on their best route; 931 have no explicit-or-standard-only route at all.
-- Labels confirmed by: INFERRED 2756, SOURCE 1514 (SOURCE: every edge of the best route cites a source line, in the app or in the Android 8.1 / library source; INFERRED: some edge rests on inference or on another app).
+- **4270 methods**, **43 pages** (including pseudo pages), **8410 edges**. Verdicts: **3426 REACHABLE**, **844 UNREACHABLE**.
+- UNREACHABLE by reason: branch_never_taken 13, closed_by_api_level 9, closed_by_configuration 4, framework_never_calls 77, no_trigger_in_app 741.
+- ENV gates (methods): hardware 13, network 92, other 32, other_app 161, system_event 31, time 6. STATE gates (methods): account 5, data 631, file 3, session 18, settings 125. Methods with no gate: 2503.
+- Edge classes: explicit 6842, non_standard 601, page 53, standard 914. Non-standard edges: 601 (AbstractAccountAuthenticator binder stub: onBind returns the IBinder from getIBinder, and the stub dispatches addAccount (the library and AccountManagerService are not in fw_src; INFERRED); Activity.runOnUiThread (fw_src core/java/android/app/Activity.java:6170-6176); AmplitudeKt.Amplitude (com.ampl).
+- 1174 reachable methods have a non-standard edge on their best route; 1116 have no explicit-or-standard-only route at all.
+- Labels confirmed by: INFERRED 2938, SOURCE 1332 (SOURCE: every edge of the best route cites a source line, in the app or in the Android 8.1 / library source; INFERRED: some edge rests on inference or on another app).
 
 ## How much to trust it
 
@@ -27,16 +27,17 @@ Verification log (`verification.csv`), counts of what was checked and found:
 
 | Checked | Rows | Correct | Errors found (fixed) | Unclear |
 |---|---:|---:|---:|---:|
-| labels | 870 | 860 | 8 | 2 |
+| labels | 934 | 921 | 11 | 2 |
 | edges (framework and other claims read against source) | 0 | 0 | 0 | 0 |
 | paths (stratified sample, read step by step) | 30 | 20 | 8 | 2 |
 
-Device replay on the emulator (API 27): 6 of 30 routes reached their target method; 6 of these ran the whole script and are `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; see `../device/results.csv`.
+Device replay on the emulator (API 27): 3 of 27 routes reached their target method; 3 of these ran the whole script and are `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; see `../device/results.csv`.
+3 further replayed route(s) reached their target in run 42560435293-1 but are not counted above: the graph's best route changed after that run, so the DEVICE row was dropped (device row rule, `tools_dev/device_rows.py`); the method keeps its static label. The run total stays in `../device/results.csv`.
 
-Path status over all reachable methods: DEVICE_OK 6, SOURCE_OK 23, UNCHECKED 3401.
+Path status over all reachable methods: DEVICE_OK 3, SOURCE_OK 26, UNCHECKED 3397.
 The rows are the items that were individually checked, not a random sample of all labels; see the notes below for how they were chosen and what the unclear rows wait for.
 
-Edges whose evidence is not a source line (859 of 8441): E19395ce1 (S_ENTRY -> PayeeActivity.<clinit>); E76a7aa66 (SearchParametersFragment$1.onClick -> PayeeActivity.<clinit>); E6f579f87 (EditTransactionCommonFunctions$9.onClick -> PayeeActivity.<clinit>); E87a1872f (AboutActivity.onCreate -> AboutTabAdapter.getCount); Ee835bc9a (AboutActivity.onCreate -> AboutTabAdapter.getItem); Eb0b17b72 (S_ABOUT_ACTIVITY -> AboutTabAdapter.getItem); E388582e3 (AboutActivity.onCreate -> AboutTabAdapter.getPageTitle); E503e054a (AboutActivity.onCreate -> AboutActivity.onRestoreInstanceState); Ea0013de2 (AboutCreditsFragment.<init> -> AboutCreditsFragment.onCreateView); Eeff0a2bf (AboutCreditsFragment.onCreateView -> AboutCreditsFragment.onActivityCreated); Ecef22362 (AboutFragment.<init> -> AboutFragment.onCreateView); E9a349a2e (S_ABOUT_TAB -> AboutFragment$1.onClick) ...
+Edges whose evidence is not a source line (849 of 8410): E19395ce1 (S_ENTRY -> PayeeActivity.<clinit>); E76a7aa66 (SearchParametersFragment$1.onClick -> PayeeActivity.<clinit>); E6f579f87 (EditTransactionCommonFunctions$9.onClick -> PayeeActivity.<clinit>); E87a1872f (AboutActivity.onCreate -> AboutTabAdapter.getCount); Ee835bc9a (AboutActivity.onCreate -> AboutTabAdapter.getItem); Eb0b17b72 (S_ABOUT_ACTIVITY -> AboutTabAdapter.getItem); E388582e3 (AboutActivity.onCreate -> AboutTabAdapter.getPageTitle); E503e054a (AboutActivity.onCreate -> AboutActivity.onRestoreInstanceState); Ea0013de2 (AboutCreditsFragment.<init> -> AboutCreditsFragment.onCreateView); Eeff0a2bf (AboutCreditsFragment.onCreateView -> AboutCreditsFragment.onActivityCreated); Ecef22362 (AboutFragment.<init> -> AboutFragment.onCreateView); E9a349a2e (S_ABOUT_TAB -> AboutFragment$1.onClick) ...
 
 Sanity check against tool coverage (never used to set a label): 271 methods ran in the 1-hour Monkey / APE runs on API 27; **0** of them are labelled UNREACHABLE.
 
@@ -55,6 +56,13 @@ carrying the path verdict (see `B7_RUN_LOG.md` section 8 for
 the reading rule).
 
 ## What the re-audit changed (compared with the schema 1 graph)
+
+Re-audit of November 2026 (rounds of W2 to W7, see handoff/MUSE_REAUDIT_SUMMARY.md):
+
+- Baseline (W2, Muse): the setup checking account satisfies seven gate texts; the first-run tutorial is setup-only.
+- Shared helper (W4): showFragment_Internal is cloned for the Accounts drawer item, so the Portfolio event route no longer reaches the account list; with ESR_CREATION the account list's callbacks are library (MMEX-03).
+- Outside data (W6): the Yahoo and Fixer price servers, the backup document picker and database upgrades are env (MMEX-38).
+- Guards (W7, round 1): the payee chart, scheduled transactions and new stocks need data (MMEX-41, -49, -20).
 
 - Strict mode on, and the check backlogs cleared: citation
   problems (43 at B2 start) to 0, bytecode-line problems (244
@@ -128,6 +136,8 @@ the reading rule).
   never to hand-add a row to `verification.csv`.
 
 ## What waits for a device (API 27)
+
+- **Re-audit, last real run 42560435293-1 (2026-11-09, API 27).** The sampled routes were re-verified first (Step 3), and the dry run had 0 FAIL. 6 of 30 routes reached their target (12 scripts ran to the end, 14 stopped, 4 are unscriptable); the others are unclear, never wrong. Three device routes are no longer the best route (DefinedDateRange$1.<init>, NumericHelper.getNumberOfDecimals, AppSettings.getPreferences) and could not be replayed again (the re-audit allows two real runs). What is listed below still waits for a device.
 
 - **Device run 41593209101-1 (2026-11-03, Google APIs, API 27, x86).** 6 of 30 routes reached their target method; 6 of them ran the whole script and are now `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; the reason for each route is in `handoff/DEVICE_RUN_SUMMARY.md`. What is listed below still waits for a device.
 

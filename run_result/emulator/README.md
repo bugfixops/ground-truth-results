@@ -7,6 +7,11 @@ Every route in the ground truth was replayed on an Android 8.1 (API 27) emulator
 - **Confirmed:** 100 of the reached routes also ran the whole script; they are `DEVICE_OK` in the graphs.
 - **Unclear:** the other 285 routes. That covers not reached, script stopped, or unscriptable. They are never wrong.
 
+**Which run each number comes from.**
+- Each app's run total comes from its own run of record: the run its `device/results.csv` was written from. For the eight apps outside the re-audit that is `41593209101-1`. For Aegis, AmazeFileManager, AnkiDroid, LibreTorrent and MMEX it is `42560435293-1`, the last real run with results for all five apps.
+- Two later real attempts covered only Aegis, LibreTorrent and MMEX. `42674277844-1` was lost to a GitHub incident and reached no device. `42683233983-1` re-ran 9 routes whose best route had changed. Its 5 LibreTorrent rows replace the older rows in the audit log; its raw results are kept in `earlier_runs/`.
+- The audit logs (`verification.csv`) hold a second number, the DEVICE rows that confirm the current best route. A reached row that replays an older route is dropped there, so Aegis has 1 fewer reached route than its run total and MMEX has 3 fewer (`SUMMARY.csv` columns `device_rows_reached` and `device_reached`).
+
 ## How the job works
 
 | Part | Setting |
@@ -67,6 +72,10 @@ The first 7 runs were attempts that found and fixed problems in the job itself. 
 | [`41586297765-1`](earlier_runs/41586297765-1/) | 13 | 389 | 76 | all-caps button text and the Diary start-up permission dialog; fixed |
 | [`41589762145-1`](earlier_runs/41589762145-1/) | 13 | 389 | 102 | shared sample files were not pushed to the device; Vanilla needed storage permission; fixed |
 | [`41593209101-1`](run_41593209101-1/) | 13 | 389 | 104 | **run of record** (all results below) |
+| [`42168580707-1`](earlier_runs/42168580707-1/) | 5 | 144 | 14 |  |
+| [`42560435293-1`](earlier_runs/42560435293-1/) | 5 | 144 | 14 |  |
+| [`42674277844-1`](earlier_runs/42674277844-1/) | 0 | 0 | 0 |  |
+| [`42683233983-1`](earlier_runs/42683233983-1/) | 3 | 84 | 10 |  |
 
 ## Dry runs
 
@@ -84,6 +93,10 @@ A dry run starts no emulator. It loads every route script, prints its planned ac
 | [`41578222764-1`](dry_runs/41578222764-1/) | 13 | 389 | 0 | after the workflow edit (Google APIs image, SSH server for Amaze) |
 | [`41579127015-1`](dry_runs/41579127015-1/) | 13 | 389 | 0 | after the switch to the x86 image and the real-run request file |
 | [`41579432533-1`](dry_runs/41579432533-1/) | 13 | 389 | 0 | a real-run request that ran as a dry run (fixed in the plan job) |
+| [`42167260197-1`](dry_runs/42167260197-1/) | 5 | 97 | 47 | dry run during the preparation of the route scripts |
+| [`42168202056-1`](dry_runs/42168202056-1/) | 5 | 144 | 0 | dry run during the preparation of the route scripts |
+| [`42559057193-1`](dry_runs/42559057193-1/) | 5 | 144 | 0 | dry run during the preparation of the route scripts |
+| [`42667889918-1`](dry_runs/42667889918-1/) | 3 | 54 | 30 | dry run during the preparation of the route scripts |
 
 ## What is in a run folder
 
