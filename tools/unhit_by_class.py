@@ -1,4 +1,4 @@
-"""Reachable-without-setup methods that neither APE nor Monkey ran, grouped by class (the paper's target list).
+"""Reachable-without-setup methods that neither APE nor Monkey ran, grouped by class (the target list).
 Usage: python3 -I unhit_by_class.py <App> [N] [--setup]   (--setup: the after-setup ones instead)"""
 import csv, collections, sys
 rows = list(csv.DictReader(open('graphs/%s/out/methods.csv' % sys.argv[1])))

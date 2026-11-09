@@ -114,7 +114,7 @@ A map of how every method of the open-source Android app **%(app)s** (%(prov)s, 
 ## Comparison with the baseline coverage (APE and Monkey, 1 hour each, API 27)
 
 - %(n_hit)d of the %(n_obs)d observable methods ran in at least one run (Monkey %(n_mon)d, APE %(n_ape)d, both %(n_both)d). **%(dead_hit)d dead or framework-only methods ran**, so the coverage contradicts no verdict.
-- **%(n_unhit)d methods were run by neither tool.** By the graph: %(u_dead)d are dead; %(u_env)d are reachable only through an outside environment; %(u_setup)d need an earlier in-app action or setting; **%(u_clean)d are reachable with no modelled setup and no outside help, yet were never run** (the clearest target list for the paper). Classes holding most of them: %(clean_lines)s.
+- **%(n_unhit)d methods were run by neither tool.** By the graph: %(u_dead)d are dead; %(u_env)d are reachable only through an outside environment; %(u_setup)d need an earlier in-app action or setting; **%(u_clean)d are reachable with no modelled setup and no outside help, yet were never run** (the clearest target list). Classes holding most of them: %(clean_lines)s.
 %(fr_text)s- Harness facts that matter for target selection: `merged.ec` omits the launch dump `00000.ec`, so first-launch code can show `monkey_hit = 0` although it ran; one dump per tool may be unreadable, and a process that dies between 30-second dumps loses its coverage, so "never hit" does not strictly prove "never ran".
 
 ## How much to trust it

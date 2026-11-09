@@ -37,7 +37,7 @@ Each folder `graphs/<App>/out/` holds the same set of files as `share/` has for 
 ## Numbers (recomputed from the files by `tools/summary_table.py`)
 
 ''' + table + '''
-"never run: dead / env / setup / clean" splits the methods that neither APE nor Monkey ran: dead or framework-only, reachable only through an outside environment, reachable after in-app setup, reachable with no modelled setup (the clearest target list for the paper). "baseline-run" counts the methods that ran in at least one of the two 1-hour API 27 runs. "contradictions" are dead or framework-only methods that ran anyway (must be 0).
+"never run: dead / env / setup / clean" splits the methods that neither APE nor Monkey ran: dead or framework-only, reachable only through an outside environment, reachable after in-app setup, reachable with no modelled setup (the clearest target list). "baseline-run" counts the methods that ran in at least one of the two 1-hour API 27 runs. "contradictions" are dead or framework-only methods that ran anyway (must be 0).
 
 ## Rebuild
 

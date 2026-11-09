@@ -250,11 +250,11 @@ report is excluded with a named rule. Generated code that JaCoCo does report (da
 ButterKnife, Glide, Room, Parceler, Icepick, protobuf, some Dagger builders) stays in the universe, tagged
 `generated = true` with a `generated_kind`.
 
-Rationale: JaCoCo is the oracle the study measures with; a universe that differs from it either creates targets that
+Rationale: JaCoCo is the oracle the evaluation measures with; a universe that differs from it either creates targets that
 can never be observed (methods JaCoCo cannot report) or loses methods that can be hit. The trivial-constructor carve-out
 keeps the hand-built Currency graph valid and costs nothing (those methods simply never count as hit or as targets).
 Keeping reported generated code avoids a universe smaller than the oracle; the tag lets modelers handle it in bulk and
-lets the study filter it later.
+lets the later analysis filter it.
 
 ### 6.2 Rules (applied to each parsed method in this order; first match wins)
 
@@ -328,7 +328,7 @@ and `_internalCallback*` methods call view-model and handler methods). They are 
 `DataBinderMapperImpl` inside `DataBinderMapperImpl` methods that only the library calls (9.2 source 6), so they are
 always live and app calls such as `binding.setViewModel(vm)` on the abstract `*Binding` type keep their edges. The
 library's own calls into binding code (`executeBindings` from the frame callback, the inflate path) are not auto edges;
-modelers add them in bulk through the read-only `INFO` mapping in part files (12.2). The study filters them with the `generated`/`generated_kind` CSV
+modelers add them in bulk through the read-only `INFO` mapping in part files (12.2). The analysis filters them with the `generated`/`generated_kind` CSV
 columns (11.7).
 
 ### 6.5 `universe.json` (schema `tg-universe/1`)
@@ -1653,7 +1653,7 @@ source lines); the full unit suite result.
   path printed without a note when an env-free path exists; `menu_label` only knows `action_*` ids; only `gui[0]` and
   no `needs_state` text in `gui_steps_on_shortest_path`; evidence counted by first label). Reason: v2 keeps the 10 v1
   columns with v1's semantics so v1 and v2 graphs read the same; changing them, or adding columns for them, is a
-  decision for the study owner. Recorded so the integration step can raise it in `HANDOFF.md`.
+  decision for the project owner. Recorded so the integration step can raise it in `HANDOFF.md`.
 - Emulator verification, framework source checks, Kotlin, apps outside the 13.
 
 ## 20. Review log

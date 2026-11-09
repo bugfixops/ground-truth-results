@@ -12,8 +12,8 @@ Route followed: final-draw BFS route from helper/judge-final/
     methods.csv (route_edge_ids identical). No first-draw script
     exists for this method; this script is written fresh in the old
     scripts' style.
-Route shape: launch-only. DeckPicker's startup loads the study
-    options fragment (loadStudyOptionsFragment commits a replace
+Route shape: launch-only. DeckPicker's startup loads the
+    study options fragment (loadStudyOptionsFragment commits a replace
     transaction, DeckPicker.java:1651-1654); the framework then
     calls onAttach then onCreateView, whose end calls
     refreshInterface(true), which launches the
@@ -23,8 +23,8 @@ Route shape: launch-only. DeckPicker's startup loads the study
     revDue() as its if test.
 Preconditions (see ROUTES_rows.csv setup cell):
   - Collection open.
-  - Finished deck: zero new, learning, and due cards, so the study
-    options fragment takes the CONGRATS branch to finishedMsg
+  - Finished deck: zero new, learning, and due cards, so the
+    study options fragment takes the CONGRATS branch to finishedMsg
     (StudyOptionsFragment.java:570-579). This is a collection-state
     precondition the live run must arrange and confirm; it is not
     statically verifiable here and no fixture is claimed for it.

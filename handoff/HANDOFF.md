@@ -1,10 +1,10 @@
 # Handoff: Android trigger-graph task
 
-State as of 2026-10-24, after one Claude Code session. The full readable conversation is in `conversation.md` next to this file.
+State as of 2026-10-24, after one Claude Code session.
 
 ## Context
-- Darshan (student) is helping Yang (collaborator) with an ICST 2027 paper draft: `/Users/darshan/Desktop/yang/icst-2027-draft.pdf`. The paper compares targeted Android testing tools (GAPS, APEX, TraceDroid; APE as a baseline) on how well each reaches methods that random testing (Monkey) missed.
-- The paper needs a **ground truth**: for each app, which methods a user can reach through the GUI, and how. This is the draft's open `TODO [GT-REGISTRY]`.
+- Darshan (student) is helping Yang (collaborator) build a ground truth for 13 Java Android apps. Baseline: APE and Monkey, 1-hour runs on API 27.
+- The **ground truth** says, for each app, which methods a user can reach through the GUI, and how.
 - **Task (confirmed with Darshan):** for each of the **13 Java-only apps**, produce the same output Yang made for Currency in `share.zip`: a trigger graph JSON, `methods.csv`, a README, and optionally the HTML viewer. **The data (JSON + CSV) matters most; the HTML page is optional.**
 - Apps: Aegis, AmazeFileManager, AnkiDroid, AnyMemo, Currency, Diary, hash-checker, LibreTorrent, Markor, MMEX, Omni-Notes, openlauncher, Vanilla-Music. Vinyl-Music-Player (4 .kt files) is excluded.
 
@@ -12,7 +12,6 @@ State as of 2026-10-24, after one Claude Code session. The full readable convers
 - `GRAPH_PROMPT.md`: the recipe for a source-only graph, plus the JSON schema. `GENERIC_PROMPT.md`: the full version, which adds framework-source checks and emulator verification. Yang wrote both.
 - `share.zip`: Yang's Currency **v1.33** example. Unzipped in `work/share_example/`.
 - `final_java_only.zip`: the 13 apps (instrumented APK, source, class files, APE + Monkey JaCoCo reports). Unzipped in `work/final_java_only/`.
-- Papers: APEX, GAPS, TraceDroid, GoalExplorer, ADGE (PDFs).
 
 ## Workspace: `/Users/darshan/Desktop/yang/work/`
 ```
@@ -50,10 +49,10 @@ handoff/                          this file + conversation.md
 
 ## Open questions for Yang (not answered yet)
 1. Should each app also be verified on an emulator, like his 77 Currency scenarios? This Mac (M1, 8 GB RAM, 20 GB free) has **no JDK, Android SDK or emulator**. The baseline runs were done on another machine (`/Users/poyu/...`, `emulator-5560`).
-2. Baseline: the draft says Monkey, but `tool_run_set_38.csv` says APE.
+2. Baseline: an earlier description says Monkey, but `tool_run_set_38.csv` says APE.
 3. `fixtures/Documents` is missing (Markor and AmazeFileManager need it).
 4. Aegis/MMEX setup: baseline coverage is only 4–21%, so the setup was probably not done.
-5. The draft still says 41 apps.
+5. An earlier description still says 41 apps.
 
 ## Next steps
 - Get Yang's feedback on the Currency output before scaling up.
@@ -118,7 +117,7 @@ Darshan is new to this research area. Explain each step in plain terms as the wo
 14. AsyncTask chains: `execute` edge from the caller, `doInBackground -> onPostExecute` ASYNC; template-method task classes (`NoteProcessor`) need one chain per subclass.
 15. The baseline refutes environment gates: if APE or Monkey ran code behind an "env" edge (location fix, recorder, camera start), remove the env flag. Pre-granted permissions are `needs_state` ("granted on the baseline emulators"), not env.
 16. `ButterKnife` view bindings: `X_ViewBinding.<init>(X,View)` is called by `ButterKnife.bind`; the one-argument activity constructor and every `unbind()` are FRAMEWORK_ONLY.
-17. Read the "clean-reachable but never run" list (here 23 methods): it is the paper's target list and every entry must have an honest path.
+17. Read the "clean-reachable but never run" list (here 23 methods): these are the reachable methods the baseline runs missed, and every entry must have an honest path.
 
 ---
 

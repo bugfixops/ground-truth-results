@@ -4,7 +4,7 @@ Written 2026-10-31 from the state on disk at about 16:45 EDT. Re-check every num
 
 ## 0. Read this first
 
-- **Project.** A paper for ICST 2027 about targeted Android testing tools. For each of 13 apps, every method in `graphs/<App>/method_list.json` gets one label. The graph is the ground truth that the tools are judged against, so it has to be right and independent of the tools.
+- **Project.** A ground truth for 13 Android apps. For each app, every method in `graphs/<App>/method_list.json` gets one label. The graph is the reference that test tools are judged against, so it has to be right and independent of the tools.
 - **Label types.**
   - REACHABLE: a route exists from an entry point, built from edges you wrote from printed source.
   - UNREACHABLE: exactly one kind (see section 2), a reason, and a source reference.
