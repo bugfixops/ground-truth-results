@@ -3,10 +3,10 @@
 Method: TrackerInfo.infoHashStatus
 Edge ids (in route order):
     Ebe0bf90d Ed8e7f5f9 Ee453d286 E28c54333 E2e46bfdf Eabce0a94
-    E9d948322 Ef521ec44 Efe87970e Ee6073c26 E9fb4a1ea E883c34be
-    E87241f3c E2c864273 Efd617da3 E00bf2e7e E6abd9512 E0be6f1c1
+    E9d948322 Ef521ec44 Efe87970e Ee6073c26 E9fb4a1ea E1ac96176
+    E87241f3c E2c864273 Efd617da3 E00bf2e7e Eeb799b79 E0be6f1c1
     Ec5467a2a E034a512c Eedf7a1c8 E5755bc7b E746908c7 E182eab76
-    Eb35f6d14 E2d83b1c6 Eefb37f80 E08cde78e E4188dd19 Eb9d6385b
+    Eb35f6d14 E2d83b1c6 E86b47ee2 E08cde78e E4188dd19 E92828a39
     Ea78385d3
 Printed route source:
     graphs/LibreTorrent/scratch/route_print/TrackerInfo.infoHashStatus.txt
@@ -42,12 +42,12 @@ EDGE_IDS = [
     "Efe87970e",
     "Ee6073c26",
     "E9fb4a1ea",
-    "E883c34be",
+    "E1ac96176",
     "E87241f3c",
     "E2c864273",
     "Efd617da3",
     "E00bf2e7e",
-    "E6abd9512",
+    "Eeb799b79",
     "E0be6f1c1",
     "Ec5467a2a",
     "E034a512c",
@@ -57,10 +57,10 @@ EDGE_IDS = [
     "E182eab76",
     "Eb35f6d14",
     "E2d83b1c6",
-    "Eefb37f80",
+    "E86b47ee2",
     "E08cde78e",
     "E4188dd19",
-    "Eb9d6385b",
+    "E92828a39",
     "Ea78385d3",
 ]
 
@@ -110,9 +110,9 @@ def main():
         # E9fb4a1ea: MsgMainViewModel.torrentDetailsOpened -> MainActivity.showDetailTorrent [FRAMEWORK].
         # Deliver the published torrent-details-open event to the subscribed activity
         r.comment("Deliver the published torrent-details-open event to the subscribed activity", edge="E9fb4a1ea")
-        # E883c34be: MainActivity.showDetailTorrent -> DetailTorrentActivity.onCreate [INTENT]. Create
+        # E1ac96176: MainActivity.showDetailTorrent -> DetailTorrentActivity.onCreate [INTENT]. Create
         # detail activity in single-pane layout Guard: !Utils.isTwoPane(this).
-        r.comment("Create detail activity in single-pane layout", edge="E883c34be")
+        r.comment("Create detail activity in single-pane layout", edge="E1ac96176")
         # E87241f3c: DetailTorrentActivity.onCreate -> DetailTorrentFragment.onAttach [CALL]. Detail
         # activity fragment attaches to its host
         r.comment("Detail activity fragment attaches to its host", edge="E87241f3c")
@@ -125,9 +125,9 @@ def main():
         # E00bf2e7e: DetailTorrentFragment.onViewCreated -> DetailPagerAdapter.createFragment [FRAMEWORK].
         # Create selected detail page on demand
         r.tap(edge="E00bf2e7e", text="Trackers")
-        # E6abd9512: DetailPagerAdapter.createFragment -> DetailTorrentTrackersFragment.newInstance
+        # Eeb799b79: DetailPagerAdapter.createFragment -> DetailTorrentTrackersFragment.newInstance
         # [CALL]. Create trackers page at position three Guard: position == TRACKERS_FRAG_POS.
-        r.comment("Create trackers page at position three", edge="E6abd9512")
+        r.comment("Create trackers page at position three", edge="Eeb799b79")
         # E0be6f1c1: DetailTorrentTrackersFragment.newInstance -> DetailTorrentTrackersFragment.onAttach
         # [LIFECYCLE]. Attach tracker list page
         r.comment("Attach tracker list page", edge="E0be6f1c1")
@@ -157,18 +157,18 @@ def main():
         # E2d83b1c6: TorrentInfoProvider.makeTrackersInfoFlowable -> TorrentEngine.makeTrackerInfoList
         # [CALL]. Trackers flowable reads the tracker list on each tick and on its first thread pass
         r.comment("Trackers flowable reads the tracker list on each tick and on its first thread pass", edge="E2d83b1c6")
-        # Eefb37f80: TorrentEngine.makeTrackerInfoList -> TorrentDownloadImpl.getTrackerInfoList [CALL].
+        # E86b47ee2: TorrentEngine.makeTrackerInfoList -> TorrentDownloadImpl.getTrackerInfoList [CALL].
         # Tracker-info list forwards to the task
-        r.comment("Tracker-info list forwards to the task", edge="Eefb37f80")
+        r.comment("Tracker-info list forwards to the task", edge="E86b47ee2")
         # E08cde78e: TorrentDownloadImpl.getTrackerInfoList -> TrackerInfo.<init>(AnnounceEntry) [CALL].
         # Tracker list builder constructs a TrackerInfo per announce entry
         r.comment("Tracker list builder constructs a TrackerInfo per announce entry", edge="E08cde78e")
         # E4188dd19: TrackerInfo.<init>(AnnounceEntry) -> TrackerInfo.getMessageAndStatus [CALL].
         # AnnounceEntry ctor derives message and status from the endpoints
         r.comment("AnnounceEntry ctor derives message and status from the endpoints", edge="E4188dd19")
-        # Eb9d6385b: TrackerInfo.getMessageAndStatus -> TrackerInfo.calcStatusCount [CALL].
+        # E92828a39: TrackerInfo.getMessageAndStatus -> TrackerInfo.calcStatusCount [CALL].
         # Message-and-status loop counts each endpoint infohash
-        r.comment("Message-and-status loop counts each endpoint infohash", edge="Eb9d6385b")
+        r.comment("Message-and-status loop counts each endpoint infohash", edge="E92828a39")
         # Ea78385d3: TrackerInfo.calcStatusCount -> TrackerInfo.infoHashStatus [CALL]. Status counter
         # reads the infohash status
         r.comment("Status counter reads the infohash status", edge="Ea78385d3")

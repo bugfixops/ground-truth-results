@@ -1,54 +1,64 @@
 #!/usr/bin/env python3
-"""MMEX per-route setup for route_29 (AppSettings.getPreferences) -- bootstrap (audit §3.2).
+"""MMEX per-route setup for route_29 (AppSettings.getPreferences). Kiro, 2026-11-09: a copy of setup_route_04.py (bootstrap + the
+account "RetryCheck") for the re-scripted current best route of the third real run: tap the Cash Accounts group header (expanded by default) to collapse it; the collapse writes a setting.
+The text below is setup_route_04's, whose account facts hold unchanged here.
 
-Bootstrap only: no seed rows are needed, because route_29's chain needs
-nothing but a reachable home screen (drawer -> About -> Logcat button).
+Bootstrap (same mechanism as setup_route_20, q.v. for citations):
+empty .mmb pushed to /sdcard/MoneyManagerEx/mmex.mmb, default
+SharedPreferences written via run-as (prefshowtutorial=false,
+databasepath set), MainActivity warm-launched so the app's own
+MmxOpenHelper.onCreate creates the schema (tables_v1 + initDatabase).
 
-What this setup does, in run_app.sh order (after `pm clear`, before the
-route script), using only host-side adb (no UI driving is needed here):
+Seed (drives UI through the harness Runner with edge_ids=None, as the
+retry contract allows; setup actions log under edge "setup" in the
+separate setup log, never against a route edge):
 
-1. Pushes an EMPTY file to /sdcard/MoneyManagerEx/mmex.mmb. An empty
-   file is not a fake database: on first open the app's own
-   MmxOpenHelper.onCreate runs the app's own schema script
-   (R.raw.tables_v1) plus initDatabase (base currency, date format)
-   -- database/MmxOpenHelper.java:96-103, 227-236. A hand-filled
-   plaintext sqlite3 .mmb is deliberately NOT used: the app opens
-   every database through the SQLCipher SupportFactory
-   (MmxOpenHelper.java:132-154), so a plaintext file with a SQLite
-   header would be rejected as not-a-database, while a 0-byte file
-   is treated as a new database and initialised by the app itself.
-2. Writes the app's default SharedPreferences file
-   (com.money.manager.ex_preferences.xml, the PreferenceManager
-   default; provided by MmxModule.provideSharedPreferences,
-   core/ioc/MmxModule.java:60-64) via `run-as` (the replay APKs are
-   instrumented debug builds), setting:
-     - prefshowtutorial = false (BehaviourSettings.getShowTutorial
-       default true, settings/BehaviourSettings.java:86-88; tutorial
-       is the first showPrerequisite gate, home/MainActivity.java:
-       1478-1489);
-     - databasepath = /sdcard/MoneyManagerEx/mmex.mmb
-       (DatabaseSettings.getDatabasePath/setDatabasePath; the path
-       key string is res/values/prefids.xml:34 "databasepath").
-   With those two set, MainActivity.isDatabaseAvailable()
-   (home/MainActivity.java:1338-1348: path non-empty, not an
-   unpassworded .emb, file exists) passes and showPrerequisite()
-   returns false, so MainActivity proceeds to initHomeFragment.
-3. Launches MainActivity and waits until it is the resumed activity,
-   so the schema creation in step 1 has actually happened before the
-   route script runs.
+- One account named "RetryCheck", created through the app's own
+  AccountEditActivity, launched with ACTION_INSERT (the activity is
+  exported with EDIT/INSERT intent filters, AndroidManifest.xml
+  ~232). Form grounding:
+    - name field res_id editTextAccountName
+      (res/layout/activity_account_edit.xml:53);
+    - type spinner left at its default position 0 = "Cash"
+      (res/values/arrays.xml:76-84 accounttype_items; default
+      position 0, AccountEditActivity.java:285-290) -- Cash is
+      non-investment, satisfying route_04's guard that the tapped
+      row's account type is not INVESTMENT (HomeFragment.java:
+      699, 701-702: investment rows post RequestWatchlistFragment-
+      Event instead of RequestAccountFragmentEvent);
+    - currency defaults to the base currency (USD, seeded by
+      tables_v1.sql:219), so validateData's currency check
+      (AccountEditActivity.java:643-646) passes;
+    - initial balance entered through the calculator (tap
+      editTextInitialBalance, keys "1" "0" "0", "=") so
+      validateData's balance check (:647-650) passes;
+    - status defaults to the first status item "Open"
+      (arrays.xml:91-94), date defaults to today (:361-367);
+    - save is the toolbar item titled "Save"
+      (MenuHelper.addSaveToolbarIcon, core/MenuHelper.java:87-89;
+      res/values/strings.xml:772).
+  No transaction rows are needed: route_04's tail is
+  AccountTransactionListFragment.onEvent -> displayRunningBalances
+  (AccountTransactionListFragment.java:409-413), which forwards
+  whatever balances the task computed, with no non-empty guard, so
+  an empty account still reaches the target through the status-menu
+  reload path.
+  The route script then taps this known name on the
+  home list: tap(text="RetryCheck") resolves the CHILD row, because
+  its text differs from every group header ("Bank Accounts",
+  "Cash Accounts", ...). The original collision was res_id-only:
+  group and child rows share layout item_account_bills and id
+  textViewItemAccountName (HomeAccountsExpandableAdapter.java:115
+  and 201), so a res_id lookup returns the first match, the group
+  header. A text lookup with a setup-known name has no such
+  collision. Groups expand by default on fresh preferences
+  (HomeFragment.setVisibilityOfAccountGroups reads each group key
+  with default true, HomeFragment.java:747-759), so no expansion
+  tap is needed.
 
-Failure mode: any step failing exits 1, which run_app.sh records as
-failed_at_step_0 (setup_failed). Nothing is faked: if the schema is
-not created, the route script's home taps fail honestly.
-
-This file is written for device/routes/MMEX/setup_route_29.py (the
-run_app.sh per-route setup contract: invoked with --package --log
---outdir --gen-dir). It is NOT executed by drycheck: drycheck only
-py_compiles setup scripts (for gen: fixtures) and dry-loads route
-scripts, so this bootstrap is validated on the live run, not by
-dry-run. The route script itself is dry-safe.
-
-Route note: intent-file staging (audit §1.5/§7 item 10): after the warm launch initialises the bootstrap DB, copy it to the script's intent path /sdcard/Download/database.mmb so useDatabase's validity gate (extension/exists/read-write) passes there too.
+Failure mode: any step exits 1 -> run_app.sh failed_at_step_0.
+This setup is NOT executed by drycheck (only py_compiled for gen:
+fixtures); it is validated on the live run.
 
 Usage (invoked by run_app.sh):
     setup_route_29.py --package <pkg> --log <log> --outdir <dir> \
@@ -61,10 +71,16 @@ import subprocess
 import sys
 import time
 
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.dirname(os.path.abspath(__file__))))))
+
+from device.harness import Runner  # noqa: E402
+
 PKG = "com.money.manager.ex"
 MAIN = "com.money.manager.ex/.home.MainActivity"
 DB_DEVICE_PATH = "/sdcard/MoneyManagerEx/mmex.mmb"
 PREFS_NAME = "com.money.manager.ex_preferences.xml"
+ACCT_NAME = "RetryCheck"
 
 PREFS_XML = """<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
 <map>
@@ -95,9 +111,28 @@ def _shell(adb, command, timeout=60):
     return _adb(adb, ["shell"] + command, timeout=timeout)
 
 
+def create_account(r, name):
+    """Create one account through AccountEditActivity (INSERT)."""
+    r.start_intent(edge="setup", action="android.intent.action.INSERT",
+                   component=PKG + "/.account.AccountEditActivity")
+    r.wait_for(edge="setup", res_id="editTextAccountName", timeout=30)
+    r.tap(edge="setup", res_id="editTextAccountName")
+    r.type_text(name, edge="setup")
+    # Initial balance via the calculator (field tap opens it).
+    r.tap(edge="setup", res_id="editTextInitialBalance")
+    r.wait_for(edge="setup", res_id="buttonKeyEqual", timeout=30)
+    r.tap(edge="setup", text="1")
+    r.tap(edge="setup", text="0")
+    r.tap(edge="setup", text="0")
+    r.tap(edge="setup", res_id="buttonKeyEqual")
+    r.wait_for(edge="setup", res_id="editTextAccountName", timeout=30)
+    r.tap(edge="setup", text="Save")
+    r.wait_for(edge="setup", text=name, timeout=30)
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(
-        description="MMEX route_29 setup: bootstrap an app-created database")
+        description="MMEX route_29 setup: bootstrap + one known account")
     parser.add_argument("--package", default=PKG)
     parser.add_argument("--log", default=None)
     parser.add_argument("--outdir", default=None)
@@ -116,17 +151,11 @@ def main(argv=None):
                 f.write(line)
         sys.stdout.write(line)
 
-    # 1. Empty database file on shared storage (app-created schema).
     mmb_local = os.path.join(gen_dir, "mmex.mmb")
     with open(mmb_local, "wb") as f:
-        pass  # 0 bytes, deliberately: the app initialises it itself.
+        pass
     _shell(adb, ["mkdir", "-p", "/sdcard/MoneyManagerEx"])
     _adb(adb, ["push", mmb_local, DB_DEVICE_PATH])
-    log("pushed empty %s (0 bytes) to %s" % (mmb_local, DB_DEVICE_PATH))
-
-    # 2. SharedPreferences via run-as (debug build): tutorial off,
-    # database path set. The app is not running (pm clear just ran),
-    # so no in-memory preference cache can overwrite this file.
     prefs_local = os.path.join(gen_dir, "mmex_prefs.xml")
     with open(prefs_local, "w", encoding="utf-8") as f:
         f.write(PREFS_XML)
@@ -145,10 +174,8 @@ def main(argv=None):
                         "/data/data/%s/shared_prefs/%s" % (pkg, PREFS_NAME)])
     if "databasepath" not in back or "prefshowtutorial" not in back:
         _fail("preferences read-back does not contain the bootstrap keys")
-    log("wrote shared prefs %s (tutorial off, databasepath set)" % PREFS_NAME)
+    log("bootstrap prefs written (tutorial off, databasepath set)")
 
-    # 3. Warm launch: MainActivity onCreate opens the database, which
-    # runs MmxOpenHelper.onCreate (tables_v1 + initDatabase).
     _shell(adb, ["am", "start", "-W", "-n", MAIN])
     deadline = time.time() + 60
     while time.time() < deadline:
@@ -160,11 +187,14 @@ def main(argv=None):
         _fail("MainActivity did not become the resumed activity in 60s")
     log("MainActivity resumed; app-created database schema is live")
 
-    # Stage a valid .mmb at the route script's VIEW-intent data path.
-    _shell(adb, ["mkdir", "-p", "/sdcard/Download"])
-    _shell(adb, ["cp", DB_DEVICE_PATH, "/sdcard/Download/database.mmb"])
-    log("staged valid .mmb at /sdcard/Download/database.mmb (copy of the "
-        "app-initialised bootstrap database)")
+    r = Runner(package=pkg, route="setup_route_29", edge_ids=None,
+               log_path=args.log or os.path.join(gen_dir, "setup.log"),
+               adb=adb, outdir=args.outdir or ".")
+    try:
+        create_account(r, ACCT_NAME)
+    finally:
+        r.done()
+    log("seeded account %r on the home list" % ACCT_NAME)
     return 0
 
 

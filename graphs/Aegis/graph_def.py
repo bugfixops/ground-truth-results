@@ -6777,3 +6777,24 @@ def EDIT(x):
             x['edge_class'], x['via'] = 'explicit', None
         elif (x['src'], x['dst']) in _W9_STANDARD:
             x['edge_class'], x['via'] = 'standard', None
+
+# ---- W9c (Kiro, 2026-11-09; blind second pass part 2, scratch/reaudit/w9c_compare.csv). Each gate holds on every route
+# through its edge.
+# Aegis-c27: EditEntryActivity$CustomSvgIcon is created only from an SVG that the ACTION_GET_CONTENT picker returns
+# (EditEntryActivity.java:141-160, the one `new CustomSvgIcon(`); icon-pack icons are IconPack.Icon objects. So every call
+# into CustomSvgIcon.getFile (parseEntry, AssignIconsActivity, the preload providers, GlideHelper, IconHolder) needs it.
+# Aegis-c13: FabScrollHelper$2 is the hide branch of setVisible (FabScrollHelper.java:42-54); only onScroll with dy > 2
+# calls setVisible(false) (FabScrollHelper.java:18-24); onListChange calls setVisible(true) (MainActivity.java:1336-1337).
+_W9C_SVG_ENV = ('outside the app: the icon is a custom SVG, which exists only after an SVG image comes back from the '
+                'ACTION_GET_CONTENT picker of another app (EditEntryActivity.java:141-160, the only new CustomSvgIcon)')
+_W9C_FAB_HIDE = ('data: the entry list scrolls down by more than 2 px, so it holds more entries than fit on the screen '
+                 '(FabScrollHelper.java:18-24, the only setVisible(false)); the baseline two entries do not scroll')
+_W9C_AEGIS_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _W9C_AEGIS_ORIG_EDIT(x)
+    if x['dst'] == 'EditEntryActivity$CustomSvgIcon.getFile' and not x.get('env'):
+        x['env'], x['env_kinds'] = _W9C_SVG_ENV, ['other_app']
+    if x['src'] == 'FabScrollHelper.setVisible' and x['dst'] == 'FabScrollHelper$2.onAnimationEnd' and not x.get('needs_state'):
+        x['needs_state'], x['state_kinds'] = _W9C_FAB_HIDE, ['data']

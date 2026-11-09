@@ -3,10 +3,10 @@
 Method: TorrentDownloadImpl.pieces
 Edge ids (in route order):
     Ebe0bf90d Ed8e7f5f9 Ee453d286 E28c54333 E2e46bfdf Eabce0a94
-    E9d948322 Ef521ec44 Efe87970e Ee6073c26 E9fb4a1ea E883c34be
-    E87241f3c E2c864273 Efd617da3 E00bf2e7e Eef3f4c88 E3641e92f
+    E9d948322 Ef521ec44 Efe87970e Ee6073c26 E9fb4a1ea E1ac96176
+    E87241f3c E2c864273 Efd617da3 E00bf2e7e E70b72e9a E3641e92f
     E0a9fdf94 Ef9db34f4 E8c11bcd7 E83702792 E3086a8a3 Ebf32eec0
-    Ef4a01adf E599b14ff E6613e30c
+    Ef4a01adf E599b14ff E9c14218d
 Printed route source:
     graphs/LibreTorrent/scratch/route_print/TorrentDownloadImpl.pieces.txt
     (27 steps; env=other_app state=-). Judged CORRECT (route_table.md row 17).
@@ -41,12 +41,12 @@ EDGE_IDS = [
     "Efe87970e",
     "Ee6073c26",
     "E9fb4a1ea",
-    "E883c34be",
+    "E1ac96176",
     "E87241f3c",
     "E2c864273",
     "Efd617da3",
     "E00bf2e7e",
-    "Eef3f4c88",
+    "E70b72e9a",
     "E3641e92f",
     "E0a9fdf94",
     "Ef9db34f4",
@@ -56,7 +56,7 @@ EDGE_IDS = [
     "Ebf32eec0",
     "Ef4a01adf",
     "E599b14ff",
-    "E6613e30c",
+    "E9c14218d",
 ]
 
 
@@ -105,9 +105,9 @@ def main():
         # E9fb4a1ea: MsgMainViewModel.torrentDetailsOpened -> MainActivity.showDetailTorrent [FRAMEWORK].
         # Deliver the published torrent-details-open event to the subscribed activity
         r.comment("Deliver the published torrent-details-open event to the subscribed activity", edge="E9fb4a1ea")
-        # E883c34be: MainActivity.showDetailTorrent -> DetailTorrentActivity.onCreate [INTENT]. Create
+        # E1ac96176: MainActivity.showDetailTorrent -> DetailTorrentActivity.onCreate [INTENT]. Create
         # detail activity in single-pane layout Guard: !Utils.isTwoPane(this).
-        r.comment("Create detail activity in single-pane layout", edge="E883c34be")
+        r.comment("Create detail activity in single-pane layout", edge="E1ac96176")
         # E87241f3c: DetailTorrentActivity.onCreate -> DetailTorrentFragment.onAttach [CALL]. Detail
         # activity fragment attaches to its host
         r.comment("Detail activity fragment attaches to its host", edge="E87241f3c")
@@ -120,9 +120,9 @@ def main():
         # E00bf2e7e: DetailTorrentFragment.onViewCreated -> DetailPagerAdapter.createFragment [FRAMEWORK].
         # Create selected detail page on demand
         r.tap(edge="E00bf2e7e", text="Pieces")
-        # Eef3f4c88: DetailPagerAdapter.createFragment -> DetailTorrentPiecesFragment.newInstance [CALL].
+        # E70b72e9a: DetailPagerAdapter.createFragment -> DetailTorrentPiecesFragment.newInstance [CALL].
         # Create pieces page at position five Guard: position == PIECES_FRAG_POS.
-        r.comment("Create pieces page at position five", edge="Eef3f4c88")
+        r.comment("Create pieces page at position five", edge="E70b72e9a")
         # E3641e92f: DetailTorrentPiecesFragment.newInstance -> DetailTorrentPiecesFragment.onAttach
         # [LIFECYCLE]. Attach pieces visualization page
         r.comment("Attach pieces visualization page", edge="E3641e92f")
@@ -150,9 +150,9 @@ def main():
         # E599b14ff: TorrentInfoProvider.makePiecesFlowable -> TorrentEngine.getPieces [CALL]. Pieces
         # flowable reads the piece flags on each interval tick
         r.comment("Pieces flowable reads the piece flags on each interval tick", edge="E599b14ff")
-        # E6613e30c: TorrentEngine.getPieces -> TorrentDownloadImpl.pieces [CALL]. Engine piece read
+        # E9c14218d: TorrentEngine.getPieces -> TorrentDownloadImpl.pieces [CALL]. Engine piece read
         # forwards to the task
-        r.comment("Engine piece read forwards to the task", edge="E6613e30c")
+        r.comment("Engine piece read forwards to the task", edge="E9c14218d")
     finally:
         r.done()
     return 0

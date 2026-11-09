@@ -3,7 +3,7 @@
 Method: SelectTagDialog.onTagClicked
 Edge ids (in route order):
     Ebe0bf90d Ed8e7f5f9 Ee453d286 E28c54333 E2e46bfdf Eabce0a94
-    E9d948322 Ef521ec44 Efe87970e Ee6073c26 E9fb4a1ea E883c34be
+    E9d948322 Ef521ec44 Efe87970e Ee6073c26 E9fb4a1ea E1ac96176
     E87241f3c E2c864273 Efd617da3 E00bf2e7e Ebbfdf083 E490f604c
     Ec2241c4e E712eea39 E391e1d9b E91aec3ee E585f6046 E60d22865
     E76cd6c6f E71fb1ae3 E6d54d26f
@@ -41,7 +41,7 @@ EDGE_IDS = [
     "Efe87970e",
     "Ee6073c26",
     "E9fb4a1ea",
-    "E883c34be",
+    "E1ac96176",
     "E87241f3c",
     "E2c864273",
     "Efd617da3",
@@ -105,9 +105,9 @@ def main():
         # E9fb4a1ea: MsgMainViewModel.torrentDetailsOpened -> MainActivity.showDetailTorrent [FRAMEWORK].
         # Deliver the published torrent-details-open event to the subscribed activity
         r.comment("Deliver the published torrent-details-open event to the subscribed activity", edge="E9fb4a1ea")
-        # E883c34be: MainActivity.showDetailTorrent -> DetailTorrentActivity.onCreate [INTENT]. Create
+        # E1ac96176: MainActivity.showDetailTorrent -> DetailTorrentActivity.onCreate [INTENT]. Create
         # detail activity in single-pane layout Guard: !Utils.isTwoPane(this).
-        r.comment("Create detail activity in single-pane layout", edge="E883c34be")
+        r.comment("Create detail activity in single-pane layout", edge="E1ac96176")
         # E87241f3c: DetailTorrentActivity.onCreate -> DetailTorrentFragment.onAttach [CALL]. Detail
         # activity fragment attaches to its host
         r.comment("Detail activity fragment attaches to its host", edge="E87241f3c")

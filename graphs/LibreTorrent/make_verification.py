@@ -404,6 +404,15 @@ print('edge rows total:', len(edge_rows),
       'FW-SRC reps:', len(rep_cites), 'D5:', len(d5_notes),
       'overlap:', len(set(rep_cites) & set(d5_notes)))
 
+# W9c (Kiro, 2026-11-09; blind second pass part 2, scratch/reaudit/w9c_compare.csv LibreTorrent-c10, -c24, -c34): the
+# SafFsModule dispatch steps got ENV other_app and the feed-items step STATE data. These four sampled routes keep the same
+# steps (src, dst, kind checked against 224f1c94); only the edge id of the re-gated step changed.
+for _m, _n in (('FeedDao_Impl$11.finalize', 'step 8 now needs a feed in the list'),
+               ('SafFileSystem$FakePath.serialize', 'step 19 now carries ENV other_app (a content:// uri)'),
+               ('SafFileSystem.getParentDirUri', 'step 17 now carries ENV other_app (a content:// uri)'),
+               ('SafFileSystem$FakePath.makeRelativePathNodes', 'step 24 now carries ENV other_app (a content:// uri)')):
+    NOTE[_m] += ' W9c: gate text changed, edge ids re-pointed, no replay, same steps (%s).' % _n
+
 # ---- build and validate the rows ----
 out = [['type', 'item', 'result', 'confirmed_by', 'ref', 'edges', 'note']]
 for m in sample:
@@ -452,6 +461,21 @@ print('seeded totals (pre-DEVICE): path=%d label=%d edge=%d' % (
     sum(1 for r in out[1:] if r[0] == 'path'),
     sum(1 for r in out[1:] if r[0] == 'label'),
     sum(1 for r in out[1:] if r[0] == 'edge')))
+# W9c re-point (reviewer item 4 rule): {method: (edges as replayed, current edges)}. Only rows whose replayed steps are
+# the current route's steps. SafFileSystem$FakePath.serialize and SafFileSystem$FakePath.makeRelativePathNodes are not
+# re-pointed: their device rows (unscriptable, not run) replay older routes with other steps (already so at 224f1c94).
+_W9C_DEVICE_REPOINT = {
+    'FeedDao_Impl$11.finalize': (
+        'Ebe0bf90d E9278e2d5 E37e3a4dc E6507c563 Ef969f0d4 Ef2176f7c E3a6833e8 E34c7b5a2 E9b4b24a7 Ed7bad68f Ed9f15dc8 '
+        'Ea2db48be Edb748470 E27e8b62f E4d8c9499 E38bcd1c3 E1c77904d E6ac37b87 Ec4d16492 E8756175a',
+        'Ebe0bf90d E9278e2d5 E37e3a4dc E6507c563 Ef969f0d4 Ef2176f7c E3a6833e8 E1691dd0f E9b4b24a7 Ed7bad68f Ed9f15dc8 '
+        'Ea2db48be Edb748470 E27e8b62f E4d8c9499 E38bcd1c3 E1c77904d E6ac37b87 Ec4d16492 E8756175a'),
+    'SafFileSystem.getParentDirUri': (
+        'Ebe0bf90d Ed8e7f5f9 Ee453d286 E28c54333 E2e46bfdf E17916b8d Ed7e1785e E1ebb5848 Ed745fbc6 E4e7277c1 E4322fd9c '
+        'E9bfa7a32 Eee58c113 E8bb4dc4c E5945e3f0 E2cd08e2c Effae07fc Ee28809ba',
+        'Ebe0bf90d Ed8e7f5f9 Ee453d286 E28c54333 E2e46bfdf E17916b8d Ed7e1785e E1ebb5848 Ed745fbc6 E4e7277c1 E4322fd9c '
+        'E9bfa7a32 Eee58c113 Ec25b6558 Ef111a826 E2cd08e2c Ea0e5acb3 Ee28809ba'),
+}
 _device_count = 0
 if _os.path.exists(DEVICE_FILE):
     with open(DEVICE_FILE, encoding='utf-8', newline='') as _f:
@@ -470,9 +494,17 @@ if _os.path.exists(DEVICE_FILE):
             else:
                 _res2, _note = 'unclear', _status + '; not run'
             assert _res2 != 'wrong', ('DEVICE row must never be wrong', _row)
+            _edges = _row['edges']
+            # W9c re-point: the replayed steps (src, dst, kind in the run's build 8521bd39) equal the current route's
+            # steps; only edge ids of re-gated steps changed. Result and reason are kept.
+            if _row['method'] in _W9C_DEVICE_REPOINT:
+                assert _edges.split() == _W9C_DEVICE_REPOINT[_row['method']][0].split(), ('W9c re-point: device edges changed', _row['method'])
+                assert _W9C_DEVICE_REPOINT[_row['method']][1].split() == rows[_row['method']]['route_edge_ids'].split(), ('W9c re-point: route moved', _row['method'])
+                _edges = _W9C_DEVICE_REPOINT[_row['method']][1]
+                _note += '; W9c: gate text changed, edge ids re-pointed, no replay, same steps'
             out.append(['path', _row['method'], _res2, 'DEVICE',
                         'device run %s/%s' % (_row['run'], _row['script']),
-                        _row['edges'], _note])
+                        _edges, _note])
 print('DEVICE rows added:', _device_count)
 
 with open(OUT_FILE, 'w', encoding='utf-8', newline='') as f:

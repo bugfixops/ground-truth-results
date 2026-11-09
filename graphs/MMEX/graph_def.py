@@ -6590,3 +6590,49 @@ for _m in ('ScreenTree.<init>', 'ScreenTree.log', 'SysLogTree.<init>', 'SysLogTr
         'closed_by_configuration', 'the tree is planted only in the else branch of BuildConfig.DEBUG (MmexApplication.java:134-140); '
         'the dataset APK is the instrumented debug build (DATASET.txt), so BuildConfig.DEBUG is true and the else branch never runs',
         'SRC MmexApplication.java:134-140', 'SOURCE')
+
+# ---- W9b (Kiro, 2026-11-09; blind second pass, scratch/reaudit/w9b_compare.csv MMEX-12). review/TASK_NOTE.md item 3
+# (MMEX-03): callbacks of an object that exists only through reflection inherit the non_standard class of its creation
+# edge. In the app, AccountListFragment and RecurringTransactionListFragment are made only by showFragment(Class)
+# (classFragment.newInstance(), MainActivity.java:734-751; drawer cases 634, 652); their explicit creations are in
+# AccountListActivity.java:47 (exported entry) and RecurringTransactionListActivity.java:64 (notification), both env.
+# ESR_CREATION already makes the methods of the two classes library, but it tests only the class of the target method,
+# so a method of another class reached only through their code (RecurringTransaction.setNotes, via the list FAB and
+# RecurringTransactionEditActivity) stayed gui. The edges that leave the two classes' code, and the edges that leave
+# their pages for code outside the classes, now carry the class of the creation edge.
+_W9B_REFL = ('AccountListFragment', 'RecurringTransactionListFragment')
+_W9B_REFL_PAGES = ('S_ACCOUNT_LIST', 'S_RECURRING_LIST')
+_W9B_MMEX_ORIG_EDIT = EDIT
+
+
+def _w9b_cls_of(m):
+    return m.split('@')[0].rsplit('.', 1)[0].split('$')[0] if '.' in m else m
+
+
+def EDIT(x):
+    _W9B_MMEX_ORIG_EDIT(x)
+    if x['kind'] in ('ENTERS', 'REGISTER') or x.get('edge_class') in ('non_standard', 'page'):
+        return
+    s, d = _w9b_cls_of(x['src']), _w9b_cls_of(x['dst'])
+    if (s in _W9B_REFL or x['src'] in _W9B_REFL_PAGES) and d not in _W9B_REFL:
+        x['edge_class'] = 'non_standard'
+        _frag = s if s in _W9B_REFL else _W9B_REFL[_W9B_REFL_PAGES.index(x['src'])]
+        x['via'] = ('reflection: %s of %s, which the app makes only by showFragment(Class) newInstance '
+                    '(MainActivity.java:734-751)' % ('code' if s in _W9B_REFL else 'page', _frag))
+        x['note'] = ((x.get('note') + ' | ') if x.get('note') else '') + 'W9b: callback of a reflection-made fragment'
+
+# ---- W9c (Kiro, 2026-11-09; blind second pass part 2, scratch/reaudit/w9c_compare.csv MMEX-c33). restoreInstanceState
+# unwraps the split list (CheckingTransactionEditActivity.java:647-657; the recurring editor does the same); Parceler
+# builds a SplitCategory$$Parcelable only for an element of the list, so the edited transaction must have split
+# categories when the screen is rebuilt. An unsaved form kept across a rotation is session state (Q-R3-1).
+_W9C_SPLIT_STATE = ('session: the edited transaction has split categories when the screen is rebuilt (rotation), so the '
+                    'saved split list has elements (CheckingTransactionEditActivity.java:647-657); an unsaved form across a '
+                    'rotation is session state (Q-R3-1)')
+_W9C_MMEX_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _W9C_MMEX_ORIG_EDIT(x)
+    if x['src'] in ('CheckingTransactionEditActivity.restoreInstanceState', 'RecurringTransactionEditActivity.restoreInstanceState') \
+            and x['dst'].startswith('SplitCategory$$Parcelable') and not x.get('needs_state'):
+        x['needs_state'], x['state_kinds'] = _W9C_SPLIT_STATE, ['session']

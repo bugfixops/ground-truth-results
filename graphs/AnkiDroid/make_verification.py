@@ -153,6 +153,16 @@ for _m, (_rc, _n) in W8_RECHECK.items():
     NOTE[_m] = 'W8 re-verified 2026-11-07 (first verification: %s; re-check: %s). %s Earlier: %s' % (_first, _rc, _n, NOTE[_m])
     if _first not in ('wrong', 'fixed'):
         VERDICT[_m] = _rc
+# W9b (Kiro, 2026-11-09; blind second pass, scratch/reaudit/w9b_compare.csv AnkiDroid-05 and the reviewer's fix of it):
+# the import gates moved from STATE file to ENV other_app (dialog and Add edges) and the shared replace edges got a new
+# STATE text (a backup the app writes, or a package). The two sampled routes keep the same steps (src, dst, kind
+# checked against 224f1c94); only the edge ids of the re-gated steps changed.
+_W9B_REPOINT = {
+    'Anki2Importer._mediaPick': 'steps 7, 9 and 14 now carry ENV other_app (the package comes from outside the app)',
+    'Models.validateBrackets': 'step 15 carries the new STATE text (a backup the app writes into AnkiDroid/backup, or a package)',
+}
+for _m, _n in _W9B_REPOINT.items():
+    NOTE[_m] += ' W9b: gate text changed, edge ids re-pointed, no replay, same steps (%s).' % _n
 
 
 
@@ -273,6 +283,17 @@ for c in sorted(cites):
 # back into labels, edges, or route checks, and a not-reached route
 # never becomes 'wrong'. Pattern copied from graphs/AnyMemo/
 # make_verification.py (D7).
+# W9b re-point (reviewer item 4): {method: (edges as replayed, current edges)}. The steps (src, dst, kind) of the
+# replayed edges in the run's build (8521bd39) equal the current route's steps. Models.validateBrackets is not
+# re-pointed: its device row (route_36, unscriptable, not run) is the older 17-step LOAD_FAILED route, not the current
+# 18-step Restore backup route, so its ids stay as replayed.
+_W9B_DEVICE_REPOINT = {
+    'Anki2Importer._mediaPick': (
+        'E48de6d58 E26d20f74 E1ad4ef9b Efe74add3 Ec0803f80 Ef124bec5 Ef971cdc8 E7207076d E3b62fa3a E1a9a3f49 E8e37bd07 '
+        'E444e91f6 E21716df8 Eb9b4b814 Edc863911 Ebc55db92',
+        'E48de6d58 E26d20f74 E1ad4ef9b Eb62955c3 Ec0803f80 Ef124bec5 E0bf32c69 E7207076d E43a48f52 E1a9a3f49 E8e37bd07 '
+        'E444e91f6 E21716df8 E302a755f Ef6aca2bf Ebc55db92'),
+}
 _res = 'graphs/%s/device/results.csv' % APP
 if _os.path.exists(_res):
     with open(_res, encoding='utf-8', newline='') as _f:
@@ -289,9 +310,18 @@ if _os.path.exists(_res):
                 _res2, _note = 'unclear', _status + '; not reached'
             else:  # reached=not_run with status ok (defensive; should not occur)
                 _res2, _note = 'unclear', _status + '; not run'
+            _edges = _row['edges']
+            # W9b: a device row whose replayed steps are the current best route's steps (src, dst, kind checked
+            # against the run's build) is re-pointed to the current edge ids; result and reason are kept.
+            if _row['method'] in _W9B_DEVICE_REPOINT:
+                _old, _new = _W9B_DEVICE_REPOINT[_row['method']]
+                assert _edges.split() == _old.split(), ('W9b re-point: device edges changed', _row['method'])
+                assert _new.split() == rows[_row['method']]['route_edge_ids'].split(), ('W9b re-point: route moved', _row['method'])
+                _edges = _new
+                _note += '; W9b: gate text changed, edge ids re-pointed, no replay, same steps'
             out.append(['path', _row['method'], _res2, 'DEVICE',
                         'device run %s/%s' % (_row['run'], _row['script']),
-                        _row['edges'], _note])
+                        _edges, _note])
 
 with open('graphs/%s/verification.csv' % APP, 'w', encoding='utf-8', newline='') as f:
     csv.writer(f).writerows(out)

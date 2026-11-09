@@ -168,3 +168,38 @@ Not done: W0 and the round measurement (the tuning half `review/sample_tune/` ne
 - **Wrong cited-line edges.** CALL edges whose cited line lies inside another method (`kiro_scripts/cited_line_in_caller.py`, sorted by `tools_dev/cited_triage.py`; lists and decisions in `graphs/<App>/scratch/reaudit/cited_line_triage.txt`). AmazeFileManager: 219 hits; 103 pairs cut (the reviewer's four edges and a fifth beside them, every pair the helper matched to a real edge from the method that holds the line, and 26 more after reading the source), 2 of them re-pointed, 6 methods UNREACHABLE (MainActivity.getPaste, ScreenUtils.convertDbToPx, four 7z write-side helpers); the rest are real calls with an off citation. LibreTorrent: 13 hits; 4 cut, 1 citation corrected. Aegis 4 and MMEX 20 hits, AnkiDroid 0: all real calls. `tools_dev/route_diff.py`: 0 of 144 sampled routes changed.
 - **Q-R7-6** (an open dialog as GUI or state) added with the default used; nothing relabelled on it.
 - The 9 device-replay warnings wait for the user's decision (a third small real run, or dropping those 9 DEVICE rows).
+
+### Blind second pass of the reachable audit (W9b and W9c, 2026-11-09; second pass by Kiro, blind; reviewer compared)
+
+The 300 audited rows were judged again from the source, without opening the earlier verdicts, the class columns or the gate texts until every row of a part was written (`kiro_scripts/w9b/`, `kiro_scripts/w9c/`). It is a second pass by the same worker, weaker than an independent check; it does not make the check independent.
+
+- **Part 1 (W9b, 100 rows):** 80 of 100 agreed with the graph at `224f1c94`. Of the 20 disagreements, the graph was right in 13, the second pass in 6, and 1 is a tie (Q-R7-7, MMEX-12: kept gui on the reviewer's answer). Fixes: Aegis-16 (the icon back handler is enabled only after an image from the system picker: ENV), AnkiDroid-05 (packages in the import list come from outside the app: ENV on the import-dialog and Add edges; the shared Replace edges E19e47dc6 and Efcc41abb stay STATE with a true text, "a backup the app writes into AnkiDroid/backup, or a package", because Restore backup uses them too; check: 0 env methods among the 13 whose route passes DeckPicker.restoreFromBackup), AnkiDroid-20 (deck-options putInt comes only from the XML-inflated NumberRangePreference: library), LibreTorrent-01 (the IP filter file row needs IP filtering on: STATE), LibreTorrent-16 (filter lambdas and comparators run only for torrents in the list: STATE), MMEX-19 (RecentDatabasesProvider.remove needs a database path from the picker or another app: ENV), and the MMEX reflection fix (edges leaving the two fragments that only showFragment(Class) creates are non_standard, TASK_NOTE item 3; 64 methods gui -> library, none with an explicit route that avoids the reflection edge). Rows: `graphs/<App>/scratch/reaudit/w9b_compare.csv`.
+- **Part 2 (W9c, the other 200 rows):** 163 of 200 agreed before the fixes (169 after). Of the 37 disagreements, the graph was right in 26, the second pass in 6, and 5 are open (Q-R7-8: AnkiDroid-c20; Q-R7-9: AnkiDroid-c06, -c29; MMEX-c11, the Q-R7-7 family; MMEX-c15, which the second pass left unclear). Fixes: Aegis-c13 (the FAB hide animation needs a list that scrolls: STATE), Aegis-c27 (CustomSvgIcon exists only from a picked SVG: ENV on its 6 call edges), AnkiDroid-c23 (Enable whiteboard in the Reviewer menu makes it in the same session: the STATE row is NONE), LibreTorrent-c18 (the sw600dp-land binding is built only on a two-pane screen: ENV hardware), LibreTorrent-c24 (feed items open only from a tapped feed row: STATE), LibreTorrent-c34 (SafFsModule is chosen only for a content:// uri from the picker: ENV on the 11 facade dispatch edges), and a STATE session gate on the split-list restore edges found by MMEX-c33 (the class stays library through the split screen). Rows: `graphs/<App>/scratch/reaudit/w9c_compare.csv`. Every shared gate was checked to hold on every route through its edge; the methods whose class changed are listed by fix in the run log.
+- **Audit totals now:** 259 correct, 39 fixed, 0 wrong, 2 unclear (the 12 rows the second pass found wrong are fixed; 10 of them had been counted correct, 2 were already fixed rows that needed a second fix; error rate (fixed+wrong)/(correct+fixed+wrong) = 39/298 = 0.131, was 0.097).
+
+| App | env | state | library | gui |
+|---|---|---|---|---|
+| Aegis | 15/0/0 | 13/2/0 | 8/7/0 | 12/3/0 |
+| AmazeFileManager | 14/1/0 | 13/2/0 | 11/4/0 | 14/0/1 |
+| AnkiDroid | 15/0/0 | 11/4/0 | 9/6/0 | 14/1/0 |
+| LibreTorrent | 15/0/0 | 14/1/0 | 9/5/1 | 15/0/0 |
+| MMEX | 15/0/0 | 14/1/0 | 14/1/0 | 14/1/0 |
+
+(correct / fixed / unclear by drawn class.)
+
+- **Methods whose class changed** (W9b and W9c together, local build after the fixes, against `224f1c94`): Aegis 3, AmazeFileManager 0, AnkiDroid 55, LibreTorrent 140, MMEX 65.
+- **Sampled routes:** `route_diff.py` after every rebuild. Routes whose edge ids changed but whose steps stayed the same: AnkiDroid Anki2Importer._mediaPick and Models.validateBrackets (W9b), LibreTorrent FeedDao_Impl$11.finalize, SafFileSystem$FakePath.serialize, SafFileSystem.getParentDirUri and SafFileSystem$FakePath.makeRelativePathNodes (W9c). Their path rows were re-pointed with the note "gate text changed, edge ids re-pointed, no replay, same steps"; the DEVICE rows of _mediaPick, FeedDao_Impl$11.finalize and SafFileSystem.getParentDirUri were re-pointed too (results kept). The DEVICE rows of validateBrackets, FakePath.serialize and makeRelativePathNodes were left as replayed: they hold older routes with other steps (unscriptable, not run). No sampled route changed its steps.
+
+Class shares over never-run methods, "before" `e0866b9c`, "after" the local build after the blind pass (`tools_dev/reaudit_shares.py e0866b9c`):
+
+| App | dead / config / env / state / library / gui (%) |
+|---|---|
+| Aegis | 20.9 / 0.2 / 33.0 / 15.6 / 4.9 / 25.4 |
+| AmazeFileManager | 25.6 / 2.1 / 26.0 / 20.2 / 2.7 / 23.5 |
+| AnkiDroid | 38.9 / 3.0 / 21.7 / 14.4 / 0.5 / 21.6 |
+| LibreTorrent | 27.9 / 1.0 / 15.8 / 35.9 / 17.0 / 2.3 |
+| MMEX | 20.8 / 0.3 / 6.0 / 15.8 / 13.7 / 43.4 |
+| weighted | 27.7 / 1.4 / 19.0 / 20.7 / 8.3 / 22.9 (before: 27.3 / 1.1 / 20.4 / 20.4 / 2.9 / 27.8) |
+
+- **Third real run (prepared, not requested):** the route scripts of the 9 stale rows replay the current best routes (Aegis route_21 now unlocks a vault that its setup creates before the coverage reset; LibreTorrent routes 01, 09, 10, 17, 19 keep their steps under new edge ids; MMEX routes 21, 24, 29 tap the seeded account row, its Balance account item, and its group header). Local drycheck: the 9 rows PASS.
+- Not done: W0 (neither `review/sample_tune/` nor `review/checked_cases.csv` is on the branch), publishing (no PUBLISH_REQUEST).

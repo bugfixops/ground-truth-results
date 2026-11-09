@@ -1,29 +1,19 @@
+#!/usr/bin/env python3
+# Re-scripted by Kiro, 2026-11-09, for the third and last real run (the 9 stale routes).
 """MMEX route_24: NumericHelper.getNumberOfDecimals.
 
 Method: NumericHelper.getNumberOfDecimals
-Edge ids (in route order):
-    Eabecce51 Ec0bef66f Ef46663fc E526e2cf0 E8707ce77 E1c7f52cc
-    E8c18509f E75f796ec
-Printed route source:
-    graphs/MMEX/scratch/route_print_final2/NumericHelper.getNumberOfDecimals.txt
-    (8 steps; header env=- state=-). These edge ids match, in order,
-    the verification.csv path row for NumericHelper.getNumberOfDecimals
-    exactly (checked by the helper; no discrepancy).
-Permissions: none (print header env=-; no ENV permission gate, so no
-    permission from the manifest is granted by this route).
-Fixtures: none (no STATE file gate).
-Setup: none (apps.csv MMEX setup is effectively none).
-Caveat for the merger/device lead (not a script action): the format
-    branch runs only when the base currency resolves to a real
-    Currency (CurrencyService.java:297-309: a null currency returns
-    value.toString() at :301-303 and never calls format). The graph
-    records no state gate for this route, so this script implements
-    the printed route as written; a replay database with no base
-    currency would take the null branch and never reach the target.
-Run (from the repo root, after the merger drops this file into
-    device/routes/MMEX/):
-    python3 -I device/routes/MMEX/route_24.py --package
-    com.money.manager.ex --log steps/route_24.log
+Edge ids (in route order, graphs/MMEX/out/methods.csv route_edge_ids of the final build):
+    E71c76102 E2e074fc1 E5d5a9c2f Eff22f7d2 E1644b6d5 Ed53fefe5
+    Effcbf1e0 Ebdf66967 Ed01ff055 Eddab3db0
+(10 steps; env=- state=-). The earlier device row replayed the 8-step home-screen widget route
+(AccountBillsWidgetProvider.onUpdate), which is no longer the best route.
+Permissions: none. Fixtures: none.
+Setup: setup_route_24.py (bootstrap + one account named "RetryCheck", type Cash; a copy of setup_route_04.py).
+UI: long press the account row; the context menu item "Balance account" (R.string.balance_account,
+    HomeFragment.java:470-471) opens AmountInputDialog (HomeFragment.java:545-548).
+Run (from the repo root):
+    python3 -I device/routes/MMEX/route_24.py --package com.money.manager.ex --log steps/route_24.log
     --outdir <outdir> [--dry-run] [--adb adb]
 """
 
@@ -37,8 +27,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 from device.harness import Runner
 
 EDGE_IDS = [
-    "Eabecce51", "Ec0bef66f", "Ef46663fc", "E526e2cf0", "E8707ce77",
-    "E1c7f52cc", "E8c18509f", "E75f796ec",
+    "E71c76102", "E2e074fc1", "E5d5a9c2f", "Eff22f7d2", "E1644b6d5",
+    "Ed53fefe5", "Effcbf1e0", "Ebdf66967", "Ed01ff055", "Eddab3db0",
 ]
 
 
@@ -54,53 +44,20 @@ def main():
                log_path=args.log, dry_run=args.dry_run, adb=args.adb,
                outdir=args.outdir)
     try:
-        # Eabecce51: The framework creates the widget receiver by
-        # class name because the manifest declares it exported with
-        # the APPWIDGET_UPDATE intent filter
-        # (AndroidManifest.xml:89-99, .widget.AccountBillsWidgetProvider).
-        # A broadcast to that component with a non-empty widget-id
-        # array drives the same entry; there is no launcher tap for a
-        # widget receiver.
-        r.broadcast(edge="Eabecce51",
-                    action="android.appwidget.action.APPWIDGET_UPDATE",
-                    extras_args=["--eia", "appWidgetIds", "1"],
-                    component="com.money.manager.ex/.widget.AccountBillsWidgetProvider")
-        # Ec0bef66f: AppWidgetProvider.onReceive calls onUpdate for
-        # ACTION_APPWIDGET_UPDATE (FW-SRC AppWidgetProvider.java:57-68),
-        # guarded on non-null extras and a non-empty id array; the
-        # --eia extra above supplies both. No separate action.
-        r.comment("onReceive calls onUpdate (APPWIDGET_UPDATE)",
-                  edge="Ec0bef66f")
-        # Ef46663fc: onUpdate calls getBaseCurrencyFormatted
-        # (AccountBillsWidgetProvider.java:52). No user action.
-        r.comment("onUpdate calls getBaseCurrencyFormatted",
-                  edge="Ef46663fc")
-        # E526e2cf0: getBaseCurrencyFormatted calls
-        # getCurrencyFormatted (CurrencyService.java:280).
-        # No user action.
-        r.comment("getBaseCurrencyFormatted calls getCurrencyFormatted",
-                  edge="E526e2cf0")
-        # E8707ce77: getCurrencyFormatted formats the value with the
-        # currency for the given id (CurrencyService.java:297-309;
-        # format is called only at :309, when getCurrency is non-null).
-        # No user action. See the docstring caveat.
-        r.comment("getCurrencyFormatted calls FormatUtilities.format",
-                  edge="E8707ce77")
-        # E1c7f52cc: format(Money, Currency) forwards to the
-        # show-symbols overload (FormatUtilities.java:180).
-        # No user action.
-        r.comment("format forwards to format(Money, boolean, Currency)",
-                  edge="E1c7f52cc")
-        # E8c18509f: format forwards to the scale/pattern overload
-        # with the currency (FormatUtilities.java:157-160; null
-        # returns "n/a" at :157). No user action.
-        r.comment("format forwards to scale/pattern overload",
-                  edge="E8c18509f")
-        # E75f796ec: format(Money, int, String, String) calls
-        # getNumberOfDecimals (FormatUtilities.java:191).
-        # No user action.
-        r.comment("format calls getNumberOfDecimals",
-                  edge="E75f796ec")
+        r.launch("com.money.manager.ex/.home.MainActivity", edge="E71c76102")
+        r.comment("framework calls MainActivity.onCreate", edge="E2e074fc1")
+        r.comment("MainActivity.onCreate calls initHomeFragment", edge="E5d5a9c2f")
+        r.comment("home screen shown (HomeFragment committed)", edge="Eff22f7d2")
+        # E1644b6d5: long press the account row, then "Balance account" in its context menu.
+        r.wait_for(text="RetryCheck", edge="E1644b6d5", timeout=30)
+        r.long_tap(text="RetryCheck", edge="E1644b6d5")
+        r.tap(text="Balance account", edge="E1644b6d5")
+        r.comment("onContextItemSelected calls startBalanceAccount", edge="Ed53fefe5")
+        r.comment("AmountInputDialog shown (onCreate)", edge="Effcbf1e0")
+        r.dwell(edge="Effcbf1e0", seconds=2)
+        r.comment("initializeNewDialog", edge="Ebdf66967")
+        r.comment("truncateToCurrency", edge="Ed01ff055")
+        r.comment("getNumberOfDecimals: target reached", edge="Eddab3db0")
     finally:
         r.done()
     return 0

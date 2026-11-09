@@ -8101,3 +8101,22 @@ for _w9_r in _w9_auto['calls']:
             and _w9_d.rsplit('.', 1)[0] not in ('ModelBrowser$7', 'ModelBrowser$8'):
         sup((_w9_s + '@DELETEMODEL', _w9_d))
 del _w9_auto, _w9_r, _w9_s, _w9_d
+
+# ---- W9b (Kiro, 2026-11-09; blind second pass, scratch/reaudit/w9b_compare.csv AnkiDroid-20): the putInt write on the
+# deck options screens (normal and filtered) comes only from NumberRangePreference (and the other com.ichi2.preferences classes), which
+# override persistString to call persistInt (NumberRangePreference.java:81-83). Those preferences exist only because
+# the preference inflater creates them from res/xml/deck_options.xml, the same creation that makes
+# NumberRangePreference.setValue and StepsPreference library. The framework CheckBoxPreference / ListPreference writes
+# (putBoolean, putString) stay standard.
+_W9B_ANKI_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _W9B_ANKI_ORIG_EDIT(x)
+    if (x['src'], x['dst']) in (('S_DECKOPTIONS', 'DeckOptions$DeckPreferenceHack$Editor.putInt'),
+                                ('FilteredDeckOptions$DeckPreferenceHack.edit', 'FilteredDeckOptions$DeckPreferenceHack$Editor.putInt')) \
+            and x.get('edge_class') in (None, 'standard', 'explicit'):
+        x['edge_class'] = 'non_standard'
+        x['via'] = ('preference inflated from XML: NumberRangePreference (res/xml/deck_options.xml, '
+                    'res/xml/cram_deck_options.xml) persists through persistInt')
+        x['note'] = ((x.get('note') + ' | ') if x.get('note') else '') + 'W9b: the caller is an XML-inflated app preference'

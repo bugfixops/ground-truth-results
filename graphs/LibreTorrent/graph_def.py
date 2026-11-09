@@ -4438,3 +4438,30 @@ UNREACHABLE['SchedulingSettingsFragment.showExactAlarmPermissionDialog'] = (
     'which happens only when SDK_INT >= S and exact alarms are not allowed (Scheduler.java:101-103); the standard config is API 27',
     'SRC ui/settings/sections/SchedulingSettingsFragment.java:195-231; service/Scheduler.java:101-104', 'SOURCE')
 SUPPRESS.add(('SchedulingSettingsFragment.onPreferenceChange', 'SchedulingSettingsFragment.showExactAlarmPermissionDialog'))  # r6-p15 auto copy
+
+# ---- W9c (Kiro, 2026-11-09; blind second pass part 2, scratch/reaudit/w9c_compare.csv). Each gate holds on every route
+# through its edge.
+# LibreTorrent-c10, -c34: FileSystemFacadeImpl resolves a module by the uri (fsResolver.resolveFsByUri) and SafFsModule is
+# chosen only for a content:// uri (SafFileSystem.isSafPath, SafFileSystem.java:191-196), which only the system document
+# picker returns; local paths go to the default module. So every facade -> SafFsModule dispatch needs the picker.
+# LibreTorrent-c24: showFeedItems is the subscriber of feedItemsOpened (FeedActivity.java:172-176), posted only by a tap on
+# a feed row (FeedFragment.java:345), so a feed channel must be in the list.
+# LibreTorrent-c18: the sw600dp-land binding impl is chosen only for the two-pane layout, as E74eba72d already says.
+_W9C_SAF_ENV = ('outside the app: the uri is a content:// document uri, which only the system document picker returns '
+                '(SafFileSystem.isSafPath, SafFileSystem.java:191-196); local paths use the default module')
+_W9C_FEED_STATE = ('data: a feed channel is in the feed list and its row is tapped (FeedFragment.java:345 posts '
+                   'feedItemsOpened); the baseline has no feed')
+_W9C_SW600_ENV = ('hardware: a two-pane screen (R.bool.isTwoPane is true only in values-sw600dp-land and '
+                  'values-large-land-notouch), where the binding mapper builds the sw600dp-land variant (generated code)')
+_W9C_LT_ORIG_EDIT = EDIT
+
+
+def EDIT(x):
+    _W9C_LT_ORIG_EDIT(x)
+    if x['src'].startswith('FileSystemFacadeImpl.') and x['dst'].startswith('SafFsModule.') and not x.get('env'):
+        x['env'], x['env_kinds'] = _W9C_SAF_ENV, ['other_app']
+    if x['src'] == 'FeedActivity.subscribeMsgViewModel' and x['dst'] == 'FeedActivity.showFeedItems' \
+            and x['kind'] != 'REGISTER' and not x.get('needs_state'):
+        x['needs_state'], x['state_kinds'] = _W9C_FEED_STATE, ['data']
+    if x['dst'] == 'FragmentAddTorrentInfoBindingSw600dpLandImpl.<init>(DataBindingComponent,View)' and not x.get('env'):
+        x['env'], x['env_kinds'] = _W9C_SW600_ENV, ['hardware']
