@@ -7,7 +7,8 @@ Edge ids (in route order, graphs/MMEX/out/methods.csv route_edge_ids of the fina
     E71c76102 E2e074fc1 E5d5a9c2f Eff22f7d2 Ebbb78d0f Ee424c2e8
     Ebc409bd4 Ebb57ba7f E5e7583d5 E6cd10559 E994a6b75 E865a392e
     E7551131a E931a290d Ead211413 E0d84e708 Ea1f3a9f7
-(17 steps; env=- state=-, class library: the account list fragment is shown through EventBus). The earlier device row
+(17 steps; env=- state=-, class gui: the route has explicit, non_standard and standard edges and an explicit standard
+route exists; the account list fragment is shown through EventBus). The earlier device row
 replayed the 20-step drawer -> Settings -> Look and feel route, which is no longer the best route.
 Permissions: none. Fixtures: none.
 Setup: setup_route_21.py (bootstrap + one account named "RetryCheck", type Cash; a copy of setup_route_04.py). The

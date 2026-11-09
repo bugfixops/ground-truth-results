@@ -294,34 +294,38 @@ _W9B_DEVICE_REPOINT = {
         'E48de6d58 E26d20f74 E1ad4ef9b Eb62955c3 Ec0803f80 Ef124bec5 E0bf32c69 E7207076d E43a48f52 E1a9a3f49 E8e37bd07 '
         'E444e91f6 E21716df8 E302a755f Ef6aca2bf Ebc55db92'),
 }
-_res = 'graphs/%s/device/results.csv' % APP
-if _os.path.exists(_res):
-    with open(_res, encoding='utf-8', newline='') as _f:
-        for _row in csv.DictReader(_f):
-            _reached = _row['reached']
-            _status = _row['script_status']
-            if _reached == 'yes':
-                _res2, _note = 'correct', _status
-            elif _status == 'unscriptable':
-                _res2, _note = 'unclear', 'unscriptable'
-            elif _status == 'timeout' or _status.startswith('failed_at_step_'):
-                _res2, _note = 'unclear', _status + '; script failed'
-            elif _reached == 'no':
-                _res2, _note = 'unclear', _status + '; not reached'
-            else:  # reached=not_run with status ok (defensive; should not occur)
-                _res2, _note = 'unclear', _status + '; not run'
-            _edges = _row['edges']
-            # W9b: a device row whose replayed steps are the current best route's steps (src, dst, kind checked
-            # against the run's build) is re-pointed to the current edge ids; result and reason are kept.
-            if _row['method'] in _W9B_DEVICE_REPOINT:
-                _old, _new = _W9B_DEVICE_REPOINT[_row['method']]
-                assert _edges.split() == _old.split(), ('W9b re-point: device edges changed', _row['method'])
-                assert _new.split() == rows[_row['method']]['route_edge_ids'].split(), ('W9b re-point: route moved', _row['method'])
-                _edges = _new
-                _note += '; W9b: gate text changed, edge ids re-pointed, no replay, same steps'
-            out.append(['path', _row['method'], _res2, 'DEVICE',
-                        'device run %s/%s' % (_row['run'], _row['script']),
-                        _edges, _note])
+# Reviewer rule 2026-11-09 (tools_dev/device_rows.py): a reached row is written only when its replayed edge ids (after
+# the W9b re-point) equal the method's current best route.
+_dr = {}
+exec(open('tools_dev/device_rows.py', encoding='utf-8').read(), _dr)
+_dev_rows, _dev_dropped = _dr['device_rows']('graphs/%s' % APP, APP, _W9B_DEVICE_REPOINT)
+for _d in _dev_dropped:
+    print('DEVICE row dropped: %s %s: %s' % _d)
+for _row in _dev_rows:
+    _reached = _row['reached']
+    _status = _row['script_status']
+    if _reached == 'yes':
+        _res2, _note = 'correct', _status
+    elif _status == 'unscriptable':
+        _res2, _note = 'unclear', 'unscriptable'
+    elif _status == 'timeout' or _status.startswith('failed_at_step_'):
+        _res2, _note = 'unclear', _status + '; script failed'
+    elif _reached == 'no':
+        _res2, _note = 'unclear', _status + '; not reached'
+    else:  # reached=not_run with status ok (defensive; should not occur)
+        _res2, _note = 'unclear', _status + '; not run'
+    _edges = _row['edges']
+    # W9b: a device row whose replayed steps are the current best route's steps (src, dst, kind checked
+    # against the run's build) is re-pointed to the current edge ids; result and reason are kept.
+    if _row['method'] in _W9B_DEVICE_REPOINT:
+        _old, _new = _W9B_DEVICE_REPOINT[_row['method']]
+        assert _edges.split() == _old.split(), ('W9b re-point: device edges changed', _row['method'])
+        assert _new.split() == rows[_row['method']]['route_edge_ids'].split(), ('W9b re-point: route moved', _row['method'])
+        _edges = _new
+        _note += '; W9b: gate text changed, edge ids re-pointed, no replay, same steps'
+    out.append(['path', _row['method'], _res2, 'DEVICE',
+                'device run %s/%s' % (_row['run'], _row['script']),
+                _edges, _note])
 
 with open('graphs/%s/verification.csv' % APP, 'w', encoding='utf-8', newline='') as f:
     csv.writer(f).writerows(out)

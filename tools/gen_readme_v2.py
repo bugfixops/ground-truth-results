@@ -109,6 +109,18 @@ def main(argv):
             L.append('Device replay on the emulator (API 27): %d of %d routes reached their target method; %d of these ran the '
                      'whole script and are `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or '
                      'unscriptable), never wrong; see `../device/results.csv`.' % (dv['reached'], dv['routes'], dv['reached_script_finished']))
+            # Device row rule (reviewer, 2026-11-09; tools_dev/device_rows.py): a reached row whose replayed edge ids are
+            # not the current best route is not written to verification.csv. Name the dropped rows here, so the count
+            # above is not read as the run's own total. Says nothing when no row was dropped.
+            dres = '%s/device/results.csv' % gdir
+            if os.path.exists(dres):
+                drows = list(csv.DictReader(open(dres, encoding='utf-8')))
+                if len(drows) > dv['routes']:
+                    L.append('%d further replayed route(s) reached their target in run %s but are not counted above: the '
+                             "graph's best route changed after that run, so the DEVICE row was dropped (device row rule, "
+                             '`tools_dev/device_rows.py`); the method keeps its static label. The run total stays in '
+                             '`../device/results.csv`.' % (len(drows) - dv['routes'],
+                                                           ', '.join(sorted({r['run'] for r in drows}))))
         L.append('')
         L.append('Path status over all reachable methods: %s.' % ', '.join('%s %d' % kv for kv in sorted(pstat.items())))
         L.append('The rows are the items that were individually checked, not a random sample of all labels; see the notes below for how they were chosen and what the unclear rows wait for.')

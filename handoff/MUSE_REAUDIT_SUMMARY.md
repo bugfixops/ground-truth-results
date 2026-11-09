@@ -203,3 +203,43 @@ Class shares over never-run methods, "before" `e0866b9c`, "after" the local buil
 
 - **Third real run (prepared, not requested):** the route scripts of the 9 stale rows replay the current best routes (Aegis route_21 now unlocks a vault that its setup creates before the coverage reset; LibreTorrent routes 01, 09, 10, 17, 19 keep their steps under new edge ids; MMEX routes 21, 24, 29 tap the seeded account row, its Balance account item, and its group header). Local drycheck: the 9 rows PASS.
 - Not done: W0 (neither `review/sample_tune/` nor `review/checked_cases.csv` is on the branch), publishing (no PUBLISH_REQUEST).
+
+### Final state after the third real run and Q-R7-9 (Kiro, 2026-11-09)
+
+- **Device runs.** Three real device attempts, and the cap of 3 is used; no further real run.
+  1. `42560435293-1` (five apps): 14 of 144 routes reached (Aegis 1/25, AmazeFileManager 0/30, AnkiDroid 0/30, LibreTorrent 7/29, MMEX 6/30).
+  2. `42674277844-1`: lost to a GitHub incident ("Incident with Actions and Checks API", 18:12-18:59Z). No emulator job was created and no device was reached; `device/results/42674277844-1/SUMMARY.md` ("No device-* artifacts found") is kept as it was committed.
+  3. `42683233983-1`, the retry (Aegis, LibreTorrent, MMEX; every scripted route of those apps was replayed): the 9 re-scripted stale routes gave LibreTorrent route_01, 09, 10, 17 and 19 reached, each with the whole script finished and with edge ids equal to the current best route. Aegis route_21 failed at step 13: after the relaunch, the unlock screen showed no decrypt button. MMEX routes 21, 24 and 29 failed in their per-route setup, at the Save tap in create_account; that is the same step on which setup_route_04, the setup they copy, failed in both runs with results. Raw totals of this run: Aegis 0/25, LibreTorrent 7/29, MMEX 3/30. The other routes of this run replay scripts older than the graph, so they give no rows; their raw results stay in `device/results/42683233983-1/`.
+- **DEVICE row rule** (`tools_dev/device_rows.py`, used by every `make_verification.py` of the five apps):
+  - A reached row is written only when its replayed edge ids, after the documented re-point, equal the method's current best route.
+  - Rows that did not reach their method make no reach claim and stay as replayed.
+  - `LATER_RUNS` names the only rows taken from a later run: the 5 LibreTorrent routes of `42683233983-1`.
+  - Effect, against the previous HEAD (`graphs/<App>/scratch/reaudit/device_rule_check.txt`), DEVICE rows: Aegis 25 -> 24 (Salsa20Engine.salsaCore dropped), AmazeFileManager 30 -> 30, AnkiDroid 30 -> 30, LibreTorrent 29 -> 29 (5 replaced by run `42683233983-1`), MMEX 30 -> 27 (DefinedDateRange$1.<init>, NumericHelper.getNumberOfDecimals, AppSettings.getPreferences dropped). No other row of these four apps changed; AnkiDroid changed only by the Q-R7-9 rows below. The four methods keep their static label (REACHABLE, class gui).
+- **Device totals rule.**
+  - Two different numbers are reported, and neither replaces the other.
+  - A run total ("N of M routes reached") is always read from that run's own `device/results/<run>/<App>/results.csv`, unchanged. Run `42560435293-1` stays 14 of 144 (Aegis 1, MMEX 6).
+  - The build line `verification device: routes N, reached R` and the app README count the DEVICE rows that `verification.csv` holds under the row rule: confirmations of the current best route. Now: Aegis 0 of 24, AmazeFileManager 0 of 30, AnkiDroid 0 of 30, LibreTorrent 7 of 29, MMEX 3 of 27 (10 of 140).
+  - Where a row was dropped, the app README says so in a sentence after the count (Aegis 1, MMEX 3), so the lower count is not read as the run's total.
+  - The four re-scripted routes are kept and marked in `ROUTES.csv` as failed on device 2026-11-09 (setup or unlock step).
+- **Q-R7-9 decided: dead.**
+  - The 25 batch 055 S_ENTRY edges into AddContentApi are removed.
+  - The 53 methods of the api module are UNREACHABLE `no_trigger_in_app` (`graphs/AnkiDroid/graph_def_mod/04.py`), and the 65 auto CALL edges inside the module are suppressed.
+  - A grep over the 944 app files outside `api/` finds no use of AddContentApi, NoteInfo or com.ichi2.anki.api.
+  - 1-in-3 audit (`graphs/AnkiDroid/scratch/reaudit/q_r7_9_audit.txt`, script `q_r7_9_audit.py`): 9 of 25 edges, 18 of 53 entries, 22 of 65 suppressions, 0 mismatches (done by Kiro alone, not by a second agent).
+  - Audit rows AnkiDroid-c06 and -c29 are now fixed (env -> dead).
+- **Audit totals now:** 257 correct, 41 fixed, 0 wrong, 2 unclear; error rate 41/298 = 0.138.
+- **Build:** errors 0 and warnings 0 in all five apps; check_cases 23 of 23; ALL UNCHANGED; `route_diff.py` 0 of 144 sampled routes changed.
+- **Q-R7-8** is not applied (default kept) and stays under Known problems.
+
+Class shares over never-run methods, "before" `e0866b9c`, "after" this build (`tools_dev/reaudit_shares.py e0866b9c`):
+
+| App | dead / config / env / state / library / gui (%) |
+|---|---|
+| Aegis | 20.9 / 0.2 / 33.0 / 15.6 / 4.9 / 25.4 |
+| AmazeFileManager | 25.6 / 2.1 / 26.0 / 20.2 / 2.7 / 23.5 |
+| AnkiDroid | 41.3 / 3.0 / 19.4 / 14.4 / 0.5 / 21.4 |
+| LibreTorrent | 27.9 / 1.0 / 15.8 / 35.9 / 17.0 / 2.3 |
+| MMEX | 20.8 / 0.3 / 6.0 / 15.8 / 13.7 / 43.4 |
+| weighted | 28.3 / 1.4 / 18.4 / 20.7 / 8.3 / 22.9 (before: 27.3 / 1.1 / 20.4 / 20.4 / 2.9 / 27.8) |
+
+- Not done: W0, because neither `review/sample_tune/` nor `review/checked_cases.csv` is on the branch. Publishing is not done either (no PUBLISH_REQUEST).

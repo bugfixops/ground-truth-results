@@ -254,25 +254,30 @@ for c, i in cites.items():
 # does not run at all and the output stays byte-identical to the pre-D7 writer.
 import os
 DEVICE_RESULTS = 'graphs/%s/device/results.csv' % APP
-if os.path.exists(DEVICE_RESULTS):
-    with open(DEVICE_RESULTS, encoding='utf-8', newline='') as f:
-        for dr in csv.DictReader(f):
-            reached = (dr.get('reached') or '').strip()
-            status = (dr.get('script_status') or '').strip()
-            run = (dr.get('run') or '').strip()
-            script = (dr.get('script') or '').strip()
-            if reached == 'yes':
-                result, note = 'correct', 'script_status=%s' % status
-            elif status == 'unscriptable':
-                result, note = 'unclear', 'unscriptable (script_status=unscriptable; no coverage evidence)'
-            elif status.startswith('failed_at_step_') or status == 'timeout':
-                result, note = 'unclear', 'script failed (script_status=%s)' % status
-            elif reached == 'no':
-                result, note = 'unclear', 'not reached (reached=no, script_status=%s)' % status
-            else:
-                result, note = 'unclear', 'no coverage evidence (reached=%s, script_status=%s)' % (reached, status)
-            out.append(['path', dr.get('method') or '', result, 'DEVICE',
-                        'device run %s/%s' % (run, script), dr.get('edges') or '', note])
+# Reviewer rule 2026-11-09 (tools_dev/device_rows.py): a reached row is written only when its replayed edge ids equal
+# the method's current best route.
+_dr = {}
+exec(open('tools_dev/device_rows.py', encoding='utf-8').read(), _dr)
+_dev_rows, _dev_dropped = _dr['device_rows']('graphs/%s' % APP, APP)
+for _d in _dev_dropped:
+    print('DEVICE row dropped: %s %s: %s' % _d)
+for dr in _dev_rows:
+    reached = (dr.get('reached') or '').strip()
+    status = (dr.get('script_status') or '').strip()
+    run = (dr.get('run') or '').strip()
+    script = (dr.get('script') or '').strip()
+    if reached == 'yes':
+        result, note = 'correct', 'script_status=%s' % status
+    elif status == 'unscriptable':
+        result, note = 'unclear', 'unscriptable (script_status=unscriptable; no coverage evidence)'
+    elif status.startswith('failed_at_step_') or status == 'timeout':
+        result, note = 'unclear', 'script failed (script_status=%s)' % status
+    elif reached == 'no':
+        result, note = 'unclear', 'not reached (reached=no, script_status=%s)' % status
+    else:
+        result, note = 'unclear', 'no coverage evidence (reached=%s, script_status=%s)' % (reached, status)
+    out.append(['path', dr.get('method') or '', result, 'DEVICE',
+                'device run %s/%s' % (run, script), dr.get('edges') or '', note])
 
 with open('graphs/%s/verification.csv' % APP, 'w', encoding='utf-8', newline='') as f:
     csv.writer(f).writerows(out)

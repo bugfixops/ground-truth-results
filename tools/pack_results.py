@@ -65,13 +65,31 @@ for a in APPS:
         c, f, w, u = (ver[(t, k)] for k in ('correct', 'fixed', 'wrong', 'unclear'))
         row.update({t + '_rows': c + f + w + u, t + '_checked': c + f + w, t + '_fixed': f, t + '_wrong': w,
                     t + '_unclear': u, t + '_error_rate': rate(f + w, c + f + w)})
-    res = list(csv.DictReader(open('device/results/%s/%s/results.csv' % (RUN, a), encoding='utf-8')))
-    row.update({'device_routes': d[0], 'device_reached': d[1], 'device_ok': d[2], 'device_unclear': d[3],
+    # The app's run of record is the one run its graphs/<App>/device/results.csv was written from (device/compare.py):
+    # 41593209101-1 for the eight apps outside the re-audit, 42560435293-1 for the five re-audited apps.
+    gres = list(csv.DictReader(open('graphs/%s/device/results.csv' % a, encoding='utf-8')))
+    aruns = sorted({r['run'] for r in gres})
+    assert len(aruns) == 1, (a, aruns)
+    row['device_run'] = aruns[0]
+    res = list(csv.DictReader(open('device/results/%s/%s/results.csv' % (aruns[0], a), encoding='utf-8')))
+    # Device totals rule (reviewer, 2026-11-09). Two numbers, never mixed:
+    #   device_routes / device_reached / device_ok / device_unclear: the run total, read from the app's run of record
+    #     (device_run) results.csv, unchanged by later graph changes;
+    #   device_rows / device_rows_reached / device_rows_ok: the DEVICE rows of verification.csv (the build line
+    #     "verification device"), i.e. confirmations of the current best route under the device row rule
+    #     (tools_dev/device_rows.py). A reached row that replays an older route is dropped there, so these can be lower.
+    reached = [r for r in res if r['reached'] == 'yes']
+    row.update({'device_routes': len(res), 'device_reached': len(reached),
+                'device_ok': sum(1 for r in reached if r['script_status'] == 'ok'),
+                'device_unclear': len(res) - len(reached),
+                'device_rows': d[0], 'device_rows_reached': d[1], 'device_rows_ok': d[2],
                 'device_scripted': sum(1 for r in res if r['script_status'] != 'unscriptable'),
                 'device_unscriptable': sum(1 for r in res if r['script_status'] == 'unscriptable'),
                 'path_status_DEVICE_OK': ps.get('DEVICE_OK', 0), 'path_status_SOURCE_OK': ps.get('SOURCE_OK', 0),
                 'path_status_WRONG': ps.get('WRONG', 0), 'path_status_UNCHECKED': ps.get('UNCHECKED', 0), 'ci_request': ci})
-    assert d[0] == len(res) and d[1] == sum(1 for r in res if r['reached'] == 'yes'), a
+    # Only reached rows may be dropped by the row rule: every missing verification row is a reached row of the app's
+    # device/results.csv.
+    assert len(gres) - d[0] == sum(1 for r in gres if r['reached'] == 'yes') - d[1] >= 0, a
     rows.append(row)
 T = collections.Counter()
 for r in rows:

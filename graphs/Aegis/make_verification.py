@@ -372,25 +372,30 @@ print('seeded totals (pre-DEVICE): path=%d label=%d edge=%d' % (
     sum(1 for r in out[1:] if r[0] == 'edge')))
 _res = DEVICE_FILE
 _device_count = 0
-if _os.path.exists(_res):
-    with open(_res, encoding='utf-8', newline='') as _f:
-        for _row in csv.DictReader(_f):
-            _device_count += 1
-            _reached = _row['reached']
-            _status = _row['script_status']
-            if _reached == 'yes':
-                _res2, _note = 'correct', _status
-            elif _status == 'unscriptable':
-                _res2, _note = 'unclear', 'unscriptable'
-            elif _status == 'timeout' or _status.startswith('failed_at_step_'):
-                _res2, _note = 'unclear', _status + '; script failed'
-            elif _reached == 'no':
-                _res2, _note = 'unclear', _status + '; not reached'
-            else:  # reached=not_run with status ok (defensive; should not occur)
-                _res2, _note = 'unclear', _status + '; not run'
-            out.append(['path', _row['method'], _res2, 'DEVICE',
-                        'device run %s/%s' % (_row['run'], _row['script']),
-                        _row['edges'], _note])
+# Reviewer rule 2026-11-09 (tools_dev/device_rows.py): a reached row is written only when its replayed edge ids equal
+# the method's current best route; later-run rows replace base rows only where LATER_RUNS lists them.
+_dr = {}
+exec(open('tools_dev/device_rows.py', encoding='utf-8').read(), _dr)
+_dev_rows, _dev_dropped = _dr['device_rows'](GDIR, 'Aegis')
+for _d in _dev_dropped:
+    print('DEVICE row dropped: %s %s: %s' % _d)
+for _row in _dev_rows:
+    _device_count += 1
+    _reached = _row['reached']
+    _status = _row['script_status']
+    if _reached == 'yes':
+        _res2, _note = 'correct', _status
+    elif _status == 'unscriptable':
+        _res2, _note = 'unclear', 'unscriptable'
+    elif _status == 'timeout' or _status.startswith('failed_at_step_'):
+        _res2, _note = 'unclear', _status + '; script failed'
+    elif _reached == 'no':
+        _res2, _note = 'unclear', _status + '; not reached'
+    else:  # reached=not_run with status ok (defensive; should not occur)
+        _res2, _note = 'unclear', _status + '; not run'
+    out.append(['path', _row['method'], _res2, 'DEVICE',
+                'device run %s/%s' % (_row['run'], _row['script']),
+                _row['edges'], _note])
 
 print('DEVICE rows added:', _device_count)
 

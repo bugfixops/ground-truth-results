@@ -328,26 +328,32 @@ def main():
     device_path = os.path.join(REPO_ROOT, DEFAULT_DEVICE_RESULTS)
     n_device = 0
     if os.path.isfile(device_path):
-        with open(device_path, encoding='utf-8') as f:
-            for d in csv.DictReader(f):
-                reached = (d.get('reached') or '').strip()
-                result = 'correct' if reached == 'yes' else 'unclear'
-                status = (d.get('script_status') or '').strip()
-                if result == 'unclear':
-                    if status == 'unscriptable':
-                        reason = 'unscriptable'
-                    elif status == 'ok':
-                        reason = 'not reached'
-                    else:
-                        reason = 'script failed (%s)' % status
-                    note = 'device script %s; %s' % (status, reason)
+        # Reviewer rule 2026-11-09 (tools_dev/device_rows.py): a reached row is written only when its replayed edge
+        # ids equal the method's current best route.
+        _dr = {}
+        exec(open(os.path.join(REPO_ROOT, 'tools_dev', 'device_rows.py'), encoding='utf-8').read(), _dr)
+        dev_rows, dev_dropped = _dr['device_rows'](GDIR, 'MMEX')
+        for _d in dev_dropped:
+            print('make_verification: DEVICE row dropped: %s %s: %s' % _d)
+        for d in dev_rows:
+            reached = (d.get('reached') or '').strip()
+            result = 'correct' if reached == 'yes' else 'unclear'
+            status = (d.get('script_status') or '').strip()
+            if result == 'unclear':
+                if status == 'unscriptable':
+                    reason = 'unscriptable'
+                elif status == 'ok':
+                    reason = 'not reached'
                 else:
-                    note = 'device script %s' % status
-                out_rows.append({'type': 'path', 'item': d['method'],
-                                 'result': result, 'confirmed_by': 'DEVICE',
-                                 'ref': 'device run %s/%s' % (d.get('run'), d.get('script')),
-                                 'edges': d.get('edges') or '', 'note': note})
-                n_device += 1
+                    reason = 'script failed (%s)' % status
+                note = 'device script %s; %s' % (status, reason)
+            else:
+                note = 'device script %s' % status
+            out_rows.append({'type': 'path', 'item': d['method'],
+                             'result': result, 'confirmed_by': 'DEVICE',
+                             'ref': 'device run %s/%s' % (d.get('run'), d.get('script')),
+                             'edges': d.get('edges') or '', 'note': note})
+            n_device += 1
         print('make_verification: DEVICE rows added: %d' % n_device)
     with open(dest, 'w', encoding='utf-8', newline='') as f:
         w = csv.DictWriter(f, fieldnames=['type', 'item', 'result', 'confirmed_by', 'ref', 'edges', 'note'])

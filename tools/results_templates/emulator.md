@@ -7,6 +7,11 @@ Every route in the ground truth was replayed on an Android 8.1 (API 27) emulator
 - **Confirmed:** {{DOK}} of the reached routes also ran the whole script; they are `DEVICE_OK` in the graphs.
 - **Unclear:** the other {{DUNCL}} routes. That covers not reached, script stopped, or unscriptable. They are never wrong.
 
+**Which run each number comes from.**
+- Each app's run total comes from its own run of record: the run its `device/results.csv` was written from. For the eight apps outside the re-audit that is `{{RUN}}`. For Aegis, AmazeFileManager, AnkiDroid, LibreTorrent and MMEX it is `42560435293-1`, the last real run with results for all five apps.
+- Two later real attempts covered only Aegis, LibreTorrent and MMEX. `42674277844-1` was lost to a GitHub incident and reached no device. `42683233983-1` re-ran 9 routes whose best route had changed. Its 5 LibreTorrent rows replace the older rows in the audit log; its raw results are kept in `earlier_runs/`.
+- The audit logs (`verification.csv`) hold a second number, the DEVICE rows that confirm the current best route. A reached row that replays an older route is dropped there, so Aegis has 1 fewer reached route than its run total and MMEX has 3 fewer (`SUMMARY.csv` columns `device_rows_reached` and `device_reached`).
+
 ## How the job works
 
 | Part | Setting |
