@@ -21,6 +21,13 @@ S = 'graphs/%s/scratch/reaudit/' % app
 steps = {r['edge_id']: r for r in csv.DictReader(open(S + 'guard_steps.csv', encoding='utf-8'))}
 pre = {e['id']: e for e in json.load(open(S + 'pre_w7_edges.json', encoding='utf-8'))}
 path = S + 'w7_judged.csv'
+if '--r2' in sys.argv:
+    # Round 2 (2026-11-10): steps of tools_dev/guard_prescreen_r2.py (guard_steps_r2.csv) or any edge of the current
+    # build, judged into r2_judged.csv; graph_def.py applies its STATE and ENV rows like w7_judged.csv.
+    import glob as _g
+    steps = {r['step']: r for r in csv.DictReader(open(S + 'guard_steps_r2.csv', encoding='utf-8'))}
+    pre = {e['id']: e for e in json.load(open(_g.glob('graphs/%s/out/*_trigger_graph.json' % app)[0], encoding='utf-8'))['edges']}
+    path = S + 'r2_judged.csv'
 HEAD = ['step', 'kind', 'src', 'dst', 'decision', 'kinds', 'ref', 'text', 'helper', 'auditor', 'match']
 rows = list(csv.DictReader(open(path, encoding='utf-8'))) if os.path.exists(path) else []
 index = {r['step']: k for k, r in enumerate(rows)}

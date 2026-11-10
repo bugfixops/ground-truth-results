@@ -6636,3 +6636,8 @@ def EDIT(x):
     if x['src'] in ('CheckingTransactionEditActivity.restoreInstanceState', 'RecurringTransactionEditActivity.restoreInstanceState') \
             and x['dst'].startswith('SplitCategory$$Parcelable') and not x.get('needs_state'):
         x['needs_state'], x['state_kinds'] = _W9C_SPLIT_STATE, ['session']
+
+# ---- ROUND 2 (Kiro, 2026-11-10): causes A-E of review/rounds/1/adjudication.csv; the rules are in tools_dev/round2_rules.py ----
+R2_APP = 'MMEX'
+R2_DIALOG_RULE = False  # cause E (the dialog rule), switched on as a separate step
+exec(compile(open(__import__("os").path.join(GDIR, "..", "..", "tools_dev", "round2_rules.py"), encoding="utf-8").read(), "tools_dev/round2_rules.py", "exec"))

@@ -7973,3 +7973,8 @@ def EDIT(x):
         x['via'] = ('preference inflated from XML: NumberRangePreference (res/xml/deck_options.xml, '
                     'res/xml/cram_deck_options.xml) persists through persistInt')
         x['note'] = ((x.get('note') + ' | ') if x.get('note') else '') + 'W9b: the caller is an XML-inflated app preference'
+
+# ---- ROUND 2 (Kiro, 2026-11-10): causes A-E of review/rounds/1/adjudication.csv; the rules are in tools_dev/round2_rules.py ----
+R2_APP = 'AnkiDroid'
+R2_DIALOG_RULE = False  # cause E (the dialog rule), switched on as a separate step
+exec(compile(open(__import__("os").path.join(GDIR, "..", "..", "tools_dev", "round2_rules.py"), encoding="utf-8").read(), "tools_dev/round2_rules.py", "exec"))

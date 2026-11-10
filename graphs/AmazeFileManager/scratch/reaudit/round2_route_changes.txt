@@ -1,0 +1,30 @@
+Round 2 (Kiro, 2026-11-10): sampled routes whose best route changed against the CI build eb139585. Every step of a changed route was re-read from the source; full old/new step lists: python3 -I tools_dev/route_diff.py <App> on the parent build.
+
+CloudIconDataFetcher.cancel
+  old 14 steps -> new 14 steps
+  no new step pairs (edge ids only)
+  dropped: none
+  verdict: verdict kept (fixed), same steps
+  evidence: step 12 new edge id: saved cloud/SMB/SFTP entry state -> env network (cause B); SftpConnectDialog.java:343-354
+SshAuthenticationTask$1.getPublic
+  old 16 steps -> new 16 steps
+  no new step pairs (edge ids only)
+  dropped: none
+  verdict: verdict kept (wrong as drawn), same steps
+  evidence: steps 9, 11, 14 new edge ids: saved SFTP state -> env network (cause B); SshClientUtils.java:72; SshConnectionPool.java:146,213
+UtilsHandler.getSshAuthPrivateKeyColumn
+  old 12 steps -> new 12 steps
+  no new step pairs (edge ids only)
+  dropped: none
+  verdict: verdict kept (wrong as drawn), same steps
+  evidence: step 9 new edge id: saved SFTP state -> env network (cause B); SshClientUtils.java:72
+
+---- full listing (new steps marked +, with gates and evidence)
+### AmazeFileManager CloudIconDataFetcher.cancel (old verdict fixed) old 14 steps -> new 14 steps; SAME STEPS (edge ids only)
+   12 Efb9e0814 CloudIconModelLoader.<init> -> CloudIconModelLoader.buildLoadData [FRAMEWORK] env=a saved SFTP connection (or cloud or SMB entry) exists only after a co | st=- | INFERRED Glide source not read
+### AmazeFileManager SshAuthenticationTask$1.getPublic (old verdict fixed) old 16 steps -> new 16 steps; SAME STEPS (edge ids only)
+    9 E4cc2bfcc SshClientUtils.execute(SshClientTemplate) -> SshConnectionPool.getConnection(String) [CALL] env=a saved SFTP connection (or cloud or SMB entry) exists only after a co | st=- | SRC filesystem/ssh/SshClientUtils.java:72 client = SshConnectionPool.getInstance().getConnection(template.url)
+   11 E2124a393 SshConnectionPool.create(String) -> SshConnectionPool.create(String,int,String,String,String,KeyPair) [CALL] env=a saved SFTP connection (or cloud or SMB entry) exists only after a co | st=- | SRC SshConnectionPool.java:213 (bytecode)
+   14 E4e0d2b2d SshAuthenticationTask.doInBackground -> SshAuthenticationTask$1.<init> [CALL] env=a saved SFTP connection (or cloud or SMB entry) exists only after a co | st=- | SRC SshAuthenticationTask.java:131: sshClient.authPublickey(username, new KeyProvider() {...});
+### AmazeFileManager UtilsHandler.getSshAuthPrivateKeyColumn (old verdict wrong) old 12 steps -> new 12 steps; SAME STEPS (edge ids only)
+    9 E4cc2bfcc SshClientUtils.execute(SshClientTemplate) -> SshConnectionPool.getConnection(String) [CALL] env=a saved SFTP connection (or cloud or SMB entry) exists only after a co | st=- | SRC filesystem/ssh/SshClientUtils.java:72 client = SshConnectionPool.getInstance().getConnection(template.url)

@@ -1,0 +1,55 @@
+Round 2 audit, 1 in 3 (Kiro, 2026-11-10; one checker, self-checked only, second: pending reviewer)
+Population over the five apps population: new gates 79 (judged rows 35, rule B edges 34, rule D edges 10); new UNREACHABLE 12
+Every third item (gates, then UNREACHABLE entries) re-read from the cited source; result per item.
+Finding outside the sample, fixed before this sheet: the AsyncTask.onCancelled rule first took AnkiDroid
+AnkiStatsTaskHandler$CreateChartTask and $CreateStatisticsOverview as never cancelled; their instances are
+returned (AnkiStatsTaskHandler.java:66-73) and cancelled under the AsyncTask type (Statistics.java:414,543,574,681,692).
+The rule now counts a returned instance as cancellable; both methods are reachable again.
+
+[23] gate (judged STATE) | LibreTorrent | E3738b567 FeedFragment$2.onSelectionChanged -> FeedFragment$3.onActionItemClicked
+    claim: the feed action mode needs a selected feed channel; the baseline has none, so a feed is added first
+    ref: ui/feeds/FeedFragment.java:355-365
+      FeedFragment.java:354 {
+      FeedFragment.java:355 @Override
+      FeedFragment.java:356 public boolean onPrepareActionMode(ActionMode mode, Menu menu)
+      FeedFragment.java:357 {
+      FeedFragment.java:358 MenuItem edit = menu.findItem(R.id.edit_feed_channel_menu);
+      FeedFragment.java:359 MenuItem refresh = menu.findItem(R.id.refresh_feed_channel_menu);
+      FeedFragment.java:360 MenuItem copy = menu.findItem(R.id.copy_feed_channel_url_menu);
+      FeedFragment.java:361
+    result: OK (the source supports the gate or the UNREACHABLE reason)
+
+[24] gate (judged STATE) | LibreTorrent | Ea10d4b40 FeedFragment.onViewCreated -> FeedChannelListAdapter$ItemLookup.getItemDetails
+    claim: the feed list looks up items only when it has a channel; the baseline has none
+    ref: ui/feeds/FeedFragment.java
+    result: OK (the source supports the gate or the UNREACHABLE reason)
+
+[25] gate (judged STATE) | LibreTorrent | Ed3e704d3 TorrentSessionImpl.restoreTorrents -> Torrent.isDownloadingMetadata
+    claim: restoreTorrents checks each stored torrent; the baseline has none
+    ref: core/session/TorrentSessionImpl.java:413
+      TorrentSessionImpl.java:412 LoadTorrentTask loadTask = new LoadTorrentTask(torrent.id);
+      TorrentSessionImpl.java:413 if (path != null && torrent.isDownloadingMetadata()) {
+      TorrentSessionImpl.java:414 loadTask.putMagnet(
+    result: OK (the source supports the gate or the UNREACHABLE reason)
+
+[26] gate (judged STATE) | LibreTorrent | Eba4bd391 FeedActivity.lambda$subscribeMsgViewModel$3 -> FeedItemsFragment.getFeedId
+    claim: the feed items page shows a stored feed channel; the baseline has none, so a feed is added first
+    ref: ui/feeds/FeedActivity.java:184-187
+      FeedActivity.java:183 .observeOn(AndroidSchedulers.mainThread())
+      FeedActivity.java:184 .subscribe((ids) -> {
+      FeedActivity.java:185 FeedItemsFragment f = getCurrentFeedItemsFragment();
+      FeedActivity.java:186 if (f != null && ids.contains(f.getFeedId()))
+      FeedActivity.java:187 showBlankFragment();
+      FeedActivity.java:188 }));
+    result: OK (the source supports the gate or the UNREACHABLE reason)
+
+[30] UNREACHABLE (rule C) | LibreTorrent | FileManagerConfig.describeContents
+    claim: round 2 C: the framework calls describeContents of an app object only from hasFileDescriptors on unparcelled extras, which the activity start checks in system_server on parcelled data (Bundle.java:316-340; ActivityStarter.java:681)
+    ref: FW-SRC core/java/android/os/Bundle.java:316-340; core/java/android/content/Intent.java:6958,9552; services/core/java/com/android/server/am/ActivityStarter.java:681
+    result: OK (the source supports the gate or the UNREACHABLE reason)
+
+[31] UNREACHABLE (rule C) | LibreTorrent | TorrentContentFileItem.describeContents
+    claim: round 2 C: the framework calls describeContents of an app object only from hasFileDescriptors on unparcelled extras, which the activity start checks in system_server on parcelled data (Bundle.java:316-340; ActivityStarter.java:681)
+    ref: FW-SRC core/java/android/os/Bundle.java:316-340; core/java/android/content/Intent.java:6958,9552; services/core/java/com/android/server/am/ActivityStarter.java:681
+    result: OK (the source supports the gate or the UNREACHABLE reason)
+

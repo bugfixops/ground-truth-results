@@ -1,0 +1,21 @@
+Round 2 audit, 1 in 3 (Kiro, 2026-11-10; one checker, self-checked only, second: pending reviewer)
+Population over the five apps population: new gates 79 (judged rows 35, rule B edges 34, rule D edges 10); new UNREACHABLE 12
+Every third item (gates, then UNREACHABLE entries) re-read from the cited source; result per item.
+Finding outside the sample, fixed before this sheet: the AsyncTask.onCancelled rule first took AnkiDroid
+AnkiStatsTaskHandler$CreateChartTask and $CreateStatisticsOverview as never cancelled; their instances are
+returned (AnkiStatsTaskHandler.java:66-73) and cancelled under the AsyncTask type (Statistics.java:414,543,574,681,692).
+The rule now counts a returned instance as cancellable; both methods are reachable again.
+
+[27] gate (judged ENV) | MMEX | Eeef68b19 CheckingTransactionEditActivity.handleIntent -> AccountRepository.loadName
+    claim: this loadName call runs only when the SMS receiver started the editor for a bank SMS (KEY_TRANS_SOURCE SmsReceiverTransactions.java): an SMS from outside the app
+    ref: transactions/CheckingTransactionEditActivity.java:543-552,610
+      CheckingTransactionEditActivity.java:542 
+      CheckingTransactionEditActivity.java:543 if (intent.getData() != null) {
+      CheckingTransactionEditActivity.java:544 if (!externalIntegration(intent)) return false;
+      CheckingTransactionEditActivity.java:545 }
+      CheckingTransactionEditActivity.java:546 else //start activity from SMS Receiver Transaction
+      CheckingTransactionEditActivity.java:547 {
+      CheckingTransactionEditActivity.java:548 try
+      CheckingTransactionEditActivity.java:549 {
+    result: OK (the source supports the gate or the UNREACHABLE reason)
+

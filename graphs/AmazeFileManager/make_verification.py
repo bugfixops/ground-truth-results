@@ -156,6 +156,18 @@ p8('PasteHelper$1.createFromParcel', 'correct', 'MainActivity.java:425',
 p8('ThemedImageView.getActivity', 'correct', 'PrefFrag.java:89',
    'Review 6 fix 3 re-check (2026-11-07): step 2 was the invented CALL PrefFrag.onCreate -> onPreferenceClick (E4d630b84); it is now the tap on a Settings row, a FRAMEWORK edge with the user action (PrefFrag.java:88-90). The tapped row is Folders (PreferencesActivity.selectItem FRAGMENT_FOLDERS case, :211-213), then FoldersPref builds its PathSwitchPreference rows -> ThemedImageButton -> ThemedImageView.getActivity. The same 10 methods; no gate is needed.')
 
+# Round 2 (Kiro, 2026-11-10; graphs/AmazeFileManager/scratch/reaudit/round2_route_changes.txt): cause B moved the
+# saved-SFTP gates from state to env network (a saved SFTP entry exists only after a connect to a real SSH server,
+# SftpConnectDialog.java:343-354), so these steps have new edge ids; the steps are the same (src, dst, kind).
+R2 = {
+    'CloudIconDataFetcher.cancel': 'step 12 (CloudIconModelLoader.<init> -> buildLoadData)',
+    'SshAuthenticationTask$1.getPublic': 'steps 9, 11, 14 (SshClientUtils.execute -> getConnection, SshConnectionPool.create -> create(...), doInBackground -> $1.<init>)',
+    'UtilsHandler.getSshAuthPrivateKeyColumn': 'step 9 (SshClientUtils.execute -> getConnection)',
+}
+for _m, _s in R2.items():
+    _res, _ref, _note = P[_m]
+    P[_m] = (_res, _ref, _note + ' Round 2 (2026-11-10): the same steps; %s now carry env network instead of the saved-SFTP state (new edge ids, re-checked from the source; cause B).' % _s)
+
 # ---- edge rows: the B6 added/rewired edges, each checked to exist in the built graph.
 EDGE_NOTES = {}
 def edge_note(src, dst, res, ref, note):

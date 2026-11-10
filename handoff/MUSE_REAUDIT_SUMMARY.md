@@ -243,3 +243,54 @@ Class shares over never-run methods, "before" `e0866b9c`, "after" this build (`t
 | weighted | 28.3 / 1.4 / 18.4 / 20.7 / 8.3 / 22.9 (before: 27.3 / 1.1 / 20.4 / 20.4 / 2.9 / 27.8) |
 
 - Not done: W0, because neither `review/sample_tune/` nor `review/checked_cases.csv` is on the branch. Publishing is not done either (no PUBLISH_REQUEST).
+
+### Round 2: causes of the 21 wrong labels (Kiro, 2026-11-10)
+
+Input: `review/rounds/1/adjudication.csv`, the 21 rows where the source supports the sample. Every fix is a rule in the pipeline (`tools_dev/round2_rules.py`, run at the end of each `graphs/<App>/graph_def.py`), not a row edit.
+
+- **A, state gates the W7 screen missed.**
+  - The new screen `tools_dev/guard_prescreen_r2.py` reads the routes of never-run gui and library methods for four kinds of condition: multi-clause conditions, setting reads, hidden or disabled triggers (source and res XML), and stored rows and list items.
+  - It flagged 616 steps. Steps were judged in order of the number of never-run methods that use them until at least 90% of the flagged uses per app were judged (`graphs/<App>/scratch/reaudit/r2_judged.csv`): Aegis 30 steps (97.3% of uses), AmazeFileManager 42 (94.4%), AnkiDroid 41 (91.0%), LibreTorrent 43 (90.8%), MMEX 54 (92.1%). That leaves 46, 19, 79, 22 and 243 steps unjudged.
+  - AnkiDroid-15: only My searches opens the list type of the dialog (`CardBrowser.java:642-653`; the save type at `:636-640` does not run that branch), and My searches shows only with a saved search, so it is a state gate.
+- **B, data and devices from outside: env.**
+  - Saved SFTP, cloud and SMB entries: env network.
+  - Biometric slots and preferences: env hardware.
+  - `launchSAF` (removable SD card): env hardware.
+  - Root mode: env other.
+  - The SMS-started editor: env other_app.
+- **C, calls that never run.**
+  - The edge becomes a REGISTER record, and the method gets an UNREACHABLE entry when no live edge is left.
+  - The base `DatabaseImporter$State.convert` (every state that reaches it overrides it).
+  - `Hooks.runFilter` runs only the hooks registered under its name (AnkiDroid-39: nothing is registered under mungeFields).
+  - `AsyncTask.onCancelled` when no instance can be cancelled. An instance that is returned to a caller counts as cancellable.
+  - Framework calls into an app's `describeContents`.
+  - New UNREACHABLE entries: 12. AmazeFileManager-49 (`ShareAdapter.getItemId`) is left as it is, because the RecyclerView library source is not in the tree.
+- **D, GUI actions.**
+  - Aegis open floating action menu and search box: not session state.
+  - AmazeFileManager storage-permission denial: a GUI action.
+- **E, dialog rule.** Tried behind `R2_DIALOG_RULE` and switched off, because it broke 3 checked cases (MUSE_REAUDIT_QUESTIONS Q-R7-6; `graphs/AnkiDroid/scratch/reaudit/round2_E_trial.txt`).
+- **Agreement on `review/sample_tune`** (`review/measure.py`, outputs in `review/rounds/2/`):
+  - 72.1% before (round 1).
+  - 84.6% after A to D (115 of 136; 97 of 113 without the checked cases).
+  - 84.6% with E on (not kept).
+  - 17 of the 21 rows now have the source class. Still different: AnkiDroid-13, -35, -41 (the dialog rule) and AmazeFileManager-49.
+  - None of the 12 rows where the adjudication supports the full label changed.
+- **Sampled routes.** 9 changed (Aegis 5, AmazeFileManager 3, MMEX 1); 4 of them changed steps, 5 only edge ids. Each was re-checked from the source, and its path row and ROUTES.csv entry ("route changed in round 2, not replayed") were updated (`graphs/<App>/scratch/reaudit/round2_route_changes.txt`). DEVICE rows unchanged: 24, 30, 30, 29, 27.
+- **Audit, 1 in 3.** The population is 79 new gates (35 judged rows, 34 rule B edges, 10 rule D edges) and 12 new UNREACHABLE entries. 31 items were re-read from the source, all OK (`graphs/<App>/scratch/reaudit/round2_audit.txt`). One error was found and fixed outside the sample: the AnkiDroid statistics tasks are cancelled under their AsyncTask type.
+- **Methods whose class changed** against eb139585 (before -> after):
+  - Aegis 160: state->gui 126, state->library 17, gui->state 8, gui->env 5, state->env 2, env->dead 1, library->state 1.
+  - AmazeFileManager 48: state->env 32, gui->env 9, gui->state 3, state->dead 3, state->gui 1.
+  - AnkiDroid 23: gui->state 22, gui->dead 1.
+  - LibreTorrent 78: library->state 71, library->dead 5, state->dead 2.
+  - MMEX 6: gui->state 6.
+
+Class shares over never-run methods, before `e0866b9c`, after this build (dead / config / env / state / library / gui, %):
+
+| App | after round 2 |
+|---|---|
+| Aegis | 20.9 / 0.2 / 33.2 / 10.4 / 5.5 / 29.8 |
+| AmazeFileManager | 25.7 / 2.1 / 28.2 / 18.4 / 2.7 / 22.9 |
+| AnkiDroid | 41.3 / 3.0 / 19.4 / 15.4 / 0.5 / 20.3 |
+| LibreTorrent | 28.2 / 1.0 / 15.8 / 38.5 / 14.3 / 2.3 |
+| MMEX | 20.8 / 0.3 / 6.0 / 16.0 / 13.7 / 43.2 |
+| weighted | 28.4 / 1.4 / 18.8 / 20.6 / 7.7 / 23.1 (before: 27.3 / 1.1 / 20.4 / 20.4 / 2.9 / 27.8) |

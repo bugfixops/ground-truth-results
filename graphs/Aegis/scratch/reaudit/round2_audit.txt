@@ -1,0 +1,97 @@
+Round 2 audit, 1 in 3 (Kiro, 2026-11-10; one checker, self-checked only, second: pending reviewer)
+Population over the five apps population: new gates 79 (judged rows 35, rule B edges 34, rule D edges 10); new UNREACHABLE 12
+Every third item (gates, then UNREACHABLE entries) re-read from the cited source; result per item.
+Finding outside the sample, fixed before this sheet: the AsyncTask.onCancelled rule first took AnkiDroid
+AnkiStatsTaskHandler$CreateChartTask and $CreateStatisticsOverview as never cancelled; their instances are
+returned (AnkiStatsTaskHandler.java:66-73) and cancelled under the AsyncTask type (Statistics.java:414,543,574,681,692).
+The rule now counts a returned instance as cancellable; both methods are reachable again.
+
+[1] gate (judged STATE) | Aegis | Ecc44d339 AegisApplicationBase$AppLifecycleObserver.onStateChanged -> VaultManager.isAutoLockBlocked
+    claim: Preferences.java:188-192; auto lock on minimize is turned on in Settings > Security > Auto lock (off by default: the default mask is back button and device lock), so the ON_STOP check reaches isAutoLockBlocked
+    ref: AegisApplicationBase.java:108-110
+      AegisApplicationBase.java:107 public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
+      AegisApplicationBase.java:108 if (event == Lifecycle.Event.ON_STOP
+      AegisApplicationBase.java:109 && _vaultManager.isAutoLockEnabled(Preferences.AUTO_LOCK_ON_MINIMIZE)
+      AegisApplicationBase.java:110 && !_vaultManager.isAutoLockBlocked()) {
+      AegisApplicationBase.java:111 _vaultManager.lock(false);
+    result: OK (the source supports the gate or the UNREACHABLE reason)
+
+[2] gate (judged STATE) | Aegis | E6d3897fc GroupManagerActivity.onCreate -> GroupManagerActivity$1.onMove
+    claim: a group row is dragged only when the vault has a group; the baseline vault has none (the list is GONE while empty)
+    ref: ui/GroupManagerActivity.java:67-71,213-215
+      GroupManagerActivity.java:66 
+      GroupManagerActivity.java:67 return makeMovementFlags(ItemTouchHelper.UP | ItemTouchHelper.DOWN, 0);
+      GroupManagerActivity.java:68 }
+      GroupManagerActivity.java:69 
+      GroupManagerActivity.java:70 @Override
+      GroupManagerActivity.java:71 public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+      GroupManagerActivity.java:72 int draggedItemIndex = viewHolder.getBindingAdapterPosition();
+    result: OK (the source supports the gate or the UNREACHABLE reason)
+
+[3] gate (rule B) | Aegis | Ec43a93ad S_AUTH -> AuthActivity.lambda$onCreate$4
+    claim: : state gate moved to env (was: The vault has a biometric slot and a key store key, saved by an earlier intro run that chose biometrics (cross-run state, no producer in this run))
+    ref: FW-SRC core/java/android/view/View.java:6289-6296 (performClick calls the OnClickListener.onClick); SRC ui/AuthActivity.java:180-194; INFERRED androidx.biometric.BiometricPrompt calls the Authenticati
+      AuthActivity.java:179 
+      AuthActivity.java:180 biometricsButton.setOnClickListener(v -> {
+      AuthActivity.java:181 if (_prefs.isPasswordReminderNeeded()) {
+      AuthActivity.java:182 Dialogs.showSecureDialog(new MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_Aegis_AlertDialog_Warning)
+      AuthActivity.java:183 .setTitle(getString(R.string.password_reminder_dialog_title))
+      AuthActivity.java:184 .setMessage(getString(R.string.password_reminder_dialog_message))
+      AuthActivity.java:185 .setCancelable(false)
+      AuthActivity.java:186 .setIconAttribute(android.R.attr.alertDialogIcon)
+    result: OK (the source supports the gate or the UNREACHABLE reason)
+
+[4] gate removed (rule D) | Aegis | E50c49023 FabMenuHelper.close -> FabMenuHelper.lambda$close$6
+    claim: : a GUI action in the same sequence, not state (was: The floating action menu is open (FabMenuHelper.open ran; FabMenuHelper.java:76-102))
+    ref: INFERRED View.postDelayed runs the Runnable on the main thread after the delay (framework source not read); SRC helpers/FabMenuHelper.java:125-129
+      FabMenuHelper.java:124 
+      FabMenuHelper.java:125 _mainFab.postDelayed(() -> {
+      FabMenuHelper.java:126 if (!_isOpen) {
+      FabMenuHelper.java:127 _menuItemsContainer.setVisibility(View.GONE);
+      FabMenuHelper.java:128 }
+      FabMenuHelper.java:129 }, ANIMATION_DURATION);
+      FabMenuHelper.java:130
+    result: OK (the source supports the gate or the UNREACHABLE reason)
+
+[5] gate removed (rule D) | Aegis | E835a2525 S_LIST -> MainActivity.lambda$onCreateOptionsMenu$24
+    claim: : a GUI action in the same sequence, not state (was: The search box is expanded, opened by the search icon or by focus (MainActivity.java:1021-1024,1060-1064))
+    ref: INFERRED androidx.appcompat SearchView calls its query, focus, close and search-click listeners (AppCompat source not read); SRC ui/MainActivity.java:1025-1030
+      MainActivity.java:1024 });
+      MainActivity.java:1025 _searchView.setOnCloseListener(() -> {
+      MainActivity.java:1026 boolean enabled = _submittedSearchQuery != null;
+      MainActivity.java:1027 _searchViewBackPressHandler.setEnabled(enabled);
+      MainActivity.java:1028 _groupChip.setVisibility(_groups.isEmpty() ? View.GONE : View.VISIBLE);
+      MainActivity.java:1029 return false;
+      MainActivity.java:1030 });
+      MainActivity.java:1031
+    result: OK (the source supports the gate or the UNREACHABLE reason)
+
+[6] gate (rule B) | Aegis | E72fa5349 SecurityPreferencesFragment.onCreatePreferences -> SecurityPreferencesFragment.lambda$onCreatePreferences$5
+    claim: : state gate moved to env (was: Biometrics are available on the device (BiometricsHelper.isAvailable returns true, helpers/BiometricsHelper.java:27-29); the biometrics row is enabled only then (SecurityPreferencesFragment.java:277))
+    ref: INFERRED androidx.preference: a change of a preference value calls its OnPreferenceChangeListener (androidx source not cached); SRC ui/fragments/preferences/SecurityPreferencesFragment.java:110-143
+      SecurityPreferencesFragment.java:109 
+      SecurityPreferencesFragment.java:110 _biometricsPreference = requirePreference("pref_biometrics");
+      SecurityPreferencesFragment.java:111 _biometricsPreference.setOnPreferenceChangeListener((preference, newValue) -> {
+      SecurityPreferencesFragment.java:112 VaultFileCredentials creds = _vaultManager.getVault().getCredentials();
+      SecurityPreferencesFragment.java:113 SlotList slots = creds.getSlots();
+      SecurityPreferencesFragment.java:114 
+      SecurityPreferencesFragment.java:115 if (!slots.has(BiometricSlot.class)) {
+      SecurityPreferencesFragment.java:116 if (BiometricsHelper.isAvailable(requireContext())) {
+    result: OK (the source supports the gate or the UNREACHABLE reason)
+
+[28] UNREACHABLE (rule C) | Aegis | DatabaseImporter$State.convert
+    claim: round 2 C: every state that reaches processDecryptedImporterState overrides convert (no super.convert); encrypted states are decrypted first (ImportEntriesActivity.java:178-208; importers/DatabaseImporter.java:163)
+    ref: SRC com/beemdevelopment/aegis/ui/ImportEntriesActivity.java:178-208; com/beemdevelopment/aegis/importers/DatabaseImporter.java:163
+      ImportEntriesActivity.java:177 try {
+      ImportEntriesActivity.java:178 if (state.isEncrypted()) {
+      ImportEntriesActivity.java:179 state.decrypt(this, new DatabaseImporter.DecryptListener() {
+      ImportEntriesActivity.java:180 @Override
+      ImportEntriesActivity.java:181 public void onStateDecrypted(DatabaseImporter.State state) {
+      ImportEntriesActivity.java:182 processDecryptedImporterState(state);
+      ImportEntriesActivity.java:183 }
+      ImportEntriesActivity.java:184 
+      DatabaseImporter.java:162 
+      DatabaseImporter.java:163 public Result convert() throws DatabaseImporterException {
+      DatabaseImporter.java:164 if (_encrypted) {
+    result: OK (the source supports the gate or the UNREACHABLE reason)
+

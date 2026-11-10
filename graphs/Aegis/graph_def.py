@@ -6798,3 +6798,8 @@ def EDIT(x):
         x['env'], x['env_kinds'] = _W9C_SVG_ENV, ['other_app']
     if x['src'] == 'FabScrollHelper.setVisible' and x['dst'] == 'FabScrollHelper$2.onAnimationEnd' and not x.get('needs_state'):
         x['needs_state'], x['state_kinds'] = _W9C_FAB_HIDE, ['data']
+
+# ---- ROUND 2 (Kiro, 2026-11-10): causes A-E of review/rounds/1/adjudication.csv; the rules are in tools_dev/round2_rules.py ----
+R2_APP = 'Aegis'
+R2_DIALOG_RULE = False  # cause E (the dialog rule), switched on as a separate step
+exec(compile(open(__import__("os").path.join(GDIR, "..", "..", "tools_dev", "round2_rules.py"), encoding="utf-8").read(), "tools_dev/round2_rules.py", "exec"))

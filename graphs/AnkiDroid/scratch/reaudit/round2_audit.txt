@@ -1,0 +1,53 @@
+Round 2 audit, 1 in 3 (Kiro, 2026-11-10; one checker, self-checked only, second: pending reviewer)
+Population over the five apps population: new gates 79 (judged rows 35, rule B edges 34, rule D edges 10); new UNREACHABLE 12
+Every third item (gates, then UNREACHABLE entries) re-read from the cited source; result per item.
+Finding outside the sample, fixed before this sheet: the AsyncTask.onCancelled rule first took AnkiDroid
+AnkiStatsTaskHandler$CreateChartTask and $CreateStatisticsOverview as never cancelled; their instances are
+returned (AnkiStatsTaskHandler.java:66-73) and cancelled under the AsyncTask type (Statistics.java:414,543,574,681,692).
+The rule now counts a returned instance as cancellable; both methods are reachable again.
+
+[19] gate (judged STATE) | AnkiDroid | E023263b5 AbstractFlashcardViewer$MyGestureDetector.onFling -> Previewer.executeCommand
+    claim: anki/AnkiDroidApp.java:304-305; gestures are on (pref gestures, default false): a swipe in the previewer runs its command only then
+    ref: anki/AbstractFlashcardViewer.java:2670,2699
+      AbstractFlashcardViewer.java:2669 }
+      AbstractFlashcardViewer.java:2670 if (mGesturesEnabled) {
+      AbstractFlashcardViewer.java:2671 try {
+    result: OK (the source supports the gate or the UNREACHABLE reason)
+
+[20] gate (judged STATE) | AnkiDroid | E9dc8aa84 S_REVIEWER -> AbstractFlashcardViewer$14.onClick
+    claim: anki/Lookup.java:43,175; the Lookup button is hidden until the clipboard has text and a dictionary is set in the settings (Lookup.isAvailable; the dictionary pref defaults to none)
+    ref: anki/AbstractFlashcardViewer.java:1217-1221,1416-1417
+      AbstractFlashcardViewer.java:1216 
+      AbstractFlashcardViewer.java:1217 private void showLookupButtonIfNeeded() {
+      AbstractFlashcardViewer.java:1218 if (!mDisableClipboard && mClipboard != null) {
+      AbstractFlashcardViewer.java:1219 if (clipboardGetText().length() != 0 && Lookup.isAvailable() && mLookUpIcon.getVisibility() != View.VISIBLE) {
+      AbstractFlashcardViewer.java:1220 mLookUpIcon.setVisibility(View.VISIBLE);
+      AbstractFlashcardViewer.java:1221 enableViewAnimation(mLookUpIcon, ViewAnimation.fade(ViewAnimation.FADE_IN, mFadeDuration, 0));
+      AbstractFlashcardViewer.java:1222 } else if (mLookUpIcon.getVisibility() == View.VISIBLE) {
+    result: OK (the source supports the gate or the UNREACHABLE reason)
+
+[21] gate (judged STATE) | AnkiDroid | Ee203e69a Template.render_unescaped -> Hooks.runFilter
+    claim: libanki/hooks/FuriganaFilters.java:35-37; libanki/hooks/HintFilter.java; a field filter (fmod_ hint, furigana, kana, kanji) runs only for a template field with that modifier; no note type of the baseline uses one, so a template is edited first
+    ref: libanki/template/Template.java:272-276
+      Template.java:271 extra = m.group(2);
+      Template.java:272 }
+      Template.java:273 
+      Template.java:274 txt = (String) Hooks.runFilter("fmod_" + mod,
+      Template.java:275 txt == null ? "" : txt,
+      Template.java:276 extra == null ? "" : extra,
+      Template.java:277 context, tag, tag_name);
+    result: OK (the source supports the gate or the UNREACHABLE reason)
+
+[22] gate (judged STATE) | AnkiDroid | Ece971999 CardBrowserMySearchesDialog.onCreateDialog -> CardBrowserMySearchesDialog$1.<init>
+    claim: anki/CardBrowser.java:574-578; the list type of the dialog needs a saved search, as for E60640932
+    ref: anki/dialogs/CardBrowserMySearchesDialog.java:64-69
+      CardBrowserMySearchesDialog.java:63 
+      CardBrowserMySearchesDialog.java:64 int type = getArguments().getInt("type");
+      CardBrowserMySearchesDialog.java:65 if (type == CARD_BROWSER_MY_SEARCHES_TYPE_LIST) {
+      CardBrowserMySearchesDialog.java:66 mSavedFilters = (HashMap<String, String>) getArguments().getSerializable("savedFilters");
+      CardBrowserMySearchesDialog.java:67 mSearchesAdapter = new MySearchesArrayAdapter(activity, new ArrayList<>(mSavedFilters.keySet()));
+      CardBrowserMySearchesDialog.java:68 mSearchesAdapter.notifyDataSetChanged(); //so the values are sorted.
+      CardBrowserMySearchesDialog.java:69 builder.title(res.getString(R.string.card_browser_list_my_searches_title))
+      CardBrowserMySearchesDialog.java:70 .adapter(mSearchesAdapter, new MaterialDialog.ListCallback() {
+    result: OK (the source supports the gate or the UNREACHABLE reason)
+

@@ -259,7 +259,8 @@
   defaultAccountId != null, :174; NOT_SET, :52 = -1). Step 1
   INFERRED-delivery acceptable as in route 24.
 
-### 26. MmxContentProvider.prepareQuery — PLAIN, 10 steps — CORRECT
+### 26. MmxContentProvider.prepareQuery — PLAIN, 15 steps — CORRECT (re-verified 2026-11-06; first verification: CORRECT)
+- Re-verified 2026-11-06 (Kiro, self-checked only, second: pending reviewer): Round 2 (2026-11-10; the reviewer allowed the change): the old route (MainActivity.onCreate -> populateScheduledTransactions -> RecurringTransactionRepository.load -> first -> openCursor ...) was wrong as drawn: load runs only inside the loop over due recurring transactions (home/MainActivity.java:1253-1264), and the fresh database has none (cause A, MMEX-17). New steps 3-12 read from the source: the home page (MainActivity.java:238,1308-1324), the account row context menu Edit (HomeFragment.java:450-466) starts AccountEditActivity with ACTION_EDIT and the baseline account id, onCreate loads it (AccountEditActivity.java:105-116,575-578) -> AccountRepository.load -> first (AccountRepository.java:51-57,151) -> RepositoryBase.first -> openCursor (RepositoryBase.java:104); steps 13-15 (query, query_internal, prepareQuery) as before.
 - Steps 1-10 CORRECT. Step 3 CORRECT now: shared edge E00ecbc65 with
   the full !showPrerequisite() guard printed — the B6 FIXED item is
   resolved by the applied showPrerequisite guard. All other

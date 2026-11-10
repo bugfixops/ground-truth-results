@@ -1,0 +1,22 @@
+Round 2 (Kiro, 2026-11-10): sampled routes whose best route changed against the CI build eb139585. Every step of a changed route was re-read from the source; full old/new step lists: python3 -I tools_dev/route_diff.py <App> on the parent build.
+
+MmxContentProvider.prepareQuery
+  old 10 steps -> new 15 steps
+  new steps: 3 MainActivity.onCreate -> MainActivity.initHomeFragment, 4 MainActivity.initHomeFragment -> S_HOME, 5 S_HOME -> HomeFragment.onContextItemSelected, 6 HomeFragment.onContextItemSelected -> AccountEditActivity.<init>, 7 AccountEditActivity.<init> -> AccountEditActivity.onCreate, 8 AccountEditActivity.onCreate -> AccountEditActivity.loadAccount ...
+  dropped: MainActivity.onCreate -> MainActivity.populateScheduledTransactions; MainActivity.populateScheduledTransactions -> RecurringTransactionRepository.load; RecurringTransactionRepository.load -> RecurringTransactionRepository.first; RecurringTransactionRepository.first -> RepositoryBase.openCursor(String[],String,String[]); RepositoryBase.openCursor(String[],String,String[]) -> RepositoryBase.openCursor(String[],String,String[],String)
+  verdict: CORRECT (old route wrong as drawn)
+  evidence: cause A (MMEX-17): load runs only for due recurring transactions (MainActivity.java:1253-1264), none in the fresh database; new route: home > account context menu Edit > AccountEditActivity loads the baseline account; HomeFragment.java:450-466; AccountEditActivity.java:105-116,575-578; AccountRepository.java:51-57,151; RepositoryBase.java:104
+
+---- full listing (new steps marked +, with gates and evidence)
+### MMEX MmxContentProvider.prepareQuery (old verdict correct) old 10 steps -> new 15 steps; STEPS CHANGED
+  + 3 E5d5a9c2f MainActivity.onCreate -> MainActivity.initHomeFragment [CALL] env=- | st=- | SRC MainActivity.java:238 (bytecode)
+  + 4 Eff22f7d2 MainActivity.initHomeFragment -> S_HOME [ENTERS] env=- | st=- | SRC home/MainActivity.java:1308-1324; SRC home/HomeFragment.java:167-173 (onCreateView inflates home_fragment)
+  + 5 E1644b6d5 S_HOME -> HomeFragment.onContextItemSelected [GUI] env=- | st=- | SRC home/HomeFragment.java:450-478 (Edit 462, balance 470, portfolio 473); INFERRED the framework dispatches t
+  + 6 E85eda8a2 HomeFragment.onContextItemSelected -> AccountEditActivity.<init> [INTENT] env=- | st=- | SRC home/HomeFragment.java:450-469 (account check 455; EDIT check 462; intent 463-466; startActivity 466)
+  + 7 E8d5ee44f AccountEditActivity.<init> -> AccountEditActivity.onCreate [LIFECYCLE] env=- | st=- | FW-SRC core/java/android/app/ActivityThread.java:2722-2731 (callActivityOnCreate); FW-SRC core/java/android/ap
+  + 8 E6ca0c826 AccountEditActivity.onCreate -> AccountEditActivity.loadAccount [CALL] env=- | st=- | SRC AccountEditActivity.java:113 (bytecode)
+  + 9 Eeab53c27 AccountEditActivity.loadAccount -> AccountRepository.load [CALL] env=- | st=- | SRC AccountEditActivity.java:577 (bytecode)
+  +10 Ef7590543 AccountRepository.load -> AccountRepository.first [CALL] env=- | st=- | SRC datalayer/AccountRepository.java:51-57 (load :51, NOT_SET early return :52, first call :57)
+  +11 Eb43971e1 AccountRepository.first -> RepositoryBase.first [CALL] env=- | st=- | SRC AccountRepository.java:151 (bytecode)
+  +12 Edb2f0c31 RepositoryBase.first -> RepositoryBase.openCursor(String[],String,String[],String) [CALL] env=- | st=- | SRC RepositoryBase.java:104 (bytecode)
+  dropped: MainActivity.onCreate -> MainActivity.populateScheduledTransactions; MainActivity.populateScheduledTransactions -> RecurringTransactionRepository.load; RecurringTransactionRepository.load -> RecurringTransactionRepository.first; RecurringTransactionRepository.first -> RepositoryBase.openCursor(String[],String,String[]); RepositoryBase.openCursor(String[],String,String[]) -> RepositoryBase.openCursor(String[],String,String[],String)

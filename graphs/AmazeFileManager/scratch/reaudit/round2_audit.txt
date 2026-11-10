@@ -1,0 +1,116 @@
+Round 2 audit, 1 in 3 (Kiro, 2026-11-10; one checker, self-checked only, second: pending reviewer)
+Population over the five apps population: new gates 79 (judged rows 35, rule B edges 34, rule D edges 10); new UNREACHABLE 12
+Every third item (gates, then UNREACHABLE entries) re-read from the cited source; result per item.
+Finding outside the sample, fixed before this sheet: the AsyncTask.onCancelled rule first took AnkiDroid
+AnkiStatsTaskHandler$CreateChartTask and $CreateStatisticsOverview as never cancelled; their instances are
+returned (AnkiStatsTaskHandler.java:66-73) and cancelled under the AsyncTask type (Statistics.java:414,543,574,681,692).
+The rule now counts a returned instance as cancellable; both methods are reachable again.
+
+[7] gate (judged ENV) | AmazeFileManager | E0fa65135 Operations$1.doInBackground -> MainActivityHelper$2.exists
+    claim: the exists callback on this line runs only in root mode after a non-root check failed: root mode needs a rooted device (su), which the emulator image does not grant
+    ref: filesystem/Operations.java:170-172
+      Operations.java:169 FileUtil.mkdir(file.getFile(), context);
+      Operations.java:170 if (!file.exists() && rootMode) {
+      Operations.java:171 file.setMode(OpenMode.ROOT);
+      Operations.java:172 if (file.exists()) errorCallBack.exists(file);
+      Operations.java:173 try {
+    result: OK (the source supports the gate or the UNREACHABLE reason)
+
+[8] gate (rule B) | AmazeFileManager | E44362166 SftpConnectDialog.onCreateDialog -> SftpConnectDialog.lambda$onCreateDialog$12
+    claim: : state gate moved to env (was: a saved SFTP connection exists (the edit dialog opens from its drawer entry); the baseline has none)
+    ref: SRC SftpConnectDialog.java:236 if(edit) { dialogBuilder.negativeText(R.string.delete).onNegative((dialog, which) -> {...
+      SftpConnectDialog.java:235 dialogBuilder.negativeText(R.string.delete).onNegative((dialog, which) -> {
+      SftpConnectDialog.java:236 
+      SftpConnectDialog.java:237 final String connectionName = connectionET.getText().toString();
+    result: OK (the source supports the gate or the UNREACHABLE reason)
+
+[9] gate (rule B) | AmazeFileManager | Edeaed6de SftpConnectDialog.lambda$authenticateAndSaveSetup$15 -> SftpConnectDialog.getPemContents
+    claim: : state gate moved to env (was: app state: a saved SFTP connection is edited (the else branch, SftpConnectDialog.java:373), so the update stores its key contents (:388))
+    ref: SRC SftpConnectDialog.java:388 getPemContents());
+      SftpConnectDialog.java:387 getArguments().getString("name"), encryptedPath,
+      SftpConnectDialog.java:388 hostKeyFingerprint,
+      SftpConnectDialog.java:389 selectedParsedKeyPairName, getPemContents());
+    result: OK (the source supports the gate or the UNREACHABLE reason)
+
+[10] gate (rule B) | AmazeFileManager | E2746d411 Operations.mkfile -> MainActivityHelper$3.launchSAF(HybridFile)
+    claim: : removable SD card
+    ref: SRC filesystem/Operations.java (Operations.mkfile detects need for SAF and calls callback.launchSAF); SRC utils/MainActivityHelper.java:410-420
+      MainActivityHelper.java:409 @Override
+      MainActivityHelper.java:410 public void launchSAF(HybridFile file) {
+      MainActivityHelper.java:411 
+      MainActivityHelper.java:412 ma.getActivity().runOnUiThread(() -> {
+      MainActivityHelper.java:413 if (toast != null) toast.cancel();
+      MainActivityHelper.java:414 mainActivity.oppathe = path.getPath();
+      MainActivityHelper.java:415 mainActivity.operation = DataUtils.NEW_FILE;
+      MainActivityHelper.java:416 guideDialogForLEXA(mainActivity.oppathe);
+    result: OK (the source supports the gate or the UNREACHABLE reason)
+
+[11] gate (rule B) | AmazeFileManager | E660f3065 MainActivityHelper.mkDir -> MainActivityHelper$4.launchSAF(HybridFile)
+    claim: : removable SD card
+    ref: SRC MainActivityHelper.java:453,468-476: Operations.mkdir(..., new Operations.ErrorCallBack() { @Override public void launchSAF(HybridFile file) { ... } }); mkdir invokes ErrorCallBack.launchSAF
+      MainActivityHelper.java:452 toast.show();
+      MainActivityHelper.java:453 Operations.mkdir(path, ma.getActivity(), mainActivity.isRootExplorer(), new Operations.ErrorCallBack() {
+      MainActivityHelper.java:454 @Override
+    result: OK (the source supports the gate or the UNREACHABLE reason)
+
+[12] gate (rule B) | AmazeFileManager | E36c4bb8a SftpConnectDialog.lambda$onCreateDialog$12 -> SftpConnectDialog.lambda$authenticateAndSaveSetup$15
+    claim: : state gate moved to env (was: a saved SFTP connection is edited: the dialog removes the saved entry in the background only when it is in the saved list (containsServer != -1, SftpConnectDialog.java:244-251); the lambda name of this hand edge is not checked against the bytecode)
+    ref: SRC SftpConnectDialog.java:249 shows () -> { utilsHandler.removeFromDatabase(...) }
+      SftpConnectDialog.java:248 
+      SftpConnectDialog.java:249 AppConfig.runInBackground(() -> {
+      SftpConnectDialog.java:250 utilsHandler.removeFromDatabase(new OperationData(UtilsHandler.Operation.SFTP,
+    result: OK (the source supports the gate or the UNREACHABLE reason)
+
+[13] gate (rule B) | AmazeFileManager | Ea5edd832 SshAuthenticationTask.doInBackground -> SshAuthenticationTask$1.<init>
+    claim: : state gate moved to env (was: a saved SFTP connection authenticates with a key (the key-provider branch, :129-131); the baseline has none)
+    ref: SRC asynchronous/asynctasks/ssh/SshAuthenticationTask.java:131 sshClient.authPublickey(username, new KeyProvider() {...})
+      SshAuthenticationTask.java:130 {
+      SshAuthenticationTask.java:131 sshClient.authPublickey(username, new KeyProvider() {
+      SshAuthenticationTask.java:132 @Override
+    result: OK (the source supports the gate or the UNREACHABLE reason)
+
+[14] gate (rule B) | AmazeFileManager | E5e42e68e Drawer.onNavigationItemActionClick -> MainActivity.showSftpDialog
+    claim: : state gate moved to env (was: a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none)
+    ref: SRC Drawer.java:626 (bytecode)
+      Drawer.java:625 } else if (path.startsWith("ssh:/")) {
+      Drawer.java:626 mainActivity.showSftpDialog(title, path, true);
+      Drawer.java:627 } else if (path.startsWith(CloudHandler.CLOUD_PREFIX_DROPBOX)) {
+    result: OK (the source supports the gate or the UNREACHABLE reason)
+
+[15] gate (rule B) | AmazeFileManager | E5f2e6fab Operations$2.doInBackground -> MainActivityHelper$3.launchSAF(HybridFile)
+    claim: : removable SD card
+    ref: SRC Operations.java:303 (bytecode)
+      Operations.java:302 if (mode == 2) {
+      Operations.java:303 errorCallBack.launchSAF(file);
+      Operations.java:304 return null;
+    result: OK (the source supports the gate or the UNREACHABLE reason)
+
+[16] gate (rule B) | AmazeFileManager | E1ce70e8a Operations$1.doInBackground -> FileUtils$5.launchSAF(HybridFile)
+    claim: : removable SD card
+    ref: SRC Operations.java:165 (bytecode)
+      Operations.java:164 if (mode == 2) {
+      Operations.java:165 errorCallBack.launchSAF(file);
+      Operations.java:166 return null;
+    result: OK (the source supports the gate or the UNREACHABLE reason)
+
+[17] gate (rule B) | AmazeFileManager | Ee08ec7b8 Operations$3.doInBackground -> MainActivityHelper$2.launchSAF(HybridFile,HybridFile)
+    claim: : removable SD card
+    ref: SRC Operations.java:441 (bytecode)
+      Operations.java:440 if (mode == 2) {
+      Operations.java:441 errorCallBack.launchSAF(oldFile, newFile);
+      Operations.java:442 } else if (mode == 1 || mode == 0) {
+    result: OK (the source supports the gate or the UNREACHABLE reason)
+
+[18] gate (rule B) | AmazeFileManager | Ea7674573 MainActivity.showSftpDialog -> UtilsHandler.getSshAuthPrivateKeyName
+    claim: : state gate moved to env (was: a saved SFTP connection without a password is edited: showSftpDialog reads its key name only when the saved URI has no password (MainActivity.java:1654-1656); a connection is saved in the app with the SFTP dialog)
+    ref: SRC MainActivity.java:1656 (bytecode)
+      MainActivity.java:1655 bundle.putBoolean("hasPassword", false);
+      MainActivity.java:1656 bundle.putString("keypairName", utilsHandler.getSshAuthPrivateKeyName(path));
+      MainActivity.java:1657 } else {
+    result: OK (the source supports the gate or the UNREACHABLE reason)
+
+[29] UNREACHABLE (rule C) | AmazeFileManager | ZipService$CompressAsyncTask.onCancelled
+    claim: round 2 C: the framework calls onCancelled only after cancel(), and no file that creates ZipService$CompressAsyncTask calls cancel (fw AsyncTask.java:462,479)
+    ref: FW-SRC core/java/android/os/AsyncTask.java:462,479
+    result: OK (the source supports the gate or the UNREACHABLE reason)
+

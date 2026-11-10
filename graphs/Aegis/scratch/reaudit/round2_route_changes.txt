@@ -1,0 +1,89 @@
+Round 2 (Kiro, 2026-11-10): sampled routes whose best route changed against the CI build eb139585. Every step of a changed route was re-read from the source; full old/new step lists: python3 -I tools_dev/route_diff.py <App> on the parent build.
+
+IconAdapter$CategoryHeader.getPosition
+  old 53 steps -> new 36 steps
+  new steps: 22 S_LIST -> FabMenuHelper.lambda$setupClickListeners$0, 23 FabMenuHelper.lambda$setupClickListeners$0 -> FabMenuHelper.toggle, 24 FabMenuHelper.toggle -> FabMenuHelper.open, 25 FabMenuHelper.open -> FabMenuHelper.lambda$setupClickListeners$2, 26 FabMenuHelper.lambda$setupClickListeners$2 -> MainActivity.startEditEntryActivity(), 27 MainActivity.startEditEntryActivity() -> MainActivity.startEditEntryActivityForManual ...
+  dropped: S_LIST -> MainActivity.onOptionsItemSelected; MainActivity.onOptionsItemSelected -> MainActivity.startPreferencesActivity(); MainActivity.startPreferencesActivity() -> MainActivity.startPreferencesActivity(Class,String); MainActivity.startPreferencesActivity(Class,String) -> PreferencesActivity.<init>; PreferencesActivity.<init> -> PreferencesActivity.onCreate; PreferencesActivity.onCreate -> MainPreferencesFragment.<init>; MainPreferencesFragment.<init> -> MainPreferencesFragment.onCreatePreferences; MainPreferencesFragment.onCreatePreferences -> S_SETTINGS_MAIN; S_SETTINGS_MAIN -> P
+  verdict: CORRECT (was unclear)
+  evidence: cause D: the floating action menu is a GUI step, so FAB > Enter manually > icon > icon list replaces Settings > Icon packs; FabMenuHelper.java:55,60-74; MainActivity.java:256,475-514; EditEntryActivity.java:365,594 (env icon pack from the picker); IconPickerDialog.java:127; IconAdapter.java:189
+EntryAdapter.setTempHighlightEntry
+  old 39 steps -> new 39 steps
+  new steps: 22 S_LIST -> FabMenuHelper.lambda$setupClickListeners$0, 23 FabMenuHelper.lambda$setupClickListeners$0 -> FabMenuHelper.toggle, 24 FabMenuHelper.toggle -> FabMenuHelper.open, 25 FabMenuHelper.open -> FabMenuHelper.lambda$setupClickListeners$2, 26 FabMenuHelper.lambda$setupClickListeners$2 -> MainActivity.startEditEntryActivity(), 27 MainActivity.startEditEntryActivity() -> MainActivity.startEditEntryActivityForManual ...
+  dropped: S_LIST -> EntryAdapter$2.onLongClick; EntryAdapter$2.onLongClick -> EntryListView.onLongEntryClick; EntryListView.onLongEntryClick -> MainActivity.onLongEntryClick; MainActivity.onLongEntryClick -> MainActivity.startActionMode; MainActivity.startActionMode -> MainActivity$ActionModeCallbacks.onActionItemClicked; MainActivity$ActionModeCallbacks.onActionItemClicked -> MainActivity.startEditEntryActivity(VaultEntry); MainActivity.startEditEntryActivity(VaultEntry) -> EditEntryActivity.<init>
+  verdict: CORRECT
+  evidence: cause D: FAB > Enter manually > Save adds an entry, the list (two baseline entries, no scroll) highlights it; old route used the selection action mode (session); EditEntryActivity.java:535-544,656-682,845-867; MainActivity.java:179-182,618-623; EntryListView.java:442-497
+ScannerActivity.lambda$onQrCodeDetected$1
+  old 38 steps -> new 38 steps
+  no new step pairs (edge ids only)
+  dropped: none
+  verdict: CORRECT, same steps
+  evidence: step 25 new edge id only (FAB menu gate removed, cause D); FabMenuHelper.java:60-63
+GoogleAuthProtos$MigrationPayload.parser
+  old 15 steps -> new 36 steps
+  new steps: 8 MainActivity.onStart -> MainActivity.startAuthActivity, 9 MainActivity.startAuthActivity -> AuthActivity.<init>, 10 AuthActivity.<init> -> AuthActivity.onCreate, 11 AuthActivity.onCreate -> AuthActivity.onResume, 12 AuthActivity.onResume -> S_AUTH, 13 S_AUTH -> AuthActivity.lambda$onCreate$2 ...
+  dropped: MainActivity.onStart -> MainActivity.handleIncomingIntent; MainActivity.handleIncomingIntent -> MainActivity.startDecodeQrCodeImages
+  verdict: CORRECT (was unclear)
+  evidence: cause D: FAB > Scan image (image from another app chooser, env) replaces a share from another app (env); MainActivity.java:185-190,255,640-642,812-824; VaultManager.java:243-252
+AuthActivity.lambda$onCreate$3
+  old 14 steps -> new 14 steps
+  no new step pairs (edge ids only)
+  dropped: none
+  verdict: WRONG kept, same steps
+  evidence: step 13 new edge id only (biometric gates env hardware, cause B); AuthActivity.java:270-293
+
+---- full listing (new steps marked +, with gates and evidence)
+### Aegis IconAdapter$CategoryHeader.getPosition (old verdict unclear) old 53 steps -> new 36 steps; STEPS CHANGED
+  +22 E2e3490fc S_LIST -> FabMenuHelper.lambda$setupClickListeners$0 [GUI] env=- | st=- | FW-SRC core/java/android/view/View.java:6289-6296 (performClick calls the OnClickListener.onClick); SRC helper
+  +23 Eebad02db FabMenuHelper.lambda$setupClickListeners$0 -> FabMenuHelper.toggle [CALL] env=- | st=- | SRC FabMenuHelper.java:55 (bytecode)
+  +24 E554aee35 FabMenuHelper.toggle -> FabMenuHelper.open [CALL] env=- | st=- | SRC helpers/FabMenuHelper.java:68-74
+  +25 Ecd19b44c FabMenuHelper.open -> FabMenuHelper.lambda$setupClickListeners$2 [FRAMEWORK] env=- | st=- | FW-SRC core/java/android/view/View.java:6289-6296 (performClick calls the OnClickListener.onClick); SRC helper
+  +26 E0979a03c FabMenuHelper.lambda$setupClickListeners$2 -> MainActivity.startEditEntryActivity() [CALL] env=- | st=- | SRC helpers/FabMenuHelper.java:60-63; SRC ui/MainActivity.java:256
+  +27 Ec66f5e2c MainActivity.startEditEntryActivity() -> MainActivity.startEditEntryActivityForManual [CALL] env=- | st=- | SRC ui/MainActivity.java:475-476,494-499
+  +28 E6597c1f8 MainActivity.startEditEntryActivityForManual -> EditEntryActivity.<init> [INTENT] env=- | st=- | SRC ui/MainActivity.java:509-514; INFERRED androidx.activity.result: the launcher callback runs with the resul
+  +29 Ee228ce53 EditEntryActivity.<init> -> EditEntryActivity.onCreate [LIFECYCLE] env=- | st=- | FW-SRC core/java/android/app/ActivityThread.java:2729-2731,2741 (the system calls Activity.onCreate, then perf
+  +30 E56c5c8c1 EditEntryActivity.onCreate -> EditEntryActivity.lambda$onCreate$5 [FRAMEWORK] env=- | st=- | FW-SRC core/java/android/view/View.java:6289-6296 (performClick calls the OnClickListener.onClick); SRC ui/Edi
+  +31 Eec8d017d EditEntryActivity.lambda$onCreate$5 -> EditEntryActivity.startIconSelection [CALL] env=- | st=- | SRC EditEntryActivity.java:365 (bytecode)
+  +32 E7ccd8d84 EditEntryActivity.startIconSelection -> IconPickerDialog.create@EDIT [CALL] env=outside package: an icon pack is installed: startIconSelection opens t | st=- | SRC ui/EditEntryActivity.java:594
+  +33 E323689ca IconPickerDialog.create@EDIT -> IconAdapter.loadIcons@EDIT [CALL] env=- | st=- | SRC ui/dialogs/IconPickerDialog.java:127
+  +34 E14340591 IconAdapter.loadIcons@EDIT -> IconAdapter.onBindViewHolder@EDIT [FRAMEWORK] env=- | st=- | INFERRED androidx.recyclerview: RecyclerView creates and binds the row views of an adapter after its data chan
+  +35 E7e558a17 IconAdapter.onBindViewHolder@EDIT -> IconAdapter.lambda$onBindViewHolder$3 [FRAMEWORK] env=- | st=- | FW-SRC core/java/android/view/View.java:6289-6296 (performClick calls the OnClickListener.onClick); SRC ui/vie
+  +36 Ef3e88d4c IconAdapter.lambda$onBindViewHolder$3 -> IconAdapter$CategoryHeader.getPosition [CALL] env=- | st=- | SRC IconAdapter.java:189 (bytecode)
+  dropped: S_LIST -> MainActivity.onOptionsItemSelected; MainActivity.onOptionsItemSelected -> MainActivity.startPreferencesActivity(); MainActivity.startPreferencesActivity() -> MainActivity.startPreferencesActivity(Class,String); MainActivity.startPreferencesActivity(Class,String) -> PreferencesActivity.<init>; PreferencesActivity.<init> -> PreferencesActivity.onCreate; PreferencesActivity.onCreate -> MainPreferencesFragment.<init>; MainPreferencesFragment.<init> -> MainPreferencesFragment.onCreatePreferences; MainPreferencesFragment.onCreatePreferences -> S_SETTINGS_MAIN; S_SETTINGS_MAIN -> PreferencesActivity.onPreferenceStartFragment; PreferencesActivity.onPreferenceStartFragment -> ImportExportPreferencesFragment.<init>; ImportExportPreferencesFragment.<init> -> ImportExportPreferencesFragment.onCreatePreferences; ImportExportPreferencesFragment.onCreatePreferences -> ImportExportPreferencesF
+### Aegis EntryAdapter.setTempHighlightEntry (old verdict correct) old 39 steps -> new 39 steps; STEPS CHANGED
+  +22 E2e3490fc S_LIST -> FabMenuHelper.lambda$setupClickListeners$0 [GUI] env=- | st=- | FW-SRC core/java/android/view/View.java:6289-6296 (performClick calls the OnClickListener.onClick); SRC helper
+  +23 Eebad02db FabMenuHelper.lambda$setupClickListeners$0 -> FabMenuHelper.toggle [CALL] env=- | st=- | SRC FabMenuHelper.java:55 (bytecode)
+  +24 E554aee35 FabMenuHelper.toggle -> FabMenuHelper.open [CALL] env=- | st=- | SRC helpers/FabMenuHelper.java:68-74
+  +25 Ecd19b44c FabMenuHelper.open -> FabMenuHelper.lambda$setupClickListeners$2 [FRAMEWORK] env=- | st=- | FW-SRC core/java/android/view/View.java:6289-6296 (performClick calls the OnClickListener.onClick); SRC helper
+  +26 E0979a03c FabMenuHelper.lambda$setupClickListeners$2 -> MainActivity.startEditEntryActivity() [CALL] env=- | st=- | SRC helpers/FabMenuHelper.java:60-63; SRC ui/MainActivity.java:256
+  +27 Ec66f5e2c MainActivity.startEditEntryActivity() -> MainActivity.startEditEntryActivityForManual [CALL] env=- | st=- | SRC ui/MainActivity.java:475-476,494-499
+  +28 E6597c1f8 MainActivity.startEditEntryActivityForManual -> EditEntryActivity.<init> [INTENT] env=- | st=- | SRC ui/MainActivity.java:509-514; INFERRED androidx.activity.result: the launcher callback runs with the resul
+  dropped: S_LIST -> EntryAdapter$2.onLongClick; EntryAdapter$2.onLongClick -> EntryListView.onLongEntryClick; EntryListView.onLongEntryClick -> MainActivity.onLongEntryClick; MainActivity.onLongEntryClick -> MainActivity.startActionMode; MainActivity.startActionMode -> MainActivity$ActionModeCallbacks.onActionItemClicked; MainActivity$ActionModeCallbacks.onActionItemClicked -> MainActivity.startEditEntryActivity(VaultEntry); MainActivity.startEditEntryActivity(VaultEntry) -> EditEntryActivity.<init>
+### Aegis ScannerActivity.lambda$onQrCodeDetected$1 (old verdict correct) old 38 steps -> new 38 steps; SAME STEPS (edge ids only)
+   25 Ecd19b44c FabMenuHelper.open -> FabMenuHelper.lambda$setupClickListeners$2 [FRAMEWORK] env=- | st=- | FW-SRC core/java/android/view/View.java:6289-6296 (performClick calls the OnClickListener.onClick); SRC helper
+### Aegis GoogleAuthProtos$MigrationPayload.parser (old verdict unclear) old 15 steps -> new 36 steps; STEPS CHANGED
+  + 8 Eef600725 MainActivity.onStart -> MainActivity.startAuthActivity [CALL] env=- | st=- | SRC ui/MainActivity.java:942-977
+  + 9 E06202b0e MainActivity.startAuthActivity -> AuthActivity.<init> [INTENT] env=- | st=- | SRC ui/MainActivity.java:1146-1153; INFERRED androidx.activity.result: the launcher callback runs with the res
+  +10 E0158aff6 AuthActivity.<init> -> AuthActivity.onCreate [LIFECYCLE] env=- | st=- | FW-SRC core/java/android/app/ActivityThread.java:2729-2731,2741 (the system calls Activity.onCreate, then perf
+  +11 E911809ef AuthActivity.onCreate -> AuthActivity.onResume [LIFECYCLE] env=- | st=- | FW-SRC core/java/android/app/ActivityThread.java:2741 (performStart runs onStart between onCreate and onResume
+  +12 E87843ac5 AuthActivity.onResume -> S_AUTH [ENTERS] env=- | st=- | SRC ui/AuthActivity.java:73-224
+  +13 E4520b83d S_AUTH -> AuthActivity.lambda$onCreate$2 [GUI] env=- | st=- | FW-SRC core/java/android/view/View.java:6289-6296 (performClick calls the OnClickListener.onClick); SRC ui/Aut
+  +14 Ec2a7b2f4 AuthActivity.lambda$onCreate$2 -> PasswordSlotDecryptTask.doInBackground@AUTH [ASYNC] env=- | st=- | FW-SRC core/java/android/os/AsyncTask.java:594-595 (execute), 632-650 (executeOnExecutor), 326-339 (doInBackgr
+  +15 E9ea40df8 PasswordSlotDecryptTask.doInBackground@AUTH -> PasswordSlotDecryptTask.onPostExecute@AUTH [ASYNC] env=- | st=- | FW-SRC core/java/android/os/AsyncTask.java:594-595 (execute), 632-650 (executeOnExecutor), 326-339 (doInBackgr
+  +16 Ec024ef68 PasswordSlotDecryptTask.onPostExecute@AUTH -> AuthActivity$PasswordDerivationListener.onTaskFinished [CALL] env=- | st=- | SRC ui/tasks/PasswordSlotDecryptTask.java:87-90; SRC ui/AuthActivity.java:343-364
+  +17 Ef7f4f7c4 AuthActivity$PasswordDerivationListener.onTaskFinished -> AuthActivity.finish [CALL] env=- | st=- | SRC ui/AuthActivity.java:345-356; SRC ui/AuthActivity.java:295-311
+  +18 E8a12fac2 AuthActivity.finish -> MainActivity.lambda$new$0 [RESULT] env=- | st=- | SRC ui/AuthActivity.java:295-311; FW-SRC core/java/android/app/ActivityThread.java:4253-4265 (deliverResults p
+  +19 Ec3137a3c MainActivity.lambda$new$0 -> MainActivity.onDecryptResult [CALL] env=- | st=- | SRC ui/MainActivity.java:134-140
+  +20 E49a61ace MainActivity.onDecryptResult -> MainActivity.loadEntries [CALL] env=- | st=- | SRC ui/MainActivity.java:797-801
+  +21 Ea76ae1a0 MainActivity.loadEntries -> S_LIST [ENTERS] env=- | st=- | SRC ui/MainActivity.java:1133-1144; SRC vault/VaultManager.java:231-233
+  +22 E2e3490fc S_LIST -> FabMenuHelper.lambda$setupClickListeners$0 [GUI] env=- | st=- | FW-SRC core/java/android/view/View.java:6289-6296 (performClick calls the OnClickListener.onClick); SRC helper
+  +23 Eebad02db FabMenuHelper.lambda$setupClickListeners$0 -> FabMenuHelper.toggle [CALL] env=- | st=- | SRC FabMenuHelper.java:55 (bytecode)
+  +24 E554aee35 FabMenuHelper.toggle -> FabMenuHelper.open [CALL] env=- | st=- | SRC helpers/FabMenuHelper.java:68-74
+  +25 Ecd19b44c FabMenuHelper.open -> FabMenuHelper.lambda$setupClickListeners$2 [FRAMEWORK] env=- | st=- | FW-SRC core/java/android/view/View.java:6289-6296 (performClick calls the OnClickListener.onClick); SRC helper
+  +26 E4fb13bc8 FabMenuHelper.lambda$setupClickListeners$2 -> MainActivity.startScanImageActivity [CALL] env=- | st=- | SRC helpers/FabMenuHelper.java:60-63; SRC ui/MainActivity.java:255
+  +27 Ef0ebbe1d MainActivity.startScanImageActivity -> VaultManager.fireIntentLauncher(Activity,Intent,ActivityResultLauncher)@QR_SCAN [CALL] env=- | st=- | SRC ui/MainActivity.java:812-824
+  +28 E6d7a279a VaultManager.fireIntentLauncher(Activity,Intent,ActivityResultLauncher)@QR_SCAN -> MainActivity.lambda$new$7 [RESULT] env=the user picks an image or a file in the chooser of another app (MainA | st=- | SRC vault/VaultManager.java:243-252; SRC ui/MainActivity.java:185-190,812-824; FW-SRC core/java/android/app/Ac
+  +29 E909f3342 MainActivity.lambda$new$7 -> MainActivity.onScanImageResult [CALL] env=- | st=- | SRC MainActivity.java:188 (bytecode)
+  +30 Eb1df464c MainActivity.onScanImageResult -> MainActivity.startDecodeQrCodeImages [CALL] env=- | st=- | SRC ui/MainActivity.java:640-642
+  dropped: MainActivity.onStart -> MainActivity.handleIncomingIntent; MainActivity.handleIncomingIntent -> MainActivity.startDecodeQrCodeImages
+### Aegis AuthActivity.lambda$onCreate$3 (old verdict wrong) old 14 steps -> new 14 steps; SAME STEPS (edge ids only)
+   13 Ec43a93ad S_AUTH -> AuthActivity.lambda$onCreate$4 [GUI] env=a fingerprint or face is enrolled and accepted by the sensor (Biometri | st=- | FW-SRC core/java/android/view/View.java:6289-6296 (performClick calls the OnClickListener.onClick); SRC ui/Aut
