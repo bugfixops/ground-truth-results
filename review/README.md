@@ -25,6 +25,7 @@ We re-checked the review: it read our labels correctly in all 23 cases, and 6 of
 | `sample_tune/<App>.csv` | the tuning half of the sample: every row whose id ends in an odd number, plus the 23 checked cases |
 | `checked_cases.csv` | the 23 disagreements decided from the source |
 | `measure.py` | compares the full labels with a sample folder: agreement, confusion table, weighted class shares, and blind A/B files for adjudication |
+| `blind_check/` | the protocol and the reader instructions of the blind check: readers classify methods from the source without seeing any label |
 | `rounds/<n>/` | the report of each measurement round: `agreement.txt`, `disagreements.csv`, `blind.csv`, `blind_key.csv`, `adjudication.csv`, `result.txt` (round 0 has no adjudication; see its `result.txt`) |
 
 ## The held-out half
