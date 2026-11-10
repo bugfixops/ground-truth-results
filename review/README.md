@@ -22,10 +22,10 @@ We re-checked the review: it read our labels correctly in all 23 cases, and 6 of
 | File | What it is |
 |---|---|
 | `TASK_NOTE.md` | the reviewer's task note: goal, baseline, class rule, what to fix, how to measure |
-| `sample_tune/<App>.csv` | the tuning half of the sample: every row whose id ends in an odd number, plus the 23 checked cases (added when received) |
-| `checked_cases.csv` | the 23 disagreements decided from the source (added when received) |
+| `sample_tune/<App>.csv` | the tuning half of the sample: every row whose id ends in an odd number, plus the 23 checked cases |
+| `checked_cases.csv` | the 23 disagreements decided from the source |
 | `measure.py` | compares the full labels with a sample folder: agreement, confusion table, weighted class shares, and blind A/B files for adjudication |
-| `rounds/<n>/` | the report of each re-audit round |
+| `rounds/<n>/` | the report of each measurement round: `agreement.txt`, `disagreements.csv`, `blind.csv`, `blind_key.csv`, `adjudication.csv`, `result.txt` (round 0 has no adjudication; see its `result.txt`) |
 
 ## The held-out half
 

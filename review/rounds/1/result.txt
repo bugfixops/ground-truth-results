@@ -1,0 +1,50 @@
+Round 1: the final labels (commit f5e5333b, the CI of the re-audit) against the tuning half of the sample
+===========================================================================================================
+
+Sample rows: 136 = every row whose id ends in an odd number (113) plus the 23 checked cases. The held-out half (114 rows) was not opened.
+
+1. Agreement of the class (review/measure.py, files in this folder)
+   before the re-audit (round 0, labels of commit 46682745)   73 of 136 = 53.7%
+   after the re-audit (round 1)                                98 of 136 = 72.1%
+   after, without the 23 checked cases (113 rows)              80 of 113 = 70.8%
+   per app, round 0 -> round 1: Aegis 16 -> 13 of 28, AmazeFileManager 8 -> 19 of 28, AnkiDroid 19 -> 18 of 26,
+   LibreTorrent 12 -> 25 of 27, MMEX 18 -> 23 of 27.
+
+2. Who is right in the disagreements (round 1)
+   38 disagreements. 5 are checked cases that the external review decided from the source (the sample class is not the
+   source class in any of them; the final label has the source class in all 23 checked cases).
+   The other 33 were judged blind from the source: two adjudicators per row, who did not know which side was the sample;
+   a third decided 1 row where the two differed (AnkiDroid-41). Files: blind.csv, blind_key.csv, adjudication.csv.
+     the source supports the sample:        21   (Aegis 4, AmazeFileManager 6, AnkiDroid 7, LibreTorrent 2, MMEX 2)
+     the source supports the full label:    12   (Aegis 11, AmazeFileManager 1)
+     neither:                                0
+   The 21 wrong full labels, by (class the source supports | class the full label has):
+     state | gui 8, env | state 3, env | gui 2, state | library 2, state | env 1, gui | state 1,
+     dead | env 1, dead | state 1, dead | gui 1, dead | library 1.
+   Of the 113 rows without the checked cases, the source supports the full label in 92 (80 agree, 12 more where the sample
+   is wrong) = 81.4%, and the sample in 21 = 18.6%. The 80 agreeing rows were not judged again.
+   The 12 rows where the sample is wrong are mostly Aegis rows where the sample says state and the full label says env:
+   the adjudicators counted a file that comes from the system picker or the camera (icon pack, import file, QR code) as
+   env, as the class rule says ("results returned by another app, such as the DocumentsUI picker"); two of them
+   (Aegis-11, Aegis-17) are medium confidence because a file the app exported itself would be state.
+
+3. Rows that depend on an open rule question or an assumption
+   - AnkiDroid-13, AnkiDroid-35, AnkiDroid-41: the class would change if an open dialog or selection opened by the same GUI
+     sequence did not count as state (it would be gui).
+   - AnkiDroid-41 also assumes that the sample deck of the baseline stays as an .apkg in the AnkiDroid folder; without it the
+     class would be env.
+   - AmazeFileManager-49: one adjudicator relied on the behaviour of the RecyclerView library, which is not in the framework
+     source; it was not checked in source.
+   - The adjudicators are AI agents, not independent people.
+
+4. Class shares weighted with the app weights of the task note (897, 1,012, 1,633, 1,510, 1,495), in %
+                         dead   config   env   state   library   gui
+   113 rows, full labels   30.4    2.1   24.3   22.6     3.3    17.4
+   113 rows, sample        33.4    2.1   19.4   37.5     0.7     7.0
+   136 rows, full labels   26.6    1.7   24.1   27.6     4.4    15.6
+   136 rows, sample        28.5    1.7   22.0   40.7     0.6     6.5
+   all never-run methods in the graphs (final labels)  28.3  1.4  18.4  20.7  8.3  22.9
+   (The 23 checked cases were chosen because the labels disagreed, so the 136-row shares are biased; use the 113 rows.)
+
+5. Next: fix the causes of the 21 wrong labels in the pipeline, rebuild, measure the tuning half again as round 2, and
+   measure the held-out half once at the end.
