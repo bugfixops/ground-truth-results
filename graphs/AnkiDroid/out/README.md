@@ -16,7 +16,7 @@ How every method of **AnkiDroid** is triggered, in the standard configuration: t
 
 - **4186 methods**, **56 pages** (including pseudo pages), **9721 edges**. Verdicts: **3220 REACHABLE**, **966 UNREACHABLE**.
 - UNREACHABLE by reason: branch_never_taken 48, closed_by_api_level 44, closed_by_configuration 22, framework_never_calls 49, no_trigger_in_app 803.
-- ENV gates (methods): hardware 19, network 243, other 23, other_app 143, permission 37, system_event 21, time 1. STATE gates (methods): account 16, data 123, file 63, session 3, settings 216. Methods with no gate: 2420.
+- ENV gates (methods): hardware 19, network 243, other 23, other_app 143, permission 37, system_event 21, time 1. STATE gates (methods): account 16, data 123, file 64, session 3, settings 237. Methods with no gate: 2398.
 - Edge classes: explicit 8516, non_standard 33, page 82, standard 1090. Non-standard edges: 33 (Apache HttpClient 4.x DefaultHttpClient.execute (library source not read); Apache HttpClient 4.x DefaultHttpClient.execute, DefaultClientConnectionOperator (library source not read); Apache HttpClient 4.x DefaultHttpClient.execute, LayeredSocketFactory (library source not read); Apache HttpClient 4.).
 - 37 reachable methods have a non-standard edge on their best route; 83 have no explicit-or-standard-only route at all.
 - Labels confirmed by: INFERRED 242, SOURCE 3944 (SOURCE: every edge of the best route cites a source line, in the app or in the Android 8.1 / library source; INFERRED: some edge rests on inference or on another app).

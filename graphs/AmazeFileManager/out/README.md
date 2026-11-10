@@ -14,12 +14,12 @@ How every method of **AmazeFileManager** is triggered, in the standard configura
 
 ## Numbers
 
-- **2981 methods**, **12 pages** (including pseudo pages), **7318 edges**. Verdicts: **2447 REACHABLE**, **534 UNREACHABLE**.
-- UNREACHABLE by reason: branch_never_taken 3, closed_by_api_level 39, framework_never_calls 54, no_trigger_in_app 438.
-- ENV gates (methods): hardware 38, network 201, other 26, other_app 314, system_event 9. STATE gates (methods): data 46, file 531, session 154, settings 31. Methods with no gate: 1384.
+- **2981 methods**, **12 pages** (including pseudo pages), **7318 edges**. Verdicts: **2445 REACHABLE**, **536 UNREACHABLE**.
+- UNREACHABLE by reason: branch_never_taken 3, closed_by_api_level 39, framework_never_calls 56, no_trigger_in_app 438.
+- ENV gates (methods): hardware 38, network 194, other 26, other_app 314, system_event 9. STATE gates (methods): data 54, file 531, session 154, settings 46. Methods with no gate: 1366.
 - Edge classes: explicit 6257, non_standard 36, page 11, standard 1014. Non-standard edges: 36 (EventBus @Subscribe delivery of FtpReceiverActions; EventBus post of FtpReceiverActions to @Subscribe methods; Glide generated code; XML inflation: LayoutInflater or the preference inflater builds this class from its XML tag through the (Context, AttributeSet) constructor (layout or preference XML c).
 - 78 reachable methods have a non-standard edge on their best route; 134 have no explicit-or-standard-only route at all.
-- Labels confirmed by: INFERRED 1316, SOURCE 1665 (SOURCE: every edge of the best route cites a source line, in the app or in the Android 8.1 / library source; INFERRED: some edge rests on inference or on another app).
+- Labels confirmed by: INFERRED 1322, SOURCE 1659 (SOURCE: every edge of the best route cites a source line, in the app or in the Android 8.1 / library source; INFERRED: some edge rests on inference or on another app).
 
 ## How much to trust it
 
@@ -27,13 +27,13 @@ Verification log (`verification.csv`), counts of what was checked and found:
 
 | Checked | Rows | Correct | Errors found (fixed) | Unclear |
 |---|---:|---:|---:|---:|
-| labels | 622 | 590 | 31 | 1 |
+| labels | 624 | 592 | 31 | 1 |
 | edges (framework and other claims read against source) | 16 | 6 | 10 | 0 |
 | paths (stratified sample, read step by step) | 30 | 4 | 26 | 0 |
 
 Device replay on the emulator (API 27): 0 of 30 routes reached their target method; 0 of these ran the whole script and are `DEVICE_OK`. The other routes are unclear (not reached, script stopped, or unscriptable), never wrong; see `../device/results.csv`.
 
-Path status over all reachable methods: SOURCE_OK 29, UNCHECKED 2417, WRONG 1.
+Path status over all reachable methods: SOURCE_OK 29, UNCHECKED 2415, WRONG 1.
 The rows are the items that were individually checked, not a random sample of all labels; see the notes below for how they were chosen and what the unclear rows wait for.
 
 Edges whose evidence is not a source line (403 of 7318): E9c493cd5 (MainActivity.onResume -> MainActivity.onCreateOptionsMenu); E7a0b9a37 (MainActivity.onCreateOptionsMenu -> MainActivity.onOptionsItemSelected); E745b85ef (MainActivity$1.<init> -> MainActivity$1.doInBackground); Ed18978e9 (MainActivity$1.doInBackground -> MainActivity$1.onPostExecute); Ef643161a (TabFragment.onCreateView -> MainFragment.<init>); E3f533b40 (MainFragment.<init> -> MainFragment.onCreate); Ebd761bbf (MainFragment.onCreate -> MainFragment.onCreateView); E9adbdc5d (MainFragment.onCreateView -> MainFragment.onActivityCreated); E199e866f (RecyclerAdapter.<init> -> RecyclerAdapter.onCreateViewHolder); Ee1989850 (RecyclerAdapter.onCreateViewHolder -> RecyclerAdapter.onBindViewHolder); E6c3cfc3a (RecyclerAdapter.setItems(RecyclerView,ArrayList,boolean) -> RecyclerPreloadModelProvider.getPreloadRequestBuilder); Eacc36ed3 (Drawer.<init> -> Drawer.onNavigationItemSelected) ...
